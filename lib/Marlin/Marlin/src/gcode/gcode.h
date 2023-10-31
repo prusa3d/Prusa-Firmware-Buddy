@@ -279,8 +279,10 @@
  * M971 - Disable phase stepping
  * M972 - Read phase stepping lookup table
  * M973 - Write phase stepping lookup table
- * M974 - Measure print head resonances
+ * M974 - Measure print head resonances and return raw data
  * M975 - Measure accelerometer sampling rate
+ * M976 - Measure print head resonances and return analyzed data
+ * M977 - Calibrate motor for phase stepping
  * M997 - Perform in-application firmware update
  * M999 - Restart after being stopped by error
  *
@@ -1011,6 +1013,8 @@ private:
   static void M973();
   static void M974();
   static void M975();
+  static void M976();
+  static void M977();
 #endif
 
   #if ENABLED(PLATFORM_M997_SUPPORT)

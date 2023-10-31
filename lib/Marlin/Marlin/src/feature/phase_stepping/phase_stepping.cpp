@@ -255,7 +255,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
 
     auto [speed, position] = axis_state.target.has_value()
         ? axis_position(axis_state, move_epoch)
-        : std::make_pair( 0.f, (axis_state.inverted ? axis_state.last_position : -axis_state.last_position) );
+        : std::make_tuple( 0.f, (axis_state.inverted ? axis_state.last_position : -axis_state.last_position) );
     if (!axis_state.inverted) {
         position = -position;
         speed = -speed;
@@ -269,7 +269,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     Stepper::count_position_from_startup[axis_num_to_refresh] =
         axis_state.initial_count_position_from_startup + steps_made;
 
-    const auto& current_lut = position > axis_state.last_position
+    const auto& current_lut = speed > 0
         ? axis_state.forward_current
         : axis_state.backward_current;
     auto [a, b] = current_lut.get_current(axis_state.last_phase);
@@ -326,7 +326,7 @@ __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_steps(int axi
     return position * FACTORS[axis];
 }
 
-__attribute__((optimize("-Ofast"))) std::pair<float, float> phase_stepping::axis_position(const AxisState& axis_state, uint32_t move_epoch) {
+__attribute__((optimize("-Ofast"))) std::tuple<float, float> phase_stepping::axis_position(const AxisState& axis_state, uint32_t move_epoch) {
     float epoch = move_epoch / 1000000.f;
     const MoveTarget& trg = *axis_state.target;
     return {

@@ -2,8 +2,10 @@
 #include "common.hpp"
 
 #include <array>
-#include <cmath>
+#include <numbers>
 #include <cstdint>
+
+#include <hwio_pindef.h>
 
 using namespace phase_stepping;
 
@@ -14,7 +16,7 @@ static const auto sin_lut_values = [](){
     static constexpr int QUARTER = SIN_PERIOD / 4;
     std::array< uint8_t, QUARTER + 1 > values;
     for (size_t i = 0; i != values.size(); i++) {
-        values[i] = CURRENT_AMPLITUDE * sin(M_PI_2 * i / QUARTER) + 0.5;
+        values[i] = CURRENT_AMPLITUDE * sin(std::numbers::pi_v<float> / 2.f * i / QUARTER) + 0.5;
     }
 
     return values;
@@ -53,13 +55,13 @@ int phase_stepping::normalize_motor_phase(int phase) {
 
 void CorrectedCurrentLut::_update_phase_shift() {
     for (size_t i = 0; i != _phase_shift.size(); i++) {
-        double item_phase = i * 2 * M_PI / MOTOR_PERIOD;
-        double phase_shift = 0;
+        float item_phase = i * 2 * std::numbers::pi_v<float> / MOTOR_PERIOD;
+        float phase_shift = 0;
         for (size_t n = 0; n != _spectrum.size(); n++) {
             const SpectralItem& s = _spectrum[n];
             phase_shift += s.mag * std::sin(n * item_phase + s.pha);
         }
-        _phase_shift[i] = std::round(SIN_PERIOD / (2 * M_PI) * phase_shift);
+        _phase_shift[i] = std::round(SIN_PERIOD / (2 * std::numbers::pi_v<float>) * phase_shift);
     }
 }
 
@@ -76,8 +78,8 @@ std::pair< int, int > CorrectedCurrentLut::get_current(int idx) const {
 
 void CorrectedCurrentLut2::_update_phase_shift() {
     for (size_t i = 0; i != MOTOR_PERIOD; i++) {
-        double item_phase = i * 2 * M_PI / MOTOR_PERIOD;
-        double phase_shift = 0;
+        float item_phase = i * 2 * std::numbers::pi_v<float> / MOTOR_PERIOD;
+        float phase_shift = 0;
         for (size_t n = 0; n != _spectrum.size(); n++) {
             const SpectralItem& s = _spectrum[n];
             phase_shift += s.mag * std::sin(n * item_phase + s.pha);

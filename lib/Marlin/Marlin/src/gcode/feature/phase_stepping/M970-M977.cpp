@@ -6,6 +6,7 @@
 #include <module/motion.h>
 #include <feature/precise_stepping/precise_stepping.hpp>
 #include <feature/phase_stepping/phase_stepping.hpp>
+#include <feature/phase_stepping/calibration.hpp>
 #include <string_view>
 #include <charconv>
 
@@ -27,11 +28,17 @@ static auto print_error = [](auto... args) {
     SERIAL_CHAR('\n');
 };
 
-bool is_one_of(char c, std::string_view sv) {
+static bool is_one_of(char c, std::string_view sv) {
     for (char x : sv)
         if (c == x)
             return true;
     return false;
+}
+
+static const char* fixed_repr(float number, int n = 5) {
+    static char buffer[32];
+    snprintf(buffer, 32, "%.*f", n, number);
+    return buffer;
 }
 
 class DisableBusyReport {
@@ -102,9 +109,9 @@ void GcodeSuite::M972() {
                 SERIAL_ECHO(", ");
                 SERIAL_ECHO(i);
                 SERIAL_ECHO(", ");
-                SERIAL_ECHO(table[i].mag);
+                SERIAL_ECHO(fixed_repr(table[i].mag, 7));
                 SERIAL_ECHO(", ");
-                SERIAL_ECHO(table[i].pha);
+                SERIAL_ECHO(fixed_repr(table[i].pha, 7));
                 SERIAL_ECHO('\n');
             }
         }
@@ -194,30 +201,6 @@ void GcodeSuite::M973() {
     });
 }
 
-// Given change in physical space, return change in logical axis.
-// - for cartesian this is identity,
-// - for CORE XY it converts (A, B) to (X, Y)
-static std::pair< double, double > physical_to_logical(double x, double y) {
-    #ifdef COREXY
-        return {
-            (x + y) / 2,
-            (x - y) / 2
-        };
-    #else
-        return {x, y};
-    #endif
-}
-
-static double rev_to_mm(int axis, double revs) {
-    static constexpr int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-    static constexpr int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
-    #ifdef HAS_LDO_400_STEP
-        static constexpr double STEPS = 400.0;
-    #else
-        static constexpr double STEPS = 200.0;
-    #endif
-    return revs * STEPS * MICROSTEPS[axis] / STEPS_PER_UNIT[axis];
-}
 
 template < typename YieldError >
 static bool accelerometer_ok(PrusaAccelerometer& acc, YieldError yield_error) {
@@ -246,117 +229,8 @@ static bool accelerometer_ok(PrusaAccelerometer& acc, YieldError yield_error) {
         case PrusaAccelerometer::Error::corrupted_sample_overrun:
             yield_error("overrun");
             return false;
-        case PrusaAccelerometer::Error::corrupted_buddy_overflow:
-            yield_error("corrupted_buddy_overflow");
-            return false;
-        case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
-            yield_error("corrupted_dwarf_overflow");
-            return false;
-        case PrusaAccelerometer::Error::corrupted_transmission_error:
-            yield_error("corrupted_transmission_error");
-            return false;
     }
     bsod("Unrecognized accelerometer error");
-}
-
-static int clear_accelerometer(PrusaAccelerometer& accelerometer) {
-    PrusaAccelerometer::Acceleration dummy_sample;
-    int remaining_samples = 0;
-    for (int i = 0; i < 30; ++i) {
-        idle(true, true);
-        while(accelerometer.get_sample(dummy_sample))
-            remaining_samples++;
-    }
-    return remaining_samples;
-}
-
-static void wait_for_movement_start(phase_stepping::AxisState& axis_state) {
-    while (!axis_state.target.has_value()) {
-        idle(true);
-    }
-}
-
-static void wait_for_accel_end(phase_stepping::AxisState& axis_state) {
-    if (!axis_state.target.has_value())
-        return;
-    while (axis_state.target->half_accel != 0)
-        idle(false);
-}
-
-static void wait_for_zero_phase(phase_stepping::AxisState& axis_state) {
-    if (!axis_state.target)
-        return;
-    // We busy wait as the process should be fairly quick
-    if (axis_state.target->start_v > 0) {
-        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) <= phase_stepping::MOTOR_PERIOD / 4);
-        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) >= phase_stepping::MOTOR_PERIOD / 4);
-    }
-    else {
-        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) >= 3 * phase_stepping::MOTOR_PERIOD / 4);
-        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) <= 3 * phase_stepping::MOTOR_PERIOD / 4);
-    }
-}
-
-/**
- * Assuming phase stepping is enabled, measure resonance for given axis. Returns
- * measured samples via a callback, the function returns measured frequency.
- *
- * Note that the accuracy of frequency depends on the sampling time.
- */
-template < typename F >
-double measure_resonance(AxisEnum axis, double speed, double revs, F yield_sample) {
-    static const double MOVE_MARGIN = 0.1; // To account for acceleration and deceleration we use simple hard-coded constant
-    static const double ACC_RESONANCE_PERIOD = 0.4
-    Planner::synchronize();
-
-    phase_stepping::AxisState &axis_state = phase_stepping::axis_states[axis];
-    std::optional<phase_stepping::MoveTarget>& axis_target = axis_state.target;
-
-    // Find move target that corresponds to given number of revs
-    int direction = revs > 0 ? 1 : -1;
-    double axis_revs = direction * (fabs(revs) + MOVE_MARGIN);
-    double a_revs = axis == AxisEnum::X_AXIS ? axis_revs : 0;
-    double b_revs = axis == AxisEnum::Y_AXIS ? axis_revs : 0;
-
-    auto [x_revs, y_revs] = physical_to_logical(a_revs, b_revs);
-    auto [x_speed, y_speed] = physical_to_logical(
-        axis == AxisEnum::X_AXIS ? rev_to_mm(AxisEnum::X_AXIS, speed) : 0,
-        axis == AxisEnum::Y_AXIS ? rev_to_mm(AxisEnum::Y_AXIS, speed) : 0);
-    double d_x = rev_to_mm(AxisEnum::X_AXIS, x_revs);
-    double d_y = rev_to_mm(AxisEnum::Y_AXIS, y_revs);
-
-    double feedrate_mms = sqrt(x_speed * x_speed + y_speed * y_speed);
-
-    plan_move_by(feedrate_mms, d_x, d_y);
-
-    wait_for_movement_start(axis_state);
-    wait_for_accel_end(axis_state);
-    delay(ACC_RESONANCE_PERIOD * 1000);
-
-    uint32_t start_time = ticks_us();
-    int samples_taken = 0;
-    int counter = 0;
-    PrusaAccelerometer accelerometer;
-    if (!accelerometer_ok(accelerometer, print_error))
-        return 0;
-    while (axis_target.has_value() && axis_target->half_accel == 0) {
-        counter++;
-        PrusaAccelerometer::Acceleration sample;
-        int new_sample = accelerometer.get_sample(sample);
-        if (new_sample) {
-            yield_sample(sample.val[0], sample.val[1], sample.val[2]);
-            samples_taken++;
-        }
-    }
-    uint32_t end_time = ticks_us();
-
-    int remaining_samples = clear_accelerometer(accelerometer);
-    log_debug(PhaseStepping, "%d ticks made", counter);
-    log_debug(PhaseStepping, "%d samples taken", samples_taken);
-    log_debug(PhaseStepping, "%d samples remaining", remaining_samples);
-
-    // Sampling frequency
-    return 1000000.0 * samples_taken / double(end_time - start_time);
 }
 
 /**
@@ -410,18 +284,18 @@ void GcodeSuite::M974() {
         return;
     }
 
-    double frequency = measure_resonance(
+    double frequency = phase_stepping::capture_samples(
         axis,
         parser.floatval('F'),
         parser.floatval('R'),
-        [sampleNum = 0] (float x, float y, float z) mutable {
+        [sampleNum = 0] (const PrusaAccelerometer::Acceleration& sample) mutable {
             SERIAL_ECHO(sampleNum);
             SERIAL_ECHO(", ");
-            SERIAL_ECHO(x);
+            SERIAL_ECHO(sample.val[0]);
             SERIAL_ECHO(", ");
-            SERIAL_ECHO(y);
+            SERIAL_ECHO(sample.val[1]);
             SERIAL_ECHO(", ");
-            SERIAL_ECHOLN(z);
+            SERIAL_ECHOLN(sample.val[2]);
             sampleNum++;
         });
     SERIAL_ECHO("sample freq: ");
@@ -440,11 +314,23 @@ void GcodeSuite::M975() {
 
     constexpr int request_samples_num = 3'000;
 
+    auto report = [sampleNum = 0] (const PrusaAccelerometer::Acceleration& sample) mutable {
+            SERIAL_ECHO(sampleNum);
+            SERIAL_ECHO(", ");
+            SERIAL_ECHO(sample.val[0]);
+            SERIAL_ECHO(", ");
+            SERIAL_ECHO(sample.val[1]);
+            SERIAL_ECHO(", ");
+            SERIAL_ECHOLN(sample.val[2]);
+            sampleNum++;
+        };
+
     for (int i = 0; i < request_samples_num;) {
         PrusaAccelerometer::Acceleration measured_acceleration;
         const int samples = accelerometer.get_sample(measured_acceleration);
         if (samples) {
             ++i;
+            report(measured_acceleration);
         } else {
             idle(true, true);
         }
@@ -453,4 +339,167 @@ void GcodeSuite::M975() {
     accelerometer_ok(accelerometer, print_error);
     SERIAL_ECHO("sample freq: ");
     SERIAL_ECHOLN(accelerometer.get_sampling_rate());
+}
+
+/**
+ * @brief Measure print head resonance
+ *
+ * Parameters:
+ * - X/Y - choose motor to use
+ * - F   - motion speed in rev/sec
+ * - R   - number of revolutions
+ *
+ * Outputs frequency response
+ **/
+void GcodeSuite::M976() {
+    DisableBusyReport disable_busy_report;
+
+    bool valid = true;
+
+    for (char required : "FR"sv) {
+        if (parser.seenval(required))
+            continue;
+        valid = false;
+        print_error("Missing ", required, "-parameter");
+    }
+
+    int axes_count = 0;
+    for ( auto [axis, letter] : SUPPORTED_AXES) {
+        if (parser.seen(letter))
+            axes_count++;
+    }
+    if (axes_count != 1) {
+        print_error("Exactly one axis has to be specified");
+        valid = false;
+    }
+
+    auto axis = parser.seen('X') ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
+
+    auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis;
+    if (!(PreciseStepping::physical_axis_step_generator_types & enable_mask)) {
+        print_error("Phase stepping is not enabled");
+        valid = false;
+    }
+
+    if (parser.floatval('F') <= 0) {
+        print_error("Speed has to be positive");
+        valid = false;
+    }
+
+    if (!valid) {
+        print_error("Invalid parameters, no effect");
+        return;
+    }
+
+    auto analysis = phase_stepping::analyze_resonance(
+        axis, parser.floatval('F'), parser.floatval('R'),
+        {{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}});
+
+    if (!analysis.has_value())
+        print_error("Unsuccessful data capture");
+
+    auto& data = *analysis;
+
+    for (std::size_t i = 0 ; i != data.size(); i++) {
+        SERIAL_ECHO(i);
+        SERIAL_ECHO(": ");
+        SERIAL_ECHOLN(data[i]);
+    }
+}
+
+class GCodeCalibrationReporter: public phase_stepping::CalibrationReporterBase {
+public:
+    void on_initial_movement() override {
+        SERIAL_ECHOLN("Moving to calibration position");
+    }
+
+    void on_calibration_phase_progress(int progress) override {
+        SERIAL_ECHO("Phase ");
+        SERIAL_ECHO(_current_calibration_phase + 1);
+        SERIAL_ECHO("/");
+        SERIAL_ECHO(_calibration_phases_count);
+        SERIAL_ECHO(": ");
+        SERIAL_ECHO(progress);
+        SERIAL_ECHOLN("%");
+    }
+
+    void on_calibration_phase_result(float forward_score, float backward_score) override {
+        SERIAL_ECHO("Phase ");
+        SERIAL_ECHO(_current_calibration_phase + 1);
+        SERIAL_ECHO(" done. Vibration reduced by: ");
+        SERIAL_ECHO(100.f - forward_score * 100.f);
+        SERIAL_ECHO("%, ");
+        SERIAL_ECHO(100.f - backward_score * 100.f);
+        SERIAL_ECHO("%\n");
+    };
+
+    void on_termination() override {
+        SERIAL_ECHOLN("Done");
+    }
+};
+
+/**
+ * @brief Calibrate motor
+ *
+ * Parameters:
+ * - X/Y - choose motor to use
+ *
+ * Calibrates given motor and sets the newly found compensation.
+ **/
+void GcodeSuite::M977() {
+    DisableBusyReport _;
+
+    bool valid = true;
+
+    int axes_count = 0;
+    for ( auto [axis, letter] : SUPPORTED_AXES) {
+        if (parser.seen(letter))
+            axes_count++;
+    }
+    if (axes_count != 1) {
+        print_error("Exactly one axis has to be specified");
+        valid = false;
+    }
+
+    auto axis = parser.seen('X') ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
+
+    if (!valid) {
+        print_error("Invalid parameters, no effect");
+        return;
+    }
+
+    SERIAL_ECHO("Axis: ");
+    SERIAL_ECHOLN(axis);
+
+    G28_no_parser(        //home
+        true,             // always_home_all
+        true,             // home only if needed,
+        3,                // raise Z by 3 mm
+        false,            // S-parameter,
+        true, true, false // home X, Y but not Z
+    );
+    Planner::synchronize();
+
+    GCodeCalibrationReporter reporter;
+    auto result = phase_stepping::calibrate_axis(axis, reporter);
+
+    if (!result.has_value()) {
+        print_error("Calibration failed");
+        return;
+    }
+
+    auto [forward, backward] = *result;
+
+    for (int i = 0; i != phase_stepping::CORRECTION_HARMONICS; i++) {
+        SERIAL_ECHO(i);
+        SERIAL_ECHO(": F");
+        SERIAL_ECHO(fixed_repr(forward[i].mag));
+        SERIAL_ECHO(",");
+        SERIAL_ECHO(fixed_repr(forward[i].pha));
+        SERIAL_ECHO(" B");
+        SERIAL_ECHO(fixed_repr(backward[i].mag));
+        SERIAL_ECHO(",");
+        SERIAL_ECHO(fixed_repr(backward[i].pha));
+        SERIAL_ECHO("\n");
+    }
 }

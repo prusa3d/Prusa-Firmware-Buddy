@@ -4,7 +4,6 @@ import time
 
 import click
 
-import argparse
 from copy import copy
 import json
 from contextlib import contextmanager
@@ -30,7 +29,7 @@ MOTOR_PERIOD = 1024
 class Machine:
     def __init__(self, port: Serial) -> None:
         self._port = port
-        self.accFreq = 1400
+        self.accFreq = None
 
     @contextmanager
     def _preserveTimeout(self) -> Generator[None, None, None]:
@@ -45,12 +44,6 @@ class Machine:
         Wait for the board to boot up - that is no new info is echoed
         """
         self.command("G")
-        # with self._preserveTimeout():
-        #     self._port.timeout = 2
-        #     while True:
-        #         line = self._port.readline().decode("utf-8")
-        #         if line == "":
-        #             return
 
     def command(self, command: str, timeout: float = 10) -> List[str]:
         """
@@ -127,7 +120,7 @@ class Machine:
         self.accFreq = [
             float(x.split(":")[1]) for x in response
             if x.startswith("sample freq:")
-        ][0]
+        ][-1]
 
 
 def getPrusaPort() -> Optional[str]:
@@ -162,7 +155,7 @@ def enabledMachineConnection(port: str = getPrusaPort()
 @dataclass
 class PhaseCorrection:
     spectrum: List[Tuple[float, float]] = field(
-        default_factory=lambda: [(0, 0) for _ in range(32)])
+        default_factory=lambda: [(0, 0) for _ in range(17)])
 
     def phaseShift(self) -> List[float]:
         phaseSeq = []
@@ -198,8 +191,6 @@ def projectTo(what: Tuple[float, float], dir: Tuple[float, float]) -> float:
 
 @dataclass
 class ResonanceMeasurement:
-    # Static measurement direction so we always alternate direction between
-    # measurements
     samplesPerPeriod: ClassVar[int] = 1024
 
     speed: float  # rps
@@ -215,7 +206,7 @@ class ResonanceMeasurement:
                 retries: int = 5) -> ResonanceMeasurement:
         try:
             machine.multiCommand(["M400", "G92 X0 Y0"])
-            samples = captureAccSamples(machine, axis, revs, speed)
+            samples, freq = captureAccSamples(machine, axis, revs, speed)
             if ret:
                 machine.command("G0 F10000 X0 Y0")
         except RuntimeError:
@@ -226,12 +217,10 @@ class ResonanceMeasurement:
             return ResonanceMeasurement.measure(machine, axis, speed, revs,
                                                 ret, retries - 1)
 
-        freq = 1 / samples[1][0] - samples[0][0]
         realFreq = machine.accFreq
         if realFreq is None:
             realFreq = freq
-        samples = [(x, y) for idx, x, y, z in samples]
-        # ResonanceMeasurement.direction *= -1
+        samples = [(x, y) for x, y, z in samples]
         return ResonanceMeasurement(speed, realFreq, samples)
 
     @property
@@ -265,6 +254,42 @@ class ResonanceMeasurement:
         chunks = self.signalPeriodChunks
         return np.sum(chunks, axis=0) / len(chunks)
 
+    def rawWholePlot(self) -> go.Figure:
+        fig = go.Figure()
+
+        trace = [(i / self.realSamplingFreq, projectTo(s, (1, 1)))
+                 for i, s in enumerate(self.rawSamples)]
+        fig.add_trace(
+            go.Scatter(x=[x[0] for x in trace], y=[x[1] for x in trace]))
+
+        return fig
+
+    def rawPeriodPlot(self) -> go.Figure:
+        fig = go.Figure()
+
+        trace = [(i / self.realSamplingFreq, projectTo(s, (1, 1)))
+                 for i, s in enumerate(self.rawSamples)]
+        period = 1 / (self.speed * 50)
+        chunks = []
+        i = 0
+        while i < len(trace):
+            l = []
+            limit = (1 + len(chunks)) * period
+            while i < len(trace) and trace[i][0] < limit:
+                l.append((trace[i][0] + period - limit, trace[i][1]))
+                i += 1
+            if len(l) > 0:
+                chunks.append(l)
+
+        traceColors = sample_colorscale("jet",
+                                        list(np.linspace(0, 1, len(chunks))))
+        for i, c in enumerate(chunks):
+            fig.add_trace(
+                go.Scatter(x=[x[0] for x in c],
+                           y=[x[1] for x in c],
+                           line=dict(color=traceColors[i])))
+        return fig
+
     def periodPlot(self) -> go.Figure:
         fig = go.Figure()
         chunks = self.signalPeriodChunks
@@ -297,18 +322,6 @@ class ResonanceMeasurement:
         fig.add_trace(go.Scatter(x=peaksX, y=peaksY, mode="markers"))
         return fig
 
-    def extractSamplingFreq(self) -> float:
-        signal = scipy.signal.detrend(
-            [projectTo(s, (1, 1)) for s in self.rawSamples])
-        fft = rfft(signal)
-        timebins = rfftfreq(len(signal), 1 / self.realSamplingFreq)
-
-        indexMax = np.argmax(fft)
-        fMax = timebins[indexMax]
-        newFeq = self.realSamplingFreq * fMax / np.round(fMax)
-
-        return newFeq
-
     def periodicityPlot(self) -> go.Figure:
         signal = scipy.signal.detrend(
             [projectTo(s, (1, 1)) for s in self.rawSamples])
@@ -332,7 +345,7 @@ class ResonanceMeasurement:
         fig.update_layout(
             yaxis={
                 "title": "Amplitude",
-                "range": [0, 1000]
+                "range": [0, 1500]
             },
             xaxis={"title": "Frequency"},
         )
@@ -408,7 +421,7 @@ def readLut(machine: Machine, axis: str, direction: str) -> PhaseCorrection:
         if not line.startswith(axis):
             continue
         values = line.split(",")
-        dir = values[1]
+        dir = values[1].strip()
         if dir != direction:
             continue
         n = int(values[2])
@@ -422,7 +435,7 @@ def readLut(machine: Machine, axis: str, direction: str) -> PhaseCorrection:
 def writeLut(machine: Machine, axis: str, direction: str,
              correction: PhaseCorrection) -> None:
     tableStr = " ".join(
-        [f"{mag:.5g},{pha:.5g}" for mag, pha in correction.spectrum[:16]])
+        [f"{mag:.7g},{pha:.7g}" for mag, pha in correction.spectrum[:16]])
     command = f"M973 {axis}{direction} {tableStr}"
     if len(command) > 256:
         raise RuntimeError("Too long LUT command")
@@ -430,10 +443,10 @@ def writeLut(machine: Machine, axis: str, direction: str,
     return
 
 
-def captureAccSamples(machine: Machine, axis: str, revs: float,
-                      speed: float) -> List[Tuple[float, float, float, float]]:
+def captureAccSamples(machine: Machine, axis: str, revs: float, speed: float
+                      ) -> Tuple[List[Tuple[float, float, float, int]], float]:
     """
-    Move with the print head and capture samples. Return sample in the format: <time>, <x>, <y>, <z>
+    Move with the print head and capture samples. Return sample in the format: <x>, <y>, <z>, <time_ticks>
     """
     rawResponse = machine.command(f"M974 {axis} R{revs} F{speed}")
     if any("Error:" in x for x in rawResponse):
@@ -444,21 +457,12 @@ def captureAccSamples(machine: Machine, axis: str, revs: float,
         map(float,
             x.split(",")[1:]) for x in rawResponse if x[0].isdigit()
     ]
-    sampleFreq = [
+    freq = [
         float(x.split(":")[1]) for x in rawResponse
         if x.startswith("sample freq:")
-    ]
-    if len(sampleFreq) == 0 or sampleFreq[0] == 0:
-        rawResponse = machine.command(f"M974 {axis} R{-revs} F{speed}")
-        return captureAccSamples(machine, axis, revs, speed)
-    samplePeriod = 1 / sampleFreq[0]
+    ][0]
 
-    try:
-        return [(i * samplePeriod, x, y, z)
-                for i, (x, y, z) in enumerate(accSamples)]
-    except:
-        print(accSamples, rawResponse)
-        raise
+    return [(x, y, z) for x, y, z in accSamples], freq
 
 
 def evaluateCorrection(machine: Machine, axis: str, direction: str,
@@ -467,13 +471,17 @@ def evaluateCorrection(machine: Machine, axis: str, direction: str,
     """
     Given correction, return "badness" of individual harmonics
     """
+    assert axis in "XY"
+    assert direction in "FB"
+
     MEAS_COUNT = 1
+    REVS = 0.5
     writeLut(machine, axis, direction, correction)
     measurements = [
         ResonanceMeasurement.measure(machine,
                                      axis,
                                      speed,
-                                     revs=1 if direction == "B" else -1)
+                                     revs=REVS if direction == "B" else -REVS)
         for _ in range(MEAS_COUNT)
     ]
     magnitudes = [map(lambda x: x[0], m.directSpectrum) for m in measurements]
@@ -565,7 +573,7 @@ def readLutCmd(axis: str, dir: str, port: str) -> None:
     with machineConnection(port) as machine:
         machine.waitForBoot()
         currents = readLut(machine, axis, dir)
-        json.dump(currents, sys.stdout, indent=4)
+        json.dump(currents.spectrum, sys.stdout, indent=4)
 
 
 @click.command("writeLut")
@@ -587,47 +595,15 @@ def writeLutCmd(axis: str, dir: str, port: str, filepath: str) -> None:
 
 
 @click.command("analyseResonance")
-@click.option("--axis",
-              type=click.Choice(["X", "Y"]),
-              help="Axis for reading LUT")
-@click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
-@click.option("--speed", type=float, default=1, help="Test speed")
-@click.option("--revs",
-              type=float,
-              default=1,
-              help="Number of test revolutions")
-def analyseResonanceCmd(axis: str, port: str, speed: float,
-                        revs: float) -> None:
-    with machineConnection(port) as machine:
-        machine.waitForBoot()
-        machine.command("M17")
-        machine.command("M970 X Y")
-        samples = captureAccSamples(machine, axis, revs, speed)
-        machine.command("M18")
-
-    magn = np.array([np.sqrt(x[1] * x[1] + x[2] * x[2]) for x in samples])
-    magn -= np.mean(magn)
-    amplitudes = np.absolute(rfft(magn))
-    timeBins = rfftfreq(len(samples), samples[1][0] - samples[0][0])
-
-    fig = go.Figure()
-
-    fig.add_trace(
-        go.Scatter(x=timeBins, y=amplitudes, mode="lines",
-                   line_shape="spline"))
-    fig.show()
-
-
-@click.command("analyseResonanceRange")
 @click.option("--axis", type=click.Choice(["X", "Y"]))
 @click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
 @click.option("--speedStart", type=float, default=0.5)
 @click.option("--speedStep", type=float, default=0.1)
 @click.option("--speedEnd", type=float, default=5)
 @click.option("--revs", type=float, default=0.5)
-def analyseResonanceRangeCmd(axis: str, port: str, speedstart: float,
-                             speedend: float, speedstep: float,
-                             revs: float) -> None:
+def analyseResonanceCmd(axis: str, port: str, speedstart: float,
+                        speedend: float, speedstep: float,
+                        revs: float) -> None:
     HARMONICS_COUNT = 16
 
     fig = go.Figure()
@@ -697,60 +673,6 @@ def analyseResonanceRangeCmd(axis: str, port: str, speedstart: float,
                        line=dict(color=traceColors[n])))
 
     fig.show()
-
-
-@click.command("calibrate")
-@click.option("--axis",
-              type=click.Choice(["X", "Y"]),
-              help="Axis for reading LUT")
-@click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
-@click.option("--speed", type=float, default=1.5)
-@click.option("--output",
-              type=click.Path(file_okay=True, dir_okay=False),
-              default=None)
-def calibrateCmd(axis: str, port: str, speed: float, output: str) -> None:
-    with machineConnection(port) as machine:
-        machine.waitForBoot()
-        machine.command("M17")
-        machine.command("M970 X Y")
-
-        correction = PhaseCorrection()
-        correction.spectrum[2] = (0.05, 3.42)
-        correction.spectrum[4] = (0.043, 1.14)
-
-        mag, pha = reacalibrate(machine, axis, correction, 4, 0.05, 0.3, speed)
-        correction = adjustedCorrection(correction, 4, mag, pha)
-
-        mag, pha = reacalibrate(machine, axis, correction, 4, 0.01, 0.1,
-                                speed / 2)
-        correction = adjustedCorrection(correction, 4, mag, pha)
-
-        mag, pha = reacalibrate(machine, axis, correction, 2, 0.01, 0.3, speed)
-        correction = adjustedCorrection(correction, 2, mag, pha)
-
-        mag, pha = reacalibrate(machine, axis, correction, 2, 0.01, 0.1,
-                                speed / 2)
-        correction = adjustedCorrection(correction, 2, mag, pha)
-
-        mag, pha = reacalibrate(machine, axis, correction, 8, 0.05, np.pi,
-                                speed)
-        correction = adjustedCorrection(correction, 8, mag, pha)
-
-        mag, pha = reacalibrate(machine, axis, correction, 8, 0.01, 0.1,
-                                speed / 2)
-        correction = adjustedCorrection(correction, 8, mag, pha)
-
-        # for n in [3, 5, 6, 7, 8]:
-        #     mag, pha = reacalibrate(machine, axis, correction, n, 0.1, 2 * np.pi, speed)
-        #     correction = adjustedCorrection(correction, n, mag, pha)
-
-        writeLut(machine, "X", correction)
-
-    if output is not None:
-        with open(output, "w") as f:
-            json.dump(correction.spectrum, f)
-
-    print(correction.spectrum)
 
 
 @click.command("calibrateIndiv")
@@ -825,18 +747,46 @@ def analyzeSamplesCmd(axis: str, port: str, speed: float, revs: float):
     Plot sample analysis
     """
     with enabledMachineConnection(port) as machine:
-        print("Measuring accelerometer")
-        # machine.measureAccSampligFreq()
-        print(machine.accFreq)
         measurement = ResonanceMeasurement.measure(machine, axis, speed, revs)
 
-    measurement.periodPlot().show()
-    measurement.autocorrPlot().show()
-    measurement.plotSpectrum(measurement.averageSpectrum).show()
+    # measurement.periodPlot().show()
+    # measurement.autocorrPlot().show()
+    # measurement.plotSpectrum(measurement.averageSpectrum).show()
     measurement.plotSpectrum(measurement.directSpectrum).show()
     measurement.rawPeriodPlot().show()
     measurement.rawWholePlot().show()
     # measurement.periodicityPlot().show()
+
+
+@click.command("analyzeMachineSamples")
+@click.option("--axis",
+              type=click.Choice(["X", "Y"]),
+              help="Axis for reading LUT")
+@click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
+@click.option("--speed", type=float, default=1)
+@click.option("--revs", type=float, default=0.2)
+def analyzeMachineSamplesCmd(axis: str, port: str, speed: float, revs: float):
+    """
+    Plot sample analysis performed by the machine
+    """
+    with enabledMachineConnection(port) as machine:
+        machine.multiCommand(["M400", "G92 X0 Y0"])
+        rawResponse = machine.command(f"M976 {axis} R{revs} F{speed}")
+        machine.command("G0 F10000 X0 Y0")
+
+    print(rawResponse)
+    dataPoints = [float(x.split(":")[1]) for x in rawResponse]
+
+    fig = go.Figure()
+    fig.update_layout(
+        yaxis={
+            "title": "Amplitude",
+            # "range": [0, 1500]
+        },
+        xaxis={"title": "Frequency"},
+    )
+    fig.add_trace(go.Bar(x=list(range(len(dataPoints)))[1:], y=dataPoints[1:]))
+    fig.show()
 
 
 @click.command("analyzeConsistency")
@@ -850,12 +800,10 @@ def analyzeSamplesCmd(axis: str, port: str, speed: float, revs: float):
 def analyzeConsistencyCmd(axis: str, port: str, speed: float, revs: float,
                           n: int):
     """
-    Analyze consistency of measurement
+    Analyze consistency of measurement by repeated measurement and comparing the
+    results.
     """
     with enabledMachineConnection(port) as machine:
-        print("Measuring accelerometer")
-        # # machine.measureAccSampligFreq()
-        print(machine.accFreq)
         measurements = [
             ResonanceMeasurement.measure(machine, axis, speed, revs)
             for _ in range(n)
@@ -864,7 +812,7 @@ def analyzeConsistencyCmd(axis: str, port: str, speed: float, revs: float,
     fig.update_layout(
         yaxis={
             "title": "Amplitude",
-            "range": [0, 10000]
+            "range": [0, 3000]
         },
         xaxis={"title": "Harmonic"},
     )
@@ -880,18 +828,22 @@ def analyzeConsistencyCmd(axis: str, port: str, speed: float, revs: float,
 @click.option("--axis",
               type=click.Choice(["X", "Y"]),
               help="Axis for reading LUT")
+@click.option("--dir",
+              type=click.Choice(["F", "B"]),
+              default="F",
+              help="Table for which direction")
 @click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
 @click.option("--speed", type=float, default=1.4)
 @click.option("--n", type=int, default=2)
 @click.option("--mag", type=float, default=0.02)
 @click.option("--segments", type=int, default=10)
 @click.option("--output", type=click.Path(), default=None)
-def plotCorrectionValuesCmd(axis: str, port: str, speed: float, n: int,
-                            mag: float, segments: int, output: Optional[str]):
+def plotCorrectionValuesCmd(axis: str, dir: str, port: str, speed: float,
+                            n: int, mag: float, segments: int,
+                            output: Optional[str]):
     samples = {}
     i = 0
     with enabledMachineConnection(port) as machine:
-        machine.command("M906 X450 Y650")
         for phase, mag in itertools.product(
                 valuesInRange(0, 2 * np.pi, segments),
                 valuesInRange(0, mag, segments)):
@@ -902,7 +854,8 @@ def plotCorrectionValuesCmd(axis: str, port: str, speed: float, n: int,
             sys.stdout.flush()
             correction = PhaseCorrection()
             correction.spectrum[n] = (mag, phase)
-            badness = evaluateCorrection(machine, axis, correction, speed)[n]
+            badness = evaluateCorrection(machine, axis, dir, correction,
+                                         speed)[n]
             print(badness)
             samples[(phase, mag)] = badness
     print(samples)
@@ -938,10 +891,9 @@ def cli():
 cli.add_command(readLutCmd)
 cli.add_command(writeLutCmd)
 cli.add_command(analyseResonanceCmd)
-cli.add_command(analyseResonanceRangeCmd)
-cli.add_command(calibrateCmd)
 cli.add_command(calibrateIndivCmd)
 cli.add_command(analyzeSamplesCmd)
+cli.add_command(analyzeMachineSamplesCmd)
 cli.add_command(analyzeConsistencyCmd)
 cli.add_command(plotCorrectionValuesCmd)
 

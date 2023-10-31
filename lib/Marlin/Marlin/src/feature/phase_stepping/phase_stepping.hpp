@@ -195,7 +195,7 @@ int32_t pos_to_steps(int axis, float position);
  * Given axis state and time in µs ticks from movement start, compute axis
  * speed and position.
  */
-std::pair<float, float> axis_position(const AxisState& axis_state, uint32_t move_epoch);
+std::tuple<float, float> axis_position(const AxisState& axis_state, uint32_t move_epoch);
 
 /**
  * Extracts physical axis position from logical one
@@ -239,6 +239,11 @@ public:
             phase_stepping::enable(AxisEnum(i), ENABLED);
         }
     }
+
+    EnsureState(const EnsureState&) = delete;
+    EnsureState(const EnsureState&&) = delete;
+    EnsureState& operator=(const EnsureState&) = delete;
+    EnsureState& operator=(const EnsureState&&) = delete;
 
     ~EnsureState() {
         release();

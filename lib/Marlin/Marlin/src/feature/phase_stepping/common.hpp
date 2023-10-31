@@ -7,4 +7,10 @@ namespace phase_stepping {
     static constexpr int CURRENT_AMPLITUDE = 248;
     static constexpr int CORRECTION_HARMONICS = 16;
     static constexpr int SUPPORTED_AXIS_COUNT = 2;
+
+    struct SpectralItem {
+        float mag = 0, pha = 0;
+    };
+
+    using MotorPhaseCorrection = std::array<SpectralItem, CORRECTION_HARMONICS + 1>;
 } // phase_stepping

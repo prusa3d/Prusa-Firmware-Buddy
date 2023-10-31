@@ -30,15 +30,10 @@ int normalize_motor_phase(int phase);
  **/
 int normalize_sin_phase(int phase);
 
-
-struct SpectralItem {
-    float mag = 0, pha = 0;
-};
-
 class CorrectedCurrentLut {
 public:
-    std::array< SpectralItem, CORRECTION_HARMONICS + 1 > _spectrum = {};
-    std::array< int8_t, MOTOR_PERIOD > _phase_shift = {};
+    MotorPhaseCorrection _spectrum = {};
+    std::array<int8_t, MOTOR_PERIOD> _phase_shift = {};
 
     void _update_phase_shift();
 public:
@@ -48,7 +43,7 @@ public:
         return _spectrum;
     };
 
-    template < typename F >
+    template <typename F>
         requires requires(F f) { f(_spectrum ); }
     void modify_correction(F f) {
         f(_spectrum);
@@ -77,7 +72,7 @@ public:
     };
 
 
-    std::array< SpectralItem, CORRECTION_HARMONICS + 1 > _spectrum = {};
+    MotorPhaseCorrection _spectrum = {};
     CurrentTrace _sin, _cos;
 
     void _update_phase_shift();
@@ -91,7 +86,7 @@ public:
     };
 
     template < typename F >
-        requires requires(F f) { f(_spectrum ); }
+        requires requires(F f) { f(_spectrum); }
     void modify_correction(F f) {
         f(_spectrum);
         _update_phase_shift();
