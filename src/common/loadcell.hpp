@@ -92,7 +92,7 @@ public:
     float GetHysteresis() const;
 
     void ProcessSample(int32_t loadcellRaw, uint32_t time_us);
-    inline uint32_t GetLastSampleTime() const { return last_sample_time; }
+    inline uint32_t GetLastSampleTimeMs() const { return last_sample_time_us / 1000; }
 
     bool GetMinZEndstop() const;
     bool GetXYEndstop() const;
@@ -292,7 +292,7 @@ private:
 
     /// Time when last valid sample arrived
     // atomic because its set in interrupt/puppytask, read in default task
-    std::atomic<uint32_t> last_sample_time;
+    std::atomic<uint32_t> last_sample_time_us;
 };
 
 extern Loadcell loadcell;
