@@ -20,14 +20,22 @@
 /// @param is_tool_enabled callback function that should return true when tool is available for that action, false when not available
 [[nodiscard]] ToolBox::DialogResult show_tool_selector_dialog(ToolBox::DialogToolActionBox<ToolBox::MenuPickAndGo>::IsToolEnabledFP available_for_tool = nullptr) {
     if (prusa_toolchanger.is_toolchanger_enabled()) {
-        ToolBox::DialogToolActionBox<ToolBox::MenuPickAndGo> d;
-        if (available_for_tool) {
-            d.DisableNotAvailable(available_for_tool);
+        ToolBox::DialogResult result;
+        {
+            ToolBox::DialogToolActionBox<ToolBox::MenuPickAndGo> d;
+            if (available_for_tool) {
+                d.DisableNotAvailable(available_for_tool);
+            }
+            d.Preselect(prusa_toolchanger.get_active_tool_nr() + 1); // PickAndGo has return;
+            d.MakeBlocking();
+            result = d.get_result();
         }
-        d.Preselect(prusa_toolchanger.get_active_tool_nr() + 1); // PickAndGo has return;
-        d.MakeBlocking();
-        Screens::Access()->Get()->Validate();
-        return d.get_result();
+
+        // when action follows, avoid redrawing parent screen to avoid flicker back to parent screen
+        // note: this has to be called after DialogToolActionBox destructor is called, otherwise it would re-validate parent screen
+        if (result != ToolBox::DialogResult::Return)
+            Screens::Access()->Get()->Validate();
+        return result;
     }
 
     return ToolBox::DialogResult::Unknown;
