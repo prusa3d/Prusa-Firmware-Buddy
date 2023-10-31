@@ -413,6 +413,8 @@ PrintPreview::Result PrintPreview::Loop() {
 
         if (gcode_info.can_be_printed()) {
             ChangeState(State::loading);
+        } else if (gcode_info.has_error()) {
+            ChangeState(State::file_error_wait_user);
         }
         break;
 
