@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../inc/MarlinConfig.h"
+#include <option/has_phase_stepping.h>
 
 #include <utility>
 #include <bitset>
@@ -13,7 +14,9 @@ struct step_event_info_t;
 struct step_generator_state_t;
 struct move_segment_step_generator_t;
 
-#ifdef PHASE_STEPPING
+#if not (HAS_PHASE_STEPPING())
+    #include "phase_stepping_dummies.hpp"
+#else
 
 #include "common.hpp"
 #include "lut.hpp"
@@ -257,6 +260,4 @@ using EnsureDisabled = EnsureState<false>;
 
 } // namespace phase_stepping
 
-#else // ifdef PHASE_STEPPING
-    #include "phase_stepping_dummies.hpp"
-#endif // ifdef PHASE_STEPPING
+#endif // if !HAS_PHASE_STEPPING

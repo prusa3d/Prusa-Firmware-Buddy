@@ -32,7 +32,9 @@
 
 #include "feature/input_shaper/input_shaper_config.hpp"
 #include "feature/pressure_advance/pressure_advance_config.hpp"
-#ifdef PHASE_STEPPING
+
+#include <option/has_phase_stepping.h>
+#if HAS_PHASE_STEPPING()
   #include "feature/phase_stepping/phase_stepping.hpp"
 #endif
 
@@ -1018,7 +1020,7 @@ void setup() {
   // NOTE: this enables (timer) interrupts!
   planner.init();
   stepper.init();
-#ifdef PHASE_STEPPING
+#if HAS_PHASE_STEPPING()
   phase_stepping::init();
 #endif
   PreciseStepping::init();

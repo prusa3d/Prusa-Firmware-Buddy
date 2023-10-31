@@ -49,7 +49,9 @@
   #include "speed_lookuptable.h"
 #endif
 
-#ifdef PHASE_STEPPING
+#include <option/has_phase_stepping.h>
+
+#if HAS_PHASE_STEPPING()
   #include "../feature/phase_stepping/phase_stepping.hpp"
 #endif
 

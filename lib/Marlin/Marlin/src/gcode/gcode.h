@@ -296,6 +296,8 @@
 #include "../inc/MarlinConfig.h"
 #include "parser.h"
 
+#include <option/has_phase_stepping.h>
+
 #if ENABLED(I2C_POSITION_ENCODERS)
   #include "../feature/I2CPositionEncoder.h"
 #endif
@@ -1006,7 +1008,7 @@ private:
   static void M959();
 #endif
 
-#if ENABLED(PHASE_STEPPING)
+#if HAS_PHASE_STEPPING()
   static void M970();
   static void M971();
   static void M972();

@@ -526,7 +526,7 @@ void PreciseStepping::init() {
     Stepper::count_direction.y = (Stepper::last_direction_bits & STEP_EVENT_FLAG_Y_DIR) ? -1 : 1;
     Stepper::count_direction.z = (Stepper::last_direction_bits & STEP_EVENT_FLAG_Z_DIR) ? -1 : 1;
     Stepper::count_direction.e = (Stepper::last_direction_bits & STEP_EVENT_FLAG_E_DIR) ? -1 : 1;
-#if PHASE_STEPPING
+#if HAS_PHASE_STEPPING()
     LOOP_XYZ(i) {
         PreciseStepping::step_generators_pool.classic_step_generator[i].phase_step_state = phase_stepping::axis_states[i].get();
     }
@@ -534,7 +534,7 @@ void PreciseStepping::init() {
 #ifdef ADVANCED_STEP_GENERATORS
     LOOP_XYZ(i) {
         PreciseStepping::step_generators_pool.input_shaper_step_generator[i].is_state = &InputShaper::is_state[i];
-    #if PHASE_STEPPING
+    #if HAS_PHASE_STEPPING()
         PreciseStepping::step_generators_pool.input_shaper_step_generator[i].phase_step_state = phase_stepping::axis_states[i].get();
     #endif
     }
@@ -1256,7 +1256,7 @@ void PreciseStepping::reset_queues() {
     // reset internal state and queues
     step_event_queue_clear();
     move_segment_queue_clear();
-#ifdef PHASE_STEPPING
+#if HAS_PHASE_STEPPING()
     phase_stepping::stop_immediately();
 #endif
     reset_from_halt(false);

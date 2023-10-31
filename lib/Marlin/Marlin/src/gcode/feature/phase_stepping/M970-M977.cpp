@@ -10,8 +10,6 @@
 #include <string_view>
 #include <charconv>
 
-#ifdef PHASE_STEPPING
-
 LOG_COMPONENT_REF(PhaseStepping);
 
 using namespace std::literals;
@@ -505,5 +503,3 @@ void GcodeSuite::M977() {
         SERIAL_ECHO("\n");
     }
 }
-
-#endif // ifdef PHASE_STEPPING

@@ -8,8 +8,6 @@
 
 #include "common.hpp"
 
-#ifdef PHASE_STEPPING
-
 // This module is responsible for implementing any lookup tables used in phase
 // stepping.
 
@@ -98,5 +96,3 @@ public:
 };
 
 } // namespace phase_stepping
-
-#endif // ifdef PHASE_STEPPING

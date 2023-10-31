@@ -13,8 +13,6 @@
 
 #include <TMCStepper.h>
 
-#ifdef PHASE_STEPPING
-
 #include "log.h"
 LOG_COMPONENT_DEF(PhaseStepping, LOG_SEVERITY_DEBUG);
 
@@ -524,5 +522,3 @@ __attribute__((optimize("-Ofast"))) std::tuple<float, float> phase_stepping::axi
         trg.initial_pos + trg.start_v * epoch + trg.half_accel * epoch * epoch
     };
 }
-
-#endif // ifdef PHASE_STEPPING

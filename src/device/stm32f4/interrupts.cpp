@@ -15,8 +15,9 @@
 #include "safe_state.h"
 #include "data_exchange.hpp"
 #include <option/buddy_enable_wui.h>
+#include <option/has_phase_stepping.h>
 
-#ifdef PHASE_STEPPING
+#if HAS_PHASE_STEPPING()
     #include <feature/phase_stepping/phase_stepping.hpp>
     #include <feature/phase_stepping/quick_tmc_spi.hpp>
 #endif
@@ -240,7 +241,7 @@ void TIM8_UP_TIM13_IRQHandler(void) {
     // - we don't use HAL handler: HAL_TIM_IRQHandler(&htim13) as it takes 3 µs
     // - we avoid indirect access to peripheral registers via handle as it takes
     //   0.4 µs
-#ifdef PHASE_STEPPING
+#if HAS_PHASE_STEPPING()
     if (TIM13->SR & TIM_FLAG_CC1) {
         TIM13->SR &= ~TIM_FLAG_CC1;
         phase_stepping::spi::finish_transmission();

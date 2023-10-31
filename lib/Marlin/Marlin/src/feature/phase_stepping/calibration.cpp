@@ -11,8 +11,6 @@
 #include <cmath>
 #include <numbers>
 
-#ifdef PHASE_STEPPING
-
 using namespace phase_stepping;
 
 LOG_COMPONENT_REF(PhaseStepping);
@@ -603,5 +601,3 @@ std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>>
 
     return {{forward_correction, backward_correction}};
 }
-
-#endif // ifdef PHASE_STEPPING

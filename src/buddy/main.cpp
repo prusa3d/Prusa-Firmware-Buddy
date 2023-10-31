@@ -40,6 +40,7 @@
 #include <option/has_mmu2.h>
 #include <option/resources.h>
 #include <option/bootloader_update.h>
+#include <option/has_phase_stepping.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -77,7 +78,7 @@
     #include "hw_configuration.hpp"
 #endif
 
-#if PHASE_STEPPING
+#if HAS_PHASE_STEPPING()
     #include <feature/phase_stepping/phase_stepping.hpp>
 #endif
 
@@ -239,7 +240,7 @@ extern "C" void main_cpp(void) {
     hw_tim1_init();
 #endif
 
-#ifdef PHASE_STEPPING
+#if HAS_PHASE_STEPPING()
     hw_tim13_init();
 #endif
 
@@ -608,7 +609,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     } else if (htim->Instance == TICK_TIMER) {
         app_tick_timer_overflow();
     }
-#if PHASE_STEPPING
+#if HAS_PHASE_STEPPING()
     else if (htim->Instance == TIM13) {
         phase_stepping::handle_periodic_refresh();
     }

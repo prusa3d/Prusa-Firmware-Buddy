@@ -5,8 +5,6 @@
 #include <TMCStepper.h>
 #include <hwio.h>
 
-#ifdef PHASE_STEPPING
-
 using namespace phase_stepping;
 using namespace phase_stepping::spi;
 using namespace buddy::hw;
@@ -78,5 +76,3 @@ void phase_stepping::spi::finish_transmission() {
     cs_pins[active_axis].write(Pin::State::high);
     tmc_serial_lock_release_isr();
 }
-
-#endif // ifdef PHASE_STEPPING

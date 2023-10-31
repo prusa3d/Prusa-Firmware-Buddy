@@ -9,6 +9,8 @@
 #include "../../inc/MarlinConfig.h"
 #include "../../core/types.h"
 
+#include <option/has_phase_stepping.h>
+
 #define MOVE_SEGMENT_QUEUE_MOD(n) ((n) & (MOVE_SEGMENT_QUEUE_SIZE - 1))
 #define STEP_EVENT_QUEUE_MOD(n)   ((n) & (STEP_EVENT_QUEUE_SIZE - 1))
 
@@ -213,7 +215,7 @@ typedef struct move_segment_step_generator_t : basic_step_generator_t {
 
     // We don't use inheritance on purpose – phase stepping is to some degree
     // orthogonal to classical and advanced step generators
-#ifdef PHASE_STEPPING
+#if HAS_PHASE_STEPPING()
     phase_stepping::AxisState *phase_step_state = nullptr;
 #endif
 } move_segment_step_generator_t;

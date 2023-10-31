@@ -904,7 +904,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 959: M959(); break;
       #endif
 
-      #if ENABLED(PHASE_STEPPING)
+      #if HAS_PHASE_STEPPING()
         case 970: M970(); break;
         case 971: M971(); break;
         case 972: M972(); break;

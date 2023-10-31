@@ -252,6 +252,7 @@ set(PRINTERS_WITH_POWER_PANIC "MK4" "MK3.5" "XL") # this does require selftest a
                                                   # to work
 set(PRINTERS_WITH_PRECISE_HOMING "MK4")
 set(PRINTERS_WITH_PRECISE_HOMING_COREXY "XL")
+set(PRINTERS_WITH_PHASE_STEPPING "XL")
 # private MINI would not fit to 1MB so it has disabled selftest set(PRINTERS_WITH_SELFTEST "MINI"
 # "MK4")
 set(PRINTERS_WITH_SELFTEST "MK4" "MK3.5" "XL" "iX" "MINI")
@@ -422,6 +423,13 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_HUMAN_INTERACTIONS)
 else()
   define_boolean_option(HAS_HUMAN_INTERACTIONS NO)
 endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_PHASE_STEPPING AND BOARD MATCHES ".*BUDDY")
+  set(HAS_PHASE_STEPPING YES)
+else()
+  set(HAS_PHASE_STEPPING NO)
+endif()
+define_boolean_option(HAS_PHASE_STEPPING ${HAS_PHASE_STEPPING})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_LOADCELL AND BOARD MATCHES ".*BUDDY")
   set(HAS_LOADCELL YES)
