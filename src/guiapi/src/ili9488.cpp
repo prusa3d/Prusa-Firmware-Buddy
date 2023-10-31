@@ -173,21 +173,21 @@ void ili9488_spi_wr_byte(uint8_t b) {
     HAL_SPI_Transmit(ili9488_config.phspi, &b, 1, HAL_MAX_DELAY);
 }
 
-void ili9488_spi_wr_bytes(uint8_t *pb, uint16_t size) {
+void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size) {
     if ((ili9488_flg & ILI9488_FLG_DMA) && !(ili9488_flg & ILI9488_FLG_SAFE) && (size > 4)) {
 #ifdef ILI9488_USE_RTOS
         osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_TX);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
 #endif // ILI9488_USE_RTOS
         assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(pb)));
-        HAL_SPI_Transmit_DMA(ili9488_config.phspi, pb, size);
+        HAL_SPI_Transmit_DMA(ili9488_config.phspi, const_cast<uint8_t *>(pb), size);
 #ifdef ILI9488_USE_RTOS
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
 #else // ILI9488_USE_RTOS
 // TODO:
 #endif // ILI9488_USE_RTOS
     } else
-        HAL_SPI_Transmit(ili9488_config.phspi, pb, size, HAL_MAX_DELAY);
+        HAL_SPI_Transmit(ili9488_config.phspi, const_cast<uint8_t *>(pb), size, HAL_MAX_DELAY);
 }
 
 uint32_t saved_prescaler;
@@ -219,7 +219,7 @@ void ili9488_spi_rd_bytes(uint8_t *pb, uint16_t size) {
     ret = ret; // prevent warning
 }
 
-void ili9488_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
+void ili9488_cmd(uint8_t cmd, const uint8_t *pdata, uint16_t size) {
     ili9488_clr_cs(); // CS = L
     ili9488_clr_rs(); // RS = L
     ili9488_spi_wr_byte(cmd); // write command byte
@@ -231,7 +231,7 @@ void ili9488_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
 }
 
 template <size_t SZ>
-void ili9488_cmd_array(uint8_t cmd, std::array<uint8_t, SZ> arr) {
+void ili9488_cmd_array(uint8_t cmd, const std::array<uint8_t, SZ> &arr) {
     ili9488_cmd(cmd, arr.data(), SZ);
 }
 
@@ -452,26 +452,12 @@ static void startup_new_manufacturer() {
     ili9488_cmd_1_data(0xB7, 0xc6);
 
     // PGAMCTRL (Positive Gamma Control)
-    ili9488_cmd_array(0xE0, std::to_array<uint8_t>({ 0x00, 0x08, 0x0c, 0x02, 0x0e, 0x04, 0x30, 0x45, 0x47, 0x04, 0x0c, 0x0a, 0x2e, 0x34, 0x0F }));
+    static constexpr auto gamma_control_data = std::to_array<uint8_t>({ 0x00, 0x08, 0x0c, 0x02, 0x0e, 0x04, 0x30, 0x45, 0x47, 0x04, 0x0c, 0x0a, 0x2e, 0x34, 0x0F });
+    ili9488_cmd_array(0xE0, gamma_control_data);
 
     // NGAMCTRL (Negative Gamma Control)
-    ili9488_cmd_array(0xE1, std::to_array<uint8_t>({
-                                0x00,
-                                0x11,
-                                0x0d,
-                                0x01,
-                                0x0f,
-                                0x05,
-                                0x39,
-                                0x36,
-                                0x51,
-                                0x06,
-                                0x0f,
-                                0x0d,
-                                0x33,
-                                0x37,
-                                0x0F,
-                            }));
+    static constexpr auto ngamma_control_data = std::to_array<uint8_t>({ 0x00, 0x11, 0x0d, 0x01, 0x0f, 0x05, 0x39, 0x36, 0x51, 0x06, 0x0f, 0x0d, 0x33, 0x37, 0x0F });
+    ili9488_cmd_array(0xE1, ngamma_control_data);
 
     ili9488_inversion_on(); // Display Inversion ON
 
