@@ -11,7 +11,6 @@
 #include "eeprom_v9.hpp"
 #include <Configuration.h>
 #include <Configuration_adv.h>
-#include <footer_def.hpp>
 
 namespace config_store_ns::old_eeprom::v10 {
 
@@ -53,9 +52,32 @@ static_assert(sizeof(vars_body_t) == sizeof(old_eeprom::v9::vars_body_t) + sizeo
 
 inline constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
+// In eeprom_v10 no eeprom version existed for mk4 and xl yet, so only care about mini. This is required to properly migrate.
+enum class FooterItems : uint8_t {
+    ItemNozzle,
+    ItemBed,
+    ItemFilament,
+    ItemSpeed,
+    ItemLiveZ,
+    ItemSheets,
+    count_
+};
+
+constexpr uint32_t old_footer_encode(std::array<uint8_t, 3> old_footer) {
+    uint32_t ret = uint32_t(old_footer[0]);
+    for (size_t i = 1; i < 3; ++i) {
+        ret |= uint32_t(old_footer[i]) << (3 * i);
+    }
+    return ret;
+}
+
 constexpr vars_body_t body_defaults = {
     old_eeprom::v9::body_defaults,
-    0, // EEVAR_FOOTER_SETTING // dropped by config store at one point, no longer needs to have a reasonable default
+#if PRINTER_IS_PRUSA_MINI
+    old_footer_encode({ ftrstd::to_underlying(FooterItems::ItemSpeed), ftrstd::to_underlying(FooterItems::ItemLiveZ), ftrstd::to_underlying(FooterItems::ItemFilament) }), // EEVAR_FOOTER_SETTING // proper v10 default
+#else
+    0, // invalid default for other printers
+#endif
     uint32_t(footer::ItemDrawCnf::get_default()), // EEVAR_FOOTER_DRAW_TYPE
     true, // EEVAR_FAN_CHECK_ENABLED
     true, // EEVAR_FS_AUTOLOAD_ENABLED

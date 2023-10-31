@@ -22,16 +22,7 @@ constexpr uint16_t EEPROM_FEATURE_CONNECT { 0x0040 };
 
 constexpr uint16_t EEPROM_FEATURES { EEPROM_FEATURE_PID_NOZ | EEPROM_FEATURE_PID_BED | EEPROM_FEATURE_LAN | EEPROM_FEATURE_LOADCELL | EEPROM_FEATURE_SHEETS | EEPROM_FEATURE_MMU2 | EEPROM_FEATURE_CONNECT };
 
-#if DEVELOPMENT_ITEMS()
-    #define PRIVATE__EEPROM_OFFSET (1 << 15) // to avoid collision with public version
-    #define NO_EEPROM_UPGRADES
-#else
-    #define PRIVATE__EEPROM_OFFSET 0
-#endif
-
-enum {
-    EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 23, // uint16_t
-};
+constexpr uint16_t EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 23;
 
 constexpr uint16_t EEPROM_LAST_VERSION_WITH_OLD_CRC { 10 };
 
@@ -187,7 +178,7 @@ void migrate(old_eeprom::current::vars_body_t &body, journal::Backend &backend) 
     migrate_one(journal::hash("File Sort"), body.FILE_SORT);
     migrate_one(journal::hash("Menu Timeout"), body.MENU_TIMEOUT);
     migrate_one(journal::hash("Devhash in QR"), body.DEVHASH_IN_QR);
-    // migrate_one(journal::hash("Footer Setting"), body.FOOTER_SETTING); // No longer needed since this store item ends up being deleted
+
     migrate_one(journal::hash("Footer Draw Type"), body.FOOTER_DRAW_TYPE);
     migrate_one(journal::hash("Fan Check Enabled"), body.FAN_CHECK_ENABLED);
     migrate_one(journal::hash("FS Autoload Enabled"), body.FS_AUTOLOAD_ENABLED);
@@ -353,6 +344,113 @@ void migrate(old_eeprom::current::vars_body_t &body, journal::Backend &backend) 
 
     migrate_one(journal::hash("Nozzle Sock"), body.NOZZLE_SOCK);
     migrate_one(journal::hash("Nozzle Type"), body.NOZZLE_TYPE);
+
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_XL
+    {
+        using Record = std::array<footer::Item, old_eeprom::v22::old_footer_items_per_line>;
+
+        auto decode_from_v22 = [](uint32_t encoded) {
+            constexpr size_t min_bit_size { old_eeprom::v22::value_bit_size };
+            uint32_t mask = (uint32_t(1) << (min_bit_size)) - 1;
+            Record ret = { {} };
+
+            // version >= v11 has trailing ones
+            encoded >>= old_eeprom::v22::count_of_trailing_ones;
+
+            for (size_t i = 0; i < old_eeprom::v22::count; ++i) {
+                uint32_t decoded = encoded & mask;
+                if (decoded >= ftrstd::to_underlying(old_eeprom::v22::FooterItems::_count)) {
+                    return ret; // data corrupted, return default setting
+                }
+
+                auto previous_item = static_cast<old_eeprom::v22::FooterItems>(decoded);
+                switch (previous_item) { // easiest way to ensure there's no mistake is the most boring one - a switch case
+                case old_eeprom::v22::FooterItems::Nozzle:
+                    ret[i] = footer::Item::nozzle;
+                    break;
+                case old_eeprom::v22::FooterItems::Bed:
+                    ret[i] = footer::Item::bed;
+                    break;
+                case old_eeprom::v22::FooterItems::Filament:
+                    ret[i] = footer::Item::filament;
+                    break;
+                case old_eeprom::v22::FooterItems::FSValue:
+                    ret[i] = footer::Item::f_s_value;
+                    break;
+                case old_eeprom::v22::FooterItems::FSensor:
+                    ret[i] = footer::Item::f_sensor;
+                    break;
+                case old_eeprom::v22::FooterItems::Speed:
+                    ret[i] = footer::Item::speed;
+                    break;
+                case old_eeprom::v22::FooterItems::AxisX:
+                    ret[i] = footer::Item::axis_x;
+                    break;
+                case old_eeprom::v22::FooterItems::AxisY:
+                    ret[i] = footer::Item::axis_y;
+                    break;
+                case old_eeprom::v22::FooterItems::AxisZ:
+                    ret[i] = footer::Item::axis_z;
+                    break;
+                case old_eeprom::v22::FooterItems::ZHeight:
+                    ret[i] = footer::Item::z_height;
+                    break;
+                case old_eeprom::v22::FooterItems::PrintFan:
+                    ret[i] = footer::Item::print_fan;
+                    break;
+                case old_eeprom::v22::FooterItems::HeatbreakFan:
+                    ret[i] = footer::Item::heatbreak_fan;
+                    break;
+                case old_eeprom::v22::FooterItems::Heatbreak:
+                    ret[i] = footer::Item::heatbreak_temp;
+                    break;
+    #if PRINTER_IS_PRUSA_MINI
+                case old_eeprom::v22::FooterItems::LiveZ:
+                    ret[i] = footer::Item::live_z;
+                    break;
+                case old_eeprom::v22::FooterItems::Sheets:
+                    ret[i] = footer::Item::sheets;
+                    break;
+    #endif
+    #if PRINTER_IS_PRUSA_XL
+                case old_eeprom::v22::FooterItems::CurrentTool:
+                    ret[i] = footer::Item::current_tool;
+                    break;
+                case old_eeprom::v22::FooterItems::AllNozzles:
+                    ret[i] = footer::Item::all_nozzles;
+                    break;
+                case old_eeprom::v22::FooterItems::FSensorSide:
+                    ret[i] = footer::Item::f_sensor_side;
+                    break;
+    #endif
+                case old_eeprom::v22::FooterItems::None:
+                case old_eeprom::v22::FooterItems::_count:
+                default: // better to set the footer as missing than anything else in case of a random value
+                    ret[i] = footer::Item::none;
+                    break;
+                }
+                encoded >>= min_bit_size;
+            }
+            return ret;
+        };
+
+        auto decoded_rec = decode_from_v22(body.FOOTER_SETTING);
+
+        migrate_one(journal::hash("Footer Setting 0"), decoded_rec[0]);
+    #if FOOTER_ITEMS_PER_LINE__ > 1
+        migrate_one(journal::hash("Footer Setting 1"), decoded_rec[1]);
+    #endif
+    #if FOOTER_ITEMS_PER_LINE__ > 2
+        migrate_one(journal::hash("Footer Setting 2"), decoded_rec[2]);
+    #endif
+    #if FOOTER_ITEMS_PER_LINE__ > 3
+        migrate_one(journal::hash("Footer Setting 3"), decoded_rec[3]);
+    #endif
+    #if FOOTER_ITEMS_PER_LINE__ > 4
+        migrate_one(journal::hash("Footer Setting 4"), decoded_rec[4]);
+    #endif
+    }
+#endif
 }
 
 } // namespace config_store_ns::old_eeprom
