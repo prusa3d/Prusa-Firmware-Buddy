@@ -85,6 +85,7 @@ public:
 
     /* === State variables (yes, we are a "state machine") === */
     Phase phase = Phase::NotStarted;
+    bool delete_requested = false;
     SemaphoreHandle_t delete_allowed;
     atomic<DownloadStep> last_status = DownloadStep::Continue;
     uint32_t request_started = 0; // Time when we started, to allow timing out
@@ -166,7 +167,9 @@ public:
             last_status = how;
             phase = Phase::Done;
         }
-        xSemaphoreGive(delete_allowed);
+        if (delete_requested) {
+            xSemaphoreGive(delete_allowed);
+        }
     }
 
     bool timed_out() {
@@ -411,6 +414,8 @@ public:
     }
 
     void request_abort() {
+        // Allow setting the semaphore (don't set it before this one gets called and pulled from the queue).
+        delete_requested = true;
         switch (phase) {
         case Phase::Body:
             // TODO Is it the same?
@@ -419,11 +424,13 @@ public:
             phase = Phase::AbortRequested;
             break;
         case Phase::AbortRequested:
-        case Phase::Done:
-        case Phase::NotStarted:
-            // Nothing is running, so it's a No-op
-            phase = Phase::Done;
+            // Already requested abort once.
+            // (We can't really request abort more than once)
+            assert(0);
             break;
+        case Phase::Done:
+            // Something already gave up previously. We are allowed to just delete and be done with it.
+        case Phase::NotStarted:
         case Phase::Connecting:
         case Phase::Headers:
             // In these phases, we can just pack our things and leave right now.
