@@ -107,7 +107,7 @@ void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const
 
     const bool do_resume_print = static_cast<bool>(resume_print_request) && marlin_server::printer_paused();
     // Load
-    if (load_unload(LoadUnloadMode::Load, PRINTER_IS_PRUSA_iX ? &Pause::FilamentLoadNotBlocking : &Pause::FilamentLoad, settings)) {
+    if (load_unload(LoadUnloadMode::Load, option::has_human_interactions ? &Pause::FilamentLoad : &Pause::FilamentLoadNotBlocking, settings)) {
         if (!do_resume_print) {
             M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
         }
