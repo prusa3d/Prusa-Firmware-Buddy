@@ -288,12 +288,13 @@ private:
     void update_backup(bool force = false);
 
     /// Enqueue a notification about the file being successfuly created.
-    ///
-    /// Note that this is called both when the transfer is fully done, but also
-    /// when it becomes printable. We assume the server won't mind and this way
-    /// it allows for starting early, but still notifying on files that don't
-    /// have the "printability" mark or when it's lost.
     void notify_created();
+
+    /// Enqueue a full notification about the file being available.
+    ///
+    /// It is slighly duplicated with notify_created, but that one is just
+    /// FILE_CHANGED, this one is FILE_INFO with full details (eg. previews).
+    void notify_success();
 
     enum class IndexIter {
         Ok,

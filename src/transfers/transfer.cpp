@@ -398,6 +398,7 @@ Transfer::State Transfer::step(bool is_printing) {
                     restart_requested_by_jump = true;
                     break;
                 case Transfer::Action::Finished:
+                    notify_success();
                     done(State::Finished, Monitor::Outcome::Finished);
                     break;
                 }
@@ -439,7 +440,7 @@ Transfer::State Transfer::step(bool is_printing) {
 }
 
 void Transfer::notify_created() {
-    ChangedPath::instance.changed_path(slot.destination(), ChangedPath::Type::File, ChangedPath::Incident::Created);
+    ChangedPath::instance.changed_path(slot.destination(), ChangedPath::Type::File, ChangedPath::Incident::CreatedEarly);
 
     if (HAS_HUMAN_INTERACTIONS() && filename_is_printable(slot.destination()) && printer_state::remote_print_ready(/*preview_only=*/true)) {
         // While it looks a counter-intuitive, this print_begin only shows the
@@ -448,6 +449,10 @@ void Transfer::notify_created() {
     }
 
     already_notified = true;
+}
+
+void Transfer::notify_success() {
+    ChangedPath::instance.changed_path(slot.destination(), ChangedPath::Type::File, ChangedPath::Incident::Created);
 }
 
 bool Transfer::cleanup_transfers() {
