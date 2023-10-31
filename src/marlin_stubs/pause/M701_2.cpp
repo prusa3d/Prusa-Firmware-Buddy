@@ -53,7 +53,7 @@ bool filament_gcodes::load_unload([[maybe_unused]] LoadUnloadMode type, filament
     return res;
 }
 
-void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<filament::Colour> color_to_be_loaded) {
+void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<filament::Colour> color_to_be_loaded, ResumePrint_t resume_print_request) {
     InProgress progress;
 
     marlin_server::DisableNozzleTimeout disableNozzleTimeout;
@@ -98,13 +98,20 @@ void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const
     settings.SetResumePoint(current_position_tmp);
 #endif
 
+    const bool do_resume_print = static_cast<bool>(resume_print_request) && marlin_server::printer_paused();
     // Load
     if (load_unload(LoadUnloadMode::Load, PRINTER_IS_PRUSA_iX ? &Pause::FilamentLoadNotBlocking : &Pause::FilamentLoad, settings)) {
-        M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
+        if (!do_resume_print) {
+            M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
+        }
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
     }
     planner.set_e_position_mm((destination.e = current_position.e = current_position_tmp.e));
+
+    if (do_resume_print) {
+        marlin_server::print_resume();
+    }
 }
 
 void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded) {
@@ -205,7 +212,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
     InProgress progress;
     if constexpr (option::has_bowden) {
         config_store().set_filament_type(target_extruder, filament::Type::NONE);
-        M701_no_parser(filament::Type::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0, std::nullopt);
+        M701_no_parser(filament::Type::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0, std::nullopt, ResumePrint_t::No);
     } else {
 
         pause::Settings settings;

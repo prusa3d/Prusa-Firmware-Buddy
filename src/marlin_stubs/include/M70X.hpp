@@ -24,6 +24,11 @@ enum class AskFilament_t {
     Always
 };
 
+enum class ResumePrint_t : bool {
+    No = false,
+    Yes,
+};
+
 class InProgress {
     static uint lock;
 
@@ -35,7 +40,7 @@ public:
 
 bool load_unload(LoadUnloadMode type, filament_gcodes::Func f_load_unload, pause::Settings &rSettings);
 
-void M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<filament::Colour> color_to_be_loaded);
+void M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<filament::Colour> color_to_be_loaded, ResumePrint_t resume_print_request);
 void M702_no_parser(std::optional<float> unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded);
 void M70X_process_user_response(PreheatStatus::Result res, uint8_t target_extruder);
 

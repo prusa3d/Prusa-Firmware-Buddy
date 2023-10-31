@@ -28,6 +28,7 @@ using namespace filament_gcodes;
  *              - W2  - preheat with return option
  *              - W3  - preheat with cool down and return options
  *  O<value>    - Color number corresponding to filament::Colour, RGB order
+ *  R           - resume print if paused
  *
  *  Default values are used for omitted arguments.
  */
@@ -69,8 +70,9 @@ void GcodeSuite::M701() {
     if (preheat <= uint8_t(RetAndCool_t::last_)) {
         op_preheat = RetAndCool_t(preheat);
     }
+    const ResumePrint_t resume_print = static_cast<ResumePrint_t>(parser.seen('R'));
 
-    M701_no_parser(filament_to_be_loaded, fast_load_length, min_Z_pos, op_preheat, target_extruder, mmu_slot, color_to_be_loaded);
+    M701_no_parser(filament_to_be_loaded, fast_load_length, min_Z_pos, op_preheat, target_extruder, mmu_slot, color_to_be_loaded, resume_print);
 
 #if !HAS_HUMAN_INTERACTIONS()
     FSensors_instance().ClrM600Sent(); // reset filament sensor M600 sent flag
