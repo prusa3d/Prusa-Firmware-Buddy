@@ -379,9 +379,11 @@ Transfer::State Transfer::step(bool is_printing) {
         if (slot.is_stopped()) {
             done(State::Failed, Monitor::Outcome::Stopped);
         } else if (download.has_value()) {
-            switch (download->step()) {
+            auto step_result = download->step();
+            bool has_issues = step_result != DownloadStep::Continue && step_result != DownloadStep::Finished;
+            slot.progress(partial_file->get_state(), has_issues);
+            switch (step_result) {
             case DownloadStep::Continue: {
-                slot.progress(partial_file->get_state(), false);
                 update_backup(/*force=*/false);
                 init_download_order_if_needed();
                 Transfer::Action next_step = std::visit([&](auto &&arg) { return arg.step(*partial_file); }, *order);
