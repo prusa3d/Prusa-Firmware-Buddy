@@ -112,7 +112,10 @@ static void usb_device_task_run(const void *) {
     tusb_init();
 
     while (true) {
-        tud_task();
+        tud_task_ext(1000, false);
+
+        // periodically check for VBUS disconnection
+        check_usb_connection();
     }
 }
 

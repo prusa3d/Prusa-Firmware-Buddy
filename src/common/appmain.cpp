@@ -27,7 +27,6 @@
 #include "bsod.h"
 #include "safe_state.h"
 #include "crc32.h"
-#include "usb_device.hpp"
 #include <crash_dump/dump.hpp>
 #include "hwio_pindef.h"
 #include <Arduino.h>
@@ -208,7 +207,6 @@ void app_run(void) {
             loop();
         }
         marlin_server::loop();
-        check_usb_connection();
     }
 }
 
