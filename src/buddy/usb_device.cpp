@@ -72,8 +72,6 @@ static void check_usb_connection() {
         }
     }
 }
-#else
-static constexpr void check_usb_connection() {}; // stub
 #endif
 
 osThreadCCMDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
@@ -145,10 +143,14 @@ static void usb_device_task_run(const void *) {
     tusb_init();
 
     while (true) {
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
         tud_task_ext(1000, false);
 
         // periodically check for VBUS disconnection
         check_usb_connection();
+#else
+        tud_task();
+#endif
     }
 }
 
