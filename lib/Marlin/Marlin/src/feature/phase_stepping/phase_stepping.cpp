@@ -20,11 +20,11 @@ using namespace phase_stepping;
 using namespace buddy::hw;
 
 // Global definitions
-std::array<AxisState, 2> phase_stepping::axis_states;
+std::array<AxisState, SUPPORTED_AXIS_COUNT> phase_stepping::axis_states;
 
 // Module definitions
 static int axis_num_to_refresh = 0;
-static const std::array< OutputPin, 3 > cs_pins = {{ xCs, yCs, zCs }};
+static const std::array< OutputPin, SUPPORTED_AXIS_COUNT > cs_pins = {{ xCs, yCs }};
 
 MoveTarget::MoveTarget(double position):
     initial_pos(position), half_accel(0), start_v(0), duration(0)
@@ -96,7 +96,7 @@ step_event_info_t phase_stepping::next_step_event(
 
 
 void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
-    assert(axis_num < 3);
+    assert(axis_num < SUPPORTED_AXIS_COUNT);
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto& stepper = static_cast< TMC2130Stepper& >(stepper_axis(axis_num));
@@ -130,26 +130,30 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
         axis_state.inverted = INVERT_Z_DIR;
 
     axis_state.active = true;
+    auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
+    PreciseStepping::physical_axis_step_generator_types |= enable_mask;
 
     HAL_TIM_Base_Start_IT(&TIM_HANDLE_FOR(phase_stepping));
     HAL_TIM_OC_Start_IT(&TIM_HANDLE_FOR(phase_stepping), TIM_CHANNEL_1);
 }
 
 void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
-    assert(axis_num < 3);
+    assert(axis_num < SUPPORTED_AXIS_COUNT);
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto& stepper = static_cast<TMC2130Stepper&>(stepper_axis(axis_num));
     auto& axis_state = axis_states[axis_num];
 
     axis_state.active = false;
+    auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
+    PreciseStepping::physical_axis_step_generator_types &= ~enable_mask;
 
     // In order to avoid glitch in motor motion, we have to first, make steps to
     // get MSCNT into sync and then we disable XDirect mode
 
     int original_microsteps = stepper.microsteps();
     stepper.microsteps(256);
-    int current_phase = normalize_phase(axis_state.last_phase);
+    int current_phase = normalize_motor_phase(axis_state.last_phase);
     while (current_phase != stepper.MSCNT() ) {
         switch(axis_num) {
             case 0:
@@ -174,6 +178,17 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
         HAL_TIM_OC_Stop_IT(&TIM_HANDLE_FOR(phase_stepping), TIM_CHANNEL_1);
         HAL_TIM_Base_Stop_IT(&TIM_HANDLE_FOR(phase_stepping));
     }
+}
+
+void phase_stepping::enable(AxisEnum axis_num, bool enable) {
+    assert(axis_num < SUPPORTED_AXIS_COUNT);
+    auto& axis_state = axis_states[axis_num];
+    if (axis_state.active == enable)
+        return;
+    if (enable)
+        phase_stepping::enable_phase_stepping(axis_num);
+    else
+        phase_stepping::disable_phase_stepping(axis_num);
 }
 
 __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh() {

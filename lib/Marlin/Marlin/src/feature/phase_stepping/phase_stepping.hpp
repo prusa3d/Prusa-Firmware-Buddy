@@ -113,6 +113,13 @@ struct AxisState {
 };
 
 /**
+ * Generic function for enabling/disabling axis. Unless needed otherwise, this
+ * should be the default way of enabling/disabling it for an axis. When axis is
+ * already in desired state, it does nothing.
+ **/
+void enable(AxisEnum axis_num, bool enable);
+
+/**
  * Enables phase stepping for axis. Reconfigures the motor driver. It is not
  * safe to invoke this procedure within interrupt context. No movement shall be
  * be in progress.
@@ -187,8 +194,43 @@ double extract_physical_position(AxisEnum axis, const Pos& pos) {
 /**
  * This array keeps axis state (and LUT tables) for each axis
  **/
- extern std::array<AxisState, 2> axis_states;
+extern std::array<AxisState, SUPPORTED_AXIS_COUNT> axis_states;
+
+
+/**
+ * RAII guard for temporary disabling/enabling phase stepping.
+ **/
+template < bool ENABLED >
+class EnsureState {
+    bool released = false;
+    std::array< bool, SUPPORTED_AXIS_COUNT > _prev_active = {};
+public:
+    EnsureState() {
+        for (std::size_t i = 0; i != axis_states.size(); i++) {
+            _prev_active[i] = axis_states[i].active;
+            phase_stepping::enable(AxisEnum(i), ENABLED);
+        }
+    }
+
+    ~EnsureState() {
+        release();
+    }
+
+    void release() {
+        if (released)
+            return;
+        released = true;
+        for (std::size_t i = 0; i != axis_states.size(); i++) {
+            phase_stepping::enable(AxisEnum(i), _prev_active[i]);
+        }
+    }
+};
+
+using EnsureEnabled = EnsureState<true>;
+using EnsureDisabled = EnsureState<false>;
 
 } // namespace phase_stepping
 
+#else // ifdef PHASE_STEPPING
+    #include "phase_stepping_dummies.hpp"
 #endif // ifdef PHASE_STEPPING

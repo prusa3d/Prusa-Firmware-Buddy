@@ -58,13 +58,7 @@ void GcodeSuite::M970() {
     for ( auto [axis, letter] : SUPPORTED_AXES) {
         if (!parser.seen(letter))
             continue;
-
-        auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis;
-        if (PreciseStepping::physical_axis_step_generator_types & enable_mask)
-            continue;
-
-        phase_stepping::enable_phase_stepping(axis);
-        PreciseStepping::physical_axis_step_generator_types |= enable_mask;
+        phase_stepping::enable(axis, true);
     }
 }
 
@@ -78,13 +72,7 @@ void GcodeSuite::M971() {
     for ( auto [axis, letter] : SUPPORTED_AXES) {
         if (!parser.seen(letter))
             continue;
-
-        auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis;
-        if (!(PreciseStepping::physical_axis_step_generator_types & enable_mask))
-            continue;
-
-        phase_stepping::disable_phase_stepping(axis);
-        PreciseStepping::physical_axis_step_generator_types &= ~enable_mask;
+        phase_stepping::enable(axis, false);
     }
 }
 

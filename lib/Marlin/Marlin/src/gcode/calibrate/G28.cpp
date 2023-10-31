@@ -98,6 +98,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 #include "../../core/debug_out.h"
 
 #include "../../../../../../src/common/trinamic.h" // for disabling Wave Table during homing
+#include <feature/phase_stepping/phase_stepping.hpp> // for disabling phase stepping during homing
 
 #if ENABLED(QUICK_HOME)
 
@@ -370,6 +371,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise) OPTARG(DETECT_PRINT_SHEET, bool check_sheet)) {
 
   HomingReporter reporter;
+  phase_stepping::EnsureDisabled _;
 
   MINDA_BROKEN_CABLE_DETECTION__BEGIN();
 
