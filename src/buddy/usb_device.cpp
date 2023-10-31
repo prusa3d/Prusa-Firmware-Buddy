@@ -43,6 +43,39 @@ static void usb_device_task_run(const void *);
 
 static serial_nr_t serial_nr;
 
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    #include "FUSB302B.hpp"
+    #include "hwio_pindef.h"
+
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+    #include <device/dcd.h>
+    #pragma GCC diagnostic pop
+
+static void check_usb_connection() {
+    if (buddy::hw::fsUSBCInt.read() == buddy::hw::Pin::State::low) {
+        buddy::hw::FUSB302B::ClearVBUSIntFlag();
+
+        bool vbus_status = buddy::hw::FUSB302B::ReadVBUSState();
+        usb_device_log("FUSB302B VBUS state change: %d\n", (int)vbus_status);
+
+        if (!vbus_status) {
+            if (dcd_connected(TUD_OPT_RHPORT)) {
+                // VBUS off: trigger a disconnect
+                tud_disconnect();
+            }
+        } else {
+            if (!dcd_connected(TUD_OPT_RHPORT)) {
+                // VBUS on: trigger connect
+                tud_connect();
+            }
+        }
+    }
+}
+#else
+static constexpr void check_usb_connection() {}; // stub
+#endif
+
 osThreadCCMDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
 
@@ -231,34 +264,3 @@ void tud_suspend_cb(bool /*remote_wakeup_en*/) {
     // received that will reconfigure the port to regular state.
     cdcd_reset(0);
 }
-
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-    #include "FUSB302B.hpp"
-    #include "hwio_pindef.h"
-
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-    #include <device/dcd.h>
-    #pragma GCC diagnostic pop
-
-void check_usb_connection() {
-    if (buddy::hw::fsUSBCInt.read() == buddy::hw::Pin::State::low) {
-        buddy::hw::FUSB302B::ClearVBUSIntFlag();
-
-        bool vbus_status = buddy::hw::FUSB302B::ReadVBUSState();
-        usb_device_log("FUSB302B VBUS state change: %d\n", (int)vbus_status);
-
-        if (!vbus_status) {
-            if (dcd_connected(TUD_OPT_RHPORT)) {
-                // VBUS off: trigger a disconnect
-                tud_disconnect();
-            }
-        } else {
-            if (!dcd_connected(TUD_OPT_RHPORT)) {
-                // VBUS on: trigger connect
-                tud_connect();
-            }
-        }
-    }
-}
-#endif
