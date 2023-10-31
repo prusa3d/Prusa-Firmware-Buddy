@@ -240,11 +240,67 @@ constexpr vars_body_t body_defaults = {
     {}, // EEVAR_SELFTEST_RESULT_PRE_23
 };
 
+#if PRINTER_IS_PRUSA_XL
+// first introduced footer items for XL
+enum class FooterItems : uint8_t {
+    Nozzle,
+    Bed,
+    Filament,
+    FSensor,
+    Speed,
+    AxisX,
+    AxisY,
+    AxisZ,
+    ZHeight,
+    PrintFan,
+    HeatbreakFan,
+    Heatbreak,
+    CurrentTool,
+    AllNozzles,
+    FSensorSide,
+    None,
+    _count
+};
+
+inline constexpr size_t old_footer_lines { 1 };
+inline constexpr size_t old_footer_items_per_line { 5 };
+using Record = std::array<FooterItems, old_footer_items_per_line>;
+inline constexpr Record default_items = { { FooterItems::Nozzle,
+    FooterItems::Bed,
+    FooterItems::Filament,
+    FooterItems::None,
+    FooterItems::None } };
+
+inline constexpr size_t count = old_footer_items_per_line;
+inline constexpr size_t count_of_trailing_ones = 3;
+inline constexpr size_t value_bit_size = 5; // 32 different items should be enough
+
+/**
+ * @brief encodes footer setting to uint32_t
+ *
+ * @param rec footer setting to encode
+ * @return constexpr uint32_t
+ */
+constexpr uint32_t encode(Record rec) {
+    uint32_t ret = uint32_t(rec[0]) << count_of_trailing_ones;
+    for (size_t i = 1; i < count; ++i) {
+        ret |= uint32_t(rec[i]) << ((value_bit_size * i) + count_of_trailing_ones);
+    }
+    // adding trailing ones to force default footer settings in FW version < 4.4.0 and using fixed size of footer item
+    uint32_t trailing_ones = (1 << count_of_trailing_ones) - 1;
+    ret |= trailing_ones;
+    return ret;
+}
+#endif
+
 inline vars_body_t convert(const old_eeprom::v12::vars_body_t &src) {
     vars_body_t ret = body_defaults;
 
     // copy entire v12 struct
     memcpy(&ret, &src, sizeof(old_eeprom::v12::vars_body_t));
+#if PRINTER_IS_PRUSA_XL
+    ret.FOOTER_SETTING = encode(default_items); // this is first XL version, so set default properly (even though this should never happen)
+#endif
 
     return ret;
 }
