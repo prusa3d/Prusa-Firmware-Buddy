@@ -171,7 +171,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
     });
 
     if (!success) {
-        data = BrokenCommand {};
+        data = BrokenCommand { "Error parsing json" };
     }
 
     auto get_path = [&](SharedPath &path) -> void {
@@ -181,7 +181,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             path = SharedPath(move(buff));
         } else {
             // Missing parameters
-            data = BrokenCommand {};
+            data = BrokenCommand { "missing path" };
         }
     };
 
@@ -190,7 +190,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             info->job_id = *job_id;
         } else {
             // Didn't find all the needed parameters.
-            data = BrokenCommand {};
+            data = BrokenCommand { "missing parameters" };
         }
     } else if (auto *info = get_if<SendFileInfo>(&data); info != nullptr) {
         get_path(info->path);
@@ -219,7 +219,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             download->port = port;
         } else {
             // Missing parameters, conflicting parameters, etc..
-            data = BrokenCommand {};
+            data = BrokenCommand { "missing or wrong parameters" };
         }
     }
 

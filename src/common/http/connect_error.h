@@ -16,4 +16,6 @@ enum class Error {
     InternalError,
 };
 
-}
+const char *to_str(Error error);
+
+} // namespace http
