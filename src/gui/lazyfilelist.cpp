@@ -1,90 +1,128 @@
 #include "lazyfilelist.hpp"
 
+namespace {
+
+using Entry = LazyDirViewBase::Entry;
+using EntryRef = LazyDirViewBase::EntryRef;
+
+// Stub implementation because std::shift_x uses exceptions in its functions which doesn't compile for us.... >:(
+auto shift_left(auto begin, auto end, int amount) {
+    end -= amount;
+    while (begin < end) {
+        *begin = std::move(*(begin + amount));
+        begin++;
+    }
+}
+
+auto shift_right(auto begin, auto end, int amount) {
+    for (auto it = end - amount - 1; it >= begin; it--) {
+        *(it + amount) = std::move(*it);
+    }
+}
+
+/// Inserts the $item into the range [$insert_range_begin, $insert_range_end) so that it is kept sorted by $less.
+/// The range is expanded ($insert_range_end is increased) when inserting the items until $insert_range_end == $full_insert_range_end.
+/// After fully expanded, the function basically upkeeps top $n (full_insert_range_end - insert_range_begin) of the sorted range
+void insert_item(Entry *insert_range_begin, Entry *&insert_range_end, Entry *full_insert_range_end, const EntryRef &item, const FileSort::LessFunc &less) {
+    // Determine by binary search where we should insert the item
+    Entry *it = std::lower_bound(insert_range_begin, insert_range_end, item, less);
+
+    // Outside of the full insert range (the final is correct) -> throw away
+    if (it == full_insert_range_end) {
+        return;
+    }
+
+    // Expand the working insert range
+    if (insert_range_end < full_insert_range_end) {
+        insert_range_end++;
+    }
+
+    // Make space for the inserted item
+    shift_right(it, insert_range_end, 1);
+
+    it->CopyFrom(item);
+}
+
+} // namespace
+
 void LazyDirViewBase::Clear() {
     totalFiles = 0;
     windowStartingFrom = 0;
 
     for (auto i = 0; i < window_size; i++) {
-        files[i].Clear();
+        files_data[i].Clear();
     }
 }
 
 void LazyDirViewBase::ChangeDirectory(const char *p, SortPolicy sp, const char *firstDirEntry) {
-    int filesInWindow = 0; // number of files populated in the window - less than WINDOW_SIZE when there are less files in the dir
     Clear();
+
     sortPolicy = sp;
     strlcpy(sfnPath, p, sizeof(sfnPath));
-    if (!firstDirEntry || firstDirEntry[0] == 0) {
-        files[0].SetDirUp(); // this is always the first (zeroth) one
-        windowStartingFrom = -1;
-    } else {
-        // find the file in the directory using pattern search
+
+    // Try to find the first dir entry
+    const bool has_first_dir_entry = [&] {
+        if (!firstDirEntry || firstDirEntry[0] == 0) {
+            return false;
+        }
+
+        // the filename was not found, discard the firstDirEntry and start from the beginning
+        // of the directory like if firstDirEntry was nullptr
         F_DIR_RAII_Find_One dir(sfnPath, firstDirEntry);
         if (dir.result != ResType::OK) {
-            // the filename was not found, discard the firstDirEntry and start from the beginning
-            // of the directory like if firstDirEntry was nullptr
-            files[0].SetDirUp();
-            windowStartingFrom = -1;
-        } else {
-            MutablePath dpath { sfnPath };
-            dpath.push(dir.fno->d_name);
-            files[0].CopyFrom({ *dir.fno, dpath });
-            // windowStartsFrom will be fine tuned later during iteration over the whole dir content
-            // And the dir must closed here, because the search cycle uses a different search pattern
+            return false;
         }
+
+        // Check if the entry isn't a link or something we don't support
+        const auto eref = EntryRef(*dir.fno, sfnPath);
+        if (!eref.is_valid()) {
+            return false;
+        }
+
+        // windowStartsFrom will be fine tuned later during iteration over the whole dir content
+        // And the dir must closed here, because the search cycle uses a different search pattern
+        files_data[0].CopyFrom(eref);
+        return true;
+    }();
+
+    // If not found, set the first item to be dir up
+    if (!files_data[0].is_valid()) {
+        files_data[0].SetDirUp(); // this is always the first (zeroth) one
     }
 
-    switch (sortPolicy) {
-    case SortPolicy::BY_NAME:
-        LessEF = &LessByFNameEF;
-        LessFE = &LessByFNameFE;
-        MakeFirstEntry = &MakeFirstEntryByFName;
-        MakeLastEntry = &MakeLastEntryByFName;
-        break;
-    case SortPolicy::BY_CRMOD_DATETIME:
-        LessEF = &LessByTimeEF;
-        LessFE = &LessByTimeFE;
-        MakeFirstEntry = &MakeFirstEntryByTime;
-        MakeLastEntry = &MakeLastEntryByTime;
-        break;
-    };
+    // Either way, we already have one total file
+    totalFiles = 1;
 
-    const auto files_begin = files;
-    const auto files_end = files + window_size;
-    const auto files_rbegin = std::make_reverse_iterator(files_end);
+    // This will be adjusted in the following calculation
+    windowStartingFrom = -1;
 
-    // we now have at least one entry - either ".." or the file firstDirEntry
-    ++filesInWindow;
-    ++totalFiles;
+    const auto less = sort_policy_less[ftrstd::to_underlying(sortPolicy)];
+
+    const auto files_begin = files_data;
+    const auto files_end = files_data + window_size;
+
+    auto filled_region_end = files_begin + 1;
+
     F_DIR_RAII_Iterator dir(sfnPath);
     while (dir.FindNext()) {
-        MutablePath dpath { sfnPath };
-        dpath.push(dir.fno->d_name);
+        const EntryRef curr(*dir.fno, sfnPath);
 
-        // Find the right stop to insert the file/entry - a normal binary search algorithm
-        // Searching is done from the first (not zeroth) index, because the zeroth must be kept intact - that's the start of our window
-        // Impl. detail: cannot use auto, need the write iterator (non const)
-        Entry *i = std::upper_bound(files_begin + 1, files_begin + filesInWindow, DirentWPath { *dir.fno, dpath }, LessFE);
-        if (i != files_end) {
-            if (i == files_begin + 1 && LessFE(DirentWPath { *dir.fno, dpath }, files[0])) {
-                // The file entry could have been inserted outside of the window - i.e. before the first item, which is to be unmovable
-                // However, if it is less than the zeroth entry, we must increment windowStartsFrom
-                ++windowStartingFrom;
-            } else {
-                if (strcmp(files[0].lfn, dir.fno->lfn) != 0) {
-                    // i.e. we didn't get the same entry as the zeroth entry (which may occur when populating the window with non-null firstDirEntry)
-                    // Make place in the window by standard item rotation downwards (to the right)
-                    std::rotate(files_rbegin, files_rbegin + 1, std::make_reverse_iterator(i)); // solves also the case, when there are less files in the window
-                    // Save the entry
-                    i->CopyFrom({ *dir.fno, dpath });
-                    if (filesInWindow < window_size) {
-                        ++filesInWindow;
-                    }
-                }
-            }
-        } // if i == files.end() -> file entry would have been inserted after the end of the window - ignore
+        // Check if the entry isn't a link or something we don't support
+        if (!curr.is_valid()) {
+            continue;
+        }
 
-        ++totalFiles; // increment total discovered file entries count
+        totalFiles++;
+
+        // Check if we're <= first entry, in that case we don't add to the list, but instead increase windowStartingFrom
+        // The <= is important and correct, because windowStartingFrom is initialized to -1
+        if (has_first_dir_entry && !less(files_data[0], curr)) {
+            windowStartingFrom++;
+            continue;
+        }
+
+        // We use files_begin + 1 because the 0th item has already been filed before the loop
+        insert_item(files_begin + 1, filled_region_end, files_end, curr, less);
     }
 }
 
@@ -95,75 +133,176 @@ int LazyDirViewBase::set_window_offset(int target) {
 
 int LazyDirViewBase::move_window_by(int amount) {
     int remaining = amount;
+
     while (remaining > 0) {
-        if (!MoveDown()) {
+        int tamount = std::min(remaining, window_size - 1);
+        if (!MoveDown(tamount)) {
             break;
         }
 
-        remaining--;
+        remaining -= tamount;
     }
 
     while (remaining < 0) {
-        if (!MoveUp()) {
+        int tamount = std::min(-remaining, window_size - 1);
+        if (!MoveUp(tamount)) {
             break;
         }
 
-        remaining++;
+        remaining += tamount;
     }
 
     return amount - remaining;
 }
 
-bool LazyDirViewBase::MoveUp() {
-    if (windowStartingFrom < 0)
-        return false;
+bool LazyDirViewBase::MoveUp(int amount) {
+    // This function does not support moving by more whan window_size - 1, because if needs anchor_item to base sorting off.
+    // For larger jumps, use move_window_by
+    assert(amount < window_size);
 
-    const auto files_rbegin = std::make_reverse_iterator(files + window_size);
-    const auto files_rend = std::make_reverse_iterator(files);
-    std::rotate(files_rbegin, files_rbegin + 1, files_rend);
-
-    if (windowStartingFrom == 0) {
-        // special case code - add a ".."
-        files[0].SetDirUp();
-        --windowStartingFrom;
+    if (amount == 0) {
         return true;
     }
 
-    F_DIR_RAII_Iterator dir(sfnPath);
-    // prepare the item at the zeroth position according to sort policy
-    files[0] = MakeFirstEntry();
-    while (dir.FindNext()) {
-        MutablePath dpath { sfnPath };
-        dpath.push(dir.fno->d_name);
-        if (LessEF(files[0], { *dir.fno, dpath }) && LessFE({ *dir.fno, dpath }, files[1])) {
-            // to be inserted, the entry must be greater than zeroth entry AND less than the first entry
-            files[0].CopyFrom({ *dir.fno, dpath });
+    if (windowStartingFrom - amount < -1)
+        return false;
+
+    windowStartingFrom -= amount;
+
+    const auto less = sort_policy_less[ftrstd::to_underlying(sortPolicy)];
+
+    const auto files_end = files_data + window_size;
+    const auto full_insert_range_end = files_data + amount;
+    auto insert_range_begin = files_data;
+    auto insert_range_end = insert_range_begin;
+
+    // Shift the existing items
+    shift_right(files_data, files_end, amount);
+
+    // special case - add a ".."
+    if (windowStartingFrom == -1) {
+        files_data[0].SetDirUp();
+
+        // If we added just the "..", we don't have to iterate the directory at all
+        if (amount == 1) {
+            return true;
+        }
+
+        // first record is fixed -> exclude from inserting
+        insert_range_begin++;
+        insert_range_end++;
+    }
+
+    // Iterate the directory and sort in missing items
+    {
+        const EntryRef anchor_item = *full_insert_range_end;
+
+        F_DIR_RAII_Iterator dir(sfnPath);
+        while (dir.FindNext()) {
+            const EntryRef curr(*dir.fno, sfnPath);
+
+            // Check if the entry isn't a link or something we don't support
+            if (!curr.is_valid()) {
+                continue;
+            }
+
+            // Check if we're not behind (comparison-wise) the anchor item
+            if (!less(curr, anchor_item)) {
+                continue;
+            }
+
+            // Cannot use insert_item because we're actually building a tail of the list, which needs different behavior
+            // Determine by binary search where we should insert the item
+            Entry *it = std::lower_bound(insert_range_begin, insert_range_end, curr, less);
+
+            // If we're trying to insert behind the full end of the sorted range, move everything to the left to make space
+            if (it == full_insert_range_end) {
+                shift_left(insert_range_begin, insert_range_end, 1);
+                it--;
+            }
+
+            // We're full and are trying to prepend item -> discard
+            else if (insert_range_end == full_insert_range_end && it == insert_range_begin) {
+                continue;
+            }
+
+            // If the buffer is full, start shifting to the left
+            else if (insert_range_end == full_insert_range_end) {
+                shift_left(insert_range_begin, it, 1);
+                it--;
+            }
+
+            // Otherwise expand the range and move items to the right to make space
+            else {
+                insert_range_end++;
+                shift_right(it, insert_range_end, 1);
+            }
+
+            it->CopyFrom(curr);
         }
     }
-    --windowStartingFrom;
+
+    // Fill in voids, in case files were removed somewhen during the file list existence
+    while (insert_range_end != full_insert_range_end) {
+        insert_range_end->Clear();
+        insert_range_end++;
+    }
+
     return true;
 }
 
-bool LazyDirViewBase::MoveDown() {
-    if (windowStartingFrom >= totalFiles - window_size - 1) {
+bool LazyDirViewBase::MoveDown(int amount) {
+    // This function does not support moving by more whan window_size - 1, because if needs anchor_item to base sorting off.
+    // For larger jumps, use move_window_by
+    assert(amount < window_size);
+
+    if (amount == 0) {
+        return true;
+    }
+
+    if (windowStartingFrom + amount >= totalFiles - window_size) {
         return false; // no more files
     }
 
-    const auto files_begin = files;
-    const auto files_end = files + window_size;
-    std::rotate(files_begin, files_begin + 1, files_end);
+    windowStartingFrom += amount;
 
-    F_DIR_RAII_Iterator dir(sfnPath);
-    // prepare the last item according to sort policy
-    files[window_size - 1] = MakeLastEntry();
-    while (dir.FindNext()) {
-        MutablePath dpath { sfnPath };
-        dpath.push(dir.fno->d_name);
-        if (LessFE({ *dir.fno, dpath }, files[window_size - 1]) && LessEF(files[window_size - 2], { *dir.fno, dpath })) {
-            // to be inserted, the entry must be greater than the pre-last entry AND less than the last entry
-            files[window_size - 1].CopyFrom({ *dir.fno, dpath });
+    const auto less = sort_policy_less[ftrstd::to_underlying(sortPolicy)];
+
+    const auto files_end = files_data + window_size;
+    const auto full_insert_range_end = files_end;
+    const auto insert_range_begin = files_end - amount;
+    auto insert_range_end = insert_range_begin;
+
+    // Shift the existing items
+    shift_left(files_data, files_end, amount);
+
+    // Iterate the directory and sort in missing items
+    {
+        const EntryRef anchor_item = *(insert_range_begin - 1);
+
+        F_DIR_RAII_Iterator dir(sfnPath);
+        while (dir.FindNext()) {
+            const EntryRef curr(*dir.fno, sfnPath);
+
+            // Check if the entry isn't a link or something we don't support
+            if (!curr.is_valid()) {
+                continue;
+            }
+
+            // Check if we're not behind (comparison-wise) the anchor item
+            if (!less(anchor_item, curr)) {
+                continue;
+            }
+
+            insert_item(insert_range_begin, insert_range_end, full_insert_range_end, curr, less);
         }
     }
-    ++windowStartingFrom;
+
+    // Fill in voids, in case files were removed somewhen during the file list existence
+    while (insert_range_end != full_insert_range_end) {
+        insert_range_end->Clear();
+        insert_range_end++;
+    }
+
     return true;
 }

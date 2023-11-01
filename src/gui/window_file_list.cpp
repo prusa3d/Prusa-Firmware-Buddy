@@ -119,6 +119,9 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
 
     // Determine focused item
     {
+        // Force focused index update
+        focused_index_ = std::nullopt;
+
         std::optional<int> new_focused_index;
 
         if (should_focus_item_on_init()) {

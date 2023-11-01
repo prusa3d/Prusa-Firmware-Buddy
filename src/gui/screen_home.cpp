@@ -509,40 +509,38 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
 }
 
 bool screen_home_data_t::find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {
-    FileSort::LessFE_t LessFE = &FileSort::LessByTimeFE;
-    FileSort::MakeEntry_t MakeLastEntry = &FileSort::MakeLastEntryByTime;
-
-    fname[0] = 0;
     strlcpy(fpath, "/usb", fpath_len);
-    F_DIR_RAII_Iterator dir(fpath);
-    MutablePath dir_path { fpath };
-    fpath[4] = '/';
 
+    F_DIR_RAII_Iterator dir(fpath);
     if (dir.result == ResType::NOK) {
         return false;
     }
 
     // prepare the item at the zeroth position according to sort policy
-    FileSort::Entry entry = MakeLastEntry(); // last entry is greater than any file
+    FileSort::Entry entry;
 
     while (dir.FindNext()) {
-        // skip folders
-        MutablePath dpath { dir_path }; // copy to avoid having to pop d_name every time
-        dpath.push(dir.fno->d_name);
+        const FileSort::EntryRef curr(*dir.fno, fpath);
 
-        if ((dir.fno->d_type & DT_DIR) != 0 && !transfers::is_valid_transfer(dpath)) {
+        if (curr.type != FileSort::EntryType::FILE) {
             continue;
         }
 
-        if (LessFE({ *dir.fno, dpath }, entry)) {
-            entry.CopyFrom({ *dir.fno, dpath });
-
-            strlcpy(fpath + 5, dir.fno->d_name, fpath_len - 5);
-            strlcpy(fname, entry.lfn, fname_len);
+        if (entry.is_valid() && !FileSort::less_by_time(curr, entry)) {
+            continue;
         }
+
+        entry.CopyFrom(curr);
     }
 
-    return fname[0] != 0;
+    if (!entry.is_valid()) {
+        return false;
+    }
+
+    fpath[4] = '/';
+    strlcpy(fpath + 5, entry.sfn, fpath_len - 5);
+    strlcpy(fname, entry.lfn, fname_len);
+    return true;
 }
 
 void screen_home_data_t::printBtnEna() {
