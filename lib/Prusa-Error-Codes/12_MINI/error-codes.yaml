@@ -158,6 +158,11 @@ Errors:
   id: "I2C_RX_UNDEFINED"
   approved: true
   # XX319-XX320 reserved
+- code: "12401"
+  title: "CONNECT REGISTRATION FAILED"
+  text: "Registration to Prusa Connect failed due to:"
+  id: "CONNECT_REGISTRATION_FAILED"
+  approved: true
   # XX501-XX503 reserved
 - code: "12504"
   title: "ESP ERROR"
@@ -210,6 +215,11 @@ Errors:
   text: "ESP doesn't seem to be connected."
   id: "ESP_NOT_CONNECTED"
   approved: false
+- code: "12601"
+  title: ""
+  text: "This error code\nis not found in\nour database.\nContact the support."
+  id: "UNKNOWN_ERROR_CODE"
+  approved: true
 - code: "12602"
   title: ""
   text: "USB drive not\nconnected! Please\ninsert a USB drive\nwith a valid\nfirmware file."
@@ -244,6 +254,11 @@ Errors:
   title: ""
   text: "Firmware in the\ninternal flash\ncorrupted! Please\nreflash the\nfirmware."
   id: "FW_IN_INTERNAL_FLASH_CORRUPTED"
+  approved: true
+- code: "12609"
+  title: ""
+  text: "Firmware and hardware\nversions do not\nmatch. Make sure\nyou have the right\nfirmware file for\nyour printer."
+  id: "HW_VERSION_ERR"
   approved: true
 - code: "12610"
   title: ""

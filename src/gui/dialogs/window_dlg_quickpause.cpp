@@ -26,7 +26,3 @@ DialogQuickPause::DialogQuickPause(fsm::BaseData)
     }
     CaptureNormalWindow(radio);
 }
-
-bool DialogQuickPause::change(uint8_t, fsm::PhaseData) {
-    return true;
-};

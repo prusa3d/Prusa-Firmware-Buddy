@@ -19,10 +19,10 @@ void RadioButton::Change(Responses_t resp, const PhaseTexts *txts) {
         return;
     responses = resp;
     texts = txts;
-    SetBtnCount(HasIcon() ? max_icons : cnt_buttons(texts, responses));
+    SetBtnCount(fixed_width_buttons_count > 0 ? fixed_width_buttons_count : cnt_buttons(texts, responses));
 
     // in iconned layout index will stay
-    if (!HasIcon()) {
+    if (fixed_width_buttons_count == 0) {
         SetBtnIndex(0);
     }
 

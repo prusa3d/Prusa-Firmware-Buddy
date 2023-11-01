@@ -106,8 +106,6 @@ struct GuiDefaults {
         // has_footer::yes
         return RectScreenNoHeader;
     }
-    static constexpr Rect16 GetIconnedButtonRect(Rect16 rc_frame) { return Rect16(rc_frame.Left() + ButtonSpacing,
-        227, rc_frame.Width() - 2 * ButtonSpacing, 70 + 22); } // TODO calculate
     static constexpr Rect16 GetButtonRect_AvoidFooter(Rect16 rc_frame) { return GetButtonRect(rc_frame - Rect16::Height_t(FooterHeight)); }
 
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)

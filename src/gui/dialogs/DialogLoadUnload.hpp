@@ -13,8 +13,8 @@
  * but MMU red screens are many states masked as single state
  * automatic radio button cannot handle that
  */
-class RadioButtonMmuErr : public AddSuperWindow<RadioButton> {
-    PhasesLoadUnload phase;
+class RadioButtonNotice : public AddSuperWindow<RadioButton> {
+    PhasesLoadUnload current_phase;
 
 public:
     /**
@@ -23,12 +23,11 @@ public:
      * @param parent window containing this object
      * @param rect   rectangle enclosing all buttons
      */
-    RadioButtonMmuErr(window_t *parent, Rect16 rect);
-    void ChangePhase(PhasesLoadUnload phs);
-    void ChangePhase(PhasesLoadUnload phs, PhaseResponses responses);
+    RadioButtonNotice(window_t *parent, Rect16 rect);
+    void ChangePhase(PhasesLoadUnload phase, PhaseResponses responses);
 
 protected:
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param);
+    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 /**
@@ -56,27 +55,32 @@ public:
 #if HAS_MMU2()
     /// Returns whether there is a dialog open on an MMU error screen (that is waiting for user input)
     static inline bool is_mmu2_error_screen_running() {
-        return instance && instance->phase.value_or(0) == int(PhasesLoadUnload::MMU_ERRWaitingForUser);
+        return instance && instance->current_phase == PhasesLoadUnload::MMU_ERRWaitingForUser;
     }
 #endif
 
 protected:
-    virtual bool change(uint8_t phase, fsm::PhaseData data) override;
-    void red_screen_update(uint16_t errCode, const char *errTitle, const char *errDesc);
+    virtual bool change(PhasesLoadUnload phase, fsm::PhaseData data) override;
+    void notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, MMU2::ErrType type);
     virtual float deserialize_progress(fsm::PhaseData data) const override;
     void phaseEnter() override;
 
 private:
     StatusFooter footer;
 
-    RadioButtonMmuErr radio_for_red_screen; // workaround, see RadioButtonMmuErr comment
+    window_frame_t notice_frame;
 
-    window_text_t text_link;
-    window_icon_t icon_hand;
+    window_text_t notice_title;
+    window_text_t notice_text;
+    window_text_t notice_link;
+    window_icon_t notice_icon_hand;
+    window_icon_t notice_icon_type;
+    window_qr_t notice_qr;
+    RadioButtonNotice notice_radio_button; // workaround, see RadioButtonNotice comment
+
     window_text_t filament_type_text;
     window_colored_rect filament_color_icon;
 
-    window_qr_t qr;
     char error_code_str[32 + MaxErrorCodeDigits + 1]; // static text before error code has 32 chars
     LoadUnloadMode mode;
 

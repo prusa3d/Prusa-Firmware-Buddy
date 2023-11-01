@@ -17,6 +17,8 @@ Example: 12201
 01 - specific error code: Heatbed heating failed
 
 ## Printer number
+04 - Original Prusa MMU
+
 10 - Original Prusa SL1/SL1S
 
 12 - Original Prusa MINI/MINI+

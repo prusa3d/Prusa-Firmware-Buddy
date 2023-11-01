@@ -12,14 +12,14 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 
-RadioButtonMmuErr::RadioButtonMmuErr(window_t *parent, Rect16 rect)
+RadioButtonNotice::RadioButtonNotice(window_t *parent, Rect16 rect)
     : AddSuperWindow<RadioButton>(parent, rect) {}
 
-void RadioButtonMmuErr::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void RadioButtonNotice::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK: {
         Response response = Click();
-        marlin_client::FSM_response(phase, response);
+        marlin_client::FSM_response(current_phase, response);
         break;
     }
     default:
@@ -27,15 +27,8 @@ void RadioButtonMmuErr::windowEvent(EventLock /*has private ctor*/, window_t *se
     }
 }
 
-void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phs) {
-    if (phase == phs)
-        return;
-    phase = phs;
-    Change(ClientResponses::GetResponses(phs));
-}
-
-void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phs, PhaseResponses responses) {
-    phase = phs;
+void RadioButtonNotice::ChangePhase(PhasesLoadUnload phase, PhaseResponses responses) {
+    current_phase = phase;
     Change(responses);
 }
 
@@ -68,7 +61,7 @@ static const char *txt_purging            = N_("Purging");
 static const char *txt_is_color           = N_("Is color correct?");
 static const char *txt_remove_filament    = N_("Please pull out filament immediately.");
 #if HAS_LOADCELL()
-static const char *txt_filament_stuck     = N_("The filament seems to be stuck, please unload it and load it again.");
+static const char *txt_filament_stuck     = ""; // Empty here, set from the error description
 #endif
 #if HAS_MMU2()
 // MMU-related
@@ -105,6 +98,7 @@ static const char *txt_mmu_hw_test_cleanup= N_("HW test cleanup");
 static const char *txt_mmu_hw_test_exec   = N_("HW test exec");
 static const char *txt_mmu_hw_test_display= N_("HW test display");
 static const char *txt_mmu_errhw_test_fail= N_("ERR HW test failed");
+static const char *txt_mmu_insert_filament= N_("Press CONTINUE and push filament into MMU.");
 
 //MMU_ErrWaitForUser, // need to distinguish error states based on prusa-error-codes @@TODO
 static const char *txt_mmu_err_wait_user  = N_("Waiting for user input");
@@ -148,6 +142,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_filament_stuck,       ClientResponses::GetResponses(PhasesLoadUnload::FilamentStuck),                 ph_txt_unload, DialogLoadUnload::phaseAlertSound },
 #endif
 #if HAS_MMU2()
+        DialogLoadUnload::State { txt_mmu_insert_filament,  ClientResponses::GetResponses(PhasesLoadUnload::LoadFilamentIntoMMU),   ph_txt_none }, // TODO how the button is Continue
         DialogLoadUnload::State { txt_mmu_engag_idler,      ClientResponses::GetResponses(PhasesLoadUnload::MMU_EngagingIdler),     ph_txt_none },
         DialogLoadUnload::State { txt_mmu_diseng_idler,     ClientResponses::GetResponses(PhasesLoadUnload::MMU_DisengagingIdler),  ph_txt_none },
         DialogLoadUnload::State { txt_mmu_unload_finda,     ClientResponses::GetResponses(PhasesLoadUnload::MMU_UnloadingToFinda),  ph_txt_none },
@@ -195,11 +190,12 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 // clang-format on
 /*****************************************************************************/
 
-static constexpr Rect16 mmu_title_rect = { 14, 44, 317, 22 };
-static constexpr Rect16 mmu_desc_rect = { 14, 66, 224, 105 };
-static constexpr Rect16 mmu_icon_rect = { 263, 73, 59, 72 };
-static constexpr Rect16 mmu_link_rect = { 14, 165, 317, 32 }; // 2x font size + a bit of margin
-static constexpr Rect16 mmu_qr_rect = { 341, 44, 125, 125 };
+static constexpr Rect16 notice_title_rect = { 86, 44, 374, 22 };
+static constexpr Rect16 notice_text_rect = { 86, 72, 244, 140 };
+static constexpr Rect16 notice_link_rect = { 86, 218, 244, 32 };
+static constexpr Rect16 notice_icon_rect = { 370, 180, 59, 72 };
+static constexpr Rect16 notice_icon_type_rect = { 24, 44, 48, 48 };
+static constexpr Rect16 notice_qr_rect = { 350, 72, 100, 100 };
 static constexpr char error_code_link_format[] = N_("More detail at\nprusa.io/%05u");
 namespace {
 constexpr size_t color_size { 16 };
@@ -229,25 +225,28 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     #endif
 #endif
           )
-    , radio_for_red_screen(this, GuiDefaults::GetIconnedButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::FooterHeight))
-    , text_link(this, mmu_link_rect, is_multiline::yes, is_closed_on_click_t::no)
-    , icon_hand(this, mmu_icon_rect, &img::hand_qr_59x72)
-    , filament_type_text(this, filament_type_text_rect, is_multiline::no)
-    , filament_color_icon(this, filament_color_icon_rect)
-    , qr(this, mmu_qr_rect)
+    , notice_frame(this, get_frame_rect(GetRect(), has_footer::yes))
+    , notice_title(&notice_frame, notice_title_rect, is_multiline::no)
+    , notice_text(&notice_frame, notice_text_rect, is_multiline::yes)
+    , notice_link(&notice_frame, notice_link_rect, is_multiline::yes)
+    , notice_icon_hand(&notice_frame, notice_icon_rect, &img::hand_qr_59x72)
+    , notice_icon_type(&notice_frame, notice_icon_type_rect, &img::warning_48x48)
+    , notice_qr(&notice_frame, notice_qr_rect)
+    , notice_radio_button(&notice_frame, GuiDefaults::GetButtonRect_AvoidFooter(GetRect()))
+    , filament_type_text(&progress_frame, filament_type_text_rect, is_multiline::no)
+    , filament_color_icon(&progress_frame, filament_color_icon_rect)
     , mode(ProgressSerializerLoadUnload(data.GetData()).mode) {
+    notice_frame.CaptureNormalWindow(notice_radio_button);
+
+    notice_title.set_font(GuiDefaults::FontBig);
+
+    notice_text.set_font(resource_font(IDR_FNT_SPECIAL));
 
     filament_type_text.SetAlignment(Align_t::Center());
     filament_color_icon.SetRoundCorners();
     instance = this;
 
-    text_link.set_font(resource_font(IDR_FNT_SMALL));
-
-    radio_for_red_screen.SetHasIcon();
-    radio_for_red_screen.Hide();
-    text_link.Hide();
-    icon_hand.Hide();
-    qr.Hide();
+    notice_link.set_font(resource_font(IDR_FNT_SMALL));
 
     Change(data);
 }
@@ -280,31 +279,27 @@ void DialogLoadUnload::phaseWaitSound() {
 }
 void DialogLoadUnload::phaseStopSound() { Sound_Stop(); }
 
-static constexpr bool isRedMMU([[maybe_unused]] uint8_t phs) {
+static constexpr bool is_notice_mmu([[maybe_unused]] PhasesLoadUnload phase) {
 #if HAS_MMU2()
-    int16_t mmu_err_pos = int16_t(PhasesLoadUnload::MMU_ERRWaitingForUser) - int16_t(PhasesLoadUnload::_first);
-    return phs == mmu_err_pos;
+    return phase == PhasesLoadUnload::MMU_ERRWaitingForUser;
 #else
     return false;
 #endif
 }
 
-static constexpr bool isRedFStuck([[maybe_unused]] uint8_t phs) {
+static constexpr bool is_notice_fstuck([[maybe_unused]] PhasesLoadUnload phase) {
 #if HAS_LOADCELL()
-    int16_t fstuck_err_pos = int16_t(PhasesLoadUnload::FilamentStuck) - int16_t(PhasesLoadUnload::_first);
-    return phs == fstuck_err_pos;
+    return phase == PhasesLoadUnload::FilamentStuck;
 #else
     return false;
 #endif
 }
 
-static constexpr bool isRed(uint8_t phs) {
-    return isRedMMU(phs) || isRedFStuck(phs);
+static constexpr bool is_notice(PhasesLoadUnload phase) {
+    return is_notice_mmu(phase) || is_notice_fstuck(phase);
 }
 
-constexpr static const char title_filament_stuck[] = N_("FILAMENT STUCK");
-
-bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
+bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
     LoadUnloadMode new_mode = ProgressSerializerLoadUnload(data).mode;
     if (new_mode != mode) {
         mode = new_mode;
@@ -312,100 +307,81 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
     }
 
 #if HAS_MMU2() || HAS_LOADCELL()
-    // was black (or uninitialized), is red
-    if ((!phase || !isRed(*phase)) && isRed(phs)) {
-        SetRedLayout();
-        // this dialog does not contain header, so it broadcasts event to all windows
-        event_conversion_union uni;
-        uni.header.layout = layout_color::red;
-        Screens::Access()->ScreenEvent(this, GUI_event_t::HEADER_COMMAND, uni.pvoid);
-
-        title.SetRect(mmu_title_rect);
-
-        progress.Hide();
-
-        label.SetRect(mmu_desc_rect);
-
-        radio_for_red_screen.Show(); // show red screen radio button
-        CaptureNormalWindow(radio_for_red_screen); // capture red screen radio button
-        radio.Hide(); // hide normal radio button
-
-        text_link.Show();
-        icon_hand.Show();
-        qr.Show();
+    // was normal (or uninitialized), is notice
+    if ((!current_phase || !is_notice(*current_phase)) && is_notice(phase)) {
+        progress_frame.Hide();
+        notice_frame.Show();
+        CaptureNormalWindow(notice_frame);
     }
 
-    // is red
-    if (isRed(phs)) {
-        if (!can_change(phs))
+    // is notice
+    if (is_notice(phase)) {
+        if (!can_change(phase))
             return false;
 
     #if HAS_MMU2()
-        if (isRedMMU(phs)) {
+        if (is_notice_mmu(phase)) {
             const MMU2::MMUErrDesc *ptr_desc = fsm::PointerSerializer<MMU2::MMUErrDesc>(data).Get();
             PhaseResponses responses {
                 ButtonOperationToResponse(ptr_desc->buttons[0]),
                 ButtonOperationToResponse(ptr_desc->buttons[1]),
                 ButtonOperationToResponse(ptr_desc->buttons[2])
             };
-            radio_for_red_screen.ChangePhase(PhasesLoadUnload::MMU_ERRWaitingForUser, responses);
-            red_screen_update(ftrstd::to_underlying(ptr_desc->err_code), ptr_desc->err_title, ptr_desc->err_text);
+
+            notice_radio_button.set_fixed_width_buttons_count(3);
+            notice_radio_button.ChangePhase(phase, responses);
+            notice_update(ftrstd::to_underlying(ptr_desc->err_code), ptr_desc->err_title, ptr_desc->err_text, ptr_desc->type);
         }
     #endif
     #if HAS_LOADCELL()
         // here, an "else" would be nice, but there might be printers with MMU and without loadcell in the future...
-        if (isRedFStuck(phs)) {
+        if (is_notice_fstuck(phase)) {
             // An ugly workaround to abuse existing infrastructure - this is not an MMU-related error
             // yet we need to throw a dialog with a QR code and a button.
             auto err_desc = find_error(ErrCode::ERR_MECHANICAL_STUCK_FILAMENT_DETECTED);
 
-            // I don't like the fact, that the one-and-only response from FilamentStuck (aka Unload) gets mapped onto the first button)
-            // It doesn't look nice ;) ... therefore, some handcrafted ugly alignment is necessary at this spot
-            PhaseResponses responses { Response::_none, Response::Unload, Response::_none };
-            radio_for_red_screen.ChangePhase(PhasesLoadUnload::FilamentStuck, responses);
-            red_screen_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text);
+            notice_radio_button.set_fixed_width_buttons_count(0);
+            notice_radio_button.ChangePhase(phase, { Response::Unload });
+            notice_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text, MMU2::ErrType::WARNING);
         }
     #endif
-        phase = phs; // set it directly, do not use super::change(phs, data);
+        current_phase = phase; // set it directly, do not use super::change(phase, data);
 
         return true;
     }
 
-    // was red (or uninitialized), is black
-    if ((!phase || isRed(*phase)) && !isRed(phs)) {
-        title.SetRect(get_title_rect(GetRect()));
-        SetBlackLayout();
-        // this dialog does not contain header, so it broadcasts event to all windows
-        event_conversion_union uni;
-        uni.header.layout = layout_color::black;
-        Screens::Access()->ScreenEvent(this, GUI_event_t::HEADER_COMMAND, uni.pvoid);
-
-        progress.Show();
-
-        label.SetRect(get_label_rect(GetRect(), has_footer::yes));
-
-        radio.Show(); // show normal radio button
-        CaptureNormalWindow(radio); // capture normal radio button
-        radio_for_red_screen.Hide(); // hide red screen radio button
-
-        text_link.Hide();
-        icon_hand.Hide();
-        qr.Hide();
+    // was notice (or uninitialized), is normal
+    if ((!current_phase || is_notice(*current_phase)) && !is_notice(phase)) {
+        progress_frame.Show();
+        notice_frame.Hide();
+        CaptureNormalWindow(progress_frame);
     }
 #endif
 
-    // is black
-    return super::change(phs, data);
+    // is normal
+    return super::change(phase, data);
 }
 
-void DialogLoadUnload::red_screen_update(uint16_t errCode, const char *errTitle, const char *errDesc) {
-    title.SetText(string_view_utf8::MakeRAM((const uint8_t *)errTitle));
-    label.SetText(string_view_utf8::MakeRAM((const uint8_t *)errDesc));
+void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, MMU2::ErrType type) {
+    switch (type) {
+    case MMU2::ErrType::ERROR:
+        notice_icon_type.SetRes(&img::error_48x48);
+        break;
+    case MMU2::ErrType::WARNING:
+        notice_icon_type.SetRes(&img::warning_48x48);
+        break;
+    case MMU2::ErrType::USER_ACTION:
+        notice_icon_type.SetRes(&img::info_48x48);
+        break;
+    }
+
+    notice_title.SetText(string_view_utf8::MakeRAM((const uint8_t *)errTitle));
+    notice_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)errDesc));
 
     snprintf(error_code_str, sizeof(error_code_str), error_code_link_format, errCode);
-    text_link.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_code_str));
+    notice_link.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_code_str));
 
-    qr.SetQRHeader(errCode);
+    notice_qr.SetQRHeader(errCode);
 }
 
 constexpr static const char title_change[] = N_("Changing filament");
@@ -425,8 +401,6 @@ string_view_utf8 DialogLoadUnload::get_name(LoadUnloadMode mode) {
         return _(title_unload);
     case LoadUnloadMode::Purge:
         return _(title_purge);
-    case LoadUnloadMode::FilamentStuck:
-        return _(title_filament_stuck);
     case LoadUnloadMode::Test:
         return _(title_test);
     default:
@@ -440,7 +414,7 @@ float DialogLoadUnload::deserialize_progress(fsm::PhaseData data) const {
 }
 
 void DialogLoadUnload::phaseEnter() {
-    if (!phase)
+    if (!current_phase)
         return;
     AddSuperWindow<DialogStateful<PhasesLoadUnload>>::phaseEnter();
 

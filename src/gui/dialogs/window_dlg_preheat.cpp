@@ -80,10 +80,6 @@ IWinMenuContainer *DialogMenuPreheat::newContainer(PreheatData type) {
     return new (&container_mem_space) NsPreheat::MenuContainer;
 }
 
-bool DialogMenuPreheat::change([[maybe_unused]] uint8_t phs, [[maybe_unused]] fsm::PhaseData data) {
-    return true;
-}
-
 PreheatData DialogMenuPreheat::get_type(fsm::BaseData data) {
     return PreheatData(data.GetData());
 }

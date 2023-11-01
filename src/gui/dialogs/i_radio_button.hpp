@@ -12,7 +12,9 @@
 
 class IRadioButton : public AddSuperWindow<window_t> {
 public:
-    static constexpr size_t max_icons = 3;
+    // if greater than 0, we're drawing a fixed amount of buttons
+    // used for MMU where we want to draw 3 buttons corresponding to the physical MMU buttons
+    size_t fixed_width_buttons_count { 0 };
     static constexpr size_t max_buttons = 4;
     using Responses_t = std::array<Response, max_buttons>; // maximum is 4 responses (4B), better to pass by value
 private:
@@ -25,9 +27,6 @@ private:
     void draw_1_btn();
     /// btn_count cannot exceed MAX_DIALOG_BUTTON_COUNT
     void draw_n_btns(size_t btn_count);
-
-    Rect16 getIconRect(uint8_t idx) const;
-    Rect16 getLabelRect(uint8_t idx) const;
 
     struct Layout {
         PhaseTexts txts_to_print;
@@ -53,7 +52,7 @@ public:
     IRadioButton &operator--(); // Prefix decrement operator no underflow
 
     Response Click() const; // click returns response to be send, 0 buttons will return Response::_none
-    bool IsEnabled() const;
+    bool IsEnabled(size_t index) const;
 
     void SetBtnIndex(uint8_t index);
     void SetBtn(Response btn);
@@ -68,6 +67,10 @@ public:
     // Enables automatic redrawing of the currently selected button (useful when radio_button is not the only scrollable window on the screen)
     void EnableDrawingSelected();
 
+    void set_fixed_width_buttons_count(size_t count) {
+        fixed_width_buttons_count = count;
+    }
+
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     virtual void unconditionalDraw() override;
@@ -78,7 +81,8 @@ protected:
     void validateBtnIndex(); // needed for iconned layout
     bool isIndexValid(size_t index);
     size_t maxSize() const; // depends id it is iconned
-    Responses_t generateResponses(const PhaseResponses &resp) const;
+
+    static Responses_t generateResponses(const PhaseResponses &resp);
 
     static size_t cnt_labels(const PhaseTexts *labels);
     static size_t cnt_responses(Responses_t resp);

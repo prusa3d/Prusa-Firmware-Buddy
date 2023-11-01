@@ -110,8 +110,6 @@ public:
     DialogMenuPreheat(fsm::BaseData data);
 
 protected:
-    virtual bool change(uint8_t phase, fsm::PhaseData data) override;
-
     static PreheatData get_type(fsm::BaseData data);
     static string_view_utf8 get_title(fsm::BaseData data);
 };
