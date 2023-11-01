@@ -6,7 +6,7 @@
 # PROJECT_VERSION (4.0.3)
 # PROJECT_VERSION_FULL (4.0.3-BETA+1035.PR111.B4)
 # PROJECT_VERSION_SUFFIX (-BETA+1035.PR111.B4)
-# PROJECT_VERSION_SUFFIX_SHORT (+1035)
+# PROJECT_VERSION_SUFFIX_SHORT (-BETA+1035)
 #
 # The `PROJECT_VERSION` variable is set as soon as the file is included.
 # To set the rest, the function `resolve_version_variables` has to be called.

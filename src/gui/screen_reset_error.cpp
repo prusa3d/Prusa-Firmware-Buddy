@@ -10,8 +10,6 @@
 ScreenResetError::ScreenResetError()
     : AddSuperWindow<screen_t>()
     , fw_version_txt(this, fw_version_rect, is_multiline::no)
-    , signature_txt(this, signature_rect, is_multiline::no)
-    , appendix_txt(this, appendix_rect, is_multiline::no)
     , sound_started(false) {
 
     ClrMenuTimeoutClose();
@@ -19,33 +17,26 @@ ScreenResetError::ScreenResetError()
     start_sound();
 
     fw_version_txt.set_font(resource_font(IDR_FNT_SMALL));
-    signature_txt.set_font(resource_font(IDR_FNT_SMALL));
-    appendix_txt.set_font(resource_font(IDR_FNT_SMALL));
 
     fw_version_txt.SetAlignment(GuiDefaults::EnableDialogBigLayout ? Align_t::LeftTop() : Align_t::CenterTop());
-    signature_txt.SetAlignment(Align_t::CenterTop());
-    appendix_txt.SetAlignment(Align_t::CenterTop());
 
-    /// fw version, hash, [fw signed], [appendix]
-    static const constexpr uint16_t fw_version_str_len = 13 + 1; // combined max length of project_version + .._suffix_short + null
-    static char fw_version[fw_version_str_len]; // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
-                                                // snprintf will clamp the text if the input is too long
-    snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
-    fw_version_txt.SetText(_(fw_version));
-
+    const char *signed_str = "";
     if (signature_exist()) {
         static const char signed_fw_str[] = "[S]";
-        signature_txt.SetText(_(signed_fw_str));
-    } else {
-        signature_txt.Hide();
+        signed_str = signed_fw_str;
     }
 
+    const char *apendix_str = "";
     if (appendix_exist()) {
         static const char appendix_str[] = "[A]";
-        appendix_txt.SetText(_(appendix_str));
-    } else {
-        appendix_txt.Hide();
+        apendix_str = appendix_str;
     }
+
+    /// fw version full string [fw signed][appendix]
+    static const constexpr uint16_t fw_version_str_len = 42;
+    static char fw_version[fw_version_str_len];
+    snprintf(fw_version, sizeof(fw_version), "%s %s%s", project_version_full, signed_str, apendix_str);
+    fw_version_txt.SetText(_(fw_version));
 }
 
 void ScreenResetError::start_sound() {
