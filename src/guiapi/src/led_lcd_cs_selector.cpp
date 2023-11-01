@@ -59,7 +59,7 @@ void LED_LCD_SPI_switcher::WrBytes(uint8_t *pb, uint16_t size) {
     } else {
         HAL_SPI_Abort(spi);
         assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(pb)));
-        HAL_SPI_Transmit_DMA(spi, pb, size);
+        HAL_SPI_Transmit_IT(spi, pb, size);
         // wait for transmission complete
         while (HAL_SPI_GetState(spi) == HAL_SPI_STATE_BUSY_TX) {
             osDelay(1);

@@ -373,4 +373,13 @@ void SPI3_IRQHandler(void) {
     HAL_SPI_IRQHandler(&hspi3);
     traceISR_EXIT();
 }
+
+/**
+ * @brief This function handles SPI4 global interrupt.
+ */
+void SPI4_IRQHandler(void) {
+    traceISR_ENTER();
+    HAL_SPI_IRQHandler(&hspi4);
+    traceISR_EXIT();
+}
 }
