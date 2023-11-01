@@ -507,6 +507,7 @@ static void check_crash() {
             || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLFALL)
             || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH)
             || (crash_s.get_state() == Crash_s::TRIGGERED_HOMEFAIL))) {
+        crash_s.loop = false; // Set again to prevent race when ISR happens during this function
         server.print_state = State::CrashRecovery_Begin;
         return;
     }
