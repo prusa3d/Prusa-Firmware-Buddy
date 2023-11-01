@@ -617,7 +617,10 @@ bool Transfer::cleanup_remove(Path &path) {
     // removed (eg. because it's being shown as a preview, or being printed).
     // In such case we want to make sure _not_ to delete the (possibly failed)
     // backup.
-    bool success = (remove(path.as_partial()) == 0) && (remove(path.as_backup()) == 0) && (rmdir(path.as_destination()) == 0);
+    int remove_result = remove(path.as_partial());
+    // Allow the partial-file not to exist any more (invalid state)
+    bool success = (remove_result == 0 || errno == ENOENT);
+    success = success && (remove(path.as_backup()) == 0) && (rmdir(path.as_destination()) == 0);
 
     if (success) {
         ChangedPath::instance.changed_path(path.as_destination(), ChangedPath::Type::File, ChangedPath::Incident::Deleted);
