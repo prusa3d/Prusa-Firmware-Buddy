@@ -464,7 +464,8 @@ void Transfer::notify_success() {
 bool Transfer::cleanup_transfers() {
     auto index = unique_file_ptr(fopen(transfer_index, "r"));
     if (!index) {
-        return false;
+        // No index means nothing to clean up, which is successful.
+        return true;
     }
 
     Path transfer_path;

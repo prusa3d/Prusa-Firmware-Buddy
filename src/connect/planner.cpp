@@ -743,6 +743,7 @@ void Planner::background_done(BackgroundResult result) {
 }
 
 void Planner::transfer_recovery_finished(std::optional<const char *> transfer_destination_path) {
+    need_transfer_cleanup = true;
     transfer_recovery = TransferRecoveryState::Finished;
     if (!transfer_destination_path.has_value()) {
         log_info(connect, "No transfer to recover");
