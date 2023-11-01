@@ -331,7 +331,11 @@ Transfer::RecoverResult Transfer::recover(const char *destination_path) {
 
         backup = Transfer::restore(backup_file.get());
         if (backup.has_value() == false) {
-            log_error(transfers, "Failed to restore backup file");
+            log_error(transfers, "Failed to restore backup file, invalidating transfer");
+            // Mark it as failed and it'll get cleaned up soon
+            // (so the user can try re-uploading it, for example)
+            backup_file.reset();
+            unique_file_ptr invalidate_backup(fopen(path.as_backup(), "w"));
             return Storage { "Failed to restore backup file" };
         }
         partial_file_state = backup->get_partial_file_state();
