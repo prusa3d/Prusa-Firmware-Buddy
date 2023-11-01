@@ -6,10 +6,10 @@ TIM4 - reserved for encoder
 TIM5 - SystemTimer (~12ns tick, 32bit, 84MHz, 1s period)    - src\common\timing_sys.c
 TIM6 - Marlin/Temperature                                   - lib\Marlin\Marlin\src\HAL\HAL_STM32_F4_F7\STM32F4\timers.cpp
 TIM7 - Marlin/Temperature                                   - lib\Marlin\Marlin\src\HAL\HAL_STM32_F4_F7\STM32F4\timers.cpp
-TIM8 - Marlin/Stepper                                       - lib\Marlin\Marlin\src\HAL\HAL_STM32_F4_F7\STM32F4\timers.cpp
+TIM8 -
 TIM9 -
 TIM10 -
 TIM11 -
-TIM12 -
+TIM12 - Marlin/Stepper                                       - lib\Marlin\Marlin\src\HAL\HAL_STM32_F4_F7\STM32F4\timers.cpp
 TIM13 - Phase stepping
 TIM14 - GUI - jogwheel, hwio, touch                         - src\main.cpp
