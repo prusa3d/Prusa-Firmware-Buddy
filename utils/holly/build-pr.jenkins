@@ -127,6 +127,8 @@ pipeline {
                     }
 
                     stash name: "artifacts", includes: "build/*_noboot/firmware*"
+                    // archive build products
+                    archiveArtifacts artifacts: 'build/products/*', fingerprint: true
                 }
             }
         }
@@ -182,8 +184,6 @@ pipeline {
     post {
         always {
             node('master') {
-                // archive build products
-                archiveArtifacts artifacts: 'build/products/*', fingerprint: true
                 // archive test products
                 archiveArtifacts artifacts: 'build-test/Testing/Temporary/LastTest.log'
             }
