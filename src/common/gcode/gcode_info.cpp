@@ -490,11 +490,12 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
 
         if (is_filament_type || is_filament_used_g || is_filament_used_mm || is_extruder_colour) {
             std::span<char> value(val.c_str(), val.len());
-            int extruder = 0;
+            size_t extruder = 0;
             while (std::optional<std::span<char>> item = iterate_items(value, is_filament_type || is_extruder_colour ? ';' : ',')) {
                 if (!item.has_value()) {
                     break;
-
+                } else if (extruder >= per_extruder_info.size()) {
+                    continue;
                 } else if (is_filament_type) {
                     filament_buff filament_name;
                     snprintf(filament_name.begin(), filament_name.size(), "%.*s", item->size(), item->data());
