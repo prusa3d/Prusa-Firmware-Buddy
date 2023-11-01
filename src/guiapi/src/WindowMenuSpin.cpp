@@ -25,8 +25,7 @@ void IWiSpin::click(IWindowMenu & /*window_menu*/) {
  * it behaves the same as click, but only when extension was clicked
  */
 void IWiSpin::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
-    Rect16::Width_t width = window_menu.GetRect().Width();
-    if (width >= relative_touch_point.x && (width - extension_width) <= relative_touch_point.x) {
+    if (is_touch_in_extension_rect(window_menu, relative_touch_point)) {
         click(window_menu);
     }
 }

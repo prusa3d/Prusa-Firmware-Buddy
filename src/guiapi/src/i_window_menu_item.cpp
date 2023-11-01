@@ -152,6 +152,14 @@ Rect16 IWindowMenuItem::getExtensionRect(Rect16 rect) const {
     return rect;
 }
 
+bool IWindowMenuItem::is_touch_in_extension_rect(IWindowMenu &window_menu, point_ui16_t relative_touch_point) const {
+    Rect16::Width_t width = window_menu.GetRect().Width();
+
+    // Ensure there's enough touch area so that the value is easily touchable
+    return relative_touch_point.x >= (width - std::max<int>(extension_width, minimum_touch_extension_area_width))
+        && relative_touch_point.x <= width;
+}
+
 void IWindowMenuItem::Print(Rect16 rect) {
     ropfn raster_op;
     if (clr_scheme) {

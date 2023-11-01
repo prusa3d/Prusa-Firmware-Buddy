@@ -67,6 +67,9 @@ public:
         yes
     };
 
+    /// Minimum width of the item extension touch rect
+    static constexpr int minimum_touch_extension_area_width = 96;
+
 public:
     /// Returns whether the item is currently in edit mode
     bool is_edited() const;
@@ -143,6 +146,7 @@ protected:
     Rect16 getIconRect(Rect16 rect) const;
     Rect16 getLabelRect(Rect16 rect) const;
     Rect16 getExtensionRect(Rect16 rect) const;
+    bool is_touch_in_extension_rect(IWindowMenu &window_menu, point_ui16_t relative_touch_point) const;
 
     virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const; // must be virtual, because pictures of flags are drawn differently
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; // things behind rect
