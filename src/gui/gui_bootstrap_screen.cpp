@@ -31,7 +31,7 @@ struct Progress {
 
 static Progress *bootstrap_progress;
 
-void gui_bootstrap_screen_set_state(unsigned percent, const char *str) {
+bool gui_bootstrap_screen_set_state(unsigned percent, const char *str) {
     assert(bootstrap_progress);
 
     osMutexWait(bootstrap_progress->lock_id, osWaitForever);
@@ -39,7 +39,7 @@ void gui_bootstrap_screen_set_state(unsigned percent, const char *str) {
     // ignore if no change
     if (percent == bootstrap_progress->percent && str == bootstrap_progress->message) {
         osMutexRelease(bootstrap_progress->lock_id);
-        return;
+        return false;
     }
 
     bootstrap_progress->percent = percent;
@@ -49,6 +49,8 @@ void gui_bootstrap_screen_set_state(unsigned percent, const char *str) {
 
     // wait a little to give GUI change to draw screen (it has lower priority, so we need to free up the CPU)
     osDelay(1);
+
+    return true;
 }
 
 // Draw smooth progressbar 1s

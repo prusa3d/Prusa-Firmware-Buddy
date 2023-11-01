@@ -158,8 +158,9 @@ static bool bootloader_update() {
                     bsod("unreachable");
                 }
 
-                log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description, percent_done);
-                gui_bootstrap_screen_set_state(percent_done, stage_description);
+                if (gui_bootstrap_screen_set_state(percent_done, stage_description)) {
+                    log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description, percent_done);
+                }
             });
         return true;
     }
@@ -185,8 +186,10 @@ static void resources_update() {
                 default:
                     bsod("unreachable");
                 }
-                log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description, percent_done);
-                gui_bootstrap_screen_set_state(percent_done, stage_description);
+
+                if (gui_bootstrap_screen_set_state(percent_done, stage_description)) {
+                    log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description, percent_done);
+                }
             });
     }
     TaskDeps::provide(TaskDeps::Dependency::resources_ready);

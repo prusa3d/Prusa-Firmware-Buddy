@@ -12,5 +12,6 @@ void gui_bootstrap_screen_run();
  * @brief Update bootstrap screen state
  * @note This is expected to be called for different threads.
  * @warning str has to exist forever GUI will just store pointer to this string, and draw it even after this functione exits.
+ * @return true if progress changed, false if this progress was already displayed
  */
-void gui_bootstrap_screen_set_state(unsigned percent, const char *str);
+bool gui_bootstrap_screen_set_state(unsigned percent, const char *str);
