@@ -15,6 +15,8 @@
 #include "window_header.hpp"
 #include "status_footer.hpp"
 #include "img_resources.hpp"
+#include <option/has_dwarf.h>
+#include <option/has_modularbed.h>
 #include <bitset>
 
 // Singleton dialog for messages
@@ -36,6 +38,13 @@ protected: // inherited by unit tests, must be protected
     static constexpr const char *HeatBreakThermistorFail = N_("Heatbreak thermistor is disconnected. Inspect the wiring.");
     static constexpr const char *NozzleDoesNotHaveRoundSectionMsg = N_("Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed.");
     static constexpr const char *NotDownloadedMsg = N_("G-Code transfer running too slow. Check your network for issues or use a USB drive. Press Continue to resume printing.");
+    static constexpr const char *BuddyMCUMaxTempMsg = N_("MCU in Buddy is overheated. Any higher will result in fatal error.");
+#if HAS_DWARF()
+    static constexpr const char *DwarfMCUMaxTempMsg = N_("MCU in Dwarf is overheated. Any higher will result in fatal error.");
+#endif /* HAS_DWARF() */
+#if HAS_MODULARBED()
+    static constexpr const char *ModBedMCUMaxTempMsg = N_("MCU in Modular Bed is overheated. Any higher will result in fatal error.");
+#endif /* HAS_MODULARBED() */
 
     struct icon_title_text_t {
         const img::Resource *icon;
@@ -43,6 +52,7 @@ protected: // inherited by unit tests, must be protected
         const char *text;
     };
 
+public:
     enum types {
         HotendFan,
         PrintFan,
@@ -58,9 +68,17 @@ protected: // inherited by unit tests, must be protected
 #endif
         NozzleDoesNotHaveRoundSection,
         NotDownloaded,
+        BuddyMCUMaxTemp,
+#if HAS_DWARF()
+        DwarfMCUMaxTemp,
+#endif /* HAS_DWARF() */
+#if HAS_MODULARBED()
+        ModBedMCUMaxTemp,
+#endif /* HAS_MODULARBED() */
         count_
     };
 
+protected:
     // order must match to enum types
     static constexpr icon_title_text_t icon_title_text[] = {
         { &img::fan_error_48x48, Title, HotendFanErrorMsg },
@@ -77,6 +95,13 @@ protected: // inherited by unit tests, must be protected
 #endif
         { &img::nozzle_34x32, Title, NozzleDoesNotHaveRoundSectionMsg },
         { &img::no_stream_48x48, Title, NotDownloadedMsg }, // NotDownloaded
+        { &img::warning_48x48, Title, BuddyMCUMaxTempMsg }, // BuddyMCUMaxTemp
+#if HAS_DWARF()
+        { &img::warning_48x48, Title, DwarfMCUMaxTempMsg }, // DwarfMCUMaxTemp
+#endif /* HAS_DWARF() */
+#if HAS_MODULARBED()
+        { &img::warning_48x48, Title, ModBedMCUMaxTempMsg }, // ModBedMCUMaxTemp
+#endif /* HAS_MODULARBED() */
     };
     static_assert(std::size(icon_title_text) == types::count_);
 
@@ -108,18 +133,11 @@ protected: // inherited by unit tests, must be protected
 public:
     static void ScreenJumpCheck();
 
-    static void ShowHotendFan();
-    static void ShowPrintFan();
-    static void ShowHotendTempDiscrepancy();
-    static void ShowHeatersTimeout();
-#if _DEBUG
-    static void ShowSteppersTimeout();
-#endif
-    static void ShowUSBFlashDisk();
-    static void ShowHeatBreakThermistorFail();
-#if ENABLED(POWER_PANIC)
-    static void ShowHeatbedColdAfterPP();
-#endif
-    static void ShowNozzleDoesNotHaveRoundSection();
-    static void ShowNotDownloaded();
+    /**
+     * @brief Show warning dialog screen.
+     * @param type which dialog to show
+     */
+    static void ShowType(types type) {
+        Instance().show(type);
+    }
 };
