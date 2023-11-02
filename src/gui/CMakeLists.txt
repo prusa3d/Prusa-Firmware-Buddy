@@ -23,6 +23,7 @@ target_sources(
           img_resources.cpp
           img_resources.cpp
           IScreenPrinting.cpp
+          lazyfilelist.cpp
           logger.cpp
           menu_vars.cpp
           MItem_crash.cpp

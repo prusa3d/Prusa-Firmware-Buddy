@@ -30,9 +30,9 @@ using namespace std;
 
 template <typename LDV>
 bool CheckFilesSeq(const LDV &ldv, std::vector<std::string> expectedSeq) {
-    return std::mismatch(ldv.files.begin(), ldv.files.end(), expectedSeq.begin(),
+    return std::mismatch(ldv.data().begin(), ldv.data().end(), expectedSeq.begin(),
                [](const typename LDV::Entry &e, const std::string &s) { return s == e.lfn; })
-        == std::make_pair(ldv.files.end(), expectedSeq.end());
+        == std::make_pair(ldv.data().end(), expectedSeq.end());
 }
 
 static char txt_old[] = "old"; // cannot be const char
