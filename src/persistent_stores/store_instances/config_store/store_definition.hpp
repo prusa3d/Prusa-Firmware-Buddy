@@ -38,7 +38,7 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_true, journal::hash("Run XYZ Calibration")> run_xyz_calib;
     StoreItem<bool, defaults::bool_true, journal::hash("Run First Layer")> run_first_layer;
 
-    StoreItem<bool, defaults::bool_true, journal::hash("FSensor Enabled")> fsensor_enabled;
+    StoreItem<bool, defaults::bool_false, journal::hash("FSensor Enabled V2")> fsensor_enabled;
 
     // nozzle PID variables
     StoreItem<float, defaults::pid_nozzle_p, journal::hash("PID Nozzle P")> pid_nozzle_p;
@@ -390,6 +390,9 @@ struct DeprecatedStore : public journal::DeprecatedStoreConfig<journal::Backend>
     StoreItem<SelftestResult_pre_23, defaults::selftest_result_pre_23, journal::hash("Selftest Result")> selftest_result_pre_23;
     // Selftest Result version before adding Gears Calibration result to EEPROM
     StoreItem<SelftestResult_pre_gears, defaults::selftest_result_pre_gears, journal::hash("Selftest Result V23")> selftest_result_pre_gears;
+
+    // Changing Filament Sensor default state after adding snake selftest
+    StoreItem<bool, defaults::bool_true, journal::hash("FSensor Enabled")> fsensor_enabled_v1;
 
     // An item was added to the middle of the footer enum and it caused eeprom corruption. This store footer item  was deleted and a new one is created without migration so as to force default footer value onto everyone, which is better than 'random values' (especially on mini where it could cause duplicated items shown). Default value was removed since we no longer need to keep it
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Footer Setting")> footer_setting_v1;
