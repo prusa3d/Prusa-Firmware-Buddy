@@ -98,6 +98,12 @@ Errors:
   id: "HEATBREAK_MAXTEMP_ERR"
   approved: true
 
+- code: "13213"
+  title: "MCU MAXTEMP ERROR"
+  text: "MCU in %s is overheated."
+  id: "MCU_MAXTEMP_ERR"
+  approved: false
+
 # XX250-XX257 reserved  
 
 # ELECTRICAL     xx3xx  
