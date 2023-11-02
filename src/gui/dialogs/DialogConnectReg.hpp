@@ -11,8 +11,9 @@
 class DialogConnectRegister : public AddSuperWindow<IDialog> {
 private:
     // TODO change after textation so it is big enough for new texts
-    static char attempt_buffer[30];
-    static char detail_buffer[70];
+    char attempt_buffer[30];
+    char detail_buffer[50];
+    char error_buffer[80];
 
     // TODO: Doesn't fit
     constexpr static const char *const headerLabel = N_("PRUSA CONNECT");

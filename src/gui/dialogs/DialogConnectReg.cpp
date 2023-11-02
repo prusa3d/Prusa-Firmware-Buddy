@@ -22,9 +22,6 @@ const constexpr size_t max_url_len = 128;
 
 } // namespace
 
-char DialogConnectRegister::attempt_buffer[30];
-char DialogConnectRegister::detail_buffer[70];
-
 DialogConnectRegister::DialogConnectRegister()
     : AddSuperWindow<IDialog>(WizardDefaults::RectSelftestFrame)
     , header(this, _(headerLabel))
@@ -48,8 +45,11 @@ DialogConnectRegister::DialogConnectRegister()
 
     text_state.SetText(_("Acquiring registration code, please wait..."));
 
-    snprintf(attempt_buffer, sizeof(attempt_buffer), "Attempt %d/%d", 1, connect_client::Registrator::starting_retries);
+    char help_buff[20] = { 0 };
+    _(attemptTxt).copyToRAM(help_buff, sizeof(help_buff)); // Translation
+    snprintf(attempt_buffer, sizeof(attempt_buffer), "%s %d/%d", help_buff, 1, connect_client::Registrator::starting_retries);
     text_attempt.SetText(_(attempt_buffer));
+    text_attempt.Invalidate();
 
     // Show these only after we get the code.
     qr_rect = false;
@@ -167,28 +167,22 @@ void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t
                 }
 
                 char url_buffer[15] = { 0 };
-                char error_help_buffer[50];
-                char error_msg[80];
+                char error_help_buffer[70];
+                char error_detail_buffer[30];
 
                 auto error = find_error(ErrCode::ERR_CONNECT_CONNECT_REGISTRATION_FAILED);
                 _(error.err_text).copyToRAM(error_help_buffer, sizeof(error_help_buffer)); // Translation
-                snprintf(error_msg, sizeof(error_msg), "%s %s", error_help_buffer, err_buffer);
-                text_state.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_msg));
+                snprintf(error_buffer, sizeof(error_buffer), "%s %s", error_help_buffer, err_buffer);
+                text_state.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_buffer));
+                text_state.Invalidate();
 
                 snprintf(url_buffer, sizeof(url_buffer), "prusa.io/%d", static_cast<int>(error.err_code));
                 qr.SetText(url_buffer);
                 showQR();
 
-                text_attempt.SetRect(Positioner::textRectAttempt(true));
-                text_attempt.SetAlignment(Align_t::Left());
-                text_attempt.Show();
-
-                snprintf(attempt_buffer, sizeof(attempt_buffer), "%s", err_buffer);
-                text_attempt.SetText(string_view_utf8::MakeRAM((const uint8_t *)attempt_buffer));
-
                 // Detail uses the same buffer from the start so SetText here is obsolete as it does nothing and the text is changed within memory
-                _(moreDetailTxt).copyToRAM(error_help_buffer, sizeof(error_help_buffer)); // Translation
-                snprintf(detail_buffer, sizeof(detail_buffer), "%s:\n%s", error_help_buffer, url_buffer);
+                _(moreDetailTxt).copyToRAM(error_detail_buffer, sizeof(error_detail_buffer)); // Translation
+                snprintf(detail_buffer, sizeof(detail_buffer), "%s:\n%s", error_detail_buffer, url_buffer);
                 text_detail.SetText(_(detail_buffer));
                 text_detail.Invalidate();
                 break;
