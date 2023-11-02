@@ -162,8 +162,8 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "ToolOffsets_wait_user_clean_nozzle_hot";
     case PhasesSelftest::ToolOffsets_wait_user_install_sheet:
         return "ToolOffsets_wait_user_install_sheet";
-    case PhasesSelftest::ToolOffsets_wait_final_park:
-        return "ToolOffsets_wait_final_park";
+    case PhasesSelftest::ToolOffsets_wait_move_away:
+        return "ToolOffsets_wait_move_away";
     case PhasesSelftest::ToolOffsets_wait_user_remove_pin:
         return "ToolOffsets_wait_user_remove_pin";
     }

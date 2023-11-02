@@ -274,7 +274,7 @@ enum class PhasesSelftest : uint16_t {
     ToolOffsets_wait_user_install_pin,
     ToolOffsets_wait_stable_temp,
     ToolOffsets_wait_calibrate,
-    ToolOffsets_wait_final_park,
+    ToolOffsets_wait_move_away,
     ToolOffsets_wait_user_remove_pin,
     _last_Tool_Offsets = ToolOffsets_wait_user_remove_pin,
 
