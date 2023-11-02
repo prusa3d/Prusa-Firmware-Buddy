@@ -329,12 +329,12 @@ public:
     }
 
     void err() {
+        // The connection is already closed for us, so remove it from here so done doesn't get rid of it.
         conn = nullptr;
         done(DownloadStep::FailedNetwork);
     }
 
     static void err_wrap(void *arg, err_t) {
-        // The connection is already closed for us, so remove it from here so done doesn't get rid of it.
         static_cast<Async *>(arg)->err();
     }
 
@@ -356,7 +356,9 @@ public:
         altcp_err(conn, err_wrap);
         altcp_poll(conn, timeout_check_wrap, 1);
         altcp_recv(conn, recv_wrap);
-        altcp_connect(conn, &request.ip, request.port, connected_wrap);
+        if (altcp_connect(conn, &request.ip, request.port, connected_wrap) != ERR_OK) {
+            done(DownloadStep::FailedOther);
+        }
     }
 
     void dns_found(const ip_addr_t *ip) {
