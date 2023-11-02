@@ -767,7 +767,7 @@ class Planner {
     static bool draining() { return draining_buffer; }
 
     // Resume queuing after being held by drain()
-    static void resume_queuing() { draining_buffer = false; }
+    static void resume_queuing();
 
     // Called when an endstop is triggered. Causes the machine to stop immediately
     static void endstop_triggered(const AxisEnum axis);

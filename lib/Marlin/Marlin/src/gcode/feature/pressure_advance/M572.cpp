@@ -73,7 +73,9 @@ void GcodeSuite::M572_internal(float pressure_advance, float smooth_time) {
         // For now, we must ensure that all queues are empty before changing pressure advance parameters.
         // But later, it could be possible to wait just for block and move quests.
         planner.synchronize();
-
-        pressure_advance::set_axis_e_config(new_axis_e_config);
+        if (!planner.draining()) {
+            // Only set configuration when the current command isn't aborted
+            pressure_advance::set_axis_e_config(new_axis_e_config);
+        }
     }
 }
