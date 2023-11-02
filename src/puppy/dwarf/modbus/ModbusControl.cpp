@@ -257,19 +257,19 @@ void ProcessModbusMessages() {
                     ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::pid_start) + i));
             };
 
-            union {
-                uint32_t i;
-                float f;
-            } temp_data; ///< Use to convert two registers into one float
+            uint32_t temp_data; ///< Use to convert two registers into one float
 
-            temp_data.i = get_reg(0) | (get_reg(1) << 16); // Stored LSB first in buddy
-            Temperature::temp_hotend[0].pid.Kp = temp_data.f;
+            temp_data = get_reg(0) | (get_reg(1) << 16); // Stored LSB first in buddy
+            memcpy(&Temperature::temp_hotend[0].pid.Kp, &temp_data, sizeof(temp_data));
+            static_assert(sizeof(Temperature::temp_hotend[0].pid.Kp) == sizeof(temp_data));
 
-            temp_data.i = get_reg(2) | (get_reg(3) << 16);
-            Temperature::temp_hotend[0].pid.Ki = temp_data.f;
+            temp_data = get_reg(2) | (get_reg(3) << 16);
+            memcpy(&Temperature::temp_hotend[0].pid.Ki, &temp_data, sizeof(temp_data));
+            static_assert(sizeof(Temperature::temp_hotend[0].pid.Ki) == sizeof(temp_data));
 
-            temp_data.i = get_reg(4) | (get_reg(5) << 16);
-            Temperature::temp_hotend[0].pid.Kd = temp_data.f;
+            temp_data = get_reg(4) | (get_reg(5) << 16);
+            memcpy(&Temperature::temp_hotend[0].pid.Kd, &temp_data, sizeof(temp_data));
+            static_assert(sizeof(Temperature::temp_hotend[0].pid.Kd) == sizeof(temp_data));
 
             break;
         }
