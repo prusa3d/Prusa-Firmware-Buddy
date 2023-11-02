@@ -79,6 +79,9 @@ static std::pair<input_shaper_pulses_t, input_shaper_pulses_t> get_input_shaper(
 #endif
 
 static void set_logical_axis_config_internal(const AxisEnum axis, std::optional<AxisConfig> axis_config) {
+    // ensure moves are not being processed as we change parameters
+    assert(PreciseStepping::move_segment_queue_size() == 0);
+
 #ifdef COREXY
     if (axis_config) {
         if (axis == X_AXIS || axis == Y_AXIS) {
