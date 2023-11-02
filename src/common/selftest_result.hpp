@@ -93,9 +93,9 @@ struct SelftestResultV23 {
 /**
  * @brief Test results compacted in eeprom. Copy of SelftestResultV23 only because the old type was needed in old eeprom implementation and was not allowed to have any constructors (ie new version won't have to do this copy)
  */
-struct SelftestResult {
-    SelftestResult() = default;
-    SelftestResult(const SelftestResult_pre_23 &sr_pre23);
+struct SelftestResult_pre_gears {
+    SelftestResult_pre_gears() = default;
+    SelftestResult_pre_gears(const SelftestResult_pre_23 &sr_pre23);
     TestResult xaxis : 2 {};
     TestResult yaxis : 2 {};
     TestResult zaxis : 2 {};
@@ -103,6 +103,25 @@ struct SelftestResult {
     TestResultNet eth : 3 {};
     TestResultNet wifi : 3 {};
     TestResult zalign : 2 {};
+    SelftestTool tools[config_store_ns::max_tool_count] {};
+};
+
+bool operator==(SelftestResult_pre_gears lhs, SelftestResult_pre_gears rhs);
+
+/**
+ * @brief Test results compacted in eeprom. Added gears calibration result to eeprom for snake selftest compatibility
+ */
+struct SelftestResult {
+    SelftestResult() = default;
+    SelftestResult(const SelftestResult_pre_gears &sr_pre_gears);
+    TestResult xaxis : 2 {};
+    TestResult yaxis : 2 {};
+    TestResult zaxis : 2 {};
+    TestResult bed : 2 {};
+    TestResultNet eth : 3 {};
+    TestResultNet wifi : 3 {};
+    TestResult zalign : 2 {};
+    TestResult gears : 2 {};
     SelftestTool tools[config_store_ns::max_tool_count] {};
 };
 

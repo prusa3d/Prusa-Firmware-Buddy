@@ -44,6 +44,8 @@ TestResult get_test_result(Action action, Tool tool) {
         } else {
             return evaluate_results(sr.tools[ftrstd::to_underlying(tool)].fsensor);
         }
+    case Action::Gears:
+        return evaluate_results(sr.gears);
     case Action::_count:
         break;
     }
@@ -88,6 +90,8 @@ uint64_t get_test_mask(Action action) {
         return stmLoadcell;
     case Action::ZAlign:
         return stmZcalib;
+    case Action::Gears:
+        return stmGears;
     case Action::_count:
         break;
     }

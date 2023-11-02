@@ -44,9 +44,13 @@ bool phase_gears(IPartHandler *&selftest_gears, const SelftestGearsConfig &confi
     if (in_progress) {
         return true;
     }
+    SelftestResult eeres = config_store().selftest_result.get();
+    eeres.gears = selftest_gears->GetResult();
 
     delete selftest_gears;
     selftest_gears = nullptr;
+
+    config_store().selftest_result.set(eeres);
 
     return false;
 }

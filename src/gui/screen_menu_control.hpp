@@ -48,11 +48,12 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_SELFTEST,
     MI_DIAGNOSTICS
     #endif
-#endif
-#if PRINTER_IS_PRUSA_MK4
+    #if PRINTER_IS_PRUSA_MK4
     ,
     MI_CALIB_GEARS
+    #endif
 #endif
+
     >;
 
 class ScreenMenuControl : public ScreenMenuControlSpec {

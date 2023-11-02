@@ -20,6 +20,7 @@ enum class Action {
     ZCheck,
     Heaters,
     FilamentSensorCalibration,
+    Gears,
     _count,
     _last = _count - 1,
     _first = Fans,
@@ -80,6 +81,7 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::ZCheck, N_("%d Z Axis Test") },
     { Action::Heaters, N_("%d Heater Test") },
     { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
+    { Action::Gears, N_("%d Gears Calibration") },
 };
 
 TestResult get_test_result(Action action, Tool tool);

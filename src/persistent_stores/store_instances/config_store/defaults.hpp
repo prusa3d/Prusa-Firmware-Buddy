@@ -225,6 +225,7 @@ namespace defaults {
 
     inline constexpr HWCheckSeverity hw_check_severity { HWCheckSeverity::Warning };
     inline constexpr SelftestResult selftest_result {};
+    inline constexpr SelftestResult_pre_gears selftest_result_pre_gears {};
     inline constexpr SelftestResult_pre_23 selftest_result_pre_23 {};
 
     inline constexpr Sheet sheet_0 { "Smooth1", 0.0f };
