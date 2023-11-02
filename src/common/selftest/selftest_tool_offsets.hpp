@@ -12,6 +12,7 @@ public:
 
     LoopResult state_ask_user_confirm_start();
     LoopResult state_clean_nozzle_start();
+    LoopResult state_move_away();
     LoopResult state_clean_nozzle();
     LoopResult state_ask_user_install_sheet();
     LoopResult state_wait_user();
