@@ -694,7 +694,7 @@ void PrintPreview::Init() {
 }
 
 IPrintPreview::State PrintPreview::stateFromSelftestCheck() {
-#if (!DEVELOPER_MODE() && (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4))
+#if (!DEVELOPER_MODE() && PRINTER_IS_PRUSA_XL)
     const bool show_warning = !selftest_warning_selftest_finished();
 #else
     const bool show_warning = false;

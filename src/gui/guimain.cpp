@@ -220,7 +220,7 @@ void filament_sensor_validation() {
     #endif
 #endif
     ) {
-        // GuiFSensor::validate_for_cyclical_calls(); // removed for now, unfinished calibration will be sufficient.
+        GuiFSensor::validate_for_cyclical_calls();
     }
 }
 

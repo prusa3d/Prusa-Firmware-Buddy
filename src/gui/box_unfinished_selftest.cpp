@@ -8,15 +8,18 @@
 #endif
 
 bool selftest_warning_selftest_finished() {
+#if (!PRINTER_IS_PRUSA_XL)
+    assert(false && "Not yet implemented");
+    return false;
+#else
+    SelftestResult sr = config_store().selftest_result.get();
 
-    [[maybe_unused]] SelftestResult sr = config_store().selftest_result.get();
-
-    [[maybe_unused]] auto all_passed = [](std::same_as<TestResult> auto... results) -> bool {
+    auto all_passed = [](std::same_as<TestResult> auto... results) -> bool {
         static_assert(sizeof...(results) > 0, "Pass at least one result");
 
         return ((results == TestResult_Passed) && ...); // all passed
     };
-#if (PRINTER_IS_PRUSA_XL)
+
     if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
         return false;
     }
@@ -37,20 +40,6 @@ bool selftest_warning_selftest_finished() {
     }
 
     return true;
-#elif (PRINTER_IS_PRUSA_MK4)
-    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed, sr.gears)) {
-        return false;
-    }
-
-    HOTEND_LOOP()
-    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].fansSwitched))
-        return false;
-
-    return true;
-
-#else
-    assert(false && "Not yet implemented");
-    return false;
 #endif
 }
 

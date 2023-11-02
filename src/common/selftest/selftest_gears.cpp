@@ -45,13 +45,7 @@ bool phase_gears(IPartHandler *&selftest_gears, const SelftestGearsConfig &confi
         return true;
     }
     SelftestResult eeres = config_store().selftest_result.get();
-    auto result = selftest_gears->GetResult();
-    // Skipped Gears calibration are considered passed; Meant for users with prebuilt printer
-    if (result == TestResult_Passed || result == TestResult_Skipped) {
-        eeres.gears = TestResult_Passed;
-    } else {
-        eeres.gears = result;
-    }
+    eeres.gears = selftest_gears->GetResult();
 
     delete selftest_gears;
     selftest_gears = nullptr;
