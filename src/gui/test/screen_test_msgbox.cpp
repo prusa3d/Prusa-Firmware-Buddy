@@ -29,10 +29,10 @@ ScreenTestMSGBox::ScreenTestMSGBox()
     , tst_ico_warning(this, Rect16(10, 164, 220, 22), []() { MsgBoxWarning(test_text_view, Responses_YesNo); })
     , tst_ico_info(this, Rect16(10, 186, 220, 22), []() { MsgBoxInfo(test_text_view, Responses_RetryCancel); })
     , tst_icon(this, Rect16(10, 208, 220, 22), []() { MsgBoxPepa(test_fin_view, Responses_Ok); })
-    , tst_strong_hotend_fan(this, Rect16(10, 230, 220, 22), []() { window_dlg_strong_warning_t::ShowHotendFan(); })
-    , tst_strong_print_fan(this, Rect16(10, 252, 220, 22), []() { window_dlg_strong_warning_t::ShowPrintFan(); })
-    , tst_strong_heater(this, Rect16(10, 274, 220, 22), []() { window_dlg_strong_warning_t::ShowHeatersTimeout(); })
-    , tst_strong_usb_error(this, Rect16(10, 296, 220, 22), []() { window_dlg_strong_warning_t::ShowUSBFlashDisk(); }) {
+    , tst_strong_hotend_fan(this, Rect16(10, 230, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HotendFan); })
+    , tst_strong_print_fan(this, Rect16(10, 252, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::PrintFan); })
+    , tst_strong_heater(this, Rect16(10, 274, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HeatersTimeout); })
+    , tst_strong_usb_error(this, Rect16(10, 296, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::USBFlashDisk); }) {
 
     static const char bck[] = "back";
     back.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bck));

@@ -15,9 +15,9 @@ screen_test_dlg_data_t::screen_test_dlg_data_t()
     : AddSuperWindow<screen_t>()
     , tst(this, Rect16(10, 32, 220, 22), is_multiline::no)
     , back(this, Rect16(10, 54, 220, 22), is_multiline::no, is_closed_on_click_t::yes)
-    , tst_usb_error(this, Rect16(10, 76, 220, 22), []() { window_dlg_strong_warning_t::ShowUSBFlashDisk(); })
-    , tst_fan_error(this, Rect16(10, 98, 220, 22), []() { window_dlg_strong_warning_t::ShowHotendFan(); })
-    , tst_safety_timer(this, Rect16(10, 120, 220, 22), []() { window_dlg_strong_warning_t::ShowHeatersTimeout(); }) {
+    , tst_usb_error(this, Rect16(10, 76, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::USBFlashDisk); })
+    , tst_fan_error(this, Rect16(10, 98, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HotendFan); })
+    , tst_safety_timer(this, Rect16(10, 120, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HeatersTimeout); }) {
     static const char tm[] = "TEST STRONG DIALOGS";
     tst.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tm));
 

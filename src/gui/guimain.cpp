@@ -72,6 +72,8 @@
 #include "hwio_pindef.h"
 #include "main.h"
 #include "bsod.h"
+#include <option/has_dwarf.h>
+#include <option/has_modularbed.h>
 #include <option/has_leds.h>
 #if HAS_LEDS()
     #include "led_animations/printer_animation_state.hpp"
@@ -158,40 +160,53 @@ void MsgCircleBuffer_cb(const char *txt) {
 void Warning_cb(WarningType type) {
     switch (type) {
     case WarningType::HotendFanError:
-        window_dlg_strong_warning_t::ShowHotendFan();
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HotendFan);
         break;
     case WarningType::PrintFanError:
-        window_dlg_strong_warning_t::ShowPrintFan();
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::PrintFan);
         break;
     case WarningType::HotendTempDiscrepancy:
-        window_dlg_strong_warning_t::ShowHotendTempDiscrepancy();
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HotendTempDiscrepancy);
         break;
     case WarningType::HeatersTimeout:
     case WarningType::NozzleTimeout:
-        window_dlg_strong_warning_t::ShowHeatersTimeout();
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HeatersTimeout);
         break;
 #if _DEBUG
     case WarningType::SteppersTimeout:
-        window_dlg_strong_warning_t::ShowSteppersTimeout();
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::SteppersTimeout);
         break;
 #endif
     case WarningType::USBFlashDiskError:
-        window_dlg_strong_warning_t::ShowUSBFlashDisk();
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::USBFlashDisk);
         break;
     case WarningType::HeatBreakThermistorFail:
-        window_dlg_strong_warning_t::ShowHeatBreakThermistorFail();
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HBThermistorFail);
         break;
 #if ENABLED(POWER_PANIC)
     case WarningType::HeatbedColdAfterPP:
-        window_dlg_strong_warning_t::ShowHeatbedColdAfterPP();
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HeatbedColdAfterPP);
         break;
 #endif
     case WarningType::NozzleDoesNotHaveRoundSection:
-        window_dlg_strong_warning_t::ShowNozzleDoesNotHaveRoundSection();
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::NozzleDoesNotHaveRoundSection);
         break;
     case WarningType::NotDownloaded:
-        window_dlg_strong_warning_t::ShowNotDownloaded();
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::NotDownloaded);
         break;
+    case WarningType::BuddyMCUMaxTemp:
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::BuddyMCUMaxTemp);
+        break;
+#if HAS_DWARF()
+    case WarningType::DwarfMCUMaxTemp:
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::DwarfMCUMaxTemp);
+        break;
+#endif /* HAS_DWARF() */
+#if HAS_MODULARBED()
+    case WarningType::ModBedMCUMaxTemp:
+        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::ModBedMCUMaxTemp);
+        break;
+#endif /* HAS_MODULARBED() */
     default:
         break;
     }

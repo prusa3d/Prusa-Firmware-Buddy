@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <charconv>
 
+#include "adc.hpp"
 #include "marlin_events.h"
 #include "marlin_print_preview.hpp"
 #include "app.h"
@@ -18,6 +19,7 @@
 #include "timing.h"
 #include "cmsis_os.h"
 #include "log.h"
+#include <bsod_gui.hpp>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -71,7 +73,17 @@
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
 #include <option/has_mmu2.h>
+#include <option/has_dwarf.h>
+#include <option/has_modularbed.h>
 #include <option/has_loadcell.h>
+
+#if HAS_DWARF()
+    #include <puppies/Dwarf.hpp>
+#endif /*HAS_DWARF()*/
+
+#if HAS_MODULARBED()
+    #include <puppies/modular_bed.hpp>
+#endif /*HAS_MODULARBED()*/
 
 #if HAS_SELFTEST()
     #include "printer_selftest.hpp"
@@ -240,6 +252,49 @@ namespace {
         bool m_postponeFullPrintFan;
     };
 
+    /// Check MCU temperature and trigger warning and redscreen
+    template <WarningType p_warning>
+    class MCUTempErrorChecker : public ErrorChecker<p_warning, true> {
+        static constexpr const int32_t mcu_temp_warning = 80; ///< When to show warning and pause the print
+        static constexpr const int32_t mcu_temp_hysteresis = 5; ///< Hysteresis to reset warning
+        static constexpr const int32_t mcu_temp_redscreen = 100; ///< When to show redscreen error
+
+        const char *name; ///< Name of board with the MCU
+
+        int32_t ewma_buffer = 0; ///< Buffer for EWMA [1/8 degrees Celsius]
+        bool warning = false; ///< True during warning state, enables hysteresis
+
+    public:
+        MCUTempErrorChecker(const char *name)
+            : name(name) {};
+
+        /**
+         * @brief Check one MCU temperature.
+         * @param temperature MCU temperature [degrees Celsius]
+         */
+        void check(int32_t temperature) {
+            ewma_buffer = (ewma_buffer * 7 / 8) + temperature; // Simple EWMA filter (stays 1 degree below stable value)
+            const auto filtered_temperature = ewma_buffer / 8;
+
+            // Trigger reset immediately
+            if (filtered_temperature >= mcu_temp_redscreen) {
+                fatal_error(ErrCode::ERR_TEMPERATURE_MCU_MAXTEMP_ERR, name);
+            }
+
+            // Trigger and reset warning
+            if (warning) {
+                if (filtered_temperature < mcu_temp_warning - mcu_temp_hysteresis) {
+                    warning = false;
+                }
+            } else {
+                if (filtered_temperature >= mcu_temp_warning) {
+                    warning = true;
+                }
+            }
+            this->checkTrue(!warning);
+        }
+    };
+
     ErrorChecker<WarningType::HotendFanError, true> hotendFanErrorChecker[HOTENDS];
     ErrorChecker<WarningType::PrintFanError, false> printFanErrorChecker;
 
@@ -247,6 +302,17 @@ namespace {
     ErrorChecker<WarningType::HeatBreakThermistorFail, true> heatBreakThermistorErrorChecker[HOTENDS];
 #endif
     HotendErrorChecker hotendErrorChecker;
+
+    MCUTempErrorChecker<WarningType::BuddyMCUMaxTemp> mcuMaxTempErrorChecker("Buddy"); ///< Check Buddy MCU temperature
+#if HAS_DWARF()
+    /// Check Dwarf MCU temperature
+    MCUTempErrorChecker<WarningType::DwarfMCUMaxTemp> dwarfMaxTempErrorChecker[HOTENDS] {
+        "Dwarf 1", "Dwarf 2", "Dwarf 3", "Dwarf 4", "Dwarf 5", "Dwarf 6"
+    };
+#endif /*HAS_DWARF()*/
+#if HAS_MODULARBED()
+    MCUTempErrorChecker<WarningType::ModBedMCUMaxTemp> modbedMaxTempErrorChecker("Modular Bed"); ///< Check ModularBed MCU temperature
+#endif /*HAS_MODULARBED()*/
 
     void pause_print(Pause_Type type, uint32_t resume_pos) {
         if (!server.print_is_serial) {
@@ -1936,14 +2002,39 @@ static void _server_print_loop(void) {
 #endif
 
     hotendErrorChecker.checkTrue(Temperature::saneTempReadingHotend(0));
+
+    // Check MCU temperatures
+    mcuMaxTempErrorChecker.check(AdcGet::getMCUTemp());
+#if HAS_DWARF()
+    HOTEND_LOOP() {
+        if (prusa_toolchanger.is_tool_enabled(e)) {
+            dwarfMaxTempErrorChecker[e].check(buddy::puppies::dwarfs[e].get_mcu_temperature());
+        }
+    }
+#endif /*HAS_DWARF()*/
+#if HAS_MODULARBED()
+    modbedMaxTempErrorChecker.check(buddy::puppies::modular_bed.mcu_temperature.value);
+#endif /*HAS_MODULARBED()*/
 }
 
 void resuming_begin(void) {
-    // Reset fan errors, so it can be triggered immediately again
+    // Reset errors, so it can be triggered immediately again
     HOTEND_LOOP() {
         hotendFanErrorChecker[e].reset();
     }
     printFanErrorChecker.reset();
+
+    mcuMaxTempErrorChecker.reset();
+#if HAS_DWARF()
+    HOTEND_LOOP() {
+        if (prusa_toolchanger.is_tool_enabled(e)) {
+            dwarfMaxTempErrorChecker[e].reset();
+        }
+    }
+#endif /*HAS_DWARF()*/
+#if HAS_MODULARBED()
+    modbedMaxTempErrorChecker.reset();
+#endif /*HAS_MODULARBED()*/
 
     nozzle_timeout_on(); // could be turned off after pause by changing temperature.
     if (print_reheat_ready()) {

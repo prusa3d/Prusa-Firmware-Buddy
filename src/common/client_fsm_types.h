@@ -72,7 +72,10 @@ enum class WarningType : uint32_t {
     HeatBreakThermistorFail,
     NozzleDoesNotHaveRoundSection,
     NotDownloaded,
-    _last = NotDownloaded
+    BuddyMCUMaxTemp,
+    DwarfMCUMaxTemp,
+    ModBedMCUMaxTemp,
+    _last = ModBedMCUMaxTemp
 };
 
 // Open dialog has a parameter because I need to set a caption of change filament dialog (load / unload / change).
