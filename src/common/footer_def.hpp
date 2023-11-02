@@ -93,16 +93,23 @@ inline constexpr auto disabled_items { std::to_array<Item>({
         Item::current_tool,
         Item::all_nozzles,
 #endif
-#if not HAS_SIDE_FSENSOR()
-        Item::f_sensor_side,
-#endif
 #if not _DEBUG
         Item::input_shaper_x,
         Item::input_shaper_y,
         Item::f_s_value,
         Item::f_sensor_side,
+#elif not HAS_SIDE_FSENSOR()
+    Item::f_sensor_side,
 #endif
 }) };
+
+consteval bool all_disabled_items_are_unique() {
+    auto items_copy = disabled_items;
+    std::ranges::sort(items_copy);
+    return std::ranges::adjacent_find(items_copy) == std::end(items_copy);
+}
+
+static_assert(all_disabled_items_are_unique(), "All disabled items must be unique");
 
 /**
  * @brief Get name of an item.
