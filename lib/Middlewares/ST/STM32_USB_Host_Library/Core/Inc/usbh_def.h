@@ -27,6 +27,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_conf.h"
+#include "rw_mutex.h"
 
 /** @addtogroup USBH_LIB
   * @{
@@ -490,6 +491,7 @@ typedef struct _USBH_HandleTypeDef
   uint32_t              os_msg;
 #endif
   bool                  stealth_reset;
+  RWMutex_t             class_mutex;
 } USBH_HandleTypeDef;
 
 

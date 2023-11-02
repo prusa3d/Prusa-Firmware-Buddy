@@ -103,6 +103,11 @@ USBH_StatusTypeDef  USBH_Init(USBH_HandleTypeDef *phost,
     USBH_ErrLog("Invalid Host handle");
     return USBH_FAIL;
   }
+  // set max number of concurent reader access to class structures to 2
+  // if an r/w operation is in progress, one read lock is mostly held by
+  // the USBH_MSC_WorkerTask task, at least one more is needed so that
+  // access to USBH_status is not blocked
+  rw_mutex_init(&phost->class_mutex, 2);
 
   /* Set DRiver ID */
   phost->id = id;
@@ -693,7 +698,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
       break;
 
     case HOST_CHECK_CLASS:
-
+      rw_mutex_writer_take(&phost->class_mutex);
       if (phost->ClassNumber == 0U)
       {
         USBH_UsrLog("No Class has been registered.");
@@ -733,6 +738,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
           USBH_UsrLog("No registered class for this device.");
         }
       }
+      rw_mutex_writer_give(&phost->class_mutex);
 
 #if (USBH_USE_OS == 1U)
       phost->os_msg = (uint32_t)USBH_STATE_CHANGED_EVENT;
@@ -745,6 +751,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
       break;
 
     case HOST_CLASS_REQUEST:
+      rw_mutex_writer_take(&phost->class_mutex);
       /* process class standard control requests state machine */
       if (phost->pActiveClass != NULL)
       {
@@ -769,6 +776,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
         phost->gState = HOST_ABORT_STATE;
         USBH_ErrLog("Invalid Class Driver.");
       }
+      rw_mutex_writer_give(&phost->class_mutex);
 #if (USBH_USE_OS == 1U)
       phost->os_msg = (uint32_t)USBH_STATE_CHANGED_EVENT;
 #if (osCMSIS < 0x20000U)
@@ -788,6 +796,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
       break;
 
     case HOST_DEV_DISCONNECTED :
+      rw_mutex_writer_take(&phost->class_mutex);
       phost->device.is_disconnected = 0U;
 
       (void)DeInitStateMachine(phost);
@@ -817,6 +826,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
         /* Device Disconnection Completed, start USB Driver */
         (void)USBH_LL_Start(phost);
       }
+      rw_mutex_writer_give(&phost->class_mutex);
 
 #if (USBH_USE_OS == 1U)
       phost->os_msg = (uint32_t)USBH_PORT_EVENT;

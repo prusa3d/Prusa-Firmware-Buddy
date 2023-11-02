@@ -13,7 +13,6 @@ using Lock = std::unique_lock<Mutex>;
 
 static const uint16_t USB_DEFAULT_BLOCK_SIZE = FF_MIN_SS;
 static DWORD scratch[FF_MAX_SS / 4];
-static Mutex diskio_mutex;
 
 extern USBH_HandleTypeDef hUsbHostHS;
 
@@ -129,13 +128,16 @@ static void USBH_MSC_WorkerTask(void const *) {
             {
                 auto retry = 1;
                 do {
-                    Lock lock(diskio_mutex);
                     switch (request->operation) {
                     case UsbhMscRequest::UsbhMscRequestOperation::Read:
+                        rw_mutex_reader_take(&hUsbHostHS.class_mutex);
                         request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                        rw_mutex_reader_give(&hUsbHostHS.class_mutex);
                         break;
                     case UsbhMscRequest::UsbhMscRequestOperation::Write:
+                        rw_mutex_reader_take(&hUsbHostHS.class_mutex);
                         request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                        rw_mutex_reader_give(&hUsbHostHS.class_mutex);
                         break;
                     default:
                         abort();
@@ -174,7 +176,6 @@ static void USBH_StartMSCWorkerTask() {
 }
 
 DSTATUS USBH_initialize([[maybe_unused]] BYTE lun) {
-    Lock lock(diskio_mutex);
     USBH_StartMSCWorkerTask();
     /* CAUTION : USB Host library has to be initialized in the application */
     return RES_OK;
@@ -186,14 +187,14 @@ DSTATUS USBH_initialize([[maybe_unused]] BYTE lun) {
  * @retval DSTATUS: Operation status
  */
 DSTATUS USBH_status(BYTE lun) {
-    Lock lock(diskio_mutex);
     DRESULT res = RES_ERROR;
-
+    rw_mutex_reader_take(&hUsbHostHS.class_mutex);
     if (USBH_MSC_UnitIsReady(&hUsbHostHS, lun)) {
         res = RES_OK;
     } else {
         res = RES_ERROR;
     }
+    rw_mutex_reader_give(&hUsbHostHS.class_mutex);
 
     return res;
 }
@@ -227,8 +228,9 @@ DRESULT USBH_read_ii(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
     if (status == USBH_OK) {
         res = RES_OK;
     } else {
-        Lock lock(diskio_mutex);
+        rw_mutex_reader_take(&hUsbHostHS.class_mutex);
         USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
+        rw_mutex_reader_give(&hUsbHostHS.class_mutex);
 
         switch (info.sense.asc) {
         case SCSI_ASC_LOGICAL_UNIT_NOT_READY:
@@ -311,8 +313,9 @@ DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
     if (status == USBH_OK) {
         res = RES_OK;
     } else {
-        Lock lock(diskio_mutex);
+        rw_mutex_reader_take(&hUsbHostHS.class_mutex);
         USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
+        rw_mutex_reader_give(&hUsbHostHS.class_mutex);
 
         switch (info.sense.asc) {
         case SCSI_ASC_WRITE_PROTECTED:
@@ -346,7 +349,7 @@ DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
  */
 #if FF_FS_READONLY == 0
 DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
-    Lock lock(diskio_mutex);
+    USBH_StatusTypeDef lun_info_res = USBH_FAIL;
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
 
@@ -358,7 +361,10 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
 
     /* Get number of sectors on the disk (DWORD) */
     case GET_SECTOR_COUNT:
-        if (USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info) == USBH_OK) {
+        rw_mutex_reader_take(&hUsbHostHS.class_mutex);
+        lun_info_res = USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
+        rw_mutex_reader_give(&hUsbHostHS.class_mutex);
+        if (lun_info_res == USBH_OK) {
             *(DWORD *)buff = info.capacity.block_nbr;
             res = RES_OK;
         } else {
@@ -368,7 +374,10 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
 
     /* Get R/W sector size (WORD) */
     case GET_SECTOR_SIZE:
-        if (USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info) == USBH_OK) {
+        rw_mutex_reader_take(&hUsbHostHS.class_mutex);
+        lun_info_res = USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
+        rw_mutex_reader_give(&hUsbHostHS.class_mutex);
+        if (lun_info_res == USBH_OK) {
             *(DWORD *)buff = info.capacity.block_size;
             res = RES_OK;
         } else {
@@ -378,8 +387,10 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
 
         /* Get erase block size in unit of sector (DWORD) */
     case GET_BLOCK_SIZE:
-
-        if (USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info) == USBH_OK) {
+        rw_mutex_reader_take(&hUsbHostHS.class_mutex);
+        lun_info_res = USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
+        rw_mutex_reader_give(&hUsbHostHS.class_mutex);
+        if (lun_info_res == USBH_OK) {
             *(DWORD *)buff = info.capacity.block_size / USB_DEFAULT_BLOCK_SIZE;
             res = RES_OK;
         } else {

@@ -343,6 +343,7 @@ static USBH_StatusTypeDef USBH_MSC_Process(USBH_HandleTypeDef *phost)
   switch (MSC_Handle->state)
   {
     case MSC_INIT:
+      rw_mutex_writer_take(&phost->class_mutex);
 
       if (MSC_Handle->current_lun < MSC_Handle->max_lun)
       {
@@ -525,6 +526,7 @@ static USBH_StatusTypeDef USBH_MSC_Process(USBH_HandleTypeDef *phost)
 #endif
         phost->pUser(phost, HOST_USER_CLASS_ACTIVE);
       }
+      rw_mutex_writer_give(&phost->class_mutex);
       break;
 
     case MSC_IDLE:
