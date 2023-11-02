@@ -36,12 +36,12 @@ public:
      * Wait until at least one sample with the specified timestamp is received.
      * @see WaitBarrier() to wait for a sample at the current time.
      */
-    void WaitBarrier(uint32_t ticks_ms);
+    void WaitBarrier(uint32_t ticks_us);
 
     /**
      * @brief Wait until a new loadcell sample at current time is received
      */
-    void WaitBarrier() { WaitBarrier(ticks_ms()); }
+    void WaitBarrier() { WaitBarrier(ticks_us()); }
 
     /**
      * @brief Zero loadcell offset on current load.
@@ -92,7 +92,7 @@ public:
     float GetHysteresis() const;
 
     void ProcessSample(int32_t loadcellRaw, uint32_t time_us);
-    inline uint32_t GetLastSampleTimeMs() const { return last_sample_time_us / 1000; }
+    inline uint32_t GetLastSampleTimeUs() const { return last_sample_time_us; }
 
     bool GetMinZEndstop() const;
     bool GetXYEndstop() const;

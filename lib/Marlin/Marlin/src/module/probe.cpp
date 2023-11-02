@@ -746,7 +746,7 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
         // Return slowly back
         float move_back = 0.09f;
         do_blocking_move_to_z(current_position.z + move_back, MMM_TO_MMS(Z_PROBE_SPEED_BACK_MOVE));
-        uint32_t move_back_end = millis();
+        uint32_t move_back_end = micros();
       #endif
 
       #if ENABLED(MEASURE_BACKLASH_WHEN_PROBING)
@@ -769,7 +769,7 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
         }
       #elif ENABLED(NOZZLE_LOAD_CELL)
         // wait until the analysis' window fully includes the move-back period
-        uint32_t window_end = move_back_end + static_cast<uint32_t>((loadcell.analysis.analysisLookahead + loadcell.analysis.loadDelay) * 1000.f);
+        uint32_t window_end = move_back_end + static_cast<uint32_t>((loadcell.analysis.analysisLookahead + loadcell.analysis.loadDelay) * 1000000.f);
         loadcell.WaitBarrier(window_end);
 
         static metric_t analysis_result = METRIC("probe_analysis", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);

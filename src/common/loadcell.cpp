@@ -45,13 +45,13 @@ Loadcell::Loadcell()
     Clear();
 }
 
-void Loadcell::WaitBarrier(uint32_t ticks_ms) {
+void Loadcell::WaitBarrier(uint32_t ticks_us) {
     // the first sample we're waiting for needs to be valid
     while (!planner.draining() && undefinedCnt)
         idle(true, true);
 
     // now wait until the requested timestamp
-    while (!planner.draining() && ticks_diff(loadcell.GetLastSampleTimeMs(), ticks_ms) < 0)
+    while (!planner.draining() && ticks_diff(loadcell.GetLastSampleTimeUs(), ticks_us) < 0)
         idle(true, true);
 }
 
