@@ -413,7 +413,9 @@ public:
         return last_status;
     }
 
-    void request_abort() {
+private:
+    friend class AsyncDeleter;
+    void request_delete() {
         // Allow setting the semaphore (don't set it before this one gets called and pulled from the queue).
         delete_requested = true;
         switch (phase) {
@@ -438,8 +440,8 @@ public:
             break;
         }
     }
-    static void request_abort_wrap(void *param) {
-        static_cast<Async *>(param)->request_abort();
+    static void request_delete_wrap(void *param) {
+        static_cast<Async *>(param)->request_delete();
     }
 };
 
@@ -448,7 +450,7 @@ void Download::AsyncDeleter::operator()(Async *a) {
         // Unfortunately, we need the Async to cooperate and finish all its
         // work before it can be deleted, so it's not left somewhere as a
         // callback or something like that.
-        tcpip_callback_nofail(Async::request_abort_wrap, a);
+        tcpip_callback_nofail(Async::request_delete_wrap, a);
         xSemaphoreTake(a->delete_allowed, portMAX_DELAY);
         delete a;
     }
