@@ -90,7 +90,8 @@ void ac_fault_task_main([[maybe_unused]] void const *argument) {
     vTaskSuspend(NULL);
 
     // disable unnecessary threads
-    // TODO: tcp_ip, network, USBH_Thread
+    // TODO: tcp_ip, network
+    vTaskSuspend(USBH_MSC_WorkerTaskHandle);
 
     // workaround for dislayTask locking the crc32 device (should be suspended instead!)
     osThreadSetPriority(displayTaskHandle, osPriorityIdle);
