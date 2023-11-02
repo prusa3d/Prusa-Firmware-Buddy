@@ -254,10 +254,11 @@ Sleep Planner::sleep(Duration amount, bool cooldown) {
     // that.
     Transfer *down = transfer.has_value() ? &transfer.value() : nullptr;
     // we don't want to allow moving the gcode file whenever there is a chance
-    // something is touching it
+    // something is touching it (though it would fail anyway) and while we need
+    // the performance for other things (especially the USB performance).
     //
     // We also don't want to allow it during downloading.
-    bool allow_transfer_cleanup = printer.is_idle() && need_transfer_cleanup && !Monitor::instance.id().has_value();
+    bool allow_transfer_cleanup = !printer.is_printing() && need_transfer_cleanup && !Monitor::instance.id().has_value();
     return Sleep(
         amount,
         cmd,

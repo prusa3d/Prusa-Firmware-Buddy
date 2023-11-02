@@ -404,7 +404,6 @@ Transfer::State Transfer::step(bool is_printing) {
                     restart_requested_by_jump = true;
                     break;
                 case Transfer::Action::Finished:
-                    notify_success();
                     done(State::Finished, Monitor::Outcome::Finished);
                     break;
                 }
@@ -477,8 +476,6 @@ bool Transfer::cleanup_transfers() {
         switch (next_in_index(index, transfer_path)) {
         case IndexIter::Ok: {
             struct stat st;
-            // Without this we would report LFN to connect in FILE_CHANGED event, which is not allowed.
-            get_SFN_path(transfer_path.get_buffer());
             // check the existence of the download file
             bool backup_file_found = stat_retry(transfer_path.as_backup(), &st) == 0 && S_ISREG(st.st_mode);
             bool backup_is_empty = backup_file_found && st.st_size == 0;
@@ -555,11 +552,17 @@ void Transfer::done(State state, Monitor::Outcome outcome) {
     partial_file.reset();
     if (state == State::Finished) {
         remove(path.as_backup());
-        if (!is_printable) {
-            // We don't dare move printable files at arbitrary times, because
-            // they can already be printed. But we must move the other files
-            // before we notify about them.
-            cleanup_finalize(path);
+        // If the file is being printed or manipulated in some other way,
+        // this'll fail (because an open file can't be moved). That's OK, we
+        // still have a full cleanup planned when the printer is idle. But we
+        // want to try this as early as possible anyway.
+        if (!cleanup_finalize(path)) {
+            // If moving to place suceeds, it already contains that notification.
+            //
+            // If it fails (because we are printing it), we still want to send
+            // the notification out (and again, with changed read-only, once
+            // the cleanup happens).
+            notify_success();
         }
     } else {
         // FIXME: We need some kind of error handling strategy to deal with
@@ -569,6 +572,13 @@ void Transfer::done(State state, Monitor::Outcome outcome) {
 
         // (Overwrite the file with empty one by opening and closing right away).
         unique_file_ptr(fopen(path.as_backup(), "w"));
+
+        // And try to clean it up if possible. Might fail if it is being
+        // printed or for some similar reasons (again, that's fine, we'll try
+        // to do cleanup later too).
+        //
+        // Unlike the success, we do not early-notify the removal.
+        cleanup_remove(path);
     }
     slot.done(outcome);
 
@@ -616,6 +626,9 @@ bool Transfer::cleanup_finalize(Path &transfer_path) {
 }
 
 bool Transfer::cleanup_remove(Path &path) {
+    // Without this we would report LFN to connect in FILE_CHANGED event, which is not allowed.
+    path.as_destination(); // Reset it to the "base"
+    get_SFN_path(path.get_buffer());
     // Note: Order of removal is important. It is possible the partial can't be
     // removed (eg. because it's being shown as a preview, or being printed).
     // In such case we want to make sure _not_ to delete the (possibly failed)
