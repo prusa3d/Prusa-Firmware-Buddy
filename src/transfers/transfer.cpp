@@ -385,7 +385,15 @@ Transfer::State Transfer::step(bool is_printing) {
         } else if (download.has_value()) {
             auto step_result = download->step();
             bool has_issues = step_result != DownloadStep::Continue && step_result != DownloadStep::Finished;
-            slot.progress(partial_file->get_state(), has_issues);
+            auto state = partial_file->get_state();
+            auto downloaded_size = state.get_valid_size();
+            if (downloaded_size != last_downloaded_size) {
+                // If we make any progress, reset the retries.
+                // (progress is updated whenever the USB submits a new block).
+                last_downloaded_size = downloaded_size;
+                retries_left = MAX_RETRIES;
+            }
+            slot.progress(state, has_issues);
             switch (step_result) {
             case DownloadStep::Continue: {
                 update_backup(/*force=*/false);
