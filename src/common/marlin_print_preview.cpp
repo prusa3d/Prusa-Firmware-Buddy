@@ -467,6 +467,13 @@ PrintPreview::Result PrintPreview::Loop() {
         default:
             break;
         }
+
+        // Still check for gcode error even in wait user screen - file could be downloaded enough for the info to show,
+        // but the transfer might fail and we want to prevent the user from start the print then
+        if (gcode_info.has_error()) {
+            ChangeState(State::file_error_wait_user);
+            break;
+        }
         break;
 
     case State::unfinished_selftest_wait_user:

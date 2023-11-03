@@ -194,7 +194,10 @@ public:
     /// through the RestoredTransfer interface.
     static std::optional<RestoredTransfer> restore(FILE *file);
 
-    struct Error {};
+    struct Error {
+        /// Optional error message
+        const char *msg = nullptr;
+    };
     struct Complete {};
 
     /// Tries to read the backup file for a running transfer for given path.
