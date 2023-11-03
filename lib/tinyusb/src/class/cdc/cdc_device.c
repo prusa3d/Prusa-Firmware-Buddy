@@ -273,6 +273,17 @@ void cdcd_reset(uint8_t rhport)
   }
 }
 
+void cdcd_set_tx_ovr(uint8_t rhport, bool ovr)
+{
+  (void)rhport;
+
+  for(uint8_t i=0; i<CFG_TUD_CDC; i++)
+  {
+    cdcd_interface_t* p_cdc = &_cdcd_itf[i];
+    tu_fifo_set_overwritable(&p_cdc->tx_ff, ovr);
+  }
+}
+
 uint16_t cdcd_open(uint8_t rhport, tusb_desc_interface_t const * itf_desc, uint16_t max_len)
 {
   // Only support ACM subclass
