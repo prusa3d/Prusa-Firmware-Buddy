@@ -19,9 +19,9 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_INFO_MODULAR_BED_BOARD_TEMPERATURE : public WI_TEMP_LABEL_t {
-    static constexpr const char *const label = N_("MBed Board Temp");
+class MI_INFO_MODULAR_BED_MCU_TEMPERATURE : public WI_TEMP_LABEL_t {
+    static constexpr const char *const label = N_("MBed MCU Temp");
 
 public:
-    MI_INFO_MODULAR_BED_BOARD_TEMPERATURE();
+    MI_INFO_MODULAR_BED_MCU_TEMPERATURE();
 };

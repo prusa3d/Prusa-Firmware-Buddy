@@ -183,6 +183,13 @@ public:
     MI_INFO_DWARF_BOARD_TEMPERATURE();
 };
 
+class MI_INFO_DWARF_MCU_TEMPERATURE : public WI_TEMP_LABEL_t {
+    static constexpr const char *const label = N_("Dwarf MCU Temp");
+
+public:
+    MI_INFO_DWARF_MCU_TEMPERATURE();
+};
+
 class I_MI_INFO_HEATBREAK_N_TEMP : public WI_TEMP_LABEL_t {
     static constexpr const char *const generic_label = N_("Heatbreak Temp"); // Generic string for single tool version
 

@@ -619,6 +619,13 @@ public:
     MI_INFO_BOARD_TEMP();
 };
 
+class MI_INFO_MCU_TEMP : public WI_TEMP_LABEL_t {
+    static constexpr const char *const label = N_("MCU Temperature");
+
+public:
+    MI_INFO_MCU_TEMP();
+};
+
 class MI_FOOTER_RESET : public WI_LABEL_t {
     static constexpr const char *const label = N_("Reset");
 

@@ -24,6 +24,9 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
         SensorData::Value boardRes = buffer.GetValue(SensorData::Sensor::boardTemp);
         Item<MI_INFO_BOARD_TEMP>().UpdateValue(boardRes);
 #endif
+
+        Item<MI_INFO_MCU_TEMP>().UpdateValue(buffer.GetValue(SensorData::Sensor::MCUTemp));
+
         Item<MI_INFO_HEATBREAK_N_TEMP<0>>().UpdateValue(marlin_vars()->hotend(0).temp_heatbreak.get());
         Item<MI_INFO_HEATBREAK_N_TEMP<1>>().UpdateValue(marlin_vars()->hotend(1).temp_heatbreak.get());
         Item<MI_INFO_HEATBREAK_N_TEMP<2>>().UpdateValue(marlin_vars()->hotend(2).temp_heatbreak.get());
@@ -41,7 +44,9 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
 
         Item<MI_INFO_DWARF_BOARD_TEMPERATURE>().UpdateValue(buffer.GetValue(SensorData::Sensor::dwarfBoardTemperature));
 
-        Item<MI_INFO_MODULAR_BED_BOARD_TEMPERATURE>().UpdateValue(buffer.GetValue(SensorData::Sensor::mbedMCUTemperature));
+        Item<MI_INFO_DWARF_MCU_TEMPERATURE>().UpdateValue(buffer.GetValue(SensorData::Sensor::dwarfMCUTemperature));
+
+        Item<MI_INFO_MODULAR_BED_MCU_TEMPERATURE>().UpdateValue(buffer.GetValue(SensorData::Sensor::mbedMCUTemperature));
 
         Item<MI_INFO_LOADCELL>().UpdateValue(buffer.GetValue(SensorData::Sensor::loadCell));
 

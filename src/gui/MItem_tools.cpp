@@ -738,6 +738,10 @@ MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
     : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
+MI_INFO_MCU_TEMP::MI_INFO_MCU_TEMP()
+    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
 MI_FOOTER_RESET::MI_FOOTER_RESET()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
