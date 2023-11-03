@@ -291,6 +291,8 @@ namespace {
                     switch (errno) {
                     case EBUSY:
                         return make_tuple(Status::Conflict, "File is busy");
+                    case EISDIR:
+                        return make_tuple(Status::Conflict, "Is a directory or ongoing transfer");
                     default:
                         return make_tuple(Status::InternalServerError, "Unknown error");
                     }
@@ -303,10 +305,19 @@ namespace {
 
         int result = rename(src, fn);
         if (result != 0) {
+            // Backup errno before calling other things
+            int old_errno = errno;
             remove(src); // No check - no way to handle errors anyway.
-            // we already checked for existence of the file, so we guess
-            // it is weird file name/forbidden chars that contain (422 Unprocessable Entity).
-            return make_tuple(Status::UnprocessableEntity, "Filename contains invalid characters");
+            switch (old_errno) {
+            case EISDIR:
+                return make_tuple(Status::Conflict, "Is a directory or ongoing transfer");
+            case ENOTDIR:
+                return make_tuple(Status::NotFound, "Destination directory does not exist");
+            default:
+                // we already checked for existence of the file, so we guess
+                // it is weird file name/forbidden chars that contain (422 Unprocessable Entity).
+                return make_tuple(Status::UnprocessableEntity, "Filename contains invalid characters");
+            }
         } else {
             return f(fn);
         }
