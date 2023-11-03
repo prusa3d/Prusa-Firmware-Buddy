@@ -19,8 +19,10 @@ typedef struct
 
 void rw_mutex_init(RWMutex_t *rw_mutex, uint8_t max_readers);
 void rw_mutex_reader_take(RWMutex_t *rw_mutex);
+bool rw_mutex_reader_try_take(RWMutex_t *rw_mutex);
 void rw_mutex_reader_give(RWMutex_t *rw_mutex);
 void rw_mutex_writer_take(RWMutex_t *rw_mutex);
+bool rw_mutex_writer_try_take(RWMutex_t *rw_mutex);
 void rw_mutex_writer_give(RWMutex_t *rw_mutex);
 
 #ifdef __cplusplus
