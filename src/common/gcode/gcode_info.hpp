@@ -254,7 +254,15 @@ public:
     void end_load(AnyGcodeFormatReader &file_reader);
 
     /**
-     * @brief Check if file is ready for print.
+     * @brief Checks if the file still exists and can be potentially printed.
+     * Softer version of check_valid_for_print, performs more basic checks.
+     * Does not set \c is_printable to true on success, you gotta \c check_valid_for_print for that.
+     * @return false on failure, sets \c is_printable to false and updates \c error_str
+     */
+    bool check_still_valid();
+
+    /**
+     * @brief Check if file is ready for print. Updates \c is_printable and \c error_str.
      * @param file_reader gcode file reader, it cannot be accessed by other threads at the same time
      */
     bool check_valid_for_print(AnyGcodeFormatReader &file_reader);

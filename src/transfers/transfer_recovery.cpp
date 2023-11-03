@@ -11,6 +11,7 @@
 #include <common/unique_dir_ptr.hpp>
 #include <common/filename_type.hpp>
 #include <common/filepath_operation.h>
+#include <lang/i18n.h>
 
 LOG_COMPONENT_REF(transfers);
 using namespace transfers;

@@ -7,6 +7,7 @@
 #include <mutable_path.hpp>
 
 namespace transfers {
+
 inline constexpr const char *partial_filename { "p" };
 inline constexpr const char *backup_filename { "d" };
 
@@ -18,4 +19,8 @@ inline constexpr const char *backup_filename { "d" };
  * @param destination_path
  */
 bool is_valid_transfer(const MutablePath &destination_path);
+
+/// \returns whether the \p file is an existing file or a valid transfer
+bool is_valid_file_or_transfer(const MutablePath &file);
+
 } // namespace transfers

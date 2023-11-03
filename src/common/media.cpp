@@ -196,10 +196,14 @@ void media_prefetch(const void *) {
 
         file_buff_level = file_buff_pos = 0;
 
-        event = osSignalWait(PREFETCH_SIGNAL_START | PREFETCH_SIGNAL_STOP | PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_GCODE_INFO_INIT | PREFETCH_SIGNAL_GCODE_INFO_STOP, osWaitForever);
+        event = osSignalWait(PREFETCH_SIGNAL_START | PREFETCH_SIGNAL_STOP | PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_GCODE_INFO_INIT | PREFETCH_SIGNAL_GCODE_INFO_STOP | PREFETCH_SIGNAL_CHECK, osWaitForever);
 
         if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_INIT) {
             media_gcode_info_scan(&event);
+        }
+
+        if (event.value.signals & PREFETCH_SIGNAL_CHECK) {
+            GCodeInfo::getInstance().check_still_valid();
         }
 
         if ((event.value.signals & PREFETCH_SIGNAL_START) == 0) {
