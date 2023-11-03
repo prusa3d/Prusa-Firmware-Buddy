@@ -9,6 +9,18 @@
 #include <ccm_thread.hpp>
 #include "priorities_config.h"
 
+extern metric_t __start_metric_definitions[]
+#if __APPLE__
+    __asm("section$start$__DATA$metric_definitions")
+#endif
+        ;
+
+extern metric_t __end_metric_definitions[]
+#if __APPLE__
+    __asm("section$end$__DATA$metric_definitions")
+#endif
+        ;
+
 static void metric_system_task_run(const void *);
 
 // task definition
@@ -29,13 +41,12 @@ static osMessageQId metric_system_queue;
 static metric_handler_t **metric_system_handlers;
 static bool metric_system_initialized = false;
 static uint16_t dropped_points_count = 0;
-static metric_t *metric_linked_list_root = NULL;
 
 // logging component
 LOG_COMPONENT_DEF(Metrics, LOG_SEVERITY_INFO);
 
 // internal metrics
-metric_t metric_dropped_points = METRIC("points_dropped", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_dropped_points, "points_dropped", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
 void metric_system_init(metric_handler_t *handlers[]) {
     if (metric_system_initialized)
@@ -54,15 +65,12 @@ metric_handler_t **metric_get_handlers() {
     return metric_system_handlers;
 }
 
-metric_t *metric_get_linked_list() {
-    return metric_linked_list_root;
+metric_t *metric_get_iterator_begin() {
+    return __start_metric_definitions;
 }
 
-void metric_linked_list_append(metric_t *metric) {
-    metric_t **pointer_next = &metric_linked_list_root;
-    while (*pointer_next != NULL)
-        pointer_next = &((*pointer_next)->next);
-    *pointer_next = metric;
+metric_t *metric_get_iterator_end() {
+    return __end_metric_definitions;
 }
 
 static void metric_system_task_run(const void *) {
@@ -97,15 +105,16 @@ static void update_min_interval(metric_t *metric) {
 static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timestamp, metric_value_type_t type) {
     if (!metric_system_initialized)
         return NULL;
-    if (!metric->_registered)
-        metric_register(metric);
+
     if (!check_min_interval(metric, timestamp))
         return NULL;
+
     if (metric->type != type) {
         log_error(Metrics, "Attempt to record an invalid value type for metric %s", metric->name);
         metric_record_error(metric, "invalid type");
         return NULL;
     }
+
     if (!metric->enabled_handlers)
         return NULL; // don't try to enqueue if nobody is listening
 
@@ -114,6 +123,7 @@ static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timest
         dropped_points_count += 1;
         return NULL;
     }
+
     point->metric = metric;
     point->error = false;
     point->timestamp = timestamp;
@@ -129,19 +139,6 @@ static void point_enqueue(metric_point_t *recording) {
         dropped_points_count += 1;
     }
 }
-
-void metric_register(metric_t *metric) {
-    if (metric->_registered)
-        return;
-    for (metric_handler_t **handlers = metric_system_handlers; *handlers != NULL; handlers++) {
-        metric_handler_t *handler = *handlers;
-        if (handler->on_metric_registered_fn)
-            handler->on_metric_registered_fn(metric);
-    }
-    metric->_registered = true;
-    metric_linked_list_append(metric);
-}
-
 void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float value) {
     metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_FLOAT);
     if (!recording)

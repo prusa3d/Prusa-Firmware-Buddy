@@ -22,15 +22,15 @@ namespace buddy::puppies {
 
 LOG_COMPONENT_DEF(ModularBed, LOG_SEVERITY_INFO);
 
-static metric_t metric_state = METRIC("bed_state", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_currents = METRIC("bed_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-static metric_t metric_states = METRIC("bedlet_state", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_temps = METRIC("bedlet_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_targets = METRIC("bedlet_target", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_pwms = METRIC("bedlet_pwm", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_regulators = METRIC("bedlet_reg", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_bedlet_currents = METRIC("bedlet_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_mcu_temperature = METRIC("bed_mcu_temp", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_state, "bed_state", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_currents, "bed_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_states, "bedlet_state", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_temps, "bedlet_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_targets, "bedlet_target", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_pwms, "bedlet_pwm", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_regulators, "bedlet_reg", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_bedlet_currents, "bedlet_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_mcu_temperature, "bed_mcu_temp", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
 
 ModularBed::ModularBed(PuppyModbus &bus, uint8_t modbus_address)
     : ModbusDevice(bus, modbus_address) {}

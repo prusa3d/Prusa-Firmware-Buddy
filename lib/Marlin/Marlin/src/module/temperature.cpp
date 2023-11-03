@@ -2690,7 +2690,7 @@ void Temperature::init() {
     static millis_t timer[HOTENDS] = {};
     // Expected interval is 1000 ms. min_interval_ms set to 100 ms, so it will be visible in samples collected if
     // expected interval doesn't hold.
-    static metric_t heating_model_discrepancy = METRIC("heating_model_discrepancy", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(heating_model_discrepancy, "heating_model_discrepancy", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
 
     // Start the timer if already not started. In case millis() == 0 it will not start the timer.
     // But it will do no harm, as it will be started in the next call to this function.

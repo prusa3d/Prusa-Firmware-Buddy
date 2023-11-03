@@ -20,7 +20,7 @@ std::array<uint8_t, PuppyModbus::MODBUS_RECEIVE_BUFFER_SIZE> &PuppyModbus::share
     return modbus_buffer;
 }
 
-static metric_t modbus_reqfail = METRIC("modbus_reqfail", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(modbus_reqfail, "modbus_reqfail", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
 
 LIGHTMODBUS_WARN_UNUSED ModbusError modbusStaticAllocator([[maybe_unused]] ModbusBuffer *buffer, uint16_t size, [[maybe_unused]] void *context) {
     if (size > modbus_buffer.size()) {

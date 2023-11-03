@@ -31,8 +31,7 @@ void PrusaGcodeSuite::M331() {
         return;
     }
 
-    metric_t *metric = metric_get_linked_list();
-    while (metric) {
+    for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         if (strcmp(metric->name, parser.string_arg) == 0) {
             // Syslog handler has to be allowed in settings
             if (selected_handler->identifier == METRIC_HANDLER_SYSLOG_ID) {
@@ -48,7 +47,6 @@ void PrusaGcodeSuite::M331() {
             SERIAL_ECHOLNPAIR_F("Metric enabled: ", parser.string_arg);
             return;
         }
-        metric = metric->next;
     }
 
     SERIAL_ERROR_START();
@@ -61,15 +59,13 @@ void PrusaGcodeSuite::M332() {
         return;
     }
 
-    metric_t *metric = metric_get_linked_list();
-    while (metric) {
+    for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         if (strcmp(metric->name, parser.string_arg) == 0) {
             metric_disable_for_handler(metric, selected_handler);
             SERIAL_ECHO_START();
             SERIAL_ECHOLNPAIR_F("Metric disabled: ", parser.string_arg);
             return;
         }
-        metric = metric->next;
     }
 
     SERIAL_ERROR_START();
@@ -82,12 +78,10 @@ void PrusaGcodeSuite::M333() {
         return;
     }
 
-    metric_t *metric = metric_get_linked_list();
-    while (metric) {
+    for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         bool is_enabled = metric->enabled_handlers & (1 << selected_handler->identifier);
         SERIAL_ECHO_START();
         SERIAL_ECHOLNPAIR_F(metric->name, is_enabled ? '1' : '0');
-        metric = metric->next;
     }
 }
 

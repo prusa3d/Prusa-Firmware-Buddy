@@ -78,9 +78,9 @@ LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
 LOG_COMPONENT_DEF(MMU2, LOG_SEVERITY_INFO);
 
 extern "C" {
-metric_t metric_app_start = METRIC("app_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
-metric_t metric_maintask_event = METRIC("maintask_loop", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_DISABLE_ALL);
-metric_t metric_cpu_usage = METRIC("cpu_usage", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_app_start, "app_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_maintask_event, "maintask_loop", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_cpu_usage, "cpu_usage", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
 #ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)

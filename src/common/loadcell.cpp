@@ -23,13 +23,13 @@
 LOG_COMPONENT_DEF(Loadcell, LOG_SEVERITY_INFO);
 
 Loadcell loadcell;
-static metric_t metric_loadcell = METRIC("loadcell", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_loadcell_hp = METRIC("loadcell_hp", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_loadcell_xy = METRIC("loadcell_xy", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_loadcell_age = METRIC("loadcell_age", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_loadcell, "loadcell", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_loadcell_hp, "loadcell_hp", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_loadcell_xy, "loadcell_xy", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_loadcell_age, "loadcell_age", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
 
 // To be used by sensor info screen so we don't have to parse the CUSTOM_VALUE from the loadcell metric
-static metric_t metric_loadcell_value = METRIC("loadcell_value", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_loadcell_value, "loadcell_value", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
 
 Loadcell::Loadcell()
     : scale(1)

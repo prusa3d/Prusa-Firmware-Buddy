@@ -575,8 +575,8 @@ static bool do_probe_move(const float z, const feedRate_t fr_mm_s) {
 
 // those metrics are intentionally not static, as it is expected that they might be referenced
 // from outside this file for early registration
-metric_t metric_probe_z = METRIC("probe_z", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-metric_t metric_probe_z_diff = METRIC("probe_z_diff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_probe_z, "probe_z", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_probe_z_diff, "probe_z_diff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
 
 #if ENABLED(NOZZLE_LOAD_CELL)
 static xy_pos_t offset_for_probe_try(int try_idx) {
@@ -721,7 +721,7 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
         SERIAL_ECHO_START();
         SERIAL_ECHOLNPAIR_F("Starting probe at ", center_pos);
 
-        static metric_t probe_start = METRIC("probe_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
+        METRIC_DEF(probe_start, "probe_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
         metric_record_event(&probe_start);
       #endif
 
@@ -772,7 +772,7 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
         uint32_t window_end = move_back_end + static_cast<uint32_t>((loadcell.analysis.analysisLookahead + loadcell.analysis.loadDelay) * 1000000.f);
         loadcell.WaitBarrier(window_end);
 
-        static metric_t analysis_result = METRIC("probe_analysis", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+        METRIC_DEF(analysis_result, "probe_analysis", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
         auto result = loadcell.analysis.Analyse();
 
         if (result.isGood) {

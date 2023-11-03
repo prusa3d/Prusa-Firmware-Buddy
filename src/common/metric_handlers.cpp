@@ -107,7 +107,6 @@ static void uart_handler(metric_point_t *point) {
 metric_handler_t metric_handler_uart = {
     .identifier = METRIC_HANDLER_UART_ID,
     .name = "UART",
-    .on_metric_registered_fn = NULL,
     .handle_fn = uart_handler,
 };
 
@@ -242,13 +241,11 @@ uint16_t metric_handler_syslog_get_port() {
 metric_handler_t metric_handler_syslog = {
     .identifier = METRIC_HANDLER_SYSLOG_ID,
     .name = "SYSLOG",
-    .on_metric_registered_fn = NULL,
     .handle_fn = syslog_handler,
 };
 
 metric_handler_t metric_handler_info_screen = {
     .identifier = METRIC_HANDLER_INFO_SCREEN,
     .name = "SENSOR_INFO_SCREEN",
-    .on_metric_registered_fn = NULL,
     .handle_fn = info_screen_handler,
 };

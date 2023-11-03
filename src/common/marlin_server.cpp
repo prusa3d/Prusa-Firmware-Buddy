@@ -1024,7 +1024,7 @@ void powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_
 
     // enter the main powerpanic resume loop
     server.print_state = auto_recover ? State::PowerPanic_Resume : State::PowerPanic_AwaitingResume;
-    static metric_t power = METRIC("power_panic", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(power, "power_panic", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
     metric_record_event(&power);
 }
 
@@ -1735,7 +1735,7 @@ static void _server_print_loop(void) {
             break;
 
     #if ENABLED(AXIS_MEASURE)
-        static metric_t crash_len = METRIC("crash_length", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+        METRIC_DEF(crash_len, "crash_length", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
         metric_record_custom(&crash_len, " x=%.3f,y=%.3f", (double)server.axis_length[X_AXIS], (double)server.axis_length[Y_AXIS]);
     #endif
 

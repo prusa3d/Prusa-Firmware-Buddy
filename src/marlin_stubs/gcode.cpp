@@ -247,18 +247,14 @@ void __attribute__((weak)) PrusaGcodeSuite::G162() { log_error(PRUSA_GCODE, "G16
 void __attribute__((weak)) PrusaGcodeSuite::G163() { log_error(PRUSA_GCODE, "G163 unsupported"); }
 
 static void record_pre_gcode_metrics() {
-    static metric_t gcode = METRIC("gcode", METRIC_VALUE_STRING, 0, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(gcode, "gcode", METRIC_VALUE_STRING, 0, METRIC_HANDLER_DISABLE_ALL);
     metric_record_string(&gcode, "%s", parser.command_ptr);
 
 #if HAS_LOADCELL()
-    static metric_t loadcell_scale_m = METRIC("loadcell_scale", METRIC_VALUE_FLOAT, 5000, METRIC_HANDLER_ENABLE_ALL);
-    static metric_t loadcell_threshold_static_m = METRIC("loadcell_threshold", METRIC_VALUE_FLOAT, 5005, METRIC_HANDLER_ENABLE_ALL);
-    static metric_t loadcell_threshold_continuous_m = METRIC("loadcell_threshold_cont", METRIC_VALUE_FLOAT, 5010, METRIC_HANDLER_ENABLE_ALL);
-    static metric_t loadcell_hysteresis_m = METRIC("loadcell_hysteresis", METRIC_VALUE_FLOAT, 5015, METRIC_HANDLER_ENABLE_ALL);
-    metric_register(&loadcell_scale_m);
-    metric_register(&loadcell_threshold_static_m);
-    metric_register(&loadcell_threshold_continuous_m);
-    metric_register(&loadcell_hysteresis_m);
+    METRIC_DEF(loadcell_scale_m, "loadcell_scale", METRIC_VALUE_FLOAT, 5000, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(loadcell_threshold_static_m, "loadcell_threshold", METRIC_VALUE_FLOAT, 5005, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(loadcell_threshold_continuous_m, "loadcell_threshold_cont", METRIC_VALUE_FLOAT, 5010, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(loadcell_hysteresis_m, "loadcell_hysteresis", METRIC_VALUE_FLOAT, 5015, METRIC_HANDLER_ENABLE_ALL);
 
     metric_record_float(&loadcell_scale_m, loadcell.GetScale());
     metric_record_float(&loadcell_threshold_static_m, loadcell.GetThreshold(Loadcell::TareMode::Static));

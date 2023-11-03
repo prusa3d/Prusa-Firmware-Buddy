@@ -6,9 +6,9 @@
 #include <utils/utility_extensions.hpp>
 
 void record_fanctl_metrics() {
-    static metric_t metric = METRIC("fan", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-    static metric_t fan_print = METRIC("print_fan_act", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
-    static metric_t fan_hbr = METRIC("hbr_fan_act", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(metric, "fan", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(fan_print, "print_fan_act", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(fan_hbr, "hbr_fan_act", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
     static uint32_t last_update = 0;
     static constexpr uint32_t UPDATE_PERIOD = 987;
 

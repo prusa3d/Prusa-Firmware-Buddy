@@ -27,10 +27,10 @@
     #include "../../../../../tinyusb/src/class/cdc/cdc_device.h"
 #endif
 
-static metric_t metric_excite_freq = METRIC("excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_excite_freq, "excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
 #if ENABLED(ACCELEROMETER)
-static metric_t metric_freq_gain = METRIC("freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
-static metric_t accel = METRIC("tk_accel", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_freq_gain, "freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(accel, "tk_accel", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
 #endif
 
 namespace {

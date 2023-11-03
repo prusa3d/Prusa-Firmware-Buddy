@@ -206,22 +206,22 @@ void FSensorAdcSide::record_raw(int32_t val) {
 #define METRIC_HANDLER METRIC_HANDLER_DISABLE_ALL
 
 metric_s &FSensorAdcExtruder::get_metric_raw__static() {
-    static metric_t ret = METRIC("fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_raw
+    METRIC_DEF(ret, "fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_raw
     return ret;
 }
 
 metric_s &FSensorAdcExtruder::get_metric__static() {
-    static metric_t ret = METRIC("fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_state
+    METRIC_DEF(ret, "fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_state
     return ret;
 }
 
 metric_s &FSensorAdcSide::get_metric_raw__static() {
-    static metric_t ret = METRIC("side_fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_raw
+    METRIC_DEF(ret, "side_fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_raw
     return ret;
 }
 
 metric_s &FSensorAdcSide::get_metric__static() {
-    static metric_t ret = METRIC("side_fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_state
+    METRIC_DEF(ret, "side_fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_state
     return ret;
 }
 

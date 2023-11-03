@@ -1734,7 +1734,7 @@ void set_axis_is_not_at_home(const AxisEnum axis) {
 
 // those metrics are intentionally not static, as it is expected that they might be referenced
 // from outside this file for early registration
-metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_home_diff, "home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
 
 /**
  * @brief Call this when homing fails, it will try to recover.

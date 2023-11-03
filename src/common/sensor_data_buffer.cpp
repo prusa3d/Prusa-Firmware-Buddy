@@ -40,13 +40,12 @@ bool SensorDataBuffer::enableMetrics() {
     if (allMetricsEnabled)
         return true;
     size_t count = 0;
-    metric_t *metric = metric_get_linked_list();
     metric_handler_t *handler = getHandler();
     if (!handler) {
         return false;
     }
     // step through all metrics and enable the handler for metrics which we want to display
-    while (metric) {
+    for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         auto it = std::lower_bound(sensors.begin(), sensors.end(), pair { metric->name, first_sensor_to_log }, compareFN {});
         if (it != sensors.end() && strcmp(metric->name, it->first) == 0) {
             count++;
@@ -58,26 +57,23 @@ bool SensorDataBuffer::enableMetrics() {
             allMetricsEnabled = true;
             return true;
         }
-        metric = metric->next;
     }
     return false;
 }
 
 void SensorDataBuffer::disableMetrics() {
-    metric_t *metric = metric_get_linked_list();
     metric_handler_t *handler = getHandler();
     if (!handler) {
         return;
     }
     // step through all metrics and disable the handler for metrics which we want to display
-    while (metric) {
+    for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         auto it = std::lower_bound(sensors.begin(), sensors.end(), pair { metric->name, first_sensor_to_log }, compareFN {});
         if (it != sensors.end() && strcmp(metric->name, it->first) == 0) {
             metric->enabled_handlers &= ~(1 << handler->identifier);
             sensorValues[static_cast<size_t>(it->second)].attribute.enabled = false;
             sensorValues[static_cast<size_t>(it->second)].attribute.valid = false;
         }
-        metric = metric->next;
     }
     allMetricsEnabled = false;
 }

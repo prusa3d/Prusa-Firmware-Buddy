@@ -88,7 +88,7 @@ namespace {
     uint32_t usbh_error_count = 0;
     uint32_t usb_host_reset_timestamp = 0; // USB Host timestamp in seconds
 
-    metric_t usbh_error_cnt = METRIC("usbh_err_cnt", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(usbh_error_cnt, "usbh_err_cnt", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
     // These buffers are HUGE. We need to rework the prefetcher logic
     // to be more efficient and add compression.
@@ -103,7 +103,7 @@ namespace {
     SemaphoreHandle_t prefetch_mutex_data_out = nullptr; ///< Mutex to switch buffers
     SemaphoreHandle_t prefetch_mutex_file_reader = nullptr; ///< Mutex to not close while another thread is using it
 
-    metric_t metric_prefetched_bytes = METRIC("media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(metric_prefetched_bytes, "media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
     /**
      * @brief Initialize GCodeInfo.
@@ -182,8 +182,6 @@ void media_prefetch_init() {
 
 void media_prefetch(const void *) {
     assert(prefetch_mutex_data_out && prefetch_mutex_file_reader && media_print_file && gcode_info_file);
-
-    metric_register(&metric_prefetched_bytes);
 
     TaskDeps::provide(TaskDeps::Dependency::media_prefetch_ready);
     for (;;) {

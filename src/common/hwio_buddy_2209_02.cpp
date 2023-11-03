@@ -151,8 +151,8 @@ static uint32_t _pwm_get_chan(int i_pwm);
 static TIM_HandleTypeDef *_pwm_get_htim(int i_pwm);
 static constexpr int is_pwm_id_valid(int i_pwm);
 
-static metric_t metric_nozzle_pwm = METRIC("nozzle_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_bed_pwm = METRIC("bed_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_nozzle_pwm, "nozzle_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_bed_pwm, "bed_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
 
 //--------------------------------------
 // analog output functions

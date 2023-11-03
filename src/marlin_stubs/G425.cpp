@@ -96,19 +96,19 @@ void plan_arc(const xyze_pos_t &, const ab_float_t &, const bool, const uint8_t)
 namespace {
 
 // Absolute tool center - an input for offset computation [mm]
-static metric_t metric_center = METRIC("g425_cen", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_center, "g425_cen", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Tool offset relative to the first tool - result of the tool offset calibration [mm]
-static metric_t metric_offset = METRIC("g425_off", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_offset, "g425_off", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Raw XY probe [mm]
-static metric_t metric_xy_raw_hit = METRIC("g425_rxy", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_xy_raw_hit, "g425_rxy", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Verified XY probe - two raw probes agree on position [mm]
-static metric_t metric_xy_hit = METRIC("g425_xy", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_xy_hit, "g425_xy", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Raw Z probe [mm]
-static metric_t metric_z_raw_hit = METRIC("g425_rz", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_z_raw_hit, "g425_rz", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Averaged Z probe - N raw probes averaged [mm]
-static metric_t metric_z_hit = METRIC("g425_z", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_z_hit, "g425_z", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Max deviation
-static metric_t metric_xy_dev = METRIC("g425_xy_dev", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_xy_dev, "g425_xy_dev", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_ENABLE_ALL);
 
 constexpr xyz_float_t dimensions { { CALIBRATION_OBJECT_DIMENSIONS } };
 constexpr xy_float_t nod = { { { CALIBRATION_NOZZLE_OUTER_DIAMETER, CALIBRATION_NOZZLE_OUTER_DIAMETER } } };
