@@ -9,7 +9,7 @@
     #if ENABLED(LOCAL_ACCELEROMETER)
         #include "SparkFunLIS2DH.h"
     #elif ENABLED(REMOTE_ACCELEROMETER)
-        #include "freertos_mutex.hpp"
+        #include <common/freertos_mutex.hpp>
         #include "circle_buffer.hpp"
         #include <puppies/fifo_coder.hpp>
     #endif

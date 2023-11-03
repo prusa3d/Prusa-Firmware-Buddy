@@ -3,7 +3,7 @@
 #include "random.h"
 
 #include <device/hal.h>
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 #include <option/developer_mode.h>
 
 static FreeRTOS_Mutex rand_strong_mutex;

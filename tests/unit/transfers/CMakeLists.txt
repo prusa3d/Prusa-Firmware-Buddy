@@ -22,9 +22,13 @@ add_executable(
   )
 target_include_directories(
   transfers_tests
-  PRIVATE . ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/common
+  PRIVATE .
+          ${CMAKE_SOURCE_DIR}/src
+          ${CMAKE_SOURCE_DIR}/include
+          ${CMAKE_SOURCE_DIR}/src/common
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
-          ${CMAKE_SOURCE_DIR}/tests/stubs ${CMAKE_SOURCE_DIR}/include/usb_host
+          ${CMAKE_SOURCE_DIR}/tests/stubs
+          ${CMAKE_SOURCE_DIR}/include/usb_host
   )
 add_definitions(-DDATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 

@@ -6,7 +6,7 @@
 #include <variant>
 #include "led_types.h"
 #include <mutex>
-#include "freertos_mutex.hpp"
+#include <common/freertos_mutex.hpp>
 #include <gui/led_animations/animation_model.hpp>
 
 namespace leds {

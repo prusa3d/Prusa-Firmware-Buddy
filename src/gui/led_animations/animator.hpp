@@ -1,6 +1,6 @@
 #pragma once
 #include "animation.hpp"
-#include "freertos_mutex.hpp"
+#include <common/freertos_mutex.hpp>
 
 #include <cstdint>
 #include <utility>

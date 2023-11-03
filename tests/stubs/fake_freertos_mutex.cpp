@@ -1,4 +1,4 @@
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 #include <mutex>
 
 using std::mutex;

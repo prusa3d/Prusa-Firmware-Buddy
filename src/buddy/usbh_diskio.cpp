@@ -4,7 +4,7 @@
 #include "ccm_thread.hpp"
 #include "usb_host.h"
 
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 #include <mutex>
 
 LOG_COMPONENT_REF(USBHost);

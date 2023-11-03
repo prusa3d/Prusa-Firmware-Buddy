@@ -1,6 +1,6 @@
 #pragma once
 
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 // Why is the FILE_PATH_BUFFER_LEN in gui?
 #include <gui/file_list_defs.h>
 

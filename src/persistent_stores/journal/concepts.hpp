@@ -1,6 +1,6 @@
 #pragma once
 #include <functional>
-#include "freertos_mutex.hpp"
+#include <common/freertos_mutex.hpp>
 #include <span>
 
 namespace journal {

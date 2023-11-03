@@ -189,6 +189,7 @@ target_include_directories(
   PRIVATE .
           ${CMAKE_CURRENT_BINARY_DIR}
           ${CMAKE_BINARY_DIR}/include
+          ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/src/connect
           ${CMAKE_SOURCE_DIR}/src/common
           ${CMAKE_SOURCE_DIR}/src/gui
@@ -276,6 +277,7 @@ target_include_directories(
   PRIVATE .
           ${CMAKE_CURRENT_BINARY_DIR}
           ${CMAKE_BINARY_DIR}/include
+          ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/src/common
           ${CMAKE_SOURCE_DIR}/src/gui

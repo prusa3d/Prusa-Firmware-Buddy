@@ -23,7 +23,7 @@
 #include <lwip/netifapi.h>
 #include <lwip/netif.h>
 #include <lwip/tcpip.h>
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 #include <mutex>
 #include "http_lifetime.h"
 #include "main.h"

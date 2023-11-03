@@ -11,7 +11,7 @@
 #include <mutex>
 
 #include <FreeRTOS.h>
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 #include <task.h>
 #include <semphr.h>
 #include <ccm_thread.hpp>

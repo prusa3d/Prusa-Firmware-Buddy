@@ -1,4 +1,5 @@
-#include "freertos_mutex.hpp"
+#include <common/freertos_mutex.hpp>
+
 #include "rtos_api.hpp"
 #include "semphr.h"
 

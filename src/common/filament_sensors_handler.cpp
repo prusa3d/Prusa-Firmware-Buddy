@@ -8,7 +8,7 @@
 #include "filament_sensors_handler.hpp"
 #include "print_processor.hpp"
 #include "rtos_api.hpp"
-#include "freertos_mutex.hpp"
+#include <common/freertos_mutex.hpp>
 #include "bsod.h"
 #include <mutex>
 #include <log.h>

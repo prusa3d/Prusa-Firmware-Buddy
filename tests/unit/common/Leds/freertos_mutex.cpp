@@ -1,4 +1,4 @@
-#include "freertos_mutex.hpp"
+#include <common/freertos_mutex.hpp>
 
 // uncomment this to get buffer size ass compile time error message
 // char (*__give_me_buffere_size)[sizeof( StaticSemaphore_t )] = 1;

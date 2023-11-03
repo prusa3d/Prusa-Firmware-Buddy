@@ -20,6 +20,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib
           ${CMAKE_SOURCE_DIR}/lib/heatshrink
           ${CMAKE_SOURCE_DIR}/tests/stubs
+          ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/include/usb_host
   )
 
