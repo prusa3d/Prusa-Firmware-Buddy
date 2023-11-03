@@ -97,7 +97,7 @@ void IGcodeReader::update_validity(transfers::Transfer::Path &filename) {
                 return arg;
 
             } else if constexpr (std::is_same_v<T, Transfer::Error>) {
-                set_error(N_("File read error"));
+                set_error(arg.msg ?: N_("File read error"));
                 // State saying "nothing available"
                 return PartialFile::State();
 

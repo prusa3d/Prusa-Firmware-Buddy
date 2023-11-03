@@ -189,7 +189,9 @@ std::variant<Transfer::Error, Transfer::Complete, PartialFile::State> Transfer::
     if (stat(path, &st) != 0) {
         // The base path doesn't exist (or is not reachable for other reasons),
         // neither as a dir nor as file. Not recoverable.
-        return Error {};
+        return Error {
+            .msg = N_("The path does not exist")
+        };
     }
 
     if (S_ISREG(st.st_mode)) {
@@ -215,7 +217,9 @@ std::variant<Transfer::Error, Transfer::Complete, PartialFile::State> Transfer::
             return PartialFile::State {};
 
         } else {
-            return Error {};
+            return Error {
+                .msg = N_("The file disappeared")
+            };
         }
     }
 
@@ -224,7 +228,9 @@ std::variant<Transfer::Error, Transfer::Complete, PartialFile::State> Transfer::
     if (!transfer.has_value()) {
         // The download file is there, but can't be read. We _know_ the file is
         // not complete, but not the details.
-        return Error {};
+        return Error {
+            .msg = N_("File transfer error")
+        };
     }
 
     return transfer->get_partial_file_state();
