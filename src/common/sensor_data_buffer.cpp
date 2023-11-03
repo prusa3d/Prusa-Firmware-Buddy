@@ -50,7 +50,7 @@ bool SensorDataBuffer::enableMetrics() {
         if (it != sensors.end() && strcmp(metric->name, it->first) == 0) {
             count++;
             metric->enabled_handlers |= (1 << handler->identifier);
-            sensorValues[static_cast<size_t>(it->second)].attribute.enabled = true;
+            sensorValues[static_cast<size_t>(it->second)].set_enabled();
         }
         // check if we enabled handler for all metrics, if yes return true
         if (count == sensors.size()) {
@@ -71,8 +71,7 @@ void SensorDataBuffer::disableMetrics() {
         auto it = std::lower_bound(sensors.begin(), sensors.end(), pair { metric->name, first_sensor_to_log }, compareFN {});
         if (it != sensors.end() && strcmp(metric->name, it->first) == 0) {
             metric->enabled_handlers &= ~(1 << handler->identifier);
-            sensorValues[static_cast<size_t>(it->second)].attribute.enabled = false;
-            sensorValues[static_cast<size_t>(it->second)].attribute.valid = false;
+            sensorValues[static_cast<size_t>(it->second)] = Value();
         }
     }
     allMetricsEnabled = false;
@@ -90,9 +89,11 @@ void SensorDataBuffer::HandleNewData(metric_point_t *point) {
         auto it = std::lower_bound(sensors.begin(), sensors.end(), pair { point->metric->name, first_sensor_to_log }, compareFN {});
         if (it != sensors.end() && strcmp(it->first, point->metric->name) == 0) {
             std::unique_lock lock { mutex };
-            sensorValues[static_cast<uint16_t>(it->second)].float_val = point->value_float; // This can be int, but both are union of float/int
-            sensorValues[static_cast<uint16_t>(it->second)].attribute.valid = true;
-            sensorValues[static_cast<uint16_t>(it->second)].attribute.type = point->metric->type == METRIC_VALUE_FLOAT ? Type::floatType : Type::intType;
+            if (point->metric->type == METRIC_VALUE_FLOAT) {
+                sensorValues[static_cast<uint16_t>(it->second)] = Value(point->value_float);
+            } else {
+                sensorValues[static_cast<uint16_t>(it->second)] = Value(point->value_int);
+            }
         }
     }
 }

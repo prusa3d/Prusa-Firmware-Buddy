@@ -72,16 +72,58 @@ enum class Type : uint8_t {
     floatType
 };
 
-struct Value {
+class Value {
     union {
         int32_t int_val;
         float float_val;
     };
+
     struct {
         bool valid;
         bool enabled;
         Type type;
     } attribute;
+
+public:
+    /**
+     * @brief Get the float value.
+     * @note You need to check which type this is first.
+     * @return float value
+     */
+    float get_float() {
+        assert(attribute.type == Type::floatType);
+        return float_val;
+    }
+
+    /**
+     * @brief Get the int value.
+     * @note You need to check which type this is first.
+     * @return int value
+     */
+    int get_int() {
+        assert(attribute.type == Type::intType);
+        return int_val;
+    }
+
+    /// @return true if value is valid
+    bool is_valid() const {
+        return attribute.valid;
+    }
+
+    /// @brief Set value to enabled. Doesn't have to be valid.
+    void set_enabled() {
+        attribute.enabled = true;
+    }
+
+    /// @return true if value is enabled
+    bool is_enabled() const {
+        return attribute.enabled;
+    }
+
+    /// @return type of the value
+    Type get_type() const {
+        return attribute.type;
+    }
 
     constexpr bool operator==(const Value &lhs) const {
         if (attribute.valid != lhs.attribute.valid)
