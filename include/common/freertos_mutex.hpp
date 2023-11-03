@@ -18,6 +18,7 @@
  */
 #pragma once
 
+#include <common/concepts.hpp>
 #include <mutex>
 #include <FreeRTOS.h>
 #include "semphr.h"
@@ -35,6 +36,7 @@ private:
     SemaphoreHandle_t xSemaphore = nullptr;
     StaticSemaphore_t xSemaphoreData;
 };
+static_assert(concepts::Lockable<FreeRTOS_Mutex>);
 
 // we need our own lock, because GCC uses try and back off which internally uses try_lock and because FreeRTOS does not use priority inheritance when trying to lock mutex without blocking
 // this results in deadlock (inverse priority problem), because thread with lower priority does not get CPU time while still holding mutex.
