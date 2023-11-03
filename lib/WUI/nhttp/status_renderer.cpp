@@ -42,11 +42,11 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
             JSON_FIELD_INT("time_printing", marlin_vars()->print_duration);
         JSON_OBJ_END JSON_COMMA;
     }
-        JSON_FIELD_OBJ("storage");
-            JSON_FIELD_STR("path", "/usb/") JSON_COMMA;
-            JSON_FIELD_STR("name", "usb") JSON_COMMA;
-            JSON_FIELD_BOOL("read_only", false);
-        JSON_OBJ_END JSON_COMMA;
+    JSON_FIELD_OBJ("storage");
+        JSON_FIELD_STR("path", "/usb/") JSON_COMMA;
+        JSON_FIELD_STR("name", "usb") JSON_COMMA;
+        JSON_FIELD_BOOL("read_only", false);
+    JSON_OBJ_END JSON_COMMA;
     if (state.transfer_id.has_value()) {
         JSON_FIELD_OBJ("transfer");
             JSON_FIELD_INT_G(transfer_status.has_value(), "id", transfer_status->id) JSON_COMMA;
