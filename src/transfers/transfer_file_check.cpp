@@ -4,6 +4,7 @@
 #include "transfer_file_check.hpp"
 
 namespace transfers {
+
 bool is_valid_transfer(const MutablePath &destination_path) {
     struct stat st;
 
@@ -26,4 +27,28 @@ bool is_valid_transfer(const MutablePath &destination_path) {
     // still in progress
     return true;
 }
+
+bool is_valid_file_or_transfer(const MutablePath &file) {
+    struct stat st;
+
+    // Failed to get stat about the entry -> fail
+    if (stat_retry(file.get(), &st) != 0) {
+        return false;
+    }
+
+    // File is actually a file -> good enough for us
+    if (S_ISREG(st.st_mode)) {
+        return true;
+    }
+
+    // If it is a dir, it could be a valid transfer
+    else if (S_ISDIR(st.st_mode)) {
+        return is_valid_transfer(file);
+    }
+
+    else {
+        return false;
+    }
+}
+
 } // namespace transfers

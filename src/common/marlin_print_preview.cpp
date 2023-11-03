@@ -381,11 +381,11 @@ PrintPreview::Result PrintPreview::Loop() {
         return Result::Inactive;
     }
 
-    uint32_t time = ticks_ms();
-    if ((time - last_run) < max_run_period_ms) {
+    const uint32_t curr_ms = ticks_ms();
+    if (ticks_diff(curr_ms, last_run) < max_run_period_ms) {
         return stateToResult();
     }
-    last_run = time;
+    last_run = curr_ms;
     const Response response = GetResponse();
 
     auto &gcode_info = GCodeInfo::getInstance();
@@ -468,7 +468,13 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
         }
 
-        // Still check for gcode error even in wait user screen - file could be downloaded enough for the info to show,
+        // Periodically kindly ask the prefetch thread to check if the file is still valid and update GCodeInfo::has_error
+        if (ticks_diff(curr_ms, last_still_valid_check_ms) > 1000) {
+            last_still_valid_check_ms = curr_ms;
+            osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_CHECK);
+        }
+
+        // Still check for file validity - file could be downloaded enough for the info to show,
         // but the transfer might fail and we want to prevent the user from start the print then
         if (gcode_info.has_error()) {
             ChangeState(State::file_error_wait_user);

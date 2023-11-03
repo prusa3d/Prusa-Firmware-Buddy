@@ -66,7 +66,7 @@ public:
 
 class PrintPreview : public IPrintPreview {
 
-    static constexpr uint32_t max_run_period_ms = 50;
+    static constexpr int32_t max_run_period_ms = 50;
     uint32_t new_firmware_open_ms { 0 };
     static constexpr uint32_t new_firmware_timeout_ms { 30000 }; // three seconds
 public:
@@ -139,6 +139,7 @@ public:
 
 private:
     uint32_t last_run = 0;
+    uint32_t last_still_valid_check_ms = 0;
 
     marlin_server::PreviewSkipIfAble skip_if_able = marlin_server::PreviewSkipIfAble::no; ///< Whether to skip parts of preview when printing is started
 

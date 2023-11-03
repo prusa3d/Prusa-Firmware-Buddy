@@ -28,7 +28,7 @@ uint32_t ticks_us();
 
 /// @note Ticks with nanosecond precision ticks_ns() was deprecated, it was not used
 
-/// Return difference ticks_b - ticks_a while handling overflows
+/// Return difference ticks_a - ticks_b while handling overflows
 ///
 /// Helper function to properly handle overflows when using the
 /// ticks_xx() functions.

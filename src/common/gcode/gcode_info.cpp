@@ -112,6 +112,16 @@ void GCodeInfo::end_load(AnyGcodeFormatReader &file_reader) {
     file_reader.close();
 }
 
+bool GCodeInfo::check_still_valid() {
+    if (!transfers::is_valid_file_or_transfer(GetGcodeFilepath())) {
+        error_str_ = N_("File removed or transfer aborted");
+        is_printable_ = false;
+        return false;
+    }
+
+    return !has_error();
+}
+
 bool GCodeInfo::check_valid_for_print(AnyGcodeFormatReader &file_reader) {
     assert(file_reader.is_open());
     auto &reader = *file_reader.get();

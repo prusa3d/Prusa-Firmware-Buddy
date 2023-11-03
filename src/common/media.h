@@ -9,6 +9,7 @@
 #define PREFETCH_SIGNAL_FETCH           4
 #define PREFETCH_SIGNAL_GCODE_INFO_INIT 8
 #define PREFETCH_SIGNAL_GCODE_INFO_STOP 16
+#define PREFETCH_SIGNAL_CHECK           32 ///< Re-checks that the file is still valid
 
 typedef enum {
     media_state_REMOVED = 0, // media is inserted
@@ -40,6 +41,7 @@ extern void media_prefetch_init();
 
 extern osThreadId prefetch_thread_id;
 void media_prefetch(const void *);
+
 /// Copies the content of sfnFilePath into marlin_vars->media_SFN_path
 /// Updates marlin_vars->media_LFN as a side-effect by opening the marlin_vars->media_SFN_path and reading its LFN
 extern void media_print_start__prepare(const char *sfnFilePath);
