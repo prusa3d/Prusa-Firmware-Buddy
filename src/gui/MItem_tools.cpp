@@ -549,7 +549,7 @@ MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
 MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(string_view_utf8 label)
     : WI_FORMATABLE_LABEL_t<std::pair<SensorData::Value, SensorData::Value>>(
         label, nullptr, is_enabled_t::yes, is_hidden_t::no, { {}, {} }, [&](char *buffer) {
-            if (value.second.attribute.valid || value.first.attribute.valid) {
+            if (value.second.is_valid() || value.first.is_valid()) {
 
                 static constexpr char disconnected[] = N_("disconnected / %ld");
                 static constexpr char notCalibrated[] = N_("uncalibrated / %ld"); // not calibrated would be too long
@@ -559,7 +559,7 @@ MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(string_view_utf8 label)
                 static constexpr char notInitialized[] = N_("uninitialized / %ld");
 
                 char fmt[GuiDefaults::infoDefaultLen]; // max len of extension
-                switch ((fsensor_t)value.first.int_val) {
+                switch ((fsensor_t)value.first.get_int()) {
                 case fsensor_t::NotInitialized:
                     _(notInitialized).copyToRAM(fmt, sizeof(fmt));
                     break;
@@ -579,9 +579,9 @@ MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(string_view_utf8 label)
                     _(notInserted).copyToRAM(fmt, sizeof(fmt));
                     break;
                 }
-                snprintf(buffer, GuiDefaults::infoDefaultLen, fmt, value.second.int_val);
+                snprintf(buffer, GuiDefaults::infoDefaultLen, fmt, value.second.get_int());
             } else {
-                if (value.first.attribute.valid || value.second.attribute.valid) {
+                if (value.first.is_valid() || value.second.is_valid()) {
                     strlcpy(buffer, NA, GuiDefaults::infoDefaultLen);
                 } else {
                     strlcpy(buffer, NI, GuiDefaults::infoDefaultLen);
@@ -656,8 +656,8 @@ MI_ODOMETER_TIME::MI_ODOMETER_TIME()
 MI_INFO_HEATER_VOLTAGE::MI_INFO_HEATER_VOLTAGE()
     : WI_FORMATABLE_LABEL_t<SensorData::Value>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.attribute.valid) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value.float_val);
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value.get_float());
             }
         }) {
 }
@@ -665,8 +665,8 @@ MI_INFO_HEATER_VOLTAGE::MI_INFO_HEATER_VOLTAGE()
 MI_INFO_INPUT_VOLTAGE::MI_INFO_INPUT_VOLTAGE()
     : WI_FORMATABLE_LABEL_t<SensorData::Value>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.attribute.valid) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value.float_val);
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value.get_float());
             }
         }) {
 }
@@ -674,8 +674,8 @@ MI_INFO_INPUT_VOLTAGE::MI_INFO_INPUT_VOLTAGE()
 MI_INFO_5V_VOLTAGE::MI_INFO_5V_VOLTAGE()
     : WI_FORMATABLE_LABEL_t<SensorData::Value>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.attribute.valid) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value.float_val);
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f V", (double)value.get_float());
             }
         }) {
 }
@@ -683,8 +683,8 @@ MI_INFO_5V_VOLTAGE::MI_INFO_5V_VOLTAGE()
 MI_INFO_HEATER_CURRENT::MI_INFO_HEATER_CURRENT()
     : WI_FORMATABLE_LABEL_t<SensorData::Value>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.attribute.valid) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value.float_val);
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value.get_float());
             }
         }) {
 }
@@ -692,8 +692,8 @@ MI_INFO_HEATER_CURRENT::MI_INFO_HEATER_CURRENT()
 MI_INFO_INPUT_CURRENT::MI_INFO_INPUT_CURRENT()
     : WI_FORMATABLE_LABEL_t<SensorData::Value>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.attribute.valid) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value.float_val);
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value.get_float());
             }
         }) {
 }
@@ -701,8 +701,8 @@ MI_INFO_INPUT_CURRENT::MI_INFO_INPUT_CURRENT()
 MI_INFO_MMU_CURRENT::MI_INFO_MMU_CURRENT()
     : WI_FORMATABLE_LABEL_t<SensorData::Value>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.attribute.valid) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value.float_val);
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f A", (double)value.get_float());
             }
         }) {
 }
@@ -710,8 +710,8 @@ MI_INFO_MMU_CURRENT::MI_INFO_MMU_CURRENT()
 MI_INFO_SPLITTER_5V_CURRENT::MI_INFO_SPLITTER_5V_CURRENT()
     : WI_FORMATABLE_LABEL_t<SensorData::Value>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.attribute.valid) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value.float_val);
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value.get_float());
             }
         }) {
 }
@@ -719,8 +719,8 @@ MI_INFO_SPLITTER_5V_CURRENT::MI_INFO_SPLITTER_5V_CURRENT()
 MI_INFO_SANDWICH_5V_CURRENT::MI_INFO_SANDWICH_5V_CURRENT()
     : WI_FORMATABLE_LABEL_t<SensorData::Value>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.attribute.valid) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value.float_val);
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value.get_float());
             }
         }) {
 }
@@ -728,8 +728,8 @@ MI_INFO_SANDWICH_5V_CURRENT::MI_INFO_SANDWICH_5V_CURRENT()
 MI_INFO_BUDDY_5V_CURRENT::MI_INFO_BUDDY_5V_CURRENT()
     : WI_FORMATABLE_LABEL_t<SensorData::Value>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.attribute.valid) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value.float_val);
+            if (value.is_valid()) {
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.2f A", (double)value.get_float());
             }
         }) {
 }

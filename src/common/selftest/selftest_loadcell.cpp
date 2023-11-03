@@ -172,7 +172,7 @@ LoopResult CSelftestPart_Loadcell::stateConnectionCheck() {
     SensorData::SensorDataBuffer data_buffer;
     osDelay(200); // wait for some samples
     auto val = data_buffer.GetValue(SensorData::Sensor::loadCell);
-    if (!val.attribute.valid || raw_load == 0) {
+    if (!val.is_valid() || raw_load == 0) {
         if ((SelftestInstance().GetTime() - time_start) > rConfig.max_validation_time) {
             log_error(Selftest, "%s invalid", rConfig.partname);
             IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_fail);
