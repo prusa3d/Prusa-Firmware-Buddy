@@ -84,7 +84,7 @@ protected:
 
     std::pair<uint16_t, uint16_t> leds;
     bool run;
-    FreeRTOS_Mutex mutex;
+    freertos::Mutex mutex;
     Animation *curr_animation = nullptr;
     Animation *next_animation = nullptr;
 };

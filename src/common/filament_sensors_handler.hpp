@@ -16,7 +16,9 @@
 #include <option/has_toolchanger.h>
 
 // forward declaration, so I dont need to include freertos
-class FreeRTOS_Mutex;
+namespace freertos {
+class Mutex;
+}
 
 class FilamentSensors {
 public:
@@ -140,8 +142,8 @@ private:
     std::atomic<bool> has_mmu = false; // affect only MMU, named correctly .. it is not "has_side_sensor"
 
     // I have used reference to forward declared class, so I do not need to include freertos in header
-    FreeRTOS_Mutex &GetSideMutex();
-    FreeRTOS_Mutex &GetExtruderMutex();
+    freertos::Mutex &GetSideMutex();
+    freertos::Mutex &GetExtruderMutex();
 
     friend IFSensor *GetExtruderFSensor(uint8_t index);
     friend IFSensor *GetSideFSensor(uint8_t index);

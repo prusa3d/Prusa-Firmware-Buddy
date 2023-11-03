@@ -123,7 +123,7 @@ private:
         uint32_t get_available_slot() const;
 
         // Protects the slots acquisition / mask
-        FreeRTOS_Mutex mutex;
+        freertos::Mutex mutex;
         // Represents the number of free slots (update of mask must be protected by this)
         SemaphoreHandle_t semaphore;
 
@@ -158,7 +158,7 @@ private:
     /// Valid parts of the file
     State state;
 
-    mutable FreeRTOS_Mutex state_mutex;
+    mutable freertos::Mutex state_mutex;
 
     /// Last reported progress over logs
     int last_progress_percent;

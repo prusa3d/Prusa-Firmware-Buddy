@@ -10,7 +10,7 @@
     #include "../../core/serial.h"
     #include <mutex>
 
-FreeRTOS_Mutex PrusaAccelerometer::s_buffer_mutex;
+freertos::Mutex PrusaAccelerometer::s_buffer_mutex;
 PrusaAccelerometer::Sample_buffer *PrusaAccelerometer::s_sample_buffer = nullptr;
 
 /**

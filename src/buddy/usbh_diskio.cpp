@@ -10,7 +10,7 @@
 #include <shared_mutex>
 
 LOG_COMPONENT_REF(USBHost);
-using Mutex = FreeRTOS_Mutex;
+using Mutex = freertos::Mutex;
 using Lock = std::unique_lock<Mutex>;
 
 static const uint16_t USB_DEFAULT_BLOCK_SIZE = FF_MIN_SS;

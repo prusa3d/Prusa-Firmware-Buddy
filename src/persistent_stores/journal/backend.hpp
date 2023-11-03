@@ -269,7 +269,7 @@ public:
     std::function<void(void)> dump_callback;
     configuration_store::Storage &storage;
 
-    FreeRTOS_Mutex mutex;
+    freertos::Mutex mutex;
 
     static std::optional<BankHeader> validate_bank_header(const std::span<uint8_t> &data);
 
@@ -318,7 +318,7 @@ public:
     void init(const DumpCallback &callback);
 
     void save(uint16_t id, std::span<uint8_t> data);
-    std::unique_lock<FreeRTOS_Mutex> lock();
+    std::unique_lock<freertos::Mutex> lock();
     JournalState get_journal_state() const;
 
     /**

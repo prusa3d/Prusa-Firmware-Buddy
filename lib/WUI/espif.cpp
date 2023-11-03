@@ -123,7 +123,7 @@ static std::atomic<bool> esp_detected;
 static std::atomic<bool> esp_was_ok = false;
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
-static FreeRTOS_Mutex uart_write_mutex;
+static freertos::Mutex uart_write_mutex;
 static bool espif_initialized = false;
 static bool uart_has_recovered_from_error = false;
 // Note: We never transmit more than one message so we might as well allocate statically.

@@ -39,12 +39,12 @@ FilamentSensors::FilamentSensors() {
     configure_sensors();
 }
 
-FreeRTOS_Mutex &FilamentSensors::GetSideMutex() {
-    static FreeRTOS_Mutex ret;
+freertos::Mutex &FilamentSensors::GetSideMutex() {
+    static freertos::Mutex ret;
     return ret;
 }
-FreeRTOS_Mutex &FilamentSensors::GetExtruderMutex() {
-    static FreeRTOS_Mutex ret;
+freertos::Mutex &FilamentSensors::GetExtruderMutex() {
+    static freertos::Mutex ret;
     return ret;
 }
 

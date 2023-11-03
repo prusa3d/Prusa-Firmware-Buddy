@@ -31,7 +31,7 @@ namespace transfers {
 /// of writing tests for it.
 class ChangedPath {
 private:
-    using Mutex = FreeRTOS_Mutex;
+    using Mutex = freertos::Mutex;
     using Lock = std::unique_lock<Mutex>;
 
 public:

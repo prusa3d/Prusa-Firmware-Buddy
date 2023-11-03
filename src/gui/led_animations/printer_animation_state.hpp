@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    FreeRTOS_Mutex mutex;
+    freertos::Mutex mutex;
     PrinterState oldState = PrinterState::Printing;
     AnimatorLCD::AnimationGuard active_animation;
     std::optional<PrinterState> change_animation_on;

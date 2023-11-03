@@ -6,8 +6,8 @@
 #include <ranges>
 
 namespace journal {
-std::unique_lock<FreeRTOS_Mutex> Backend::lock() {
-    return std::unique_lock<FreeRTOS_Mutex>(mutex);
+std::unique_lock<freertos::Mutex> Backend::lock() {
+    return std::unique_lock<freertos::Mutex>(mutex);
 }
 std::optional<uint16_t> Backend::map_over_transaction(Backend::Address address, Backend::Offset free_space, CallbackFunction fnc) {
     CRCType crc_comp = 0;

@@ -56,7 +56,7 @@ private:
     Fifo m_fifo;
     #elif ENABLED(REMOTE_ACCELEROMETER)
     // Mutex is very RAM (80B) consuming for this fast operation, consider switching to critical section
-    static FreeRTOS_Mutex s_buffer_mutex;
+    static freertos::Mutex s_buffer_mutex;
     using Sample_buffer = CircleBuffer<common::puppies::fifo::AccelerometerXyzSample, 128>;
     static Sample_buffer *s_sample_buffer;
     Sample_buffer m_sample_buffer;

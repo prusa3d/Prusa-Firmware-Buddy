@@ -76,7 +76,7 @@ using Timestamp = uint32_t;
 ///   never deadlock.
 class Monitor {
 private:
-    using Mutex = FreeRTOS_Mutex;
+    using Mutex = freertos::Mutex;
     using Lock = std::unique_lock<Mutex>;
 
 public:

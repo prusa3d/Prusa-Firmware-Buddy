@@ -140,7 +140,7 @@ private:
     std::optional<ActiveColorTransition> current_transition;
     void TransitionToColor(Color color, uint32_t transition_ms);
     State state = State::Startup;
-    FreeRTOS_Mutex mutex;
+    freertos::Mutex mutex;
 
     // Active State
     const int active_timeout_ms = 120 * 1000;

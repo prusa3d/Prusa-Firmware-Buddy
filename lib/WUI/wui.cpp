@@ -123,7 +123,7 @@ public:
     };
 
 private:
-    FreeRTOS_Mutex mutex;
+    freertos::Mutex mutex;
     enum class Mode {
         Off,
         Static,
