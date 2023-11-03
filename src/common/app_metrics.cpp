@@ -55,15 +55,15 @@ extern metric_t metric_home_diff;
 #endif
 
 void buddy::metrics::RecordRuntimeStats() {
-    METRIC_DEF(fw_version, "fw_version", METRIC_VALUE_STRING, 10 * 1000, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(fw_version, "fw_version", METRIC_VALUE_STRING, 65535, METRIC_HANDLER_ENABLE_ALL);
     metric_record_string(&fw_version, "%s", project_version_full);
 
-    METRIC_DEF(buddy_revision, "buddy_revision", METRIC_VALUE_STRING, 10 * 10002, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(buddy_revision, "buddy_revision", METRIC_VALUE_STRING, 65534, METRIC_HANDLER_ENABLE_ALL);
     if (metric_record_is_due(&buddy_revision)) {
         metric_record_string(&buddy_revision, "%u", otp_get_board_revision().value_or(0));
     }
 
-    METRIC_DEF(buddy_bom, "buddy_bom", METRIC_VALUE_STRING, 10 * 10003, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(buddy_bom, "buddy_bom", METRIC_VALUE_STRING, 65533, METRIC_HANDLER_ENABLE_ALL);
     if (metric_record_is_due(&buddy_bom)) {
         metric_record_string(&buddy_bom, "%u", otp_get_bom_id().value_or(0));
     }

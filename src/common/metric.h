@@ -37,8 +37,8 @@ extern "C" {
 ///    TODO: complete those instructions
 ///
 
-#define METRIC_HANDLER_ENABLE_ALL  (0xffffffff)
-#define METRIC_HANDLER_DISABLE_ALL (0x00000000)
+#define METRIC_HANDLER_ENABLE_ALL  (0xff)
+#define METRIC_HANDLER_DISABLE_ALL (0x00)
 
 typedef enum {
     METRIC_VALUE_EVENT = 0x00, // no value, just an event
@@ -56,10 +56,10 @@ typedef struct metric_s {
     ///
     /// Keep this short and informative.
     /// It is the unique identifier for the metric.
-    const char *name;
+    const char *const name;
 
-    /// The type of the values associated with this metric.
-    metric_value_type_t type;
+    /// Internal. Use at your own risk.
+    uint32_t _last_update_timestamp;
 
     /// Allows throttling of the recorded values.
     ///
@@ -67,7 +67,10 @@ typedef struct metric_s {
     /// of this metric are not going to be sent faster then
     /// at 20 Hz.
     /// When set to zero, no throttling is going to be performed.
-    uint32_t min_interval_ms;
+    uint16_t min_interval_ms;
+
+    /// The type of the values associated with this metric.
+    const metric_value_type_t type : 8;
 
     /// Specifies, which handlers are going to receive points for this metric.
     ///
@@ -76,10 +79,8 @@ typedef struct metric_s {
     ///
     /// Set to METRIC_HANDLER_ENABLE_ALL or METRIC_HANDLER_DISABLE_ALL to enable/disable
     /// this metric globally.
-    uint32_t enabled_handlers;
+    uint8_t enabled_handlers;
 
-    /// Internal. Use at your own risk.
-    uint32_t _last_update_timestamp;
 } metric_t;
 
 #if __APPLE__
@@ -91,7 +92,7 @@ typedef struct metric_s {
 #endif
 
 /// To be used for metric_t structure initialization.
-#define METRIC_DEF(var, name, type, min_interval_ms, enabled_handlers) static metric_t var _METRIC_DEF_ATTRS = { name, type, min_interval_ms, enabled_handlers, 0 }
+#define METRIC_DEF(var, name, type, min_interval_ms, enabled_handlers) static metric_t var _METRIC_DEF_ATTRS = { name, 0, min_interval_ms, type, enabled_handlers }
 
 /// Represents a single recorded value.
 ///
