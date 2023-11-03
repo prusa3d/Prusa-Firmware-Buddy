@@ -323,9 +323,13 @@ void buddy::metrics::RecordPrintFilename() {
 
 #if BOARD_IS_XLBUDDY
 void buddy::metrics::record_dwarf_internal_temperatures() {
-    // Dwarf board temperature for sensor screen
+    // Dwarf board and MCU temperature for sensor screen
     buddy::puppies::Dwarf &dwarf = prusa_toolchanger.getActiveToolOrFirst();
-    METRIC_DEF(metric_dwarfMCUTemperature, "dwarf_board_temp", METRIC_VALUE_INTEGER, 1001, METRIC_HANDLER_ENABLE_ALL);
+
+    METRIC_DEF(metric_dwarfBoardTemperature, "dwarf_board_temp", METRIC_VALUE_INTEGER, 1001, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_integer(&metric_dwarfBoardTemperature, dwarf.get_board_temperature());
+
+    METRIC_DEF(metric_dwarfMCUTemperature, "dwarf_mcu_temp", METRIC_VALUE_INTEGER, 1001, METRIC_HANDLER_DISABLE_ALL);
     metric_record_integer(&metric_dwarfMCUTemperature, dwarf.get_mcu_temperature());
 
     // All MCU temperatures

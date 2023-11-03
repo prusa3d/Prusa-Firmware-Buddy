@@ -20,6 +20,6 @@ void MI_HEAT_ENTIRE_BED::OnChange(size_t old_index) {
     }
 }
 
-MI_INFO_MODULAR_BED_BOARD_TEMPERATURE::MI_INFO_MODULAR_BED_BOARD_TEMPERATURE()
+MI_INFO_MODULAR_BED_MCU_TEMPERATURE::MI_INFO_MODULAR_BED_MCU_TEMPERATURE()
     : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }

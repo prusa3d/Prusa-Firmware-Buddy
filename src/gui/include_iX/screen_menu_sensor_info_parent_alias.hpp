@@ -26,6 +26,7 @@ using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
 
     ,
     MI_INFO_BED_TEMP,
+    MI_INFO_MCU_TEMP,
     MI_INFO_NOZZLE_TEMP,
     MI_INFO_LOADCELL,
     MI_INFO_PRINTER_FILL_SENSOR,
