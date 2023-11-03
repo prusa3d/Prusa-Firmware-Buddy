@@ -14,7 +14,7 @@
 
 namespace transfers {
 
-inline constexpr size_t MAX_RETRIES = 50;
+inline constexpr size_t MAX_RETRIES = 5;
 
 struct NoTransferSlot {};
 
@@ -245,6 +245,8 @@ private:
 
     /// Allow at most this many retries for network errors.
     size_t retries_left = MAX_RETRIES;
+    /// Reset download retries when this changes... when we make some progres.
+    size_t last_downloaded_size = 0;
 
     /// Current state of the transfer
     State state;
