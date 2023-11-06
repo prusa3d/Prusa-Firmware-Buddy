@@ -1,6 +1,7 @@
 #pragma once
 
 #include <option/has_phase_stepping.h>
+#include <option/has_burst_stepping.h>
 
 #include "../precise_stepping/fwdecl.hpp"
 
@@ -68,6 +69,9 @@ struct AxisState {
 
     uint32_t missed_tx_cnt = 0;
     uint32_t last_timer_tick = 0;
+
+    int original_microsteps = 0;
+    bool had_interpolation = false;
 };
 
 /**
@@ -232,6 +236,20 @@ extern std::array<
     axis_states;
 
 /**
+ * RAII guard for not changing the state
+ */
+class EnsureNoChange {
+public:
+    EnsureNoChange() = default;
+    ~EnsureNoChange() {
+        // This is work-around for not-triggering unused variable warning on the
+        // dummy guard usage
+        __asm__ __volatile__("nop;\n\t");
+    };
+    void release() {};
+};
+
+/**
  * Check wether init() has been called
  */
 static inline bool initialized() {
@@ -299,6 +317,9 @@ public:
 
 using EnsureEnabled = EnsureState<true>;
 using EnsureDisabled = EnsureState<false>;
+using EnsureSuitableForHoming = std::conditional_t<
+    option::has_burst_stepping,
+    EnsureDisabled, EnsureDisabled>;
 
 enum class CorrectionType {
     forward,

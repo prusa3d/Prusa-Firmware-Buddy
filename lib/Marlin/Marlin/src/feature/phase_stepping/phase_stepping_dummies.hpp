@@ -21,6 +21,7 @@ public:
 
 using EnsureEnabled = EnsureStateDummy;
 using EnsureDisabled = EnsureStateDummy;
+using EnsureSuitableForHoming = EnsureStateDummy;
 
 static constexpr bool any_axis_active() {
     return false;

@@ -84,6 +84,10 @@ std::pair<int, int> CorrectedCurrentLut::get_current(int idx) const {
     };
 }
 
+int CorrectedCurrentLut::get_phase_shift(int idx) const {
+    return _phase_shift[normalize_motor_phase(idx)] / SIN_FRACTION;
+}
+
 void CorrectedCurrentLutSimple::_update_phase_shift() {
     for (size_t i = 0; i != MOTOR_PERIOD; i++) {
         float item_phase = i * 2 * std::numbers::pi_v<float> / MOTOR_PERIOD;

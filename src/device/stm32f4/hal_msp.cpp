@@ -785,6 +785,9 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base) {
     } else if (htim_base->Instance == TIM3) {
         /* Peripheral clock enable */
         __HAL_RCC_TIM3_CLK_ENABLE();
+    } else if (htim_base->Instance == TIM8) {
+        /* Peripheral clock enable */
+        __HAL_RCC_TIM8_CLK_ENABLE();
     } else if (htim_base->Instance == TIM13) {
         /* Peripheral clock enable */
         __HAL_RCC_TIM13_CLK_ENABLE();
@@ -830,6 +833,23 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim) {
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    } else if (htim->Instance == TIM8) {
+        /* TIM8 DMA Init */
+        hdma_tim8.Instance = DMA2_Stream1;
+        hdma_tim8.Init.Channel = DMA_CHANNEL_7;
+        hdma_tim8.Init.Direction = DMA_MEMORY_TO_PERIPH;
+        hdma_tim8.Init.PeriphInc = DMA_PINC_DISABLE;
+        hdma_tim8.Init.MemInc = DMA_MINC_ENABLE;
+        hdma_tim8.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+        hdma_tim8.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+        hdma_tim8.Init.Mode = DMA_NORMAL;
+        hdma_tim8.Init.Priority = DMA_PRIORITY_HIGH;
+        hdma_tim8.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+        if (HAL_DMA_Init(&hdma_tim8) != HAL_OK) {
+            Error_Handler();
+        }
+
+        __HAL_LINKDMA(htim, hdma[TIM_DMA_ID_UPDATE], hdma_tim8);
     }
 }
 

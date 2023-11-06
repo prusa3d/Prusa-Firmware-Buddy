@@ -14,6 +14,7 @@
 #include "timing_precise.hpp"
 #include "data_exchange.hpp"
 #include <option/has_puppies.h>
+#include <option/has_burst_stepping.h>
 #include <printers.h>
 
 // breakpoint
@@ -87,6 +88,8 @@ DMA_HandleTypeDef hdma_adc3;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim8;
+DMA_HandleTypeDef hdma_tim8;
 TIM_HandleTypeDef htim13;
 TIM_HandleTypeDef htim14;
 
@@ -957,6 +960,33 @@ void hw_tim3_init() {
     }
 
     HAL_TIM_MspPostInit(&htim3);
+}
+
+void hw_tim8_init() {
+    TIM_ClockConfigTypeDef sClockSourceConfig {};
+    TIM_MasterConfigTypeDef sMasterConfig {};
+
+    htim8.Instance = TIM8;
+    htim8.Init.Prescaler = 0;
+    htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim8.Init.Period = 168'000'000 / (phase_stepping::opts::REFRESH_FREQ * phase_stepping::opts::GPIO_BUFFER_SIZE) - 1;
+    htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    if (HAL_TIM_Base_Init(&htim8) != HAL_OK) {
+        Error_Handler();
+    }
+
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    if (HAL_TIM_ConfigClockSource(&htim8, &sClockSourceConfig) != HAL_OK) {
+        Error_Handler();
+    }
+
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK) {
+        Error_Handler();
+    }
+
+    HAL_TIM_MspPostInit(&htim8);
 }
 
 void hw_tim13_init() {

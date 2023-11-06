@@ -45,6 +45,7 @@
 #include <option/resources.h>
 #include <option/bootloader_update.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_burst_stepping.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -247,6 +248,10 @@ extern "C" void main_cpp(void) {
 
 #if HAS_PHASE_STEPPING()
     hw_tim13_init();
+#endif
+
+#if HAS_BURST_STEPPING()
+    hw_tim8_init();
 #endif
 
     hw_tim14_init();

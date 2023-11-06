@@ -582,7 +582,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   TERN_(HAS_DUPLICATION_MODE, set_duplication_enabled(false));
 
   // Disable phase stepping just before homing XY. This will synchronize only if needed
-  phase_stepping::EnsureDisabled phstep_disabler;
+  phase_stepping::EnsureSuitableForHoming phstep_disabler;
 
   // Homing feedrate
   float fr_mm_s = no_change ? feedrate_mm_s : 0.0f;

@@ -1,4 +1,6 @@
 #include "phase_stepping.hpp"
+#include "burst_stepper.hpp"
+#include "debug_util.hpp"
 #include "quick_tmc_spi.hpp"
 
 #include "../precise_stepping/precise_stepping.hpp"
@@ -295,6 +297,14 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     auto &axis_state = *axis_states[axis_num];
     assert(!axis_state.active && !axis_state.target.has_value() && axis_state.pending_targets.isEmpty());
 
+#if HAS_BURST_STEPPING()
+    axis_state.original_microsteps = stepper.microsteps();
+    axis_state.last_position = 0;
+    axis_state.last_phase = axis_state.zero_rotor_phase = stepper.MSCNT();
+    axis_state.had_interpolation = stepper.intpol();
+    stepper.intpol(false);
+    stepper.microsteps(256);
+#else
     // In order to start phase stepping, we have to set phase currents that are
     // in sync with current position, and then switch the driver to current
     // mode.
@@ -317,7 +327,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     axis_state.last_phase = current_phase;
     axis_state.last_position = 0.;
     axis_state.target = MoveTarget(axis_state.last_position);
-
+#endif
     // Read axis configuration and cache it so we can access it fast
     if (axis_num == AxisEnum::X_AXIS) {
         axis_state.inverted = INVERT_X_DIR;
@@ -353,9 +363,12 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
     PreciseStepping::physical_axis_step_generator_types &= ~enable_mask;
 
+#if HAS_BURST_STEPPING()
+    stepper.microsteps(axis_state.original_microsteps);
+    stepper.intpol(axis_state.had_interpolation);
+#else
     // In order to avoid glitch in motor motion, we have to first, make steps to
     // get MSCNT into sync and then we disable XDirect mode
-
     int original_microsteps = stepper.microsteps();
     stepper.microsteps(256);
     int current_phase = normalize_motor_phase(axis_state.last_phase);
@@ -377,6 +390,7 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     }
     stepper.direct_mode(false);
     stepper.microsteps(original_microsteps);
+#endif
 
     // Reset IHOLD to the original state
     stepper.rms_current(stepper.rms_current(), axis_state.initial_hold_multiplier);
@@ -416,7 +430,7 @@ void phase_stepping::stop_immediately() {
 }
 
 // Given axis and speed, return current adjustment expressed as range <0, 255>
-static int current_adjustment(int /*axis*/, float speed) {
+[[maybe_unused]] static int current_adjustment(int /*axis*/, float speed) {
     speed = std::abs(speed);
 #if PRINTER_IS_PRUSA_XL
     float BREAKPOINT = 4.7f;
@@ -436,9 +450,13 @@ static int current_adjustment(int /*axis*/, float speed) {
 }
 
 int phase_stepping::phase_difference(int a, int b) {
-    int direct_diff = (a - b + MOTOR_PERIOD) % MOTOR_PERIOD;
-    int cyclic_diff = MOTOR_PERIOD - direct_diff;
-    return std::min(direct_diff, cyclic_diff);
+    int diff = a - b;
+    if (diff > MOTOR_PERIOD / 2) {
+        diff -= MOTOR_PERIOD;
+    } else if (diff < -MOTOR_PERIOD / 2) {
+        diff += MOTOR_PERIOD;
+    }
+    return diff;
 }
 
 static void mark_missed_transaction(AxisState &axis_state) {
@@ -461,48 +479,28 @@ static bool is_refresh_period_sane(uint32_t now, uint32_t last_timer_tick) {
     return refresh_period < 2 * REFRESH_PERIOD_US - UPDATE_DURATION_US;
 }
 
-__attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh() {
-    // This routine is extremely time sensitive and it should be as fast as
-    // possible.
-    //
-    // The latest measurement show the following timing (from ISR to end 7 µs
-    // total):
-    //
-    // - time + move advancement handling: 970ns (happy path)
-    // - position computation: 1.9µs
-    // - post to phase: 1.3 µs
-    // - current lookup: 800 ns
-    // - Quick transmission: 900ns (time from call to first bit) + 1µs transaction termination
-
-    uint32_t now = ticks_us();
-
-    phase_stepping::spi::finish_transmission();
-
-    ++axis_num_to_refresh;
-    if (axis_num_to_refresh == axis_states.size()) {
-        axis_num_to_refresh = 0;
-    }
-    AxisState &axis_state = *axis_states[axis_num_to_refresh];
-
-    // always refresh the last_timer_tick
-    uint32_t old_tick = last_timer_tick;
-    last_timer_tick = now;
-
+static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
+    AxisState &axis_state, uint32_t now, uint32_t previous_tick) {
     if (!axis_state.active) {
         return;
     }
 
-    if (!is_refresh_period_sane(now, old_tick)) {
+    [[maybe_unused]] const auto axis_index = axis_state.axis_index;
+    [[maybe_unused]] const auto axis_enum = AxisEnum(axis_state.axis_index);
+
+    if (!is_refresh_period_sane(now, previous_tick)) {
         // If the ISR handler was delayed, we don't have enough time to process
         // the update. Abort the update so we can catch up.
         mark_missed_transaction(axis_state);
         return;
     }
 
+#if !HAS_BURST_STEPPING()
     if (!phase_stepping::spi::initialize_transaction()) {
         mark_missed_transaction(axis_state);
         return;
     }
+#endif
 
     uint32_t move_epoch = ticks_diff(now, axis_state.initial_time);
 
@@ -553,18 +551,63 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     const auto &current_lut = physical_speed > 0
         ? axis_state.forward_current
         : axis_state.backward_current;
+
+#if HAS_BURST_STEPPING()
+    new_phase = normalize_motor_phase(new_phase + current_lut.get_phase_shift(new_phase));
+    int steps_diff = phase_difference(new_phase, axis_state.last_phase);
+    burst_stepping::set_phase_diff(axis_enum, steps_diff);
+#else
     auto [a, b] = current_lut.get_current(new_phase);
-    int c_adj = current_adjustment(axis_num_to_refresh, mm_to_rev(axis_num_to_refresh, physical_speed));
+    int c_adj = current_adjustment(axis_index, mm_to_rev(axis_enum, physical_speed));
     a = a * c_adj / 255;
     b = b * c_adj / 255;
 
-    spi::set_xdirect(axis_num_to_refresh, a, b);
+    spi::set_xdirect(axis_index, a, b);
+#endif
 
     axis_state.last_position = position;
     axis_state.last_phase = new_phase;
 
     axis_state.missed_tx_cnt = 0;
     axis_state.last_timer_tick = last_timer_tick;
+}
+
+__attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh() {
+    // This routine is extremely time sensitive and it should be as fast as
+    // possible.
+    //
+    // The latest measurement show the following timing (from ISR to end 7 µs
+    // total):
+    //
+    // - time + move advancement handling: 970ns (happy path)
+    // - position computation: 1.9µs
+    // - post to phase: 1.3 µs
+    // - current lookup: 800 ns
+    // - Quick transmission: 900ns (time from call to first bit) + 1µs transaction termination
+
+    uint32_t now = ticks_us();
+
+    // always refresh the last_timer_tick
+    uint32_t old_tick = last_timer_tick;
+    last_timer_tick = now;
+
+#if HAS_BURST_STEPPING()
+    // Fire the previously setup steps...
+    burst_stepping::fire();
+
+    // ...and refresh all axes
+    for (std::size_t i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
+        refresh_axis(*axis_states[i], now, old_tick);
+    }
+#else
+    phase_stepping::spi::finish_transmission();
+
+    ++axis_num_to_refresh;
+    if (axis_num_to_refresh == axis_states.size()) {
+        axis_num_to_refresh = 0;
+    }
+    refresh_axis(*axis_states[axis_num_to_refresh], now, old_tick);
+#endif
 }
 
 bool phase_stepping::any_axis_active() {
@@ -719,6 +762,11 @@ extern "C" void PHSTEP_TIMER_ISR_HANDLER(void) {
 }
 
 // For the same reason as the ISR handler above, we include the
-// quick_tmc_spi.cpp and lut.cpp instead of compiling them separately:
-#include "quick_tmc_spi.cpp"
+// quick_tmc_spi.cpp, burst_stepper.cpp and lut.cpp instead of compiling them
+// separately:
+#if HAS_BURST_STEPPING()
+    #include "burst_stepper.cpp"
+#else
+    #include "quick_tmc_spi.cpp"
+#endif
 #include "lut.cpp"

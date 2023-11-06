@@ -11,7 +11,7 @@ using namespace phase_stepping::spi;
 using namespace phase_stepping::opts;
 using namespace buddy::hw;
 
-static uint8_t xdirect_comm_buffer[5] = { 0x80 | XDIRECT_t::address, 0, 0, 0, 0 };
+static uint8_t xdirect_comm_buffer[5] = { 0, 0, 0, 0, 0 };
 static int active_axis = 0;
 static const std::array<OutputPin, 3> cs_pins = { { xCs, yCs, zCs } };
 
@@ -27,6 +27,7 @@ static void setup_xdirect_buffer(int current_a, int current_b) {
     reg.coil_A = current_b;
     reg.coil_B = current_a;
     uint32_t raw = reg.sr;
+    xdirect_comm_buffer[0] = 0x80 | XDIRECT_t::address;
     xdirect_comm_buffer[1] = (raw >> 24) & 0xFF;
     xdirect_comm_buffer[2] = (raw >> 16) & 0xFF;
     xdirect_comm_buffer[3] = (raw >> 8) & 0xFF;

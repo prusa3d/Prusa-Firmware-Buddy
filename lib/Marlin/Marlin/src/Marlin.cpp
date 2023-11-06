@@ -38,6 +38,11 @@
   #include "feature/phase_stepping/phase_stepping.hpp"
 #endif
 
+#include <option/has_burst_stepping.h>
+#if HAS_BURST_STEPPING()
+  #include "feature/phase_stepping/burst_stepper.hpp"
+#endif
+
 #include "core/utility.h"
 #include "lcd/ultralcd.h"
 #include "module/motion.h"
@@ -1022,6 +1027,9 @@ void setup() {
   stepper.init();
 #if HAS_PHASE_STEPPING()
   phase_stepping::init();
+#endif
+#if HAS_BURST_STEPPING()
+  burst_stepping::init();
 #endif
   PreciseStepping::init();
 #ifdef ADVANCED_STEP_GENERATORS

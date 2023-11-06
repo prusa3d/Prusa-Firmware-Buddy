@@ -1,4 +1,5 @@
 #pragma once
+#include <option/has_burst_stepping.h>
 
 namespace phase_stepping::opts {
 
@@ -10,7 +11,10 @@ static constexpr int CORRECTION_HARMONICS = 16;
 static constexpr int SUPPORTED_AXIS_COUNT = 2;
 static constexpr int SERIAL_DECIMALS = 5; // Float decimals written in the serial output
 static constexpr int ALLOWED_MISSED_TX = 5000;
-static constexpr int REFRESH_FREQ = 40000;
+static constexpr int REFRESH_FREQ = option::has_burst_stepping
+    ? 10000
+    : 40000;
+static constexpr int GPIO_BUFFER_SIZE = 200;
 
 } // namespace phase_stepping::opts
 

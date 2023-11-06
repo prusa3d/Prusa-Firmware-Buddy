@@ -53,6 +53,7 @@ public:
     }
 
     std::pair<int, int> get_current(int idx) const;
+    int get_phase_shift(int idx) const;
 };
 
 /**

@@ -74,6 +74,8 @@ extern DMA_HandleTypeDef hdma_adc3;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim8;
+extern DMA_HandleTypeDef hdma_tim8;
 extern TIM_HandleTypeDef htim13;
 extern TIM_HandleTypeDef htim14;
 
@@ -269,6 +271,7 @@ extern TIM_HandleTypeDef htim14;
     // #define spi_led           4 or spi_lcd
     #define uart_puppies       3
     #define uart_reserved      6
+    #define tim_burst_stepping 8
     #define tim_phase_stepping 13
 #else
     #error Unknown board
@@ -334,6 +337,7 @@ void hw_spi6_init();
 void hw_tim1_init();
 void hw_tim2_init();
 void hw_tim3_init();
+void hw_tim8_init();
 void hw_tim13_init();
 void hw_tim14_init();
 
