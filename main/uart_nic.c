@@ -400,6 +400,7 @@ static void read_wifi_client_message() {
     if (strlen((char *)wifi_config.sta.password)) {
         wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     }
+    wifi_config.sta.pmf_cfg.capable = 1;
 
     esp_wifi_stop();
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
