@@ -1,6 +1,6 @@
 #include "sensor_data_buffer.hpp"
 
-static SemaphoreHandle_t mutex = nullptr;
+static freertos::Mutex mutex;
 static SensorData::SensorDataBuffer *buffer = nullptr;
 
 void info_screen_handler(metric_point_t *point) {
@@ -101,35 +101,20 @@ void SensorDataBuffer::HandleNewData(metric_point_t *point) {
     }
 }
 
-void initMutex() {
-    if (mutex == nullptr) {
-        mutex = xSemaphoreCreateMutex();
-    }
-}
-
 void SensorData::RegisterBuffer(SensorDataBuffer *buff) {
     assert(buffer == nullptr); // some other SensorData is already registered
-    initMutex();
-    if (xSemaphoreTake(mutex, (TickType_t)portMAX_DELAY) == pdTRUE) {
-        buffer = buff;
-        xSemaphoreGive(mutex);
-    }
+    std::unique_lock lock { mutex };
+    buffer = buff;
 }
 
 void SensorData::UnregisterBuffer() {
-    initMutex();
-    if (xSemaphoreTake(mutex, (TickType_t)portMAX_DELAY) == pdTRUE) {
-        buffer = nullptr;
-        xSemaphoreGive(mutex);
-    }
+    std::unique_lock lock { mutex };
+    buffer = nullptr;
 }
 
 void SensorData::HandleNewData(metric_point_t *point) {
-    initMutex();
-    if (xSemaphoreTake(mutex, (TickType_t)portMAX_DELAY) == pdTRUE) {
-        if (buffer != nullptr) {
-            buffer->HandleNewData(point);
-        }
-        xSemaphoreGive(mutex);
+    std::unique_lock lock { mutex };
+    if (buffer != nullptr) {
+        buffer->HandleNewData(point);
     }
 }
