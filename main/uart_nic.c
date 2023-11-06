@@ -46,7 +46,7 @@
 int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 
-#define FW_VERSION 10
+#define FW_VERSION 11
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
@@ -370,6 +370,7 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, size_t size) 
     if (strlen((char *)wifi_config.sta.password)) {
         wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     }
+    wifi_config.sta.pmf_cfg.capable = 1;
 
     esp_wifi_stop();
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
