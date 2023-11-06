@@ -6,6 +6,7 @@
 #include "../../src/common/filename_type.hpp"
 #include "../wui_api.h"
 
+#include <common/stat_retry.hpp>
 #include <transfers/files.hpp>
 #include <transfers/changed_path.hpp>
 
@@ -281,26 +282,27 @@ namespace {
             return error;
         }
 
-        FILE *attempt = fopen(fn, "r");
-        if (attempt) {
-            fclose(attempt);
-            if (overwrite) {
-                int result = remove(fn);
-                if (result == -1) {
-                    remove(src);
-                    switch (errno) {
-                    case EBUSY:
-                        return make_tuple(Status::Conflict, "File is busy");
-                    case EISDIR:
-                        return make_tuple(Status::Conflict, "Is a directory or ongoing transfer");
-                    default:
-                        return make_tuple(Status::InternalServerError, "Unknown error");
-                    }
-                }
-            } else {
+        struct stat st = {};
+        int stat_result = stat_retry(fn, &st);
+        if (stat_result == 0 && S_ISREG(st.st_mode) && overwrite) {
+            int result = remove(fn);
+            if (result == -1) {
                 remove(src);
-                return make_tuple(Status::Conflict, "File already exists");
+                switch (errno) {
+                case EBUSY:
+                    return make_tuple(Status::Conflict, "File is busy");
+                case EISDIR:
+                    // Shouldn't happen due to st_mode already checked?
+                    return make_tuple(Status::Conflict, "Is a directory or ongoing transfer");
+                default:
+                    return make_tuple(Status::InternalServerError, "Unknown error");
+                }
             }
+        } else if (stat_result == 0 && S_ISDIR(st.st_mode) && overwrite) {
+            return make_tuple(Status::Conflict, "Is a directory or ongoing transfer");
+        } else if (stat_result == 0) {
+            remove(src);
+            return make_tuple(Status::Conflict, "File already exists");
         }
 
         int result = rename(src, fn);
