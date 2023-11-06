@@ -635,6 +635,7 @@ void settings_save(void) {
     config_store().pid_bed_d.set(Temperature::temp_bed.pid.Kd);
 #endif
 #if ENABLED(PIDTEMP)
+    // Save only first nozzle PID
     config_store().pid_nozzle_p.set(Temperature::temp_hotend[0].pid.Kp);
     config_store().pid_nozzle_i.set(Temperature::temp_hotend[0].pid.Ki);
     config_store().pid_nozzle_d.set(Temperature::temp_hotend[0].pid.Kd);
@@ -652,9 +653,11 @@ void settings_load(void) {
     Temperature::temp_bed.pid.Kd = config_store().pid_bed_d.get();
 #endif
 #if ENABLED(PIDTEMP)
-    Temperature::temp_hotend[0].pid.Kp = config_store().pid_nozzle_p.get();
-    Temperature::temp_hotend[0].pid.Ki = config_store().pid_nozzle_i.get();
-    Temperature::temp_hotend[0].pid.Kd = config_store().pid_nozzle_d.get();
+    HOTEND_LOOP() {
+        Temperature::temp_hotend[e].pid.Kp = config_store().pid_nozzle_p.get();
+        Temperature::temp_hotend[e].pid.Ki = config_store().pid_nozzle_i.get();
+        Temperature::temp_hotend[e].pid.Kd = config_store().pid_nozzle_d.get();
+    }
     thermalManager.updatePID();
 #endif
 
