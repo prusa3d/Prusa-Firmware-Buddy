@@ -22,7 +22,7 @@ struct CurrentStoreConfig {
     static BackendT &get_backend() { return backend(); };
     using Backend = BackendT;
     template <StoreItemDataC DataT, const DataT &default_val, typename BackendT::Id id>
-    using StoreItem = JournalItem<DataT, default_val, BackendT, backend, id>;
+    using StoreItem = JournalItem<DataT, default_val, backend, id>;
 };
 
 template <BackendC BackendT>

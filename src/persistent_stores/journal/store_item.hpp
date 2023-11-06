@@ -14,12 +14,16 @@ namespace journal {
 template <typename DataT>
 concept StoreItemDataC = std::equality_comparable<DataT> && std::default_initializable<DataT> && std::is_trivially_copyable_v<DataT>;
 
-template <StoreItemDataC DataT, const DataT &DefaultVal, journal::BackendC BackendT, BackendT &(*backend)(), uint16_t HashedID>
+template <StoreItemDataC DataT, const DataT &DefaultVal, auto &(*backend)(), uint16_t HashedID>
 struct JournalItem {
 private:
     DataT data { DefaultVal };
 
 public:
+    // Obtain backend type based on the return type of the backend (instance) function. Not a part of Item signature to reduce text bloat when examining elf files for optimization purposes
+    using BackendT = std::remove_cvref_t<std::invoke_result_t<decltype(backend)>>;
+    static_assert(journal::BackendC<BackendT>); // BackendT type needs to fulfill this concept. Can be moved to signature with newer clangd, causes too many errors now (constrained auto)
+
     static constexpr DataT default_val { DefaultVal };
     static constexpr uint16_t hashed_id { HashedID };
     static constexpr size_t data_size { sizeof(DataT) };
