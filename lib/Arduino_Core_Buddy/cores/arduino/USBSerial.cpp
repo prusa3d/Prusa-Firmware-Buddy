@@ -1,6 +1,7 @@
 #include "USBSerial.h"
 #include "tusb.h"
 #include <task.h>
+#include <timing.h>
 
 void USBSerial::enable() {
     enabled = true;
@@ -10,6 +11,11 @@ void USBSerial::disable() {
     enabled = false;
     tud_cdc_write_clear();
     lineBufferUsed = 0;
+}
+
+void USBSerial::timeout_disable() {
+    disable();
+    usb_device_log("CDC write timeout, disabling after %ldus", safetyTimeoutUs);
 }
 
 void USBSerial::setIsWriteOnly(bool writeOnly) {
@@ -77,9 +83,16 @@ size_t USBSerial::write(uint8_t ch) {
     }
 
     if (enabled) {
+        uint32_t ts = ticks_us();
         while (tud_cdc_write_char(ch) != 1) {
             // TX is full, yield to lower-priority (which usb is part of) threads until ready
             vTaskDelay(1);
+
+            // Ensure we do not wait indefinitely
+            if (ticks_diff(ticks_us(), ts) > safetyTimeoutUs) {
+                timeout_disable();
+                break;
+            }
         }
     }
 
@@ -91,8 +104,8 @@ size_t USBSerial::write(uint8_t ch) {
     return 1;
 }
 
-static void cdc_write_sync(const uint8_t *buffer, size_t size) {
-    for (;;) {
+void USBSerial::cdc_write_sync(const uint8_t *buffer, size_t size) {
+    for (uint32_t ts = ticks_us();;) {
         size_t done = tud_cdc_write(buffer, size);
         if (done == size) {
             break;
@@ -102,6 +115,12 @@ static void cdc_write_sync(const uint8_t *buffer, size_t size) {
         buffer += done;
         size -= done;
         vTaskDelay(1);
+
+        // Ensure the _entire write_ doesn't wait indefinitely
+        if (ticks_diff(ticks_us(), ts) > safetyTimeoutUs) {
+            timeout_disable();
+            return;
+        }
     }
 }
 
