@@ -10,6 +10,7 @@
 #include "img_resources.hpp"
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
+#include <RAII.hpp>
 
 static constexpr const char *const heating_str = N_("Heating");
 static constexpr const char *const low_temp_str = N_("Low temp");
@@ -41,9 +42,11 @@ void I_MI_AXIS::finish_move() {
 }
 
 bool MI_AXIS_Z::try_exit_edit_mode() {
-    if (is_move_finished()) {
+    if (is_move_finished() || querying_user) {
         return true;
     }
+
+    AutoRestore ar(querying_user, true);
 
     // Show question message box
     const Response response = MsgBoxBuilder {
