@@ -10,7 +10,6 @@
 #include "i_selftest_part.hpp"
 #include "algorithm_range.hpp"
 #include "selftest_loadcell_config.hpp"
-#include "sensor_data_buffer.hpp"
 #include "selftest_log.hpp"
 
 namespace selftest {

@@ -169,10 +169,13 @@ LoopResult CSelftestPart_Loadcell::stateConnectionCheck() {
         IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_fail);
         return LoopResult::Fail;
     }
-    SensorData::SensorDataBuffer data_buffer;
+
+    const uint32_t timestamp1 = loadcell.GetLastSampleTimeUs();
     osDelay(200); // wait for some samples
-    auto val = data_buffer.GetValue(SensorData::Sensor::loadCell);
-    if (!val.attribute.valid || raw_load == 0) {
+    const uint32_t timestamp2 = loadcell.GetLastSampleTimeUs();
+    const bool loadcell_is_processing_samples = timestamp1 != timestamp2;
+
+    if (!loadcell_is_processing_samples || raw_load == 0) {
         if ((SelftestInstance().GetTime() - time_start) > rConfig.max_validation_time) {
             log_error(Selftest, "%s invalid", rConfig.partname);
             IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_fail);
