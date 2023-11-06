@@ -102,14 +102,16 @@ size_t USBSerial::write(const uint8_t *buffer, size_t size) {
         LineBufferAppend(ch);
         if (ch == '\n') {
             // batch the last chunk up to the current \n
-            cdc_write_sync(buffer + beg, end - beg + 1);
+            if (enabled)
+                cdc_write_sync(buffer + beg, end - beg + 1);
             beg = end + 1;
             flush();
         }
     }
 
     // complete the cdc write
-    cdc_write_sync(buffer + beg, end - beg);
+    if (enabled)
+        cdc_write_sync(buffer + beg, end - beg);
     return size;
 }
 
