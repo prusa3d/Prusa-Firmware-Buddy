@@ -145,13 +145,18 @@ void migrate(old_eeprom::current::vars_body_t &body, journal::Backend &backend) 
 
     migrate_one(journal::hash("FSensor Enabled"), body.FSENSOR_ENABLED);
 
+    // Do not migrate PID on XL, these values were never used on XL
+#if ENABLED(PIDTEMP) && !PRINTER_IS_PRUSA_XL
     migrate_one(journal::hash("PID Nozzle P"), body.PID_NOZ_P);
     migrate_one(journal::hash("PID Nozzle I"), body.PID_NOZ_I);
     migrate_one(journal::hash("PID Nozzle D"), body.PID_NOZ_D);
+#endif /* ENABLED(PIDTEMP) */
 
+#if ENABLED(PIDTEMPBED)
     migrate_one(journal::hash("PID Bed P"), body.PID_BED_P);
     migrate_one(journal::hash("PID Bed I"), body.PID_BED_I);
     migrate_one(journal::hash("PID Bed D"), body.PID_BED_D);
+#endif /* ENABLED(PIDTEMPBED) */
 
     migrate_one(journal::hash("LAN Flag"), body.LAN_FLAG);
     migrate_one(journal::hash("LAN IP4 Address"), body.LAN_IP4_ADDR);
