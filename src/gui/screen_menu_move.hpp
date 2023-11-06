@@ -38,11 +38,6 @@ public:
 };
 
 class MI_AXIS_Z : public MI_AXIS<Z_AXIS> {
-
-protected:
-    bool try_exit_edit_mode() override;
-
-    bool querying_user { false };
 };
 
 class MI_AXIS_E : public MI_AXIS<E_AXIS> {

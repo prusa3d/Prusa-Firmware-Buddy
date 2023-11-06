@@ -10,7 +10,6 @@
 #include "img_resources.hpp"
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
-#include <RAII.hpp>
 
 static constexpr const char *const heating_str = N_("Heating");
 static constexpr const char *const low_temp_str = N_("Low temp");
@@ -39,32 +38,6 @@ void I_MI_AXIS::finish_move() {
     }
 
     marlin_client::move_axis(GetVal(), MenuVars::GetManualFeedrate()[axis_index], axis_index);
-}
-
-bool MI_AXIS_Z::try_exit_edit_mode() {
-    if (is_move_finished() || querying_user) {
-        return true;
-    }
-
-    AutoRestore ar(querying_user, true);
-
-    // Show question message box
-    const Response response = MsgBoxBuilder {
-        .type = MsgBoxType::question,
-        .text = _("Target position not yet reached.\n\nCancel the movement immediately?"),
-        .responses = { Response::Yes, Response::No },
-        .loop_callback = [&] {
-            if (is_move_finished()) {
-                Screens::Access()->Close();
-            }
-        }
-    }.exec();
-
-    if (response == Response::Yes) {
-        SetVal(last_queued_pos);
-    }
-
-    return true;
 }
 
 void MI_AXIS_E::OnClick() {
