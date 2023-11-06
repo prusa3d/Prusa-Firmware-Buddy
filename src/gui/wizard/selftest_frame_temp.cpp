@@ -59,7 +59,7 @@ constexpr const char *en_text_prep = N_("Preparing");
 constexpr const char *en_text_heat = N_("Heater testing");
 constexpr const char *en_text_heatbreak = N_("Heatbreak status");
 // dialog is for non-XL printers
-constexpr const char *en_text_dialog_noz_disabled = N_("The heater test will be skipped because the hotend fan check did not pass. You may continue, but be sure to resolve this issue before your next print.");
+constexpr const char *en_text_dialog_noz_disabled = N_("The heater test will be skipped due to the failed hotend fan check. You may continue, but we strongly recommend resolving this issue before you start printing.");
 // info text without a dialog is for XL
 constexpr const char *en_text_info_noz_disabled = N_("Some nozzle heater checks were disabled due to their hotend fan checks not having passed.");
 } // namespace
