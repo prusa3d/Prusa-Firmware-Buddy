@@ -136,6 +136,8 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
             }
         }
 
+        // Force focused index update
+        focused_index_ = std::nullopt;
         move_focus_to_index(new_focused_index);
     }
 
