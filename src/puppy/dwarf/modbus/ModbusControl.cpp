@@ -310,9 +310,9 @@ void UpdateRegisters() {
     ModbusRegisters::SetBitValue(ModbusRegisters::SystemDiscreteInput::is_button_down_pressed, buddy::hw::button2.read() == buddy::hw::Pin::State::low);
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::tool_filament_sensor, dwarf::tool_filament_sensor::tool_filament_sensor_get_filtered_data());
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::board_temperature, clamp_to_int16(Temperature::degBoard()));
-    static int32_t mcu_temp_filter = 0;
-    mcu_temp_filter = (mcu_temp_filter * 7 + AdcGet::getMCUTemp()) / 8; // Simple EWMA filter
-    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::mcu_temperature, clamp_to_int16(mcu_temp_filter));
+    static int32_t mcu_temp_filter = 0; ///< Buffer for EWMA [1/8 degrees Celsius]
+    mcu_temp_filter = ((mcu_temp_filter * 7 / 8) + AdcGet::getMCUTemp()); // Simple EWMA filter (stays 1 degree below stable value)
+    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::mcu_temperature, std::clamp<int32_t>(mcu_temp_filter / 8, INT16_MIN, INT16_MAX));
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::heatbreak_temp, clamp_to_int16(Temperature::degHeatbreak(0)));
 
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::fan0_rpm, Fans::print(0).getActualRPM());
