@@ -27,9 +27,23 @@ namespace freertos {
 
 class Mutex {
 public:
+    /**
+     * Releases the lock acquired by the current task.
+     * The lock must have been acquired before.
+     */
     void unlock();
+
+    /**
+     * Attempts to acquire the lock for the current task without blocking.
+     * Return true if the lock was acquired, false otherwise.
+     */
     bool try_lock();
+
+    /**
+     * Blocks until a lock is acquired for the current task.
+     */
     void lock();
+
     Mutex() noexcept;
     Mutex(const Mutex &) = delete;
     ~Mutex();
