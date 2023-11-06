@@ -59,7 +59,6 @@ static const char *txt_ejecting           = N_("Ejecting");
 static const char *txt_loading            = N_("Loading to nozzle");
 static const char *txt_purging            = N_("Purging");
 static const char *txt_is_color           = N_("Is color correct?");
-static const char *txt_remove_filament    = N_("Please pull out filament immediately.");
 #if HAS_LOADCELL()
 static const char *txt_filament_stuck     = ""; // Empty here, set from the error description
 #endif
@@ -118,7 +117,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_ram,                  ClientResponses::GetResponses(PhasesLoadUnload::Ramming_unstoppable),           ph_txt_none },
         DialogLoadUnload::State { txt_unload,               ClientResponses::GetResponses(PhasesLoadUnload::Unloading_stoppable),           ph_txt_stop },
         DialogLoadUnload::State { txt_unload,               ClientResponses::GetResponses(PhasesLoadUnload::Unloading_unstoppable),         ph_txt_none },
-        DialogLoadUnload::State { txt_remove_filament,      ClientResponses::GetResponses(PhasesLoadUnload::RemoveFilament),                ph_txt_stop, DialogLoadUnload::phaseAlertSound },
+        DialogLoadUnload::State { txt_unload,               ClientResponses::GetResponses(PhasesLoadUnload::RemoveFilament),                ph_txt_stop },
         DialogLoadUnload::State { txt_unload_confirm,       ClientResponses::GetResponses(PhasesLoadUnload::IsFilamentUnloaded),            ph_txt_yesno, DialogLoadUnload::phaseWaitSound },
         DialogLoadUnload::State { txt_filament_not_in_fs,   ClientResponses::GetResponses(PhasesLoadUnload::FilamentNotInFS),               ph_txt_none, DialogLoadUnload::phaseAlertSound},
         DialogLoadUnload::State { txt_manual_unload,        ClientResponses::GetResponses(PhasesLoadUnload::ManualUnload),                  ph_txt_continue, DialogLoadUnload::phaseStopSound },

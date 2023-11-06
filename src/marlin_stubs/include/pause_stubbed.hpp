@@ -41,7 +41,6 @@ protected:
         manual_unload,
         filament_not_in_fs,
         unload_from_gear,
-        remove_filament,
         run_mmu_eject,
         _last = run_mmu_eject,
 
