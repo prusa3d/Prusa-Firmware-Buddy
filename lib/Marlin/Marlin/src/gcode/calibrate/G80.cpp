@@ -65,6 +65,14 @@ void GcodeSuite::G80() {
     run_gcode("M109 S%.0f T%i", print_temp, target_extruder);
     // deretraction
     run_gcode("G1 E2 F2400");
+
+
+    // If running in MK3 compatibility mode, we need to move z axis down to print bed.
+    // When running G80 in MK3 we moved the nozzle to the printbed after MBL.
+    // We don't do that now and the newer slicer adds G1 instruction to move the nozzle down.
+    if (gcode.compatibility_mode == CompatibilityMode::MK3) {
+        run_gcode("G1 Z0.15"); // 0.15 is value of Z_MIN_POS https://github.com/prusa3d/Prusa-Firmware/blob/MK3/Firmware/variants/MK3S.h#L67
+    }
 }
 
 #endif
