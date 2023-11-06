@@ -976,13 +976,7 @@ void Pause::loop_unload([[maybe_unused]] Response response) {
             break;
 
         config_store().set_filament_type(settings.GetExtruder(), filament::Type::NONE);
-        set(UnloadPhases_t::remove_filament);
-        break;
-    case UnloadPhases_t::remove_filament:
-        setPhase(PhasesLoadUnload::RemoveFilament);
-        if (response == Response::Filament_removed) {
-            set(UnloadPhases_t::_finish);
-        }
+        set(UnloadPhases_t::_finish);
         break;
     default:
         set(UnloadPhases_t::_finish);
