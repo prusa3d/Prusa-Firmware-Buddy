@@ -10,7 +10,6 @@ void info_screen_handler(metric_point_t *point) {
 using namespace SensorData;
 
 SensorDataBuffer::SensorDataBuffer() {
-    mutex = xSemaphoreCreateMutex();
     RegisterBuffer(this);
     enableMetrics();
 }
@@ -84,15 +83,9 @@ void SensorDataBuffer::disableMetrics() {
 }
 
 Value SensorDataBuffer::GetValue(Sensor type) {
-
-    Value val;
     enableMetrics();
-
-    if (xSemaphoreTake(mutex, (TickType_t)portMAX_DELAY) == pdTRUE) {
-        val = sensorValues[static_cast<size_t>(type)];
-    };
-    xSemaphoreGive(mutex);
-    return val;
+    std::unique_lock lock { mutex };
+    return sensorValues[static_cast<size_t>(type)];
 }
 
 void SensorDataBuffer::HandleNewData(metric_point_t *point) {
@@ -100,12 +93,10 @@ void SensorDataBuffer::HandleNewData(metric_point_t *point) {
     if (point->metric->type == METRIC_VALUE_FLOAT || point->metric->type == METRIC_VALUE_INTEGER) {
         auto it = std::lower_bound(sensors.begin(), sensors.end(), pair { point->metric->name, first_sensor_to_log }, compareFN {});
         if (it != sensors.end() && strcmp(it->first, point->metric->name) == 0) {
-            if (xSemaphoreTake(mutex, (TickType_t)portMAX_DELAY) == pdTRUE) {
-                sensorValues[static_cast<uint16_t>(it->second)].float_val = point->value_float; // This can be int, but both are union of float/int
-                sensorValues[static_cast<uint16_t>(it->second)].attribute.valid = true;
-                sensorValues[static_cast<uint16_t>(it->second)].attribute.type = point->metric->type == METRIC_VALUE_FLOAT ? Type::floatType : Type::intType;
-                xSemaphoreGive(mutex);
-            }
+            std::unique_lock lock { mutex };
+            sensorValues[static_cast<uint16_t>(it->second)].float_val = point->value_float; // This can be int, but both are union of float/int
+            sensorValues[static_cast<uint16_t>(it->second)].attribute.valid = true;
+            sensorValues[static_cast<uint16_t>(it->second)].attribute.type = point->metric->type == METRIC_VALUE_FLOAT ? Type::floatType : Type::intType;
         }
     }
 }
