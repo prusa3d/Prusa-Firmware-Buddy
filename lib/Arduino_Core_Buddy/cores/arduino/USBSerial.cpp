@@ -66,6 +66,10 @@ void USBSerial::LineBufferAppend(char character) {
 }
 
 size_t USBSerial::write(uint8_t ch) {
+    // its not possible to write to USB-CDC from ISR, so skip the write alltogether
+    if (xPortIsInsideInterrupt())
+        return 0;
+
     if (enabled) {
         while (tud_cdc_write_char(ch) != 1) {
             // TX is full, yield to lower-priority (which usb is part of) threads until ready
@@ -94,6 +98,10 @@ static void cdc_write_sync(const uint8_t *buffer, size_t size) {
 }
 
 size_t USBSerial::write(const uint8_t *buffer, size_t size) {
+    // its not possible to write to USB-CDC from ISR, so skip the write alltogether
+    if (xPortIsInsideInterrupt())
+        return 0;
+
     size_t beg = 0;
     size_t end = 0;
 
