@@ -5,6 +5,7 @@ import argparse
 from pathlib import Path
 import os, stat
 import platform
+from shutil import which
 
 # init directories
 script_dir = Path(os.path.dirname(__file__))
@@ -48,7 +49,7 @@ if not os.path.isfile(args.dump):
     print(f"Crash dump file not fount at: {args.dump}")
     exit(1)
 
-if not os.path.isfile(args.gdb):
+if not os.path.isfile(args.gdb) and which(args.gdb) is None:
     print(f"GDB executable not fount at: {args.gdb}")
     exit(1)
 
