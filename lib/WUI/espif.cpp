@@ -101,7 +101,7 @@ enum MessageType {
 static const uint32_t SUPPORTED_FW_VERSION = 10;
 #else
 // ESP8266 FW version
-static const uint32_t SUPPORTED_FW_VERSION = 10;
+static const uint32_t SUPPORTED_FW_VERSION = 11;
 #endif
 
 // NIC state
