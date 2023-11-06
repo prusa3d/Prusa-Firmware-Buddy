@@ -248,6 +248,8 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
 
     notice_link.set_font(resource_font(IDR_FNT_SMALL));
 
+    notice_frame.Hide(); // default state is 'normal' - leave progress frame the only one shown
+
     Change(data);
 }
 
