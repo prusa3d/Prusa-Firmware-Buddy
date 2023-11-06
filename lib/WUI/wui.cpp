@@ -34,6 +34,7 @@
 
 #include "otp.hpp"
 #include <config_store/store_instance.hpp>
+#include <nhttp/server.h>
 #include <random.h>
 
 LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
@@ -320,9 +321,9 @@ private:
         lock.unlock();
 
         if (config_store().prusalink_enabled.get() == 1) {
-            httpd_start();
+            httpd_instance()->start();
         } else {
-            httpd_close();
+            httpd_instance()->stop();
         }
     }
 
@@ -332,8 +333,6 @@ private:
         tcpip_init(tcpip_init_done_raw, this);
 
         prusalink_password_init();
-
-        httpd_init();
 
         // During init, we store the events for later. Therefore, we accumulate
         // them until consumed.
