@@ -86,7 +86,7 @@ SelftestResult::SelftestResult(const SelftestResult_pre_gears &sr_pre_gears)
     for (size_t i = 0; i < std::size(tools); ++i) {
         tools[i].printFan = sr_pre_gears.tools[i].printFan;
         tools[i].heatBreakFan = sr_pre_gears.tools[i].heatBreakFan;
-        // fansSwitched left defaulted
+        tools[i].fansSwitched = sr_pre_gears.tools[i].fansSwitched;
         tools[i].nozzle = sr_pre_gears.tools[i].nozzle;
         tools[i].fsensor = sr_pre_gears.tools[i].fsensor;
         tools[i].loadcell = sr_pre_gears.tools[i].loadcell;
