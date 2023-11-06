@@ -35,7 +35,6 @@ public:
     ~Mutex();
 
 private:
-    SemaphoreHandle_t xSemaphore = nullptr;
     StaticSemaphore_t xSemaphoreData;
 };
 static_assert(concepts::Lockable<Mutex>);
