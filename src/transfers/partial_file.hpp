@@ -195,9 +195,10 @@ public:
     PartialFile(UsbhMscRequest::LunNbr drive, UsbhMscRequest::SectorNbr first_sector, State state, int file_lock);
     ~PartialFile();
     using Ptr = std::shared_ptr<PartialFile>;
+    using Result = std::variant<const char *, PartialFile::Ptr>;
 
     /// Try to create a new partial file of preallocated size
-    static std::variant<const char *, PartialFile::Ptr> create(const char *path, size_t size);
+    static Result create(const char *path, size_t size);
 
     /// Open existing partial file
     ///
@@ -205,12 +206,12 @@ public:
     ///
     /// * ignore_opened: If set to true, it'll open the file (for writing) even
     ///   if there's a reader somewhere else.
-    static std::variant<const char *, PartialFile::Ptr> open(const char *path, State state, bool ignore_opened);
+    static Result open(const char *path, State state, bool ignore_opened);
 
     /// Convert an open FILE * into this.
     ///
     /// state.total_size is updated according to what is found on the disk and overwritten.
-    static std::variant<const char *, PartialFile::Ptr> convert(const char *path, unique_file_ptr file, State state);
+    static Result convert(const char *path, unique_file_ptr file, State state);
 
     /// Seek to a given offset within the file
     bool seek(size_t offset);
