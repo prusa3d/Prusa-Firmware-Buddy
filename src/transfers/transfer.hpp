@@ -58,14 +58,11 @@ private:
         static constexpr size_t TailSize = 50000;
 
         enum class State {
-            DownloadingHeader,
             DownloadingTail,
-            DownloadedBase,
             DownloadingBody,
-            Finished,
         };
 
-        State state = State::DownloadingHeader;
+        State state = State::DownloadingTail;
 
     public:
         static constexpr size_t MinimalFileSize = 512 * 1024;
