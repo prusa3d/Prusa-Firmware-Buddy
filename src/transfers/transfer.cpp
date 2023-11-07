@@ -394,11 +394,12 @@ Transfer::State Transfer::step(bool is_printing) {
                 retries_left = MAX_RETRIES;
             }
             slot.progress(state, has_issues);
-            switch (step_result) {
-            case DownloadStep::Continue: {
-                update_backup(/*force=*/false);
+            if (has_issues) {
+                update_backup(/*force=*/true);
+            } else {
                 init_download_order_if_needed();
                 Transfer::Action next_step = std::visit([&](auto &&arg) { return arg.step(*partial_file); }, *order);
+
                 switch (next_step) {
                 case Transfer::Action::Continue:
                     if (is_printable && !already_notified) {
@@ -415,6 +416,10 @@ Transfer::State Transfer::step(bool is_printing) {
                     done(State::Finished, Monitor::Outcome::Finished);
                     break;
                 }
+            }
+            switch (step_result) {
+            case DownloadStep::Continue: {
+                update_backup(/*force=*/false);
                 break;
             }
             case DownloadStep::FailedNetwork:
