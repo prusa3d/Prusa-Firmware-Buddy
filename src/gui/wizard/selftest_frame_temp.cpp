@@ -58,9 +58,9 @@ constexpr const char *en_text_bed = N_("Heatbed heater check");
 constexpr const char *en_text_prep = N_("Preparing");
 constexpr const char *en_text_heat = N_("Heater testing");
 constexpr const char *en_text_heatbreak = N_("Heatbreak status");
-// dialog is for non-XL printers
+// dialog is for non-toolchanger printers
 constexpr const char *en_text_dialog_noz_disabled = N_("The heater test will be skipped due to the failed hotend fan check. You may continue, but we strongly recommend resolving this issue before you start printing.");
-// info text without a dialog is for XL
+// info text without a dialog is for >1 tool ToolChanger
 constexpr const char *en_text_info_noz_disabled = N_("Some nozzle heater checks were disabled due to their hotend fan checks not having passed.");
 } // namespace
 
@@ -248,21 +248,25 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
 void ScreenSelftestTemp::change() {
     switch (phase_current) {
     case PhasesSelftest::HeatersDisabledDialog:
-#if !PRINTER_IS_PRUSA_XL
-        test_frame.Hide();
-        text_dialog.Show();
-        radio.Show();
-
-        break;
-        // fall through for XL
+#if HAS_TOOLCHANGER()
+        if (prusa_toolchanger.get_num_enabled_tools() > 1) {
+            [[fallthrough]]; // >1 tool toolchanger falls through
+        } else
 #endif
+        {
+            test_frame.Hide();
+            text_dialog.Show();
+            radio.Show();
+            break;
+        }
     case PhasesSelftest::Heaters: {
         text_dialog.Hide();
         test_frame.Show();
         radio.Hide();
 
-#if PRINTER_IS_PRUSA_XL
-        if (phase_current == PhasesSelftest::HeatersDisabledDialog) {
+#if HAS_TOOLCHANGER()
+        // only multitool has access to text_info
+        if (prusa_toolchanger.get_num_enabled_tools() > 1 && phase_current == PhasesSelftest::HeatersDisabledDialog) {
             text_info.SetText(_(en_text_info_noz_disabled));
         } else
 #endif

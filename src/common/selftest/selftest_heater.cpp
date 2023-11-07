@@ -63,9 +63,11 @@ LoopResult CSelftestPart_Heater::stateShowSkippedDialog() {
         return LoopResult::RunNext;
     }
 
-#if PRINTER_IS_PRUSA_XL
-    // For XL, we don't show a dialog, only an info text, and we skip the test outright
-    return LoopResult::Abort;
+#if HAS_TOOLCHANGER()
+    if (prusa_toolchanger.get_num_enabled_tools() > 1) {
+        //  We can skip this dialog and always show info text, because toolchanger multitool runs heater tests separately
+        return LoopResult::Abort;
+    }
 #endif
 
     if (state_machine.GetButtonPressed() == Response::Ok) {
@@ -86,9 +88,13 @@ LoopResult CSelftestPart_Heater::stateSetup() {
     }
 #endif
 
-#if !PRINTER_IS_PRUSA_XL
-    IPartHandler::SetFsmPhase(PhasesSelftest::Heaters);
+#if HAS_TOOLCHANGER()
+    if (prusa_toolchanger.get_num_enabled_tools() <= 1)
 #endif
+    {
+        // do this for singletool configurations, multitool has special handling
+        IPartHandler::SetFsmPhase(PhasesSelftest::Heaters);
+    }
 
     // looked into marlin and it seems all PID values are used as numerator
     // switch regulator into on/off mode
