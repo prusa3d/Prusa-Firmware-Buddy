@@ -93,6 +93,12 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
         resultHeaters.noz[i] = SelftestHeater_t(0, SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
 
         if (pNozzles[i] == nullptr) {
+#if HAS_TOOLCHANGER()
+            if (!prusa_toolchanger.is_tool_enabled(config_nozzle[i].tool_nr)) {
+                continue; // don't test disabled tools
+            }
+#endif
+
             auto pNoz = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(config_nozzle[i],
                 resultHeaters.noz[i],
                 &CSelftestPart_Heater::stateCheckHbrPassed,
