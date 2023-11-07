@@ -456,37 +456,16 @@ void Download::AsyncDeleter::operator()(Async *a) {
     }
 }
 
-Download::Download(AsyncPtr &&async)
-    : async(move(async)) {}
-
-Download::BeginResult Download::begin(const Request &request, DestinationPath destination, uint32_t start_range, optional<uint32_t> end_range) {
+Download::Download(const Request &request, PartialFile::Ptr destination, uint32_t start_range, optional<uint32_t> end_range) {
     // Plain downloads are no longer supported, need encryption info
     assert(request.encryption);
     size_t file_size = request.encryption->orig_size;
     auto decryptor = make_unique<Decryptor>(request.encryption->key, request.encryption->nonce, start_range, file_size - start_range);
+    assert(destination);
 
-    PartialFile::Ptr file;
-    if (auto f = get_if<PartialFile::Ptr>(&destination); f != nullptr) {
-        file = *f;
-    } else if (auto f = get_if<const char *>(&destination); f != nullptr) {
-        auto preallocated = PartialFile::create(*f, file_size);
-        if (auto *err = get_if<const char *>(&preallocated); err != nullptr) {
-            // TODO: We've lost the AlreadyExists variant somewhere on our way
-            return Storage { *err };
-        } else {
-            file = get<PartialFile::Ptr>(preallocated);
-        }
-    } else {
-        // No other possibilities
-        assert(0);
-    }
-    assert(file);
-
-    file->seek(start_range);
-    AsyncPtr async(new Async(request.host, request.port, request.url_path, move(file), move(decryptor), start_range, end_range));
+    destination->seek(start_range);
+    async.reset(new Async(request.host, request.port, request.url_path, move(destination), move(decryptor), start_range, end_range));
     tcpip_callback_nofail(Async::start_wrapped, async.get());
-
-    return Download(move(async));
 }
 
 DownloadStep Download::step() {
