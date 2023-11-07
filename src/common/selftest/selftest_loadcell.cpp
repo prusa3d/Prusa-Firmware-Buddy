@@ -249,7 +249,7 @@ LoopResult CSelftestPart_Loadcell::stateTapCheckInit() {
     rResult.countdown = SelftestLoadcell_t::countdown_undef;
     time_start_tap = SelftestInstance().GetTime();
     IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_user_tap_check);
-    Sound_Play(eSOUND_TYPE::SingleBeep);
+    Sound_Play(eSOUND_TYPE::SingleBeepAlwaysLoud);
     return LoopResult::RunNext;
 }
 
