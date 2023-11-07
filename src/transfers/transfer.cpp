@@ -13,6 +13,7 @@
 #include <common/print_utils.hpp>
 #include <common/stat_retry.hpp>
 #include <common/lfn.h>
+#include <common/scope_guard.hpp>
 #include <state/printer_state.hpp>
 #include <option/has_human_interactions.h>
 
@@ -109,7 +110,7 @@ Transfer::BeginResult Transfer::begin(const char *destination_path, const Downlo
     PartialFile::Result preallocated;
     PartialFile::Ptr partial_file;
 
-    auto cleanup = [&]() {
+    ScopeGuard cleanup([&]() {
         // Close all potentially opened files
         backup.reset();
         preallocated = "";
@@ -118,39 +119,36 @@ Transfer::BeginResult Transfer::begin(const char *destination_path, const Downlo
         remove(path.as_partial());
         remove(path.as_backup());
         rmdir(path.as_destination());
-    };
+    });
 
     // make a directory there
     if (mkdir(destination_path, 0777) != 0) {
         log_error(transfers, "Failed to create directory %s", destination_path);
-        cleanup();
         return Storage { "Failed to create directory" };
     }
 
     if (!store_transfer_index(destination_path)) {
         log_error(transfers, "Failed to store path to index");
-        cleanup();
         return Storage { "Failed to store path to index" };
     }
 
     // make the request
     backup = unique_file_ptr(fopen(path.as_backup(), "w+"));
     if (backup.get() == nullptr) {
-        cleanup();
         return Storage { "Failed to create backup file" };
     }
     size_t file_size = request.encryption->orig_size;
     preallocated = move(PartialFile::create(path.as_partial(), file_size));
     if (const char **err = get_if<const char *>(&preallocated); err != nullptr) {
         const char *e = *err; // Backup, cleanup resets preallocated state
-        cleanup();
         return Storage { e };
     };
     partial_file = get<PartialFile::Ptr>(move(preallocated));
     if (Transfer::make_backup(backup.get(), request, partial_file->get_state(), *slot) == false) {
-        cleanup();
         return Storage { "Failed to fill the backup file" };
     }
+
+    cleanup.disarm();
     backup.reset();
     slot->update_expected_size(file_size);
 
