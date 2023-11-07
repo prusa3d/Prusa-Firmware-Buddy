@@ -176,6 +176,7 @@ Transfer::BeginResult Transfer::begin(const char *destination_path, const Downlo
         return Storage { "Failed to fill the backup file" };
     }
     backup.reset();
+    slot->update_expected_size(file_size);
 
     Transfer transfer(std::move(*slot), partial_file);
     transfer.restart_download();
@@ -241,34 +242,9 @@ bool Transfer::restart_download() {
         }
     }
 
-    auto &&download = Download::begin(*request, partial_file, position, end_range);
+    download.emplace(*request, partial_file, position, end_range);
 
-    log_info(transfers, "Download request initiated, position: %u", position);
-
-    return std::visit([&](auto &&arg) {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (is_same_v<T, transfers::Download>) {
-            this->download = std::move(arg);
-            return true;
-        } else if constexpr (is_same_v<T, transfers::AlreadyExists>) {
-            log_error(transfers, "Destination path %s already exists", slot.destination());
-            last_connection_error_ms = ticks_ms();
-            return false;
-        } else if constexpr (is_same_v<T, transfers::RefusedRequest>) {
-            log_error(transfers, "Download request refused");
-            last_connection_error_ms = ticks_ms();
-            return false;
-        } else if constexpr (is_same_v<T, transfers::Storage>) {
-            log_error(transfers, "Failed to download; storage: %s", arg.msg);
-            last_connection_error_ms = ticks_ms();
-            return false;
-        } else {
-            log_error(transfers, "Failed to restart download");
-            last_connection_error_ms = ticks_ms();
-            return false;
-        }
-    },
-        download);
+    return true;
 }
 
 void Transfer::init_download_order_if_needed() {
