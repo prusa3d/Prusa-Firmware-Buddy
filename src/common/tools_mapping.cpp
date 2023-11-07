@@ -12,6 +12,11 @@
 namespace tools_mapping {
 bool is_tool_mapping_possible() {
 #if HAS_TOOLCHANGER() || HAS_MMU2()
+    #if HAS_MMU2()
+    if (!MMU2::mmu2.Enabled()) {
+        return false;
+    }
+    #endif
     return GCodeInfo::getInstance().UsedExtrudersCount() > 1 || (get_num_of_enabled_tools() > 1 && GCodeInfo::getInstance().UsedExtrudersCount() > 0);
 #endif
     return false;
