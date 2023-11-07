@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "assert.h"
+#include <cstdlib>
 
 #define UTF8_IS_NONASCII(ch) ((ch)&0x80)
 #define UTF8_IS_CONT(ch)     (((ch)&0xC0) == 0x80)
@@ -45,11 +46,41 @@ class string_view_utf8 {
     /// Extracts one byte from source media and advances internal read ptr, implementation defined in derived classes
     /// The caller of this function makes sure it does not get called repeatedly after returning the end of input data.
     /// @return 0 in case of end of input data or an error
-    uint8_t (*getbyte)(Attrs &);
+    uint8_t getbyte(Attrs &attributes) {
+        switch (type) {
+        case EType::CPUFLASH:
+        case EType::RAM:
+            return CPUFLASH_getbyte(attributes);
+        case EType::FILE:
+            return FILE_getbyte(attributes);
+        case EType::NULLSTR:
+            return NULLSTR_getbyte(attributes);
+        default:
+            break;
+        }
+        abort();
+        return 0;
+    }
 
     /// Rewinds the input data stream to its beginning
     /// Simple for memory-based sources, more complex for files
-    void (*rewind_impl)(Attrs &);
+    void rewind_impl(Attrs &attributes) {
+        switch (type) {
+        case EType::CPUFLASH:
+        case EType::RAM:
+            CPUFLASH_rewind(attributes);
+            return;
+        case EType::FILE:
+            FILE_rewind(attributes);
+            return;
+        case EType::NULLSTR:
+            NULLSTR_rewind(attributes);
+            return;
+        default:
+            break;
+        }
+        abort();
+    }
 
     /// cached length of string. Computed at various spots where not too costly.
     /// Deliberately typed as signed int, because -1 means "not computed yet"
@@ -176,8 +207,6 @@ public:
     static string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
         string_view_utf8 s;
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
-        s.getbyte = &string_view_utf8::CPUFLASH_getbyte;
-        s.rewind_impl = &string_view_utf8::CPUFLASH_rewind;
         s.type = EType::CPUFLASH;
         return s;
     }
@@ -187,8 +216,6 @@ public:
     static string_view_utf8 MakeRAM(const uint8_t *utf8raw) {
         string_view_utf8 s;
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
-        s.getbyte = &string_view_utf8::CPUFLASH_getbyte;
-        s.rewind_impl = &string_view_utf8::CPUFLASH_rewind;
         s.type = EType::RAM;
         return s;
     }
@@ -202,8 +229,6 @@ public:
             s.attrs.file.startOfs = offset;
             s.attrs.file.currentOfs = offset;
         }
-        s.getbyte = &string_view_utf8::FILE_getbyte;
-        s.rewind_impl = &string_view_utf8::FILE_rewind;
         s.type = EType::FILE;
         return s;
     }
@@ -211,8 +236,6 @@ public:
     /// Construct an empty string_view_utf8 - behaves like a "" but is a special type NULL
     static string_view_utf8 MakeNULLSTR() {
         string_view_utf8 s;
-        s.getbyte = &string_view_utf8::NULLSTR_getbyte;
-        s.rewind_impl = &string_view_utf8::NULLSTR_rewind;
         s.type = EType::NULLSTR;
         return s;
     }
