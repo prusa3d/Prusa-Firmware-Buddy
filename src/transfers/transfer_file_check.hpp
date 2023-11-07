@@ -11,16 +11,26 @@ namespace transfers {
 inline constexpr const char *partial_filename { "p" };
 inline constexpr const char *backup_filename { "d" };
 
+enum IsTransferResult {
+    not_a_transfer,
+    valid_transfer, ///< finished (a file), in progress or we intend to retry if possible
+    invalid_transfer, ///< failed, but not yet removed
+};
+
+/// Checks if a provided path/filename is a transfer.
+IsTransferResult is_transfer(const MutablePath &filepath);
+
 /**
  * @brief Checks if it is a folder with a partial and backup file and is valid.
- *  It is valid, if the trasnfer is finished, in progress, or we intent to
+ *  It is valid, if the trasnfer is finished, in progress, or we intend to
  *  retry it when avaiable, if we gave up on trying it will be not valid.
  *
  * @param destination_path
  */
-bool is_valid_transfer(const MutablePath &destination_path);
+inline bool is_valid_transfer(const MutablePath &filepath) {
+    return is_transfer(filepath) == IsTransferResult::valid_transfer;
+}
 
 /// \returns whether the \p file is an existing file or a valid transfer
 bool is_valid_file_or_transfer(const MutablePath &file);
-
 } // namespace transfers

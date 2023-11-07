@@ -5,8 +5,8 @@
 #include <transfers/transfer_file_check.hpp>
 
 namespace transfers {
-bool is_valid_transfer(const MutablePath &) {
-    return false;
+IsTransferResult is_transfer(const MutablePath &) {
+    return IsTransferResult::not_a_transfer;
 }
 } // namespace transfers
 
