@@ -270,7 +270,7 @@ private:
     /// into place before that.
     bool is_printable = false;
 
-    Transfer(State state, std::optional<Download> &&download, Monitor::Slot &&slot, std::optional<DownloadOrder> &&order, PartialFile::Ptr partial_file);
+    Transfer(Monitor::Slot &&slot, PartialFile::Ptr partial_file);
 
     /// Initiates a new download() request based on current state. Returns true on succes.
     /// TODO: We have to better handle errors here (distinguish between recoverable and non-recoverable ones)

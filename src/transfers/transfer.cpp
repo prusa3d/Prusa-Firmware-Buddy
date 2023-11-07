@@ -128,54 +128,58 @@ Transfer::BeginResult Transfer::begin(const char *destination_path, const Downlo
         return AlreadyExists {};
     }
 
+    auto path = Path(destination_path);
+    unique_file_ptr backup;
+    PartialFile::Result preallocated;
+    PartialFile::Ptr partial_file;
+
+    auto cleanup = [&]() {
+        // Close all potentially opened files
+        backup.reset();
+        preallocated = "";
+        partial_file.reset();
+        // And remove everything we may have created
+        remove(path.as_partial());
+        remove(path.as_backup());
+        rmdir(path.as_destination());
+    };
+
     // make a directory there
     if (mkdir(destination_path, 0777) != 0) {
         log_error(transfers, "Failed to create directory %s", destination_path);
+        cleanup();
         return Storage { "Failed to create directory" };
     }
 
     if (!store_transfer_index(destination_path)) {
         log_error(transfers, "Failed to store path to index");
+        cleanup();
         return Storage { "Failed to store path to index" };
     }
 
     // make the request
-    auto path = Path(destination_path);
-    // Create the backup file first to avoid a race condition (if we create the
-    // partial file first, lose power, we would then think the file full of
-    // garbage is _complete_).
-    //
-    // Then just close it and leave it empty until we have something to write into it.
-    auto backup = unique_file_ptr(fopen(path.as_backup(), "w"));
+    backup = unique_file_ptr(fopen(path.as_backup(), "w+"));
+    if (backup.get() == nullptr) {
+        cleanup();
+        return Storage { "Failed to create backup file" };
+    }
+    size_t file_size = request.encryption->orig_size;
+    preallocated = move(PartialFile::create(path.as_partial(), file_size));
+    if (const char **err = get_if<const char *>(&preallocated); err != nullptr) {
+        const char *e = *err; // Backup, cleanup resets preallocated state
+        cleanup();
+        return Storage { e };
+    };
+    partial_file = get<PartialFile::Ptr>(move(preallocated));
+    if (Transfer::make_backup(backup.get(), request, partial_file->get_state(), *slot) == false) {
+        cleanup();
+        return Storage { "Failed to fill the backup file" };
+    }
     backup.reset();
-    auto &&download = Download::begin(request, path.as_partial());
-    log_info(transfers, "Download request initiated");
 
-    return std::visit([&](auto &&arg) -> Transfer::BeginResult {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (is_same_v<T, transfers::Download>) {
-            slot->update_expected_size(arg.file_size());
-            // we got a valid response and can start downloading
-            // so lets make a backup file for recovery
-            auto backup_file = [&]() {
-                auto transfer_path = Path(destination_path);
-                return unique_file_ptr(fopen(transfer_path.as_backup(), "w+"));
-            }();
-            if (backup_file.get() == nullptr || Transfer::make_backup(backup_file.get(), request, arg.get_partial_file()->get_state(), *slot) == false) {
-                return Storage { "Failed to create backup file" };
-            }
-            auto partial_file = arg.get_partial_file(); // get the partial file before we std::move the download away
-            return Transfer(State::Downloading, std::move(arg), std::move(*slot), std::nullopt, partial_file);
-        } else {
-            log_error(transfers, "Failed to initiate download");
-            // remove all the files we might have created
-            remove(path.as_partial());
-            remove(path.as_backup());
-            rmdir(path.as_destination());
-            return arg;
-        }
-    },
-        download);
+    Transfer transfer(std::move(*slot), partial_file);
+    transfer.restart_download();
+    return transfer;
 }
 
 bool Transfer::restart_download() {
@@ -362,15 +366,13 @@ Transfer::RecoverResult Transfer::recover(const char *destination_path) {
 
     slot->progress(partial_file_state, false);
 
-    return Transfer(Transfer::State::Retrying, std::nullopt, std::move(*slot), std::nullopt, partial_file);
+    return Transfer(std::move(*slot), partial_file);
 }
 
-Transfer::Transfer(State state, std::optional<Download> &&download, Monitor::Slot &&slot, std::optional<DownloadOrder> &&order, PartialFile::Ptr partial_file)
+Transfer::Transfer(Monitor::Slot &&slot, PartialFile::Ptr partial_file)
     : slot(std::move(slot))
-    , download(std::move(download))
     , path(slot.destination())
-    , order(order)
-    , state(state)
+    , state(State::Retrying)
     , partial_file(partial_file)
     , is_printable(filename_is_printable(slot.destination())) {
     assert(partial_file.get() != nullptr);
