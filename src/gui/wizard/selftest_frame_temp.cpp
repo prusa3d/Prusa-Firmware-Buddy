@@ -264,8 +264,11 @@ void ScreenSelftestTemp::change() {
 #if PRINTER_IS_PRUSA_XL
         if (phase_current == PhasesSelftest::HeatersDisabledDialog) {
             text_info.SetText(_(en_text_info_noz_disabled));
-        }
+        } else
 #endif
+        { // otherwise we don't want to show it
+            text_info.Hide();
+        }
 
         SelftestHeaters_t dt;
         if (FSMExtendedDataManager::get(dt)) {
