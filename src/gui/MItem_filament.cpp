@@ -81,7 +81,6 @@ MI_CHANGE::MI_CHANGE()
 
 bool MI_CHANGE::AvailableForTool(uint8_t tool) {
     bool has_filament_eeprom = config_store().get_filament_type(tool) != filament::Type::NONE;
-    // todo: this should also take into account if filament is really in filament sensor
     return has_filament_eeprom;
 }
 
@@ -137,13 +136,7 @@ void MI_PURGE::Do() {
 
 bool MI_PURGE::AvailableForTool(uint8_t tool) {
     bool has_filament_eeprom = config_store().get_filament_type(tool) != filament::Type::NONE;
-    bool has_filament_fs = GetExtruderFSensor(tool)->Get() == fsensor_t::HasFilament;
-#if PRINTER_IS_PRUSA_XL
-    // for XL, also check for side FS
-    has_filament_fs = has_filament_fs && GetSideFSensor(tool)->Get() == fsensor_t::HasFilament;
-#endif
-
-    return has_filament_eeprom && has_filament_fs;
+    return has_filament_eeprom;
 }
 
 bool MI_PURGE::AvailableForAnyTool() {
