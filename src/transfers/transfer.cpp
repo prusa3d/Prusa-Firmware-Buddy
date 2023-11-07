@@ -32,47 +32,27 @@ using std::is_same_v;
 using std::optional;
 
 Transfer::PlainGcodeDownloadOrder::PlainGcodeDownloadOrder(const PartialFile &file) {
-    if (file.has_valid_head(HeadSize)) {
-        if (file.has_valid_tail(TailSize)) {
-            if (file.get_state().get_valid_size() == file.final_size()) {
-                state = State::Finished;
-            } else {
-                state = State::DownloadedBase;
-            }
-        } else {
-            state = State::DownloadingTail;
-        }
+    if (file.has_valid_tail(TailSize)) {
+        state = State::DownloadingBody;
     } else {
-        state = State::DownloadingHeader;
+        state = State::DownloadingTail;
     }
 }
 
 Transfer::Action Transfer::PlainGcodeDownloadOrder::step(const PartialFile &file) {
     switch (state) {
-    case State::DownloadingHeader:
-        if (file.has_valid_head(HeadSize)) {
-            state = State::DownloadingTail;
-            return Action::RangeJump;
-        }
-        return Action::Continue;
     case State::DownloadingTail:
         if (file.has_valid_tail(TailSize)) {
-            state = State::DownloadedBase;
+            state = State::DownloadingBody;
             return Action::RangeJump;
         }
-        return Action::Continue;
-    case State::DownloadedBase:
-        state = State::DownloadingBody;
         return Action::Continue;
     case State::DownloadingBody:
         if (file.final_size() == file.get_state().get_valid_size()) {
-            state = State::Finished;
             return Action::Finished;
         } else {
             return Action::Continue;
         }
-    case State::Finished:
-        return Action::Finished;
     default:
         fatal_error("unhandled state", "download");
     }
@@ -80,7 +60,7 @@ Transfer::Action Transfer::PlainGcodeDownloadOrder::step(const PartialFile &file
 
 size_t Transfer::PlainGcodeDownloadOrder::get_next_offset(const PartialFile &file) const {
     switch (state) {
-    case State::DownloadingHeader: {
+    case State::DownloadingBody: {
         auto head = file.get_valid_head();
         return head.has_value() ? head->end : 0;
     }
@@ -89,10 +69,6 @@ size_t Transfer::PlainGcodeDownloadOrder::get_next_offset(const PartialFile &fil
         log_info(transfers, "returning offset for tail: %i, %u, %u", tail.has_value(), tail->start, tail->end);
         return tail.has_value() ? tail->end : file.final_size() - TailSize;
     }
-    case State::DownloadingBody:
-    case State::DownloadedBase:
-    case State::Finished:
-        return file.get_valid_head()->end;
     default:
         fatal_error("unhandled state", "download");
     }
