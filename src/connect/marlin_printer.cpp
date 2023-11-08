@@ -10,6 +10,8 @@
 #include <print_utils.hpp>
 #include <wui_api.h>
 #include <filament.hpp>
+#include <filament_sensors_handler.hpp>
+#include <filament_sensor_states.hpp>
 #include <state/printer_state.hpp>
 
 #include <cassert>
@@ -20,6 +22,11 @@
 #include <sys/statvfs.h>
 
 #include <config_store/store_instance.hpp>
+#include <option/has_mmu2.h>
+
+#if HAS_MMU2()
+    #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
+#endif
 
 using printer_state::DeviceState;
 using printer_state::get_state;
@@ -192,6 +199,12 @@ Printer::Params MarlinPrinter::params() const {
     params.job_id = marlin_vars()->job_id;
     // Version can change between MK4 and MK3.9 in runtime
     params.version = get_printer_version();
+#if HAS_MMU2()
+    auto fsensors = FSensors_instance().GetBothSensors();
+    params.primary_fs = fsensors.side == fsensor_t::HasFilament;
+    params.secondary_fs = fsensors.extruder == fsensor_t::HasFilament;
+    params.mmu_enabled = config_store().mmu2_enabled.get() && MMU2::mmu2.State() == MMU2::xState::Active;
+#endif
 
     params.print_fan_rpm = marlin_vars()->active_hotend().print_fan_rpm;
     params.heatbreak_fan_rpm = marlin_vars()->active_hotend().heatbreak_fan_rpm;

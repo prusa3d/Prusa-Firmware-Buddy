@@ -41,6 +41,9 @@ public:
     public:
         Params(const std::optional<BorrowPaths> &paths);
         float temp_nozzle = 0;
+        bool primary_fs = false;
+        bool secondary_fs = false;
+        bool mmu_enabled = false;
         float temp_bed = 0;
         float target_nozzle = 0;
         float target_bed = 0;

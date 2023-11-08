@@ -15,6 +15,14 @@
 #include <marlin_server_shared.h>
 #include <mbedtls/base64.h>
 
+#include <option/has_mmu2.h>
+
+#if HAS_MMU2()
+    #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
+    #include <mmu2_fsm.hpp>
+    #include "../../lib/Prusa-Firmware-MMU/src/logic/progress_codes.h"
+#endif
+
 using json::JsonOutput;
 using json::JsonResult;
 using printer_state::DeviceState;
@@ -34,6 +42,25 @@ using transfers::Monitor;
 namespace connect_client {
 
 namespace {
+
+    size_t num_of_slots(bool mmu_enabled = false) {
+        (void)mmu_enabled; // to avoid warnings on other printers
+#if HAS_MMU2()
+        if (mmu_enabled) {
+            return 5;
+        } else {
+            return 1;
+        }
+// #elif HAS_TOOLCHANGER()
+// TODO: handle XL # of tools active, something like:
+//         HOTEND_LOOP() {
+//            prusa_toolchanger.is_tool_enabled(e)
+//         }
+//         return num;
+#else
+        return 1;
+#endif
+    }
 
     bool is_printing(DeviceState state) {
         switch (state) {
@@ -65,6 +92,9 @@ namespace {
         const bool printing = is_printing(params.state);
 
         const uint32_t current_fingerprint = params.telemetry_fingerprint(!printing);
+#if HAS_MMU2()
+        const auto active_slot = MMU2::mmu2.get_current_tool();
+#endif
 
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
 
@@ -137,6 +167,26 @@ namespace {
                     }
                 }
 
+#if HAS_MMU2()
+                if (params.mmu_enabled) {
+                    JSON_FIELD_OBJ("slot");
+                        while (state.slot_iter < num_of_slots(params.mmu_enabled) + 1) {
+                            JSON_CUSTOM("\"%zu\":{", state.slot_iter);
+                                JSON_FIELD_FFIXED("temp", params.target_nozzle, 1) JSON_COMMA;
+                                JSON_FIELD_FFIXED("fan_hotend", params.heatbreak_fan_rpm, 1) JSON_COMMA;
+                                JSON_FIELD_FFIXED("fan_print", params.print_fan_rpm, 1) JSON_COMMA;
+                                JSON_FIELD_BOOL("primary_fs", params.primary_fs) JSON_COMMA;
+                                JSON_FIELD_BOOL("secondary_fs", params.secondary_fs);
+                            JSON_OBJ_END JSON_COMMA;
+                            state.slot_iter++;
+                        }
+                        //Note: 0 means no active tool, indexing from 1
+                        JSON_FIELD_INT("active", active_slot == MMU2::FILAMENT_UNKNOWN ? 0 : active_slot + 1) JSON_COMMA;
+                        JSON_FIELD_INT("state", ftrstd::to_underlying(MMU2::Fsm::Instance().reporter.GetProgressCode())) JSON_COMMA;
+                        JSON_FIELD_STR_FORMAT("command", "%c", ftrstd::to_underlying(MMU2::Fsm::Instance().reporter.GetCommand()));
+                    JSON_OBJ_END JSON_COMMA;
+                }
+#endif
                 if (state.background_command_id.has_value()) {
                     JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
                 }
@@ -156,6 +206,10 @@ namespace {
         const auto &info = state.printer.printer_info();
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         const bool printing = is_printing(params.state);
+
+#if HAS_MMU2()
+        const auto mmu_version = MMU2::mmu2.GetMMUFWVersion();
+#endif
 
         const char *reject_with = nullptr;
         Printer::NetCreds creds = {};
@@ -256,7 +310,14 @@ namespace {
                         JSON_MAC("wifi_mac", state.wifi->mac) JSON_COMMA;
                         JSON_IP("wifi_ipv4", state.wifi->ip);
                     }
-                    JSON_OBJ_END;
+                    JSON_OBJ_END JSON_COMMA;
+#if HAS_MMU2()
+                    JSON_FIELD_OBJ("mmu");
+                        JSON_FIELD_BOOL("enabled", params.mmu_enabled) JSON_COMMA;
+                        JSON_FIELD_STR_FORMAT("version", "%d.%d.%d", mmu_version.major, mmu_version.minor, mmu_version.build);
+                    JSON_OBJ_END JSON_COMMA;
+#endif
+                    JSON_FIELD_INT("slots", num_of_slots(params.mmu_enabled));
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::JobInfo) {
                 JSON_FIELD_OBJ("data");
