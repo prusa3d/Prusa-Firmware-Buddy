@@ -4,7 +4,7 @@
 #include "timer_defaults.h"
 #include "FreeRTOS.h"
 #include "tick_timer_api.h"
-#include "wdt.h"
+#include <wdt.hpp>
 #include <buddy/priorities_config.h>
 
 #define TICK_TIMER_CNT (h_tick_tim.Instance->CNT)

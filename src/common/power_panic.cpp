@@ -72,7 +72,7 @@
 #endif
 #include "safe_state.h"
 #include "gcode_reader.hpp"
-#include "wdt.h"
+#include "wdt.hpp"
 
 // External thread handles required for suspension
 extern osThreadId defaultTaskHandle;

@@ -18,7 +18,7 @@
 
 #include "sys.h"
 #include "app.h"
-#include "wdt.h"
+#include <wdt.hpp>
 #include <crash_dump/dump.hpp>
 #include "timer_defaults.h"
 #include "tick_timer_api.h"

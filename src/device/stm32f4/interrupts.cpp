@@ -11,7 +11,7 @@
 #include "log.h"
 #include "tusb.h"
 #include <device/peripherals.h>
-#include "wdt.h"
+#include <wdt.hpp>
 #include "safe_state.h"
 #include <option/buddy_enable_wui.h>
 

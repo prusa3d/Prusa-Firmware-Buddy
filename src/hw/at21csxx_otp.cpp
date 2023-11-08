@@ -2,7 +2,7 @@
  * @file
  */
 #include "config_buddy_2209_02.h"
-#include "wdt.h"
+#include <wdt.hpp>
 #include "at21csxx_otp.hpp"
 #include "FreeRTOS.h"
 #include "task.h"

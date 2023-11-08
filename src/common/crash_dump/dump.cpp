@@ -10,7 +10,7 @@
 #include "task.h"
 #include <error_codes.hpp>
 #include "safe_state.h"
-#include "wdt.h"
+#include <wdt.hpp>
 #include <algorithm>
 extern "C" {
 #include "CrashCatcher.h"

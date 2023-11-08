@@ -2,7 +2,7 @@
 #include "bsod.h"
 #include "bsod_gui.hpp"
 #include "error_list.hpp"
-#include "wdt.h"
+#include "wdt.hpp"
 #include <crash_dump/dump.hpp>
 #include "safe_state.h"
 

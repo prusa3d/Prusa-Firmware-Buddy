@@ -54,7 +54,7 @@
 
 #include "hwio.h"
 #include "media.h"
-#include "wdt.h"
+#include "wdt.hpp"
 #include "../marlin_stubs/G26.hpp"
 #include "../marlin_stubs/M123.hpp"
 #include "fsm_types.hpp"

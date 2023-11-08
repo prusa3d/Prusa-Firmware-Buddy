@@ -62,7 +62,7 @@
 #include "Jogwheel.hpp"
 #include "hwio.h"
 #include "sys.h"
-#include "wdt.h"
+#include <wdt.hpp>
 #include <crash_dump/dump.hpp>
 #include "gui_media_events.hpp"
 #include "metric.h"

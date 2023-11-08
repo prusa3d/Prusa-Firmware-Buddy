@@ -13,7 +13,7 @@
 #include "gpio.h"
 #include "sys.h"
 #include "hwio.h" //hwio_beeper_set_pwm
-#include "wdt.h"
+#include "wdt.hpp"
 #include "i18n.h"
 
 static const constexpr uint8_t PADDING = 10;

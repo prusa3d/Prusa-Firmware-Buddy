@@ -5,7 +5,7 @@
 #include <string.h> //memset
 #include "Z_probe.hpp"
 #include "MindaRedscreen.h"
-#include "wdt.h"
+#include "wdt.hpp"
 #include "gpio.h"
 #include "hwio_pindef.h"
 
