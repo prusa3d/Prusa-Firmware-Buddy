@@ -25,6 +25,10 @@
     #include "module/prusa/toolchanger.h"
 #endif
 
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
+#endif
+
 LOG_COMPONENT_REF(Selftest);
 using namespace selftest;
 
@@ -42,17 +46,24 @@ CSelftestPart_FSensor::CSelftestPart_FSensor(IPartHandler &state_machine, const 
     , log(1000)
     , log_fast(500)
     , extruder(GetExtruderFSensor(rConfig.extruder_id))
-    , side(GetSideFSensor(rConfig.extruder_id)) {
+    , side(
+// for MMU the side sensor exists, but we don't calibrate it, it's just a very simple interface for MMU finda
+#if HAS_MMU2()
+          nullptr
+#else
+          GetSideFSensor(rConfig.extruder_id)
+#endif
+      ) {
     log_info(Selftest, "%s Started", rConfig.partname);
 
     if (extruder) {
         extruder->MetricsSetEnabled(true);
+    } else {
+        bsod("%s wrong printer sensor index", rConfig.partname);
     }
+
     if (side) {
         side->MetricsSetEnabled(true);
-    }
-    if (!extruder) {
-        bsod("%s wrong printer sensor index", rConfig.partname);
     }
 }
 CSelftestPart_FSensor::~CSelftestPart_FSensor() {
@@ -84,6 +95,11 @@ LoopResult CSelftestPart_FSensor::state_init() {
         IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_wait_tool_pick);
     }
 #endif
+
+#if HAS_MMU2()
+    mmu_mode = MMU2::mmu2.Enabled();
+#endif
+
     return LoopResult::RunNext;
 }
 
@@ -193,11 +209,8 @@ LoopResult CSelftestPart_FSensor::state_calibrate_wait_finished() {
 
     std::array<fsensor_t, 2> states_to_check = { extruder->Get(), fsensor_t::NoFilament };
 
-    if (!rConfig.mmu_mode) {
-        // Try to get side sensor
-        if (side) {
-            states_to_check[1] = side->Get();
-        }
+    if (side) {
+        states_to_check[1] = side->Get();
     }
 
     // Check if we can continue for both filament sensors
@@ -245,14 +258,8 @@ LoopResult CSelftestPart_FSensor::state_insertion_wait() {
 
     std::array<fsensor_t, 2> states_to_check = { extruder->Get(), fsensor_t::HasFilament };
 
-    // TODO this awkward mechanism fails for non-MMU FS Calibration on MK4 with MMU enabled.
-    // The rConfig.mmu_mode flag is false, but unless filament is loaded
-    // in MMU, FINDA has no filament and the test hence never detects the filament
-    if (!rConfig.mmu_mode) {
-        // Try to get side sensor
-        if (side) {
-            states_to_check[1] = side->Get();
-        }
+    if (side) {
+        states_to_check[1] = side->Get();
     }
 
     // Check if we can continue for both filament sensors
@@ -264,7 +271,7 @@ LoopResult CSelftestPart_FSensor::state_insertion_wait() {
             break;
         case fsensor_t::NoFilament:
             // For MMU filament sensor, turns the extruder to trigger the sensor
-            if (rConfig.mmu_mode) {
+            if (mmu_mode) {
                 if (extruder_moved_amount >= extruder_move_limit) {
                     log_error(Selftest, "%s no filament detected after %.0fmm of extrusion",
                         rConfig.partname, (double)extruder_move_limit);
@@ -300,14 +307,12 @@ LoopResult CSelftestPart_FSensor::state_insertion_ok() {
         return LoopResult::RunNext;
     }
 
-    IFSensor *const side_local = rConfig.mmu_mode ? nullptr : side;
-
     // in case that any sensor doesn't think there is filament, go back to insert filament screen
     if (extruder->Get() != fsensor_t::HasFilament) {
         return LoopResult::GoToMark1;
     }
 
-    if (side_local && side_local->Get() != fsensor_t::HasFilament) {
+    if (side && side->Get() != fsensor_t::HasFilament) {
         return LoopResult::GoToMark1;
     }
 
@@ -335,8 +340,6 @@ LoopResult CSelftestPart_FSensor::state_insertion_calibrate() {
         return LoopResult::Fail;
     }
 
-    IFSensor *const side_local = rConfig.mmu_mode ? nullptr : side;
-
     // if calibration not done, wait
     if ((!extruder->IsCalibrationFinished()) || (side && !side->IsCalibrationFinished())) {
         return LoopResult::RunCurrent;
@@ -350,8 +353,8 @@ LoopResult CSelftestPart_FSensor::state_insertion_calibrate() {
         return LoopResult::Fail;
     }
 
-    if (side_local && side_local->Get() != fsensor_t::HasFilament) {
-        side_local->SetInvalidateCalibrationFlag();
+    if (side && side->Get() != fsensor_t::HasFilament) {
+        side->SetInvalidateCalibrationFlag();
         IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_fail);
         return LoopResult::Fail;
     }
@@ -379,7 +382,7 @@ LoopResult CSelftestPart_FSensor::state_enforce_remove_init() {
 LoopResult CSelftestPart_FSensor::state_enforce_remove_mmu_move() {
     if (extruder->Get() == fsensor_t::HasFilament) {
         // For MMU filament sensor - move back the same amount we moved forward
-        if (rConfig.mmu_mode) {
+        if (mmu_mode) {
             AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
             thermalManager.allow_cold_extrude = true;
             mapi::extruder_move(-extruder_moved_amount, extruder_fr);

@@ -176,20 +176,6 @@ void MI_CALIB_FSENSOR::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
     marlin_client::test_start(stmFSensor);
 }
-
-    #if HAS_MMU2()
-/*****************************************************************************/
-// MI_CALIB_FSENSOR_MMU
-MI_CALIB_FSENSOR_MMU::MI_CALIB_FSENSOR_MMU()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_CALIB_FSENSOR_MMU::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmFSensorMMU);
-}
-    #endif
-
 #endif
 
 #if PRINTER_IS_PRUSA_MK4

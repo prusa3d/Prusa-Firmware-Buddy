@@ -196,7 +196,7 @@ static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensor = { {
 } };
 
 static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensorMMU = { {
-    { .extruder_id = 0, .mmu_mode = true },
+    { .extruder_id = 0 },
 } };
 
 static constexpr SelftestGearsConfig gears_config = { .feedrate = 8 };
@@ -367,11 +367,6 @@ void CSelftest::Loop() {
         break;
     case stsFSensor_calibration:
         if (selftest::phaseFSensor(1, pFSensor, Config_FSensor)) {
-            return;
-        }
-        break;
-    case stsFSensorMMU_calibration:
-        if (selftest::phaseFSensor(1, pFSensor, Config_FSensorMMU)) {
             return;
         }
         break;
