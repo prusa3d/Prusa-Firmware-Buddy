@@ -1,3 +1,4 @@
+#pragma once
 // this is unused pin, we map everything that is uniused but referenced to avoid colisions
 #define MARLIN_PORT_DUMMY   MARLIN_PORT_B
 #define MARLIN_PIN_NR_DUMMY MARLIN_PIN_NR_5

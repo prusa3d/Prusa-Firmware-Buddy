@@ -1,3 +1,4 @@
+#pragma once
 #include "i18n.h"
 #include <utility_extensions.hpp>
 #include <printer_selftest.hpp>

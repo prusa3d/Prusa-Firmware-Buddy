@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file gui_time.hpp
  * @author Radek Vana

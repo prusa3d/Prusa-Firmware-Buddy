@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file footer_positioning.hpp
  * @author Radek Vana

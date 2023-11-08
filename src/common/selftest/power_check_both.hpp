@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file power_check_both.hpp
  * @author Radek Vana

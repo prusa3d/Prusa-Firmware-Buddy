@@ -1,3 +1,4 @@
+#pragma once
 /*
  * Generic timer class.
  *
