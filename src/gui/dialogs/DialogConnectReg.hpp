@@ -12,7 +12,7 @@ class DialogConnectRegister : public AddSuperWindow<IDialog> {
 private:
     char attempt_buffer[30];
     char detail_buffer[70];
-    char error_buffer[80];
+    char error_buffer[88];
 
     // TODO: Doesn't fit
     constexpr static const char *const headerLabel = N_("PRUSA CONNECT");
