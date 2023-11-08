@@ -561,7 +561,7 @@ uint16_t PreciseStepping::process_one_step_event_from_queue() {
                 // discard the current block if this move is also the last move segment of a block
                 block_t *current_block = Planner::get_current_processed_block();
                 if (current_block->flag.sync_position)
-                    Stepper::_set_position(current_block->position);
+                    Stepper::_set_position(current_block->sync_step_position);
                 Planner::discard_current_block();
                 Stepper::count_position_last_block = Stepper::count_position;
             }
@@ -823,7 +823,7 @@ void PreciseStepping::process_queue_of_blocks() {
         // process sync blocks directly when motion wasn't started already.
         if (PreciseStepping::total_print_time == 0.) {
             assert(!PreciseStepping::has_blocks_queued());
-            Stepper::_set_position(current_block->position);
+            Stepper::_set_position(current_block->sync_step_position);
             Planner::discard_current_unprocessed_block();
             Planner::discard_current_block();
             continue;
@@ -842,7 +842,7 @@ void PreciseStepping::process_queue_of_blocks() {
         // @hejllukas: If we sometimes implement reset for input shaper and decide to synchronize total_start_pos
         //             with the Planner position, we should introduce something like SYNC move segment and replace
         //             append_block_discarding_move() with that. That should simplify the resetting mechanism.
-        if (current_block->is_sync() && current_block->position.e == 0)
+        if (current_block->is_sync() && current_block->sync_step_position.e == 0)
             PreciseStepping::flags |= PRECISE_STEPPING_FLAG_RESET_POSITION_E;
 
         // pass-through SYNC blocks, they will be processed in the ISR

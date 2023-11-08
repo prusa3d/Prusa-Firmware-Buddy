@@ -1994,7 +1994,8 @@ void Planner::buffer_sync_block() {
   block->reset();
   block->flag.apply(BLOCK_BIT_SYNC_POSITION);
 
-  block->position = position / PLANNER_STEPS_MULTIPLIER;
+  // Convert current mini-steps to absolute step count
+  block->sync_step_position = position / PLANNER_STEPS_MULTIPLIER;
 
   // If this is the first added movement, reload the delay, otherwise, cancel it.
   if (block_buffer_head == block_buffer_tail) {

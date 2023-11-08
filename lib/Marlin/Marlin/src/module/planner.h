@@ -137,7 +137,7 @@ typedef struct PlannerBlock {
 
   union {
     abce_ulong_t msteps;                    // Mini-step count along each axis
-    abce_long_t position;                   // New position in mini-steps to force when this sync block is executed
+    abce_long_t sync_step_position;         // Absolute step counts to set when this sync block is executed
   };
   uint32_t mstep_event_count;               // The number of mini-step events required to complete this block
 
