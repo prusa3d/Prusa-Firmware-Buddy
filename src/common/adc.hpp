@@ -7,6 +7,7 @@
 #include "config_buddy_2209_02.h"
 #include "sum_ring_buffer.hpp"
 #include <device/hal.h>
+#include <limits>
 
 /*
 ADC channels, ranks, ...

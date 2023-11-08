@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <device/hal.h>
 
 /**
  * @brief Multiplexor, that switches one SPI from LCD to leds and back

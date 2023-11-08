@@ -14,6 +14,7 @@
 #endif
 #include "ili9488.hpp"
 #include "led_animations/animator.hpp"
+#include <device/peripherals.h>
 
 using namespace leds;
 

@@ -8,6 +8,7 @@
 #include "mapi/motion.hpp"
 #include "Marlin/src/module/temperature.h"
 #include "../../Marlin/src/module/stepper.h"
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_REF(Selftest);
 

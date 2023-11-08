@@ -8,6 +8,8 @@
 #include <common/freertos_shared_mutex.hpp>
 #include <mutex>
 #include <shared_mutex>
+#include <utility_extensions.hpp>
+#include <bit>
 
 LOG_COMPONENT_REF(USBHost);
 using Mutex = freertos::Mutex;

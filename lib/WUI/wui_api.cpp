@@ -25,6 +25,7 @@
 #include <atomic>
 
 #include <lwip/netif.h>
+#include <config_store/store_instance.hpp>
 
 #define USB_MOUNT_POINT        "/usb/"
 #define USB_MOUNT_POINT_LENGTH 5

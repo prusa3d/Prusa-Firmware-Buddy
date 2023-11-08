@@ -61,7 +61,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case State::SerialPrintInit:
         link_state_str = "BUSY";
         busy = true;
-        // Fall through
+        [[fallthrough]];
     case State::Printing:
         printing = true;
         ready = operational = false;

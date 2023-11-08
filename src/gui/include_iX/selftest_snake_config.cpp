@@ -1,6 +1,7 @@
 #include "selftest_snake_config.hpp"
 #include <selftest_types.hpp>
 #include <screen_menu_selftest_snake_result_parsing.hpp>
+#include <config_store/store_instance.hpp>
 
 namespace SelftestSnake {
 TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {

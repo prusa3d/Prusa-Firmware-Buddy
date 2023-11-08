@@ -2,6 +2,7 @@
 #include <selftest_types.hpp>
 #include <screen_menu_selftest_snake_result_parsing.hpp>
 #include <option/has_toolchanger.h>
+#include <config_store/store_instance.hpp>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif

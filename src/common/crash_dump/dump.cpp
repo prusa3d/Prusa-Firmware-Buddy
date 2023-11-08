@@ -11,6 +11,7 @@
 #include <error_codes.hpp>
 #include "safe_state.h"
 #include "wdt.h"
+#include <algorithm>
 extern "C" {
 #include "CrashCatcher.h"
 }

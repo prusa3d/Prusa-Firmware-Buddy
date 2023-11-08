@@ -3,6 +3,7 @@
 extern "C" {
 #include "CrashCatcher.h"
 }
+#include <utility_extensions.hpp>
 
 namespace crash_dump {
 

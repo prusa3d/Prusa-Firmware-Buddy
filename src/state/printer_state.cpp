@@ -4,6 +4,7 @@
 #include <client_response.hpp>
 #include <marlin_vars.hpp>
 #include <option/has_mmu2.h>
+#include <config_store/store_instance.hpp>
 
 using namespace marlin_server;
 

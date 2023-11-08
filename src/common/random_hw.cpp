@@ -5,6 +5,7 @@
 #include <device/hal.h>
 #include <common/freertos_mutex.hpp>
 #include <option/developer_mode.h>
+#include <device/peripherals.h>
 
 static freertos::Mutex rand_strong_mutex;
 

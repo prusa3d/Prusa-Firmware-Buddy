@@ -8,6 +8,7 @@
 #include <metric_handlers.h>
 #include <ccm_thread.hpp>
 #include "priorities_config.h"
+#include <cstring>
 
 extern metric_t __start_metric_definitions[]
 #if __APPLE__
