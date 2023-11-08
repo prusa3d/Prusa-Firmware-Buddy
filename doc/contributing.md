@@ -53,6 +53,6 @@ The pre-commit will run before every commit you make, ensuring the code is forma
 
 - Types & Classes are in `PascalCase`.
 - Global constants in `SCREAMING_CASE`
-- Variables (local, class, etc), methods and namespaces are in `snake_case`.
+- Variables (local, class, etc), class-level constants, `enum class` items, methods and namespaces are in `snake_case`.
 - File names are in `snake_case.cpp` (even if the only thing the file contains is a class named in `PascalCase`).
 - Types never end with a `'_t'`.
