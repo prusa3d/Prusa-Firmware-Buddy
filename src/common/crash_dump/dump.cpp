@@ -308,6 +308,17 @@ void before_dump() {
         }
 #endif
     }
+
+    // this function is called before WDR or when preparing to dump on flash. Flash erase takes
+    // 300ms typically. But according to dataheet, it can take multiple seconds, and we might need
+    // to initialize it first. Refresh the watchdog once to give us an additioanl 4s to dump it.
+    if (!crash_dump::wdg_reset_safeguard) {
+        wdt_iwdg_refresh();
+
+        // disable the callback itself to avoid WDR recursion and get the last full effective timeout
+        wdt_iwdg_warning_cb = nullptr;
+        crash_dump::wdg_reset_safeguard = true;
+    }
 }
 
 void trigger_crash_dump() {
@@ -342,13 +353,6 @@ void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
         crash_dump::dump_failed();
     }
 
-    // Erase takes 300ms typically. But according to dataheet, it can take multiple seconds.
-    // If we are dumping watchdog reset, we don't have much time. So we'll refresh the watchdog once
-    // to give us aditionall 4s to dump it. Safeguard is here to prevent infinite watchdog reset in case something goes horribly wrong.
-    if (!crash_dump::wdg_reset_safeguard) {
-        wdt_iwdg_refresh();
-        crash_dump::wdg_reset_safeguard = true;
-    }
     crash_dump::dump_reset();
 
     crash_dump::dump_size = 0;
