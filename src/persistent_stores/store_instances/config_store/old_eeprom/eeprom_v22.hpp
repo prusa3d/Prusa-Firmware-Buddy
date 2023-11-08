@@ -5,6 +5,8 @@
 
 #pragma once
 #include "eeprom_v32789.hpp"
+#include <utility_extensions.hpp>
+
 namespace config_store_ns::old_eeprom::v22 {
 
 #pragma pack(push)

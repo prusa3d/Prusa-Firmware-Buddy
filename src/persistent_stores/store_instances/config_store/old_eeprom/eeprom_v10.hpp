@@ -11,6 +11,7 @@
 #include "eeprom_v9.hpp"
 #include <Marlin/src/inc/MarlinConfigPre.h>
 #include <footer_def.hpp>
+#include <utility_extensions.hpp>
 
 namespace config_store_ns::old_eeprom::v10 {
 
