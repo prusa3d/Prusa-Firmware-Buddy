@@ -21,14 +21,14 @@ Every commit should be buildable and follow the rules in this document.
   ```
   metrics: Add support for syslog
   ```
-  , or
+  or
   ```
   gui: Add touch support
   ```
 - Write the module in lowercase
 - Limit the subject to 72 letters.
 - Wrap the body to 72 letters per line.
-- Do not put Jira references in the subject line. Put it at the end of the body.
+- Put an issue tracker reference (BFW-xxxx) at the end of the body if you have one. Do not put it in the subject line.
 
 ## Formatting & Code Organization
 
@@ -45,7 +45,7 @@ This does not apply to 3rd party code in our repository.
 
 ### Formatting: pre-commit
 
-The project contains a pre-commit configuration (see pre-commit.com and .pre-commit-config.yaml).
+The project contains a pre-commit configuration (see [pre-commit.com](https://pre-commit.com) and `.pre-commit-config.yaml`).
 Make sure you have installed pre-commit in your clone of the repository.
 The pre-commit will run before every commit you make, ensuring the code is formatted correctly.
 
@@ -53,6 +53,6 @@ The pre-commit will run before every commit you make, ensuring the code is forma
 
 - Types & Classes are in `PascalCase`.
 - Global constants in `SCREAMING_CASE`
-- Variables (local, class, etc), methods ands namespaces are in `snake_case`.
-- File names are in `snake_case.cpp` (even if the only thing the file contains is a class named in PascalCase).
-- Types never end with a '_t'.
+- Variables (local, class, etc), methods and namespaces are in `snake_case`.
+- File names are in `snake_case.cpp` (even if the only thing the file contains is a class named in `PascalCase`).
+- Types never end with a `'_t'`.
