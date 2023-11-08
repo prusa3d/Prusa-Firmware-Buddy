@@ -372,13 +372,7 @@ bool MMU2::RetryIfPossible(ErrorCode ec) {
     return false;
 }
 
-bool MMU2::VerifyFilamentEnteredPTFE() {
-    planner_synchronize();
-
-    if (WhereIsFilament() != FilamentState::AT_FSENSOR) {
-        return false;
-    }
-
+bool MMU2::TryLoad() {
     // MMU has finished its load, push the filament further by some defined constant length
     // If the filament sensor reads 0 at any moment, then report FAILURE
     float tryload_length = MMU2_EXTRUDER_HEATBREAK_LENGTH - logic.ExtraLoadDistance() + MMU2_VERIFY_LOAD_TO_NOZZLE_TWEAK;
@@ -417,11 +411,67 @@ bool MMU2::VerifyFilamentEnteredPTFE() {
             safe_delay_keep_alive(0);
         }
     }
+    tlur.DumpToSerial();
+    return filament_inserted;
+}
+
+bool MMU2::MeasureEStallAtDifferentSpeeds() {
+    auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
+    for (int speed = 5; speed < 50; speed += 2) {
+        for (uint8_t move = 0; move < 2; move++) {
+            // back move should be something short to prevent the filament jumping out from the gears.
+            // in this test scenario it is expected that the filament will hit something, i.e. not load at all.
+            // Also, try-load must be something long to see more vibrations in grafana
+            extruder_move(move == 0 ? 50 : -3, speed);
+            while (planner_any_moves()) {
+                safe_delay_keep_alive(0);
+            }
+        }
+    }
+    return false;
+}
+
+bool MMU2::FeedWithEStallDetection() {
+    // repeatedly plan short moves and check for E-motor stall
+    // in total, 50mm will be pushed at 33mm/s (so far 33mm/s looked best while doing a test with MeasureEStallAtDifferentSpeeds)
+    static constexpr float feedRate = 35.F; // 33mm/s
+    static constexpr float feedDistance = 50.F; // 50mm
+
+    // save state of EStall detection flags
+    EStallDetectionStateLatch esdsl;
+
+    EMotorStallDetector::Instance().Enable();
+    EMotorStallDetector::Instance().Unblock();
+
+    // plan the move
+    extruder_move(feedDistance, feedRate);
+    while (planner_any_moves()) {
+        if (EMotorStallDetector::Instance().Detected()) {
+            planner_abort_queued_moves(); // stop instantly
+            // @@TODO save the position where it tripped to allow retraction of the same amount
+            return false;
+        }
+        safe_delay_keep_alive(0);
+    }
+    return true;
+}
+
+bool MMU2::VerifyFilamentEnteredPTFE() {
+    planner_synchronize();
+
+    if (WhereIsFilament() != FilamentState::AT_FSENSOR)
+        return false;
+
+// #define USE_TRY_LOAD
+#ifdef USE_TRY_LOAD
+    bool filament_inserted = TryLoad();
+#else
+    bool filament_inserted = FeedWithEStallDetection();
+#endif
     Disable_E0();
     if (!filament_inserted) {
         IncrementLoadFails();
     }
-    tlur.DumpToSerial();
     return filament_inserted;
 }
 
@@ -453,7 +503,7 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
             // if the extruder has been parked, it will get unparked once the ToolChange command finishes OK
             // - so no ResumeUnpark() at this spot
 
-            UnloadInner();
+            UnloadInner(PreUnloadPolicy::RelieveFilament);
             // if we run out of retries, we must do something ... may be raise an error screen and allow the user to do something
             // but honestly - if the MMU restarts during every toolchange,
             // something else is seriously broken and stopping a print is probably our best option.
@@ -461,7 +511,7 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
         if (VerifyFilamentEnteredPTFE()) {
             return true; // success
         } else { // Prepare a retry attempt
-            UnloadInner();
+            UnloadInner(PreUnloadPolicy::RelieveFilament);
             if (retries == 2 && cutter_enabled()) {
                 CutFilamentInner(slot); // try cutting filament tip at the last attempt
             }
@@ -472,6 +522,9 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
 
 void MMU2::ToolChangeCommon(uint8_t slot) {
     while (!ToolChangeCommonOnce(slot)) { // while not successfully fed into extruder's PTFE tube
+        //        if(planner_draining()){ // @@TODO
+        //            return; // power panic happening, pretend the G-code finished ok
+        //        }
         // failed autoretry, report an error by forcing a "printer" error into the MMU infrastructure - it is a hack to leverage existing code
         // @@TODO theoretically logic layer may not need to be spoiled with the printer error - may be just the manage_response needs it...
         logic.SetPrinterError(ErrorCode::LOAD_TO_EXTRUDER_FAILED);
@@ -610,10 +663,21 @@ bool MMU2::set_filament_type(uint8_t /*slot*/, uint8_t /*type*/) {
     return true;
 }
 
-void MMU2::UnloadInner() {
+void MMU2::UnloadInner(PreUnloadPolicy preUnloadPolicy) {
     FSensorBlockRunout blockRunout;
     BlockEStallDetection blockEStallDetection;
-    filament_ramming();
+
+    switch (preUnloadPolicy) {
+    case PreUnloadPolicy::Ramming:
+        filament_ramming();
+        break;
+    case PreUnloadPolicy::RelieveFilament:
+        extruder_move(-40.F, 60.F);
+        planner_synchronize();
+        break;
+    case PreUnloadPolicy::Nothing:
+        break;
+    };
 
     // we assume the printer managed to relieve filament tip from the gears,
     // so repeating that part in case of an MMU restart is not necessary
@@ -641,7 +705,7 @@ bool MMU2::unload() {
 
     {
         ReportingRAII rep(CommandInProgress::UnloadFilament, reportingStartedCnt);
-        UnloadInner();
+        UnloadInner(PreUnloadPolicy::Ramming);
     }
     ScreenUpdateEnable();
     return true;
@@ -690,7 +754,7 @@ bool MMU2::loading_test(uint8_t slot) {
         thermal_setExtrudeMintemp(0); // Allow cold extrusion - load test doesn't push filament all the way into the nozzle
         ToolChangeCommon(slot);
         planner_synchronize();
-        UnloadInner();
+        UnloadInner(PreUnloadPolicy::RelieveFilament);
         thermal_setExtrudeMintemp(EXTRUDE_MINTEMP);
     }
     ScreenUpdateEnable();

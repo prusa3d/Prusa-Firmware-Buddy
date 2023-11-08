@@ -29,6 +29,7 @@ float move_raise_z(float delta);
 
 void planner_abort_queued_moves();
 void planner_synchronize();
+bool planner_draining();
 bool planner_any_moves();
 float stepper_get_machine_position_E_mm();
 float planner_get_current_position_E();

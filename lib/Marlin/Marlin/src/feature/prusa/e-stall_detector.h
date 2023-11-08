@@ -97,3 +97,24 @@ public:
         EMotorStallDetector::Instance().Unblock();
     }
 };
+
+class EStallDetectionStateLatch {
+    bool blocked, enabled;
+
+public:
+    EStallDetectionStateLatch()
+        : blocked(EMotorStallDetector::Instance().Blocked())
+        , enabled(EMotorStallDetector::Instance().Enabled()) {}
+    ~EStallDetectionStateLatch() {
+        if (blocked) {
+            EMotorStallDetector::Instance().Block();
+        } else {
+            EMotorStallDetector::Instance().Unblock();
+        }
+        if (enabled) {
+            EMotorStallDetector::Instance().Enable();
+        } else {
+            EMotorStallDetector::Instance().Disable();
+        }
+    }
+};

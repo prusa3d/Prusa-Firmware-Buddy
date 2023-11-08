@@ -328,19 +328,36 @@ private:
     /// @returns false if the MMU is not ready to perform the command (for whatever reason)
     bool WaitForMMUReady();
 
+    /// Generic testing procedure if filament entered the extruder (PTFE or nube).
+    /// @returns false if test fails, true otherwise
+    bool VerifyFilamentEnteredPTFE();
     /// After MMU completes a tool-change command
     /// the printer will push the filament by a constant distance. If the Fsensor untriggers
     /// at any moment the test fails. Else the test passes, and the E-motor retracts the
     /// filament back to its original position.
     /// @returns false if test fails, true otherwise
-    bool VerifyFilamentEnteredPTFE();
+    bool TryLoad();
+    /// MK4 doesn't need to perform a try-load - it can leverage the LoadCell to detect vibrations of the E-motor in case the filament gets stuck.
+    /// Using this procedure is faster and causes less wear of the filament.
+    /// @returns false if test fails, true otherwise
+    bool FeedWithEStallDetection();
+    /// experimental procedure to perform "try-loads" at different speeds - not usable for printing,
+    /// but important for tuning of the EStall detection while feeding filament into the nube.
+    /// @returns false if test fails, true otherwise
+    bool MeasureEStallAtDifferentSpeeds();
 
     /// Common processing of pushing filament into the extruder - shared by tool_change, load_to_nozzle and probably others
     void ToolChangeCommon(uint8_t slot);
     bool ToolChangeCommonOnce(uint8_t slot);
 
     void HelpUnloadToFinda();
-    void UnloadInner();
+
+    enum class PreUnloadPolicy {
+        Nothing,
+        Ramming,
+        RelieveFilament,
+    };
+    void UnloadInner(PreUnloadPolicy preUnloadPolicy);
     void CutFilamentInner(uint8_t slot);
 
     ProtocolLogic logic; ///< implementation of the protocol logic layer

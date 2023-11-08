@@ -24,18 +24,21 @@ void extruder_schedule_turning(float feed_rate) {
     mapi::extruder_schedule_turning(feed_rate);
 }
 
+void planner_abort_queued_moves() {
+    PreciseStepping::quick_stop();
+    while (!planner.draining() && PreciseStepping::stopping()) {
+        PreciseStepping::loop();
+    }
+}
+
+bool planner_draining() {
+    return planner.draining();
+}
+
 float move_raise_z(float delta) {
     // @@TODO
     return 0.0F;
 }
-
-// void planner_abort_queued_moves() {
-//  Impossible to do easily... needs refactoring on a higher level
-//  Currently, in Marlin2, draining the stepper queues requires calling
-//  the Marlin idle loop and waiting for it.
-//  The MMU state machine would have to undergo significant changes and that's not worth it at the moment.
-//     planner.quick_stop();
-// }
 
 void planner_synchronize() {
     planner.synchronize();
