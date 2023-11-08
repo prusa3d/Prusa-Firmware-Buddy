@@ -75,6 +75,7 @@ IncludeCategories:
   - Regex:           '.*'
     Priority:        1
 IncludeIsMainRegex: '(Test)?$'
+InsertBraces: true
 IndentCaseLabels: false
 IndentPPDirectives: BeforeHash
 IndentWidth:     4
