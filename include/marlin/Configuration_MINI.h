@@ -565,7 +565,7 @@
 //! implemented only for Cartesian kinematics
 #define MOVE_BACK_BEFORE_HOMING
 #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-    #define MOVE_BACK_BEFORE_HOMING_DISTANCE 10.0f
+    #define MOVE_BACK_BEFORE_HOMING_DISTANCE 1.92f
 #endif
 
 // Specify here all the endstop connectors that are connected to any endstop or probe.
