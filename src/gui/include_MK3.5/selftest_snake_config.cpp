@@ -2,12 +2,14 @@
 #include <selftest_types.hpp>
 #include <screen_menu_selftest_snake_result_parsing.hpp>
 #include <option/has_toolchanger.h>
+#include <config_store/store_instance.hpp>
+#include <common/SteelSheets.hpp>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
 
 namespace SelftestSnake {
-TestResult get_test_result(Action action, Tool tool) {
+TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
     SelftestResult sr = config_store().selftest_result.get();
 
     switch (action) {
@@ -20,30 +22,15 @@ TestResult get_test_result(Action action, Tool tool) {
         return evaluate_results(sr.zalign);
     case Action::XYCheck:
         return evaluate_results(sr.xaxis, sr.yaxis);
-    case Action::Loadcell:
-        if (tool == Tool::_all_tools) {
-            return merge_hotends_evaluations(
-                [&](int8_t e) {
-                    return evaluate_results(sr.tools[e].loadcell);
-                });
-        } else {
-            return evaluate_results(sr.tools[ftrstd::to_underlying(tool)].loadcell);
-        }
     case Action::ZCheck:
         return evaluate_results(sr.zaxis);
     case Action::Heaters:
         return evaluate_results(sr.bed, merge_hotends_evaluations([&](int8_t e) {
             return evaluate_results(sr.tools[e].nozzle);
         }));
-    case Action::FilamentSensorCalibration:
-        if (tool == Tool::_all_tools) {
-            return merge_hotends_evaluations(
-                [&](int8_t e) {
-                    return evaluate_results(sr.tools[e].fsensor);
-                });
-        } else {
-            return evaluate_results(sr.tools[ftrstd::to_underlying(tool)].fsensor);
-        }
+    case Action::FirstLayer:
+        // instead of test result that isn't saved to eeprom, consider calibrated sheet as passed.
+        return SteelSheets::IsSheetCalibrated(config_store().active_sheet.get()) ? TestResult_Passed : TestResult_Unknown;
     case Action::_count:
         break;
     }
@@ -82,12 +69,10 @@ uint64_t get_test_mask(Action action) {
         return stmZAxis;
     case Action::Heaters:
         return stmHeaters;
-    case Action::FilamentSensorCalibration:
-        return stmFSensor;
-    case Action::Loadcell:
-        return stmLoadcell;
     case Action::ZAlign:
         return stmZcalib;
+    case Action::FirstLayer:
+        return stmFirstLayer;
     case Action::_count:
         break;
     }
