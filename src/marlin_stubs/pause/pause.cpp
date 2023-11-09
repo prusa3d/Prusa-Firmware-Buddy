@@ -1251,7 +1251,7 @@ bool Pause::parkMoveXGreaterThanY(const xyz_pos_t &pos0, const xyz_pos_t &pos1) 
     return std::abs(pos0.x - pos1.x) > std::abs(pos0.y - pos1.y);
 }
 
-bool Pause::wait_or_stop() {
+bool Pause::wait_for_motion_finish_or_user_stop() {
     while (planner.processing()) {
         if (check_user_stop()) {
             return true;
@@ -1297,7 +1297,7 @@ void Pause::park_nozzle_and_notify() {
         } else {
             PauseFsmNotifier N(*this, current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len), marlin_vars()->native_pos[MARLIN_VAR_INDEX_Z]);
             plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
-            if (wait_or_stop()) {
+            if (wait_for_motion_finish_or_user_stop()) {
                 return;
             }
         }
@@ -1348,13 +1348,13 @@ void Pause::park_nozzle_and_notify() {
         if (x_greater_than_y) {
             PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_X]); // from Z% to 100%
             plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
-            if (wait_or_stop()) {
+            if (wait_for_motion_finish_or_user_stop()) {
                 return;
             }
         } else {
             PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_Y]); // from Z% to 100%
             plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
-            if (wait_or_stop()) {
+            if (wait_for_motion_finish_or_user_stop()) {
                 return;
             }
         }
