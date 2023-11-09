@@ -395,7 +395,17 @@ volatile bool Temperature::temp_meas_ready = false;
     #if HAS_PID_FOR_BOTH
       #define GHV(B,H) (isbed ? (B) : (H))
       #if ENABLED(HW_PWM_HEATERS)
-        #define SHV(B,H) do{ if (isbed) analogWrite(HEATER_BED_PIN, B); else analogWrite(HEATER_0_PIN, H); }while(0)
+        // Need to write soft_pwm_amount even when using hardware pwm heater to prevent
+        // power manager from shutting us down, leading to temperature check failure.
+        #define SHV(B,H) do {                         \
+          if (isbed) {                                \
+            analogWrite(HEATER_BED_PIN, B);           \
+            temp_bed.soft_pwm_amount = B;             \
+          } else {                                    \
+            analogWrite(HEATER_0_PIN, H);             \
+            temp_hotend[heater].soft_pwm_amount = H;  \
+          }                                           \
+        } while (0)
       #else
         #define SHV(B,H) do{ if (isbed) temp_bed.soft_pwm_amount = B; else temp_hotend[heater].soft_pwm_amount = H; }while(0)
       #endif
@@ -450,6 +460,7 @@ volatile bool Temperature::temp_meas_ready = false;
     SERIAL_ECHOLNPGM(MSG_PID_AUTOTUNE_START);
 
     disable_all_heaters();
+    TERN_(AUTO_POWER_CONTROL, powerManager.power_on());
 
     SHV(bias = d = (MAX_BED_POWER) >> soft_pwm_bit_shift, bias = d = (PID_MAX) >> soft_pwm_bit_shift);
 
