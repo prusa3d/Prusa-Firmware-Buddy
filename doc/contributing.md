@@ -1,3 +1,5 @@
+# Contribution Guidelines
+
 ## Git
 
 ### Merging: Use rebase whenever possible
@@ -32,6 +34,16 @@ Every commit should be buildable and follow the rules in this document.
 
 ## Formatting & Code Organization
 
+### Formatting
+
+All the source code in this repository is automatically formatted:
+
+- C/C++ files using [clang-format](https://clang.llvm.org/docs/ClangFormat.html),
+- Python files using [yapf](https://github.com/google/yapf),
+- and CMake files using [cmake-format](https://github.com/cheshirekow/cmake_format).
+
+If you want to contribute, make sure to install [pre-commit](https://pre-commit.com) and then run `pre-commit install` within the repository. This makes sure that all your future commits will be formatted appropriately. Our build server automatically rejects improperly formatted pull requests.
+
 ### Files: Include Guards
 Use the `#pragma once` as a file guard.
 Do not use the `#ifdef FILE_X`, `#define FILE_X`, `#endif` pattern.
@@ -42,12 +54,6 @@ Do not add file headers with author/creation time/copyright, etc.
 Those data are already stored in the commit, and we don't want to duplicate them.
 
 This does not apply to 3rd party code in our repository.
-
-### Formatting: pre-commit
-
-The project contains a pre-commit configuration (see [pre-commit.com](https://pre-commit.com) and `.pre-commit-config.yaml`).
-Make sure you have installed pre-commit in your clone of the repository.
-The pre-commit will run before every commit you make, ensuring the code is formatted correctly.
 
 ### Code Style: C/C++ Naming Conventions
 
