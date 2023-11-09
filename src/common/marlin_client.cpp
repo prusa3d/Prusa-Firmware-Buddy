@@ -397,9 +397,11 @@ void test_abort() {
 }
 #endif
 
-void print_start(const char *filename, bool skip_preview) {
+void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview) {
     char request[MARLIN_MAX_REQUEST];
-    const int len = snprintf(request, sizeof(request), "!%c%c%s", ftrstd::to_underlying(Msg::PrintStart), skip_preview ? '1' : '0', filename);
+    assert(skip_preview < marlin_server::PreviewSkipIfAble::_count);
+    static_assert(ftrstd::to_underlying(marlin_server::PreviewSkipIfAble::_count) < ('9' - '0'), "Too many skip preview options.");
+    const int len = snprintf(request, sizeof(request), "!%c%c%s", ftrstd::to_underlying(Msg::PrintStart), '0' + ftrstd::to_underlying(skip_preview), filename);
     if (len < 0)
         bsod("Error formatting request.");
     if ((size_t)len >= sizeof(request))

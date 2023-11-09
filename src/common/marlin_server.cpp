@@ -808,7 +808,7 @@ void serial_print_start() {
     server.print_state = State::SerialPrintInit;
 }
 
-void print_start(const char *filename, bool skip_preview) {
+void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview) {
 #if HAS_SELFTEST()
     if (SelftestInstance().IsInProgress())
         return;
@@ -1058,7 +1058,7 @@ void print_resume(void) {
         server.print_state = State::PowerPanic_Resume;
 #endif
     } else
-        print_start(nullptr, true);
+        print_start(nullptr, marlin_server::PreviewSkipIfAble::all);
 }
 
 // Fast temperature recheck.
@@ -1082,7 +1082,7 @@ bool print_reheat_ready() {
 #if ENABLED(POWER_PANIC)
 void powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_recover) {
     // Open the file
-    print_start(media_SFN_path, true);
+    print_start(media_SFN_path, marlin_server::PreviewSkipIfAble::all);
 
     crash_s.set_state(Crash_s::PRINTING);
 
@@ -2570,9 +2570,12 @@ bool _process_server_valid_request(const char *request, int client_id) {
     case Msg::ConfigReset:
         settings_reset();
         return true;
-    case Msg::PrintStart:
-        print_start(data + 1, data[0] == '1');
+    case Msg::PrintStart: {
+        auto skip_if_able = static_cast<marlin_server::PreviewSkipIfAble>(data[0] - '0');
+        assert(skip_if_able < marlin_server::PreviewSkipIfAble::_count);
+        print_start(data + 1, skip_if_able);
         return true;
+    }
     case Msg::PrintReady:
         gui_ready_to_print();
         return true;

@@ -347,7 +347,7 @@ void screen_printing_data_t::updateTimes() {
 }
 
 void screen_printing_data_t::screen_printing_reprint() {
-    print_begin(gui_media_SFN_path, true);
+    print_begin(gui_media_SFN_path, marlin_server::PreviewSkipIfAble::preview);
     screen_printing_data_t::updateTimes(); // reinit, but should be already set correctly
     SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Stop, LabelRes::Stop);
 

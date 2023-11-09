@@ -81,7 +81,7 @@ void screen_filebrowser_data_t::printTheFile() {
     // save the top browser item
     file_browser.SaveTopSFN();
 
-    print_begin(gui_media_SFN_path, false);
+    print_begin(gui_media_SFN_path);
 
     return;
 }

@@ -74,4 +74,18 @@ enum class Cmd : uint32_t {
 
 const char *marlin_events_get_name(Event evt_id);
 
+/**
+ * @brief Parameter to start printing.
+ * Tells whether to skip parts of preview when printing is started.
+ * @warning The order matters. Element skips its screen and all screens with lower number.
+ */
+enum class PreviewSkipIfAble : uint8_t {
+    no = 0, ///< Show all
+    preview, ///< Skip preview thumbnail
+    tool_mapping, ///< Skip preview thumbnail and toolmapping
+    _count,
+    _last = _count - 1,
+    all = _last, ///< Skip all
+};
+
 } // namespace marlin_server
