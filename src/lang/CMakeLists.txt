@@ -9,6 +9,7 @@ add_custom_command(
          "${CMAKE_CURRENT_BINARY_DIR}/hash_table_buckets_count.ipp"
   COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/translations_and_fonts/lang.py"
           "generate-hash-tables" "${CMAKE_CURRENT_SOURCE_DIR}/po" "${CMAKE_CURRENT_BINARY_DIR}"
+  DEPENDS "${PROJECT_ROOT_DIR}/utils/translations_and_fonts/lang.py"
   COMMENT "Generating C++ files out of .po files."
   VERBATIM
   )
@@ -20,6 +21,7 @@ add_custom_command(
          "${CMAKE_CURRENT_BINARY_DIR}/non-ascii-chars.raw"
   COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/translations_and_fonts/lang.py"
           "generate-nonascii-chars" "${CMAKE_CURRENT_SOURCE_DIR}/po" "${CMAKE_CURRENT_BINARY_DIR}"
+  DEPENDS "${PROJECT_ROOT_DIR}/utils/translations_and_fonts/lang.py"
   COMMENT "Generating used non-ascii chars out of .po files."
   VERBATIM
   )
