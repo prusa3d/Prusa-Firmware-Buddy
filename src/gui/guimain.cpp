@@ -40,8 +40,6 @@
 #include "timing.h"
 #include "gcode_info.hpp"
 #include "version.h"
-#include "touch_get.hpp"
-#include "touch_dependency.hpp"
 #include "language_eeprom.hpp"
 
 #include <option/has_side_leds.h>

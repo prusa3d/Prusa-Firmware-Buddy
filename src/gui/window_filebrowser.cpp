@@ -54,7 +54,7 @@ void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *se
         handle_click();
         return;
 
-    case GUI_event_t::TOUCH:
+    case GUI_event_t::TOUCH_CLICK:
         if (move_focus_touch_click(param)) {
             handle_click();
         }

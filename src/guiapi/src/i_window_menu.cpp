@@ -5,7 +5,7 @@
 
 #include <option/has_touch.h>
 #if HAS_TOUCH()
-    #include "touch_get.hpp"
+    #include <hw/touchscreen/touchscreen.hpp>
 #endif
 
 IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
@@ -118,9 +118,9 @@ std::optional<int> IWindowMenu::move_focus_touch_click(void *event_param) {
 
 bool IWindowMenu::should_focus_item_on_init() {
 #if HAS_TOUCH()
-    // Do not focus menu item by default if on touchscreen
-    if (touch::is_enabled()) {
-        return false;
+    // If we're using touchscreen as a primary input, we don't want the first item in menu to be focused, because that's useful for encoder work, not touch
+    if (touchscreen.is_enabled()) {
+        return !GUI_event_is_touch_event(last_gui_input_event);
     }
 #endif
 
@@ -177,7 +177,7 @@ void IWindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         move_focus_by(encoder_value, YNPlaySound::yes);
         break;
 
-    case GUI_event_t::TOUCH:
+    case GUI_event_t::TOUCH_CLICK:
         move_focus_touch_click(param);
         break;
 

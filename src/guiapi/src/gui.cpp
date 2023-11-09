@@ -5,6 +5,7 @@
 #include "gui.hpp"
 #include "gui_time.hpp" //gui::GetTick
 #include "ScreenHandler.hpp"
+#include "sound.hpp"
 #include "window_dlg_strong_warning.hpp"
 #include "IDialog.hpp"
 #include "Jogwheel.hpp"
@@ -12,13 +13,16 @@
 #include "gui_media_events.hpp"
 #include "gui_invalidate.hpp"
 #include "knob_event.hpp"
-#include "touch_get.hpp"
-#include "touch_dependency.hpp"
 #include "marlin_client.hpp"
 #include "sw_timer.hpp"
 #include "log.h"
 
 #include <option/has_touch.h>
+
+#if HAS_TOUCH()
+    #include <hw/touchscreen/touchscreen.hpp>
+#endif
+
 #include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_REF(GUI);
@@ -27,21 +31,6 @@ LOG_COMPONENT_REF(Touch);
 static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
 
 static bool gui_invalid = false;
-
-// shadow touch weak functions, so touch driver is not dependent on eeprom
-bool touch::is_enabled() {
-    return config_store().touch_enabled.get();
-}
-
-void touch::enable() {
-    config_store().touch_enabled.set(true);
-    log_info(Touch, "enabled");
-}
-
-void touch::disable() {
-    config_store().touch_enabled.set(false);
-    log_info(Touch, "disabled");
-}
 
 #ifdef GUI_USE_RTOS
 osThreadId gui_task_handle = 0;
@@ -95,6 +84,46 @@ void gui_handle_jogwheel() {
     }
 }
 #endif // GUI_JOGWHEEL_SUPPORT
+
+#if HAS_TOUCH()
+void gui_handle_touch() {
+    if (!touchscreen.is_enabled()) {
+        return;
+    }
+
+    const auto touch_event = touchscreen.get_event();
+    if (!touch_event) {
+        return;
+    }
+
+    // we clicked on something, does not really matter on what we clicked
+    // we must notify serve to so it knows user is doing something and resets menu timeout, heater timeout ...
+    Screens::Access()->ResetTimeout();
+
+    if (touch_event.type == GUI_event_t::TOUCH_CLICK) {
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        marlin_client::notify_server_about_knob_click();
+    }
+
+    event_conversion_union event_data {
+        .point = {
+            .x = touch_event.pos_x,
+            .y = touch_event.pos_y,
+        }
+    };
+
+    // Determine if we should propagate the event only to the captured window or globally as a screen event
+    const bool propagate_as_screen_event = (touch_event.type != GUI_event_t::TOUCH_CLICK);
+
+    if (propagate_as_screen_event) {
+        Screens::Access()->ScreenEvent(nullptr, touch_event.type, event_data.pvoid);
+    }
+
+    else if (window_t *captured_window = Screens::Access()->Get()->GetCapturedWindow(); captured_window && captured_window->GetRect().Contain(event_data.point)) {
+        captured_window->WindowEvent(captured_window, touch_event.type, event_data.pvoid);
+    }
+}
+#endif
 
 void gui_redraw(void) {
     uint32_t now = ticks_ms();
@@ -156,28 +185,9 @@ void gui_loop(void) {
     gui_handle_jogwheel();
     #endif // GUI_JOGWHEEL_SUPPORT
 
-    if (option::has_touch && touch::is_enabled()) {
-        touch::poll();
-    }
-
-    auto point = touch::Get();
-    if (point) {
-        event_conversion_union un;
-
-        un.point = *point;
-
-        window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
-
-        if (capture_ptr) {
-            // we clicked on something, does not really matter on what we clicked
-            // we must notify serve to so it knows user is doing something and resets menu timeout, heater timeout ...
-            Screens::Access()->ResetTimeout();
-            marlin_client::notify_server_about_knob_click();
-            if (capture_ptr->GetRect().Contain(*point)) {
-                capture_ptr->WindowEvent(capture_ptr, GUI_event_t::TOUCH, un.pvoid);
-            }
-        }
-    }
+    #if HAS_TOUCH()
+    gui_handle_touch();
+    #endif
 
     MediaState_t media_state = MediaState_t::unknown;
     if (GuiMediaEventsHandler::ConsumeSent(media_state)) {

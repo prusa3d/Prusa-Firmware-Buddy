@@ -75,6 +75,7 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
     }
 
     switch (event) {
+
     case GUI_event_t::CLICK: {
         // send response to parent via GUI_event_t::CHILD_CLICK
         Response response = Click();
@@ -84,13 +85,16 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
             GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
         }
     } break;
+
     case GUI_event_t::ENC_UP:
         ++(*this);
         return;
+
     case GUI_event_t::ENC_DN:
         --(*this);
         return;
-    case GUI_event_t::TOUCH: {
+
+    case GUI_event_t::TOUCH_CLICK: {
         event_conversion_union un;
         un.pvoid = param;
         std::optional<size_t> new_index = std::nullopt;

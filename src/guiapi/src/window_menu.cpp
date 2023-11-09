@@ -125,7 +125,7 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
         }
         break;
 
-    case GUI_event_t::TOUCH:
+    case GUI_event_t::TOUCH_CLICK:
         if (auto focused_index = move_focus_touch_click(param); focused_index && pContainer) {
             const event_conversion_union event_data {
                 .pvoid = param

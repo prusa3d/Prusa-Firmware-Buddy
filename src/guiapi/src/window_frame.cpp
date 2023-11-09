@@ -223,6 +223,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
     }
 
     switch (event) {
+
     case GUI_event_t::CLICK:
         if (pWin) {
             pWin->WindowEvent(this, GUI_event_t::CLICK, nullptr);
@@ -232,7 +233,8 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
         }
 
         break;
-    case GUI_event_t::TOUCH:
+
+    case GUI_event_t::TOUCH_CLICK:
         if (pWin) { // check if a window has focus, to not give it if it does not
             pWin = GetFirstEnabledSubWin();
             event_conversion_union un;
@@ -255,6 +257,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
             }
         }
         break;
+
     case GUI_event_t::ENC_DN:
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
@@ -270,6 +273,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
             pWin->SetFocus();
         }
         break;
+
     case GUI_event_t::ENC_UP:
         while (pWin && dif--) {
             window_t *const pNext = GetNextEnabledSubWin(pWin);
@@ -286,8 +290,10 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
             pWin->SetFocus();
         }
         break;
+
     case GUI_event_t::CAPT_0:
         break;
+
     case GUI_event_t::CAPT_1:
         if (pWin && pWin->GetParent() != this) {
             pWin = first_normal;
@@ -299,6 +305,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
             }
         }
         break;
+
     default:
         break;
     }

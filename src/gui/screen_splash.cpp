@@ -27,7 +27,7 @@
 
 #include <option/has_touch.h>
 #if HAS_TOUCH()
-    #include "touch_get.hpp"
+    #include <hw/touchscreen/touchscreen.hpp>
 #endif // HAS_TOUCH
 
 #if ENABLED(POWER_PANIC)
@@ -124,7 +124,7 @@ screen_splash_data_t::screen_splash_data_t()
         { run_lang ? ScreenFactory::Screen<ScreenMenuLanguagesNoRet> : nullptr }, // lang
 #endif
 #if HAS_TOUCH()
-            { touch::is_hw_broken() ? ScreenFactory::Screen<ScreenTouchError> : nullptr }, // touch error will show after language
+            { touchscreen.is_enabled() && !touchscreen.is_hw_ok() ? ScreenFactory::Screen<ScreenTouchError> : nullptr }, // touch error will show after language
 #endif // HAS_TOUCH
 
 #if HAS_SELFTEST()

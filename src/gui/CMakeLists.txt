@@ -114,9 +114,9 @@ else()
 endif()
 
 if(HAS_XLCD_TOUCH_DRIVER)
-  target_sources(firmware PRIVATE MItem_touch.cpp screen_touch_error.cpp)
-else()
-  target_sources(firmware PRIVATE no_touch.cpp)
+  target_sources(
+    firmware PRIVATE MItem_touch.cpp screen_touch_error.cpp screen_touch_playground.cpp
+    )
 endif()
 
 if(HAS_TOOLCHANGER)
