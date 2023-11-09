@@ -1,4 +1,5 @@
 #include "power_panic.hpp"
+#include "timing_precise.hpp"
 
 #include <type_traits>
 #include <assert.h>
@@ -992,9 +993,10 @@ void panic_loop() {
 
         // power panic is handled, stop execution of main thread, and wait here until CPU dies
         // Wait time is longer then WDG period, so we'll refresh watchdog few times to avoid dying of dog bites
-        for (unsigned int s = 0; s < POWER_PANIC_HOLD_RST_S; s++) {
-            osDelay(1000);
+        // Remember osDelay does not work here as ac_fault_task repeatedly calls xTaskAbortDelay
+        for (int _ = 0; _ < POWER_PANIC_HOLD_RST_MS; ++_) {
             wdt_iwdg_refresh();
+            delay_us_precise(1000);
         }
 
         sys_reset();

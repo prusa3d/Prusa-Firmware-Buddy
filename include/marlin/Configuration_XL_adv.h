@@ -1751,8 +1751,8 @@
     #define POWER_PANIC_Z_LIFT_CYCLES 4 // 4xFullStep cycles = ~0.64mm
     #define POWER_PANIC_MAX_BED_DIFF 10 // Maximum bed temperature (C) difference for auto-recovery
 
-    // seconds to wait on hold before auto-restarting during short power failures
-    #define POWER_PANIC_HOLD_RST_S 5
+    // milliseconds to wait on hold before auto-restarting during short power failures
+    #define POWER_PANIC_HOLD_RST_MS 5000
 
     // TODO: Suboptimal values
     #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
