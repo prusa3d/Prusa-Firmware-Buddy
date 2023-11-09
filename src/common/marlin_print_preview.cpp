@@ -392,7 +392,7 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::init:
         osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_INIT);
         ChangeState(State::loading);
-        if (skip_if_able) {
+        if (skip_if_able > marlin_server::PreviewSkipIfAble::no) {
             // if skip print confirmation was requested, mark the print as started immediately.
             // If not, it will be started later when user clicks print
             return Result::MarkStarted;
@@ -437,7 +437,7 @@ PrintPreview::Result PrintPreview::Loop() {
         }
 
         if (gcode_info.is_loaded()) {
-            ChangeState(skip_if_able ? stateFromSelftestCheck() : State::preview_wait_user);
+            ChangeState((skip_if_able > marlin_server::PreviewSkipIfAble::no) ? stateFromSelftestCheck() : State::preview_wait_user);
         }
         break;
 
@@ -448,7 +448,7 @@ PrintPreview::Result PrintPreview::Loop() {
         case Response::Print:
         case Response::PRINT:
             ChangeState(stateFromSelftestCheck());
-            if (!skip_if_able) {
+            if (skip_if_able == marlin_server::PreviewSkipIfAble::no) {
                 // If print wasn't maked as started immediately, mark it now
                 return Result::MarkStarted;
             }
@@ -625,7 +625,7 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::checks_done:
         if (tools_mapping::is_tool_mapping_possible()) {
 #if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
-            if (skip_if_able && PrintPreview::check_tools_mapping_validity(tool_mapper, spool_join, gcode_info).all_ok()) {
+            if ((skip_if_able >= marlin_server::PreviewSkipIfAble::tool_mapping) && PrintPreview::check_tools_mapping_validity(tool_mapper, spool_join, gcode_info).all_ok()) {
                 // we can skip tools mapping if there is not warning/error in global tools mapping
                 ChangeState(State::done);
                 break;

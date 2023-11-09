@@ -7,6 +7,7 @@
 #include "client_response.hpp"
 #include <module/prusa/tool_mapper.hpp>
 #include <module/prusa/spool_join.hpp>
+#include <marlin_events.h>
 #include <bitset>
 
 /**
@@ -98,9 +99,14 @@ public:
 
     void Init();
 
-    inline void set_skip_if_able(bool set) {
+    /**
+     * @brief Configure whether to skip parts of preview when printing is started.
+     * @param set skip these parts
+     */
+    inline void set_skip_if_able(marlin_server::PreviewSkipIfAble set) {
         skip_if_able = set;
     }
+
     /**
      * @brief Checks whether the given physical extruder has corrent filament type for the print. Parametrized with getter to be callable without global tool_mapper/spool_join being in a valid state
      *
@@ -134,7 +140,7 @@ public:
 private:
     uint32_t last_run = 0;
 
-    bool skip_if_able = false;
+    marlin_server::PreviewSkipIfAble skip_if_able = marlin_server::PreviewSkipIfAble::no; ///< Whether to skip parts of preview when printing is started
 
     PrintPreview() = default;
     PrintPreview(const PrintPreview &) = delete;

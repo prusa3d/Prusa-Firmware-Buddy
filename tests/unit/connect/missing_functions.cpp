@@ -1,14 +1,12 @@
 #include "common/filepath_operation.h"
 #include "common/version.h"
+#include <marlin_events.h>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
 
-extern "C" {
-
-void print_begin(const char *, bool) {}
-}
+void print_begin(const char *, marlin_server::PreviewSkipIfAble) {}
 
 bool f_gcode_get_next_comment_assignment(FILE *, char *, int, char *, int) {
     return false;

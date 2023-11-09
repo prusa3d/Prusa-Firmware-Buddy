@@ -94,8 +94,12 @@ void settings_reset();
 // Start serial print (issue when gcodes start comming via serial line)
 void serial_print_start();
 
-// direct print file with SFM format
-void print_start(const char *filename, bool skip_preview);
+/**
+ * @brief Direct print file with SFN format.
+ * @param filename file to print
+ * @param skip_preview can be used to skip preview thumbnail or toolmapping screen
+ */
+void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview = marlin_server::PreviewSkipIfAble::no);
 
 /// Finalize serial print (exit print state and clean up)
 /// this is meant to be gracefull print finish, called when print finishes sucessfully.

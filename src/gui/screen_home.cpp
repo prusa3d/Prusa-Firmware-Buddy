@@ -490,7 +490,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                             FILE_PATH_BUFFER_LEN,
                             gui_media_LFN,
                             FILE_NAME_BUFFER_LEN)) {
-                        print_begin(gui_media_SFN_path, false);
+                        print_begin(gui_media_SFN_path);
                     }
                 }
             }
