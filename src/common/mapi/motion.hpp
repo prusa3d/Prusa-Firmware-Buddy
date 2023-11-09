@@ -7,8 +7,10 @@ namespace mapi {
  *
  * @param distance The distance to move in mm.
  * @param feed_rate The feed rate of the move in mm/s.
+ * @param ignore_flow_factor Ignore user-set flow factor (set planner.e_factor = 1 for the move)
+ * @returns if the move was successfully queued (result of planner.buffer_line)
  */
-void extruder_move(float distance, float feed_rate);
+bool extruder_move(float distance, float feed_rate, bool ignore_flow_factor = true);
 
 /**
  * Schedules a short extruder move, unless there are enough (3) moves already
