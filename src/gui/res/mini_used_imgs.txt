@@ -111,3 +111,6 @@ usb_error_48x48.png
 warning_48x48.png
 wifi_64x64.png
 wizard_16x16.png
+ok_color_16x16.png
+na_color_16x16.png
+nok_color_16x16.png

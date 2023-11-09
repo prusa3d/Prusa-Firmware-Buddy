@@ -295,7 +295,7 @@ void screen_home_data_t::on_enter() {
     first_event = false;
 
 #if !DEVELOPER_MODE()
-    #if PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4
+    #if HAS_SELFTEST_SNAKE()
     static bool first_time_check_st { true };
     if (first_time_check_st) {
         first_time_check_st = false;

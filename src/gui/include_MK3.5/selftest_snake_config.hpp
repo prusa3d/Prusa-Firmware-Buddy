@@ -17,10 +17,9 @@ enum class Action {
     Fans,
     XYCheck,
     ZAlign, // also known as z_calib
-    Loadcell,
     ZCheck,
     Heaters,
-    FilamentSensorCalibration,
+    FirstLayer,
     _count,
     _last = _count - 1,
     _first = Fans,
@@ -29,7 +28,7 @@ enum class Action {
 template <Action action>
 concept SubmenuActionC = false;
 
-constexpr bool has_submenu(Action action) {
+constexpr bool has_submenu([[maybe_unused]] Action action) {
     switch (action) {
     default:
         return false;
@@ -77,10 +76,9 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::Fans, N_("%d Fan Test") },
     { Action::ZAlign, N_("%d Z Alignment Calibration") },
     { Action::XYCheck, N_("%d XY Axis Test") },
-    { Action::Loadcell, N_("%d Loadcell Test") },
     { Action::ZCheck, N_("%d Z Axis Test") },
     { Action::Heaters, N_("%d Heater Test") },
-    { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
+    { Action::FirstLayer, N_("%d First Layer Calibration") },
 };
 
 TestResult get_test_result(Action action, Tool tool);
