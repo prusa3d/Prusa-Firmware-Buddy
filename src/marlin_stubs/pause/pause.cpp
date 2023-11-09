@@ -38,6 +38,7 @@
 #include "client_response.hpp"
 #include "fsm_loadunload_type.hpp"
 #include "RAII.hpp"
+#include "mapi/motion.hpp"
 #include <cmath>
 #include <config_store/store_instance.hpp>
 #include <option/has_mmu2.h>
@@ -92,8 +93,7 @@ uint8_t did_pause_print = 0;
 
 // cannot be class member (externed in marlin and used by M240 and tool_change)
 void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
-    current_position.e += length / planner.e_factor[active_extruder];
-    line_to_current_position(fr_mm_s);
+    mapi::extruder_move(length, fr_mm_s);
     planner.synchronize();
 }
 
@@ -278,14 +278,11 @@ bool Pause::ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t pr
 }
 
 void Pause::do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
-    // Not sure if following code would not be better
-    // const float actual_e = planner.get_axis_position_mm(E_AXIS);
-    // Notifier_POS_E N(ClientFSM::Load_unload, getPhaseIndex(), actual_e, actual_e + length, progress_min,progress_max);
-    const float actual_e = current_position.e;
-    current_position.e += length / planner.e_factor[active_extruder];
-    PauseFsmNotifier N(*this, actual_e, current_position.e, progress_min, progress_max, marlin_vars()->native_pos[MARLIN_VAR_INDEX_E]);
-    line_to_current_position(fr_mm_s);
-    wait_or_stop();
+    PauseFsmNotifier N(*this, current_position.e, current_position.e + length, progress_min, progress_max, marlin_vars()->native_pos[MARLIN_VAR_INDEX_E]);
+
+    mapi::extruder_move(length, fr_mm_s);
+
+    wait_for_motion_finish_or_user_stop();
 }
 
 void Pause::do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
@@ -298,17 +295,21 @@ void Pause::do_e_move_notify_progress_coldextrude(const float &length, const fee
 
 void Pause::do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
     PhasesLoadUnload last_ph = getPhase();
+
     if (!ensureSafeTemperatureNotifyProgress(0, 100)) {
         return;
     }
+
+    // Restore phase after possible heatup GUI
     setPhase(last_ph, progress_min);
+
     do_e_move_notify_progress(length, fr_mm_s, progress_min, progress_max);
 }
 
 void Pause::plan_e_move(const float &length, const feedRate_t &fr_mm_s) {
-    current_position.e += length / planner.e_factor[active_extruder];
-    while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)
-        && !planner.draining()) {
+    // It is unclear why this is one of the very few places where planner.buffer_line result is checked.
+    // The draining condition is supposed to end the loop on power panic or crash.
+    while (!mapi::extruder_move(length, fr_mm_s) && !planner.draining()) {
         delay(50);
     }
 }
