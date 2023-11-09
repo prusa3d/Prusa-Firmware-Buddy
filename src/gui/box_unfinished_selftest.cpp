@@ -39,7 +39,11 @@ bool selftest_warning_selftest_finished() {
 
     return true;
 #elif (PRINTER_IS_PRUSA_MK4)
-    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed, sr.gears)) {
+    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
+        return false;
+    }
+
+    if (sr.gears == TestResult_Failed) { // skipped/unknown gears are also OK
         return false;
     }
 
