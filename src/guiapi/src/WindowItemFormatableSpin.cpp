@@ -101,8 +101,7 @@ void WI_LAMBDA_SPIN::click([[maybe_unused]] IWindowMenu &window_menu) {
  * @param relative_touch_point where this item is touched
  */
 void WI_LAMBDA_SPIN::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
-    Rect16::Width_t width = window_menu.GetRect().Width();
-    if (width >= relative_touch_point.x && (width - extension_width) <= relative_touch_point.x) {
+    if (is_touch_in_extension_rect(window_menu, relative_touch_point)) {
         click(window_menu);
     }
 }
