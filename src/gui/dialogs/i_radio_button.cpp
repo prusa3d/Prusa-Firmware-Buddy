@@ -109,7 +109,9 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
         default: {
             Layout layout = getNormalBtnRects(btn_count);
             for (uint8_t i = 0; i < btn_count; ++i) {
-                if (layout.splits[i].Contain(un.point)) {
+                // Intentionally do not check for Y coords - should be covered by the overal radio rect
+                // Also some radio button override get_rect_for_touch, which should give more vertical tolerance
+                if (un.point.x >= layout.splits[i].Left() && un.point.x < layout.splits[i].Right()) {
                     new_index = i;
                     break;
                 }
@@ -222,6 +224,13 @@ IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
         fixed_width_buttons_count == 0 ? ret.text_widths : nullptr);
 
     return ret;
+}
+
+Rect16 IRadioButton::get_rect_for_touch() const {
+    static constexpr int extra = 64;
+
+    Rect16 rect = GetRect();
+    return Rect16(rect.Left(), rect.Top() - extra, rect.Width(), rect.Height() + extra);
 }
 
 void IRadioButton::DisableDrawingSelected() {
