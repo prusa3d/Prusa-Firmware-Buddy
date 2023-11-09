@@ -1,5 +1,9 @@
 target_sources(firmware PRIVATE cpu_utils.cpp)
 
+if(HAS_XLCD_TOUCH_DRIVER)
+  add_subdirectory(touchscreen)
+endif()
+
 if(BOARD_IS_MASTER_BOARD)
   target_sources(firmware PRIVATE buffered_serial.cpp)
 endif()
@@ -13,10 +17,6 @@ if((BOARD STREQUAL "XBUDDY")
   if(BOOTLOADER STREQUAL "NO")
     target_sources(firmware PRIVATE at21csxx.cpp at21csxx_otp.cpp)
   endif()
-endif()
-
-if(HAS_XLCD_TOUCH_DRIVER)
-  target_sources(firmware PRIVATE GT911.cpp)
 endif()
 
 if(HAS_ACCELEROMETER)

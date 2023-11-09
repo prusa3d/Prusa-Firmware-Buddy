@@ -507,10 +507,8 @@ static constexpr uint32_t i2c_get_edge_us(uint32_t clk) {
 
 /**
  * @brief unblock i2c data pin
- * apply up to 9 clock pulses and check SDA logical level
+ * apply up to 32 clock pulses and check SDA logical level
  * make sure it is in '1', so master can manipulate with it
- * in case HW is OK it is ensured that 9 pulses is enough
- * because in the worse case scenario 9th pulse would be expected to be ACK from master
  *
  * @param clk   frequency [Hz]
  * @param sda   pin of data
@@ -518,7 +516,11 @@ static constexpr uint32_t i2c_get_edge_us(uint32_t clk) {
  */
 static void i2c_unblock_sda(uint32_t clk, hw_pin sda, hw_pin scl) {
     delay_us_precise(i2c_get_edge_us(clk)); // half period - ensure first edge is not too short
-    for (size_t i = 0; i < 9; ++i) { // 9 pulses, there is no point to try it more times - 9th bit is ACK (will be NACK)
+
+    // ORIGINAL COMMENT (i < 9): 9 pulses, there is no point to try it more times - 9th bit is ACK (will be NACK)
+    // Changed to an arbitrary higher value, because comm with the touchscreen controller is extra sketchy, clock gets lost sometimes and such
+    // Cannot be used on multi-master buses
+    for (size_t i = 0; i < 32; ++i) {
         HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET); // set clock to '1'
         delay_us_precise(i2c_get_edge_us(clk)); // wait half period
         if (HAL_GPIO_ReadPin(sda.port, sda.no) == GPIO_PIN_SET) { // check if slave does not pull SDA to '0' while SCL == 1

@@ -3,7 +3,6 @@
  */
 #include "display.h"
 #include "display_hw_checks.hpp"
-#include "touch_dependency.hpp"
 #include "ScreenHandler.hpp"
 
 namespace {
@@ -32,8 +31,4 @@ void lcd::communication_check() {
         last_touch_check_ms = now;
         check_lcd();
     }
-}
-
-int touch::get_touch_read_err_total() {
-    return 0;
 }

@@ -65,6 +65,11 @@
     #include "hx717mux.hpp"
 #endif
 
+#include <option/has_touch.h>
+#if HAS_TOUCH()
+    #include <hw/touchscreen/touchscreen.hpp>
+#endif
+
 LOG_COMPONENT_REF(MMU2);
 LOG_COMPONENT_REF(Marlin);
 
@@ -333,6 +338,13 @@ void app_tim14_tick(void) {
 #if HAS_GUI()
     jogwheel.Update1msFromISR();
 #endif
+
+#if HAS_TOUCH()
+    if (touchscreen.is_enabled()) {
+        touchscreen.update();
+    }
+#endif
+
     Sound_Update1ms();
     adc_tick_1ms();
 
