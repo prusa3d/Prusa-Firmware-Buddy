@@ -60,6 +60,12 @@ void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *se
         }
         return;
 
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        go_up();
+        return;
+
     default:
         break;
     }
