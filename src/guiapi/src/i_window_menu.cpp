@@ -181,6 +181,14 @@ void IWindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         move_focus_touch_click(param);
         break;
 
+    case GUI_event_t::TOUCH_SWIPE_DOWN:
+        scroll_page(PageScrollDirection::up);
+        break;
+
+    case GUI_event_t::TOUCH_SWIPE_UP:
+        scroll_page(PageScrollDirection::down);
+        break;
+
     default:
         SuperWindowEvent(sender, event, param);
         break;
