@@ -313,17 +313,6 @@ void Pause::plan_e_move(const float &length, const feedRate_t &fr_mm_s) {
     }
 }
 
-void Pause::plan_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
-    const float actual_e = current_position.e;
-    current_position.e += length / planner.e_factor[active_extruder];
-    PauseFsmNotifier N(*this, actual_e, current_position.e, progress_min, progress_max, marlin_vars()->native_pos[MARLIN_VAR_INDEX_E]);
-    while (!settings.do_stop && !planner.buffer_line(current_position, fr_mm_s, active_extruder)
-        && !planner.draining()) {
-        check_user_stop();
-        delay(50);
-    }
-}
-
 bool Pause::process_stop() {
     if (planner.draining()) { // Planner is draining, someone stopped, stop load/unload as well
         settings.do_stop = false;

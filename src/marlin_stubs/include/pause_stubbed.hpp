@@ -206,7 +206,7 @@ private:
     bool is_target_temperature_safe();
     void plan_e_move(const float &length, const feedRate_t &fr_mm_s);
     bool ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t progress_max);
-    void plan_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+
     void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
