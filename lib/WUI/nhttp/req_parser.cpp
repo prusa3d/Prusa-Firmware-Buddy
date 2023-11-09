@@ -312,8 +312,9 @@ bool RequestParser::nonce_valid(uint64_t nonce_to_check) const {
     // sanity check
     if (nonce_random != 0) {
         // really valid?
-        if (random == nonce_random && age < max_valid_age)
+        if (random == nonce_random && age < max_valid_age) {
             return true;
+        }
     }
     return false;
 }
@@ -322,10 +323,11 @@ uint64_t RequestParser::new_nonce() const {
 }
 
 std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser::authenticated_status(const ApiKeyAuthParams &params) const {
-    if (holds_alternative<bool>(params) and get<bool>(params))
+    if (holds_alternative<bool>(params) and get<bool>(params)) {
         return std::nullopt;
-    else
+    } else {
         return UnauthenticatedStatusPage(*this, ApiKeyAuth {});
+    }
 }
 std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser::authenticated_status(const DigestAuthParams &params) const {
     if (nonce_random == 0) {
@@ -404,13 +406,15 @@ bool RequestParser::check_digest_auth(uint64_t nonce_to_use) const {
 
         for (size_t i = 0; i < MD5_SIZE; i++) {
             uint8_t to_compare {};
-            if (i < 8)
+            if (i < 8) {
                 to_compare = (digest_params->recieved_response[1] << i * 8) >> 56;
-            else
+            } else {
                 to_compare = (digest_params->recieved_response[0] << (i - 8) * 8) >> 56;
+            }
 
-            if (to_compare != hash[i])
+            if (to_compare != hash[i]) {
                 return false;
+            }
         }
         return true;
     }

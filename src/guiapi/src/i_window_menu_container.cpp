@@ -3,10 +3,12 @@
 IWinMenuContainer::Node IWinMenuContainer::FindFirstVisible() const {
     for (int i = 0; i < GetRawCount(); ++i) {
         IWindowMenuItem *item = GetItemByRawIndex(i);
-        if (!item)
+        if (!item) {
             return Node::Empty();
-        if (item->IsHidden())
+        }
+        if (item->IsHidden()) {
             continue;
+        }
         Node ret = { item, i, 0 };
         return ret;
     }
@@ -14,15 +16,18 @@ IWinMenuContainer::Node IWinMenuContainer::FindFirstVisible() const {
 }
 
 IWinMenuContainer::Node IWinMenuContainer::FindNextVisible(Node prev) const {
-    if (!prev.HasValue())
+    if (!prev.HasValue()) {
         return Node::Empty();
+    }
 
     for (int i = prev.raw_index + 1; i < GetRawCount(); ++i) {
         IWindowMenuItem *item = GetItemByRawIndex(i);
-        if (!item)
+        if (!item) {
             return Node::Empty();
-        if (item->IsHidden())
+        }
+        if (item->IsHidden()) {
             continue;
+        }
         Node ret = { item, i, prev.visible_index + 1 };
         return ret;
     }
@@ -31,16 +36,18 @@ IWinMenuContainer::Node IWinMenuContainer::FindNextVisible(Node prev) const {
 
 IWindowMenuItem *IWinMenuContainer::GetItemByVisibleIndex(int pos) const {
     for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
-        if (i.visible_index == pos)
+        if (i.visible_index == pos) {
             return i.item; // found it
+        }
     }
     return nullptr;
 }
 
 std::optional<int> IWinMenuContainer::GetVisibleIndex(IWindowMenuItem &item) const {
     for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
-        if (i.item == &item)
+        if (i.item == &item) {
             return i.visible_index; // found it
+        }
     }
     return std::nullopt;
 }
@@ -55,11 +62,13 @@ int IWinMenuContainer::GetVisibleCount() const {
 
 IWindowMenuItem *IWinMenuContainer::GetVisibleItemWithOffset(IWindowMenuItem &item, int offset) const {
     std::optional<int> index = GetVisibleIndex(item);
-    if (!index)
+    if (!index) {
         return nullptr;
+    }
     int new_index = int(*index) + offset;
-    if (new_index < 0)
+    if (new_index < 0) {
         return nullptr;
+    }
     return GetItemByVisibleIndex(new_index);
 }
 
@@ -82,11 +91,13 @@ std::optional<int> IWinMenuContainer::GetFocusedIndex() const {
 }
 
 bool IWinMenuContainer::Show(IWindowMenuItem &item) {
-    if (GetRawIndex(item) == GetRawCount())
+    if (GetRawIndex(item) == GetRawCount()) {
         return false; // not a member of container
+    }
 
-    if (GetVisibleIndex(item))
+    if (GetVisibleIndex(item)) {
         return true; // already shown
+    }
 
     item.show();
 
@@ -95,14 +106,17 @@ bool IWinMenuContainer::Show(IWindowMenuItem &item) {
 }
 
 bool IWinMenuContainer::Hide(IWindowMenuItem &item) {
-    if (GetRawIndex(item) == GetRawCount())
+    if (GetRawIndex(item) == GetRawCount()) {
         return false; // not a member of container
+    }
 
-    if (!GetVisibleIndex(item))
+    if (!GetVisibleIndex(item)) {
         return true; // already hidden
+    }
 
-    if (item.is_focused())
+    if (item.is_focused()) {
         return false; // cannot hide focused item
+    }
 
     item.hide();
 
@@ -115,12 +129,14 @@ bool IWinMenuContainer::SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &
     int32_t raw1 = GetRawIndex(item1);
     int32_t count = GetRawCount();
 
-    if ((raw0 == count) || (raw1 == count))
+    if ((raw0 == count) || (raw1 == count)) {
         return false; // not a member of container
+    }
 
     for (int32_t i = std::min(raw0, raw1) + 1; i < std::max(raw0, raw1); ++i) {
-        if (GetItemByRawIndex(i) && !GetItemByRawIndex(i)->IsHidden())
+        if (GetItemByRawIndex(i) && !GetItemByRawIndex(i)->IsHidden()) {
             return false; // there must be no visible item between swapped items
+        }
     }
 
     IWindowMenuItem *visible_item = nullptr;

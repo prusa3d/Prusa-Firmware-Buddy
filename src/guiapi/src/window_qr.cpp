@@ -101,7 +101,9 @@ void window_qr_t::unconditionalDraw() {
 
     /// FIXME paint border at once (fill_between_rect) - it's faster
     /// paint QR code
-    for (int y = -border; y < (size + border); ++y)
-        for (int x = -border; x < (size + border); ++x)
+    for (int y = -border; y < (size + border); ++y) {
+        for (int x = -border; x < (size + border); ++x) {
             display::FillRect(Rect16(x0 + x * ppm, y0 + y * ppm, ppm, ppm), ((qrcodegen_getModule(qrcode, x, y) ? COLOR_BLACK : COLOR_WHITE)));
+        }
+    }
 }

@@ -67,8 +67,9 @@ void fill_till_end_of_line(const int left, const int top, const int h, Rect16 rc
 /// Fills space between two rectangles with a color
 /// @r_in must be completely in @r_out
 void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t color) {
-    if (!r_out->Contain(*r_in))
+    if (!r_out->Contain(*r_in)) {
         return;
+    }
     /// top
     const Rect16 rc_t = { r_out->Left(), r_out->Top(), r_out->Width(), uint16_t(r_in->Top() - r_out->Top()) };
     display::FillRect(rc_t, color);
@@ -91,8 +92,9 @@ void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t co
 /// Draws unused space of @rc with @clr_bg
 template <class T>
 size_ui16_t render_line(T &textWrapper, Rect16 rc, string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    if (!pf || pf->w == 0 || pf->h == 0 || rc.Width() < pf->w || rc.Height() < pf->h)
+    if (!pf || pf->w == 0 || pf->h == 0 || rc.Width() < pf->w || rc.Height() < pf->h) {
         return size_ui16_t { 0, 0 };
+    }
 
     point_ui16_t pt = point_ui16(rc.Left(), rc.Top());
     const uint16_t fnt_w = pf->w; // char width
@@ -189,8 +191,9 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     const size_ui16_t txt_size = font_meas_text(font, &text, &strlen_text);
     if (txt_size.w == 0 || txt_size.h == 0) {
         /// empty text => draw background rectangle only
-        if (fill_rect)
+        if (fill_rect) {
             display::FillRect(rc, clr_bg);
+        }
         return;
     }
 
@@ -275,8 +278,9 @@ void render_icon_align(Rect16 rc, const img::Resource *res, color_t clr_back, ic
  * @return std::optional<size_ui16_t>   size of needed rectangle, it might be narrower than max_width
  */
 std::optional<size_ui16_t> characters_meas_text(string_view_utf8 &str, uint16_t max_chars_per_line, uint16_t *numOfUTF8Chars) {
-    if (max_chars_per_line == 0)
+    if (max_chars_per_line == 0) {
         return std::nullopt;
+    }
 
     std::optional<int> last_space_index = std::nullopt;
     unichar c = 0;
@@ -290,8 +294,9 @@ std::optional<size_ui16_t> characters_meas_text(string_view_utf8 &str, uint16_t 
         ++chars_tot;
         switch (c) {
         case '\n': // new line
-            if (chars_this_line >= chars_longest_line)
+            if (chars_this_line >= chars_longest_line) {
                 chars_longest_line = chars_this_line;
+            }
             ++row_no;
             chars_this_line = 0;
             last_space_index = std::nullopt;
@@ -312,8 +317,9 @@ std::optional<size_ui16_t> characters_meas_text(string_view_utf8 &str, uint16_t 
             [[fallthrough]];
         default:
             if ((chars_this_line + 1) >= max_chars_per_line) {
-                if (!last_space_index)
+                if (!last_space_index) {
                     return std::nullopt; // error, text does not fit
+                }
 
                 //  01234567890123
                 // "Hello world!!!"
@@ -343,8 +349,9 @@ std::optional<size_ui16_t> characters_meas_text(string_view_utf8 &str, uint16_t 
 
     chars_longest_line = std::max(chars_longest_line, chars_this_line);
 
-    if (numOfUTF8Chars)
+    if (numOfUTF8Chars) {
         *numOfUTF8Chars = chars_tot;
+    }
     return size_ui16_t({ uint16_t(chars_longest_line), uint16_t(row_no + 1) });
 }
 
@@ -379,12 +386,14 @@ size_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *nu
     while ((c = str->getUtf8Char()) != 0) {
         ++(*numOfUTF8Chars);
         if (c == '\n') {
-            if (x + char_w > w)
+            if (x + char_w > w) {
                 w = x + char_w;
+            }
             y += char_h;
             x = 0;
-        } else
+        } else {
             x += char_w;
+        }
         h = y + char_h;
     }
     str->rewind();

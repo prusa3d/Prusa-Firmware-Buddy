@@ -264,8 +264,9 @@ public:
             result = static_cast<DialogResult>(un.i_val);
             if (flags.close_on_click == is_closed_on_click_t::yes) {
                 Screens::Access()->Close();
-            } else if (GetParent())
+            } else if (GetParent()) {
                 GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, param);
+            }
             break;
         }
         default:

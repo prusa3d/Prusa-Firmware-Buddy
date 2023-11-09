@@ -164,8 +164,9 @@ bool LazyDirViewBase::MoveUp(int amount) {
         return true;
     }
 
-    if (windowStartingFrom - amount < -1)
+    if (windowStartingFrom - amount < -1) {
         return false;
+    }
 
     windowStartingFrom -= amount;
 

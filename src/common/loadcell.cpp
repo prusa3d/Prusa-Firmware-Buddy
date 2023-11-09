@@ -47,24 +47,29 @@ Loadcell::Loadcell()
 
 void Loadcell::WaitBarrier(uint32_t ticks_us) {
     // the first sample we're waiting for needs to be valid
-    while (!planner.draining() && undefinedCnt)
+    while (!planner.draining() && undefinedCnt) {
         idle(true, true);
+    }
 
     // now wait until the requested timestamp
-    while (!planner.draining() && ticks_diff(loadcell.GetLastSampleTimeUs(), ticks_us) < 0)
+    while (!planner.draining() && ticks_diff(loadcell.GetLastSampleTimeUs(), ticks_us) < 0) {
         idle(true, true);
+    }
 }
 
 float Loadcell::Tare(TareMode mode) {
     // ensure high-precision mode is enabled when taring
-    if (!highPrecision)
+    if (!highPrecision) {
         bsod("high precision not enabled during tare");
+    }
 
-    if (tareCount != 0)
+    if (tareCount != 0) {
         bsod("loadcell tare already requested");
+    }
 
-    if (endstops.is_z_probe_enabled() && (endstop || xy_endstop))
+    if (endstops.is_z_probe_enabled() && (endstop || xy_endstop)) {
         fatal_error("LOADCELL", "Tare under load");
+    }
 
     tareMode = mode;
 
@@ -76,8 +81,9 @@ float Loadcell::Tare(TareMode mode) {
     tareCount = requestedTareCount;
 
     // wait until we have all the samples that were requested
-    while (!planner.draining() && tareCount != 0)
+    while (!planner.draining() && tareCount != 0) {
         idle(true, true);
+    }
 
     if (!planner.draining()) {
         if (tareMode == TareMode::Continuous) {
@@ -157,8 +163,9 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
         this->undefinedCnt = 0;
     } else {
         // undefined value, use forward-fill only for short bursts
-        if (++this->undefinedCnt > UNDEFINED_SAMPLE_MAX_CNT)
+        if (++this->undefinedCnt > UNDEFINED_SAMPLE_MAX_CNT) {
             fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TIMEOUT);
+        }
     }
 
     // handle filters only in high precision mode
@@ -321,11 +328,13 @@ Loadcell::HighPrecisionEnabler::HighPrecisionEnabler(Loadcell &lcell,
     bool enable)
     : m_lcell(lcell)
     , m_enable(enable) {
-    if (m_enable)
+    if (m_enable) {
         m_lcell.EnableHighPrecision();
+    }
 }
 
 Loadcell::HighPrecisionEnabler::~HighPrecisionEnabler() {
-    if (m_enable)
+    if (m_enable) {
         m_lcell.DisableHighPrecision();
+    }
 }

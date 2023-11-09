@@ -89,10 +89,12 @@ float hwio_beeper_get_vol(void) {
 }
 
 void hwio_beeper_set_vol(float vol) {
-    if (vol < 0)
+    if (vol < 0) {
         vol *= -1;
-    if (vol > 1)
+    }
+    if (vol > 1) {
         vol = 1;
+    }
     hwio_beeper_vol = vol;
 }
 
@@ -100,16 +102,19 @@ void hwio_beeper_tone(float frq, uint32_t del) {
     uint32_t per;
     uint32_t pul;
     if (frq && del && hwio_beeper_vol) {
-        if (frq < 0)
+        if (frq < 0) {
             frq *= -1;
-        if (frq > 100000)
+        }
+        if (frq > 100000) {
             frq = 100000;
+        }
         per = (uint32_t)(1'000.0F / frq);
         pul = (uint32_t)(del / per);
         hwio_beeper_pulses = pul;
         hwio_beeper_period = per;
-    } else
+    } else {
         hwio_beeper_pulses = 0;
+    }
 }
 
 void hwio_beeper_tone2(float frq, uint32_t del, float vol) {
@@ -328,8 +333,9 @@ uint32_t analogRead(uint32_t ulPin) {
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_RD, ulPin); // error: undefined pin analog read
         }
-    } else
+    } else {
         hwio_arduino_error(HWIO_ERR_UNINI_ANA_RD, ulPin); // error: uninitialized analog read
+    }
     return 0;
 }
 

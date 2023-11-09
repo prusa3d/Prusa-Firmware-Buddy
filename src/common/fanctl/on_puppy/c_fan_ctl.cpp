@@ -16,16 +16,18 @@ void CFanCtl::reset_fan() {
 }
 
 bool CFanCtl::setPWM(uint16_t pwm) {
-    if (selftest_active)
+    if (selftest_active) {
         return false;
+    }
 
     buddy::puppies::dwarfs[dwarf_nr].set_fan(fan_nr, pwm);
     return true;
 }
 
 bool CFanCtl::SelftestSetPWM(uint8_t pwm) {
-    if (!selftest_active)
+    if (!selftest_active) {
         return false;
+    }
 
     buddy::puppies::dwarfs[dwarf_nr].set_fan(fan_nr, pwm);
     return true;

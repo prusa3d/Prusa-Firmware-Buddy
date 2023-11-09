@@ -18,6 +18,7 @@ bool Cheese::update_state(bool current_state, uint16_t raw_value, const char *na
     } else if (!current_state && raw_value > HALL_THRESHOLD_HIGH) {
         log_info(Cheese, "Hall sensor \"%s\" On", name);
         return true;
-    } else
+    } else {
         return current_state;
+    }
 }

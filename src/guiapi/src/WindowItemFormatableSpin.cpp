@@ -30,8 +30,9 @@ void WI_LAMBDA_SPIN::UpdateText() {
  * @return space for the switch text
  */
 Rect16 WI_LAMBDA_SPIN::getSwitchRect(Rect16 extension_rect) const {
-    if (!GuiDefaults::MenuSwitchHasBrackets)
+    if (!GuiDefaults::MenuSwitchHasBrackets) {
         return extension_rect;
+    }
 
     extension_rect += Rect16::Left_t(BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
     extension_rect -= Rect16::Width_t(BracketFont->w * 2 + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);

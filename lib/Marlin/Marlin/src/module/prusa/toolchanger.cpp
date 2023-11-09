@@ -197,8 +197,9 @@ void tool_change(const uint8_t new_tool,
     }
 
     // if we don't know position of all axes, do not return to current position
-    if (return_type == tool_return_t::to_current && !all_axes_known())
+    if (return_type == tool_return_t::to_current && !all_axes_known()) {
         return_type = tool_return_t::no_return;
+    }
 
     // Change tool, ignore return as Marlin doesn't care
     bool ret [[maybe_unused]] = prusa_toolchanger.tool_change(new_tool, return_type, return_position, z_lift, z_return);
@@ -301,8 +302,9 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
             z_raise += tool_offset_diff.z;
         }
 
-        if (z_raise > 0)
+        if (z_raise > 0) {
             z_shift(z_raise);
+        }
 
         // Home X and Y if needed
         if (!ensure_safe_move()) {
@@ -353,8 +355,9 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
             }
 
             if (return_type == tool_return_t::purge_and_to_destination) {
-                if (!purge_tool(*new_dwarf))
+                if (!purge_tool(*new_dwarf)) {
                     return false;
+                }
             }
         }
 
@@ -508,10 +511,12 @@ bool PrusaToolChanger::purge_tool(Dwarf &dwarf) {
     // restore fan speed
     Fans::print(tool_nr).setPWM(thermalManager.fan_speed[tool_nr]);
 
-    if (!park(dwarf))
+    if (!park(dwarf)) {
         return false;
-    if (!pickup(dwarf))
+    }
+    if (!pickup(dwarf)) {
         return false;
+    }
 
     return true;
 }
@@ -570,8 +575,9 @@ void PrusaToolChanger::loop(bool printing, bool paused) {
     // Update the currently applied offset when idling (so that a manual swap is reflected), but
     // _not_ during print where toolchange() is in charge to do the heavy lifting
     if (!printing) {
-        if (active_extruder != MARLIN_NO_TOOL_PICKED)
+        if (active_extruder != MARLIN_NO_TOOL_PICKED) {
             hotend_currently_applied_offset = hotend_offset[active_extruder];
+        }
     }
 }
 

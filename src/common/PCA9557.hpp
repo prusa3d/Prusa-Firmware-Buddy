@@ -66,10 +66,11 @@ public:
         , init_state(init_state) {}
 
     void configure() const {
-        if (init_state == Pin::State::low)
+        if (init_state == Pin::State::low) {
             device.output_reset(pin);
-        else
+        } else {
             device.output_set(pin);
+        }
         device.configure_as_output(pin);
     }
 

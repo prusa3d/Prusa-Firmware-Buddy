@@ -24,10 +24,11 @@ MI_SAVE_TOUCH::MI_SAVE_TOUCH()
 
 void MI_SAVE_TOUCH::click(IWindowMenu & /*window_menu*/) {
     MsgBoxNonBlockInfo(_("Touch registers are being saved."));
-    if (touch::download_as_new())
+    if (touch::download_as_new()) {
         MsgBoxInfo(_("Touch registers (file touch.bin) were saved to the USB drive."), Responses_Ok);
-    else
+    } else {
         MsgBoxError(_("Error saving touch registers to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
+    }
 }
 
 /*****************************************************************************/
@@ -38,10 +39,11 @@ MI_LOAD_TOUCH::MI_LOAD_TOUCH()
 
 void MI_LOAD_TOUCH::click(IWindowMenu & /*window_menu*/) {
     MsgBoxNonBlockInfo(_("Touch registers are being loaded."));
-    if (touch::upload("/usb/touch.bin"))
+    if (touch::upload("/usb/touch.bin")) {
         MsgBoxInfo(_("Touch registers (file touch.bin) were uploaded from the USB drive."), Responses_Ok);
-    else
+    } else {
         MsgBoxError(_("Error uploading touch registers from the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
+    }
 }
 
 /*****************************************************************************/

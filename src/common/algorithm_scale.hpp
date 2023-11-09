@@ -23,10 +23,12 @@
  */
 template <class T>
 T constexpr scale(T num, T min, T max, T scaled_min, T scaled_max) {
-    if (scaled_min == scaled_max)
+    if (scaled_min == scaled_max) {
         return scaled_min;
-    if (min == max)
+    }
+    if (min == max) {
         return scaled_max;
+    }
 
     if (min > max) {
         std::swap(min, max);

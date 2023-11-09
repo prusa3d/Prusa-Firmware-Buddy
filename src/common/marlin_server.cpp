@@ -239,8 +239,9 @@ namespace {
                 }
             }
             ErrorChecker::checkTrue(condition);
-            if (condition)
+            if (condition) {
                 reset();
+            }
         }
         bool runFullFan() {
             const bool retVal = m_postponeFullPrintFan;
@@ -339,10 +340,11 @@ namespace {
         server.resume.fan_speed = marlin_vars()->print_fan_speed; // save fan speed
         server.resume.print_speed = marlin_vars()->print_speed;
 #if FAN_COUNT > 0
-        if (hotendErrorChecker.runFullFan())
+        if (hotendErrorChecker.runFullFan()) {
             thermalManager.set_fan_speed(0, 255);
-        else
+        } else {
             thermalManager.set_fan_speed(0, 0); // disable print fan
+        }
 #endif
     }
 } // end anonymous namespace
@@ -444,18 +446,21 @@ void server_update_vars() {
 void send_notifications_to_clients() {
     osMessageQId queue;
     uint64_t msk = 0;
-    for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
+    for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         if ((queue = marlin_client::marlin_client_queue[client_id]) != 0) {
-            if ((msk = server.client_events[client_id]) != 0)
+            if ((msk = server.client_events[client_id]) != 0) {
                 server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
+            }
         }
+    }
 }
 
 int cycle(void) {
 
     static int processing = 0;
-    if (processing)
+    if (processing) {
         return 0;
+    }
     processing = 1;
     bool call_print_loop = true;
 #if HAS_SELFTEST()
@@ -469,8 +474,9 @@ int cycle(void) {
     MMU2::Fsm::Instance().Loop();
 #endif
 
-    if (call_print_loop)
+    if (call_print_loop) {
         _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
+    }
 
     FSM_notifier::SendNotification();
 
@@ -495,7 +501,7 @@ int cycle(void) {
     }
 
     osEvent ose;
-    if ((server.flags & MARLIN_SFLG_PENDREQ) == 0)
+    if ((server.flags & MARLIN_SFLG_PENDREQ) == 0) {
         while ((ose = osMessageGet(server_queue, 0)).status == osEventMessage) {
             char ch = (char)((uint8_t)(ose.value.v));
             switch (ch) {
@@ -504,9 +510,9 @@ int cycle(void) {
                 ch = 0;
                 break;
             }
-            if (server.request_len < MARLIN_MAX_REQUEST)
+            if (server.request_len < MARLIN_MAX_REQUEST) {
                 server.request[server.request_len++] = ch;
-            else {
+            } else {
                 // TODO: request too long
                 server.request_len = 0;
             }
@@ -520,6 +526,7 @@ int cycle(void) {
                 }
             }
         }
+    }
     // update gqueue (gcode queue)
     _server_update_gqueue();
     // update pqueue (planner queue)
@@ -528,8 +535,9 @@ int cycle(void) {
     send_notifications_to_clients();
     server_update_vars();
 
-    if ((server.flags & MARLIN_SFLG_PROCESS) == 0)
+    if ((server.flags & MARLIN_SFLG_PROCESS) == 0) {
         wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
+    }
     processing = 0;
     return count;
 }
@@ -611,23 +619,24 @@ int idle(void) {
     // TODO: avoid a re-entrant cycle caused by:
     // cycle -> loop -> idle -> MarlinUI::update() -> ExtUI::onIdle -> idle -> cycle
     // This is only a work-around: this should be avoided at a higher level
-    if (planner.draining())
+    if (planner.draining()) {
         return 1;
+    }
 
-    if (server.idle_cnt < MARLIN_IDLE_CNT_BUSY)
+    if (server.idle_cnt < MARLIN_IDLE_CNT_BUSY) {
         server.idle_cnt++;
-    else if ((server.flags & MARLIN_SFLG_BUSY) == 0) {
+    } else if ((server.flags & MARLIN_SFLG_BUSY) == 0) {
 
         log_debug(MarlinServer, "State: Busy");
         server.flags |= MARLIN_SFLG_BUSY;
-        if (parser.command_letter == 'G')
+        if (parser.command_letter == 'G') {
             switch (parser.codenum) {
             case 28:
             case 29:
                 server.command = ftrstd::to_underlying(Cmd::G) + parser.codenum;
                 break;
             }
-        else if (parser.command_letter == 'M')
+        } else if (parser.command_letter == 'M') {
             switch (parser.codenum) {
             case 109:
             case 190:
@@ -638,6 +647,7 @@ int idle(void) {
                 server.command = ftrstd::to_underlying(Cmd::M) + parser.codenum;
                 break;
             }
+        }
         if (Cmd(server.command) != Cmd::NONE) {
             server.command_begin = server.command;
             server.command_end = server.command;
@@ -810,11 +820,13 @@ void serial_print_start() {
 
 void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview) {
 #if HAS_SELFTEST()
-    if (SelftestInstance().IsInProgress())
+    if (SelftestInstance().IsInProgress()) {
         return;
+    }
 #endif
-    if (filename == nullptr)
+    if (filename == nullptr) {
         return;
+    }
 
     // handle preview / reprint
     if (server.print_state == State::Finished || server.print_state == State::Aborted) {
@@ -1057,8 +1069,9 @@ void print_resume(void) {
         power_panic::resume_continue();
         server.print_state = State::PowerPanic_Resume;
 #endif
-    } else
+    } else {
         print_start(nullptr, marlin_server::PreviewSkipIfAble::all);
+    }
 }
 
 // Fast temperature recheck.
@@ -1073,8 +1086,9 @@ bool print_reheat_ready() {
     }
 
     // check bed
-    if (marlin_vars()->temp_bed < (marlin_vars()->target_bed - TEMP_BED_HYSTERESIS))
+    if (marlin_vars()->temp_bed < (marlin_vars()->target_bed - TEMP_BED_HYSTERESIS)) {
         return false;
+    }
 
     return true;
 }
@@ -1093,8 +1107,9 @@ void powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_
     FSM_CREATE__LOGGING(Printing);
 
     // Warn user of possible print fail caused by cold heatbed during PP
-    if (!auto_recover)
+    if (!auto_recover) {
         set_warning(WarningType::HeatbedColdAfterPP);
+    }
 
     // enter the main powerpanic resume loop
     server.print_state = auto_recover ? State::PowerPanic_Resume : State::PowerPanic_AwaitingResume;
@@ -1166,11 +1181,13 @@ static Axis_length_t axis_length_ok(AxisEnum axis) {
 static Axis_length_t xy_axes_length_ok() {
     Axis_length_t alx = axis_length_ok(X_AXIS);
     Axis_length_t aly = axis_length_ok(Y_AXIS);
-    if (alx == aly && aly == Axis_length_t::ok)
+    if (alx == aly && aly == Axis_length_t::ok) {
         return Axis_length_t::ok;
+    }
     // shorter is worse than longer
-    if (alx == Axis_length_t::shorter || aly == Axis_length_t::shorter)
+    if (alx == Axis_length_t::shorter || aly == Axis_length_t::shorter) {
         return Axis_length_t::shorter;
+    }
     return Axis_length_t::longer;
 }
 
@@ -1249,8 +1266,9 @@ static void resuming_reheating() {
         }
     }
 
-    if (!print_reheat_ready())
+    if (!print_reheat_ready()) {
         return;
+    }
 
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
     // There's homing after MBL fail so no need to unpark at all
@@ -1511,8 +1529,9 @@ static void _server_print_loop(void) {
         if (heatbreak_fan_check()) {
             abort_resuming = true;
         }
-        if (planner.processing())
+        if (planner.processing()) {
             break;
+        }
         unpark_head_ZE();
         server.print_state = State::Resuming_UnparkHead_ZE;
         break;
@@ -1525,8 +1544,9 @@ static void _server_print_loop(void) {
             break;
         }
 
-        if (queue.has_commands_queued() || planner.processing())
+        if (queue.has_commands_queued() || planner.processing()) {
             break;
+        }
 #if ENABLED(CRASH_RECOVERY)
         if (crash_s.get_state() == Crash_s::RECOVERY) {
             endstops.enable_globally(true);
@@ -1554,10 +1574,12 @@ static void _server_print_loop(void) {
             break;
         }
         // server.motion_param.load();  // TODO: currently disabled (see Crash_s::save_parameters())
-        if (!server.print_is_serial)
+        if (!server.print_is_serial) {
             media_print_resume();
-        if (print_job_timer.isPaused())
+        }
+        if (print_job_timer.isPaused()) {
             print_job_timer.start();
+        }
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, server.resume.fan_speed); // restore fan speed
 #endif
@@ -1600,8 +1622,9 @@ static void _server_print_loop(void) {
         server.print_state = State::Aborting_WaitIdle;
         break;
     case State::Aborting_WaitIdle:
-        if (queue.has_commands_queued() || planner.processing())
+        if (queue.has_commands_queued() || planner.processing()) {
             break;
+        }
 
         // allow movements again
         planner.resume_queuing();
@@ -1678,12 +1701,14 @@ static void _server_print_loop(void) {
 #endif // ENABLED(CRASH_RECOVERY)
 
 #ifdef PARK_HEAD_ON_PRINT_FINISH
-            if (!server.print_is_serial)
+            if (!server.print_is_serial) {
                 // do not move head if printing via serial
                 park_head();
+            }
 #endif // PARK_HEAD_ON_PRINT_FINISH
-            if (print_job_timer.isRunning())
+            if (print_job_timer.isRunning()) {
                 print_job_timer.stop();
+            }
 
             server.print_state = State::Finishing_ParkHead;
         }
@@ -1691,8 +1716,9 @@ static void _server_print_loop(void) {
     case State::Finishing_ParkHead:
         if (!queue.has_commands_queued() && !planner.processing()) {
             server.print_state = State::Finished;
-            if (server.print_is_serial)
+            if (server.print_is_serial) {
                 FSM_DESTROY__LOGGING(Serial_printing);
+            }
             finalize_print();
         }
         break;
@@ -1788,16 +1814,18 @@ static void _server_print_loop(void) {
     }
     #endif /*HAS_TOOLCHANGER()*/
     case State::CrashRecovery_Retracting: {
-        if (planner.processing())
+        if (planner.processing()) {
             break;
+        }
 
         lift_head();
         server.print_state = State::CrashRecovery_Lifting;
         break;
     }
     case State::CrashRecovery_Lifting: {
-        if (planner.processing())
+        if (planner.processing()) {
             break;
+        }
 
     #if HAS_TOOLCHANGER()
         if (crash_s.is_toolchange_event()) {
@@ -1810,8 +1838,9 @@ static void _server_print_loop(void) {
         break;
     }
     case State::CrashRecovery_XY_Measure: {
-        if (queue.has_commands_queued() || planner.processing())
+        if (queue.has_commands_queued() || planner.processing()) {
             break;
+        }
 
     #if ENABLED(AXIS_MEASURE)
         METRIC_DEF(crash_len, "crash_length", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
@@ -1825,8 +1854,9 @@ static void _server_print_loop(void) {
     }
     #if HAS_TOOLCHANGER()
     case State::CrashRecovery_Tool_Pickup: {
-        if (queue.has_commands_queued() || planner.processing())
+        if (queue.has_commands_queued() || planner.processing()) {
             break;
+        }
 
         if ((ClientResponseHandler::GetResponseFromPhase(PhasesCrashRecovery::tool_recovery) == Response::Continue)
             && (prusa_toolchanger.get_enabled_mask() == prusa_toolchanger.get_parked_mask())) {
@@ -1872,8 +1902,9 @@ static void _server_print_loop(void) {
     }
     #endif /*HAS_TOOLCHANGER()*/
     case State::CrashRecovery_XY_HOME: {
-        if (queue.has_commands_queued() || planner.processing())
+        if (queue.has_commands_queued() || planner.processing()) {
             break;
+        }
 
         if (axis_unhomed_error(_BV(X_AXIS) | _BV(Y_AXIS)
                 | (crash_s.is_homefail_z() ? _BV(Z_AXIS) : 0))) { // Needs homing
@@ -1992,24 +2023,28 @@ static void _server_print_loop(void) {
     }
 
     HOTEND_LOOP() {
-        if (Fans::heat_break(e).getRPMIsOk())
+        if (Fans::heat_break(e).getRPMIsOk()) {
             hotendFanErrorChecker[e].reset();
+        }
     }
-    if (Fans::print(active_extruder).getRPMIsOk())
+    if (Fans::print(active_extruder).getRPMIsOk()) {
         printFanErrorChecker.reset();
+    }
 
 #if HAS_TEMP_HEATBREAK
     if (ticks_s() >= 2) { // Start checking 2 seconds after system start
         // This gives 0 deg celsius MINTEMP for heat break temperature reading
         HOTEND_LOOP() {
     #if ENABLED(PRUSA_TOOLCHANGER)
-            if (!prusa_toolchanger.is_tool_enabled(e))
+            if (!prusa_toolchanger.is_tool_enabled(e)) {
                 continue;
+            }
     #endif
 
             heatBreakThermistorErrorChecker[e].checkTrue(!NEAR_ZERO(thermalManager.degHeatbreak(e)));
-            if (thermalManager.degHeatbreak(e) > 10)
+            if (thermalManager.degHeatbreak(e) > 10) {
                 heatBreakThermistorErrorChecker[e].reset();
+            }
         }
     }
 #endif
@@ -2085,8 +2120,9 @@ void retract() {
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
     float mm = PAUSE_PARK_RETRACT_LENGTH / planner.e_factor[active_extruder];
     #if BOTH(CRASH_RECOVERY, LIN_ADVANCE)
-    if (crash_s.did_trigger())
+    if (crash_s.did_trigger()) {
         mm += crash_s.advance_mm;
+    }
     #endif
     plan_move_by(PAUSE_PARK_RETRACT_FEEDRATE, 0, 0, 0, -mm);
 #endif // ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -2101,8 +2137,9 @@ void lift_head() {
 
 void park_head() {
 #if ENABLED(NOZZLE_PARK_FEATURE)
-    if (!all_axes_homed())
+    if (!all_axes_homed()) {
         return;
+    }
 
     server.resume.pos = current_position;
     retract();
@@ -2121,8 +2158,9 @@ void park_head() {
     xyz_pos_t park = NOZZLE_PARK_POINT;
     #ifdef NOZZLE_PARK_POINT_M600
     const xyz_pos_t park_clean = NOZZLE_PARK_POINT_M600;
-    if (server.mbl_failed)
+    if (server.mbl_failed) {
         park = park_clean;
+    }
     #endif // NOZZLE_PARK_POINT_M600
     park.z = current_position.z;
     plan_park_move_to_xyz(park, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
@@ -2133,8 +2171,9 @@ void unpark_head_XY(void) {
 #if ENABLED(NOZZLE_PARK_FEATURE)
     // TODO: double check this condition: when recovering from a crash, Z is not known, but we *can*
     // unpark, so we bypass this check as we need to move back
-    if (TERN1(CRASH_RECOVERY, !crash_s.did_trigger()) && !all_axes_homed())
+    if (TERN1(CRASH_RECOVERY, !crash_s.did_trigger()) && !all_axes_homed()) {
         return;
+    }
 
     current_position.x = server.resume.pos.x;
     current_position.y = server.resume.pos.y;
@@ -2146,8 +2185,9 @@ void unpark_head_XY(void) {
 void unpark_head_ZE(void) {
 #if ENABLED(NOZZLE_PARK_FEATURE)
     // TODO: see comment above on unparking: if axes are not known, lift is skipped, but not this
-    if (!all_axes_homed())
+    if (!all_axes_homed()) {
         return;
+    }
 
     // Move Z
     current_position.z = server.resume.pos.z;
@@ -2220,10 +2260,12 @@ extern uint32_t get_user_move_count(void) {
 // send notify message (variant8_t) to client queue (called from server thread)
 static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
     // synchronization not necessary because only server thread can write to this queue
-    if (queue == 0)
+    if (queue == 0) {
         return 0;
-    if (osMessageAvailableSpace(queue) < 2)
+    }
+    if (osMessageAvailableSpace(queue) < 2) {
         return 0;
+    }
     osMessagePut(queue, (uint32_t)(msg & 0xFFFFFFFFU), osWaitForever);
     osMessagePut(queue, (uint32_t)(msg >> 32), osWaitForever);
     return 1;
@@ -2233,15 +2275,17 @@ static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
     while (1) {
         std::optional<fsm::DequeStates> commands = fsm_event_queues.dequeue(client_id);
-        if (!commands)
+        if (!commands) {
             return true; // no event to send, return 'sent' to erase 'send' flag
+        }
         marlin_vars()->set_last_fsm_state(commands->current);
         std::pair<uint32_t, uint16_t> data = commands->current.serialize();
         log_debug(FSM, "data sent u32 %d, u16 %d, client %d", data.first, data.second, client_id);
 
-        if (!_send_notify_to_client(queue, variant8_user(data.first, data.second, ftrstd::to_underlying(Event::FSM))))
+        if (!_send_notify_to_client(queue, variant8_user(data.first, data.second, ftrstd::to_underlying(Event::FSM)))) {
             // unable to send all messages
             return false;
+        }
     }
 }
 
@@ -2277,8 +2321,9 @@ static bool _send_notify_event_to_client(int client_id, osMessageQId queue, Even
 // send event notification to client - multiple events (called from server thread)
 // returns mask of successfully sent events
 static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
-    if (evt_msk == 0)
+    if (evt_msk == 0) {
         return 0;
+    }
     uint64_t sent = 0;
     uint64_t msk = 1;
     for (uint8_t evt_int = 0; evt_int <= ftrstd::to_underlying(Event::_last); evt_int++) {
@@ -2303,27 +2348,32 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
             case Event::FSM: // arguments handled elsewhere
             // StatusChanged event - one string argument
             case Event::StatusChanged:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
+                if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0)) {
                     sent |= msk; // event sent, set bit
+                }
                 break;
             // CommandBegin/End - one ui32 argument (CMD)
             case Event::CommandBegin:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, server.command_begin, 0))
+                if (_send_notify_event_to_client(client_id, queue, evt_id, server.command_begin, 0)) {
                     sent |= msk; // event sent, set bit
+                }
                 break;
             case Event::CommandEnd:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, server.command_end, 0))
+                if (_send_notify_event_to_client(client_id, queue, evt_id, server.command_end, 0)) {
                     sent |= msk; // event sent, set bit
+                }
                 break;
             case Event::MeshUpdate:
                 if (_send_notify_event_to_client(client_id, queue, evt_id,
-                        server.last_mesh_evt.usr32, server.last_mesh_evt.usr16))
+                        server.last_mesh_evt.usr32, server.last_mesh_evt.usr16)) {
                     sent |= msk; // event sent, set bit
+                }
                 break;
             case Event::NotAcknowledge:
             case Event::Acknowledge:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
+                if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0)) {
                     sent |= msk; // event sent, set bit
+                }
                 break;
             // unused events
             case Event::PrinterKilled:
@@ -2336,15 +2386,17 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
                 sent |= msk; // fake event sent for unused and forced events
                 break;
             case Event::Warning:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, server.warning_type, 0))
+                if (_send_notify_event_to_client(client_id, queue, evt_id, server.warning_type, 0)) {
                     sent |= msk; // event sent, set bit
+                }
                 break;
             case Event::_count:
                 assert(false);
                 break;
             }
-            if ((sent & msk) == 0)
+            if ((sent & msk) == 0) {
                 break; // skip sending if queue is full
+            }
         }
         msk <<= 1;
     }
@@ -2355,7 +2407,7 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
 // returns bitmask - bit0 = notify for client0 successfully send, bit1 for client1...
 static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16) {
     uint8_t client_msk = 0;
-    for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
+    for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         if (server.notify_events[client_id] & ((uint64_t)1 << ftrstd::to_underlying(evt_id))) {
             if (_send_notify_event_to_client(client_id, marlin_client::marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
                 server.client_events[client_id] |= ((uint64_t)1 << ftrstd::to_underlying(evt_id)); // event not sent, set bit
@@ -2363,13 +2415,15 @@ static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16) 
                 if (evt_id == Event::MeshUpdate) {
                     server.last_mesh_evt.usr32 = usr32;
                     server.last_mesh_evt.usr16 = usr16;
-                } else if (evt_id == Event::Warning)
+                } else if (evt_id == Event::Warning) {
                     server.warning_type = usr32;
+                }
             } else {
                 // event sent, clear flag
                 client_msk |= (1 << client_id);
             }
         }
+    }
     return client_msk;
 }
 
@@ -2444,10 +2498,11 @@ static void _server_update_vars() {
 
     if (!FirstLayer::isPrinting()) { /// push notifications used for first layer calibration
         uint8_t progress = 0;
-        if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration))
+        if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration)) {
             progress = static_cast<uint8_t>(oProgressData.oPercentDone.mGetValue());
-        else
+        } else {
             progress = static_cast<uint8_t>(media_print_get_percent_done());
+        }
 
         marlin_vars()->sd_percent_done = progress;
     }
@@ -2531,24 +2586,27 @@ bool _process_server_valid_request(const char *request, int client_id) {
         return true;
     case Msg::Babystep: {
         float offs;
-        if (sscanf(data, "%f", &offs) != 1)
+        if (sscanf(data, "%f", &offs) != 1) {
             return false;
+        }
         do_babystep_Z(offs);
         return true;
     }
 #if ENABLED(CANCEL_OBJECTS)
     case Msg::CancelObjectID: {
         int obj_id;
-        if (sscanf(data, "%d", &obj_id) != 1)
+        if (sscanf(data, "%d", &obj_id) != 1) {
             return false;
+        }
 
         cancelable.cancel_object(obj_id);
         return true;
     }
     case Msg::UncancelObjectID: {
         int obj_id;
-        if (sscanf(data, "%d", &obj_id) != 1)
+        if (sscanf(data, "%d", &obj_id) != 1) {
             return false;
+        }
         cancelable.uncancel_object(obj_id);
         return true;
     }
@@ -2604,24 +2662,28 @@ bool _process_server_valid_request(const char *request, int client_id) {
         ++server.knob_click_counter;
         return true;
     case Msg::FSM:
-        if (sscanf(data, "%d", &ival) != 1)
+        if (sscanf(data, "%d", &ival) != 1) {
             return false;
+        }
         ClientResponseHandler::SetResponse(ival);
         return true;
     case Msg::EventMask:
-        if (sscanf(data, "%08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1) != 2)
+        if (sscanf(data, "%08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1) != 2) {
             return false;
+        }
         server.notify_events[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
         // Send Event::MediaInserted event if media currently inserted
         // This is temporary solution, Event::MediaInserted and Event::MediaRemoved events are replaced
         // with variable media_inserted, but some parts of application still using the events.
         // We need this workaround for app startup.
-        if ((server.notify_events[client_id] & make_mask(Event::MediaInserted)) && marlin_vars()->media_inserted)
+        if ((server.notify_events[client_id] & make_mask(Event::MediaInserted)) && marlin_vars()->media_inserted) {
             server.client_events[client_id] |= make_mask(Event::MediaInserted);
+        }
         return true;
     case Msg::TestStart:
-        if (sscanf(data, "%08" SCNx32 " %08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1, &tool_mask) != 3)
+        if (sscanf(data, "%08" SCNx32 " %08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1, &tool_mask) != 3) {
             return false;
+        }
         // start selftest
         test_start(msk32[0] + (((uint64_t)msk32[1]) << 32), tool_mask);
         return true;
@@ -2632,8 +2694,9 @@ bool _process_server_valid_request(const char *request, int client_id) {
         float offs;
         float fval;
         unsigned int uival;
-        if (sscanf(data, "%f %f %u", &offs, &fval, &uival) != 3)
+        if (sscanf(data, "%f %f %u", &offs, &fval, &uival) != 3) {
             return false;
+        }
         move_axis(offs, MMM_TO_MMS(fval), uival);
         return true;
     }
@@ -2651,11 +2714,13 @@ bool _process_server_valid_request(const char *request, int client_id) {
 //   4) data (rest of the message, optional)
 // Example of messages: "2!R" or "0!PA546F18B 5D391C83"
 static bool _process_server_request(const char *request) {
-    if (request == nullptr)
+    if (request == nullptr) {
         return false;
+    }
     int client_id = *(request++) - '0';
-    if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS))
+    if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS)) {
         return true;
+    }
 
     if (strlen(request) < 2 || request[0] != '!') {
         bsod_unknown_request(request);
@@ -2808,19 +2873,23 @@ FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, float min, float max,
 // simplified formula
 // x = actual * s_data.scale + s_data.offset;
 void FSM_notifier::SendNotification() {
-    if (!activeInstance)
+    if (!activeInstance) {
         return;
-    if (s_data.type == ClientFSM::_none)
+    }
+    if (s_data.type == ClientFSM::_none) {
         return;
+    }
 
     float actual = *s_data.var_id;
     actual = actual * s_data.scale + s_data.offset;
 
     int progress = static_cast<int>(actual); // int - must be signed
-    if (progress < s_data.progress_min)
+    if (progress < s_data.progress_min) {
         progress = s_data.progress_min;
-    if (progress > s_data.progress_max)
+    }
+    if (progress > s_data.progress_max) {
         progress = s_data.progress_max;
+    }
 
     // after first sent, progress can only rise
     // no value: comparison returns true
@@ -2938,8 +3007,9 @@ void onUserConfirmRequired(const char *const msg) {
 
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
 static void mbl_error(int error_code) {
-    if (server.print_state != State::Printing && server.print_state != State::Pausing_Begin)
+    if (server.print_state != State::Printing && server.print_state != State::Pausing_Begin) {
         return;
+    }
 
     server.print_state = State::Pausing_Failed_Code;
     /// pause immediatelly to save current file position
@@ -2950,8 +3020,9 @@ static void mbl_error(int error_code) {
 #endif
 
 void onStatusChanged(const char *const msg) {
-    if (!msg)
+    if (!msg) {
         return; // ignore errorneous nullptr messages
+    }
 
     static bool pending_err_msg = false;
 
@@ -2962,8 +3033,9 @@ void onStatusChanged(const char *const msg) {
     else if (strcmp(msg, "TMC CONNECTION ERROR") == 0) {
         _send_notify_event(Event::Error, MARLIN_ERR_TMCDriverError, 0);
     } else {
-        if (!is_abort_state(server.print_state))
+        if (!is_abort_state(server.print_state)) {
             pending_err_msg = false;
+        }
         if (!pending_err_msg) {
 /// FIXME: Message through Marlin's UI could be delayed and we won't pause print at the MBL command
 #if HAS_BED_PROBE

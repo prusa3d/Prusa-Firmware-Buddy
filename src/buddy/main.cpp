@@ -229,8 +229,9 @@ extern "C" void main_cpp(void) {
     SPI_INIT(flash);
     // initialize SPI flash
     w25x_spi_assign(&SPI_HANDLE_FOR(flash));
-    if (!w25x_init())
+    if (!w25x_init()) {
         bsod("failed to initialize ext flash");
+    }
 
     /*
      * If we have BSOD or red screen we want to have as small boot process as we can.
@@ -669,8 +670,9 @@ static void enable_dfu_entry() {
     // this has to be checked after having
     //  1) initialized access to the backup domain
     //  2) having initialized related clocks (SystemClock_Config)
-    if (sys_dfu_requested())
+    if (sys_dfu_requested()) {
         sys_dfu_boot_enter();
+    }
 #endif
 }
 

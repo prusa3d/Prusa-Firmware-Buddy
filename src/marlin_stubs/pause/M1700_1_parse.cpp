@@ -64,8 +64,9 @@ void PrusaGcodeSuite::M1701() {
     const float min_Z_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
 
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
-    if (target_extruder < 0)
+    if (target_extruder < 0) {
         return;
+    }
 
     filament_gcodes::M1701_no_parser(fast_load_length, min_Z_pos, target_extruder);
 }
@@ -88,8 +89,9 @@ void PrusaGcodeSuite::M1701() {
  */
 void PrusaGcodeSuite::M1600() {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
-    if (target_extruder < 0)
+    if (target_extruder < 0) {
         return;
+    }
 
     auto filament_to_be_loaded = filament::Type::NONE;
     const char *text_begin = 0;

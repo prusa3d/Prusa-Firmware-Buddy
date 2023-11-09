@@ -106,10 +106,12 @@ bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
 
 // version independent crc32 check
 bool eeprom_check_crc32(eeprom_data &eeprom_ram_mirror) {
-    if (eeprom_ram_mirror.vars.head.DATASIZE > EEPROM_MAX_DATASIZE)
+    if (eeprom_ram_mirror.vars.head.DATASIZE > EEPROM_MAX_DATASIZE) {
         return false;
-    if (eeprom_ram_mirror.vars.head.DATASIZE < sizeof(eeprom_ram_mirror.vars.head) + sizeof(eeprom_ram_mirror.vars.CRC32))
+    }
+    if (eeprom_ram_mirror.vars.head.DATASIZE < sizeof(eeprom_ram_mirror.vars.head) + sizeof(eeprom_ram_mirror.vars.CRC32)) {
         return false;
+    }
 
     uint32_t crc;
     if (eeprom_ram_mirror.vars.head.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {

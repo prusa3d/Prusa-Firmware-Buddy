@@ -233,8 +233,9 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
         // note: Dthe 0xEE index string is a Microsoft OS 1.0 Descriptors.
         // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
 
-        if (!(index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0])))
+        if (!(index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0]))) {
             return NULL;
+        }
 
         const char *str = string_desc_arr[index];
 #if PRINTER_IS_PRUSA_MK4
@@ -245,8 +246,9 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
 
         // cap at max char
         chr_count = strlen(str);
-        if (chr_count > 31)
+        if (chr_count > 31) {
             chr_count = 31;
+        }
 
         // convert ASCII string into UTF-16
         for (uint8_t i = 0; i < chr_count; i++) {

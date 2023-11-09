@@ -51,10 +51,11 @@ fsensor_t FSensor::WaitInitialized() {
 void FSensor::init() {
     bool enabled = FSensorEEPROM::Get(); // can globally disable all sensors, but some sensors might need another enable
 
-    if (enabled)
+    if (enabled) {
         enable();
-    else
+    } else {
         disable();
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -71,10 +72,12 @@ IFSensor::event IFSensor::GenerateEvent() {
     }
 
     const bool had_filament = fsensor_t::HasFilament == previous_state;
-    if (has_filament == had_filament)
+    if (has_filament == had_filament) {
         return has_filament ? event::HasFilament : event::NoFilament;
+    }
     /// state has changed
-    if (has_filament)
+    if (has_filament) {
         return event::EdgeFilamentInserted; // has && !had
+    }
     return event::EdgeFilamentRemoved; //! has && had
 }

@@ -34,10 +34,11 @@ typename FooterItemInputShaperX::buffer_t FooterItemInputShaperX::buff;
 
 int FooterItemInputShaperX::static_readValue() {
     const auto &axis_config = input_shaper::current_config().axis[X_AXIS];
-    if (axis_config)
+    if (axis_config) {
         return static_cast<int>(axis_config->frequency);
-    else
+    } else {
         return 0;
+    }
 }
 
 string_view_utf8 FooterItemInputShaperX::static_makeViewIntoBuff(int value) {
@@ -61,10 +62,11 @@ typename FooterItemInputShaperY::buffer_t FooterItemInputShaperY::buff;
 
 int FooterItemInputShaperY::static_readValue() {
     const auto &axis_config = input_shaper::current_config().axis[Y_AXIS];
-    if (axis_config)
+    if (axis_config) {
         return static_cast<int>(axis_config->frequency);
-    else
+    } else {
         return 0;
+    }
 }
 
 string_view_utf8 FooterItemInputShaperY::static_makeViewIntoBuff(int value) {

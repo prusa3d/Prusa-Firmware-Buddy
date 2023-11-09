@@ -122,11 +122,13 @@ public:
     using color_array = std::array<uint32_t, COUNT>;
 
     void Set(uint32_t color, size_t index) {
-        if (index >= COUNT)
+        if (index >= COUNT) {
             return;
+        }
 
-        if (leds[index] == color)
+        if (leds[index] == color) {
             return;
+        }
 
         leds[index] = color;
         leds_to_rewrite = std::max(index + size_t(1), leds_to_rewrite);
@@ -212,8 +214,9 @@ protected:
 
 template <size_t COUNT, size_t T1H, size_t T1L, size_t T0H, size_t T0L>
 size_t LedsSPI_base<COUNT, T1H, T1L, T0H, T0L>::setBitset() {
-    if (this->leds_to_rewrite == 0 && !this->force_refresh)
+    if (this->leds_to_rewrite == 0 && !this->force_refresh) {
         return 0; // nothing to set
+    }
 
     led_bitset.reset(); // clear bit array
 

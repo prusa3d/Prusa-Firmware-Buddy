@@ -295,13 +295,16 @@ void MMU2::mmu_loop() {
 
             state = 1;
 
-            if (cmd == 0)
+            if (cmd == 0) {
                 ready = true;
+            }
 
-            if (!finda && finda_runout_valid)
+            if (!finda && finda_runout_valid) {
                 filament_runout();
-        } else if (ELAPSED(millis(), last_request + MMU_P0_TIMEOUT)) // Resend request after timeout (3s)
+            }
+        } else if (ELAPSED(millis(), last_request + MMU_P0_TIMEOUT)) { // Resend request after timeout (3s)
             state = 1;
+        }
 
         break;
 
@@ -354,19 +357,23 @@ bool MMU2::rx_str_P(const char *str) {
 
     uint8_t len = strlen_P(str);
 
-    if (i < len)
+    if (i < len) {
         return false;
+    }
 
     str += len;
 
     while (len--) {
         char c0 = pgm_read_byte(str--), c1 = rx_buffer[i--];
-        if (c0 == c1)
+        if (c0 == c1) {
             continue;
-        if (c0 == '\r' && c1 == '\n')
+        }
+        if (c0 == '\r' && c1 == '\n') {
             continue; // match cr as lf
-        if (c0 == '\n' && c1 == '\r')
+        }
+        if (c0 == '\n' && c1 == '\r') {
             continue; // match lf as cr
+        }
         return false;
     }
     return true;
@@ -378,8 +385,9 @@ bool MMU2::rx_str_P(const char *str) {
 void MMU2::tx_str_P(const char *str) {
     clear_rx_buffer();
     uint8_t len = strlen_P(str);
-    for (uint8_t i = 0; i < len; i++)
+    for (uint8_t i = 0; i < len; i++) {
         mmuSerial.write(pgm_read_byte(str++));
+    }
     rx_buffer[0] = '\0';
     last_request = millis();
 }
@@ -390,8 +398,9 @@ void MMU2::tx_str_P(const char *str) {
 void MMU2::tx_printf_P(const char *format, int argument = -1) {
     clear_rx_buffer();
     uint8_t len = sprintf_P(tx_buffer, format, argument);
-    for (uint8_t i = 0; i < len; i++)
+    for (uint8_t i = 0; i < len; i++) {
         mmuSerial.write(tx_buffer[i]);
+    }
     rx_buffer[0] = '\0';
     last_request = millis();
 }
@@ -402,8 +411,9 @@ void MMU2::tx_printf_P(const char *format, int argument = -1) {
 void MMU2::tx_printf_P(const char *format, int argument1, int argument2) {
     clear_rx_buffer();
     uint8_t len = sprintf_P(tx_buffer, format, argument1, argument2);
-    for (uint8_t i = 0; i < len; i++)
+    for (uint8_t i = 0; i < len; i++) {
         mmuSerial.write(tx_buffer[i]);
+    }
     rx_buffer[0] = '\0';
     last_request = millis();
 }
@@ -412,8 +422,9 @@ void MMU2::tx_printf_P(const char *format, int argument1, int argument2) {
  * Empty the rx buffer
  */
 void MMU2::clear_rx_buffer() {
-    while (mmuSerial.available())
+    while (mmuSerial.available()) {
         mmuSerial.read();
+    }
     rx_buffer[0] = '\0';
 }
 
@@ -443,8 +454,9 @@ void MMU2::check_version() {
  */
 void MMU2::tool_change(uint8_t index) {
 
-    if (!enabled)
+    if (!enabled) {
         return;
+    }
 
     set_runout_valid(false);
 
@@ -483,8 +495,9 @@ void MMU2::tool_change(uint8_t index) {
  */
 void MMU2::tool_change(const char *special) {
 
-    if (!enabled)
+    if (!enabled) {
         return;
+    }
 
     #if ENABLED(MMU2_MENUS)
 
@@ -493,8 +506,9 @@ void MMU2::tool_change(const char *special) {
     switch (*special) {
     case '?': {
         uint8_t index = mmu2_choose_filament();
-        while (!thermalManager.wait_for_hotend(active_extruder, false))
+        while (!thermalManager.wait_for_hotend(active_extruder, false)) {
             safe_delay(100);
+        }
         load_filament_to_nozzle(index);
     } break;
 
@@ -513,8 +527,9 @@ void MMU2::tool_change(const char *special) {
     } break;
 
     case 'c': {
-        while (!thermalManager.wait_for_hotend(active_extruder, false))
+        while (!thermalManager.wait_for_hotend(active_extruder, false)) {
             safe_delay(100);
+        }
         execute_extruder_sequence((const E_Step *)load_to_nozzle_sequence, COUNT(load_to_nozzle_sequence));
     } break;
     }
@@ -528,8 +543,9 @@ void MMU2::tool_change(const char *special) {
  * Set next command
  */
 void MMU2::command(const uint8_t mmu_cmd) {
-    if (!enabled)
+    if (!enabled) {
         return;
+    }
     cmd = mmu_cmd;
     ready = false;
 }
@@ -538,13 +554,15 @@ void MMU2::command(const uint8_t mmu_cmd) {
  * Wait for response from MMU
  */
 bool MMU2::get_response() {
-    while (cmd != MMU_CMD_NONE)
+    while (cmd != MMU_CMD_NONE) {
         idle(true);
+    }
 
     while (!ready) {
         idle(true);
-        if (state != 3)
+        if (state != 3) {
             break;
+        }
     }
 
     const bool ret = ready;
@@ -582,11 +600,13 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
                 resume_hotend_temp = thermalManager.degTargetHotend(active_extruder);
                 resume_position = current_position;
 
-                if (move_axes && all_axes_homed())
+                if (move_axes && all_axes_homed()) {
                     nozzle.park(2, park_point /*= NOZZLE_PARK_POINT*/);
+                }
 
-                if (turn_off_nozzle)
+                if (turn_off_nozzle) {
                     thermalManager.setTargetHotend(0, active_extruder);
+                }
 
                 LCD_MESSAGEPGM(MSG_MMU2_NOT_RESPONDING);
                 BUZZ(100, 659);
@@ -603,8 +623,9 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
                 LCD_MESSAGEPGM(MSG_HEATING);
                 BUZZ(200, 40);
 
-                while (!thermalManager.wait_for_hotend(active_extruder, false))
+                while (!thermalManager.wait_for_hotend(active_extruder, false)) {
                     safe_delay(1000);
+                }
             }
 
             if (move_axes && all_axes_homed()) {
@@ -627,8 +648,9 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
 }
 
 void MMU2::set_filament_type(uint8_t index, uint8_t filamentType) {
-    if (!enabled)
+    if (!enabled) {
         return;
+    }
 
     cmd_arg = filamentType;
     command(MMU_CMD_F0 + index);
@@ -645,8 +667,9 @@ void MMU2::filament_runout() {
 
 // Load filament into MMU2
 void MMU2::load_filament(uint8_t index) {
-    if (!enabled)
+    if (!enabled) {
         return;
+    }
     command(MMU_CMD_L0 + index);
     manage_response(false, false);
     BUZZ(200, 404);
@@ -659,8 +682,9 @@ void MMU2::load_filament(uint8_t index) {
  */
 bool MMU2::load_filament_to_nozzle(uint8_t index) {
 
-    if (!enabled)
+    if (!enabled) {
         return false;
+    }
 
     if (thermalManager.tooColdToExtrude(active_extruder)) {
         BUZZ(200, 404);
@@ -691,15 +715,17 @@ bool MMU2::load_filament_to_nozzle(uint8_t index) {
  * filament to nozzle.
  */
 void MMU2::load_to_nozzle() {
-    if (!enabled)
+    if (!enabled) {
         return;
+    }
     execute_extruder_sequence((const E_Step *)load_to_nozzle_sequence, COUNT(load_to_nozzle_sequence));
 }
 
 bool MMU2::eject_filament(uint8_t index, bool recover) {
 
-    if (!enabled)
+    if (!enabled) {
         return false;
+    }
 
     if (thermalManager.tooColdToExtrude(active_extruder)) {
         BUZZ(200, 404);
@@ -726,8 +752,9 @@ bool MMU2::eject_filament(uint8_t index, bool recover) {
         #if ENABLED(EXTENSIBLE_UI)
         ExtUI::onUserConfirmRequired_P(PSTR("MMU2 Eject Recover"));
         #endif
-        while (wait_for_user)
+        while (wait_for_user) {
             idle(true);
+        }
         BUZZ(200, 404);
         BUZZ(200, 404);
 
@@ -756,8 +783,9 @@ bool MMU2::eject_filament(uint8_t index, bool recover) {
  */
 bool MMU2::unload() {
 
-    if (!enabled)
+    if (!enabled) {
         return false;
+    }
 
     if (thermalManager.tooColdToExtrude(active_extruder)) {
         BUZZ(200, 404);

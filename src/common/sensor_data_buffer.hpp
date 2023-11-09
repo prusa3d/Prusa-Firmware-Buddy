@@ -129,12 +129,15 @@ public:
     }
 
     constexpr bool operator==(const Value &lhs) const {
-        if (attribute.valid != lhs.attribute.valid)
+        if (attribute.valid != lhs.attribute.valid) {
             return false;
-        if (attribute.enabled != lhs.attribute.enabled)
+        }
+        if (attribute.enabled != lhs.attribute.enabled) {
             return false;
-        if (attribute.type != lhs.attribute.type)
+        }
+        if (attribute.type != lhs.attribute.type) {
             return false;
+        }
         switch (attribute.type) {
         case Type::intType:
             return int_val == lhs.int_val;

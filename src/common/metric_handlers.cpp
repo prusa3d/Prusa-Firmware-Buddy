@@ -23,8 +23,9 @@ static int textprotocol_append_escaped(char *buffer, int buffer_len, char *val) 
     while (*val != 0 && buffer_len > 0) {
         char ch = *(val++);
         if (ch == '"' || ch == '\\') {
-            if (buffer_len < 2)
+            if (buffer_len < 2) {
                 break;
+            }
             buffer[0] = '\\';
             buffer[1] = ch;
             appended += 2;
@@ -204,8 +205,9 @@ static void syslog_handler(metric_point_t *point) {
         // try to send the message if we have an open socket
         if (open) {
             bool sent = syslog_transport_send(&syslog_transport, buffer, buffer_used);
-            if (!sent)
+            if (!sent) {
                 syslog_transport_close(&syslog_transport);
+            }
         }
 
         buffer_used = 0;

@@ -183,13 +183,15 @@ void screen_splash_data_t::bootstrap_cb(unsigned percent, std::optional<const ch
 void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
 #ifdef _EXTUI
     if (event == GUI_event_t::GUI_STARTUP) { // without clear it could run multiple times before screen is closed
-        if (!param)
+        if (!param) {
             return;
+        }
 
         event_conversion_union un;
         un.pvoid = param;
-        if (!un.pGUIStartupProgress)
+        if (!un.pGUIStartupProgress) {
             return;
+        }
         int percent = un.pGUIStartupProgress->percent_done;
 
         // Bootstrap & FW version are displayed in the same space - we want to display what process is happening during bootstrap

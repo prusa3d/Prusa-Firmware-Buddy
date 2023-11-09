@@ -252,8 +252,9 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
             hw_diff += m_config.high_flow_nozzle_temp_offset;
         }
 
-        if (hw_diff)
+        if (hw_diff) {
             log_info(Selftest, "%s heat range offseted by %d degrees Celsius due to HW differences", m_config.partname, hw_diff);
+        }
     }
 
     if ((m_config.getTemp() < m_config.heat_min_temp + hw_diff) || (m_config.getTemp() > m_config.heat_max_temp + hw_diff)) {
@@ -272,8 +273,9 @@ LoopResult CSelftestPart_Heater::stateCheckLoadChecked() {
 }
 
 void CSelftestPart_Heater::actualizeProgress(float current, float progres_start, float progres_end) const {
-    if (progres_start >= progres_end)
+    if (progres_start >= progres_end) {
         return; // don't have estimated end set correctly
+    }
     uint8_t current_progress = scale_percent_avoid_overflow(current, progres_start, progres_end);
     rResult.progress = std::max(rResult.progress, current_progress); // heater progress can only rise
 }

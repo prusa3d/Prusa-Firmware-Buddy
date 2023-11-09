@@ -10,11 +10,13 @@
 static SemaphoreHandle_t swo_lock;
 
 static inline bool initialize_swo_lock() {
-    if (swo_lock)
+    if (swo_lock) {
         return true;
+    }
 
-    if (xPortIsInsideInterrupt() || xTaskGetSchedulerState() != taskSCHEDULER_RUNNING)
+    if (xPortIsInsideInterrupt() || xTaskGetSchedulerState() != taskSCHEDULER_RUNNING) {
         return false;
+    }
 
     swo_lock = xSemaphoreCreateBinary();
     xSemaphoreGive(swo_lock);
@@ -28,14 +30,16 @@ static bool swo_is_enabled() {
 
 /// Send one character over SWO (blocking)
 static void swo_put_char(char character, [[maybe_unused]] void *arg) {
-    while (ITM->PORT[0U].u32 == 0UL)
+    while (ITM->PORT[0U].u32 == 0UL) {
         __NOP();
+    }
     ITM->PORT[0U].u8 = (uint8_t)character;
 }
 
 void swo_log_event(log_destination_t *destination, log_event_t *event) {
-    if (!swo_is_enabled())
+    if (!swo_is_enabled()) {
         return;
+    }
 
     const bool lock_initialized = initialize_swo_lock();
     bool lock_acquired = false;

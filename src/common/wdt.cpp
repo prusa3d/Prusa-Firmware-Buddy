@@ -64,10 +64,12 @@ void wdt_tick_1ms(void) {
 #endif // WDT_WWDG_ENABLED
 #ifdef WDT_IWDG_ENABLED
     if (hiwdg.Instance) {
-        if (wdt_iwdg_counter++ < WDT_IWDG_WARNING_DELAY)
+        if (wdt_iwdg_counter++ < WDT_IWDG_WARNING_DELAY) {
             return;
-        if (wdt_iwdg_warning_cb)
+        }
+        if (wdt_iwdg_warning_cb) {
             wdt_iwdg_warning_cb();
+        }
     }
 #endif // WDT_IWDG_ENABLED
 }

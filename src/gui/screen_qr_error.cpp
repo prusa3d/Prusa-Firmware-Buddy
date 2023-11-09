@@ -69,10 +69,11 @@ ScreenErrorQR::ScreenErrorQR()
         qr.SetQRHeader(error_code);
         /// draw short URL
         const char *qr_text = qr.GetQRShortText();
-        if (GuiDefaults::EnableDialogBigLayout)
+        if (GuiDefaults::EnableDialogBigLayout) {
             help_txt.SetText(_(help_text));
-        else
+        } else {
             help_txt.Hide();
+        }
         help_link.SetText(_(qr_text));
 
         if (config_store().devhash_in_qr.get()) {

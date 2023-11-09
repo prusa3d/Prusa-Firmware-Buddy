@@ -13,8 +13,9 @@ static constexpr size_t SZ = 512; // optimal value, double speed compared to 0
 
 static FILE *open_file_and_disable_buff(const char *fname) {
     FILE *file = fopen(fname, "rb");
-    if (file)
+    if (file) {
         setvbuf(file, nullptr, _IOFBF, SZ);
+    }
     return file;
 }
 

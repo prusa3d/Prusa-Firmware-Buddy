@@ -11,8 +11,9 @@ FooterIcon::FooterIcon(window_t *parent, const img::Resource *icon)
     : AddSuperWindow<window_icon_t>(
         parent,
         [parent, icon] {
-            if (!parent || !icon)
+            if (!parent || !icon) {
                 return Rect16(); // does not have parrent, cannot calculate X and Y pos
+            }
 
             point_i16_t pt = { 0, 0 };
             size_ui16_t sz = { icon->w, icon->h };

@@ -107,8 +107,9 @@ changed_t FooterItemBed::updateValue() {
 #endif
     // It would seem that returning changed_t::yes is the proper way to
     // trigger an update. However, that doesn't work. Something to investigate.
-    if (ret == changed_t::yes)
+    if (ret == changed_t::yes) {
         Invalidate();
+    }
     return ret;
 }
 
@@ -154,8 +155,9 @@ changed_t FooterItemAllNozzles::updateValue() {
 
     // It would seem that returning changed_t::yes is the proper way to
     // trigger an update. However, that doesn't work. Something to investigate.
-    if (ret == changed_t::yes)
+    if (ret == changed_t::yes) {
         Invalidate();
+    }
     return ret;
 }
 

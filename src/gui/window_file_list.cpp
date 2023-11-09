@@ -34,8 +34,9 @@ WF_Sort_t GuiFileSort::Get() {
 }
 
 void GuiFileSort::Set(WF_Sort_t val) {
-    if (instance().sort == val)
+    if (instance().sort == val) {
         return;
+    }
 
     config_store().file_sort.set(static_cast<uint8_t>(val));
     instance().sort = val;
@@ -152,8 +153,9 @@ const char *window_file_list_t::CurrentLFN(bool *isFile) const {
     assert(focused_slot);
 
     auto i = ldv.LongFileNameAt(*focused_slot);
-    if (isFile)
+    if (isFile) {
         *isFile = (i.second == LDV::EntryType::FILE);
+    }
 
     return i.first;
 }
@@ -200,17 +202,20 @@ void window_file_list_t::unconditionalDraw() {
     const auto focused_slot = this->focused_slot();
 
     for (int i = 0, end = current_items_on_screen_count(); i < end; i++) {
-        if (valid_slots[i])
+        if (valid_slots[i]) {
             continue;
+        }
 
         valid_slots.set(i);
 
         const auto item_rect = slot_rect(i);
 
-        if constexpr (GuiDefaults::MenuLinesBetweenItems)
-            if (flags.invalid_background && i < end - 1)
+        if constexpr (GuiDefaults::MenuLinesBetweenItems) {
+            if (flags.invalid_background && i < end - 1) {
                 display::DrawLine(point_ui16(Left() + GuiDefaults::MenuItemDelimiterPadding.left, item_rect.Top() + item_rect.Height()),
                     point_ui16(Left() + Width() - GuiDefaults::MenuItemDelimiterPadding.right, item_rect.Top() + item_rect.Height()), COLOR_DARK_GRAY);
+            }
+        }
 
         // Return item; return_item_delegate handles both focused and unfocused return item
         if (is_return_slot(i)) {

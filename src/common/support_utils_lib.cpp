@@ -8,16 +8,17 @@ char *eofstr(char *str) {
 }
 
 void block2hex(char *str, uint32_t str_size, uint8_t *pdata, size_t length) {
-    for (; length > 0; --length, str += 2, str_size -= 2)
+    for (; length > 0; --length, str += 2, str_size -= 2) {
         snprintf(str, str_size, "%02X", *(pdata++));
+    }
 }
 
 void leave_numbers(const char *const str_in, char *str_out) {
     int i = 0;
     while (str_in[i++] != 0) {
-        if (str_in[i] < '0' || '9' < str_in[i])
+        if (str_in[i] < '0' || '9' < str_in[i]) {
             str_out[i] = '_';
-        else {
+        } else {
             str_out[i] = str_in[i];
         }
     }
@@ -52,10 +53,12 @@ char to32(uint8_t number[], uint8_t startBit) {
         val >>= (3 - bit);
     }
 
-    if (val >= 32)
+    if (val >= 32) {
         return '!';
+    }
 
-    if (val < 10)
+    if (val < 10) {
         return char(val + '0');
+    }
     return char(val - 10 + 'A'); // 10 = A, 11 =B, ...
 }

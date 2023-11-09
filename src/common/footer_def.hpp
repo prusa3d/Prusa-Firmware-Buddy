@@ -270,12 +270,15 @@ static_assert(sizeof(ItemDrawCnf) <= 4, "invalid ctor - constexpr ItemDrawCnf(ui
 
 // 4B var, better pass by value
 constexpr bool operator==(ItemDrawCnf lhs, ItemDrawCnf rhs) {
-    if (lhs.type != rhs.type)
+    if (lhs.type != rhs.type) {
         return false;
-    if (lhs.zero != rhs.zero)
+    }
+    if (lhs.zero != rhs.zero) {
         return false;
-    if (lhs.center_n_and_fewer != rhs.center_n_and_fewer)
+    }
+    if (lhs.center_n_and_fewer != rhs.center_n_and_fewer) {
         return false;
+    }
     return true;
 }
 

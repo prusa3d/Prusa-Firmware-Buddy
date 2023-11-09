@@ -69,8 +69,9 @@ class DisableInterrupts {
 public:
     DisableInterrupts(bool disableNow = true)
         : m_primask(__get_PRIMASK()) {
-        if (disableNow)
+        if (disableNow) {
             disable();
+        }
     }
 
     ~DisableInterrupts() {

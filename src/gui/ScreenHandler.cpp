@@ -28,15 +28,18 @@ Screens::r_iter Screens::rfind_enabled_node(r_iter begin, r_iter end) {
 }
 
 void Screens::Init(const screen_node *begin, const screen_node *end) {
-    if (size_t(end - begin) > MAX_SCREENS)
+    if (size_t(end - begin) > MAX_SCREENS) {
         return;
-    if (begin == end)
+    }
+    if (begin == end) {
         return;
+    }
 
     // find last enabled creator
     iter node = find_enabled_node(begin, end);
-    if (node == end)
+    if (node == end) {
         return;
+    }
 
     // have creator
     Init(*node);
@@ -46,10 +49,12 @@ void Screens::Init(const screen_node *begin, const screen_node *end) {
 }
 
 void Screens::RInit(const screen_node *begin, const screen_node *end) {
-    if (size_t(end - begin) > MAX_SCREENS)
+    if (size_t(end - begin) > MAX_SCREENS) {
         return;
-    if (begin == end)
+    }
+    if (begin == end) {
         return;
+    }
 
     // initialize reverse iterators
     r_iter r_begin(begin);
@@ -57,8 +62,9 @@ void Screens::RInit(const screen_node *begin, const screen_node *end) {
 
     // find last enabled creator
     r_iter r_node = rfind_enabled_node(r_begin, r_end);
-    if (r_node == r_begin)
+    if (r_node == r_begin) {
         return;
+    }
 
     // have creator
     Init(*r_node);
@@ -79,10 +85,12 @@ bool Screens::GetMenuTimeout() { return menu_timeout_enabled; }
 // Push enabled creators on stack - in reverted order
 // not a bug non reverting method must use reverse iterators
 void Screens::PushBeforeCurrent(const screen_node *begin, const screen_node *end) {
-    if (size_t(end - begin) > MAX_SCREENS)
+    if (size_t(end - begin) > MAX_SCREENS) {
         return;
-    if (begin == end)
+    }
+    if (begin == end) {
         return;
+    }
 
     // initialize reverse iterators
     r_iter r_begin(begin);
@@ -100,10 +108,12 @@ void Screens::PushBeforeCurrent(const screen_node *begin, const screen_node *end
 // Push enabled creators on stack - in non reverted order
 // not a bug reverting method must use normal iterators
 void Screens::RPushBeforeCurrent(const screen_node *begin, const screen_node *end) {
-    if (size_t(end - begin) > MAX_SCREENS)
+    if (size_t(end - begin) > MAX_SCREENS) {
         return;
-    if (begin == end)
+    }
+    if (begin == end) {
         return;
+    }
 
     iter node = begin - 1; // point before begin, first call of "node + 1" will revert this
 
@@ -117,27 +127,31 @@ void Screens::RPushBeforeCurrent(const screen_node *begin, const screen_node *en
 }
 
 Screens *Screens::Access() {
-    if (!instance)
+    if (!instance) {
         bsod("Accessing uninitialized screen");
+    }
     return instance;
 }
 
 void Screens::ScreenEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *const param) {
-    if (current == nullptr)
+    if (current == nullptr) {
         return;
+    }
     // todo shouldn't I use "sender ? sender : current.get()"?
     current->ScreenEvent(current.get(), event, param);
 }
 
 void Screens::WindowEvent(GUI_event_t event, void *const param) {
-    if (current == nullptr)
+    if (current == nullptr) {
         return;
+    }
     current->WindowEvent(current.get(), event, param);
 }
 
 void Screens::Draw() {
-    if (current == nullptr)
+    if (current == nullptr) {
         return;
+    }
     current->Draw();
 }
 
@@ -213,8 +227,9 @@ void Screens::ResetTimeout() {
 void Screens::Loop() {
     if (display_reinitialized) {
         screen_t *pScr = Get();
-        if (pScr)
+        if (pScr) {
             pScr->Invalidate();
+        }
         display_reinitialized = false;
     }
     /// menu timeout logic:
@@ -261,8 +276,9 @@ void Screens::InnerLoop() {
                 if ((stack_iterator)->creator == creator_node.creator) { // screen to be opened is already opened (on top of stack)
                     *(stack.begin() + 1) = *stack_iterator; // move (copy) current screen_node, init data does not matter - they are set after screen is closed
                     stack_iterator = stack.begin() + 1; // point to current screen_node
-                    if (creator_node.init_data.IsValid()) // have some new meaningful data
+                    if (creator_node.init_data.IsValid()) { // have some new meaningful data
                         current->InitState(creator_node.init_data); // reinitialize
+                    }
                     creator_node.MakeEmpty(); // erase creator pointer, so we dont continue to open part of tis function
                 } else { // screen to be opened is not currently opened (but might be between the closed ones)
                     stack_iterator = stack.begin(); // point to screen[0] (screen[0]), keep creator_node, we will continue to open part of tis function
@@ -301,8 +317,9 @@ void Screens::InnerLoop() {
             if ((stack_iterator)->creator == creator_node.creator) { // screen to be opened is already opened (on top of stack)
                 *(stack_iterator - 1) = *stack_iterator; // move (copy) current screen_node 1 position up on stack, init data does not matter - they are set after screen is closed
                 --stack_iterator; // point to current screen_node
-                if (creator_node.init_data.IsValid()) // have some new meaningful data
+                if (creator_node.init_data.IsValid()) { // have some new meaningful data
                     current->InitState(creator_node.init_data); // reinitialize
+                }
                 creator_node.MakeEmpty(); // erase creator pointer, so we dont continue to open part of tis function
             } else { // screen to be opened is not currently opened (but might be between the closed ones)
                 --stack_iterator; // point to screen_node 1 position up on stack
@@ -335,8 +352,9 @@ void Screens::InnerLoop() {
         }
 
         /// without a reset screens does not behave correctly, because they occupy the same memory space as the new screen to be created
-        if (current)
+        if (current) {
             current.reset();
+        }
 
         /// need to reset focused and capture ptr before calling current = creator();
         /// screen ctor can change those pointers

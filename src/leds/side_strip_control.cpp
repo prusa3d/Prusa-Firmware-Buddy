@@ -199,12 +199,13 @@ SideStripControl::HsvColor SideStripControl::RgbToHsv(Color rgb) {
         return hsv;
     }
 
-    if (rgb_max == rgb.r)
+    if (rgb_max == rgb.r) {
         hsv.h = 0 + 43 * (rgb.g - rgb.b) / (rgb_max - rgb_min);
-    else if (rgb_max == rgb.g)
+    } else if (rgb_max == rgb.g) {
         hsv.h = 85 + 43 * (rgb.b - rgb.r) / (rgb_max - rgb_min);
-    else
+    } else {
         hsv.h = 171 + 43 * (rgb.r - rgb.g) / (rgb_max - rgb_min);
+    }
 
     return hsv;
 }

@@ -55,17 +55,20 @@ public:
     void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect = true) const;
     bool NeedInit() const { return phase == phase_t::uninitialized; }
     void Reset() {
-        if (phase != phase_t::uninitialized)
+        if (phase != phase_t::uninitialized) {
             phase = phase_t::init_roll;
+        }
     }
     void Deinit() { phase = phase_t::uninitialized; }
     void Stop() {
-        if (phase != phase_t::uninitialized)
+        if (phase != phase_t::uninitialized) {
             phase = phase_t::idle;
+        }
     }
     void Pause() {
-        if (phase != phase_t::uninitialized)
+        if (phase != phase_t::uninitialized) {
             phase = phase_t::paused;
+        }
     }
     static bool HasInstance() { return instance_counter != 0; }
     static uint32_t GetBaseTick() { return base_tick_ms; }

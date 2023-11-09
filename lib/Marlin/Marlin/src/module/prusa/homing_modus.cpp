@@ -7,10 +7,12 @@
 /// @return -512 .. +512
 int to_calibrated(const int calibrated, const int value) {
     const int diff = calibrated - value;
-    if (std::abs(diff) <= 512)
+    if (std::abs(diff) <= 512) {
         return diff;
-    if (diff < 0)
+    }
+    if (diff < 0) {
         return 1024 + diff;
+    }
     return diff - 1024;
 }
 

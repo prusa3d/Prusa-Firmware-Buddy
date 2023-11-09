@@ -25,8 +25,9 @@ bool SteelSheets::IsSheetCalibrated(uint32_t index) {
     return !nearlyEqual(sheet.z_offset, config_store_ns::z_offset_uncalibrated, 0.001f);
 }
 bool SteelSheets::SelectSheet(uint32_t index) {
-    if (index >= config_store_ns::sheets_num)
+    if (index >= config_store_ns::sheets_num) {
         return false;
+    }
 
     uint8_t index_ui8 = index;
     config_store().active_sheet.set(index_ui8);
@@ -38,13 +39,15 @@ bool SteelSheets::SelectSheet(uint32_t index) {
     return true;
 }
 bool SteelSheets::ResetSheet(uint32_t index) {
-    if (index >= config_store_ns::sheets_num)
+    if (index >= config_store_ns::sheets_num) {
         return false;
+    }
     uint8_t active = activeSheetIndex();
 
     setSheetOffset(index, config_store_ns::z_offset_uncalibrated);
-    if (active == index)
+    if (active == index) {
         NextSheet();
+    }
     return true;
 }
 uint32_t SteelSheets::activeSheetIndex() {
@@ -53,31 +56,36 @@ uint32_t SteelSheets::activeSheetIndex() {
 uint32_t SteelSheets::NumOfCalibrated() {
     uint32_t count = 1;
     for (size_t i = 1; i < config_store_ns::sheets_num; ++i) {
-        if (IsSheetCalibrated(i))
+        if (IsSheetCalibrated(i)) {
             ++count;
+        }
     }
     return count;
 }
 uint32_t SteelSheets::ActiveSheetName(char *buffer, uint32_t length) {
-    if (!buffer || !length)
+    if (!buffer || !length) {
         return 0;
+    }
     uint8_t index = activeSheetIndex();
     return SheetName(index, buffer, length);
 }
 uint32_t SteelSheets::SheetName(uint32_t index, char *buffer, uint32_t length) {
-    if (index >= config_store_ns::sheets_num || !buffer || !length)
+    if (index >= config_store_ns::sheets_num || !buffer || !length) {
         return 0;
+    }
     uint32_t l = length < static_cast<uint32_t>(MAX_SHEET_NAME_LENGTH) ? length : static_cast<uint32_t>(MAX_SHEET_NAME_LENGTH);
     auto sheet = getSheet(index);
     memcpy(buffer, sheet.name, l);
-    while (l > 0 && !buffer[l - 1])
+    while (l > 0 && !buffer[l - 1]) {
         --l;
+    }
     return l;
 }
 uint32_t SteelSheets::RenameSheet(uint32_t index, const char *buffer, uint32_t length) {
 
-    if (index >= config_store_ns::sheets_num || !buffer || !length)
+    if (index >= config_store_ns::sheets_num || !buffer || !length) {
         return false;
+    }
 
     auto sheet = getSheet(index);
     uint32_t l = length < static_cast<uint32_t>(MAX_SHEET_NAME_LENGTH) ? length : static_cast<uint32_t>(MAX_SHEET_NAME_LENGTH);
@@ -97,8 +105,9 @@ void SteelSheets::updateMarlin(float offset) {
     marlin_client::set_z_offset(offset);
 }
 void SteelSheets::SetZOffset(float offset) {
-    if (!std::isfinite(offset))
+    if (!std::isfinite(offset)) {
         offset = 0.F;
+    }
     offset = std::clamp(offset, zOffsetMin, zOffsetMax);
 
     uint8_t index = activeSheetIndex();

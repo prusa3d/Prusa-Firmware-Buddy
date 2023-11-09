@@ -17,10 +17,13 @@ constexpr PinChecker pinsToCheck[] = {
 };
 
 constexpr bool has_duplicates(const PinChecker (&array)[std::size(pinsToCheck)]) {
-    for (size_t i = 1; i < std::size(array); i++)
-        for (size_t j = 0; j < i; j++)
-            if ((array[i].getPort() == array[j].getPort()) && (array[i].getPin() == array[j].getPin()))
+    for (size_t i = 1; i < std::size(array); i++) {
+        for (size_t j = 0; j < i; j++) {
+            if ((array[i].getPort() == array[j].getPort()) && (array[i].getPin() == array[j].getPin())) {
                 return true;
+            }
+        }
+    }
     return false;
 }
 

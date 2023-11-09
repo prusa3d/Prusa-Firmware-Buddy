@@ -157,13 +157,15 @@ bool FilamentSensors::run_sensors_cycle() {
     HOTEND_LOOP() {
         if (IFSensor *s = GetExtruderFSensor(e); s != nullptr) {
             s->Cycle();
-            if (s->Get() == fsensor_t::NotInitialized)
+            if (s->Get() == fsensor_t::NotInitialized) {
                 any_not_intitialized = true;
+            }
         }
         if (IFSensor *s = GetSideFSensor(e); s != nullptr) {
             s->Cycle();
-            if (s->Get() == fsensor_t::NotInitialized)
+            if (s->Get() == fsensor_t::NotInitialized) {
                 any_not_intitialized = true;
+            }
         }
     }
     return any_not_intitialized;
@@ -222,12 +224,14 @@ void FilamentSensors::Cycle() {
     }
     if (!PrintProcessor::IsPrinting()
         || (!option::has_human_interactions && PrintProcessor::IsPaused())) {
-        if (events.autoload)
+        if (events.autoload) {
             opt_event_autoload = evaluateAutoload(*events.autoload);
+        }
     }
 
-    if (isEvLocked())
+    if (isEvLocked()) {
         return;
+    }
 
     // gcode is injected outside critical section, so critical section is as short as possible
     // also injection of GCode inside critical section might not work

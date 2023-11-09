@@ -21,8 +21,9 @@ inline QueueHandle_t xQueueCreate(uint32_t uxQueueLength, uint32_t uxItemSize) {
 
 template <class T>
 inline int xQueueReceiveTest(std::queue<T> *queue, void *const pvBuffer) {
-    if (queue->empty())
+    if (queue->empty()) {
         return pdFAIL;
+    }
     T *const pT = (T *const)pvBuffer;
     *pT = queue->front();
     queue->pop();

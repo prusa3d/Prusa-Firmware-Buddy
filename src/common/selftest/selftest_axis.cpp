@@ -68,8 +68,9 @@ void CSelftestPart_Axis::phaseMove(int8_t dir) {
     #endif
         ;
 
-    if (enable_sensorless_homing)
+    if (enable_sensorless_homing) {
         start_sensorless_homing_per_axis(AxisEnum(config.axis));
+    }
 #endif
 
     current_position.pos[config.axis] += dir * (config.length + EXTRA_LEN_MM);
@@ -78,8 +79,9 @@ void CSelftestPart_Axis::phaseMove(int8_t dir) {
 
 LoopResult CSelftestPart_Axis::wait(int8_t dir) {
     actualizeProgress();
-    if (planner.processing())
+    if (planner.processing()) {
         return LoopResult::RunCurrent;
+    }
     sg_sampling_disable();
 
     set_current_from_steppers();
@@ -126,8 +128,9 @@ uint32_t CSelftestPart_Axis::estimate_move(float len_mm, float fr_mms) {
 }
 
 void CSelftestPart_Axis::sg_sample_cb(uint8_t axis, uint16_t sg) {
-    if (m_pSGAxis && (m_pSGAxis->config.axis == axis))
+    if (m_pSGAxis && (m_pSGAxis->config.axis == axis)) {
         m_pSGAxis->sg_sample(sg);
+    }
 }
 
 void CSelftestPart_Axis::sg_sample(uint16_t sg) {
@@ -280,8 +283,9 @@ LoopResult CSelftestPart_Axis::stateHomeZ() {
 }
 
 LoopResult CSelftestPart_Axis::stateWaitHome() {
-    if (queue.has_commands_queued() || planner.processing())
+    if (queue.has_commands_queued() || planner.processing()) {
         return LoopResult::RunCurrent;
+    }
     endstops.enable(true);
     return LoopResult::RunNext;
 }
@@ -362,8 +366,9 @@ LoopResult CSelftestPart_Axis::stateParkAxis() {
 }
 
 void CSelftestPart_Axis::actualizeProgress() const {
-    if (time_progress_start == time_progress_estimated_end)
+    if (time_progress_start == time_progress_estimated_end) {
         return; // don't have estimated end set correctly
+    }
     rResult.progress = scale_percent_avoid_overflow(SelftestInstance().GetTime(), time_progress_start, time_progress_estimated_end);
 }
 

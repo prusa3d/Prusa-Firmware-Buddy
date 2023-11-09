@@ -107,8 +107,9 @@ void run_once_after_boot() {
                 return;
             }
         }
-        if (reset_pp)
+        if (reset_pp) {
             power_panic::reset();
+        }
     }
 #endif
 

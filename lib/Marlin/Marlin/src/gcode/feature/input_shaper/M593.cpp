@@ -165,50 +165,56 @@ void GcodeSuite::M593() {
 
     if (parser.seen('D')) {
         const float dr = parser.value_float();
-        if (WITHIN(dr, 0., 1.))
+        if (WITHIN(dr, 0., 1.)) {
             params.axis.damping_ratio = dr;
-        else
+        } else {
             SERIAL_ECHO_MSG("?Damping ratio (D) value out of range (0-1)");
+        }
     }
 
     if (parser.seen('F')) {
         const float f = parser.value_float();
-        if (f >= 0)
+        if (f >= 0) {
             params.axis.frequency = f;
-        else
+        } else {
             SERIAL_ECHO_MSG("?Frequency (X) must be greater or equal to 0");
+        }
     }
 
     if (parser.seen('T')) {
         const int t = parser.value_int();
-        if (WITHIN(t, 0, (int)input_shaper::Type::last))
+        if (WITHIN(t, 0, (int)input_shaper::Type::last)) {
             params.axis.type = static_cast<input_shaper::Type>(t);
-        else
+        } else {
             SERIAL_ECHO_MSG("?Invalid type of input shaper (T)");
+        }
     }
 
     if (parser.seen('R')) {
         const float vr = parser.value_float();
-        if (vr > 0)
+        if (vr > 0) {
             params.axis.vibration_reduction = vr;
-        else
+        } else {
             SERIAL_ECHO_MSG("?Vibration reduction (X) must be greater than 0");
+        }
     }
 
     if (parser.seen('A')) {
         const float a = parser.value_float();
-        if (a < 0)
+        if (a < 0) {
             params.weight_adjust.frequency_delta = a;
-        else
+        } else {
             SERIAL_ECHO_MSG("?Weight adjust frequency delta (A) must be lesser than 0");
+        }
     }
 
     if (parser.seen('M')) {
         const float m = parser.value_float();
-        if (m >= 0)
+        if (m >= 0) {
             params.weight_adjust.mass_limit = m;
-        else
+        } else {
             SERIAL_ECHO_MSG("?Weight adjust mass limit (M) must be greater or equal to 0");
+        }
     }
 
     input_shaper::M593_internal(params);

@@ -233,8 +233,9 @@ void Sound::_playSound(eSOUND_TYPE type, eSOUND_MODE mode) {
 void Sound::play(eSOUND_TYPE eSoundType) {
     eSOUND_MODE mode = eSoundMode;
 
-    if (eSoundType == eSOUND_TYPE::CriticalAlert || eSoundType == eSOUND_TYPE::SingleBeepAlwaysLoud)
+    if (eSoundType == eSOUND_TYPE::CriticalAlert || eSoundType == eSOUND_TYPE::SingleBeepAlwaysLoud) {
         mode = eSOUND_MODE::LOUD;
+    }
 
     switch (mode) {
     case eSOUND_MODE::ONCE:

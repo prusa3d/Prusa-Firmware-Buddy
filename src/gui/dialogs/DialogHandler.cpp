@@ -50,8 +50,9 @@ static void OpenPrintScreen(ClientFSM dialog) {
 //*****************************************************************************
 // method definitions
 void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
-    if (ptr)
+    if (ptr) {
         return; // the dialog is already opened, not an error (TODO really?)
+    }
 
     {
         auto screen = Screens::Access()->Get();
@@ -153,8 +154,9 @@ void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
         }
         break;
     default:
-        if (ptr)
+        if (ptr) {
             ptr->Change(data);
+        }
     }
 }
 
@@ -222,8 +224,9 @@ void DialogHandler::command(fsm::DequeStates changes) {
 
 void DialogHandler::Loop() {
     std::optional<fsm::DequeStates> change = command_queue.dequeue();
-    if (!change)
+    if (!change) {
         return;
+    }
 
     command(*change);
 }

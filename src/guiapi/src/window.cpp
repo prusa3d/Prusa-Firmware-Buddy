@@ -25,14 +25,16 @@ bool window_t::IsCapturable() const { return IsVisible() || HasEnforcedCapture()
 bool window_t::HasIcon() const { return flags.has_icon; }
 
 void window_t::SetHasIcon() {
-    if (flags.has_icon)
+    if (flags.has_icon) {
         return;
+    }
     flags.has_icon = true;
     Invalidate();
 }
 void window_t::ClrHasIcon() {
-    if (!flags.has_icon)
+    if (!flags.has_icon) {
         return;
+    }
     flags.has_icon = false;
     Invalidate();
 }
@@ -116,10 +118,12 @@ void window_t::DisableLongHoldScreenAction() { flags.has_long_hold_screen_action
 void window_t::EnableLongHoldScreenAction() { flags.has_long_hold_screen_action = true; };
 
 void window_t::SetFocus() {
-    if (!flags.visible || !flags.enabled) // IsVisible() is not used -> window behind the dialog can be set by this
+    if (!flags.visible || !flags.enabled) { // IsVisible() is not used -> window behind the dialog can be set by this
         return;
-    if (focused_ptr == this)
+    }
+    if (focused_ptr == this) {
         return;
+    }
 
     if (focused_ptr) {
         focused_ptr->Invalidate();
@@ -147,8 +151,9 @@ void window_t::set_visible(bool set) {
 }
 
 void window_t::notifyVisibilityChange() {
-    if (GetParent())
+    if (GetParent()) {
         GetParent()->ChildVisibilityChanged(*this);
+    }
 }
 
 // do nothing screen/frame will do something ...
@@ -224,21 +229,24 @@ window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_
     close == is_closed_on_click_t::yes ? Enable() : Disable();
     flags.visible = true; // do not call show, it needs parent to be registered
     Invalidate();
-    if (parent)
+    if (parent) {
         parent->RegisterSubWin(*this);
+    }
 }
 
 window_t::~window_t() {
     gui_timers_delete_by_window(this);
-    if (GetFocusedWindow() == this)
+    if (GetFocusedWindow() == this) {
         focused_ptr = nullptr;
+    }
 
     // if this window has captured, than it will be passed automaticaly to previous one
     // because last window in screen has it, no code needed
 
     // win_type_t::normal must be unregistered so ~window_frame_t can has functional linked list
-    if (GetParent())
+    if (GetParent()) {
         GetParent()->UnregisterSubWin(*this);
+    }
 
     Screens::Access()->ResetTimeout();
 }
@@ -320,8 +328,9 @@ window_t *window_t::GetPrev() const {
 */
 
 window_t *window_t::GetNextEnabled() const {
-    if (next)
+    if (next) {
         return (next->IsEnabled()) ? next.ptr() : next->GetNextEnabled();
+    }
     return nullptr;
 }
 
@@ -342,8 +351,9 @@ window_t *window_t::GetParent() const {
 bool window_t::IsChildOf(window_t *win) const {
     window_t *par = GetParent();
     while (par) {
-        if (par == win)
+        if (par == win) {
             return true;
+        }
 
         par = par->GetParent();
     }
@@ -366,11 +376,13 @@ void window_t::draw() {
 // window does not support subwindow elements, but window_frame does
 bool window_t::RegisterSubWin(window_t &win) {
     // window must fit inside frame
-    if (!GetRect().Contain(win.GetRect())) // could speed this up, but prefer smaller codesize
+    if (!GetRect().Contain(win.GetRect())) { // could speed this up, but prefer smaller codesize
         return false;
+    }
     // parrent has relative subwins, child must have them too
-    if (flags.has_relative_subwins)
+    if (flags.has_relative_subwins) {
         win.SetRelativeSubwins();
+    }
 
     Screens::Access()->ResetTimeout();
 
@@ -378,8 +390,9 @@ bool window_t::RegisterSubWin(window_t &win) {
 }
 
 void window_t::UnregisterSubWin(window_t &win) {
-    if (win.GetParent() != this)
+    if (win.GetParent() != this) {
         return;
+    }
     addInvalidationRect(win.GetRect());
     unregisterSubWin(win);
     Screens::Access()->ResetTimeout();

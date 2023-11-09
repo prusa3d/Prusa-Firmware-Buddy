@@ -46,12 +46,14 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     for (int i = 0; i < project_version_full_len; i += max_chars_per_line) {
         int line_length;
-        if ((project_version_full_len - i) < max_chars_per_line)
+        if ((project_version_full_len - i) < max_chars_per_line) {
             line_length = (project_version_full_len - i);
-        else
+        } else {
             line_length = max_chars_per_line;
-        if (end > begin)
+        }
+        if (end > begin) {
             begin += snprintf(begin, end - begin, "%.*s\n", line_length, project_version_full + i);
+        }
     }
 
     if (end > begin) {

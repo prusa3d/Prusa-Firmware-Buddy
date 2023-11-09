@@ -73,8 +73,9 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
         written += http::render_chunk(handling, buffer, buffer_size, [&](uint8_t *buffer_, size_t buffer_size_) {
             int got = 0;
             for (size_t i = 0; i < buffer_size_; i++) {
-                if (gcode.get()->stream_getc(*reinterpret_cast<char *>(&buffer_[i])) != IGcodeReader::Result_t::RESULT_OK)
+                if (gcode.get()->stream_getc(*reinterpret_cast<char *>(&buffer_[i])) != IGcodeReader::Result_t::RESULT_OK) {
                     break;
+                }
                 ++got;
             }
             if (got > 0) {

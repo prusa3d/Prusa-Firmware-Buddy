@@ -136,28 +136,32 @@ static constexpr int is_pwm_id_valid(int i_pwm) {
 
 static constexpr int hwio_pwm_get_max(int i_pwm) // pwm output maximum value
 {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return -1;
+    }
     return _pwm_max[i_pwm];
 }
 
 uint32_t _pwm_get_chan(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return -1;
+    }
     return _pwm_chan[i_pwm];
 }
 
 TIM_HandleTypeDef *_pwm_get_htim(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         i_pwm = 0;
+    }
 
     return _pwm_p_htim[i_pwm];
 }
 
 void hwio_pwm_set_val(int i_pwm, uint32_t val) // write pwm output and update _pwm_analogWrite_val
 {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return;
+    }
 
     uint32_t chan = _pwm_get_chan(i_pwm);
     TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
@@ -189,14 +193,15 @@ void __pwm_set_val(TIM_HandleTypeDef *htim, uint32_t pchan, int val) // write pw
 {
     if (htim->Init.Period) {
         TIM_OC_InitTypeDef sConfigOC = sConfigOC_default;
-        if (val)
+        if (val) {
             sConfigOC.Pulse = val;
-        else {
+        } else {
             sConfigOC.Pulse = htim->Init.Period;
-            if (sConfigOC.OCPolarity == TIM_OCPOLARITY_HIGH)
+            if (sConfigOC.OCPolarity == TIM_OCPOLARITY_HIGH) {
                 sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
-            else
+            } else {
                 sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+            }
         }
         if (HAL_TIM_PWM_Stop(htim, pchan) != HAL_OK) {
             Error_Handler();
@@ -215,8 +220,9 @@ void __pwm_set_val(TIM_HandleTypeDef *htim, uint32_t pchan, int val) // write pw
 }
 
 void _hwio_pwm_analogWrite_set_val(int i_pwm, int val) {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return;
+    }
 
     switch (i_pwm) {
     case HWIO_PWM_HEATER_0:
@@ -243,10 +249,12 @@ float hwio_beeper_get_vol(void) {
 }
 
 void hwio_beeper_set_vol(float vol) {
-    if (vol < 0)
+    if (vol < 0) {
         vol *= -1;
-    if (vol > 1)
+    }
+    if (vol > 1) {
         vol = 1;
+    }
     hwio_beeper_vol = vol;
 }
 
@@ -270,8 +278,9 @@ void hwio_beeper_set_pwm(uint32_t per, uint32_t pul) {
         sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
         HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
         HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-    } else
+    } else {
         HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
+    }
 }
 #else
 void hwio_beeper_set_pwm([[maybe_unused]] uint32_t per, [[maybe_unused]] uint32_t pul) {} // Without display, there is no beeper to beep.
@@ -281,10 +290,12 @@ void hwio_beeper_tone(float frq, uint32_t del) {
     uint32_t per;
     uint32_t pul;
     if (frq && del && hwio_beeper_vol) {
-        if (frq < 0)
+        if (frq < 0) {
             frq *= -1;
-        if (frq > 100000)
+        }
+        if (frq > 100000) {
             frq = 100000;
+        }
 #if HAS_BEEPER_WITHOUT_PWM
         per = (uint32_t)(1'000.0F / frq);
         pul = (uint32_t)(del / per);
@@ -296,8 +307,9 @@ void hwio_beeper_tone(float frq, uint32_t del) {
         hwio_beeper_set_pwm(per, pul);
         hwio_beeper_del = del;
 #endif
-    } else
+    } else {
         hwio_beeper_notone();
+    }
 }
 
 void hwio_beeper_tone2(float frq, uint32_t del, float vol) {
@@ -315,8 +327,9 @@ void hwio_beeper_notone(void) {
 
 void hwio_update_1ms(void) {
 #if !HAS_BEEPER_WITHOUT_PWM
-    if ((hwio_beeper_del) && ((--hwio_beeper_del) == 0))
+    if ((hwio_beeper_del) && ((--hwio_beeper_del) == 0)) {
         hwio_beeper_set_pwm(0, 0);
+    }
 #elif HAS_GUI() && !(_DEBUG)
     static uint32_t skips = 0;
     if (skips < hwio_beeper_period - 1) {
@@ -526,8 +539,9 @@ uint32_t analogRead(uint32_t ulPin) {
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_RD, ulPin); // error: undefined pin analog read
         }
-    } else
+    } else {
         hwio_arduino_error(HWIO_ERR_UNINI_ANA_RD, ulPin); // error: uninitialized analog read
+    }
     return 0;
 }
 
@@ -553,8 +567,9 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_WR, ulPin); // error: undefined pin analog write
         }
-    } else
+    } else {
         hwio_arduino_error(HWIO_ERR_UNINI_ANA_WR, ulPin); // error: uninitialized analog write
+    }
 }
 
 void pinMode([[maybe_unused]] uint32_t ulPin, [[maybe_unused]] uint32_t ulMode) {

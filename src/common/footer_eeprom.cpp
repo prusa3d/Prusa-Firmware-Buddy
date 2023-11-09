@@ -56,8 +56,9 @@ ItemDrawCnf load_item_draw_cnf() {
 }
 
 changed_t set(ItemDrawCnf cnf) {
-    if (get_draw_cnf_ref() == cnf)
+    if (get_draw_cnf_ref() == cnf) {
         return changed_t::no;
+    }
     config_store().footer_draw_type.set(static_cast<uint32_t>(cnf));
     get_draw_cnf_ref() = cnf;
     return changed_t::yes;

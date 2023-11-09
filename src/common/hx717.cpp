@@ -66,8 +66,9 @@ int32_t HX717::ReadValue(Channel nextChannel, uint32_t readyTimestamp) {
     static constexpr int32_t loopCycles = 2;
     static constexpr int32_t disableEnableIrqCycles = 2;
 
-    if (!IsValueReady())
+    if (!IsValueReady()) {
         goto reset;
+    }
 
     // Disable the IRQ before it starts to trigger due to the data read
     hx717Dout.disableIRQ();
@@ -111,8 +112,9 @@ int32_t HX717::ReadValue(Channel nextChannel, uint32_t readyTimestamp) {
     }
 
     // extend 2's complement to 32bits
-    if (result >= 0x800000)
+    if (result >= 0x800000) {
         result |= 0xFF000000;
+    }
 
     if (IsValueReady() || result < -0x7FFFFF || result > 0x7FFFFF) {
         // DOUT should automatically switch off after a correct readout. If that happens, and/or if

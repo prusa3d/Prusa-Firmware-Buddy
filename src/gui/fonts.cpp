@@ -62,7 +62,8 @@ const uint16_t resource_table_size = sizeof(resource_table);
 const uint16_t resource_count = sizeof(resource_table) / sizeof(resource_entry_t);
 
 font_t *resource_font(ResourceId id) {
-    if (id < resource_count)
+    if (id < resource_count) {
         return (font_t *)resource_table[id].ptr;
+    }
     return 0;
 }

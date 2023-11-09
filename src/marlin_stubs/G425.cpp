@@ -204,8 +204,9 @@ inline void set_nozzle([[maybe_unused]] measurements_t &m, const uint8_t extrude
 
 #if HAS_HOTEND_OFFSET
 inline void normalize_hotend_offsets() {
-    for (uint8_t e = 1; e < HOTENDS; e++)
+    for (uint8_t e = 1; e < HOTENDS; e++) {
         hotend_offset[e] -= hotend_offset[0];
+    }
     hotend_offset[0].reset();
     hotend_offset[PrusaToolChanger::MARLIN_NO_TOOL_PICKED].reset(); // Avoid offset on no tool
 }
@@ -219,8 +220,9 @@ xy_pos_t pos_on_circle(float radius, int idx, int total_points) {
 
 // This function requires normalize_hotend_offsets() to be called
 inline void report_hotend_offsets() {
-    for (uint8_t e = 1; e < HOTENDS; e++)
+    for (uint8_t e = 1; e < HOTENDS; e++) {
         SERIAL_ECHOLNPAIR("T", int(e), " Hotend Offset X", hotend_offset[e].x, " Y", hotend_offset[e].y, " Z", hotend_offset[e].z);
+    }
 }
 
 xy_pos_t closest_point_on_circle(const xy_pos_t point, const xy_pos_t center, const float radius) {
@@ -753,14 +755,16 @@ void GcodeSuite::G425() {
     TEMPORARY_SOFT_ENDSTOP_STATE(false);
     TEMPORARY_BED_LEVELING_STATE(false);
 
-    if (axis_unhomed_error())
+    if (axis_unhomed_error()) {
         return;
+    }
 
     measurements_t m;
 
-    if (parser.seen('T'))
+    if (parser.seen('T')) {
         calibrate_toolhead(m, parser.has_value() ? parser.value_int() : active_extruder);
-    else
+    } else {
         // calibrate_all();
         calibrate_all_simple();
+    }
 }

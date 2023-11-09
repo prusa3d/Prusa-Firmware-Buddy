@@ -23,8 +23,9 @@ constexpr InputIt find_if_not(InputIt first, InputIt last, UnaryPredicate q) {
 template <class ForwardIt, class UnaryPredicate>
 constexpr ForwardIt partition(ForwardIt first, ForwardIt last, UnaryPredicate p) {
     first = find_if_not(first, last, p);
-    if (first == last)
+    if (first == last) {
         return first;
+    }
 
     for (ForwardIt i = std::next(first); i != last; ++i) {
         if (p(*i)) {
@@ -38,8 +39,9 @@ constexpr ForwardIt partition(ForwardIt first, ForwardIt last, UnaryPredicate p)
 template <class RAIt, class Compare = std::less<>>
 constexpr void quick_sort(RAIt first, RAIt last, Compare cmp = Compare {}) {
     auto const N = std::distance(first, last);
-    if (N <= 1)
+    if (N <= 1) {
         return;
+    }
     auto const pivot = *std::next(first, N / 2);
     auto const middle1 = partition(first, last, [=](auto const &elem) {
         return cmp(elem, pivot);

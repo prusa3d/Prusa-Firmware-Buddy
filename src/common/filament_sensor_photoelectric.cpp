@@ -67,8 +67,9 @@ void FSensorPhotoElectric::record_state() {
 // without filter fs_meas_cycle1 could set FS_NO_SENSOR (in case filament just runout)
 void FSensorPhotoElectric::set_state(fsensor_t st) {
     CriticalSection C;
-    if (last_state == st)
+    if (last_state == st) {
         state = st;
+    }
     last_state = st;
 }
 

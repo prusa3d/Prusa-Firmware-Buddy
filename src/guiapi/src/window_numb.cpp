@@ -16,12 +16,14 @@ void window_numb_t::unconditionalDraw() {
     if (!(flags.color_scheme_background || flags.color_scheme_foreground)) {
         clr_back = (IsFocused()) ? GetTextColor() : GetBackColor();
         clr_text = (IsFocused()) ? GetBackColor() : GetTextColor();
-        if (IsShadowed())
+        if (IsShadowed()) {
             clr_text = COLOR_GRAY;
+        }
     }
 
-    if (IsCaptured()) // capture color could be part of color scheme, but currently it is used only here
+    if (IsCaptured()) { // capture color could be part of color scheme, but currently it is used only here
         clr_text = COLOR_ORANGE;
+    }
 
     char text[WINDOW_NUMB_MAX_TEXT];
     switch (printAs) {

@@ -168,8 +168,9 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 
     auto buffer_size = bootloader_sector_get_size(0);
     auto buffer_mem = std::make_unique<uint8_t[]>(buffer_size);
-    if (buffer_mem.get() == nullptr)
+    if (buffer_mem.get() == nullptr) {
         bsod("Not enough memory");
+    }
     auto buffer = std::span<uint8_t>(buffer_mem.get(), buffer_size);
 
     for (unsigned sector = 0; sector < buddy::bootloader::bootloader_sector_count; sector++) {

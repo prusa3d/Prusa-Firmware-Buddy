@@ -29,24 +29,27 @@ static workspace_xyz_t disable_workspace(bool do_x, bool do_y, bool do_z) {
         changed = true;
     }
 
-    if (changed)
+    if (changed) {
         sync_plan_position();
+    }
 
     return res;
 }
 #endif // HAS_WORKSPACE_OFFSET
 
 bool disable_modifiers_if(bool condition, bool do_z) {
-    if (!condition)
+    if (!condition) {
         return false;
+    }
 
     bool leveling_was_active = false;
 #if HAS_LEVELING
     #if ENABLED(RESTORE_LEVELING_AFTER_G28)
     leveling_was_active = planner.leveling_active;
     #else
-    if (!do_z)
+    if (!do_z) {
         leveling_was_active = planner.leveling_active;
+    }
     #endif
     set_bed_leveling_enabled(false);
 #endif
@@ -61,16 +64,18 @@ bool disable_modifiers_if(bool condition, bool do_z) {
 }
 
 void enable_modifiers_if(bool condition, bool restore_leveling) {
-    if (!condition)
+    if (!condition) {
         return;
+    }
 
 #if ENABLED(SKEW_CORRECTION)
     skew(current_position);
 #endif
 
 #if HAS_LEVELING
-    if (restore_leveling)
+    if (restore_leveling) {
         set_bed_leveling_enabled(true);
+    }
 #endif
     sync_plan_position();
 }
@@ -78,8 +83,9 @@ void enable_modifiers_if(bool condition, bool restore_leveling) {
 Motion_Parameters reset_acceleration_if(bool condition) {
     Motion_Parameters mp;
     mp.save();
-    if (!condition)
+    if (!condition) {
         return mp;
+    }
 
     mp.reset();
 
@@ -96,8 +102,9 @@ Motion_Parameters reset_acceleration_if(bool condition) {
 }
 
 void restore_acceleration_if(bool condition, Motion_Parameters &mp) {
-    if (!condition)
+    if (!condition) {
         return;
+    }
 
     restore_feedrate_and_scaling();
     mp.load();
@@ -106,8 +113,9 @@ void restore_acceleration_if(bool condition, Motion_Parameters &mp) {
 
 el_current_xyz_t reset_current_if(bool condition) {
     el_current_xyz_t curr = { stepperX.rms_current(), stepperY.rms_current(), stepperZ.rms_current() };
-    if (!condition)
+    if (!condition) {
         return curr;
+    }
 
     stepperX.rms_current(get_default_rms_current_ma_x());
     stepperY.rms_current(get_default_rms_current_ma_y());
@@ -116,8 +124,9 @@ el_current_xyz_t reset_current_if(bool condition) {
 }
 
 void restore_current_if(bool condition, el_current_xyz_t current) {
-    if (!condition)
+    if (!condition) {
         return;
+    }
 
     stepperX.rms_current(current.x);
     stepperY.rms_current(current.y);

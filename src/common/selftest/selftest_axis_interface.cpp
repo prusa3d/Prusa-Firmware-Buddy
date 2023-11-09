@@ -18,8 +18,9 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
     static SelftestSingleAxis_t staticResults[axis_count];
 
     // validity check
-    if (config_axis.axis >= axis_count)
+    if (config_axis.axis >= axis_count) {
         return false;
+    }
 
     if (m_pAxis == nullptr) {
         // Convert from EEPROM test state to GUI subtest state

@@ -177,8 +177,9 @@ void ScreenSelftest::Change(fsm::BaseData data) {
         CaptureNormalWindow(*ptr);
         return;
     }
-    if (!ptr)
+    if (!ptr) {
         return; // should never happen
+    }
 
     ptr->Change(phase, data.GetData());
 }

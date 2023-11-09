@@ -60,8 +60,9 @@ void GcodeSuite::M701() {
     const uint8_t preheat = parser.byteval('W', 255);
 
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
-    if (target_extruder < 0)
+    if (target_extruder < 0) {
         return;
+    }
 
     // TODO colision with "PLA" string
     const float mmu_slot = parser.intval('P', -1);
@@ -105,8 +106,9 @@ void GcodeSuite::M702() {
     const bool ask_unloaded = parser.seen('I');
 
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
-    if (target_extruder < 0)
+    if (target_extruder < 0) {
         return;
+    }
 
     std::optional<RetAndCool_t> op_preheat = std::nullopt;
     if (preheat <= uint8_t(RetAndCool_t::last_)) {

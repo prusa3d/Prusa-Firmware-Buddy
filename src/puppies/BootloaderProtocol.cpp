@@ -80,12 +80,14 @@ BootloaderProtocol::status_t BootloaderProtocol::read_status(uint8_t *datain, si
 
 BootloaderProtocol::status_t BootloaderProtocol::run_transaction(commands_t cmd, uint8_t wr_data_len, uint8_t *read_data, size_t read_data_max, size_t *read_data_len, uint32_t read_timeout_response) {
     auto res = write_command(cmd, wr_data_len);
-    if (res != status_t::COMMAND_OK)
+    if (res != status_t::COMMAND_OK) {
         return res;
+    }
 
     res = read_status(read_data, read_data_max, read_data_len, read_timeout_response);
-    if (res != status_t::COMMAND_OK)
+    if (res != status_t::COMMAND_OK) {
         return res;
+    }
 
     return status_t::COMMAND_OK;
 }
@@ -213,8 +215,9 @@ BootloaderProtocol::status_t BootloaderProtocol::write_flash(uint32_t len,
         }
 
         auto res = write_flash_cmd(offset, nextlen);
-        if (res != status_t::COMMAND_OK)
+        if (res != status_t::COMMAND_OK) {
             return res;
+        }
 
         offset += nextlen;
     }

@@ -37,8 +37,9 @@ static constexpr Sensor first_sensor_to_log = Sensor::printFan;
 #endif
 bool SensorDataBuffer::enableMetrics() {
 
-    if (allMetricsEnabled)
+    if (allMetricsEnabled) {
         return true;
+    }
     size_t count = 0;
     metric_handler_t *handler = getHandler();
     if (!handler) {

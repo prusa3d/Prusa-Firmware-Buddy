@@ -86,16 +86,18 @@ void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
     color_t clr_back, color_t clr_text, [[maybe_unused]] padding_ui8_t padding, [[maybe_unused]] Align_t alignment, bool fill_rect) const {
 
     if (text.isNULLSTR()) {
-        if (fill_rect)
+        if (fill_rect) {
             display::FillRect(rc, clr_back);
+        }
         return;
     }
 
     uint8_t unused_pxls = rect.Width() % font->w;
     if (unused_pxls) {
         Rect16 rc_unused_pxls = { int16_t(rect.Left() + rect.Width() - unused_pxls), rect.Top(), unused_pxls, rect.Height() };
-        if (fill_rect)
+        if (fill_rect) {
             display::FillRect(rc_unused_pxls, clr_back);
+        }
     }
 
     //@@TODO make rolling native ability of render text - solves also character clipping
@@ -115,11 +117,13 @@ void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
 
     if (!set_txt_rc.IsEmpty()) {
         Rect16 text_drawn_at(set_txt_rc.TopLeft(), render_text_singleline(set_txt_rc, text, font, clr_back, clr_text));
-        if (fill_rect)
+        if (fill_rect) {
             fill_between_rectangles(&rc, &text_drawn_at, clr_back);
+        }
     } else {
-        if (fill_rect)
+        if (fill_rect) {
             display::FillRect(rc, clr_back);
+        }
     }
 }
 
@@ -141,7 +145,8 @@ Rect16 txtroll_t::rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font
 uint16_t txtroll_t::meas(Rect16 rc, string_view_utf8 text, const font_t *pf) {
 
     uint16_t meas_x = 0, len = text.computeNumUtf8CharsAndRewind();
-    if (len * pf->w > rc.Width())
+    if (len * pf->w > rc.Width()) {
         meas_x = len - rc.Width() / pf->w;
+    }
     return meas_x;
 }

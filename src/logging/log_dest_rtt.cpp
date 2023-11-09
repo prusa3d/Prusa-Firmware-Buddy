@@ -17,11 +17,13 @@ static inline void initialize_rtt_subsystem() {
 }
 
 static inline bool initialize_rtt_lock() {
-    if (rtt_lock)
+    if (rtt_lock) {
         return true;
+    }
 
-    if (xPortIsInsideInterrupt() || xTaskGetSchedulerState() != taskSCHEDULER_RUNNING)
+    if (xPortIsInsideInterrupt() || xTaskGetSchedulerState() != taskSCHEDULER_RUNNING) {
         return false;
+    }
 
     rtt_lock = xSemaphoreCreateBinary();
     xSemaphoreGive(rtt_lock);
@@ -46,6 +48,7 @@ void rtt_log_event(log_destination_t *destination, log_event_t *event) {
     rtt_put_char('\n', NULL);
 
     // release the lock
-    if (lock_acquired)
+    if (lock_acquired) {
         xSemaphoreGive(rtt_lock);
+    }
 }

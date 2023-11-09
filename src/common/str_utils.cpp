@@ -20,8 +20,9 @@ size_t strlenT(const T *s) {
 /// \returns number of deleted characters
 template <typename T>
 size_t strdelT(T *str, const size_t n) {
-    if (str == nullptr)
+    if (str == nullptr) {
         return 0;
+    }
 
     size_t size = strlenT(str);
     if (n >= size) {
@@ -30,8 +31,9 @@ size_t strdelT(T *str, const size_t n) {
     }
 
     size = size - n + 1; // copy \0 as well
-    for (size_t i = 0; i < size; ++i, ++str)
+    for (size_t i = 0; i < size; ++i, ++str) {
         *str = *(str + n);
+    }
     return n;
 }
 
@@ -50,22 +52,26 @@ size_t strdelUnicode(uint32_t *str, const size_t n) {
 /// \returns number of characters shifted or negative number in case of error
 template <typename T>
 int strshiftT(T *str, size_t max_size, const size_t n, const T default_char) {
-    if (str == nullptr)
+    if (str == nullptr) {
         return str_err::nullptr_err;
-    if (n == 0)
+    }
+    if (n == 0) {
         return 0;
+    }
 
     const size_t size = strlenT(str);
-    if (size + n >= max_size) /// too much to add
+    if (size + n >= max_size) { /// too much to add
         return str_err::small_buffer;
+    }
 
     /// copy text, start from the last character including '\0'
     for (size_t i = size + n; i >= n; --i) {
         str[i] = str[i - n];
     }
 
-    if (default_char == '\0')
+    if (default_char == '\0') {
         return n;
+    }
 
     /// fill the space between old and new text
     for (size_t i = size; i < n; ++i) {
@@ -86,24 +92,29 @@ int strshiftUnicode(uint32_t *str, size_t max_size, const size_t n, const uint32
 /// \returns number of inserted characters or negative number in case of error
 template <typename T>
 int strinsT(T *str, size_t max_size, const T *const ins, size_t times) {
-    if (str == nullptr || ins == nullptr)
+    if (str == nullptr || ins == nullptr) {
         return str_err::nullptr_err;
+    }
 
     const size_t ins_size = strlenT(ins);
     const size_t inserted = ins_size * times;
-    if (inserted <= 0)
+    if (inserted <= 0) {
         return 0;
+    }
 
     /// shift the end
     const int shifted = strshiftT(str, max_size, inserted, T(0));
-    if (shifted <= 0)
+    if (shifted <= 0) {
         return shifted;
+    }
 
     /// insert text in the newly created space
     size_t i;
-    for (size_t t = 0; t < times; ++t)
-        for (i = 0; i < ins_size; ++i, ++str)
+    for (size_t t = 0; t < times; ++t) {
+        for (i = 0; i < ins_size; ++i, ++str) {
             *str = ins[i];
+        }
+    }
 
     return inserted;
 }
@@ -124,10 +135,12 @@ int strinsUnicode(uint32_t *str, size_t max_size, const uint32_t *const ins, siz
 /// \returns final number of lines or negative number in case of error
 template <typename T>
 int str2multilineT(T *str, size_t max_size, size_t line_width, const T *nl) {
-    if (str == nullptr || line_width == 0)
+    if (str == nullptr || line_width == 0) {
         return str_err::nullptr_err;
-    if (*str == EOS)
+    }
+    if (*str == EOS) {
         return 1;
+    }
 
     int last_delimiter = -1;
     int last_NBSP = -1;
@@ -173,8 +186,9 @@ int str2multilineT(T *str, size_t max_size, size_t line_width, const T *nl) {
             } else {
                 /// no break point available - break a word instead
                 const int inserted = strinsT(str + i - 1, max_size - i + 1, nl, 1);
-                if (inserted < 0)
+                if (inserted < 0) {
                     return str_err::small_buffer;
+                }
             }
             ++lines;
             current_length = 0;
@@ -182,8 +196,9 @@ int str2multilineT(T *str, size_t max_size, size_t line_width, const T *nl) {
             last_NBSP = -1;
         }
 
-        if (str[i] == EOS)
+        if (str[i] == EOS) {
             break;
+        }
     }
     return lines;
 }

@@ -20,8 +20,9 @@ static bool is_requested() {
  * of print.
  */
 void restore_z::restore() {
-    if (!is_requested())
+    if (!is_requested()) {
         return;
+    }
     current_position[Z_AXIS] = config_store().restore_z_after_boot.get().current_position_z;
     planner.set_position_mm(current_position);
     if (TEST(config_store().restore_z_after_boot.get().axis_known_position, Z_AXIS)) {

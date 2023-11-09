@@ -177,8 +177,9 @@ int uartrxbuff_getchar(uartrxbuff_t *prxbuff) {
         }
     }
 
-    if (events_to_clear)
+    if (events_to_clear) {
         xEventGroupClearBits(prxbuff->event_group, events_to_clear);
+    }
 
     return retval;
 }

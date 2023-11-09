@@ -75,8 +75,9 @@ public:
         if (mutex_id) {
             auto result = osMutexWait(m_mutex_id, wait ? osWaitForever : 0);
             m_acquired = result == osOK;
-            if (wait && !m_acquired)
+            if (wait && !m_acquired) {
                 bsod("osMutexWait forever failed.");
+            }
         } else {
             m_acquired = true;
         }
@@ -84,8 +85,9 @@ public:
 
     ~OptionalMutex() {
         if (m_mutex_id && m_acquired) {
-            if (osOK != osMutexRelease(m_mutex_id))
+            if (osOK != osMutexRelease(m_mutex_id)) {
                 bsod("osMutexRelease failed.");
+            }
         }
     }
 
@@ -233,8 +235,9 @@ bool w25x_wait_busy(void) {
     uint32_t loop_counter = 0;
     while (read_status1_reg() & W25X_STATUS_BUSY) {
         ++loop_counter;
-        if (loop_counter > max_wait_loops())
+        if (loop_counter > max_wait_loops()) {
             return false;
+        }
     }
     return true;
 }
@@ -247,10 +250,12 @@ bool w25x_wait_erase(void) {
         OptionalMutex communicationMutex(communication_mutex);
         ++loop_counter;
         status = read_status1_reg();
-        if (!(status & W25X_STATUS_BUSY))
+        if (!(status & W25X_STATUS_BUSY)) {
             is_erasing_block = false;
-        if (loop_counter > max_wait_loops())
+        }
+        if (loop_counter > max_wait_loops()) {
             return false;
+        }
     } while (status & W25X_STATUS_BUSY);
 
     return true;
@@ -283,8 +288,9 @@ void program_page(uint32_t addr, const uint8_t *data, uint16_t cnt, bool high_pr
     w25x_send(cmdWithAddress.buffer, sizeof(cmdWithAddress.buffer));
     w25x_send(data, cnt);
     w25x_deselect();
-    if (!w25x_wait_busy())
+    if (!w25x_wait_busy()) {
         w25x_set_error(HAL_TIMEOUT);
+    }
 }
 
 void split_page_program(uint32_t addr, const uint8_t *data, uint32_t cnt, bool high_priority) {
@@ -345,8 +351,9 @@ void w25x_erase(uint8_t cmd, uint32_t addr) {
         w25x_send(cmdWithAddress.buffer, sizeof(cmdWithAddress.buffer));
         w25x_deselect();
     }
-    if (!w25x_wait_erase())
+    if (!w25x_wait_erase()) {
         w25x_set_error(HAL_TIMEOUT);
+    }
 }
 
 int mfrid_devid(uint8_t *devid) {
@@ -356,8 +363,9 @@ int mfrid_devid(uint8_t *devid) {
     uint8_t w25x_mfrid = w25x_receive_byte(); // receive mfrid
     uint8_t w25x_devid = w25x_receive_byte(); // receive devid
     w25x_deselect();
-    if (devid)
+    if (devid) {
         *devid = w25x_devid;
+    }
     return ((w25x_mfrid == MFRID) && ((w25x_devid == DEVID) || (w25x_devid == DEVID_NEW)));
 }
 
@@ -370,33 +378,39 @@ bool w25x_init() {
     communication_mutex = os_running ? osMutexCreate(osMutex(communication_mutex_resource)) : NULL;
 
     static_assert(!NULL, "All the code expects NULL in condition to evaluate as false.");
-    if (os_running && (!erase_mutex || !communication_mutex))
+    if (os_running && (!erase_mutex || !communication_mutex)) {
         return false;
+    }
 
     OptionalMutex eraseMutex(erase_mutex);
     OptionalMutex communicationMutex(communication_mutex);
 
-    if (!w25x_communication_abort())
+    if (!w25x_communication_abort()) {
         return false;
+    }
 
     w25x_deselect();
 
-    if (!w25x_communication_init(os_running))
+    if (!w25x_communication_init(os_running)) {
         return false;
+    }
 
-    if (!w25x_wait_busy())
+    if (!w25x_wait_busy()) {
         return false;
+    }
 
     if (is_suspended()) {
         resume_erase();
-        if (!w25x_wait_busy())
+        if (!w25x_wait_busy()) {
             return false;
+        }
     }
 
     is_erasing_block = false;
 
-    if (!mfrid_devid(&device_id))
+    if (!mfrid_devid(&device_id)) {
         return false;
+    }
 
     return true;
 }
@@ -465,8 +479,9 @@ void w25x_chip_erase(void) {
     w25x_select();
     w25x_send_byte(CMD_CHIP_ERASE); // send command 0xc7
     w25x_deselect();
-    if (!w25x_wait_busy())
+    if (!w25x_wait_busy()) {
         w25x_set_error(HAL_TIMEOUT);
+    }
 }
 
 #if 0 // unused

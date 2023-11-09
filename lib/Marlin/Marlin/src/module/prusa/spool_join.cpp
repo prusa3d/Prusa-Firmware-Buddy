@@ -39,8 +39,9 @@ void SpoolJoin::reset() {
 }
 
 bool SpoolJoin::add_join(uint8_t spool_1, uint8_t spool_2) {
-    if (num_joins >= joins.size() || !is_tool_enabled(spool_1) || !is_tool_enabled(spool_2) || spool_1 == spool_2)
+    if (num_joins >= joins.size() || !is_tool_enabled(spool_1) || !is_tool_enabled(spool_2) || spool_1 == spool_2) {
         return false;
+    }
 
     // join will be added at the end of existing joins, so when for example
     // 0 will join with 1, and we want to join0 with 2,  actual join created will be 1 -> 2,
@@ -58,8 +59,9 @@ bool SpoolJoin::add_join(uint8_t spool_1, uint8_t spool_2) {
     }
 
     // check again that we are not joining spool with itself - spool_1 might have changed above
-    if (spool_1 == spool_2)
+    if (spool_1 == spool_2) {
         return false;
+    }
 
     for (auto &join : joins) {
         if (join.spool_2 == spool_2) {
@@ -170,8 +172,9 @@ uint8_t SpoolJoin::get_first_spool_1_from_chain(uint8_t spool_2) const {
 
 std::optional<uint8_t> SpoolJoin::get_spool_2(uint8_t tool) const {
     for (size_t i = 0; i < num_joins; i++) {
-        if (joins[i].spool_1 == tool)
+        if (joins[i].spool_1 == tool) {
             return joins[i].spool_2;
+        }
     }
 
     return std::nullopt;

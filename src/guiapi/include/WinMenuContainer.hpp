@@ -13,8 +13,9 @@ get_ptr_for_index(int, std::tuple<Tp...> &) { return nullptr; }
 template <std::size_t I = 0, typename... Tp>
     inline typename std::enable_if < I<sizeof...(Tp), IWindowMenuItem *>::type
     get_ptr_for_index(int index, std::tuple<Tp...> &t) {
-    if (index == 0)
+    if (index == 0) {
         return &(std::get<I>(t));
+    }
     return get_ptr_for_index<I + 1, Tp...>(index - 1, t);
 }
 
@@ -43,17 +44,19 @@ public:
     }
 
     virtual IWindowMenuItem *GetItemByRawIndex(int pos) const override {
-        if (pos > GetRawCount())
+        if (pos > GetRawCount()) {
             return nullptr;
-        else
+        } else {
             return get_ptr_for_index((int)pos, menu_items);
+        }
     }
 
     virtual int GetRawIndex(IWindowMenuItem &item) const override {
         int pos = 0;
         for (; pos < GetRawCount(); ++pos) {
-            if (GetItemByRawIndex(pos) == &item)
+            if (GetItemByRawIndex(pos) == &item) {
                 break;
+            }
         }
         return pos;
     }

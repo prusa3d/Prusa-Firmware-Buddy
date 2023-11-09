@@ -31,8 +31,9 @@ void GuiFSensor::validate() {
 
 bool GuiFSensor::validate_for_cyclical_calls() {
     static bool can_run = true;
-    if (!can_run)
+    if (!can_run) {
         return false;
+    }
     AutoRestore ar(can_run, false);
     validate();
     return true;

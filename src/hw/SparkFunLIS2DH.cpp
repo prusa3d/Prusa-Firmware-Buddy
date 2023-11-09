@@ -393,8 +393,9 @@ status_t LIS2DHCore::readRegisterInt16(int16_t *outputPointer, uint8_t offset) {
 //
 //****************************************************************************//
 status_t LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
-    if (m_ongoing_DMA_rx)
+    if (m_ongoing_DMA_rx) {
         return IMU_HW_BUSY;
+    }
     status_t returnError = IMU_SUCCESS;
     switch (m_commInterface) {
     case CommInterface::I2C_mode:
@@ -476,8 +477,9 @@ LIS2DH::LIS2DH(uint8_t inputArg)
 status_t LIS2DH::begin(void) {
     // Begin the inherited core.  This gets the physical wires connected
     status_t returnError = beginCore();
-    if (IMU_SUCCESS != returnError)
+    if (IMU_SUCCESS != returnError) {
         return returnError;
+    }
 
     applySettings();
     m_isInicialized = true;
@@ -574,8 +576,9 @@ void LIS2DH::applySettings(void) {
         break;
     }
     dataToWrite |= 0x80; // set block update
-    if (m_high_resolution)
+    if (m_high_resolution) {
         dataToWrite |= 0x08; // set high resolution
+    }
 #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_CTRL_REG4: 0x");
     Serial.println(dataToWrite, HEX);

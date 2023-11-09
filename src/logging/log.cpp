@@ -24,8 +24,9 @@ extern log_component_t __end_log_components[];
 void log_destination_register(log_destination_t *destination) {
     destination->next = NULL;
     log_destination_t **pointer_next = &destinations_head;
-    while (*pointer_next != NULL)
+    while (*pointer_next != NULL) {
         pointer_next = &((*pointer_next)->next);
+    }
     *pointer_next = destination;
 }
 
@@ -40,8 +41,9 @@ void log_destination_unregister(log_destination_t *destination) {
 }
 
 void _log_event(log_severity_t severity, const log_component_t *component, const char *fmt, ...) {
-    if (severity < component->lowest_severity)
+    if (severity < component->lowest_severity) {
         return;
+    }
 
     log_event_t event {};
     event.timestamp = log_platform_timestamp_get();

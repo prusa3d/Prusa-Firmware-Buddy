@@ -92,8 +92,9 @@ void window_dlg_strong_warning_t::show(string_view_utf8 txt) {
 }
 
 void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (!GetParent())
+    if (!GetParent()) {
         return;
+    }
     if (event == GUI_event_t::CLICK) { // todo use timer
         GetParent()->UnregisterSubWin(*this);
     } else {

@@ -56,8 +56,9 @@ void buffer_output(char character, void *arg) {
 }
 
 void syslog_initialize() {
-    if (initialized)
+    if (initialized) {
         return;
+    }
 
     // Mutex for syslog server address and port
     syslog_config_lock_id = osMutexCreate(osMutex(syslog_config_lock));
@@ -94,18 +95,21 @@ void syslog_log_event(log_destination_t *destination, log_event_t *event) {
     }
 
     // do not use syslog in case we are running out of stack or we are within an ISR
-    if (xPortIsInsideInterrupt() || log_platform_is_low_on_resources())
+    if (xPortIsInsideInterrupt() || log_platform_is_low_on_resources()) {
         return;
+    }
 
     // check that we are not logging from within the LwIP stack
     // as calling LwIP again "from the outside" would cause a deadlock
-    if (lock_tcpip_core == 0 || osSemaphoreGetCount(lock_tcpip_core) == 0)
+    if (lock_tcpip_core == 0 || osSemaphoreGetCount(lock_tcpip_core) == 0) {
         return;
+    }
 
     // prevent (infinite) recursion within the syslog
     // handler (for example, the syslog_transport might try to log something)
-    if ((intptr_t)pvTaskGetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX) == 1)
+    if ((intptr_t)pvTaskGetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX) == 1) {
         return;
+    }
     vTaskSetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX, (void *)1);
 
     do {

@@ -53,12 +53,15 @@ public:
     static constexpr RetAndCool_t GetRetAndCool(uint8_t data) {
         const bool has_ret = GetReturnOption(data);
         const bool has_cool = GetCooldownOption(data);
-        if (has_ret && has_cool)
+        if (has_ret && has_cool) {
             return RetAndCool_t::Both;
-        if (has_ret)
+        }
+        if (has_ret) {
             return RetAndCool_t::Return;
-        if (has_cool)
+        }
+        if (has_cool) {
             return RetAndCool_t::Cooldown;
+        }
         return RetAndCool_t::Neither;
     }
     static constexpr PreheatMode GetMode(uint8_t data) {

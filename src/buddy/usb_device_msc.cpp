@@ -52,12 +52,14 @@ int32_t tud_msc_write10_cb([[maybe_unused]] uint8_t lun, uint32_t lba, uint32_t 
 
     if (offset == 0) {
         // we are at the beginning of the block, so lets clear it first
-        if (lfs->erase(lfs, lba) != 0)
+        if (lfs->erase(lfs, lba) != 0) {
             goto cleanup_and_return;
+        }
     }
 
-    if (lfs->prog(lfs, lba, offset, buffer, bufsize) != 0)
+    if (lfs->prog(lfs, lba, offset, buffer, bufsize) != 0) {
         goto cleanup_and_return;
+    }
     retval = bufsize;
 
 cleanup_and_return:
@@ -148,8 +150,9 @@ int32_t tud_msc_scsi_cb(uint8_t lun, uint8_t const scsi_cmd[16], void *buffer, u
     }
 
     // return resplen must not larger than bufsize
-    if (resplen > bufsize)
+    if (resplen > bufsize) {
         resplen = bufsize;
+    }
 
     if (response && (resplen > 0)) {
         if (in_xfer) {

@@ -73,17 +73,17 @@ uint8_t MeatPack::unpack_chars(const uint8_t pk, uint8_t *__restrict const chars
     uint8_t out = 0;
 
     // If lower nybble is 1111, the higher nybble is unused, and next char is full.
-    if ((pk & kFirstNotPacked) == kFirstNotPacked)
+    if ((pk & kFirstNotPacked) == kFirstNotPacked) {
         out = kFirstCharIsLiteral;
-    else {
+    } else {
         const uint8_t chr = pk & 0x0F;
         chars_out[0] = meatPackLookupTable[chr]; // Set the first char
     }
 
     // Check if upper nybble is 1111... if so, we don't need the second char.
-    if ((pk & kSecondNotPacked) == kSecondNotPacked)
+    if ((pk & kSecondNotPacked) == kSecondNotPacked) {
         out |= kSecondCharIsLiteral;
-    else {
+    } else {
         const uint8_t chr = (pk >> 4) & 0x0F;
         chars_out[1] = meatPackLookupTable[chr]; // Set the second char
     }
@@ -102,17 +102,19 @@ void MeatPack::handle_rx_char_inner(const uint8_t c) {
             const uint8_t res = unpack_chars(c, buf); // Decode the byte into one or two characters.
             if (res & kFirstCharIsLiteral) { // The 1st character couldn't be packed.
                 ++full_char_count; // So the next stream byte is a full character.
-                if (res & kSecondCharIsLiteral)
+                if (res & kSecondCharIsLiteral) {
                     ++full_char_count; // The 2nd character couldn't be packed. Another stream byte is a full character.
-                else
+                } else {
                     second_char = buf[1]; // Retain the unpacked second character.
+                }
             } else {
                 handle_output_char(buf[0]); // Send the unpacked first character out.
                 if (buf[0] != '\n') { // After a newline the next char won't be set
-                    if (res & kSecondCharIsLiteral)
+                    if (res & kSecondCharIsLiteral) {
                         ++full_char_count; // The 2nd character couldn't be packed. The next stream byte is a full character.
-                    else
+                    } else {
                         handle_output_char(buf[1]); // Send the unpacked second character out.
+                    }
                 }
             }
         } else {
@@ -123,8 +125,9 @@ void MeatPack::handle_rx_char_inner(const uint8_t c) {
             }
             --full_char_count; // One literal character was consumed
         }
-    } else // Packing not enabled, just copy character to output
+    } else { // Packing not enabled, just copy character to output
         handle_output_char(c);
+    }
 }
 
 /**
@@ -181,8 +184,9 @@ void MeatPack::handle_rx_char(const uint8_t c) {
         if (cmd_count) { // In fact, two in a row?
             cmd_is_next = true; // Then a MeatPack command follows
             cmd_count = 0;
-        } else
+        } else {
             ++cmd_count; // cmd_count = 1       // One command byte received so far...
+        }
         return;
     }
 
@@ -205,15 +209,17 @@ uint8_t MeatPack::get_result_chars(char *const __restrict out) {
     if (char_out_count) {
         res = char_out_count;
         char_out_count = 0;
-        for (uint8_t i = 0; i < res; ++i)
+        for (uint8_t i = 0; i < res; ++i) {
             out[i] = (char)char_out_buf[i];
+        }
     }
     return res;
 }
 
 char MeatPack::get_result_char() {
-    if (char_out_count == 0)
+    if (char_out_count == 0) {
         return 0;
+    }
     --char_out_count;
     auto res = char_out_buf[0];
     char_out_buf[0] = char_out_buf[1];

@@ -226,13 +226,15 @@ class [[nodiscard]] MoveIsrDisabler {
 public:
     MoveIsrDisabler() {
         old_move_isr_state = MOVE_ISR_ENABLED();
-        if (old_move_isr_state)
+        if (old_move_isr_state) {
             DISABLE_MOVE_INTERRUPT();
+        }
     }
 
     ~MoveIsrDisabler() {
-        if (old_move_isr_state)
+        if (old_move_isr_state) {
             ENABLE_MOVE_INTERRUPT();
+        }
     }
 };
 
@@ -247,8 +249,9 @@ Result Transmit(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint8_t *pData, ui
             result = HAL_I2C_Master_Transmit(&hi2c, DevAddress, pData, Size, Timeout);
         }
         res = process_result(hi2c, result);
-        if (result != HAL_BUSY)
+        if (result != HAL_BUSY) {
             break;
+        }
     }
 
     return res;
@@ -266,8 +269,9 @@ Result Receive(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint8_t *pData, uin
             result = HAL_I2C_Master_Receive(&hi2c, DevAddress, pData, Size, Timeout);
         }
         res = process_result(hi2c, result);
-        if (result != HAL_BUSY)
+        if (result != HAL_BUSY) {
             break;
+        }
     }
 
     return res;
@@ -284,8 +288,9 @@ static Result Mem_Write(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint16_t M
             result = HAL_I2C_Mem_Write(&hi2c, DevAddress, MemAddress, MemAddSize, pData, Size, Timeout);
         }
         res = process_result(hi2c, result);
-        if (res == Result::ok)
+        if (res == Result::ok) {
             break;
+        }
     }
 
     return res;
@@ -310,8 +315,9 @@ Result Mem_Write_16bit_Addr(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint16
             result = HAL_I2C_Mem_Read(&hi2c, DevAddress, MemAddress, MemAddSize, pData, Size, Timeout);
         }
         res = process_result(hi2c, result);
-        if (res != Result::ok)
+        if (res != Result::ok) {
             break;
+        }
     }
 
     return res;

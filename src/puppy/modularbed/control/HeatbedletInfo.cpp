@@ -89,16 +89,18 @@ void HeatbedletInfo::AddMeasuredTemperature(float temperature) {
     float sum = 0;
     for (int i = 0; i < CONTROLLER_TEMP_FILTER_LENGTH; i++) {
         int idx = m_MeasuredTemperatureHistoryIndex - i;
-        if (idx < 0)
+        if (idx < 0) {
             idx += TEMP_HISTORY_SIZE;
+        }
         sum += m_MeasuredTemperatureHistory[idx];
     }
     m_FilteredMeasuredTemperature = sum / CONTROLLER_TEMP_FILTER_LENGTH;
 
     // shift index of the circular buffer
     m_MeasuredTemperatureHistoryIndex++;
-    if (m_MeasuredTemperatureHistoryIndex == TEMP_HISTORY_SIZE)
+    if (m_MeasuredTemperatureHistoryIndex == TEMP_HISTORY_SIZE) {
         m_MeasuredTemperatureHistoryIndex = 0;
+    }
 }
 
 } // namespace modularbed

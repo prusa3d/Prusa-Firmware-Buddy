@@ -41,9 +41,11 @@ int8_t gui_timer_new(window_t *pWin, uint8_t timer, uint32_t ms) {
         {
             gui_timer_count = 0;
             memset(gui_timers, 0, GUI_MAX_TIMERS * sizeof(gui_timer_t));
-        } else // find free id
-            while ((id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE))
+        } else { // find free id
+            while ((id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE)) {
                 id++;
+            }
+        }
         if (id < GUI_MAX_TIMERS) // id is valid
         {
             gui_timers[id].start = tick;
@@ -51,10 +53,12 @@ int8_t gui_timer_new(window_t *pWin, uint8_t timer, uint32_t ms) {
             gui_timers[id].f_timer = timer;
             gui_timers[id].pWin = pWin;
             gui_timer_count++; // increment count
-            if ((window = Screens::Access()->Get()) != 0)
+            if ((window = Screens::Access()->Get()) != 0) {
                 window->SetHasTimer(); // set timer flag
-        } else
+            }
+        } else {
             id = -1;
+        }
     }
     return id;
 }
@@ -79,9 +83,11 @@ void gui_timer_delete(int8_t id) {
 
 void gui_timers_delete_by_window(window_t *pWin) {
     int8_t id;
-    for (id = 0; id < GUI_MAX_TIMERS; id++)
-        if (gui_timers[id].pWin == pWin)
+    for (id = 0; id < GUI_MAX_TIMERS; id++) {
+        if (gui_timers[id].pWin == pWin) {
             gui_timer_delete(id);
+        }
+    }
 }
 
 uint32_t fire_text_roll_event(uint32_t tick, uint32_t diff_min) {
@@ -105,7 +111,7 @@ uint32_t gui_timers_cycle(void) {
 
     diff_min = fire_text_roll_event(tick, diff_min);
 
-    for (id = 0; (id < GUI_MAX_TIMERS); id++)
+    for (id = 0; (id < GUI_MAX_TIMERS); id++) {
         if ((f_timer = gui_timers[id].f_timer) != GUI_TIMER_NONE) {
             if ((delay = gui_timers[id].delay) > 0) {
                 diff = tick - gui_timers[id].start;
@@ -120,25 +126,30 @@ uint32_t gui_timers_cycle(void) {
                         gui_timers[id].start += delay;
                         break;
                     }
-                } else if (diff_min < diff)
+                } else if (diff_min < diff) {
                     diff_min = diff;
+                }
             }
-            if (++count >= gui_timer_count)
+            if (++count >= gui_timer_count) {
                 break;
+            }
         }
+    }
     return diff_min;
 }
 
 void gui_timer_reset(int8_t id) {
 
-    if ((id >= 0) && (id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE))
+    if ((id >= 0) && (id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE)) {
         gui_timers[id].start = gui::GetTick();
+    }
 }
 
 int8_t gui_timer_expired(int8_t id) {
 
-    if ((id >= 0) && (id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE))
+    if ((id >= 0) && (id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE)) {
         return gui_timers[id].delay == 0 ? 1 : 0;
+    }
 
     return -1;
 }

@@ -90,11 +90,13 @@ struct memory_source {
 
     value_type getUtf8Char() const {
         value_type c;
-        if (index_ >= buffer_.size())
+        if (index_ >= buffer_.size()) {
             return EOS;
+        }
         c = buffer_[index_++];
-        if (c == EOS)
+        if (c == EOS) {
             index_ = buffer_.size();
+        }
         return c;
     }
 
@@ -165,17 +167,20 @@ public:
 
     // increment number of lines
     bool NewLine() {
-        if (currentLine() >= MaxLines)
+        if (currentLine() >= MaxLines) {
             return false;
+        }
         data[MaxLines] += 1;
         return true;
     }
 
     bool IncrementNumOfCharsUpTo(uint8_t max_val) {
-        if (currentLine() >= MaxLines)
+        if (currentLine() >= MaxLines) {
             return false;
-        if (CurrentLineCharacters() >= max_val)
+        }
+        if (CurrentLineCharacters() >= max_val) {
             return false;
+        }
         data[currentLine()] += 1;
         return true;
     }
@@ -223,15 +228,18 @@ struct text_wrapper {
     template <typename source>
     value_type character(source &s) {
         // Nothing in the buffer -> load next word
-        if (buffer_pos_ >= buffer_count_)
-            if (buffer_next_word(s))
+        if (buffer_pos_ >= buffer_count_) {
+            if (buffer_next_word(s)) {
                 return static_cast<value_type>(CHAR_NL);
+            }
+        }
 
         const value_type c = buffer_[buffer_pos_++];
 
         // We're not at the end of the word -> simply return the character
-        if (buffer_pos_ < buffer_count_)
+        if (buffer_pos_ < buffer_count_) {
             return c;
+        }
 
         // Mark that we should read next word in the next character call
         buffer_count_ = 0;
@@ -242,8 +250,9 @@ struct text_wrapper {
             current_line_width_ += width::value(font_);
 
             // Should the space be trailing at the end of the line, omit it and go straight to newline
-            if (buffer_next_word(s))
+            if (buffer_next_word(s)) {
                 return static_cast<value_type>(CHAR_NL);
+            }
 
         } else if (c == static_cast<value_type>(CHAR_NL)) {
             current_line_width_ = 0;

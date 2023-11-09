@@ -42,8 +42,9 @@ TEST_CASE("probe_position_lookback_buffer_wraparound") {
 
         // check that we can always get last 16 samples back correctly
         for (uint32_t j = 0; j < 16; j++) {
-            if (j > i)
+            if (j > i) {
                 break;
+            }
             uint32_t val = i - j;
             REQUIRE((float)val == l.get_position_at(val, []() { return 999; }));
         }

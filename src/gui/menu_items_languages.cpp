@@ -27,8 +27,9 @@ MI_LANGUAGUE_USB::MI_LANGUAGUE_USB()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_LANGUAGUE_USB::click([[maybe_unused]] IWindowMenu &windowMenu) {
-    if (fileProviderUSB.EnsureFile())
+    if (fileProviderUSB.EnsureFile()) {
         Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderUSB);
+    }
 }
 
 /*****************************************************************************/
@@ -59,6 +60,7 @@ MI_LANGUAGUE_XFLASH::MI_LANGUAGUE_XFLASH()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_LANGUAGUE_XFLASH::click([[maybe_unused]] IWindowMenu &windowMenu) {
-    if (fileProviderInternal.EnsureFile())
+    if (fileProviderInternal.EnsureFile()) {
         Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderInternal);
+    }
 }

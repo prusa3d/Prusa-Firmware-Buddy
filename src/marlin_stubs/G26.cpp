@@ -192,28 +192,33 @@ void FirstLayer::finish_printing() {
 }
 
 void FirstLayer::plan_destination(const float x, const float y, const float z, const float e, const float f) {
-    if (isfinite(x))
+    if (isfinite(x)) {
         destination[0] = x;
-    else
+    } else {
         destination[0] = current_position[0];
+    }
 
-    if (isfinite(y))
+    if (isfinite(y)) {
         destination[1] = y;
-    else
+    } else {
         destination[1] = current_position[1];
+    }
 
-    if (isfinite(z))
+    if (isfinite(z)) {
         destination[2] = z;
-    else
+    } else {
         destination[2] = current_position[2];
+    }
 
-    if (isfinite(e))
+    if (isfinite(e)) {
         destination[3] = current_position[3] + e;
-    else
+    } else {
         destination[3] = current_position[3];
+    }
 
-    if (isfinite(f))
+    if (isfinite(f)) {
         feedrate_mm_s = f / 60.f;
+    }
 
     prepare_move_to_destination();
 }

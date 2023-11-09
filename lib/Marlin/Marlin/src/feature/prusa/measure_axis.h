@@ -82,8 +82,9 @@ private:
 
     // switches to the next state
     void state_next() {
-        if (state_ >= last_)
+        if (state_ >= last_) {
             return;
+        }
         state_change(state_t(state_ + 1));
     }
 

@@ -71,16 +71,21 @@ void sys_dfu_boot_enter(void) {
 }
 
 int sys_calc_flash_latency(int freq) {
-    if (freq < 30000000)
+    if (freq < 30000000) {
         return 0;
-    if (freq < 60000000)
+    }
+    if (freq < 60000000) {
         return 1;
-    if (freq < 90000000)
+    }
+    if (freq < 90000000) {
         return 2;
-    if (freq < 12000000)
+    }
+    if (freq < 12000000) {
         return 3;
-    if (freq < 15000000)
+    }
+    if (freq < 15000000) {
         return 4;
+    }
     return 5;
 }
 
@@ -99,8 +104,9 @@ void sys_pll_disable(void) {
     uint32_t FLatency;
     HAL_RCC_GetOscConfig(&RCC_OscInitStruct); // read Osc config
     HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &FLatency); // read Clk config
-    if ((RCC_OscInitStruct.PLL.PLLState == RCC_PLL_OFF) && (RCC_ClkInitStruct.SYSCLKSource != RCC_SYSCLKSOURCE_PLLCLK))
+    if ((RCC_OscInitStruct.PLL.PLLState == RCC_PLL_OFF) && (RCC_ClkInitStruct.SYSCLKSource != RCC_SYSCLKSOURCE_PLLCLK)) {
         return; // already disabled - exit
+    }
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_OFF; // set PLL off
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE; // set CLK source HSE
 
@@ -137,8 +143,9 @@ void sys_pll_enable(void) {
     uint32_t FLatency;
     HAL_RCC_GetOscConfig(&RCC_OscInitStruct); // read Osc config
     HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &FLatency); // read Clk config
-    if ((RCC_OscInitStruct.PLL.PLLState == RCC_PLL_ON) && (RCC_ClkInitStruct.SYSCLKSource == RCC_SYSCLKSOURCE_PLLCLK))
+    if ((RCC_OscInitStruct.PLL.PLLState == RCC_PLL_ON) && (RCC_ClkInitStruct.SYSCLKSource == RCC_SYSCLKSOURCE_PLLCLK)) {
         return; // already enabled - exit
+    }
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON; // set PLL off
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK; // set CLK source HSE
 
@@ -154,8 +161,9 @@ int sys_sscg_is_enabled(void) {
 void sys_sscg_disable(void) {
     uint32_t sscgr = RCC->SSCGR;
     buddy::DisableInterrupts disable_interrupts;
-    if ((sscgr & RCC_SSCGR_SSCGEN_Msk) == 0)
+    if ((sscgr & RCC_SSCGR_SSCGEN_Msk) == 0) {
         return;
+    }
     sscgr &= ~((1 << RCC_SSCGR_SSCGEN_Pos) & RCC_SSCGR_SSCGEN_Msk);
     sys_pll_disable();
     RCC->SSCGR = sscgr;
@@ -169,10 +177,12 @@ void sys_sscg_enable(void) {
     uint32_t sscgr = RCC->SSCGR;
     uint32_t modper = ((sscgr & RCC_SSCGR_MODPER_Msk) >> RCC_SSCGR_MODPER_Pos);
     uint32_t incstep = ((sscgr & RCC_SSCGR_INCSTEP_Msk) >> RCC_SSCGR_INCSTEP_Pos);
-    if (modper == 0)
+    if (modper == 0) {
         return;
-    if (incstep == 0)
+    }
+    if (incstep == 0) {
         return;
+    }
     sscgr |= (1 << RCC_SSCGR_SSCGEN_Pos) & RCC_SSCGR_SSCGEN_Msk;
     buddy::DisableInterrupts disable_interrupts;
     sys_pll_disable();
@@ -252,9 +262,11 @@ void sys_fw_update_disable(void) {
 
 int sys_flash_is_empty(void *ptr, int size) {
     uint8_t *p = (uint8_t *)ptr;
-    for (; size > 0; size--)
-        if (*(p++) != 0xff)
+    for (; size > 0; size--) {
+        if (*(p++) != 0xff) {
             return 0;
+        }
+    }
     return 1;
 }
 
@@ -266,9 +278,11 @@ int sys_flash_write(void *dst, void *src, int size) {
     status = HAL_FLASH_Unlock();
     if (status == HAL_OK) {
         __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR | FLASH_FLAG_BSY);
-        for (; i < size; i++)
-            if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, (uint32_t)(pd++), *(ps++)) != HAL_OK)
+        for (; i < size; i++) {
+            if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, (uint32_t)(pd++), *(ps++)) != HAL_OK) {
                 break;
+            }
+        }
     }
     HAL_FLASH_Lock();
     return i;
@@ -306,9 +320,11 @@ int sys_flash_erase_sector(unsigned int sector) {
 }
 
 bool version_less_than(const version_t *a, const uint8_t major, const uint8_t minor, const uint8_t patch) {
-    if (a->major != major)
+    if (a->major != major) {
         return a->major < major;
-    if (a->minor != minor)
+    }
+    if (a->minor != minor) {
         return a->minor < minor;
+    }
     return a->patch < patch;
 }

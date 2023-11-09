@@ -52,15 +52,17 @@ FORCE_INLINE float fast_sqrt(float in) {
 // Step_dir determines which solution of the quadratic equation we will choose.
 FORCE_INLINE float calc_time_for_distance(const float start_velocity, const float acceleration, const float distance, const bool step_dir) {
     if (acceleration == 0.f) {
-        if (start_velocity != 0.f)
+        if (start_velocity != 0.f) {
             return distance / start_velocity;
-        else
+        } else {
             return std::numeric_limits<float>::infinity();
+        }
     } else if (const float sqr = 2.f * acceleration * distance + SQR(start_velocity); sqr >= 0.f) {
-        if (step_dir)
+        if (step_dir) {
             return (fast_sqrt(sqr) - start_velocity) / acceleration;
-        else
+        } else {
             return (-fast_sqrt(sqr) - start_velocity) / acceleration;
+        }
     } else if (sqr < 0.f && sqr >= -EPSILON_FLOAT) {
         return -(start_velocity / acceleration);
     } else {

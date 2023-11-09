@@ -19,8 +19,9 @@ typedef enum {
 spi_status_e _spi_transfer(uint8_t *tx_buffer, uint8_t *rx_buffer, uint16_t len, uint32_t Timeout) {
     if (HAL_SPI_Initialized) {
         HAL_StatusTypeDef ret = HAL_SPI_TransmitReceive(&SPI_HANDLE_FOR(tmc), tx_buffer, rx_buffer, len, Timeout);
-        if (ret == HAL_TIMEOUT)
+        if (ret == HAL_TIMEOUT) {
             return SPI_TIMEOUT;
+        }
         return SPI_OK;
     }
     return SPI_ERROR;
@@ -77,16 +78,18 @@ uint16_t SPIClass::transfer16(uint16_t _data, SPITransferMode _mode) {
 }
 
 uint8_t SPIClass::dmaTransfer(uint8_t *transmitBuf, uint8_t *receiveBuf, uint16_t length) {
-    if (!HAL_SPI_Initialized)
+    if (!HAL_SPI_Initialized) {
         return SPI_NOT_INITIALIZED;
+    }
 
     auto status = HAL_SPI_TransmitReceive(&SPI_HANDLE_FOR(tmc), transmitBuf, receiveBuf, length, SPI_TRANSFER_TIMEOUT);
     return hal_status_to_retval(status);
 }
 
 uint8_t SPIClass::dmaSend(uint8_t *buf, uint16_t length) {
-    if (!HAL_SPI_Initialized)
+    if (!HAL_SPI_Initialized) {
         return SPI_NOT_INITIALIZED;
+    }
 
     auto status = HAL_SPI_Transmit(&SPI_HANDLE_FOR(tmc), buf, length, SPI_TRANSFER_TIMEOUT);
     return hal_status_to_retval(status);

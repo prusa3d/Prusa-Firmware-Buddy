@@ -239,8 +239,9 @@ LoopResult CSelftestPart_FSensor::state_insertion_wait_init() {
 }
 
 LoopResult CSelftestPart_FSensor::state_insertion_wait() {
-    if (AbortAndInvalidateIfAbortPressed())
+    if (AbortAndInvalidateIfAbortPressed()) {
         return LoopResult::Fail;
+    }
 
     std::array<fsensor_t, 2> states_to_check = { extruder->Get(), fsensor_t::HasFilament };
 
@@ -291,8 +292,9 @@ LoopResult CSelftestPart_FSensor::state_insertion_ok_init() {
 }
 
 LoopResult CSelftestPart_FSensor::state_insertion_ok() {
-    if (AbortAndInvalidateIfAbortPressed())
+    if (AbortAndInvalidateIfAbortPressed()) {
         return LoopResult::Fail;
+    }
     if (rStateMachine.GetButtonPressed() == Response::Continue) {
         log_info(Selftest, "%s user confirmed filament is inserted ", rConfig.partname);
         return LoopResult::RunNext;
@@ -329,8 +331,9 @@ LoopResult CSelftestPart_FSensor::state_insertion_calibrate_start() {
 }
 
 LoopResult CSelftestPart_FSensor::state_insertion_calibrate() {
-    if (AbortAndInvalidateIfAbortPressed())
+    if (AbortAndInvalidateIfAbortPressed()) {
         return LoopResult::Fail;
+    }
 
     IFSensor *const side_local = rConfig.mmu_mode ? nullptr : side;
 
@@ -357,8 +360,9 @@ LoopResult CSelftestPart_FSensor::state_insertion_calibrate() {
 }
 
 LoopResult CSelftestPart_FSensor::state_insertion_calibrate_wait() {
-    if (AbortAndInvalidateIfAbortPressed())
+    if (AbortAndInvalidateIfAbortPressed()) {
         return LoopResult::Fail;
+    }
 
     if (!rStateMachine.WaitSoLastStateIsVisible()) {
         return LoopResult::RunCurrent;
@@ -385,8 +389,9 @@ LoopResult CSelftestPart_FSensor::state_enforce_remove_mmu_move() {
 }
 
 LoopResult CSelftestPart_FSensor::state_enforce_remove() {
-    if (AbortAndInvalidateIfAbortPressed())
+    if (AbortAndInvalidateIfAbortPressed()) {
         return LoopResult::Fail;
+    }
 
     const fsensor_t new_fs_state = extruder->Get();
 

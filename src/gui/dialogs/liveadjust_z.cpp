@@ -31,8 +31,9 @@ Rect16 WindowScale::getNumRect(point_i16_t pt) const {
 }
 
 void WindowScale::SetMark(float relative) {
-    if (!mark_old_y)
+    if (!mark_old_y) {
         mark_old_y = mark_new_y;
+    }
     mark_new_y = Height() * std::clamp(relative, 0.f, 1.f);
     if (mark_old_y != mark_new_y) {
         Invalidate();
@@ -50,8 +51,9 @@ void WindowScale::horizLine(uint16_t width_pad, uint16_t height, color_t color) 
 
 void WindowScale::unconditionalDraw() {
     /// redraw old mark line
-    if (mark_old_y)
+    if (mark_old_y) {
         horizLine(0, *mark_old_y, COLOR_BLACK);
+    }
     mark_old_y = std::nullopt;
     /// vertical line of scale
     display::DrawLine(point_ui16(Left() + 5, Top()), point_ui16(Left() + 5, Top() + Height()), COLOR_WHITE);
@@ -217,8 +219,9 @@ void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         /// GUI_event_t::CLICK could bubble into window_t::windowEvent and close dialog
         /// so CLICK could be left unhandled here
         /// but there is a problem with focus !!!parrent window of this dialog has it!!!
-        if (flags.close_on_click == is_closed_on_click_t::yes)
+        if (flags.close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();
+        }
         break;
     default:
         SuperWindowEvent(sender, event, param);

@@ -118,8 +118,9 @@ int32_t Jogwheel::ConsumeEncoderDiff() {
 int32_t Jogwheel::CalculateEncoderDiff(Jogwheel::encoder_t current_enc) {
     static encoder_t last_enc = { 0, 1, 0 };
 
-    if (last_enc.tick == current_enc.tick)
+    if (last_enc.tick == current_enc.tick) {
         return 0; // this data were already used
+    }
 
     int32_t diff = current_enc.value - last_enc.value;
     diff *= current_enc.gear;
@@ -183,8 +184,9 @@ bool Jogwheel::IsBtnPressed() {
 }
 
 void Jogwheel::ChangeStateFromISR(BtnState_t new_state) {
-    if (button_queue_handle == nullptr)
+    if (button_queue_handle == nullptr) {
         return;
+    }
     btn_state = new_state;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE; // xQueueSendFromISR require address of this
     xQueueSendFromISR(button_queue_handle, &btn_state, &xHigherPriorityTaskWoken);
@@ -192,8 +194,9 @@ void Jogwheel::ChangeStateFromISR(BtnState_t new_state) {
 
 void Jogwheel::Update1msFromISR() {
     // do nothing while queues are not initialized
-    if (button_queue_handle == nullptr)
+    if (button_queue_handle == nullptr) {
         return;
+    }
 
     uint8_t signals = ReadHwInputsFromISR();
 
@@ -214,17 +217,21 @@ void Jogwheel::Update1msFromISR() {
 int32_t Jogwheel::JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const {
     int32_t new_encoder = encoder;
     if (type1) {
-        if ((change & JG_PHASE_0) && (signals & JG_PHASE_0) && !(signals & JG_PHASE_1))
+        if ((change & JG_PHASE_0) && (signals & JG_PHASE_0) && !(signals & JG_PHASE_1)) {
             new_encoder--;
-        if ((change & JG_PHASE_1) && (signals & JG_PHASE_1) && !(signals & JG_PHASE_0))
+        }
+        if ((change & JG_PHASE_1) && (signals & JG_PHASE_1) && !(signals & JG_PHASE_0)) {
             new_encoder++;
+        }
     } else {
         uint8_t prev_change = jogwheel_signals ^ jogwheel_signals_old;
         if (((signals & JG_PHASES_CHANGED) == 0) || ((signals & JG_PHASES_CHANGED) == JG_PHASES_CHANGED)) {
-            if (((change & JG_PHASES_CHANGED) == JG_PHASE_0) && ((prev_change & JG_PHASES_CHANGED) == JG_PHASE_1))
+            if (((change & JG_PHASES_CHANGED) == JG_PHASE_0) && ((prev_change & JG_PHASES_CHANGED) == JG_PHASE_1)) {
                 new_encoder++;
-            if (((change & JG_PHASES_CHANGED) == JG_PHASE_1) && ((prev_change & JG_PHASES_CHANGED) == JG_PHASE_0))
+            }
+            if (((change & JG_PHASES_CHANGED) == JG_PHASE_1) && ((prev_change & JG_PHASES_CHANGED) == JG_PHASE_0)) {
                 new_encoder--;
+            }
         }
     }
     return new_encoder;
@@ -237,10 +244,12 @@ void Jogwheel::UpdateVariablesFromISR(uint8_t signals) {
     {
         int32_t new_encoder = JogwheelTypeBehaviour(change, signals); // derived function - different types of jogwheel
 
-        if (encoder < JG_ENCODER_MIN)
+        if (encoder < JG_ENCODER_MIN) {
             encoder = JG_ENCODER_MIN;
-        if (encoder > JG_ENCODER_MAX)
+        }
+        if (encoder > JG_ENCODER_MAX) {
             encoder = JG_ENCODER_MAX;
+        }
         if (encoder != new_encoder) {
             encoder = new_encoder;
             change |= JG_ENCODER_CHANGED; // bit3 means encoder changed

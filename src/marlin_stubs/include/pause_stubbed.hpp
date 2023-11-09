@@ -74,10 +74,12 @@ protected:
     // use UnloadPhases_t or LoadPhases_t
     template <class ENUM>
     ENUM get() {
-        if (load_unload_shared_phase < int(ENUM::_init))
+        if (load_unload_shared_phase < int(ENUM::_init)) {
             return ENUM::_finish;
-        if (load_unload_shared_phase > int(ENUM::_last))
+        }
+        if (load_unload_shared_phase > int(ENUM::_last)) {
             return ENUM::_finish;
+        }
         return ENUM(load_unload_shared_phase);
     }
 

@@ -33,8 +33,9 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
 
     bool any_in_progress = false;
     for (const auto fan_part : fans_parts) {
-        if (fan_part == nullptr)
+        if (fan_part == nullptr) {
             continue;
+        }
 
         auto res = fan_part->Loop();
         any_in_progress = any_in_progress || res;

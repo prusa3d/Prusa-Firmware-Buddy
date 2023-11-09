@@ -116,8 +116,9 @@ void MockScreen::checkHidden(const T &extra_windows, window_t &win) {
     bool hidden = false;
 
     for (size_t i = 0; i < extra_windows.size(); ++i) {
-        if (win.GetRect().HasIntersection(extra_windows[i]->GetRect()))
+        if (win.GetRect().HasIntersection(extra_windows[i]->GetRect())) {
             hidden = true;
+        }
     }
 
     // check IsHiddenBehindDialog()
@@ -168,8 +169,9 @@ void MockScreen::CheckOrderAndVisibility(E *...e) {
     hiddens.fill(false);
     for (int top_win_index = sz - 1; top_win_index >= 0; --top_win_index) {
         for (int bot_win_index = top_win_index - 1; bot_win_index >= 0; --bot_win_index) {
-            if (extra_windows[top_win_index]->GetRect().HasIntersection(extra_windows[bot_win_index]->GetRect()))
+            if (extra_windows[top_win_index]->GetRect().HasIntersection(extra_windows[bot_win_index]->GetRect())) {
                 hiddens[bot_win_index] = true;
+            }
         }
         // outer loop can also check result of current window
         REQUIRE(extra_windows[top_win_index]->IsHiddenBehindDialog() == hiddens[top_win_index]);

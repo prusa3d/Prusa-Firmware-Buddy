@@ -37,8 +37,9 @@ FORCE_INLINE void pressure_advance_precalculate_parameters(pressure_advance_step
         state.start_v = float(get_move_start_v(current_move, step_generator.axis));
         state.half_accel = float(get_move_half_accel(current_move, step_generator.axis));
 
-        if (is_pressure_advance_active(current_move))
+        if (is_pressure_advance_active(current_move)) {
             state.start_v += (2.f * state.half_accel * params.pressure_advance_value);
+        }
     } else {
         state.start_v = 0.f;
         state.half_accel = 0.f;
@@ -58,8 +59,9 @@ FORCE_INLINE float calc_distance_for_time_with_pressure_advance_move(const press
 }
 
 pressure_advance_window_filter_t create_normalized_bartlett_window_filter(const uint16_t filter_length) {
-    if (filter_length > PRESSURE_ADVANCE_MAX_FILTER_LENGTH)
+    if (filter_length > PRESSURE_ADVANCE_MAX_FILTER_LENGTH) {
         fatal_error("Filter length is above maximum.", "create_normalized_bartlett_window_filter");
+    }
 
     pressure_advance_window_filter_t filter;
     if (filter_length > 1) {
@@ -79,14 +81,16 @@ pressure_advance_window_filter_t create_normalized_bartlett_window_filter(const 
 }
 
 pressure_advance_window_filter_t create_simple_window_filter(const uint16_t filter_length) {
-    if (filter_length > PRESSURE_ADVANCE_MAX_FILTER_LENGTH)
+    if (filter_length > PRESSURE_ADVANCE_MAX_FILTER_LENGTH) {
         bsod("Filter length is above maximum.");
+    }
 
     pressure_advance_window_filter_t filter;
     if (filter_length > 1) {
         filter.length = filter_length;
-        for (int idx = 0; idx < filter_length; ++idx)
+        for (int idx = 0; idx < filter_length; ++idx) {
             filter.window[idx] = 0.f;
+        }
 
         int idx = (filter_length - 1) / 2;
         filter.window[idx] = 1.f;
@@ -168,16 +172,19 @@ void pressure_advance_state_init(pressure_advance_step_generator_t &step_generat
 
 FORCE_INLINE float pressure_advance_apply_filter(pressure_advance_state_t &state, const pressure_advance_params_t &params) {
     assert(params.filter.length == state.buffer.length);
-    if (state.buffer.same_samples_cnt >= params.filter.length)
+    if (state.buffer.same_samples_cnt >= params.filter.length) {
         return state.start_pos;
+    }
 
     float filtered_value = 0.;
     const uint16_t index_diff = (params.filter.length - state.buffer.start_idx);
-    for (int window_idx = 0; window_idx < index_diff; ++window_idx)
+    for (int window_idx = 0; window_idx < index_diff; ++window_idx) {
         filtered_value += params.filter.window[window_idx] * state.buffer.data[state.buffer.start_idx + window_idx];
+    }
 
-    for (int window_idx = index_diff; window_idx < params.filter.length; ++window_idx)
+    for (int window_idx = index_diff; window_idx < params.filter.length; ++window_idx) {
         filtered_value += params.filter.window[window_idx] * state.buffer.data[window_idx - index_diff];
+    }
 
     return filtered_value;
 }
@@ -185,10 +192,11 @@ FORCE_INLINE float pressure_advance_apply_filter(pressure_advance_state_t &state
 // Based on whether the extruder is active, update the counter for the same samples in the buffer, which is used
 // for skipping most of the pressure advance computation for move segments without the active extruder.
 FORCE_INLINE void pressure_advance_update_same_samples_count(pressure_advance_state_t &state) {
-    if (const bool is_e_active = is_active_e_axis(*state.current_move); !is_e_active && state.buffer.same_samples_cnt < state.buffer.length)
+    if (const bool is_e_active = is_active_e_axis(*state.current_move); !is_e_active && state.buffer.same_samples_cnt < state.buffer.length) {
         ++state.buffer.same_samples_cnt;
-    else if (is_e_active && state.buffer.same_samples_cnt > 0)
+    } else if (is_e_active && state.buffer.same_samples_cnt > 0) {
         state.buffer.same_samples_cnt = 0;
+    }
 }
 
 // Returns true when we were able to get the next sample, false if the buffer wasn't filled up,
@@ -233,8 +241,9 @@ FORCE_INLINE bool pressure_advance_sample_next(pressure_advance_state_t &state, 
 }
 
 FORCE_INLINE float pressure_advance_get_next_position(pressure_advance_state_t &state, const pressure_advance_params_t &params) {
-    if (!pressure_advance_sample_next(state, params))
+    if (!pressure_advance_sample_next(state, params)) {
         return std::numeric_limits<float>::infinity();
+    }
 
     return pressure_advance_apply_filter(state, params);
 }
@@ -278,8 +287,9 @@ double calc_time_for_distance_pressure_advance(const float distance, pressure_ad
         const double next_step_negative = float(step_generator_state.current_distance[axis] - 1) * Planner::mm_per_step[axis] + distance;
         // When state.position_has_to_be_in_range is true, then have to be next_step_positive or next_step_negative
         // inside the interval (state.prev_position, state.next_position).
-        if (state.position_has_to_be_in_range)
+        if (state.position_has_to_be_in_range) {
             assert((!state.step_dir || (state.prev_position <= next_step_negative && next_step_negative <= state.next_position)) && (state.step_dir || (state.prev_position >= next_step_positive && next_step_positive >= state.next_position)));
+        }
     }
 #endif
 
@@ -348,17 +358,19 @@ void pressure_advance_reset_position(pressure_advance_step_generator_t &step_gen
     const float axis_diff = float(axis_diff_steps) * Planner::mm_per_step[axis];
 
     // We have ensured that there is at least a number of samples equal to the buffer size. So, the whole buffer is filled with sampled positions.
-    for (uint32_t buffer_idx = 0; buffer_idx < step_generator.pa_state->buffer.length; ++buffer_idx)
+    for (uint32_t buffer_idx = 0; buffer_idx < step_generator.pa_state->buffer.length; ++buffer_idx) {
         step_generator.pa_state->buffer.data[buffer_idx] += axis_diff;
+    }
 
     // Because this function is called when the next step position isn't within the interval (prev_position, next_position),
     // we don't have to care about numeric issues. We have to only ensure that when prev_position and next_position are equal,
     // then after resetting, they will also equal.
     float new_next_position = pressure_advance_apply_filter(*step_generator.pa_state, PressureAdvance::pressure_advance_params);
-    if (step_generator.pa_state->prev_position == step_generator.pa_state->next_position)
+    if (step_generator.pa_state->prev_position == step_generator.pa_state->next_position) {
         step_generator.pa_state->prev_position = new_next_position;
-    else
+    } else {
         step_generator.pa_state->prev_position += axis_diff;
+    }
 
     step_generator.pa_state->next_position = new_next_position;
 
@@ -402,14 +414,16 @@ step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advan
 
                 // We have to update start_post before we reset the pressure advance position because
                 // we are using it during the resetting position.
-                if (is_pressure_advance_active(*next_move))
+                if (is_pressure_advance_active(*next_move)) {
                     step_generator.pa_state->start_pos = float(get_move_start_pos(*next_move, step_generator.axis)) + float(get_move_start_v(*next_move, step_generator.axis)) * PressureAdvance::pressure_advance_params.pressure_advance_value;
-                else
+                } else {
                     step_generator.pa_state->start_pos = float(get_move_start_pos(*next_move, step_generator.axis));
+                }
 
                 // Apply reset of position on the pressure advance data structure and adjust position in steps (current_distance).
-                if (next_move->flags & (MOVE_FLAG_RESET_POSITION_X << step_generator.axis))
+                if (next_move->flags & (MOVE_FLAG_RESET_POSITION_X << step_generator.axis)) {
                     pressure_advance_reset_position(step_generator, step_generator_state, *next_move);
+                }
 
                 --step_generator.pa_state->current_move->reference_cnt;
                 step_generator.pa_state->current_move = next_move;

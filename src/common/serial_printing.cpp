@@ -42,16 +42,18 @@ void remove_N_prefix(const char *&command) {
     if (*command == 'N') {
         ++command;
         while (*command != ' ') {
-            if (*command == '\0')
+            if (*command == '\0') {
                 return;
+            }
             ++command;
         }
         ++command;
     }
 }
 bool print_indicating_gcode(const char *command) {
-    if (*command == '\0')
+    if (*command == '\0') {
         return false;
+    }
     if (*command == 'G') {
         return true;
     } else if (*command == 'M') {

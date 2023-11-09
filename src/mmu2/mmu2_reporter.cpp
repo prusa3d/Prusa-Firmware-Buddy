@@ -12,28 +12,34 @@ Reporter::Reporter(CommandInProgress cip, ProgressCode pc)
     : report(cip, { pc }) {}
 
 bool Reporter::Report::operator==(const Report &other) const {
-    if (commandInProgress != other.commandInProgress)
+    if (commandInProgress != other.commandInProgress) {
         return false;
+    }
 
     // no command is being processed, other variables are irrelevant
     // but error from MMU can have CommandInProgress::NoCommand and still be valid !!!
-    if (commandInProgress == CommandInProgress::NoCommand && error.errorSource == other.error.errorSource)
+    if (commandInProgress == CommandInProgress::NoCommand && error.errorSource == other.error.errorSource) {
         return true;
+    }
 
-    if (type != other.type)
+    if (type != other.type) {
         return false;
+    }
 
     // handle progress
-    if (type == Type::progress)
+    if (type == Type::progress) {
         return progress.progressCode == other.progress.progressCode;
+    }
 
     // now we know type is error
-    if (error.errorCode != other.error.errorCode)
+    if (error.errorCode != other.error.errorCode) {
         return false;
+    }
 
     // no active error, other variables are irrelevant
-    if (error.errorCode == ErrorCode::OK || error.errorCode == ErrorCode::RUNNING)
+    if (error.errorCode == ErrorCode::OK || error.errorCode == ErrorCode::RUNNING) {
         return true;
+    }
 
     // we have an error and error codes match, sources must match too
     return error.errorSource == other.error.errorSource;
@@ -65,8 +71,9 @@ ProgressCode Reporter::GetProgressCode() const {
  */
 bool Reporter::Change(CommandInProgress cip, ErrorCode ec, MMU2::ErrorSource es) {
     const Reporter cs(cip, ec, es);
-    if (*this == cs)
+    if (*this == cs) {
         return false;
+    }
     *this = cs;
     reported = false;
     log_error(MMU2, "MMU error set: cip: %d ec: %d es: %d", cip, ec, es);
@@ -83,8 +90,9 @@ bool Reporter::Change(CommandInProgress cip, ErrorCode ec, MMU2::ErrorSource es)
  */
 bool Reporter::Change(CommandInProgress cip, ProgressCode pc) {
     const Reporter cs(cip, pc);
-    if (*this == cs)
+    if (*this == cs) {
         return false;
+    }
     *this = cs;
     reported = false;
     log_info(MMU2, "MMU progress set: cip: %d pc: %d", cip, pc);
@@ -92,8 +100,9 @@ bool Reporter::Change(CommandInProgress cip, ProgressCode pc) {
 }
 
 std::optional<Reporter::Report> Reporter::ConsumeReport() {
-    if (reported)
+    if (reported) {
         return std::nullopt;
+    }
 
     reported = true;
     return report;

@@ -40,12 +40,14 @@ void GcodeSuite::M876() {
 
     if (parser.seenval('E')) {
         uint32_t val = parser.value_int();
-        if (val > uint32_t(WarningType::_last))
+        if (val > uint32_t(WarningType::_last)) {
             return;
+        }
         marlin_server::set_warning(WarningType(val));
     } else {
-        if (parser.seenval('S'))
+        if (parser.seenval('S')) {
             host_response_handler((uint8_t)parser.value_int());
+        }
     }
 }
 

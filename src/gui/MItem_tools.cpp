@@ -146,8 +146,9 @@ MI_AUTO_HOME::MI_AUTO_HOME()
 void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
     marlin_client::event_clr(marlin_server::Event::CommandBegin);
     marlin_client::gcode("G28");
-    while (!marlin_client::event_clr(marlin_server::Event::CommandBegin))
+    while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
         marlin_client::loop();
+    }
     gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
 }
 
@@ -164,15 +165,17 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
         if (!marlin_server::all_axes_homed() || response == Response::Yes) {
             marlin_client::event_clr(marlin_server::Event::CommandBegin);
             marlin_client::gcode("G28");
-            while (!marlin_client::event_clr(marlin_server::Event::CommandBegin))
+            while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
                 marlin_client::loop();
+            }
             gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
         }
         response = Response::No;
         marlin_client::event_clr(marlin_server::Event::CommandBegin);
         marlin_client::gcode("G29");
-        while (!marlin_client::event_clr(marlin_server::Event::CommandBegin))
+        while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
             marlin_client::loop();
+        }
         gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 
         if (marlin_client::error(MARLIN_ERR_ProbingFailed)) {
@@ -280,12 +283,13 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
     MsgBoxNonBlockInfo(_("A crash dump is being saved."));
-    if (!crash_dump::dump_is_valid())
+    if (!crash_dump::dump_is_valid()) {
         MsgBoxInfo(_("No crash dump to save."), Responses_Ok);
-    else if (crash_dump::save_dump_to_usb("/usb/dump.bin"))
+    } else if (crash_dump::save_dump_to_usb("/usb/dump.bin")) {
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
-    else
+    } else {
         MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
+    }
 }
 
 /*****************************************************************************/
@@ -853,8 +857,9 @@ MI_IS_X_TYPE::MI_IS_X_TYPE()
     , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei_3hump))
     ) {
     // clang-format on
-    if (!input_shaper_x_enabled())
+    if (!input_shaper_x_enabled()) {
         DontShowDisabledExtension();
+    }
 }
 
 void MI_IS_X_TYPE::OnChange(size_t) {
@@ -875,8 +880,9 @@ MI_IS_Y_TYPE::MI_IS_Y_TYPE()
     , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei_3hump))
     ) {
     // clang-format on
-    if (!input_shaper_y_enabled())
+    if (!input_shaper_y_enabled()) {
         DontShowDisabledExtension();
+    }
 }
 
 void MI_IS_Y_TYPE::OnChange(size_t) {
@@ -893,8 +899,9 @@ static constexpr SpinConfigInt is_frequency_spin_config = makeSpinConfig<int>(
 
 MI_IS_X_FREQUENCY::MI_IS_X_FREQUENCY()
     : WiSpinInt(input_shaper_x_frequency(), is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-    if (!input_shaper_x_enabled())
+    if (!input_shaper_x_enabled()) {
         DontShowDisabledExtension();
+    }
 }
 
 void MI_IS_X_FREQUENCY::OnClick() {
@@ -906,8 +913,9 @@ void MI_IS_X_FREQUENCY::OnClick() {
 
 MI_IS_Y_FREQUENCY::MI_IS_Y_FREQUENCY()
     : WiSpinInt(input_shaper_y_frequency(), is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-    if (!input_shaper_y_enabled())
+    if (!input_shaper_y_enabled()) {
         DontShowDisabledExtension();
+    }
 }
 
 void MI_IS_Y_FREQUENCY::OnClick() {
@@ -919,8 +927,9 @@ void MI_IS_Y_FREQUENCY::OnClick() {
 
 MI_IS_Y_COMPENSATION::MI_IS_Y_COMPENSATION()
     : WI_ICON_SWITCH_OFF_ON_t(input_shaper_y_weight_compensation(), _(label), nullptr, is_enabled_t::no, is_hidden_t::dev) {
-    if (!input_shaper_y_enabled())
+    if (!input_shaper_y_enabled()) {
         DontShowDisabledExtension();
+    }
 }
 
 void MI_IS_Y_COMPENSATION::OnChange(size_t) {

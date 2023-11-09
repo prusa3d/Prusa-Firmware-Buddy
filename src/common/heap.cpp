@@ -94,15 +94,17 @@ static int malloc_lock_counter = 0;
 void __malloc_lock([[maybe_unused]] struct _reent *r) {
     UBaseType_t interrupt_status;
     ENTER_CRITICAL_SECTION(interrupt_status);
-    if (malloc_lock_counter == 0)
+    if (malloc_lock_counter == 0) {
         malloc_saved_interrupt_status = interrupt_status;
+    }
     malloc_lock_counter += 1;
 };
 
 void __malloc_unlock([[maybe_unused]] struct _reent *r) {
     malloc_lock_counter -= 1;
-    if (malloc_lock_counter == 0)
+    if (malloc_lock_counter == 0) {
         EXIT_CRITICAL_SECTION(malloc_saved_interrupt_status);
+    }
 };
 
 uint32_t mem_is_heap_allocated(const void *ptr) {

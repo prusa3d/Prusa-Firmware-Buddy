@@ -23,8 +23,9 @@ IPartHandler::IPartHandler(size_t sz, SelftestParts part)
 
 bool IPartHandler::Loop() {
     // exit idle state
-    if (current_state == -1)
+    if (current_state == -1) {
         current_state = 0; // TODO i might want to use Start() somewhere in code instead
+    }
 
     if (current_state < 0 || current_state >= state_count) {
         // wait a bit so result is visible
@@ -109,18 +110,22 @@ bool IPartHandler::isInProgress() const {
 
 TestResult IPartHandler::GetResult() const {
     // cannot use switch, cases would be evaluated at runtime
-    if (current_state == IndexAborted())
+    if (current_state == IndexAborted()) {
         return TestResult_Skipped;
-    if (current_state == IndexFinished())
+    }
+    if (current_state == IndexFinished()) {
         return TestResult_Passed;
-    if (current_state == IndexFailed())
+    }
+    if (current_state == IndexFailed()) {
         return TestResult_Failed;
+    }
     return TestResult_Unknown;
 }
 
 void IPartHandler::next() {
-    if (!isInProgress())
+    if (!isInProgress()) {
         return;
+    }
     changeCurrentState(current_state + 1); // state[count] == Passed
     if (current_state == IndexFinished()) {
         Pass();

@@ -91,8 +91,9 @@ static int16_t phase_backoff_steps(const AxisEnum axis) {
 
     int16_t phaseCurrent = stepper_axis(axis).MSCNT(); // The TMC µsteps(phase) count of the current position
     int16_t phaseDelta = (0 - phaseCurrent) * stepperBackoutDir;
-    if (phaseDelta < 0)
+    if (phaseDelta < 0) {
         phaseDelta += 1024;
+    }
     return int16_t(phaseDelta / phase_per_ustep(axis)) * effectorBackoutDir;
 }
 
@@ -216,8 +217,9 @@ static measure_phase_cycles_ret measure_phase_cycles(int32_t &c_dist_a, int32_t 
         m_dist[slot].a = -m_dist[slot].a;
 
         if (ABS(m_dist[slot].a - m_dist[slot2].a) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR
-            && ABS(m_dist[slot].b - m_dist[slot2].b) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR)
+            && ABS(m_dist[slot].b - m_dist[slot2].b) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR) {
             break;
+        }
     }
     if (retry == XY_HOMING_ORIGIN_MAX_RETRIES) {
         ui.status_printf_P(0, "Precise refinement failed"); // User is most likely to get this version of ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED
@@ -233,8 +235,9 @@ static measure_phase_cycles_ret measure_phase_cycles(int32_t &c_dist_a, int32_t 
     c_dist_a = (d + c_steps_a) / (2 * c_steps_a);
     int32_t d_y = d - (m_steps[0].b + m_steps[1].b);
     int32_t d_y2 = abs(d_y) + c_steps_b;
-    if (d_y < 0)
+    if (d_y < 0) {
         d_y2 = -d_y2;
+    }
     c_dist_b = d_y2 / (2 * c_steps_b);
 
     if (DEBUGGING(LEVELING)) {
@@ -257,8 +260,9 @@ static bool wait_for_standstill(uint8_t axis_mask, millis_t max_delay = 150) {
                 }
             }
         }
-        if (stst)
+        if (stst) {
             return true;
+        }
         if (millis() > timeout || planner.draining()) {
             return false;
         }
@@ -298,8 +302,9 @@ bool refine_corexy_origin() {
     // sanity checks
     wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
     if (!phase_aligned(A_AXIS) || !phase_aligned(B_AXIS)) {
-        if (planner.draining())
+        if (planner.draining()) {
             return true;
+        }
 
         SERIAL_ECHOLN("phase alignment failed");
         SERIAL_ECHOLNPAIR("phase A:", stepperX.MSCNT(), " B:", stepperY.MSCNT());

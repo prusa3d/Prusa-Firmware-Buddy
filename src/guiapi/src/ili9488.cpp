@@ -135,8 +135,9 @@ static void ili9488_clr_rst(void) {
 }
 
 static inline void ili9488_fill_ui16(uint16_t *p, uint16_t v, uint16_t c) {
-    while (c--)
+    while (c--) {
         *(p++) = v;
+    }
 }
 
 static void ili9488_fill_ui24(uint8_t *p, uint32_t v, int c) {
@@ -186,8 +187,9 @@ void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size) {
 #else // ILI9488_USE_RTOS
 // TODO:
 #endif // ILI9488_USE_RTOS
-    } else
+    } else {
         HAL_SPI_Transmit(ili9488_config.phspi, const_cast<uint8_t *>(pb), size, HAL_MAX_DELAY);
+    }
 }
 
 uint32_t saved_prescaler;
@@ -273,8 +275,9 @@ void ili9488_cmd_rd(uint8_t cmd, uint8_t *pdata) {
 }
 
 void ili9488_wr(uint8_t *pdata, uint16_t size) {
-    if (!(pdata && size))
+    if (!(pdata && size)) {
         return; // null or empty data - return
+    }
     ili9488_clr_cs(); // CS = L
     ili9488_set_rs(); // RS = H
     ili9488_spi_wr_bytes(pdata, size); // write data bytes
@@ -282,8 +285,9 @@ void ili9488_wr(uint8_t *pdata, uint16_t size) {
 }
 
 void ili9488_rd(uint8_t *pdata, uint16_t size) {
-    if (!(pdata && size))
+    if (!(pdata && size)) {
         return; // null or empty data - return
+    }
     // generate little pulse on displayCs, because ILI need change displayCs logic level
     displayCs.write(Pin::State::high);
     ili9488_delay_ms(1);
@@ -531,8 +535,9 @@ void ili9488_clear(uint32_t clr666) {
     ili9488_cmd_caset(0, ILI9488_COLS - 1);
     ili9488_cmd_raset(0, ILI9488_ROWS - 1);
     ili9488_cmd_ramwr(0, 0);
-    for (i = 0; i < ILI9488_ROWS / ILI9488_BUFF_ROWS; i++)
+    for (i = 0; i < ILI9488_ROWS / ILI9488_BUFF_ROWS; i++) {
         ili9488_wr(ili9488_buff, sizeof(ili9488_buff));
+    }
     ili9488_set_cs();
     //	ili9488_test_miso();
 }
@@ -546,8 +551,9 @@ void ili9488_set_pixel(uint16_t point_x, uint16_t point_y, uint32_t clr666) {
 uint8_t *ili9488_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
     assert(!ili9488_buff_borrowed && "Buffer lent to someone");
 
-    if (start_x >= ILI9488_COLS || start_y >= ILI9488_ROWS || end_x >= ILI9488_COLS || end_y >= ILI9488_ROWS)
+    if (start_x >= ILI9488_COLS || start_y >= ILI9488_ROWS || end_x >= ILI9488_COLS || end_y >= ILI9488_ROWS) {
         return NULL;
+    }
     ili9488_cmd_caset(start_x, end_x);
     ili9488_cmd_raset(start_y, end_y);
     ili9488_cmd_ramrd(ili9488_buff, ILI9488_COLS * 3 * ILI9488_BUFF_ROWS);
@@ -571,18 +577,21 @@ void ili9488_fill_rect_colorFormat666(uint16_t rect_x, uint16_t rect_y, uint16_t
     uint32_t size = (uint32_t)rect_w * rect_h * 3;
     int n = size / sizeof(ili9488_buff);
     int s = size % sizeof(ili9488_buff);
-    if (n)
+    if (n) {
         ili9488_fill_ui24((uint8_t *)ili9488_buff, clr666, sizeof(ili9488_buff) / 3);
-    else
+    } else {
         ili9488_fill_ui24((uint8_t *)ili9488_buff, clr666, size / 3);
+    }
     ili9488_clr_cs();
     ili9488_cmd_caset(rect_x, rect_x + rect_w - 1);
     ili9488_cmd_raset(rect_y, rect_y + rect_h - 1);
     ili9488_cmd_ramwr(0, 0);
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i++) {
         ili9488_wr(ili9488_buff, sizeof(ili9488_buff));
-    if (s)
+    }
+    if (s) {
         ili9488_wr(ili9488_buff, s);
+    }
     ili9488_set_cs();
 }
 
@@ -733,10 +742,11 @@ void ili9488_inversion_tgl(void) {
     ili9488_cmd(CMD_INVOFF + ili9488_config.is_inverted, 0, 0);
 #else
     // to be portable
-    if (ili9488_inversion_get())
+    if (ili9488_inversion_get()) {
         ili9488_inversion_off();
-    else
+    } else {
         ili9488_inversion_on();
+    }
 
 #endif
 }
@@ -762,16 +772,18 @@ void ili9488_gamma_set_direct(uint8_t gamma_enu) {
 
 // use 0 - 3
 void ili9488_gamma_set(uint8_t gamma) {
-    if (gamma != ili9488_gamma_get())
+    if (gamma != ili9488_gamma_get()) {
         ili9488_gamma_set_direct(1 << (gamma & 0x03));
+    }
 }
 
 // returns 0 - 3
 uint8_t ili9488_gamma_get() {
     uint8_t position;
     for (position = 3; position != 0; --position) {
-        if (ili9488_config.gamma == 1 << position)
+        if (ili9488_config.gamma == 1 << position) {
             break;
+        }
     }
 
     return position;

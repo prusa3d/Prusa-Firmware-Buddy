@@ -235,8 +235,9 @@ namespace {
             // teoretically could fail not on the first
             // folder and we would then leave some previous
             // folder in place ,but this is improbable...
-            if (errno != EEXIST)
+            if (errno != EEXIST) {
                 return make_tuple(Status::InternalServerError, "Failed to create a folder");
+            }
         }
         return make_tuple(Status::Ok, nullptr);
     }
@@ -244,8 +245,9 @@ namespace {
     UploadHooks::Result make_dirs(string_view path) {
         size_t pos = path.find('/');
         while (pos != path.npos) {
-            if (auto error = make_dir(path.substr(0, pos)); std::get<0>(error) != Status::Ok)
+            if (auto error = make_dir(path.substr(0, pos)); std::get<0>(error) != Status::Ok) {
                 return error;
+            }
             pos = path.find('/', pos + 1);
         }
 
@@ -438,8 +440,9 @@ UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
     if (overwrite) {
         char filepath[FILE_NAME_BUFFER_LEN];
         auto error = prepend_usb_path(filename, filepath, sizeof(filepath));
-        if (std::get<0>(error) != Status::Ok)
+        if (std::get<0>(error) != Status::Ok) {
             return error;
+        }
 
         if (wui_is_file_being_printed(filepath)) {
             return make_tuple(Status::Conflict, "File is busy");
@@ -504,8 +507,9 @@ Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParam
 
     static_cast<void>(input);
     auto filename_error = check_filename(filename);
-    if (std::get<0>(filename_error) != Status::Ok)
+    if (std::get<0>(filename_error) != Status::Ok) {
         return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
+    }
 
     assert(put_transfer.f == nullptr); // No other transfer is happening at the moment.
     put_transfer.f = move(tmp_upload_file);

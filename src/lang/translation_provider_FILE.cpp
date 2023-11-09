@@ -37,8 +37,9 @@ bool FILETranslationProvider::EnsureFile() const {
         return true;
     }
     FileRAII file(m_File = fopen(m_Path, "rb")); // now we know that the FILE* is valid
-    if (m_File == nullptr)
+    if (m_File == nullptr) {
         return false;
+    }
 
     if (!m_HashTable.Init(m_File)) {
         m_File = nullptr;

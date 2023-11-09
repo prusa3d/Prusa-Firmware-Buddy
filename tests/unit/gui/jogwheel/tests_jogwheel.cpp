@@ -61,22 +61,27 @@ public:
     }
 
     phase_t GetEncoderPhase() {
-        if (jogWheelEN1.state == Pin::State::low && jogWheelEN2.state == Pin::State::low)
+        if (jogWheelEN1.state == Pin::State::low && jogWheelEN2.state == Pin::State::low) {
             return phase_t::P0lo_P1lo;
-        if (jogWheelEN1.state == Pin::State::high && jogWheelEN2.state == Pin::State::low)
+        }
+        if (jogWheelEN1.state == Pin::State::high && jogWheelEN2.state == Pin::State::low) {
             return phase_t::P0hi_P1lo;
-        if (jogWheelEN1.state == Pin::State::high && jogWheelEN2.state == Pin::State::high)
+        }
+        if (jogWheelEN1.state == Pin::State::high && jogWheelEN2.state == Pin::State::high) {
             return phase_t::P0hi_P1hi;
-        if (jogWheelEN1.state == Pin::State::low && jogWheelEN2.state == Pin::State::high)
+        }
+        if (jogWheelEN1.state == Pin::State::low && jogWheelEN2.state == Pin::State::high) {
             return phase_t::P0lo_P1hi;
+        }
 
         // cannot happen, avoid warning
         return phase_t::P0lo_P1lo;
     }
 
     void SetEncoderPhase(phase_t ph, uint32_t ms) {
-        while (ms--)
+        while (ms--) {
             SetEncoderPhase(ph);
+        }
     }
 
     void QuaterSpinR(uint32_t cnt, uint32_t ms = 2) { // 2 ms will pass noise filter

@@ -62,8 +62,9 @@ float AdvancedPower::GetInputCurrent() const {
 
 #if !(BOARD_IS_DWARF)
 void AdvancedPower::Update() {
-    if (!isInitialized)
+    if (!isInitialized) {
         return;
+    }
     #if BOARD_IS_XBUDDY
     if (HeaterOvercurentFaultDetected()) {
         fatal_error(ErrCode::ERR_ELECTRO_NOZZLE_OVERCURRENT);

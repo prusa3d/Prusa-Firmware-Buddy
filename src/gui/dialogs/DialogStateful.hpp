@@ -93,8 +93,9 @@ protected:
     virtual bool can_change(T phase) { return phase < T::_last; }
 
     virtual bool change(T phase, fsm::PhaseData data) {
-        if (!can_change(phase))
+        if (!can_change(phase)) {
             return false;
+        }
         if ((!current_phase) || (current_phase != phase)) {
             phaseExit();
             current_phase = phase;
@@ -111,8 +112,9 @@ protected:
 
     // get arguments callbacks and call them
     virtual void phaseEnter() {
-        if (!current_phase)
+        if (!current_phase) {
             return;
+        }
 
         radio.Change(*current_phase /*, states[phase].btn_resp, &states[phase].btn_labels*/); // TODO alternative button label support
         label.SetText(_(get_current_state().label));
@@ -121,8 +123,9 @@ protected:
         }
     }
     virtual void phaseExit() {
-        if (!current_phase)
+        if (!current_phase) {
             return;
+        }
 
         if (get_current_state().onExit) {
             get_current_state().onExit();

@@ -16,8 +16,9 @@ IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTE
 }
 
 void IScreenMenu::InitState(screen_init_variant var) {
-    if (!var.GetMenuPosition())
+    if (!var.GetMenuPosition()) {
         return;
+    }
     menu.InitState(*(var.GetMenuPosition()));
 }
 

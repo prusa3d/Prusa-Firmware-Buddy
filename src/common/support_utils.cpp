@@ -55,8 +55,9 @@ void printerHash(char *str, size_t size, bool state_prefix) {
     if (state_prefix) {
         /// shift hash by 2 bits
         hash[7] >>= 2;
-        for (int i = 6; i >= 0; --i)
+        for (int i = 6; i >= 0; --i) {
             rShift2Bits(hash[i], hash[i + 1]);
+        }
 
         /// set signature state
         if (signature_exist()) {
@@ -112,8 +113,9 @@ void error_url_long(char *str, const uint32_t str_size, const int error_code) {
 
     /// printer code
     snprintf(eofstr(str), str_size - strlen(str), "/");
-    if (str_size - strlen(str) > 8)
+    if (str_size - strlen(str) > 8) {
         printerCode(eofstr(str));
+    }
 
     /// FW version
     char version_buffer[8] {};
@@ -171,7 +173,8 @@ bool appendix_exist() {
 
 bool signature_exist() {
     const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
-    if (bootloader->major >= 1 && bootloader->minor >= 2)
+    if (bootloader->major >= 1 && bootloader->minor >= 2) {
         return data_exchange::has_fw_signature();
+    }
     return false;
 }

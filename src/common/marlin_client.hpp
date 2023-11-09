@@ -188,8 +188,9 @@ void encoded_response(uint32_t enc_phase_and_response);
 template <class T>
 bool FSM_response(T phase, Response response) {
     uint32_t encoded = ClientResponses::Encode(phase, response);
-    if (encoded == uint32_t(-1))
+    if (encoded == uint32_t(-1)) {
         return false;
+    }
 
     encoded_response(encoded);
     return true;

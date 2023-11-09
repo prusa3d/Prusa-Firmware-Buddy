@@ -19,8 +19,9 @@ public:
     }
 
     ~ScopeGuard() {
-        if (f)
+        if (f) {
             f();
+        }
     }
 
     void dismiss() noexcept {

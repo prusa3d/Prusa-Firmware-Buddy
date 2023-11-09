@@ -33,8 +33,9 @@ std::string AppendCRC(const std::string_view src) {
     // this code basically needs parsing of the input text and compute the CRC from the parsed data
     REQUIRE(src.size() > 1);
     // code
-    if (src[0] == 'W')
+    if (src[0] == 'W') {
         return AppendCRCWrite(src);
+    }
 
     size_t charsRead = 0;
     uint8_t crc = modules::crc::CRC8::CCITT_updateCX(0, src[0]);
@@ -42,8 +43,9 @@ std::string AppendCRC(const std::string_view src) {
     uint8_t rqValue = std::stoul(src.data() + 1, &charsRead, 16);
     crc = modules::crc::CRC8::CCITT_updateCX(crc, rqValue);
     crc = modules::crc::CRC8::CCITT_updateW(crc, 0);
-    if (!src[1 + charsRead])
+    if (!src[1 + charsRead]) {
         return AppendCRC(src, crc); // eof
+    }
     // [2] is a space
     REQUIRE(src.size() > 2 + charsRead);
     crc = modules::crc::CRC8::CCITT_updateCX(crc, src[2 + charsRead]); // param code

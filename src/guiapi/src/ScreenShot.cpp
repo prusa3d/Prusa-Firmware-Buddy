@@ -102,8 +102,9 @@ bool TakeAScreenshot() {
 
 bool TakeAScreenshotAs(const char *file_name) {
     FILE *fd = fopen(file_name, "w");
-    if (fd == nullptr)
+    if (fd == nullptr) {
         return false;
+    }
 
     const int header_size = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE;
     bool success = fwrite(&bmp_header, 1, header_size, fd) == header_size;

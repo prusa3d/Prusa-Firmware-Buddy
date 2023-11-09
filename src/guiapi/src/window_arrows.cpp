@@ -17,8 +17,9 @@ WindowArrows::WindowArrows(window_t *parent, point_i16_t pt, padding_ui8_t paddi
         parent,
         [pt, padding] {
             size_ui16_t sz = { id_res_grey_up->w, id_res_grey_up->h };
-            if (!(sz.h && sz.w))
+            if (!(sz.h && sz.w)) {
                 return Rect16();
+            }
             return Rect16(pt,
                 sz.w + padding.left + padding.right,
                 sz.h + padding.top + padding.bottom);

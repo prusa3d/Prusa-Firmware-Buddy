@@ -17,14 +17,18 @@ PYBIND11_MODULE(probe_analysis, m) {
         .def("calc_features", [](ProbeAnalysis &analysis) {
             ProbeAnalysis::Features features;
             analysis.CalculateHaltSpan(features);
-            if (analysis.CalculateAnalysisRange(features) == false)
+            if (analysis.CalculateAnalysisRange(features) == false) {
                 return py::dict("error"_a = "not-ready");
-            if (analysis.CalculateLoadLineApproximationFeatures(features) == false)
+            }
+            if (analysis.CalculateLoadLineApproximationFeatures(features) == false) {
                 return py::dict("error"_a = "load-lines");
-            if (analysis.CalculateZLineApproximationFeatures(features) == false)
+            }
+            if (analysis.CalculateZLineApproximationFeatures(features) == false) {
                 return py::dict("error"_a = "z-lines");
-            if (!analysis.CheckLineSanity(features))
+            }
+            if (!analysis.CheckLineSanity(features)) {
                 return py::dict("error"_a = "sanity-check");
+            }
             analysis.CalculateLoadMeans(features);
             analysis.CalculateLoadAngles(features);
             features.r2_60ms = analysis.CalculateSegmentedR2s(features, 0.060);
