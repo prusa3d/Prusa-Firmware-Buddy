@@ -59,15 +59,9 @@ The build process of this project is driven by CMake and `build.py` is just a hi
 - [Eclipse, STM32CubeIDE](doc/editor/stm32cubeide.md)
 - [Other LSP-based IDEs (Atom, Sublime Text, ...)](doc/editor/lsp-based-ides.md)
 
-#### Formatting
+#### Contributing
 
-All the source code in this repository is automatically formatted:
-
-- C/C++ files using [clang-format](https://clang.llvm.org/docs/ClangFormat.html),
-- Python files using [yapf](https://github.com/google/yapf),
-- and CMake files using [cmake-format](https://github.com/cheshirekow/cmake_format).
-
-If you want to contribute, make sure to install [pre-commit](https://pre-commit.com) and then run `pre-commit install` within the repository. This makes sure that all your future commits will be formatted appropriately. Our build server automatically rejects improperly formatted pull requests.
+If you want to contribute to the codebase, please read the [Contribution Guidelines](doc/contributing.md).
 
 #### XL and Puppies
 
