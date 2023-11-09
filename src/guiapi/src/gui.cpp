@@ -119,7 +119,7 @@ void gui_handle_touch() {
         Screens::Access()->ScreenEvent(nullptr, touch_event.type, event_data.pvoid);
     }
 
-    else if (window_t *captured_window = Screens::Access()->Get()->GetCapturedWindow(); captured_window && captured_window->GetRect().Contain(event_data.point)) {
+    else if (window_t *captured_window = Screens::Access()->Get()->GetCapturedWindow(); captured_window && captured_window->get_rect_for_touch().Contain(event_data.point)) {
         captured_window->WindowEvent(captured_window, touch_event.type, event_data.pvoid);
     }
 }

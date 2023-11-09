@@ -240,7 +240,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
             event_conversion_union un;
             un.pvoid = param;
             while (pWin) {
-                Rect16 rc = pWin->GetRect();
+                Rect16 rc = pWin->get_rect_for_touch();
                 if (rc.Contain(un.point)) {
                     break; // found it
                 }
