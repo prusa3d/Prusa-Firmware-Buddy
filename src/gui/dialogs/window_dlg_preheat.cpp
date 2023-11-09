@@ -35,6 +35,7 @@ void NsPreheat::I_MI_Filament::click_at(filament::Type filament) {
 // NsPreheat::MI_RETURN
 NsPreheat::MI_RETURN::MI_RETURN()
     : IWindowMenuItem(_(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    has_return_behavior_ = true;
 }
 
 void NsPreheat::MI_RETURN::click(IWindowMenu &window_menu) {
