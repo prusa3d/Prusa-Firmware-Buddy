@@ -201,3 +201,34 @@ void screen_t::ChildVisibilityChanged(window_t &child) {
     clearAllHiddenBehindDialogFlags();
     hideSubwinsBehindDialogs();
 }
+
+void screen_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
+    // GUI touch events (SWIPE) are to be distributed only to the first active popup/dialog
+    if (GUI_event_is_touch_event(event)) {
+        const auto checkList = [&](window_t *start, window_t *end) {
+            for (auto w = start; w; w->GetNext()) {
+                if (w->IsVisible()) {
+                    w->ScreenEvent(sender, event, param);
+                    return true;
+                }
+                if (w == end) {
+                    break;
+                }
+            }
+
+            return false;
+        };
+
+        if (checkList(GetFirstStrongDialog(), GetLastStrongDialog())) {
+            return;
+        }
+        if (checkList(GetFirstPopUp(), GetLastPopUp())) {
+            return;
+        }
+        if (checkList(GetFirstDialog(), GetLastDialog())) {
+            return;
+        }
+    }
+
+    super::screenEvent(sender, event, param);
+}
