@@ -42,8 +42,6 @@
     #include "puppies/Dwarf.hpp"
 #endif
 
-// #define HAS_BEEPER_WITHOUT_PWM
-
 namespace {
 /**
  * @brief hwio Marlin wrapper errors
@@ -57,11 +55,6 @@ enum {
     HWIO_ERR_UNDEF_DIG_WR, //!< undefined pin digital write
     HWIO_ERR_UNDEF_ANA_RD, //!< undefined pin analog write
     HWIO_ERR_UNDEF_ANA_WR, //!< undefined pin analog write
-};
-
-enum {
-    _FAN_ID_MIN = HWIO_PWM_FAN1,
-    _FAN_ID_MAX = HWIO_PWM_FAN,
 };
 
 // buddy pwm output pins
@@ -78,20 +71,6 @@ enum {
 
 } // end anonymous namespace
 
-/**
- * @brief analog output pins
- */
-static const uint32_t _dac_pin32[] = {};
-// buddy analog output maximum values
-static const int _dac_max[] = { 0 };
-static const size_t _DAC_CNT = sizeof(_dac_pin32) / sizeof(uint32_t);
-
-static const int _FAN_CNT = _FAN_ID_MAX - _FAN_ID_MIN + 1;
-
-// this value is compared to new value (to avoid rounding errors)
-static int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);
-static int _tim3_period_us = GEN_PERIOD_US(TIM3_default_Prescaler, TIM3_default_Period);
-
 static const uint32_t _pwm_chan[] = {
     TIM_CHANNEL_3, //_PWM_HEATER_BED
     TIM_CHANNEL_4, //_PWM_HEATER_0
@@ -104,13 +83,6 @@ static TIM_HandleTypeDef *_pwm_p_htim[] = {
     &htim3, //_PWM_HEATER_0
     &htim1, //_PWM_FAN1
     &htim1, //_PWM_FAN
-};
-
-static int *const _pwm_period_us[] = {
-    &_tim3_period_us, //_PWM_HEATER_BED
-    &_tim3_period_us, //_PWM_HEATER_0
-    &_tim1_period_us, //_PWM_FAN1
-    &_tim1_period_us, //_PWM_FAN
 };
 
 // buddy pwm output maximum values
@@ -130,8 +102,6 @@ static const TIM_OC_InitTypeDef sConfigOC_default = {
 static constexpr int _pwm_analogWrite_max = 255;
 // buddy fan output values  as arduino analogWrite
 static int _pwm_analogWrite_val[_PWM_CNT] = { 0, 0, 0, 0 };
-
-static int hwio_jogwheel_enabled = 0;
 
 static float hwio_beeper_vol = 1.0F;
 #if HAS_BEEPER_WITHOUT_PWM
@@ -157,16 +127,6 @@ METRIC_DEF(metric_bed_pwm, "bed_pwm", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER
 //--------------------------------------
 // analog output functions
 
-int hwio_dac_get_cnt(void) // number of analog outputs
-{ return _DAC_CNT; }
-
-int hwio_dac_get_max(int i_dac) // analog output maximum value
-{ return _dac_max[i_dac]; }
-
-void hwio_dac_set_val([[maybe_unused]] int i_dac, [[maybe_unused]] int val) // write analog output
-{
-}
-
 //--------------------------------------
 // pwm output functions
 
@@ -174,94 +134,11 @@ static constexpr int is_pwm_id_valid(int i_pwm) {
     return ((i_pwm >= 0) && (i_pwm < static_cast<int>(_PWM_CNT)));
 }
 
-int hwio_pwm_get_cnt(void) // number of pwm outputs
-{ return _PWM_CNT; }
-
 static constexpr int hwio_pwm_get_max(int i_pwm) // pwm output maximum value
 {
     if (!is_pwm_id_valid(i_pwm))
         return -1;
     return _pwm_max[i_pwm];
-}
-
-// affects only prescaler
-// affects multiple channels
-void hwio_pwm_set_period_us(int i_pwm, int T_us) // set pwm resolution
-{
-    if (!is_pwm_id_valid(i_pwm))
-        return;
-    int *ptr_period_us = _pwm_period_us[i_pwm];
-
-    if (T_us == *ptr_period_us)
-        return;
-
-    int prescaler = T_us * (int32_t)TIM_BASE_CLK_MHZ / (_pwm_max[i_pwm] + 1) - 1;
-    hwio_pwm_set_prescaler(i_pwm, prescaler);
-    // update seconds
-    *ptr_period_us = T_us;
-}
-
-int hwio_pwm_get_period_us(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm))
-        return -1;
-    return *_pwm_period_us[i_pwm];
-}
-
-void hwio_pwm_set_prescaler(int i_pwm, int prescaler) {
-    if (hwio_pwm_get_prescaler(i_pwm) == prescaler)
-        return;
-
-    TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
-
-    // uint32_t           chan = _pwm_get_chan(i_pwm);
-    // uint32_t           cmp  = __HAL_TIM_GET_COMPARE(htim,chan);
-
-    htim->Init.Prescaler = prescaler;
-    //__pwm_set_val(htim, chan, cmp);
-
-    __HAL_TIM_SET_PRESCALER(htim, prescaler);
-
-    // calculate micro seconds
-    int T_us = GEN_PERIOD_US(prescaler, htim->Init.Period);
-    // update micro
-    int *ptr_period_us = _pwm_period_us[i_pwm];
-    *ptr_period_us = T_us;
-}
-
-int hwio_pwm_get_prescaler(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm))
-        return -1;
-    TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
-    return htim->Init.Prescaler;
-}
-
-// values should be:
-// 0000 0000 0000 0000 -exp = 0
-// 0000 0000 0000 0001 -exp = 1
-// 0000 0000 0000 0011 -exp = 2
-// 0000 0000 0000 0111 -exp = 3
-//..
-// 0111 1111 1111 1111 -exp = 15
-// 1111 1111 1111 1111 -exp = 16
-
-void hwio_pwm_set_prescaler_exp2(int i_pwm, int exp) {
-    uint32_t prescaler = (1 << (exp)) - 1;
-    hwio_pwm_set_prescaler(i_pwm, prescaler);
-}
-
-// reading value set by hwio_pwm_set_prescaler_exp2
-int hwio_pwm_get_prescaler_log2(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm))
-        return -1;
-    uint32_t prescaler = hwio_pwm_get_prescaler(i_pwm) + 1;
-    int index = 0;
-
-    while (prescaler != 0) {
-        ++index;
-        prescaler = prescaler >> 1;
-    }
-
-    return index - 1;
 }
 
 uint32_t _pwm_get_chan(int i_pwm) {
@@ -356,29 +233,6 @@ void _hwio_pwm_analogWrite_set_val(int i_pwm, int val) {
         hwio_pwm_set_val(i_pwm, pulse);
         _pwm_analogWrite_val[i_pwm] = val;
     }
-}
-
-//--------------------------------------
-// fan control functions
-
-int hwio_fan_get_cnt(void) // number of fans
-{ return _FAN_CNT; }
-
-void hwio_fan_set_pwm(int i_fan, int val) {
-    i_fan += _FAN_ID_MIN;
-    if ((i_fan >= _FAN_ID_MIN) && (i_fan <= _FAN_ID_MAX))
-        _hwio_pwm_analogWrite_set_val(i_fan, val);
-}
-
-//--------------------------------------
-// Jogwheel
-
-void hwio_jogwheel_enable(void) {
-    hwio_jogwheel_enabled = 1;
-}
-
-void hwio_jogwheel_disable(void) {
-    hwio_jogwheel_enabled = 0;
 }
 
 //--------------------------------------

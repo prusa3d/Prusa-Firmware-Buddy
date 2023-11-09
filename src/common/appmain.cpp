@@ -306,7 +306,6 @@ void app_tim14_tick(void) {
     jogwheel.Update1msFromISR();
 #endif
     Sound_Update1ms();
-    // hwio_update_1ms();
     adc_tick_1ms();
 
 #if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
