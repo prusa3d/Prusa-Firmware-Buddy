@@ -134,6 +134,26 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
         }
         return;
 
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
+        for (auto it = pContainer->FindFirstVisible(); it.HasValue(); it = pContainer->FindNextVisible(it)) {
+            if (it.item->has_return_behavior() && it.item->IsEnabled()) {
+                Sound_Play(eSOUND_TYPE::ButtonEcho);
+
+                // Move focus, because some returns items are handled based on focus by a parent class
+                // cough cough screen_menu_filament_changeall::DMI_RETURN
+                it.item->move_focus();
+
+                // We don't need to repaint the item, really. Hopefully.
+                // If we don't validate, we'll see a short flash of the item, no need
+                it.item->Validate();
+
+                it.item->Click(*this);
+                return;
+            }
+        }
+        break;
+
     case GUI_event_t::LOOP:
         for (Node i = findFirst(); i.HasValue(); i = findNext(i)) {
             i.item->Loop();

@@ -136,6 +136,9 @@ private:
 protected:
     ExtensionLikeLabel has_extension_like_label : 1 = ExtensionLikeLabel::no; // currently has meaning only for menu item info, but might have meaning for other types as well
     uint16_t extension_width : 10;
+    /// Marks this menu item as returning.
+    /// TOUCH_SWIPE_LEFT gesture tries to find an item with this flag in the menu and execute it.
+    bool has_return_behavior_ : 1 = false;
     bool invalid_icon : 1 = true;
     bool invalid_label : 1 = true;
     bool invalid_extension : 1 = true;
@@ -249,6 +252,10 @@ public:
     void InValidateIcon();
     void InValidateLabel();
     void InValidateExtension();
+
+    inline bool has_return_behavior() const {
+        return has_return_behavior_;
+    }
 
     void set_color_scheme(const ColorScheme *scheme);
     void reset_color_scheme();
