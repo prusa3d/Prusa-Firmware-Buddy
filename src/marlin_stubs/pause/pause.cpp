@@ -1396,8 +1396,17 @@ void Pause::unpark_nozzle_and_notify() {
 
     // Move Z_AXIS to saved position, scope for PauseFsmNotifier
     {
-        PauseFsmNotifier N(*this, current_position.z, settings.resume_pos.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
-        do_blocking_move_to_z(settings.resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+        auto resume_pos_adj = settings.resume_pos;
+
+        // Gotta apply leveling, otherwise the move would move the axes to non-leveled coordinates
+        // (because that's what do_blocking_move->line_to_current_position->buffer_line does :/)
+        // If PLANNER_LEVELING is true, the leveling is applied inside buffer_line
+#if HAS_LEVELING && !PLANNER_LEVELING
+        planner.apply_leveling(resume_pos_adj);
+#endif
+
+        PauseFsmNotifier N(*this, current_position.z, resume_pos_adj.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
+        do_blocking_move_to_z(resume_pos_adj.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 
     // Unretract
