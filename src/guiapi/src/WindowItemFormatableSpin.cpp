@@ -102,7 +102,7 @@ void WI_LAMBDA_SPIN::click([[maybe_unused]] IWindowMenu &window_menu) {
  */
 void WI_LAMBDA_SPIN::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
     if (is_touch_in_extension_rect(window_menu, relative_touch_point)) {
-        click(window_menu);
+        set_is_edited(true);
     }
 }
 
