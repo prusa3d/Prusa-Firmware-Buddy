@@ -111,3 +111,14 @@ usb_error_48x48.png
 warning_48x48.png
 wifi_64x64.png
 wizard_16x16.png
+flag_cs_16x11.png
+flag_de_16x11.png
+flag_en_16x11.png
+flag_es_16x11.png
+flag_fr_16x11.png
+flag_it_16x11.png
+flag_pl_16x11.png
+language_white_16x16.png
+ok_color_16x16.png
+na_color_16x16.png
+nok_color_16x16.png
