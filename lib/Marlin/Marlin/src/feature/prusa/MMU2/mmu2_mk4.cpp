@@ -84,9 +84,6 @@ private:
     T m_started;
 };
 
-template class Timer<unsigned long>;
-template class Timer<unsigned short>;
-
 /// @brief Timer unsigned long specialization
 /// Maximum period is at least 49 days.
 using LongTimer = Timer<uint32_t>;
