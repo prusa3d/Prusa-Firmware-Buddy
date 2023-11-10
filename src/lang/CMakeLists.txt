@@ -35,8 +35,8 @@ add_dependencies(translations translations-genfiles translations-nonascii-chars)
 #
 
 add_library(
-  lang OBJECT translator.cpp translation_provider_CPUFLASH.cpp format_print_will_end.cpp
-              translation_provider_FILE.cpp gettext_string_hash.cpp
+  lang OBJECT translator.cpp format_print_will_end.cpp translation_provider_FILE.cpp
+              gettext_string_hash.cpp
   )
 target_link_libraries(lang translations sysbase::sysbase)
 target_include_directories(lang PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

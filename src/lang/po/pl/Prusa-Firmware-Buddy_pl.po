@@ -282,6 +282,7 @@ msgid ""
 "%d\n"
 "%s"
 msgstr ""
+"\n"
 "Wersja Bootloadera\n"
 "%d.%d.%d\n"
 "\n"
@@ -1689,7 +1690,7 @@ msgstr "Wersja firmware"
 #. r=1 c=20
 #: src/gui/version_info_ST7789V.cpp:37
 msgid "Firmware Version\n"
-msgstr "Wersja firmware"
+msgstr "Wersja firmware\n"
 
 #: src/gui/screen_menu_steel_sheets.hpp:54 src/gui/MItem_basic_selftest.hpp:49
 msgid "First Layer Calibration"
