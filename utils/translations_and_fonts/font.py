@@ -93,7 +93,7 @@ def cmd_create_font_png(non_ascii_chars_path: Path, src_png_path: Path,
                     y += 1
             file.write("};\n")
 
-        image = remove_red_dots(np.asarray(output_image, dtype=np.uint8))
+        image = remove_red_dots(np.array(output_image, dtype=np.uint8))
         output_image = Image.fromarray(image, "RGB")
         output_image.save(dst_png_path.resolve())
 
