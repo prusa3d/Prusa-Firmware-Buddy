@@ -114,35 +114,46 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
 
     item_count_ = ldv.TotalFilesCount();
 
-    // Hard set scroll index
-    // +1 because ldv counts ".." as index -1 :/
-    IWindowMenu::set_scroll_offset(ldv.window_offset() + 1);
-
-    // Determine focused item
+    // Now, ldv has adjusted its window offset and we need to synchronize scroll_offset with it properly.
+    // Also select the sfnAtCursor
+    std::optional<int> target_focused_index;
     {
-        // Force focused index update
-        focused_index_ = std::nullopt;
+        // +1 because ldv counts ".." as index -1 :/
+        int target_scroll_offset = ldv.window_offset() + 1;
 
-        std::optional<int> new_focused_index;
+        // If the item the ldv has found is actually sfnAtCursor, focus it
+        if (sfnAtCursor && sfnAtCursor[0] && !strcmp(sfnAtCursor, ldv.ShortFileNameAt(0).first)) {
+            target_focused_index = target_scroll_offset;
+        }
 
-        if (should_focus_item_on_init()) {
+        // If the item is within the first visible window, we won't scroll on it, keep the scroll offset on 0
+        if (target_scroll_offset < max_items_on_screen_count()) {
+            target_scroll_offset = 0;
+        }
+
+        // If the selected item is within that last screen, we gotta prevent scrolling out of it
+        else if (target_scroll_offset > max_scroll_offset()) {
+            target_scroll_offset = max_scroll_offset();
+        }
+
+        // We might have changed the target_scroll_offset, so update ldv to match it
+        ldv.set_window_offset(target_scroll_offset - 1);
+
+        // And hard set the scroll offset for the menu itself
+        IWindowMenu::set_scroll_offset(target_scroll_offset);
+    }
+
+    // Focus item if appropriate
+    {
+        if (!target_focused_index && should_focus_item_on_init()) {
             // Try avoid highlighting ".." if there's any file in the dir
-            new_focused_index = (item_count() > 1) ? 1 : 0;
-        }
-
-        // If the filename at cursor is not empty, try finding it in the visible slots and focusing it
-        if (sfnAtCursor && sfnAtCursor[0]) {
-            for (int i = 0; i < ldv.VisibleFilesCount(); ++i) {
-                if (!strcmp(sfnAtCursor, ldv.ShortFileNameAt(i).first)) {
-                    new_focused_index = i + scroll_offset();
-                    break;
-                }
-            }
+            target_focused_index = (item_count() > 1) ? 1 : 0;
         }
 
         // Force focused index update
         focused_index_ = std::nullopt;
-        move_focus_to_index(new_focused_index);
+
+        move_focus_to_index(target_focused_index);
     }
 
     Invalidate();
