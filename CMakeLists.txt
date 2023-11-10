@@ -297,9 +297,6 @@ target_link_libraries(tinyusb_dependencies INTERFACE FreeRTOS::FreeRTOS)
 # Global Compiler & Linker Configuration
 #
 
-# Thread safe newlib
-add_compile_options(-DconfigUSE_NEWLIB_REENTRANT=1)
-
 # include symbols
 add_compile_options(-g)
 

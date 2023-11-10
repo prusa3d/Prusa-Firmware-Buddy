@@ -126,6 +126,7 @@ extern uint32_t SystemCoreClock;
 #define configMINIMAL_STACK_SIZE         ((uint16_t)128)
 #define configTOTAL_HEAP_SIZE            ((size_t)40960)
 #define configUSE_MALLOC_FAILED_HOOK     1
+#define configUSE_NEWLIB_REENTRANT       1
 
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 0
 
