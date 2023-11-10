@@ -37,8 +37,8 @@ class string_view_utf8 {
         /// interface for utf-8 string stored in a FILE - used for validation of the whole translation infrastructure
         struct FromFile {
             ::FILE *f; ///< shared FILE pointer with other instances accessing the same file
-            uint16_t startOfs; ///< start offset in input file
-            uint16_t currentOfs; ///< position of next byt to read
+            uint32_t startOfs; ///< start offset in input file
+            uint32_t currentOfs; ///< position of next byt to read
         } file;
     };
     Attrs attrs;
@@ -224,7 +224,7 @@ public:
 
     /// Construct string_view_utf8 to provide data from FILE
     /// The FILE *f shall aready be positioned to the spot, where the string starts
-    static string_view_utf8 MakeFILE(::FILE *f, uint16_t offset) {
+    static string_view_utf8 MakeFILE(::FILE *f, uint32_t offset) {
         string_view_utf8 s;
         s.attrs.file.f = f;
         if (f) {
