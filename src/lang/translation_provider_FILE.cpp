@@ -31,7 +31,6 @@ string_view_utf8 FILETranslationProvider::GetText(const char *key) const {
 }
 
 bool FILETranslationProvider::EnsureFile() const {
-
     // check if there is open file, if yes it must have been open with this function and is valid
     if (m_File != nullptr) {
         return true;
@@ -40,6 +39,9 @@ bool FILETranslationProvider::EnsureFile() const {
     if (m_File == nullptr) {
         return false;
     }
+
+    // set file buffer to 64B -> most reads are very short, so it will be more efficient to have relatively small buffer.
+    setvbuf(m_File, nullptr, _IOFBF, 64);
 
     if (!m_HashTable.Init(m_File)) {
         fclose(m_File);
