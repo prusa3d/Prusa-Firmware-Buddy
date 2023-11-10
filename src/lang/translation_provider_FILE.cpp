@@ -48,3 +48,11 @@ bool FILETranslationProvider::EnsureFile() const {
 
     return true;
 }
+
+namespace {
+static const FILETranslationProvider cs("/internal/res/lang/cs.mo");
+ProviderRegistrator csReg("cs", &cs);
+
+static const FILETranslationProvider es("/internal/res/lang/es.mo");
+ProviderRegistrator esReg("es", &es);
+} // namespace

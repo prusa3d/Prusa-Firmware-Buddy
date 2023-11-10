@@ -9,7 +9,7 @@
 
 class FILETranslationProvider : public ITranslationProvider {
 
-    char m_Path[16];
+    char m_Path[128];
     mutable FILE *m_File = nullptr;
     mutable gettext_hash_table m_HashTable;
     mutable uint32_t m_TransTableOff;

@@ -86,6 +86,13 @@ add_gzip_resource("web/index.html" "/web/index.html")
 add_gzip_resource("web/main.2812ca58adec020e163e.js" "/web/main.2812ca58adec020e163e.js")
 add_gzip_resource("web/main.71c989a4a290e5c10892.css" "/web/main.71c989a4a290e5c10892.css")
 
+add_resource("${CMAKE_SOURCE_DIR}/src/lang/po/cs/Prusa-Firmware-Buddy_cs.mo" "/lang/cs.mo")
+# add_resource("${CMAKE_SOURCE_DIR}/src/lang/po/de/Prusa-Firmware-Buddy_de.mo" "/lang/de.mo")
+add_resource("${CMAKE_SOURCE_DIR}/src/lang/po/es/Prusa-Firmware-Buddy_es.mo" "/lang/es.mo")
+# add_resource("${CMAKE_SOURCE_DIR}/src/lang/po/fr/Prusa-Firmware-Buddy_fr.mo" "/lang/fr.mo")
+# add_resource("${CMAKE_SOURCE_DIR}/src/lang/po/it/Prusa-Firmware-Buddy_it.mo" "/lang/it.mo")
+# add_resource("${CMAKE_SOURCE_DIR}/src/lang/po/pl/Prusa-Firmware-Buddy_pl.mo" "/lang/pl.mo")
+
 # non-packed images, set the list of images to process
 set(NONPACKED_PNG_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/resources")
 
