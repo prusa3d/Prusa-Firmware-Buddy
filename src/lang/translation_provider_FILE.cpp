@@ -36,14 +36,15 @@ bool FILETranslationProvider::EnsureFile() const {
     if (m_File != nullptr) {
         return true;
     }
-    FileRAII file(m_File = fopen(m_Path, "rb")); // now we know that the FILE* is valid
+    m_File = fopen(m_Path, "rb"); // now we know that the FILE* is valid
     if (m_File == nullptr)
         return false;
 
     if (!m_HashTable.Init(m_File)) {
+        fclose(m_File);
         m_File = nullptr;
         return false;
     }
-    file.Release();
+
     return true;
 }
