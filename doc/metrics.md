@@ -32,7 +32,6 @@ in real-time while your algorithm runs on a real printer.
 3. Enable sending the recorded metrics
 
     ```gcode
-    M330 SYSLOG               ; We are using the SYSLOG handler (ethernet, UDP)
     M334 <ip address> <port>  ; Where to send the metrics
     M331 cpu_usage            ; Enable the metric we just created
     ```
@@ -43,7 +42,7 @@ in real-time while your algorithm runs on a real printer.
 
 Let you configure your metrics at runtime.
 
-- **M330**` <handler>` -- Select `handler` for configuration
+- **M330**` <handler>` -- Select `handler` for configuration (`SYSLOG` is selected by default)
     - Example: `M330 SYSLOG`
 - **M331**` <metric>` -- Enable `metric` for the currently selected `handler`.
     - Example: `M331 pos_z`
@@ -156,7 +155,6 @@ What are metrics good for, if you have no way to store, view, and process them? 
     - By default, the metrics are stored within a database named `buddy` (no authorization required)
 1. A metric-handler service, listening on port 8500 for incoming metrics and storing them to the InfluxDB database.
     - You can setup your printer to send metrics to this handler using the gcodes below
-        - `M330 SYSLOG`
         - `M334 <ip address of your computer> 8500`
 1. A Grafana instance for viewing the metrics.
     - Accessible on port 3000 (http://localhost:3000)

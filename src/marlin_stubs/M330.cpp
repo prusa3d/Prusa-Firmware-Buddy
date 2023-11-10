@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
 
-static metric_handler_t *selected_handler = NULL;
+static metric_handler_t *selected_handler = &metric_handler_syslog;
 
 void PrusaGcodeSuite::M330() {
     bool handler_found = false;
