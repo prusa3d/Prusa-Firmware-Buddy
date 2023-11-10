@@ -86,5 +86,6 @@ exclude: |
     ^lib/CrashCatcher/|
     ^lib/libbgcode/|
     ^lib/cpp-std-extensions/|
-    ^lib/heatshrink/
+    ^lib/heatshrink/|
+    ^tests/stubs/FreeRTOS
   )
