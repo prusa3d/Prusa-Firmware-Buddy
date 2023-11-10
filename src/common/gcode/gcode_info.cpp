@@ -103,6 +103,7 @@ bool GCodeInfo::start_load(AnyGcodeFormatReader &file_reader) {
         return true;
 
     } else {
+        error_str_ = N_("Failed to open file");
         start_load_result_ = StartLoadResult::Failed;
         return false;
     }

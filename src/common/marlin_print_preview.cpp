@@ -428,14 +428,11 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::loading:
         if (gcode_info.start_load_result() == GCodeInfo::StartLoadResult::None) {
             break;
+        }
 
-        } else if (gcode_info.has_error()) {
+        if (gcode_info.has_error()) {
             ChangeState(State::file_error_wait_user);
             break;
-
-        } else if (gcode_info.start_load_result() == GCodeInfo::StartLoadResult::Failed) {
-            ChangeState(State::inactive);
-            return Result::Abort;
         }
 
         if (!gcode_info.can_be_printed()) {
