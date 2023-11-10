@@ -5,8 +5,8 @@
 #include "fonts.hpp"
 #include "config.h"
 #ifdef USE_ST7789
-    #include "res/cc/font_7x13.hpp" //IDR_FNT_SMALL
-    #include "res/cc/font_11x18.hpp" //IDR_FNT_NORMAL
+    #include "res/cc/font_regular_7x13.hpp" //IDR_FNT_SMALL
+    #include "res/cc/font_regular_11x18.hpp" //IDR_FNT_NORMAL
     #include "res/cc/font_regular_9x16.hpp" //IDR_FNT_SPECIAL
 #endif // USE_ST7789
 #ifdef USE_ILI9488
@@ -26,9 +26,9 @@ typedef struct _resource_entry_t {
 const resource_entry_t resource_table[] = {
 // fonts
 #ifdef USE_ST7789
-    RESOURCE_ENTRY_FNT(font_7x13) // IDR_FNT_SMALL
-    RESOURCE_ENTRY_FNT(font_11x18) // IDR_FNT_NORMAL
-    RESOURCE_ENTRY_FNT(font_11x18) // IDR_FNT_BIG (removed to save flash)
+    RESOURCE_ENTRY_FNT(font_regular_7x13) // IDR_FNT_SMALL
+    RESOURCE_ENTRY_FNT(font_regular_11x18) // IDR_FNT_NORMAL
+    RESOURCE_ENTRY_FNT(font_regular_11x18) // IDR_FNT_BIG (removed to save flash)
     RESOURCE_ENTRY_FNT(font_regular_9x16) // IDR_FNT_SPECIAL
 #endif // USE_ST7789
 
@@ -44,9 +44,9 @@ const resource_entry_t resource_table[] = {
 }; // resource_table
 
 #ifdef USE_ST7789
-static_assert(resource_font_size(IDR_FNT_SMALL) == font_size_t { font_7x13.w, font_7x13.h }, "Font size doesn't match");
-static_assert(resource_font_size(IDR_FNT_NORMAL) == font_size_t { font_11x18.w, font_11x18.h }, "Font size doesn't match");
-static_assert(resource_font_size(IDR_FNT_BIG) == font_size_t { font_11x18.w, font_11x18.h }, "Font size doesn't match");
+static_assert(resource_font_size(IDR_FNT_SMALL) == font_size_t { font_regular_7x13.w, font_regular_7x13.h }, "Font size doesn't match");
+static_assert(resource_font_size(IDR_FNT_NORMAL) == font_size_t { font_regular_11x18.w, font_regular_11x18.h }, "Font size doesn't match");
+static_assert(resource_font_size(IDR_FNT_BIG) == font_size_t { font_regular_11x18.w, font_regular_11x18.h }, "Font size doesn't match");
 static_assert(resource_font_size(IDR_FNT_SPECIAL) == font_size_t { font_regular_9x16.w, font_regular_9x16.h }, "Font size doesn't match");
 #endif /*USE_ST7789*/
 

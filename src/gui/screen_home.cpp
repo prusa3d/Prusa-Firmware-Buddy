@@ -89,7 +89,7 @@ constexpr size_t buttonFilamentIndex = 2;
 #ifdef USE_ST7789
 constexpr size_t buttonsXSpacing = 15;
 constexpr size_t buttonTextWidth = 80;
-constexpr size_t buttonTextHeight = 13; // font_7x13
+constexpr size_t buttonTextHeight = 13; // font_regular_7x13
 
 constexpr size_t buttonTopOffset = 88;
 constexpr size_t buttonTextTopOffset = 155;
