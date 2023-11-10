@@ -274,6 +274,11 @@ bool Pause::ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t pr
         idle(true, true);
     }
 
+    // Check that safety timer didn't disable heaters
+    if (Temperature::degTargetHotend(active_extruder) == 0) {
+        return false;
+    }
+
     return true;
 }
 
