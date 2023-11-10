@@ -36,8 +36,11 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
     if (event == GUI_event_t::CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
+            auto menu_index = menu.GetIndex();
 
             item->Do(); // do action (load filament ...)
+
+            menu.SetIndex(menu_index.value_or(0)); // restore menu index
             header.SetText(_(label)); // restore label
         }
         return;
