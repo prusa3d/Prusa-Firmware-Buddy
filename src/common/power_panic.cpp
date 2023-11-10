@@ -12,7 +12,7 @@
 #endif /*HAS_TOOLCHANGER()*/
 
 #include "marlin_server.hpp"
-#include "media.h"
+#include "media.hpp"
 
 #include "../lib/Marlin/Marlin/src/feature/prusa/crash_recovery.hpp"
 #include "../lib/Marlin/Marlin/src/module/endstops.h"

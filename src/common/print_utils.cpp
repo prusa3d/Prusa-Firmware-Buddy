@@ -5,7 +5,7 @@
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 #include "../lib/Marlin/Marlin/src/module/temperature.h"
 #include "marlin_client.hpp"
-#include "media.h"
+#include "media.hpp"
 #include "marlin_server.hpp"
 #include "unique_file_ptr.hpp"
 #include "timing.h"

@@ -53,8 +53,8 @@
 #endif
 
 #include "hwio.h"
-#include "media.h"
 #include "wdt.hpp"
+#include "media.hpp"
 #include "../marlin_stubs/G26.hpp"
 #include "../marlin_stubs/M123.hpp"
 #include "fsm_types.hpp"

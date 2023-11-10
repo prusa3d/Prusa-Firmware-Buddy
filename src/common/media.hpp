@@ -28,10 +28,6 @@ typedef enum {
     media_print_state_PAUSED = 2,
 } media_print_state_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 extern media_state_t media_get_state(void);
 
 /**
@@ -88,7 +84,3 @@ extern void media_reset_usbh_error();
 
 extern void media_set_restore_info(PrusaPackGcodeReader::stream_restore_info_t &info);
 extern PrusaPackGcodeReader::stream_restore_info_t media_get_restore_info();
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus

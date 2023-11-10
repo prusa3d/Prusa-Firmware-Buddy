@@ -5,7 +5,7 @@
 
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "marlin_server.hpp"
-#include "media.h"
+#include "media.hpp"
 #include "marlin_vars.hpp"
 
 // M20 - List SD card

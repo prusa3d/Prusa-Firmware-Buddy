@@ -10,7 +10,7 @@
 #include "fonts.hpp"
 #include "gcode_thumb_decoder.h"
 #include <config_store/store_instance.hpp>
-#include <media.h>
+#include <media.hpp>
 
 constexpr static const char *finish_print_text = N_("Print finished");
 constexpr static const char *stop_print_text = N_("Print stopped");

@@ -12,7 +12,7 @@
 #if HAS_ADVANCED_POWER()
     #include "advanced_power.hpp"
 #endif // HAS_ADVANCED_POWER()
-#include "media.h"
+#include "media.hpp"
 #include "timing.h"
 #include "config_buddy_2209_02.h"
 #include "otp.hpp"

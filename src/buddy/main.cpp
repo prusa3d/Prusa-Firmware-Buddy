@@ -9,7 +9,7 @@
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod.h"
-#include "media.h"
+#include "media.hpp"
 #include <config_store/store_instance.hpp>
 #include <option/buddy_enable_connect.h>
 #if BUDDY_ENABLE_CONNECT()

@@ -2,13 +2,12 @@
 
 #include <algorithm>
 
-#include "media.h"
+#include "media.hpp"
 #include "log.h"
 #include "lfn.h"
 #include "ff.h"
 #include "usbh_core.h"
 #include "../Marlin/src/gcode/queue.h"
-#include <algorithm>
 #include <sys/iosupport.h>
 #include "marlin_server.hpp"
 #include "gcode_filter.hpp"
@@ -22,7 +21,6 @@
 #include "gcode_info.hpp"
 #include <ccm_thread.hpp>
 #include <transfers/transfer.hpp>
-#include <algorithm>
 
 using transfers::Transfer;
 using State = transfers::PartialFile::State;
@@ -63,101 +61,99 @@ static void _usbhost_reenum(void) {
 static void _usbhost_reenum(void) {};
 #endif
 
-extern "C" {
-
+char getByte(GCodeFilter::State *state);
 namespace {
-    volatile media_state_t media_state = media_state_REMOVED;
-    volatile media_error_t media_error = media_error_OK;
+volatile media_state_t media_state = media_state_REMOVED;
+volatile media_error_t media_error = media_error_OK;
 
-    media_print_state_t media_print_state = media_print_state_NONE;
-    AnyGcodeFormatReader *media_print_file; ///< File used to print
-    AnyGcodeFormatReader *gcode_info_file; ///< File used to scan GcodeInfo
-    uint32_t media_print_size_estimate = 0; ///< Estimated uncompressed G-code size in bytes
-    uint32_t media_current_position = 0; // Current position in the file
-    uint32_t media_gcode_position = 0; // Beginning of the current G-Code
-    /// Cache of PrusaPackGcodeReader that allows to resume print quickly without long searches for correct block
-    PrusaPackGcodeReader::stream_restore_info_t media_stream_restore_info;
+media_print_state_t media_print_state = media_print_state_NONE;
+AnyGcodeFormatReader *media_print_file; ///< File used to print
+AnyGcodeFormatReader *gcode_info_file; ///< File used to scan GcodeInfo
+uint32_t media_print_size_estimate = 0; ///< Estimated uncompressed G-code size in bytes
+uint32_t media_current_position = 0; // Current position in the file
+uint32_t media_gcode_position = 0; // Beginning of the current G-Code
+/// Cache of PrusaPackGcodeReader that allows to resume print quickly without long searches for correct block
+PrusaPackGcodeReader::stream_restore_info_t media_stream_restore_info;
 
-    // Position where to start after pause / quick stop
-    uint32_t media_reset_position = GCodeQueue::SDPOS_INVALID;
+// Position where to start after pause / quick stop
+uint32_t media_reset_position = GCodeQueue::SDPOS_INVALID;
 
-    char getByte(GCodeFilter::State *state);
-    char gcode_buffer[MAX_CMD_SIZE + 1]; // + 1 for NULL char
-    GCodeFilter gcode_filter(&getByte, gcode_buffer, sizeof(gcode_buffer));
-    bool skip_gcode = false;
+char gcode_buffer[MAX_CMD_SIZE + 1]; // + 1 for NULL char
+GCodeFilter gcode_filter(&getByte, gcode_buffer, sizeof(gcode_buffer));
+bool skip_gcode = false;
 
-    uint32_t usbh_error_count = 0;
-    uint32_t usb_host_reset_timestamp = 0; // USB Host timestamp in seconds
+uint32_t usbh_error_count = 0;
+// uint32_t usb_host_reset_timestamp = 0; // USB Host timestamp in seconds
 
-    METRIC_DEF(usbh_error_cnt, "usbh_err_cnt", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(usbh_error_cnt, "usbh_err_cnt", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
-    // These buffers are HUGE. We need to rework the prefetcher logic
-    // to be more efficient and add compression.
-    constexpr size_t FILE_BUFF_SIZE = 5120;
-    char __attribute__((section(".ccmram"))) prefetch_buff[2][FILE_BUFF_SIZE];
-    char *file_buff;
-    uint32_t file_buff_level;
-    size_t back_buff_level = 0;
-    uint32_t file_buff_pos;
-    GCodeFilter::State prefetch_state;
+// These buffers are HUGE. We need to rework the prefetcher logic
+// to be more efficient and add compression.
+constexpr size_t FILE_BUFF_SIZE = 5120;
+char __attribute__((section(".ccmram"))) prefetch_buff[2][FILE_BUFF_SIZE];
+char *file_buff;
+uint32_t file_buff_level;
+size_t back_buff_level = 0;
+uint32_t file_buff_pos;
+GCodeFilter::State prefetch_state;
 
-    SemaphoreHandle_t prefetch_mutex_data_out = nullptr; ///< Mutex to switch buffers
-    SemaphoreHandle_t prefetch_mutex_file_reader = nullptr; ///< Mutex to not close while another thread is using it
+SemaphoreHandle_t prefetch_mutex_data_out = nullptr; ///< Mutex to switch buffers
+SemaphoreHandle_t prefetch_mutex_file_reader = nullptr; ///< Mutex to not close while another thread is using it
 
-    METRIC_DEF(metric_prefetched_bytes, "media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_prefetched_bytes, "media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
-    /**
-     * @brief Initialize GCodeInfo.
-     * @param event signal that started this, will be updated while waiting for file to be downloaded
-     * @param event nullptr if not waiting for file to be downloaded
-     */
-    void media_gcode_info_scan(osEvent *event = nullptr) {
-        assert(gcode_info_file);
-        auto &gcode_info = GCodeInfo::getInstance();
+/**
+ * @brief Initialize GCodeInfo.
+ * @param event signal that started this, will be updated while waiting for file to be downloaded
+ * @param event nullptr if not waiting for file to be downloaded
+ */
+void media_gcode_info_scan(osEvent *event = nullptr) {
+    assert(gcode_info_file);
+    auto &gcode_info = GCodeInfo::getInstance();
 
-        if (!gcode_info.start_load(*gcode_info_file)) {
-            log_error(MarlinServer, "Media prefetch GCodeInfo: fail to open");
-            return;
-        }
+    if (!gcode_info.start_load(*gcode_info_file)) {
+        log_error(MarlinServer, "Media prefetch GCodeInfo: fail to open");
+        return;
+    }
 
-        const bool should_load_gcode = [&] {
-            // Wait for gcode to be valid
-            while (!gcode_info.check_valid_for_print(*gcode_info_file)) {
-                if (gcode_info.has_error()) {
-                    log_error(MarlinServer, "Media prefetch GCodeInfo: not valid: %s", gcode_info.error_str());
-                    return false;
-                }
-
-                if (!event) {
-                    // Do not wait for file to download
-                    log_error(MarlinServer, "Media prefetch GCodeInfo: cannot wait");
-                    return false;
-                } else {
-                    // Check for signal to stop loading (for example Quit button during the Downloading screen)
-                    *event = osSignalWait(PREFETCH_SIGNAL_GCODE_INFO_STOP, 500);
-                    if (event->value.signals & PREFETCH_SIGNAL_GCODE_INFO_STOP) {
-                        log_info(MarlinServer, "Media prefetch GCodeInfo: stopped");
-                        return false;
-                    }
-                }
-            }
-
-            // Verify the file CRC
-            if (!gcode_info.verify_file(*gcode_info_file)) {
-                log_error(MarlinServer, "Media prefetch GCodeInfo: fail to verify: %s", gcode_info.error_str());
+    const bool should_load_gcode = [&] {
+        // Wait for gcode to be valid
+        while (!gcode_info.check_valid_for_print(*gcode_info_file)) {
+            if (gcode_info.has_error()) {
+                log_error(MarlinServer, "Media prefetch GCodeInfo: not valid: %s", gcode_info.error_str());
                 return false;
             }
 
-            return true;
-        }();
-
-        if (should_load_gcode) {
-            log_info(MarlinServer, "Media prefetch GCodeInfo: loading");
-            gcode_info.load(*gcode_info_file);
+            if (!event) {
+                // Do not wait for file to download
+                log_error(MarlinServer, "Media prefetch GCodeInfo: cannot wait");
+                return false;
+            } else {
+                // Check for signal to stop loading (for example Quit button during the Downloading screen)
+                *event = osSignalWait(PREFETCH_SIGNAL_GCODE_INFO_STOP, 500);
+                if (event->value.signals & PREFETCH_SIGNAL_GCODE_INFO_STOP) {
+                    log_info(MarlinServer, "Media prefetch GCodeInfo: stopped");
+                    return false;
+                }
+            }
         }
 
-        gcode_info.end_load(*gcode_info_file);
+        // Verify the file CRC
+        if (!gcode_info.verify_file(*gcode_info_file)) {
+            log_error(MarlinServer, "Media prefetch GCodeInfo: fail to verify: %s", gcode_info.error_str());
+            return false;
+        }
+
+        return true;
+    }();
+
+    if (should_load_gcode) {
+        log_info(MarlinServer, "Media prefetch GCodeInfo: loading");
+        gcode_info.load(*gcode_info_file);
     }
+
+    gcode_info.end_load(*gcode_info_file);
+}
 } // namespace
 
 media_state_t media_get_state(void) {
@@ -618,5 +614,3 @@ void media_set_restore_info(PrusaPackGcodeReader::stream_restore_info_t &info) {
 PrusaPackGcodeReader::stream_restore_info_t media_get_restore_info() {
     return media_stream_restore_info;
 }
-
-} // extern "C"
