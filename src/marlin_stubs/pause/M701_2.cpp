@@ -46,6 +46,13 @@ bool filament_gcodes::load_unload([[maybe_unused]] LoadUnloadMode type, filament
     // Load/Unload filament
     bool res = std::invoke(f_load_unload, Pause::Instance(), rSettings);
 
+    if (marlin_server::printer_idle() && !res) { // Failed when printer is not printing
+        // Disable nozzle heater
+        thermalManager.setTargetHotend(0, rSettings.GetExtruder());
+        marlin_server::set_temp_to_display(0, rSettings.GetExtruder());
+        return false;
+    }
+
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(targ_temp, rSettings.GetExtruder());
     }
