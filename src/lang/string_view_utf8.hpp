@@ -105,18 +105,29 @@ class string_view_utf8 {
     }
 
     static uint8_t FILE_getbyte(Attrs &attrs) {
+        if (!attrs.file.f) {
+            return '\0';
+        }
         uint8_t c;
         // sync among multiple reads from the sameMO file
         if (ftell(attrs.file.f) != static_cast<long>(attrs.file.currentOfs)) {
-            fseek(attrs.file.f, attrs.file.currentOfs, SEEK_SET);
+            if (fseek(attrs.file.f, attrs.file.currentOfs, SEEK_SET) != 0) {
+                return '\0';
+            }
         }
         attrs.file.currentOfs++;
-        fread(&c, 1, 1, attrs.file.f);
+        if (fread(&c, 1, 1, attrs.file.f) != 1) {
+            return '\0';
+        }
         return c;
     }
     static void FILE_rewind(Attrs &attrs) {
         if (attrs.file.f) {
-            fseek(attrs.file.f, attrs.file.startOfs, SEEK_SET);
+            if (fseek(attrs.file.f, attrs.file.startOfs, SEEK_SET) != 0) {
+                // seek failed, so make this string view invalid so it doesn't cause problems later
+                attrs.file.f = nullptr;
+                return;
+            }
             attrs.file.currentOfs = attrs.file.startOfs;
         }
     }
