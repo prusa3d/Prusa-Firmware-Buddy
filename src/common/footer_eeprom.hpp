@@ -8,6 +8,7 @@
 #pragma once
 #include "footer_def.hpp"
 #include "changed.hpp"
+#include <printers.h>
 
 namespace footer::eeprom {
 /**
@@ -71,5 +72,9 @@ draw_zero_t get_item_draw_zero();
  * @return uint8_t
  */
 uint8_t get_center_n_and_fewer();
+
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_XL
+Record decode_from_old_eeprom_v22(uint32_t encoded);
+#endif
 
 } // namespace footer::eeprom
