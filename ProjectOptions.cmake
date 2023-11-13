@@ -90,6 +90,11 @@ set(TRANSLATIONS_ENABLED
     "<default>"
     CACHE STRING "Enable languages (NO == English only)"
     )
+set(TRANSLATIONS_LIST
+    "<default>"
+    CACHE STRING "List of languages to enable"
+    )
+
 set(TOUCH_ENABLED
     "<default>"
     CACHE STRING "Enable touch (valid values are ${TOUCH_ENABLED_VALID_OPTS})."
@@ -264,6 +269,7 @@ set(PRINTERS_WITH_SIDE_FSENSOR "XL")
 set(PRINTERS_WITH_EMBEDDED_ESP32 "XL")
 set(PRINTERS_WITH_SIDE_LEDS "XL" "iX")
 set(PRINTERS_WITH_TRANSLATIONS "MK4" "MK3.5" "XL" "MINI")
+set(PRINTERS_WITH_EXTFLASH_TRANSLATIONS "MINI")
 set(PRINTERS_WITH_LOVE_BOARD "MK4" "iX")
 set(PRINTERS_WITH_MMU2 "MK4" "MK3.5")
 
@@ -284,11 +290,49 @@ set(BOARDS_WITH_ACCELEROMETER "XBUDDY" "DWARF")
 if(${TRANSLATIONS_ENABLED} STREQUAL "<default>")
   if(${PRINTER} IN_LIST PRINTERS_WITH_TRANSLATIONS)
     set(TRANSLATIONS_ENABLED YES)
+    if(${PRINTER} IN_LIST PRINTERS_WITH_EXTFLASH_TRANSLATIONS)
+      set(TRANSLATIONS_IN_EXTFLASH YES)
+    else()
+      set(TRANSLATIONS_IN_EXTFLASH NO)
+    endif()
+    define_boolean_option(TRANSLATIONS_IN_EXTFLASH ${TRANSLATIONS_IN_EXTFLASH})
   else()
     set(TRANSLATIONS_ENABLED NO)
   endif()
+
 endif()
 define_boolean_option(HAS_TRANSLATIONS ${TRANSLATIONS_ENABLED})
+
+# Set language options
+set(LANGUAGES_AVAILABLE CS DE ES FR IT PL)
+if("${TRANSLATIONS_LIST}" STREQUAL "<default>")
+  if(PRINTER STREQUAL "MINI"
+     OR (CMAKE_BUILD_TYPE STREQUAL "Debug" AND (NOT ${TRANSLATIONS_IN_EXTFLASH}))
+     )
+    # no traslations included to mini or debug builds with translations in internal flash - they
+    # might not fit
+  else()
+    # include all translations
+    define_boolean_option(ENABLE_TRANSLATION_CS yes)
+    define_boolean_option(ENABLE_TRANSLATION_DE yes)
+    define_boolean_option(ENABLE_TRANSLATION_ES yes)
+    define_boolean_option(ENABLE_TRANSLATION_FR yes)
+    define_boolean_option(ENABLE_TRANSLATION_IT yes)
+    define_boolean_option(ENABLE_TRANSLATION_PL yes)
+  endif()
+else()
+  set(TRANSLATIONS_LIST_FOREACH ${TRANSLATIONS_LIST})
+  foreach(LANG ${TRANSLATIONS_LIST_FOREACH})
+    string(TOUPPER ${LANG} LANG)
+    define_boolean_option(ENABLE_TRANSLATION_${LANG} yes)
+  endforeach()
+endif()
+
+foreach(LANG ${LANGUAGES_AVAILABLE})
+  if(NOT DEFINED "ENABLE_TRANSLATION_${LANG}")
+    define_boolean_option("ENABLE_TRANSLATION_${LANG}" no)
+  endif()
+endforeach()
 
 if(${TOUCH_ENABLED} STREQUAL "<default>")
   if(${PRINTER} MATCHES "^(iX)$")

@@ -9,10 +9,16 @@
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include <option/enable_translation_cs.h>
+#include <option/enable_translation_de.h>
+#include <option/enable_translation_es.h>
+#include <option/enable_translation_fr.h>
+#include <option/enable_translation_it.h>
+#include <option/enable_translation_pl.h>
 
 class MI_LangBase : public WI_LABEL_t {
 public:
-    MI_LangBase(const char *label, const img::Resource *icon);
+    MI_LangBase(const char *label, const img::Resource *icon, is_hidden_t hidden);
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override;
@@ -106,11 +112,28 @@ protected:
 
 /*****************************************************************************/
 // parent alias
-#ifdef _DEBUG
-using ScreenMenuLanguages__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH, MI_TEST_LANG>;
-#else
-using ScreenMenuLanguages__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using ScreenMenuLanguages__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH,
+#if ENABLE_TRANSLATION_CS()
+    MI_CZECH,
 #endif
+#if ENABLE_TRANSLATION_DE()
+    MI_GERMAN,
+#endif
+#if ENABLE_TRANSLATION_ES()
+    MI_SPANISH,
+#endif
+#if ENABLE_TRANSLATION_FR()
+    MI_FRENCH,
+#endif
+#if ENABLE_TRANSLATION_IT()
+    MI_ITALIAN,
+#endif
+#if ENABLE_TRANSLATION_PL()
+    MI_POLISH,
+#endif
+    MI_TEST_LANG
+
+    >;
 
 class ScreenMenuLanguages : public ScreenMenuLanguages__ {
 public:
@@ -120,7 +143,26 @@ public:
 
 /*****************************************************************************/
 // parent alias
-using ScreenMenuLanguagesNoReturn__ = ScreenMenu<EFooter::Off, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
+using ScreenMenuLanguagesNoReturn__ = ScreenMenu<EFooter::Off, MI_ENGLISH,
+#if ENABLE_TRANSLATION_CS()
+    MI_CZECH,
+#endif
+#if ENABLE_TRANSLATION_DE()
+    MI_GERMAN,
+#endif
+#if ENABLE_TRANSLATION_ES()
+    MI_SPANISH,
+#endif
+#if ENABLE_TRANSLATION_FR()
+    MI_FRENCH,
+#endif
+#if ENABLE_TRANSLATION_IT()
+    MI_ITALIAN,
+#endif
+#if ENABLE_TRANSLATION_PL()
+    MI_POLISH,
+#endif
+    MI_TEST_LANG>;
 
 class ScreenMenuLanguagesNoRet : public ScreenMenuLanguagesNoReturn__ {
 protected:

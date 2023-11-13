@@ -52,9 +52,39 @@ bool FILETranslationProvider::EnsureFile() const {
 }
 
 namespace {
+#include "option/enable_translation_cs.h"
+#if ENABLE_TRANSLATION_CS()
 static const FILETranslationProvider cs("/internal/res/lang/cs.mo");
 ProviderRegistrator csReg("cs", &cs);
+#endif
 
+#include "option/enable_translation_de.h"
+#if ENABLE_TRANSLATION_DE()
+static const FILETranslationProvider de("/internal/res/lang/de.mo");
+ProviderRegistrator deReg("de", &de);
+#endif
+
+#include "option/enable_translation_es.h"
+#if ENABLE_TRANSLATION_ES()
 static const FILETranslationProvider es("/internal/res/lang/es.mo");
 ProviderRegistrator esReg("es", &es);
+#endif
+
+#include "option/enable_translation_fr.h"
+#if ENABLE_TRANSLATION_FR()
+static const FILETranslationProvider fr("/internal/res/lang/fr.mo");
+ProviderRegistrator frReg("fr", &fr);
+#endif
+
+#include "option/enable_translation_it.h"
+#if ENABLE_TRANSLATION_IT()
+static const FILETranslationProvider it("/internal/res/lang/it.mo");
+ProviderRegistrator itReg("it", &it);
+#endif
+
+#include "option/enable_translation_pl.h"
+#if ENABLE_TRANSLATION_PL()
+static const FILETranslationProvider pl("/internal/res/lang/pl.mo");
+ProviderRegistrator plReg("pl", &pl);
+#endif
 } // namespace
