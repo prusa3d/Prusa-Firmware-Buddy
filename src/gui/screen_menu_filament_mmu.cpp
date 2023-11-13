@@ -14,7 +14,6 @@
 ScreenMenuFilamentMMU::ScreenMenuFilamentMMU()
     : ScreenMenuFilamentMMU__(_(label)) {
     header.SetIcon(&img::spool_white_16x16);
-    ClrMenuTimeoutClose(); // don't close on menu timeout
 }
 
 void ScreenMenuFilamentMMU::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
