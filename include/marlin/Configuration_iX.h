@@ -1109,7 +1109,7 @@
 #define Z_SIZE 195
 
 // Travel limits (mm) after homing, corresponding to endstop positions. defaul x -2.5 y -7.3
-#define X_MIN_POS -30
+#define X_MIN_POS -14
 #define Y_MIN_POS -11
 #define Z_MIN_POS 0
 #define X_MAX_POS X_MIN_POS + 283
