@@ -29,7 +29,7 @@ enum class Sensor {
     mbedMCUTemperature,
     count,
 };
-#else
+#elif BOARD_IS_XBUDDY
 enum class Sensor {
     bedTemp,
     boardTemp,
@@ -44,6 +44,11 @@ enum class Sensor {
     heaterCurrent,
     inputCurrent,
     mmuCurrent,
+    count,
+};
+#else
+enum class Sensor {
+    MCUTemp,
     count,
 };
 #endif
@@ -209,7 +214,7 @@ private:
                                                                     },
         compareFN {});
 
-#else
+#elif BOARD_IS_XBUDDY
     constexpr static SensorArray sensors = ConstexprQuickSort::sort(SensorArray {
                                                                         { { "temp_bed", Sensor::bedTemp },
                                                                             { "temp_brd", Sensor::boardTemp },
@@ -226,6 +231,15 @@ private:
                                                                             { "cur_mmu_imp", Sensor::mmuCurrent } },
                                                                     },
         compareFN {});
+
+#else
+    constexpr static SensorArray sensors = ConstexprQuickSort::sort(SensorArray {
+                                                                        {
+                                                                            { "temp_mcu", Sensor::MCUTemp },
+                                                                        },
+                                                                    },
+        compareFN {});
+
 #endif
 
     // array for storing values of sensors
