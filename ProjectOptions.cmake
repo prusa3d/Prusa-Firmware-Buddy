@@ -309,16 +309,14 @@ if("${TRANSLATIONS_LIST}" STREQUAL "<default>")
   if(PRINTER STREQUAL "MINI"
      OR (CMAKE_BUILD_TYPE STREQUAL "Debug" AND (NOT ${TRANSLATIONS_IN_EXTFLASH}))
      )
-    # no traslations included to mini or debug builds with translations in internal flash - they
-    # might not fit
+    # Do not include translations to some build - Mini has explicitly listed translations - Debug
+    # builds has translations disabled (due to FLASH space reasons), unless translations are in
+    # extflash than its fine
   else()
     # include all translations
-    define_boolean_option(ENABLE_TRANSLATION_CS yes)
-    define_boolean_option(ENABLE_TRANSLATION_DE yes)
-    define_boolean_option(ENABLE_TRANSLATION_ES yes)
-    define_boolean_option(ENABLE_TRANSLATION_FR yes)
-    define_boolean_option(ENABLE_TRANSLATION_IT yes)
-    define_boolean_option(ENABLE_TRANSLATION_PL yes)
+    foreach(LANG ${LANGUAGES_AVAILABLE})
+      define_boolean_option("ENABLE_TRANSLATION_${LANG}" yes)
+    endforeach()
   endif()
 else()
   set(TRANSLATIONS_LIST_FOREACH ${TRANSLATIONS_LIST})
