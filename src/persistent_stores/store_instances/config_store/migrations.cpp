@@ -1,4 +1,6 @@
 #include "migrations.hpp"
+#include <footer_def.hpp>
+#include <footer_eeprom.hpp>
 
 namespace config_store_ns {
 namespace migrations {
@@ -28,6 +30,36 @@ namespace migrations {
 
         backend.save_migration_item(journal::hash("Selftest Result V23"), new_selftest_result); // Save the new data into the backend
     }
+
+#if PRINTER_IS_PRUSA_XL // MINI goes directly from old eeprom to multiple footer items, MK4 gets its footer reset
+    void footer_setting_v1(journal::Backend &backend) {
+        // See selftest_result_pre_23 (above) for in-depth commentary
+        using FooterSettingsV1 = decltype(DeprecatedStore::footer_setting_v1);
+        FooterSettingsV1::value_type footer_setting_v1 { FooterSettingsV1::default_val };
+        auto callback = [&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            if (header.id == FooterSettingsV1::hashed_id) {
+                memcpy(&footer_setting_v1, buffer.data(), header.len);
+            }
+        };
+        backend.read_items_for_migrations(callback);
+
+        auto decoded_rec { footer::eeprom::decode_from_old_eeprom_v22(footer_setting_v1) };
+
+        backend.save_migration_item(journal::hash("Footer Setting 0"), decoded_rec[0]);
+    #if FOOTER_ITEMS_PER_LINE__ > 1
+        backend.save_migration_item(journal::hash("Footer Setting 1"), decoded_rec[1]);
+    #endif
+    #if FOOTER_ITEMS_PER_LINE__ > 2
+        backend.save_migration_item(journal::hash("Footer Setting 2"), decoded_rec[2]);
+    #endif
+    #if FOOTER_ITEMS_PER_LINE__ > 3
+        backend.save_migration_item(journal::hash("Footer Setting 3"), decoded_rec[3]);
+    #endif
+    #if FOOTER_ITEMS_PER_LINE__ > 4
+        backend.save_migration_item(journal::hash("Footer Setting 4"), decoded_rec[4]);
+    #endif
+    }
+#endif
 
     void selftest_result_pre_gears(journal::Backend &backend) {
         // See selftest_result_pre_23 (above) for in-depth commentary
