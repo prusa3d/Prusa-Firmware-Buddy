@@ -1686,6 +1686,9 @@ static void _server_print_loop(void) {
     case State::Exit:
         // make the State::Exit state more resilient to repeated calls (e.g. USB drive pulled out prematurely at the end-of-print screen)
         if (fsm_event_queues.GetFsm0() == ClientFSM::Printing) { // the printing state can only occur in the Fsm0 queue
+            if (fsm_event_queues.GetFsm1() != ClientFSM::_none) { // Cannot destroy FSM0 while FSM1 shows anything (would BSOD)
+                break; // Wait for FSM1 to end
+            }
             finalize_print();
             FSM_DESTROY__LOGGING(Printing);
         }
