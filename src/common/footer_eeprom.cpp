@@ -7,6 +7,7 @@
 #include "footer_eeprom.hpp"
 #include <config_store/store_instance.hpp>
 #include <utility_extensions.hpp>
+#include <config_store/old_eeprom/eeprom_v22.hpp>
 
 namespace footer::eeprom {
 
@@ -92,6 +93,95 @@ draw_zero_t get_item_draw_zero() {
 uint8_t get_center_n_and_fewer() {
     return get_draw_cnf_ref().center_n_and_fewer;
 }
+
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_XL
+Record decode_from_old_eeprom_v22(uint32_t encoded) {
+    // Only valid for XL and MINI
+
+    static constexpr size_t min_bit_size { config_store_ns::old_eeprom::v22::value_bit_size };
+    uint32_t mask = (uint32_t(1) << (min_bit_size)) - 1;
+    footer::Record ret = { {} };
+
+    // version >= v11 has trailing ones
+    encoded >>= config_store_ns::old_eeprom::v22::count_of_trailing_ones;
+
+    for (size_t i = 0; i < config_store_ns::old_eeprom::v22::count; ++i) {
+        uint32_t decoded = encoded & mask;
+        if (decoded >= ftrstd::to_underlying(config_store_ns::old_eeprom::v22::FooterItems::_count)) {
+            return footer::default_items; // data corrupted, return default setting
+        }
+
+        auto previous_item = static_cast<config_store_ns::old_eeprom::v22::FooterItems>(decoded);
+        switch (previous_item) { // easiest way to ensure there's no mistake is the most boring one - a switch case
+        case config_store_ns::old_eeprom::v22::FooterItems::Nozzle:
+            ret[i] = footer::Item::nozzle;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::Bed:
+            ret[i] = footer::Item::bed;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::Filament:
+            ret[i] = footer::Item::filament;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::FSValue:
+            ret[i] = footer::Item::f_s_value;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::FSensor:
+            ret[i] = footer::Item::f_sensor;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::Speed:
+            ret[i] = footer::Item::speed;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::AxisX:
+            ret[i] = footer::Item::axis_x;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::AxisY:
+            ret[i] = footer::Item::axis_y;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::AxisZ:
+            ret[i] = footer::Item::axis_z;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::ZHeight:
+            ret[i] = footer::Item::z_height;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::PrintFan:
+            ret[i] = footer::Item::print_fan;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::HeatbreakFan:
+            ret[i] = footer::Item::heatbreak_fan;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::Heatbreak:
+            ret[i] = footer::Item::heatbreak_temp;
+            break;
+    #if PRINTER_IS_PRUSA_MINI
+        case config_store_ns::old_eeprom::v22::FooterItems::LiveZ:
+            ret[i] = footer::Item::live_z;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::Sheets:
+            ret[i] = footer::Item::sheets;
+            break;
+    #endif
+    #if PRINTER_IS_PRUSA_XL
+        case config_store_ns::old_eeprom::v22::FooterItems::CurrentTool:
+            ret[i] = footer::Item::current_tool;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::AllNozzles:
+            ret[i] = footer::Item::all_nozzles;
+            break;
+        case config_store_ns::old_eeprom::v22::FooterItems::FSensorSide:
+            ret[i] = footer::Item::f_sensor_side;
+            break;
+    #endif
+        case config_store_ns::old_eeprom::v22::FooterItems::None:
+        case config_store_ns::old_eeprom::v22::FooterItems::_count:
+        default: // better to set the footer as missing than anything else in case of a random value
+            ret[i] = footer::Item::none;
+            break;
+        }
+        encoded >>= min_bit_size;
+    }
+    return ret;
+}
+#endif
 
 /// This is just a check to make it harder to corrupt eeprom
 static_assert(ftrstd::to_underlying(Item::none) == 0
