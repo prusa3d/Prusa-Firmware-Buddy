@@ -128,7 +128,9 @@ pipeline {
                     axis {
                         name 'configuration'
                         // preset,build_type,bootloader(yesboot|noboot|emptyboot)
-                        values 'mini,release,yesboot',
+                        values 'mini-en-cs-de,release,yesboot',
+                            'mini-en-es-fr,release,yesboot',
+                            'mini-en-it-pl,release,yesboot',
                             'mk3.5,release,yesboot',
                             'mk4,release,yesboot',
                             'mk4,release,noboot',
