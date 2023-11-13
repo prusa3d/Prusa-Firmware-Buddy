@@ -154,7 +154,7 @@ LoopResult CSelftestPart_Loadcell::stateToolSelectInit() {
 }
 
 LoopResult CSelftestPart_Loadcell::stateToolSelectWaitFinish() {
-    if (planner.processing()) {
+    if (queue.has_commands_queued() || planner.processing()) {
         return LoopResult::RunCurrent;
     }
     return LoopResult::RunNext;
