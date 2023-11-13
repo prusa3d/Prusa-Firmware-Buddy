@@ -76,9 +76,7 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, string_view_utf8 tit, co
         wrong_fw_version_text.SetAlignment(Align_t::CenterTop());
 
         // Print version string
-        char fw_version[] = "v00.00.00";
-        snprintf(fw_version, std::size(fw_version), "v%d.%d.%d", valid_printer_settings.gcode_fw_version.major, valid_printer_settings.gcode_fw_version.minor, valid_printer_settings.gcode_fw_version.patch);
-        wrong_fw_version_text.SetText(string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(fw_version)));
+        wrong_fw_version_text.SetText(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(valid_printer_settings.latest_fw_version)));
     } else {
         wrong_fw_version_text.Hide();
     }

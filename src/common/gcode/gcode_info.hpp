@@ -136,7 +136,6 @@ public:
             unsigned build_number = 0;
         };
 
-        GcodeFwVersion gcode_fw_version;
         char latest_fw_version[sizeof("99.99.99-alpha99+999999")];
 
         /**
