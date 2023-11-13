@@ -107,7 +107,7 @@ class string_view_utf8 {
     static uint8_t FILE_getbyte(Attrs &attrs) {
         uint8_t c;
         // sync among multiple reads from the sameMO file
-        if (ftell(attrs.file.f) != (long)attrs.file.currentOfs)
+        if (ftell(attrs.file.f) != static_cast<long>(attrs.file.currentOfs))
             fseek(attrs.file.f, attrs.file.currentOfs, SEEK_SET);
         attrs.file.currentOfs++;
         fread(&c, 1, 1, attrs.file.f);

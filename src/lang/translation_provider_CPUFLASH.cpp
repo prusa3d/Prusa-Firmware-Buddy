@@ -4,6 +4,11 @@
 #include "translator.hpp"
 #include "translation_provider_CPUFLASH.hpp"
 #include <option/has_translations.h>
+#include <option/enable_translation_cs.h>
+#include <option/enable_translation_de.h>
+#include <option/enable_translation_es.h>
+#include <option/enable_translation_it.h>
+#include <option/enable_translation_pl.h>
 
 #if HAS_TRANSLATIONS()
     #include <option/translations_in_extflash.h>
@@ -27,7 +32,6 @@ const TPBSH::BucketRange TPBSH::hash_table[TPBSH::Buckets()] =
 
     /// Wrappers of statically precomputed translation data for each language
 
-        #include <option/enable_translation_cs.h>
         #if ENABLE_TRANSLATION_CS()
         struct StringTableCS { // why the hell does clang-format indent this line so weird?
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
@@ -48,7 +52,6 @@ ProviderRegistrator csReg("cs", &cs);
 } // namespace
         #endif
 
-        #include <option/enable_translation_de.h>
         #if ENABLE_TRANSLATION_DE()
 struct StringTableDE {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
@@ -69,7 +72,6 @@ ProviderRegistrator deReg("de", &de);
 } // namespace
         #endif
 
-        #include <option/enable_translation_es.h>
         #if ENABLE_TRANSLATION_ES()
 struct StringTableES {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
@@ -111,7 +113,6 @@ ProviderRegistrator frReg("fr", &fr);
 } // namespace
         #endif
 
-        #include <option/enable_translation_it.h>
         #if ENABLE_TRANSLATION_IT()
 struct StringTableIT {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
@@ -132,7 +133,6 @@ ProviderRegistrator itReg("it", &it);
 } // namespace
         #endif
 
-        #include <option/enable_translation_pl.h>
         #if ENABLE_TRANSLATION_PL()
 struct StringTablePL {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately

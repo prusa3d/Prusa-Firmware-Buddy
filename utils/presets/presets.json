@@ -15,7 +15,7 @@
         },
         {
             "name": "mini-en-cs-de",
-            "description": "Original Prusa MINI (CS & PL) translation",
+            "description": "Original Prusa MINI (EN, CS & DE translation)",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
@@ -28,7 +28,7 @@
         },
         {
             "name": "mini-en-es-fr",
-            "description": "Original Prusa MINI (ES & FR) translation",
+            "description": "Original Prusa MINI (EN, ES & FR translation)",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
@@ -41,7 +41,7 @@
         },
         {
             "name": "mini-en-it-pl",
-            "description": "Original Prusa MINI (ES & FR) translation",
+            "description": "Original Prusa MINI (EN, IT & PL translation)",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
