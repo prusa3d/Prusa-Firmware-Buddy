@@ -3,27 +3,32 @@
 #include "string_hash.hpp"
 #include "translator.hpp"
 #include "translation_provider_CPUFLASH.hpp"
+#include <option/has_translations.h>
+
+#if HAS_TRANSLATIONS()
+    #include <option/translations_in_extflash.h>
+    #if !TRANSLATIONS_IN_EXTFLASH()
 
 using TPBSH = CPUFLASHTranslationProviderBase::SHashTable;
-#ifndef TRANSLATIONS_UNITTEST
+        #ifndef TRANSLATIONS_UNITTEST
 const
-#endif
+        #endif
     TPBSH CPUFLASHTranslationProviderBase::hash_table;
 
-#ifndef TRANSLATIONS_UNITTEST
+        #ifndef TRANSLATIONS_UNITTEST
 template <>
 const TPBSH::BucketRange TPBSH::hash_table[TPBSH::Buckets()] =
-    #include "hash_table_buckets.ipp"
+            #include "hash_table_buckets.ipp"
 
     template <>
     const TPBSH::BucketItem TPBSH::stringRecArray[TPBSH::MaxStrings()] =
-    #include "hash_table_string_indices.ipp"
-#endif
+            #include "hash_table_string_indices.ipp"
+        #endif
 
-/// Wrappers of statically precomputed translation data for each language
+    /// Wrappers of statically precomputed translation data for each language
 
-#include "../../include/option/enable_translation_cs.h"
-#if ENABLE_TRANSLATION_CS()
+        #include <option/enable_translation_cs.h>
+        #if ENABLE_TRANSLATION_CS()
         struct StringTableCS { // why the hell does clang-format indent this line so weird?
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
@@ -31,9 +36,9 @@ const TPBSH::BucketRange TPBSH::hash_table[TPBSH::Buckets()] =
 
 using CPUFLASHTranslationProviderCS = CPUFLASHTranslationProvider<StringTableCS>;
 
-    // precomputed indices and strings for the CS(CZ) language
-    #include "stringBegins.cs.hpp"
-    #include "utf8Raw.cs.hpp"
+            // precomputed indices and strings for the CS(CZ) language
+            #include "stringBegins.cs.hpp"
+            #include "utf8Raw.cs.hpp"
 template <>
 const CPUFLASHTranslationProviderCS::RawData CPUFLASHTranslationProviderCS::rawData;
 
@@ -41,10 +46,10 @@ namespace {
 static const CPUFLASHTranslationProviderCS cs;
 ProviderRegistrator csReg("cs", &cs);
 } // namespace
-#endif
+        #endif
 
-#include "../../include/option/enable_translation_de.h"
-#if ENABLE_TRANSLATION_DE()
+        #include <option/enable_translation_de.h>
+        #if ENABLE_TRANSLATION_DE()
 struct StringTableDE {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
@@ -52,9 +57,9 @@ struct StringTableDE {
 
 using CPUFLASHTranslationProviderDE = CPUFLASHTranslationProvider<StringTableDE>;
 
-    // precomputed indices and strings for the DE language
-    #include "stringBegins.de.hpp"
-    #include "utf8Raw.de.hpp"
+            // precomputed indices and strings for the DE language
+            #include "stringBegins.de.hpp"
+            #include "utf8Raw.de.hpp"
 template <>
 const CPUFLASHTranslationProviderDE::RawData CPUFLASHTranslationProviderDE::rawData;
 
@@ -62,10 +67,10 @@ namespace {
 static const CPUFLASHTranslationProviderDE de;
 ProviderRegistrator deReg("de", &de);
 } // namespace
-#endif
+        #endif
 
-#include "../../include/option/enable_translation_es.h"
-#if ENABLE_TRANSLATION_ES()
+        #include <option/enable_translation_es.h>
+        #if ENABLE_TRANSLATION_ES()
 struct StringTableES {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
@@ -73,9 +78,9 @@ struct StringTableES {
 
 using CPUFLASHTranslationProviderES = CPUFLASHTranslationProvider<StringTableES>;
 
-    // precomputed indices and strings for the ES language
-    #include "stringBegins.es.hpp"
-    #include "utf8Raw.es.hpp"
+            // precomputed indices and strings for the ES language
+            #include "stringBegins.es.hpp"
+            #include "utf8Raw.es.hpp"
 template <>
 const CPUFLASHTranslationProviderES::RawData CPUFLASHTranslationProviderES::rawData;
 
@@ -83,10 +88,10 @@ namespace {
 static const CPUFLASHTranslationProviderES es;
 ProviderRegistrator esReg("es", &es);
 } // namespace
-#endif
+        #endif
 
-#include "../../include/option/enable_translation_fr.h"
-#if ENABLE_TRANSLATION_FR()
+        #include <option/enable_translation_fr.h>
+        #if ENABLE_TRANSLATION_FR()
 struct StringTableFR {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
@@ -94,9 +99,9 @@ struct StringTableFR {
 
 using CPUFLASHTranslationProviderFR = CPUFLASHTranslationProvider<StringTableFR>;
 
-    // precomputed indices and strings for the FR language
-    #include "stringBegins.fr.hpp"
-    #include "utf8Raw.fr.hpp"
+            // precomputed indices and strings for the FR language
+            #include "stringBegins.fr.hpp"
+            #include "utf8Raw.fr.hpp"
 template <>
 const CPUFLASHTranslationProviderFR::RawData CPUFLASHTranslationProviderFR::rawData;
 
@@ -104,10 +109,10 @@ namespace {
 static const CPUFLASHTranslationProviderFR fr;
 ProviderRegistrator frReg("fr", &fr);
 } // namespace
-#endif
+        #endif
 
-#include "../../include/option/enable_translation_it.h"
-#if ENABLE_TRANSLATION_IT()
+        #include <option/enable_translation_it.h>
+        #if ENABLE_TRANSLATION_IT()
 struct StringTableIT {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
@@ -115,9 +120,9 @@ struct StringTableIT {
 
 using CPUFLASHTranslationProviderIT = CPUFLASHTranslationProvider<StringTableIT>;
 
-    // precomputed indices and strings for the IT language
-    #include "stringBegins.it.hpp"
-    #include "utf8Raw.it.hpp"
+            // precomputed indices and strings for the IT language
+            #include "stringBegins.it.hpp"
+            #include "utf8Raw.it.hpp"
 template <>
 const CPUFLASHTranslationProviderIT::RawData CPUFLASHTranslationProviderIT::rawData;
 
@@ -125,10 +130,10 @@ namespace {
 static const CPUFLASHTranslationProviderIT it;
 ProviderRegistrator itReg("it", &it);
 } // namespace
-#endif
+        #endif
 
-#include "../../include/option/enable_translation_pl.h"
-#if ENABLE_TRANSLATION_PL()
+        #include <option/enable_translation_pl.h>
+        #if ENABLE_TRANSLATION_PL()
 struct StringTablePL {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
@@ -136,9 +141,9 @@ struct StringTablePL {
 
 using CPUFLASHTranslationProviderPL = CPUFLASHTranslationProvider<StringTablePL>;
 
-    // precomputed indices and strings for the PL language
-    #include "stringBegins.pl.hpp"
-    #include "utf8Raw.pl.hpp"
+            // precomputed indices and strings for the PL language
+            #include "stringBegins.pl.hpp"
+            #include "utf8Raw.pl.hpp"
 template <>
 const CPUFLASHTranslationProviderPL::RawData CPUFLASHTranslationProviderPL::rawData;
 
@@ -146,4 +151,6 @@ namespace {
 static const CPUFLASHTranslationProviderPL pl;
 ProviderRegistrator plReg("pl", &pl);
 } // namespace
+        #endif
+    #endif
 #endif

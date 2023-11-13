@@ -34,13 +34,10 @@ add_dependencies(translations translations-genfiles translations-nonascii-chars)
 # And create a Buddy::Lang library itself
 #
 add_library(
-  lang OBJECT translator.cpp translation_provider_FILE.cpp gettext_string_hash.cpp
-              format_print_will_end.cpp
+  lang OBJECT translator.cpp translation_provider_FILE.cpp translation_provider_CPUFLASH.cpp
+              gettext_string_hash.cpp format_print_will_end.cpp
   )
-if(NOT TRANSLATIONS_IN_EXTFLASH)
-  # also compile translations in internal flash
-  target_sources(lang PRIVATE translation_provider_CPUFLASH.cpp)
-endif()
+
 target_link_libraries(lang translations sysbase::sysbase)
 target_include_directories(lang PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/include")
 
