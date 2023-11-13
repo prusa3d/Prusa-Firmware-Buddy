@@ -293,6 +293,24 @@ constexpr uint32_t encode(Record rec) {
 }
 #endif
 
+// other printers are too young for this
+union SelftestResultV1 {
+    // values match TestResult - Unknown (0), Skipped (1), Passed (2), Failed(3)
+
+    struct {
+        uint8_t printFan : 2; // bit 0-1
+        uint8_t heatBreakFan : 2; // bit 2-3
+        uint8_t xaxis : 2; // bit 4-5
+        uint8_t yaxis : 2; // bit 6-7
+        uint8_t zaxis : 2; // bit 8-9
+        uint8_t nozzle : 2; // bit 10-11
+        uint8_t bed : 2; // bit 12-13
+        uint8_t reserved0 : 2; // bit 14-15
+        uint16_t reserved1; // bit 16-31
+    };
+    uint32_t ui32;
+};
+
 inline vars_body_t convert(const old_eeprom::v12::vars_body_t &src) {
     vars_body_t ret = body_defaults;
 
@@ -301,6 +319,16 @@ inline vars_body_t convert(const old_eeprom::v12::vars_body_t &src) {
 #if PRINTER_IS_PRUSA_XL
     ret.FOOTER_SETTING = encode(default_items); // this is first XL version, so set default properly (even though this should never happen)
 #endif
+
+    SelftestResultV1 v1 { .ui32 = ret.SELFTEST_RESULT_V1 };
+
+    ret.SELFTEST_RESULT_PRE_23.xaxis = static_cast<TestResult>(v1.xaxis);
+    ret.SELFTEST_RESULT_PRE_23.yaxis = static_cast<TestResult>(v1.yaxis);
+    ret.SELFTEST_RESULT_PRE_23.zaxis = static_cast<TestResult>(v1.zaxis);
+    ret.SELFTEST_RESULT_PRE_23.bed = static_cast<TestResult>(v1.bed);
+    ret.SELFTEST_RESULT_PRE_23.tools[0].printFan = static_cast<TestResult>(v1.printFan);
+    ret.SELFTEST_RESULT_PRE_23.tools[0].heatBreakFan = static_cast<TestResult>(v1.heatBreakFan);
+    ret.SELFTEST_RESULT_PRE_23.tools[0].nozzle = static_cast<TestResult>(v1.nozzle);
 
     return ret;
 }
