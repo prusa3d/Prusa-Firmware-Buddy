@@ -963,7 +963,8 @@ bool MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         // - still running -> wait normally in idle()
         // - failed -> then do the safety moves on the printer like before
         // - finished ok -> proceed with reading other commands
-        marlin_idle(true); // calls LogicStep() and remembers its return status
+        marlin_idle(true, true); // calls LogicStep() and remembers its return status
+                                 // also disables stepper motor unlocking
 
         // @@TODO Ugly hack to prevent starting the cooling timer after being stopped
         bool recoveringError = false;

@@ -74,8 +74,8 @@ void marlin_manage_inactivity(bool ignore_stepper_queue) {
     manage_inactivity(ignore_stepper_queue);
 }
 
-void marlin_idle(bool waiting) {
-    idle(waiting);
+void marlin_idle(bool waiting, bool ignore_stepper_queue) {
+    idle(waiting, ignore_stepper_queue);
 }
 
 void marlin_refresh_print_state_in_ram() {
@@ -111,7 +111,7 @@ void safe_delay_keep_alive(uint16_t t) {
     //    manage_inactivity(true);
     //    ui.update();
     // shouldn't we call idle() instead? At least the MMU communication can be run even during waiting for temperature
-    idle(true);
+    idle(true, true);
 }
 
 void gcode_reset_stepper_timeout() {

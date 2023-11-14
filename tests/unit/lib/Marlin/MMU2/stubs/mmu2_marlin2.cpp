@@ -63,7 +63,7 @@ void marlin_manage_heater() {
 void marlin_manage_inactivity(bool /*ignore_stepper_queue*/) {
     mockLog_RecordFn();
 }
-void marlin_idle(bool /*waiting*/) {
+void marlin_idle(bool /*waiting*/, bool /*ignore_stepper_queue*/) {
     mmu2.mmu_loop();
 }
 
