@@ -66,7 +66,6 @@ if(BOARD MATCHES ".*BUDDY")
             sys.cpp
             sys_time.cpp
             tasks.cpp
-            time_tools.cpp
             tools_mapping.cpp
             trinamic.cpp
             uartrxbuff.cpp

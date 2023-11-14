@@ -90,15 +90,15 @@ void PrintTime::generate_timestamp_string(const time_t curr_sec, const uint32_t 
     localtime_r(&tomorrow_sec, &tomorrow);
     localtime_r(&print_end_sec, &print_end);
 
-    time_format::TF_t time_format = time_format::Get();
+    time_tools::TimeFormat time_format = time_tools::get_time_format();
     if (now.tm_mday == print_end.tm_mday && // if print end is today
         now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
-        FormatMsgPrintWillEnd::Today(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, &print_end, time_format == time_format::TF_t::TF_24H);
+        FormatMsgPrintWillEnd::Today(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, &print_end, time_format == time_tools::TimeFormat::_24h);
     } else if (tomorrow.tm_mday == print_end.tm_mday && // if print end is tomorrow
         tomorrow.tm_mon == print_end.tm_mon && tomorrow.tm_year == print_end.tm_year) {
-        FormatMsgPrintWillEnd::DayOfWeek(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, &print_end, time_format == time_format::TF_t::TF_24H);
+        FormatMsgPrintWillEnd::DayOfWeek(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, &print_end, time_format == time_tools::TimeFormat::_24h);
     } else {
-        FormatMsgPrintWillEnd::Date(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, &print_end, time_format == time_format::TF_t::TF_24H, FormatMsgPrintWillEnd::ISO);
+        FormatMsgPrintWillEnd::Date(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, &print_end, time_format == time_tools::TimeFormat::_24h, FormatMsgPrintWillEnd::ISO);
     }
 }
 

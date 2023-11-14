@@ -418,14 +418,26 @@ void MI_TIMEZONE::OnClick() {
 /*****************************************************************************/
 // MI_TIME_FORMAT
 MI_TIME_FORMAT::MI_TIME_FORMAT()
-    : WI_SWITCH_t<2>(static_cast<uint8_t>(config_store().time_format.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
+    : WI_SWITCH_t<2>(static_cast<uint8_t>(time_tools::get_time_format()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
 
-void MI_TIME_FORMAT::OnChange(size_t old_index) {
-    if (old_index == (size_t)time_format::TF_t::TF_12H) { // default option - 12h time format
-        time_format::Change(time_format::TF_t::TF_24H);
-    } else if (old_index == (size_t)time_format::TF_t::TF_24H) { // 24h time format
-        time_format::Change(time_format::TF_t::TF_12H);
+void MI_TIME_FORMAT::OnChange([[maybe_unused]] size_t old_index) {
+    switch (index) {
+    case 0:
+        time_tools::set_time_format(time_tools::TimeFormat::_12h);
+        break;
+    case 1:
+        time_tools::set_time_format(time_tools::TimeFormat::_24h);
+        break;
+    default:
+        assert(0);
+        break;
     }
+}
+
+/*****************************************************************************/
+// MI_TIME_NOW
+MI_TIME_NOW::MI_TIME_NOW()
+    : WI_SWITCH_t<1>(0, _(label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time())) {
 }
 
 /*****************************************************************************/

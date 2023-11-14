@@ -133,37 +133,11 @@ void window_header_t::hide_bed_info() {
 }
 
 void window_header_t::updateTime() {
-    time_t t = time(nullptr);
-    if (t != (time_t)-1 && time_on) { // Time is initialized in RTC (from sNTP)
-        if (!time_val.IsVisible()) {
-            time_val.Show();
-            Invalidate(); // Invalidate whole header to avoid icon leftovers in between icons
-        }
-        struct tm now;
-        int8_t timezone_diff = config_store().timezone.get();
-        t += timezone_diff * 3600;
-        localtime_r(&t, &now);
-
-        if (!(last_t.tm_hour == now.tm_hour && last_t.tm_min == now.tm_min) || time_format::HasChanged()) { // Time (hour || minute) has changed from previous call
-            last_t = now;
-            if (time_format::Get() == time_format::TF_t::TF_24H) {
-                strftime(time_str, 9, "%H:%M", &now);
-            } else {
-                strftime(time_str, 9, "%I:%M %p", &now);
-            }
-            time_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)time_str));
-            time_val.Invalidate(); // Invalidate only time_val, when changing only time
-            if (time_format::HasChanged()) {
-                Invalidate();
-            }
-            time_format::ClearChanged();
-        }
-    } else { // Time is not initialized
-        if (time_val.IsVisible()) {
-            time_val.Hide();
-            Invalidate(); // Invalidate whole header to avoid icon leftovers in between icons
-        }
+#if !defined(USE_ST7789) // Time is not shown on ST7789
+    if (time_tools::update_time()) {
+        Invalidate(); // Invalidate whole header to avoid icon leftovers in between icons
     }
+#endif /* !defined(USE_ST7789) */
 }
 
 void window_header_t::update_bed_info() {
@@ -209,9 +183,9 @@ void window_header_t::updateAllRects() {
     };
 
     // note: call order also means order from the right
-    if (time_on) {
-        maybe_update(time_val, time_format::Get() == time_format::TF_t::TF_24H ? time_24h_w : time_12h_w);
-    }
+#if !defined(USE_ST7789) // Time is not shown on ST7789
+    maybe_update(time_val, time_tools::get_time_format() == time_tools::TimeFormat::_24h ? time_24h_w : time_12h_w);
+#endif /* !defined(USE_ST7789) */
     maybe_update(icon_usb, usb_w);
     maybe_update(icon_network, lan_w);
     if (transfer_val_on) {
@@ -249,7 +223,9 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectHeader)
     , icon_base(this, Rect16(GuiDefaults::HeaderPadding.left, GuiDefaults::HeaderPadding.top, base_w, GuiDefaults::HeaderItemHeight), nullptr)
     , label(this, first_rect_doesnt_matter, txt)
+#if !defined(USE_ST7789) // Time is not shown on ST7789
     , time_val(this, first_rect_doesnt_matter, is_multiline::no)
+#endif /* !defined(USE_ST7789) */
     , icon_usb(this, first_rect_doesnt_matter, &img::usb_32x16)
     , icon_network(this, first_rect_doesnt_matter, window_header_t::networkIcon(netdev_get_active_id()))
     , transfer_val(this, first_rect_doesnt_matter, is_multiline::no)
@@ -261,10 +237,8 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , force_network(true)
 #if defined(USE_ST7789)
     , transfer_val_on(false)
-    , time_on(false)
 #else
     , transfer_val_on(true)
-    , time_on(true)
 #endif
 
 {
@@ -277,29 +251,19 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     icon_network.SetAlignment(Align_t::LeftCenter());
     icon_transfer.SetAlignment(Align_t::LeftCenter());
 
-    time_val.set_font(resource_font(GuiDefaults::HeaderTextFont));
-    time_val.SetAlignment(Align_t::RightCenter());
     bed_text.set_font(resource_font(GuiDefaults::HeaderTextFont));
     bed_icon.SetAlignment(Align_t::LeftCenter());
 
-    time_val.Hide();
     icon_network.Hide();
     transfer_val.Hide();
     icon_transfer.Hide();
-    time_t t = time(nullptr);
-    if (t != (time_t)-1) {
-        int8_t timezone_diff = config_store().timezone.get();
-        t += timezone_diff * 3600; // Add timezone difference in seconds
-        struct tm now;
-        localtime_r(&t, &now);
-        last_t = now;
-        if (time_format::Get() == time_format::TF_t::TF_24H) {
-            strftime(time_str, 9, "%H:%M", &now);
-        } else {
-            strftime(time_str, 9, "%I:%M %p", &now);
-        }
-        time_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)time_str));
-    }
+
+#if !defined(USE_ST7789) // Time is not shown on ST7789
+    time_val.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    time_val.SetAlignment(Align_t::RightCenter());
+    time_tools::update_time();
+    time_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time()));
+#endif /* !defined(USE_ST7789) */
 
     hide_bed_info();
     updateMedia(GuiMediaEventsHandler::Get());

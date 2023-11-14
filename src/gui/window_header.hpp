@@ -11,7 +11,9 @@ struct window_header_t : public AddSuperWindow<window_frame_t> {
 
     window_icon_t icon_base;
     window_roll_text_t label;
+#if !defined(USE_ST7789) // Time is not shown on ST7789
     window_text_t time_val;
+#endif /* !defined(USE_ST7789) */
     window_icon_t icon_usb;
     window_icon_t icon_network;
     window_text_t transfer_val;
@@ -32,7 +34,6 @@ struct window_header_t : public AddSuperWindow<window_frame_t> {
     bool force_network : 1;
     bool cpu_warning_on : 1;
     bool transfer_val_on : 1;
-    bool time_on : 1;
 
     void updateMedia(MediaState_t state);
     void updateNetwork(uint32_t netdev_id);
