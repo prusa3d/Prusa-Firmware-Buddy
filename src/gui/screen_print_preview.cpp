@@ -96,7 +96,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
 
     case PhasesPrintPreview::new_firmware_available: {
         const auto version = GCodeInfo::getInstance().get_valid_printer_settings().latest_fw_version;
-        pMsgbox = makeMsgBox(_("New firmware available"), string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(version)));
+        pMsgbox = makeMsgBox(_(txt_new_fw_available), string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(version)));
         break;
     }
 
