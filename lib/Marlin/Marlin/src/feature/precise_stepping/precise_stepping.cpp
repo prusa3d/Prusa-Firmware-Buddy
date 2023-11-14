@@ -443,8 +443,12 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
         assert(step_event.flags); // ensure flags are non-zero
 
         // The timer ticks mustn't be negative in any case. Because if it is negative, there is an issue in the code.
-        if (step_event.time_ticks < 0)
+        if (step_event.time_ticks < 0) {
+#ifndef NDEBUG
             bsod("Negative step time: %d, flags: %d", step_event.time_ticks, step_event.flags);
+#endif
+            step_event.time_ticks = 0;
+        }
 
         if (step_state.left_insert_start_of_move_segment) {
             step_event.flags |= STEP_EVENT_FLAG_BEGINNING_OF_MOVE_SEGMENT;
