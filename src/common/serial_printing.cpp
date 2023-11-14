@@ -16,10 +16,12 @@ void SerialPrinting::abort() {
 
 void SerialPrinting::resume() {
     last_serial_indicator_ms = ticks_ms();
+    GCodeQueue::pause_serial_commands = false;
     marlin_server::enqueue_gcode("M118 A1 action:resume");
 }
 
 void SerialPrinting::pause() {
+    GCodeQueue::pause_serial_commands = false;
     marlin_server::enqueue_gcode("M118 A1 action:pause");
 }
 

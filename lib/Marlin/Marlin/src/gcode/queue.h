@@ -59,6 +59,9 @@ public:
   static uint32_t sdpos;                 // Position in file for the latest instruction
   static uint32_t sdpos_buffer[BUFSIZE]; // Ring buffer of positions (synced with command_buffer)
 
+  /// True pauses processing of serial commands.
+  static bool pause_serial_commands;
+
   // Return the file position of the _current_ instruction
   static uint32_t get_current_sdpos() {
     return length ? sdpos_buffer[index_r] : sdpos;

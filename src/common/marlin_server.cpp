@@ -1066,6 +1066,9 @@ static void crash_recovery_begin_crash() {
 void print_resume(void) {
     if (server.print_state == State::Paused) {
         server.print_state = State::Resuming_Begin;
+        // pause queuing commands from serial, until resume sequence is finished.
+        GCodeQueue::pause_serial_commands = true;
+
 #if ENABLED(POWER_PANIC)
     } else if (server.print_state == State::PowerPanic_AwaitingResume) {
         power_panic::resume_continue();
@@ -1505,6 +1508,8 @@ static void _server_print_loop(void) {
                 server.pause_unload_requested = false;
             }
         }
+        // resume queuing serial commands (to be able to resume)
+        GCodeQueue::pause_serial_commands = false;
         break;
     case State::Resuming_Begin:
 #if ENABLED(CRASH_RECOVERY)
