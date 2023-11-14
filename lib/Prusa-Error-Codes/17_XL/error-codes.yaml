@@ -94,6 +94,11 @@ Errors:
   text: "Check the heatbreak thermistor wiring for possible damage."
   id: "HEATBREAK_MAXTEMP_ERR"
   approved: true
+- code: "17213"
+  title: "MCU MAXTEMP ERROR"
+  text: "MCU in %s is overheated."
+  id: "MCU_MAXTEMP_ERR"
+  approved: false
 - code: "17250"
   title: "MODULAR BED ERROR"
   text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
