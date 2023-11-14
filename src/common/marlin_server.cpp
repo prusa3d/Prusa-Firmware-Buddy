@@ -1420,6 +1420,7 @@ static void _server_print_loop(void) {
         media_print_start();
 
         print_job_timer.start();
+        marlin_vars()->print_start_time = time(nullptr);
         server.print_state = State::Printing;
         switch (fsm_event_queues.GetFsm0()) {
         case ClientFSM::PrintPreview:
@@ -1454,6 +1455,7 @@ static void _server_print_loop(void) {
         }
 #endif
         print_job_timer.start();
+        marlin_vars()->print_start_time = time(nullptr);
         FSM_CREATE__LOGGING(Serial_printing);
         server.print_state = State::Printing;
         break;
@@ -2529,6 +2531,14 @@ static void _server_update_vars() {
         // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
         marlin_vars()->time_to_end = (progress * 100) / marlin_vars()->print_speed;
     }
+
+    marlin_vars()->time_to_end.execute_with([&](const uint32_t &time_to_end) {
+        if (time_to_end != TIME_TO_END_INVALID) {
+            marlin_vars()->print_end_time = time(nullptr) + time_to_end;
+        } else {
+            marlin_vars()->print_end_time = TIMESTAMP_INVALID;
+        }
+    });
 
     marlin_vars()->job_id = job_id;
     marlin_vars()->travel_acceleration = planner.settings.travel_acceleration;
