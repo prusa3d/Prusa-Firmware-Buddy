@@ -428,7 +428,7 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
 
   if (stepper_inactive_time) {
     static bool already_shutdown_steppers; // = false
-    if (planner.busy())
+    if (planner.processing())
       gcode.reset_stepper_timeout();
     else if (MOVE_AWAY_TEST && !ignore_stepper_queue && ELAPSED(ms, gcode.previous_move_ms + stepper_inactive_time)) {
       if (!already_shutdown_steppers) {
