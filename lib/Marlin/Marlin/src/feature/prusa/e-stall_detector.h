@@ -11,11 +11,17 @@ public:
 
     bool ProcessSample(int32_t value);
 
+    void SetDetectionThreshold(float dt) {
+        detectionThreshold = dt;
+    }
+
+    constexpr float DetectionThreshold() const { return detectionThreshold; }
+
 #ifndef UNITTEST
 private:
 #endif
     std::array<int32_t, 5> buffer {}; // Buffer to store previous input values
-    static constexpr float detectionThreshold = 700'000.F;
+    float detectionThreshold = 700'000.F;
 #ifdef UNITTEST
     float filteredValue; // for unit tests, filteredValue is a member of the class allowing better debugging experience
 #endif
@@ -34,10 +40,13 @@ public:
     /// Record and process incoming raw readings from the LoadCell
     void ProcessSample(int32_t value);
 
+    /// @returns raw detected flag disregarding blocked and enabled flags
+    constexpr bool DetectedRaw() const { return detected; }
+
     /// @returns true if a stall has been detected somewhere in the past.
     /// The idea is to keep the filter running almost asynchronnously in the back and ask for the @ref detected flag occasionally.
     /// When the flag has been read by the caller code, it may clear it in order to get a new detected == true in the future.
-    constexpr bool Detected() const {
+    constexpr bool DetectedOnce() const { // @@TODO find a better name
         return detected && (!blocked) && enabled;
     }
     void ClearDetected() {
@@ -72,6 +81,11 @@ public:
     /// @returns true when the preceding sequence of load cell data events is considered as a stalled E-motor
     bool Evaluate(bool movingE, bool directionE);
 
+    void SetDetectionThreshold(float dt) {
+        emf.SetDetectionThreshold(dt);
+    }
+    constexpr float DetectionThreshold() const { return emf.DetectionThreshold(); }
+
 #ifndef UNITTEST
 private:
 #endif
@@ -100,21 +114,26 @@ public:
 
 class EStallDetectionStateLatch {
     bool blocked, enabled;
+    float detectionThreshold;
 
 public:
     EStallDetectionStateLatch()
         : blocked(EMotorStallDetector::Instance().Blocked())
-        , enabled(EMotorStallDetector::Instance().Enabled()) {}
+        , enabled(EMotorStallDetector::Instance().Enabled())
+        , detectionThreshold(EMotorStallDetector::Instance().DetectionThreshold()) {}
     ~EStallDetectionStateLatch() {
+        auto &emsd = EMotorStallDetector::Instance();
         if (blocked) {
-            EMotorStallDetector::Instance().Block();
+            emsd.Block();
         } else {
-            EMotorStallDetector::Instance().Unblock();
+            emsd.Unblock();
         }
         if (enabled) {
-            EMotorStallDetector::Instance().Enable();
+            emsd.Enable();
         } else {
-            EMotorStallDetector::Instance().Disable();
+            emsd.Disable();
         }
+        emsd.ClearDetected(); // disregard everything which happened during the state latch being active
+        emsd.SetDetectionThreshold(detectionThreshold);
     }
 };

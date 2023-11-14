@@ -57,7 +57,7 @@ bool EMotorStallDetector::Evaluate(bool movingE, bool directionE) {
     // only check the E-motor stall when it has to be doing something and it is PUSHING the filament
     // i.e. - prevent triggers on crashes during travel moves and retractions
     if (movingE && directionE) {
-        if (Detected() && (!Blocked())) {
+        if (DetectedOnce() && (!Blocked())) {
             Block(); // block further detection reports
             return true;
         }
