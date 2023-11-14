@@ -114,10 +114,6 @@ void safe_delay_keep_alive(uint16_t t) {
     idle(true, true);
 }
 
-void gcode_reset_stepper_timeout() {
-    gcode.reset_stepper_timeout();
-}
-
 void Enable_E0() {
     enable_E0();
 }
