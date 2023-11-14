@@ -21,3 +21,5 @@ enum DeleteResult {
 };
 
 DeleteResult remove_file(const char *path);
+
+uint8_t get_num_of_enabled_tools();

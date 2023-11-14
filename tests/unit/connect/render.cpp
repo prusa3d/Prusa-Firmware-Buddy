@@ -36,7 +36,7 @@ Printer::Params params_printing() {
     params.job_id = 42;
     params.progress_percent = 12;
     params.temp_bed = 65;
-    params.temp_nozzle = 200;
+    params.slots[0].temp_nozzle = 200;
     params.target_bed = 70;
     params.target_nozzle = 195;
     params.state = printer_state::DeviceState::Printing;

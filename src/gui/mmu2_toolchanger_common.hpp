@@ -16,8 +16,3 @@
  * XL and MK4 with MMU2 have different implementations. Definition of this function is in spool_join.cpp.
  */
 bool is_tool_enabled(uint8_t idx);
-
-/**
- * XL and MK4 with MMU2 have different implementations. Definition of this function is in screen_tools_mapping.cpp, where it is used.
- */
-uint8_t get_num_of_enabled_tools();

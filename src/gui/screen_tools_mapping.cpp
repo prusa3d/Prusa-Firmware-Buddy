@@ -13,16 +13,7 @@
 #include <utility_extensions.hpp>
 #include "mmu2_toolchanger_common.hpp"
 #include <tools_mapping.hpp>
-
-uint8_t get_num_of_enabled_tools() {
-#if HAS_TOOLCHANGER()
-    return prusa_toolchanger.get_num_enabled_tools();
-#elif HAS_MMU2()
-    return MMU2::mmu2.Enabled() ? EXTRUDERS : 1; // MMU has all slots available
-#else
-    return EXTRUDERS;
-#endif
-}
+#include <print_utils.hpp>
 
 namespace {
 

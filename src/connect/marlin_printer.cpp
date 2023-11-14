@@ -26,6 +26,7 @@
 
 #if HAS_MMU2()
     #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
+    #include <mmu2_fsm.hpp>
 #endif
 
 using printer_state::DeviceState;
@@ -181,15 +182,41 @@ void MarlinPrinter::drop_paths() {
     borrow.reset();
 }
 
+namespace {
+    void get_slot_info(Printer::Params &params) {
+#if HAS_MMU2()
+        params.progress_code = ftrstd::to_underlying(MMU2::Fsm::Instance().reporter.GetProgressCode());
+        params.command_code = MMU2::Fsm::Instance().reporter.GetCommand();
+        params.mmu_enabled = config_store().mmu2_enabled.get() && marlin_vars()->mmu2_state == ftrstd::to_underlying(MMU2::xState::Active);
+        params.mmu_version = MMU2::mmu2.GetMMUFWVersion();
+        // Note: 0 means no active tool, indexing from 1
+        params.active_slot = MMU2::mmu2.get_current_tool() == MMU2::FILAMENT_UNKNOWN ? 0 : MMU2::mmu2.get_current_tool() + 1;
+#elif HAS_TOOLCHANGER()
+        params.active_slot = prusa_toolchanger.is_any_tool_active() ? prusa_toolchanger.get_active_tool_nr() + 1 : 0;
+#endif
+        params.number_of_slots = get_num_of_enabled_tools();
+        for (size_t i = 0; i < params.number_of_slots; i++) {
+            params.slots[i].material = filament::get_description(config_store().get_filament_type(i)).name;
+
+#if HAS_TOOLCHANGER()
+            auto &hotend = marlin_vars()->hotend(i);
+#else
+            // only one hotend in any other situation
+            auto &hotend = marlin_vars()->active_hotend();
+#endif
+            params.slots[i].temp_nozzle = hotend.temp_nozzle;
+            params.slots[i].print_fan_rpm = hotend.print_fan_rpm;
+            params.slots[i].heatbreak_fan_rpm = hotend.heatbreak_fan_rpm;
+        }
+    }
+} // namespace
+
 Printer::Params MarlinPrinter::params() const {
-    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
 
     Params params(borrow);
-    params.material = filament::get_description(current_filament).name;
     params.state = get_state(ready);
     params.temp_bed = marlin_vars()->temp_bed;
     params.target_bed = marlin_vars()->target_bed;
-    params.temp_nozzle = marlin_vars()->active_hotend().temp_nozzle;
     params.target_nozzle = marlin_vars()->active_hotend().target_nozzle;
     params.pos[X_AXIS_POS] = marlin_vars()->logical_curr_pos[X_AXIS_POS];
     params.pos[Y_AXIS_POS] = marlin_vars()->logical_curr_pos[Y_AXIS_POS];
@@ -199,15 +226,8 @@ Printer::Params MarlinPrinter::params() const {
     params.job_id = marlin_vars()->job_id;
     // Version can change between MK4 and MK3.9 in runtime
     params.version = get_printer_version();
-#if HAS_MMU2()
-    auto fsensors = FSensors_instance().GetBothSensors();
-    params.primary_fs = fsensors.side == fsensor_t::HasFilament;
-    params.secondary_fs = fsensors.extruder == fsensor_t::HasFilament;
-    params.mmu_enabled = config_store().mmu2_enabled.get() && MMU2::mmu2.State() == MMU2::xState::Active;
-#endif
+    get_slot_info(params);
 
-    params.print_fan_rpm = marlin_vars()->active_hotend().print_fan_rpm;
-    params.heatbreak_fan_rpm = marlin_vars()->active_hotend().heatbreak_fan_rpm;
     params.print_duration = marlin_vars()->print_duration;
     params.time_to_end = marlin_vars()->time_to_end;
     params.progress_percent = marlin_vars()->sd_percent_done;

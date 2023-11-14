@@ -73,7 +73,7 @@ public:
 
 struct RenderState {
     // variable used to iterate through mmu/xl slots
-    mutable size_t slot_iter = 1;
+    mutable size_t slot_iter = 0;
     const Printer &printer;
     const Action &action;
     Tracked &telemetry_changes;

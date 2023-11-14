@@ -19,6 +19,11 @@
 #include <feature/prusa/restore_z.h>
 
 #include <option/bootloader.h>
+#include <option/has_mmu2.h>
+
+#if HAS_MMU2()
+    #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
+#endif
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -182,4 +187,14 @@ DeleteResult remove_file(const char *path) {
         }
     }
     return DeleteResult::Success;
+}
+
+uint8_t get_num_of_enabled_tools() {
+#if HAS_TOOLCHANGER()
+    return prusa_toolchanger.get_num_enabled_tools();
+#elif HAS_MMU2()
+    return MMU2::mmu2.Enabled() ? EXTRUDERS : 1; // MMU has all slots available
+#else
+    return EXTRUDERS;
+#endif
 }

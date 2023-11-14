@@ -48,25 +48,26 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
             .add(int(pos[Printer::Y_AXIS_POS]));
     }
 
-    if (material != nullptr) {
-        crc.add_str(material);
+    for (size_t i = 0; i < number_of_slots; i++) {
+        if (slots[i].material != nullptr) {
+            crc.add(slots[i].material);
+        }
+        crc.add(slots[i].temp_nozzle)
+            // The RPM values are in thousands and fluctuating a bit, we don't want
+            // that to trigger the send too often, only when it actually really
+            // changes.
+            .add(slots[i].print_fan_rpm / 500)
+            .add(slots[i].heatbreak_fan_rpm / 500);
     }
 
     return crc
         .add(int(pos[Printer::Z_AXIS_POS]))
         .add(print_speed)
         .add(flow_factor)
-        // The RPM values are in thousands and fluctuating a bit, we don't want
-        // that to trigger the send too often, only when it actually really
-        // changes.
-        .add(print_fan_rpm / 500)
-        .add(heatbreak_fan_rpm / 500)
         // Report only about once every 10mm of filament
         .add(int(filament_used / 10))
-        .add(int(temp_nozzle))
         .add(int(target_nozzle))
         .add(int(temp_bed))
-        .add(int(temp_nozzle))
         .done();
 }
 

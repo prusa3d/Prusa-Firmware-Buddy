@@ -11,6 +11,12 @@
 #include "printer_type.hpp"
 #include <state/printer_state.hpp>
 
+#include <option/has_mmu2.h>
+#include <option/has_toolchanger.h>
+#if HAS_MMU2()
+    #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
+#endif
+
 namespace connect_client {
 
 class Printer {
@@ -29,9 +35,22 @@ public:
         char fingerprint[FINGERPRINT_BUFF_LEN];
     };
 
+    struct SlotInfo {
+        const char *material = nullptr;
+        float temp_nozzle = 0;
+        uint16_t print_fan_rpm = 0;
+        uint16_t heatbreak_fan_rpm = 0;
+    };
+
     static constexpr size_t X_AXIS_POS = 0;
     static constexpr size_t Y_AXIS_POS = 1;
     static constexpr size_t Z_AXIS_POS = 2;
+
+#if HAS_MMU2() || HAS_TOOLCHANGER()
+    static constexpr size_t NUMBER_OF_SLOTS = 5;
+#else
+    static constexpr size_t NUMBER_OF_SLOTS = 1;
+#endif
 
     class Params {
     private:
@@ -40,9 +59,16 @@ public:
 
     public:
         Params(const std::optional<BorrowPaths> &paths);
-        float temp_nozzle = 0;
-        bool primary_fs = false;
-        bool secondary_fs = false;
+        std::array<SlotInfo, NUMBER_OF_SLOTS> slots;
+#if HAS_MMU2()
+        MMU2::Version mmu_version;
+#endif
+        uint32_t progress_code = 0;
+        char command_code = 0;
+        size_t number_of_slots = 0;
+        // Note: the 1 is used as default Slot
+        // in case neither MMU nor toolchanger is present
+        uint8_t active_slot = 1;
         bool mmu_enabled = false;
         float temp_bed = 0;
         float target_nozzle = 0;
@@ -57,12 +83,8 @@ public:
         // * They get invalidated by calling drop_paths or new renew() on the printer.
         const char *job_path() const;
         const char *job_lfn() const;
-        // Type of filament loaded. Constant (in-code) strings.
-        const char *material = nullptr;
         uint16_t flow_factor = 0;
         uint16_t job_id = 0;
-        uint16_t print_fan_rpm = 0;
-        uint16_t heatbreak_fan_rpm = 0;
         uint16_t print_speed = 0;
         uint32_t print_duration = 0;
         uint32_t time_to_end = 0;
