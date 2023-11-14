@@ -59,6 +59,8 @@ public:
         const float allegro_zero_curr_voltage = 3.35F / 2.F; // choose half of 3V3 range
         return (voltage - allegro_zero_curr_voltage) * allegro_curr_from_voltage;
     }
+
+    static bool is_fw_incompatible_with_hw() { return false; } // not incompatible does not mean compatible!
 };
 
 } // namespace buddy::hw
