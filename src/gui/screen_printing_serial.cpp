@@ -27,7 +27,7 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     octo_icon.Disable();
     octo_icon.Unshadow();
 
-    SetButtonIconAndLabel(BtnSocket::Right, BtnRes::Disconnect, LabelRes::Disconnect);
+    SetButtonIconAndLabel(BtnSocket::Right, BtnRes::Disconnect, LabelRes::Stop);
 }
 
 void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
