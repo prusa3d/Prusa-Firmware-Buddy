@@ -11,7 +11,6 @@ void SerialPrinting::print_loop() {
 
 void SerialPrinting::abort() {
     marlin_server::enqueue_gcode("M118 A1 action:cancel");
-    marlin_server::enqueue_gcode("M118 A1 action:disconnect");
 }
 
 void SerialPrinting::resume() {
