@@ -15,6 +15,8 @@
 #include "screen_menu_tune.hpp"
 #include <option/has_human_interactions.h>
 #include <option/has_loadcell.h>
+#include <option/has_mmu2.h>
+#include <option/has_toolchanger.h>
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensors_handler.hpp"
@@ -106,10 +108,71 @@ void screen_printing_data_t::stopAction() {
 
 /******************************************************************************/
 
+namespace {
+constexpr const char *txt_printing_time { N_("Printing time") };
+constexpr const char *txt_print_started { N_("Print started") };
+constexpr const char *txt_print_ended { N_("Print ended") };
+constexpr const char *txt_consumed_material { N_("Consumed material") };
+
+constexpr auto end_result_font { IDR_FNT_SMALL };
+
+constexpr size_t column_left { 30 };
+constexpr size_t column_right { GuiDefaults::ScreenWidth / 2 + column_left };
+constexpr size_t column_width { 240 - 2 * column_left };
+
+constexpr size_t row_0 { 104 };
+constexpr size_t row_height { 20 };
+
+constexpr size_t get_row(size_t idx) {
+    return row_0 + idx * row_height;
+}
+
+constexpr Rect16 printing_time_label_rect { column_left, get_row(0), column_width, row_height };
+constexpr Rect16 printing_time_value_rect { column_left, get_row(1), column_width, row_height };
+
+constexpr Rect16 print_started_label_rect { column_left, get_row(3), column_width, row_height };
+constexpr Rect16 print_started_value_rect { column_left, get_row(4), column_width, row_height };
+
+constexpr Rect16 print_ended_label_rect { column_left, get_row(6), column_width, row_height };
+constexpr Rect16 print_ended_value_rect { column_left, get_row(7), column_width, row_height };
+
+constexpr Rect16 consumed_material_label_rect { column_right, get_row(3), column_width, row_height };
+
+constexpr Rect16 get_consumed_material_rect(size_t idx) {
+    return Rect16 { column_right, static_cast<int16_t>(get_row(4 + idx)), column_width, row_height };
+}
+
+constexpr auto arrow_left_res { &img::arrow_left_16x16 };
+constexpr auto arrow_right_res { &img::arrow_right_10x16 };
+
+constexpr size_t middle_of_buttons { 185 + 40 };
+constexpr Rect16 arrow_left_rect { column_left - arrow_left_res->w, middle_of_buttons - arrow_left_res->h / 2, arrow_left_res->h, arrow_left_res->w };
+constexpr Rect16 arrow_right_rect { column_right + column_width, middle_of_buttons - arrow_right_res->h / 2, arrow_right_res->h, arrow_right_res->w };
+
+template <size_t... Is>
+std::array<window_text_t, sizeof...(Is)> make_consumed_material_values(std::index_sequence<Is...>, window_t *parent) {
+    //  this is just fancy template way to init array in constructor initializer_list
+    return { (window_text_t { parent, get_consumed_material_rect(Is), is_multiline::no })... };
+}
+} // namespace
+
 screen_printing_data_t::screen_printing_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
 #if (defined(USE_ILI9488))
     , print_progress(this)
+    , printing_time_label(this, printing_time_label_rect, is_multiline::no, is_closed_on_click_t::no, _(txt_printing_time))
+    , printing_time_value(this, printing_time_value_rect, is_multiline::no)
+
+    , print_started_label(this, print_started_label_rect, is_multiline::no, is_closed_on_click_t::no, _(txt_print_started))
+    , print_started_value(this, print_started_value_rect, is_multiline::no)
+
+    , print_ended_label(this, print_ended_label_rect, is_multiline::no, is_closed_on_click_t::no, _(txt_print_ended))
+    , print_ended_value(this, print_ended_value_rect, is_multiline::no)
+
+    , consumed_material_label(this, consumed_material_label_rect, is_multiline::no, is_closed_on_click_t::no, _(txt_consumed_material))
+    , consumed_material_values(make_consumed_material_values(std::make_index_sequence<EXTRUDERS>(), this))
+    , arrow_left(this, arrow_left_rect, arrow_left_res)
+    , arrow_right(this, arrow_right_rect, arrow_right_res)
 #endif
 #if defined(USE_ST7789)
     , w_filename(this, Rect16(10, 33, 220, 29))
@@ -122,7 +185,7 @@ screen_printing_data_t::screen_printing_data_t()
 #elif defined(USE_ILI9488)
     , w_filename(this, Rect16(30, 38, 420, 24))
     , w_progress(this, Rect16(30, 65, GuiDefaults::RectScreen.Width() - 2 * 30, 16))
-    , w_progress_txt(this, Rect16(300, 115, 150, 54)) // Left side option: 30, 115, 100, 54 | font: Large (53x30 px)
+    , w_progress_txt(this, Rect16(300, row_0, 149, 54)) // Left side option: 30, 115, 100, 54 | font: Large (53x30 px)
     , w_etime_label(this, Rect16(30, 114, 150, 20), is_multiline::no) // Right side option: 300, 118, 150, 20
     , w_etime_value(this, Rect16(30, 138, 200, 23), is_multiline::no) // Right side option: 250, 138, 200, 23
 #endif // USE_<display>
@@ -201,6 +264,25 @@ screen_printing_data_t::screen_printing_data_t()
 #if defined(USE_ILI9488)
     print_progress.Pause();
     last_e_axis_position = marlin_vars()->logical_curr_pos[MARLIN_VAR_INDEX_E];
+
+    printing_time_label.SetTextColor(COLOR_SILVER);
+    print_started_label.SetTextColor(COLOR_SILVER);
+    print_ended_label.SetTextColor(COLOR_SILVER);
+    consumed_material_label.SetTextColor(COLOR_SILVER);
+
+    printing_time_label.set_font(resource_font(end_result_font));
+    print_started_label.set_font(resource_font(end_result_font));
+    print_ended_label.set_font(resource_font(end_result_font));
+    consumed_material_label.set_font(resource_font(end_result_font));
+    printing_time_value.set_font(resource_font(end_result_font));
+    print_started_value.set_font(resource_font(end_result_font));
+    print_ended_value.set_font(resource_font(end_result_font));
+    for (auto &consumed_material_value : consumed_material_values) {
+        consumed_material_value.set_font(resource_font(end_result_font));
+    }
+
+    hide_end_result_fields();
+    arrow_left.Hide();
 #endif
 }
 
@@ -306,7 +388,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
 #if defined(USE_ILI9488)
         if (p_state == printing_state_t::PRINTED) {
-            print_progress.FinishedMode();
+            print_progress.Pause();
         } else {
             print_progress.StoppedMode();
         }
@@ -321,8 +403,178 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         w_etime_value.Show();
     }
 
+#if defined(USE_ILI9488)
+    if (shown_end_result && event == GUI_event_t::ENC_DN
+        && ((buttons[0].IsEnabled() && buttons[0].IsFocused()) || (!buttons[0].IsEnabled() && buttons[1].IsFocused()))) {
+        start_showing_end_result();
+        return;
+    }
+
+    if (p_state == printing_state_t::PRINTED && !shown_end_result) {
+        start_showing_end_result();
+        return;
+    }
+
+    if (showing_end_result && (event == GUI_event_t::ENC_UP)) {
+        stop_showing_end_result();
+        return;
+    }
+
+#endif
+
     SuperWindowEvent(sender, event, param);
 }
+
+#if defined(USE_ILI9488)
+void screen_printing_data_t::start_showing_end_result() {
+
+    // hide previous
+    for (auto &button : buttons) {
+        button.Hide();
+    }
+
+    for (auto &label : labels) {
+        label.Hide();
+    }
+
+    arrow_left.Hide();
+
+    // show end result
+
+    auto &gcode { GCodeInfo::getInstance() };
+
+    if (gcode.get_printing_time()[0]) {
+        snprintf(printing_time_value_buffer.data(), printing_time_value_buffer.size(), "%s", gcode.get_printing_time().data());
+    } else {
+        snprintf(printing_time_value_buffer.data(), printing_time_value_buffer.size(), "unknown");
+    }
+
+    printing_time_label.Show();
+    printing_time_value.Show();
+    printing_time_value.SetText(_(printing_time_value_buffer.data()));
+
+    print_started_label.Show();
+    print_started_value.Show();
+    print_ended_label.Show();
+    print_ended_value.Show();
+
+    {
+        auto print_one = [time_format = time_tools::get_time_format()](MarlinVariableLocked<time_t> &time_holder, decltype(print_started_value_buffer) &buffer, window_text_t &text_value) {
+            struct tm print_tm;
+            time_holder.execute_with([&](const time_t &print_time) {
+                localtime_r(&print_time, &print_tm);
+            });
+
+            print_tm.tm_hour += config_store().timezone.get();
+
+            const time_t adjusted_print_time = mktime(&print_tm);
+            localtime_r(&adjusted_print_time, &print_tm);
+
+            FormatMsgPrintWillEnd::Date(buffer.data(), buffer.size(), &print_tm, time_format == time_tools::TimeFormat::_24h, FormatMsgPrintWillEnd::ISO);
+
+            text_value.SetText(_(buffer.data()));
+        };
+
+        print_one(marlin_vars()->print_start_time, print_started_value_buffer, print_started_value);
+        print_one(marlin_vars()->print_end_time, print_ended_value_buffer, print_ended_value);
+    }
+
+    consumed_material_label.Show();
+    for (size_t i = 0; i < EXTRUDERS; ++i) {
+        const auto &ext_info { gcode.get_extruder_info(i) };
+        if (!ext_info.used()) {
+            continue;
+        }
+
+        const auto &fname { ext_info.filament_name };
+        const auto &used_g { ext_info.filament_used_g };
+
+        auto print_fname = [&]() {
+            return fname.has_value() ? fname.value().data() : "---";
+        };
+
+        auto &buff { consumed_material_values_buffers[i] };
+
+        const bool show_t_label {
+    #if EXTRUDERS > 1
+            []() {
+        #if HAS_MMU2()
+                if (MMU2::mmu2.Enabled()) {
+                    return true;
+                }
+        #endif
+        #if HAS_TOOLCHANGER()
+                if (prusa_toolchanger.is_toolchanger_enabled()) {
+                    return true;
+                }
+        #endif
+                return false;
+            }()
+
+    #else
+            false
+    #endif
+        };
+
+        if (show_t_label) {
+            if (used_g.has_value()) {
+                snprintf(buff.data(), buff.size(), "T%d %s %dg", i + 1, print_fname(), static_cast<int>(used_g.value()));
+            } else {
+                snprintf(buff.data(), buff.size(), "T%d %s ???g", i + 1, print_fname());
+            }
+        } else {
+            if (used_g.has_value()) {
+                snprintf(buff.data(), buff.size(), "%s %dg", print_fname(), static_cast<int>(used_g.value()));
+            } else {
+                snprintf(buff.data(), buff.size(), "%s ???g", print_fname());
+            }
+        }
+
+        consumed_material_values[i].SetText(_(buff.data()));
+
+        consumed_material_values[i].Show();
+    }
+
+    arrow_right.Show();
+
+    showing_end_result = true;
+    shown_end_result = true;
+}
+
+void screen_printing_data_t::stop_showing_end_result() {
+    // show previous
+    for (auto &button : buttons) {
+        button.Show();
+    }
+
+    for (auto &label : labels) {
+        label.Show();
+    }
+
+    hide_end_result_fields();
+    arrow_left.Show();
+
+    showing_end_result = false;
+}
+
+void screen_printing_data_t::hide_end_result_fields() {
+    printing_time_label.Hide();
+    printing_time_value.Hide();
+
+    print_started_label.Hide();
+    print_started_value.Hide();
+
+    print_ended_label.Hide();
+    print_ended_value.Hide();
+
+    consumed_material_label.Hide();
+    for (auto &consumed_material_value : consumed_material_values) {
+        consumed_material_value.Hide();
+    }
+
+    arrow_right.Hide();
+}
+#endif
 
 void screen_printing_data_t::updateTimes() {
     PT_t time_format = print_time.update_loop(time_end_format, &w_etime_value
