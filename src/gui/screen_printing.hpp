@@ -36,6 +36,45 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
 
 #if defined(USE_ILI9488)
     PrintProgress print_progress;
+
+    /**
+     * @brief Starts showing end result 'state'
+     *
+     */
+    void start_showing_end_result();
+    /**
+     * @brief Stops showing end result 'state'
+     *
+     */
+    void stop_showing_end_result();
+
+    /**
+     * @brief Hides all fields related to end result
+     *
+     */
+    void hide_end_result_fields();
+
+    bool showing_end_result { false }; // whether currently showing end result 'state'
+    bool shown_end_result { false }; // whether end result has ever been shown
+
+    window_text_t printing_time_label;
+    window_text_t printing_time_value;
+    std::array<char, sizeof("100d 20h 30m") + 4> printing_time_value_buffer;
+
+    window_text_t print_started_label;
+    window_text_t print_started_value;
+    std::array<char, sizeof("17/10/2023 18:00 AM") + 4> print_started_value_buffer;
+
+    window_text_t print_ended_label;
+    window_text_t print_ended_value;
+    decltype(print_started_value_buffer) print_ended_value_buffer;
+
+    window_text_t consumed_material_label;
+    std::array<window_text_t, EXTRUDERS> consumed_material_values;
+    std::array<std::array<char, sizeof("T1 HIFIPETG 10.000g") + 4>, EXTRUDERS> consumed_material_values_buffers;
+
+    window_icon_t arrow_left;
+    window_icon_t arrow_right;
 #endif
 
     window_roll_text_t w_filename;
