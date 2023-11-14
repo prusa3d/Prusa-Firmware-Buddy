@@ -899,6 +899,7 @@ private:
     static void M602();
     static void M603();
   #endif
+  static void M604();
 
   #if HAS_DUPLICATION_MODE
     static void M605();
