@@ -254,6 +254,18 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
+/**
+ * @brief Menu item with current time.
+ * @warning This uses time_tools::get_time() which needs to be updated periodically.
+ *     It needs to be done from the menu which has windowEvent() method.
+ */
+class MI_TIME_NOW : public WI_SWITCH_t<1> {
+    static constexpr const char *label = N_("Time");
+
+public:
+    MI_TIME_NOW();
+};
+
 // TODO move to different files (filament sensor adc related ones ...)
 class IMI_FS_SPAN : public WiSpinInt {
 #if HAS_SIDE_FSENSOR()

@@ -174,7 +174,7 @@ namespace defaults {
 #endif // ENABLED(CRASH_RECOVERY)
     };
 
-    inline constexpr time_format::TF_t time_format { time_format::TF_t::TF_24H };
+    inline constexpr time_tools::TimeFormat time_format { time_tools::TimeFormat::_24h };
 
     inline constexpr float loadcell_scale { 0.0192f };
     inline constexpr float loadcell_threshold_static { -125.f };

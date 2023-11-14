@@ -137,7 +137,7 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Crash Count Y")> crash_count_y; // number of crashes of Y axis in total
     StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Power Panics Count")> power_panics_count; // number of power losses in total
 
-    StoreItem<time_format::TF_t, defaults::time_format, journal::hash("Time Format")> time_format;
+    StoreItem<time_tools::TimeFormat, defaults::time_format, journal::hash("Time Format")> time_format;
 
 #if HAS_LOADCELL()
     StoreItem<float, defaults::loadcell_scale, journal::hash("Loadcell Scale")> loadcell_scale;

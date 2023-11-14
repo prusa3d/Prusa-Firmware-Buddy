@@ -90,6 +90,7 @@ target_sources(
           ScreenHandler.cpp
           ScreenPrintingModel.cpp
           test_display.cpp
+          time_tools.cpp
           window_file_list.cpp
           window_filebrowser.cpp
           window_header.cpp
