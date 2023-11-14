@@ -1,5 +1,12 @@
 #pragma once
 #include <stdint.h>
+#ifndef UNITTEST
+    #include <option/has_loadcell.h>
+#else
+    // @@TODO find a better way of separating load cell and MMU for unit tests
+    // Beware - unit tests have been developed for Try-Load, therefore we pretend LoadCell is not present
+    #define HAS_LOADCELL() 0
+#endif
 
 static constexpr float MMU2_EXTRUDER_HEATBREAK_LENGTH = 67.F;
 static constexpr float MMU2_EXTRUDER_NOZZLE_LENGTH = 20.F;
@@ -58,3 +65,10 @@ struct E_Step {
 
 static constexpr E_Step ramming_sequence[] = FILAMENT_MMU2_RAMMING_SEQUENCE;
 static constexpr E_Step load_to_nozzle_sequence[] = MMU2_LOAD_TO_NOZZLE_SEQUENCE;
+
+#if HAS_LOADCELL()
+// we may want to return to try-load sequences on MK4 if E-motor stall turns out to be unreliable
+// #define USE_TRY_LOAD
+#else
+    #define USE_TRY_LOAD
+#endif
