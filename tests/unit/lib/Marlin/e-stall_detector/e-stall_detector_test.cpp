@@ -47,34 +47,34 @@ TEST_CASE("Marlin::EStallDetector", "[Marlin][EStallDetector]") {
     auto &emsd = EMotorStallDetector::Instance();
     emsd.Enable();
     REQUIRE_FALSE(emsd.Blocked());
-    REQUIRE_FALSE(emsd.Detected());
+    REQUIRE_FALSE(emsd.DetectedOnce());
     REQUIRE(emsd.Enabled());
 
     // put some data through the detector - this data should work (from the previous test)
     emsd.ProcessSample(1997572);
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(2054684);
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(2096993);
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(2125882);
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(2072601);
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(585962); // now this drop shall be almost detected
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(1976478);
-    REQUIRE(emsd.Detected());
+    REQUIRE(emsd.DetectedOnce());
     REQUIRE_FALSE(emsd.Blocked());
 
     // put some more data through the filter - the FW may not respond to the flag immediately
     // the Detected flag should remain intact as well as the Blocked flag
     emsd.ProcessSample(1997572);
-    REQUIRE(emsd.Detected());
+    REQUIRE(emsd.DetectedOnce());
     emsd.ProcessSample(2054684);
-    REQUIRE(emsd.Detected());
+    REQUIRE(emsd.DetectedOnce());
     emsd.ProcessSample(2096993);
-    REQUIRE(emsd.Detected());
+    REQUIRE(emsd.DetectedOnce());
 
     { // now simulate what the firmware would do - process an injected M600
         BlockEStallDetection besd;
@@ -83,30 +83,31 @@ TEST_CASE("Marlin::EStallDetector", "[Marlin][EStallDetector]") {
     }
 
     // returned from M600 - Detected and Blocked flags should be off for a new run
-    REQUIRE_FALSE(emsd.Detected());
+    REQUIRE_FALSE(emsd.DetectedOnce());
     REQUIRE_FALSE(emsd.Blocked());
 
     emsd.ProcessSample(1997572);
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(2054684);
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(2096993);
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(2125882);
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(2072601);
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(585962); // now this drop shall be almost detected
-    CHECK_FALSE(emsd.Detected());
+    CHECK_FALSE(emsd.DetectedOnce());
     emsd.ProcessSample(1976478);
-    CHECK(emsd.Detected());
+    CHECK(emsd.DetectedOnce());
     CHECK_FALSE(emsd.Blocked());
 }
 
 using TRawData = std::vector<int32_t>;
 
-bool DetectStall(const TRawData &v) {
+bool DetectStall(const TRawData &v, float threshold = 700'000.F) {
     MotorStallFilter msf;
+    msf.SetDetectionThreshold(threshold);
 
     for (size_t i = 0; i < v.size(); ++i) {
         bool detected = msf.ProcessSample(v[i]);
@@ -168,4 +169,51 @@ TEST_CASE("Marlin::MotorStallFilter stall2-180Hz", "[Marlin][EStallDetector]") {
     };
     // clang-format on
     CHECK(DetectStall(raw));
+}
+
+TEST_CASE("Marlin::MotorStallFilter stall3-300Hz", "[Marlin][EStallDetector]") {
+    // 2023-11-10 this sequence didn't trigger while loading filament, but triggers in the unit tests... the problem seems to be somewhere else...
+    // clang-format off
+    TRawData raw = {
+        38747, 42551, 39195, 107739, 1211501, 57990, 97656, 1422943, 53403, 614073, 1017873, 38285, 1020699, 243842,
+        76497, 1401329, 54463, 240977, 1030710, 38553, 577184, 232539, 72789, 1403437, 54892, 232508, 931817, 53089,
+        571090, 295593, 74055, 986414, 70924, 46978, 1159754, 202787, 39675, 851286, 558148, 36953, 570048, 299672,
+        49188, 329202, 866133, 52526, 154011, 1381584, 53208, 69612, 1435173, 51116, 47776, 1173704, 50824, 56547,
+        864145, 82570, 43722, 576822, 259101, 78167, 1030683, 56993, 862171, 53533, 52191, 1313283, 53193, 451648,
+        1289335, 38032, 873520, 360940, 52660, 1326319, 54926, 162392, 1152997, 41251, 882594, 369808, 54100, 1306731,
+        57248, 164403, 1426799, 49505, 77176, 1396125, 48751, 49527, 1199737, 53435, 60746, 894431, 56632, 171987, 1094496,
+        49064, 1178311, 49221, 114579, 1362563, 43615, 355588, 418509, 257543, 671350, 59786, 1342138, 51288, 43551, 1055247,
+        58694, 904363, 501015, 41889, 628590, 492120, 38276, 348792, 868909, 925140, 916557, 912337,
+        903496, 901024, 899172, 899072, 54361, 40506, 40273
+    };
+    // clang-format on
+    CHECK(DetectStall(raw, 500'000.F));
+
+    {
+        auto &emsd = EMotorStallDetector::Instance();
+        std::fill(emsd.emf.buffer.begin(), emsd.emf.buffer.end(), 0.F);
+        // run the same sequence through the whole detector stack
+        EStallDetectionStateLatch esdsl;
+
+        // activate the detector
+        emsd.Enable();
+        emsd.Unblock();
+        // lower the detection threshold to overcome the sampling rate limitation - see explanation above
+        // @@TODO we might process all of the recorded data to see the occasions when the filter would have trigger even though the original try-load would have succeeded
+        emsd.SetDetectionThreshold(500'000.F);
+
+        for (size_t i = 0; i < raw.size(); ++i) {
+            emsd.ProcessSample(raw[i]);
+            if (emsd.Evaluate(true, true)) {
+                INFO(i);
+                break;
+            }
+        }
+        // check repeated eval - and that has been the problem - Marlin eval call vs. another call from mk4mmu
+        // Eval shall return false, because it has already detected a trigger + it is now blocked.
+        // The only way of checking the detected flag is though a new function DetectedRaw
+        CHECK_FALSE(emsd.Evaluate(true, true));
+        CHECK_FALSE(emsd.DetectedOnce());
+        CHECK(emsd.DetectedRaw());
+    }
 }
