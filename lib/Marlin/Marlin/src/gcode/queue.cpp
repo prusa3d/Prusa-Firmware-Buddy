@@ -72,6 +72,7 @@ char GCodeQueue::command_buffer[BUFSIZE][MAX_CMD_SIZE];
 
 uint32_t GCodeQueue::sdpos = GCodeQueue::SDPOS_INVALID;
 uint32_t GCodeQueue::sdpos_buffer[BUFSIZE];
+bool GCodeQueue::pause_serial_commands = false;
 
 /*
  * The port that the command was received on
@@ -611,7 +612,8 @@ void GCodeQueue::get_serial_commands() {
  */
 void GCodeQueue::get_available_commands() {
 
-  get_serial_commands();
+  if (!pause_serial_commands)
+    get_serial_commands();
 
   #if ENABLED(SDSUPPORT)
     get_sdcard_commands();
