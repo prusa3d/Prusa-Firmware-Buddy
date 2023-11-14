@@ -415,10 +415,11 @@ bool MMU2::TryLoad() {
     return filament_inserted;
 }
 
+#ifndef USE_TRY_LOAD
 bool MMU2::MeasureEStallAtDifferentSpeeds() {
-#ifndef UNITTEST
+    #ifndef UNITTEST
     auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
-#endif
+    #endif
     for (int speed = 5; speed < 50; speed += 2) {
         for (uint8_t move = 0; move < 2; move++) {
             // back move should be something short to prevent the filament jumping out from the gears.
@@ -445,10 +446,10 @@ bool MMU2::FeedWithEStallDetection() {
     // ram the filament as deep as possible while checking for any obstacles
     static constexpr float feedDistance = 50.F; // 50mm
 
-#ifndef UNITTEST
+    #ifndef UNITTEST
     // get the best out of the HX717
     Loadcell::HighPrecisionEnabler enableHighPrecision(loadcell);
-#endif
+    #endif
 
     // save state of EStall detection flags including the detection threshold
     EStallDetectionStateLatch esdsl;
@@ -472,14 +473,23 @@ bool MMU2::FeedWithEStallDetection() {
     }
     return true;
 }
+#else
+// not possible on printers without the LoadCell
+bool MMU2::MeasureEStallAtDifferentSpeeds() {
+    return false;
+}
+bool MMU2::FeedWithEStallDetection() {
+    return false;
+}
+#endif
 
 bool MMU2::VerifyFilamentEnteredPTFE() {
     planner_synchronize();
 
-    if (WhereIsFilament() != FilamentState::AT_FSENSOR)
+    if (WhereIsFilament() != FilamentState::AT_FSENSOR) {
         return false;
+    }
 
-// #define USE_TRY_LOAD
 #ifdef USE_TRY_LOAD
     bool filament_inserted = TryLoad();
 #else
