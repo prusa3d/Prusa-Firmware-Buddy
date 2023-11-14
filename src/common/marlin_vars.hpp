@@ -77,6 +77,20 @@ public:
         }
     }
 
+    /**
+     * @brief Call a callback with the current value.
+     *
+     * Calls the callback with the contained value (without copying it),
+     * protected by the guard. Returns the result of the callback.
+     *
+     * Do not "exfiltrate" the pointer from the callback (it is not valid outside the callback).
+     */
+    template <class C>
+    auto execute_with(C &&c) {
+        const T temp = value.load();
+        return c(temp);
+    }
+
 private:
     /// @brief  Underlying atomic variable
     std::atomic<T> value;
@@ -85,6 +99,73 @@ private:
     // disable copy operators
     MarlinVariable &operator=(const MarlinVariable &) = delete;
     MarlinVariable(const MarlinVariable &) = delete;
+};
+
+/**
+ * @brief Marlin locked variable, with thread-safety. Access to it is guarded by marlin_vars mutex.
+ * TODO: Merge with MarlinStringVariable
+ */
+template <typename T>
+class MarlinVariableLocked {
+public:
+    /**
+     * @brief Default constructor
+     */
+    MarlinVariableLocked() = default;
+
+    /**
+     * @brief Constructor with initial value
+     */
+    MarlinVariableLocked(const T &value)
+        : value(value) {}
+
+    /**
+     * @brief Assign contained value
+     * Using setter to assign value
+     */
+    void operator=(const T &other) {
+        set(other);
+    }
+
+    /**
+     * @brief Get current value
+     * Protected by the guard.
+     * @return T contained value
+     */
+    T get() const {
+        auto guard = MarlinVarsLockGuard();
+        return value;
+    }
+
+    /**
+     * @brief Set current value
+     * Protected by the guard.
+     */
+    void set(T value) {
+        if (osThreadGetId() != marlin_server::server_task) {
+            bsod("Write to marlin variable from non marlin thread");
+        }
+        auto guard = MarlinVarsLockGuard();
+        this->value = value;
+    }
+
+    /**
+     * @brief Call a callback with the current value.
+     *
+     * Calls the callback with the contained value (without copying it),
+     * protected by the guard. Returns the result of the callback.
+     *
+     * Do not "exfiltrate" the pointer from the callback (it is not guaranteed
+     * to be valid outside the callback).
+     */
+    template <class C>
+    auto execute_with(C &&c) {
+        auto guard = MarlinVarsLockGuard();
+        return c(std::as_const(value));
+    }
+
+private:
+    T value {};
 };
 
 /**
@@ -249,6 +330,8 @@ public:
     MarlinVariable<float> travel_acceleration; // travel acceleration from planner
     MarlinVariable<uint32_t> print_duration; // print_job_timer.duration() [ms]
     MarlinVariable<uint32_t> time_to_end; // remaining print time (dumbly) calculated with speed [s]
+    MarlinVariableLocked<time_t> print_start_time { marlin_server::TIMESTAMP_INVALID }; // Print start timestamp [s] since epoch
+    MarlinVariableLocked<time_t> print_end_time { marlin_server::TIMESTAMP_INVALID }; // Estimated print end timestamp [s] since epoch
 
     MarlinVariableString<FILE_PATH_BUFFER_LEN> media_SFN_path;
     MarlinVariableString<FILE_NAME_BUFFER_LEN> media_LFN;
