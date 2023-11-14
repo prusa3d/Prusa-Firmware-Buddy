@@ -9,6 +9,7 @@
 namespace http {
 
 class ExtraHeader;
+class WebSocket;
 
 struct HeaderOut {
     const char *name = nullptr;
@@ -29,6 +30,8 @@ public:
 class Response {
 private:
     friend class HttpClient;
+    // Will need to "steal" stuff from us.
+    friend class WebSocket;
     static const constexpr size_t MAX_LEFTOVER = 64;
     std::array<uint8_t, MAX_LEFTOVER> body_leftover;
     size_t leftover_size;
@@ -37,9 +40,9 @@ private:
 
 public:
     Response(Connection *conn, uint16_t status);
-    http::Status status;
-    http::ContentType content_type = http::ContentType::ApplicationOctetStream;
-    std::optional<http::ContentEncryptionMode> content_encryption_mode;
+    Status status;
+    ContentType content_type = ContentType::ApplicationOctetStream;
+    std::optional<ContentEncryptionMode> content_encryption_mode;
     size_t content_length() const {
         return content_length_rest;
     }

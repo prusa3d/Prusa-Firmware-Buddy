@@ -106,6 +106,7 @@ enum class ConnectionHandling {
 // Note: Not exhaustive! Therefore not enum class, just enum.
 enum Status {
     UnknownStatus = 0,
+    SwitchingProtocols = 101,
     Ok = 200,
     Created = 201,
     Accepted = 202,

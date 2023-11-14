@@ -20,6 +20,10 @@ const char *to_str(Error error) {
         return "Network";
     case Error::Tls:
         return "TLS";
+    case Error::UnexpectedEOF:
+        return "EOF";
+    case Error::WebSocket:
+        return "Websocket";
     case Error::InternalError:
         return "Internal error";
     }

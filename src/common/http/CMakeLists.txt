@@ -10,6 +10,7 @@ target_sources(
           socket.cpp
           socket_connection_factory.cpp
           url_decode.cpp
+          websocket.cpp
   )
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_SOURCE_DIR}/utils/gen-automata/*.py)
