@@ -25,6 +25,24 @@ public:
 
     PT_t update_loop(PT_t screen_format, window_text_t *out_print_end, window_text_t *out_print_dur = nullptr);
 
+    /**
+     * @brief Prints time to end (countdown) into the buffer
+     *
+     * @param time_to_end
+     * @param buffer
+     * @param parse_seconds whether to include seconds in the printing output or not
+     */
+    static void print_formatted_duration(uint32_t duration, std::span<char> buffer, bool parse_seconds = false);
+
+    /**
+     * @brief Prints time to end (countdown) formatted as end time (date/timestamp) into the buffer
+     *
+     * @param time_to_end
+     * @param buffer
+     * @return True if successfully printed end time into the buffer, false if somehow failed along the way
+     */
+    static bool print_end_time(const uint32_t time_to_end, std::span<char> buffer);
+
 private:
     static constexpr size_t MAX_END_TIMESTAMP_SIZE = 14 + 12 + 5; // "dd.mm.yyyy at hh:mm:ss" + safety measures for 3 digit where 2 digits should be
     static constexpr size_t MAX_TIMEDUR_STR_SIZE = 9;
@@ -38,9 +56,17 @@ private:
      *
      *  @param [in] curr_sec - secounds from internal clock (fed by sntp)
      *  @param [in] time_to_end - seconds to end of the print
-     *  @retval color_t - returns color based on time validation
      */
     void generate_timestamp_string(const time_t curr_sec, const uint32_t time_to_end);
+
+    /**
+     * @brief Same as generate_timestamp_string but to a generic buffer
+     *
+     * @param curr_sec
+     * @param time_to_end
+     * @param buffer
+     */
+    static void print_timestamp_string_to_buffer(const time_t curr_sec, const uint32_t time_to_end, std::span<char> buffer);
 
     /**
      *  Print countdown
@@ -66,6 +92,8 @@ private:
     inline static std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur; /**< Buffer for time duration (max 9 chars) */
 
     PT_t time_end_format = PT_t::init; /**< Currently used time end format */
+#if defined(USE_ST7789)
     uint32_t last_print_duration = marlin_server::TIME_TO_END_INVALID; /**< last recorded print_duration */
+#endif
     uint32_t last_time_to_end = marlin_server::TIME_TO_END_INVALID; /**< last end time used for GUI update */
 };

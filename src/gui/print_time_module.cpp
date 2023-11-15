@@ -64,21 +64,31 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
     return time_end_format;
 }
 
-void PrintTime::generate_countdown_string(const uint32_t time_to_end) {
-    time_t rawtime = time_t(time_to_end);
+void PrintTime::print_formatted_duration(uint32_t duration, std::span<char> buffer, bool parse_seconds) {
+    time_t rawtime = static_cast<time_t>(duration);
     const struct tm *timeinfo = localtime(&rawtime);
     // standard would be:
     // strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
     if (timeinfo->tm_yday) {
-        snprintf(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
+        snprintf(buffer.data(), buffer.size(), "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
     } else if (timeinfo->tm_hour) {
-        snprintf(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+        snprintf(buffer.data(), buffer.size(), "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
+    } else if (parse_seconds) {
+        if (timeinfo->tm_min) {
+            snprintf(buffer.data(), buffer.size(), "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
+        } else {
+            snprintf(buffer.data(), buffer.size(), "%is", timeinfo->tm_sec);
+        }
     } else {
-        snprintf(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
+        snprintf(buffer.data(), buffer.size(), "%im", timeinfo->tm_min);
     }
 }
 
-void PrintTime::generate_timestamp_string(const time_t curr_sec, const uint32_t time_to_end) {
+void PrintTime::generate_countdown_string(const uint32_t time_to_end) {
+    print_formatted_duration(time_to_end, { text_time_end }, false);
+}
+
+void PrintTime::print_timestamp_string_to_buffer(const time_t curr_sec, const uint32_t time_to_end, std::span<char> buffer) {
     static constexpr uint32_t FULL_DAY_SECONDS = 86400;
     time_t print_end_sec, tomorrow_sec;
 
@@ -93,26 +103,34 @@ void PrintTime::generate_timestamp_string(const time_t curr_sec, const uint32_t 
     time_tools::TimeFormat time_format = time_tools::get_time_format();
     if (now.tm_mday == print_end.tm_mday && // if print end is today
         now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
-        FormatMsgPrintWillEnd::Today(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, &print_end, time_format == time_tools::TimeFormat::_24h);
+        FormatMsgPrintWillEnd::Today(buffer.data(), buffer.size(), &print_end, time_format == time_tools::TimeFormat::_24h);
     } else if (tomorrow.tm_mday == print_end.tm_mday && // if print end is tomorrow
         tomorrow.tm_mon == print_end.tm_mon && tomorrow.tm_year == print_end.tm_year) {
-        FormatMsgPrintWillEnd::DayOfWeek(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, &print_end, time_format == time_tools::TimeFormat::_24h);
+        FormatMsgPrintWillEnd::DayOfWeek(buffer.data(), buffer.size(), &print_end, time_format == time_tools::TimeFormat::_24h);
     } else {
-        FormatMsgPrintWillEnd::Date(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, &print_end, time_format == time_tools::TimeFormat::_24h, FormatMsgPrintWillEnd::ISO);
+        FormatMsgPrintWillEnd::Date(buffer.data(), buffer.size(), &print_end, time_format == time_tools::TimeFormat::_24h, FormatMsgPrintWillEnd::ISO);
     }
 }
 
-color_t PrintTime::generate_duration(time_t rawtime) {
-    const struct tm *timeinfo = localtime(&rawtime);
-    if (timeinfo->tm_yday) {
-        snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
-    } else if (timeinfo->tm_hour) {
-        snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
-    } else if (timeinfo->tm_min) {
-        snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
-    } else {
-        snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%is", timeinfo->tm_sec);
+bool PrintTime::print_end_time(const uint32_t time_to_end, std::span<char> buffer) {
+    time_t curr_sec = time(nullptr);
+    if (curr_sec == -1) { // unable to fetch time
+        return false;
     }
+
+    const int8_t timezone_diff = config_store().timezone.get();
+    curr_sec += timezone_diff * 3600;
+
+    print_timestamp_string_to_buffer(curr_sec, time_to_end, buffer);
+    return true;
+}
+
+void PrintTime::generate_timestamp_string(const time_t curr_sec, const uint32_t time_to_end) {
+    print_timestamp_string_to_buffer(curr_sec, time_to_end, { text_time_end });
+}
+
+color_t PrintTime::generate_duration(time_t rawtime) {
+    print_formatted_duration(static_cast<uint32_t>(rawtime), { text_time_dur }, true);
     // TODO: Print duration validation -> validation color
     return GuiDefaults::COLOR_VALUE_VALID;
 }
