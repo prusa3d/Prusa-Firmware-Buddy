@@ -652,3 +652,17 @@ set(DEBUG_WITH_BEEPS
     CACHE BOOL "Colleague annoyance: achievement unlocked"
     )
 define_boolean_option(DEBUG_WITH_BEEPS ${DEBUG_WITH_BEEPS})
+
+# Use websocket to talk to Connect instead of many http requests.
+#
+# The server part is not ready and the protocol is in a flux too. For that reason, this is not
+# enabled in "real builds", but we need to be able to have the code around and be able to turn it on
+# for custom build - to allow debugging the server too.
+#
+# Eventually, this'll become the only used and supported way to talk to Connect. At that point, both
+# this option and the "old" code will be removed.
+set(WEBSOCKET
+    "OFF"
+    CACHE BOOL "Use websocket to talk to connect. In development"
+    )
+define_boolean_option(WEBSOCKET ${WEBSOCKET})

@@ -19,6 +19,7 @@ namespace http {
 // * We assume we are the client (that is, we mask outgoing messages).
 // * We don't support payloads of a single fragment larger than 2^16,
 //   in either direction.
+// * We don't do proper close.
 //
 // We also add our own extension "Commands". It:
 // * Allocates one new opcode.

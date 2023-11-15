@@ -25,6 +25,7 @@ public:
     virtual Method method() const = 0;
     virtual const HeaderOut *extra_headers() const;
     virtual std::variant<size_t, Error> write_body_chunk(char *data, size_t size);
+    virtual const char *connection() const;
 };
 
 class Response {

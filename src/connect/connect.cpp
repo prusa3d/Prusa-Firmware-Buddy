@@ -26,6 +26,7 @@ using std::get;
 using std::get_if;
 using std::holds_alternative;
 using std::is_same_v;
+using std::make_optional;
 using std::make_tuple;
 using std::monostate;
 using std::move;
@@ -127,6 +128,48 @@ namespace {
         }
         virtual const HeaderOut *extra_headers() const override {
             return hdrs;
+        }
+    };
+
+    class UpgradeRequest final : public http::Request {
+    private:
+        // 2 for auth
+        // 1 for upgrade
+        // 4 for websocket negotiation
+        // 1 for sentinel
+        HeaderOut hdrs[8];
+
+    public:
+        UpgradeRequest(Printer &printer, const Printer::Config &config)
+            : hdrs {
+                // Even though the fingerprint is on a temporary, that
+                // pointer is guaranteed to stay stable.
+                { "Fingerprint", printer.printer_info().fingerprint, Printer::PrinterInfo::FINGERPRINT_HDR_SIZE },
+                { "Token", config.token, nullopt },
+                { "Upgrade", "websocket", nullopt },
+                // TODO: Random-generate and verify
+                { "Sec-WebSocket-Key", "MDEyMzQ1Njc4OUFCQ0RFRg==", nullopt },
+                { "Sec-WebSocket-Version", "13", nullopt },
+                { "Sec-WebSocket-Protocol", "prusa-connect", nullopt },
+                { "Sec-WebSocket-Extensions", "commands", nullopt },
+                { nullptr, nullptr, nullopt }
+            } {}
+        virtual const char *url() const override {
+            return "/p/ws-prev";
+        }
+        virtual Method method() const override {
+            return Method::Get;
+        }
+        virtual ContentType content_type() const override {
+            // Not actually used for a get request
+            return ContentType::ApplicationOctetStream;
+        }
+        virtual const HeaderOut *extra_headers() const override {
+            return hdrs;
+        }
+
+        virtual const char *connection() const override {
+            return "upgrade";
         }
     };
 
@@ -247,12 +290,73 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     }
 
     if (!conn_factory.is_valid()) {
+#if WEBSOCKET()
+        // Could have been using the old connection and contain a dangling pointer. Get rid of it.
+        // (We currently don't do a proper shutdown
+        websocket.reset();
+        // FIXME: Temporary, to avoid busy-loop bombarding the server in case something doesn't work.
+        // This should be handled by the planner somewhere.
+        Sleep::idle().perform(printer, planner());
+#endif
         last_known_status = ConnectionStatus::Connecting;
     }
     // Let it reconnect if it needs it.
     conn_factory.refresh(config);
 
     HttpClient http(conn_factory);
+
+#if WEBSOCKET()
+    if (conn_factory.is_valid() && !websocket.has_value()) {
+        // Let's do the upgrade
+        UpgradeRequest upgrade(printer, config);
+        const auto result = http.send(upgrade, nullptr);
+        if (holds_alternative<Error>(result)) {
+            conn_factory.invalidate();
+            return err_to_status(get<Error>(result));
+        }
+
+        auto resp = get<http::Response>(result);
+        switch (resp.status) {
+        case Status::SwitchingProtocols: {
+            // TODO: Verify we negotiated correctly.
+
+            // Read and throw away the body, if any. Not interesting.
+            uint8_t throw_away[128];
+            size_t received = 0;
+            do {
+                auto result = resp.read_body(throw_away, sizeof throw_away);
+                if (holds_alternative<Error>(result)) {
+                    conn_factory.invalidate();
+                    return err_to_status(get<Error>(result));
+                }
+                received = get<size_t>(result);
+            } while (received > 0);
+
+            auto result = WebSocket::from_response(resp);
+            if (holds_alternative<Error>(result)) {
+                conn_factory.invalidate();
+                return err_to_status(get<Error>(result));
+            }
+            websocket = get<WebSocket>(result);
+            break;
+        }
+        default: {
+            conn_factory.invalidate();
+            planner().action_done(ActionResult::Refused);
+            switch (resp.status) {
+            case Status::BadRequest:
+                return OnlineError::Internal;
+            case Status::Forbidden:
+            case Status::Unauthorized:
+                return OnlineError::Auth;
+            default:
+                return OnlineError::Server;
+            }
+            break;
+        }
+        }
+    }
+#endif
 
     uint32_t start = now();
     // Underflow should naturally work
@@ -266,6 +370,120 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     }
 
     const auto background_command_id = planner().background_command_id();
+
+#if WEBSOCKET()
+    if (!websocket.has_value()) {
+        return OnlineError::Network;
+    }
+    const bool is_full_telemetry = holds_alternative<SendTelemetry>(action) && !get<SendTelemetry>(action).empty;
+    Renderer renderer(RenderState(printer, action, telemetry_changes, background_command_id));
+    uint8_t buffer[MAX_RESP_SIZE]; // Used for both sending and receiving now
+    bool more = true;
+    bool first = true;
+    while (more) {
+        const auto [result, written_json] = renderer.render(buffer, sizeof buffer);
+        switch (result) {
+        case JsonResult::Abort:
+        case JsonResult::BufferTooSmall:
+            return OnlineError::Internal;
+        case JsonResult::Complete:
+            more = false;
+            break;
+        case JsonResult::Incomplete:
+            break;
+        }
+
+        if (auto result = websocket->send(first ? WebSocket::Text : WebSocket::Continuation, !more, buffer, written_json); result.has_value()) {
+            conn_factory.invalidate();
+            planner().action_done(ActionResult::Failed);
+            return err_to_status(*result);
+        }
+
+        first = false;
+    }
+
+    planner().action_done(ActionResult::Ok);
+    if (is_full_telemetry && telemetry_changes.is_dirty()) {
+        telemetry_changes.mark_clean();
+        last_full_telemetry = start;
+    }
+
+    first = true;
+    more = true;
+    uint32_t command_id;
+    size_t read = 0;
+    bool is_json = true;
+    while (more) {
+        // TODO: Tune the timeouts / change the loop
+        // TODO: Handle Close, pings, etc
+        auto res = websocket->receive(first ? make_optional(100) : nullopt);
+
+        if (holds_alternative<monostate>(res)) {
+            break;
+        } else if (holds_alternative<Error>(res)) {
+            conn_factory.invalidate();
+            return err_to_status(get<Error>(res));
+        }
+
+        auto header = get<WebSocket::Message>(res);
+
+        // TODO: Validate, etc.
+        if (header.command_id.has_value()) {
+            command_id = *header.command_id;
+        }
+
+        // TODO: Properly refuse
+        if (read + header.len > sizeof buffer) {
+            conn_factory.invalidate();
+            return OnlineError::Internal;
+        }
+
+        if (header.opcode == WebSocket::Opcode::Gcode) {
+            is_json = false;
+        }
+
+        if (auto result = header.conn->rx_exact(buffer + read, header.len); result.has_value()) {
+            conn_factory.invalidate();
+            return err_to_status(*result);
+        }
+
+        read += header.len;
+
+        if (header.last) {
+            if (command_id == planner().background_command_id()) {
+                planner().command(Command {
+                    command_id,
+                    ProcessingThisCommand {},
+                });
+
+                return ConnectionStatus::Ok;
+            }
+            auto buff(this->buffer.borrow());
+            if (!buff.has_value()) {
+                // We can only hold the buffer already borrowed in case we are still
+                // processing some command. In that case we can't accept another one
+                // and we just reject it.
+                planner().command(Command {
+                    command_id,
+                    ProcessingOtherCommand {},
+                });
+            }
+
+            if (is_json) {
+                auto command = Command::parse_json_command(command_id, reinterpret_cast<char *>(buffer), read, move(*buff));
+                planner().command(command);
+            } else {
+                const string_view body(reinterpret_cast<const char *>(buffer), read);
+                auto command = Command::gcode_command(command_id, body, move(*buff));
+            }
+
+            more = false;
+        }
+    }
+
+    return ConnectionStatus::Ok;
+
+#else
 
     BasicRequest request(printer, config, action, telemetry_changes, background_command_id);
     ExtractCommanId cmd_id;
@@ -364,6 +582,7 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
             return OnlineError::Server;
         }
     }
+#endif
 }
 
 void Connect::run() {

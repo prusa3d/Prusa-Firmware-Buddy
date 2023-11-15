@@ -4,10 +4,13 @@
 #include "planner.hpp"
 #include "printer.hpp"
 #include "registrator.hpp"
-#include "status.hpp"
 
 #include <http/httpc.hpp>
 #include <common/shared_buffer.hpp>
+#include <option/websocket.h>
+#if WEBSOCKET()
+    #include <common/http/websocket.hpp>
+#endif
 
 namespace connect_client {
 
@@ -61,6 +64,15 @@ private:
 
     Planner &planner();
 
+#if WEBSOCKET()
+    // FIXME:
+    // This is a temporary place, to allow as minimal difference between
+    // websocket and "old" style communication. It is also a bit _buggy_ (it
+    // might allow using the websocketed connection in the registrator for
+    // HTTP, which won't work). Eventually, this'll get integrated into the
+    // factory, but for now and for the experiments, we have it separate.
+    std::optional<http::WebSocket> websocket;
+#endif
     // transmission and reception with Connect server
     CommResult communicate(CachedFactory &conn_factory);
     ServerResp handle_server_resp(http::Response response, CommandId command_id);
