@@ -200,47 +200,6 @@ variant<size_t, Error> Response::read_all(uint8_t *buffer, size_t size) {
     return pos;
 }
 
-tuple<uint8_t *, size_t, ResponseBody> Response::into_body() {
-    ResponseBody body;
-    body.conn = conn;
-    body.content_length_rest = content_length_rest - leftover_size;
-    size_t leftover = leftover_size;
-    // We have "donated" the body to the result.
-    content_length_rest = 0;
-    leftover_size = 0;
-
-    return make_tuple(body_leftover.begin(), leftover, body);
-}
-
-variant<size_t, Error> ResponseBody::read_body(uint8_t *buffer, size_t size, optional<uint32_t> timeout_ms) {
-    // TODO: Dealing with chunked and connection-closed bodies
-
-    const size_t available = min(size, content_length_rest);
-    if (available == 0) {
-        // Short-circuit for the readability check below
-        return static_cast<size_t>(0); // Type hint for conversion to variant.
-    }
-
-    if (timeout_ms.has_value()) {
-        if (!conn->poll_readable(*timeout_ms)) {
-            return Error::Timeout;
-        }
-    }
-    const auto result = conn->rx(buffer, available, timeout_ms.has_value());
-
-    if (const auto *read = get_if<size_t>(&result); read != nullptr) {
-        assert(content_length_rest >= *read);
-        content_length_rest -= *read;
-
-        if (*read == 0 && content_length_rest > 0) {
-            // Early EOF
-            return Error::Network;
-        }
-    }
-
-    return result;
-}
-
 optional<Error> HttpClient::send_request(const char *host, Connection *conn, Request &request) {
     OutBuffer buffer(conn);
 

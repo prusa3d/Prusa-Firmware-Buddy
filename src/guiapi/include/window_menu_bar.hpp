@@ -5,18 +5,31 @@
 
 #pragma once
 
-#include "window_menu.hpp"
+#include "i_window_menu.hpp"
 
 class MenuScrollbar : public AddSuperWindow<window_t> {
-    WindowMenu &menu;
-    uint8_t max_items_on_screen = 0;
-    uint8_t total_items = 0;
-    uint8_t index_of_first = 0;
+
+public:
+    MenuScrollbar(window_t *parent, Rect16 rect, IWindowMenu &menu);
 
 protected:
     virtual void unconditionalDraw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
-public:
-    MenuScrollbar(window_t *parent, Rect16 rect, WindowMenu &menu);
+private:
+    IWindowMenu &menu;
+
+private:
+    struct State {
+
+    public:
+        int max_items_on_screen = 0;
+        int item_count = 0;
+        int scroll_offset = 0;
+
+    public:
+        bool operator==(const State &) const = default;
+        bool operator!=(const State &) const = default;
+    };
+    State state;
 };

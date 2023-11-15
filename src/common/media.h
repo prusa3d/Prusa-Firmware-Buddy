@@ -33,6 +33,11 @@ extern "C" {
 
 extern media_state_t media_get_state(void);
 
+/**
+ * @brief Init mutexes and such of media_prefetch.
+ */
+extern void media_prefetch_init();
+
 extern osThreadId prefetch_thread_id;
 void media_prefetch(const void *);
 /// Copies the content of sfnFilePath into marlin_vars->media_SFN_path
@@ -40,7 +45,7 @@ void media_prefetch(const void *);
 extern void media_print_start__prepare(const char *sfnFilePath);
 
 /// Start printing by issuing M23 into Marlin with a file path set by media_print_start__prepare
-extern void media_print_start(const bool prefetch_start);
+extern void media_print_start();
 
 extern void media_print_stop(void);
 /// \brief Pauses print.
@@ -50,8 +55,13 @@ extern void media_print_resume(void);
 
 /// Stop adding new commands immediately and pause the reading
 /// \param pos position in the file where the print should be resumed
-/// media_print_quick_stop is safe to use within an ISR
 extern void media_print_quick_stop(uint32_t pos);
+
+/**
+ * @brief Stop adding new commands immediately and pause the reading.
+ * This function is not thread safe and can only be used from powerpanic.
+ */
+extern void media_print_quick_stop_powerpanic();
 
 extern media_print_state_t media_print_get_state(void);
 

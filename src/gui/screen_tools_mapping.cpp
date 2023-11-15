@@ -158,7 +158,7 @@ void print_right_tool_into_buffer(size_t idx, std::array<std::array<char, ToolsM
     const auto loaded_filament_type = config_store().get_filament_type(idx);
     const auto loaded_filament_desc = filament::get_description(loaded_filament_type);
 
-    snprintf(text_buffers[idx].data(), ToolsMappingBody::max_item_text_width, "%hhu. %-5.5s", idx + 1, loaded_filament_desc.name);
+    snprintf(text_buffers[idx].data(), ToolsMappingBody::max_item_text_width, "%hhu. %-5.5s", static_cast<uint8_t>(idx + 1), loaded_filament_desc.name);
 
     if (drawing_nozzles) {
         const auto cur_strlen = strlen(text_buffers[idx].data());
@@ -189,7 +189,7 @@ window_text_t make_left_gcode_text(size_t idx, window_t *parent,
     std::array<std::array<char, ToolsMappingBody::max_item_text_width>, ToolsMappingBody::max_item_rows> &text_buffers, GCodeInfo &gcode, bool drawing_nozzles) {
 
     const auto fil_name = gcode.get_extruder_info(idx).filament_name;
-    snprintf(text_buffers[idx].data(), ToolsMappingBody::max_item_text_width, "%hhu. %-5.5s", idx + 1, fil_name.has_value() ? fil_name->data() : "---");
+    snprintf(text_buffers[idx].data(), ToolsMappingBody::max_item_text_width, "%hhu. %-5.5s", static_cast<uint8_t>(idx + 1), fil_name.has_value() ? fil_name->data() : "---");
 
     if (drawing_nozzles) {
         const auto cur_strlen = strlen(text_buffers[idx].data());
@@ -1164,7 +1164,7 @@ void ToolsMappingBody::windowEvent(EventLock /*has private ctor*/, [[maybe_unuse
                 // we're leaving this screen successfully, so update marlin accordingly
                 tool_mapper = mapper;
                 spool_join = joiner;
-            } else if (response == Response::Change) {
+            } else if (response == Response::Filament) {
                 if (ChangeAllFilamentsBox(build_preselect_array(), true, build_color_array())) {
                     // This was closed while changing filament by print_abort()
                     Screens::Access()->Get()->Validate(); // Do not redraw this
@@ -1175,7 +1175,7 @@ void ToolsMappingBody::windowEvent(EventLock /*has private ctor*/, [[maybe_unuse
                 update_bottom_guide();
             }
 
-            if (response == Response::Change) { // handling change locally
+            if (response == Response::Filament) { // handling change filament locally
                 if (GetParent()) {
                     GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, nullptr);
                 }

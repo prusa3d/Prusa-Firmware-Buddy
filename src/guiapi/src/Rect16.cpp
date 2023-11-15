@@ -198,7 +198,7 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t coun
     const uint16_t usable_width = Width() - (spacing * (count - 1));
     uint16_t width = usable_width / count;
     uint16_t final_width = 0;
-    int space_in_btn;
+    int space_in_btn = 0;
     if (text_width != nullptr) {
         int text_sum = std::accumulate(text_width, text_width + count, 0);
         if (text_sum > usable_width)

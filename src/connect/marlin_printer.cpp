@@ -326,7 +326,7 @@ bool MarlinPrinter::start_print(const char *path) {
         return false;
     }
 
-    print_begin(path, true);
+    print_begin(path, marlin_server::PreviewSkipIfAble::all);
     return marlin_client::is_print_started();
 }
 

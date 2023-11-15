@@ -125,6 +125,7 @@ namespace {
         EventMask client_events[MARLIN_MAX_CLIENTS]; // client event mask - unsent messages
         variant8_t event_messages[MARLIN_MAX_CLIENTS]; // last Event::Message for clients, cannot use cvariant, destructor would free memory
         State print_state; // printing state (printing, paused, ...)
+        bool print_is_serial = false; //< When true, current print is not from USB, but sent via gcode commands.
 #if ENABLED(CRASH_RECOVERY) //
         bool aborting_did_crash_trigger = false; // To remember crash_s state when aborting
 #endif /*ENABLED(CRASH_RECOVERY)*/
@@ -248,16 +249,20 @@ namespace {
     HotendErrorChecker hotendErrorChecker;
 
     void pause_print(Pause_Type type, uint32_t resume_pos) {
-        switch (type) {
-        case Pause_Type::Crash:
-            media_print_quick_stop(resume_pos);
-            break;
-        case Pause_Type::Repeat_Last_Code:
-            media_print_pause(true);
-            break;
-        default:
-            media_print_pause(false);
+        if (!server.print_is_serial) {
+            switch (type) {
+            case Pause_Type::Crash:
+                media_print_quick_stop(resume_pos);
+                break;
+            case Pause_Type::Repeat_Last_Code:
+                media_print_pause(true);
+                break;
+            default:
+                media_print_pause(false);
+            }
         }
+
+        SerialPrinting::pause();
 
         print_job_timer.pause();
         HOTEND_LOOP() {
@@ -410,7 +415,7 @@ int cycle(void) {
 
 #if HAS_TOOLCHANGER()
     // Check if tool didn't fall off
-    prusa_toolchanger.loop(!printer_idle());
+    prusa_toolchanger.loop(!printer_idle(), printer_paused());
 #endif /*HAS_TOOLCHANGER()*/
 
     int count = 0;
@@ -477,6 +482,8 @@ void static finalize_print() {
 #endif
     // Reset IS at the end of the print
     input_shaper::init();
+
+    server.print_is_serial = false; // reset flag about serial print
 }
 
 static const uint8_t MARLIN_IDLE_CNT_BUSY = 1;
@@ -500,6 +507,7 @@ static void check_crash() {
             || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLFALL)
             || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH)
             || (crash_s.get_state() == Crash_s::TRIGGERED_HOMEFAIL))) {
+        crash_s.loop = false; // Set again to prevent race when ISR happens during this function
         server.print_state = State::CrashRecovery_Begin;
         return;
     }
@@ -628,6 +636,7 @@ void settings_save(void) {
     config_store().pid_bed_d.set(Temperature::temp_bed.pid.Kd);
 #endif
 #if ENABLED(PIDTEMP)
+    // Save only first nozzle PID
     config_store().pid_nozzle_p.set(Temperature::temp_hotend[0].pid.Kp);
     config_store().pid_nozzle_i.set(Temperature::temp_hotend[0].pid.Ki);
     config_store().pid_nozzle_d.set(Temperature::temp_hotend[0].pid.Kd);
@@ -645,9 +654,11 @@ void settings_load(void) {
     Temperature::temp_bed.pid.Kd = config_store().pid_bed_d.get();
 #endif
 #if ENABLED(PIDTEMP)
-    Temperature::temp_hotend[0].pid.Kp = config_store().pid_nozzle_p.get();
-    Temperature::temp_hotend[0].pid.Ki = config_store().pid_nozzle_i.get();
-    Temperature::temp_hotend[0].pid.Kd = config_store().pid_nozzle_d.get();
+    HOTEND_LOOP() {
+        Temperature::temp_hotend[e].pid.Kp = config_store().pid_nozzle_p.get();
+        Temperature::temp_hotend[e].pid.Ki = config_store().pid_nozzle_i.get();
+        Temperature::temp_hotend[e].pid.Kd = config_store().pid_nozzle_d.get();
+    }
     thermalManager.updatePID();
 #endif
 
@@ -726,7 +737,11 @@ bool printer_paused() {
     return server.print_state == State::Paused;
 }
 
-void print_start(const char *filename, bool skip_preview) {
+void serial_print_start() {
+    server.print_state = State::SerialPrintInit;
+}
+
+void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview) {
 #if HAS_SELFTEST()
     if (SelftestInstance().IsInProgress())
         return;
@@ -735,18 +750,17 @@ void print_start(const char *filename, bool skip_preview) {
         return;
 
     // handle preview / reprint
-    switch (server.print_state) {
-    case State::Finished:
-    case State::Aborted:
+    if (server.print_state == State::Finished || server.print_state == State::Aborted) {
         // correctly end previous print
         finalize_print();
-        FSM_DESTROY__LOGGING(Printing);
-        break;
-    default:
-        break;
+        if (fsm_event_queues.GetFsm0() == ClientFSM::Printing) {
+            // exit from print screen, if opened
+            FSM_DESTROY__LOGGING(Printing);
+        }
     }
 
     switch (server.print_state) {
+
     case State::Idle:
     case State::Finished:
     case State::Aborted:
@@ -757,8 +771,9 @@ void print_start(const char *filename, bool skip_preview) {
     case State::PrintPreviewToolsMapping:
         media_print_start__prepare(filename);
         server.print_state = State::WaitGui;
-        skip_preview ? PrintPreview::Instance().SkipIfAble() : PrintPreview::Instance().DontSkip();
+        PrintPreview::Instance().set_skip_if_able(skip_preview);
         break;
+
     default:
         break;
     }
@@ -766,9 +781,11 @@ void print_start(const char *filename, bool skip_preview) {
 
 void gui_ready_to_print() {
     switch (server.print_state) {
+
     case State::WaitGui:
         server.print_state = State::PrintPreviewInit;
         break;
+
     default:
         log_error(MarlinServer, "Wrong print state, expected: %d, is: %d", State::WaitGui, server.print_state);
         break;
@@ -777,17 +794,36 @@ void gui_ready_to_print() {
 
 void gui_cant_print() {
     switch (server.print_state) {
+
     case State::WaitGui:
         server.print_state = State::Idle;
         break;
+
     default:
         log_error(MarlinServer, "Wrong print state, expected: %d, is: %d", State::WaitGui, server.print_state);
         break;
     }
 }
 
-void print_abort(void) {
+void serial_print_finalize(void) {
     switch (server.print_state) {
+
+    case State::Printing:
+    case State::Paused:
+    case State::Resuming_Reheating:
+    case State::Finishing_WaitIdle:
+    case State::CrashRecovery_Tool_Pickup:
+        server.print_state = State::Finishing_WaitIdle;
+        break;
+    default:
+        break;
+    }
+}
+
+void print_abort(void) {
+
+    switch (server.print_state) {
+
 #if ENABLED(POWER_PANIC)
     case State::PowerPanic_Resume:
     case State::PowerPanic_AwaitingResume:
@@ -799,6 +835,7 @@ void print_abort(void) {
     case State::CrashRecovery_Tool_Pickup:
         server.print_state = State::Aborting_Begin;
         break;
+
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
     case State::PrintPreviewConfirmed:
@@ -806,6 +843,7 @@ void print_abort(void) {
     case State::PrintPreviewToolsMapping:
         server.print_state = State::Aborting_Preview;
         break;
+
     default:
         break;
     }
@@ -813,6 +851,7 @@ void print_abort(void) {
 
 void print_exit(void) {
     switch (server.print_state) {
+
 #if ENABLED(POWER_PANIC)
     case State::PowerPanic_Resume:
     case State::PowerPanic_AwaitingResume:
@@ -823,6 +862,7 @@ void print_exit(void) {
     case State::Finishing_WaitIdle:
         // do nothing
         break;
+
     default:
         server.print_state = State::Exit;
         break;
@@ -944,7 +984,7 @@ void print_resume(void) {
         server.print_state = State::PowerPanic_Resume;
 #endif
     } else
-        print_start(nullptr, true);
+        print_start(nullptr, marlin_server::PreviewSkipIfAble::all);
 }
 
 // Fast temperature recheck.
@@ -968,10 +1008,8 @@ bool print_reheat_ready() {
 #if ENABLED(POWER_PANIC)
 void powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_recover) {
     // Open the file
-    print_start(media_SFN_path, true);
+    print_start(media_SFN_path, marlin_server::PreviewSkipIfAble::all);
 
-    // Start media server as followup actions from start will not be taken as we block state transitions
-    media_print_start(false);
     crash_s.set_state(Crash_s::PRINTING);
 
     // Immediately stop to set the print position
@@ -1187,8 +1225,10 @@ static void _server_print_loop(void) {
         auto old_state = server.print_state;
         auto new_state = old_state;
         switch (PrintPreview::Instance().Loop()) {
+
         case PrintPreview::Result::Wait:
             break;
+
         case PrintPreview::Result::MarkStarted:
             // The job_id is used to identify a job for Connect & Link. We want to
             // have a unique one for each job, but have the same one through the
@@ -1204,19 +1244,24 @@ static void _server_print_loop(void) {
 
             new_state = State::PrintPreviewConfirmed;
             break;
+
         case PrintPreview::Result::Image:
             new_state = State::PrintPreviewImage;
             break;
+
         case PrintPreview::Result::Questions:
             new_state = State::PrintPreviewQuestions;
             break;
+
         case PrintPreview::Result::Abort:
             new_state = did_not_start_print ? State::Idle : State::Finishing_WaitIdle;
             FSM_DESTROY__LOGGING(PrintPreview);
             break;
+
         case PrintPreview::Result::ToolsMapping:
             new_state = State::PrintPreviewToolsMapping;
             break;
+
         case PrintPreview::Result::Print:
         case PrintPreview::Result::Inactive:
             did_not_start_print = false;
@@ -1235,9 +1280,11 @@ static void _server_print_loop(void) {
                 // POC: Handle singletool G-code which doesn't have T commands in it
                 // In case we don't have other filament loaded!
                 // Unfortunately we don't have the nozzle heated, an ugly workaround is to enqueue an M109 :(
-                enqueue_gcode("M109 S215"); // speculatively, use PLA temp for MMU prints, anything else is highly unprobable at this stage
+
+                const auto preheat_temp = GCodeInfo::getInstance().get_hotend_preheat_temp().value_or(215);
+                enqueue_gcode_printf("M109 S%i", preheat_temp); // speculatively, use PLA temp for MMU prints, anything else is highly unprobable at this stage
                 enqueue_gcode("T0"); // tool change T0 (can be remapped to anything)
-                enqueue_gcode("G92 E0");
+                enqueue_gcode("G92 E0"); // reset extruder position to 0
                 enqueue_gcode("G1 E67 F6000"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
             }
 #endif
@@ -1249,6 +1296,7 @@ static void _server_print_loop(void) {
         break;
     }
     case State::PrintInit:
+        server.print_is_serial = false;
         feedrate_percentage = 100;
 
         // Reset flow factor for all extruders
@@ -1277,7 +1325,7 @@ static void _server_print_loop(void) {
 
 #endif // HAS_LOADCELL()
 
-        media_print_start(true);
+        media_print_start();
 
         print_job_timer.start();
         server.print_state = State::Printing;
@@ -1298,17 +1346,41 @@ static void _server_print_loop(void) {
         server.mbl_failed = false;
 #endif
         break;
+    case State::SerialPrintInit:
+        server.print_is_serial = true;
+#if ENABLED(CRASH_RECOVERY)
+        crash_s.reset();
+        crash_s.reset_crash_counter();
+        endstops.enable_globally(true);
+        // Crash Detection is disabled during serial printing, because it does not work
+        // crash_s.set_state(Crash_s::PRINTING);
+#endif // ENABLED(CRASH_RECOVERY)
+#if ENABLED(CANCEL_OBJECTS)
+        cancelable.reset();
+        for (auto &cancel_object_name : marlin_vars()->cancel_object_names) {
+            cancel_object_name.set(""); // Erase object names
+        }
+#endif
+        print_job_timer.start();
+        FSM_CREATE__LOGGING(Serial_printing);
+        server.print_state = State::Printing;
+        break;
+
     case State::Printing:
-        switch (media_print_get_state()) {
-        case media_print_state_PRINTING:
-            break;
-        case media_print_state_PAUSED:
-            /// TODO don't pause in pause/abort/crash etx.
-            server.print_state = State::Pausing_Begin;
-            break;
-        case media_print_state_NONE:
-            server.print_state = State::Finishing_WaitIdle;
-            break;
+        if (server.print_is_serial) {
+            SerialPrinting::print_loop();
+        } else {
+            switch (media_print_get_state()) {
+            case media_print_state_PRINTING:
+                break;
+            case media_print_state_PAUSED:
+                /// TODO don't pause in pause/abort/crash etx.
+                server.print_state = State::Pausing_Begin;
+                break;
+            case media_print_state_NONE:
+                server.print_state = State::Finishing_WaitIdle;
+                break;
+            }
         }
         break;
     case State::Pausing_Begin:
@@ -1369,7 +1441,12 @@ static void _server_print_loop(void) {
         if (heatbreak_fan_check()) {
             abort_resuming = true;
         }
-        if (queue.has_commands_queued() || planner.processing() || (media_print_get_state() != media_print_state_PAUSED))
+
+        if (!server.print_is_serial && (media_print_get_state() != media_print_state_PAUSED)) {
+            break;
+        }
+
+        if (queue.has_commands_queued() || planner.processing())
             break;
 #if ENABLED(CRASH_RECOVERY)
         if (crash_s.get_state() == Crash_s::RECOVERY) {
@@ -1381,7 +1458,9 @@ static void _server_print_loop(void) {
         } else {
             // UnparkHead can be called after a pause, in which case crash handling should already
             // be active and we don't need to change any other setting
-            assert(crash_s.get_state() == Crash_s::PRINTING);
+
+            // Crash Detection is disabled during serial printing, because it does not work
+            assert(server.print_is_serial || crash_s.get_state() == Crash_s::PRINTING);
         }
 #endif
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
@@ -1396,15 +1475,18 @@ static void _server_print_loop(void) {
             break;
         }
         // server.motion_param.load();  // TODO: currently disabled (see Crash_s::save_parameters())
-        media_print_resume();
+        if (!server.print_is_serial)
+            media_print_resume();
         if (print_job_timer.isPaused())
             print_job_timer.start();
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, server.resume.fan_speed); // restore fan speed
 #endif
         feedrate_percentage = server.resume.print_speed;
+        SerialPrinting::resume();
         server.print_state = State::Printing;
         break;
+
     case State::Aborting_Begin:
 #if ENABLED(CRASH_RECOVERY)
         if (crash_s.is_toolchange_in_progress()) {
@@ -1444,6 +1526,10 @@ static void _server_print_loop(void) {
 
         // allow movements again
         planner.resume_queuing();
+        if (server.print_is_serial) {
+            // will enqueue gcode that will send abort to print host
+            SerialPrinting::abort();
+        }
         set_current_from_steppers();
         sync_plan_position();
         report_current_position();
@@ -1480,6 +1566,9 @@ static void _server_print_loop(void) {
 #endif // Z_ALWAYS_ON
             disable_e_steppers();
             server.print_state = State::Aborted;
+            if (server.print_is_serial) {
+                FSM_DESTROY__LOGGING(Serial_printing);
+            }
             finalize_print();
         }
         break;
@@ -1510,16 +1599,21 @@ static void _server_print_loop(void) {
 #endif // ENABLED(CRASH_RECOVERY)
 
 #ifdef PARK_HEAD_ON_PRINT_FINISH
-            park_head();
+            if (!server.print_is_serial)
+                // do not move head if printing via serial
+                park_head();
 #endif // PARK_HEAD_ON_PRINT_FINISH
             if (print_job_timer.isRunning())
                 print_job_timer.stop();
+
             server.print_state = State::Finishing_ParkHead;
         }
         break;
     case State::Finishing_ParkHead:
         if (!queue.has_commands_queued() && !planner.processing()) {
             server.print_state = State::Finished;
+            if (server.print_is_serial)
+                FSM_DESTROY__LOGGING(Serial_printing);
             finalize_print();
         }
         break;
@@ -1528,6 +1622,9 @@ static void _server_print_loop(void) {
         if (fsm_event_queues.GetFsm0() == ClientFSM::Printing) { // the printing state can only occur in the Fsm0 queue
             finalize_print();
             FSM_DESTROY__LOGGING(Printing);
+        }
+        if (fsm_event_queues.GetFsm0() == ClientFSM::Serial_printing) {
+            finalize_print();
         }
         server.print_state = State::Idle;
         break;
@@ -2369,9 +2466,12 @@ bool _process_server_valid_request(const char *request, int client_id) {
     case Msg::ConfigReset:
         settings_reset();
         return true;
-    case Msg::PrintStart:
-        print_start(data + 1, data[0] == '1');
+    case Msg::PrintStart: {
+        auto skip_if_able = static_cast<marlin_server::PreviewSkipIfAble>(data[0] - '0');
+        assert(skip_if_able < marlin_server::PreviewSkipIfAble::_count);
+        print_start(data + 1, skip_if_able);
         return true;
+    }
     case Msg::PrintReady:
         gui_ready_to_print();
         return true;

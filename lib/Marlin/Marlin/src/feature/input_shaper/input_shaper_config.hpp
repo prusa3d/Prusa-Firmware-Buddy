@@ -98,12 +98,25 @@ inline constexpr AxisConfig axis_z_default {
     .damping_ratio = 0.,
     .vibration_reduction = 0.,
 };
+
 inline constexpr AxisConfig axis_defaults[3] = { axis_x_default, axis_y_default, axis_z_default };
+
+inline constexpr bool weight_adjust_enabled_default = {
+// DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
+#if PRINTER_IS_PRUSA_XL
+    false
+#else
+    true
+#endif
+};
 
 inline constexpr WeightAdjustConfig weight_adjust_y_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
-
+#if PRINTER_IS_PRUSA_XL
+    .frequency_delta = 0,
+#else
     .frequency_delta = -20.0f,
+#endif
     .mass_limit = 800.0f,
 };
 

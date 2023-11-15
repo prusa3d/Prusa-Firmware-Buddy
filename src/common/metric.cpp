@@ -2,7 +2,6 @@
 #include "cmsis_os.h"
 #include "timing.h"
 #include "log.h"
-#include "stm32f4xx_hal.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -18,7 +17,12 @@ osThreadCCMDef(metric_system_task, metric_system_task_run, TASK_PRIORITY_METRIC_
 static osThreadId metric_system_task;
 
 // queue definition
-osMailQDef(metric_system_queue, 100, metric_point_t);
+#if PRINTER_IS_PRUSA_MINI
+static constexpr const size_t metric_system_queue_size = 50; ///< Not enough RAM, smaller buffer for metrics, sorry Mini
+#else
+static constexpr const size_t metric_system_queue_size = 100; ///< Size of metrics buffer
+#endif /* PRINTER_IS_PRUSA_MINI */
+osMailQDef(metric_system_queue, metric_system_queue_size, metric_point_t);
 static osMessageQId metric_system_queue;
 
 // internal variables
@@ -81,13 +85,13 @@ static void metric_system_task_run(const void *) {
 
 static bool check_min_interval(metric_t *metric, uint32_t timestamp) {
     if (metric->min_interval_ms)
-        return ticks_diff(timestamp, metric->_last_update_timestamp) >= (int32_t)metric->min_interval_ms;
+        return ticks_diff(timestamp, metric->_last_update_timestamp) >= 1000 * (int32_t)metric->min_interval_ms;
     else
         return true;
 }
 
 static void update_min_interval(metric_t *metric) {
-    metric->_last_update_timestamp = ticks_ms();
+    metric->_last_update_timestamp = ticks_us();
 }
 
 static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timestamp, metric_value_type_t type) {
@@ -163,8 +167,14 @@ void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const ch
         return;
     va_list args;
     va_start(args, fmt);
-    vsnprintf(recording->value_custom, sizeof(recording->value_custom), fmt, args);
+    int length = vsnprintf(recording->value_custom, sizeof(recording->value_custom), fmt, args);
     va_end(args);
+
+    if ((size_t)length >= sizeof(recording->value_custom)) {
+        recording->error = true;
+        strcpy(recording->error_msg, "value too long");
+    }
+
     point_enqueue(recording);
 }
 
@@ -185,7 +195,7 @@ void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int val
 
 void metric_record_error(metric_t *metric, const char *fmt, ...) {
     // TODO: we might want separate throttling for errors
-    metric_point_t *recording = point_check_and_prepare(metric, ticks_ms(), metric->type);
+    metric_point_t *recording = point_check_and_prepare(metric, ticks_us(), metric->type);
     if (!recording)
         return;
     recording->error = true;
@@ -205,5 +215,5 @@ void metric_disable_for_handler(metric_t *metric, metric_handler_t *handler) {
 }
 
 bool metric_record_is_due(metric_t *metric) {
-    return check_min_interval(metric, ticks_ms());
+    return check_min_interval(metric, ticks_us());
 }

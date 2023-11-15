@@ -11,6 +11,7 @@
 #include "sys.h"
 #include <span>
 
+#include <random.h>
 #include "data_exchange.hpp"
 #include "resources/bootstrap.hpp"
 #include "resources/revision_bootloader.hpp"
@@ -20,7 +21,6 @@
 // FIXME: Those includes are here only for the RNG.
 // We should add support for the stdlib's standard random function
 #include "main.h"
-#include "stm32f4xx_hal.h"
 
 LOG_COMPONENT_REF(Bootloader);
 
@@ -47,15 +47,6 @@ public:
         fclose(file);
     }
 };
-
-static uint32_t random_number() {
-    uint32_t random = 0;
-    HAL_StatusTypeDef status;
-    do {
-        status = HAL_RNG_GenerateRandomNumber(&hrng, &random);
-    } while (status != HAL_OK);
-    return random;
-}
 
 static bool calculate_file_crc(FILE *fp, uint32_t length, uint32_t &crc) {
     uint8_t buffer[64];
@@ -203,7 +194,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 
         // add random delay to make preboot flashing less predictable
         if (sector == 0) {
-            uint32_t delay_ms = 100 + (random_number() % 7000);
+            uint32_t delay_ms = 100 + (rand_u() % 7000);
             osDelay(delay_ms);
         }
 

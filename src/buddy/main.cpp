@@ -5,7 +5,7 @@
 #include "config_features.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
-#include "usb_device.h"
+#include "usb_device.hpp"
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod.h"
@@ -71,9 +71,6 @@
 #include <option/buddy_enable_wui.h>
 #if BUDDY_ENABLE_WUI()
     #include "wui.h"
-    #if USE_ASYNCIO
-        #include <transfers/async_io.hpp>
-    #endif
 #endif
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
@@ -103,9 +100,6 @@ void SystemClock_Config(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
 void StartConnectTask(void const *argument);
-#if USE_ASYNCIO
-void StartAsyncIoTask(void const *argument);
-#endif
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
@@ -164,8 +158,9 @@ static bool bootloader_update() {
                     bsod("unreachable");
                 }
 
-                log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description, percent_done);
-                gui_bootstrap_screen_set_state(percent_done, stage_description);
+                if (gui_bootstrap_screen_set_state(percent_done, stage_description)) {
+                    log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description, percent_done);
+                }
             });
         return true;
     }
@@ -191,8 +186,10 @@ static void resources_update() {
                 default:
                     bsod("unreachable");
                 }
-                log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description, percent_done);
-                gui_bootstrap_screen_set_state(percent_done, stage_description);
+
+                if (gui_bootstrap_screen_set_state(percent_done, stage_description)) {
+                    log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description, percent_done);
+                }
             });
     }
     TaskDeps::provide(TaskDeps::Dependency::resources_ready);
@@ -380,6 +377,10 @@ extern "C" void main_cpp(void) {
     espif_init_hw();
 #endif
 
+    media_prefetch_init();
+    osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 1024);
+    prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
+
     osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
@@ -395,10 +396,6 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    #if USE_ASYNCIO
-    osThreadCCMDef(asyncIoTask, StartAsyncIoTask, TASK_PRIORITY_ASYNCIO, 0, 400);
-    osThreadCreate(osThread(asyncIoTask), nullptr);
-    #endif
     espif_task_create();
 
     TaskDeps::wait(TaskDeps::Tasks::network);
@@ -416,8 +413,6 @@ extern "C" void main_cpp(void) {
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif
 
-    osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 768);
-    prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
         osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 512);
@@ -566,12 +561,6 @@ void StartErrorDisplayTask([[maybe_unused]] void const *argument) {
     }
 }
 
-#if BUDDY_ENABLE_WUI() && USE_ASYNCIO
-void StartAsyncIoTask([[maybe_unused]] void const *argument) {
-    async_io::run();
-}
-#endif
-
 #if BUDDY_ENABLE_CONNECT()
 void StartConnectTask([[maybe_unused]] void const *argument) {
     connect_client::run();
@@ -608,7 +597,6 @@ void system_core_error_handler() {
 }
 
 void iwdg_warning_cb(void) {
-    crash_dump::before_dump();
     crash_dump::save_message(crash_dump::MsgType::IWDGW, 0, nullptr, nullptr);
     trigger_crash_dump();
 }

@@ -37,58 +37,6 @@ struct SerializedString {
     }
 };
 
-struct SerializedHeader {
-    SerializedString name;
-    std::variant<SerializedString, size_t> value;
-    std::optional<size_t> size_limit = std::nullopt;
-    std::optional<FileOffset> next;
-
-    static FileOffset serialize(const http::HeaderOut &header, std::optional<FileOffset> next, FILE *file, bool &error) {
-        auto data = SerializedHeader {
-            SerializedString::serialize(header.name, file, error),
-            serialize_value(header, file, error),
-            header.size_limit,
-            next
-        };
-        const auto offset = ftell(file);
-        if (fwrite(&data, sizeof(data), 1, file) != 1) {
-            error = true;
-        }
-
-        return offset;
-    }
-
-    static std::variant<SerializedString, size_t> serialize_value(const http::HeaderOut &header, FILE *file, bool &error) {
-        return std::visit([&](auto &&value) -> std::variant<SerializedString, size_t> {
-            using T = std::decay_t<decltype(value)>;
-            if constexpr (std::is_same_v<T, const char *>) {
-                return SerializedString::serialize(value, file, error);
-            } else if constexpr (std::is_same_v<T, size_t>) {
-                return value;
-            }
-        },
-            header.value);
-    }
-
-    template <typename T>
-    http::HeaderOut deserialize(T get_data_ptr) const {
-        return http::HeaderOut {
-            name.deserialize(get_data_ptr),
-            std::visit([&](auto &&value) -> std::variant<const char *, size_t> {
-                using U = std::decay_t<decltype(value)>;
-
-                if constexpr (std::is_same_v<U, SerializedString>) {
-                    return value.deserialize(get_data_ptr);
-                } else if constexpr (std::is_same_v<U, size_t>) {
-                    return value;
-                }
-            },
-                value),
-            size_limit,
-        };
-    }
-};
-
 struct SerializedTransfer {
     // what data are valid
     PartialFile::State partial_file_state;
@@ -105,10 +53,6 @@ struct SerializedTransfer {
     SerializedString url_path;
 
     uint32_t transfer_id;
-
-    // headers
-    int header_count;
-    std::optional<FileOffset> header_first;
 
     // encryption info
     std::optional<Download::EncryptionInfo> encryption_info;
@@ -137,16 +81,6 @@ bool Transfer::make_backup(FILE *file, const Download::Request &request, const P
     transfer.url_path = SerializedString::serialize(request.url_path, file, error);
     // Must be available, we are holding the slot.
     transfer.transfer_id = slot.id();
-    transfer.header_count = request.extra_headers(0, nullptr);
-
-    // headers
-    auto headers = std::make_unique<http::HeaderOut[]>(transfer.header_count);
-    request.extra_headers(transfer.header_count, headers.get());
-    std::optional<FileOffset> prev_header = std::nullopt;
-    for (int i = transfer.header_count - 1; i >= 0; --i) {
-        prev_header = SerializedHeader::serialize(headers[i], prev_header, file, error);
-    }
-    transfer.header_first = prev_header;
 
     // encryption
     if (request.encryption.get()) {
@@ -274,6 +208,12 @@ std::variant<Transfer::Error, Transfer::Complete, PartialFile::State> Transfer::
         // as a complete "partial" file). But in this case, we better double-check.
         if (errno == ENOENT || errno == ENOTDIR) {
             return Complete {};
+
+        } else if (errno == EBUSY) {
+            // Busy - something else might be accessing the file. In that case, we don't throw the error, but report that nothing is available.
+            // The function should try again later and when we should be able to get to the file.
+            return PartialFile::State {};
+
         } else {
             return Error {};
         }
@@ -370,35 +310,10 @@ std::optional<Download::Request> Transfer::RestoredTransfer::get_download_reques
         return this->get_data_ptr(offset, size);
     };
 
-    // header deserialization
-    size_t header_count = transfer.header_count;
-    auto header_first = transfer.header_first;
-    Download::ExtraHeaders extra_headers = [this, header_count, header_first](size_t headers_size, http::HeaderOut *headers) -> size_t {
-        if (headers_size >= header_count) {
-            SerializedHeader header;
-            auto header_offset = header_first;
-            for (size_t i = 0; i < header_count; ++i) {
-                assert(header_offset.has_value() && "Mismatch between header count and header list");
-
-                if (fseek(file, header_offset.value(), SEEK_SET) != 0 || fread(&header, sizeof(header), 1, file) != 1) {
-                    fatal_error("header read failed", "transfers");
-                }
-                header_offset = header.next;
-
-                headers[i] = header.deserialize([this](size_t offset, size_t size) -> const void * {
-                    return this->get_data_ptr(offset, size);
-                });
-            }
-            assert(header_offset.has_value() == false && "Mismatch between header count and header list");
-        }
-        return header_count;
-    };
-
     return Download::Request(
         transfer.host.deserialize(get_data_ptr),
         transfer.port,
         transfer.url_path.deserialize(get_data_ptr),
-        extra_headers,
         transfer.encryption_info.has_value() ? std::make_unique<Download::EncryptionInfo>(*transfer.encryption_info) : nullptr);
 }
 

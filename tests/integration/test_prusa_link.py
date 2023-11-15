@@ -183,7 +183,6 @@ async def running_printer_client(printer_factory, printer_flash_dir, data_dir):
         yield client
 
 
-@pytest.mark.skip("Probably OTP change broke tests; Needs repair")
 async def test_printing_telemetry(running_printer_client):
     """
     Ask for telemetry information during a print and get something useful.
@@ -199,7 +198,6 @@ async def test_printing_telemetry(running_printer_client):
         "bed"]["actual"]
 
 
-@pytest.mark.skip("Probably OTP change broke tests; Needs repair")
 async def test_printing_job(running_printer_client):
     job_r = await running_printer_client.get('/api/job',
                                              headers=valid_headers())
@@ -250,7 +248,6 @@ async def test_thumbnails(printer_with_files):
         assert data[1:4] == b"PNG"
 
 
-@pytest.mark.skip("Probably OTP change broke tests; Needs repair")
 async def test_delete_project_printing(running_printer_client):
     fname = f'/api/files/usb/BOX~1.GCO'
     heads = valid_headers()

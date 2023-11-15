@@ -42,10 +42,10 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, [[ma
         WindowFileBrowser::event_conversion_union un;
         un.pvoid = param;
         switch (un.action) {
-        case WindowFileBrowser::event_conversion_union::Action::GoHome:
+        case WindowFileBrowser::event_conversion_union::Action::go_home:
             goHome();
             return;
-        case WindowFileBrowser::event_conversion_union::Action::FileSelected:
+        case WindowFileBrowser::event_conversion_union::Action::file_selected:
             printTheFile();
             return;
         }
@@ -81,7 +81,7 @@ void screen_filebrowser_data_t::printTheFile() {
     // save the top browser item
     file_browser.SaveTopSFN();
 
-    print_begin(gui_media_SFN_path, false);
+    print_begin(gui_media_SFN_path);
 
     return;
 }

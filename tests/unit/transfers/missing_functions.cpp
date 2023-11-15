@@ -26,10 +26,6 @@ uint32_t ticks_s() {
 void mbedtls_platform_zeroize(void *b, size_t size) {
     memset(b, 0, size);
 }
-
-void fatal_error(const char *, const char *) {
-    abort();
-}
 }
 
 bool random32bit(uint32_t *output) {

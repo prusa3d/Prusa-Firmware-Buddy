@@ -85,9 +85,13 @@ inline constexpr MessageType message_type<AccelerometerFastData>() {
 namespace dwarf::accelerometer {
 struct AccelerometerRecord {
     common::puppies::fifo::TimeStamp_us timestamp;
-    uint16_t x;
-    uint16_t y;
-    uint16_t z;
-    bool corrupted = false;
+    union {
+        struct {
+            int16_t x, y, z;
+        };
+        int16_t raw[3];
+    };
+    bool buffer_overflow = false;
+    bool sample_overrun = false;
 };
 } // namespace dwarf::accelerometer

@@ -37,6 +37,8 @@ private:
 public:
     enum class Incident {
         Created,
+        /// The file was created and is accessible to some extent, but not yet fully downloaded.
+        CreatedEarly,
         Deleted,
         Combined
     };

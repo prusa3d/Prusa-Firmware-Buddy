@@ -303,7 +303,8 @@ void Pause::do_e_move_notify_progress_hotextrude(const float &length, const feed
 
 void Pause::plan_e_move(const float &length, const feedRate_t &fr_mm_s) {
     current_position.e += length / planner.e_factor[active_extruder];
-    while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
+    while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)
+        && !planner.draining()) {
         delay(50);
     }
 }
@@ -312,7 +313,8 @@ void Pause::plan_e_move_notify_progress(const float &length, const feedRate_t &f
     const float actual_e = current_position.e;
     current_position.e += length / planner.e_factor[active_extruder];
     PauseFsmNotifier N(*this, actual_e, current_position.e, progress_min, progress_max, marlin_vars()->native_pos[MARLIN_VAR_INDEX_E]);
-    while (!settings.do_stop && !planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
+    while (!settings.do_stop && !planner.buffer_line(current_position, fr_mm_s, active_extruder)
+        && !planner.draining()) {
         check_user_stop();
         delay(50);
     }
@@ -512,8 +514,45 @@ void Pause::loop_load_mmu([[maybe_unused]] Response response) {
         set(LoadPhases_t::_finish);
     }
 }
+
+void Pause::loop_load_mmu_change([[maybe_unused]] Response response) {
+    switch (getLoadPhase()) {
+    case LoadPhases_t::_init: {
+        if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
+            set(LoadPhases_t::_finish);
+            break;
+        }
+
+        setPhase(PhasesLoadUnload::LoadFilamentIntoMMU);
+        set(LoadPhases_t::ask_mmu_load_filament);
+        break;
+    }
+    case LoadPhases_t::ask_mmu_load_filament: {
+        if (response == Response::Continue) {
+            set(LoadPhases_t::mmu_load_filament);
+        }
+        break;
+    }
+    case LoadPhases_t::mmu_load_filament: {
+        if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
+            set(LoadPhases_t::_finish);
+            break;
+        }
+
+        MMU2::mmu2.load_filament(settings.mmu_filament_to_load);
+        MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load);
+
+        set(LoadPhases_t::_finish);
+        break;
+    }
+    default:
+        set(LoadPhases_t::_finish);
+    }
+}
 #else
 void Pause::loop_load_mmu([[maybe_unused]] Response response) {
+}
+void Pause::loop_load_mmu_change([[maybe_unused]] Response response) {
 }
 #endif
 
@@ -1016,8 +1055,30 @@ void Pause::loop_unload_mmu([[maybe_unused]] Response response) {
         set(UnloadPhases_t::_finish);
     }
 }
+
+void Pause::loop_unload_mmu_change([[maybe_unused]] Response response) {
+    switch (getUnloadPhase()) {
+    case UnloadPhases_t::_init:
+        settings.mmu_filament_to_load = MMU2::mmu2.get_current_tool();
+
+        // No filament loaded in MMU, we can't continue, as we don't know what slot to load
+        if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
+            set(UnloadPhases_t::_finish);
+            break;
+        }
+
+        MMU2::mmu2.unload();
+        MMU2::mmu2.eject_filament(settings.mmu_filament_to_load);
+        set(UnloadPhases_t::_finish);
+        break;
+    default:
+        set(UnloadPhases_t::_finish);
+    }
+}
 #else
 void Pause::loop_unload_mmu([[maybe_unused]] Response response) {
+}
+void Pause::loop_unload_mmu_change([[maybe_unused]] Response response) {
 }
 #endif
 
@@ -1383,9 +1444,9 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
         FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Change);
 
         if (settings.unload_length) // Unload the filament
-            filamentUnload(&Pause::loop_unload_change);
+            filamentUnload(FSensors_instance().HasMMU() ? &Pause::loop_unload_mmu_change : &Pause::loop_unload_change);
         // Feed a little bit of filament to stabilize pressure in nozzle
-        if (filamentLoad(&Pause::loop_load_change)) {
+        if (filamentLoad(FSensors_instance().HasMMU() ? &Pause::loop_load_mmu_change : &Pause::loop_load_change)) {
 
             // Last poop after user clicked color - yes
             plan_e_move(5, 10);

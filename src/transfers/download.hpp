@@ -87,14 +87,12 @@ public:
         const char *host;
         uint16_t port;
         const char *url_path;
-        ExtraHeaders extra_headers;
         std::shared_ptr<EncryptionInfo> encryption;
 
-        Request(const char *host, uint16_t port, const char *url_path, ExtraHeaders extra_headers, std::unique_ptr<EncryptionInfo> &&encryption)
+        Request(const char *host, uint16_t port, const char *url_path, std::unique_ptr<EncryptionInfo> &&encryption)
             : host(host)
             , port(port)
             , url_path(url_path)
-            , extra_headers(extra_headers)
             , encryption(std::move(encryption)) {}
     };
 
@@ -106,23 +104,19 @@ private:
     };
     using AsyncPtr = std::unique_ptr<Async, AsyncDeleter>;
     AsyncPtr async;
-    Download(AsyncPtr &&async);
 
 public:
-    Download(Download &&other) = default;
-    Download(const Download &other) = delete;
-    Download &operator=(Download &&other) = default;
-    Download &operator=(const Download &other) = delete;
-
-    using DestinationPath = std::variant<PartialFile::Ptr, const char *>;
-    using BeginResult = std::variant<Download, AlreadyExists, RefusedRequest, Storage>;
     /// Makes an HTTP request.
     ///
     /// \param request The request to make.
     /// \param destination The destination file. If PartialFile is provided, it has to match the final file size. If a string is provided, the PartialFile will be created with the same name.
     /// \param offset The offset to start the download from.
     /// \return A Download object if the request was successful and the caller is expected to call step() in a loop to continue with the download.
-    static BeginResult begin(const Request &request, DestinationPath destination, uint32_t start_range = 0, std::optional<uint32_t> end_range = std::nullopt);
+    Download(const Request &request, PartialFile::Ptr destination, uint32_t start_range = 0, std::optional<uint32_t> end_range = std::nullopt);
+    Download(Download &&other) = default;
+    Download(const Download &other) = delete;
+    Download &operator=(Download &&other) = default;
+    Download &operator=(const Download &other) = delete;
 
     /// Continue the download.
     DownloadStep step();

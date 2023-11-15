@@ -47,10 +47,6 @@ Rect16 MsgBoxBase::getTextRect() {
     }
 }
 
-Response MsgBoxBase::GetResult() {
-    return result;
-}
-
 void MsgBoxBase::set_text_alignment(Align_t alignment) {
     text.SetAlignment(alignment);
 }
@@ -289,88 +285,172 @@ Rect16 MsgBoxIS::getTextRect() {
 }
 
 /*****************************************************************************/
-// MsgBoxBase variadic template methods
-// to be used as blocking functions
-template <class T, typename... Args>
-Response MsgBox_Custom(Rect16 rect, const PhaseResponses &resp, size_t def_btn, string_view_utf8 txt, is_multiline multiline, Args... args) {
-    const PhaseTexts labels = { BtnResponse::GetText(resp[0]), BtnResponse::GetText(resp[1]), BtnResponse::GetText(resp[2]), BtnResponse::GetText(resp[3]) };
-    // static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
-    T msgbox(rect, resp, def_btn, &labels, txt, multiline, args...);
-    msgbox.MakeBlocking();
-    return msgbox.GetResult();
-}
+namespace {
 
-Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    return MsgBox_Custom<MsgBoxBase>(rect, resp, def_btn, txt, multiline);
-}
+enum class MsgBoxDialogClass {
+    MsgBoxBase,
+    MsgBoxTitled,
+    MsgBoxIconned,
+    MsgBoxIconnedError,
+    MsgBoxIconPepa,
+    MsgBoxIconPepaCentered,
+    MsgBoxIS,
+    MsgBoxISSpecial,
+    _count,
+};
 
-Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, const img::Resource *icon_id, is_multiline multiline) {
-    return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, title, icon_id);
-}
+struct MsgBoxImplicitConfig {
+    MsgBoxDialogClass dialog_class;
+    const img::Resource *icon = nullptr;
+    const char *title = nullptr;
+};
 
-Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconnedError>(rect, resp, def_btn, txt, multiline, &img::error_white_48x48);
-    } else {
-        constexpr static const char *label = N_("Error");
-        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &img::error_16x16);
-    }
-}
+constexpr bool big_layout = GuiDefaults::EnableDialogBigLayout;
+const MsgBoxImplicitConfig msb_box_implicit_configs[static_cast<int>(MsgBoxType::_count)] = {
+    MsgBoxImplicitConfig {
+        // MsgBoxType::standard
+        .dialog_class = MsgBoxDialogClass::MsgBoxBase,
+    },
+    MsgBoxImplicitConfig {
+        // MsgBoxType::titled
+        .dialog_class = MsgBoxDialogClass::MsgBoxTitled,
+    },
+    MsgBoxImplicitConfig {
+        // MsgBoxType::error
+        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconnedError : MsgBoxDialogClass::MsgBoxTitled,
+        .icon = big_layout ? &img::error_white_48x48 : &img::error_16x16,
+        .title = big_layout ? nullptr : N_("Error"),
+    },
+    MsgBoxImplicitConfig {
+        // MsgBoxType::question
+        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
+        .icon = big_layout ? &img::question_48x48 : &img::question_16x16,
+        .title = big_layout ? nullptr : N_("Question"),
+    },
+    MsgBoxImplicitConfig {
+        // MsgBoxType::warning
+        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
+        .icon = big_layout ? &img::warning_48x48 : &img::warning_16x16,
+        .title = big_layout ? nullptr : N_("Warning"),
+    },
+    MsgBoxImplicitConfig {
+        // MsgBoxType::info
+        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconned : MsgBoxDialogClass::MsgBoxTitled,
+        .icon = big_layout ? &img::info_48x48 : &img::info_16x16,
+        .title = big_layout ? nullptr : N_("Information"),
+    },
+    MsgBoxImplicitConfig {
+        // MsgBoxType::pepa
+        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconPepa : MsgBoxDialogClass::MsgBoxIconned,
+        .icon = big_layout ? &img::pepa_92x140 : &img::pepa_42x64,
+    },
+    MsgBoxImplicitConfig {
+        // MsgBoxType::info
+        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconPepaCentered : MsgBoxDialogClass::MsgBoxIconned,
+        .icon = big_layout ? &img::pepa_92x140 : &img::pepa_42x64,
+    },
+    MsgBoxImplicitConfig {
+        // MsgBoxType::input_shaper_warning
+        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIS : MsgBoxDialogClass::MsgBoxISSpecial,
+        .icon = big_layout ? &img::error_white_48x48 : nullptr,
+    },
+};
 
-Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &img::question_48x48);
-    } else {
-        constexpr static const char *label = N_("Question");
-        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &img::question_16x16);
-    }
-}
+} // namespace
 
-Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &img::warning_48x48);
-    } else {
-        constexpr static const char *label = N_("Warning");
-        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &img::warning_16x16);
-    }
-}
+Response MsgBoxBuilder::exec() const {
+    const MsgBoxImplicitConfig &implicit_config = msb_box_implicit_configs[static_cast<size_t>(type)];
+    const img::Resource *used_icon = icon ?: implicit_config.icon;
+    const string_view_utf8 used_title = title.isNULLSTR() ? _(implicit_config.title) : title;
 
-Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &img::info_48x48);
-    } else {
-        constexpr static const char *label = N_("Information");
-        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &img::info_16x16);
-    }
-}
+    const PhaseTexts labels = {
+        BtnResponse::GetText(responses[0]),
+        BtnResponse::GetText(responses[1]),
+        BtnResponse::GetText(responses[2]),
+        BtnResponse::GetText(responses[3]),
+    };
 
-Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconPepa>(rect, resp, def_btn, txt, multiline, &img::pepa_92x140);
-    } else {
-        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &img::pepa_42x64);
-    }
-}
+    const auto box_f = [&]<typename T, MsgBoxDialogClass CS = MsgBoxDialogClass::_count, typename... Args>(Args... args) {
+        T msgbox(rect, responses, static_cast<size_t>(default_button), &labels, text, multiline, args...);
 
-Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconPepaCentered>(rect, resp, def_btn, txt, multiline, &img::pepa_92x140);
-    } else {
-        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &img::pepa_42x64);
-    }
-}
+        if constexpr (CS == MsgBoxDialogClass::MsgBoxISSpecial) {
+            msgbox.set_text_alignment(Align_t::Center());
+            msgbox.set_title_alignment(Align_t::Center());
+        }
 
-Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
-    if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIS>(rect, resp, def_btn, txt, multiline, &img::error_white_48x48);
-    } else {
-        constexpr static const char *label = N_("Feature Preview");
-
-        const PhaseTexts labels = { BtnResponse::GetText(resp[0]), BtnResponse::GetText(resp[1]), BtnResponse::GetText(resp[2]), BtnResponse::GetText(resp[3]) };
-        MsgBoxTitled msgbox(rect, resp, def_btn, &labels, txt, multiline, _(label), nullptr, is_closed_on_click_t::yes, dense_t::yes);
-        msgbox.set_text_alignment(Align_t::Center());
-        msgbox.set_title_alignment(Align_t::Center());
-        msgbox.MakeBlocking();
+        msgbox.MakeBlocking(loop_callback);
         return msgbox.GetResult();
+    };
+
+    switch (implicit_config.dialog_class) {
+
+    case MsgBoxDialogClass::MsgBoxBase:
+        return box_f.operator()<MsgBoxBase>();
+
+    case MsgBoxDialogClass::MsgBoxTitled:
+        return box_f.operator()<MsgBoxTitled>(used_title, used_icon);
+
+    case MsgBoxDialogClass::MsgBoxIconned:
+        return box_f.operator()<MsgBoxIconned>(used_icon);
+
+    case MsgBoxDialogClass::MsgBoxIconnedError:
+        return box_f.operator()<MsgBoxIconnedError>(used_icon);
+
+    case MsgBoxDialogClass::MsgBoxIconPepa:
+        return box_f.operator()<MsgBoxIconPepa>(used_icon);
+
+    case MsgBoxDialogClass::MsgBoxIconPepaCentered:
+        return box_f.operator()<MsgBoxIconPepaCentered>(used_icon);
+
+    case MsgBoxDialogClass::MsgBoxIS:
+        return box_f.operator()<MsgBoxIS>(used_icon);
+
+    case MsgBoxDialogClass::MsgBoxISSpecial:
+        return box_f.operator()<MsgBoxTitled, MsgBoxDialogClass::MsgBoxISSpecial>(used_title, used_icon, is_closed_on_click_t::yes, dense_t::yes);
+
+    default:
+        bsod("Invalid MsgBoxDialogClass");
     }
+}
+
+Response msg_box(MsgBoxType type, string_view_utf8 txt, const PhaseResponses &resp, MsgBoxDefaultButton default_button) {
+    return MsgBoxBuilder {
+        .type = type,
+        .text = txt,
+        .responses = resp,
+        .default_button = default_button,
+    }
+        .exec();
+}
+
+Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+    return msg_box(MsgBoxType::standard, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
+}
+
+Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+    return msg_box(MsgBoxType::error, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
+}
+
+Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+    return msg_box(MsgBoxType::question, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
+}
+
+Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+    return msg_box(MsgBoxType::warning, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
+}
+
+Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+    return msg_box(MsgBoxType::info, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
+}
+
+Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+    return msg_box(MsgBoxType::pepa, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
+}
+
+Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+    return msg_box(MsgBoxType::pepa_centered, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
+}
+
+Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn) {
+    return msg_box(MsgBoxType::input_shaper_warning, txt, resp, static_cast<MsgBoxDefaultButton>(def_btn));
 }

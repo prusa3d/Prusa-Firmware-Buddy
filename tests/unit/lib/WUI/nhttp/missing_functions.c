@@ -36,10 +36,6 @@ size_t strlcat(char *dst, const char *src, size_t size) {
 
 const char project_version_full[] = "1.0.0";
 
-void fatal_error(const char *c, const char *d) {
-    abort();
-}
-
 void *mem_malloc(size_t size) {
     return malloc(size);
 }

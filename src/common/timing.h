@@ -43,7 +43,9 @@ uint32_t ticks_us();
 ///     elif (ticks_diff(scheduled_ticks_us, ticks_us()) < 0)
 ///         // too late
 ///
-int32_t ticks_diff(uint32_t ticks_a, uint32_t ticks_b);
+inline int32_t ticks_diff(uint32_t ticks_a, uint32_t ticks_b) {
+    return ((int32_t)(ticks_a - ticks_b));
+}
 
 /// Time since the start of the system in microseconds
 ///

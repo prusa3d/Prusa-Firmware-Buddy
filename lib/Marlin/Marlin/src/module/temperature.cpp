@@ -3690,6 +3690,7 @@ void Temperature::isr() {
     if (e == H_CHAMBER) k = 'C';
     #endif
     #if HAS_TEMP_HOTEND
+    if (e == INDEX_NONE) k = 'T';
     if (e >= H_E0 && e <= H_E5) {
       k = 'T';
       tool_nr = e - H_E0;

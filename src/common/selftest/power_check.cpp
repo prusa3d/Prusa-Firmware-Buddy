@@ -12,15 +12,19 @@ LOG_COMPONENT_REF(Selftest);
 using namespace selftest;
 // PWM must be stable for n cycles
 PowerCheck::status_t PowerCheck::EvaluateHeaterStatus(uint32_t current_pwm, const HeaterConfig_t &config) {
+    uint32_t now = SelftestInstance().GetTime();
     if (current_pwm < config.min_pwm_to_measure) {
+        last_pwm = current_pwm;
+        start_stable_time_meas = now;
         LogDebugTimed(log_status, "%s pwm too small to measure load", config.partname);
         return status_t::unmeasurable_pwm;
     }
     if (current_pwm > config.pwm_100percent_equivalent_value) {
+        last_pwm = current_pwm;
+        start_stable_time_meas = now;
         log_error(Selftest, "%s pwm out of range", config.partname);
         return status_t::unmeasurable_pwm;
     }
-    uint32_t now = SelftestInstance().GetTime();
     if (std::abs(static_cast<int>(current_pwm) - static_cast<int>(last_pwm)) > config.heater_load_stable_difference) {
         last_pwm = current_pwm;
         start_stable_time_meas = now;

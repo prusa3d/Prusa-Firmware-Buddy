@@ -116,7 +116,7 @@ void run_once_after_boot() {
     static constexpr const char *autostart_filename = "/usb/AUTO.GCO";
     if (access(autostart_filename, F_OK) == 0) {
         // call directly marlin server start print. This function is not safe
-        marlin_server::print_start(autostart_filename, true);
+        marlin_server::print_start(autostart_filename, marlin_server::PreviewSkipIfAble::all);
         oProgressData.mInit();
     }
 }
@@ -139,7 +139,7 @@ void print_utils_loop() {
     }
 }
 
-void print_begin(const char *filename, bool skip_preview) {
+void print_begin(const char *filename, marlin_server::PreviewSkipIfAble skip_preview) {
     marlin_client::print_start(filename, skip_preview);
     // FIXME: This should not be here and it should be handled
     // in Marlin. Needs refactoring!

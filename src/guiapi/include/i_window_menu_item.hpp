@@ -34,6 +34,7 @@
 /*****************************************************************************/
 // IWindowMenuItem
 class IWindowMenuItem {
+
 public:
     struct ColorScheme {
         struct ColorPair {
@@ -66,6 +67,58 @@ public:
         yes
     };
 
+    /// Minimum width of the item extension touch rect
+    static constexpr int minimum_touch_extension_area_width = 96;
+
+public:
+    /// Returns whether the item is currently in edit mode
+    bool is_edited() const;
+
+    /// If set == true, moves focus to the current element and sets it for editing (and cancels focus/editing on the previous one, if any).
+    /// If set == false, stops editing mode for the current element or does nothing
+    /// Returns if the action was successful
+    bool set_is_edited(bool set);
+
+    /// Returns if the action was successful
+    inline bool toggle_edit_mode() {
+        return set_is_edited(!is_edited());
+    }
+
+    static IWindowMenuItem *edited_item();
+
+    /// Focus = visually selected
+    bool is_focused() const;
+
+    /// Legacy deprecated alternative to is_focused
+    inline bool IsFocused() const {
+        return is_focused();
+    }
+
+    /// If set == true, moves focus to the current element (and cancels focus/editing on the previous one, if any).
+    /// If set == false, unsets the focus from the current element or does nothing
+    /// Returns whether the operation was successfull
+    bool set_is_focused(bool set);
+
+    /// Moves focus to the current menu item
+    inline bool move_focus() {
+        return move_focus(this);
+    }
+
+    /// Moves focus to the specified menu item (which can be null)
+    static bool move_focus(IWindowMenuItem *target);
+
+    inline bool clear_focus() {
+        return set_is_focused(false);
+    }
+
+    static IWindowMenuItem *focused_item();
+
+protected:
+    /// In some situations, one might want to prevent the element from being unselected.
+    /// Returning false from this function does that.
+    /// This function is not called during the object destruction.
+    virtual bool try_exit_edit_mode() { return true; }
+
 protected:
     // could me moved to gui defaults
     static constexpr Rect16::Width_t expand_icon_width = 16;
@@ -78,11 +131,9 @@ private:
 
     uint8_t hidden : 2;
     is_enabled_t enabled : 1;
-    is_focused_t focused : 1 = is_focused_t::no;
     show_disabled_extension_t show_disabled_extension : 1 = show_disabled_extension_t::yes; // Hide disabled menu_items's extension
 
 protected:
-    is_selected_t selected : 1 = is_selected_t::no; // should be in IWiSpin, but is here because of size optimization
     ExtensionLikeLabel has_extension_like_label : 1 = ExtensionLikeLabel::no; // currently has meaning only for menu item info, but might have meaning for other types as well
     uint16_t extension_width : 10;
     bool invalid_icon : 1 = true;
@@ -95,6 +146,7 @@ protected:
     Rect16 getIconRect(Rect16 rect) const;
     Rect16 getLabelRect(Rect16 rect) const;
     Rect16 getExtensionRect(Rect16 rect) const;
+    bool is_touch_in_extension_rect(IWindowMenu &window_menu, point_ui16_t relative_touch_point) const;
 
     virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const; // must be virtual, because pictures of flags are drawn differently
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; // things behind rect
@@ -117,13 +169,11 @@ protected:
         }
     }
 
-    void setFocus(); // will show hidden
-    void clrFocus();
-
 public:
     IWindowMenuItem(string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, expands_t expands = expands_t::no);
     IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
-    virtual ~IWindowMenuItem() = default;
+    virtual ~IWindowMenuItem();
+
     void Enable() {
         if (enabled != is_enabled_t::yes) {
             enabled = is_enabled_t::yes;
@@ -132,7 +182,7 @@ public:
     }
     void Disable() {
         // cannot disable focused item
-        if (focused != is_focused_t::yes && enabled != is_enabled_t::no) {
+        if (!is_focused() && enabled != is_enabled_t::no) {
             enabled = is_enabled_t::no;
             Invalidate();
         }
@@ -163,13 +213,11 @@ public:
     }
 
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
-    bool IsSelected() const { return selected == is_selected_t::yes; }
     bool DoesShowDisabledExtension() const { return show_disabled_extension == show_disabled_extension_t::yes; }
 
     bool IsHidden() const;
     bool IsDevOnly() const;
 
-    bool IsFocused() const { return focused == is_focused_t::yes; }
     void SetIconId(const img::Resource *id) {
         id_icon = id;
         InValidateIcon();

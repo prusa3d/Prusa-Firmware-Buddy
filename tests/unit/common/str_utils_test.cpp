@@ -633,3 +633,93 @@ TEST_CASE("multi-line UTF-8", "[str2multiline][text_wrap]") {
         CHECK_THAT(str, Equals(expected));
     }
 }
+
+TEST_CASE("StringBuilder", "[strbuilder]") {
+    SECTION("empty init") {
+        ArrayStringBuilder<64> b;
+        CHECK(b.is_ok());
+        CHECK(b.char_count() == 0);
+        CHECK_THAT(b.str_nocheck(), Equals(""));
+    }
+
+    SECTION("basic appends") {
+        ArrayStringBuilder<64> b;
+
+        b.append_string("test");
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test"));
+
+        b.append_string(" test2");
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test test2"));
+
+        b.append_char('X');
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test test2X"));
+
+        char *ptr = b.alloc_chars(2);
+        CHECK(ptr);
+        *ptr++ = 'Y';
+        *ptr++ = 'Z';
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test test2XYZ"));
+
+        b.append_printf(" %s %i %g", "haha", 3, 5.0f);
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("test test2XYZ haha 3 5"));
+    }
+
+    SECTION("exact fill") {
+        ArrayStringBuilder<8> b;
+
+        b.append_string("x7chars"); // Should exactly fit the buffer (incl. term \0)
+        CHECK(b.is_ok());
+        CHECK_THAT(b.str_nocheck(), Equals("x7chars"));
+
+        b.append_string("whatever");
+        CHECK(!b.is_ok());
+        CHECK(b.is_problem());
+        CHECK_THAT(b.str_nocheck(), Equals("x7chars"));
+    }
+
+    SECTION("overfill") {
+        std::vector<int> overfill_order(3); // N of cmds for permutating
+        std::iota(overfill_order.begin(), overfill_order.end(), 0);
+
+        do {
+            ArrayStringBuilder<8> b;
+            b.append_string("abc");
+            CHECK(b.is_ok());
+            CHECK_THAT(b.str_nocheck(), Equals("abc"));
+
+            for (const int cmd : overfill_order) {
+                switch (cmd) {
+
+                case 0:
+                    b.append_string("this does not fit");
+                    break;
+
+                case 1: {
+                    auto ptr = b.alloc_chars(8);
+                    CHECK(!ptr);
+                    break;
+                }
+
+                case 2:
+                    b.append_printf("s %s", "something really long");
+                    break;
+                }
+
+                CHECK(b.is_problem());
+                CHECK_THAT(b.str_nocheck(), Equals("abc"));
+                CHECK(b.char_count() == 3);
+            }
+
+            {
+                auto ptr = b.alloc_chars(1); // Allocing something after problem should still not work
+                CHECK(!ptr);
+            }
+
+        } while (std::next_permutation(overfill_order.begin(), overfill_order.end()));
+    }
+}

@@ -330,10 +330,10 @@ void Crash_s::send_reports() {
 
     float speed = -1;
     if (axis_hit == X_AXIS) {
-        speed = tmc_period_to_feedrate(get_microsteps_x(), stepperX.TSTEP(), get_steps_per_unit_x());
+        speed = tmc_period_to_feedrate(X_AXIS, get_microsteps_x(), stepperX.TSTEP(), get_steps_per_unit_x());
     }
     if (axis_hit == Y_AXIS) {
-        speed = tmc_period_to_feedrate(get_microsteps_y(), stepperY.TSTEP(), get_steps_per_unit_y());
+        speed = tmc_period_to_feedrate(Y_AXIS, get_microsteps_y(), stepperY.TSTEP(), get_steps_per_unit_y());
     }
 
     static metric_t crash_metric = METRIC("crash", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);

@@ -17,6 +17,8 @@ TestReturn phaseToolOffsets([[maybe_unused]] const uint8_t tool_mask, IPartHandl
             &CSelftestPart_ToolOffsets::state_ask_user_confirm_start,
             &CSelftestPart_ToolOffsets::state_wait_user,
             &CSelftestPart_ToolOffsets::state_clean_nozzle_start,
+            &CSelftestPart_ToolOffsets::state_move_away,
+            &CSelftestPart_ToolOffsets::state_wait_moves_done,
             &CSelftestPart_ToolOffsets::state_clean_nozzle,
             &CSelftestPart_ToolOffsets::state_ask_user_install_sheet,
             &CSelftestPart_ToolOffsets::state_wait_user,

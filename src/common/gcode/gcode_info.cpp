@@ -85,48 +85,74 @@ uint32_t printer_model2code(const char *model) {
 GCodeInfo::GCodeInfo()
     : printer_model_code(printer_model2code(PRINTER_MODEL))
     , printing_time { "?" }
-    , preview_thumbnail(false)
-    , progress_thumbnail(false)
+    , has_preview_thumbnail_(false)
+    , has_progress_thumbnail_(false)
     , filament_described(false)
     , per_extruder_info()
     , gcode_file_path(nullptr)
     , gcode_file_name(nullptr) {
 }
 
-bool GCodeInfo::start_load() {
+bool GCodeInfo::start_load(AnyGcodeFormatReader &file_reader) {
     reset_info();
-    file_reader = std::make_unique<AnyGcodeFormatReader>(gcode_file_path);
-    if (!file_reader || !file_reader->is_open()) {
-        file_reader.reset();
-        load_started = StartLoadResult::Failed;
+
+    file_reader.open(gcode_file_path);
+    if (file_reader.is_open()) {
+        start_load_result_ = StartLoadResult::Started;
+        check_valid_for_print(file_reader); // This only updates is_valid, will change over the prefetch change
+        return true;
+
+    } else {
+        start_load_result_ = StartLoadResult::Failed;
         return false;
     }
-    check_valid_for_print();
-    load_started = StartLoadResult::Started;
+}
+
+void GCodeInfo::end_load(AnyGcodeFormatReader &file_reader) {
+    file_reader.close();
+}
+
+bool GCodeInfo::check_valid_for_print(AnyGcodeFormatReader &file_reader) {
+    assert(file_reader.is_open());
+    auto &reader = *file_reader.get();
+
+    transfers::Transfer::Path path(GetGcodeFilepath());
+    reader.update_validity(path);
+    is_printable_ = reader.valid_for_print();
+
+    if (reader.has_error()) {
+        error_str_ = reader.error_str();
+    }
+
+    return is_printable_;
+}
+
+bool GCodeInfo::verify_file(AnyGcodeFormatReader &file_reader) {
+    assert(file_reader.is_open());
+
+    log_info(Buddy, "Starting file verify...");
+
+    // TODO: enable CRC verification, but now its disabled because it takes ages due to slow USB read and suboptimal implementation
+    // For now we're only doing quick verification
+    if (auto result = file_reader.get()->verify_file(IGcodeReader::FileVerificationLevel::quick); !result) {
+        error_str_ = result.error_str;
+        log_info(Buddy, "File verify FAIL: %s", result.error_str);
+        return false;
+    }
+
+    log_info(Buddy, "File verify OK");
     return true;
 }
 
-void GCodeInfo::end_load() {
-    file_reader.reset();
-}
+void GCodeInfo::load(AnyGcodeFormatReader &file_reader) {
+    assert(file_reader.is_open()); // assert file is open
 
-bool GCodeInfo::check_valid_for_print() {
-    assert(file_reader); // assert file is open
-    transfers::Transfer::Path path(GetGcodeFilepath());
-    file_reader->get()->update_validity(path);
-    printable = file_reader->get()->valid_for_print();
-    return printable;
-}
-
-void GCodeInfo::load() {
-    assert(file_reader); // assert file is open
-
-    preview_thumbnail = hasThumbnail(*file_reader->get(), GuiDefaults::PreviewThumbnailRect.Size());
-    progress_thumbnail = hasThumbnail(*file_reader->get(), GuiDefaults::ProgressThumbnailRect.Size());
+    has_preview_thumbnail_ = hasThumbnail(*file_reader.get(), GuiDefaults::PreviewThumbnailRect.Size());
+    has_progress_thumbnail_ = hasThumbnail(*file_reader.get(), GuiDefaults::ProgressThumbnailRect.Size());
 
     // scan info G-codes and comments
-    PreviewInit();
-    loaded = true;
+    PreviewInit(*file_reader.get());
+    is_loaded_ = true;
 }
 
 int GCodeInfo::UsedExtrudersCount() const {
@@ -140,15 +166,16 @@ int GCodeInfo::GivenExtrudersCount() const {
 }
 
 void GCodeInfo::reset_info() {
-    loaded = false;
-    printable = false;
-    preview_thumbnail = false;
-    progress_thumbnail = false;
+    is_loaded_ = false;
+    is_printable_ = false;
+    has_preview_thumbnail_ = false;
+    has_progress_thumbnail_ = false;
     filament_described = false;
     valid_printer_settings = ValidPrinterSettings();
     per_extruder_info.fill({});
     printing_time[0] = 0;
-    load_started = StartLoadResult::None;
+    start_load_result_ = StartLoadResult::None;
+    error_str_ = {};
 }
 
 uint32_t GCodeInfo::getPrinterModelCode() const {
@@ -302,6 +329,98 @@ void GCodeInfo::parse_m555(GcodeBuffer::String cmd) {
     }
 }
 
+void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
+    {
+        // format is M862.x, so remove dot
+        char dot = cmd.pop_front();
+        if (dot != '.')
+            return;
+    }
+
+    char subcode = cmd.pop_front();
+    cmd.skip_ws();
+
+    // Parse parameters
+    uint8_t tool = 0; // Default is first tool
+    float p_diameter = NAN;
+    while (!cmd.is_empty()) {
+        char letter = cmd.pop_front();
+        if (letter == 'T') {
+            tool = cmd.get_uint(); // Check particular tool (only for M862.1)
+        } else if (letter == 'P') {
+            switch (subcode) {
+            case '1':
+                p_diameter = cmd.get_float(); // Only store value in case Tx comes later
+                break;
+            case '3': {
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+                if (strncmp(cmd.get_string().c_str(), "MK3", 3) == 0 && strncmp(cmd.get_string().c_str(), "MK3.", 4) != 0) { // second condition due to MK3.5 & MK3.9
+                    valid_printer_settings.mk3_compatibility_mode.fail();
+                }
+#endif
+
+                // Check basic printer model as MK4 or XL
+                if (!is_printer_compatible(cmd.get_string(), printer_compatibility_list)) {
+                    valid_printer_settings.wrong_printer_model.fail();
+                }
+                break;
+            }
+            case '4':
+                // Parse M862.4 for minimal required firmware version
+                if (!is_up_to_date(cmd.c_str())) {
+                    valid_printer_settings.wrong_firmware.fail();
+                }
+                break;
+            case '2':
+#if PRINTER_IS_PRUSA_MK4
+                if (!config_store().xy_motors_400_step.get()) {
+                    printer_model_code = printer_model2code(MMU2::mmu2.Enabled() ? "MK3.9MMU3" : "MK3.9");
+                } else {
+                    printer_model_code = printer_model2code(PRINTER_MODEL);
+                }
+#endif
+                if (cmd.get_uint() != printer_model_code) {
+                    valid_printer_settings.wrong_printer_model.fail();
+                }
+                break;
+            case '5':
+                if (cmd.get_uint() > gcode_level) {
+                    valid_printer_settings.wrong_gcode_level.fail();
+                }
+                break;
+            case '6':
+                auto compare = [](GcodeBuffer::String &a, const char *b) {
+                    for (char *c = a.begin;; ++c, ++b) {
+                        if (c == a.end || *b == '\0')
+                            return c == a.end && *b == '\0';
+                        if (toupper(*c) != toupper(*b))
+                            return false;
+                    }
+                    return *b == '\0';
+                };
+                auto find = [&](GcodeBuffer::String feature) {
+                    for (auto &f : PrusaGcodeSuite::m862_6SupportedFeatures)
+                        if (compare(feature, f))
+                            return true;
+                    return false;
+                };
+                auto feature = cmd.get_string();
+                feature.trim();
+                if (!find(feature))
+                    valid_printer_settings.add_unsupported_feature(feature.begin, feature.end - feature.begin);
+                break;
+            }
+        }
+        cmd.skip_nws();
+        cmd.skip_ws();
+    }
+
+    // store nozzle diameter
+    if (!isnan(p_diameter) && tool < EXTRUDERS) {
+        per_extruder_info[tool].nozzle_diameter = p_diameter;
+    }
+}
+
 void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
     cmd.skip_ws();
     if (cmd.front() == ';' || cmd.is_empty()) {
@@ -315,94 +434,12 @@ void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
         cmd.skip([](auto c) -> bool { return isdigit(c) || isspace(c); });
     }
 
-    if (cmd.if_heading_skip(gcode_info::m862)) {
-        char subcode = cmd.pop_front();
-        cmd.skip_ws();
-
-        // Parse parameters
-        uint8_t tool = 0; // Default is first tool
-        float p_diameter = NAN;
-        while (!cmd.is_empty()) {
-            char letter = cmd.pop_front();
-            if (letter == 'T') {
-                tool = cmd.get_uint(); // Check particular tool (only for M862.1)
-            } else if (letter == 'P') {
-                switch (subcode) {
-                case '1':
-                    p_diameter = cmd.get_float(); // Only store value in case Tx comes later
-                    break;
-                case '3': {
-#if ENABLED(GCODE_COMPATIBILITY_MK3)
-                    if (strncmp(cmd.get_string().c_str(), "MK3", 3) == 0 && strncmp(cmd.get_string().c_str(), "MK3.", 4) != 0) { // second condition due to MK3.5 & MK3.9
-                        valid_printer_settings.mk3_compatibility_mode.fail();
-                    }
-#endif
-
-                    // Check basic printer model as MK4 or XL
-                    if (!is_printer_compatible(cmd.get_string(), printer_compatibility_list)) {
-                        valid_printer_settings.wrong_printer_model.fail();
-                    }
-                    break;
-                }
-                case '4':
-                    // Parse M862.4 for minimal required firmware version
-                    if (!is_up_to_date(cmd.c_str())) {
-                        valid_printer_settings.wrong_firmware.fail();
-                    }
-                    break;
-                case '2':
-#if PRINTER_IS_PRUSA_MK4
-                    if (!config_store().xy_motors_400_step.get()) {
-                        printer_model_code = printer_model2code(MMU2::mmu2.Enabled() ? "MK3.9MMU3" : "MK3.9");
-                    } else {
-                        printer_model_code = printer_model2code(PRINTER_MODEL);
-                    }
-#endif
-                    if (cmd.get_uint() != printer_model_code) {
-                        valid_printer_settings.wrong_printer_model.fail();
-                    }
-                    break;
-                case '5':
-                    if (cmd.get_uint() > gcode_level) {
-                        valid_printer_settings.wrong_gcode_level.fail();
-                    }
-                    break;
-                case '6':
-                    auto compare = [](GcodeBuffer::String &a, const char *b) {
-                        for (char *c = a.begin;; ++c, ++b) {
-                            if (c == a.end || *b == '\0')
-                                return c == a.end && *b == '\0';
-                            if (toupper(*c) != toupper(*b))
-                                return false;
-                        }
-                        return *b == '\0';
-                    };
-                    auto find = [&](GcodeBuffer::String feature) {
-                        for (auto &f : PrusaGcodeSuite::m862_6SupportedFeatures)
-                            if (compare(feature, f))
-                                return true;
-                        return false;
-                    };
-                    auto feature = cmd.get_string();
-                    feature.trim();
-                    if (!find(feature))
-                        valid_printer_settings.add_unsupported_feature(feature.begin, feature.end - feature.begin);
-                    break;
-                }
-            }
-            cmd.skip_nws();
-            cmd.skip_ws();
-        }
-
-        // store nozzle diameter
-        if (!isnan(p_diameter) && tool < EXTRUDERS) {
-            per_extruder_info[tool].nozzle_diameter = p_diameter;
-        }
+    if (cmd.skip_gcode(gcode_info::m862)) {
+        parse_m862(cmd);
     }
 
     // Parse M115 Ux.yy.z for newer firmware info
-    if (cmd.if_heading_skip(gcode_info::m115)) {
-        cmd.skip_ws();
+    else if (cmd.skip_gcode(gcode_info::m115)) {
         if (cmd.pop_front() == 'U') {
             // Terminate string if not already
             // cmd.end is a pointer to 1 character past the end of the string in the zero-terminated pre-allocated buffer, so this is safe
@@ -417,15 +454,18 @@ void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
         }
     }
 
-    if (cmd.if_heading_skip(gcode_info::m555)) {
+    else if (cmd.skip_gcode(gcode_info::m555)) {
         parse_m555(cmd);
     }
 
-    if (cmd.if_heading_skip(gcode_info::m140)) {
-        cmd.skip_ws();
-        if (cmd.pop_front() == 'S') {
-            bed_preheat_temp = cmd.get_uint();
-        }
+    else if ((cmd.skip_gcode(gcode_info::m140_set_bed_temp) || cmd.skip_gcode(gcode_info::m190_wait_bed_temp)) && cmd.skip_to_param('S')) {
+        bed_preheat_temp = cmd.get_uint();
+    }
+
+    else if ((cmd.skip_gcode(gcode_info::m104_set_hotend_temp) || cmd.skip_gcode(gcode_info::m109_wait_hotend_temp)) && cmd.skip_to_param('S')) {
+        // Consider the maximum found value found in the gcode (search_first_x_gcodes)
+        // This is because there can be lower preheating for ABL
+        hotend_preheat_temp = std::max<uint16_t>(cmd.get_uint(), hotend_preheat_temp.value_or(0));
     }
 }
 
@@ -441,32 +481,37 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
 #pragma GCC diagnostic ignored "-Wformat-truncation"
         snprintf(printing_time.begin(), printing_time.size(), "%s", val.c_str());
 #pragma GCC diagnostic pop
+
     } else {
-        bool is_filament_type = name == gcode_info::filament_type;
-        bool is_filament_used_mm = name == gcode_info::filament_mm;
-        bool is_filament_used_g = name == gcode_info::filament_g;
-        bool is_extruder_colour = name == gcode_info::extruder_colour;
+        const bool is_filament_type = (name == gcode_info::filament_type);
+        const bool is_filament_used_mm = (name == gcode_info::filament_mm);
+        const bool is_filament_used_g = (name == gcode_info::filament_g);
+        const bool is_extruder_colour = (name == gcode_info::extruder_colour);
 
         if (is_filament_type || is_filament_used_g || is_filament_used_mm || is_extruder_colour) {
             std::span<char> value(val.c_str(), val.len());
-            int extruder = 0;
+            size_t extruder = 0;
             while (std::optional<std::span<char>> item = iterate_items(value, is_filament_type || is_extruder_colour ? ';' : ',')) {
-                if (item.has_value() == false) {
+                if (!item.has_value()) {
                     break;
-                }
-                if (is_filament_type) {
+                } else if (extruder >= per_extruder_info.size()) {
+                    continue;
+                } else if (is_filament_type) {
                     filament_buff filament_name;
                     snprintf(filament_name.begin(), filament_name.size(), "%.*s", item->size(), item->data());
                     per_extruder_info[extruder].filament_name = filament_name;
                     filament_described = true;
+
                 } else if (is_filament_used_mm) {
                     float filament_used_mm;
                     sscanf(item->data(), "%f", &filament_used_mm);
                     per_extruder_info[extruder].filament_used_mm = filament_used_mm;
+
                 } else if (is_filament_used_g) {
                     float filament_used_g;
                     sscanf(item->data(), "%f", &filament_used_g);
                     per_extruder_info[extruder].filament_used_g = filament_used_g;
+
                 } else if (is_extruder_colour) {
                     uint32_t red;
                     uint32_t green;
@@ -491,52 +536,43 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
     }
 }
 
-void GCodeInfo::PreviewInit() {
+void GCodeInfo::PreviewInit(IGcodeReader &reader) {
     valid_printer_settings = ValidPrinterSettings(); // reset to valid state
     per_extruder_info = {}; // Reset extruder info
 
     GcodeBuffer buffer;
 
-// TODO: enable CRC verification, but now its disabled because it takes ages due to slow USB card read and suboptimal implementation
-#if 0
-    log_info(Buddy, "Starting CRC verify...");
-    // first verify file integrity, reuse buffer for gcode line for CRC calculation
-    if (!file.get()->verify_file({reinterpret_cast<uint8_t*>(buffer.buffer.data()), buffer.buffer.size()})) {
-        log_info(Buddy, "CRC verify FAIL");
-        return;
-    }
-    log_info(Buddy, "CRC verify OK");
-#endif
-
     // parse metadata
-    if (!file_reader->get()->stream_metadata_start()) {
+    if (reader.stream_metadata_start()) {
+        while (true) {
+            auto res = reader.stream_get_line(buffer);
+
+            // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
+            assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
+            if (res != IGcodeReader::Result_t::RESULT_OK) {
+                break;
+            }
+
+            parse_comment(buffer.line);
+        }
+
+    } else {
         log_error(Buddy, "Metadata in gcode not found");
-        return;
-    }
-    while (true) {
-        auto res = file_reader->get()->stream_get_line(buffer);
-
-        // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
-        assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
-
-        if (res != IGcodeReader::Result_t::RESULT_OK)
-            break;
-        parse_comment(buffer.line);
     }
 
     // parse first few gcodes
-    uint32_t gcode_counter = 0;
-    if (!file_reader->get()->stream_gcode_start())
-        return;
-    while (true) {
-        auto res = file_reader->get()->stream_get_line(buffer);
+    if (reader.stream_gcode_start()) {
+        uint32_t gcode_counter = 0;
+        while (true) {
+            // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
+            auto res = reader.stream_get_line(buffer);
+            assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
+            if (res != IGcodeReader::Result_t::RESULT_OK || gcode_counter >= search_first_x_gcodes) {
+                break;
+            }
 
-        // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
-        assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
-
-        if (res != IGcodeReader::Result_t::RESULT_OK || gcode_counter >= search_first_x_gcodes)
-            break;
-        parse_gcode(buffer.line, gcode_counter);
+            parse_gcode(buffer.line, gcode_counter);
+        }
     }
 }
 
@@ -566,4 +602,20 @@ std::optional<std::span<char>> GCodeInfo::iterate_items(std::span<char> &buffer,
         return std::nullopt;
     }
     return item;
+}
+
+bool GCodeInfo::is_singletool_gcode() const {
+    // Tool 0 needs to be given in comments and used
+    if (!per_extruder_info[0].used()) {
+        return false;
+    }
+
+    // Other tools need to not be given in comments at all
+    for (uint8_t e = 1; e < std::size(per_extruder_info); e++) {
+        if (per_extruder_info[e].given()) {
+            return false;
+        }
+    }
+
+    return true;
 }

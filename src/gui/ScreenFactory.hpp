@@ -5,7 +5,6 @@
 #include "screen_menu_info.hpp"
 #include "screen_menu_settings.hpp"
 #include "screen_menu_tune.hpp"
-#include "screen_menu_calibration.hpp"
 #include "screen_menu_filament.hpp"
 #include "screen_menu_temperature.hpp"
 #include "screen_menu_move.hpp"
@@ -60,7 +59,6 @@ class ScreenFactory {
     ScreenFactory() = delete;
     ScreenFactory(const ScreenFactory &) = delete;
     using mem_space = std::aligned_union<0,
-        ScreenMenuCalibration,
         ScreenMenuCancelObject,
         ScreenMenuConnect,
         ScreenMenuDiagnostics,

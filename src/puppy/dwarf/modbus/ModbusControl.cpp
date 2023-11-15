@@ -232,10 +232,45 @@ void ProcessModbusMessages() {
             }
             break;
         }
-        case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::status_color_start):
+
+        ///@note React only to last register of the set. It needs to be written in block, last register applies new values.
         case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::status_color_end): {
             status_led = dwarf_shared::StatusLed({ ModbusRegisters::GetRegValue(ModbusRegisters::SystemHoldingRegister::status_color_start),
                 ModbusRegisters::GetRegValue(ModbusRegisters::SystemHoldingRegister::status_color_end) });
+            break;
+        }
+
+        ///@note React only to last register of the set. It needs to be written in block, last register applies new values.
+        case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::pid_end): {
+            static_assert((ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::pid_end)
+                              - ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::pid_start) + 1)
+                    == (3 * sizeof(float) + 1) / 2,
+                "Needs this many registers");
+
+            /**
+             * @brief Get register value from pid_start on.
+             * @param i register index [ <= pid_end - pid_start (undefined on other values)]
+             * @return modbus register value
+             */
+            auto get_reg = [](size_t i) -> uint16_t {
+                return ModbusRegisters::GetRegValue(static_cast<ModbusRegisters::SystemHoldingRegister>(
+                    ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::pid_start) + i));
+            };
+
+            union {
+                uint32_t i;
+                float f;
+            } temp_data; ///< Use to convert two registers into one float
+
+            temp_data.i = get_reg(0) | (get_reg(1) << 16); // Stored LSB first in buddy
+            Temperature::temp_hotend[0].pid.Kp = temp_data.f;
+
+            temp_data.i = get_reg(2) | (get_reg(3) << 16);
+            Temperature::temp_hotend[0].pid.Ki = temp_data.f;
+
+            temp_data.i = get_reg(4) | (get_reg(5) << 16);
+            Temperature::temp_hotend[0].pid.Kd = temp_data.f;
+
             break;
         }
         }

@@ -61,8 +61,9 @@ public:
      * @brief Loop that checks toolchanger state.
      * @warning Called only directly from marlin server.
      * @param printing true if currently printing, to not start toolchange spontaneously
+     * @param paused true if currently paused (not printing), to not start toolchange spontaneously
      */
-    void loop(bool printing);
+    void loop(bool printing, bool paused);
 
     /**
      * @brief Move to a XY position

@@ -107,7 +107,7 @@ private:
         /// Get a free slot, if none is available, it waits until it becomes free (returns nullptr in case of timeout)
         ///
         /// Returns the slot and its index (can be paired with the number given to the callback)
-        UsbhMscRequest *acquire();
+        UsbhMscRequest *acquire(bool block_waiting);
 
         /// Release a previously acquired slot
         void release(uint32_t slot);
@@ -187,23 +187,31 @@ private:
     /// don't actually _use_ it for anything).
     int file_lock;
 
+    typedef void WrittenCallback(void *);
+    WrittenCallback *written_callback = nullptr;
+    void *written_callback_arg;
+
 public:
     PartialFile(UsbhMscRequest::LunNbr drive, UsbhMscRequest::SectorNbr first_sector, State state, int file_lock);
     ~PartialFile();
     using Ptr = std::shared_ptr<PartialFile>;
+    using Result = std::variant<const char *, PartialFile::Ptr>;
 
     /// Try to create a new partial file of preallocated size
-    static std::variant<const char *, PartialFile::Ptr> create(const char *path, size_t size);
+    static Result create(const char *path, size_t size);
 
     /// Open existing partial file
     ///
     /// state.total_size is updated according to what is found on the disk and overwritten.
-    static std::variant<const char *, PartialFile::Ptr> open(const char *path, State state);
+    ///
+    /// * ignore_opened: If set to true, it'll open the file (for writing) even
+    ///   if there's a reader somewhere else.
+    static Result open(const char *path, State state, bool ignore_opened);
 
     /// Convert an open FILE * into this.
     ///
     /// state.total_size is updated according to what is found on the disk and overwritten.
-    static std::variant<const char *, PartialFile::Ptr> convert(const char *path, unique_file_ptr file, State state);
+    static Result convert(const char *path, unique_file_ptr file, State state);
 
     /// Seek to a given offset within the file
     bool seek(size_t offset);
@@ -213,14 +221,37 @@ public:
         return current_offset;
     }
 
+    struct WouldBlock {};
+    struct WriteError {};
+    struct OutOfRange {};
+
+    using BufferAndOffset = std::tuple<uint8_t *, size_t>;
+    using BufferPeek = std::variant<BufferAndOffset, WouldBlock, WriteError, OutOfRange>;
+
+    /// Provides a data pointer and offset (to the place where already written) to the current write buffer.
+    ///
+    /// The caller is responsible to offset the place where it writes.
+    ///
+    /// Will allocate a new one as needed. If blocking_wait is set to true and
+    /// no buffer is available for allocation, it waits for one to become
+    /// available.
+    ///
+    /// The total buffer is always SECTOR_SIZE large.
+    BufferPeek get_current_buffer(bool blocking_wait);
+
+    /// Advance the write position, submit the current buffer to USB if completely full.
+    bool advance_written(size_t by);
+
     /// Write data to the file at current offset
     bool write(const uint8_t *data, size_t size);
 
     /// Flush the current sector to the USB drive
     bool sync();
 
-    /// Resets the content of current sector (if any) and resets the write error flag.
-    void reset_error();
+    /// "Close" the file while still preserving the state and size.
+    ///
+    /// No further writes will succeed or be made and the file lock is released.
+    void release_file();
 
     /// Get the final size of the file
     size_t final_size() const { return get_state().total_size; }
@@ -240,6 +271,14 @@ public:
     State get_state() const;
 
     void print_progress();
+
+    // Callback to be called whenever a block is written/failed to be written.
+    //
+    // Can be set to null.
+    void set_written_callback(WrittenCallback *cback, void *arg) {
+        written_callback = cback;
+        written_callback_arg = arg;
+    }
 };
 
 } // namespace transfers

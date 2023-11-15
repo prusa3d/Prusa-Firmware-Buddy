@@ -11,7 +11,3 @@ target_sources(
           transfer_file_check.cpp
           transfer_recovery.cpp
   )
-if(USE_ASYNCIO)
-  target_sources(firmware PRIVATE async_io.cpp)
-  target_compile_definitions(firmware INTERFACE USE_ASYNCIO)
-endif()

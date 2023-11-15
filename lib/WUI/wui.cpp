@@ -5,7 +5,6 @@
 #include "wui_api.h"
 #include "ethernetif.h"
 #include "espif.h"
-#include "stm32f4xx_hal.h"
 #include <otp.hpp>
 #include <mbedtls/sha256.h>
 #include <tasks.hpp>
@@ -35,6 +34,7 @@
 
 #include "otp.hpp"
 #include <config_store/store_instance.hpp>
+#include <random.h>
 
 LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
@@ -56,10 +56,12 @@ void wui_generate_password(char *password, uint32_t length) {
 
     while (i < length - 1) {
         uint32_t random = 0;
-        HAL_StatusTypeDef status = HAL_RNG_GenerateRandomNumber(&hrng, &random);
-        if (HAL_OK == status) {
-            password[i++] = charset[random % charset_length];
+        if (!rand_u_secure(&random)) {
+            // Failure in RNG, reset the password to „login disabled“.
+            password[0] = 0;
+            return;
         }
+        password[i++] = charset[random % charset_length];
     }
     password[i] = 0;
 }

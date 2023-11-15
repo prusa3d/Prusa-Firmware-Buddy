@@ -2,7 +2,7 @@
 #include "tusb.h"
 #include "FreeRTOS.h"
 #include "stm32f4xx.h"
-#include "usb_device.h"
+#include "usb_device.hpp"
 
 static bool usb_logging_enabled = false;
 

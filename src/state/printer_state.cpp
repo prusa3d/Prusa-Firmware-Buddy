@@ -38,6 +38,7 @@ namespace {
         case State::Finishing_WaitIdle:
         case State::Finishing_ParkHead:
         case State::PrintPreviewConfirmed:
+        case State::SerialPrintInit:
             return DeviceState::Printing;
 
         case State::PowerPanic_acFault:

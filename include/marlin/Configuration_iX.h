@@ -1055,9 +1055,9 @@
 #define DISABLE_INACTIVE_EXTRUDER // Keep only the active extruder enabled
 
 // default values
-#define DEFAULT_INVERT_X_DIR true
-#define DEFAULT_INVERT_Y_DIR true
-#define DEFAULT_INVERT_Z_DIR false
+#define DEFAULT_INVERT_X_DIR false
+#define DEFAULT_INVERT_Y_DIR false
+#define DEFAULT_INVERT_Z_DIR true
 #define DEFAULT_INVERT_E0_DIR false
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
@@ -1112,7 +1112,7 @@
 #define X_MIN_POS -30
 #define Y_MIN_POS -11
 #define Z_MIN_POS 0
-#define X_MAX_POS X_MIN_POS + 299
+#define X_MAX_POS X_MIN_POS + 283
 #define Y_MAX_POS Y_MIN_POS + 308
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     #define DEFAULT_Z_MAX_POS Z_SIZE

@@ -9,9 +9,9 @@
 #include "status_page.h"
 #include "upload_state.h"
 
-#include <unique_file_ptr.hpp>
 #include <http/types.h>
 #include <transfers/monitor.hpp>
+#include <transfers/partial_file.hpp>
 
 #include <memory>
 #include <optional>
@@ -54,7 +54,7 @@ namespace printer {
         // Turns to false in move constructor/assignment in the old instance (it
         // relinquishes ownership)
         bool cleanup_temp_file;
-        unique_file_ptr tmp_upload_file;
+        transfers::PartialFile::Ptr tmp_upload_file;
         // A way how to reconstruct the name of the temporary file.
         size_t file_idx;
         bool filename_checked;
@@ -66,7 +66,7 @@ namespace printer {
         handler::Step step(std::string_view input, const size_t read, PutParams &putParams);
         handler::Step step(std::string_view input, const size_t read, UploadState &uploader);
 
-        GcodeUpload(UploadParams &&uploader, transfers::Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded);
+        GcodeUpload(UploadParams &&uploader, transfers::Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, transfers::PartialFile::Ptr &&file, UploadedNotify *uploaded);
 
     public:
         bool want_read() const { return size_rest > 0; }

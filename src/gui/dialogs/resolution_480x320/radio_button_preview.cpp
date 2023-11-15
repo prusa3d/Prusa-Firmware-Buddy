@@ -57,6 +57,7 @@ void RadioButtonPreview::unconditionalDraw() {
         if (ClientResponses::GetResponse(PhasesPrintPreview::main_dialog, i) == Response::Continue) {
             if (tools_mapping::is_tool_mapping_possible()) {
                 label.SetText(_("Continue")); // replace print with continue if tools mapping will show
+                icon.SetRes(res_offset ? &img::mapping_80x80_focused : &img::mapping_80x80); // replace icon with tools mapping one
             }
         }
 
@@ -74,7 +75,7 @@ void RadioButtonPreview::windowEvent(EventLock /*has private ctor*/, window_t *s
         Response response = Click();
         event_conversion_union un;
         un.response = response;
-        marlin_client::FSM_response(phase, response); // Use FSM logic from RadioButtonFsm<>
+        marlin_client::FSM_response(current_phase, response); // Use FSM logic from RadioButtonFsm<>
         if (GetParent()) {
             GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
         }

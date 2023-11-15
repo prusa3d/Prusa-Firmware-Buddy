@@ -2,7 +2,7 @@
 #include "stm32f4xx_hal.h"
 #include "tusb.h"
 #include "main.h"
-#include "usb_device.h"
+#include "usb_device.hpp"
 #include "log.h"
 #include "otp.hpp"
 #include "buddy/priorities_config.h"
@@ -42,6 +42,37 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 static void usb_device_task_run(const void *);
 
 static serial_nr_t serial_nr;
+
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    #include "FUSB302B.hpp"
+    #include "hwio_pindef.h"
+
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+    #include <device/dcd.h>
+    #pragma GCC diagnostic pop
+
+static void check_usb_connection() {
+    if (buddy::hw::fsUSBCInt.read() == buddy::hw::Pin::State::low) {
+        buddy::hw::FUSB302B::ClearVBUSIntFlag();
+
+        bool vbus_status = buddy::hw::FUSB302B::ReadVBUSState();
+        usb_device_log("FUSB302B VBUS state change: %d\n", (int)vbus_status);
+
+        if (!vbus_status) {
+            if (dcd_connected(TUD_OPT_RHPORT)) {
+                // VBUS off: trigger a disconnect
+                tud_disconnect();
+            }
+        } else {
+            if (!dcd_connected(TUD_OPT_RHPORT)) {
+                // VBUS on: trigger connect
+                tud_connect();
+            }
+        }
+    }
+}
+#endif
 
 osThreadCCMDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
@@ -112,7 +143,14 @@ static void usb_device_task_run(const void *) {
     tusb_init();
 
     while (true) {
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+        tud_task_ext(1000, false);
+
+        // periodically check for VBUS disconnection
+        check_usb_connection();
+#else
         tud_task();
+#endif
     }
 }
 
@@ -220,4 +258,11 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
     desc_str[0] = (TUSB_DESC_STRING << 8) | (2 * chr_count + 2);
 
     return desc_str;
+}
+
+void tud_suspend_cb(bool /*remote_wakeup_en*/) {
+    // Reset CDC device already on suspend (not just on disconnect) in order to set the internal
+    // non-blocking overwrite mode normally set via cdcd_init(). On resume a CDC setup event is
+    // received that will reconfigure the port to regular state.
+    cdcd_reset(0);
 }

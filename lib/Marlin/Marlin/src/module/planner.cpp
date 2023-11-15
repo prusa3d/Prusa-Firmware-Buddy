@@ -1136,6 +1136,13 @@ void Planner::synchronize() {
   bool emptying_buffer_orig = emptying();
   emptying_buffer = true;
   while (busy()) idle(true);
+
+  // Perform at least one call of PreciseStepping::loop() to ensure that all queues will
+  // be reset when stop_pending is set. Because otherwise, it could happen that due to
+  // wrong timing, another G-code could be processed before all queues are reset.
+  if (PreciseStepping::stopping())
+    PreciseStepping::loop();
+
   emptying_buffer = emptying_buffer_orig;
 }
 

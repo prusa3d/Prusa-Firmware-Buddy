@@ -230,6 +230,11 @@ Errors:
   text: "Power panic has been detected during printer initialization. Inspect wiring of PP-cable."
   id: "ACF_AT_INIT"
   approved: false
+- code: "16401"
+  title: "CONNECT REGISTRATION FAILED"
+  text: "Registration to Prusa Connect failed due to:"
+  id: "CONNECT_REGISTRATION_FAILED"
+  approved: true
 - code: "16501"
   title: "MODULAR BED ERROR"
   text: "Heatbed tile no. %d:\nUnknown error: %d"
@@ -379,6 +384,11 @@ Errors:
   title: "ESP NOT CONNECTED"
   text: "ESP doesn't seem to be connected."
   id: "ESP_NOT_CONNECTED"
+- code: "16601"
+  title: ""
+  text: "This error code is not found\nin our database.\nContact the support."
+  id: "UNKNOWN_ERROR_CODE"
+  approved: true
 - code: "16602"
   title: ""
   text: "USB drive not\nconnected! Please\ninsert a USB drive\nwith a valid\nfirmware file."
@@ -413,6 +423,11 @@ Errors:
   title: ""
   text: "Firmware in the\ninternal flash\ncorrupted! Please\nreflash the\nfirmware."
   id: "FW_IN_INTERNAL_FLASH_CORRUPTED"
+  approved: true
+- code: "16609"
+  title: ""
+  text: "Firmware and hardware versions do\nnot match. Make sure you have\nthe right firmware file for\nyour printer."
+  id: "HW_VERSION_ERR"
   approved: true
 - code: "16610"
   title: ""

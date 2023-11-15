@@ -357,7 +357,7 @@ namespace {
                     if (params.has_usb) {
                         JSON_FIELD_INT("free_space", params.usb_space_free) JSON_COMMA;
                     }
-                    if (event.incident == transfers::ChangedPath::Incident::Created) {
+                    if (event.incident == transfers::ChangedPath::Incident::Created || event.incident == transfers::ChangedPath::Incident::CreatedEarly) {
                         JSON_FIELD_STR_437("new_path", event.path->path()) JSON_COMMA;
                     } else if (event.incident == transfers::ChangedPath::Incident::Deleted) {
                         JSON_FIELD_STR_437("old_path", event.path->path()) JSON_COMMA;

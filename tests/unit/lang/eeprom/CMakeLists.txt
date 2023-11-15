@@ -1,7 +1,9 @@
 # define the test executable
 add_executable(
-  language_eeprom_tests ../../../../src/common/language_eeprom.cpp
-                        ../../../../src/lang/translator.cpp ../../test_main.cpp tests.cpp
+  language_eeprom_tests
+  ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp ${CMAKE_SOURCE_DIR}/src/common/language_eeprom.cpp
+  ${CMAKE_SOURCE_DIR}/src/lang/translator.cpp ${CMAKE_SOURCE_DIR}/tests/unit/test_main.cpp
+  tests.cpp
   )
 
 # define required search paths
@@ -20,6 +22,7 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/persistent_stores/store_instances
          ${CMAKE_SOURCE_DIR}/tests/stubs
          ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/
+         ${CMAKE_SOURCE_DIR}/lib/Marlin/
   )
 
 # define custom macros

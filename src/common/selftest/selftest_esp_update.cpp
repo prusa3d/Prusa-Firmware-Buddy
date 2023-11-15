@@ -58,7 +58,6 @@ ESPUpdate::ESPUpdate(uintptr_t mask)
     , current_file(firmware_set.begin())
     , readCount(0)
     , phase(PhasesESP::_none)
-    , from_menu(mask & init_mask::msk_from_menu)
     , credentials_already_set(mask & init_mask::msk_credentials_already_set)
     , credentials_on_usb(mask & init_mask::msk_credentials_on_usb)
     , progress(0)
@@ -581,7 +580,7 @@ static void EspTask(void *pvParameters) {
     vTaskDelete(NULL); // kill itself
 }
 
-void update_esp(bool force) {
+void update_esp() {
     bool credentials_on_usb = false;
     {
         std::unique_ptr<FILE, FileDeleter> fl;
@@ -592,9 +591,6 @@ void update_esp(bool force) {
 
     const bool credentials_already_set = EspCredentials::AlreadySet();
     uintptr_t mask = 0; // only way to pas data to FreeRTOS thread is via void*
-    if (force) {
-        mask |= ESPUpdate::init_mask::msk_from_menu;
-    }
     if (credentials_already_set) {
         mask |= ESPUpdate::init_mask::msk_credentials_already_set;
     }

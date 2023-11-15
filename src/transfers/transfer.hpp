@@ -14,7 +14,7 @@
 
 namespace transfers {
 
-inline constexpr size_t MAX_RETRIES = 50;
+inline constexpr size_t MAX_RETRIES = 5;
 
 struct NoTransferSlot {};
 
@@ -58,14 +58,11 @@ private:
         static constexpr size_t TailSize = 50000;
 
         enum class State {
-            DownloadingHeader,
             DownloadingTail,
-            DownloadedBase,
             DownloadingBody,
-            Finished,
         };
 
-        State state = State::DownloadingHeader;
+        State state = State::DownloadingTail;
 
     public:
         static constexpr size_t MinimalFileSize = 512 * 1024;
@@ -245,6 +242,8 @@ private:
 
     /// Allow at most this many retries for network errors.
     size_t retries_left = MAX_RETRIES;
+    /// Reset download retries when this changes... when we make some progres.
+    size_t last_downloaded_size = 0;
 
     /// Current state of the transfer
     State state;
@@ -268,7 +267,7 @@ private:
     /// into place before that.
     bool is_printable = false;
 
-    Transfer(State state, std::optional<Download> &&download, Monitor::Slot &&slot, std::optional<DownloadOrder> &&order, PartialFile::Ptr partial_file);
+    Transfer(Monitor::Slot &&slot, PartialFile::Ptr partial_file);
 
     /// Initiates a new download() request based on current state. Returns true on succes.
     /// TODO: We have to better handle errors here (distinguish between recoverable and non-recoverable ones)
@@ -288,12 +287,13 @@ private:
     void update_backup(bool force = false);
 
     /// Enqueue a notification about the file being successfuly created.
-    ///
-    /// Note that this is called both when the transfer is fully done, but also
-    /// when it becomes printable. We assume the server won't mind and this way
-    /// it allows for starting early, but still notifying on files that don't
-    /// have the "printability" mark or when it's lost.
     void notify_created();
+
+    /// Enqueue a full notification about the file being available.
+    ///
+    /// It is slighly duplicated with notify_created, but that one is just
+    /// FILE_CHANGED, this one is FILE_INFO with full details (eg. previews).
+    void notify_success();
 
     enum class IndexIter {
         Ok,

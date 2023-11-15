@@ -34,6 +34,7 @@ GCodeQueue queue;
 #include "../module/planner.h"
 #include "../module/temperature.h"
 #include "../Marlin.h"
+#include "serial_printing.hpp"
 
 #if ENABLED(PRINTER_EVENT_LEDS)
   #include "../feature/leds/printer_event_leds.h"
@@ -455,6 +456,9 @@ void GCodeQueue::get_serial_commands() {
         #if defined(NO_TIMEOUTS) && NO_TIMEOUTS > 0
           last_command_time = ms;
         #endif
+
+        // notify serial printing about command
+        SerialPrinting::serial_command_hook(command);
 
         // Add the command to the queue
         _enqueue(serial_line_buffer[i], true

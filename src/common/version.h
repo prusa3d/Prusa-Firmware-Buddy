@@ -20,7 +20,7 @@ extern const char project_version_full[];
 /// Project's version suffix (-BETA+1035.PR111.B4)
 extern const char project_version_suffix[];
 
-/// Project's short version suffix (+1035)
+/// Project's short version suffix (-BETA+1035)
 extern const char project_version_suffix_short[];
 
 /// Project's build number (number of commits in a branch)

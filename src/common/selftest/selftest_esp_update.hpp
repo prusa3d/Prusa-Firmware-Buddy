@@ -86,7 +86,6 @@ protected:
     esp_entry *current_file;
     uint32_t readCount;
     PhasesESP phase;
-    const bool from_menu;
     const bool credentials_already_set;
     const bool credentials_on_usb;
     uint8_t progress;
@@ -99,8 +98,7 @@ protected:
 
 public:
     enum init_mask : uintptr_t {
-        msk_from_menu = 0b01,
-        msk_credentials_already_set = msk_from_menu << 1,
+        msk_credentials_already_set = 0b01,
         msk_credentials_on_usb = msk_credentials_already_set << 1
     };
     enum class state {

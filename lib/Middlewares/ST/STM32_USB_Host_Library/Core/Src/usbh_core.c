@@ -120,6 +120,8 @@ USBH_StatusTypeDef  USBH_Init(USBH_HandleTypeDef *phost,
   phost->device.is_disconnected = 0U;
   phost->device.is_ReEnumerated = 0U;
 
+  phost->stealth_reset = false;
+
   /* Assign User process */
   if (pUsrFunc != NULL)
   {

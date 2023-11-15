@@ -26,7 +26,7 @@ bool operator==(SelftestResult_pre_23 lhs, SelftestResult_pre_23 rhs) {
         && lhs.zalign == rhs.zalign;
 }
 
-SelftestResult::SelftestResult(const SelftestResult_pre_23 &sr_pre23)
+SelftestResult_pre_gears::SelftestResult_pre_gears(const SelftestResult_pre_23 &sr_pre23)
     : xaxis(sr_pre23.xaxis)
     , yaxis(sr_pre23.yaxis)
     , zaxis(sr_pre23.zaxis)
@@ -59,7 +59,7 @@ bool operator==(SelftestTool lhs, SelftestTool rhs) {
         && lhs.tooloffset == rhs.tooloffset;
 }
 
-bool operator==(SelftestResult lhs, SelftestResult rhs) {
+bool operator==(SelftestResult_pre_gears lhs, SelftestResult_pre_gears rhs) {
     for (size_t i = 0; i < std::size(lhs.tools); ++i) {
         if (lhs.tools[i] != rhs.tools[i]) {
             return false;
@@ -72,4 +72,42 @@ bool operator==(SelftestResult lhs, SelftestResult rhs) {
         && lhs.yaxis == rhs.yaxis
         && lhs.zaxis == rhs.zaxis
         && lhs.zalign == rhs.zalign;
+}
+
+SelftestResult::SelftestResult(const SelftestResult_pre_gears &sr_pre_gears)
+    : xaxis(sr_pre_gears.xaxis)
+    , yaxis(sr_pre_gears.yaxis)
+    , zaxis(sr_pre_gears.zaxis)
+    , bed(sr_pre_gears.bed)
+    , eth(sr_pre_gears.eth)
+    , wifi(sr_pre_gears.wifi)
+    , zalign(sr_pre_gears.zalign)
+    , gears(TestResult::TestResult_Unknown) {
+    for (size_t i = 0; i < std::size(tools); ++i) {
+        tools[i].printFan = sr_pre_gears.tools[i].printFan;
+        tools[i].heatBreakFan = sr_pre_gears.tools[i].heatBreakFan;
+        tools[i].fansSwitched = sr_pre_gears.tools[i].fansSwitched;
+        tools[i].nozzle = sr_pre_gears.tools[i].nozzle;
+        tools[i].fsensor = sr_pre_gears.tools[i].fsensor;
+        tools[i].loadcell = sr_pre_gears.tools[i].loadcell;
+        tools[i].sideFsensor = sr_pre_gears.tools[i].sideFsensor;
+        tools[i].dockoffset = sr_pre_gears.tools[i].dockoffset;
+        tools[i].tooloffset = sr_pre_gears.tools[i].tooloffset;
+    }
+}
+
+bool operator==(SelftestResult lhs, SelftestResult rhs) {
+    for (size_t i = 0; i < std::size(lhs.tools); ++i) {
+        if (lhs.tools[i] != rhs.tools[i]) {
+            return false;
+        }
+    }
+    return lhs.bed == rhs.bed
+        && lhs.eth == rhs.eth
+        && lhs.wifi == rhs.wifi
+        && lhs.xaxis == rhs.xaxis
+        && lhs.yaxis == rhs.yaxis
+        && lhs.zaxis == rhs.zaxis
+        && lhs.zalign == rhs.zalign
+        && lhs.gears == rhs.gears;
 }

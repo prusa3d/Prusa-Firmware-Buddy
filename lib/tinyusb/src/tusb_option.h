@@ -30,7 +30,7 @@
 #include "common/tusb_compiler.h"
 
 #define TUSB_VERSION_MAJOR     0
-#define TUSB_VERSION_MINOR     12
+#define TUSB_VERSION_MINOR     15
 #define TUSB_VERSION_REVISION  0
 #define TUSB_VERSION_STRING    TU_STRING(TUSB_VERSION_MAJOR) "." TU_STRING(TUSB_VERSION_MINOR) "." TU_STRING(TUSB_VERSION_REVISION)
 
@@ -51,8 +51,11 @@
 #define OPT_MCU_LPC40XX             7 ///< NXP LPC40xx
 #define OPT_MCU_LPC43XX             8 ///< NXP LPC43xx
 #define OPT_MCU_LPC51UXX            9 ///< NXP LPC51U6x
-#define OPT_MCU_LPC54XXX           10 ///< NXP LPC54xxx
-#define OPT_MCU_LPC55XX            11 ///< NXP LPC55xx
+#define OPT_MCU_LPC54              10 ///< NXP LPC54
+#define OPT_MCU_LPC55              11 ///< NXP LPC55
+// legacy naming
+#define OPT_MCU_LPC54XXX           OPT_MCU_LPC54
+#define OPT_MCU_LPC55XX            OPT_MCU_LPC55
 
 // NRF
 #define OPT_MCU_NRF5X             100 ///< Nordic nRF5x series
@@ -80,6 +83,9 @@
 #define OPT_MCU_STM32L4           309 ///< ST L4
 #define OPT_MCU_STM32G0           310 ///< ST G0
 #define OPT_MCU_STM32G4           311 ///< ST G4
+#define OPT_MCU_STM32WB           312 ///< ST WB
+#define OPT_MCU_STM32U5           313 ///< ST U5
+#define OPT_MCU_STM32L5           314 ///< ST L5
 
 // Sony
 #define OPT_MCU_CXD56             400 ///< SONY CXD56
@@ -94,7 +100,9 @@
 #define OPT_MCU_VALENTYUSB_EPTRI  600 ///< Fomu eptri config
 
 // NXP iMX RT
-#define OPT_MCU_MIMXRT10XX        700 ///< NXP iMX RT10xx
+#define OPT_MCU_MIMXRT1XXX        700                 ///< NXP iMX RT1xxx Series
+#define OPT_MCU_MIMXRT10XX        OPT_MCU_MIMXRT1XXX  ///< RT10xx
+#define OPT_MCU_MIMXRT11XX        OPT_MCU_MIMXRT1XXX  ///< RT11xx
 
 // Nuvoton
 #define OPT_MCU_NUC121            800
@@ -113,8 +121,12 @@
 #define OPT_MCU_RP2040           1100 ///< Raspberry Pi RP2040
 
 // NXP Kinetis
-#define OPT_MCU_MKL25ZXX         1200 ///< NXP MKL25Zxx
-#define OPT_MCU_K32L2BXX         1201 ///< NXP K32L2Bxx
+#define OPT_MCU_KINETIS_KL       1200 ///< NXP KL series
+#define OPT_MCU_KINETIS_K32L     1201 ///< NXP K32L series
+#define OPT_MCU_KINETIS_K32      1201 ///< Alias to K32L
+
+#define OPT_MCU_MKL25ZXX         1200 ///< Alias to KL (obsolete)
+#define OPT_MCU_K32L2BXX         1201 ///< Alias to K32 (obsolete)
 
 // Silabs
 #define OPT_MCU_EFM32GG          1300 ///< Silabs EFM32GG
@@ -123,6 +135,8 @@
 #define OPT_MCU_RX63X            1400 ///< Renesas RX63N/631
 #define OPT_MCU_RX65X            1401 ///< Renesas RX65N/RX651
 #define OPT_MCU_RX72N            1402 ///< Renesas RX72N
+#define OPT_MCU_RAXXX            1403 ///< Renesas RAxxx families
+
 
 // Mind Motion
 #define OPT_MCU_MM32F327X        1500 ///< Mind Motion MM32F327
@@ -132,9 +146,33 @@
 
 // Broadcom
 #define OPT_MCU_BCM2711          1700 ///< Broadcom BCM2711
+#define OPT_MCU_BCM2835          1701 ///< Broadcom BCM2835
+#define OPT_MCU_BCM2837          1702 ///< Broadcom BCM2837
 
 // Infineon
 #define OPT_MCU_XMC4000          1800 ///< Infineon XMC4000
+
+// PIC
+#define OPT_MCU_PIC32MZ          1900 ///< MicroChip PIC32MZ family
+#define OPT_MCU_PIC32MM          1901 ///< MicroChip PIC32MM family
+#define OPT_MCU_PIC32MX          1902 ///< MicroChip PIC32MX family
+#define OPT_MCU_PIC32MK          1903 ///< MicroChip PIC32MK family
+#define OPT_MCU_PIC24            1910 ///< MicroChip PIC24 family
+#define OPT_MCU_DSPIC33          1911 ///< MicroChip DSPIC33 family
+
+// BridgeTek
+#define OPT_MCU_FT90X            2000 ///< BridgeTek FT90x
+#define OPT_MCU_FT93X            2001 ///< BridgeTek FT93x
+
+// Allwinner
+#define OPT_MCU_F1C100S          2100 ///< Allwinner F1C100s family
+
+// WCH
+#define OPT_MCU_CH32V307         2200 ///< WCH CH32V307
+
+
+// NXP LPC MCX
+#define OPT_MCU_MCXN9            2300  ///< NXP MCX N9 Series
 
 // Helper to check if configured MCU is one of listed
 // Apply _TU_CHECK_MCU with || as separator to list of input
@@ -151,6 +189,7 @@
 #define OPT_OS_CUSTOM     4  ///< Custom OS is implemented by application
 #define OPT_OS_PICO       5  ///< Raspberry Pi Pico SDK
 #define OPT_OS_RTTHREAD   6  ///< RT-Thread
+#define OPT_OS_RTX4       7  ///< Keil RTX 4
 
 // Allow to use command line to change the config name/location
 #ifdef CFG_TUSB_CONFIG_FILE
@@ -159,53 +198,99 @@
   #include "tusb_config.h"
 #endif
 
+#include "common/tusb_mcu.h"
+
 //--------------------------------------------------------------------
 // RootHub Mode Configuration
 // CFG_TUSB_RHPORTx_MODE contains operation mode and speed for that port
 //--------------------------------------------------------------------
 
-// Lower 4-bit is operational mode
-#define OPT_MODE_NONE         0x00 ///< Disabled
-#define OPT_MODE_DEVICE       0x01 ///< Device Mode
-#define OPT_MODE_HOST         0x02 ///< Host Mode
+// Low byte is operational mode
+#define OPT_MODE_NONE           0x0000 ///< Disabled
+#define OPT_MODE_DEVICE         0x0001 ///< Device Mode
+#define OPT_MODE_HOST           0x0002 ///< Host Mode
 
-// Higher 4-bit is max operational speed (corresponding to tusb_speed_t)
-#define OPT_MODE_FULL_SPEED   0x00 ///< Max Full Speed
-#define OPT_MODE_LOW_SPEED    0x10 ///< Max Low Speed
-#define OPT_MODE_HIGH_SPEED   0x20 ///< Max High Speed
+// High byte is max operational speed (corresponding to tusb_speed_t)
+#define OPT_MODE_DEFAULT_SPEED  0x0000 ///< Default (max) speed supported by MCU
+#define OPT_MODE_LOW_SPEED      0x0100 ///< Low Speed
+#define OPT_MODE_FULL_SPEED     0x0200 ///< Full Speed
+#define OPT_MODE_HIGH_SPEED     0x0400 ///< High Speed
+#define OPT_MODE_SPEED_MASK     0xff00
 
+//------------- Roothub as Device -------------//
 
-#ifndef CFG_TUSB_RHPORT0_MODE
-  #define CFG_TUSB_RHPORT0_MODE OPT_MODE_NONE
-#endif
-
-
-#ifndef CFG_TUSB_RHPORT1_MODE
-  #define CFG_TUSB_RHPORT1_MODE OPT_MODE_NONE
-#endif
-
-#if (((CFG_TUSB_RHPORT0_MODE) & OPT_MODE_HOST  ) && ((CFG_TUSB_RHPORT1_MODE) & OPT_MODE_HOST  )) || \
-    (((CFG_TUSB_RHPORT0_MODE) & OPT_MODE_DEVICE) && ((CFG_TUSB_RHPORT1_MODE) & OPT_MODE_DEVICE))
-  #error "TinyUSB currently does not support same modes on more than 1 roothub port"
-#endif
-
-// Which roothub port is configured as host
-#define TUH_OPT_RHPORT          ( ((CFG_TUSB_RHPORT0_MODE) & OPT_MODE_HOST) ? 0 : (((CFG_TUSB_RHPORT1_MODE) & OPT_MODE_HOST) ? 1 : -1) )
-#define TUSB_OPT_HOST_ENABLED   ( TUH_OPT_RHPORT >= 0 )
-
-// Which roothub port is configured as device
-#define TUD_OPT_RHPORT          ( ((CFG_TUSB_RHPORT0_MODE) & OPT_MODE_DEVICE) ? 0 : (((CFG_TUSB_RHPORT1_MODE) & OPT_MODE_DEVICE) ? 1 : -1) )
-
-#if TUD_OPT_RHPORT == 0
-#define TUD_OPT_HIGH_SPEED      ( (CFG_TUSB_RHPORT0_MODE) & OPT_MODE_HIGH_SPEED )
+#if defined(CFG_TUSB_RHPORT0_MODE) && ((CFG_TUSB_RHPORT0_MODE) & OPT_MODE_DEVICE)
+  #define TUD_RHPORT_MODE     (CFG_TUSB_RHPORT0_MODE)
+  #define TUD_OPT_RHPORT      0
+#elif defined(CFG_TUSB_RHPORT1_MODE) && ((CFG_TUSB_RHPORT1_MODE) & OPT_MODE_DEVICE)
+  #define TUD_RHPORT_MODE     (CFG_TUSB_RHPORT1_MODE)
+  #define TUD_OPT_RHPORT      1
 #else
-#define TUD_OPT_HIGH_SPEED      ( (CFG_TUSB_RHPORT1_MODE) & OPT_MODE_HIGH_SPEED )
+  #define TUD_RHPORT_MODE     OPT_MODE_NONE
 #endif
 
-#define TUSB_OPT_DEVICE_ENABLED ( TUD_OPT_RHPORT >= 0 )
+#ifndef CFG_TUD_ENABLED
+  // fallback to use CFG_TUSB_RHPORTx_MODE
+  #define CFG_TUD_ENABLED     (TUD_RHPORT_MODE & OPT_MODE_DEVICE)
+#endif
+
+#ifndef CFG_TUD_MAX_SPEED
+  // fallback to use CFG_TUSB_RHPORTx_MODE
+  #define CFG_TUD_MAX_SPEED   (TUD_RHPORT_MODE & OPT_MODE_SPEED_MASK)
+#endif
+
+// For backward compatible
+#define TUSB_OPT_DEVICE_ENABLED CFG_TUD_ENABLED
+
+// highspeed support indicator
+#define TUD_OPT_HIGH_SPEED    (CFG_TUD_MAX_SPEED ? (CFG_TUD_MAX_SPEED & OPT_MODE_HIGH_SPEED) : TUP_RHPORT_HIGHSPEED)
+
+//------------- Roothub as Host -------------//
+
+#if defined(CFG_TUSB_RHPORT0_MODE) && ((CFG_TUSB_RHPORT0_MODE) & OPT_MODE_HOST)
+  #define TUH_RHPORT_MODE  (CFG_TUSB_RHPORT0_MODE)
+  #define TUH_OPT_RHPORT   0
+#elif defined(CFG_TUSB_RHPORT1_MODE) && ((CFG_TUSB_RHPORT1_MODE) & OPT_MODE_HOST)
+  #define TUH_RHPORT_MODE  (CFG_TUSB_RHPORT1_MODE)
+  #define TUH_OPT_RHPORT   1
+#else
+  #define TUH_RHPORT_MODE   OPT_MODE_NONE
+#endif
+
+#ifndef CFG_TUH_ENABLED
+  // fallback to use CFG_TUSB_RHPORTx_MODE
+  #define CFG_TUH_ENABLED     (TUH_RHPORT_MODE & OPT_MODE_HOST)
+#endif
+
+#ifndef CFG_TUH_MAX_SPEED
+  // fallback to use CFG_TUSB_RHPORTx_MODE
+  #define CFG_TUH_MAX_SPEED   (TUH_RHPORT_MODE & OPT_MODE_SPEED_MASK)
+#endif
+
+// For backward compatible
+#define TUSB_OPT_HOST_ENABLED   CFG_TUH_ENABLED
+
+// highspeed support indicator
+#define TUH_OPT_HIGH_SPEED    (CFG_TUH_MAX_SPEED ? (CFG_TUH_MAX_SPEED & OPT_MODE_HIGH_SPEED) : TUP_RHPORT_HIGHSPEED)
+
 
 //--------------------------------------------------------------------+
-// COMMON OPTIONS
+// TODO move later
+//--------------------------------------------------------------------+
+
+// TUP_MCU_STRICT_ALIGN will overwrite TUP_ARCH_STRICT_ALIGN.
+// In case TUP_MCU_STRICT_ALIGN = 1 and TUP_ARCH_STRICT_ALIGN =0, we will not reply on compiler
+// to generate unaligned access code.
+// LPC_IP3511 Highspeed cannot access unaligned memory on USB_RAM
+#if TUD_OPT_HIGH_SPEED && TU_CHECK_MCU(OPT_MCU_LPC54XXX, OPT_MCU_LPC55XX)
+  #define TUP_MCU_STRICT_ALIGN   1
+#else
+  #define TUP_MCU_STRICT_ALIGN   0
+#endif
+
+
+//--------------------------------------------------------------------+
+// Common Options (Default)
 //--------------------------------------------------------------------+
 
 // Debug enable to print out error message
@@ -213,12 +298,14 @@
   #define CFG_TUSB_DEBUG 0
 #endif
 
-// place data in accessible RAM for usb controller
+// Memory section for placing buffer used for usb transferring. If MEM_SECTION is different for
+// host and device use: CFG_TUD_MEM_SECTION, CFG_TUH_MEM_SECTION instead
 #ifndef CFG_TUSB_MEM_SECTION
   #define CFG_TUSB_MEM_SECTION
 #endif
 
-// alignment requirement of buffer used for endpoint transferring
+// Alignment requirement of buffer used for usb transferring. if MEM_ALIGN is different for
+// host and device controller use: CFG_TUD_MEM_ALIGN, CFG_TUH_MEM_ALIGN instead
 #ifndef CFG_TUSB_MEM_ALIGN
   #define CFG_TUSB_MEM_ALIGN      TU_ATTR_ALIGNED(4)
 #endif
@@ -233,11 +320,25 @@
 #endif
 
 //--------------------------------------------------------------------
-// DEVICE OPTIONS
+// Device Options (Default)
 //--------------------------------------------------------------------
+
+// Attribute to place data in accessible RAM for device controller (default: CFG_TUSB_MEM_SECTION)
+#ifndef CFG_TUD_MEM_SECTION
+  #define CFG_TUD_MEM_SECTION     CFG_TUSB_MEM_SECTION
+#endif
+
+// Attribute to align memory for device controller (default: CFG_TUSB_MEM_ALIGN)
+#ifndef CFG_TUD_MEM_ALIGN
+  #define CFG_TUD_MEM_ALIGN       CFG_TUSB_MEM_ALIGN
+#endif
 
 #ifndef CFG_TUD_ENDPOINT0_SIZE
   #define CFG_TUD_ENDPOINT0_SIZE  64
+#endif
+
+#ifndef CFG_TUD_INTERFACE_MAX
+  #define CFG_TUD_INTERFACE_MAX   16
 #endif
 
 #ifndef CFG_TUD_CDC
@@ -298,9 +399,9 @@
 #endif
 
 //--------------------------------------------------------------------
-// HOST OPTIONS
+// Host Options (Default)
 //--------------------------------------------------------------------
-#if TUSB_OPT_HOST_ENABLED
+#if CFG_TUH_ENABLED
   #ifndef CFG_TUH_DEVICE_MAX
     #define CFG_TUH_DEVICE_MAX 1
   #endif
@@ -308,58 +409,81 @@
   #ifndef CFG_TUH_ENUMERATION_BUFSIZE
     #define CFG_TUH_ENUMERATION_BUFSIZE 256
   #endif
-#endif // TUSB_OPT_HOST_ENABLED
+#endif // CFG_TUH_ENABLED
+
+// Attribute to place data in accessible RAM for host controller (default: CFG_TUSB_MEM_SECTION)
+#ifndef CFG_TUH_MEM_SECTION
+  #define CFG_TUH_MEM_SECTION   CFG_TUSB_MEM_SECTION
+#endif
+
+// Attribute to align memory for host controller
+#ifndef CFG_TUH_MEM_ALIGN
+  #define CFG_TUH_MEM_ALIGN     CFG_TUSB_MEM_ALIGN
+#endif
 
 //------------- CLASS -------------//
 
 #ifndef CFG_TUH_HUB
-#define CFG_TUH_HUB    0
+  #define CFG_TUH_HUB    0
 #endif
 
 #ifndef CFG_TUH_CDC
-#define CFG_TUH_CDC    0
+  #define CFG_TUH_CDC    0
+#endif
+
+#ifndef CFG_TUH_CDC_FTDI
+  // FTDI is not part of CDC class, only to re-use CDC driver API
+  #define CFG_TUH_CDC_FTDI 0
+#endif
+
+#ifndef CFG_TUH_CDC_CP210X
+  // CP210X is not part of CDC class, only to re-use CDC driver API
+  #define CFG_TUH_CDC_CP210X 0
 #endif
 
 #ifndef CFG_TUH_HID
-#define CFG_TUH_HID    0
+  #define CFG_TUH_HID    0
 #endif
 
 #ifndef CFG_TUH_MIDI
-#define CFG_TUH_MIDI   0
+  #define CFG_TUH_MIDI   0
 #endif
 
 #ifndef CFG_TUH_MSC
-#define CFG_TUH_MSC    0
+  #define CFG_TUH_MSC    0
 #endif
 
 #ifndef CFG_TUH_VENDOR
-#define CFG_TUH_VENDOR 0
+  #define CFG_TUH_VENDOR 0
+#endif
+
+#ifndef CFG_TUH_API_EDPT_XFER
+  #define CFG_TUH_API_EDPT_XFER 0
+#endif
+
+// Enable PIO-USB software host controller
+#ifndef CFG_TUH_RPI_PIO_USB
+  #define CFG_TUH_RPI_PIO_USB 0
+#endif
+
+#ifndef CFG_TUD_RPI_PIO_USB
+  #define CFG_TUD_RPI_PIO_USB 0
+#endif
+
+// MAX3421 Host controller option
+#ifndef CFG_TUH_MAX3421
+  #define CFG_TUH_MAX3421  0
 #endif
 
 //--------------------------------------------------------------------+
-// Port Specific
-// TUP stand for TinyUSB Port (can be renamed)
+// TypeC Options (Default)
 //--------------------------------------------------------------------+
 
-//------------- Unaligned Memory -------------//
+#ifndef CFG_TUC_ENABLED
+#define CFG_TUC_ENABLED 0
 
-// ARMv7+ (M3-M7, M23-M33) can access unaligned memory
-#if (defined(__ARM_ARCH) && (__ARM_ARCH >= 7))
-  #define TUP_ARCH_STRICT_ALIGN   0
-#else
-  #define TUP_ARCH_STRICT_ALIGN   1
+#define tuc_int_handler(_p)
 #endif
-
-// TUP_MCU_STRICT_ALIGN will overwrite TUP_ARCH_STRICT_ALIGN.
-// In case TUP_MCU_STRICT_ALIGN = 1 and TUP_ARCH_STRICT_ALIGN =0, we will not reply on compiler
-// to generate unaligned access code.
-// LPC_IP3511 Highspeed cannot access unaligned memory on USB_RAM
-#if TUD_OPT_HIGH_SPEED && (CFG_TUSB_MCU == OPT_MCU_LPC54XXX || CFG_TUSB_MCU == OPT_MCU_LPC55XX)
-  #define TUP_MCU_STRICT_ALIGN   1
-#else
-  #define TUP_MCU_STRICT_ALIGN   0
-#endif
-
 
 //------------------------------------------------------------------
 // Configuration Validation
@@ -367,6 +491,9 @@
 #if CFG_TUD_ENDPOINT0_SIZE > 64
   #error Control Endpoint Max Packet Size cannot be larger than 64
 #endif
+
+// To avoid GCC compiler warnings when -pedantic option is used (strict ISO C)
+typedef int make_iso_compilers_happy;
 
 #endif /* _TUSB_OPTION_H_ */
 

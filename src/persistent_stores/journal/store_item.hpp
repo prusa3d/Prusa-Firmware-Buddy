@@ -34,6 +34,7 @@ public:
         auto l = backend().lock();
         return data;
     }
+
     void set(DataT in) {
         if (in == data) {
             return;
@@ -46,17 +47,20 @@ public:
     /**
      * @brief Set overload when DataT is holding a string, ie std::array<char, ...>.
      */
-    void set(const char *in_buff, size_t max_length = std::tuple_size_v<DataT>) {
-        static_assert(is_std_array_v<DataT> && std::same_as<char, typename DataT::value_type>, "Invalid function call");
+    void set(const char *in_buff, size_t max_length = std::tuple_size_v<DataT>)
+        requires is_std_array_v<DataT> && std::same_as<char, typename DataT::value_type>
+    {
         DataT arr_buff;
         strlcpy(arr_buff.data(), in_buff, std::min(arr_buff.size(), max_length));
         set(arr_buff);
     }
+
     /**
      * @brief Get overload when DataT is holding a string, ie std::array<char, ...>.
      */
-    const char *get_c_str() {
-        static_assert(is_std_array_v<DataT> && std::same_as<char, typename DataT::value_type>, "Invalid function call");
+    const char *get_c_str()
+        requires is_std_array_v<DataT> && std::same_as<char, typename DataT::value_type>
+    {
         if (xPortIsInsideInterrupt()) {
             return data.data();
         }
@@ -67,15 +71,17 @@ public:
 
     void init(DataT in) {
         data = std::move(in);
-        static_assert(sizeof(*this) == sizeof(DataT), "Current implementation requires the item to be the same size as data it holds");
     }
+
     void ram_dump() {
         if (data != default_val) {
             do_save();
         }
     }
 
-    JournalItem() = default;
+    JournalItem()
+        requires(sizeof(JournalItem) == sizeof(DataT)) // Current implementation of journal relies heavily on this
+    = default;
     JournalItem(const JournalItem &other) = delete;
     JournalItem(JournalItem &&other) = delete;
     JournalItem &operator=(const JournalItem &other) = delete;

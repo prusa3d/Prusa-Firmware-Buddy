@@ -44,15 +44,6 @@ void GcodeSuite::M876() {
             return;
         marlin_server::set_warning(WarningType(val));
     } else {
-
-        if (parser.seenval('P')) {
-            if (parser.value_int()) {
-                FSM_CREATE__LOGGING(Serial_printing);
-            } else {
-                FSM_DESTROY__LOGGING(Serial_printing);
-                SafetyTimer::Instance().ReInit(); // in miliseconds
-            }
-        }
         if (parser.seenval('S'))
             host_response_handler((uint8_t)parser.value_int());
     }

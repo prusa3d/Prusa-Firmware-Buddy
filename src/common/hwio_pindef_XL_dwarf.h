@@ -139,7 +139,8 @@ inline Pin::State zMinReadFn() {
     MACRO_FUNCTION(buddy::hw::OutputPin, ledPWM, BUDDY_PIN(LED), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                       \
     MACRO_FUNCTION(buddy::hw::InputPin, fanPrintTach, BUDDY_PIN(FAN_TACH0), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                                      \
     MACRO_FUNCTION(buddy::hw::InputPin, fanHeatBreakTach, BUDDY_PIN(FAN1_TACH0), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                                 \
-    MACRO_FUNCTION(buddy::hw::OutputPin, acellCs, BUDDY_PIN(ACC_CS), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)
+    MACRO_FUNCTION(buddy::hw::OutputPin, acellCs, BUDDY_PIN(ACC_CS), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                                                 \
+    MACRO_FUNCTION(buddy::hw::InterruptPin, lis2dh12_data, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p1, IMode::IT_rising COMMA Pull::down COMMA ISR_PRIORITY_LIS2DH12 COMMA 0 COMMA false, dwarf::accelerometer::irq)
 
 #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION) \
     MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::zMinReadFn, endstop_ISR, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling)

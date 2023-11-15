@@ -23,8 +23,7 @@
 #include "wui.h"
 #include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
-
-#include "stm32f4xx_hal_rng.h"
+#include <random.h>
 
 extern "C" {
 #include "stm32_port.h"
@@ -215,6 +214,13 @@ static void espif_task_step() {
     // be initiated by code outside of the espif module.
     if (tx_waiting) {
         if (tx_pbuf) {
+            if constexpr (!option::has_embedded_esp32) {
+                // Predictive flow control - delay for ESP to load big enough buffer into UART driver
+                // This is hotfix for ESP8266 not supplying buffers fast enough
+                // Possibly, this slows down upload a little bit, but it is still faster than handling corruption.
+                osDelay(1);
+            }
+
             uint8_t *data = (uint8_t *)tx_pbuf->payload;
             size_t size = tx_pbuf->len;
             assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(data)));
@@ -299,7 +305,7 @@ static void espif_tx_update_metrics(uint32_t len) {
         new_intron[i] = tx_message.intron[i];
     }
     for (uint i = 2; i < sizeof(tx_message.intron); i++) {
-        new_intron[i] = HAL_RNG_GetRandomNumber(&hrng);
+        new_intron[i] = rand_u();
     }
 
     const uint8_t ssid_len = strlen(ssid);

@@ -1,7 +1,7 @@
 #include "monitor.hpp"
-#include "../../lib/WUI/random.h"
 
 #include <timing.h>
+#include <random.h>
 
 #include <algorithm>
 #include <cassert>
@@ -182,9 +182,7 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
         //
         // Yes, if we overflow to 0, we re-initialize it to some random number,
         // but, not a big deal.
-        uint32_t init = 0;
-        random32bit(&init);
-        current_id = init;
+        current_id = rand_u();
     }
 
     // Order matters, these are atomics, and observable from another thread.

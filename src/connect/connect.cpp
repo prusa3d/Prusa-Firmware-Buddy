@@ -324,7 +324,7 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
                     planner().action_done(ActionResult::Failed);
                     planner().command(Command {
                         cmd_id.command_id.value(),
-                        BrokenCommand {},
+                        BrokenCommand { to_str(arg) },
                     });
                     conn_factory.invalidate();
                     return err_to_status(arg);

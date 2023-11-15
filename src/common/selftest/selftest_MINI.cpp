@@ -35,7 +35,6 @@ using namespace selftest;
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
 static constexpr feedRate_t maxFeedrates[] = DEFAULT_MAX_FEEDRATE;
 
-static const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 /// These speeds create major chord
 /// https://en.wikipedia.org/wiki/Just_intonation
 
@@ -446,19 +445,6 @@ void CSelftest::next() {
     // current state cannot be run
     // call recursively: it is fine, this function is tiny and there will be few iterations
     next();
-}
-
-const char *CSelftest::get_log_suffix() {
-    const char *suffix = "";
-    if (m_Mask & stmFans)
-        suffix = _suffix[0];
-    else if (m_Mask & stmXYAxis)
-        suffix = _suffix[1];
-    else if (m_Mask & stmXYZAxis)
-        suffix = _suffix[1];
-    else if (m_Mask & stmHeaters)
-        suffix = _suffix[2];
-    return suffix;
 }
 
 // declared in parent source file

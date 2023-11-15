@@ -38,7 +38,6 @@ void InitEnvironment(MMU2::FilamentState fsensor) {
     ioSim.clear();
     ioSimI = ioSim.cend();
     SetMillis(0);
-    ResetErrorScreenRunning();
     SetHotendTargetTemp(0);
     SetHotendCurrentTemp(0);
     MMU2::fs = fsensor;

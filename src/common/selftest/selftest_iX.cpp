@@ -466,19 +466,6 @@ void CSelftest::next() {
     next();
 }
 
-const char *CSelftest::get_log_suffix() {
-    const char *suffix = "";
-    if (m_Mask & stmFans)
-        suffix = _suffix[0];
-    else if (m_Mask & stmXYAxis)
-        suffix = _suffix[1];
-    else if (m_Mask & stmXYZAxis)
-        suffix = _suffix[1];
-    else if (m_Mask & stmHeaters)
-        suffix = _suffix[2];
-    return suffix;
-}
-
 // declared in parent source file
 ISelftest &SelftestInstance() {
     static CSelftest ret = CSelftest();

@@ -7,13 +7,7 @@
 #include "screen.hpp"
 
 screen_t::screen_t(window_t *parent, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_printing_t close_on_print)
-    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreen, type, timeout, close_on_print)
-    , first_dialog(nullptr)
-    , last_dialog(nullptr)
-    , first_strong_dialog(nullptr)
-    , last_strong_dialog(nullptr)
-    , first_popup(nullptr)
-    , last_popup(nullptr) {}
+    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreen, type, timeout, close_on_print) {}
 
 bool screen_t::registerSubWin(window_t &win) {
     switch (win.GetType()) {

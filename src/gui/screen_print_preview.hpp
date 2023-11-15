@@ -28,7 +28,8 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
     GCodeInfoWithDescription gcode_description; // cannot be first
     WindowPreviewThumbnail thumbnail; // draws preview image
 
-    PhasesPrintPreview phase;
+    // Set to invalid value by default so that the Change() always triggers on the first call.
+    PhasesPrintPreview phase = static_cast<PhasesPrintPreview>(-1);
 
     using UniquePtrBox = static_unique_ptr<AddSuperWindow<MsgBoxIconned>>;
     UniquePtrBox pMsgbox;
@@ -42,9 +43,6 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
     using MsgBoxMemSpace = std::aligned_union<0, MsgBoxTitled>::type;
 #endif
     MsgBoxMemSpace msgBoxMemSpace;
-
-    UniquePtrBox makeMsgBox(string_view_utf8 caption, string_view_utf8 text);
-    UniquePtrBox makeMsgBoxWait(string_view_utf8 text);
 
 public:
     ScreenPrintPreview();

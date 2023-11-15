@@ -13,19 +13,16 @@ extern void gui_loop(void);
 // interface for dialog
 class IDialog : public AddSuperWindow<window_frame_t> {
 public:
-    enum class IsStrong : bool { no,
-        yes };
+    enum class IsStrong : bool {
+        no,
+        yes,
+    };
     IDialog(Rect16 rc = GuiDefaults::DialogFrameRect, IsStrong strong = IsStrong::no);
     IDialog(window_t *parent, Rect16 rc = GuiDefaults::DialogFrameRect);
 
-    template <class... Args>
-    void MakeBlocking(
-        std::function<void(Args...)> action = [](Args...) {}, Args... args) const { // could be static, but I want it to be usable only from dialog
-        while (!consumeCloseFlag()) {
-            guiLoop();
-            action(args...);
-        }
-    }
+public:
+    // could be static, but I want it to be usable only from dialog
+    void MakeBlocking(std::function<void()> loopCallback = {}) const;
 
 protected:
     // used in MakeBlocking

@@ -1,5 +1,6 @@
 #include "USBSerial.h"
 #include "tusb.h"
+#include <task.h>
 
 void USBSerial::enable() {
     enabled = true;
@@ -65,27 +66,59 @@ void USBSerial::LineBufferAppend(char character) {
 }
 
 size_t USBSerial::write(uint8_t ch) {
-    int written = enabled ? tud_cdc_write_char(ch) : 1;
+    // its not possible to write to USB-CDC from ISR, so skip the write alltogether
+    if (xPortIsInsideInterrupt())
+        return 0;
 
-    if (written) {
-        LineBufferAppend(ch);
-        if (ch == '\n')
-            flush();
+    if (enabled) {
+        while (tud_cdc_write_char(ch) != 1) {
+            // TX is full, yield to lower-priority (which usb is part of) threads until ready
+            vTaskDelay(1);
+        }
     }
 
-    return written;
+    LineBufferAppend(ch);
+    if (ch == '\n')
+        flush();
+
+    return 1;
+}
+
+static void cdc_write_sync(const uint8_t *buffer, size_t size) {
+    for (;;) {
+        size_t done = tud_cdc_write(buffer, size);
+        if (done == size)
+            break;
+
+        // TX was full, yield to lower-priority (which usb is part of) threads until ready
+        buffer += done;
+        size -= done;
+        vTaskDelay(1);
+    }
 }
 
 size_t USBSerial::write(const uint8_t *buffer, size_t size) {
-    int written = enabled ? tud_cdc_write(buffer, size) : size;
+    // its not possible to write to USB-CDC from ISR, so skip the write alltogether
+    if (xPortIsInsideInterrupt())
+        return 0;
 
-    for (int remaining = written; remaining > 0; remaining--, buffer++) {
-        LineBufferAppend(*buffer);
-        if (*buffer == '\n')
+    size_t beg = 0;
+    size_t end = 0;
+
+    for (end = 0; end != size; ++end) {
+        uint8_t ch = buffer[end];
+        LineBufferAppend(ch);
+        if (ch == '\n') {
+            // batch the last chunk up to the current \n
+            cdc_write_sync(buffer + beg, end - beg + 1);
+            beg = end + 1;
             flush();
+        }
     }
 
-    return written;
+    // complete the cdc write
+    cdc_write_sync(buffer + beg, end - beg);
+    return size;
 }
 
 USBSerial::operator bool(void) {

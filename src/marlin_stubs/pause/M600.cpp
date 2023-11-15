@@ -52,6 +52,9 @@
 #if ENABLED(PRUSA_SPOOL_JOIN)
     #include "module/prusa/spool_join.hpp"
 #endif
+#if ENABLED(CRASH_RECOVERY)
+    #include <feature/prusa/crash_recovery.hpp>
+#endif /*ENABLED(CRASH_RECOVERY)*/
 #include <option/has_toolchanger.h>
 #include <option/has_mmu2.h>
 #if HAS_MMU2()
@@ -158,6 +161,12 @@ void M600_manual() {
 
 void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t resume_point,
     std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength, pause::Settings::CalledFrom called_from) {
+
+#if ENABLED(CRASH_RECOVERY)
+    if (crash_s.get_state() != Crash_s::PRINTING && crash_s.get_state() != Crash_s::IDLE) {
+        return; // Ignore M600 if crash recovery is in progress
+    }
+#endif /*ENABLED(CRASH_RECOVERY)*/
 
     park_point.z += current_position.z;
 

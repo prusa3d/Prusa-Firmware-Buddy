@@ -32,11 +32,13 @@ static PuppyBootstrap::BootstrapResult bootstrap_puppies(PuppyBootstrap::Bootstr
     // boostrap first
     log_info(Puppies, "Starting bootstrap");
     PuppyBootstrap puppy_bootstrap(PuppyModbus::share_buffer(), [first_run](PuppyBootstrap::Progress progress) {
-        log_info(Puppies, "Bootstrap stage: %s", progress.description());
+        bool log = true;
         if (first_run) {
             // report progress to gui bootstrap screen only if first run - if this is puppy recoverery, there is no bootstrap screen anymore
-            gui_bootstrap_screen_set_state(progress.percent_done, progress.description());
+            log = gui_bootstrap_screen_set_state(progress.percent_done, progress.description());
         }
+        if (log)
+            log_info(Puppies, "Bootstrap stage: %s, percent %d", progress.description(), progress.percent_done);
     });
     return puppy_bootstrap.run(minimal_config);
 }

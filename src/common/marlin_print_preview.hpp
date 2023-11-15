@@ -7,6 +7,7 @@
 #include "client_response.hpp"
 #include <module/prusa/tool_mapper.hpp>
 #include <module/prusa/spool_join.hpp>
+#include <marlin_events.h>
 #include <bitset>
 
 /**
@@ -40,8 +41,10 @@ public:
 
         wrong_filament_wait_user,
         wrong_filament_change,
-        checks_done,
 
+        file_error_wait_user, ///< Reports that something is wrong with the gcode file. The user is shwon an error message (and nothing is printed).
+
+        checks_done,
         done,
     };
 
@@ -95,8 +98,15 @@ public:
     Result Loop();
 
     void Init();
-    void SkipIfAble() { skip_if_able = true; }
-    void DontSkip() { skip_if_able = false; }
+
+    /**
+     * @brief Configure whether to skip parts of preview when printing is started.
+     * @param set skip these parts
+     */
+    inline void set_skip_if_able(marlin_server::PreviewSkipIfAble set) {
+        skip_if_able = set;
+    }
+
     /**
      * @brief Checks whether the given physical extruder has corrent filament type for the print. Parametrized with getter to be callable without global tool_mapper/spool_join being in a valid state
      *
@@ -130,7 +140,7 @@ public:
 private:
     uint32_t last_run = 0;
 
-    bool skip_if_able = false;
+    marlin_server::PreviewSkipIfAble skip_if_able = marlin_server::PreviewSkipIfAble::no; ///< Whether to skip parts of preview when printing is started
 
     PrintPreview() = default;
     PrintPreview(const PrintPreview &) = delete;

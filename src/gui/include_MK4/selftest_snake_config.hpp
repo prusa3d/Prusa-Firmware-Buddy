@@ -5,10 +5,6 @@
 namespace SelftestSnake {
 enum class Tool {
     Tool1 = 0,
-    Tool2 = 1,
-    Tool3 = 2,
-    Tool4 = 3,
-    Tool5 = 4,
     _count,
     _all_tools = _count,
     _last = _count - 1,
@@ -23,6 +19,7 @@ enum class Action {
     Loadcell,
     ZCheck,
     Heaters,
+    Gears,
     FilamentSensorCalibration,
     _count,
     _last = _count - 1,
@@ -57,18 +54,7 @@ consteval auto get_submenu_label(Tool tool, Action action) -> const char * {
         Action action;
         const char *label;
     };
-    const ToolText tooltexts[] {
-        { Tool::Tool1, Action::Loadcell, N_("Tool 1 Loadcell Test") },
-        { Tool::Tool2, Action::Loadcell, N_("Tool 2 Loadcell Test") },
-        { Tool::Tool3, Action::Loadcell, N_("Tool 3 Loadcell Test") },
-        { Tool::Tool4, Action::Loadcell, N_("Tool 4 Loadcell Test") },
-        { Tool::Tool5, Action::Loadcell, N_("Tool 5 Loadcell Test") },
-        { Tool::Tool1, Action::FilamentSensorCalibration, N_("Tool 1 Filament Sensor Calibration") },
-        { Tool::Tool2, Action::FilamentSensorCalibration, N_("Tool 2 Filament Sensor Calibration") },
-        { Tool::Tool3, Action::FilamentSensorCalibration, N_("Tool 3 Filament Sensor Calibration") },
-        { Tool::Tool4, Action::FilamentSensorCalibration, N_("Tool 4 Filament Sensor Calibration") },
-        { Tool::Tool5, Action::FilamentSensorCalibration, N_("Tool 5 Filament Sensor Calibration") },
-    };
+    const ToolText tooltexts[] { {} };
 
     if (auto it = std::ranges::find_if(tooltexts, [&](const auto &elem) {
             return elem.tool == tool && elem.action == action;
@@ -94,6 +80,7 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::Loadcell, N_("%d Loadcell Test") },
     { Action::ZCheck, N_("%d Z Axis Test") },
     { Action::Heaters, N_("%d Heater Test") },
+    { Action::Gears, N_("%d Gears Calibration") },
     { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
 };
 

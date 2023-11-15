@@ -194,6 +194,9 @@ bool save_dump_to_usb(const char *fn) {
 void save_message(MsgType type, uint16_t error_code, const char *error, const char *title) {
     static_assert(ftrstd::to_underlying(ErrCode::ERR_UNDEF) == 0, "This uses 0 as undefined error");
 
+    // break in case debugger is attached and avoid saving message to eeprom
+    crash_dump::before_dump();
+
     buddy::DisableInterrupts disable_interrupts;
     vTaskEndScheduler();
     if (!w25x_init()) {

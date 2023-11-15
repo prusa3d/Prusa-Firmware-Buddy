@@ -36,7 +36,6 @@
 #include "netdev.h"
 #include "ini.h"
 
-#include <option/has_control_menu.h>
 #include <option/has_loadcell.h>
 #include <option/developer_mode.h>
 #include <option/development_items.h>
@@ -44,11 +43,8 @@
 #include <option/has_mmu2.h>
 
 #include "screen_menu_settings.hpp"
-#include "screen_menu_calibration.hpp"
 #include "screen_menu_filament.hpp"
-#if HAS_CONTROL_MENU()
-    #include "screen_menu_control.hpp"
-#endif
+#include "screen_menu_control.hpp"
 
 #if HAS_MMU2()
     #include "screen_menu_filament_mmu.hpp"
@@ -56,7 +52,6 @@
 
 #include <crash_dump/crash_dump_handlers.hpp>
 #include "box_unfinished_selftest.hpp"
-#include <option/has_control_menu.h>
 #include <transfers/transfer_file_check.hpp>
 
 // TODO remove netdev_is_enabled after it is defined
@@ -135,11 +130,7 @@ const char *labels[] = {
     N_("Print"),
     N_("Preheat"),
     N_("Filament"),
-#if HAS_CONTROL_MENU()
     N_("Control"),
-#else
-    N_("Calibrate"),
-#endif
     N_("Settings"),
     N_("Info"),
     N_("No USB") // label variant for first button
@@ -173,11 +164,7 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), nullptr, []() { marlin_client::gcode_printf("M1700 T-1"); } },
         { this, Rect16(), nullptr, FilamentBtn_cb },
-#if HAS_CONTROL_MENU()
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
-#else
-        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuCalibration>); } },
-#endif
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSettings>); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInfo>); }}
     },
@@ -307,7 +294,7 @@ void screen_home_data_t::on_enter() {
     first_event = false;
 
 #if !DEVELOPER_MODE()
-    #if PRINTER_IS_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4
     static bool first_time_check_st { true };
     if (first_time_check_st) {
         first_time_check_st = false;
@@ -345,9 +332,21 @@ void screen_home_data_t::on_enter() {
 }
 namespace {
 struct Config {
-    bool ssid_equal = false;
-    bool psk_equal = false;
-    bool is_ok() { return psk_equal && ssid_equal; }
+    enum class Status { missing,
+        equal,
+        not_equal };
+
+    Status ssid_status = Status::missing;
+    Status psk_status = Status::missing;
+
+    Status get_status() {
+        if (ssid_status == Status::missing || psk_status == Status::missing) {
+            return Status::missing;
+        } else if (ssid_status == Status::not_equal || psk_status == Status::not_equal) {
+            return Status::not_equal;
+        }
+        return Status::equal;
+    }
 };
 
 int ini_handler(void *user, const char *section, const char *name, const char *value) {
@@ -365,24 +364,25 @@ int ini_handler(void *user, const char *section, const char *name, const char *v
     if (strcmp(name, "ssid") == 0) {
         char buffer[config_store_ns::old_eeprom::WIFI_MAX_SSID_LEN];
         if (len <= sizeof(buffer)) {
-            config->ssid_equal = !strncmp(value, config_store().wifi_ap_ssid.get_c_str(), sizeof(buffer));
+            config->ssid_status = strncmp(value, config_store().wifi_ap_ssid.get_c_str(), sizeof(buffer)) ? Config::Status::not_equal : Config::Status::equal;
         }
     } else if (strcmp(name, "psk") == 0) {
         char buffer[config_store_ns::old_eeprom::WIFI_MAX_PASSWD_LEN];
         if (len <= sizeof(buffer)) {
-            config->psk_equal = !strncmp(value, config_store().wifi_ap_password.get_c_str(), sizeof(buffer));
+            config->psk_status = strncmp(value, config_store().wifi_ap_password.get_c_str(), sizeof(buffer)) ? Config::Status::not_equal : Config::Status::equal;
         }
     }
 
     return 1;
 }
 
-bool is_name_and_psk_equal() {
+Config::Status name_and_psk_status() {
     Config config;
     bool ok = ini_parse(settings_ini::file_name, ini_handler, &config) == 0;
-    ok = ok && config.is_ok();
-
-    return ok;
+    if (!ok) {
+        return Config::Status::missing;
+    }
+    return config.get_status();
 }
 } // namespace
 
@@ -395,7 +395,7 @@ void screen_home_data_t::handle_wifi_credentials() {
         fl.reset(fopen(settings_ini::file_name, "r"));
         has_wifi_credentials = fl.get() != nullptr;
     }
-    if (has_wifi_credentials && !is_name_and_psk_equal()) {
+    if (has_wifi_credentials && (name_and_psk_status() == Config::Status::not_equal)) {
         if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo, 1)
             == Response::Yes) {
             const auto fw_state = esp_fw_state();
@@ -489,7 +489,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                             FILE_PATH_BUFFER_LEN,
                             gui_media_LFN,
                             FILE_NAME_BUFFER_LEN)) {
-                        print_begin(gui_media_SFN_path, false);
+                        print_begin(gui_media_SFN_path);
                     }
                 }
             }

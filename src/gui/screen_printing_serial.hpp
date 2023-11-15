@@ -20,6 +20,8 @@ class screen_printing_serial_data_t : public AddSuperWindow<ScreenPrintingModel>
         disconnected };
     connection_state_t connection;
 
+    marlin_server::State last_state;
+
 public:
     screen_printing_serial_data_t();
 

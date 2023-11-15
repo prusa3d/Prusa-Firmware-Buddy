@@ -39,7 +39,6 @@
 
 using namespace selftest;
 
-#define Z_AXIS_DO_NOT_TEST_MOVE_DOWN
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
 static constexpr feedRate_t maxFeedrates[] = DEFAULT_MAX_FEEDRATE;
 
@@ -51,11 +50,7 @@ static constexpr float XYfr_table[] = { HOMING_FEEDRATE_XY / 60 };
 static constexpr size_t xy_fr_table_size = sizeof(XYfr_table) / sizeof(XYfr_table[0]);
 static constexpr float Zfr_table_fw[] = { maxFeedrates[Z_AXIS] }; // up
 static constexpr float Zfr_table_bw[] = { HOMING_FEEDRATE_Z / 60 };
-#ifdef Z_AXIS_DO_NOT_TEST_MOVE_DOWN
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]);
-#else
-static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
-#endif
 
 static consteval SelftestFansConfig make_fan_config(uint8_t index) {
     return {
@@ -142,19 +137,23 @@ static consteval HeaterConfig_t make_nozzle_config(const char *name) {
         .refKd = Temperature::temp_hotend[index].pid.Kd,
         .heatbreak_fan_fnc = Fans::heat_break,
         .print_fan_fnc = Fans::print,
-        .heat_time_ms = 70000,
-        .start_temp = 40,
-        .undercool_temp = 37,
+        .heat_time_ms = 42000,
+        .start_temp = 80,
+        .undercool_temp = 75,
         .target_temp = 290,
-        .heat_min_temp = 180,
-        .heat_max_temp = 230,
+        /**
+         * @note Resulting temperature after nozzle heater test is set by the internal model control that is used in Dwarf.
+         * @todo Completely retune the PID in dwarf.
+         */
+        .heat_min_temp = 155,
+        .heat_max_temp = 245,
         .heatbreak_min_temp = 10,
         .heatbreak_max_temp = 45,
-        .heater_load_stable_ms = 3000,
-        .heater_full_load_min_W = 20,
+        .heater_load_stable_ms = 1000,
+        .heater_full_load_min_W = 20, // 35 W +- 43%
         .heater_full_load_max_W = 50,
         .pwm_100percent_equivalent_value = 127,
-        .min_pwm_to_measure = 26
+        .min_pwm_to_measure = 127 // Check power only when fully on
     };
 }
 
@@ -269,27 +268,22 @@ bool CSelftest::Start(const uint64_t test_mask, const uint8_t tool_mask) {
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));
-    if (m_Mask & stmXYZAxis) {
+    if (m_Mask & (stmXAxis | stmYAxis | stmZAxis)) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_axes));
         if (m_result.zaxis != TestResult_Passed) {
             m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmEnsureZAway)); // Ensure Z is away enough if Z not calibrated yet
         }
     }
-    if (m_Mask & stmHeaters)
+    if (m_Mask & stmHeaters) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_heaters));
-    if (m_Mask & stmLoadcell)
+    }
+    if (m_Mask & stmLoadcell) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_loadcell));
-    if (m_Mask & stmZAxis)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
-    if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
-    if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
-    this->tool_mask = static_cast<ToolMask>(tool_mask);
+    }
+    m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
+    m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
 
-    // dont show message about footer and do not wait response
-    m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
-    m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo_wait_user)));
+    this->tool_mask = static_cast<ToolMask>(tool_mask);
 
     m_State = stsStart;
     return true;
@@ -308,29 +302,8 @@ void CSelftest::Loop() {
     case stsStart:
         phaseStart();
         break;
-    case stsPrologueAskRun:
-        FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardPrologue_ask_run);
-        break;
-    case stsPrologueAskRun_wait_user:
-        if (phaseWaitUser(PhasesSelftest::WizardPrologue_ask_run))
-            return;
-        break;
     case stsSelftestStart:
         phaseSelftestStart();
-        break;
-    case stsPrologueInfo:
-        FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardPrologue_info);
-        break;
-    case stsPrologueInfo_wait_user:
-        if (phaseWaitUser(PhasesSelftest::WizardPrologue_info))
-            return;
-        break;
-    case stsPrologueInfoDetailed:
-        FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardPrologue_info_detailed);
-        break;
-    case stsPrologueInfoDetailed_wait_user:
-        if (phaseWaitUser(PhasesSelftest::WizardPrologue_info_detailed))
-            return;
         break;
     case stsDocks:
         if (prusa_toolchanger.is_toolchanger_enabled() && (ret = selftest::phaseDocks(tool_mask, pDocks, Config_Docks)))
@@ -385,11 +358,6 @@ void CSelftest::Loop() {
             return;
         break;
     }
-    case stsMoveZup:
-#ifndef Z_AXIS_DO_NOT_TEST_MOVE_DOWN
-        queue.enqueue_one_now("G0 Z100"); // move to 100 mm
-#endif
-        break;
     case stsWait_axes:
         if (phaseWait())
             return;
@@ -414,41 +382,6 @@ void CSelftest::Loop() {
         break;
     case stsSelftestStop:
         restoreAfterSelftest();
-        break;
-    case stsNet_status:
-        selftest::phaseNetStatus();
-        break;
-    case stsDidSelftestPass:
-        phaseDidSelftestPass();
-        break;
-    case stsEpilogue_nok:
-        if (SelftestResult_Failed(m_result)) {
-            FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_nok);
-        }
-        break;
-    case stsEpilogue_nok_wait_user:
-        if (SelftestResult_Failed(m_result)) {
-            if (phaseWaitUser(PhasesSelftest::WizardEpilogue_nok))
-                return;
-        }
-        break;
-    case stsShow_result:
-        phaseShowResult();
-        break;
-    case stsResult_wait_user:
-        if (phaseWaitUser(PhasesSelftest::Result))
-            return;
-        break;
-    case stsEpilogue_ok:
-        if (SelftestResult_Passed_All(m_result)) {
-            FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_ok);
-        }
-        break;
-    case stsEpilogue_ok_wait_user:
-        if (SelftestResult_Passed_All(m_result)) {
-            if (phaseWaitUser(PhasesSelftest::WizardEpilogue_ok))
-                return;
-        }
         break;
     case stsFinish:
         phaseFinish();
@@ -480,19 +413,6 @@ void CSelftest::phaseDidSelftestPass() {
         config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
     }
-}
-
-bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
-    const Response response = marlin_server::ClientResponseHandler::GetResponseFromPhase(phase);
-    if (response == Response::Abort || response == Response::Cancel)
-        Abort();
-    if (response == Response::Ignore) {
-        config_store().run_selftest.set(false); // clear selftest flag
-        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
-        config_store().run_first_layer.set(false); // clear first layer flag
-        Abort();
-    }
-    return response == Response::_none;
 }
 
 bool CSelftest::Abort() {
@@ -591,19 +511,6 @@ void CSelftest::next() {
     while ((((uint64_t(1) << state) & m_Mask) == 0) && (state < stsFinish))
         state++;
     m_State = (SelftestState_t)state;
-}
-
-const char *CSelftest::get_log_suffix() {
-    const char *suffix = "";
-    if (m_Mask & stmFans)
-        suffix = _suffix[0];
-    else if (m_Mask & stmXYAxis)
-        suffix = _suffix[1];
-    else if (m_Mask & stmXYZAxis)
-        suffix = _suffix[1];
-    else if (m_Mask & stmHeaters)
-        suffix = _suffix[2];
-    return suffix;
 }
 
 // declared in parent source file

@@ -26,8 +26,7 @@
 ScreenPrintPreview::ScreenPrintPreview()
     : gcode(GCodeInfo::getInstance())
     , gcode_description(this)
-    , thumbnail(this, GuiDefaults::PreviewThumbnailRect)
-    , phase(PhasesPrintPreview::_last) {
+    , thumbnail(this, GuiDefaults::PreviewThumbnailRect) {
 
     super::ClrMenuTimeoutClose();
 
@@ -47,13 +46,6 @@ ScreenPrintPreview::~ScreenPrintPreview() {
 ScreenPrintPreview *ScreenPrintPreview::ths = nullptr;
 
 ScreenPrintPreview *ScreenPrintPreview::GetInstance() { return ths; }
-
-ScreenPrintPreview::UniquePtrBox ScreenPrintPreview::makeMsgBox(string_view_utf8 caption, string_view_utf8 text) {
-    return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &img::warning_16x16, is_closed_on_click_t::no);
-}
-ScreenPrintPreview::UniquePtrBox ScreenPrintPreview::makeMsgBoxWait(string_view_utf8 text) {
-    return make_static_unique_ptr<MsgBoxIconnedWait>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
-}
 
 void ScreenPrintPreview::Change(fsm::BaseData data) {
     auto old_phase = phase;
@@ -75,6 +67,13 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
     }
 #endif
 
+    const auto makeMsgBox = [this](string_view_utf8 caption, string_view_utf8 text, const img::Resource &icon = img::warning_16x16) {
+        return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &icon, is_closed_on_click_t::no);
+    };
+    const auto makeMsgBoxWait = [this](string_view_utf8 text) {
+        return make_static_unique_ptr<MsgBoxIconnedWait>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
+    };
+
     switch (phase) {
 
     case PhasesPrintPreview::loading:
@@ -84,32 +83,44 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
     case PhasesPrintPreview::download_wait:
         pMsgbox = makeMsgBoxWait(_("Downloading..."));
         break;
+
     case PhasesPrintPreview::main_dialog:
         gcode_description.update(gcode);
         assert(gcode.is_loaded() && "GCodeInfo must be initialized before ScreenPrintPreview is created");
         show_main_dialog();
         break;
+
     case PhasesPrintPreview::unfinished_selftest:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_unfinished_selftest));
         break;
+
     case PhasesPrintPreview::new_firmware_available: {
         const auto version = GCodeInfo::getInstance().get_valid_printer_settings().latest_fw_version;
         pMsgbox = makeMsgBox(_("New firmware available"), string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(version)));
         break;
     }
+
     case PhasesPrintPreview::wrong_printer:
     case PhasesPrintPreview::wrong_printer_abort:
         pMsgbox = make_static_unique_ptr<MsgBoxInvalidPrinter>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, _(labelWarning), &img::warning_16x16);
         break;
+
     case PhasesPrintPreview::filament_not_inserted:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_not_detected));
         break;
+
     case PhasesPrintPreview::mmu_filament_inserted:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_detected_mmu));
         break;
+
     case PhasesPrintPreview::wrong_filament:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_wrong_fil_type));
         break;
+
+    case PhasesPrintPreview::file_error:
+        pMsgbox = makeMsgBox(_("File error"), _(gcode.error_str()), img::error_16x16);
+        break;
+
     case PhasesPrintPreview::tools_mapping:
         show_tools_mapping();
         break;

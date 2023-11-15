@@ -5,6 +5,7 @@
 #include <array>
 #include <cstdint>
 #include <algorithm>
+#include <assert.h>
 
 inline constexpr char CHAR_SPACE = ' ';
 inline constexpr char CHAR_NBSP = '\xA0'; /// Non Breaking Space
@@ -314,4 +315,118 @@ private:
 private:
     uint32_t current_line_width_ = 0; ///< pixels already used in the current line
     bool long_word_mode_ = false; ///< Set to true for consecutive buffer loads if the word is longer than buffer size
+};
+
+/// Class that allows safely building strings in char buffers.
+/// The class ensures that the string is always validly null terminated. Last character in the buffer is always reserved for \0.
+/// Use this class instead of snprintf, because it does all the checks.
+/// The class does NOT take the OWNERSHIP in the buffer in any way, the buffer has to exist for the whole existence of StringBuilder (but see ArrayStringBuilder)
+/// The builder always considers terminating \0, so the actual available size for string is buffer_size - 1
+class StringBuilder {
+
+public:
+    StringBuilder() = default;
+
+    template <size_t n>
+    StringBuilder(std::array<char, n> &arr) {
+        init(arr.data(), n);
+    }
+
+    template <size_t n>
+    StringBuilder(char (&arr)[n], size_t start = 0) {
+        assert(start < n);
+        init(arr + start, n - start);
+    }
+
+    /// See StringBuilder::init
+    static StringBuilder from_ptr(char *buffer, size_t buffer_size) {
+        StringBuilder result;
+        result.init(buffer, buffer_size);
+        return result;
+    }
+
+public:
+    /// Initializes string builder on the buffer.
+    void init(char *buffer, size_t buffer_size);
+
+public:
+    /// Returns false if there is no space left to write further text or if any of the called functions failed
+    inline bool is_ok() const {
+        return is_ok_;
+    }
+
+    /// See is_ok
+    inline bool is_problem() const {
+        return !is_ok_;
+    }
+
+    /// Returns number of characters in the buffer (NOT counting the terminating \0 which is always there)
+    inline size_t char_count() const {
+        return current_pos_ - buffer_start_;
+    }
+
+    /// Returns number of bytes used of the buffer (COUNTING the terminating \0 which is always there)
+    inline size_t byte_count() const {
+        return char_count() + 1;
+    }
+
+public:
+    void append_char(char ch);
+
+    void append_string(const char *str);
+
+    /// Appends text to the builder, using vsnprintf under the hood.
+    void append_printf(const char *fmt, ...);
+
+    /// Appends text to the builder, using vsnprintf under the hood.
+    void append_vprintf(const char *fmt, va_list args);
+
+public:
+    /// Allocates $cnt chars at the end of the string and returns the pointer to them.
+    /// Appends \0 at the end of the allocation.
+    /// Returns pointer to the allocated string or nullptr on failure
+    char *alloc_chars(size_t cnt);
+
+private:
+    /// For safety reasons, string builder copying is only for static constructors
+    StringBuilder(const StringBuilder &o) = default;
+
+private:
+    /// Pointer to start of the buffer
+    char *buffer_start_ = nullptr;
+
+    /// Pointer after end of the buffer (1 char after the terminating null character)
+    char *buffer_end_ = nullptr;
+
+    /// Pointer to the current writable position on the buffer (should always contain terminating null char)
+    char *current_pos_ = nullptr;
+
+    /// Error flag, can be set by for example when printf fails
+    bool is_ok_ = true;
+};
+
+/// StringBuilder bundled together with an array
+template <size_t array_size_>
+class ArrayStringBuilder : public StringBuilder {
+
+public:
+    inline ArrayStringBuilder()
+        : StringBuilder(array) {}
+
+public:
+    inline const char *str() const {
+        assert(is_ok());
+        return array.data();
+    }
+    inline const char *str_nocheck() const {
+        return array.data();
+    }
+
+    inline const uint8_t *str_bytes() const {
+        assert(is_ok());
+        return reinterpret_cast<const uint8_t *>(array.data());
+    }
+
+private:
+    std::array<char, array_size_> array;
 };

@@ -12,6 +12,7 @@
 #include "menu_spin_config.hpp"
 #include "ScreenSelftest.hpp"
 #include <option/has_toolchanger.h>
+#include <option/has_selftest_snake.h>
 #include "filament_sensors_handler.hpp"
 #include "printers.h"
 #include <inttypes.h>
@@ -22,6 +23,7 @@
     #include <module/prusa/toolchanger.h>
 #endif
 
+#if !HAS_SELFTEST_SNAKE()
 /*****************************************************************************/
 // MI_WIZARD
 MI_WIZARD::MI_WIZARD()
@@ -54,6 +56,7 @@ void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
     marlin_client::test_start(stmShow_result);
 }
+#endif // !HAS_SELFTEST_SNAKE()
 
 /*****************************************************************************/
 // MI_CALIB_FIRST
@@ -79,6 +82,8 @@ void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
     marlin_client::test_start(stmFans);
 }
 
+// XL does not support all axis at once
+#if !PRINTER_IS_PRUSA_XL
 /*****************************************************************************/
 // MI_TEST_XYZ
 MI_TEST_XYZ::MI_TEST_XYZ()
@@ -89,6 +94,7 @@ void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
     marlin_client::test_start(stmXYZAxis);
 }
+#endif
 
 /*****************************************************************************/
 // MI_TEST_X

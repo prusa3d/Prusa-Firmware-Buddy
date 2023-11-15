@@ -439,7 +439,7 @@ float probe_z(const xyz_pos_t position, float uncertainty, const int num_measure
         SERIAL_EOL();
         metric_record_custom(
             &metric_z_raw_hit,
-            ",t=%u,p=%u,x=%.3f,y=%.3f z=%.3f",
+            ",t=%u,p=%u x=%.3f,y=%.3f,z=%.3f",
             tool,
             ftrstd::to_underlying(phase),
             static_cast<double>(current_position.x),

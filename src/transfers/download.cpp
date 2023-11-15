@@ -85,6 +85,7 @@ public:
 
     /* === State variables (yes, we are a "state machine") === */
     Phase phase = Phase::NotStarted;
+    bool delete_requested = false;
     SemaphoreHandle_t delete_allowed;
     atomic<DownloadStep> last_status = DownloadStep::Continue;
     uint32_t request_started = 0; // Time when we started, to allow timing out
@@ -108,25 +109,12 @@ public:
             : owner(owner)
             , transfer_rest(transfer_rest) {}
 
-        virtual variant<FILE *, PartialFile *> file() const override {
+        virtual PartialFile *file() const override {
             return owner->destination.get();
         }
 
-        virtual tuple<size_t, size_t, size_t> transform(uint8_t *data, size_t size_in, size_t size_out) override {
-            // Enough room to "round up" the output to block size?
-            size_t rounded_up = (size_in + Decryptor::BlockSize - 1) / Decryptor::BlockSize * Decryptor::BlockSize;
-            size_t need_buff;
-            if (rounded_up > size_out) {
-                // If not, we round down the input size.
-                size_in = size_in / Decryptor::BlockSize * Decryptor::BlockSize;
-                need_buff = Decryptor::BlockSize;
-            } else {
-                need_buff = 0;
-            }
-
-            size_t output = owner->decryptor->decrypt(data, size_in);
-            assert(output <= size_out);
-            return make_tuple(size_in, output, need_buff);
+        virtual tuple<size_t, size_t> write(const uint8_t *in, size_t in_size, uint8_t *out, size_t out_size) override {
+            return owner->decryptor->decrypt(in, in_size, out, out_size);
         }
 
         virtual optional<tuple<Status, const char *>> done() override {
@@ -179,7 +167,9 @@ public:
             last_status = how;
             phase = Phase::Done;
         }
-        xSemaphoreGive(delete_allowed);
+        if (delete_requested) {
+            xSemaphoreGive(delete_allowed);
+        }
     }
 
     bool timed_out() {
@@ -264,12 +254,15 @@ public:
         }
 
         // Note: Both lengths are before decryption.
-        phase_payload.emplace<Splice>(this, resp.content_length.value());
+        size_t len = resp.content_length.value();
+        phase_payload.emplace<Splice>(this, len);
         phase = Phase::Body;
 #ifdef UNITTESTS
         assert(0); // Unimplemented here, see the note about dependency hell
 #else
-        httpd_instance()->inject_transfer(conn, data, position, &get<Splice>(phase_payload), resp.content_length.value());
+        tcp_pcb *c = conn;
+        conn = nullptr;
+        httpd_instance()->inject_transfer(c, data, position, &get<Splice>(phase_payload), len);
 #endif
 
         return ERR_OK;
@@ -339,12 +332,12 @@ public:
     }
 
     void err() {
+        // The connection is already closed for us, so remove it from here so done doesn't get rid of it.
         conn = nullptr;
         done(DownloadStep::FailedNetwork);
     }
 
     static void err_wrap(void *arg, err_t) {
-        // The connection is already closed for us, so remove it from here so done doesn't get rid of it.
         static_cast<Async *>(arg)->err();
     }
 
@@ -366,7 +359,9 @@ public:
         altcp_err(conn, err_wrap);
         altcp_poll(conn, timeout_check_wrap, 1);
         altcp_recv(conn, recv_wrap);
-        altcp_connect(conn, &request.ip, request.port, connected_wrap);
+        if (altcp_connect(conn, &request.ip, request.port, connected_wrap) != ERR_OK) {
+            done(DownloadStep::FailedOther);
+        }
     }
 
     void dns_found(const ip_addr_t *ip) {
@@ -418,7 +413,11 @@ public:
         return last_status;
     }
 
-    void request_abort() {
+private:
+    friend class AsyncDeleter;
+    void request_delete() {
+        // Allow setting the semaphore (don't set it before this one gets called and pulled from the queue).
+        delete_requested = true;
         switch (phase) {
         case Phase::Body:
             // TODO Is it the same?
@@ -427,11 +426,13 @@ public:
             phase = Phase::AbortRequested;
             break;
         case Phase::AbortRequested:
-        case Phase::Done:
-        case Phase::NotStarted:
-            // Nothing is running, so it's a No-op
-            phase = Phase::Done;
+            // Already requested abort once.
+            // (We can't really request abort more than once)
+            assert(0);
             break;
+        case Phase::Done:
+            // Something already gave up previously. We are allowed to just delete and be done with it.
+        case Phase::NotStarted:
         case Phase::Connecting:
         case Phase::Headers:
             // In these phases, we can just pack our things and leave right now.
@@ -439,8 +440,8 @@ public:
             break;
         }
     }
-    static void request_abort_wrap(void *param) {
-        static_cast<Async *>(param)->request_abort();
+    static void request_delete_wrap(void *param) {
+        static_cast<Async *>(param)->request_delete();
     }
 };
 
@@ -449,43 +450,22 @@ void Download::AsyncDeleter::operator()(Async *a) {
         // Unfortunately, we need the Async to cooperate and finish all its
         // work before it can be deleted, so it's not left somewhere as a
         // callback or something like that.
-        tcpip_callback_nofail(Async::request_abort_wrap, a);
+        tcpip_callback_nofail(Async::request_delete_wrap, a);
         xSemaphoreTake(a->delete_allowed, portMAX_DELAY);
         delete a;
     }
 }
 
-Download::Download(AsyncPtr &&async)
-    : async(move(async)) {}
-
-Download::BeginResult Download::begin(const Request &request, DestinationPath destination, uint32_t start_range, optional<uint32_t> end_range) {
+Download::Download(const Request &request, PartialFile::Ptr destination, uint32_t start_range, optional<uint32_t> end_range) {
     // Plain downloads are no longer supported, need encryption info
     assert(request.encryption);
     size_t file_size = request.encryption->orig_size;
-    auto decryptor = make_unique<Decryptor>(request.encryption->key, Decryptor::CTR(request.encryption->nonce, start_range), file_size - start_range);
+    auto decryptor = make_unique<Decryptor>(request.encryption->key, request.encryption->nonce, start_range, file_size - start_range);
+    assert(destination);
 
-    PartialFile::Ptr file;
-    if (auto f = get_if<PartialFile::Ptr>(&destination); f != nullptr) {
-        file = *f;
-    } else if (auto f = get_if<const char *>(&destination); f != nullptr) {
-        auto preallocated = PartialFile::create(*f, file_size);
-        if (auto *err = get_if<const char *>(&preallocated); err != nullptr) {
-            // TODO: We've lost the AlreadyExists variant somewhere on our way
-            return Storage { *err };
-        } else {
-            file = get<PartialFile::Ptr>(preallocated);
-        }
-    } else {
-        // No other possibilities
-        assert(0);
-    }
-    assert(file);
-
-    file->seek(start_range);
-    AsyncPtr async(new Async(request.host, request.port, request.url_path, move(file), move(decryptor), start_range, end_range));
+    destination->seek(start_range);
+    async.reset(new Async(request.host, request.port, request.url_path, move(destination), move(decryptor), start_range, end_range));
     tcpip_callback_nofail(Async::start_wrapped, async.get());
-
-    return Download(move(async));
 }
 
 DownloadStep Download::step() {

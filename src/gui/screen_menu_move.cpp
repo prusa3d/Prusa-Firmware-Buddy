@@ -6,7 +6,7 @@
 #include "screen_menu_move_utils.hpp"
 #include "marlin_client.hpp"
 #include "menu_spin_config.hpp"
-
+#include "ScreenHandler.hpp"
 #include "img_resources.hpp"
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
@@ -15,12 +15,29 @@ static constexpr const char *const heating_str = N_("Heating");
 static constexpr const char *const low_temp_str = N_("Low temp");
 
 I_MI_AXIS::I_MI_AXIS(size_t index)
-    : WiSpinInt(round(marlin_vars()->logical_pos[index]),
+    : WiSpinInt(round(marlin_vars()->logical_curr_pos[index]),
         SpinCnf::axis_ranges[index], _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
-    , lastQueuedPos(GetVal()) {}
+    , axis_index(index)
+    , last_queued_pos(GetVal()) {}
 
-void I_MI_AXIS::loop__(size_t axis) {
-    jog_axis(lastQueuedPos, GetVal(), (AxisEnum)axis);
+I_MI_AXIS::~I_MI_AXIS() {
+    finish_move();
+}
+
+void I_MI_AXIS::Loop() {
+    jog_axis(last_queued_pos, static_cast<float>(GetVal()), static_cast<AxisEnum>(axis_index));
+}
+
+bool I_MI_AXIS::is_move_finished() const {
+    return last_queued_pos == GetVal();
+}
+
+void I_MI_AXIS::finish_move() {
+    if (last_queued_pos == GetVal()) {
+        return;
+    }
+
+    marlin_client::move_axis(GetVal(), MenuVars::GetManualFeedrate()[axis_index], axis_index);
 }
 
 void MI_AXIS_E::OnClick() {
@@ -28,7 +45,7 @@ void MI_AXIS_E::OnClick() {
     marlin_client::gcode("M82"); // Set extruder to absolute mode
     marlin_client::gcode("G92 E0"); // Reset position before change
     SetVal(0); // Reset spin before change
-    lastQueuedPos = 0; // zero it out so we wont go back when we exit the spinner
+    last_queued_pos = 0; // zero it out so we wont go back when we exit the spinner
 }
 
 void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {

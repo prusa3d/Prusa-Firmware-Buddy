@@ -105,9 +105,17 @@ LoopResult CSelftestPart_ToolOffsets::state_ask_user_confirm_start() {
 }
 
 LoopResult CSelftestPart_ToolOffsets::state_clean_nozzle_start() {
-    IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_cold);
-    set_nozzle_temps(0);
+    IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_move_away);
     disable_all_steppers(); // Let the user operate tools, pull out the filament if required
+    set_nozzle_temps(0);
+
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_ToolOffsets::state_move_away() {
+    IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_cold);
+    // we'll ask user to clean nozzle and put on sheet - so give him some space
+    do_z_clearance(100);
     return LoopResult::RunNext;
 }
 
@@ -203,7 +211,7 @@ LoopResult CSelftestPart_ToolOffsets::state_calibrate() {
 }
 
 LoopResult CSelftestPart_ToolOffsets::state_final_park() {
-    IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_final_park);
+    IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_move_away);
     // Let user uninstall the pin
     marlin_server::enqueue_gcode("P0 S1"); // Park tool
     marlin_server::enqueue_gcode("G27"); // Park head

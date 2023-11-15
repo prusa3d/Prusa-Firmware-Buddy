@@ -28,5 +28,33 @@ namespace migrations {
 
         backend.save_migration_item(journal::hash("Selftest Result V23"), new_selftest_result); // Save the new data into the backend
     }
+
+    void selftest_result_pre_gears(journal::Backend &backend) {
+        // See selftest_result_pre_23 (above) for in-depth commentary
+        using SelftestResultPreGearsT = decltype(DeprecatedStore::selftest_result_pre_gears);
+        SelftestResultPreGearsT::value_type sr_pre_gears { SelftestResultPreGearsT::default_val };
+        auto callback = [&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            if (header.id == SelftestResultPreGearsT::hashed_id) {
+                memcpy(&sr_pre_gears, buffer.data(), header.len);
+            }
+        };
+        backend.read_items_for_migrations(callback);
+        SelftestResult new_selftest_result { sr_pre_gears };
+        backend.save_migration_item(journal::hash("Selftest Result Gears"), new_selftest_result);
+    }
+
+    void fsensor_enabled_v1(journal::Backend &backend) {
+        // See selftest_result_pre_23 (above) for in-depth commentary
+        using FSensorEnabledV1T = decltype(DeprecatedStore::fsensor_enabled_v1);
+        FSensorEnabledV1T::value_type fs_enabled_v1 { FSensorEnabledV1T::default_val };
+        auto callback = [&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            if (header.id == FSensorEnabledV1T::hashed_id) {
+                memcpy(&fs_enabled_v1, buffer.data(), header.len);
+            }
+        };
+        backend.read_items_for_migrations(callback);
+        bool new_fs_enabled { fs_enabled_v1 };
+        backend.save_migration_item(journal::hash("FSensor Enabled V2"), new_fs_enabled);
+    }
 } // namespace migrations
 } // namespace config_store_ns

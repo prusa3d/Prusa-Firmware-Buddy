@@ -2,6 +2,7 @@
 #include "usbh_diskio.h"
 #include "usbh_async_diskio.hpp"
 #include "ccm_thread.hpp"
+#include "usb_host.h"
 
 #include <freertos_mutex.hpp>
 #include <mutex>
@@ -124,21 +125,38 @@ static void USBH_MSC_WorkerTask(void const *) {
 #else
         BaseType_t queue_status = xQueueReceive(request_queue, &request, portMAX_DELAY);
 #endif
-        if (queue_status == pdPASS) {
+        if (queue_status == pdPASS && request->operation != UsbhMscRequest::UsbhMscRequestOperation::Noop) {
             {
-                Lock lock(diskio_mutex);
+                auto retry = 1;
+                do {
+                    Lock lock(diskio_mutex);
+                    switch (request->operation) {
+                    case UsbhMscRequest::UsbhMscRequestOperation::Read:
+                        request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                        break;
+                    case UsbhMscRequest::UsbhMscRequestOperation::Write:
+                        request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                        break;
+                    default:
+                        abort();
+                    }
 
-                switch (request->operation) {
-                case UsbhMscRequest::UsbhMscRequestOperation::Read:
-                    request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
-                    break;
-                case UsbhMscRequest::UsbhMscRequestOperation::Write:
-                    request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
-                    break;
-                case UsbhMscRequest::UsbhMscRequestOperation::Noop:
-                    continue;
-                }
+                    if (request->result != USBH_OK) {
+                        osThreadSetPriority(osThreadGetId(), TASK_PRIORITY_USB_MSC_WORKER_LOW);
+
+                        log_error(USBHost, "USB MSC operation %d (%d, %d, %d) failed",
+                            (unsigned)ftrstd::to_underlying(request->operation),
+                            request->lun, request->sector_nbr, request->count);
+
+                        USBH_MSC_StealthReset(&hUsbHostHS, request->lun);
+                        osThreadSetPriority(osThreadGetId(), TASK_PRIORITY_USB_MSC_WORKER_HIGH);
+                        if (!USBH_MSC_UnitIsReady(&hUsbHostHS, request->lun)) {
+                            break;
+                        }
+                    }
+                } while (request->result != USBH_OK && retry--);
             }
+
             if (request->callback) {
                 request->callback(request->result, request->callback_param1, request->callback_param2);
             }
@@ -151,7 +169,7 @@ static void USBH_StartMSCWorkerTask() {
     static uint8_t storage_area[queue_length * sizeof(UsbhMscRequest *)];
     request_queue = xQueueCreateStatic(queue_length, sizeof(UsbhMscRequest *), storage_area, &queue);
     configASSERT(request_queue);
-    osThreadDef(USBH_MSC_WorkerTask, USBH_MSC_WorkerTask, TASK_PRIORITY_USB_MSC_WORKER, 0U, 512);
+    osThreadCCMDef(USBH_MSC_WorkerTask, USBH_MSC_WorkerTask, TASK_PRIORITY_USB_MSC_WORKER_HIGH, 0U, 512);
     USBH_MSC_WorkerTaskHandle = osThreadCreate(osThread(USBH_MSC_WorkerTask), NULL);
 }
 

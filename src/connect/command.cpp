@@ -43,14 +43,13 @@ namespace {
         }
     }
 
-    // Allow gathering the data about a START_CONNECT_DOWNLOAD command.
+    // Allow gathering the data about a START_ENCRYPTED_DOWNLOAD command.
     //
-    // * Allows tracking which parts are already available.
-    // * Picks either of the flavors of the message and detects potential collisions.
+    // Allows tracking which parts are already available.
     struct DownloadAccumulator {
         bool ok = true;
-        StartConnectDownload::Block key;
-        StartConnectDownload::Block iv;
+        StartEncryptedDownload::Block key;
+        StartEncryptedDownload::Block iv;
         size_t orig_size;
         bool has_key = false;
         bool has_iv = false;
@@ -139,7 +138,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("CREATE_FOLDER", CreateFolder)
             T("STOP_TRANSFER", StopTransfer)
             if (event.value == "START_ENCRYPTED_DOWNLOAD") {
-                data = StartConnectDownload {};
+                data = StartEncryptedDownload {};
             } else {
                 return;
             }
@@ -172,7 +171,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
     });
 
     if (!success) {
-        data = BrokenCommand {};
+        data = BrokenCommand { "Error parsing json" };
     }
 
     auto get_path = [&](SharedPath &path) -> void {
@@ -182,7 +181,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             path = SharedPath(move(buff));
         } else {
             // Missing parameters
-            data = BrokenCommand {};
+            data = BrokenCommand { "missing path" };
         }
     };
 
@@ -191,7 +190,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             info->job_id = *job_id;
         } else {
             // Didn't find all the needed parameters.
-            data = BrokenCommand {};
+            data = BrokenCommand { "missing parameters" };
         }
     } else if (auto *info = get_if<SendFileInfo>(&data); info != nullptr) {
         get_path(info->path);
@@ -203,7 +202,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         get_path(del_folder->path);
     } else if (auto *create_folder = get_if<CreateFolder>(&data); create_folder != nullptr) {
         get_path(create_folder->path);
-    } else if (auto *download = get_if<StartConnectDownload>(&data); download != nullptr) {
+    } else if (auto *download = get_if<StartEncryptedDownload>(&data); download != nullptr) {
         const bool ok = has_path && download_acc.validate();
         if (ok) {
             // XXX: We need some decoding here.
@@ -220,7 +219,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             download->port = port;
         } else {
             // Missing parameters, conflicting parameters, etc..
-            data = BrokenCommand {};
+            data = BrokenCommand { "missing or wrong parameters" };
         }
     }
 

@@ -10,6 +10,7 @@
 #include "fonts.hpp"
 #include "gcode_thumb_decoder.h"
 #include <config_store/store_instance.hpp>
+#include <media.h>
 
 constexpr static const char *finish_print_text = N_("Print finished");
 constexpr static const char *stop_print_text = N_("Print stopped");
@@ -50,22 +51,11 @@ PrintProgress::PrintProgress(window_t *parent)
 #endif
 }
 
-bool PrintProgress::init_gcode_info() {
+void PrintProgress::init_gcode_info() {
     if (!gcode_info.is_loaded()) {
-        if (gcode_info.start_load()) {
-            gcode_info.load();
-            gcode_info.end_load();
-        }
+        // Signal media_prefetch to get gcode info
+        osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_INIT);
     }
-
-    if (!gcode_info.has_progress_thumbnail()) {
-        // Permanently disable progress as it makes no sense to look
-        // for thumbnail later - there is none.
-        disableDialog();
-        return false;
-    }
-
-    return true;
 }
 
 uint16_t PrintProgress::getTime() {

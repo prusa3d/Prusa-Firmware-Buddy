@@ -15,6 +15,7 @@
 
 #include "rtos_api.hpp"
 #include <config_store/store_instance.hpp>
+#include <option/has_side_fsensor.h>
 
 LOG_COMPONENT_REF(FSensor);
 
@@ -97,9 +98,12 @@ void FSensorADC::CalibrateInserted(int32_t filtered_value) {
         invalidate_calibration();
     } else {
         log_info(FSensor, "Calibrating HasFilament: PASS value: %d", filtered_value);
+#if HAS_SIDE_FSENSOR()
         if (is_side) {
             config_store().set_side_fs_ref_ins_value(tool_index, filtered_value);
-        } else {
+        } else
+#endif
+        {
             config_store().set_extruder_fs_ref_ins_value(tool_index, filtered_value);
         }
         load_settings();
@@ -110,9 +114,22 @@ void FSensorADC::CalibrateInserted(int32_t filtered_value) {
 }
 
 void FSensorADC::load_settings() {
-    fs_value_span = is_side ? config_store().get_side_fs_value_span(tool_index) : config_store().get_extruder_fs_value_span(tool_index);
-    fs_ref_ins_value = is_side ? config_store().get_side_fs_ref_ins_value(tool_index) : config_store().get_extruder_fs_ref_ins_value(tool_index);
-    fs_ref_nins_value = is_side ? config_store().get_side_fs_ref_nins_value(tool_index) : config_store().get_extruder_fs_ref_nins_value(tool_index);
+    fs_value_span =
+#if HAS_SIDE_FSENSOR()
+        is_side ? config_store().get_side_fs_value_span(tool_index) :
+#endif
+                config_store().get_extruder_fs_value_span(tool_index);
+    fs_ref_ins_value =
+#if HAS_SIDE_FSENSOR()
+        is_side ? config_store().get_side_fs_ref_ins_value(tool_index) :
+#endif
+                config_store().get_extruder_fs_ref_ins_value(tool_index);
+    fs_ref_nins_value =
+#if HAS_SIDE_FSENSOR()
+        is_side ? config_store().get_side_fs_ref_nins_value(tool_index) :
+#endif
+                config_store().get_extruder_fs_ref_nins_value(tool_index);
+
     flg_load_settings = false;
 }
 
@@ -120,10 +137,12 @@ void FSensorADC::CalibrateNotInserted(int32_t value) {
     if (value == FSensorADCEval::filtered_value_not_ready) {
         return;
     }
-
+#if HAS_SIDE_FSENSOR()
     if (is_side) {
         config_store().set_side_fs_ref_nins_value(tool_index, value);
-    } else {
+    } else
+#endif
+    {
         config_store().set_extruder_fs_ref_nins_value(tool_index, value);
     }
     req_calibrate = CalibrateRequest::NoCalibration;
@@ -133,11 +152,14 @@ void FSensorADC::CalibrateNotInserted(int32_t value) {
 }
 
 void FSensorADC::invalidate_calibration() {
+#if HAS_SIDE_FSENSOR()
     if (is_side) {
         config_store().set_side_fs_ref_ins_value(tool_index, FSensorADCEval::ref_value_not_calibrated);
         config_store().set_side_fs_ref_nins_value(tool_index, FSensorADCEval::ref_value_not_calibrated);
         config_store().set_side_fs_value_span(tool_index, config_store_ns::defaults::side_fs_value_span);
-    } else {
+    } else
+#endif
+    {
         config_store().set_extruder_fs_ref_ins_value(tool_index, FSensorADCEval::ref_value_not_calibrated);
         config_store().set_extruder_fs_ref_nins_value(tool_index, FSensorADCEval::ref_value_not_calibrated);
         config_store().set_extruder_fs_value_span(tool_index, config_store_ns::defaults::extruder_fs_value_span);

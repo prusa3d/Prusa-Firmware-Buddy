@@ -482,8 +482,8 @@
 #define HOMING_MAX_ATTEMPTS 10
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
-#define X_HOME_BUMP_MM 10
-#define Y_HOME_BUMP_MM 10
+#define X_HOME_BUMP_MM 0
+#define Y_HOME_BUMP_MM 0
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR \
     { 1, 1, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
@@ -1744,8 +1744,8 @@
     #define POWER_PANIC_Z_LIFT_CYCLES 4 // 4xFullStep cycles = ~0.64mm
     #define POWER_PANIC_MAX_BED_DIFF 10 // Maximum bed temperature (C) difference for auto-recovery
 
-    // Milliseconds to wait on hold before auto-restarting during short power failures
-    #define POWER_PANIC_HOLD_RST_MS 5000
+    // seconds to wait on hold before auto-restarting during short power failures
+    #define POWER_PANIC_HOLD_RST_S 5
 
     // TODO: Suboptimal values
     #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking

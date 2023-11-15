@@ -30,13 +30,13 @@ target_sources(
             nhttp/send_file.cpp
             nhttp/send_json.cpp
             nhttp/server.cpp
+            nhttp/splice.cpp
             nhttp/static_mem.cpp
             nhttp/status_page.cpp
             nhttp/status_renderer.cpp
             nhttp/transfer_renderer.cpp
             nhttp/upload_state.cpp
             pbuf_rx.c
-            random.cpp
             sntp/sntp.c
             sntp/sntp_client.c
             wui.cpp
@@ -52,11 +52,6 @@ if(NETWORKING_BENCHMARK_ENABLED)
     WUI INTERFACE nhttp/networking_benchmark.cpp nhttp/networking_benchmark_selector.cpp
     )
   target_compile_definitions(WUI INTERFACE NETWORKING_BENCHMARK_ENABLED)
-endif()
-
-if(USE_ASYNCIO)
-  target_sources(WUI INTERFACE nhttp/splice.cpp)
-  target_compile_definitions(WUI INTERFACE USE_ASYNCIO)
 endif()
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)

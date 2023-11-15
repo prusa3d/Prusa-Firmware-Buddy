@@ -72,6 +72,7 @@
 #endif
 #include "safe_state.h"
 #include "gcode_reader.hpp"
+#include "wdt.h"
 
 // External thread handles required for suspension
 extern osThreadId defaultTaskHandle;
@@ -89,7 +90,8 @@ void ac_fault_task_main([[maybe_unused]] void const *argument) {
     vTaskSuspend(NULL);
 
     // disable unnecessary threads
-    // TODO: tcp_ip, network, USBH_Thread
+    // TODO: tcp_ip, network
+    vTaskSuspend(USBH_MSC_WorkerTaskHandle);
 
     // workaround for dislayTask locking the crc32 device (should be suspended instead!)
     osThreadSetPriority(displayTaskHandle, osPriorityIdle);
@@ -989,8 +991,12 @@ void panic_loop() {
         }
 
         // power panic is handled, stop execution of main thread, and wait here until CPU dies
-        while ((ticks_ms() - state_buf.fault_stamp) < POWER_PANIC_HOLD_RST_MS) {
+        // Wait time is longer then WDG period, so we'll refresh watchdog few times to avoid dying of dog bites
+        for (unsigned int s = 0; s < POWER_PANIC_HOLD_RST_S; s++) {
+            osDelay(1000);
+            wdt_iwdg_refresh();
         }
+
         sys_reset();
 
     case PPState::Inactive:
@@ -1183,7 +1189,7 @@ void ac_fault_isr() {
 #endif
 
     // stop & disable endstops
-    media_print_quick_stop(GCodeQueue::SDPOS_INVALID);
+    media_print_quick_stop_powerpanic();
     endstops.enable_globally(false);
 
     // will continue in the main loop

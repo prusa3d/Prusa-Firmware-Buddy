@@ -62,7 +62,7 @@ pipeline {
                         name 'configuration'
                         // preset,build_type,bootloader(yesboot|noboot|emptyboot)
                         values 'mini,release,yesboot',
-                            'mk3.5,release,noboot',
+                            'mk3.5,release,yesboot',
                             'mk4,release,yesboot',
                             'mk4,release,noboot',
                             'xl,release,yesboot',
@@ -94,7 +94,7 @@ pipeline {
                                     dev_items = "yes"
                                 } else if (env.BRANCH_NAME.startsWith("RELEASE-")) {
                                     // This is an RC build
-                                    short_suffix = "-RC+${commit_nr}"
+                                    short_suffix = "-BETA+${commit_nr}"
                                     full_suffix = "${short_suffix}.B${env.BUILD_NUMBER}"
                                     dev_items = "no"
                                 } else {
@@ -102,7 +102,7 @@ pipeline {
                                     short_suffix = "-BETA+${commit_nr}"
                                     def branch_spec = env.BRANCH_NAME.replaceAll("_", "-")
                                     full_suffix = "${short_suffix}.BRANCH-${branch_spec}.B${env.BUILD_NUMBER}"
-                                    dev_items = "no"
+                                    dev_items = "yes"
                                 }
 
                                 if (env.BRANCH_NAME == "xl") {

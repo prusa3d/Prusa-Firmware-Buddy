@@ -2,6 +2,7 @@ add_executable(
   eeprom_unit_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/EEPROM_journal_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/dummy_eeprom_chip.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
   ${CMAKE_SOURCE_DIR}/src/persistent_stores/journal/backend.cpp
   ${CMAKE_SOURCE_DIR}/src/persistent_stores/storage_drivers/eeprom_storage.cpp
   ../mock/bsod.cpp

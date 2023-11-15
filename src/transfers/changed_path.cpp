@@ -1,7 +1,7 @@
 #include "changed_path.hpp"
-#include "../../lib/WUI/random.h"
 
 #include <crc32.h>
+#include <random.h>
 
 #include <cassert>
 #include <cstring>
@@ -128,7 +128,7 @@ void ChangedPath::ensure_chain_init() {
     // the worst is a false cache miss.
     uint32_t val = changed_chain_hash_base.load();
     if (val == 0) {
-        random32bit(&val);
+        val = rand_u();
         changed_chain_hash_base.store(val);
     }
 }

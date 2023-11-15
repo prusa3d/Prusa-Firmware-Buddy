@@ -54,9 +54,9 @@ protected:
     Rect16 getUnitRect(Rect16 extension_rect) const;
     void changeExtentionWidth(size_t unit_len, unichar uchar, size_t width);
 
-    virtual void click(IWindowMenu &window_menu) final;
-    virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
+    void click(IWindowMenu &window_menu) override;
+    void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
+    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
 
 public:
     IWiSpin(SpinType val, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
@@ -169,7 +169,7 @@ public: // todo private
 
 protected:
     void printSpinToBuffer() {
-        float display = tmc_period_to_feedrate(get_microsteps_x(), get_val<int>(), get_steps_per_unit_x());
+        float display = tmc_period_to_feedrate(X_AXIS, get_microsteps_x(), get_val<int>(), get_steps_per_unit_x());
         int chars = snprintf(spin_text_buff.data(), spin_text_buff.size(), "%f", double(display));
         changeExtentionWidth(0, 0, std::min<int>(chars, spin_text_buff.size() - 1));
     }

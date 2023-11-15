@@ -16,6 +16,8 @@
 
 #include <stddef.h>
 
+#include <serial_printing.hpp>
+
 #if BOARD_IS_DWARF
     #error "You're trying to add marlin_server to Dwarf. Don't!"
 #endif /*BOARD_IS_DWARF*/
@@ -89,8 +91,19 @@ void settings_load();
 // direct call of settings.reset()
 void settings_reset();
 
-// direct print file with SFM format
-void print_start(const char *filename, bool skip_preview);
+// Start serial print (issue when gcodes start comming via serial line)
+void serial_print_start();
+
+/**
+ * @brief Direct print file with SFN format.
+ * @param filename file to print
+ * @param skip_preview can be used to skip preview thumbnail or toolmapping screen
+ */
+void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview = marlin_server::PreviewSkipIfAble::no);
+
+/// Finalize serial print (exit print state and clean up)
+/// this is meant to be gracefull print finish, called when print finishes sucessfully.
+void serial_print_finalize();
 
 //
 uint32_t get_command();

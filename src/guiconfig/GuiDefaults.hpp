@@ -106,8 +106,6 @@ struct GuiDefaults {
         // has_footer::yes
         return RectScreenNoHeader;
     }
-    static constexpr Rect16 GetIconnedButtonRect(Rect16 rc_frame) { return Rect16(rc_frame.Left() + ButtonSpacing,
-        227, rc_frame.Width() - 2 * ButtonSpacing, 70 + 22); } // TODO calculate
     static constexpr Rect16 GetButtonRect_AvoidFooter(Rect16 rc_frame) { return GetButtonRect(rc_frame - Rect16::Height_t(FooterHeight)); }
 
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
@@ -153,7 +151,7 @@ struct GuiDefaults {
     static constexpr padding_ui8_t MenuPaddingSpecial = padding_ui8_t({ 0, 6, 0, 0 });
 #elif defined(USE_ILI9488)
     static constexpr size_t MenuUseFixedUnitWidth = 0; // 0 == calculate in runtime
-    static constexpr Rect16::Width_t MenuScrollbarWidth = MENU_HAS_SCROLLBAR ? 2 : 0;
+    static constexpr Rect16::Width_t MenuScrollbarWidth = MENU_HAS_SCROLLBAR ? 4 : 0;
     static constexpr uint8_t MenuItemCornerRadius = 5; //
     static constexpr padding_ui8_t MenuItemDelimiterPadding = padding_ui8_t({ 41, 0, 37, 0 });
     static constexpr padding_ui8_t MenuPaddingItems = padding_ui8_t({ 6, 10, 6, 10 });
@@ -162,9 +160,6 @@ struct GuiDefaults {
 
     static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 5, 0, 5, 0 });
     static constexpr size_t MenuItemDelimeterHeight = MenuLinesBetweenItems ? 1 : 0;
-
-    static constexpr Rect16::Width_t MenuIcon_w = MENU_HAS_BUTTONS ? 64 : 0;
-    static constexpr Rect16::Height_t MenuIcon_h = MENU_HAS_BUTTONS ? 64 : 0;
 
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
     static constexpr padding_ui8_t FileBrowserPadding = padding_ui8_t({ 0, 0, 0, 0 });

@@ -72,7 +72,7 @@ void SelftestFrameToolOffsets::change() {
         text_detail.Hide();
         break;
 
-    case PhasesSelftest::ToolOffsets_wait_final_park:
+    case PhasesSelftest::ToolOffsets_wait_move_away:
         text_phase.SetText(_("Moving away."));
         text_detail.Hide();
         break;

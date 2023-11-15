@@ -451,6 +451,24 @@ if(BOARD MATCHES ".*BUDDY" AND HAS_PUPPIES_BOOTLOADER)
   endif()
 endif()
 
+# Unittests
+if(NOT CMAKE_CROSSCOMPILING)
+  option(UNITTESTS_ENABLE "Enable building of unittest" ON)
+  if(UNITTESTS_ENABLE)
+    enable_testing()
+    add_subdirectory(tests)
+  endif()
+endif()
+
+# std::rand/random
+if(BOARD MATCHES ".*BUDDY")
+  set(ENABLE_HW_STD_RAND TRUE)
+  set(RANDOM_CPP random_hw.cpp)
+else()
+  set(ENABLE_HW_STD_RAND FALSE)
+  set(RANDOM_CPP random_sw.cpp)
+endif()
+
 #
 # Buddy firmware
 #
@@ -469,6 +487,15 @@ target_compile_options(
           $<$<COMPILE_LANGUAGE:CXX>:-Wshadow=compatible-local>
           -Wdouble-promotion
   )
+
+if(ENABLE_HW_STD_RAND)
+  # Wrap rand and replace the implementation with one using HW RNG
+  target_link_options(firmware PUBLIC -Wl,--wrap=rand)
+
+  # Wrap srand, do not implement the wrapper -> throws error when referenced in the code. rand()
+  # uses HW RNG now, so it cannot be seeded
+  target_link_options(firmware PUBLIC -Wl,--wrap=srand)
+endif()
 
 # Appending fw descriptor (with calculated fingerprint) to the ELF
 if(BOARD STREQUAL "DWARF" OR BOARD STREQUAL "MODULARBED")
@@ -542,6 +569,8 @@ if(GENERATE_BBF)
     "${PRINTER_TYPE}"
     PRINTER_VERSION
     "${PRINTER_VERSION}"
+    PRINTER_SUBVERSION
+    "${PRINTER_SUBVERSION}"
     SIGNING_KEY
     "${SIGNING_KEY}"
     BBF_VERSION
@@ -563,6 +592,8 @@ if(GENERATE_BBF)
       "${PRINTER_TYPE}"
       PRINTER_VERSION
       "${PRINTER_VERSION}"
+      PRINTER_SUBVERSION
+      "${PRINTER_SUBVERSION}"
       SIGNING_KEY
       "${SIGNING_KEY}"
       BBF_VERSION
@@ -664,11 +695,3 @@ set_property(
            FW_VERSION_SUFFIX=${PROJECT_VERSION_SUFFIX}
            FW_VERSION_SUFFIX_SHORT=${PROJECT_VERSION_SUFFIX_SHORT}
   )
-
-if(NOT CMAKE_CROSSCOMPILING)
-  option(UNITTESTS_ENABLE "Enable building of unittest" ON)
-  if(UNITTESTS_ENABLE)
-    enable_testing()
-    add_subdirectory(tests)
-  endif()
-endif()

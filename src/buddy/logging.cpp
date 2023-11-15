@@ -1,7 +1,7 @@
 #include <stddef.h>
 
 #include "logging.h"
-#include "usb_device.h"
+#include "usb_device.hpp"
 
 #include "log.h"
 #include "log_dest_swo.h"

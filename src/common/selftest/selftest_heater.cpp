@@ -49,7 +49,35 @@ uint32_t CSelftestPart_Heater::estimate(const HeaterConfig_t &config) {
     return config.heat_time_ms;
 }
 
-LoopResult CSelftestPart_Heater::stateStart() {
+LoopResult CSelftestPart_Heater::stateCheckHbrPassed() {
+    SelftestResult eeres = config_store().selftest_result.get();
+    if (eeres.tools[m_config.tool_nr].heatBreakFan != TestResult_Passed || eeres.tools[m_config.tool_nr].fansSwitched != TestResult_Passed) {
+        IPartHandler::SetFsmPhase(PhasesSelftest::HeatersDisabledDialog);
+        nozzle_test_skipped = true;
+    }
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Heater::stateShowSkippedDialog() {
+    if (!nozzle_test_skipped) {
+        return LoopResult::RunNext;
+    }
+
+#if HAS_TOOLCHANGER()
+    if (prusa_toolchanger.get_num_enabled_tools() > 1) {
+        //  We can skip this dialog and always show info text, because toolchanger multitool runs heater tests separately
+        return LoopResult::Abort;
+    }
+#endif
+
+    if (state_machine.GetButtonPressed() == Response::Ok) {
+        return LoopResult::Abort;
+    }
+
+    return LoopResult::RunCurrent;
+}
+
+LoopResult CSelftestPart_Heater::stateSetup() {
 #if HAS_TOOLCHANGER()
     // if this tool is not enabled, end this test immediately and set result to undefined
     if (!prusa_toolchanger.is_tool_enabled(m_config.tool_nr)) {
@@ -59,6 +87,14 @@ LoopResult CSelftestPart_Heater::stateStart() {
         return LoopResult::Abort;
     }
 #endif
+
+#if HAS_TOOLCHANGER()
+    if (prusa_toolchanger.get_num_enabled_tools() <= 1)
+#endif
+    {
+        // do this for singletool configurations, multitool has special handling
+        IPartHandler::SetFsmPhase(PhasesSelftest::Heaters);
+    }
 
     // looked into marlin and it seems all PID values are used as numerator
     // switch regulator into on/off mode
@@ -199,7 +235,6 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
         return true;
     }
     m_Temp /= m_TempCount;
-    Selftest.log_printf("%s %5u ms  %5.1f C\n", m_config.partname, m_Time - m_MeasureStartTime, (double)m_Temp);
     if ((m_Time - m_MeasureStartTime) < m_config.heat_time_ms) {
         m_Time = Selftest.m_Time;
         m_Temp = 0;
@@ -251,23 +286,32 @@ void CSelftestPart_Heater::single_check_callback() {
     float voltage;
     float current;
     uint32_t pwm;
+    float power;
 
     if (m_config.type == heater_type_t::Nozzle) {
-        current = advancedpower.get_nozzle_current(m_config.tool_nr);
+        current = advancedpower.get_nozzle_current(m_config.tool_nr); // This will either give 1.5 A or 0 depending if PWM is on or off
         voltage = advancedpower.get_nozzle_voltage(m_config.tool_nr);
         pwm = advancedpower.get_nozzle_pwm(m_config.tool_nr);
+        power = current * voltage;
+
+        /**
+         * @note No averaging here.
+         * The internal model control in Dwarf is from MINI.
+         * It will turn off the output once in a while to follow a curve.
+         * @todo Completely retune the PID in dwarf.
+         */
     } else {
         voltage = 24; // Modular bed does not measure this
         current = advancedpower.get_bed_current();
         pwm = thermalManager.temp_bed.soft_pwm_amount;
-    }
-    float power = current * voltage;
+        power = current * voltage;
 
-    // Filter both power and pwm using floating average to filter out sudden changes
-    power_avg = (power_avg * 99 + power) / 100;
-    pwm_avg = (pwm_avg * 99 + pwm) / 100;
-    power = power_avg;
-    pwm = pwm_avg;
+        // Filter both power and pwm using floating average to filter out sudden changes
+        power_avg = (power_avg * 99 + power) / 100;
+        pwm_avg = (pwm_avg * 99 + pwm) / 100;
+        power = power_avg;
+        pwm = pwm_avg;
+    }
 
     LogDebugTimed(
         check_log,

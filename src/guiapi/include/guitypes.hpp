@@ -92,6 +92,15 @@ template <class T>
 struct point_t {
     T x;
     T y;
+
+    template <typename U>
+    static point_t from_point(const point_t<U> &o) {
+        return point_t {
+            .x = static_cast<T>(o.x),
+            .y = static_cast<T>(o.y),
+        };
+    }
+
     constexpr bool operator==(const point_t &rhs) const {
         return (x == rhs.x) && (y == rhs.y);
     }
@@ -101,6 +110,12 @@ struct point_t {
         return {
             .x = static_cast<T>(x + rhs.x),
             .y = static_cast<T>(y + rhs.y)
+        };
+    }
+    point_t operator-(const point_t &rhs) const {
+        return {
+            .x = static_cast<T>(x - rhs.x),
+            .y = static_cast<T>(y - rhs.y)
         };
     }
 };

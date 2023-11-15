@@ -48,13 +48,13 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
     #define TASK_PRIORITY_MEDIA_PREFETCH             osPriorityHigh
     #define TASK_PRIORITY_METRIC_SYSTEM              osPriorityAboveNormal
     #define TASK_PRIORITY_USB_HOST                   osPriorityNormal
-    #define TASK_PRIORITY_USB_MSC_WORKER             osPriorityRealtime
+    #define TASK_PRIORITY_USB_MSC_WORKER_HIGH        osPriorityRealtime
+    #define TASK_PRIORITY_USB_MSC_WORKER_LOW         osPriorityNormal
     #define TASK_PRIORITY_DISPLAY_TASK               osPriorityNormal
     #define TASK_PRIORITY_MEASUREMENT_TASK           osPriorityNormal
     #define TASK_PRIORITY_ESP_UPDATE                 osPriorityNormal
     #define TASK_PRIORITY_MEDIA_PREFETCH_WHILE_FREAD osPriorityNormal // decreased priroity when media prefetch calls fread
     #define TASK_PRIORITY_TCPIP_THREAD               osPriorityBelowNormal
-    #define TASK_PRIORITY_ASYNCIO                    osPriorityBelowNormal
     #define TASK_PRIORITY_WUI                        osPriorityBelowNormal
     #define TASK_PRIORITY_CONNECT                    osPriorityBelowNormal
 static_assert(configTIMER_TASK_PRIORITY == 5); // 5 is more than osPriorityRealtime
@@ -69,6 +69,7 @@ static_assert(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY == 0);
     #define ISR_PRIORITY_DMA1_CHANNEL1   0
     #define ISR_PRIORITY_TICK_TIMER      1
     #define ISR_PRIORITY_HX717           1
+    #define ISR_PRIORITY_LIS2DH12        1
     #define ISR_PRIORITY_STEP_TIMER      2
     #define ISR_PRIORITY_TEMP_TIMER      2
     #define ISR_PRIORITY_MOVE_TIMER      2

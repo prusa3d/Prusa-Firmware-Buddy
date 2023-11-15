@@ -26,10 +26,8 @@ enum class Dependency {
     default_task_ready,
     esp_flashed,
     networking_ready,
+    media_prefetch_ready,
     usb_and_temp_ready, ///< Check autoprint and powerpanic state
-#ifdef USE_ASYNCIO
-    async_io_ready,
-#endif
     gui_screen_ready,
     _count
 };
@@ -37,13 +35,12 @@ enum class Dependency {
 // Check dependency mask fits into the dependency_t integer
 static_assert(ftrstd::to_underlying(Dependency::_count) <= sizeof(dependency_t) * 8);
 
-#define NETWORK_DEPENDS_ON_ASYNCIO     USE_ASYNCIO
 #define NETWORK_DEPENDS_ON_ESP_FLASHED (HAS_EMBEDDED_ESP32() && BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0))
 
 // Create dependency mask from the dependencies enum
 constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
     // Feel free to lift the assert in case some build configuration results in empty list
-#if (NETWORK_DEPENDS_ON_ASYNCIO || NETWORK_DEPENDS_ON_ESP_FLASHED) && HAS_PUPPIES()
+#if (NETWORK_DEPENDS_ON_ESP_FLASHED) && HAS_PUPPIES()
     static_assert(sizeof...(dependencies) > 0, "No dependencies, is this intended?");
 #endif
     return ((1 << ftrstd::to_underlying(dependencies)) | ... | 0);
@@ -52,10 +49,13 @@ constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
 /// Definitions of dependencies for different tasks/components
 namespace Tasks {
     inline constexpr dependency_t default_start = make(
+        Dependency::media_prefetch_ready
 #if HAS_PUPPIES()
+        ,
         Dependency::puppies_ready
 #endif
     );
+    inline constexpr dependency_t marlin_client = make(Dependency::default_task_ready);
     inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
     inline constexpr dependency_t espif = make(Dependency::esp_flashed);
     inline constexpr dependency_t bootstrap_done = make(
@@ -78,12 +78,6 @@ namespace Tasks {
         // This is temporary, remove once everyone has compatible hardware.
         // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
         Dependency::esp_flashed
-#endif
-#if NETWORK_DEPENDS_ON_ESP_FLASHED && NETWORK_DEPENDS_ON_ASYNCIO
-        ,
-#endif
-#if NETWORK_DEPENDS_ON_ASYNCIO
-        Dependency::async_io_ready
 #endif
     );
     inline constexpr dependency_t bootstrap_start = make(Dependency::gui_screen_ready);

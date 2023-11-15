@@ -29,19 +29,4 @@ size_t next_transfer_idx();
 /// Eg. /usb/42.tmp
 TransferName transfer_name(size_t idx);
 
-using PreallocateResult = std::variant<const char *, unique_file_ptr>;
-
-/// Tries to preallocate a given file of at least given size.
-///
-/// Returns either a file handle to the opened file or a string description of
-/// an error.
-PreallocateResult file_preallocate(const char *fname, size_t size);
-
-/// Writes the whole block (or fails).
-///
-/// Will handle retries on certain temporary errors. If successful (returns true), the whole block has been written.
-///
-/// If not successful, the amount of data and content of the file is unspecified.
-bool write_block(FILE *f, const uint8_t *data, size_t size);
-
 } // namespace transfers

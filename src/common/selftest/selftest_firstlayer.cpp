@@ -33,7 +33,6 @@ CSelftestPart_FirstLayer::CSelftestPart_FirstLayer(IPartHandler &state_machine, 
 
 LoopResult CSelftestPart_FirstLayer::stateStart() {
     log_info(Selftest, "%s Started", rConfig.partname);
-    SelftestInstance().log_printf("%s Started\n", rConfig.partname);
 
     return LoopResult::RunNext;
 }

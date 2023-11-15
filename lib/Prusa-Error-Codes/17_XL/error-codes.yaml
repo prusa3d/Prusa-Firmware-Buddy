@@ -230,6 +230,11 @@ Errors:
   text: "%s Check hotend heater and control electronics for possible damage"
   id: "HEATER_HOTEND_OVERCURRENT"
   approved: false
+- code: "17401"
+  title: "CONNECT REGISTRATION FAILED"
+  text: "Registration to Prusa Connect failed due to:"
+  id: "CONNECT_REGISTRATION_FAILED"
+  approved: true
 - code: "17501"
   title: "MODULAR BED ERROR"
   text: "Heatbed tile no. %d:\nUnknown error: %d"
@@ -390,6 +395,11 @@ Errors:
   text: "ESP doesn't seem to be connected."
   id: "ESP_NOT_CONNECTED"
   approved: false
+- code: "17601"
+  title: ""
+  text: "This error code is not found\nin our database.\nContact the support."
+  id: "UNKNOWN_ERROR_CODE"
+  approved: true
 - code: "17602"
   title: "USB FLASH DRIVE NOT CONNECTED"
   text: "USB drive not connected! \nPlease insert a USB drive with a valid firmware file."
@@ -424,6 +434,11 @@ Errors:
   title: "FW IN INTERNAL FLASH CORRUPTED"
   text: "Firmware in the\ninternal flash\ncorrupted! Please\nreflash the\nfirmware."
   id: "FW_IN_INTERNAL_FLASH_CORRUPTED"
+  approved: true
+- code: "17609"
+  title: ""
+  text: "Firmware and hardware versions do\nnot match. Make sure you have\nthe right firmware file for\nyour printer."
+  id: "HW_VERSION_ERR"
   approved: true
 - code: "17610"
   title: "UNSUPPORTED PRINTER MODEL"

@@ -4,6 +4,9 @@ add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-frtti>)
 # first, let's create a symbolic target for all tests
 add_custom_target(tests)
 
+# Define UNITTESTS macro everywhere
+add_definitions(-DUNITTESTS)
+
 # Prepend our stubbed libintl header to override the host's gettext
 include_directories(${CMAKE_SOURCE_DIR}/tests/stubs/host)
 

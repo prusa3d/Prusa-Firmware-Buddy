@@ -11,7 +11,6 @@
 #include "knob_event.hpp"
 #include "MItem_crash.hpp"
 #include "Configuration_adv.h"
-#include <option/has_control_menu.h>
 #include <option/has_mmu2.h>
 #include <option/developer_mode.h>
 
@@ -32,9 +31,6 @@ protected:
 /*****************************************************************************/
 
 using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-#if not HAS_CONTROL_MENU()
-    MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
-#endif
 #if !HAS_LOADCELL()
     MI_CURRENT_PROFILE,
 #endif

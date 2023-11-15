@@ -2,12 +2,11 @@
 #include "upload_state.h"
 #include "file_info.h"
 #include "handler.h"
-#if USE_ASYNCIO
-    #include "splice.h"
-#endif
+#include "splice.h"
 #include "../../src/common/filename_type.hpp"
 #include "../wui_api.h"
 
+#include <common/stat_retry.hpp>
 #include <transfers/files.hpp>
 #include <transfers/changed_path.hpp>
 
@@ -31,23 +30,20 @@ using handler::RequestParser;
 using handler::StatusPage;
 using handler::Step;
 using http::Status;
-#if USE_ASYNCIO
 using splice::Result;
 using std::array;
-using std::optional;
-#endif
 using std::get;
 using std::get_if;
 using std::holds_alternative;
 using std::make_tuple;
 using std::move;
 using std::nullopt;
+using std::optional;
 using std::string_view;
 using std::tuple;
 using std::variant;
 using transfers::ChangedPath;
 using transfers::CHECK_FILENAME;
-using transfers::file_preallocate;
 using transfers::Monitor;
 using transfers::next_transfer_idx;
 using transfers::PartialFile;
@@ -58,7 +54,7 @@ using transfers::USB_MOUNT_POINT_LENGTH;
 using Type = ChangedPath::Type;
 using Incident = ChangedPath::Incident;
 
-GcodeUpload::GcodeUpload(UploadParams &&uploader, Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
+GcodeUpload::GcodeUpload(UploadParams &&uploader, Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, PartialFile::Ptr &&file, UploadedNotify *uploaded)
     : upload(move(uploader))
     , monitor_slot(move(slot))
     , uploaded_notify(uploaded)
@@ -153,11 +149,11 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     const size_t file_idx = next_transfer_idx();
     const auto fname = transfer_name(file_idx);
 
-    auto preallocated = file_preallocate(fname.begin(), *parser.content_length);
+    auto preallocated = PartialFile::create(fname.begin(), *parser.content_length);
     if (const char **err = get_if<const char *>(&preallocated); err != nullptr) {
         return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, *err);
     } else {
-        return GcodeUpload(move(uploadParams), move(*slot), json_errors, *parser.content_length, file_idx, move(get<unique_file_ptr>(preallocated)), uploaded);
+        return GcodeUpload(move(uploadParams), move(*slot), json_errors, *parser.content_length, file_idx, move(get<PartialFile::Ptr>(preallocated)), uploaded);
     }
 }
 
@@ -206,7 +202,7 @@ Step GcodeUpload::step(string_view input, const size_t read, UploadState &upload
 
 UploadHooks::Result GcodeUpload::data(std::string_view data) {
     assert(tmp_upload_file);
-    if (transfers::write_block(tmp_upload_file.get(), reinterpret_cast<const uint8_t *>(data.begin()), data.size())) {
+    if (tmp_upload_file->write(reinterpret_cast<const uint8_t *>(data.begin()), data.size())) {
         return make_tuple(Status::Ok, nullptr);
     } else {
         // Data won't fit into the flash drive -> Insufficient stogare.
@@ -286,48 +282,60 @@ namespace {
             return error;
         }
 
-        FILE *attempt = fopen(fn, "r");
-        if (attempt) {
-            fclose(attempt);
-            if (overwrite) {
-                int result = remove(fn);
-                if (result == -1) {
-                    remove(src);
-                    switch (errno) {
-                    case EBUSY:
-                        return make_tuple(Status::Conflict, "File is busy");
-                    default:
-                        return make_tuple(Status::InternalServerError, "Unknown error");
-                    }
-                }
-            } else {
+        struct stat st = {};
+        int stat_result = stat_retry(fn, &st);
+        if (stat_result == 0 && S_ISREG(st.st_mode) && overwrite) {
+            int result = remove(fn);
+            if (result == -1) {
                 remove(src);
-                return make_tuple(Status::Conflict, "File already exists");
+                switch (errno) {
+                case EBUSY:
+                    return make_tuple(Status::Conflict, "File is busy");
+                case EISDIR:
+                    // Shouldn't happen due to st_mode already checked?
+                    return make_tuple(Status::Conflict, "Is a directory or ongoing transfer");
+                default:
+                    return make_tuple(Status::InternalServerError, "Unknown error");
+                }
             }
+        } else if (stat_result == 0 && S_ISDIR(st.st_mode) && overwrite) {
+            return make_tuple(Status::Conflict, "Is a directory or ongoing transfer");
+        } else if (stat_result == 0) {
+            remove(src);
+            return make_tuple(Status::Conflict, "File already exists");
         }
 
         int result = rename(src, fn);
         if (result != 0) {
+            // Backup errno before calling other things
+            int old_errno = errno;
             remove(src); // No check - no way to handle errors anyway.
-            // we already checked for existence of the file, so we guess
-            // it is weird file name/forbidden chars that contain (422 Unprocessable Entity).
-            return make_tuple(Status::UnprocessableEntity, "Filename contains invalid characters");
+            switch (old_errno) {
+            case EISDIR:
+                return make_tuple(Status::Conflict, "Is a directory or ongoing transfer");
+            case ENOTDIR:
+                return make_tuple(Status::NotFound, "Destination directory does not exist");
+            default:
+                // we already checked for existence of the file, so we guess
+                // it is weird file name/forbidden chars that contain (422 Unprocessable Entity).
+                return make_tuple(Status::UnprocessableEntity, "Filename contains invalid characters");
+            }
         } else {
             return f(fn);
         }
     }
-#if USE_ASYNCIO
+
     class PutTransfer final : public splice::Transfer {
     public:
         GcodeUpload::UploadedNotify *uploaded_notify = nullptr;
-        FILE *f = nullptr;
+        PartialFile::Ptr f;
         array<char, FILE_PATH_BUFFER_LEN> filepath;
         bool print_after_upload;
         bool overwrite;
         size_t file_idx;
 
-        virtual variant<FILE *, PartialFile *> file() const override {
-            return f;
+        virtual PartialFile *file() const override {
+            return f.get();
         }
         // TODO: alias for the type, probably unify with the UploadHooks::Result
         virtual std::optional<std::tuple<http::Status, const char *>> done() override {
@@ -346,12 +354,13 @@ namespace {
                 if (error = make_dirs(final_filename); get<0>(error) != Status::Ok) {
                     goto CLEANUP;
                 }
+                if (!f->sync()) {
+                    error = { Status::InsufficientStorage, "Couldn't sync to file" };
+                    goto CLEANUP;
+                }
 
-                // Remove extra pre-allocated space (ignore the result explicitly to avoid warnings)
-                (void)ftruncate(fileno(f), ftell(f));
-                fclose(f);
                 // Close the file first, otherwise it can't be moved
-                f = nullptr;
+                f.reset();
                 error = try_rename(fname.begin(), final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
                     monitor_slot->done(Monitor::Outcome::Finished);
                     ChangedPath::instance.changed_path(filename, Type::File, Incident::Created);
@@ -382,15 +391,17 @@ namespace {
                 break;
             }
         CLEANUP:
-            if (f != nullptr) {
-                fclose(f);
-            }
-            f = nullptr;
+            f.reset();
             if (cleanup_temp_file) {
                 remove(fname.begin());
             }
-            release();
             return error;
+        }
+
+        virtual tuple<size_t, size_t> write(const uint8_t *in, size_t in_size, uint8_t *out, size_t out_size) override {
+            const size_t write_size = std::min(in_size, out_size);
+            memcpy(out, in, write_size);
+            return make_tuple(write_size, write_size);
         }
 
         virtual bool progress(size_t len) override {
@@ -398,17 +409,10 @@ namespace {
             monitor_slot->progress(len);
             return !monitor_slot->is_stopped();
         }
-
-        virtual tuple<size_t, size_t, size_t> transform(uint8_t *, size_t size_in, size_t) override {
-            // A NOP transformation.
-            // We consumed the whole size_in, output the same and need no more buffers.
-            return make_tuple(size_in, size_in, 0);
-        }
     };
 
     // TODO: A better place to have this? Or dynamic allocation? Share with the connect uploader?
     PutTransfer put_transfer;
-#endif
 } // namespace
 
 UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
@@ -465,10 +469,18 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
         return error;
     }
 
-    // Remove extra pre-allocated space (ignore the result explicitly to avoid warnings)
-    (void)ftruncate(fileno(tmp_upload_file.get()), ftell(tmp_upload_file.get()));
+    // In the "POST" mode (old / legacy), we don't know the exact size in
+    // advance, we have only an upper limit. Therefore, the pre-allocated size
+    // is a bit bigger and we need to truncate it.
+    size_t written = tmp_upload_file->tell();
+    if (!tmp_upload_file->sync()) {
+        return std::make_tuple(Status::InsufficientStorage, "Couldn't sync to file");
+    }
     // Close the file first, otherwise it can't be moved
     tmp_upload_file.reset();
+    if (truncate(fname.begin(), written) != 0) {
+        return std::make_tuple(Status::InsufficientStorage, "Couldn't set length of file");
+    }
     auto putParams = std::get_if<PutParams>(&upload);
     bool overwrite = putParams != nullptr && putParams->overwrite;
     return try_rename(fname.begin(), final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
@@ -490,14 +502,14 @@ Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParam
     // remove the "/usb/" prefix
     const char *filename = putParams.filepath.data() + USB_MOUNT_POINT_LENGTH;
 
-#if USE_ASYNCIO
     static_cast<void>(input);
     auto filename_error = check_filename(filename);
     if (std::get<0>(filename_error) != Status::Ok)
         return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
 
     assert(put_transfer.f == nullptr); // No other transfer is happening at the moment.
-    put_transfer.f = tmp_upload_file.release();
+    put_transfer.f = move(tmp_upload_file);
+    tmp_upload_file.reset(); // Does move really set it to nullptr, or is it just a copy?
     put_transfer.set_monitor_slot(move(monitor_slot));
     put_transfer.uploaded_notify = uploaded_notify;
     put_transfer.filepath = putParams.filepath;
@@ -506,35 +518,6 @@ Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParam
     put_transfer.file_idx = file_idx;
     cleanup_temp_file = false;
     return { 0, 0, make_tuple(&put_transfer, size_rest) };
-#else
-    // bit of a hack, would make more sense checking this in GcodeUpload::start,
-    // but that is a static method and we need check_filename to be virtual, so
-    // it can be used inside UploadState as a function of UploadHooks.
-    if (!filename_checked) {
-        auto filename_error = check_filename(filename);
-        if (std::get<0>(filename_error) != Status::Ok)
-            return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
-        filename_checked = true;
-    }
-
-    auto error = data(input.substr(0, read));
-    if (std::get<0>(error) != Status::Ok) {
-        return { read, 0, StatusPage(std::get<0>(error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(error)) };
-    }
-
-    monitor_slot.progress(read);
-
-    size_rest -= read;
-    if (size_rest == 0) {
-        auto finish_error = finish(filename, putParams.print_after_upload);
-        if (std::get<0>(finish_error) != Status::Ok)
-            return { read, 0, StatusPage(std::get<0>(finish_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(finish_error)) };
-
-        return { read, 0, FileInfo(putParams.filepath.data(), false, json_errors, true, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1, std::nullopt) };
-    }
-
-    return { read, 0, Continue() };
-#endif
 }
 
 } // namespace nhttp::printer

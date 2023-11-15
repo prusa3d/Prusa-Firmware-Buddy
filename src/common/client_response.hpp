@@ -85,6 +85,8 @@ enum class PhasesLoadUnload : uint16_t {
 #endif
 
 #if HAS_MMU2()
+    // MMU-specific dialogs
+    LoadFilamentIntoMMU,
     // internal states of the MMU
     MMU_EngagingIdler,
     MMU_DisengagingIdler,
@@ -153,9 +155,9 @@ enum class PhasesPrintPreview : uint16_t {
     filament_not_inserted,
     mmu_filament_inserted,
     tools_mapping,
-
     wrong_filament,
-    _last = wrong_filament
+    file_error, ///< Something is wrong with the gcode file
+    _last = file_error
 };
 
 // GUI phases of selftest/wizard
@@ -219,7 +221,8 @@ enum class PhasesSelftest : uint16_t {
 
     _first_Heaters,
     Heaters = _first_Heaters,
-    _last_Heaters = Heaters,
+    HeatersDisabledDialog,
+    _last_Heaters = HeatersDisabledDialog,
 
     _first_SpecifyHotEnd,
     SpecifyHotEnd = _first_SpecifyHotEnd,
@@ -271,7 +274,7 @@ enum class PhasesSelftest : uint16_t {
     ToolOffsets_wait_user_install_pin,
     ToolOffsets_wait_stable_temp,
     ToolOffsets_wait_calibrate,
-    ToolOffsets_wait_final_park,
+    ToolOffsets_wait_move_away,
     ToolOffsets_wait_user_remove_pin,
     _last_Tool_Offsets = ToolOffsets_wait_user_remove_pin,
 
@@ -386,6 +389,8 @@ class ClientResponses {
         { Response::Unload }, // FilamentStuck
 #endif
 #if HAS_MMU2()
+        { Response::Continue }, // LoadFilamentIntoMMU,
+
         {}, // MMU_EngagingIdler,
         {}, // MMU_DisengagingIdler,
         {}, // MMU_UnloadingToFinda,
@@ -455,12 +460,13 @@ class ClientResponses {
         { Response::Abort }, // wrong_printer_abort
         { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted
         { Response::Yes, Response::No }, // mmu_filament_inserted
-        { Response::Back, Response::Change, Response::PRINT }, // tools_mapping
+        { Response::Back, Response::Filament, Response::PRINT }, // tools_mapping
         {
 #if !PRINTER_IS_PRUSA_XL
             Response::Change,
 #endif
-            Response::Ok, Response::Abort } // wrong_filament
+            Response::Ok, Response::Abort }, // wrong_filament
+        { Response::Abort }, // file_error
     };
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
@@ -514,6 +520,7 @@ class ClientResponses {
         {}, // Axis
 
         {}, // Heaters
+        { Response::Ok }, // HeatersDisabledDialog
 
         { Response::Adjust, Response::Skip }, // SpecifyHotEnd
         { Response::Yes, Response::No }, // SpecifyHotEnd_sock

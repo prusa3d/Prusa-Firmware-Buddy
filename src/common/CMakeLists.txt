@@ -48,11 +48,13 @@ if(BOARD MATCHES ".*BUDDY")
             print_processor.cpp
             print_utils.cpp
             probe_analysis.cpp
+            random_hw.cpp
             safe_state.cpp
             segmented_json.cpp
             selftest_result.cpp
             selftest_result_type.cpp
             sensor_data_buffer.cpp
+            serial_printing.cpp
             sound.cpp
             st25dv64k.cpp
             stat_retry.cpp
@@ -65,7 +67,6 @@ if(BOARD MATCHES ".*BUDDY")
             sys_time.cpp
             tasks.cpp
             time_tools.cpp
-            timing.cpp
             tools_mapping.cpp
             trinamic.cpp
             uartrxbuff.cpp
@@ -91,8 +92,8 @@ elseif(BOARD MATCHES "DWARF")
             marlin_log_component.cpp
             otp.cpp
             Pin.cpp
+            random_sw.cpp
             safe_state.cpp
-            timing.cpp
     )
 elseif(BOARD MATCHES "MODULARBED")
   target_sources(firmware PRIVATE heap.cpp otp.cpp)

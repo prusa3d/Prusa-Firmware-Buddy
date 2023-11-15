@@ -103,6 +103,7 @@ function(pack_firmware target)
       BUILD_NUMBER
       PRINTER_TYPE
       PRINTER_VERSION
+      PRINTER_SUBVERSION
       SIGNING_KEY
       BBF_VERSION
       OUTPUT_PATH
@@ -184,8 +185,9 @@ function(pack_firmware target)
     COMMAND
       "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version="${ARG_FW_VERSION}"
       --printer-type "${ARG_PRINTER_TYPE}" --printer-version "${ARG_PRINTER_VERSION}"
-      --build-number "${ARG_BUILD_NUMBER}" ${sign_opts} ${resources_opts} ${bbf_version_opts}
-      ${output_path_opts} -- "${bin_firmware_path}"
+      --printer-subversion "${ARG_PRINTER_SUBVERSION}" --build-number "${ARG_BUILD_NUMBER}"
+      ${sign_opts} ${resources_opts} ${bbf_version_opts} ${output_path_opts} --
+      "${bin_firmware_path}"
     )
 endfunction()
 

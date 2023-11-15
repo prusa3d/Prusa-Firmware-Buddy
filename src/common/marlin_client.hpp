@@ -140,7 +140,7 @@ void test_start(const uint64_t test_mask);
 void test_abort();
 #endif
 
-void print_start(const char *filename, bool skip_preview);
+void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview);
 
 // Should only be called after calling marlin_print_start with skip_preview = true
 // to see if it really started. Calling it after a call to marlin_print_start with

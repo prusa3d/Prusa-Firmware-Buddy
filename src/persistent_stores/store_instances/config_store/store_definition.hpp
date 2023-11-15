@@ -1,9 +1,11 @@
 #pragma once
+#include <Marlin/src/inc/MarlinConfigPre.h>
+
 #include "constants.hpp"
 #include "defaults.hpp"
 #include "backend_instance.hpp"
 #include <journal/store.hpp>
-#include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
+#include <Marlin/src/feature/input_shaper/input_shaper_config.hpp>
 #include <module/temperature.h>
 #include <config.h>
 #include <sound_enum.h>
@@ -16,6 +18,10 @@
 #include <module/prusa/tool_offset.hpp>
 #include <filament_sensors_remap_data.hpp>
 #include <feature/prusa/restore_z_storage.h>
+#include <option/has_loadcell.h>
+#include <option/has_side_fsensor.h>
+#include <option/has_mmu2.h>
+#include <option/has_toolchanger.h>
 
 namespace config_store_ns {
 /**
@@ -32,7 +38,7 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_true, journal::hash("Run XYZ Calibration")> run_xyz_calib;
     StoreItem<bool, defaults::bool_true, journal::hash("Run First Layer")> run_first_layer;
 
-    StoreItem<bool, defaults::bool_true, journal::hash("FSensor Enabled")> fsensor_enabled;
+    StoreItem<bool, defaults::bool_false, journal::hash("FSensor Enabled V2")> fsensor_enabled;
 
     // nozzle PID variables
     StoreItem<float, defaults::pid_nozzle_p, journal::hash("PID Nozzle P")> pid_nozzle_p;
@@ -76,10 +82,18 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_true, journal::hash("Devhash in QR")> devhash_in_qr; // on / off sending UID in QR
 
     StoreItem<footer::Item, defaults::footer_setting_0, journal::hash("Footer Setting 0")> footer_setting_0;
+#if FOOTER_ITEMS_PER_LINE__ > 1
     StoreItem<footer::Item, defaults::footer_setting_1, journal::hash("Footer Setting 1")> footer_setting_1;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 2
     StoreItem<footer::Item, defaults::footer_setting_2, journal::hash("Footer Setting 2")> footer_setting_2;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 3
     StoreItem<footer::Item, defaults::footer_setting_3, journal::hash("Footer Setting 3")> footer_setting_3;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 4
     StoreItem<footer::Item, defaults::footer_setting_4, journal::hash("Footer Setting 4")> footer_setting_4;
+#endif
 
     footer::Item get_footer_setting(uint8_t index);
     void set_footer_setting(uint8_t index, footer::Item value);
@@ -125,10 +139,12 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 
     StoreItem<time_format::TF_t, defaults::time_format, journal::hash("Time Format")> time_format;
 
+#if HAS_LOADCELL()
     StoreItem<float, defaults::loadcell_scale, journal::hash("Loadcell Scale")> loadcell_scale;
     StoreItem<float, defaults::loadcell_threshold_static, journal::hash("Loadcell Threshold Static")> loadcell_threshold_static;
     StoreItem<float, defaults::loadcell_hysteresis, journal::hash("Loadcell Hysteresis")> loadcell_hysteresis;
     StoreItem<float, defaults::loadcell_threshold_continuous, journal::hash("Loadcell Threshold Continuous")> loadcell_threshold_continuous;
+#endif
 
     // filament sensor values:
     // ref value: value of filament sensor in moment of calibration (w/o filament present)
@@ -136,6 +152,7 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<int32_t, defaults::extruder_fs_ref_nins_value, journal::hash("Extruder FS Ref Value 0")> extruder_fs_ref_nins_value_0;
     StoreItem<int32_t, defaults::extruder_fs_ref_ins_value, journal::hash("Extruder FS INS Ref Value 0")> extruder_fs_ref_ins_value_0;
     StoreItem<uint32_t, defaults::extruder_fs_value_span, journal::hash("Extruder FS Value Span 0")> extruder_fs_value_span_0;
+#if HOTENDS > 1 // for now only doing one ifdef for simplicity
     StoreItem<int32_t, defaults::extruder_fs_ref_nins_value, journal::hash("Extruder FS Ref Value 1")> extruder_fs_ref_nins_value_1;
     StoreItem<int32_t, defaults::extruder_fs_ref_ins_value, journal::hash("Extruder FS INS Ref Value 1")> extruder_fs_ref_ins_value_1;
     StoreItem<uint32_t, defaults::extruder_fs_value_span, journal::hash("Extruder FS Value Span 1")> extruder_fs_value_span_1;
@@ -151,7 +168,9 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<int32_t, defaults::extruder_fs_ref_nins_value, journal::hash("Extruder FS Ref Value 5")> extruder_fs_ref_nins_value_5;
     StoreItem<int32_t, defaults::extruder_fs_ref_ins_value, journal::hash("Extruder FS INS Ref Value 5")> extruder_fs_ref_ins_value_5;
     StoreItem<uint32_t, defaults::extruder_fs_value_span, journal::hash("Extruder FS Value Span 5")> extruder_fs_value_span_5;
+#endif
 
+#if HAS_SIDE_FSENSOR() // for now not ifdefing per-extruder as well for simplicity
     StoreItem<int32_t, defaults::side_fs_ref_nins_value, journal::hash("Side FS Ref Value 0")> side_fs_ref_nins_value_0;
     StoreItem<int32_t, defaults::side_fs_ref_ins_value, journal::hash("Side FS Ref INS Value 0")> side_fs_ref_ins_value_0;
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 0")> side_fs_value_span_0;
@@ -170,6 +189,7 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<int32_t, defaults::side_fs_ref_nins_value, journal::hash("Side FS Ref Value 5")> side_fs_ref_nins_value_5;
     StoreItem<int32_t, defaults::side_fs_ref_ins_value, journal::hash("Side FS Ref INS Value 5")> side_fs_ref_ins_value_5;
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 5")> side_fs_value_span_5;
+#endif
 
     StoreItem<side_fsensor_remap::Mapping, defaults::side_fs_remap, journal::hash("Side FS Remap")> side_fs_remap; ///< Side filament sensor remapping
 
@@ -181,24 +201,34 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     uint32_t get_extruder_fs_value_span(uint8_t index);
     void set_extruder_fs_value_span(uint8_t index, uint32_t value);
 
+#if HAS_SIDE_FSENSOR()
     int32_t get_side_fs_ref_nins_value(uint8_t index);
     int32_t get_side_fs_ref_ins_value(uint8_t index);
     void set_side_fs_ref_nins_value(uint8_t index, int32_t value);
     void set_side_fs_ref_ins_value(uint8_t index, int32_t value);
     uint32_t get_side_fs_value_span(uint8_t index);
     void set_side_fs_value_span(uint8_t index, uint32_t value);
+#endif
 
     StoreItem<uint16_t, defaults::print_progress_time, journal::hash("Print Progress Time")> print_progress_time; // screen progress time in seconds
     StoreItem<bool, defaults::bool_true, journal::hash("TMC Wavetable Enabled")> tmc_wavetable_enabled; // wavetable in TMC drivers
 
+#if HAS_MMU2()
     StoreItem<bool, defaults::bool_false, journal::hash("MMU2 Enabled")> mmu2_enabled;
     StoreItem<bool, defaults::bool_false, journal::hash("MMU2 Cutter")> mmu2_cutter; // use MMU2 cutter when it sees fit
     StoreItem<bool, defaults::bool_false, journal::hash("MMU2 Stealth Mode")> mmu2_stealth_mode; // run MMU2 in stealth mode wherever possible
+
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 load fails")> mmu2_load_fails;
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 total load fails")> mmu2_total_load_fails;
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 general fails")> mmu2_fails;
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 total general fails")> mmu2_total_fails;
+#endif
 
     StoreItem<bool, defaults::bool_true, journal::hash("Run LEDs")> run_leds;
     StoreItem<bool, defaults::bool_false, journal::hash("Heat Entire Bed")> heat_entire_bed;
     StoreItem<bool, defaults::bool_false, journal::hash("Touch Enabled")> touch_enabled;
 
+#if HAS_TOOLCHANGER() // for now not ifdefing per-extruder as well for simplicity
     StoreItem<DockPosition, defaults::dock_position, journal::hash("Dock Position 0")> dock_position_0;
     StoreItem<DockPosition, defaults::dock_position, journal::hash("Dock Position 1")> dock_position_1;
     StoreItem<DockPosition, defaults::dock_position, journal::hash("Dock Position 2")> dock_position_2;
@@ -218,13 +248,16 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 
     ToolOffset get_tool_offset(uint8_t index);
     void set_tool_offset(uint8_t index, ToolOffset value);
+#endif
 
     StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 0")> filament_type_0;
+#if EXTRUDERS > 1 // for now only doing one ifdef for simplicity
     StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 1")> filament_type_1;
     StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 2")> filament_type_2;
     StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 3")> filament_type_3;
     StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 4")> filament_type_4;
     StoreItem<filament::Type, defaults::filament_type, journal::hash("Filament Type 5")> filament_type_5;
+#endif
 
     filament::Type get_filament_type(uint8_t index);
     void set_filament_type(uint8_t index, filament::Type value);
@@ -232,11 +265,13 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_false, journal::hash("Heatup Bed")> heatup_bed;
 
     StoreItem<float, defaults::nozzle_diameter, journal::hash("Nozzle Diameter 0")> nozzle_diameter_0;
+#if HOTENDS > 1 // for now only doing one ifdef for simplicity
     StoreItem<float, defaults::nozzle_diameter, journal::hash("Nozzle Diameter 1")> nozzle_diameter_1;
     StoreItem<float, defaults::nozzle_diameter, journal::hash("Nozzle Diameter 2")> nozzle_diameter_2;
     StoreItem<float, defaults::nozzle_diameter, journal::hash("Nozzle Diameter 3")> nozzle_diameter_3;
     StoreItem<float, defaults::nozzle_diameter, journal::hash("Nozzle Diameter 4")> nozzle_diameter_4;
     StoreItem<float, defaults::nozzle_diameter, journal::hash("Nozzle Diameter 5")> nozzle_diameter_5;
+#endif
 
     float get_nozzle_diameter(uint8_t index);
     void set_nozzle_diameter(uint8_t index, float value);
@@ -255,21 +290,25 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     void set_odometer_axis(uint8_t index, float value);
 
     StoreItem<float, defaults::float_zero, journal::hash("Odometer Extruded Length 0")> odometer_extruded_length_0;
+#if HOTENDS > 1 // for now only doing one ifdef for simplicity
     StoreItem<float, defaults::float_zero, journal::hash("Odometer Extruded Length 1")> odometer_extruded_length_1;
     StoreItem<float, defaults::float_zero, journal::hash("Odometer Extruded Length 2")> odometer_extruded_length_2;
     StoreItem<float, defaults::float_zero, journal::hash("Odometer Extruded Length 3")> odometer_extruded_length_3;
     StoreItem<float, defaults::float_zero, journal::hash("Odometer Extruded Length 4")> odometer_extruded_length_4;
     StoreItem<float, defaults::float_zero, journal::hash("Odometer Extruded Length 5")> odometer_extruded_length_5;
+#endif
 
     float get_odometer_extruded_length(uint8_t index);
     void set_odometer_extruded_length(uint8_t index, float value);
 
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Odometer Toolpicks 0")> odometer_toolpicks_0;
+#if HOTENDS > 1 // for now only doing one ifdef for simplicity
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Odometer Toolpicks 1")> odometer_toolpicks_1;
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Odometer Toolpicks 2")> odometer_toolpicks_2;
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Odometer Toolpicks 3")> odometer_toolpicks_3;
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Odometer Toolpicks 4")> odometer_toolpicks_4;
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Odometer Toolpicks 5")> odometer_toolpicks_5;
+#endif
 
     uint32_t get_odometer_toolpicks(uint8_t index);
     void set_odometer_toolpicks(uint8_t index, uint32_t value);
@@ -280,11 +319,12 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check G-code")> hw_check_gcode;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Compatibility")> hw_check_compatibility;
 
-    StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result V23")> selftest_result;
+    StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result Gears")> selftest_result;
 
     SelftestTool get_selftest_result_tool(uint8_t index);
     void set_selftest_result_tool(uint8_t index, SelftestTool value);
 
+    // TODO: create option/has_sheets and ifdef this next part with it
     StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("Active Sheet")> active_sheet;
     StoreItem<Sheet, defaults::sheet_0, journal::hash("Sheet 0")> sheet_0;
     StoreItem<Sheet, defaults::sheet_1, journal::hash("Sheet 1")> sheet_1;
@@ -325,16 +365,11 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 
     StoreItem<bool, defaults::bool_false, journal::hash("Stuck filament detection")> stuck_filament_detection;
 
-    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 load fails")> mmu2_load_fails;
-    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 total load fails")> mmu2_total_load_fails;
-    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 general fails")> mmu2_fails;
-    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 total general fails")> mmu2_total_fails;
-
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis X Enabled")> input_shaper_axis_x_enabled;
     StoreItem<input_shaper::AxisConfig, input_shaper::axis_x_default, journal::hash("Input Shaper Axis X Config")> input_shaper_axis_x_config;
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis Y Enabled")> input_shaper_axis_y_enabled;
     StoreItem<input_shaper::AxisConfig, input_shaper::axis_y_default, journal::hash("Input Shaper Axis Y Config")> input_shaper_axis_y_config;
-    StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Weight Adjust Y Enabled")> input_shaper_weight_adjust_y_enabled;
+    StoreItem<bool, input_shaper::weight_adjust_enabled_default, journal::hash("Input Shaper Weight Adjust Y Enabled V2")> input_shaper_weight_adjust_y_enabled;
     StoreItem<input_shaper::WeightAdjustConfig, input_shaper::weight_adjust_y_default, journal::hash("Input Shaper Weight Adjust Y Config")> input_shaper_weight_adjust_y_config;
 
     input_shaper::Config get_input_shaper_config();
@@ -353,9 +388,17 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 struct DeprecatedStore : public journal::DeprecatedStoreConfig<journal::Backend> {
     // There was a ConfigStore version already before last eeprom version of SelftestResult was made, so it doesn't have old eeprom predecessor
     StoreItem<SelftestResult_pre_23, defaults::selftest_result_pre_23, journal::hash("Selftest Result")> selftest_result_pre_23;
+    // Selftest Result version before adding Gears Calibration result to EEPROM
+    StoreItem<SelftestResult_pre_gears, defaults::selftest_result_pre_gears, journal::hash("Selftest Result V23")> selftest_result_pre_gears;
+
+    // Changing Filament Sensor default state to remove necessity of FS dialog on startup
+    StoreItem<bool, defaults::bool_true, journal::hash("FSensor Enabled")> fsensor_enabled_v1;
 
     // An item was added to the middle of the footer enum and it caused eeprom corruption. This store footer item  was deleted and a new one is created without migration so as to force default footer value onto everyone, which is better than 'random values' (especially on mini where it could cause duplicated items shown). Default value was removed since we no longer need to keep it
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Footer Setting")> footer_setting_v1;
+
+    // There was wrong default value for XL, so V2 version was introduced to reset it to proper default value
+    StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Weight Adjust Y Enabled")> input_shaper_weight_adjust_y_enabled;
 };
 
 } // namespace config_store_ns

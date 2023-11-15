@@ -78,13 +78,6 @@ void FanHandler::evaluate(const FanConfig &fan_config, uint16_t avg_rpm) {
             rpm_min,
             rpm_max);
     } else {
-        SelftestInstance().log_printf("%s %u %u RPM out of range (%u - %u)\n",
-            name,
-            tool_nr,
-            avg_rpm,
-            rpm_min,
-            rpm_max);
-
         log_error(Selftest, "%s %u %u RPM out of range (%u - %u)",
             name,
             tool_nr,
@@ -134,7 +127,6 @@ LoopResult CSelftestPart_Fan::state_start() {
 #endif
 
     log_info(Selftest, "Fan test %u started", config.tool_nr);
-    SelftestInstance().log_printf("Fan test %u started\n", config.tool_nr);
 
     result.print_fan_state = SelftestSubtestState_t::running;
     result.heatbreak_fan_state = SelftestSubtestState_t::running;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <tuple>
 #include <cstdint>
 #include <cstdlib>
 #include <assert.h>
@@ -15,73 +16,35 @@ public:
     static constexpr uint32_t CtrCounterSize = 4;
     using Block = std::array<uint8_t, BlockSize>;
 
-    class CTR {
-        friend class Decryptor;
-        Block nonce;
-
-    private:
-        void setup_context(mbedtls_aes_context &context, const Block &key);
-
-        void decrypt(mbedtls_aes_context &context, const Block &input, Block &output);
-
-    public:
-        CTR(const Block &nonce, uint32_t offset = 0)
-            : nonce(nonce) {
-            reset(nonce, offset);
-        }
-
-        void reset(const Block &nonce, uint32_t offset);
-    };
-
-    // TODO: Leftover from the time we supported multiple different modes. For
-    // now, we only allow CTR, but leaving it here for eather a dedicated
-    // clean-up pull request or decision that we may want to support some more
-    // modes in the future again.
-    using Mode = CTR;
-
 private:
-    uint32_t size_left;
+    size_t stoff = 0;
+
+    // We now use the CTR mode of aes. That one is a stream cipher (doesn't
+    // need to be block-padded). Nevertheless, for historical reasons, we _do_
+    // the block padding on the sender side and cut it off here by the expected
+    // size.
+    size_t size_left;
     // Note:
     // There doesn't seem to be a legal way of moving this thing after it is
     // initialized. At least, memcpy does *not* work. Discovered the hard way.
     //
     // Therefore, the whole Decryptor is not movable _on purpose_.
     mbedtls_aes_context context;
-    Mode mode;
-    Block leftover;
-    uint8_t leftover_size = 0;
+    Block stream = {};
+    Block nonce = {};
 
 public:
-    Decryptor(const Block &key, const Mode mode, uint32_t orig_size);
+    Decryptor(const Block &key, const Block &nonce, size_t offset, size_t size_left);
     Decryptor(const Decryptor &other) = delete;
     Decryptor(Decryptor &&other) = delete;
     Decryptor &operator=(const Decryptor &other) = delete;
     Decryptor &operator=(Decryptor &&other) = delete;
     ~Decryptor();
-    // Decrypt some data.
-    //
-    // Decrypts in-place (data is in-out buffer).
-    //
-    // The return size may differ slightly due to:
-    // * The cipher works in blocks. We may have a leftover from the last time.
-    //   The output might be up to BlockSize - 1 larger, but it'll never cross a
-    //   multiple of BlockSize boundary above the size. That is, if the real
-    //   buffer is Block-Size multiple large, it'll never overflow (but if the
-    //   amount of data passed in into the function is smaller than this/not of
-    //   multiple of block size, it may "round up" to the nearest boundary size).
-    // * The first use of the decryptor will never increase the size.
-    // * The last block might be smaller (the total that goes out might be
-    //   smaller than the total that goes in) due to padding at the end.
-    //
-    // In other words, to use correctly:
-    // * Use a buffer that's a multiple of BlockSize
-    // * Pass the data in through that buffer, specifying the amount of data available.
-    // * Process the amount returned from the function.
-    uint32_t decrypt(uint8_t *data, uint32_t size);
 
-    const Mode &get_mode() const {
-        return mode;
-    }
+    // Decrypts some data from in-buffer to the out-buffer.
+    //
+    // Returns how much was consumed of each buffer. Will make at least some progress.
+    std::tuple<size_t, size_t> decrypt(const uint8_t *in, size_t in_size, uint8_t *out, size_t out_size);
 };
 
 } // namespace transfers

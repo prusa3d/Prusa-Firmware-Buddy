@@ -131,26 +131,19 @@ void window_t::SetFocus() {
     gui_invalidate();
 }
 
-void window_t::Show() {
-    if (!flags.visible) {
-        flags.visible = true;
-        // cannot invalidate when is hidden by dialog - could flicker
-        if (!flags.hidden_behind_dialog)
-            Invalidate();
-
-        notifyVisibilityChange();
+void window_t::set_visible(bool set) {
+    if (flags.visible == set) {
+        return;
     }
-}
 
-void window_t::Hide() {
-    if (flags.visible) {
-        flags.visible = false;
-        // cannot invalidate when is hidden by dialog - could flicker
-        if (!flags.hidden_behind_dialog)
-            Invalidate();
+    flags.visible = set;
 
-        notifyVisibilityChange();
+    // cannot invalidate when is hidden by dialog - could flicker
+    if (!flags.hidden_behind_dialog) {
+        Invalidate();
     }
+
+    notifyVisibilityChange();
 }
 
 void window_t::notifyVisibilityChange() {
@@ -222,9 +215,8 @@ void window_t::SetBackColor(const color_scheme &clr) {
 }
 
 window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
-    : parent(parent)
-    , next(nullptr)
-    , rect(rect)
+    : rect(rect)
+    , parent(parent)
     , flags(0)
     , color_back(GuiDefaults::ColorBack) {
     flags.type = uint8_t(type);
@@ -329,7 +321,7 @@ window_t *window_t::GetPrev() const {
 
 window_t *window_t::GetNextEnabled() const {
     if (next)
-        return (next->IsEnabled()) ? next : next->GetNextEnabled();
+        return (next->IsEnabled()) ? next.ptr() : next->GetNextEnabled();
     return nullptr;
 }
 

@@ -22,6 +22,7 @@ enum class State {
     PrintPreviewQuestions, ///< Some problems with print detected, ask user to skip/fix them
     PrintPreviewToolsMapping, ///< Waiting for user to do the tool mapping/spool join
     PrintInit,
+    SerialPrintInit,
     Printing,
     Pausing_Begin,
     Pausing_Failed_Code,

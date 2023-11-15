@@ -56,7 +56,7 @@ TEST_CASE("Extract data", "[GcodeReader]") {
         SECTION(std::string("Test-file: ") + filename) {
             AnyGcodeFormatReader reader(filename);
             REQUIRE(reader.is_open());
-            REQUIRE(reader.get()->verify_file());
+            REQUIRE(reader.get()->verify_file(IGcodeReader::FileVerificationLevel::full));
             run_test(reader.get(), filename);
         }
     }
