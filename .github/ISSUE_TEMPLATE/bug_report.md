@@ -9,7 +9,7 @@ assignees: ''
 
 Please, before you create a new bug report, please make sure you searched in open and closed issues and couldn't find anything that matches.
 
-**Printer type** - [MINI]
+**Printer type** - [MINI, MK4, XL]
 
 **Printer firmware version** - [e.g. 4.0.5, ...]
 
@@ -33,7 +33,9 @@ Please, before you create a new bug report, please make sure you searched in ope
   Please attach the G-code you had trouble with. This will make it easier for us to replicate the error.
 
 **Crash dump file**
-  Please attach the crash dump file. This will make it easier for us to investigate the bug.
+  Please send the crash dump file to Prusa by emailing it to reports@prusa3d.com. Sharing this file is important and helps us investigate the bug.
+
+  Do not share the file publicly, as the crash dump contains a raw snapshot of the printer's memory and may include unencrypted sensitive information.
 
 **Video**
   Please attach a video. It usually helps to solve the problem.
