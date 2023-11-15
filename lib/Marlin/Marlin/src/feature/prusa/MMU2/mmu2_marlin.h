@@ -35,9 +35,13 @@ float planner_get_current_position_E();
 void planner_set_current_position_E(float e);
 pos3d planner_current_position();
 
+/// Does NOT apply bed leveling (if MBL was applied before, z gets moved to a position with MBL not applied)
 void motion_do_blocking_move_to_xy(float rx, float ry, float feedRate_mm_s);
+
+/// DOES apply bed leveling
 void motion_do_blocking_move_to_z(float z, float feedRate_mm_s);
 
+/// Does NOT apply bed leveling to the parked position
 void nozzle_park();
 
 bool marlin_printingIsActive();
