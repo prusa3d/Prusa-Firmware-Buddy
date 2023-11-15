@@ -17,6 +17,9 @@
 #include <option/has_loadcell.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
+#endif
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensors_handler.hpp"
@@ -113,6 +116,7 @@ constexpr const char *txt_printing_time { N_("Printing time") };
 constexpr const char *txt_print_started { N_("Print started") };
 constexpr const char *txt_print_ended { N_("Print ended") };
 constexpr const char *txt_consumed_material { N_("Consumed material") };
+constexpr const char *txt_na { N_("N/A") };
 
 constexpr auto end_result_font { IDR_FNT_SMALL };
 
@@ -142,6 +146,17 @@ constexpr Rect16 get_consumed_material_rect(size_t idx) {
     return Rect16 { column_right, static_cast<int16_t>(get_row(4 + idx)), column_width, row_height };
 }
 
+template <size_t... Is>
+std::array<window_text_t, sizeof...(Is)> make_consumed_material_values(std::index_sequence<Is...>, window_t *parent) {
+    //  this is just fancy template way to init array in constructor initializer_list
+    return { (window_text_t { parent, get_consumed_material_rect(Is), is_multiline::no })... };
+}
+
+#if defined(USE_ST7789)
+constexpr auto etime_val_font { IDR_FNT_SMALL };
+#elif defined(USE_ILI9488)
+constexpr auto etime_val_font { IDR_FNT_NORMAL };
+
 constexpr auto arrow_left_res { &img::arrow_left_16x16 };
 constexpr auto arrow_right_res { &img::arrow_right_10x16 };
 
@@ -149,11 +164,12 @@ constexpr size_t middle_of_buttons { 185 + 40 };
 constexpr Rect16 arrow_left_rect { column_left - arrow_left_res->w, middle_of_buttons - arrow_left_res->h / 2, arrow_left_res->h, arrow_left_res->w };
 constexpr Rect16 arrow_right_rect { column_right + column_width, middle_of_buttons - arrow_right_res->h / 2, arrow_right_res->h, arrow_right_res->w };
 
-template <size_t... Is>
-std::array<window_text_t, sizeof...(Is)> make_consumed_material_values(std::index_sequence<Is...>, window_t *parent) {
-    //  this is just fancy template way to init array in constructor initializer_list
-    return { (window_text_t { parent, get_consumed_material_rect(Is), is_multiline::no })... };
-}
+constexpr size_t rotating_circles_height { 5 };
+constexpr size_t rotating_circles_width { 35 };
+constexpr size_t rotating_circles_left_offset { 0 };
+constexpr Rect16 rotating_circles_rect { column_left + rotating_circles_left_offset, get_row(1) + resource_font_size(etime_val_font).h + 5, rotating_circles_width, rotating_circles_height };
+#endif
+
 } // namespace
 
 screen_printing_data_t::screen_printing_data_t()
@@ -173,6 +189,7 @@ screen_printing_data_t::screen_printing_data_t()
     , consumed_material_values(make_consumed_material_values(std::make_index_sequence<EXTRUDERS>(), this))
     , arrow_left(this, arrow_left_rect, arrow_left_res)
     , arrow_right(this, arrow_right_rect, arrow_right_res)
+    , rotating_circles(this, rotating_circles_rect, ftrstd::to_underlying(CurrentlyShowing::_count))
 #endif
 #if defined(USE_ST7789)
     , w_filename(this, Rect16(10, 33, 220, 29))
@@ -185,9 +202,9 @@ screen_printing_data_t::screen_printing_data_t()
 #elif defined(USE_ILI9488)
     , w_filename(this, Rect16(30, 38, 420, 24))
     , w_progress(this, Rect16(30, 65, GuiDefaults::RectScreen.Width() - 2 * 30, 16))
-    , w_progress_txt(this, Rect16(300, row_0, 149, 54)) // Left side option: 30, 115, 100, 54 | font: Large (53x30 px)
-    , w_etime_label(this, Rect16(30, 114, 150, 20), is_multiline::no) // Right side option: 300, 118, 150, 20
-    , w_etime_value(this, Rect16(30, 138, 200, 23), is_multiline::no) // Right side option: 250, 138, 200, 23
+    , w_progress_txt(this, Rect16(300, get_row(0) - 2, 135, 54)) // Left side option: 30, 115, 100, 54 | font: Large (53x30 px)
+    , w_etime_label(this, Rect16(30, get_row(0), 150, 20), is_multiline::no) // Right side option: 300, 118, 150, 20
+    , w_etime_value(this, Rect16(30, get_row(1), 200, 23), is_multiline::no) // Right side option: 250, 138, 200, 23
 #endif // USE_<display>
     , message_timer(0)
     , stop_pressed(false)
@@ -195,10 +212,11 @@ screen_printing_data_t::screen_printing_data_t()
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
 #if defined(USE_ST7789)
     , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() })))
+    , time_end_format(PT_t::init)
 #elif defined(USE_ILI9488)
-    , popup_rect(Rect16(30, 115, 250, 70)) // Rect for printing messages from marlin.
+    , popup_rect(Rect16(30, get_row(0), 250, 70)) // Rect for printing messages from marlin.
 #endif // USE_<display>
-    , time_end_format(PT_t::init) {
+{
     marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
     // we will handle HELD_RELEASED event in this window
     DisableLongHoldScreenAction();
@@ -214,14 +232,13 @@ screen_printing_data_t::screen_printing_data_t()
     w_etime_value.SetAlignment(Align_t::RightTop());
     w_etime_value.SetPadding({ 0, 5, 0, 2 });
 
-    ResourceId etime_val_font = IDR_FNT_SMALL;
     w_progress_txt.set_font(resource_font(IDR_FNT_NORMAL));
 
     // ST7789 specific variable and it's label
     w_time_label.set_font(resource_font(IDR_FNT_SMALL));
     w_time_label.SetAlignment(align);
     w_time_label.SetPadding({ 0, 2, 0, 2 });
-    w_time_label.SetText(_("Printing time"));
+    w_time_label.SetText(_(txt_printing_time));
 
     w_time_value.set_font(resource_font(IDR_FNT_SMALL));
     w_time_value.SetAlignment(align);
@@ -235,7 +252,6 @@ screen_printing_data_t::screen_printing_data_t()
     w_etime_value.SetPadding({ 0, 2, 0, 2 });
 
     w_etime_label.SetTextColor(COLOR_SILVER);
-    ResourceId etime_val_font = IDR_FNT_NORMAL;
     w_progress_txt.set_font(resource_font(IDR_FNT_LARGE));
 #endif // USE_<display>
 
@@ -280,6 +296,7 @@ screen_printing_data_t::screen_printing_data_t()
     for (auto &consumed_material_value : consumed_material_values) {
         consumed_material_value.set_font(resource_font(end_result_font));
     }
+    rotating_circles.set_one_circle_mode(true);
 
     hide_end_result_fields();
     arrow_left.Hide();
@@ -393,14 +410,12 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
             print_progress.StoppedMode();
         }
 #endif
-        w_etime_label.Hide();
-        w_etime_value.Hide();
+        hide_time_information();
     } else {
 #if defined(USE_ILI9488)
         print_progress.PrintingMode();
 #endif
-        w_etime_label.Show();
-        w_etime_value.Show();
+        show_time_information();
     }
 
 #if defined(USE_ILI9488)
@@ -439,6 +454,8 @@ void screen_printing_data_t::start_showing_end_result() {
 
     arrow_left.Hide();
 
+    hide_time_information(); // OK because currently we never show remaining time at the end
+
     // show end result
 
     auto &gcode { GCodeInfo::getInstance() };
@@ -459,7 +476,7 @@ void screen_printing_data_t::start_showing_end_result() {
     print_ended_value.Show();
 
     {
-        auto print_one = [time_format = time_tools::get_time_format()](MarlinVariableLocked<time_t> &time_holder, decltype(print_started_value_buffer) &buffer, window_text_t &text_value) {
+        auto print_one = [time_format = time_tools::get_time_format()](MarlinVariableLocked<time_t> &time_holder, DateBufferT &buffer, window_text_t &text_value) {
             struct tm print_tm;
             time_holder.execute_with([&](const time_t &print_time) {
                 localtime_r(&print_time, &print_tm);
@@ -576,13 +593,28 @@ void screen_printing_data_t::hide_end_result_fields() {
 }
 #endif
 
+void screen_printing_data_t::show_time_information() {
+    w_etime_label.Show();
+    w_etime_value.Show();
+
+#if defined(USE_ILI9488)
+    rotating_circles.Show();
+#endif
+    updateTimes(); // make sure the data is valid
+}
+
+void screen_printing_data_t::hide_time_information() {
+    w_etime_label.Hide();
+    w_etime_value.Hide();
+
+#if defined(USE_ILI9488)
+    rotating_circles.Hide();
+#endif
+}
+
 void screen_printing_data_t::updateTimes() {
-    PT_t time_format = print_time.update_loop(time_end_format, &w_etime_value
 #if defined(USE_ST7789)
-        ,
-        &w_time_value
-#endif // USE_ST7789
-    );
+    PT_t time_format = print_time.update_loop(time_end_format, &w_etime_value, &w_time_value);
 
     if (time_format != time_end_format) {
         switch (time_format) {
@@ -598,6 +630,74 @@ void screen_printing_data_t::updateTimes() {
 
         time_end_format = time_format;
     }
+#elif defined(USE_ILI9488)
+
+    if (!w_etime_value.HasVisibleFlag() || !w_etime_label.HasVisibleFlag()) {
+        return;
+    }
+
+    if (auto now = ticks_s(); now - last_update_time_s > rotation_time_s) {
+        // do rotation
+
+        currently_showing = static_cast<CurrentlyShowing>(ftrstd::to_underlying(currently_showing) + 1 == ftrstd::to_underlying(CurrentlyShowing::_count) ? 0 : ftrstd::to_underlying(currently_showing) + 1);
+
+        rotating_circles.set_index(ftrstd::to_underlying(currently_showing));
+
+        last_update_time_s = now;
+    }
+
+    auto time_to_end = marlin_vars()->time_to_end.get();
+    if ((currently_showing == CurrentlyShowing::end_time
+            || currently_showing == CurrentlyShowing::remaining_time)
+        && (time_to_end == marlin_server::TIME_TO_END_INVALID || time_to_end > 60 * 60 * 24 * 365)) {
+        // invalidate for states that show time_to_end in some form if the time is invalid
+        w_etime_value.SetText(_(txt_na));
+        w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
+        return;
+    }
+
+    switch (currently_showing) {
+    case CurrentlyShowing::end_time:
+        w_etime_label.SetText(_(PrintTime::EN_STR_TIMESTAMP));
+
+        if (!PrintTime::print_end_time(time_to_end, w_etime_value_buffer)) {
+            w_etime_value.SetText(_(txt_na));
+            w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
+            return;
+        }
+        break;
+    case CurrentlyShowing::remaining_time:
+        w_etime_label.SetText(_(PrintTime::EN_STR_COUNTDOWN));
+
+        PrintTime::print_formatted_duration(time_to_end, w_etime_value_buffer);
+        break;
+    case CurrentlyShowing::time_since_start:
+        w_etime_label.SetText(_(txt_printing_time));
+
+        PrintTime::print_formatted_duration(marlin_vars()->print_duration.get(), w_etime_value_buffer, true);
+        break;
+    // Currently disabled, left in the code to ease re-enabling it
+    // case CurrentlyShowing::time_to_change:
+    //     w_etime_label.SetText(_("Next change in"));
+
+    //     w_etime_value.SetText(_(txt_na));
+    //     w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
+    //     return;
+    case CurrentlyShowing::_count:
+        assert(false); // invalid value, should never happen
+        break;
+    }
+
+    // Add unknown marker
+    if (marlin_vars()->print_speed != 100) {
+        strlcat(w_etime_value_buffer.data(), "?", w_etime_value_buffer.size());
+    }
+
+    w_etime_value.SetText(_(w_etime_value_buffer.data()));
+    w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
+    w_etime_value.Invalidate(); // just to make sure
+
+#endif // USE_ST7789
 }
 
 void screen_printing_data_t::screen_printing_reprint() {

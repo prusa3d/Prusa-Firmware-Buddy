@@ -12,6 +12,7 @@
 #include <option/development_items.h>
 #include <option/developer_mode.h>
 #include <array>
+#include <window_progress.hpp>
 
 enum class printing_state_t : uint8_t {
     INITIAL,
@@ -63,11 +64,12 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
 
     window_text_t print_started_label;
     window_text_t print_started_value;
-    std::array<char, sizeof("17/10/2023 18:00 AM") + 4> print_started_value_buffer;
+    using DateBufferT = std::array<char, sizeof("17/10/2023 18:00 AM") + 4>;
+    DateBufferT print_started_value_buffer;
 
     window_text_t print_ended_label;
     window_text_t print_ended_value;
-    decltype(print_started_value_buffer) print_ended_value_buffer;
+    DateBufferT print_ended_value_buffer;
 
     window_text_t consumed_material_label;
     std::array<window_text_t, EXTRUDERS> consumed_material_values;
@@ -75,6 +77,8 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
 
     window_icon_t arrow_left;
     window_icon_t arrow_right;
+
+    WindowProgressCircles rotating_circles;
 #endif
 
     window_roll_text_t w_filename;
@@ -87,8 +91,17 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     window_text_t w_etime_label;
     window_text_t w_etime_value;
 
-    // std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end" // nope, if you have only 2 static const strings, you can swap pointers
-    string_view_utf8 label_etime; // not sure if we really must keep this in memory
+    /**
+     * @brief Shows fields related to time (eg remaining time label + value)
+     *
+     */
+    void show_time_information();
+    /**
+     * @brief Hides fields related to time (eg remaining time label + value)
+     *
+     */
+    void hide_time_information();
+
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
     uint32_t message_timer;
     bool stop_pressed;
@@ -97,8 +110,26 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
 
     float last_e_axis_position;
     const Rect16 popup_rect;
+
+#if defined(USE_ST7789)
     PrintTime print_time;
     PT_t time_end_format;
+#else
+    DateBufferT w_etime_value_buffer;
+
+    enum class CurrentlyShowing {
+        remaining_time, // time until end of print
+        end_time, // 'date' of end of print
+        // time_to_change, // m600 // currently disabled
+        time_since_start, // real printing time since start
+        _count,
+    };
+
+    static constexpr size_t rotation_time_s { 5 }; // time how often there should be a change between what's currently shown
+
+    CurrentlyShowing currently_showing { CurrentlyShowing::remaining_time }; // what item is currently shown
+    uint32_t last_update_time_s { 0 }; // helper needed to properly rotate
+#endif
 
 public:
     screen_printing_data_t();
