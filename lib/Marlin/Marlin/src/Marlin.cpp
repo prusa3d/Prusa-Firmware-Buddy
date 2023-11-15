@@ -434,7 +434,7 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
       if (!already_shutdown_steppers) {
         already_shutdown_steppers = true;  // L6470 SPI will consume 99% of free time without this
 
-        #if _DEBUG && PRINTER_IS_PRUSA_XL && !BOARD_IS_DWARF
+        #if _DEBUG && !BOARD_IS_DWARF
         // Report steppers being disabled to the user
         // Skip if position not trusted to avoid warnings when position is not important
         if(axis_known_position) {
