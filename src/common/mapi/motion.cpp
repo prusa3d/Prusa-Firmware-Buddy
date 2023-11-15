@@ -16,14 +16,14 @@ bool extruder_move(float distance, float feed_rate, bool ignore_flow_factor) {
     // Temporarily reset extrusion factor, if ignore_flow_factor
     AutoRestore _ef(planner.e_factor[active_extruder], 1.0f, ignore_flow_factor);
 
-    current_position.e += distance;
-    auto pos = current_position;
+    // We cannot work with current_position, because current_position might or might not have MBL applied on the Z axis.
+    // So we gotta use planner.position_float, which should always be matching.
+    auto pos = planner.position_float;
+    pos.e += distance;
 
-    // Gotta apply leveling, otherwise the move would move the axes to non-leveled coordinates
-    // If PLANNER_LEVELING is true, the leveling is applied inside buffer_line
-#if HAS_LEVELING && !PLANNER_LEVELING
-    planner.apply_leveling(pos);
-#endif
+    // But we gotta update current_position.e, too. .e should be always the same with planner.position_float (hopefully).
+    // Only .z should ever differ because of MBL application.
+    current_position.e = pos.e;
 
     return planner.buffer_line(pos, feed_rate);
 }
