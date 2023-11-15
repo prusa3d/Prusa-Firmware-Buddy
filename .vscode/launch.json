@@ -13,7 +13,8 @@
             "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_buddy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32F427ZI",
-            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/data/STMicro/STM32F427.svd",
+            // swd file is disabled, it is known to cause issues in some cases. Enable it if you need to see register view.
+            //"svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/data/STMicro/STM32F427.svd",
             "rtos": "FreeRTOS",
             "breakAfterReset": false,
             "preLaunchTask": "Backup current ELF",
@@ -46,7 +47,8 @@
             "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_buddy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32F427ZI",
-            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/data/STMicro/STM32F427.svd",
+            // swd file is disabled, it is known to cause issues in some cases. Enable it if you need to see register view.
+            //"svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/data/STMicro/STM32F427.svd",
             "rtos": "FreeRTOS",
             "rttConfig": {
                 "enabled": true,
