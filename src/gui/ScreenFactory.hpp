@@ -35,6 +35,7 @@
 #include "screen_touch_error.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_menu_input_shaper.hpp"
+#include "screen_printing.hpp"
 
 #include "gui/test/screen_menu_test.hpp"
 
@@ -103,7 +104,7 @@ class ScreenFactory {
         ScreenMenuMMUPreloadToMMU,
         ScreenMenuMMULoadToNozzle,
 #endif
-        screen_home_data_t, screen_splash_data_t>::type;
+        screen_home_data_t, screen_splash_data_t, screen_printing_data_t>::type;
 
     static mem_space all_screens;
 
