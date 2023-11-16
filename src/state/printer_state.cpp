@@ -34,9 +34,11 @@ namespace {
         case State::Printing:
         case State::Aborting_Begin:
         case State::Aborting_WaitIdle:
+        case State::Aborting_UnloadFilament:
         case State::Aborting_ParkHead:
         case State::Aborting_Preview:
         case State::Finishing_WaitIdle:
+        case State::Finishing_UnloadFilament:
         case State::Finishing_ParkHead:
         case State::PrintPreviewConfirmed:
         case State::SerialPrintInit:

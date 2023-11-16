@@ -36,10 +36,12 @@ enum class State {
     Resuming_UnparkHead_ZE,
     Aborting_Begin,
     Aborting_WaitIdle,
+    Aborting_UnloadFilament,
     Aborting_ParkHead,
     Aborting_Preview, ///< Print preview can do filament load/unload and needs to be aborted properly
     Aborted,
     Finishing_WaitIdle,
+    Finishing_UnloadFilament,
     Finishing_ParkHead,
     Finished,
     Exit, // sets idle, notifies clients to close fsm

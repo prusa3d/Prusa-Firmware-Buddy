@@ -92,6 +92,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
         break;
     case State::Aborting_Begin:
     case State::Aborting_WaitIdle:
+    case State::Aborting_UnloadFilament:
     case State::Aborting_ParkHead:
     case State::Aborting_Preview:
         cancelling = busy = true;
@@ -99,6 +100,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
         link_state_str = "BUSY";
         break;
     case State::Finishing_WaitIdle:
+    case State::Finishing_UnloadFilament:
     case State::Finishing_ParkHead:
         busy = true;
         ready = operational = false;
@@ -246,6 +248,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
 
     switch (vars->print_state) {
     case State::Finishing_WaitIdle:
+    case State::Finishing_UnloadFilament:
     case State::Finishing_ParkHead:
     case State::Printing:
     case State::PrintPreviewConfirmed:
@@ -289,6 +292,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
         break;
     case State::Aborting_Begin:
     case State::Aborting_WaitIdle:
+    case State::Aborting_UnloadFilament:
     case State::Aborting_ParkHead:
     case State::Aborting_Preview:
         has_job = true;

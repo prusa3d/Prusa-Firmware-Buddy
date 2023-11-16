@@ -1675,10 +1675,6 @@ static void _server_print_loop(void) {
             park_head();
         }
 
-#if ENABLED(PRUSA_MMU2)
-        safely_unload_filament_from_nozzle_to_mmu();
-#endif
-
         thermalManager.disable_all_heaters();
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0);
@@ -1687,7 +1683,16 @@ static void _server_print_loop(void) {
             set_temp_to_display(0, e);
         }
 
-        server.print_state = State::Aborting_ParkHead;
+        server.print_state = State::Aborting_UnloadFilament;
+        break;
+
+    case State::Aborting_UnloadFilament:
+        if (!queue.has_commands_queued() && !planner.processing()) {
+#if ENABLED(PRUSA_MMU2)
+            safely_unload_filament_from_nozzle_to_mmu();
+#endif
+            server.print_state = State::Aborting_ParkHead;
+        }
         break;
     case State::Aborting_ParkHead:
         if (!queue.has_commands_queued() && !planner.processing()) {
@@ -1739,14 +1744,18 @@ static void _server_print_loop(void) {
                 print_job_timer.stop();
             }
 
-            server.print_state = State::Finishing_ParkHead;
-
+            server.print_state = State::Finishing_UnloadFilament;
+        }
+        break;
+    case State::Finishing_UnloadFilament:
+        if (!queue.has_commands_queued() && !planner.processing()) {
 #if ENABLED(PRUSA_MMU2)
             if (MMU2::mmu2.Enabled() && GCodeInfo::getInstance().is_singletool_gcode()) {
                 // When we are running single-filament gcode with MMU, we should unload current filament.
                 safely_unload_filament_from_nozzle_to_mmu();
             }
 #endif // ENABLED(PRUSA_MMU2)
+            server.print_state = State::Finishing_ParkHead;
         }
         break;
     case State::Finishing_ParkHead:

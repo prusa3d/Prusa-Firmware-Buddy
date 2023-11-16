@@ -999,12 +999,14 @@ void screen_printing_data_t::change_print_state() {
         break;
     case State::Aborting_Begin:
     case State::Aborting_WaitIdle:
+    case State::Aborting_UnloadFilament:
     case State::Aborting_ParkHead:
     case State::Aborting_Preview:
         stop_pressed = false;
         st = printing_state_t::ABORTING;
         break;
     case State::Finishing_WaitIdle:
+    case State::Finishing_UnloadFilament:
     case State::Finishing_ParkHead:
         st = printing_state_t::PRINTING;
         break;
