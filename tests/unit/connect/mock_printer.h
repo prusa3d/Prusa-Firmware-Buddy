@@ -83,6 +83,10 @@ public:
     }
 
     virtual void init_connect(char *) override {}
+
+    virtual uint32_t cancelable_fingerprint() const override {
+        return 0;
+    }
 };
 
 } // namespace connect_client

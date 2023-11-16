@@ -4,6 +4,7 @@
 
 #include <common/shared_buffer.hpp>
 #include <marlin_client.hpp>
+#include <marlin_vars.hpp>
 
 namespace connect_client {
 
@@ -18,6 +19,13 @@ private:
     // * Ready is a concept only Connect uses, nobody else, so managing it kind
     //   of belongs to Connect.
     static std::atomic<bool> ready;
+
+#if ENABLED(CANCEL_OBJECTS)
+    // We don't want to include marlin_vars into the printer or render.cpp directly
+    //, because we want to shield unit tests from marlin stuff, but we want to be
+    // sure everything fits.
+    static_assert(marlin_vars_t::CANCEL_OBJECT_NAME_LEN == Printer::CANCEL_OBJECT_NAME_LEN);
+#endif
 
 protected:
     virtual Config load_config() override;
@@ -45,6 +53,10 @@ public:
     virtual bool is_printing() const override;
     virtual bool is_idle() const override;
     virtual void init_connect(char *token) override;
+    virtual uint32_t cancelable_fingerprint() const override;
+#if ENABLED(CANCEL_OBJECTS)
+    virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const override;
+#endif
 
     static bool load_cfg_from_ini();
 

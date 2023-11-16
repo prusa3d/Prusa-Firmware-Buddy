@@ -223,6 +223,8 @@ const char *to_str(EventType event) {
         return "TRANSFER_FINISHED";
     case EventType::FileChanged:
         return "FILE_CHANGED";
+    case EventType::CancelableChanged:
+        return "CANCELABLE_CHANGED";
     default:
         assert(false);
         return "???";
@@ -232,6 +234,7 @@ const char *to_str(EventType event) {
 void Planner::reset() {
     // Will trigger an Info message on the next one.
     info_changes.mark_dirty();
+    cancellable_objects.mark_clean();
     last_telemetry = nullopt;
     cooldown = nullopt;
     perform_cooldown = false;
@@ -380,6 +383,13 @@ Action Planner::next_action(SharedBuffer &buffer) {
         }
     }
 
+    if (cancellable_objects.set_hash(printer.cancelable_fingerprint())) {
+        planned_event = Event {
+            EventType::CancelableChanged,
+        };
+        return *planned_event;
+    }
+
     if (const auto since_telemetry = since(last_telemetry); since_telemetry.has_value()) {
         const Duration telemetry_interval = printer.is_printing() || background_command.has_value() ? TELEMETRY_INTERVAL_SHORT : TELEMETRY_INTERVAL_LONG;
         if (*since_telemetry >= telemetry_interval) {
@@ -411,6 +421,8 @@ void Planner::action_done(ActionResult result) {
         if (planned_event.has_value()) {
             if (planned_event->type == EventType::Info) {
                 info_changes.mark_clean();
+            } else if (planned_event->type == EventType::CancelableChanged) {
+                cancellable_objects.mark_clean();
             }
             planned_event = nullopt;
             // Enforce telemetry now. We may get a new command with it.

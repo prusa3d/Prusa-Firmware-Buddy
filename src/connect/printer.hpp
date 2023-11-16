@@ -17,6 +17,8 @@
     #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
 #endif
 
+#include "../../lib/Marlin/Marlin/src/core/macros.h"
+
 namespace connect_client {
 
 class Printer {
@@ -50,6 +52,10 @@ public:
     static constexpr size_t NUMBER_OF_SLOTS = 5;
 #else
     static constexpr size_t NUMBER_OF_SLOTS = 1;
+#endif
+
+#if ENABLED(CANCEL_OBJECTS)
+    static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32;
 #endif
 
     class Params {
@@ -93,6 +99,9 @@ public:
         uint64_t usb_space_free = 0;
         PrinterVersion version;
         printer_state::DeviceState state = printer_state::DeviceState::Unknown;
+#if ENABLED(CANCEL_OBJECTS)
+        size_t cancel_object_count = 0;
+#endif
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;
     };
@@ -170,6 +179,10 @@ public:
     virtual bool set_ready(bool ready) = 0;
     virtual bool is_printing() const = 0;
     virtual bool is_idle() const = 0;
+    virtual uint32_t cancelable_fingerprint() const = 0;
+#if ENABLED(CANCEL_OBJECTS)
+    virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const = 0;
+#endif
     // Turn connect on and set the token.
     //
     // Part of registration.

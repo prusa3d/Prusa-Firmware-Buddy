@@ -181,6 +181,9 @@ namespace {
         const auto &info = state.printer.printer_info();
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         const bool printing = is_printing(params.state);
+#if ENABLED(CANCEL_OBJECTS)
+        char cancel_object_name[Printer::CANCEL_OBJECT_NAME_LEN];
+#endif
 
         const char *reject_with = nullptr;
         Printer::NetCreds creds = {};
@@ -408,6 +411,27 @@ namespace {
                         JSON_FIELD_STR("name", event.path->name());
                     JSON_OBJ_END;
                 JSON_OBJ_END JSON_COMMA;
+            } else if (event.type == EventType::CancelableChanged) {
+#if ENABLED(CANCEL_OBJECTS)
+                JSON_FIELD_OBJ("data");
+                    JSON_FIELD_ARR("objects");
+                        while (state.cancelabel_iter <  params.cancel_object_count) {
+                            //Note: It can theoretically happen, that print finishes and new starts as we are sending this (tho really unlikely)
+                            //, but in that case we would just send some inconsistent names, probably empty srings and
+                            //right after we would generate next event with the correct ones, so it is OK.
+                            JSON_OBJ_START;
+                                //Note: The name has to be copied inside this call, so that it cannot be skipped, if this does not fit the first time.
+                                JSON_FIELD_STR("name", state.printer.get_cancel_object_name(cancel_object_name, sizeof(cancel_object_name), state.cancelabel_iter)) JSON_COMMA;
+                                JSON_FIELD_INT("id", state.cancelabel_iter);
+                            JSON_OBJ_END;
+                            if (state.cancelabel_iter != params.cancel_object_count - 1) {
+                                JSON_COMMA;
+                            }
+                            state.cancelabel_iter++;
+                        }
+                    JSON_ARR_END;
+                JSON_OBJ_END JSON_COMMA;
+#endif
             }
 
             JSON_FIELD_STR("state", to_str(params.state)) JSON_COMMA;

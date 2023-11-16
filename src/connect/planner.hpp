@@ -35,6 +35,7 @@ enum class EventType {
     TransferStopped,
     TransferAborted,
     TransferFinished,
+    CancelableChanged,
 };
 
 const char *to_str(EventType event);
@@ -142,6 +143,8 @@ private:
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;
+
+    Tracked cancellable_objects;
     // Tracking of ongoing transfers.
     std::optional<transfers::TransferId> observed_transfer;
 

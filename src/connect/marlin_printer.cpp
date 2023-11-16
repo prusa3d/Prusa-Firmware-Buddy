@@ -227,6 +227,9 @@ Printer::Params MarlinPrinter::params() const {
     // Version can change between MK4 and MK3.9 in runtime
     params.version = get_printer_version();
     get_slot_info(params);
+#if ENABLED(CANCEL_OBJECTS)
+    params.cancel_object_count = marlin_vars()->cancel_object_count;
+#endif
 
     params.print_duration = marlin_vars()->print_duration;
     params.time_to_end = marlin_vars()->time_to_end;
@@ -265,6 +268,28 @@ Printer::Config MarlinPrinter::load_config() {
 
     return configuration;
 }
+
+uint32_t MarlinPrinter::cancelable_fingerprint() const {
+    uint32_t crc = 0;
+#if ENABLED(CANCEL_OBJECTS)
+    auto calc_crc = [&](const char *s) {
+        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(*s), strlen(s));
+    };
+    for (size_t i = 0; i < marlin_vars_t::CANCEL_OBJECTS_NAME_COUNT; i++) {
+        marlin_vars()->cancel_object_names[i].execute_with(calc_crc);
+    }
+    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&marlin_vars()->job_id), sizeof(marlin_vars()->job_id));
+    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&marlin_vars()->cancel_object_count), sizeof(marlin_vars()->cancel_object_count));
+#endif
+    return crc;
+}
+
+#if ENABLED(CANCEL_OBJECTS)
+const char *MarlinPrinter::get_cancel_object_name(char *buffer, size_t size, size_t index) const {
+    marlin_vars()->cancel_object_names[index].copy_to(buffer, size);
+    return buffer;
+}
+#endif
 
 void MarlinPrinter::init_connect(char *token) {
     config_store().connect_token.set(token);
