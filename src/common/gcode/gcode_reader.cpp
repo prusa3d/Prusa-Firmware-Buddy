@@ -945,51 +945,49 @@ void AnyGcodeFormatReader::close() {
 }
 
 IGcodeReader *AnyGcodeFormatReader::open(const char *filename) {
-    FILE *file = nullptr;
-    bool is_partial = false;
+    transfers::Transfer::Path path(filename);
     struct stat info {};
 
     // check if file is partially downloaded file
-    transfers::Transfer::Path path(filename);
+    bool is_partial = false;
+
     if (stat(path.as_destination(), &info) != 0) {
         return nullptr;
-    } else {
-        if (S_ISDIR(info.st_mode)) {
-            if (stat(path.as_partial(), &info) != 0) {
-                return nullptr;
-            }
-            is_partial = true;
-        }
     }
 
-    file = fopen(is_partial ? path.as_partial() : path.as_destination(), "rb");
-    if (file) {
-        if (filename_is_bgcode(filename)) {
-            storage.emplace<PrusaPackGcodeReader>(*file, info);
-            ptr = &std::get<PrusaPackGcodeReader>(storage);
-
-            if (is_partial) {
-                ptr->update_validity(path);
-            }
-
-            return ptr;
-
-        } else if (filename_is_plain_gcode(filename)) {
-            storage.emplace<PlainGcodeReader>(*file, info);
-            ptr = &std::get<PlainGcodeReader>(storage);
-
-            if (is_partial) {
-                ptr->update_validity(path);
-            }
-
-            return ptr;
+    if (S_ISDIR(info.st_mode)) {
+        if (stat(path.as_partial(), &info) != 0) {
+            return nullptr;
         }
+
+        is_partial = true;
     }
-    if (file) {
+
+    FILE *file = fopen(is_partial ? path.as_partial() : path.as_destination(), "rb");
+    if (!file) {
+        return nullptr;
+    }
+
+    if (filename_is_bgcode(filename)) {
+        storage.emplace<PrusaPackGcodeReader>(*file, info);
+        ptr = &std::get<PrusaPackGcodeReader>(storage);
+    }
+
+    else if (filename_is_plain_gcode(filename)) {
+        storage.emplace<PlainGcodeReader>(*file, info);
+        ptr = &std::get<PlainGcodeReader>(storage);
+    }
+
+    else {
         fclose(file);
+        return nullptr;
     }
 
-    return nullptr;
+    if (is_partial) {
+        ptr->update_validity(path);
+    }
+
+    return ptr;
 }
 
 void PrusaPackGcodeReader::stream_t::reset() {
