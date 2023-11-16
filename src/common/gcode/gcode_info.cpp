@@ -559,12 +559,23 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
                 valid_printer_settings.wrong_printer_model.fail();
             }
         }
+#if EXTRUDERS > 1
+        else if (name == gcode_info::filament_wipe_tower_g) {
+            // load amount of material used filament for wipe tower
+            float temp;
+            sscanf(val.c_str(), "%f", &temp);
+            filament_wipe_tower_g = temp;
+        }
+#endif
     }
 }
 
 void GCodeInfo::PreviewInit(IGcodeReader &reader) {
     valid_printer_settings = ValidPrinterSettings(); // reset to valid state
     per_extruder_info = {}; // Reset extruder info
+#if EXTRUDERS > 1
+    filament_wipe_tower_g = std::nullopt;
+#endif
 
     GcodeBuffer buffer;
 
