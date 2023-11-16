@@ -23,6 +23,9 @@ inline constexpr const char *filament_type = "filament_type";
 inline constexpr const char *extruder_colour = "extruder_colour";
 inline constexpr const char *filament_mm = "filament used [mm]";
 inline constexpr const char *filament_g = "filament used [g]";
+#if EXTRUDERS > 1
+inline constexpr const char *filament_wipe_tower_g = "total filament used for wipe tower [g]";
+#endif
 inline constexpr const char *printer = "printer_model";
 inline constexpr const char *m862 = "M862";
 inline constexpr const char *m115 = "M115";
@@ -166,6 +169,9 @@ private:
     std::atomic<const char *> error_str_ = nullptr; ///< If there is an error, this variable can be used to report the error string
 
     time_buff printing_time; ///< Stores string representation of printing time left
+#if EXTRUDERS > 1
+    std::optional<float> filament_wipe_tower_g = { std::nullopt }; ///< Grams of filament used for wipe tower
+#endif
     bool has_preview_thumbnail_; ///< True if gcode has preview thumbnail
     bool has_progress_thumbnail_; ///< True if gcode has progress thumbnail
     bool filament_described; ///< Filament info was found in gcode's comments
@@ -190,6 +196,9 @@ public:
     const std::optional<uint16_t> &get_bed_preheat_temp() const { return bed_preheat_temp; } ///< Get info about bed preheat temperature
     const std::optional<PrintArea::rect_t> &get_bed_preheat_area() const { return bed_preheat_area; } ///< Get info about G-preheat area
     inline const std::optional<uint16_t> &get_hotend_preheat_temp() const { return hotend_preheat_temp; }
+#if EXTRUDERS > 1
+    std::optional<float> get_filament_wipe_tower_g() const { return filament_wipe_tower_g; } ///< filament used for wipe tower
+#endif
 
     /**
      * @brief Check if gcode is sliced with singletool profile.
