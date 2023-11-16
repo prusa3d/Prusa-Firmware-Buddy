@@ -121,7 +121,7 @@ void app_setup_marlin_logging() {
     SerialUSB.lineBufferHook = app_marlin_serial_output_write_hook;
 }
 
-void wait_for_serial() {
+static void wait_for_serial() {
     // wait for usb thread to be ready, then continue waiting only if something is attached
     TaskDeps::wait(TaskDeps::Tasks::usb_device_start);
     if (!usb_device_attached()) {
