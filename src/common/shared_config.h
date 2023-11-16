@@ -12,6 +12,7 @@ enum class FwAutoUpdate : uint8_t {
     off = 0x00,
     older = 0x55,
     specified = 0xBB,
+    tester_mode = 0xCC,
 };
 
 #if defined(USE_ST7789)

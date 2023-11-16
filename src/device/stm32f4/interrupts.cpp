@@ -13,6 +13,7 @@
 #include <device/peripherals.h>
 #include <wdt.hpp>
 #include "safe_state.h"
+#include "data_exchange.hpp"
 #include <option/buddy_enable_wui.h>
 
 #ifdef BUDDY_ENABLE_WUI
@@ -79,7 +80,10 @@ void USART6_IRQHandler(void) {
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart6);
 #if BUDDY_ENABLE_WUI() && uart_esp == 6
-        espif_receive_data(&huart6);
+        // block esp in tester mode
+        if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+            espif_receive_data(&huart6);
+        }
 #elif BOARD_IS_XBUDDY
     #if !HAS_PUPPIES()
         uart6_idle_cb();
@@ -94,9 +98,12 @@ void USART6_IRQHandler(void) {
  */
 void UART8_IRQHandler(void) {
 #if defined(BUDDY_ENABLE_WUI) && uart_esp == 8
-    if (__HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE)) {
-        __HAL_UART_CLEAR_IDLEFLAG(&huart8);
-        espif_receive_data(&huart8);
+    // block esp in tester mode
+    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+        if (__HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE)) {
+            __HAL_UART_CLEAR_IDLEFLAG(&huart8);
+            espif_receive_data(&huart8);
+        }
     }
 #endif
 
