@@ -497,7 +497,8 @@ void screen_printing_data_t::start_showing_end_result() {
     }
 
     consumed_material_label.Show();
-    for (size_t i = 0; i < EXTRUDERS; ++i) {
+
+    for (size_t i = 0, consumed_material_line_idx = 0; i < EXTRUDERS; ++i) {
         const auto &ext_info { gcode.get_extruder_info(i) };
         if (!ext_info.used()) {
             continue;
@@ -510,7 +511,7 @@ void screen_printing_data_t::start_showing_end_result() {
             return fname.has_value() ? fname.value().data() : "---";
         };
 
-        auto &buff { consumed_material_values_buffers[i] };
+        auto &buff { consumed_material_values_buffers[consumed_material_line_idx] };
 
         const bool show_t_label {
     #if EXTRUDERS > 1
@@ -547,9 +548,10 @@ void screen_printing_data_t::start_showing_end_result() {
             }
         }
 
-        consumed_material_values[i].SetText(_(buff.data()));
+        consumed_material_values[consumed_material_line_idx].SetText(_(buff.data()));
 
-        consumed_material_values[i].Show();
+        consumed_material_values[consumed_material_line_idx].Show();
+        ++consumed_material_line_idx;
     }
 
     arrow_right.Show();
