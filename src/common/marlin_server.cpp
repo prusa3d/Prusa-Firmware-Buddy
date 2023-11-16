@@ -430,8 +430,8 @@ void print_fan_spd() {
 ///
 /// After the filament is unloaded then we need to restore original temperature. Since we
 /// are enqueueing gcode, we can't set it directly and we need to enque another gcode. We
-/// can do this since this will be only called at the end of the print. So it shouldn't
-/// overwrite any important gcodes.
+/// can do this since this will be only called at the end of the print or when aborting.
+/// So it shouldn't overwrite any important gcodes.
 void safely_unload_filament_from_nozzle_to_mmu() {
     const auto original_temp = thermalManager.degTargetHotend(active_extruder);
     enqueue_gcode("M702 W2");
@@ -1676,7 +1676,7 @@ static void _server_print_loop(void) {
         }
 
 #if ENABLED(PRUSA_MMU2)
-        MMU2::mmu2.unload();
+        safely_unload_filament_from_nozzle_to_mmu();
 #endif
 
         thermalManager.disable_all_heaters();
