@@ -23,6 +23,7 @@ using dependency_t = EventBits_t;
 enum class Dependency {
     puppies_ready,
     resources_ready,
+    usb_device_ready,
     default_task_ready,
     esp_flashed,
     networking_ready,
@@ -48,6 +49,8 @@ constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
 
 /// Definitions of dependencies for different tasks/components
 namespace Tasks {
+    inline constexpr dependency_t usb_device_start = make(Dependency::usb_device_ready);
+
     inline constexpr dependency_t default_start = make(
         Dependency::media_prefetch_ready
 #if HAS_PUPPIES()

@@ -17,6 +17,7 @@
 #include "sound.hpp"
 #include "language_eeprom.hpp"
 #include <device/board.h>
+#include <usb_device.hpp>
 
 #include <option/has_advanced_power.h>
 #if HAS_ADVANCED_POWER()
@@ -121,14 +122,15 @@ void app_setup_marlin_logging() {
 }
 
 void wait_for_serial() {
-    // wait only if connected
-    if (!tud_ready()) {
+    // wait for usb thread to be ready, then continue waiting only if something is attached
+    TaskDeps::wait(TaskDeps::Tasks::usb_device_start);
+    if (!usb_device_attached()) {
         return;
     }
 
     log_info(Buddy, "device connected: waiting for serial");
     uint32_t start_ts = ticks_ms();
-    while (tud_ready() && ticks_diff(ticks_ms(), start_ts) < 3000) {
+    while (usb_device_attached() && ticks_diff(ticks_ms(), start_ts) < 3000) {
         if (tud_cdc_n_connected(0)) {
             log_info(Buddy, "serial successfully attached");
             break;

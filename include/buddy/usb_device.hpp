@@ -4,3 +4,4 @@
 extern log_component_t LOG_COMPONENT(USBDevice);
 
 void usb_device_init();
+bool usb_device_attached();

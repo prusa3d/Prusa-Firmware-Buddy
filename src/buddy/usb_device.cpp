@@ -8,6 +8,7 @@
 #include "buddy/priorities_config.h"
 #include <ccm_thread.hpp>
 #include <config_store/store_instance.hpp>
+#include <tasks.hpp>
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
@@ -46,17 +47,21 @@ static serial_nr_t serial_nr;
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     #include "FUSB302B.hpp"
     #include "hwio_pindef.h"
+    #include <atomic>
 
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     #include <device/dcd.h>
     #pragma GCC diagnostic pop
 
+static std::atomic<bool> usb_vbus_state = false;
+
 static void check_usb_connection() {
     if (buddy::hw::fsUSBCInt.read() == buddy::hw::Pin::State::low) {
         buddy::hw::FUSB302B::ClearVBUSIntFlag();
 
         bool vbus_status = buddy::hw::FUSB302B::ReadVBUSState();
+        usb_vbus_state.store(vbus_status);
         usb_device_log("FUSB302B VBUS state change: %d\n", (int)vbus_status);
 
         if (!vbus_status) {
@@ -106,6 +111,14 @@ static tusb_desc_device_t desc_device = {
     .bNumConfigurations = 0x01
 };
 
+bool usb_device_attached() {
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    return usb_vbus_state.load();
+#else
+    return tud_connected();
+#endif
+}
+
 static void usb_device_task_run(const void *) {
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     buddy::hw::FUSB302B::InitChip();
@@ -145,6 +158,12 @@ static void usb_device_task_run(const void *) {
 
     // initialize tinyusb stack
     tusb_init();
+
+    // initialize the connection state
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    usb_vbus_state.store(buddy::hw::FUSB302B::ReadVBUSState());
+#endif
+    TaskDeps::provide(TaskDeps::Dependency::usb_device_ready);
 
     while (true) {
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
