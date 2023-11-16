@@ -11,6 +11,7 @@
 #include "PCA9557.hpp"
 #include "log.h"
 #include "timing_precise.hpp"
+#include "data_exchange.hpp"
 #include <option/has_puppies.h>
 #include <printers.h>
 
@@ -411,12 +412,18 @@ void hw_uart3_init() {
     }
 }
 
+static constexpr uint32_t tester_uart_speed = 115'200; // HW tester during manufacturing needs this speed
+static constexpr uint32_t uart6_default_speed = 115'200;
+static constexpr uint32_t uart8_default_speed = 4'600'000;
+
 void hw_uart6_init() {
     huart6.Instance = USART6;
 #if HAS_PUPPIES() && (uart_puppies == 6)
     huart6.Init.BaudRate = 230400;
+#elif uart_esp == 6
+    huart6.Init.BaudRate = get_auto_update_flag() == FwAutoUpdate::tester_mode ? tester_uart_speed : uart6_default_speed;
 #else
-    huart6.Init.BaudRate = 115200;
+    huart6.Init.BaudRate = uart6_default_speed;
 #endif
     huart6.Init.WordLength = UART_WORDLENGTH_8B;
     huart6.Init.StopBits = UART_STOPBITS_1;
@@ -432,7 +439,11 @@ void hw_uart6_init() {
 #if MCU_IS_STM32F42X()
 void hw_uart8_init() {
     huart8.Instance = UART8;
-    huart8.Init.BaudRate = 4600000;
+    #if uart_esp == 8
+    huart8.Init.BaudRate = get_auto_update_flag() == FwAutoUpdate::tester_mode ? tester_uart_speed : uart8_default_speed;
+    #else
+    huart8.Init.BaudRate = uart8_default_speed;
+    #endif
     huart8.Init.WordLength = UART_WORDLENGTH_8B;
     huart8.Init.StopBits = UART_STOPBITS_1;
     huart8.Init.Parity = UART_PARITY_NONE;

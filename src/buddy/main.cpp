@@ -51,6 +51,7 @@
 #include <printers.h>
 #include "version.h"
 #include "str_utils.hpp"
+#include "data_exchange.hpp"
 #include "bootloader/bootloader.hpp"
 #include "gui_bootstrap_screen.hpp"
 #include "resources/revision.hpp"
@@ -137,6 +138,20 @@ static void manufacture_report() {
     SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
     SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
     SerialUSB.write('\n');
+}
+
+static void manufacture_report_endless_loop() {
+    // ESP reset (needed for XL, since it has embedded ESP)
+    HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
+
+    constexpr const uint8_t endl = '\n';
+    constexpr const char *str_fw = "FW:";
+    while (true) {
+        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), reinterpret_cast<const uint8_t *>(str_fw), strlen_constexpr(str_fw), 1000);
+        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full), 1000);
+        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), &endl, sizeof(endl), 1000);
+        osDelay(500); // tester needs 500ms, do not change this value!
+    }
 }
 
 #if ENABLED(RESOURCES()) && ENABLED(BOOTLOADER_UPDATE())
@@ -354,8 +369,11 @@ extern "C" void main_cpp(void) {
         NULL
     };
     metric_system_init(handlers);
-
-    manufacture_report();
+    if (get_auto_update_flag() == FwAutoUpdate::tester_mode) {
+        manufacture_report_endless_loop();
+    } else {
+        manufacture_report(); // TODO erase this after all printers use manufacture_report_endless_loop (== ESP UART)
+    }
 
 #if (BOARD_IS_BUDDY)
     buddy::hw::BufferedSerial::uart2.Open();
@@ -375,7 +393,10 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    espif_init_hw();
+    // block esp in tester mode
+    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+        espif_init_hw();
+    }
 #endif
 
     media_prefetch_init();
@@ -397,10 +418,13 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    espif_task_create();
+    // block esp in tester mode
+    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+        espif_task_create();
 
-    TaskDeps::wait(TaskDeps::Tasks::network);
-    start_network_task();
+        TaskDeps::wait(TaskDeps::Tasks::network);
+        start_network_task();
+    }
 #endif
 
 #if BUDDY_ENABLE_CONNECT()
@@ -408,10 +432,13 @@ extern "C" void main_cpp(void) {
         // FIXME: We should be able to split networking to the lower-level network part and the Link part. Currently, both are done through WUI.
         #error "Can't have connect without WUI"
     #endif
-    /* definition and creation of connectTask */
-    TaskDeps::wait(TaskDeps::Tasks::connect);
-    osThreadCCMDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
-    connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
+    // block esp in tester mode
+    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+        // definition and creation of connectTask
+        TaskDeps::wait(TaskDeps::Tasks::connect);
+        osThreadCCMDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
+        connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
+    }
 #endif
 
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
