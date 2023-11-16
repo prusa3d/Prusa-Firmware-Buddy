@@ -84,8 +84,9 @@ struct MMU2SerialSim {
         return std::equal(txbuffQ.begin(), txbuffQ.end(), msgs.begin(), [](auto a, auto b) { return a == AppendCRC(b); });
     }
     bool TxBuffMatchesCRC(std::string_view msg) const {
-        if (txbuffQ.size() != 1)
+        if (txbuffQ.size() != 1) {
             return false;
+        }
         return txbuffQ.back() == AppendCRC(msg);
     }
     void SetAutomagic() {

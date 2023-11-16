@@ -47,8 +47,9 @@ void loadcell_loop() {
 
 // HX717 sample function. Samples loadcell channel only.
 void loadcell_irq() {
-    if (!loadcell_is_enabled)
+    if (!loadcell_is_enabled) {
         return;
+    }
 
     uint32_t timestamp = ticks_us();
 

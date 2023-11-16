@@ -221,8 +221,9 @@ bool PrintPreview::check_extruder_need_filament_load(uint8_t physical_extruder, 
         return false; // if this physical_extruder is not printing, no need to check its filament
     }
 
-    if (!GCodeInfo::getInstance().get_extruder_info(gcode_extruder).used())
+    if (!GCodeInfo::getInstance().get_extruder_info(gcode_extruder).used()) {
         return false;
+    }
 
     // when tool doesn't have filament, it needs load
     return !FSensors_instance().ToolHasFilament(physical_extruder);
@@ -239,11 +240,13 @@ bool PrintPreview::check_correct_filament_type(uint8_t physical_extruder, uint8_
     }
 
     const auto &extruder_info = GCodeInfo::getInstance().get_extruder_info(gcode_extruder);
-    if (!extruder_info.used())
+    if (!extruder_info.used()) {
         return true; // when tool not used in print, return OK filament type
+    }
 
-    if (!extruder_info.filament_name.has_value())
+    if (!extruder_info.filament_name.has_value()) {
         return true; // filament type unspecified, return tool OK
+    }
 
     const auto loaded_filament_type = config_store().get_filament_type(physical_extruder);
     const auto loaded_filament_desc = filament::get_description(loaded_filament_type);
@@ -295,8 +298,9 @@ static void queue_filament_load_gcodes() {
         }
 
         // skip for tools that already have filament
-        if (!check_extruder_need_filament_load_tools_mapping(e))
+        if (!check_extruder_need_filament_load_tools_mapping(e)) {
             continue;
+        }
 
         // pass filament type from gcode, so that user doesn't have to select filament type
         const char *filament_name = GCodeInfo::getInstance().get_extruder_info(gcode_extruder).filament_name.has_value()
@@ -373,12 +377,14 @@ void PrintPreview::tools_mapping_cleanup(bool leaving_to_print) {
 }
 
 PrintPreview::Result PrintPreview::Loop() {
-    if (GetState() == State::inactive)
+    if (GetState() == State::inactive) {
         return Result::Inactive;
+    }
 
     uint32_t time = ticks_ms();
-    if ((time - last_run) < max_run_period_ms)
+    if ((time - last_run) < max_run_period_ms) {
         return stateToResult();
+    }
     last_run = time;
     const Response response = GetResponse();
 

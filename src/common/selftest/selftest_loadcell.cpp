@@ -236,10 +236,11 @@ LoopResult CSelftestPart_Loadcell::stateTapCheckCountDown() {
 
     rResult.countdown = new_countdown;
 
-    if (countdown_running_ms >= rConfig.countdown_sec * 1000)
+    if (countdown_running_ms >= rConfig.countdown_sec * 1000) {
         return LoopResult::RunNext;
-    else
+    } else {
         return LoopResult::RunCurrent;
+    }
 }
 
 LoopResult CSelftestPart_Loadcell::stateTapCheckInit() {

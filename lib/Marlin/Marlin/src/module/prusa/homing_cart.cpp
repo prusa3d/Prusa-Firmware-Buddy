@@ -69,8 +69,9 @@ static int calibrated_offset_mscnt(const AxisEnum axis, const int mscnt, bool &c
 float calibrated_home_offset(const AxisEnum axis) {
     bool calibrated;
     const int cal = get_calibrated_home(axis, calibrated);
-    if (!calibrated)
+    if (!calibrated) {
         return 0;
+    }
 
     const constexpr float steps_per_unit[] = DEFAULT_AXIS_STEPS_PER_UNIT;
     switch (axis) {
@@ -110,8 +111,9 @@ static int32_t home_and_get_calibration_offset(AxisEnum axis, int axis_home_dir,
         }
 
         calibration_offset = calibrated_offset_mscnt(axis, mscnt, calibrated);
-        if (!calibrated)
+        if (!calibrated) {
             calibration_offset = 0;
+        }
 
         SERIAL_ECHO_START();
         SERIAL_ECHOPAIR("    homing probe offset: ", probe_offset);

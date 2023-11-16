@@ -283,8 +283,9 @@ void Fsm::Loop() {
     }
 
     std::optional<Reporter::Report> report = Fsm::Instance().reporter.ConsumeReport();
-    if (!report)
+    if (!report) {
         return;
+    }
 
     switch (report->type) {
     case Reporter::Type::error:

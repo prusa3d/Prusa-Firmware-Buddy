@@ -160,16 +160,18 @@ void st7789v_reset(void) {
     {
         InputEnabler rstInput(displayRst, Pull::up);
         buddy::DisableInterrupts disable_interrupts;
-        while (rstInput.read() == Pin::State::low)
+        while (rstInput.read() == Pin::State::low) {
             delay++;
+        }
     }
     st7789v_set_rst();
     st7789v_reset_delay = delay;
 }
 
 static inline void st7789v_fill_ui16(uint16_t *p, uint16_t v, uint16_t c) {
-    while (c--)
+    while (c--) {
         *(p++) = v;
+    }
 }
 
 static inline int is_interrupt(void) {
@@ -210,8 +212,9 @@ void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
 #else // ST7789V_USE_RTOS
 // TODO:
 #endif // ST7789V_USE_RTOS
-    } else
+    } else {
         HAL_SPI_Transmit(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+    }
 }
 
 void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
@@ -238,60 +241,74 @@ void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
 
 void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
     uint16_t tmp_flg = st7789v_flg; // save flags
-    if (st7789v_flg & FLG_CS)
+    if (st7789v_flg & FLG_CS) {
         st7789v_clr_cs(); // CS = L
-    if (st7789v_flg & FLG_RS)
+    }
+    if (st7789v_flg & FLG_RS) {
         st7789v_clr_rs(); // RS = L
+    }
     st7789v_spi_wr_byte(cmd); // write command byte
     if (pdata && size) {
         st7789v_set_rs(); // RS = H
         st7789v_spi_wr_bytes(pdata, size); // write data bytes
     }
-    if (tmp_flg & FLG_CS)
+    if (tmp_flg & FLG_CS) {
         st7789v_set_cs(); // CS = H
+    }
 }
 
 #pragma GCC push_options
 #pragma GCC optimize("O3")
 void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     uint16_t tmp_flg = st7789v_flg; // save flags
-    if (st7789v_flg & FLG_CS)
+    if (st7789v_flg & FLG_CS) {
         st7789v_clr_cs(); // CS = L
-    if (st7789v_flg & FLG_RS)
+    }
+    if (st7789v_flg & FLG_RS) {
         st7789v_clr_rs(); // RS = L
+    }
     uint8_t data_to_write[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     data_to_write[0] = cmd;
     data_to_write[1] = 0x00;
     HAL_SPI_TransmitReceive(st7789v_config.phspi, data_to_write, pdata, ST7789V_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
-    if (tmp_flg & FLG_CS)
+    if (tmp_flg & FLG_CS) {
         st7789v_set_cs();
+    }
 }
 #pragma GCC pop_options
 
 void st7789v_wr(uint8_t *pdata, uint16_t size) {
-    if (!(pdata && size))
+    if (!(pdata && size)) {
         return; // null or empty data - return
+    }
     uint16_t tmp_flg = st7789v_flg; // save flags
-    if (st7789v_flg & FLG_CS)
+    if (st7789v_flg & FLG_CS) {
         st7789v_clr_cs(); // CS = L
-    if (!(st7789v_flg & FLG_RS))
+    }
+    if (!(st7789v_flg & FLG_RS)) {
         st7789v_set_rs(); // RS = H
+    }
     st7789v_spi_wr_bytes(pdata, size); // write data bytes
-    if (tmp_flg & FLG_CS)
+    if (tmp_flg & FLG_CS) {
         st7789v_set_cs(); // CS = H
+    }
 }
 
 void st7789v_rd(uint8_t *pdata, uint16_t size) {
-    if (!(pdata && size))
+    if (!(pdata && size)) {
         return; // null or empty data - return
+    }
     uint16_t tmp_flg = st7789v_flg; // save flags
-    if (st7789v_flg & FLG_CS)
+    if (st7789v_flg & FLG_CS) {
         st7789v_clr_cs(); // CS = L
-    if (!(st7789v_flg & FLG_RS))
+    }
+    if (!(st7789v_flg & FLG_RS)) {
         st7789v_set_rs(); // RS = H
+    }
     st7789v_spi_rd_bytes(pdata, size); // read data bytes
-    if (tmp_flg & FLG_CS)
+    if (tmp_flg & FLG_CS) {
         st7789v_set_cs(); // CS = H
+    }
 }
 
 void st7789v_cmd_slpout(void) {
@@ -366,10 +383,11 @@ void st7789v_init(void) {
 #ifdef ST7789V_USE_RTOS
     st7789v_task_handle = osThreadGetId();
 #endif // ST7789V_USE_RTOS
-    if (st7789v_flg & (uint8_t)ST7789V_FLG_SAFE)
+    if (st7789v_flg & (uint8_t)ST7789V_FLG_SAFE) {
         st7789v_flg &= ~(uint8_t)ST7789V_FLG_DMA;
-    else
+    } else {
         st7789v_flg = st7789v_config.flg;
+    }
     st7789v_init_ctl_pins(); // CS=H, RS=H, RST=H
     st7789v_reset(); // 15ms reset pulse
     st7789v_delay_ms(120); // 120ms wait
@@ -390,14 +408,16 @@ void st7789v_clear(uint16_t clr565) {
 
     // FIXME similar to display_ex_fill_rect; join?
     int i;
-    for (i = 0; i < ST7789V_COLS * 16; i++)
+    for (i = 0; i < ST7789V_COLS * 16; i++) {
         ((uint16_t *)st7789v_buff)[i] = clr565;
+    }
     st7789v_clr_cs();
     st7789v_cmd_caset(0, ST7789V_COLS - 1);
     st7789v_cmd_raset(0, ST7789V_ROWS - 1);
     st7789v_cmd_ramwr(0, 0);
-    for (i = 0; i < ST7789V_ROWS / 16; i++)
+    for (i = 0; i < ST7789V_ROWS / 16; i++) {
         st7789v_wr(st7789v_buff, 2 * ST7789V_COLS * 16);
+    }
     st7789v_set_cs();
     //	st7789v_test_miso();
 }
@@ -453,8 +473,9 @@ uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y) {
 uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
     assert(!st7789v_buff_borrowed && "Buffer lent to someone");
 
-    if (start_x > ST7789V_COLS || start_y > ST7789V_ROWS || end_x > ST7789V_COLS || end_y > ST7789V_ROWS)
+    if (start_x > ST7789V_COLS || start_y > ST7789V_ROWS || end_x > ST7789V_COLS || end_y > ST7789V_ROWS) {
         return NULL;
+    }
     st7789v_cmd_caset(start_x, end_x);
     st7789v_cmd_raset(start_y, end_y);
     st7789v_cmd_ramrd(st7789v_buff, ST7789V_COLS * 2 * ST7789V_BUFF_ROWS);
@@ -473,8 +494,9 @@ void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, uint16_t
     st7789v_cmd_raset(rect_y, rect_y + rect_h - 1);
     st7789v_cmd_ramwr(0, 0);
 
-    for (unsigned int i = 0; i < size / sizeof(st7789v_buff); i++) // writer buffer by buffer
+    for (unsigned int i = 0; i < size / sizeof(st7789v_buff); i++) { // writer buffer by buffer
         st7789v_wr(st7789v_buff, sizeof(st7789v_buff));
+    }
 
     st7789v_wr(st7789v_buff, size % sizeof(st7789v_buff)); // write the remainder data
     st7789v_set_cs();
@@ -509,10 +531,11 @@ void st7789v_inversion_tgl(void) {
     st7789v_cmd(CMD_INVOFF + st7789v_config.is_inverted, 0, 0);
 #else
     // to be portable
-    if (st7789v_inversion_get())
+    if (st7789v_inversion_get()) {
         st7789v_inversion_off();
-    else
+    } else {
         st7789v_inversion_on();
+    }
 
 #endif
 }
@@ -538,16 +561,18 @@ void st7789v_gamma_set_direct(uint8_t gamma_enu) {
 
 // use 0 - 3
 void st7789v_gamma_set(uint8_t gamma) {
-    if (gamma != st7789v_gamma_get())
+    if (gamma != st7789v_gamma_get()) {
         st7789v_gamma_set_direct(1 << (gamma & 0x03));
+    }
 }
 
 // returns 0 - 3
 uint8_t st7789v_gamma_get() {
     uint8_t position = 3;
     for (; position != 0; --position) {
-        if (st7789v_config.gamma == 1 << position)
+        if (st7789v_config.gamma == 1 << position) {
             break;
+        }
     }
 
     return position;

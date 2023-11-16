@@ -44,8 +44,9 @@ SelftestFrameFans::fan_state_t SelftestFrameFans::make_fan_row(size_t index) {
     // when toolchanger is enabled, count how many tools after this one are disabled, and shift icons to the right over the hidden ones
 
     for (size_t i = index; i < HOTENDS; i++) {
-        if (!prusa_toolchanger.is_tool_enabled(i))
+        if (!prusa_toolchanger.is_tool_enabled(i)) {
             ++disabled;
+        }
     }
 #endif
 

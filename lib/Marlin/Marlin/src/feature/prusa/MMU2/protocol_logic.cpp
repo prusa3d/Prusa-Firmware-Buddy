@@ -280,8 +280,9 @@ StepStatus ProtocolLogic::ScopeStep() {
         }
     } else {
         // we are expecting a message
-        if (auto expmsg = ExpectingMessage(); expmsg != MessageReady) // this whole statement takes 12B
+        if (auto expmsg = ExpectingMessage(); expmsg != MessageReady) { // this whole statement takes 12B
             return expmsg;
+        }
 
         // process message
         switch (currentScope) {
@@ -725,8 +726,9 @@ void ProtocolLogic::FormatLastResponseMsgAndClearLRB(char *dst) {
     for (uint8_t i = 0; i < lrb; ++i) {
         uint8_t b = lastReceivedBytes[i];
         // Check for printable character, including space
-        if (b < 32 || b > 127)
+        if (b < 32 || b > 127) {
             b = '.';
+        }
         *dst++ = b;
     }
     *dst = 0; // terminate properly
@@ -740,8 +742,9 @@ void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
     for (uint8_t i = 0; i < size; ++i) {
         uint8_t b = txbuff[i];
         // Check for printable character, including space
-        if (b < 32 || b > 127)
+        if (b < 32 || b > 127) {
             b = '.';
+        }
         tmp[i + 1] = b;
     }
     tmp[size + 1] = 0;
@@ -850,8 +853,9 @@ StepStatus ProtocolLogic::Step() {
 }
 
 uint8_t ProtocolLogic::CommandInProgress() const {
-    if (currentScope != Scope::Command)
+    if (currentScope != Scope::Command) {
         return 0;
+    }
     return (uint8_t)ReqMsg().code;
 }
 

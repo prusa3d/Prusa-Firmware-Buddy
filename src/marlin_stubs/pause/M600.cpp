@@ -121,8 +121,9 @@ void M600_execute(xyz_pos_t park_point, int8_t target_extruder,
 
 void M600_manual() {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
-    if (target_extruder < 0)
+    if (target_extruder < 0) {
         return;
+    }
 #if HAS_LEDS()
     auto guard = PrinterStateAnimation::force_printer_state(PrinterState::Warning);
 #endif
@@ -135,14 +136,17 @@ void M600_manual() {
 #endif
 
     // Lift Z axis
-    if (parser.seenval('Z'))
+    if (parser.seenval('Z')) {
         park_point.z = parser.linearval('Z');
+    }
 
     // Move XY axes to filament change position or given position
-    if (parser.seenval('X'))
+    if (parser.seenval('X')) {
         park_point.x = parser.linearval('X');
-    if (parser.seenval('Y'))
+    }
+    if (parser.seenval('Y')) {
         park_point.y = parser.linearval('Y');
+    }
 
 #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA) && DISABLED(PRUSA_TOOLCHANGER)
     park_point += hotend_offset[active_extruder];

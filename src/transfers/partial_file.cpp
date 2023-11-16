@@ -169,8 +169,9 @@ bool PartialFile::write_current_sector() {
     // So we don't complicate the things and keep it this way (at worst, we
     // will stall tcpip thread for a short bit).
     auto result = usbh_msc_submit_request(current_sector);
-    if (result != USBH_OK)
+    if (result != USBH_OK) {
         return false;
+    }
     return true;
 }
 
@@ -241,8 +242,9 @@ bool PartialFile::advance_written(size_t by) {
 }
 
 bool PartialFile::write(const uint8_t *data, size_t size) {
-    if (write_error)
+    if (write_error) {
         return false;
+    }
     while (size) {
         auto buffer = get_current_buffer(true);
 

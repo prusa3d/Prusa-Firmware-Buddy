@@ -8,8 +8,9 @@
 IMockDisplay *MockDisplay::instance = nullptr;
 
 IMockDisplay &MockDisplay::Instance() {
-    if (!instance)
+    if (!instance) {
         throw "MockDisplay accesing nullptr";
+    }
     return *instance;
 }
 

@@ -237,8 +237,9 @@ public:
         const uint32_t value = server_side_encoded_response.exchange(UINT32_MAX); // read and erase response
 
         uint32_t _phase = value >> RESPONSE_BITS;
-        if ((static_cast<uint32_t>(phase)) != _phase)
+        if ((static_cast<uint32_t>(phase)) != _phase) {
             return Response::_none;
+        }
         uint32_t index = value & uint32_t(MAX_RESPONSES - 1); // get response index
         return GetResponse(phase, index);
     }

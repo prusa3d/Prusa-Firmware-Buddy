@@ -103,8 +103,9 @@ Rect16::Width_t IWiSpin::calculateExtensionWidth(size_t unit_len, unichar uchar,
     size_t ret = value_max_digits * Font->w;
     uint8_t half_space = 0;
     if (unit_len) {
-        if (GuiDefaults::MenuUseFixedUnitWidth)
+        if (GuiDefaults::MenuUseFixedUnitWidth) {
             return GuiDefaults::MenuUseFixedUnitWidth;
+        }
         ret += unit_len * GuiDefaults::FontMenuSpecial->w;
         ret += GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right;
         half_space = uchar == '\xB0' ? 0 : unit__half_space_padding;

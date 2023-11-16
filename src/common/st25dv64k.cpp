@@ -176,8 +176,9 @@ static void try_fix_if_needed(Result result) {
     uint8_t _out[sizeof(address) + BLOCK_BYTES];
     while (size) {
         uint8_t block_size = BLOCK_BYTES - (address % BLOCK_BYTES);
-        if (block_size > size)
+        if (block_size > size) {
             block_size = size;
+        }
         _out[0] = address >> 8;
         _out[1] = address & 0xff;
         memcpy(_out + sizeof(address), p, block_size);

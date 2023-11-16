@@ -19,8 +19,9 @@ bool IFooter::SetSlot(FooterLine &line, size_t slot_id, footer::Item item) {
 }
 
 bool IFooter::SetSlotInit(size_t slot_id, footer::Item item) {
-    if (slot_id >= FOOTER_ITEMS_PER_LINE__)
+    if (slot_id >= FOOTER_ITEMS_PER_LINE__) {
         return false;
+    }
     if (config_store().get_footer_setting(slot_id) != item) {
         config_store().set_footer_setting(slot_id, item);
         // send event to all windows - there can be multiple footers, ScreenEvent is the best way
@@ -30,7 +31,8 @@ bool IFooter::SetSlotInit(size_t slot_id, footer::Item item) {
 }
 
 footer::Item IFooter::GetSlotInit(size_t slot_id) {
-    if (slot_id >= FOOTER_ITEMS_PER_LINE__)
+    if (slot_id >= FOOTER_ITEMS_PER_LINE__) {
         return footer::Item::none;
+    }
     return config_store().get_footer_setting(slot_id);
 }

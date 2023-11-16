@@ -94,58 +94,79 @@ uint8_t PrusaErrorCodeIndex(ErrorCode ec) {
     // Need to be placed before TMC-related errors in order to process couples of error bits between single ones
     // and to keep the code size down.
     if (ContainsBit(ec, ErrorCode::TMC_PULLEY_BIT)) {
-        if ((ec & ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION) == ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION)
+        if ((ec & ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION) == ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_MMU_PULLEY_SELFTEST_FAILED);
+        }
     } else if (ContainsBit(ec, ErrorCode::TMC_SELECTOR_BIT)) {
-        if ((ec & ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION) == ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION)
+        if ((ec & ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION) == ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_MMU_SELECTOR_SELFTEST_FAILED);
+        }
     } else if (ContainsBit(ec, ErrorCode::TMC_IDLER_BIT)) {
-        if ((ec & ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION) == ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION)
+        if ((ec & ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION) == ErrorCode::MMU_SOLDERING_NEEDS_ATTENTION) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_MMU_IDLER_SELFTEST_FAILED);
+        }
     }
 
     // TMC-related errors - multiple of these can occur at once
     // - in such a case we report the first which gets found/converted into Prusa-Error-Codes (usually the fact, that one TMC has an issue is serious enough)
     // By carefully ordering the checks here we can prioritize the errors being reported to the user.
     if (ContainsBit(ec, ErrorCode::TMC_PULLEY_BIT)) {
-        if (ContainsBit(ec, ErrorCode::TMC_IOIN_MISMATCH))
+        if (ContainsBit(ec, ErrorCode::TMC_IOIN_MISMATCH)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_PULLEY_DRIVER_ERROR);
-        if (ContainsBit(ec, ErrorCode::TMC_RESET))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_RESET)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_PULLEY_DRIVER_RESET);
-        if (ContainsBit(ec, ErrorCode::TMC_UNDERVOLTAGE_ON_CHARGE_PUMP))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_UNDERVOLTAGE_ON_CHARGE_PUMP)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_PULLEY_UNDERVOLTAGE_ERROR);
-        if (ContainsBit(ec, ErrorCode::TMC_SHORT_TO_GROUND))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_SHORT_TO_GROUND)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_PULLEY_DRIVER_SHORTED);
-        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_WARN))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_WARN)) {
             return FindErrorIndex(ErrCode::ERR_TEMPERATURE_WARNING_TMC_PULLEY_TOO_HOT);
-        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_ERROR))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_ERROR)) {
             return FindErrorIndex(ErrCode::ERR_TEMPERATURE_TMC_PULLEY_OVERHEAT_ERROR);
+        }
     } else if (ContainsBit(ec, ErrorCode::TMC_SELECTOR_BIT)) {
-        if (ContainsBit(ec, ErrorCode::TMC_IOIN_MISMATCH))
+        if (ContainsBit(ec, ErrorCode::TMC_IOIN_MISMATCH)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_SELECTOR_DRIVER_ERROR);
-        if (ContainsBit(ec, ErrorCode::TMC_RESET))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_RESET)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_SELECTOR_DRIVER_RESET);
-        if (ContainsBit(ec, ErrorCode::TMC_UNDERVOLTAGE_ON_CHARGE_PUMP))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_UNDERVOLTAGE_ON_CHARGE_PUMP)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_SELECTOR_UNDERVOLTAGE_ERROR);
-        if (ContainsBit(ec, ErrorCode::TMC_SHORT_TO_GROUND))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_SHORT_TO_GROUND)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_SELECTOR_DRIVER_SHORTED);
-        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_WARN))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_WARN)) {
             return FindErrorIndex(ErrCode::ERR_TEMPERATURE_WARNING_TMC_SELECTOR_TOO_HOT);
-        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_ERROR))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_ERROR)) {
             return FindErrorIndex(ErrCode::ERR_TEMPERATURE_TMC_SELECTOR_OVERHEAT_ERROR);
+        }
     } else if (ContainsBit(ec, ErrorCode::TMC_IDLER_BIT)) {
-        if (ContainsBit(ec, ErrorCode::TMC_IOIN_MISMATCH))
+        if (ContainsBit(ec, ErrorCode::TMC_IOIN_MISMATCH)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_IDLER_DRIVER_ERROR);
-        if (ContainsBit(ec, ErrorCode::TMC_RESET))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_RESET)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_IDLER_DRIVER_RESET);
-        if (ContainsBit(ec, ErrorCode::TMC_UNDERVOLTAGE_ON_CHARGE_PUMP))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_UNDERVOLTAGE_ON_CHARGE_PUMP)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_IDLER_UNDERVOLTAGE_ERROR);
-        if (ContainsBit(ec, ErrorCode::TMC_SHORT_TO_GROUND))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_SHORT_TO_GROUND)) {
             return FindErrorIndex(ErrCode::ERR_ELECTRO_TMC_IDLER_DRIVER_SHORTED);
-        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_WARN))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_WARN)) {
             return FindErrorIndex(ErrCode::ERR_TEMPERATURE_WARNING_TMC_IDLER_TOO_HOT);
-        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_ERROR))
+        }
+        if (ContainsBit(ec, ErrorCode::TMC_OVER_TEMPERATURE_ERROR)) {
             return FindErrorIndex(ErrCode::ERR_TEMPERATURE_TMC_IDLER_OVERHEAT_ERROR);
+        }
     }
 
     // if nothing got caught, return a generic error

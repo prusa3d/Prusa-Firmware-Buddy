@@ -81,8 +81,9 @@ TEST_CASE("stream restore at offset", "[GcodeReader]") {
             auto reader2_anyformat = AnyGcodeFormatReader(filename);
             auto reader2 = reader2_anyformat.get();
             auto reader2_pp = dynamic_cast<PrusaPackGcodeReader *>(reader2);
-            if (reader2_pp)
+            if (reader2_pp) {
                 reader2_pp->set_restore_info(restore_info);
+            }
             REQUIRE(reader2->stream_gcode_start(offset));
 
             auto size1 = size;
@@ -100,16 +101,18 @@ TEST_CASE("stream restore at offset", "[GcodeReader]") {
 
             REQUIRE(memcmp(buffer1.get(), buffer2.get(), size1) == 0);
 
-            if (res1 == IGcodeReader::Result_t::RESULT_EOF)
+            if (res1 == IGcodeReader::Result_t::RESULT_EOF) {
                 break;
+            }
             REQUIRE(res1 == IGcodeReader::Result_t::RESULT_OK);
 
             offset += size;
             // read something from the buffer2, so that file position moves and we could see if stream_gcode_start doesn't return to correct position
             reader2->stream_get_block(buffer2.get(), size);
 
-            if (reader2_pp)
+            if (reader2_pp) {
                 restore_info = reader2_pp->get_restore_info();
+            }
         }
     };
 

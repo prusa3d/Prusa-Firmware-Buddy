@@ -70,8 +70,9 @@ public:
             Hide<MI_FS_REF<N, false>>();
             Hide<MI_FS_REF<N, true>>();
         }
-        if constexpr (N > 0)
+        if constexpr (N > 0) {
             hide_fs_ref<N - 1>(tool_nr);
+        }
     }
 
     ScreenMenuSensorInfo(string_view_utf8 label, window_t *parent = nullptr)

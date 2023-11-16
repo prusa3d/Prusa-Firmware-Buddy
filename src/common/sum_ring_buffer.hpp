@@ -14,14 +14,16 @@ public:
         sum = 0;
     };
     void Put(T sample) {
-        if (count < SIZE)
+        if (count < SIZE) {
             count++;
-        else
+        } else {
             sum -= pdata[index];
+        }
         sum += sample;
         pdata[index] = sample;
-        if (++index >= SIZE)
+        if (++index >= SIZE) {
             index = 0;
+        }
     };
     void PopLast() {
         if (count) {

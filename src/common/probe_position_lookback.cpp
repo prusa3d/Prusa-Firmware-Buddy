@@ -56,8 +56,9 @@ float ProbePositionLookback::get_position_at(uint32_t time_us, std::function<flo
         s1_pos = (s1_pos == 0) ? NUM_SAMPLES - 1 : s1_pos - 1;
 
         // we reached newest sample again - stop
-        if (s1_pos == newest_sample_pos)
+        if (s1_pos == newest_sample_pos) {
             return NAN;
+        }
     }
 }
 

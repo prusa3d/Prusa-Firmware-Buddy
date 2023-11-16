@@ -21,8 +21,9 @@ public:
     T Remains(const T now) { return timeout_ - Passed(now); }
     bool RestartIfIsOver(const T now) {
         bool res = IsOver(now);
-        if (res)
+        if (res) {
             Restart(now);
+        }
         return res;
     }
 

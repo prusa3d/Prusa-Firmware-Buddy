@@ -11,7 +11,8 @@ const char *__err_name[] = {
 
 // returns error name (dbg)
 const char *marlin_errors_get_name(uint8_t err_id) {
-    if (err_id <= MARLIN_ERR_MAX)
+    if (err_id <= MARLIN_ERR_MAX) {
         return __err_name[err_id];
+    }
     return "";
 }

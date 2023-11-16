@@ -136,8 +136,9 @@ void Crash_s::resume_movement() {
 }
 
 void Crash_s::restore_state() {
-    if (inhibit_flags & INHIBIT_PARTIAL_REPLAY)
+    if (inhibit_flags & INHIBIT_PARTIAL_REPLAY) {
         segments_finished = 0;
+    }
 
     if (inhibit_flags & INHIBIT_XYZ_REPOSITIONING) {
         // also reset internal crash locations to current_position
@@ -245,25 +246,29 @@ void Crash_s::set_state(state_t new_state) {
 
     case RECOVERY:
         // TODO: the following checks are too broad (should check for existing state)
-        if (state != PRINTING && state != TRIGGERED_ISR && state != TRIGGERED_TOOLFALL && state != TRIGGERED_AC_FAULT)
+        if (state != PRINTING && state != TRIGGERED_ISR && state != TRIGGERED_TOOLFALL && state != TRIGGERED_AC_FAULT) {
             bsod("invalid recovery transition");
+        }
         resume_movement();
         break;
 
     case REPLAY:
-        if (state != RECOVERY)
+        if (state != RECOVERY) {
             bsod("invalid replay transition");
+        }
         activate();
         restore_state();
         break;
 
     case PRINTING:
-        if (state != RECOVERY && state != REPEAT_WAIT && state != IDLE && state != REPLAY)
+        if (state != RECOVERY && state != REPEAT_WAIT && state != IDLE && state != REPLAY) {
             bsod("invalid printing transition");
+        }
         homefail_z = false;
         reset_repeated_crash();
-        if (state != REPLAY)
+        if (state != REPLAY) {
             activate();
+        }
         break;
     }
 
@@ -303,8 +308,9 @@ void Crash_s::update_machine() {
 }
 
 void Crash_s::enable(bool state) {
-    if (state == enabled)
+    if (state == enabled) {
         return;
+    }
     enabled = state;
     config_store().crash_enabled.set(state);
     update_machine();
@@ -325,8 +331,9 @@ void Crash_s::reset_crash_counter() {
 }
 
 void Crash_s::send_reports() {
-    if (axis_hit != X_AXIS && axis_hit != Y_AXIS)
+    if (axis_hit != X_AXIS && axis_hit != Y_AXIS) {
         return;
+    }
 
     float speed = -1;
     if (axis_hit == X_AXIS) {
@@ -384,13 +391,15 @@ uint32_t Crash_s::clean_history() {
 }
 
 void Crash_s::reset_history() {
-    for (auto &t : crash_timestamps)
+    for (auto &t : crash_timestamps) {
         t = std::nullopt;
+    }
 }
 
 void Crash_s::count_crash() {
-    if (axis_hit == X_AXIS || axis_hit == Y_AXIS)
+    if (axis_hit == X_AXIS || axis_hit == Y_AXIS) {
         ++counter_crash.pos[axis_hit];
+    }
 
     uint32_t valid = clean_history();
     if (valid == crash_timestamps.size()) {
@@ -464,8 +473,9 @@ void Crash_s::end_sensorless_homing_per_axis(const AxisEnum axis, const bool ena
 
     #if HAS_DRIVER(TMC2130)
 void Crash_s::set_filter(bool on) {
-    if (filter == on)
+    if (filter == on) {
         return;
+    }
     filter = on;
     config_store().crash_filter.set(on);
     update_machine();

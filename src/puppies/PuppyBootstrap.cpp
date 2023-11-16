@@ -30,28 +30,33 @@ namespace buddy::puppies {
 using buddy::hw::Pin;
 
 const char *PuppyBootstrap::Progress::description() {
-    if (stage == PuppyBootstrap::FlashingStage::START)
+    if (stage == PuppyBootstrap::FlashingStage::START) {
         return "Waking up puppies";
-    else if (stage == PuppyBootstrap::FlashingStage::DISCOVERY)
+    } else if (stage == PuppyBootstrap::FlashingStage::DISCOVERY) {
         return "Looking for puppies";
-    else if (stage == PuppyBootstrap::FlashingStage::CALCULATE_FINGERPRINT)
+    } else if (stage == PuppyBootstrap::FlashingStage::CALCULATE_FINGERPRINT) {
         return "Verifying puppies";
+    }
 #if HAS_DWARF()
-    else if (stage == PuppyBootstrap::FlashingStage::CHECK_FINGERPRINT && puppy_type == PuppyType::DWARF)
+    else if (stage == PuppyBootstrap::FlashingStage::CHECK_FINGERPRINT && puppy_type == PuppyType::DWARF) {
         return "Verifying dwarf";
+    }
 #endif
-    else if (stage == PuppyBootstrap::FlashingStage::CHECK_FINGERPRINT && puppy_type == PuppyType::MODULARBED)
+    else if (stage == PuppyBootstrap::FlashingStage::CHECK_FINGERPRINT && puppy_type == PuppyType::MODULARBED) {
         return "Verifying modularbed";
+    }
 #if HAS_DWARF()
-    else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::DWARF)
+    else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::DWARF) {
         return "Flashing dwarf";
+    }
 #endif
-    else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::MODULARBED)
+    else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::MODULARBED) {
         return "Flashing modularbed";
-    else if (stage == PuppyBootstrap::FlashingStage::DONE)
+    } else if (stage == PuppyBootstrap::FlashingStage::DONE) {
         return ""; // Currently guimain prints nothing for the last bit of initialization, this should match
-    else
+    } else {
         return "?";
+    }
 }
 
 bool PuppyBootstrap::attempt_crash_dump_download(Dock dock, BootloaderProtocol::Address address) {

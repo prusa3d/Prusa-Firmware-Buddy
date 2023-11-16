@@ -97,8 +97,9 @@ void screen_printing_data_t::stopAction() {
             waiting_for_abort = true;
             marlin_client::print_abort();
             change_print_state();
-        } else
+        } else {
             return;
+        }
     }
     }
 }
@@ -304,10 +305,11 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 
     if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
 #if defined(USE_ILI9488)
-        if (p_state == printing_state_t::PRINTED)
+        if (p_state == printing_state_t::PRINTED) {
             print_progress.FinishedMode();
-        else
+        } else {
             print_progress.StoppedMode();
+        }
 #endif
         w_etime_label.Hide();
         w_etime_value.Hide();

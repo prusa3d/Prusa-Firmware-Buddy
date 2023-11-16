@@ -330,8 +330,9 @@ public:
     }
 
     void conv_isr() {
-        if ((adcDma.handle.DMA_Handle->Instance->CR & DMA_SxCR_EN) != RESET)
+        if ((adcDma.handle.DMA_Handle->Instance->CR & DMA_SxCR_EN) != RESET) {
             return; // not disabled yet, we'll get another interrupt
+        }
 
         // update current values one last time
         update_X();
@@ -374,10 +375,11 @@ public:
 
     [[nodiscard]] uint16_t get_channel(uint8_t index) {
         // update current values
-        if (index == (current_channel + channel_X_off))
+        if (index == (current_channel + channel_X_off)) {
             update_X();
-        else if (index == (current_channel + channel_Y_off))
+        } else if (index == (current_channel + channel_Y_off)) {
             update_Y();
+        }
 
         return m_data[index];
     }
@@ -434,8 +436,9 @@ inline uint16_t nozzle() {
     // increase oversampling for values lower than 50 degrees Celsius to reduce noise
     if (raw_temp > raw_adc_value_at_50_degreas_celsius) {
         // handle an empty buffer
-        if (nozzle_ring_buff.GetSize() == 0)
+        if (nozzle_ring_buff.GetSize() == 0) {
             return adcDma1.reset_value;
+        }
 
         // decimate to match the behavior of get_and_shift_channel()
         auto raw_temp_avg = nozzle_ring_buff.GetSum() / nozzle_ring_buff.GetSize();
@@ -448,10 +451,11 @@ inline uint16_t nozzle() {
 inline void sampleNozzle() {
     // the ring buffer is kept at full resolution
     auto raw_temp = adcDma1.get_channel(AdcChannel::hotend_T);
-    if (raw_temp == adcDma1.reset_value)
+    if (raw_temp == adcDma1.reset_value) {
         nozzle_ring_buff.PopLast();
-    else
+    } else {
         nozzle_ring_buff.Put(raw_temp);
+    }
 }
 
 inline uint16_t bed() { return adcDma1.get_and_shift_channel(AdcChannel::heatbed_T); }

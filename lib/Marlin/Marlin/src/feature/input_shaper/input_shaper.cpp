@@ -29,8 +29,9 @@ input_shaper_pulses_t InputShaper::logical_axis_pulses[3];
 
 static void init_input_shaper_pulses(const float a[], const float t[], const int num_pulses, input_shaper_pulses_t *is_pulses) {
     double sum_a = 0.;
-    for (int i = 0; i < num_pulses; ++i)
+    for (int i = 0; i < num_pulses; ++i) {
         sum_a += a[i];
+    }
 
     // Reverse pulses vs their traditional definition
     const double inv_sum_a = 1. / sum_a;
@@ -40,21 +41,24 @@ static void init_input_shaper_pulses(const float a[], const float t[], const int
     }
 
     double time_shift = 0.;
-    for (int i = 0; i < num_pulses; ++i)
+    for (int i = 0; i < num_pulses; ++i) {
         time_shift += is_pulses->pulses[i].a * is_pulses->pulses[i].t;
+    }
 
     // Shift pulses around mid-point.
-    for (int i = 0; i < num_pulses; ++i)
+    for (int i = 0; i < num_pulses; ++i) {
         is_pulses->pulses[i].t -= time_shift;
+    }
 
     is_pulses->num_pulses = num_pulses;
 }
 
 input_shaper::Shaper input_shaper::get(const float damping_ratio, const float shaper_freq, const float vibration_reduction, const input_shaper::Type type) {
-    if (shaper_freq <= 0.f)
+    if (shaper_freq <= 0.f) {
         bsod("Zero or negative frequency of input shaper.");
-    else if (damping_ratio >= 1.f)
+    } else if (damping_ratio >= 1.f) {
         bsod("Damping ration must always be less than 1.");
+    }
 
     switch (type) {
     case Type::zv: {
@@ -233,14 +237,16 @@ void input_shaper_step_generator_init(const move_t &move, input_shaper_step_gene
         bsod("Unsupported axis");
     }
 #else
-    if (axis == X_AXIS || axis == Y_AXIS || axis == Z_AXIS)
+    if (axis == X_AXIS || axis == Y_AXIS || axis == Z_AXIS) {
         is_state->m_axis_shaper[0].m_pulses = &InputShaper::logical_axis_pulses[axis];
-    else
+    } else {
         bsod("Unsupported axis");
+    }
 #endif
 
-    for (const logical_axis_input_shaper_t &axis_shaper : is_state->m_axis_shaper)
+    for (const logical_axis_input_shaper_t &axis_shaper : is_state->m_axis_shaper) {
         move.reference_cnt += axis_shaper.m_pulses->num_pulses;
+    }
 
     input_shaper_state_init(*is_state, move, axis);
     input_shaper_step_generator_update(step_generator);
@@ -253,8 +259,9 @@ void input_shaper_state_init(input_shaper_state_t &is_state, const move_t &move,
     is_state.print_time = move.print_time;
 
 #ifdef COREXY
-    for (uint8_t logical_axis = X_AXIS; logical_axis <= Y_AXIS; ++logical_axis)
+    for (uint8_t logical_axis = X_AXIS; logical_axis <= Y_AXIS; ++logical_axis) {
         is_state.m_axis_shaper[logical_axis].init(move, logical_axis);
+    }
 #else
     is_state.m_axis_shaper[0].init(move, axis);
 #endif
@@ -300,8 +307,9 @@ bool logical_axis_input_shaper_t::update(const input_shaper_state_t &axis_is) {
     if (!axis_is.is_crossing_zero_velocity) {
         const move_t *curr_move = m_move[curr_idx];
         const move_t *next_move = this->load_next_move_segment(curr_idx);
-        if (next_move == nullptr)
+        if (next_move == nullptr) {
             return false;
+        }
 
         weighted_velocity_discontinuity += (get_move_start_v(*next_move, m_axis) - get_move_end_v(*curr_move, m_axis)) * m_pulses->pulses[curr_idx].a;
     }
@@ -321,10 +329,11 @@ bool logical_axis_input_shaper_t::update(const input_shaper_state_t &axis_is) {
         // After applying the input shape filter, the velocity during the acceleration or deceleration phase doesn't equal the velocity of the input move segment at the same time.
         // Because of that also, the position will not equal, so during the acceleration or deceleration phase, we cannot compute start_pos just from the input move segment.
         // We can compute start_pos from the input move segment (without accumulated error) just for the cruise phase where velocity is constant.
-        if (std::abs(half_accel) <= EPSILON)
+        if (std::abs(half_accel) <= EPSILON) {
             m_start_pos = get_move_start_pos(*first_move, m_axis) + start_v * move_t;
-        else
+        } else {
             m_start_pos += (m_start_v + m_half_accel * move_elapsed_time) * move_elapsed_time;
+        }
 
         m_start_v = start_v + 2. * half_accel * move_t;
         m_half_accel = half_accel;
@@ -335,12 +344,14 @@ bool logical_axis_input_shaper_t::update(const input_shaper_state_t &axis_is) {
         m_half_accel = this->calc_half_accel();
 
         // Change small velocities to zero as prevention for numeric issues.
-        if (std::abs(m_start_v) <= INPUT_SHAPER_VELOCITY_EPSILON)
+        if (std::abs(m_start_v) <= INPUT_SHAPER_VELOCITY_EPSILON) {
             m_start_v = 0.;
+        }
 
         // Change small accelerations to zero as prevention for numeric issues.
-        if (std::abs(m_half_accel) <= INPUT_SHAPER_ACCELERATION_EPSILON)
+        if (std::abs(m_half_accel) <= INPUT_SHAPER_ACCELERATION_EPSILON) {
             m_half_accel = 0.;
+        }
     }
 
     m_print_time = nearest_next_change;
@@ -359,26 +370,30 @@ static bool input_shaper_state_update(input_shaper_state_t &is_state, const int 
     bool x_updated = false;
     bool y_updated = false;
     if (is_state.is_crossing_zero_velocity || is_state.nearest_next_change == is_state.m_axis_shaper[0].get_nearest_next_change()) {
-        if (!is_state.m_axis_shaper[0].update(is_state))
+        if (!is_state.m_axis_shaper[0].update(is_state)) {
             return false;
-        else
+        } else {
             x_updated = true;
+        }
     }
 
     if (is_state.is_crossing_zero_velocity || is_state.nearest_next_change == is_state.m_axis_shaper[1].get_nearest_next_change()) {
-        if (!is_state.m_axis_shaper[1].update(is_state))
+        if (!is_state.m_axis_shaper[1].update(is_state)) {
             return false;
-        else
+        } else {
             y_updated = true;
+        }
     }
 
 #else
-    if (!is_state.m_axis_shaper[0].update(is_state))
+    if (!is_state.m_axis_shaper[0].update(is_state)) {
         return false;
+    }
 #endif
 
-    if (is_state.is_crossing_zero_velocity)
+    if (is_state.is_crossing_zero_velocity) {
         is_state.is_crossing_zero_velocity = false;
+    }
 
 #ifdef COREXY
     double x_start_v = is_state.m_axis_shaper[0].m_start_v;
@@ -411,12 +426,14 @@ static bool input_shaper_state_update(input_shaper_state_t &is_state, const int 
     }
 
     // Change small velocities to zero as prevention for numeric issues.
-    if (std::abs(is_state.start_v) <= INPUT_SHAPER_VELOCITY_EPSILON)
+    if (std::abs(is_state.start_v) <= INPUT_SHAPER_VELOCITY_EPSILON) {
         is_state.start_v = 0.;
+    }
 
     // Change small accelerations to zero as prevention for numeric issues.
-    if (std::abs(is_state.half_accel) <= INPUT_SHAPER_ACCELERATION_EPSILON)
+    if (std::abs(is_state.half_accel) <= INPUT_SHAPER_ACCELERATION_EPSILON) {
         is_state.half_accel = 0.;
+    }
 
     is_state.step_dir = input_shaper_state_step_dir(is_state);
     is_state.print_time = is_state.nearest_next_change;
@@ -441,8 +458,9 @@ static bool input_shaper_state_update(input_shaper_state_t &is_state, const int 
             const double zero_velocity_crossing_time_absolute = is_state.start_v / (-2. * is_state.half_accel) + is_state.print_time;
 
             if (zero_velocity_crossing_time_absolute < (is_state.nearest_next_change - EPSILON)) {
-                for (logical_axis_input_shaper_t &axis_shaper : is_state.m_axis_shaper)
+                for (logical_axis_input_shaper_t &axis_shaper : is_state.m_axis_shaper) {
                     axis_shaper.set_nearest_next_change(zero_velocity_crossing_time_absolute);
+                }
 
                 is_state.nearest_next_change = zero_velocity_crossing_time_absolute;
                 is_state.is_crossing_zero_velocity = true;
@@ -539,8 +557,9 @@ uint8_t logical_axis_input_shaper_t::calc_nearest_next_change_idx() const {
 
 double logical_axis_input_shaper_t::calc_half_accel() const {
     double half_accel = 0.;
-    for (uint8_t idx = 0; idx < m_pulses->num_pulses; ++idx)
+    for (uint8_t idx = 0; idx < m_pulses->num_pulses; ++idx) {
         half_accel += m_pulses->pulses[idx].a * get_move_half_accel(*m_move[idx], m_axis);
+    }
     return half_accel;
 }
 
@@ -550,8 +569,9 @@ void logical_axis_input_shaper_t::set_nearest_next_change(const double new_neare
 
 const move_t *logical_axis_input_shaper_t::load_next_move_segment(const uint8_t m_idx) {
     const move_t *next_move = PreciseStepping::move_segment_queue_next_move(*m_move[m_idx]);
-    if (next_move == nullptr)
+    if (next_move == nullptr) {
         return nullptr;
+    }
 
     --m_move[m_idx]->reference_cnt;
     ++next_move->reference_cnt;

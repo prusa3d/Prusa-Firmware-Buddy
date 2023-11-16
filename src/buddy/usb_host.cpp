@@ -76,8 +76,9 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
 #ifdef USBH_MSC_READAHEAD
                 usbh_msc_readahead.enable(USBHFatFS.pdrv);
 #endif
-            } else
+            } else {
                 media_set_error(media_error_MOUNT);
+            }
         } else {
             phost->stealth_reset = false;
         }

@@ -466,8 +466,9 @@ void WinUnion::ButtonEvent(GUI_event_t event) {
         case GUI_event_t::CLICK: {
             Response response = radio->Click();
             PhasesCrashRecovery send_phase = phase;
-            if (phase == PhasesCrashRecovery::axis_short || phase == PhasesCrashRecovery::axis_long)
+            if (phase == PhasesCrashRecovery::axis_short || phase == PhasesCrashRecovery::axis_long) {
                 send_phase = PhasesCrashRecovery::axis_NOK;
+            }
             marlin_client::FSM_response(send_phase, response);
             break;
         }

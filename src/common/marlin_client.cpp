@@ -78,9 +78,11 @@ void init() {
     marlin_client_t *client = 0;
     TaskDeps::wait(TaskDeps::Tasks::marlin_client);
     osSemaphoreWait(server_semaphore, osWaitForever);
-    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-        if (marlin_client_task[client_id] == 0)
+    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
+        if (marlin_client_task[client_id] == 0) {
             break;
+        }
+    }
     if (client_id < MARLIN_MAX_CLIENTS) {
         client = clients + client_id;
         memset(client, 0, sizeof(marlin_client_t));
@@ -112,30 +114,36 @@ void loop() {
     marlin_client_t *client;
     osMessageQId queue;
     osThreadId taskHandle = osThreadGetId();
-    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-        if (taskHandle == marlin_client_task[client_id])
+    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
+        if (taskHandle == marlin_client_task[client_id]) {
             break;
-    if (client_id >= MARLIN_MAX_CLIENTS)
+        }
+    }
+    if (client_id >= MARLIN_MAX_CLIENTS) {
         return;
+    }
     client = clients + client_id;
-    if ((queue = marlin_client_queue[client_id]) != 0)
+    if ((queue = marlin_client_queue[client_id]) != 0) {
         while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
                 msg |= ((variant8_t)ose.value.v << 32); // store high dword
                 _process_client_message(client, msg); // call handler
                 variant8_done(&pmsg);
                 count++;
-            } else
+            } else {
                 msg = ose.value.v; // store low dword
+            }
             client->flags ^= MARLIN_CFLG_LOWHIGH; // flip flag
         }
+    }
     client->last_count = count;
 }
 
 int get_id() {
     marlin_client_t *client = _client_ptr();
-    if (client)
+    if (client) {
         return client->id;
+    }
     return 0;
 }
 
@@ -198,8 +206,9 @@ bool is_processing() {
 
 void _send_request_to_server_and_wait_with_callback(const char *request, void (*cb)()) {
     marlin_client_t *client = _client_ptr();
-    if (client == 0)
+    if (client == 0) {
         return;
+    }
     uint8_t retries_left = max_retries;
 
     do {
@@ -236,8 +245,9 @@ void set_event_notify(uint64_t notify_events, void (*cb)()) {
 
 marlin_server::Cmd get_command() {
     marlin_client_t *client = _client_ptr();
-    if (client)
+    if (client) {
         return marlin_server::Cmd(client->command);
+    }
     return Cmd::NONE;
 }
 
@@ -278,8 +288,9 @@ int event(Event evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << ftrstd::to_underlying(evt_id);
-    if (client)
+    if (client) {
         ret = (client->events & msk) ? 1 : 0;
+    }
     return ret;
 }
 
@@ -303,8 +314,9 @@ int error(uint8_t err_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
     uint64_t msk = (uint64_t)1 << err_id;
-    if (client)
+    if (client) {
         ret = (client->errors & msk) ? 1 : 0;
+    }
     return ret;
 }
 
@@ -402,10 +414,12 @@ void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
     assert(skip_preview < marlin_server::PreviewSkipIfAble::_count);
     static_assert(ftrstd::to_underlying(marlin_server::PreviewSkipIfAble::_count) < ('9' - '0'), "Too many skip preview options.");
     const int len = snprintf(request, sizeof(request), "!%c%c%s", ftrstd::to_underlying(Msg::PrintStart), '0' + ftrstd::to_underlying(skip_preview), filename);
-    if (len < 0)
+    if (len < 0) {
         bsod("Error formatting request.");
-    if ((size_t)len >= sizeof(request))
+    }
+    if ((size_t)len >= sizeof(request)) {
         bsod("Request too long.");
+    }
     _send_request_to_server_and_wait(request);
 }
 
@@ -558,10 +572,12 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
             if (osMessageAvailableSpace(queue) >= static_cast<uint32_t>(len + 1)) // check available space
             {
                 osMessagePut(queue, '0' + client_id, osWaitForever); // one character client id
-                for (i = 0; i < len; i++) // loop over every characters
+                for (i = 0; i < len; i++) { // loop over every characters
                     osMessagePut(queue, request[i], osWaitForever); //
-                if ((i > 0) && (request[i - 1] != '\n')) // automatically terminate with '\n'
+                }
+                if ((i > 0) && (request[i - 1] != '\n')) { // automatically terminate with '\n'
                     osMessagePut(queue, '\n', osWaitForever);
+                }
                 ret = 1;
             } else {
                 osSemaphoreRelease(server_semaphore); // unlock
@@ -580,8 +596,9 @@ static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb
     while ((clients[client_id].events & make_mask(Event::Acknowledge)) == 0 && (clients[client_id].events & make_mask(Event::NotAcknowledge)) == 0) {
         loop();
         if (clients[client_id].last_count == 0) {
-            if (cb)
+            if (cb) {
                 cb();
+            }
             osDelay(10);
         }
     }
@@ -624,8 +641,9 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             client->ack = variant8_get_ui32(msg);
             break;
         case Event::FSM:
-            if (client->fsm_cb)
+            if (client->fsm_cb) {
                 client->fsm_cb(variant8_get_ui32(msg), variant8_get_usr16(msg));
+            }
             break;
         case Event::Message: {
             variant8_t *pvar = &msg;
@@ -638,8 +656,9 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             break;
         }
         case Event::Warning:
-            if (client->warning_cb)
+            if (client->warning_cb) {
                 client->warning_cb(static_cast<WarningType>(variant8_get_i32(msg)));
+            }
             break;
         case Event::Startup:
             if (client->startup_cb) {
@@ -668,7 +687,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             assert(false);
         }
 #ifdef DBG_EVT_MSK
-        if (DBG_EVT_MSK & ((uint64_t)1 << id))
+        if (DBG_EVT_MSK & ((uint64_t)1 << id)) {
             switch (id) {
             // Event Event::MeshUpdate - ui32 is float z, ui16 low byte is x index, high byte y index
             case Event::MeshUpdate: {
@@ -697,6 +716,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
                 DBG_EVT("CL%c: EVT %s", '0' + client->id, marlin_events_get_name(id));
                 break;
             }
+        }
 #endif // DBG_EVT_MSK
     }
 }
@@ -705,9 +725,11 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
 static marlin_client_t *_client_ptr() {
     osThreadId taskHandle = osThreadGetId();
     int client_id;
-    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-        if (taskHandle == marlin_client_task[client_id])
+    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
+        if (taskHandle == marlin_client_task[client_id]) {
             return clients + client_id;
+        }
+    }
     return 0;
 }
 

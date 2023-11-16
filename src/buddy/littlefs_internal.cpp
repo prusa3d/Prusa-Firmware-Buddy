@@ -77,8 +77,9 @@ static int read([[maybe_unused]] const struct lfs_config *c, lfs_block_t block,
 
     w25x_rd_data(addr, static_cast<uint8_t *>(buffer), size);
 
-    if (w25x_fetch_error() != 0)
+    if (w25x_fetch_error() != 0) {
         return LFS_ERR_IO;
+    }
 
     return 0;
 }
@@ -93,8 +94,9 @@ static int prog([[maybe_unused]] const struct lfs_config *c, lfs_block_t block,
 
     w25x_program(addr, (uint8_t *)buffer, size);
 
-    if (w25x_fetch_error() != 0)
+    if (w25x_fetch_error() != 0) {
         return LFS_ERR_IO;
+    }
 
     return 0;
 }
@@ -107,8 +109,9 @@ static int erase([[maybe_unused]] const struct lfs_config *c, lfs_block_t block)
 
     w25x_sector_erase(addr);
 
-    if (w25x_fetch_error() != 0)
+    if (w25x_fetch_error() != 0) {
         return LFS_ERR_IO;
+    }
 
     return 0;
 }

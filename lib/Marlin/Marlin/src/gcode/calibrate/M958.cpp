@@ -263,8 +263,9 @@ static void enqueue_step(int step_us, bool dir, StepEventFlag_t axis_flags) {
     step_event_u16_t *step_event = PreciseStepping::get_next_free_step_event(next_queue_head);
     step_event->time_ticks = step_us;
     step_event->flags = axis_flags;
-    if (dir)
+    if (dir) {
         step_event->flags ^= STEP_EVENT_FLAG_DIR_MASK;
+    }
     PreciseStepping::step_event_queue.head = next_queue_head;
     CRITICAL_SECTION_END;
 }
@@ -692,8 +693,9 @@ void GcodeSuite::M958() {
     MicrostepRestorer microstepRestorer;
     const StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
     const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
-    if (isnan(step_len))
+    if (isnan(step_len)) {
         return;
+    }
 
     const bool klipper_mode = parser.seen('K');
 
@@ -741,8 +743,9 @@ static void naive_zv_tune(StepEventFlag_t axis_flag, float start_frequency, floa
 
     for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
         FrequencyGain3dError frequencyGain3dError = vibrate_measure(axis_flag, false, frequency_requested, acceleration_requested, step_len, cycles, calibrate_accelerometer);
-        if (frequencyGain3dError.error)
+        if (frequencyGain3dError.error) {
             return;
+        }
         FrequencyGain frequencyGain = { frequencyGain3dError.frequencyGain3D.frequency, frequencyGain3dError.frequencyGain3D.gain[logicalAxis] };
         calibrate_accelerometer = false;
         if (frequencyGain.gain > maxFrequencyGain.gain) {
@@ -983,8 +986,9 @@ static input_shaper::AxisConfig find_best_shaper(const Fl_Spectrum &psd, const A
     };
 
     for (input_shaper::Type shaper_type = first_type + 1; shaper_type <= input_shaper::Type::last; ++shaper_type) {
-        if (shaper_type == input_shaper::Type::null)
+        if (shaper_type == input_shaper::Type::null) {
             continue;
+        }
 
         Shaper_result shaper = fit_shaper(shaper_type, psd, progress_percent, final_action, default_config);
         if (shaper.score * 1.2f < best_shaper.result.score
@@ -1027,8 +1031,9 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
     bool calibrate_accelerometer = true;
     for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
         FrequencyGain3dError frequencyGain3dError = vibrate_measure(axis_flag, true, frequency_requested, acceleration_requested, step_len, cycles, calibrate_accelerometer);
-        if (frequencyGain3dError.error)
+        if (frequencyGain3dError.error) {
             return;
+        }
         calibrate_accelerometer = false;
         if (subtract_excitation) {
             frequencyGain3dError.frequencyGain3D.gain[logicalAxis] = max(frequencyGain3dError.frequencyGain3D.gain[logicalAxis] - 1.f, 0.f);
@@ -1076,8 +1081,9 @@ void GcodeSuite::M959() {
     MicrostepRestorer microstepRestorer;
     StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
     const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
-    if (isnan(step_len))
+    if (isnan(step_len)) {
         return;
+    }
 
     const bool seen_m = parser.seen('M');
 

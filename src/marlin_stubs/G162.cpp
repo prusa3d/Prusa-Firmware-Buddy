@@ -118,8 +118,9 @@ void selftest::calib_Z(bool move_down_after) {
     current_position.z = Z_MAX_POS;
     sync_plan_position();
 
-    if (move_down_after)
+    if (move_down_after) {
         safe_move_down();
+    }
 
     // always set axis as unhomed (Z_MAX_POS is unreliable, Z_MIN_POS is not probed with homeaxis()!)
     set_axis_is_not_at_home(Z_AXIS);

@@ -31,13 +31,16 @@ void GuiMediaEventsHandler::tick() {
     if (marlin_client::event_clr(marlin_server::Event::MediaInserted)) {
         actual_state = MediaState_t::inserted;
     }
-    if (marlin_client::event_clr(marlin_server::Event::MediaRemoved))
+    if (marlin_client::event_clr(marlin_server::Event::MediaRemoved)) {
         actual_state = MediaState_t::removed;
-    if (marlin_client::event_clr(marlin_server::Event::MediaError))
+    }
+    if (marlin_client::event_clr(marlin_server::Event::MediaError)) {
         actual_state = MediaState_t::error;
+    }
 
-    if (media_state == MediaState_t::error)
+    if (media_state == MediaState_t::error) {
         return; // error must be cleared manually
+    }
 
     switch (actual_state) {
     case MediaState_t::inserted:
@@ -70,21 +73,24 @@ bool GuiMediaEventsHandler::ConsumeOneClickPrinting() {
 
 void GuiMediaEventsHandler::ClrMediaError() {
     // clear
-    if (Instance().media_state == MediaState_t::error)
+    if (Instance().media_state == MediaState_t::error) {
         Instance().clr();
+    }
     // update
     Tick();
     // clear again
-    if (Instance().media_state == MediaState_t::error)
+    if (Instance().media_state == MediaState_t::error) {
         Instance().clr();
+    }
 }
 
 bool GuiMediaEventsHandler::ConsumeSent(MediaState_t &ret) {
     Tick(); // first update
     ret = Instance().media_state; // remember
     bool sent = Instance().state_sent;
-    if (ret != MediaState_t::error)
+    if (ret != MediaState_t::error) {
         Instance().state_sent = true; // set sent
+    }
     return !sent;
 }
 

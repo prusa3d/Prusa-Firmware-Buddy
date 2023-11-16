@@ -118,11 +118,13 @@ bool IGcodeReader::check_file_starts_with_BGCODE_magic() const {
 
     static constexpr int magicSize = bgcode::core::MAGIC.size();
     char check_buffer[magicSize];
-    if (!fread(check_buffer, magicSize, 1, file))
+    if (!fread(check_buffer, magicSize, 1, file)) {
         return false;
+    }
 
-    if (memcmp(check_buffer, bgcode::core::MAGIC.data(), magicSize))
+    if (memcmp(check_buffer, bgcode::core::MAGIC.data(), magicSize)) {
         return false;
+    }
 
     return true;
 }
@@ -167,8 +169,9 @@ bool PlainGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint16_t 
 
 PlainGcodeReader::Result_t PlainGcodeReader::stream_getc_impl(char &out) {
     int iout = fgetc(file);
-    if (iout == EOF)
+    if (iout == EOF) {
         return Result_t::RESULT_EOF;
+    }
     out = iout;
     return Result_t::RESULT_OK;
 }
@@ -181,20 +184,23 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
     while (true) {
         // get raw line, then decide if to output it or not
         auto res = IGcodeReader::stream_get_line(buffer);
-        if (res != Result_t::RESULT_OK)
+        if (res != Result_t::RESULT_OK) {
             return res;
+        }
 
         // detect if line is metadata (it starts with ;)
         buffer.line.skip_ws();
-        if (buffer.line.is_empty())
+        if (buffer.line.is_empty()) {
             continue;
+        }
         const bool is_metadata = (buffer.line.front() == ';'); // metadata are encoded as comment, this will also pass actual comments that are not medatata, but there is no other way to differentiate between those
         const bool is_gcode = !is_metadata;
 
         bool output = true;
         if (output_type == output_type_t::metadata) {
-            if (is_gcode)
+            if (is_gcode) {
                 ++gcodes_in_metadata;
+            }
 
             // if we are reading metadata, read first x gcodes, that signals that metadata ends, and after that is done, seek to the end of file and continue streaming there
             // because that is where next interesting metadata is
@@ -210,8 +216,9 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
         } else {
             return Result_t::RESULT_ERROR;
         }
-        if (output)
+        if (output) {
             return Result_t::RESULT_OK;
+        }
     }
     return Result_t::RESULT_EOF;
 }
@@ -219,16 +226,19 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
 IGcodeReader::Result_t PlainGcodeReader::stream_getc_thumbnail_impl(char &out) {
     long pos = ftell(file);
     while (true) {
-        if (thumbnail_size == 0)
+        if (thumbnail_size == 0) {
             return Result_t::RESULT_EOF;
+        }
         if (!range_valid(pos, pos + 1)) {
             return Result_t::RESULT_OUT_OF_RANGE;
         }
         int c = fgetc(file);
-        if (feof(file))
+        if (feof(file)) {
             return Result_t::RESULT_EOF;
-        if (ferror(file) && errno == EAGAIN)
+        }
+        if (ferror(file) && errno == EAGAIN) {
             return Result_t::RESULT_ERROR;
+        }
         pos++;
 
         // skip non-base64 characters
@@ -327,8 +337,9 @@ bool PlainGcodeReader::IsBeginThumbnail(GcodeBuffer &buffer, uint16_t expected_w
 
 IGcodeReader::FileVerificationResult PlainGcodeReader::verify_file(FileVerificationLevel level, std::span<uint8_t> crc_calc_buffer) const {
     // If plain gcode starts with bgcode magic, that means it's most like a binary gcode -> it's not a valid plain gcode
-    if (check_file_starts_with_BGCODE_magic())
+    if (check_file_starts_with_BGCODE_magic()) {
         return { .error_str = N_("The file seems to be a binary gcode with a wrong suffix.") };
+    }
 
     // Plain GCode does not have CRC checking
     (void)crc_calc_buffer;
@@ -385,8 +396,9 @@ IGcodeReader::Result_t PrusaPackGcodeReader::read_block_header(BlockHeader &bloc
     }
 
     // now check if also block content is in valid range
-    if (!range_valid(block_start, block_start + block_header.get_size() + block_content_size(file_header, block_header)))
+    if (!range_valid(block_start, block_start + block_header.get_size() + block_content_size(file_header, block_header))) {
         return Result_t::RESULT_OUT_OF_RANGE;
+    }
 
     return Result_t::RESULT_OK;
 }
@@ -399,8 +411,9 @@ std::optional<BlockHeader> PrusaPackGcodeReader::iterate_blocks(std::function<It
     while (true) {
         BlockHeader block_header;
         auto res = read_block_header(block_header);
-        if (res != Result_t::RESULT_OK)
+        if (res != Result_t::RESULT_OK) {
             return std::nullopt;
+        }
 
         // now pass the block to provided funciton, if its the one we are looking for, end now
         switch (function(block_header)) {
@@ -418,8 +431,9 @@ std::optional<BlockHeader> PrusaPackGcodeReader::iterate_blocks(std::function<It
         }
 
         // move to next block header
-        if (skip_block(*file, file_header, block_header) != bgcode::core::EResult::Success)
+        if (skip_block(*file, file_header, block_header) != bgcode::core::EResult::Success) {
             return std::nullopt;
+        }
     }
 }
 
@@ -476,13 +490,15 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
         // get first gcode block
         auto res = iterate_blocks([](BlockHeader &block_header) {
             // check if correct type, if so, return this block
-            if ((bgcode::core::EBlockType)block_header.type == bgcode::core::EBlockType::GCode)
+            if ((bgcode::core::EBlockType)block_header.type == bgcode::core::EBlockType::GCode) {
                 return IterateResult_t::Return;
+            }
 
             return IterateResult_t::Continue;
         });
-        if (!res.has_value())
+        if (!res.has_value()) {
             return false;
+        }
 
         start_block = res.value();
         block_throwaway_bytes = 0;
@@ -490,19 +506,23 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
 
     } else {
         // offset > 0 - we are starting from arbitrary offset, find nearest block from cache
-        if (!read_and_check_header())
+        if (!read_and_check_header()) {
             return false; // need to check file header somewhere
+        }
 
         // pick nearest restore block from restore info
         stream_restore_info_rec_t *restore_block = get_restore_block_for_offset(offset);
-        if (restore_block == nullptr)
+        if (restore_block == nullptr) {
             return false;
+        }
 
-        if (fseek(file, restore_block->block_file_pos, SEEK_SET) != 0)
+        if (fseek(file, restore_block->block_file_pos, SEEK_SET) != 0) {
             return false;
+        }
 
-        if (auto res = read_block_header(start_block); res != Result_t::RESULT_OK)
+        if (auto res = read_block_header(start_block); res != Result_t::RESULT_OK) {
             return false;
+        }
 
         block_throwaway_bytes = offset - restore_block->block_start_offset;
         block_decompressed_offset = restore_block->block_start_offset;
@@ -510,22 +530,25 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
 
     stream.reset();
     stream.current_block_header = std::move(start_block);
-    if (fread(&stream.encoding, 1, sizeof(stream.encoding), file) != sizeof(stream.encoding))
+    if (fread(&stream.encoding, 1, sizeof(stream.encoding), file) != sizeof(stream.encoding)) {
         return false;
+    }
 
     stream.uncompressed_offset = block_decompressed_offset;
     stream.block_remaining_bytes_compressed = ((bgcode::core::ECompressionType)stream.current_block_header.compression == bgcode::core::ECompressionType::None) ? stream.current_block_header.uncompressed_size : stream.current_block_header.compressed_size;
     stream.multiblock = true;
-    if (!init_decompression())
+    if (!init_decompression()) {
         return false;
+    }
 
     stream_restore_info.fill(stream_restore_info_rec_t());
     store_restore_block();
 
     while (block_throwaway_bytes--) {
         char c;
-        if (stream_getc(c) != IGcodeReader::Result_t::RESULT_OK)
+        if (stream_getc(c) != IGcodeReader::Result_t::RESULT_OK) {
             return false;
+        }
     }
 
     return true;
@@ -533,21 +556,25 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
 
 PlainGcodeReader::Result_t PrusaPackGcodeReader::switch_to_next_block() {
     // go to next block
-    if (bgcode::core::skip_block(*file, file_header, stream.current_block_header) != bgcode::core::EResult::Success)
+    if (bgcode::core::skip_block(*file, file_header, stream.current_block_header) != bgcode::core::EResult::Success) {
         return Result_t::RESULT_ERROR;
+    }
 
     // read next block
     BlockHeader new_block;
-    if (auto res = read_block_header(new_block); res != Result_t::RESULT_OK)
+    if (auto res = read_block_header(new_block); res != Result_t::RESULT_OK) {
         return res;
+    }
 
     // read encoding
     uint16_t encoding;
-    if (fread(&encoding, 1, sizeof(encoding), file) != sizeof(encoding))
+    if (fread(&encoding, 1, sizeof(encoding), file) != sizeof(encoding)) {
         return Result_t::RESULT_ERROR;
+    }
 
-    if (stream.encoding != encoding || stream.current_block_header.type != new_block.type || stream.current_block_header.compression != new_block.compression)
+    if (stream.encoding != encoding || stream.current_block_header.type != new_block.type || stream.current_block_header.compression != new_block.compression) {
         return Result_t::RESULT_ERROR;
+    }
 
     // update stream
     stream.current_block_header = new_block;
@@ -572,17 +599,19 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_getc_file(char &out) {
     if (stream.block_remaining_bytes_compressed == 0) {
         if (stream.multiblock) {
             auto res = switch_to_next_block();
-            if (res != Result_t::RESULT_OK)
+            if (res != Result_t::RESULT_OK) {
                 return res;
+            }
         } else {
             return Result_t::RESULT_EOF;
         }
     }
     stream.block_remaining_bytes_compressed--; // assume 1 byte was read, it might return EOF/ERROR, but at this point it doesn't matter as stream is done anyway
     int iout = fgetc(file);
-    if (iout == EOF)
+    if (iout == EOF) {
         // if fgetc returned EOF, there is something wrong, because that means EOF was found in the middle of block
         return Result_t::RESULT_ERROR;
+    }
     out = iout;
     return Result_t::RESULT_OK;
 }
@@ -590,8 +619,9 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_getc_file(char &out) {
 IGcodeReader::Result_t PrusaPackGcodeReader::stream_current_block_read(char *buffer, size_t size) {
     auto read_res = fread(buffer, 1, size, file);
     stream.block_remaining_bytes_compressed -= size;
-    if (read_res != size)
+    if (read_res != size) {
         return IGcodeReader::Result_t::RESULT_ERROR;
+    }
     return IGcodeReader::Result_t::RESULT_OK;
 }
 
@@ -641,16 +671,18 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_getc_decompressed_heatshrink
                 }
                 if (stream.multiblock) {
                     auto res = switch_to_next_block();
-                    if (res != Result_t::RESULT_OK)
+                    if (res != Result_t::RESULT_OK) {
                         return res;
+                    }
                 } else {
                     return Result_t::RESULT_EOF;
                 }
             }
 
             auto sink_res = heatshrink_sink_data();
-            if (sink_res != Result_t::RESULT_OK)
+            if (sink_res != Result_t::RESULT_OK) {
                 return sink_res;
+            }
         }
     }
 }
@@ -667,8 +699,9 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_getc_decode_meatpacked(char 
         // no character, uncompress next character
         char mp_char;
         auto res = (this->*ptr_stream_getc_decompressed)(mp_char);
-        if (res != Result_t::RESULT_OK)
+        if (res != Result_t::RESULT_OK) {
             return res;
+        }
 
         stream.meatpack.handle_rx_char(mp_char);
     }
@@ -710,12 +743,14 @@ bool PrusaPackGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint1
         }
 
         bgcode::core::ThumbnailParams thumb_header;
-        if (thumb_header.read(*file) != bgcode::core::EResult::Success)
+        if (thumb_header.read(*file) != bgcode::core::EResult::Success) {
             return IterateResult_t::Continue;
+        }
 
         // format not valid
-        if (thumbnail_format_to_type(static_cast<bgcode::core::EThumbnailFormat>(thumb_header.format)) != expected_type)
+        if (thumbnail_format_to_type(static_cast<bgcode::core::EThumbnailFormat>(thumb_header.format)) != expected_type) {
             return IterateResult_t::Continue;
+        }
 
         if (expected_height == thumb_header.height && expected_width == thumb_header.width) {
             return IterateResult_t::Return;
@@ -741,8 +776,9 @@ PrusaPackGcodeReader::Result_t PrusaPackGcodeReader::stream_get_block(char *out_
     size = 0;
     while (size != orig_size) {
         auto res = stream_getc(*(out_data++));
-        if (res != IGcodeReader::Result_t::RESULT_OK)
+        if (res != IGcodeReader::Result_t::RESULT_OK) {
             return res;
+        }
         ++size;
     }
     return Result_t::RESULT_OK;
@@ -804,8 +840,9 @@ uint32_t PrusaPackGcodeReader::get_gcode_stream_size() {
 
 IGcodeReader::FileVerificationResult PrusaPackGcodeReader::verify_file(FileVerificationLevel level, std::span<uint8_t> crc_calc_buffer) const {
     // Every binary gcode has to start a magic sequence
-    if (!check_file_starts_with_BGCODE_magic())
+    if (!check_file_starts_with_BGCODE_magic()) {
         return { .error_str = N_("The file is not a valid bgcode file.") };
+    }
 
     // Further checks are for FileVerificationLevel::full
     if (int(level) < int(FileVerificationLevel::full)) {
@@ -816,8 +853,9 @@ IGcodeReader::FileVerificationResult PrusaPackGcodeReader::verify_file(FileVerif
     {
         // todo: this doesn't respect file validity
         rewind(file);
-        if (bgcode::core::is_valid_binary_gcode(*file, true, crc_calc_buffer.data(), crc_calc_buffer.size()) != bgcode::core::EResult::Success)
+        if (bgcode::core::is_valid_binary_gcode(*file, true, crc_calc_buffer.data(), crc_calc_buffer.size()) != bgcode::core::EResult::Success) {
             return { .error_str = N_("The file is not a valid bgcode file.") };
+        }
     }
 
     return { .is_ok = true };
@@ -869,8 +907,9 @@ bool PrusaPackGcodeReader::valid_for_print() {
     // all metadata has to be preset at that point, because they are before gcode block
     auto res = iterate_blocks([](BlockHeader &block_header) {
         // check if correct type, if so, return this block
-        if ((bgcode::core::EBlockType)block_header.type == bgcode::core::EBlockType::GCode)
+        if ((bgcode::core::EBlockType)block_header.type == bgcode::core::EBlockType::GCode) {
             return IterateResult_t::Return;
+        }
 
         return IterateResult_t::Continue;
     });
@@ -929,8 +968,9 @@ IGcodeReader *AnyGcodeFormatReader::open(const char *filename) {
             storage.emplace<PrusaPackGcodeReader>(*file, info);
             ptr = &std::get<PrusaPackGcodeReader>(storage);
 
-            if (is_partial)
+            if (is_partial) {
                 ptr->update_validity(path);
+            }
 
             return ptr;
 
@@ -938,8 +978,9 @@ IGcodeReader *AnyGcodeFormatReader::open(const char *filename) {
             storage.emplace<PlainGcodeReader>(*file, info);
             ptr = &std::get<PlainGcodeReader>(storage);
 
-            if (is_partial)
+            if (is_partial) {
                 ptr->update_validity(path);
+            }
 
             return ptr;
         }
@@ -965,7 +1006,8 @@ void PrusaPackGcodeReader::stream_t::reset() {
 }
 
 PrusaPackGcodeReader::stream_t::~stream_t() {
-    if (hs_decoder)
+    if (hs_decoder) {
         heatshrink_decoder_free(hs_decoder);
+    }
     hs_decoder = nullptr;
 }

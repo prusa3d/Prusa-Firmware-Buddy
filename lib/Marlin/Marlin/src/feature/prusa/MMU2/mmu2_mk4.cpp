@@ -46,8 +46,9 @@ public:
 
     // returns true only once after expiration, then stops running
     bool expired(T msPeriod) {
-        if (!m_isRunning)
+        if (!m_isRunning) {
             return false;
+        }
         bool expired = false;
         const T now = millis();
         if (m_started <= m_started + msPeriod) {
@@ -59,8 +60,9 @@ public:
                 expired = true;
             }
         }
-        if (expired)
+        if (expired) {
             m_isRunning = false;
+        }
         return expired;
     }
 
@@ -225,8 +227,9 @@ void MMU2::PowerOn() {
 }
 
 bool MMU2::ReadRegister(uint8_t address) {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
     do {
         logic.ReadRegister(address); // we may signal the accepted/rejected status of the response as return value of this function
     } while (!manage_response(false, false));
@@ -237,8 +240,9 @@ bool MMU2::ReadRegister(uint8_t address) {
 }
 
 bool __attribute__((noinline)) MMU2::WriteRegister(uint8_t address, uint16_t data) {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
 
     // special cases - intercept requests of registers which influence the printer's behaviour too + perform the change even on the printer's side
     switch (address) {
@@ -264,8 +268,9 @@ void MMU2::mmu_loop() {
     // Atomic compare_exchange would have been the most appropriate solution here, but this gets called only in Marlin's task,
     // so thread safety should be kept
     static bool avoidRecursion = false;
-    if (avoidRecursion)
+    if (avoidRecursion) {
         return;
+    }
     avoidRecursion = true;
 
     mmu_loop_inner(true);
@@ -373,8 +378,9 @@ bool MMU2::RetryIfPossible(ErrorCode ec) {
 bool MMU2::VerifyFilamentEnteredPTFE() {
     planner_synchronize();
 
-    if (WhereIsFilament() != FilamentState::AT_FSENSOR)
+    if (WhereIsFilament() != FilamentState::AT_FSENSOR) {
         return false;
+    }
 
     // MMU has finished its load, push the filament further by some defined constant length
     // If the filament sensor reads 0 at any moment, then report FAILURE
@@ -439,8 +445,9 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
             planner_synchronize();
 
             logic.ToolChange(slot); // let the MMU pull the filament out and push a new one in
-            if (manage_response(true, true))
+            if (manage_response(true, true)) {
                 break;
+            }
             // otherwise: failed to perform the command - unload first and then let it run again
             IncrementMMUFails();
 
@@ -485,8 +492,9 @@ void MMU2::ToolChangeCommon(uint8_t slot) {
 }
 
 bool MMU2::tool_change(uint8_t slot) {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
 
     if (slot != extruder) {
         if (/*FindaDetectsFilament()*/
@@ -507,8 +515,9 @@ bool MMU2::tool_change(uint8_t slot) {
 }
 
 bool MMU2::tool_change_full(uint8_t slot) {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
 
     if (slot != extruder) {
         planner_synchronize();
@@ -545,8 +554,9 @@ bool MMU2::tool_change_full(uint8_t slot) {
 ///- Tx Same as T?, except nozzle doesn't have to be preheated. Tc must be placed after extruder nozzle is preheated to finish filament load.
 ///- Tc Load to nozzle after filament was prepared by Tx and extruder nozzle is already heated.
 bool MMU2::tool_change(char code, uint8_t slot) {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
 
     FSensorBlockRunout blockRunout;
     BlockEStallDetection blockEStallDetection;
@@ -585,8 +595,9 @@ uint8_t MMU2::get_tool_change_tool() const {
 }
 
 bool MMU2::set_filament_type(uint8_t /*slot*/, uint8_t /*type*/) {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
 
     // @@TODO - this is not supported in the new MMU yet
     //    slot = slot; // @@TODO
@@ -612,8 +623,9 @@ void MMU2::UnloadInner() {
     for (;;) {
         Disable_E0();
         logic.UnloadFilament();
-        if (manage_response(false, true))
+        if (manage_response(false, true)) {
             break;
+        }
         IncrementMMUFails();
     }
     MakeSound(Confirm);
@@ -624,8 +636,9 @@ void MMU2::UnloadInner() {
 }
 
 bool MMU2::unload() {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
 
     WaitForHotendTargetTempBeep();
 
@@ -641,15 +654,17 @@ void MMU2::CutFilamentInner(uint8_t slot) {
     for (;;) {
         Disable_E0();
         logic.CutFilament(slot);
-        if (manage_response(false, true))
+        if (manage_response(false, true)) {
             break;
+        }
         IncrementMMUFails();
     }
 }
 
 bool MMU2::cut_filament(uint8_t slot, bool enableFullScreenMsg /*= true*/) {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
 
     if (enableFullScreenMsg) {
         FullScreenMsgCut(slot);
@@ -686,8 +701,9 @@ bool MMU2::loading_test(uint8_t slot) {
 }
 
 bool MMU2::load_filament(uint8_t slot) {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
 
     FullScreenMsgLoad(slot);
     {
@@ -695,8 +711,9 @@ bool MMU2::load_filament(uint8_t slot) {
         for (;;) {
             Disable_E0();
             logic.LoadFilament(slot);
-            if (manage_response(false, false))
+            if (manage_response(false, false)) {
                 break;
+            }
             IncrementMMUFails();
         }
         MakeSound(SoundType::Confirm);
@@ -706,8 +723,9 @@ bool MMU2::load_filament(uint8_t slot) {
 }
 
 bool MMU2::load_filament_to_nozzle(uint8_t slot) {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
 
     WaitForHotendTargetTempBeep();
 
@@ -733,8 +751,9 @@ bool MMU2::load_filament_to_nozzle(uint8_t slot) {
 }
 
 bool MMU2::eject_filament(uint8_t slot, bool enableFullScreenMsg /* = true */) {
-    if (!WaitForMMUReady())
+    if (!WaitForMMUReady()) {
         return false;
+    }
 
     if (enableFullScreenMsg) {
         FullScreenMsgEject(slot);
@@ -748,8 +767,9 @@ bool MMU2::eject_filament(uint8_t slot, bool enableFullScreenMsg /* = true */) {
         for (;;) {
             Disable_E0();
             logic.EjectFilament(slot);
-            if (manage_response(false, true))
+            if (manage_response(false, true)) {
                 break;
+            }
             IncrementMMUFails();
         }
         extruder = MMU2_NO_TOOL;
@@ -770,8 +790,9 @@ void MMU2::Home(uint8_t mode) {
 }
 
 void MMU2::SaveHotendTemp(bool turn_off_nozzle) {
-    if (mmu_print_saved & SavedState::Cooldown)
+    if (mmu_print_saved & SavedState::Cooldown) {
         return;
+    }
 
     if (turn_off_nozzle && !(mmu_print_saved & SavedState::CooldownPending)) {
         Disable_E0();

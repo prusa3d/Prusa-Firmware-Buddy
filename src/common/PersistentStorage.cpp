@@ -56,30 +56,34 @@ static void readHomeSamples(HomeSample (&homeSamples)[PersistentStorage::homeSam
 }
 
 static IndexRun getNextHomeSampleIndexRun(uint_fast8_t axis) {
-    if (axis >= axisCount)
+    if (axis >= axisCount) {
         return { 0, 0, true };
+    }
 
     HomeSample homeSamplesRead[PersistentStorage::homeSamplesCount];
     readHomeSamples(homeSamplesRead, axis);
 
     /// return first invalid sample, assume run 0.
     for (uint_fast8_t i = 0; i < PersistentStorage::homeSamplesCount; ++i) {
-        if (!isValid(homeSamplesRead[i]))
+        if (!isValid(homeSamplesRead[i])) {
             return { i, 0, false };
+        }
     }
 
     /// return position to rewrite - first sample of previous run
     if (0 == homeSamplesRead[0].run) { // run 0. already started
         for (uint_fast8_t i = 1; i < PersistentStorage::homeSamplesCount; ++i) {
-            if (1 == homeSamplesRead[i].run)
+            if (1 == homeSamplesRead[i].run) {
                 return { i, 0, false }; // return position of first sample from previous run
+            }
         }
         // run 0. finished, start 1. run
         return { 0, 1, false };
     } else { // run 1. already started
         for (uint_fast8_t i = 1; i < PersistentStorage::homeSamplesCount; ++i) {
-            if (0 == homeSamplesRead[i].run)
+            if (0 == homeSamplesRead[i].run) {
                 return { i, 1, false }; // return position of first sample from previous run
+            }
         }
         // run 1. finished, start 0. run
         return { 0, 0, false };
@@ -88,8 +92,9 @@ static IndexRun getNextHomeSampleIndexRun(uint_fast8_t axis) {
 
 void PersistentStorage::pushHomeSample(uint16_t mscnt, uint8_t board_temp, uint8_t axis) {
     const IndexRun indexRun = getNextHomeSampleIndexRun(axis);
-    if (indexRun.error)
+    if (indexRun.error) {
         return;
+    }
 
     HomeSample homeSample;
     homeSample.run = indexRun.run;

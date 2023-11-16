@@ -217,8 +217,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         break;
     }
 
-    if (processed && !no_ok)
+    if (processed && !no_ok) {
         queue.ok_to_send();
+    }
 
     return processed;
 }

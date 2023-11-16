@@ -400,8 +400,9 @@ void EspCredentials::Loop() {
         }
 
         // update
-        if (phase)
+        if (phase) {
             FSM_HOLDER_CHANGE_METHOD__LOGGING(rfsm, *phase, fsm::PhaseData()); // we dont need data, only phase
+        }
 
         // call idle loop to prevent watchdog
         idle(true, true);
@@ -418,8 +419,9 @@ void EspCredentials::loopCreateINI() {
         phase = PhasesESP::ESP_USB_not_inserted;
         break;
     case esp_credential_action::USB_not_inserted_wait:
-        if (continue_yes_retry_pressed || usb_inserted)
+        if (continue_yes_retry_pressed || usb_inserted) {
             progress_state = esp_credential_action::AskMakeFile;
+        }
         break;
     case esp_credential_action::AskMakeFile:
         phase = file_exists() ? PhasesESP::ESP_ask_gen_overwrite : PhasesESP::ESP_ask_gen;
@@ -449,8 +451,9 @@ void EspCredentials::loopCreateINI() {
         }
         break;
     case esp_credential_action::WaitUSB_ejected:
-        if (continue_yes_retry_pressed || !usb_inserted)
+        if (continue_yes_retry_pressed || !usb_inserted) {
             progress_state = esp_credential_action::Done;
+        }
         break;
     default:
         break;
@@ -487,8 +490,9 @@ void EspCredentials::loop() {
         }
         break;
     case esp_credential_action::WaitUSB_inserted:
-        if (continue_yes_retry_pressed || usb_inserted)
+        if (continue_yes_retry_pressed || usb_inserted) {
             progress_state = esp_credential_action::VerifyConfig_init;
+        }
         break;
     case esp_credential_action::VerifyConfig_init:
         phase = PhasesESP::ESP_uploading_config;
@@ -497,8 +501,9 @@ void EspCredentials::loop() {
     case esp_credential_action::DisableWIFI_if_needed:
         if (wifi_enabled) {
             // give GUI some time to draw, netdev_set_active_id will consume all cpu power
-            if (wait_in_progress(1024))
+            if (wait_in_progress(1024)) {
                 break;
+            }
             netdev_set_active_id(NETDEV_NODEV_ID);
             progress_state = esp_credential_action::WaitWIFI_disabled;
         } else {
@@ -513,15 +518,17 @@ void EspCredentials::loop() {
     case esp_credential_action::VerifyConfig:
         // at this point cpu load is to high to draw screen nicely
         // so we wait a bit
-        if (wait_in_progress(2048))
+        if (wait_in_progress(2048)) {
             break;
+        }
         progress_state = upload_config() ? esp_credential_action::ShowEnableWIFI : esp_credential_action::ConfigNOk;
         break;
     case esp_credential_action::ConfigNOk:
         // at this point cpu load is to high to draw screen nicely
         // so we wait a bit
-        if (wait_in_progress(2048))
+        if (wait_in_progress(2048)) {
             break;
+        }
         progress_state = esp_credential_action::ConfigNOk_wait_user;
         phase = PhasesESP::ESP_invalid;
         break;
@@ -533,15 +540,17 @@ void EspCredentials::loop() {
     case esp_credential_action::ShowEnableWIFI:
         // at this point cpu load is to high to draw screen nicely
         // so we wait a bit
-        if (wait_in_progress(2048))
+        if (wait_in_progress(2048)) {
             break;
+        }
         progress_state = esp_credential_action::EnableWIFI;
         phase = PhasesESP::ESP_enabling_WIFI;
         break;
     case esp_credential_action::EnableWIFI:
         // give GUI some time to draw before call of netdev_set_active_id
-        if (wait_in_progress(1024))
+        if (wait_in_progress(1024)) {
             break;
+        }
         netdev_set_active_id(NETDEV_ESP_ID);
         progress_state = esp_credential_action::WaitWIFI_enabled;
         break;
@@ -609,8 +618,9 @@ void update_esp() {
 
     // update did not start yet
     // no fsm was opened, it is safe to just return in case sask was not created
-    if (!xHandle)
+    if (!xHandle) {
         return;
+    }
 
     task_state = ESPUpdate::state::did_not_finished;
     FSM_HOLDER__LOGGING(ESP);
@@ -632,8 +642,9 @@ void update_esp() {
     }
 
     // in case update was aborted credentials will not run
-    if ((credentials_already_set && !credentials_on_usb) || task_state != ESPUpdate::state::finished)
+    if ((credentials_already_set && !credentials_on_usb) || task_state != ESPUpdate::state::finished) {
         return;
+    }
 
     // need scope to not have 2 instances of credentials at time
     if (!credentials_on_usb) {

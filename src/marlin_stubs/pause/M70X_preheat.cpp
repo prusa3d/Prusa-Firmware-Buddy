@@ -32,8 +32,9 @@ static Response preheatTempUnKnown(PreheatData preheat_data, bool break_on_autol
         if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().GetAutoload() == fsensor_t::NoFilament) {
             return Response::Abort;
         }
-        if (break_on_autoload && FSensors_instance().IsAutoloadInProgress())
+        if (break_on_autoload && FSensors_instance().IsAutoloadInProgress()) {
             return Response::_none;
+        }
         idle(true, true);
     }
     return ret;

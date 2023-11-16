@@ -79,8 +79,9 @@ ISheetProfileMenuScreen::ISheetProfileMenuScreen(uint32_t value)
         Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
         Show<MI_SHEET_OFFSET>();
     }
-    if (value == 0)
+    if (value == 0) {
         Item<MI_SHEET_RESET>().Disable();
+    }
 }
 
 void ISheetProfileMenuScreen::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t ev, void *param) {
@@ -97,8 +98,9 @@ void ISheetProfileMenuScreen::windowEvent(EventLock /*has private ctor*/, window
             Item<MI_SHEET_SELECT>().Disable();
             Item<MI_SHEET_OFFSET>().Reset();
             log_debug(GUI, "MI_SHEET_RESET OK");
-        } else
+        } else {
             log_error(GUI, "MI_SHEET_RESET FAIL!");
+        }
         break;
     case profile_action::Select:
         log_debug(GUI, "MI_SHEET_SELECT");

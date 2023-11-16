@@ -39,8 +39,9 @@ log_timestamp_t log_platform_timestamp_get() {
 static std::optional<std::function<void(log_destination_t *destination, log_event_t *event)>> log_event_func = std::nullopt;
 
 static void custom_log_event(log_destination_t *destination, log_event_t *event) {
-    if (log_event_func.has_value())
+    if (log_event_func.has_value()) {
         log_event_func.value()(destination, event);
+    }
 }
 
 log_destination_t in_memory_log = {

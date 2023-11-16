@@ -302,15 +302,18 @@ int tinydir_open(tinydir_dir *dir, const _tinydir_char_t *path) {
     #else
     /* allocate dirent buffer for readdir_r */
     size = _tinydir_dirent_buf_size(dir->_d); /* conversion to int */
-    if (size == -1)
+    if (size == -1) {
         return -1;
+    }
     dir->_ep = (struct _tinydir_dirent *)_TINYDIR_MALLOC(size);
-    if (dir->_ep == NULL)
+    if (dir->_ep == NULL) {
         return -1;
+    }
 
     error = readdir_r(dir->_d, dir->_ep, &dir->_e);
-    if (error != 0)
+    if (error != 0) {
         return -1;
+    }
     #endif
     if (dir->_e == NULL) {
         dir->has_next = 0;
@@ -614,10 +617,12 @@ int tinydir_file_open(tinydir_file *file, const _tinydir_char_t *path) {
 
     /* _splitpath_s not work fine with only filename and widechar support */
     #ifdef _UNICODE
-    if (drive_buf[0] == L'\xFEFE')
+    if (drive_buf[0] == L'\xFEFE') {
         drive_buf[0] = '\0';
-    if (dir_name_buf[0] == L'\xFEFE')
+    }
+    if (dir_name_buf[0] == L'\xFEFE') {
         dir_name_buf[0] = '\0';
+    }
     #endif
 
     if (errno) {

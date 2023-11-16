@@ -19,15 +19,17 @@ static const std::uint16_t n511 = 511;
 /// Replaces all occurrences of @find with @replace
 void replace(char *str, char find, char replace) {
     while (str[0] != 0) {
-        if (str[0] == find)
+        if (str[0] == find) {
             str[0] = replace;
+        }
         str++;
     }
 }
 
 char replaceChar(char c, char find, char replace) {
-    if (c == ' ')
+    if (c == ' ') {
         return replace;
+    }
     return c;
 }
 
@@ -496,8 +498,9 @@ TEST_CASE("multi-line", "[text_wrap]") {
         while ((c = w.character(mem)) != '\0') {
             // str[index++] = replaceChar(c, ' ', '_');
             str[index++] = c;
-            if (c == '\n')
+            if (c == '\n') {
                 ++n;
+            }
         }
         str[index] = '\0';
         CHECK(n == lines);
@@ -521,8 +524,9 @@ TEST_CASE("multi-line", "[text_wrap]") {
         char str[n255], c;
         size_t index = 0;
 
-        while ((c = w.character(mem)) != '\0')
+        while ((c = w.character(mem)) != '\0') {
             str[index++] = c;
+        }
         str[index] = '\0';
         CHECK_THAT(str, Equals("The status bar is at\n"
                                "the bottom of the\n"
@@ -555,8 +559,9 @@ TEST_CASE("multi-line", "[text_wrap]") {
         char str[n255], c;
         size_t index = 0;
 
-        while ((c = w.character(mem)) != '\0')
+        while ((c = w.character(mem)) != '\0') {
             str[index++] = c;
+        }
         str[index] = '\0';
 
         CHECK_THAT(str, Equals("Nel prossimo passo,\n"
@@ -583,8 +588,9 @@ TEST_CASE("multi-line", "[text_wrap]") {
 
         while ((c = w.character(mem)) != '\0') {
             /// replace spaces with underscore to visualise spaces
-            if (c == ' ')
+            if (c == ' ') {
                 c = '_';
+            }
             str[index++] = c;
         }
         str[index] = '\0';
@@ -627,8 +633,9 @@ TEST_CASE("multi-line UTF-8", "[str2multiline][text_wrap]") {
         std::vector<unichar> str(n255), expected(n255);
         size_t index = 0;
         to_unichar("příliš žluťoučký kůň\núpěl ďábelské ódy :\nPŘÍLIŠ ŽLUŤOUČKÝ KŮŇ\nÚPĚL ĎÁBELSKÉ ÓDY", &expected);
-        while ((c = w.character(sf)) != '\0')
+        while ((c = w.character(sf)) != '\0') {
             str[index++] = c;
+        }
         str[index] = '\0';
         CHECK_THAT(str, Equals(expected));
     }

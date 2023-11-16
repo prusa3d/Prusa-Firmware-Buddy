@@ -51,8 +51,9 @@ size_t IWiSwitch::GetIndex() const {
 }
 
 Rect16 IWiSwitch::getSwitchRect(Rect16 extension_rect) const {
-    if (!has_brackets)
+    if (!has_brackets) {
         return extension_rect;
+    }
 
     extension_rect += Rect16::Left_t(BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
     extension_rect -= Rect16::Width_t(BracketFont->w * 2 + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
@@ -136,8 +137,9 @@ Rect16::Width_t IWiSwitch::calculateExtensionWidth_icon(Items_t items) {
     size_t max_width = 0;
     for (size_t i = 0; i < items.size; ++i) {
         size_t width = items.icon_resources[i]->w;
-        if (width > max_width)
+        if (width > max_width) {
             max_width = width;
+        }
     }
     return max_width + Padding.left + Padding.right;
 }

@@ -317,8 +317,9 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
 
     // is notice
     if (is_notice(phase)) {
-        if (!can_change(phase))
+        if (!can_change(phase)) {
             return false;
+        }
 
     #if HAS_MMU2()
         if (is_notice_mmu(phase)) {
@@ -415,8 +416,9 @@ float DialogLoadUnload::deserialize_progress(fsm::PhaseData data) const {
 }
 
 void DialogLoadUnload::phaseEnter() {
-    if (!current_phase)
+    if (!current_phase) {
         return;
+    }
     AddSuperWindow<DialogStateful<PhasesLoadUnload>>::phaseEnter();
 
     if (mode == LoadUnloadMode::Load) { // Change is currently split into Load/Unload, therefore no need to if (mode == change)

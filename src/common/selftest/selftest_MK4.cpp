@@ -223,16 +223,21 @@ bool CSelftest::IsAborted() const {
 
 bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t tool_mask) {
     m_Mask = SelftestMask_t(test_mask);
-    if (m_Mask & stmFans)
+    if (m_Mask & stmFans) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));
-    if (m_Mask & stmXYZAxis)
+    }
+    if (m_Mask & stmXYZAxis) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_axes) | uint64_t(stmZcalib));
-    if (m_Mask & stmHeaters)
+    }
+    if (m_Mask & stmHeaters) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_heaters));
-    if (m_Mask & stmLoadcell)
+    }
+    if (m_Mask & stmLoadcell) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_loadcell));
-    if (m_Mask & stmZAxis)
+    }
+    if (m_Mask & stmZAxis) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
+    }
     m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
 
@@ -252,8 +257,9 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
 
 void CSelftest::Loop() {
     uint32_t time = ticks_ms();
-    if ((time - m_Time) < SELFTEST_LOOP_PERIODE)
+    if ((time - m_Time) < SELFTEST_LOOP_PERIODE) {
         return;
+    }
     m_Time = time;
     switch (m_State) {
     case stsIdle:
@@ -265,20 +271,24 @@ void CSelftest::Loop() {
         phaseSelftestStart();
         break;
     case stsFans:
-        if (selftest::phaseFans(pFans, fans_configs))
+        if (selftest::phaseFans(pFans, fans_configs)) {
             return;
+        }
         break;
     case stsWait_fans:
-        if (phaseWait())
+        if (phaseWait()) {
             return;
+        }
         break;
     case stsLoadcell:
-        if (selftest::phaseLoadcell(ToolMask::AllTools, m_pLoadcell, Config_Loadcell))
+        if (selftest::phaseLoadcell(ToolMask::AllTools, m_pLoadcell, Config_Loadcell)) {
             return;
+        }
         break;
     case stsWait_loadcell:
-        if (phaseWait())
+        if (phaseWait()) {
             return;
+        }
         break;
     case stsZcalib: {
         // calib_Z(true) will move it back after calibration
@@ -294,23 +304,27 @@ void CSelftest::Loop() {
         break;
     }
     case stsXAxis: {
-        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::no))
+        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::no)) {
             return;
+        }
         break;
     }
     case stsXAxisWithMotorDetection: {
-        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::no, Detect200StepMotors::yes))
+        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::no, Detect200StepMotors::yes)) {
             return;
+        }
         break;
     }
     case stsYAxis: {
-        if (selftest::phaseAxis(pYAxis, Config_YAxis, Separate::no))
+        if (selftest::phaseAxis(pYAxis, Config_YAxis, Separate::no)) {
             return;
+        }
         break;
     }
     case stsZAxis: {
-        if (selftest::phaseAxis(pZAxis, Config_ZAxis, Separate::no))
+        if (selftest::phaseAxis(pZAxis, Config_ZAxis, Separate::no)) {
             return;
+        }
         break;
     }
     case stsMoveZup:
@@ -319,8 +333,9 @@ void CSelftest::Loop() {
 #endif
         break;
     case stsWait_axes:
-        if (phaseWait())
+        if (phaseWait()) {
             return;
+        }
         break;
     case stsHeaters_noz_ena:
         selftest::phaseHeaters_noz_ena(pNozzles, Config_HeaterNozzle);
@@ -330,12 +345,14 @@ void CSelftest::Loop() {
         break;
     }
     case stsHeaters:
-        if (selftest::phaseHeaters(pNozzles, &pBed))
+        if (selftest::phaseHeaters(pNozzles, &pBed)) {
             return;
+        }
         break;
     case stsWait_heaters:
-        if (phaseWait())
+        if (phaseWait()) {
             return;
+        }
         break;
     case stsHotEndSock:
         if (m_result.tools[0].nozzle == TestResult_Failed) {
@@ -349,16 +366,19 @@ void CSelftest::Loop() {
         }
         break;
     case stsFSensor_calibration:
-        if (selftest::phaseFSensor(1, pFSensor, Config_FSensor))
+        if (selftest::phaseFSensor(1, pFSensor, Config_FSensor)) {
             return;
+        }
         break;
     case stsFSensorMMU_calibration:
-        if (selftest::phaseFSensor(1, pFSensor, Config_FSensorMMU))
+        if (selftest::phaseFSensor(1, pFSensor, Config_FSensorMMU)) {
             return;
+        }
         break;
     case stsGears:
-        if (selftest::phase_gears(pGearsCalib, gears_config))
+        if (selftest::phase_gears(pGearsCalib, gears_config)) {
             return;
+        }
         break;
     case stsSelftestStop:
         restoreAfterSelftest();
@@ -397,19 +417,23 @@ void CSelftest::phaseDidSelftestPass() {
 }
 
 bool CSelftest::Abort() {
-    if (!IsInProgress())
+    if (!IsInProgress()) {
         return false;
-    for (auto &pFan : pFans)
+    }
+    for (auto &pFan : pFans) {
         abort_part(&pFan);
+    }
     abort_part((selftest::IPartHandler **)&pXAxis);
     abort_part((selftest::IPartHandler **)&pYAxis);
     abort_part((selftest::IPartHandler **)&pZAxis);
-    for (auto &pNozzle : pNozzles)
+    for (auto &pNozzle : pNozzles) {
         abort_part(&pNozzle);
+    }
     abort_part(&pBed);
     abort_part(&pSock);
-    for (auto &loadcell : m_pLoadcell)
+    for (auto &loadcell : m_pLoadcell) {
         abort_part(&loadcell);
+    }
     abort_part((selftest::IPartHandler **)&pFSensor);
     abort_part(&pGearsCalib);
 
@@ -436,14 +460,18 @@ void CSelftest::phaseSelftestStart() {
         m_result.tools[0].heatBreakFan = TestResult_Unknown;
         m_result.tools[0].fansSwitched = TestResult_Unknown;
     }
-    if (m_Mask & stmXAxis)
+    if (m_Mask & stmXAxis) {
         m_result.xaxis = TestResult_Unknown;
-    if (m_Mask & stmYAxis)
+    }
+    if (m_Mask & stmYAxis) {
         m_result.yaxis = TestResult_Unknown;
-    if (m_Mask & stmZAxis)
+    }
+    if (m_Mask & stmZAxis) {
         m_result.zaxis = TestResult_Unknown;
-    if (m_Mask & stmZcalib)
+    }
+    if (m_Mask & stmZcalib) {
         m_result.zalign = TestResult_Unknown;
+    }
     if (m_Mask & stmHeaters) {
         m_result.tools[0].nozzle = TestResult_Unknown;
         m_result.bed = TestResult_Unknown;
@@ -466,11 +494,13 @@ void CSelftest::restoreAfterSelftest() {
 }
 
 void CSelftest::next() {
-    if ((m_State == stsFinished) || (m_State == stsAborted))
+    if ((m_State == stsFinished) || (m_State == stsAborted)) {
         return;
+    }
     int state = m_State + 1;
-    while ((((uint64_t(1) << state) & m_Mask) == 0) && (state < stsFinish))
+    while ((((uint64_t(1) << state) & m_Mask) == 0) && (state < stsFinish)) {
         state++;
+    }
     m_State = (SelftestState_t)state;
 
     // check, if state can run
@@ -488,12 +518,14 @@ void CSelftest::next() {
         break;      // current state cannot be run
 #endif
     case stsZAxis: // loadcell and both X and Y must be OK to test Z
-        if (m_result.tools[0].loadcell == TestResult_Passed && m_result.xaxis == TestResult_Passed && m_result.yaxis == TestResult_Passed)
+        if (m_result.tools[0].loadcell == TestResult_Passed && m_result.xaxis == TestResult_Passed && m_result.yaxis == TestResult_Passed) {
             return; // current state can be run
+        }
         break; // current state cannot be run
     case stsMoveZup: // Z must be OK, if axis are not homed, it could be stacked at the top and generate noise, but the way states are generated from mask should prevent it
-        if (m_result.zaxis == TestResult_Passed)
+        if (m_result.zaxis == TestResult_Passed) {
             return; // current state can be run
+        }
         break; // current state cannot be run
     default:
         return; // current state can be run

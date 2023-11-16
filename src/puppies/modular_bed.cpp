@@ -355,8 +355,9 @@ ModularBed::cost_and_enable_mask_t ModularBed::touch_side(uint16_t enabled_mask,
         for (uint8_t y = 0; y < BEDLET_MAX_Y; ++y) {
 
             // if this bedlet is not enabled, don't calculate how to touch side from here
-            if ((enabled_mask & (1 << idx(x, y))) == 0)
+            if ((enabled_mask & (1 << idx(x, y))) == 0) {
                 continue;
+            }
 
             uint8_t cost = 0;
             uint16_t to_enable = 0;
@@ -412,8 +413,9 @@ uint16_t ModularBed::expand_to_sides(uint16_t enabled_mask, float target_temp) {
     // apply new enable mask, update temperature
     enabled_mask |= side_expand_mask;
     for (uint8_t i = 0; i < BEDLET_COUNT; i++) {
-        if ((side_expand_mask & (1 << i)))
+        if ((side_expand_mask & (1 << i))) {
             set_target(i, target_temp);
+        }
     }
 
     return enabled_mask;
@@ -434,18 +436,21 @@ void ModularBed::update_gradients(uint16_t enabled_mask) {
         for (uint8_t y1 = 0; y1 < BEDLET_MAX_Y; ++y1) {
             const uint16_t idx1 = idx(x1, y1);
             const uint16_t temp1 = bedlet_target_temp.value[idx1];
-            if ((enabled_mask & (1 << idx1)) == 0) // if this bedlet is not enabled, don't calculate gradient from it
+            if ((enabled_mask & (1 << idx1)) == 0) { // if this bedlet is not enabled, don't calculate gradient from it
                 continue;
+            }
 
             for (uint8_t x2 = 0; x2 < BEDLET_MAX_X; ++x2) {
                 for (uint8_t y2 = 0; y2 < BEDLET_MAX_Y; ++y2) {
                     const uint16_t idx2 = idx(x2, y2);
-                    if ((enabled_mask & (1 << idx2))) // if this bedlet is enabled, don't change it's temperature
+                    if ((enabled_mask & (1 << idx2))) { // if this bedlet is enabled, don't change it's temperature
                         continue;
+                    }
 
                     const float dist = std::sqrt(std::pow(x2 - x1, 2) + std::pow(y2 - y1, 2)); // distance between bedlets
-                    if (dist > bedlet_gradient_cutoff)
+                    if (dist > bedlet_gradient_cutoff) {
                         continue; // if bedlet distance is over BEDLET_GRADIENT_CUTOFF, don't do anything, temperature is already zero
+                    }
 
                     const int16_t temp2 = temp1 - temp1 * pow(1 / bedlet_gradient_cutoff * dist, bedlet_gradient_exponent);
                     bedlet_target_temp.value[idx2] = std::max(temp2, (int16_t)bedlet_target_temp.value[idx2]);

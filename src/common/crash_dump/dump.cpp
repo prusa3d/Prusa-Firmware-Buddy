@@ -80,8 +80,9 @@ enum {
 
 static bool dump_read_header(info_t &dumpinfo) {
     w25x_rd_data(dump_header_addr, (uint8_t *)(&dumpinfo), sizeof(dumpinfo));
-    if (w25x_fetch_error())
+    if (w25x_fetch_error()) {
         return false;
+    }
     return true;
 }
 
@@ -104,8 +105,9 @@ bool dump_is_displayed() {
 }
 
 size_t dump_get_size() {
-    if (!dump_is_valid())
+    if (!dump_is_valid()) {
         return 0;
+    }
     info_t dumpinfo;
     dump_read_header(dumpinfo);
     return dumpinfo.dump_size;
@@ -161,8 +163,9 @@ bool save_dump_to_usb(const char *fn) {
     uint32_t bw_total = 0;
 
     info_t dump_info;
-    if (!dump_read_header(dump_info))
+    if (!dump_read_header(dump_info)) {
         return false;
+    }
 
     fd = fopen(fn, "w");
     if (fd != NULL) {
@@ -223,24 +226,27 @@ void save_message(MsgType type, uint16_t error_code, const char *error, const ch
 bool message_is_valid() {
     uint32_t magic;
     w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->message_magic_nr), reinterpret_cast<uint8_t *>(&magic), sizeof(message_t::message_magic_nr));
-    if (w25x_fetch_error())
+    if (w25x_fetch_error()) {
         return false;
+    }
     return magic == MESSAGE_DUMP_MAGIC_NR;
 }
 
 MsgType message_get_type() {
     uint8_t type;
     w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->type), &type, sizeof(message_t::type));
-    if (w25x_fetch_error())
+    if (w25x_fetch_error()) {
         return MsgType::EMPTY; // Behave as invalid message
+    }
     return MsgType(type);
 }
 
 bool message_is_displayed() {
     uint8_t not_displayed;
     w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->not_displayed), &not_displayed, sizeof(message_t::not_displayed));
-    if (w25x_fetch_error())
+    if (w25x_fetch_error()) {
         return false;
+    }
     return !not_displayed;
 }
 
@@ -261,13 +267,16 @@ bool load_message(char *msg_dst, size_t msg_dst_size, char *tit_dst, size_t tit_
         w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), (uint8_t *)(msg_dst), msg_max_size);
     }
 
-    if (title_max_size)
+    if (title_max_size) {
         tit_dst[title_max_size - 1] = '\0';
-    if (msg_max_size)
+    }
+    if (msg_max_size) {
         msg_dst[msg_max_size - 1] = '\0';
+    }
 
-    if (w25x_fetch_error())
+    if (w25x_fetch_error()) {
         return false;
+    }
     return true;
 }
 
@@ -277,8 +286,9 @@ uint16_t load_message_error_code() {
         reinterpret_cast<uint32_t>(&dumpmessage_flash->error_code),
         reinterpret_cast<uint8_t *>(&error_code),
         sizeof(message_t::error_code));
-    if (w25x_fetch_error())
+    if (w25x_fetch_error()) {
         return ftrstd::to_underlying(ErrCode::ERR_UNDEF);
+    }
     return error_code;
 }
 
@@ -355,14 +365,16 @@ void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
 
 void CrashCatcher_DumpMemory(const void *pvMemory, CrashCatcherElementSizes element_size, size_t elementCount) {
     if (element_size == CRASH_CATCHER_BYTE) {
-        if (crash_dump::dump_size + elementCount > crash_dump::dump_max_data_size)
+        if (crash_dump::dump_size + elementCount > crash_dump::dump_max_data_size) {
             crash_dump::dump_failed();
+        }
 
         w25x_program(crash_dump::dump_data_addr + crash_dump::dump_size, (uint8_t *)pvMemory, elementCount);
         crash_dump::dump_size += elementCount;
     } else if (element_size == CRASH_CATCHER_WORD) {
-        if (crash_dump::dump_size + elementCount * sizeof(uint32_t) > crash_dump::dump_max_data_size)
+        if (crash_dump::dump_size + elementCount * sizeof(uint32_t) > crash_dump::dump_max_data_size) {
             crash_dump::dump_failed();
+        }
 
         const uint32_t *ptr = reinterpret_cast<const uint32_t *>(pvMemory);
         while (elementCount) {
@@ -375,8 +387,9 @@ void CrashCatcher_DumpMemory(const void *pvMemory, CrashCatcherElementSizes elem
         crash_dump::dump_failed();
     }
 
-    if (w25x_fetch_error())
+    if (w25x_fetch_error()) {
         crash_dump::dump_failed();
+    }
 }
 
 CrashCatcherReturnCodes CrashCatcher_DumpEnd(void) {
@@ -387,8 +400,9 @@ CrashCatcherReturnCodes CrashCatcher_DumpEnd(void) {
         .dump_size = crash_dump::dump_size,
     };
     w25x_program(crash_dump::dump_header_addr, (uint8_t *)&dump_info, sizeof(dump_info));
-    if (w25x_fetch_error())
+    if (w25x_fetch_error()) {
         crash_dump::dump_failed();
+    }
 
     // All done, now restart and display BSOD
     HAL_NVIC_SystemReset();

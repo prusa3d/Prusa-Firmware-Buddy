@@ -64,8 +64,9 @@ MI_CRASH_SENSITIVITY_XY::MI_CRASH_SENSITIVITY_XY()
 
 constexpr size_t MI_CRASH_SENSITIVITY_XY::get_item_id_from_sensitivity(int32_t sensitivity) {
     for (size_t i = 0; i <= std::size(ITEMS); i++) {
-        if (ITEMS[i].value == sensitivity)
+        if (ITEMS[i].value == sensitivity) {
             return i;
+        }
     }
     return 0;
 }

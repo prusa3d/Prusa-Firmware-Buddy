@@ -53,8 +53,9 @@ using DataPointsDeq = std::deque<DataPoint>;
 bool LoadCSV(const char *fpath, DataPointsDeq &dataPoints) {
     using namespace std;
     ifstream f(fpath);
-    if (!f.is_open())
+    if (!f.is_open()) {
         return false;
+    }
     string line;
     getline(f, line); // skip first row
 

@@ -72,8 +72,9 @@ ScreenSelftestTemp::hotend_result_t ScreenSelftestTemp::make_hotend_result_row(s
     // when toolchanger is enabled, count how many tools after this one are disabled, and shift icons to the right over the hidden ones
 
     for (size_t i = index; i < HOTENDS; i++) {
-        if (!prusa_toolchanger.is_tool_enabled(i))
+        if (!prusa_toolchanger.is_tool_enabled(i)) {
             ++disabled;
+        }
     }
 #endif
 

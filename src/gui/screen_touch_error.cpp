@@ -11,8 +11,9 @@ ScreenTouchError::ScreenTouchError()
     , header(this, _("TOUCHSCREEN ERROR")) {}
 
 void ScreenTouchError::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
-    if (event_in_progress)
+    if (event_in_progress) {
         return;
+    }
 
     event_in_progress = true;
 

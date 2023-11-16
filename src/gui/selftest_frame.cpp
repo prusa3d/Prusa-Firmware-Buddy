@@ -22,8 +22,9 @@ void SelftestFrame::Change(PhasesSelftest ph, fsm::PhaseData data) {
     data_current = data;
     phase_previous = phase_current;
     phase_current = ph;
-    if (phase_current == phase_previous && data_current == data_previous)
+    if (phase_current == phase_previous && data_current == data_previous) {
         return;
+    }
     pre_change();
     change();
 }
@@ -38,8 +39,9 @@ SelftestFrameWithRadio::SelftestFrameWithRadio(window_t *parent, PhasesSelftest 
 }
 
 void SelftestFrameWithRadio::pre_change() {
-    if (phase_current == phase_previous)
+    if (phase_current == phase_previous) {
         return;
+    }
     radio.Change(phase_current);
 }
 
@@ -64,7 +66,8 @@ SelftestFrameNamedWithRadio::SelftestFrameNamedWithRadio(window_t *parent, Phase
 }
 
 void SelftestFrameNamedWithRadio::pre_change() {
-    if (phase_current == phase_previous)
+    if (phase_current == phase_previous) {
         return;
+    }
     radio.Change(phase_current);
 }

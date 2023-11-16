@@ -232,8 +232,9 @@ private:
             static_assert(NZEROS == 4, "This code works only for NZEROS == 4");
             static_assert(NPOLES == 4, "This code works only for NPOLES == 4");
             static_assert(A[0] == 1, "This code works only A[0] == 1");
-            if (samples < SETTLING_TIME)
+            if (samples < SETTLING_TIME) {
                 ++samples;
+            }
 
             xv[0] = xv[1];
             xv[1] = xv[2];

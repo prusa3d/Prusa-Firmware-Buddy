@@ -45,8 +45,9 @@ Measure_axis::Measure_axis(bool measure_x, bool measure_y, xy_bool_t invert_dir,
         return;
     }
 
-    if (raise_z < 0)
+    if (raise_z < 0) {
         raise_z = Z_HOMING_HEIGHT;
+    }
 
     if (fr_mm_s <= 0) {
         fr.x = homing_feedrate(X_AXIS);
@@ -125,18 +126,22 @@ void Measure_axis::sensorless_enable(AxisEnum axis) {
         break;
         #if X_SENSORLESS
     case X_AXIS:
-        if (sensitivity.has_value())
+        if (sensitivity.has_value()) {
             stepperX.stall_sensitivity(sensitivity.value().x);
-        if (max_period.has_value())
+        }
+        if (max_period.has_value()) {
             stepperX.stall_max_period(max_period.value().x);
+        }
         break;
         #endif
         #if Y_SENSORLESS
     case Y_AXIS:
-        if (sensitivity.has_value())
+        if (sensitivity.has_value()) {
             stepperY.stall_sensitivity(sensitivity.value().y);
-        if (max_period.has_value())
+        }
+        if (max_period.has_value()) {
             stepperX.stall_max_period(max_period.value().y);
+        }
         break;
         #endif
     }
@@ -312,8 +317,9 @@ void Measure_axis::state_finish() {
     #endif
         break;
     case QUICK_HOME_XY:
-        if (do_x && do_y)
+        if (do_x && do_y) {
             quick_home_finish();
+        }
         break;
     case MEASURE_X:
         save_length(X_AXIS);
@@ -339,8 +345,9 @@ void Measure_axis::loop() {
     case FINISH:
         break;
     default:
-        if (!Planner::busy())
+        if (!Planner::busy()) {
             state_next();
+        }
         break;
     }
 }

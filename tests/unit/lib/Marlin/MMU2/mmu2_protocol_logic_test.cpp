@@ -704,8 +704,9 @@ void CheckInitSeqStage(MMU2::ProtocolLogic &pl) {
 
     auto NextStage = [&](uint8_t i) {
         size_t sdi = stage[i].stageDefIndex + 1;
-        if (sdi >= stageDefsCount)
+        if (sdi >= stageDefsCount) {
             sdi = stageDefsCount - 1; // prevent out-bounds-access
+        }
         stage[i] = stageDefs[sdi]; // this assignment clear the stagedefindex
         stage[i].stageDefIndex = sdi; // restore the index to intended value
         InitSeqPatchStrings(stage[i].rx, stage[i].expectedTX, i);
@@ -718,8 +719,9 @@ void CheckInitSeqStage(MMU2::ProtocolLogic &pl) {
             ++i; // proceed to next stage
             break;
         case InitStageNext::ProtocolError:
-            if (i > 0)
+            if (i > 0) {
                 NextStage(i); // shift the stage to next record for next time
+            }
             i = 0; // returning to the beginning, but pick the next record in stage0
             NextStage(i);
 

@@ -54,8 +54,9 @@ static void _usbhost_reenum(void) {
                 log_info(USBHost, "USB host reenumerating"); // trace
                 USBH_ReEnumerate(&hUsbHostHS); // re-enumerate UsbHost
             }
-        } else // otherwise update timer
+        } else { // otherwise update timer
             timer = tick;
+        }
     }
 }
 #else
@@ -404,8 +405,9 @@ void media_print_quick_stop_powerpanic() {
 }
 
 void media_print_pause(bool repeat_last = false) {
-    if (media_print_state != media_print_state_PRINTING)
+    if (media_print_state != media_print_state_PRINTING) {
         return;
+    }
 
     media_print_quick_stop(queue.get_current_sdpos());
     close_file();
@@ -417,8 +419,9 @@ void media_print_pause(bool repeat_last = false) {
 void media_print_resume(void) {
     assert(prefetch_mutex_file_reader && media_print_file);
 
-    if ((media_print_state != media_print_state_PAUSED))
+    if ((media_print_state != media_print_state_PAUSED)) {
         return;
+    }
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
     if (!media_print_file->is_open()) {
@@ -470,8 +473,9 @@ uint32_t media_print_get_pause_position(void) {
 }
 
 float media_print_get_percent_done(void) {
-    if (media_print_size_estimate == 0)
+    if (media_print_size_estimate == 0) {
         return 100;
+    }
 
     return std::min(99.0f, 100 * ((float)media_current_position / media_print_size_estimate));
 }

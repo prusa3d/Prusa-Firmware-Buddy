@@ -37,8 +37,9 @@ static PuppyBootstrap::BootstrapResult bootstrap_puppies(PuppyBootstrap::Bootstr
             // report progress to gui bootstrap screen only if first run - if this is puppy recoverery, there is no bootstrap screen anymore
             log = gui_bootstrap_screen_set_state(progress.percent_done, progress.description());
         }
-        if (log)
+        if (log) {
             log_info(Puppies, "Bootstrap stage: %s, percent %d", progress.description(), progress.percent_done);
+        }
     });
     return puppy_bootstrap.run(minimal_config);
 }
@@ -88,8 +89,9 @@ static void puppy_task_loop() {
 
     // periodically update puppies until there is a failure
     while (true) {
-        if (stop_request)
+        if (stop_request) {
             return;
+        }
 
         [[maybe_unused]] uint32_t cycle_ticks = ticks_ms(); ///< Only one tick read per cycle, value will be reused by last_ticks_ms()
         // One slow action
@@ -167,9 +169,11 @@ static bool puppy_initial_scan() {
     // init each puppy
 #if HAS_DWARF()
     for (Dwarf &dwarf : dwarfs) {
-        if (dwarf.is_enabled())
-            if (dwarf.initial_scan() == CommunicationStatus::ERROR)
+        if (dwarf.is_enabled()) {
+            if (dwarf.initial_scan() == CommunicationStatus::ERROR) {
                 return false;
+            }
+        }
     }
 #endif
 

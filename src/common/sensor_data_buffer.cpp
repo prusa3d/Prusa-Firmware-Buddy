@@ -40,8 +40,9 @@ static constexpr Sensor first_sensor_to_log = Sensor::MCUTemp;
 #endif
 bool SensorDataBuffer::enableMetrics() {
 
-    if (allMetricsEnabled)
+    if (allMetricsEnabled) {
         return true;
+    }
     size_t count = 0;
     metric_t *metric = metric_get_linked_list();
     metric_handler_t *handler = getHandler();

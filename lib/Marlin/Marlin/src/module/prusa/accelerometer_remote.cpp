@@ -67,8 +67,9 @@ PrusaAccelerometer::~PrusaAccelerometer() {
         case Error::corrupted_sample_overrun:
         case Error::corrupted_transmission_error: {
             buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
-            if (!dwarf)
+            if (!dwarf) {
                 return;
+            }
             if (!dwarf->set_accelerometer(false)) {
                 SERIAL_ERROR_MSG("Failed to disable accelerometer, communication error");
             }

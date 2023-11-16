@@ -93,8 +93,9 @@ void ScreenMenuConnectionBase::refresh_addresses() {
 }
 
 void ScreenMenuConnectionBase::show_msg() {
-    if (msg_shown)
+    if (msg_shown) {
         return;
+    }
     AutoRestore<bool> AR(msg_shown);
     msg_shown = true;
     MsgBoxError(_("Static IPv4 addresses were not set."), Responses_Ok);

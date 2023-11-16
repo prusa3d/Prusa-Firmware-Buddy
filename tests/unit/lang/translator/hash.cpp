@@ -110,8 +110,9 @@ bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char 
 
     {
         ifstream f(fname);
-        if (!f.is_open())
+        if (!f.is_open()) {
             return false;
+        }
         uint16_t index = 0;
         do {
             string s;

@@ -266,8 +266,9 @@ bool CSelftest::IsAborted() const {
 bool CSelftest::Start(const uint64_t test_mask, const uint8_t tool_mask) {
     m_result = config_store().selftest_result.get();
     m_Mask = SelftestMask_t(test_mask);
-    if (m_Mask & stmFans)
+    if (m_Mask & stmFans) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));
+    }
     if (m_Mask & (stmXAxis | stmYAxis | stmZAxis)) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_axes));
         if (m_result.zaxis != TestResult_Passed) {
@@ -291,8 +292,9 @@ bool CSelftest::Start(const uint64_t test_mask, const uint8_t tool_mask) {
 
 void CSelftest::Loop() {
     uint32_t time = ticks_ms();
-    if ((time - m_Time) < SELFTEST_LOOP_PERIODE)
+    if ((time - m_Time) < SELFTEST_LOOP_PERIODE) {
         return;
+    }
     m_Time = time;
 
     selftest::TestReturn ret = true;
@@ -306,28 +308,34 @@ void CSelftest::Loop() {
         phaseSelftestStart();
         break;
     case stsDocks:
-        if (prusa_toolchanger.is_toolchanger_enabled() && (ret = selftest::phaseDocks(tool_mask, pDocks, Config_Docks)))
+        if (prusa_toolchanger.is_toolchanger_enabled() && (ret = selftest::phaseDocks(tool_mask, pDocks, Config_Docks))) {
             return;
+        }
         break;
     case stsToolOffsets:
-        if ((ret = selftest::phaseToolOffsets(tool_mask, pToolOffsets, Config_ToolOffsets)))
+        if ((ret = selftest::phaseToolOffsets(tool_mask, pToolOffsets, Config_ToolOffsets))) {
             return;
+        }
         break;
     case stsFans:
-        if (selftest::phaseFans(pFans, fans_configs))
+        if (selftest::phaseFans(pFans, fans_configs)) {
             return;
+        }
         break;
     case stsWait_fans:
-        if (phaseWait())
+        if (phaseWait()) {
             return;
+        }
         break;
     case stsLoadcell:
-        if ((ret = selftest::phaseLoadcell(tool_mask, m_pLoadcell, Config_Loadcell)))
+        if ((ret = selftest::phaseLoadcell(tool_mask, m_pLoadcell, Config_Loadcell))) {
             return;
+        }
         break;
     case stsWait_loadcell:
-        if (phaseWait())
+        if (phaseWait()) {
             return;
+        }
         break;
     case stsZcalib: {
         // calib_Z(true) requires picked tool, which at this time may not be
@@ -344,23 +352,27 @@ void CSelftest::Loop() {
         break;
     }
     case stsXAxis: {
-        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::yes))
+        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::yes)) {
             return;
+        }
         break;
     }
     case stsYAxis: {
-        if (selftest::phaseAxis(pYAxis, Config_YAxis, Separate::yes))
+        if (selftest::phaseAxis(pYAxis, Config_YAxis, Separate::yes)) {
             return;
+        }
         break;
     }
     case stsZAxis: {
-        if (selftest::phaseAxis(pZAxis, Config_ZAxis, Separate::yes))
+        if (selftest::phaseAxis(pZAxis, Config_ZAxis, Separate::yes)) {
             return;
+        }
         break;
     }
     case stsWait_axes:
-        if (phaseWait())
+        if (phaseWait()) {
             return;
+        }
         break;
     case stsHeaters_noz_ena:
         selftest::phaseHeaters_noz_ena(pNozzles, Config_HeaterNozzle);
@@ -369,16 +381,19 @@ void CSelftest::Loop() {
         selftest::phaseHeaters_bed_ena(pBed, Config_HeaterBed);
         break;
     case stsHeaters:
-        if (selftest::phaseHeaters(pNozzles, &pBed))
+        if (selftest::phaseHeaters(pNozzles, &pBed)) {
             return;
+        }
         break;
     case stsWait_heaters:
-        if (phaseWait())
+        if (phaseWait()) {
             return;
+        }
         break;
     case stsFSensor_calibration:
-        if ((ret = selftest::phaseFSensor(tool_mask, pFSensor, Config_FSensor)))
+        if ((ret = selftest::phaseFSensor(tool_mask, pFSensor, Config_FSensor))) {
             return;
+        }
         break;
     case stsSelftestStop:
         restoreAfterSelftest();
@@ -416,18 +431,22 @@ void CSelftest::phaseDidSelftestPass() {
 }
 
 bool CSelftest::Abort() {
-    if (!IsInProgress())
+    if (!IsInProgress()) {
         return false;
-    for (auto &pFan : pFans)
+    }
+    for (auto &pFan : pFans) {
         abort_part(&pFan);
+    }
     abort_part((selftest::IPartHandler **)&pXAxis);
     abort_part((selftest::IPartHandler **)&pYAxis);
     abort_part((selftest::IPartHandler **)&pZAxis);
     abort_part(&pBed);
-    for (auto &pNozzle : pNozzles)
+    for (auto &pNozzle : pNozzles) {
         abort_part(&pNozzle);
-    for (auto &loadcell : m_pLoadcell)
+    }
+    for (auto &loadcell : m_pLoadcell) {
         abort_part(&loadcell);
+    }
     abort_part((selftest::IPartHandler **)&pFSensor);
     for (auto &dock : pDocks) {
         abort_part(&dock);
@@ -466,14 +485,18 @@ void CSelftest::phaseSelftestStart() {
             m_result.tools[e].fansSwitched = TestResult_Unknown;
         }
     }
-    if (m_Mask & stmXAxis)
+    if (m_Mask & stmXAxis) {
         m_result.xaxis = TestResult_Unknown;
-    if (m_Mask & stmYAxis)
+    }
+    if (m_Mask & stmYAxis) {
         m_result.yaxis = TestResult_Unknown;
-    if (m_Mask & stmZAxis)
+    }
+    if (m_Mask & stmZAxis) {
         m_result.zaxis = TestResult_Unknown;
-    if (m_Mask & stmZcalib)
+    }
+    if (m_Mask & stmZcalib) {
         m_result.zalign = TestResult_Unknown;
+    }
     if (m_Mask & to_one_hot(stsHeaters_bed_ena)) {
         m_result.bed = TestResult_Unknown;
     }
@@ -505,11 +528,13 @@ void CSelftest::restoreAfterSelftest() {
 }
 
 void CSelftest::next() {
-    if ((m_State == stsFinished) || (m_State == stsAborted))
+    if ((m_State == stsFinished) || (m_State == stsAborted)) {
         return;
+    }
     int state = m_State + 1;
-    while ((((uint64_t(1) << state) & m_Mask) == 0) && (state < stsFinish))
+    while ((((uint64_t(1) << state) & m_Mask) == 0) && (state < stsFinish)) {
         state++;
+    }
     m_State = (SelftestState_t)state;
 }
 

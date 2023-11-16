@@ -222,8 +222,9 @@ public:
         , p(p_start)
         , clr_bg(clr_bg)
         , clr_fg(clr_fg) {
-        for (size_t i = 0; i < std::min(LEN, size_t(pms + 1)); i++)
+        for (size_t i = 0; i < std::min(LEN, size_t(pms + 1)); i++) {
             clr_native[i] = color_to_native(color_alpha(clr_bg, clr_fg, 255 * i / pms));
+        }
     }
 
     ~TDispBuffer() {
@@ -313,8 +314,9 @@ void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, 
                 if (flags.swap == is_swap::yes) {
                     rb = (i / ppb) ^ 1;
                     crd = pch[rb + j * bpr];
-                } else
+                } else {
                     crd = *(pc++);
+                }
             }
             if (flags.lsb == fnt_lsb::yes) {
                 buff.OffsetInsert(crd & pms, buffer_offset + i * pixel_size);
@@ -329,8 +331,9 @@ void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, 
 
 /// Draws a rectangle boundary of defined color
 void display_ex_draw_rect(Rect16 rc, color_t clr) {
-    if (rc.IsEmpty())
+    if (rc.IsEmpty()) {
         return;
+    }
 
     point_i16_t pt0 = rc.TopLeft();
     point_i16_t pt1 = { int16_t(rc.Left() + rc.Width() - 1), rc.Top() };
@@ -344,8 +347,9 @@ void display_ex_draw_rect(Rect16 rc, color_t clr) {
 
 void display_ex_fill_rect(Rect16 rc, color_t clr) {
     rc = rc.Intersection(DisplayClip());
-    if (rc.IsEmpty())
+    if (rc.IsEmpty()) {
         return;
+    }
     const uint32_t native_color = color_to_native(clr);
     fill_rect_colorFormatNative(rc.Left(), rc.Top(), rc.Width(), rc.Height(), native_color);
 }
@@ -404,14 +408,16 @@ void display_ex_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
 }
 
 color_t display_ex_get_pixel(point_ui16_t pt) {
-    if (!DisplayClip().Contain(pt))
+    if (!DisplayClip().Contain(pt)) {
         return 0;
+    }
     return get_pixel(pt.x, pt.y);
 }
 
 uint8_t *display_ex_get_block(point_ui16_t start, point_ui16_t end) {
-    if (!DisplayClip().Contain(start) || !DisplayClip().Contain(end))
+    if (!DisplayClip().Contain(start) || !DisplayClip().Contain(end)) {
         return NULL;
+    }
     return get_block_C(start.x, start.y, end.x, end.y);
 }
 
@@ -460,8 +466,9 @@ void display_ex_draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint
         return;
     }
 
-    if (rect.Width() <= 0 || rect.Height() <= 0 || !DisplayClip().Contain(rect))
+    if (rect.Width() <= 0 || rect.Height() <= 0 || !DisplayClip().Contain(rect)) {
         return;
+    }
 
     uint16_t buff_rows = buffROWS;
 
@@ -539,21 +546,24 @@ void display_ex_draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint
 
 /// Turns the specified pixel to the specified color
 void display_ex_set_pixel(point_ui16_t pt, color_t clr) {
-    if (!DisplayClip().Contain(pt))
+    if (!DisplayClip().Contain(pt)) {
         return;
+    }
     const uint32_t native_color = color_to_native(clr);
     set_pixel_colorFormatNative(pt.x, pt.y, native_color);
 }
 
 void display_ex_set_pixel_displayNativeColor(point_ui16_t pt, uint16_t noClr) {
-    if (!DisplayClip().Contain(pt))
+    if (!DisplayClip().Contain(pt)) {
         return;
+    }
     set_pixel_colorFormatNative(pt.x, pt.y, noClr);
 }
 
 uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt) {
-    if (!DisplayClip().Contain(pt))
+    if (!DisplayClip().Contain(pt)) {
         return 0;
+    }
     return get_pixel_directColor_C(pt.x, pt.y);
 }
 

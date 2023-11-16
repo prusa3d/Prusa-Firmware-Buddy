@@ -157,8 +157,9 @@ bool SetInputRegisterValue(uint16_t address, uint16_t value) {
 
 bool PutStringIntoInputRegisters(uint16_t from_address, uint16_t to_address, const char *string) {
     BlockInfo *pBI = FindBlockInfo(BlockType::InputRegister, from_address);
-    if (!pBI || from_address > to_address)
+    if (!pBI || from_address > to_address) {
         return false;
+    }
 
     const uint16_t num_registers = to_address + 1 - from_address;
     const size_t from_offset = from_address - pBI->regAddress;

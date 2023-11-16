@@ -93,12 +93,15 @@ SCENARIO("Analysis properly handles its sample window", "[probe_analysis]") {
 
         WHEN("receives just about enough samples") {
             analysis.SetSamplingIntervalMs(1000);
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++) {
                 analysis.StoreSample(0, 0);
-            for (int i = 0; i < 4; i++)
+            }
+            for (int i = 0; i < 4; i++) {
                 analysis.StoreSample(-1, 0);
-            for (int i = 0; i < 4; i++)
+            }
+            for (int i = 0; i < 4; i++) {
                 analysis.StoreSample(0, 0);
+            }
 
             THEN("it is ready for analysis") {
                 auto result = analysis.Analyse();
@@ -108,12 +111,15 @@ SCENARIO("Analysis properly handles its sample window", "[probe_analysis]") {
 
         WHEN("filled up with a U shape Z samples and U shape load without delay") {
             float load = 100;
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++) {
                 analysis.StoreSample(/*current_z=*/0, /*current_load=*/load++);
-            for (int i = 0; i < 4; i++)
+            }
+            for (int i = 0; i < 4; i++) {
                 analysis.StoreSample(/*current_z=*/-10, /*current_load=*/load++);
-            for (int i = 0; i < 4; i++)
+            }
+            for (int i = 0; i < 4; i++) {
                 analysis.StoreSample(/*current_z=*/0, /*current_load=*/load++);
+            }
 
             THEN("the analysis calculates proper halt_start and halt_end times") {
                 decltype(analysis)::Features features;
@@ -144,8 +150,9 @@ SCENARIO("Analysis properly handles its sample window", "[probe_analysis]") {
         }
 
         WHEN("filled up with rising Z samples") {
-            for (int i = 0; i < 12; i++)
+            for (int i = 0; i < 12; i++) {
                 analysis.StoreSample(/*current_z=*/100 + i * 2, /*current_load=*/0);
+            }
 
             THEN("compensation for system delay fills missing Z coordinates") {
                 analysis.CompensateForSystemDelay();
@@ -159,8 +166,9 @@ SCENARIO("Analysis properly handles its sample window", "[probe_analysis]") {
 
     GIVEN("An instance ready for processing") {
         ProbeAnalysis<12> analysis;
-        for (int i = 0; i < 12; i++)
+        for (int i = 0; i < 12; i++) {
             analysis.StoreSample(0, 0);
+        }
 
         WHEN("Reset() is called") {
             analysis.Reset();
@@ -209,12 +217,15 @@ SCENARIO("analysis properly calculates probe features", "[probe_analysis]") {
     GIVEN("an instance with a simple U shape data") {
         using ProbeAnalysisT = ProbeAnalysis<12>;
         ProbeAnalysisT analysis;
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 4; i++) {
             analysis.StoreSample(/*current_z=*/0, /*current_load=*/-10);
-        for (int i = 0; i < 4; i++)
+        }
+        for (int i = 0; i < 4; i++) {
             analysis.StoreSample(/*current_z=*/-10, /*current_load=*/-20);
-        for (int i = 0; i < 4; i++)
+        }
+        for (int i = 0; i < 4; i++) {
             analysis.StoreSample(/*current_z=*/0, /*current_load=*/-10);
+        }
 
         WHEN("z is being interpolated over the Z = 0 part") {
             analysis.SetSamplingIntervalMs(1);
@@ -272,16 +283,21 @@ SCENARIO("analysis properly calculates probe features", "[probe_analysis]") {
         analysis.SetSamplingIntervalMs(100);
         float load = 100;
         float z = -1;
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++) {
             analysis.StoreSample(/*current_z=*/z--, /*current_load=*/load);
-        for (int i = 0; i < 2; i++)
+        }
+        for (int i = 0; i < 2; i++) {
             analysis.StoreSample(/*current_z=*/z--, /*current_load=*/load--);
-        for (int i = 0; i < 2; i++)
+        }
+        for (int i = 0; i < 2; i++) {
             analysis.StoreSample(/*current_z=*/z, /*current_load=*/load);
-        for (int i = 0; i < 2; i++)
+        }
+        for (int i = 0; i < 2; i++) {
             analysis.StoreSample(/*current_z=*/++z, /*current_load=*/++load);
-        for (int i = 0; i < 3; i++)
+        }
+        for (int i = 0; i < 3; i++) {
             analysis.StoreSample(/*current_z=*/++z, /*current_load=*/load);
+        }
 
         /*
          * TODO: Fix me :(

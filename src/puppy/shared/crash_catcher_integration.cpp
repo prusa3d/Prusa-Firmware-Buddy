@@ -67,16 +67,18 @@ void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
     erase.Banks = FLASH_BANK_1;
     erase.Page = (dump_region_start - FLASH_BASE) / FLASH_PAGE_SIZE;
     erase.NbPages = DUMP_SIZE / FLASH_PAGE_SIZE;
-    if (HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase, &PageError); status != HAL_OK)
+    if (HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase, &PageError); status != HAL_OK) {
         stop();
+    }
 
     static constexpr uint32_t last_page_idx { 63 };
     if (erase.Page + erase.NbPages - 1 < last_page_idx) { // if last page was not erased
         erase.Page = last_page_idx;
         erase.NbPages = 1;
         // erase last page as the descriptor will reside there
-        if (HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase, &PageError); status != HAL_OK)
+        if (HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase, &PageError); status != HAL_OK) {
             stop();
+        }
     }
 
     wr_data_buffer_offset = 0;
@@ -84,8 +86,9 @@ void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
 }
 
 void CrashCatcher_DumpMemory(const void *pvMemory, CrashCatcherElementSizes elementSize, size_t elementCount) {
-    if (elementSize != CRASH_CATCHER_BYTE)
+    if (elementSize != CRASH_CATCHER_BYTE) {
         stop();
+    }
 
     while (elementCount > 0) {
         // data has to be written 8 bytes at a time. Therefore first wr_data_buffer is filled, and when its full, its written to flash.
@@ -113,8 +116,9 @@ static void write_doubleword() {
     HAL_StatusTypeDef status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD,
         dump_region_start + current_dump_start_offset,
         wr_data_buffer);
-    if (status != HAL_OK)
+    if (status != HAL_OK) {
         stop();
+    }
 
     current_dump_start_offset += sizeof(wr_data_buffer);
 }

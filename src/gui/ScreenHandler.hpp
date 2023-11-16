@@ -109,8 +109,9 @@ public:
     template <class T>
     bool IsScreenClosed() {
         for (auto it = stack.begin(); it != stack_iterator; ++it) {
-            if (it && ScreenFactory::DoesCreatorHoldType<T>(it->creator))
+            if (it && ScreenFactory::DoesCreatorHoldType<T>(it->creator)) {
                 return true;
+            }
         }
         return false;
     }

@@ -152,8 +152,9 @@ ModbusErrorInfo PuppyModbus::make_single_request(RequestTiming *const timing) {
         read);
     log_internal_error(err);
     if (!modbusIsOk(err)) {
-        if (!suppress_error_logs)
+        if (!suppress_error_logs) {
             log_info(Modbus, "Error detected, recovering serial.");
+        }
         PuppyBus::ErrorRecovery();
     }
     return err;

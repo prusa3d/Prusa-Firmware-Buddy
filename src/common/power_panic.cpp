@@ -662,8 +662,9 @@ void resume_loop() {
     }
 
     case ResumeState::Unpark:
-        if (queue.has_commands_queued() || planner.processing())
+        if (queue.has_commands_queued() || planner.processing()) {
             break;
+        }
 
         // forget the XYZ resume position if requested
         if (state_buf.crash.inhibit_flags & Crash_s::INHIBIT_XYZ_REPOSITIONING) {
@@ -684,8 +685,9 @@ void resume_loop() {
         break;
 
     case ResumeState::ParkForPause:
-        if (queue.has_commands_queued() || planner.processing())
+        if (queue.has_commands_queued() || planner.processing()) {
             break;
+        }
 
         // return to the parking position
         plan_park_move_to_xyz(state_buf.crash.start_current_position,
@@ -694,8 +696,9 @@ void resume_loop() {
         break;
 
     case ResumeState::Finish:
-        if (queue.has_commands_queued() || planner.processing())
+        if (queue.has_commands_queued() || planner.processing()) {
             break;
+        }
 
         // original planner state
         HOTEND_LOOP() {
@@ -705,10 +708,11 @@ void resume_loop() {
 
         // IS/PA
         LOOP_XYZ(i) {
-            if (state_buf.planner.axis_config[i].frequency == 0.f)
+            if (state_buf.planner.axis_config[i].frequency == 0.f) {
                 input_shaper::set_axis_config((AxisEnum)i, std::nullopt);
-            else
+            } else {
                 input_shaper::set_axis_config((AxisEnum)i, state_buf.planner.axis_config[i]);
+            }
         }
 
         if (state_buf.planner.original_y.frequency == 0.f) {
@@ -717,10 +721,11 @@ void resume_loop() {
             input_shaper::set_config_for_m74(Y_AXIS, state_buf.planner.original_y);
         }
 
-        if (state_buf.planner.axis_y_weight_adjust.frequency_delta != 0.f)
+        if (state_buf.planner.axis_y_weight_adjust.frequency_delta != 0.f) {
             input_shaper::set_axis_y_weight_adjust(std::nullopt);
-        else
+        } else {
             input_shaper::set_axis_y_weight_adjust(state_buf.planner.axis_y_weight_adjust);
+        }
 
         pressure_advance::set_axis_e_config(state_buf.planner.axis_e_config);
 
@@ -809,15 +814,17 @@ bool shutdown_loop_checked() {
     }
 
     // try to run one iteration of the shutdown sequence
-    if (planner.has_unprocessed_blocks_queued() || stepper.segment_progress() < 0.5f)
+    if (planner.has_unprocessed_blocks_queued() || stepper.segment_progress() < 0.5f) {
         shutdown_loop();
+    }
 
     // check that no single step takes too long, emit a warning so that we can notice and re-arrange
     // the sequence to avoid stalling (@wavexx consider the move time above if just looking at the
     // move above is not sufficient)
     processing = planner.processing();
-    if (!processing)
+    if (!processing) {
         log_warning(PowerPanic, "shutdown state %u/%u took too long", power_panic_state, shutdown_state - 1);
+    }
 
     return processing;
 }
@@ -866,8 +873,9 @@ void panic_loop() {
         break;
 
     case PPState::Retracting:
-        if (shutdown_loop_checked())
+        if (shutdown_loop_checked()) {
             break;
+        }
 
 #if !HAS_PUPPIES()
         disable_e_steppers();
@@ -895,8 +903,9 @@ void panic_loop() {
         break;
 
     case PPState::SaveState:
-        if (shutdown_loop_checked())
+        if (shutdown_loop_checked()) {
             break;
+        }
 
         // Z axis is now aligned
         stepperZ.rms_current(POWER_PANIC_Z_CURRENT, 1);
@@ -1145,21 +1154,24 @@ void ac_fault_isr() {
 
         // IS/PA
         LOOP_XYZ(i) {
-            if (!input_shaper::current_config().axis[i])
+            if (!input_shaper::current_config().axis[i]) {
                 state_buf.planner.axis_config[i].frequency = 0.f;
-            else
+            } else {
                 state_buf.planner.axis_config[i] = *input_shaper::current_config().axis[i];
+            }
         }
 
-        if (!input_shaper::get_config_for_m74().axis[Y_AXIS])
+        if (!input_shaper::get_config_for_m74().axis[Y_AXIS]) {
             state_buf.planner.original_y.frequency = 0.f;
-        else
+        } else {
             state_buf.planner.original_y = *input_shaper::get_config_for_m74().axis[Y_AXIS];
+        }
 
-        if (!input_shaper::current_config().weight_adjust_y)
+        if (!input_shaper::current_config().weight_adjust_y) {
             state_buf.planner.axis_y_weight_adjust.frequency_delta = 0.f;
-        else
+        } else {
             state_buf.planner.axis_y_weight_adjust = *input_shaper::current_config().weight_adjust_y;
+        }
 
         state_buf.planner.axis_e_config = pressure_advance::get_axis_e_config();
 

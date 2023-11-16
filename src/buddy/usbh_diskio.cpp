@@ -68,8 +68,9 @@ static USBH_StatusTypeDef USBH_exec(UsbhMscRequest::UsbhMscRequestOperation oper
     };
     UsbhMscRequest *request_ptr = &request;
 
-    if (xQueueSend(request_queue, &request_ptr, USBH_MSC_RW_MAX_DELAY) != pdPASS)
+    if (xQueueSend(request_queue, &request_ptr, USBH_MSC_RW_MAX_DELAY) != pdPASS) {
         return USBH_FAIL;
+    }
 
     xSemaphoreTake(semaphore, portMAX_DELAY);
 
@@ -92,8 +93,9 @@ USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *request) {
         break;
     }
 #endif
-    if (xQueueSend(request_queue, &request, portMAX_DELAY) != pdPASS)
+    if (xQueueSend(request_queue, &request, portMAX_DELAY) != pdPASS) {
         return USBH_FAIL;
+    }
     return USBH_OK;
 }
 
@@ -255,15 +257,17 @@ DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
     // from the least significant bit (0 means it needs to be loaded)
     uint32_t mask = ~0u << count;
     for (unsigned i = 0; i < count; ++i) {
-        if (usbh_msc_readahead.get(lun, sector + i, buff + i * UsbhMscRequest::SECTOR_SIZE))
+        if (usbh_msc_readahead.get(lun, sector + i, buff + i * UsbhMscRequest::SECTOR_SIZE)) {
             mask |= 1 << i;
+        }
     }
     if (mask != ~0u << count) { // some sectors in the cache
         while (mask != ~0u) {
             int i = std::countr_one(mask);
             result = USBH_read_ii(lun, buff + i * UsbhMscRequest::SECTOR_SIZE, sector + i, 1);
-            if (result != RES_OK)
+            if (result != RES_OK) {
                 return result;
+            }
             mask |= 1 << i;
         }
     } else { // no cache match => read whole buffer at once
@@ -398,8 +402,9 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
 #ifdef USBH_MSC_READAHEAD
 
 bool UsbhMscReadahead::get(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::SectorNbr sector_nbr, uint8_t *data) {
-    if (this->lun_nbr != lun_nbr)
+    if (this->lun_nbr != lun_nbr) {
         return false;
+    }
 
     bool found = false;
     {
@@ -433,15 +438,17 @@ bool UsbhMscReadahead::get(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::Secto
 // typical fatfs read requests are 1kb so it's a good idea to preload 2 sectors
 void UsbhMscReadahead::notify_read(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::SectorNbr sector_nbr) {
     Lock lock(mutex);
-    if (this->lun_nbr != lun_nbr)
+    if (this->lun_nbr != lun_nbr) {
         return;
+    }
     static_assert(size >= 2);
     // find the oldest and second oldest slots
     auto it = begin(cache);
     auto first = it++;
     auto second = it++;
-    if (*second < *first)
+    if (*second < *first) {
         std::swap(first, second);
+    }
 
     for (; it != end(cache); ++it) {
         if (*it < *first) {
@@ -495,8 +502,9 @@ void UsbhMscReadahead::disable() {
 
 void UsbhMscReadahead::invalidate(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::SectorNbr sector_nbr, size_t count) {
     Lock lock(mutex);
-    if (this->lun_nbr != lun_nbr)
+    if (this->lun_nbr != lun_nbr) {
         return;
+    }
     for (auto &e : cache) {
         if (e.sector_nbr >= sector_nbr && e.sector_nbr < sector_nbr + count) {
             Lock lock2(e.mutex);
@@ -510,8 +518,9 @@ bool UsbhMscReadahead::preload() {
     {
         Lock lock(mutex);
 
-        if (this->lun_nbr == INVALID_LUN_NBR)
+        if (this->lun_nbr == INVALID_LUN_NBR) {
             return false;
+        }
         entry = std::find_if(begin(cache), end(cache),
             [](const auto &e) {
                 return e.preloaded == false && e.sector_nbr != INVALID_SECTOR_NBR;

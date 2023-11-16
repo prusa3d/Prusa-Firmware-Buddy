@@ -87,8 +87,9 @@ extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mo
 #endif // BUDDY_ENABLE_ETHERNET
 
 void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
-    while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r'))
+    while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r')) {
         size--;
+    }
     log_severity_t severity = LOG_SEVERITY_INFO;
     bool MMU = false;
     if (size == 2 && memcmp("ok", buffer, 2) == 0) {
@@ -276,8 +277,9 @@ static void filament_sensor_irq() {
 
             // widen the type to match the main sensor data type and translate the undefined value
             FSensor::value_type fs_raw_value = AdcGet::side_filament_sensor(adc_channel_mapping[remapped]);
-            if (fs_raw_value == AdcGet::undefined_value)
+            if (fs_raw_value == AdcGet::undefined_value) {
                 fs_raw_value = FSensor::undefined_value;
+            }
             side_fs_process_sample(fs_raw_value, dwarf.get_dwarf_nr() - 1);
         }
         cnt_filament_sensor_update = 0;

@@ -49,22 +49,30 @@ int main(int argc, char **argv) {
     // parse args
     while (++argn < argc) {
         arg = argv[argn];
-        if (sscanf(arg, "-src=%s", src_filename) == 1)
+        if (sscanf(arg, "-src=%s", src_filename) == 1) {
             continue;
-        if (sscanf(arg, "-dst=%s", dst_filename) == 1)
+        }
+        if (sscanf(arg, "-dst=%s", dst_filename) == 1) {
             continue;
-        if (sscanf(arg, "-out=%s", out_filename) == 1)
+        }
+        if (sscanf(arg, "-out=%s", out_filename) == 1) {
             continue;
-        if (sscanf(arg, "-bpp=%d", &char_bpp) == 1)
+        }
+        if (sscanf(arg, "-bpp=%d", &char_bpp) == 1) {
             continue;
-        if (sscanf(arg, "-w=%d", &char_w) == 1)
+        }
+        if (sscanf(arg, "-w=%d", &char_w) == 1) {
             continue;
-        if (sscanf(arg, "-h=%d", &char_h) == 1)
+        }
+        if (sscanf(arg, "-h=%d", &char_h) == 1) {
             continue;
-        if (sscanf(arg, "-c=%d", &charset_cols) == 1)
+        }
+        if (sscanf(arg, "-c=%d", &charset_cols) == 1) {
             continue;
-        if (sscanf(arg, "-r=%d", &charset_rows) == 1)
+        }
+        if (sscanf(arg, "-r=%d", &charset_rows) == 1) {
             continue;
+        }
     }
     // check args
     if ((ret == 0) && (strlen(src_filename) == 0)) {
@@ -112,8 +120,9 @@ int main(int argc, char **argv) {
         printf("  -r=ROWS            charset rows (1..256)\n");
         getchar();
     }
-    if (ret == 0)
+    if (ret == 0) {
         ret = png2font(src_filename, dst_filename, out_filename, char_w, char_h, char_bpp, charset_cols, charset_rows);
+    }
 
     return ret;
 }
@@ -125,8 +134,9 @@ int main(int argc, char **argv) {
 
 // first bit set
 int fbs(unsigned int val) {
-    if (val == 0)
+    if (val == 0) {
         return -1;
+    }
     int bit = 0;
     while ((val & 1) == 0) {
         bit++;
@@ -198,58 +208,68 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
     src = fopen(src_filename, "rb");
     dst = fopen(dst_filename, "wb+");
     out = fopen(out_filename, "wb+");
-    if ((!src) || (!dst) || (!out))
+    if ((!src) || (!dst) || (!out)) {
         goto _e_0;
+    }
 
     // open source png, allocate memory for image data
     src_png = _png_open_read(src, &src_ppi);
-    if (!src_png)
+    if (!src_png) {
         goto _e_1;
+    }
     src_w = png_get_image_width(src_png, src_ppi);
     src_h = png_get_image_height(src_png, src_ppi);
     src_row_size = png_get_rowbytes(src_png, src_ppi);
     src_pix_size = src_row_size / src_w;
     src_size = src_row_size * src_h;
     src_data = (uint8_t *)malloc(src_size);
-    if (!src_data)
+    if (!src_data) {
         goto _e_1;
+    }
     memset(src_data, 0, src_size);
     src_rows = (uint8_t **)malloc(sizeof(void *) * src_h);
-    if (!src_rows)
+    if (!src_rows) {
         goto _e_1;
-    for (i = 0; i < src_h; i++)
+    }
+    for (i = 0; i < src_h; i++) {
         src_rows[i] = src_data + i * src_row_size;
+    }
 
     // open destination png, allocate memory for image data
     dst_png = _png_open_write(dst, &dst_ppi, src_w, src_h, PNG_COLOR_TYPE_RGB);
-    if (!dst_png)
+    if (!dst_png) {
         goto _e_2;
+    }
     dst_w = png_get_image_width(dst_png, dst_ppi);
     dst_h = png_get_image_height(dst_png, dst_ppi);
     dst_row_size = png_get_rowbytes(dst_png, dst_ppi);
     dst_pix_size = dst_row_size / dst_w;
     dst_size = dst_row_size * dst_h;
     dst_data = (uint8_t *)malloc(dst_size);
-    if (!dst_data)
+    if (!dst_data) {
         goto _e_2;
+    }
     memset(dst_data, 0, dst_size);
     dst_rows = (uint8_t **)malloc(sizeof(void *) * dst_h);
-    if (!dst_rows)
+    if (!dst_rows) {
         goto _e_2;
-    for (i = 0; i < dst_h; i++)
+    }
+    for (i = 0; i < dst_h; i++) {
         dst_rows[i] = dst_data + i * dst_row_size;
+    }
 
     // allocate memory for charset data
     charset_data = (uint8_t *)malloc(charset_size);
-    if (!charset_data)
+    if (!charset_data) {
         goto _e_3;
+    }
     memset(charset_data, 0, charset_size); // set character data to zero
 
     // read source png data into memory
     png_read_image(src_png, src_rows);
 
     // process png data
-    for (y = 0; y < src_h; y++)
+    for (y = 0; y < src_h; y++) {
         for (x = 0; x < src_w; x++) {
             // source and destination pixel pointers
             src_pp = src_data + src_pix_size * x + src_row_size * y;
@@ -285,6 +305,7 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
 			dst_pp[2] = opa8;
 #endif
         }
+    }
 
     //	font_preview2(charset_data, dst_data, char_w, char_h, char_bpp, charset_cols, charset_rows);
     font_preview(dst_png, dst_ppi, dst_data, charset_data, char_w, char_h, char_bpp, charset_cols, charset_rows);
@@ -299,32 +320,42 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
 
 _e_3:
     // free charset memory
-    if (charset_data)
+    if (charset_data) {
         free(charset_data);
+    }
 _e_2:
     // free destination png resources and memory
-    if (dst_png)
+    if (dst_png) {
         png_destroy_write_struct(&dst_png, &dst_ppi);
-    if (dst_rows)
+    }
+    if (dst_rows) {
         free(dst_rows);
-    if (dst_data)
+    }
+    if (dst_data) {
         free(dst_data);
+    }
 _e_1:
     // free source png resources and memory
-    if (src_png)
+    if (src_png) {
         png_destroy_read_struct(&src_png, &src_ppi, 0);
-    if (src_rows)
+    }
+    if (src_rows) {
         free(src_rows);
-    if (src_data)
+    }
+    if (src_data) {
         free(src_data);
+    }
 _e_0:
     // close files
-    if (out)
+    if (out) {
         fclose(out);
-    if (dst)
+    }
+    if (dst) {
         fclose(dst);
-    if (src)
+    }
+    if (src) {
         fclose(src);
+    }
     return ret;
 }
 
@@ -353,8 +384,9 @@ void print_char_to_png(png_structp dst_png, png_infop dst_ppi, uint8_t *dst_data
         for (x = 0; x < char_w; x++) {
             dst_pp = dst_data + (dst_pix_size * (x0 + x)) + (dst_row_size * (y0 + y));
             i = (x % char_ppb);
-            if (i == 0)
+            if (i == 0) {
                 char_data = *(char_pp++);
+            }
             opa = (char_data >> (8 - char_bpp)) & char_pms;
             char_data <<= char_bpp;
             opa8 = 255 * opa / char_pms; // recalc to 8bit (0..255) for preview
@@ -372,11 +404,12 @@ void font_preview(png_structp dst_png, png_infop dst_ppi, uint8_t *dst_data, uin
     int col;
     int row;
     int char_code;
-    for (row = 0; row < charset_rows; row++)
+    for (row = 0; row < charset_rows; row++) {
         for (col = 0; col < charset_cols; col++) {
             x = col * char_w;
             y = row * char_h;
             char_code = col + row * charset_cols;
             print_char_to_png(dst_png, dst_ppi, dst_data, charset_data, char_w, char_h, char_bpp, charset_cols, charset_rows, x, y, char_code);
         }
+    }
 }

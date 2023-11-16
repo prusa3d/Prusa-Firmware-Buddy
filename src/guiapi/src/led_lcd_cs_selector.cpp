@@ -24,8 +24,9 @@ void LED_LCD_SPI_switcher::SelectLeds() {
     const auto new_prescaler = SPI_BAUDRATEPRESCALER_8;
 
     // prescaler is already OK, do not do anyhting
-    if (saved_prescaler == new_prescaler)
+    if (saved_prescaler == new_prescaler) {
         return;
+    }
 
     if (HAL_SPI_DeInit(spi) != HAL_OK) {
         Error_Handler();
@@ -39,8 +40,9 @@ void LED_LCD_SPI_switcher::SelectLeds() {
 
 void LED_LCD_SPI_switcher::Restore() {
     // prescaler is already OK, do not do anyhting
-    if (spi->Init.BaudRatePrescaler == saved_prescaler)
+    if (spi->Init.BaudRatePrescaler == saved_prescaler) {
         return;
+    }
 
     if (HAL_SPI_DeInit(spi) != HAL_OK) {
         Error_Handler();

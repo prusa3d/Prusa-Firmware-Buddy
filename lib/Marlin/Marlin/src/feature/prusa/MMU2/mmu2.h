@@ -84,8 +84,9 @@ private:
     static inline void set_runout_valid(const bool valid) {
         finda_runout_valid = valid;
 #if HAS_FILAMENT_SENSOR
-        if (valid)
+        if (valid) {
             runout.reset();
+        }
 #endif
     }
 };

@@ -168,8 +168,9 @@ void gui_loop(void) {
     gui_handle_jogwheel();
     #endif // GUI_JOGWHEEL_SUPPORT
 
-    if (option::has_touch && touch::is_enabled())
+    if (option::has_touch && touch::is_enabled()) {
         touch::poll();
+    }
 
     auto point = touch::Get();
     if (point) {

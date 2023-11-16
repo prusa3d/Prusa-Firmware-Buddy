@@ -36,8 +36,9 @@ FRESULT fatfs_test_contiguous_file(
 
     *cont = 0;
     fr = f_rewind(fp); /* Validates and prepares the file */
-    if (fr != FR_OK)
+    if (fr != FR_OK) {
         return fr;
+    }
 
 #if FF_MAX_SS == FF_MIN_SS
     clsz = (DWORD)fp->obj.fs->csize * FF_MAX_SS; /* Cluster size */
@@ -50,15 +51,18 @@ FRESULT fatfs_test_contiguous_file(
         while (fsz) {
             step = (fsz >= clsz) ? clsz : (DWORD)fsz;
             fr = f_lseek(fp, f_tell(fp) + step); /* Advances file pointer a cluster */
-            if (fr != FR_OK)
+            if (fr != FR_OK) {
                 return fr;
-            if (clst + 1 != fp->clust)
+            }
+            if (clst + 1 != fp->clust) {
                 break; /* Is not the cluster next to previous one? */
+            }
             clst = fp->clust;
             fsz -= step; /* Get current cluster for next test */
         }
-        if (fsz == 0)
+        if (fsz == 0) {
             *cont = 1; /* All done without fail? */
+        }
     } else {
         *cont = 1; /* A 0-sized file is continuous by definition. */
     }

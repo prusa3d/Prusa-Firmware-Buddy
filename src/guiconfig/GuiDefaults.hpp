@@ -101,8 +101,9 @@ struct GuiDefaults {
         if (!footer) {
             return DialogFrameRect;
         }
-        if ((*footer) == has_footer::no)
+        if ((*footer) == has_footer::no) {
             return RectScreenBody;
+        }
         // has_footer::yes
         return RectScreenNoHeader;
     }

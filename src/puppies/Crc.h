@@ -39,10 +39,11 @@ inline uint16_t _crc16_update(uint16_t crc, uint8_t a) {
 
     crc ^= a;
     for (i = 0; i < 8; ++i) {
-        if (crc & 1)
+        if (crc & 1) {
             crc = (crc >> 1) ^ 0xA001;
-        else
+        } else {
             crc = (crc >> 1);
+        }
     }
 
     return crc;
@@ -66,8 +67,9 @@ public:
     }
 
     Crc &update(uint8_t *buf, uint8_t len) {
-        for (uint8_t i = 0; i < len; ++i)
+        for (uint8_t i = 0; i < len; ++i) {
             this->update(buf[i]);
+        }
         return *this;
     }
     T get() {

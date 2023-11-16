@@ -107,8 +107,9 @@ class string_view_utf8 {
     static uint8_t FILE_getbyte(Attrs &attrs) {
         uint8_t c;
         // sync among multiple reads from the sameMO file
-        if (ftell(attrs.file.f) != static_cast<long>(attrs.file.currentOfs))
+        if (ftell(attrs.file.f) != static_cast<long>(attrs.file.currentOfs)) {
             fseek(attrs.file.f, attrs.file.currentOfs, SEEK_SET);
+        }
         attrs.file.currentOfs++;
         fread(&c, 1, 1, attrs.file.f);
         return c;
@@ -194,8 +195,9 @@ public:
         size_t bytesCopied = 0;
         for (size_t i = 0; i < max_size; ++i) {
             *dst = getbyte(attrs);
-            if (*dst == 0)
+            if (*dst == 0) {
                 return bytesCopied;
+            }
             ++dst;
             ++bytesCopied;
         }
@@ -248,8 +250,9 @@ public:
 
     /// string view has the same resource
     bool is_same_ref(const string_view_utf8 &other) const {
-        if (type != other.type)
+        if (type != other.type) {
             return false; // type mismatch
+        }
 
         switch (type) {
         case EType::RAM:

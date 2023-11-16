@@ -9,8 +9,9 @@ using namespace leds;
 SideStrip leds::side_strip;
 
 void SideStrip::Update() {
-    if (!needs_update)
+    if (!needs_update) {
         return;
+    }
     needs_update = false;
 
     for (size_t i = 0; i < led_drivers_count; ++i) {

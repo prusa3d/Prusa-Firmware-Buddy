@@ -56,8 +56,9 @@ BufferedSerial::~BufferedSerial() {
 }
 
 void BufferedSerial::Open() {
-    if (isOpen)
+    if (isOpen) {
         return;
+    }
 
     uartrxbuff_init(&rxBuf, rxDma, rxBufPoolSize, rxBufPool);
 
@@ -70,8 +71,9 @@ void BufferedSerial::Open() {
 }
 
 void BufferedSerial::Close() {
-    if (!isOpen)
+    if (!isOpen) {
         return;
+    }
 
     // Stop receiving new data
     HAL_UART_AbortReceive(uart);
@@ -85,8 +87,9 @@ void BufferedSerial::Close() {
 }
 
 size_t BufferedSerial::Read(char *buf, size_t len, bool terminate_on_idle /* = false */) {
-    if (!isOpen)
+    if (!isOpen) {
         return 0;
+    }
 
     size_t read = 0;
     auto tickStart = ticks_ms();
@@ -123,8 +126,9 @@ size_t BufferedSerial::Write(const char *buf, size_t len) {
     // make sure there are no pending event flags
     xEventGroupClearBits(eventGroup, static_cast<EventBits_t>(Event::WriteFinished));
 
-    if (halfDuplexSwitchCallback)
+    if (halfDuplexSwitchCallback) {
         halfDuplexSwitchCallback(true);
+    }
     // initiate the transfer
     pendingWrite = true;
 
@@ -138,8 +142,9 @@ size_t BufferedSerial::Write(const char *buf, size_t len) {
 
     if (transmissionReturnStatus != HAL_OK) {
         pendingWrite = false;
-        if (halfDuplexSwitchCallback)
+        if (halfDuplexSwitchCallback) {
             halfDuplexSwitchCallback(false);
+        }
         return 0;
     }
 
@@ -165,12 +170,14 @@ void BufferedSerial::WriteFinishedISR() {
     // NOTE: This flag might not be necessary. I have seen some occasions when the TC ISR
     //  triggered before FreeRTOS was up (which would be a problem). Something we might
     //  investigate, but should not be an issue.
-    if (!pendingWrite)
+    if (!pendingWrite) {
         return;
+    }
 
     // As soon as the transfer is complete, switch back to receiver mode (half duplex)
-    if (halfDuplexSwitchCallback)
+    if (halfDuplexSwitchCallback) {
         halfDuplexSwitchCallback(false);
+    }
 
     // Clear the interrupt flag
     __HAL_UART_CLEAR_FLAG(uart, UART_FLAG_TC);
@@ -212,8 +219,9 @@ void BufferedSerial::StartReceiving() {
     // Start receiving data
     assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(rxBuf.buffer)));
     HAL_UART_Receive_DMA(uart, rxBuf.buffer, rxBuf.buffer_size);
-    if (halfDuplexSwitchCallback)
+    if (halfDuplexSwitchCallback) {
         halfDuplexSwitchCallback(false);
+    }
 }
 
 } // namespace buddy::hw

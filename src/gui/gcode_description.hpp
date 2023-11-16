@@ -34,13 +34,15 @@ private:
         size_t y = 0;
 #ifdef USE_ST7789
         y = TITLE_HEIGHT + 2 * PADDING;
-        if (has_preview_thumbnail)
+        if (has_preview_thumbnail) {
             y += THUMBNAIL_HEIGHT + PADDING;
+        }
 #endif // USE_ST7789
 #ifdef USE_ILI9488
         y = GuiDefaults::PreviewThumbnailRect.Top();
-        if (has_preview_thumbnail)
+        if (has_preview_thumbnail) {
             y += GuiDefaults::PreviewThumbnailRect.Height() + 15;
+        }
 #endif // USE_ILI9488
         y += row * (LINE_HEIGHT + LINE_SPACING);
         return y;

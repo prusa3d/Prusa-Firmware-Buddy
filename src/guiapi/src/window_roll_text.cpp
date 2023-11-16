@@ -26,8 +26,9 @@ void window_roll_text_t::unconditionalDraw() {
 
 void window_roll_text_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::TEXT_ROLL) {
-        if (roll.Tick() == invalidate_t::yes)
+        if (roll.Tick() == invalidate_t::yes) {
             Invalidate();
+        }
     } else {
         SuperWindowEvent(sender, event, param);
     }

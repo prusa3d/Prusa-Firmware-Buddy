@@ -118,8 +118,9 @@ int8_t GT911::ReadInput(uint8_t *data) {
         return -error;
     }
 
-    if (!(regState[0] & 0x80))
+    if (!(regState[0] & 0x80)) {
         return -100; // Try again error
+    }
 
     touch_num = regState[0] & 0x0f;
 
@@ -127,8 +128,9 @@ int8_t GT911::ReadInput(uint8_t *data) {
 
         error = Read(GOODIX_READ_COORD_ADDR + 1, data, sizeof(GTPoint) * (touch_num));
 
-        if (error)
+        if (error) {
             return -error;
+        }
     }
 
     return touch_num;
@@ -244,8 +246,9 @@ bool GT911::ResetRegisters() {
     do {
         status = Read(GT_REG_CFG, cfg, CONFIG_LEN);
         ++try_no;
-        if (status != HAL_StatusTypeDef::HAL_OK)
+        if (status != HAL_StatusTypeDef::HAL_OK) {
             log_warning(Touch, "config read error, attempt %u of %u ", try_no, max_try);
+        }
     } while (status != HAL_StatusTypeDef::HAL_OK && try_no < max_try);
 
     // compare all but checksum and update flag
@@ -260,8 +263,9 @@ bool GT911::ResetRegisters() {
         do {
             status = Write(GT_REG_CFG, cfg, CONFIG_LEN);
             ++try_no;
-            if (status != HAL_StatusTypeDef::HAL_OK)
+            if (status != HAL_StatusTypeDef::HAL_OK) {
                 log_warning(Touch, "config write error, attempt %u of %u ", try_no, max_try);
+            }
         } while (status != HAL_StatusTypeDef::HAL_OK && try_no < max_try);
     }
 

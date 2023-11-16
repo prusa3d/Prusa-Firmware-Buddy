@@ -233,8 +233,9 @@ LoopResult CSelftestPart_FirstLayer::stateInitialDistanceInit() {
 }
 
 LoopResult CSelftestPart_FirstLayer::stateInitialDistance() {
-    if (current_offset_is_default)
+    if (current_offset_is_default) {
         return LoopResult::RunNext;
+    }
 
     switch (rStateMachine.GetButtonPressed()) {
     case Response::No:
@@ -299,8 +300,9 @@ LoopResult CSelftestPart_FirstLayer::statePrint() {
 }
 
 LoopResult CSelftestPart_FirstLayer::stateMblFinished() {
-    if (how_many_times_finished == FirstLayer::HowManyTimesStarted())
+    if (how_many_times_finished == FirstLayer::HowManyTimesStarted()) {
         return LoopResult::RunCurrent;
+    }
 
     IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_print);
     return LoopResult::RunNext;
@@ -331,14 +333,16 @@ LoopResult CSelftestPart_FirstLayer::stateReprint() {
 }
 
 LoopResult CSelftestPart_FirstLayer::stateCleanSheetInit() {
-    if (reprint)
+    if (reprint) {
         IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_clean_sheet);
+    }
     return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateCleanSheet() {
-    if (!reprint)
+    if (!reprint) {
         return LoopResult::RunNext;
+    }
 
     switch (rStateMachine.GetButtonPressed()) {
     case Response::Next:

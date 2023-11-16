@@ -19,8 +19,9 @@ void IDialog::MakeBlocking(std::function<void()> loopCallback) const {
 
     while (!consumeCloseFlag()) {
         guiLoop();
-        if (loopCallback)
+        if (loopCallback) {
             loopCallback();
+        }
     }
 
     screen->InitState(underlying_screen_state);

@@ -18,8 +18,9 @@ static constexpr uint8_t icon_label_delim = 5;
 static const IRadioButton::Responses_t no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; // used in constructor
 
 size_t IRadioButton::cnt_labels(const PhaseTexts *labels) {
-    if (!labels)
+    if (!labels) {
         return 0;
+    }
     return (std::find_if(labels->begin(), labels->end(), [](const char *s) { return s[0] == '\0'; })) - labels->begin();
 }
 
@@ -70,8 +71,9 @@ IRadioButton &IRadioButton::operator--() {
 }
 
 void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (!GetParent())
+    if (!GetParent()) {
         return;
+    }
 
     switch (event) {
     case GUI_event_t::CLICK: {
@@ -79,8 +81,9 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
         Response response = Click();
         event_conversion_union un;
         un.response = response;
-        if (GetParent())
+        if (GetParent()) {
             GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
+        }
     } break;
     case GUI_event_t::ENC_UP:
         ++(*this);
@@ -243,14 +246,16 @@ bool IRadioButton::IsEnabled(size_t index) const {
  * if no valid response is found, index shall be 0
  */
 void IRadioButton::validateBtnIndex() {
-    if (isIndexValid(GetBtnIndex()))
+    if (isIndexValid(GetBtnIndex())) {
         return; // index valid
+    }
 
     SetBtnIndex(0);
 
     if (fixed_width_buttons_count > 0) {
-        if (isIndexValid(GetBtnIndex()))
+        if (isIndexValid(GetBtnIndex())) {
             return;
+        }
 
         for (size_t i = 0; i < fixed_width_buttons_count; ++i) {
             if (responseFromIndex(i) != Response::_none) {
@@ -295,8 +300,9 @@ void IRadioButton::SetBtnIndex(uint8_t index) {
 
 void IRadioButton::SetBtn(Response btn) {
     auto index = IndexFromResponse(btn);
-    if (index)
+    if (index) {
         SetBtnIndex(*index);
+    }
 }
 
 size_t IRadioButton::maxSize() const {

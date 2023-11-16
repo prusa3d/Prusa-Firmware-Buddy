@@ -59,10 +59,11 @@ void ToolMapper::set_enable(bool enable) {
 }
 
 uint8_t ToolMapper::to_physical(uint8_t logical, bool ignore_enabled) const {
-    if ((ignore_enabled || enabled) && logical < std::size(gcode_to_physical))
+    if ((ignore_enabled || enabled) && logical < std::size(gcode_to_physical)) {
         return gcode_to_physical[logical];
-    else
+    } else {
         return logical; // no maping
+    }
 }
 
 uint8_t ToolMapper::to_gcode(uint8_t physical) const {

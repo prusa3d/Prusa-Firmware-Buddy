@@ -48,6 +48,7 @@ void window_dlg_popup_t::windowEvent(EventLock /*has private ctor*/, window_t *s
             GetParent()->UnregisterSubWin(*this);
             // frame will set parrent to null
         }
-    } else
+    } else {
         SuperWindowEvent(sender, event, param);
+    }
 }

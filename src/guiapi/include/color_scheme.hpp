@@ -23,12 +23,15 @@ struct color_scheme {
         : color_scheme(clr, clr, clr, clr) {}
 
     constexpr color_t Get(bool is_focused, bool is_shadowed) const {
-        if ((is_focused) && (is_shadowed))
+        if ((is_focused) && (is_shadowed)) {
             return focused_and_shadowed;
-        if ((is_focused) && (!is_shadowed))
+        }
+        if ((is_focused) && (!is_shadowed)) {
             return focused;
-        if ((!is_focused) && (is_shadowed))
+        }
+        if ((!is_focused) && (is_shadowed)) {
             return shadowed;
+        }
         // if ((!is_focused) && (!is_shadowed))
         return normal;
     }

@@ -51,8 +51,9 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
     auto old_phase = phase;
     phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(data.GetPhase());
 
-    if (phase == old_phase)
+    if (phase == old_phase) {
         return;
+    }
 
     // need to call deleter before pointer is assigned, because new object is in same area of memory
     pMsgbox.reset();
@@ -126,8 +127,9 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         break;
     }
 
-    if (pMsgbox)
+    if (pMsgbox) {
         pMsgbox->BindToFSM(phase);
+    }
 }
 
 void ScreenPrintPreview::hide_main_dialog() {
@@ -159,8 +161,9 @@ void ScreenPrintPreview::show_main_dialog() {
 void ScreenPrintPreview::show_tools_mapping() {
 #if HAS_TOOLCHANGER() || HAS_MMU2()
     #if HAS_MMU2()
-    if (!MMU2::mmu2.Enabled())
+    if (!MMU2::mmu2.Enabled()) {
         return;
+    }
     #endif
 
     tools_mapping = make_static_unique_ptr<ToolsMappingBody>(&msgBoxMemSpace, this, gcode);

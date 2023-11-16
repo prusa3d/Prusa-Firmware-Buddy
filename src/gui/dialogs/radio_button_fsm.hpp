@@ -34,8 +34,9 @@ public:
         , current_phase(phase) {}
 
     void Change(FSM_PHASE phase) {
-        if (current_phase == phase)
+        if (current_phase == phase) {
             return;
+        }
         current_phase = phase;
         SetBtnCount(fixed_width_buttons_count > 0 ? fixed_width_buttons_count : cnt_buttons(phase));
 
@@ -51,8 +52,9 @@ public:
 
     virtual std::optional<size_t> IndexFromResponse(Response btn) const override {
         uint8_t index = ClientResponses::GetIndex(current_phase, btn);
-        if (index < maxSize())
+        if (index < maxSize()) {
             return index;
+        }
 
         return std::nullopt;
     }

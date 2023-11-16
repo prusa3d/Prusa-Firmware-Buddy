@@ -43,25 +43,29 @@ screen_action_cb gui::knob::GetLongPressScreenAction() {
 }
 
 void gui::knob::LongPressScreenAction() {
-    if (fnc_long_press)
+    if (fnc_long_press) {
         fnc_long_press();
+    }
 }
 
 bool gui::knob::HeldRightAction() {
-    if (!fnc_held_right)
+    if (!fnc_held_right) {
         return false;
+    }
     return fnc_held_right();
 }
 
 bool gui::knob::HeldLeftAction() {
-    if (!fnc_held_left)
+    if (!fnc_held_left) {
         return false;
+    }
     return fnc_held_left();
 }
 
 bool gui::knob::EventEncoder(int diff) {
-    if (diff == 0)
+    if (diff == 0) {
         return false;
+    }
 
     marlin_client::notify_server_about_encoder_move();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
@@ -71,8 +75,9 @@ bool gui::knob::EventEncoder(int diff) {
     leds::side_strip_control.ActivityPing();
 #endif
 
-    if (!capture_ptr)
+    if (!capture_ptr) {
         return false;
+    }
 
     if (diff > 0) {
         capture_ptr->WindowEvent(capture_ptr, GUI_event_t::ENC_UP, (void *)(intptr_t)diff);
@@ -100,8 +105,9 @@ bool gui::knob::EventClick(BtnState_t state) {
     case BtnState_t::Released:
         Sound_Play(eSOUND_TYPE::ButtonEcho);
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::BTN_UP, 0);
-        if (!dont_click_on_next_release && capture_ptr)
+        if (!dont_click_on_next_release && capture_ptr) {
             capture_ptr->WindowEvent(capture_ptr, GUI_event_t::CLICK, 0);
+        }
         dont_click_on_next_release = false;
         break;
     case BtnState_t::Held:

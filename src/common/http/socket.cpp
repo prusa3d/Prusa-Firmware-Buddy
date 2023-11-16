@@ -111,15 +111,17 @@ std::optional<Error> socket_con::connection(const char *host, uint16_t port) {
         }
     }
 
-    if (!connected)
+    if (!connected) {
         return Error::Connect;
-    else
+    } else {
         return std::nullopt;
+    }
 }
 
 std::variant<size_t, Error> socket_con::tx(const uint8_t *send_buffer, size_t data_len) {
-    if (!connected)
+    if (!connected) {
         return Error::InternalError;
+    }
 
     size_t bytes_sent = 0;
 
@@ -140,8 +142,9 @@ std::variant<size_t, Error> socket_con::tx(const uint8_t *send_buffer, size_t da
 }
 
 std::variant<size_t, Error> socket_con::rx(uint8_t *read_buffer, size_t buffer_len, bool nonblock) {
-    if (!connected)
+    if (!connected) {
         return Error::InternalError;
+    }
 
     size_t bytes_received = 0;
 

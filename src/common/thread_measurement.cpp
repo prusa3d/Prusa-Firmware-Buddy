@@ -19,14 +19,17 @@ static metric_t metrics_tmc_sg[4] = {
 };
 
 static void register_trinamic_metrics() {
-    for (unsigned idx = 0; idx < sizeof(metrics_tmc_sg) / sizeof(metrics_tmc_sg[0]); idx++)
+    for (unsigned idx = 0; idx < sizeof(metrics_tmc_sg) / sizeof(metrics_tmc_sg[0]); idx++) {
         metric_register(&metrics_tmc_sg[idx]);
+    }
 }
 
 static void record_trinamic_metrics(unsigned updated_axes) {
-    for (unsigned axis = 0; axis < sizeof(metrics_tmc_sg) / sizeof(metrics_tmc_sg[0]); axis++)
-        if (updated_axes & (1 << axis))
+    for (unsigned axis = 0; axis < sizeof(metrics_tmc_sg) / sizeof(metrics_tmc_sg[0]); axis++) {
+        if (updated_axes & (1 << axis)) {
             metric_record_integer(&metrics_tmc_sg[axis], tmc_get_last_sg_sample(axis));
+        }
+    }
 }
 
 static inline bool checkTimestampsAscendingOrder(uint32_t a, uint32_t b) {
@@ -76,14 +79,17 @@ void StartMeasurementTask([[maybe_unused]] void const *argument) {
             int num_of_enabled_axes = 0;
 
             for (unsigned axis = 0; axis < sizeof(metrics_tmc_sg) / sizeof(metrics_tmc_sg[0]); axis++) {
-                if (sg_mask & (1 << axis))
+                if (sg_mask & (1 << axis)) {
                     num_of_enabled_axes += 1;
-                if (metrics_tmc_sg[axis].enabled_handlers)
+                }
+                if (metrics_tmc_sg[axis].enabled_handlers) {
                     next_delay = std::min(next_delay, metrics_tmc_sg[axis].min_interval_ms);
+                }
             }
 
-            if (num_of_enabled_axes)
+            if (num_of_enabled_axes) {
                 next_delay /= num_of_enabled_axes;
+            }
             next_sg_cycle = now + next_delay;
         }
 

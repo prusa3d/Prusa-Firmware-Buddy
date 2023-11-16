@@ -75,23 +75,27 @@ Rect16 random_rect() {
 }
 
 void test_display_random_dots(uint16_t cnt) {
-    for (uint16_t n = 0; n < cnt; ++n)
+    for (uint16_t n = 0; n < cnt; ++n) {
         display::SetPixel(random_point(), random_color());
+    }
 }
 
 void test_display_random_lines(uint16_t cnt) {
-    for (uint16_t n = 0; n < cnt; ++n)
+    for (uint16_t n = 0; n < cnt; ++n) {
         display::DrawLine(random_point(), random_point(), random_color());
+    }
 }
 
 void test_display_random_rects(uint16_t cnt) {
-    for (uint16_t n = 0; n < cnt; ++n)
+    for (uint16_t n = 0; n < cnt; ++n) {
         display::DrawRect(random_rect(), random_color());
+    }
 }
 
 void test_display_random_filled_rects(uint16_t cnt) {
-    for (uint16_t n = 0; n < cnt; ++n)
+    for (uint16_t n = 0; n < cnt; ++n) {
         display::FillRect(random_rect(), random_color());
+    }
 }
 
 void test_display_random_chars(uint16_t cnt, font_t *font) {
@@ -172,12 +176,15 @@ void spectral_color(float l, float *pr, float *pg, float *pb) {
         b = 0.70F - (t) + (0.30F * t * t);
     }
 
-    if (pr)
+    if (pr) {
         *pr = r;
-    if (pg)
+    }
+    if (pg) {
         *pg = g;
-    if (pb)
+    }
+    if (pb) {
         *pb = b;
+    }
 }
 
 void test_display_fade(uint16_t cnt) {
@@ -208,7 +215,7 @@ void test_display_rgbcolors(uint16_t cnt) {
     const uint16_t count = sizeof(colors) / sizeof(color_t);
     font_t *font = resource_font(IDR_FNT_NORMAL);
     const uint8_t item_height = 20;
-    for (int n = 0; n < cnt; n++)
+    for (int n = 0; n < cnt; n++) {
         for (int i = 0; i < count; i++) {
             Rect16 rc_item = Rect16(0, item_height * i, 240, item_height);
             Rect16 rc_text = Rect16(10, item_height * i + 1, strlen(names[i]) * font->w, font->h);
@@ -216,17 +223,19 @@ void test_display_rgbcolors(uint16_t cnt) {
             fill_between_rectangles(&rc_item, &rc_text, colors[i]);
             display::DrawText(rc_text, string_view_utf8::MakeCPUFLASH((const uint8_t *)names[i]), font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);
         }
+    }
 }
 
 void test_display_spectrum(uint16_t cnt) {
     float r, g, b;
-    for (int n = 0; n < cnt; ++n)
+    for (int n = 0; n < cnt; ++n) {
         for (int y = 0; y < display::GetH(); ++y) {
             const float l = 400.0F + (3.0F * y / 3.2F);
             spectral_color(l, &r, &g, &b);
             const color_t clr = color_rgb(255 * r, 255 * g, 255 * b);
             display::DrawLine(point_ui16(0, y), point_ui16(display::GetW() - 1, y), clr);
         }
+    }
 }
 
 extern const uint8_t img_icon_64x64_noise[];

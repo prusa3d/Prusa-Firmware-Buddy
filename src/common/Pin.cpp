@@ -49,8 +49,9 @@ void InterruptPin::configure() const {
     InputPin::configure();
     if (!isIRQEnabled()) {
         HAL_NVIC_SetPriority(getIRQn(), m_priority.preemptPriority, m_priority.subPriority);
-        if (m_startEnabled)
+        if (m_startEnabled) {
             enableIRQ();
+        }
     } else {
 #if MCU_IS_STM32F4()
         uint32_t priorityGroup = HAL_NVIC_GetPriorityGrouping();

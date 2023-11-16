@@ -31,10 +31,11 @@ void HX717Mux::handler() {
     // Configure the channel for the next read
     sample_counter = (sample_counter + 1) % sample_switch_count;
     HX717::Channel next_channel;
-    if (!(loadcell.IsHighPrecisionEnabled()) && !sample_counter)
+    if (!(loadcell.IsHighPrecisionEnabled()) && !sample_counter) {
         next_channel = hx717.CHANNEL_B_GAIN_8; // fs
-    else
+    } else {
         next_channel = hx717.CHANNEL_A_GAIN_128; // loadcell
+    }
 
     int32_t raw_value;
 
@@ -80,8 +81,9 @@ void HX717Mux::handler() {
 
     // always forward the sample to the correct subsystem
     if (current_channel == hx717.CHANNEL_A_GAIN_128) {
-        if (!std::isnan(sample_interval))
+        if (!std::isnan(sample_interval)) {
             loadcell.analysis.SetSamplingIntervalMs(sample_interval);
+        }
         loadcell.ProcessSample(raw_value, sample_timestamp);
     } else {
         fs_process_sample(raw_value, 0);

@@ -47,8 +47,9 @@ bool selftest_warning_selftest_finished() {
     }
 
     HOTEND_LOOP()
-    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].fansSwitched))
+    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].fansSwitched)) {
         return false;
+    }
 
     return true;
 

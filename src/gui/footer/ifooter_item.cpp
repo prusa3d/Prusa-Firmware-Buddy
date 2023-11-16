@@ -34,8 +34,9 @@ void IFooterItem::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
             last_updated = now;
             TickResult res = tick();
             if (res == TickResult::changed_and_resized) {
-                if (GetParent())
+                if (GetParent()) {
                     GetParent()->WindowEvent(this, GUI_event_t::CHILD_CHANGED, nullptr);
+                }
             }
         }
     } break;
@@ -44,8 +45,9 @@ void IFooterItem::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         // do not update value (it is not its time)
         // just update state and notify parent if size changed
         if (updateState() == resized_t::yes) {
-            if (GetParent())
+            if (GetParent()) {
                 GetParent()->WindowEvent(this, GUI_event_t::CHILD_CHANGED, nullptr);
+            }
         }
         break;
     default:

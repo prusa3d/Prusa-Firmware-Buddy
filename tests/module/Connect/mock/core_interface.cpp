@@ -31,8 +31,9 @@ core_interface::core_interface() {
 }
 
 std::optional<Error> core_interface::get_printer_info(printer_info_t *printer_info) {
-    if (NULL == printer_info)
+    if (NULL == printer_info) {
         return Error::ERROR;
+    }
 
     snprintf(printer_info->firmware_version, FW_VER_BUFR_LEN, "%s", "4.1.0-CONN+0000");
 

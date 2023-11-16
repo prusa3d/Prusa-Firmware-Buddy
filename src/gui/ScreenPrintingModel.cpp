@@ -63,21 +63,24 @@ void ScreenPrintingModel::SetButtonIconAndLabel(BtnSocket idx, BtnRes ico_res, L
 }
 
 void ScreenPrintingModel::SetButtonIcon(BtnSocket idx, BtnRes ico_res) {
-    if (idx > BtnSocket::_last || ico_res > BtnRes::_last)
+    if (idx > BtnSocket::_last || ico_res > BtnRes::_last) {
         return;
+    }
     buttons[ftrstd::to_underlying(idx)].SetRes(&icon_resources[ftrstd::to_underlying(ico_res)]);
 }
 
 void ScreenPrintingModel::SetButtonLabel(BtnSocket idx, LabelRes txt_res) {
-    if (idx > BtnSocket::_last || txt_res > LabelRes::_last)
+    if (idx > BtnSocket::_last || txt_res > LabelRes::_last) {
         return;
+    }
     labels[ftrstd::to_underlying(idx)].SetText(_(label_resources[ftrstd::to_underlying(txt_res)]));
 }
 
 void ScreenPrintingModel::DisableButton(BtnSocket idx) {
     const size_t btn_idx = ftrstd::to_underlying(idx);
-    if (idx > BtnSocket::_last || buttons[btn_idx].IsShadowed())
+    if (idx > BtnSocket::_last || buttons[btn_idx].IsShadowed()) {
         return;
+    }
 
     // Move focus to the right when disabled - if any button is enabled
     if (buttons[btn_idx].IsFocused()) {
@@ -96,8 +99,9 @@ void ScreenPrintingModel::DisableButton(BtnSocket idx) {
 
 void ScreenPrintingModel::EnableButton(BtnSocket idx) {
     const size_t btn_idx = ftrstd::to_underlying(idx);
-    if (idx > BtnSocket::_last || !buttons[btn_idx].IsShadowed())
+    if (idx > BtnSocket::_last || !buttons[btn_idx].IsShadowed()) {
         return;
+    }
 
     buttons[btn_idx].Unshadow();
     buttons[btn_idx].Enable();

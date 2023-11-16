@@ -10,8 +10,9 @@ using namespace std;
 unichar UniChar(const char *ss) {
     const uint8_t *s = reinterpret_cast<const uint8_t *>(ss);
     unichar ord = *s++;
-    if (!UTF8_IS_NONASCII(ord))
+    if (!UTF8_IS_NONASCII(ord)) {
         return ord;
+    }
     ord &= 0x7F;
     for (unichar mask = 0x40; ord & mask; mask >>= 1) {
         ord &= ~mask;

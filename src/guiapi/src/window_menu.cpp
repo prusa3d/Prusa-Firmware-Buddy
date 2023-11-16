@@ -155,8 +155,9 @@ void WindowMenu::printItem(IWindowMenuItem &item, Rect16 rc) {
  * which is same behavior as window_frame has
  */
 void WindowMenu::draw() {
-    if (!IsVisible())
+    if (!IsVisible()) {
         return;
+    }
 
     bool setChildrenInvalid = IsInvalid(); // if background is invalid all items must be redrawn
 
@@ -173,10 +174,12 @@ void WindowMenu::draw() {
             if (auto rect = slot_rect(node.current_slot); !rect.IsEmpty()) {
                 printItem(*(node.item), rect);
 
-                if constexpr (GuiDefaults::MenuLinesBetweenItems)
-                    if (flags.invalid_background && node.current_slot < current_items_on_screen_count() - 1)
+                if constexpr (GuiDefaults::MenuLinesBetweenItems) {
+                    if (flags.invalid_background && node.current_slot < current_items_on_screen_count() - 1) {
                         display::DrawLine(point_ui16(Left() + GuiDefaults::MenuItemDelimiterPadding.left, rect.Top() + rect.Height()),
                             point_ui16(Left() + Width() - GuiDefaults::MenuItemDelimiterPadding.right, rect.Top() + rect.Height()), COLOR_DARK_GRAY);
+                    }
+                }
 
                 ++drawn_cnt;
             }
@@ -191,8 +194,9 @@ void WindowMenu::draw() {
             const int menu_h = (last_valid_node.current_slot + 1) * (item_height() + GuiDefaults::MenuItemDelimeterHeight);
             Rect16 rc_win = GetRect();
             rc_win -= Rect16::Height_t(menu_h);
-            if (rc_win.Height() <= 0)
+            if (rc_win.Height() <= 0) {
                 return;
+            }
             rc_win += Rect16::Top_t(menu_h);
             display::FillRect(rc_win, GetBackColor());
         } else {
@@ -206,27 +210,31 @@ void WindowMenu::draw() {
 
 IWindowMenuItem *WindowMenu::itemFromSlot(int slot) {
     for (Node i = findFirst(); i.HasValue(); i = findNext(i)) {
-        if (i.current_slot == slot)
+        if (i.current_slot == slot) {
             return i.item; // found it
+        }
     }
     return nullptr;
 }
 
 WindowMenu::Node WindowMenu::findFirst() {
     IWindowMenuItem *item = GetItem(scroll_offset());
-    if (!item)
+    if (!item) {
         return Node::Empty();
+    }
     Node ret = { item, 0, scroll_offset() };
     return ret;
 }
 
 WindowMenu::Node WindowMenu::findNext(WindowMenu::Node prev) {
-    if (!prev.HasValue())
+    if (!prev.HasValue()) {
         return Node::Empty();
+    }
 
     IWindowMenuItem *item = GetItem(prev.index + 1);
-    if (!item)
+    if (!item) {
         return Node::Empty();
+    }
     Node ret = { item, prev.current_slot + 1, prev.index + 1 };
     return ret;
 }
@@ -246,13 +254,15 @@ void WindowMenu::BindContainer(IWinMenuContainer &cont) {
 
     set_scroll_offset(0);
 
-    if (should_focus_item_on_init())
+    if (should_focus_item_on_init()) {
         move_focus_to_index(0);
+    }
 }
 
 std::optional<int> WindowMenu::GetIndex(IWindowMenuItem &item) const {
-    if (!pContainer)
+    if (!pContainer) {
         return std::nullopt;
+    }
     return pContainer->GetVisibleIndex(item);
 }
 
@@ -262,21 +272,24 @@ void WindowMenu::Show(IWindowMenuItem &item) {
         return;
     }
 
-    if (!pContainer)
+    if (!pContainer) {
         return;
+    }
 
     pContainer->Show(item);
 
     if (!ensure_item_on_screen(focused_item_index())) {
         // screen did not roll, but some items still need invalidation
         std::optional<size_t> shown_index = GetIndex(item);
-        if (!shown_index)
+        if (!shown_index) {
             return; // this should never happen
+        }
 
         // screen did not roll, but still must invalidate remaining items
         for (Node node = findFirst(); node.HasValue(); node = findNext(node)) {
-            if (node.index > shown_index)
+            if (node.index > shown_index) {
                 node.item->Invalidate();
+            }
         }
     }
 }
@@ -291,19 +304,22 @@ bool WindowMenu::Hide(IWindowMenuItem &item) {
 
     // item is not member of container
     // normally could be hidden, but it is filtered by item.IsHidden() check
-    if (!index_to_hide)
+    if (!index_to_hide) {
         return false;
+    }
 
-    if (!pContainer->Hide(item))
+    if (!pContainer->Hide(item)) {
         return false;
+    }
 
     // screen might need to roll
     if (!ensure_item_on_screen(focused_item_index())) {
         // roll is not needed, but still must invalidate remaining items
         // hidden_index now points to first item after hidden one, so we need to invalidate it too
         for (Node node = findFirst(); node.HasValue(); node = findNext(node)) {
-            if (node.index >= *index_to_hide)
+            if (node.index >= *index_to_hide) {
                 node.item->Invalidate();
+            }
         }
     }
 

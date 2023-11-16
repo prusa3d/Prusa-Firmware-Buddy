@@ -9,8 +9,9 @@ MenuScrollbar::MenuScrollbar(window_t *parent, Rect16 rect, IWindowMenu &menu)
     , menu(menu) {}
 
 void MenuScrollbar::unconditionalDraw() {
-    if (state.item_count == 0) // scrollbar should be hidden, check it anyway to prevent divide by 0
+    if (state.item_count == 0) { // scrollbar should be hidden, check it anyway to prevent divide by 0
         return;
+    }
 
     const Rect16 available_rect = GetRect();
     const unsigned bar_height = unsigned(float(state.max_items_on_screen) / float(state.item_count) * float(available_rect.Height()));

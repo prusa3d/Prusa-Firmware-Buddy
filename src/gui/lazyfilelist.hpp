@@ -171,8 +171,9 @@ public:
     /// by iterating through the directory's content (which is reading one or more FAT sectors).
     /// @return true if the window was actually moved (i.e. not at the very beginning of the dir)
     bool MoveUp() {
-        if (windowStartingFrom < 0)
+        if (windowStartingFrom < 0) {
             return false;
+        }
 
         std::rotate(files.rbegin(), files.rbegin() + 1, files.rend());
 

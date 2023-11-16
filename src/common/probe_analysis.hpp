@@ -37,8 +37,9 @@ public:
 
     /// Append current Z coordinate and load to the window for later analysis
     void StoreSample(float currentZ, float currentLoad) {
-        if (analysisInProgress)
+        if (analysisInProgress) {
             return;
+        }
         window.push_back({ currentZ, currentLoad });
     }
 
@@ -85,8 +86,9 @@ public:
         // Next, calculate all the features
         Features features;
         CalculateHaltSpan(features);
-        if (CalculateAnalysisRange(features) == false)
+        if (CalculateAnalysisRange(features) == false) {
             return Result::Bad("not-ready");
+        }
 
 #ifdef PROBE_ANALYSIS_WITH_METRICS
         auto relative_position = [&window = this->window](Sample sample) {
@@ -100,12 +102,15 @@ public:
             relative_position(features.analysisEnd));
 #endif
 
-        if (CalculateLoadLineApproximationFeatures(features) == false)
+        if (CalculateLoadLineApproximationFeatures(features) == false) {
             return Result::Bad("load-lines");
-        if (CalculateZLineApproximationFeatures(features) == false)
+        }
+        if (CalculateZLineApproximationFeatures(features) == false) {
             return Result::Bad("z-lines");
-        if (!CheckLineSanity(features))
+        }
+        if (!CheckLineSanity(features)) {
             return Result::Bad("sanity-check");
+        }
         CalculateLoadMeans(features);
         CalculateLoadAngles(features);
         features.r2_20ms = CalculateSegmentedR2s(features, 0.020);
@@ -248,19 +253,22 @@ private:
         ///
         /// Returns NaN if the two lines are parallel or the lines are not valid.
         Time FindIntersection(Line other) const {
-            if (!IsValid() || !other.IsValid())
+            if (!IsValid() || !other.IsValid()) {
                 return std::numeric_limits<Time>::quiet_NaN();
+            }
             auto num = -this->b + other.b;
             auto denom = this->a - other.a;
-            if (denom == 0)
+            if (denom == 0) {
                 return std::numeric_limits<float>::quiet_NaN();
+            }
             return static_cast<Time>(num / denom);
         }
 
         /// Return the angle in degrees between this line and the other
         float CalculateAngle(Line other) const {
-            if (!IsValid() || !other.IsValid())
+            if (!IsValid() || !other.IsValid()) {
                 return std::numeric_limits<float>::quiet_NaN();
+            }
 
             constexpr float normalizationFactor = 250;
             constexpr float toDegrees = 180.f / (float)M_PI;
@@ -363,8 +371,9 @@ private:
         float bNum = x2Sum * ySum - xSum * xySum;
         float bDenom = len * x2Sum - (xSum * xSum);
 
-        if (aDenom == 0 || bDenom == 0)
+        if (aDenom == 0 || bDenom == 0) {
             return Line::Invalid();
+        }
 
         float a = aNum / aDenom;
         float b = bNum / bDenom;
@@ -384,17 +393,19 @@ private:
         Line rightLine = LinearRegression(SamplesRange(split, samples.last), getLoad);
 
         // early exit if something went wrong
-        if (!leftLine.IsValid() || !rightLine.IsValid())
+        if (!leftLine.IsValid() || !rightLine.IsValid()) {
             return std::make_tuple(std::numeric_limits<float>::quiet_NaN(), Line::Invalid(), Line::Invalid());
+        }
 
         // sum the error
         float error = 0;
         for (auto it = samples.first; it <= samples.last; ++it) {
             float diff;
-            if (it < split)
+            if (it < split) {
                 diff = leftLine.GetY(TimeOfSample(it)) - it->load;
-            else
+            } else {
                 diff = rightLine.GetY(TimeOfSample(it)) - it->load;
+            }
             error += diff * diff;
         }
         return std::make_tuple(error, leftLine, rightLine);
@@ -406,8 +417,9 @@ private:
     /// and the two lines.
     /// Returns (window.end(), Line::Invalid, Line::Invalid) on error.
     std::tuple<Sample, Line, Line> FindBestTwoLinesApproximation(SamplesRange samples) {
-        if (samples.Size() < 3)
+        if (samples.Size() < 3) {
             return std::make_tuple(window.end(), Line::Invalid(), Line::Invalid());
+        }
 
         float bestError = std::numeric_limits<float>::max();
         Sample bestSplit = window.end();
@@ -473,10 +485,12 @@ private:
         Sample analysisStart = features.fallEnd - lookbackSamples;
         Sample analysisEnd = features.riseStart + lookaheadSamples;
 
-        if (analysisStart < window.begin() || analysisStart >= window.end())
+        if (analysisStart < window.begin() || analysisStart >= window.end()) {
             return false;
-        if (analysisEnd < window.begin() || analysisEnd >= window.end())
+        }
+        if (analysisEnd < window.begin() || analysisEnd >= window.end()) {
             return false;
+        }
 
         features.analysisStart = analysisStart;
         features.analysisEnd = analysisEnd;
@@ -517,8 +531,9 @@ private:
         timesInOrder &= features.compressionEndTime < features.decompressionStartTime;
         timesInOrder &= features.decompressionStartTime < features.decompressionEndTime;
         timesInOrder &= features.decompressionEndTime < TimeOfSample(features.analysisEnd);
-        if (!timesInOrder)
+        if (!timesInOrder) {
             return false;
+        }
         return true;
     }
 
@@ -574,8 +589,9 @@ private:
     float CalculateR2FromSegmentedVariance(Iterator begin, Iterator end) {
         float totalVariance = std::accumulate(begin, end, 0.0f, [](float acc, VarianceInfo const &r) { return r.total; });
         float unexplainedVariance = std::accumulate(begin, end, 0.0f, [](float acc, VarianceInfo const &r) { return r.unexplained; });
-        if (totalVariance == 0)
+        if (totalVariance == 0) {
             return -std::numeric_limits<float>::infinity();
+        }
         return 1 - (unexplainedVariance / totalVariance);
     }
 

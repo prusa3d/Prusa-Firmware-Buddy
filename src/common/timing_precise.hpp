@@ -93,12 +93,14 @@ FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
             case 1:
                 nop();
             }
-            if ((x = (x - 1) / (MAXNOPS)))
+            if ((x = (x - 1) / (MAXNOPS))) {
                 timing_delay_4cycles(x); // if need more then 4 nop loop is more optimal
+            }
         }
     #undef MAXNOPS
-    } else if ((x >>= 2))
+    } else if ((x >>= 2)) {
         timing_delay_4cycles(x);
+    }
     #undef nop
 }
 

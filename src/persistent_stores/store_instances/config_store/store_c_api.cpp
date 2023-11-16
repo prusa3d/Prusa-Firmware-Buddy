@@ -9,8 +9,9 @@ extern "C" float get_z_max_pos_mm() {
     float ret = 0.F;
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     ret = config_store().axis_z_max_pos_mm.get();
-    if ((ret > Z_MAX_LEN_LIMIT) || (ret < Z_MIN_LEN_LIMIT))
+    if ((ret > Z_MAX_LEN_LIMIT) || (ret < Z_MIN_LEN_LIMIT)) {
         ret = DEFAULT_Z_MAX_POS;
+    }
     log_debug(EEPROM, "%s returned %f", __PRETTY_FUNCTION__, double(ret));
 #else
     log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);

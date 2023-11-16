@@ -167,10 +167,12 @@ void window_vertical_progress_t::unconditionalDraw() {
     Rect16 rc = GetRect();
     const uint16_t progress_h = std::min(GetProgressPixels(), uint16_t(Height()));
     rc = Rect16::Height_t(Height() - progress_h);
-    if (rc.Height())
+    if (rc.Height()) {
         display::FillRect(rc, GetBackColor());
+    }
     rc = Rect16::Top_t(Height() - progress_h);
     rc = Rect16::Height_t(progress_h);
-    if (rc.Height())
+    if (rc.Height()) {
         display::FillRect(rc, color_progress);
+    }
 }

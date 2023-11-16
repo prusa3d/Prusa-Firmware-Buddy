@@ -43,8 +43,9 @@ static_assert(std::size(__evt_name) == ftrstd::to_underlying(Event::_count), "In
 
 // returns event name (dbg)
 const char *marlin_events_get_name(Event evt_id) {
-    if (evt_id <= Event::_last)
+    if (evt_id <= Event::_last) {
         return __evt_name[ftrstd::to_underlying(evt_id)];
+    }
     return "";
 }
 

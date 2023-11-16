@@ -36,10 +36,12 @@ void FooterLine::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 
 // does not call destructor, just rewrites
 bool FooterLine::Create(footer::Item item_id, size_t index) {
-    if (index >= max_items)
+    if (index >= max_items) {
         return false;
-    if (item_ids[index] == item_id)
+    }
+    if (item_ids[index] == item_id) {
         return false;
+    }
 
     // erase old item
     Erase(index);
@@ -211,8 +213,9 @@ bool FooterLine::try_split(Rectangles &returned_rects, const std::array<Rect16::
     }
     size_t count_after_split = calculateItemRects(temp_rects.data(), temp_widths.data(), count_with_borders);
 
-    if (count_with_borders != count_after_split)
+    if (count_with_borders != count_after_split) {
         return false; // did not fit
+    }
 
     auto src_begin = center ? temp_rects.begin() + 1 : temp_rects.begin();
     auto src_end = src_begin + count;
@@ -252,10 +255,12 @@ bool FooterLine::slotUsed(size_t index) const {
 }
 
 window_t *FooterLine::SlotAccess(size_t index) const {
-    if (index >= item_ids.size())
+    if (index >= item_ids.size()) {
         return nullptr;
-    if (!slotUsed(index))
+    }
+    if (!slotUsed(index)) {
         return nullptr;
+    }
     return (window_t *)(&(items[index]));
 }
 

@@ -18,8 +18,9 @@ void ESPFrame::Change(PhasesESP ph, fsm::PhaseData data) {
     data_current = data;
     phase_previous = phase_current;
     phase_current = ph;
-    if (phase_current == phase_previous && data_current == data_previous)
+    if (phase_current == phase_previous && data_current == data_previous) {
         return;
+    }
 
     if (phase_current != phase_previous) {
         radio.Change(phase_current);

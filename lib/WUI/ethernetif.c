@@ -325,8 +325,9 @@ static struct pbuf *low_level_input(struct netif *netif) {
     uint32_t i = 0;
 
     /* get received frame */
-    if (HAL_ETH_GetReceivedFrame_IT(&heth) != HAL_OK)
+    if (HAL_ETH_GetReceivedFrame_IT(&heth) != HAL_OK) {
         return NULL;
+    }
 
     /* Obtain the size of the packet and put it into the "len" variable. */
     len = heth.RxFrameInfos.length;

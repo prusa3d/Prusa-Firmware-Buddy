@@ -28,8 +28,9 @@ const uint8_t Base64StreamDecoder::base64_inverse[256] = {
 int Base64StreamDecoder::ConsumeChar(char c, uint8_t *out) {
     // pozor na konec zaznamu - special handling
     uint8_t ic = (c != '=') ? find64(static_cast<uint8_t>(c)) : 0;
-    if (ic == 0xff)
+    if (ic == 0xff) {
         return -1; // neplatny vstupni znak
+    }
 
     switch (state) {
     case States::AwaitingFirst:

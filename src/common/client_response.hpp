@@ -635,8 +635,9 @@ public:
     static uint8_t GetIndex(T phase, Response response) {
         const PhaseResponses &cmds = getResponsesInPhase(phase);
         for (size_t i = 0; i < MAX_RESPONSES; ++i) {
-            if (cmds[i] == response)
+            if (cmds[i] == response) {
                 return i;
+            }
         }
         return -1;
     }
@@ -644,8 +645,9 @@ public:
     // get response from PhaseResponses by index
     template <class T>
     static const Response &GetResponse(const T phase, const uint8_t index) {
-        if (index >= MAX_RESPONSES)
+        if (index >= MAX_RESPONSES) {
             return ResponseNone;
+        }
         const PhaseResponses &cmds = getResponsesInPhase(phase);
         return cmds[index];
     }
@@ -666,8 +668,9 @@ public:
     template <class T>
     static uint32_t Encode(T phase, Response response) {
         uint8_t clicked_index = GetIndex(phase, response);
-        if (clicked_index >= MAX_RESPONSES)
+        if (clicked_index >= MAX_RESPONSES) {
             return -1; // this phase does not have response with this index
+        }
         return ((static_cast<uint32_t>(phase)) << RESPONSE_BITS) + uint32_t(clicked_index);
     }
 };
@@ -841,52 +844,66 @@ static constexpr bool SelftestPartContainsPhase(SelftestParts part, PhasesSelfte
 
 static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
     for (size_t i = 0; i < size_t(SelftestParts::_none); ++i) {
-        if (SelftestPartContainsPhase(SelftestParts(i), ph))
+        if (SelftestPartContainsPhase(SelftestParts(i), ph)) {
             return SelftestParts(i);
+        }
     }
 
-    if (SelftestPartContainsPhase(SelftestParts::WizardPrologue, ph))
+    if (SelftestPartContainsPhase(SelftestParts::WizardPrologue, ph)) {
         return SelftestParts::WizardPrologue;
+    }
 
-    if (SelftestPartContainsPhase(SelftestParts::Fans, ph))
+    if (SelftestPartContainsPhase(SelftestParts::Fans, ph)) {
         return SelftestParts::Fans;
+    }
 
 #if HAS_LOADCELL()
-    if (SelftestPartContainsPhase(SelftestParts::Loadcell, ph))
+    if (SelftestPartContainsPhase(SelftestParts::Loadcell, ph)) {
         return SelftestParts::Loadcell;
+    }
 #endif
 #if FILAMENT_SENSOR_IS_ADC()
-    if (SelftestPartContainsPhase(SelftestParts::FSensor, ph))
+    if (SelftestPartContainsPhase(SelftestParts::FSensor, ph)) {
         return SelftestParts::FSensor;
+    }
 #endif
 #if PRINTER_IS_PRUSA_MK4
-    if (SelftestPartContainsPhase(SelftestParts::GearsCalib, ph))
+    if (SelftestPartContainsPhase(SelftestParts::GearsCalib, ph)) {
         return SelftestParts::GearsCalib;
+    }
 #endif
-    if (SelftestPartContainsPhase(SelftestParts::Axis, ph))
+    if (SelftestPartContainsPhase(SelftestParts::Axis, ph)) {
         return SelftestParts::Axis;
+    }
 
-    if (SelftestPartContainsPhase(SelftestParts::Heaters, ph))
+    if (SelftestPartContainsPhase(SelftestParts::Heaters, ph)) {
         return SelftestParts::Heaters;
+    }
 
-    if (SelftestPartContainsPhase(SelftestParts::SpecifyHotEnd, ph))
+    if (SelftestPartContainsPhase(SelftestParts::SpecifyHotEnd, ph)) {
         return SelftestParts::SpecifyHotEnd;
+    }
 
-    if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph))
+    if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph)) {
         return SelftestParts::CalibZ;
+    }
 
-    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue_ok, ph))
+    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue_ok, ph)) {
         return SelftestParts::WizardEpilogue_ok;
+    }
 
-    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue_nok, ph))
+    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue_nok, ph)) {
         return SelftestParts::WizardEpilogue_nok;
+    }
 
-    if (SelftestPartContainsPhase(SelftestParts::Result, ph))
+    if (SelftestPartContainsPhase(SelftestParts::Result, ph)) {
         return SelftestParts::Result;
+    }
 
 #if BOARD_IS_XLBUDDY
-    if (SelftestPartContainsPhase(SelftestParts::Dock, ph))
+    if (SelftestPartContainsPhase(SelftestParts::Dock, ph)) {
         return SelftestParts::Dock;
+    }
 
 #endif
     return SelftestParts::_none;
@@ -900,8 +917,9 @@ static constexpr bool ESPPartContainsPhase(ESPParts part, PhasesESP ph) {
 
 static constexpr ESPParts ESPGetPartFromPhase(PhasesESP ph) {
     for (size_t i = 0; i < size_t(ESPParts::_none); ++i) {
-        if (ESPPartContainsPhase(ESPParts(i), ph))
+        if (ESPPartContainsPhase(ESPParts(i), ph)) {
             return ESPParts(i);
+        }
     }
     return ESPParts::_none;
 }
@@ -926,18 +944,22 @@ enum class FSM_action {
  */
 template <class T>
 FSM_action IsFSM_action_needed(std::optional<T> current, std::optional<T> should_be) {
-    if (!current && !should_be)
+    if (!current && !should_be) {
         return FSM_action::no_action;
+    }
 
-    if (!current && should_be)
+    if (!current && should_be) {
         return FSM_action::create;
+    }
 
-    if (current && !should_be)
+    if (current && !should_be) {
         return FSM_action::destroy;
+    }
 
     // current && should_be
-    if (*current == *should_be)
+    if (*current == *should_be) {
         return FSM_action::no_action;
+    }
 
     return FSM_action::change;
 }

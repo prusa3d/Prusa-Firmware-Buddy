@@ -33,9 +33,11 @@ void GcodeSuite::M22() {
 // M23 - Select SD file
 void GcodeSuite::M23() {
     // Simplify3D includes the size, so zero out all spaces (#7227)
-    for (char *fn = parser.string_arg; *fn; ++fn)
-        if (*fn == ' ')
+    for (char *fn = parser.string_arg; *fn; ++fn) {
+        if (*fn == ' ') {
             *fn = '\0';
+        }
+    }
     marlin_vars()->media_SFN_path.set(parser.string_arg);
 }
 
@@ -51,8 +53,9 @@ void GcodeSuite::M25() {
 
 // M26 - Set SD position
 void GcodeSuite::M26() {
-    if ((media_get_state() == media_state_INSERTED) && parser.seenval('S'))
+    if ((media_get_state() == media_state_INSERTED) && parser.seenval('S')) {
         media_print_set_position(parser.value_ulong());
+    }
 }
 
 // M27 - Report SD print status
@@ -66,8 +69,9 @@ void GcodeSuite::M27() {
             SERIAL_ECHO(media_print_get_position());
             SERIAL_CHAR('/');
             SERIAL_ECHOLN(media_print_get_size());
-        } else
+        } else {
             SERIAL_ECHOLNPGM(MSG_SD_NOT_PRINTING);
+        }
     }
 }
 

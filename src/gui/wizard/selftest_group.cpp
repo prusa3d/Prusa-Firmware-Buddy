@@ -30,8 +30,9 @@ void SelfTestGroup::Draw(Rect16 rc, int dontdraw_first_n_px) const {
             rc -= Rect16::Height_t(dontdraw_first_n_px);
             dontdraw_first_n_px = 0;
 
-            if (item->GetHeight() > rc.Height())
+            if (item->GetHeight() > rc.Height()) {
                 return; // item does not fit
+            }
 
             item->Draw(rc.Top());
             rc += Rect16::Top_t(item->GetHeight());

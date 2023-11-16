@@ -50,18 +50,20 @@ void GcodeSuite::M572() {
 
     if (seen_s) {
         const float s = parser.value_float();
-        if (WITHIN(s, 0.f, 10.f))
+        if (WITHIN(s, 0.f, 10.f)) {
             pressure_advance = s;
-        else
+        } else {
             SERIAL_ECHO_MSG("?Pressure advance (S) value out of range (0-10)");
+        }
     }
 
     if (seen_w) {
         const float w = parser.value_float();
-        if (WITHIN(w, 0.f, 0.2f))
+        if (WITHIN(w, 0.f, 0.2f)) {
             smooth_time = w;
-        else
+        } else {
             SERIAL_ECHO_MSG("?Pressure advance smooth time (W) value out of range (0-0.2)");
+        }
     }
 
     M572_internal(pressure_advance, smooth_time);

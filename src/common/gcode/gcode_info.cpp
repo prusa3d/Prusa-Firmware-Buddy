@@ -185,8 +185,9 @@ uint32_t GCodeInfo::getPrinterModelCode() const {
 void GCodeInfo::EvaluateToolsValid() {
     EXTRUDER_LOOP() { // e == gcode_tool
         // do not check this nozzle if not used in print
-        if (!per_extruder_info[e].used())
+        if (!per_extruder_info[e].used()) {
             continue;
+        }
 
         auto physical_tool = tools_mapping::to_physical_tool(e);
         if (physical_tool == tools_mapping::no_tool) {
@@ -333,8 +334,9 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
     {
         // format is M862.x, so remove dot
         char dot = cmd.pop_front();
-        if (dot != '.')
+        if (dot != '.') {
             return;
+        }
     }
 
     char subcode = cmd.pop_front();
@@ -391,23 +393,28 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
             case '6':
                 auto compare = [](GcodeBuffer::String &a, const char *b) {
                     for (char *c = a.begin;; ++c, ++b) {
-                        if (c == a.end || *b == '\0')
+                        if (c == a.end || *b == '\0') {
                             return c == a.end && *b == '\0';
-                        if (toupper(*c) != toupper(*b))
+                        }
+                        if (toupper(*c) != toupper(*b)) {
                             return false;
+                        }
                     }
                     return *b == '\0';
                 };
                 auto find = [&](GcodeBuffer::String feature) {
-                    for (auto &f : PrusaGcodeSuite::m862_6SupportedFeatures)
-                        if (compare(feature, f))
+                    for (auto &f : PrusaGcodeSuite::m862_6SupportedFeatures) {
+                        if (compare(feature, f)) {
                             return true;
+                        }
+                    }
                     return false;
                 };
                 auto feature = cmd.get_string();
                 feature.trim();
-                if (!find(feature))
+                if (!find(feature)) {
                     valid_printer_settings.add_unsupported_feature(feature.begin, feature.end - feature.begin);
+                }
                 break;
             }
         }

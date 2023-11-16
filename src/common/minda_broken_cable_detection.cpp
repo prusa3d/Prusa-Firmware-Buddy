@@ -88,15 +88,18 @@ void MINDA_BROKEN_CABLE_DETECTION__MBL_END() {
     uint16_t points = 0;
 
     for (actual_point = 0; actual_point < (POINTS - 1); ++actual_point) {
-        if (mbl_preposts[actual_point + 1].post != mbl_preposts[actual_point + 1].pre)
+        if (mbl_preposts[actual_point + 1].post != mbl_preposts[actual_point + 1].pre) {
             moves |= 1 << actual_point;
-        if (mbl_preposts[actual_point].pre_lvl || mbl_preposts[actual_point].post_lvl)
+        }
+        if (mbl_preposts[actual_point].pre_lvl || mbl_preposts[actual_point].post_lvl) {
             points |= 1 << actual_point;
+        }
     }
 
     // last point was not set actual_point contains valid value
-    if (mbl_preposts[actual_point].pre_lvl || mbl_preposts[actual_point].post_lvl)
+    if (mbl_preposts[actual_point].pre_lvl || mbl_preposts[actual_point].post_lvl) {
         points |= 1 << actual_point;
+    }
 
     if (moves || points) {
         // error moves are not zero

@@ -269,24 +269,27 @@ static char should_log_register_operation(uint8_t reg_addr) {
 static const char *tmc_reg_addr_to_name(uint8_t addr) {
     tmc_reg_t *tmc_reg = tmc_reg_map;
     while (tmc_reg->cmd_name != NULL) {
-        if (tmc_reg->reg_adr == addr)
+        if (tmc_reg->reg_adr == addr) {
             return tmc_reg->cmd_name;
+        }
         tmc_reg++;
     }
     return "UNKNOWN";
 }
 
 void tmc_register_write_hook(uint8_t slave_addr, uint8_t reg_addr, uint32_t val) {
-    if (!should_log_register_operation(reg_addr))
+    if (!should_log_register_operation(reg_addr)) {
         return;
+    }
     static metric_t metric_write = METRIC("tmc_write", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
     metric_record_custom(&metric_write, ",ax=%c reg=%ui,regn=\"%s\",value=%ui",
         tmc_slave_addr_to_axis_character(slave_addr), reg_addr, tmc_reg_addr_to_name(reg_addr), val);
 }
 
 void tmc_register_read_hook(uint8_t slave_addr, uint8_t reg_addr, uint32_t val) {
-    if (!should_log_register_operation(reg_addr))
+    if (!should_log_register_operation(reg_addr)) {
         return;
+    }
     static metric_t metric_read = METRIC("tmc_read", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
     metric_record_custom(&metric_read, ",ax=%c reg=%ui,regn=\"%s\",value=%ui",
         tmc_slave_addr_to_axis_character(slave_addr), reg_addr, tmc_reg_addr_to_name(reg_addr), val);
@@ -301,8 +304,9 @@ void tmc_register_read_hook(uint8_t slave_addr, uint8_t reg_addr, uint32_t val) 
 uint8_t tmc_sample(void) {
     uint8_t mask = 0;
     if (tmc_sg_mask) {
-        while ((tmc_sg_mask & (1 << tmc_sg_axis)) == 0)
+        while ((tmc_sg_mask & (1 << tmc_sg_axis)) == 0) {
             tmc_sg_axis = (tmc_sg_axis + 1) & 0x03;
+        }
         if (stepper.axis_is_moving((AxisEnum)tmc_sg_axis)) {
             mask = (1 << tmc_sg_axis);
 #if HAS_DRIVER(TMC2130)
@@ -310,10 +314,12 @@ uint8_t tmc_sample(void) {
 #elif HAS_DRIVER(TMC2209)
             tmc_sg[tmc_sg_axis] = pStep[tmc_sg_axis]->SG_RESULT();
 #endif
-        } else
+        } else {
             tmc_sg[tmc_sg_axis] = 0;
-        if (tmc_sg_sample_cb)
+        }
+        if (tmc_sg_sample_cb) {
             tmc_sg_sample_cb(tmc_sg_axis, tmc_sg[tmc_sg_axis]);
+        }
         tmc_sg_axis = (tmc_sg_axis + 1) & 0x03;
     }
     return mask;

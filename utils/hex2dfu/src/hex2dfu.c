@@ -357,24 +357,26 @@ int hex2bin(unsigned char *obuf, const char *ibuf, int len) {
     len = len / 2;
     while (*ibuf != 0) {
         c = *ibuf++;
-        if (c >= '0' && c <= '9')
+        if (c >= '0' && c <= '9') {
             c -= '0';
-        else if (c >= 'a' && c <= 'f')
+        } else if (c >= 'a' && c <= 'f') {
             c -= 'a' - 10;
-        else if (c >= 'A' && c <= 'F')
+        } else if (c >= 'A' && c <= 'F') {
             c -= 'A' - 10;
-        else
+        } else {
             return -1;
+        }
 
         c2 = *ibuf++;
-        if (c2 >= '0' && c2 <= '9')
+        if (c2 >= '0' && c2 <= '9') {
             c2 -= '0';
-        else if (c2 >= 'a' && c2 <= 'f')
+        } else if (c2 >= 'a' && c2 <= 'f') {
             c2 -= 'a' - 10;
-        else if (c2 >= 'A' && c2 <= 'F')
+        } else if (c2 >= 'A' && c2 <= 'F') {
             c2 -= 'A' - 10;
-        else
+        } else {
             return -1;
+        }
 
         *obuf++ = (c << 4) | c2;
     }
@@ -539,8 +541,9 @@ unsigned int crc32(unsigned int crc, const void *buf, size_t size) {
     p = buf;
     crc = crc ^ ~0U;
 
-    while (size--)
+    while (size--) {
         crc = crc32_tab[(crc ^ *p++) & 0xFF] ^ (crc >> 8);
+    }
 
     return crc ^ ~0U;
 }

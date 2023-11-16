@@ -25,8 +25,9 @@ window_icon_t::window_icon_t(window_t *parent, const img::Resource *res, point_i
     : window_icon_t(
         parent,
         [pt, res, padding] {
-            if (!res || !res->h || !res->w)
+            if (!res || !res->h || !res->w) {
                 return Rect16();
+            }
 
             return Rect16(pt,
                 res->w + padding.left + padding.right,
@@ -39,8 +40,9 @@ window_icon_t::window_icon_t(window_t *parent, const img::Resource *res, point_i
     : window_icon_t(
         parent,
         [pt, res, center, center_size] {
-            if (!res || !res->h || !res->w)
+            if (!res || !res->h || !res->w) {
                 return Rect16();
+            }
 
             Rect16 rc(pt, res->w, res->h);
             switch (center) {
@@ -63,8 +65,9 @@ window_icon_t::window_icon_t(window_t *parent, const img::Resource *res, point_i
 
 void window_icon_t::unconditionalDraw() {
     // no image assigned
-    if (!pRes)
+    if (!pRes) {
         return;
+    }
 
     ropfn raster_op;
     raster_op.shadow = IsShadowed() ? is_shadowed::yes : is_shadowed::no;
@@ -119,8 +122,9 @@ WindowMultiIconButton::WindowMultiIconButton(window_t *parent, point_i16_t pt, c
     : WindowMultiIconButton(
         parent,
         [pt, res] {
-            if (!res || !res->normal.h || !res->normal.w)
+            if (!res || !res->normal.h || !res->normal.w) {
                 return Rect16();
+            }
 
             return Rect16(pt, res->normal.w, res->normal.h);
         }(),
@@ -135,14 +139,17 @@ WindowMultiIconButton::WindowMultiIconButton(window_t *parent, Rect16 rc, const 
 }
 
 void WindowMultiIconButton::unconditionalDraw() {
-    if (!pRes)
+    if (!pRes) {
         return;
+    }
 
     const img::Resource *pImg = &pRes->normal;
-    if (IsFocused())
+    if (IsFocused()) {
         pImg = &pRes->focused;
-    if (IsShadowed())
+    }
+    if (IsShadowed()) {
         pImg = &pRes->disabled;
+    }
 
     display::DrawImg(point_ui16(Left(), Top()), *pImg, GetBackColor());
 }

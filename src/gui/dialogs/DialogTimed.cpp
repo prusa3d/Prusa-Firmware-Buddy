@@ -44,8 +44,9 @@ void DialogTimed::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
             time_of_last_action = now;
             return; // event consumed
         }
-        if (event == GUI_event_t::LOOP)
+        if (event == GUI_event_t::LOOP) {
             updateLoop(visibility_changed_t::no); // virtual update loop for derived classes
+        }
     } else { // not visible
 
         // Reset timeout
@@ -73,8 +74,9 @@ void DialogTimed::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
 }
 
 bool DialogTimed::isShowBlocked() const {
-    if (!GetParent())
+    if (!GetParent()) {
         return true;
+    }
     WinFilterVisible filter;
     window_t *begin;
     window_t *end;
@@ -82,15 +84,17 @@ bool DialogTimed::isShowBlocked() const {
     if (GetParent()->GetFirstDialog() && GetParent()->GetLastDialog()) {
         begin = GetParent()->GetFirstDialog();
         end = GetParent()->GetLastDialog()->GetNext();
-        if (findFirst(begin, end, filter) != end)
+        if (findFirst(begin, end, filter) != end) {
             return true;
+        }
     }
 
     if (GetParent()->GetFirstStrongDialog() && GetParent()->GetLastStrongDialog()) {
         begin = GetParent()->GetFirstStrongDialog();
         end = GetParent()->GetLastStrongDialog()->GetNext();
-        if (findFirst(begin, end, filter) != end)
+        if (findFirst(begin, end, filter) != end) {
             return true;
+        }
     }
 
     return false;

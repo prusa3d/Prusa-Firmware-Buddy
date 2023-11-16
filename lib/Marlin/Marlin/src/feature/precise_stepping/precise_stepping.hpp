@@ -145,24 +145,27 @@ public:
 
     // Returns the current move segment, nullptr if the queue is empty.
     FORCE_INLINE static move_t *get_current_move_segment() {
-        if (has_move_segments_queued())
+        if (has_move_segments_queued()) {
             return &move_segment_queue.data[move_segment_queue.tail];
+        }
 
         return nullptr;
     }
 
     // Returns the current move segment that isn't processed by PreciseStepping::process_queue_of_move_segments(), nullptr if the queue is empty.
     FORCE_INLINE static move_t *get_current_unprocessed_move_segment() {
-        if (has_unprocessed_move_segments_queued())
+        if (has_unprocessed_move_segments_queued()) {
             return &move_segment_queue.data[move_segment_queue.unprocessed];
+        }
 
         return nullptr;
     }
 
     // Returns the last move segment inside the queue (at the bottom of the queue), nullptr if the queue is empty.
     FORCE_INLINE static move_t *get_last_move_segment() {
-        if (has_move_segments_queued())
+        if (has_move_segments_queued()) {
             return &move_segment_queue.data[move_segment_queue_prev_index(move_segment_queue.head)];
+        }
 
         return nullptr;
     }
@@ -170,8 +173,9 @@ public:
     // Returns the first head move segment, nullptr if the queue is full.
     // Also, it returns the next move segment queue head index (passed by reference).
     FORCE_INLINE static move_t *get_next_free_move_segment(uint8_t &next_move_segment_queue_head) {
-        if (is_move_segment_queue_full())
+        if (is_move_segment_queue_full()) {
             return nullptr;
+        }
 
         // Return the first available move segment.
         next_move_segment_queue_head = move_segment_queue_next_index(move_segment_queue.head);
@@ -215,8 +219,9 @@ public:
 
     // Returns the current step event, nullptr if the queue is empty.
     static step_event_u16_t *get_current_step_event() {
-        if (has_step_events_queued())
+        if (has_step_events_queued()) {
             return &step_event_queue.data[step_event_queue.tail];
+        }
 
         return nullptr;
     }
@@ -224,8 +229,9 @@ public:
     // Returns the first head step event, nullptr if the queue is full.
     // Also, it returns the next step event queue head index (passed by reference).
     FORCE_INLINE static step_event_u16_t *get_next_free_step_event(uint16_t &next_step_event_queue_head) {
-        if (is_step_event_queue_full())
+        if (is_step_event_queue_full()) {
             return nullptr;
+        }
 
         // Return the first available step event.
         next_step_event_queue_head = step_event_queue_next_index(step_event_queue.head);
@@ -234,8 +240,9 @@ public:
 
     // Discard the current step event.
     FORCE_INLINE static void discard_current_step_event() {
-        if (has_step_events_queued())
+        if (has_step_events_queued()) {
             step_event_queue.tail = step_event_queue_next_index(step_event_queue.tail);
+        }
     }
 
     FORCE_INLINE static void step_generator_state_clear() {
@@ -250,10 +257,11 @@ public:
         assert(move_idx >= 0 && move_idx < MOVE_SEGMENT_QUEUE_SIZE); // move_idx out of bounds of the move queue.
         assert(move_idx != move_segment_queue.head); // Input move segment is out of the move queue.
 
-        if (uint8_t next_move_idx = move_segment_queue_next_index(uint8_t(move_idx)); next_move_idx == move_segment_queue.head)
+        if (uint8_t next_move_idx = move_segment_queue_next_index(uint8_t(move_idx)); next_move_idx == move_segment_queue.head) {
             return nullptr;
-        else
+        } else {
             return &PreciseStepping::move_segment_queue.data[next_move_idx];
+        }
     }
 
     FORCE_INLINE static StepEventInfoStatus get_nearest_step_event_status() {

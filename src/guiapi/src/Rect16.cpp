@@ -2,10 +2,12 @@
 
 Rect16::Rect16(point_i16_t p0, point_i16_t p1)
     : top_left_(p0) {
-    if (p1.x < top_left_.x)
+    if (p1.x < top_left_.x) {
         std::swap(p1.x, top_left_.x);
-    if (p1.y < top_left_.y)
+    }
+    if (p1.y < top_left_.y) {
         std::swap(p1.y, top_left_.y);
+    }
     /// numbers are sorted so negative result is not possible
     width_ = p1.x - top_left_.x + 1;
     height_ = p1.y - top_left_.y + 1;
@@ -121,8 +123,9 @@ Rect16 Rect16::Intersection(Rect16 const &r) const {
     bot_right.x = std::min(BottomRight().x, r.BottomRight().x);
     bot_right.y = std::min(BottomRight().y, r.BottomRight().y);
 
-    if (top_left.x > bot_right.x || top_left.y > bot_right.y)
+    if (top_left.x > bot_right.x || top_left.y > bot_right.y) {
         return Rect16();
+    }
     return Rect16 { top_left, bot_right };
 }
 
@@ -146,8 +149,9 @@ Rect16 &Rect16::operator+=(Rect16 rhs) {
 }
 
 bool Rect16::HasIntersection(Rect16 const &r) const {
-    if (IsEmpty() || r.IsEmpty())
+    if (IsEmpty() || r.IsEmpty()) {
         return false;
+    }
     return TopLeft().x < r.EndPoint().x
         && EndPoint().x > r.TopLeft().x
         && TopLeft().y < r.EndPoint().y
@@ -155,8 +159,9 @@ bool Rect16::HasIntersection(Rect16 const &r) const {
 }
 
 bool Rect16::Contain(Rect16 const &r) const {
-    if (r.IsEmpty())
+    if (r.IsEmpty()) {
         return true;
+    }
     return Contain(r.TopLeft()) && Contain(r.BottomRight());
 }
 
@@ -187,8 +192,9 @@ void Rect16::Align(Rect16 rc, Align_t align) {
 }
 
 void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, const uint8_t text_width[]) const {
-    if (count == 0)
+    if (count == 0) {
         return;
+    }
     if (count == 1) {
         splits[0] = *this;
         return;
@@ -201,15 +207,17 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t coun
     int space_in_btn = 0;
     if (text_width != nullptr) {
         int text_sum = std::accumulate(text_width, text_width + count, 0);
-        if (text_sum > usable_width)
+        if (text_sum > usable_width) {
             text_sum = usable_width;
+        }
         /// unused space around text will be the same in all buttons
         space_in_btn = (usable_width - text_sum) / count;
     }
 
     for (index = 0; index < count; index++) {
-        if (text_width != nullptr)
+        if (text_width != nullptr) {
             width = text_width[index] + space_in_btn;
+        }
         const int16_t left = index == 0 ? (int16_t)Left() : splits[index - 1].EndPoint().x + spacing;
         /// rect split
         splits[index] = Rect16({ left, Top() }, width, Height());
@@ -228,8 +236,9 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t coun
 
 /// TODO: this is not used, should share the code with HorizontalSplit
 void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, const uint8_t ratio[]) const {
-    if (count == 0)
+    if (count == 0) {
         return;
+    }
     if (count == 1) {
         splits[0] = *this;
         return;
@@ -263,10 +272,12 @@ void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count,
 }
 
 size_t Rect16::HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) const {
-    if (count == 0)
+    if (count == 0) {
         return 0;
-    if (IsEmpty())
+    }
+    if (IsEmpty()) {
         return 0; // nothing can fit in this rectangle
+    }
 
     size_t used_count = 0;
     Width_t width_sum = Width_t(0);

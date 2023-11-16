@@ -234,8 +234,9 @@ bool CircleBuffer<T, SIZE>::push_back_DontRewrite(T elem) {
 
 template <class T, size_t SIZE>
 bool CircleBuffer<T, SIZE>::ConsumeFirst(T &elem) {
-    if (IsEmpty())
+    if (IsEmpty()) {
         return false;
+    }
     elem = GetFirstIfAble();
     incrementIndex(begin_pos);
     return true;
@@ -243,8 +244,9 @@ bool CircleBuffer<T, SIZE>::ConsumeFirst(T &elem) {
 
 template <class T, size_t SIZE>
 bool CircleBuffer<T, SIZE>::ConsumeLast(T &elem) {
-    if (IsEmpty())
+    if (IsEmpty()) {
         return false;
+    }
     elem = GetLastIfAble();
     decrementIndex(end_pos);
     return true;

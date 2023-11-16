@@ -16,27 +16,36 @@ bool passed_for_all_that_always_need_to_pass(const SelftestResult &results) {
         }
 #endif /*HAS_TOOLCHANGER()*/
 
-        if (results.tools[e].printFan != TestResult_Passed)
+        if (results.tools[e].printFan != TestResult_Passed) {
             return false;
-        if (results.tools[e].heatBreakFan != TestResult_Passed)
+        }
+        if (results.tools[e].heatBreakFan != TestResult_Passed) {
             return false;
-        if (results.tools[e].fansSwitched != TestResult_Passed)
+        }
+        if (results.tools[e].fansSwitched != TestResult_Passed) {
             return false;
-        if (results.tools[e].nozzle != TestResult_Passed)
+        }
+        if (results.tools[e].nozzle != TestResult_Passed) {
             return false;
+        }
 #if HAS_LOADCELL()
-        if (results.tools[e].loadcell != TestResult_Passed)
+        if (results.tools[e].loadcell != TestResult_Passed) {
             return false;
+        }
 #endif /*HAS_LOADCELL()*/
     }
-    if (results.xaxis != TestResult_Passed)
+    if (results.xaxis != TestResult_Passed) {
         return false;
-    if (results.yaxis != TestResult_Passed)
+    }
+    if (results.yaxis != TestResult_Passed) {
         return false;
-    if (results.zaxis != TestResult_Passed)
+    }
+    if (results.zaxis != TestResult_Passed) {
         return false;
-    if (results.bed != TestResult_Passed)
+    }
+    if (results.bed != TestResult_Passed) {
         return false;
+    }
 
     return true;
 }
@@ -45,8 +54,9 @@ bool passed_for_all_that_always_need_to_pass(const SelftestResult &results) {
 bool SelftestResult_Passed_All(const SelftestResult &results) {
     for (int e = 0; e < HOTENDS; ++e) {
 #if FILAMENT_SENSOR_IS_ADC()
-        if (results.tools[e].fsensor != TestResult_Passed)
+        if (results.tools[e].fsensor != TestResult_Passed) {
             return false;
+        }
 #endif /*FILAMENT_SENSOR_IS_ADC()*/
     }
     return passed_for_all_that_always_need_to_pass(results);
@@ -56,11 +66,13 @@ bool SelftestResult_Passed_Mandatory(const SelftestResult &results) {
     for (int e = 0; e < HOTENDS; ++e) {
 #if FILAMENT_SENSOR_IS_ADC()
     #if PRINTER_IS_PRUSA_MK4
-        if (results.tools[e].fsensor == TestResult_Failed)
+        if (results.tools[e].fsensor == TestResult_Failed) {
             return false;
+        }
     #else
-        if (results.tools[e].fsensor != TestResult_Passed)
+        if (results.tools[e].fsensor != TestResult_Passed) {
             return false;
+        }
     #endif
 #endif /*FILAMENT_SENSOR_IS_ADC()*/
     }
@@ -75,31 +87,41 @@ bool SelftestResult_Failed(const SelftestResult &results) {
         }
 #endif /*HAS_TOOLCHANGER()*/
 
-        if (results.tools[e].printFan == TestResult_Failed)
+        if (results.tools[e].printFan == TestResult_Failed) {
             return true;
-        if (results.tools[e].heatBreakFan == TestResult_Failed)
+        }
+        if (results.tools[e].heatBreakFan == TestResult_Failed) {
             return true;
-        if (results.tools[e].fansSwitched == TestResult_Failed)
+        }
+        if (results.tools[e].fansSwitched == TestResult_Failed) {
             return true;
-        if (results.tools[e].nozzle == TestResult_Failed)
+        }
+        if (results.tools[e].nozzle == TestResult_Failed) {
             return true;
+        }
 #if FILAMENT_SENSOR_IS_ADC()
-        if (results.tools[e].fsensor == TestResult_Failed)
+        if (results.tools[e].fsensor == TestResult_Failed) {
             return true;
+        }
 #endif /*FILAMENT_SENSOR_IS_ADC()*/
 #if HAS_LOADCELL()
-        if (results.tools[e].loadcell == TestResult_Failed)
+        if (results.tools[e].loadcell == TestResult_Failed) {
             return true;
+        }
 #endif /*HAS_LOADCELL()*/
     }
-    if (results.xaxis == TestResult_Failed)
+    if (results.xaxis == TestResult_Failed) {
         return true;
-    if (results.yaxis == TestResult_Failed)
+    }
+    if (results.yaxis == TestResult_Failed) {
         return true;
-    if (results.zaxis == TestResult_Failed)
+    }
+    if (results.zaxis == TestResult_Failed) {
         return true;
-    if (results.bed == TestResult_Failed)
+    }
+    if (results.bed == TestResult_Failed) {
         return true;
+    }
     return false;
 }
 

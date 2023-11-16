@@ -46,14 +46,18 @@ struct ropfn {
 
     constexpr uint8_t ConvertToC() const {
         uint8_t ret = 0;
-        if (invert == is_inverted::yes)
+        if (invert == is_inverted::yes) {
             ret |= ROPFN_INVERT;
-        if (swap_bw == has_swapped_bw::yes)
+        }
+        if (swap_bw == has_swapped_bw::yes) {
             ret |= ROPFN_SWAPBW;
-        if (shadow == is_shadowed::yes)
+        }
+        if (shadow == is_shadowed::yes) {
             ret |= ROPFN_SHADOW;
-        if (desatur == is_desaturated::yes)
+        }
+        if (desatur == is_desaturated::yes) {
             ret |= ROPFN_DESATURATE;
+        }
 
         return ret;
     }

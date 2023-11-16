@@ -38,10 +38,11 @@ void PrusaGcodeSuite::M863() {
         for (size_t i = 0; i < EXTRUDERS; i++) {
             SERIAL_ECHOPAIR("  Tool ", i, " -> ");
             const uint8_t to = tool_mapper.to_physical(i, true);
-            if (to == tool_mapper.NO_TOOL_MAPPED)
+            if (to == tool_mapper.NO_TOOL_MAPPED) {
                 SERIAL_ECHO("<none>");
-            else
+            } else {
                 SERIAL_ECHO(to);
+            }
 
             SERIAL_EOL();
         }

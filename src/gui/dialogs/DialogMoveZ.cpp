@@ -74,8 +74,9 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
         /// GUI_event_t::CLICK could bubble into window_t::windowEvent and close dialog
         /// so CLICK could be left unhandled here
         /// but there is a problem with focus !!!parrent window of this dialog has it!!!
-        if (flags.close_on_click == is_closed_on_click_t::yes)
+        if (flags.close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();
+        }
         return;
     }
     case GUI_event_t::ENC_DN: {

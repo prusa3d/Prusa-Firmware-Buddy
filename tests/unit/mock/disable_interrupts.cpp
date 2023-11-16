@@ -3,8 +3,9 @@ using namespace buddy;
 
 DisableInterrupts::DisableInterrupts(bool disableNow)
     : m_primask(0) {
-    if (disableNow)
+    if (disableNow) {
         disable();
+    }
 }
 
 DisableInterrupts::~DisableInterrupts() {

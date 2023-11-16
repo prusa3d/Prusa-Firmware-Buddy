@@ -175,8 +175,9 @@ int hwio_pwm_get_cnt(void) // number of pwm outputs
 
 static constexpr int hwio_pwm_get_max(int i_pwm) // pwm output maximum value
 {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return -1;
+    }
     return _pwm_max[i_pwm];
 }
 
@@ -184,12 +185,14 @@ static constexpr int hwio_pwm_get_max(int i_pwm) // pwm output maximum value
 // affects multiple channels
 void hwio_pwm_set_period_us(int i_pwm, int T_us) // set pwm resolution
 {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return;
+    }
     int *ptr_period_us = _pwm_period_us[i_pwm];
 
-    if (T_us == *ptr_period_us)
+    if (T_us == *ptr_period_us) {
         return;
+    }
 
     int prescaler = T_us * (int32_t)TIM_BASE_CLK_MHZ / (_pwm_max[i_pwm] + 1) - 1;
     hwio_pwm_set_prescaler(i_pwm, prescaler);
@@ -198,14 +201,16 @@ void hwio_pwm_set_period_us(int i_pwm, int T_us) // set pwm resolution
 }
 
 int hwio_pwm_get_period_us(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return -1;
+    }
     return *_pwm_period_us[i_pwm];
 }
 
 void hwio_pwm_set_prescaler(int i_pwm, int prescaler) {
-    if (hwio_pwm_get_prescaler(i_pwm) == prescaler)
+    if (hwio_pwm_get_prescaler(i_pwm) == prescaler) {
         return;
+    }
 
     TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
 
@@ -225,8 +230,9 @@ void hwio_pwm_set_prescaler(int i_pwm, int prescaler) {
 }
 
 int hwio_pwm_get_prescaler(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return -1;
+    }
     TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
     return htim->Init.Prescaler;
 }
@@ -247,8 +253,9 @@ void hwio_pwm_set_prescaler_exp2(int i_pwm, int exp) {
 
 // reading value set by hwio_pwm_set_prescaler_exp2
 int hwio_pwm_get_prescaler_log2(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return -1;
+    }
     uint32_t prescaler = hwio_pwm_get_prescaler(i_pwm) + 1;
     int index = 0;
 
@@ -261,22 +268,25 @@ int hwio_pwm_get_prescaler_log2(int i_pwm) {
 }
 
 uint32_t _pwm_get_chan(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return -1;
+    }
     return _pwm_chan[i_pwm];
 }
 
 TIM_HandleTypeDef *_pwm_get_htim(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         i_pwm = 0;
+    }
 
     return _pwm_p_htim[i_pwm];
 }
 
 void hwio_pwm_set_val(int i_pwm, uint32_t val) // write pwm output and update _pwm_analogWrite_val
 {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return;
+    }
 
     uint32_t chan = _pwm_get_chan(i_pwm);
     TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
@@ -308,26 +318,29 @@ void __pwm_set_val(TIM_HandleTypeDef *htim, uint32_t pchan, int val) // write pw
 {
     if (htim->Init.Period) {
         TIM_OC_InitTypeDef sConfigOC = sConfigOC_default;
-        if (val)
+        if (val) {
             sConfigOC.Pulse = val;
-        else {
+        } else {
             sConfigOC.Pulse = htim->Init.Period;
-            if (sConfigOC.OCPolarity == TIM_OCPOLARITY_HIGH)
+            if (sConfigOC.OCPolarity == TIM_OCPOLARITY_HIGH) {
                 sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
-            else
+            } else {
                 sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+            }
         }
         if (HAL_TIM_PWM_ConfigChannel(htim, &sConfigOC, pchan) != HAL_OK) {
             Error_Handler();
         }
         HAL_TIM_PWM_Start(htim, pchan);
-    } else
+    } else {
         HAL_TIM_PWM_Stop(htim, pchan);
+    }
 }
 
 void _hwio_pwm_analogWrite_set_val(int i_pwm, int val) {
-    if (!is_pwm_id_valid(i_pwm))
+    if (!is_pwm_id_valid(i_pwm)) {
         return;
+    }
 
     if (_pwm_analogWrite_val[i_pwm] != val) {
         const int32_t pwm_max = hwio_pwm_get_max(i_pwm);
@@ -345,8 +358,9 @@ int hwio_fan_get_cnt(void) // number of fans
 
 void hwio_fan_set_pwm(int i_fan, int val) {
     i_fan += _FAN_ID_MIN;
-    if ((i_fan >= _FAN_ID_MIN) && (i_fan <= _FAN_ID_MAX))
+    if ((i_fan >= _FAN_ID_MIN) && (i_fan <= _FAN_ID_MAX)) {
         _hwio_pwm_analogWrite_set_val(i_fan, val);
+    }
 }
 
 //--------------------------------------
@@ -368,10 +382,12 @@ float hwio_beeper_get_vol(void) {
 }
 
 void hwio_beeper_set_vol(float vol) {
-    if (vol < 0)
+    if (vol < 0) {
         vol *= -1;
-    if (vol > 1)
+    }
+    if (vol > 1) {
         vol = 1;
+    }
     hwio_beeper_vol = vol;
 }
 
@@ -379,16 +395,19 @@ void hwio_beeper_tone(float frq, uint32_t del) {
     uint32_t per;
     uint32_t pul;
     if (frq && del && hwio_beeper_vol) {
-        if (frq < 0)
+        if (frq < 0) {
             frq *= -1;
-        if (frq > 100000)
+        }
+        if (frq > 100000) {
             frq = 100000;
+        }
         per = (uint32_t)(1'000.0F / frq);
         pul = (uint32_t)(del / per);
         hwio_beeper_pulses = pul;
         hwio_beeper_period = per;
-    } else
+    } else {
         hwio_beeper_pulses = 0;
+    }
 }
 
 void hwio_beeper_tone2(float frq, uint32_t del, float vol) {
@@ -607,8 +626,9 @@ uint32_t analogRead(uint32_t ulPin) {
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_RD, ulPin); // error: undefined pin analog read
         }
-    } else
+    } else {
         hwio_arduino_error(HWIO_ERR_UNINI_ANA_RD, ulPin); // error: uninitialized analog read
+    }
     return 0;
 }
 

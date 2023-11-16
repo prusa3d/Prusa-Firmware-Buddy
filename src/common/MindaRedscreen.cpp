@@ -177,7 +177,8 @@ void mbl_error(uint16_t moves, uint16_t points) {
     // cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
         wdt_iwdg_refresh();
-        if (!jogwheel.GetJogwheelButtonPinState())
+        if (!jogwheel.GetJogwheelButtonPinState()) {
             sys_reset(); // button press
+        }
     }
 }

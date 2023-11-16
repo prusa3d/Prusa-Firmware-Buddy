@@ -414,11 +414,13 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     // TODO: This easily freezes home screen when flash action fails to start.
     // There are several places in the code where executing a flash gcode can
     // result in no-op and home screen stays active with events disabled.
-    if (event == GUI_event_t::MEDIA) // Also stores during windowEvent recursion
+    if (event == GUI_event_t::MEDIA) { // Also stores during windowEvent recursion
         media_event = MediaState_t(int(param));
+    }
 
-    if (event_in_progress)
+    if (event_in_progress) {
         return;
+    }
 
     AutoRestore avoid_recursion(event_in_progress, true);
 
@@ -564,12 +566,14 @@ void screen_home_data_t::printBtnDis() {
 }
 
 void screen_home_data_t::InitState(screen_init_variant var) {
-    if (!var.GetPosition())
+    if (!var.GetPosition()) {
         return;
+    }
 
     size_t pos = *(var.GetPosition());
-    if (pos >= button_count)
+    if (pos >= button_count) {
         return;
+    }
 
     w_buttons[pos].SetFocus();
 }

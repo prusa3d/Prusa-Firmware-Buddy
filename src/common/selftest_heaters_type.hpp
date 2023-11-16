@@ -42,8 +42,9 @@ struct SelftestHeater_t {
     }
     void Fail() {
         heat_state = SelftestSubtestState_t::not_good;
-        if (prep_state != SelftestSubtestState_t::ok)
+        if (prep_state != SelftestSubtestState_t::ok) {
             prep_state = SelftestSubtestState_t::not_good; // prepare part passed - dont change that
+        }
         progress = 100;
     }
 

@@ -33,8 +33,9 @@
 
         // when action follows, avoid redrawing parent screen to avoid flicker back to parent screen
         // note: this has to be called after DialogToolActionBox destructor is called, otherwise it would re-validate parent screen
-        if (result != ToolBox::DialogResult::Return)
+        if (result != ToolBox::DialogResult::Return) {
             Screens::Access()->Get()->Validate();
+        }
         return result;
     }
 
@@ -86,17 +87,19 @@ bool MI_CHANGE::AvailableForTool(uint8_t tool) {
 
 bool MI_CHANGE::AvailableForAnyTool() {
     HOTEND_LOOP() {
-        if (AvailableForTool(e))
+        if (AvailableForTool(e)) {
             return true;
+        }
     }
     return false;
 }
 
 void MI_CHANGE::UpdateEnableState() {
-    if (!AvailableForAnyTool())
+    if (!AvailableForAnyTool()) {
         Disable();
-    else
+    } else {
         Enable();
+    }
 }
 
 void MI_CHANGE::Do() {
@@ -141,17 +144,19 @@ bool MI_PURGE::AvailableForTool(uint8_t tool) {
 
 bool MI_PURGE::AvailableForAnyTool() {
     HOTEND_LOOP() {
-        if (AvailableForTool(e))
+        if (AvailableForTool(e)) {
             return true;
+        }
     }
     return false;
 }
 
 void MI_PURGE::UpdateEnableState() {
-    if (!AvailableForAnyTool())
+    if (!AvailableForAnyTool()) {
         Disable();
-    else
+    } else {
         Enable();
+    }
 }
 
 /*****************************************************************************/
