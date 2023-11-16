@@ -450,6 +450,9 @@ public:
         top_left_.x = val.x;
         return *this;
     }
+    constexpr void set(X_t val) {
+        top_left_.x = val.x;
+    }
     friend constexpr Rect16 operator+(Rect16 lhs, X_t rhs) {
         lhs += rhs;
         return lhs;
@@ -470,6 +473,9 @@ public:
     constexpr Rect16 &operator=(Y_t val) {
         top_left_.y = val.y;
         return *this;
+    }
+    constexpr void set(Y_t val) {
+        top_left_.y = val.y;
     }
     friend constexpr Rect16 operator+(Rect16 lhs, Y_t rhs) {
         lhs += rhs;
@@ -492,6 +498,9 @@ public:
         width_ = val.w;
         return *this;
     }
+    constexpr void set(W_t val) {
+        width_ = val.w;
+    }
     friend constexpr Rect16 operator+(Rect16 lhs, W_t rhs) {
         lhs += rhs;
         return lhs;
@@ -513,6 +522,9 @@ public:
         height_ = val.h;
         return *this;
     }
+    constexpr void set(H_t val) {
+        height_ = val.h;
+    }
     friend constexpr Rect16 operator+(Rect16 lhs, H_t rhs) {
         lhs += rhs;
         return lhs;
@@ -533,6 +545,9 @@ public:
     constexpr Rect16 &operator=(point_i16_t val) {
         top_left_ = val;
         return *this;
+    }
+    constexpr void set(point_i16_t val) {
+        top_left_ = val;
     }
     friend constexpr Rect16 operator+(Rect16 lhs, point_i16_t rhs) {
         lhs += rhs;
