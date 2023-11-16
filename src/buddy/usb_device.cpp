@@ -45,6 +45,10 @@ static void usb_device_task_run(const void *);
 static serial_nr_t serial_nr;
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    #define FUSB302B_INTERPOSER
+#endif
+
+#ifdef FUSB302B_INTERPOSER
     #include "FUSB302B.hpp"
     #include "hwio_pindef.h"
     #include <atomic>
@@ -112,7 +116,7 @@ static tusb_desc_device_t desc_device = {
 };
 
 bool usb_device_attached() {
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#ifdef FUSB302B_INTERPOSER
     return usb_vbus_state.load();
 #else
     return tud_connected();
@@ -120,7 +124,7 @@ bool usb_device_attached() {
 }
 
 static void usb_device_task_run(const void *) {
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#ifdef FUSB302B_INTERPOSER
     buddy::hw::FUSB302B::InitChip();
 #endif
 
@@ -160,13 +164,13 @@ static void usb_device_task_run(const void *) {
     tusb_init();
 
     // initialize the connection state
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#ifdef FUSB302B_INTERPOSER
     usb_vbus_state.store(buddy::hw::FUSB302B::ReadVBUSState());
 #endif
     TaskDeps::provide(TaskDeps::Dependency::usb_device_ready);
 
     while (true) {
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#ifdef FUSB302B_INTERPOSER
         tud_task_ext(1000, false);
 
         // periodically check for VBUS disconnection
