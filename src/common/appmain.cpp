@@ -62,10 +62,6 @@
 LOG_COMPONENT_REF(MMU2);
 LOG_COMPONENT_REF(Marlin);
 
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-    #include "FUSB302B.hpp"
-#endif
-
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
 #endif
@@ -181,10 +177,6 @@ void app_setup(void) {
     setup();
 
     marlin_server::settings_load(); // load marlin variables from eeprom
-
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-    buddy::hw::FUSB302B::InitChip();
-#endif
 }
 
 void app_idle(void) {

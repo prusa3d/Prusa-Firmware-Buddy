@@ -29,6 +29,7 @@ static constexpr uint8_t FUSB302B_INTERRUPT_VBUSOK_POS = 7;
 static constexpr uint8_t FUSB302B_INTERRUPT_VBUSOK_MASK = (1 << FUSB302B_MASK_VBUSOK_POS);
 
 void FUSB302B::InitChip() {
+    // detect and *reset* FUSB302*
     DetectAddress();
 
     // wake up circuit

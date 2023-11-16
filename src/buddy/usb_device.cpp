@@ -107,6 +107,10 @@ static tusb_desc_device_t desc_device = {
 };
 
 static void usb_device_task_run(const void *) {
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    buddy::hw::FUSB302B::InitChip();
+#endif
+
     GPIO_InitTypeDef GPIO_InitStruct;
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
