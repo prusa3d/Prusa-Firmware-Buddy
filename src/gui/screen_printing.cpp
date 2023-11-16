@@ -117,6 +117,7 @@ constexpr const char *txt_print_started { N_("Print started") };
 constexpr const char *txt_print_ended { N_("Print ended") };
 constexpr const char *txt_consumed_material { N_("Consumed material") };
 constexpr const char *txt_na { N_("N/A") };
+constexpr const char *txt_wipe_tower_pretranslated { N_("Wipe tower %dg") };
 
 constexpr auto end_result_font { IDR_FNT_SMALL };
 
@@ -140,11 +141,15 @@ constexpr Rect16 print_started_value_rect { column_left, get_row(4), column_widt
 constexpr Rect16 print_ended_label_rect { column_left, get_row(6), column_width, row_height };
 constexpr Rect16 print_ended_value_rect { column_left, get_row(7), column_width, row_height };
 
-constexpr Rect16 consumed_material_label_rect { column_right, get_row(3), column_width, row_height };
+constexpr size_t consumed_material_row { 3 };
+
+constexpr Rect16 consumed_material_label_rect { column_right, get_row(consumed_material_row), column_width, row_height };
 
 constexpr Rect16 get_consumed_material_rect(size_t idx) {
-    return Rect16 { column_right, static_cast<int16_t>(get_row(4 + idx)), column_width, row_height };
+    return Rect16 { column_right, static_cast<int16_t>(get_row(consumed_material_row + 1 + idx)), column_width, row_height };
 }
+
+constexpr Rect16 consumed_wipe_tower_value_rect { column_right, get_row(7), column_width, row_height }; // row is going to be set dynamically
 
 template <size_t... Is>
 std::array<window_text_t, sizeof...(Is)> make_consumed_material_values(std::index_sequence<Is...>, window_t *parent) {
@@ -187,6 +192,7 @@ screen_printing_data_t::screen_printing_data_t()
 
     , consumed_material_label(this, consumed_material_label_rect, is_multiline::no, is_closed_on_click_t::no, _(txt_consumed_material))
     , consumed_material_values(make_consumed_material_values(std::make_index_sequence<EXTRUDERS>(), this))
+    , consumed_wipe_tower_value(this, consumed_wipe_tower_value_rect, is_multiline::no)
     , arrow_left(this, arrow_left_rect, arrow_left_res)
     , arrow_right(this, arrow_right_rect, arrow_right_res)
     , rotating_circles(this, rotating_circles_rect, ftrstd::to_underlying(CurrentlyShowing::_count))
@@ -296,6 +302,7 @@ screen_printing_data_t::screen_printing_data_t()
     for (auto &consumed_material_value : consumed_material_values) {
         consumed_material_value.set_font(resource_font(end_result_font));
     }
+    consumed_wipe_tower_value.set_font(resource_font(end_result_font));
     rotating_circles.set_one_circle_mode(true);
 
     hide_end_result_fields();
@@ -496,62 +503,149 @@ void screen_printing_data_t::start_showing_end_result() {
         print_one(marlin_vars()->print_end_time, print_ended_value_buffer, print_ended_value);
     }
 
-    consumed_material_label.Show();
+    static constexpr float minimum_grams_valid { 1.0f };
+    const size_t num_extruders_with_valid_grams {
+        [&]() {
+            size_t found = 0;
+            for (size_t i = 0; i < EXTRUDERS; ++i) {
 
-    for (size_t i = 0, consumed_material_line_idx = 0; i < EXTRUDERS; ++i) {
-        const auto &ext_info { gcode.get_extruder_info(i) };
-        if (!ext_info.used()) {
-            continue;
-        }
+                const auto &ext_info { gcode.get_extruder_info(i) };
+                if (ext_info.used() && ext_info.filament_used_g.has_value() && ext_info.filament_used_g.value() >= minimum_grams_valid) {
+                    ++found;
+                }
+            }
 
-        const auto &fname { ext_info.filament_name };
-        const auto &used_g { ext_info.filament_used_g };
+            return found;
+        }()
+    }; // holds how many extruders were printing with specified grammage that's big enough to show
+    static constexpr auto keep_progress_threshold { 2 }; // anymore used gcodes will trigger hiding progress text and moving right column to the top;
 
-        auto print_fname = [&]() {
-            return fname.has_value() ? fname.value().data() : "---";
+    const bool have_valid_wipe_tower_grams {
+        [&]() {
+    #if EXTRUDERS > 1
+            return gcode.get_filament_wipe_tower_g().has_value() && gcode.get_filament_wipe_tower_g().value() >= minimum_grams_valid;
+    #else
+            return false;
+    #endif
+        }()
+    };
+
+    // setup fields
+    if (num_extruders_with_valid_grams > keep_progress_threshold) { // and have wipe tower grams?
+        // prepare right column to be without progress_txt
+        w_progress_txt.Hide();
+
+        auto place_one = [](window_text_t &text_field, Rect16 default_rect, Rect16::Top_t new_top) {
+            default_rect.set(new_top);
+            text_field.SetRect(default_rect);
         };
 
-        auto &buff { consumed_material_values_buffers[consumed_material_line_idx] };
+        place_one(consumed_material_label, consumed_material_label_rect, get_row(0));
 
-        const bool show_t_label {
+        for (size_t i = 0; i < num_extruders_with_valid_grams; ++i) {
+            place_one(consumed_material_values[i], get_consumed_material_rect(i), get_row(i + 1));
+        }
+
+        place_one(consumed_wipe_tower_value, consumed_wipe_tower_value_rect, get_row(num_extruders_with_valid_grams + 2));
+    } else {
+        // Right column contains progress_txt, so reset places
+
+        w_progress_txt.Show(); // make sure it's shown
+
+        consumed_material_label.SetRect(consumed_material_label_rect);
+        for (size_t i = num_extruders_with_valid_grams; i < std::size(consumed_material_values); ++i) {
+            consumed_material_values[i].SetRect(get_consumed_material_rect(i));
+        }
+
+        // show wipe tower info
+        if (have_valid_wipe_tower_grams) {
+
+            Rect16 tmp = consumed_wipe_tower_value_rect;
+
+            if (num_extruders_with_valid_grams > 0) {
+                // print after individual tools with a blank space in between
+                tmp.set(Rect16::Top_t { static_cast<int16_t>(get_row(consumed_material_row + num_extruders_with_valid_grams + 2)) });
+
+            } else {
+                // don't do blank space if we're only showing wipe tower
+                tmp.set(Rect16::Top_t { static_cast<int16_t>(get_row(consumed_material_row + 1)) });
+            }
+
+            consumed_wipe_tower_value.SetRect(tmp);
+        }
+    }
+
+    consumed_material_label.Show();
+    if (num_extruders_with_valid_grams > 0) {
+        for (size_t i = 0, consumed_material_line_idx = 0; i < EXTRUDERS; ++i) {
+            const auto &ext_info { gcode.get_extruder_info(i) };
+            if (!ext_info.used() || !ext_info.filament_used_g.has_value() || ext_info.filament_used_g.value() < minimum_grams_valid) {
+                continue;
+            }
+
+            const auto &fname { ext_info.filament_name };
+            const auto &used_g { ext_info.filament_used_g.value() }; // guaranteed to have value, see above guard
+
+            auto print_fname = [&]() {
+                return fname.has_value() ? fname.value().data() : "---";
+            };
+
+            auto &buff { consumed_material_values_buffers[consumed_material_line_idx] };
+
+            const bool show_t_label {
     #if EXTRUDERS > 1
-            []() {
+                []() {
         #if HAS_MMU2()
-                if (MMU2::mmu2.Enabled()) {
-                    return true;
-                }
+                    if (MMU2::mmu2.Enabled()) {
+                        return true;
+                    }
         #endif
         #if HAS_TOOLCHANGER()
-                if (prusa_toolchanger.is_toolchanger_enabled()) {
-                    return true;
-                }
+                    if (prusa_toolchanger.is_toolchanger_enabled()) {
+                        return true;
+                    }
         #endif
-                return false;
-            }()
+                    return false;
+                }()
 
     #else
-            false
+                false
     #endif
-        };
+            };
 
-        if (show_t_label) {
-            if (used_g.has_value()) {
-                snprintf(buff.data(), buff.size(), "T%d %s %dg", i + 1, print_fname(), static_cast<int>(used_g.value()));
+            if (show_t_label) {
+                snprintf(buff.data(), buff.size(), "T%d %s %dg", i + 1, print_fname(), static_cast<int>(used_g));
             } else {
-                snprintf(buff.data(), buff.size(), "T%d %s ???g", i + 1, print_fname());
+                snprintf(buff.data(), buff.size(), "%s %dg", print_fname(), static_cast<int>(used_g));
             }
-        } else {
-            if (used_g.has_value()) {
-                snprintf(buff.data(), buff.size(), "%s %dg", print_fname(), static_cast<int>(used_g.value()));
-            } else {
-                snprintf(buff.data(), buff.size(), "%s ???g", print_fname());
-            }
+
+            consumed_material_values[consumed_material_line_idx].SetText(_(buff.data()));
+            consumed_material_values[consumed_material_line_idx].Show();
+            ++consumed_material_line_idx;
         }
+    }
 
-        consumed_material_values[consumed_material_line_idx].SetText(_(buff.data()));
+    #if EXTRUDERS > 1
+    // wipe tower
+    if (have_valid_wipe_tower_grams) {
 
-        consumed_material_values[consumed_material_line_idx].Show();
-        ++consumed_material_line_idx;
+        auto &buff { consumed_wipe_tower_value_buffer };
+
+        char translated_fmt[buff.size()];
+        _(txt_wipe_tower_pretranslated).copyToRAM(translated_fmt, sizeof(translated_fmt));
+        snprintf(buff.data(), buff.size(), translated_fmt, static_cast<int>(gcode.get_filament_wipe_tower_g().value()));
+
+        consumed_wipe_tower_value.SetText(_(buff.data()));
+        consumed_wipe_tower_value.Show();
+    }
+    #endif
+
+    if (num_extruders_with_valid_grams == 0 && !have_valid_wipe_tower_grams) {
+
+        auto &buff { consumed_material_values_buffers[0] };
+        snprintf(buff.data(), buff.size(), "---");
+        consumed_material_values[0].SetText(_(buff.data()));
+        consumed_material_values[0].Show();
     }
 
     arrow_right.Show();
@@ -569,6 +663,8 @@ void screen_printing_data_t::stop_showing_end_result() {
     for (auto &label : labels) {
         label.Show();
     }
+
+    w_progress_txt.Show(); // make sure it's shown, end result might hide it
 
     hide_end_result_fields();
     arrow_left.Show();
@@ -591,6 +687,7 @@ void screen_printing_data_t::hide_end_result_fields() {
         consumed_material_value.Hide();
     }
 
+    consumed_wipe_tower_value.Hide();
     arrow_right.Hide();
 }
 #endif

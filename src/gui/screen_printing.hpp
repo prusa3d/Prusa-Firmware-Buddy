@@ -75,6 +75,9 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     std::array<window_text_t, EXTRUDERS> consumed_material_values;
     std::array<std::array<char, sizeof("T1 HIFIPETG 10.000g") + 4>, EXTRUDERS> consumed_material_values_buffers;
 
+    window_text_t consumed_wipe_tower_value;
+    std::array<char, sizeof("Wipe Tower 10.000g") + 4> consumed_wipe_tower_value_buffer;
+
     window_icon_t arrow_left;
     window_icon_t arrow_right;
 
