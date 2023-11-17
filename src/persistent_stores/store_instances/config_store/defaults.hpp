@@ -207,6 +207,14 @@ namespace defaults {
     inline constexpr int32_t side_fs_ref_ins_value { std::numeric_limits<int32_t>::min() };
     inline constexpr uint32_t side_fs_value_span { 310 };
 
+    inline constexpr bool fsensor_enabled {
+#if PRINTER_IS_PRUSA_MINI
+        true // MINI does not require any calibration
+#else
+        false
+#endif
+    };
+
     inline constexpr side_fsensor_remap::Mapping side_fs_remap = side_fsensor_remap::preset::no_mapping; // No remapping
 
     inline constexpr uint16_t print_progress_time { 30 };
