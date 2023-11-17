@@ -346,8 +346,8 @@ const MsgBoxImplicitConfig msb_box_implicit_configs[static_cast<int>(MsgBoxType:
         .icon = big_layout ? &img::pepa_92x140 : &img::pepa_42x64,
     },
     MsgBoxImplicitConfig {
-        // MsgBoxType::info
-        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconPepaCentered : MsgBoxDialogClass::MsgBoxIconned,
+        // MsgBoxType::pepa_centered
+        .dialog_class = big_layout ? MsgBoxDialogClass::MsgBoxIconPepaCentered : MsgBoxDialogClass::MsgBoxIconPepaCentered,
         .icon = big_layout ? &img::pepa_92x140 : &img::pepa_42x64,
     },
     MsgBoxImplicitConfig {
