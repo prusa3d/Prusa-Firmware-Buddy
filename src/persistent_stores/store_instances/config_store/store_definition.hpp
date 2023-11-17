@@ -38,7 +38,7 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_true, journal::hash("Run XYZ Calibration")> run_xyz_calib;
     StoreItem<bool, defaults::bool_true, journal::hash("Run First Layer")> run_first_layer;
 
-    StoreItem<bool, defaults::bool_false, journal::hash("FSensor Enabled V2")> fsensor_enabled;
+    StoreItem<bool, defaults::fsensor_enabled, journal::hash("FSensor Enabled V2")> fsensor_enabled;
 
     // nozzle PID variables
     StoreItem<float, defaults::pid_nozzle_p, journal::hash("PID Nozzle P")> pid_nozzle_p;
