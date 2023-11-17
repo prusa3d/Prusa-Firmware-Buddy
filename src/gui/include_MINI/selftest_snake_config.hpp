@@ -17,7 +17,6 @@ enum class Action {
     XYCheck,
     ZCheck,
     Heaters,
-    FirstLayer,
     _count,
     _last = _count - 1,
     _first = Fans,
@@ -26,22 +25,22 @@ enum class Action {
 template <Action action>
 concept SubmenuActionC = false;
 
-constexpr bool has_submenu([[maybe_unused]] Action action) {
+constexpr bool has_submenu(Action action) {
     switch (action) {
     default:
         return false;
     }
 }
 
-constexpr bool is_multitool_only_action([[maybe_unused]] Action action) {
+constexpr bool is_multitool_only_action(Action action) {
     return false;
 }
 
-constexpr bool requires_toolchanger([[maybe_unused]] Action action) {
+constexpr bool requires_toolchanger(Action action) {
     return false;
 }
 
-constexpr bool is_singletool_only_action([[maybe_unused]] Action action) {
+constexpr bool is_singletool_only_action(Action action) {
     return false;
 }
 
@@ -75,7 +74,6 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::XYCheck, N_("%d XY Axis Test") },
     { Action::ZCheck, N_("%d Z Axis Test") },
     { Action::Heaters, N_("%d Heater Test") },
-    { Action::FirstLayer, N_("%d First Layer Calibration") },
 };
 
 TestResult get_test_result(Action action, Tool tool);

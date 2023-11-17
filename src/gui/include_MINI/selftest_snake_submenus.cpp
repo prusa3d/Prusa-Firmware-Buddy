@@ -2,7 +2,7 @@
 #include <ScreenHandler.hpp>
 
 namespace SelftestSnake {
-void open_submenu([[maybe_unused]] Action action) {
+void open_submenu(Action action) {
     assert(false && "No submenus");
 }
 } // namespace SelftestSnake
