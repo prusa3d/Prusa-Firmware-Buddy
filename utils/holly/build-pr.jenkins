@@ -96,7 +96,7 @@ pipeline {
                                     dev_items = "yes"
                                 } else if (env.BRANCH_NAME.startsWith("RELEASE-")) {
                                     // This is an RC build
-                                    short_suffix = "-BETA+${commit_nr}"
+                                    short_suffix = "-RC+${commit_nr}"
                                     full_suffix = "${short_suffix}.B${env.BUILD_NUMBER}"
                                     dev_items = "no"
                                 } else {
