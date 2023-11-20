@@ -275,7 +275,7 @@
             }
         },
         {
-            "name": "mini-en-cs-de_debug_boot",
+            "name": "mini-en-cs_debug_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -309,7 +309,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "cs;de"
+                    "value": "cs"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -346,7 +346,7 @@
             }
         },
         {
-            "name": "mini-en-cs-de_debug_noboot",
+            "name": "mini-en-cs_debug_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -380,7 +380,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "cs;de"
+                    "value": "cs"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -417,7 +417,7 @@
             }
         },
         {
-            "name": "mini-en-cs-de_release_boot",
+            "name": "mini-en-cs_release_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -451,7 +451,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "cs;de"
+                    "value": "cs"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -488,7 +488,7 @@
             }
         },
         {
-            "name": "mini-en-cs-de_release_noboot",
+            "name": "mini-en-cs_release_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -522,7 +522,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "cs;de"
+                    "value": "cs"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -559,7 +559,7 @@
             }
         },
         {
-            "name": "mini-en-es-fr_debug_boot",
+            "name": "mini-en-de_debug_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -593,7 +593,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "es;fr"
+                    "value": "de"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -630,7 +630,7 @@
             }
         },
         {
-            "name": "mini-en-es-fr_debug_noboot",
+            "name": "mini-en-de_debug_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -664,7 +664,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "es;fr"
+                    "value": "de"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -701,7 +701,7 @@
             }
         },
         {
-            "name": "mini-en-es-fr_release_boot",
+            "name": "mini-en-de_release_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -735,7 +735,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "es;fr"
+                    "value": "de"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -772,7 +772,7 @@
             }
         },
         {
-            "name": "mini-en-es-fr_release_noboot",
+            "name": "mini-en-de_release_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -806,7 +806,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "es;fr"
+                    "value": "de"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -843,7 +843,7 @@
             }
         },
         {
-            "name": "mini-en-it-pl_debug_boot",
+            "name": "mini-en-es_debug_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -877,7 +877,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "it;pl"
+                    "value": "es"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -914,7 +914,7 @@
             }
         },
         {
-            "name": "mini-en-it-pl_debug_noboot",
+            "name": "mini-en-es_debug_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -948,7 +948,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "it;pl"
+                    "value": "es"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -985,7 +985,7 @@
             }
         },
         {
-            "name": "mini-en-it-pl_release_boot",
+            "name": "mini-en-es_release_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -1019,7 +1019,7 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "it;pl"
+                    "value": "es"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -1056,7 +1056,7 @@
             }
         },
         {
-            "name": "mini-en-it-pl_release_noboot",
+            "name": "mini-en-es_release_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -1090,7 +1090,859 @@
                 },
                 "TRANSLATIONS_LIST": {
                     "type": "STRING",
-                    "value": "it;pl"
+                    "value": "es"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-fr_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "fr"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-fr_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "fr"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-fr_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "fr"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-fr_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "fr"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-it_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "it"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-it_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "it"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-it_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "it"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-it_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "it"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-pl_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "pl"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-pl_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "pl"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-pl_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "pl"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mini-en-pl_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MINI"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_LIST": {
+                    "type": "STRING",
+                    "value": "pl"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
