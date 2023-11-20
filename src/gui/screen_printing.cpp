@@ -166,7 +166,7 @@ constexpr auto etime_val_font { IDR_FNT_SMALL };
 #elif defined(USE_ILI9488)
 constexpr auto etime_val_font { IDR_FNT_NORMAL };
 
-constexpr auto arrow_left_res { &img::arrow_left_16x16 };
+constexpr auto arrow_left_res { &img::arrow_left_10x16 };
 constexpr auto arrow_right_res { &img::arrow_right_10x16 };
 
 constexpr size_t middle_of_buttons { 185 + 40 };
