@@ -49,7 +49,7 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_RETURN,
     MI_NOZZLE_DIAMETER,
     MI_HARDWARE_G_CODE_CHECKS
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
     ,
     MI_NOZZLE_SOCK,
     MI_NOZZLE_TYPE
