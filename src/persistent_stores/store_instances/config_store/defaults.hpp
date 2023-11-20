@@ -12,6 +12,7 @@
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
 #include <filament_sensors_remap_data.hpp>
+#include <printers.h>
 
 namespace config_store_ns {
 
@@ -267,6 +268,13 @@ namespace defaults {
 
     inline constexpr bool xy_motors_400_step {
 #if PRINTER_IS_PRUSA_MK4
+        true
+#else
+        false
+#endif
+    };
+    inline constexpr bool has_sock {
+#if PRINTER_IS_PRUSA_iX
         true
 #else
         false
