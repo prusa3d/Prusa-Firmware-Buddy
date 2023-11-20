@@ -117,7 +117,11 @@ constexpr const char *txt_print_started { N_("Print started") };
 constexpr const char *txt_print_ended { N_("Print ended") };
 constexpr const char *txt_consumed_material { N_("Consumed material") };
 constexpr const char *txt_na { N_("N/A") };
+#if PRINTER_IS_PRUSA_XL
+constexpr const char *txt_wipe_tower_pretranslated { N_("Prime tower %dg") };
+#else
 constexpr const char *txt_wipe_tower_pretranslated { N_("Wipe tower %dg") };
+#endif
 
 constexpr auto end_result_font { IDR_FNT_SMALL };
 
