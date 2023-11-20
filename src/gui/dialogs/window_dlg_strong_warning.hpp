@@ -37,7 +37,7 @@ protected: // inherited by unit tests, must be protected
 #endif
     static constexpr const char *HeatBreakThermistorFail = N_("Heatbreak thermistor is disconnected. Inspect the wiring.");
     static constexpr const char *NozzleDoesNotHaveRoundSectionMsg = N_("Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed.");
-    static constexpr const char *NotDownloadedMsg = N_("G-Code transfer running too slow. Check your network for issues or use a USB drive. Press Continue to resume printing.");
+    static constexpr const char *NotDownloadedMsg = N_("G-Code transfer running too slow. Check your network for issues or use different USB drive. Press Continue to resume printing.");
     static constexpr const char *BuddyMCUMaxTempMsg = N_("MCU in Buddy is overheated. Any higher will result in fatal error.");
 #if HAS_DWARF()
     static constexpr const char *DwarfMCUMaxTempMsg = N_("MCU in Dwarf is overheated. Any higher will result in fatal error.");
