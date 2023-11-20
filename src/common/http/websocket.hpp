@@ -65,6 +65,12 @@ public:
         std::optional<uint32_t> command_id;
         // Last fragment?
         bool last;
+
+        /// "Ignore" the message by reading the body and throwing it away.
+        ///
+        /// No errors are handled, they are left for the next use of the
+        /// connection.
+        void ignore();
     };
 
     static std::variant<WebSocket, Error> from_response(const Response &response);

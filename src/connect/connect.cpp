@@ -434,6 +434,46 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
 
         auto header = get<WebSocket::Message>(res);
 
+        // Control messages can come at any time. Even "in the middle" of
+        // multi-fragment message.
+        switch (header.opcode) {
+        case WebSocket::Opcode::Ping: {
+            // Not allowed to fragment
+            if (header.len > 126) {
+                conn_factory.invalidate();
+                return OnlineError::Confused;
+            }
+
+            uint8_t data[header.len];
+            if (auto result = header.conn->rx_exact(data, header.len); result.has_value()) {
+                conn_factory.invalidate();
+                return err_to_status(*result);
+            }
+
+            if (auto result = websocket->send(WebSocket::Pong, false, data, header.len); result.has_value()) {
+                conn_factory.invalidate();
+                return err_to_status(*result);
+            }
+
+            // This one is handled, next one please.
+            continue;
+        }
+        case WebSocket::Opcode::Pong:
+            // We didn't send a ping, so not expecting pong... ignore pongs
+            header.ignore();
+            continue;
+        case WebSocket::Opcode::Close:
+            // The server is closing the connection, we are not getting the
+            // message. Throw the connection away.
+            conn_factory.invalidate();
+            return OnlineError::Network;
+        default:
+            // It's not websocket control message, handle it below
+            break;
+        }
+
+        first = false;
+
         // TODO: Validate, etc.
         if (header.command_id.has_value()) {
             command_id = *header.command_id;

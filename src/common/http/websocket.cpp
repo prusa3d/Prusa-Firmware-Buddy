@@ -140,6 +140,17 @@ variant<monostate, WebSocket::Message, Error> WebSocket::receive(optional<uint32
     return result;
 }
 
+void WebSocket::Message::ignore() {
+    uint8_t buffer[128];
+    while (len > 0) {
+        size_t chunk = std::min(len, sizeof buffer);
+        if (!conn->rx_exact(buffer, chunk)) {
+            return;
+        }
+        len -= chunk;
+    }
+}
+
 WebSocketKey::WebSocketKey() {
     // Get 16 bytes of random data
     uint8_t key[16];
