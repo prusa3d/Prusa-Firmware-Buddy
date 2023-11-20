@@ -191,6 +191,10 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 5")> side_fs_value_span_5;
 #endif
 
+#if HAS_MMU2()
+    StoreItem<bool, defaults::bool_false, journal::hash("Is MMU Rework")> is_mmu_rework; // Indicates printer has been reworked for MMU (has a different FS behavior)
+#endif
+
     StoreItem<side_fsensor_remap::Mapping, defaults::side_fs_remap, journal::hash("Side FS Remap")> side_fs_remap; ///< Side filament sensor remapping
 
     //// Helper array-like access functions for filament sensors

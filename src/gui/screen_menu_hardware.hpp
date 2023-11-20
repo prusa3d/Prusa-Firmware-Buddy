@@ -26,6 +26,9 @@
 #if HAS_MODULARBED()
     #include "screen_menu_modularbed.hpp"
 #endif
+#if HAS_MMU2()
+    #include "MItem_mmu.hpp"
+#endif
 #include <screen_menu_hw_setup.hpp>
 
 class MI_MK4_MK39 : public WI_SWITCH_t<2> {
@@ -99,6 +102,10 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #if PRINTER_IS_PRUSA_MK4
     ,
     MI_MK4_MK39
+#endif
+#if HAS_MMU2()
+    ,
+    MI_MMU_REWORK
 #endif
     >;
 

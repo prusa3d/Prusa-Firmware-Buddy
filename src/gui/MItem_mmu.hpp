@@ -393,3 +393,13 @@ class MI_MMU_TOTAL_GENERAL_FAILS : public WI_INFO_t {
 public:
     MI_MMU_TOTAL_GENERAL_FAILS();
 };
+
+class MI_MMU_REWORK : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = "MMU Rework";
+
+public:
+    MI_MMU_REWORK();
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};

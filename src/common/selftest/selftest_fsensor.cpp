@@ -104,7 +104,7 @@ LoopResult CSelftestPart_FSensor::state_init() {
 #endif
 
 #if HAS_MMU2()
-    mmu_mode = MMU2::mmu2.Enabled();
+    mmu_mode = config_store().is_mmu_rework.get();
 #endif
 
     return LoopResult::RunNext;

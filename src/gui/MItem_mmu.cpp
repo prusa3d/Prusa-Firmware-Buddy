@@ -5,6 +5,7 @@
 #include "menu_spin_config.hpp"
 #include "gui_fsensor_api.hpp"
 #include "window_msgbox.hpp"
+#include "ScreenSelftest.hpp"
 
 #include "screen_menu_mmu_preload_to_mmu.hpp"
 #include "screen_menu_mmu_load_test_filament.hpp"
@@ -110,25 +111,64 @@ void MI_MMU_LOAD_TEST_ALL::click(IWindowMenu & /*window_menu*/) {
     }
 }
 
+/**
+ * @brief Flips the value of the MMU Rework toggle.
+ *
+ * Displays a dialog warning the user about the FS behavior changing with this
+ * switch. Then it flips (enables if disabled and vice versa) the value of
+ * is_mmu_rework, invalidates FS calibration (since with MMU rework the
+ * calibrated values are no longer valid) and runs FS calibration.
+ *
+ * @param flip_mmu_at_the_end If true, will also enables or disables MMU in
+ *                            accordance with the MMU Rework value.
+ */
+static bool flip_mmu_rework([[maybe_unused]] bool flip_mmu_at_the_end) {
+    if (MsgBoxWarning(_("This will change the behavior of the filament sensor. Do you want to continue?"), { Response::Continue, Response::Abort, Response::_none, Response::_none }) == Response::Continue) {
+        config_store().is_mmu_rework.set(!config_store().is_mmu_rework.get());
+// The FS is not calibrated on MK3.5
+#if !PRINTER_IS_PRUSA_MK3_5
+        GetExtruderFSensor(0)->SetInvalidateCalibrationFlag();
+        // opens the screen in advance before the screen will be opened by the selftest
+        // this prevents the user to click something before the selftest screen would open
+        Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
+        if (flip_mmu_at_the_end) {
+            marlin_client::test_start(stmFSensor_flip_mmu_at_the_end);
+        } else {
+            marlin_client::test_start(stmFSensor);
+        }
+#endif
+        return true;
+    } else {
+        return false;
+    }
+}
+
 /**********************************************************************************************/
 // MI_MMU_ENABLE
 MI_MMU_ENABLE::MI_MMU_ENABLE()
     : WI_ICON_SWITCH_OFF_ON_t(FSensors_instance().HasMMU(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_MMU_ENABLE::OnChange(size_t old_index) {
     if (old_index) {
+        // Disable MMU
         FSensors_instance().DisableSideSensor();
     } else {
-        switch (FSensors_instance().EnableSide()) {
-        case filament_sensor::mmu_enable_result_t::ok:
-            break;
-        case filament_sensor::mmu_enable_result_t::error_filament_sensor_disabled:
-            index = old_index;
-            MsgBoxWarning(_("Can't enable MMU: enable the printer's filament sensor first."), Responses_Ok);
-            break;
-        case filament_sensor::mmu_enable_result_t::error_mmu_not_supported:
-            index = old_index;
-            MsgBoxError(_("MMU not supported!"), Responses_Ok);
-            break;
+        if (!config_store().is_mmu_rework.get()) {
+            // if we are enabling MMU and the MMU Rework option is not enabled, enable it
+            flip_mmu_rework(true);
+        } else {
+            // if MMU Rework is already enabled, just enable MMU straight away (TODO run the wizard ...)
+            switch (FSensors_instance().EnableSide()) {
+            case filament_sensor::mmu_enable_result_t::ok:
+                break;
+            case filament_sensor::mmu_enable_result_t::error_filament_sensor_disabled:
+                index = old_index;
+                MsgBoxWarning(_("Can't enable MMU: enable the printer's filament sensor first."), Responses_Ok);
+                break;
+            case filament_sensor::mmu_enable_result_t::error_mmu_not_supported:
+                index = old_index;
+                MsgBoxError(_("MMU not supported!"), Responses_Ok);
+                break;
+            }
         }
     }
 }
@@ -166,3 +206,12 @@ MI_MMU_GENERAL_FAILS::MI_MMU_GENERAL_FAILS()
 
 MI_MMU_TOTAL_GENERAL_FAILS::MI_MMU_TOTAL_GENERAL_FAILS()
     : WI_INFO_t(config_store().mmu2_total_fails.get(), _(label), MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
+
+MI_MMU_REWORK::MI_MMU_REWORK()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().is_mmu_rework.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_MMU_REWORK::OnChange([[maybe_unused]] size_t old_index) {
+    if (!flip_mmu_rework(index == 0)) {
+        Change(0); // revert the index change of the toggle in case the user aborted the dialog
+    }
+};

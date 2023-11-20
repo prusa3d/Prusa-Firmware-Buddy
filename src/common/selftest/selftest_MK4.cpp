@@ -35,6 +35,8 @@
 #include "timing.h"
 #include "selftest_result_type.hpp"
 #include "selftest_types.hpp"
+
+#include <filament_sensors_handler.hpp>
 #include <config_store/store_instance.hpp>
 
 using namespace selftest;
@@ -369,6 +371,21 @@ void CSelftest::Loop() {
         if (selftest::phaseFSensor(1, pFSensor, Config_FSensor)) {
             return;
         }
+        break;
+    case stsFSensor_flip_mmu_at_the_end:
+#if HAS_MMU2()
+        // enable/disable the MMU according to the MMU Rework toggle. Used from
+        // the menus when we need to calibrate the FS before enabling/disabling
+        // the rework or the MMU itself.
+        if (config_store().is_mmu_rework.get()) {
+            // We don't check the result here. If FS is calibrated and enabled
+            // at the end of the selftest, MMU will be enabled, otherwise not.
+            FSensors_instance().EnableSide();
+        } else {
+            FSensors_instance().DisableSideSensor();
+        }
+#endif
+
         break;
     case stsGears:
         if (selftest::phase_gears(pGearsCalib, gears_config)) {
