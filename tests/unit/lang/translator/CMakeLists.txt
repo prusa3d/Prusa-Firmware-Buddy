@@ -1,8 +1,10 @@
 # First, create a target converting .po files to txt files easily parseable by tests
+file(GLOB_RECURSE POFILES ${CMAKE_SOURCE_DIR}/src/lang/po/*/*.po)
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/keys.txt"
   COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/translations_and_fonts/lang.py"
           "dump-pofiles" "${CMAKE_SOURCE_DIR}/src/lang/po" "${CMAKE_CURRENT_BINARY_DIR}"
+  DEPENDS ${POFILES}
   COMMENT "Generating text files out of .po files."
   VERBATIM
   )
