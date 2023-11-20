@@ -1,11 +1,13 @@
 #include "connect.hpp"
-#include <http/httpc.hpp>
 #include "tls/tls.hpp"
 #include "command_id.hpp"
 #include "segmented_json.h"
 #include "render.hpp"
 #include "json_out.hpp"
 #include "connection_cache.hpp"
+
+#include <http/httpc.hpp>
+#include <http/websocket.hpp>
 
 #include <log.h>
 
@@ -140,15 +142,14 @@ namespace {
         HeaderOut hdrs[8];
 
     public:
-        UpgradeRequest(Printer &printer, const Printer::Config &config)
+        UpgradeRequest(Printer &printer, const Printer::Config &config, const WebSocketKey &key)
             : hdrs {
                 // Even though the fingerprint is on a temporary, that
                 // pointer is guaranteed to stay stable.
                 { "Fingerprint", printer.printer_info().fingerprint, Printer::PrinterInfo::FINGERPRINT_HDR_SIZE },
                 { "Token", config.token, nullopt },
                 { "Upgrade", "websocket", nullopt },
-                // TODO: Random-generate and verify
-                { "Sec-WebSocket-Key", "MDEyMzQ1Njc4OUFCQ0RFRg==", nullopt },
+                { "Sec-WebSocket-Key", key.req(), nullopt },
                 { "Sec-WebSocket-Version", "13", nullopt },
                 { "Sec-WebSocket-Protocol", "prusa-connect", nullopt },
                 { "Sec-WebSocket-Extensions", "commands", nullopt },
@@ -308,8 +309,11 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
 #if WEBSOCKET()
     if (conn_factory.is_valid() && !websocket.has_value()) {
         // Let's do the upgrade
-        UpgradeRequest upgrade(printer, config);
-        const auto result = http.send(upgrade, nullptr);
+
+        WebSocketKey websocket_key;
+        WebSocketAccept upgrade_hdrs(websocket_key);
+        UpgradeRequest upgrade(printer, config, websocket_key);
+        const auto result = http.send(upgrade, &upgrade_hdrs);
         if (holds_alternative<Error>(result)) {
             conn_factory.invalidate();
             return err_to_status(get<Error>(result));
@@ -318,6 +322,9 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
         auto resp = get<http::Response>(result);
         switch (resp.status) {
         case Status::SwitchingProtocols: {
+            if (!upgrade_hdrs.key_matched()) {
+                return OnlineError::Server;
+            }
             // TODO: Verify we negotiated correctly.
 
             // Read and throw away the body, if any. Not interesting.

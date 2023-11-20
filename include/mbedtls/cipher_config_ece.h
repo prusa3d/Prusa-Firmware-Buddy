@@ -26,6 +26,7 @@
 #define MBEDTLS_OID_C
 #define MBEDTLS_PK_C
 #define MBEDTLS_PK_PARSE_C
+#define MBEDTLS_SHA1_C
 #define MBEDTLS_SHA256_C
 #define MBEDTLS_MD5_C
 #define MBEDTLS_SSL_CLI_C

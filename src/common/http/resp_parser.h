@@ -9,6 +9,7 @@ enum class HeaderName {
     CommandId,
     Code,
     Token,
+    WebSocketAccept,
 };
 
 class ExtraHeader {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "httpc.hpp"
+#include "resp_parser.h"
 
 namespace http {
 
@@ -86,6 +87,38 @@ public:
     // Note that if the server sent only part of the header, this'll
     // block before it returns even if poll is set to true.
     std::variant<std::monostate, Message, Error> receive(std::optional<uint32_t> poll);
+};
+
+// The Sec-WebSocket-Key request and response
+//
+// https://www.rfc-editor.org/rfc/rfc6455#section-4.1
+// https://www.rfc-editor.org/rfc/rfc6455#section-4.2
+// https://www.rfc-editor.org/rfc/rfc6455#section-11.3.1
+class WebSocketKey {
+private:
+    char request[25];
+    char response[30];
+
+    friend class WebSocketAccept;
+
+public:
+    WebSocketKey();
+    const char *req() const {
+        return request;
+    }
+};
+
+class WebSocketAccept final : public ExtraHeader {
+private:
+    const WebSocketKey &key;
+    size_t key_pos = 0;
+    bool key_matches = true;
+
+public:
+    WebSocketAccept(const WebSocketKey &key)
+        : key(key) {}
+    virtual void character(char c, HeaderName name) override;
+    bool key_matched() const;
 };
 
 } // namespace http

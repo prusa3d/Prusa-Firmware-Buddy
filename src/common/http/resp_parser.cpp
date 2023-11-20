@@ -57,6 +57,9 @@ ExecutionControl ResponseParser::event(Event event) {
     case Names::Token:
         extra(event.payload, HeaderName::Token);
         return ExecutionControl::Continue;
+    case Names::WebSocketAccept:
+        extra(event.payload, HeaderName::WebSocketAccept);
+        return ExecutionControl::Continue;
     case Names::ConnectionHeader:
         // This comes when we see a connection header. If we understand it and it's keep-alive one, we amend it.
         keep_alive = false;

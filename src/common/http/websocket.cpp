@@ -4,6 +4,8 @@
 
 // htons
 #include <lwip/def.h>
+#include <mbedtls/base64.h>
+#include <mbedtls/sha1.h>
 
 using std::array;
 using std::monostate;
@@ -136,6 +138,62 @@ variant<monostate, WebSocket::Message, Error> WebSocket::receive(optional<uint32
     }
 
     return result;
+}
+
+WebSocketKey::WebSocketKey() {
+    // Get 16 bytes of random data
+    uint8_t key[16];
+    for (size_t i = 0; i < 4; i++) {
+        // Good enough even with a fallback to pseudo-random source. This is
+        // some kind of protection against accidental replay/accidental
+        // caching.
+        uint32_t r = rand_u();
+        memcpy(&key[4 * i], &r, sizeof r);
+    }
+
+    size_t out_pos = 0;
+    memset(request, 0, sizeof request);
+    int err = mbedtls_base64_encode(reinterpret_cast<uint8_t *>(request), sizeof request, &out_pos, key, sizeof key);
+    (void)err;
+    assert(err == 0);
+
+    // Fixed string from the RFC (no, this is not a mock)
+    constexpr const char *tail = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+    mbedtls_sha1_context ctx = {};
+    mbedtls_sha1_init(&ctx);
+    mbedtls_sha1_starts_ret(&ctx);
+    mbedtls_sha1_update_ret(&ctx, reinterpret_cast<const uint8_t *>(request), strlen(request));
+    mbedtls_sha1_update_ret(&ctx, reinterpret_cast<const uint8_t *>(tail), strlen(tail));
+    uint8_t out[20];
+    mbedtls_sha1_finish_ret(&ctx, out);
+
+    mbedtls_sha1_free(&ctx);
+
+    out_pos = 0;
+    err = mbedtls_base64_encode(reinterpret_cast<uint8_t *>(response), sizeof response, &out_pos, out, sizeof out);
+    assert(err == 0);
+}
+
+bool WebSocketAccept::key_matched() const {
+    return key_matches && key_pos == strlen(key.response);
+}
+
+void WebSocketAccept::character(char c, HeaderName name) {
+    switch (name) {
+    case HeaderName::WebSocketAccept: {
+        if (key_pos >= strlen(key.response)) {
+            key_matches = false;
+            break;
+        }
+        if (key.response[key_pos] != c) {
+            key_matches = false;
+        }
+        key_pos++;
+    }
+    default:
+        break;
+    }
 }
 
 } // namespace http

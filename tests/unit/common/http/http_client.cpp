@@ -90,6 +90,8 @@ public:
         case HeaderName::Token:
             token += c;
             break;
+        default:
+            break;
         }
     }
 };

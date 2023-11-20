@@ -8,6 +8,7 @@ if __name__ == "__main__":
         'Code': read_header_value('Code'),
         'Connection': connection_header(),
         'Token': read_header_value('Token'),
+        'Sec-WebSocket-Accept': read_header_value('WebSocketAccept'),
         'Content-Encryption-Mode': content_encryption_mode_header(),
     }
     http, final = response(want_headers)
