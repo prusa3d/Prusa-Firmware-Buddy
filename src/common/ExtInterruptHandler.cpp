@@ -5,7 +5,6 @@
  */
 
 #include "inc/MarlinConfig.h"
-#include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
 #include "log.h"
 #include <type_traits>
 

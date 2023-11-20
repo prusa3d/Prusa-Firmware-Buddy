@@ -5,7 +5,6 @@
 #include "cmsis_os.h"
 #include "bsod_gui.hpp"
 #include <type_traits>
-#include <Marlin/src/HAL/HAL_STM32_F4_F7/timers.h>
 
 #define MAX_RETRIES 20
 
