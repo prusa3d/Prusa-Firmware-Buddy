@@ -112,6 +112,7 @@ inline Pin::State zMinReadFn();
 inline Pin::State xyProbeReadFn();
 } // namespace buddy::hw
 
+// clang-format off
 #define PIN_TABLE(MACRO_FUNCTION)                                                                                                                                                                           \
     MACRO_FUNCTION(buddy::hw::OutputPin, displayCs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p11, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                      \
     MACRO_FUNCTION(buddy::hw::OutputPin, displayRs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p15, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                      \
@@ -155,6 +156,7 @@ inline Pin::State xyProbeReadFn();
     MACRO_FUNCTION(buddy::hw::OutputPin, pin_d5, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p5, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                            \
     MACRO_FUNCTION(buddy::hw::OutputPin, pin_a3, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p3, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                            \
     MACRO_FUNCTION(buddy::hw::OutputPin, GPIOReset, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::openDrain COMMA OSpeed::low, buddy::hw::noHandler)
+// clang-format on
 
 namespace buddy::hw {
 
@@ -168,6 +170,7 @@ extern const OutputPin *YStep;
 
 } // namespace buddy::hw
 
+// clang-format off
 #define EXTENDER_PIN_TABLE(MACRO_FUNCTION)                                                                                                      \
     MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf6Reset, buddy::hw::IoPin::p0, Pin::State::low COMMA io_expander1, buddy::hw::noHandler)    \
     MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf1Reset, buddy::hw::IoPin::p1, Pin::State::low COMMA io_expander1, buddy::hw::noHandler)    \
@@ -181,6 +184,7 @@ extern const OutputPin *YStep;
 #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION)                                                                                                \
     MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::zMinReadFn, endstop_ISR, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling) \
     MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::xyProbeReadFn, endstop_ISR, xyProbe, BUDDY_PIN(XY_PROBE), IMode::IT_rising_falling)
+// clang-format on
 
 #define HAS_ZMIN_READ_FN    1
 #define HAS_XYPROBE_READ_FN 1

@@ -118,6 +118,7 @@ inline Pin::State zMinReadFn() {
 }
 } // namespace buddy::hw
 
+// clang-format off
 #define PIN_TABLE(MACRO_FUNCTION)                                                                                                                                                                                     \
     MACRO_FUNCTION(buddy::hw::OutputPin, dummy, BUDDY_PIN(DUMMY), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                     \
     MACRO_FUNCTION(buddy::hw::OutputPin, e0Enable, BUDDY_PIN(E0_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                 \
@@ -145,5 +146,6 @@ inline Pin::State zMinReadFn() {
 
 #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION) \
     MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::zMinReadFn, endstop_ISR, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling)
+// clang-format on
 
 #define HAS_ZMIN_READ_FN 0

@@ -270,7 +270,7 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
  * @see PIN_TABLE
  * @{
  */
-
+// clang-format off
     #if (BOARD_IS_BUDDY)
         #define PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION)                                                                                                                                           \
             MACRO_FUNCTION(buddy::hw::InterruptPin, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling COMMA Pull::up COMMA ISR_PRIORITY_ENDSTOP COMMA 0, endstop_ISR)                               \
@@ -391,6 +391,8 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
     #else
         #error "Unknown board."
     #endif // #if (BOARD_TYPE == BUDDY_BOARD)
+// clang-format on
+
 /**
  * @brief Define @p PIN_TABLE macro containing all physical pins used in project.
  *
@@ -440,6 +442,7 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
  * @endcode
  *
  */
+// clang-format off
     #define PIN_TABLE(MACRO_FUNCTION)                                                                                                                                                       \
         PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION)                                                                                                                                            \
         MACRO_FUNCTION(buddy::hw::InterruptPin, xDiag, BUDDY_PIN(X_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA ISR_PRIORITY_ENDSTOP COMMA 0, endstop_ISR)                        \
@@ -459,6 +462,7 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
         MACRO_FUNCTION(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                       \
         MACRO_FUNCTION(buddy::hw::OutputPin, fanPrintPwm, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p11, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
         MACRO_FUNCTION(buddy::hw::OutputPin, fanHeatBreakPwm, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p9, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)
+// clang-format on
 
     #if HAS_LOADCELL_HX717()
 
