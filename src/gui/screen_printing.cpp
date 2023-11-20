@@ -446,9 +446,12 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         return;
     }
 
-#endif
-
+    if (!showing_end_result) {
+        SuperWindowEvent(sender, event, param);
+    }
+#else
     SuperWindowEvent(sender, event, param);
+#endif
 }
 
 #if defined(USE_ILI9488)
