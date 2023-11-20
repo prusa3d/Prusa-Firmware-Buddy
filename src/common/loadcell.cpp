@@ -162,9 +162,15 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
         this->loadcellRaw = loadcellRaw;
         this->undefinedCnt = 0;
     } else {
-        // undefined value, use forward-fill only for short bursts
-        if (++this->undefinedCnt > UNDEFINED_SAMPLE_MAX_CNT) {
-            fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TIMEOUT);
+        if (!HAS_LOADCELL_HX717() || (!DBGMCU->CR || (TERN0(DEBUG_LEVELING_FEATURE, DEBUGGING(LEVELING)) || DEBUGGING(ERRORS)))) {
+            // see comment in hx717mux: only enable additional safety checks if HX717 is multiplexed
+            // and directly attached without an active debugging session or LEVELING/ERROR flags, to
+            // avoid triggering inside other breakpoints.
+
+            // undefined value, use forward-fill only for short bursts
+            if (++this->undefinedCnt > UNDEFINED_SAMPLE_MAX_CNT) {
+                fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TIMEOUT);
+            }
         }
     }
 
