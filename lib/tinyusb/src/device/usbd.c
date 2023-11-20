@@ -392,6 +392,7 @@ bool tud_init (uint8_t rhport)
   TU_LOG_INT(CFG_TUD_LOG_LEVEL, sizeof(tu_edpt_stream_t));
 
   tu_varclr(&_usbd_dev);
+  _usbd_dev.speed = TUSB_SPEED_INVALID;
 
 #if OSAL_MUTEX_REQUIRED
   // Init device mutex
@@ -440,6 +441,8 @@ static void configuration_reset(uint8_t rhport)
   dcd_edpt_close_all(rhport);
 
   tu_varclr(&_usbd_dev);
+  _usbd_dev.speed = TUSB_SPEED_INVALID;
+
   memset(_usbd_dev.itf2drv, DRVID_INVALID, sizeof(_usbd_dev.itf2drv)); // invalid mapping
   memset(_usbd_dev.ep2drv , DRVID_INVALID, sizeof(_usbd_dev.ep2drv )); // invalid mapping
 }
