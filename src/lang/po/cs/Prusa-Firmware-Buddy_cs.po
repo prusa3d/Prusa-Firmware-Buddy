@@ -952,7 +952,7 @@ msgstr "%d Test loadcell senzoru"
 #: src/gui/include_XL/selftest_snake_config.hpp:127
 #, c-format
 msgid "%d Nozzle Heaters Test"
-msgstr "%d test vyhřívání trysky"
+msgstr "%d Test vyhřívání trysky"
 
 #: src/gui/screen_menu_connect.cpp:84
 msgid "DNS error"
@@ -1093,7 +1093,7 @@ msgstr "Opakovat selftest výhřevu?"
 #: src/gui/include_XL/selftest_snake_config.hpp:122
 #, c-format
 msgid "%d Tool Offset Calibration"
-msgstr "%d kalibrace offsetu nástroje"
+msgstr "%d Kalibrace offsetu nástroje"
 
 #: src/gui/wizard/selftest_frame_fans.cpp:29
 msgid "During the test, the expected fan speeds are checked for 30 seconds."
@@ -1168,7 +1168,7 @@ msgstr "Selhala dynamická alokace - došla paměť. Restartujte tiskárnu."
 #: src/gui/include_XL/selftest_snake_config.hpp:117
 #, c-format
 msgid "%d Z Alignment Calibration"
-msgstr "%d kalibrace zarovnání Z"
+msgstr "%d Kalibrace zarovnání Z"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:82
 #: src/gui/include_iX/selftest_snake_config.hpp:76
