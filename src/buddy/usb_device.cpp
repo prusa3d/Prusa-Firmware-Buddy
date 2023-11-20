@@ -9,6 +9,7 @@
 #include <ccm_thread.hpp>
 #include <config_store/store_instance.hpp>
 #include <tasks.hpp>
+#include <timing.h>
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
@@ -163,6 +164,14 @@ static void usb_device_task_run(const void *) {
 
     // initialize tinyusb stack
     tusb_init();
+
+    // wait for bus reset to complete if possible
+    for (uint32_t start_ts = ticks_ms(); ticks_diff(ticks_ms(), start_ts) < 250;) {
+        tud_task_ext(100, false);
+        if (tud_speed_get() != TUSB_SPEED_INVALID) {
+            break;
+        }
+    }
 
     // initialize the connection state
 #ifdef FUSB302B_INTERPOSER
