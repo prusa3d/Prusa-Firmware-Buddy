@@ -1268,7 +1268,7 @@ msgid ""
 "it will take some time..."
 msgstr ""
 "Cancello configurazione,\n"
-"richiede un po' di tempo…"
+"richiede un po' di tempo..."
 
 #: src/gui/MItem_tools.cpp:217
 msgid ""
@@ -1276,7 +1276,7 @@ msgid ""
 "it will take some time..."
 msgstr ""
 "Cancello tutto,\n"
-"richiede un po' di tempo…"
+"richiede un po' di tempo..."
 
 #. //MSG_PROGRESS_ERR_INTERNAL c=20
 #: src/mmu2/mmu2_progress_converter.cpp:19
