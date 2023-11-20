@@ -32,7 +32,7 @@ msgid ""
 msgstr ""
 "1. Scannez le QR code ou visitez prusa.io/add.\n"
 "2. Connectez-vous.\n"
-"3. Ajoutez l'imprimante avec le code :"
+"3. Ajoutez l'imprimante avec le code :"
 
 #: src/gui/dialogs/DialogConnectReg.cpp:129
 msgid ""
@@ -207,7 +207,7 @@ msgid ""
 msgstr ""
 "Un outil est déjà affecté à ce filament.\n"
 "\n"
-"Souhaitez-vous le remplacer ou l'ajouter en tant que filament supplémentaire pour la fonctionnalité SpoolJoin ?"
+"Souhaitez-vous le remplacer ou l'ajouter en tant que filament supplémentaire pour la fonctionnalité SpoolJoin ?"
 
 #: src/gui/dialogs/DialogConnectReg.hpp:20
 msgid "Attempt"
@@ -215,11 +215,11 @@ msgstr "Tenter"
 
 #: src/gui/MItem_tools.cpp:949
 msgid "ATTENTION: Changing any Input Shaper values will overwrite them permanently. To revert to a stock setup, visit prusa.io/input-shaper or run a factory reset."
-msgstr "ATTENTION : la modification des valeurs d'Input Shaper les écrasera définitivement. Pour revenir à une configuration d'origine, visitez prusa.io/input-shaper ou lancez une réinitialisation d'usine."
+msgstr "ATTENTION : la modification des valeurs d'Input Shaper les écrasera définitivement. Pour revenir à une configuration d'origine, visitez prusa.io/input-shaper ou lancez une réinitialisation d'usine."
 
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:74
 msgid "Attention, the test has failed. Check below the expected printer setup and adjust it accordingly:"
-msgstr "Attention, le test a échoué. Vérifiez ci-dessous la configuration d'imprimante attendue et ajustez-la en conséquence :"
+msgstr "Attention, le test a échoué. Vérifiez ci-dessous la configuration d'imprimante attendue et ajustez-la en conséquence :"
 
 #: src/gui/wizard/selftest_frame_wizard_prologue.cpp:90
 msgid ""
@@ -453,7 +453,7 @@ msgstr "Données de calibration sauvegardées avec succès"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:39
 msgid "Calibration pin has not been reached. Please check the pin installation."
-msgstr "L'ergot de calibration n’a pas été atteint. Veuillez vérifier l'installation de l'ergot."
+msgstr "L'ergot de calibration n'a pas été atteint. Veuillez vérifier l'installation de l'ergot."
 
 #: src/gui/MItem_menus.hpp:485
 msgid "Calibrations & Tests"
@@ -488,7 +488,7 @@ msgstr "Impossible d'effectuer l'action, le filament est déjà chargé. Déchar
 
 #: src/gui/MItem_mmu.cpp:126
 msgid "Can't enable MMU: enable the printer's filament sensor first."
-msgstr "Impossible d'activer le MMU : activez d'abord le capteur de filament de l'imprimante."
+msgstr "Impossible d'activer le MMU : activez d'abord le capteur de filament de l'imprimante."
 
 #: src/gui/screen_crash_recovery.cpp:109
 msgid "!! Careful, tools are hot !!"
@@ -537,7 +537,7 @@ msgstr "Changement d'outil"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:9
 msgid "Check all tools if they are properly parked or picked."
-msgstr "Vérifiez tous les outils s’ils sont correctement stationnés ou saisis."
+msgstr "Vérifiez tous les outils s'ils sont correctement stationnés ou saisis."
 
 #: src/gui/screen_crash_recovery.cpp:89
 #: src/gui/wizard/selftest_frame_axis.cpp:27
@@ -604,11 +604,11 @@ msgstr "Nettoyez la plaque d'acier."
 
 #: src/gui/screen_menu_metrics.hpp:188
 msgid "Clear all stored values?"
-msgstr "Effacer toutes les valeurs stockées ?"
+msgstr "Effacer toutes les valeurs stockées ?"
 
 #: src/gui/screen_menu_metrics.hpp:189
 msgid "Clear this value?"
-msgstr "Effacer cette valeur ?"
+msgstr "Effacer cette valeur ?"
 
 #: src/gui/dialogs/DialogMoveZ.hpp:23
 msgid "Click the knob to close"
@@ -663,7 +663,7 @@ msgstr "CONTINUER"
 
 #: src/gui/screen_menu_selftest_snake.cpp:179
 msgid "Continue running Calibrations & Tests?"
-msgstr "Continuer à exécuter les Calibrations & Tests ?"
+msgstr "Continuer à exécuter les Calibrations & Tests ?"
 
 #: src/gui/esp_frame_progress.cpp:53
 msgid ""
@@ -700,11 +700,11 @@ msgid ""
 msgstr ""
 "Refroidissement.\n"
 "\n"
-"Ne touchez pas la buse !"
+"Ne touchez pas la buse !"
 
 #: src/gui/wizard/selftest_frame_loadcell.cpp:84
 msgid "Cooling down. Do not touch the nozzle!"
-msgstr "Refroidissement. Ne touchez pas la buse !"
+msgstr "Refroidissement. Ne touchez pas la buse !"
 
 #: src/gui/screen_sysinf.cpp:54
 msgid "CPU load"
@@ -717,11 +717,11 @@ msgstr "CRASH DÉTECTÉ"
 
 #: src/gui/screen_home.cpp:278
 msgid "Crash detected. Save it to USB?"
-msgstr "Crash détecté. L'enregistrer sur USB ?"
+msgstr "Crash détecté. L'enregistrer sur USB ?"
 
 #: src/gui/screen_home.cpp:270
 msgid "Crash detected. Save it to USB and send it to Prusa?"
-msgstr "Crash détecté. L'enregistrer sur USB et l'envoyer à Prusa ?"
+msgstr "Crash détecté. L'enregistrer sur USB et l'envoyer à Prusa ?"
 
 #: src/gui/MItem_crash.hpp:14
 msgid "Crash Detection"
@@ -767,11 +767,11 @@ msgstr ""
 "\n"
 "Si rien ne se passe après quelques minutes, vérifiez et rechargez les informations d'identification.\n"
 "\n"
-"Supprimer le fichier d'informations d'identification ? (Recommandé)"
+"Supprimer le fichier d'informations d'identification ? (Recommandé)"
 
 #: src/gui/screen_menu_metrics.hpp:139
 msgid "Current Configuration:"
-msgstr "Configuration actuelle :"
+msgstr "Configuration actuelle :"
 
 #: src/gui/MItem_menus.hpp:220
 msgid "Current Profile"
@@ -1041,7 +1041,7 @@ msgstr "Ne débranchez pas le Wi-Fi et n'éteignez pas l'imprimante !"
 
 #: src/gui/esp_frame_progress.cpp:58
 msgid "Do not unplug Wi-Fi or turn off printer!"
-msgstr "Ne débranchez pas le Wi-Fi et n'éteignez pas l'imprimante !"
+msgstr "Ne débranchez pas le Wi-Fi et n'éteignez pas l'imprimante !"
 
 #: src/gui/screen_menu_filament_changeall.hpp:14
 msgid "Don't change"
@@ -1086,7 +1086,7 @@ msgstr ""
 
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:84
 msgid "Do you wish to retry the heater selftest?"
-msgstr "Souhaitez-vous réessayer le selftest de l'élément chauffant ?"
+msgstr "Souhaitez-vous réessayer le selftest de l'élément chauffant ?"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:122
 #, c-format
@@ -1114,14 +1114,14 @@ msgstr ""
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:219
 #, c-format
 msgid "Dwarf board %d fault: %s"
-msgstr "Défaut de la carte Dwarf %d : %s"
+msgstr "Défaut de la carte Dwarf %d : %s"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:214
 #, c-format
 msgid ""
 "Dwarf board encountered the following problem: \n"
 "%s"
-msgstr "La carte Dwarf a rencontré le problème suivant : %s"
+msgstr "La carte Dwarf a rencontré le problème suivant : %s"
 
 #: src/gui/screen_menu_tools.hpp:180
 msgid "Dwarf Board Temp"
@@ -1157,7 +1157,7 @@ msgstr "%d Test de l'axe Y"
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:174
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:184
 msgid "Dynamic allocation failed - out of memory. Reset the printer."
-msgstr "Échec de l'allocation dynamique - mémoire insuffisante. Réinitialisez l'imprimante."
+msgstr "Échec de l'allocation dynamique - mémoire insuffisante. Réinitialisez l'imprimante."
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:79
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:77
@@ -1303,7 +1303,7 @@ msgstr ""
 
 #: src/gui/wizard/selftest_invalid_state.cpp:12
 msgid "Error invalid selftest state"
-msgstr "Erreur état de selftest non valide"
+msgstr "Erreur état de selftest non valide"
 
 #: src/gui/MItem_tools.cpp:291
 msgid "Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."
@@ -1477,7 +1477,7 @@ msgstr "Test du ventilateur en cours, veuillez patienter."
 
 #: src/gui/window_msgbox_wrong_printer.hpp:19
 msgid "Features required:"
-msgstr "Fonctionnalités requises :"
+msgstr "Fonctionnalités requises :"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:72
 msgid "Feeding to drive gear"
@@ -1568,7 +1568,7 @@ msgid ""
 "Select NO to cancel the print.\n"
 "Select DISABLE FS to disable the filament sensor and continue print."
 msgstr ""
-"Filament non détecté. Charger le filament maintenant ?\n"
+"Filament non détecté. Charger le filament maintenant ?\n"
 "Sélectionnez NON pour annuler l'impression.\n"
 "Sélectionnez DÉSACTIVER CF pour désactiver le capteur de filament et continuer l'impression."
 
@@ -1626,7 +1626,7 @@ msgstr "Capteur de filament non connecté, vérifiez le câblage."
 
 #: src/gui/MItem_tools.cpp:76
 msgid "Filament sensor not ready: perform calibration first."
-msgstr "Le capteur de filament n'est pas prêt : procédez d'abord à la calibration."
+msgstr "Le capteur de filament n'est pas prêt : procédez d'abord à la calibration."
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:123
 msgid "Filament sensors calibrated."
@@ -1663,8 +1663,8 @@ msgid ""
 "filesystem (all \n"
 "data will be lost)!"
 msgstr ""
-"Erreur de système de fichiers !\n"
-"Essayez une autre clé USB ou formatez la clé avec le système de fichiers FAT32 (toutes les données seront perdues) !"
+"Erreur de système de fichiers !\n"
+"Essayez une autre clé USB ou formatez la clé avec le système de fichiers FAT32 (toutes les données seront perdues) !"
 
 #: src/transfers/transfer_recovery.cpp:233
 msgid "File transfer error"
@@ -1719,7 +1719,7 @@ msgid ""
 "\n"
 "If you QUIT, all data up to this point is saved."
 msgstr ""
-"TERMINER les calibrations restantes sans procéder à d'autres tests, ou effectuer TOUS les Calibrations et Tests ?\n"
+"TERMINER les calibrations restantes sans procéder à d'autres tests, ou effectuer TOUS les Calibrations et Tests ?\n"
 "\n"
 "Si vous QUITTEZ, toutes les données jusqu'à ce point sont enregistrées."
 
@@ -1750,7 +1750,7 @@ msgid ""
 "on the USB drive\n"
 "and try again."
 msgstr ""
-"Le fichier du firmware a une taille invalide !\n"
+"Le fichier du firmware a une taille invalide !\n"
 "Vérifiez le fichier sur la clé USB et réessayez."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:224
@@ -1759,7 +1759,7 @@ msgid ""
 "Firmware file\n"
 "missing in the USB\n"
 "flash!"
-msgstr "Fichier de firmware manquant dans la clé USB !"
+msgstr "Fichier de firmware manquant dans la clé USB !"
 
 #: src/gui/esp_frame_progress.cpp:68
 msgid ""
@@ -1769,7 +1769,7 @@ msgstr "Le flashage du firmware a échoué !"
 
 #: src/gui/esp_frame_progress.cpp:68
 msgid "Firmware flashing failed!"
-msgstr "Le flashage du firmware a échoué !"
+msgstr "Le flashage du firmware a échoué !"
 
 #: src/gui/esp_frame_progress.cpp:63
 msgid ""
@@ -1779,7 +1779,7 @@ msgstr "Flashage du firmware réussi !"
 
 #: src/gui/esp_frame_progress.cpp:63
 msgid "Firmware flashing successful!"
-msgstr "Flashage du firmware réussi !"
+msgstr "Flashage du firmware réussi !"
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:239
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:284
@@ -1792,7 +1792,7 @@ msgid ""
 "copying it onto the\n"
 "USB drive again."
 msgstr ""
-"La vérification du hachage du firmware a échoué !\n"
+"La vérification du hachage du firmware a échoué !\n"
 "Le fichier du firmware est endommagé. Essayez de le télécharger et de le copier à nouveau sur la clé USB."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:244
@@ -1803,7 +1803,7 @@ msgid ""
 "corrupted! Please\n"
 "reflash the\n"
 "firmware."
-msgstr "Firmware dans la mémoire flash interne corrompu ! Veuillez reflasher le firmware."
+msgstr "Firmware dans la mémoire flash interne corrompu ! Veuillez reflasher le firmware."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:413
 msgid "FIRMWARE MISSING"
@@ -1833,7 +1833,7 @@ msgid ""
 "revision of the\n"
 "Buddy board."
 msgstr ""
-"Échec de la vérification de la signature du firmware !\n"
+"Échec de la vérification de la signature du firmware !\n"
 "Seul le firmware officiel signé peut être flashé."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:234
@@ -1845,7 +1845,7 @@ msgid ""
 "signed firmware can\n"
 "be flashed."
 msgstr ""
-"Échec de la vérification de la signature du firmware !\n"
+"Échec de la vérification de la signature du firmware !\n"
 "Seul le firmware officiel signé peut être flashé."
 
 #: src/gui/MItem_tools.hpp:407 src/gui/MItem_hardware.hpp:121
@@ -1879,7 +1879,7 @@ msgstr "Facteur de Débit"
 
 #: src/gui/window_msgbox_wrong_printer.hpp:16
 msgid "following features are required:"
-msgstr "les fonctionnalités suivantes sont requises :"
+msgstr "les fonctionnalités suivantes sont requises :"
 
 #: src/gui/MItem_menus.hpp:251
 msgid "Footer"
@@ -2016,7 +2016,7 @@ msgstr "FW DANS LA FLASH INTERNE CORROMPU"
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:297
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:297
 msgid "FW RUNTIME ERROR"
-msgstr "ERREUR D’EXÉCUTION DU FW"
+msgstr "ERREUR D'EXÉCUTION DU FW"
 
 #: src/gui/screen_menu_settings.hpp:22
 msgid "FW update"
@@ -2201,7 +2201,7 @@ msgid ""
 "Damaged tile or wiring.\n"
 "Follow online guide to diagnose."
 msgstr ""
-"Tuile du plateau chauffant no. %d : Tuile ou câblage endommagé.\n"
+"Tuile du plateau chauffant no. %d : Tuile ou câblage endommagé.\n"
 "Suivez le guide en ligne pour diagnostiquer."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:109
@@ -2209,7 +2209,7 @@ msgstr ""
 msgid ""
 "Heatbed tile no. %d:\n"
 "Preheat error."
-msgstr "Tuile du plateau chauffant no. %d : Erreur de préchauffage."
+msgstr "Tuile du plateau chauffant no. %d : Erreur de préchauffage."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:89
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:94
@@ -2217,21 +2217,21 @@ msgstr "Tuile du plateau chauffant no. %d : Erreur de préchauffage."
 msgid ""
 "Heatbed tile no. %d: \n"
 "Temperature measurement error; thermistor may be faulty."
-msgstr "Tuile du plateau chauffant no. %d : Erreur de mesure de température ; la thermistance peut être défectueuse."
+msgstr "Tuile du plateau chauffant no. %d : Erreur de mesure de température ; la thermistance peut être défectueuse."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:114
 #, c-format
 msgid ""
 "Heatbed tile no. %d:\n"
 "Test heating error."
-msgstr "Tuile du plateau chauffant no. %d : Erreur de la chauffe de test."
+msgstr "Tuile du plateau chauffant no. %d : Erreur de la chauffe de test."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:99
 #, c-format
 msgid ""
 "Heatbed tile no. %d: \n"
 "Unexpected temperature drop detected."
-msgstr "Tuile du plateau chauffant no. %d : Chute de température inattendue détectée."
+msgstr "Tuile du plateau chauffant no. %d : Chute de température inattendue détectée."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:104
 #, c-format
@@ -2239,7 +2239,7 @@ msgid ""
 "Heatbed tile no. %d:\n"
 " Unexpected temperature peak detected."
 msgstr ""
-"Tuile du plateau chauffant no. %d :\n"
+"Tuile du plateau chauffant no. %d :\n"
 " Pic de température inattendu détecté."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:209
@@ -2247,7 +2247,7 @@ msgstr ""
 msgid ""
 "Heatbed tile no. %d:\n"
 "Unknown error: %d"
-msgstr "Tuile du plateau chauffant no. %d : Erreur inconnue : %d"
+msgstr "Tuile du plateau chauffant no. %d : Erreur inconnue : %d"
 
 #: src/common/footer_def.hpp:160
 msgid "Heatbreak"
@@ -2683,7 +2683,7 @@ msgstr "Installez la plaque sur le plateau chauffant"
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:298
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:298
 msgid "Internal runtime error. Try resetting the MMU or updating the firmware."
-msgstr "Erreur d'exécution interne. Essayez de réinitialiser l’unité MMU ou de mettre a jour le firmware."
+msgstr "Erreur d'exécution interne. Essayez de réinitialiser l'unité MMU ou de mettre a jour le firmware."
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:59
 msgid "In the next step, use the knob to adjust the nozzle height. Check the pictures in the handbook for reference."
@@ -2728,11 +2728,11 @@ msgstr "Le filament est-il dans l'extrudeur ?"
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:94
 msgid "Is filament in the filament sensor?"
-msgstr "Y a-t-il un filament dans le capteur de filament ?"
+msgstr "Y a-t-il un filament dans le capteur de filament ?"
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:92
 msgid "Is there any filament in the tool or side filament sensors?"
-msgstr "Y a-t-il un filament dans les capteurs de filament latéral ou de l'outil ?"
+msgstr "Y a-t-il un filament dans les capteurs de filament latéral ou de l'outil ?"
 
 #: src/gui/screen_menu_footer_settings.hpp:60
 msgid "Item 1"
@@ -2811,7 +2811,7 @@ msgid ""
 msgstr ""
 "La longueur d'un axe est trop longue.\n"
 "Le courant du moteur est probablement trop faible.\n"
-"Réessayer de vérifier, mettre en pause ou reprendre l'impression ?"
+"Réessayer de vérifier, mettre en pause ou reprendre l'impression ?"
 
 #: src/gui/screen_crash_recovery.cpp:94
 msgid ""
@@ -2821,7 +2821,7 @@ msgid ""
 msgstr ""
 "La longueur d'un axe est trop courte.\n"
 "Il y a un obstacle ou un problème de roulement.\n"
-"Réessayer de vérifier, mettre en pause ou reprendre l'impression ?"
+"Réessayer de vérifier, mettre en pause ou reprendre l'impression ?"
 
 #: src/gui/MItem_tools.hpp:41
 msgid "Live Adjust Z"
@@ -3299,7 +3299,7 @@ msgstr "Le MMU ne répond pas correctement. Vérifiez le câblage et les connect
 
 #: src/gui/MItem_mmu.cpp:130
 msgid "MMU not supported!"
-msgstr "MMU non pris en charge !"
+msgstr "MMU non pris en charge !"
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:108
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:113
@@ -3521,7 +3521,7 @@ msgid ""
 "flash! Please\n"
 "flash firmware\n"
 "first!"
-msgstr "Aucun firmware trouvé dans la flash interne ! Veuillez d'abord flasher le firmware !."
+msgstr "Aucun firmware trouvé dans la flash interne ! Veuillez d'abord flasher le firmware !."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:378
 msgid "NO FW ON USB FLASH DRIVE"
@@ -3844,7 +3844,7 @@ msgstr "MISE EN PAUSE..."
 
 #: src/gui/screen_menu_tools.cpp:106
 msgid "Perform filament sensors calibration? This discards previous filament sensors calibration. The extruder will be replaced during calibration"
-msgstr "Effectuer la calibration des capteurs de filament ? Cela annule la calibration précédente des capteurs de filament. L'extrudeur sera remplacé lors de la calibration"
+msgstr "Effectuer la calibration des capteurs de filament ? Cela annule la calibration précédente des capteurs de filament. L'extrudeur sera remplacé lors de la calibration"
 
 #. //MSG_PROGRESS_PUSH_FILAMENT c=20
 #: src/gui/dialogs/DialogLoadUnload.cpp:84
@@ -4110,7 +4110,7 @@ msgstr "Outils de l'imprimante"
 #: src/gui/wizard/selftest_result_fans.cpp:14
 #: src/gui/wizard/selftest_frame_fans.cpp:28 src/common/footer_def.hpp:142
 msgid "Print fan"
-msgstr "Ventilateur d’impression"
+msgstr "Ventilateur d'impression"
 
 #: src/gui/MItem_tools.hpp:482 src/gui/MItem_print.hpp:73
 msgid "Print Fan"
@@ -4126,7 +4126,7 @@ msgstr "RPM du Ventil. d'impression"
 
 #: src/gui/wizard/selftest_frame_fans.cpp:32
 msgid "Print fan RPM test"
-msgstr "Test des RPM du vent. d’impression"
+msgstr "Test des RPM du vent. d'impression"
 
 #: src/gui/MItem_print.hpp:75
 msgid "Print Fan Speed"
@@ -4444,7 +4444,7 @@ msgid ""
 "Do you want to resume or pause the print?"
 msgstr ""
 "Une collision répétée a été détectée.\n"
-"Voulez-vous reprendre ou interrompre l'impression ?"
+"Voulez-vous reprendre ou interrompre l'impression ?"
 
 #. Reheat
 #: src/common/client_response_texts.cpp:63
@@ -4580,7 +4580,7 @@ msgstr "Enregistrement sur USB"
 
 #: src/gui/dialogs/DialogConnectReg.cpp:127
 msgid "Scan QR or visit prusa.io/add, log in and add printer code:"
-msgstr "Scannez le QR ou visitez prusa.io/add, connectez-vous et ajoutez le code de l'imprimante :"
+msgstr "Scannez le QR ou visitez prusa.io/add, connectez-vous et ajoutez le code de l'imprimante :"
 
 #: src/gui/screen_menu_steel_sheets.hpp:44
 msgid "Select"
@@ -4635,7 +4635,7 @@ msgid ""
 "Selftest failed!\n"
 "Details below, use knob to scroll"
 msgstr ""
-"Échec du Selftest !\n"
+"Échec du Selftest !\n"
 "Détails ci-dessous, utilisez le bouton pour faire défiler"
 
 #: src/gui/wizard/selftest_frame_result.cpp:64
@@ -4961,23 +4961,23 @@ msgstr "Enregistrer"
 
 #: src/gui/screen_menu_metrics.hpp:190
 msgid "Store current values?"
-msgstr "Stocker les valeurs actuelles ?"
+msgstr "Stocker les valeurs actuelles ?"
 
 #: src/gui/screen_menu_metrics.hpp:87
 msgid "Stored Configuration:"
-msgstr "Configuration stockée :"
+msgstr "Configuration stockée :"
 
 #: src/gui/screen_menu_metrics.hpp:191
 msgid "Store this as Host?"
-msgstr "Stocker ceci en tant qu'hôte ?"
+msgstr "Stocker ceci en tant qu'hôte ?"
 
 #: src/gui/screen_menu_metrics.hpp:193
 msgid "Store this as Log port?"
-msgstr "Stocker ceci en tant que port de journal ?"
+msgstr "Stocker ceci en tant que port de journal ?"
 
 #: src/gui/screen_menu_metrics.hpp:192
 msgid "Store this as Metrics Port?"
-msgstr "Stocker ceci en tant que port de métriques ?"
+msgstr "Stocker ceci en tant que port de métriques ?"
 
 #: src/gui/MItem_hardware.hpp:20
 msgid "Strict"
@@ -5382,7 +5382,7 @@ msgid ""
 msgstr ""
 "Cette fonctionnalité vous permet de collecter des données de diagnostic à afficher dans Grafana. Attention, elle peut envoyer des données non cryptées sur internet.\n"
 "\n"
-"Autorisez n’importe quel hôte et utilisez les G-codes M33x pour configurer les métriques et le journal système. Après cela, vous pouvez stocker l'hôte et le port en cliquant sur la configuration actuelle."
+"Autorisez n'importe quel hôte et utilisez les G-codes M33x pour configurer les métriques et le journal système. Après cela, vous pouvez stocker l'hôte et le port en cliquant sur la configuration actuelle."
 
 #: src/gui/screen_tools_mapping.cpp:1079
 msgid ""
@@ -5392,7 +5392,7 @@ msgid ""
 msgstr ""
 "Ce filament a déjà un outil attribué.\n"
 "\n"
-"Voulez-vous REMPLACER l'outil attribué par l'outil sélectionné ou ajouter l'outil sélectionné pour la fonctionnalité SPOOL JOIN ?"
+"Voulez-vous REMPLACER l'outil attribué par l'outil sélectionné ou ajouter l'outil sélectionné pour la fonctionnalité SPOOL JOIN ?"
 
 #: src/gui/screen_home.cpp:322
 msgid ""
@@ -5428,7 +5428,7 @@ msgid ""
 "You will need a USB drive with this firmware (MK4XLPRINTER_firmware_4.6.0.bbf file) to start the printer again.\n"
 "Do you really want to continue?"
 msgstr ""
-"Cette opération ne peut pas être annulée. La configuration actuelle sera perdue !\n"
+"Cette opération ne peut pas être annulée. La configuration actuelle sera perdue !\n"
 "Vous aurez besoin d'une clé USB avec ce firmware (fichier MK4XLPRINTER_firmware_4.6.0.bbf) pour redémarrer l'imprimante.\n"
 "Voulez-vous vraiment continuer ?"
 
@@ -5440,7 +5440,7 @@ msgid ""
 "You will need a USB drive with this firmware (%s_firmware_%s.bbf file) to start the printer again.\n"
 "Do you really want to continue?"
 msgstr ""
-"Cette opération ne peut pas être annulée. La configuration actuelle sera perdue !\n"
+"Cette opération ne peut pas être annulée. La configuration actuelle sera perdue !\n"
 "Vous aurez besoin d'une clé USB avec ce firmware (fichier %s_firmware_%s.bbf) pour redémarrer l'imprimante.\n"
 "Voulez-vous vraiment continuer ?"
 
@@ -5450,8 +5450,8 @@ msgid ""
 "This operation cannot be undone. Current user configuration and passwords will be lost!\n"
 "Do you want to reset the printer to factory defaults?"
 msgstr ""
-"Cette opération ne peut pas être annulée. La configuration utilisateur actuelle et les mots de passe seront perdus !\n"
-"Voulez-vous réinitialiser l'imprimante aux paramètres d'usine ?"
+"Cette opération ne peut pas être annulée. La configuration utilisateur actuelle et les mots de passe seront perdus !\n"
+"Voulez-vous réinitialiser l'imprimante aux paramètres d'usine ?"
 
 #. XL should use snake instead of this
 #: src/gui/wizard/selftest_frame_result.cpp:57
@@ -5459,8 +5459,8 @@ msgid ""
 "This screen shows only 1st tool!\n"
 "XL should use snake!"
 msgstr ""
-"Cet écran n'affiche que le 1er outil !\n"
-"La XL devrait utiliser la routine de selftest snake !"
+"Cet écran n'affiche que le 1er outil !\n"
+"La XL devrait utiliser la routine de selftest snake !"
 
 #. trying to assign to oneself again
 #. ask about unassign
@@ -5477,15 +5477,15 @@ msgid ""
 msgstr ""
 "Cet outil est déjà une bobine jointe à ce filament.\n"
 "\n"
-"Voulez-vous le REMPLACER en premier ou le SUPPRIMER du spool join ?"
+"Voulez-vous le REMPLACER en premier ou le SUPPRIMER du spool join ?"
 
 #: src/gui/MItem_tools.hpp:412
 msgid "This will allow metrics to be enabled by G-code. It can send unencrypted diagnostics data to the internet. Do you really want to allow metrics?"
-msgstr "Cela permettra aux métriques d'être activées par G-code. Elle peut envoyer des données de diagnostic non cryptées sur Internet. Voulez-vous vraiment autoriser les métriques ?"
+msgstr "Cela permettra aux métriques d'être activées par G-code. Elle peut envoyer des données de diagnostic non cryptées sur Internet. Voulez-vous vraiment autoriser les métriques ?"
 
 #: src/gui/screen_menu_metrics.hpp:60
 msgid "This will allow network to be enabled by M33x G-codes. It can send unencrypted diagnostics data to the internet. Do you really want to allow this?"
-msgstr "Cela permettra au réseau d'être activé par les codes G M33x. Elle peut envoyer des données de diagnostic non cryptées sur Internet. Voulez-vous vraiment autoriser cela ?"
+msgstr "Cela permettra au réseau d'être activé par les codes G M33x. Elle peut envoyer des données de diagnostic non cryptées sur Internet. Voulez-vous vraiment autoriser cela ?"
 
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:51
@@ -5680,7 +5680,7 @@ msgstr "Auj. à"
 
 #: src/gui/screen_help_fw_update.cpp:78
 msgid "To learn more including firmware downgrade, please visit: prusa.io/mini-firmware"
-msgstr "Pour en savoir plus, y compris la rétrogradation du firmware, veuillez visiter : prusa.io/mini-firmware"
+msgstr "Pour en savoir plus, y compris la rétrogradation du firmware, veuillez visiter : prusa.io/mini-firmware"
 
 #: src/gui/screen_help_fw_update.cpp:62
 msgid ""
@@ -5906,7 +5906,7 @@ msgstr "CARTOGRAPHIE DES OUTILS"
 
 #: src/gui/esp_frame_qr.cpp:32
 msgid "To setup or troubleshoot your Wi-Fi, please visit:"
-msgstr "Pour configurer ou dépanner votre Wi-Fi, veuillez visiter :"
+msgstr "Pour configurer ou dépanner votre Wi-Fi, veuillez visiter :"
 
 #: src/gui/MItem_mmu.hpp:392
 msgid "Total General Fails"
@@ -6172,14 +6172,14 @@ msgid ""
 "insert a USB drive\n"
 "with a valid\n"
 "firmware file."
-msgstr "Clé USB non connectée ! Veuillez insérer une clé USB avec un fichier de firmware valide."
+msgstr "Clé USB non connectée ! Veuillez insérer une clé USB avec un fichier de firmware valide."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:369
 msgid ""
 "USB drive not connected! \n"
 "Please insert a USB drive with a valid firmware file."
 msgstr ""
-"Clé USB non connectée ! \n"
+"Clé USB non connectée ! \n"
 "Veuillez insérer une clé USB avec un fichier de firmware valide."
 
 #: src/gui/esp_frame_text.cpp:28
@@ -6352,7 +6352,7 @@ msgstr "Qu'est-ce que c'est ?"
 
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:81
 msgid "What kind of nozzle type do you have installed?"
-msgstr "Quel type de type de buse avez-vous installé ?"
+msgstr "Quel type de type de buse avez-vous installé ?"
 
 #: src/gui/MItem_menus.hpp:180
 msgid "Wi-Fi"
@@ -6364,7 +6364,7 @@ msgstr "Connexion Wifi"
 
 #: src/gui/screen_home.cpp:400
 msgid "Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"
-msgstr "Identifiants Wi-Fi (SSID et mot de passe) découverts sur la clé USB. Souhaitez-vous connecter votre imprimante au Wi-Fi maintenant ?"
+msgstr "Identifiants Wi-Fi (SSID et mot de passe) découverts sur la clé USB. Souhaitez-vous connecter votre imprimante au Wi-Fi maintenant ?"
 
 #: src/gui/esp_frame_progress.cpp:52
 msgid ""
@@ -6448,7 +6448,7 @@ msgstr "SONDE XY INSTABLE"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:29
 msgid "XY probing failed due to the low measurement stability."
-msgstr "La sonde XY a échoué en raison d’une faible stabilité de mesure."
+msgstr "La sonde XY a échoué en raison d'une faible stabilité de mesure."
 
 #: src/common/footer_def.hpp:136
 msgid "Y"
