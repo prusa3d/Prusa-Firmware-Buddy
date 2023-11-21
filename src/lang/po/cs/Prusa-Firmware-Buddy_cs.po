@@ -4,9 +4,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n%10 >= 2 && n%10 <=4 && "
-"(n%100 < 12 || n%100 > 14)) ? 1 : ((n%10 == 0 || n%10 == 1 || (n%10 >= 5 && "
-"n%10 <=9)) || (n%100 >= 12 && n%100 <= 14)) ? 2 : 3);\n"
+"Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n%10 >= 2 && n%10 <=4 && (n%100 < 12 || n%100 > 14)) ? 1 : ((n%10 == 0 || n%10 == 1 || (n%10 >= 5 && n%10 <=9)) || (n%100 >= 12 && n%100 <= 14)) ? 2 : 3);\n"
 "X-Generator: Prusalator\n"
 
 #: src/gui/screen_menu_connect.cpp:83
@@ -17,42 +15,62 @@ msgstr "---"
 msgid "12h"
 msgstr "12h"
 
+#. Intentionally without translation
+#: src/gui/wizard/selftest_frame_dock.hpp:32
+msgid "1. Please park current tool manually. Move the head to the rear and align it with pins"
+msgstr "1. Zaparkujte aktuální nástroj ručně. Posuňte hlavu dozadu a zarovnejte ji s piny."
+
 #: src/gui/wizard/selftest_frame_dock.hpp:39
+msgid "1. Please park current tool manually. Move the tool changing mechanism to the rear and align it with pins"
+msgstr "1. Zaparkujte aktuální nástroj ručně. Posuňte měnič nástrojů do zadní polohy a výřezy zarovnejte s dokovacími piny."
+
+#: src/gui/dialogs/DialogConnectReg.cpp:87
 msgid ""
-"1. Please park current tool manually. Move the tool changing mechanism to "
-"the rear and align it with pins"
+"1. Scan the QR code or visit prusa.io/add.\n"
+"2. Log in.\n"
+"3. Add printer with code:"
 msgstr ""
-"1. Zaparkujte aktuální nástroj ručně. Posuňte měnič nástrojů do zadní polohy "
-"a výřezy zarovnejte s dokovacími piny."
+"1. Naskenujte QR nebo navštivte prusa.io/add\n"
+"2. Přihlašte se\n"
+"3. Přidejte tiskárnu pomocí kódu:"
 
 #: src/gui/dialogs/DialogConnectReg.cpp:129
 msgid ""
 "1. Scan the QR code or visit prusa.io/add.\n"
 "2. Log in.\n"
 "3. Add printer with code:\n"
+""
 msgstr ""
 "1. Naskenujte QR kód nebo navštivte stránku prusa.io/add.\n"
 "2. Přihlaste se.\n"
 "3. Přidejte tiskárnu pomocí kódu:\n"
+""
 
 #: src/gui/MItem_tools.hpp:249
 msgid "24h"
 msgstr "24h"
 
+#: src/gui/wizard/selftest_frame_dock.hpp:33
+msgid "2. Now move the head to the right, the tool will be locked in the dock"
+msgstr "2. Nyní hlavu přesuňte doprava, tím zamknete nástroj"
+
 #: src/gui/wizard/selftest_frame_dock.hpp:40
+msgid "2. Now move the tool changing mechanism to the right, the tool will be locked in the dock"
+msgstr "2. Nyní posuňte měnič nástrojů doprava, tím dojde k zajištění nástroje v doku."
+
+#: src/gui/wizard/selftest_frame_dock.hpp:34
 msgid ""
-"2. Now move the tool changing mechanism to the right, the tool will be "
-"locked in the dock"
+"3. The head can now move freely.\n"
+"Move it a little bit to the front."
 msgstr ""
-"2. Nyní posuňte měnič nástrojů doprava, tím dojde k zajištění nástroje v "
-"doku."
+"3. S hlavou je nyní možno hýbat.\n"
+"Posuňte ji směrem dopředu."
 
 #: src/gui/wizard/selftest_frame_dock.hpp:41
 msgid ""
 "3. The tool changing mechanism can now move freely.\n"
 "Move it a little bit to the front."
-msgstr ""
-"3. Měnič nástrojů se nyní může volně pohybovat. Posuňte ho o kousek dopředu."
+msgstr "3. Měnič nástrojů se nyní může volně pohybovat. Posuňte ho o kousek dopředu."
 
 #: src/gui/MItem_tools.hpp:567
 msgid "5V Voltage"
@@ -114,17 +132,17 @@ msgid "Aligning tool"
 msgstr "Zarovnávací nástroj"
 
 #: src/gui/wizard/selftest_frame_dock.hpp:44
-msgid ""
-"Align the tool changing mechanism with the tool and lock it by sliding both "
-"metal bars to the right."
-msgstr ""
-"Zarovnejte toolchanger s nástrojem a zajistěte ho posunutím obou kovových "
-"petlic doprava."
+msgid "Align the tool changing mechanism with the tool and lock it by sliding both metal bars to the right."
+msgstr "Zarovnejte toolchanger s nástrojem a zajistěte ho posunutím obou kovových petlic doprava."
 
 #. Adjust
 #: src/common/client_response_texts.cpp:21
 msgid "ALL"
 msgstr "VŠE"
+
+#: src/gui/screen_tools_mapping.cpp:329
+msgid "All filaments are assigned."
+msgstr "Všechny filamenty přiřazeny."
 
 #: src/common/footer_def.hpp:181
 msgid "All nozzles"
@@ -139,9 +157,17 @@ msgstr "Alokace dynamického zásobníku pro PNG selhala - došla paměť."
 msgid "Allow"
 msgstr "Povolit"
 
+#: src/gui/MItem_tools.hpp:411
+msgid "Allow Metrics"
+msgstr "Povolit metriky"
+
 #: src/gui/screen_menu_fw_update.hpp:12 src/gui/screen_menu_fw_update.hpp:49
 msgid "Always"
 msgstr "Vždy"
+
+#: src/gui/window_msgbox_wrong_printer.hpp:13
+msgid "a new firmware version is available"
+msgstr "nová verze firmwaru je k dispozici"
 
 #: src/gui/screen_menu_metrics.hpp:63
 msgid "Any Host"
@@ -172,41 +198,41 @@ msgstr "Přiřazené nástroje bez filamentu."
 msgid "Assist"
 msgstr "Assist"
 
+#: src/gui/screen_tools_mapping.cpp:572
+msgid ""
+"A tool is already assigned to this filament.\n"
+"\n"
+"Do you want to replace it\n"
+"or add it as an additional one\n"
+"for the Spool Join functionality?"
+msgstr ""
+"K tomuto filamentu je přiřazen nástroj.\n"
+"\n"
+"Chcete jej nahradit nebo\n"
+"přidat jako další pro\n"
+"funkci SpoolJoin?"
+
 #: src/gui/dialogs/DialogConnectReg.hpp:20
 msgid "Attempt"
 msgstr "Pokus"
 
 #: src/gui/MItem_tools.cpp:949
-msgid ""
-"ATTENTION: Changing any Input Shaper values will overwrite them permanently. "
-"To revert to a stock setup, visit prusa.io/input-shaper or run a factory "
-"reset."
-msgstr ""
-"POZOR: Změna hodnot Input Shaperu přepíše výchozí hodnoty. K návratu na "
-"původní konfiguraci využijte návod na prusa.io/input-shaper nebo proveďte "
-"tovární reset."
+msgid "ATTENTION: Changing any Input Shaper values will overwrite them permanently. To revert to a stock setup, visit prusa.io/input-shaper or run a factory reset."
+msgstr "POZOR: Změna hodnot Input Shaperu přepíše výchozí hodnoty. K návratu na původní konfiguraci využijte návod na prusa.io/input-shaper nebo proveďte tovární reset."
 
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:74
-msgid ""
-"Attention, the test has failed. Check below the expected printer setup and "
-"adjust it accordingly:"
-msgstr ""
-"Pozor: test selhal! Níže zkontrolujte očekávané nastavení tiskárny a položky "
-"upravte."
+msgid "Attention, the test has failed. Check below the expected printer setup and adjust it accordingly:"
+msgstr "Pozor: test selhal! Níže zkontrolujte očekávané nastavení tiskárny a položky upravte."
 
 #: src/gui/wizard/selftest_frame_wizard_prologue.cpp:90
 msgid ""
-"At the bottom of screen in status bar you can check some information about "
-"your printer.During self-test, the individual information will alternate.\n"
+"At the bottom of screen in status bar you can check some information about your printer.During self-test, the individual information will alternate.\n"
 "\n"
-"After the test, you can select the parameters to be displayed in the status "
-"bar."
+"After the test, you can select the parameters to be displayed in the status bar."
 msgstr ""
-"Ve spodní části obrazovky se nachází základní informace o vaší tiskárně. "
-"Během Selftestu se mohou zobrazit odlišné informace.\n"
+"Ve spodní části obrazovky se nachází základní informace o vaší tiskárně. Během Selftestu se mohou zobrazit odlišné informace.\n"
 "\n"
-"Po skončení testu si můžete v nastavení vybrat, které informace se budou "
-"zobrazovat."
+"Po skončení testu si můžete v nastavení vybrat, které informace se budou zobrazovat."
 
 #: src/gui/MItem_tools.hpp:51
 msgid "Auto Home"
@@ -254,12 +280,8 @@ msgid "Backup Calibration to USB"
 msgstr "Zálohovat kalibraci na USB"
 
 #: src/gui/wizard/selftest_frame_fans.cpp:37
-msgid ""
-"Based on the test it looks like the fans connectors are switched. Double "
-"check your wiring and repeat the test."
-msgstr ""
-"Na základě testu to vypadá, že máte prohozené zapojení ventilátorů. "
-"Zkontrolujte kabeláž a test opakujte."
+msgid "Based on the test it looks like the fans connectors are switched. Double check your wiring and repeat the test."
+msgstr "Na základě testu to vypadá, že máte prohozené zapojení ventilátorů. Zkontrolujte kabeláž a test opakujte."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:193
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:238
@@ -275,6 +297,22 @@ msgstr "INICIALIZACE BBF SELHALA"
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:244
 msgid "BBF initialization failed, repeat the action or try another USB drive."
 msgstr "Inicializace BBF selhala. Opakujte akci nebo zkuste jiný USB disk."
+
+#: src/gui/wizard/selftest_frame_dock.hpp:42
+msgid ""
+"Be careful!\n"
+"Printer is moving during parking test."
+msgstr ""
+"Pozor!\n"
+"Tiskárna se během testu bude hýbat."
+
+#: src/gui/wizard/selftest_frame_dock.hpp:39
+msgid ""
+"Be careful\n"
+"The printer is moving while measuring dock position."
+msgstr ""
+"Pozor!\n"
+"Toolchanger se během měření pohybuje."
 
 #: src/common/footer_def.hpp:124
 msgid "Bed"
@@ -301,6 +339,26 @@ msgid "Bootloader Version"
 msgstr "Verze bootloaderu"
 
 #. c=20 r=4
+#: src/gui/version_info_ST7789V.cpp:69
+#, c-format
+msgid ""
+"\n"
+"Bootloader Version\n"
+"%d.%d.%d\n"
+"\n"
+"Buddy Board\n"
+"%d.%d\n"
+"%s"
+msgstr ""
+"\n"
+"Verze bootloaderu\n"
+"%d.%d.%d\n"
+"\n"
+"Deska Buddy\n"
+"%d.%d\n"
+"%s"
+
+#. c=20 r=4
 #: src/gui/version_info_ST7789V.cpp:61
 #, c-format
 msgid ""
@@ -320,6 +378,10 @@ msgstr ""
 "%d\n"
 "%s"
 
+#: src/gui/test/screen_menu_test.cpp:36
+msgid "BSOD div 0"
+msgstr "BSOD div 0"
+
 #: src/gui/MItem_tools.hpp:429
 msgid "Buddy Board"
 msgstr "Deska Buddy"
@@ -327,6 +389,10 @@ msgstr "Deska Buddy"
 #: src/gui/screen_menu_connect.cpp:89
 msgid "Bug"
 msgstr "Chyba"
+
+#: src/gui/MItem_menus.hpp:454 src/gui/screen_home.cpp:137
+msgid "Calibrate"
+msgstr "Kalibrovat"
 
 #: src/guiapi/include/window_tool_action_box.hpp:88
 msgid "Calibrate Dock 1"
@@ -376,6 +442,10 @@ msgstr "Kalibruji offsety nástrojů."
 msgid "Calibration"
 msgstr "Kalibrace"
 
+#: src/gui/screen_menu_calibration.hpp:10
+msgid "CALIBRATION"
+msgstr "KALIBRACE"
+
 #: src/gui/MItem_basic_selftest.cpp:252
 msgid "Calibration data restored successfully"
 msgstr "Kalibrační data načtena"
@@ -385,8 +455,7 @@ msgid "Calibration data saved successfully"
 msgstr "Kalibrační data uložena"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:39
-msgid ""
-"Calibration pin has not been reached. Please check the pin installation."
+msgid "Calibration pin has not been reached. Please check the pin installation."
 msgstr "Kalibrační pin nenalezen. Zkontrolujte jeho instalaci."
 
 #: src/gui/MItem_menus.hpp:485
@@ -410,6 +479,10 @@ msgstr "Zrušeno"
 #: src/gui/MItem_tools.hpp:640
 msgid "Cancel Object"
 msgstr "Zrušit tisk objektu"
+
+#: src/gui/MItem_tools.hpp:610
+msgid "Cancel Object (Experimental)"
+msgstr "Zrušit objekt (experimentální)"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:270
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:270
@@ -486,8 +559,7 @@ msgstr "KONTROLY"
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:9
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:14
 msgid "Check the heatbed heater & thermistor wiring for possible damage."
-msgstr ""
-"Zkontrolujte, zda nejsou poškozeny kabely vyhřívané podložky a termistoru."
+msgstr "Zkontrolujte, zda nejsou poškozeny kabely vyhřívané podložky a termistoru."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:19
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:29
@@ -512,9 +584,7 @@ msgstr "Zkontrolujte, zda není poškozen kabel vyhřívání nebo termistoru."
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:14
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:19
 msgid "Check the print head heater & thermistor wiring for possible damage."
-msgstr ""
-"Zkontrolujte, zda nejsou poškozené kabely od topného bloku a termistoru "
-"tiskové hlavy."
+msgstr "Zkontrolujte, zda nejsou poškozené kabely od topného bloku a termistoru tiskové hlavy."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:24
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:34
@@ -548,8 +618,7 @@ msgid "Click the knob to close"
 msgstr "Stiskněte tlačítko pro ukončení"
 
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:60
-msgid ""
-"Close the idler door and secure it with the swivel. The calibration is done!"
+msgid "Close the idler door and secure it with the swivel. The calibration is done!"
 msgstr "Zavřete dvířka idleru a zajistěte je sponou. Kalibrace je hotová!"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:229
@@ -573,6 +642,10 @@ msgstr "Připojeno"
 msgid "Connecting"
 msgstr "Připojuji"
 
+#: src/gui/wizard/selftest_frame_esp.cpp:58
+msgid "Connection successfully established! Wi-Fi is now ready for use."
+msgstr "Spojení navázáno! Wi-Fi je připravena."
+
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:153
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:163
 msgid "CONNECT REGISTRATION FAILED"
@@ -581,6 +654,10 @@ msgstr "REGISTRACE DO CONNECTU SELHALA"
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:14
 msgid "Consider adjusting belt tension."
 msgstr "Zvažte úpravu napnutí řemene."
+
+#: src/gui/screen_printing.cpp:118
+msgid "Consumed material"
+msgstr "Spotřeba materiálu"
 
 #: src/gui/dialogs/resolution_480x320/radio_button_preview.cpp:59
 msgid "Continue"
@@ -625,6 +702,13 @@ msgstr "Zchladit"
 msgid "COOLDOWN"
 msgstr "ZCHLADIT"
 
+#: src/gui/wizard/selftest_frame_loadcell.cpp:87
+msgid ""
+"Cooling down.\n"
+"\n"
+"Do not touch the nozzle!"
+msgstr "Ochlazování. Nedotýkejte se trysky!"
+
 #: src/gui/wizard/selftest_frame_loadcell.cpp:84
 msgid "Cooling down. Do not touch the nozzle!"
 msgstr "Nedotýkejte se trysky! Probíhá ochlazování."
@@ -637,6 +721,10 @@ msgstr "CPU vyt."
 #: src/gui/screen_crash_recovery.cpp:359
 msgid "CRASH DETECTED"
 msgstr "DETEKOVÁN NÁRAZ"
+
+#: src/gui/screen_home.cpp:278
+msgid "Crash detected. Save it to USB?"
+msgstr "Detekován náraz. Uložit na USB?"
 
 #: src/gui/screen_home.cpp:270
 msgid "Crash detected. Save it to USB and send it to Prusa?"
@@ -674,8 +762,7 @@ msgstr "Vytvoření souboru selhalo! Zkontrolujte USB disk!"
 msgid ""
 "Credentials loaded, attempting to connect.\n"
 "\n"
-"You may continue using printer. The Wi-Fi icon will appear in the status bar "
-"once connected.\n"
+"You may continue using printer. The Wi-Fi icon will appear in the status bar once connected.\n"
 "\n"
 "If nothing happens after a few minutes, check & reload the credentials.\n"
 "\n"
@@ -683,11 +770,9 @@ msgid ""
 msgstr ""
 "Údaje nahrány, probíhá pokus o připojení.\n"
 "\n"
-"Mezitím lze tiskárnu používat. Při úspěšném připojení se v horní liště "
-"objeví ikona Wi-Fi.\n"
+"Mezitím lze tiskárnu používat. Při úspěšném připojení se v horní liště objeví ikona Wi-Fi.\n"
 "\n"
-"Pokud se ani po pár minutách nic nestane, zkontrolujte údaje a nahrajte je "
-"znovu.\n"
+"Pokud se ani po pár minutách nic nestane, zkontrolujte údaje a nahrajte je znovu.\n"
 "\n"
 "Smazat soubor s údaji? (doporučeno)"
 
@@ -749,9 +834,7 @@ msgstr "Výchozí"
 msgid ""
 "Detected mismatching loaded filament types, this could ruin the print.\n"
 "Print anyway?"
-msgstr ""
-"Detekovány nesouhlasící typy zavedeného filamentu, může dojít k poškození "
-"tisku. Přesto pokračovat?"
+msgstr "Detekovány nesouhlasící typy zavedeného filamentu, může dojít k poškození tisku. Přesto pokračovat?"
 
 #: src/gui/screen_tools_mapping.cpp:1146
 msgid ""
@@ -841,6 +924,11 @@ msgstr "VYPNOUT MMU"
 msgid "Disable Motors"
 msgstr "Vypnout motory"
 
+#. Disable
+#: src/common/client_response_texts.cpp:28
+msgid "DISABLE SENSOR"
+msgstr "VYPNOUT SENZOR"
+
 #: src/gui/ScreenPrintingModel.cpp:26
 msgid "Disconnect"
 msgstr "Odpojit"
@@ -925,6 +1013,10 @@ msgstr "Dok X"
 msgid "Dock Y"
 msgstr "Dok Y"
 
+#: src/gui/dialogs/DialogConnectReg.cpp:92
+msgid "Done!"
+msgstr "Hotovo!"
+
 #. Intentionally without translation
 #: src/gui/wizard/selftest_frame_dock.hpp:38
 msgid "Do not touch the printer. Be careful around the moving parts."
@@ -941,8 +1033,7 @@ msgstr ""
 #: src/gui/wizard/selftest_frame_dock.hpp:49
 msgid ""
 "Do not touch the printer!\n"
-"The printer is performing the parking test. Be careful around the moving "
-"parts."
+"The printer is performing the parking test. Be careful around the moving parts."
 msgstr ""
 "Nedotýkejte se tiskárny!\n"
 "Tiskárna provádí test parkování. Pozor na pohyblivé části."
@@ -968,14 +1059,8 @@ msgid "DOWN"
 msgstr "DOLŮ"
 
 #: src/gui/screen_help_fw_update.cpp:28
-msgid ""
-"Download and copy the firmware (.bbf) file to the USB flash drive. Insert "
-"the drive into the printer and turn it on or restart it. Confirm the "
-"installation of the new firmware."
-msgstr ""
-"Stáhněte a nakopírujte soubor firmwaru (.bbf) na USB disk. Vložte jej do "
-"tiskárny a přístroj zapněte či restartujte. Tlačítkem pak potvrďte instalaci "
-"nového firmwaru."
+msgid "Download and copy the firmware (.bbf) file to the USB flash drive. Insert the drive into the printer and turn it on or restart it. Confirm the installation of the new firmware."
+msgstr "Stáhněte a nakopírujte soubor firmwaru (.bbf) na USB disk. Vložte jej do tiskárny a přístroj zapněte či restartujte. Tlačítkem pak potvrďte instalaci nového firmwaru."
 
 #: src/gui/screen_print_preview.cpp:85
 msgid "Downloading..."
@@ -990,12 +1075,8 @@ msgid "Do you have a silicone hotend sock installed?"
 msgstr "Je na trysce silikonový návlek?"
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:62
-msgid ""
-"Do you want to repeat the last step and readjust the distance between the "
-"nozzle and heatbed?"
-msgstr ""
-"Chcete zopakovat poslední krok a upravit nastavení vzdálenosti mezi tryskou "
-"a podložkou?"
+msgid "Do you want to repeat the last step and readjust the distance between the nozzle and heatbed?"
+msgstr "Chcete zopakovat poslední krok a upravit nastavení vzdálenosti mezi tryskou a podložkou?"
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:54
 #, c-format
@@ -1018,6 +1099,14 @@ msgstr "Opakovat selftest výhřevu?"
 #, c-format
 msgid "%d Tool Offset Calibration"
 msgstr "%d Kalibrace offsetu nástroje"
+
+#: src/gui/wizard/selftest_frame_fans.cpp:29
+msgid "During the test, the expected fan speeds are checked for 30 seconds."
+msgstr "Během testu budou rychlosti ventilátorů testovány 30 sekund."
+
+#: src/gui/wizard/selftest_frame_axis.cpp:31
+msgid "During the test, the heatbed, and extruder will move in full range."
+msgstr "Během testu se extruder a podložka posunou v plném rozsahu."
 
 #: src/gui/wizard/selftest_frame_axis.cpp:31
 msgid ""
@@ -1232,27 +1321,16 @@ msgid "Error invalid selftest state"
 msgstr "Chyba: neplatný stav selftestu"
 
 #: src/gui/MItem_tools.cpp:291
-msgid ""
-"Error saving crash dump report to the USB drive. Please reinsert the USB "
-"drive and try again."
-msgstr ""
-"Chyba při ukládání výpisu chyb na USB. Vložte USB znovu a opakujte akci."
+msgid "Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."
+msgstr "Chyba při ukládání výpisu chyb na USB. Vložte USB znovu a opakujte akci."
 
 #: src/gui/MItem_touch.cpp:30
-msgid ""
-"Error saving touch registers to the USB drive. Please reinsert the USB drive "
-"and try again."
-msgstr ""
-"Chyba při ukládání dotykových registrů na USB. Vložte USB znovu a akci "
-"opakujte."
+msgid "Error saving touch registers to the USB drive. Please reinsert the USB drive and try again."
+msgstr "Chyba při ukládání dotykových registrů na USB. Vložte USB znovu a akci opakujte."
 
 #: src/gui/MItem_touch.cpp:45
-msgid ""
-"Error uploading touch registers from the USB drive. Please reinsert the USB "
-"drive and try again."
-msgstr ""
-"Chyba při uploadu dotykových registrů z USB. Vložte USB znovu a akci "
-"opakujte."
+msgid "Error uploading touch registers from the USB drive. Please reinsert the USB drive and try again."
+msgstr "Chyba při uploadu dotykových registrů z USB. Vložte USB znovu a akci opakujte."
 
 #. //MSG_PROGRESS_ERR_HELP_FIL c=20
 #: src/gui/dialogs/DialogLoadUnload.cpp:78
@@ -1348,29 +1426,20 @@ msgstr "TOVÁRNÍ RESET"
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:79
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:84
-msgid ""
-"Failed to home the extruder in X-axis, make sure there is no obstacle on X-"
-"axis."
+msgid "Failed to home the extruder in X-axis, make sure there is no obstacle on X-axis."
 msgstr "Selhal homing na ose X. Ujistěte se, že v cestě nejsou žádné překážky."
 
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:79
-msgid ""
-"Failed to home the extruder in Z-axis, make sure the loadcell is working."
+msgid "Failed to home the extruder in Z-axis, make sure the loadcell is working."
 msgstr "Chyba při homingu na ose Z. Ujistěte se, že senzor Loadcell funguje."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:134
-msgid ""
-"Failed to home the X-axis, make sure there is no obstacle on X-axis or Y-"
-"axis."
-msgstr ""
-"Selhal homing na ose X. Ujistěte se, že na osách X a Y nejsou žádné překážky."
+msgid "Failed to home the X-axis, make sure there is no obstacle on X-axis or Y-axis."
+msgstr "Selhal homing na ose X. Ujistěte se, že na osách X a Y nejsou žádné překážky."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:139
-msgid ""
-"Failed to home the Y-axis, make sure there is no obstacle on X-axis or Y-"
-"axis."
-msgstr ""
-"Selhal homing na ose Y. Ujistěte se, že na osách X a Y nejsou žádné překážky."
+msgid "Failed to home the Y-axis, make sure there is no obstacle on X-axis or Y-axis."
+msgstr "Selhal homing na ose Y. Ujistěte se, že na osách X a Y nejsou žádné překážky."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:84
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:89
@@ -1382,12 +1451,8 @@ msgid "Failed to home the Z-axis, make sure the loadcell is working."
 msgstr "Chyba při homingu osy Z - ujistěte se, že Loadcell funguje."
 
 #: src/gui/screen_menu_connect.cpp:43
-msgid ""
-"Failed to load config. Make sure the ini file downloaded from Connect is on "
-"the USB drive and try again."
-msgstr ""
-"Nelze načíst konfiguraci. Ujistěte se, že ini soubor stažený ze služby "
-"Connect je na USB. Opakujte akci."
+msgid "Failed to load config. Make sure the ini file downloaded from Connect is on the USB drive and try again."
+msgstr "Nelze načíst konfiguraci. Ujistěte se, že ini soubor stažený ze služby Connect je na USB. Opakujte akci."
 
 #: src/common/gcode/gcode_info.cpp:106
 msgid "Failed to open file"
@@ -1474,10 +1539,12 @@ msgstr "Filament"
 msgid "FILAMENT"
 msgstr "FILAMENT"
 
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:226
+msgid "FILAMENT ALREADY LOADED"
+msgstr "FILAMENT JE JIŽ ZAVEDEN"
+
 #: src/gui/MItem_filament.hpp:11
-msgid ""
-"Filament appears to be already loaded, are you sure you want to load it "
-"anyway?"
+msgid "Filament appears to be already loaded, are you sure you want to load it anyway?"
 msgstr "Zdá se, že filament je už zaveden. Chcete jej přesto zavést znovu?"
 
 #: src/gui/MItem_tools.hpp:443
@@ -1486,12 +1553,8 @@ msgstr "Auto zavedení filamentu"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:305
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:305
-msgid ""
-"Filament detected unexpectedly. Ensure no filament is loaded. Check the "
-"sensors and wiring."
-msgstr ""
-"Neočekávaná detekce filamentu. Ujistěte se, že filament není zaveden. "
-"Zkontrolujte zapojení senzoru."
+msgid "Filament detected unexpectedly. Ensure no filament is loaded. Check the sensors and wiring."
+msgstr "Neočekávaná detekce filamentu. Ujistěte se, že filament není zaveden. Zkontrolujte zapojení senzoru."
 
 #: src/gui/screen_print_preview.hpp:23
 msgid "Filament detected. Unload filament now? Select NO to cancel."
@@ -1507,14 +1570,8 @@ msgid "Filament inserted, press continue."
 msgstr "Filament vložen, vyberte Pokračovat."
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:37
-msgid ""
-"Filament is required for the test, if you don't have it, press Abort. If "
-"filament is loaded in extruder press unload. If you have filament and "
-"filament is not loaded in extruder press next."
-msgstr ""
-"Pro test je vyžadován filament. Pokud jej nemáte, vyberte Zrušit. Pokud je "
-"filament v extruderu, zvolte Vysunout. Pokud máte filament a není zaveden, "
-"zvolte Další."
+msgid "Filament is required for the test, if you don't have it, press Abort. If filament is loaded in extruder press unload. If you have filament and filament is not loaded in extruder press next."
+msgstr "Pro test je vyžadován filament. Pokud jej nemáte, vyberte Zrušit. Pokud je filament v extruderu, zvolte Vysunout. Pokud máte filament a není zaveden, zvolte Další."
 
 #: src/gui/screen_menu_filament_mmu.hpp:31
 msgid "FILAMENT MMU"
@@ -1566,21 +1623,17 @@ msgstr "Kontrola senzoru filamentu"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:32
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:32
-msgid ""
-"Filament sensor didn't switch off while unloading filament. Ensure filament "
-"can move and the sensor works."
-msgstr ""
-"Senzor filamentu nevypnul při vysouvání filamentu. Ujistěte se, že se "
-"filament nezaseknul a senzor funguje."
+msgid "Filament sensor didn't switch off while unloading filament. Ensure filament can move and the sensor works."
+msgstr "Senzor filamentu nevypnul při vysouvání filamentu. Ujistěte se, že se filament nezaseknul a senzor funguje."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:23
+msgid "Filament sensor didn't trigger while loading the filament. Ensure the filament reached the fsensor and the sensor works."
+msgstr "Senzor filamentu nesepnul při zavádění filamentu. Ujistěte se, že se k němu filament dostal a že funguje."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:25
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:25
-msgid ""
-"Filament sensor didn't trigger while loading the filament. Ensure the sensor "
-"is calibrated and the filament reached it."
-msgstr ""
-"Senzor filamentu nesepnul při zavádění filamentu. Zkontrolujte, zda je "
-"senzor zkalibrovaný a filament se k němu může dostat."
+msgid "Filament sensor didn't trigger while loading the filament. Ensure the sensor is calibrated and the filament reached it."
+msgstr "Senzor filamentu nesepnul při zavádění filamentu. Zkontrolujte, zda je senzor zkalibrovaný a filament se k němu může dostat."
 
 #: src/gui/MItem_tools.cpp:80
 msgid "Filament sensor not connected, check wiring."
@@ -1600,12 +1653,8 @@ msgstr "Kalibrace senzoru filamentu"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:46
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:46
-msgid ""
-"Filament sensor triggered too early while loading to extruder. Check there "
-"isn't anything stuck in PTFE tube. Check that sensor reads properly."
-msgstr ""
-"Senzor filamentu se sepnul příliš brzy. Ujistěte se, že v PTFE trubičce "
-"nejsou nečistoty. Ujistěte se, že senzor funguje správně."
+msgid "Filament sensor triggered too early while loading to extruder. Check there isn't anything stuck in PTFE tube. Check that sensor reads properly."
+msgstr "Senzor filamentu se sepnul příliš brzy. Ujistěte se, že v PTFE trubičce nejsou nečistoty. Ujistěte se, že senzor funguje správně."
 
 #: src/gui/screen_print_preview.cpp:122
 msgid "File error"
@@ -1645,12 +1694,8 @@ msgstr "Finda"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:18
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:18
-msgid ""
-"FINDA didn't switch off while unloading filament. Try unloading manually. "
-"Ensure filament can move and FINDA works."
-msgstr ""
-"FINDA se při vysouvání filamentu nevypnula. Zkuste filament vyjmout ručně. "
-"Ujistěte se, že se filament může pohybovat a FINDA funguje."
+msgid "FINDA didn't switch off while unloading filament. Try unloading manually. Ensure filament can move and FINDA works."
+msgstr "FINDA se při vysouvání filamentu nevypnula. Zkuste filament vyjmout ručně. Ujistěte se, že se filament může pohybovat a FINDA funguje."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:10
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:10
@@ -1659,17 +1704,17 @@ msgstr "FINDA NESEPNULA"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:11
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:11
-msgid ""
-"FINDA didn't trigger while loading the filament. Ensure the filament can "
-"move and FINDA works."
-msgstr ""
-"FINDA nesepnula při zavádění filamentu. Ujistěte se, že se filament může "
-"pohybovat a FINDA funguje."
+msgid "FINDA didn't trigger while loading the filament. Ensure the filament can move and FINDA works."
+msgstr "FINDA nesepnula při zavádění filamentu. Ujistěte se, že se filament může pohybovat a FINDA funguje."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:17
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:17
 msgid "FINDA FILAM. STUCK"
 msgstr "FINDA: ZASEKLÝ FILAMENT"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:16
+msgid "FINDA: FILAM. STUCK"
+msgstr "FINDA: Zaseklý filament"
 
 #. Filament_removed
 #: src/common/client_response_texts.cpp:31
@@ -1688,13 +1733,11 @@ msgstr "Dokončování pohybů"
 
 #: src/gui/screen_menu_selftest_snake.cpp:176
 msgid ""
-"FINISH remaining calibrations without proceeding to other tests, or perform "
-"ALL Calibrations and Tests?\n"
+"FINISH remaining calibrations without proceeding to other tests, or perform ALL Calibrations and Tests?\n"
 "\n"
 "If you QUIT, all data up to this point is saved."
 msgstr ""
-"DOKONČIT zbývající kalibrace bez návazných testů, nebo provést VŠE - tedy "
-"kalibrace i testy?\n"
+"DOKONČIT zbývající kalibrace bez návazných testů, nebo provést VŠE - tedy kalibrace i testy?\n"
 "\n"
 "Pokud zvolíte KONEC, budou aktuální data uložena."
 
@@ -1865,8 +1908,12 @@ msgstr "Verze firmwaru"
 
 #. r=1 c=20
 #: src/gui/version_info_ST7789V.cpp:37
-msgid "Firmware Version\n"
-msgstr "Verze firmwaru\n"
+msgid ""
+"Firmware Version\n"
+""
+msgstr ""
+"Verze firmwaru\n"
+""
 
 #: src/gui/MItem_basic_selftest.hpp:49 src/gui/screen_menu_steel_sheets.hpp:54
 msgid "First Layer Calibration"
@@ -1918,9 +1965,17 @@ msgstr "F. senzor"
 msgid "FSENSOR DIDNT TRIGG."
 msgstr "F. SENZOR NESEPNUL"
 
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:22
+msgid "FSENSOR DIDNT TRIGGER"
+msgstr "FSENZOR NESEPNUL"
+
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:31
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:31
 msgid "FSENSOR FIL. STUCK"
+msgstr "FSENZOR: ZASEKLÝ FILAMENT"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:28
+msgid "FSENSOR: FIL. STUCK"
 msgstr "FSENZOR: ZASEKLÝ FILAMENT"
 
 #: src/common/footer_def.hpp:187
@@ -1955,6 +2010,30 @@ msgstr "FS not inserted ref 5"
 #: src/gui/MItem_tools.hpp:383
 msgid "FS not inserted ref 6"
 msgstr "FS not inserted ref 6"
+
+#: src/gui/MItem_tools.hpp:348
+msgid "FS ref 1"
+msgstr "FS ref 1"
+
+#: src/gui/MItem_tools.hpp:350
+msgid "FS ref 2"
+msgstr "FS ref 2"
+
+#: src/gui/MItem_tools.hpp:352
+msgid "FS ref 3"
+msgstr "FS ref 3"
+
+#: src/gui/MItem_tools.hpp:354
+msgid "FS ref 4"
+msgstr "FS ref 4"
+
+#: src/gui/MItem_tools.hpp:356
+msgid "FS ref 5"
+msgstr "FS ref 5"
+
+#: src/gui/MItem_tools.hpp:358
+msgid "FS ref 6"
+msgstr "FS ref 6"
 
 #: src/gui/MItem_tools.hpp:304
 msgid "FS span 1"
@@ -2005,6 +2084,14 @@ msgstr "Aktualizace FW"
 msgid "FW UPDATE"
 msgstr "AKTUALIZACE FW"
 
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:244
+msgid "FW UPDATE NEEDED"
+msgstr "AKTUALIZUJTE FW"
+
+#: src/gui/MItem_hardware.hpp:79
+msgid "G-code Checks"
+msgstr "G-Code kontroly"
+
 #: src/gui/MItem_hardware.hpp:95
 msgid "G-Code Checks"
 msgstr "G-Code kontroly"
@@ -2013,17 +2100,17 @@ msgstr "G-Code kontroly"
 msgid "G-Code filaments"
 msgstr "G-Code filamenty"
 
+#: src/gui/MItem_hardware.hpp:113
+msgid "G-code Level"
+msgstr "G-Code úroveň"
+
 #: src/gui/MItem_hardware.hpp:129
 msgid "G-Code Level"
 msgstr "G-Code úroveň"
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:40
-msgid ""
-"G-Code transfer running too slow. Check your network for issues or use a USB "
-"drive. Press Continue to resume printing."
-msgstr ""
-"Přenos G-code je moc pomalý. Zkontrolujte síť nebo použijte jiný USB disk. "
-"Vyberte POKRAČOVAT pro navázání tisku."
+msgid "G-Code transfer running too slow. Check your network for issues or use a USB drive. Press Continue to resume printing."
+msgstr "Přenos G-code je moc pomalý. Zkontrolujte síť nebo použijte jiný USB disk. Vyberte POKRAČOVAT pro navázání tisku."
 
 #: src/gui/window_msgbox_wrong_printer.hpp:13
 msgid "G-code version doesn't match"
@@ -2113,6 +2200,10 @@ msgstr "HAL detekoval nedefinovanou chybu I2C při posílání dat přes I2C."
 #: src/gui/wizard/selftest_frame_wizard_epilogue.cpp:55
 msgid "Happy printing!"
 msgstr "Tisku zdar!"
+
+#: src/gui/MItem_tools.hpp:90
+msgid "Hard reset (USB with FW needed)"
+msgstr "Kompletní reset (nutné USB s FW)"
 
 #: src/gui/MItem_tools.hpp:101
 msgid "Hard Reset (USB with FW needed)"
@@ -2439,17 +2530,21 @@ msgstr "Hostitel"
 msgid "Hotend fan"
 msgstr "Ventilátor hotendu"
 
+#: src/gui/wizard/selftest_frame_fans.cpp:27
+msgid "Hotend Fan"
+msgstr "Vent. hotendu"
+
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:26
-msgid ""
-"Hotend fan not spinning. Check it for possible debris, then inspect the "
-"wiring."
-msgstr ""
-"Ventilátor hotendu se netočí. Zkontrolujte, zda není blokován. Pak "
-"zkontrolujte zapojení."
+msgid "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "Ventilátor hotendu se netočí. Zkontrolujte, zda není blokován. Pak zkontrolujte zapojení."
 
 #: src/gui/wizard/selftest_frame_fans.cpp:31
 msgid "Hotend fan RPM test"
 msgstr "Test otáček vent. hotendu"
+
+#: build/xl_release_boot/lib/error_codes/error_list.hpp:218
+msgid "HOTEND HEATER OVERCURRENT"
+msgstr "NADPROUD VÝHŘEVU HOTENDU"
 
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:56
 msgid "Hotend sock"
@@ -2559,6 +2654,10 @@ msgstr "CHYBA! FALEŠNÝ PODPIS!"
 msgid "Inactive"
 msgstr "Neaktivní"
 
+#: src/gui/MItem_menus.hpp:240
+msgid "Independent Stepping"
+msgstr "Nezávislé krokování"
+
 #: src/gui/MItem_menus.hpp:388 src/gui/screen_home.cpp:135
 msgid "Info"
 msgstr "Info"
@@ -2614,25 +2713,16 @@ msgid "Inserting"
 msgstr "Zavádění"
 
 #: src/gui/screen_help_fw_update.cpp:45
-msgid ""
-"Insert the drive into the printer and turn it on or restart it. Confirm the "
-"installation."
-msgstr ""
-"Vložte disk do tiskárny a zapněte/restartujte ji. Pak potvrďte instalaci."
+msgid "Insert the drive into the printer and turn it on or restart it. Confirm the installation."
+msgstr "Vložte disk do tiskárny a zapněte/restartujte ji. Pak potvrďte instalaci."
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:105
-msgid ""
-"Insert the filament into the extruder until the sensor detects the filament."
-msgstr ""
-"Posouvejte filament do extruderu, dokud senzor nezachytí jeho přítomnost."
+msgid "Insert the filament into the extruder until the sensor detects the filament."
+msgstr "Posouvejte filament do extruderu, dokud senzor nezachytí jeho přítomnost."
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:103
-msgid ""
-"Insert the filament through the side filament sensor into the extruder until "
-"the tool filament sensor detects the filament."
-msgstr ""
-"Vložte filament skrz boční senzor filamentu a posouvejte jej tak dlouho, "
-"dokud jej nerozpozná senzor filamentu v extruderu."
+msgid "Insert the filament through the side filament sensor into the extruder until the tool filament sensor detects the filament."
+msgstr "Vložte filament skrz boční senzor filamentu a posouvejte jej tak dlouho, dokud jej nerozpozná senzor filamentu v extruderu."
 
 #: src/gui/esp_frame_text.cpp:43
 msgid "Insert USB drive with valid INI file."
@@ -2642,6 +2732,10 @@ msgstr "Vložte USB disk s INI souborem."
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:52
 msgid "INSPECT FINDA"
 msgstr "ZKONTROLUJTE FINDU"
+
+#: src/gui/wizard/selftest_frame_dock.hpp:40
+msgid "Install and tighten the dock pins."
+msgstr "Vložte a dotáhněte dokovací piny."
 
 #: src/gui/wizard/selftest_frame_dock.hpp:48
 msgid ""
@@ -2668,17 +2762,11 @@ msgstr "Umístěte tiskový plát na vyhřívanou podložku."
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:298
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:298
 msgid "Internal runtime error. Try resetting the MMU or updating the firmware."
-msgstr ""
-"Interní chyba runtime. Resetujte MMU jednotku nebo zkuste aktualizovat "
-"firmware."
+msgstr "Interní chyba runtime. Resetujte MMU jednotku nebo zkuste aktualizovat firmware."
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:59
-msgid ""
-"In the next step, use the knob to adjust the nozzle height. Check the "
-"pictures in the handbook for reference."
-msgstr ""
-"V dalším kroku použijte ovládací tlačítko a nastavte výšku trysky. V "
-"příručce naleznete detailní instrukce a ilustrace."
+msgid "In the next step, use the knob to adjust the nozzle height. Check the pictures in the handbook for reference."
+msgstr "V dalším kroku použijte ovládací tlačítko a nastavte výšku trysky. V příručce naleznete detailní instrukce a ilustrace."
 
 #: src/common/gcode/gcode_reader.cpp:373
 msgid "Invalid BGCODE file header"
@@ -2832,6 +2920,10 @@ msgstr "Nahrát"
 msgid "LOAD"
 msgstr "ZAVÉST"
 
+#: src/gui/MItem_mmu.hpp:48
+msgid "Load All"
+msgstr "Zavést vše"
+
 #: src/gui/wizard/selftest_result_loadcell.cpp:13
 msgid "Loadcell"
 msgstr "Loadcell"
@@ -2845,12 +2937,8 @@ msgid "Loadcell calibration is incomplete. Restart the printer."
 msgstr "Kalibrace senzoru Loadcell dokončena. Restartujte tiskárnu."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:314
-msgid ""
-"Loadcell calibration is incomplete. Restart the printer and calibrate "
-"loadcell."
-msgstr ""
-"Kalibrace snímače Loadcell neproběhla. Restartujte tiskárnu a zkalibrujte "
-"Loadcell."
+msgid "Loadcell calibration is incomplete. Restart the printer and calibrate loadcell."
+msgstr "Kalibrace snímače Loadcell neproběhla. Restartujte tiskárnu a zkalibrujte Loadcell."
 
 #: src/gui/wizard/selftest_result_loadcell.cpp:12
 msgid "Loadcell check"
@@ -2955,18 +3043,22 @@ msgstr "Zkouška zavedení"
 msgid "Loading Test"
 msgstr "Zkouška zavedení"
 
+#: src/gui/screen_filebrowser.cpp:27
+msgid "Loading the file"
+msgstr "Nahrávám soubor"
+
 #: src/gui/esp_frame_text.cpp:46
 msgid "Loading the file failed! Check the USB drive!"
 msgstr "Čtení souboru selhalo! Zkontrolujte USB disk!"
 
+#: src/gui/screen_home.cpp:183
+msgid "Loading the last file on the USB"
+msgstr "Nahrávám nejnovější soubor z USB"
+
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:60
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:60
-msgid ""
-"Loading to extruder failed. Inspect the filament tip shape. Refine the "
-"sensor calibration, if needed."
-msgstr ""
-"Zavedení do extruderu selhalo. Zkontrolujte špičku filamentu. Upravte "
-"kalibraci senzoru, pokud se chyba opakuje."
+msgid "Loading to extruder failed. Inspect the filament tip shape. Refine the sensor calibration, if needed."
+msgstr "Zavedení do extruderu selhalo. Zkontrolujte špičku filamentu. Upravte kalibraci senzoru, pokud se chyba opakuje."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:59
 msgid "Loading to nozzle"
@@ -2993,8 +3085,16 @@ msgstr "Zavést do trysky"
 msgid "Load Touch Registers from Flash Disc"
 msgstr "Načíst dotykové registry z USB"
 
+#: src/gui/wizard/selftest_frame_dock.hpp:37
+msgid "Lock the head to the tool"
+msgstr "Zajistěte hlavu k nástroji"
+
 #: src/gui/wizard/selftest_frame_dock.cpp:202
 msgid "Lock the tool"
+msgstr "Zajistěte nástroj"
+
+#: src/gui/wizard/selftest_frame_dock.cpp:160
+msgid "Lock tool"
 msgstr "Zajistěte nástroj"
 
 #: src/gui/screen_menu_metrics.hpp:107
@@ -3009,6 +3109,10 @@ msgstr "Port pro protokoly"
 msgid "Log Port"
 msgstr "Port pro protokoly"
 
+#: src/gui/wizard/selftest_frame_dock.hpp:35
+msgid "Loosen and remove the dock pins"
+msgstr "Povolte a odstraňte dokovací piny"
+
 #: src/gui/wizard/selftest_frame_dock.cpp:200
 msgid "Loosen pins"
 msgstr "Povolte piny"
@@ -3017,13 +3121,13 @@ msgstr "Povolte piny"
 msgid "Loosen screws"
 msgstr "Povolte šrouby"
 
+#: src/gui/wizard/selftest_frame_dock.hpp:36
+msgid "Loosen screws on left side of the dock pillar"
+msgstr "Povolte šrouby na pravé straně dokovacího pilíře."
+
 #: src/gui/wizard/selftest_frame_dock.hpp:43
-msgid ""
-"Loosen the two screws on the right side of the dock pillar (marked in "
-"orange) using the uni-wrench."
-msgstr ""
-"Povolte dva šrouby na pravé straně dokového sloupku (označeny oranžově) "
-"univerzálním klíčem."
+msgid "Loosen the two screws on the right side of the dock pillar (marked in orange) using the uni-wrench."
+msgstr "Povolte dva šrouby na pravé straně dokového sloupku (označeny oranžově) univerzálním klíčem."
 
 #: src/gui/MItem_tools.hpp:189
 msgid "Loud"
@@ -3064,21 +3168,13 @@ msgstr ""
 "Zvolte Pokračovat pro další krok."
 
 #: src/gui/screen_menu_hardware.cpp:45
-msgid ""
-"Manual change of the printer type is recommended only for advanced users. To "
-"automatically select the printer type, run the Self-test."
-msgstr ""
-"Ruční změna typu tiskárny je doporučena pouze pokročilým uživatelům. Pro "
-"automatické rozpoznání typu tiskárny, spusťte Self-test."
+msgid "Manual change of the printer type is recommended only for advanced users. To automatically select the printer type, run the Self-test."
+msgstr "Ruční změna typu tiskárny je doporučena pouze pokročilým uživatelům. Pro automatické rozpoznání typu tiskárny, spusťte Self-test."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:189
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:234
-msgid ""
-"Marlin client could not send message to Marlin server and timeout was "
-"reached."
-msgstr ""
-"Klient Marlin nemohl odeslat zprávu na server Marlin a byl dosažen časový "
-"limit."
+msgid "Marlin client could not send message to Marlin server and timeout was reached."
+msgstr "Klient Marlin nemohl odeslat zprávu na server Marlin a byl dosažen časový limit."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:188
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:233
@@ -3102,26 +3198,24 @@ msgid "MAXTEMP ERROR"
 msgstr "CHYBA MAXTEMP"
 
 #: src/gui/screen_menu_modularbed.hpp:23
+msgid "MBed Board Temp"
+msgstr "MBed teplota desky"
+
+#: src/gui/screen_menu_modularbed.hpp:23
 msgid "MBed MCU Temp"
 msgstr "MBed MCU Tep."
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:41
 msgid "MCU in Buddy is overheated. Any higher will result in fatal error."
-msgstr ""
-"MCU v Buddy se přehřívá. Pokud teplota stoupne, dojde k fatálnímu selhání."
+msgstr "MCU v Buddy se přehřívá. Pokud teplota stoupne, dojde k fatálnímu selhání."
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:43
 msgid "MCU in Dwarf is overheated. Any higher will result in fatal error."
-msgstr ""
-"MCU v desce Dwarf se přehřívá. Pokud teplota stoupne, dojde k fatálnímu "
-"selhání."
+msgstr "MCU v desce Dwarf se přehřívá. Pokud teplota stoupne, dojde k fatálnímu selhání."
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:46
-msgid ""
-"MCU in Modular Bed is overheated. Any higher will result in fatal error."
-msgstr ""
-"MCU v modulárním bedu se přehřívá. Pokud teplota stoupne, dojde k fatálnímu "
-"selhání."
+msgid "MCU in Modular Bed is overheated. Any higher will result in fatal error."
+msgstr "MCU v modulárním bedu se přehřívá. Pokud teplota stoupne, dojde k fatálnímu selhání."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:69
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:74
@@ -3139,31 +3233,19 @@ msgid "MCU Temperature"
 msgstr "Teplota MCU"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:64
-msgid ""
-"Measured temperature is not matching expected value. Check if the thermistor "
-"is in contact with the heaterblock. In case of damage, replace it."
-msgstr ""
-"Naměřená teplota neodpovídá očekávané hodnotě. Zkontrolujte, zda je "
-"termistor v kontaktu s topným tělískem. Pokud je poškozen, vyměňte ho."
+msgid "Measured temperature is not matching expected value. Check if the thermistor is in contact with the heaterblock. In case of damage, replace it."
+msgstr "Naměřená teplota neodpovídá očekávané hodnotě. Zkontrolujte, zda je termistor v kontaktu s topným tělískem. Pokud je poškozen, vyměňte ho."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:49
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:54
-msgid ""
-"Measured temperature is not matching expected value. Check the thermistor is "
-"in contact with heatbed. In case of damage, replace it."
-msgstr ""
-"Naměřená teplota neodpovídá očekávané hodnotě. Zkontrolujte, zda je "
-"termistor v kontaktu s vyhřívanou podložkou. V případě poškození jej vyměňte."
+msgid "Measured temperature is not matching expected value. Check the thermistor is in contact with heatbed. In case of damage, replace it."
+msgstr "Naměřená teplota neodpovídá očekávané hodnotě. Zkontrolujte, zda je termistor v kontaktu s vyhřívanou podložkou. V případě poškození jej vyměňte."
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:29
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:54
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:59
-msgid ""
-"Measured temperature is not matching expected value. Check the thermistor is "
-"in contact with hotend. In case of damage, replace it."
-msgstr ""
-"Naměřená teplota neodpovídá očekávané hodnotě. Zkontrolujte kontakt "
-"termistoru a hotendu. Pokud je poškozen, vyměňte jej."
+msgid "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
+msgstr "Naměřená teplota neodpovídá očekávané hodnotě. Zkontrolujte kontakt termistoru a hotendu. Pokud je poškozen, vyměňte jej."
 
 #: src/gui/MItem_crash.hpp:53
 msgid "Medium"
@@ -3243,16 +3325,16 @@ msgstr "MMU proud"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:242
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:242
-msgid ""
-"MMU detected a power-related issue. Check the wiring and connectors. If the "
-"issue persists, contact support."
-msgstr ""
-"MMU detekovala problém s napájením. Zkontrolujte zapojení. Pokud problém "
-"přetrvává, kontakujte podporu."
+msgid "MMU detected a power-related issue. Check the wiring and connectors. If the issue persists, contact support."
+msgstr "MMU detekovala problém s napájením. Zkontrolujte zapojení. Pokud problém přetrvává, kontakujte podporu."
 
 #: src/gui/MItem_mmu.hpp:345
 msgid "MMU Enable"
 msgstr "Povolit MMU"
+
+#: src/gui/screen_menu_mmu_fail_stats.hpp:14 src/gui/MItem_mmu.hpp:317
+msgid "MMU Fail Stats"
+msgstr "MMU Statistika chyb"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:284
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:284
@@ -3266,12 +3348,8 @@ msgstr "MMU VYŽADUJE NOVÝ FW"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:249
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:249
-msgid ""
-"MMU MCU detected a 5V undervoltage. There might be an issue with the "
-"electronics. Check the wiring and connectors"
-msgstr ""
-"MMU MCU detekuje nedostatečné 5V napětí - možná chyba elektroniky. "
-"Zkontrolujte kabeláž a zapojení."
+msgid "MMU MCU detected a 5V undervoltage. There might be an issue with the electronics. Check the wiring and connectors"
+msgstr "MMU MCU detekuje nedostatečné 5V napětí - možná chyba elektroniky. Zkontrolujte kabeláž a zapojení."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:241
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:241
@@ -3318,30 +3396,18 @@ msgstr "SELFTEST MMU SELHAL"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:235
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:235
-msgid ""
-"MMU selftest failed on the Idler TMC driver. Check the wiring and "
-"connectors. If the issue persists contact support."
-msgstr ""
-"Selhání selftestu MMU - TMC driver pro Idler motor hlásí chybu. Zkontrolujte "
-"zapojení. Pokud problém přetrvává, kontaktujte podporu."
+msgid "MMU selftest failed on the Idler TMC driver. Check the wiring and connectors. If the issue persists contact support."
+msgstr "Selhání selftestu MMU - TMC driver pro Idler motor hlásí chybu. Zkontrolujte zapojení. Pokud problém přetrvává, kontaktujte podporu."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:221
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:221
-msgid ""
-"MMU selftest failed on the Pulley TMC driver. Check the wiring and "
-"connectors. If the issue persists contact support."
-msgstr ""
-"Selhání selftestu MMU - TMC driver pro Pulley motor hlásí chybu. "
-"Zkontrolujte zapojení. Pokud problém přetrvává, kontaktujte podporu."
+msgid "MMU selftest failed on the Pulley TMC driver. Check the wiring and connectors. If the issue persists contact support."
+msgstr "Selhání selftestu MMU - TMC driver pro Pulley motor hlásí chybu. Zkontrolujte zapojení. Pokud problém přetrvává, kontaktujte podporu."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:228
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:228
-msgid ""
-"MMU selftest failed on the Selector TMC driver. Check the wiring and "
-"connectors. If the issue persists contact support."
-msgstr ""
-"Selhání selftestu MMU - TMC driver pro Selektor hlásí chybu. Zkontrolujte "
-"zapojení. Pokud problém přetrvává, kontaktujte podporu."
+msgid "MMU selftest failed on the Selector TMC driver. Check the wiring and connectors. If the issue persists contact support."
+msgstr "Selhání selftestu MMU - TMC driver pro Selektor hlásí chybu. Zkontrolujte zapojení. Pokud problém přetrvává, kontaktujte podporu."
 
 #: src/gui/MItem_tools.hpp:422
 msgid "MMU Version"
@@ -3375,6 +3441,15 @@ msgstr "VÍCE"
 #: src/gui/dialogs/DialogConnectReg.hpp:19 src/gui/screen_qr_error.cpp:27
 msgid "More detail at"
 msgstr "Více informací"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:185
+#, c-format
+msgid ""
+"More detail at\n"
+"help.prusa3d.com/%u"
+msgstr ""
+"Více info na\n"
+"help.prusa3d.com/%u"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:198
 #, c-format
@@ -3427,6 +3502,15 @@ msgstr "Posouvám selektor"
 msgid "Moving up"
 msgstr "Pohyb nahoru"
 
+#. One dock takes approximately 1:45 to calibrate if you know what you are doing
+#: src/gui/wizard/selftest_frame_dock.hpp:30
+msgid ""
+"Multitool calibration is quite a complex process. For the first time please read tutorial.\n"
+"One dock takes over 3 minutes."
+msgstr ""
+"Kalibrace vyžaduje zvýšenou pozornost. Doporučujeme použít online návod.\n"
+"Jeden dok se kalibruje cca 3 minuty."
+
 #. /< Number of tools shown in this menu
 #: src/gui/screen_menu_filament_changeall.hpp:100
 msgid "MULTITOOL FILAMENT CHANGE"
@@ -3469,9 +3553,31 @@ msgstr "SÍT"
 msgid "NEVER"
 msgstr "NIKDY"
 
+#: src/gui/window_msgbox_wrong_printer.hpp:15
+msgid "newer firmware is required"
+msgstr "vyžadován novější firmware"
+
+#: src/gui/window_msgbox_wrong_printer.hpp:15
+#, c-format
+msgid "newer firmware is required: %s"
+msgstr "vyžadován novější firmware: %s"
+
+#: src/gui/window_msgbox_wrong_printer.hpp:18
+msgid "Newer FW req."
+msgstr "Nutný nový FW"
+
+#: src/gui/window_msgbox_wrong_printer.hpp:18
+#, c-format
+msgid "Newer FW req.: %s"
+msgstr "Nutný nový FW: %s"
+
 #: src/gui/screen_print_preview.cpp:100
 msgid "New firmware available"
 msgstr "Dostupný nový firmware"
+
+#: src/gui/screen_print_preview.hpp:26
+msgid "New FW available"
+msgstr "Dostupný nový FW"
 
 #. Never
 #: src/common/client_response_texts.cpp:41
@@ -3537,30 +3643,18 @@ msgstr "Nezkalibrováno"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:193
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:193
-msgid ""
-"Not enough current for the Idler TMC driver. There is probably an issue with "
-"the electronics. Check the wiring and connectors."
-msgstr ""
-"Nedostatečný proud pro TMC driver idleru. Pravděpodobná závada elektroniky. "
-"Důkladně zkontrolujte zapojení."
+msgid "Not enough current for the Idler TMC driver. There is probably an issue with the electronics. Check the wiring and connectors."
+msgstr "Nedostatečný proud pro TMC driver idleru. Pravděpodobná závada elektroniky. Důkladně zkontrolujte zapojení."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:179
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:179
-msgid ""
-"Not enough current for the Pulley TMC driver. There is probably an issue "
-"with the electronics. Check the wiring and connectors."
-msgstr ""
-"Nedostatečný proud pro TMC driver kladky. Pravděpodobná závada elektroniky. "
-"Důkladně zkontrolujte zapojení."
+msgid "Not enough current for the Pulley TMC driver. There is probably an issue with the electronics. Check the wiring and connectors."
+msgstr "Nedostatečný proud pro TMC driver kladky. Pravděpodobná závada elektroniky. Důkladně zkontrolujte zapojení."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:186
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:186
-msgid ""
-"Not enough current for the Selector TMC driver. There is probably an issue "
-"with the electronics. Check the wiring and connectors."
-msgstr ""
-"Nedostatečný proud pro TMC driver selektoru. Pravděpodobná závada "
-"elektroniky. Důkladně zkontrolujte zapojení."
+msgid "Not enough current for the Selector TMC driver. There is probably an issue with the electronics. Check the wiring and connectors."
+msgstr "Nedostatečný proud pro TMC driver selektoru. Pravděpodobná závada elektroniky. Důkladně zkontrolujte zapojení."
 
 #: src/guiapi/include/WindowItemFormatableLabel.hpp:19
 msgid "Not initialized"
@@ -3584,9 +3678,7 @@ msgid "NOW"
 msgstr "NYNÍ"
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:50
-msgid ""
-"Now, let's calibrate the distance between the tip of the nozzle and the "
-"print sheet."
+msgid "Now, let's calibrate the distance between the tip of the nozzle and the print sheet."
 msgstr "Nyní zkalibrujeme vzdálenost mezi tryskou a tiskovým plátem."
 
 #: src/gui/MItem_tools.hpp:652
@@ -3632,12 +3724,8 @@ msgid "nozzle diameter doesn't match"
 msgstr "průměr trysky nesouhlasí"
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:39
-msgid ""
-"Nozzle doesn't seem to have round cross section. Make sure it is clean and "
-"perpendicular to the bed."
-msgstr ""
-"Zdá se, že tryska nemá kulatý průřez. Zkontrolujte, zda je čistá a kolmá k "
-"vyhřívané podložce."
+msgid "Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed."
+msgstr "Zdá se, že tryska nemá kulatý průřez. Zkontrolujte, zda je čistá a kolmá k vyhřívané podložce."
 
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:44
 msgid ""
@@ -3659,6 +3747,14 @@ msgstr "Výhřev trysky"
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:103
 msgid "NOZZLE HEATER OVERCURRENT"
 msgstr "NADPROUD VÝHŘEVU TRYSKY"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:98
+msgid ""
+"Nozzle\n"
+"temperature"
+msgstr ""
+"Teplota\n"
+"trysky"
 
 #: src/gui/wizard/selftest_frame_loadcell.cpp:95
 msgid "Nozzle temperature"
@@ -3684,6 +3780,10 @@ msgstr "Typ trysky"
 #, c-format
 msgid "Object %i"
 msgstr "Objekt %i"
+
+#: src/gui/screen_menu_cancel_object.hpp:16
+msgid "Object X"
+msgstr "Objekt X"
 
 #: src/gui/screen_menu_odometer.hpp:30
 msgid "ODOMETER"
@@ -3731,12 +3831,8 @@ msgid "Once"
 msgstr "Jednou"
 
 #: src/gui/wizard/selftest_frame_firstlayer.hpp:16
-msgid ""
-"Once the printer starts extruding plastic, adjust the nozzle height by "
-"turning the knob until the filament sticks to the print sheet."
-msgstr ""
-"Až začne MINI vytlačovat plast, nastav výšku trysky otáčením ovládacího "
-"tlačítka. Filament musí být správně přitlačen k podložce."
+msgid "Once the printer starts extruding plastic, adjust the nozzle height by turning the knob until the filament sticks to the print sheet."
+msgstr "Až začne MINI vytlačovat plast, nastav výšku trysky otáčením ovládacího tlačítka. Filament musí být správně přitlačen k podložce."
 
 #: src/gui/screen_menu_connect.cpp:71
 msgid "Online"
@@ -3850,12 +3946,8 @@ msgid "PAUSING ..."
 msgstr "POZASTAVUJI"
 
 #: src/gui/screen_menu_tools.cpp:106
-msgid ""
-"Perform filament sensors calibration? This discards previous filament "
-"sensors calibration. The extruder will be replaced during calibration"
-msgstr ""
-"Provést kalibraci senzorů filamentu? Staré kalibrace budou přepsány. Během "
-"kalibrace dojde k výměně extruderu."
+msgid "Perform filament sensors calibration? This discards previous filament sensors calibration. The extruder will be replaced during calibration"
+msgstr "Provést kalibraci senzorů filamentu? Staré kalibrace budou přepsány. Během kalibrace dojde k výměně extruderu."
 
 #. //MSG_PROGRESS_PUSH_FILAMENT c=20
 #: src/gui/dialogs/DialogLoadUnload.cpp:84
@@ -3915,6 +4007,10 @@ msgstr "Vyzvednutí nástroje"
 msgid "PIN NOT REACHED"
 msgstr "PIN NENALEZEN"
 
+#: src/gui/screen_tools_mapping.cpp:321
+msgid "Please assign a tool for the filament."
+msgstr "Přiřaďte nástroj k filamentu."
+
 #: src/gui/screen_tools_mapping.cpp:663
 msgid "Please assign a tool to the filament"
 msgstr "Přiřaďte filamentu nástroj."
@@ -3925,8 +4021,7 @@ msgstr "Nejprve dokončete všechny kalibrace a testy."
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:84
 msgid ""
-"Please make sure there is no filament in the tool and side filament "
-"sensors.\n"
+"Please make sure there is no filament in the tool and side filament sensors.\n"
 "\n"
 "You will need filament to finish this test later."
 msgstr ""
@@ -3946,6 +4041,10 @@ msgstr "Vyjměte filament ze senzoru filamentu."
 #: src/gui/screen_tools_mapping.cpp:661
 msgid "Please select a filament."
 msgstr "Vyberte filament."
+
+#: src/gui/screen_tools_mapping.cpp:313
+msgid "Please select the filament."
+msgstr "Prosím vyberte filament."
 
 #: src/gui/wizard/selftest_frame_calib_z.cpp:17
 msgid "please wait"
@@ -3985,12 +4084,8 @@ msgid "POWER PANIC"
 msgstr "ZOTAVENÍ ZE ZTRÁTY NAPÁJENÍ"
 
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:159
-msgid ""
-"Power panic has been detected during printer initialization. Inspect wiring "
-"of PP-cable."
-msgstr ""
-"Během inicializace tisku bylo aktivováno zotavení ze ztráty napájení. "
-"Zkontrolujte zapojení kabelu Power Panic."
+msgid "Power panic has been detected during printer initialization. Inspect wiring of PP-cable."
+msgstr "Během inicializace tisku bylo aktivováno zotavení ze ztráty napájení. Zkontrolujte zapojení kabelu Power Panic."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:13
 msgid "PRECISE REFINEMENT FAILED"
@@ -3999,6 +4094,10 @@ msgstr "PRECIZNÍ DOLADĚNÍ SELHALO"
 #: src/gui/screen_home.cpp:131
 msgid "Preheat"
 msgstr "Předehřev"
+
+#: src/gui/test/screen_menu_test.cpp:56
+msgid "Preheat error"
+msgstr "Chyba předehřívání"
 
 #: src/gui/screen_menu_error_test.cpp:92
 msgid "Preheat Error"
@@ -4081,6 +4180,11 @@ msgstr "Zvolte POKRAČOVAT a zasuňte filament do extruderu."
 msgid "Previous Calibrations & Tests are not all done. Continue anyway?"
 msgstr "Předchozí kalibrace a testy nejsou zcela dokončené. Pokračovat?"
 
+#: src/gui/screen_printing.cpp:121
+#, c-format
+msgid "Prime tower %dg"
+msgstr "Vyrovnávací věž: %dg"
+
 #: src/gui/dialogs/resolution_480x320/radio_button_preview.cpp:14
 #: src/gui/screen_home.cpp:130
 msgid "Print"
@@ -4090,6 +4194,10 @@ msgstr "Tisk"
 #: src/gui/resolution_480x320/screen_print_preview_base.cpp:24
 msgid "PRINT"
 msgstr "TISK"
+
+#: src/gui/screen_printing.cpp:117
+msgid "Print ended"
+msgstr "Tisk skončil"
 
 #: src/gui/window_msgbox_wrong_printer.hpp:9
 msgid "printer doesn't have enough tools"
@@ -4121,12 +4229,8 @@ msgid "Print Fan"
 msgstr "Tisk. vent."
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:27
-msgid ""
-"Print fan not spinning. Check it for possible debris, then inspect the "
-"wiring."
-msgstr ""
-"Tiskový ventilátor se netočí. Zkontrolujte, zda není blokován. Pak "
-"zkontrolujte zapojení."
+msgid "Print fan not spinning. Check it for possible debris, then inspect the wiring."
+msgstr "Tiskový ventilátor se netočí. Zkontrolujte, zda není blokován. Pak zkontrolujte zapojení."
 
 #: src/gui/screen_sysinf.cpp:74
 msgid "PrintFan RPM"
@@ -4149,6 +4253,10 @@ msgstr "Tisk dokončen"
 msgid "Printing"
 msgstr "Probíhá tisk"
 
+#: src/gui/screen_printing.cpp:373
+msgid "PRINTING"
+msgstr "TISK"
+
 #: src/gui/screen_printing.hpp:35
 msgid "PRINTING ..."
 msgstr "TISKNU..."
@@ -4164,6 +4272,10 @@ msgstr "Obrazovka průběhu tisku"
 #: src/gui/MItem_print.hpp:86
 msgid "Print Speed"
 msgstr "Rychlost tisku"
+
+#: src/gui/screen_printing.cpp:116
+msgid "Print started"
+msgstr "Tisk začal"
 
 #: src/gui/MItem_menus.hpp:378
 msgid "Print Statistics"
@@ -4188,12 +4300,8 @@ msgstr "Konec tisku:"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:34
 #, c-format
-msgid ""
-"Probed XY position is %.3f mm from expected. This is more than allowed "
-"difference of %.3f mm."
-msgstr ""
-"Testovaná pozice XY je o %.3f mm od očekávané pozice. To je více než "
-"povolená tolerance %.3f mm."
+msgid "Probed XY position is %.3f mm from expected. This is more than allowed difference of %.3f mm."
+msgstr "Testovaná pozice XY je o %.3f mm od očekávané pozice. To je více než povolená tolerance %.3f mm."
 
 #: src/gui/screen_filebrowser.cpp:27
 msgid "PROJECTS"
@@ -4221,10 +4329,12 @@ msgid "Prusa Connect - printer setup"
 msgstr "Prusa Connect - nastavení tiskárny"
 
 #: src/gui/dialogs/DialogConnectReg.cpp:88
-msgid ""
-"Prusa Connect setup is not finished. Do you want to exit and abort the "
-"process?"
+msgid "Prusa Connect setup is not finished. Do you want to exit and abort the process?"
 msgstr "Nastavení Prusa Connect nedokončeno. Ukončit proces a zahodit změny?"
+
+#: src/gui/screen_prusa_link.hpp:89
+msgid "PRUSA LINK"
+msgstr "PRUSALINK"
 
 #: src/gui/screen_prusa_link.cpp:60
 msgid "PRUSALINK"
@@ -4292,10 +4402,8 @@ msgstr "Puppy %s not responding"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:274
 #, c-format
-msgid ""
-"Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
-msgstr ""
-"Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
+msgid "Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
+msgstr "Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
 
 #: src/gui/MItem_filament.hpp:52
 msgid "Purge Filament"
@@ -4352,6 +4460,10 @@ msgstr "Čtení ESP FW selhalo"
 msgid "Ready to print"
 msgstr "Připraveno k tisku"
 
+#: src/gui/screen_printing_serial.cpp:36
+msgid "Really Disconnect?"
+msgstr "Opravdu odpojit?"
+
 #: src/gui/screen_menu_connect.cpp:85
 msgid "Refused"
 msgstr "Odmítnuto"
@@ -4373,6 +4485,10 @@ msgstr "Reg. chyba"
 #: src/gui/screen_menu_connect.cpp:75
 msgid "Registering"
 msgstr "Registruji"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:99
+msgid "Registration failed. Likely a network error. Try again later."
+msgstr "Registrace neúspěšná - chyba sítě? Opakujte akci."
 
 #: src/gui/dialogs/DialogConnectReg.cpp:135
 msgid "Registration successful, continue at connect.prusa3d.com"
@@ -4397,6 +4513,10 @@ msgstr "Zbývající čas"
 msgid "REMOVE"
 msgstr "ODEBRAT"
 
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:74
+msgid "Remove calibration pin, install sheet on heatbed."
+msgstr "Odstraňte kalibrační pin, na podložku vraťte tiskový plát."
+
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:81
 msgid ""
 "- Remove calibration pin.\n"
@@ -4408,6 +4528,10 @@ msgstr ""
 #: src/gui/wizard/selftest_frame_fsensor.cpp:118
 msgid "Remove filament to finish."
 msgstr "Pro dokončení vysuňte filament"
+
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:59
+msgid "Remove heatbed sheet, install calibration pin."
+msgstr "Sejměte plát z podložky a nainstalujte kalibrační pin."
 
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:59
 msgid ""
@@ -4449,12 +4573,8 @@ msgstr "Tisk. znovu"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:277
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:277
-msgid ""
-"Requested filament tool is not available on this hardware. Check the G-code "
-"for tool index out of range (T0-T4)."
-msgstr ""
-"Požadovaný filament nástroj není k dispozici na tomto HW. V G-Codu je "
-"nástrojový index mimo rozsah (T0-T4)."
+msgid "Requested filament tool is not available on this hardware. Check the G-code for tool index out of range (T0-T4)."
+msgstr "Požadovaný filament nástroj není k dispozici na tomto HW. V G-Codu je nástrojový index mimo rozsah (T0-T4)."
 
 #: src/gui/MItem_tools.hpp:630 src/gui/screen_menu_steel_sheets.hpp:74
 msgid "Reset"
@@ -4474,6 +4594,10 @@ msgstr "RESET ZAŘÍZENÍ"
 
 #: src/gui/MItem_tools.hpp:91
 msgid "Reset Settings & Calibrations"
+msgstr "Reset nastavení a kalibrací"
+
+#: src/gui/MItem_tools.hpp:78
+msgid "Reset Setttings & Calibrations"
 msgstr "Reset nastavení a kalibrací"
 
 #: src/gui/MItem_touch.hpp:29
@@ -4542,12 +4666,8 @@ msgid "RIGHT"
 msgstr "VPRAVO"
 
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:48
-msgid ""
-"Rotate each screw counter-clockwise by 1.5 turns. The screw heads should be "
-"flush with the cover. Unlock and open the idler."
-msgstr ""
-"Každý šroub pootočte o 1,5 otáčky proti směru hodinových ručiček. Měly by "
-"být zarovnány s hranou krytu. Odemkněte a otevřete idler."
+msgid "Rotate each screw counter-clockwise by 1.5 turns. The screw heads should be flush with the cover. Unlock and open the idler."
+msgstr "Každý šroub pootočte o 1,5 otáčky proti směru hodinových ručiček. Měly by být zarovnány s hranou krytu. Odemkněte a otevřete idler."
 
 #: src/gui/MItem_basic_selftest.hpp:29
 msgid "Run Full Selftest"
@@ -4577,6 +4697,11 @@ msgstr "Ukládám na USB"
 #: src/gui/dialogs/DialogConnectReg.cpp:127
 msgid "Scan QR or visit prusa.io/add, log in and add printer code:"
 msgstr "Načtěte QR kód či navštivte prusa.io/add, přihlaste se a zadejte kód:"
+
+#: build/xl_release_boot/lib/error_codes/error_list.hpp:219
+#, c-format
+msgid "%s Check hotend heater and control electronics for possible damage"
+msgstr "%s Zkontrolujte výhřev hotendu a ovládací elektroniku - mohlo dojít k poškození."
 
 #: src/gui/screen_menu_steel_sheets.hpp:44
 msgid "Select"
@@ -4609,21 +4734,18 @@ msgstr "SELEKTOR: CHYBA HOMINGU"
 msgid "SELECTOR CANNOT MOVE"
 msgstr "SELEKTOR SE NEHÝBE"
 
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:47
+msgid "Selector can't move due to FINDA detecting a filament. Make sure no filament is in selector and FINDA works properly."
+msgstr "Selektor se nemůže hýbat - FINDA detekovala filament. Ujistěte se, že v selektoru není filament a že FINDA funguje."
+
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:53
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:53
-msgid ""
-"Selector can't move due to FINDA detecting a filament. Make sure no filament "
-"is in Selector and FINDA works properly."
-msgstr ""
-"Selektor se nemůže hýbat, FINDA detekuje zavedený filament. Vysuňte filament "
-"ze Selektoru, případně zkontrolujte senzor."
+msgid "Selector can't move due to FINDA detecting a filament. Make sure no filament is in Selector and FINDA works properly."
+msgstr "Selektor se nemůže hýbat, FINDA detekuje zavedený filament. Vysuňte filament ze Selektoru, případně zkontrolujte senzor."
 
 #: src/gui/screen_menu_fw_update.cpp:37
-msgid ""
-"Select when you want to automatically flash updated firmware from USB flash "
-"disk."
-msgstr ""
-"Zvolte, kdy má dojít k automatické aktualizaci nového firmwaru z USB disku."
+msgid "Select when you want to automatically flash updated firmware from USB flash disk."
+msgstr "Zvolte, kdy má dojít k automatické aktualizaci nového firmwaru z USB disku."
 
 #: src/gui/ScreenSelftest.hpp:80
 msgid "SELFTEST"
@@ -4658,8 +4780,7 @@ msgid "selftest print screens"
 msgstr "selftest - tiskové obrazovky"
 
 #: src/gui/wizard/selftest_frame_wizard_prologue.cpp:96
-msgid ""
-"Self-test will now begin to check for potential assembly-related issues."
+msgid "Self-test will now begin to check for potential assembly-related issues."
 msgstr "Selftest nyní zkontroluje možné problémy spojené se stavbou."
 
 #: src/gui/screen_home.cpp:283
@@ -4704,8 +4825,7 @@ msgstr "NASTAVENÍ"
 
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:209
 msgid "Setting the tare failed. Check the loadcell wiring and connection."
-msgstr ""
-"Nastavení tárování se nezdařilo. Zkontrolujte zapojení senzoru loadcell."
+msgstr "Nastavení tárování se nezdařilo. Zkontrolujte zapojení senzoru loadcell."
 
 #: src/gui/MItem_tools.hpp:739
 msgid "Set up values"
@@ -4725,30 +4845,18 @@ msgstr "Podložky"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:214
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:214
-msgid ""
-"Short circuit on the Idler TMC driver. Check the wiring and connectors. If "
-"the issue persists contact support."
-msgstr ""
-"Zkrat na TMC driveru pro idler. Zkontrolujte zapojení. Pokud chyba "
-"přetrvává, kontaktujte podporu."
+msgid "Short circuit on the Idler TMC driver. Check the wiring and connectors. If the issue persists contact support."
+msgstr "Zkrat na TMC driveru pro idler. Zkontrolujte zapojení. Pokud chyba přetrvává, kontaktujte podporu."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:200
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:200
-msgid ""
-"Short circuit on the Pulley TMC driver. Check the wiring and connectors. If "
-"the issue persists contact support."
-msgstr ""
-"Zkrat na TMC driveru pro Pulley motor. Zkontrolujte zapojení. Pokud chyba "
-"přetrvává, kontaktujte podporu."
+msgid "Short circuit on the Pulley TMC driver. Check the wiring and connectors. If the issue persists contact support."
+msgstr "Zkrat na TMC driveru pro Pulley motor. Zkontrolujte zapojení. Pokud chyba přetrvává, kontaktujte podporu."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:207
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:207
-msgid ""
-"Short circuit on the Selector TMC driver. Check the wiring and connectors. "
-"If the issue persists contact support."
-msgstr ""
-"Zkrat na TMC driveru pro selektor. Zkontrolujte správné zapojení. Pokud "
-"chyba přetrvává, kontaktujte podporu."
+msgid "Short circuit on the Selector TMC driver. Check the wiring and connectors. If the issue persists contact support."
+msgstr "Zkrat na TMC driveru pro selektor. Zkontrolujte správné zapojení. Pokud chyba přetrvává, kontaktujte podporu."
 
 #: src/gui/MItem_basic_selftest.hpp:39
 msgid "Show Selftest Result"
@@ -4806,6 +4914,30 @@ msgstr "Side FS not inserted ref 5"
 msgid "Side FS not inserted ref 6"
 msgstr "Side FS not inserted ref 6"
 
+#: src/gui/MItem_tools.hpp:330
+msgid "Side FS ref 1"
+msgstr "Boční FS ref 1"
+
+#: src/gui/MItem_tools.hpp:332
+msgid "Side FS ref 2"
+msgstr "Boční FS ref 2"
+
+#: src/gui/MItem_tools.hpp:334
+msgid "Side FS ref 3"
+msgstr "Boční FS ref 3"
+
+#: src/gui/MItem_tools.hpp:336
+msgid "Side FS ref 4"
+msgstr "Boční FS ref 4"
+
+#: src/gui/MItem_tools.hpp:338
+msgid "Side FS ref 5"
+msgstr "Boční FS ref 5"
+
+#: src/gui/MItem_tools.hpp:340
+msgid "Side FS ref 6"
+msgstr "Boční FS ref 6"
+
 #: src/gui/MItem_tools.hpp:286
 msgid "Side FS span 1"
 msgstr "Boční FS rozsah 1"
@@ -4850,12 +4982,8 @@ msgstr "POMALU"
 
 #. info text without a dialog is for >1 tool ToolChanger
 #: src/gui/wizard/selftest_frame_temp.cpp:64
-msgid ""
-"Some nozzle heater checks were disabled due to their hotend fan checks not "
-"having passed."
-msgstr ""
-"Některé kontroly výhřevu trysky byly vypnuty, protože neproběhly kontroly "
-"jejich ventilátorů."
+msgid "Some nozzle heater checks were disabled due to their hotend fan checks not having passed."
+msgstr "Některé kontroly výhřevu trysky byly vypnuty, protože neproběhly kontroly jejich ventilátorů."
 
 #: src/gui/MItem_tools.hpp:219
 msgid "Sort Files"
@@ -4871,12 +4999,8 @@ msgstr "Hlasitost"
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:194
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:239
-msgid ""
-"Space allocation for firmware BBF file failed. Repeat the action or try "
-"another USB drive."
-msgstr ""
-"Alokace místa pro BBF firmware selhala. Opakujte akci nebo zkuste jiný USB "
-"disk."
+msgid "Space allocation for firmware BBF file failed. Repeat the action or try another USB drive."
+msgstr "Alokace místa pro BBF firmware selhala. Opakujte akci nebo zkuste jiný USB disk."
 
 #: src/common/footer_def.hpp:132
 msgid "Speed"
@@ -4886,6 +5010,10 @@ msgstr "Rychlost"
 msgid "Splitter 5V Current"
 msgstr "Splitter 5V proud"
 
+#: src/gui/MItem_mmu.hpp:293
+msgid "Spool Join"
+msgstr "SpoolJoin"
+
 #. Slowly
 #: src/common/client_response_texts.cpp:71
 msgid "SPOOL JOIN"
@@ -4894,6 +5022,10 @@ msgstr "SPOOLJOIN"
 #: src/gui/screen_menu_connect.cpp:88
 msgid "Srv error"
 msgstr "Srv chyba"
+
+#: src/gui/test/screen_menu_test.cpp:28
+msgid "Stack overflow"
+msgstr "Přetečení zásobníku"
 
 #: src/gui/screen_menu_error_test.cpp:57
 msgid "Stack Overflow"
@@ -4944,6 +5076,10 @@ msgstr "STOP"
 msgid "STOPPED"
 msgstr "ZASTAVENO"
 
+#: src/gui/test/screen_menu_eeprom_test.hpp:20
+msgid "Store"
+msgstr "Uložit"
+
 #: src/gui/screen_menu_metrics.hpp:190
 msgid "Store current values?"
 msgstr "Uložit aktuální hodnoty?"
@@ -4976,6 +5112,18 @@ msgstr "DETEKOVÁN ZASEKLÝ FILAMENT"
 msgid "Stuck filament detection"
 msgstr "Detekce zaseklého filamentu"
 
+#: src/gui/wizard/selftest_frame_esp.cpp:55
+msgid ""
+"Success!\n"
+"Please wait until the connection is established.\n"
+"\n"
+"If nothing happens after 5-8 minutes, check & load your credentials again."
+msgstr ""
+"Nahráno!\n"
+"Vyčkejte na navázání spojení.\n"
+"\n"
+"Může to trvat 5-8 minut. Pokud se nic nestane, opakujte proces."
+
 #: src/gui/esp_frame_text.cpp:40
 msgid ""
 "Success!\n"
@@ -4992,11 +5140,8 @@ msgid "Sun"
 msgstr "Ne"
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:74
-msgid ""
-"SuperPINDA sensor is probably broken or disconnected, could not home Z-axis "
-"properly."
-msgstr ""
-"Senzor SuperPINDA je pravděpodobně odpojen či poškozen. Homing osy Z selhal."
+msgid "SuperPINDA sensor is probably broken or disconnected, could not home Z-axis properly."
+msgstr "Senzor SuperPINDA je pravděpodobně odpojen či poškozen. Homing osy Z selhal."
 
 #: src/gui/MItem_menus.hpp:84
 msgid "Support"
@@ -5045,6 +5190,22 @@ msgstr "T5"
 #: src/gui/screen_crash_recovery.cpp:210
 msgid "T6"
 msgstr "T6"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:118
+msgid "Tap nozzle"
+msgstr "Dotkněte se trysky"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:101
+msgid "Tap nozzle in"
+msgstr "Dotkněte se trysky za:"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:111
+msgid ""
+"Tap nozzle\n"
+"on beep"
+msgstr ""
+"Při pípnutí se\n"
+"dotkněte trysky."
 
 #: src/gui/wizard/selftest_frame_loadcell.cpp:115
 msgid "Tap the nozzle"
@@ -5150,6 +5311,10 @@ msgstr "Test Loadcell senzoru"
 msgid "test of load dialog"
 msgstr "test dialogu pro zavádění"
 
+#: src/gui/wizard/selftest_frame_loadcell.cpp:32
+msgid "Test OK"
+msgstr "Test OK"
+
 #: src/gui/test/screen_menu_test.cpp:17
 msgid "test selftest result"
 msgstr "výsledky testu selftestu"
@@ -5164,13 +5329,11 @@ msgstr "Test os XYZ"
 
 #: src/gui/wizard/selftest_frame_dock.hpp:42
 msgid ""
-"The calibrated dock is illuminated at the bottom and front side is flashing "
-"with white color.\n"
+"The calibrated dock is illuminated at the bottom and front side is flashing with white color.\n"
 "\n"
 "Loosen and remove the dock pins."
 msgstr ""
-"Kalibrovaný dok je osvícen na spodní straně a vpředu bliká studená bílá "
-"barva.\n"
+"Kalibrovaný dok je osvícen na spodní straně a vpředu bliká studená bílá barva.\n"
 "\n"
 "Povolte a odstraňte dokovací piny."
 
@@ -5183,21 +5346,16 @@ msgid "The calibration should take a little over 7 minutes."
 msgstr "Kalibrace trvá přibližně 7 minut."
 
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:9
-msgid ""
-"The filament seems to be stuck, please unload it from nextruder and load it "
-"again."
-msgstr ""
-"Filament je pravděpodobně zaseklý. Vysuňte jej z extruderu a znovu zaveďte."
+msgid "The filament seems to be stuck, please unload it from nextruder and load it again."
+msgstr "Filament je pravděpodobně zaseklý. Vysuňte jej z extruderu a znovu zaveďte."
 
 #: src/gui/gui_fsensor_api.cpp:25
 msgid ""
-"The filament sensors are not fully calibrated and must be disabled to "
-"proceed.\n"
+"The filament sensors are not fully calibrated and must be disabled to proceed.\n"
 "\n"
 "You can calibrate them from the \"Control\" menu."
 msgstr ""
-"Senzory filamentu nejsou zkalibrovány a pro další pokračování je potřeba je "
-"vypnout.\n"
+"Senzory filamentu nejsou zkalibrovány a pro další pokračování je potřeba je vypnout.\n"
 "\n"
 "Kalibrace lze provést z menu Ovládání."
 
@@ -5214,61 +5372,39 @@ msgid "The file seems to be a binary gcode with a wrong suffix."
 msgstr "Soubor je pravděpodobně binární G-Code se špatnou příponou."
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:69
-msgid ""
-"The first layer calibration failed to finish. Double-check the printer's "
-"wiring, nozzle and axes, then restart the calibration."
-msgstr ""
-"Selhala kalibrace první vrstvy. Zkontrolujte zapojení el. částí tiskárny, "
-"trysku a jednotlivé osy, pak restartujte kalibraci."
+msgid "The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration."
+msgstr "Selhala kalibrace první vrstvy. Zkontrolujte zapojení el. částí tiskárny, trysku a jednotlivé osy, pak restartujte kalibraci."
 
 #: src/gui/window_msgbox_wrong_printer.hpp:7
 msgid "The G-code isn't fully compatible"
 msgstr "G-Code není plně kompatibilní"
 
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:38
-msgid ""
-"The gearbox calibration is only necessary for user-assembled or serviced "
-"gearboxes. In all other cases, you can skip this step."
-msgstr ""
-"Kalibrace převodovky je nutná jen u tiskárny, kterou jste právě sestavili "
-"nebo pokud byla provedena údržba převodovky. V ostatních případech můžete "
-"tento krok přeskočit."
+msgid "The gearbox calibration is only necessary for user-assembled or serviced gearboxes. In all other cases, you can skip this step."
+msgstr "Kalibrace převodovky je nutná jen u tiskárny, kterou jste právě sestavili nebo pokud byla provedena údržba převodovky. V ostatních případech můžete tento krok přeskočit."
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:36
-msgid ""
-"The heatbed cooled down during the power outage, printed object might have "
-"detached. Inspect it before continuing."
-msgstr ""
-"Podložka se během výpadku proudu ochladila. Mohlo dojít k odlepení objektu. "
-"Před pokračováním vše zkontrolujte."
+msgid "The heatbed cooled down during the power outage, printed object might have detached. Inspect it before continuing."
+msgstr "Podložka se během výpadku proudu ochladila. Mohlo dojít k odlepení objektu. Před pokračováním vše zkontrolujte."
 
 #. dialog is for non-toolchanger printers
 #: src/gui/wizard/selftest_frame_temp.cpp:62
-msgid ""
-"The heater test will be skipped due to the failed hotend fan check. You may "
-"continue, but we strongly recommend resolving this issue before you start "
-"printing."
-msgstr ""
-"Test výhřevu bude vynechán z důvodu neúspěšné kontroly ventilátoru hotendu. "
-"Lze pokračovat, ale důrazně doporučujeme problém vyřešit před zahájením "
-"tisku."
+msgid "The heater test will be skipped due to the failed hotend fan check. You may continue, but we strongly recommend resolving this issue before you start printing."
+msgstr "Test výhřevu bude vynechán z důvodu neúspěšné kontroly ventilátoru hotendu. Lze pokračovat, ale důrazně doporučujeme problém vyřešit před zahájením tisku."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:81
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:81
-msgid ""
-"The Idler cannot home properly. Check for anything blocking its movement."
-msgstr ""
-"Idler nemůže najít výchozí pozici. Zkontrolujte, zda jeho pohyb nic "
-"neblokuje."
+msgid "The Idler cannot home properly. Check for anything blocking its movement."
+msgstr "Idler nemůže najít výchozí pozici. Zkontrolujte, zda jeho pohyb nic neblokuje."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:88
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:88
-msgid ""
-"The Idler cannot move properly. Check for anything blocking its movement. "
-"Check if the wiring is correct."
-msgstr ""
-"Idler se nemůže správně točit. Zkontrolujte, zda jeho pohyb nic neblokuje. "
-"Zkontrolujte zapojení."
+msgid "The Idler cannot move properly. Check for anything blocking its movement. Check if the wiring is correct."
+msgstr "Idler se nemůže správně točit. Zkontrolujte, zda jeho pohyb nic neblokuje. Zkontrolujte zapojení."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:77
+msgid "The Idler cannot move properly. Check for anything blocking its movement. Check the wiring."
+msgstr "Idler se nemůže správně otáčet. Zkontrolujte, zda jeho pohyb nic neblokuje. Zkontrolujte zapojení."
 
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:219
 msgid "The loadcell configuration is incorrect."
@@ -5276,12 +5412,12 @@ msgstr "Konfigurace loadcell není správná."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:291
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:291
-msgid ""
-"The MMU firmware version is incompatible with the printer's FW. Update to "
-"compatible version."
-msgstr ""
-"Verze firmwaru MMU je nekompatibilní s FW v tiskárně. Aktualizujte na "
-"kompatibilní verzi."
+msgid "The MMU firmware version is incompatible with the printer's FW. Update to compatible version."
+msgstr "Verze firmwaru MMU je nekompatibilní s FW v tiskárně. Aktualizujte na kompatibilní verzi."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:245
+msgid "The MMU reports its FW version incompatible with the printer's firmware. Make sure the MMU firmware is up to date."
+msgstr "MMU hlásí, že jeho firmware (FW) není kompatibilní s FW tiskárny. Ujistěte se, že máte nejnovější FW pro MMU."
 
 #: src/transfers/transfer_recovery.cpp:194
 msgid "The path does not exist"
@@ -5289,12 +5425,10 @@ msgstr "Cesta neexistuje"
 
 #: src/gui/screen_tools_mapping.cpp:1142
 msgid ""
-"There are printing tools with no filament loaded, this could ruin the "
-"print.\n"
+"There are printing tools with no filament loaded, this could ruin the print.\n"
 "Disable filament sensor and print anyway?"
 msgstr ""
-"Některé nástroje nemají zavedený filament, může dojít k vážným problémům s "
-"tiskem.\n"
+"Některé nástroje nemají zavedený filament, může dojít k vážným problémům s tiskem.\n"
 "Vypnout senzor filamentu a přesto pokračovat v tisku?"
 
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:204
@@ -5302,9 +5436,7 @@ msgid "There was an error requesting the tare for loadcell."
 msgstr "Došlo k chybě při požadavku na tárování pro loadcell."
 
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:224
-msgid ""
-"There was a timeout while waiting for measurement sample, please repeat the "
-"action."
+msgid "There was a timeout while waiting for measurement sample, please repeat the action."
 msgstr "Při čekání na vzorek měření vypršel časový limit, opakujte akci."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:18
@@ -5315,37 +5447,26 @@ msgid "THERMAL RUNAWAY"
 msgstr "THERMAL RUNAWAY"
 
 #: src/gui/wizard/selftest_frame_fans.cpp:36
-msgid ""
-"The RPM test has failed, check both fans are free to spin and connected "
-"correctly."
-msgstr ""
-"Test otáček ventilátorů selhal. Zkontrolujte oba ventilátory a jejich "
-"zapojení. Mohou se volně otáčet?"
+msgid "The RPM test has failed, check both fans are free to spin and connected correctly."
+msgstr "Test otáček ventilátorů selhal. Zkontrolujte oba ventilátory a jejich zapojení. Mohou se volně otáčet?"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:67
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:67
-msgid ""
-"The Selector cannot home properly. Check for anything blocking its movement."
-msgstr ""
-"Selektor nemůže najít výchozí pozici. Zkontrolujte, zda nic neblokuje jeho "
-"pohyb."
+msgid "The Selector cannot home properly. Check for anything blocking its movement."
+msgstr "Selektor nemůže najít výchozí pozici. Zkontrolujte, zda nic neblokuje jeho pohyb."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:74
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:74
-msgid ""
-"The Selector cannot move. Check for anything blocking its movement. Check if "
-"the wiring is correct."
-msgstr ""
-"Selektor se nemůže pohybovat. Zkontrolujte, zda mu něco nebrání v pohybu. "
-"Zkontrolujte zapojení."
+msgid "The Selector cannot move. Check for anything blocking its movement. Check if the wiring is correct."
+msgstr "Selektor se nemůže pohybovat. Zkontrolujte, zda mu něco nebrání v pohybu. Zkontrolujte zapojení."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:65
+msgid "The Selector cannot move. Check for anything blocking its movement. Check the wiring."
+msgstr "Selektor se nemůže pohybovat. Zkontrolujte, zda mu něco nebrání v pohybu. Zkontrolujte zapojení."
 
 #: src/gui/wizard/selftest_frame_wizard_epilogue.cpp:58
-msgid ""
-"The selftest failed to finish. Double-check the printer's wiring and axes. "
-"Then restart the Selftest."
-msgstr ""
-"Selftest selhal. Zkontrolujte zapojení el. částí i všechny osy. Pak Selftest "
-"spusťte znovu."
+msgid "The selftest failed to finish. Double-check the printer's wiring and axes. Then restart the Selftest."
+msgstr "Selftest selhal. Zkontrolujte zapojení el. částí i všechny osy. Pak Selftest spusťte znovu."
 
 #: src/common/filament_sensors_handler_XL_remap.cpp:54
 msgid ""
@@ -5381,31 +5502,23 @@ msgstr ""
 
 #: src/gui/screen_menu_metrics.hpp:45
 msgid ""
-"This feature allows you to gather diagnostic data to show in Grafana. Be "
-"careful, it can send unencrypted data to the internet.\n"
+"This feature allows you to gather diagnostic data to show in Grafana. Be careful, it can send unencrypted data to the internet.\n"
 "\n"
-"Allow any host and use M33x G-codes to configure metrics and system log. "
-"After that, you can store host and port by clicking the current "
-"configuration."
+"Allow any host and use M33x G-codes to configure metrics and system log. After that, you can store host and port by clicking the current configuration."
 msgstr ""
-"Tato funkce vám umožní shromažďovat diagnostická data pro zobrazení v "
-"Grafaně. Pozor: může posílat nezašifrovaná data přes internet.\n"
+"Tato funkce vám umožní shromažďovat diagnostická data pro zobrazení v Grafaně. Pozor: může posílat nezašifrovaná data přes internet.\n"
 "\n"
-"Povolte libovolného hostitele a použite G-cody M33x pro konfiguraci metrik a "
-"systémového protokolu. Následně můžete uložit hostitele a port vybráním "
-"aktuální konfigurace."
+"Povolte libovolného hostitele a použite G-cody M33x pro konfiguraci metrik a systémového protokolu. Následně můžete uložit hostitele a port vybráním aktuální konfigurace."
 
 #: src/gui/screen_tools_mapping.cpp:1079
 msgid ""
 "This filament already has a tool assigned.\n"
 "\n"
-"Do you want to REPLACE the assigned tool with the selected tool or add the "
-"selected tool for the SPOOL JOIN functionality?"
+"Do you want to REPLACE the assigned tool with the selected tool or add the selected tool for the SPOOL JOIN functionality?"
 msgstr ""
 "Tento filament má již přiřazen nástroj.\n"
 "\n"
-"Chcete NAHRADIT přiřazený nástroj tím, který je právě vybraný? Nebo chcete "
-"pro zvolený nástroj aktivovat SPOOL JOIN?"
+"Chcete NAHRADIT přiřazený nástroj tím, který je právě vybraný? Nebo chcete pro zvolený nástroj aktivovat SPOOL JOIN?"
 
 #: src/gui/screen_home.cpp:322
 msgid ""
@@ -5436,24 +5549,32 @@ msgid "This G-code was set up for another filament type."
 msgstr "Tento G-Code byl připraven pro jiný typ filamentu."
 
 #. window_menu
+#: src/gui/MItem_tools.cpp:223
+msgid ""
+"This operation cannot be undone. Current configuration will be lost!\n"
+"You will need a USB drive with this firmware (MK4XLPRINTER_firmware_4.6.0.bbf file) to start the printer again.\n"
+"Do you really want to continue?"
+msgstr ""
+"Tuto operaci nelze vrátit! Aktuální konfigurace bude smazána!\n"
+"Aby mohla tiskárna dál fungovat, potřebujete USB disk s tímto FW (MK4XLPRINTER_firmware_4.6.0.bbf).\n"
+"Skutečně chcete pokračovat?"
+
+#. window_menu
 #: src/gui/MItem_tools.cpp:253
 #, c-format
 msgid ""
 "This operation cannot be undone. Current configuration will be lost!\n"
-"You will need a USB drive with this firmware (%s_firmware_%s.bbf file) to "
-"start the printer again.\n"
+"You will need a USB drive with this firmware (%s_firmware_%s.bbf file) to start the printer again.\n"
 "Do you really want to continue?"
 msgstr ""
 "Tato operace je nevratná. Aktuální konfigurace bude ztracena!\n"
-"Aby mohla tiskárna dále fungovat, bude potřeba USB klíč s tímto FW "
-"(%s_firmware_%s.bbf).\n"
+"Aby mohla tiskárna dále fungovat, bude potřeba USB klíč s tímto FW (%s_firmware_%s.bbf).\n"
 "Chcete skutečně pokračovat?"
 
 #. window_menu
 #: src/gui/MItem_tools.cpp:243
 msgid ""
-"This operation cannot be undone. Current user configuration and passwords "
-"will be lost!\n"
+"This operation cannot be undone. Current user configuration and passwords will be lost!\n"
 "Do you want to reset the printer to factory defaults?"
 msgstr ""
 "Tuto operaci nejde vrátit. Dojde ke smazání aktuální konfigurace a hesel!\n"
@@ -5485,14 +5606,13 @@ msgstr ""
 "\n"
 "Chcete jej NAHRADIT na první pozici nebo ODEBRAT ze Spool Join?"
 
+#: src/gui/MItem_tools.hpp:412
+msgid "This will allow metrics to be enabled by G-code. It can send unencrypted diagnostics data to the internet. Do you really want to allow metrics?"
+msgstr "Toto umožní G-Code souborům povolit metriky. Pak je možné posílat nezašifrovaná data přes internet. Chcete skutečně funkci povolit?"
+
 #: src/gui/screen_menu_metrics.hpp:60
-msgid ""
-"This will allow network to be enabled by M33x G-codes. It can send "
-"unencrypted diagnostics data to the internet. Do you really want to allow "
-"this?"
-msgstr ""
-"Toto umožní povolit síťové služby pomocí G-codů M33x. Může dojít k posílání "
-"nezašifrovaných dat přes internet. Skutečně to chcete povolit?"
+msgid "This will allow network to be enabled by M33x G-codes. It can send unencrypted diagnostics data to the internet. Do you really want to allow this?"
+msgstr "Toto umožní povolit síťové služby pomocí G-codů M33x. Může dojít k posílání nezašifrovaných dat přes internet. Skutečně to chcete povolit?"
 
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:51
@@ -5507,13 +5627,29 @@ msgstr "Dotáhněte pouze spodní šroub na pravé straně dokovacího sloupku."
 msgid "Tighten screw"
 msgstr "Utáhněte šroub"
 
-#: src/gui/wizard/selftest_frame_gears_calib.cpp:56
+#: src/gui/wizard/selftest_frame_dock.hpp:41
 msgid ""
-"Tighten the M3 screws firmly in the correct order, they should be slightly "
-"below the surface. Do not over-tighten."
+"Tighten the bottom dock screw at the left side of the pillar\n"
+"\n"
+"Be careful in next step the printer will be moving"
 msgstr ""
-"Šrouby M3 dotáhněte ve správném pořadí, měly by být kousek pod hranou "
-"povrchu. Aplikujte přiměřenou sílu."
+"Utáhněte spodní šroub na pravé straně sloupku\n"
+"\n"
+"Pozor: v dalším kroku se bude toolchanger hýbat."
+
+#: src/gui/wizard/selftest_frame_gears_calib.cpp:56
+msgid "Tighten the M3 screws firmly in the correct order, they should be slightly below the surface. Do not over-tighten."
+msgstr "Šrouby M3 dotáhněte ve správném pořadí, měly by být kousek pod hranou povrchu. Aplikujte přiměřenou sílu."
+
+#: src/gui/wizard/selftest_frame_dock.hpp:38
+msgid ""
+"Tighten the top dock screw at the left side of the pillar\n"
+"\n"
+"Be careful in next step the printer will be moving"
+msgstr ""
+"Utáhněte horní šroub na pravé straně dokovacího sloupku.\n"
+"\n"
+"Pozor: v dalším kroku se bude toolchanger hýbat."
 
 #: src/gui/wizard/selftest_frame_dock.hpp:45
 msgid ""
@@ -5556,111 +5692,63 @@ msgstr "CHYBA TMC DRIVERU"
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:109
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:109
-msgid ""
-"TMC driver for the Idler motor is almost overheating. Make sure there is "
-"sufficient airflow near the MMU board."
-msgstr ""
-"TMC driver pro motor idleru má vysokou teplotu. Ujistěte se, že okolo desky "
-"může proudit vzduch."
+msgid "TMC driver for the Idler motor is almost overheating. Make sure there is sufficient airflow near the MMU board."
+msgstr "TMC driver pro motor idleru má vysokou teplotu. Ujistěte se, že okolo desky může proudit vzduch."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:151
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:151
-msgid ""
-"TMC driver for the Idler motor is not responding. Try resetting the MMU. If "
-"the issue persists contact support."
-msgstr ""
-"TMC driver pro motor idleru neodpovídá. Resetujte MMU. Pokud problém "
-"přetrvává, kontaktujte podporu."
+msgid "TMC driver for the Idler motor is not responding. Try resetting the MMU. If the issue persists contact support."
+msgstr "TMC driver pro motor idleru neodpovídá. Resetujte MMU. Pokud problém přetrvává, kontaktujte podporu."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:130
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:130
-msgid ""
-"TMC driver for the Idler motor is overheated. Cool down the MMU board and "
-"reset MMU."
-msgstr ""
-"TMC driver pro motor idleru se přehřál. Vyčkejte na ochlazení a MMU "
-"restartujte."
+msgid "TMC driver for the Idler motor is overheated. Cool down the MMU board and reset MMU."
+msgstr "TMC driver pro motor idleru se přehřál. Vyčkejte na ochlazení a MMU restartujte."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:172
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:172
-msgid ""
-"TMC driver for the Idler motor was restarted. There is probably an issue "
-"with the electronics. Check the wiring and connectors."
-msgstr ""
-"TMC driver pro motor idleru byl restartován. Pravděpodobná závada "
-"elektroniky. Důkladně zkontrolujte zapojení."
+msgid "TMC driver for the Idler motor was restarted. There is probably an issue with the electronics. Check the wiring and connectors."
+msgstr "TMC driver pro motor idleru byl restartován. Pravděpodobná závada elektroniky. Důkladně zkontrolujte zapojení."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:95
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:95
-msgid ""
-"TMC driver for the Pulley motor is almost overheating. Make sure there is "
-"sufficient airflow near the MMU board."
-msgstr ""
-"TMC driver pro pulley motor má vysokou teplotu. Ujistěte se, že MMU deska "
-"není zakrytá a může k ní vzduch."
+msgid "TMC driver for the Pulley motor is almost overheating. Make sure there is sufficient airflow near the MMU board."
+msgstr "TMC driver pro pulley motor má vysokou teplotu. Ujistěte se, že MMU deska není zakrytá a může k ní vzduch."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:137
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:137
-msgid ""
-"TMC driver for the Pulley motor is not responding. Try resetting the MMU. If "
-"the issue persists contact support."
-msgstr ""
-"TMC driver pro pulley motor neodpovídá. Resetujte MMU. Pokud problém "
-"přetrvává, kontaktujte podporu."
+msgid "TMC driver for the Pulley motor is not responding. Try resetting the MMU. If the issue persists contact support."
+msgstr "TMC driver pro pulley motor neodpovídá. Resetujte MMU. Pokud problém přetrvává, kontaktujte podporu."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:116
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:116
-msgid ""
-"TMC driver for the Pulley motor is overheated. Cool down the MMU board and "
-"reset MMU."
-msgstr ""
-"Došlo k přehřátí TMC driveru pro pulley motor. Nechte jej vychladnout a MMU "
-"restartujte."
+msgid "TMC driver for the Pulley motor is overheated. Cool down the MMU board and reset MMU."
+msgstr "Došlo k přehřátí TMC driveru pro pulley motor. Nechte jej vychladnout a MMU restartujte."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:158
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:158
-msgid ""
-"TMC driver for the Pulley motor was restarted. There is probably an issue "
-"with the electronics. Check the wiring and connectors."
-msgstr ""
-"TMC driver pro Pulley motor byl restartován. Pravděpodobná závada "
-"elektroniky. Důkladně zkontrolujte zapojení."
+msgid "TMC driver for the Pulley motor was restarted. There is probably an issue with the electronics. Check the wiring and connectors."
+msgstr "TMC driver pro Pulley motor byl restartován. Pravděpodobná závada elektroniky. Důkladně zkontrolujte zapojení."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:102
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:102
-msgid ""
-"TMC driver for the Selector motor is almost overheating. Make sure there is "
-"sufficient airflow near the MMU board."
-msgstr ""
-"TMC driver pro motor selektoru má vysokou teplotu. Ujistěte se, že okolo "
-"desky může proudit vzduch."
+msgid "TMC driver for the Selector motor is almost overheating. Make sure there is sufficient airflow near the MMU board."
+msgstr "TMC driver pro motor selektoru má vysokou teplotu. Ujistěte se, že okolo desky může proudit vzduch."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:144
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:144
-msgid ""
-"TMC driver for the Selector motor is not responding. Try resetting the MMU. "
-"If the issue persists contact support."
-msgstr ""
-"TMC driver pro motor selektoru neodpovídá. Resetujte MMU. Pokud problém "
-"přetrvává, kontaktujte podporu."
+msgid "TMC driver for the Selector motor is not responding. Try resetting the MMU. If the issue persists contact support."
+msgstr "TMC driver pro motor selektoru neodpovídá. Resetujte MMU. Pokud problém přetrvává, kontaktujte podporu."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:123
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:123
-msgid ""
-"TMC driver for the Selector motor is overheated. Cool down the MMU board and "
-"reset MMU."
-msgstr ""
-"TMC driver pro motor selektoru se přehřál. Vyčkejte na ochlazení a MMU "
-"restartujte."
+msgid "TMC driver for the Selector motor is overheated. Cool down the MMU board and reset MMU."
+msgstr "TMC driver pro motor selektoru se přehřál. Vyčkejte na ochlazení a MMU restartujte."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:165
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:165
-msgid ""
-"TMC driver for the Selector motor was restarted. There is probably an issue "
-"with the electronics. Check the wiring and connectors."
-msgstr ""
-"TMC driver pro motor selektoru byl restartován. Pravděpodobná závada "
-"elektroniky. Důkladně zkontrolujte zapojení."
+msgid "TMC driver for the Selector motor was restarted. There is probably an issue with the electronics. Check the wiring and connectors."
+msgstr "TMC driver pro motor selektoru byl restartován. Pravděpodobná závada elektroniky. Důkladně zkontrolujte zapojení."
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:157
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:164
@@ -5698,21 +5786,19 @@ msgstr "CHYBA: TMC PŘEHŘÁTÍ"
 msgid "TMC UNDERVOLTAGE ERR"
 msgstr "CHYBA: NÍZKÉ NAPĚTÍ TMC"
 
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:154
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:160
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:166
+msgid "TMC UNDERVOLTAGE ERROR"
+msgstr "CHYBA: NÍZKÉ NAPĚTÍ TMC"
+
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:42
-msgid ""
-"To calibrate with currently loaded filament, press NEXT. To change filament, "
-"press UNLOAD."
-msgstr ""
-"Pro kalibraci s aktuálně zavedeným filamentem zvolte DALŠÍ. Pro výměnu "
-"zvolte VYJMOUT."
+msgid "To calibrate with currently loaded filament, press NEXT. To change filament, press UNLOAD."
+msgstr "Pro kalibraci s aktuálně zavedeným filamentem zvolte DALŠÍ. Pro výměnu zvolte VYJMOUT."
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:46
-msgid ""
-"To calibrate with currently loaded filament, press NEXT. To load filament, "
-"press LOAD. To change filament, press UNLOAD."
-msgstr ""
-"Pro kalibraci s aktuálně zavedeným filamentem zvolte DALŠÍ. Pro výměnu "
-"zvolte VYJMOUT."
+msgid "To calibrate with currently loaded filament, press NEXT. To load filament, press LOAD. To change filament, press UNLOAD."
+msgstr "Pro kalibraci s aktuálně zavedeným filamentem zvolte DALŠÍ. Pro výměnu zvolte VYJMOUT."
 
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
@@ -5720,9 +5806,7 @@ msgid "Today at"
 msgstr "Dnes v"
 
 #: src/gui/screen_help_fw_update.cpp:78
-msgid ""
-"To learn more including firmware downgrade, please visit: prusa.io/mini-"
-"firmware"
+msgid "To learn more including firmware downgrade, please visit: prusa.io/mini-firmware"
 msgstr ""
 "Více informací, včetně návodu na instalací starší verze FW:\n"
 "prusa.io/mini-firmware"
@@ -5962,12 +6046,8 @@ msgid "Total Load Fails"
 msgstr "Počet selhání zavedení"
 
 #: src/gui/screen_home.cpp:312
-msgid ""
-"Touch disabled. This feature is work-in-progress and is going to be fully "
-"available in a future update."
-msgstr ""
-"Dotyková vrstva vypnutá. Zapnutá bude prostřednictvím budoucí aktualizace "
-"firmwaru."
+msgid "Touch disabled. This feature is work-in-progress and is going to be fully available in a future update."
+msgstr "Dotyková vrstva vypnutá. Zapnutá bude prostřednictvím budoucí aktualizace firmwaru."
 
 #: src/gui/screen_touch_error.cpp:21
 msgid "Touch driver failed to initialize, touch functionality disabled"
@@ -6205,10 +6285,19 @@ msgstr ""
 "\n"
 "Vyčkejte..."
 
+#: src/guiapi/include/WindowItemFanLabel.hpp:20
+#, c-format
+msgid "%u %% / running"
+msgstr "%u %% / běží"
+
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:93
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:98
 msgid "USB DEVICE OVERCURRENT"
 msgstr "NADPROUD NA USB ZAŘÍZENÍ!"
+
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:33
+msgid "USB drive error, the print is now paused. Reconnect the drive."
+msgstr "Chyba USB úložiště. Tisk pozastaven. Disk vyjměte a znovu vložte."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:214
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:259
@@ -6336,6 +6425,10 @@ msgstr "Čekám na potvrzení. Až bude tiskárna připravena, vyberte Pokračov
 msgid "Waiting for user input"
 msgstr "Čeká se na uživatele"
 
+#: src/gui/dialogs/DialogConnectReg.cpp:33
+msgid "Wait please, getting the registration code."
+msgstr "Vyčkejte, získávám registrační kód"
+
 #: src/gui/MItem_hardware.hpp:19
 msgid "Warn"
 msgstr "Varovat"
@@ -6357,27 +6450,29 @@ msgstr "VAROVÁNÍ: PŘEHŘÍVÁNÍ TMC"
 msgid "Was filament unload successful?"
 msgstr "Proběhlo vyjmutí filamentu správně?"
 
+#: src/gui/screen_printing.cpp:273
+msgid "Was the print successful?"
+msgstr "Byl tisk úspěšný?"
+
+#: src/gui/test/screen_menu_test.cpp:48
+msgid "Watchdog reset"
+msgstr "Watchdog reset"
+
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:49
 msgid "Wed"
 msgstr "St"
 
 #: src/gui/wizard/selftest_frame_wizard_prologue.cpp:14
-msgid ""
-"Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
+msgid "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
 msgstr "Vítejte v průvodci pro Original Prusa MINI. Přejete si pokračovat?"
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:86
-msgid ""
-"We need to start without the filament in the extruder. Please make sure "
-"there is no filament in the filament sensor."
-msgstr ""
-"Je potřeba začít bez filamentu v extruderu. Ujistěte se, že v extruderu není "
-"filament."
+msgid "We need to start without the filament in the extruder. Please make sure there is no filament in the filament sensor."
+msgstr "Je potřeba začít bez filamentu v extruderu. Ujistěte se, že v extruderu není filament."
 
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:41
-msgid ""
-"We need to start without the filament in the extruder. Please unload it."
+msgid "We need to start without the filament in the extruder. Please unload it."
 msgstr "Je nutné začít bez filamentu v extruderu. Prosím vysuňte filament."
 
 #. One dock takes approximately 1:45 to calibrate if you know what you are doing
@@ -6386,21 +6481,14 @@ msgid "We suggest opening the online guide for the first-time calibration."
 msgstr "Pro první kalibraci doporučujeme použít online návod."
 
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:26
-msgid ""
-"We will need your help with this calibration. You will be asked to screw in "
-"a calibration pin."
-msgstr ""
-"U této kalibrace je vyžadována vaše asistence. Je potřeba nainstalovat "
-"kalibrační pin."
+msgid "We will need your help with this calibration. You will be asked to screw in a calibration pin."
+msgstr "U této kalibrace je vyžadována vaše asistence. Je potřeba nainstalovat kalibrační pin."
 
 #: src/gui/wizard/selftest_frame_loadcell.cpp:100
 msgid ""
-"We will need your help with this test. You will be asked to tap the nozzle. "
-"Don't worry; it is going to be cold.\n"
+"We will need your help with this test. You will be asked to tap the nozzle. Don't worry; it is going to be cold.\n"
 " "
-msgstr ""
-"Bude vyžadována vaše asistence. Ve správný okamžik se dotkněte trysky. "
-"Nebojte, bude studená."
+msgstr "Bude vyžadována vaše asistence. Ve správný okamžik se dotkněte trysky. Nebojte, bude studená."
 
 #: src/gui/screen_menu_metrics.hpp:44
 msgid "What is this?"
@@ -6419,12 +6507,8 @@ msgid "WiFi connection"
 msgstr "Wi-Fi připojení"
 
 #: src/gui/screen_home.cpp:400
-msgid ""
-"Wi-Fi credentials (SSID and password) discovered on the USB flash drive. "
-"Would you like to connect your printer to Wi-Fi now?"
-msgstr ""
-"Údaje pro přihlášení k Wi-Fi nalezeny na USB disku. Připojit tiskárnu k Wi-"
-"Fi nyní?"
+msgid "Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"
+msgstr "Údaje pro přihlášení k Wi-Fi nalezeny na USB disku. Připojit tiskárnu k Wi-Fi nyní?"
 
 #: src/gui/esp_frame_progress.cpp:52
 msgid ""
@@ -6450,6 +6534,11 @@ msgstr "Wi-Fi nepřipojena"
 msgid "WI-FI SETTINGS"
 msgstr "WI-FI NASTAVENÍ"
 
+#: src/gui/screen_printing.cpp:123
+#, c-format
+msgid "Wipe tower %dg"
+msgstr "Čistící věž: %dg"
+
 #: src/gui/MItem_basic_selftest.hpp:19
 msgid "Wizard"
 msgstr "Průvodce"
@@ -6457,6 +6546,10 @@ msgstr "Průvodce"
 #: src/gui/ScreenSelftest.hpp:77
 msgid "WIZARD"
 msgstr "PRŮVODCE"
+
+#: src/gui/ScreenSelftest.hpp:85
+msgid "WIZARD FAILED"
+msgstr "PRŮVODCE NEDOKONČEN"
 
 #: src/gui/ScreenSelftest.hpp:79
 msgid "WIZARD - NOK"
