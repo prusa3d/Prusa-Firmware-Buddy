@@ -34,6 +34,13 @@
 
 /**
  * G27: Park the nozzle
+ *
+ * ## Parameters
+ *
+ * - `X` - Park nozzle on X axis
+ * - `Y` - Park nozzle on X axis
+ * - `Z` - Park nozzle on X axis
+ * - `P` - [value] Z action
  */
 void GcodeSuite::G27() {
 

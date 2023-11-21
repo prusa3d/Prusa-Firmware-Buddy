@@ -31,6 +31,10 @@
 
 /**
  * M221: Set extrusion percentage (M221 T0 S95)
+ * 
+ * ## Parameters
+ *
+ * - `S` - [percentage] Flow percentage
  */
 void GcodeSuite::M221() {
 

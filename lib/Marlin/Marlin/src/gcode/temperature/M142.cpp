@@ -45,6 +45,10 @@
 
 /**
  * Set heatbreak cooling temperature
+ *
+ * ## Parameters
+ *
+ * - `S` - [degree Celsius] Temperature to be set
  */
 void GcodeSuite::M142() {
   if (DEBUGGING(DRYRUN)) return;

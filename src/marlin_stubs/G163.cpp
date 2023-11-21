@@ -34,6 +34,17 @@ static SelftestSubtestState_t axis_length_ok_fsm(AxisEnum axis, float length) {
  * @{
  */
 
+/**
+ * G163: Measure length of axis
+ *
+ * ## Parameters
+ *
+ * - `X` - Measure the length on X axis
+ * - `Y` - Measure the length on Y axis
+ * - `S` - [int] Set sensitivity
+ * - `P` - [int] Set measurement period.
+ */
+
 void PrusaGcodeSuite::G163() {
 #if ENABLED(AXIS_MEASURE)
     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);

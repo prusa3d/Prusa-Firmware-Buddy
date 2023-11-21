@@ -45,6 +45,10 @@
 
 /**
  * M140: Set bed temperature
+ *
+ * ## Parameters
+ *
+ * - `S` - [degree Celsius] Temperature to be set
  */
 void GcodeSuite::M140() {
   if (DEBUGGING(DRYRUN)) return;

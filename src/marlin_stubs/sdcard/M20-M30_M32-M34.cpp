@@ -13,7 +13,7 @@
  */
 
 /**
- * M20 - List SD card
+ * M20 - List SD card on serial port
  */
 void GcodeSuite::M20() {
     SERIAL_ECHOLNPGM(MSG_BEGIN_FILE_LIST);
@@ -66,7 +66,7 @@ void GcodeSuite::M24() {
 /**
  * @brief Pause SD print
  *
- * - U Unload filament when paused
+ * - `U` - Unload filament when paused
  */
 void GcodeSuite::M25() {
     if (parser.seen('U')) {
@@ -78,6 +78,10 @@ void GcodeSuite::M25() {
 
 /**
  * M26 - Set SD position
+ *
+ * ## Parameters
+ *
+ * - `S` - [value] Specific position
  */
 void GcodeSuite::M26() {
     if ((media_get_state() == media_state_INSERTED) && parser.seenval('S')) {
@@ -86,7 +90,11 @@ void GcodeSuite::M26() {
 }
 
 /**
- * M27 - Report SD print status
+ * M27 - Report SD print status on serial port
+ *
+ * ## Parameters
+ *
+ * - `C` - Report current file's short file name instead
  */
 void GcodeSuite::M27() {
     if (parser.seen('C')) {

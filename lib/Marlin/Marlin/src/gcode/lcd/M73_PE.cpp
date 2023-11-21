@@ -71,6 +71,16 @@ void ClProgressData::mInit(void) {
  * @{
  */
 
+/**
+ * M73: Tell the firmware the current build progress (percentage/time to end/time to pause). The machine is expected to display this on its display.
+ *
+ * ## Parameters
+ *
+ * - `P` - [percentage] Set percentage value
+ * - `R` - [minutes] Set time to end / percentage done
+ * - `T` - [minutes] Set time to pause
+ */
+
 void GcodeSuite::M73_PE() {
     std::optional<uint8_t> P = std::nullopt;
     std::optional<uint32_t> R = std::nullopt;

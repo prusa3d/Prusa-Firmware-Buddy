@@ -36,6 +36,13 @@
 
 /**
  * G42: Move X & Y axes to mesh coordinates (I & J)
+ *
+ * ## Parameters
+ *
+ * - `I` - [int] Grid X index
+ * - `J` - [int] Grid Y index
+ * - `P` - Probe flag. Moves the probe to the grid point (instead of the nozzle).
+ * - `F` - [mm/min] Feedrate
  */
 void GcodeSuite::G42() {
   if (MOTION_CONDITIONS) {

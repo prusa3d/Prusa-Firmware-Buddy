@@ -32,7 +32,11 @@
  */
 
 /**
- * M155: Set temperature auto-report interval. M155 S<seconds>
+ * M155: Set temperature auto-report interval.
+ *
+ * ## Parameters
+ *
+ * - `S` - [seconds] time interval
  */
 void GcodeSuite::M155() {
 

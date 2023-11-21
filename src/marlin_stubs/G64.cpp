@@ -17,6 +17,14 @@ LOG_COMPONENT_REF(PRUSA_GCODE);
  * @{
  */
 
+/**
+ * G64: Measure Z-Axis height
+ *
+ * ## Parameters
+ *
+ * - `D` - [float] additional offset
+ */
+
 void PrusaGcodeSuite::G64() {
 
     int additional_offset = 0;

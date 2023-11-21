@@ -13,6 +13,14 @@ uint32_t M123::fan_auto_report_delay = 0;
  * @{
  */
 
+/**
+ * M123: Print fan speed on serial port. Without any parameters means print out fan telemetry to serial port once.
+ *
+ * ## Parameters
+ *
+ * - `S` - [value] Set fan auto report delay
+ */
+
 void PrusaGcodeSuite::M123() {
     if (parser.seen('S')) {
         M123::fan_auto_report_delay = parser.byteval('S');

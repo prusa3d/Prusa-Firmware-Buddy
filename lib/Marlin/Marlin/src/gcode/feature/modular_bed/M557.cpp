@@ -34,6 +34,12 @@
 
 /**
  * M557: Set modular bed parameters
+ *
+ * ## Parameters
+ *
+ * - `C` - [float] Set gradient cutoff
+ * - `E` - [float] Set gradient exponent
+ * - `S` - [bool] Expand to sides
  */
 void GcodeSuite::M557() {
 

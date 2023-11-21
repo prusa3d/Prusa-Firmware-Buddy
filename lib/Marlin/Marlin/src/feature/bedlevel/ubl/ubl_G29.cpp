@@ -290,24 +290,6 @@
    *
    *   W    What?       Display valuable UBL data.
    *
-   *
-   *   Release Notes:
-   *   You MUST do M502, M500 to initialize the storage. Failure to do this will cause all
-   *   kinds of problems. Enabling EEPROM Storage is required.
-   *
-   *   When you do a G28 and G29 P1 to automatically build your first mesh, you are going to notice that
-   *   UBL probes points increasingly further from the starting location. (The starting location defaults
-   *   to the center of the bed.) In contrast, ABL and MBL follow a zigzag pattern. The spiral pattern is
-   *   especially better for Delta printers, since it populates the center of the mesh first, allowing for
-   *   a quicker test print to verify settings. You don't need to populate the entire mesh to use it.
-   *   After all, you don't want to spend a lot of time generating a mesh only to realize the resolution
-   *   or probe offsets are incorrect. Mesh-generation gathers points starting closest to the nozzle unless
-   *   an (X,Y) coordinate pair is given.
-   *
-   *   Unified Bed Leveling uses a lot of EEPROM storage to hold its data, and it takes some effort to get
-   *   the mesh just right. To prevent this valuable data from being destroyed as the EEPROM structure
-   *   evolves, UBL stores all mesh data at the end of EEPROM.
-   *
    *   UBL is founded on Edward Patel's Mesh Bed Leveling code. A big 'Thanks!' to him and the creators of
    *   3-Point and Grid Based leveling. Combining their contributions we now have the functionality and
    *   features of all three systems combined.

@@ -34,6 +34,10 @@
 /**
  * M350: Set axis microstepping modes. S sets mode for all drivers.
  *
+ * ## Parameters
+ *
+ * - `S` - Mode for all drivers
+ * - `B` - Set stepping mode for Extruder 1 
  * Warning: Steps-per-unit remains unchanged.
  */
 void GcodeSuite::M350() {

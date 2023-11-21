@@ -16,7 +16,11 @@ M862_6SupportedFeatures m862_6SupportedFeatures = { "Input shaper" };
  */
 
 /**
- * M862.6: Check gcode level
+ * M862.6: Check supported features
+ *
+ * ## Parameters
+ *
+ * - `Q` - Print out current supported features
  */
 void PrusaGcodeSuite::M862_6() {
     // Handle only Q

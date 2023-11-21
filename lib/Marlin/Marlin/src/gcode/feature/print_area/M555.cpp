@@ -31,6 +31,13 @@
 
 /**
  * M555: Set print area
+ *
+ * ## Parameters
+ *
+ * - `X` - [float] Set print area X coordinate
+ * - `Y` - [float] Set print area Y coordinate
+ * - `W` - [float] Set print width
+ * - `H` - [float] Set print height
  */
 void GcodeSuite::M555() {
   auto area = PrintArea::rect_t::max();

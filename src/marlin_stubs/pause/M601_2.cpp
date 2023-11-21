@@ -10,12 +10,20 @@
  * @{
  */
 
+/**
+ * G601: Pause the print
+ */
+
 void GcodeSuite::M601() {
     marlin_server::print_pause();
 #if HAS_LEDS()
     PrinterStateAnimation::force_printer_state_until(PrinterState::Warning, PrinterState::Printing);
 #endif
 }
+
+/**
+ * G602: Resume the print
+ */
 
 void GcodeSuite::M602() {
     marlin_server::print_resume();

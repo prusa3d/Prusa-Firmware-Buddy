@@ -33,6 +33,13 @@
 
 /**
  * M122: Debug TMC drivers
+ *
+ * ## Parameters
+ *
+ * - `X` - Debug X axis TMC driver
+ * - `Y` - Debug Y axis TMC driver
+ * - `Z` - Debug Z axis TMC driver
+ * - `E` - Debug E axis TMC driver
  */
 void GcodeSuite::M122() {
   xyze_bool_t print_axis = { false, false, false, false };

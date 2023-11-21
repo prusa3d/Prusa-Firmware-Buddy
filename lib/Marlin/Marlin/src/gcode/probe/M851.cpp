@@ -34,6 +34,12 @@
 
 /**
  * M851: Set the nozzle-to-probe offsets in current units
+ *
+ * ## Parameters
+ *
+ * - `X` - [float] Set offset on X axis
+ * - `Y` - [float] Set offset on Y axis
+ * - `Z` - [float] Set offset on Z axis
  */
 void GcodeSuite::M851() {
 

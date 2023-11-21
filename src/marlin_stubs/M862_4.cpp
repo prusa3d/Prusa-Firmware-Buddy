@@ -14,6 +14,10 @@
 
 /**
  * M862.4: Check firmware version
+ *
+ * ## Parameters
+ *
+ * - `Q` - Print out current firmware version
  */
 void PrusaGcodeSuite::M862_4() {
     // Handle only Q

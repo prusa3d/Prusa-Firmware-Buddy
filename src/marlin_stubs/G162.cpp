@@ -135,6 +135,14 @@ void selftest::calib_Z(bool move_down_after) {
  * @{
  */
 
+/**
+ * G162: Z Calibration
+ *
+ * ## Parameters
+ *
+ * - `Z` - Calibrate Z axis
+ */
+
 void PrusaGcodeSuite::G162() {
     if (parser.seen('Z')) {
         FSM_HOLDER__LOGGING(Selftest);

@@ -36,6 +36,13 @@
 
 /**
  * M17: Enable stepper motors
+ *
+ * ## Parameters
+ *
+ * - `X` - Enable X axis stepper motor
+ * - `Y` - Enable Y axis stepper motor
+ * - `Z` - Enable Z axis stepper motor
+ * - `E` - Enable E axis stepper motor
  */
 void GcodeSuite::M17() {
   if (parser.seen("XYZE")) {
@@ -58,6 +65,14 @@ void GcodeSuite::M17() {
 
 /**
  * M18, M84: Disable stepper motors
+ *
+ * ## Parameters
+ *
+ * - `S` - [seconds] stepper inactive time
+ * - `X` - Disable X axis stepper motor
+ * - `Y` - Disable Y axis stepper motor
+ * - `Z` - Disable Z axis stepper motor
+ * - `E` - Disable E axis stepper motor
  */
 void GcodeSuite::M18_M84() {
   if (parser.seenval('S')) {

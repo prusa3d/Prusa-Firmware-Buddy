@@ -49,6 +49,11 @@
 
 /**
  * M104: Set hot end temperature
+ *
+ * ## Parameters
+ *
+ * - `S` - [degree Celsius] Temperature to be set
+ * - `D` - [degree Celsius] Temperature to be displayed (otherwise actual temp will be displayed)
  */
 void GcodeSuite::M104() {
 

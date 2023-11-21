@@ -29,7 +29,12 @@
  */
 
 /**
- * M226: Wait until the specified pin reaches the state required (M226 P<pin> S<state>)
+ * M226: Wait until the specified pin reaches the state required
+ *
+ * ## Parameters
+ *
+ * - `P` - Pin
+ * - `S` - State
  */
 void GcodeSuite::M226() {
   if (parser.seen('P')) {

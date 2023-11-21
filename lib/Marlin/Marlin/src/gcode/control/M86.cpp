@@ -29,6 +29,10 @@
 
 /**
  * M86: Set Safety Timer expiration time
+ *
+ * ## Parameters
+ *
+ * - `S` - [seconds] Safety timer interval
  */
 void GcodeSuite::M86() {
   if (parser.seen('S'))

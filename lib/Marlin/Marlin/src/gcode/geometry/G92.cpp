@@ -34,6 +34,13 @@
 
 /**
  * G92: Set current position to given X Y Z E
+ *
+ * ## Parameters
+ *
+ * - `X` - Get current position on X axis
+ * - `Y` - Get current position on Y axis
+ * - `Z` - Get current position on Z axis
+ * - `E` - Get current position on E axis
  */
 void GcodeSuite::G92() {
 

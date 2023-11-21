@@ -9,6 +9,15 @@
  * @{
  */
 
+/**
+ * M340: Syslog host and port configuration
+ *
+ * ## Parameters
+ *
+ * - <ip_address> - Configures the syslog handler to send all the enabled metrics to the given IP address.
+ * - <port> - Configures the syslog handler to send all the enabled metrics to the given port.
+ */
+
 void PrusaGcodeSuite::M340() {
     // Syslog has to be allowed in settings
     const MetricsAllow metrics_allow = config_store().metrics_allow.get();

@@ -46,15 +46,14 @@
 /**
  * M106: Set Fan Speed
  *
- *  S<int>   Speed between 0-255
- *  P<index> Fan index, if more than one fan
+ * ## Parameters
  *
- * With EXTRA_FAN_SPEED enabled:
- *
- *  T<int>   Restore/Use/Set Temporary Speed:
- *           1     = Restore previous speed after T2
- *           2     = Use temporary speed set with T3-255
- *           3-255 = Set the speed for use with T2
+ * - `S<int>` - Speed between 0-255
+ * - `P<index>` - Fan index, if more than one fan
+ * - `T<int>` - Restore/Use/Set Temporary Speed: (With EXTRA_FAN_SPEED enabled:)
+ *              1     = Restore previous speed after T2
+ *              2     = Use temporary speed set with T3-255
+ *              3-255 = Set the speed for use with T2
  */
 void GcodeSuite::M106() {
   const uint8_t p = parser.byteval('P', _ALT_P);
@@ -75,6 +74,10 @@ void GcodeSuite::M106() {
 
 /**
  * M107: Fan Off
+ *
+ * ## Parameters
+ *
+ * - `P<index>` - fan index
  */
 void GcodeSuite::M107() {
   const uint8_t p = parser.byteval('P', _ALT_P);

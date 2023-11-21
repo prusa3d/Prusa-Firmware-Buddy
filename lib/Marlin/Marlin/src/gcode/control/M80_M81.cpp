@@ -49,12 +49,15 @@
   #endif
 
   /** \addtogroup G-Codes
-  * @{
-  */
+   * @{
+   */
 
   /**
    * M80   : Turn on the Power Supply
-   * M80 S : Report the current state and exit
+   *
+   * ## Parameters
+   *
+   * - `S` - Report the current state and exit
    */
   void GcodeSuite::M80() {
 
