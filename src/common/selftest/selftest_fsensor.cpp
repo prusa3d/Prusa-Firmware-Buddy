@@ -78,6 +78,13 @@ CSelftestPart_FSensor::~CSelftestPart_FSensor() {
 bool CSelftestPart_FSensor::AbortAndInvalidateIfAbortPressed() {
     if (rStateMachine.GetButtonPressed() == Response::Abort_invalidate_test) {
         extruder->SetInvalidateCalibrationFlag();
+#if HAS_MMU2()
+        // Disable the MMU when calibration failed (and we're disabling the FS).
+        // Ideally we would call a method on the sensor itself (possibly in the
+        // disabling of calibration right below), but it just doesn't have that
+        // implemented and the whole FSensor code is overly complex.
+        FSensors_instance().DisableSideSensor();
+#endif
         if (side) {
             side->SetInvalidateCalibrationFlag();
         }
