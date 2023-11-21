@@ -322,7 +322,8 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
         auto resp = get<http::Response>(result);
         switch (resp.status) {
         case Status::SwitchingProtocols: {
-            if (!upgrade_hdrs.key_matched()) {
+            if (!upgrade_hdrs.key_matched() || !upgrade_hdrs.all_supported()) {
+                conn_factory.invalidate();
                 return OnlineError::Server;
             }
             // TODO: Verify we negotiated correctly.

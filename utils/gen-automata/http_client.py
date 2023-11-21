@@ -1,4 +1,4 @@
-from http import connection_header, content_type, read_header_value, response, content_encryption_mode_header
+from http import connection_header, content_type, read_header_value, response, content_encryption_mode_header, upgrade_header, ws_protocol_header, ws_protocol_extension
 
 if __name__ == "__main__":
     want_headers = {
@@ -7,6 +7,9 @@ if __name__ == "__main__":
         'Command-Id': read_header_value('CommandId'),
         'Code': read_header_value('Code'),
         'Connection': connection_header(),
+        'Upgrade': upgrade_header(),
+        'Sec-WebSocket-Protocol': ws_protocol_header(),
+        'Sec-WebSocket-Extensions': ws_protocol_extension(),
         'Token': read_header_value('Token'),
         'Sec-WebSocket-Accept': read_header_value('WebSocketAccept'),
         'Content-Encryption-Mode': content_encryption_mode_header(),

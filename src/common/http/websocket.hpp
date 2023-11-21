@@ -119,12 +119,17 @@ private:
     const WebSocketKey &key;
     size_t key_pos = 0;
     bool key_matches = true;
+    bool conn_upgrade = false;
+    bool upgrade_ws = false;
+    bool protocol_connect = false;
+    bool extension_commands = false;
 
 public:
     WebSocketAccept(const WebSocketKey &key)
         : key(key) {}
     virtual void character(char c, HeaderName name) override;
     bool key_matched() const;
+    bool all_supported() const;
 };
 
 } // namespace http

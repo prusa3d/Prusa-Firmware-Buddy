@@ -190,6 +190,10 @@ bool WebSocketAccept::key_matched() const {
     return key_matches && key_pos == strlen(key.response);
 }
 
+bool WebSocketAccept::all_supported() const {
+    return extension_commands && protocol_connect && upgrade_ws && conn_upgrade;
+}
+
 void WebSocketAccept::character(char c, HeaderName name) {
     switch (name) {
     case HeaderName::WebSocketAccept: {
@@ -201,7 +205,20 @@ void WebSocketAccept::character(char c, HeaderName name) {
             key_matches = false;
         }
         key_pos++;
+        break;
     }
+    case HeaderName::WebSocketCommands:
+        extension_commands = true;
+        break;
+    case HeaderName::WebSocketPrusaConnect:
+        protocol_connect = true;
+        break;
+    case HeaderName::WebSocketUpgrade:
+        upgrade_ws = true;
+        break;
+    case HeaderName::ConnectionUpgrade:
+        conn_upgrade = true;
+        break;
     default:
         break;
     }
