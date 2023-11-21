@@ -49,7 +49,9 @@ public:
         }
     };
 
-    static constexpr size_t MAX_SFN = 13;
+    // This has to be larger than standard SFN's 11, because SFN in this form gets pseudo-encoded into UTF-8, so the size can bloat.
+    // As a result, filenames with diacritics wouldn't fit
+    static constexpr size_t MAX_SFN = 24;
     struct EntryRef;
     struct Entry {
 
