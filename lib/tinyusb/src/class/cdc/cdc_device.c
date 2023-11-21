@@ -403,10 +403,8 @@ bool cdcd_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t 
         bool const dtr = tu_bit_test(request->wValue, 0);
         bool const rts = tu_bit_test(request->wValue, 1);
 
+        tu_fifo_set_overwritable(&p_cdc->tx_ff, false);
         p_cdc->line_state = (uint8_t) request->wValue;
-
-        // Disable fifo overwriting if DTR bit is set
-        tu_fifo_set_overwritable(&p_cdc->tx_ff, !dtr);
 
         TU_LOG_DRV("  Set Control Line State: DTR = %d, RTS = %d\r\n", dtr, rts);
 
@@ -446,6 +444,9 @@ bool cdcd_xfer_cb(uint8_t rhport, uint8_t ep_addr, xfer_result_t result, uint32_
     if ( ( ep_addr == p_cdc->ep_out ) || ( ep_addr == p_cdc->ep_in ) ) break;
   }
   TU_ASSERT(itf < CFG_TUD_CDC);
+
+  // Reset TX non-blocking state on any endpoint XFER activity (meaning host is active)
+  tu_fifo_set_overwritable(&p_cdc->tx_ff, false);
 
   // Received new data
   if ( ep_addr == p_cdc->ep_out )

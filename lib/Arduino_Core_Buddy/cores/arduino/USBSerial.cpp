@@ -13,9 +13,9 @@ void USBSerial::disable() {
     lineBufferUsed = 0;
 }
 
-void USBSerial::timeout_disable() {
-    disable();
-    usb_device_log("CDC write timeout, disabling after %ldus", safetyTimeoutUs);
+void USBSerial::write_timeout(int32_t us) {
+    usb_device_log("CDC write timeout, unlocking after %dms\n", us / 1000);
+    cdcd_set_tx_ovr(TUD_OPT_RHPORT, true);
 }
 
 void USBSerial::setIsWriteOnly(bool writeOnly) {
@@ -89,8 +89,9 @@ size_t USBSerial::write(uint8_t ch) {
             vTaskDelay(1);
 
             // Ensure we do not wait indefinitely
-            if (ticks_diff(ticks_us(), ts) > safetyTimeoutUs) {
-                timeout_disable();
+            int32_t us_diff = ticks_diff(ticks_us(), ts);
+            if (us_diff > writeTimeoutUs) {
+                write_timeout(us_diff);
                 break;
             }
         }
@@ -117,8 +118,9 @@ void USBSerial::cdc_write_sync(const uint8_t *buffer, size_t size) {
         vTaskDelay(1);
 
         // Ensure the _entire write_ doesn't wait indefinitely
-        if (ticks_diff(ticks_us(), ts) > safetyTimeoutUs) {
-            timeout_disable();
+        int32_t us_diff = ticks_diff(ticks_us(), ts);
+        if (us_diff > writeTimeoutUs) {
+            write_timeout(us_diff);
             return;
         }
     }

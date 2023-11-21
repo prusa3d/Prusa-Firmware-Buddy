@@ -10,7 +10,7 @@ private:
     bool isWriteOnly;
     std::array<uint8_t, 128> lineBuffer;
     decltype(lineBuffer)::size_type lineBufferUsed;
-    static constexpr int32_t safetyTimeoutUs = 3'000'000;
+    static constexpr int32_t writeTimeoutUs = 3'000'000;
 
     void LineBufferAppend(char character);
 
@@ -35,7 +35,7 @@ public:
     operator bool(void);
 
     // cdc write handlers
-    void timeout_disable();
+    void write_timeout(const int32_t us);
     void cdc_write_sync(const uint8_t *buffer, size_t size);
 
     void (*lineBufferHook)(const uint8_t *buf, int len) { nullptr };

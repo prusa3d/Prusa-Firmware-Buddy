@@ -292,7 +292,6 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
 }
 
 void tud_suspend_cb(bool /*remote_wakeup_en*/) {
-    // Switch the internal CDC state to non-blocking overwrite mode as normally set via cdcd_init()
-    // until host reconnects and sets the line mode again.
+    // Do not wait for timeout on SUSPEND, immediately switch TX to non-blocking mode
     cdcd_set_tx_ovr(TUD_OPT_RHPORT, true);
 }
