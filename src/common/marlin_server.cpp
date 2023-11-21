@@ -1659,6 +1659,12 @@ static void _server_print_loop(void) {
             break;
         }
 
+        if (fsm_event_queues.GetFsm0() == ClientFSM::PrintPreview) { // the printing state can only occur in the Fsm0 queue
+            if (fsm_event_queues.GetFsm1() != ClientFSM::_none) { // Cannot destroy FSM0 while FSM1 shows anything (would BSOD)
+                break; // Wait for FSM1 to end
+            }
+        }
+
         if (PrintPreview::Instance().GetState() == PrintPreview::State::tools_mapping_wait_user) {
             PrintPreview::tools_mapping_cleanup();
         }
