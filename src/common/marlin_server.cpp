@@ -1689,7 +1689,9 @@ static void _server_print_loop(void) {
     case State::Aborting_UnloadFilament:
         if (!queue.has_commands_queued() && !planner.processing()) {
 #if ENABLED(PRUSA_MMU2)
-            safely_unload_filament_from_nozzle_to_mmu();
+            if (MMU2::mmu2.Enabled()) {
+                safely_unload_filament_from_nozzle_to_mmu();
+            }
 #endif
             server.print_state = State::Aborting_ParkHead;
         }
