@@ -18,6 +18,7 @@ class MI_FILAMENT_SENSOR : public WI_ICON_SWITCH_OFF_ON_t {
     bool init_index() const;
 
 public:
+    constexpr static const uint32_t fs_disabled_event { 1 };
     MI_FILAMENT_SENSOR()
         : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 

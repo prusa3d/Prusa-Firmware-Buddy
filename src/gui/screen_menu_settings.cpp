@@ -42,3 +42,19 @@ ScreenMenuSettings::ScreenMenuSettings()
 ScreenMenuSettings::~ScreenMenuSettings() {
     gui::knob::RegisterLongPressScreenAction(old_action); // restore hold action
 }
+
+void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CHILD_CLICK) {
+        switch (reinterpret_cast<uint32_t>(param)) {
+#if HAS_MMU2()
+        case MI_FILAMENT_SENSOR::fs_disabled_event:
+            Item<MI_MMU_ENABLE>().SetIndex(0);
+            break;
+#endif
+        default:
+            break;
+        }
+    } else {
+        SuperWindowEvent(sender, event, param);
+    }
+}

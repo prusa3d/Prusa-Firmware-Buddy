@@ -59,6 +59,9 @@ bool MI_FILAMENT_SENSOR::init_index() const {
 void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
     if (old_index) {
         FSensors_instance().Disable();
+        // If disabling, send a message to parent to reload the value of
+        // MI_ITEM_MMU, because it has just been disabled as well
+        Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, reinterpret_cast<void *>(fs_disabled_event));
     } else {
         FSensors_instance().Enable();
 

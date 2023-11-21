@@ -66,4 +66,7 @@ public:
     constexpr static const char *label = N_("SETTINGS");
     ScreenMenuSettings();
     ~ScreenMenuSettings();
+
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
