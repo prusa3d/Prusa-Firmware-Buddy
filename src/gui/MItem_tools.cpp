@@ -113,11 +113,9 @@ bool MI_STUCK_FILAMENT_DETECTION::init_index() const {
 
 void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
     if (old_index) {
-        EMotorStallDetector::Instance().Disable();
-        config_store().stuck_filament_detection.set(false);
+        marlin_client::gcode("M591 S0 P");
     } else {
-        EMotorStallDetector::Instance().Enable();
-        config_store().stuck_filament_detection.set(true);
+        marlin_client::gcode("M591 S1 P");
     }
 }
 
