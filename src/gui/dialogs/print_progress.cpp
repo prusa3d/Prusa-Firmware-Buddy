@@ -74,9 +74,7 @@ static_assert(resource_font_size(progress_num_font).h <= progress_num_height);
 
 PrintProgress::PrintProgress(window_t *parent)
     : AddSuperWindow<DialogTimed>(getTime() > SpinCnf::print_progress.Min() ? parent : nullptr, GuiDefaults::RectScreen, 1000 * getTime())
-
-    , estime_label(this, Rect16(text_left_side_offset, text_baseline_y, left_column_width, text_label_height),
-          is_multiline::no)
+    , estime_label(this, Rect16(text_left_side_offset, text_baseline_y, left_column_width, text_label_height), is_multiline::no)
     , estime_value(this, Rect16(text_left_side_offset, text_baseline_y + text_label_height + text_value_y_offset, left_column_width
 #ifdef USE_ILI9488 // adding middle_column_width because middle column is currently unused & the left estime_value doesn't have enough space to hold the current version of all the data
                                  + middle_column_width

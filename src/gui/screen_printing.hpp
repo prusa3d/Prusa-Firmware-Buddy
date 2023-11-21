@@ -128,7 +128,7 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
         _count,
     };
 
-    static constexpr size_t rotation_time_s { 5 }; // time how often there should be a change between what's currently shown
+    static constexpr size_t rotation_time_s { 4 }; // time how often there should be a change between what's currently shown
 
     CurrentlyShowing currently_showing { CurrentlyShowing::remaining_time }; // what item is currently shown
     uint32_t last_update_time_s { 0 }; // helper needed to properly rotate
