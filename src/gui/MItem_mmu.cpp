@@ -131,8 +131,6 @@ void MI_MMU_ENABLE::OnChange(size_t old_index) {
             break;
         }
     }
-
-    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)(EventMask::value | this->index));
 }
 
 /**********************************************************************************************/
