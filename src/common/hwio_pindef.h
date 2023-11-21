@@ -281,6 +281,7 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
             MACRO_FUNCTION(buddy::hw::InputPin, jogWheelEN1, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p15, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::InputPin, jogWheelEN2, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p13, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::InputPin, fSensor, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p4, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
+            MACRO_FUNCTION(buddy::hw::InputPin, fsVBUSSens, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p9, IMode::input COMMA Pull::none, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, hsUSBEnable, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p5, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::InputPin, jogWheelENC, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p12, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, extFlashCs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \

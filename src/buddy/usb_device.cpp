@@ -132,14 +132,6 @@ static void usb_device_task_run(const void *) {
 
     GPIO_InitTypeDef GPIO_InitStruct;
 
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-
-    // configure VBUS pin
-    GPIO_InitStruct.Pin = GPIO_PIN_9;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
     // configure data pins
     GPIO_InitStruct.Pin = USB_FS_N_Pin | USB_FS_P_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
