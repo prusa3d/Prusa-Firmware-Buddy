@@ -26,6 +26,10 @@
 
 #include "../gcode.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M113: Get or set Host Keepalive interval (0 to disable)
  *
@@ -41,5 +45,7 @@ void GcodeSuite::M113() {
     SERIAL_ECHOLNPAIR("M113 S", (unsigned long)host_keepalive_interval);
   }
 }
+
+/** @}*/
 
 #endif // HOST_KEEPALIVE_FEATURE

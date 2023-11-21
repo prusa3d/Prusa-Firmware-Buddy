@@ -68,6 +68,10 @@ static void M600_manual();
 
 #include <config_store/store_instance.hpp>
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M600: Pause for filament change
  *
@@ -117,6 +121,8 @@ void GcodeSuite::M600() {
         FSensors_instance().ClrM600Sent(); // reset filament sensor M600 sent flag
     }
 }
+
+/** @}*/
 
 void M600_execute(xyz_pos_t park_point, int8_t target_extruder,
     xyze_float_t resume_point, std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength,

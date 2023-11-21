@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void PrusaGcodeSuite::M340() {
     // Syslog has to be allowed in settings
     const MetricsAllow metrics_allow = config_store().metrics_allow.get();
@@ -36,3 +40,5 @@ void PrusaGcodeSuite::M340() {
         SERIAL_ECHOLN("does not match '<address> <port>' pattern; disabling syslog");
     }
 }
+
+/** @}*/

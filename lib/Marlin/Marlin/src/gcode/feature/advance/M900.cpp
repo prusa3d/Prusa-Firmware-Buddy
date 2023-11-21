@@ -33,6 +33,9 @@
   uint8_t lin_adv_slot = 0;
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * M900: Get or Set Linear Advance K-factor
@@ -147,5 +150,7 @@ void GcodeSuite::M900() {
 
   #endif
 }
+
+/** @}*/
 
 //#endif // LIN_ADVANCE

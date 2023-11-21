@@ -35,6 +35,10 @@
   #include "../../../lcd/extensible_ui/ui_api.h"
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M421: Set a single Mesh Bed Leveling Z coordinate
  *
@@ -68,5 +72,7 @@ void GcodeSuite::M421() {
     #endif
   }
 }
+
+/** @}*/
 
 #endif // AUTO_BED_LEVELING_UBL

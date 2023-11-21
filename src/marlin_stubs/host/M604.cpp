@@ -1,6 +1,10 @@
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "marlin_server.hpp"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M604 - Abort (serial) print
  *
@@ -9,3 +13,5 @@
 void GcodeSuite::M604() {
     marlin_server::print_abort();
 }
+
+/** @}*/

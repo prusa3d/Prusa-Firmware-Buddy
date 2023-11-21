@@ -360,6 +360,10 @@ void FirstLayer::print_shape_2() {
     finish_printing();
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief gcode to draw a first layer on bed
  *
@@ -391,3 +395,5 @@ void PrusaGcodeSuite::G26() {
 
     thermalManager.setTargetBed(0);
 }
+
+/** @}*/

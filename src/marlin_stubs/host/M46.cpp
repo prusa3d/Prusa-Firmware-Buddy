@@ -3,6 +3,10 @@
 #include "netdev.h"
 #include "netif_settings.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void GcodeSuite::M46() {
     lan_t ethconfig = {};
     netdev_get_ipv4_addresses(netdev_get_active_id(), &ethconfig);
@@ -17,3 +21,5 @@ void GcodeSuite::M46() {
         serialprintPGM(mac);
     }
 }
+
+/** @}*/

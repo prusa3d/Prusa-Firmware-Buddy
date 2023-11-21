@@ -131,9 +131,15 @@ void selftest::calib_Z(bool move_down_after) {
 }
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void PrusaGcodeSuite::G162() {
     if (parser.seen('Z')) {
         FSM_HOLDER__LOGGING(Selftest);
         selftest::calib_Z(true);
     }
 }
+
+/** @}*/

@@ -26,6 +26,10 @@
 #include "../../Marlin.h"       // for Running
 #include "../queue.h"           // for flush_and_request_resend
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M999: Restart after being stopped
  *
@@ -44,3 +48,5 @@ void GcodeSuite::M999() {
 
   queue.flush_and_request_resend();
 }
+
+/** @}*/

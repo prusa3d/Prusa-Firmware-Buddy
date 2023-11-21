@@ -23,6 +23,10 @@
 #include "../gcode.h"
 #include "../../core/serial.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M118: Display a message in the host console.
  *
@@ -73,3 +77,5 @@ void GcodeSuite::M118() {
     serial_port_index = old_serial;
   #endif
 }
+
+/** @}*/

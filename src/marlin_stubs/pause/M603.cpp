@@ -33,6 +33,10 @@
         #include "../../../lib/Marlin/Marlin/src/module/tool_change.h"
     #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M603: Configure filament change
  *
@@ -64,5 +68,7 @@ void GcodeSuite::M603() {
     #endif
     }
 }
+
+/** @}*/
 
 #endif // ADVANCED_PAUSE_FEATURE

@@ -5,6 +5,10 @@
 #include "PrusaGcodeSuite.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * Play beep sound
  *
@@ -22,3 +26,5 @@ void PrusaGcodeSuite::M300() {
     NOMORE(duration, 5000U);
     Sound::getInstance().singleSound(frequency, duration, volume);
 }
+
+/** @}*/

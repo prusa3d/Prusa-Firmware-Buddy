@@ -41,6 +41,10 @@ extern xyze_pos_t destination;
   feedRate_t fast_move_feedrate = MMM_TO_MMS(G0_FEEDRATE);
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * G0, G1: Coordinated movement of X Y Z E axes
  */
@@ -117,3 +121,5 @@ void GcodeSuite::G0_G1(TERN_(HAS_FAST_MOVES, const bool fast_move/*=false*/)) {
     TERN_(FULL_REPORT_TO_HOST_FEATURE, report_current_grblstate_moving());
   #endif
 }
+
+/** @}*/

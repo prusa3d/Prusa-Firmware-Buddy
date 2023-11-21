@@ -28,6 +28,10 @@
   #include "../../feature/I2CPositionEncoder.h"
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * G92: Set current position to given X Y Z E
  */
@@ -110,3 +114,5 @@ void GcodeSuite::G92() {
 
   report_current_position();
 }
+
+/** @}*/

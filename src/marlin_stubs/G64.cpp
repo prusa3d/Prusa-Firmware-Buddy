@@ -12,6 +12,11 @@
 LOG_COMPONENT_REF(PRUSA_GCODE);
 
 #ifdef Z_AXIS_CALIBRATION
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void PrusaGcodeSuite::G64() {
 
     int additional_offset = 0;
@@ -42,6 +47,8 @@ void PrusaGcodeSuite::G64() {
     }
     SERIAL_ECHOLNPAIR("Saved Z size ", config_store().axis_z_max_pos_mm.get());
 }
+
+/** @}*/
 
 #else
 

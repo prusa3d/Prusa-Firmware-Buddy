@@ -37,6 +37,10 @@ tmc_reg_t *text_cmd_to_register(const char *cmd_in, bool write, bool read) {
     return nullptr;
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void PrusaGcodeSuite::M919() {
     char cmd[16] = { 0 };
     int val = 0;
@@ -121,3 +125,5 @@ void PrusaGcodeSuite::M920() {
     }
     queue.ok_to_send();
 }
+
+/** @}*/

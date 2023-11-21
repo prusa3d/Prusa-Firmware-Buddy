@@ -6,6 +6,10 @@
     #include "led_animations/printer_animation_state.hpp"
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void GcodeSuite::M601() {
     marlin_server::print_pause();
 #if HAS_LEDS()
@@ -16,3 +20,5 @@ void GcodeSuite::M601() {
 void GcodeSuite::M602() {
     marlin_server::print_resume();
 }
+
+/** @}*/

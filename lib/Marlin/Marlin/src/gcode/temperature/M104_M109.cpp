@@ -43,6 +43,10 @@
   #include "marlin_server.hpp"
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M104: Set hot end temperature
  */
@@ -155,5 +159,7 @@ void GcodeSuite::M109() {
     (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling, parser.seen('F'));
   }
 }
+
+/** @}*/
 
 #endif // EXTRUDERS

@@ -27,6 +27,10 @@
 #include "../gcode.h"
 #include "../../module/stepper.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M350: Set axis microstepping modes. S sets mode for all drivers.
  *
@@ -38,6 +42,8 @@ void GcodeSuite::M350() {
   if (parser.seen('B')) stepper.microstep_mode(4, parser.value_byte());
   stepper.microstep_readings();
 }
+
+/** @}*/
 
 #endif // HAS_MICROSTEPS
 

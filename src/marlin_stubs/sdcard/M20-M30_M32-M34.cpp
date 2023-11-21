@@ -8,7 +8,13 @@
 #include "media.hpp"
 #include "marlin_vars.hpp"
 
-// M20 - List SD card
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ * M20 - List SD card
+ */
 void GcodeSuite::M20() {
     SERIAL_ECHOLNPGM(MSG_BEGIN_FILE_LIST);
     DIR *dir;
@@ -23,17 +29,23 @@ void GcodeSuite::M20() {
     SERIAL_ECHOLNPGM(MSG_END_FILE_LIST);
 }
 
-// M21 - Initialize SD card
+/**
+ * M21 - Initialize SD card
+ */
 void GcodeSuite::M21() {
     // not necessary - empty implementation
 }
 
-// M22 - Release SD card
+/**
+ * M22 - Release SD card
+ */
 void GcodeSuite::M22() {
     // not necessary - empty implementation
 }
 
-// M23 - Select SD file
+/**
+ * M23 - Select SD file
+ */
 void GcodeSuite::M23() {
     // Simplify3D includes the size, so zero out all spaces (#7227)
     for (char *fn = parser.string_arg; *fn; ++fn) {
@@ -44,7 +56,9 @@ void GcodeSuite::M23() {
     marlin_vars()->media_SFN_path.set(parser.string_arg);
 }
 
-// M24 - Start/resume SD print
+/**
+ * M24 - Start/resume SD print
+ */
 void GcodeSuite::M24() {
     marlin_server::print_resume();
 }
@@ -62,14 +76,18 @@ void GcodeSuite::M25() {
     }
 }
 
-// M26 - Set SD position
+/**
+ * M26 - Set SD position
+ */
 void GcodeSuite::M26() {
     if ((media_get_state() == media_state_INSERTED) && parser.seenval('S')) {
         media_print_set_position(parser.value_ulong());
     }
 }
 
-// M27 - Report SD print status
+/**
+ * M27 - Report SD print status
+ */
 void GcodeSuite::M27() {
     if (parser.seen('C')) {
         SERIAL_ECHOPGM("Current file: ");
@@ -85,6 +103,8 @@ void GcodeSuite::M27() {
         }
     }
 }
+
+/** @}*/
 
 // M28 - Begin write to SD card
 void GcodeSuite::M28() {

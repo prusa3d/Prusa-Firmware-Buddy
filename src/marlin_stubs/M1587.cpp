@@ -6,6 +6,10 @@
 #include "PrusaGcodeSuite.hpp"
 #include "selftest_esp.hpp"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * Open Wi-Fi credentials dialog
  *
@@ -22,3 +26,5 @@ void PrusaGcodeSuite::M1587() {
         update_esp_credentials();
     }
 }
+
+/** @}*/

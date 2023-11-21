@@ -28,6 +28,10 @@
 
 #include "../../../module/modular_heatbed.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M556: Override modular bedled active
  */
@@ -61,5 +65,7 @@ void GcodeSuite::M556() {
 
     Temperature::setEnabledBedletMask(active);
 }
+
+/** @}*/
 
 #endif

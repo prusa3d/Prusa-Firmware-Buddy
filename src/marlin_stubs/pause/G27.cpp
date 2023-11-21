@@ -28,6 +28,10 @@
     #include "../../../lib/Marlin/Marlin/src/libs/nozzle.h"
     #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * G27: Park the nozzle
  */
@@ -75,5 +79,7 @@ void GcodeSuite::G27() {
         nozzle.park(P, park_pos);
     }
 }
+
+/** @}*/
 
 #endif // NOZZLE_PARK_FEATURE

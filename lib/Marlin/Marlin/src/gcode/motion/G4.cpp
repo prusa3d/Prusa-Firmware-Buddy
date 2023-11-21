@@ -24,6 +24,10 @@
 #include "../../module/planner.h"
 #include "../../lcd/marlinui.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * G4: Dwell S<seconds> or P<milliseconds>
  */
@@ -42,3 +46,5 @@ void GcodeSuite::G4() {
 
   dwell(dwell_ms);
 }
+
+/** @}*/

@@ -8,6 +8,10 @@
 
 static metric_handler_t *selected_handler = &metric_handler_syslog;
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void PrusaGcodeSuite::M330() {
     bool handler_found = false;
     for (metric_handler_t **handlers = metric_get_handlers(); *handlers != NULL; handlers++) {
@@ -125,3 +129,5 @@ void PrusaGcodeSuite::M334() {
         SERIAL_ERROR_MSG("Selected handler does not support configuration");
     }
 }
+
+/** @}*/

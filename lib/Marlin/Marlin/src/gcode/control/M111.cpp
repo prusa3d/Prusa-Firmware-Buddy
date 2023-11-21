@@ -22,6 +22,10 @@
 
 #include "../gcode.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M111: Set the debug level
  */
@@ -78,3 +82,5 @@ void GcodeSuite::M111() {
   }
   SERIAL_EOL();
 }
+
+/** @}*/

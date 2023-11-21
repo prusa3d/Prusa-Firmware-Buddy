@@ -7,6 +7,11 @@
 #include "gcode_info.hpp"
 
 #ifdef PRINT_CHECKING_Q_CMDS
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M862.2: Check model code
  */
@@ -21,4 +26,7 @@ void PrusaGcodeSuite::M862_2() {
         SERIAL_EOL();
     }
 }
+
+/** @}*/
+
 #endif

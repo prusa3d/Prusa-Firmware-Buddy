@@ -150,8 +150,12 @@ constexpr bool ENDSTOP_INVERTING[] = {
   #endif
 };
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
- * Advanced homing/part measurement
+ * Advanced homing/part measurement (ONLY FOR iX)
  * Homing to any endstop.
  * Supports separate home positions in CNC workspaces(G54-G59.3)(enabled by defining CNC_COORDINATE_SYSTEMS in advanced config)
  * Only supports homing of one axis at a time
@@ -177,6 +181,7 @@ void GcodeSuite::G65(){
     report_current_position();
 }
 
+/** @}*/
 
 /*Create home positions arrays*/
 constexpr AxisEnum endstop_axis_mapping[] = ENDSTOP_AXIS_MAPPING;

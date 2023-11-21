@@ -42,6 +42,10 @@
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../../core/debug_out.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * T0-T<n>: Switch tool, usually switching extruders
  *
@@ -116,3 +120,5 @@ void GcodeSuite::T(uint8_t tool_index) {
     DEBUG_ECHOLNPGM("<<< T()");
   }
 }
+
+/** @}*/

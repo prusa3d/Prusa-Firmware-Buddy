@@ -25,6 +25,10 @@
 #include "../../gcode.h"
 #include "../../../feature/print_area.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M555: Set print area
  */
@@ -45,3 +49,5 @@ void GcodeSuite::M555() {
 
   print_area.set_bounding_rect(area);
 }
+
+/** @}*/

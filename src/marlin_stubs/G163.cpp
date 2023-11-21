@@ -30,6 +30,10 @@ static SelftestSubtestState_t axis_length_ok_fsm(AxisEnum axis, float length) {
 }
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void PrusaGcodeSuite::G163() {
 #if ENABLED(AXIS_MEASURE)
     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
@@ -79,3 +83,5 @@ void PrusaGcodeSuite::G163() {
     FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
 #endif
 }
+
+/** @}*/

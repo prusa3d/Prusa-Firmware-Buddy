@@ -5,6 +5,10 @@
 #include <option/has_gui.h>
 #include "main.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief Set up the prescaler of the LCD perifery SPI.
  *
@@ -52,3 +56,5 @@ void PrusaGcodeSuite::M932() {
     spi_set_prescaler(&SPI_HANDLE_FOR(tmc), val);
 #endif
 }
+
+/** @}*/

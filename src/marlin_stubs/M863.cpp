@@ -6,6 +6,11 @@
 #include "module/prusa/tool_mapper.hpp"
 
 #if ENABLED(PRUSA_TOOL_MAPPING)
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief Tool remapping gcode
  *
@@ -50,4 +55,7 @@ void PrusaGcodeSuite::M863() {
         SERIAL_ECHOLNPAIR("Enabled: ", tool_mapper.is_enabled());
     }
 }
+
+/** @}*/
+
 #endif

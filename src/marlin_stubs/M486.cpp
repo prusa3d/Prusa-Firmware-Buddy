@@ -29,6 +29,10 @@
 
     #include <marlin_vars.hpp>
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M486: A simple interface to cancel objects
  *
@@ -98,5 +102,7 @@ void GcodeSuite::M486() {
         cancelable.uncancel_object(parser.value_int());
     }
 }
+
+/** @}*/
 
 #endif // CANCEL_OBJECTS

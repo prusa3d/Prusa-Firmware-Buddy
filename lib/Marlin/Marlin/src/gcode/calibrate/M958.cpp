@@ -672,6 +672,10 @@ AxisEnum get_logical_axis(const uint16_t axis_flag) {
     return NO_AXIS_ENUM;
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief Excite harmonic vibration
  *
@@ -719,6 +723,8 @@ void GcodeSuite::M958() {
 
     vibrate_measure(axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles, calibrate_accelerometer);
 }
+
+/** @}*/
 
 #if ENABLED(ACCELEROMETER)
 
@@ -1062,6 +1068,10 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
     SERIAL_ECHOLNPAIR_F(" frequency: ", axis_config.frequency);
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief Tune input shaper
  *
@@ -1113,4 +1123,7 @@ void GcodeSuite::M959() {
         naive_zv_tune(axis_flag, start_frequency, end_frequency, frequency_increment, acceleration_requested, step_len, cycles);
     }
 }
+
+/** @}*/
+
 #endif

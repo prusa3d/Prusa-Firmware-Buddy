@@ -304,6 +304,10 @@ static void reenable_wavetable(AxisEnum axis)
     tmc_enable_wavetable(axis == X_AXIS, axis == Y_AXIS, false);
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * G28: Home all axes according to settings
  *
@@ -359,6 +363,8 @@ void GcodeSuite::G28(const bool always_home_all) {
 
   G28_no_parser(always_home_all, O, R, S, X, Y, Z, no_change OPTARG(PRECISE_HOMING_COREXY, precise) OPTARG(DETECT_PRINT_SHEET, check_sheet));
 }
+
+/** @}*/
 
 bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y, bool Z
   , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise) OPTARG(DETECT_PRINT_SHEET, bool check_sheet)) {

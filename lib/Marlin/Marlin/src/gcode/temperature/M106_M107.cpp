@@ -39,6 +39,10 @@
   #define _CNT_P FAN_COUNT
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M106: Set Fan Speed
  *
@@ -76,5 +80,7 @@ void GcodeSuite::M107() {
   const uint8_t p = parser.byteval('P', _ALT_P);
   thermalManager.set_fan_speed(p, 0);
 }
+
+/** @}*/
 
 #endif // FAN_COUNT > 0

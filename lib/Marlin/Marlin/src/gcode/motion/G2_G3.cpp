@@ -384,6 +384,10 @@ void plan_arc(
 
 } // plan_arc
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * G2: Clockwise Arc
  * G3: Counterclockwise Arc
@@ -479,5 +483,7 @@ void GcodeSuite::G2_G3(const bool clockwise) {
 
   TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_IDLE));
 }
+
+/** @}*/
 
 #endif // ARC_SUPPORT

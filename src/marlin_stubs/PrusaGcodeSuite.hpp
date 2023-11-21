@@ -17,6 +17,10 @@ namespace PrusaGcodeSuite {
 using M862_6SupportedFeatures = std::array<const char *, 1>;
 extern M862_6SupportedFeatures m862_6SupportedFeatures;
 
+/** \defgroup G-Codes G-Code Commands
+ * @{
+ */
+
 void G26(); ///< first layer calibration
 void G64(); ///< Measure Z_AXIS height
 void G162(); ///< calibrate Z
@@ -91,4 +95,7 @@ void M1701(); ///< Autoload. Prusa STM32 platform specific
 #if HAS_TOOLCHANGER()
 void P0(); ///< Tool park
 #endif
+
+/** @}*/
+
 } // namespace PrusaGcodeSuite

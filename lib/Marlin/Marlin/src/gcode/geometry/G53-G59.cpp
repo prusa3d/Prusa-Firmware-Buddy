@@ -68,10 +68,12 @@ void GcodeSuite::set_coordinate_system_offset(int8_t system, AxisEnum axis, floa
   coordinate_system[system][axis] = offset;
 }
 
-
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
- * G53: Apply native workspace to the current move
+ * G53: Apply native workspace to the current move (ONLY FOR iX)
  *
  * In CNC G-code G53 is a modifier.
  * It precedes a movement command (or other modifiers) on the same line.
@@ -98,7 +100,7 @@ void GcodeSuite::G53() {
 }
 
 /**
- * G54-G59.3: Select a new workspace
+ * G54-G59.3: Select a new workspace (ONLY FOR iX)
  *
  * A workspace is an XYZ offset to the machine native space.
  * All workspaces default to 0,0,0 at start, or with EEPROM
@@ -119,5 +121,7 @@ void GcodeSuite::G56() { G54_59(); }
 void GcodeSuite::G57() { G54_59(); }
 void GcodeSuite::G58() { G54_59(); }
 void GcodeSuite::G59() { G54_59(parser.subcode); }
+
+/** @}*/
 
 #endif // CNC_COORDINATE_SYSTEMS

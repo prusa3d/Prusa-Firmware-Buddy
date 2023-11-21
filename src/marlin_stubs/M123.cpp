@@ -9,6 +9,10 @@
 
 uint32_t M123::fan_auto_report_delay = 0;
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void PrusaGcodeSuite::M123() {
     if (parser.seen('S')) {
         M123::fan_auto_report_delay = parser.byteval('S');
@@ -23,3 +27,5 @@ void M123::print_fan_speed() {
     SERIAL_ECHO(buffer);
     SERIAL_EOL();
 }
+
+/** @}*/

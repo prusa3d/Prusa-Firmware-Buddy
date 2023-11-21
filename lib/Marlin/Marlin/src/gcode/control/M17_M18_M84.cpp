@@ -30,6 +30,10 @@
   #include "../../feature/bedlevel/bedlevel.h"
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M17: Enable stepper motors
  */
@@ -86,3 +90,5 @@ void GcodeSuite::M18_M84() {
     #endif
   }
 }
+
+/** @}*/

@@ -40,6 +40,10 @@ static void M997_no_parser(uint module_number, [[maybe_unused]] uint address, bo
     }
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * Perform in-application firmware update
  *
@@ -75,3 +79,5 @@ void PrusaGcodeSuite::M997() {
     // NOTICE: Keep in mind, that parser.seen('B') can be triggered by the filename in path of '/' parameter
     M997_no_parser(parser.ulongval('S', 0), parser.ulongval('B', 0), parser.seen('O'), sfn);
 }
+
+/** @}*/

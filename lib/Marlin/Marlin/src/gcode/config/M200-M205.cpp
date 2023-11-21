@@ -26,6 +26,10 @@
 
 #if DISABLED(NO_VOLUMETRICS)
 
+  /** \addtogroup G-Codes
+   * @{
+   */
+
   /**
    * M200: Set filament diameter and set E axis units to cubic units
    *
@@ -47,7 +51,13 @@
     planner.calculate_volumetric_multipliers();
   }
 
+  /** @}*/
+
 #endif // !NO_VOLUMETRICS
+
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * M201: Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
@@ -164,3 +174,5 @@ void GcodeSuite::M205() {
     #endif
   #endif
 }
+
+/** @}*/

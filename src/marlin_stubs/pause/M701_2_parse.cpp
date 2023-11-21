@@ -11,6 +11,10 @@
 
 using namespace filament_gcodes;
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M701: Load filament
  *
@@ -117,3 +121,4 @@ void GcodeSuite::M702() {
 
     M702_no_parser(unload_len, min_Z_pos, op_preheat, target_extruder, ask_unloaded);
 }
+/** @}*/

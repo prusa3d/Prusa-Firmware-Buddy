@@ -45,6 +45,10 @@ void report_M92(const bool echo=true, const int8_t e=-1) {
   UNUSED_E(e);
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M92: Set axis steps-per-unit for one or more axes, X, Y, Z, and E.
  *      (Follows the same syntax as G92)
@@ -114,3 +118,5 @@ void GcodeSuite::M92() {
     }
   #endif
 }
+
+/** @}*/

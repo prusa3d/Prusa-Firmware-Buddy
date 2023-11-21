@@ -23,6 +23,10 @@
 #include "../gcode.h"
 #include "../../lcd/ultralcd.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M117: Set LCD Status Message
  */
@@ -34,3 +38,5 @@ void GcodeSuite::M117() {
     ui.reset_status();
 
 }
+
+/** @}*/

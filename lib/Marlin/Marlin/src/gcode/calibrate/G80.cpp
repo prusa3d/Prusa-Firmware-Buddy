@@ -19,6 +19,10 @@ static void run_gcode(const char *fmt, ...) {
     va_end(args);
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * G80: Mesh Bed Leveling (MK3)
  */
@@ -74,5 +78,7 @@ void GcodeSuite::G80() {
         run_gcode("G1 Z0.15"); // 0.15 is value of Z_MIN_POS https://github.com/prusa3d/Prusa-Firmware/blob/MK3/Firmware/variants/MK3S.h#L67
     }
 }
+
+/** @}*/
 
 #endif

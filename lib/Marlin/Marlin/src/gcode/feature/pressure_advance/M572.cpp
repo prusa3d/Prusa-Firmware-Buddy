@@ -23,6 +23,10 @@ static void dump_current_config() {
     }
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief Set parameters for pressure advance.
  *
@@ -68,6 +72,8 @@ void GcodeSuite::M572() {
 
     M572_internal(pressure_advance, smooth_time);
 }
+
+/** @}*/
 
 void GcodeSuite::M572_internal(float pressure_advance, float smooth_time) {
     const pressure_advance::Config new_axis_e_config = { .pressure_advance = pressure_advance, .smooth_time = smooth_time };

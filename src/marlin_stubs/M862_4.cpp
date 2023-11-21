@@ -7,6 +7,11 @@
 #include <version.h>
 
 #ifdef PRINT_CHECKING_Q_CMDS
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M862.4: Check firmware version
  */
@@ -23,4 +28,7 @@ void PrusaGcodeSuite::M862_4() {
         SERIAL_EOL();
     }
 }
+
+/** @}*/
+
 #endif

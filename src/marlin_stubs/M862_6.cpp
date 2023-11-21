@@ -11,6 +11,10 @@ namespace PrusaGcodeSuite {
 M862_6SupportedFeatures m862_6SupportedFeatures = { "Input shaper" };
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M862.6: Check gcode level
  */
@@ -27,4 +31,7 @@ void PrusaGcodeSuite::M862_6() {
         }
     }
 }
+
+/** @}*/
+
 #endif

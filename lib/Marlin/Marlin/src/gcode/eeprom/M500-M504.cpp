@@ -25,6 +25,10 @@
 #include "../../core/serial.h"
 #include "../../inc/MarlinConfig.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M500: Store settings in EEPROM
  */
@@ -56,6 +60,8 @@ void GcodeSuite::M502() {
   }
 
 #endif // !DISABLE_M503
+
+/** @}*/
 
 #if ENABLED(EEPROM_SETTINGS)
   /**

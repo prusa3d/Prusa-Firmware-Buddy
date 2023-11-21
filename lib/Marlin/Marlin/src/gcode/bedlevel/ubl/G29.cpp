@@ -36,6 +36,10 @@
     #include "../../../feature/prusa/crash_recovery.hpp"
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void GcodeSuite::G29() {
     BlockEStallDetection block_e_stall_detection;
     #if ANY(CRASH_RECOVERY, POWER_PANIC)
@@ -45,5 +49,7 @@ void GcodeSuite::G29() {
 
     ubl.G29();
 }
+
+/** @}*/
 
 #endif // AUTO_BED_LEVELING_UBL

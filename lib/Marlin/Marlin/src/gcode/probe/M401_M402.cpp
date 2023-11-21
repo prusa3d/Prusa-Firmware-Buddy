@@ -28,6 +28,10 @@
 #include "../../module/motion.h"
 #include "../../module/probe.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M401: Deploy and activate the Z probe
  */
@@ -46,5 +50,7 @@ void GcodeSuite::M402() {
   #endif
   report_current_position();
 }
+
+/** @}*/
 
 #endif // HAS_BED_PROBE

@@ -66,6 +66,11 @@ void ClProgressData::mInit(void) {
 }
 
 #if ENABLED(M73_PRUSA)
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void GcodeSuite::M73_PE() {
     std::optional<uint8_t> P = std::nullopt;
     std::optional<uint32_t> R = std::nullopt;
@@ -82,6 +87,8 @@ void GcodeSuite::M73_PE() {
 
     M73_PE_no_parser(P, R, T);
 }
+
+/** @}*/
 
 void M73_PE_no_parser(std::optional<uint8_t> P, std::optional<uint32_t> R, std::optional<uint32_t> T) {
     uint32_t nTimeNow;

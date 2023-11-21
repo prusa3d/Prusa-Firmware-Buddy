@@ -46,6 +46,10 @@ void m591_no_parser(std::optional<bool> opt_enable_e_stall, IsPermanent is_perma
 #endif // HAS_LOADCELL()
 } // anonymous namespace
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /// @brief Enable/Disable Filament stuck monitoring
 /// Prusa STM32 platform specific
 /// ## Parameters
@@ -71,3 +75,5 @@ void PrusaGcodeSuite::M591() {
     SERIAL_ECHOLN("Filament stuck detection not supported");
 #endif // HAS_LOADCELL()
 }
+
+/** @}*/

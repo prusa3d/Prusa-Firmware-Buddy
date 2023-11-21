@@ -4,6 +4,10 @@
 #include "safety_timer_stubbed.hpp"
 #include "../../module/stepper.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief M0
  *
@@ -22,3 +26,5 @@ void PrusaGcodeSuite::M0() {
         idle(true, true);
     }
 }
+
+/** @}*/

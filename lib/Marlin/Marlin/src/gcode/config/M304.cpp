@@ -27,6 +27,10 @@
 #include "../gcode.h"
 #include "../../module/temperature.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 void GcodeSuite::M304() {
   if (parser.seen('P')) thermalManager.temp_bed.pid.Kp = parser.value_float();
   if (parser.seen('I')) thermalManager.temp_bed.pid.Ki = scalePID_i(parser.value_float());
@@ -37,5 +41,7 @@ void GcodeSuite::M304() {
                     " i:", unscalePID_i(thermalManager.temp_bed.pid.Ki),
                     " d:", unscalePID_d(thermalManager.temp_bed.pid.Kd));
 }
+
+/** @}*/
 
 #endif // PIDTEMPBED

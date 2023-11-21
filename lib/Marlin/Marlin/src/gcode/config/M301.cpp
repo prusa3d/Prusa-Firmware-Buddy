@@ -27,6 +27,10 @@
 #include "../gcode.h"
 #include "../../module/temperature.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M301: Set PID parameters P I D (and optionally C, L)
  *
@@ -70,5 +74,7 @@ void GcodeSuite::M301() {
   else
     SERIAL_ERROR_MSG(MSG_INVALID_EXTRUDER);
 }
+
+/** @}*/
 
 #endif // PIDTEMP

@@ -30,6 +30,10 @@
 #include "../../module/probe.h"
 #include "../../feature/bedlevel/bedlevel.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * G30: Do a single Z probe at the current XY
  *
@@ -65,5 +69,7 @@ void GcodeSuite::G30() {
 
   report_current_position();
 }
+
+/** @}*/
 
 #endif // HAS_BED_PROBE

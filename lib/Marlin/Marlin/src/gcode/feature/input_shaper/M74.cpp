@@ -38,6 +38,10 @@ void M74_internal(const M74Params &params) {
 
 } // namespace input_shaper
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief Set mass.
  *
@@ -57,3 +61,5 @@ void GcodeSuite::M74() {
 
     input_shaper::M74_internal(params);
 }
+
+/** @}*/

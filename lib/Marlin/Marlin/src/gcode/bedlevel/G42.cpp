@@ -30,6 +30,10 @@
 #include "../../module/probe.h" // for probe_offset
 #include "../../feature/bedlevel/bedlevel.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * G42: Move X & Y axes to mesh coordinates (I & J)
  */
@@ -68,5 +72,7 @@ void GcodeSuite::G42() {
     #endif
   }
 }
+
+/** @}*/
 
 #endif // HAS_MESH

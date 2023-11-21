@@ -23,6 +23,10 @@
 #include "../gcode.h"
 #include "../../feature/safety_timer.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M86: Set Safety Timer expiration time
  */
@@ -30,3 +34,5 @@ void GcodeSuite::M86() {
   if (parser.seen('S'))
     safety_timer_set_interval(parser.value_millis_from_seconds());
 }
+
+/** @}*/
