@@ -78,6 +78,7 @@ target_sources(
           screen_messages.cpp
           screen_print_preview.cpp
           screen_printing.cpp
+          screen_printing_end_result.cpp
           screen_prusa_link.cpp
           screen_qr_error.cpp
           screen_reset_error.cpp
