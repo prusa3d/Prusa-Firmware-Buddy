@@ -38,6 +38,32 @@ std::optional<int> WindowMenu::focused_item_index() const {
     return pContainer ? pContainer->GetFocusedIndex() : std::nullopt;
 }
 
+std::optional<int> WindowMenu::item_index_to_persistent_index(std::optional<int> item_index) const {
+    if (!item_index.has_value()) {
+        return {};
+    }
+
+    IWindowMenuItem *item = pContainer->GetItemByVisibleIndex(*item_index);
+    if (!item) {
+        return {};
+    }
+
+    return pContainer->GetRawIndex(*item);
+}
+
+std::optional<int> WindowMenu::persistent_index_to_item_index(std::optional<int> persistent_index) const {
+    if (!persistent_index.has_value()) {
+        return {};
+    }
+
+    IWindowMenuItem *item = pContainer->GetItemByRawIndex(*persistent_index);
+    if (!item) {
+        return {};
+    }
+
+    return pContainer->GetVisibleIndex(*item);
+}
+
 int WindowMenu::item_count() const {
     return pContainer ? pContainer->GetVisibleCount() : 0;
 }
@@ -245,8 +271,9 @@ WindowMenu::Node WindowMenu::findNext(WindowMenu::Node prev) {
  * @param var variant containing initialization data
  */
 void WindowMenu::InitState(screen_init_variant::menu_t var) {
-    move_focus_to_index(var.focused_index);
-    set_scroll_offset(var.scroll_offset);
+    move_focus_to_index(persistent_index_to_item_index(var.persistent_focused_index));
+    set_scroll_offset(persistent_index_to_item_index(var.persistent_scroll_offset).value_or(0));
+    ensure_item_on_screen(focused_item_index());
 }
 
 void WindowMenu::BindContainer(IWinMenuContainer &cont) {
@@ -333,7 +360,7 @@ bool WindowMenu::SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1) 
 
 screen_init_variant::menu_t WindowMenu::GetCurrentState() const {
     return {
-        .focused_index = static_cast<uint8_t>(focused_item_index().value_or(-1)),
-        .scroll_offset = static_cast<uint8_t>(scroll_offset()),
+        .persistent_focused_index = static_cast<uint8_t>(item_index_to_persistent_index(focused_item_index()).value_or(-1)),
+        .persistent_scroll_offset = static_cast<uint8_t>(item_index_to_persistent_index(scroll_offset()).value_or(0)),
     };
 }

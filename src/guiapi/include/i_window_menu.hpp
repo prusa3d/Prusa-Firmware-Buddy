@@ -108,6 +108,16 @@ public:
     /// \returns nullopt if the index is outside of valid range or not on the screen
     std::optional<int> index_to_slot(std::optional<int> index) const;
 
+    /// Maps item index to more "persistent" index that can handle item removal, additions etc (used when showing/hiding items in WindowMenu)
+    virtual std::optional<int> item_index_to_persistent_index(std::optional<int> item_index) const {
+        return item_index;
+    }
+
+    /// Opposite of \p item_index_to_persistent_index
+    virtual std::optional<int> persistent_index_to_item_index(std::optional<int> persistent_index) const {
+        return persistent_index;
+    }
+
 protected:
     IWindowMenu(window_t *parent, Rect16 rect);
 
