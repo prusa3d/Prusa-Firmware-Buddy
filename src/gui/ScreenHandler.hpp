@@ -6,7 +6,7 @@
 #include <array>
 
 // stack with screen creator methods
-inline constexpr size_t MAX_SCREENS = 32;
+inline constexpr size_t MAX_SCREENS = 16;
 struct screen_node {
     ScreenFactory::Creator creator;
     screen_init_variant init_data;
