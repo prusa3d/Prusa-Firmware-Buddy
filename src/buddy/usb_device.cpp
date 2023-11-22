@@ -83,6 +83,8 @@ static void check_usb_connection() {
         }
     }
 }
+#else
+static bool usb_device_seen = false;
 #endif
 
 osThreadCCMDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
@@ -121,7 +123,11 @@ bool usb_device_attached() {
 #ifdef FUSB302B_INTERPOSER
     return usb_vbus_state.load();
 #else
-    return tud_connected();
+    // only check for suspend after being connected at least once:
+    // - tud_connected() can return false _during_ bus reset, stopping prematurely
+    // - tud_suspended() is false when resetting or before initialization
+    usb_device_seen |= tud_connected();
+    return usb_device_seen && !tud_suspended();
 #endif
 }
 
@@ -164,6 +170,13 @@ static void usb_device_task_run(const void *) {
             break;
         }
     }
+#ifndef FUSB302B_INTERPOSER
+    if (tud_speed_get() != TUSB_SPEED_INVALID) {
+        // bus RESET was seen without FUSB302B, meaning the link just came up on it's own:
+        // initialize usb_device_seen to approximate the VBUS meaning of usb_device_attached()
+        usb_device_seen = true;
+    }
+#endif
 
     // initialize the connection state
 #ifdef FUSB302B_INTERPOSER
