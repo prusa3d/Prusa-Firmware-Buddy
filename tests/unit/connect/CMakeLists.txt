@@ -16,7 +16,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
@@ -130,7 +129,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
@@ -221,7 +219,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp

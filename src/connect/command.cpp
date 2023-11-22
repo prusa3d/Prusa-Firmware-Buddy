@@ -1,7 +1,7 @@
 #include "command.hpp"
 
 #include <search_json.h>
-#include <codepage/437.hpp>
+#include <json_encode.h>
 
 #include <cstdlib>
 #include <charconv>
@@ -176,8 +176,8 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
 
     auto get_path = [&](SharedPath &path) -> void {
         if (has_path) {
-            // Include the final \0 in the decoding too, so the new one gets auto-terminated by it.
-            codepage::utf8_to_cp437(buff.data(), strlen(reinterpret_cast<const char *>(buff.data())) + 1);
+            [[maybe_unused]] const bool unescape_success = json_unescape_bytes(reinterpret_cast<char *>(buff.data()), reinterpret_cast<char *>(buff.data()));
+            assert(unescape_success);
             path = SharedPath(move(buff));
         } else {
             // Missing parameters

@@ -15,10 +15,10 @@
 #define JSON_FIELD_STR_FORMAT_G(GUARD, NAME, FORMAT, ...) JSON_OUT(__COUNTER__, (GUARD), output_field_str_format, (NAME), (FORMAT), __VA_ARGS__)
 #define JSON_FIELD_STR_G(GUARD, NAME, VALUE)              JSON_OUT(__COUNTER__, (GUARD), output_field_str, (NAME), (VALUE))
 #define JSON_FIELD_STR(NAME, VALUE)                       JSON_FIELD_STR_G(true, (NAME), (VALUE))
-// For SFNs
-// Note: no json forbidden characters allowed in value - SFNs can't contain them anyway.
-#define JSON_FIELD_STR_437_G(GUARD, NAME, VALUE)           JSON_OUT(__COUNTER__, (GUARD), output_field_str_437, (NAME), (VALUE))
-#define JSON_FIELD_STR_437(NAME, VALUE)                    JSON_FIELD_STR_437_G(true, (NAME), (VALUE))
+/// Escapes non-printable and potentially utf-8 invalid characters using json_escape_bytes.
+/// Used for escaping SFNs
+#define JSON_FIELD_STR_ESC_G(GUARD, NAME, VALUE)           JSON_OUT(__COUNTER__, (GUARD), output_field_str_esc, (NAME), (VALUE))
+#define JSON_FIELD_STR_ESC(NAME, VALUE)                    JSON_FIELD_STR_ESC_G(true, (NAME), (VALUE))
 #define JSON_FIELD_BOOL(NAME, VALUE)                       JSON_OUT(__COUNTER__, true, output_field_bool, (NAME), (VALUE))
 #define JSON_FIELD_BOOL_G(GUARD, NAME, VALUE)              JSON_OUT(__COUNTER__, (GUARD), output_field_bool, (NAME), (VALUE))
 #define JSON_FIELD_INT_G(GUARD, NAME, VALUE)               JSON_OUT(__COUNTER__, (GUARD), output_field_int, (NAME), (VALUE))

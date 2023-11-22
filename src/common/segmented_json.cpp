@@ -1,6 +1,5 @@
 #include "segmented_json.h"
 #include "json_encode.h"
-#include "codepage/437.hpp"
 
 #include <cassert>
 #include <cstdio>
@@ -34,18 +33,17 @@ JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
     }
 }
 
-JsonResult JsonOutput::output_field_str_437(size_t resume_point, const char *name, const char *value) {
-    const size_t len_value = strlen(value);
-    uint8_t buffer[len_value * 3]; // Encoding might grow up to 3 times (\0 is not needed)
-    size_t len_encoded = codepage::cp437_to_utf8(buffer, reinterpret_cast<const uint8_t *>(value), len_value);
-
-    assert(len_encoded <= sizeof(buffer));
+JsonResult JsonOutput::output_field_str_esc(size_t resume_point, const char *name, const char *value) {
     // There are no JSON-special characters in there in the encoded data because:
-    // * Control characters don't exist as our "dingbats" version of 437
-    // * " and \ are not allowed in SFN and this is for SFNs and similar only.
-    assert(jsonify_str_buffer_len(reinterpret_cast<const char *>(buffer), len_encoded) == 0);
+    // " and \ are not allowed in SFN and this is for SFNs and similar only.
 
-    return output(resume_point, "\"%s\":\"%.*s\"", name, static_cast<int>(len_encoded), reinterpret_cast<const char *>(buffer));
+    const size_t len_value = strlen(value);
+    char buffer[len_value * 3 + 1]; // Encoding might grow up to 3 times (+ \0)
+
+    [[maybe_unused]] const bool encode_successful = json_escape_bytes(value, buffer, sizeof(buffer));
+    assert(encode_successful);
+
+    return output(resume_point, "\"%s\":\"%s\"", name, buffer);
 }
 
 JsonResult JsonOutput::output_field_str(size_t resume_point, const char *name, const char *value) {
@@ -128,5 +126,4 @@ std::tuple<JsonResult, size_t> LowLevelJsonRenderer::render(uint8_t *buffer, siz
     size_t written = (result == JsonResult::Abort) ? 0 : buffer_size - buffer_size_rest;
     return make_tuple(result, written);
 }
-
 } // namespace json

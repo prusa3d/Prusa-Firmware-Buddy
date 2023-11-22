@@ -126,3 +126,78 @@ size_t unescape_json_i(char *in, size_t size) {
     }
     return size;
 }
+
+static constexpr char json_escape_symbol = '~';
+
+bool json_escape_bytes(const char *input, char *output, size_t max_output_len) {
+    const char *read = input;
+    char *write = output;
+    char *write_end = output + max_output_len;
+
+    char ch;
+    while ((ch = *(read++)) != '\0') {
+        // Standard, character -> continue
+        if (static_cast<unsigned char>(ch) >= 32 && static_cast<unsigned char>(ch) < 127 && ch != json_escape_symbol && ch != '"') {
+            if (write + 1 > write_end) {
+                return false;
+            }
+
+            *(write++) = ch;
+        }
+
+        // Otherwise create an escape sequence
+        else {
+            // We need 3 chars for the sequence
+            if (write + 3 > write_end) {
+                return false;
+            }
+
+            *(write++) = json_escape_symbol;
+            *(write++) = 'a' + (ch & 0xf);
+            *(write++) = 'a' + ((ch >> 4) & 0xf);
+        }
+    }
+
+    // Write terminating \0
+    {
+        if (write + 1 > write_end) {
+            return false;
+        }
+        *(write++) = '\0';
+    }
+
+    return true;
+}
+
+bool json_unescape_bytes(const char *input, char *output) {
+    const char *read = input;
+    char *write = output;
+
+    char ch;
+    while ((ch = *(read++)) != '\0') {
+        // Escape sequence - decode
+        if (ch == json_escape_symbol) {
+            const char ch1 = *(read++);
+            if (ch1 < 'a' || ch1 >= 'a' + 16) {
+                return false;
+            }
+
+            const char ch2 = *(read++);
+            if (ch2 < 'a' || ch2 >= 'a' + 16) {
+                return false;
+            }
+
+            *(write++) = (ch1 - 'a') | ((ch2 - 'a') << 4);
+        }
+
+        // Not an escape sequence - simply copy
+        else {
+            *(write++) = ch;
+        }
+    }
+
+    // Write terminating \0
+    *(write++) = '\0';
+
+    return true;
+}

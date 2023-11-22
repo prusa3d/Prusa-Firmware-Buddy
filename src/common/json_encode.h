@@ -133,6 +133,18 @@ void jsonify_str_len(const char *input, size_t input_len, char *output);
     char NAME##_buffer[NAME##_len];                     \
     const char *NAME##_escaped = NAME##_len ? (jsonify_str(NAME, NAME##_buffer), NAME##_buffer) : NAME
 
+/// Escapes characters <32, >=127, '~' and '"' as "~xx" (xx -> code in hex)
+/// !!! The output can take up to three times the input size
+/// Can be executed in place (input == output).
+/// \param max_output_len
+/// \returns if the conversion was successful (and not cropped because of unsufficient max_output_len)
+bool json_escape_bytes(const char *input, char *output, size_t max_output_len);
+
+/// Reverts effect of \p json_escape_bytes . The output is always smaller or equal than input.
+/// Can be executed in place (input == output).
+/// \returns if conversion was successful and we've not encountered an invalid escape sequence
+bool json_unescape_bytes(const char *input, char *output);
+
 #ifdef __cplusplus
 }
 #endif

@@ -175,7 +175,6 @@ if(BOARD MATCHES "BUDDY")
   add_subdirectory(automata)
   add_subdirectory(http)
   add_subdirectory(gcode)
-  add_subdirectory(codepage)
 endif()
 
 add_subdirectory(utils)
