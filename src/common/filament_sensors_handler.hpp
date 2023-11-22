@@ -103,10 +103,10 @@ private:
 
     filament_sensor::Events evaluate_logical_sensors_events();
 
-    bool evaluateM600(FSensor::event ev) const; // must remain const - is called out of critical section
-    bool evaluateAutoload(FSensor::event ev) const; // must remain const - is called out of critical section
-    inline bool isEvLocked() { return event_lock > 0; }
-    inline bool isAutoloadLocked() { return autoload_lock > 0; }
+    bool evaluateM600(std::optional<FSensor::event> ev) const; // must remain const - is called out of critical section
+    bool evaluateAutoload(std::optional<FSensor::event> ev) const; // must remain const - is called out of critical section
+    inline bool isEvLocked() const { return event_lock > 0; }
+    inline bool isAutoloadLocked() const { return autoload_lock > 0; }
 
     bool has_mmu2_enabled() const; // turn MMU2 on during init
 

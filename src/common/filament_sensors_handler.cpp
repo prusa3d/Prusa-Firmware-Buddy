@@ -209,51 +209,59 @@ void FilamentSensors::Cycle() {
 
     set_corresponding_variables();
 
-    bool opt_event_m600 { false };
-    bool opt_event_autoload { false };
-
-    if (PrintProcessor::IsPrinting()) {
-        if (events.primary_runout) {
-            opt_event_m600 = evaluateM600(*events.primary_runout);
-        }
-
-        // With an MMU, don't check for runout on the secondary sensor
-        if (!has_mmu && !opt_event_m600 && events.secondary_runout) {
-            opt_event_m600 = evaluateM600(*events.secondary_runout);
-        }
-    }
-    if (!PrintProcessor::IsPrinting()
-        || (!option::has_human_interactions && PrintProcessor::IsPaused())) {
-        if (events.autoload) {
-            opt_event_autoload = evaluateAutoload(*events.autoload);
-        }
-    }
-
     if (isEvLocked()) {
         return;
     }
 
-    // gcode is injected outside critical section, so critical section is as short as possible
-    // also injection of GCode inside critical section might not work
-    // TODO M600_sent and Autoload_sent should be mutually exclusive
-    // for now M600 just has higher prior thanks to "else if"
-    if (opt_event_m600) {
+    enum class Action {
+        none,
+        filament_change,
+        autoload,
+    };
+    Action action = Action::none;
+
+    if (PrintProcessor::IsPrinting()) {
+        if (evaluateM600(events.primary_runout)) {
+            action = Action::filament_change;
+        }
+
+        // With an MMU, don't check for runout on the secondary sensor
+        if (!has_mmu && evaluateM600(events.secondary_runout)) {
+            action = Action::filament_change;
+        }
+
+    } else {
+        if (evaluateAutoload(events.autoload)) {
+            action = Action::autoload;
+        }
+    }
+
+    switch (action) {
+
+    case Action::none:
+        break;
+
+    case Action::filament_change: {
+        // gcode is injected outside critical section, so critical section is as short as possible
+        // also injection of GCode inside critical section might not work
         m600_sent = true;
-#if HAS_HUMAN_INTERACTIONS()
-        PrintProcessor::InjectGcode("M600 A"); // change filament
-#else
-        PrintProcessor::InjectGcode("M25 U"); // pause and unload filament
-#endif
+
+        if constexpr (option::has_human_interactions) {
+            PrintProcessor::InjectGcode("M600 A"); // change filament
+        } else {
+            PrintProcessor::InjectGcode("M25 U"); // pause and unload filament
+        }
+
         log_info(FSensor, "Injected runout");
-    } else if (opt_event_autoload && !has_mmu && !isAutoloadLocked()
-#if HAS_SELFTEST_SNAKE()
-        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
-        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
-#endif /*PRINTER_IS_PRUSA_XL*/
-    ) {
+        break;
+    }
+
+    case Action::autoload: {
         autoload_sent = true;
         PrintProcessor::InjectGcode("M1701 Z40"); // autoload with return option and minimal Z value of 40mm
         log_info(FSensor, "Injected autoload");
+        break;
+    }
     }
 }
 
@@ -357,25 +365,26 @@ FilamentSensors::BothSensors FilamentSensors::GetBothSensors() {
 // trying to trigger runout at exact moment when print ended could break something
 // also if another M600 happens during clear of M600_sent flag, it could be discarded, this is not a problem, because it could happen only due a bug
 // if it happens move it inside FilamentSensors::Cycle critical section
-bool FilamentSensors::evaluateM600(FSensor::event ev) const {
-    if ((ev == FSensor::event::EdgeFilamentRemoved)
-        && !m600_sent) {
-        return true;
-    }
-    return false;
+bool FilamentSensors::evaluateM600(std::optional<FSensor::event> ev) const {
+    return ev && ev == FSensor::event::EdgeFilamentRemoved && !m600_sent;
 }
 
 // this method is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter
 // trying to trigger autoload at exact moment when print starts could break something
 // also if another autoload happens during clear of Autoload_sent flag, it could be discarded, this is not a problem, because it could happen only due a bug
 // if it happens move it inside FilamentSensors::Cycle critical section
-bool FilamentSensors::evaluateAutoload(FSensor::event ev) const {
-    if ((ev == FSensor::event::EdgeFilamentInserted)
+bool FilamentSensors::evaluateAutoload(std::optional<FSensor::event> ev) const {
+    return //
+        ev && ev == FSensor::event::EdgeFilamentInserted
+        && !has_mmu
         && !autoload_sent
-        && PrintProcessor::IsAutoloadEnabled()) {
-        return true;
-    }
-    return false;
+        && !isAutoloadLocked()
+        && PrintProcessor::IsAutoloadEnabled() //
+#if HAS_SELFTEST_SNAKE()
+        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
+        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
+#endif /*PRINTER_IS_PRUSA_XL*/
+            ;
 }
 
 uint32_t FilamentSensors::DecEvLock() {
