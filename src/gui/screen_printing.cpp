@@ -485,7 +485,8 @@ void screen_printing_data_t::updateTimes() {
     if (auto now = ticks_s(); now - last_update_time_s > rotation_time_s) {
         // do rotation
 
-        currently_showing = static_cast<CurrentlyShowing>(ftrstd::to_underlying(currently_showing) + 1 == ftrstd::to_underlying(CurrentlyShowing::_count) ? 0 : ftrstd::to_underlying(currently_showing) + 1);
+        currently_showing = static_cast<CurrentlyShowing>(
+            (ftrstd::to_underlying(currently_showing) + 1) % ftrstd::to_underlying(CurrentlyShowing::_count));
 
         rotating_circles.set_index(ftrstd::to_underlying(currently_showing));
 

@@ -15,7 +15,9 @@
  */
 class EndResultBody : public AddSuperWindow<window_frame_t> {
 public:
-    using DateBufferT = std::array<char, sizeof("17/10/2023 18:00 AM") + 4>;
+    static constexpr size_t extra_buffer_size { 4 }; // to give some leeway for error
+
+    using DateBufferT = std::array<char, sizeof("17/10/2023 18:00 AM") + extra_buffer_size>;
 
     EndResultBody(window_t *parent, Rect16 rect);
 
@@ -49,9 +51,16 @@ private:
      */
     int16_t get_row_0() const;
 
+    void handle_consumed_material_showing(const GCodeInfo &gcode);
+    void setup_consumed_material_fields(size_t num_extruders_with_valid_grams, bool has_valid_wipe_tower_grams);
+    void handle_consumed_tool_fields(const GCodeInfo &gcode, size_t num_extruders_with_valid_grams);
+    void handle_wipe_tower_showing(const GCodeInfo &gcode, bool has_valid_wipe_tower_grams);
+
+    static constexpr float minimum_grams_valid { 1.0f };
+
     window_text_t printing_time_label;
     window_text_t printing_time_value;
-    std::array<char, sizeof("100d 20h 30m") + 4> printing_time_value_buffer;
+    std::array<char, sizeof("100d 20h 30m") + extra_buffer_size> printing_time_value_buffer;
 
     window_text_t print_started_label;
     window_text_t print_started_value;
@@ -63,10 +72,10 @@ private:
 
     window_text_t consumed_material_label;
     std::array<window_text_t, EXTRUDERS> consumed_material_values;
-    std::array<std::array<char, sizeof("T1 HIFIPETG 10.000g") + 4>, EXTRUDERS> consumed_material_values_buffers;
+    std::array<std::array<char, sizeof("T1 HIFIPETG 10.000g") + extra_buffer_size>, EXTRUDERS> consumed_material_values_buffers;
 
     window_text_t consumed_wipe_tower_value;
-    std::array<char, sizeof("Wipe Tower 10.000g") + 4> consumed_wipe_tower_value_buffer;
+    std::array<char, sizeof("Wipe Tower 10.000g") + extra_buffer_size> consumed_wipe_tower_value_buffer;
 
     window_icon_t arrow_right;
     WindowNumbPrintProgress progress_txt;

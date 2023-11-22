@@ -48,15 +48,28 @@ constexpr Rect16 get_consumed_material_rect(int16_t row_0, size_t idx) {
 // row is going to be set dynamically
 constexpr Rect16 get_consumed_wipe_tower_value_rect(int16_t row_0) { return { column_right, get_row(row_0, 7), column_width, row_height }; }
 
-template <size_t... Is>
-std::array<window_text_t, sizeof...(Is)> make_consumed_material_values(std::index_sequence<Is...>, window_t *parent, int16_t row_0) {
-    //  this is just fancy template way to init array in constructor initializer_list
-    return { (window_text_t { parent, get_consumed_material_rect(row_0, Is), is_multiline::no })... };
-}
-
 constexpr size_t middle_of_buttons { 185 + 40 };
 constexpr auto arrow_right_res { &img::arrow_right_10x16 };
 constexpr Rect16 arrow_right_rect { column_right + column_width, middle_of_buttons - arrow_right_res->h / 2, arrow_right_res->w, arrow_right_res->h };
+
+void handle_timestamp_text_item(MarlinVariableLocked<time_t> &time_holder, EndResultBody::DateBufferT &buffer, window_text_t &text_value) {
+    const auto time_format = time_tools::get_time_format();
+    struct tm print_tm;
+    time_holder.execute_with([&](const time_t &print_time) {
+        localtime_r(&print_time, &print_tm);
+    });
+
+    print_tm.tm_hour += config_store().timezone.get();
+
+    const time_t adjusted_print_time = mktime(&print_tm);
+    localtime_r(&adjusted_print_time, &print_tm);
+
+    FormatMsgPrintWillEnd::Date(buffer.data(), buffer.size(), &print_tm, time_format == time_tools::TimeFormat::_24h, FormatMsgPrintWillEnd::ISO);
+
+    text_value.SetText(_(buffer.data()));
+    text_value.Show();
+}
+
 } // namespace
 
 EndResultBody::EndResultBody(window_t *parent, Rect16 rect)
@@ -71,7 +84,11 @@ EndResultBody::EndResultBody(window_t *parent, Rect16 rect)
     , print_ended_value(this, get_print_ended_value_rect(get_row_0()), is_multiline::no)
 
     , consumed_material_label(this, get_consumed_material_label_rect(get_row_0()), is_multiline::no, is_closed_on_click_t::no, _(txt_consumed_material))
-    , consumed_material_values(make_consumed_material_values(std::make_index_sequence<EXTRUDERS>(), this, get_row_0()))
+    , consumed_material_values(
+          [&]<size_t... Is>(std::index_sequence<Is...>) -> decltype(consumed_material_values) {
+              //  just a fancy template way to init array of items without default constructor
+              return { (window_text_t { this, get_consumed_material_rect(get_row_0(), Is), is_multiline::no })... };
+          }(std::make_index_sequence<std::tuple_size_v<decltype(consumed_material_values)>>()))
     , consumed_wipe_tower_value(this, get_consumed_wipe_tower_value_rect(get_row_0()), is_multiline::no)
     , arrow_right(this, arrow_right_rect, arrow_right_res)
     , progress_txt(this, get_progress_txt_rect(get_row_0())) {
@@ -122,49 +139,26 @@ void EndResultBody::Show() {
     printing_time_value.SetText(_(printing_time_value_buffer.data()));
 
     print_started_label.Show();
-    print_started_value.Show();
     print_ended_label.Show();
-    print_ended_value.Show();
 
-    {
-        auto print_one = [time_format = time_tools::get_time_format()](MarlinVariableLocked<time_t> &time_holder, DateBufferT &buffer, window_text_t &text_value) {
-            struct tm print_tm;
-            time_holder.execute_with([&](const time_t &print_time) {
-                localtime_r(&print_time, &print_tm);
-            });
+    handle_timestamp_text_item(marlin_vars()->print_start_time, print_started_value_buffer, print_started_value);
+    handle_timestamp_text_item(marlin_vars()->print_end_time, print_ended_value_buffer, print_ended_value);
 
-            print_tm.tm_hour += config_store().timezone.get();
+    handle_consumed_material_showing(gcode);
 
-            const time_t adjusted_print_time = mktime(&print_tm);
-            localtime_r(&adjusted_print_time, &print_tm);
+    arrow_right.Show();
 
-            FormatMsgPrintWillEnd::Date(buffer.data(), buffer.size(), &print_tm, time_format == time_tools::TimeFormat::_24h, FormatMsgPrintWillEnd::ISO);
+    window_t::Show();
+}
 
-            text_value.SetText(_(buffer.data()));
-        };
+void EndResultBody::handle_consumed_material_showing(const GCodeInfo &gcode) {
 
-        print_one(marlin_vars()->print_start_time, print_started_value_buffer, print_started_value);
-        print_one(marlin_vars()->print_end_time, print_ended_value_buffer, print_ended_value);
-    }
+    // holds how many extruders were printing with specified grammage that's big enough to show
+    const size_t num_extruders_with_valid_grams = std::ranges::count_if(gcode.get_per_extruder_info(), [&](auto &elem) {
+        return elem.filament_used_g.has_value() && elem.filament_used_g.value() >= minimum_grams_valid;
+    });
 
-    static constexpr float minimum_grams_valid { 1.0f };
-    const size_t num_extruders_with_valid_grams {
-        [&]() {
-            size_t found = 0;
-            for (size_t i = 0; i < EXTRUDERS; ++i) {
-
-                const auto &ext_info { gcode.get_extruder_info(i) };
-                if (ext_info.used() && ext_info.filament_used_g.has_value() && ext_info.filament_used_g.value() >= minimum_grams_valid) {
-                    ++found;
-                }
-            }
-
-            return found;
-        }()
-    }; // holds how many extruders were printing with specified grammage that's big enough to show
-    static constexpr auto keep_progress_threshold { 2 }; // anymore used gcodes will trigger hiding progress text and moving right column to the top;
-
-    const bool have_valid_wipe_tower_grams {
+    const bool has_valid_wipe_tower_grams {
         [&]() {
 #if EXTRUDERS > 1
             return gcode.get_filament_wipe_tower_g().has_value() && gcode.get_filament_wipe_tower_g().value() >= minimum_grams_valid;
@@ -174,52 +168,39 @@ void EndResultBody::Show() {
         }()
     };
 
-    // setup fields
-    if (num_extruders_with_valid_grams > keep_progress_threshold) { // and have wipe tower grams?
-        // prepare right column to be without progress_txt
-        progress_txt.Hide();
-
-        auto place_one = [](window_text_t &text_field, Rect16 default_rect, Rect16::Top_t new_top) {
-            default_rect.set(new_top);
-            text_field.SetRect(default_rect);
-        };
-
-        place_one(consumed_material_label, get_consumed_material_label_rect(get_row_0()), get_row(get_row_0(), 0));
-
-        for (size_t i = 0; i < num_extruders_with_valid_grams; ++i) {
-            place_one(consumed_material_values[i], get_consumed_material_rect(get_row_0(), i), get_row(get_row_0(), i + 1));
-        }
-
-        place_one(consumed_wipe_tower_value, get_consumed_wipe_tower_value_rect(get_row_0()), get_row(get_row_0(), num_extruders_with_valid_grams + 2));
-    } else {
-        // Right column contains progress_txt, so reset places
-
-        progress_txt.Show();
-
-        consumed_material_label.SetRect(get_consumed_material_label_rect(get_row_0()));
-        for (size_t i = num_extruders_with_valid_grams; i < std::size(consumed_material_values); ++i) {
-            consumed_material_values[i].SetRect(get_consumed_material_rect(get_row_0(), i));
-        }
-
-        // show wipe tower info
-        if (have_valid_wipe_tower_grams) {
-
-            Rect16 tmp = get_consumed_wipe_tower_value_rect(get_row_0());
-
-            if (num_extruders_with_valid_grams > 0) {
-                // print after individual tools with a blank space in between
-                tmp.set(Rect16::Top_t { static_cast<int16_t>(get_row(get_row_0(), consumed_material_row + num_extruders_with_valid_grams + 2)) });
-
-            } else {
-                // don't do blank space if we're only showing wipe tower
-                tmp.set(Rect16::Top_t { static_cast<int16_t>(get_row(get_row_0(), consumed_material_row + 1)) });
-            }
-
-            consumed_wipe_tower_value.SetRect(tmp);
-        }
-    }
+    setup_consumed_material_fields(num_extruders_with_valid_grams, has_valid_wipe_tower_grams);
 
     consumed_material_label.Show();
+    if (num_extruders_with_valid_grams == 0 && !has_valid_wipe_tower_grams) {
+        auto &buff { consumed_material_values_buffers[0] };
+        snprintf(buff.data(), buff.size(), "---");
+        consumed_material_values[0].SetText(_(buff.data()));
+        consumed_material_values[0].Show();
+    } else {
+        handle_consumed_tool_fields(gcode, num_extruders_with_valid_grams);
+        handle_wipe_tower_showing(gcode, has_valid_wipe_tower_grams);
+    }
+}
+
+void EndResultBody::handle_wipe_tower_showing([[maybe_unused]] const GCodeInfo &gcode, [[maybe_unused]] bool has_valid_wipe_tower_grams) {
+#if EXTRUDERS > 1
+    // wipe tower
+    if (has_valid_wipe_tower_grams) {
+
+        auto &buff { consumed_wipe_tower_value_buffer };
+
+        char translated_fmt[buff.size()];
+        _(txt_wipe_tower_pretranslated).copyToRAM(translated_fmt, sizeof(translated_fmt));
+        snprintf(buff.data(), buff.size(), translated_fmt, static_cast<int>(gcode.get_filament_wipe_tower_g().value()));
+
+        consumed_wipe_tower_value.SetText(_(buff.data()));
+        consumed_wipe_tower_value.Show();
+    }
+#endif
+    // else keep it hidden
+}
+
+void EndResultBody::handle_consumed_tool_fields(const GCodeInfo &gcode, size_t num_extruders_with_valid_grams) {
     if (num_extruders_with_valid_grams > 0) {
         for (size_t i = 0, consumed_material_line_idx = 0; i < EXTRUDERS; ++i) {
             const auto &ext_info { gcode.get_extruder_info(i) };
@@ -268,33 +249,57 @@ void EndResultBody::Show() {
             ++consumed_material_line_idx;
         }
     }
+}
 
-#if EXTRUDERS > 1
-    // wipe tower
-    if (have_valid_wipe_tower_grams) {
+void EndResultBody::setup_consumed_material_fields(size_t num_extruders_with_valid_grams, bool has_valid_wipe_tower_grams) {
+    static constexpr auto keep_progress_threshold { 2 }; // anymore used gcodes will trigger hiding progress text and moving right column to the top;
 
-        auto &buff { consumed_wipe_tower_value_buffer };
+    // setup fields
+    if (num_extruders_with_valid_grams > keep_progress_threshold) {
+        // prepare right column to be without progress_txt
+        progress_txt.Hide();
 
-        char translated_fmt[buff.size()];
-        _(txt_wipe_tower_pretranslated).copyToRAM(translated_fmt, sizeof(translated_fmt));
-        snprintf(buff.data(), buff.size(), translated_fmt, static_cast<int>(gcode.get_filament_wipe_tower_g().value()));
+        auto place_one = [](window_text_t &text_field, Rect16 default_rect, Rect16::Top_t new_top) {
+            default_rect.set(new_top);
+            text_field.SetRect(default_rect);
+        };
 
-        consumed_wipe_tower_value.SetText(_(buff.data()));
-        consumed_wipe_tower_value.Show();
+        place_one(consumed_material_label, get_consumed_material_label_rect(get_row_0()), get_row(get_row_0(), 0));
+
+        for (size_t i = 0; i < num_extruders_with_valid_grams; ++i) {
+            place_one(consumed_material_values[i], get_consumed_material_rect(get_row_0(), i), get_row(get_row_0(), i + 1));
+        }
+
+        if (has_valid_wipe_tower_grams) {
+            place_one(consumed_wipe_tower_value, get_consumed_wipe_tower_value_rect(get_row_0()), get_row(get_row_0(), num_extruders_with_valid_grams + 2));
+        }
+    } else {
+        // Right column contains progress_txt, so reset places
+
+        progress_txt.Show();
+
+        consumed_material_label.SetRect(get_consumed_material_label_rect(get_row_0()));
+        for (size_t i = num_extruders_with_valid_grams; i < std::size(consumed_material_values); ++i) {
+            consumed_material_values[i].SetRect(get_consumed_material_rect(get_row_0(), i));
+        }
+
+        // show wipe tower info
+        if (has_valid_wipe_tower_grams) {
+
+            Rect16 tmp = get_consumed_wipe_tower_value_rect(get_row_0());
+
+            if (num_extruders_with_valid_grams > 0) {
+                // print after individual tools with a blank space in between
+                tmp.set(Rect16::Top_t { static_cast<int16_t>(get_row(get_row_0(), consumed_material_row + num_extruders_with_valid_grams + 2)) });
+
+            } else {
+                // don't do blank space if we're only showing wipe tower
+                tmp.set(Rect16::Top_t { static_cast<int16_t>(get_row(get_row_0(), consumed_material_row + 1)) });
+            }
+
+            consumed_wipe_tower_value.SetRect(tmp);
+        }
     }
-#endif
-
-    if (num_extruders_with_valid_grams == 0 && !have_valid_wipe_tower_grams) {
-
-        auto &buff { consumed_material_values_buffers[0] };
-        snprintf(buff.data(), buff.size(), "---");
-        consumed_material_values[0].SetText(_(buff.data()));
-        consumed_material_values[0].Show();
-    }
-
-    arrow_right.Show();
-
-    window_t::Show();
 }
 
 void EndResultBody::Hide() {
