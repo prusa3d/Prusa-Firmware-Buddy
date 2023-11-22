@@ -157,8 +157,10 @@ bool PartialFile::write_current_sector() {
     }
     const uint32_t slot_idx = reinterpret_cast<uint32_t>(current_sector->callback_param2);
     auto start = get_offset(current_sector->sector_nbr);
-    // total_size wont change, don't have to lock
-    auto end = std::min(start + SECTOR_SIZE, state.total_size);
+    auto end = current_offset;
+    auto len = end - start;
+    // Round up to full sectors
+    current_sector->count = (len + SECTOR_SIZE - 1) / SECTOR_SIZE;
     // Synchronized through release-acquire pair through the queue into USB thread
     future_extend[slot_idx] = ValidPart { start, end };
     // This _in theory_ can block, which we don't like. But, as the queue for
@@ -217,8 +219,8 @@ PartialFile::BufferPeek PartialFile::get_current_buffer(bool block_waiting) {
         current_sector->sector_nbr = sector_nbr;
     }
 
-    const size_t sector_offset = current_offset % SECTOR_SIZE;
-    return make_tuple(current_sector->data, sector_offset);
+    const size_t buffer_offset = current_offset - get_offset(current_sector->sector_nbr);
+    return make_tuple(current_sector->data, buffer_offset);
 }
 
 bool PartialFile::advance_written(size_t by) {
@@ -228,7 +230,8 @@ bool PartialFile::advance_written(size_t by) {
     if (next_offset > state.total_size) {
         fatal_error("Request to write past the end of file.", "transfers");
     }
-    if (next_sector_nbr != current_sector->sector_nbr) {
+    if (next_sector_nbr < current_sector->sector_nbr || next_sector_nbr >= current_sector->sector_nbr + SECTORS_PER_WRITE) {
+        current_offset = next_offset;
         // TODO: We may need some non-blocking way?
         if (write_current_sector()) {
             current_sector = nullptr;
@@ -262,9 +265,9 @@ bool PartialFile::write(const uint8_t *data, size_t size) {
         assert(holds_alternative<BufferAndOffset>(buffer));
         auto [buff_ptr, offset] = get<BufferAndOffset>(buffer);
 
-        const size_t sector_remaining = SECTOR_SIZE - offset;
-        const size_t write_size = std::min(size, sector_remaining);
-        assert(sector_remaining > 0);
+        const size_t buffer_remaining = BUFFER_SIZE - offset;
+        const size_t write_size = std::min(size, buffer_remaining);
+        assert(buffer_remaining > 0);
         assert(write_size > 0);
         memcpy(buff_ptr + offset, data, write_size);
 
@@ -287,7 +290,7 @@ bool PartialFile::sync() {
         if (!copied_sector) {
             return false;
         }
-        memcpy(copied_sector->data, current_sector->data, SECTOR_SIZE);
+        memcpy(copied_sector->data, current_sector->data, BUFFER_SIZE);
         copied_sector->sector_nbr = current_sector->sector_nbr;
         auto status = write_current_sector();
         if (status) {
@@ -391,7 +394,7 @@ PartialFile::SectorPool::SectorPool(UsbhMscRequest::LunNbr lun, UsbhMscRequestCa
             lun,
             1,
             0,
-            new uint8_t[SECTOR_SIZE],
+            new uint8_t[BUFFER_SIZE],
             USBH_FAIL,
             callback,
             callback_param,
@@ -419,7 +422,7 @@ UsbhMscRequest *PartialFile::SectorPool::acquire(bool block_waiting) {
     slot_mask |= 1 << slot;
     mutex.unlock();
 
-    memset(pool[slot].data, 0, SECTOR_SIZE);
+    memset(pool[slot].data, 0, BUFFER_SIZE);
     return pool + slot;
 }
 

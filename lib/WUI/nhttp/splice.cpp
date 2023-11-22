@@ -30,7 +30,7 @@ tuple<size_t, Result> Transfer::write(const uint8_t *in, size_t in_size) {
     assert(std::holds_alternative<PartialFile::BufferAndOffset>(buff));
     auto [buff_ptr, buff_off] = get<PartialFile::BufferAndOffset>(buff);
     uint8_t *out = buff_ptr + buff_off;
-    const size_t out_size = PartialFile::SECTOR_SIZE - buff_off;
+    const size_t out_size = PartialFile::BUFFER_SIZE - buff_off;
 
     // Perform a write/transformation of the data into the out buffer
     const auto [in_used, out_used] = write(in, in_size, out, out_size);

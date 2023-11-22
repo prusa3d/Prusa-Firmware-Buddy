@@ -40,6 +40,9 @@ namespace transfers {
 class PartialFile {
 public:
     static const size_t SECTOR_SIZE = 512;
+    static const size_t SECTORS_PER_WRITE = 8;
+    // The size of one buffer (possibly multiple sectors)
+    static const size_t BUFFER_SIZE = SECTOR_SIZE * SECTORS_PER_WRITE;
 
     struct ValidPart {
         size_t start;
