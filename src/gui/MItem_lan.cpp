@@ -15,7 +15,7 @@ MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
 }
 
 MI_WIFI_INIT_t::MI_WIFI_INIT_t()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIFI_INIT_t::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -23,7 +23,7 @@ void MI_WIFI_INIT_t::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_WIFI_CREDENTIALS_t::MI_WIFI_CREDENTIALS_t()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIFI_CREDENTIALS_t::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -31,7 +31,7 @@ void MI_WIFI_CREDENTIALS_t::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_WIFI_CREDENTIALS_INI_FILE_t::MI_WIFI_CREDENTIALS_INI_FILE_t()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIFI_CREDENTIALS_INI_FILE_t::click([[maybe_unused]] IWindowMenu &window_menu) {

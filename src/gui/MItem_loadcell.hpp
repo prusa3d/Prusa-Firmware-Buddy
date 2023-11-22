@@ -8,7 +8,7 @@
 #include "i18n.h"
 #include "sensor_data_buffer.hpp"
 
-class MI_TEST_LOADCELL : public WI_LABEL_t {
+class MI_TEST_LOADCELL : public IWindowMenuItem {
     static constexpr const char *const label = N_("Test Loadcell");
 
 public:

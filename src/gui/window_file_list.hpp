@@ -37,10 +37,10 @@ public:
     static void Set(WF_Sort_t val);
 };
 
-class FL_LABEL : public WI_LABEL_t {
+class FL_LABEL : public IWindowMenuItem {
 public:
     FL_LABEL(string_view_utf8 label, const img::Resource *icon)
-        : WI_LABEL_t(label, icon, is_enabled_t::yes, is_hidden_t::no) {}
+        : IWindowMenuItem(label, icon, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}

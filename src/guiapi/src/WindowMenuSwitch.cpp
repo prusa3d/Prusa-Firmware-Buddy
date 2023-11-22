@@ -9,7 +9,7 @@
 /*****************************************************************************/
 // IWiSwitch
 IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_)
-    : AddSuper<WI_LABEL_t>(label, calculateExtensionWidth(items_, index), id_icon, enabled, hidden)
+    : AddSuper<IWindowMenuItem>(label, calculateExtensionWidth(items_, index), id_icon, enabled, hidden)
     , index(index)
     , items(items_) {
 }

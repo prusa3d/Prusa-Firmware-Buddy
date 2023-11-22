@@ -34,7 +34,7 @@ void MI_NOZZLE_DIAMETER::OnClick() {
 }
 
 MI_HARDWARE_G_CODE_CHECKS::MI_HARDWARE_G_CODE_CHECKS()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {

@@ -19,7 +19,7 @@ static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
 /*****************************************************************************/
 // MI_SAVE_TOUCH
 MI_SAVE_TOUCH::MI_SAVE_TOUCH()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_SAVE_TOUCH::click(IWindowMenu & /*window_menu*/) {
@@ -34,7 +34,7 @@ void MI_SAVE_TOUCH::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_LOAD_TOUCH
 MI_LOAD_TOUCH::MI_LOAD_TOUCH()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_LOAD_TOUCH::click(IWindowMenu & /*window_menu*/) {
@@ -49,7 +49,7 @@ void MI_LOAD_TOUCH::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_RESET_TOUCH
 MI_RESET_TOUCH::MI_RESET_TOUCH()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_RESET_TOUCH::click(IWindowMenu & /*window_menu*/) {
@@ -61,7 +61,7 @@ void MI_RESET_TOUCH::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_DISP_RST
 MI_DISP_RST::MI_DISP_RST()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_DISP_RST::click([[maybe_unused]] IWindowMenu &window_menu) {
     display::Init();
@@ -93,7 +93,7 @@ MI_TOUCH_ERR_COUNT::MI_TOUCH_ERR_COUNT()
 /*****************************************************************************/
 // MI_I2C_WORKAROUND
 MI_I2C_WORKAROUND::MI_I2C_WORKAROUND()
-    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_I2C_WORKAROUND::click([[maybe_unused]] IWindowMenu &window_menu) {
     __HAL_RCC_I2C3_RELEASE_RESET();
@@ -102,7 +102,7 @@ void MI_I2C_WORKAROUND::click([[maybe_unused]] IWindowMenu &window_menu) {
 /*****************************************************************************/
 // MI_I2C_FORCE_RESET
 MI_I2C_FORCE_RESET::MI_I2C_FORCE_RESET()
-    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_I2C_FORCE_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     __HAL_RCC_I2C3_FORCE_RESET();
@@ -111,7 +111,7 @@ void MI_I2C_FORCE_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
 /*****************************************************************************/
 // MI_I2C_RELEASE_FORCE_RESET
 MI_I2C_RELEASE_FORCE_RESET::MI_I2C_RELEASE_FORCE_RESET()
-    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_I2C_RELEASE_FORCE_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     __HAL_RCC_I2C3_RELEASE_RESET();
@@ -120,7 +120,7 @@ void MI_I2C_RELEASE_FORCE_RESET::click([[maybe_unused]] IWindowMenu &window_menu
 /*****************************************************************************/
 // MI_DISPI2C_RST
 MI_DISPI2C_RST::MI_DISPI2C_RST()
-    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_DISPI2C_RST::click([[maybe_unused]] IWindowMenu &window_menu) {
     I2C_INIT(touch);

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "WindowMenuLabel.hpp"
+#include "i_window_menu_item.hpp"
 #include "ScreenFactory.hpp"
 #include "screen.hpp"
 #include <algorithm>
@@ -47,7 +47,7 @@ void open_screen(const ScreenCreator open_fn);
  */
 
 template <is_hidden_t HIDDEN, const ScreenCreator OPEN_FN, const char... LETTERS>
-class MI_SCREEN_FN : public WI_LABEL_t {
+class MI_SCREEN_FN : public IWindowMenuItem {
     static const char *make_Str() {
         static const char arr[] = { LETTERS... };
         return arr;
@@ -55,7 +55,7 @@ class MI_SCREEN_FN : public WI_LABEL_t {
 
 public:
     MI_SCREEN_FN()
-        : WI_LABEL_t(HIDDEN == is_hidden_t::dev ? string_view_utf8::MakeCPUFLASH((uint8_t *)make_Str()) : _(make_Str()), nullptr, is_enabled_t::yes, HIDDEN, expands_t::yes) {
+        : IWindowMenuItem(HIDDEN == is_hidden_t::dev ? string_view_utf8::MakeCPUFLASH((uint8_t *)make_Str()) : _(make_Str()), nullptr, is_enabled_t::yes, HIDDEN, expands_t::yes) {
     }
 
 protected:

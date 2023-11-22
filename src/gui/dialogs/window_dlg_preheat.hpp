@@ -37,7 +37,7 @@ protected:
     }
 };
 
-class MI_RETURN : public WI_LABEL_t {
+class MI_RETURN : public IWindowMenuItem {
     static constexpr const char *const label = N_("Return");
 
 public:
@@ -47,7 +47,7 @@ protected:
     virtual void click(IWindowMenu &window_menu);
 };
 
-class MI_COOLDOWN : public WI_LABEL_t {
+class MI_COOLDOWN : public IWindowMenuItem {
 public:
     MI_COOLDOWN();
 

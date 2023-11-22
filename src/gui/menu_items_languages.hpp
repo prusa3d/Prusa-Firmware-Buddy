@@ -7,7 +7,7 @@
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 
-class MI_LANGUAGE : public WI_LABEL_t {
+class MI_LANGUAGE : public IWindowMenuItem {
     static constexpr const char *const label = N_("Language");
 
 public:
@@ -17,7 +17,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_LANGUAGUE_USB : public WI_LABEL_t {
+class MI_LANGUAGUE_USB : public IWindowMenuItem {
     static constexpr const char *const label = "Load Lang from USB";
 
 public:
@@ -27,7 +27,7 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 
-class MI_LOAD_LANG : public WI_LABEL_t {
+class MI_LOAD_LANG : public IWindowMenuItem {
     static constexpr const char *const label = "Load Lang to XFLASH";
 
 public:
@@ -37,7 +37,7 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 
-class MI_LANGUAGUE_XFLASH : public WI_LABEL_t {
+class MI_LANGUAGUE_XFLASH : public IWindowMenuItem {
     static constexpr const char *const label = "Load Lang from XFLASH";
 
 public:

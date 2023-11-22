@@ -18,7 +18,7 @@
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT
 MI_MMU_PRELOAD::MI_MMU_PRELOAD()
-    : WI_LABEL_t(_(label), nullptr,
+    : IWindowMenuItem(_(label), nullptr,
         // enable the PreLoad menu only if there is no filament already loaded
         FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR ? is_enabled_t::no : is_enabled_t::yes,
         is_hidden_t::no,
@@ -31,7 +31,7 @@ void MI_MMU_PRELOAD::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_MMU_LOAD_TEST_FILAMENT
 MI_MMU_LOAD_TEST_FILAMENT::MI_MMU_LOAD_TEST_FILAMENT()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 void MI_MMU_LOAD_TEST_FILAMENT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMULoadTestFilament>);
@@ -40,7 +40,7 @@ void MI_MMU_LOAD_TEST_FILAMENT::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_MMU_EJECT_FILAMENT
 MI_MMU_EJECT_FILAMENT::MI_MMU_EJECT_FILAMENT()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 void MI_MMU_EJECT_FILAMENT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMUEjectFilament>);
@@ -49,7 +49,7 @@ void MI_MMU_EJECT_FILAMENT::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_MMU_CUT_FILAMENT
 MI_MMU_CUT_FILAMENT::MI_MMU_CUT_FILAMENT()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 void MI_MMU_CUT_FILAMENT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMUCutFilament>);
@@ -58,7 +58,7 @@ void MI_MMU_CUT_FILAMENT::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_MMU_LOAD_TO_NOZZLE
 MI_MMU_LOAD_TO_NOZZLE::MI_MMU_LOAD_TO_NOZZLE()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 void MI_MMU_LOAD_TO_NOZZLE::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMULoadToNozzle>);
@@ -67,7 +67,7 @@ void MI_MMU_LOAD_TO_NOZZLE::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT_base
 MI_MMU_ISSUE_GCODE::MI_MMU_ISSUE_GCODE(const char *lbl, const char *gcode)
-    : WI_LABEL_t(_(lbl), nullptr, is_enabled_t::yes, is_hidden_t::no)
+    : IWindowMenuItem(_(lbl), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , gcode(gcode) {
 }
 
@@ -83,7 +83,7 @@ void MI_MMU_ISSUE_GCODE::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_MMU_PRELOAD_ALL
 MI_MMU_PRELOAD_ALL::MI_MMU_PRELOAD_ALL()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_MMU_PRELOAD_ALL::click(IWindowMenu & /*window_menu*/) {
@@ -98,7 +98,7 @@ void MI_MMU_PRELOAD_ALL::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_MMU_LOAD_TEST_ALL
 MI_MMU_LOAD_TEST_ALL::MI_MMU_LOAD_TEST_ALL()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_MMU_LOAD_TEST_ALL::click(IWindowMenu & /*window_menu*/) {

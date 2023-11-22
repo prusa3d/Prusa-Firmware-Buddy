@@ -34,7 +34,7 @@ void NsPreheat::I_MI_Filament::click_at(filament::Type filament) {
 /*****************************************************************************/
 // NsPreheat::MI_RETURN
 NsPreheat::MI_RETURN::MI_RETURN()
-    : WI_LABEL_t(_(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void NsPreheat::MI_RETURN::click(IWindowMenu &window_menu) {
@@ -45,7 +45,7 @@ void NsPreheat::MI_RETURN::click(IWindowMenu &window_menu) {
 /*****************************************************************************/
 // NsPreheat::MI_COOLDOWN
 NsPreheat::MI_COOLDOWN::MI_COOLDOWN()
-    : WI_LABEL_t(_(BtnResponse::GetText(Response::Cooldown)), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(BtnResponse::GetText(Response::Cooldown)), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void NsPreheat::MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {

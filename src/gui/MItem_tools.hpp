@@ -37,7 +37,7 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_LIVE_ADJUST_Z : public WI_LABEL_t {
+class MI_LIVE_ADJUST_Z : public IWindowMenuItem {
     static constexpr const char *const label = N_("Live Adjust Z");
 
 public:
@@ -47,7 +47,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_AUTO_HOME : public WI_LABEL_t {
+class MI_AUTO_HOME : public IWindowMenuItem {
     static constexpr const char *const label = N_("Auto Home");
 
 public:
@@ -57,7 +57,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MESH_BED : public WI_LABEL_t {
+class MI_MESH_BED : public IWindowMenuItem {
     static constexpr const char *const label = N_("Mesh Bed Leveling");
 
 public:
@@ -67,7 +67,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_CALIB_Z : public WI_LABEL_t {
+class MI_CALIB_Z : public IWindowMenuItem {
     static constexpr const char *const label = N_("Calibrate Z");
 
 public:
@@ -77,7 +77,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_DISABLE_STEP : public WI_LABEL_t {
+class MI_DISABLE_STEP : public IWindowMenuItem {
     static constexpr const char *const label = N_("Disable Motors");
 
 public:
@@ -87,7 +87,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_FACTORY_SOFT_RESET : public WI_LABEL_t {
+class MI_FACTORY_SOFT_RESET : public IWindowMenuItem {
     static constexpr const char *const label = N_("Reset Settings & Calibrations");
 
 public:
@@ -97,7 +97,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_FACTORY_HARD_RESET : public WI_LABEL_t {
+class MI_FACTORY_HARD_RESET : public IWindowMenuItem {
     static constexpr const char *const label = N_("Hard Reset (USB with FW needed)");
 
 public:
@@ -108,7 +108,7 @@ protected:
 };
 
 #ifdef BUDDY_ENABLE_DFU_ENTRY
-class MI_ENTER_DFU : public WI_LABEL_t {
+class MI_ENTER_DFU : public IWindowMenuItem {
     static constexpr const char *const label = "Enter DFU";
 
 public:
@@ -119,7 +119,7 @@ protected:
 };
 #endif
 
-class MI_SAVE_DUMP : public WI_LABEL_t {
+class MI_SAVE_DUMP : public IWindowMenuItem {
     static constexpr const char *const label = N_("Save Crash Dump");
 
 public:
@@ -129,7 +129,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_XFLASH_RESET : public WI_LABEL_t {
+class MI_XFLASH_RESET : public IWindowMenuItem {
     static constexpr const char *const label = "Delete Crash Dump"; // intentionally not translated, only for debugging
 
 public:
@@ -139,7 +139,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_EE_SAVEXML : public WI_LABEL_t {
+class MI_EE_SAVEXML : public IWindowMenuItem {
     static constexpr const char *const label = "TODO EE Save XML"; // intentionally not translated, only for debugging
 
 public:
@@ -149,7 +149,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_EE_CLEAR : public WI_LABEL_t {
+class MI_EE_CLEAR : public IWindowMenuItem {
     static constexpr const char *const label = "EE Clear"; // intentionally not translated, only for debugging
 
 public:
@@ -159,7 +159,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_M600 : public WI_LABEL_t {
+class MI_M600 : public IWindowMenuItem {
     static constexpr const char *const label = N_("Change Filament");
 
 public:
@@ -638,7 +638,7 @@ public:
     MI_INFO_MCU_TEMP();
 };
 
-class MI_FOOTER_RESET : public WI_LABEL_t {
+class MI_FOOTER_RESET : public IWindowMenuItem {
     static constexpr const char *const label = N_("Reset");
 
 public:
@@ -648,7 +648,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_CO_CANCEL_OBJECT : public WI_LABEL_t {
+class MI_CO_CANCEL_OBJECT : public IWindowMenuItem {
     static constexpr const char *const label = N_("Cancel Object");
 
 public:
@@ -747,7 +747,7 @@ protected:
     void OnChange(size_t old_index) override;
 };
 
-class MI_IS_SET : public WI_LABEL_t {
+class MI_IS_SET : public IWindowMenuItem {
     static constexpr const char *const label = N_("Set up values");
     input_shaper_param param = input_shaper_param::set_values;
 
@@ -758,7 +758,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_IS_CALIB : public WI_LABEL_t {
+class MI_IS_CALIB : public IWindowMenuItem {
     static constexpr const char *const label = N_("Calibration");
 
 public:
@@ -768,7 +768,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SET_READY : public WI_LABEL_t {
+class MI_SET_READY : public IWindowMenuItem {
     static constexpr const char *const label = N_("Set Ready");
 
 public:

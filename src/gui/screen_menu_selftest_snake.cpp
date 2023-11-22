@@ -268,7 +268,7 @@ char *I_MI_STS::get_filled_menu_item_label(Action action) {
 }
 
 I_MI_STS::I_MI_STS(Action action)
-    : WI_LABEL_t(_(get_filled_menu_item_label(action)),
+    : IWindowMenuItem(_(get_filled_menu_item_label(action)),
         get_icon(action, Tool::_all_tools), is_enabled_t::yes, get_mainitem_hidden_state(action), get_expands(action)) {
     if (is_multitool()) {
         set_icon_position(IconPosition::right);
@@ -289,7 +289,7 @@ void I_MI_STS::do_click([[maybe_unused]] IWindowMenu &window_menu, Action action
 }
 
 I_MI_STS_SUBMENU::I_MI_STS_SUBMENU(const char *label, Action action, Tool tool)
-    : WI_LABEL_t(_(label), get_icon(action, tool), is_enabled_t::yes, get_subitem_hidden_state(tool)) {
+    : IWindowMenuItem(_(label), get_icon(action, tool), is_enabled_t::yes, get_subitem_hidden_state(tool)) {
     set_icon_position(IconPosition::right);
 }
 

@@ -38,7 +38,7 @@ public:
     void UpdateEnableState();
 };
 
-class MI_CHANGEALL : public WI_LABEL_t {
+class MI_CHANGEALL : public IWindowMenuItem {
     constexpr static const char *const label = N_("Change Filament in All Tools");
 
 public:
@@ -62,7 +62,7 @@ public:
     void UpdateEnableState();
 };
 
-class MI_COOLDOWN : public WI_LABEL_t {
+class MI_COOLDOWN : public IWindowMenuItem {
     static constexpr const char *const label = N_("Cooldown");
 
 public:

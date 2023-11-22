@@ -30,7 +30,7 @@ MI_CONNECT_ERROR::MI_CONNECT_ERROR()
 }
 
 MI_CONNECT_LOAD_SETTINGS::MI_CONNECT_LOAD_SETTINGS()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::no) {}
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::no) {}
 
 void MI_CONNECT_LOAD_SETTINGS::click([[maybe_unused]] IWindowMenu &window_menu) {
     if (connect_client::MarlinPrinter::load_cfg_from_ini()) {
@@ -45,7 +45,7 @@ void MI_CONNECT_LOAD_SETTINGS::click([[maybe_unused]] IWindowMenu &window_menu) 
 }
 
 MI_CONNECT_REGISTER::MI_CONNECT_REGISTER()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::no) {
 }
 
 void MI_CONNECT_REGISTER::click([[maybe_unused]] IWindowMenu &window_menu) {

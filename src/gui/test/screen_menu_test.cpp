@@ -4,7 +4,7 @@
 
 #include "screen_menu_test.hpp"
 #include "ScreenHandler.hpp"
-#include "WindowMenuLabel.hpp"
+#include "i_window_menu_item.hpp"
 #include "sys.h"
 #include "window_types.hpp"
 #include <cstddef>
@@ -14,7 +14,7 @@
 #endif
 
 MI_RESULT_TEST::MI_RESULT_TEST()
-    : WI_LABEL_t(_("test selftest result"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+    : IWindowMenuItem(_("test selftest result"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
 }
 
 void MI_RESULT_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -24,7 +24,7 @@ void MI_RESULT_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_SELFTEST_TEST::MI_SELFTEST_TEST()
-    : WI_LABEL_t(_("selftest print screens"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+    : IWindowMenuItem(_("selftest print screens"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
 }
 
 void MI_SELFTEST_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -34,7 +34,7 @@ void MI_SELFTEST_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_LOAD_UNLOAD_TEST::MI_LOAD_UNLOAD_TEST()
-    : WI_LABEL_t(_("test of load dialog"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+    : IWindowMenuItem(_("test of load dialog"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
 }
 
 void MI_LOAD_UNLOAD_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {

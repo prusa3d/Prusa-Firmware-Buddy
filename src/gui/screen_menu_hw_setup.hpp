@@ -6,7 +6,7 @@
 
 #include "screen_menu.hpp"
 
-class MI_STEEL_SHEETS : public WI_LABEL_t {
+class MI_STEEL_SHEETS : public IWindowMenuItem {
     static constexpr const char *const label = N_("Steel Sheets");
 
 public:

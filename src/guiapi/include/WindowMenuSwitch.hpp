@@ -9,13 +9,13 @@
 
 #pragma once
 
-#include "WindowMenuLabel.hpp"
+#include "i_window_menu_item.hpp"
 #include "window_icon.hpp" //CalculateMinimalSize
 #include <type_traits> //aligned_storage
 
 /*****************************************************************************/
 // IWiSwitch
-class IWiSwitch : public AddSuper<WI_LABEL_t> {
+class IWiSwitch : public AddSuper<IWindowMenuItem> {
 public:
     static constexpr font_t *&BracketFont = GuiDefaults::FontMenuSpecial;
     static constexpr bool has_brackets = GuiDefaults::MenuSwitchHasBrackets;

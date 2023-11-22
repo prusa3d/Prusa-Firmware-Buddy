@@ -16,7 +16,7 @@
 /*****************************************************************************/
 // MI_HELP_FW_UPDATE
 MI_HELP_FW_UPDATE::MI_HELP_FW_UPDATE()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_HELP_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {

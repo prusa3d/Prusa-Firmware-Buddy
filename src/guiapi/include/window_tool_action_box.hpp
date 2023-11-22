@@ -105,7 +105,7 @@ consteval auto get_label(Tool tool, Action action) -> const char * {
     }
 }
 
-class I_MI_TOOL : public WI_LABEL_t {
+class I_MI_TOOL : public IWindowMenuItem {
 public:
     I_MI_TOOL(const char *label, Tool tool, Action action, bool hidden_if_inactive);
 

@@ -16,7 +16,7 @@
 #include <option/enable_translation_it.h>
 #include <option/enable_translation_pl.h>
 
-class MI_LangBase : public WI_LABEL_t {
+class MI_LangBase : public IWindowMenuItem {
 public:
     MI_LangBase(const char *label, const img::Resource *icon, is_hidden_t hidden);
 

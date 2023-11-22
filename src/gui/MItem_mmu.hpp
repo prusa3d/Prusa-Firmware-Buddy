@@ -5,7 +5,7 @@
 #include "WindowMenuInfo.hpp"
 #include "i18n.h"
 
-class MI_MMU_PRELOAD : public WI_LABEL_t {
+class MI_MMU_PRELOAD : public IWindowMenuItem {
     static constexpr const char *const label = N_("Preload to MMU");
 
 public:
@@ -15,7 +15,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_LOAD_TEST_FILAMENT : public WI_LABEL_t {
+class MI_MMU_LOAD_TEST_FILAMENT : public IWindowMenuItem {
     static constexpr const char *const label = N_("Loading Test");
 
 public:
@@ -25,7 +25,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_LOAD_TO_NOZZLE : public WI_LABEL_t {
+class MI_MMU_LOAD_TO_NOZZLE : public IWindowMenuItem {
     static constexpr const char *const label = N_("Load to Nozzle");
 
 public:
@@ -35,7 +35,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_EJECT_FILAMENT : public WI_LABEL_t {
+class MI_MMU_EJECT_FILAMENT : public IWindowMenuItem {
     static constexpr const char *const label = N_("Eject Filament");
 
 public:
@@ -45,7 +45,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_CUT_FILAMENT : public WI_LABEL_t {
+class MI_MMU_CUT_FILAMENT : public IWindowMenuItem {
     static constexpr const char *const label = N_("Cut Filament");
 
 public:
@@ -55,7 +55,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_PRELOAD_ALL : public WI_LABEL_t {
+class MI_MMU_PRELOAD_ALL : public IWindowMenuItem {
     static constexpr const char *const label = N_("Preload All");
 
 public:
@@ -66,7 +66,7 @@ protected:
 };
 
 // @@TODO unify the individual slot menu items, since they only differ by the slot's number
-class MI_MMU_ISSUE_GCODE : public WI_LABEL_t {
+class MI_MMU_ISSUE_GCODE : public IWindowMenuItem {
     const char *gcode;
 
 public:
@@ -242,7 +242,7 @@ public:
         : MI_MMU_ISSUE_GCODE(label, "M702 W2") {}
 };
 
-class MI_MMU_LOAD_TEST_ALL : public WI_LABEL_t {
+class MI_MMU_LOAD_TEST_ALL : public IWindowMenuItem {
     static constexpr const char *const label = N_("Test All");
 
 public:

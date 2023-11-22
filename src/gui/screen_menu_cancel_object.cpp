@@ -13,7 +13,7 @@ ScreenMenuCancelObject::ScreenMenuCancelObject()
     : detail::ScreenMenuCancelObject(_(label)) {}
 
 MI_CO_CANCEL_OBJECT::MI_CO_CANCEL_OBJECT()
-    : WI_LABEL_t(
+    : IWindowMenuItem(
         _(label), nullptr, marlin_vars()->cancel_object_count > 0 ? is_enabled_t::yes : is_enabled_t::no,
         is_hidden_t::no, expands_t::yes) {
 }
@@ -88,7 +88,7 @@ void MI_CO_OBJECT_N::OnChange(size_t old_index) {
 }
 
 MI_CO_CANCEL_CURRENT::MI_CO_CANCEL_CURRENT()
-    : WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, marlin_vars()->cancel_object_count > 0 ? is_hidden_t::no : is_hidden_t::yes) {}
+    : IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, marlin_vars()->cancel_object_count > 0 ? is_hidden_t::no : is_hidden_t::yes) {}
 
 void MI_CO_CANCEL_CURRENT::click(IWindowMenu & /*window_menu*/) {
     marlin_client::cancel_current_object();

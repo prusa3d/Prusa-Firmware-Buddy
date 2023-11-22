@@ -30,7 +30,7 @@ I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
 }
 
 MI_FilamentApplyChanges::MI_FilamentApplyChanges()
-    : WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_FilamentApplyChanges::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);
@@ -207,7 +207,7 @@ void detail::DialogEnabledMI::set_parent(IDialog *new_parent) {
 
 DMI_RETURN::DMI_RETURN()
     : detail::DialogEnabledMI()
-    , WI_LABEL_t(_(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    , IWindowMenuItem(_(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void DMI_RETURN::click(IWindowMenu &) {
@@ -218,7 +218,7 @@ void DMI_RETURN::click(IWindowMenu &) {
 
 DMI_FilamentApplyChanges::DMI_FilamentApplyChanges()
     : detail::DialogEnabledMI()
-    , WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
+    , IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void DMI_FilamentApplyChanges::click(IWindowMenu & /*window_menu*/) {
     if (parent) {

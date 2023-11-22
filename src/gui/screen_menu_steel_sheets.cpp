@@ -43,28 +43,28 @@ void MI_SHEET_OFFSET::Reset() {
 }
 
 MI_SHEET_SELECT::MI_SHEET_SELECT()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {};
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {};
 
 void MI_SHEET_SELECT::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Select);
 }
 
 MI_SHEET_CALIBRATE::MI_SHEET_CALIBRATE()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 void MI_SHEET_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Calibrate);
 }
 
 MI_SHEET_RENAME::MI_SHEET_RENAME()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 void MI_SHEET_RENAME::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Rename);
 }
 
 MI_SHEET_RESET::MI_SHEET_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {};
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {};
 
 void MI_SHEET_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Reset);
@@ -164,5 +164,5 @@ void IProfileRecord::click_index(uint32_t index) {
 }
 
 IProfileRecord::IProfileRecord()
-    : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(string_view_utf8::MakeNULLSTR(), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }

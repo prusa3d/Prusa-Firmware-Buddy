@@ -5,7 +5,7 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 
-class MI_SAVE_TOUCH : public WI_LABEL_t {
+class MI_SAVE_TOUCH : public IWindowMenuItem {
     static constexpr const char *const label = N_("Save Touch Registers to Flash Disc");
 
 public:
@@ -15,7 +15,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_LOAD_TOUCH : public WI_LABEL_t {
+class MI_LOAD_TOUCH : public IWindowMenuItem {
     static constexpr const char *const label = N_("Load Touch Registers from Flash Disc");
 
 public:
@@ -25,7 +25,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_RESET_TOUCH : public WI_LABEL_t {
+class MI_RESET_TOUCH : public IWindowMenuItem {
     static constexpr const char *const label = N_("Reset Touch Registers");
 
 public:
@@ -35,7 +35,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_DISP_RST : public WI_LABEL_t {
+class MI_DISP_RST : public IWindowMenuItem {
     static constexpr const char *const label = N_("Reset Display");
 
 public:
@@ -61,7 +61,7 @@ public:
     MI_TOUCH_ERR_COUNT();
 };
 
-class MI_I2C_WORKAROUND : public WI_LABEL_t {
+class MI_I2C_WORKAROUND : public IWindowMenuItem {
     constexpr static const char *const label = "I2C workaround"; // Intentionally not translated
 
 public:
@@ -70,7 +70,7 @@ public:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_I2C_FORCE_RESET : public WI_LABEL_t {
+class MI_I2C_FORCE_RESET : public IWindowMenuItem {
     constexpr static const char *label = "I2C force reset"; // Intentionally not translated
 
 public:
@@ -79,7 +79,7 @@ public:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_I2C_RELEASE_FORCE_RESET : public WI_LABEL_t {
+class MI_I2C_RELEASE_FORCE_RESET : public IWindowMenuItem {
     constexpr static const char *label = "I2C release force reset"; // Intentionally not translated
 
 public:
@@ -88,7 +88,7 @@ public:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_DISPI2C_RST : public WI_LABEL_t {
+class MI_DISPI2C_RST : public IWindowMenuItem {
     static constexpr const char *const label = "Reset I2C"; // Intentionally not translated
 
 public:

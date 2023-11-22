@@ -69,7 +69,7 @@ void MI_METRICS_PORT::ChangePort(uint16_t port) {
 
 // Info message
 MI_METRICS_INFO_LABEL::MI_METRICS_INFO_LABEL()
-    : WI_LABEL_t(_(label), &img::question_16x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(_(label), &img::question_16x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 Response MetricsInfoMsgbox(string_view_utf8 txt) {
     static constexpr Response rsp { Response::Ok };
@@ -123,7 +123,7 @@ void MI_METRICS_INIT::OnChange([[maybe_unused]] size_t old_index) {
 
 // Stored configuration splitter
 MI_METRICS_CONF_LABEL::MI_METRICS_CONF_LABEL()
-    : WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_METRICS_CONF_LABEL::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);
@@ -131,7 +131,7 @@ void MI_METRICS_CONF_LABEL::click(IWindowMenu & /*window_menu*/) {
 
 // Current configuration splitter
 MI_METRICS_CURRENT_LABEL::MI_METRICS_CURRENT_LABEL()
-    : WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_METRICS_CURRENT_LABEL::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);

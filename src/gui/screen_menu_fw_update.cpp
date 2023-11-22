@@ -38,7 +38,7 @@ static constexpr const char *en_txt_helper = N_("Select when you want to automat
 static const constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string
 
 MI_UPDATE_LABEL::MI_UPDATE_LABEL()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 size_t MI_UPDATE::init_index() const {
     return size_t(data_exchange::is_fw_update_on_restart()

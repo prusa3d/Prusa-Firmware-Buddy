@@ -4,7 +4,7 @@
 #include "config_features.h"
 #include "screen_menu.hpp"
 
-class MI_TRIGGER_BSOD : public WI_LABEL_t {
+class MI_TRIGGER_BSOD : public IWindowMenuItem {
 public:
     MI_TRIGGER_BSOD();
 
@@ -12,7 +12,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_STACK_OVERFLOW : public WI_LABEL_t {
+class MI_STACK_OVERFLOW : public IWindowMenuItem {
 public:
     MI_STACK_OVERFLOW();
 
@@ -20,7 +20,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_DIV0 : public WI_LABEL_t {
+class MI_DIV0 : public IWindowMenuItem {
 public:
     MI_DIV0();
 
@@ -28,7 +28,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_WATCHDOG : public WI_LABEL_t {
+class MI_WATCHDOG : public IWindowMenuItem {
 public:
     MI_WATCHDOG();
 
@@ -36,7 +36,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_PREHEAT_ERROR : public WI_LABEL_t {
+class MI_PREHEAT_ERROR : public IWindowMenuItem {
 public:
     MI_PREHEAT_ERROR();
 
@@ -44,7 +44,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_TRIGGER_REDSCREEN : public WI_LABEL_t {
+class MI_TRIGGER_REDSCREEN : public IWindowMenuItem {
 public:
     MI_TRIGGER_REDSCREEN();
 

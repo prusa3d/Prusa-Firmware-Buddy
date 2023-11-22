@@ -40,7 +40,7 @@ public:
     void Reset();
 };
 
-class MI_SHEET_SELECT : public WI_LABEL_t {
+class MI_SHEET_SELECT : public IWindowMenuItem {
     static constexpr const char *const label = N_("Select");
 
 public:
@@ -50,7 +50,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SHEET_CALIBRATE : public WI_LABEL_t {
+class MI_SHEET_CALIBRATE : public IWindowMenuItem {
     static constexpr const char *const label = N_("First Layer Calibration");
 
 public:
@@ -60,7 +60,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SHEET_RENAME : public WI_LABEL_t {
+class MI_SHEET_RENAME : public IWindowMenuItem {
     static constexpr const char *const label = N_("Rename");
 
 public:
@@ -70,7 +70,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SHEET_RESET : public WI_LABEL_t {
+class MI_SHEET_RESET : public IWindowMenuItem {
     static constexpr const char *const label = N_("Reset");
 
 public:
@@ -107,7 +107,7 @@ public:
     }
 };
 
-struct IProfileRecord : public WI_LABEL_t {
+struct IProfileRecord : public IWindowMenuItem {
     void name_sheet(uint32_t value, char *buff);
     void click_index(uint32_t index);
     IProfileRecord();

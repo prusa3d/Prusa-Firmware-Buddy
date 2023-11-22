@@ -11,7 +11,7 @@
 #include "img_resources.hpp"
 
 MI_LangBase::MI_LangBase(const char *label, const img::Resource *icon, is_hidden_t hidden)
-    : WI_LABEL_t(_(label), icon, is_enabled_t::yes, hidden) {
+    : IWindowMenuItem(_(label), icon, is_enabled_t::yes, hidden) {
     setLabelFont(GuiDefaults::FontMenuSpecial);
 }
 

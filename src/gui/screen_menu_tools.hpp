@@ -78,7 +78,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_PICKUP_TOOL : public WI_LABEL_t {
+class MI_PICKUP_TOOL : public IWindowMenuItem {
     static constexpr const char *label = N_("Pickup Tool");
 
 public:
@@ -87,7 +87,7 @@ public:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_DOCK_CALIBRATE : public WI_LABEL_t {
+class MI_DOCK_CALIBRATE : public IWindowMenuItem {
     static constexpr const char *label = N_("Calibrate Dock Position");
 
 public:
@@ -96,7 +96,7 @@ public:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_FSENSORS_CALIBRATE : public WI_LABEL_t {
+class MI_FSENSORS_CALIBRATE : public IWindowMenuItem {
     static constexpr const char *label = N_("Calibrate Filament Sensor");
 
 public:
@@ -116,7 +116,7 @@ public:
     constexpr static const char *labels[] = { N_("TOOL 1"), N_("TOOL 2"), N_("TOOL 3"), N_("TOOL 4"), N_("TOOL 5") };
 };
 
-class I_MI_TOOL : public WI_LABEL_t {
+class I_MI_TOOL : public IWindowMenuItem {
 
 public:
     I_MI_TOOL(const char *const label, int index);
@@ -157,7 +157,7 @@ protected:
     }
 };
 
-class MI_PARK_TOOL : public WI_LABEL_t {
+class MI_PARK_TOOL : public IWindowMenuItem {
     static constexpr const char *label = N_("Park Current Tool");
 
 public:

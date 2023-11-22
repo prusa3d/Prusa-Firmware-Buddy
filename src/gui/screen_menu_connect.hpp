@@ -32,7 +32,7 @@ public:
     MI_CONNECT_ERROR();
 };
 
-class MI_CONNECT_LOAD_SETTINGS : public WI_LABEL_t {
+class MI_CONNECT_LOAD_SETTINGS : public IWindowMenuItem {
     static constexpr const char *const label = N_("Load Settings");
 
 public:
@@ -42,7 +42,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_CONNECT_REGISTER : public WI_LABEL_t {
+class MI_CONNECT_REGISTER : public IWindowMenuItem {
     static constexpr const char *const label = N_("Add printer to Connect");
 
 public:

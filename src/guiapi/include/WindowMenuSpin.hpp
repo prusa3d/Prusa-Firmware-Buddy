@@ -7,14 +7,14 @@
 
 #pragma once
 
-#include "WindowMenuLabel.hpp"
+#include "i_window_menu_item.hpp"
 #include "menu_spin_config_type.hpp" //SpinConfig_t
 
 #include "feature/tmc_util.h"
 
 /*****************************************************************************/
 // IWiSpin
-class IWiSpin : public AddSuper<WI_LABEL_t> {
+class IWiSpin : public AddSuper<IWindowMenuItem> {
     SpinType value;
 
 protected:

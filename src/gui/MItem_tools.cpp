@@ -122,7 +122,7 @@ void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
 /*****************************************************************************/
 // MI_LIVE_ADJUST_Z
 MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes,
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes,
 #if PRINTER_IS_PRUSA_MINI
         is_hidden_t::no
 #else
@@ -138,7 +138,7 @@ void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_AUTO_HOME
 MI_AUTO_HOME::MI_AUTO_HOME()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
@@ -153,7 +153,7 @@ void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_MESH_BED
 MI_MESH_BED::MI_MESH_BED()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
@@ -187,7 +187,7 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
 // MI_CALIB_Z
 
 MI_CALIB_Z::MI_CALIB_Z()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_CALIB_Z::click(IWindowMenu & /*window_menu*/) {
@@ -197,7 +197,7 @@ void MI_CALIB_Z::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_DISABLE_STEP
 MI_DISABLE_STEP::MI_DISABLE_STEP()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
@@ -234,7 +234,7 @@ void do_factory_reset(bool wipe_fw) {
 } // anonymous namespace
 
 MI_FACTORY_SOFT_RESET::MI_FACTORY_SOFT_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FACTORY_SOFT_RESET::click(IWindowMenu & /*window_menu*/) {
@@ -244,7 +244,7 @@ void MI_FACTORY_SOFT_RESET::click(IWindowMenu & /*window_menu*/) {
 }
 
 MI_FACTORY_HARD_RESET::MI_FACTORY_HARD_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
@@ -265,7 +265,7 @@ void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
 // MI_ENTER_DFU
 #ifdef BUDDY_ENABLE_DFU_ENTRY
 MI_ENTER_DFU::MI_ENTER_DFU()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_ENTER_DFU::click(IWindowMenu &) {
@@ -276,7 +276,7 @@ void MI_ENTER_DFU::click(IWindowMenu &) {
 /*****************************************************************************/
 // MI_SAVE_DUMP
 MI_SAVE_DUMP::MI_SAVE_DUMP()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
@@ -293,7 +293,7 @@ void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_XFLASH_RESET
 MI_XFLASH_RESET::MI_XFLASH_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
@@ -303,7 +303,7 @@ void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_EE_SAVEXML
 MI_EE_SAVEXML::MI_EE_SAVEXML()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
@@ -313,7 +313,7 @@ void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_EE_CLEAR
 MI_EE_CLEAR::MI_EE_CLEAR()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_EE_CLEAR::click(IWindowMenu & /*window_menu*/) {
@@ -326,7 +326,7 @@ void MI_EE_CLEAR::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_M600
 MI_M600::MI_M600()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_M600::click(IWindowMenu & /*window_menu*/) {
     marlin_client::gcode_push_front("M600");
@@ -757,7 +757,7 @@ MI_INFO_MCU_TEMP::MI_INFO_MCU_TEMP()
 }
 
 MI_FOOTER_RESET::MI_FOOTER_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -784,7 +784,7 @@ void MI_HEATUP_BED::OnChange(size_t old_index) {
 }
 
 MI_SET_READY::MI_SET_READY()
-    : WI_LABEL_t(_(label), &img::print_16x16, connect_client::MarlinPrinter::is_printer_ready() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), &img::print_16x16, connect_client::MarlinPrinter::is_printer_ready() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -952,7 +952,7 @@ void MI_IS_Y_COMPENSATION::OnChange(size_t) {
 }
 
 MI_IS_SET::MI_IS_SET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_IS_SET::click(IWindowMenu &) {
@@ -961,7 +961,7 @@ void MI_IS_SET::click(IWindowMenu &) {
 }
 
 MI_IS_CALIB::MI_IS_CALIB()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
 }
 
 void MI_IS_CALIB::click([[maybe_unused]] IWindowMenu &window_menu) {

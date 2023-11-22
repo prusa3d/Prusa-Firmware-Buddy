@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "WindowMenuLabel.hpp"
+#include "i_window_menu_item.hpp"
 #include "GuiDefaults.hpp"
 
 /*****************************************************************************/
@@ -19,7 +19,7 @@
  *  For now, if string is longer than ..MAX_LEN, it will print only ..MAX_LEN - 1 (null-terminated) chars.
  */
 
-class IWiInfo : public AddSuper<WI_LABEL_t> {
+class IWiInfo : public AddSuper<IWindowMenuItem> {
     static constexpr font_t *&InfoFont = GuiDefaults::FontMenuSpecial;
     static constexpr uint16_t icon_width = 16;
 

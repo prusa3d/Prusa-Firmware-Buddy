@@ -10,7 +10,7 @@
 
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate
-class MI_PL_REGENERATE_PASSWORD : public WI_LABEL_t {
+class MI_PL_REGENERATE_PASSWORD : public IWindowMenuItem {
     constexpr static const char *const label = N_("Generate Password");
 
 public:
@@ -38,7 +38,7 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_PL_PASSWORD_LABEL : public WI_LABEL_t {
+class MI_PL_PASSWORD_LABEL : public IWindowMenuItem {
     constexpr static const char *const label = N_("Password");
 
 public:
@@ -48,7 +48,7 @@ protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
 };
 
-class MI_PL_PASSWORD_VALUE : public WI_LABEL_t {
+class MI_PL_PASSWORD_VALUE : public IWindowMenuItem {
     static constexpr size_t PASSWD_STR_LENGTH = config_store_ns::pl_password_size + 1; // don't need space for '%s' and '\0' since pl_password_size contains '\0' too
 
 #ifdef USE_ST7789
@@ -68,7 +68,7 @@ public:
     MI_PL_PASSWORD_VALUE();
 };
 
-class MI_PL_USER : public WI_LABEL_t {
+class MI_PL_USER : public IWindowMenuItem {
     constexpr static const char *const label = N_("User");
 
 protected:

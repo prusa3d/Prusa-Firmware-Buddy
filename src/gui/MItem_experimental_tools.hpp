@@ -25,7 +25,7 @@ public:
     void Store();
 };
 
-class MI_RESET_Z_AXIS_LEN : public WI_LABEL_t {
+class MI_RESET_Z_AXIS_LEN : public IWindowMenuItem {
     static constexpr const char *const label = "Reset Z-length";
 
 public:
@@ -67,7 +67,7 @@ public:
     void Store();
 };
 
-class MI_RESET_STEPS_PER_UNIT : public WI_LABEL_t {
+class MI_RESET_STEPS_PER_UNIT : public IWindowMenuItem {
     static constexpr const char *const label = "Reset steps per unit";
 
 public:
@@ -117,7 +117,7 @@ public:
     void Store();
 };
 
-class MI_RESET_DIRECTION : public WI_LABEL_t {
+class MI_RESET_DIRECTION : public IWindowMenuItem {
     static constexpr const char *const label = "Reset directions";
 
 public:
@@ -159,7 +159,7 @@ public:
     void Store();
 };
 
-class MI_RESET_MICROSTEPS : public WI_LABEL_t {
+class MI_RESET_MICROSTEPS : public IWindowMenuItem {
     static constexpr const char *const label = "Reset microsteps";
 
 public:
@@ -201,7 +201,7 @@ public:
     void Store();
 };
 
-class MI_RESET_CURRENTS : public WI_LABEL_t {
+class MI_RESET_CURRENTS : public IWindowMenuItem {
     static constexpr const char *const label = "Reset currents";
 
 public:
@@ -211,7 +211,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SAVE_AND_RETURN : public WI_LABEL_t {
+class MI_SAVE_AND_RETURN : public IWindowMenuItem {
     static constexpr const char *const label = "Save and return";
 
 public:

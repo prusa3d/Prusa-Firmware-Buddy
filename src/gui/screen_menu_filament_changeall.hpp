@@ -70,7 +70,7 @@ private:
 /**
  * @brief Do the changes.
  */
-class MI_FilamentApplyChanges : public WI_LABEL_t {
+class MI_FilamentApplyChanges : public IWindowMenuItem {
 public:
     static constexpr const char *label = N_("Carry Out the Changes");
     MI_FilamentApplyChanges();
@@ -118,7 +118,7 @@ namespace detail {
  * @brief Dialog enabled MI_RETURN
  *
  */
-class DMI_RETURN : public detail::DialogEnabledMI, public WI_LABEL_t {
+class DMI_RETURN : public detail::DialogEnabledMI, public IWindowMenuItem {
 public:
     static constexpr const char *label = MI_RETURN::label;
     DMI_RETURN();
@@ -127,7 +127,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class DMI_FilamentApplyChanges : public detail::DialogEnabledMI, public WI_LABEL_t {
+class DMI_FilamentApplyChanges : public detail::DialogEnabledMI, public IWindowMenuItem {
 public:
     static constexpr const char *label = MI_FilamentApplyChanges::label;
     DMI_FilamentApplyChanges();

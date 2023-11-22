@@ -33,7 +33,7 @@ public:
 
 #else
 
-class MI_UPDATE_LABEL : public WI_LABEL_t {
+class MI_UPDATE_LABEL : public IWindowMenuItem {
     static constexpr const char *const label = N_("FW Update");
 
 public:

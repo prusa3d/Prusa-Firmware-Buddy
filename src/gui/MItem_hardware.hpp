@@ -91,7 +91,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_HARDWARE_G_CODE_CHECKS : public WI_LABEL_t {
+class MI_HARDWARE_G_CODE_CHECKS : public IWindowMenuItem {
     static constexpr const char *const label = N_("G-Code Checks");
 
 public:

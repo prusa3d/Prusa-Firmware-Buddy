@@ -18,7 +18,7 @@
     #include "MItem_mmu.hpp"
 #endif
 
-class MI_HELP_FW_UPDATE : public WI_LABEL_t {
+class MI_HELP_FW_UPDATE : public IWindowMenuItem {
     static constexpr const char *const label = N_("FW update");
 
 public:
