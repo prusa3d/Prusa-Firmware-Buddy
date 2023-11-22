@@ -327,6 +327,12 @@ LoopResult CSelftestPart_Axis::stateMoveFinishCycle() {
     check_coils();
 
     LoopResult result = wait(getDir());
+    if (result == LoopResult::Fail) {
+        // The test failed - this also leaves the printbed parked over
+        // the screen. We need to move the heatbed back a little so the
+        // screen is visible. Then we can fail the test.
+        return LoopResult::RunNextAndFailAfter;
+    }
     if (result != LoopResult::RunNext) {
         return result;
     }

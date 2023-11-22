@@ -62,6 +62,7 @@ private:
     int loop_marks[LoopMarkCount] = {}; // used in cyclic states
     Response button_pressed;
     uint32_t time_to_show_result = 2048; // ms
+    bool defer_fail = false;
 
     // multiple selftests can run at the same time,
     // if so they must be compatible to run together (use same fsm)

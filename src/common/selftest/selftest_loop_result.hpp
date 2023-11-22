@@ -13,6 +13,7 @@ static constexpr size_t LoopMarkCount = 8;
 
 enum class LoopResult : uint32_t {
     RunNext,
+    RunNextAndFailAfter,
     RunCurrent,
     Abort,
     Fail,
@@ -35,5 +36,14 @@ enum class LoopResult : uint32_t {
     GoToMark6,
     GoToMark7
 };
+
+/**
+ * Check if the loop result state is "now" failing.
+ *
+ * It means that the state is not going to fail now.
+ */
+constexpr bool is_now_failing_result(LoopResult result) {
+    return result == LoopResult::Abort || result == LoopResult::Fail;
+}
 
 }; // namespace selftest
