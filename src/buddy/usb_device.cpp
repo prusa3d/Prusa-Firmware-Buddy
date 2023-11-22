@@ -35,6 +35,7 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 #define USBD_PRODUCT_STRING_FS      ("Original Prusa " PRINTER_MODEL)
 #define USBD_SERIALNUMBER_STRING_FS "00000000001A"
 #define USBD_PRODUCT_STRING_MK39    "Original Prusa MK3.9"
+#define USBD_VBUS_CHECK_INTERVAL_MS 1000
 
 #define USB_SIZ_BOS_DESC 0x0C
 
@@ -171,7 +172,7 @@ static void usb_device_task_run(const void *) {
 
     while (true) {
 #ifdef FUSB302B_INTERPOSER
-        tud_task_ext(1000, false);
+        tud_task_ext(USBD_VBUS_CHECK_INTERVAL_MS, false);
 
         // periodically check for VBUS disconnection
         check_usb_connection();
