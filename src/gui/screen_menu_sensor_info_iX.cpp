@@ -27,7 +27,6 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
 
         SensorData::Value res = buffer.GetValue(SensorData::Sensor::bedTemp);
         Item<MI_INFO_BED_TEMP>().UpdateValue(res);
-        Item<MI_INFO_MCU_TEMP>().UpdateValue(buffer.GetValue(SensorData::Sensor::MCUTemp));
         Item<MI_INFO_HEATBREAK_TEMP>().UpdateValue(marlin_vars()->hotend(0).temp_heatbreak.get());
         Item<MI_INFO_NOZZLE_TEMP>().UpdateValue(marlin_vars()->hotend(0).temp_nozzle.get());
 

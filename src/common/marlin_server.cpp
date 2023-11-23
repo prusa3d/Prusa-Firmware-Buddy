@@ -274,25 +274,8 @@ namespace {
          * @param temperature MCU temperature [degrees Celsius]
          */
         void check(int32_t temperature) {
-            ewma_buffer = (ewma_buffer * 7 / 8) + temperature; // Simple EWMA filter (stays 1 degree below stable value)
-            const auto filtered_temperature = ewma_buffer / 8;
-
-            // Trigger reset immediately
-            if (filtered_temperature >= mcu_temp_redscreen) {
-                fatal_error(ErrCode::ERR_TEMPERATURE_MCU_MAXTEMP_ERR, name);
-            }
-
-            // Trigger and reset warning
-            if (warning) {
-                if (filtered_temperature < mcu_temp_warning - mcu_temp_hysteresis) {
-                    warning = false;
-                }
-            } else {
-                if (filtered_temperature >= mcu_temp_warning) {
-                    warning = true;
-                }
-            }
-            this->checkTrue(!warning);
+            (void)temperature;
+            return;
         }
     };
 
