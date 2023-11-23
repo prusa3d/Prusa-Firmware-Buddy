@@ -29,6 +29,7 @@
 #include "timing.h"
 #include "selftest_result_type.hpp"
 #include <config_store/store_instance.hpp>
+#include <printers.h>
 
 using namespace selftest;
 
@@ -415,7 +416,10 @@ void CSelftest::phaseSelftestStart() {
     if (m_Mask & stmFans) {
         m_result.tools[0].printFan = TestResult_Unknown;
         m_result.tools[0].heatBreakFan = TestResult_Unknown;
+
+#if not PRINTER_IS_PRUSA_MINI
         m_result.tools[0].fansSwitched = TestResult_Unknown;
+#endif
     }
     if (m_Mask & stmXAxis) {
         m_result.xaxis = TestResult_Unknown;

@@ -1,4 +1,5 @@
 #include "selftest_result_type.hpp"
+#include <printers.h>
 
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
@@ -22,9 +23,11 @@ bool passed_for_all_that_always_need_to_pass(const SelftestResult &results) {
         if (results.tools[e].heatBreakFan != TestResult_Passed) {
             return false;
         }
+#if not PRINTER_IS_PRUSA_MINI
         if (results.tools[e].fansSwitched != TestResult_Passed) {
             return false;
         }
+#endif
         if (results.tools[e].nozzle != TestResult_Passed) {
             return false;
         }
@@ -93,9 +96,12 @@ bool SelftestResult_Failed(const SelftestResult &results) {
         if (results.tools[e].heatBreakFan == TestResult_Failed) {
             return true;
         }
+
+#if not PRINTER_IS_PRUSA_MINI
         if (results.tools[e].fansSwitched == TestResult_Failed) {
             return true;
         }
+#endif
         if (results.tools[e].nozzle == TestResult_Failed) {
             return true;
         }

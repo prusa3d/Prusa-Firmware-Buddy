@@ -11,6 +11,7 @@
 #include "window_icon.hpp"
 #include "window_wizard_progress.hpp"
 #include "status_footer.hpp"
+#include "printers.h"
 
 class SelftestFrameFans : public AddSuperWindow<SelftestFrameNamedWithRadio> {
     FooterLine footer;
@@ -23,12 +24,16 @@ class SelftestFrameFans : public AddSuperWindow<SelftestFrameNamedWithRadio> {
     window_icon_t icon_print_fan;
     window_text_t text_print_fan;
 
+#if not PRINTER_IS_PRUSA_MINI
     window_text_t text_fans_switched;
+#endif
 
     struct fan_state_t {
         WindowIcon_OkNg icon_heatbreak_fan_state;
         WindowIcon_OkNg icon_print_fan_state;
+#if not PRINTER_IS_PRUSA_MINI
         WindowIcon_OkNg icon_fans_switched_state;
+#endif
     };
     std::array<fan_state_t, HOTENDS> fan_states;
 
