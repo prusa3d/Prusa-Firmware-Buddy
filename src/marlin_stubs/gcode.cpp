@@ -34,9 +34,6 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 0:
             PrusaGcodeSuite::M0();
             break;
-        case 50:
-            PrusaGcodeSuite::M50(); // selftest
-            break;
         case 123:
             PrusaGcodeSuite::M123();
             break;
@@ -223,29 +220,6 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
 
     return processed;
 }
-
-// weak g-codes to prevent ugly preprocessor
-void __attribute__((weak)) PrusaGcodeSuite::M0() { log_error(PRUSA_GCODE, "M0 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M50() { log_error(PRUSA_GCODE, "M50 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M704() { log_error(PRUSA_GCODE, "M704 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1704() { log_error(PRUSA_GCODE, "M1704 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M705() { log_error(PRUSA_GCODE, "M705 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M706() { log_error(PRUSA_GCODE, "M706 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M707() { log_error(PRUSA_GCODE, "M707 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M708() { log_error(PRUSA_GCODE, "M708 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M709() { log_error(PRUSA_GCODE, "M709 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M930() { log_error(PRUSA_GCODE, "M930 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M931() { log_error(PRUSA_GCODE, "M931 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M932() { log_error(PRUSA_GCODE, "M932 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M999() { log_error(PRUSA_GCODE, "M999 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1587() { log_error(PRUSA_GCODE, "M1587 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1600() { log_error(PRUSA_GCODE, "M1600 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1601() { log_error(PRUSA_GCODE, "M1601 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1700() { log_error(PRUSA_GCODE, "M1700 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1701() { log_error(PRUSA_GCODE, "M1701 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::G64() { log_error(PRUSA_GCODE, "G64 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::G162() { log_error(PRUSA_GCODE, "G162 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::G163() { log_error(PRUSA_GCODE, "G163 unsupported"); }
 
 static void record_pre_gcode_metrics() {
     METRIC_DEF(gcode, "gcode", METRIC_VALUE_STRING, 0, METRIC_HANDLER_DISABLE_ALL);

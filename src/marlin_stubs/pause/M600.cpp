@@ -24,6 +24,9 @@
 #include "module/motion.h"
 #include "module/tool_change.h"
 #include "../PrusaGcodeSuite.hpp"
+#include <logging/log.h>
+
+LOG_COMPONENT_REF(PRUSA_GCODE);
 
 // clang-format off
 #if (!ENABLED(ADVANCED_PAUSE_FEATURE)) || \
@@ -228,5 +231,9 @@ void PrusaGcodeSuite::M1601() {
         pause::Settings::CalledFrom::FilamentStuck);
 }
 #else
-// otherwise the default weak implementation of M1601 is used, see gcode.cpp
+
+void PrusaGcodeSuite::M1601() {
+    log_error(PRUSA_GCODE, "M1601 unsupported");
+}
+
 #endif
