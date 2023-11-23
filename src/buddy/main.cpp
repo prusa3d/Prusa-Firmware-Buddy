@@ -54,6 +54,7 @@
 #include "bootloader/bootloader.hpp"
 #include "gui_bootstrap_screen.hpp"
 #include "resources/revision.hpp"
+#include "filesystem_semihosting.h"
 
 #if HAS_PUPPIES()
     #include "puppies/PuppyBus.hpp"
@@ -347,6 +348,7 @@ extern "C" void main_cpp(void) {
 #if ENABLED(RESOURCES())
     resources_update();
 #endif
+    filesystem_semihosting_deinit();
 
     static metric_handler_t *handlers[] = {
         &metric_handler_syslog,

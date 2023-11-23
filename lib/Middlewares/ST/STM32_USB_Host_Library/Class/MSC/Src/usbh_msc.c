@@ -40,7 +40,7 @@ EndBSPDependencies */
 #include "usbh_msc.h"
 #include "usbh_msc_bot.h"
 #include "usbh_msc_scsi.h"
-
+#include "filesystem_semihosting.h"
 
 /** @addtogroup USBH_LIB
   * @{
@@ -781,7 +781,6 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
                                  uint8_t *pbuf,
                                  uint32_t length)
 {
-  uint32_t timeout;
   MSC_HandleTypeDef *MSC_Handle = (MSC_HandleTypeDef *) phost->pActiveClass->pData;
 
   if ((phost->device.is_connected == 0U) ||
@@ -797,7 +796,8 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
 
   (void)USBH_MSC_SCSI_Read(phost, lun, address, pbuf, length);
 
-  timeout = ticks_ms();
+  uint32_t timeout = ticks_ms();
+  uint32_t sof_counter = phost->Timer;
 
   while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)
   {
@@ -807,7 +807,14 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
       ulTaskNotifyTake(pdFALSE, 500 / portTICK_PERIOD_MS);
     }
 
-    if (((ticks_ms() - timeout) > (USBH_MSC_IO_TIMEOUT * length)) || (phost->device.is_connected == 0U))
+    uint32_t elapsed_ticks = ticks_ms() - timeout;
+    uint32_t elapsed_sof = phost->Timer - sof_counter;
+    // fail if the request takes longer than USBH_MSC_IO_TIMEOUT,
+    // or immediately if SOF generation stops (this is behavior observed by logic analyzers directly on the bus,
+    // it is an undocumented error condition that will be investigated further)
+    if (phost->device.is_connected == 0U ||
+        elapsed_ticks > (USBH_MSC_IO_TIMEOUT * length) ||
+        (!filesystem_semihosting_active() && elapsed_sof + 3 < elapsed_ticks))
     {
       MSC_Handle->state = MSC_IDLE;
       return USBH_FAIL;
@@ -834,7 +841,6 @@ USBH_StatusTypeDef USBH_MSC_Write(USBH_HandleTypeDef *phost,
                                   uint8_t *pbuf,
                                   uint32_t length)
 {
-  uint32_t timeout;
   MSC_HandleTypeDef *MSC_Handle = (MSC_HandleTypeDef *) phost->pActiveClass->pData;
 
   if ((phost->device.is_connected == 0U) ||
@@ -850,7 +856,8 @@ USBH_StatusTypeDef USBH_MSC_Write(USBH_HandleTypeDef *phost,
 
   (void)USBH_MSC_SCSI_Write(phost, lun, address, pbuf, length);
 
-  timeout = phost->Timer;
+  uint32_t timeout = ticks_ms();
+  uint32_t sof_counter = phost->Timer;
   while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)
   {
     if (USBH_LL_GetURBState(phost, MSC_Handle->OutPipe) != USBH_URB_DONE ||
@@ -859,7 +866,14 @@ USBH_StatusTypeDef USBH_MSC_Write(USBH_HandleTypeDef *phost,
       ulTaskNotifyTake(pdFALSE, 500 / portTICK_PERIOD_MS);
     }
 
-    if (((phost->Timer - timeout) > (USBH_MSC_IO_TIMEOUT * length)) || (phost->device.is_connected == 0U))
+    uint32_t elapsed_ticks = ticks_ms() - timeout;
+    uint32_t elapsed_sof = phost->Timer - sof_counter;
+    // fail if the request takes longer than USBH_MSC_IO_TIMEOUT,
+    // or immediately if SOF generation stops (this is behavior observed by logic analyzers directly on the bus,
+    // it is an undocumented error condition that will be investigated further)
+    if (phost->device.is_connected == 0U ||
+        elapsed_ticks > (USBH_MSC_IO_TIMEOUT * length) ||
+        (!filesystem_semihosting_active() && elapsed_sof + 3 < elapsed_ticks))
     {
       MSC_Handle->state = MSC_IDLE;
       return USBH_FAIL;
