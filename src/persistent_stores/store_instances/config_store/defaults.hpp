@@ -139,7 +139,7 @@ namespace defaults {
     inline constexpr uint16_t syslog_port { 13514 };
 
     inline constexpr bool crash_enabled {
-#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5)
+#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL)
         false
 #else
         true
