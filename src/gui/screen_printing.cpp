@@ -634,6 +634,9 @@ void screen_printing_data_t::set_pause_icon_and_label() {
     case printing_state_t::STOPPED:
         header.SetText(_("STOPPED"));
         break;
+    case printing_state_t::PRINTED:
+        header.SetText(_("FINISHED"));
+        break;
     default: // else printing
         header.SetText(_(caption));
         break;
