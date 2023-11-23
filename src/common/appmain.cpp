@@ -122,15 +122,17 @@ void app_setup_marlin_logging() {
 }
 
 static void wait_for_serial() {
-    // wait for usb thread to be ready, then continue waiting only if something is attached
+    // wait for usb thread to be ready, then continue waiting only if something was seen
     TaskDeps::wait(TaskDeps::Tasks::usb_device_start);
-    if (!usb_device_attached()) {
+    if (!usb_device_seen()) {
         return;
     }
 
-    log_info(Buddy, "device connected: waiting for serial");
+    // If a device was seen, keep trying to connect irregardless of the current connection state, as
+    // a re-negotiation could temporarily break out of this loop a cause messages to be lost
+    log_info(Buddy, "device seen: waiting for serial");
     uint32_t start_ts = ticks_ms();
-    while (usb_device_attached() && ticks_diff(ticks_ms(), start_ts) < 3000) {
+    while (ticks_diff(ticks_ms(), start_ts) < 3000) {
         if (tud_cdc_n_connected(0)) {
             log_info(Buddy, "serial successfully attached");
             break;

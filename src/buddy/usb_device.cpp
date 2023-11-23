@@ -10,6 +10,7 @@
 #include <config_store/store_instance.hpp>
 #include <tasks.hpp>
 #include <timing.h>
+#include <atomic>
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
@@ -48,12 +49,8 @@ static serial_nr_t serial_nr;
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     #define FUSB302B_INTERPOSER
-#endif
-
-#ifdef FUSB302B_INTERPOSER
     #include "FUSB302B.hpp"
     #include "hwio_pindef.h"
-    #include <atomic>
 
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
@@ -61,8 +58,35 @@ static serial_nr_t serial_nr;
     #pragma GCC diagnostic pop
 
 static std::atomic<bool> usb_vbus_state = false;
+#endif
+
+bool usb_device_attached() {
+#ifdef FUSB302B_INTERPOSER
+    return usb_vbus_state.load();
+#else
+    return tud_connected() && !tud_suspended();
+#endif
+}
+
+static std::atomic<bool> usb_device_seen_v = false;
+
+bool usb_device_seen() {
+#ifdef FUSB302B_INTERPOSER
+    // we can't query FUSB302B from random threads, rely on the USB thread for updates
+    return usb_device_seen_v.load();
+#else
+    // check and update with the current connection status
+    usb_device_seen_v.store(usb_device_seen_v.load() || usb_device_attached());
+    return usb_device_seen_v.load();
+#endif
+}
+
+void usb_device_clear() {
+    usb_device_seen_v.store(false);
+}
 
 static void check_usb_connection() {
+#ifdef FUSB302B_INTERPOSER
     if (buddy::hw::fsUSBCInt.read() == buddy::hw::Pin::State::low) {
         buddy::hw::FUSB302B::ClearVBUSIntFlag();
 
@@ -76,16 +100,17 @@ static void check_usb_connection() {
                 tud_disconnect();
             }
         } else {
+            usb_device_seen_v.store(true);
             if (!dcd_connected(TUD_OPT_RHPORT)) {
                 // VBUS on: trigger connect
                 tud_connect();
             }
         }
     }
-}
 #else
-static bool usb_device_seen = false;
+    usb_device_seen_v.store(usb_device_seen_v.load() || usb_device_attached());
 #endif
+}
 
 osThreadCCMDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
@@ -118,18 +143,6 @@ static tusb_desc_device_t desc_device = {
 
     .bNumConfigurations = 0x01
 };
-
-bool usb_device_attached() {
-#ifdef FUSB302B_INTERPOSER
-    return usb_vbus_state.load();
-#else
-    // only check for suspend after being connected at least once:
-    // - tud_connected() can return false _during_ bus reset, stopping prematurely
-    // - tud_suspended() is false when resetting or before initialization
-    usb_device_seen |= tud_connected();
-    return usb_device_seen && !tud_suspended();
-#endif
-}
 
 static void usb_device_task_run(const void *) {
 #ifdef FUSB302B_INTERPOSER
@@ -170,29 +183,21 @@ static void usb_device_task_run(const void *) {
             break;
         }
     }
-#ifndef FUSB302B_INTERPOSER
-    if (tud_speed_get() != TUSB_SPEED_INVALID) {
-        // bus RESET was seen without FUSB302B, meaning the link just came up on it's own:
-        // initialize usb_device_seen to approximate the VBUS meaning of usb_device_attached()
-        usb_device_seen = true;
-    }
-#endif
 
     // initialize the connection state
 #ifdef FUSB302B_INTERPOSER
     usb_vbus_state.store(buddy::hw::FUSB302B::ReadVBUSState());
+    usb_device_seen_v.store(usb_vbus_state.load());
+#else
+    // If bus RESET was seen without FUSB302B the link just came up on it's own
+    usb_device_seen_v.store(tud_speed_get() != TUSB_SPEED_INVALID);
 #endif
     TaskDeps::provide(TaskDeps::Dependency::usb_device_ready);
 
+    // periodically check for disconnection
     while (true) {
-#ifdef FUSB302B_INTERPOSER
         tud_task_ext(USBD_VBUS_CHECK_INTERVAL_MS, false);
-
-        // periodically check for VBUS disconnection
         check_usb_connection();
-#else
-        tud_task();
-#endif
     }
 }
 
