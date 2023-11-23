@@ -97,9 +97,9 @@ inline constexpr auto disabled_items { std::to_array<Item>({
         Item::input_shaper_x,
         Item::input_shaper_y,
         Item::f_s_value,
+#endif
+#if not HAS_SIDE_FSENSOR()
         Item::f_sensor_side,
-#elif not HAS_SIDE_FSENSOR()
-    Item::f_sensor_side,
 #endif
 }) };
 
