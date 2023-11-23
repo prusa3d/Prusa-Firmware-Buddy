@@ -64,7 +64,12 @@ bool selftest_warning_selftest_finished() {
     }
 
     HOTEND_LOOP()
-    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fansSwitched)) {
+    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle
+    #if not PRINTER_IS_PRUSA_MINI
+            ,
+            sr.tools[e].fansSwitched
+    #endif
+            )) {
         return false;
     }
 

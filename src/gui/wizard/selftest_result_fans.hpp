@@ -9,11 +9,14 @@
 
 #include "selftest_group.hpp"
 #include "selftest_result_type.hpp"
+#include <printers.h>
 
 class ResultFans : public SelfTestGroup {
     SelfTestViewTextWithIconAndResult heatbreak;
     SelfTestViewTextWithIconAndResult print;
+#if not PRINTER_IS_PRUSA_MINI
     SelfTestViewTextWithIconAndResult fans_switched;
+#endif
 
 public:
     ResultFans();

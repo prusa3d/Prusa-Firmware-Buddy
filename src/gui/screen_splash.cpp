@@ -96,7 +96,11 @@ screen_splash_data_t::screen_splash_data_t()
                     continue;
                 }
         #endif
-                if (any_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].fansSwitched, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].dockoffset, sr.tools[e].tooloffset)) {
+                if (any_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan,
+        #if not PRINTER_IS_PRUSA_MINI
+                        sr.tools[e].fansSwitched,
+        #endif
+                        sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].dockoffset, sr.tools[e].tooloffset)) {
                     return false;
                 }
             }

@@ -36,7 +36,10 @@ SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fs
         HOTEND_LOOP() {
             eeres.tools[e].printFan = get_state(e);
             eeres.tools[e].heatBreakFan = get_state(e + 1);
+
+#if not PRINTER_IS_PRUSA_MINI
             eeres.tools[e].fansSwitched = get_state(e + 2);
+#endif
             eeres.tools[e].nozzle = get_state(e + 3);
             eeres.tools[e].fsensor = get_state(e + 4);
             eeres.tools[e].loadcell = get_state(e + 5);
