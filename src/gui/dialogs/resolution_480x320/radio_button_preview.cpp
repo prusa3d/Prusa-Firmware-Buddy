@@ -7,6 +7,8 @@
 #include "window_text.hpp"
 #include "i18n.h"
 #include "img_resources.hpp"
+#include <client_response.hpp>
+#include <tools_mapping.hpp>
 
 const char *label_texts[] = {
     N_("Print"),
@@ -51,6 +53,12 @@ void RadioButtonPreview::unconditionalDraw() {
         uint8_t res_offset = GetBtnIndex() == i ? button_cnt : 0;
         window_icon_t icon(nullptr, getVerticalIconRect(i), icons[res_offset + i]);
         window_text_t label(nullptr, getVerticalLabelRect(i), is_multiline::no, is_closed_on_click_t::no, _(label_texts[i]));
+
+        if (ClientResponses::GetResponse(PhasesPrintPreview::main_dialog, i) == Response::Continue) {
+            if (tools_mapping::is_tool_mapping_possible()) {
+                label.SetText(_("Continue")); // replace print with continue if tools mapping will show
+            }
+        }
 
         label.set_font(resource_font(IDR_FNT_SMALL));
         label.SetAlignment(Align_t::Center());

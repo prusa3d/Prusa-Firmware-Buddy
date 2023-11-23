@@ -42,12 +42,12 @@ FORCE_INLINE static void timing_delay_4cycles(uint32_t cy) { // +1 cycle
     __asm__ __volatile__(
         " .syntax unified\n\t" // is to prevent CM0,CM1 non-unified syntax
         "1:\n\t"
-        " subs %[cnt],#1\n\t"  //
+        " subs %[cnt],#1\n\t" //
         EXTRA_NOP_CYCLES
         " bne 1b\n\t"
         : [cnt] "+r"(cy) // output: +r means input+output
-        :                // input:
-        : "cc"           // clobbers:
+        : // input:
+        : "cc" // clobbers:
     );
     #undef EXTRA_NOP_CYCLES
 }

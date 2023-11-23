@@ -17,7 +17,7 @@ void AdjustLayout(window_text_t &text, window_icon_t &icon) {
     /// @todo Cannot calculate number of lines of text in advance as it gets wrapped by words.
     ///       Centering unknown text vertically is not possible now.
     if (true /*text.text.computeNumLinesAndRewind() > 3*/) { // If there are more than 3 rows, icon will align to the top
-        new_rect -= Rect16::Top_t(text.padding.top);         // Add Text's padding
+        new_rect -= Rect16::Top_t(text.padding.top); // Add Text's padding
         text.SetAlignment(Align_t::LeftTop());
     } else {
         new_rect = Rect16::Height_t(text.get_font()->h * 3); // Set height to 3 rows
@@ -55,6 +55,10 @@ void MsgBoxBase::set_text_alignment(Align_t alignment) {
     text.SetAlignment(alignment);
 }
 
+void MsgBoxBase::set_text_font(font_t *font) {
+    text.set_font(font);
+}
+
 void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     event_conversion_union un;
     un.pvoid = param;
@@ -75,30 +79,43 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 /*****************************************************************************/
 // MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon, is_closed_on_click_t close)
+    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon, is_closed_on_click_t close, dense_t dense)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
     , title(this, GetRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     title.set_font(getTitleFont());
     title.SetRect(getTitleRect());
     icon.SetRect(getIconRect());
     text.SetRect(getTextRect());
+    if (dense == dense_t::yes) {
+        set_text_font(GuiDefaults::FontMenuSpecial);
+    }
 }
 
 Rect16 MsgBoxTitled::getTitleRect() {
-    return Rect16(
-        icon.IsIconValid() ? Rect16::Left_t(MsgBoxTitled::TextPadding.left + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter) : Rect16::Left_t(MsgBoxTitled::TextPadding.left),
-        GetRect().Top() + 1 /* Visual delimeter */,
-        Rect16::Width_t(Width() - (MsgBoxTitled::TextPadding.left + MsgBoxTitled::TextPadding.right + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter)),
-        Rect16::Height_t(getTitleFont()->h));
+    const auto shared_top = GetRect().Top() + 1; /* Visual delimeter */
+    const auto shared_height = Rect16::Height_t(getTitleFont()->h);
+    if (icon.IsIconValid()) {
+        return Rect16(Rect16::Left_t(MsgBoxTitled::TextPadding.left + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter),
+            shared_top,
+            Rect16::Width_t(Width() - (MsgBoxTitled::TextPadding.left + MsgBoxTitled::TextPadding.right + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter)),
+            shared_height);
+    } else {
+        return Rect16(
+            Rect16::Left_t(MsgBoxTitled::TextPadding.left),
+            shared_top,
+            Rect16::Width_t(Width() - (MsgBoxTitled::TextPadding.left + MsgBoxTitled::TextPadding.right)),
+            shared_height);
+    }
 }
 
 Rect16 MsgBoxTitled::getLineRect() {
-    return Rect16(GetRect().Left(), getTitleRect().Top() + getTitleRect().Height() + 2 /* Visual delimeter */, GetRect().Width(), 1);
+    const auto title_rect { getTitleRect() };
+    return Rect16(GetRect().Left(), title_rect.EndPoint().y + 2 /* Visual delimeter */, GetRect().Width(), 1);
 }
 
 Rect16 MsgBoxTitled::getTextRect() {
     Rect16 text_rect = GetRect();
-    uint16_t y = getLineRect().TopEndPoint().y;
+    uint16_t y = getLineRect().EndPoint().y;
 
     text_rect -= Rect16::Height_t(y - text_rect.Top());
     text_rect -= GuiDefaults::GetButtonRect(GetRect()).Height();
@@ -116,12 +133,6 @@ Rect16 MsgBoxTitled::getIconRect() {
 
 font_t *MsgBoxTitled::getTitleFont() {
     return GuiDefaults::FontBig;
-}
-
-void MsgBoxTitled::unconditionalDraw() {
-    MsgBoxBase::unconditionalDraw();
-    Rect16 line = getLineRect();
-    display::DrawLine(line.TopLeft(), line.BottomRight(), COLOR_RED_ALERT);
 }
 
 /*****************************************************************************/
@@ -219,6 +230,18 @@ MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, 
     }
 
     pButtons->SetBackColor(COLOR_WHITE);
+}
+
+/*****************************************************************************/
+// MsgBoxIconnedWait
+MsgBoxIconnedWait::MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+    string_view_utf8 txt, is_multiline multiline)
+    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, &img::hourglass_26x39) {
+    icon.SetRect(Rect16(0, GuiDefaults::HeaderHeight, display::GetW(), 140));
+    icon.SetAlignment(Align_t::Center());
+
+    text.SetRect(Rect16(10, GuiDefaults::HeaderHeight + 147, display::GetW() - 10, 23 * 4));
+    text.SetAlignment(Align_t::Center());
 }
 
 /*****************************************************************************/

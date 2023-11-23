@@ -43,7 +43,7 @@ TEST_CASE("Window registration tests", "[window]") {
 
     SECTION("msgbox with no rectangle") {
         MockMsgBox msgbox(Rect16(0, 0, 0, 0));
-        screen.BasicCheck(0, 1);                        // basic check must pass, because rect is empty
+        screen.BasicCheck(0, 1); // basic check must pass, because rect is empty
         REQUIRE(msgbox.GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &msgbox); // msgbox does claim capture
         screen.CheckOrderAndVisibility(&msgbox);
@@ -119,7 +119,7 @@ TEST_CASE("Window registration tests", "[window]") {
         MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.GetRect(), screen.w1.GetRect(), screen.w2.GetRect(), screen.w3.GetRect()));
         // popup must autoclose so test is same as if only msgbox is opened
         REQUIRE(msgbox.GetParent() == &screen);
-        REQUIRE(screen.GetCapturedWindow() == &msgbox);       // msgbox does claim capture
+        REQUIRE(screen.GetCapturedWindow() == &msgbox); // msgbox does claim capture
         msgbox.Hide();
         REQUIRE_FALSE(screen.GetCapturedWindow() == &msgbox); // msgbox does not claim capture, because it is not visible
 
@@ -177,7 +177,7 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(strong.GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &strong); // strong does claim capture
         screen.CheckOrderAndVisibility(&strong);
-        gui::knob::EventClick(BtnState_t::Released);    // unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); // unregister strong dialog
     }
 
     SECTION("2 strong dialogs") {
@@ -192,12 +192,12 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong1); // strong1 does claim capture
         screen.CheckOrderAndVisibility(&strong0, &strong1);
 
-        gui::knob::EventClick(BtnState_t::Released);     // unregister strong1
+        gui::knob::EventClick(BtnState_t::Released); // unregister strong1
         REQUIRE(strong0.GetParent() == &screen);
-        REQUIRE(strong1.GetParent() == nullptr);         // check parrent unregistration
+        REQUIRE(strong1.GetParent() == nullptr); // check parrent unregistration
         REQUIRE(screen.GetCapturedWindow() == &strong0); // strong1 resturns capture to strong1
         screen.CheckOrderAndVisibility(&strong0);
-        gui::knob::EventClick(BtnState_t::Released);     // unregister strong0
+        gui::knob::EventClick(BtnState_t::Released); // unregister strong0
     }
 
     SECTION("strong dialog + msgbox") {
@@ -209,13 +209,13 @@ TEST_CASE("Window registration tests", "[window]") {
         MockMsgBox msgbox(Rect16::Merge_ParamPack(screen.w0.GetRect(), screen.w1.GetRect(), screen.w2.GetRect(), screen.w3.GetRect()));
         REQUIRE(msgbox.GetParent() == &screen);
         REQUIRE(strong.GetParent() == &screen);
-        REQUIRE(screen.GetCapturedWindow() == &strong);   // strong cannot give capture to msgbox
+        REQUIRE(screen.GetCapturedWindow() == &strong); // strong cannot give capture to msgbox
         screen.CheckOrderAndVisibility(&msgbox, &strong); // strong must remain on top
 
-        gui::knob::EventClick(BtnState_t::Released);      // unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); // unregister strong dialog
         REQUIRE(msgbox.GetParent() == &screen);
-        REQUIRE(screen.GetCapturedWindow() == &msgbox);   // strong must give capture to message box upon destruction
-        screen.CheckOrderAndVisibility(&msgbox);          // msgbox must remain
+        REQUIRE(screen.GetCapturedWindow() == &msgbox); // strong must give capture to message box upon destruction
+        screen.CheckOrderAndVisibility(&msgbox); // msgbox must remain
     }
 
     SECTION("msgbox + strong dialog") {
@@ -230,10 +230,10 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong); // strong does claim capture
         screen.CheckOrderAndVisibility(&msgbox, &strong);
 
-        gui::knob::EventClick(BtnState_t::Released);    // unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); // unregister strong dialog
         REQUIRE(msgbox.GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &msgbox); // strong must give capture to message box upon destruction
-        screen.CheckOrderAndVisibility(&msgbox);        // msgbox must remain
+        screen.CheckOrderAndVisibility(&msgbox); // msgbox must remain
     }
 
     SECTION("msgbox + strong dialog, destroy msgbox first") {
@@ -270,14 +270,14 @@ TEST_CASE("Window registration tests", "[window]") {
 
         MockStrongDialog &strong = MockStrongDialog::ShowHotendFan();
         REQUIRE(strong.GetParent() == &screen);
-        REQUIRE(popup->GetParent() == &screen);         // popup must remain
+        REQUIRE(popup->GetParent() == &screen); // popup must remain
         REQUIRE(screen.GetCapturedWindow() == &strong); // strong does claim capture
         screen.CheckOrderAndVisibility(popup, &strong);
 
-        gui::knob::EventClick(BtnState_t::Released);    // unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); // unregister strong dialog
         REQUIRE(popup->GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &screen); // popup does not claim capture
-        screen.CheckOrderAndVisibility(popup);          // popup must remain
+        screen.CheckOrderAndVisibility(popup); // popup must remain
     }
 
     SECTION("strong dialog + popup with no rectangle") {
@@ -294,10 +294,10 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong); // popup does not claim capture
         screen.CheckOrderAndVisibility(popup, &strong);
 
-        gui::knob::EventClick(BtnState_t::Released);    // unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); // unregister strong dialog
         REQUIRE(popup->GetParent() == &screen);
         REQUIRE(screen.GetCapturedWindow() == &screen); // popup does not claim capture
-        screen.CheckOrderAndVisibility(popup);          // popup must remain
+        screen.CheckOrderAndVisibility(popup); // popup must remain
     }
 
     SECTION("normal window") {
@@ -328,9 +328,9 @@ TEST_CASE("Window registration tests", "[window]") {
         screen.CheckOrderAndVisibility(&strong);
 
         screen.CaptureNormalWindow(screen.w0);
-        REQUIRE(screen.GetCapturedWindow() == &strong);    // strong still has capture
+        REQUIRE(screen.GetCapturedWindow() == &strong); // strong still has capture
 
-        gui::knob::EventClick(BtnState_t::Released);       // unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); // unregister strong dialog
         REQUIRE(screen.GetCapturedWindow() == &screen.w0); // capture must return to normal win
         screen.ReleaseCaptureOfNormalWindow();
     }
@@ -344,14 +344,14 @@ TEST_CASE("Window registration tests", "[window]") {
         REQUIRE(screen.GetCapturedWindow() == &strong); // strong does claim capture
         screen.CheckOrderAndVisibility(&strong);
 
-        gui::knob::EventClick(BtnState_t::Released);       // unregister strong dialog
+        gui::knob::EventClick(BtnState_t::Released); // unregister strong dialog
         REQUIRE(screen.GetCapturedWindow() == &screen.w0); // capture must return to normal win
         screen.ReleaseCaptureOfNormalWindow();
     }
 
-    hal_tick = 1000;                                   // set opened on popup
+    hal_tick = 1000; // set opened on popup
     screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); // loop will initialize popup timeout
-    hal_tick = 10000;                                  // timeout popup
+    hal_tick = 10000; // timeout popup
     screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); // loop event will unregister popup
 
     // at the end of all sections screen must be returned to its original state

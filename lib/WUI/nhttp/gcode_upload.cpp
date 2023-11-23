@@ -130,6 +130,15 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
         return StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, json_errors);
     }
 
+    if (parser.content_length.value() == 0) {
+        // Somehow, we never get our ::step called later on due to that. We
+        // could hack around it, but supporting 0-sized files seems like a
+        // niche thing to spend the time on. At least report it doesn't work
+        // instead of getting into some weird transfer-stuck state that never
+        // goes away.
+        return StatusPage(Status::NotImplemented, parser, "0-sized files aren't implemented");
+    }
+
     const char *path = holds_alternative<PutParams>(uploadParams) ? get<PutParams>(uploadParams).filepath.data() : nullptr;
     auto slot = Monitor::instance.allocate(Monitor::Type::Link, path, *parser.content_length, parser.print_after_upload);
     if (!slot.has_value()) {
@@ -194,17 +203,11 @@ Step GcodeUpload::step(string_view input, const size_t read, UploadState &upload
 
 UploadHooks::Result GcodeUpload::data(std::string_view data) {
     assert(tmp_upload_file);
-    for (;;) {
-        const size_t written = fwrite(data.begin(), 1, data.size(), tmp_upload_file.get());
-        if (written < data.size()) {
-            if (errno == EAGAIN) {
-                continue;
-            }
-            // Data won't fit into the flash drive -> Insufficient stogare.
-            return make_tuple(Status::InsufficientStorage, "USB write error or USB full");
-        } else {
-            return make_tuple(Status::Ok, nullptr);
-        }
+    if (transfers::write_block(tmp_upload_file.get(), reinterpret_cast<const uint8_t *>(data.begin()), data.size())) {
+        return make_tuple(Status::Ok, nullptr);
+    } else {
+        // Data won't fit into the flash drive -> Insufficient stogare.
+        return make_tuple(Status::InsufficientStorage, "USB write error or USB full");
     }
 }
 
@@ -400,7 +403,7 @@ namespace {
 } // namespace
 
 UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
-    if (!filename_is_gcode(filename)) {
+    if (!filename_is_printable(filename)) {
         return make_tuple(Status::UnsupportedMediaType, "Not a GCODE");
     }
 

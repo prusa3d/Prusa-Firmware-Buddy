@@ -129,7 +129,7 @@ void MI_RESET_DIRECTION::click([[maybe_unused]] IWindowMenu &window_menu) {
 /*****************************************************************************/
 // MI_MICROSTEPS_X
 MI_MICROSTEPS_X::MI_MICROSTEPS_X()
-    : WiSpinExp(get_microsteps_x(), SpinCnf::microstep_exponential, NOTRAN(label)) {}
+    : WiSpinExpWith0(config_store().axis_microsteps_X_.get(), SpinCnf::microstep_exponential_with_0, NOTRAN(label)) {}
 
 void MI_MICROSTEPS_X::Store() {
     set_microsteps_x(GetVal());
@@ -138,7 +138,7 @@ void MI_MICROSTEPS_X::Store() {
 /*****************************************************************************/
 // MI_MICROSTEPS_Y
 MI_MICROSTEPS_Y::MI_MICROSTEPS_Y()
-    : WiSpinExp(get_microsteps_y(), SpinCnf::microstep_exponential, NOTRAN(label)) {}
+    : WiSpinExpWith0(config_store().axis_microsteps_Y_.get(), SpinCnf::microstep_exponential_with_0, NOTRAN(label)) {}
 
 void MI_MICROSTEPS_Y::Store() {
     set_microsteps_y(GetVal());
@@ -174,7 +174,7 @@ void MI_RESET_MICROSTEPS::click([[maybe_unused]] IWindowMenu &window_menu) {
 /*****************************************************************************/
 // MI_CURRENT_X
 MI_CURRENT_X::MI_CURRENT_X()
-    : WiSpinInt(get_rms_current_ma_x(), SpinCnf::rms_current, NOTRAN(label)) {}
+    : WiSpinInt(config_store().axis_rms_current_ma_X_.get(), SpinCnf::rms_current, NOTRAN(label)) {}
 
 void MI_CURRENT_X::Store() {
     set_rms_current_ma_x(GetVal());
@@ -183,7 +183,7 @@ void MI_CURRENT_X::Store() {
 /*****************************************************************************/
 // MI_CURRENT_Y
 MI_CURRENT_Y::MI_CURRENT_Y()
-    : WiSpinInt(get_rms_current_ma_y(), SpinCnf::rms_current, NOTRAN(label)) {}
+    : WiSpinInt(config_store().axis_rms_current_ma_Y_.get(), SpinCnf::rms_current, NOTRAN(label)) {}
 
 void MI_CURRENT_Y::Store() {
     set_rms_current_ma_y(GetVal());

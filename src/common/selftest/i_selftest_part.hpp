@@ -58,8 +58,8 @@ private:
     void changeCurrentState(int new_state);
     int current_state;
     uint32_t current_state_enter_time;
-    int state_count;                     // did not use size_t to be able to compare with int
-    int loop_marks[LoopMarkCount] = {};  // used in cyclic states
+    int state_count; // did not use size_t to be able to compare with int
+    int loop_marks[LoopMarkCount] = {}; // used in cyclic states
     Response button_pressed;
     uint32_t time_to_show_result = 2048; // ms
 
@@ -76,7 +76,7 @@ private:
  */
 class TestReturn {
     bool in_progress; ///< true if selftest is still in progress
-    bool skipped;     ///< true if this test was skipped
+    bool skipped; ///< true if this test was skipped
 
 public:
     TestReturn(bool in_progress_, bool skipped_)

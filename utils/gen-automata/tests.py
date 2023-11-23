@@ -5,7 +5,7 @@ This script generates few automata for checking the generator works as
 expected. They are generated and used during the unit tests.
 """
 from common import Automaton, LabelType
-from http import accept_header, connection_header, methods, read_boundary, read_header_value, req_line, request, print_after_upload_header, authorization_header
+from http import accept_header, connection_header, methods, read_boundary, read_header_value, req_line, request, print_after_upload_header, authorization_header, content_encryption_mode_header
 
 
 def output(name, automaton):
@@ -43,6 +43,7 @@ want_headers = {
     'Print-After-Upload': print_after_upload_header(),
     'Connection': connection_header(),
     'Accept': accept_header(),
+    'Content-Encryption-Mode': content_encryption_mode_header(),
 }
 http, final = request(want_headers)
 output("http", http)

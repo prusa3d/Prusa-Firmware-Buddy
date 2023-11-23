@@ -33,7 +33,7 @@ public:
 
     struct BucketItem {
         uint16_t firstLetters; ///< first 2 letters of string
-        uint16_t stringIndex;  ///< index of string in string table
+        uint16_t stringIndex; ///< index of string in string table
         inline constexpr BucketItem()
             : firstLetters(0)
             , stringIndex(0) {}

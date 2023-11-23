@@ -20,13 +20,35 @@ public:
 
     Loadcell();
 
+    static constexpr int32_t undefined_value = std::numeric_limits<int32_t>::min();
+    static constexpr int UNDEFINED_INIT_MAX_CNT = 6; // Maximum number of undefined samples to ignore during startup (>=0)
+    static constexpr int UNDEFINED_SAMPLE_MAX_CNT = 2; // About 6ms of stale data @ 320Hz, 78ms over a channel switch
+    static constexpr unsigned int STATIC_TARE_SAMPLE_CNT = 16;
+
     static constexpr float XY_PROBE_THRESHOLD { 40 };
     static constexpr float XY_PROBE_HYSTERESIS { 20 };
 
     buddy::ProbeAnalysis<300> analysis;
     std::atomic<bool> xy_endstop_enabled { false };
 
-    void Tare(TareMode mode = TareMode::Static, bool wait = true);
+    /**
+     * @brief Wait until a loadcell sample with the specified time is received
+     * Wait until at least one sample with the specified timestamp is received.
+     * @see WaitBarrier() to wait for a sample at the current time.
+     */
+    void WaitBarrier(uint32_t ticks_ms);
+
+    /**
+     * @brief Wait until a new loadcell sample at current time is received
+     */
+    void WaitBarrier() { WaitBarrier(ticks_ms()); }
+
+    /**
+     * @brief Zero loadcell offset on current load.
+     * @param mode use either static offset or continuous bandpass filter
+     * @return measured offset value, informative, can be ignored [grams]
+     */
+    float Tare(TareMode mode = TareMode::Static);
 
     /**
      * @brief Clear state when no tool is picked.
@@ -36,7 +58,7 @@ public:
     /**
      * @brief Reset filters
      *
-     * FIltered data will be invalid after this call until the filters settle.
+     * Filtered data will be invalid after this call until the filters settle.
      */
     void reset_filters();
 
@@ -55,7 +77,8 @@ public:
             break;
         }
     }
-    inline float GetThreshold(TareMode tareMode) const {
+
+    inline float GetThreshold(TareMode tareMode = TareMode::Static) const {
         switch (tareMode) {
         case TareMode::Static:
             return thresholdStatic;
@@ -74,8 +97,6 @@ public:
     bool GetMinZEndstop() const;
     bool GetXYEndstop() const;
 
-    void ConfigureSignalEvent(osThreadId threadId, int32_t signal);
-
     // return loadcell load in grams
     inline float get_tared_z_load() const { return (scale * (loadcellRaw - offset)); }
     inline float get_filtered_z_load() const { return z_filter.get_output() * scale; }
@@ -83,15 +104,16 @@ public:
 
     int32_t get_raw_value() const;
 
-    bool IsSignalConfigured() const;
-
-    /// @brief Request highest precision available from loadcell and wait for it.
-    inline void EnableHighPrecision(bool wait = true) {
+    /// @brief Request highest precision available from loadcell
+    inline void EnableHighPrecision() {
+        assert(!highPrecision); // ensure HP is not recursively enabled
+        reset_filters(); // reset filters before we turn on HP
         highPrecision = true;
-        if (wait)
-            WaitForNextSample();
     }
-    inline void DisableHighPrecision() { highPrecision = false; }
+    inline void DisableHighPrecision() {
+        assert(highPrecision); // ensure HP is not recursively disabled
+        highPrecision = false;
+    }
     inline bool IsHighPrecisionEnabled() const { return highPrecision; }
 
     void SetFailsOnLoadAbove(float failsOnLoadAbove);
@@ -134,6 +156,7 @@ public:
 
     private:
         Loadcell &m_lcell;
+        bool m_enable;
     };
 
     FailureOnLoadAboveEnforcer CreateLoadAboveErrEnforcer(bool enable = true, float grams = 3000);
@@ -144,14 +167,14 @@ private:
     struct ZFilterParams {
         static constexpr float gain = 276.1148366795870;
         static constexpr std::array<const float, 5> a = { { 1, -3.678167822936356, 5.211060348827695, -3.364842682922483, 0.837181651256023 } };
-        static constexpr size_t settling_time = 100;
+        static constexpr size_t settling_time = 120; // 375ms
     };
-#else  /*PRINTER*/
+#else /*PRINTER*/
     // Original
     struct ZFilterParams {
         static constexpr float gain = 5.724846511e+01f;
         static constexpr std::array<const float, 5> a = { { 1, -3.6132919084, 4.9481816585, -3.0510427201, 0.7164075250 } };
-        static constexpr size_t settling_time = 110;
+        static constexpr size_t settling_time = 120; // 375ms
     };
 #endif /*PRINTER*/
 
@@ -160,7 +183,7 @@ private:
     struct XYFilterParam {
         static constexpr float gain = 1 / 1.185768264324116e-02;
         static constexpr std::array<const float, 5> a = { { 1, -3.661929127367906, 5.041628953899732, -3.096320393316955, 0.716633873504158 } };
-        static constexpr size_t settling_time = 120;
+        static constexpr size_t settling_time = 120; // 375ms
     };
 
     /// Implements IIR bandpass filter
@@ -202,12 +225,15 @@ private:
         inline void reset() {
             std::memset(&xv, 0, sizeof(xv));
             std::memset(&yv, 0, sizeof(yv));
+            samples = 0;
         }
 
         inline float filter(float input) {
             static_assert(NZEROS == 4, "This code works only for NZEROS == 4");
             static_assert(NPOLES == 4, "This code works only for NPOLES == 4");
             static_assert(A[0] == 1, "This code works only A[0] == 1");
+            if (samples < SETTLING_TIME)
+                ++samples;
 
             xv[0] = xv[1];
             xv[1] = xv[2];
@@ -226,9 +252,14 @@ private:
             return yv[std::size(yv) - 1];
         }
 
+        inline bool settled() const {
+            return (samples == SETTLING_TIME);
+        }
+
     private:
         float xv[NZEROS + 1];
         float yv[NPOLES + 1];
+        unsigned int samples; ///< Samples fed until SETTLING_TIME is reached
     };
 
     float scale;
@@ -237,12 +268,12 @@ private:
     float hysteresis;
     float failsOnLoadAbove;
     float failsOnLoadBelow;
-    osThreadId threadId;
-    int32_t signal;
-    int32_t loadcellRaw;
+
+    int32_t loadcellRaw; // current sample
+    int undefinedCnt; // undefined sample run length
+
     bool endstop;
     std::atomic<bool> xy_endstop;
-    bool isSignalEventConfigured;
     bool highPrecision;
 
     // When tare is requested, this will store number of samples and countdown to zero
@@ -262,8 +293,6 @@ private:
     /// Time when last valid sample arrived
     // atomic because its set in interrupt/puppytask, read in default task
     std::atomic<uint32_t> last_sample_time;
-
-    int32_t WaitForNextSample();
 };
 
 extern Loadcell loadcell;

@@ -10,7 +10,7 @@
 #include <string.h>
 #include "sys.h"
 
-#include "scratch_buffer.hpp"
+#include "data_exchange.hpp"
 #include "resources/bootstrap.hpp"
 #include "resources/revision_bootloader.hpp"
 #include "bootloader/bootloader.hpp"
@@ -32,12 +32,12 @@ constexpr size_t bootloader_sector_get_size(int sector) {
     return buddy::bootloader::bootloader_sector_sizes[sector];
 }
 
-constexpr const uint8_t *bootloader_sector_get_address(int sector) {
-    uint8_t *base_address = (uint8_t *)0x08000000;
+constexpr uintptr_t bootloader_sector_get_address(int sector) {
+    uintptr_t base_address = 0x08000000;
     for (int i = 0; i < sector; i++) {
         base_address += bootloader_sector_get_size(i);
     }
-    return (const uint8_t *)base_address;
+    return base_address;
 }
 
 class FileDeleter {
@@ -122,18 +122,17 @@ static bool flash_program(const uint8_t *flash_address, const uint8_t *data, siz
 
 template <typename ProgressCallback>
 static bool flash_program_sector(int sector, FILE *fp, ProgressCallback progress) {
-    size_t sector_size = bootloader_sector_get_size(sector);
-    const uint8_t *address = bootloader_sector_get_address(sector);
+    const size_t sector_size = bootloader_sector_get_size(sector);
+    const uint8_t *address = reinterpret_cast<const uint8_t *>(bootloader_sector_get_address(sector));
     const uint8_t *next_sector_address = address + sector_size;
     size_t copied_bytes = 0;
 
-    buddy::scratch_buffer::Ownership scratch_buffer_ownership;
-    scratch_buffer_ownership.acquire(/*wait=*/true);
-    uint8_t *buffer = scratch_buffer_ownership.get().buffer;
+    static constexpr size_t buffer_size = bootloader_sector_get_size(1); ///< Fit smaller sector in one go
+    std::unique_ptr<uint8_t[]> buffer(new uint8_t[buffer_size]); ///< Buffer for FLASH programming
 
     while (address < next_sector_address && !feof(fp)) {
-        size_t to_read = std::min(scratch_buffer_ownership.get().size(), static_cast<size_t>(next_sector_address - address));
-        size_t read = fread(buffer, 1, to_read, fp);
+        size_t to_read = std::min(buffer_size, static_cast<size_t>(next_sector_address - address));
+        size_t read = fread(buffer.get(), 1, to_read, fp);
 
         if (ferror(fp)) {
             log_error(Bootloader, "Bootloader reading failed while flashing (errno %i)", errno);
@@ -141,7 +140,7 @@ static bool flash_program_sector(int sector, FILE *fp, ProgressCallback progress
         }
 
         log_debug(Bootloader, "Programming 0x%08X (size %zu)", address, read);
-        if (!flash_program(address, buffer, read)) {
+        if (!flash_program(address, buffer.get(), read)) {
             log_error(Bootloader, "Writing the bootloader to FLASH failed", errno);
             return false;
         }
@@ -182,7 +181,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
                 fatal_error("expected preboot crc calculation failed");
             }
 
-            uint32_t current_preboot_crc = crc32_calc(bootloader_sector_get_address(0), bootloader_sector_get_size(0));
+            uint32_t current_preboot_crc = crc32_calc(reinterpret_cast<const uint8_t *>(bootloader_sector_get_address(0)), bootloader_sector_get_size(0));
             if (current_preboot_crc == expected_preboot_crc) {
                 log_info(Bootloader, "No need to update preboot. Skipping sector 0.");
                 continue;
@@ -233,7 +232,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 }
 
 bool buddy::bootloader::needs_update() {
-    if (sys_bootloader_is_valid() == false) {
+    if (data_exchange::is_bootloader_valid() == false) {
         return true;
     }
 

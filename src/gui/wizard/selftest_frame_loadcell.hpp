@@ -29,7 +29,7 @@ class SelftestFrameLoadcell : public AddSuperWindow<SelftestFrameNamedWithRadio>
     window_text_t text_prebig;
     WindowBlinkingText text_big; // BIG, possibly blinking number
 
-    window_text_t text_result;   // in middle of screen
+    window_text_t text_result; // in middle of screen
 
 protected:
     virtual void change() override;

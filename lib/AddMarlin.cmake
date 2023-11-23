@@ -42,12 +42,7 @@ if(BOARD MATCHES ".*BUDDY")
   # Full Marlin configuration for printing (*BUDDY boards)
   target_sources(
     Marlin
-    PRIVATE $<$<NOT:$<STREQUAL:${PRINTER},XL>>:Marlin/Marlin/src/module/tool_change.cpp>
-            $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/spool_join.cpp>
-            $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/tool_mapper.cpp>
-            $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/toolchanger.cpp>
-            $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/toolchanger_utils.cpp>
-            Marlin/Marlin/src/core/multi_language.cpp
+    PRIVATE Marlin/Marlin/src/core/multi_language.cpp
             Marlin/Marlin/src/feature/babystep.cpp
             Marlin/Marlin/src/feature/backlash.cpp
             Marlin/Marlin/src/feature/bed_preheat.cpp
@@ -67,7 +62,9 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/feature/pressure_advance/pressure_advance.cpp
             Marlin/Marlin/src/feature/pressure_advance/pressure_advance_config.cpp
             Marlin/Marlin/src/feature/print_area.cpp
+            Marlin/Marlin/src/feature/prusa/e-stall_detector.cpp
             Marlin/Marlin/src/feature/prusa/measure_axis.cpp
+            Marlin/Marlin/src/feature/prusa/restore_z.cpp
             Marlin/Marlin/src/feature/runout.cpp
             Marlin/Marlin/src/feature/spindle_laser.cpp
             Marlin/Marlin/src/feature/touch/xpt2046.cpp
@@ -101,7 +98,6 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/control/M211.cpp
             Marlin/Marlin/src/gcode/control/M226.cpp
             Marlin/Marlin/src/gcode/control/M350_M351.cpp
-            Marlin/Marlin/src/gcode/control/M400.cpp
             Marlin/Marlin/src/gcode/control/M42.cpp
             Marlin/Marlin/src/gcode/control/M7-M9.cpp
             Marlin/Marlin/src/gcode/control/M80_M81.cpp
@@ -109,10 +105,8 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/control/M86.cpp
             Marlin/Marlin/src/gcode/control/M999.cpp
             Marlin/Marlin/src/gcode/control/R.cpp
-            Marlin/Marlin/src/gcode/control/T.cpp
             Marlin/Marlin/src/gcode/eeprom/M500-M504.cpp
             Marlin/Marlin/src/gcode/feature/advance/M900.cpp
-            Marlin/Marlin/src/gcode/feature/cancel/M486.cpp
             Marlin/Marlin/src/gcode/feature/input_shaper/M593.cpp
             Marlin/Marlin/src/gcode/feature/input_shaper/M74.cpp
             Marlin/Marlin/src/gcode/feature/modular_bed/M556.cpp
@@ -144,6 +138,7 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/motion/G4.cpp
             Marlin/Marlin/src/gcode/motion/G5.cpp
             Marlin/Marlin/src/gcode/motion/M290.cpp
+            Marlin/Marlin/src/gcode/motion/M400.cpp
             Marlin/Marlin/src/gcode/probe/G30.cpp
             Marlin/Marlin/src/gcode/probe/M401_M402.cpp
             Marlin/Marlin/src/gcode/probe/M851.cpp
@@ -187,7 +182,6 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/HAL/shared/persistent_store_api.cpp
             Marlin/Marlin/src/libs/buzzer.cpp
             Marlin/Marlin/src/libs/crc16.cpp
-            Marlin/Marlin/src/libs/heatshrink/heatshrink_decoder.cpp
             Marlin/Marlin/src/libs/hex_print_routines.cpp
             Marlin/Marlin/src/libs/least_squares_fit.cpp
             Marlin/Marlin/src/libs/nozzle.cpp
@@ -225,13 +219,28 @@ if(BOARD MATCHES ".*BUDDY")
     target_sources(Marlin PRIVATE Marlin/Marlin/src/module/prusa/homing_corexy.cpp)
   endif()
 
+  if(PRINTER IN_LIST PRINTERS_WITH_TOOLCHANGER)
+    target_sources(
+      Marlin
+      PRIVATE Marlin/Marlin/src/gcode/control/T.cpp
+              Marlin/Marlin/src/module/prusa/spool_join.cpp
+              Marlin/Marlin/src/module/prusa/tool_mapper.cpp
+              Marlin/Marlin/src/module/prusa/toolchanger.cpp
+              Marlin/Marlin/src/module/prusa/toolchanger_utils.cpp
+      )
+  endif()
+
   if(PRINTER IN_LIST PRINTERS_WITH_MMU2)
     target_sources(
       Marlin
       PRIVATE Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp
               Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp
               Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp
+              Marlin/Marlin/src/gcode/control/T.cpp
               Marlin/Marlin/src/gcode/feature/prusa/MMU2/M403.cpp
+              Marlin/Marlin/src/module/prusa/spool_join.cpp
+              Marlin/Marlin/src/module/prusa/tool_mapper.cpp
+              Marlin/Marlin/src/module/tool_change.cpp
       )
   endif()
 endif()
@@ -241,6 +250,4 @@ target_include_directories(
   Marlin PUBLIC Marlin/Marlin/src Marlin/Marlin/src/gcode/lcd Marlin/Marlin Marlin
   )
 
-target_link_libraries(
-  Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes cthash
-  )
+target_link_libraries(Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes)

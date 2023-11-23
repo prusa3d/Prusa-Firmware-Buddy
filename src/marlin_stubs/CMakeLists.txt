@@ -3,8 +3,12 @@ target_sources(
   PRIVATE G26.cpp
           G64.cpp
           gcode.cpp
+          M123.cpp
           M300.cpp
           M330.cpp
+          M340.cpp
+          M486.cpp
+          M591.cpp
           M862_1.cpp
           M862_2.cpp
           M862_3.cpp

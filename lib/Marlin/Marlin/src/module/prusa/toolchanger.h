@@ -3,6 +3,7 @@
 
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "toolchanger_utils.h"
+    #include "bsod.h"
 
     #include <module/motion.h>
 
@@ -27,7 +28,7 @@ public:
 
     /// Structure to remember wanted toolchange result in case of a crash
     struct PrecrashData {
-        uint8_t tool_nr;           ///< Marlin id of last requested tool [indexed from 0] (last requested, not the tool physically picked)
+        uint8_t tool_nr; ///< Marlin id of last requested tool [indexed from 0] (last requested, not the tool physically picked)
         tool_return_t return_type; ///< Last wanted return position
 
         /**
@@ -135,11 +136,11 @@ public:
     }
 
 private:
-    PrecrashData precrash_data = {};                     ///< Remember wanted toolchange result in case of a crash
-    std::atomic<bool> block_tool_check = false;          ///< When true, block loop() with automatic toolchange and toolfall detection
-    uint8_t tool_check_fails = 0;                        ///< Count before toolfall
+    PrecrashData precrash_data = {}; ///< Remember wanted toolchange result in case of a crash
+    std::atomic<bool> block_tool_check = false; ///< When true, block loop() with automatic toolchange and toolfall detection
+    uint8_t tool_check_fails = 0; ///< Count before toolfall
     static constexpr uint8_t TOOL_CHECK_FAILS_LIMIT = 3; ///< Limit of tool_check_fails before toolfall
-    std::atomic<bool> quick_stopped = false;             ///< The current toolchange was quick-stopped
+    std::atomic<bool> quick_stopped = false; ///< The current toolchange was quick-stopped
 
     /**
      * @brief Ensure that X and Y are homed to be able to pick/park.

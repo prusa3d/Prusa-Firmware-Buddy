@@ -57,7 +57,6 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-// clang-format off
 // We test two steps, at 20% (just to check if the fans spin at low PWM) and at
 // 100%, where we also check the rpm range
 static constexpr SelftestFansConfig fans_configs[] = {
@@ -67,18 +66,17 @@ static constexpr SelftestFansConfig fans_configs[] = {
             .pwm_step = 204,
             .rpm_min_table = { 10, 5300 },
             .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print
+            .fanctl_fnc = Fans::print,
         },
         .heatbreak_fan = {
             .pwm_start = 51,
             .pwm_step = 204,
             .rpm_min_table = { 10, 6800 },
             .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break
-        }
-    }
+            .fanctl_fnc = Fans::heat_break,
+        },
+    },
 };
-// clang-format on
 
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
@@ -235,11 +233,11 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     if (m_Mask & stmLoadcell)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_loadcell));
     if (m_Mask & stmZAxis)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup));       // if Z is calibrated, move it up
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
     if (m_Mask & stmFullSelftest)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop));  // any selftest state will trigger selftest additional deinit
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
 
     // TODO stmFullSelftest does not mean full selftest some refactoring would be nice
 
@@ -408,12 +406,12 @@ void CSelftest::Loop() {
             return;
         break;
     case stsEpilogue_ok:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_ok);
         }
         break;
     case stsEpilogue_ok_wait_user:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             if (phaseWaitUser(PhasesSelftest::WizardEpilogue_ok))
                 return;
         }
@@ -438,9 +436,9 @@ void CSelftest::phaseDidSelftestPass() {
     SelftestResult_Log(m_result);
 
     // dont run wizard again
-    if (SelftestResult_Passed(m_result)) {
-        config_store().run_selftest.set(false);    // clear selftest flag
-        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+    if (SelftestResult_Passed_All(m_result)) {
+        config_store().run_selftest.set(false); // clear selftest flag
+        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
     }
 }
@@ -450,8 +448,8 @@ bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
-        config_store().run_selftest.set(false);    // clear selftest flag
-        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_selftest.set(false); // clear selftest flag
+        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
         Abort();
     }
@@ -468,9 +466,13 @@ bool CSelftest::Abort() {
     abort_part((selftest::IPartHandler **)&pZAxis);
     for (auto &pNozzle : pNozzles)
         abort_part(&pNozzle);
+    abort_part(&pBed);
+    abort_part(&pSock);
     for (auto &loadcell : m_pLoadcell)
         abort_part(&loadcell);
     abort_part((selftest::IPartHandler **)&pFSensor);
+    abort_part(&pGearsCalib);
+
     m_State = stsAborted;
 
     phaseFinish();
@@ -545,16 +547,16 @@ void CSelftest::next() {
             return; // current state can be run
         break;      // current state cannot be run
 #endif
-    case stsZAxis:   // loadcell and both X and Y must be OK to test Z
+    case stsZAxis: // loadcell and both X and Y must be OK to test Z
         if (m_result.tools[0].loadcell == TestResult_Passed && m_result.xaxis == TestResult_Passed && m_result.yaxis == TestResult_Passed)
-            return;  // current state can be run
-        break;       // current state cannot be run
+            return; // current state can be run
+        break; // current state cannot be run
     case stsMoveZup: // Z must be OK, if axis are not homed, it could be stacked at the top and generate noise, but the way states are generated from mask should prevent it
         if (m_result.zaxis == TestResult_Passed)
-            return;  // current state can be run
-        break;       // current state cannot be run
+            return; // current state can be run
+        break; // current state cannot be run
     default:
-        return;      // current state can be run
+        return; // current state can be run
     }
 
     // current state cannot be run

@@ -5,6 +5,7 @@
 #include "option/filament_sensor.h"
 #include "inc/MarlinConfig.h"
 #include "config_features.h"
+#include "selftest_result.hpp"
 
 constexpr const char *ToString(TestResult res) {
     switch (res) {
@@ -44,7 +45,13 @@ constexpr const char *ToString(TestResultNet res) {
  * @brief Know globally if selftest passed.
  * Currently not affected by eth and wifi.
  */
-bool SelftestResult_Passed(const SelftestResult &results);
+bool SelftestResult_Passed_All(const SelftestResult &results);
+
+/**
+ * @brief Checks mandatory tests and if optional didn't fail
+ * Currently only for MK4, for others it works the same as All
+ */
+bool SelftestResult_Passed_Mandatory(const SelftestResult &results);
 
 /**
  * @brief Know globally if selftest failed.

@@ -14,8 +14,10 @@
 #include "printers.h"
 #include "homing_reporter.hpp"
 #include "PersistentStorage.h"
+#include "config_store/store_instance.hpp"
 
 #include <limits>
+#include <option/has_loadcell.h>
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -54,12 +56,12 @@ void CSelftestPart_Axis::phaseMove(int8_t dir) {
 
     // Disable stealthChop if used. Enable diag1 pin on driver.
 #if ENABLED(SENSORLESS_HOMING)
-    #if HOMING_Z_WITH_PROBE && ENABLED(NOZZLE_LOAD_CELL)
+    #if HOMING_Z_WITH_PROBE && HAS_LOADCELL()
     const bool is_home_dir = (home_dir(AxisEnum(config.axis)) > 0) == (dir > 0);
     const bool moving_probe_toward_bed = (is_home_dir && (Z_AXIS == config.axis));
     #endif
     bool enable_sensorless_homing =
-    #if HOMING_Z_WITH_PROBE && ENABLED(NOZZLE_LOAD_CELL)
+    #if HOMING_Z_WITH_PROBE && HAS_LOADCELL()
         !moving_probe_toward_bed
     #else
         true
@@ -194,15 +196,22 @@ void CSelftestPart_Axis::motor_switch(Motor steps) {
     // change FSM .. make user know
     PersistentStorage::erase();
 
+    config_store().homing_sens_x.set(config_store().homing_sens_x.default_val);
+    config_store().homing_sens_y.set(config_store().homing_sens_y.default_val);
+    config_store().homing_bump_divisor_x.set(config_store().homing_bump_divisor_x.default_val);
+    config_store().homing_bump_divisor_y.set(config_store().homing_bump_divisor_y.default_val);
+
+    queue.enqueue_one_now("M914 X Y"); // Reset XY homing sensitivity
+
     const char fmt_curr[] = "M906 X%u Y%u";
     int sz_curr = snprintf(NULL, 0, fmt_curr, std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max());
-    char gcode_curr[sz_curr + 1];                                                                       // note +1 for terminating null byte
+    char gcode_curr[sz_curr + 1]; // note +1 for terminating null byte
     snprintf(gcode_curr, sizeof(gcode_curr), fmt_curr, get_rms_current_ma_x(), get_rms_current_ma_y()); // XY motor currents
     queue.enqueue_one_now(gcode_curr);
 
     const char fmt_microstep[] = "M350 X%u Y%u";
     int sz_microstep = snprintf(NULL, 0, fmt_microstep, std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max());
-    char gcode_microstep[sz_microstep + 1];                                                                    // note +1 for terminating null byte
+    char gcode_microstep[sz_microstep + 1]; // note +1 for terminating null byte
     snprintf(gcode_microstep, sizeof(gcode_microstep), fmt_microstep, get_microsteps_x(), get_microsteps_y()); // XY motor microsteps
     queue.enqueue_one_now(gcode_microstep);
 }

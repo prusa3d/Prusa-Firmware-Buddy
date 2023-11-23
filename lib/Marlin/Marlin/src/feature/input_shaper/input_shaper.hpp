@@ -29,7 +29,7 @@ constexpr const double INPUT_SHAPER_ACCELERATION_EPSILON = 0.01;
 namespace input_shaper {
 
 struct Shaper {
-    Shaper(const double par_a[], const double par_t[], int par_num_pulses)
+    Shaper(const float par_a[], const float par_t[], int par_num_pulses)
         : num_pulses(par_num_pulses) {
         for (int i = 0; i < MAX_INPUT_SHAPER_PULSES; ++i) {
             if (i < num_pulses) {
@@ -42,12 +42,12 @@ struct Shaper {
         }
     }
 
-    double a[MAX_INPUT_SHAPER_PULSES];
-    double t[MAX_INPUT_SHAPER_PULSES];
+    float a[MAX_INPUT_SHAPER_PULSES] = {};
+    float t[MAX_INPUT_SHAPER_PULSES] = {};
     int num_pulses;
 };
 
-Shaper get(double damping_ratio, double shaper_freq, double vibration_reduction, input_shaper::Type type);
+Shaper get(float damping_ratio, float shaper_freq, float vibration_reduction, input_shaper::Type type);
 } // namespace input_shaper
 
 typedef struct pulse_t {
@@ -71,8 +71,8 @@ typedef struct logical_axis_input_shaper_t {
     double m_start_pos;
     double m_start_v;
     double m_half_accel;
-    uint8_t m_axis;
     double m_print_time;
+    uint8_t m_axis;
     uint8_t m_nearest_next_change_idx;
 
     void init(const move_t &move, uint8_t axis);
@@ -102,10 +102,11 @@ typedef struct input_shaper_state_t {
     double start_pos;
     double start_v;
     double half_accel;
-    int step_dir;
 
     double nearest_next_change;
     double print_time;
+
+    bool step_dir;
 
     // Indicates if the current micro move segment is crossing zero velocity (needed change of stepper motor direction).
     bool is_crossing_zero_velocity;
@@ -113,17 +114,17 @@ typedef struct input_shaper_state_t {
 
 input_shaper_pulses_t create_null_input_shaper_pulses();
 
-input_shaper_pulses_t create_zv_input_shaper_pulses(double shaper_freq, double damping_ratio);
+input_shaper_pulses_t create_zv_input_shaper_pulses(float shaper_freq, float damping_ratio);
 
-input_shaper_pulses_t create_zvd_input_shaper_pulses(double shaper_freq, double damping_ratio);
+input_shaper_pulses_t create_zvd_input_shaper_pulses(float shaper_freq, float damping_ratio);
 
-input_shaper_pulses_t create_mzv_input_shaper_pulses(double shaper_freq, double damping_ratio);
+input_shaper_pulses_t create_mzv_input_shaper_pulses(float shaper_freq, float damping_ratio);
 
-input_shaper_pulses_t create_ei_input_shaper_pulses(double shaper_freq, double damping_ratio, double vibration_reduction = 20.);
+input_shaper_pulses_t create_ei_input_shaper_pulses(float shaper_freq, float damping_ratio, float vibration_reduction = 20.f);
 
-input_shaper_pulses_t create_2hump_ei_input_shaper_pulses(double shaper_freq, double damping_ratio, double vibration_reduction = 20.);
+input_shaper_pulses_t create_2hump_ei_input_shaper_pulses(float shaper_freq, float damping_ratio, float vibration_reduction = 20.f);
 
-input_shaper_pulses_t create_3hump_ei_input_shaper_pulses(double shaper_freq, double damping_ratio, double vibration_reduction = 20.);
+input_shaper_pulses_t create_3hump_ei_input_shaper_pulses(float shaper_freq, float damping_ratio, float vibration_reduction = 20.f);
 
 class InputShaper {
 
@@ -134,7 +135,7 @@ public:
     InputShaper() = default;
 };
 
-step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_generator_t &step_generator, step_generator_state_t &step_generator_state, double flush_time);
+step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_generator_t &step_generator, step_generator_state_t &step_generator_state);
 
 void input_shaper_step_generator_init(const move_t &move, input_shaper_step_generator_t &step_generator, step_generator_state_t &step_generator_state);
 

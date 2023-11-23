@@ -179,7 +179,7 @@ private:
     ErrorFlags errorFlags;
     bool initialized = false;
     bool enabled = false;
-    uint8_t sg_filter_threshold;
+    uint8_t sg_filter_threshold = 0;
     uint8_t sg_filter_counter = 0;
 };
 

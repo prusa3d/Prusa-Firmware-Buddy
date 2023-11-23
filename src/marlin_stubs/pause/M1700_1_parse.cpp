@@ -17,6 +17,7 @@
  *
  * - `T`- Extruder number. Required for mixing extruder.
  *       For non-mixing, current extruder if omitted.
+ *      - T-1 - all extruders
  * - `W` - Preheat
  *       - `W0`  - preheat no return no cool down
  *       - `W1`  - preheat with cool down option
@@ -24,15 +25,23 @@
  *       - `W3`  - preheat with cool down and return options - default
  * - `S` - Set filament
  * - `E` - Enforce target temperature
+ * - `B0`- Do not preheat bed, default preheat bed
  */
 void PrusaGcodeSuite::M1700() {
     const uint8_t preheat = std::min(parser.byteval('W', 3), uint8_t(RetAndCool_t::last_));
 
-    const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
-    if (target_extruder < 0)
-        return;
+    int8_t target_extruder;
+    if (parser.seen('T') && parser.intval('T') == -1) {
+        target_extruder = -1; // -1 means all extruders
+    } else {
+        target_extruder = GcodeSuite::get_target_extruder_from_command(); // Get particular extruder or current extruder
+        if (target_extruder < 0) {
+            return;
+        }
+    }
 
-    filament_gcodes::M1700_no_parser(RetAndCool_t(preheat), PreheatMode::None, target_extruder, parser.boolval('S'), parser.boolval('E'), true); // always preheat bed
+    filament_gcodes::M1700_no_parser(RetAndCool_t(preheat), PreheatMode::None, target_extruder,
+        parser.boolval('S'), parser.boolval('E'), parser.boolval('B', true));
 }
 
 /**
@@ -75,6 +84,7 @@ void PrusaGcodeSuite::M1701() {
  *       - `U1` - ask only if filament unknown
  *       - `U2` - always ask
  * - `S"Filament"` - change to filament by name, for example `S"PLA"`
+ *  O<value>       - Color number corresponding to filament::Colour, RGB order
  */
 void PrusaGcodeSuite::M1600() {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
@@ -97,8 +107,13 @@ void PrusaGcodeSuite::M1600() {
         }
     }
 
+    std::optional<filament::Colour> color_to_be_loaded = { std::nullopt };
+    if (parser.seen('O')) {
+        color_to_be_loaded = filament::Colour::from_int(parser.longval('O'));
+    }
+
     const filament_gcodes::AskFilament_t ask_unload = filament_gcodes::AskFilament_t(parser.byteval('U', 0));
     const bool hasReturn = parser.seen('R');
 
-    filament_gcodes::M1600_no_parser(filament_to_be_loaded, target_extruder, hasReturn ? RetAndCool_t::Return : RetAndCool_t::Neither, ask_unload);
+    filament_gcodes::M1600_no_parser(filament_to_be_loaded, target_extruder, hasReturn ? RetAndCool_t::Return : RetAndCool_t::Neither, ask_unload, color_to_be_loaded);
 }

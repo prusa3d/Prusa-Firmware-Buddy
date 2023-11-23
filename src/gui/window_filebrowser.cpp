@@ -4,6 +4,7 @@
 
 #include "window_filebrowser.hpp"
 #include "log.h"
+#include <transfers/transfer.hpp>
 #include <algorithm>
 
 LOG_COMPONENT_REF(GUI);
@@ -20,8 +21,7 @@ static char firstVisibleSFN[SFN_len];
 char WindowFileBrowser::root[FILE_PATH_BUFFER_LEN] = "/usb";
 
 WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *media_SFN_path)
-    : AddSuperWindow<window_file_list_t>(parent, rect)
-    , gcode_info(GCodeInfo::getInstance()) {
+    : AddSuperWindow<window_file_list_t>(parent, rect) {
 
     // set root of the file list
     window_file_list_t::SetRoot(root);
@@ -98,7 +98,8 @@ void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *se
         SuperWindowEvent(sender, event, param);
         return;
     }
-    if (!currentIsFile) {                // directory selected
+
+    if (!currentIsFile) { // directory selected
         if (strcmp(currentSFN, dirUp)) { // not same -> not ..
             // append the dir name at the end of sfnPath
             if (sfn_path[sfnPathLen - 1] != slash) {

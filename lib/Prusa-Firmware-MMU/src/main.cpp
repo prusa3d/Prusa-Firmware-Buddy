@@ -24,6 +24,7 @@
 #include "modules/timebase.h"
 #include "modules/motion.h"
 #include "modules/usb_cdc.h"
+#include "modules/voltage.h"
 
 #include "application.h"
 
@@ -139,6 +140,20 @@ void Panic(ErrorCode ec) {
     application.Panic(ec);
 }
 
+void RuntimeHWChecks() {
+    mv::vcc.Step();
+    if (mv::vcc.CurrentBandgapVoltage() > config::VCCADCThreshold) {
+        // stop all motors at once
+        mm::motion.AbortPlannedMoves();
+        // kill all TMC
+        mm::motion.Disable(mm::Idler);
+        mm::motion.Disable(mm::Selector);
+        mm::motion.Disable(mm::Pulley);
+        // call for help
+        Panic(ErrorCode::MCU_UNDERVOLTAGE_VCC);
+    }
+}
+
 /// Main loop of the firmware
 /// Proposed architecture
 ///   checkMsgs();
@@ -167,6 +182,8 @@ void loop() {
     }
     hal::cpu::Step();
     mu::cdc.Step();
+
+    RuntimeHWChecks();
 
     application.Step();
 

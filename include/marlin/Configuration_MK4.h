@@ -22,6 +22,7 @@
 #pragma once
 
 #include "hw_configuration.hpp"
+#include <option/has_loadcell.h>
 
 // clang-format off
 
@@ -190,6 +191,14 @@
  */
 #if HAS_MMU2()
 #define MMU_MODEL PRUSA_MMU2S
+#endif
+
+/**
+ * Tool mapping and spool join - adopted from XL's toolchange, reimplemented for MMU2
+ */
+#if HAS_MMU2()
+#define PRUSA_TOOL_MAPPING
+#define PRUSA_SPOOL_JOIN
 #endif
 
 /**
@@ -867,7 +876,9 @@
  *   (e.g., an inductive probe or a nozzle-based probe-switch.)
  */
 #define FIX_MOUNTED_PROBE
-#define NOZZLE_LOAD_CELL
+#if HAS_LOADCELL()
+  #define NOZZLE_LOAD_CELL
+#endif
 
 // Display heatbreak temperature as FILAMENT on LCD status screen footer
 #define LCD_HEATBREAK_TO_FILAMENT
@@ -955,7 +966,7 @@
 #define Z_PROBE_SPEED_SLOW 70
 
 // [ms] delay before first Z probe for taring
-#define Z_FIRST_PROBE_DELAY 250
+#define Z_FIRST_PROBE_DELAY 300
 
 #if ENABLED(NOZZLE_LOAD_CELL)
   // Enable G29 P9 for nozzle cleanup
@@ -989,7 +1000,7 @@
  */
 #define Z_CLEARANCE_BEFORE_PROBING 5 // Z Clearance before first MBL probe
 #define Z_CLEARANCE_DEPLOY_PROBE 0 // Z Clearance for Deploy/Stow
-#define Z_CLEARANCE_BETWEEN_PROBES 0.21 // Z Clearance between probe points 1
+#define Z_CLEARANCE_BETWEEN_PROBES 0.23 // Z Clearance between probe points 1
 #define Z_CLEARANCE_MULTI_PROBE 0.2 // Z Clearance between multiple probes
 #define Z_AFTER_PROBING 2 // Z position after probing is done 2
 
@@ -1426,7 +1437,7 @@
     #define Z_SAFE_HOMING_Y_POINT (-4) // Y point for Z homing when homing all axes (G28).
 #endif
 
-#define HOMING_FEEDRATE_XY (buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (80 * 60) : (62 * 60))
+#define HOMING_FEEDRATE_XY (62 * 60)
 
 #define HOMING_FEEDRATE_Z (8 * 60)
 #define HOMING_FEEDRATE_INVERTED_Z (buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (60 * 60) : (30 * 60))
@@ -1568,6 +1579,8 @@
 #if ENABLED(NOZZLE_PARK_FEATURE)
     #define Z_AXIS_LOAD_POS  40
     #define Z_AXIS_UNLOAD_POS 20
+    #define Y_AXIS_LOAD_POS    (std::numeric_limits<float>::quiet_NaN())
+    #define Y_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     #define X_AXIS_LOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     #define X_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     // Specify a park position as { X, Y, Z }

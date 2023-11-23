@@ -25,11 +25,11 @@ static const constexpr float pi = 3.1415926535897932384626433832795f;
 /// First X and Y are a starting point.
 static const constexpr float snake1[] = {
     /// use 0.5 extrusion width
-    10,  /// start X
+    10, /// start X
     150, /// start Y
     170, /// X
     130, /// Y
-    10,  /// X
+    10, /// X
     110, /// ...
     170,
     90,
@@ -106,11 +106,11 @@ static const constexpr float snake1[] = {
 /// First X and Y are a starting point.
 static const constexpr float snake2[] = {
     /// use 0.5 extrusion width
-    10,        /// start X
+    10, /// start X
     180 - 150, /// start Y
-    170,       /// X
+    170, /// X
     180 - 130, /// Y
-    10,        /// X
+    10, /// X
     180 - 110, /// ...
     170,
     180 - 90,
@@ -325,12 +325,12 @@ void FirstLayer::print_shape_2() {
     // TYPE:Custom
     //  Filament-specific end gcode
     // TODO setprecent? ////M73 P94 R0
-    go_to_destination(NAN, NAN, NAN, -1.f, 2100.f);    // G1 E-1 F2100 ; retract
-    go_to_destination(NAN, NAN, 2.2f, NAN, 720.f);     // G1 Z2.2 F720 ; Move print head up
+    go_to_destination(NAN, NAN, NAN, -1.f, 2100.f); // G1 E-1 F2100 ; retract
+    go_to_destination(NAN, NAN, 2.2f, NAN, 720.f); // G1 Z2.2 F720 ; Move print head up
     go_to_destination(178.f, 178.f, NAN, NAN, 4200.f); // G1 X178 Y178 F4200 ; park print head
     // TODO setprecent? ////M73 P96 R0
     go_to_destination(NAN, NAN, 30.2f, NAN, 720.f); // G1 Z30.2 F720 ; Move print head further up
-    planner.synchronize();                          // G4 ; wait .. finish moves == M400
+    planner.synchronize(); // G4 ; wait .. finish moves == M400
 
     // no need lro reset linear advance, was not set // M900 K0 ; reset LA
     planner.finish_and_disable(); // M84 ; disable motors

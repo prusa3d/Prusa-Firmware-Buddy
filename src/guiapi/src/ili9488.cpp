@@ -1,11 +1,14 @@
 // ili9488.cpp
 #include "ili9488.hpp"
 #include <guiconfig.h>
+#include <span>
 #include <string.h>
 #include <stdlib.h>
+#include "qoi_decoder.hpp"
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 #include "bsod.h"
+#include <ccm_thread.hpp>
 #include "cmath_ext.h"
 #include "config_buddy_2209_02.h"
 
@@ -19,7 +22,6 @@
 #endif // ILI9488_USE_RTOS
 #include "main.h"
 
-#include "png_measure.hpp"
 #include "hw_configuration.hpp"
 
 #include <option/bootloader.h>
@@ -60,28 +62,42 @@ LOG_COMPONENT_REF(GUI);
 
 // ili9488 CTRL Display
 static const uint8_t MASK_CTRLD_BCTRL = (0x01 << 5); // Brightness Control Block
-static const uint8_t MASK_CTRLD_DD(0x01 << 3);       // Display Dimming
-static const uint8_t MASK_CTRLD_BL(0x01 << 2);       // Backlight Control
+static const uint8_t MASK_CTRLD_DD(0x01 << 3); // Display Dimming
+static const uint8_t MASK_CTRLD_BL(0x01 << 2); // Backlight Control
 
 const uint8_t CMD_MADCTLRD = 0x0B;
 constexpr static uint8_t CMD_NOP = 0x00;
 
 uint8_t ili9488_flg = 0; // flags
 
-uint16_t ili9488_x = 0;  // current x coordinate (CASET)
-uint16_t ili9488_y = 0;  // current y coordinate (RASET)
-uint16_t ili9488_cx = 0; //
-uint16_t ili9488_cy = 0; //
-
 namespace {
 bool do_complete_lcd_reinit = false;
 }
 
-uint8_t ili9488_buff[ILI9488_COLS * 3 * ILI9488_BUFF_ROWS]; // 3 bytes for pixel color
-
 #ifdef ILI9488_USE_RTOS
 osThreadId ili9488_task_handle = 0;
 #endif // ILI9488_USE_RTOS
+
+uint8_t ili9488_buff[ILI9488_COLS * 3 * ILI9488_BUFF_ROWS]; // 3 bytes for pixel color
+bool ili9488_buff_borrowed = false; ///< True if buffer is borrowed by someone else
+
+uint8_t *ili9488_borrow_buffer() {
+    assert(!ili9488_buff_borrowed && "Already lent");
+#ifdef ILI9488_USE_RTOS
+    assert(ili9488_task_handle == osThreadGetId() && "Must be called only from one task");
+#endif /*ILI9488_USE_RTOS*/
+    ili9488_buff_borrowed = true;
+    return ili9488_buff;
+}
+
+void ili9488_return_buffer() {
+    assert(ili9488_buff_borrowed);
+    ili9488_buff_borrowed = false;
+}
+
+size_t ili9488_buffer_size() {
+    return sizeof(ili9488_buff);
+}
 
 /*some functions are in header - excluded from display_t struct*/
 void ili9488_gamma_set_direct(uint8_t gamma_enu);
@@ -163,10 +179,11 @@ void ili9488_spi_wr_bytes(uint8_t *pb, uint16_t size) {
         osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_TX);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
 #endif // ILI9488_USE_RTOS
+        assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(pb)));
         HAL_SPI_Transmit_DMA(ili9488_config.phspi, pb, size);
 #ifdef ILI9488_USE_RTOS
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
-#else  // ILI9488_USE_RTOS
+#else // ILI9488_USE_RTOS
 // TODO:
 #endif // ILI9488_USE_RTOS
     } else
@@ -203,14 +220,14 @@ void ili9488_spi_rd_bytes(uint8_t *pb, uint16_t size) {
 }
 
 void ili9488_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
-    ili9488_clr_cs();                      // CS = L
-    ili9488_clr_rs();                      // RS = L
-    ili9488_spi_wr_byte(cmd);              // write command byte
+    ili9488_clr_cs(); // CS = L
+    ili9488_clr_rs(); // RS = L
+    ili9488_spi_wr_byte(cmd); // write command byte
     if (pdata && size) {
-        ili9488_set_rs();                  // RS = H
+        ili9488_set_rs(); // RS = H
         ili9488_spi_wr_bytes(pdata, size); // write data bytes
     }
-    ili9488_set_cs();                      // CS = H
+    ili9488_set_cs(); // CS = H
 }
 
 template <size_t SZ>
@@ -257,11 +274,11 @@ void ili9488_cmd_rd(uint8_t cmd, uint8_t *pdata) {
 
 void ili9488_wr(uint8_t *pdata, uint16_t size) {
     if (!(pdata && size))
-        return;                        // null or empty data - return
-    ili9488_clr_cs();                  // CS = L
-    ili9488_set_rs();                  // RS = H
+        return; // null or empty data - return
+    ili9488_clr_cs(); // CS = L
+    ili9488_set_rs(); // RS = H
     ili9488_spi_wr_bytes(pdata, size); // write data bytes
-    ili9488_set_cs();                  // CS = H
+    ili9488_set_cs(); // CS = H
 }
 
 void ili9488_rd(uint8_t *pdata, uint16_t size) {
@@ -272,13 +289,13 @@ void ili9488_rd(uint8_t *pdata, uint16_t size) {
     ili9488_delay_ms(1);
     displayCs.write(Pin::State::low);
 
-    ili9488_clr_cs();                  // CS = L
-    ili9488_clr_rs();                  // RS = L
-    ili9488_spi_wr_byte(CMD_RAMRD);    // write command byte
-    ili9488_spi_wr_byte(0);            // write dummy byte, datasheet p.122
+    ili9488_clr_cs(); // CS = L
+    ili9488_clr_rs(); // RS = L
+    ili9488_spi_wr_byte(CMD_RAMRD); // write command byte
+    ili9488_spi_wr_byte(0); // write dummy byte, datasheet p.122
 
     ili9488_spi_rd_bytes(pdata, size); // read data bytes
-    ili9488_set_cs();                  // CS = H
+    ili9488_set_cs(); // CS = H
 
     // generate little pulse on displayCs, because ILI need change displayCs logic level
     displayCs.write(Pin::State::high);
@@ -379,14 +396,14 @@ void ili9488_set_complete_lcd_reinit() {
 }
 
 static void startup_old_manufacturer() {
-    ili9488_cmd_slpout();                      // wakeup
-    ili9488_delay_ms(120);                     // 120ms wait
+    ili9488_cmd_slpout(); // wakeup
+    ili9488_delay_ms(120); // 120ms wait
     ili9488_cmd_madctl(ili9488_config.madctl); // interface pixel format
     ili9488_cmd_colmod(ili9488_config.colmod); // memory data access control
-    ili9488_cmd_dispon();                      // display on
-    ili9488_delay_ms(10);                      // 10ms wait
-    ili9488_clear(COLOR_BLACK);                // black screen after power on
-    ili9488_delay_ms(100);                     // time to set black color
+    ili9488_cmd_dispon(); // display on
+    ili9488_delay_ms(10); // 10ms wait
+    ili9488_clear(COLOR_BLACK); // black screen after power on
+    ili9488_delay_ms(100); // time to set black color
     ili9488_inversion_on();
 }
 
@@ -405,7 +422,7 @@ static void startup_new_manufacturer() {
     // Frame Rate Control (In Normal Mode/Full Colors) (this seems to be default)
     ili9488_cmd_array(0xB1, std::to_array<uint8_t>({
                                 0xa0, // division ratio for internal clocks - Fosc, frame frequency of full color normal mode
-                                0x11  // Clocks per line
+                                0x11 // Clocks per line
                             }));
 
     // Display Inversion Control (this seems to be default)
@@ -414,7 +431,7 @@ static void startup_new_manufacturer() {
     // Power Control 1
     ili9488_cmd_array(0xC0, std::to_array<uint8_t>({
                                 0x0f, // Set the VREG1OUT voltage for positive gamma
-                                0x0f  // Set the VREG2OUT voltage for negative gammas
+                                0x0f // Set the VREG2OUT voltage for negative gammas
                             }));
 
     // Power Control 2
@@ -427,7 +444,7 @@ static void startup_new_manufacturer() {
     ili9488_cmd_array(0xC5, std::to_array<uint8_t>({
                                 0x00, // 0: NV memory is not programmed
                                 0x53, // VCM_REG [7:0]
-                                0x80  // 1: VCOM value from VCM_REG [7:0].
+                                0x80 // 1: VCOM value from VCM_REG [7:0].
                             }));
 
     // Entry Mode Set
@@ -456,11 +473,11 @@ static void startup_new_manufacturer() {
                                 0x0F,
                             }));
 
-    ili9488_inversion_on();     // Display Inversion ON
+    ili9488_inversion_on(); // Display Inversion ON
 
-    ili9488_cmd_slpout();       // Sleep OUT - turns off the sleep mode
-    ili9488_delay_ms(120);      // 120ms wait
-    ili9488_cmd_dispon();       // display on
+    ili9488_cmd_slpout(); // Sleep OUT - turns off the sleep mode
+    ili9488_delay_ms(120); // 120ms wait
+    ili9488_cmd_dispon(); // display on
     ili9488_clear(COLOR_BLACK); // black screen after power on
     // ili9488_delay_ms(100);      // time to set black color
 }
@@ -477,7 +494,7 @@ void ili9488_init(void) {
     }
 
     if (!option::bootloader || do_complete_lcd_reinit) {
-        ili9488_reset();       // 15ms reset pulse
+        ili9488_reset(); // 15ms reset pulse
         ili9488_delay_ms(120); // 120ms wait
         if (buddy::hw::Configuration::Instance().has_display_backlight_control()) {
             startup_new_manufacturer();
@@ -510,6 +527,8 @@ void ili9488_done(void) {
 }
 
 void ili9488_clear(uint32_t clr666) {
+    assert(!ili9488_buff_borrowed && "Buffer lent to someone");
+
     int i;
     uint8_t *p_byte = (uint8_t *)ili9488_buff;
 
@@ -539,6 +558,8 @@ void ili9488_set_pixel(uint16_t point_x, uint16_t point_y, uint32_t clr666) {
 }
 
 uint8_t *ili9488_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
+    assert(!ili9488_buff_borrowed && "Buffer lent to someone");
+
     if (start_x >= ILI9488_COLS || start_y >= ILI9488_ROWS || end_x >= ILI9488_COLS || end_y >= ILI9488_ROWS)
         return NULL;
     ili9488_cmd_caset(start_x, end_x);
@@ -558,6 +579,8 @@ uint32_t ili9488_get_pixel_colorFormat666(uint16_t point_x, uint16_t point_y) {
 }
 
 void ili9488_fill_rect_colorFormat666(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t clr666) {
+    assert(!ili9488_buff_borrowed && "Buffer lent to someone");
+
     int i;
     uint32_t size = (uint32_t)rect_w * rect_h * 3;
     int n = size / sizeof(ili9488_buff);
@@ -578,6 +601,9 @@ void ili9488_fill_rect_colorFormat666(uint16_t rect_x, uint16_t rect_y, uint16_t
 }
 
 void ili9488_draw_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+    /// @note This function is used when someone borrowed the buffer and filled it with data, don't check ili9488_buff_borrowed.
+    /// @todo Cannot check that the buffer is borrowed because it is returned before calling this. Needs refactoring.
+
     ili9488_clr_cs();
     ili9488_cmd_caset(x, x + w - 1);
     ili9488_cmd_raset(y, y + h - 1);
@@ -585,268 +611,122 @@ void ili9488_draw_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     ili9488_set_cs();
 }
 
-#ifdef ILI9488_PNG_SUPPORT
-
-    #include <png.h>
-    #include <optional>
-    #include "scratch_buffer.hpp"
-    #include "bsod_gui.hpp"
-
-std::optional<buddy::scratch_buffer::Ownership> png_memory;
-uint32_t png_mem_total = 0;
-void *png_mem_ptrs[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-uint32_t png_mem_sizes[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-uint32_t png_mem_cnt = 0;
-
-png_voidp _pngmalloc([[maybe_unused]] png_structp pp, png_alloc_size_t size) {
-    if (!png_memory.has_value()) {
-        png_memory = buddy::scratch_buffer::Ownership();
-        png_memory->acquire(/*wait=*/true);
-    }
-    if (png_mem_total + size >= png_memory->get().size()) {
-        fatal_error(ErrCode::ERR_SYSTEM_PNG_MALLOC_ERROR);
-    }
-    int i;
-    void *p = ((uint8_t *)png_memory->get().buffer) + png_mem_total;
-    {
-        for (i = 0; i < 10; i++)
-            if (png_mem_ptrs[i] == 0)
-                break;
-        assert(static_cast<size_t>(i) <= std::size(png_mem_ptrs));
-        png_mem_ptrs[i] = p;
-        png_mem_sizes[i] = size;
-        png_mem_total += size;
-        png_mem_cnt++;
-    }
-    return p;
-}
-
-void _pngfree([[maybe_unused]] png_structp pp, png_voidp mem) {
-    int i;
-
-    for (i = 0; i < 10; i++)
-        if (mem == png_mem_ptrs[i]) {
-            uint32_t size = png_mem_sizes[i];
-            png_mem_ptrs[i] = 0;
-            png_mem_sizes[i] = 0;
-            png_mem_total -= size;
-            png_mem_cnt--;
-        }
-
-    if (png_mem_cnt == 0) {
-        png_memory->release();
-    }
-}
-
-using raster_fn = void (*)(uint8_t *);
-
-template <bool ALPHA, raster_fn FN>
-static inline void fill_buffer(uint32_t back_color, int png_rows_to_read_in_this_loop, uint16_t png_cols, int pixsize, uint8_t *ili9488_buff) {
-    for (int j = 0; j < png_rows_to_read_in_this_loop * png_cols; j++) {
-        uint8_t *ppx666 = (uint8_t *)(ili9488_buff + j * 3);
-        uint8_t *ppx888 = (uint8_t *)(ili9488_buff + j * pixsize);
-
-        // if constexpr (FN != nullptr) generates warning, so I will use std::is_same_v instead
-        using TypeOfNull = std::integral_constant<decltype(FN), nullptr>;
-        using TypeOfFN = std::integral_constant<decltype(FN), FN>;
-
-        if constexpr (!std::is_same_v<TypeOfNull, TypeOfFN>)
-            FN(ppx888);
-
-        if constexpr (ALPHA) {
-            const uint32_t clr = color_alpha(back_color, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
-            memcpy(ppx888, &clr, sizeof(clr));
-        }
-
-        const uint32_t clr = color_to_666(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
-        memcpy(ppx666, &clr, sizeof(clr));
-    }
-}
-
-    #define FILL_BUFFER(FN) alphaChannel ? fill_buffer<true, FN>(back_color, png_rows_to_read_in_this_loop, png_cols, pixsize, ili9488_buff) : fill_buffer<false, FN>(back_color, png_rows_to_read_in_this_loop, png_cols, pixsize, ili9488_buff);
-
 /**
- * @brief draw png from FILE
- *
- * @param pf                    pointer to file
- * @param point_x               X coordinate where to draw png on screen
- * @param point_y               Y coordinate where to draw png on screen
- * @param back_color            color of background
- * @param rop                   raster operations
- * @param subrect               sub rectangle inside png - area to draw
+ * @brief Apply alpha blending to one channel.
+ * @param a alpha value
+ * @param back background value
+ * @param front foreground value
+ * @return blended value
  */
-void ili9488_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect) {
-    PNGMeasure PM;
-    if ((point_x >= ILI9488_COLS) || (point_y >= ILI9488_ROWS))
-        return;
-    png_structp pp = png_create_read_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, _pngmalloc, _pngfree);
-    // png_set_mem_fn(pp, 0, _pngmalloc, _pngfree);
-    if (pp == NULL)
-        goto _e_0;
-    { // explicitly limit the scope of the local vars in order to enable use of goto
-        // which is the preffered error recovery system in libpng
-        // the vars must be destroyed before label _e_0
-        png_infop ppi = png_create_info_struct(pp);
-        if (ppi == NULL)
-            goto _e_1;
-        if (setjmp(png_jmpbuf(pp)))
-            goto _e_1;
-        { // explicitly limit the scope of the local vars in order to enable use of goto
-            // which is the preffered error recovery system in libpng
-            // the vars must be destroyed before label _e_0
-            png_init_io(pp, pf);
-            {
-                uint8_t sig[8];
-                if (fread(sig, 1, 8, pf) < 8)
-                    goto _e_1;
-                if (!png_check_sig(sig, 8))
-                    goto _e_1; /* bad signature */
-                png_set_sig_bytes(pp, 8);
-            }
-            png_read_info(pp, ppi);
-            uint16_t w = png_get_image_width(pp, ppi);
-            uint16_t h = png_get_image_height(pp, ppi);
-            int rowsize = png_get_rowbytes(pp, ppi);
+static inline uint8_t apply_alpha(uint8_t a, uint8_t back, uint8_t front) {
+    /// @note Technically correct would be "/ 255", but difference to ">> 8" is less than 1.
+    return ((255 - a) * static_cast<uint16_t>(back) + a * static_cast<uint16_t>(front)) >> 8;
+};
 
-            // check image type (indexed or other color type)
-            png_byte colorType = png_get_color_type(pp, ppi);
-            volatile bool alphaChannel = false;
+void ili9488_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect) {
+    assert(!ili9488_buff_borrowed && "Buffer lent to someone");
+    assert(pf);
 
-            switch (colorType) {
-            case PNG_COLOR_TYPE_GRAY:
-                // transform image from grayscale to rgb or rgba
-                png_set_gray_to_rgb(pp);
-                // check if alpha channel is present
-                if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
-                    png_set_tRNS_to_alpha(pp);
-                    alphaChannel = true;
-                }
-                break;
-            case PNG_COLOR_TYPE_PALETTE:
-                // transform image from palette to rgb or rgba
-                png_set_palette_to_rgb(pp);
-                // check if alpha channel is present if yes then add it
-                if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
-                    png_set_tRNS_to_alpha(pp);
-                    alphaChannel = true;
-                }
-                break;
-            case PNG_COLOR_TYPE_GRAY_ALPHA:
-                // transform image from grayscale with alpha to rgba
-                png_set_gray_to_rgb(pp);
-                alphaChannel = true;
-                break;
-            case PNG_COLOR_TYPE_RGB_ALPHA:
-                alphaChannel = true;
-                break;
+    // Current pixel position starts top-left where the image is placed
+    point_i16_t pos = { static_cast<int16_t>(point_x), static_cast<int16_t>(point_y) };
 
-            default:
-                break;
-            }
+    // Prepare input buffer
+    std::span<uint8_t> i_buf(ili9488_buff, 512); ///< Input file buffer
+    std::span<uint8_t> i_data; ///< Span of input data read from file
 
-            // if no alpha channel is present (3 bytes per pixel), add padding to 4 pixels
-            // if we used only 3 bytes, we would overwrite first byte of next pixel
-            if (!alphaChannel) {
-                png_set_filler(pp, 0x00, PNG_FILLER_AFTER);
-            }
+    // Prepare output buffer
+    std::span<uint8_t> p_buf(ili9488_buff + i_buf.size(), std::size(ili9488_buff) - i_buf.size()); ///< Output pixel buffer
+    auto o_data = p_buf.begin(); ///< Pointer to output pixel data in buffer
 
-            // Pixsize is always 4 bytes. rgba is 4 bytes wide, if PNG is only rgb, we add padding to 4 bytes
-            const int pixsize = 4;
+#if 0
+    // Measure time it takes to draw QOI image
+    #warning "Spamming the log"
+    struct ImgMeasure {
+        volatile uint32_t start_us;
+        ImgMeasure() { start_us = ticks_us(); }
+        ~ImgMeasure() { log_debug(GUI, "Img draw took %u us", ticks_us() - start_us); }
+    } image_timing;
+#endif /*0*/
 
-            //_dbg("ili9488_draw_png rowsize = %i", rowsize);
-            if (rowsize > ILI9488_COLS * 4)
-                goto _e_1;
-
-            // target coordinates have to be substracted form display sizes to be able to fit it on the screen
-            const Rect16 MaxSubrect(0, 0, MIN(w, ILI9488_COLS - point_x), MIN(h, ILI9488_ROWS - point_y));
-
-            // recalculate subrect
-            if (subrect.IsEmpty())
-                subrect = MaxSubrect;
-            else
-                subrect.Intersection(MaxSubrect);
-
-            // make there is something to print
-            if (subrect.IsEmpty()) {
-                goto _e_1;
-            }
-
-            //_dbg("ili9488_draw_png pixsize = %i", pixsize);
-            ili9488_clr_cs();
-            if (setjmp(png_jmpbuf(pp)))
-                goto _e_2;
-
-            {
-                Rect16 print_rect(subrect.Left() + point_x, subrect.Top() + point_y, subrect.Width(), subrect.Height());
-                const uint16_t x_end = print_rect.Left() + print_rect.Width();
-                const uint16_t y_end = print_rect.Top() + print_rect.Height();
-
-                ili9488_cmd_caset(print_rect.Left(), x_end - 1);
-                ili9488_cmd_raset(print_rect.Top(), y_end - 1);
-                ili9488_cmd_ramwr(0, 0);
-
-                uint16_t png_rows_left = print_rect.Height();
-                uint16_t png_cols = print_rect.Width();
-                uint16_t buff_row_space = (ILI9488_BUFF_ROWS * ILI9488_COLS * 3) / (png_cols * pixsize);
-
-                // Skip unwanted PNG rows (reloative to subrect)
-                for (int k = 0; k < subrect.Top(); k++) {
-                    // png is compressed, there is no other way to access specific row
-                    png_read_row(pp, ili9488_buff, NULL); // Not using png_read_rows() because ili9488_buff is a 1D array (Not 2D)
-                }
-
-                while (png_rows_left) {
-
-                    // Calculate how many rows to draw in this cycle
-                    int png_rows_to_read_in_this_loop = png_rows_left < buff_row_space ? png_rows_left : buff_row_space;
-
-                    // Load as many png rows to ili9488 buffer as possible
-                    // it is more effitient to have 2 for cycles inside if/else than other way around
-                    if (subrect.Left() == 0 && subrect.Width() <= w) { // subrect is correct here, not a bug
-                        for (int i = 0; i < png_rows_to_read_in_this_loop; i++) {
-                            png_read_row(pp, ili9488_buff + i * png_cols * pixsize, NULL);
-                        }
-                    } else {
-                        for (int i = 0; i < png_rows_to_read_in_this_loop; i++) {
-                            // Skip unwanted cols from the row (reloative to subrect)
-                            uint8_t row[w * pixsize] = { 0 };
-                            png_read_row(pp, row, NULL);
-                            memcpy(ili9488_buff + i * png_cols * pixsize, row + subrect.Left() * pixsize, png_cols * pixsize);
-                        }
-                    }
-
-                    // Manipulate all loaded pixels
-                    switch (rop) {
-                    case ROPFN_INVERT:
-                        FILL_BUFFER(rop_rgb888_invert);
-                        break;
-                    case ROPFN_SWAPBW:
-                        FILL_BUFFER(rop_rgb888_swapbw);
-                        break;
-                    case ROPFN_SHADOW:
-                        FILL_BUFFER(rop_rgb888_disabled);
-                        break;
-                    case ROPFN_DESATURATE:
-                        FILL_BUFFER(rop_rgb888_desaturate);
-                        break;
-                    case ROPFN_SWAPBW | ROPFN_SHADOW:
-                    default:
-                        FILL_BUFFER(nullptr); // fill buffer while using no raster function
-                    }
-
-                    // Display pixels with minimal SPI overhead
-                    ili9488_wr(ili9488_buff, 3 * png_cols * png_rows_to_read_in_this_loop);
-                    png_rows_left -= png_rows_to_read_in_this_loop;
-                }
-            }
-        _e_2:
-            ili9488_set_cs();
-        }
-    _e_1:
-        png_destroy_read_struct(&pp, &ppi, 0);
+    // Read header and image size to tweak drawn subrect
+    if (size_t nread = fread(i_buf.data(), 1, qoi::Decoder::HEADER_SIZE, pf); nread != qoi::Decoder::HEADER_SIZE) {
+        return; // Header couldn't be read
     }
-_e_0:
-    return;
+    Rect16 img_rect = Rect16(pos, qoi::Decoder::get_image_size(std::span<uint8_t, qoi::Decoder::HEADER_SIZE>(i_buf)));
+
+    // Recalculate subrect that is going to be drawn
+    if (subrect.IsEmpty()) {
+        subrect = img_rect;
+    } else {
+        subrect.Intersection(img_rect);
+    }
+    subrect.Intersection(Rect16(0, 0, ILI9488_COLS, ILI9488_ROWS)); // Clip drawn subrect to display size
+
+    // Prepare output
+    // Set write rectangle
+    ili9488_cmd_caset(subrect.Left(), subrect.Right());
+    ili9488_cmd_raset(subrect.Top(), subrect.Bottom());
+    // Start write of data
+    ili9488_cmd_ramwr(0, 0);
+
+    qoi::Decoder qoi_decoder; ///< QOI decoding statemachine
+    while (1) {
+        // Read more data from file
+        if (size_t nread = fread(i_buf.data(), 1, i_buf.size(), pf); nread == 0) {
+            break; // Picture ends
+        } else {
+            i_data = std::span<uint8_t>(i_buf.begin(), nread);
+        }
+
+        // Process input data
+        for (auto i_byte : i_data) {
+
+            // Push byte to decoder
+            qoi_decoder.push_byte((uint8_t)i_byte);
+
+            // Pull pixels from decoder
+            while (qoi_decoder.has_pixel()) {
+                qoi::Pixel pixel = qoi_decoder.pull_pixel();
+
+                // Keep track of pixel position
+                auto orig_pos = pos;
+                pos.x++;
+                if (pos.x > subrect.Right()) {
+                    pos.x = subrect.Left();
+                    pos.y++;
+                }
+
+                // Skip pixels outside of subrect
+                if (subrect.Contain(orig_pos) == false) {
+                    if (orig_pos.y > subrect.Bottom()) { // Picture ends
+                        // Write remaining pixels to display and close SPI transaction
+                        ili9488_wr(p_buf.data(), o_data - p_buf.begin());
+                        ili9488_set_cs();
+                        return;
+                    }
+                    continue;
+                }
+
+                // Transform pixel data
+                pixel = qoi::transform::apply_rop(pixel, rop);
+
+                // Store to output buffer
+                *o_data++ = apply_alpha(pixel.a, back_color >> 16, pixel.b);
+                *o_data++ = apply_alpha(pixel.a, back_color >> 8, pixel.g);
+                *o_data++ = apply_alpha(pixel.a, back_color, pixel.r);
+
+                // Another 3 bytes wouldn't fit, write to display
+                if (p_buf.end() - o_data < 3) {
+                    ili9488_wr(p_buf.data(), o_data - p_buf.begin());
+                    o_data = p_buf.begin();
+                }
+            }
+        }
+    }
+
+    // Write remaining pixels to display and close SPI transaction
+    ili9488_wr(p_buf.data(), o_data - p_buf.begin());
+    ili9488_set_cs();
 }
 
 void ili9488_inversion_on(void) {
@@ -859,20 +739,20 @@ void ili9488_inversion_off(void) {
 }
 
 void ili9488_inversion_tgl(void) {
-    #if CMD_INVON == CMD_INVOFF + 1
+#if CMD_INVON == CMD_INVOFF + 1
     // faster code if CMD_INVON == CMD_INVOFF + 1
     // The result of the logical negation operator ! is 1 if the value of its operand is 0,
     // 0 if the value of its operand is non-zero.
     ili9488_config.is_inverted = !ili9488_inversion_get();
     ili9488_cmd(CMD_INVOFF + ili9488_config.is_inverted, 0, 0);
-    #else
+#else
     // to be portable
     if (ili9488_inversion_get())
         ili9488_inversion_off();
     else
         ili9488_inversion_on();
 
-    #endif
+#endif
 }
 uint8_t ili9488_inversion_get(void) {
     return ili9488_config.is_inverted;
@@ -934,22 +814,16 @@ void ili9488_ctrl_set(uint8_t ctrl) {
     ili9488_cmd(CMD_WRCTRLD, &ili9488_config.control, sizeof(ili9488_config.control));
 }
 
-#else  // ILI9488_PNG_SUPPORT
-
-void ili9488_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect) {}
-
-#endif // ILI9488_PNG_SUPPORT
-
 ili9488_config_t ili9488_config = {
-    0,            // spi handle pointer
-    0,            // flags (DMA, MISO)
-    0,            // interface pixel format (5-6-5, hi-color)
-    0,            // memory data access control (no mirror XY)
+    0, // spi handle pointer
+    0, // flags (DMA, MISO)
+    0, // interface pixel format (5-6-5, hi-color)
+    0, // memory data access control (no mirror XY)
     GAMMA_CURVE0, // gamma curve
-    0,            // brightness
-    0,            // inverted
-    0,            // default control reg value
-    0b10110001    // inverted pwm
+    0, // brightness
+    0, // inverted
+    0, // default control reg value
+    0b10110001 // inverted pwm
 };
 
 //! @brief enable safe mode (direct acces + safe delay)

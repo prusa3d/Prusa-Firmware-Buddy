@@ -3,6 +3,7 @@
 #include <optional>
 
 #include "gui_config_printer.hpp"
+#include "common/sheet.hpp"
 
 class SteelSheets {
 public:

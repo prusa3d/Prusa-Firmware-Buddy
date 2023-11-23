@@ -52,28 +52,28 @@ inline constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
 constexpr vars_body_t body_defaults = {
     old_eeprom::v9::body_defaults,
-    footer::eeprom::Encode(footer::DefaultItems),                               // EEVAR_FOOTER_SETTING
-    uint32_t(footer::ItemDrawCnf::Default()),                                   // EEVAR_FOOTER_DRAW_TYPE
-    true,                                                                       // EEVAR_FAN_CHECK_ENABLED
-    true,                                                                       // EEVAR_FS_AUTOLOAD_ENABLED
-    0,                                                                          // EEVAR_ODOMETER_X
-    0,                                                                          // EEVAR_ODOMETER_Y
-    0,                                                                          // EEVAR_ODOMETER_Z
-    0,                                                                          // EEVAR_ODOMETER_E0
-    default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_X
-    default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_Y
-    default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f),  // AXIS_STEPS_PER_UNIT_Z
+    footer::eeprom::Encode(footer::DefaultItems), // EEVAR_FOOTER_SETTING
+    uint32_t(footer::ItemDrawCnf::Default()), // EEVAR_FOOTER_DRAW_TYPE
+    true, // EEVAR_FAN_CHECK_ENABLED
+    true, // EEVAR_FS_AUTOLOAD_ENABLED
+    0, // EEVAR_ODOMETER_X
+    0, // EEVAR_ODOMETER_Y
+    0, // EEVAR_ODOMETER_Z
+    0, // EEVAR_ODOMETER_E0
+    default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f), // AXIS_STEPS_PER_UNIT_X
+    default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f), // AXIS_STEPS_PER_UNIT_Y
+    default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f), // AXIS_STEPS_PER_UNIT_Z
     default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f), // AXIS_STEPS_PER_UNIT_E0
-    0,                                                                          // AXIS_MICROSTEPS_X - currently depends on config_store().xy_motors_400_step
-    0,                                                                          // AXIS_MICROSTEPS_Y - currently depends on config_store().xy_motors_400_step
-    Z_MICROSTEPS,                                                               // AXIS_MICROSTEPS_Z
-    E0_MICROSTEPS,                                                              // AXIS_MICROSTEPS_E0
-    0,                                                                          // AXIS_RMS_CURRENT_MA_X - currently depends on config_store().xy_motors_400_step
-    0,                                                                          // AXIS_RMS_CURRENT_MA_Y - currently depends on config_store().xy_motors_400_step
-    Z_CURRENT,                                                                  // AXIS_RMS_CURRENT_MA_Z
-    E0_CURRENT,                                                                 // AXIS_RMS_CURRENT_MA_E0
+    0, // AXIS_MICROSTEPS_X - currently depends on config_store().xy_motors_400_step
+    0, // AXIS_MICROSTEPS_Y - currently depends on config_store().xy_motors_400_step
+    Z_MICROSTEPS, // AXIS_MICROSTEPS_Z
+    E0_MICROSTEPS, // AXIS_MICROSTEPS_E0
+    0, // AXIS_RMS_CURRENT_MA_X - currently depends on config_store().xy_motors_400_step
+    0, // AXIS_RMS_CURRENT_MA_Y - currently depends on config_store().xy_motors_400_step
+    Z_CURRENT, // AXIS_RMS_CURRENT_MA_Z
+    E0_CURRENT, // AXIS_RMS_CURRENT_MA_E0
 #ifdef DEFAULT_Z_MAX_POS
-    DEFAULT_Z_MAX_POS,                                                          // AXIS_Z_MAX_POS_MM
+    DEFAULT_Z_MAX_POS, // AXIS_Z_MAX_POS_MM
 #else
     0,
 #endif

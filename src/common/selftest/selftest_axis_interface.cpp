@@ -86,7 +86,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
                              // We have MK4 and it is a stand alone axis test
                              // in this case we need to run the same type of test as Y axis have
 
-#endif                       // PRINTER_IS_PRUSA_MK4
+#endif // PRINTER_IS_PRUSA_MK4
         case 'Y':
             m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis, staticResults[config_axis.axis],
                 &CSelftestPart_Axis::stateHomeXY,

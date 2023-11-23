@@ -90,6 +90,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
   #include <module/prusa/toolchanger.h>
 #endif
 
+#if ENABLED(NOZZLE_LOAD_CELL)
+#  include "../../feature/prusa/e-stall_detector.h"
+#endif
+
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../../core/debug_out.h"
 
@@ -326,6 +330,10 @@ static void reenable_wavetable(AxisEnum axis)
  *  P   Do not check print sheet presence
  */
 void GcodeSuite::G28(const bool always_home_all) {
+#if ENABLED(NOZZLE_LOAD_CELL)
+  BlockEStallDetection block_e_stall_detection;
+#endif
+
   bool S = false;
   #if ENABLED(MARLIN_DEV_MODE)
     S = parser.seen('S')
@@ -531,6 +539,14 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     #endif
   #endif
 
+  #if ENABLED(XY_HOMING_STEALTCHCHOP)
+    // Enable stealtchop on X and Y before homing
+    stepperX.stored.stealthChop_enabled = true;
+    stepperX.refresh_stepping_mode();
+    stepperY.stored.stealthChop_enabled = true;
+    stepperY.refresh_stepping_mode();
+  #endif /*ENABLED(XY_HOMING_STEALTCHCHOP)*/
+
   #if ENABLED(IMPROVE_HOMING_RELIABILITY)
     Motion_Parameters saved_motion_state;
     if (!no_change) {
@@ -734,7 +750,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
           #if ENABLED(PRUSA_TOOLCHANGER)
           if (active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
             // When no tool is picked, make sure to pick one
-            failed = !prusa_toolchanger.tool_change(0, tool_return_t::no_return, current_position);
+            failed = !prusa_toolchanger.tool_change(0, tool_return_t::no_return, current_position, tool_change_lift_t::no_lift, false);
           }
           #endif
 

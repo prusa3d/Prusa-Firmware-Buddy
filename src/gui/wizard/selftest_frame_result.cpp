@@ -56,7 +56,7 @@ SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fs
     // XL should use snake instead of this
     msg.SetText(_("This screen shows only 1st tool!\nXL should use snake!"));
 #else
-    if (SelftestResult_Passed(eeres)) {
+    if (SelftestResult_Passed_All(eeres)) {
         msg.SetText(_("Selftest OK!\nDetails below, use knob to scroll"));
     } else if (SelftestResult_Failed(eeres)) {
         msg.SetText(_("Selftest failed!\nDetails below, use knob to scroll"));

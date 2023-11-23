@@ -38,28 +38,28 @@ typedef struct _marlin_client_t {
     EventMask events; // event mask
     uint64_t errors;
 
-    uint32_t ack;            // cached ack value from last Acknowledge event
-    uint32_t command;        // processed command (G28,G29,M701,M702,M600)
-    fsm_cb_t fsm_cb;         // to register callback for dialog or screen creation/destruction/change (M876), callback ensures M876 is processed asap, so there is no need for queue
+    uint32_t ack; // cached ack value from last Acknowledge event
+    uint32_t command; // processed command (G28,G29,M701,M702,M600)
+    fsm_cb_t fsm_cb; // to register callback for dialog or screen creation/destruction/change (M876), callback ensures M876 is processed asap, so there is no need for queue
     message_cb_t message_cb; // to register callback message
     warning_cb_t warning_cb; // to register callback for important message
     startup_cb_t startup_cb; // to register callback after marlin complete initialization
 
-    uint16_t flags;          // client flags (MARLIN_CFLG_xxx)
-    uint16_t last_count;     // number of messages received in last client loop
+    uint16_t flags; // client flags (MARLIN_CFLG_xxx)
+    uint16_t last_count; // number of messages received in last client loop
 
-    uint8_t id;              // client id (0..MARLIN_MAX_CLIENTS-1)
-    uint8_t reheating;       // reheating in progress
+    uint8_t id; // client id (0..MARLIN_MAX_CLIENTS-1)
+    uint8_t reheating; // reheating in progress
 } marlin_client_t;
 
 //-----------------------------------------------------------------------------
 // variables
 
-osThreadId marlin_client_task[MARLIN_MAX_CLIENTS];    // task handles
+osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
 osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue handles (uint32_t)
 
-marlin_client_t clients[MARLIN_MAX_CLIENTS];          // client structure
-uint8_t marlin_clients = 0;                           // number of connected clients
+marlin_client_t clients[MARLIN_MAX_CLIENTS]; // client structure
+uint8_t marlin_clients = 0; // number of connected clients
 
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
@@ -122,11 +122,11 @@ void loop() {
         while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
                 msg |= ((variant8_t)ose.value.v << 32); // store high dword
-                _process_client_message(client, msg);   // call handler
+                _process_client_message(client, msg); // call handler
                 variant8_done(&pmsg);
                 count++;
             } else
-                msg = ose.value.v;                // store low dword
+                msg = ose.value.v; // store low dword
             client->flags ^= MARLIN_CFLG_LOWHIGH; // flip flag
         }
     client->last_count = count;
@@ -530,6 +530,15 @@ bool is_printing() {
     }
 }
 
+bool is_idle() {
+    switch (marlin_vars()->print_state) {
+    case State::Idle:
+        return true;
+    default:
+        return false;
+    }
+}
+
 //-----------------------------------------------------------------------------
 // private functions
 
@@ -546,20 +555,20 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
     osMessageQId queue = 0;
     int i;
     osSemaphoreWait(server_semaphore, osWaitForever); // lock
-    if ((queue = server_queue) != 0)                  // queue valid
+    if ((queue = server_queue) != 0) // queue valid
     {
         clients[client_id].events &= ~make_mask(Event::Acknowledge);
         while (ret == 0) {
             if (osMessageAvailableSpace(queue) >= static_cast<uint32_t>(len + 1)) // check available space
             {
-                osMessagePut(queue, '0' + client_id, osWaitForever);              // one character client id
-                for (i = 0; i < len; i++)                                         // loop over every characters
-                    osMessagePut(queue, request[i], osWaitForever);               //
-                if ((i > 0) && (request[i - 1] != '\n'))                          // automatically terminate with '\n'
+                osMessagePut(queue, '0' + client_id, osWaitForever); // one character client id
+                for (i = 0; i < len; i++) // loop over every characters
+                    osMessagePut(queue, request[i], osWaitForever); //
+                if ((i > 0) && (request[i - 1] != '\n')) // automatically terminate with '\n'
                     osMessagePut(queue, '\n', osWaitForever);
                 ret = 1;
             } else {
-                osSemaphoreRelease(server_semaphore);             // unlock
+                osSemaphoreRelease(server_semaphore); // unlock
                 osDelay(10);
                 osSemaphoreWait(server_semaphore, osWaitForever); // lock
             }

@@ -60,11 +60,11 @@ SelftestFrameLoadcell::SelftestFrameLoadcell(window_t *parent, PhasesSelftest ph
 void SelftestFrameLoadcell::change() {
     SelftestLoadcell_t dt(data_current);
 
-    const char *txt_phase = nullptr;        // text_phase
-    const char *txt_result = nullptr;       // text_result
-    const char *txt_prebig = nullptr;       // text_prebig
-    string_view_utf8 txt_big;               // text_big
-    bool txt_big_blink = false;             // text_big
+    const char *txt_phase = nullptr; // text_phase
+    const char *txt_result = nullptr; // text_result
+    const char *txt_prebig = nullptr; // text_prebig
+    string_view_utf8 txt_big; // text_big
+    bool txt_big_blink = false; // text_big
     const img::Resource *icon_id = nullptr; // icon_hand
     switch (phase_current) {
     case PhasesSelftest::Loadcell_prepare:
@@ -84,7 +84,7 @@ void SelftestFrameLoadcell::change() {
         txt_phase = N_("Cooling down. Do not touch the nozzle!");
         icon_id = &img::hand_with_nozzle0_154x100;
 
-        int16_t temperature = dt.temperature;                                     // Make a local copy
+        int16_t temperature = dt.temperature; // Make a local copy
         if ((temperature < 0) || (temperature > 999)) {
             snprintf(txt_big_buffer, std::size(txt_big_buffer), "-\xC2\xB0\x43"); // Degree Celsius
         } else {

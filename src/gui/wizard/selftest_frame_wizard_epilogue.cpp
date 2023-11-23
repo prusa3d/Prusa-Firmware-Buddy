@@ -7,13 +7,8 @@
 #include "wizard_config.hpp"
 #include "img_resources.hpp"
 
-#if PRINTER_IS_PRUSA_MINI
 static constexpr size_t margin_texts = 0;
-static constexpr Align_t align_text_icon = Align_t::LeftTop();
-#else
-static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
 static constexpr Align_t align_text_icon = Align_t::CenterTop();
-#endif
 
 static constexpr Rect16 getTextRect() {
     Rect16 ret = GuiDefaults::RectScreenNoHeader;

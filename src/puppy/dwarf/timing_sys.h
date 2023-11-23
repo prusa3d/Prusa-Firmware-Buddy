@@ -10,6 +10,9 @@ extern TIM_HandleTypeDef TimerSysHandle;
 uint32_t HAL_GetTick(void);
 
 uint32_t ticks_ms();
+inline uint32_t last_ticks_ms() {
+    return ticks_ms();
+}
 
 #ifdef __cplusplus
 }

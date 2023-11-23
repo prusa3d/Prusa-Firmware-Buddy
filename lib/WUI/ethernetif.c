@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include "main.h"
 #include "metric.h"
+#include "pbuf_rx.h"
 #include "wui.h"
 #include "lwip/opt.h"
 #include "lwip/timeouts.h"
@@ -28,17 +29,17 @@
 #endif
 __ALIGN_BEGIN ETH_DMADescTypeDef DMARxDscrTab[ETH_RXBUFNB] __ALIGN_END; /* Ethernet Rx MA Descriptor */
 
-#if defined(__ICCARM__)                                                 /*!< IAR Compiler */
+#if defined(__ICCARM__) /*!< IAR Compiler */
     #pragma data_alignment = 4
 #endif
 __ALIGN_BEGIN ETH_DMADescTypeDef DMATxDscrTab[ETH_TXBUFNB] __ALIGN_END; /* Ethernet Tx DMA Descriptor */
 
-#if defined(__ICCARM__)                                                 /*!< IAR Compiler */
+#if defined(__ICCARM__) /*!< IAR Compiler */
     #pragma data_alignment = 4
 #endif
 __ALIGN_BEGIN uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE] __ALIGN_END; /* Ethernet Receive Buffer */
 
-#if defined(__ICCARM__)                                                  /*!< IAR Compiler */
+#if defined(__ICCARM__) /*!< IAR Compiler */
     #pragma data_alignment = 4
 #endif
 __ALIGN_BEGIN uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __ALIGN_END; /* Ethernet Transmit Buffer */
@@ -335,7 +336,7 @@ static struct pbuf *low_level_input(struct netif *netif) {
 
     if (len > 0) {
         /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
-        p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
+        p = pbuf_alloc_rx(len);
     }
 
     if (p != NULL) {
@@ -448,8 +449,8 @@ err_t ethernetif_init(struct netif *netif) {
     /* The user should write ist own code in low_level_output_arp_off function */
     netif->output = low_level_output_arp_off;
         #endif /* LWIP_ARP */
-    #endif     /* LWIP_ARP || LWIP_ETHERNET */
-#endif         /* LWIP_IPV4 */
+    #endif /* LWIP_ARP || LWIP_ETHERNET */
+#endif /* LWIP_IPV4 */
 
 #if LWIP_IPV6
     netif->output_ip6 = ethip6_output;

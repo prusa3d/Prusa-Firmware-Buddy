@@ -24,6 +24,18 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 
+class MI_STUCK_FILAMENT_DETECTION : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Stuck filament detection");
+    bool init_index() const;
+
+public:
+    MI_STUCK_FILAMENT_DETECTION()
+        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+
 class MI_LIVE_ADJUST_Z : public WI_LABEL_t {
     static constexpr const char *const label = N_("Live Adjust Z");
 
@@ -223,7 +235,7 @@ public:
 };
 
 class MI_TIMEZONE : public WiSpinInt {
-    constexpr static const char *const label = N_("Time Zone Offset"); // intentionally not translated
+    constexpr static const char *const label = N_("Time Zone Offset");
 
 public:
     MI_TIMEZONE();
@@ -231,7 +243,7 @@ public:
 };
 
 class MI_TIME_FORMAT : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = N_("Time Format"); // intentionally not translated
+    constexpr static const char *const label = N_("Time Format");
 
     constexpr static const char *str_24h = N_("24h");
     constexpr static const char *str_12h = N_("12h");
@@ -327,17 +339,17 @@ class MI_FS_REF : public IMI_FS_REF {
         if (IsSide) {
             switch (Index) {
             case 0:
-                return N_("Side FS ref 1");
+                return N_("Side FS not inserted ref 1");
             case 1:
-                return N_("Side FS ref 2");
+                return N_("Side FS not inserted ref 2");
             case 2:
-                return N_("Side FS ref 3");
+                return N_("Side FS not inserted ref 3");
             case 3:
-                return N_("Side FS ref 4");
+                return N_("Side FS not inserted ref 4");
             case 4:
-                return N_("Side FS ref 5");
+                return N_("Side FS not inserted ref 5");
             case 5:
-                return N_("Side FS ref 6");
+                return N_("Side FS not inserted ref 6");
             default:
                 consteval_assert_false();
                 return ""; // cannot happen
@@ -345,17 +357,17 @@ class MI_FS_REF : public IMI_FS_REF {
         } else {
             switch (Index) {
             case 0:
-                return N_("FS ref 1");
+                return N_("FS not inserted ref 1");
             case 1:
-                return N_("FS ref 2");
+                return N_("FS not inserted ref 2");
             case 2:
-                return N_("FS ref 3");
+                return N_("FS not inserted ref 3");
             case 3:
-                return N_("FS ref 4");
+                return N_("FS not inserted ref 4");
             case 4:
-                return N_("FS ref 5");
+                return N_("FS not inserted ref 5");
             case 5:
-                return N_("FS ref 6");
+                return N_("FS not inserted ref 6");
             default:
                 consteval_assert_false();
                 return ""; // cannot happen
@@ -393,6 +405,13 @@ public:
     MI_INFO_BOOTLOADER();
 };
 
+class MI_INFO_MMU : public WI_INFO_t {
+    static constexpr const char *const label = N_("MMU Version");
+
+public:
+    MI_INFO_MMU();
+};
+
 class MI_INFO_BOARD : public WI_INFO_t {
     static constexpr const char *const label = N_("Buddy Board");
 
@@ -405,15 +424,6 @@ class MI_INFO_SERIAL_NUM : public WiInfo<28> {
 
 public:
     MI_INFO_SERIAL_NUM();
-};
-
-class MI_METRICS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Allow Metrics");
-    static constexpr const char *const txt_confirm = N_("This will allow metrics to be enabled by G-code. It can send unencrypted diagnostics data to the internet. Do you really want to allow metrics?");
-
-public:
-    MI_METRICS_ENABLE();
-    virtual void OnChange(size_t old_index) override;
 };
 
 class MI_FS_AUTOLOAD : public WI_ICON_SWITCH_OFF_ON_t {
@@ -721,6 +731,16 @@ class MI_IS_CALIB : public WI_LABEL_t {
 
 public:
     MI_IS_CALIB();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_SET_READY : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Set Ready");
+
+public:
+    MI_SET_READY();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;

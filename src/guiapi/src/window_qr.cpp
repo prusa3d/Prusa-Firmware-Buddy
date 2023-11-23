@@ -7,7 +7,6 @@
 #include "gui.hpp"
 #include "display.h"
 #include "qrcodegen.h"
-#include "scratch_buffer.hpp"
 #include "support_utils.h"
 
 /// QR Window
@@ -56,13 +55,17 @@ const char *window_qr_t::GetQRShortText() {
 }
 
 void window_qr_t::unconditionalDraw() {
-    buddy::scratch_buffer::Ownership scratch_buffer_ownership;
-    scratch_buffer_ownership.acquire(/*wait=*/true);
-    uint8_t *qrcode = scratch_buffer_ownership.get().buffer;
-    uint8_t *qr_buff = qrcode + qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max);
+    /// Drawn QR code, 353 B on stack
+    uint8_t qrcode[qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max)];
 
-    if (!qrcodegen_encodeText(text, qr_buff, qrcode, qrcodegen_Ecc_LOW, 1, qr_version_max, qrcodegen_Mask_AUTO, true))
-        return;
+    { // Create QR code
+        /// Temporary buffer, 353 B using display buffer
+        display::BorrowBuffer buffer;
+        assert(display::BufferPixelSize() >= qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max));
+        if (!qrcodegen_encodeText(text, buffer, qrcode, qrcodegen_Ecc_LOW, 1, qr_version_max, qrcodegen_Mask_AUTO, true)) {
+            return;
+        }
+    }
 
     uint8_t ppm = px_per_module; /// pixels per module
     const uint16_t size = qrcodegen_getSize(qrcode);

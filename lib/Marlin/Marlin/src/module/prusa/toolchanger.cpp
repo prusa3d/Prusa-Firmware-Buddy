@@ -36,10 +36,10 @@ using namespace buddy::puppies;
 namespace arc_move {
 
 // generated arc parameters
-constexpr float arc_seg_len = 1.f;         // mm
-constexpr float arc_max_radius = 75.f;     // mm
-constexpr float arc_min_radius = 2.f;      // mm
-constexpr float arc_tg_jerk = 20.f;        // mm/s
+constexpr float arc_seg_len = 1.f; // mm
+constexpr float arc_max_radius = 75.f; // mm
+constexpr float arc_min_radius = 2.f; // mm
+constexpr float arc_tg_jerk = 20.f; // mm/s
 constexpr bool arc_backtravel_allow = true;
 constexpr float arc_backtravel_max = 1.5f; // 1/ratio
 
@@ -197,7 +197,7 @@ bool PrusaToolChanger::check_emergency_stop() {
     if (quick_stopped) {
         return true; // Movements quick stoped, avoid errors that result from interrupted tool-change moves
     }
-    #endif           /*ENABLED(CRASH_RECOVERY)*/
+    #endif /*ENABLED(CRASH_RECOVERY)*/
     return false;
 }
 
@@ -435,7 +435,7 @@ bool PrusaToolChanger::check_skipped_step() {
 
 void PrusaToolChanger::crash_deselect_dwarf() {
     if (active_extruder != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
-        prusa_toolchanger.request_active_switch(nullptr);          // Deselect dwarf
+        prusa_toolchanger.request_active_switch(nullptr); // Deselect dwarf
         const uint8_t old_tool_index = active_extruder;
         active_extruder = PrusaToolChanger::MARLIN_NO_TOOL_PICKED; // Mark no tool for Marlin
         update_software_endstops(X_AXIS, old_tool_index, PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
@@ -452,16 +452,16 @@ void PrusaToolChanger::toolcrash() {
     }
 
     if (((crash_s.get_state() == Crash_s::RECOVERY) && crash_s.is_toolchange_event()) // Already recovering, cannot disrupt crash_s, it will replay Tx gcode
-        || (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT)                       // Power panic, end quickly and don't do anything
-        || (crash_s.get_state() == Crash_s::TRIGGERED_ISR)                            // ISR crash happened, it will replay Tx gcode
-        || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLFALL)                       // Toolcrash is already in progress
+        || (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) // Power panic, end quickly and don't do anything
+        || (crash_s.get_state() == Crash_s::TRIGGERED_ISR) // ISR crash happened, it will replay Tx gcode
+        || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLFALL) // Toolcrash is already in progress
         || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH)
         || (crash_s.get_state() == Crash_s::REPEAT_WAIT)
         || (crash_s.get_state() == Crash_s::SELFTEST)
         || quick_stopped) {
         return; // Ignore
     }
-    #endif      /*ENABLED(CRASH_RECOVERY)*/
+    #endif /*ENABLED(CRASH_RECOVERY)*/
 
     // Can happen if toolchange is a part of replay, would need a bigger change in crash_recovery.cpp
     toolchanger_error("Tool crashed");
@@ -475,7 +475,7 @@ void PrusaToolChanger::toolfall() {
     }
 
     if ((crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) // Power panic, end quickly and don't do anything
-        || (crash_s.get_state() == Crash_s::IDLE)) {         // Print ended
+        || (crash_s.get_state() == Crash_s::IDLE)) { // Print ended
         return;
     }
     #endif /*ENABLED(CRASH_RECOVERY)*/
@@ -538,7 +538,7 @@ bool PrusaToolChanger::purge_tool(Dwarf &dwarf) {
 void PrusaToolChanger::loop(bool printing) {
     // WARNING: called from default(marlin) task
 
-    if (block_tool_check.load()         // This function can be blocked
+    if (block_tool_check.load() // This function can be blocked
         || !is_toolchanger_enabled()) { // Ignore on singletool
         return;
     }
@@ -550,9 +550,9 @@ void PrusaToolChanger::loop(bool printing) {
         picked_update = false;
 
         // Automatically change tool
-        if (force_toolchange_gcode.load()                                                        // Force toolchange after reset to force all marlin tool variables
-            || ((picked != active)                                                               // When user parked or picked manually
-                && (printing == false)                                                           // Only if not printing
+        if (force_toolchange_gcode.load() // Force toolchange after reset to force all marlin tool variables
+            || ((picked != active) // When user parked or picked manually
+                && (printing == false) // Only if not printing
                 && (queue.has_commands_queued() == false) && (planner.processing() == false))) { // And nothing is in queue
             force_toolchange_gcode = false;
 
@@ -667,7 +667,7 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
         log_warning(PrusaToolChanger, "Dwarf %u not parked, trying to wiggle it in", dwarf.get_dwarf_nr());
 
         move(info.dock_x - DOCK_WIGGLE_OFFSET, info.dock_y, SLOW_MOVE_MM_S); // wiggle left
-        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);                      // wiggle back
+        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // wiggle back
         planner.synchronize();
 
         if (!wait(dwarf_parked, WAIT_TIME_TOOL_PARKED_PICKED)) {
@@ -731,9 +731,9 @@ bool PrusaToolChanger::align_locks() {
     // Bump right edge
     if (!homeaxis(X_AXIS, 0, true)) {
         CBI(axis_known_position, X_AXIS); // Needs homing
-        return false;                     // Failed to bump right edge
+        return false; // Failed to bump right edge
     }
-    CBI(axis_known_position, X_AXIS);     // Needs homing after
+    CBI(axis_known_position, X_AXIS); // Needs homing after
     current_position.x = X_MAX_POS;
     sync_plan_position();
 
@@ -761,10 +761,10 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
 
     const PrusaToolInfo &info = get_tool_info(dwarf, /*check_calibrated=*/true);
 
-    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s);          // go in front of the tool
-    move(info.dock_x, info.dock_y + PICK_Y_OFFSET, feedrate_mm_s);  // pre-insert fast the tool
+    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // go in front of the tool
+    move(info.dock_x, info.dock_y + PICK_Y_OFFSET, feedrate_mm_s); // pre-insert fast the tool
     planner.settings.travel_acceleration = SLOW_ACCELERATION_MM_S2; // low acceleration
-    move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);                 // insert slowly the last mm to allow part fitting + soft touch between TCM and tool thanks to the gentle deceleration
+    move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // insert slowly the last mm to allow part fitting + soft touch between TCM and tool thanks to the gentle deceleration
     planner.synchronize();
 
     // Wait until dwarf is registering as picked
@@ -772,7 +772,7 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
         log_warning(PrusaToolChanger, "Dwarf %u not picked, trying to wiggle it in", dwarf.get_dwarf_nr());
 
         move(info.dock_x, info.dock_y + DOCK_WIGGLE_OFFSET, SLOW_MOVE_MM_S); // wiggle pull
-        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);                      // wiggle back
+        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // wiggle back
         planner.synchronize();
 
         if (!wait(dwarf_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
@@ -793,7 +793,7 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
     stepperY.stall_sensitivity(PARKING_STALL_SENSITIVITY);
 
     move(info.dock_x + PICK_X_OFFSET_1, info.dock_y, SLOW_MOVE_MM_S); // accelerate gently to low speed to gently place the tool against the TCM
-    conf_restorer.restore_acceleration();                             // back to high acceleration
+    conf_restorer.restore_acceleration(); // back to high acceleration
     move(info.dock_x + PICK_X_OFFSET_2, info.dock_y, SLOW_MOVE_MM_S); // this line is just to allow a gentle acceleration and a quick deceleration
     move(info.dock_x + PICK_X_OFFSET_3, info.dock_y, SLOW_MOVE_MM_S);
     planner.synchronize();

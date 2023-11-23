@@ -9,6 +9,7 @@
 
 #pragma once
 #include "eeprom_v4.hpp"
+#include "config.h"
 
 namespace config_store_ns::old_eeprom::v6 {
 
@@ -47,13 +48,13 @@ struct vars_body_t {
 #pragma pack(pop)
 
 constexpr vars_body_t body_defaults = {
-    0,          // EEVAR_FILAMENT_TYPE
-    0,          // EEVAR_FILAMENT_COLOR
-    true,       // EEVAR_RUN_SELFTEST
-    true,       // EEVAR_RUN_XYZCALIB
-    true,       // EEVAR_RUN_FIRSTLAY
-    true,       // EEVAR_FSENSOR_ENABLED
-    0,          // EEVAR_ZOFFSET
+    0, // EEVAR_FILAMENT_TYPE
+    0, // EEVAR_FILAMENT_COLOR
+    true, // EEVAR_RUN_SELFTEST
+    true, // EEVAR_RUN_XYZCALIB
+    true, // EEVAR_RUN_FIRSTLAY
+    true, // EEVAR_FSENSOR_ENABLED
+    0, // EEVAR_ZOFFSET
 #ifdef DEFAULT_Kp
     DEFAULT_Kp, // EEVAR_PID_NOZ_P
 #else
@@ -84,15 +85,15 @@ constexpr vars_body_t body_defaults = {
 #else
     0,
 #endif
-    0,                // EEVAR_LAN_FLAG
-    0,                // EEVAR_LAN_IP4_ADDR
-    0,                // EEVAR_LAN_IP4_MSK
-    0,                // EEVAR_LAN_IP4_GW
-    0,                // EEVAR_LAN_IP4_DNS1
-    0,                // EEVAR_LAN_IP4_DNS2
+    0, // EEVAR_LAN_FLAG
+    0, // EEVAR_LAN_IP4_ADDR
+    0, // EEVAR_LAN_IP4_MSK
+    0, // EEVAR_LAN_IP4_GW
+    0, // EEVAR_LAN_IP4_DNS1
+    0, // EEVAR_LAN_IP4_DNS2
     LAN_HOSTNAME_DEF, // EEVAR_LAN_HOSTNAME
-    1,                // EEVAR_TIMEZONE
-    0xff,             // EEVAR_SOUND_MODE
+    1, // EEVAR_TIMEZONE
+    0xff, // EEVAR_SOUND_MODE
 };
 
 inline vars_body_t convert(const old_eeprom::v4::vars_body_t &src) {

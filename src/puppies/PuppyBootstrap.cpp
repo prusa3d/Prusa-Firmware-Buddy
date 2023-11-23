@@ -53,10 +53,6 @@ const char *PuppyBootstrap::Progress::description() {
         return "?";
 }
 
-PuppyBootstrap::PuppyBootstrap(ProgressHook aprogressHook)
-    : progressHook(aprogressHook) {
-}
-
 bool PuppyBootstrap::attempt_crash_dump_download(Dock dock, BootloaderProtocol::Address address) {
     flasher.set_address(address);
     std::array<uint8_t, BootloaderProtocol::MAX_RESPONSE_DATA_LEN> buffer;
@@ -350,7 +346,7 @@ bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address addres
     // Here it is possible to read raw puppy's OTP before flashing, perhaps to flash a different firmware
     if (protocol_version >= 0x0302) { // OTP read was added in protocol 0x0302
 
-        uint8_t otp[32];              // OTP v5 will fit to 32 Bytes
+        uint8_t otp[32]; // OTP v5 will fit to 32 Bytes
         if (check_status(flasher.read_otp_cmd(0, otp, 32)) == false) {
             return false;
         }
@@ -469,9 +465,9 @@ void PuppyBootstrap::wait_for_fingerprint(uint32_t calculation_start) {
     while (1) {
         BootloaderProtocol::status_t status = flasher.get_protocolversion(protocol_version); // Test if puppy is communicating
 
-        if (status == BootloaderProtocol::status_t::COMMAND_OK)                              // Any response from puppy means it is ready
+        if (status == BootloaderProtocol::status_t::COMMAND_OK) // Any response from puppy means it is ready
         {
-            return;                                                                          // Done
+            return; // Done
         }
 
         if (ticks_diff(calculation_start + WAIT_TIME, ticks_ms()) < 0) {

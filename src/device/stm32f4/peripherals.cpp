@@ -4,6 +4,7 @@
 #include <atomic>
 #include "Pin.hpp"
 #include "hwio_pindef.h"
+#include "safe_state.h"
 #include "main.h"
 #include "adc.hpp"
 #include "timer_defaults.h"
@@ -225,9 +226,6 @@ void hw_dma_init() {
     // DMA2_Stream5_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
-    // DMA2_Stream6_IRQn interrupt configuration
-    HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, ISR_PRIORITY_DEFAULT, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
     // DMA2_Stream7_IRQn interrupt configuration
     #if PRINTER_IS_PRUSA_iX
     HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
@@ -272,6 +270,9 @@ void hw_dma_init() {
     // DMA2_Stream2_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
+    // DMA2_Stream6_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, ISR_PRIORITY_DEFAULT, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
 }
 
 void static config_adc(ADC_HandleTypeDef *hadc, ADC_TypeDef *ADC_NUM, uint32_t NbrOfConversion) {
@@ -493,25 +494,23 @@ static constexpr uint32_t i2c_get_edge_us(uint32_t clk) {
  * @param scl   pin of clock
  */
 static void i2c_unblock_sda(uint32_t clk, hw_pin sda, hw_pin scl) {
-    delay_us_precise(i2c_get_edge_us(clk));                       // half period - ensure first edge is not too short
-    for (size_t i = 0; i < 9; ++i) {                              // 9 pulses, there is no point to try it more times - 9th bit is ACK (will be NACK)
-        HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET);        // set clock to '1'
-        delay_us_precise(i2c_get_edge_us(clk));                   // wait half period
+    delay_us_precise(i2c_get_edge_us(clk)); // half period - ensure first edge is not too short
+    for (size_t i = 0; i < 9; ++i) { // 9 pulses, there is no point to try it more times - 9th bit is ACK (will be NACK)
+        HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET); // set clock to '1'
+        delay_us_precise(i2c_get_edge_us(clk)); // wait half period
         if (HAL_GPIO_ReadPin(sda.port, sda.no) == GPIO_PIN_SET) { // check if slave does not pull SDA to '0' while SCL == 1
-            return;                                               // sda is not pulled by a slave, it is done
+            return; // sda is not pulled by a slave, it is done
         }
 
         HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_RESET); // set clock to '0'
-        delay_us_precise(i2c_get_edge_us(clk));              // wait half period
+        delay_us_precise(i2c_get_edge_us(clk)); // wait half period
     }
 
     // in case code reaches this, there is some HW issue
     // but we cannot log it or rise red screen, it is too early
 #ifdef _DEBUG
     // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
+    buddy_breakpoint_disable_heaters();
 #endif
     HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET); // this code should never be reached, just in case it was set clock to '1'
 }
@@ -528,17 +527,17 @@ static void i2c_unblock_sda(uint32_t clk, hw_pin sda, hw_pin scl) {
  * @param scl   pin of clock
  */
 static void i2c_free_bus_in_case_of_slave_deadlock(uint32_t clk, hw_pin sda, hw_pin scl) {
-    set_pin_in(sda);                                            // configure SDA to input
+    set_pin_in(sda); // configure SDA to input
     if (HAL_GPIO_ReadPin(sda.port, sda.no) == GPIO_PIN_RESET) { // check if slave pulls SDA to '0' while SCL == 1
-        set_pin_od(scl);                                        // configure SCL to open-drain
-        i2c_unblock_sda(clk, sda, scl);                         // get SDA pin in state pin can be "moved"
+        set_pin_od(scl); // configure SCL to open-drain
+        i2c_unblock_sda(clk, sda, scl); // get SDA pin in state pin can be "moved"
     }
 
-    set_pin_od(sda);                                     // reconfigure SDA to open-drain, to be able to move it
+    set_pin_od(sda); // reconfigure SDA to open-drain, to be able to move it
     HAL_GPIO_WritePin(sda.port, sda.no, GPIO_PIN_RESET); // set SDA to '0' while SCL == '1' - start condition
-    delay_us_precise(i2c_get_edge_us(clk));              // wait half period
+    delay_us_precise(i2c_get_edge_us(clk)); // wait half period
     HAL_GPIO_WritePin(sda.port, sda.no, GPIO_PIN_RESET); // set SDA to '1' while SCL == '1' - stop condition
-    delay_us_precise(i2c_get_edge_us(clk));              // wait half period
+    delay_us_precise(i2c_get_edge_us(clk)); // wait half period
 }
 
 #if HAS_I2CN(1)
@@ -819,7 +818,7 @@ void hw_tim1_init() {
     htim1.Instance = TIM1;
     htim1.Init.Prescaler = TIM1_default_Prescaler; // 0x3fff was 100;
     htim1.Init.CounterMode = TIM_COUNTERMODE_DOWN;
-    htim1.Init.Period = TIM1_default_Period;       // 0xff was 42000;
+    htim1.Init.Period = TIM1_default_Period; // 0xff was 42000;
     htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim1.Init.RepetitionCounter = 0;
     if (HAL_TIM_Base_Init(&htim1) != HAL_OK) {

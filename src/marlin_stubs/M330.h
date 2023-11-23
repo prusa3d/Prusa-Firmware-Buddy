@@ -5,7 +5,7 @@
 
 namespace PrusaGcodeSuite {
 
-/// @name Metric-related GCodes.
+/// @name Metric related GCodes.
 ///
 /// TODO: This is WIP. Those Gcodes need redesign.
 /// @{

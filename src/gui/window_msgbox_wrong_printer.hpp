@@ -11,8 +11,13 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
     static constexpr const char *txt_wrong_printer_model = N_("printer model doesn't match");
     static constexpr const char *txt_compatibility_mode = N_("it will run in MK3-compatibility mode");
     static constexpr const char *txt_wrong_gcode_level = N_("G-code version doesn't match");
+#if defined(USE_ILI9488)
     static constexpr const char *txt_old_firmware = N_("newer firmware is required");
     static constexpr const char *txt_unsupported_features = N_("following features are required:");
+#elif defined(USE_ST7789)
+    static constexpr const char *txt_old_firmware = N_("Newer FW req.");
+    static constexpr const char *txt_unsupported_features = N_("Features required:");
+#endif
 
     struct Message {
         Message(window_t *parent, const char *text, HWCheckSeverity severity, bool valid);
@@ -22,7 +27,7 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
     };
     const GCodeInfo::ValidPrinterSettings &valid_printer_settings;
     std::array<Message, 5> messages;
-    Message wrong_fw_message;            ///< Message with new firmware
+    Message wrong_fw_message; ///< Message with new firmware
     window_text_t wrong_fw_version_text; ///< Display which firmware version
     Message unsupported_features;
     window_text_t unsupported_features_text;

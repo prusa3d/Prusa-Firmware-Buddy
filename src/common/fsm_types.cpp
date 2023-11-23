@@ -225,8 +225,8 @@ bool Queue::has_opened_fsm() const {
 }
 
 bool Queue::has_pending_create_command() const {
-    return data_to_send                                                     // we have data to send
-        && (data_to_send->get_fsm_type() != ClientFSM::_none)               // ClientFSM::_none would be destroy command
+    return data_to_send // we have data to send
+        && (data_to_send->get_fsm_type() != ClientFSM::_none) // ClientFSM::_none would be destroy command
         && (data_to_send->get_fsm_type() != last_sent_data.get_fsm_type()); // the same fsm type would be change command
 }
 

@@ -70,7 +70,7 @@ const char *sntp_getservername(u8_t idx);
 
 #if SNTP_GET_SERVERS_FROM_DHCP || SNTP_GET_SERVERS_FROM_DHCPV6
 void sntp_servermode_dhcp(int set_servers_from_dhcp);
-#else  /* SNTP_GET_SERVERS_FROM_DHCP || SNTP_GET_SERVERS_FROM_DHCPV6 */
+#else /* SNTP_GET_SERVERS_FROM_DHCP || SNTP_GET_SERVERS_FROM_DHCPV6 */
     #define sntp_servermode_dhcp(x)
 #endif /* SNTP_GET_SERVERS_FROM_DHCP || SNTP_GET_SERVERS_FROM_DHCPV6 */
 

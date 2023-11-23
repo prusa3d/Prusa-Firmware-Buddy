@@ -16,24 +16,25 @@ namespace connect_client {
 
 class PreviewRenderer final : public json::ChunkRenderer {
 private:
-    GCodeThumbDecoder decoder;
+    AnyGcodeFormatReader *gcode;
     bool started = false;
 
 public:
-    PreviewRenderer(FILE *f);
+    PreviewRenderer(AnyGcodeFormatReader *gcode)
+        : gcode(gcode) {}
     virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override;
 };
 
 class GcodeMetaRenderer final : public json::ChunkRenderer {
 private:
-    FILE *f;
-    long resume_position = 0;
+    AnyGcodeFormatReader *gcode;
+    GcodeBuffer gcode_line_buffer;
+    bool first_run = true;
 
 public:
-    GcodeMetaRenderer(FILE *f)
-        : f(f) {}
-    GcodeMetaRenderer(GcodeMetaRenderer &&other) = default;
-    GcodeMetaRenderer &operator=(GcodeMetaRenderer &&other) = default;
+    GcodeMetaRenderer(AnyGcodeFormatReader *gcode)
+        : gcode(gcode) {}
+
     virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override;
 };
 
@@ -42,6 +43,8 @@ struct DirState {
     const char *base_path;
     size_t child_cnt = 0;
     bool first = true;
+    bool read_only = false;
+    std::optional<size_t> childsize = std::nullopt;
     struct dirent *ent = nullptr;
 };
 
@@ -56,8 +59,7 @@ public:
 // An open file + bunch of decoders for it.
 struct FileExtra {
 private:
-    // Just to make sure it's automatically closed when the time comes.
-    unique_file_ptr file;
+    std::unique_ptr<AnyGcodeFormatReader> gcode_reader;
     // Note: The order matters, GcodeMetaRenderer is able to "rewind" the file as
     // needed, the PreviewRenderer doesn't do so.
     using GcodeExtra = json::PairRenderer<PreviewRenderer, GcodeMetaRenderer>;
@@ -65,7 +67,7 @@ private:
 public:
     json::VariantRenderer<json::EmptyRenderer, GcodeExtra, DirRenderer> renderer;
     FileExtra() = default;
-    FileExtra(unique_file_ptr file);
+    FileExtra(std::unique_ptr<AnyGcodeFormatReader> gcode_reader_);
     FileExtra(const char *base_path, unique_dir_ptr dir);
 };
 
@@ -74,6 +76,7 @@ struct RenderState {
     const Action &action;
     Tracked &telemetry_changes;
     bool has_stat = false;
+    bool read_only = false;
     struct stat st;
     FileExtra file_extra;
     // XXX: Variantize

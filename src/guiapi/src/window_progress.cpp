@@ -51,7 +51,8 @@ void window_numberless_progress_t::unconditionalDraw() {
     // Draw background
     if (rc.Width()) {
         if (corner_radius) {
-            display::DrawRoundedRect(rc, screen_background, GetBackColor(), corner_radius, MIC_TOP_RIGHT | MIC_BOT_RIGHT);
+            uint8_t corner_flag = Left() == rc.Left() ? MIC_ALL_CORNERS : MIC_TOP_RIGHT | MIC_BOT_RIGHT;
+            display::DrawRoundedRect(rc, screen_background, GetBackColor(), corner_radius, corner_flag);
         } else {
             display::FillRect(rc, GetBackColor());
         }
@@ -61,8 +62,9 @@ void window_numberless_progress_t::unconditionalDraw() {
     // Draw progress
     if (rc.Width()) {
         if (corner_radius) {
+            color_t secondary_clr = GetProgressPixels() == GetRect().Width() ? screen_background : GetBackColor();
             display::DrawRoundedRect(rc, screen_background, color_progress, corner_radius,
-                MIC_ALL_CORNERS | MIC_ALT_CL_TOP_RIGHT | MIC_ALT_CL_BOT_RIGHT, GetBackColor());
+                MIC_ALL_CORNERS | MIC_ALT_CL_TOP_RIGHT | MIC_ALT_CL_BOT_RIGHT, secondary_clr);
         } else {
             display::FillRect(rc, color_progress);
         }
@@ -109,6 +111,14 @@ void window_progress_t::SetProgressHeight(Rect16::Height_t height) {
         progr.Invalidate();
         numb -= height;
         numb.Invalidate();
+    }
+}
+
+void window_progress_t::SetProgressPercent(uint8_t val) {
+    if (val != numb.GetValue()) {
+        progr.SetProgressPercent(val);
+        numb.SetValue(val);
+        Invalidate();
     }
 }
 

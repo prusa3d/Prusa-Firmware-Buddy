@@ -27,7 +27,7 @@
 input_shaper_state_t InputShaper::is_state[3];
 input_shaper_pulses_t InputShaper::logical_axis_pulses[3];
 
-static void init_input_shaper_pulses(const double a[], const double t[], const int num_pulses, input_shaper_pulses_t *is_pulses) {
+static void init_input_shaper_pulses(const float a[], const float t[], const int num_pulses, input_shaper_pulses_t *is_pulses) {
     double sum_a = 0.;
     for (int i = 0; i < num_pulses; ++i)
         sum_a += a[i];
@@ -50,112 +50,114 @@ static void init_input_shaper_pulses(const double a[], const double t[], const i
     is_pulses->num_pulses = num_pulses;
 }
 
-input_shaper::Shaper input_shaper::get(const double damping_ratio, const double shaper_freq, const double vibration_reduction, const input_shaper::Type type) {
-    if (shaper_freq <= 0.)
+input_shaper::Shaper input_shaper::get(const float damping_ratio, const float shaper_freq, const float vibration_reduction, const input_shaper::Type type) {
+    if (shaper_freq <= 0.f)
         bsod("Zero or negative frequency of input shaper.");
+    else if (damping_ratio >= 1.f)
+        bsod("Damping ration must always be less than 1.");
 
     switch (type) {
     case Type::zv: {
         constexpr int num_pulses = 2;
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
-        const double K = std::exp(-damping_ratio * M_PI / df);
-        const double t_d = 1. / (shaper_freq * df);
+        const float df = std::sqrt(1.f - SQR(damping_ratio));
+        const float K = std::exp(-damping_ratio * float(M_PI) / df);
+        const float t_d = 1.f / (shaper_freq * df);
 
-        const double a[num_pulses] = { 1., K };
-        const double t[num_pulses] = { 0., .5 * t_d };
+        const float a[num_pulses] = { 1.f, K };
+        const float t[num_pulses] = { 0.f, .5f * t_d };
 
         input_shaper::Shaper shaper(a, t, num_pulses);
         return shaper;
     }
     case Type::zvd: {
         constexpr int num_pulses = 3;
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
-        const double K = std::exp(-damping_ratio * M_PI / df);
-        const double t_d = 1. / (shaper_freq * df);
+        const float df = std::sqrt(1.f - SQR(damping_ratio));
+        const float K = std::exp(-damping_ratio * float(M_PI) / df);
+        const float t_d = 1.f / (shaper_freq * df);
 
-        const double a[num_pulses] = { 1., 2. * K, std::pow(K, 2) };
-        const double t[num_pulses] = { 0., .5 * t_d, t_d };
+        const float a[num_pulses] = { 1.f, 2.f * K, SQR(K) };
+        const float t[num_pulses] = { 0.f, .5f * t_d, t_d };
 
         input_shaper::Shaper shaper(a, t, num_pulses);
         return shaper;
     }
     case Type::mzv: {
         constexpr int num_pulses = 3;
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
-        const double K = std::exp(-.75 * damping_ratio * M_PI / df);
-        const double t_d = 1. / (shaper_freq * df);
+        const float df = std::sqrt(1.f - SQR(damping_ratio));
+        const float K = std::exp(-.75f * damping_ratio * float(M_PI) / df);
+        const float t_d = 1.f / (shaper_freq * df);
 
-        const double a1 = 1. - 1. / std::sqrt(2.);
-        const double a2 = (std::sqrt(2.) - 1.) * K;
-        const double a3 = a1 * K * K;
+        const float a1 = 1.f - 1.f / std::sqrt(2.f);
+        const float a2 = (std::sqrt(2.f) - 1.f) * K;
+        const float a3 = a1 * K * K;
 
-        const double a[num_pulses] = { a1, a2, a3 };
-        const double t[num_pulses] = { 0., .375 * t_d, .75 * t_d };
+        const float a[num_pulses] = { a1, a2, a3 };
+        const float t[num_pulses] = { 0.f, .375f * t_d, .75f * t_d };
 
         input_shaper::Shaper shaper(a, t, num_pulses);
         return shaper;
     }
     case Type::ei: {
         constexpr int num_pulses = 3;
-        const double v_tol = 1. / vibration_reduction; // vibration tolerance
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
-        const double K = std::exp(-damping_ratio * M_PI / df);
-        const double t_d = 1. / (shaper_freq * df);
+        const float v_tol = 1.f / vibration_reduction; // vibration tolerance
+        const float df = std::sqrt(1.f - SQR(damping_ratio));
+        const float K = std::exp(-damping_ratio * float(M_PI) / df);
+        const float t_d = 1.f / (shaper_freq * df);
 
-        const double a1 = .25 * (1. + v_tol);
-        const double a2 = .5 * (1. - v_tol) * K;
-        const double a3 = a1 * K * K;
+        const float a1 = .25f * (1.f + v_tol);
+        const float a2 = .5f * (1.f - v_tol) * K;
+        const float a3 = a1 * K * K;
 
-        double a[num_pulses] = { a1, a2, a3 };
-        double t[num_pulses] = { 0., .5 * t_d, t_d };
+        float a[num_pulses] = { a1, a2, a3 };
+        float t[num_pulses] = { 0.f, .5f * t_d, t_d };
 
         input_shaper::Shaper shaper(a, t, num_pulses);
         return shaper;
     }
     case Type::ei_2hump: {
         constexpr int num_pulses = 4;
-        const double v_tol = 1. / vibration_reduction; // vibration tolerance
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
-        const double K = std::exp(-damping_ratio * M_PI / df);
-        const double t_d = 1. / (shaper_freq * df);
-        const double V2 = std::pow(v_tol, 2.);
-        const double X = std::pow(V2 * (std::sqrt(1. - V2) + 1.), 1. / 3.);
+        const float v_tol = 1.f / vibration_reduction; // vibration tolerance
+        const float df = std::sqrt(1.f - SQR(damping_ratio));
+        const float K = std::exp(-damping_ratio * float(M_PI) / df);
+        const float t_d = 1.f / (shaper_freq * df);
+        const float V2 = SQR(v_tol);
+        const float X = std::pow(V2 * (std::sqrt(1.f - V2) + 1.f), 1.f / 3.f);
 
-        const double a1 = (3. * X * X + 2. * X + 3. * V2) / (16. * X);
-        const double a2 = (.5 - a1) * K;
-        const double a3 = a2 * K;
-        const double a4 = a1 * K * K * K;
+        const float a1 = (3.f * X * X + 2.f * X + 3.f * V2) / (16.f * X);
+        const float a2 = (.5f - a1) * K;
+        const float a3 = a2 * K;
+        const float a4 = a1 * K * K * K;
 
-        double a[num_pulses] = { a1, a2, a3, a4 };
-        double t[num_pulses] = { 0., .5 * t_d, t_d, 1.5 * t_d };
+        float a[num_pulses] = { a1, a2, a3, a4 };
+        float t[num_pulses] = { 0.f, .5f * t_d, t_d, 1.5f * t_d };
 
         input_shaper::Shaper shaper(a, t, num_pulses);
         return shaper;
     }
     case Type::ei_3hump: {
         constexpr int num_pulses = 5;
-        const double v_tol = 1. / vibration_reduction; // vibration tolerance
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
-        const double K = std::exp(-damping_ratio * M_PI / df);
-        const double t_d = 1. / (shaper_freq * df);
-        const double K2 = K * K;
+        const float v_tol = 1.f / vibration_reduction; // vibration tolerance
+        const float df = std::sqrt(1.f - SQR(damping_ratio));
+        const float K = std::exp(-damping_ratio * float(M_PI) / df);
+        const float t_d = 1.f / (shaper_freq * df);
+        const float K2 = K * K;
 
-        const double a1 = 0.0625 * (1. + 3. * v_tol + 2. * std::sqrt(2. * (v_tol + 1.) * v_tol));
-        const double a2 = 0.25 * (1. - v_tol) * K;
-        const double a3 = (0.5 * (1. + v_tol) - 2. * a1) * K2;
-        const double a4 = a2 * K2;
-        const double a5 = a1 * K2 * K2;
+        const float a1 = 0.0625f * (1.f + 3.f * v_tol + 2.f * std::sqrt(2.f * (v_tol + 1.f) * v_tol));
+        const float a2 = 0.25f * (1.f - v_tol) * K;
+        const float a3 = (0.5f * (1.f + v_tol) - 2.f * a1) * K2;
+        const float a4 = a2 * K2;
+        const float a5 = a1 * K2 * K2;
 
-        double a[num_pulses] = { a1, a2, a3, a4, a5 };
-        double t[num_pulses] = { 0., .5 * t_d, t_d, 1.5 * t_d, 2. * t_d };
+        float a[num_pulses] = { a1, a2, a3, a4, a5 };
+        float t[num_pulses] = { 0.f, .5f * t_d, t_d, 1.5f * t_d, 2.f * t_d };
 
         input_shaper::Shaper shaper(a, t, num_pulses);
         return shaper;
     }
     case Type::null: {
         constexpr int num_pulses = 1;
-        double a[num_pulses] = { 1. };
-        double t[num_pulses] = { 0. };
+        float a[num_pulses] = { 1.f };
+        float t[num_pulses] = { 0.f };
 
         input_shaper::Shaper shaper(a, t, num_pulses);
         return shaper;
@@ -164,42 +166,42 @@ input_shaper::Shaper input_shaper::get(const double damping_ratio, const double 
     bsod("input_shaper::Type out of range");
 }
 
-input_shaper_pulses_t create_zv_input_shaper_pulses(const double shaper_freq, const double damping_ratio) {
-    input_shaper::Shaper shaper = input_shaper::get(damping_ratio, shaper_freq, 0., input_shaper::Type::zv);
+input_shaper_pulses_t create_zv_input_shaper_pulses(const float shaper_freq, const float damping_ratio) {
+    input_shaper::Shaper shaper = input_shaper::get(damping_ratio, shaper_freq, 0.f, input_shaper::Type::zv);
     input_shaper_pulses_t is_pulses;
     init_input_shaper_pulses(shaper.a, shaper.t, shaper.num_pulses, &is_pulses);
     return is_pulses;
 }
 
-input_shaper_pulses_t create_zvd_input_shaper_pulses(const double shaper_freq, const double damping_ratio) {
-    input_shaper::Shaper shaper = input_shaper::get(damping_ratio, shaper_freq, 0., input_shaper::Type::zvd);
+input_shaper_pulses_t create_zvd_input_shaper_pulses(const float shaper_freq, const float damping_ratio) {
+    input_shaper::Shaper shaper = input_shaper::get(damping_ratio, shaper_freq, 0.f, input_shaper::Type::zvd);
     input_shaper_pulses_t is_pulses;
     init_input_shaper_pulses(shaper.a, shaper.t, shaper.num_pulses, &is_pulses);
     return is_pulses;
 }
 
-input_shaper_pulses_t create_mzv_input_shaper_pulses(const double shaper_freq, const double damping_ratio) {
-    input_shaper::Shaper shaper = input_shaper::get(damping_ratio, shaper_freq, 0., input_shaper::Type::mzv);
+input_shaper_pulses_t create_mzv_input_shaper_pulses(const float shaper_freq, const float damping_ratio) {
+    input_shaper::Shaper shaper = input_shaper::get(damping_ratio, shaper_freq, 0.f, input_shaper::Type::mzv);
     input_shaper_pulses_t is_pulses;
     init_input_shaper_pulses(shaper.a, shaper.t, shaper.num_pulses, &is_pulses);
     return is_pulses;
 }
 
-input_shaper_pulses_t create_ei_input_shaper_pulses(const double shaper_freq, const double damping_ratio, const double vibration_reduction) {
+input_shaper_pulses_t create_ei_input_shaper_pulses(const float shaper_freq, const float damping_ratio, const float vibration_reduction) {
     input_shaper::Shaper shaper = input_shaper::get(damping_ratio, shaper_freq, vibration_reduction, input_shaper::Type::ei);
     input_shaper_pulses_t is_pulses;
     init_input_shaper_pulses(shaper.a, shaper.t, shaper.num_pulses, &is_pulses);
     return is_pulses;
 }
 
-input_shaper_pulses_t create_2hump_ei_input_shaper_pulses(const double shaper_freq, const double damping_ratio, const double vibration_reduction) {
+input_shaper_pulses_t create_2hump_ei_input_shaper_pulses(const float shaper_freq, const float damping_ratio, const float vibration_reduction) {
     input_shaper::Shaper shaper = input_shaper::get(damping_ratio, shaper_freq, vibration_reduction, input_shaper::Type::ei_2hump);
     input_shaper_pulses_t is_pulses;
     init_input_shaper_pulses(shaper.a, shaper.t, shaper.num_pulses, &is_pulses);
     return is_pulses;
 }
 
-input_shaper_pulses_t create_3hump_ei_input_shaper_pulses(const double shaper_freq, const double damping_ratio, const double vibration_reduction) {
+input_shaper_pulses_t create_3hump_ei_input_shaper_pulses(const float shaper_freq, const float damping_ratio, const float vibration_reduction) {
     input_shaper::Shaper shaper = input_shaper::get(damping_ratio, shaper_freq, vibration_reduction, input_shaper::Type::ei_3hump);
     input_shaper_pulses_t is_pulses;
     init_input_shaper_pulses(shaper.a, shaper.t, shaper.num_pulses, &is_pulses);
@@ -271,7 +273,7 @@ void input_shaper_state_init(input_shaper_state_t &is_state, const move_t &move,
     is_state.is_crossing_zero_velocity = false;
 }
 
-static int input_shaper_state_step_dir(input_shaper_state_t &is_state) {
+static bool input_shaper_state_step_dir(input_shaper_state_t &is_state) {
     // Previously we ensured that none of micro move segments would cross zero velocity.
     // So this function can correctly determine step_dir only when this assumption is met.
 
@@ -327,8 +329,8 @@ bool logical_axis_input_shaper_t::update(const input_shaper_state_t &axis_is) {
         m_start_v = start_v + 2. * half_accel * move_t;
         m_half_accel = half_accel;
     } else {
-        const double half_velocity_diff = m_half_accel * move_elapsed_time;     // (1/2) * a * t
-        m_start_pos += (m_start_v + half_velocity_diff) * move_elapsed_time;    // (v0 + (1/2) * a * t) * t
+        const double half_velocity_diff = m_half_accel * move_elapsed_time; // (1/2) * a * t
+        m_start_pos += (m_start_v + half_velocity_diff) * move_elapsed_time; // (v0 + (1/2) * a * t) * t
         m_start_v += 2. * half_velocity_diff + weighted_velocity_discontinuity; // a * t
         m_half_accel = this->calc_half_accel();
 
@@ -452,7 +454,7 @@ static bool input_shaper_state_update(input_shaper_state_t &is_state, const int 
 }
 
 FORCE_INLINE float calc_time_for_distance(const input_shaper_step_generator_t &step_generator, const float distance) {
-    return calc_time_for_distance(step_generator.start_v, step_generator.accel, distance, step_generator.is_state->step_dir);
+    return std::max(calc_time_for_distance(step_generator.start_v, step_generator.accel, distance, step_generator.is_state->step_dir), 0.f);
 }
 
 FORCE_INLINE void input_shaper_step_generator_update(input_shaper_step_generator_t &step_generator) {
@@ -462,28 +464,24 @@ FORCE_INLINE void input_shaper_step_generator_update(input_shaper_step_generator
     step_generator.step_dir = step_generator.is_state->step_dir;
 }
 
-step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_generator_t &step_generator, step_generator_state_t &step_generator_state, const double flush_time) {
+step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_generator_t &step_generator, step_generator_state_t &step_generator_state) {
     assert(step_generator.is_state != nullptr);
-    step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0 };
-    int is_update_state = 0;
+    step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
+    bool is_updated = false;
     do {
         const bool step_dir = step_generator.is_state->step_dir;
         const float half_step_dist = Planner::mm_per_half_step[step_generator.axis];
-        const float current_distance = float(step_generator_state.current_distance[step_generator.axis]) * Planner::mm_per_step[step_generator.axis];
-        const float next_target = current_distance + (step_dir ? half_step_dist : -half_step_dist);
+        const float next_target = float(step_generator_state.current_distance[step_generator.axis] + (step_generator.step_dir ? 0 : -1)) * Planner::mm_per_step[step_generator.axis] + half_step_dist;
         const float next_distance = next_target - step_generator.start_pos;
         const float step_time = calc_time_for_distance(step_generator, next_distance);
 
-        // When step_time is NaN, it means that next_distance will never be reached.
+        // When step_time is infinity, it means that next_distance will never be reached.
         // This happens when next_target exceeds end_position, and deceleration decelerates velocity to zero or negative value.
         // Also, we need to stop when step_time exceeds local_end.
-        // Be aware that testing, if flush_time was exceeded, has to be after testing for exceeding print_time.
-        const double elapsed_time = double(step_time) + step_generator.is_state->print_time;
-        if (isnan(step_time) || elapsed_time > (step_generator.is_state->nearest_next_change + EPSILON)) {
-            is_update_state = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
+        if (const double elapsed_time = double(step_time) + step_generator.is_state->print_time; elapsed_time > (step_generator.is_state->nearest_next_change + EPSILON)) {
+            next_step_event.time = step_generator.is_state->nearest_next_change;
 
-            if (!is_update_state)
-                step_generator.reached_end_of_move_queue = true;
+            is_updated = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
 
             // Update step direction flag, which is cached until this move segment is processed.
             const uint16_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
@@ -497,17 +495,15 @@ step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_
 
             input_shaper_step_generator_update(step_generator);
             PreciseStepping::move_segment_processed_handler();
-        } else if (elapsed_time > flush_time) {
-            step_generator.reached_end_of_move_queue = true;
-            break;
         } else {
             next_step_event.time = elapsed_time;
             next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
             next_step_event.flags |= step_generator_state.flags;
+            next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
             step_generator_state.current_distance[step_generator.axis] += (step_dir ? 1 : -1);
             break;
         }
-    } while (is_update_state != 0);
+    } while (is_updated);
 
     return next_step_event;
 }

@@ -33,6 +33,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/modules/selector.cpp
   ${CMAKE_SOURCE_DIR}/src/modules/user_input.cpp
   ${CMAKE_SOURCE_DIR}/src/modules/pulse_gen.cpp
+  ${CMAKE_SOURCE_DIR}/src/modules/voltage.cpp
   ${MODULES_STUBS_DIR}/stub_adc.cpp
   ${MODULES_STUBS_DIR}/stub_cpu.cpp
   ${MODULES_STUBS_DIR}/stub_eeprom.cpp

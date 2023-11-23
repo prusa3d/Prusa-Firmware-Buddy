@@ -7,7 +7,8 @@
 
 LOG_COMPONENT_REF(Selftest);
 
-bool SelftestResult_Passed(const SelftestResult &results) {
+namespace {
+bool passed_for_all_that_always_need_to_pass(const SelftestResult &results) {
     for (int e = 0; e < HOTENDS; e++) {
 #if HAS_TOOLCHANGER()
         if (buddy::puppies::dwarfs[e].is_enabled() == false) {
@@ -23,10 +24,6 @@ bool SelftestResult_Passed(const SelftestResult &results) {
             return false;
         if (results.tools[e].nozzle != TestResult_Passed)
             return false;
-#if FILAMENT_SENSOR_IS_ADC()
-        if (results.tools[e].fsensor != TestResult_Passed)
-            return false;
-#endif /*FILAMENT_SENSOR_IS_ADC()*/
 #if HAS_LOADCELL()
         if (results.tools[e].loadcell != TestResult_Passed)
             return false;
@@ -42,6 +39,32 @@ bool SelftestResult_Passed(const SelftestResult &results) {
         return false;
 
     return true;
+}
+} // namespace
+
+bool SelftestResult_Passed_All(const SelftestResult &results) {
+    for (int e = 0; e < HOTENDS; ++e) {
+#if FILAMENT_SENSOR_IS_ADC()
+        if (results.tools[e].fsensor != TestResult_Passed)
+            return false;
+#endif /*FILAMENT_SENSOR_IS_ADC()*/
+    }
+    return passed_for_all_that_always_need_to_pass(results);
+}
+
+bool SelftestResult_Passed_Mandatory(const SelftestResult &results) {
+    for (int e = 0; e < HOTENDS; ++e) {
+#if FILAMENT_SENSOR_IS_ADC()
+    #if PRINTER_IS_PRUSA_MK4
+        if (results.tools[e].fsensor == TestResult_Failed)
+            return false;
+    #else
+        if (results.tools[e].fsensor != TestResult_Passed)
+            return false;
+    #endif
+#endif /*FILAMENT_SENSOR_IS_ADC()*/
+    }
+    return passed_for_all_that_always_need_to_pass(results);
 }
 
 bool SelftestResult_Failed(const SelftestResult &results) {

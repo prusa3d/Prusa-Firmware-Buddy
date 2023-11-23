@@ -17,6 +17,9 @@ bool __attribute__((noinline)) Pulley::FinishHomingAndPlanMoveToParkPos() {
 }
 
 bool Pulley::Step() {
+    if (IsOnHold()) {
+        return true; // just wait, do nothing!
+    }
     if (state != TMCFailed) {
         CheckTMC();
     }
@@ -30,8 +33,6 @@ bool Pulley::Step() {
         FinishHomingAndPlanMoveToParkPos();
         return true;
     case Ready:
-        return true;
-    case OnHold:
         return true;
     case TMCFailed:
     default:

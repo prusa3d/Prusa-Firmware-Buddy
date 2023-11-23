@@ -26,8 +26,9 @@ static constexpr modules::motion::P_speed_t ejectSpeed = 1000.0_P_mm_s; //@@TODO
 /// The Eject message is not an error, but we'll leverage existing infrastructure of error screens + user input to model a nice UI dialog.
 class EjectFilament : public CommandBase {
 public:
-    inline EjectFilament()
-        : CommandBase() {}
+    inline constexpr EjectFilament()
+        : CommandBase()
+        , slot(0) {}
 
     /// Restart the automaton
     /// @param param index of filament slot to eject
@@ -40,7 +41,9 @@ public:
 
     ErrorCode Error() const override;
 
+#ifndef UNITTEST
 private:
+#endif
     UnloadFilament unl; ///< a high-level command/operation may be used as a building block of other operations as well
     uint8_t slot;
     void MoveSelectorAside();

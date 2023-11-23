@@ -1,15 +1,9 @@
-/**
- * @file img_resources.hpp
- * @brief this file is generated ...
- */
-
 #pragma once
 #include "guitypes.hpp" //img::Resource
-#include "printers.h"
 
 namespace img {
 
-#include "png_resources.gen"
+#include "qoi_resources.gen"
 
 #if PRINTER_IS_PRUSA_iX
 
@@ -25,7 +19,7 @@ inline constexpr const Resource &printer_logo = prusa_mini_logo_153x40;
 
     #ifndef _DEBUG
 inline constexpr const Resource &printer_logo = prusa_mk4_logo_153x40;
-    #else  // _DEBUG
+    #else // _DEBUG
 inline constexpr const Resource &printer_logo = prusa_mk4_logo_debug_158x40;
     #endif // _DEBUG
 
@@ -34,8 +28,21 @@ inline constexpr const Resource &printer_logo = prusa_mk4_logo_debug_158x40;
 
     #ifndef _DEBUG
 inline constexpr const Resource &printer_logo = prusa_xl_logo_158x40;
-    #else  // _DEBUG
+    #else // _DEBUG
 inline constexpr const Resource &printer_logo = prusa_xl_logo_debug_158x40;
     #endif // _DEBUG
 #endif
+
+/**
+ * @brief Enable global resource file to be used.
+ */
+void enable_resource_file();
+
+/**
+ * @brief Get global resource file.
+ * Can be used only after enable_resource_file() was called.
+ * @return FILE* to resource file.
+ */
+FILE *get_resource_file();
+
 } // namespace img

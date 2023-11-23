@@ -6,14 +6,17 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_thumb_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_buffer.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/meatpack.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/render.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
@@ -26,19 +29,23 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_file_check.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
+  ${CMAKE_SOURCE_DIR}/lib/heatshrink/heatshrink_decoder.c
   command.cpp
   missing_functions.cpp
   missing_functions_time.cpp
   render.cpp
   hostname.cpp
   printer.cpp
+  partial_file_mock.cpp
+  gui_media_events_mock.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
-  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aes.c
-  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aesni.c
   )
 target_include_directories(
   connect_tests
@@ -53,10 +60,11 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/common/gcode
           ${CMAKE_SOURCE_DIR}/src/persistent_stores
           ${CMAKE_SOURCE_DIR}/lib/jsmn
+          ${CMAKE_SOURCE_DIR}/lib/heatshrink
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/tests/stubs
-          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
   )
+target_link_libraries(connect_tests mbedTLS bgcode_core)
 add_definitions(-DUNITTESTS -DPRINTER_VERSION=3 -DPRINTER_SUBVERSION=0)
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
@@ -89,6 +97,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
@@ -99,13 +108,19 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_file_check.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   time_mock.cpp
   missing_functions.cpp
   planner.cpp
+  partial_file_mock.cpp
+  gui_media_events_mock.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aes.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aesni.c
   )
@@ -140,6 +155,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/json_out.cpp
@@ -153,12 +169,18 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_file_check.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   missing_functions.cpp
   registrator.cpp
   time_mock.cpp
+  partial_file_mock.cpp
+  gui_media_events_mock.cpp
   )
 target_include_directories(
   connect_registration_tests

@@ -9,6 +9,7 @@
 #include "../modules/permanent_storage.h"
 #include "../modules/pulley.h"
 #include "../debug.h"
+#include "../config/axis.h"
 
 namespace logic {
 
@@ -23,7 +24,7 @@ void FeedToBondtech::Reset(uint8_t maxRetries) {
 void logic::FeedToBondtech::GoToPushToNozzle() {
     mg::globals.SetFilamentLoaded(mg::globals.ActiveSlot(), mg::FilamentLoadState::InFSensor);
     // plan a slow move to help push filament into the nozzle
-    //@@TODO the speed in mm/s must correspond to printer's feeding speed!
+    // the speed in mm/s must correspond to printer's feeding speed!
     mpu::pulley.PlanMove(mg::globals.FSensorToNozzle_mm(), mg::globals.PulleySlowFeedrate_mm_s());
     state = PushingFilamentIntoNozzle;
 }
@@ -37,11 +38,13 @@ bool FeedToBondtech::Step() {
             state = PushingFilamentFast;
             mpu::pulley.InitAxis();
             // plan a fast move while in the safe minimal length
-            mpu::pulley.PlanMove(config::minimumBowdenLength,
+            // fast feed in millimeters - if the EEPROM value is incorrect, we'll get the default length
+            unit::U_mm fastFeedDistance = { (long double)mps::BowdenLength::Get() };
+            mpu::pulley.PlanMove(fastFeedDistance,
                 mg::globals.PulleyLoadFeedrate_mm_s(),
                 mg::globals.PulleySlowFeedrate_mm_s());
             // plan additional slow move while waiting for fsensor to trigger
-            mpu::pulley.PlanMove(config::maximumBowdenLength - config::minimumBowdenLength,
+            mpu::pulley.PlanMove(config::maximumBowdenLength - fastFeedDistance,
                 mg::globals.PulleySlowFeedrate_mm_s(),
                 mg::globals.PulleySlowFeedrate_mm_s());
         }

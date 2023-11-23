@@ -1,5 +1,6 @@
 
 #include "DialogMoveZ.hpp"
+#include "screen_menu_move_utils.hpp"
 #include "ScreenHandler.hpp"
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
@@ -17,7 +18,7 @@ DialogMoveZ::DialogMoveZ()
 #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
     , rightText(this, rightText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
-#else  /*PRINTER_TYPE*/
+#else /*PRINTER_TYPE*/
     , rightText(this, rightText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
 #endif /*PRINTER_TYPE*/
@@ -66,12 +67,6 @@ DialogMoveZ::DialogMoveZ()
 };
 
 void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
-#if PRINTER_IS_PRUSA_MINI
-    constexpr static uint8_t len = 4;
-#else
-    constexpr static uint8_t len = 12;
-#endif
-
     switch (event) {
     case GUI_event_t::CLICK: {
         /// has set is_closed_on_click_t
@@ -89,9 +84,9 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
         numb.SetValue(value);
 #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
         arrows.SetState(WindowArrows::State_t::up);
-#else                                            /*PRINTER_TYPE*/
+#else /*PRINTER_TYPE*/
         arrows.SetState(WindowArrows::State_t::down);
-#endif                                           /*PRINTER_TYPE*/
+#endif /*PRINTER_TYPE*/
         return;
     }
     case GUI_event_t::ENC_UP: {
@@ -100,35 +95,20 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
         numb.SetValue(value);
 #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
         arrows.SetState(WindowArrows::State_t::down);
-#else                                            /*PRINTER_TYPE*/
+#else /*PRINTER_TYPE*/
         arrows.SetState(WindowArrows::State_t::up);
-#endif                                           /*PRINTER_TYPE*/
+#endif /*PRINTER_TYPE*/
         return;
     }
     case GUI_event_t::LOOP: {
-
-        if (marlin_vars()->pqueue <= len) {
-            int difference = value - lastQueuedPos;
-            uint8_t freeSlots = len - marlin_vars()->pqueue;
-            if (difference != 0) {
-                for (uint8_t i = 0; i < freeSlots && lastQueuedPos != (int)value; i++) {
-                    if (difference > 0) {
-                        lastQueuedPos++;
-                        difference--;
-                    } else if (difference < 0) {
-                        lastQueuedPos--;
-                        difference++;
-                    }
-                    marlin_client::move_axis(lastQueuedPos, MenuVars::GetManualFeedrate()[2], 2);
-                }
-            }
-        }
+        jog_axis(lastQueuedPos, value, Z_AXIS);
         return;
     }
     default:
         return;
     }
 }
+
 void DialogMoveZ::change(int diff) {
     int32_t val = diff + value;
     auto range = MenuVars::GetAxisRanges()[2];

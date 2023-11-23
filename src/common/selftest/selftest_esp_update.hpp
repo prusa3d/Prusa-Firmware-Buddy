@@ -147,7 +147,7 @@ enum class esp_credential_action {
     ShowEnableWIFI,
     EnableWIFI,
     WaitWIFI_enabled, // pressing abort will just restore connection interface (Eth / WiFi / none)
-    Aborted,          // currently abort does not wait for user
+    Aborted, // currently abort does not wait for user
     // Aborted_wait_user,
     Done
 };
@@ -174,7 +174,7 @@ private:
     marlin_server::FSM_Holder &rfsm;
     uint32_t time_stamp;
     type_t type;
-    const uint8_t initial_netdev_id;  // it is not enum because of stupid C api
+    const uint8_t initial_netdev_id; // it is not enum because of stupid C api
     esp_credential_action progress_state;
     esp_credential_action last_state; // needed to invalidate time stamp at change of state
     std::optional<PhasesSelftest> phase;

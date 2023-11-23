@@ -20,7 +20,7 @@
 void unhomed_z_lift(float amount_mm);
 
 class PausePrivatePhase : public IPause {
-    PhasesLoadUnload phase;       // needed for CanSafetyTimerExpire
+    PhasesLoadUnload phase; // needed for CanSafetyTimerExpire
     int load_unload_shared_phase; // shared variable for UnloadPhases_t and LoadPhases_t
     std::optional<LoadUnloadMode> load_unload_mode = std::nullopt;
 
@@ -34,6 +34,7 @@ protected:
     enum class UnloadPhases_t {
         _finish = intFinishVal,
         _init = 0,
+        filament_stuck_wait_user,
         ram_sequence,
         unload,
         unloaded__ask,
@@ -41,7 +42,8 @@ protected:
         filament_not_in_fs,
         unload_from_gear,
         run_mmu_unload,
-        _last = run_mmu_unload,
+        remove_filament,
+        _last = remove_filament,
 
     };
 
@@ -171,15 +173,17 @@ private:
     void loop_unload_mmu(Response response);
     void loop_unloadFromGear(Response response); // autoload abort
     void loop_unload_change(Response response);
+    void loop_unload_filament_stuck(Response response);
     // TODO loop_unload_change_mmu
 
     void loop_load(Response response);
     void loop_load_purge(Response response);
     void loop_load_not_blocking(Response response); // no buttons at all - printer without GUI etc
     void loop_load_mmu(Response response);
-    void loop_autoload(Response response);          // todo force remove filament in retry
+    void loop_autoload(Response response); // todo force remove filament in retry
     void loop_loadToGear(Response response);
     void loop_load_change(Response response);
+    void loop_load_filament_stuck(Response response);
     // TODO loop_load_change_mmu
 
     // does not create FSM_HolderLoadUnload
@@ -201,8 +205,8 @@ private:
     void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
-    bool check_user_stop();                                  //< stops motion and fsm and returns true it user triggered stop
-    bool wait_or_stop();                                     //< waits until motion is finished; if stop is triggered then returns true
+    bool check_user_stop(); //< stops motion and fsm and returns true it user triggered stop
+    bool wait_or_stop(); //< waits until motion is finished; if stop is triggered then returns true
     bool process_stop();
     void handle_filament_removal(LoadPhases_t phase_to_set); //<checks if filament is present if not it sets different phase
 

@@ -18,6 +18,11 @@ LOG_COMPONENT_REF(MMU2);
 
 namespace MMU2 {
 
+bool isErrorScreenRunning() {
+    // @@TODO function from 8-bit FW
+    return false;
+}
+
 void ReportErrorHook(CommandInProgress cip, uint16_t ec, uint8_t es) {
     // An error always causes one specific screen to occur
     // Its content is given by the error code translated into Prusa-Error-Codes MMU
@@ -130,13 +135,13 @@ void ScreenClear() {
 }
 
 void IncrementLoadFails() {
-    //    eeprom_increment_byte((uint8_t *)EEPROM_MMU_LOAD_FAIL);
-    //    eeprom_increment_word((uint16_t *)EEPROM_MMU_LOAD_FAIL_TOT);
+    config_store().mmu2_load_fails.set(config_store().mmu2_load_fails.get() + 1);
+    config_store().mmu2_total_load_fails.set(config_store().mmu2_total_load_fails.get() + 1);
 }
 
 void IncrementMMUFails() {
-    //    eeprom_increment_byte((uint8_t *)EEPROM_MMU_FAIL);
-    //    eeprom_increment_word((uint16_t *)EEPROM_MMU_FAIL_TOT);
+    config_store().mmu2_fails.set(config_store().mmu2_fails.get() + 1);
+    config_store().mmu2_total_fails.set(config_store().mmu2_total_fails.get() + 1);
 }
 
 bool cutter_enabled() {

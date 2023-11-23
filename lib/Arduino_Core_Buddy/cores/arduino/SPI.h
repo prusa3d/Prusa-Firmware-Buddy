@@ -34,7 +34,7 @@
 // Transfer mode
 enum SPITransferMode {
     SPI_CONTINUE, /* Transfer not finished: CS pin kept active */
-    SPI_LAST      /* Transfer ended: CS pin released */
+    SPI_LAST /* Transfer ended: CS pin released */
 };
 
 // Indicates the user controls himself the CS pin outside of the spi class

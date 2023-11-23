@@ -1,13 +1,11 @@
 #include "ModbusFIFOHandlers.hpp"
 
 #include "logging/log_dest_bufflog.h"
-#include "puppies/fifo_coder.hpp"
 #include "puppies/fifo_encoder.hpp"
 #include "../loadcell.hpp"
 #include "accelerometer.hpp"
 #include "Marlin/src/module/prusa/accelerometer_utils.h"
 #include "bsod.h"
-#include <stdint.h>
 
 using namespace common::puppies::fifo;
 
@@ -87,9 +85,9 @@ size_t handle_encoded_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo) {
         pickup_accelerometer_sample(encoder, encoded);
 
         // Pickup loadcell sample
-        {
+        if (encoder.can_encode<LoadcellRecord>()) {
             LoadcellRecord sample;
-            if (encoder.can_encode<LoadcellRecord>() && dwarf::loadcell::get_loadcell_sample(sample)) {
+            if (dwarf::loadcell::get_loadcell_sample(sample)) {
                 if (encoder.encode(sample)) {
                     encoded = true;
                 } else {

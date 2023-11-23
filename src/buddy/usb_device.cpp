@@ -6,6 +6,7 @@
 #include "log.h"
 #include "otp.hpp"
 #include "buddy/priorities_config.h"
+#include <ccm_thread.hpp>
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
@@ -41,7 +42,7 @@ static void usb_device_task_run(const void *);
 
 static serial_nr_t serial_nr;
 
-osThreadDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
+osThreadCCMDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
 
 void usb_device_init() {
@@ -173,10 +174,10 @@ uint8_t const *tud_descriptor_configuration_cb([[maybe_unused]] uint8_t index) {
 // Array of pointer to string descriptors
 char const *string_desc_arr[] = {
     (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
-    USBD_MANUFACTURER_STRING,      // 1: Manufacturer
-    USBD_PRODUCT_STRING_FS,        // 2: Product
-    serial_nr.begin(),             // 3: Serials, should use chip ID
-    "CDC",                         // 4: CDC Interface
+    USBD_MANUFACTURER_STRING, // 1: Manufacturer
+    USBD_PRODUCT_STRING_FS, // 2: Product
+    serial_nr.begin(), // 3: Serials, should use chip ID
+    "CDC", // 4: CDC Interface
 };
 
 // Invoked when received GET STRING DESCRIPTOR request

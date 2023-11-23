@@ -18,9 +18,9 @@ static TMC2130Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
 static TMC2209Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
 #endif
 
-static uint16_t tmc_sg[4];                          // stallguard result for each axis
-static uint8_t tmc_sg_mask = 7;                     // stallguard result sampling mask (bit0-x, bit1-y, ...), xyz by default
-static uint8_t tmc_sg_axis = 0;                     // current axis for stallguard result sampling (0-x, 1-y, ...)
+static uint16_t tmc_sg[4]; // stallguard result for each axis
+static uint8_t tmc_sg_mask = 7; // stallguard result sampling mask (bit0-x, bit1-y, ...), xyz by default
+static uint8_t tmc_sg_axis = 0; // current axis for stallguard result sampling (0-x, 1-y, ...)
 
 static tmc_sg_sample_cb_t *tmc_sg_sample_cb = NULL; // sg sample callback
 

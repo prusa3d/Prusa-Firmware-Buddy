@@ -11,8 +11,10 @@ namespace logic {
 /// @brief  A high-level command state machine - handles the complex logic of cutting filament
 class CutFilament : public CommandBase {
 public:
-    inline CutFilament()
-        : CommandBase() {}
+    inline constexpr CutFilament()
+        : CommandBase()
+        , cutSlot(0)
+        , savedSelectorFeedRate_mm_s(0) {}
 
     /// Restart the automaton
     /// @param param index of filament slot to perform cut onto

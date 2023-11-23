@@ -27,7 +27,7 @@ extern "C" {
 // no file name, no line number
 #define bsod_nofn_noln(fmt, ...) _bsod(fmt, 0, -1, ##__VA_ARGS__)
 
-__attribute__((noreturn)) void _bsod(const char *fmt, const char *fine_name, int line_number, ...); // with file name and line number
+__attribute__((noreturn)) void _bsod(const char *fmt, const char *file_name, int line_number, ...); // with file name and line number
 
 /** Fatal error that causes redscreen
  * @param error - error message, that will be displayed as error description (MAX length 107 chars)

@@ -8,7 +8,7 @@ namespace logic {
 /// @brief A dummy No-command operation just to make the init of the firmware consistent (and cleaner code during processing).
 class NoCommand : public CommandBase {
 public:
-    inline NoCommand()
+    inline constexpr NoCommand()
         : CommandBase() {}
 
     /// Restart the automaton

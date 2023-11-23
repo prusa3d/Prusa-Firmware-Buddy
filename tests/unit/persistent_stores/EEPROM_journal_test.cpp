@@ -1,7 +1,8 @@
 #include <catch2/catch.hpp>
 #include "crc32.h"
 #include "dummy_eeprom_chip.h"
-#include <config_store/store_instance.hpp>
+#include <journal/backend.hpp>
+#include <journal/store.hpp>
 #include <storage_drivers/eeprom_storage.hpp>
 
 static constexpr const char *key = "data";
@@ -339,7 +340,7 @@ struct TestEEPROMJournalConfigV0 : public CurrentStoreConfig<Backend, Test_EEPRO
 struct TestDeprecatedEEPROMJournalItemsV0 : public DeprecatedStoreConfig<Backend> {
 };
 
-static_assert(journal::has_unique_items<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0>(), "Just added items are causing collisions");
+static_assert(journal::has_unique_items<TestEEPROMJournalConfigV0>(), "Just added items are causing collisions");
 
 inline constexpr std::array<journal::Backend::MigrationFunction, 0> test_migration_functions_v0 {};
 inline constexpr std::span<const journal::Backend::MigrationFunction> test_migration_functions_span_v0 { test_migration_functions_v0 };
@@ -666,7 +667,7 @@ void int_item(journal::Backend &backend) {
 }
 } // namespace V1_migrations
 
-static_assert(journal::has_unique_items<TestEEPROMJournalConfigV1, TestDeprecatedEEPROMJournalItemsV1>(), "Just added items are causing collisions");
+static_assert(journal::has_unique_items<TestEEPROMJournalConfigV1>(), "Just added items are causing collisions");
 
 inline constexpr journal::Backend::MigrationFunction test_migration_functions_v1[] {
     { V1_migrations::int_item, V1_deprecated_ids::int_item },
@@ -685,7 +686,8 @@ void int_item(journal::Backend &backend) {
 }
 } // namespace V2_migrations
 
-static_assert(journal::has_unique_items<TestEEPROMJournalConfigV2, TestDeprecatedEEPROMJournalItemsV2>(), "Just added items are causing collisions");
+static_assert(journal::has_unique_items<TestEEPROMJournalConfigV2>(), "Just added items are causing collisions");
+
 inline constexpr journal::Backend::MigrationFunction test_migration_functions_v2[] {
     { V1_migrations::int_item, V1_deprecated_ids::int_item },
     { V2_migrations::int_item, V2_deprecated_ids::int_item },
@@ -704,7 +706,8 @@ void int_item(journal::Backend &backend) {
 }
 } // namespace V3_migrations
 
-static_assert(journal::has_unique_items<TestEEPROMJournalConfigV3, TestDeprecatedEEPROMJournalItemsV3>(), "Just added items are causing collisions");
+static_assert(journal::has_unique_items<TestEEPROMJournalConfigV3>(), "Just added items are causing collisions");
+
 inline constexpr journal::Backend::MigrationFunction test_migration_functions_v3[] {
     { V1_migrations::int_item, V1_deprecated_ids::int_item },
     { V2_migrations::int_item, V2_deprecated_ids::int_item },

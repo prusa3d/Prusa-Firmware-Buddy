@@ -52,7 +52,7 @@ MMU2 mmu2;
     #define MMU_TODELAY     100
     #define MMU_TIMEOUT     10
     #define MMU_CMD_TIMEOUT 60000ul // 5min timeout for mmu commands (except P0)
-    #define MMU_P0_TIMEOUT  3000ul  // Timeout for P0 command: 3seconds
+    #define MMU_P0_TIMEOUT  3000ul // Timeout for P0 command: 3seconds
 
     #define MMU_CMD_NONE 0
     #define MMU_CMD_T0   0x10
@@ -102,7 +102,7 @@ char MMU2::rx_buffer[16], MMU2::tx_buffer[16];
     #if HAS_LCD_MENU && ENABLED(MMU2_MENUS)
 
 struct E_Step {
-    float extrude;       //!< extrude distance in mm
+    float extrude; //!< extrude distance in mm
     feedRate_t feedRate; //!< feed rate in mm/s
 };
 
@@ -568,9 +568,9 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
 
     while (!response) {
 
-        response = get_response();  // wait for "ok" from mmu
+        response = get_response(); // wait for "ok" from mmu
 
-        if (!response) {            // No "ok" was received in reserved time frame, user will fix the issue on mmu unit
+        if (!response) { // No "ok" was received in reserved time frame, user will fix the issue on mmu unit
             if (!mmu_print_saved) { // First occurrence. Save current position, park print head, disable nozzle heater.
 
                 planner.synchronize();
@@ -813,4 +813,4 @@ void MMU2::execute_extruder_sequence(const E_Step *sequence, int steps) {
 
     #endif // HAS_LCD_MENU && MMU2_MENUS
 
-#endif     // PRUSA_MMU2
+#endif // PRUSA_MMU2

@@ -44,6 +44,7 @@ struct HeaterConfig_t {
     int32_t heatbreak_max_temp { 0 };
 
     uint32_t heater_load_stable_ms { 0 };
+    static constexpr int32_t heater_load_stable_difference { 3 };
     float heater_full_load_min_W { 0 };
     float heater_full_load_max_W { 0 };
     uint32_t pwm_100percent_equivalent_value { 0 };

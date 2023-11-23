@@ -65,9 +65,9 @@ TestReturn phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTE
 
         if (m_pFSensor[i]->Loop()) {
             in_progress = true;
-            break;    // Run only one Loop() at a time, test is still in progress for this tool
+            break; // Run only one Loop() at a time, test is still in progress for this tool
         } else if (m_pFSensor[i]->GetResult() != TestResult_Passed) {
-            break;    // Test failed or skipped for this tool, abort test for all tools
+            break; // Test failed or skipped for this tool, abort test for all tools
         } else {
             continue; // Test successful for this tool continue to next tool
         }

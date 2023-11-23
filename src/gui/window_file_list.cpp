@@ -183,7 +183,7 @@ void window_file_list_t::inc(int dif) {
     if (dif > 0) {
         while (dif-- && middle) {
             if (index >= int(ldv.WindowSize() - 1)) {
-                middle = ldv.MoveDown();     ///< last result defines end of list
+                middle = ldv.MoveDown(); ///< last result defines end of list
                 repaint = repaint || middle; ///< any movement triggers repaint
             } else if (index < int(ldv.TotalFilesCount() - 1)) {
                 ++index;
@@ -194,7 +194,7 @@ void window_file_list_t::inc(int dif) {
     } else {
         while (dif++ && middle) {
             if (index <= 0) {
-                middle = ldv.MoveUp();       ///< last result defines end of list
+                middle = ldv.MoveUp(); ///< last result defines end of list
                 repaint = repaint || middle; ///< any movement triggers repaint
             } else {
                 --index;
@@ -239,12 +239,12 @@ void window_file_list_t::roll_screen(int dif) {
     int old_index = index;
     if (dif > 0) {
         while (dif-- && middle) {
-            middle = ldv.MoveDown();     ///< last result defines end of list
+            middle = ldv.MoveDown(); ///< last result defines end of list
             repaint = repaint || middle; ///< any movement triggers repaint
         }
     } else {
         while (dif++ && middle) {
-            middle = ldv.MoveUp();       ///< last result defines end of list
+            middle = ldv.MoveUp(); ///< last result defines end of list
             repaint = repaint || middle; ///< any movement triggers repaint
         }
     }

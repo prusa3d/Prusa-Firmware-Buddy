@@ -273,16 +273,27 @@ bool MI_RESTORE_CALIBRATION_FROM_USB::restore_fs_calibration() {
             buffer[pos++] = c;
         }
 
-        int32_t ref_value = atoi(buffer.data());
+        int32_t ref_nins_value = atoi(buffer.data());
+        uint32_t span_value = side ? config_store_ns::defaults::side_fs_value_span : config_store_ns::defaults::extruder_fs_value_span;
+        int32_t ref_ins_value = side ? config_store_ns::defaults::side_fs_ref_ins_value : config_store_ns::defaults::extruder_fs_ref_ins_value;
+        ;
         char *second = strnstr(buffer.data(), " ", pos) + 1;
-        uint32_t span_value = atoll(second);
+        if (second) {
+            span_value = atoll(second);
+            char *third = strnstr(second, " ", pos - (second - buffer.data())) + 1;
+            if (third) {
+                ref_ins_value = atoi(third);
+            }
+        }
 
         if (side) {
-            config_store().set_side_fs_ref_value(e, ref_value);
+            config_store().set_side_fs_ref_nins_value(e, ref_nins_value);
             config_store().set_side_fs_value_span(e, span_value);
+            config_store().set_side_fs_ref_ins_value(e, ref_ins_value);
         } else {
-            config_store().set_extruder_fs_ref_value(e, ref_value);
+            config_store().set_extruder_fs_ref_nins_value(e, ref_nins_value);
             config_store().set_extruder_fs_value_span(e, span_value);
+            config_store().set_extruder_fs_ref_ins_value(e, ref_ins_value);
         }
     }
 
@@ -322,10 +333,11 @@ bool MI_BACKUP_CALIBRATION_TO_USB::backup_fs_calibration() {
         int e = i % EXTRUDERS;
         bool side = i >= EXTRUDERS;
 
-        int32_t ref_value = side ? config_store().get_side_fs_ref_value(e) : config_store().get_extruder_fs_ref_value(e);
+        int32_t ref_nins_value = side ? config_store().get_side_fs_ref_nins_value(e) : config_store().get_extruder_fs_ref_nins_value(e);
         uint32_t span_value = side ? config_store().get_side_fs_value_span(e) : config_store().get_extruder_fs_value_span(e);
+        int32_t ref_ins_value = side ? config_store().get_side_fs_ref_ins_value(e) : config_store().get_extruder_fs_ref_ins_value(e);
 
-        int n = snprintf(buffer.data(), buffer.size(), "%" PRIi32 " %" PRIu32 "\n", ref_value, span_value);
+        int n = snprintf(buffer.data(), buffer.size(), "%" PRIi32 " %" PRIu32 " %" PRIi32 "\n", ref_nins_value, span_value, ref_ins_value);
         fwrite(buffer.data(), sizeof(char), n, file);
     }
 

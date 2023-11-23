@@ -57,8 +57,10 @@ namespace {
         case State::Aborting_Begin:
         case State::Aborting_WaitIdle:
         case State::Aborting_ParkHead:
+        case State::Aborting_Preview:
         case State::Finishing_WaitIdle:
         case State::Finishing_ParkHead:
+        case State::PrintPreviewConfirmed:
             simple_state = SimplePrintState::Busy;
             break;
         case State::Paused:

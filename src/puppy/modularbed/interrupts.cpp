@@ -11,10 +11,10 @@ void DMA1_Channel2_3_IRQHandler() {
 void USART1_IRQHandler() {
     hal::RS485Driver::USART_IRQHandler();
 }
-}
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM1) {
         HAL_IncTick();
     }
+}
 }

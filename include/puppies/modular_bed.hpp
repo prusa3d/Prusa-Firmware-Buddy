@@ -42,11 +42,6 @@ public:
     static constexpr uint16_t BEDLET_CLEAR_FAULT_ADDR { ftrstd::to_underlying(HBCoil::clear_fault_status) };
     static constexpr uint16_t MCU_TEMPERATURE_ADDR { ftrstd::to_underlying(SystemInputRegister::mcu_temperature) };
 
-    enum class CommunicationStatus {
-        OK,
-        ERROR,
-    };
-
     using SystemError = modular_bed_shared::errors::SystemError;
     using HeatbedletError = modular_bed_shared::errors::HeatbedletError;
 
@@ -58,11 +53,9 @@ public:
 
     /**
      * @brief Refresh bed state.
-     * @param cycle_ticks_ms ticks_ms() valid through current poll cycle [ms]
-     * @param[out] worked true if bed state was refreshed, false if not yet
      * @return CommunicationStatus::OK on success
      */
-    CommunicationStatus refresh(uint32_t cycle_ticks_ms, bool &worked);
+    CommunicationStatus refresh();
 
     void clear_fault();
 
@@ -79,6 +72,11 @@ public:
 
     // notify modular bed about activity of print fan (to relax temperature checks)
     void set_print_fan_active(bool active);
+
+    // Combined heater current [A]
+    float get_heater_current() {
+        return (currents.value.A_measured + currents.value.B_measured) / 1000.0;
+    }
 
     MODBUS_DISCRETE GeneralStatus {
         bool power_panic_status;
@@ -134,7 +132,7 @@ protected:
         int8_t sign;
     };
 
-    // update gradients of enabled bedlets so that temperature is not too different between neighbouring bedlets
+    // update gradients of enabled bedlets so that temperature is not too different between neighboring bedlets
     void update_gradients(uint16_t enabled_mask);
     // calculate cost and bedlets to enable, when we want to to enable bedlets towards one specific side
     cost_and_enable_mask_t touch_side(uint16_t enabled_mask, side_t side);
@@ -143,9 +141,24 @@ protected:
     uint16_t expand_to_sides(uint16_t enabled_mask, float target_temp);
 
 private:
+    static constexpr uint32_t MAX_UNREAD_MS = 1000;
+
     void set_target(const uint8_t idx, float target_temp);
     float get_temp(const uint16_t idx);
     float get_target(const uint8_t idx);
+
+    CommunicationStatus write_clear_fault_status();
+    CommunicationStatus write_reset_overcurrent();
+    CommunicationStatus write_test_heating();
+    CommunicationStatus write_print_fan_active();
+    CommunicationStatus read_general_status();
+    CommunicationStatus read_general_ready();
+    CommunicationStatus read_currents();
+    CommunicationStatus read_bedlet_data();
+    CommunicationStatus read_general_fault();
+    CommunicationStatus write_bedlet_target_temp();
+    CommunicationStatus read_bedlet_measured_max_current();
+    CommunicationStatus read_mcu_temperature();
 };
 
 extern ModularBed modular_bed;

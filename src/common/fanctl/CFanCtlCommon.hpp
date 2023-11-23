@@ -6,12 +6,12 @@
 class CfanCtlCommon {
 public:
     enum FanState : int8_t {
-        idle = 0,              // idle - no rotation, PWM = 0%
-        starting = 1,          // starting - PWM = 100%, waiting for 4 tacho edges
+        idle = 0, // idle - no rotation, PWM = 0%
+        starting = 1, // starting - PWM = 100%, waiting for 4 tacho edges
         rpm_stabilization = 2, // tick delay for reaching wanted rpm
-        running = 3,           // running - PWM set by setPWM(), no regulation
-        error_starting = -1,   // starting error - means no feedback after timeout expired
-        error_running = -2,    // running error - means zero RPM measured (no feedback)
+        running = 3, // running - PWM set by setPWM(), no regulation
+        error_starting = -1, // starting error - means no feedback after timeout expired
+        error_running = -2, // running error - means zero RPM measured (no feedback)
     };
 };
 

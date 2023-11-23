@@ -15,49 +15,62 @@ class ModbusDevice;
 #define MODBUS_DISCRETE struct __attribute__((__packed__)) __attribute__((aligned(sizeof(bool))))
 #define MODBUS_REGISTER struct __attribute__((__packed__)) __attribute__((aligned(sizeof(uint16_t))))
 
+struct ModbusInputBase {
+    uint32_t last_read_timestamp_ms;
+};
+
+struct ModbusOutputBase {
+    bool dirty; // Whether the value needs write
+};
+
 /**
  * Description of input block data
  */
 template <uint16_t ADDRESS, typename DATA_T>
-union ModbusDiscreteInputBlock {
+struct ModbusDiscreteInputBlock : ModbusInputBase {
     static_assert(sizeof(DATA_T) < 2000 * sizeof(bool), "Max register read size as defined by Modbus 584-844");
     static_assert(std::is_standard_layout<DATA_T>() && std::is_trivial<DATA_T>(), "This only works with plain data");
     static_assert(sizeof(DATA_T) % sizeof(bool) == 0, "Registers need to cover data");
 
-    DATA_T value;                                  // Discrete register data block as application value
-    bool registers[sizeof(DATA_T) / sizeof(bool)]; // Input register data block as Modbus registers
+    union {
+        DATA_T value; // Discrete register data block as application value
+        bool registers[sizeof(DATA_T) / sizeof(bool)]; // Input register data block as Modbus registers
+    };
+};
+
+/**
+ * Description of register block data
+ */
+template <uint16_t ADDRESS, typename DATA_T>
+struct ModbusRegisterBlock {
+    static_assert(sizeof(DATA_T) < 125 * sizeof(uint16_t), "Max register read size as defined by Modbus 584-844");
+    static_assert(std::is_standard_layout<DATA_T>() && std::is_trivial<DATA_T>(), "This only works with plain data");
+    static_assert(sizeof(DATA_T) % sizeof(uint16_t) == 0, "Registers need to cover data");
+
+    union {
+        DATA_T value; // Register data block as application value
+        uint16_t registers[sizeof(DATA_T) / sizeof(uint16_t)]; // Register data block as Modbus registers
+    };
 };
 
 /**
  * Description of input register block data
  */
 template <uint16_t ADDRESS, typename DATA_T>
-union ModbusInputRegisterBlock {
-    static_assert(sizeof(DATA_T) < 125 * sizeof(uint16_t), "Max register read size as defined by Modbus 584-844");
-    static_assert(std::is_standard_layout<DATA_T>() && std::is_trivial<DATA_T>(), "This only works with plain data");
-    static_assert(sizeof(DATA_T) % sizeof(uint16_t) == 0, "Registers need to cover data");
-
-    DATA_T value;                                          // Input register data block as application value
-    uint16_t registers[sizeof(DATA_T) / sizeof(uint16_t)]; // Input register data block as Modbus registers
-};
+struct ModbusInputRegisterBlock : ModbusRegisterBlock<ADDRESS, DATA_T>, ModbusInputBase {};
 
 /**
  * Description of holding register block data
  */
 template <uint16_t ADDRESS, typename DATA_T>
-union ModbusHoldingRegisterBlock {
-    static_assert(sizeof(DATA_T) < 125 * sizeof(uint16_t), "Max register read size as defined by Modbus 584-844");
-    static_assert(std::is_standard_layout<DATA_T>() && std::is_trivial<DATA_T>(), "This only works with plain data");
-    static_assert(sizeof(DATA_T) % sizeof(uint16_t) == 0, "Registers need to cover data");
+struct ModbusHoldingRegisterBlock : ModbusRegisterBlock<ADDRESS, DATA_T>, ModbusInputBase, ModbusOutputBase {};
 
-    DATA_T value;                                          // Holding register data block as application value
-    uint16_t registers[sizeof(DATA_T) / sizeof(uint16_t)]; // Holding register data block as Modbus registers
-};
-
+/**
+ * Description of coil data
+ */
 template <uint16_t ADDRESS>
-struct ModbusCoil {
+struct ModbusCoil : ModbusOutputBase {
     bool value;
-    bool pending;
 };
 
 struct ModbusValueReference {
@@ -71,6 +84,12 @@ struct ModbusValueReference {
 struct RequestTiming {
     uint32_t begin_us;
     uint32_t end_us;
+};
+
+enum class CommunicationStatus {
+    OK,
+    ERROR,
+    SKIPPED,
 };
 
 class PuppyModbus;
@@ -90,14 +109,21 @@ class PuppyModbus {
 public:
     static constexpr auto MODBUS_RECEIVE_BUFFER_SIZE = 256; // 256 is maximum Modbus response size
 
+    /**
+     * @brief Share modbus buffer to other protocol on the same line.
+     * Must be exclusive with ModBus.
+     * @return buffer to be shared with other protocol
+     */
+    static std::array<uint8_t, MODBUS_RECEIVE_BUFFER_SIZE> &share_buffer();
+
     PuppyModbus();
 
     /**
      * Synchronize input register with device
      */
     template <uint16_t ADDRESS, typename DATA_T>
-    ModbusErrorInfo read(uint8_t unit, ModbusInputRegisterBlock<ADDRESS, DATA_T> &value, RequestTiming *const timing = nullptr) {
-        return read_input(unit, value.registers, std::size(value.registers), ADDRESS, timing);
+    CommunicationStatus read(uint8_t unit, ModbusInputRegisterBlock<ADDRESS, DATA_T> &value, uint32_t max_age_ms = 0, RequestTiming *const timing = nullptr) {
+        return read_input(unit, value.registers, std::size(value.registers), ADDRESS, timing, value.last_read_timestamp_ms, max_age_ms);
     }
 
     /**
@@ -106,8 +132,8 @@ public:
      * This expects holding registers to be write only. Cached data are writtent to remote holding registers.
      */
     template <uint16_t ADDRESS, typename DATA_T>
-    ModbusErrorInfo read(uint8_t unit, ModbusHoldingRegisterBlock<ADDRESS, DATA_T> &value) {
-        return read_holding(unit, value.registers, std::size(value.registers), ADDRESS);
+    CommunicationStatus read(uint8_t unit, ModbusHoldingRegisterBlock<ADDRESS, DATA_T> &value, uint32_t max_age_ms = 0) {
+        return read_holding(unit, value.registers, std::size(value.registers), ADDRESS, value.last_read_timestamp_ms, max_age_ms);
     }
 
     /**
@@ -116,30 +142,30 @@ public:
      * This expects holding registers to be write only. Cached data are writtent to remote holding registers.
      */
     template <uint16_t ADDRESS, typename DATA_T>
-    ModbusErrorInfo write(uint8_t unit, ModbusHoldingRegisterBlock<ADDRESS, DATA_T> &value) {
-        return write_holding(unit, value.registers, std::size(value.registers), ADDRESS);
+    CommunicationStatus write(uint8_t unit, ModbusHoldingRegisterBlock<ADDRESS, DATA_T> &value) {
+        return write_holding(unit, value.registers, std::size(value.registers), ADDRESS, value.dirty);
     }
 
     /**
      * Synchronize discrete input with device
      */
     template <uint16_t ADDRESS, typename DATA_T>
-    ModbusErrorInfo read(uint8_t unit, ModbusDiscreteInputBlock<ADDRESS, DATA_T> &value) {
-        return read_input(unit, value.registers, std::size(value.registers), ADDRESS);
+    CommunicationStatus read(uint8_t unit, ModbusDiscreteInputBlock<ADDRESS, DATA_T> &value, uint32_t max_age_ms = 0) {
+        return read_input(unit, value.registers, std::size(value.registers), ADDRESS, value.last_read_timestamp_ms, max_age_ms);
     }
 
     /**
      * Synchronize coil with device
      */
     template <uint16_t ADDRESS>
-    ModbusErrorInfo write(uint8_t unit, ModbusCoil<ADDRESS> &value) {
-        return write_coil(unit, value.value, value.pending, ADDRESS);
+    CommunicationStatus write(uint8_t unit, ModbusCoil<ADDRESS> &value) {
+        return write_coil(unit, value.value, ADDRESS, value.dirty);
     }
 
     /**
      * Read FIFO queue
      */
-    ModbusErrorInfo ReadFIFO(uint8_t unit, uint16_t address, std::array<uint16_t, 31> &buffer, size_t &read);
+    CommunicationStatus ReadFIFO(uint8_t unit, uint16_t address, std::array<uint16_t, 31> &buffer, size_t &read);
 
     /// Last request begin timestamp
     uint32_t last_request_begin_ns;
@@ -150,10 +176,10 @@ public:
     class ErrorLogSupressor {
     public:
         [[nodiscard]] ErrorLogSupressor() {
-            puppyModbus.supress_error_logs = true;
+            puppyModbus.suppress_error_logs = true;
         }
         ~ErrorLogSupressor() {
-            puppyModbus.supress_error_logs = false;
+            puppyModbus.suppress_error_logs = false;
         }
     };
 
@@ -164,9 +190,9 @@ private:
     ModbusMaster master;
     std::optional<ModbusValueReference> active_value;
     std::array<uint8_t, MODBUS_RECEIVE_BUFFER_SIZE> response_buffer;
-    bool supress_error_logs;
+    bool suppress_error_logs;
 
-    ModbusErrorInfo make_request(RequestTiming *const timing);
+    ModbusErrorInfo make_request(RequestTiming *const timing, uint8_t retries = 3);
     ModbusErrorInfo make_single_request(RequestTiming *const timing);
     static ModbusError static_data_callback(const ModbusMaster *master, const ModbusDataCallbackArgs *args);
     static ModbusError static_exception_callback(
@@ -176,11 +202,11 @@ private:
         ModbusExceptionCode code);
     ModbusError data_callback(const ModbusDataCallbackArgs *args);
     void log_internal_error(ModbusErrorInfo error);
-    ModbusErrorInfo read_input(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address, RequestTiming *const timing);
-    ModbusErrorInfo read_holding(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address);
-    ModbusErrorInfo write_holding(uint8_t unit, const uint16_t *data, uint16_t count, uint16_t address);
-    ModbusErrorInfo read_input(uint8_t unit, bool *data, uint16_t count, uint16_t address);
-    ModbusErrorInfo write_coil(uint8_t unit, bool value, bool pending, uint16_t address);
+    CommunicationStatus read_input(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address, RequestTiming *const timing, uint32_t &timestamp_ms, uint32_t max_age_ms);
+    CommunicationStatus read_holding(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address, uint32_t &timestamp_ms, uint32_t max_age_ms);
+    CommunicationStatus write_holding(uint8_t unit, const uint16_t *data, uint16_t count, uint16_t address, bool &dirty);
+    CommunicationStatus read_input(uint8_t unit, bool *data, uint16_t count, uint16_t address, uint32_t &timestamp_ms, uint32_t max_age_ms);
+    CommunicationStatus write_coil(uint8_t unit, bool value, uint16_t address, bool &dirty);
 };
 
 class ModbusDevice {

@@ -8,6 +8,7 @@
 #include "marlin_client.hpp"
 #include "marlin_events.h"
 #include "gui_time.hpp" //gui::GetTick()
+#include "usb_host/usb_host.h"
 
 GuiMediaEventsHandler &GuiMediaEventsHandler::Instance() {
     static GuiMediaEventsHandler ret;
@@ -15,9 +16,7 @@ GuiMediaEventsHandler &GuiMediaEventsHandler::Instance() {
 }
 
 GuiMediaEventsHandler::GuiMediaEventsHandler()
-    : start_time(gui::GetTick())
-    , is_starting(true)
-    , one_click_printing(false)
+    : one_click_printing(false)
     , state_sent(true)
     , media_state(MediaState_t::unknown) {
 }
@@ -27,25 +26,11 @@ void GuiMediaEventsHandler::Tick() {
 }
 
 void GuiMediaEventsHandler::tick() {
-    if (is_starting) {
-        if ((gui::GetTick() - start_time) >= startup_finished_delay) {
-            marlin_client::event_clr(marlin_server::Event::MediaRemoved);
-            marlin_client::event_clr(marlin_server::Event::MediaInserted);
-            marlin_client::event_clr(marlin_server::Event::MediaError);
-            is_starting = false;
-            media_state = marlin_vars()->media_inserted ? MediaState_t::inserted : MediaState_t::removed;
-            if (media_state == MediaState_t::inserted)
-                one_click_printing = true;
-            state_sent = false;
-        }
-        return;
-    }
-
-    // normal run
     MediaState_t actual_state = MediaState_t::unknown;
 
-    if (marlin_client::event_clr(marlin_server::Event::MediaInserted))
+    if (marlin_client::event_clr(marlin_server::Event::MediaInserted)) {
         actual_state = MediaState_t::inserted;
+    }
     if (marlin_client::event_clr(marlin_server::Event::MediaRemoved))
         actual_state = MediaState_t::removed;
     if (marlin_client::event_clr(marlin_server::Event::MediaError))
@@ -56,14 +41,16 @@ void GuiMediaEventsHandler::tick() {
 
     switch (actual_state) {
     case MediaState_t::inserted:
-        one_click_printing = true;
+        if (!device_connected_at_startup()) {
+            one_click_printing = true;
+        }
         state_sent = false;
         break; // update after break
     case MediaState_t::removed:
     case MediaState_t::error:
         one_click_printing = false;
         state_sent = false;
-        break;  // update after break
+        break; // update after break
     default:
         return; // nothing happened, nothing to do .. just return
     }
@@ -71,14 +58,14 @@ void GuiMediaEventsHandler::tick() {
     media_state = actual_state; // update
 }
 
+void GuiMediaEventsHandler::SetOneClickPrinting() {
+    Instance().one_click_printing = true;
+}
+
 bool GuiMediaEventsHandler::ConsumeOneClickPrinting() {
     bool ret = Instance().one_click_printing;
     Instance().one_click_printing = false;
     return ret;
-}
-
-bool GuiMediaEventsHandler::IsStarting() {
-    return Instance().is_starting;
 }
 
 void GuiMediaEventsHandler::ClrMediaError() {
@@ -93,7 +80,7 @@ void GuiMediaEventsHandler::ClrMediaError() {
 }
 
 bool GuiMediaEventsHandler::ConsumeSent(MediaState_t &ret) {
-    Tick();                       // first update
+    Tick(); // first update
     ret = Instance().media_state; // remember
     bool sent = Instance().state_sent;
     if (ret != MediaState_t::error)

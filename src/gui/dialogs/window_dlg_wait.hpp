@@ -21,16 +21,10 @@ public:
     window_dlg_wait_t(Rect16 rect, string_view_utf8 second_string = string_view_utf8::MakeNULLSTR());
 };
 
-inline constexpr uint8_t DLG_W8_DRAW_HOURGLASS = 0x04; // Draw hourglass animation
-inline constexpr uint8_t DLG_W8_DRAW_FRAME = 0x01;     // Draw grey frame
-inline constexpr uint8_t DLG_W8_DRAW_PROGRESS = 0x02;  // Draw progress bar
-
 /*!*********************************************************************************************************************
  * \brief GUI dialog for processes that require user to wait calmly.
  *
  * \param [in] progress_callback - function callback that returns current progress
- *
- * \param [in] comp_flag - stores which components to draw (DLG_W8_DRAW_HOURGLASS | DLG_W8_DRAW_FRANE | DLG_W8_DRAW_PROGRESS)
  *
  * It creates inner gui_loop cycle that keeps GUI running while waiting.
  */

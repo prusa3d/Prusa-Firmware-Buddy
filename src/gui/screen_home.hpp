@@ -14,8 +14,8 @@ public:
 
 private:
     static bool usbWasAlreadyInserted; // usb inserted at least once
-    static bool ever_been_opened;      // set by ctor
-    static bool try_esp_flash;         // we try this maximum once
+    static bool ever_been_opened; // set by ctor
+    static bool try_esp_flash; // we try this maximum once
     static bool touch_broken_during_run;
 
     bool usbInserted;
@@ -32,8 +32,6 @@ private:
 #endif // USE_ST7789
     WindowMultiIconButton w_buttons[button_count];
     window_text_t w_labels[button_count];
-
-    GCodeInfo &gcode;
 
 public:
     static void SetTouchBrokenDuringRun() { touch_broken_during_run = true; }

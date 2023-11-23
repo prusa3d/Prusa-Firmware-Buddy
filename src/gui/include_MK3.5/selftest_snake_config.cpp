@@ -50,7 +50,7 @@ TestResult get_test_result(Action action, Tool tool) {
     return TestResult_Unknown;
 }
 
-uint8_t get_tool_mask(Tool tool) {
+uint8_t get_tool_mask([[maybe_unused]] Tool tool) {
 #if HAS_TOOLCHANGER()
     switch (tool) {
     case Tool::Tool1:

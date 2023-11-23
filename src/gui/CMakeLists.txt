@@ -12,12 +12,14 @@ endif()
 target_sources(
   firmware
   PRIVATE box_unfinished_selftest.cpp
+          file_sort.cpp
           fonts.cpp
           gcode_description.cpp
           gui_fsensor_api.cpp
           gui_media_events.cpp
           gui_time.cpp
           guimain.cpp
+          img_resources.cpp
           img_resources.cpp
           IScreenPrinting.cpp
           logger.cpp
@@ -33,6 +35,7 @@ target_sources(
           MItem_tools.cpp
           network_gui_tools.cpp
           print_time_module.cpp
+          qoi_decoder.cpp
           screen_blue_error.cpp
           screen_bsod.cpp
           screen_dialog_does_not_exist.cpp
@@ -58,13 +61,14 @@ target_sources(
           screen_menu_input_shaper.cpp
           screen_menu_lan_settings.cpp
           screen_menu_lang_and_time.cpp
+          screen_menu_metrics.cpp
           screen_menu_move.cpp
+          screen_menu_move_utils.cpp
           screen_menu_network.cpp
           screen_menu_odometer.cpp
           screen_menu_sensor_info_${PRINTER}.cpp
           screen_menu_settings.cpp
           screen_menu_statistics.cpp
-          screen_menu_steel_sheets.cpp
           screen_menu_system.cpp
           screen_menu_temperature.cpp
           screen_menu_tune.cpp
@@ -163,22 +167,25 @@ if(HAS_MMU2)
   target_sources(
     firmware
     PRIVATE MItem_mmu.cpp
+            screen_menu_filament_changeall.cpp
             screen_menu_filament_mmu.cpp
             screen_menu_mmu_cut_filament.cpp
             screen_menu_mmu_eject_filament.cpp
-            screen_menu_mmu_fail_stats.cpp
             screen_menu_mmu_load_filament.cpp
+            screen_menu_mmu_load_test_filament.cpp
             screen_menu_mmu_load_to_nozzle.cpp
+            screen_tools_mapping.cpp
     )
 endif()
 
 if(PRINTER STREQUAL "MINI" OR PRINTER STREQUAL "MK3.5")
-  target_sources(firmware PRIVATE MItem_MINI_MK3.5.cpp)
+  target_sources(firmware PRIVATE MItem_MINI_MK3.5.cpp screen_menu_steel_sheets.cpp)
 endif()
 
 if(PRINTER STREQUAL "MK4"
    OR PRINTER STREQUAL "MK3.5"
    OR PRINTER STREQUAL "XL"
+   OR PRINTER STREQUAL "MINI"
    )
   target_sources(firmware PRIVATE screen_help_fw_update.cpp)
 endif()

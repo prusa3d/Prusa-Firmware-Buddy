@@ -1,4 +1,4 @@
-include(PngGenerator.cmake)
+include(QoiGenerator.cmake)
 #
 # Common Functions
 #
@@ -38,7 +38,9 @@ function(add_header_with_revision revision_name image_name)
     )
 
   # set dependency on the main target
-  add_custom_target(resources-header-${revision_name} DEPENDS "${header_hash_file}" png_generator)
+  add_custom_target(
+    resources-header-${revision_name} DEPENDS "${header_hash_file}" qoi_generated_files
+    )
   add_dependencies(firmware resources-header-${revision_name})
 endfunction()
 
@@ -53,7 +55,12 @@ target_include_directories(firmware PUBLIC "${resources_include_dir}")
 # Standard Resources Image
 #
 
-add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 512)
+if(PRINTER STREQUAL "MINI")
+  # Some revisions of mini has 1MB flash, so limit resource size to remaining size
+  add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 206)
+else()
+  add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 512)
+endif()
 
 # /esp directory
 if(PRINTER STREQUAL "XL")
@@ -79,12 +86,34 @@ add_gzip_resource("web/index.html" "/web/index.html")
 add_gzip_resource("web/main.5f5322c31a3face56a9b.js" "/web/main.5f5322c31a3face56a9b.js")
 add_gzip_resource("web/main.f8ac848b2f92b82bcee8.css" "/web/main.f8ac848b2f92b82bcee8.css")
 
-# /png directory
-add_resource("${png_data_file}" "pngs")
-add_resource("pre_bootstrap_pngs/marlin_logo_79x61.png" "marlin_logo_79x61.png")
+# non-packed images, set the list of images to process
+set(NONPACKED_PNG_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/resources")
+
+# convert non-packed PNG->QOI, do all of them, even though not all will be used
+set(NONPACKED_PNGS
+    "pre_bootstrap_pngs/marlin_logo_79x61.png" "pre_bootstrap_pngs/prusa_mini_splash_207x47.png"
+    "pre_bootstrap_pngs/prusa_ix_splash_158x52.png" "pre_bootstrap_pngs/prusa_xl_splash_172x52.png"
+    )
+
+foreach(NONPACKED_PNG ${NONPACKED_PNGS})
+  get_filename_component(NONPACKED_NAME ${NONPACKED_PNG} NAME_WE)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NONPACKED_NAME}.qoi
+    DEPENDS ${NONPACKED_PNG}
+    COMMAND
+      "${Python3_EXECUTABLE}" "${qoi_generator_py}" "${NONPACKED_PNG_SOURCE_DIR}/${NONPACKED_PNG}"
+      "${CMAKE_CURRENT_BINARY_DIR}/nonpacked.res"
+      "${CMAKE_CURRENT_BINARY_DIR}/${NONPACKED_NAME}.qoi"
+    )
+endforeach()
+
+add_resource("${CMAKE_CURRENT_BINARY_DIR}/marlin_logo_79x61.qoi" "marlin_logo_79x61.qoi")
 if(PRINTER STREQUAL "MINI")
-  add_resource("pre_bootstrap_pngs/prusa_mini_splash_207x47.png" "printer_logo.png")
+  add_resource("${CMAKE_CURRENT_BINARY_DIR}/prusa_mini_splash_207x47.qoi" "printer_logo.qoi")
 endif()
+
+# Quite OK images
+add_resource("${qoi_data_file}" "qoi.data")
 
 # generate header with hash
 add_header_with_revision(standard resources-image)

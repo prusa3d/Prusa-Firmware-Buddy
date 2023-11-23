@@ -31,12 +31,12 @@ class string_view_utf8 {
         /// interface for utf-8 strings stored in the CPU FLASH.
         struct FromCPUFLASH_RAM {
             const uint8_t *utf8raw; ///< pointer to raw utf8 data
-            const uint8_t *readp;   ///< read pointer, aka read iterator
+            const uint8_t *readp; ///< read pointer, aka read iterator
         } cpuflash;
         /// interface for utf-8 string stored in a FILE - used for validation of the whole translation infrastructure
         struct FromFile {
-            ::FILE *f;           ///< shared FILE pointer with other instances accessing the same file
-            uint16_t startOfs;   ///< start offset in input file
+            ::FILE *f; ///< shared FILE pointer with other instances accessing the same file
+            uint16_t startOfs; ///< start offset in input file
             uint16_t currentOfs; ///< position of next byt to read
         } file;
     };
@@ -224,13 +224,16 @@ public:
 
         switch (type) {
         case EType::RAM:
+            // even though data on RAM can change, stringview never copies any data and therefore comparing pointers is enough
+            // => if pointer wasn't changed, data on the other end is the exact same data that is saved by stringview
+            // check MakeRAM; that should make everything clear
         case EType::CPUFLASH:
             return attrs.cpuflash.utf8raw == other.attrs.cpuflash.utf8raw;
         case EType::FILE:
             return (attrs.file.f == other.attrs.file.f) && (attrs.file.startOfs == other.attrs.file.startOfs);
         case EType::SPIFLASH:
         case EType::USBFLASH:
-            assert(false);   // ends program in debug
+            assert(false); // ends program in debug
             return false;
         case EType::NULLSTR: // all null strings are equal
             return true;

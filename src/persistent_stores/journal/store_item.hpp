@@ -7,6 +7,9 @@
 #include "include/dwarf_errors.hpp"
 #include <common/array_extensions.hpp>
 
+#pragma GCC push_options
+#pragma GCC optimize("Os")
+
 namespace journal {
 template <typename DataT>
 concept StoreItemDataC = std::equality_comparable<DataT> && std::default_initializable<DataT> && std::is_trivially_copyable_v<DataT>;
@@ -98,3 +101,5 @@ struct DeprecatedStoreItem {
 };
 
 } // namespace journal
+
+#pragma GCC pop_options

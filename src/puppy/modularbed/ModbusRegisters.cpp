@@ -79,7 +79,7 @@ void Init() {
     SetRegValue(SystemHoldingRegister::chamber_temperature, ((float)DEFAULT_CHAMBER_TEMP) * MODBUS_TEMPERATURE_REGISTERS_SCALE);
 
     // init registers from OTP
-    serial_nr_t sn;     // Serial number = raw datamatrix
+    serial_nr_t sn; // Serial number = raw datamatrix
     uint32_t timestamp; // Unix timestamp, seconds since 1970
     auto bom_id = otp_get_bom_id();
     timestamp = otp_get_timestamp();

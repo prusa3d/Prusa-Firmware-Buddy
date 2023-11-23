@@ -14,7 +14,7 @@ enum class Buttons : uint_least8_t {
     Left,
 
     // performed on the printer's side
-    RestartMMU,
+    ResetMMU,
     StopPrint,
     DisableMMU,
 

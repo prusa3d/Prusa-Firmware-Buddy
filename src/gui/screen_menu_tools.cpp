@@ -86,7 +86,8 @@ MI_PICKUP_TOOL::MI_PICKUP_TOOL()
 }
 
 void MI_PICKUP_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode_printf("T%d S", displayed_tool);
+    marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
+    marlin_client::gcode_printf("T%d S1 L0 D0", displayed_tool);
 }
 
 MI_DOCK_CALIBRATE::MI_DOCK_CALIBRATE()
@@ -127,7 +128,8 @@ MI_PARK_TOOL::MI_PARK_TOOL()
 }
 
 void MI_PARK_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode_printf("T%d S", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+    marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
+    marlin_client::gcode_printf("T%d S1 L0 D0", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
 }
 
 ScreenMenuTools::ScreenMenuTools()
@@ -144,7 +146,7 @@ MI_INFO_DWARF_BOARD_TEMPERATURE::MI_INFO_DWARF_BOARD_TEMPERATURE()
 /*****************************************************************************/
 // MI_INFO_HEATBREAK_N_TEMP
 I_MI_INFO_HEATBREAK_N_TEMP::I_MI_INFO_HEATBREAK_N_TEMP(const char *const specific_label, int index)
-    : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label),                                                     //< Toolchanger has specific labels
+    : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label), //< Toolchanger has specific labels
         nullptr, is_enabled_t::yes,
         ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && buddy::puppies::dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
 }
@@ -152,7 +154,7 @@ I_MI_INFO_HEATBREAK_N_TEMP::I_MI_INFO_HEATBREAK_N_TEMP(const char *const specifi
 /*****************************************************************************/
 // MI_INFO_NOZZLE_N_TEMP
 I_MI_INFO_NOZZLE_N_TEMP::I_MI_INFO_NOZZLE_N_TEMP(const char *const specific_label, int index)
-    : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label),                                                     //< Toolchanger has specific labels
+    : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label), //< Toolchanger has specific labels
         nullptr, is_enabled_t::yes,
         ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && buddy::puppies::dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
 }

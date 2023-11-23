@@ -33,15 +33,15 @@ static const char screenshot_name[] = "/usb/screenshot";
 static const char screenshot_format[] = ".bmp";
 
 static const unsigned char bmp_header[] = {
-    'B', 'M',                     /// type "BM"                   [2B]
+    'B', 'M', /// type "BM"                   [2B]
     (unsigned char)BMP_FILE_SIZE, /// image file size in bytes    [4B]
     (unsigned char)(BMP_FILE_SIZE >> 8),
     (unsigned char)(BMP_FILE_SIZE >> 16),
     (unsigned char)(BMP_FILE_SIZE >> 24),
-    0, 0, 0, 0,                                                            /// reserved                    [4B]
+    0, 0, 0, 0, /// reserved                    [4B]
     (unsigned char)(BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE), 0, 0, 0, /// start of pixel array        [4B]
-    (unsigned char)BMP_INFO_HEADER_SIZE, 0, 0, 0,                          /// header size                 [4B]
-    (unsigned char)display::GetW(),                                        /// image width                 [4B]
+    (unsigned char)BMP_INFO_HEADER_SIZE, 0, 0, 0, /// header size                 [4B]
+    (unsigned char)display::GetW(), /// image width                 [4B]
     (unsigned char)(display::GetW() >> 8),
     0,
     0,
@@ -49,9 +49,9 @@ static const unsigned char bmp_header[] = {
     (unsigned char)(display::GetH() >> 8),
     0,
     0,
-    1, 0,                                                                 /// number of color planes      [2B]
-    (unsigned char)(bytes_per_pixel * 8), 0,                              /// bits per pixel              [2B]
-    0, 0, 0, 0,                                                           /// compression                 [4B]
+    1, 0, /// number of color planes      [2B]
+    (unsigned char)(bytes_per_pixel * 8), 0, /// bits per pixel              [2B]
+    0, 0, 0, 0, /// compression                 [4B]
     (unsigned char)(display::GetW() * display::GetH() * bytes_per_pixel), /// image size                  [4B]
     (unsigned char)((display::GetW() * display::GetH() * bytes_per_pixel) >> 8),
     (unsigned char)((display::GetW() * display::GetH() * bytes_per_pixel) >> 16),
@@ -76,7 +76,7 @@ static void mirror_buffer(Pixel *buffer) {
             std::swap(buffer[i1], buffer[i2]);
 #elif defined USE_ILI9488
             Pixel swapper = buffer[i1];
-            buffer[i1] = buffer[i2];     // move 6 bit input to 8 bit scale
+            buffer[i1] = buffer[i2]; // move 6 bit input to 8 bit scale
             buffer[i2] = swapper;
             buffer[i1].ShiftColorsUp(2); // move 6 bit input to 8 bit scale
             buffer[i2].ShiftColorsUp(2);

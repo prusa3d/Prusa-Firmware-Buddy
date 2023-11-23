@@ -191,6 +191,7 @@ void line_to_current_position(const feedRate_t &fr_mm_s=feedrate_mm_s);
 void plan_move_by(const feedRate_t fr, const float dx, const float dy = 0, const float dz = 0, const float de = 0);
 
 void prepare_move_to_destination();
+static inline void prepare_line_to_destination() { prepare_move_to_destination(); } // stub
 
 void _internal_move_to_destination(const feedRate_t &fr_mm_s=0.0f
   #if IS_KINEMATIC
@@ -285,7 +286,8 @@ void homing_failed(std::function<void()> fallback_error, bool crash_was_active =
 // Perform a single homing probe on a logical axis
 float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s = 0.0, bool invert_home_dir = false, bool homing_z_with_probe = true);
 
-void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0, bool can_move_back_before_homing = false, bool homing_z_with_probe = true);
+// Perform a single homing move on a logical axis
+uint8_t do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0, bool can_move_back_before_homing = false, bool homing_z_with_probe = true);
 
 /**
  * Workspace offsets

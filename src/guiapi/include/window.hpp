@@ -8,7 +8,7 @@
 #include "align.hpp"
 #include "color_scheme.hpp"
 #include "gui_time.hpp" // not needed here, but will save lot of includes
-                        // !!! all windows should use gui::GetTick() to access tick value!!!
+// !!! all windows should use gui::GetTick() to access tick value!!!
 
 class window_t {
     window_t *parent;
@@ -29,7 +29,7 @@ private:
 public:
     Rect16 GetRect() const;
     Rect16 GetRectWithoutTransformation() const;
-    void SetRect(Rect16 rc);               // does not transform
+    void SetRect(Rect16 rc); // does not transform
     void SetRectWithoutTransformation(Rect16 rc);
     Rect16 TransformRect(Rect16 rc) const; // just transforms given rect, calls parrents transform if this window is relative
 
@@ -61,8 +61,8 @@ public:
     void Draw();
     void ScreenEvent(window_t *sender, GUI_event_t event, void *const param); // try to handle, frame resends children
     void WindowEvent(window_t *sender, GUI_event_t event, void *const param); // try to handle, can sent click to parent
-    bool IsVisible() const;                                                   // visible and not hidden by dialog
-    bool HasVisibleFlag() const;                                              // visible, but still can be hidden behind dialog
+    bool IsVisible() const; // visible and not hidden by dialog
+    bool HasVisibleFlag() const; // visible, but still can be hidden behind dialog
     bool IsHiddenBehindDialog() const;
     bool IsEnabled() const;
     bool IsInvalid() const;
@@ -143,7 +143,7 @@ protected:
 protected:
     virtual void invalidate(Rect16 validation_rect);
     virtual void validate(Rect16 validation_rect); // do not use, used by screen
-    static window_t *focused_ptr;                  // has focus
+    static window_t *focused_ptr; // has focus
 
 public:
     virtual window_t *GetCapturedWindow();

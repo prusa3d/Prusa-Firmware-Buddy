@@ -35,6 +35,7 @@ const std::array<SpinConfigInt, MenuVars::AXIS_CNT> SpinCnf::axis_ranges = { { S
     SpinConfigInt(MenuVars::GetAxisRanges()[2], mm), SpinConfigInt(MenuVars::GetAxisRanges()[3], mm) } };
 const SpinConfigInt SpinCnf::steps_per_unit = SpinConfigInt(MenuVars::steps_per_unit_range, None);
 const SpinConfigInt SpinCnf::microstep_exponential = SpinConfigInt(MenuVars::microstep_exponential_range, None);
+const SpinConfigInt SpinCnf::microstep_exponential_with_0 = SpinConfigInt(MenuVars::microstep_exponential_range_with_0, None);
 const SpinConfigInt SpinCnf::rms_current = SpinConfigInt(MenuVars::axis_rms_currents_range, mA);
 const SpinConfigInt SpinCnf::two_digits_uint = { { 0, 15, 1 }, None };
 #if AXIS_DRIVER_TYPE_X(TMC2209)

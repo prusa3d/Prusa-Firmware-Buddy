@@ -210,10 +210,10 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
-__attribute__((noreturn)) void fatal_error(const char *error, const char *module);
-#define configASSERT(x)                          \
-    if ((x) == 0) {                              \
-        fatal_error("configASSERT", "freertos"); \
+__attribute__((noreturn)) void _bsod(const char *fmt, const char *file_name, int line_number, ...);
+#define configASSERT(x)                                     \
+    if ((x) == 0) {                                         \
+        _bsod("freertos configASSERT", __FILE__, __LINE__); \
     }
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS

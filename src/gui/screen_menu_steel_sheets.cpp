@@ -8,6 +8,7 @@
 #include "GuiDefaults.hpp"
 #include "ScreenHandler.hpp"
 #include "SteelSheets.hpp"
+#include <marlin_client.hpp>
 
 LOG_COMPONENT_REF(GUI);
 
@@ -106,7 +107,7 @@ void ISheetProfileMenuScreen::windowEvent(EventLock /*has private ctor*/, window
     case profile_action::Calibrate:
         log_debug(GUI, "MI_SHEET_CALIBRATE");
         SteelSheets::SelectSheet(value);
-        // TODO ScreenWizard::Run(wizard_run_type_t::firstlay);
+        marlin_client::test_start(stmFirstLayer);
         Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
         break;
     case profile_action::Rename:

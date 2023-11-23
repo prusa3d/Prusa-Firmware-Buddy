@@ -8,7 +8,8 @@
 #include "static_alocation_ptr.hpp"
 #include "fsm_base_types.hpp"
 #include <option/has_toolchanger.h>
-#if HAS_TOOLCHANGER()
+#include <option/has_mmu2.h>
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     #include "screen_tools_mapping.hpp"
 #endif
 
@@ -25,14 +26,14 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
 
     GCodeInfo &gcode;
     GCodeInfoWithDescription gcode_description; // cannot be first
-    WindowPreviewThumbnail thumbnail;           // draws preview png
+    WindowPreviewThumbnail thumbnail; // draws preview image
 
     PhasesPrintPreview phase;
 
     using UniquePtrBox = static_unique_ptr<AddSuperWindow<MsgBoxIconned>>;
     UniquePtrBox pMsgbox;
 
-#if HAS_TOOLCHANGER()
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     using UniquePtrMapping = static_unique_ptr<ToolsMappingBody>;
     UniquePtrMapping tools_mapping;
 
@@ -43,6 +44,7 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
     MsgBoxMemSpace msgBoxMemSpace;
 
     UniquePtrBox makeMsgBox(string_view_utf8 caption, string_view_utf8 text);
+    UniquePtrBox makeMsgBoxWait(string_view_utf8 text);
 
 public:
     ScreenPrintPreview();

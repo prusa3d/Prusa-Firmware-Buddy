@@ -3,6 +3,7 @@
 #include <fsm_types.hpp>
 #include <client_response.hpp>
 #include <marlin_vars.hpp>
+#include <option/has_mmu2.h>
 
 using namespace marlin_server;
 
@@ -16,12 +17,12 @@ namespace {
         case State::CrashRecovery_Repeated_Crash:
         case State::CrashRecovery_HOMEFAIL:
         case State::CrashRecovery_Tool_Pickup:
+        case State::PrintPreviewToolsMapping:
             return DeviceState::Attention;
         case State::Idle:
         case State::WaitGui:
         case State::PrintPreviewInit:
         case State::PrintPreviewImage:
-        case State::PrintPreviewToolsMapping:
         case State::PrintInit:
         case State::Exit:
             if (ready) {
@@ -33,8 +34,10 @@ namespace {
         case State::Aborting_Begin:
         case State::Aborting_WaitIdle:
         case State::Aborting_ParkHead:
+        case State::Aborting_Preview:
         case State::Finishing_WaitIdle:
         case State::Finishing_ParkHead:
+        case State::PrintPreviewConfirmed:
             return DeviceState::Printing;
 
         case State::PowerPanic_acFault:
@@ -95,6 +98,13 @@ namespace {
 
         switch (q1_change.get_fsm_type()) {
         case ClientFSM::Load_unload:
+#if HAS_MMU2()
+            if (config_store().mmu2_enabled.get()) {
+                // distinguish between regular progress of MMU Load/Unload and a real attention/MMU error screen (which is only one particular FSM state)
+                return GetEnumFromPhaseIndex<PhasesLoadUnload>(q1_change.get_data().GetPhase()) == PhasesLoadUnload::MMU_ERRWaitingForUser;
+            }
+#endif
+            // MMU not supported or not active -> all load/unload during print is really attention.
             return true;
         case ClientFSM::CrashRecovery:
             return is_crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(q1_change.get_data().GetPhase()));

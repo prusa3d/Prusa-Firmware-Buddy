@@ -28,10 +28,10 @@ enum class Dependency {
     esp_flashed,
     lwip_initialized,
     manufacture_report_sent,
+    power_panic_initialized,
 #ifdef USE_ASYNCIO
     async_io_ready,
 #endif
-    power_panic_initialized,
 
     _count
 };

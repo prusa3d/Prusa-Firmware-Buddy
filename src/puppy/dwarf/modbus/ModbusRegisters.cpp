@@ -43,7 +43,7 @@ void Init() {
     AddBlock(BlockType::HoldingRegister, s_SystemHoldingRegisters, MIN_SystemHoldingRegister, MAX_SystemHoldingRegister - MIN_SystemHoldingRegister + 1);
 
     // init registers from OTP
-    serial_nr_t sn {};  // Serial number = raw datamatrix
+    serial_nr_t sn {}; // Serial number = raw datamatrix
     uint32_t timestamp; // Unix timestamp, seconds since 1970
     auto bom_id = otp_get_bom_id();
     timestamp = otp_get_timestamp();

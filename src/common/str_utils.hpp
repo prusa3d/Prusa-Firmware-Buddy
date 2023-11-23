@@ -8,10 +8,10 @@
 
 inline constexpr char CHAR_SPACE = ' ';
 inline constexpr char CHAR_NBSP = '\xA0'; /// Non Breaking Space
-#define NBSP "\xA0"                       /// Non Breaking Space
-inline constexpr char CHAR_NL = '\n';     /// New Line
-#define NL "\n"                           /// New Line
-inline constexpr char EOS = '\0';         /// End Of String
+#define NBSP "\xA0" /// Non Breaking Space
+inline constexpr char CHAR_NL = '\n'; /// New Line
+#define NL "\n" /// New Line
+inline constexpr char EOS = '\0'; /// End Of String
 
 enum str_err {
     nullptr_err = -1,
@@ -25,6 +25,10 @@ int str2multiline(char *str, size_t max_size, const size_t line_width);
 int strshiftUnicode(uint32_t *str, size_t max_size, const size_t n = 1, const uint32_t default_char = ' ');
 int strinsUnicode(uint32_t *str, size_t max_size, const uint32_t *const ins, size_t times = 1);
 int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width);
+
+constexpr size_t strlen_constexpr(const char *str) {
+    return *str ? 1 + strlen_constexpr(str + 1) : 0;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -135,7 +139,7 @@ private:
 class RectTextLayout {
 public:
     static constexpr size_t MaxLines = 31;
-    static constexpr uint8_t MaxCharInLine = 255;     // uint8_t
+    static constexpr uint8_t MaxCharInLine = 255; // uint8_t
     using Data_t = std::array<uint8_t, MaxLines + 1>; // last elem stores current line
 private:
     Data_t data;
@@ -211,10 +215,10 @@ struct text_wrapper {
     using value_type = typename memory_buffer::value_type;
 
     text_wrapper(uint32_t width, font_type font)
-        : width_(width)     ///< width of the space for the text in pixels
-        , index_(-1)        ///< current position in buffer where single word is
+        : width_(width) ///< width of the space for the text in pixels
+        , index_(-1) ///< current position in buffer where single word is
         , current_width_(0) ///< width used already
-        , word_length_(0)   ///< number characters of current word + trailing white character
+        , word_length_(0) ///< number characters of current word + trailing white character
         , font_(font) {};
 
     /// \returns false if the new word does not fit current line

@@ -15,6 +15,16 @@ enum class HWCheckSeverity : uint8_t {
     Abort = 2
 };
 
+/**
+ * @brief Allow metrics.
+ * @note You can add, but never reorder items.
+ */
+enum class MetricsAllow : uint8_t {
+    None = 0, ///< Metrics are not allowed
+    One = 1, ///< Metrics can be enabled only to one selected host
+    All = 2, ///< Metrics can be enabled to any host
+};
+
 namespace config_store_ns {
 // place for constants relevant to config_store
 inline constexpr size_t sheets_num { 8 };
@@ -28,5 +38,6 @@ inline constexpr size_t pl_password_size { old_eeprom::PL_PASSWORD_SIZE };
 inline constexpr size_t wifi_max_ssid_len { old_eeprom::WIFI_MAX_SSID_LEN };
 inline constexpr size_t wifi_max_passwd_len { old_eeprom::WIFI_MAX_PASSWD_LEN };
 
+inline constexpr size_t metrics_host_size { connect_host_size }; ///< Size of metrics host string
 inline constexpr int16_t stallguard_sensitivity_unset { std::numeric_limits<int16_t>::max() };
 } // namespace config_store_ns

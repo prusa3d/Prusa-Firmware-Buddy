@@ -2,15 +2,16 @@
 #pragma once
 
 #include <inttypes.h>
+#include <gcode/gcode_reader.hpp> // for PrusaPackGcodeReader::stream_restore_info_t
 
 typedef enum {
-    media_state_REMOVED = 0,  // media is inserted
+    media_state_REMOVED = 0, // media is inserted
     media_state_INSERTED = 1, // media is removed
-    media_state_ERROR = 2,    // media is in error state (TODO)
+    media_state_ERROR = 2, // media is in error state (TODO)
 } media_state_t;
 
 typedef enum {
-    media_error_OK = 0,    // no error
+    media_error_OK = 0, // no error
     media_error_MOUNT = 1, // error - mounting media - f_mount failed
 } media_error_t;
 
@@ -18,7 +19,6 @@ typedef enum {
     media_print_state_NONE = 0,
     media_print_state_PRINTING = 1,
     media_print_state_PAUSED = 2,
-    media_print_state_DRAINING = 3,
 } media_print_state_t;
 
 #ifdef __cplusplus
@@ -65,7 +65,9 @@ extern void media_set_removed(void);
 extern void media_set_error(media_error_t error);
 
 extern void media_reset_usbh_error();
-extern void media_reset_USB_host();
+
+extern void media_set_restore_info(PrusaPackGcodeReader::stream_restore_info_t &info);
+extern PrusaPackGcodeReader::stream_restore_info_t media_get_restore_info();
 
 #ifdef __cplusplus
 }

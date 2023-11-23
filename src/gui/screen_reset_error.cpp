@@ -28,8 +28,8 @@ ScreenResetError::ScreenResetError()
 
     /// fw version, hash, [fw signed], [appendix]
     static const constexpr uint16_t fw_version_str_len = 13 + 1; // combined max length of project_version + .._suffix_short + null
-    static char fw_version[fw_version_str_len];                  // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
-                                                                 // snprintf will clamp the text if the input is too long
+    static char fw_version[fw_version_str_len]; // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
+                                                // snprintf will clamp the text if the input is too long
     snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
     fw_version_txt.SetText(_(fw_version));
 

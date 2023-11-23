@@ -3,7 +3,6 @@
 
 #include "screen_print_preview.hpp"
 #include "log.h"
-#include "gcode_file.h"
 #include "marlin_client.hpp"
 #include "filament_sensors_handler.hpp"
 #include <stdarg.h>
@@ -18,15 +17,17 @@
 #include "box_unfinished_selftest.hpp"
 #include "window_msgbox_wrong_printer.hpp"
 #include <option/has_toolchanger.h>
+#include <option/has_mmu2.h>
 #include <device/board.h>
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
+#endif
 
 ScreenPrintPreview::ScreenPrintPreview()
     : gcode(GCodeInfo::getInstance())
-    , gcode_description(this, gcode)
+    , gcode_description(this)
     , thumbnail(this, GuiDefaults::PreviewThumbnailRect)
-    , phase(PhasesPrintPreview::_first) {
-
-    assert(gcode.is_file_open() && "GCodeInfo must be initialized by guimain before ScreenPrintPreview is created");
+    , phase(PhasesPrintPreview::_last) {
 
     super::ClrMenuTimeoutClose();
 
@@ -39,7 +40,6 @@ ScreenPrintPreview::ScreenPrintPreview()
 }
 
 ScreenPrintPreview::~ScreenPrintPreview() {
-    GCodeInfo::getInstance().deinitFile();
     ths = nullptr;
 }
 
@@ -50,6 +50,9 @@ ScreenPrintPreview *ScreenPrintPreview::GetInstance() { return ths; }
 
 ScreenPrintPreview::UniquePtrBox ScreenPrintPreview::makeMsgBox(string_view_utf8 caption, string_view_utf8 text) {
     return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &img::warning_16x16, is_closed_on_click_t::no);
+}
+ScreenPrintPreview::UniquePtrBox ScreenPrintPreview::makeMsgBoxWait(string_view_utf8 text) {
+    return make_static_unique_ptr<MsgBoxIconnedWait>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
 }
 
 void ScreenPrintPreview::Change(fsm::BaseData data) {
@@ -65,14 +68,25 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
     if (phase != PhasesPrintPreview::main_dialog) {
         hide_main_dialog();
     }
-#if HAS_TOOLCHANGER()
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     if (phase != PhasesPrintPreview::tools_mapping) {
         spool_join.reset();
+        header.hide_bed_info();
     }
 #endif
 
     switch (phase) {
+
+    case PhasesPrintPreview::loading:
+        pMsgbox = makeMsgBoxWait(_("Loading..."));
+        break;
+
+    case PhasesPrintPreview::download_wait:
+        pMsgbox = makeMsgBoxWait(_("Downloading..."));
+        break;
     case PhasesPrintPreview::main_dialog:
+        gcode_description.update(gcode);
+        assert(gcode.is_loaded() && "GCodeInfo must be initialized before ScreenPrintPreview is created");
         show_main_dialog();
         break;
     case PhasesPrintPreview::unfinished_selftest:
@@ -132,7 +146,12 @@ void ScreenPrintPreview::show_main_dialog() {
 }
 
 void ScreenPrintPreview::show_tools_mapping() {
-#if HAS_TOOLCHANGER()
+#if HAS_TOOLCHANGER() || HAS_MMU2()
+    #if HAS_MMU2()
+    if (!MMU2::mmu2.Enabled())
+        return;
+    #endif
+
     tools_mapping = make_static_unique_ptr<ToolsMappingBody>(&msgBoxMemSpace, this, gcode);
     CaptureNormalWindow(*tools_mapping);
     tools_mapping->Show();
@@ -141,8 +160,17 @@ void ScreenPrintPreview::show_tools_mapping() {
     #if BOARD_IS_XBUDDY or BOARD_IS_XLBUDDY
     header.SetText(_("TOOLS MAPPING"));
     #endif
+
+    header.show_bed_info();
 #endif
 }
 
 void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
+    // Catch event when USB is removed
+    if (event == GUI_event_t::MEDIA) {
+        const MediaState_t media_state = MediaState_t(reinterpret_cast<int>(param));
+        if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
+            marlin_client::print_abort(); // Abort print from marlin_server and close printing screens
+        }
+    }
 }

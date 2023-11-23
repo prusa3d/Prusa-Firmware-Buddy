@@ -50,7 +50,7 @@ int8_t gui_timer_new(window_t *pWin, uint8_t timer, uint32_t ms) {
             gui_timers[id].delay = ms;
             gui_timers[id].f_timer = timer;
             gui_timers[id].pWin = pWin;
-            gui_timer_count++;         // increment count
+            gui_timer_count++; // increment count
             if ((window = Screens::Access()->Get()) != 0)
                 window->SetHasTimer(); // set timer flag
         } else

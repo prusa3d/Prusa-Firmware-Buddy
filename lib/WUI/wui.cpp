@@ -27,6 +27,7 @@
 #include <mutex>
 #include "http_lifetime.h"
 #include "main.h"
+#include <ccm_thread.hpp>
 #include "tasks.hpp"
 
 #include "netdev.h"
@@ -325,10 +326,7 @@ private:
     void run() __attribute__((noreturn)) {
         // Note: this is the only thing to initialize now, rest is after the tcpip
         // thread starts.
-        //
-        // Q: Do other threads, like connect, need to wait for this?
         tcpip_init(tcpip_init_done_raw, this);
-        TaskDeps::provide(TaskDeps::Dependency::lwip_initialized);
 
         prusalink_password_init();
 
@@ -359,8 +357,7 @@ private:
                 // (No need to go through the notification.)
                 events |= Reconfigure;
                 initialized = true;
-                // TODO: Publish to the world we are initialized. Maybe something
-                // (connect) wants to wait for that.
+                TaskDeps::provide(TaskDeps::Dependency::lwip_initialized);
             }
 
             // Note: This is allowed even before we are fully initialized. This
@@ -417,17 +414,16 @@ private:
                 // It's OK if the ESP is turned off on purpose or if it's up and running.
                 const bool esp_ok = (iface_mode(ifaces[NETDEV_ESP_ID]) == Mode::Off || ap.ssid[0] == '\0' || (espif_link() && was_alive));
 
-                const uint32_t n = sys_now();
                 if (esp_ok) {
-                    last_esp_ok = n;
+                    last_esp_ok = now;
                 }
 
-                const uint32_t faulty_for = n - last_esp_ok;
+                const uint32_t faulty_for = now - last_esp_ok;
 
                 if (faulty_for >= RESET_FAULTY_AFTER) {
                     // It's not OK for a long time. Try resetting it if that helps.
                     espif_reset();
-                    last_esp_ok = n;
+                    last_esp_ok = now;
                 }
             }
 
@@ -467,7 +463,7 @@ public:
         last_esp_ok = sys_now();
     }
     static void run_task() {
-        osThreadDef(network, task_main, TASK_PRIORITY_WUI, 0, 1024);
+        osThreadCCMDef(network, task_main, TASK_PRIORITY_WUI, 0, 1024);
         osThreadCreate(osThread(network), nullptr);
     }
     static void notify(NetworkAction action) {

@@ -24,9 +24,9 @@ CSelftestPart_Dock::CSelftestPart_Dock(IPartHandler &state_machine, const DockCo
 
 CSelftestPart_Dock::~CSelftestPart_Dock() {
     HOTEND_LOOP() {
-        prusa_toolchanger.getTool(e).set_led(); // Default LED config
+        prusa_toolchanger.getTool(e).set_cheese_led(); // Default LED config
     }
-    prusa_toolchanger.init(false);              // Ensure picked/active tool matches the reality
+    prusa_toolchanger.init(false); // Ensure picked/active tool matches the reality
     toolcheck_reenable();
 }
 
@@ -51,11 +51,11 @@ void CSelftestPart_Dock::prepare_homing() {
 }
 
 LoopResult CSelftestPart_Dock::stateMoveAwayInit() {
-    planner.synchronize();                                     // Finish current move
+    planner.synchronize(); // Finish current move
 
     IPartHandler::SetFsmPhase(PhasesSelftest::Dock_move_away); // Set moving down screen
 
-    prepare_homing();                                          // Prepare homing to terminate next move as soon as endstop hits
+    prepare_homing(); // Prepare homing to terminate next move as soon as endstop hits
 
     // Start move to z_extra_pos
     if (config.z_extra_pos > current_position.z) {
@@ -69,7 +69,7 @@ LoopResult CSelftestPart_Dock::stateMoveAwayWait() {
     if (planner.processing()) {
         return LoopResult::RunCurrent; // Wait while moving
     }
-    endstops.not_homing();             // Revert endstops to global state
+    endstops.not_homing(); // Revert endstops to global state
     return LoopResult::RunNext;
 }
 
@@ -149,7 +149,7 @@ LoopResult CSelftestPart_Dock::state_ask_user_remove_pin() {
     // Select the tool to mark it, unselect all others
     for (uint i = 0; i < HOTENDS; ++i) {
         prusa_toolchanger.getTool(i).set_selected(i == config.dock_id);
-        prusa_toolchanger.getTool(i).set_led(0xff, 0x00); // LED on on the selected tool
+        prusa_toolchanger.getTool(i).set_cheese_led(0xff, 0x00); // LED on on the selected tool
     }
 
     // Disable steppers - let user operate with the printer
@@ -194,7 +194,7 @@ LoopResult CSelftestPart_Dock::state_measure() {
     position_before_measure = xy_long_t({ { {
         .x = stepper.position_from_startup(AxisEnum::A_AXIS),
         .y = stepper.position_from_startup(AxisEnum::B_AXIS),
-    } } });                              // GCC bug? (should be .a = ..., .b = ...) works with GCC 12.2.1
+    } } }); // GCC bug? (should be .a = ..., .b = ...) works with GCC 12.2.1
 
     marlin_server::enqueue_gcode("G91"); // Relative positioning
     // Detach from dock
@@ -389,7 +389,7 @@ LoopResult CSelftestPart_Dock::state_selftest_pick() {
         return LoopResult::Fail;
     }
 
-    marlin_server::enqueue_gcode_printf("T%d S1", config.dock_id);
+    marlin_server::enqueue_gcode_printf("T%d S1 L0 D0", config.dock_id);
     marlin_server::enqueue_gcode("M400");
     return LoopResult::RunNext;
 }
@@ -405,7 +405,7 @@ LoopResult CSelftestPart_Dock::state_selftest_park() {
         return LoopResult::Fail;
     }
 
-    marlin_server::enqueue_gcode_printf("T%d S1", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+    marlin_server::enqueue_gcode_printf("T%d S1 L0 D0", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
     marlin_server::enqueue_gcode("M400");
     return LoopResult::RunNext;
 }

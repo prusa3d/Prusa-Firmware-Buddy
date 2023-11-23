@@ -1,6 +1,7 @@
 #include <bootloader/bootloader.hpp>
 #include <log.h>
 #include <sys.h>
+#include <data_exchange.hpp>
 #include <device/hal.h>
 #include <bsod.h>
 #include <cmsis_os.h>
@@ -44,12 +45,12 @@ Version buddy::bootloader::get_version() {
 
 // Needs to be RAM function because it erases program memory in flash
 bool buddy::bootloader::fw_invalidate(void) {
-    if (!sys_bootloader_is_valid()) {
+    if (!data_exchange::is_bootloader_valid()) {
         return false; // Cannot erase firmware if there is no bootloader
     }
 
     // Flash firmware on next boot
-    sys_fw_update_on_restart_enable();
+    data_exchange::fw_update_on_restart_enable();
 
     // Get sector of firmware descriptors, stored right after bootloader and before firmware
     unsigned int sector = bootloader_sector_count;

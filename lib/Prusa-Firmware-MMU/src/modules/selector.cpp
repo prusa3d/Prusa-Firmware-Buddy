@@ -35,8 +35,7 @@ void Selector::PlanHomingMoveBack() {
 
 bool Selector::FinishHomingAndPlanMoveToParkPos() {
     // check the axis' length
-    int32_t axisEnd = mm::axisUnitToTruncatedUnit<config::U_mm>(mm::motion.CurPosition<mm::Selector>());
-    if (abs(axisEnd - axisStart) < (config::selectorLimits.lenght.v - 3)) { //@@TODO is 3mm ok?
+    if (AxisDistance(mm::axisUnitToTruncatedUnit<config::U_mm>(mm::motion.CurPosition<mm::Selector>())) < (config::selectorLimits.lenght.v - 3)) { //@@TODO is 3mm ok?
         return false; // we couldn't home correctly, we cannot set the Selector's position
     }
 
@@ -90,6 +89,9 @@ Selector::OperationResult Selector::MoveToSlot(uint8_t slot) {
 }
 
 bool Selector::Step() {
+    if (IsOnHold()) {
+        return true; // just wait, do nothing!
+    }
     if (state != TMCFailed) {
         CheckTMC();
     }
@@ -124,10 +126,7 @@ bool Selector::Step() {
             return false;
         }
         return true;
-    case OnHold:
-        return true; // just wait, do nothing!
     case TMCFailed:
-        dbg_logic_P(PSTR("Selector Failed"));
     default:
         return true;
     }

@@ -1,8 +1,6 @@
 #include "catch2/catch_test_macros.hpp"
-#include "catch2/matchers/catch_matchers_vector.hpp"
 #include "progmem.h"
 
-using Catch::Matchers::Equals;
 namespace pm = hal::progmem;
 
 TEST_CASE("progmem::read_word", "[progmem]") {

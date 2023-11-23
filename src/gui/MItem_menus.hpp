@@ -8,6 +8,7 @@
 #include <option/has_side_leds.h>
 #include <option/has_leds.h>
 #include <option/developer_mode.h>
+#include <common/sheet.hpp>
 
 class MI_VERSION_INFO : public WI_LABEL_t {
     static constexpr const char *const label = N_("Version Info");
@@ -150,6 +151,16 @@ class MI_FW_UPDATE : public WI_LABEL_t {
 
 public:
     MI_FW_UPDATE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_METRICS_SETTINGS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Metrics & Log");
+
+public:
+    MI_METRICS_SETTINGS();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -501,7 +512,7 @@ protected:
 };
 
 class MI_INPUT_SHAPER : public WI_LABEL_t {
-#if not PRINTER_IS_PRUSA_MK4
+#if !PRINTER_IS_PRUSA_MK4
     constexpr static const char *label = N_("Input Shaper (Alpha)");
 #else
     constexpr static const char *label = N_("Input Shaper");

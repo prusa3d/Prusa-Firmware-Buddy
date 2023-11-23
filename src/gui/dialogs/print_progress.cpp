@@ -8,13 +8,12 @@
 #include "GuiDefaults.hpp"
 #include "menu_spin_config.hpp"
 #include "fonts.hpp"
-#include "gcode_file.h"
 #include "gcode_thumb_decoder.h"
 #include <config_store/store_instance.hpp>
 
 constexpr static const char *finish_print_text = N_("Print finished");
 constexpr static const char *stop_print_text = N_("Print stopped");
-#if not PRINTER_IS_PRUSA_MK4
+#if !PRINTER_IS_PRUSA_MK4
 constexpr static const char *input_shaper_alpha_text = N_("Input Shaper (Alpha)");
 #else
 constexpr static const char *input_shaper_alpha_text = N_("Input Shaper");
@@ -59,13 +58,24 @@ PrintProgress::PrintProgress(window_t *parent)
 #elif defined(USE_ST7789)
     progress_num.set_font(resource_font(IDR_FNT_BIG));
 #endif
-    gcode_info.initFile(GCodeInfo::GI_INIT_t::THUMBNAIL); // initialize has_..._thumbnail values
+}
+
+bool PrintProgress::init_gcode_info() {
+    if (!gcode_info.is_loaded()) {
+        if (gcode_info.start_load()) {
+            gcode_info.load();
+            gcode_info.end_load();
+        }
+    }
 
     if (!gcode_info.has_progress_thumbnail()) {
         // Permanently disable progress as it makes no sense to look
         // for thumbnail later - there is none.
         disableDialog();
+        return false;
     }
+
+    return true;
 }
 
 uint16_t PrintProgress::getTime() {

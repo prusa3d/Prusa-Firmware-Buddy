@@ -20,4 +20,5 @@ target_sources(
           timebase.cpp
           usb_cdc.cpp
           user_input.cpp
+          voltage.cpp
   )

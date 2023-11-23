@@ -13,7 +13,7 @@ namespace logic {
 /// (regardless of how long it takes it to finish) - that implies no motor moves are being performed while M0/M1 is being applied.
 class SetMode : public CommandBase {
 public:
-    inline SetMode()
+    inline constexpr SetMode()
         : CommandBase() {}
 
     /// Restart the automaton

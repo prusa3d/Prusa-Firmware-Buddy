@@ -48,7 +48,8 @@ TEST_CASE("Decrypt file") {
     const auto encrypted = read_file("box.crypt");
     const auto plain = read_file("box.gcode");
 
-    Decryptor decryptor(key, iv, plain.size());
+    auto cbc = Decryptor::CBC(iv);
+    Decryptor decryptor(key, cbc, plain.size());
 
     size_t block_size = 1;
 

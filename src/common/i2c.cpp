@@ -215,7 +215,7 @@ static Result process_result(I2C_HandleTypeDef &hi2c, HAL_StatusTypeDef result) 
     }
 
     fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_UNDEFINED); // TODO change to access to unused i2c
-    return Result::error;                               // will not get here, just prevent warning
+    return Result::error; // will not get here, just prevent warning
 }
 
 // Helper class to disable the MOVE ISR (which can take up to 3ms) during I2C operations

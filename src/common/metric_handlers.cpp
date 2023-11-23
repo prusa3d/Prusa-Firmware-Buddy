@@ -10,6 +10,8 @@
 #include "otp.hpp"
 #include "sensor_data_buffer.h"
 #include <option/development_items.h>
+#include <config_store/store_instance.hpp>
+#include <atomic>
 
 #define TEXTPROTOCOL_POINT_MAXLEN 63
 #define BUFFER_OLD_MS             1000 // after how many ms we flush the buffer
@@ -101,9 +103,26 @@ metric_handler_t metric_handler_uart = {
 //
 // SysLog Handler
 //
-static char syslog_server_ipaddr[16] = "";
-static int syslog_server_port = 8514;
+osMutexDef(syslog_server_lock);
+osMutexId syslog_server_lock_id;
+static char syslog_server_ipaddr[config_store_ns::metrics_host_size + 1] = "";
+static uint16_t syslog_server_port = 0;
 static syslog_transport_t syslog_transport;
+static std::atomic<bool> reinit = false; ///< Close and reopen connection
+
+void metric_handlers_init() {
+    // Mutex for syslog server address and port
+    syslog_server_lock_id = osMutexCreate(osMutex(syslog_server_lock));
+
+    // Init syslog handler address and port from eeprom
+    const MetricsAllow metrics_allow = config_store().metrics_allow.get();
+    if ((metrics_allow == MetricsAllow::One || metrics_allow == MetricsAllow::All)
+        && config_store().metrics_init.get()) {
+        const char *host = config_store().metrics_host.get_c_str();
+        const uint16_t port = config_store().metrics_port.get();
+        metric_handler_syslog_configure(host, port);
+    }
+}
 
 static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp) {
     static int message_id = 0;
@@ -122,7 +141,7 @@ static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp)
 static void syslog_handler(metric_point_t *point) {
     static uint32_t buffer_reference_timestamp = 0;
     static char buffer_has_header = false;
-    static char buffer[1024] __attribute__((section(".ccmram")));
+    static char buffer[1024];
     static unsigned int buffer_used = 0;
 
     if (!buffer_has_header) {
@@ -142,9 +161,22 @@ static void syslog_handler(metric_point_t *point) {
     if (buffer_full || buffer_becoming_old) {
         // is the socket ready?
         bool open = syslog_transport_check_is_open(&syslog_transport);
+
+        // Request for reinit
+        if (reinit.exchange(false) && open) {
+            syslog_transport_close(&syslog_transport); // Close to use new host and port
+            open = false;
+        }
+
         // if not, try to open the socket
-        if (!open)
+        if (!open) {
+            if (osMutexWait(syslog_server_lock_id, osWaitForever) != osOK) {
+                return; // Could not get mutex, maybe OS was killed
+            }
             open = syslog_transport_open(&syslog_transport, syslog_server_ipaddr, syslog_server_port);
+            osMutexRelease(syslog_server_lock_id);
+        }
+
         // try to send the message if we have an open socket
         if (open) {
             bool sent = syslog_transport_send(&syslog_transport, buffer, buffer_used);
@@ -157,9 +189,22 @@ static void syslog_handler(metric_point_t *point) {
     }
 }
 
-void metric_handler_syslog_configure(const char *ip, int port) {
+void metric_handler_syslog_configure(const char *ip, uint16_t port) {
+    if (osMutexWait(syslog_server_lock_id, osWaitForever) != osOK) {
+        return; // Could not get mutex, maybe OS was killed
+    }
     strlcpy(syslog_server_ipaddr, ip, sizeof(syslog_server_ipaddr));
     syslog_server_port = port;
+    reinit = true; // Close and reopen connection
+    osMutexRelease(syslog_server_lock_id);
+}
+
+const char *metric_handler_syslog_get_host() {
+    return syslog_server_ipaddr;
+}
+
+uint16_t metric_handler_syslog_get_port() {
+    return syslog_server_port;
 }
 
 metric_handler_t metric_handler_syslog = {

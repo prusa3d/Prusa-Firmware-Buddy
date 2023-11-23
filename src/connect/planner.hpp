@@ -8,6 +8,7 @@
 #include <transfers/monitor.hpp>
 #include <transfers/download.hpp>
 #include <transfers/changed_path.hpp>
+#include <transfers/transfer.hpp>
 
 #include <cstdint>
 #include <optional>
@@ -81,6 +82,11 @@ private:
         BackgroundCmd command;
     };
 
+    enum class TransferRecoveryState {
+        WaitingForUSB,
+        Finished,
+    };
+
     Printer &printer;
 
     /// The next (or current) event we want to send out.
@@ -139,35 +145,27 @@ private:
     // Tracking of ongoing transfers.
     std::optional<transfers::TransferId> observed_transfer;
 
-    // We are able to resume _encrypted_ downloads.
+    // Tracks recovery of a transfer after startup.
+    // We should not start any other transfer until the recovery is Finished.
+    TransferRecoveryState transfer_recovery;
+
+    // Set to true every time a transfer is observed. Also on startup (there
+    // might be a leftover from before boot).
     //
-    // In theory, we could also try to recover plain-text ones. But they need a
-    // lot more info for that to work, and we won't be using them in practice
-    // (likely someone may be using them on a private copy of Connect, but that
-    // will likely happen on a local network that should be reliable, not on
-    // the wide broken internet).
+    // Used to prevent cleaning up all the time.
+    bool need_transfer_cleanup = true;
+
+    // A transfer running in background.
     //
-    // In case of a plain-text download, we simply set the number of allowed
-    // retries to 0 to "disable" them.
-    struct ResumableDownload {
-        transfers::Download download;
-        uint32_t orig_size = 0;
-        std::optional<uint16_t> port { std::nullopt };
-        transfers::Decryptor::Block orig_iv {};
-        bool need_retry = false;
-        uint8_t allowed_retries = 0;
-    };
-    // A download running in background.
-    //
-    // As we may have a background _task_ and a download at the same time, we
+    // As we may have a background _task_ and a transfer at the same time, we
     // need to have variables for both.
-    std::optional<ResumableDownload> download;
+    std::optional<transfers::Transfer> transfer;
 
     std::optional<CommandId> transfer_start_cmd = std::nullopt;
     std::optional<CommandId> print_start_cmd = std::nullopt;
 
     /// Constructs corresponding Sleep action.
-    Sleep sleep(Duration duration);
+    Sleep sleep(Duration duration, bool cooldown);
 
 public:
     Planner(Printer &printer)
@@ -200,8 +198,13 @@ public:
 
     // Only for Success/Failure.
     void background_done(BackgroundResult result);
-    void download_done(transfers::DownloadStep result);
-    void recover_download();
+    void download_done(transfers::Transfer::State result);
+
+    /// Called by sleep when it successfully decides whether there is a transfer
+    /// to be recovered or not.
+    void transfer_recovery_finished(std::optional<const char *> transfer_destination_path);
+
+    void transfer_cleanup_finished(bool success);
 
     // ID of a command being executed in the background, if any.
     std::optional<CommandId> background_command_id() const;

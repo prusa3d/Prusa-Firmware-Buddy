@@ -39,6 +39,7 @@ Distributed as-is; no warranty is given.
 #include <device/peripherals.h>
 #include <bit>
 #include "Marlin/src/core/serial.h"
+#include "printers.h"
 
 using namespace buddy::hw;
 
@@ -126,12 +127,19 @@ status_t LIS2DHCore::beginCore(void) {
         break;
     }
 
+    // Soft-reset device to ensure fresh state
+    writeRegister(LIS2DH_CTRL_REG5, 0b10000000);
+    osDelay(5);
+
     // Check the ID register to determine if the operation was a success.
     uint8_t readCheck;
     readRegister(&readCheck, LIS2DH_WHO_AM_I);
     if (readCheck != 0x33) {
         returnError = IMU_HW_ERROR;
     }
+
+    // Reset FIFO mode to bypass in order to reset FIFO
+    writeRegister(LIS2DH_FIFO_CTRL_REG, 0);
 
     return returnError;
 }
@@ -171,7 +179,7 @@ status_t LIS2DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
             Wire.requestFrom(m_I2CAddress, length);
             while ((Wire.available()) && (i < length)) // slave may send less than requested
             {
-                c = Wire.read();                       // receive a byte as character
+                c = Wire.read(); // receive a byte as character
                 *outputPointer = c;
                 outputPointer++;
                 i++;
@@ -190,7 +198,7 @@ status_t LIS2DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
         // send the device the register you want to read:
         offset = offset | 0x80 | 0x40; // Ored with "read request" bit and "auto increment" bit
         HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
-        while (i < length)             // slave may send less than requested
+        while (i < length) // slave may send less than requested
         {
             HAL_SPI_Receive(&SPI_HANDLE_FOR(accelerometer), &c, 1, HAL_MAX_DELAY);
             if (c == 0xFF) {
@@ -320,7 +328,7 @@ status_t LIS2DHCore::readRegister(uint8_t *outputPointer, uint8_t offset) {
             returnError = IMU_HW_ERROR;
         }
         Wire.requestFrom(m_I2CAddress, numBytes);
-        while (Wire.available())  // slave may send less than requested
+        while (Wire.available()) // slave may send less than requested
         {
             result = Wire.read(); // receive a byte as a proper uint8_t
         }
@@ -442,16 +450,16 @@ LIS2DH::LIS2DH(uint8_t inputArg)
 
     // Accelerometer settings
     m_settings.accelSampleRate = 1344; // Hz.  Can be: 0,1,10,25,50,100,200,400,1344,1600,5000 Hz
-    m_settings.accelRange = 2;         // Max G force readable.  Can be: 2, 4, 8, 16
+    m_settings.accelRange = 2; // Max G force readable.  Can be: 2, 4, 8, 16
 
     m_settings.xAccelEnabled = 1;
     m_settings.yAccelEnabled = 1;
     m_settings.zAccelEnabled = 1;
 
     // FIFO control settings
-    m_settings.fifoEnabled = 1;    // enabled
+    m_settings.fifoEnabled = 1; // enabled
     m_settings.fifoThreshold = 20; // Can be 0 to 32
-    m_settings.fifoMode = 2;       // Stream mode.
+    m_settings.fifoMode = 2; // Stream mode.
 
     m_allOnesCounter = 0;
     m_nonSuccessCounter = 0;
@@ -565,7 +573,7 @@ void LIS2DH::applySettings(void) {
         dataToWrite |= (0x03 << 4);
         break;
     }
-    dataToWrite |= 0x80;     // set block update
+    dataToWrite |= 0x80; // set block update
     if (m_high_resolution)
         dataToWrite |= 0x08; // set high resolution
 #ifdef VERBOSE_SERIAL
@@ -574,6 +582,10 @@ void LIS2DH::applySettings(void) {
 #endif
     // Now, write the patched together data
     writeRegister(LIS2DH_CTRL_REG4, dataToWrite);
+
+    // Just in case reset filtering by reading reference register
+    uint8_t dummy;
+    readRegister(&dummy, LIS2DH_REFERENCE);
 }
 //****************************************************************************//
 //
@@ -677,7 +689,7 @@ void LIS2DH::fifoBegin(void) {
 
     // Build LIS3DH_FIFO_CTRL_REG
     readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
-    dataToWrite &= 0x20;                              // clear all but bit 5
+    dataToWrite &= 0x20; // clear all but bit 5
     dataToWrite |= (m_settings.fifoMode & 0x03) << 6; // apply mode
     dataToWrite |= (m_settings.fifoThreshold & 0x1F); // apply threshold
                                                       // Now, write the patched together data
@@ -689,7 +701,7 @@ void LIS2DH::fifoBegin(void) {
 
     // Build CTRL_REG5
     readRegister(&dataToWrite, LIS2DH_CTRL_REG5); // Start with existing data
-    dataToWrite &= 0xBF;                          // clear bit 6
+    dataToWrite &= 0xBF; // clear bit 6
     dataToWrite |= (m_settings.fifoEnabled & 0x01) << 6;
 // Now, write the patched together data
 #ifdef VERBOSE_SERIAL
@@ -713,7 +725,7 @@ void LIS2DH::fifoStartRec(void) {
 
     // Turn off...
     readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
-    dataToWrite &= 0x3F;                              // clear mode
+    dataToWrite &= 0x3F; // clear mode
 #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
     Serial.println(dataToWrite, HEX);
@@ -721,7 +733,7 @@ void LIS2DH::fifoStartRec(void) {
     writeRegister(LIS2DH_FIFO_CTRL_REG, dataToWrite);
     //  ... then back on again
     readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
-    dataToWrite &= 0x3F;                              // clear mode
+    dataToWrite &= 0x3F; // clear mode
     dataToWrite |= (m_settings.fifoMode & 0x03) << 6; // apply mode
                                                       // Now, write the patched together data
 #ifdef VERBOSE_SERIAL
@@ -747,7 +759,7 @@ void LIS2DH::fifoEnd(void) {
 
     // Turn off...
     readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
-    dataToWrite &= 0x3F;                              // clear mode
+    dataToWrite &= 0x3F; // clear mode
 #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
     Serial.println(dataToWrite, HEX);
@@ -818,8 +830,14 @@ int Fifo::get(Acceleration &acceleration) {
 
 Fifo::Acceleration Fifo::to_acceleration(Record record) {
     Acceleration retval;
+#if PRINTER_IS_PRUSA_iX
+    retval.val[0] = m_accelerometer.calcAccel(record.raw_y);
+    retval.val[1] = m_accelerometer.calcAccel(record.raw_z);
+    retval.val[2] = m_accelerometer.calcAccel(record.raw_x);
+#else
     retval.val[0] = m_accelerometer.calcAccel(record.raw_x);
     retval.val[1] = m_accelerometer.calcAccel(record.raw_y);
     retval.val[2] = m_accelerometer.calcAccel(record.raw_z);
+#endif
     return retval;
 }

@@ -36,6 +36,9 @@
 #include "../gcode/queue.h"
 #include "../feature/precise_stepping/precise_stepping.hpp"
 
+// Value by which steps are multiplied to increase the precision of the Planner.
+constexpr const int PLANNER_STEPS_MULTIPLIER = 4;
+
 #if ENABLED(FWRETRACT)
   #include "../feature/fwretract.h"
 #endif
@@ -133,10 +136,10 @@ typedef struct PlannerBlock {
         acceleration;                       // acceleration mm/sec^2
 
   union {
-    abce_ulong_t steps;                     // Step count along each axis
-    abce_long_t position;                   // New position to force when this sync block is executed
+    abce_ulong_t msteps;                    // Mini-step count along each axis
+    abce_long_t position;                   // New position in mini-steps to force when this sync block is executed
   };
-  uint32_t step_event_count;                // The number of step events required to complete this block
+  uint32_t mstep_event_count;               // The number of mini-step events required to complete this block
 
   #if ENABLED(S_CURVE_ACCELERATION)
     uint32_t cruise_rate,                   // The actual cruise rate to use, between end of the acceleration phase and start of deceleration phase
@@ -148,7 +151,7 @@ typedef struct PlannerBlock {
     uint32_t nominal_rate,                  // The nominal step rate for this block in step_events/sec
              initial_rate,                  // The jerk-adjusted step rate at start of block
              final_rate,                    // The minimal rate at exit
-             acceleration_steps_per_s2;     // acceleration steps/sec^2
+             acceleration_msteps_per_s2;    // acceleration mini-steps/sec^2
   #endif
 
   float initial_speed,                      // The jerk-adjusted spped at start of block
@@ -164,6 +167,7 @@ typedef struct {
    uint32_t max_acceleration_mm_per_s2[XYZE_N], // (mm/s^2) M201 XYZE
             min_segment_time_us;                // (µs) M205 B
       float axis_steps_per_mm[XYZE_N];          // (steps) M92 XYZE - Steps per millimeter
+      float axis_msteps_per_mm[XYZE_N];         // (mini-steps) Steps per millimeter multiplied PLANNER_STEPS_MULTIPLIER to increase the Planner resolution.
  feedRate_t max_feedrate_mm_s[XYZE_N];          // (mm/s) M203 XYZE - Max speeds
       float acceleration,                       // (mm/s^2) M204 S - Normal acceleration. DEFAULT ACCELERATION for all printing moves.
             retract_acceleration,               // (mm/s^2) M204 R - Retract acceleration. Filament pull-back and push-forward while standing still in the other axes
@@ -217,7 +221,8 @@ typedef struct {
 
 #if ENABLED(ARC_SUPPORT)
   #define HINTS_CURVE_RADIUS
-  #define HINTS_SAFE_EXIT_SPEED
+// @hejllukas: Disabled because it contains a significant issue causing that the entry speed is calculated incorrectly.
+// #define HINTS_SAFE_EXIT_SPEED
 #endif
 
 struct PlannerHints {
@@ -279,9 +284,10 @@ class Planner {
 
     static planner_settings_t settings;
 
-    static uint32_t max_acceleration_steps_per_s2[XYZE_N]; // (steps/s^2) Derived from mm_per_s2
-    static float mm_per_step[XYZE_N];           // Millimeters per step
-    static float mm_per_half_step[XYZE_N];      // Millimeters per half step
+    static uint32_t max_acceleration_msteps_per_s2[XYZE_N]; // (mini-steps/s^2) Derived from mm_per_s2
+    static float mm_per_step[XYZE_N];                       // Millimeters per step
+    static float mm_per_half_step[XYZE_N];                  // Millimeters per half step
+    static float mm_per_mstep[XYZE_N];                      // Millimeters per mini-step
 
     #if DISABLED(CLASSIC_JERK)
       static float junction_deviation_mm;       // (mm) M205 J
@@ -306,7 +312,7 @@ class Planner {
 
     static xyze_pos_t position_float;
 
-    xyze_long_t get_position() const { return position; };
+    xyze_long_t get_position_msteps() const { return position; };
 
     static skew_factor_t skew_factor;
 
@@ -315,8 +321,8 @@ class Planner {
     #endif
 
     /**
-     * The current position of the tool in absolute steps
-     * Recalculated if any axis_steps_per_mm are changed by gcode
+     * The current position of the tool in absolute mini-steps
+     * Recalculated if any axis_steps_per_mm or axis_msteps_per_mm are changed by gcode
      */
     static xyze_long_t position;
 
@@ -378,8 +384,8 @@ class Planner {
     static void refresh_acceleration_rates();
 
     /**
-     * Recalculate 'position' and 'mm_per_step'.
-     * Must be called whenever settings.axis_steps_per_mm changes!
+     * Recalculate 'position', 'mm_per_step', 'mm_per_half_step' and 'mm_per_mstep'.
+     * Must be called whenever settings.axis_steps_per_mm or settings.axis_msteps_per_mm changes!
      */
     static void refresh_positioning();
 
@@ -610,39 +616,35 @@ class Planner {
     }
 
     /**
-     * Planner::_buffer_steps_raw
+     * Planner::_buffer_msteps_raw
      *
      * Add a new linear movement to the buffer (in terms of steps) without implicit kinematic
      * translation, compensation or queuing restrictions.
      *
-     *  target      - target position in steps units
-     *  delta_abce  - steps to perform for ABC axes
+     *  target      - target position in mini-steps units
      *  fr_mm_s     - (target) speed of the move
      *  extruder    - target extruder
      *  hints       - parameters to aid planner calculations
      *
      * Returns true if movement was buffered, false otherwise
      */
-    static bool _buffer_steps_raw(const xyze_long_t &target, const xyze_pos_t &target_float
-      #if IS_CORE
-        , const xyze_long_t &delta_abce
-      #endif
+    static bool _buffer_msteps_raw(const xyze_long_t &target, const xyze_pos_t &target_float
       , feedRate_t fr_mm_s, const uint8_t extruder, const PlannerHints &hints=PlannerHints()
     );
 
     /**
-     * Planner::_buffer_steps
+     * Planner::_buffer_msteps
      *
      * Add a new linear movement to the buffer (in terms of steps).
      *
-     *  target      - target position in steps units
+     *  target      - target position in mini-steps units
      *  fr_mm_s     - (target) speed of the move
      *  extruder    - target extruder
      *  hints       - parameters to aid planner calculations
      *
      * Returns true if movement was buffered, false otherwise
      */
-    static bool _buffer_steps(const xyze_long_t &target, const xyze_pos_t &target_float
+    static bool _buffer_msteps(const xyze_long_t &target, const xyze_pos_t &target_float
       , feedRate_t fr_mm_s, const uint8_t extruder, const PlannerHints &hints
     );
 
@@ -653,7 +655,7 @@ class Planner {
      *          by the Stepper ISR.
      *
      * @param block         A block to populate
-     * @param target        Target position in steps units
+     * @param target        Target position in mini-steps units
      * @param target_float  Target position in native mm
      * @param fr_mm_s       (target) speed of the move
      * @param extruder      target extruder
@@ -973,15 +975,15 @@ class Planner {
 
     static void calculate_trapezoid_for_block(block_t * const block, const_float_t entry_speed, const_float_t exit_speed);
 
-    static void reverse_pass_kernel(block_t * const previous, block_t* const current, const block_t * const next OPTARG(ARC_SUPPORT, const_float_t safe_exit_speed_sqr));
+    static void reverse_pass_kernel(block_t * const previous, block_t* const current, const block_t * const next OPTARG(HINTS_SAFE_EXIT_SPEED, const_float_t safe_exit_speed_sqr));
     static void forward_pass_kernel(block_t * const previous, block_t* const current, uint8_t prev_index);
 
-    static void reverse_pass(TERN_(ARC_SUPPORT, const_float_t safe_exit_speed_sqr));
+    static void reverse_pass(TERN_(HINTS_SAFE_EXIT_SPEED, const_float_t safe_exit_speed_sqr));
     static void forward_pass();
 
-    static void recalculate_trapezoids(TERN_(ARC_SUPPORT, const_float_t safe_exit_speed_sqr));
+    static void recalculate_trapezoids(TERN_(HINTS_SAFE_EXIT_SPEED, const_float_t safe_exit_speed_sqr));
 
-    static void recalculate(TERN_(ARC_SUPPORT, const_float_t safe_exit_speed_sqr));
+    static void recalculate(TERN_(HINTS_SAFE_EXIT_SPEED, const_float_t safe_exit_speed_sqr));
 
     #if DISABLED(CLASSIC_JERK)
 

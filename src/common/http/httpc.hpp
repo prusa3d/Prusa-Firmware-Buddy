@@ -52,6 +52,7 @@ public:
     Response(Connection *conn, uint16_t status);
     http::Status status;
     http::ContentType content_type = http::ContentType::ApplicationOctetStream;
+    std::optional<http::ContentEncryptionMode> content_encryption_mode;
     size_t content_length() const {
         return content_length_rest;
     }

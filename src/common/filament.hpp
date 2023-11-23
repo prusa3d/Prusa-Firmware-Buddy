@@ -42,4 +42,26 @@ const Description &get_description(Type type);
 
 Type get_type_to_load();
 void set_type_to_load(Type filament);
+
+// TODO: unify with the one in gcode_info
+struct Colour {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+
+    int to_int() const {
+        return red << 16 | green << 8 | blue;
+    }
+
+    static Colour from_int(int value) {
+        return Colour {
+            .red = static_cast<uint8_t>((value >> 16) & 0xFF),
+            .green = static_cast<uint8_t>((value >> 8) & 0xFF),
+            .blue = static_cast<uint8_t>(value & 0xFF),
+        };
+    }
+};
+
+std::optional<Colour> get_color_to_load();
+void set_color_to_load(std::optional<Colour> color);
 }; // namespace filament

@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = git@github.com:prusa3d/Prusa-Firmware-MMU-Private.git
+	remote = git@github.com:prusa3d/Prusa-Firmware-MMU.git
 	branch = main
-	commit = 9b43b619392ccc2fd8af64b3da878c674cb9c9a4
-	parent = 23c66fdf5ea599ef880c986d0d962efe194d5b94
+	commit = 3f4658dd569eb25911c860fe4ba5ebf3dd5a98ea
+	parent = a3cf7d04308fd91f8ca7a569c4c78e317245719d
 	method = merge
-	cmdver = 0.4.5
+	cmdver = 0.4.6

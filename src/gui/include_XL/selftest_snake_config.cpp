@@ -1,6 +1,7 @@
 #include "selftest_snake_config.hpp"
 #include <selftest_types.hpp>
 #include <screen_menu_selftest_snake_result_parsing.hpp>
+#include <config_store/store_instance.hpp>
 
 #include <option/has_side_fsensor.h>
 #include <option/has_toolchanger.h>
@@ -9,7 +10,7 @@
     #if HAS_SIDE_FSENSOR()
         #include <filament_sensors_handler_XL_remap.hpp>
     #endif /*HAS_SIDE_FSENSOR()*/
-#endif     /*HAS_TOOLCHANGER()*/
+#endif /*HAS_TOOLCHANGER()*/
 
 namespace SelftestSnake {
 TestResult get_test_result(Action action, Tool tool) {
@@ -137,7 +138,7 @@ void ask_config(Action action) {
     case Action::FilamentSensorCalibration: {
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
         side_fsensor_remap::ask_to_remap(); // Ask user whether to remap filament sensors
-#endif                                      /*HAS_TOOLCHANGER()*/
+#endif /*HAS_TOOLCHANGER()*/
     } break;
 
     default:

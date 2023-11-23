@@ -14,6 +14,7 @@
 #include "screen_menu_languages.hpp"
 #include "screen_touch_error.hpp"
 #include "bsod.h"
+#include "shared_config.h"
 
 #include <option/bootloader.h>
 #include <option/developer_mode.h>
@@ -46,44 +47,32 @@
 screen_splash_data_t::screen_splash_data_t()
     : AddSuperWindow<screen_t>()
 #if defined(USE_ST7789)
-    , png_printer("/internal/res/printer_logo.png") // dimensions are printer dependent
-    , png_marlin("/internal/res/marlin_logo_79x61.png")
-    , icon_logo_printer(this, &png_printer, point_i16_t(0, 84), window_icon_t::Center::x, GuiDefaults::ScreenWidth)
-    , text_progress(this, Rect16(GuiDefaults::FramePadding, 171, GuiDefaults::FrameWidth, 29), is_multiline::no)
-    , progress(this, Rect16(GuiDefaults::FramePadding, 200, GuiDefaults::FrameWidth, 15), 15, COLOR_ORANGE, COLOR_GRAY)
-    , text_version(this, Rect16(0, 295, GuiDefaults::ScreenWidth, 22), is_multiline::no)
-    , icon_logo_marlin(this, &png_marlin, point_i16_t(80, 225))
+    , img_printer("/internal/res/printer_logo.qoi") // dimensions are printer dependent
+    , img_marlin("/internal/res/marlin_logo_79x61.qoi")
+    , icon_logo_printer(this, &img_printer, point_i16_t(0, 84), window_icon_t::Center::x, GuiDefaults::ScreenWidth)
+    , icon_logo_marlin(this, &img_marlin, point_i16_t(80, 225))
 #endif // USE_ST7789
-#if defined(USE_ILI9488)
-    , text_version(this, Rect16(14, GuiDefaults::ScreenHeight - 18, GuiDefaults::ScreenWidth - 14, 18), is_multiline::no)
-    , progress(this, Rect16(104, 180, 272, 4), COLOR_ORANGE, COLOR_GRAY, 1)
-    , text_progress(this, Rect16(10, 185, 460, 29), is_multiline::no)
-#endif // USE_ILI9488
-{
+    , text_progress(this, Rect16(0, SPLASHSCREEN_VERSION_Y, GuiDefaults::ScreenWidth, 18), is_multiline::no)
+    , progress(this, Rect16(SPLASHSCREEN_PROGRESSBAR_X, SPLASHSCREEN_PROGRESSBAR_Y, SPLASHSCREEN_PROGRESSBAR_W, SPLASHSCREEN_PROGRESSBAR_H), COLOR_ORANGE, COLOR_GRAY, 6)
+    , version_displayed(false) {
     super::ClrMenuTimeoutClose();
 
-#if defined(USE_ST7789)
-    text_progress.set_font(resource_font(IDR_FNT_NORMAL));
-    text_progress.SetAlignment(Align_t::Center());
-
-    progress.set_font(resource_font(IDR_FNT_BIG));
-    text_version.SetAlignment(Align_t::Center());
-#endif // USE_ST7789
-#if defined(USE_ILI9488)
     text_progress.set_font(resource_font(IDR_FNT_SMALL));
     text_progress.SetAlignment(Align_t::Center());
-    text_version.SetAlignment(Align_t::Left());
-    text_version.set_font(resource_font(IDR_FNT_SMALL));
-    text_version.SetTextColor(COLOR_GRAY);
-#endif // USE_ILI9488
+    text_progress.SetTextColor(COLOR_GRAY);
 
-    text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)project_version_full));
-
+    snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s", project_version_full);
+    text_progress.SetText(string_view_utf8::MakeRAM((uint8_t *)text_progress_buffer));
+    progress.SetProgressPercent(0);
 #if HAS_SELFTEST()
     #if DEVELOPER_MODE()
     const bool run_wizard = false;
-    #elif !PRINTER_IS_PRUSA_XL
+    #elif !HAS_SELFTEST_SNAKE()
+        #if PRINTER_IS_PRUSA_MK4
+    const bool run_selftest = !SelftestResult_Passed_Mandatory(config_store().selftest_result.get());
+        #else
     const bool run_selftest = config_store().run_selftest.get();
+        #endif
     const bool run_xyzcalib = config_store().run_xyz_calib.get();
     const bool run_firstlay = config_store().run_first_layer.get();
     const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
@@ -101,10 +90,12 @@ screen_splash_data_t::screen_splash_data_t()
             if (any_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
                 return false;
             }
-            for (int8_t e = 0; e < HOTENDS; e++) {
+            for (size_t e = 0; e < config_store_ns::max_tool_count; e++) {
+        #if HAS_TOOLCHANGER()
                 if (!prusa_toolchanger.is_tool_enabled(e)) {
                     continue;
                 }
+        #endif
                 if (any_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].fansSwitched, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].dockoffset, sr.tools[e].tooloffset)) {
                     return false;
                 }
@@ -125,7 +116,7 @@ screen_splash_data_t::screen_splash_data_t()
 #endif
 #if HAS_TOUCH()
             { touch::is_hw_broken() ? ScreenFactory::Screen<ScreenTouchError> : nullptr }, // touch error will show after language
-#endif                                                                                     // HAS_TOUCH
+#endif // HAS_TOUCH
 
 #if HAS_SELFTEST()
     #if HAS_SELFTEST_SNAKE()
@@ -155,16 +146,13 @@ screen_splash_data_t::screen_splash_data_t()
 }
 
 screen_splash_data_t::~screen_splash_data_t() {
-    img::Resource::EnableDefaultFile(); // now it is safe to use resources from xFlash
+    img::enable_resource_file(); // now it is safe to use resources from xFlash
 }
 
 void screen_splash_data_t::draw() {
-#if defined(USE_ILI9488)
     Validate();
     progress.Invalidate();
-    text_version.Invalidate();
     text_progress.Invalidate();
-#endif             // USE_ILI9488
     super::draw(); // We want to draw over bootloader's screen without flickering/redrawing
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
@@ -172,9 +160,9 @@ void screen_splash_data_t::draw() {
     display::DrawText(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
     #endif // USE_ST7789
     #if defined(USE_ILI9488)
-    display::DrawText(Rect16(240, 38, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+    display::DrawText(Rect16(340, 130, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
     #endif // USE_ILI9488
-#endif     //_DEBUG
+#endif //_DEBUG
 }
 
 /**
@@ -204,23 +192,28 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, [[maybe_u
             return;
         int percent = un.pGUIStartupProgress->percent_done;
 
+        // Bootstrap & FW version are displayed in the same space - we want to display what process is happening during bootstrap
+        // If such a process description is not available (e.g: fw_gui_splash_progress()) - draw FW version (only once to avoid flickering)
         if (un.pGUIStartupProgress->bootstrap_description.has_value()) {
             strlcpy(text_progress_buffer, un.pGUIStartupProgress->bootstrap_description.value(), sizeof(text_progress_buffer));
             text_progress.SetText(string_view_utf8::MakeRAM((uint8_t *)text_progress_buffer));
             text_progress.Invalidate();
+            version_displayed = false;
+        } else {
+            if (!version_displayed) {
+                snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s", project_version_full);
+                text_progress.SetText(string_view_utf8::MakeRAM((uint8_t *)text_progress_buffer));
+                text_progress.Invalidate();
+                version_displayed = true;
+            }
         }
 
-    #if defined(USE_ST7789)
-        progress.SetValue(std::clamp(percent, 0, 99));
-    #endif // USE_ST7789
+        progress.SetProgressPercent(std::clamp(percent, 0, 100));
 
-    #if defined(USE_ILI9488)
-        progress.SetProgressPercent(std::clamp(percent, 0, 99));
-    #endif // USE_ILI9488
         if (percent > 99) {
             Screens::Access()->Close();
         }
-#else  // _EXTUI
+#else // _EXTUI
     if (HAL_GetTick() > 3000) {
         Screens::Access()->Close();
 #endif // _EXTUI

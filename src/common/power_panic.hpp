@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "cmsis_os.h"
+#include <atomic>
 
 namespace power_panic {
 

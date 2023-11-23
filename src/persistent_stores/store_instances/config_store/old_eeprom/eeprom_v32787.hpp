@@ -132,99 +132,99 @@ struct vars_body_t : public old_eeprom::v12::vars_body_t {
 
 constexpr vars_body_t body_defaults = {
     old_eeprom::v12::body_defaults,
-    1,                                   // EEVAR_TIME_FORMAT
-    0.0192,                              // EEVAR_LOADCELL_SCALE
-    -125,                                // EEVAR_LOADCELL_THRS_STATIC
-    80,                                  // EEVAR_LOADCELL_HYST
-    -40,                                 // EEVAR_LOADCELL_THRS_CONTINOUS
+    1, // EEVAR_TIME_FORMAT
+    0.0192, // EEVAR_LOADCELL_SCALE
+    -125, // EEVAR_LOADCELL_THRS_STATIC
+    80, // EEVAR_LOADCELL_HYST
+    -40, // EEVAR_LOADCELL_THRS_CONTINOUS
     std::numeric_limits<int32_t>::min(), // EEVAR_FS_REF_VALUE_0, std::numeric_limits<int32_t>::min() == will require calibration
 #if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
-    100,                                 // EEVAR_FS_VALUE_SPAN_0
+    100, // EEVAR_FS_VALUE_SPAN_0
 #elif (BOARD_IS_XLBUDDY)
     1000,
 #else
     350000, // EEVAR_FS_VALUE_SPAN_0
 #endif
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_FS_REF_VALUE_1, std::numeric_limits<int32_t>::min() == will require calibration
-    1000,                                                                       // FS_VALUE_SPAN_1
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_FS_REF_VALUE_2, std::numeric_limits<int32_t>::min() == will require calibration
-    1000,                                                                       // FS_VALUE_SPAN_2
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_FS_REF_VALUE_3, std::numeric_limits<int32_t>::min() == will require calibration
-    1000,                                                                       // FS_VALUE_SPAN_3
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_FS_REF_VALUE_4, std::numeric_limits<int32_t>::min() == will require calibration
-    1000,                                                                       // FS_VALUE_SPAN_4
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_FS_REF_VALUE_5, std::numeric_limits<int32_t>::min() == will require calibration
-    1000,                                                                       // FS_VALUE_SPAN_5
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_0, std::numeric_limits<int32_t>::min() == will require calibration
-    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_0
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_1, std::numeric_limits<int32_t>::min() == will require calibration
-    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_1
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_2, std::numeric_limits<int32_t>::min() == will require calibration
-    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_2
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_3, std::numeric_limits<int32_t>::min() == will require calibration
-    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_3
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_4, std::numeric_limits<int32_t>::min() == will require calibration
-    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_4
-    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_5, std::numeric_limits<int32_t>::min() == will require calibration
-    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_5
-    30,                                                                         // EEVAR_PRINT_PROGRESS_TIME
-    true,                                                                       // EEVAR_TMC_WAVETABLE_ENABLED
-    false,                                                                      // EEVAR_MMU2_ENABLED
-    false,                                                                      // EEVAR_MMU2_CUTTER
-    false,                                                                      // EEVAR_MMU2_STEALTH_MODE
-    true,                                                                       // EEVAR_RUN_LEDS
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },     // EEVAR_ANIMATION_IDLE
+    std::numeric_limits<int32_t>::min(), // EEVAR_FS_REF_VALUE_1, std::numeric_limits<int32_t>::min() == will require calibration
+    1000, // FS_VALUE_SPAN_1
+    std::numeric_limits<int32_t>::min(), // EEVAR_FS_REF_VALUE_2, std::numeric_limits<int32_t>::min() == will require calibration
+    1000, // FS_VALUE_SPAN_2
+    std::numeric_limits<int32_t>::min(), // EEVAR_FS_REF_VALUE_3, std::numeric_limits<int32_t>::min() == will require calibration
+    1000, // FS_VALUE_SPAN_3
+    std::numeric_limits<int32_t>::min(), // EEVAR_FS_REF_VALUE_4, std::numeric_limits<int32_t>::min() == will require calibration
+    1000, // FS_VALUE_SPAN_4
+    std::numeric_limits<int32_t>::min(), // EEVAR_FS_REF_VALUE_5, std::numeric_limits<int32_t>::min() == will require calibration
+    1000, // FS_VALUE_SPAN_5
+    std::numeric_limits<int32_t>::min(), // EEVAR_SIDE_FS_REF_VALUE_0, std::numeric_limits<int32_t>::min() == will require calibration
+    310, // EEVAR_SIDE_FS_VALUE_SPAN_0
+    std::numeric_limits<int32_t>::min(), // EEVAR_SIDE_FS_REF_VALUE_1, std::numeric_limits<int32_t>::min() == will require calibration
+    310, // EEVAR_SIDE_FS_VALUE_SPAN_1
+    std::numeric_limits<int32_t>::min(), // EEVAR_SIDE_FS_REF_VALUE_2, std::numeric_limits<int32_t>::min() == will require calibration
+    310, // EEVAR_SIDE_FS_VALUE_SPAN_2
+    std::numeric_limits<int32_t>::min(), // EEVAR_SIDE_FS_REF_VALUE_3, std::numeric_limits<int32_t>::min() == will require calibration
+    310, // EEVAR_SIDE_FS_VALUE_SPAN_3
+    std::numeric_limits<int32_t>::min(), // EEVAR_SIDE_FS_REF_VALUE_4, std::numeric_limits<int32_t>::min() == will require calibration
+    310, // EEVAR_SIDE_FS_VALUE_SPAN_4
+    std::numeric_limits<int32_t>::min(), // EEVAR_SIDE_FS_REF_VALUE_5, std::numeric_limits<int32_t>::min() == will require calibration
+    310, // EEVAR_SIDE_FS_VALUE_SPAN_5
+    30, // EEVAR_PRINT_PROGRESS_TIME
+    true, // EEVAR_TMC_WAVETABLE_ENABLED
+    false, // EEVAR_MMU2_ENABLED
+    false, // EEVAR_MMU2_CUTTER
+    false, // EEVAR_MMU2_STEALTH_MODE
+    true, // EEVAR_RUN_LEDS
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 }, // EEVAR_ANIMATION_IDLE
     { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 }, // EEVAR_ANIMATION_PRINTING
     { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 }, // EEVAR_ANIMATION_PAUSING
     { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 }, // EEVAR_ANIMATION_RESUMING
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },     // EEVAR_ANIMATION_ABORTING
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 255, 0, 0, 0, 0 },   // EEVAR_ANIMATION_FINISHING
-    { static_cast<uint8_t>(AnimationTypes::Fading), 255, 255, 0, 1000, 0, 0 },  // EEVAR_ANIMATION_WARNING
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },     // EEVAR_ANIMATION_POWER_PANIC
-    { static_cast<uint8_t>(AnimationTypes::Fading), 0, 255, 0, 1500, 0, 0 },    // EEVAR_ANIMATION_POWER_UP
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR0
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR1
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR2
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR3
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR4
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR5
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR6
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR7
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR8
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR9
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR10
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR11
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR12
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR13
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR14
-    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR_LAST
-    false,                                                                      // EEVAR_HEAT_ENTIRE_BED
-    option::development_items,                                                  // EEVAR_TOUCH_ENABLED
-    { 0, 0 },                                                                   // EEVAR_DOCK_POSITION_0
-    { 0, 0 },                                                                   // EEVAR_DOCK_POSITION_1
-    { 0, 0 },                                                                   // EEVAR_DOCK_POSITION_2
-    { 0, 0 },                                                                   // EEVAR_DOCK_POSITION_3
-    { 0, 0 },                                                                   // EEVAR_DOCK_POSITION_4
-    { 0, 0 },                                                                   // EEVAR_DOCK_POSITION_5
-    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_0
-    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_1
-    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_2
-    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_3
-    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_4
-    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_5
-    0,                                                                          // EEVAR_FILAMENT_TYPE_1
-    0,                                                                          // EEVAR_FILAMENT_TYPE_2
-    0,                                                                          // EEVAR_FILAMENT_TYPE_3
-    0,                                                                          // EEVAR_FILAMENT_TYPE_4
-    0,                                                                          // EEVAR_FILAMENT_TYPE_5
-    false,                                                                      // EEVAR_HEATUP_BED
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 }, // EEVAR_ANIMATION_ABORTING
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 255, 0, 0, 0, 0 }, // EEVAR_ANIMATION_FINISHING
+    { static_cast<uint8_t>(AnimationTypes::Fading), 255, 255, 0, 1000, 0, 0 }, // EEVAR_ANIMATION_WARNING
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 }, // EEVAR_ANIMATION_POWER_PANIC
+    { static_cast<uint8_t>(AnimationTypes::Fading), 0, 255, 0, 1500, 0, 0 }, // EEVAR_ANIMATION_POWER_UP
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR0
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR1
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR2
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR3
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR4
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR5
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR6
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR7
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR8
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR9
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR10
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR11
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR12
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR13
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR14
+    { 0, 0, 0, 0 }, // EEVAR_ANIMATION_COLOR_LAST
+    false, // EEVAR_HEAT_ENTIRE_BED
+    option::development_items, // EEVAR_TOUCH_ENABLED
+    { 0, 0 }, // EEVAR_DOCK_POSITION_0
+    { 0, 0 }, // EEVAR_DOCK_POSITION_1
+    { 0, 0 }, // EEVAR_DOCK_POSITION_2
+    { 0, 0 }, // EEVAR_DOCK_POSITION_3
+    { 0, 0 }, // EEVAR_DOCK_POSITION_4
+    { 0, 0 }, // EEVAR_DOCK_POSITION_5
+    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_0
+    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_1
+    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_2
+    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_3
+    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_4
+    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_5
+    0, // EEVAR_FILAMENT_TYPE_1
+    0, // EEVAR_FILAMENT_TYPE_2
+    0, // EEVAR_FILAMENT_TYPE_3
+    0, // EEVAR_FILAMENT_TYPE_4
+    0, // EEVAR_FILAMENT_TYPE_5
+    false, // EEVAR_HEATUP_BED
 #if PRINTER_IS_PRUSA_XL
-    0.60f,                                                                      // EEVAR_NOZZLE_DIA_0
-    0.60f,                                                                      // EEVAR_NOZZLE_DIA_1
-    0.60f,                                                                      // EEVAR_NOZZLE_DIA_2
-    0.60f,                                                                      // EEVAR_NOZZLE_DIA_3
-    0.60f,                                                                      // EEVAR_NOZZLE_DIA_4
-    0.60f,                                                                      // EEVAR_NOZZLE_DIA_5
+    0.60f, // EEVAR_NOZZLE_DIA_0
+    0.60f, // EEVAR_NOZZLE_DIA_1
+    0.60f, // EEVAR_NOZZLE_DIA_2
+    0.60f, // EEVAR_NOZZLE_DIA_3
+    0.60f, // EEVAR_NOZZLE_DIA_4
+    0.60f, // EEVAR_NOZZLE_DIA_5
 #else
     0.40f, // EEVAR_NOZZLE_DIA_0
     0.40f, // EEVAR_NOZZLE_DIA_1
@@ -233,10 +233,10 @@ constexpr vars_body_t body_defaults = {
     0.40f, // EEVAR_NOZZLE_DIA_4
     0.40f, // EEVAR_NOZZLE_DIA_5
 #endif
-    1,  // EEVAR_HWCHECK_NOZZLE
-    1,  // EEVAR_HWCHECK_MODEL
-    1,  // EEVAR_HWCHECK_FIRMW
-    1,  // EEVAR_HWCHECK_GCODE
+    1, // EEVAR_HWCHECK_NOZZLE
+    1, // EEVAR_HWCHECK_MODEL
+    1, // EEVAR_HWCHECK_FIRMW
+    1, // EEVAR_HWCHECK_GCODE
     {}, // EEVAR_SELFTEST_RESULT_PRE_23
 };
 

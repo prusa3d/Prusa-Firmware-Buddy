@@ -35,6 +35,7 @@ target_sources(
             nhttp/status_renderer.cpp
             nhttp/transfer_renderer.cpp
             nhttp/upload_state.cpp
+            pbuf_rx.c
             random.cpp
             sntp/sntp.c
             sntp/sntp_client.c

@@ -61,7 +61,7 @@ string_view_utf8 FooterItemFSensor::static_makeView(int value) {
     case fsensor_t::NotConnected:
         txt = N_("NC ");
         break;
-#else  //! DEBUG
+#else //! DEBUG
     default:
         break;
 #endif //_DEBUG

@@ -14,15 +14,14 @@ struct metric_s;
 
 class FSensorADC : public FSensor {
 public:
-    static constexpr int32_t fs_filtered_value_not_ready { std::numeric_limits<int32_t>::min() }; // invalid value of fs_filtered_value
-    static constexpr int32_t fs_ref_value_not_calibrated { std::numeric_limits<int32_t>::min() }; // invalid value of fs_filtered_value
-    static constexpr float fs_selftest_span_multipler { 1.2 };                                    // when doing selftest, fs with filament and without has to be different by this value times configured span to pass selftest
+    static constexpr float fs_selftest_span_multipler { 1.2 }; // when doing selftest, fs with filament and without has to be different by this value times configured span to pass selftest
 
 protected:
-    int32_t fs_value_span { 0 };            // minimal difference of raw values between the two states of the filament sensor
-    int32_t fs_ref_value { 0 };             // value of filament insert in extruder
+    int32_t fs_value_span { 0 }; ///< minimal difference of raw values between the two states of the filament sensor
+    int32_t fs_ref_ins_value { 0 }; ///< value of filament insert in extruder
+    int32_t fs_ref_nins_value { 0 }; ///< value of filament not inserted in extruder
 
-    std::atomic<int32_t> fs_filtered_value; // current filtered value set from interrupt
+    std::atomic<int32_t> fs_filtered_value; ///< current filtered value set from interrupt
 
     /**
      * @brief Get filtered sensor-specific value.
@@ -43,7 +42,15 @@ protected:
     virtual void disable() override;
     virtual void cycle() override;
 
-    void EnsureHasFilamentValue(int32_t filtered_value);
+    /**
+     * @brief Calibrate reference value with filament NOT inserted
+     */
+    void CalibrateNotInserted(int32_t filtered_value);
+
+    /**
+     * @brief Calibrate reference value with filament inserted
+     */
+    void CalibrateInserted(int32_t filtered_value);
 
 public:
     fsensor_t WaitInitialized();
@@ -60,13 +67,9 @@ public:
     virtual void SetLoadSettingsFlag() override;
     virtual void SetInvalidateCalibrationFlag() override;
 
-    int32_t load_settings();
-
-    fsensor_t evaluate_state(int32_t filtered_value);
+    void load_settings();
 
     void set_filtered_value_from_IRQ(int32_t filtered_value);
-
-    void save_calibration(int32_t value);
 
     void invalidate_calibration();
 

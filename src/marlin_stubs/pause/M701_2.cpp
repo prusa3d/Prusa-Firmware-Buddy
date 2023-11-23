@@ -19,7 +19,7 @@
 #include "pause_stubbed.hpp"
 #include <functional> // std::invoke
 #include <cmath>
-#include "task.h"     //critical sections
+#include "task.h" //critical sections
 #include "filament_sensors_handler.hpp"
 #include "config_store/store_c_api.h"
 #include "RAII.hpp"
@@ -52,7 +52,7 @@ bool filament_gcodes::load_unload([[maybe_unused]] LoadUnloadMode type, filament
     return res;
 }
 
-void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot) {
+void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<filament::Colour> color_to_be_loaded) {
     InProgress progress;
 
     if (op_preheat) {
@@ -71,13 +71,14 @@ void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const
         }
     }
     filament::set_type_to_load(filament_to_be_loaded);
+    filament::set_color_to_load(color_to_be_loaded);
 
     pause::Settings settings;
     settings.SetExtruder(target_extruder);
     settings.SetFastLoadLength(fast_load_length);
     settings.SetRetractLength(0.f);
     settings.SetMmuFilamentToLoad(mmu_slot);
-    xyz_pos_t park_position = { X_AXIS_LOAD_POS, NAN, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
+    xyz_pos_t park_position = { X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
     settings.SetParkPoint(park_position);
     xyze_pos_t current_position_tmp = current_position;
 
@@ -115,7 +116,7 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
     pause::Settings settings;
     settings.SetExtruder(target_extruder);
     settings.SetUnloadLength(unload_length);
-    xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, NAN, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
+    xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, Y_AXIS_UNLOAD_POS, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
     settings.SetParkPoint(park_position);
     xyze_pos_t current_position_tmp = current_position;
 
@@ -176,7 +177,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint
     case PreheatStatus::Result::Error:
     case PreheatStatus::Result::DidNotFinish: // cannot happen
     default:
-        break;                                // do not alter temp
+        break; // do not alter temp
     }
 
     // store result, so other threads can see it
@@ -187,7 +188,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
     InProgress progress;
     if constexpr (option::has_bowden) {
         config_store().set_filament_type(target_extruder, filament::Type::NONE);
-        M701_no_parser(filament::Type::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0);
+        M701_no_parser(filament::Type::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0, std::nullopt);
     } else {
 
         pause::Settings settings;
@@ -217,6 +218,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
 
         filament::Type filament = preheat_ret.second;
         filament::set_type_to_load(filament);
+        filament::set_color_to_load(std::nullopt);
 
         if (z_min_pos > 0 && z_min_pos > current_position.z + 0.1F) {
             xyz_pos_t park_position = { NAN, NAN, z_min_pos };
@@ -234,7 +236,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
     FSensors_instance().ClrAutoloadSent();
 }
 
-void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament) {
+void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament, std::optional<filament::Colour> color_to_be_loaded) {
     FS_EventAutolock autoload_lock;
     InProgress progress;
 
@@ -258,7 +260,7 @@ void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint
     xyze_pos_t current_position_tmp = current_position;
 
     pause::Settings settings;
-    xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, NAN, std::max(current_position.z, (float)Z_AXIS_LOAD_POS) };
+    xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, Y_AXIS_UNLOAD_POS, std::max(current_position.z, (float)Z_AXIS_LOAD_POS) };
     settings.SetParkPoint(park_position);
     settings.SetExtruder(target_extruder);
     settings.SetRetractLength(0.f);
@@ -292,6 +294,7 @@ void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint
         preheat_to(filament_to_be_loaded, target_extruder);
     }
     filament::set_type_to_load(filament_to_be_loaded);
+    filament::set_color_to_load(color_to_be_loaded);
 
 #ifndef DO_NOT_RESTORE_Z_AXIS
     // Has to be set before last Pause operation, otherwise it unparks and parks again inbetween operations

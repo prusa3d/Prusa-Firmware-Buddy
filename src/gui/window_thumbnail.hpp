@@ -14,13 +14,13 @@ public:
 
 protected:
     virtual void unconditionalDraw() = 0;
-    GCodeInfo &gcode_info; /**< information about current gcode (singleton)*/
+    AnyGcodeFormatReader gcode_reader;
 };
 
 class WindowProgressThumbnail : public AddSuperWindow<WindowThumbnail> {
-    int8_t progress_percentage;   /**< stores progress for progress type calculation */
+    int8_t progress_percentage; /**< stores progress for progress type calculation */
     int8_t last_percentage_drawn; /**< stores last progress percentage for making procentage diff*/
-    bool redraw_whole;            /**< stores information if thumbnail have to be restored whole or not*/
+    bool redraw_whole; /**< stores information if thumbnail have to be restored whole or not*/
 
 public:
     WindowProgressThumbnail(window_t *parent, Rect16 rect);

@@ -6,6 +6,9 @@
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "module/prusa/toolchanger.h"
 #endif
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
+#endif
 
 /*****************************************************************************/
 // MI_NOZZLE_ABSTRACT
@@ -71,10 +74,30 @@ void MI_SPEED::OnClick() {
 }
 
 /*****************************************************************************/
-// MI_FLOWFACT
-MI_FLOWFACT::MI_FLOWFACT()
-    : WiSpinInt(uint16_t(marlin_vars()->active_hotend().flow_factor),
-        SpinCnf::flowfact, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
-void MI_FLOWFACT::OnClick() {
-    marlin_client::set_flow_factor(GetVal());
+// MI_FLOWFACT_ABSTRACT
+is_hidden_t MI_FLOWFACT_ABSTRACT::is_hidden([[maybe_unused]] uint8_t tool_nr) {
+#if HAS_TOOLCHANGER()
+    return prusa_toolchanger.is_tool_enabled(tool_nr) ? is_hidden_t::no : is_hidden_t::yes;
+#elif HAS_MMU2()
+    return (tool_nr == 0 || MMU2::mmu2.Enabled()) ? is_hidden_t::no : is_hidden_t::yes;
+#else
+    return is_hidden_t::no;
+#endif
+}
+
+MI_FLOWFACT_ABSTRACT::MI_FLOWFACT_ABSTRACT(uint8_t tool_nr, [[maybe_unused]] const char *label)
+    : WiSpinInt(uint16_t(marlin_vars()->hotend(tool_nr).flow_factor), SpinCnf::flowfact,
+#if HAS_TOOLCHANGER()
+        prusa_toolchanger.is_toolchanger_enabled() ? _(label) : _(generic_label),
+#elif HAS_MMU2()
+        MMU2::mmu2.Enabled() ? _(label) : _(generic_label),
+#else
+        _(generic_label),
+#endif /*TOOLCHANGER or MMU2*/
+        nullptr, is_enabled_t::yes, is_hidden(tool_nr))
+    , tool_nr(tool_nr) {
+}
+
+void MI_FLOWFACT_ABSTRACT::OnClick() {
+    marlin_client::set_flow_factor(GetVal(), tool_nr);
 }

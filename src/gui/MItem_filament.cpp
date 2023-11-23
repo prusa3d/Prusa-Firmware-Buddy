@@ -63,7 +63,7 @@ void MI_UNLOAD::Do() {
     }
 #endif
     marlin_client::gcode("M702 W2"); // unload with return option
-    Sound_Stop();                    // TODO what is Sound_Stop(); doing here?
+    Sound_Stop(); // TODO what is Sound_Stop(); doing here?
 }
 
 /*****************************************************************************/
@@ -99,7 +99,7 @@ void MI_CHANGE::Do() {
     }
 #endif
     marlin_client::gcode("M1600 R"); // non print filament change
-    Sound_Stop();                    // TODO what is Sound_Stop(); doing here?
+    Sound_Stop(); // TODO what is Sound_Stop(); doing here?
 }
 
 #if HAS_TOOLCHANGER()

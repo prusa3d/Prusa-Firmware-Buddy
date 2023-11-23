@@ -13,12 +13,12 @@ namespace hal {
  * Only if all instances kicked can the hardware watchdog be reloaded.
  */
 class MultiWatchdog {
-    static MultiWatchdog *list;      ///< Beginning of the list
-    static bool initialized;         ///< Marks when the hardware was initted and started
+    static MultiWatchdog *list; ///< Beginning of the list
+    static bool initialized; ///< Marks when the hardware was initted and started
     static IWDG_HandleTypeDef hiwdg; ///< HAL IWDG handle, including config
 
     MultiWatchdog *next
-        = nullptr;        ///< Continuation of a list of all watchdog instances
+        = nullptr; ///< Continuation of a list of all watchdog instances
     uint8_t mark = false; ///< This mark is nonzero if this instance was kicked
 
 public:

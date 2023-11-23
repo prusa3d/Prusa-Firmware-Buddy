@@ -3,7 +3,6 @@
 #include "gcode_info.hpp"
 
 class WindowFileBrowser : public AddSuperWindow<window_file_list_t> {
-    GCodeInfo &gcode_info;
     bool file_selected = false;
 
     static char root[FILE_PATH_BUFFER_LEN]; // we currently do not support multiple file browsers

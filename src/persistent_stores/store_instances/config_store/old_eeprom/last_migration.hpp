@@ -23,7 +23,7 @@ struct eeprom_vars_t {
     uint32_t CRC32;
 };
 
-inline constexpr size_t EEPROM_DATA_INIT_TRIES = 3;   // maximum tries to read crc32 ok data on init
+inline constexpr size_t EEPROM_DATA_INIT_TRIES = 3; // maximum tries to read crc32 ok data on init
 inline constexpr uint32_t EEPROM_DATASIZE = sizeof(eeprom_vars_t);
 inline constexpr uint16_t EEPROM_MAX_DATASIZE = 1024; // maximum datasize
 static_assert(EEPROM_DATASIZE <= EEPROM_MAX_DATASIZE, "EEPROM_MAX_DATASIZE might be outdated and not needed anymore, but EEPROM_DATASIZE shouldn't have increased anyway");

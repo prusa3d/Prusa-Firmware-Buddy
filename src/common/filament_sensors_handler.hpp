@@ -46,11 +46,11 @@ public:
     bool is_enabled() const;
 
     enum class EnableResult {
-        in_progress,    ///< Still trying to enable
-        ok,             ///< Sensors enabled ok
+        in_progress, ///< Still trying to enable
+        ok, ///< Sensors enabled ok
         not_calibrated, ///< At least one sensor is fsensor_t::NotCalibrated
-        not_connected,  ///< At least one sensor is fsensor_t::NotConnected
-        disabled,       ///< Sensors are disabled
+        not_connected, ///< At least one sensor is fsensor_t::NotConnected
+        disabled, ///< Sensors are disabled
     };
 
     /**
@@ -88,7 +88,7 @@ public:
     MMU2::FilamentState WhereIsFilament();
 
     void AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
-    void AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index);     // ADC sensor IRQ callback
+    void AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
 
     static constexpr bool IsWorking(fsensor_t sens) { return sens == fsensor_t::HasFilament || sens == fsensor_t::NoFilament; }
 
@@ -101,7 +101,7 @@ private:
 
     filament_sensor::Events evaluate_logical_sensors_events();
 
-    bool evaluateM600(FSensor::event ev) const;     // must remain const - is called out of critical section
+    bool evaluateM600(FSensor::event ev) const; // must remain const - is called out of critical section
     bool evaluateAutoload(FSensor::event ev) const; // must remain const - is called out of critical section
     inline bool isEvLocked() { return event_lock > 0; }
     inline bool isAutoloadLocked() { return autoload_lock > 0; }
@@ -120,8 +120,8 @@ private:
     // all those variables can be accessed from multiple threads
     // all of them are set during critical section, so values are guaranteed to be corresponding
     // in case multiple values are needed they should be read during critical section too
-    std::atomic<uint32_t> event_lock;                                                  // 0 == unlocked
-    std::atomic<uint32_t> autoload_lock;                                               // 0 == unlocked
+    std::atomic<uint32_t> event_lock; // 0 == unlocked
+    std::atomic<uint32_t> autoload_lock; // 0 == unlocked
     std::atomic<fsensor_t> state_of_primary_runout_sensor = fsensor_t::NotInitialized; // We need those. States obtained from from sensors directly might not by synchronized
     std::atomic<fsensor_t> state_of_secondary_runout_sensor = fsensor_t::NotInitialized;
     std::atomic<fsensor_t> state_of_autoload_sensor = fsensor_t::NotInitialized;

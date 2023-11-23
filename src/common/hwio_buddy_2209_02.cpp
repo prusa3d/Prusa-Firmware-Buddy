@@ -50,13 +50,13 @@ namespace {
  */
 enum {
     HWIO_ERR_UNINI_DIG_RD = 0x01, //!< uninitialized digital read
-    HWIO_ERR_UNINI_DIG_WR,        //!< uninitialized digital write
-    HWIO_ERR_UNINI_ANA_RD,        //!< uninitialized analog read
-    HWIO_ERR_UNINI_ANA_WR,        //!< uninitialized analog write
-    HWIO_ERR_UNDEF_DIG_RD,        //!< undefined pin digital read
-    HWIO_ERR_UNDEF_DIG_WR,        //!< undefined pin digital write
-    HWIO_ERR_UNDEF_ANA_RD,        //!< undefined pin analog write
-    HWIO_ERR_UNDEF_ANA_WR,        //!< undefined pin analog write
+    HWIO_ERR_UNINI_DIG_WR, //!< uninitialized digital write
+    HWIO_ERR_UNINI_ANA_RD, //!< uninitialized analog read
+    HWIO_ERR_UNINI_ANA_WR, //!< uninitialized analog write
+    HWIO_ERR_UNDEF_DIG_RD, //!< undefined pin digital read
+    HWIO_ERR_UNDEF_DIG_WR, //!< undefined pin digital write
+    HWIO_ERR_UNDEF_ANA_RD, //!< undefined pin analog write
+    HWIO_ERR_UNDEF_ANA_WR, //!< undefined pin analog write
 };
 
 enum {
@@ -117,11 +117,11 @@ static int *const _pwm_period_us[] = {
 static constexpr int _pwm_max[] = { TIM3_default_Period, TIM3_default_Period, TIM1_default_Period, TIM1_default_Period };
 
 static const TIM_OC_InitTypeDef sConfigOC_default = {
-    TIM_OCMODE_PWM1,       // OCMode
-    0,                     // Pulse
-    TIM_OCPOLARITY_HIGH,   // OCPolarity
-    TIM_OCNPOLARITY_HIGH,  // OCNPolarity
-    TIM_OCFAST_DISABLE,    // OCFastMode
+    TIM_OCMODE_PWM1, // OCMode
+    0, // Pulse
+    TIM_OCPOLARITY_HIGH, // OCPolarity
+    TIM_OCNPOLARITY_HIGH, // OCNPolarity
+    TIM_OCFAST_DISABLE, // OCFastMode
     TIM_OCIDLESTATE_RESET, // OCIdleState
     TIM_OCNIDLESTATE_RESET // OCNIdleState
 };
@@ -622,10 +622,8 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
     case MARLIN_PIN(FAN1):
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX)
         _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? 80 : 0);
-#elif PRINTER_IS_PRUSA_MINI
-        Fans::heat_break(0).setPWM(ulVal);
 #else
-        Fans::heat_break(0).setPWM(ulVal ? 255 : 0);
+        Fans::heat_break(0).setPWM(ulVal ? 80 : 0);
 #endif
         return;
     case MARLIN_PIN(FAN):

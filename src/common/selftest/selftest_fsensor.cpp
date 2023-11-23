@@ -79,7 +79,8 @@ bool CSelftestPart_FSensor::AbortAndInvalidateIfAbortPressed() {
 LoopResult CSelftestPart_FSensor::state_init() {
 #if HAS_TOOLCHANGER()
     if (prusa_toolchanger.is_toolchanger_enabled()) {
-        marlin_server::enqueue_gcode_printf("T%d S1", rConfig.extruder_id);
+        marlin_server::enqueue_gcode("G27 P0 Z5"); // Lift Z if not high enough
+        marlin_server::enqueue_gcode_printf("T%d S1 L0 D0", rConfig.extruder_id);
         IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_wait_tool_pick);
     }
 #endif

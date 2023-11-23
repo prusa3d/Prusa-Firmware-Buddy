@@ -25,6 +25,10 @@ static inline const char *process_path(const char *path, const char *dev_name) {
         device_path++;
     }
     if (strncmp(device_path, dev_name, dev_name_len) == 0) {
+        if (strlen(device_path) == dev_name_len) {
+            // Device name is the whole path, return root
+            return "/";
+        }
         // Skip device name
         return device_path + dev_name_len;
     }

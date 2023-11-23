@@ -40,7 +40,7 @@ using std::min;
         #define max(a, b) ((a) > (b) ? (a) : (b))
     #endif // max
 
-#endif     // __cplusplus
+#endif // __cplusplus
 
 /* Official Arduino */
 #define INPUT        0x0

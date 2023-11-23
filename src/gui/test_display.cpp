@@ -229,19 +229,19 @@ void test_display_spectrum(uint16_t cnt) {
         }
 }
 
-extern const uint8_t png_icon_64x64_noise[];
-extern const uint16_t png_icon_64x64_noise_size;
+extern const uint8_t img_icon_64x64_noise[];
+extern const uint16_t img_icon_64x64_noise_size;
 
 void test_display_random_png_64x64(uint16_t count) {
-    img::Resource res("", 0, 0, 64, 64);
+    img::Resource res(0, 0, 64, 64);
 
     uint16_t x;
     uint16_t y;
-    res.file = fmemopen((void *)png_icon_64x64_noise, png_icon_64x64_noise_size, "rb");
+    res.file = fmemopen((void *)img_icon_64x64_noise, img_icon_64x64_noise_size, "rb");
     for (uint16_t n = 0; n < count; n++) {
         x = rand() % (display::GetW() - 64 + 1);
         y = rand() % (display::GetH() - 64 + 1);
-        display::DrawPng(point_ui16(x, y), res);
+        display::DrawImg(point_ui16(x, y), res);
     }
     fclose(res.file);
 }

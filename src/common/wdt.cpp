@@ -3,13 +3,14 @@
 #include <device/hal.h>
 #include "wdt.h"
 #include "config.h"
+#include "priorities_config.h"
 
 static const constexpr uint16_t WDT_IWDG_WARNING_DELAY = 3000; // 3s warning delay (1s for some actions)
-static const constexpr uint16_t WDT_IWDG_RELOAD = 4095;        // 4s max period
+static const constexpr uint16_t WDT_IWDG_RELOAD = 4095; // 4s max period
 
-static const constexpr uint8_t WDT_WWDG_REFRESH_DELAY = 32;    // refresh every 32ms
-static const constexpr uint8_t WDT_WWDG_WINDOW = 100;          // ~22ms min period
-static const constexpr uint8_t WDT_WWDG_RELOAD = 127;          // ~48ms max period
+static const constexpr uint8_t WDT_WWDG_REFRESH_DELAY = 32; // refresh every 32ms
+static const constexpr uint8_t WDT_WWDG_WINDOW = 100; // ~22ms min period
+static const constexpr uint8_t WDT_WWDG_RELOAD = 127; // ~48ms max period
 
 extern "C" {
 

@@ -34,6 +34,7 @@
 #include "screen_menu_sensor_info.hpp"
 #include "screen_menu_odometer.hpp"
 #include "screen_menu_version_info.hpp"
+#include "screen_menu_metrics.hpp"
 #include "screen_menu_fw_update.hpp"
 #include "screen_menu_lan_settings.hpp"
 #include "screen_menu_hw_setup.hpp"
@@ -204,6 +205,17 @@ MI_FW_UPDATE::MI_FW_UPDATE()
 
 void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFwUpdate>);
+}
+
+/*****************************************************************************/
+// MI_METRICS_SETTINGS
+MI_METRICS_SETTINGS::MI_METRICS_SETTINGS()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    SetIconId(&img::speed_16x16);
+}
+
+void MI_METRICS_SETTINGS::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMetricsSettings>);
 }
 
 /*****************************************************************************/
@@ -532,7 +544,7 @@ MI_TOOL_LEDS_ENABLE::MI_TOOL_LEDS_ENABLE()
 }
 void MI_TOOL_LEDS_ENABLE::OnChange(size_t old_index) {
     HOTEND_LOOP() {
-        prusa_toolchanger.getTool(e).set_led(!old_index ? 0xff : 0x00, 0x00);
+        prusa_toolchanger.getTool(e).set_cheese_led(!old_index ? 0xff : 0x00, 0x00);
     }
     config_store().tool_leds_enabled.set(!old_index);
 }
@@ -604,8 +616,10 @@ MI_SELFTEST_SNAKE::MI_SELFTEST_SNAKE()
 }
 
 void MI_SELFTEST_SNAKE::click(IWindowMenu & /*window_menu*/) {
-    #if HAS_SELFTEST()
+    #if HAS_SELFTEST() && HAS_SELFTEST_SNAKE()
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSTSCalibrations>);
+    #else
+    bsod("Invalid configuration for this menu item");
     #endif
 }
 #endif

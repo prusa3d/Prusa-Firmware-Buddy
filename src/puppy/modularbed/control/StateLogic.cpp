@@ -333,7 +333,8 @@ void CheckTemperaturePeak(uint32_t heatbedletIndex) {
     HeatbedletInfo *pHBInfo = HeatbedletInfo::Get(heatbedletIndex);
 
     if (pHBInfo->m_State == HeatbedletState::Stable) {
-        if (pHBInfo->m_MeasuredTemperature > (pHBInfo->m_TargetTemperature + TEMPERATURE_PEAK_THRESHOLD_DEGREES)) {
+        if ((pHBInfo->m_MeasuredTemperature > TEMPERATURE_PEAK_AMBIENT_DEGREES)
+            && (pHBInfo->m_MeasuredTemperature > (pHBInfo->m_TargetTemperature + TEMPERATURE_PEAK_THRESHOLD_DEGREES))) {
             if (pHBInfo->m_TemperaturePeak_Detected == false) {
                 pHBInfo->m_TemperaturePeak_Detected = true;
                 pHBInfo->m_TemperaturePeak_StartTime = osKernelSysTick();

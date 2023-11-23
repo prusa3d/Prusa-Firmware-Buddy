@@ -106,7 +106,7 @@ bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
 
     // if update was successful, version will be current
     return version == EEPROM_VERSION;
-#else  // NO_EEPROM_UPGRADES
+#else // NO_EEPROM_UPGRADES
     return false; // forces defaults
 #endif // NO_EEPROM_UPGRADES
 }

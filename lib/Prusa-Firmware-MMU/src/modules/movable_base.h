@@ -13,13 +13,13 @@ public:
     /// Internal states of the state machine
     enum {
         Ready = 0, // intentionally set as zero in order to allow zeroing the Idler structure upon startup -> avoid explicit initialization code
-        Moving,
-        PlannedHome,
-        HomeForward,
-        HomeBack,
-        TMCFailed,
-        HomingFailed,
-        OnHold,
+        Moving = 1,
+        PlannedHome = 2,
+        HomeForward = 3,
+        HomeBack = 4,
+        TMCFailed = 5,
+        HomingFailed = 6,
+        OnHold = 0x80, ///< needs to be a separate bit due to homing recovery infrastructure
     };
 
     /// Operation (Engage/Disengage/MoveToSlot) return values
@@ -78,8 +78,11 @@ public:
     /// Also, disables the axis
     void HoldOn();
 
+    /// @returns true if the movable is on-hold
+    bool IsOnHold() const { return state & OnHold; }
+
     /// Allows the movable to move/home again after begin suspended by HoldOn
-    void Resume() { state = Ready; }
+    void Resume() { state &= ~OnHold; }
 
 #ifndef UNITTEST
 protected:
@@ -109,6 +112,12 @@ protected:
     /// @returns true if the measured axis length is within the expected range, false otherwise
     virtual bool FinishHomingAndPlanMoveToParkPos() = 0;
     virtual void FinishMove() = 0;
+    /// @returns true if the StallGuard signal is to be considered while homing.
+    /// It may sound counterintuitive, but due to SG/homing issues on the Idler,
+    /// it needs to avoid processing the SG while rotating over the filament.
+    /// The Idler must consider SG signal only when close to its real end stops.
+    /// Selector considers the SG signal all the time while homing, therefore the default implementation is empty
+    virtual bool StallGuardAllowed(bool forward) const { return true; }
 
     /// Initializes movement of a movable module.
     /// Beware: this operation reinitializes the axis/TMC driver as well (may introduce axis creep as we have seen on the Idler)
@@ -125,6 +134,8 @@ protected:
     void HomeFailed();
 
     void CheckTMC();
+
+    uint16_t AxisDistance(int32_t curPos) const;
 };
 
 } // namespace motion

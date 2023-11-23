@@ -5,7 +5,8 @@
 #include <assert.h>
 
 #include "ourPosix.hpp"
-#include "lazyfilelist.h"
+#include "lazyfilelist.hpp"
+#include "file_sort.hpp"
 #include <string.h>
 
 // to be able to compile under Windows
@@ -42,12 +43,14 @@ TEST_CASE("LazyDirView::Entries test", "[LazyDirView]") {
         LDV::Entry e = { false, "\xff\xff\xff\xff\xff", "", LONG_MAX };
         LDV::Entry e1 = { false, "nold", "", 1 };
         dirent f = { DT_DIR, "old", txt_old, 1 };
+        MutablePath p { "we/dont/care/about/transfer/here" };
+        FileSort::DirentWPath dwp { f, p };
 
-        CHECK(LDV::LessByTimeEF(e, &f));
-        CHECK(LDV::LessByTimeFE(&f, e1));
+        CHECK(LDV::LessByTimeEF(e, dwp));
+        CHECK(LDV::LessByTimeFE(dwp, e1));
 
-        CHECK(!LDV::LessByFNameEF(e, &f));
-        CHECK(!LDV::LessByFNameFE(&f, e1));
+        CHECK(!LDV::LessByFNameEF(e, dwp));
+        CHECK(!LDV::LessByFNameFE(dwp, e1));
     }
 }
 

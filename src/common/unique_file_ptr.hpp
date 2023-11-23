@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <memory>  // std::unique_ptr
+#include <memory> // std::unique_ptr
 #include <stdio.h> // FILE, fclose
 
 class FileDeleter {

@@ -10,9 +10,10 @@ namespace logic {
 /// @brief A high-level command state machine - handles the complex logic of loading filament into a filament slot.
 class LoadFilament : public CommandBase {
 public:
-    inline LoadFilament()
+    inline constexpr LoadFilament()
         : CommandBase()
-        , verifyLoadedFilament(0) {}
+        , verifyLoadedFilament(0)
+        , result(ResultCode::OK) {}
 
     /// Restart the automaton - performs unlimited rotation of the Pulley
     /// @param param index of filament slot to load

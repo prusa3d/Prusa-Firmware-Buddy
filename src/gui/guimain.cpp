@@ -6,7 +6,6 @@
 #include "marlin_client.hpp"
 #include "display.h"
 #include "display_hw_checks.hpp"
-
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
 #include "window_file_list.hpp"
@@ -27,6 +26,7 @@
 #include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
+#include "str_utils.hpp"
 #include "knob_event.hpp"
 #include "DialogMoveZ.hpp"
 #include "ScreenShot.hpp"
@@ -52,6 +52,10 @@
 #include <option/has_side_leds.h>
 #include <option/has_embedded_esp32.h>
 
+#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+    #include "hw_configuration.hpp"
+#endif
+
 #if HAS_SELFTEST()
     #include "ScreenSelftest.hpp"
 #endif
@@ -72,8 +76,6 @@ using buddy::puppies::PuppyBootstrap;
 #if HAS_SIDE_LEDS()
     #include <leds/side_strip_control.hpp>
 #endif
-
-int guimain_spi_test = 0;
 
 #include "gpio.h"
 #include "Jogwheel.hpp"
@@ -102,18 +104,28 @@ int guimain_spi_test = 0;
     #include "screen_menu_selftest_snake.hpp"
 #endif
 
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
+    #include "MItem_love_board.hpp"
+#endif
+
+#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+    #include "menu_item_xlcd.hpp"
+#endif
+
 #include <config_store/store_instance.hpp>
 
 using namespace buddy::hw;
 
 LOG_COMPONENT_REF(GUI);
 LOG_COMPONENT_REF(Buddy);
+LOG_COMPONENT_DEF(XLCD, LOG_SEVERITY_INFO);
+LOG_COMPONENT_DEF(LoveBoard, LOG_SEVERITY_INFO);
 extern void blockISR(); // do not want to include marlin temperature
 
 #ifdef USE_ST7789
 const st7789v_config_t st7789v_cfg = {
-    .phspi = &hspi2,              // spi handle pointer
-    .flg = ST7789V_FLG_DMA,       // flags (DMA, MISO)
+    .phspi = &hspi2, // spi handle pointer
+    .flg = ST7789V_FLG_DMA, // flags (DMA, MISO)
     .colmod = ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
     .madctl = ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
     .gamma = 0,
@@ -126,16 +138,16 @@ const st7789v_config_t st7789v_cfg = {
 #ifdef USE_ILI9488
 const ili9488_config_t ili9488_cfg = {
     .phspi = &SPI_HANDLE_FOR(lcd), // spi handle pointer
-    .flg = ILI9488_FLG_DMA,        // flags (DMA, MISO)
-    .colmod = ILI9488_DEF_COLMOD,  // interface pixel format (5-6-5, hi-color)
-    .madctl = ILI9488_DEF_MADCTL,  // memory data access control (no mirror XY)
+    .flg = ILI9488_FLG_DMA, // flags (DMA, MISO)
+    .colmod = ILI9488_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
+    .madctl = ILI9488_DEF_MADCTL, // memory data access control (no mirror XY)
     .gamma = 0,
     .brightness = 0,
     .is_inverted = 0,
     .control = 0,
     .pwm_inverted = 0b10110001 // inverted
 };
-#endif                         // USE_ILI9488
+#endif // USE_ILI9488
 
 marlin_vars_t *gui_marlin_vars = 0;
 
@@ -159,7 +171,7 @@ void MsgCircleBuffer_cb(const char *txt) {
         // message for MakeRAM must exist at least as long as string_view_utf8 exists
         static std::array<uint8_t, MSG_MAX_LENGTH> msg;
         strlcpy((char *)msg.data(), txt, MSG_MAX_LENGTH);
-        window_dlg_popup_t::Show(prt_screen->GetPopUpRect(), string_view_utf8::MakeRAM(msg.data()), 5000);
+        window_dlg_popup_t::Show(prt_screen->GetPopUpRect(), string_view_utf8::MakeRAM(msg.data()), POPUP_MSG_DUR_MS);
     }
 }
 
@@ -197,6 +209,9 @@ void Warning_cb(WarningType type) {
     case WarningType::NozzleDoesNotHaveRoundSection:
         window_dlg_strong_warning_t::ShowNozzleDoesNotHaveRoundSection();
         break;
+    case WarningType::NotDownloaded:
+        window_dlg_strong_warning_t::ShowNotDownloaded();
+        break;
     default:
         break;
     }
@@ -205,23 +220,31 @@ void Warning_cb(WarningType type) {
 static void Startup_cb(void) {
 }
 
-void client_gui_refresh() {
+// Draw smooth progressbar 1s
+// Bootstrap resets the progressbar so we go from 0%
+bool fw_gui_splash_progress([[maybe_unused]] bool bootstrap) {
     static uint32_t start = gui::GetTick_ForceActualization();
-    static uint32_t last_tick = gui::GetTick_ForceActualization();
-    uint32_t tick = gui::GetTick_ForceActualization();
+    static uint32_t tick = 0;
+    static uint32_t last_tick = 0;
+
+    tick = gui::GetTick_ForceActualization();
+    uint8_t percent = 0;
+
     if (last_tick != tick) {
-        unsigned percent = (tick - start) / (1000 / 100); // 1000ms / 100%
-        percent = ((percent < 99) ? percent : 99);
+        percent = (tick - start) / (1000 / 100); // 1000ms / 100%
+        percent = percent > 100 ? 100 : percent;
 
 #if PRINTER_IS_PRUSA_XL
         // XL has a puppy bootstrap which ends the progress bar at buddy::puppies::max_bootstrap_perc
         percent = buddy::puppies::max_bootstrap_perc + percent * buddy::puppies::max_bootstrap_perc / 100;
 #elif BOOTLOADER()
         // when running under bootloader, we take over the progress bar at 50 %
-        percent = 50 + percent / 2;
+        if (!bootstrap) {
+            percent = 50 + percent / 2;
+        }
 #endif
 
-        GUIStartupProgress progr = { unsigned(percent), nullptr };
+        GUIStartupProgress progr = { unsigned(percent), std::nullopt };
         event_conversion_union un;
         un.pGUIStartupProgress = &progr;
         Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
@@ -229,6 +252,8 @@ void client_gui_refresh() {
         last_tick = tick;
         gui_redraw();
     }
+
+    return percent != 100;
 }
 
 namespace {
@@ -255,14 +280,6 @@ void filament_sensor_validation() {
     }
 }
 
-// Callback for wait dialog - initialize the new g-code
-void gcode_file_init() {
-
-    GCodeInfo::getInstance().initFile(GCodeInfo::GI_INIT_t::FULL); // Parse (this takes a while)
-    // Close it after initFile is completed, so that it runs only once
-    Screens::Access()->Close(); // close-flag this dialog
-}
-
 void make_gui_ready_to_print() {
     /**
      * This function is triggered because of marlin_server::State::WaitGui and it is checking if GUI thread is safe to start printing.
@@ -282,14 +299,12 @@ void make_gui_ready_to_print() {
     bool filebrowser_preview = Screens::Access()->Count() == 2 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>() && Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
 
     if (can_print_on_current_screen || one_click_preview || filebrowser_preview) {
-        // Parse the printed file for preview info
         {
             // Update printed filename from marlin_server, sample LFN+SFN atomically
             auto lock = MarlinVarsLockGuard();
             marlin_vars()->media_LFN.copy_to(gui_media_LFN, sizeof(gui_media_LFN), lock);
             marlin_vars()->media_SFN_path.copy_to(gui_media_SFN_path, sizeof(gui_media_SFN_path), lock);
         }
-        gui_dlg_wait(gcode_file_init); // This will initialize new g-code file
 
         // Handle different states of GUI before print begins
         if (can_print_on_current_screen) {
@@ -297,9 +312,9 @@ void make_gui_ready_to_print() {
             Screens::Access()->ClosePrinting(); // set flag to close all appropriate screens
             if (have_file_browser) {
                 Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);
-                Screens::Access()->Get()->Validate();   // Do not draw filebrowser now
+                Screens::Access()->Get()->Validate(); // Do not draw filebrowser now
             }
-            Screens::Access()->Loop();                  // close those screens before marlin_gui_ready_to_print
+            Screens::Access()->Loop(); // close those screens before marlin_gui_ready_to_print
             marlin_client::marlin_gui_ready_to_print(); // notify server, that GUI is ready to print
         } else if (one_click_preview || filebrowser_preview) {
             // Print is called from Connect/pLink, while print preview is already open in GUI
@@ -309,11 +324,12 @@ void make_gui_ready_to_print() {
         // else not reachable
 
         Screens::Access()->Get()->Validate(); // Do not redraw after CloseAll (keep wait dialog displayed)
-        // wait for start of the print - to prevent any unwanted GUI action
-        while (!DialogHandler::Access().IsAnyOpen()) {
+
+        while (!DialogHandler::Access().IsAnyOpen() // Wait for start of the print - to prevent any unwanted GUI action
+            && marlin_vars()->print_state != marlin_server::State::Idle) { // Abort if print was not started (this function is called when State::WaitGui)
             // main thread is processing a print
             // wait for print screen to open, any fsm can break waiting (f.e.: Print Preview)
-            gui_timers_cycle();    // refresh GUI time
+            gui_timers_cycle(); // refresh GUI time
             marlin_client::loop(); // refresh fsm - required for dialog handler
             DialogHandler::Access().Loop();
         }
@@ -326,13 +342,14 @@ void make_gui_ready_to_print() {
 } // anonymous namespace
 
 #if ENABLED(RESOURCES())
-static void finish_update() {
-
+// Return TRUE if bootloader was updated -> in this case we have to reset the system, because important data addresses could be moved
+static bool finish_update(bool &bootstrap_update /*OUT parameter for correct drawing of progressbar*/) {
     #if ENABLED(BOOTLOADER_UPDATE())
+    display::FillRect(Rect16(0, SPLASHSCREEN_VERSION_Y + 18, display::GetW(), display::GetH() - SPLASHSCREEN_VERSION_Y - 18), COLOR_BLACK);
     if (buddy::bootloader::needs_update()) {
         buddy::bootloader::update(
             [](int percent_done, buddy::bootloader::UpdateStage stage) {
-                const char *stage_description;
+                std::optional<const char *> stage_description = std::nullopt;
                 switch (stage) {
                 case buddy::bootloader::UpdateStage::LookingForBbf:
                     stage_description = "Looking for BBF...";
@@ -345,17 +362,19 @@ static void finish_update() {
                     bsod("unreachable");
                 }
 
-                log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description, percent_done);
+                log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description.value_or(""), percent_done);
                 screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
                 gui_redraw();
             });
+        return true;
     }
     #endif
 
     if (!buddy::resources::has_resources(buddy::resources::revision::standard)) {
+        bootstrap_update = true;
         buddy::resources::bootstrap(
             buddy::resources::revision::standard, [](int percent_done, buddy::resources::BootstrapStage stage) {
-                const char *stage_description;
+                std::optional<const char *> stage_description = std::nullopt;
                 switch (stage) {
                 case buddy::resources::BootstrapStage::LookingForBbf:
                     stage_description = "Looking for BBF...";
@@ -369,12 +388,13 @@ static void finish_update() {
                 default:
                     bsod("unreachable");
                 }
-                log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description, percent_done);
+                log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description.value_or(""), percent_done);
                 screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
                 gui_redraw();
             });
     }
     TaskDeps::provide(TaskDeps::Dependency::resources_ready);
+    return false;
 }
 #endif
 
@@ -388,21 +408,21 @@ static void finish_update_ESP32() {
     while (TaskDeps::check(TaskDeps::Dependency::esp_flashed) == false) {
         const ESPFlash::Progress progress = ESPFlash::get_progress();
         const uint8_t percent = progress.bytes_total ? 100 * progress.bytes_flashed / progress.bytes_total : 0;
-        const char *description;
+        std::optional<const char *> stage_description = std::nullopt;
         switch (progress.state) {
         case ESPFlash::State::Init:
-            description = "Connecting ESP";
+            stage_description = "Connecting ESP";
             break;
         case ESPFlash::State::WriteData:
-            description = "Flashing ESP";
+            stage_description = "Flashing ESP";
             break;
         case ESPFlash::State::Checking:
-            description = "Checking ESP";
+            stage_description = "Checking ESP";
             break;
         default:
-            description = "Unknown ESP state";
+            stage_description = "Unknown ESP state";
         }
-        screen_splash_data_t::bootstrap_cb(percent, description);
+        screen_splash_data_t::bootstrap_cb(percent, stage_description);
 
         gui_redraw();
         osDelay(20);
@@ -424,10 +444,6 @@ static void finish_update_puppies() {
     }
 }
 #endif
-
-constexpr size_t strlen_constexpr(const char *str) {
-    return *str ? 1 + strlen_constexpr(str + 1) : 0;
-}
 
 /**
  * @brief Bootstrap finished
@@ -452,12 +468,41 @@ static void manufacture_report() {
     // The first '\n' is just a precaution - terminate any partially printed message from Marlin if any
     static const uint8_t intro[] = "\nbootstrap finished\nfirmware version: ";
 
-    static_assert(sizeof(intro) > 1);          // prevent accidental buffer underrun below
+    static_assert(sizeof(intro) > 1); // prevent accidental buffer underrun below
     SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
     SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
     SerialUSB.write('\n');
 
     TaskDeps::provide(TaskDeps::Dependency::manufacture_report_sent);
+}
+
+static void log_onewire_otp() {
+#if DEVELOPMENT_ITEMS()
+    #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
+    OtpStatus loveboard = buddy::hw::Configuration::Instance().get_loveboard_status();
+
+    if (loveboard.data_valid) {
+        log_info(LoveBoard, "PASSED: Read e. %u, Repeated e. %u, Cyclic e. %u, Retried %u",
+            loveboard.single_read_error_counter, loveboard.repeated_read_error_counter, loveboard.cyclic_read_error_counter, loveboard.retried);
+        log_info(LoveBoard, "Eeprom: %s", MI_INFO_SERIAL_NUM_LOVEBOARD::to_array().data());
+    } else {
+        log_error(LoveBoard, "FAILED: Read e. %u, Repeated e. %u, Cyclic e. %u, Retried %u",
+            loveboard.single_read_error_counter, loveboard.repeated_read_error_counter, loveboard.cyclic_read_error_counter, loveboard.retried);
+    }
+    #endif
+
+    #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+    OtpStatus xlcd = buddy::hw::Configuration::Instance().get_xlcd_status();
+
+    log_info(XLCD, "%s: Read e. %u, Repeated e. %u, Cyclic e. %u, Retried %u",
+        xlcd.data_valid ? "DETECTED" : "NOT DT.", xlcd.single_read_error_counter, xlcd.repeated_read_error_counter, xlcd.cyclic_read_error_counter, xlcd.retried);
+
+    if (xlcd.data_valid) {
+        log_info(XLCD, "Eeprom: %s", MI_INFO_SERIAL_NUM_XLCD::to_array().data());
+    }
+    #endif
+
+#endif
 }
 
 /**
@@ -543,7 +588,7 @@ void gui_run(void) {
 
     screen_node screen_initializer[] {
         ScreenFactory::Screen<screen_splash_data_t>, // splash
-        ScreenFactory::Screen<screen_home_data_t>    // home
+        ScreenFactory::Screen<screen_home_data_t> // home
     };
 
     // Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
@@ -561,8 +606,14 @@ void gui_run(void) {
     leds::Init();
 #endif
 
+    bool bootstrap_update = false; // Out parameter for progressbar drawing
 #if ENABLED(RESOURCES())
-    finish_update();
+    if (finish_update(bootstrap_update)) {
+        // Wait a while, before restart (this prevents some older board without appendix to enter internal bootloader on reset)
+        osDelay(300);
+        __disable_irq();
+        HAL_NVIC_SystemReset();
+    }
 #endif
 
     manufacture_report();
@@ -594,12 +645,10 @@ void gui_run(void) {
 
     Sound_Play(eSOUND_TYPE::Start);
 
-    marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF, client_gui_refresh);
+    marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF, nullptr);
 
-    GUIStartupProgress progr = { 100, std::nullopt };
-    event_conversion_union un;
-    un.pGUIStartupProgress = &progr;
-    Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
+    while (fw_gui_splash_progress(bootstrap_update)) {
+    } // draw a smooth progressbar from 50% - 100%
 
 #if HAS_LEDS() && !HAS_SIDE_LEDS()
     // we need to step the animator, to move the started animation to current to let it run for one cycle
@@ -611,6 +660,8 @@ void gui_run(void) {
 #if HAS_SIDE_LEDS()
     leds::side_strip_control.ActivityPing();
 #endif
+
+    log_onewire_otp();
 
     // TODO make some kind of registration
     while (1) {

@@ -252,7 +252,7 @@ TEST_CASE("rectangle mirror", "[rectangle]") {
         std::make_tuple<Rect16, int16_t, Rect16>({ -10, 10, 30, 40 }, 5, { -10, 10, 30, 40 }),
         std::make_tuple<Rect16, int16_t, Rect16>({ -10, 10, 30, 40 }, -5, { -30, 10, 30, 40 }),
 
-        std::make_tuple<Rect16, int16_t, Rect16>({ 10, 10, 30, 40 }, 40, { 40, 10, 30, 40 }),  // mirror at the end of rect
+        std::make_tuple<Rect16, int16_t, Rect16>({ 10, 10, 30, 40 }, 40, { 40, 10, 30, 40 }), // mirror at the end of rect
         std::make_tuple<Rect16, int16_t, Rect16>({ 10, 10, 30, 40 }, 100, { 160, 10, 30, 40 }),
         std::make_tuple<Rect16, int16_t, Rect16>({ -10, 10, 30, 40 }, 20, { 20, 10, 30, 40 }), // mirror at the end of rect
         std::make_tuple<Rect16, int16_t, Rect16>({ -10, 10, 30, 40 }, -100, { -190 - 30, 10, 30, 40 }));
@@ -479,20 +479,20 @@ TEST_CASE("rectangle Transform", "[rectangle]") {
     SECTION("not empty") {
         Rect16 r, target, expected;
         std::tie(r, target, expected) = GENERATE(
-            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 30, 30 }),      // fits
-            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 2, 80, 40 }, { 1, 2, 5, 5 }, { 1, 4, 5, 3 }),            // does not fit
-            std::make_tuple<Rect16, Rect16, Rect16>({ 5, 20, 20, 1 }, { 20, -3, 6, 200 }, { 25, 17, 1, 1 }),      // width does not fit
+            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 30, 30 }), // fits
+            std::make_tuple<Rect16, Rect16, Rect16>({ 0, 2, 80, 40 }, { 1, 2, 5, 5 }, { 1, 4, 5, 3 }), // does not fit
+            std::make_tuple<Rect16, Rect16, Rect16>({ 5, 20, 20, 1 }, { 20, -3, 6, 200 }, { 25, 17, 1, 1 }), // width does not fit
             std::make_tuple<Rect16, Rect16, Rect16>({ 10, 1, 100, 3 }, { -100, 3, 1000, 2 }, { -90, 4, 100, 1 }), // height does not fit
             // rect with negative coords is cut
             // data for X, Y is made by SwapXY
             std::make_tuple<Rect16, Rect16, Rect16>({ -1, 0, 30, 30 }, { 2, 3, 100, 100 }, { 2, 3, 29, 30 }), // negative x
             std::make_tuple<Rect16, Rect16, Rect16>({ -1, 8, 30, 30 }, { 2, 3, 10, 100 }, { 2, 11, 10, 30 }), // negative x, does not fit into target
-            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 4, 30, 30 }, { 2, 3, 10, 100 }, { 2, 7, 8, 30 }),  // negative x, would not fit into target, but fits after negative coord cut
-            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 2, 30, 30 }, { 2, 3, 1, 100 }, { 2, 5, 1, 30 }),   // negative x, would not fit into target, and still does not fit even after negative coord cut
+            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 4, 30, 30 }, { 2, 3, 10, 100 }, { 2, 7, 8, 30 }), // negative x, would not fit into target, but fits after negative coord cut
+            std::make_tuple<Rect16, Rect16, Rect16>({ -22, 2, 30, 30 }, { 2, 3, 1, 100 }, { 2, 5, 1, 30 }), // negative x, would not fit into target, and still does not fit even after negative coord cut
             // both X and Y negative
             std::make_tuple<Rect16, Rect16, Rect16>({ -1, -1, 10, 6 }, { 2, 3, 100, 100 }, { 2, 3, 9, 5 }),
             std::make_tuple<Rect16, Rect16, Rect16>({ -1, -4, 20, 7 }, { 2, 3, 10, 100 }, { 2, 3, 10, 3 }), // X does not fit into target
-            std::make_tuple<Rect16, Rect16, Rect16>({ -22, -2, 30, 8 }, { 2, 3, 10, 100 }, { 2, 3, 8, 6 })  // X would not fit into target, but fits after negative coord cut
+            std::make_tuple<Rect16, Rect16, Rect16>({ -22, -2, 30, 8 }, { 2, 3, 10, 100 }, { 2, 3, 8, 6 }) // X would not fit into target, but fits after negative coord cut
         );
 
         Rect16 r_sw = r;
@@ -834,7 +834,7 @@ TEST_CASE("rectangle split", "[rectangle]") {
 TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
     SECTION("empty") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 0, 1, 0, 1 };
 
@@ -845,7 +845,7 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
 
     SECTION("normal cut") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 4, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 0, 1, 4, 1 };
 
@@ -856,7 +856,7 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
 
     SECTION("cut till end") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 8, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 0, 1, 8, 1 };
 
@@ -867,7 +867,7 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
 
     SECTION("cut behind end") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 12, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 0, 1, 12, 1 };
 
@@ -878,7 +878,7 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
 
     SECTION("empty cut at end") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 16, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result = minuend;
 
@@ -889,7 +889,7 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
 
     SECTION("empty cut behind end") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 32, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result = minuend;
 
@@ -900,7 +900,7 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
 
     SECTION("empty cut in front begin") {
         // y and h does not matter
-        Rect16 minuend { 8, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 minuend { 8, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.LeftSubrect(subtrahend);
@@ -912,7 +912,7 @@ TEST_CASE("rectangle LeftSubrect", "[rectangle]") {
 TEST_CASE("rectangle RightSubrect", "[rectangle]") {
     SECTION("normal cut from begin") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 8, 1, 8, 1 };
 
@@ -923,7 +923,7 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
 
     SECTION("normal cut middle") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 4, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result { 12, 1, 4, 1 };
 
@@ -934,7 +934,7 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
 
     SECTION("cut till end") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 8, 1, 8, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.RightSubrect(subtrahend);
@@ -944,7 +944,7 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
 
     SECTION("cut behind end") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 12, 1, 8, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.RightSubrect(subtrahend);
@@ -954,7 +954,7 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
 
     SECTION("empty cut at end") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 16, 1, 8, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.RightSubrect(subtrahend);
@@ -964,7 +964,7 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
 
     SECTION("empty cut behind end") {
         // y and h does not matter
-        Rect16 minuend { 0, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 minuend { 0, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 32, 1, 8, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.RightSubrect(subtrahend);
@@ -974,7 +974,7 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
 
     SECTION("not intersecting cut in front begin") {
         // y and h does not matter
-        Rect16 minuend { 8, 1, 16, 1 };   // the rect that is to be subtracted from.
+        Rect16 minuend { 8, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 8, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result = { 8, 1, 16, 1 };
 
@@ -985,7 +985,7 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
 
     SECTION("intersecting cut in front begin") {
         // y and h does not matter
-        Rect16 minuend { 8, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 minuend { 8, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 16, 1 }; // the rect that is to be subtracted.
         Rect16 expected_result = { 16, 1, 8, 1 };
 
@@ -996,7 +996,7 @@ TEST_CASE("rectangle RightSubrect", "[rectangle]") {
 
     SECTION("overlaping cut") {
         // y and h does not matter
-        Rect16 minuend { 8, 1, 16, 1 };    // the rect that is to be subtracted from.
+        Rect16 minuend { 8, 1, 16, 1 }; // the rect that is to be subtracted from.
         Rect16 subtrahend { 0, 1, 32, 1 }; // the rect that is to be subtracted.
 
         Rect16 result = minuend.RightSubrect(subtrahend);

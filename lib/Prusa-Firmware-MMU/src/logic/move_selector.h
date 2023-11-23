@@ -15,7 +15,7 @@ namespace logic {
 /// and/or from the MMU's buttons while all safety measures are kept.
 class MoveSelector : public CommandBase {
 public:
-    inline MoveSelector()
+    inline constexpr MoveSelector()
         : CommandBase() {}
 
     /// Restart the automaton

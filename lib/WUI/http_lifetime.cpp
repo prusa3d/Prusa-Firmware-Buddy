@@ -34,11 +34,11 @@ class DefaultServerDefs final : public ServerDefs {
 private:
     static const constexpr handler::Selector *const selectors_array[] = {
         &validate_request,
-        &static_file,
         &prusa_link_api_v1,
         &prusa_link_api_octo,
         &usb_files,
         &previews,
+        &static_file, // This touches the filesystem unconditionally, so we put it at the bottom.
 #if NETWORKING_BENCHMARK_ENABLED
         &networking_benchmark_selector,
 #endif

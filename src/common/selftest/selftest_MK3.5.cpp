@@ -221,11 +221,11 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     if (m_Mask & stmHeaters)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_heaters));
     if (m_Mask & stmZAxis)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup));       // if Z is calibrated, move it up
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
     if (m_Mask & stmFullSelftest)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop));  // any selftest state will trigger selftest additional deinit
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
 
     // dont show message about footer and do not wait response
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
@@ -366,12 +366,12 @@ void CSelftest::Loop() {
             return;
         break;
     case stsEpilogue_ok:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_ok);
         }
         break;
     case stsEpilogue_ok_wait_user:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             if (phaseWaitUser(PhasesSelftest::WizardEpilogue_ok))
                 return;
         }
@@ -396,9 +396,9 @@ void CSelftest::phaseDidSelftestPass() {
     SelftestResult_Log(m_result);
 
     // dont run wizard again
-    if (SelftestResult_Passed(m_result)) {
-        config_store().run_selftest.set(false);    // clear selftest flag
-        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+    if (SelftestResult_Passed_All(m_result)) {
+        config_store().run_selftest.set(false); // clear selftest flag
+        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
     }
 }
@@ -408,8 +408,8 @@ bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
-        config_store().run_selftest.set(false);    // clear selftest flag
-        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_selftest.set(false); // clear selftest flag
+        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
         Abort();
     }
@@ -493,16 +493,16 @@ void CSelftest::next() {
     // this must be done after mask check
     m_result = config_store().selftest_result.get();
     switch (m_State) {
-    case stsZAxis:   // both X and Y must be OK to test Z
+    case stsZAxis: // both X and Y must be OK to test Z
         if (m_result.xaxis == TestResult_Passed && m_result.yaxis == TestResult_Passed)
-            return;  // current state can be run
-        break;       // current state cannot be run
+            return; // current state can be run
+        break; // current state cannot be run
     case stsMoveZup: // Z must be OK, if axis are not homed, it could be stacked at the top and generate noise, but the way states are generated from mask should prevent it
         if (m_result.zaxis == TestResult_Passed)
-            return;  // current state can be run
-        break;       // current state cannot be run
+            return; // current state can be run
+        break; // current state cannot be run
     default:
-        return;      // current state can be run
+        return; // current state can be run
     }
 
     // current state cannot be run

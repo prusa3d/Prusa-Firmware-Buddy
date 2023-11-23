@@ -7,8 +7,6 @@
 
 ScreenPrintPreviewBase::ScreenPrintPreviewBase()
     : title_text(this, Rect16(PADDING, PADDING, display::GetW() - 2 * PADDING, TITLE_HEIGHT))
-    , radio(this, GuiDefaults::GetIconnedButtonRect(GetRect())) {
-    radio.SetHasIcon();
-    radio.SetBlackLayout(); // non iconned buttons have orange background
+    , radio(this, GuiDefaults::GetButtonRect(GetRect())) {
     radio.SetBtnCount(2);
 }

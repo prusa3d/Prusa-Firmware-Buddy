@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <optional>
 #include "step.h"
+#include "timing.h"
 
 namespace nhttp::handler {
 

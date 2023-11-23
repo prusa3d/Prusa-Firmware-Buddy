@@ -249,7 +249,7 @@ Buttons ButtonAvailable(ErrorCode ec) {
     // so some hand tweaking is necessary
     switch (*bi) {
     case ButtonOperations::ResetMMU:
-        return Buttons::RestartMMU;
+        return Buttons::ResetMMU;
     case ButtonOperations::StopPrint:
         return Buttons::StopPrint;
     case ButtonOperations::DisableMMU:

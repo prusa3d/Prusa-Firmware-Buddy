@@ -26,3 +26,9 @@ inline constexpr uint32_t RS485_RX_TIMEOUT_BITS = 33;
 //*** Modbus configuration
 inline constexpr int32_t MODBUS_WATCHDOG_TIMEOUT = 30000;
 inline constexpr auto MODBUS_FIFO_MAX_COUNT = 31; // Same value as MODBUS_FIFO_LEN defined in fifo_coder.hpp, maximal value allowed by Modbus specification is 31
+
+//*******************************
+//*** Safety checks configuration
+
+static constexpr bool ENABLE_HEATER_CURRENT_CHECKS = true;
+static constexpr float MAX_HEATER_CURRENT_A = 2.0f;

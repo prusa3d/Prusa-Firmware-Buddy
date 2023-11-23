@@ -5,9 +5,9 @@
  */
 
 namespace puppy_crash_dump {
-constexpr uint32_t CRASH_DUMP_GUARD { 0x71439503 };               // Constant for indicating a crash dump is present
+constexpr uint32_t CRASH_DUMP_GUARD { 0x71439503 }; // Constant for indicating a crash dump is present
 constexpr uint32_t APP_DESCRIPTOR_OFFSET { 0x0001ff80 - 0x2000 }; // Offset into FW application space for fw_descriptor location
-constexpr uint8_t APP_DESCRIPTOR_LENGTH { 128 };                  // Length of the fw_descriptor region
+constexpr uint8_t APP_DESCRIPTOR_LENGTH { 128 }; // Length of the fw_descriptor region
 
 struct __attribute__((aligned(8))) FWDescriptor {
     enum class StoredType : uint32_t {

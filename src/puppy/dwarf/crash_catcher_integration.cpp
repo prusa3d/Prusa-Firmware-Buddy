@@ -44,9 +44,9 @@ const CrashCatcherMemoryRegion *CrashCatcher_GetMemoryRegions(void) {
     return regions;
 }
 
-extern const uint32_t __fw_descriptor_start;  // use as &__fw_descriptor_start to get the address of the start of the FW_DESCRIPTOR region
+extern const uint32_t __fw_descriptor_start; // use as &__fw_descriptor_start to get the address of the start of the FW_DESCRIPTOR region
 extern const uint32_t __fw_descriptor_length; // use as &__fw_descriptor_length to get the length of the FW_DESCRIPTOR region
-extern const uint32_t __flash_start;          // use as &__flash_start to get the address of the start of the FLASH region
+extern const uint32_t __flash_start; // use as &__flash_start to get the address of the start of the FLASH region
 
 // Used to read the FW_DESCRIPTOR section persistent data, attribute 'used' is so that it's not optimized away. It's unitialized because we want the data already in the section
 __attribute__((section(".fw_descriptor"), used)) const puppy_crash_dump::FWDescriptor fw_descriptor;

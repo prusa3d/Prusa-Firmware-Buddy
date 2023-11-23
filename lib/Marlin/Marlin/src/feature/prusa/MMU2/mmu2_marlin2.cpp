@@ -126,4 +126,8 @@ void FullScreenMsg(const char *pgmS, uint8_t slot) {
 #else
 #endif
 }
+
+void enqueue_gcode(const char *gcode) {
+    marlin_server::enqueue_gcode(gcode);
+}
 } // namespace MMU2

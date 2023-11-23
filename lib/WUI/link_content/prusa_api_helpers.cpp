@@ -99,12 +99,27 @@ StatusPage delete_file(const char *filename, const RequestParser &parser) {
     auto result = remove_file(filename);
     if (result == DeleteResult::Busy) {
         return StatusPage(Status::Conflict, parser, "File is busy");
+    } else if (result == DeleteResult::ActiveTransfer) {
+        return StatusPage(Status::Conflict, parser, "File is being transferred");
     } else if (result == DeleteResult::GeneralError) {
         return StatusPage(Status::NotFound, parser);
     } else {
         ChangedPath::instance.changed_path(filename, Type::File, Incident::Deleted);
         return StatusPage(Status::NoContent, parser);
     }
+}
+
+StatusPage create_folder(const char *filename, const RequestParser &parser) {
+    if (mkdir(filename, 777) != 0) {
+        if (errno == EEXIST) {
+            return StatusPage(Status::Conflict, parser, "Already exists");
+        } else {
+            return StatusPage(Status::InternalServerError, parser, "Error creating directory");
+        }
+    }
+
+    ChangedPath::instance.changed_path(filename, Type::Folder, Incident::Created);
+    return StatusPage(Status::Created, parser);
 }
 
 StatusPage print_file(char *filename, const RequestParser &parser) {

@@ -183,9 +183,18 @@ private:
     // Handling timeouts and such things.
     class BaseSlot {
     public:
+        enum class SlotType : uint8_t {
+            BaseSlot,
+            Slot,
+            ConnectionSlot,
+            TransferSlot,
+        };
+
         Server *server = nullptr;
         InactivityTimeout timeout;
         virtual ~BaseSlot() = default;
+
+        virtual constexpr SlotType get_slot_type() { return SlotType::BaseSlot; }
     };
 
     /*
@@ -234,6 +243,8 @@ private:
         virtual bool has_unacked_data() const = 0;
         // The other side has sent an ack.
         virtual void sent(uint16_t len) = 0;
+
+        virtual constexpr SlotType get_slot_type() override = 0;
     };
 
     class ConnectionSlot : public Slot {
@@ -262,6 +273,7 @@ private:
         virtual bool take_pbuf(pbuf *data) override;
         virtual bool has_unacked_data() const override;
         virtual void sent(uint16_t len) override;
+        virtual constexpr SlotType get_slot_type() override { return SlotType::ConnectionSlot; }
     };
 
     std::array<ConnectionSlot, ACTIVE_CONNS> active_slots;
@@ -298,6 +310,7 @@ private:
         // Callback from Done Async IO request
         void done(std::optional<std::tuple<http::Status, const char *>> res);
         void make_response(ConnectionSlot *slot = nullptr);
+        virtual constexpr SlotType get_slot_type() override { return SlotType::TransferSlot; }
     };
 
     TransferSlot transfer_slot;

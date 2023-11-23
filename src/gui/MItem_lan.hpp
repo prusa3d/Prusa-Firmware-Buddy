@@ -49,7 +49,7 @@ protected:
 class MI_NET_INTERFACE_t : public WI_SWITCH_t<2> {
     constexpr static const char *const label = N_("Default");
 
-    constexpr static const char *str_eth = "Eth";    // do not translate
+    constexpr static const char *str_eth = "Eth"; // do not translate
     constexpr static const char *str_wifi = "Wi-Fi"; // do not translate
 
 public:
@@ -61,10 +61,10 @@ public:
 };
 
 class MI_NET_IP_t : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = "LAN";   // do not translate
+    constexpr static const char *const label = "LAN"; // do not translate
 
     constexpr static const char *str_static = "static"; // do not translate
-    constexpr static const char *str_DHCP = "DHCP";     // do not translate
+    constexpr static const char *str_DHCP = "DHCP"; // do not translate
 
 public:
     enum EventMask { value = 1 << 17 };

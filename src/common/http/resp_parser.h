@@ -31,6 +31,8 @@ namespace parser {
         http::ContentType content_type = http::ContentType::ApplicationOctetStream;
         // We have a connection header (value set) and its to keep-alive (true) or not.
         std::optional<bool> keep_alive;
+        // We got a Content-Encryption-Mode header
+        std::optional<ContentEncryptionMode> content_encryption_mode;
         // http version parsed
         uint8_t version_major : 2;
         uint8_t version_minor : 4;

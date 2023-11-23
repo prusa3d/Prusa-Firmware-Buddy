@@ -29,6 +29,7 @@ struct Test {
         , planner(printer) {
         // Intro exchange
         event_info();
+        planner.transfer_recovery_finished(std::nullopt);
         planner.action_done(init_result);
     }
 

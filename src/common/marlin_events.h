@@ -9,35 +9,35 @@ namespace marlin_server {
 
 enum class Event : uint8_t {
     // Marlin events - UIAPI
-    Startup,             // onStartup()
-    PrinterKilled,       // onPrinterKilled(PGM_P const msg)
-    MediaInserted,       // onMediaInserted();
-    MediaError,          // onMediaError();
-    MediaRemoved,        // onMediaRemoved();
-    FSM,                 // create/destroy finite state machine or change phase/state/progress in client
-    PlayTone,            // onPlayTone(const uint16_t frequency, const uint16_t duration)
-    PrintTimerStarted,   // onPrintTimerStarted()
-    PrintTimerPaused,    // onPrintTimerPaused()
-    PrintTimerStopped,   // onPrintTimerStopped()
-    FilamentRunout,      // onFilamentRunout()
+    Startup, // onStartup()
+    PrinterKilled, // onPrinterKilled(PGM_P const msg)
+    MediaInserted, // onMediaInserted();
+    MediaError, // onMediaError();
+    MediaRemoved, // onMediaRemoved();
+    FSM, // create/destroy finite state machine or change phase/state/progress in client
+    PlayTone, // onPlayTone(const uint16_t frequency, const uint16_t duration)
+    PrintTimerStarted, // onPrintTimerStarted()
+    PrintTimerPaused, // onPrintTimerPaused()
+    PrintTimerStopped, // onPrintTimerStopped()
+    FilamentRunout, // onFilamentRunout()
     UserConfirmRequired, // onUserConfirmRequired(const char * const msg)
-    StatusChanged,       // onStatusChanged(const char * const msg)
-    FactoryReset,        // onFactoryReset()
-    LoadSettings,        // onLoadSettings()
-    StoreSettings,       // onStoreSettings()
-    MeshUpdate,          // onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval)
-                         // Marlin events - other
-    StartProcessing,     // sent from marlin_server_start_processing
-    StopProcessing,      // sent from marlin_server_stop_processing
-    Error,               // sent onStatusChanged etc.
-    CommandBegin,        //
-    CommandEnd,          //
-    SafetyTimerExpired,  // host action from marlin, hotends and bed turned off
-    Message,             //
-    Warning,             // important messages like fan error or heater timeout
-    Reheat,              //
-    Acknowledge,         // onAcknowledge - lowest priority
-    NotAcknowledge,      // onNotAcknowledge - lowest priority
+    StatusChanged, // onStatusChanged(const char * const msg)
+    FactoryReset, // onFactoryReset()
+    LoadSettings, // onLoadSettings()
+    StoreSettings, // onStoreSettings()
+    MeshUpdate, // onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval)
+    // Marlin events - other
+    StartProcessing, // sent from marlin_server_start_processing
+    StopProcessing, // sent from marlin_server_stop_processing
+    Error, // sent onStatusChanged etc.
+    CommandBegin, //
+    CommandEnd, //
+    SafetyTimerExpired, // host action from marlin, hotends and bed turned off
+    Message, //
+    Warning, // important messages like fan error or heater timeout
+    Reheat, //
+    Acknowledge, // onAcknowledge - lowest priority
+    NotAcknowledge, // onNotAcknowledge - lowest priority
 
     _last = NotAcknowledge,
     _count

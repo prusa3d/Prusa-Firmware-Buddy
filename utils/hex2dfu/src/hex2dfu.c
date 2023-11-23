@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
     if (tar0_buf && (tar0_len > 0)) {
         if ((add_crc32 > 0) && (add_crc32 < (tar0_start_address + tar0_len - 256))) { //-c request CRC32 placement at given address
             add_crc32 -= tar0_start_address;
-            tar0_buf[add_crc32 + 4] = tar0_len >> 0 & 0xFF;                           // binary code length first(little endian)
+            tar0_buf[add_crc32 + 4] = tar0_len >> 0 & 0xFF; // binary code length first(little endian)
             tar0_buf[add_crc32 + 5] = tar0_len >> 8 & 0xFF;
             tar0_buf[add_crc32 + 6] = tar0_len >> 16 & 0xFF;
             tar0_buf[add_crc32 + 7] = tar0_len >> 24 & 0xFF;
@@ -173,9 +173,9 @@ int main(int argc, char **argv) {
                 }
             }
 #endif
-            crc = crc32(0, tar0_buf, add_crc32);                                    // calc CRC upto placement address
+            crc = crc32(0, tar0_buf, add_crc32); // calc CRC upto placement address
             crc = crc32(crc, tar0_buf + add_crc32 + 4, tar0_len - (add_crc32 + 4)); // calc the rest of - starting from placement+4 up to end
-            tar0_buf[add_crc32] = crc >> 0 & 0xFF;                                  // CRC placement (little endian)
+            tar0_buf[add_crc32] = crc >> 0 & 0xFF; // CRC placement (little endian)
             tar0_buf[add_crc32 + 1] = crc >> 8 & 0xFF;
             tar0_buf[add_crc32 + 2] = crc >> 16 & 0xFF;
             tar0_buf[add_crc32 + 3] = crc >> 24 & 0xFF;
@@ -185,8 +185,8 @@ int main(int argc, char **argv) {
         dfu = calloc(1, dfu_len);
         if (dfu) {
             // DFU Suffix
-            memmove(dfu, "DfuSe", 5);             // szSignature
-            dfu[5] = 0x01;                        // bVersion
+            memmove(dfu, "DfuSe", 5); // szSignature
+            dfu[5] = 0x01; // bVersion
             tmp = dfu_len - 0x10;
             dfu[6] = (unsigned char)(tmp & 0xFF); // DFUImageSize               (except Prefix!)
             dfu[7] = (unsigned char)(tmp >> 8 & 0xFF);
@@ -196,18 +196,18 @@ int main(int argc, char **argv) {
 
             // DFU Image
             c = 11;
-            memmove(dfu + c, "Target", 6);                                                       // szSignature 'Target'
+            memmove(dfu + c, "Target", 6); // szSignature 'Target'
             c += 6;
-            dfu[c++] = 0x00;                                                                     // bAlternateSettings        //to check
+            dfu[c++] = 0x00; // bAlternateSettings        //to check
             if (tar0_lab) {
-                dfu[c] = 0x01;                                                                   // bTargetNamed
+                dfu[c] = 0x01; // bTargetNamed
                 memmove(dfu + c + 4, tar0_lab, strlen(tar0_lab) > 254 ? 254 : strlen(tar0_lab)); // szTargetName
             } else {
-                dfu[c] = 0x01;                                                                   // place default target name
+                dfu[c] = 0x01; // place default target name
                 memmove(dfu + c + 4, TARGET_NAME_ENCEDO, strlen(TARGET_NAME_ENCEDO));
             }
             c += 259;
-            tmp = 8 + tar0_len;    // ImageElement length (8+bin_data)
+            tmp = 8 + tar0_len; // ImageElement length (8+bin_data)
             dfu[c++] = tmp & 0xFF; // dwTargetSize
             dfu[c++] = tmp >> 8 & 0xFF;
             dfu[c++] = tmp >> 16 & 0xFF;
@@ -234,12 +234,12 @@ int main(int argc, char **argv) {
             dfu[c++] = pid >> 8 & 0xFF;
             dfu[c++] = vid & 0xFF; // idVendorLo
             dfu[c++] = vid >> 8 & 0xFF;
-            dfu[c++] = 0x1A;       // bcdDFULo
+            dfu[c++] = 0x1A; // bcdDFULo
             dfu[c++] = 0x01;
-            dfu[c++] = 'U';        // ucDfuSignature
+            dfu[c++] = 'U'; // ucDfuSignature
             dfu[c++] = 'F';
             dfu[c++] = 'D';
-            dfu[c++] = 16;              // bLength
+            dfu[c++] = 16; // bLength
             crc = 0xFFFFFFFF & -crc32(0, dfu, c) - 1;
             dfu[c++] = crc >> 0 & 0xFF; // dwCRC
             dfu[c++] = crc >> 8 & 0xFF;
@@ -403,27 +403,27 @@ unsigned char *ihex2bin_buf(unsigned int *start_address, int *dst_len, FILE *inF
 
     *start_address = 0;
     while (fgets(oneline, sizeof(oneline), inFile) != NULL) {
-        if (oneline[0] == ':') {                                                               // is valid record?
-            oneline_len = strlen(oneline) - 2;                                                 // get line length
-            hex2bin(raw, oneline + 1, oneline_len);                                            // convert to bin
-            if (check_checksum(raw, oneline_len / 2) == 0) {                                   // check cheksum validity
-                if ((raw[0] == 2) && (raw[1] == 0) && (raw[2] == 0) && (raw[3] == 4)) {        //> Extended Linear Address Record  :020000040803EF
-                    elar = (unsigned int)raw[4] << 24 | (unsigned int)raw[5] << 16;            // gen new address offset
+        if (oneline[0] == ':') { // is valid record?
+            oneline_len = strlen(oneline) - 2; // get line length
+            hex2bin(raw, oneline + 1, oneline_len); // convert to bin
+            if (check_checksum(raw, oneline_len / 2) == 0) { // check cheksum validity
+                if ((raw[0] == 2) && (raw[1] == 0) && (raw[2] == 0) && (raw[3] == 4)) { //> Extended Linear Address Record  :020000040803EF
+                    elar = (unsigned int)raw[4] << 24 | (unsigned int)raw[5] << 16; // gen new address offset
                 } else if ((raw[0] == 0) && (raw[1] == 0) && (raw[2] == 0) && (raw[3] == 1)) { //>End Of File record   :00000001FF
-                    *dst_len = total;                                                          // return total size of bin data && start address
+                    *dst_len = total; // return total size of bin data && start address
                     return dst;
-                } else if (raw[3] == 0) {                                                      //>Data record - process
-                    pos = elar + ((unsigned int)raw[1] << 8 | (unsigned int)raw[2]);           // get start address of this chunk
+                } else if (raw[3] == 0) { //>Data record - process
+                    pos = elar + ((unsigned int)raw[1] << 8 | (unsigned int)raw[2]); // get start address of this chunk
                     if (start_set == 0) {
-                        *start_address = pos;                                                  // set it as new start addres - only possible for first data record
-                        start_set = 1;                                                         // only once - this is start address of thye binary data
+                        *start_address = pos; // set it as new start addres - only possible for first data record
+                        start_set = 1; // only once - this is start address of thye binary data
                     }
                     pos -= *start_address;
-                    cnt = raw[0];                                               // get chunk size/length
-                    if (pos + cnt > *dst_len) {                                 // enlarge buffer if required
+                    cnt = raw[0]; // get chunk size/length
+                    if (pos + cnt > *dst_len) { // enlarge buffer if required
                         unsigned char *dst_new = realloc(dst, *dst_len + 8192); // add 8kB of new space
                         if (dst_new == NULL) {
-                            *dst_len = -2;                                      // allocation error - exit
+                            *dst_len = -2; // allocation error - exit
                             free(dst);
                             return NULL;
                         } else {
@@ -433,7 +433,7 @@ unsigned char *ihex2bin_buf(unsigned int *start_address, int *dst_len, FILE *inF
                     }
                     memmove(dst + pos, raw + 4, cnt);
                     if (pos + cnt > total) { // set new total variable
-                        total = pos + cnt;   // tricky way - file can be none linear!
+                        total = pos + cnt; // tricky way - file can be none linear!
                     }
                 }
             } else {
@@ -441,7 +441,7 @@ unsigned char *ihex2bin_buf(unsigned int *start_address, int *dst_len, FILE *inF
                 return NULL;
             }
         }
-        lines++;   // not a IntelHex line - comment?
+        lines++; // not a IntelHex line - comment?
     }
     *dst_len = -3; // fatal error - no valid intel hex file processed
     free(dst);

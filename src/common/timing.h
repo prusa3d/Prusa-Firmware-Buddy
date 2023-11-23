@@ -16,6 +16,11 @@ uint32_t ticks_s();
 /// Overflows every 49 days
 uint32_t ticks_ms();
 
+/// Last value of millisecond ticks
+///
+/// Use for less important timing, be sure that you have called ticks_ms recently
+uint32_t last_ticks_ms();
+
 /// Ticks with microsecond precision
 ///
 /// Overflows every 71 minutes
@@ -48,7 +53,7 @@ int64_t get_timestamp_us();
 
 typedef struct {
     uint32_t sec; ///< Seconds since the start of the system overflows every ~136 years
-    uint32_t us;  ///< Microseconds consistent with sec
+    uint32_t us; ///< Microseconds consistent with sec
 } timestamp_t;
 
 /// Time since the start of the system in seconds and microseconds

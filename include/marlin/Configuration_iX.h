@@ -23,6 +23,7 @@
 
 #include <option/has_toolchanger.h>
 #include <option/has_modularbed.h>
+#include <option/has_loadcell.h>
 
 // clang-format off
 
@@ -822,7 +823,7 @@
  *
  * See https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained
  */
-#define S_CURVE_ACCELERATION
+//#define S_CURVE_ACCELERATION
 
 //===========================================================================
 //============================= Z Probe Options =============================
@@ -878,7 +879,9 @@
  *   (e.g., an inductive probe or a nozzle-based probe-switch.)
  */
 #define FIX_MOUNTED_PROBE
-#define NOZZLE_LOAD_CELL
+#if HAS_LOADCELL()
+  #define NOZZLE_LOAD_CELL
+#endif
 
 /**
  * Z Servo Probe, such as an endstop switch on a rotating arm.
@@ -960,7 +963,7 @@
 #define Z_PROBE_SPEED_SLOW 70
 
 // [ms] delay before first Z probe for taring
-#define Z_FIRST_PROBE_DELAY 250
+#define Z_FIRST_PROBE_DELAY 300
 
 #if ENABLED(NOZZLE_LOAD_CELL)
   // Enable G29 P9 for nozzle cleanup
@@ -1561,11 +1564,15 @@
 #if ENABLED(NOZZLE_PARK_FEATURE)
     #define Z_AXIS_LOAD_POS  40
     #define Z_AXIS_UNLOAD_POS 20
+    #define Y_AXIS_LOAD_POS    (std::numeric_limits<float>::quiet_NaN())
+    #define Y_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     #define X_AXIS_LOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     #define X_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     // Specify a park position as { X, Y, Z }
     #define NOZZLE_PARK_POINT \
         { (X_MIN_POS + 10), (Y_MAX_POS - 10), 20 }
+    #define NOZZLE_PARK_POINT_M600 \
+        { (X_MAX_POS - 10), (Y_MIN_POS + 10), 20 }
     #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
     #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
 

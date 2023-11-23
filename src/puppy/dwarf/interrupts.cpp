@@ -1,9 +1,7 @@
 #include <device/cmsis.h>
 #include <device/peripherals.h>
-#include "timing_sys.h"
 #include "hal/HAL_RS485.hpp"
 #include "loadcell.hpp"
-#include "SEGGER_SYSVIEW_FreeRTOS.h"
 #include "timing_sys.h"
 #include "tool_filament_sensor.hpp"
 #include "fanctl.hpp"
@@ -45,17 +43,49 @@ void DMA1_Channel2_3_IRQHandler() {
 void USART1_IRQHandler() {
     hal::RS485Driver::USART_IRQHandler();
 }
-}
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM14) {
         HAL_IncTick();
 
         if (dwarf_init_done) {
-            dwarf::loadcell::loadcell_irq();
             dwarf::tool_filament_sensor::tool_filament_sensor_irq();
             dwarf::accelerometer::accelerometer_irq();
             Fans::tick();
         }
     }
+}
+
+} // extern "C"
+
+// Handle interrupts defined in PIN_TABLE
+#include "hwio_pindef.h"
+using namespace buddy::hw;
+
+static constexpr uint16_t getIoHalPin(IoPort, IoPin ioPin) {
+    return Pin::IoPinToHal(ioPin);
+}
+
+static constexpr bool isEXTI2_3Pin(IoPort, IoPin ioPin) {
+    switch (ioPin) {
+    case IoPin::p2:
+    case IoPin::p3:
+        return true;
+    default:
+        return false;
+    }
+}
+
+#define HANDLE_EXTI2_3_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER)                              \
+    if ((std::is_same_v<TYPE, InterruptPin> || std::is_base_of_v<InterruptPin, TYPE>)&&isEXTI2_3Pin(PORTPIN) \
+        && (__HAL_GPIO_EXTI_GET_IT(getIoHalPin(PORTPIN)) != RESET)) {                                        \
+        __HAL_GPIO_EXTI_CLEAR_IT(getIoHalPin(PORTPIN));                                                      \
+        traceISR_ENTER();                                                                                    \
+        INTERRUPT_HANDLER();                                                                                 \
+        traceISR_EXIT();                                                                                     \
+    }
+
+extern "C" void EXTI2_3_IRQHandler() {
+    PIN_TABLE(HANDLE_EXTI2_3_PINS)
+    return;
 }

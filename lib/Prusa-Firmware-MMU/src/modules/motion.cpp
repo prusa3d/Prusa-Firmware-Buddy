@@ -56,12 +56,15 @@ public:
 };
 
 bool Motion::InitAxis(Axis axis) {
+    return InitAxis(axis, axisData[axis].currents);
+}
+
+bool Motion::InitAxis(config::Axis axis, MotorCurrents mc) {
     // disable the axis and re-init the driver: this will clear the internal
     // StallGuard data as a result without special handling
     Disable(axis);
-
     // Init also applies the currently pre-set StallGuard threshold into the TMC driver
-    return axisData[axis].drv.Init(axisParams[axis].params, axisData[axis].currents, axisParams[axis].mode);
+    return axisData[axis].drv.Init(axisParams[axis].params, mc, axisParams[axis].mode);
 }
 
 void Motion::SetEnabled(Axis axis, bool enabled) {
@@ -88,8 +91,8 @@ void Motion::StallGuardReset(Axis axis) {
     axisData[axis].drv.ClearStallguard();
 }
 
-void Motion::PlanStallGuardThreshold(config::Axis axis, uint8_t sg_thrs) {
-    axisParams[axis].params.sg_thrs = sg_thrs;
+void Motion::PlanStallGuardThreshold(config::Axis axis, int8_t sg_thrs) {
+    mm::axisParams[axis].params.sg_thrs = sg_thrs;
 }
 
 void Motion::PlanMoveTo(Axis axis, pos_t pos, steps_t feed_rate, steps_t end_rate) {

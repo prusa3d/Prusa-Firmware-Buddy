@@ -100,11 +100,11 @@ extern "C" {
      */
     #if !defined(HSE_VALUE)
         #define HSE_VALUE (12000000UL) /*!< Value of the External oscillator in Hz */
-    #endif                             /* HSE_VALUE */
+    #endif /* HSE_VALUE */
 
     #if !defined(HSE_STARTUP_TIMEOUT)
         #define HSE_STARTUP_TIMEOUT (100UL) /*!< Time out for HSE start up, in ms */
-    #endif                                  /* HSE_STARTUP_TIMEOUT */
+    #endif /* HSE_STARTUP_TIMEOUT */
 
     /**
      * @brief Internal High Speed oscillator (HSI) value.
@@ -113,7 +113,7 @@ extern "C" {
      */
     #if !defined(HSI_VALUE)
         #define HSI_VALUE (16000000UL) /*!< Value of the Internal oscillator in Hz*/
-    #endif                             /* HSI_VALUE */
+    #endif /* HSI_VALUE */
 
     #if defined(STM32G0C1xx) || defined(STM32G0B1xx) || defined(STM32G0B0xx)
         /**
@@ -126,15 +126,15 @@ extern "C" {
         #if !defined(HSI48_VALUE)
             #define HSI48_VALUE 48000000U /*!< Value of the Internal High Speed oscillator for USB FS/SDMMC/RNG in Hz. \
                                            The real value my vary depending on manufacturing process variations.*/
-        #endif                            /* HSI48_VALUE */
-    #endif                                /* STM32G0C1xx || STM32G0B1xx || STM32G0B0xx */
+        #endif /* HSI48_VALUE */
+    #endif /* STM32G0C1xx || STM32G0B1xx || STM32G0B0xx */
 
     /**
      * @brief Internal Low Speed oscillator (LSI) value.
      */
     #if !defined(LSI_VALUE)
         #define LSI_VALUE (32000UL) /*!< LSI Typical Value in Hz*/
-    #endif /* LSI_VALUE */          /*!< Value of the Internal Low Speed oscillator in Hz \
+    #endif /* LSI_VALUE */ /*!< Value of the Internal Low Speed oscillator in Hz \
 The real value may vary depending on the variations                              \
 in voltage and temperature.*/
     /**
@@ -143,11 +143,11 @@ in voltage and temperature.*/
      */
     #if !defined(LSE_VALUE)
         #define LSE_VALUE (32768UL) /*!< Value of the External oscillator in Hz*/
-    #endif                          /* LSE_VALUE */
+    #endif /* LSE_VALUE */
 
     #if !defined(LSE_STARTUP_TIMEOUT)
         #define LSE_STARTUP_TIMEOUT (5000UL) /*!< Time out for LSE start up, in ms */
-    #endif                                   /* LSE_STARTUP_TIMEOUT */
+    #endif /* LSE_STARTUP_TIMEOUT */
 
     /**
      * @brief External clock source for I2S1 peripheral
@@ -156,7 +156,7 @@ in voltage and temperature.*/
      */
     #if !defined(EXTERNAL_I2S1_CLOCK_VALUE)
         #define EXTERNAL_I2S1_CLOCK_VALUE (48000UL) /*!< Value of the I2S1 External clock source in Hz*/
-    #endif                                          /* EXTERNAL_I2S1_CLOCK_VALUE */
+    #endif /* EXTERNAL_I2S1_CLOCK_VALUE */
 
     #if defined(STM32G0C1xx) || defined(STM32G0B1xx) || defined(STM32G0B0xx)
         /**
@@ -166,8 +166,8 @@ in voltage and temperature.*/
          */
         #if !defined(EXTERNAL_I2S2_CLOCK_VALUE)
             #define EXTERNAL_I2S2_CLOCK_VALUE 48000U /*!< Value of the I2S2 External clock source in Hz*/
-        #endif                                       /* EXTERNAL_I2S2_CLOCK_VALUE */
-    #endif                                           /* STM32G0C1xx || STM32G0B1xx || STM32G0B0xx */
+        #endif /* EXTERNAL_I2S2_CLOCK_VALUE */
+    #endif /* STM32G0C1xx || STM32G0B1xx || STM32G0B0xx */
 
     /* Tip: To avoid modifying this file each time you need to use different HSE,
    ===  you can define the HSE value in your toolchain compiler preprocessor. */
@@ -177,7 +177,7 @@ in voltage and temperature.*/
      * @brief This is the HAL system configuration section
      */
     #define VDD_VALUE                (3300UL) /*!< Value of VDD in mv */
-    #define TICK_INT_PRIORITY        1        /*!< tick interrupt priority */
+    #define TICK_INT_PRIORITY        1 /*!< tick interrupt priority */
     #define USE_RTOS                 0U
     #define PREFETCH_ENABLE          1U
     #define INSTRUCTION_CACHE_ENABLE 1U

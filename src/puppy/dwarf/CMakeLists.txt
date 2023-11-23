@@ -1,5 +1,7 @@
 target_sources(
   firmware
+  # the two CrashCatcher files need to be here otherwise HardFault_Handler will be handled by
+  # Default_Handler (no compiler error)
   PRIVATE ../../../lib/CrashCatcher/Core/src/CrashCatcher.c
           ../../../lib/CrashCatcher/Core/src/CrashCatcher_armv6m.S
           # these two CrashCatcher files need to be here otherwise HardFault_Handler will be handled

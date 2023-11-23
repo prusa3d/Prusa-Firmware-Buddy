@@ -18,7 +18,8 @@ public:
         Ok,
         Eof, // End of file
         Error,
-        Timeout
+        Timeout,
+        NotDownloaded,
     };
 
     GCodeFilter(char (*getByte)(State *), char *buffer, size_t buffer_size)

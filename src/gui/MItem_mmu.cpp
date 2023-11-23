@@ -7,12 +7,13 @@
 #include "window_msgbox.hpp"
 
 #include "screen_menu_mmu_load_filament.hpp"
+#include "screen_menu_mmu_load_test_filament.hpp"
 #include "screen_menu_mmu_eject_filament.hpp"
 #include "screen_menu_mmu_cut_filament.hpp"
 #include "screen_menu_mmu_load_to_nozzle.hpp"
-#include "screen_menu_mmu_fail_stats.hpp"
 
 #include <config_store/store_instance.hpp>
+#include <feature/prusa/MMU2/mmu2_mk4.h>
 
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT
@@ -21,6 +22,15 @@ MI_MMU_LOAD_FILAMENT::MI_MMU_LOAD_FILAMENT()
 }
 void MI_MMU_LOAD_FILAMENT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMULoadFilament>);
+}
+
+/**********************************************************************************************/
+// MI_MMU_LOAD_TEST_FILAMENT
+MI_MMU_LOAD_TEST_FILAMENT::MI_MMU_LOAD_TEST_FILAMENT()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+void MI_MMU_LOAD_TEST_FILAMENT::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMULoadTestFilament>);
 }
 
 /**********************************************************************************************/
@@ -82,6 +92,21 @@ void MI_MMU_LOAD_ALL::click(IWindowMenu & /*window_menu*/) {
 }
 
 /**********************************************************************************************/
+// MI_MMU_LOAD_TEST_ALL
+MI_MMU_LOAD_TEST_ALL::MI_MMU_LOAD_TEST_ALL()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_MMU_LOAD_TEST_ALL::click(IWindowMenu & /*window_menu*/) {
+    marlin_client::event_clr(marlin_server::Event::CommandBegin);
+    for (uint8_t i = 0; i < 5; ++i) {
+        char gcode[] = "M1704 Px";
+        gcode[sizeof(gcode) - 2] = i + '0';
+        marlin_client::gcode(gcode);
+    }
+}
+
+/**********************************************************************************************/
 // MI_MMU_ENABLE
 MI_MMU_ENABLE::MI_MMU_ENABLE()
     : WI_ICON_SWITCH_OFF_ON_t(FSensors_instance().HasMMU(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
@@ -107,22 +132,9 @@ void MI_MMU_ENABLE::OnChange(size_t old_index) {
 }
 
 /**********************************************************************************************/
-// MI_MMU_SPOOLJOIN
-MI_MMU_SPOOLJOIN::MI_MMU_SPOOLJOIN()
-    : WI_ICON_SWITCH_OFF_ON_t(/*Screens::Access()->GetSpoolJoin() ? 1 : 0*/ 1, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
-void MI_MMU_SPOOLJOIN::OnChange(size_t old_index) {
-    if (!old_index) {
-        // Screens::Access()->EnableSpoolJoin();
-    } else {
-        // Screens::Access()->DisableSpoolJoin();
-    }
-    // eeprom_set_bool(EEVAR_MENU_SPOOLJOIN, Screens::Access()->GetSpoolJoin());
-}
-
-/**********************************************************************************************/
 // MI_MMU_CUTTER
 MI_MMU_CUTTER::MI_MMU_CUTTER()
-    : WI_ICON_SWITCH_OFF_ON_t(config_store().mmu2_cutter.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().mmu2_cutter.get(), _(label), nullptr, is_enabled_t::yes, MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
 void MI_MMU_CUTTER::OnChange([[maybe_unused]] size_t old_index) {
     bool newState = !config_store().mmu2_cutter.get();
     // @@TODO some notification to the MMU2's engine?
@@ -140,10 +152,15 @@ void MI_MMU_STEALTH_MODE::OnChange([[maybe_unused]] size_t old_index) {
 }
 
 /**********************************************************************************************/
-// MI_MMU_FAIL_STATS
-MI_MMU_FAIL_STATS::MI_MMU_FAIL_STATS()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-void MI_MMU_FAIL_STATS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMUFailStats>);
-}
+// MMU FAIL STATS
+MI_MMU_LOAD_FAILS::MI_MMU_LOAD_FAILS()
+    : WI_INFO_t(config_store().mmu2_load_fails.get(), _(label), MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
+
+MI_MMU_TOTAL_LOAD_FAILS::MI_MMU_TOTAL_LOAD_FAILS()
+    : WI_INFO_t(config_store().mmu2_total_load_fails.get(), _(label), MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
+
+MI_MMU_GENERAL_FAILS::MI_MMU_GENERAL_FAILS()
+    : WI_INFO_t(config_store().mmu2_fails.get(), _(label), MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
+
+MI_MMU_TOTAL_GENERAL_FAILS::MI_MMU_TOTAL_GENERAL_FAILS()
+    : WI_INFO_t(config_store().mmu2_total_fails.get(), _(label), MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes) {}

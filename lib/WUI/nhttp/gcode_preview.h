@@ -9,21 +9,24 @@
 #include <cstdio>
 #include <string_view>
 #include <memory>
+#include "gcode_reader.hpp"
 
 namespace nhttp::printer {
 
 class GCodePreview {
 private:
-    unique_file_ptr gcode;
+    AnyGcodeFormatReader gcode;
     std::optional<uint32_t> etag;
-    GCodeThumbDecoder decoder;
     bool headers_sent = false;
     bool can_keep_alive;
     bool json_errors;
     bool etag_matches = false;
+    uint16_t width;
+    uint16_t height;
+    bool allow_larger;
 
 public:
-    GCodePreview(FILE *f, const char *path, bool can_keep_alive, bool json_errors, uint16_t width, uint16_t height, bool allow_larger, uint32_t if_none_match);
+    GCodePreview(AnyGcodeFormatReader f, const char *path, bool can_keep_alive, bool json_errors, uint16_t width, uint16_t height, bool allow_larger, uint32_t if_none_match);
     bool want_read() const { return false; }
     bool want_write() const { return true; }
     handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);

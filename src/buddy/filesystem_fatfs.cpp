@@ -114,15 +114,16 @@ static int get_fatfs_mode(int flags) {
     int mode;
 
     switch (flags & O_ACCMODE) {
-    case O_RDWR:
-        mode = FA_READ | FA_WRITE;
-        break;
     case O_WRONLY:
         mode = FA_WRITE;
         break;
     case O_RDONLY:
-    default:
         mode = FA_READ;
+        break;
+    default: // it seems we can get flags=0 on fopen(.., "w+") from our stdlib,
+             // which seems incorrect, so lets make RDWR the default
+    case O_RDWR:
+        mode = FA_READ | FA_WRITE;
     }
 
     if (flags & O_APPEND) {
@@ -149,7 +150,7 @@ static time_t get_posix_time(DWORD fdate, DWORD ftime) {
     memset(&tm, 0, sizeof(struct tm));
 
     tm.tm_year = FF_VALUE(fdate, FF_YEAR) + 80; // FAT year origin from 1980, tm_year origin from 1900
-    tm.tm_mon = FF_VALUE(fdate, FF_MONTH) - 1;  // FAT count months from 1, tm from 0 :-O
+    tm.tm_mon = FF_VALUE(fdate, FF_MONTH) - 1; // FAT count months from 1, tm from 0 :-O
     tm.tm_mday = FF_VALUE(fdate, FF_DAY);
     tm.tm_hour = FF_VALUE(ftime, FF_HOUR);
     tm.tm_min = FF_VALUE(ftime, FF_MINUTE);
@@ -795,6 +796,19 @@ const devoptab_t devoptab_fatfs = {
     .lstat_r = lstat_r,
     .utimes_r = utimes_r,
 };
+}
+
+FIL *filesystem_fastfs_get_underlying_struct(FILE *file) {
+    auto fno = fileno(file);
+    auto handle = __get_handle(fno);
+
+    if ((int)handle->device != device) {
+        log_error(FileSystem, "File %i is not backed by FatFS", fno);
+        return nullptr;
+    }
+
+    FIL_EX *fil = static_cast<FIL_EX *>(handle->fileStruct);
+    return &fil->fil;
 }
 
 int filesystem_fatfs_init() {

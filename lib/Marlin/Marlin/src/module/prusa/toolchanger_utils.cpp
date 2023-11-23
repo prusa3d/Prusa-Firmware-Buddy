@@ -32,7 +32,7 @@ bool PrusaToolChangerUtils::init(bool first_run) {
         toolchanger_enabled = autodetect_toolchanger_enabled();
 
         if (toolchanger_enabled == false) {
-            if (dwarfs[0].set_selected(true) != Dwarf::CommunicationStatus::OK) {
+            if (dwarfs[0].set_selected(true) == CommunicationStatus::ERROR) {
                 return false;
             }
         }
@@ -122,7 +122,7 @@ void PrusaToolChangerUtils::request_active_switch(Dwarf *new_dwarf) {
         if (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) {
             return; // Fail silently, so powerpanic can work
         }
-    #endif          /*ENABLED(CRASH_RECOVERY)*/
+    #endif /*ENABLED(CRASH_RECOVERY)*/
         toolchanger_error("Tool switch failed");
     }
 }
@@ -134,22 +134,22 @@ bool PrusaToolChangerUtils::update() {
         Dwarf *new_tool = request_toolchange_dwarf.load();
         if (old_tool != new_tool) {
             if (old_tool) {
-                if (old_tool->set_selected(false) != Dwarf::CommunicationStatus::OK) {
+                if (old_tool->set_selected(false) == CommunicationStatus::ERROR) {
                     return false;
                 }
                 log_info(PrusaToolChanger, "Deactivated Dwarf %u", old_tool->get_dwarf_nr());
 
                 active_dwarf = nullptr; // No dwarf is selected right now
-                loadcell.Clear();       // No loadcell is available now, make sure that it is not stuck in active mode
+                loadcell.Clear(); // No loadcell is available now, make sure that it is not stuck in active mode
             }
             if (new_tool) {
-                if (new_tool->set_selected(true) != Dwarf::CommunicationStatus::OK) {
+                if (new_tool->set_selected(true) == CommunicationStatus::ERROR) {
                     return false;
                 }
                 log_info(PrusaToolChanger, "Activated Dwarf %u", new_tool->get_dwarf_nr());
 
                 active_dwarf = new_tool; // New tool is necessary for stepperE0.push()
-                stepperE0.push();        // Write current stepper settings
+                stepperE0.push(); // Write current stepper settings
             }
         }
         // Update physically picked tool before clearing the request
@@ -491,8 +491,8 @@ void PrusaToolChangerUtils::ConfRestorer::restore_feedrate() {
 bool PrusaToolChangerUtils::wait(std::function<bool()> function, uint32_t timeout_ms) {
     uint32_t start_time = ticks_ms();
     bool result = false;
-    while (!(result = function())                    // Wait for this and remember its state for return
-        && !planner.draining()                       // This triggers on powerpanic and quickstop
+    while (!(result = function()) // Wait for this and remember its state for return
+        && !planner.draining() // This triggers on powerpanic and quickstop
         && (ticks_ms() - start_time) < timeout_ms) { // Timeout
         idle(true, true);
     }

@@ -77,6 +77,7 @@ public:
     /// state especially when the TMC may get randomly reset (deinited)
     /// @returns true if the init was successful (TMC2130 responded ok)
     bool InitAxis(Axis axis);
+    bool InitAxis(Axis axis, MotorCurrents mc);
 
     /// Return the axis power status.
     bool Enabled(Axis axis) const { return axisData[axis].enabled; }
@@ -104,7 +105,7 @@ public:
 
     /// Sets (plans) StallGuard threshold for an axis (basically the higher number the lower sensitivity)
     /// The new SGTHRS value gets applied in Init(), it is _NOT_ written into the TMC immediately in this method.
-    void PlanStallGuardThreshold(Axis axis, uint8_t sg_thrs);
+    void PlanStallGuardThreshold(Axis axis, int8_t sg_thrs);
 
     /// Enqueue a single axis move in steps starting and ending at zero speed with maximum
     /// feedrate. Moves can only be enqueued if the axis is not Full().

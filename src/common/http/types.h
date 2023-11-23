@@ -64,6 +64,11 @@ enum class ContentType {
     ApplicationOctetStream,
 };
 
+enum class ContentEncryptionMode {
+    AES_CBC,
+    AES_CTR,
+};
+
 constexpr const char *to_str(ContentType content_type) {
     switch (content_type) {
     case ContentType::TextPlain:

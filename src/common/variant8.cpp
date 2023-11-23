@@ -706,7 +706,7 @@ public: // assignment operators
 
 private:
     int32_t get_valid_int() const; // helper for extractors, works ony on integer values
-public:                            // extractors
+public: // extractors
     // clang-format off
     operator int8_t()       const { return (is_integer())           ?   int8_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ?   int8_t(data_.flt)           : 0); }
     operator uint8_t()      const { return (is_integer())           ?  uint8_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ?  uint8_t(data_.flt)           : 0); }
@@ -830,7 +830,7 @@ public: // assignment operators
 
 private:
     int32_t get_valid_int() const; // helper for extractors, works ony on integer values
-public:                            // extractors
+public: // extractors
     // clang-format off
     operator int8_t()       const { return (is_integer())           ?   int8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?   int8_t(flt)           : 0); }
     operator uint8_t()      const { return (is_integer())           ?  uint8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  uint8_t(flt)           : 0); }

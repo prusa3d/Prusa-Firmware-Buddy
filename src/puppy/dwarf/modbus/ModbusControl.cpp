@@ -12,6 +12,7 @@
 #include "ModbusFIFOHandlers.hpp"
 #include "fanctl.hpp"
 #include "utility_extensions.hpp"
+#include "advanced_power.hpp"
 #include "accelerometer.hpp"
 
 namespace dwarf::ModbusControl {
@@ -25,10 +26,10 @@ struct ModbusMessage {
 
 /// Struct used to decompose the 16 bit holding register into 2 8-bit values
 union __attribute__((packed)) LedPwm {
-    uint16_t reg_value;       ///< 16 bit register value
+    uint16_t reg_value; ///< 16 bit register value
     struct {
         uint8_t not_selected; ///< 8 LSb PWM when not selected [0 - 0xff]
-        uint8_t selected;     ///< 8 MSb PWM when selected [0 - 0xff]
+        uint8_t selected; ///< 8 MSb PWM when selected [0 - 0xff]
     };
 
     LedPwm(uint8_t selected_, uint8_t not_selected_)
@@ -38,6 +39,8 @@ union __attribute__((packed)) LedPwm {
         : reg_value(reg_value_) {}
     operator uint16_t() const { return reg_value; }
 };
+
+dwarf_shared::StatusLed status_led = dwarf_shared::StatusLed(); // Default LED control
 
 static constexpr unsigned int MODBUS_QUEUE_MESSAGE_COUNT = 40;
 
@@ -62,6 +65,10 @@ bool Init() {
     modbus::ModbusProtocol::SetOnReadFIFOCallback(OnReadFIFO);
 
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemHoldingRegister::led_pwm, LedPwm(0, 0)); // LED off
+
+    // Preset status LED registers to default
+    ModbusRegisters::SetRegValue(dwarf_shared::StatusLed::get_reg_address(0), status_led.get_reg_value(0));
+    ModbusRegisters::SetRegValue(dwarf_shared::StatusLed::get_reg_address(1), status_led.get_reg_value(1));
 
     m_ModbusQueueHandle = osMailCreate(osMailQ(m_ModbusQueue), NULL);
     if (m_ModbusQueueHandle == nullptr) {
@@ -155,7 +162,7 @@ void ProcessModbusMessages() {
         }
 
         switch (msg->m_Address) {
-        case ((uint16_t)ModbusRegisters::SystemCoil::tmc_enable): {
+        case ftrstd::to_underlying(ModbusRegisters::SystemCoil::tmc_enable): {
             log_info(ModbusControl, "E stepper enable: %d", msg->m_Value);
             if (msg->m_Value) {
                 enable_e_steppers();
@@ -164,11 +171,11 @@ void ProcessModbusMessages() {
             }
             break;
         }
-        case ((uint16_t)ModbusRegisters::SystemCoil::is_selected): {
+        case ftrstd::to_underlying(ModbusRegisters::SystemCoil::is_selected): {
             SetDwarfSelected(msg->m_Value);
             break;
         }
-        case ((uint16_t)ModbusRegisters::SystemCoil::loadcell_enable): {
+        case ftrstd::to_underlying(ModbusRegisters::SystemCoil::loadcell_enable): {
             loadcell::loadcell_set_enable(msg->m_Value);
             break;
         }
@@ -180,22 +187,22 @@ void ProcessModbusMessages() {
             dwarf::accelerometer::set_high_sample_rate(msg->m_Value);
             break;
         }
-        case ((uint16_t)ModbusRegisters::SystemHoldingRegister::nozzle_target_temperature): {
+        case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::nozzle_target_temperature): {
             log_info(ModbusControl, "Set hotend temperature: %i", msg->m_Value);
             thermalManager.setTargetHotend(msg->m_Value, 0);
             break;
         }
-        case ((uint16_t)ModbusRegisters::SystemHoldingRegister::heatbreak_requested_temperature): {
+        case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::heatbreak_requested_temperature): {
             log_info(ModbusControl, "Set Heatbreak requested temperature: %i", msg->m_Value);
             thermalManager.setTargetHeatbreak(msg->m_Value, 0);
             break;
         }
-        case ((uint16_t)ModbusRegisters::SystemHoldingRegister::fan0_pwm): {
+        case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::fan0_pwm): {
             log_info(ModbusControl, "Set print fan PWM:: %i", msg->m_Value);
             thermalManager.set_fan_speed(0, msg->m_Value);
             break;
         }
-        case ((uint16_t)ModbusRegisters::SystemHoldingRegister::fan1_pwm): {
+        case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::fan1_pwm): {
             if (msg->m_Value == std::numeric_limits<uint16_t>::max()) {
                 // switch back to auto control
                 if (Fans::heat_break(0).isSelftest()) {
@@ -215,13 +222,19 @@ void ProcessModbusMessages() {
 
             break;
         }
-        case ((uint16_t)ModbusRegisters::SystemHoldingRegister::led_pwm): {
+        case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::led_pwm): {
             LedPwm led_pwm = ModbusRegisters::GetRegValue(ModbusRegisters::SystemHoldingRegister::led_pwm);
             if (isDwarfSelected()) {
                 Cheese::set_led(led_pwm.selected);
             } else {
                 Cheese::set_led(led_pwm.not_selected);
             }
+            break;
+        }
+        case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::status_color_start):
+        case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::status_color_end): {
+            status_led = dwarf_shared::StatusLed({ ModbusRegisters::GetRegValue(ModbusRegisters::SystemHoldingRegister::status_color_start),
+                ModbusRegisters::GetRegValue(ModbusRegisters::SystemHoldingRegister::status_color_end) });
             break;
         }
         }
@@ -257,7 +270,9 @@ void UpdateRegisters() {
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::hotend_pwm_state, Temperature::getHeaterPower(H_E0));
     ModbusRegisters::SetBitValue(ModbusRegisters::SystemDiscreteInput::is_picked, Cheese::is_picked());
     ModbusRegisters::SetBitValue(ModbusRegisters::SystemDiscreteInput::is_parked, Cheese::is_parked());
-    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::tool_filament_sensor, dwarf::tool_filament_sensor::tool_filament_sensor_get_raw_data());
+    ModbusRegisters::SetBitValue(ModbusRegisters::SystemDiscreteInput::is_button_up_pressed, buddy::hw::button1.read() == buddy::hw::Pin::State::low);
+    ModbusRegisters::SetBitValue(ModbusRegisters::SystemDiscreteInput::is_button_down_pressed, buddy::hw::button2.read() == buddy::hw::Pin::State::low);
+    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::tool_filament_sensor, dwarf::tool_filament_sensor::tool_filament_sensor_get_filtered_data());
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::mcu_temperature, clamp_to_int16(Temperature::degBoard()));
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::heatbreak_temp, clamp_to_int16(Temperature::degHeatbreak(0)));
 
@@ -273,6 +288,9 @@ void UpdateRegisters() {
 
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::is_picked_raw, Cheese::get_raw_picked());
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::is_parked_raw, Cheese::get_raw_parked());
+
+    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::system_24V_mV, advancedpower.Get24VVoltage() * 1000);
+    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::heater_current_mA, advancedpower.GetDwarfNozzleCurrent() * 1000);
 }
 
 void TriggerMarlinKillFault(dwarf_shared::errors::FaultStatusMask fault, const char *component, const char *message) {

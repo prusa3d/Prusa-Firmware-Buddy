@@ -49,10 +49,10 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
 
     if (connection == connection_state_t::disconnecting && marlin_vars()->gqueue < 1) {
         connection = connection_state_t::disconnected;
-        marlin_client::gcode("G27 P2");     /// park nozzle and raise Z axis
+        marlin_client::gcode("G27 P2"); /// park nozzle and raise Z axis
         marlin_client::gcode("M104 S0 D0"); /// set temperatures to zero
-        marlin_client::gcode("M140 S0");    /// set temperatures to zero
-        marlin_client::gcode("M107");       /// print fan off.
+        marlin_client::gcode("M140 S0"); /// set temperatures to zero
+        marlin_client::gcode("M107"); /// print fan off.
         Odometer_s::instance().force_to_eeprom();
 #if ENABLED(CRASH_RECOVERY)
         crash_s.write_stat_to_eeprom();

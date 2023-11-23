@@ -82,7 +82,9 @@ set(WUI
 define_boolean_option("BUDDY_ENABLE_WUI" ${WUI})
 set(RESOURCES
     "<auto>"
-    CACHE BOOL "Enable resources (managed files on external flash)"
+    CACHE
+      STRING
+      "Enable resources (managed files on external flash). Set to '<auto>' to enable according to 'PRINTERS_WITH_RESOURCES'."
     )
 set(TRANSLATIONS_ENABLED
     "<default>"
@@ -242,7 +244,7 @@ set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY "MINI" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_ADVANCED_PAUSE "MINI" "MK4" "MK3.5" "iX" "XL")
 set(PRINTERS_WITH_CRASH_DETECTION "MINI" "MK4" "XL") # this does require selftest to work
 set(PRINTERS_WITH_POWER_PANIC "MK4" "XL") # this does require selftest and crash detection to work
-set(PRINTERS_WITH_PRECISE_HOMING "MINI" "MK4")
+set(PRINTERS_WITH_PRECISE_HOMING "MK4")
 set(PRINTERS_WITH_PRECISE_HOMING_COREXY "XL")
 # private MINI would not fit to 1MB so it has disabled selftest set(PRINTERS_WITH_SELFTEST "MINI"
 # "MK4")
@@ -271,7 +273,7 @@ set(PRINTERS_WITH_GUI_W240H320 "MINI")
 set(PRINTERS_WITH_LEDS "MK4" "MK3.5" "XL" "iX")
 # disable serial printing for MINI to save flash
 set(PRINTERS_WITH_SERIAL_PRINTING "MK4" "MK3.5" "XL" "iX" "MINI")
-set(PRINTERS_WITH_CONTROL_MENU "MK4" "MK3.5" "XL")
+set(PRINTERS_WITH_CONTROL_MENU "MK4" "MK3.5" "XL" "MINI")
 
 # Set printer board
 set(BOARDS_WITH_ADVANCED_POWER "XBUDDY" "XLBUDDY" "DWARF")
@@ -310,9 +312,9 @@ define_enum_option(NAME FILAMENT_SENSOR VALUE "${FILAMENT_SENSOR}" ALL_VALUES "B
 
 if(${RESOURCES} STREQUAL "<auto>")
   if(${PRINTER} IN_LIST PRINTERS_WITH_RESOURCES AND BOARD MATCHES ".*BUDDY")
-    set(RESOURCES YES)
+    set(RESOURCES "YES")
   else()
-    set(RESOURCES NO)
+    set(RESOURCES "NO")
   endif()
 endif()
 define_boolean_option(RESOURCES ${RESOURCES})

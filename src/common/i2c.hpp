@@ -3,6 +3,7 @@
 #include "inttypes.h"
 #include <atomic>
 #include <device/peripherals.h>
+#include "cmsis_os.h"
 
 namespace i2c {
 namespace statistics {

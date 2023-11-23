@@ -20,6 +20,7 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_MOVE_AXIS,
     MI_TEMPERATURE,
     MI_AUTO_HOME,
+    MI_SET_READY,
     MI_DISABLE_STEP,
     MI_LIVE_ADJUST_Z,
 #if PRINTER_IS_PRUSA_XL
@@ -29,8 +30,11 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     #if HAS_SELFTEST()
     ,
     MI_FS_SPAN<0, false>,
-    MI_FS_REF<0, false>,
+    MI_FS_REF<0, false>
+        #if !PRINTER_IS_PRUSA_MINI
+    ,
     MI_CALIB_Z
+        #endif /*!PRINTER_IS_PRUSA_MINI*/
         #if FILAMENT_SENSOR_IS_ADC()
     ,
     MI_CALIB_FSENSOR
@@ -38,7 +42,7 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     ,
     MI_CALIB_FSENSOR_MMU
             #endif // HAS_MMU2()
-        #endif     // FILAMENT_SENSOR_IS_ADC()
+        #endif // FILAMENT_SENSOR_IS_ADC()
     ,
     MI_SELFTEST,
     MI_DIAGNOSTICS

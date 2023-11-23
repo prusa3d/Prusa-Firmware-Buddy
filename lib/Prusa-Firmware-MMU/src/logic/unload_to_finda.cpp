@@ -39,7 +39,13 @@ bool UnloadToFinda::Step() {
             state = WaitingForFINDA;
             mg::globals.SetFilamentLoaded(mg::globals.ActiveSlot(), mg::FilamentLoadState::InSelector);
             unloadStart_mm = mpu::pulley.CurrentPosition_mm();
-            mpu::pulley.PlanMove(-config::defaultBowdenLength - config::feedToFinda - config::filamentMinLoadedToMMU, mg::globals.PulleyUnloadFeedrate_mm_s());
+            // We can always plan the unload move for the maximum allowed bowden length,
+            // it should be even more reliable than doing just the specified bowden length:
+            // - if the filament is slipping for some reason, planning a longer move will not stop in the middle of the bowden tube
+            // - a faster unload (shorter than the specified bowden length) will be interrupted by FINDA turning off
+            // - if FINDA is misaligned or faulty, the only issue will be, that the filament will be thrown behind the pulley
+            //   which could have happened with the previous implementation as well, because default bowden length was set to 42cm
+            mpu::pulley.PlanMove(-config::maximumBowdenLength - config::feedToFinda - config::filamentMinLoadedToMMU, mg::globals.PulleyUnloadFeedrate_mm_s());
         }
         return false;
     case WaitingForFINDA: {

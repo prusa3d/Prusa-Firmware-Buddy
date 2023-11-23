@@ -121,13 +121,7 @@ std::pair<std::optional<PreheatStatus::Result>, filament::Type> filament_gcodes:
     return { std::nullopt, filament };
 }
 
-/**
- * @brief stand alone preheat
- *
- * @param preheat_tp preheat options
- * @param target_extruder
- */
-void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode, uint8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed) {
+void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode, int8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed) {
     InProgress progress;
     PreheatData data(mode, preheat_tp);
     Response response = preheatTempUnKnown(data, true);
@@ -142,13 +136,22 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
     if (response != Response::Abort) {
         const filament::Description &fil_cnf = filament::get_description(filament);
 
-        HOTEND_LOOP() {
+        if (response == Response::Cooldown // Cooldown is always applied to all tools
+            || target_extruder < 0) {
+            // Set temperature to all tools
+            HOTEND_LOOP() {
 #if ENABLED(PRUSA_TOOLCHANGER)
-            if (!prusa_toolchanger.is_tool_enabled(e))
-                continue;
-#endif
-            thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle : fil_cnf.nozzle_preheat, e);
-            marlin_server::set_temp_to_display(fil_cnf.nozzle, e);
+                if (!prusa_toolchanger.is_tool_enabled(e)) {
+                    continue;
+                }
+#endif /*ENABLED(PRUSA_TOOLCHANGER)*/
+                thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle : fil_cnf.nozzle_preheat, e);
+                marlin_server::set_temp_to_display(fil_cnf.nozzle, e);
+            }
+        } else {
+            // Preheat only target tool
+            thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle : fil_cnf.nozzle_preheat, target_extruder);
+            marlin_server::set_temp_to_display(fil_cnf.nozzle, target_extruder);
         }
 
         if (preheat_bed) {
@@ -162,8 +165,15 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
             unhomed_z_lift(10);
         }
 
-        if (save)
-            config_store().set_filament_type(target_extruder, filament);
+        if (save) {
+            if (target_extruder < 0) {
+                HOTEND_LOOP() {
+                    config_store().set_filament_type(e, filament);
+                }
+            } else {
+                config_store().set_filament_type(target_extruder, filament);
+            }
+        }
     }
 
     // store result, so other threads can see it

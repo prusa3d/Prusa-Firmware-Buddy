@@ -52,7 +52,7 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
             JSON_FIELD_INT_G(transfer_status.has_value(), "id", transfer_status->id) JSON_COMMA;
             JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", transfer_status->time_transferring()) JSON_COMMA;
             JSON_FIELD_FFIXED_G(transfer_status.has_value(), "progress", transfer_status->progress_estimate(), 2) JSON_COMMA;
-            JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->transferred);
+            JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->download_progress.get_valid_size());
         JSON_OBJ_END JSON_COMMA;
     }
         JSON_FIELD_OBJ("printer");

@@ -1,11 +1,9 @@
-/**
- * @file img_resources.cpp
- */
-
 #include "img_resources.hpp"
 
-static constexpr const char *InternalFlash = "/internal/res/pngs";
-bool img::Resource::enabled = false;
+namespace img {
+
+static bool enabled = false;
+static FILE *file = nullptr;
 
 #if PRINTER_IS_PRUSA_MINI
 static constexpr size_t SZ = 128; // png draw is about 5% slower compared to 512. Need to save RAM, good enough for MINI.
@@ -20,38 +18,20 @@ static FILE *open_file_and_disable_buff(const char *fname) {
     return file;
 }
 
-static FILE *getDefaultFile() {
-    static FILE *file = nullptr;
-    if (!file)
-        file = open_file_and_disable_buff(InternalFlash);
+void enable_resource_file() {
+    enabled = true;
+}
+
+FILE *get_resource_file() {
+    if (!file && enabled) {
+        file = open_file_and_disable_buff("/internal/res/qoi.data");
+    }
     return file;
 }
 
-FILE *img::Resource::Get() const {
-    return file ? file : (enabled ? getDefaultFile() : nullptr);
-}
-
 img::ResourceSingleFile::ResourceSingleFile(const char *name)
-    : Resource(name, 0, 0, 0, 0) {
+    : Resource(0, 0, 0, 0) {
     file = open_file_and_disable_buff(name);
-
-    if (file) {
-        uint8_t data[32] { 0 };
-        const uint8_t *ptr = data;
-
-        size_t bytes_read = fread(&data[0], 1, 32, file);
-        if (bytes_read == 32) {
-            // OK
-            fseek(file, 0, SEEK_SET); // return to begin
-            size_ui16_t sz = icon_size(ptr);
-            w = sz.w;
-            h = sz.h;
-        } else {
-            // NOK
-            fclose(file);
-            file = nullptr; // without this dtor would try to close it again
-        }
-    }
 }
 
 img::ResourceSingleFile::~ResourceSingleFile() {
@@ -59,3 +39,5 @@ img::ResourceSingleFile::~ResourceSingleFile() {
         fclose(file);
     }
 }
+
+} // namespace img

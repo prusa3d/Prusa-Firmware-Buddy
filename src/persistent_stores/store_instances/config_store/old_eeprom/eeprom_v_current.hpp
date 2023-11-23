@@ -25,9 +25,9 @@ struct vars_body_t : public old_eeprom::v22::vars_body_t {
 
 constexpr vars_body_t body_defaults = {
     old_eeprom::v22::body_defaults,
-    {},    // EEVAR_SELFTEST_RESULT_V_23
+    {}, // EEVAR_SELFTEST_RESULT_V_23
     false, // EEVAR_NOZZLE_SOCK
-    0,     // EEVAR_NOZZLE_TYPE
+    0, // EEVAR_NOZZLE_TYPE
 };
 
 inline vars_body_t convert(const old_eeprom::v22::vars_body_t &src) {

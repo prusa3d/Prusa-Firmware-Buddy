@@ -82,7 +82,7 @@ private:
     show_disabled_extension_t show_disabled_extension : 1 = show_disabled_extension_t::yes; // Hide disabled menu_items's extension
 
 protected:
-    is_selected_t selected : 1 = is_selected_t::no;                           // should be in IWiSpin, but is here because of size optimization
+    is_selected_t selected : 1 = is_selected_t::no; // should be in IWiSpin, but is here because of size optimization
     ExtensionLikeLabel has_extension_like_label : 1 = ExtensionLikeLabel::no; // currently has meaning only for menu item info, but might have meaning for other types as well
     uint16_t extension_width : 10;
     bool invalid_icon : 1 = true;
@@ -96,7 +96,7 @@ protected:
     Rect16 getLabelRect(Rect16 rect) const;
     Rect16 getExtensionRect(Rect16 rect) const;
 
-    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const;                               // must be virtual, because pictures of flags are drawn differently
+    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const; // must be virtual, because pictures of flags are drawn differently
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; // things behind rect
     virtual void click(IWindowMenu &window_menu) = 0;
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point);
@@ -109,16 +109,6 @@ protected:
     void deInitRoll();
     color_t GetTextColor() const;
     color_t GetBackColor() const;
-
-    void hide() {
-        hidden = (uint8_t)is_hidden_t::yes;
-    }
-    void show() {
-        if (hidden != (uint8_t)is_hidden_t::no) {
-            hidden = (uint8_t)is_hidden_t::no;
-            Invalidate();
-        }
-    }
 
     void showDevOnly() {
         if (hidden != (uint8_t)is_hidden_t::dev) {
@@ -147,6 +137,18 @@ public:
             Invalidate();
         }
     }
+
+    void hide() {
+        hidden = (uint8_t)is_hidden_t::yes;
+    }
+
+    void show() {
+        if (hidden != (uint8_t)is_hidden_t::no) {
+            hidden = (uint8_t)is_hidden_t::no;
+            Invalidate();
+        }
+    }
+
     void ShowDisabledExtension() {
         if (show_disabled_extension != show_disabled_extension_t::yes) {
             show_disabled_extension = show_disabled_extension_t::yes;

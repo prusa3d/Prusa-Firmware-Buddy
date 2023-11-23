@@ -13,12 +13,12 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/common/utils
          ${CMAKE_SOURCE_DIR}/src/gui
          ${CMAKE_SOURCE_DIR}/src/guiconfig
+         ${CMAKE_BINARY_DIR}/tests/unit
          ${CMAKE_SOURCE_DIR}/include
          ${CMAKE_BINARY_DIR}/include
          ${CMAKE_SOURCE_DIR}/src/persistent_stores
          ${CMAKE_SOURCE_DIR}/src/persistent_stores/store_instances
          ${CMAKE_SOURCE_DIR}/tests/stubs
-         ${CMAKE_SOURCE_DIR}/lib/cthash/include
          ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/
   )
 
@@ -27,3 +27,5 @@ target_compile_definitions(language_eeprom_tests PUBLIC LANGEEPROM_UNITTEST)
 
 # tell build system about the test case
 add_catch_test(language_eeprom_tests)
+
+add_dependencies(language_eeprom_tests generate_journal_hashes_tests)

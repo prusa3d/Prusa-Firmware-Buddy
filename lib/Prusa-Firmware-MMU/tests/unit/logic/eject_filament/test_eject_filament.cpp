@@ -1,5 +1,6 @@
+#include <functional>
 #include "catch2/catch_test_macros.hpp"
-#include "catch2/matchers/catch_matchers_vector.hpp"
+#include "catch2/generators/catch_generators.hpp"
 
 #include "../../../../src/modules/buttons.h"
 #include "../../../../src/modules/finda.h"
@@ -10,65 +11,73 @@
 #include "../../../../src/modules/motion.h"
 #include "../../../../src/modules/permanent_storage.h"
 #include "../../../../src/modules/selector.h"
+#include "../../../../src/modules/user_input.h"
 
 #include "../../../../src/logic/eject_filament.h"
 
 #include "../../modules/stubs/stub_adc.h"
+#include "../../modules/stubs/stub_timebase.h"
 
 #include "../stubs/main_loop_stub.h"
 #include "../stubs/stub_motion.h"
 
-using Catch::Matchers::Equals;
-
 #include "../helpers/helpers.ipp"
 
-// temporarily disabled
-TEST_CASE("eject_filament::eject0", "[eject_filament][.]") {
+TEST_CASE("eject_filament::eject0-4", "[eject_filament]") {
     using namespace logic;
 
+    uint8_t ejectSlot = GENERATE(0, 1, 2, 3, 4);
+    uint8_t selectorParkedPos = (ejectSlot <= 2) ? 4 : 0;
+    INFO("Testing ejecting slot " << (int)ejectSlot);
+
     ForceReinitAllAutomata();
-    REQUIRE(EnsureActiveSlotIndex(0, mg::FilamentLoadState::AtPulley));
+
+    REQUIRE(EnsureActiveSlotIndex(ejectSlot, mg::FilamentLoadState::AtPulley));
 
     EjectFilament ef;
     // restart the automaton
-    ef.Reset(0);
+    ef.Reset(ejectSlot);
 
     main_loop();
 
-    // it should have instructed the selector and idler to move to slot 1
-    // check if the idler and selector have the right command
-    CHECK(mm::AxisNearestTargetPos(mm::Idler) == mi::Idler::SlotPosition(0).v);
-    CHECK(mm::AxisNearestTargetPos(mm::Selector) == ms::Selector::SlotPosition(4).v);
+    // Start at UnloadingFilament
+    REQUIRE(ef.TopLevelState() == ProgressCode::UnloadingFilament);
 
-    // now cycle at most some number of cycles (to be determined yet) and then verify, that the idler and selector reached their target positions
-    REQUIRE(WhileTopState(ef, ProgressCode::SelectingFilamentSlot, 5000));
+    REQUIRE(WhileTopState(ef, ProgressCode::UnloadingFilament, 5000));
 
-    // idler and selector reached their target positions and the CF automaton will start feeding to FINDA as the next step
-    REQUIRE(ef.TopLevelState() == ProgressCode::FeedingToFinda);
-    // prepare for simulated finda trigger
-    hal::gpio::WritePin(FINDA_PIN, hal::gpio::Level::high);
-    REQUIRE(WhileTopState(ef, ProgressCode::FeedingToFinda, 50000));
+    REQUIRE(ef.TopLevelState() == ProgressCode::ParkingSelector);
 
-    // filament fed into FINDA, cutting...
-    REQUIRE(ef.TopLevelState() == ProgressCode::PreparingBlade);
-    REQUIRE(WhileTopState(ef, ProgressCode::PreparingBlade, 5000));
+    REQUIRE(WhileTopState(ef, ProgressCode::ParkingSelector, selectorMoveMaxSteps));
 
+    // Engaging idler
     REQUIRE(ef.TopLevelState() == ProgressCode::EngagingIdler);
+
     REQUIRE(WhileTopState(ef, ProgressCode::EngagingIdler, 5000));
 
-    // the idler should be at the active slot @@TODO
-    REQUIRE(ef.TopLevelState() == ProgressCode::PushingFilament);
-    REQUIRE(WhileTopState(ef, ProgressCode::PushingFilament, 5000));
+    REQUIRE(mi::idler.Engaged());
+    REQUIRE(ef.TopLevelState() == ProgressCode::EjectingFilament);
 
-    // filament pushed - performing cut
-    REQUIRE(ef.TopLevelState() == ProgressCode::PerformingCut);
-    REQUIRE(WhileTopState(ef, ProgressCode::PerformingCut, 5000));
+    REQUIRE(WhileTopState(ef, ProgressCode::EjectingFilament, 5000));
 
-    // returning selector
-    REQUIRE(ef.TopLevelState() == ProgressCode::ReturningSelector);
-    REQUIRE(WhileTopState(ef, ProgressCode::ReturningSelector, 5000));
+    // should end up in error disengage idler
+    REQUIRE(VerifyState2(ef, mg::FilamentLoadState::AtPulley, ejectSlot, selectorParkedPos, false, true, ejectSlot, ml::off, ml::blink0, ErrorCode::RUNNING, ProgressCode::ERRDisengagingIdler));
 
-    // the next states are still @@TODO
+    SimulateErrDisengagingIdler(ef, ErrorCode::FILAMENT_EJECTED);
+
+    // Pulley should now be disabled
+    REQUIRE(VerifyState2(ef, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), selectorParkedPos, false, false, ejectSlot, ml::off, ml::blink0, ErrorCode::FILAMENT_EJECTED, ProgressCode::ERRWaitingForUser));
+
+    // Now press Done button
+    PressButtonAndDebounce(ef, mb::Middle, true);
+    ClearButtons(ef);
+
+    // Idler and Selector are not on HOLD state
+    REQUIRE(mi::idler.State() != mm::MovableBase::OnHold);
+    REQUIRE(ms::selector.State() != mm::MovableBase::OnHold);
+
+    // Error code is now OK
+    // LEDs turn off at the ejected slot
+    REQUIRE(VerifyState2(ef, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), selectorParkedPos, false, false, ejectSlot, ml::off, ml::off, ErrorCode::OK, ProgressCode::OK));
 }
 
 TEST_CASE("eject_filament::invalid_slot", "[eject_filament]") {
@@ -76,4 +85,95 @@ TEST_CASE("eject_filament::invalid_slot", "[eject_filament]") {
         logic::EjectFilament ef;
         InvalidSlot<logic::EjectFilament>(ef, activeSlot, config::toolCount);
     }
+}
+
+TEST_CASE("eject_filament::flickering_FINDA", "[eject_filament]") {
+    using namespace logic;
+    using namespace std::placeholders;
+
+    uint8_t ejectSlot = GENERATE(0, 1, 2, 3, 4);
+    uint8_t selectorParkedPos = (ejectSlot <= 2) ? 4 : 0;
+    INFO("Testing ejecting slot " << (int)ejectSlot);
+
+    ForceReinitAllAutomata();
+
+    REQUIRE(EnsureActiveSlotIndex(ejectSlot, mg::FilamentLoadState::AtPulley));
+
+    EjectFilament ef;
+    // restart the automaton
+    ef.Reset(ejectSlot);
+
+    main_loop();
+
+    // Start at UnloadingFilament
+    REQUIRE(ef.TopLevelState() == ProgressCode::UnloadingFilament);
+
+    // This is something else than WhileTopState()==UnloadingFilament
+    // We need to catch the very moment, when the unload finished and a move to another slot is being planned
+    REQUIRE(WhileCondition(
+        ef, [&](uint32_t) -> bool { return ef.unl.State() != ProgressCode::OK; }, 5000));
+
+    // now press FINDA again, but prevent stepping other state machines
+    REQUIRE_FALSE(mf::finda.Pressed());
+    hal::gpio::WritePin(FINDA_PIN, hal::gpio::Level::high);
+    while (!mf::finda.Pressed()) {
+        mf::finda.Step();
+        mt::IncMillis();
+    }
+    REQUIRE(mf::finda.Pressed());
+    REQUIRE(mg::globals.FilamentLoaded() == mg::FilamentLoadState::AtPulley);
+
+    main_loop();
+    ef.Step();
+
+    // Idler disengages, and error is pending
+    REQUIRE(VerifyState2(ef, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), ejectSlot, true, false, ejectSlot, ml::off, ml::blink0, ErrorCode::RUNNING, ProgressCode::ERRDisengagingIdler));
+
+    SimulateErrDisengagingIdler(ef, ErrorCode::FINDA_FLICKERS); // this should be a single step, Idler should remain disengaged due to previous error
+
+    // Validate waiting for user state
+    REQUIRE_FALSE(mui::userInput.AnyEvent());
+    REQUIRE(VerifyState2(ef, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), ejectSlot, true, false, ejectSlot, ml::off, ml::blink0, ErrorCode::FINDA_FLICKERS, ProgressCode::ERRWaitingForUser));
+
+    // Reset FINDA
+    SetFINDAStateAndDebounce(false);
+
+    // Press middle button to 'retry'
+    PressButtonAndDebounce(ef, mb::Middle, true);
+    ClearButtons(ef);
+
+    // Now everything should continue as normal
+    REQUIRE(VerifyState2(ef, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), ejectSlot, false, false, ejectSlot, ml::off, ml::blink0, ErrorCode::RUNNING, ProgressCode::ParkingSelector));
+
+    REQUIRE(WhileTopState(ef, ProgressCode::ParkingSelector, selectorMoveMaxSteps));
+
+    // Engaging idler
+    REQUIRE(ef.TopLevelState() == ProgressCode::EngagingIdler);
+
+    REQUIRE(WhileTopState(ef, ProgressCode::EngagingIdler, 5000));
+
+    REQUIRE(mi::idler.Engaged());
+    REQUIRE(ef.TopLevelState() == ProgressCode::EjectingFilament);
+
+    REQUIRE(WhileTopState(ef, ProgressCode::EjectingFilament, 5000));
+
+    // should end up in error disengage idler
+    REQUIRE(VerifyState2(ef, mg::FilamentLoadState::AtPulley, ejectSlot, selectorParkedPos, false, true, ejectSlot, ml::off, ml::blink0, ErrorCode::RUNNING, ProgressCode::ERRDisengagingIdler));
+
+    SimulateErrDisengagingIdler(ef, ErrorCode::FILAMENT_EJECTED);
+
+    // Pulley should now be disabled
+    REQUIRE(VerifyState2(ef, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), selectorParkedPos, false, false, ejectSlot, ml::off, ml::blink0, ErrorCode::FILAMENT_EJECTED, ProgressCode::ERRWaitingForUser));
+
+    // Now press Done button
+    PressButtonAndDebounce(ef, mb::Middle, true);
+    ClearButtons(ef);
+
+    // Idler and Selector are not on HOLD state
+    REQUIRE(mi::idler.State() != mm::MovableBase::OnHold);
+    REQUIRE(ms::selector.State() != mm::MovableBase::OnHold);
+
+    // Error code is now OK
+    // LEDs turn off at the ejected slot
+    REQUIRE(VerifyState2(ef, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), selectorParkedPos, false, false, ejectSlot, ml::off, ml::off, ErrorCode::OK, ProgressCode::OK));
 }

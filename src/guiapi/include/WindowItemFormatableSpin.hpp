@@ -11,7 +11,7 @@ class WI_LAMBDA_SPIN : public WI_LAMBDA_LABEL_t {
     static constexpr font_t *&BracketFont = GuiDefaults::FontMenuSpecial;
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSwitchHasBrackets ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
 
-    size_t index;                           ///< Currently selected index
+    size_t index; ///< Currently selected index
     char text[GuiDefaults::infoDefaultLen]; ///< Buffer for switch text
 
 public:
@@ -28,6 +28,11 @@ public:
      * This is to be used in child in printAs() to print a correct label.
      */
     size_t GetIndex() const { return index; };
+
+    /**
+     * @brief Set currently selected index.
+     */
+    void SetIndex(size_t new_index);
 
 protected:
     /**

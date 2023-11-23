@@ -11,17 +11,31 @@
 #include "selftest_part.hpp"
 #include "selftest_log.hpp"
 #include <config_store/store_instance.hpp>
+#include <printers.h>
 
-// disable power check, since measurement does not work
-#include <option/has_advanced_power.h>
-#if HAS_ADVANCED_POWER()
-    #undef HAS_ADVANCED_POWER
-    #define HAS_ADVANCED_POWER() 0
+/**
+ * The following #if override fakes advanced power to be not supported within this file
+ * Definitely not a nice solution to disable power check, but it was inherited from original code.
+ * Keep in mind that enabling this for printers that will use the PowerCheckBooth (MK4) will cause an
+ * untested code path in PowerCheckBoth to be executed.
+ */
+#if !PRINTER_IS_PRUSA_XL
+    // disable power check, since measurement does not work
+    #include <option/has_advanced_power.h>
+    #if HAS_ADVANCED_POWER()
+        #undef HAS_ADVANCED_POWER
+        #define HAS_ADVANCED_POWER() 0
+    #endif
 #endif
 
 #if HAS_ADVANCED_POWER()
-    #include "power_check_both.hpp"
+    #include "advanced_power.hpp"
+    #if !PRINTER_IS_PRUSA_XL
+        #include "power_check_both.hpp"
+    #endif
 #endif
+
+LOG_COMPONENT_REF(Selftest);
 namespace selftest {
 
 static SelftestHeaters_t resultHeaters;
@@ -47,10 +61,10 @@ class PowerCheckBoth {
     PowerCheckBoth(const PowerCheckBoth &) = delete;
 
 public:
-    void Callback() {}
+    void Callback([[maybe_unused]] CSelftestPart_Heater &part) {}
 
-    constexpr void BindNozzle([[maybe_unused]] CSelftestPart_Heater &f) {}
-    constexpr void BindBed([[maybe_unused]] CSelftestPart_Heater &f) {}
+    constexpr void BindNozzle([[maybe_unused]] CSelftestPart_Heater *) {}
+    constexpr void BindBed([[maybe_unused]] CSelftestPart_Heater *) {}
     constexpr void UnBindNozzle() {}
     constexpr void UnBindBed() {}
 
@@ -61,6 +75,16 @@ public:
 };
 #endif
 
+// Shared check callback
+// Splits implementation for printers with independent bed, nozzle measurement and others
+static inline void check_callback(CSelftestPart_Heater &part) {
+#if !PRINTER_IS_PRUSA_XL
+    PowerCheckBoth::Instance().Callback(part);
+#else
+    part.single_check_callback();
+#endif
+}
+
 void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const std::span<const HeaterConfig_t> config_nozzle) {
     resultHeaters.tested_parts |= to_one_hot(SelftestHeaters_t::TestedParts::noz);
 
@@ -69,7 +93,6 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
         resultHeaters.noz[i] = SelftestHeater_t(0, SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
 
         if (pNozzles[i] == nullptr) {
-            // clang-format off
             auto pNoz = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(config_nozzle[i],
                 resultHeaters.noz[i],
                 &CSelftestPart_Heater::stateStart,
@@ -77,21 +100,27 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
                 &CSelftestPart_Heater::stateCooldownInit, &CSelftestPart_Heater::stateCooldown,
                 &CSelftestPart_Heater::stateFansDeactivate,
                 &CSelftestPart_Heater::stateTargetTemp, &CSelftestPart_Heater::stateWait,
-                &CSelftestPart_Heater::stateMeasure);
-            // clang-format on
+                &CSelftestPart_Heater::stateMeasure
+#if HAS_ADVANCED_POWER()
+                ,
+                &CSelftestPart_Heater::stateCheckLoadChecked
+#endif
+            );
 
             pNozzles[i] = pNoz;
             // add same hooks for both "states changes" and "does not change"
-            pNoz->SetStateChangedHook([](CSelftestPart_Heater &h) {
-                HeatbreakCorrelation(h);
-                PowerCheckBoth::Instance().Callback();
+            pNoz->SetStateChangedHook([](CSelftestPart_Heater &part) {
+                HeatbreakCorrelation(part);
+                check_callback(part);
             });
-            pNoz->SetStateRemainedHook([](CSelftestPart_Heater &h) {
-                HeatbreakCorrelation(h);
-                PowerCheckBoth::Instance().Callback();
+
+            pNoz->SetStateRemainedHook([](CSelftestPart_Heater &part) {
+                HeatbreakCorrelation(part);
+                check_callback(part);
             });
-            // todo: not working properly for multiple nozzles
-            PowerCheckBoth::Instance().BindNozzle(pNoz->GetInstance());
+#if !PRINTER_IS_PRUSA_XL
+            PowerCheckBoth::Instance().BindNozzle(&pNoz->GetInstance());
+#endif
         }
     }
 }
@@ -103,24 +132,26 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
 
     if (pBed == nullptr) {
         // brr unnecessary dynamic allocation .. not my code, I just moved it .. TODO rewrite
-        // clang-format off
-        auto pBed_ = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(config_bed,
+        auto pBed_ = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(
+            config_bed,
             resultHeaters.bed,
             &CSelftestPart_Heater::stateStart,
             &CSelftestPart_Heater::stateCooldownInit, &CSelftestPart_Heater::stateCooldown,
             &CSelftestPart_Heater::stateTargetTemp, &CSelftestPart_Heater::stateWait,
-            &CSelftestPart_Heater::stateMeasure);
-        // clang-format on
+            &CSelftestPart_Heater::stateMeasure
+#if HAS_ADVANCED_POWER()
+            ,
+            &CSelftestPart_Heater::stateCheckLoadChecked
+#endif
+        );
 
         pBed = pBed_;
         // add same hooks for both "states changes" and "does not change"
-        pBed_->SetStateChangedHook([]([[maybe_unused]] CSelftestPart_Heater &h) {
-            PowerCheckBoth::Instance().Callback();
-        });
-        pBed_->SetStateRemainedHook([]([[maybe_unused]] CSelftestPart_Heater &h) {
-            PowerCheckBoth::Instance().Callback();
-        });
-        PowerCheckBoth::Instance().BindBed(pBed_->GetInstance());
+        pBed_->SetStateChangedHook(&check_callback);
+        pBed_->SetStateRemainedHook(&check_callback);
+#if !PRINTER_IS_PRUSA_XL
+        PowerCheckBoth::Instance().BindBed(&pBed_->GetInstance());
+#endif
     }
 }
 
@@ -161,7 +192,9 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
 
     for (size_t i = 0; i < HOTENDS; i++) {
         if (just_finished_noz[i]) {
+#if !PRINTER_IS_PRUSA_XL
             PowerCheckBoth::Instance().UnBindNozzle();
+#endif
             delete pNozzles[i];
             pNozzles[i] = nullptr;
         }
@@ -169,7 +202,9 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
 
     if (just_finished_bed) {
         assert(pBed && *pBed);
+#if !PRINTER_IS_PRUSA_XL
         PowerCheckBoth::Instance().UnBindBed();
+#endif
         delete *pBed;
         *pBed = nullptr;
     }
@@ -180,7 +215,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
     }
 
     resultHeaters.tested_parts = 0; // reset tested parts so they can be set next time again
-    return false;                   // finished
+    return false; // finished
 }
 
 SelftestHotEndSockType sock_result;
@@ -188,16 +223,19 @@ bool retry_heater = false;
 bool get_retry_heater() { return retry_heater; }
 
 bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) {
-
-    machine = machine ? machine : Factory::CreateDynamical<selftest::CSelftestPart_HotEndSock>(
-                  // clang-format off
-    config, sock_result,
-    &CSelftestPart_HotEndSock::stateStart, &CSelftestPart_HotEndSock::stateAskAdjust,
-    &CSelftestPart_HotEndSock::stateAskSockInit, &CSelftestPart_HotEndSock::stateAskSock,
-    // Disable asking questions about nozzle
-   // &CSelftestPart_HotEndSock::stateAskNozzleInit, &CSelftestPart_HotEndSock::stateAskNozzle,
-    &CSelftestPart_HotEndSock::stateAskRetryInit, &CSelftestPart_HotEndSock::stateAskRetry);
-    // clang-format on
+    if (!machine) {
+        machine = Factory::CreateDynamical<selftest::CSelftestPart_HotEndSock>(
+            config,
+            sock_result,
+            &CSelftestPart_HotEndSock::stateStart,
+            &CSelftestPart_HotEndSock::stateAskAdjust,
+            &CSelftestPart_HotEndSock::stateAskSockInit,
+            &CSelftestPart_HotEndSock::stateAskSock,
+            // Disable asking questions about nozzle
+            // &CSelftestPart_HotEndSock::stateAskNozzleInit, &CSelftestPart_HotEndSock::stateAskNozzle,
+            &CSelftestPart_HotEndSock::stateAskRetryInit,
+            &CSelftestPart_HotEndSock::stateAskRetry);
+    }
     bool in_progress = machine->Loop();
     FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), sock_result.Serialize());
 

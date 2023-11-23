@@ -24,6 +24,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from urllib.request import urlretrieve
 
+assert sys.version_info >= (3, 8), 'Python 3.8+ is required.'
 is_windows = platform.system() == 'Windows'
 project_root_dir = Path(__file__).resolve().parent.parent
 dependencies_dir = project_root_dir / '.dependencies'
@@ -68,20 +69,20 @@ dependencies = {
         }
     },
     'bootloader-mini': {
-        'version': '2.0.8',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.0.8-3B8FF97C-B4C2-415C-87F6-3F177FD80F4A.zip',
+        'version': '2.1.2',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.1.2-976C5329-4015-42C6-BF4D-B9BC340521C4.zip',
     },
     'bootloader-mk4': {
-        'version': '2.0.8',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.0.8-D9CA7958-9971-45A6-B8FF-64CC14DF3E27.zip',
+        'version': '2.1.0',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.1.0-D0C7F21F-FECD-47C1-A591-EB589C819BB7.zip',
     },
     'bootloader-xl': {
-        'version': '2.0.8',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.0.8-C266D037-5B76-4277-A92D-FC44B8C64D41.zip',
+        'version': '2.1.0',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.1.0-9D6B1E04-EB40-4A85-B758-DBD0DE115160.zip',
     },
     'bootloader-ix': {
-        'version': '2.0.8',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.0.8-3195E1CC-B211-4C95-BC3B-E7779D52E82B.zip',
+        'version': '2.1.0',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.1.0-F5C0C1D9-781D-4A17-A96D-43AC9AC93910.zip',
     },
     'mini404': {
         'version': '0.9.9',
@@ -194,10 +195,10 @@ def get_dependency_directory(dependency) -> Path:
 
 
 def switch_to_venv_if_nedded():
-    if not running_in_venv and os.environ.get('BUDDY_NO_VIRTUALENV') is None:
+    if not running_in_venv and os.environ.get('BUDDY_NO_VIRTUALENV') != '1':
         print('Switching to Buddy\'s virtual environment.', file=sys.stderr)
         print(
-            'You can disable this by defining BUDDY_NO_VIRTUALENV env. variable.',
+            'You can disable this by setting the BUDDY_NO_VIRTUALENV=1 env. variable.',
             file=sys.stderr)
         os.execv(str(venv_bin_dir / 'python'),
                  [str(venv_bin_dir / 'python')] + sys.argv)

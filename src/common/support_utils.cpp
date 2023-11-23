@@ -16,6 +16,7 @@
 
 #include "qrcodegen.h"
 #include "support_utils_lib.hpp"
+#include "data_exchange.hpp"
 
 #include <option/bootloader.h>
 
@@ -139,7 +140,7 @@ bool appendix_exist() {
 #if BOOTLOADER()
     const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
     if (bootloader->major >= 1 && bootloader->minor >= 1) {
-        return !(ram_data_exchange.model_specific_flags & APPENDIX_FLAG_MASK);
+        return !(data_exchange::has_apendix());
     }
 #endif
 
@@ -171,6 +172,6 @@ bool appendix_exist() {
 bool signature_exist() {
     const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
     if (bootloader->major >= 1 && bootloader->minor >= 2)
-        return ram_data_exchange.fw_signature;
+        return data_exchange::has_fw_signature();
     return false;
 }

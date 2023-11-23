@@ -12,6 +12,18 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
     // TODO: Non-context time <-> context time
     const uint32_t time_to_end = marlin_vars()->time_to_end;
 
+#if defined(USE_ST7789)
+    if (out_print_dur) {
+        const time_t rawtime = (time_t)marlin_vars()->print_duration; // print_duration holds SECONDS
+        if (rawtime != last_print_duration) {
+            out_print_dur->SetTextColor(generate_duration(rawtime));
+            out_print_dur->SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
+            out_print_dur->Invalidate();
+        }
+        last_print_duration = rawtime;
+    }
+#endif // USE_ST7789
+
     if (screen_format != PT_t::init && time_to_end != marlin_server::TIME_TO_END_INVALID && time_to_end == last_time_to_end) {
         return time_end_format;
     }
@@ -49,15 +61,6 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
     out_print_end->Invalidate();
     last_time_to_end = time_to_end;
 
-#if defined(USE_ST7789)
-    if (out_print_dur) {
-        const time_t rawtime = (time_t)marlin_vars()->print_duration;
-        if (rawtime != last_print_duration) {
-            out_print_dur->SetTextColor(generate_duration(rawtime));
-            out_print_dur->SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
-        }
-    }
-#endif // USE_ST7789
     return time_end_format;
 }
 

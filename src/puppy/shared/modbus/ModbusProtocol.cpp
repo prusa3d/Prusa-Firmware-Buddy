@@ -7,8 +7,8 @@
 #define ERROR_CODE_FLAG     0x80
 
 #define MAX_BIT_VALUES_QUANTITY  2000 // limited by Modbus specification
-#define MAX_WORD_VALUES_QUANTITY 125  // limited by Modbus specification
-#define MAX_REG_VALUES_QUANTITY  123  // limited by Modbus specification
+#define MAX_WORD_VALUES_QUANTITY 125 // limited by Modbus specification
+#define MAX_REG_VALUES_QUANTITY  123 // limited by Modbus specification
 #define WRITE_VALUE_ON           0xFF00
 #define WRITE_VALUE_OFF          0x0000
 
@@ -545,7 +545,7 @@ ExceptionCode ProcessFunction_ReadFIFO(ModbusBuffer *pRX_Buffer, ModbusBuffer *p
 
     // Fill in reponse data
     pTX_Buffer->AddWord(2 + 2 * num_registers); // Number of bytes in response
-    pTX_Buffer->AddWord(num_registers);         // Number of register in response
+    pTX_Buffer->AddWord(num_registers); // Number of register in response
     // Reponse registers
     for (uint16_t i = 0; i < num_registers; ++i) {
         pTX_Buffer->AddWord(read_buffer[i]);

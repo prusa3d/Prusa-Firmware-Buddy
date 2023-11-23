@@ -36,6 +36,7 @@ protected: // inherited by unit tests, must be protected
 #endif
     static constexpr const char *HeatBreakThermistorFail = N_("Heatbreak thermistor is disconnected. Inspect the wiring.");
     static constexpr const char *NozzleDoesNotHaveRoundSectionMsg = N_("Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed.");
+    static constexpr const char *NotDownloadedMsg = N_("Streamed gcode not downloaded yet. Check network, wait and try again or transfer the gcode to USB directly.");
 
     struct icon_title_text_t {
         const img::Resource *icon;
@@ -57,6 +58,7 @@ protected: // inherited by unit tests, must be protected
         HeatbedColdAfterPP,
 #endif
         NozzleDoesNotHaveRoundSection,
+        NotDownloaded,
         count_
     };
 
@@ -74,12 +76,13 @@ protected: // inherited by unit tests, must be protected
 #if ENABLED(POWER_PANIC)
         { nullptr, Title, HeatbedColdAfterPPMsg },
 #endif
-        { &img::nozzle_34x32, Title, NozzleDoesNotHaveRoundSectionMsg }
+        { &img::nozzle_34x32, Title, NozzleDoesNotHaveRoundSectionMsg },
+        { nullptr, Title, NotDownloadedMsg }
     };
     static_assert(std::size(icon_title_text) == types::count_);
 
     static std::bitset<types::count_> shown; // mask of all "active" dialogs
-    static types on_top;                     // one of shown dialogs - on top == this one is visible
+    static types on_top; // one of shown dialogs - on top == this one is visible
 
     static window_dlg_strong_warning_t &Instance() {
         static window_dlg_strong_warning_t ret;
@@ -119,4 +122,5 @@ public:
     static void ShowHeatbedColdAfterPP();
 #endif
     static void ShowNozzleDoesNotHaveRoundSection();
+    static void ShowNotDownloaded();
 };

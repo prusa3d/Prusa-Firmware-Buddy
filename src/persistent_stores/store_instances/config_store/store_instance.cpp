@@ -44,11 +44,11 @@ void init_config_store() {
 
         // we have valid old eeprom data
         config_store_init_result() = config_store_ns::InitResult::migrated_from_old;
-        config_store().get_backend().erase_storage_area();                              // guarantee load from nothing
-        config_store().init();                                                          // initializes the store's backend, will be a cold start
-        config_store().get_backend().override_cold_start_state();                       // we don't want the start to be marked as cold to load from our old eeprom transaction from migration
+        config_store().get_backend().erase_storage_area(); // guarantee load from nothing
+        config_store().init(); // initializes the store's backend, will be a cold start
+        config_store().get_backend().override_cold_start_state(); // we don't want the start to be marked as cold to load from our old eeprom transaction from migration
         old_eeprom::migrate(eeprom_ram_mirror.vars.body, config_store().get_backend()); // puts all old values as one transaction into the backend
-        config_store().load_all();                                                      // loads the config_store from the one transaction (can trigger further config_store migrations)
+        config_store().load_all(); // loads the config_store from the one transaction (can trigger further config_store migrations)
 
         // Since we have at least one migration, bank flip is guaranteed now, which will remove default value journal entries from the old eeprom migration transaction.
     }

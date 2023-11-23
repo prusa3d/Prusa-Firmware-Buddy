@@ -147,6 +147,9 @@ void IPartHandler::Abort() {
     log_debug(Selftest, "IPartHandler::Abort");
     current_state = IndexAborted();
     abort();
+
+    // Terminate all moves (the hard way)
+    marlin_server::quick_stop();
 }
 
 bool IPartHandler::WaitSoLastStateIsVisible() const {

@@ -16,7 +16,7 @@ template <class FSM_PHASE>
 class RadioButtonFsm : public AddSuperWindow<IRadioButton> {
 
     size_t cnt_buttons(FSM_PHASE phs) const {
-        const PhaseResponses &resp = ClientResponses::GetResponses(phs);      // ClientResponses::GetResponses returns array of 16 responses
+        const PhaseResponses &resp = ClientResponses::GetResponses(phs); // ClientResponses::GetResponses returns array of 16 responses
         return std::min(cnt_responses(generateResponses(resp)), max_buttons); // generateResponses cuts it to 4
     }
 

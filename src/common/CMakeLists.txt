@@ -11,6 +11,7 @@ if(BOARD MATCHES ".*BUDDY")
             client_response_texts.cpp
             crc32.cpp
             crc32_zlib.cpp
+            data_exchange.cpp
             ExtInterruptHandler.cpp
             filename_type.cpp
             filepath_operation.cpp
@@ -48,15 +49,14 @@ if(BOARD MATCHES ".*BUDDY")
             print_processor.cpp
             print_utils.cpp
             probe_analysis.cpp
-            probe_position_lookback.cpp
             safe_state.cpp
-            scratch_buffer.cpp
             segmented_json.cpp
             selftest_result.cpp
             selftest_result_type.cpp
             sensor_data_buffer.cpp
             sound.cpp
             st25dv64k.cpp
+            stat_retry.cpp
             SteelSheets.cpp
             str_utils.cpp
             stubs.cpp
@@ -67,6 +67,7 @@ if(BOARD MATCHES ".*BUDDY")
             tasks.cpp
             time_tools.cpp
             timing.cpp
+            tools_mapping.cpp
             trinamic.cpp
             uartrxbuff.cpp
             variant8.cpp
@@ -98,10 +99,6 @@ elseif(BOARD MATCHES "MODULARBED")
   target_sources(firmware PRIVATE heap.cpp otp.cpp)
 endif()
 
-if(HAS_LOADCELL_HX717)
-  target_sources(firmware PRIVATE hx717.cpp)
-endif()
-
 if(PRINTER STREQUAL "MINI")
   target_sources(firmware PRIVATE minda_broken_cable_detection.cpp MindaRedscreen.cpp)
 endif()
@@ -117,7 +114,7 @@ if(FILAMENT_SENSOR)
     firmware PRIVATE filament_sensor.cpp filament_sensors_handler.cpp thread_measurement.cpp
     )
   if(FILAMENT_SENSOR STREQUAL "ADC")
-    target_sources(firmware PRIVATE filament_sensor_adc.cpp)
+    target_sources(firmware PRIVATE filament_sensor_adc.cpp filament_sensor_adc_eval.cpp)
   else()
     target_sources(firmware PRIVATE filament_sensor_photoelectric.cpp)
   endif()
@@ -127,7 +124,13 @@ if(FILAMENT_SENSOR)
 endif()
 
 if(HAS_LOADCELL)
-  target_sources(firmware PRIVATE loadcell.cpp)
+  target_sources(firmware PRIVATE loadcell.cpp probe_position_lookback.cpp)
+endif()
+if(HAS_LOADCELL_HX717)
+  target_sources(firmware PRIVATE hx717.cpp)
+endif()
+if(HAS_LOADCELL AND HAS_LOADCELL_HX717)
+  target_sources(firmware PRIVATE hx717mux.cpp)
 endif()
 
 if((BOARD STREQUAL "XBUDDY") OR (BOARD STREQUAL "BUDDY"))

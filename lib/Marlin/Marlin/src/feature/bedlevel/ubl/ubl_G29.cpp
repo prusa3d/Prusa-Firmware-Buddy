@@ -818,6 +818,16 @@
 
       save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
 
+      #if ENABLED(NOZZLE_LOAD_CELL)
+        // Enable loadcell high precision across the entire sequence to prime the noise filters
+        auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
+      #endif
+
+      #if UBL_TRAVEL_ACCELERATION
+        auto saved_acceleration = planner.settings.travel_acceleration;
+        planner.settings.travel_acceleration = UBL_TRAVEL_ACCELERATION;
+      #endif
+
       uint16_t count = GRID_MAX_POINTS;
 
       mesh_index_pair best = find_closest_mesh_point_of_type(INVALID, near);
@@ -864,6 +874,10 @@
         move_z_after_probing();
       #endif
 
+      #if UBL_TRAVEL_ACCELERATION
+        planner.settings.travel_acceleration = saved_acceleration;
+      #endif
+
       restore_ubl_active_state_and_leave();
 
       do_blocking_move_to_xy(
@@ -874,6 +888,11 @@
 
     void unified_bed_leveling::probe_major_points(const xy_pos_t area_a, const xy_pos_t area_b, const bool do_ubl_mesh_map, const bool stow_probe) {
       save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
+
+      #if ENABLED(NOZZLE_LOAD_CELL)
+        // Enable loadcell high precision across the entire sequence to prime the noise filters
+        auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
+      #endif
 
       #if UBL_TRAVEL_ACCELERATION
         auto saved_acceleration = planner.settings.travel_acceleration;
@@ -1693,6 +1712,11 @@
                   y_min = probe_min_y(), y_max = probe_max_y(),
                   dx = (x_max - x_min) / (g29_grid_size - 1),
                   dy = (y_max - y_min) / (g29_grid_size - 1);
+
+      #if ENABLED(NOZZLE_LOAD_CELL)
+        // Enable loadcell high precision across the entire sequence to prime the noise filters
+        auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
+      #endif
 
       const vector_3 points[3] = {
         #if ENABLED(HAS_FIXED_3POINT)

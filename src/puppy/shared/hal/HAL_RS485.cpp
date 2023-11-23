@@ -96,7 +96,7 @@ bool Init(uint8_t modbusAddress) {
     DMA_RX->CCR &= ~DMA_CCR_EN;
     // clear DMA flags
     DMAMUX_CHANNEL_STATUS_RX->CFR = DMAMUX_CHANNEL_STATUS_MASK_RX; // clear DMAMUX sync IRQ flag
-    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_RX & 0x1CU);   // clear all DMA IRQ flags
+    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_RX & 0x1CU); // clear all DMA IRQ flags
     // Set the DMA Channel configuration
     DMA_RX->CCR = DMA_PRIORITY_HIGH | DMA_MDATAALIGN_BYTE | DMA_PDATAALIGN_BYTE | DMA_MINC_ENABLE | DMA_PINC_DISABLE | DMA_NORMAL | DMA_PERIPH_TO_MEMORY;
     // Set peripheral request to DMAMUX channel
@@ -110,7 +110,7 @@ bool Init(uint8_t modbusAddress) {
     DMA_TX->CCR &= ~DMA_CCR_EN;
     // clear DMA flags
     DMAMUX_CHANNEL_STATUS_TX->CFR = DMAMUX_CHANNEL_STATUS_MASK_TX; // clear DMAMUX sync IRQ flag
-    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_TX & 0x1CU);   // clear all DMA IRQ flags
+    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_TX & 0x1CU); // clear all DMA IRQ flags
     // Set the DMA Channel configuration
     DMA_TX->CCR = DMA_PRIORITY_LOW | DMA_MDATAALIGN_BYTE | DMA_PDATAALIGN_BYTE | DMA_MINC_ENABLE | DMA_PINC_DISABLE | DMA_NORMAL | DMA_MEMORY_TO_PERIPH;
     // Set peripheral request to DMAMUX channel
@@ -144,7 +144,7 @@ void StartReceiving() {
 
     // clear DMA flags
     DMAMUX_CHANNEL_STATUS_RX->CFR = DMAMUX_CHANNEL_STATUS_MASK_RX; // clear DMAMUX sync IRQ flag
-    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_RX & 0x1CU);   // clear all DMA IRQ flags
+    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_RX & 0x1CU); // clear all DMA IRQ flags
 
     // Configure the source, destination address and the data length
     DMA_RX->CPAR = (uint32_t)(&USART->RDR);
@@ -152,7 +152,7 @@ void StartReceiving() {
     DMA_RX->CNDTR = RS485_BUFFER_SIZE;
 
     // Enable DMA interrupts
-    DMA_RX->CCR &= ~DMA_IT_HT;              // disable half-transfer
+    DMA_RX->CCR &= ~DMA_IT_HT; // disable half-transfer
     DMA_RX->CCR |= (DMA_IT_TC | DMA_IT_TE); // enable transfer-complete and transfer-error
 
     // Enable DMA
@@ -206,7 +206,7 @@ bool Transmit(uint8_t *pData, uint32_t dataSize) {
 
     // clear DMA flags
     DMAMUX_CHANNEL_STATUS_TX->CFR = DMAMUX_CHANNEL_STATUS_MASK_TX; // clear DMAMUX sync IRQ flag
-    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_TX & 0x1CU);   // clear all DMA IRQ flags
+    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_TX & 0x1CU); // clear all DMA IRQ flags
 
     // Configure the source, destination address and the data length
     DMA_TX->CPAR = (uint32_t)(&USART->TDR);
@@ -215,7 +215,7 @@ bool Transmit(uint8_t *pData, uint32_t dataSize) {
 
     // Enable DMA interrupts
     DMA_TX->CCR &= ~(DMA_IT_HT | DMA_IT_TC); // disable half-transfer and transfer-complete
-    DMA_TX->CCR |= (DMA_IT_TE);              // enable transfer-error
+    DMA_TX->CCR |= (DMA_IT_TE); // enable transfer-error
 
     // Enable DMA
     DMA_TX->CCR |= DMA_CCR_EN;

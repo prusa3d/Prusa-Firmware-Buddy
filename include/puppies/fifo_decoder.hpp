@@ -57,8 +57,13 @@ private:
 
     template <typename R, typename PAYLOAD_T>
     void make_call(std::function<R(PAYLOAD_T)> const &function) {
-        if (function && can_get<PAYLOAD_T>()) {
-            function(get<PAYLOAD_T>());
+        if (can_get<PAYLOAD_T>()) {
+            // Extract payload even when no callback function is defined to
+            // advance the data pointer to the next header.
+            PAYLOAD_T payload = get<PAYLOAD_T>();
+            if (function) {
+                function(payload);
+            }
         }
     }
 

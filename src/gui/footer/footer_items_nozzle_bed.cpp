@@ -210,9 +210,9 @@ int FooterItemAllNozzles::static_readValue() {
     }
 
     return keep_value; // Return nozzle number in higher 16 bits and shown temperature in lower 16 bits
-#else                  /*HAS_TOOLCHANGER()*/
+#else /*HAS_TOOLCHANGER()*/
     return static_cast<uint16_t>(marlin_vars()->active_hotend().temp_nozzle); // Nozzle 0 temperature
-#endif                 /*HAS_TOOLCHANGER()*/
+#endif /*HAS_TOOLCHANGER()*/
 }
 
 // This methods cannot be one - need separate buffers

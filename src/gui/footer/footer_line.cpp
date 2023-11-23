@@ -196,7 +196,7 @@ size_t FooterLine::split(Rectangles &returned_rects, const std::array<Rect16::Wi
 
 bool FooterLine::try_split(Rectangles &returned_rects, const std::array<Rect16::Width_t, max_items> &widths, size_t count) const {
     bool center = GetCenterN() >= count;
-    std::array<Rect16, array_sz> temp_rects;           // can have 2 extra empty rectangles
+    std::array<Rect16, array_sz> temp_rects; // can have 2 extra empty rectangles
     std::array<Rect16::Width_t, array_sz> temp_widths; // can have 2 extra 0 valuses
     size_t count_with_borders = 0;
 

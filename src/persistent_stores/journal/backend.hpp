@@ -86,7 +86,7 @@ public:
     static_assert(sizeof(BankHeader) == 6);
 
     enum class BankState {
-        Valid,     // found ending item or at least one item
+        Valid, // found ending item or at least one item
         MissingEndItem,
         Corrupted, // no valid transaction present
     };
@@ -129,8 +129,8 @@ public:
 
     struct Transaction {
         enum class Type {
-            migration,             // bank flipping
-            transaction,           // writing to normal bank
+            migration, // bank flipping
+            transaction, // writing to normal bank
             migrating_transaction, // writing to the next bank (needed during migrations from older version)
         };
 
@@ -209,7 +209,7 @@ public:
 
         std::array<uint8_t, sizeof(T)> buffer;
         memcpy(buffer.data(), &item_to_be_saved, sizeof(T)); // Load the buffer with data
-        save(hashed_id, { buffer.data(), sizeof(T) });       // Save the data into the backend
+        save(hashed_id, { buffer.data(), sizeof(T) }); // Save the data into the backend
     }
 
 private:
@@ -236,7 +236,7 @@ public:
     Address start_address;
     Offset bank_size;
 
-    Address current_address = 0;      // current position of the main bank 'end' (where next item will be stored ie without end item transaction)
+    Address current_address = 0; // current position of the main bank 'end' (where next item will be stored ie without end item transaction)
     Address current_next_address = 0; // current position of the next bank 'end' (needed for migrating_transaction)
     uint32_t current_bank_id = 0;
 

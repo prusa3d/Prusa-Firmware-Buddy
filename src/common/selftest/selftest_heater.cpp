@@ -10,6 +10,9 @@
 #include "algorithm_scale.hpp"
 #include <option/has_toolchanger.h>
 #include <common/nozzle_type.hpp>
+#include "advanced_power.hpp"
+#include <printers.h>
+#include "config_store/store_instance.hpp"
 
 using namespace selftest;
 LOG_COMPONENT_REF(Selftest);
@@ -28,8 +31,8 @@ CSelftestPart_Heater::CSelftestPart_Heater(IPartHandler &state_machine, const He
     , storedKi(config.refKi)
     , storedKd(config.refKd)
     , last_progress(0)
-    , log(2000) {
-}
+    , log(2000)
+    , check_log(3000) {}
 
 CSelftestPart_Heater::~CSelftestPart_Heater() {
     log_info(Selftest, "%s finish, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
@@ -88,7 +91,7 @@ LoopResult CSelftestPart_Heater::stateTakeControlOverFans() {
 LoopResult CSelftestPart_Heater::stateFansActivate() {
     if (enable_cooldown) {
         log_info(Selftest, "%s set fans to maximum", m_config.partname);
-        m_config.print_fan_fnc(m_config.tool_nr).SelftestSetPWM(255);     // it will be restored by ExitSelftestMode
+        m_config.print_fan_fnc(m_config.tool_nr).SelftestSetPWM(255); // it will be restored by ExitSelftestMode
         m_config.heatbreak_fan_fnc(m_config.tool_nr).SelftestSetPWM(255); // it will be restored by ExitSelftestMode
     }
     return LoopResult::RunNext;
@@ -135,7 +138,7 @@ LoopResult CSelftestPart_Heater::stateTargetTemp() {
 LoopResult CSelftestPart_Heater::stateWait() {
     float current_temp = m_config.getTemp();
     if (current_temp >= m_config.start_temp) {
-        rResult.prep_state = SelftestSubtestState_t::ok;      // preheat temperature ok
+        rResult.prep_state = SelftestSubtestState_t::ok; // preheat temperature ok
         rResult.heat_state = SelftestSubtestState_t::running; // waiting final heat
         m_MeasureStartTime = SelftestInstance().GetTime();
         m_StartTime = SelftestInstance().GetTime();
@@ -226,9 +229,62 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
     return LoopResult::RunNext;
 }
 
+LoopResult CSelftestPart_Heater::stateCheckLoadChecked() {
+    if (!power_check_passed) {
+        return LoopResult::Fail;
+    }
+    return LoopResult::RunNext;
+}
+
 void CSelftestPart_Heater::actualizeProgress(float current, float progres_start, float progres_end) const {
     if (progres_start >= progres_end)
-        return;                                                      // don't have estimated end set correctly
+        return; // don't have estimated end set correctly
     uint8_t current_progress = scale_percent_avoid_overflow(current, progres_start, progres_end);
     rResult.progress = std::max(rResult.progress, current_progress); // heater progress can only rise
 }
+
+// Currently supported only by XL, others needs to implement sensor reading, MK4 uses PowerCheckBoth to check its linked heaters
+#if PRINTER_IS_PRUSA_XL
+void CSelftestPart_Heater::single_check_callback() {
+    assert(m_config.type == heater_type_t::Nozzle || m_config.type == heater_type_t::Bed);
+
+    float voltage;
+    float current;
+    uint32_t pwm;
+
+    if (m_config.type == heater_type_t::Nozzle) {
+        current = advancedpower.get_nozzle_current(m_config.tool_nr);
+        voltage = advancedpower.get_nozzle_voltage(m_config.tool_nr);
+        pwm = advancedpower.get_nozzle_pwm(m_config.tool_nr);
+    } else {
+        voltage = 24; // Modular bed does not measure this
+        current = advancedpower.get_bed_current();
+        pwm = thermalManager.temp_bed.soft_pwm_amount;
+    }
+    float power = current * voltage;
+
+    // Filter both power and pwm using floating average to filter out sudden changes
+    power_avg = (power_avg * 99 + power) / 100;
+    pwm_avg = (pwm_avg * 99 + pwm) / 100;
+    power = power_avg;
+    pwm = pwm_avg;
+
+    LogDebugTimed(
+        check_log,
+        "%s %fV, %fA, %fW, pwm %i",
+        m_config.partname,
+        static_cast<double>(voltage),
+        static_cast<double>(current),
+        static_cast<double>(power),
+        pwm);
+
+    if (check.EvaluateHeaterStatus(pwm, m_config) == PowerCheck::status_t::stable) {
+        PowerCheck::load_t result = check.EvaluateLoad(pwm, power, m_config);
+        if (result != PowerCheck::load_t::in_range) {
+            state_machine.Fail();
+            log_error(Selftest, "%s %s.", m_config.partname, PowerCheck::LoadTexts(result));
+        }
+        power_check_passed = true;
+    }
+}
+#endif

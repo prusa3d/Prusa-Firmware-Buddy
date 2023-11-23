@@ -24,7 +24,7 @@ void PrusaGcodeSuite::M862_1() {
     // Get for which tool
     #if HAS_TOOLCHANGER()
     const uint8_t default_tool = active_extruder;
-    #else  /*HAS_TOOLCHANGER()*/
+    #else /*HAS_TOOLCHANGER()*/
     const uint8_t default_tool = 0;
     #endif /*HAS_TOOLCHANGER()*/
     uint8_t tool = parser.byteval('T', default_tool);

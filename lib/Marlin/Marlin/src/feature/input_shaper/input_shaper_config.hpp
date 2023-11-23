@@ -49,7 +49,7 @@ struct __attribute__((packed)) WeightAdjustConfig {
     // DO NOT CHANGE LAYOUT OF THIS CLASS WITHOUT CHANGING EEPROM CODE!
 
     float frequency_delta; // Hz
-    float mass_limit;      // g
+    float mass_limit; // g
 
     friend auto operator<=>(const WeightAdjustConfig &, const WeightAdjustConfig &) = default;
 };
@@ -109,4 +109,4 @@ constexpr float frequency_safe_max = 100.0;
 
 float clamp_frequency_to_safe_values(float frequency);
 
-}
+} // namespace input_shaper

@@ -107,7 +107,7 @@ uint32_t HAL_GetTick(void) {
 // override HAL weak function
 void HAL_IncTick(void) {
     ticks_ms_ctr += uwTickFreq; // increment ms value
-    ticks_us_base += 1000;      // also increment us value base by 1000
+    ticks_us_base += 1000; // also increment us value base by 1000
 }
 
 uint32_t ticks_ms() {

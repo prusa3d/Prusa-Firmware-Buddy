@@ -16,6 +16,7 @@
 #include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
 #include <option/has_dwarf.h>
+#include <ccm_thread.hpp>
 #include "bsod_gui.hpp"
 
 LOG_COMPONENT_DEF(Puppies, LOG_SEVERITY_DEBUG);
@@ -31,7 +32,7 @@ std::atomic<bool> stop_request = false; // when this is set to true, puppy task 
 static PuppyBootstrap::BootstrapResult bootstrap_puppies(PuppyBootstrap::BootstrapResult minimal_config) {
     // boostrap first
     log_info(Puppies, "Starting bootstrap");
-    PuppyBootstrap puppy_bootstrap([](PuppyBootstrap::Progress progress) {
+    PuppyBootstrap puppy_bootstrap(PuppyModbus::share_buffer(), [](PuppyBootstrap::Progress progress) {
         log_info(Puppies, "Bootstrap stage: %s", progress.description());
         osMutexWait(bootstrap_progress_lock_id, osWaitForever);
         bootstrap_progress = progress;
@@ -49,13 +50,13 @@ static void verify_puppies_running() {
     constexpr uint32_t WAIT_TIME = 5000;
     auto reacheability_wait_start = ticks_ms();
     do {
-        bool modular_bed_ok = !modular_bed.is_enabled() || (modular_bed.ping() == ModularBed::CommunicationStatus::OK);
+        bool modular_bed_ok = !modular_bed.is_enabled() || (modular_bed.ping() != CommunicationStatus::ERROR);
 
         uint8_t num_dwarfs_ok = 0, num_dwarfs_dead = 0;
 #if HAS_DWARF()
         for (Dwarf &dwarf : dwarfs) {
             if (dwarf.is_enabled()) {
-                if (dwarf.ping() == Dwarf::CommunicationStatus::OK) {
+                if (dwarf.ping() != CommunicationStatus::ERROR) {
                     ++num_dwarfs_ok;
                 } else {
                     ++num_dwarfs_dead;
@@ -99,7 +100,7 @@ static void puppy_task_loop() {
         if (stop_request)
             return;
 
-        uint32_t cycle_ticks = ticks_ms(); ///< Only one tick read per cycle
+        [[maybe_unused]] uint32_t cycle_ticks = ticks_ms(); ///< Only one tick read per cycle, value will be reused by last_ticks_ms()
         // One slow action
         bool worked = false;
 #if ENABLED(PRUSA_TOOLCHANGER)
@@ -116,7 +117,7 @@ static void puppy_task_loop() {
             bool more = true; ///< Pull while there is something in fifo
             // Pull fifo only this many times
             for (int active_fifo_attempts = 5; more && active_fifo_attempts > 0; active_fifo_attempts--) {
-                if (active.pull_fifo(more) != Dwarf::CommunicationStatus::OK) {
+                if (active.pull_fifo(more) == CommunicationStatus::ERROR) {
                     return;
                 }
             }
@@ -143,27 +144,31 @@ static void puppy_task_loop() {
                     }
 
                     // Fast refresh of non-selected dwarf
-                    if (dwarf.fifo_refresh(cycle_ticks, worked) != Dwarf::CommunicationStatus::OK) {
+                    CommunicationStatus status = dwarf.fifo_refresh(cycle_ticks);
+                    if (status == CommunicationStatus::ERROR) {
                         return;
                     }
+                    worked |= status == CommunicationStatus::OK;
                 } else {
                     // Slow refresh of non-selected dwarf
-                    if (dwarf.refresh(cycle_ticks, worked) != Dwarf::CommunicationStatus::OK) {
+                    CommunicationStatus status = dwarf.refresh();
+                    if (status == CommunicationStatus::ERROR) {
                         return;
                     }
+                    worked |= status == CommunicationStatus::OK;
                 }
             } else
 #endif
             {
                 // Try slow refresh of modular bed
-                if (modular_bed.refresh(cycle_ticks, worked) != ModularBed::CommunicationStatus::OK) {
+                if (modular_bed.refresh() == CommunicationStatus::ERROR) {
                     return;
                 }
             }
 #if ENABLED(PRUSA_TOOLCHANGER)
         } while (!worked && slow_stage != orig_stage); // End if we did some work or if no stage has anything to do
 #endif
-        osDelay(worked ? 1 : 2);                       // Longer delay if we did no work
+        osDelay(worked ? 1 : 2); // Longer delay if we did no work
     }
 }
 
@@ -172,12 +177,12 @@ static bool puppy_initial_scan() {
 #if HAS_DWARF()
     for (Dwarf &dwarf : dwarfs) {
         if (dwarf.is_enabled())
-            if (dwarf.initial_scan() != Dwarf::CommunicationStatus::OK)
+            if (dwarf.initial_scan() == CommunicationStatus::ERROR)
                 return false;
     }
 #endif
 
-    if (modular_bed.initial_scan() != ModularBed::CommunicationStatus::OK) {
+    if (modular_bed.initial_scan() == CommunicationStatus::ERROR) {
         return false;
     }
     return true;
@@ -238,7 +243,7 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
 #if ENABLED(PRUSA_TOOLCHANGER)
             // select active tool (previously active tool, or first one when starting)
             if (!prusa_toolchanger.init(toolchanger_first_run)) {
-                log_error(Puppies, "Unable to select tool, retring");
+                log_error(Puppies, "Unable to select tool, retrying");
                 break;
             }
             toolchanger_first_run = false;
@@ -269,7 +274,7 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
 void start_puppy_task() {
     bootstrap_progress_lock_id = osMutexCreate(osMutex(bootstrap_progress_lock));
 
-    osThreadDef(puppies, puppy_task_body, TASK_PRIORITY_PUPPY_TASK, 0, 128 * 6);
+    osThreadCCMDef(puppies, puppy_task_body, TASK_PRIORITY_PUPPY_TASK, 0, 512);
     puppy_task_handle = osThreadCreate(osThread(puppies), NULL);
 }
 

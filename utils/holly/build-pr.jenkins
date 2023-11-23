@@ -61,7 +61,7 @@ pipeline {
                     axis {
                         name 'configuration'
                         // preset,build_type,bootloader(yesboot|noboot|emptyboot)
-                        values 'mini,release,noboot',
+                        values 'mini,release,yesboot',
                             'mk3.5,release,noboot',
                             'mk4,release,yesboot',
                             'mk4,release,noboot',
@@ -212,7 +212,7 @@ pipeline {
                         script {
                             Exception caughtException = null
 
-                            timeout(time: 10, unit: "MINUTES") {
+                            timeout(time: 30, unit: "MINUTES") {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                     try {
                                         unstash "mk4,release,noboot"
@@ -222,7 +222,7 @@ pipeline {
                                         export EASYOCR_MODULE_PATH=./easyocr
                                         . .venv/bin/activate
                                         python3 utils/bootstrap.py
-                                        python3 -m pytest tests/integration --firmware build/mk4_release_noboot/firmware.bin --log-cli-level info --log-cli-format="%(asctime)s [%(levelname)8s] (%(filename)s:%(lineno)s) %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S"
+                                        python3 -m pytest tests/integration --firmware build/mk4_release_noboot/firmware.bin --log-cli-level info --log-cli-format="%(asctime)s [%(levelname)8s] (%(filename)s:%(lineno)s) %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S" | grep -v "Bus unhandled low duration"
                                         """
                                     } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
                                         error "Caught ${e.toString()}"

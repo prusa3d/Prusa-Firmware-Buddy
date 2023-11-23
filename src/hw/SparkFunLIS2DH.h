@@ -111,7 +111,7 @@ public:
 
     // Accelerometer settings
     uint16_t accelSampleRate; // Hz.  Can be: 0,1,10,25,50,100,200,400,1600,5000 Hz
-    uint8_t accelRange;       // Max G force readable.  Can be: 2, 4, 8, 16
+    uint8_t accelRange; // Max G force readable.  Can be: 2, 4, 8, 16
 
     uint8_t xAccelEnabled;
     uint8_t yAccelEnabled;

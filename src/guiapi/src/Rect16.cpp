@@ -300,7 +300,7 @@ void Rect16::horizontalSplit(Rect16 *splits, Width_t *widths, size_t count, Widt
         Width_t width_diff = width_space + widths[0]; // new rec will be this smaller
 
         // recalculate for recursive call
-        rect -= width_diff;         // rect is smaller
+        rect -= width_diff; // rect is smaller
         rect += Left_t(width_diff); // and cut from left side
         width_sum = width_sum - widths[0];
         --count;

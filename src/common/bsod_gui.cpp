@@ -22,10 +22,8 @@
 #include "hwio.h"
 #include "version.h"
 #include "support_utils.h"
-#include "str_utils.hpp"
 #include "error_codes.hpp"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
-#include "scratch_buffer.hpp"
 #include "power_panic.hpp"
 
 // this is private struct definition from FreeRTOS
@@ -41,10 +39,10 @@ typedef struct tskTaskControlBlock {
     xMPU_SETTINGS xMPUSettings; /*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE TCB STRUCT. */
 #endif
 
-    ListItem_t xStateListItem;                /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
-    ListItem_t xEventListItem;                /*< Used to reference a task from an event list. */
-    UBaseType_t uxPriority;                   /*< The priority of the task.  0 is the lowest priority. */
-    StackType_t *pxStack;                     /*< Points to the start of the stack. */
+    ListItem_t xStateListItem; /*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
+    ListItem_t xEventListItem; /*< Used to reference a task from an event list. */
+    UBaseType_t uxPriority; /*< The priority of the task.  0 is the lowest priority. */
+    StackType_t *pxStack; /*< Points to the start of the stack. */
     char pcTaskName[configMAX_TASK_NAME_LEN]; /*< Descriptive name given to the task when created.  Facilitates debugging only. */
     /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
 
@@ -57,7 +55,7 @@ typedef struct tskTaskControlBlock {
 #endif
 
 #if (configUSE_TRACE_FACILITY == 1)
-    UBaseType_t uxTCBNumber;  /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
+    UBaseType_t uxTCBNumber; /*< Stores a number that increments each time a TCB is created.  It allows debuggers to determine when a task has been deleted and then recreated. */
     UBaseType_t uxTaskNumber; /*< Stores a number specifically for use by third party trace code. */
 #endif
 
@@ -124,10 +122,7 @@ const ErrDesc &find_error(const ErrCode error_code) {
 
 void raise_redscreen(ErrCode error_code, const char *error, const char *module) {
 #ifdef _DEBUG
-    // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
+    buddy_breakpoint_disable_heaters();
 #endif /*_DEBUG*/
 
     crash_dump::save_message(crash_dump::MsgType::RSOD, ftrstd::to_underlying(error_code), error, module);
@@ -168,6 +163,11 @@ void fatal_error(const char *error, const char *module) {
     } else if (strcmp(MSG_ERR_MAXTEMP_HEATBREAK, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MAXTEMP_ERR);
     }
+#if PRINTER_IS_PRUSA_XL
+    else if (strcmp(MSG_ERR_NOZZLE_OVERCURRENT, error) == 0) {
+        fatal_error(ErrCode::ERR_ELECTRO_HEATER_HOTEND_OVERCURRENT, module);
+    }
+#endif
 
     // error code is not defined, raise redscreen with custom error message and error title
     raise_redscreen(error_code, error, module);
@@ -260,15 +260,12 @@ static void fallback_bsod(const char *fmt, const char *file_name, int line_numbe
 
 static bool use_fallback_bsod = true; ///< Use fallback BSOD before guimain is able to show a proper BSOD
 void bsod_mark_shown() {
-    use_fallback_bsod = false;        // BSOD would be shown now, can dump a new one
+    use_fallback_bsod = false; // BSOD would be shown now, can dump a new one
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 #ifdef _DEBUG
-    // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
+    buddy_breakpoint_disable_heaters();
 #endif /*_DEBUG*/
 
     va_list args;
@@ -284,7 +281,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     __disable_irq();
 
     // Save dump
-    DUMP_BSOD_TO_CCRAM();
+    DUMP_BSOD_TO_CCMRAM();
     crash_dump::save_dump();
 
     // Get file and line as title
@@ -309,13 +306,11 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 extern "C" void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, signed char *pcTaskName) {
     #ifdef _DEBUG
     // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
+    buddy_breakpoint_disable_heaters();
     #endif /*_DEBUG*/
 
     // Save registers
-    DUMP_STACK_OVF_TO_CCRAM();
+    DUMP_STACK_OVF_TO_CCMRAM();
     crash_dump::save_dump();
 
     // Save task name as title

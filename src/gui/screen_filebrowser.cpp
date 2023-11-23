@@ -31,15 +31,13 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
 }
 
 void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::MEDIA) {
-        MediaState_t media_state = MediaState_t(int(param));
-        if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
-            clearFirstVisibleSFN();
-            Screens::Access()->Close();
-        }
-    }
-
     switch (event) {
+    case GUI_event_t::MEDIA:
+        checkMissingMedia(MediaState_t(reinterpret_cast<int>(param)));
+        break;
+    case GUI_event_t::LOOP: // If media is removed during preprint, the even won't come
+        checkMissingMedia(GuiMediaEventsHandler::Get());
+        break;
     case GUI_event_t::CHILD_CLICK: {
         WindowFileBrowser::event_conversion_union un;
         un.pvoid = param;
@@ -54,6 +52,14 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, [[ma
     } break;
     default:
         break;
+    }
+}
+
+void screen_filebrowser_data_t::checkMissingMedia(MediaState_t media_state) {
+    if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
+        clearFirstVisibleSFN();
+        Screens::Access()->Get()->Validate(); // Do not redraw this
+        Screens::Access()->Close();
     }
 }
 

@@ -34,13 +34,13 @@ namespace MMU2 {
 static constexpr uint8_t supportedMmuFWVersion[3] PROGMEM = { mmuVersionMajor, mmuVersionMinor, mmuVersionPatch };
 
 const uint8_t ProtocolLogic::regs8Addrs[ProtocolLogic::regs8Count] PROGMEM = {
-    8,    // FINDA state
+    8, // FINDA state
     0x1b, // Selector slot
     0x1c, // Idler slot
 };
 
 const uint8_t ProtocolLogic::regs16Addrs[ProtocolLogic::regs16Count] PROGMEM = {
-    4,    // MMU errors - aka statistics
+    4, // MMU errors - aka statistics
     0x1a, // Pulley position [mm]
 };
 
@@ -188,7 +188,7 @@ StepStatus ProtocolLogic::ExpectingMessage() {
                 break;
             }
         }
-            [[fallthrough]];      // otherwise
+            [[fallthrough]]; // otherwise
         default:
             RecordUARTActivity(); // something has happened on the UART, update the timeout record
             return ProtocolError;
@@ -196,7 +196,7 @@ StepStatus ProtocolLogic::ExpectingMessage() {
     }
     if (bytesConsumed != 0) {
         RecordUARTActivity(); // something has happened on the UART, update the timeout record
-        return Processing;    // consumed some bytes, but message still not ready
+        return Processing; // consumed some bytes, but message still not ready
     } else if (Elapsed(linkLayerTimeout) && currentScope != Scope::Stopped) {
         return CommunicationTimeout;
     }
@@ -204,7 +204,6 @@ StepStatus ProtocolLogic::ExpectingMessage() {
 }
 
 void ProtocolLogic::SendMsg(RequestMsg rq) {
-    uint8_t txbuff[Protocol::MaxRequestSize()];
     uint8_t len = Protocol::EncodeRequest(rq, txbuff);
     uart->write(txbuff, len);
     LogRequestMsg(txbuff, len);
@@ -212,7 +211,6 @@ void ProtocolLogic::SendMsg(RequestMsg rq) {
 }
 
 void ProtocolLogic::SendWriteMsg(RequestMsg rq) {
-    uint8_t txbuff[Protocol::MaxRequestSize()];
     uint8_t len = Protocol::EncodeWriteRequest(rq.value, rq.value2, txbuff);
     uart->write(txbuff, len);
     LogRequestMsg(txbuff, len);
@@ -282,9 +280,9 @@ StepStatus ProtocolLogic::ScopeStep() {
         case Scope::StartSeq:
             return StartSeqStep(); // ~270B
         case Scope::Idle:
-            return IdleStep();     // ~300B
+            return IdleStep(); // ~300B
         case Scope::Command:
-            return CommandStep();  // ~430B
+            return CommandStep(); // ~430B
         case Scope::Stopped:
             return StoppedStep();
         default:
@@ -329,7 +327,7 @@ StepStatus ProtocolLogic::StartSeqStep() {
 StepStatus ProtocolLogic::DelayedRestartWait() {
     if (Elapsed(heartBeatPeriod)) { // this basically means, that we are waiting until there is some traffic on
         while (uart->read() != -1)
-            ;                       // clear the input buffer
+            ; // clear the input buffer
         // switch to StartSeq
         Start();
     }
@@ -373,6 +371,7 @@ StepStatus ProtocolLogic::ProcessCommandQueryResponse() {
         // It can also be an X0 F which means MMU just successfully restarted.
         if (ReqMsg().code == rsp.request.code && ReqMsg().value == rsp.request.value) {
             progressCode = ProgressCode::OK;
+            errorCode = ErrorCode::OK;
             scopeState = ScopeState::Ready;
             rq = RequestMsg(RequestMsgCodes::unknown, 0); // clear the successfully finished request
             return Finished;
@@ -717,14 +716,13 @@ void ProtocolLogic::FormatLastResponseMsgAndClearLRB(char *dst) {
     *dst++ = '<';
     for (uint8_t i = 0; i < lrb; ++i) {
         uint8_t b = lastReceivedBytes[i];
-        if (b < 32)
-            b = '.';
-        if (b > 127)
+        // Check for printable character, including space
+        if (b < 32 || b > 127)
             b = '.';
         *dst++ = b;
     }
     *dst = 0; // terminate properly
-    lrb = 0;  // reset the input buffer index in case of a clean message
+    lrb = 0; // reset the input buffer index in case of a clean message
 }
 
 void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
@@ -733,9 +731,8 @@ void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
     static char lastMsg[rqs] = "";
     for (uint8_t i = 0; i < size; ++i) {
         uint8_t b = txbuff[i];
-        if (b < 32)
-            b = '.';
-        if (b > 127)
+        // Check for printable character, including space
+        if (b < 32 || b > 127)
             b = '.';
         tmp[i + 1] = b;
     }
@@ -806,7 +803,7 @@ StepStatus ProtocolLogic::Step() {
         // But the trouble is we must report a finished command if the previous command has just been finished
         // i.e. only try to find some planned command if we just finished the Idle cycle
         bool previousCommandFinished = currentScope == Scope::Command; // @@TODO this is a nasty hack :(
-        if (!ActivatePlannedRequest()) {                               // if nothing is planned, switch to Idle
+        if (!ActivatePlannedRequest()) { // if nothing is planned, switch to Idle
             SwitchToIdle();
         } else {
             // if the previous cycle was Idle and now we have planned a new command -> avoid returning Finished

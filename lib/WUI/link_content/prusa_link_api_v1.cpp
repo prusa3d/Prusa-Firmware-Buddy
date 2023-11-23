@@ -172,12 +172,16 @@ optional<ConnectionState> PrusaLinkApiV1::accept(const RequestParser &parser) co
         }
         switch (parser.method) {
         case Method::Put: {
-            GcodeUpload::PutParams putParams;
-            putParams.overwrite = parser.overwrite_file;
-            putParams.print_after_upload = parser.print_after_upload;
-            strlcpy(putParams.filepath.data(), filename, sizeof(putParams.filepath));
-            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(putParams));
-            return std::visit([](auto upload) -> ConnectionState { return upload; }, std::move(upload));
+            if (parser.create_folder) {
+                return create_folder(filename, parser);
+            } else {
+                GcodeUpload::PutParams putParams;
+                putParams.overwrite = parser.overwrite_file;
+                putParams.print_after_upload = parser.print_after_upload;
+                strlcpy(putParams.filepath.data(), filename, sizeof(putParams.filepath));
+                auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(putParams));
+                return std::visit([](auto upload) -> ConnectionState { return upload; }, std::move(upload));
+            }
         }
         case Method::Get: {
             return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1, etag);

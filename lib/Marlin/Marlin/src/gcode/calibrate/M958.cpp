@@ -19,6 +19,7 @@
 #include <numbers>
 #include <limits>
 #include <bit>
+#include <option/has_puppies.h>
 
 // #define M958_OUTPUT_SAMPLES
 // #define M958_VERBOSE
@@ -163,6 +164,11 @@ struct FrequencyGain3D {
     float gain[3];
 };
 
+struct FrequencyGain3dError {
+    FrequencyGain3D frequencyGain3D;
+    bool error;
+};
+
 class MicrostepRestorer {
 public:
     MicrostepRestorer() {
@@ -250,10 +256,11 @@ static bool is_full() {
 }
 
 static void enqueue_step(int step_us, bool dir, StepEventFlag_t axis_flags) {
+    assert(step_us <= STEP_TIMER_MAX_TICKS_LIMIT);
     uint16_t next_queue_head = 0;
 
     CRITICAL_SECTION_START;
-    step_event_t *step_event = PreciseStepping::get_next_free_step_event(next_queue_head);
+    step_event_u16_t *step_event = PreciseStepping::get_next_free_step_event(next_queue_head);
     step_event->time_ticks = step_us;
     step_event->flags = axis_flags;
     if (dir)
@@ -322,7 +329,7 @@ static float get_zv_shaper_damping_ratio(float resonant_gain) {
  */
 static
 #if ENABLED(ACCELEROMETER)
-    FrequencyGain3D
+    FrequencyGain3dError
 #else
     void
 #endif
@@ -334,6 +341,32 @@ static
 #if ENABLED(ACCELEROMETER)
     const float acceleration = generator.getAcceleration(frequency);
     PrusaAccelerometer accelerometer;
+    if (PrusaAccelerometer::Error error = accelerometer.get_error(); PrusaAccelerometer::Error::none != error) {
+        switch (error) {
+        case PrusaAccelerometer::Error::communication:
+            SERIAL_ERROR_MSG("accelerometer communication");
+            break;
+        case PrusaAccelerometer::Error::no_active_tool:
+            SERIAL_ERROR_MSG("no active tool");
+            break;
+        case PrusaAccelerometer::Error::busy:
+            SERIAL_ERROR_MSG("busy");
+            break;
+    #if HAS_PUPPIES()
+        case PrusaAccelerometer::Error::corrupted_transmission_error:
+        case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
+    #endif
+        case PrusaAccelerometer::Error::corrupted_buddy_overflow:
+            SERIAL_ERROR_MSG("corrupted");
+            break;
+        case PrusaAccelerometer::Error::none:
+            assert(0); // can never happen
+            break;
+        }
+        FrequencyGain3dError retval;
+        retval.error = true;
+        return retval;
+    }
 
     Acumulator acumulator = {};
     const float freq_2pi = std::numbers::pi_v<float> * frequency * 2.f;
@@ -484,7 +517,7 @@ static
         SERIAL_ECHOLNPAIR_F(" ", z_gain, 5);
     }
     #endif
-    FrequencyGain3D retval = { frequency, x_gain, y_gain, z_gain };
+    FrequencyGain3dError retval = { { frequency, x_gain, y_gain, z_gain }, false };
     metric_record_custom(&metric_freq_gain, " a=%d,f=%.1f,x=%.4f,y=%.4f,z=%.4f",
         axis_flag & (STEP_EVENT_FLAG_STEP_X | STEP_EVENT_FLAG_STEP_Y), frequency, x_gain, y_gain, z_gain);
     return retval;
@@ -706,8 +739,10 @@ static void naive_zv_tune(StepEventFlag_t axis_flag, float start_frequency, floa
     }
 
     for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
-        FrequencyGain3D frequencyGain3D = vibrate_measure(axis_flag, false, frequency_requested, acceleration_requested, step_len, cycles, calibrate_accelerometer);
-        FrequencyGain frequencyGain = { frequencyGain3D.frequency, frequencyGain3D.gain[logicalAxis] };
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure(axis_flag, false, frequency_requested, acceleration_requested, step_len, cycles, calibrate_accelerometer);
+        if (frequencyGain3dError.error)
+            return;
+        FrequencyGain frequencyGain = { frequencyGain3dError.frequencyGain3D.frequency, frequencyGain3dError.frequencyGain3D.gain[logicalAxis] };
         calibrate_accelerometer = false;
         if (frequencyGain.gain > maxFrequencyGain.gain) {
             maxFrequencyGain = frequencyGain;
@@ -990,12 +1025,14 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
 
     bool calibrate_accelerometer = true;
     for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
-        FrequencyGain3D frequencyGain3D = vibrate_measure(axis_flag, true, frequency_requested, acceleration_requested, step_len, cycles, calibrate_accelerometer);
+        FrequencyGain3dError frequencyGain3dError = vibrate_measure(axis_flag, true, frequency_requested, acceleration_requested, step_len, cycles, calibrate_accelerometer);
+        if (frequencyGain3dError.error)
+            return;
         calibrate_accelerometer = false;
         if (subtract_excitation) {
-            frequencyGain3D.gain[logicalAxis] = max(frequencyGain3D.gain[logicalAxis] - 1.f, 0.f);
+            frequencyGain3dError.frequencyGain3D.gain[logicalAxis] = max(frequencyGain3dError.frequencyGain3D.gain[logicalAxis] - 1.f, 0.f);
         }
-        const float psd_xyz = sq(frequencyGain3D.gain[0]) + sq(frequencyGain3D.gain[1]) + sq(frequencyGain3D.gain[2]);
+        const float psd_xyz = sq(frequencyGain3dError.frequencyGain3D.gain[0]) + sq(frequencyGain3dError.frequencyGain3D.gain[1]) + sq(frequencyGain3dError.frequencyGain3D.gain[2]);
         psd.put(psd_xyz);
     }
 

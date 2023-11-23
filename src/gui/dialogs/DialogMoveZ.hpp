@@ -17,16 +17,16 @@ private:
     constexpr static const char *const axisLabel = N_("Z-axis");
 #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
     constexpr static const char *const infoTextContent = N_("Turn the knob to move Heatbed");
-#else                                            /*PRINTER_TYPE*/
+#else /*PRINTER_TYPE*/
     constexpr static const char *const infoTextContent = N_("Turn the knob to move Z-axis");
-#endif                                           /*PRINTER_TYPE*/
+#endif /*PRINTER_TYPE*/
     constexpr static const char *const closeTextContent = N_("Click the knob to close");
     constexpr static const char *const upTextContent = N_("UP");
     constexpr static const char *const downTextContent = N_("DOWN");
     float prev_accel;
 
     int32_t value;
-    int32_t lastQueuedPos;
+    float lastQueuedPos;
 
     window_text_t axisText;
     window_text_t infoText;

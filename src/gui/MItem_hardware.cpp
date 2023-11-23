@@ -11,14 +11,14 @@
         #include <filament_sensors_handler_XL_remap.hpp>
         #include <gui_fsensor_api.hpp>
     #endif /*HAS_SIDE_FSENSOR()*/
-#endif     /*HAS_TOOLCHANGER()*/
+#endif /*HAS_TOOLCHANGER()*/
 
 #if ENABLED(PRUSA_TOOLCHANGER)
 MI_NOZZLE_DIAMETER::MI_NOZZLE_DIAMETER(int tool_idx, is_hidden_t with_toolchanger)
     : WiSpinFlt(get_eeprom(tool_idx), SpinCnf::nozzle_diameter, _(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? with_toolchanger : is_hidden_t::no) //< Hide if toolchanger is enabled
     , tool_idx(tool_idx) {
 }
-#else  /*ENABLED(PRUSA_TOOLCHANGER)*/
+#else /*ENABLED(PRUSA_TOOLCHANGER)*/
 MI_NOZZLE_DIAMETER::MI_NOZZLE_DIAMETER(int tool_idx, [[maybe_unused]] is_hidden_t with_toolchanger)
     : WiSpinFlt(get_eeprom(tool_idx), SpinCnf::nozzle_diameter, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , tool_idx(tool_idx) {
@@ -64,12 +64,12 @@ MI_SIDE_FSENSOR_REMAP::MI_SIDE_FSENSOR_REMAP()
 
 void MI_SIDE_FSENSOR_REMAP::OnChange([[maybe_unused]] size_t old_index) {
     if (uint8_t mask = side_fsensor_remap::ask_to_remap(); mask != 0) { // Ask user to remap
-        Screens::Access()->Get()->Validate();                           // Do not redraw this menu yet
-        index = side_fsensor_remap::is_remapped();                      // Change index by what user selected
-        Validate();                                                     // Do not redraw this switch yet
-        marlin_client::test_start_for_tools(stmFSensor, mask);          // Start filament sensor calibration for moved tools
+        Screens::Access()->Get()->Validate(); // Do not redraw this menu yet
+        index = side_fsensor_remap::is_remapped(); // Change index by what user selected
+        Validate(); // Do not redraw this switch yet
+        marlin_client::test_start_for_tools(stmFSensor, mask); // Start filament sensor calibration for moved tools
     } else {
-        index = side_fsensor_remap::is_remapped();                      // Change index by what user selected
+        index = side_fsensor_remap::is_remapped(); // Change index by what user selected
     }
 }
 #endif /*HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()*/

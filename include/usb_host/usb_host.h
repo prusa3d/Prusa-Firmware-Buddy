@@ -18,6 +18,8 @@ typedef enum {
 
 void MX_USB_HOST_Init(void);
 
+bool device_connected_at_startup();
+
 #ifdef __cplusplus
 }
 #endif

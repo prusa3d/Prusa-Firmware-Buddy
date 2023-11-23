@@ -5,14 +5,14 @@
 #include <stdio.h>
 #include "mapfile.h"
 
-#define DUMP_RAM_ADDR   0x20000000
-#define DUMP_RAM_SIZE   0x00020000
-#define DUMP_CCRAM_ADDR 0x10000000
-#define DUMP_CCRAM_SIZE 0x00010000
-#define DUMP_OTP_ADDR   0x1fff0000
-#define DUMP_OTP_SIZE   0x00008000
-#define DUMP_FLASH_ADDR 0x08000000
-#define DUMP_FLASH_SIZE 0x00100000
+#define DUMP_RAM_ADDR    0x20000000
+#define DUMP_RAM_SIZE    0x00020000
+#define DUMP_CCMRAM_ADDR 0x10000000
+#define DUMP_CCMRAM_SIZE 0x00010000
+#define DUMP_OTP_ADDR    0x1fff0000
+#define DUMP_OTP_SIZE    0x00008000
+#define DUMP_FLASH_ADDR  0x08000000
+#define DUMP_FLASH_SIZE  0x00100000
 
 #define DUMP_REGS_GEN 0x1000ff00
 #define DUMP_REGS_SCB 0x1000ff60
@@ -66,13 +66,13 @@ typedef struct _dump_info_t {
 } dump_info_t;
 
 typedef struct _dump_mallinfo_t {
-    uint32_t arena;    /* total space allocated from system */
-    uint32_t ordblks;  /* number of non-inuse chunks */
-    uint32_t smblks;   /* unused -- always zero */
-    uint32_t hblks;    /* number of mmapped regions */
-    uint32_t hblkhd;   /* total space in mmapped regions */
-    uint32_t usmblks;  /* unused -- always zero */
-    uint32_t fsmblks;  /* unused -- always zero */
+    uint32_t arena; /* total space allocated from system */
+    uint32_t ordblks; /* number of non-inuse chunks */
+    uint32_t smblks; /* unused -- always zero */
+    uint32_t hblks; /* number of mmapped regions */
+    uint32_t hblkhd; /* total space in mmapped regions */
+    uint32_t usmblks; /* unused -- always zero */
+    uint32_t fsmblks; /* unused -- always zero */
     uint32_t uordblks; /* total allocated space */
     uint32_t fordblks; /* total non-inuse space */
     uint32_t keepcost; /* top-most, releasable (via malloc_trim) space */
@@ -80,7 +80,7 @@ typedef struct _dump_mallinfo_t {
 
 typedef struct _dump_t {
     uint8_t *ram;
-    uint8_t *ccram;
+    uint8_t *ccmram;
     uint8_t *otp;
     uint8_t *flash;
     dump_regs_gen_t *regs_gen;

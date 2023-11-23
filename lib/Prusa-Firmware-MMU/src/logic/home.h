@@ -20,7 +20,7 @@ namespace logic {
 /// This high-level command is just a way to invoke re-homing from the printer while all safety measures are kept.
 class Home : public CommandBase {
 public:
-    inline Home()
+    inline constexpr Home()
         : CommandBase() {}
 
     /// Restart the automaton

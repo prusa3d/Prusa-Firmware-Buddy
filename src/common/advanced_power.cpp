@@ -13,6 +13,10 @@
     #include "bsod_gui.hpp"
 #endif
 
+#if BOARD_IS_XLBUDDY
+    #include <puppies/modular_bed.hpp>
+#endif
+
 using namespace buddy::hw;
 
 AdvancedPower advancedpower;
@@ -92,5 +96,11 @@ void AdvancedPower::Update() {
 #if HAS_MMU2()
 bool AdvancedPower::MMUOvercurentFaultDetected() const {
     return (MMUFault.read() == Pin::State::high);
+}
+#endif
+
+#if BOARD_IS_XLBUDDY
+float AdvancedPower::get_bed_current() {
+    return buddy::puppies::modular_bed.get_heater_current();
 }
 #endif

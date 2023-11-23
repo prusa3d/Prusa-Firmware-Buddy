@@ -53,14 +53,14 @@ Backlash backlash;
 
 /**
  * To minimize seams in the printed part, backlash correction only adds
- * steps to the current segment (instead of creating a new segment, which
+ * mini-steps to the current segment (instead of creating a new segment, which
  * causes discontinuities and print artifacts).
  *
  * With a non-zero BACKLASH_SMOOTHING_MM value the backlash correction is
  * spread over multiple segments, smoothing out artifacts even more.
  */
 
-void Backlash::add_correction_steps(const int32_t &da, const int32_t &db, const int32_t &dc, const uint8_t dm, block_t * const block) {
+void Backlash::add_correction_msteps(const int32_t &da, const int32_t &db, const int32_t &dc, const uint8_t dm, block_t * const block) {
   static uint8_t last_direction_bits;
   uint8_t changed_dir = last_direction_bits ^ dm;
   // Ignore direction change if no steps are taken in that direction
@@ -96,7 +96,7 @@ void Backlash::add_correction_steps(const int32_t &da, const int32_t &db, const 
 
       // When an axis changes direction, add axis backlash to the residual error
       if (TEST(changed_dir, axis))
-        residual_error[axis] += (reversing ? -f_corr : f_corr) * distance_mm[axis] * planner.settings.axis_steps_per_mm[axis];
+        residual_error[axis] += (reversing ? -f_corr : f_corr) * distance_mm[axis] * planner.settings.axis_msteps_per_mm[axis];
 
       // Decide how much of the residual error to correct in this segment
       int32_t error_correction = residual_error[axis];
@@ -115,7 +115,7 @@ void Backlash::add_correction_steps(const int32_t &da, const int32_t &db, const 
       #endif
       // Making a correction reduces the residual error and modifies delta_mm
       if (error_correction) {
-        block->steps[axis] += ABS(error_correction);
+        block->msteps[axis] += ABS(error_correction);
         residual_error[axis] -= error_correction;
       }
     }

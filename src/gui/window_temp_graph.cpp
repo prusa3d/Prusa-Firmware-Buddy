@@ -44,7 +44,7 @@ void window_temp_graph_t::draw_axes(bool wipe_before_draw, bool xy_only) {
 
     if (wipe_before_draw)
         super::unconditionalDraw();
-    display::DrawLine(point_ui16(x, y - 1), point_ui16(x, y + h - 1), COLOR_WHITE);             // y
+    display::DrawLine(point_ui16(x, y - 1), point_ui16(x, y + h - 1), COLOR_WHITE); // y
     display::DrawLine(point_ui16(x, y + h - 1), point_ui16(x + w - 1, y + h - 1), COLOR_WHITE); // x
 
     if (!xy_only) {
@@ -52,7 +52,7 @@ void window_temp_graph_t::draw_axes(bool wipe_before_draw, bool xy_only) {
         for (j = 25; j < 175; j += 25)
             display::DrawLine(point_ui16(x + 1, y + h - j), point_ui16(x + w - 1, y + h - j), COLOR_GRAY); // x
         for (j = 25; j < 175; j += 25)
-            display::DrawLine(point_ui16(x + j, y + h), point_ui16(x + j, y + h - 5), COLOR_GRAY);         //-50
+            display::DrawLine(point_ui16(x + j, y + h), point_ui16(x + j, y + h - 5), COLOR_GRAY); //-50
     }
 }
 

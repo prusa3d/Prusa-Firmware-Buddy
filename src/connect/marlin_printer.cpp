@@ -23,6 +23,7 @@
 
 using printer_state::DeviceState;
 using printer_state::get_state;
+using std::atomic;
 using std::move;
 using std::nullopt;
 using namespace marlin_server;
@@ -127,6 +128,8 @@ namespace {
         return 20;
     }
 } // namespace
+
+atomic<bool> MarlinPrinter::ready = false;
 
 MarlinPrinter::MarlinPrinter() {
     marlin_client::init();
@@ -331,6 +334,8 @@ const char *MarlinPrinter::delete_file(const char *path) {
     auto result = remove_file(path);
     if (result == DeleteResult::Busy) {
         return "File is busy";
+    } else if (result == DeleteResult::ActiveTransfer) {
+        return "File is being transferred";
     } else if (result == DeleteResult::GeneralError) {
         return "Error deleting file";
     } else {
@@ -343,16 +348,31 @@ void MarlinPrinter::submit_gcode(const char *code) {
 }
 
 bool MarlinPrinter::set_ready(bool ready) {
-    if (ready && !printer_state::remote_print_ready(false)) {
-        return false;
-    }
-
-    this->ready = ready;
-    return true;
+    // Just wrapping the static method into the virtual one...
+    return set_printer_ready(ready);
 }
 
 bool MarlinPrinter::is_printing() const {
     return marlin_client::is_printing();
+}
+
+bool MarlinPrinter::is_idle() const {
+    return marlin_client::is_idle();
+}
+
+bool MarlinPrinter::is_printer_ready() {
+    // The value is brought down (maybe with some delay) when we start printing
+    // or something like that. Therefore it is enough to just read the flag.
+    return ready;
+}
+
+bool MarlinPrinter::set_printer_ready(bool ready) {
+    if (ready && !printer_state::remote_print_ready(false)) {
+        return false;
+    }
+
+    MarlinPrinter::ready = ready;
+    return true;
 }
 
 } // namespace connect_client

@@ -19,6 +19,8 @@ std::optional<handler::ConnectionState> parse_file_url(const handler::RequestPar
 
 handler::StatusPage delete_file(const char *filename, const handler::RequestParser &parser);
 
+handler::StatusPage create_folder(const char *filename, const handler::RequestParser &parser);
+
 handler::StatusPage print_file(char *filename, const handler::RequestParser &parser);
 
 handler::ConnectionState get_only(handler::ConnectionState state, const handler::RequestParser &parser);

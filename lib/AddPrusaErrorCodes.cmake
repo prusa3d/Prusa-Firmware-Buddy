@@ -40,12 +40,7 @@ endfunction()
 
 set(error_codes_dir "${CMAKE_CURRENT_SOURCE_DIR}/Prusa-Error-Codes")
 
-if(EXISTS "${error_codes_dir}/${PRINTER_CODE}_${PRINTER}/error-codes.yaml")
-  add_generated_error_codes_header("${error_codes_dir}/${PRINTER_CODE}_${PRINTER}" FALSE)
-else()
-  # temporary: use MINI codes as a fallback if not present for the printer
-  add_generated_error_codes_header("${error_codes_dir}/12_MINI" FALSE)
-endif()
+add_generated_error_codes_header("${error_codes_dir}/${PRINTER_CODE}_${PRINTER}" FALSE)
 
 # TODO temporarily build the mmu header, not easy to separate the mmu code, needs refactor
 # if(HAS_MMU2)

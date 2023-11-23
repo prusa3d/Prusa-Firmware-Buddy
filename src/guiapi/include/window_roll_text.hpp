@@ -19,6 +19,12 @@ class window_roll_text_t : public AddSuperWindow<window_text_t> {
 public:
     window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR(), Align_t align = GuiDefaults::Align());
     virtual void SetText(string_view_utf8 txt) override;
+    /**
+     * @brief Sets the Rect
+     *
+     * @return true if a change was done, false if no change
+     */
+    bool SetRect(Rect16 rect);
 
 protected:
     virtual void unconditionalDraw() override;

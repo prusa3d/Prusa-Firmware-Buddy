@@ -73,7 +73,7 @@ struct DequeStates {
  */
 class Queue {
     std::optional<Change> data_to_send; // single element queue, nullopt == empty
-    Change last_sent_data;              // not optional, set to ClientFSM::_none, changes during send, can prevent unnecessary send
+    Change last_sent_data; // not optional, set to ClientFSM::_none, changes during send, can prevent unnecessary send
 
     const QueueIndex index;
 

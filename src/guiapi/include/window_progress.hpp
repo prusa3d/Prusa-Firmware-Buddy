@@ -36,6 +36,7 @@ public:
     void SetProgressColor(color_t clr);
     void SetNumbColor(color_t clr);
     void SetProgressHeight(Rect16::Height_t height);
+    void SetProgressPercent(uint8_t val);
 };
 
 class window_vertical_progress_t : public AddSuperWindow<window_t> {

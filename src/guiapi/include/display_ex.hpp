@@ -43,6 +43,23 @@ uint8_t *display_ex_get_block(point_ui16_t start, point_ui16_t end);
  ***************************************************************************************************/
 void display_ex_draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint8_t cor_rad, uint8_t cor_flag, color_t secondary_col);
 
+/**
+ * @brief Borrow display buffer.
+ * @note This can be used only from the gui thread.
+ * @note The buffer needs to be returned before it is used by display.
+ * @return Pointer to display buffer.
+ */
+uint8_t *display_ex_borrow_buffer();
+
+/**
+ * @brief Return display buffer so it can be used by display or someone else.
+ */
+void display_ex_return_buffer();
+
+/**
+ * @brief Get size of display buffer.
+ * @return size of display buffer in bytes
+ */
 uint32_t display_ex_buffer_pixel_size();
 
 void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
@@ -54,12 +71,11 @@ void display_ex_set_pixel_displayNativeColor(point_ui16_t pt, uint16_t noClr);
 uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt);
 
 /**
- * @brief draws png from config
- * not taking file directly is important, because png file can contain multiple pngs (ram optimization)
+ * @brief draws qoi from config
  * @param pt                    top left point
- * @param png                   png config file
+ * @param qoi                   qoi resource
  * @param back_color            background color
  * @param rop                   raster config struct
- * @param subrect               sub rectangle inside png - area to draw
+ * @param subrect               sub rectangle inside image - area to draw
  */
-void display_ex_draw_png(point_ui16_t pt, const img::Resource &png, color_t back_color, ropfn rop, Rect16 subrect);
+void display_ex_draw_qoi(point_ui16_t pt, const img::Resource &qoi, color_t back_color, ropfn rop, Rect16 subrect);

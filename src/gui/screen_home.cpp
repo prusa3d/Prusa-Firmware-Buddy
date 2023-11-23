@@ -9,6 +9,7 @@
 #include "screen_filebrowser.hpp"
 #include "print_utils.hpp"
 #include "gui_fsensor_api.hpp"
+#include "filename_type.hpp"
 #include <wui_api.h>
 #include <espif.h>
 
@@ -28,7 +29,7 @@
 #include "filament_sensors_handler.hpp"
 
 #include "RAII.hpp"
-#include "lazyfilelist.h"
+#include "lazyfilelist.hpp"
 #include "i18n.h"
 #include "i2c.hpp"
 #include "netdev.h"
@@ -54,6 +55,7 @@
 #include <crash_dump/crash_dump_handlers.hpp>
 #include "box_unfinished_selftest.hpp"
 #include <option/has_control_menu.h>
+#include <transfers/transfer_file_check.hpp>
 
 // TODO remove netdev_is_enabled after it is defined
 bool __attribute__((weak)) netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) { return true; }
@@ -168,7 +170,7 @@ screen_home_data_t::screen_home_data_t()
 #endif // USE_ST7789
     , w_buttons {
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), nullptr, []() { marlin_client::gcode_printf("M1700"); } },
+        { this, Rect16(), nullptr, []() { marlin_client::gcode_printf("M1700 T-1"); } },
         { this, Rect16(), nullptr, FilamentBtn_cb },
 #if HAS_CONTROL_MENU()
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
@@ -185,8 +187,7 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no }
-    },
-    gcode(GCodeInfo::getInstance()) {
+    } {
     // clang-format on
 
     EnableLongHoldScreenAction();
@@ -194,10 +195,12 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     WindowFileBrowser::SetRoot("/usb");
 
+#ifndef USE_ST7789
     header.SetIcon(&img::home_shape_16x16);
+#endif
 #if !defined(_DEBUG) && !DEVELOPER_MODE()
     // regular home screen
-    #if not PRINTER_IS_PRUSA_MK4
+    #if !PRINTER_IS_PRUSA_MK4
     header.SetText(_("INPUT SHAPER (ALPHA)"));
     #else
     header.SetText(_("INPUT SHAPER"));
@@ -210,7 +213,7 @@ screen_home_data_t::screen_home_data_t()
     #elif DEVELOPER_MODE() && !defined(_DEBUG)
     static const uint8_t msgHome[] = "HOME - DEV";
     #else
-    static const uint8_t msgHome[] = "HOME - DEBUG - what a beautiful rolling text";
+    static const uint8_t msgHome[] = "HOME - DEBUG - what a beautiful rolling text!!!!!";
     #endif
     header.SetText(string_view_utf8::MakeCPUFLASH(msgHome)); // intentionally not translated
 #endif
@@ -280,7 +283,7 @@ void screen_home_data_t::handle_crash_dump() {
     if (present_dumps.size() == 0) {
         return;
     }
-    if (MsgBoxWarning(_("Crash detected. Save it to USB?"), Responses_YesNo)
+    if (MsgBoxWarning(_("Crash detected. Save it to USB and send it to Prusa?"), Responses_YesNo)
         == Response::Yes) {
         auto do_stage = [&](string_view_utf8 msg, std::invocable<const ::crash_dump::DumpHandler *> auto fp) {
             MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, &img::info_58x58);
@@ -293,6 +296,7 @@ void screen_home_data_t::handle_crash_dump() {
         };
 
         do_stage(_("Saving to USB"), [](const ::crash_dump::DumpHandler *handler) { handler->usb_save(); });
+        do_stage(_("Sending to Prusa"), [](const ::crash_dump::DumpHandler *handler) { handler->server_upload(); });
     }
 
     for (const auto &dump_handler : present_dumps) {
@@ -325,8 +329,7 @@ void screen_home_data_t::on_enter() {
         }
     }
 
-    // MK4 is releasing input shaper and therefore is warning no longer required
-    #if not PRINTER_IS_PRUSA_MK4
+    #if !(PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX)
     static bool input_shaper_warning_shown = false;
     if (!input_shaper_warning_shown) {
         input_shaper_warning_shown = true;
@@ -431,6 +434,7 @@ bool screen_home_data_t::find_latest_gcode(char *fpath, int fpath_len, char *fna
     fname[0] = 0;
     strlcpy(fpath, "/usb", fpath_len);
     F_DIR_RAII_Iterator dir(fpath);
+    MutablePath dir_path { fpath };
     fpath[4] = '/';
 
     if (dir.result == ResType::NOK) {
@@ -442,12 +446,15 @@ bool screen_home_data_t::find_latest_gcode(char *fpath, int fpath_len, char *fna
 
     while (dir.FindNext()) {
         // skip folders
-        if ((dir.fno->d_type & DT_DIR) != 0) {
+        MutablePath dpath { dir_path }; // copy to avoid having to pop d_name every time
+        dpath.push(dir.fno->d_name);
+
+        if ((dir.fno->d_type & DT_DIR) != 0 && !transfers::is_valid_transfer(dpath)) {
             continue;
         }
 
-        if (LessFE(dir.fno, entry)) {
-            entry.CopyFrom(dir.fno);
+        if (LessFE({ *dir.fno, dpath }, entry)) {
+            entry.CopyFrom({ *dir.fno, dpath });
 
             strlcpy(fpath + 5, dir.fno->d_name, fpath_len - 5);
             strlcpy(fname, entry.lfn, fname_len);

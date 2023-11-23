@@ -46,7 +46,7 @@ static void sample_timer(uint32_t &sec, uint32_t &subsec) {
 
     do {
         sec_1st_read = tick_cnt_s;
-        lower_cnt = TICK_TIMER_CNT;         // Will be in range 0 .. TIM_BASE_CLK_MHZ * million - 1
+        lower_cnt = TICK_TIMER_CNT; // Will be in range 0 .. TIM_BASE_CLK_MHZ * million - 1
         sec_2nd_read = tick_cnt_s;
     } while (sec_1st_read != sec_2nd_read); // Repeat if overflow of the timer has happened
 
@@ -72,11 +72,17 @@ extern "C" uint32_t ticks_s() {
     return tick_cnt_s;
 }
 
+static uint32_t last_ms;
 extern "C" uint32_t ticks_ms() {
     uint32_t sec, subsec;
     sample_timer(sec, subsec);
 
-    return sec * thousand + subsec / (TIM_BASE_CLK_MHZ * thousand);
+    last_ms = sec * thousand + subsec / (TIM_BASE_CLK_MHZ * thousand);
+    return last_ms;
+}
+
+extern "C" uint32_t last_ticks_ms() {
+    return last_ms;
 }
 
 extern "C" uint32_t ticks_us() {
@@ -134,7 +140,7 @@ extern "C" HAL_StatusTypeDef tick_timer_init() {
     TICK_TIMER_CLK_ENABLE();
 
     h_tick_tim.Instance = TICK_TIMER;
-    h_tick_tim.Init.Prescaler = 0;                             // no prescaler = we get full 84Mhz
+    h_tick_tim.Init.Prescaler = 0; // no prescaler = we get full 84Mhz
     h_tick_tim.Init.CounterMode = TIM_COUNTERMODE_UP;
     h_tick_tim.Init.Period = (TIM_BASE_CLK_MHZ * million) - 1; // set period to 1s
     h_tick_tim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

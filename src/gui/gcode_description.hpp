@@ -24,8 +24,8 @@ struct description_line_t {
     window_text_t title;
     window_text_t value;
     char value_buffer[32];
-    description_line_t(window_frame_t *frame, bool has_preview_thumbnail, size_t row,
-        string_view_utf8 title, std::function<void(std::span<char> buffer)> make_value);
+    description_line_t(window_frame_t *frame);
+    void update(bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, std::function<void(std::span<char> buffer)> make_value);
     static size_t title_width(string_view_utf8 *title_str);
     static size_t value_width(string_view_utf8 *title_str);
 
@@ -49,5 +49,10 @@ private:
 
 struct GCodeInfoWithDescription {
     description_line_t description_lines[4];
-    GCodeInfoWithDescription(window_frame_t *frame, GCodeInfo &gcode);
+
+    /// Constructor, that will create empty description, update has to be called later with gcode data
+    GCodeInfoWithDescription(window_frame_t *frame);
+
+    /// Update with gcode data
+    void update(GCodeInfo &gcode);
 };

@@ -115,17 +115,22 @@ template<typename SM>
 bool VerifyState(SM &uf, mg::FilamentLoadState fls, uint8_t idlerSlotIndex, uint8_t selectorSlotIndex,
     bool findaPressed, bool pulleyEnabled, ml::Mode greenLEDMode, ml::Mode redLEDMode, ErrorCode err, ProgressCode topLevelProgress) {
 
-    CHECKED_ELSE(VerifyEnvironmentState(fls, idlerSlotIndex, selectorSlotIndex, findaPressed, pulleyEnabled, greenLEDMode, redLEDMode)) {
-        return false;
-    }
-
     CHECKED_ELSE(uf.Error() == err) {
+        WARN("uf.Error() != err");
+        WARN("Expecting error code, err: " << (int)err);
+        WARN("But actual error code is, uf.Error(): " << (int)uf.Error());
         return false;
     }
     auto tls = uf.TopLevelState();
     CHECKED_ELSE(tls == topLevelProgress) {
-    return false;
+        WARN("tls != topLevelProgress");
+        return false;
     }
+
+    CHECKED_ELSE(VerifyEnvironmentState(fls, idlerSlotIndex, selectorSlotIndex, findaPressed, pulleyEnabled, greenLEDMode, redLEDMode)) {
+        return false;
+    }
+
     return true;
 }
 
@@ -134,57 +139,74 @@ template<typename SM>
 bool VerifyState2(SM &uf, mg::FilamentLoadState fls, uint8_t idlerSlotIndex, uint8_t selectorSlotIndex,
     bool findaPressed, bool pulleyEnabled, uint8_t ledCheckIndex, ml::Mode greenLEDMode, ml::Mode redLEDMode, ErrorCode err, ProgressCode topLevelProgress) {
     CHECKED_ELSE(mg::globals.FilamentLoaded() & fls) {
-    return false;
+        WARN("mg::globals.FilamentLoaded() & fls is false");
+        return false;
     }
     if( idlerSlotIndex < config::toolCount ){ // abusing invalid index to skip checking of slot and position
         CHECKED_ELSE(mm::axes[mm::Idler].pos == mi::Idler::SlotPosition(idlerSlotIndex).v) {
-        return false;
+            WARN("mm::axes[mm::Idler].pos != mi::Idler::SlotPosition(idlerSlotIndex).v");
+            return false;
         }
         CHECKED_ELSE(mi::idler.Engaged() == (idlerSlotIndex < config::toolCount)) {
-        return false;
+            WARN("mi::idler.Engaged() != (idlerSlotIndex < config::toolCount)");
+            return false;
         }
     }
     if( selectorSlotIndex < config::toolCount ){ // abusing invalid index to skip checking of slot and position
         CHECKED_ELSE(mm::axes[mm::Selector].pos == ms::Selector::SlotPosition(selectorSlotIndex).v) {
-        return false;
+            WARN("mm::axes[mm::Selector].pos != ms::Selector::SlotPosition(selectorSlotIndex).v");
+            return false;
         }
         CHECKED_ELSE(ms::selector.Slot() == selectorSlotIndex) {
-        return false;
+            WARN("ms::selector.Slot() != selectorSlotIndex");
+            return false;
         }
     }
     CHECKED_ELSE(mf::finda.Pressed() == findaPressed) {
-    return false;
+        WARN("mf::finda.Pressed() != findaPressed");
+        return false;
     }
-    CHECKED_ELSE(mm::PulleyEnabled() == pulleyEnabled){
-    return false;
+    CHECKED_ELSE(mm::PulleyEnabled() == pulleyEnabled) {
+        WARN("mm::PulleyEnabled() != pulleyEnabled");
+        return false;
     }
 
     for(uint8_t ledIndex = 0; ledIndex < config::toolCount; ++ledIndex){
         if( ledIndex != ledCheckIndex ){
             // the other LEDs should be off
             CHECKED_ELSE(ml::leds.Mode(ledIndex, ml::red) == ml::off) {
-            return false;
+                WARN("ml::leds.Mode(ledIndex, ml::red) != ml::off");
+                return false;
             }
             CHECKED_ELSE(ml::leds.Mode(ledIndex, ml::green) == ml::off) {
-            return false;
+                WARN("ml::leds.Mode(ledIndex, ml::green) != ml::off");
+                return false;
             }
         } else {
             auto lmr = ml::leds.Mode(ledCheckIndex, ml::red);
             CHECKED_ELSE(lmr == redLEDMode) {
-            return false;
+                WARN("lmr != redLEDMode");
+                return false;
             }
             auto lmg = ml::leds.Mode(ledCheckIndex, ml::green);
             CHECKED_ELSE(lmg == greenLEDMode) {
-            return false;
+                WARN("lmg != greenLEDMode");
+                return false;
             }
         }
     }
 
     CHECKED_ELSE(uf.Error() == err) {
-    return false;
+        WARN("uf.Error() != err");
+        WARN("Expecting error code, err: " << (int)err);
+        WARN("But actual error code is, uf.Error(): " << (int)uf.Error());
+        return false;
     }
     CHECKED_ELSE(uf.TopLevelState() == topLevelProgress) {
-    return false;
+        WARN("uf.TopLevelState() != topLevelProgress");
+        WARN("Expecting progress code, topLevelProgress: " << (int)topLevelProgress);
+        WARN("But actual error code is, uf.TopLevelState(): " << (int)uf.TopLevelState());
+        return false;
     }
     return true;
 }

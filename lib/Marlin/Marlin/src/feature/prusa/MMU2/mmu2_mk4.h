@@ -48,17 +48,17 @@ public:
 
     /// Different levels of resetting the MMU
     enum ResetForm : uint8_t {
-        Software = 0,     ///< sends a X0 command into the MMU, the MMU will watchdog-reset itself
-        ResetPin = 1,     ///< trigger the reset pin of the MMU
-        CutThePower = 2,  ///< power off and power on (that includes +5V and +24V power lines)
+        Software = 0, ///< sends a X0 command into the MMU, the MMU will watchdog-reset itself
+        ResetPin = 1, ///< trigger the reset pin of the MMU
+        CutThePower = 2, ///< power off and power on (that includes +5V and +24V power lines)
         EraseEEPROM = 42, ///< erase MMU EEPROM and then perform a software reset
     };
 
     /// Saved print state on error.
     enum SavedState : uint8_t {
-        None = 0,         // No state saved.
+        None = 0, // No state saved.
         ParkExtruder = 1, // The extruder was parked.
-        Cooldown = 2,     // The extruder was allowed to cool.
+        Cooldown = 2, // The extruder was allowed to cool.
         CooldownPending = 4,
     };
 
@@ -99,6 +99,18 @@ public:
     /// @param slot of the slot to be selected
     /// @returns false if the operation cannot be performed (Stopped)
     bool tool_change(uint8_t slot);
+
+    /// Tool change that unloads the filament all the way from the nozzle and
+    /// loads it also all the way into the nozzle. The "normal" toolchange
+    /// relies on gcode to do the ramming and a load-to-nozzle sequence.
+    ///
+    /// It also parks the nozzle before unloading and unparks after loading the
+    /// new filament. Used e.g. during spooljoin, which can't have gcode
+    /// support and just has to do the change with minimal impact on the print.
+    ///
+    /// @param slot of the slot to be selected
+    /// @returns false if the operation cannot be performed (Stopped)
+    bool tool_change_full(uint8_t slot);
 
     /// Handling of special Tx, Tc, T? commands
     bool tool_change(char code, uint8_t slot);
@@ -171,9 +183,6 @@ public:
             return { 0, 0, 0 };
         }
     }
-
-    // Helper variable to monitor knob in MMU error screen in blocking functions e.g. manage_response
-    bool is_mmu_error_monitor_active;
 
     /// Method to read-only mmu_print_saved
     bool MMU_PRINT_SAVED() const { return mmu_print_saved != SavedState::None; }
@@ -294,8 +303,8 @@ private:
     void UnloadInner();
     void CutFilamentInner(uint8_t slot);
 
-    ProtocolLogic logic;          ///< implementation of the protocol logic layer
-    uint8_t extruder;             ///< currently active slot in the MMU ... somewhat... not sure where to get it from yet
+    ProtocolLogic logic; ///< implementation of the protocol logic layer
+    uint8_t extruder; ///< currently active slot in the MMU ... somewhat... not sure where to get it from yet
     uint8_t tool_change_extruder; ///< only used for UI purposes
 
     pos3d resume_position;

@@ -72,11 +72,11 @@ extern "C" {
  */
 #if !defined(HSE_VALUE)
     #define HSE_VALUE 12000000UL /*!< Value of the External oscillator in Hz */
-#endif                           /* HSE_VALUE */
+#endif /* HSE_VALUE */
 
 #if !defined(HSE_STARTUP_TIMEOUT)
     #define HSE_STARTUP_TIMEOUT 100UL /*!< Time out for HSE start up, in ms */
-#endif                                /* HSE_STARTUP_TIMEOUT */
+#endif /* HSE_STARTUP_TIMEOUT */
 
 /**
  * @brief Internal High Speed oscillator (HSI) value.
@@ -85,26 +85,26 @@ extern "C" {
  */
 #if !defined(HSI_VALUE)
     #define HSI_VALUE 16000000UL /*!< Value of the Internal oscillator in Hz */
-#endif                           /* HSI_VALUE */
+#endif /* HSI_VALUE */
 
 /**
  * @brief Internal Low Speed oscillator (LSI) value.
  */
 #if !defined(LSI_VALUE)
     #define LSI_VALUE 32000UL /*!< LSI Typical Value in Hz */
-#endif /* LSI_VALUE */        /*!< Value of the Internal Low Speed oscillator in Hz    \
-                                   The real value may vary depending on the variations \
-                                   in voltage and temperature. */
+#endif /* LSI_VALUE */ /*!< Value of the Internal Low Speed oscillator in Hz    \
+                            The real value may vary depending on the variations \
+                            in voltage and temperature. */
 /**
  * @brief External Low Speed oscillator (LSE) value.
  */
 #if !defined(LSE_VALUE)
     #define LSE_VALUE 32768UL /*!< Value of the External Low Speed oscillator in Hz */
-#endif                        /* LSE_VALUE */
+#endif /* LSE_VALUE */
 
 #if !defined(LSE_STARTUP_TIMEOUT)
     #define LSE_STARTUP_TIMEOUT 5000UL /*!< Time out for LSE start up, in ms */
-#endif                                 /* LSE_STARTUP_TIMEOUT */
+#endif /* LSE_STARTUP_TIMEOUT */
 
 /**
  * @brief External clock source for I2S peripheral
@@ -113,7 +113,7 @@ extern "C" {
  */
 #if !defined(EXTERNAL_CLOCK_VALUE)
     #define EXTERNAL_CLOCK_VALUE 12288000UL /*!< Value of the External oscillator in Hz*/
-#endif                                      /* EXTERNAL_CLOCK_VALUE */
+#endif /* EXTERNAL_CLOCK_VALUE */
 
 /* Tip: To avoid modifying this file each time you need to use different HSE,
    ===  you can define the HSE value in your toolchain compiler preprocessor. */
@@ -190,8 +190,8 @@ extern "C" {
 /* Definition of the Ethernet driver buffers size and count */
 #define ETH_RX_BUF_SIZE ETH_MAX_PACKET_SIZE /* buffer size for receive               */
 #define ETH_TX_BUF_SIZE ETH_MAX_PACKET_SIZE /* buffer size for transmit              */
-#define ETH_RXBUFNB     ((uint32_t)4U)      /* 4 Rx buffers of size ETH_RX_BUF_SIZE  */
-#define ETH_TXBUFNB     ((uint32_t)4U)      /* 4 Tx buffers of size ETH_TX_BUF_SIZE  */
+#define ETH_RXBUFNB     ((uint32_t)4U) /* 4 Rx buffers of size ETH_RX_BUF_SIZE  */
+#define ETH_TXBUFNB     ((uint32_t)4U) /* 4 Tx buffers of size ETH_TX_BUF_SIZE  */
 
 /* Section 2: PHY configuration section */
 
@@ -207,8 +207,8 @@ extern "C" {
 
 /* Section 3: Common PHY Registers */
 
-#define PHY_BCR ((uint16_t)0x00U)                       /*!< Transceiver Basic Control Register   */
-#define PHY_BSR ((uint16_t)0x01U)                       /*!< Transceiver Basic Status Register    */
+#define PHY_BCR ((uint16_t)0x00U) /*!< Transceiver Basic Control Register   */
+#define PHY_BSR ((uint16_t)0x01U) /*!< Transceiver Basic Status Register    */
 
 #define PHY_RESET                   ((uint16_t)0x8000U) /*!< PHY Reset */
 #define PHY_LOOPBACK                ((uint16_t)0x4000U) /*!< Select loop-back mode */
@@ -221,18 +221,18 @@ extern "C" {
 #define PHY_POWERDOWN               ((uint16_t)0x0800U) /*!< Select the power down mode           */
 #define PHY_ISOLATE                 ((uint16_t)0x0400U) /*!< Isolate PHY from MII                 */
 
-#define PHY_AUTONEGO_COMPLETE ((uint16_t)0x0020U)       /*!< Auto-Negotiation process completed   */
-#define PHY_LINKED_STATUS     ((uint16_t)0x0004U)       /*!< Valid link established               */
-#define PHY_JABBER_DETECTION  ((uint16_t)0x0002U)       /*!< Jabber condition detected            */
+#define PHY_AUTONEGO_COMPLETE ((uint16_t)0x0020U) /*!< Auto-Negotiation process completed   */
+#define PHY_LINKED_STATUS     ((uint16_t)0x0004U) /*!< Valid link established               */
+#define PHY_JABBER_DETECTION  ((uint16_t)0x0002U) /*!< Jabber condition detected            */
 
 /* Section 4: Extended PHY Registers */
-#define PHY_SR ((uint16_t)0x10U)              /*!< PHY status register Offset                      */
+#define PHY_SR ((uint16_t)0x10U) /*!< PHY status register Offset                      */
 
 #define PHY_SPEED_STATUS  ((uint16_t)0x0002U) /*!< PHY Speed mask                                  */
 #define PHY_DUPLEX_STATUS ((uint16_t)0x0004U) /*!< PHY Duplex mask                                 */
 
-#define PHY_ISFR      ((uint16_t)0x000BU)     /*!< PHY Interrupt Source Flag register Offset   */
-#define PHY_ISFR_INT4 ((uint16_t)0x000BU)     /*!< PHY Link down inturrupt       */
+#define PHY_ISFR      ((uint16_t)0x000BU) /*!< PHY Interrupt Source Flag register Offset   */
+#define PHY_ISFR_INT4 ((uint16_t)0x000BU) /*!< PHY Link down inturrupt       */
 ///* ################## Ethernet peripheral configuration ##################### */
 //
 ///* Section 1 : Ethernet peripheral configuration */

@@ -333,6 +333,7 @@ variant<Response, Error> HttpClient::parse_response(Connection *conn, ExtraHeade
             response.content_length_rest = parser.content_length.value_or(0);
             response.leftover_size = rest;
             response.content_type = parser.content_type;
+            response.content_encryption_mode = parser.content_encryption_mode;
             if (parser.keep_alive.has_value()) {
                 response.can_keep_alive = *parser.keep_alive;
             } else {

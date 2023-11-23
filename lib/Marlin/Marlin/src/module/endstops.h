@@ -28,6 +28,10 @@
 #include "../inc/MarlinConfig.h"
 #include <stdint.h>
 
+#if HAS_BED_PROBE || defined(PRUSA_TOOLCHANGER)
+#include <atomic>
+#endif
+
 enum EndstopEnum : char {
   X_MIN,  Y_MIN,  Z_MIN,  Z_MIN_PROBE,
   X_MAX,  Y_MAX,  Z_MAX,
@@ -89,6 +93,7 @@ class Endstops {
       );
     }
 
+    static inline bool is_enabled() { return enabled; }
     static inline bool global_enabled() { return enabled_globally; }
 
     /**

@@ -19,8 +19,8 @@ PrusaAccelerometer::Sample_buffer *PrusaAccelerometer::s_sample_buffer = nullptr
  * and enable active Dwarf accelerometer.
  * Do nothing otherwise.
  */
-PrusaAccelerometer::PrusaAccelerometer()
-    : m_error(Error::none) {
+PrusaAccelerometer::PrusaAccelerometer() {
+    m_error = Error::none;
     bool enable_accelerometer = false;
     {
         std::lock_guard lock(s_buffer_mutex);
@@ -28,6 +28,7 @@ PrusaAccelerometer::PrusaAccelerometer()
             s_sample_buffer = &m_sample_buffer;
             enable_accelerometer = true;
         }
+        s_sample_buffer->clear();
     }
     if (enable_accelerometer) {
         buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
@@ -60,7 +61,10 @@ PrusaAccelerometer::~PrusaAccelerometer() {
     if (disable_accelerometer) {
         switch (m_error) {
         case Error::none:
-        case Error::communication: {
+        case Error::communication:
+        case Error::corrupted_buddy_overflow:
+        case Error::corrupted_dwarf_overflow:
+        case Error::corrupted_transmission_error: {
             buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
             if (!dwarf)
                 return;
@@ -77,9 +81,9 @@ PrusaAccelerometer::~PrusaAccelerometer() {
     }
 }
 void PrusaAccelerometer::clear() {
-    //todo wait for for so many samples that it is assured
-    //that even if all buffers were full we went through
-    //all samples
+    // todo wait for for so many samples that it is assured
+    // that even if all buffers were full we went through
+    // all samples
     Acceleration acceleration;
     while (get_sample(acceleration))
         ;
@@ -89,13 +93,23 @@ int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
     bool ret_val = m_sample_buffer.ConsumeFirst(sample);
     if (ret_val) {
         acceleration = AccelerometerUtils::unpack_sample(sample);
+        if (acceleration.corrupted) {
+            mark_corrupted(Error::corrupted_dwarf_overflow);
+        }
     }
     return ret_val;
 }
 void PrusaAccelerometer::put_sample(common::puppies::fifo::AccelerometerXyzSample sample) {
     std::lock_guard lock(s_buffer_mutex);
     if (s_sample_buffer) {
-        s_sample_buffer->push_back_DontRewrite(sample);
+        if (!s_sample_buffer->push_back_DontRewrite(sample)) {
+            mark_corrupted(Error::corrupted_buddy_overflow);
+        }
     }
 }
-#endif //ENABLED(REMOTE_ACCELEROMETER)
+void PrusaAccelerometer::mark_corrupted(const Error error) {
+    assert(error == Error::corrupted_dwarf_overflow || error == Error::corrupted_buddy_overflow || error == Error::corrupted_transmission_error);
+    m_error = error;
+}
+PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;
+#endif // ENABLED(REMOTE_ACCELEROMETER)

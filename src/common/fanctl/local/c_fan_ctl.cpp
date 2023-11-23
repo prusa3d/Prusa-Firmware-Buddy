@@ -40,17 +40,17 @@ int8_t CFanCtlPWM::tick() {
     bool o = (cnt >= pha) && (cnt < (pha + val));
     if (++cnt >= max_value) {
         cnt = 0;
-        if (val != pwm) {                        // pwm changed
-            val = pwm;                           // update cached value
-            pha = 0;                             // reset phase
-            pha_max = max_value - val;           // calculate maximum phase
+        if (val != pwm) { // pwm changed
+            val = pwm; // update cached value
+            pha = 0; // reset phase
+            pha_max = max_value - val; // calculate maximum phase
             if ((val > 1) && (val <= pha_thr)) {
                 uint8_t steps = max_value / val; // calculate number of steps
                 if (steps < 3)
-                    steps = 3;                   // limit steps >= 3
-                pha_stp = pha_max / steps;       // calculate step - enable phase shifting
+                    steps = 3; // limit steps >= 3
+                pha_stp = pha_max / steps; // calculate step - enable phase shifting
             } else
-                pha_stp = 0;                     // set step to zero - disable phase shifting
+                pha_stp = 0; // set step to zero - disable phase shifting
         }
 #if 1
         else if (pha_stp) // pha_stp != 0 means phase shifting enabled
@@ -123,7 +123,7 @@ CFanCtlTach::CFanCtlTach(const InputPin &inputPin)
 }
 
 bool CFanCtlTach::tick(int8_t pwm_on) {
-    bool tach = static_cast<bool>(m_pin.read());         // sample tach input pin
+    bool tach = static_cast<bool>(m_pin.read()); // sample tach input pin
     bool edge = ((tach ^ input_state) && (pwm_on >= 2)); // detect edge inside pwm pulse, ignore first two sub-periods after 0-1 pwm transition
     if (edge)
         edges++;
@@ -131,16 +131,16 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
     if (++tick_count >= ticks_per_second) {
         if (pwm_sum)
             edges = (edges * ticks_per_second) / pwm_sum; // add lost edges
-        rpm = (rpm + (45 * edges)) >> 2;                  // calculate and filter rpm original formula
-                                                          // rpm = (rpm + 3 * ((60 * edges) >> 2)) >> 2;
-                                                          // take original rpm add 3 times new rpm - new rpm= 60*freq;
-                                                          // freq=edges/2/2; edges= revolutions per second *2 *2 (2 poles motor and two edges per revolution)
-        edges = 0;                                        // reset edge counter
-        tick_count = 0;                                   // reset tick counter
-        pwm_sum = 0;                                      // reset pwm_sum
-        m_value_ready = true;                             // set value ready = measure done
+        rpm = (rpm + (45 * edges)) >> 2; // calculate and filter rpm original formula
+                                         // rpm = (rpm + 3 * ((60 * edges) >> 2)) >> 2;
+                                         // take original rpm add 3 times new rpm - new rpm= 60*freq;
+                                         // freq=edges/2/2; edges= revolutions per second *2 *2 (2 poles motor and two edges per revolution)
+        edges = 0; // reset edge counter
+        tick_count = 0; // reset tick counter
+        pwm_sum = 0; // reset pwm_sum
+        m_value_ready = true; // set value ready = measure done
     } else if (pwm_on >= 0)
-        pwm_sum++;                                        // inc pwm sum if pwm enabled
+        pwm_sum++; // inc pwm sum if pwm enabled
     return edge;
 }
 
@@ -260,6 +260,7 @@ bool CFanCtl::setPhaseShiftMode(uint8_t psm) {
 }
 
 void CFanCtl::safeState() {
+    setPWM(m_pwm.get_max_PWM());
     m_pwm.safeState();
     selftest_mode = false;
 }

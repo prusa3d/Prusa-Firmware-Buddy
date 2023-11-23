@@ -4,6 +4,11 @@
 #include "stdlib.h"
 #include <option/has_mmu2.h>
 
+#if BOARD_IS_XLBUDDY
+    #include "hw_configuration.hpp"
+    #include "puppies/Dwarf.hpp"
+#endif
+
 class AdvancedPower {
 public:
     AdvancedPower();
@@ -57,16 +62,39 @@ public:
     }
 
     inline float Get5VVoltage() const {
-        return beforeVoltageDivider11(RawValueToVoltage(AdcGet::inputVoltage5V()));
+        return beforeVoltageDividerSandwich5V(RawValueToVoltage(AdcGet::inputVoltage5V()));
     }
 
     inline float GetDwarfSandwitch5VCurrent() const {
-        return ((RawValueToVoltage(AdcGet::sandwichCurrent5V()) / CurrentSenseGain) / RSense);
+        return ((beforeVoltageDividerCurrent(RawValueToVoltage(AdcGet::sandwichCurrent5V())) / CurrentSenseGain) / RSense);
     }
 
     inline float GetXLBuddy5VCurrent() const {
-        return ((RawValueToVoltage(AdcGet::xlbuddyCurrent5V()) / CurrentSenseGain) / RSense);
+        return ((beforeVoltageDividerCurrent(RawValueToVoltage(AdcGet::xlbuddyCurrent5V())) / CurrentSenseGain) / RSense);
     }
+
+    // Get nozzle heater current [A]
+    inline float get_nozzle_current(uint8_t index) {
+        assert(index >= 0 && index < buddy::puppies::dwarfs.size());
+        return buddy::puppies::dwarfs[index].get_heater_current();
+    }
+
+    // Get nozzle supply voltage [V]
+    inline float get_nozzle_voltage(uint8_t index) {
+        assert(index >= 0 && index < buddy::puppies::dwarfs.size());
+        return buddy::puppies::dwarfs[index].get_24V();
+    }
+
+    // Get nozzle heater PWM
+    inline int get_nozzle_pwm(uint8_t index) {
+        assert(index >= 0 && index < buddy::puppies::dwarfs.size());
+        return buddy::puppies::dwarfs[index].get_heater_pwm();
+    }
+
+    // Get bed heater current [A]
+    // Would be nice to have this inline, but it would drag a modbus includes.
+    float get_bed_current();
+
 #elif BOARD_IS_DWARF
     inline float GetDwarfNozzleCurrent() const {
         return ((RawValueToVoltage(AdcGet::heaterCurrent()) / CurrentSenseGain) / RSense);
@@ -101,8 +129,8 @@ public:
 
 private:
     bool isInitialized;
-    float CurrentSenseGain = 50.00f;
-    float RSense = 0.022f; // 22mohm
+    static constexpr float CurrentSenseGain = 50.00f;
+    static constexpr float RSense = 0.022f; // 22mohm
 
     inline float RawValueToVoltage(int rawValue) const {
         return (rawValue * 3.35f) / 1023.00f;
@@ -113,6 +141,16 @@ private:
         constexpr float R2 = 1.0f * 1000.0f;
         return (voltage * ((R1 + R2) / R2));
     }
+
+#if BOARD_IS_XLBUDDY
+    float beforeVoltageDividerSandwich5V(float voltage) const {
+        return voltage * SandwichConfiguration::Instance().divider_5V_coefficient();
+    }
+
+    float beforeVoltageDividerCurrent(float voltage) const {
+        return voltage * SandwichConfiguration::Instance().divider_current_coefficient();
+    }
+#endif
 };
 
 extern AdvancedPower advancedpower;

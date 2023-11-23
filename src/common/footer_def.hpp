@@ -109,7 +109,11 @@ constexpr const char *to_string(Item item) {
     case Item::PrintFan:
         return N_("Print fan");
     case Item::HeatbreakFan:
+#ifdef USE_ST7789
+        return N_("Hbrk fan");
+#else
         return N_("Heatbreak fan");
+#endif
     case Item::InputShaperX:
         return N_("Input Shaper X");
     case Item::InputShaperY:
@@ -167,9 +171,9 @@ static constexpr record DefaultItems = { { Item::Nozzle,
 #endif // FOOTER_LINES__ == 1 && FOOTER_ITEMS_PER_LINE__ == 5
 
 enum class ItemDrawType : uint8_t {
-    Static,            // numbers at fixed positions
+    Static, // numbers at fixed positions
     StaticLeftAligned, // numbers aligned to the left, but fix size
-    Dynamic            // numbers aligned to the left, dynamic size
+    Dynamic // numbers aligned to the left, dynamic size
 };
 inline constexpr ItemDrawType DefaultDrawType = ItemDrawType::Dynamic;
 

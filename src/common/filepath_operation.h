@@ -1,4 +1,6 @@
 #include <string.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,6 +27,14 @@ const char *basename_b(const char *path);
  *
  */
 void dirname(char *path);
+
+/**
+ * Extract the LFN of the given dirent.
+ *
+ * Falls back to SFN / normal file name in case LFN is not available or on an
+ * „real OS“ for tests where such thing doesn't exist.
+ */
+const char *dirent_lfn(const struct dirent *ent);
 
 #ifdef __cplusplus
 }

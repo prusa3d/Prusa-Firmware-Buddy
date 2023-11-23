@@ -8,31 +8,31 @@
 
 #include "power_check.hpp"
 #include "selftest_heaters_type.hpp"
+#include "selftest_heater.h"
 
 namespace selftest {
+// This singleton object is used to check power of linked heaters
+//
+// TODO: This needs to be checked for MK4 as the code was modifed with the MK4
+// power check disabled.
 class PowerCheckBoth {
-    PowerCheck noz;
-    PowerCheck bed;
+    CSelftestPart_Heater *nozzle;
+    CSelftestPart_Heater *bed;
 
-    LogTimer log_noz;
-    LogTimer log_bed;
-
-    constexpr PowerCheckBoth()
-        : log_noz(3000)
-        , log_bed(3000) {}
+    PowerCheckBoth() = default;
     PowerCheckBoth(const PowerCheckBoth &) = delete;
 
 public:
-    void Callback();
+    void Callback(CSelftestPart_Heater &part);
 
-    constexpr void BindNozzle(CSelftestPart_Heater &f) {
-        noz.Bind(f);
+    constexpr void BindNozzle(CSelftestPart_Heater *part) {
+        nozzle = part;
     }
-    constexpr void BindBed(CSelftestPart_Heater &f) {
-        bed.Bind(f);
+    constexpr void BindBed(CSelftestPart_Heater *part) {
+        bed = part;
     }
-    constexpr void UnBindNozzle() { noz.UnBind(); }
-    constexpr void UnBindBed() { bed.UnBind(); }
+    constexpr void UnBindNozzle() { nozzle = nullptr; }
+    constexpr void UnBindBed() { bed = nullptr; }
 
     static PowerCheckBoth &Instance() {
         static PowerCheckBoth ret;

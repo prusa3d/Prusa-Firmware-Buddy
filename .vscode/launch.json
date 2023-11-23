@@ -179,6 +179,23 @@
             "request": "launch",
         },
         {
+            "name": "Launch Simulator Scripted",
+            // This is the same as "Launch Simulator", but it also opens TCP port to control hardware
+            // Use 'telnet localhost 50001' immediatelly after launching this
+            // List of available commands is at https://github.com/vintagepc/MINI404/wiki/Scripting-Mk4-027
+            "type": "cortex-debug",
+            "servertype": "qemu",
+            "serverpath": "${workspaceRoot}/.venv/bin/simulator_as_qemu",
+            "serverArgs": ["--scripted"],
+            "windows": {
+                "serverpath": "${workspaceRoot}/.venv/Scripts/simulator_as_qemu"
+            },
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
+            "request": "launch",
+        },
+        {
             "name": "GDB (QEMU)",
             "type": "gdb",
             "request": "attach",
@@ -191,11 +208,13 @@
         },
         {
             "name": "Unit-tests debug",
-            "type": "cppdbg",
+            "type": "gdb",
             "request": "launch",
-            "MIMode": "gdb",
-            "cwd": "${workspaceRoot}",
-        }
+            "gdbpath": "gdb",
+            // Note: replace this with whatever test you want to debug:
+            "target": "${workspaceRoot}/build_tests/tests/unit/common/your_unitest_executable_goes_here",
+            "cwd": "${workspaceRoot}/build_tests/tests/unit/common/your_unitest_executable_goes_here",
+        },
     ],
     "compounds": [
         {

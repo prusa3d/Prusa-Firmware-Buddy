@@ -22,6 +22,7 @@
 #pragma once
 
 #include <option/has_toolchanger.h>
+#include <option/has_loadcell.h>
 
 // clang-format off
 
@@ -902,7 +903,9 @@
  *   (e.g., an inductive probe or a nozzle-based probe-switch.)
  */
 #define FIX_MOUNTED_PROBE
-#define NOZZLE_LOAD_CELL
+#if HAS_LOADCELL()
+  #define NOZZLE_LOAD_CELL
+#endif
 
 /**
  * Z Servo Probe, such as an endstop switch on a rotating arm.
@@ -987,13 +990,13 @@
 #define Z_PROBE_SPEED_SLOW 70
 
 // [ms] delay before first Z probe for taring
-#define Z_FIRST_PROBE_DELAY 250
+#define Z_FIRST_PROBE_DELAY 300
 
 #if ENABLED(NOZZLE_LOAD_CELL)
   // Enable G29 P9 for nozzle cleanup
   #define PROBE_CLEANUP_SUPPORT
   #define PROBE_CLEANUP_CLEARANCE 2.0
-  #define PROBE_CLEANUP_TRAVEL_ACCELERATION 800
+  #define PROBE_CLEANUP_TRAVEL_ACCELERATION 400
   #define Z_PROBE_SPEED_BACK_MOVE 20
 #endif
 
@@ -1596,8 +1599,13 @@
 #define NOZZLE_PARK_FEATURE
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
+    #define Y_AXIS_PURGE_POS -7 ///< Position where slicer purges extruders on XL
+    static_assert(Y_AXIS_PURGE_POS > Y_MIN_POS, "Invalid purge position");
+
     #define Z_AXIS_LOAD_POS  40
     #define Z_AXIS_UNLOAD_POS 20
+    #define Y_AXIS_LOAD_POS    Y_AXIS_PURGE_POS
+    #define Y_AXIS_UNLOAD_POS  Y_AXIS_PURGE_POS
     #define X_AXIS_LOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     #define X_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     // Specify a park position as { X, Y, Z }
@@ -1606,7 +1614,7 @@
         { (X_MIN_POS + 10), (Y_MAX_POS - 110), 20 }
     // Filament exchange in the front of XL
     #define NOZZLE_PARK_POINT_M600 \
-        { (X_MIN_POS + 50), (Y_MIN_POS + 50), 20 }
+        { (X_MIN_POS + 50), Y_AXIS_PURGE_POS, 20 }
     #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
     #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
 

@@ -1,5 +1,4 @@
 #include "catch2/catch_test_macros.hpp"
-#include "catch2/matchers/catch_matchers_vector.hpp"
 
 #include "../../../../src/modules/buttons.h"
 #include "../../../../src/modules/finda.h"
@@ -18,8 +17,6 @@
 #include "../stubs/homing.h"
 #include "../stubs/main_loop_stub.h"
 #include "../stubs/stub_motion.h"
-
-using Catch::Matchers::Equals;
 
 #include "../helpers/helpers.ipp"
 
@@ -79,13 +76,17 @@ void CutSlot(logic::CutFilament &cf, uint8_t startSlot, uint8_t cutSlot) {
 
     // cutting
     REQUIRE(WhileTopState(cf, ProgressCode::PerformingCut, selectorMoveMaxSteps));
-    REQUIRE(VerifyState2(cf, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), cutSlot, false, true, cutSlot, ml::blink0, ml::off, ErrorCode::RUNNING, ProgressCode::ReturningSelector));
+    REQUIRE(VerifyState2(cf, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), cutSlot, false, true, cutSlot, ml::blink0, ml::off, ErrorCode::RUNNING, ProgressCode::Homing));
 
     // rehoming selector
     SimulateSelectorHoming(cf);
+    REQUIRE(WhileTopState(cf, ProgressCode::Homing, selectorMoveMaxSteps));
+
+    // Return selector to parked position
+    REQUIRE(VerifyState2(cf, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), ms::Selector::IdleSlotIndex(), false, true, cutSlot, ml::blink0, ml::off, ErrorCode::RUNNING, ProgressCode::ReturningSelector));
 
     REQUIRE(WhileTopState(cf, ProgressCode::ReturningSelector, selectorMoveMaxSteps));
-    REQUIRE(VerifyState2(cf, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), ms::Selector::IdleSlotIndex(), false, true, cutSlot, ml::on, ml::off, ErrorCode::OK, ProgressCode::OK));
+    REQUIRE(VerifyState2(cf, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), cutSlot, false, true, cutSlot, ml::on, ml::off, ErrorCode::OK, ProgressCode::OK));
 }
 
 TEST_CASE("cut_filament::cut0", "[cut_filament]") {

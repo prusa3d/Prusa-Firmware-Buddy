@@ -50,22 +50,22 @@ class ProtocolLogic;
 /// ProtocolLogic stepping statuses
 enum StepStatus : uint_fast8_t {
     Processing = 0,
-    MessageReady,         ///< a message has been successfully decoded from the received bytes
-    Finished,             ///< Scope finished successfully
-    Interrupted,          ///< received "Finished" message related to a different command than originally issued (most likely the MMU restarted while doing something)
+    MessageReady, ///< a message has been successfully decoded from the received bytes
+    Finished, ///< Scope finished successfully
+    Interrupted, ///< received "Finished" message related to a different command than originally issued (most likely the MMU restarted while doing something)
     CommunicationTimeout, ///< the MMU failed to respond to a request within a specified time frame
-    ProtocolError,        ///< bytes read from the MMU didn't form a valid response
-    CommandRejected,      ///< the MMU rejected the command due to some other command in progress, may be the user is operating the MMU locally (button commands)
-    CommandError,         ///< the command in progress stopped due to unrecoverable error, user interaction required
-    VersionMismatch,      ///< the MMU reports its firmware version incompatible with our implementation
-    PrinterError,         ///< printer's explicit error - MMU is fine, but the printer was unable to complete the requested operation
+    ProtocolError, ///< bytes read from the MMU didn't form a valid response
+    CommandRejected, ///< the MMU rejected the command due to some other command in progress, may be the user is operating the MMU locally (button commands)
+    CommandError, ///< the command in progress stopped due to unrecoverable error, user interaction required
+    VersionMismatch, ///< the MMU reports its firmware version incompatible with our implementation
+    PrinterError, ///< printer's explicit error - MMU is fine, but the printer was unable to complete the requested operation
     CommunicationRecovered,
-    ButtonPushed,         ///< The MMU reported the user pushed one of its three buttons.
+    ButtonPushed, ///< The MMU reported the user pushed one of its three buttons.
 };
 
-inline constexpr uint32_t linkLayerTimeout = 2000;                 ///< default link layer communication timeout
+inline constexpr uint32_t linkLayerTimeout = 2000; ///< default link layer communication timeout
 inline constexpr uint32_t dataLayerTimeout = linkLayerTimeout * 3; ///< data layer communication timeout
-inline constexpr uint32_t heartBeatPeriod = linkLayerTimeout / 2;  ///< period of heart beat messages (Q0)
+inline constexpr uint32_t heartBeatPeriod = linkLayerTimeout / 2; ///< period of heart beat messages (Q0)
 
 static_assert(heartBeatPeriod < linkLayerTimeout && linkLayerTimeout < dataLayerTimeout, "Incorrect ordering of timeouts");
 
@@ -224,9 +224,9 @@ private:
     ErrorCode explicitPrinterError;
 
     enum class State : uint_fast8_t {
-        Stopped,      ///< stopped for whatever reason
+        Stopped, ///< stopped for whatever reason
         InitSequence, ///< initial sequence running
-        Running       ///< normal operation - Idle + Command processing
+        Running ///< normal operation - Idle + Command processing
     };
 
     enum class Scope : uint_fast8_t {
@@ -342,25 +342,27 @@ private:
     /// Activate the planned state once the immediate response to a sent request arrived
     bool ActivatePlannedRequest();
 
-    uint32_t lastUARTActivityMs;               ///< timestamp - last ms when something occurred on the UART
-    DropOutFilter dataTO;                      ///< Filter of short consecutive drop outs which are recovered instantly
+    uint32_t lastUARTActivityMs; ///< timestamp - last ms when something occurred on the UART
+    DropOutFilter dataTO; ///< Filter of short consecutive drop outs which are recovered instantly
 
-    ResponseMsg rsp;                           ///< decoded response message from the MMU protocol
+    ResponseMsg rsp; ///< decoded response message from the MMU protocol
 
-    State state;                               ///< internal state of ProtocolLogic
+    State state; ///< internal state of ProtocolLogic
 
-    Protocol protocol;                         ///< protocol codec
+    Protocol protocol; ///< protocol codec
 
     std::array<uint8_t, 16> lastReceivedBytes; ///< remembers the last few bytes of incoming communication for diagnostic purposes
     uint8_t lrb;
 
-    MMU2Serial *uart;          ///< UART interface
+    MMU2Serial *uart; ///< UART interface
 
-    ErrorCode errorCode;       ///< last received error code from the MMU
+    ErrorCode errorCode; ///< last received error code from the MMU
     ProgressCode progressCode; ///< last received progress code from the MMU
-    Buttons buttonCode;        ///< Last received button from the MMU.
+    Buttons buttonCode; ///< Last received button from the MMU.
 
-    uint8_t lastFSensor;       ///< last state of filament sensor
+    uint8_t lastFSensor; ///< last state of filament sensor
+
+    uint8_t txbuff[Protocol::MaxRequestSize()]; ///< Static transmit buffer (cannot be on stack as DMA cannot be used from CCMRAM)
 
     // 8bit registers
     static constexpr uint8_t regs8Count = 3;

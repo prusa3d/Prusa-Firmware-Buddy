@@ -8,26 +8,15 @@
 #include <atomic>
 
 #include "filament_sensor_adc.hpp"
-#include "filament_sensors_handler.hpp"
 #include "log.h"
 #include "metric.h"
-#include "config_buddy_2209_02.h"
 #include "algorithm_range.hpp"
+#include "filament_sensor_adc_eval.hpp"
+
 #include "rtos_api.hpp"
 #include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_REF(FSensor);
-
-namespace {
-
-constexpr int32_t fs_disconnect_threshold = // value for detecting disconnected sensor
-#if (BOARD_IS_XLBUDDY)
-    20;
-#else
-    2000;
-#endif
-
-} // unnamed namespace
 
 void FSensorADC::enable() {
     state = fsensor_t::NotInitialized;
@@ -49,18 +38,18 @@ void FSensorADC::cycle() {
         Disable();
     }
     if (req_calibrate == CalibrateRequest::CalibrateNoFilament) {
-        save_calibration(filtered_value);
+        CalibrateNotInserted(filtered_value);
         Enable();
     }
 
     if (req_calibrate == CalibrateRequest::CalibrateHasFilament) {
-        EnsureHasFilamentValue(filtered_value);
+        CalibrateInserted(filtered_value);
     }
 
     // disabled FS will not enter cycle, but load_settings can disable it too
     // so better not try to change state when sensor is disabled
     if (state != fsensor_t::Disabled) {
-        state = evaluate_state(filtered_value);
+        state = FSensorADCEval::evaluate_state(filtered_value, fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
     }
 }
 
@@ -96,56 +85,46 @@ void FSensorADC::SetInvalidateCalibrationFlag() {
     flg_invalid_calib = true;
 }
 
-void FSensorADC::EnsureHasFilamentValue(int32_t filtered_value) {
-    if (filtered_value == fs_filtered_value_not_ready) {
+void FSensorADC::CalibrateInserted(int32_t filtered_value) {
+    if (filtered_value == FSensorADCEval::filtered_value_not_ready) {
         return;
     }
 
     // value should be outside of extended span, because if its close to span that is used to evaluate filament sensor, it will not be reliable and trigger randomly
     int32_t extended_span = fs_value_span * fs_selftest_span_multipler;
-    if (IsInClosedRange(filtered_value, fs_ref_value - extended_span, fs_ref_value + extended_span)) {
+    if (IsInClosedRange(filtered_value, fs_ref_nins_value - extended_span, fs_ref_nins_value + extended_span)) {
         log_info(FSensor, "Calibrating HasFilament: FAIL value: %d", filtered_value);
         invalidate_calibration();
     } else {
         log_info(FSensor, "Calibrating HasFilament: PASS value: %d", filtered_value);
+        if (is_side) {
+            config_store().set_side_fs_ref_ins_value(tool_index, filtered_value);
+        } else {
+            config_store().set_extruder_fs_ref_ins_value(tool_index, filtered_value);
+        }
+        load_settings();
     }
 
     // mark calibration as done
     req_calibrate = CalibrateRequest::NoCalibration;
 }
 
-int32_t FSensorADC::load_settings() {
+void FSensorADC::load_settings() {
     fs_value_span = is_side ? config_store().get_side_fs_value_span(tool_index) : config_store().get_extruder_fs_value_span(tool_index);
-    fs_ref_value = is_side ? config_store().get_side_fs_ref_value(tool_index) : config_store().get_extruder_fs_ref_value(tool_index);
+    fs_ref_ins_value = is_side ? config_store().get_side_fs_ref_ins_value(tool_index) : config_store().get_extruder_fs_ref_ins_value(tool_index);
+    fs_ref_nins_value = is_side ? config_store().get_side_fs_ref_nins_value(tool_index) : config_store().get_extruder_fs_ref_nins_value(tool_index);
     flg_load_settings = false;
-    return fs_ref_value;
 }
 
-fsensor_t FSensorADC::evaluate_state(int32_t filtered_value) {
-    if (filtered_value == fs_filtered_value_not_ready) {
-        return fsensor_t::NotInitialized;
-    }
-    if (fs_ref_value == fs_ref_value_not_calibrated) {
-        return fsensor_t::NotCalibrated;
-    }
-    if (filtered_value < fs_disconnect_threshold) {
-        return fsensor_t::NotConnected;
-    }
-    if (IsInClosedRange(filtered_value, fs_ref_value - fs_value_span, fs_ref_value + fs_value_span)) {
-        return fsensor_t::NoFilament;
-    }
-    return fsensor_t::HasFilament;
-}
-
-void FSensorADC::save_calibration(int32_t value) {
-    if (value == fs_filtered_value_not_ready) {
+void FSensorADC::CalibrateNotInserted(int32_t value) {
+    if (value == FSensorADCEval::filtered_value_not_ready) {
         return;
     }
 
     if (is_side) {
-        config_store().set_side_fs_ref_value(tool_index, value);
+        config_store().set_side_fs_ref_nins_value(tool_index, value);
     } else {
-        config_store().set_extruder_fs_ref_value(tool_index, value);
+        config_store().set_extruder_fs_ref_nins_value(tool_index, value);
     }
     req_calibrate = CalibrateRequest::NoCalibration;
     load_settings();
@@ -155,9 +134,13 @@ void FSensorADC::save_calibration(int32_t value) {
 
 void FSensorADC::invalidate_calibration() {
     if (is_side) {
-        config_store().set_side_fs_ref_value(tool_index, fs_ref_value_not_calibrated);
+        config_store().set_side_fs_ref_ins_value(tool_index, FSensorADCEval::ref_value_not_calibrated);
+        config_store().set_side_fs_ref_nins_value(tool_index, FSensorADCEval::ref_value_not_calibrated);
+        config_store().set_side_fs_value_span(tool_index, config_store_ns::defaults::side_fs_value_span);
     } else {
-        config_store().set_extruder_fs_ref_value(tool_index, fs_ref_value_not_calibrated);
+        config_store().set_extruder_fs_ref_ins_value(tool_index, FSensorADCEval::ref_value_not_calibrated);
+        config_store().set_extruder_fs_ref_nins_value(tool_index, FSensorADCEval::ref_value_not_calibrated);
+        config_store().set_extruder_fs_value_span(tool_index, config_store_ns::defaults::extruder_fs_value_span);
     }
     flg_invalid_calib = false;
     load_settings();
@@ -165,13 +148,13 @@ void FSensorADC::invalidate_calibration() {
 
 void FSensorAdcExtruder::record_state() {
     if (limit_record()) {
-        metric_record_custom(&get_metric__static(), ",n=%u st=%di,f=%di,r=%di,sp=%di", tool_index, static_cast<int>(Get()), fs_filtered_value.load(), fs_ref_value, fs_value_span);
+        metric_record_custom(&get_metric__static(), ",n=%u st=%di,f=%di,r=%di,ri=%di,sp=%di", tool_index, static_cast<int>(Get()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
     }
 }
 
 void FSensorAdcSide::record_state() {
     if (limit_record()) {
-        metric_record_custom(&get_metric__static(), ",n=%u st=%di,f=%di,r=%di,sp=%di", tool_index, static_cast<int>(Get()), fs_filtered_value.load(), fs_ref_value, fs_value_span);
+        metric_record_custom(&get_metric__static(), ",n=%u st=%di,f=%di,r=%di,ri=%di,sp=%di", tool_index, static_cast<int>(Get()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
     }
 }
 

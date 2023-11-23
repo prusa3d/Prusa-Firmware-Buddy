@@ -16,7 +16,7 @@ inline constexpr uint8_t socket_timeout_s { 6 };
 bool escape_url_string(std::span<char> escaped_url_string, const std::array<char, url_buff_size> &url_buff) {
     // escaping of special characters, should probably be done elswhere (somewhere that handles the url string)
     size_t cur_written { 0 };
-    escaped_url_string[0] = '\0';                           // ensure initialization
+    escaped_url_string[0] = '\0'; // ensure initialization
     for (size_t i = 0; i < strlen(url_buff.data()); ++i) {
         if (cur_written >= escaped_url_string.size() - 4) { // lazy, we're writing max 3 chars in a step (+ need '\0')
             return false;
@@ -48,15 +48,11 @@ void create_url_string(std::array<char, url_buff_size> &url_buff, std::array<cha
     [[maybe_unused]] auto rc = snprintf(url_buff.data(), url_buff.size(), "/?printer_type=%s&version=%s&mac=%s&board=%s", PRINTER_MODEL, project_version_full, otp_get_mac_address_str().data(), board);
     assert(static_cast<size_t>(rc) < url_buff_size); // either wanted to write too much, or an error (negative, casted to big unsigned)
     if (!escape_url_string(escaped_url_string, url_buff)) {
-        assert(false);                               // doesn't fit
+        assert(false); // doesn't fit
     }
 }
 
 bool upload_dump_to_server(http::Request &req) {
-    if (server[0] == '\0') {
-        // No server set up -> disable crash dumps.
-        return false;
-    }
     http::SocketConnectionFactory conn_factory(server, port, socket_timeout_s);
     http::HttpClient http(conn_factory);
 

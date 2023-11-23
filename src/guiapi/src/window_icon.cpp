@@ -8,7 +8,6 @@
 #include "ScreenHandler.hpp"
 #include "img_resources.hpp"
 #include "gcode_thumb_decoder.h"
-#include "gcode_file.h"
 #include "gui_invalidate.hpp"
 #include "syslog.h"
 #include "timing.h"
@@ -63,7 +62,7 @@ window_icon_t::window_icon_t(window_t *parent, const img::Resource *res, point_i
 }
 
 void window_icon_t::unconditionalDraw() {
-    // no PNG assigned
+    // no image assigned
     if (!pRes)
         return;
 
@@ -71,24 +70,7 @@ void window_icon_t::unconditionalDraw() {
     raster_op.shadow = IsShadowed() ? is_shadowed::yes : is_shadowed::no;
     raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
 
-    FILE *file = pRes->Get();
-    if (!file)
-        return;
-
     point_ui16_t wh_ico = { pRes->w, pRes->h };
-
-    // measure dimensions if unknown
-    if (wh_ico.x == 0 || wh_ico.y == 0) {
-        fseek(file, pRes->offset, SEEK_SET);
-        uint8_t data[32] { 0 };
-        const uint8_t *ptr = data;
-        {
-            size_t sz = fread(&data[0], 1, 32, file);
-            if (sz < 32)
-                return;
-        }
-        wh_ico = icon_meas(ptr); // set measured
-    }
 
     if (wh_ico.x < Width() || wh_ico.y < Height()) {
         super::unconditionalDraw(); // draw background
@@ -97,7 +79,7 @@ void window_icon_t::unconditionalDraw() {
     Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
     rc_ico.Align(GetRect(), GetAlignment());
     rc_ico = rc_ico.Intersection(GetRect());
-    display::DrawPng(point_ui16(rc_ico.Left(), rc_ico.Top()), *pRes, GetBackColor(), raster_op);
+    display::DrawImg(point_ui16(rc_ico.Left(), rc_ico.Top()), *pRes, GetBackColor(), raster_op);
 }
 
 void window_icon_t::setRedLayout() {
@@ -153,21 +135,16 @@ WindowMultiIconButton::WindowMultiIconButton(window_t *parent, Rect16 rc, const 
 }
 
 void WindowMultiIconButton::unconditionalDraw() {
-    // no PNG assigned
     if (!pRes)
         return;
 
-    const img::Resource *pPng = &pRes->normal;
+    const img::Resource *pImg = &pRes->normal;
     if (IsFocused())
-        pPng = &pRes->focused;
+        pImg = &pRes->focused;
     if (IsShadowed())
-        pPng = &pRes->disabled;
+        pImg = &pRes->disabled;
 
-    FILE *file = pPng->Get();
-    if (!file)
-        return;
-
-    display::DrawPng(point_ui16(Left(), Top()), *pPng, GetBackColor());
+    display::DrawImg(point_ui16(Left(), Top()), *pImg, GetBackColor());
 }
 
 void WindowMultiIconButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

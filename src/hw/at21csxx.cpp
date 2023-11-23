@@ -49,14 +49,14 @@ void AT21CSxx::stop_con() {
 
 void AT21CSxx::logic_1() {
     bus_low();
-    delay_ns_precise<t_LOW1_ns>();            // keep bus low for t_LOW1
+    delay_ns_precise<t_LOW1_ns>(); // keep bus low for t_LOW1
     bus_high();
     delay_ns_precise<t_BIT_ns - t_LOW1_ns>(); // Wait until bit frame end
 }
 
 void AT21CSxx::logic_0() {
     bus_low();
-    delay_ns_precise<t_LOW0_ns>();            // keep bus low for t_LOW0
+    delay_ns_precise<t_LOW0_ns>(); // keep bus low for t_LOW0
     bus_high();
     delay_ns_precise<t_BIT_ns - t_LOW0_ns>(); // Wait until bit frame end
 }
@@ -112,18 +112,18 @@ uint8_t AT21CSxx::compose_device_address_byte(uint8_t opcode, uint8_t address, u
 }
 
 int AT21CSxx::reset_discovery() {
-    bus_low();               // reset device
-    delay_us_precise(150);   // t_DSCHG
+    bus_low(); // reset device
+    delay_us_precise(150); // t_DSCHG
     bus_high();
-    delay_us_precise(100);   // t_RRT
+    delay_us_precise(100); // t_RRT
 
-    bus_low();               // request ack
-    delay_us_precise(1);     // t_DDR
+    bus_low(); // request ack
+    delay_us_precise(1); // t_DDR
     bus_high();
-    delay_us_precise(3);     // t_MSDR-t_DDR
+    delay_us_precise(3); // t_MSDR-t_DDR
     bool ack = !bus_state(); // check ACK from device
-    delay_us_precise(150);   // t_HTTS
-    return ack;              // device is now ready to receive commands
+    delay_us_precise(150); // t_HTTS
+    return ack; // device is now ready to receive commands
 }
 
 AT21CSxx::AT21CSxx(GPIO_TypeDef *port, uint32_t pin)
@@ -185,7 +185,7 @@ int AT21CSxx::find_device() {
         }
         reset_discovery(); // Reset device before going to nex attempt
     }
-    return -2;             // This should be never reached
+    return -2; // This should be never reached
 }
 
 /**

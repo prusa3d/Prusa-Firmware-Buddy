@@ -34,6 +34,7 @@
 #include "screen_menu_statistics.hpp"
 #include "screen_menu_cancel_object.hpp"
 #include "screen_touch_error.hpp"
+#include "screen_print_preview.hpp"
 #include "screen_menu_input_shaper.hpp"
 
 #include "gui/test/screen_menu_test.hpp"
@@ -44,7 +45,6 @@
     #include "screen_menu_mmu_eject_filament.hpp"
     #include "screen_menu_mmu_cut_filament.hpp"
     #include "screen_menu_mmu_load_to_nozzle.hpp"
-    #include "screen_menu_mmu_fail_stats.hpp"
     #include "screen_menu_filament_mmu.hpp"
 #endif
 
@@ -95,13 +95,13 @@ class ScreenFactory {
         ScreenMenuUserInterface,
         ScreenMenuVersionInfo,
         ScreenMenuWifiSettings,
+        ScreenPrintPreview,
         ScreenMenuPrusaLink,
         ScreenMenuInputShaper,
 #if HAS_MMU2()
         ScreenMenuFilamentMMU,
         ScreenMenuMMUCutFilament,
         ScreenMenuMMUEjectFilament,
-        ScreenMenuMMUFailStats,
         ScreenMenuMMULoadFilament,
         ScreenMenuMMULoadToNozzle,
 #endif

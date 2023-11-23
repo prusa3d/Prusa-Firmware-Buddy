@@ -45,6 +45,10 @@ SelftestFrametAxis::SelftestFrametAxis(window_t *parent, PhasesSelftest ph, fsm:
     , icon_z_axis_state(this, { col_results, row_4 })
     , text_info(this, Rect16(col_texts, row_5, WizardDefaults::X_space, GetRect().Height() - GetRect().Top() - row_4), is_multiline::yes, is_closed_on_click_t::no, _(en_text_info)) {
 
+#ifdef USE_ST7789
+    text_info.set_font(GuiDefaults::FontMenuSpecial);
+#endif
+
     change();
 }
 

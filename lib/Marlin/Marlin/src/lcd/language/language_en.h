@@ -524,6 +524,7 @@ namespace Language_en {
   PROGMEM Language_Str MSG_ERR_MINTEMP_BED                 = _UxGT("Err: MINTEMP BED");
   PROGMEM Language_Str MSG_ERR_MAXTEMP_CHAMBER             = _UxGT("Err: MAXTEMP CHAMBER");
   PROGMEM Language_Str MSG_ERR_MINTEMP_CHAMBER             = _UxGT("Err: MINTEMP CHAMBER");
+  PROGMEM Language_Str MSG_ERR_NOZZLE_OVERCURRENT          = _UxGT("Err: NOZZLE OVERCURRENT");
   PROGMEM Language_Str MSG_ERR_Z_HOMING                    = _UxGT("Home XY First");
   PROGMEM Language_Str MSG_ERR_HOMING_X                    = _UxGT("HOMING ERROR X");
   PROGMEM Language_Str MSG_ERR_HOMING_Y                    = _UxGT("HOMING ERROR Y");

@@ -16,17 +16,21 @@ size_t description_line_t::value_width(string_view_utf8 *title_str) {
     assert(false);
     return 0;
 }
+description_line_t::description_line_t(window_frame_t *frame)
+    : title(frame, Rect16(0, 0, 0, 0), is_multiline::no)
+    , value(frame, Rect16(0, 0, 0, 0), is_multiline::no) {
+}
 
-description_line_t::description_line_t(window_frame_t *frame, bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, std::function<void(std::span<char> buffer)> make_value)
+void description_line_t::update(bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, std::function<void(std::span<char> buffer)> make_value) {
 #ifdef USE_ST7789
-    : title(frame, Rect16(PADDING, calculate_y(has_preview_thumbnail, row), title_width(&title_str), LINE_HEIGHT), is_multiline::no)
-    , value(frame, Rect16(SCREEN_WIDTH - PADDING - value_width(&title_str), calculate_y(has_preview_thumbnail, row), value_width(&title_str), LINE_HEIGHT), is_multiline::no)
-#endif // USE_ST7789
+    title.SetRect(Rect16(PADDING, calculate_y(has_preview_thumbnail, row), title_width(&title_str), LINE_HEIGHT));
+    value.SetRect(Rect16(SCREEN_WIDTH - PADDING - value_width(&title_str), calculate_y(has_preview_thumbnail, row), value_width(&title_str), LINE_HEIGHT));
+#endif
 #ifdef USE_ILI9488
-    : title(frame, Rect16(PADDING.left, calculate_y(has_preview_thumbnail, row), title_width(&title_str), LINE_HEIGHT), is_multiline::no)
-    , value(frame, Rect16(PADDING.left + GuiDefaults::PreviewThumbnailRect.Width() - value_width(&title_str), calculate_y(has_preview_thumbnail, row), value_width(&title_str), LINE_HEIGHT), is_multiline::no)
-#endif // USE_ILI9488
-{
+    title.SetRect(Rect16(PADDING.left, calculate_y(has_preview_thumbnail, row), title_width(&title_str), LINE_HEIGHT));
+    value.SetRect(Rect16(PADDING.left + GuiDefaults::PreviewThumbnailRect.Width() - value_width(&title_str), calculate_y(has_preview_thumbnail, row), value_width(&title_str), LINE_HEIGHT));
+#endif
+
     title.SetText(title_str);
     title.SetAlignment(Align_t::LeftBottom());
     title.SetPadding({ 0, 0, 0, 0 });
@@ -123,41 +127,48 @@ static void print_used_material_g(std::span<char> buffer, GCodeInfo &gcode) {
     snprintf(buffer.data(), buffer.size(), " g");
 }
 
-GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame, GCodeInfo &gcode)
+GCodeInfoWithDescription::GCodeInfoWithDescription(window_frame_t *frame)
     : description_lines {
-        // First line - Print Time
-        description_line_t(frame, gcode.has_preview_thumbnail(), 0, _("Print Time"), [&](std::span<char> value_buffer) {
-            if (gcode.get_printing_time()[0]) {
-                snprintf(value_buffer.data(), value_buffer.size(), "%s", gcode.get_printing_time().data());
+        description_line_t(frame),
+        description_line_t(frame),
+        description_line_t(frame),
+        description_line_t(frame),
+    } {
+}
+
+void GCodeInfoWithDescription::update(GCodeInfo &gcode) {
+    // First line - Print Time
+    description_lines[0].update(gcode.has_preview_thumbnail(), 0, _("Print Time"), [&](std::span<char> value_buffer) {
+        if (gcode.get_printing_time()[0]) {
+            snprintf(value_buffer.data(), value_buffer.size(), "%s", gcode.get_printing_time().data());
+        } else {
+            snprintf(value_buffer.data(), value_buffer.size(), "unknown");
+        }
+    });
+    // Second line - material
+    description_lines[1].update(gcode.has_preview_thumbnail(), 1, _("Material"), [&](std::span<char> value_buffer) {
+        if (gcode.has_preview_thumbnail()) {
+            // thumbnail, we have to squeze all the material info on a single line
+            if (gcode.UsedExtrudersCount() == 0) {
+                snprintf(value_buffer.data(), value_buffer.size(), "?");
+            } else if (gcode.UsedExtrudersCount() == 1) {
+                print_single_extruder_material_info(value_buffer, gcode);
             } else {
-                snprintf(value_buffer.data(), value_buffer.size(), "unknown");
-            }
-        }),
-        // Second line - material
-        description_line_t(frame, gcode.has_preview_thumbnail(), 1, _("Material"), [&](std::span<char> value_buffer) {
-            if (gcode.has_preview_thumbnail()) {
-                // thumbnail, we have to squeze all the material info on a single line
-                if (gcode.UsedExtrudersCount() == 0) {
-                    snprintf(value_buffer.data(), value_buffer.size(), "?");
-                } else if (gcode.UsedExtrudersCount() == 1) {
-                    print_single_extruder_material_info(value_buffer, gcode);
-                } else {
-                    print_material_types(value_buffer, gcode);
-                }
-            } else {
-                // without thumbnail, we are going to use the third and second line for more info about the used material
                 print_material_types(value_buffer, gcode);
             }
-        }),
-        // Third line - used filament in meters
-        description_line_t(frame, gcode.has_preview_thumbnail(), 2, _("Used Amount"), [&](std::span<char> value_buffer) {
-            print_used_material_m(value_buffer, gcode);
-        }),
-        // Fourth line - used filament in grams
-        description_line_t(frame, gcode.has_preview_thumbnail(), 3, string_view_utf8::MakeNULLSTR(), [&](std::span<char> value_buffer) {
-            print_used_material_g(value_buffer, gcode);
-        }),
-    } {
+        } else {
+            // without thumbnail, we are going to use the third and second line for more info about the used material
+            print_material_types(value_buffer, gcode);
+        }
+    });
+    // Third line - used filament in meters
+    description_lines[2].update(gcode.has_preview_thumbnail(), 2, _("Used Amount"), [&](std::span<char> value_buffer) {
+        print_used_material_m(value_buffer, gcode);
+    });
+    // Fourth line - used filament in grams
+    description_lines[3].update(gcode.has_preview_thumbnail(), 3, string_view_utf8::MakeNULLSTR(), [&](std::span<char> value_buffer) {
+        print_used_material_g(value_buffer, gcode);
+    });
 
     bool has_filament_used_info = false;
 

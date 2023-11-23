@@ -275,6 +275,32 @@ def accept_header():
     })
 
 
+def content_encryption_mode_header():
+    """
+    Content encryption mode decoder.
+    """
+    encryption_modes = {
+        'AES-CBC': 'ContentEncryptionModeCBC',
+        'AES-CTR': 'ContentEncryptionModeCTR',
+    }
+    tr, terminals, add_unknowns = trie(encryption_modes)
+    for t in terminals:
+        terminals[t].mark_enter()
+        terminals[t].set_name(encryption_modes[t])
+    # Eat spaces before the content type
+    start = tr.start()
+    start.loop('HorizWhitespace', LabelType.Special)
+
+    # Now handle all the rest by a header-parsing automaton that doesn't emit
+    # any events.
+    other, other_end, _ = read_header_value(None)
+    fallback = other.start()
+    tr.join_transition(start, other, fallthrough=True)
+    for unknown in add_unknowns:
+        unknown.add_fallback(fallback, fallthrough=True)
+    return tr, other_end, True
+
+
 def print_after_upload_header():
     return keyworded_header({
         'true': 'PrintAfterUpload',
@@ -286,6 +312,12 @@ def print_after_upload_header():
 def overwrite_file_header():
     return keyworded_header({
         '?1': 'OverwriteFile',
+    })
+
+
+def create_folder_header():
+    return keyworded_header({
+        '?1': 'CreateFolder',
     })
 
 

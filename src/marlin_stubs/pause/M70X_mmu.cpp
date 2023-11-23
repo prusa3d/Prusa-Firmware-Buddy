@@ -12,6 +12,10 @@ void filament_gcodes::mmu_load(uint8_t data) {
     MMU2::mmu2.load_filament(data);
 }
 
+void filament_gcodes::mmu_load_test(uint8_t data) {
+    MMU2::mmu2.loading_test(data);
+}
+
 /**
  * @brief eject filament from mmu
  *

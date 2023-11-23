@@ -32,7 +32,7 @@ enum class printing_state_t : uint8_t {
 constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
 
 class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
-#if not PRINTER_IS_PRUSA_MK4
+#if !PRINTER_IS_PRUSA_MK4
     static constexpr const char *caption = N_("INPUT SHAPER (ALPHA)");
 #else
     static constexpr const char *caption = N_("INPUT SHAPER");
@@ -53,7 +53,7 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     window_text_t w_etime_value;
 
     // std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end" // nope, if you have only 2 static const strings, you can swap pointers
-    string_view_utf8 label_etime;      // not sure if we really must keep this in memory
+    string_view_utf8 label_etime; // not sure if we really must keep this in memory
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
     uint32_t message_timer;
     bool stop_pressed;

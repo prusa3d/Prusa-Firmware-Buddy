@@ -10,6 +10,7 @@
 #include "bsod_gui.hpp"
 #include "utility_extensions.hpp"
 #include <limits>
+#include <algorithm>
 #define ST25DV64K_RTOS
 
 using namespace i2c;

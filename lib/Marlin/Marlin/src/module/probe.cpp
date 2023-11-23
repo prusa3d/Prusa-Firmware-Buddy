@@ -598,6 +598,15 @@ static xy_pos_t offset_for_probe_try(int try_idx) {
   } while (true);
 }
 #endif
+
+#if ENABLED(NOZZLE_LOAD_CELL)
+  static float loadcell_retare_for_analysis() {
+    loadcell.WaitBarrier(); // Sync samples before tare
+    loadcell.analysis.Reset(); // Reset window to include the tare samples
+    return loadcell.Tare();
+  }
+#endif
+
 /**
  * @brief Probe at the current XY (possibly more than once) to find the bed Z.
  *
@@ -622,10 +631,9 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
     *endstop_triggered = true;
 
   #if ENABLED(NOZZLE_LOAD_CELL)
-    auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
     auto H = loadcell.CreateLoadAboveErrEnforcer();
-    loadcell.Tare();
-    loadcell.analysis.Reset();
+    auto reference_tare = loadcell_retare_for_analysis(); ///< Use this value as reference for following tares
+    const auto max_tare_offset = std::abs(loadcell.GetThreshold()); ///< Maximal valid offset from reference_tare
   #endif
 
   // Double-probing does a fast probe followed by a slow probe
@@ -664,6 +672,9 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
       // Probe down fast. If the probe doesn't fail raise for probe clearance
       if (!do_probe_move(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST))) {
         do_blocking_move_to_z(current_position.z + Z_CLEARANCE_BETWEEN_PROBES, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+        #if ENABLED(NOZZLE_LOAD_CELL)
+          reference_tare = loadcell_retare_for_analysis();
+        #endif
       } else {
         if(endstop_triggered)
           *endstop_triggered = false;
@@ -689,13 +700,7 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
   #endif
 
   #if TOTAL_PROBING > 2
-    for (
-      #if EXTRA_PROBING
-        uint8_t p = 0; p < TOTAL_PROBING; p++
-      #else
-        uint8_t p = TOTAL_PROBING; p--;
-      #endif
-    )
+    for (uint8_t p = 0; p < TOTAL_PROBING; p++)
   #endif
     {
       idle(false); // Avoid watchdog reset in case of no move while probing
@@ -703,9 +708,21 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
         auto center_offset = offset_for_probe_try(probe_idx++);
         do_blocking_move_to_xy(center_pos + center_offset, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
 
-        if (p != TOTAL_PROBING) {
-          loadcell.Tare();
-          loadcell.analysis.Reset();
+        if (p) {
+          // sync and re-tare the loadcell
+          auto offset = loadcell_retare_for_analysis() - reference_tare;
+
+          SERIAL_ECHO_START();
+          SERIAL_ECHOLNPAIR_F("Re-tared with offset ", offset);
+
+          // If tare value is suspicious, lift very high and try tare again
+          if (std::abs(offset) > max_tare_offset) {
+            do_blocking_move_to_z(current_position.z + Z_AFTER_PROBING, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+            reference_tare = loadcell_retare_for_analysis();
+
+            SERIAL_ECHO_START();
+            SERIAL_ECHOLNPAIR_F("Lifted and took new reference tare ", reference_tare);
+          }
         }
 
         SERIAL_ECHO_START();
@@ -760,7 +777,7 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
       #elif ENABLED(NOZZLE_LOAD_CELL)
         // wait until the analysis' window fully includes the move-back period
         uint32_t window_end = move_back_end + static_cast<uint32_t>((loadcell.analysis.analysisLookahead + loadcell.analysis.loadDelay) * 1000.f);
-        while (loadcell.GetLastSampleTime() < window_end) idle(true, true);
+        loadcell.WaitBarrier(window_end);
 
         static metric_t analysis_result = METRIC("probe_analysis", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
         auto result = loadcell.analysis.Analyse();
@@ -788,11 +805,8 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
 
       #if TOTAL_PROBING > 2
         // Small Z raise after all but the last probe
-        if (p
-          #if EXTRA_PROBING
-            < TOTAL_PROBING - 1
-          #endif
-        ) do_blocking_move_to_z(current_position.z + Z_CLEARANCE_MULTI_PROBE - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+        if (p < TOTAL_PROBING - 1)
+          do_blocking_move_to_z(current_position.z + Z_CLEARANCE_MULTI_PROBE, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
       #endif
     }
 
@@ -854,6 +868,9 @@ void cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max) {
   bool probe_deployed = false;
   const int required_clean_cnt = 3;
   int consecutive_clean_cnt = 0;
+
+  // Enable loadcell high precision across the entire sequence to prime the noise filters
+  auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
 
   // set acceleration to known value
   auto saved_acceleration = planner.settings.travel_acceleration;
@@ -990,6 +1007,14 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
   MINDA_BROKEN_CABLE_DETECTION__PRE_XYMOVE();
   do_blocking_move_to(npos, MMM_TO_MMS(XY_PROBE_SPEED));
   MINDA_BROKEN_CABLE_DETECTION__POST_XYMOVE();
+
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    // HighPrecision needs to be enabled with some time margin to prime the filters.
+    // If it hasn't been already we're being called in single-probe mode, enable it temporarily.
+    bool enableHighPrecision = !loadcell.IsHighPrecisionEnabled();
+    if (enableHighPrecision) SERIAL_ECHO_MSG("probe: enabling high-precision in single-probe mode");
+    auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, enableHighPrecision);
+  #endif
 
   float measured_z = NAN;
   if (!DEPLOY_PROBE()) {

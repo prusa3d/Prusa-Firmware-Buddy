@@ -23,9 +23,15 @@ static constexpr size_t row_4 = row_3 + WizardDefaults::row_h;
 static constexpr size_t row_5 = row_4 + WizardDefaults::row_h + 20;
 
 static constexpr const char *en_text_fan_test = N_("Fan Test");
+#ifdef USE_ST7789
+static constexpr const char *en_text_hotend_fan = N_("Hotend fan");
+static constexpr const char *en_text_print_fan = N_("Print fan");
+static constexpr const char *en_text_fans_switched = N_("Switched fans");
+#else
 static constexpr const char *en_text_hotend_fan = N_("Hotend fan RPM test");
 static constexpr const char *en_text_print_fan = N_("Print fan RPM test");
 static constexpr const char *en_text_fans_switched = N_("Checking for switched fans");
+#endif
 static constexpr const char *en_text_info = N_("Fan test in progress, please wait.");
 static constexpr const char *en_text_info_rpm_failed = N_("The RPM test has failed, check both fans are free to spin and connected correctly.");
 static constexpr const char *en_text_info_switched = N_("Based on the test it looks like the fans connectors are switched. Double check your wiring and repeat the test.");
@@ -86,6 +92,10 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
             fan_states[i].icon_fans_switched_state.Hide();
         }
     }
+#endif
+
+#ifdef USE_ST7789
+    text_info.set_font(GuiDefaults::FontMenuSpecial);
 #endif
 
     change();

@@ -12,11 +12,11 @@
 namespace filament_sensor {
 
 struct LogicalSensors {
-    IFSensor *primary_runout = nullptr;   // XL side sensor; printer with MMU : MMU; printer without MMU extruder sensor
+    IFSensor *primary_runout = nullptr; // XL side sensor; printer with MMU : MMU; printer without MMU extruder sensor
     IFSensor *secondary_runout = nullptr; // XL, printer with MMU, extruder sensor; other don't have
-    IFSensor *autoload = nullptr;         // printer with MMU dont have, XL side
+    IFSensor *autoload = nullptr; // printer with MMU dont have, XL side
     IFSensor *current_extruder = nullptr; // sensor on extruder, on XL it is bound to current extruder
-    IFSensor *current_side = nullptr;     // on MK4 this is MMU sensor, on XL it is currently selected side sensors, MINI does not have one
+    IFSensor *current_side = nullptr; // on MK4 this is MMU sensor, on XL it is currently selected side sensors, MINI does not have one
     // combination XL + MMU currently unsupported
 
     auto get_array() {
@@ -66,9 +66,9 @@ enum class inject_t : int32_t {
  * it would not be thread safe
  */
 enum class cmd_t : int32_t {
-    null,       // no command
-    on,         // request to turn on
-    off,        // request to turn off
+    null, // no command
+    on, // request to turn on
+    off, // request to turn off
     processing, // currently processing command
 };
 

@@ -5,6 +5,7 @@
 #include "Marlin.h"
 #include "accelerometer.hpp"
 #include "modbus/ModbusTask.hpp"
+#include <PuppyConfig.hpp>
 #include "wiring_analog.h"
 #include "wiring_digital.h"
 #include "Marlin/src/module/temperature.h"
@@ -22,6 +23,7 @@
 #include "fanctl.hpp"
 #include "task_startup.h"
 #include <hal/HAL_MultiWatchdog.hpp>
+#include <advanced_power.hpp>
 
 LOG_COMPONENT_REF(Marlin);
 
@@ -45,6 +47,21 @@ void HAL_watchdog_refresh() {
     marlin_timer_wdg.kick(false);
 }
 
+// Check dwarf is operated under safe conditions
+void check_operation_safety() {
+    if constexpr (ENABLE_HEATER_CURRENT_CHECKS) {
+        // Filter nozzle current using moving average
+        static float avg_nozzle_current = 0;
+        avg_nozzle_current = (avg_nozzle_current * 9 + advancedpower.GetDwarfNozzleCurrent()) / 10;
+
+        // Fail if nozzle current too high
+        if (avg_nozzle_current > MAX_HEATER_CURRENT_A) {
+            // TODO: Would be nice to pass nozzle current and configured maximum to the error message
+            kill(GET_TEXT(MSG_ERR_NOZZLE_OVERCURRENT));
+        }
+    }
+}
+
 void dwarf::modules::marlin::start() {
     hal::MultiWatchdog wdg; // Add one instance of watchdog
     setup();
@@ -52,12 +69,32 @@ void dwarf::modules::marlin::start() {
     modbus::ModbusTask::EnableModbus();
 
     while (!marlin_kill) {
-        if (dwarf::ModbusControl::isDwarfSelected()) {
-            led::blinking(0x0f, 0x0f, 0x0f, 500, 500);
-        } else if (!Cheese::is_parked()) {
-            led::blinking(0x0f, 0x0c, 0, 200, 50);
-        } else {
-            led::blinking(0, 0x0f, 0, 1000, 75);
+        switch (ModbusControl::status_led.mode) {
+        case dwarf_shared::StatusLed::Mode::solid_color:
+            led::set_rgb(ModbusControl::status_led.r, ModbusControl::status_led.g, ModbusControl::status_led.b);
+            break;
+        case dwarf_shared::StatusLed::Mode::blink:
+            led::blinking(ModbusControl::status_led.r, ModbusControl::status_led.g, ModbusControl::status_led.b, 500, 500);
+            break;
+        case dwarf_shared::StatusLed::Mode::pulse:
+            led::pulsing(ModbusControl::status_led.r, ModbusControl::status_led.g, ModbusControl::status_led.b,
+                ModbusControl::status_led.r >> 3, ModbusControl::status_led.g >> 3, ModbusControl::status_led.b >> 3, // Pulse to 1/8 of the color
+                1000);
+            break;
+        case dwarf_shared::StatusLed::Mode::pulse_w:
+            led::pulsing(ModbusControl::status_led.r, ModbusControl::status_led.g, ModbusControl::status_led.b,
+                0xff, 0xff, 0xff, // Pulse to white
+                1000);
+            break;
+        default: // Follow internal status
+            if (dwarf::ModbusControl::isDwarfSelected()) {
+                led::blinking(0x0f, 0x0f, 0x0f, 500, 500);
+            } else if (!Cheese::is_parked()) {
+                led::blinking(0x0f, 0x0c, 0, 200, 50);
+            } else {
+                led::blinking(0, 0x0f, 0, 1000, 75);
+            }
+            break;
         }
 
         idle(false);
@@ -68,25 +105,11 @@ void dwarf::modules::marlin::start() {
 
         Cheese::update();
 
-        if (!dwarf::ModbusControl::isDwarfSelected()) {
-
-            if (buddy::hw::button1.read() == buddy::hw::Pin::State::low || buddy::hw::button2.read() == buddy::hw::Pin::State::low) {
-                enable_e_steppers();
-                if (buddy::hw::button1.read() == buddy::hw::Pin::State::low)
-                    buddy::hw::e0Dir.set();
-                else
-                    buddy::hw::e0Dir.reset();
-
-                buddy::hw::e0Step.set();
-                osDelay(1);
-                buddy::hw::e0Step.reset();
-                disable_e_steppers();
-            }
-        }
-
         // process any modbus request that are pending
         dwarf::ModbusControl::ProcessModbusMessages();
         dwarf::ModbusControl::UpdateRegisters();
+
+        check_operation_safety();
 
         // Reload this instance of watchdog
         wdg.kick();

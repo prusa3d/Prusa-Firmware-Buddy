@@ -11,7 +11,7 @@ namespace logic {
 /// @brief A high-level command state machine - handles the complex logic of unloading filament
 class UnloadFilament : public CommandBase {
 public:
-    inline UnloadFilament()
+    inline constexpr UnloadFilament()
         : CommandBase() {}
 
     /// Restart the automaton

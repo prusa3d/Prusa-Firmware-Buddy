@@ -1,21 +1,22 @@
-#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../lib/Marlin/Marlin/src/gcode/queue.h"
+#include "gcode/gcode.h"
+#include "gcode/queue.h"
 #include "PrusaGcodeSuite.hpp"
 #include <option/has_selftest.h>
 #include <string.h>
 #if HAS_SELFTEST()
     #include "selftest_esp.hpp"
 #endif // HAS_SELFTEST
-#include "../common/sys.h"
+#include "sys.h"
+#include "data_exchange.hpp"
 
 static void update_main_board(bool update_older, const char *sfn) {
-    if (sfn != nullptr) { // Flash selected BBF
-        sys_set_reflash_bbf_sfn(sfn);
+    if (*sfn) { // Flash selected BBF
+        data_exchange::set_reflash_bbf_sfn(sfn);
     } else {
         if (update_older) {
-            sys_fw_update_older_on_restart_enable();
+            data_exchange::fw_update_older_on_restart_enable();
         } else {
-            sys_fw_update_enable();
+            data_exchange::fw_update_on_restart_enable();
         }
     }
 
@@ -58,13 +59,21 @@ static void M997_no_parser(uint module_number, [[maybe_unused]] uint address, bo
  */
 void PrusaGcodeSuite::M997() {
 
-    char sfn[13] = { 0 };
+    char sfn[13] = { '\0' };
     const char *file_path_ptr = nullptr;
-    if (parser.ulongval('S', 0) == 0) { // Reflashing main FW
-        file_path_ptr = strstr(parser.string_arg, "/");
-        if (file_path_ptr != nullptr)
-            strlcpy(sfn, file_path_ptr + 1, 13);
+    bool force_flash_even_older = parser.seen('O');
+    static constexpr const char *const usb_str = "/usb/";
+    size_t prefix_len = strlen(usb_str);
+
+    if (parser.ulongval('S', 0) == 0) {
+        if ((file_path_ptr = strstr(parser.string_arg, usb_str)) != nullptr) {
+            if (*(file_path_ptr + prefix_len)) {
+                strlcpy(sfn, file_path_ptr + prefix_len, sizeof(sfn));
+            }
+        }
+        force_flash_even_older = true; // M997 without parameter should force flash newest FW on USB - even older than current
     }
 
-    M997_no_parser(parser.ulongval('S', 0), parser.ulongval('B', 0), parser.seen('O'), sfn);
+    // NOTICE: Keep in mind, that parser.seen('B') can be triggered by the filename in path of '/' parameter
+    M997_no_parser(parser.ulongval('S', 0), parser.ulongval('B', 0), force_flash_even_older, sfn);
 }

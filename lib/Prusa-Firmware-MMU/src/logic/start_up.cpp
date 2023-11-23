@@ -11,6 +11,7 @@ StartUp startUp;
 
 bool StartUp::Reset(uint8_t) {
     if (!CheckFINDAvsEEPROM()) {
+        HoldIdlerSelector();
         SetInitError(ErrorCode::FINDA_VS_EEPROM_DISREPANCY);
     }
 
@@ -33,6 +34,7 @@ bool StartUp::StepInner() {
                     error = ErrorCode::FINDA_VS_EEPROM_DISREPANCY;
                     state = ProgressCode::ERRWaitingForUser;
                 } else {
+                    ResumeIdlerSelector();
                     error = ErrorCode::OK;
                     state = ProgressCode::OK;
                 }

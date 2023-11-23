@@ -11,7 +11,7 @@
 #include "filename_defs.h"
 #include "window.hpp"
 #include "display_helper.h"
-#include "lazyfilelist.h"
+#include "lazyfilelist.hpp"
 #include "text_roll.hpp"
 #include "WindowMenuItems.hpp"
 #include "GuiDefaults.hpp"
@@ -68,7 +68,7 @@ protected:
 
 public:
     // TODO private
-    char sfn_path[FILE_PATH_BUFFER_LEN];             // this is a Short-File-Name path where we start the file dialog
+    char sfn_path[FILE_PATH_BUFFER_LEN]; // this is a Short-File-Name path where we start the file dialog
 public:
     window_file_list_t(window_t *parent, Rect16 rc); // height is calculated from LazyDirViewSize
     void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
@@ -90,15 +90,15 @@ protected:
     virtual void invalidate(Rect16 validation_rect) override;
     virtual void validate(Rect16 validation_rect) override;
 
-    void invalidateItem(int index);   // invalidate one item in list
+    void invalidateItem(int index); // invalidate one item in list
     virtual void unconditionalDraw() override;
-    void inc(int dif);                ///< negative values move cursor in opposite direction
-    void roll_screen(int dif);        ///< negative values move cursor in opposite direction
-    void selectNewItem();             // sets focus and activates text rolling
+    void inc(int dif); ///< negative values move cursor in opposite direction
+    void roll_screen(int dif); ///< negative values move cursor in opposite direction
+    void selectNewItem(); // sets focus and activates text rolling
     Rect16 itemRect(int index) const; // get rectangle of item with target index
     string_view_utf8 itemText(int index) const;
     const img::Resource *itemIcon(int index) const;
-    FL_LABEL activeItem;   ///< used for text rolling
+    FL_LABEL activeItem; ///< used for text rolling
     MI_RETURN return_item; ///< used for return item
 
 private:

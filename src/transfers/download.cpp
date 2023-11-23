@@ -1,13 +1,20 @@
 #include "download.hpp"
 #include "files.hpp"
-#include "changed_path.hpp"
 
+#include <common/bsod.h>
 #include <common/http/get_request.hpp>
+#include <common/filename_type.hpp>
+#include <gui/gui_media_events.hpp>
+#include <log.h>
 #include <timing.h>
 
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cinttypes>
 
+LOG_COMPONENT_REF(transfers);
+
+using http::ContentEncryptionMode;
 using http::Error;
 using http::GetRequest;
 using http::HeaderOut;
@@ -18,9 +25,9 @@ using http::Status;
 using std::get;
 using std::get_if;
 using std::make_unique;
-using std::move;
 using std::nullopt;
 using std::optional;
+using std::shared_ptr;
 using std::tuple;
 using std::unique_ptr;
 
@@ -41,18 +48,6 @@ size_t strlcat(char *, const char *, size_t);
 
 namespace {
 
-bool write_chunk(const uint8_t *data, size_t size, FILE *f) {
-    // It seems fwrite is not capable of handling a 0-sized element :-O, causes division by 0.
-    if (size == 0) {
-        return true;
-    }
-
-    // We make our life easier by saying that this is one "item", so it
-    // can't be split up.
-    auto written = fwrite(data, size, 1, f);
-    return written == 1;
-}
-
 optional<tuple<unique_ptr<SocketConnectionFactory>, http::Response>> send_request(const char *host, uint16_t port, const char *url_path, const HeaderOut *extra_hdrs) {
     // 3 seconds timeout.
     //
@@ -66,7 +61,7 @@ optional<tuple<unique_ptr<SocketConnectionFactory>, http::Response>> send_reques
     auto resp_any = client.send(request);
 
     if (auto *resp = get_if<http::Response>(&resp_any); resp != nullptr) {
-        return make_tuple(move(factory), move(*resp));
+        return make_tuple(std::move(factory), std::move(*resp));
     } else {
         return nullopt;
     }
@@ -76,69 +71,106 @@ optional<tuple<unique_ptr<SocketConnectionFactory>, http::Response>> send_reques
 
 namespace transfers {
 
-Download::Download(ConnFactory &&factory, ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx, unique_ptr<Decryptor> &&decryptor)
-    : conn_factory(move(factory))
-    , response(move(response))
-    , slot(move(slot))
-    , dest_file(move(dest_file))
-    , transfer_idx(transfer_idx)
+Download::Download(ConnFactory &&factory, ResponseBody &&response, PartialFile::Ptr partial_file, shared_ptr<EncryptionInfo> encryption, std::unique_ptr<Decryptor> decryptor)
+    : conn_factory(std::move(factory))
+    , response(std::move(response))
+    , partial_file(partial_file)
     , last_activity(ticks_ms())
-    , decryptor(move(decryptor)) {}
-
-Download::~Download() {
-    if (dest_file.get() != nullptr) {
-        // We are being destroyed without properly finishing the transfer. Try
-        // to clean up the temp file.
-        //
-        // Close it first.
-        dest_file.reset();
-        const auto fname = transfer_name(transfer_idx);
-        // No error handling - nothing we could concievably do if it fails anyway.
-        remove(fname.begin());
-    }
+    , encryption_info(std::move(encryption))
+    , decryptor(std::move(decryptor)) {
 }
 
-Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, const HeaderOut *extra_hdrs, unique_ptr<Decryptor> &&decryptor) {
-    // Early check for free transfer slot. This is not perfect, there's a race
-    // and we can _lose_ the slot before we start the download. But we can
-    // allocate it only once we know the size and for that we need to do the
-    // HTTP request. And we don't want to do that if we already know we
-    // wouldn't have the slot anyway.
-    if (Monitor::instance.id().has_value()) {
-        return NoTransferSlot {};
+Download::BeginResult Download::begin(const Request &request, DestinationPath destination, uint32_t start_range, optional<uint32_t> end_range) {
+    // prepare headers
+    char range[6 /* bytes = */ + 2 * 10 /* 2^32 in text */ + 1 /* - */ + 1 /* \0 */];
+    if (end_range.has_value()) {
+        snprintf(range, sizeof range, "bytes=%" PRIu32 "-%" PRIu32, start_range, *end_range);
+    } else {
+        snprintf(range, sizeof range, "bytes=%" PRIu32 "-", start_range);
+    }
+    std::unique_ptr<HeaderOut[]> extra_hdrs;
+    {
+        bool include_range_header = start_range != 0 || end_range.has_value();
+        bool include_encryption_header = request.encryption != nullptr;
+        size_t builtin_cnt = (include_range_header ? 1 : 0) + (include_encryption_header ? 1 : 0);
+        size_t extra_requested_cnt = request.extra_headers(0, nullptr);
+        extra_hdrs = make_unique<HeaderOut[]>(builtin_cnt + extra_requested_cnt + 1); // 1 for null terminator
+        size_t fill_idx = 0;
+
+        // fill built-in headers
+        if (include_range_header) {
+            extra_hdrs[fill_idx++] = HeaderOut { "Range", range, nullopt };
+        }
+        if (include_encryption_header) {
+            extra_hdrs[fill_idx++] = HeaderOut { "Content-Encryption-Mode", "AES-CTR", nullopt };
+        }
+
+        // include extra headers
+        size_t extra_used_cnt = request.extra_headers(extra_requested_cnt, &extra_hdrs[fill_idx]);
+        (void)extra_used_cnt;
+        assert(extra_used_cnt == extra_requested_cnt);
+        fill_idx += extra_used_cnt;
+
+        // null-terminate
+        extra_hdrs[fill_idx++] = HeaderOut { nullptr, nullptr, nullopt };
+
+        assert(fill_idx == builtin_cnt + extra_requested_cnt + 1);
     }
 
-    // Unlike the "Link" way from arbitrary client, we assume the file name
-    // doesn't contain any invalid characters and such, that the server checks
-    // it for us. That's non-critical assumption - in case the server doesn't
-    // do the check properly, we would just fail _after_ transferring the data,
-    // we just don't bother doing it at the start.
-    //
-    // We still want to check early if the file already exists (improper sync
-    // of the file tree is quite possible).
-    struct stat st = {};
-    if (stat(destination, &st) == 0) {
-        return AlreadyExists {};
-    }
+    if (auto resp_any = send_request(request.host, request.port, request.url_path, extra_hdrs.get()); resp_any.has_value()) {
+        auto [factory, resp] = std::move(*resp_any);
 
-    if (auto resp_any = send_request(host, port, url_path, extra_hdrs); resp_any.has_value()) {
-        auto [factory, resp] = move(*resp_any);
-
-        if (resp.status != Status::Ok) {
+        if (start_range != 0 && resp.status != Status::PartialContent) {
+            // Note: We *do* allow an 200-OK in case we set the end boundary (not checking end_range.has_value() here), for two reasons:
+            // * It's possible to specify the whole file when start_range == 0 (by setting it to the length or bigger of the file), in which case it is IMO OK for the server to provide the full content.
+            // * Extra data at the end is much easier for us to handle (by ignoring it) than extra data at the start.
             return RefusedRequest {};
         }
 
-        auto slot = Monitor::instance.allocate(Monitor::Type::Connect, destination, resp.content_length());
-        if (!slot.has_value()) {
-            return NoTransferSlot {};
+        if (resp.status != Status::Ok && resp.status != Status::PartialContent) {
+            return RefusedRequest {};
         }
 
-        const size_t transfer_idx = next_transfer_idx();
-        const auto fname = transfer_name(transfer_idx);
-        auto preallocated = file_preallocate(fname.begin(), resp.content_length());
-        if (auto *err = get_if<const char *>(&preallocated); err != nullptr) {
-            return Storage { *err };
+        // This is a bit wrong in case we don't have encryption and we request
+        // a range. But at that point it won't be used much (we won't be
+        // creating the file and we won't be setting up encryption).
+        //
+        // We do check the file is large enough to incorporate the data.
+        uint32_t file_size = request.encryption != nullptr ? request.encryption->orig_size : resp.content_length() + start_range;
+
+        // did we get the partial file from the caller already?
+        PartialFile::Ptr partial_file = std::visit([&](auto &&arg) -> PartialFile::Ptr {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, PartialFile::Ptr>) {
+                return arg;
+            } else {
+                return nullptr;
+            }
+        },
+            destination);
+
+        // create the partial file here
+        if (partial_file.get() == nullptr) {
+            // We are allowed to create the file only at the very start and at
+            // that point we request the whole file. Interaction with the
+            // partial content would be a bit complex.
+            assert(start_range == 0 && !end_range.has_value());
+            auto destination_path = std::get<const char *>(destination);
+            auto preallocated = PartialFile::create(destination_path, file_size);
+            if (auto *err = get_if<const char *>(&preallocated); err != nullptr) {
+                return Storage { *err };
+            } else {
+                partial_file = get<PartialFile::Ptr>(preallocated);
+            }
         }
+
+        // if we got the file from a caller, we need to check that it's the same size
+        if (partial_file.get() != nullptr && partial_file->final_size() < file_size) {
+            return Storage { "File size mismatch" };
+        }
+
+        // set where to write within the file
+        partial_file->seek(start_range);
 
         // TODO: At this point, we no longer need a lot of stuff on the stack, eg:
         // * The URL (parent stack)
@@ -150,10 +182,26 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
         // function in half here, call the first half from the parent, then
         // create the decryptor and then proceed on processing the body.
 
-        auto file = move(get<unique_file_ptr>(preallocated));
         auto [initial_chunk, initial_chunk_size, body] = resp.into_body();
 
-        auto download = Download(move(factory), move(body), move(*slot), move(file), transfer_idx, move(decryptor));
+        std::unique_ptr<Decryptor> decryptor;
+
+        if (request.encryption) {
+            switch (resp.content_encryption_mode.value_or(ContentEncryptionMode::AES_CBC)) {
+            case ContentEncryptionMode::AES_CBC:
+                decryptor = make_unique<Decryptor>(request.encryption->key, Decryptor::CBC(request.encryption->iv), file_size - start_range);
+                break;
+            case ContentEncryptionMode::AES_CTR:
+                decryptor = make_unique<Decryptor>(request.encryption->key, Decryptor::CTR(request.encryption->nonce, start_range), file_size - start_range);
+                break;
+            default:
+                assert(false && "Unreachable");
+                return RefusedRequest {};
+            }
+        }
+
+        assert(partial_file.get() != nullptr);
+        auto download = Download(std::move(factory), std::move(body), partial_file, request.encryption, std::move(decryptor));
 
         if (initial_chunk_size > 0) {
             if (!download.process(initial_chunk, initial_chunk_size)) {
@@ -167,51 +215,15 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
     }
 }
 
-Download::RecoverResult Download::recover_encrypted_connect_download(const char *host, uint16_t port, const char *url_path, const http::HeaderOut *extra_hdrs, const Decryptor::Block &reset_iv, uint32_t reset_size) {
-    // Close anything related to the previous attempt first, before allocating anything new.
-    conn_factory.reset();
-
-    RecoverResult result = Continued {};
-
-    if (auto resp_any = send_request(host, port, url_path, extra_hdrs); resp_any.has_value()) {
-        auto [factory, resp] = move(*resp_any);
-
-        switch (resp.status) {
-        case Status::Ok:
-            rewind(dest_file.get());
-            slot.reset_progress();
-            decryptor->reset(reset_iv, reset_size);
-            result = FromStart {};
-            [[fallthrough]];
-        case Status::PartialContent: {
-            auto [initial_chunk, initial_chunk_size, body] = resp.into_body();
-
-            if (initial_chunk_size > 0) {
-                if (!process(initial_chunk, initial_chunk_size)) {
-                    return Storage { "Can't write to the file" };
-                }
-            }
-            response = move(body);
-            conn_factory = move(factory);
-            return result;
-        }
-        default:
-            return RefusedRequest {};
-        }
-    } else {
-        return RefusedRequest {};
-    }
-}
-
 bool Download::process(uint8_t *data, size_t size) {
-    size_t orig_size = size;
     if (decryptor.get() != nullptr) {
         size = decryptor->decrypt(data, size);
     }
-    if (!write_chunk(data, size, dest_file.get())) {
+
+    if (!partial_file->write(data, size)) {
         return false;
     }
-    slot.progress(orig_size);
+
     return true;
 }
 
@@ -219,42 +231,17 @@ DownloadStep Download::step(uint32_t max_duration_ms) {
     uint8_t buffer[BUF_SIZE];
     static_assert(BUF_SIZE % Decryptor::BlockSize == 0, "Must be multiple of cipher block size to never overflow on decryption");
 
-    if (slot.is_stopped()) {
-        slot.done(Monitor::Outcome::Stopped);
-        return DownloadStep::Finished;
-    }
-
     const auto result = response.read_body(buffer, sizeof buffer, max_duration_ms);
 
     if (const size_t *amt = get_if<size_t>(&result); amt != nullptr) {
         if (*amt == 0) {
-            { // Scope the status, so we release it before calling .done.
-                const auto status = Monitor::instance.status();
-                assert(status.has_value());
-                assert(status->destination != nullptr);
-                // Remove extra pre-allocated space (ignore the result explicitly to avoid warnings)
-                (void)ftruncate(fileno(dest_file.get()), ftell(dest_file.get()));
-                // Close the file so we can rename it.
-                dest_file.reset();
-                const auto fname = transfer_name(transfer_idx);
-                if (rename(fname.begin(), status->destination) == -1) {
-                    // Failed to rename :-(.
-                    // At least try cleaning the temp file up.
-                    // (no error handling here, we have no backup plan there).
-                    remove(fname.begin());
-                    return DownloadStep::FailedOther;
-                } else {
-                    ChangedPath::instance.changed_path(status->destination, ChangedPath::Type::File, ChangedPath::Incident::Created);
-                }
-            }
-            // This must be outside of the block with status, otherwise we would deadlock.
-            slot.done(Monitor::Outcome::Finished);
+            log_info(transfers, "Download finished");
+            partial_file->sync();
             return DownloadStep::Finished;
         } else {
             if (!process(buffer, *amt)) {
                 return DownloadStep::FailedOther;
             }
-
             last_activity = ticks_ms();
             return DownloadStep::Continue;
         }
@@ -273,11 +260,16 @@ DownloadStep Download::step(uint32_t max_duration_ms) {
     }
 }
 
-uint32_t Download::position() const {
-    auto status = Monitor::instance.status();
-    // We hold the slot, so we must be able to get the status.
-    assert(status.has_value());
-    return status->transferred;
+uint32_t Download::file_size() const {
+    return partial_file->final_size();
+}
+
+bool Download::allows_random_access() const {
+    if (decryptor == nullptr) {
+        return true;
+    } else {
+        return std::visit([&](auto &d) -> bool { return d.allows_random_access(); }, decryptor->get_mode());
+    }
 }
 
 } // namespace transfers

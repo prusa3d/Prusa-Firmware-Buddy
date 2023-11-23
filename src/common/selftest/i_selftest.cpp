@@ -31,8 +31,6 @@ void ISelftest::phaseStart() {
 void ISelftest::phaseFinish() {
     log_close();
     FSM_DESTROY__LOGGING(Selftest);
-    // Terminate all moves (the hard way)
-    marlin_server::quick_stop();
     marlin_server::set_exclusive_mode(0);
 #if ENABLED(CRASH_RECOVERY)
     crash_s.set_state(Crash_s::IDLE);
@@ -55,7 +53,7 @@ bool ISelftest::phaseWait() {
 void ISelftest::log_open() {
 #ifndef _DEBUG
     return; // Enabling USB logs only in debug builds
-#endif      // _DEBUG
+#endif // _DEBUG
 
     const char *suffix = get_log_suffix();
     char fname[64];

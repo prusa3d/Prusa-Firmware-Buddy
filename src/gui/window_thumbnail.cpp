@@ -4,44 +4,36 @@
 
 #include "window_thumbnail.hpp"
 #include "gcode_thumb_decoder.h"
-#include "gcode_file.h"
 
 //-------------------------- Thumbnail --------------------------------------
 
 WindowThumbnail::WindowThumbnail(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_icon_t>(parent, rect, nullptr)
-    , gcode_info(GCodeInfo::getInstance()) {
+    : AddSuperWindow<window_icon_t>(parent, rect, nullptr) {
 }
 
 //------------------------- Preview Thumbnail ------------------------------------
 
 WindowPreviewThumbnail::WindowPreviewThumbnail(window_t *parent, Rect16 rect)
     : AddSuperWindow<WindowThumbnail>(parent, rect) {
-    if (!gcode_info.is_file_open()) { // Ignore initFile if it is already inited
-        gcode_info.initFile(GCodeInfo::GI_INIT_t::THUMBNAIL);
-    }
 }
 
 WindowPreviewThumbnail::~WindowPreviewThumbnail() {
-    gcode_info.deinitFile();
 }
 
 void WindowPreviewThumbnail::unconditionalDraw() {
-    auto file = gcode_info.get_file();
-    if (file == nullptr) { // not opened
+    gcode_reader.open(GCodeInfo::getInstance().GetGcodeFilepath());
+    if (!gcode_reader.is_open()) {
         return;
     }
+    IGcodeReader *const reader = gcode_reader.get();
 
     FILE f {};
+    img::Resource res(&f);
 
-    img::Resource res("", 0, 0, 0, 0);
-    res.file = &f;
-
-    fseek(file, 0, SEEK_SET);
-    GCodeThumbDecoder gd(file, Width(), Height(), true);
-    if (f_gcode_thumb_open(&gd, &f) == 0) {
-        display::DrawPng(point_ui16(Left(), Top()), res);
-        f_gcode_thumb_close(&f);
+    if (reader->stream_thumbnail_start(Width(), Height(), IGcodeReader::ImgType::QOI)) {
+        if (f_gcode_thumb_open(*reader, &f) == 0) {
+            display::DrawImg(point_ui16(Left(), Top()), res);
+        }
     }
 }
 
@@ -52,76 +44,70 @@ WindowProgressThumbnail::WindowProgressThumbnail(window_t *parent, Rect16 rect)
     , progress_percentage(-1)
     , last_percentage_drawn(-1)
     , redraw_whole(true) {
-    if (!gcode_info.is_file_open()) { // Ignore initFile if it is already inited
-        gcode_info.initFile(GCodeInfo::GI_INIT_t::THUMBNAIL);
-    }
+    gcode_reader.open(GCodeInfo::getInstance().GetGcodeFilepath());
 }
 
 WindowProgressThumbnail::~WindowProgressThumbnail() {
-    gcode_info.deinitFile();
 }
 
 void WindowProgressThumbnail::unconditionalDraw() {
-    auto file = gcode_info.get_file();
-    if (file == nullptr) { // not opened
+    if (!gcode_reader.is_open()) {
         return;
     }
+    IGcodeReader *const reader = gcode_reader.get();
 
     if (last_percentage_drawn > progress_percentage) {
         last_percentage_drawn = 0;
         redraw_whole = true;
     }
-
     FILE f {};
+    img::Resource res(&f);
 
-    img::Resource res("", 0, 0, 0, 0);
-    res.file = &f;
+    if (reader->stream_thumbnail_start(Width(), Height(), IGcodeReader::ImgType::QOI)) {
+        if (f_gcode_thumb_open(*reader, &f) == 0) {
 
-    fseek(file, 0, SEEK_SET);
-    GCodeThumbDecoder gd(file, Width(), Height(), true);
-    if (f_gcode_thumb_open(&gd, &f) == 0) {
+            ropfn raster_op;
+            int progress = std::clamp(int(progress_percentage), 0, 100);
+            uint16_t progress_local_y = Height() - (progress * Height()) / 100;
+            if (redraw_whole) {
+                // Draw whole thumbnail:
 
-        ropfn raster_op;
-        int progress = std::clamp(int(progress_percentage), 0, 100);
-        uint16_t progress_local_y = Height() - (progress * Height()) / 100;
-        if (redraw_whole) {
-            // Draw whole thumbnail:
+                // desaturated part
+                if (progress_local_y) { // draw only when non-zero height
+                    raster_op.desatur = is_desaturated::yes;
+                    display::DrawImg(point_ui16(Left(), Top()), res, GetBackColor(), raster_op, Rect16(0, 0, Width(), progress_local_y));
+                }
 
-            // desaturated part
-            if (progress_local_y) { // draw only when non-zero height
-                raster_op.desatur = is_desaturated::yes;
-                display::DrawPng(point_ui16(Left(), Top()), res, GetBackColor(), raster_op, Rect16(0, 0, Width(), progress_local_y));
-            }
+                // file has to be reset to be able to read image again
+                if (reader->stream_thumbnail_start(Width(), Height(), IGcodeReader::ImgType::QOI)) {
+                    uint16_t saturated_height = Height() - progress_local_y;
+                    if (saturated_height) { // draw only when non-zero height
+                        // saturated part
+                        raster_op.desatur = is_desaturated::no;
+                        display::DrawImg(point_ui16(Left(), Top()), res, GetBackColor(), raster_op, Rect16(0, progress_local_y, Width(), saturated_height));
+                    }
+                }
 
-            // file has to be reset to be able to read PNG again
-            fseek(file, 0, SEEK_SET);
-            gd.Reset();
-
-            uint16_t saturated_height = Height() - progress_local_y;
-            if (saturated_height) { // draw only when non-zero height
-                // saturated part
+            } else {
+                // Draw few newly saturated lines
+                uint16_t progress_change_height = (Height() / 100) * (progress - last_percentage_drawn + 2); // + 2 for round up/down loss
                 raster_op.desatur = is_desaturated::no;
-                display::DrawPng(point_ui16(Left(), Top()), res, GetBackColor(), raster_op, Rect16(0, progress_local_y, Width(), saturated_height));
+                display::DrawImg(point_ui16(Left(), Top()), res, GetBackColor(), raster_op, Rect16(0, progress_local_y, Width(), progress_change_height));
             }
-        } else {
-            // Draw few newly saturated lines
-            uint16_t progress_change_height = (Height() / 100) * (progress - last_percentage_drawn + 2); // + 2 for round up/down loss
-            raster_op.desatur = is_desaturated::no;
-            display::DrawPng(point_ui16(Left(), Top()), res, GetBackColor(), raster_op, Rect16(0, progress_local_y, Width(), progress_change_height));
-        }
 
-        last_percentage_drawn = progress_percentage;
-        redraw_whole = false;
-        f_gcode_thumb_close(&f);
+            last_percentage_drawn = progress_percentage;
+            redraw_whole = false;
+            f_gcode_thumb_close(&f);
+        }
     }
 }
 
 void WindowProgressThumbnail::pauseDeinit() {
-    gcode_info.deinitFile();
+    gcode_reader.close();
 }
 
 void WindowProgressThumbnail::pauseReinit() {
-    gcode_info.initFile(GCodeInfo::GI_INIT_t::THUMBNAIL);
+    gcode_reader.open(GCodeInfo::getInstance().GetGcodeFilepath());
 }
 
 bool WindowProgressThumbnail::updatePercentage(int8_t cmp) {

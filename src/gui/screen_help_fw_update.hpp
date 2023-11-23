@@ -13,6 +13,9 @@
 class ScreenHelpFWUpdate : public AddSuperWindow<screen_t> {
     window_header_t header;
     window_text_t description;
+#if defined(USE_ST7789)
+    window_text_t description2;
+#endif
     window_text_t help;
     window_qr_t qr;
     RadioButton radio;

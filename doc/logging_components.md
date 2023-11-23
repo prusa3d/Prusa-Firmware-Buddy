@@ -24,6 +24,7 @@ This file is generated automatically so don't edit it directly
 - GUI: LOG_SEVERITY_DEBUG, src/gui/logger.cpp
 - Led: LOG_SEVERITY_INFO, src/gui/led_animations/printer_animation_state.cpp
 - Loadcell: LOG_SEVERITY_INFO, src/common/loadcell.cpp
+- LoveBoard: LOG_SEVERITY_INFO, src/gui/guimain.cpp
 - MMU2: LOG_SEVERITY_INFO, src/common/appmain.cpp
 - Marlin: LOG_SEVERITY_INFO, src/common/marlin_log_component.cpp
 - MarlinClient: LOG_SEVERITY_INFO, src/common/marlin_client.cpp
@@ -49,6 +50,8 @@ This file is generated automatically so don't edit it directly
 - USBMSC: LOG_SEVERITY_DEBUG, src/buddy/usb_device_msc.cpp
 - W25X: LOG_SEVERITY_DEBUG, src/common/w25x.cpp
 - WUI: LOG_SEVERITY_DEBUG, lib/WUI/wui.cpp
-- connect: LOG_SEVERITY_DEBUG, src/connect/connect.cpp
+- XLCD: LOG_SEVERITY_INFO, src/gui/guimain.cpp
+- connect: LOG_SEVERITY_INFO, src/connect/connect.cpp
 - httpc: LOG_SEVERITY_DEBUG, src/common/http/httpc.cpp
 - socket: LOG_SEVERITY_DEBUG, src/common/http/socket.cpp
+- transfers: LOG_SEVERITY_INFO, src/transfers/logging.cpp

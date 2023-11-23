@@ -56,10 +56,9 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
     memmove(fname, fname + extra_size - 1, FILE_NAME_BUFFER_LEN);
 
     if (parser.method == Method::Get) {
-        FILE *f = fopen(fname, "rb");
-
-        if (f) {
-            return GCodePreview(f, fname, parser.can_keep_alive(), parser.accepts_json, width, height, allow_larger, parser.if_none_match);
+        AnyGcodeFormatReader f(fname);
+        if (f.is_open()) {
+            return GCodePreview(std::move(f), fname, parser.can_keep_alive(), parser.accepts_json, width, height, allow_larger, parser.if_none_match);
         } else {
             return StatusPage(Status::NotFound, parser);
         }

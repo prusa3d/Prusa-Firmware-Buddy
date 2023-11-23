@@ -1,15 +1,20 @@
 add_executable(
   transfers_tests
   ${CMAKE_SOURCE_DIR}/src/common/crc32.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   decrypt.cpp
   monitor.cpp
   missing_functions.cpp
   changed_path_tests.cpp
+  transfer_tests.cpp
+  partial_file_mock.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aes.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aesni.c
   )

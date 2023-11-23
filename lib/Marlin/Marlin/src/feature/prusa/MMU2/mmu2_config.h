@@ -1,9 +1,11 @@
 #pragma once
 #include <stdint.h>
 
-static constexpr float MMU2_EXTRUDER_HEATBREAK_LENGTH = 62.F;
+static constexpr float MMU2_EXTRUDER_HEATBREAK_LENGTH = 67.F;
 static constexpr float MMU2_EXTRUDER_NOZZLE_LENGTH = 20.F;
 static constexpr float MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE = 50.F;
+// mm used to shorten/lenghten (negative number -> shorten) the distange of verify load to nozzle
+static constexpr float MMU2_VERIFY_LOAD_TO_NOZZLE_TWEAK = -10.F - 25.F;
 
 #define DEFAULT_SAFETYTIMER_TIME_MINS 30
 
@@ -22,17 +24,17 @@ static constexpr float MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE = 50.F;
 // However - in the G-code we can get a request to set the extra load distance at runtime to something else (M708 A0xb Xsomething).
 // The printer intercepts such a call and sets its extra load distance to match the new value as well.
 // The same applies to Pulley slow feed rate (register 0x14)
-static constexpr uint8_t MMU2_TOOL_CHANGE_LOAD_LENGTH = 5;      // mm
-static constexpr float MMU2_LOAD_TO_NOZZLE_FEED_RATE = 20.0F;   // mm/s
+static constexpr uint8_t MMU2_TOOL_CHANGE_LOAD_LENGTH = 5; // mm
+static constexpr float MMU2_LOAD_TO_NOZZLE_FEED_RATE = 20.0F; // mm/s
 
 static constexpr float MMU2_UNLOAD_TO_FINDA_FEED_RATE = 120.0F; // mm/s
 
 // The first the MMU does is initialise its axis. Meanwhile the E-motor will unload 20mm of filament in approx. 1 second.
-static constexpr float MMU2_RETRY_UNLOAD_TO_FINDA_LENGTH = 20.0f;    // mm
+static constexpr float MMU2_RETRY_UNLOAD_TO_FINDA_LENGTH = 20.0f; // mm
 static constexpr float MMU2_RETRY_UNLOAD_TO_FINDA_FEED_RATE = 20.0f; // mm/s
 
-static constexpr float MMU2_RETRY_UNLOAD_FINISH_LENGTH = -40.0f;     // mm
-static constexpr float MMU2_RETRY_UNLOAD_FINISH_FEED_RATE = 20.0f;   // mm/s
+static constexpr float MMU2_RETRY_UNLOAD_FINISH_LENGTH = -40.0f; // mm
+static constexpr float MMU2_RETRY_UNLOAD_FINISH_FEED_RATE = 20.0f; // mm/s
 
 // @@TODO remove this and enable it in the configuration files
 // Settings for filament load / unload from the LCD menu.
@@ -50,7 +52,7 @@ static constexpr uint32_t MMU_BAUD = 115200;
 typedef float feedRate_t;
 
 struct E_Step {
-    float extrude;       ///< extrude distance in mm
+    float extrude; ///< extrude distance in mm
     feedRate_t feedRate; ///< feed rate in mm/s
 };
 

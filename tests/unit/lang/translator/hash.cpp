@@ -117,7 +117,7 @@ bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char 
             string s;
             getline(f, s);
             PreprocessRawLineStrings(s);
-            if (!s.empty()) {            // beware of empty strings
+            if (!s.empty()) { // beware of empty strings
                 rawStrings.push_back(s); // make a copy of the string
                 workStrings.emplace_back(String(SHTable::Hash((const unsigned char *)s.c_str()), s, index));
                 REQUIRE(rawStrings.back() == s);
@@ -135,7 +135,7 @@ bool FillHashClass(string_hash_table<HASH, buckets, maxStrings> &sh, const char 
     // this may be already dumped into the string rec array
     uint32_t shi = 0;
     for_each(workStrings.cbegin(), workStrings.cend(), [&](const String &s) {
-        REQUIRE(shi < sh.MaxStrings());               // just make sure we have enough space for all the strings
+        REQUIRE(shi < sh.MaxStrings()); // just make sure we have enough space for all the strings
         sh.stringRecArray[shi].firstLetters = (s.s[1] << 8) + s.s[0];
         sh.stringRecArray[shi].stringIndex = s.index; // where it is in the input table
         ++shi;
@@ -214,7 +214,7 @@ TEST_CASE("string_hash_table::make_hash_table_intentional_collision", "[translat
     sh.stringRecArray[0].stringIndex = 0; // where it is in the input table
 
     sh.stringRecArray[1].firstLetters = (str2[1] << 8) + str2[0];
-    sh.stringRecArray[1].stringIndex = 1;                                   // where it is in the input table
+    sh.stringRecArray[1].stringIndex = 1; // where it is in the input table
 
     uint8_t collidingBucket = SHTable::ReducedHash(SHTable::Hash(nullptr)); // can be nullptr, the hash returns a constant
 

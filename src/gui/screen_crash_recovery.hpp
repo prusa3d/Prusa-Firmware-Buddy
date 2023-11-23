@@ -104,7 +104,7 @@ struct WinUnion {
 
     WinUnion(ScreenCrashRecovery &screen);
     void ChangePhase(PhasesCrashRecovery ph);
-    void Destroy();                   // just to call destructor - to unregister windows from screen
+    void Destroy(); // just to call destructor - to unregister windows from screen
     void New(PhasesCrashRecovery ph); // place new screen
     void ButtonEvent(GUI_event_t event);
 

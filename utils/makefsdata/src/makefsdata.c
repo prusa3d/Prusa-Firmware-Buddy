@@ -56,9 +56,9 @@ tinfl_decompressor g_inflator;
 
 int deflate_level = 10; /* default compression level, can be changed via command line */
     #define USAGE_ARG_DEFLATE " [-defl<:compr_level>]"
-#else                   /* MAKEFS_SUPPORT_DEFLATE */
+#else /* MAKEFS_SUPPORT_DEFLATE */
     #define USAGE_ARG_DEFLATE ""
-#endif                  /* MAKEFS_SUPPORT_DEFLATE */
+#endif /* MAKEFS_SUPPORT_DEFLATE */
 
 #ifdef WIN32
 

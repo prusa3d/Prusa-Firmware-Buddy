@@ -67,7 +67,6 @@ socket_con::~socket_con() {
     log_debug(socket, "socket destructor called: %d\n", fd);
     if (-1 != fd) {
         log_debug(socket, "shutting down socket: %d\n", fd);
-        lwip_shutdown(fd, SHUT_RDWR);
         lwip_close(fd);
     }
 }

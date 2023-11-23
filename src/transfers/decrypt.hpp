@@ -3,6 +3,8 @@
 #include <array>
 #include <cstdint>
 #include <cstdlib>
+#include <variant>
+#include <assert.h>
 
 #include <mbedtls/aes.h>
 
@@ -11,7 +13,54 @@ namespace transfers {
 class Decryptor {
 public:
     static constexpr uint32_t BlockSize = 16;
+    static constexpr uint32_t CtrCounterSize = 4;
     using Block = std::array<uint8_t, BlockSize>;
+
+    class CTR {
+        friend class Decryptor;
+        Block nonce;
+
+    private:
+        void setup_context(mbedtls_aes_context &context, const Block &key);
+
+        void decrypt(mbedtls_aes_context &context, const Block &input, Block &output);
+
+    public:
+        CTR(const Block &nonce, uint32_t offset = 0)
+            : nonce(nonce) {
+            reset(nonce, offset);
+        }
+
+        void reset(const Block &nonce, uint32_t offset);
+
+        bool allows_random_access() const {
+            return true;
+        }
+    };
+
+    class CBC {
+        friend class Decryptor;
+        Block iv;
+
+    private:
+        void setup_context(mbedtls_aes_context &context, const Block &key);
+
+        void decrypt(mbedtls_aes_context &context, const Block &input, Block &output);
+
+    public:
+        CBC(const Block &iv)
+            : iv(iv) {}
+
+        void reset(const Block &iv) {
+            this->iv = iv;
+        }
+
+        bool allows_random_access() const {
+            return false;
+        }
+    };
+
+    using Mode = std::variant<CTR, CBC>;
 
 private:
     uint32_t size_left;
@@ -21,12 +70,12 @@ private:
     //
     // Therefore, the whole Decryptor is not movable _on purpose_.
     mbedtls_aes_context context;
-    Block iv;
+    Mode mode;
     Block leftover;
     uint8_t leftover_size = 0;
 
 public:
-    Decryptor(const Block &key, const Block &iv, uint32_t orig_size);
+    Decryptor(const Block &key, const Mode mode, uint32_t orig_size);
     Decryptor(const Decryptor &other) = delete;
     Decryptor(Decryptor &&other) = delete;
     Decryptor &operator=(const Decryptor &other) = delete;
@@ -52,8 +101,10 @@ public:
     // * Pass the data in through that buffer, specifying the amount of data available.
     // * Process the amount returned from the function.
     uint32_t decrypt(uint8_t *data, uint32_t size);
-    // Reset the decryption, start again from the beginning.
-    void reset(const Block &iv, uint32_t size);
+
+    const Mode &get_mode() const {
+        return mode;
+    }
 };
 
 } // namespace transfers

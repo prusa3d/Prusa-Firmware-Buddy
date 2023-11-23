@@ -8,8 +8,8 @@
 
 IWiSpin::IWiSpin(SpinType val, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_)
     : AddSuper<WI_LABEL_t>(label, extension_width_, id_icon, enabled, hidden)
-    , units(units_)
-    , value(val) {
+    , value(val)
+    , units(units_) {
     // printSpinToBuffer(); initialized by parrent so it does not have to be virtual
 }
 
@@ -114,6 +114,8 @@ Rect16::Width_t IWiSpin::calculateExtensionWidth(size_t unit_len, unichar uchar,
     return ret;
 }
 
+#if ENABLED(CRASH_RECOVERY)
+
 WI_SPIN_CRASH_PERIOD_t::WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : AddSuper<IWiSpin>(std::clamp(int(val), cnf.Min(), cnf.Max()), label, id_icon, enabled, hidden,
         cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), 0)
@@ -133,23 +135,25 @@ WI_SPIN_CRASH_PERIOD_t::WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, strin
 }
 
 invalidate_t WI_SPIN_CRASH_PERIOD_t::change(int dif) {
-    int val = (int)value;
+    int val = GetVal();
     int old = val;
     val += (int)dif * config.Step();
     val = dif >= 0 ? std::max(val, old) : std::min(val, old); // check overflow/underflow
     val = std::clamp(val, config.Min(), config.Max());
-    value = val;
+    set_val(val);
     invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; // 0 dif forces redraw
     if (invalid == invalidate_t::yes) {
         if (!has_unit || config.Unit() == nullptr) {
-            changeExtentionWidth(0, 0, config.txtMeas(value));
+            changeExtentionWidth(0, 0, config.txtMeas(GetVal()));
         } else {
             string_view_utf8 un = units;
             unichar uchar = un.getUtf8Char();
             un.rewind();
-            changeExtentionWidth(units.computeNumUtf8CharsAndRewind(), uchar, config.txtMeas(value));
+            changeExtentionWidth(units.computeNumUtf8CharsAndRewind(), uchar, config.txtMeas(GetVal()));
         }
         printSpinToBuffer(); // could be in draw method, but traded little performance for code size (printSpinToBuffer is not virtual when it is here)
     }
     return invalid;
 }
+
+#endif

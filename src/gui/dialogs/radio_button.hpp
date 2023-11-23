@@ -46,7 +46,7 @@ public:
     virtual std::optional<size_t> IndexFromResponse(Response btn) const override;
 
     void Change(const PhaseResponses &resp, const PhaseTexts *txts = nullptr); // nullptr generates texts automatically, only first four responses are used, rest is discarded
-    void Change(Responses_t resp, const PhaseTexts *txts = nullptr);           // nullptr generates texts automatically
+    void Change(Responses_t resp, const PhaseTexts *txts = nullptr); // nullptr generates texts automatically
 
 protected:
     virtual Response responseFromIndex(size_t index) const override;

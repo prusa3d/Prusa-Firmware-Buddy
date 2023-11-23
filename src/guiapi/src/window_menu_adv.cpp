@@ -57,10 +57,10 @@ WindowMenuAdv::WindowMenuAdv(window_t *parent, Rect16 rect, IWinMenuContainer *p
     : AddSuperWindow<window_frame_t>(parent, rect)
     , menu(parent, rc_menu(rect), pContainer, index)
 #if (MENU_HAS_BUTTONS)
-    , up(this, rc_arrow_up(rect), arrow_up(), []() {})       // parent will handle click, do nothing
+    , up(this, rc_arrow_up(rect), arrow_up(), []() {}) // parent will handle click, do nothing
     , down(this, rc_arrow_down(rect), arrow_down(), []() {}) // parent will handle click, do nothing
 #endif
-    , bar(this, rc_bar(rect), menu)                          // event loop will handle everything
+    , bar(this, rc_bar(rect), menu) // event loop will handle everything
 {
 }
 
@@ -110,7 +110,7 @@ WindowFileBrowserAdv::WindowFileBrowserAdv(window_t *parent, Rect16 rect, const 
     : AddSuperWindow<window_frame_t>(parent, rect, win_type_t::normal)
     , file_browser(parent, rc_menu(rect), media_SFN_path)
 #if (MENU_HAS_BUTTONS)
-    , up(this, rc_arrow_up(rect), arrow_up(), []() {})       // parent will handle click, do nothing
+    , up(this, rc_arrow_up(rect), arrow_up(), []() {}) // parent will handle click, do nothing
     , down(this, rc_arrow_down(rect), arrow_down(), []() {}) // parent will handle click, do nothing
 #endif
 //, bar(this, rc_bar(rect), menu) // event loop will handle everything

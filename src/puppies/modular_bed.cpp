@@ -22,8 +22,6 @@ namespace buddy::puppies {
 
 LOG_COMPONENT_DEF(ModularBed, LOG_SEVERITY_INFO);
 
-using CommunicationStatus = ModularBed::CommunicationStatus;
-
 static metric_t metric_state = METRIC("bed_state", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
 static metric_t metric_currents = METRIC("bed_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
 static metric_t metric_states = METRIC("bedlet_state", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
@@ -38,12 +36,13 @@ ModularBed::ModularBed(PuppyModbus &bus, uint8_t modbus_address)
     : ModbusDevice(bus, modbus_address) {}
 
 CommunicationStatus ModularBed::ping() {
-    return modbusIsOk(bus.read(unit, general_status)) ? CommunicationStatus::OK : CommunicationStatus::ERROR;
+    return bus.read(unit, general_status);
 }
 
 CommunicationStatus ModularBed::initial_scan() {
     // Update static values
-    if (modbusIsOk(bus.read(unit, general_static))) {
+    CommunicationStatus status = bus.read(unit, general_static);
+    if (status != CommunicationStatus::ERROR) {
         log_info(ModularBed, "HwBomId: %d", general_static.value.hw_bom_id);
         log_info(ModularBed, "HwOtpTimestsamp: %d", general_static.value.hw_otp_timestamp);
 
@@ -61,238 +60,238 @@ CommunicationStatus ModularBed::initial_scan() {
 
         log_info(ModularBed, "Bedlet count: %d", general_static.value.heatbedlet_count);
         assert(general_static.value.heatbedlet_count == BEDLET_COUNT);
-        return CommunicationStatus::OK;
     } else {
         log_error(ModularBed, "Failed to read static general register pack");
-        return CommunicationStatus::ERROR;
     }
+
+    // Reset dirty flag / schedule rewrite for important registers
+    print_fan_active.dirty = true;
+    bedlet_target_temp.dirty = true;
+
+    return status;
 }
 
-CommunicationStatus ModularBed::refresh(uint32_t cycle_ticks_ms, bool &worked) {
+CommunicationStatus ModularBed::refresh() {
     static uint32_t refresh_nr = 0;
 
-    // read something every 200 ms
-    static uint32_t last_update = 0;
-    if (last_update + BEDLET_PERIOD_MS > cycle_ticks_ms) {
-        worked = false;
-        return CommunicationStatus::OK;
+    typedef CommunicationStatus (ModularBed::*MethodType)();
+    static constexpr MethodType funcs[] = {
+        &ModularBed::write_clear_fault_status,
+        &ModularBed::write_reset_overcurrent,
+        &ModularBed::write_test_heating,
+        &ModularBed::write_print_fan_active,
+        &ModularBed::read_general_status,
+        &ModularBed::read_general_ready,
+        &ModularBed::read_currents,
+        &ModularBed::read_bedlet_data,
+        &ModularBed::read_general_fault,
+        &ModularBed::write_bedlet_target_temp,
+        &ModularBed::read_bedlet_measured_max_current,
+        &ModularBed::read_mcu_temperature,
+    };
+    if (++refresh_nr >= std::size(funcs)) {
+        refresh_nr = 0;
     }
-    last_update = cycle_ticks_ms;
-    worked = true;
+    return (this->*funcs[refresh_nr])();
+}
 
-    bool communication_error = false;
-    switch (refresh_nr) {
-    case 0: {
-        if (!modbusIsOk(bus.write(unit, clear_fault_status))) {
-            log_error(ModularBed, "Failed to write clear fault status");
-            communication_error = true;
-        }
-        break;
-    }
-    case 1: {
-        if (!modbusIsOk(bus.write(unit, reset_overcurrent))) {
-            log_error(ModularBed, "Failed to write clear overcurrent");
-            communication_error = true;
-        }
-        break;
-    }
-    case 2: {
-        if (!modbusIsOk(bus.write(unit, test_heating))) {
-            log_error(ModularBed, "Failed to write test heating");
-            communication_error = true;
-        }
-        break;
-    }
-    case 3: {
-        if (!modbusIsOk(bus.write(unit, print_fan_active))) {
-            log_error(ModularBed, "Failed to write print_fan_active");
-            communication_error = true;
-        }
-        break;
-    }
-    case 4: {
-        if (modbusIsOk(bus.read(unit, general_status))) {
-            log_debug(ModularBed, "Panic: %d", general_status.value.power_panic_status);
-            log_debug(ModularBed, "Current fault: %d", general_status.value.current_fault_status);
+CommunicationStatus ModularBed::write_clear_fault_status() {
+    return bus.write(unit, clear_fault_status);
+}
 
-            // Report panic and fault problems only when not in true system-wide power panic
-            if (!power_panic::ac_fault_triggered && !power_panic::is_ac_fault_active()) {
-                if (general_status.value.current_fault_status) {
-                    fatal_error(ErrCode::ERR_ELECTRO_MB_FAULT);
-                }
-                if (general_status.value.power_panic_status) {
-                    fatal_error(ErrCode::ERR_ELECTRO_MB_PANIC);
-                }
+CommunicationStatus ModularBed::write_reset_overcurrent() {
+    return bus.write(unit, reset_overcurrent);
+}
+
+CommunicationStatus ModularBed::write_test_heating() {
+    return bus.write(unit, test_heating);
+}
+
+CommunicationStatus ModularBed::write_print_fan_active() {
+    return bus.write(unit, print_fan_active);
+}
+
+CommunicationStatus ModularBed::read_general_status() {
+    CommunicationStatus status = bus.read(unit, general_status, MAX_UNREAD_MS);
+    if (status != CommunicationStatus::OK) {
+        return status;
+    }
+
+    log_debug(ModularBed, "Panic: %d", general_status.value.power_panic_status);
+    log_debug(ModularBed, "Current fault: %d", general_status.value.current_fault_status);
+
+    // Report panic and fault problems only when not in true system-wide power panic
+    if (!power_panic::ac_fault_triggered && !power_panic::is_ac_fault_active()) {
+        if (general_status.value.current_fault_status) {
+            fatal_error(ErrCode::ERR_ELECTRO_MB_FAULT);
+        }
+        if (general_status.value.power_panic_status) {
+            fatal_error(ErrCode::ERR_ELECTRO_MB_PANIC);
+        }
+    }
+    return status;
+}
+
+CommunicationStatus ModularBed::read_general_ready() {
+    CommunicationStatus status = bus.read(unit, general_ready, MAX_UNREAD_MS);
+    if (status != CommunicationStatus::OK) {
+        return status;
+    }
+
+    log_debug(ModularBed, "Heatbedlets ready: %d", general_ready.value);
+    return status;
+}
+
+CommunicationStatus ModularBed::read_currents() {
+    CommunicationStatus status = bus.read(unit, currents, MAX_UNREAD_MS);
+    if (status != CommunicationStatus::OK) {
+        return status;
+    }
+
+    metric_record_custom(
+        &metric_currents,
+        ",n=0 v=%.3f,e=%.3f",
+        static_cast<double>(currents.value.A_measured) / MODBUS_CURRENT_REGISTERS_SCALE,
+        static_cast<double>(currents.value.A_expected) / MODBUS_CURRENT_REGISTERS_SCALE);
+    metric_record_custom(
+        &metric_currents,
+        ",n=1 v=%.3f,e=%.3f",
+        static_cast<double>(currents.value.B_measured) / MODBUS_CURRENT_REGISTERS_SCALE,
+        static_cast<double>(currents.value.B_expected) / MODBUS_CURRENT_REGISTERS_SCALE);
+    return status;
+}
+
+CommunicationStatus ModularBed::read_bedlet_data() {
+    CommunicationStatus status = bus.read(unit, bedlet_data, MAX_UNREAD_MS);
+    if (status != CommunicationStatus::OK) {
+        return status;
+    }
+
+    for (uint16_t i = 0; i < BEDLET_COUNT; ++i) {
+        metric_record_custom(
+            &metric_states,
+            ",n=%d v=%d",
+            i,
+            static_cast<double>(bedlet_data.value.fault_status[i]));
+        metric_record_custom(
+            &metric_temps,
+            ",n=%d v=%.2f",
+            i,
+            static_cast<double>(bedlet_data.value.measured_temperature[i]) / MODBUS_TEMPERATURE_REGISTERS_SCALE);
+        metric_record_custom(
+            &metric_pwms,
+            ",n=%d v=%.2f",
+            i,
+            static_cast<double>(bedlet_data.value.pwm_state[i]));
+        metric_record_custom(
+            &metric_regulators,
+            ",n=%d p=%d,i=%d,d=%d,tc=%d",
+            i,
+            bedlet_data.value.p_value[i],
+            bedlet_data.value.i_value[i],
+            bedlet_data.value.d_value[i],
+            bedlet_data.value.tc_value[i]);
+
+        const auto fault_int { ftrstd::to_underlying(bedlet_data.value.fault_status[i]) };
+        if (fault_int > 0) {
+            const auto bedlet_number { bedlet_idx_to_board_number(i) };
+            if constexpr (option::is_knoblet) {
+                log_debug(ModularBed, "Bedlet %d: Error %d", bedlet_number, fault_int);
+                break;
             }
-        } else {
-            log_error(ModularBed, "Failed to general status register pack");
-            communication_error = true;
-        }
-        break;
-    }
-    case 5: {
-        if (modbusIsOk(bus.read(unit, general_ready))) {
-            log_debug(ModularBed, "Heatbedlets ready: %d", general_ready.value);
-        } else {
-            log_error(ModularBed, "Failed to general heatbedlet ready register pack");
-            communication_error = true;
-        }
-        break;
-    }
-    case 6: {
-        if (modbusIsOk(bus.read(unit, currents))) {
-            metric_record_custom(
-                &metric_currents,
-                ",n=0 v=%.3f,e=%.3f",
-                static_cast<double>(currents.value.A_measured) / MODBUS_CURRENT_REGISTERS_SCALE,
-                static_cast<double>(currents.value.A_expected) / MODBUS_CURRENT_REGISTERS_SCALE);
-            metric_record_custom(
-                &metric_currents,
-                ",n=1 v=%.3f,e=%.3f",
-                static_cast<double>(currents.value.B_measured) / MODBUS_CURRENT_REGISTERS_SCALE,
-                static_cast<double>(currents.value.B_expected) / MODBUS_CURRENT_REGISTERS_SCALE);
-        } else {
-            log_error(ModularBed, "Failed to read current registers");
-            communication_error = true;
-        }
-        break;
-    }
-    case 7: {
-        if (modbusIsOk(bus.read(unit, bedlet_data))) {
-            for (uint16_t i = 0; i < BEDLET_COUNT; ++i) {
-                metric_record_custom(
-                    &metric_states,
-                    ",n=%d v=%d",
-                    i,
-                    static_cast<double>(bedlet_data.value.fault_status[i]));
-                metric_record_custom(
-                    &metric_temps,
-                    ",n=%d v=%.2f",
-                    i,
-                    static_cast<double>(bedlet_data.value.measured_temperature[i]) / MODBUS_TEMPERATURE_REGISTERS_SCALE);
-                metric_record_custom(
-                    &metric_pwms,
-                    ",n=%d v=%.2f",
-                    i,
-                    static_cast<double>(bedlet_data.value.pwm_state[i]));
-                metric_record_custom(
-                    &metric_regulators,
-                    ",n=%d p=%d,i=%d,d=%d,tc=%d",
-                    i,
-                    bedlet_data.value.p_value[i],
-                    bedlet_data.value.i_value[i],
-                    bedlet_data.value.d_value[i],
-                    bedlet_data.value.tc_value[i]);
 
-                const auto fault_int { ftrstd::to_underlying(bedlet_data.value.fault_status[i]) };
-                if (fault_int > 0) {
-                    const auto bedlet_number { bedlet_idx_to_board_number(i) };
-                    if constexpr (option::is_knoblet) {
-                        log_debug(ModularBed, "Bedlet %d: Error %d", bedlet_number, fault_int);
-                        break;
-                    }
-
-                    if (fault_int & ftrstd::to_underlying(HeatbedletError::HeaterDisconnected)) {
-                        fatal_error(ErrCode::ERR_TEMPERATURE_MB_HEATER_DISCONNECTED, bedlet_number);
-                    } else if (fault_int & ftrstd::to_underlying(HeatbedletError::HeaterShortCircuit)) {
-                        fatal_error(ErrCode::ERR_TEMPERATURE_MB_HEATER_SHORT, bedlet_number);
-                    } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TemperatureBelowMinimum)) {
-                        fatal_error(ErrCode::ERR_TEMPERATURE_MB_MINTEMP_ERR, bedlet_number);
-                    } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TemperatureAboveMaximum)) {
-                        fatal_error(ErrCode::ERR_TEMPERATURE_MB_MAXTEMP_ERR, bedlet_number);
-                    } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TemperatureDropDetected)) {
-                        fatal_error(ErrCode::ERR_TEMPERATURE_MB_DROP_TEMP, bedlet_number);
-                    } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TemperaturePeakDetected)) {
-                        fatal_error(ErrCode::ERR_TEMPERATURE_MB_PEAK_TEMP, bedlet_number);
-                    } else if (fault_int & ftrstd::to_underlying(HeatbedletError::PreheatError)) {
-                        fatal_error(ErrCode::ERR_TEMPERATURE_MB_PREHEAT_ERR, bedlet_number);
-                    } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TestHeatingError)) {
-                        fatal_error(ErrCode::ERR_TEMPERATURE_MB_TEST_HEATING_ERR, bedlet_number);
+            if (fault_int & ftrstd::to_underlying(HeatbedletError::HeaterDisconnected)) {
+                fatal_error(ErrCode::ERR_TEMPERATURE_MB_HEATER_DISCONNECTED, bedlet_number);
+            } else if (fault_int & ftrstd::to_underlying(HeatbedletError::HeaterShortCircuit)) {
+                fatal_error(ErrCode::ERR_TEMPERATURE_MB_HEATER_SHORT, bedlet_number);
+            } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TemperatureBelowMinimum)) {
+                fatal_error(ErrCode::ERR_TEMPERATURE_MB_MINTEMP_ERR, bedlet_number);
+            } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TemperatureAboveMaximum)) {
+                fatal_error(ErrCode::ERR_TEMPERATURE_MB_MAXTEMP_ERR, bedlet_number);
+            } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TemperatureDropDetected)) {
+                fatal_error(ErrCode::ERR_TEMPERATURE_MB_DROP_TEMP, bedlet_number);
+            } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TemperaturePeakDetected)) {
+                fatal_error(ErrCode::ERR_TEMPERATURE_MB_PEAK_TEMP, bedlet_number);
+            } else if (fault_int & ftrstd::to_underlying(HeatbedletError::PreheatError)) {
+                fatal_error(ErrCode::ERR_TEMPERATURE_MB_PREHEAT_ERR, bedlet_number);
+            } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TestHeatingError)) {
+                fatal_error(ErrCode::ERR_TEMPERATURE_MB_TEST_HEATING_ERR, bedlet_number);
 #if PRINTER_IS_PRUSA_iX
-                    } else if (fault_int & ftrstd::to_underlying(HeatbedletError::HeaterConnected)) {
-                        fatal_error(ErrCode::ERR_TEMPERATURE_MB_HEATER_CONNECTED, bedlet_number);
+            } else if (fault_int & ftrstd::to_underlying(HeatbedletError::HeaterConnected)) {
+                fatal_error(ErrCode::ERR_TEMPERATURE_MB_HEATER_CONNECTED, bedlet_number);
 #endif
-                    } else {
-                        fatal_error(ErrCode::ERR_SYSTEM_MB_UNKNOWN_ERR, bedlet_number, fault_int);
-                    }
-                }
+            } else {
+                fatal_error(ErrCode::ERR_SYSTEM_MB_UNKNOWN_ERR, bedlet_number, fault_int);
             }
-        } else {
-            log_error(ModularBed, "Failed to read fast bedlet data registers");
-            communication_error = true;
         }
-        break;
     }
-    case 8: {
-        if (modbusIsOk(bus.read(unit, general_fault))) {
-            log_debug(ModularBed, "Fault status: %d", general_fault.value);
-            metric_record_integer(&metric_state, static_cast<int>(general_fault.value));
+    return status;
+}
 
-            const auto fault_int { ftrstd::to_underlying(general_fault.value) };
-            if (fault_int & ftrstd::to_underlying(SystemError::OverCurrent)) {
-                fatal_error(ErrCode::ERR_ELECTRO_MB_OVERCURRENT);
-            } else if (fault_int & ftrstd::to_underlying(SystemError::UnexpectedCurrent)) {
-                fatal_error(ErrCode::ERR_ELECTRO_MB_INVALID_CURRENT);
-            } // other errors are handled by heatbedlet
-        } else {
-            log_error(ModularBed, "Failed to read fault status register");
-            communication_error = true;
-        }
-        break;
-    }
-    case 9: {
-        if (modbusIsOk(bus.write(unit, bedlet_target_temp))) {
-            for (uint16_t i = 0; i < BEDLET_COUNT; ++i) {
-                metric_record_custom(
-                    &metric_targets,
-                    ",n=%d v=%.2f",
-                    i,
-                    static_cast<double>(bedlet_target_temp.value[i]) / MODBUS_TEMPERATURE_REGISTERS_SCALE);
-            }
-        } else {
-            log_error(ModularBed, "Failed to write bedlet target temperature");
-            communication_error = true;
-        }
-        break;
-    }
-    case 10: {
-        if (modbusIsOk(bus.read(unit, bedlet_measured_max_current))) {
-            for (uint16_t i = 0; i < BEDLET_COUNT; ++i) {
-                metric_record_custom(
-                    &metric_bedlet_currents,
-                    ",n=%d v=%.2f",
-                    i,
-                    static_cast<double>(bedlet_measured_max_current.value[i]) / MODBUS_CURRENT_REGISTERS_SCALE);
-            }
-        } else {
-            log_error(ModularBed, "Failed to read bedlet measured currents");
-            communication_error = true;
-        }
-        break;
-    }
-    case 11: {
-        if (modbusIsOk(bus.read(unit, mcu_temperature))) {
-            log_debug(ModularBed, "MCU Temperature: %d", mcu_temperature.value);
-            metric_record_float(&metric_mcu_temperature, mcu_temperature.value);
-        } else {
-            log_error(ModularBed, "Failed to mcu temperature register pack");
-            communication_error = true;
-        }
-        break;
-    }
-    default: {
-        refresh_nr = -1;
-    }
+CommunicationStatus ModularBed::read_general_fault() {
+    CommunicationStatus status = bus.read(unit, general_fault, MAX_UNREAD_MS);
+    if (status != CommunicationStatus::OK) {
+        return status;
     }
 
-    refresh_nr++;
+    log_debug(ModularBed, "Fault status: %d", general_fault.value);
+    metric_record_integer(&metric_state, static_cast<int>(general_fault.value));
 
-    return communication_error ? CommunicationStatus::ERROR : CommunicationStatus::OK;
+    const auto fault_int { ftrstd::to_underlying(general_fault.value) };
+    if (fault_int & ftrstd::to_underlying(SystemError::OverCurrent)) {
+        fatal_error(ErrCode::ERR_ELECTRO_MB_OVERCURRENT);
+    } else if (fault_int & ftrstd::to_underlying(SystemError::UnexpectedCurrent)) {
+        fatal_error(ErrCode::ERR_ELECTRO_MB_INVALID_CURRENT);
+    } // other errors are handled by heatbedlet
+    return status;
+}
+
+CommunicationStatus ModularBed::write_bedlet_target_temp() {
+    CommunicationStatus status = bus.write(unit, bedlet_target_temp);
+    if (status != CommunicationStatus::OK) {
+        return status;
+    }
+
+    for (uint16_t i = 0; i < BEDLET_COUNT; ++i) {
+        metric_record_custom(
+            &metric_targets,
+            ",n=%d v=%.2f",
+            i,
+            static_cast<double>(bedlet_target_temp.value[i]) / MODBUS_TEMPERATURE_REGISTERS_SCALE);
+    }
+    return status;
+}
+
+CommunicationStatus ModularBed::read_bedlet_measured_max_current() {
+    CommunicationStatus status = bus.read(unit, bedlet_measured_max_current, MAX_UNREAD_MS);
+    if (status != CommunicationStatus::OK) {
+        return status;
+    }
+
+    for (uint16_t i = 0; i < BEDLET_COUNT; ++i) {
+        metric_record_custom(
+            &metric_bedlet_currents,
+            ",n=%d v=%.2f",
+            i,
+            static_cast<double>(bedlet_measured_max_current.value[i]) / MODBUS_CURRENT_REGISTERS_SCALE);
+    }
+    return status;
+}
+
+CommunicationStatus ModularBed::read_mcu_temperature() {
+    CommunicationStatus status = bus.read(unit, mcu_temperature, MAX_UNREAD_MS);
+    if (status != CommunicationStatus::OK) {
+        return status;
+    }
+
+    log_debug(ModularBed, "MCU Temperature: %d", mcu_temperature.value);
+    metric_record_float(&metric_mcu_temperature, mcu_temperature.value);
+    return status;
 }
 
 void ModularBed::clear_fault() {
     clear_fault_status.value = true;
-    clear_fault_status.pending = true;
+    clear_fault_status.dirty = true;
 }
 
 float ModularBed::get_temp(const uint16_t idx) {
@@ -300,7 +299,7 @@ float ModularBed::get_temp(const uint16_t idx) {
 }
 
 void ModularBed::set_print_fan_active(bool value) {
-    print_fan_active.pending = true;
+    print_fan_active.dirty = true;
     print_fan_active.value = value;
 }
 
@@ -314,6 +313,7 @@ void ModularBed::set_target(const uint8_t column, const uint8_t row, const float
 
 void ModularBed::set_target(const uint8_t idx, const float temp) {
     bedlet_target_temp.value[idx] = temp * MODBUS_TEMPERATURE_REGISTERS_SCALE;
+    bedlet_target_temp.dirty = true;
 }
 
 float ModularBed::get_target(const uint8_t idx) {
@@ -398,9 +398,9 @@ void ModularBed::update_bedlet_temps(uint16_t enabled_mask, float target_temp) {
 uint16_t ModularBed::expand_to_sides(uint16_t enabled_mask, float target_temp) {
     // calculate costs of touching all different sides
     cost_and_enable_mask_t cost_and_masks[4];
-    cost_and_masks[0] = touch_side(enabled_mask, side_t { 0, 1 });  // right
+    cost_and_masks[0] = touch_side(enabled_mask, side_t { 0, 1 }); // right
     cost_and_masks[1] = touch_side(enabled_mask, side_t { 0, -1 }); // left
-    cost_and_masks[2] = touch_side(enabled_mask, side_t { 1, 1 });  // up
+    cost_and_masks[2] = touch_side(enabled_mask, side_t { 1, 1 }); // up
     cost_and_masks[3] = touch_side(enabled_mask, side_t { 1, -1 }); // down
 
     // order sides by ascending costs
@@ -423,8 +423,10 @@ void ModularBed::update_gradients(uint16_t enabled_mask) {
 
     // first reset target of not enabled bedlets to zero
     for (uint8_t i = 0; i < BEDLET_COUNT; i++) {
-        if ((enabled_mask & (1 << i)) == 0)
+        if ((enabled_mask & (1 << i)) == 0) {
             bedlet_target_temp.value[i] = 0;
+            bedlet_target_temp.dirty = true;
+        }
     }
 
     // now compute new target temperature
@@ -443,10 +445,11 @@ void ModularBed::update_gradients(uint16_t enabled_mask) {
 
                     const float dist = std::sqrt(std::pow(x2 - x1, 2) + std::pow(y2 - y1, 2)); // distance between bedlets
                     if (dist > bedlet_gradient_cutoff)
-                        continue;                                                              // if bedlet distance is over BEDLET_GRADIENT_CUTOFF, don't do anything, temperature is already zero
+                        continue; // if bedlet distance is over BEDLET_GRADIENT_CUTOFF, don't do anything, temperature is already zero
 
                     const int16_t temp2 = temp1 - temp1 * pow(1 / bedlet_gradient_cutoff * dist, bedlet_gradient_exponent);
                     bedlet_target_temp.value[idx2] = std::max(temp2, (int16_t)bedlet_target_temp.value[idx2]);
+                    bedlet_target_temp.dirty = true;
                 }
             }
         }

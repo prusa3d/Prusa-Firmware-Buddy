@@ -210,7 +210,7 @@
 #define MSG_ERR_M421_PARAMETERS             "M421 incorrect parameter usage"
 #define MSG_ERR_BAD_PLANE_MODE              "G5 requires XY plane mode"
 #define MSG_ERR_MESH_XY                     "Mesh point cannot be resolved"
-#define MSG_ERR_ARC_ARGS                    "G2/G3 bad parameters"
+#define STR_ERR_ARC_ARGS                    "G2/G3 bad parameters"
 #define MSG_ERR_PROTECTED_PIN               "Protected Pin"
 #define MSG_ERR_M420_FAILED                 "Failed to enable Bed Leveling"
 #define MSG_ERR_M428_TOO_FAR                "Too far from reference point"

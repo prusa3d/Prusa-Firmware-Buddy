@@ -65,11 +65,11 @@
 
 #if !defined(HSE_VALUE)
     #define HSE_VALUE ((uint32_t)25000000) /*!< Default value of the External oscillator in Hz */
-#endif                                     /* HSE_VALUE */
+#endif /* HSE_VALUE */
 
 #if !defined(HSI_VALUE)
     #define HSI_VALUE ((uint32_t)16000000) /*!< Value of the Internal oscillator in Hz*/
-#endif                                     /* HSI_VALUE */
+#endif /* HSI_VALUE */
 
 /**
  * @}
@@ -632,8 +632,8 @@ void SystemInit_ExtMemCtl(void) {
     /* Disable write protection */
     tmpreg = FMC_Bank5_6->SDCR[0];
     FMC_Bank5_6->SDCR[0] = (tmpreg & 0xFFFFFDFF);
-        #endif     /* DATA_IN_ExtSDRAM */
-    #endif         /* STM32F427xx || STM32F437xx || STM32F429xx || STM32F439xx || STM32F446xx || STM32F469xx || STM32F479xx */
+        #endif /* DATA_IN_ExtSDRAM */
+    #endif /* STM32F427xx || STM32F437xx || STM32F429xx || STM32F439xx || STM32F446xx || STM32F469xx || STM32F479xx */
 
     #if defined(STM32F405xx) || defined(STM32F415xx) || defined(STM32F407xx) || defined(STM32F417xx)    \
         || defined(STM32F427xx) || defined(STM32F437xx) || defined(STM32F429xx) || defined(STM32F439xx) \
@@ -724,12 +724,12 @@ void SystemInit_ExtMemCtl(void) {
     FSMC_Bank1E->BWTR[2] = 0x0FFFFFFF;
             #endif /* STM32F405xx || STM32F415xx || STM32F407xx || STM32F417xx || STM32F412Zx || STM32F412Vx */
 
-        #endif     /* DATA_IN_ExtSRAM */
-    #endif         /* STM32F405xx || STM32F415xx || STM32F407xx || STM32F417xx || STM32F427xx || STM32F437xx || \
-                      STM32F429xx || STM32F439xx || STM32F469xx || STM32F479xx || STM32F412Zx || STM32F412Vx  */
+        #endif /* DATA_IN_ExtSRAM */
+    #endif /* STM32F405xx || STM32F415xx || STM32F407xx || STM32F417xx || STM32F427xx || STM32F437xx || \
+              STM32F429xx || STM32F439xx || STM32F469xx || STM32F479xx || STM32F412Zx || STM32F412Vx  */
     (void)(tmp);
 }
-#endif             /* DATA_IN_ExtSRAM && DATA_IN_ExtSDRAM */
+#endif /* DATA_IN_ExtSRAM && DATA_IN_ExtSDRAM */
 /**
  * @}
  */

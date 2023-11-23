@@ -9,7 +9,7 @@
 using std::min;
 using std::nullopt;
 using std::optional;
-using transfers::DownloadStep;
+using transfers::Transfer;
 
 namespace connect_client {
 
@@ -23,6 +23,8 @@ namespace {
     enum class Mode {
         Background,
         Download,
+        TransferRecovery,
+        TransferCleanup,
         Delay,
     };
 
@@ -37,7 +39,7 @@ void sleep_raw(Duration sleep_for) {
 }
 
 Sleep Sleep::idle() {
-    return Sleep(IDLE_WAIT, nullptr, nullptr, false);
+    return Sleep(IDLE_WAIT, nullptr, nullptr, false, false);
 }
 
 void Sleep::perform(Printer &printer, Planner &planner) {
@@ -45,10 +47,12 @@ void Sleep::perform(Printer &printer, Planner &planner) {
     // sleep, even if the sleep would be 0.
     bool need_background = background_cmd != nullptr;
     bool need_download = download != nullptr;
+    bool need_transfer_recovery = run_transfer_recovery;
+    bool need_transfer_cleanup = cleanup_transfers;
     // Which one takes a turn in case both are active.
     bool prefer_download = true;
 
-    while (need_background || need_download || milliseconds > 0) {
+    while (need_background || need_download || need_transfer_cleanup || need_transfer_recovery || milliseconds > 0) {
         Timestamp before = now();
 
         // Early check. If during any iteration the config changes, we abort
@@ -64,7 +68,11 @@ void Sleep::perform(Printer &printer, Planner &planner) {
         Duration max_step_time = min(milliseconds, IDLE_WAIT);
 
         Mode mode = Mode::Delay;
-        if (background_cmd != nullptr && download != nullptr) {
+        if (need_transfer_recovery) {
+            mode = Mode::TransferRecovery;
+        } else if (need_transfer_cleanup) {
+            mode = Mode::TransferCleanup;
+        } else if (background_cmd != nullptr && download != nullptr) {
             // In case we have both, we want each to do as much work without
             // blocking the other one. So we give it 0 timeout.
             //
@@ -115,21 +123,13 @@ void Sleep::perform(Printer &printer, Planner &planner) {
             need_download = false;
             assert(download != nullptr);
 
-            if (recover_download) {
-                planner.recover_download();
-                // An attempt to recover can actually "kill" the download
-                // completely. Therefore, just bail out and let the outer loop
-                // figure everything out.
-                return;
-            }
-
-            switch (auto result = download->step(max_step_time); result) {
-            case DownloadStep::Continue:
+            switch (auto result = download->step(max_step_time, printer.is_printing()); result) {
+            case Transfer::State::Downloading:
+            case Transfer::State::Retrying:
                 // Go for another iteration (now or during next sleep).
                 break;
-            case DownloadStep::FailedNetwork:
-            case DownloadStep::FailedOther:
-            case DownloadStep::Finished:
+            case Transfer::State::Failed:
+            case Transfer::State::Finished:
                 planner.download_done(result);
                 download = nullptr;
                 // Something likely changed as a result of the download
@@ -137,6 +137,41 @@ void Sleep::perform(Printer &printer, Planner &planner) {
                 return;
             }
             break;
+        case Mode::TransferRecovery: {
+            bool can_continue;
+            Transfer::Path path;
+            switch (Transfer::search_transfer_for_recovery(path)) {
+            case Transfer::RecoverySearchResult::NothingToRecover:
+                planner.transfer_recovery_finished(nullopt);
+                need_transfer_recovery = false;
+                can_continue = false;
+                break;
+            case Transfer::RecoverySearchResult::Success:
+                planner.transfer_recovery_finished(path.as_destination());
+                need_transfer_recovery = false;
+                can_continue = false;
+                break;
+            case Transfer::RecoverySearchResult::WaitingForUSB:
+                // We will try it in the next sleep
+                need_transfer_recovery = false;
+                can_continue = true;
+                break;
+            }
+            if (can_continue) {
+                break;
+            } else {
+                // We might have initialized a transfer so lets make the outer loop deal
+                // with that instead of trying to potentionally start a new one here.
+                return;
+            }
+        }
+        case Mode::TransferCleanup: {
+            planner.transfer_cleanup_finished(Transfer::cleanup_transfers());
+            // No matter if we want to re-run the cleanup, we don't do it in
+            // this sleep. Possibly in the next one.
+            need_transfer_cleanup = false;
+            break;
+        }
         case Mode::Delay:
             sleep_raw(max_step_time);
             break;

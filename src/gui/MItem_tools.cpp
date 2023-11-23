@@ -36,6 +36,8 @@
 #include <config_store/store_instance.hpp>
 #include <option/bootloader.h>
 #include <bootloader/bootloader.hpp>
+#include <feature/prusa/e-stall_detector.h>
+#include "connect/marlin_printer.hpp"
 #include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
 #include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper.hpp"
 
@@ -99,6 +101,23 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
                 osDelay(0); // switch to other thread
             }
         }
+    }
+}
+
+/*****************************************************************************/
+// MI_STUCK_FILAMENT_DETECTION
+/*****************************************************************************/
+bool MI_STUCK_FILAMENT_DETECTION::init_index() const {
+    return config_store().stuck_filament_detection.get();
+}
+
+void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
+    if (old_index) {
+        EMotorStallDetector::Instance().Disable();
+        config_store().stuck_filament_detection.set(false);
+    } else {
+        EMotorStallDetector::Instance().Enable();
+        config_store().stuck_filament_detection.set(true);
     }
 }
 
@@ -374,7 +393,7 @@ void MI_SOUND_VOLUME::OnClick() {
 MI_SORT_FILES::MI_SORT_FILES()
     : WI_SWITCH_t<2>(config_store().file_sort.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
-    if (old_index == WF_SORT_BY_TIME) {        // default option - was sorted by time of change, set by name
+    if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
         GuiFileSort::Set(WF_SORT_BY_NAME);
     } else if (old_index == WF_SORT_BY_NAME) { // was sorted by name, set by time
         GuiFileSort::Set(WF_SORT_BY_TIME);
@@ -396,7 +415,7 @@ MI_TIME_FORMAT::MI_TIME_FORMAT()
     : WI_SWITCH_t<2>(static_cast<uint8_t>(config_store().time_format.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
 
 void MI_TIME_FORMAT::OnChange(size_t old_index) {
-    if (old_index == (size_t)time_format::TF_t::TF_12H) {        // default option - 12h time format
+    if (old_index == (size_t)time_format::TF_t::TF_12H) { // default option - 12h time format
         time_format::Change(time_format::TF_t::TF_24H);
     } else if (old_index == (size_t)time_format::TF_t::TF_24H) { // 24h time format
         time_format::Change(time_format::TF_t::TF_12H);
@@ -422,15 +441,15 @@ void IMI_FS_SPAN::OnClick() {
 // IMI_FS_REF
 // in case we don't want to allow modification just change is_enabled_t to yes
 IMI_FS_REF::IMI_FS_REF(bool is_side_, size_t index_, const char *label)
-    : WiSpinInt(is_side_ ? config_store().get_side_fs_ref_value(index_) : config_store().get_extruder_fs_ref_value(index_), SpinCnf::int_num, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
+    : WiSpinInt(is_side_ ? config_store().get_side_fs_ref_nins_value(index_) : config_store().get_extruder_fs_ref_nins_value(index_), SpinCnf::int_num, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
     , is_side(is_side_)
     , index(index_) {}
 
 void IMI_FS_REF::OnClick() {
     if (is_side) {
-        config_store().set_side_fs_ref_value(index, GetVal());
+        config_store().set_side_fs_ref_nins_value(index, GetVal());
     } else {
-        config_store().set_extruder_fs_ref_value(index, GetVal());
+        config_store().set_extruder_fs_ref_nins_value(index, GetVal());
     }
 }
 
@@ -459,6 +478,10 @@ MI_INFO_BOOTLOADER::MI_INFO_BOOTLOADER()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
+MI_INFO_MMU::MI_INFO_MMU()
+    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::yes) {
+}
+
 MI_INFO_BOARD::MI_INFO_BOARD()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -468,26 +491,10 @@ MI_INFO_SERIAL_NUM::MI_INFO_SERIAL_NUM()
 }
 
 /*****************************************************************************/
-// MI_METRICS_ENABLE
-MI_METRICS_ENABLE::MI_METRICS_ENABLE()
-    : WI_ICON_SWITCH_OFF_ON_t(config_store().metrics_allow.get() == MetricsAllow::All, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
-
-void MI_METRICS_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
-    if (index) { // Enable
-        if (MsgBoxWarning(_(txt_confirm), Responses_YesNo, 1) == Response::Yes) {
-            config_store().metrics_allow.set(MetricsAllow::All);
-        } else {
-            index = false; // User changed his mind
-        }
-    } else {
-        config_store().metrics_allow.set(MetricsAllow::None);
-    }
-}
-
-/*****************************************************************************/
 // MI_FS_AUTOLOAD
 is_hidden_t hide_autoload_item() {
-    return FSensors_instance().GetAutoload() == fsensor_t::Disabled ? is_hidden_t::yes : is_hidden_t::no;
+    // autoload settings doesn't make sense when filament sensors are disabled
+    return FSensors_instance().is_enabled() ? is_hidden_t::no : is_hidden_t::yes;
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
@@ -732,23 +739,25 @@ void MI_HEATUP_BED::OnChange(size_t old_index) {
     config_store().heatup_bed.set(!old_index);
 }
 
+MI_SET_READY::MI_SET_READY()
+    : WI_LABEL_t(_(label), &img::print_16x16, connect_client::MarlinPrinter::is_printer_ready() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
+    if (connect_client::MarlinPrinter::set_printer_ready(true)) {
+        Disable();
+    }
+}
+
 /*****************************************************************************/
 // INPUT SHAPER
 
 static bool input_shaper_x_enabled() {
-#if PRINTER_IS_PRUSA_MK4
     return config_store().input_shaper_axis_x_enabled.get();
-#else
-    return false; // TODO(InputShaper)
-#endif
 }
 
 static bool input_shaper_y_enabled() {
-#if PRINTER_IS_PRUSA_MK4
     return config_store().input_shaper_axis_y_enabled.get();
-#else
-    return false; // TODO(InputShaper)
-#endif
 }
 
 static int32_t input_shaper_x_type() {

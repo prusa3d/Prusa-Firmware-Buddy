@@ -1,8 +1,12 @@
 add_subdirectory(probe_analysis)
 add_subdirectory(automata)
 add_subdirectory(Leds)
+add_subdirectory(gcode)
 add_subdirectory(http)
 add_subdirectory(utils)
+add_subdirectory(filament_sensor)
+
+add_definitions(-DUNITTESTS)
 
 add_executable(
   support_utils_tests ${CMAKE_CURRENT_SOURCE_DIR}/support_utils_lib_test.cpp
@@ -48,6 +52,7 @@ add_executable(
 target_include_directories(
   fsm_serializers_test
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC ${CMAKE_SOURCE_DIR}/include
   PUBLIC ${CMAKE_SOURCE_DIR}/src/common
   PUBLIC ${CMAKE_SOURCE_DIR}/src/gui/wizard
   PUBLIC ${CMAKE_SOURCE_DIR}/tests/stubs/
@@ -83,7 +88,10 @@ target_include_directories(
   weighted_modus_tests PUBLIC ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/module/prusa/
   )
 
-add_executable(algorithm_range_tests algorithm_range_tests.cpp)
+add_executable(
+  algorithm_range_tests ${CMAKE_SOURCE_DIR}/src/common/filters/median_filter.cpp
+                        algorithm_range_tests.cpp
+  )
 target_include_directories(algorithm_range_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
 add_executable(algorithm_scale_tests algorithm_scale_tests.cpp)
