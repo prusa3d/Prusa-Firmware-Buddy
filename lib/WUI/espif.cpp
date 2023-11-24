@@ -147,9 +147,9 @@ void espif_receive_data(UART_HandleTypeDef *huart) {
 }
 
 static void hard_reset_device() {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
     osDelay(100);
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_SET);
     esp_detected = false;
 }
 
@@ -679,14 +679,10 @@ void espif_flash_initialize(const bool take_down_interfaces) {
         espif_reconfigure_uart(FLASH_UART_BAUDRATE);
         loader_stm32_config_t loader_config = {
             .huart = &ESP_UART_HANDLE,
-            .port_io0 = GPIOE,
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-            .pin_num_io0 = GPIO_PIN_15,
-#else
-            .pin_num_io0 = GPIO_PIN_6,
-#endif
-            .port_rst = GPIOC,
-            .pin_num_rst = GPIO_PIN_13,
+            .port_io0 = ESP_GPIO0_GPIO_Port,
+            .pin_num_io0 = ESP_GPIO0_Pin,
+            .port_rst = ESP_RST_GPIO_Port,
+            .pin_num_rst = ESP_RST_Pin,
         };
         loader_port_stm32_init(&loader_config);
     }

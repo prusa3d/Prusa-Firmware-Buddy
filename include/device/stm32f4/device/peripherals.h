@@ -157,9 +157,13 @@ extern TIM_HandleTypeDef htim14;
 #define BED_VOLTAGE_Pin       GPIO_PIN_5
 #define BED_VOLTAGE_GPIO_Port GPIOA
 
-#define USB_OVERC_Pin               GPIO_PIN_4
-#define USB_OVERC_GPIO_Port         GPIOE
-#define ESP_GPIO0_Pin               GPIO_PIN_6
+#define USB_OVERC_Pin       GPIO_PIN_4
+#define USB_OVERC_GPIO_Port GPIOE
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    #define ESP_GPIO0_Pin GPIO_PIN_15
+#else
+    #define ESP_GPIO0_Pin GPIO_PIN_6
+#endif
 #define ESP_GPIO0_GPIO_Port         GPIOE
 #define ESP_RST_Pin                 GPIO_PIN_13
 #define ESP_RST_GPIO_Port           GPIOC
