@@ -81,9 +81,10 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
               }
               report_accelerometer(data.size()); },
           .accelerometer_freq_handler = [this](AccelerometerSamplingRate data) {
-                if (!this->is_selected())
+              if (!this->is_selected()) {
                     return;
-                PrusaAccelerometer::set_rate(data.frequency); } }) {
+              }
+              PrusaAccelerometer::set_rate(data.frequency); } }) {
 
     RegisterGeneralStatus.value.FaultStatus = dwarf_shared::errors::FaultStatusMask::NO_FAULT;
     RegisterGeneralStatus.value.HotendMeasuredTemperature = HEATER_0_MINTEMP + 1; // Init to temperature that won't immediately trigger mintemp

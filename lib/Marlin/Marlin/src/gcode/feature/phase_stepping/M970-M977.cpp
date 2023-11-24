@@ -14,11 +14,8 @@ LOG_COMPONENT_REF(PhaseStepping);
 
 using namespace std::literals;
 
-static constexpr std::array< std::pair< AxisEnum, char>, 3 > SUPPORTED_AXES = {
-    {
-        {X_AXIS, 'X'},
-        {Y_AXIS, 'Y'}
-    }
+static constexpr std::array<std::pair<AxisEnum, char>, 3> SUPPORTED_AXES = {
+    { { X_AXIS, 'X' }, { Y_AXIS, 'Y' } }
 };
 
 // This is lambda on purpose so it can be passed around
@@ -29,13 +26,15 @@ static auto print_error = [](auto... args) {
 };
 
 static bool is_one_of(char c, std::string_view sv) {
-    for (char x : sv)
-        if (c == x)
+    for (char x : sv) {
+        if (c == x) {
             return true;
+        }
+    }
     return false;
 }
 
-static const char* fixed_repr(float number, int n = 5) {
+static const char *fixed_repr(float number, int n = 5) {
     static char buffer[32];
     snprintf(buffer, 32, "%.*f", n, number);
     return buffer;
@@ -43,6 +42,7 @@ static const char* fixed_repr(float number, int n = 5) {
 
 class DisableBusyReport {
     bool original_state = false;
+
 public:
     DisableBusyReport() {
         original_state = suspend_auto_report;
@@ -54,7 +54,6 @@ public:
     }
 };
 
-
 /**
  * @brief Enable phase stepping for axis
  *
@@ -62,9 +61,10 @@ public:
  */
 void GcodeSuite::M970() {
     planner.synchronize();
-    for ( auto [axis, letter] : SUPPORTED_AXES) {
-        if (!parser.seen(letter))
+    for (auto [axis, letter] : SUPPORTED_AXES) {
+        if (!parser.seen(letter)) {
             continue;
+        }
         phase_stepping::enable(axis, true);
     }
 }
@@ -76,9 +76,10 @@ void GcodeSuite::M970() {
  */
 void GcodeSuite::M971() {
     planner.synchronize();
-    for ( auto [axis, letter] : SUPPORTED_AXES) {
-        if (!parser.seen(letter))
+    for (auto [axis, letter] : SUPPORTED_AXES) {
+        if (!parser.seen(letter)) {
             continue;
+        }
         phase_stepping::enable(axis, false);
     }
 }
@@ -91,18 +92,21 @@ void GcodeSuite::M971() {
  **/
 void GcodeSuite::M972() {
     for (auto [axis, letter] : SUPPORTED_AXES) {
-        if (!parser.seen(letter))
+        if (!parser.seen(letter)) {
             continue;
-        const phase_stepping::AxisState& axis_state = *phase_stepping::axis_states[axis];
+        }
+        const phase_stepping::AxisState &axis_state = *phase_stepping::axis_states[axis];
         for (char dir : "FB"sv) {
-            if (!parser.seen(letter))
+            if (!parser.seen(letter)) {
                 continue;
+            }
 
-            const auto& lut = dir == 'F'
-                ? axis_state.forward_current : axis_state.backward_current;
+            const auto &lut = dir == 'F'
+                ? axis_state.forward_current
+                : axis_state.backward_current;
 
-            const auto& table = lut.get_correction();
-            for (size_t i = 0; i != table.size(); i++ ) {
+            const auto &table = lut.get_correction();
+            for (size_t i = 0; i != table.size(); i++) {
                 SERIAL_ECHO(letter);
                 SERIAL_ECHO(", ");
                 SERIAL_ECHO(dir);
@@ -128,7 +132,7 @@ static std::vector<std::pair<float, float>> parse_pairs(std::string_view str) {
             return {}; // Return an empty vector on error
         }
 
-        char* end_ptr;
+        char *end_ptr;
         float first = std::strtod(str.data(), &end_ptr);
         if (end_ptr != str.data() + comma_pos) {
             print_error("Malformed input: unable to parse first value of a pair");
@@ -160,25 +164,25 @@ static std::vector<std::pair<float, float>> parse_pairs(std::string_view str) {
  * Parameters: String argument in format: <X/Y><F/B><list of mag,phase pairs separated by space>
  **/
 void GcodeSuite::M973() {
-    std::string_view str_arg {parser.string_arg};
+    std::string_view str_arg { parser.string_arg };
     if (str_arg.size() < 3 || !is_one_of(str_arg[0], "XY") || !is_one_of(str_arg[1], "FB")) {
         print_error("Invalid format; should be <X/Y><F/B><list of mag,phase pairs separated by space");
     }
 
     AxisEnum axis = str_arg[0] == 'X' ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
-    phase_stepping::AxisState& axis_state = *phase_stepping::axis_states[axis];
-    auto& lut =
-        str_arg[1] == 'F'
-                ? axis_state.forward_current
-                : axis_state.backward_current;
+    phase_stepping::AxisState &axis_state = *phase_stepping::axis_states[axis];
+    auto &lut = str_arg[1] == 'F'
+        ? axis_state.forward_current
+        : axis_state.backward_current;
 
     str_arg.remove_prefix(2);
     auto data = parse_pairs(str_arg);
 
-    if (data.empty())
+    if (data.empty()) {
         return;
+    }
 
-    lut.modify_correction([&](auto& table) {
+    lut.modify_correction([&](auto &table) {
         for (size_t n = 0; n != table.size(); n++) {
             if (n < data.size()) {
                 SERIAL_ECHO("Setting ");
@@ -187,12 +191,12 @@ void GcodeSuite::M973() {
                 SERIAL_ECHO(data[n].first);
                 SERIAL_ECHO(", ");
                 SERIAL_ECHOLN(data[n].second);
-                table[n] = phase_stepping::SpectralItem{
+                table[n] = phase_stepping::SpectralItem {
                     .mag = data[n].first,
                     .pha = data[n].second
                 };
             } else {
-                table[n] = phase_stepping::SpectralItem{
+                table[n] = phase_stepping::SpectralItem {
                     .mag = 0,
                     .pha = 0
                 };
@@ -201,34 +205,33 @@ void GcodeSuite::M973() {
     });
 }
 
-
-template < typename YieldError >
-static bool accelerometer_ok(PrusaAccelerometer& acc, YieldError yield_error) {
+template <typename YieldError>
+static bool accelerometer_ok(PrusaAccelerometer &acc, YieldError yield_error) {
     PrusaAccelerometer::Error error = acc.get_error();
     switch (error) {
-        case PrusaAccelerometer::Error::none:
-            return true;
-        case PrusaAccelerometer::Error::communication:
-            yield_error("accelerometer communication");
-            return false;
-        case PrusaAccelerometer::Error::no_active_tool:
-            yield_error("no active tool");
-            return false;
-        case PrusaAccelerometer::Error::busy:
-            yield_error("busy");
-            return false;
-        case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
-            yield_error("dwarf overflow");
-            return false;
-        case PrusaAccelerometer::Error::corrupted_buddy_overflow:
-            yield_error("buddy overflow");
-            return false;
-        case PrusaAccelerometer::Error::corrupted_transmission_error:
-            yield_error("dwarf transmission error");
-            return false;
-        case PrusaAccelerometer::Error::corrupted_sample_overrun:
-            yield_error("overrun");
-            return false;
+    case PrusaAccelerometer::Error::none:
+        return true;
+    case PrusaAccelerometer::Error::communication:
+        yield_error("accelerometer communication");
+        return false;
+    case PrusaAccelerometer::Error::no_active_tool:
+        yield_error("no active tool");
+        return false;
+    case PrusaAccelerometer::Error::busy:
+        yield_error("busy");
+        return false;
+    case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
+        yield_error("dwarf overflow");
+        return false;
+    case PrusaAccelerometer::Error::corrupted_buddy_overflow:
+        yield_error("buddy overflow");
+        return false;
+    case PrusaAccelerometer::Error::corrupted_transmission_error:
+        yield_error("dwarf transmission error");
+        return false;
+    case PrusaAccelerometer::Error::corrupted_sample_overrun:
+        yield_error("overrun");
+        return false;
     }
     bsod("Unrecognized accelerometer error");
 }
@@ -250,16 +253,18 @@ void GcodeSuite::M974() {
     bool valid = true;
 
     for (char required : "FR"sv) {
-        if (parser.seenval(required))
+        if (parser.seenval(required)) {
             continue;
+        }
         valid = false;
         print_error("Missing ", required, "-parameter");
     }
 
     int axes_count = 0;
-    for ( auto [axis, letter] : SUPPORTED_AXES) {
-        if (parser.seen(letter))
+    for (auto [axis, letter] : SUPPORTED_AXES) {
+        if (parser.seen(letter)) {
             axes_count++;
+        }
     }
     if (axes_count != 1) {
         print_error("Exactly one axis has to be specified");
@@ -288,7 +293,7 @@ void GcodeSuite::M974() {
         axis,
         parser.floatval('F'),
         parser.floatval('R'),
-        [sampleNum = 0] (const PrusaAccelerometer::Acceleration& sample) mutable {
+        [sampleNum = 0](const PrusaAccelerometer::Acceleration &sample) mutable {
             SERIAL_ECHO(sampleNum);
             SERIAL_ECHO(", ");
             SERIAL_ECHO(sample.val[0]);
@@ -309,21 +314,22 @@ void GcodeSuite::M974() {
  **/
 void GcodeSuite::M975() {
     PrusaAccelerometer accelerometer;
-    if (!accelerometer_ok(accelerometer, print_error))
+    if (!accelerometer_ok(accelerometer, print_error)) {
         return;
+    }
 
     constexpr int request_samples_num = 3'000;
 
-    auto report = [sampleNum = 0] (const PrusaAccelerometer::Acceleration& sample) mutable {
-            SERIAL_ECHO(sampleNum);
-            SERIAL_ECHO(", ");
-            SERIAL_ECHO(sample.val[0]);
-            SERIAL_ECHO(", ");
-            SERIAL_ECHO(sample.val[1]);
-            SERIAL_ECHO(", ");
-            SERIAL_ECHOLN(sample.val[2]);
-            sampleNum++;
-        };
+    auto report = [sampleNum = 0](const PrusaAccelerometer::Acceleration &sample) mutable {
+        SERIAL_ECHO(sampleNum);
+        SERIAL_ECHO(", ");
+        SERIAL_ECHO(sample.val[0]);
+        SERIAL_ECHO(", ");
+        SERIAL_ECHO(sample.val[1]);
+        SERIAL_ECHO(", ");
+        SERIAL_ECHOLN(sample.val[2]);
+        sampleNum++;
+    };
 
     for (int i = 0; i < request_samples_num;) {
         PrusaAccelerometer::Acceleration measured_acceleration;
@@ -357,16 +363,18 @@ void GcodeSuite::M976() {
     bool valid = true;
 
     for (char required : "FR"sv) {
-        if (parser.seenval(required))
+        if (parser.seenval(required)) {
             continue;
+        }
         valid = false;
         print_error("Missing ", required, "-parameter");
     }
 
     int axes_count = 0;
-    for ( auto [axis, letter] : SUPPORTED_AXES) {
-        if (parser.seen(letter))
+    for (auto [axis, letter] : SUPPORTED_AXES) {
+        if (parser.seen(letter)) {
             axes_count++;
+        }
     }
     if (axes_count != 1) {
         print_error("Exactly one axis has to be specified");
@@ -393,21 +401,22 @@ void GcodeSuite::M976() {
 
     auto analysis = phase_stepping::analyze_resonance(
         axis, parser.floatval('F'), parser.floatval('R'),
-        {{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}});
+        { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 } });
 
-    if (!analysis.has_value())
+    if (!analysis.has_value()) {
         print_error("Unsuccessful data capture");
+    }
 
-    auto& data = *analysis;
+    auto &data = *analysis;
 
-    for (std::size_t i = 0 ; i != data.size(); i++) {
+    for (std::size_t i = 0; i != data.size(); i++) {
         SERIAL_ECHO(i);
         SERIAL_ECHO(": ");
         SERIAL_ECHOLN(data[i]);
     }
 }
 
-class GCodeCalibrationReporter: public phase_stepping::CalibrationReporterBase {
+class GCodeCalibrationReporter : public phase_stepping::CalibrationReporterBase {
 public:
     void on_initial_movement() override {
         SERIAL_ECHOLN("Moving to calibration position");
@@ -452,9 +461,10 @@ void GcodeSuite::M977() {
     bool valid = true;
 
     int axes_count = 0;
-    for ( auto [axis, letter] : SUPPORTED_AXES) {
-        if (parser.seen(letter))
+    for (auto [axis, letter] : SUPPORTED_AXES) {
+        if (parser.seen(letter)) {
             axes_count++;
+        }
     }
     if (axes_count != 1) {
         print_error("Exactly one axis has to be specified");
@@ -471,11 +481,11 @@ void GcodeSuite::M977() {
     SERIAL_ECHO("Axis: ");
     SERIAL_ECHOLN(axis);
 
-    G28_no_parser(        //home
-        true,             // always_home_all
-        true,             // home only if needed,
-        3,                // raise Z by 3 mm
-        false,            // S-parameter,
+    G28_no_parser( // home
+        true, // always_home_all
+        true, // home only if needed,
+        3, // raise Z by 3 mm
+        false, // S-parameter,
         true, true, false // home X, Y but not Z
     );
     Planner::synchronize();

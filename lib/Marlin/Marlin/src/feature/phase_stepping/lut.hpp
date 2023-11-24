@@ -36,6 +36,7 @@ public:
     std::array<int8_t, MOTOR_PERIOD> _phase_shift = {};
 
     void _update_phase_shift();
+
 public:
     CorrectedCurrentLut() = default;
 
@@ -44,24 +45,24 @@ public:
     };
 
     template <typename F>
-        requires requires(F f) { f(_spectrum ); }
+        requires requires(F f) { f(_spectrum); }
     void modify_correction(F f) {
         f(_spectrum);
         _update_phase_shift();
     }
 
-    std::pair< int, int > get_current(int idx) const;
+    std::pair<int, int> get_current(int idx) const;
 };
 
 class CorrectedCurrentLut2 {
 public:
     struct CurrentTrace {
-        std::array< uint8_t, MOTOR_PERIOD > _val;
-        std::bitset< MOTOR_PERIOD > _sign;
+        std::array<uint8_t, MOTOR_PERIOD> _val;
+        std::bitset<MOTOR_PERIOD> _sign;
 
         int get(int idx) const {
             idx = normalize_motor_phase(idx);
-            return _val[ idx ] * ( _sign[idx] ? 1 : -1);
+            return _val[idx] * (_sign[idx] ? 1 : -1);
         }
 
         void set(int idx, int val) {
@@ -71,11 +72,11 @@ public:
         }
     };
 
-
     MotorPhaseCorrection _spectrum = {};
     CurrentTrace _sin, _cos;
 
     void _update_phase_shift();
+
 public:
     CorrectedCurrentLut2() {
         _update_phase_shift();
@@ -85,14 +86,14 @@ public:
         return _spectrum;
     };
 
-    template < typename F >
+    template <typename F>
         requires requires(F f) { f(_spectrum); }
     void modify_correction(F f) {
         f(_spectrum);
         _update_phase_shift();
     }
 
-    std::pair< int, int > get_current(int idx) const;
+    std::pair<int, int> get_current(int idx) const;
 };
 
 } // namespace phase_stepping

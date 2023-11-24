@@ -89,8 +89,9 @@ size_t handle_encoded_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo) {
         encoded = false;
 
         pickup_accelerometer_sample(encoder, encoded);
-        if (encoded)
+        if (encoded) {
             acc_sample_counter++;
+        }
 
         if (acc_sample_counter >= 100) {
             acc_sample_counter = 0;

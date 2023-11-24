@@ -214,8 +214,9 @@ void deinit() {
 }
 
 void on_new_samples(uint32_t count) {
-    if (count == 0)
+    if (count == 0) {
         return;
+    }
 
     uint32_t now = ticks_us();
     if (first_sample_timestamp == 0) {
@@ -308,7 +309,8 @@ bool dwarf::accelerometer::is_high_sample_rate() {
 
 float dwarf::accelerometer::measured_sampling_rate() {
     uint32_t duration = ticks_diff(last_sample_timestamp, first_sample_timestamp);
-    if (duration == 0 || samples_extracted == 0)
+    if (duration == 0 || samples_extracted == 0) {
         return 0;
+    }
     return (samples_extracted - 1) * 1000000.f / duration;
 }

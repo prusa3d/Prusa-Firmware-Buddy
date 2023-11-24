@@ -14,60 +14,61 @@ struct step_event_info_t;
 struct step_generator_state_t;
 struct move_segment_step_generator_t;
 
-#if not (HAS_PHASE_STEPPING())
+#if not(HAS_PHASE_STEPPING())
     #include "phase_stepping_dummies.hpp"
 #else
 
-#include "common.hpp"
-#include "lut.hpp"
-#include "../input_shaper/input_shaper.hpp"
-#include <libs/circularqueue.h>
+    #include "common.hpp"
+    #include "lut.hpp"
+    #include "../input_shaper/input_shaper.hpp"
+    #include <libs/circularqueue.h>
 
 namespace phase_stepping {
 
 struct MoveTarget {
     MoveTarget() = default;
     MoveTarget(float position);
-    MoveTarget(const move_t& move, int axis);
-    MoveTarget(const input_shaper_state_t& is_state);
+    MoveTarget(const move_t &move, int axis);
+    MoveTarget(const input_shaper_state_t &is_state);
 
-    float initial_pos  = 0;
-    float half_accel   = 0;
-    float start_v      = 0;
-    uint32_t duration  = 0; // Movement duration in us
+    float initial_pos = 0;
+    float half_accel = 0;
+    float start_v = 0;
+    uint32_t duration = 0; // Movement duration in us
 
     float target_position() const;
 };
 
 struct AxisState {
-    AxisState(AxisEnum axis): axis_index(axis) {}
+    AxisState(AxisEnum axis)
+        : axis_index(axis) {}
 
     int axis_index;
 
     CorrectedCurrentLut forward_current, backward_current;
 
-    std::atomic< bool > active = false;
+    std::atomic<bool> active = false;
 
-    bool              inverted = false;     // Inverted axis direction flag
-    int               zero_rotor_phase = 0; // Rotor phase for position 0
-    int               last_phase       = 0; // Last known rotor phase
-    float             last_position    = 0.f;
+    bool inverted = false; // Inverted axis direction flag
+    int zero_rotor_phase = 0; // Rotor phase for position 0
+    int last_phase = 0; // Last known rotor phase
+    float last_position = 0.f;
 
-    CircularQueue<MoveTarget, 16> pending_targets;      // 16 element queue of pre-processed elements
+    CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
 
-    const move_t *    last_processed_move = nullptr;
-    double            last_processed_event_time = 0;
+    const move_t *last_processed_move = nullptr;
+    double last_processed_event_time = 0;
 
-    uint32_t                  initial_time = 0; // Initial timestamp when the movement start
-    std::optional<MoveTarget> target;           // Current target to move
+    uint32_t initial_time = 0; // Initial timestamp when the movement start
+    std::optional<MoveTarget> target; // Current target to move
 
-    std::atomic<bool> is_moving   = false;
+    std::atomic<bool> is_moving = false;
     std::atomic<bool> is_cruising = false;
 
     int32_t initial_count_position = 0; // Value for updating Stepper::count_position
     int32_t initial_count_position_from_startup = 0; // Value for updating Stepper::count_position_from_startup
 
-    int    missed_tx_cnt = 0;
+    int missed_tx_cnt = 0;
 };
 
 /**
@@ -121,7 +122,6 @@ void init_step_generator_input_shaping(
     input_shaper_step_generator_t &step_generator,
     step_generator_state_t &step_generator_state);
 
-
 /**
  * Public interface pro PreciseStepping - build next step event using classical
  * step generator
@@ -172,13 +172,13 @@ float mm_to_rev(int motor, float mm);
 /**
  * Return a motor step count for given axis
  **/
-constexpr int get_motor_steps(AxisEnum axis)  {
+constexpr int get_motor_steps(AxisEnum axis) {
     if (axis == AxisEnum::X_AXIS || axis == AxisEnum::Y_AXIS) {
-        #ifdef HAS_LDO_400_STEP
-            return 400;
-        #else
-            return 200;
-        #endif
+    #ifdef HAS_LDO_400_STEP
+        return 400;
+    #else
+        return 200;
+    #endif
     }
     return 200;
 }
@@ -187,24 +187,25 @@ constexpr int get_motor_steps(AxisEnum axis)  {
  * Given axis state and time in µs ticks from movement start, compute axis
  * speed and position.
  */
-std::tuple<float, float> axis_position(const AxisState& axis_state, uint32_t move_epoch);
+std::tuple<float, float> axis_position(const AxisState &axis_state, uint32_t move_epoch);
 
 /**
  * Extracts physical axis position from logical one
  **/
-template < typename Pos >
-float extract_physical_position(AxisEnum axis, const Pos& pos) {
+template <typename Pos>
+float extract_physical_position(AxisEnum axis, const Pos &pos) {
     #ifdef COREXY
-        if (axis == X_AXIS)
-            return pos[0] + pos[1];
-        else if (axis == Y_AXIS)
-            return pos[0] - pos[1];
-        else if (axis == Z_AXIS)
-            return pos[2];
-        else
-            bsod("Unsupported AXIS");
+    if (axis == X_AXIS) {
+        return pos[0] + pos[1];
+    } else if (axis == Y_AXIS) {
+        return pos[0] - pos[1];
+    } else if (axis == Z_AXIS) {
+        return pos[2];
+    } else {
+        bsod("Unsupported AXIS");
+    }
     #else
-        return pos[axis];
+    return pos[axis];
     #endif
 }
 
@@ -218,16 +219,17 @@ int phase_difference(int a, int b);
  **/
 extern std::array<
     std::unique_ptr<AxisState>,
-    SUPPORTED_AXIS_COUNT> axis_states;
-
+    SUPPORTED_AXIS_COUNT>
+    axis_states;
 
 /**
  * RAII guard for temporary disabling/enabling phase stepping.
  **/
-template < bool ENABLED >
+template <bool ENABLED>
 class EnsureState {
     bool released = false;
-    std::array< bool, SUPPORTED_AXIS_COUNT > _prev_active = {};
+    std::array<bool, SUPPORTED_AXIS_COUNT> _prev_active = {};
+
 public:
     EnsureState() {
         for (std::size_t i = 0; i != axis_states.size(); i++) {
@@ -236,18 +238,19 @@ public:
         }
     }
 
-    EnsureState(const EnsureState&) = delete;
-    EnsureState(const EnsureState&&) = delete;
-    EnsureState& operator=(const EnsureState&) = delete;
-    EnsureState& operator=(const EnsureState&&) = delete;
+    EnsureState(const EnsureState &) = delete;
+    EnsureState(const EnsureState &&) = delete;
+    EnsureState &operator=(const EnsureState &) = delete;
+    EnsureState &operator=(const EnsureState &&) = delete;
 
     ~EnsureState() {
         release();
     }
 
     void release() {
-        if (released)
+        if (released) {
             return;
+        }
         released = true;
         for (std::size_t i = 0; i != axis_states.size(); i++) {
             phase_stepping::enable(AxisEnum(i), _prev_active[i]);

@@ -25,7 +25,7 @@ namespace phase_stepping {
  * ignored.
  */
 float capture_samples(AxisEnum axis, float speed, float revs,
-    std::function<void(const PrusaAccelerometer::Acceleration&)> yield_sample);
+    std::function<void(const PrusaAccelerometer::Acceleration &)> yield_sample);
 
 /**
  * Assuming phase stepping is enabled, measure resonance and return requested
@@ -36,7 +36,6 @@ float capture_samples(AxisEnum axis, float speed, float revs,
 std::optional<std::vector<float>> analyze_resonance(AxisEnum axis,
     float speed, float revs, std::vector<int> requested_harmonics);
 
-
 /**
  * Calibration routine notifies about the progress made via this class. Subclass
  * it and pass it to the calibration routine.
@@ -45,6 +44,7 @@ class CalibrationReporterBase {
 protected:
     int _calibration_phases_count = -1;
     int _current_calibration_phase = 0;
+
 public:
     virtual ~CalibrationReporterBase() = default;
 
@@ -80,7 +80,7 @@ public:
     /**
      * Report calibration termination
      */
-     virtual void on_termination() = 0;
+    virtual void on_termination() = 0;
 };
 
 /**
@@ -90,6 +90,6 @@ public:
  * Returns a tuple with forward and backward calibration
  */
 std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>>
-    calibrate_axis(AxisEnum axis, CalibrationReporterBase& reporter);
+calibrate_axis(AxisEnum axis, CalibrationReporterBase &reporter);
 
 } // namespace phase_stepping

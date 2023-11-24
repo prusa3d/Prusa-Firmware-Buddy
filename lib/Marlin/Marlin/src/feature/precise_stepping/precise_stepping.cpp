@@ -471,8 +471,9 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
             --step_state.left_insert_start_of_move_segment;
         }
 
-        if (step_status == STEP_EVENT_INFO_STATUS_PENDING)
+        if (step_status == STEP_EVENT_INFO_STATUS_PENDING) {
             step_event.flags |= STEP_EVENT_WAITING;
+        }
 
         step_state.previous_step_time = step_time_absolute;
     } else {
@@ -1212,10 +1213,11 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
     LOOP_XYZ(i) {
 #ifdef ADVANCED_STEP_GENERATORS
         if (physical_axis_step_generator_types & (INPUT_SHAPER_STEP_GENERATOR_X << i)) {
-            if (physical_axis_step_generator_types & (PHASE_STEPPING_GENERATOR_X << i))
+            if (physical_axis_step_generator_types & (PHASE_STEPPING_GENERATOR_X << i)) {
                 phase_stepping::init_step_generator_input_shaping(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
-            else
+            } else {
                 input_shaper_step_generator_init(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
+            }
         } else {
             if (physical_axis_step_generator_types & (PHASE_STEPPING_GENERATOR_X << i)) {
                 phase_stepping::init_step_generator_classic(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);

@@ -29,16 +29,14 @@ using EnsureDisabled = EnsureStateDummy;
 inline void init_step_generator_classic(
     const move_t &,
     move_segment_step_generator_t &,
-    step_generator_state_t &)
-{
+    step_generator_state_t &) {
     bsod("Phase stepping enabled when printer doesn't support it");
 }
 
 inline void init_step_generator_input_shaping(
     const move_t &,
     move_segment_step_generator_t &,
-    step_generator_state_t &)
-{
+    step_generator_state_t &) {
     bsod("Phase stepping enabled when printer doesn't support it");
 }
 

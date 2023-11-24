@@ -22,17 +22,20 @@ using namespace buddy::hw;
 // Global definitions
 std::array<
     std::unique_ptr<AxisState>,
-    SUPPORTED_AXIS_COUNT> phase_stepping::axis_states = {{ nullptr, nullptr }};
+    SUPPORTED_AXIS_COUNT>
+    phase_stepping::axis_states = { { nullptr, nullptr } };
 
 // Module definitions
 static unsigned int axis_num_to_refresh = 0;
-static const std::array< OutputPin, SUPPORTED_AXIS_COUNT > cs_pins = {{ xCs, yCs }};
+static const std::array<OutputPin, SUPPORTED_AXIS_COUNT> cs_pins = { { xCs, yCs } };
 
-MoveTarget::MoveTarget(float position):
-    initial_pos(position), half_accel(0), start_v(0), duration(0)
-{}
+MoveTarget::MoveTarget(float position)
+    : initial_pos(position)
+    , half_accel(0)
+    , start_v(0)
+    , duration(0) {}
 
-MoveTarget::MoveTarget(const move_t& move, int axis) {
+MoveTarget::MoveTarget(const move_t &move, int axis) {
     float r = get_move_axis_r(move, axis);
     initial_pos = extract_physical_position(AxisEnum(axis), move.start_pos);
     half_accel = r * float(move.half_accel);
@@ -40,12 +43,11 @@ MoveTarget::MoveTarget(const move_t& move, int axis) {
     duration = move.move_t * 1'000'000;
 }
 
-MoveTarget::MoveTarget(const input_shaper_state_t& is_state) :
-    initial_pos(is_state.start_pos),
-    half_accel(is_state.half_accel),
-    start_v(is_state.start_v),
-    duration(1'000'000 * (is_state.nearest_next_change - is_state.print_time))
-{}
+MoveTarget::MoveTarget(const input_shaper_state_t &is_state)
+    : initial_pos(is_state.start_pos)
+    , half_accel(is_state.half_accel)
+    , start_v(is_state.start_v)
+    , duration(1'000'000 * (is_state.nearest_next_change - is_state.print_time)) {}
 
 float MoveTarget::target_position() const {
     float epoch = duration / 1000000.f;
@@ -60,9 +62,8 @@ void phase_stepping::init() {
 static void init_step_generator_internal(
     const move_t &move,
     move_segment_step_generator_t &step_generator,
-    step_generator_state_t &/*step_generator_state*/)
-{
-    auto& axis_state = *step_generator.phase_step_state;
+    step_generator_state_t & /*step_generator_state*/) {
+    auto &axis_state = *step_generator.phase_step_state;
     const uint8_t axis = step_generator.axis;
 
     assert(axis_state.pending_targets.isEmpty());
@@ -76,7 +77,7 @@ static void init_step_generator_internal(
         ? axis_state.target->initial_pos
         : -axis_state.target->initial_pos;
     axis_state.zero_rotor_phase = normalize_motor_phase(
-        + axis_state.zero_rotor_phase
+        +axis_state.zero_rotor_phase
         - pos_to_phase(axis, new_start_position)
         + pos_to_phase(axis, last_target_position));
 
@@ -94,9 +95,8 @@ static void init_step_generator_internal(
 void phase_stepping::init_step_generator_classic(
     const move_t &move,
     move_segment_step_generator_t &step_generator,
-    step_generator_state_t &step_generator_state)
-{
-    auto& axis_state = *step_generator.phase_step_state;
+    step_generator_state_t &step_generator_state) {
+    auto &axis_state = *step_generator.phase_step_state;
     axis_state.active = false;
 
     const uint8_t axis = step_generator.axis;
@@ -110,9 +110,8 @@ void phase_stepping::init_step_generator_classic(
 void phase_stepping::init_step_generator_input_shaping(
     const move_t &move,
     input_shaper_step_generator_t &step_generator,
-    step_generator_state_t &step_generator_state)
-{
-    auto& axis_state = *step_generator.phase_step_state;
+    step_generator_state_t &step_generator_state) {
+    auto &axis_state = *step_generator.phase_step_state;
     axis_state.active = false;
 
     // Inherit input shaper initialization...
@@ -128,10 +127,9 @@ void phase_stepping::init_step_generator_input_shaping(
 }
 
 step_event_info_t phase_stepping::next_step_event_classic(
-    move_segment_step_generator_t& step_generator,
-    step_generator_state_t &/*step_generator_state*/)
-{
-    AxisState& axis_state = *step_generator.phase_step_state;
+    move_segment_step_generator_t &step_generator,
+    step_generator_state_t & /*step_generator_state*/) {
+    AxisState &axis_state = *step_generator.phase_step_state;
 
     assert(axis_state.last_processed_move != nullptr);
 
@@ -139,8 +137,7 @@ step_event_info_t phase_stepping::next_step_event_classic(
     StepEventInfoStatus status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_INVALID;
     if (axis_state.pending_targets.isFull()) {
         status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
-    }
-    else if (next_move != nullptr) {
+    } else if (next_move != nullptr) {
         // PreciseStepping generates and infinite move segment on motion stop.
         // We cannot enqueue such segment
         if (!is_ending_empty_move(*next_move)) {
@@ -148,8 +145,9 @@ step_event_info_t phase_stepping::next_step_event_classic(
 
             auto new_target = MoveTarget(*next_move, axis);
             float target_pos = new_target.target_position();
-            if (axis_state.inverted)
+            if (axis_state.inverted) {
                 target_pos = -target_pos;
+            }
             int32_t target_steps = pos_to_steps(AxisEnum(axis), target_pos);
             PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
 
@@ -162,36 +160,35 @@ step_event_info_t phase_stepping::next_step_event_classic(
         }
         axis_state.last_processed_move = next_move;
     }
-    return step_event_info_t{
+    return step_event_info_t {
         .time = axis_state.last_processed_event_time,
         .flags = static_cast<StepEventFlag_t>(STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis),
         .status = status
     };
 }
 
-static bool has_ending_segment(const input_shaper_state_t& is_state) {
+static bool has_ending_segment(const input_shaper_state_t &is_state) {
     return is_state.nearest_next_change - is_state.print_time >= 1000000.;
 }
 
 step_event_info_t phase_stepping::next_step_event_input_shaping(
-    input_shaper_step_generator_t& step_generator,
-    step_generator_state_t &/*step_generator_state*/)
-{
-    AxisState& axis_state = *step_generator.phase_step_state;
+    input_shaper_step_generator_t &step_generator,
+    step_generator_state_t & /*step_generator_state*/) {
+    AxisState &axis_state = *step_generator.phase_step_state;
 
     StepEventInfoStatus status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_INVALID;
     if (axis_state.pending_targets.isFull()) {
         status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
-    }
-    else {
+    } else {
         bool generated_new = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
         if (generated_new && !has_ending_segment(*step_generator.is_state)) {
             uint8_t axis = axis_state.axis_index;
 
             auto new_target = MoveTarget(*step_generator.is_state);
             float target_pos = new_target.target_position();
-            if (axis_state.inverted)
+            if (axis_state.inverted) {
                 target_pos = -target_pos;
+            }
             int32_t target_steps = pos_to_steps(AxisEnum(axis), target_pos);
             PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
 
@@ -209,20 +206,19 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
         PreciseStepping::move_segment_processed_handler();
     }
 
-    return step_event_info_t{
+    return step_event_info_t {
         .time = axis_state.last_processed_event_time,
         .flags = static_cast<StepEventFlag_t>(STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis),
         .status = status
     };
 }
 
-
 void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
-    auto& stepper = static_cast< TMC2130Stepper& >(stepper_axis(axis_num));
-    auto& axis_state = *axis_states[axis_num];
+    auto &stepper = static_cast<TMC2130Stepper &>(stepper_axis(axis_num));
+    auto &axis_state = *axis_states[axis_num];
 
     // In order to start phase stepping, we have to set phase currents that are
     // in sync with current position, and then switch the driver to current
@@ -244,12 +240,13 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     axis_state.target = MoveTarget(0);
 
     // Read axis configuration and cache it so we can access it fast
-    if (axis_num == AxisEnum::X_AXIS)
+    if (axis_num == AxisEnum::X_AXIS) {
         axis_state.inverted = INVERT_X_DIR;
-    else if (axis_num_to_refresh == AxisEnum::Y_AXIS)
+    } else if (axis_num_to_refresh == AxisEnum::Y_AXIS) {
         axis_state.inverted = INVERT_Y_DIR;
-    else if (axis_num_to_refresh == AxisEnum::Z_AXIS)
+    } else if (axis_num_to_refresh == AxisEnum::Z_AXIS) {
         axis_state.inverted = INVERT_Z_DIR;
+    }
 
     axis_state.active = true;
     auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
@@ -263,8 +260,8 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
-    auto& stepper = static_cast<TMC2130Stepper&>(stepper_axis(axis_num));
-    auto& axis_state = *axis_states[axis_num];
+    auto &stepper = static_cast<TMC2130Stepper &>(stepper_axis(axis_num));
+    auto &axis_state = *axis_states[axis_num];
 
     axis_state.active = false;
     auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
@@ -276,20 +273,20 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     int original_microsteps = stepper.microsteps();
     stepper.microsteps(256);
     int current_phase = normalize_motor_phase(axis_state.last_phase);
-    while (current_phase != stepper.MSCNT() ) {
-        switch(axis_num) {
-            case 0:
-                XStep->toggle();
-                break;
-            case 1:
-                YStep->toggle();
-                break;
-            case 2:
-                // Why is zStep with lower case initial letter and YStep with upper case?
-                zStep.toggle();
-                break;
-            default:
-                break;
+    while (current_phase != stepper.MSCNT()) {
+        switch (axis_num) {
+        case 0:
+            XStep->toggle();
+            break;
+        case 1:
+            YStep->toggle();
+            break;
+        case 2:
+            // Why is zStep with lower case initial letter and YStep with upper case?
+            zStep.toggle();
+            break;
+        default:
+            break;
         }
         delayMicroseconds(20);
     }
@@ -304,23 +301,26 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
 
 void phase_stepping::enable(AxisEnum axis_num, bool enable) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
-    auto& axis_state = axis_states[axis_num];
-    if (axis_state->active == enable)
+    auto &axis_state = axis_states[axis_num];
+    if (axis_state->active == enable) {
         return;
-    if (enable)
+    }
+    if (enable) {
         phase_stepping::enable_phase_stepping(axis_num);
-    else
+    } else {
         phase_stepping::disable_phase_stepping(axis_num);
+    }
 }
 
 void phase_stepping::stop_immediately() {
-    for (auto& axis_state : axis_states) {
+    for (auto &axis_state : axis_states) {
         bool was_active = axis_state->active;
         axis_state->active = false;
 
         axis_state->target.reset();
-        while (!axis_state->pending_targets.isEmpty())
+        while (!axis_state->pending_targets.isEmpty()) {
             axis_state->pending_targets.dequeue();
+        }
 
         axis_state->active = was_active;
     }
@@ -329,17 +329,19 @@ void phase_stepping::stop_immediately() {
 // Given axis and speed, return current adjustment expressed as range <0, 255>
 static int current_adjustment(int /*axis*/, float speed) {
     speed = std::abs(speed);
-    #if PRINTER_IS_PRUSA_XL
-        float BREAKPOINT = 4.7f;
-        float ENDPOINT = 8.f;
-        int   ENDPOINT_REDUCTION = 100;
+#if PRINTER_IS_PRUSA_XL
+    float BREAKPOINT = 4.7f;
+    float ENDPOINT = 8.f;
+    int ENDPOINT_REDUCTION = 100;
 
-        if (speed < BREAKPOINT)
-            return 255;
-        if (speed > ENDPOINT)
-            return ENDPOINT_REDUCTION;
-        return 255 - (speed - BREAKPOINT) * (255 - ENDPOINT_REDUCTION) / (ENDPOINT - BREAKPOINT);
-    #endif
+    if (speed < BREAKPOINT) {
+        return 255;
+    }
+    if (speed > ENDPOINT) {
+        return ENDPOINT_REDUCTION;
+    }
+    return 255 - (speed - BREAKPOINT) * (255 - ENDPOINT_REDUCTION) / (ENDPOINT - BREAKPOINT);
+#endif
 
     bsod("Unsupported printer");
 }
@@ -365,10 +367,11 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
 
     // Move to next axis
     ++axis_num_to_refresh;
-    if (axis_num_to_refresh == axis_states.size())
+    if (axis_num_to_refresh == axis_states.size()) {
         axis_num_to_refresh = 0;
+    }
 
-    AxisState& axis_state = *axis_states[axis_num_to_refresh];
+    AxisState &axis_state = *axis_states[axis_num_to_refresh];
 
     if (!axis_state.active) {
         return;
@@ -388,9 +391,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
             // Pull new movement
             axis_state.target = axis_state.pending_targets.dequeue();
 
-            axis_state.is_cruising =
-                axis_state.target->half_accel == 0 &&
-                axis_state.target->duration > 10'000;
+            axis_state.is_cruising = axis_state.target->half_accel == 0 && axis_state.target->duration > 10'000;
             axis_state.is_moving = true;
 
             // Time overshoots accounts for the lost time in the previous state
@@ -406,7 +407,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
 
     auto [speed, position] = axis_state.target.has_value()
         ? axis_position(axis_state, move_epoch)
-        : std::make_tuple( 0.f, (axis_state.inverted ? axis_state.last_position : -axis_state.last_position) );
+        : std::make_tuple(0.f, (axis_state.inverted ? axis_state.last_position : -axis_state.last_position));
     if (!axis_state.inverted) {
         position = -position;
         speed = -speed;
@@ -422,7 +423,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     Stepper::set_axis_steps_from_startup(AxisEnum(axis_num_to_refresh),
         axis_state.initial_count_position_from_startup + steps_made);
 
-    const auto& current_lut = speed > 0
+    const auto &current_lut = speed > 0
         ? axis_state.forward_current
         : axis_state.backward_current;
     auto [a, b] = current_lut.get_current(new_phase);
@@ -434,32 +435,34 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     axis_state.last_phase = new_phase;
 
     auto ret = spi::set_xdirect(axis_num_to_refresh, a, b);
-    if (ret == HAL_OK)
+    if (ret == HAL_OK) {
         axis_state.missed_tx_cnt = 0;
-    else {
+    } else {
         axis_state.missed_tx_cnt++;
     }
 
-    if (axis_state.missed_tx_cnt > 5000)
+    if (axis_state.missed_tx_cnt > 5000) {
         bsod("Phase stepping: TX failure");
+    }
 }
 
 bool phase_stepping::any_axis_active() {
-    for ( auto& state : axis_states ) {
-        if (state->active)
+    for (auto &state : axis_states) {
+        if (state->active) {
             return true;
+        }
     }
     return false;
 }
 
 __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_phase(int axis, float position) {
-    static constinit std::array< float, SUPPORTED_AXIS_COUNT > FACTORS = []() consteval {
+    static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
         static_assert(SUPPORTED_AXIS_COUNT <= 3);
 
         int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
         int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
 
-        std::array< float, SUPPORTED_AXIS_COUNT > ret;
+        std::array<float, SUPPORTED_AXIS_COUNT> ret;
         for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
             ret[i] = 256.f * STEPS_PER_UNIT[i] / MICROSTEPS[i];
         }
@@ -469,12 +472,12 @@ __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_phase(int axi
 }
 
 __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_steps(int axis, float position) {
-    static constinit std::array< float, SUPPORTED_AXIS_COUNT > FACTORS = []() consteval {
+    static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
         static_assert(SUPPORTED_AXIS_COUNT <= 3);
 
         int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
-        std::array< float, SUPPORTED_AXIS_COUNT > ret;
+        std::array<float, SUPPORTED_AXIS_COUNT> ret;
         for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
             ret[i] = float(STEPS_PER_UNIT[i]);
         }
@@ -484,12 +487,12 @@ __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_steps(int axi
 }
 
 __attribute__((optimize("-Ofast"))) int32_t pos_to_msteps(int axis, float position) {
-    static constinit std::array< float, SUPPORTED_AXIS_COUNT > FACTORS = []() consteval {
+    static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
         static_assert(SUPPORTED_AXIS_COUNT <= 3);
 
         int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
-        std::array< float, SUPPORTED_AXIS_COUNT > ret;
+        std::array<float, SUPPORTED_AXIS_COUNT> ret;
         for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
             ret[i] = float(STEPS_PER_UNIT[i]) / PLANNER_STEPS_MULTIPLIER;
         }
@@ -498,14 +501,14 @@ __attribute__((optimize("-Ofast"))) int32_t pos_to_msteps(int axis, float positi
     return position * FACTORS[axis];
 }
 
-__attribute__((optimize("-Ofast"))) float  phase_stepping::mm_to_rev(int motor, float mm) {
-    static constinit std::array< float, SUPPORTED_AXIS_COUNT > FACTORS = []() consteval {
+__attribute__((optimize("-Ofast"))) float phase_stepping::mm_to_rev(int motor, float mm) {
+    static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
         static_assert(SUPPORTED_AXIS_COUNT <= 3);
 
         int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
         int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
 
-        std::array< float, SUPPORTED_AXIS_COUNT > ret;
+        std::array<float, SUPPORTED_AXIS_COUNT> ret;
         for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
             ret[i] = 1.f / (get_motor_steps(AxisEnum(i)) * float(MICROSTEPS[i]) / float(STEPS_PER_UNIT[i]));
         }
@@ -514,9 +517,9 @@ __attribute__((optimize("-Ofast"))) float  phase_stepping::mm_to_rev(int motor, 
     return mm * FACTORS[motor];
 }
 
-__attribute__((optimize("-Ofast"))) std::tuple<float, float> phase_stepping::axis_position(const AxisState& axis_state, uint32_t move_epoch) {
+__attribute__((optimize("-Ofast"))) std::tuple<float, float> phase_stepping::axis_position(const AxisState &axis_state, uint32_t move_epoch) {
     float epoch = move_epoch / 1000000.f;
-    const MoveTarget& trg = *axis_state.target;
+    const MoveTarget &trg = *axis_state.target;
     return {
         trg.start_v + 2.f * trg.half_accel * epoch,
         trg.initial_pos + trg.start_v * epoch + trg.half_accel * epoch * epoch
