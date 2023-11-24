@@ -2,6 +2,7 @@
 #include "quick_tmc_spi.hpp"
 #include "../precise_stepping/precise_stepping.hpp"
 #include "../precise_stepping/internal.hpp"
+#include "../input_shaper/input_shaper.hpp"
 #include <device/peripherals.h>
 #include <module/motion.h>
 #include <module/stepper.h>

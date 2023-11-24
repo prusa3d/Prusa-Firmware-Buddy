@@ -3,12 +3,8 @@
 // This header provides "no-op" implementation of some phase stepping features.
 // The goal is to not pollute other code with ifdefs.
 
+#include "../precise_stepping/fwdecl.hpp"
 #include "bsod.h"
-
-struct move_t;
-struct step_event_info_t;
-struct step_generator_state_t;
-struct move_segment_step_generator_t;
 
 namespace phase_stepping {
 

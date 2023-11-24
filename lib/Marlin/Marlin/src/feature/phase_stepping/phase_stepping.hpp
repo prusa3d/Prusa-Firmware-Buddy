@@ -8,11 +8,7 @@
 #include <array>
 #include <optional>
 #include <memory>
-
-struct move_t;
-struct step_event_info_t;
-struct step_generator_state_t;
-struct move_segment_step_generator_t;
+#include "../precise_stepping/fwdecl.hpp"
 
 #if not(HAS_PHASE_STEPPING())
     #include "phase_stepping_dummies.hpp"
@@ -20,7 +16,6 @@ struct move_segment_step_generator_t;
 
     #include "common.hpp"
     #include "lut.hpp"
-    #include "../input_shaper/input_shaper.hpp"
     #include <libs/circularqueue.h>
 
 namespace phase_stepping {

@@ -13,13 +13,8 @@
 #pragma once
 #include <array>
 #include "input_shaper_config.hpp"
+#include "../precise_stepping/fwdecl.hpp"
 #include "../../core/types.h"
-
-struct move_t;
-struct step_event_info_t;
-struct step_generator_state_t;
-struct input_shaper_state_t;
-struct input_shaper_step_generator_t;
 
 constexpr const uint8_t MAX_INPUT_SHAPER_PULSES = 5;
 

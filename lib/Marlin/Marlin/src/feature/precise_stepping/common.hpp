@@ -6,6 +6,8 @@
  * in used data structures, and some computations.
  */
 #pragma once
+#include "fwdecl.hpp"
+
 #include "../../inc/MarlinConfig.h"
 #include "../../core/types.h"
 
@@ -21,10 +23,6 @@ constexpr const uint32_t MOVE_FLAG_RESET_POSITION_MASK = 0x000F0000;
 constexpr const uint32_t MOVE_FLAG_DIR_SHIFT = 4;
 constexpr const uint32_t MOVE_FLAG_AXIS_ACTIVE_SHIFT = 8;
 constexpr const uint32_t MOVE_FLAG_RESET_POSITION_SHIFT = 16;
-
-struct pressure_advance_state_t;
-struct input_shaper_state_t;
-struct input_shaper_pulses_t;
 
 namespace phase_stepping {
 struct AxisState;
