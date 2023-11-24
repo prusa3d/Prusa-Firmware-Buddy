@@ -17,3 +17,4 @@ aa7bb070e259fb73fba4d8f4ea46abc24abbced9 # Rename marlin_client members
 87bb1927f87520ce063069a178291295183e1597 # Set ClangFormat AlignTrailingComments: Kind: Never
 bd27a08249dd1dc9919b547f4ca757258c779271 # Unify footer naming style with our dev guidelines
 26025874ae0798b467aa5426dc46e02ef94d8e64 # Apply clang-format InsertBraces
+95a5c28643f164c6cbc8bf4d7150aee42b571c89 # Partial reformat of hwio pins
