@@ -54,9 +54,9 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
           .log_handler = std::bind(&Dwarf::handle_log_fragment, this, std::placeholders::_1),
           .loadcell_handler = [this](LoadcellRecord data) {
               // throw away samples if time is not synced
-              if (!this->time_sync.is_time_sync_valid() || !this->selected){
+              if (!this->time_sync.is_time_sync_valid() || !this->selected) {
                   return;
-}
+              }
 
               // Store sample timestamp and count sample
               loadcell_samplerate.last_timestamp = this->time_sync.buddy_time_us(data.timestamp);
@@ -66,16 +66,16 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
               loadcell.ProcessSample(data.loadcell_raw_value, loadcell_samplerate.last_timestamp); },
           .accelerometer_handler = [this](AccelerometerData data) {
               // throw away samples if time is not synced
-              if (!this->time_sync.is_time_sync_valid() || !this->selected){
+              if (!this->time_sync.is_time_sync_valid() || !this->selected) {
                   return;
-}
+              }
               PrusaAccelerometer::put_sample(data.sample);
               report_accelerometer(1); },
           .accelerometer_fast_handler = [this](AccelerometerFastData data) {
               // throw away samples if not selected
-              if (!this->is_selected()){
+              if (!this->is_selected()) {
                   return;
-}
+              }
               for (AccelerometerXyzSample sample : data) {
                   PrusaAccelerometer::put_sample(sample);
               }
