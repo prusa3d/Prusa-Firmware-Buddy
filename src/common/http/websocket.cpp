@@ -3,9 +3,14 @@
 #include <random.h>
 
 // htons
-#include <lwip/def.h>
+#ifdef UNITTESTS
+    #include <arpa/inet.h>
+#else
+    #include <lwip/def.h>
+#endif
 #include <mbedtls/base64.h>
 #include <mbedtls/sha1.h>
+#include <cstring>
 
 using std::array;
 using std::monostate;
@@ -168,6 +173,10 @@ WebSocketKey::WebSocketKey() {
     (void)err;
     assert(err == 0);
 
+    compute_response();
+}
+
+void WebSocketKey::compute_response() {
     // Fixed string from the RFC (no, this is not a mock)
     constexpr const char *tail = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -181,8 +190,9 @@ WebSocketKey::WebSocketKey() {
 
     mbedtls_sha1_free(&ctx);
 
-    out_pos = 0;
-    err = mbedtls_base64_encode(reinterpret_cast<uint8_t *>(response), sizeof response, &out_pos, out, sizeof out);
+    size_t out_pos = 0;
+    int err = mbedtls_base64_encode(reinterpret_cast<uint8_t *>(response), sizeof response, &out_pos, out, sizeof out);
+    (void)err;
     assert(err == 0);
 }
 

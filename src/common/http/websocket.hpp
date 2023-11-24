@@ -101,11 +101,14 @@ public:
 // https://www.rfc-editor.org/rfc/rfc6455#section-4.2
 // https://www.rfc-editor.org/rfc/rfc6455#section-11.3.1
 class WebSocketKey {
-private:
+    // Allow for unit tests...
+protected:
     char request[25];
     char response[30];
 
     friend class WebSocketAccept;
+
+    void compute_response();
 
 public:
     WebSocketKey();

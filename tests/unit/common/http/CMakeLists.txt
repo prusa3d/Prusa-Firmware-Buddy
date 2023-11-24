@@ -6,7 +6,10 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/os_porting.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/websocket.cpp
   http_client.cpp
+  websocket.cpp
+  missing_functions.c
   )
 target_include_directories(
   common_http_tests
@@ -18,7 +21,9 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/src/common/http
           ${CMAKE_SOURCE_DIR}/src/common/utils
+          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
   )
+target_link_libraries(common_http_tests mbedTLS)
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 
