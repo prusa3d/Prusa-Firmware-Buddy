@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../inc/MarlinConfig.h"
+#include <array>
 
 namespace phase_stepping {
 static constexpr int MOTOR_PERIOD = 1024; // The number of ticks per electrical period of the Trinamic driver

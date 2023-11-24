@@ -1,11 +1,11 @@
 #include "lut.hpp"
 #include "common.hpp"
 
+#include <hwio_pindef.h>
+
 #include <array>
 #include <numbers>
 #include <cstdint>
-
-#include <hwio_pindef.h>
 
 using namespace phase_stepping;
 

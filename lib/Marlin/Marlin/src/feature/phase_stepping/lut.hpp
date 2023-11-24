@@ -1,12 +1,9 @@
 #pragma once
 
-#include <array>
-#include <bitset>
-#include <cmath>
-#include <cstdint>
-#include <cassert>
-
 #include "common.hpp"
+
+#include <bitset>
+#include <cstdint>
 
 // This module is responsible for implementing any lookup tables used in phase
 // stepping.

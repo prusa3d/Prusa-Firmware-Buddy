@@ -1,14 +1,13 @@
-#include "log.h"
-#include "module/prusa/accelerometer.h"
-#include <inc/MarlinConfig.h>
 #include <gcode/gcode.h>
 #include <module/planner.h>
-#include <module/motion.h>
+#include <module/prusa/accelerometer.h>
+
 #include <feature/precise_stepping/precise_stepping.hpp>
 #include <feature/phase_stepping/phase_stepping.hpp>
 #include <feature/phase_stepping/calibration.hpp>
+
+#include <log.h>
 #include <string_view>
-#include <charconv>
 
 LOG_COMPONENT_REF(PhaseStepping);
 

@@ -4,7 +4,7 @@
 // The goal is to not pollute other code with ifdefs.
 
 #include "../precise_stepping/fwdecl.hpp"
-#include "bsod.h"
+#include <bsod.h>
 
 namespace phase_stepping {
 

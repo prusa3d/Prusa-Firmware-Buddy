@@ -1,6 +1,10 @@
 #pragma once
 
-#include <Configuration.h>
+#include <printers.h>
+#include <bsod.h>
+
+#include <optional>
+#include <vector>
 
 namespace phase_stepping {
 

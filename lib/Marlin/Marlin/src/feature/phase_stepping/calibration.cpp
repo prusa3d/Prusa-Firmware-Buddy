@@ -1,7 +1,6 @@
 #include "calibration.hpp"
 #include "phase_stepping.hpp"
 #include "calibration_config.hpp"
-#include "lut.hpp"
 
 #include <log.h>
 #include <module/planner.h>

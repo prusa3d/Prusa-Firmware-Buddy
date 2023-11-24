@@ -1,13 +1,7 @@
 #pragma once
 
-#include "../../inc/MarlinConfig.h"
 #include <option/has_phase_stepping.h>
 
-#include <utility>
-#include <bitset>
-#include <array>
-#include <optional>
-#include <memory>
 #include "../precise_stepping/fwdecl.hpp"
 
 #if not(HAS_PHASE_STEPPING())
@@ -16,7 +10,13 @@
 
     #include "common.hpp"
     #include "lut.hpp"
+
     #include <libs/circularqueue.h>
+    #include <core/types.h>
+    #include <bsod.h>
+
+    #include <memory>
+    #include <atomic>
 
 namespace phase_stepping {
 

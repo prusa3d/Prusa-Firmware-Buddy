@@ -1,15 +1,14 @@
 #pragma once
 
+#include "common.hpp"
+
 #include <functional>
-#include <array>
 #include <tuple>
 #include <optional>
 #include <vector>
 
 #include <module/prusa/accelerometer.h>
 #include <core/types.h>
-#include "common.hpp"
-#include "lut.hpp"
 
 namespace phase_stepping {
 

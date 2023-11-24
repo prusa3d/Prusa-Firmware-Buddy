@@ -1,20 +1,22 @@
 #include "phase_stepping.hpp"
 #include "quick_tmc_spi.hpp"
+
 #include "../precise_stepping/precise_stepping.hpp"
 #include "../precise_stepping/internal.hpp"
 #include "../input_shaper/input_shaper.hpp"
+
 #include <device/peripherals.h>
 #include <module/motion.h>
 #include <module/stepper.h>
 #include <module/stepper/trinamic.h>
-#include <hwio.h>
+#include <TMCStepper.h>
+
+#include <Pin.hpp>
+#include <log.h>
 
 #include <cassert>
 #include <cmath>
 
-#include <TMCStepper.h>
-
-#include "log.h"
 LOG_COMPONENT_DEF(PhaseStepping, LOG_SEVERITY_DEBUG);
 
 using namespace phase_stepping;

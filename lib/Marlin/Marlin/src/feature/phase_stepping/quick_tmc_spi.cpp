@@ -1,9 +1,10 @@
-#include "../../inc/MarlinConfig.h"
 #include "quick_tmc_spi.hpp"
-#include <device/peripherals.h>
+
 #include <trinamic.h>
 #include <TMCStepper.h>
-#include <hwio.h>
+
+#include <device/peripherals.h>
+#include <hwio_pindef.h>
 
 using namespace phase_stepping;
 using namespace phase_stepping::spi;
