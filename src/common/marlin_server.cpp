@@ -1402,7 +1402,7 @@ static void _server_print_loop(void) {
                 enqueue_gcode_printf("M109 S%i", preheat_temp); // speculatively, use PLA temp for MMU prints, anything else is highly unprobable at this stage
                 enqueue_gcode("T0"); // tool change T0 (can be remapped to anything)
                 enqueue_gcode("G92 E0"); // reset extruder position to 0
-                enqueue_gcode("G1 E67 F6000"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
+                enqueue_gcode("G1 E77 F6000"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
             }
 #endif
             break;
