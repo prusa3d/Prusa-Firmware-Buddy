@@ -12,6 +12,7 @@
 #include "printers.h"
 #include <inc/MarlinConfig.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_burst_stepping.h>
 
 #if HAS_PHASE_STEPPING()
     #include <feature/phase_stepping/phase_stepping.hpp>
@@ -72,12 +73,12 @@ void StartMeasurementTask([[maybe_unused]] void const *argument) {
 
         // sample stallguard
         if (checkTimestampsAscendingOrder(next_sg_cycle, now)) {
-#if HAS_PHASE_STEPPING()
+#if HAS_PHASE_STEPPING() && !HAS_BURST_STEPPING()
             if (!phase_stepping::any_axis_active()) {
 #endif
                 uint8_t updated_axes = tmc_sample();
                 record_trinamic_metrics(updated_axes);
-#if HAS_PHASE_STEPPING()
+#if HAS_PHASE_STEPPING() && !HAS_BURST_STEPPING()
             }
 #endif
 
