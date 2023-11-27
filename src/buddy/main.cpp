@@ -253,6 +253,18 @@ extern "C" void main_cpp(void) {
     osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
 #endif
 
+#if PRINTER_IS_PRUSA_MK4
+    /*
+     * MK3.5 HW detected
+     */
+    if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw()) {
+        // TODO do something to show error we want
+        hwio_safe_state();
+        init_error_screen();
+        return;
+    }
+#endif
+
     /*
      * If we have BSOD or red screen we want to have as small boot process as we can.
      * We want to init just xflash, display and start gui task to display the bsod or redscreen
