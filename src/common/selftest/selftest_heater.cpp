@@ -35,7 +35,8 @@ CSelftestPart_Heater::CSelftestPart_Heater(IPartHandler &state_machine, const He
     , check_log(3000) {}
 
 CSelftestPart_Heater::~CSelftestPart_Heater() {
-    log_info(Selftest, "%s finish, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    log_info(Selftest, "%s finish, target: %d current: %f", m_config.partname,
+        static_cast<int>(m_config.target_temp), static_cast<double>(m_config.getTemp()));
     m_config.setTargetTemp(0);
 
     m_config.refKp = storedKp;
@@ -102,8 +103,9 @@ LoopResult CSelftestPart_Heater::stateSetup() {
     m_config.refKi = 0;
     m_config.refKd = 0;
     thermalManager.updatePID();
-    log_info(Selftest, "%s Started");
-    log_info(Selftest, "target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    log_info(Selftest, "%s Started", m_config.partname);
+    log_info(Selftest, "%s target: %d current: %f", m_config.partname,
+        static_cast<int>(m_config.target_temp), static_cast<double>(m_config.getTemp()));
     log_info(Selftest, "%s heater PID regulator changed to P regulator", m_config.partname);
 
     m_StartTime = SelftestInstance().GetTime();
@@ -142,11 +144,13 @@ LoopResult CSelftestPart_Heater::stateCooldownInit() {
 
 LoopResult CSelftestPart_Heater::stateCooldown() {
     if (!enable_cooldown) {
-        log_info(Selftest, "%s cooldown not needed, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+        log_info(Selftest, "%s cooldown not needed, target: %d current: %f", m_config.partname,
+            static_cast<int>(m_config.target_temp), static_cast<double>(m_config.getTemp()));
         return LoopResult::RunNext;
     }
 
-    LogInfoTimed(log, "%s cooling down, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    LogInfoTimed(log, "%s cooling down, target: %d current: %f", m_config.partname,
+        static_cast<int>(m_config.target_temp), static_cast<double>(m_config.getTemp()));
 
     if (m_config.getTemp() > m_config.undercool_temp) {
         // m_config.undercool_temp .. 100%
@@ -165,7 +169,8 @@ LoopResult CSelftestPart_Heater::stateFansDeactivate() {
 }
 
 LoopResult CSelftestPart_Heater::stateTargetTemp() {
-    log_info(Selftest, "%s set target, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    log_info(Selftest, "%s set target, target: %d current: %f", m_config.partname,
+        static_cast<int>(m_config.target_temp), static_cast<double>(m_config.getTemp()));
     rResult.prep_state = SelftestSubtestState_t::running; // waiting for preheat temperature
     m_config.setTargetTemp(m_config.target_temp);
     return LoopResult::RunNext;
@@ -180,10 +185,12 @@ LoopResult CSelftestPart_Heater::stateWait() {
         m_StartTime = SelftestInstance().GetTime();
         m_EndTime = m_StartTime + estimate(m_config);
         rResult.progress = 0;
-        log_info(Selftest, "%s wait start temp reached: target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+        log_info(Selftest, "%s wait start temp reached: target: %d current: %f", m_config.partname,
+            static_cast<int>(m_config.target_temp), static_cast<double>(m_config.getTemp()));
         return LoopResult::RunNext;
     }
-    LogInfoTimed(log, "%s wait, run: target: %d current: %f", m_config.partname, m_config.target_temp, (double)current_temp);
+    LogInfoTimed(log, "%s wait, run: target: %d current: %f", m_config.partname,
+        static_cast<int>(m_config.target_temp), static_cast<double>(current_temp));
 
     // m_config.start_temp     .. 100%
     // m_config.undercool_temp ..   0%
@@ -258,10 +265,12 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
     }
 
     if ((m_config.getTemp() < m_config.heat_min_temp + hw_diff) || (m_config.getTemp() > m_config.heat_max_temp + hw_diff)) {
-        log_error(Selftest, "%s %i out of range (%i - %i)\n", m_config.partname, (int)m_config.getTemp(), m_config.heat_min_temp + hw_diff, m_config.heat_max_temp + hw_diff);
+        log_error(Selftest, "%s %d out of range (%d - %d)\n", m_config.partname, static_cast<int>(m_config.getTemp()),
+            static_cast<int>(m_config.heat_min_temp + hw_diff), static_cast<int>(m_config.heat_max_temp + hw_diff));
         return LoopResult::Fail;
     }
-    log_info(Selftest, "%s measure, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    log_info(Selftest, "%s measure, target: %d current: %f", m_config.partname,
+        static_cast<int>(m_config.target_temp), static_cast<double>(m_config.getTemp()));
     return LoopResult::RunNext;
 }
 
@@ -317,12 +326,12 @@ void CSelftestPart_Heater::single_check_callback() {
 
     LogDebugTimed(
         check_log,
-        "%s %fV, %fA, %fW, pwm %i",
+        "%s %fV, %fA, %fW, pwm %d",
         m_config.partname,
         static_cast<double>(voltage),
         static_cast<double>(current),
         static_cast<double>(power),
-        pwm);
+        static_cast<int>(pwm));
 
     if (check.EvaluateHeaterStatus(pwm, m_config) == PowerCheck::status_t::stable) {
         PowerCheck::load_t result = check.EvaluateLoad(pwm, power, m_config);

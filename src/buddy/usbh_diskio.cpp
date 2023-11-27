@@ -152,7 +152,7 @@ static void USBH_MSC_WorkerTask(void const *) {
                     if (request->result != USBH_OK) {
                         osThreadSetPriority(osThreadGetId(), TASK_PRIORITY_USB_MSC_WORKER_LOW);
 
-                        log_error(USBHost, "USB MSC operation %d (%d, %d, %d) failed",
+                        log_error(USBHost, "USB MSC operation %d (%d, %" PRIu32 ", %d) failed",
                             (unsigned)ftrstd::to_underlying(request->operation),
                             request->lun, request->sector_nbr, request->count);
 
@@ -571,7 +571,7 @@ void UsbhMscReadahead::send_stats() {
     #ifdef USBH_MSC_READAHEAD_STATISTICS
     auto now = osKernelSysTick();
     if (now - sent_statistics_timestamp > 5000) {
-        log_info(USBHost, "MSC readahead stat speculative reads=%d, hit=%d, missed=%d, blocking=%d",
+        log_info(USBHost, "MSC readahead stat speculative reads=%" PRIu32 ", hit=%" PRIu32 ", missed=%" PRIu32 ", blocking=%" PRIu32,
             stats_speculative_read_count.load(), stats_hit.load(), stats_missed.load(), stats_block_another_io.load());
         sent_statistics_timestamp = now;
     }

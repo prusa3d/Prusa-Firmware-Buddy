@@ -133,12 +133,12 @@ static bool flash_program_sector(int sector, FILE *fp, std::span<uint8_t> buffer
             return false;
         }
 
-        log_debug(Bootloader, "Programming 0x%08X (size %zu)", address, read);
+        log_debug(Bootloader, "Programming %p (size %zu)", address, read);
         if (!flash_program(address, buffer.data(), read)) {
-            log_error(Bootloader, "Writing the bootloader to FLASH failed", errno);
+            log_error(Bootloader, "Writing the bootloader to FLASH failed (errno %i)", errno);
             return false;
         }
-        log_debug(Bootloader, "Programming 0x%08X (size %zu) finished", address, read);
+        log_debug(Bootloader, "Programming %p (size %zu) finished", address, read);
 
         address += read;
         copied_bytes += read;

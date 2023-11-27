@@ -478,6 +478,7 @@ target_compile_options(
   firmware
   PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
           $<$<COMPILE_LANGUAGE:CXX>:-Wno-expansion-to-defined>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wno-format-zero-length>
           $<$<COMPILE_LANGUAGE:CXX>:-Wnon-virtual-dtor>
           $<$<COMPILE_LANGUAGE:CXX>:-Wduplicated-cond>
           $<$<COMPILE_LANGUAGE:CXX>:-Wlogical-op>

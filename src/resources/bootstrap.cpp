@@ -194,13 +194,13 @@ static bool is_relevant_bbf_for_bootstrap(FILE *bbf, const char *path, const bud
 static bool copy_file(const Path &source_path, const Path &target_path, BootstrapProgressReporter &reporter) {
     std::unique_ptr<FILE, FILEDeleter> source(fopen(source_path.get(), "rb"));
     if (source.get() == nullptr) {
-        log_error(Resources, "Failed to open file %s", source.get());
+        log_error(Resources, "Failed to open file %s", source_path.get());
         return false;
     }
 
     std::unique_ptr<FILE, FILEDeleter> target(fopen(target_path.get(), "wb"));
     if (target.get() == nullptr) {
-        log_error(Resources, "Failed to open file for writing %s", target.get());
+        log_error(Resources, "Failed to open file for writing %s", target_path.get());
         return false;
     }
 

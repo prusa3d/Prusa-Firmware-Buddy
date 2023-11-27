@@ -27,7 +27,7 @@ int32_t tud_msc_read10_cb([[maybe_unused]] uint8_t lun, uint32_t lba, uint32_t o
     const struct lfs_config *lfs = littlefs_internal_config_get();
     assert(lfs != NULL);
 
-    log_debug(USBMSC, "read: %u: lba %u + offset %u", lun, lba, offset);
+    log_debug(USBMSC, "read: %u: lba %" PRIu32 " + offset %" PRIu32, lun, lba, offset);
 
     int retval = lfs->read(lfs, lba, offset, buffer, bufsize);
     return retval == 0 ? (int32_t)bufsize : -1;

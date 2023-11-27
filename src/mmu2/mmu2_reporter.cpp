@@ -76,7 +76,7 @@ bool Reporter::Change(CommandInProgress cip, ErrorCode ec, MMU2::ErrorSource es)
     }
     *this = cs;
     reported = false;
-    log_error(MMU2, "MMU error set: cip: %d ec: %d es: %d", cip, ec, es);
+    log_error(MMU2, "MMU error set: cip: %d ec: %u es: %d", cip, static_cast<unsigned>(ec), es);
     return true;
 }
 
@@ -95,7 +95,7 @@ bool Reporter::Change(CommandInProgress cip, ProgressCode pc) {
     }
     *this = cs;
     reported = false;
-    log_info(MMU2, "MMU progress set: cip: %d pc: %d", cip, pc);
+    log_info(MMU2, "MMU progress set: cip: %d pc: %u", cip, static_cast<unsigned>(pc));
     return true;
 }
 

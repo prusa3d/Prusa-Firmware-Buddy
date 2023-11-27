@@ -211,7 +211,7 @@ void media_prefetch(const void *) {
 
         IGcodeReader::Result_t first_read_res;
         do {
-            log_info(MarlinServer, "Media prefetch: Prefetching first %u bytes at offset %u", FILE_BUFF_SIZE, media_current_position);
+            log_info(MarlinServer, "Media prefetch: Prefetching first %zu bytes at offset %" PRIu32, FILE_BUFF_SIZE, media_current_position);
             xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
             if (media_print_file->is_open()) {
                 back_buff_level = FILE_BUFF_SIZE;

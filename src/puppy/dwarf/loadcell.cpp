@@ -39,7 +39,7 @@ void loadcell_init() {
 void loadcell_loop() {
     static uint32_t buffer_over_reported_time = 0;
     if (buffer_overflown && (buffer_over_reported_time + 5000U) < ticks_ms()) {
-        log_critical(Dwarf, "loadcell overflowed, %d samples didn't fit ", buffer_overflown);
+        log_critical(Dwarf, "loadcell overflowed, %" PRIu32 " samples didn't fit ", buffer_overflown);
         buffer_over_reported_time = ticks_ms();
         buffer_overflown = 0;
     }

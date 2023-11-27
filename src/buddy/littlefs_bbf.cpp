@@ -155,12 +155,12 @@ static int _read(const struct lfs_config *c, lfs_block_t block,
         long block_offset = bbf_context.data_offset + block * c->block_size;
         int retval = fseek(bbf_context.bbf, block_offset, SEEK_SET);
         if (retval != 0) {
-            log_error(FileSystem, "BBF: fseek to block %i failed with retval %i, errno %i", block_offset, retval, errno);
+            log_error(FileSystem, "BBF: fseek to block %ld failed with retval %i, errno %i", block_offset, retval, errno);
             return LFS_ERR_IO;
         }
         retval = read(fileno(bbf_context.bbf), slot->data, c->block_size);
         if (static_cast<lfs_size_t>(retval) != c->block_size) {
-            log_error(FileSystem, "BBF: read for block %i failed with retval %i, errno %i", block_offset, retval, errno);
+            log_error(FileSystem, "BBF: read for block %ld failed with retval %i, errno %i", block_offset, retval, errno);
             return LFS_ERR_IO;
         }
 

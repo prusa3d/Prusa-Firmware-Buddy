@@ -37,7 +37,7 @@ void PowerCheckBoth::Callback([[maybe_unused]] CSelftestPart_Heater &part) {
 #else
     const float nozzle_current_A = advancedpower.get_nozzle_current(part.m_config.tool_nr);
     const float nozzle_voltage_V = advancedpower.get_nozzle_voltage(part.m_config.tool_nr);
-    const int nozzle_pwm = advancedpower.get_nozzle_pwm(part.m_config.tool_nr);
+    const uint32_t nozzle_pwm = advancedpower.get_nozzle_pwm(part.m_config.tool_nr);
     const float nozzle_power_W = nozzle_voltage_V * nozzle_current_A;
     const float bed_voltage_V = 24; // Modular bed does not measure this
     const float bed_current_A = advancedpower.get_bed_current();
@@ -45,14 +45,15 @@ void PowerCheckBoth::Callback([[maybe_unused]] CSelftestPart_Heater &part) {
     [[maybe_unused]] const float total_current_A = nozzle_current_A + bed_current_A;
 #endif
 
-    const uint32_t bed_pwm = thermalManager.temp_bed.soft_pwm_amount;
+    const unsigned bed_pwm = thermalManager.temp_bed.soft_pwm_amount;
 
     // Nozzle has independent load measuring
     if (nozzle) {
         if (nozzle->check.EvaluateHeaterStatus(nozzle_pwm, nozzle->m_config) != PowerCheck::status_t::stable) {
             return; // nozzle not stable, bed measuring would be distorted
         }
-        LogDebugTimed(nozzle->check_log, "Noz %fV, %fA, %fW, pwm %i", double(nozzle_voltage_V), double(nozzle_current_A), double(nozzle_power_W), nozzle_pwm);
+        LogDebugTimed(nozzle->check_log, "Noz %fV, %fA, %fW, pwm %" PRIu32, static_cast<double>(nozzle_voltage_V),
+            static_cast<double>(nozzle_current_A), static_cast<double>(nozzle_power_W), nozzle_pwm);
         PowerCheck::load_t result = nozzle->check.EvaluateLoad(nozzle_pwm, nozzle_power_W, nozzle->m_config);
         if (result != PowerCheck::load_t::in_range) {
             nozzle->state_machine.Fail();
@@ -68,7 +69,7 @@ void PowerCheckBoth::Callback([[maybe_unused]] CSelftestPart_Heater &part) {
     // Bed only - dependent load measuring, can measure only when nozzle is stable too
     if (bed) {
         if (bed->check.EvaluateHeaterStatus(bed_pwm, bed->m_config) == PowerCheck::status_t::stable) {
-            LogDebugTimed(bed->check_log, "Bed %fV, %fW, pwm %i, total current %fA", double(bed_voltage_V), double(bed_power_W), bed_pwm, double(total_current_A));
+            LogDebugTimed(bed->check_log, "Bed %fV, %fW, pwm %u, total current %fA", double(bed_voltage_V), double(bed_power_W), bed_pwm, double(total_current_A));
             PowerCheck::load_t result = bed->check.EvaluateLoad(bed_pwm, bed_power_W, bed->m_config);
             if (result != PowerCheck::load_t::in_range) {
                 bed->state_machine.Fail();

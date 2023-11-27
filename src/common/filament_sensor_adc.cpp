@@ -94,10 +94,10 @@ void FSensorADC::CalibrateInserted(int32_t filtered_value) {
     // value should be outside of extended span, because if its close to span that is used to evaluate filament sensor, it will not be reliable and trigger randomly
     int32_t extended_span = fs_value_span * fs_selftest_span_multipler;
     if (IsInClosedRange(filtered_value, fs_ref_nins_value - extended_span, fs_ref_nins_value + extended_span)) {
-        log_info(FSensor, "Calibrating HasFilament: FAIL value: %d", filtered_value);
+        log_info(FSensor, "Calibrating HasFilament: FAIL value: %d", static_cast<int>(filtered_value));
         invalidate_calibration();
     } else {
-        log_info(FSensor, "Calibrating HasFilament: PASS value: %d", filtered_value);
+        log_info(FSensor, "Calibrating HasFilament: PASS value: %d", static_cast<int>(filtered_value));
 #if HAS_SIDE_FSENSOR()
         if (is_side) {
             config_store().set_side_fs_ref_ins_value(tool_index, filtered_value);
@@ -148,7 +148,7 @@ void FSensorADC::CalibrateNotInserted(int32_t value) {
     req_calibrate = CalibrateRequest::NoCalibration;
     load_settings();
 
-    log_info(FSensor, "Calibrating NoFilament value: %d", value);
+    log_info(FSensor, "Calibrating NoFilament value: %d", static_cast<int>(value));
 }
 
 void FSensorADC::invalidate_calibration() {

@@ -135,7 +135,7 @@ size_t PartialFile::get_offset(UsbhMscRequest::SectorNbr sector_nbr) {
 
 bool PartialFile::write_current_sector() {
     assert(current_sector != nullptr);
-    log_debug(transfers, "Sending sector over USB %d (%.20s)", current_sector->sector_nbr, current_sector->data);
+    log_debug(transfers, "Sending sector over USB %" PRIu32 " (%.20s)", current_sector->sector_nbr, current_sector->data);
     if (lseek(file_lock, 0, SEEK_SET) == -1) {
         // Safety measure. It is possible that between creation of this
         // PartialFile and current call to write_sector, the USB got unplugged
@@ -184,7 +184,7 @@ bool PartialFile::seek(size_t offset) {
     }
 
     if (current_sector && current_sector->sector_nbr != new_sector) {
-        log_warning(transfers, "Discarding buffered data for sector %d", current_sector->sector_nbr);
+        log_warning(transfers, "Discarding buffered data for sector %" PRIu32, current_sector->sector_nbr);
     }
 
     current_offset = offset;

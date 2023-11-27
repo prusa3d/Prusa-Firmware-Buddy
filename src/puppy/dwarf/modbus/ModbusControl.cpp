@@ -139,7 +139,7 @@ void OnTmcReadRequest(uint16_t value) {
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::tmc_read_response_1, (uint16_t)res);
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::tmc_read_response_2, (uint16_t)(res >> 16));
 
-    log_info(ModbusControl, "Read TMC reg=%i, val=%i", value, res);
+    log_info(ModbusControl, "Read TMC reg=%i, val=%" PRIu32, value, res);
 }
 
 void OnTmcWriteRequest() {
@@ -150,7 +150,7 @@ void OnTmcWriteRequest() {
 
     stepperE0.write(address, value);
 
-    log_info(ModbusControl, "Write TMC reg=%i, val=%i", address, value);
+    log_info(ModbusControl, "Write TMC reg=%i, val=%" PRIu32, address, value);
 }
 
 void ProcessModbusMessages() {
@@ -164,7 +164,7 @@ void ProcessModbusMessages() {
 
         switch (msg->m_Address) {
         case ftrstd::to_underlying(ModbusRegisters::SystemCoil::tmc_enable): {
-            log_info(ModbusControl, "E stepper enable: %d", msg->m_Value);
+            log_info(ModbusControl, "E stepper enable: %" PRIu32, msg->m_Value);
             if (msg->m_Value) {
                 enable_e_steppers();
             } else {
@@ -189,17 +189,17 @@ void ProcessModbusMessages() {
             break;
         }
         case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::nozzle_target_temperature): {
-            log_info(ModbusControl, "Set hotend temperature: %i", msg->m_Value);
+            log_info(ModbusControl, "Set hotend temperature: %" PRIu32, msg->m_Value);
             thermalManager.setTargetHotend(msg->m_Value, 0);
             break;
         }
         case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::heatbreak_requested_temperature): {
-            log_info(ModbusControl, "Set Heatbreak requested temperature: %i", msg->m_Value);
+            log_info(ModbusControl, "Set Heatbreak requested temperature: %" PRIu32, msg->m_Value);
             thermalManager.setTargetHeatbreak(msg->m_Value, 0);
             break;
         }
         case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::fan0_pwm): {
-            log_info(ModbusControl, "Set print fan PWM:: %i", msg->m_Value);
+            log_info(ModbusControl, "Set print fan PWM:: %" PRIu32, msg->m_Value);
             thermalManager.set_fan_speed(0, msg->m_Value);
             break;
         }
@@ -217,7 +217,7 @@ void ProcessModbusMessages() {
                     Fans::heat_break(0).EnterSelftestMode();
                 }
 
-                log_info(ModbusControl, "Set heatbreak fan PWM:: %i", msg->m_Value);
+                log_info(ModbusControl, "Set heatbreak fan PWM:: %" PRIu32, msg->m_Value);
                 Fans::heat_break(0).SelftestSetPWM(msg->m_Value);
             }
 

@@ -456,7 +456,7 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
         // The timer ticks mustn't be negative in any case. Because if it is negative, there is an issue in the code.
         if (step_event.time_ticks < 0) {
 #ifndef NDEBUG
-            bsod("Negative step time: %d, flags: %d", step_event.time_ticks, step_event.flags);
+            bsod("Negative step time: %d, flags: %d", static_cast<int>(step_event.time_ticks), step_event.flags);
 #endif
             step_event.time_ticks = 0;
         }

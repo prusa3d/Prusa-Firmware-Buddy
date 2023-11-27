@@ -54,7 +54,7 @@ static bool update_hash_with_file(const char *root, Path &path, HashContext &has
     // filedata
     std::unique_ptr<FILE, FILEDeleter> source(fopen(path.get(), "rb"));
     if (source.get() == nullptr) {
-        log_error(Resources, "Failed to open file %s", source.get());
+        log_error(Resources, "Failed to open file %s", path.get());
         return false;
     }
     uint8_t buffer[128];

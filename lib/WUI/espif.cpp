@@ -386,9 +386,10 @@ static void process_mac(uint8_t *data, struct netif *netif) {
 
     ESPIFOperatingMode old = ESPIF_WAIT_INIT;
     if (esp_operating_mode.compare_exchange_strong(old, ESPIF_NEED_AP)) {
-        uint16_t version = fw_version.load();
+        uint8_t version = fw_version.load();
         if (version != SUPPORTED_FW_VERSION) {
-            log_warning(ESPIF, "Firmware version mismatch: %d != %d", version, SUPPORTED_FW_VERSION);
+            log_warning(ESPIF, "Firmware version mismatch: %u != %u",
+                version, static_cast<unsigned>(SUPPORTED_FW_VERSION));
             esp_operating_mode = ESPIF_WRONG_FW;
             return;
         }

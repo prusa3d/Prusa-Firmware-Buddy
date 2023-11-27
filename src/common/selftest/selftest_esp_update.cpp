@@ -171,7 +171,7 @@ void ESPUpdate::Loop() {
                     current_file->size,
                     buffer_length)
                 != ESP_LOADER_SUCCESS) {
-                log_error(Network, "ESP flash: Unable to start flash on address %0xld", current_file->address);
+                log_error(Network, "ESP flash: Unable to start flash on address %" PRIx32, current_file->address);
                 progress_state = esp_upload_action::ESP_error;
                 file.reset(nullptr);
                 break;

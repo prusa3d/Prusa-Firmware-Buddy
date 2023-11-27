@@ -111,7 +111,7 @@ LoopResult CSelftestPart_Dock::state_wait_user_manual_park3() {
         return LoopResult::RunCurrent;
     }
     if (prusa_toolchanger.detect_tool_nr() != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
-        log_error(Selftest, "User failed to park the current tool", config.dock_id);
+        log_error(Selftest, "User failed to park the current tool %d", config.dock_id);
         return LoopResult::GoToMark0;
     }
     return LoopResult::RunNext;

@@ -108,7 +108,7 @@ void SelftestFrameDock::change() {
         break;
 
     default:
-        log_error(Selftest, "Unknown selftest phase %u", phase_current);
+        log_error(Selftest, "Unknown selftest phase %u", static_cast<unsigned>(phase_current));
         break;
     }
 }

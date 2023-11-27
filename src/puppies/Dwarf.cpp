@@ -152,7 +152,7 @@ CommunicationStatus Dwarf::initial_scan() {
     }
 
     DWARF_LOG(LOG_SEVERITY_INFO, "HwBomId: %d", GeneralStatic.value.HwBomId);
-    DWARF_LOG(LOG_SEVERITY_INFO, "HwOtpTimestsamp: %d", GeneralStatic.value.HwOtpTimestsamp);
+    DWARF_LOG(LOG_SEVERITY_INFO, "HwOtpTimestsamp: %" PRIu32, GeneralStatic.value.HwOtpTimestsamp);
 
     serial_nr_t sn = {}; // Last byte has to be '\0'
     static constexpr uint16_t raw_datamatrix_regsize = ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_last)
@@ -326,7 +326,8 @@ uint32_t Dwarf::tmc_read(uint8_t addressByte) {
     TmcReadRequest.dirty = true;
     if (bus.write(unit, TmcReadRequest) != CommunicationStatus::ERROR) {
         if (bus.read(unit, TmcReadResponse) != CommunicationStatus::ERROR) {
-            DWARF_LOG(LOG_SEVERITY_DEBUG, "TMC on dwarf read (%i:%i)", addressByte, TmcReadResponse.value.value);
+            DWARF_LOG(LOG_SEVERITY_DEBUG, "TMC on dwarf read (%d:%" PRIu32 ")",
+                addressByte, TmcReadResponse.value.value);
             return TmcReadResponse.value.value;
         } else {
             DWARF_LOG(LOG_SEVERITY_ERROR, "TMC read response FAIL");
@@ -344,7 +345,8 @@ void Dwarf::tmc_write(uint8_t addressByte, uint32_t config) {
     TmcWriteRequest.dirty = true;
 
     if (bus.write(unit, TmcWriteRequest) != CommunicationStatus::ERROR) {
-        DWARF_LOG(LOG_SEVERITY_DEBUG, "Write to TMC dwarf success (%i:%i)", addressByte, config);
+        DWARF_LOG(LOG_SEVERITY_DEBUG, "Write to TMC dwarf success (%d:%" PRIu32 ")",
+            addressByte, config);
     } else {
         DWARF_LOG(LOG_SEVERITY_ERROR, "Write to TMC dwarf FAIL");
     }
@@ -589,7 +591,7 @@ void Dwarf::handle_dwarf_fault() {
         // make sure strings are zero-terminated
         title_span.back() = 0;
         message_span.back() = 0;
-        DWARF_LOG(LOG_SEVERITY_ERROR, "Dwarf %d fault %s: %s", dwarf_nr, title_span, message_span);
+        DWARF_LOG(LOG_SEVERITY_ERROR, "Dwarf %d fault %s: %s", dwarf_nr, title_span.data(), message_span.data());
 
         // Prepare module string (insert dwarf number)
         char module[31] = { 0 };
@@ -617,7 +619,7 @@ void Dwarf::report_accelerometer(int samples_received) {
     static uint32_t sample_count = 0;
     sample_count += samples_received;
     if (ticks_ms() - last_report > 1000) {
-        DWARF_LOG(LOG_SEVERITY_INFO, "acc sample rate: %u", sample_count);
+        DWARF_LOG(LOG_SEVERITY_INFO, "acc sample rate: %" PRIu32, sample_count);
         sample_count = 0;
         last_report = ticks_ms();
     }

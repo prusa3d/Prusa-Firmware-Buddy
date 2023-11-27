@@ -825,7 +825,8 @@ bool shutdown_loop_checked() {
     // move above is not sufficient)
     processing = planner.processing();
     if (!processing) {
-        log_warning(PowerPanic, "shutdown state %u/%u took too long", power_panic_state, shutdown_state - 1);
+        log_warning(PowerPanic, "shutdown state %u/%u took too long",
+            static_cast<unsigned>(power_panic_state), static_cast<unsigned>(shutdown_state - 1));
     }
 
     return processing;

@@ -135,7 +135,8 @@ void CSelftestPart_Axis::sg_sample_cb(uint8_t axis, uint16_t sg) {
 
 void CSelftestPart_Axis::sg_sample(uint16_t sg) {
     [[maybe_unused]] int32_t pos = stepper.position((AxisEnum)config.axis);
-    LogDebugTimed(log, "%s time %ums pos: %d sg: %d", config.partname, SelftestInstance().GetTime() - time_progress_start, pos, sg);
+    LogDebugTimed(log, "%s time %" PRIu32 "ms pos: %" PRId32 " sg: %" PRIu16,
+        config.partname, static_cast<uint32_t>(SelftestInstance().GetTime() - time_progress_start), pos, sg);
     m_SGCount++;
     m_SGSum += sg;
 }

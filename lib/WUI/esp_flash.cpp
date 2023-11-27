@@ -137,7 +137,7 @@ ESPFlash::State ESPFlash::flash_part(esp_fw_entry &fwpart) {
     while (!feof(file.get())) {
         const size_t read_bytes = fread(buffer, 1, sizeof(buffer), file.get());
         total_read += read_bytes;
-        log_debug(EspFlash, "ESP read data %ld", read_bytes);
+        log_debug(EspFlash, "ESP read data %zu", read_bytes);
         update_progress();
 
         if (ferror(file.get())) {

@@ -197,7 +197,7 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
     ESPFlash esp_flash;
     auto esp_result = esp_flash.flash();
     if (esp_result != ESPFlash::State::Done) {
-        log_error(Puppies, "ESP flash failed with %d", esp_result);
+        log_error(Puppies, "ESP flash failed with %u", static_cast<unsigned>(esp_result));
         ESPFlash::fatal_err(esp_result);
     }
     TaskDeps::provide(TaskDeps::Dependency::esp_flashed);

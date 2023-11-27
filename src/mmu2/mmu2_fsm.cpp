@@ -295,14 +295,14 @@ void Fsm::Loop() {
         // - in this case the raw pointer to error description
 
         if (report->error.errorCode != ErrorCode::MMU_NOT_RESPONDING) {
-            log_info(MMU2, "Report error =% " PRIu16, report->error.errorCode);
+            log_info(MMU2, "Report error =%u", static_cast<unsigned>(report->error.errorCode));
             FSM_CHANGE_WITH_DATA__LOGGING(Load_unload,
                 PhasesLoadUnload::MMU_ERRWaitingForUser,
                 fsm::PointerSerializer<MMUErrDesc>(ConvertMMUErrorCode(report->error.errorCode)).Serialize());
         }
         break;
     case Reporter::Type::progress:
-        log_info(MMU2, "Report progress =% " PRIu16, report->progress.progressCode);
+        log_info(MMU2, "Report progress =%u", static_cast<unsigned>(report->progress.progressCode));
         FSM_CHANGE_WITH_DATA__LOGGING(
             Load_unload,
             ProgressCodeToPhasesLoadUnload(report->progress.progressCode),

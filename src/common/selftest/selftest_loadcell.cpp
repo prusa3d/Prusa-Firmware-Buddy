@@ -105,7 +105,8 @@ LoopResult CSelftestPart_Loadcell::stateCooldownInit() {
         }
 #endif /*HAS_TOOLCHANGER()*/
         IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_cooldown);
-        log_info(Selftest, "%s cooling needed, target: %d current: %f", rConfig.partname, rConfig.cool_temp, (double)temp);
+        log_info(Selftest, "%s cooling needed, target: %d current: %f", rConfig.partname,
+            static_cast<int>(rConfig.cool_temp), static_cast<double>(temp));
         rConfig.print_fan_fnc(rConfig.tool_nr).EnterSelftestMode();
         rConfig.heatbreak_fan_fnc(rConfig.tool_nr).EnterSelftestMode();
         rConfig.print_fan_fnc(rConfig.tool_nr).SelftestSetPWM(255); // it will be restored by ExitSelftestMode
@@ -122,7 +123,8 @@ LoopResult CSelftestPart_Loadcell::stateCooldown() {
     // still cooling
     // Check need_cooling and skip in case we didn't show PhasesSelftest::Loadcell_cooldown.
     if (need_cooling && temp > rConfig.cool_temp) {
-        LogInfoTimed(log, "%s cooling down, target: %d current: %f", rConfig.partname, rConfig.cool_temp, (double)temp);
+        LogInfoTimed(log, "%s cooling down, target: %d current: %f", rConfig.partname,
+            static_cast<int>(rConfig.cool_temp), static_cast<double>(temp));
         gcode.reset_stepper_timeout(); // Do not disable steppers while cooling
         return LoopResult::RunCurrent;
     }
@@ -227,11 +229,12 @@ LoopResult CSelftestPart_Loadcell::stateTapCheckCountDown() {
     // Show tared value at 1/10 of the range, threshold tap_min_load_ok is needed to pass the test
     rResult.progress = scale_percent_avoid_overflow(load, rConfig.tap_min_load_ok / -9, rConfig.tap_min_load_ok);
     if (std::abs(load) >= rConfig.countdown_load_error_value) {
-        log_info(Selftest, "%s load during countdown %dg exceeded error value %dg", rConfig.partname, load, rConfig.countdown_load_error_value);
+        log_info(Selftest, "%s load during countdown %dg exceeded error value %dg", rConfig.partname,
+            static_cast<int>(load), static_cast<int>(rConfig.countdown_load_error_value));
         rResult.pressed_too_soon = true;
         return LoopResult::GoToMark0;
     }
-    LogDebugTimed(log, "%s load during countdown %dg", rConfig.partname, load);
+    LogDebugTimed(log, "%s load during countdown %dg", rConfig.partname, static_cast<int>(load));
 
     uint32_t countdown_running_ms = SelftestInstance().GetTime() - time_start_countdown;
     uint8_t new_countdown = std::min(int32_t(countdown_running_ms / 1000), int32_t(rConfig.countdown_sec));
@@ -265,11 +268,15 @@ LoopResult CSelftestPart_Loadcell::stateTapCheck() {
     bool pass = IsInClosedRange(load, rConfig.tap_min_load_ok, rConfig.tap_max_load_ok);
     if (pass) {
         loadcell.DisableHighPrecision();
-        log_info(Selftest, "%s tap check, load %dg successful in range <%d, %d>", rConfig.partname, load, rConfig.tap_min_load_ok, rConfig.tap_max_load_ok);
+        log_info(Selftest, "%s tap check, load %dg successful in range <%d, %d>",
+            rConfig.partname, static_cast<int>(load), static_cast<int>(rConfig.tap_min_load_ok),
+            static_cast<int>(rConfig.tap_max_load_ok));
         return LoopResult::RunNext;
     }
 
-    LogInfoTimed(log_fast, "%s tap check, load %dg not in range <%d, %d>", rConfig.partname, load, rConfig.tap_min_load_ok, rConfig.tap_max_load_ok);
+    LogInfoTimed(log_fast, "%s tap check, load %dg not in range <%d, %d>",
+        rConfig.partname, static_cast<int>(load), static_cast<int>(rConfig.tap_min_load_ok),
+        static_cast<int>(rConfig.tap_max_load_ok));
     // Show tared value at 1/10 of the range, threshold tap_min_load_ok is needed to pass the test
     rResult.progress = scale_percent_avoid_overflow(load, rConfig.tap_min_load_ok / -9, rConfig.tap_min_load_ok);
     return LoopResult::RunCurrent;

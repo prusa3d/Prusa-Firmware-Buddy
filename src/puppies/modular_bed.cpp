@@ -44,7 +44,7 @@ CommunicationStatus ModularBed::initial_scan() {
     CommunicationStatus status = bus.read(unit, general_static);
     if (status != CommunicationStatus::ERROR) {
         log_info(ModularBed, "HwBomId: %d", general_static.value.hw_bom_id);
-        log_info(ModularBed, "HwOtpTimestsamp: %d", general_static.value.hw_otp_timestamp);
+        log_info(ModularBed, "HwOtpTimestsamp: %" PRIu32, general_static.value.hw_otp_timestamp);
 
         serial_nr_t sn = {}; // Last byte has to be '\0'
         static constexpr uint16_t raw_datamatrix_regsize = ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_last)
@@ -234,7 +234,7 @@ CommunicationStatus ModularBed::read_general_fault() {
         return status;
     }
 
-    log_debug(ModularBed, "Fault status: %d", general_fault.value);
+    log_debug(ModularBed, "Fault status: %d", static_cast<int>(general_fault.value));
     metric_record_integer(&metric_state, static_cast<int>(general_fault.value));
 
     const auto fault_int { ftrstd::to_underlying(general_fault.value) };

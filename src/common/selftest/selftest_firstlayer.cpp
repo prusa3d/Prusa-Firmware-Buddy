@@ -76,7 +76,7 @@ LoopResult CSelftestPart_FirstLayer::stateAskFilamentInit() {
         rResult.preselect_response = Response::Load;
         break;
     }
-    log_info(Selftest, "%s user asked about filament");
+    log_info(Selftest, "%s user asked about filament", rConfig.partname);
     return LoopResult::RunNext;
 }
 

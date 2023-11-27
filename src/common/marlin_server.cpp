@@ -888,7 +888,8 @@ void gui_ready_to_print() {
         break;
 
     default:
-        log_error(MarlinServer, "Wrong print state, expected: %d, is: %d", State::WaitGui, server.print_state);
+        log_error(MarlinServer, "Wrong print state, expected: %u, is: %u",
+            static_cast<unsigned>(State::WaitGui), static_cast<unsigned>(server.print_state));
         break;
     }
 }
@@ -901,7 +902,8 @@ void gui_cant_print() {
         break;
 
     default:
-        log_error(MarlinServer, "Wrong print state, expected: %d, is: %d", State::WaitGui, server.print_state);
+        log_error(MarlinServer, "Wrong print state, expected: %u, is: %u",
+            static_cast<unsigned>(State::WaitGui), static_cast<unsigned>(server.print_state));
         break;
     }
 }
@@ -2336,7 +2338,8 @@ static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
         }
         marlin_vars()->set_last_fsm_state(commands->current);
         std::pair<uint32_t, uint16_t> data = commands->current.serialize();
-        log_debug(FSM, "data sent u32 %d, u16 %d, client %d", data.first, data.second, client_id);
+        log_debug(FSM, "data sent u32 %" PRIu32 ", u16 %" PRIu16 ", client %d",
+            data.first, data.second, client_id);
 
         if (!_send_notify_to_client(queue, variant8_user(data.first, data.second, ftrstd::to_underlying(Event::FSM)))) {
             // unable to send all messages

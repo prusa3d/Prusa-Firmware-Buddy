@@ -52,11 +52,11 @@ PowerCheck::load_t PowerCheck::EvaluateLoad(uint32_t current_pwm, float current_
         return load_t::config_error;
     }
     if (config.pwm_100percent_equivalent_value == 0) {
-        log_error(Selftest, "%s invalid config file, 100% pwm cannot be 0", config.partname);
+        log_error(Selftest, "%s invalid config file, 100%% pwm cannot be 0", config.partname);
         return load_t::config_error;
     }
     if (config.min_pwm_to_measure == 0) {
-        log_error(Selftest, "%s invalid config file, 0 pwm cannot be measured", config.partname);
+        log_error(Selftest, "%s invalid config file, 0%% pwm cannot be measured", config.partname);
         return load_t::config_error;
     }
     const float scaled_load_min = config.heater_full_load_min_W * current_pwm / config.pwm_100percent_equivalent_value;
