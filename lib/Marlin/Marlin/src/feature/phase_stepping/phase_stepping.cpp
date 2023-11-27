@@ -583,6 +583,7 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
     int rounding_steps = std::copysign(has_rounding_step ? 1 : 0, axis_state.phase_leftover);
 
     Stepper::add_axis_steps(axis_enum, resolve_axis_inversion(axis_state.inverted, steps - old_rounding_steps + rounding_steps));
+    Stepper::report_axis_movement(axis_enum, speed);
 
     axis_state.last_position = position;
     axis_state.last_phase = new_phase;

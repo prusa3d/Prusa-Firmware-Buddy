@@ -548,6 +548,19 @@ class Stepper {
       count_position[a] += steps_made;
       count_position_from_startup[a] += steps_made;
     }
+
+    static void report_axis_movement(AxisEnum a, float speed) {
+      uint8_t axis_mask = 1 << a;
+      if (speed != 0)
+        axis_did_move |= axis_mask;
+      else
+        axis_did_move &= ~axis_mask;
+
+      if (speed > 0)
+        last_direction_bits |= axis_mask;
+      else
+        last_direction_bits &= ~axis_mask;
+    }
 private:
 
     // Set the current position in steps

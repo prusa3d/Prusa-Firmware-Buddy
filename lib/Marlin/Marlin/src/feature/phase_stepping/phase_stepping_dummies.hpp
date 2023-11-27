@@ -5,6 +5,7 @@
 
 #include "../precise_stepping/fwdecl.hpp"
 #include <bsod.h>
+#include <core/types.h>
 
 namespace phase_stepping {
 
@@ -42,6 +43,10 @@ inline void init_step_generator_input_shaping(
 }
 
 inline bool processing() {
+    return false;
+}
+
+inline bool is_enabled(AxisEnum) {
     return false;
 }
 

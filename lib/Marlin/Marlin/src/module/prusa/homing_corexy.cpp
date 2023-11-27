@@ -14,6 +14,8 @@
 #endif
 #include "bsod.h"
 
+#include "feature/phase_stepping/phase_stepping.hpp"
+
 // convert raw AB steps to XY mm
 void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {
     float x = static_cast<float>(steps.a + steps.b) / 2.f;
@@ -65,8 +67,13 @@ static void plan_corexy_raw_move(const xy_long_t &target_steps_ab, const feedRat
 
 // TMC µsteps(phase) per Marlin µsteps
 static int16_t phase_per_ustep(const AxisEnum axis) {
-    return 256 / stepper_axis(axis).microsteps();
-}
+    // Originally, we read the microstep configuration from the driver; this no
+    // longer make sense with 256 microsteps.
+    // Thus, we use the printer defaults instead of stepper_axis(axis).microsteps();
+    assert(axis <= AxisEnum::Z_AXIS);
+    static const int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
+    return 256 / MICROSTEPS[axis];
+};
 
 // TMC full cycle µsteps per Marlin µsteps
 static int16_t phase_cycle_steps(const AxisEnum axis) {
@@ -94,12 +101,19 @@ static int16_t phase_backoff_steps(const AxisEnum axis) {
     if (phaseDelta < 0) {
         phaseDelta += 1024;
     }
-    return int16_t(phaseDelta / phase_per_ustep(axis)) * effectorBackoutDir;
+    int steps = (phaseDelta + phase_per_ustep(axis) / 2) / phase_per_ustep(axis) * effectorBackoutDir;
+    return steps;
 }
 
 static bool phase_aligned(AxisEnum axis) {
     int16_t phase_cur = stepper_axis(axis).MSCNT();
-    int16_t ustep_max = phase_per_ustep(axis) / 2;
+
+    int16_t ustep_max = phase_per_ustep(axis) +
+#if HAS_BURST_STEPPING()
+        16; // The maximal phase shift
+#else
+        0;
+#endif
     return (phase_cur <= ustep_max || phase_cur >= (1024 - ustep_max));
 }
 
@@ -156,11 +170,22 @@ static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_
     plan_raw_move(initial_mm, initial_pos_msteps, homing_feedrate(B_AXIS));
 
     // sanity checks
-    if (hit_steps.a != initial_steps.a || initial_steps.a != stepper.position(A_AXIS)) {
+    auto same_steps = [](int a, int b) {
+#if HAS_BURST_STEPPING()
+        // When burst stepping is active, the reported position might differ
+        // slightly from the observed driver phase as the phase correction
+        // is active
+        return std::abs(a - b) <= 1;
+#else
+        return a == b;
+#endif
+    };
+
+    if (!same_steps(hit_steps.a, initial_steps.a) || !same_steps(initial_steps.a, stepper.position(A_AXIS))) {
         ui.status_printf_P(0, "A_AXIS didn't return");
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
     }
-    if (initial_steps.b != stepper.position(B_AXIS)) {
+    if (!same_steps(initial_steps.b, stepper.position(B_AXIS))) {
         ui.status_printf_P(0, "B_AXIS didn't return");
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
     }

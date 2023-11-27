@@ -1799,7 +1799,7 @@
         #if (BOARD_VER_EQUAL_TO(0, 4, 0))
             #define STALL_THRESHOLD_TMC2130 247 // (steps per tick) - reciprocal value of minimal speed
         #else
-            #define STALL_THRESHOLD_TMC2130 300 // (steps per tick) - reciprocal value of minimal speed
+            #define STALL_THRESHOLD_TMC2130 600 // (steps per tick) - reciprocal value of minimal speed
         #endif
     #endif
 

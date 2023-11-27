@@ -243,6 +243,18 @@ extern std::array<
     axis_states;
 
 /**
+ * Check if given axis is being used for phase stepping or not.
+ *
+ * Note: This is an in-line definition so this short function can be in-lined
+ */
+inline bool is_enabled(AxisEnum axis_num) {
+    if (axis_num < opts::SUPPORTED_AXIS_COUNT) {
+        return axis_states[axis_num]->active;
+    }
+    return false;
+}
+
+/**
  * RAII guard for not changing the state
  */
 class EnsureNoChange {
@@ -326,7 +338,7 @@ using EnsureEnabled = EnsureState<true>;
 using EnsureDisabled = EnsureState<false>;
 using EnsureSuitableForHoming = std::conditional_t<
     option::has_burst_stepping,
-    EnsureDisabled, EnsureDisabled>;
+    EnsureNoChange, EnsureDisabled>;
 
 enum class CorrectionType {
     forward,

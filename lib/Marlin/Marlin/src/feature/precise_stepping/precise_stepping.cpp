@@ -453,7 +453,7 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
     // So we don't have anything to put into step_event_buffer.
     auto step_status = step_state.step_events[old_nearest_step_event_idx].status;
     if (step_status == STEP_EVENT_INFO_STATUS_GENERATED_VALID || step_status == STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE) {
-        const double step_time_absolute         = step_state.step_events[old_nearest_step_event_idx].time;
+        const double step_time_absolute = step_state.step_events[old_nearest_step_event_idx].time;
         const uint64_t step_time_absolute_ticks = uint64_t(step_time_absolute * PreciseStepping::ticks_per_sec);
         const uint64_t step_time_relative_ticks = step_time_absolute_ticks - step_state.previous_step_time_ticks;
         assert(step_time_relative_ticks < std::numeric_limits<uint32_t>::max());
@@ -479,7 +479,7 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
             step_event.flags |= STEP_EVENT_FLAG_FIRST_STEP_EVENT;
         }
 
-        step_state.previous_step_time       = step_time_absolute;
+        step_state.previous_step_time = step_time_absolute;
         step_state.previous_step_time_ticks = step_time_absolute_ticks;
     } else {
         // Reset flags to indicate no step has been produced
@@ -623,22 +623,22 @@ uint16_t PreciseStepping::process_one_step_event_from_queue() {
         if (const uint8_t changed_dir_bits = uint8_t(step_dir >> STEP_EVENT_FLAG_DIR_SHIFT) ^ Stepper::last_direction_bits; changed_dir_bits) {
             Stepper::last_direction_bits = uint8_t(step_dir >> STEP_EVENT_FLAG_DIR_SHIFT);
 
-            if (TEST(changed_dir_bits, X_AXIS)) {
+            if (!phase_stepping::is_enabled(X_AXIS) && TEST(changed_dir_bits, X_AXIS)) {
                 X_APPLY_DIR(step_dir_inv & STEP_EVENT_FLAG_X_DIR);
                 Stepper::count_direction.x = (step_dir & STEP_EVENT_FLAG_X_DIR) ? -1 : 1;
             }
 
-            if (TEST(changed_dir_bits, Y_AXIS)) {
+            if (!phase_stepping::is_enabled(Y_AXIS) && TEST(changed_dir_bits, Y_AXIS)) {
                 Y_APPLY_DIR(step_dir_inv & STEP_EVENT_FLAG_Y_DIR);
                 Stepper::count_direction.y = (step_dir & STEP_EVENT_FLAG_Y_DIR) ? -1 : 1;
             }
 
-            if (TEST(changed_dir_bits, Z_AXIS)) {
+            if (!phase_stepping::is_enabled(Z_AXIS) && TEST(changed_dir_bits, Z_AXIS)) {
                 Z_APPLY_DIR(step_dir_inv & STEP_EVENT_FLAG_Z_DIR);
                 Stepper::count_direction.z = (step_dir & STEP_EVENT_FLAG_Z_DIR) ? -1 : 1;
             }
 
-            if (TEST(changed_dir_bits, E_AXIS)) {
+            if (!phase_stepping::is_enabled(E_AXIS) && TEST(changed_dir_bits, E_AXIS)) {
                 E_APPLY_DIR(step_dir_inv & STEP_EVENT_FLAG_E_DIR);
                 Stepper::count_direction.e = (step_dir & STEP_EVENT_FLAG_E_DIR) ? -1 : 1;
             }
