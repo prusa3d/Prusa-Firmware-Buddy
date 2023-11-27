@@ -190,13 +190,6 @@ void hw_gpio_init() {
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     PIN_TABLE(CONFIGURE_PINS);
-#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
-    if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw()) {
-        data_exchange::fw_update_older_on_restart_enable();
-        __disable_irq();
-        HAL_NVIC_SystemReset();
-    }
-#endif
 #if defined(EXTENDER_PIN_TABLE)
     EXTENDER_PIN_TABLE(CONFIGURE_PINS);
 #endif
