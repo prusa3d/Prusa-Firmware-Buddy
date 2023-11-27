@@ -813,11 +813,7 @@ void hw_spi6_init() {
     hspi6.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi6.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi6.Init.NSS = SPI_NSS_SOFT;
-    #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5)
     hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-    #else
-    hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
-    #endif
     hspi6.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi6.Init.TIMode = SPI_TIMODE_DISABLE;
     hspi6.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
