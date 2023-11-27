@@ -51,7 +51,8 @@ marlin_server::Cmd get_command();
 void gcode(const char *gcode);
 
 // enqueue gcode - printf-like, returns number of chars printed
-int gcode_printf(const char *format, ...);
+int __attribute__((format(__printf__, 1, 2)))
+gcode_printf(const char *format, ...);
 
 // inject gcode - thread-safe version  (request '!ig xxx')
 void gcode_push_front(const char *gcode);

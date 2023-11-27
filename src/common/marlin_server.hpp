@@ -75,7 +75,8 @@ bool enqueue_gcode(const char *gcode);
 // direct call of 'enqueue_and_echo_command' with formatting
 // @retval true command enqueued
 // @retval false otherwise
-bool enqueue_gcode_printf(const char *gcode, ...);
+bool __attribute__((format(__printf__, 1, 2)))
+enqueue_gcode_printf(const char *gcode, ...);
 
 // direct call of 'inject_P'
 // @retval true command enqueued
