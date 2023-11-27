@@ -185,7 +185,7 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
     uint32_t timestamp_us = ticks_us() + ticks_us_from_now;
     last_sample_time_us = timestamp_us;
 
-    metric_record_custom_at_time(&metric_loadcell, timestamp_us, " r=%ii,o=%ii,s=%0.4f", loadcellRaw, offset, (double)scale);
+    metric_record_custom_at_time(&metric_loadcell, timestamp_us, " r=%" PRId32 "i,o=%" PRId32 "i,s=%0.4f", loadcellRaw, offset, (double)scale);
     metric_record_integer_at_time(&metric_loadcell_age, timestamp_us, ticks_us_from_now);
 
     // filtered loads

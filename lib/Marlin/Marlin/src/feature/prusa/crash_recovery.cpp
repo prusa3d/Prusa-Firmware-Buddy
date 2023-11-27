@@ -339,7 +339,9 @@ void Crash_s::send_reports() {
     }
 
     METRIC_DEF(crash_metric, "crash", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-    metric_record_custom(&crash_metric, ",axis=%c sens=%ii,period=%ui,speed=%.3f", axis_codes[axis_hit], sensitivity.pos[axis_hit], max_period.pos[axis_hit], (double)speed);
+    metric_record_custom(&crash_metric, ",axis=%c sens=%ldi,period=%ldi,speed=%.3f",
+        axis_codes[axis_hit], sensitivity.pos[axis_hit], max_period.pos[axis_hit],
+        static_cast<double>(speed));
 }
 
 void Crash_s::set_max_period(xy_long_t mp) {

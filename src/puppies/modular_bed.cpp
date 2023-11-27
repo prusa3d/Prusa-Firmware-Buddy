@@ -170,9 +170,9 @@ CommunicationStatus ModularBed::read_bedlet_data() {
     for (uint16_t i = 0; i < BEDLET_COUNT; ++i) {
         metric_record_custom(
             &metric_states,
-            ",n=%d v=%d",
+            ",n=%d v=%u",
             i,
-            static_cast<double>(bedlet_data.value.fault_status[i]));
+            static_cast<unsigned>(bedlet_data.value.fault_status[i]));
         metric_record_custom(
             &metric_temps,
             ",n=%d v=%.2f",

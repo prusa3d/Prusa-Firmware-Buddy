@@ -463,7 +463,7 @@ float probe_z(const xyz_pos_t position, float uncertainty, const int num_measure
         &metric_z_hit,
         ",t=%u,p=%u,x=%.3f,y=%.3f z=%.3f",
         tool,
-        phase,
+        static_cast<unsigned>(phase),
         static_cast<double>(current_position.x),
         static_cast<double>(current_position.y),
         static_cast<double>(measurement_avg));

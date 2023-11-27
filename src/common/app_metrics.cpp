@@ -123,7 +123,7 @@ void buddy::metrics::RecordRuntimeStats() {
                 // Report runtime usage, runtime can overflow and the difference still be valid
                 if (task_statuses[idx].xTaskNumber <= std::size(last_runtime)) {
                     const uint32_t runtime_percent = (task_statuses[idx].ulRunTimeCounter - last_runtime[task_statuses[idx].xTaskNumber - 1]) / delta_totaltime;
-                    metric_record_custom(&runtime, ",n=%.7s u=%u", task_name, runtime_percent);
+                    metric_record_custom(&runtime, ",n=%.7s u=%" PRIu32, task_name, runtime_percent);
                 } else {
                     log_error(Metrics, "Failed to record runtime metric. The last_runtime array might be too small.");
                 }
@@ -133,7 +133,7 @@ void buddy::metrics::RecordRuntimeStats() {
     }
 
     METRIC_DEF(heap, "heap", METRIC_VALUE_CUSTOM, 503, METRIC_HANDLER_ENABLE_ALL);
-    metric_record_custom(&heap, " free=%ii,total=%ii", xPortGetFreeHeapSize(), heap_total_size);
+    metric_record_custom(&heap, " free=%zui,total=%zui", xPortGetFreeHeapSize(), static_cast<size_t>(heap_total_size));
 }
 
 void buddy::metrics::RecordMarlinVariables() {

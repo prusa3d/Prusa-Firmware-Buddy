@@ -170,13 +170,15 @@ void FSensorADC::invalidate_calibration() {
 
 void FSensorAdcExtruder::record_state() {
     if (limit_record()) {
-        metric_record_custom(&get_metric__static(), ",n=%u st=%di,f=%di,r=%di,ri=%di,sp=%di", tool_index, static_cast<int>(Get()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
+        metric_record_custom(&get_metric__static(), ",n=%u st=%ui,f=%" PRId32 "i,r=%" PRId32 "i,ri=%" PRId32 "i,sp=%" PRId32 "i",
+            tool_index, static_cast<unsigned>(Get()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
     }
 }
 
 void FSensorAdcSide::record_state() {
     if (limit_record()) {
-        metric_record_custom(&get_metric__static(), ",n=%u st=%di,f=%di,r=%di,ri=%di,sp=%di", tool_index, static_cast<int>(Get()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
+        metric_record_custom(&get_metric__static(), ",n=%u st=%ui,f=%" PRId32 "i,r=%" PRId32 "i,ri=%" PRId32 "i,sp=%" PRId32 "i",
+            tool_index, static_cast<unsigned>(Get()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
     }
 }
 
@@ -193,13 +195,13 @@ void FSensorAdcSide::MetricsSetEnabled(bool enable) {
 
 void FSensorAdcExtruder::record_raw(int32_t val) {
     if (limit_record_raw()) {
-        metric_record_custom(&get_metric_raw__static(), ",n=%u v=%di", tool_index, val);
+        metric_record_custom(&get_metric_raw__static(), ",n=%u v=%" PRId32 "i", tool_index, val);
     }
 }
 
 void FSensorAdcSide::record_raw(int32_t val) {
     if (limit_record_raw()) {
-        metric_record_custom(&get_metric_raw__static(), ",n=%u v=%di", tool_index, val);
+        metric_record_custom(&get_metric_raw__static(), ",n=%u v=%" PRId32 "i", tool_index, val);
     }
 }
 
