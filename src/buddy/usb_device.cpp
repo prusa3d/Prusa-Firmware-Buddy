@@ -202,7 +202,8 @@ static void usb_device_task_run(const void *) {
 }
 
 // This function is referenced from tusb_config.h file; do not change its signature
-int usb_device_log(const char *fmt, ...) {
+int __attribute__((format(__printf__, 1, 2)))
+usb_device_log(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     static char buffer[128];
