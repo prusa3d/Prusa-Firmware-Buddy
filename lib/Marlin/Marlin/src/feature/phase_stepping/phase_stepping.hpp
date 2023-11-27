@@ -259,7 +259,12 @@ inline bool is_enabled(AxisEnum axis_num) {
  */
 class EnsureNoChange {
 public:
-    EnsureNoChange() = default;
+    EnsureNoChange() {
+        // This is work-around for not-triggering unused variable warning on the
+        // dummy guard usage
+        __asm__ __volatile__("nop;\n\t");
+    };
+
     ~EnsureNoChange() {
         // This is work-around for not-triggering unused variable warning on the
         // dummy guard usage
