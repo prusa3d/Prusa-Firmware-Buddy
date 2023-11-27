@@ -4,6 +4,7 @@
 #include <gcode_info.hpp>
 #include <format_print_will_end.hpp>
 #include "mmu2_toolchanger_common.hpp"
+#include "print_time_module.hpp"
 
 namespace {
 constexpr const char *txt_print_started { N_("Print started") };
@@ -128,11 +129,7 @@ void EndResultBody::Show() {
 
     auto &gcode { GCodeInfo::getInstance() };
 
-    if (gcode.get_printing_time()[0]) {
-        snprintf(printing_time_value_buffer.data(), printing_time_value_buffer.size(), "%s", gcode.get_printing_time().data());
-    } else {
-        snprintf(printing_time_value_buffer.data(), printing_time_value_buffer.size(), "unknown");
-    }
+    PrintTime::print_formatted_duration(marlin_vars()->print_duration.get(), { printing_time_value_buffer }, true);
 
     printing_time_label.Show();
     printing_time_value.Show();
