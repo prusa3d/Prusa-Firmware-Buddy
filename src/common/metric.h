@@ -173,7 +173,8 @@ void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int val
 /// Record a string with given timestamp (metric.type has to be METRIC_VALUE_STRING)
 ///
 /// The string is automatically truncated to the length of metric_point_t.value_str buffer size.
-void metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
+void __attribute__((format(__printf__, 3, 4)))
+metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
 
 /// Record an event (metric.type has to be METRIC_VALUE_EVENT)
 #define metric_record_event(metric) metric_record_event_at_time(metric, ticks_us())
@@ -197,10 +198,12 @@ void metric_record_event_at_time(metric_t *metric, uint32_t timestamp);
 ///
 /// A metric error (datapoint with error=<message>) is recorded in case the resulting
 /// string does not fit the internal buffers.
-void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
+void __attribute__((format(__printf__, 3, 4)))
+metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
 
 /// Records an error for a given metric.
-void metric_record_error(metric_t *metric, const char *fmt, ...);
+void __attribute__((format(__printf__, 2, 3)))
+metric_record_error(metric_t *metric, const char *fmt, ...);
 
 /// Return null-terminated list of handlers
 metric_handler_t **metric_get_handlers();

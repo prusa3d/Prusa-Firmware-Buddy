@@ -41,7 +41,8 @@ static int textprotocol_append_escaped(char *buffer, int buffer_len, char *val) 
     return appended;
 }
 
-static int append_format(char *buffer, int buffer_len, const char *format, ...) {
+static int __attribute__((format(__printf__, 3, 4)))
+append_format(char *buffer, int buffer_len, const char *format, ...) {
     va_list args;
     va_start(args, format);
     int length = vsnprintf(buffer, std::max(buffer_len, 0), format, args);
