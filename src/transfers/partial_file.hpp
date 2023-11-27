@@ -40,7 +40,11 @@ namespace transfers {
 class PartialFile {
 public:
     static const size_t SECTOR_SIZE = 512;
+#if PRINTER_IS_PRUSA_MINI
+    static const size_t SECTORS_PER_WRITE = 1; // Low on RAM on mini
+#else
     static const size_t SECTORS_PER_WRITE = 8;
+#endif
     // The size of one buffer (possibly multiple sectors)
     static const size_t BUFFER_SIZE = SECTOR_SIZE * SECTORS_PER_WRITE;
 
