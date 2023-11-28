@@ -15,7 +15,7 @@
 enum {
     MARLIN_MAX_CLIENTS = 5, // maximum number of clients registered in same time
     MARLIN_MAX_REQUEST = 180, // maximum request length in chars
-    MARLIN_SERVER_QUEUE = 128, // size of marlin server input character queue (number of characters)
+    MARLIN_SERVER_QUEUE = MARLIN_MAX_REQUEST + 2, // size of marlin server input character queue (number of characters), +2 for client id and '\n'
     MARLIN_CLIENT_QUEUE = 16, // size of marlin client input message queue (number of messages)
 };
 

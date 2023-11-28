@@ -569,7 +569,6 @@ bool is_idle() {
 
 // send request to server (called from client thread), infinite timeout
 static void _send_request_to_server(uint8_t client_id, const char *request) {
-    int ret = 0;
     int len = strlen(request);
     osMessageQId queue = 0;
     int i;
@@ -577,8 +576,8 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
     if ((queue = server_queue) != 0) // queue valid
     {
         clients[client_id].events &= ~make_mask(Event::Acknowledge);
-        while (ret == 0) {
-            if (osMessageAvailableSpace(queue) >= static_cast<uint32_t>(len + 1)) // check available space
+        while (true) {
+            if (osMessageAvailableSpace(queue) >= static_cast<uint32_t>(len + 2)) // +2 for client_id and '\n'
             {
                 osMessagePut(queue, '0' + client_id, osWaitForever); // one character client id
                 for (i = 0; i < len; i++) { // loop over every characters
@@ -587,7 +586,7 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
                 if ((i > 0) && (request[i - 1] != '\n')) { // automatically terminate with '\n'
                     osMessagePut(queue, '\n', osWaitForever);
                 }
-                ret = 1;
+                break;
             } else {
                 osSemaphoreRelease(server_semaphore); // unlock
                 osDelay(10);
