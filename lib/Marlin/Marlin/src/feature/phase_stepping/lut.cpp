@@ -77,7 +77,7 @@ std::pair<int, int> CorrectedCurrentLut::get_current(int idx) const {
     };
 }
 
-void CorrectedCurrentLut2::_update_phase_shift() {
+void CorrectedCurrentLutSimple::_update_phase_shift() {
     for (size_t i = 0; i != MOTOR_PERIOD; i++) {
         float item_phase = i * 2 * std::numbers::pi_v<float> / MOTOR_PERIOD;
         float phase_shift = 0;
@@ -90,6 +90,6 @@ void CorrectedCurrentLut2::_update_phase_shift() {
     }
 }
 
-std::pair<int, int> CorrectedCurrentLut2::get_current(int idx) const {
+std::pair<int, int> CorrectedCurrentLutSimple::get_current(int idx) const {
     return { _sin.get(idx), _cos.get(idx) };
 }

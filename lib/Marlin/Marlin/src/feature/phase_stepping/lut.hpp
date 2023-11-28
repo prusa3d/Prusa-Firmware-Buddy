@@ -51,7 +51,10 @@ public:
     std::pair<int, int> get_current(int idx) const;
 };
 
-class CorrectedCurrentLut2 {
+/**
+ * Alternative LUT with simplified implementation for reference/testing purposes
+ **/
+class CorrectedCurrentLutSimple {
 public:
     struct CurrentTrace {
         std::array<uint8_t, MOTOR_PERIOD> _val;
@@ -75,7 +78,7 @@ public:
     void _update_phase_shift();
 
 public:
-    CorrectedCurrentLut2() {
+    CorrectedCurrentLutSimple() {
         _update_phase_shift();
     }
 
