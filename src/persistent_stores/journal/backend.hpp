@@ -145,8 +145,8 @@ public:
 
         Transaction(Type type, Backend &backend);
         ~Transaction();
-        void calculate_crc(Id id, const std::span<uint8_t> &data);
-        void store_item(Id id, const std::span<uint8_t> &data);
+        void calculate_crc(Id id, const std::span<const uint8_t> &data);
+        void store_item(Id id, const std::span<const uint8_t> &data);
         void cancel();
     };
 
@@ -271,7 +271,7 @@ public:
 
     freertos::Mutex mutex;
 
-    static std::optional<BankHeader> validate_bank_header(const std::span<uint8_t> &data);
+    static std::optional<BankHeader> validate_bank_header(const std::span<const uint8_t> &data);
 
     std::optional<ItemLoadResult> load_item(Address address, Offset free_space, const std::span<uint8_t> &buffer);
     void load_items(Address address, Offset len_of_transactions, const UpdateFunction &update_function);
@@ -295,8 +295,8 @@ public:
     MultipleTransactionValidationResult validate_transactions(const Address address);
 
     std::optional<CRCType> get_crc(const Address address, const Offset free_space);
-    static std::optional<CRCType> get_crc(const std::span<uint8_t> data);
-    static CRCType calculate_crc(const Backend::ItemHeader &, const std::span<uint8_t> &data, CRCType crc = 0);
+    static std::optional<CRCType> get_crc(const std::span<const uint8_t> data);
+    static CRCType calculate_crc(const Backend::ItemHeader &, const std::span<const uint8_t> &data, CRCType crc = 0);
 
     void init_bank(const BankSelector bank, uint32_t id, bool is_next_bank = false);
     std::optional<Backend::BanksState> choose_bank() const;
@@ -308,16 +308,16 @@ public:
     BankSelector get_next_bank();
     Address get_bank_start_address(const BankSelector selector);
 
-    uint16_t write_item(const Address address, const Backend::ItemHeader &, const std::span<uint8_t> &data, std::optional<CRCType> crc);
+    uint16_t write_item(const Address address, const Backend::ItemHeader &, const std::span<const uint8_t> &data, std::optional<CRCType> crc);
     uint16_t write_end_item(Address address);
-    void store_single_item(Id id, const std::span<uint8_t> &data);
+    void store_single_item(Id id, const std::span<const uint8_t> &data);
 
 public:
     void load_all(const UpdateFunction &update_function, std::span<const MigrationFunction> migration_functions);
 
     void init(const DumpCallback &callback);
 
-    void save(uint16_t id, std::span<uint8_t> data);
+    void save(uint16_t id, std::span<const uint8_t> data);
     std::unique_lock<freertos::Mutex> lock();
     JournalState get_journal_state() const;
 

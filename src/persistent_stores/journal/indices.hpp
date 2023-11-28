@@ -26,12 +26,13 @@ namespace detail {
     };
 
     template <class U>
-    using CurrentItemIndex = Index<void (*)(std::span<uint8_t>, U &)>;
+    using CurrentItemIndex = Index<void (*)(std::span<const uint8_t>, U &)>;
+
     template <typename U, size_t... I>
     consteval auto get_current_indices(std::index_sequence<I...>) {
         return std::to_array<CurrentItemIndex<U>>({ (CurrentItemIndex<U>(
             std::remove_cvref_t<stdx::tuple_element_t<I, U>>::hashed_id,
-            [](std::span<uint8_t> raw_data, U &tuple) {
+            [](std::span<const uint8_t> raw_data, U &tuple) {
                 using ItemT = std::remove_cvref_t<stdx::tuple_element_t<I, U>>;
                 if (raw_data.size() != ItemT::data_size) {
                     bsod("unexpected size difference");

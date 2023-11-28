@@ -140,7 +140,7 @@ std::optional<Backend::CRCType> Backend::get_crc(const uint16_t address, const u
     return crc;
 }
 
-std::optional<Backend::CRCType> Backend::get_crc(const std::span<uint8_t> data) {
+std::optional<Backend::CRCType> Backend::get_crc(const std::span<const uint8_t> data) {
     if (data.size() < CRC_SIZE) {
         return std::nullopt;
     }
@@ -363,7 +363,7 @@ Backend::MultipleTransactionValidationResult Backend::validate_transactions(cons
     }
 }
 
-std::optional<Backend::BankHeader> Backend::validate_bank_header(const std::span<uint8_t> &data) {
+std::optional<Backend::BankHeader> Backend::validate_bank_header(const std::span<const uint8_t> &data) {
     BankHeader header { 0, 0 };
     memcpy(&header, data.data(), BANK_HEADER_SIZE);
     auto crc_read = get_crc(data.subspan(BANK_HEADER_SIZE));
@@ -426,7 +426,7 @@ uint16_t Backend::write_end_item(uint16_t address) {
     CRCType crc = crc32_calc_ex(0, reinterpret_cast<const uint8_t *>(&Backend::LAST_ITEM_STOP), sizeof(Backend::LAST_ITEM_STOP));
     return write_item(address, LAST_ITEM_STOP, {}, crc);
 }
-void Backend::store_single_item(uint16_t id, const std::span<uint8_t> &data) {
+void Backend::store_single_item(uint16_t id, const std::span<const uint8_t> &data) {
     if (!fits_in_current_bank(ITEM_HEADER_SIZE + data.size() + CRC_SIZE + ITEM_HEADER_SIZE + CRC_SIZE)) {
         migrate_bank();
         return;
@@ -507,7 +507,7 @@ uint16_t Backend::get_current_bank_start_address() const {
     }
 }
 
-uint16_t Backend::write_item(const uint16_t address, const Backend::ItemHeader &header, const std::span<uint8_t> &data, std::optional<CRCType> crc) {
+uint16_t Backend::write_item(const uint16_t address, const Backend::ItemHeader &header, const std::span<const uint8_t> &data, std::optional<CRCType> crc) {
     const uint16_t data_address = address + ITEM_HEADER_SIZE;
     uint16_t written = 0;
 
@@ -522,12 +522,12 @@ uint16_t Backend::write_item(const uint16_t address, const Backend::ItemHeader &
     return written + ITEM_HEADER_SIZE;
 }
 
-Backend::CRCType Backend::calculate_crc(const Backend::ItemHeader &header, const std::span<uint8_t> &data, CRCType crc) {
+Backend::CRCType Backend::calculate_crc(const Backend::ItemHeader &header, const std::span<const uint8_t> &data, CRCType crc) {
     crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&header), ITEM_HEADER_SIZE);
     crc = crc32_calc_ex(crc, data.data(), data.size());
     return crc;
 }
-void Backend::save(uint16_t id, std::span<uint8_t> data) {
+void Backend::save(uint16_t id, std::span<const uint8_t> data) {
     if (migration.has_value()) {
         migration->store_item(id, data);
     } else if (transaction.has_value()) {
@@ -594,7 +594,7 @@ Backend::Transaction::~Transaction() {
     backend.write_end_item(current_address);
 }
 
-void Backend::Transaction::calculate_crc(Backend::Id id, const std::span<uint8_t> &data) {
+void Backend::Transaction::calculate_crc(Backend::Id id, const std::span<const uint8_t> &data) {
     ItemHeader header { .last_item = false, .id = id, .len = static_cast<uint16_t>(data.size()) };
     ItemHeader last_header { .last_item = true, .id = id, .len = static_cast<uint16_t>(data.size()) };
 
@@ -602,7 +602,7 @@ void Backend::Transaction::calculate_crc(Backend::Id id, const std::span<uint8_t
     crc = Backend::calculate_crc(header, data, crc);
 }
 
-void Backend::Transaction::store_item(Backend::Id id, const std::span<uint8_t> &data) {
+void Backend::Transaction::store_item(Backend::Id id, const std::span<const uint8_t> &data) {
     if (type == Type::transaction && !backend.fits_in_current_bank(ITEM_HEADER_SIZE + data.size())) {
         backend.migrate_bank();
         return;
