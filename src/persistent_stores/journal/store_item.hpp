@@ -93,9 +93,7 @@ public:
 
 private:
     void do_save() {
-        std::array<uint8_t, sizeof(DataT)> buffer;
-        memcpy(buffer.data(), reinterpret_cast<const uint8_t *>(&data), buffer.size());
-        backend().save(hashed_id, buffer);
+        backend().save(hashed_id, { reinterpret_cast<const uint8_t *>(&data), sizeof(DataT) });
     }
 };
 
