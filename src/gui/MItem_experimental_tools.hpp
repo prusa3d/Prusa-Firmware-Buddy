@@ -17,6 +17,22 @@ enum class ClickCommand : intptr_t { Return,
     Reset_microsteps,
     Reset_currents };
 
+#if PRINTER_IS_PRUSA_MK3_5
+// Option to switch off PWM correction to make Alte fans quiet. As of now, only MK3.5 has to deal with this issue
+class MI_ALT_FAN : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Alt fan correction");
+
+    static bool init_index();
+
+public:
+    MI_ALT_FAN()
+        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+#endif
+
 class MI_Z_AXIS_LEN : public WiSpinInt {
     constexpr static const char *const label = "Z-axis length";
 

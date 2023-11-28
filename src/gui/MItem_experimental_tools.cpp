@@ -11,6 +11,18 @@
 
 #define NOTRAN(x) string_view_utf8::MakeCPUFLASH((const uint8_t *)x)
 
+#if PRINTER_IS_PRUSA_MK3_5
+/*****************************************************************************/
+// MI_ALT_FAN_CORRECTION
+bool MI_ALT_FAN::init_index() {
+    return config_store().has_alt_fans.get();
+}
+
+void MI_ALT_FAN::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().has_alt_fans.set(!config_store().has_alt_fans.get());
+}
+#endif
+
 /*****************************************************************************/
 // MI_Z_AXIS_LEN
 MI_Z_AXIS_LEN::MI_Z_AXIS_LEN()

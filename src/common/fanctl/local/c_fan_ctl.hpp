@@ -49,7 +49,6 @@ public:
     // getters
     inline uint8_t get_min_PWM() const { return min_value; }
     inline uint8_t get_max_PWM() const { return max_value; }
-    inline uint8_t get_PWM() const { return pwm; }
     inline PhaseShiftMode get_PhaseShiftMode() const { return (PhaseShiftMode)pha_mode; }
 
     // setters

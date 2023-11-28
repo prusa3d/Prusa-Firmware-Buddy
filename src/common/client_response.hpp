@@ -174,7 +174,11 @@ enum class PhasesSelftest : uint16_t {
 
     _first_Fans,
     Fans = _first_Fans,
-    _last_Fans = Fans,
+#if PRINTER_IS_PRUSA_MK3_5
+    Fans_manual,
+#endif
+    Fans_second,
+    _last_Fans = Fans_second,
 
     _first_Loadcell,
     Loadcell_prepare = _first_Loadcell,
@@ -484,6 +488,12 @@ class ClientResponses {
         { Response::Continue, Response::Cancel }, // WizardPrologue_info_detailed
 
         {}, // Fans
+
+#if PRINTER_IS_PRUSA_MK3_5
+        { Response::Yes, Response::No }, // Fans_manual
+#endif
+
+        {}, // Fans_second
 
         {}, // Loadcell_prepare
         {}, // Loadcell_move_away

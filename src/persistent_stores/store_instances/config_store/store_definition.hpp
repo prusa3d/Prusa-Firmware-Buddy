@@ -377,6 +377,10 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 
     input_shaper::Config get_input_shaper_config();
     void set_input_shaper_config(const input_shaper::Config &);
+
+#if PRINTER_IS_PRUSA_MK3_5
+    StoreItem<bool, defaults::bool_false, journal::hash("Has Alt Fans")> has_alt_fans;
+#endif
 };
 
 /**

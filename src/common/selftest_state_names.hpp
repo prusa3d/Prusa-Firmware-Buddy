@@ -22,6 +22,12 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "WizardPrologue_info_detailed";
     case PhasesSelftest::Fans:
         return "Fans";
+#if PRINTER_IS_PRUSA_MK3_5
+    case PhasesSelftest::Fans_manual:
+        return "Fans_manual";
+#endif
+    case PhasesSelftest::Fans_second:
+        return "Fans_second";
     case PhasesSelftest::Loadcell_prepare:
         return "Loadcell_prepare";
     case PhasesSelftest::Loadcell_move_away:

@@ -8,6 +8,7 @@
 #include "selftest_log.hpp"
 #include "i_selftest.hpp"
 #include "algorithm_scale.hpp"
+#include <config_store/store_instance.hpp>
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include "module/prusa/toolchanger.h"
@@ -170,28 +171,104 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_100_percent() {
         result.heatbreak_fan_state = SelftestSubtestState_t::not_good;
     }
 
-    if (print_fan.is_failed() && heatbreak_fan.is_failed()) {
-        // try if the rpms fit into the ranges when switched, if yes, fail the
-        // "fans switched" test and pass the RPM tests
-        if (is_rpm_within_bounds(config.heatbreak_fan, print_fan_rpm) && is_rpm_within_bounds(config.print_fan, heatbreak_fan_rpm)) {
-            log_error(Selftest, "Fans test %u print and hotend fan appear to be switched (the RPM of each fits into the range of the other)", config.tool_nr);
-            result.print_fan_state = SelftestSubtestState_t::ok;
-            result.heatbreak_fan_state = SelftestSubtestState_t::ok;
-            result.fans_switched_state = SelftestSubtestState_t::not_good;
+#if PRINTER_IS_PRUSA_MK3_5
+    if (heatbreak_fan_rpm > 6000 || print_fan_rpm > 6000) {
+        // this rpm is unreachable by noctua therefore the fans are a lot faster and pwm fix is needed to make printer quiet
+        // check both fans because they could be switched.
+        config_store().has_alt_fans.set(true);
+    } else {
+        config_store().has_alt_fans.set(false);
+    }
+
+    // Create config specifically for alt fans presence of which cannot be done compile-time.
+    SelftestFansConfig alt_config { .print_fan = { .rpm_min = 3000, .rpm_max = 4500 }, .heatbreak_fan = { .rpm_min = 7000, .rpm_max = 10000 } };
+
+    if (config_store().has_alt_fans.get()) {
+        print_fan.evaluate(alt_config.print_fan, print_fan_rpm);
+        heatbreak_fan.evaluate(alt_config.heatbreak_fan, heatbreak_fan_rpm);
+        if (CSelftestPart_Fan::are_fans_switched(print_fan, heatbreak_fan, alt_config, print_fan_rpm, heatbreak_fan_rpm, result)) {
             return LoopResult::Fail;
+        } else if (!heatbreak_fan.is_failed() && !print_fan.is_failed()) {
+            result.fans_switched_state = SelftestSubtestState_t::ok;
         }
+    }
+#else
+    if (CSelftestPart_Fan::are_fans_switched(print_fan, heatbreak_fan, config, print_fan_rpm, heatbreak_fan_rpm, result)) {
+        return LoopResult::Fail;
     }
 
     if (!print_fan.is_failed() && !heatbreak_fan.is_failed()) {
         result.fans_switched_state = SelftestSubtestState_t::ok;
     }
+#endif
+    return LoopResult::RunNext;
+}
 
+bool CSelftestPart_Fan::are_fans_switched(const FanHandler &print_fan, const FanHandler &heatbreak_fan, const SelftestFansConfig &config, const uint16_t print_fan_rpm, const uint16_t heatbreak_fan_rpm, SelftestFanHotendResult &result) {
+    if (print_fan.is_failed() && heatbreak_fan.is_failed()) {
+        // try if the rpms fit into the ranges when switched, if yes, fail the
+        // "fans switched" test and pass the RPM tests
+        if (is_rpm_within_bounds(config.heatbreak_fan, print_fan_rpm) && is_rpm_within_bounds(config.print_fan, heatbreak_fan_rpm)) {
+            log_error(Selftest, "Fans test %u print and hotend fan appear to be switched (the RPM of each fits into the range of the other)", config.tool_nr);
+            // Since fans switched isn't the last check, it cannot tell whether the fans are ok or not. All that is certain at this point is that they are switched. They still can fail on 20 % test.
+            result.print_fan_state = SelftestSubtestState_t::undef;
+            result.heatbreak_fan_state = SelftestSubtestState_t::undef;
+            result.fans_switched_state = SelftestSubtestState_t::not_good;
+            return true;
+        }
+    }
+    return false;
+}
+
+#if PRINTER_IS_PRUSA_MK3_5
+LoopResult CSelftestPart_Fan::state_manual_check_init() {
+    if (result.fans_switched_state != SelftestSubtestState_t::ok) {
+        print_fan.set_pwm(0); // stop print fan since heatbreak is the critical one
+    }
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Fan::state_manual_check_wait_fan() {
+    if (result.fans_switched_state != SelftestSubtestState_t::ok) {
+        if (state_machine.IsInState_ms() <= state_wait_rpm_0_percent_delay) {
+            update_progress();
+            return LoopResult::RunCurrent;
+        }
+        IPartHandler::SetFsmPhase(PhasesSelftest::Fans_manual);
+    }
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Fan::state_manual_check_ask() {
+    if (result.fans_switched_state != SelftestSubtestState_t::ok) {
+        const auto response { state_machine.GetButtonPressed() };
+        switch (response) {
+        case Response::No:
+            result.fans_switched_state = SelftestSubtestState_t::not_good;
+            return LoopResult::Fail;
+        case Response::Yes:
+            result.fans_switched_state = SelftestSubtestState_t::ok;
+            break;
+        default:
+            return LoopResult::RunCurrent;
+        }
+    }
+    IPartHandler::SetFsmPhase(PhasesSelftest::Fans_second);
+    return LoopResult::RunNext;
+}
+
+#endif
+
+LoopResult
+CSelftestPart_Fan::state_rpm_0_init() {
     print_fan.set_pwm(0);
     heatbreak_fan.set_pwm(0);
     return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_Fan::state_wait_rpm_0_percent() {
+    IPartHandler::SetFsmPhase(PhasesSelftest::Fans_second);
+
     if (state_machine.IsInState_ms() <= state_wait_rpm_0_percent_delay) {
         update_progress();
         return LoopResult::RunCurrent;
@@ -248,6 +325,14 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_20_percent() {
 }
 
 void CSelftestPart_Fan::update_progress() {
+#if PRINTER_IS_PRUSA_MK3_5
+    // Time update is necessary because of possible human interaction which causes unpredictable delay
+    if (IPartHandler::GetFsmPhase() != PhasesSelftest::Fans_second) {
+        end_time = SelftestInstance().GetTime() + state_wait_rpm_0_percent_delay
+            + state_wait_rpm_20_percent_delay
+            + state_measure_rpm_20_percent_delay;
+    }
+#endif
     if (start_time == end_time) {
         return; // don't have estimated end set correctly
     }

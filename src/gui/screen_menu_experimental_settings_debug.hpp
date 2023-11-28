@@ -11,7 +11,11 @@
 
 /*****************************************************************************/
 // Screen
-using ScreenMenuExperimentalSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_SAVE_AND_RETURN, MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN,
+using ScreenMenuExperimentalSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_SAVE_AND_RETURN,
+#if PRINTER_IS_PRUSA_MK3_5
+    MI_ALT_FAN,
+#endif
+    MI_Z_AXIS_LEN, MI_RESET_Z_AXIS_LEN,
     MI_STEPS_PER_UNIT_X, MI_STEPS_PER_UNIT_Y, MI_STEPS_PER_UNIT_Z, MI_STEPS_PER_UNIT_E, MI_RESET_STEPS_PER_UNIT,
     MI_DIRECTION_X, MI_DIRECTION_Y, MI_DIRECTION_Z, MI_DIRECTION_E, MI_RESET_DIRECTION,
     MI_MICROSTEPS_X, MI_MICROSTEPS_Y, MI_MICROSTEPS_Z, MI_MICROSTEPS_E, MI_RESET_MICROSTEPS,
