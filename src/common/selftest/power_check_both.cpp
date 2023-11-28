@@ -45,7 +45,7 @@ void PowerCheckBoth::Callback([[maybe_unused]] CSelftestPart_Heater &part) {
     [[maybe_unused]] const float total_current_A = nozzle_current_A + bed_current_A;
 #endif
 
-    const unsigned bed_pwm = thermalManager.temp_bed.soft_pwm_amount;
+    const uint32_t bed_pwm = thermalManager.temp_bed.soft_pwm_amount;
 
     // Nozzle has independent load measuring
     if (nozzle) {
@@ -69,7 +69,8 @@ void PowerCheckBoth::Callback([[maybe_unused]] CSelftestPart_Heater &part) {
     // Bed only - dependent load measuring, can measure only when nozzle is stable too
     if (bed) {
         if (bed->check.EvaluateHeaterStatus(bed_pwm, bed->m_config) == PowerCheck::status_t::stable) {
-            LogDebugTimed(bed->check_log, "Bed %fV, %fW, pwm %u, total current %fA", double(bed_voltage_V), double(bed_power_W), bed_pwm, double(total_current_A));
+            LogDebugTimed(bed->check_log, "Bed %fV, %fW, pwm %" PRIu32 ", total current %fA", static_cast<double>(bed_voltage_V),
+                static_cast<double>(bed_power_W), bed_pwm, static_cast<double>(total_current_A));
             PowerCheck::load_t result = bed->check.EvaluateLoad(bed_pwm, bed_power_W, bed->m_config);
             if (result != PowerCheck::load_t::in_range) {
                 bed->state_machine.Fail();
