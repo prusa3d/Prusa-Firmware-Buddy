@@ -36,7 +36,7 @@ Crash_s::Crash_s()
 void Crash_s::stop_and_save() {
     // freeze motion first
     stepper.suspend();
-    loop = true;
+    needs_stack_unwind = true;
 
     // get the current live block
     const block_t *current_block = planner.get_current_processed_block();
@@ -114,8 +114,8 @@ void Crash_s::stop_and_save() {
     #endif
 }
 
-void check_loop() {
-    if (crash_s.loop) {
+void check_stack_unwound() {
+    if (crash_s.needs_stack_unwind) {
         // guard against incomplete buffer flushing: if we reach this point, the state machine is
         // incorrectly being handled recursively (double ungood)
         bsod("reentrant recovery");
@@ -131,7 +131,7 @@ void Crash_s::resume_movement() {
     current_position = crash_current_position;
     planner.set_position_mm(current_position);
 
-    check_loop();
+    check_stack_unwound();
     planner.resume_queuing();
 }
 
@@ -156,7 +156,7 @@ void Crash_s::restore_state() {
     // restore additional queue parameters
     feedrate_mm_s = fr_mm_s;
 
-    check_loop();
+    check_stack_unwound();
     planner.resume_queuing();
 }
 

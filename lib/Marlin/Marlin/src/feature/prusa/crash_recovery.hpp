@@ -116,10 +116,11 @@ public:
     }
 
     bool vars_locked;
-    /// Main server loop iteration check
-    /// It is reset to false at the beginning of each server iteration cycle and it's used to
-    /// detectect incorrect re-entrant usage of the crash handler
-    bool loop;
+
+    /// Internal check that we're not doing additional crash recovery steps
+    /// until functions on the stack return and we get back to the main loop.
+    /// The flag is reset in the main marlin loop.
+    bool needs_stack_unwind = false;
 
 private:
     Crash_s();

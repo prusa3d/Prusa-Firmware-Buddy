@@ -588,7 +588,7 @@ static const uint8_t MARLIN_IDLE_CNT_BUSY = 1;
 #if ANY(CRASH_RECOVERY, POWER_PANIC)
 static void check_crash() {
     // reset the nested loop check once per main server iteration
-    crash_s.loop = false;
+    crash_s.needs_stack_unwind = false;
 
     #if ENABLED(POWER_PANIC)
     // handle server state-change overrides happening in the ISRs here (and nowhere else)
@@ -604,7 +604,9 @@ static void check_crash() {
             || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLFALL)
             || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH)
             || (crash_s.get_state() == Crash_s::TRIGGERED_HOMEFAIL))) {
-        crash_s.loop = false; // Set again to prevent race when ISR happens during this function
+
+        // Set again to prevent race when ISR happens during this function
+        crash_s.needs_stack_unwind = false;
         server.print_state = State::CrashRecovery_Begin;
         return;
     }
