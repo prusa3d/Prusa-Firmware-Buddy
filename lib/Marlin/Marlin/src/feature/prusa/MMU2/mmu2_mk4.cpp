@@ -702,6 +702,12 @@ void MMU2::UnloadInner(PreUnloadPolicy preUnloadPolicy) {
         extruder_move(-40.F, 60.F);
         planner_synchronize();
         break;
+    case PreUnloadPolicy::RelieveFilamentLoadingTest:
+        // loading test doesn't have a ramming sequence preceding the unload,
+        // it needs to relieve the filament manually by a fixed distance (which is 50mm of load + some margin)
+        extruder_move(-70.F, 60.F);
+        planner_synchronize();
+        break;
     case PreUnloadPolicy::Nothing:
         break;
     };
@@ -781,7 +787,7 @@ bool MMU2::loading_test(uint8_t slot) {
         thermal_setExtrudeMintemp(0); // Allow cold extrusion - load test doesn't push filament all the way into the nozzle
         ToolChangeCommon(slot);
         planner_synchronize();
-        UnloadInner(PreUnloadPolicy::RelieveFilament);
+        UnloadInner(PreUnloadPolicy::RelieveFilamentLoadingTest);
         thermal_setExtrudeMintemp(EXTRUDE_MINTEMP);
     }
     ScreenUpdateEnable();
