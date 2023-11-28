@@ -450,12 +450,9 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
 }
 
 bool phase_stepping::any_axis_active() {
-    for (auto &state : axis_states) {
-        if (state->active) {
-            return true;
-        }
-    }
-    return false;
+    return std::ranges::any_of(axis_states, [](const auto &state) -> bool {
+        return state->active;
+    });
 }
 
 __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_phase(int axis, float position) {
