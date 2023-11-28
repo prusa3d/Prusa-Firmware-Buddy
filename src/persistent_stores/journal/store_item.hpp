@@ -39,12 +39,12 @@ public:
         return data;
     }
 
-    void set(DataT in) {
+    void set(const DataT &in) {
         if (in == data) {
             return;
         }
         auto l = backend().lock();
-        data = std::move(in);
+        data = in;
         do_save();
     }
 
@@ -73,8 +73,8 @@ public:
         return data.data();
     }
 
-    void init(DataT in) {
-        data = std::move(in);
+    void init(const DataT &in) {
+        data = in;
     }
 
     void ram_dump() {
