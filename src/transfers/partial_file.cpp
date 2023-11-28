@@ -220,7 +220,19 @@ PartialFile::BufferPeek PartialFile::get_current_buffer(bool block_waiting) {
     }
 
     const size_t buffer_offset = current_offset - get_offset(current_sector->sector_nbr);
-    return make_tuple(current_sector->data, buffer_offset);
+    return BufferAndSizes {
+        current_sector->data,
+        buffer_offset,
+        allowed_write_size(),
+    };
+}
+
+size_t PartialFile::allowed_write_size() const {
+    return allowed_sectors() * SECTOR_SIZE;
+}
+
+size_t PartialFile::allowed_sectors() const {
+    return SECTORS_PER_WRITE - (current_sector->sector_nbr % SECTORS_PER_WRITE);
 }
 
 bool PartialFile::advance_written(size_t by) {
@@ -230,7 +242,7 @@ bool PartialFile::advance_written(size_t by) {
     if (next_offset > state.total_size) {
         fatal_error("Request to write past the end of file.", "transfers");
     }
-    if (next_sector_nbr < current_sector->sector_nbr || next_sector_nbr >= current_sector->sector_nbr + SECTORS_PER_WRITE) {
+    if (next_sector_nbr < current_sector->sector_nbr || next_sector_nbr >= current_sector->sector_nbr + allowed_sectors()) {
         current_offset = next_offset;
         // TODO: We may need some non-blocking way?
         if (write_current_sector()) {
@@ -262,14 +274,14 @@ bool PartialFile::write(const uint8_t *data, size_t size) {
             return false;
         }
         // else -> we got a buffer
-        assert(holds_alternative<BufferAndOffset>(buffer));
-        auto [buff_ptr, offset] = get<BufferAndOffset>(buffer);
+        assert(holds_alternative<BufferAndSizes>(buffer));
+        const auto buff = get<BufferAndSizes>(buffer);
 
-        const size_t buffer_remaining = BUFFER_SIZE - offset;
+        const size_t buffer_remaining = buff.size - buff.offset;
         const size_t write_size = std::min(size, buffer_remaining);
         assert(buffer_remaining > 0);
         assert(write_size > 0);
-        memcpy(buff_ptr + offset, data, write_size);
+        memcpy(buff.buffer + buff.offset, data, write_size);
 
         if (!advance_written(write_size)) {
             return false;

@@ -198,6 +198,17 @@ private:
     WrittenCallback *written_callback = nullptr;
     void *written_callback_arg;
 
+    /// How large (in bytes) write are we going to do now?
+    ///
+    /// Depends on if the current sector is "aligned" to the write size or not.
+    ///
+    /// Current buffer must be allocated at this point.
+    size_t allowed_write_size() const;
+
+    /// How many sectors can we write (either aligned completely or to round up
+    /// to alignment for next write).
+    size_t allowed_sectors() const;
+
 public:
     PartialFile(UsbhMscRequest::LunNbr drive, UsbhMscRequest::SectorNbr first_sector, State state, int file_lock);
     ~PartialFile();
@@ -232,8 +243,20 @@ public:
     struct WriteError {};
     struct OutOfRange {};
 
-    using BufferAndOffset = std::tuple<uint8_t *, size_t>;
-    using BufferPeek = std::variant<BufferAndOffset, WouldBlock, WriteError, OutOfRange>;
+    struct BufferAndSizes {
+        uint8_t *buffer;
+        // Already written into the buffer this far
+        size_t offset;
+        // Usable size of the buffer.
+        //
+        // Note: may be different each time (sometimes we allow "big" writes,
+        // sometimes small ones).
+        //
+        // This does not account for "end of file", that's still up to the
+        // caller.
+        size_t size;
+    };
+    using BufferPeek = std::variant<BufferAndSizes, WouldBlock, WriteError, OutOfRange>;
 
     /// Provides a data pointer and offset (to the place where already written) to the current write buffer.
     ///
