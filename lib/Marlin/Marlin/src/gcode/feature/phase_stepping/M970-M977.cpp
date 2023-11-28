@@ -13,7 +13,7 @@ LOG_COMPONENT_REF(PhaseStepping);
 
 using namespace std::literals;
 
-static constexpr std::array<std::pair<AxisEnum, char>, 3> SUPPORTED_AXES = {
+static constexpr std::array<std::pair<AxisEnum, char>, 2> SUPPORTED_AXES = {
     { { X_AXIS, 'X' }, { Y_AXIS, 'Y' } }
 };
 
