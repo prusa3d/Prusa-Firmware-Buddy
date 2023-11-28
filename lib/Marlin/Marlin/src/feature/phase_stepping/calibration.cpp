@@ -355,7 +355,7 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
     int counter = 0;
     PrusaAccelerometer accelerometer;
     if (accelerometer.get_error() != PrusaAccelerometer::Error::none) {
-        log_debug(PhaseStepping, "Cannot initialize accelerometer %d", accelerometer.get_error());
+        log_debug(PhaseStepping, "Cannot initialize accelerometer %u", static_cast<unsigned>(accelerometer.get_error()));
         return 0;
     }
     accelerometer.clear();
@@ -368,7 +368,7 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
         }
     }
     if (accelerometer.get_error() != PrusaAccelerometer::Error::none) {
-        log_debug(PhaseStepping, "Accelerometer reading failed %d", accelerometer.get_error());
+        log_debug(PhaseStepping, "Accelerometer reading failed %u", static_cast<unsigned>(accelerometer.get_error()));
         return 0;
     }
     return accelerometer.get_sampling_rate();
