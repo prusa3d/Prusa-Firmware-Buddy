@@ -28,7 +28,10 @@ namespace {
         const size_t end_pos = newline != nullptr ? newline - start : tail_size;
 
         // We'll replace the \n with \0
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
         char gcode_buf[end_pos + 1];
+#pragma GCC diagnostic pop
         memcpy(gcode_buf, start, end_pos);
         gcode_buf[end_pos] = '\0';
 

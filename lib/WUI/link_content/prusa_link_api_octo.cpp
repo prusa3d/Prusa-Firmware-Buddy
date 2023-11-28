@@ -57,7 +57,10 @@ optional<ConnectionState> PrusaLinkApiOcto::accept(const RequestParser &parser) 
         // case it isn't.
         if (parser.method == Method::Post && !parser.boundary().empty()) {
             const auto boundary = parser.boundary();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
             char boundary_cstr[boundary.size() + 1];
+#pragma GCC diagnostic pop
             memcpy(boundary_cstr, boundary.begin(), boundary.size());
             boundary_cstr[boundary.size()] = '\0';
             printer::UploadState uploadState(boundary_cstr);

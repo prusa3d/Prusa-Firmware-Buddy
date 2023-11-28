@@ -38,7 +38,11 @@ JsonResult JsonOutput::output_field_str_esc(size_t resume_point, const char *nam
     // " and \ are not allowed in SFN and this is for SFNs and similar only.
 
     const size_t len_value = strlen(value);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
     char buffer[len_value * 3 + 1]; // Encoding might grow up to 3 times (+ \0)
+#pragma GCC diagnostic pop
 
     [[maybe_unused]] const bool encode_successful = json_escape_bytes(value, buffer, sizeof(buffer));
     assert(encode_successful);
@@ -73,7 +77,11 @@ JsonResult JsonOutput::output_field_str_format(size_t resume_point, const char *
     }
 
     // Now, get the buffer of the right size and format it.
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
     char buffer[needed];
+#pragma GCC diagnostic pop
     vsnprintf(buffer, needed, format, params2);
     va_end(params2);
 

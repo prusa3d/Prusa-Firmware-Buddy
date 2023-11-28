@@ -225,7 +225,10 @@ namespace {
     }
 
     UploadHooks::Result make_dir(string_view dir) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
         char path[USB_MOUNT_POINT_LENGTH + dir.length() + 1];
+#pragma GCC diagnostic pop
 
         auto error = prepend_usb_path(dir, path, sizeof(path));
         if (std::get<0>(error) != Status::Ok) {
@@ -259,7 +262,11 @@ namespace {
         if (pos == path.npos) {
             return true;
         }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
         char last_dir[pos + USB_MOUNT_POINT_LENGTH + 1];
+#pragma GCC diagnostic pop
         auto error = prepend_usb_path(path.substr(0, pos), last_dir, sizeof(last_dir));
         if (std::get<0>(error) != Status::Ok) {
             return error;

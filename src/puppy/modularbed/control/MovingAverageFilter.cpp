@@ -13,7 +13,7 @@ MovingAverageFilter::MovingAverageFilter(uint32_t dataPointCount)
 
     m_pDataSet = new uint32_t[m_DataPointCount];
     assert(m_pDataSet != nullptr);
-    memset(m_pDataSet, 0, sizeof(uint32_t[m_DataPointCount]));
+    memset(m_pDataSet, 0, sizeof(uint32_t) * m_DataPointCount);
 }
 
 MovingAverageFilter::~MovingAverageFilter() {

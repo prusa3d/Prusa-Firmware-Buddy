@@ -117,7 +117,7 @@ void SelftestFrameDock::set_name(SelftestDocks_t data) {
     static const char fmt2Translate[] = N_("Dock %d calibration");
     size_t buff_pos = 0;
     if (data.current_dock != std::numeric_limits<decltype(data.current_dock)>::max()) {
-        char fmt[name_buff.size()];
+        char fmt[std::tuple_size_v<decltype(name_buff)>];
         _(fmt2Translate).copyToRAM(fmt, sizeof(name_buff));
         buff_pos += snprintf(name_buff.data(), name_buff.size(), fmt, data.current_dock + 1);
         buff_pos = std::min(buff_pos, name_buff.size());

@@ -205,16 +205,13 @@ void CSelftestPart_Axis::motor_switch(Motor steps) {
 
     queue.enqueue_one_now("M914 X Y"); // Reset XY homing sensitivity
 
-    const char fmt_curr[] = "M906 X%u Y%u";
-    int sz_curr = snprintf(NULL, 0, fmt_curr, std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max());
-    char gcode_curr[sz_curr + 1]; // note +1 for terminating null byte
-    snprintf(gcode_curr, sizeof(gcode_curr), fmt_curr, get_rms_current_ma_x(), get_rms_current_ma_y()); // XY motor currents
+    static constexpr size_t buffer_size { 50 }; // enough space to have the gcode + two numbers of max 11 digits
+    char gcode_curr[buffer_size]; // note +1 for terminating null byte
+    snprintf(gcode_curr, buffer_size, "M906 X%u Y%u", get_rms_current_ma_x(), get_rms_current_ma_y()); // XY motor currents
     queue.enqueue_one_now(gcode_curr);
 
-    const char fmt_microstep[] = "M350 X%u Y%u";
-    int sz_microstep = snprintf(NULL, 0, fmt_microstep, std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max());
-    char gcode_microstep[sz_microstep + 1]; // note +1 for terminating null byte
-    snprintf(gcode_microstep, sizeof(gcode_microstep), fmt_microstep, get_microsteps_x(), get_microsteps_y()); // XY motor microsteps
+    char gcode_microstep[buffer_size]; // note +1 for terminating null byte
+    snprintf(gcode_microstep, buffer_size, "M350 X%u Y%u", get_microsteps_x(), get_microsteps_y()); // XY motor microsteps
     queue.enqueue_one_now(gcode_microstep);
 }
 

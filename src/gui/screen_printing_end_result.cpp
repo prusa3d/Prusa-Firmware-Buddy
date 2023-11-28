@@ -186,7 +186,7 @@ void EndResultBody::handle_wipe_tower_showing([[maybe_unused]] const GCodeInfo &
 
         auto &buff { consumed_wipe_tower_value_buffer };
 
-        char translated_fmt[buff.size()];
+        char translated_fmt[std::tuple_size_v<decltype(consumed_wipe_tower_value_buffer)>];
         _(txt_wipe_tower_pretranslated).copyToRAM(translated_fmt, sizeof(translated_fmt));
         snprintf(buff.data(), buff.size(), translated_fmt, static_cast<int>(gcode.get_filament_wipe_tower_g().value()));
 
