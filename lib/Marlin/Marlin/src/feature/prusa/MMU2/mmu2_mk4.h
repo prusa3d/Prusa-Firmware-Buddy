@@ -356,6 +356,7 @@ private:
         Nothing,
         Ramming,
         RelieveFilament,
+        RelieveFilamentLoadingTest,
     };
     void UnloadInner(PreUnloadPolicy preUnloadPolicy);
     void CutFilamentInner(uint8_t slot);
