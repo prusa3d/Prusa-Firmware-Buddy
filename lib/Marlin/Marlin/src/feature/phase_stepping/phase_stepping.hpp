@@ -17,6 +17,7 @@
 
     #include <memory>
     #include <atomic>
+    #include <cassert>
 
 namespace phase_stepping {
 
@@ -255,6 +256,66 @@ public:
 
 using EnsureEnabled = EnsureState<true>;
 using EnsureDisabled = EnsureState<false>;
+
+enum class CorrectionType {
+    forward,
+    backward,
+};
+
+constexpr const char *get_correction_file_path(AxisEnum axis, CorrectionType lut_type) {
+    switch (axis) {
+    case AxisEnum::X_AXIS:
+        switch (lut_type) {
+        case CorrectionType::forward:
+            return "/internal/phase_step_x_fwd";
+        case CorrectionType::backward:
+            return "/internal/phase_step_x_bck";
+        }
+        break;
+    case AxisEnum::Y_AXIS:
+        switch (lut_type) {
+        case CorrectionType::forward:
+            return "/internal/phase_step_y_fwd";
+        case CorrectionType::backward:
+            return "/internal/phase_step_y_bck";
+        }
+        break;
+    default:
+        break;
+    }
+    assert(false);
+    return "";
+}
+
+/**
+ * @brief Saves correction to a file
+ *
+ * @param lut
+ * @param file_path
+ */
+void save_correction_to_file(const CorrectedCurrentLut &lut, const char *file_path);
+
+/**
+ * @brief Loads correction from a file
+ *
+ * @param lut
+ * @param file_path
+ */
+void load_correction_from_file(CorrectedCurrentLut &lut, const char *file_path);
+
+/**
+ * @brief Call to save current state into persistent media (ie eeprom/xflash)
+ * state == lookup tables, is enabled/disabled
+ *
+ */
+void save_to_persistent_storage(AxisEnum axis);
+
+/**
+ * @brief Call to load current state from persistent media (ie eeprom/xflash)
+ * state == lookup tables, is enabled/disabled
+ *
+ */
+void load_from_persistent_storage(AxisEnum axis);
 
 } // namespace phase_stepping
 

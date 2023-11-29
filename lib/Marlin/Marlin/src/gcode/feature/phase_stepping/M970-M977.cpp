@@ -8,6 +8,7 @@
 
 #include <log.h>
 #include <string_view>
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_REF(PhaseStepping);
 
@@ -65,6 +66,7 @@ void GcodeSuite::M970() {
             continue;
         }
         phase_stepping::enable(axis, true);
+        config_store().set_phase_stepping_enabled(axis, true);
     }
 }
 
@@ -80,6 +82,7 @@ void GcodeSuite::M971() {
             continue;
         }
         phase_stepping::enable(axis, false);
+        config_store().set_phase_stepping_enabled(axis, false);
     }
 }
 
@@ -170,7 +173,8 @@ void GcodeSuite::M973() {
 
     AxisEnum axis = str_arg[0] == 'X' ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
     phase_stepping::AxisState &axis_state = *phase_stepping::axis_states[axis];
-    auto &lut = str_arg[1] == 'F'
+    const bool forward_correction { str_arg[1] == 'F' };
+    auto &lut = forward_correction
         ? axis_state.forward_current
         : axis_state.backward_current;
 
@@ -202,6 +206,8 @@ void GcodeSuite::M973() {
             }
         }
     });
+
+    phase_stepping::save_correction_to_file(lut, phase_stepping::get_correction_file_path(axis, forward_correction ? phase_stepping::CorrectionType::forward : phase_stepping::CorrectionType::backward));
 }
 
 template <typename YieldError>
@@ -513,5 +519,7 @@ void GcodeSuite::M977() {
         SERIAL_ECHO("\n");
     }
 
+    phase_stepping::save_correction_to_file(phase_stepping::axis_states[axis]->forward_current, phase_stepping::get_correction_file_path(axis, phase_stepping::CorrectionType::forward));
+    phase_stepping::save_correction_to_file(phase_stepping::axis_states[axis]->backward_current, phase_stepping::get_correction_file_path(axis, phase_stepping::CorrectionType::backward));
     phase_stepping::last_calibration_result = phase_stepping::CalibrationResult::Ok;
 }

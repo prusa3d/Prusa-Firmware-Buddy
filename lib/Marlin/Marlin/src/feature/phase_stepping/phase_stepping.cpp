@@ -4,6 +4,7 @@
 #include "../precise_stepping/precise_stepping.hpp"
 #include "../precise_stepping/internal.hpp"
 #include "../input_shaper/input_shaper.hpp"
+#include <config_store/store_instance.hpp>
 
 #include <device/peripherals.h>
 #include <module/motion.h>
@@ -60,6 +61,8 @@ float MoveTarget::target_position() const {
 void phase_stepping::init() {
     phase_stepping::axis_states[0].reset(new AxisState(AxisEnum::X_AXIS));
     phase_stepping::axis_states[1].reset(new AxisState(AxisEnum::Y_AXIS));
+    load_from_persistent_storage(AxisEnum::X_AXIS);
+    load_from_persistent_storage(AxisEnum::Y_AXIS);
 }
 
 static void init_step_generator_internal(
@@ -525,3 +528,62 @@ __attribute__((optimize("-Ofast"))) std::tuple<float, float> phase_stepping::axi
         trg.initial_pos + trg.start_v * epoch + trg.half_accel * epoch * epoch
     };
 }
+
+namespace phase_stepping {
+namespace {
+    /**
+     * @brief Used for saving correction to/from a file
+     *
+     */
+    struct CorrectionSaveFormat {
+        uint8_t reserve[32] {}; // 32 zeroed out bytes to have some room in the future for potential versioning etc (head)
+        MotorPhaseCorrection correction;
+    };
+} // namespace
+
+void save_correction_to_file(const CorrectedCurrentLut &lut, const char *file_path) {
+    FILE *save_file = fopen(file_path, "wb");
+    if (!save_file) {
+        assert(false); // should never happen
+        return;
+    }
+
+    CorrectionSaveFormat save_format { .correction = lut.get_correction() };
+    [[maybe_unused]] auto written = fwrite(&save_format, 1, sizeof(CorrectionSaveFormat), save_file);
+    assert(written == sizeof(CorrectionSaveFormat));
+
+    fclose(save_file);
+}
+
+void load_correction_from_file(CorrectedCurrentLut &lut, const char *file_path) {
+    FILE *read_file = fopen(file_path, "rb");
+    if (!read_file) {
+        return; // not an error
+    }
+
+    CorrectionSaveFormat save_format {};
+    auto read = fread(&save_format, 1, sizeof(CorrectionSaveFormat), read_file);
+    if (read == sizeof(CorrectionSaveFormat)) {
+        lut.modify_correction([&](MotorPhaseCorrection &table) {
+            table = save_format.correction;
+        });
+    }
+    fclose(read_file);
+}
+
+void save_to_persistent_storage(AxisEnum axis) {
+    assert(axis < SUPPORTED_AXIS_COUNT);
+    config_store().set_phase_stepping_enabled(axis, axis_states[axis]->active);
+
+    save_correction_to_file(axis_states[axis]->forward_current, get_correction_file_path(axis, CorrectionType::forward));
+    save_correction_to_file(axis_states[axis]->backward_current, get_correction_file_path(axis, CorrectionType::backward));
+}
+
+void load_from_persistent_storage(AxisEnum axis) {
+    assert(axis < SUPPORTED_AXIS_COUNT);
+    phase_stepping::enable(axis, config_store().get_phase_stepping_enabled(axis));
+
+    load_correction_from_file(axis_states[axis]->forward_current, get_correction_file_path(axis, CorrectionType::forward));
+    load_correction_from_file(axis_states[axis]->backward_current, get_correction_file_path(axis, CorrectionType::backward));
+}
+} // namespace phase_stepping

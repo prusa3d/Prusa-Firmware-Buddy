@@ -27,6 +27,7 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
+#include <option/has_phase_stepping.h>
 
 namespace config_store_ns {
 /**
@@ -396,6 +397,14 @@ struct CurrentStore
 
 #if PRINTER_IS_PRUSA_MK3_5
     StoreItem<bool, defaults::bool_false, journal::hash("Has Alt Fans")> has_alt_fans;
+#endif
+
+#if HAS_PHASE_STEPPING()
+    StoreItem<bool, defaults::bool_false, journal::hash("Phase Stepping Enabled X")> phase_stepping_enabled_x;
+    StoreItem<bool, defaults::bool_false, journal::hash("Phase Stepping Enabled Y")> phase_stepping_enabled_y;
+
+    bool get_phase_stepping_enabled(AxisEnum axis);
+    void set_phase_stepping_enabled(AxisEnum axis, bool new_state);
 #endif
 };
 
