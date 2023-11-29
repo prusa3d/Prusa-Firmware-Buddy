@@ -120,11 +120,11 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .heatbreak_fan_fnc = Fans::heat_break,
         .print_fan_fnc = Fans::print,
         .heat_time_ms = 42000,
-        .start_temp = 40,
-        .undercool_temp = 37,
+        .start_temp = 80,
+        .undercool_temp = 75,
         .target_temp = 290,
-        .heat_min_temp = 180,
-        .heat_max_temp = 230,
+        .heat_min_temp = 195,
+        .heat_max_temp = 245,
         .heatbreak_min_temp = 10,
         .heatbreak_max_temp = 45,
         .heater_load_stable_ms = 200,
@@ -132,6 +132,8 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .heater_full_load_max_W = 50,
         .pwm_100percent_equivalent_value = 127,
         .min_pwm_to_measure = 26,
+        .nozzle_sock_temp_offset = -20,
+        .high_flow_nozzle_temp_offset = -5,
     }
 };
 
