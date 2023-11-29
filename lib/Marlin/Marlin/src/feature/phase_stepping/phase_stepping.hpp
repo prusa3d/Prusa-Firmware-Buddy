@@ -39,7 +39,7 @@ struct AxisState {
     AxisState(AxisEnum axis)
         : axis_index(axis) {}
 
-    int axis_index;
+    const int axis_index;
 
     CorrectedCurrentLut forward_current, backward_current;
 
