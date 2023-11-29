@@ -24,6 +24,10 @@ FooterItemNozzle::FooterItemNozzle(window_t *parent)
     : AddSuperWindow<FooterItemHeater>(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
 }
 
+FooterItemNozzleDiameter::FooterItemNozzleDiameter(window_t *parent)
+    : AddSuperWindow<FooterIconText_FloatVal>(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
+}
+
 FooterItemBed::FooterItemBed(window_t *parent)
     : AddSuperWindow<FooterItemHeater>(parent, &img::heatbed_16x16, static_makeView, static_readValue) {
 #if ENABLED(MODULAR_HEATBED)
@@ -178,6 +182,10 @@ int FooterItemNozzle::static_readValue() {
     return temps.ToInt();
 }
 
+float FooterItemNozzleDiameter::static_readValue() {
+    return config_store().get_nozzle_diameter(marlin_vars()->active_extruder.get());
+}
+
 int FooterItemBed::static_readValue() {
     uint current = marlin_vars()->temp_bed;
     uint target = marlin_vars()->target_bed;
@@ -221,6 +229,17 @@ int FooterItemAllNozzles::static_readValue() {
 string_view_utf8 FooterItemNozzle::static_makeView(int value) {
     static buffer_t buff;
     return static_makeViewIntoBuff(value, buff);
+}
+
+string_view_utf8 FooterItemNozzleDiameter::static_makeView(float value) {
+    static std::array<char, 7> buff;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+    snprintf(buff.data(), buff.size(), "%.1gmm", (double)value);
+#pragma GCC diagnostic pop
+
+    return string_view_utf8::MakeRAM((const uint8_t *)(buff.data() + (buff[0] == '0' ? 1 : 0) /* if value ~ 0.xx, skip the 0 */));
 }
 
 string_view_utf8 FooterItemBed::static_makeView(int value) {

@@ -16,6 +16,14 @@ public:
     FooterItemNozzle(window_t *parent);
 };
 
+class FooterItemNozzleDiameter : public AddSuperWindow<FooterIconText_FloatVal> {
+    static string_view_utf8 static_makeView(float value);
+    static float static_readValue();
+
+public:
+    FooterItemNozzleDiameter(window_t *parent);
+};
+
 class FooterItemBed : public AddSuperWindow<FooterItemHeater> {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
