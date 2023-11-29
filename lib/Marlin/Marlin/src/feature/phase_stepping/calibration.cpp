@@ -5,6 +5,7 @@
 #include <log.h>
 #include <module/planner.h>
 #include <module/motion.h>
+#include <module/temperature.h>
 
 #include <vector>
 #include <cmath>
@@ -192,17 +193,27 @@ static float rev_to_mm(AxisEnum axis, float revs) {
     return revs * get_motor_steps(axis) * FACTORS[axis];
 }
 
-// Wait for a state of a given axis specified by a predicate. Returns true on
-// success, false on timeout
+// @brief Wait for a state of a given axis specified by a predicate with a high resolution.
+// @return true on success, false on timeout
+// Keep managing the heaters at a regular interval, as done in safe_delay()
 template <typename Pred>
 static bool wait_for_movement_state(phase_stepping::AxisState &axis_state,
     int timeout_ms, Pred pred) {
     auto start_time = ticks_ms();
+
+    auto last_thermal_tick = start_time;
+    static constexpr auto thermal_tick_int_ms = 50;
+
     while (!(pred(axis_state))) {
-        if (ticks_diff(ticks_ms(), start_time) > timeout_ms) {
+        auto cur_time = ticks_ms();
+        if (ticks_diff(cur_time, start_time) > timeout_ms) {
             return false;
+        } else if (ticks_diff(cur_time, last_thermal_tick) > thermal_tick_int_ms) {
+            thermalManager.manage_heater();
+            last_thermal_tick -= thermal_tick_int_ms;
+        } else {
+            osDelay(1);
         }
-        osDelay(1);
     }
     return true;
 }
@@ -350,7 +361,7 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
         return 0;
     }
 
-    delay(vibration_delay * 1000);
+    safe_delay(vibration_delay * 1000);
 
     int counter = 0;
     PrusaAccelerometer accelerometer;
