@@ -39,6 +39,16 @@ Rect16 MsgBoxBase::getTextRect() {
     }
 }
 
+void MsgBoxBase::generate_response(Response r) {
+    result = r;
+
+    if (flags.close_on_click == is_closed_on_click_t::yes) {
+        Screens::Access()->Close();
+    } else if (GetParent()) {
+        GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, event_conversion_union { .response = r }.pvoid);
+    }
+}
+
 void MsgBoxBase::set_text_alignment(Align_t alignment) {
     text.SetAlignment(alignment);
 }
@@ -48,21 +58,18 @@ void MsgBoxBase::set_text_font(Font font) {
 }
 
 void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    event_conversion_union un;
-    un.pvoid = param;
-
     switch (event) {
-    case GUI_event_t::CHILD_CLICK:
-        result = un.response;
-        if (flags.close_on_click == is_closed_on_click_t::yes) {
-            Screens::Access()->Close();
-        } else if (GetParent()) {
-            GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
-        }
-        break;
-    default:
-        SuperWindowEvent(sender, event, param);
+
+    case GUI_event_t::CHILD_CLICK: {
+        generate_response(event_conversion_union { .pvoid = param }.response);
+        return;
     }
+
+    default:
+        break;
+    }
+
+    SuperWindowEvent(sender, event, param);
 }
 
 static constexpr Font TitleFont = GuiDefaults::FontBig;
