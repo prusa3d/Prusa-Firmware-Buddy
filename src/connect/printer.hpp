@@ -98,7 +98,7 @@ public:
         bool has_usb = false;
         uint64_t usb_space_free = 0;
         PrinterVersion version;
-        printer_state::DeviceState state = printer_state::DeviceState::Unknown;
+        printer_state::StateWithAttentionCode state = { printer_state::DeviceState::Unknown, std::nullopt };
 #if ENABLED(CANCEL_OBJECTS)
         size_t cancel_object_count = 0;
 #endif

@@ -65,7 +65,8 @@ namespace {
 
     JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const SendTelemetry &telemetry) {
         const auto params = state.printer.params();
-        const bool printing = is_printing(params.state);
+        const bool printing = is_printing(params.state.device_state);
+        char attention_code_buffer[8];
 
         const uint32_t current_fingerprint = params.telemetry_fingerprint(!printing);
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
@@ -166,10 +167,13 @@ namespace {
                     JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
                 }
 
+                if (params.state.device_state == DeviceState::Attention && params.state.attention_code.has_value()) {
+                    JSON_FIELD_STR("attention_code", to_str(*params.state.attention_code, attention_code_buffer, sizeof(attention_code_buffer))) JSON_COMMA;
+                }
                 // State is sent always, first because it seems important, but
                 // also, we want something that doesn't have the final comma on
                 // it.
-                JSON_FIELD_STR("state", to_str(params.state));
+                JSON_FIELD_STR("state", to_str(params.state.device_state));
             }
         JSON_OBJ_END;
         JSON_END;
@@ -180,7 +184,8 @@ namespace {
         const auto params = state.printer.params();
         const auto &info = state.printer.printer_info();
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
-        const bool printing = is_printing(params.state);
+        const bool printing = is_printing(params.state.device_state);
+        char attention_code_buffer[8];
 #if ENABLED(CANCEL_OBJECTS)
         char cancel_object_name[Printer::CANCEL_OBJECT_NAME_LEN];
 #endif
@@ -434,7 +439,10 @@ namespace {
 #endif
             }
 
-            JSON_FIELD_STR("state", to_str(params.state)) JSON_COMMA;
+            if (params.state.device_state == DeviceState::Attention && params.state.attention_code.has_value()) {
+                JSON_FIELD_STR("attention_code", to_str(*params.state.attention_code, attention_code_buffer, sizeof(attention_code_buffer))) JSON_COMMA;
+            }
+            JSON_FIELD_STR("state", to_str(params.state.device_state)) JSON_COMMA;
             if (event.command_id.has_value()) {
                 JSON_FIELD_INT("command_id", *event.command_id) JSON_COMMA;
             }
@@ -791,7 +799,7 @@ RenderState::RenderState(const Printer &printer, const Action &action, Tracked &
 
         switch (event->type) {
         case EventType::JobInfo:
-            if (is_printing(params.state)) {
+            if (is_printing(params.state.device_state)) {
                 path = params.job_path();
             }
             break;

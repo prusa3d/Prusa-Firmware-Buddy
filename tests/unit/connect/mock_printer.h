@@ -13,7 +13,7 @@ inline Printer::Params params_idle() {
     Printer::Params params(std::nullopt);
 
     params.job_id = 13;
-    params.state = printer_state::DeviceState::Idle;
+    params.state = { printer_state::DeviceState::Idle, std::nullopt };
     params.nozzle_diameter = 0.4;
     params.version = { 2, 3, 0 };
     params.number_of_slots = 1;
