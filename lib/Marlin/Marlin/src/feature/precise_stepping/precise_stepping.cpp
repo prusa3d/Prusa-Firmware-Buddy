@@ -1220,13 +1220,17 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
             }
         } else {
             if (physical_axis_step_generator_types & (PHASE_STEPPING_GENERATOR_X << i)) {
-                phase_stepping::init_step_generator_classic(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
+                phase_stepping::init_step_generator_classic(move, step_generators_pool.classic_step_generator[i], step_generator_state);
             } else {
                 classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
             }
         }
 #else
-        classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
+        if (physical_axis_step_generator_types & (PHASE_STEPPING_GENERATOR_X << i)) {
+            phase_stepping::init_step_generator_classic(move, step_generators_pool.classic_step_generator[i], step_generator_state);
+        } else {
+            classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
+        }
 #endif
     }
 
