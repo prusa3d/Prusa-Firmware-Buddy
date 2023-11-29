@@ -15226,7 +15226,15 @@ WCHAR ff_uni2oem (	/* Returns OEM code character, zero on error */
 )
 {
 	// PRUSA: Don't use codepages at all, consider SFN filenames as raw bytes
-	return uni < 0x100 ? uni : '?';
+	// If the symbol wouldn't fit into one byte,
+	// distribute uniformly into printable characters to reduce SFN name collisions.
+	// This can be non-reveretable - it's basically just for generating SFNs from LFNs.
+	// !!! Do not use '?', because that's not a valid filename character, so it would not work down the line.
+	if(uni >= 0x100) {
+		return 'A' + (uni % ('Z' - 'A' + 1));
+	}
+
+	return uni;
 }
 
 WCHAR ff_oem2uni (	/* Returns Unicode character in UTF-16, zero on error */
