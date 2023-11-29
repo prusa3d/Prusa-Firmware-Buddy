@@ -72,6 +72,8 @@ private:
     // HTTP, which won't work). Eventually, this'll get integrated into the
     // factory, but for now and for the experiments, we have it separate.
     std::optional<http::WebSocket> websocket;
+
+    CommResult receive_command(CachedFactory &conn_factory);
 #endif
 
     CommResult prepare_connection(CachedFactory &conn_factory, const Printer::Config &config);

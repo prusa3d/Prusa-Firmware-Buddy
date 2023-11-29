@@ -241,6 +241,125 @@ Connect::ServerResp Connect::handle_server_resp(http::Response resp, CommandId c
 }
 
 #if WEBSOCKET()
+CommResult Connect::receive_command(CachedFactory &conn_factory) {
+    bool first = true;
+    bool more = true;
+    uint32_t command_id = 0;
+    size_t read = 0;
+    bool is_json = true;
+    while (more) {
+        // TODO: Tune the timeouts / change the loop
+        // TODO: Handle Close, pings, etc
+        auto res = websocket->receive(first ? make_optional(100) : nullopt);
+
+        if (holds_alternative<monostate>(res)) {
+            break;
+        } else if (holds_alternative<Error>(res)) {
+            conn_factory.invalidate();
+            return err_to_status(get<Error>(res));
+        }
+
+        auto header = get<WebSocket::Message>(res);
+
+        // Control messages can come at any time. Even "in the middle" of
+        // multi-fragment message.
+        switch (header.opcode) {
+        case WebSocket::Opcode::Ping: {
+            // Not allowed to fragment
+            constexpr const size_t MAX_FRAGMENT_LEN = 126;
+            if (header.len > MAX_FRAGMENT_LEN) {
+                conn_factory.invalidate();
+                return OnlineError::Confused;
+            }
+
+            uint8_t data[MAX_FRAGMENT_LEN];
+            if (auto result = header.conn->rx_exact(data, header.len); result.has_value()) {
+                conn_factory.invalidate();
+                return err_to_status(*result);
+            }
+
+            if (auto result = websocket->send(WebSocket::Pong, false, data, header.len); result.has_value()) {
+                conn_factory.invalidate();
+                return err_to_status(*result);
+            }
+
+            // This one is handled, next one please.
+            continue;
+        }
+        case WebSocket::Opcode::Pong:
+            // We didn't send a ping, so not expecting pong... ignore pongs
+            header.ignore();
+            continue;
+        case WebSocket::Opcode::Close:
+            // The server is closing the connection, we are not getting the
+            // message. Throw the connection away.
+            conn_factory.invalidate();
+            return OnlineError::Network;
+        default:
+            // It's not websocket control message, handle it below
+            break;
+        }
+
+        first = false;
+
+        // TODO: Validate, etc.
+        if (header.command_id.has_value()) {
+            command_id = *header.command_id;
+        }
+
+        // TODO: Properly refuse
+        if (read + header.len > sizeof buffer) {
+            conn_factory.invalidate();
+            return OnlineError::Internal;
+        }
+
+        if (header.opcode == WebSocket::Opcode::Gcode) {
+            is_json = false;
+        }
+
+        uint8_t buffer[MAX_RESP_SIZE]; // Used for both sending and receiving now
+        if (auto result = header.conn->rx_exact(buffer + read, header.len); result.has_value()) {
+            conn_factory.invalidate();
+            return err_to_status(*result);
+        }
+
+        read += header.len;
+
+        if (header.last) {
+            if (command_id == planner().background_command_id()) {
+                planner().command(Command {
+                    command_id,
+                    ProcessingThisCommand {},
+                });
+
+                return ConnectionStatus::Ok;
+            }
+            auto buff(this->buffer.borrow());
+            if (!buff.has_value()) {
+                // We can only hold the buffer already borrowed in case we are still
+                // processing some command. In that case we can't accept another one
+                // and we just reject it.
+                planner().command(Command {
+                    command_id,
+                    ProcessingOtherCommand {},
+                });
+            }
+
+            if (is_json) {
+                auto command = Command::parse_json_command(command_id, reinterpret_cast<char *>(buffer), read, move(*buff));
+                planner().command(command);
+            } else {
+                const string_view body(reinterpret_cast<const char *>(buffer), read);
+                auto command = Command::gcode_command(command_id, body, move(*buff));
+            }
+
+            more = false;
+        }
+    }
+
+    return ConnectionStatus::Ok;
+}
+
 CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printer::Config &config) {
     if (!conn_factory.is_valid()) {
         // With websocket, we don't try the connection if we are in the error
@@ -327,7 +446,7 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
     }
     const bool is_full_telemetry = holds_alternative<SendTelemetry>(action) && !get<SendTelemetry>(action).empty;
     Renderer renderer(RenderState(printer, action, telemetry_changes, background_command_id));
-    uint8_t buffer[MAX_RESP_SIZE]; // Used for both sending and receiving now
+    uint8_t buffer[MAX_RESP_SIZE];
     bool more = true;
     bool first = true;
     while (more) {
@@ -358,121 +477,8 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
         last_full_telemetry = now;
     }
 
-    first = true;
-    more = true;
-    uint32_t command_id = 0;
-    size_t read = 0;
-    bool is_json = true;
-    while (more) {
-        // TODO: Tune the timeouts / change the loop
-        // TODO: Handle Close, pings, etc
-        auto res = websocket->receive(first ? make_optional(100) : nullopt);
-
-        if (holds_alternative<monostate>(res)) {
-            break;
-        } else if (holds_alternative<Error>(res)) {
-            conn_factory.invalidate();
-            return err_to_status(get<Error>(res));
-        }
-
-        auto header = get<WebSocket::Message>(res);
-
-        // Control messages can come at any time. Even "in the middle" of
-        // multi-fragment message.
-        switch (header.opcode) {
-        case WebSocket::Opcode::Ping: {
-            // Not allowed to fragment
-            constexpr const size_t MAX_FRAGMENT_LEN = 126;
-            if (header.len > MAX_FRAGMENT_LEN) {
-                conn_factory.invalidate();
-                return OnlineError::Confused;
-            }
-
-            uint8_t data[MAX_FRAGMENT_LEN];
-            if (auto result = header.conn->rx_exact(data, header.len); result.has_value()) {
-                conn_factory.invalidate();
-                return err_to_status(*result);
-            }
-
-            if (auto result = websocket->send(WebSocket::Pong, false, data, header.len); result.has_value()) {
-                conn_factory.invalidate();
-                return err_to_status(*result);
-            }
-
-            // This one is handled, next one please.
-            continue;
-        }
-        case WebSocket::Opcode::Pong:
-            // We didn't send a ping, so not expecting pong... ignore pongs
-            header.ignore();
-            continue;
-        case WebSocket::Opcode::Close:
-            // The server is closing the connection, we are not getting the
-            // message. Throw the connection away.
-            conn_factory.invalidate();
-            return OnlineError::Network;
-        default:
-            // It's not websocket control message, handle it below
-            break;
-        }
-
-        first = false;
-
-        // TODO: Validate, etc.
-        if (header.command_id.has_value()) {
-            command_id = *header.command_id;
-        }
-
-        // TODO: Properly refuse
-        if (read + header.len > sizeof buffer) {
-            conn_factory.invalidate();
-            return OnlineError::Internal;
-        }
-
-        if (header.opcode == WebSocket::Opcode::Gcode) {
-            is_json = false;
-        }
-
-        if (auto result = header.conn->rx_exact(buffer + read, header.len); result.has_value()) {
-            conn_factory.invalidate();
-            return err_to_status(*result);
-        }
-
-        read += header.len;
-
-        if (header.last) {
-            if (command_id == planner().background_command_id()) {
-                planner().command(Command {
-                    command_id,
-                    ProcessingThisCommand {},
-                });
-
-                return ConnectionStatus::Ok;
-            }
-            auto buff(this->buffer.borrow());
-            if (!buff.has_value()) {
-                // We can only hold the buffer already borrowed in case we are still
-                // processing some command. In that case we can't accept another one
-                // and we just reject it.
-                planner().command(Command {
-                    command_id,
-                    ProcessingOtherCommand {},
-                });
-            }
-
-            if (is_json) {
-                auto command = Command::parse_json_command(command_id, reinterpret_cast<char *>(buffer), read, move(*buff));
-                planner().command(command);
-            } else {
-                const string_view body(reinterpret_cast<const char *>(buffer), read);
-                auto command = Command::gcode_command(command_id, body, move(*buff));
-            }
-
-            more = false;
-        }
-    }
-
-    return ConnectionStatus::Ok;
+    // TODO: Move to a better place.
+    return receive_command(conn_factory);
 }
 #else
 CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printer::Config &config) {
