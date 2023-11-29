@@ -30,7 +30,7 @@ std::array<
     phase_stepping::axis_states = { { nullptr, nullptr } };
 
 // Module definitions
-static unsigned int axis_num_to_refresh = 0;
+static uint_fast8_t axis_num_to_refresh = 0;
 static const std::array<OutputPin, SUPPORTED_AXIS_COUNT> cs_pins = { { xCs, yCs } };
 
 MoveTarget::MoveTarget(float position)
@@ -248,9 +248,9 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // Read axis configuration and cache it so we can access it fast
     if (axis_num == AxisEnum::X_AXIS) {
         axis_state.inverted = INVERT_X_DIR;
-    } else if (axis_num_to_refresh == AxisEnum::Y_AXIS) {
+    } else if (axis_num == AxisEnum::Y_AXIS) {
         axis_state.inverted = INVERT_Y_DIR;
-    } else if (axis_num_to_refresh == AxisEnum::Z_AXIS) {
+    } else if (axis_num == AxisEnum::Z_AXIS) {
         axis_state.inverted = INVERT_Z_DIR;
     }
 
