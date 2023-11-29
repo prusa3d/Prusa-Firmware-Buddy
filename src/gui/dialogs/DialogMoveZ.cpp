@@ -5,6 +5,7 @@
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include "menu_vars.h"
+#include "sound.hpp"
 
 bool DialogMoveZ::DialogShown = false;
 
@@ -68,6 +69,7 @@ DialogMoveZ::DialogMoveZ()
 
 void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
+
     case GUI_event_t::CLICK: {
         /// has set is_closed_on_click_t
         /// todo
@@ -79,6 +81,7 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
         }
         return;
     }
+
     case GUI_event_t::ENC_DN: {
         const int enc_change = int(param);
         change(-enc_change);
@@ -90,6 +93,7 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
 #endif /*PRINTER_TYPE*/
         return;
     }
+
     case GUI_event_t::ENC_UP: {
         const int enc_change = int(param);
         change(enc_change);
@@ -101,10 +105,18 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
 #endif /*PRINTER_TYPE*/
         return;
     }
+
     case GUI_event_t::LOOP: {
         jog_axis(lastQueuedPos, value, Z_AXIS);
         return;
     }
+
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        Screens::Access()->Close();
+        return;
+
     default:
         return;
     }
