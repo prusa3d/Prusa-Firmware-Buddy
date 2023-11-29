@@ -73,6 +73,9 @@ private:
     // factory, but for now and for the experiments, we have it separate.
     std::optional<http::WebSocket> websocket;
 #endif
+
+    CommResult prepare_connection(CachedFactory &conn_factory, const Printer::Config &config);
+    CommResult send_command(CachedFactory &conn_factory, const Printer::Config &config, Action &&action, std::optional<CommandId> background_command_id, uint32_t now);
     // transmission and reception with Connect server
     CommResult communicate(CachedFactory &conn_factory);
     ServerResp handle_server_resp(http::Response response, CommandId command_id);

@@ -240,65 +240,19 @@ Connect::ServerResp Connect::handle_server_resp(http::Response resp, CommandId c
     }
 }
 
-CommResult Connect::communicate(CachedFactory &conn_factory) {
-    const auto [config, cfg_changed] = printer.config();
-
-    // Make sure to reconnect if the configuration changes .
-    if (cfg_changed) {
-        conn_factory.invalidate();
-        // Possibly new server, new telemetry cache...
-        telemetry_changes.mark_dirty();
-    }
-
-    if (!config.enabled) {
-        planner().reset();
-        Sleep::idle().perform(printer, planner());
-        return ConnectionStatus::Off;
-    } else if (config.host[0] == '\0' || config.token[0] == '\0') {
-        planner().reset();
-        Sleep::idle().perform(printer, planner());
-        return ConnectionStatus::NoConfig;
-    }
-
-    printer.drop_paths(); // In case they were left in there in some early-return case.
-    auto borrow = buffer.borrow();
-    if (planner().wants_job_paths()) {
-        assert(borrow.has_value());
-    } else {
-        borrow.reset();
-    }
-    printer.renew(move(borrow));
-
-    // This is a bit of a hack, we want to keep watching for USB being inserted
-    // or not. We don't have a good place, so we stuck it here.
-    transfers::ChangedPath::instance.media_inserted(printer.params().has_usb);
-
-    auto action = planner().next_action(buffer);
-
-    // Handle sleeping first. That one doesn't need the connection.
-    if (auto *s = get_if<Sleep>(&action)) {
-        s->perform(printer, planner());
-        return monostate {};
-    } else if (auto *e = get_if<Event>(&action); e && e->type == EventType::Info) {
-        // The server may delete its latest copy of telemetry in various case, in particular:
-        // * When it thinks we were offline for a while.
-        // * When it went through an update.
-        //
-        // In either case, we send or the server asks us to send the INFO
-        // event. We may send INFO for other reasons too, but don't bother to
-        // make that distinction for simplicity.
-        telemetry_changes.mark_dirty();
-    }
-
-    if (!conn_factory.is_valid()) {
 #if WEBSOCKET()
+CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printer::Config &config) {
+    if (!conn_factory.is_valid()) {
+        // With websocket, we don't try the connection if we are in the error
+        // state, so get rid of potential error state first.
+        conn_factory.invalidate();
+
         // Could have been using the old connection and contain a dangling pointer. Get rid of it.
         // (We currently don't do a proper shutdown
         websocket.reset();
         // FIXME: Temporary, to avoid busy-loop bombarding the server in case something doesn't work.
         // This should be handled by the planner somewhere.
         Sleep::idle().perform(printer, planner());
-#endif
         last_known_status = ConnectionStatus::Connecting;
     }
     // Let it reconnect if it needs it.
@@ -306,7 +260,6 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
 
     HttpClient http(conn_factory);
 
-#if WEBSOCKET()
     if (conn_factory.is_valid() && !websocket.has_value()) {
         // Let's do the upgrade
 
@@ -364,22 +317,11 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
         }
         }
     }
-#endif
 
-    uint32_t start = now();
-    // Underflow should naturally work
-    if (start - last_full_telemetry >= FULL_TELEMETRY_EVERY) {
-        // The server wants to get a full telemetry from time to time, despite
-        // it not being changed. Some caching reasons/recovery/whatever?
-        //
-        // If we didn't send a new telemetry for too long, reset the
-        // fingerprint, which'll trigger the resend.
-        telemetry_changes.mark_dirty();
-    }
+    return monostate {};
+}
 
-    const auto background_command_id = planner().background_command_id();
-
-#if WEBSOCKET()
+CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Config &, Action &&action, optional<CommandId> background_command_id, uint32_t now) {
     if (!websocket.has_value()) {
         return OnlineError::Network;
     }
@@ -413,12 +355,12 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     planner().action_done(ActionResult::Ok);
     if (is_full_telemetry && telemetry_changes.is_dirty()) {
         telemetry_changes.mark_clean();
-        last_full_telemetry = start;
+        last_full_telemetry = now;
     }
 
     first = true;
     more = true;
-    uint32_t command_id;
+    uint32_t command_id = 0;
     size_t read = 0;
     bool is_json = true;
     while (more) {
@@ -440,12 +382,13 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
         switch (header.opcode) {
         case WebSocket::Opcode::Ping: {
             // Not allowed to fragment
-            if (header.len > 126) {
+            constexpr const size_t MAX_FRAGMENT_LEN = 126;
+            if (header.len > MAX_FRAGMENT_LEN) {
                 conn_factory.invalidate();
                 return OnlineError::Confused;
             }
 
-            uint8_t data[header.len];
+            uint8_t data[MAX_FRAGMENT_LEN];
             if (auto result = header.conn->rx_exact(data, header.len); result.has_value()) {
                 conn_factory.invalidate();
                 return err_to_status(*result);
@@ -530,11 +473,24 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     }
 
     return ConnectionStatus::Ok;
-
+}
 #else
+CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printer::Config &config) {
+    if (!conn_factory.is_valid()) {
+        last_known_status = ConnectionStatus::Connecting;
+    }
+    // Let it reconnect if it needs it.
+    conn_factory.refresh(config);
 
+    return monostate {};
+}
+
+CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Config &config, Action &&action, optional<CommandId> background_command_id, uint32_t now) {
     BasicRequest request(printer, config, action, telemetry_changes, background_command_id);
     ExtractCommanId cmd_id;
+
+    HttpClient http(conn_factory);
+
     const auto result = http.send(request, &cmd_id);
     // Drop current job paths (if any) to make space for potentially parsing a command from the server.
     // In case we failed to send the JOB_INFO event that uses the paths, we
@@ -563,7 +519,7 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
             // sent only partial telemetry and don't want to reset the
             // last_full_telemetry.
             telemetry_changes.mark_clean();
-            last_full_telemetry = start;
+            last_full_telemetry = now;
         }
         return ConnectionStatus::Ok;
     case Status::Ok: {
@@ -571,7 +527,7 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
             // Yes, even before checking the command we got is OK. We did send
             // the telemetry, what happens to the command doesn't matter.
             telemetry_changes.mark_clean();
-            last_full_telemetry = start;
+            last_full_telemetry = now;
         }
         if (cmd_id.command_id.has_value()) {
             const auto sub_resp = handle_server_resp(resp, *cmd_id.command_id);
@@ -630,7 +586,78 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
             return OnlineError::Server;
         }
     }
+}
 #endif
+
+CommResult Connect::communicate(CachedFactory &conn_factory) {
+    const auto [config, cfg_changed] = printer.config();
+
+    // Make sure to reconnect if the configuration changes .
+    if (cfg_changed) {
+        conn_factory.invalidate();
+        // Possibly new server, new telemetry cache...
+        telemetry_changes.mark_dirty();
+    }
+
+    if (!config.enabled) {
+        planner().reset();
+        Sleep::idle().perform(printer, planner());
+        return ConnectionStatus::Off;
+    } else if (config.host[0] == '\0' || config.token[0] == '\0') {
+        planner().reset();
+        Sleep::idle().perform(printer, planner());
+        return ConnectionStatus::NoConfig;
+    }
+
+    printer.drop_paths(); // In case they were left in there in some early-return case.
+    auto borrow = buffer.borrow();
+    if (planner().wants_job_paths()) {
+        assert(borrow.has_value());
+    } else {
+        borrow.reset();
+    }
+    printer.renew(move(borrow));
+
+    // This is a bit of a hack, we want to keep watching for USB being inserted
+    // or not. We don't have a good place, so we stuck it here.
+    transfers::ChangedPath::instance.media_inserted(printer.params().has_usb);
+
+    auto action = planner().next_action(buffer);
+
+    // Handle sleeping first. That one doesn't need the connection.
+    if (auto *s = get_if<Sleep>(&action)) {
+        s->perform(printer, planner());
+        return monostate {};
+    } else if (auto *e = get_if<Event>(&action); e && e->type == EventType::Info) {
+        // The server may delete its latest copy of telemetry in various case, in particular:
+        // * When it thinks we were offline for a while.
+        // * When it went through an update.
+        //
+        // In either case, we send or the server asks us to send the INFO
+        // event. We may send INFO for other reasons too, but don't bother to
+        // make that distinction for simplicity.
+        telemetry_changes.mark_dirty();
+    }
+
+    auto prepared = prepare_connection(conn_factory, config);
+    if (!holds_alternative<monostate>(prepared)) {
+        return prepared;
+    }
+
+    uint32_t start = now();
+    // Underflow should naturally work
+    if (start - last_full_telemetry >= FULL_TELEMETRY_EVERY) {
+        // The server wants to get a full telemetry from time to time, despite
+        // it not being changed. Some caching reasons/recovery/whatever?
+        //
+        // If we didn't send a new telemetry for too long, reset the
+        // fingerprint, which'll trigger the resend.
+        telemetry_changes.mark_dirty();
+    }
+
+    const auto background_command_id = planner().background_command_id();
+
+    return send_command(conn_factory, config, move(action), background_command_id, start);
 }
 
 void Connect::run() {
