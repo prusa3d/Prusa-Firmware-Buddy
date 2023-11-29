@@ -4,6 +4,7 @@
 
 #include "screen_help_fw_update.hpp"
 #include "ScreenHandler.hpp"
+#include "sound.hpp"
 #include <config_store/store_instance.hpp>
 
 inline constexpr PhaseResponses Responses_Back = { Response::Back, Response::_none, Response::_none, Response::_none };
@@ -113,9 +114,19 @@ ScreenHelpFWUpdate::ScreenHelpFWUpdate()
 
 void ScreenHelpFWUpdate::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
     switch (event) {
+
     case GUI_event_t::CHILD_CLICK:
         Screens::Access()->Close();
         break;
+
+        // Touch swipe left/right = selecting the "back" response
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT: {
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        Screens::Access()->Close();
+        break;
+    }
+
     default:
         break;
     }
