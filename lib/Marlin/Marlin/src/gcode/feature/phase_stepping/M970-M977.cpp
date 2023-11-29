@@ -506,7 +506,7 @@ void GcodeSuite::M977() {
 
     auto [forward, backward] = *result;
 
-    for (int i = 0; i != phase_stepping::CORRECTION_HARMONICS; i++) {
+    for (size_t i = 0; i != forward.size(); i++) {
         SERIAL_ECHO(i);
         SERIAL_ECHO(": F");
         SERIAL_ECHO(fixed_repr(forward[i].mag));
