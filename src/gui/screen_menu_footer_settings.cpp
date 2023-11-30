@@ -40,13 +40,18 @@ footer::Item I_MI_FOOTER::to_footer_item(size_t index) {
 }
 
 size_t I_MI_FOOTER::to_index(footer::Item item) {
-    if (std::ranges::find(footer::disabled_items, item) != std::end(footer::disabled_items)) {
-        // if item is disabled, go to first index
-        return 0;
+    if (item >= footer::Item::_count) {
+        return ftrstd::to_underlying(footer::Item::none);
     }
+
+    if (std::ranges::find(footer::disabled_items, item) != std::end(footer::disabled_items)) {
+        return ftrstd::to_underlying(footer::Item::none);
+    }
+
     auto num_disabled_skipped = std::ranges::count_if(footer::disabled_items, [&item](const auto &elem) {
         return item >= elem;
     });
+
     return ftrstd::to_underlying(item) - num_disabled_skipped; // Other footer items are shifted by 1
 }
 

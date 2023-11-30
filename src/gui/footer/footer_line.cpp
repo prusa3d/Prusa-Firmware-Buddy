@@ -39,6 +39,10 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
     if (index >= max_items) {
         return false;
     }
+
+    if (item_id >= footer::Item::_count) {
+        item_id = footer::Item::none;
+    }
     if (item_ids[index] == item_id) {
         return false;
     }
