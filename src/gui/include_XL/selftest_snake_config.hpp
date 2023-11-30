@@ -41,6 +41,7 @@ enum class Action {
     FilamentSensorCalibration,
     ToolOffsetsCalibration,
     BedHeaters,
+    PhaseSteppingCalibration,
     _count,
     _last = _count - 1,
     _first = Fans,
@@ -127,6 +128,7 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
     { Action::BedHeaters, N_("%d Bed Heater Test") },
     { Action::NozzleHeaters, N_("%d Nozzle Heaters Test") },
+    { Action::PhaseSteppingCalibration, N_("%d Phase Stepping Calibration") },
 };
 
 TestResult get_test_result(Action action, Tool tool);
