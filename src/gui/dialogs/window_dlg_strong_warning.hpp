@@ -124,6 +124,7 @@ protected:
     window_dlg_strong_warning_t(const window_dlg_strong_warning_t &) = delete;
 
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
     void show(types type);
     void screenJump();
     void setIcon(const img::Resource *icon);
