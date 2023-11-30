@@ -53,7 +53,7 @@ public:
         , cleanup_transfers(cleanup_transfers)
         , run_transfer_recovery(run_transfer_recovery)
         , milliseconds(duration) {}
-    static Sleep idle();
+    static Sleep idle(Duration sleep_for);
     /// Sleeps up to the given time, processing any background tasks if possible.
     ///
     /// May terminate sooner if there's a reason to believe some situation has

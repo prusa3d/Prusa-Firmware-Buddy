@@ -185,7 +185,10 @@ namespace {
     const constexpr size_t MAX_RESP_SIZE = 256;
 
     // Send a full telemetry every 5 minutes.
-    const constexpr uint32_t FULL_TELEMETRY_EVERY = 5 * 60 * 1000;
+    const constexpr Duration FULL_TELEMETRY_EVERY = 5 * 60 * 1000;
+
+    // Wait this long between config change checking when Connect is off.
+    const constexpr Duration CONFIG_ENABLED_RECHECK = 1000;
 } // namespace
 
 Connect::ServerResp Connect::handle_server_resp(http::Response resp, CommandId command_id) {
@@ -372,9 +375,6 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
         // Could have been using the old connection and contain a dangling pointer. Get rid of it.
         // (We currently don't do a proper shutdown
         websocket.reset();
-        // FIXME: Temporary, to avoid busy-loop bombarding the server in case something doesn't work.
-        // This should be handled by the planner somewhere.
-        Sleep::idle().perform(printer, planner());
         last_known_status = ConnectionStatus::Connecting;
     }
     // Let it reconnect if it needs it.
@@ -444,6 +444,7 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
 
 CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Config &, Action &&action, optional<CommandId> background_command_id, uint32_t now) {
     if (!websocket.has_value()) {
+        planner().action_done(ActionResult::Failed);
         return OnlineError::Network;
     }
     const bool is_full_telemetry = holds_alternative<SendTelemetry>(action) && !get<SendTelemetry>(action).empty;
@@ -608,11 +609,11 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
 
     if (!config.enabled) {
         planner().reset();
-        Sleep::idle().perform(printer, planner());
+        Sleep::idle(CONFIG_ENABLED_RECHECK).perform(printer, planner());
         return ConnectionStatus::Off;
     } else if (config.host[0] == '\0' || config.token[0] == '\0') {
         planner().reset();
-        Sleep::idle().perform(printer, planner());
+        Sleep::idle(CONFIG_ENABLED_RECHECK).perform(printer, planner());
         return ConnectionStatus::NoConfig;
     }
 

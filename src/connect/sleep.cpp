@@ -253,8 +253,8 @@ void sleep_raw(Duration sleep_for) {
     osDelay(sleep_for);
 }
 
-Sleep Sleep::idle() {
-    return Sleep(IDLE_WAIT, nullptr, nullptr, nullptr, false, false);
+Sleep Sleep::idle(Duration sleep_for) {
+    return Sleep(sleep_for, nullptr, nullptr, nullptr, false, false);
 }
 
 void Sleep::perform(Printer &printer, Planner &planner) {
