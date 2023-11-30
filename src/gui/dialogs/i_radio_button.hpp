@@ -72,6 +72,8 @@ public:
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void screenEvent(window_t *sender, GUI_event_t event, void *const param) override;
+
     virtual void unconditionalDraw() override;
     virtual Response responseFromIndex(size_t index) const = 0;
     virtual const PhaseTexts *getAlternativeTexts() const { return nullptr; }
