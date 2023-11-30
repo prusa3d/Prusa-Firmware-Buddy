@@ -81,18 +81,18 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_true, journal::hash("Menu Timeout")> menu_timeout; // on / off menu timeout flag
     StoreItem<bool, defaults::bool_true, journal::hash("Devhash in QR")> devhash_in_qr; // on / off sending UID in QR
 
-    StoreItem<footer::Item, defaults::footer_setting_0, journal::hash("Footer Setting 0")> footer_setting_0;
+    StoreItem<footer::Item, defaults::footer_setting_0, journal::hash("Footer Setting 0 v3")> footer_setting_0;
 #if FOOTER_ITEMS_PER_LINE__ > 1
-    StoreItem<footer::Item, defaults::footer_setting_1, journal::hash("Footer Setting 1")> footer_setting_1;
+    StoreItem<footer::Item, defaults::footer_setting_1, journal::hash("Footer Setting 1 v3")> footer_setting_1;
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 2
-    StoreItem<footer::Item, defaults::footer_setting_2, journal::hash("Footer Setting 2")> footer_setting_2;
+    StoreItem<footer::Item, defaults::footer_setting_2, journal::hash("Footer Setting 2 v3")> footer_setting_2;
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 3
-    StoreItem<footer::Item, defaults::footer_setting_3, journal::hash("Footer Setting 3")> footer_setting_3;
+    StoreItem<footer::Item, defaults::footer_setting_3, journal::hash("Footer Setting 3 v3")> footer_setting_3;
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 4
-    StoreItem<footer::Item, defaults::footer_setting_4, journal::hash("Footer Setting 4")> footer_setting_4;
+    StoreItem<footer::Item, defaults::footer_setting_4, journal::hash("Footer Setting 4 v3")> footer_setting_4;
 #endif
 
     footer::Item get_footer_setting(uint8_t index);
@@ -403,6 +403,20 @@ struct DeprecatedStore : public journal::DeprecatedStoreConfig<journal::Backend>
 
     // An item was added to the middle of the footer enum and it caused eeprom corruption. This store footer item  was deleted and a new one is created without migration so as to force default footer value onto everyone, which is better than 'random values' (especially on mini where it could cause duplicated items shown). Default value was removed since we no longer need to keep it
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Footer Setting")> footer_setting_v1;
+
+    StoreItem<footer::Item, defaults::footer_setting_0, journal::hash("Footer Setting 0")> footer_setting_0_v2;
+#if FOOTER_ITEMS_PER_LINE__ > 1
+    StoreItem<footer::Item, defaults::footer_setting_1, journal::hash("Footer Setting 1")> footer_setting_1_v2;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 2
+    StoreItem<footer::Item, defaults::footer_setting_2, journal::hash("Footer Setting 2")> footer_setting_2_v2;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 3
+    StoreItem<footer::Item, defaults::footer_setting_3, journal::hash("Footer Setting 3")> footer_setting_3_v2;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 4
+    StoreItem<footer::Item, defaults::footer_setting_4, journal::hash("Footer Setting 4")> footer_setting_4_v2;
+#endif
 
     // There was wrong default value for XL, so V2 version was introduced to reset it to proper default value
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Weight Adjust Y Enabled")> input_shaper_weight_adjust_y_enabled;
