@@ -221,6 +221,7 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
 
 void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
+    assert(!planner.processing());
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto &stepper = static_cast<TMC2130Stepper &>(stepper_axis(axis_num));
@@ -264,6 +265,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
 
 void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
+    assert(!planner.processing());
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto &stepper = static_cast<TMC2130Stepper &>(stepper_axis(axis_num));
