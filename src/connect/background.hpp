@@ -26,6 +26,6 @@ enum class BackgroundResult {
 
 using BackgroundCmd = std::variant<BackgroundGcode>;
 
-BackgroundResult step(BackgroundCmd &cmd, Printer &printer);
+BackgroundResult background_cmd_step(BackgroundCmd &cmd, Printer &printer);
 
 } // namespace connect_client

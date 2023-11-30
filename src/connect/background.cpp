@@ -61,7 +61,7 @@ namespace {
 
 } // namespace
 
-BackgroundResult step(BackgroundCmd &cmd, Printer &printer) {
+BackgroundResult background_cmd_step(BackgroundCmd &cmd, Printer &printer) {
     return visit([&](auto &cmd) { return step(cmd, printer); }, cmd);
 }
 
