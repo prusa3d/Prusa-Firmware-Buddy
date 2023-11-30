@@ -128,13 +128,57 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
 
             // generate click and send it to itself
             // child class might handle it, if not GUI_event_t::CLICK from this switch will be called
-            WindowEvent(this, GUI_event_t::CLICK, param);
+            WindowEvent(this, GUI_event_t::CLICK, 0);
         }
     }
         return;
     default:
         SuperWindowEvent(sender, event, param);
     }
+}
+
+void IRadioButton::screenEvent(window_t *sender, GUI_event_t event, void *const param) {
+    switch (event) {
+
+        // Touch swipe left/right = selecting the "back" response
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT: {
+        static constexpr std::array candidate_responses = {
+            Response::Back,
+            Response::Abort,
+            Response::Stop,
+        };
+
+        Response selected_response = Response::_none;
+        int selected_response_index = 0;
+        for (Response r : candidate_responses) {
+            const auto ix = IndexFromResponse(r);
+            if (!ix) {
+                continue;
+            } else if (selected_response != Response::_none) {
+                // Mark that there are multiple candidate responses
+                selected_response = Response::_count;
+            } else {
+                selected_response_index = *ix;
+                selected_response = r;
+            }
+        }
+
+        // There must be exactly one candidate response in the dialog
+        if (selected_response == Response::_none || selected_response == Response::_count) {
+            break;
+        }
+
+        SetBtnIndex(selected_response_index);
+        WindowEvent(this, GUI_event_t::CLICK, 0);
+        return;
+    }
+
+    default:
+        break;
+    }
+
+    window_t::screenEvent(sender, event, param);
 }
 
 void IRadioButton::unconditionalDraw() {
