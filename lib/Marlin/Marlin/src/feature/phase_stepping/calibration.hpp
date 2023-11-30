@@ -6,6 +6,7 @@
 #include <tuple>
 #include <optional>
 #include <vector>
+#include <atomic>
 
 #include <module/prusa/accelerometer.h>
 #include <core/types.h>
@@ -90,5 +91,16 @@ public:
  */
 std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>>
 calibrate_axis(AxisEnum axis, CalibrationReporterBase &reporter);
+
+enum class CalibrationResult {
+    Ok, // Last calibration successful
+    Unknown, // Calibration not run
+    Error, // Last calibration failed
+};
+
+/**
+ * Global error state of the last axis calibration. Re/set by M977.
+ */
+extern std::atomic<CalibrationResult> last_calibration_result;
 
 } // namespace phase_stepping

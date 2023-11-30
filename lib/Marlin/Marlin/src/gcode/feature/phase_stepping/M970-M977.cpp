@@ -456,6 +456,7 @@ public:
  **/
 void GcodeSuite::M977() {
     DisableBusyReport _;
+    phase_stepping::last_calibration_result = phase_stepping::CalibrationResult::Error;
 
     bool valid = true;
 
@@ -511,4 +512,6 @@ void GcodeSuite::M977() {
         SERIAL_ECHO(fixed_repr(backward[i].pha));
         SERIAL_ECHO("\n");
     }
+
+    phase_stepping::last_calibration_result = phase_stepping::CalibrationResult::Ok;
 }
