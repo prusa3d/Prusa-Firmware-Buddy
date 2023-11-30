@@ -290,7 +290,7 @@ FileInfo::FileInfo(const char *filepath, bool can_keep_alive, bool json_errors, 
     , method(method)
     , api(api)
     , etag(etag) {
-    strlcpy(this->filepath, filepath, sizeof this->filepath);
+    get_SFN_path_copy(filepath, this->filepath, sizeof(this->filepath));
     /*
      * Eat the last slash on directories.
      *
