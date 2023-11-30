@@ -243,8 +243,8 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // segment to come will be move segment to zero, let's prepare for that.
     axis_state.zero_rotor_phase = current_phase;
     axis_state.last_phase = current_phase;
-    axis_state.last_position = 0;
-    axis_state.target = MoveTarget(0);
+    axis_state.last_position = 0.;
+    axis_state.target = MoveTarget(axis_state.last_position);
 
     // Read axis configuration and cache it so we can access it fast
     if (axis_num == AxisEnum::X_AXIS) {
@@ -254,6 +254,11 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     } else if (axis_num == AxisEnum::Z_AXIS) {
         axis_state.inverted = INVERT_Z_DIR;
     }
+
+    // Sync the counters just before enabling the axis
+    int32_t initial_steps_made = pos_to_steps(axis_num, axis_state.last_position);
+    axis_state.initial_count_position = Stepper::get_axis_steps(axis_num) - initial_steps_made;
+    axis_state.initial_count_position_from_startup = Stepper::get_axis_steps_from_startup(axis_num) - initial_steps_made;
 
     axis_state.active = true;
     auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
@@ -425,11 +430,11 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
     // Report movement to Stepper
-    int32_t steps_made = pos_to_steps(position, axis_num_to_refresh);
+    int32_t steps_made = pos_to_steps(axis_num_to_refresh, position);
     Stepper::set_axis_steps(AxisEnum(axis_num_to_refresh),
-        axis_state.initial_count_position + steps_made);
+        axis_state.initial_count_position - steps_made);
     Stepper::set_axis_steps_from_startup(AxisEnum(axis_num_to_refresh),
-        axis_state.initial_count_position_from_startup + steps_made);
+        axis_state.initial_count_position_from_startup - steps_made);
 
     const auto &current_lut = speed > 0
         ? axis_state.forward_current
