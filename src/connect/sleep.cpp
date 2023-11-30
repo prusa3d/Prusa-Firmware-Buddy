@@ -7,6 +7,7 @@
 
 #include <cmsis_os.h>
 
+using http::Connection;
 using std::min;
 using std::nullopt;
 using std::optional;
@@ -223,6 +224,25 @@ namespace {
         }
     };
 
+    class ReadableConnection final : public Task {
+    private:
+        Connection *connection;
+        Planner &planner;
+
+    public:
+        ReadableConnection(Connection *connection, Planner &planner)
+            : connection(connection)
+            , planner(planner) {}
+        virtual TaskResult step() override {
+            if (connection->poll_readable(0)) {
+                planner.notify_command_waiting();
+                return TaskResult::WakeUp;
+            } else {
+                return TaskResult::RerunLater;
+            }
+        }
+    };
+
 } // namespace
 
 Timestamp now() {
@@ -276,6 +296,11 @@ void Sleep::perform(Printer &printer, Planner &planner) {
     TransferWatch transfer_watch(transfer, printer, planner);
     if (transfer != nullptr) {
         add(&transfer_watch);
+    }
+
+    ReadableConnection connection(wake_on_readable, planner);
+    if (wake_on_readable != nullptr) {
+        add(&connection);
     }
 
     // We want to give each task a chance to run at least once even if we sleep for 0ms.

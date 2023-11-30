@@ -253,9 +253,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
     size_t read = 0;
     bool is_json = true;
     while (more) {
-        // TODO: Tune the timeouts / change the loop
-        // TODO: Handle Close, pings, etc
-        auto res = websocket->receive(first ? make_optional(100) : nullopt);
+        auto res = websocket->receive(first ? make_optional(0) : nullopt);
 
         if (holds_alternative<monostate>(res)) {
             break;
@@ -403,7 +401,6 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
                 conn_factory.invalidate();
                 return OnlineError::Server;
             }
-            // TODO: Verify we negotiated correctly.
 
             // Read and throw away the body, if any. Not interesting.
             uint8_t throw_away[128];
@@ -481,9 +478,6 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
         telemetry_changes.mark_clean();
         last_full_telemetry = now;
     }
-
-    // TODO: Temporary, until Sleep can detect this.
-    planner().notify_command_waiting();
 
     return ConnectionStatus::Ok;
 }
