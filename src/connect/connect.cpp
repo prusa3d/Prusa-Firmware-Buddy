@@ -102,6 +102,11 @@ namespace {
             assert(0);
             return "";
         }
+        static const char *url(const ReadCommand &) {
+            // Not used in non-websocket mode
+            assert(0);
+            return "";
+        }
         static const char *url(const SendTelemetry &) {
             return "/p/telemetry";
         }
@@ -477,8 +482,10 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
         last_full_telemetry = now;
     }
 
-    // TODO: Move to a better place.
-    return receive_command(conn_factory);
+    // TODO: Temporary, until Sleep can detect this.
+    planner().notify_command_waiting();
+
+    return ConnectionStatus::Ok;
 }
 #else
 CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printer::Config &config) {
@@ -628,7 +635,16 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     // or not. We don't have a good place, so we stuck it here.
     transfers::ChangedPath::instance.media_inserted(printer.params().has_usb);
 
-    auto action = planner().next_action(buffer);
+    Connection *wake_on_readable = nullptr;
+#if WEBSOCKET()
+    // The "ordinary" http exchange gets data in the response, websocket at any
+    // time so we want to let it get woken up by arriving data in sleep (the
+    // planner checks if it _can_ receive the command at that point).
+    if (conn_factory.is_valid()) {
+        wake_on_readable = get<Connection *>(conn_factory.connection());
+    }
+#endif
+    auto action = planner().next_action(buffer, wake_on_readable);
 
     // Handle sleeping first. That one doesn't need the connection.
     if (auto *s = get_if<Sleep>(&action)) {
@@ -663,7 +679,16 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
 
     const auto background_command_id = planner().background_command_id();
 
-    return send_command(conn_factory, config, move(action), background_command_id, start);
+    if (holds_alternative<ReadCommand>(action)) {
+#if WEBSOCKET()
+        return receive_command(conn_factory);
+#else
+        assert(0); // Doesn't happen in non-websocket mode, commands come in responses
+        return err_to_status(Error::InternalError);
+#endif
+    } else {
+        return send_command(conn_factory, config, move(action), background_command_id, start);
+    }
 }
 
 void Connect::run() {

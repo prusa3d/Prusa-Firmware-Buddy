@@ -14,6 +14,10 @@
 #include <optional>
 #include <variant>
 
+namespace http {
+class Connection;
+}
+
 namespace connect_client {
 
 class Printer;
@@ -21,6 +25,8 @@ class Printer;
 struct SendTelemetry {
     bool empty;
 };
+
+struct ReadCommand {};
 
 enum class EventType {
     Info,
@@ -59,7 +65,8 @@ struct Event {
 using Action = std::variant<
     SendTelemetry,
     Event,
-    Sleep>;
+    Sleep,
+    ReadCommand>;
 
 enum class ActionResult {
     Ok,
@@ -158,6 +165,13 @@ private:
     // Used to prevent cleaning up all the time.
     bool need_transfer_cleanup = true;
 
+    /// Is there a command (possibly) waiting in the connection?
+    ///
+    /// (May contain true even if we lost the connection, or something like
+    /// that. It also can be true for spurious wakeups that are at least
+    /// theoretically possible in the API).
+    bool command_waiting = false;
+
     // A transfer running in background.
     //
     // As we may have a background _task_ and a transfer at the same time, we
@@ -168,7 +182,7 @@ private:
     std::optional<CommandId> print_start_cmd = std::nullopt;
 
     /// Constructs corresponding Sleep action.
-    Sleep sleep(Duration duration, bool cooldown);
+    Sleep sleep(Duration duration, http::Connection *wake_on_readable, bool cooldown);
 
 public:
     Planner(Printer &printer)
@@ -193,7 +207,7 @@ public:
     /// arrives, it might interact sooner).
     ///
     /// All actions except sleeps expect a follow-up call to action_done.
-    Action next_action(SharedBuffer &buffer);
+    Action next_action(SharedBuffer &buffer, http::Connection *wake_on_readable);
     /// Will we need the paths extracted from the current job?
     bool wants_job_paths() const;
     // Note: *Not* for Sleep. Only for stuff that sends.
@@ -211,6 +225,16 @@ public:
 
     // ID of a command being executed in the background, if any.
     std::optional<CommandId> background_command_id() const;
+
+    /// Can we receive a new command right now?
+    ///
+    /// We _can't_ receive commands if we have an event scheduled to go out.
+    bool can_receive_command() const;
+
+    /// Inform the planner that there is (or may be) a command waiting.
+    void notify_command_waiting() {
+        command_waiting = true;
+    }
 };
 
 } // namespace connect_client

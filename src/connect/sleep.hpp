@@ -6,6 +6,10 @@ namespace transfers {
 class Transfer;
 }
 
+namespace http {
+class Connection;
+}
+
 namespace connect_client {
 
 class Printer;
@@ -30,6 +34,7 @@ private:
     // We would prefer optional<&T>, but that doesn't exist in C++.
     BackgroundCmd *background_cmd;
     transfers::Transfer *download;
+    http::Connection *wake_on_readable;
     bool cleanup_transfers;
     bool run_transfer_recovery;
 
@@ -41,9 +46,10 @@ private:
     Duration milliseconds;
 
 public:
-    Sleep(Duration duration, BackgroundCmd *cmd, transfers::Transfer *download, bool cleanup_transfers, bool run_transfer_recovery)
+    Sleep(Duration duration, BackgroundCmd *cmd, transfers::Transfer *download, http::Connection *wake_on_readable, bool cleanup_transfers, bool run_transfer_recovery)
         : background_cmd(cmd)
         , download(download)
+        , wake_on_readable(wake_on_readable)
         , cleanup_transfers(cleanup_transfers)
         , run_transfer_recovery(run_transfer_recovery)
         , milliseconds(duration) {}

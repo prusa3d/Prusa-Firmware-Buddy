@@ -39,7 +39,7 @@ void sleep_raw(Duration sleep_for) {
 }
 
 Sleep Sleep::idle() {
-    return Sleep(IDLE_WAIT, nullptr, nullptr, false, false);
+    return Sleep(IDLE_WAIT, nullptr, nullptr, nullptr, false, false);
 }
 
 void Sleep::perform(Printer &printer, Planner &planner) {

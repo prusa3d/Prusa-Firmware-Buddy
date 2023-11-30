@@ -241,7 +241,7 @@ void Planner::reset() {
     failed_attempts = 0;
 }
 
-Sleep Planner::sleep(Duration amount, bool cooldown) {
+Sleep Planner::sleep(Duration amount, http::Connection *wake_on_readable, bool cooldown) {
     // Note for the case where planned_event.has_value():
     //
     // Processing of background command could generate another event that
@@ -262,16 +262,22 @@ Sleep Planner::sleep(Duration amount, bool cooldown) {
     //
     // We also don't want to allow it during downloading.
     bool allow_transfer_cleanup = !printer.is_printing() && need_transfer_cleanup && !Monitor::instance.id().has_value();
+
+    if (!can_receive_command()) {
+        // We don't want to cut the sleep short in case there is a command waiting but we can't receive it.
+        wake_on_readable = nullptr;
+    }
     return Sleep(
         amount,
         cmd,
         down,
+        wake_on_readable,
         /*run_transfer_cleanup=*/allow_transfer_cleanup,
         /* The cooldown thing: We don't want to recover transfer before we get properly connected, maybe we don't have the IP yet or something. */
         /*run_transfer_recovery=*/(transfer_recovery != TransferRecoveryState::Finished) && !cooldown);
 }
 
-Action Planner::next_action(SharedBuffer &buffer) {
+Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_readable) {
     if (!printer.is_printing()) {
         // The idea is, we set the ID when we start the print and remove it
         // once we see we are no longer printing. This is not completely
@@ -304,7 +310,7 @@ Action Planner::next_action(SharedBuffer &buffer) {
     if (perform_cooldown) {
         perform_cooldown = false;
         assert(cooldown.has_value());
-        return sleep(*cooldown, true);
+        return sleep(*cooldown, nullptr, true);
     }
 
     if (planned_event.has_value()) {
@@ -390,13 +396,21 @@ Action Planner::next_action(SharedBuffer &buffer) {
         return *planned_event;
     }
 
+    if (command_waiting && can_receive_command()) {
+        // It's OK to reset it here without any success notification from
+        // outside. That's because it'll get set again in the nearest sleep if
+        // we lose it.
+        command_waiting = false;
+        return ReadCommand {};
+    }
+
     if (const auto since_telemetry = since(last_telemetry); since_telemetry.has_value()) {
         const Duration telemetry_interval = printer.is_printing() || background_command.has_value() ? TELEMETRY_INTERVAL_SHORT : TELEMETRY_INTERVAL_LONG;
         if (*since_telemetry >= telemetry_interval) {
             return SendTelemetry { false };
         } else {
             Duration sleep_amount = telemetry_interval - *since_telemetry;
-            return sleep(sleep_amount, false);
+            return sleep(sleep_amount, wake_on_readable, false);
         }
     } else {
         // TODO: Optimization: When can we send just empty telemetry instead of full one?
@@ -406,6 +420,10 @@ Action Planner::next_action(SharedBuffer &buffer) {
 
 bool Planner::wants_job_paths() const {
     return planned_event.has_value() && planned_event->type == EventType::JobInfo;
+}
+
+bool Planner::can_receive_command() const {
+    return !planned_event.has_value();
 }
 
 void Planner::action_done(ActionResult result) {

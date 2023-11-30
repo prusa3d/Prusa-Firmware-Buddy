@@ -453,6 +453,12 @@ namespace {
         return JsonResult::Abort;
     }
 
+    JsonResult render_msg(size_t, JsonOutput &, const RenderState &, const ReadCommand &) {
+        // Not a message to send to server
+        assert(0);
+        return JsonResult::Abort;
+    }
+
     off_t child_size(const char *base_path, const char *child_name) {
         char path_buf[FILE_PATH_BUFFER_LEN];
         int formatted = snprintf(path_buf, sizeof(path_buf), "%s/%s", base_path, child_name);
