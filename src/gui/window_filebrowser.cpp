@@ -165,7 +165,7 @@ void WindowFileBrowser::go_up() {
         *last_slash_char = '\0';
     }
 
-    Load(GuiFileSort::Get(), previous_dir_sfn, previous_dir_sfn);
+    Load(GuiFileSort::Get(), previous_dir_sfn, nullptr);
 
     // @@TODO we want to print the LFN of the dir name, which is very hard to do right now
     // However, the text is not visible on the screen yet...
