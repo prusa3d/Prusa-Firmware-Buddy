@@ -4,6 +4,8 @@
 #include <cstring>
 #include <dirent.h>
 
+#include <bsod.h>
+
 namespace {
 
 template <class C>
@@ -74,4 +76,60 @@ void get_SFN_path(char *path) {
         // We are not interested in the other "fallback" cases like the LFN
         // one. We just keep path intact.
     });
+}
+
+void get_SFN_path_copy(const char *lfn, char *sfn_out, size_t size) {
+    char *last = rindex(lfn, '/');
+
+    assert(last);
+    if (!last) {
+        strlcpy(sfn_out, lfn, size);
+        return;
+    }
+
+    // Copy path witout the name to sfn
+    size_t len = last - lfn + 1;
+    if (size <= len) {
+        // This obviously won't fit, but d it anyway to have all the
+        // error case do the same, it will still be valid string
+        strlcpy(sfn_out, lfn, size);
+        return;
+    }
+    strncpy(sfn_out, lfn, len);
+
+    sfn_out[len] = '\0';
+
+    char *fname = last + 1;
+    DIR *d = opendir(sfn_out);
+    if (!d) {
+        strlcpy(sfn_out, lfn, size);
+        return;
+    }
+
+    struct dirent *ent;
+    /*
+     * Even though it doesn't look so from the signature, our readdir
+     * is thread safe. The returned buffer is inside the DIR structure.
+     */
+    while ((ent = readdir(d))) {
+        /*
+         * Allow the input some flexibility - both long and short file
+         * names and case insensitive (it's FAT, after all).
+         */
+        if ((strcasecmp(ent->d_name, fname) == 0) || (strcasecmp(ent->lfn, fname) == 0)) {
+            if (strlcat(sfn_out, ent->d_name, size) >= size) {
+                sfn_out[0] = '\0';
+            }
+            break;
+        }
+    }
+
+    // The lfn does not end with '/' (is a file) and we did not find it,
+    // if we did not do this, we would return the path to parent dir instead,
+    // which is wrong.
+    if (*fname != '\0' && !ent) {
+        strlcpy(sfn_out, lfn, size);
+    }
+
+    closedir(d);
 }

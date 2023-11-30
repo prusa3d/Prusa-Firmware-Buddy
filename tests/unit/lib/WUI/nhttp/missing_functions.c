@@ -90,6 +90,10 @@ int mkdir(const char *path, mode_t mode) {
 void get_SFN_path(char *path) {
 }
 
+void get_SFN_path_copy(const char *lfn, char *path, size_t size) {
+    strlcpy(path, path, size);
+}
+
 uint32_t osDelay(uint32_t time) {
     return 0;
 }

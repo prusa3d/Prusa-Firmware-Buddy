@@ -244,7 +244,7 @@ private:
     bool download_has_issue;
     bool print_after_upload { false };
 
-    char destination_path[FILE_PATH_BUFFER_LEN];
+    char destination_path[FILE_PATH_BUFFER_LEN + FILE_NAME_MAX_LEN];
 
     // History related
     static constexpr size_t HISTORY_MAX_LEN = 2;
