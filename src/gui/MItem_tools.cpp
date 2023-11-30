@@ -40,6 +40,8 @@
 #include <feature/prusa/e-stall_detector.h>
 #include "connect/marlin_printer.hpp"
 #include <st25dv64k.h>
+#include <option/has_phase_stepping.h>
+#include <RAII.hpp>
 
 namespace {
 void MsgBoxNonBlockInfo(string_view_utf8 txt) {
@@ -819,3 +821,29 @@ void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
         Disable();
     }
 }
+
+#if HAS_PHASE_STEPPING()
+MI_PHASE_STEPPING::MI_PHASE_STEPPING()
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    index = config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get();
+}
+
+void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
+    if (event_in_progress) {
+        return;
+    }
+
+    if (index) {
+        if (config_store().selftest_result.get().phase_stepping != TestResult_Passed) {
+            AutoRestore ar(event_in_progress, true);
+            MsgBoxWarning(_("Phase stepping not ready: perform calibration first."), Responses_Ok);
+            index = old_index;
+            return;
+        }
+
+        marlin_server::enqueue_gcode("M970 X Y"); // turn phase stepping on
+    } else {
+        marlin_server::enqueue_gcode("M971 X Y"); // turn phase stepping off
+    }
+}
+#endif

@@ -30,6 +30,7 @@
     #include "MItem_mmu.hpp"
 #endif
 #include <screen_menu_hw_setup.hpp>
+#include <option/has_phase_stepping.h>
 
 class MI_MK4_MK39 : public WI_SWITCH_t<2> {
     static constexpr const char *const label = "Current Printer Type";
@@ -74,6 +75,10 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_CRASH_FILTERING
     #endif
 #endif // ENABLED(CRASH_RECOVERY)
+#if HAS_PHASE_STEPPING()
+    ,
+    MI_PHASE_STEPPING
+#endif
     ,
     MI_FS_AUTOLOAD, MI_EXPERIMENTAL_SETTINGS, MI_XFLASH_RESET, MI_EEPROM
 #if HAS_LOADCELL()
