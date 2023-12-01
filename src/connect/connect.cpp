@@ -252,9 +252,11 @@ Connect::ServerResp Connect::handle_server_resp(http::Response resp, CommandId c
 CommResult Connect::receive_command(CachedFactory &conn_factory) {
     bool first = true;
     bool more = true;
-    uint32_t command_id = 0;
+    optional<uint32_t> command_id = nullopt;
     size_t read = 0;
     bool is_json = true;
+    bool oversized = false;
+    uint8_t buffer[MAX_RESP_SIZE];
     while (more) {
         auto res = websocket->receive(first ? make_optional(0) : nullopt);
 
@@ -308,33 +310,52 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
 
         first = false;
 
-        // TODO: Validate, etc.
         if (header.command_id.has_value()) {
             command_id = *header.command_id;
         }
 
-        // TODO: Properly refuse
         if (read + header.len > sizeof buffer) {
-            conn_factory.invalidate();
-            return OnlineError::Internal;
+            // Note: This will be true until the end of the whole message, not
+            // just for this fragment - we need to throw away the whole
+            // command.
+            oversized = true;
         }
 
         if (header.opcode == WebSocket::Opcode::Gcode) {
             is_json = false;
         }
 
-        uint8_t buffer[MAX_RESP_SIZE]; // Used for both sending and receiving now
-        if (auto result = header.conn->rx_exact(buffer + read, header.len); result.has_value()) {
-            conn_factory.invalidate();
-            return err_to_status(*result);
+        if (oversized) {
+            header.ignore();
+        } else {
+            if (auto result = header.conn->rx_exact(buffer + read, header.len); result.has_value()) {
+                conn_factory.invalidate();
+                return err_to_status(*result);
+            }
+
+            read += header.len;
         }
 
-        read += header.len;
-
         if (header.last) {
+            if (!command_id.has_value()) {
+                planner().command(Command {
+                    0,
+                    BrokenCommand { "Missing Command ID" } });
+
+                return ConnectionStatus::Ok;
+            }
+            if (oversized) {
+                planner().command(Command {
+                    *command_id,
+                    BrokenCommand { "Command too large" } });
+
+                // We have managed to consume the command alright, we just
+                // didn't handle it -> the connection itself is fine.
+                return ConnectionStatus::Ok;
+            }
             if (command_id == planner().background_command_id()) {
                 planner().command(Command {
-                    command_id,
+                    *command_id,
                     ProcessingThisCommand {},
                 });
 
@@ -346,17 +367,17 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                 // processing some command. In that case we can't accept another one
                 // and we just reject it.
                 planner().command(Command {
-                    command_id,
+                    *command_id,
                     ProcessingOtherCommand {},
                 });
             }
 
             if (is_json) {
-                auto command = Command::parse_json_command(command_id, reinterpret_cast<char *>(buffer), read, move(*buff));
+                auto command = Command::parse_json_command(*command_id, reinterpret_cast<char *>(buffer), read, move(*buff));
                 planner().command(command);
             } else {
                 const string_view body(reinterpret_cast<const char *>(buffer), read);
-                auto command = Command::gcode_command(command_id, body, move(*buff));
+                auto command = Command::gcode_command(*command_id, body, move(*buff));
             }
 
             more = false;
