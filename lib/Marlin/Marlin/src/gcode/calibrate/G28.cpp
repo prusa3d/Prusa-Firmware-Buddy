@@ -371,7 +371,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise) OPTARG(DETECT_PRINT_SHEET, bool check_sheet)) {
 
   HomingReporter reporter;
-  phase_stepping::EnsureDisabled _;
 
   MINDA_BROKEN_CABLE_DETECTION__BEGIN();
 
@@ -581,6 +580,13 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
 
   TERN_(HAS_DUPLICATION_MODE, set_duplication_enabled(false));
+
+  #if HAS_PHASE_STEPPING()
+    // Synchronize just in case we performed a toolchange.
+    // This is required to toggle XY phase stepping during a standstill
+    planner.synchronize();
+    phase_stepping::EnsureDisabled phstep_disabler;
+  #endif
 
   // Homing feedrate
   float fr_mm_s = no_change ? feedrate_mm_s : 0.0f;
@@ -848,6 +854,11 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   #endif // DUAL_X_CARRIAGE
 
   endstops.not_homing();
+
+  #if HAS_PHASE_STEPPING()
+    // Restore previous phase stepping state before we move again
+    phstep_disabler.release();
+  #endif
 
   if (!failed) {
     // Clear endstop state for polled stallGuard endstops
