@@ -52,7 +52,7 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         if (slots[i].material != nullptr) {
             crc.add(slots[i].material);
         }
-        crc.add(slots[i].temp_nozzle)
+        crc.add(int(slots[i].temp_nozzle))
             // The RPM values are in thousands and fluctuating a bit, we don't want
             // that to trigger the send too often, only when it actually really
             // changes.
