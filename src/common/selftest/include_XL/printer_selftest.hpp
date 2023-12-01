@@ -2,6 +2,7 @@
 #pragma once
 
 #include "i_selftest.hpp"
+#include "i_selftest_part.hpp"
 #include "super.hpp"
 #include "selftest_part.hpp"
 #include "selftest_result_type.hpp"
@@ -20,6 +21,7 @@ typedef enum {
     stsDocks,
     stsLoadcell,
     stsWait_loadcell,
+    stsNozzleDiameter,
     stsToolOffsets,
     stsZAxis, // could not be first, printer can't home at front edges without steelsheet on
     stsWait_axes,
@@ -44,6 +46,7 @@ enum SelftestMask_t : uint32_t {
     stmWait_fans = to_one_hot(stsWait_fans),
     stmLoadcell = to_one_hot(stsLoadcell),
     stmWait_loadcell = to_one_hot(stsWait_loadcell),
+    stmNozzleDiameter = to_one_hot(stsNozzleDiameter),
     stmZcalib = to_one_hot(stsZcalib),
     stmEnsureZAway = to_one_hot(stsEnsureZAway),
     stmXAxis = to_one_hot(stsXAxis),
@@ -94,6 +97,7 @@ protected:
     std::array<selftest::IPartHandler *, HOTENDS> pDocks;
     selftest::IPartHandler *pToolOffsets;
     std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
+    selftest::IPartHandler *pNozzleDiameter;
 
     SelftestResult m_result;
 };

@@ -41,6 +41,8 @@ const std::array<BtnResource, ftrstd::to_underlying(Response::_count)> BtnRespon
     std::make_pair( N_("NEXT"),             nullptr ),                  // Next
     std::make_pair( N_("NO"),               nullptr ),                  // No
     std::make_pair( N_("NOT NOW"),          nullptr ),                  // Not now
+    std::make_pair( "0.4 mm",               nullptr ),                  // NozzleDiameter_04
+    std::make_pair( "0.6 mm",               nullptr ),                  // NozzleDiameter_06
     std::make_pair( N_("OK"),               nullptr ),                  // Ok
     std::make_pair( N_("PAUSE"),            &img::pause_58x58 ),        // Pause
     std::make_pair( "PC",                   &img::spool_58x58 ),        // PC filament, do not translate

@@ -325,6 +325,10 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 
     StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result Gears")> selftest_result;
 
+#if PRINTER_IS_PRUSA_XL
+    StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;
+#endif
+
     SelftestTool get_selftest_result_tool(uint8_t index);
     void set_selftest_result_tool(uint8_t index, SelftestTool value);
 

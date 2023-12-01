@@ -72,6 +72,8 @@ namespace defaults {
 #endif
     };
 
+    inline constexpr TestResult test_result_unknown { TestResult_Unknown };
+
     inline constexpr std::array<char, lan_hostname_max_len + 1> net_hostname { LAN_HOSTNAME_DEF };
     inline constexpr int8_t lan_timezone { 1 };
     inline constexpr std::array<char, wifi_max_ssid_len + 1> wifi_ap_ssid { "" };
