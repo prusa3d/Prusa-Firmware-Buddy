@@ -1,7 +1,6 @@
 #pragma once
 
 #include <printers.h>
-#include <bsod.h>
 
 #include <optional>
 #include <vector>
@@ -53,9 +52,9 @@ inline PrinterCalibrationConfig get_printer_calibration_config() {
                 .pha_window = 0.8f,
                 .mag_window = 0.01f } } }
     };
+#else
+    #error "Unsupported printer"
 #endif
-
-    bsod("Unsupported printer");
 }
 
 }; // namespace phase_stepping

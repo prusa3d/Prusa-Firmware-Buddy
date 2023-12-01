@@ -354,9 +354,9 @@ static int current_adjustment(int /*axis*/, float speed) {
         return ENDPOINT_REDUCTION;
     }
     return 255 - (speed - BREAKPOINT) * (255 - ENDPOINT_REDUCTION) / (ENDPOINT - BREAKPOINT);
+#else
+    #error "Unsupported printer"
 #endif
-
-    bsod("Unsupported printer");
 }
 
 int phase_stepping::phase_difference(int a, int b) {
