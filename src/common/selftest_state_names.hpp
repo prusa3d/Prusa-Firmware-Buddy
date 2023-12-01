@@ -40,6 +40,12 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "Loadcell_user_tap_ok";
     case PhasesSelftest::Loadcell_fail:
         return "Loadcell_fail";
+    case PhasesSelftest::NozzleDiameter_prepare:
+        return "NozzleDiameter_prepare";
+    case PhasesSelftest::NozzleDiameter_ask_user_for_type:
+        return "NozzleDiameter_ask_user_for_type";
+    case PhasesSelftest::NozzleDiameter_set_default_nozzle_type:
+        return "NozzleDiameter_set_default_nozzle_type";
     case PhasesSelftest::FSensor_wait_tool_pick:
         return "FSensor_wait_tool_pick";
     case PhasesSelftest::FSensor_ask_unload:

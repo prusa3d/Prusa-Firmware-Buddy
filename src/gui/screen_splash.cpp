@@ -87,7 +87,12 @@ screen_splash_data_t::screen_splash_data_t()
                 return ((results == TestResult_Passed) || ...);
             };
 
-            if (any_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
+            if (any_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed
+        #if PRINTER_IS_PRUSA_XL
+                    ,
+                    config_store().selftest_result_nozzle_diameter.get()
+        #endif
+                        )) {
                 return false;
             }
             for (size_t e = 0; e < config_store_ns::max_tool_count; e++) {

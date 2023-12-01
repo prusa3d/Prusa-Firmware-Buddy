@@ -27,6 +27,7 @@
 #include "selftest_netstatus_interface.hpp"
 #include "selftest_dock_interface.hpp"
 #include "selftest_tool_offsets_interface.hpp"
+#include "selftest_nozzle_diameter_xl_interface.hpp"
 #include "selftest_axis_config.hpp"
 #include "selftest_heater_config.hpp"
 #include "selftest_loadcell_config.hpp"
@@ -337,6 +338,11 @@ void CSelftest::Loop() {
             return;
         }
         break;
+    case stsNozzleDiameter:
+        if ((ret = selftest::phaseNozzleDiameter(pNozzleDiameter))) {
+            return;
+        }
+        break;
     case stsZcalib: {
         // calib_Z(true) requires picked tool, which at this time may not be
         calib_Z(false);
@@ -447,6 +453,7 @@ bool CSelftest::Abort() {
     for (auto &loadcell : m_pLoadcell) {
         abort_part(&loadcell);
     }
+    abort_part((selftest::IPartHandler **)&pNozzleDiameter);
     abort_part((selftest::IPartHandler **)&pFSensor);
     for (auto &dock : pDocks) {
         abort_part(&dock);
@@ -496,6 +503,9 @@ void CSelftest::phaseSelftestStart() {
     }
     if (m_Mask & stmZcalib) {
         m_result.zalign = TestResult_Unknown;
+    }
+    if (m_Mask & stmNozzleDiameter) {
+        config_store().selftest_result_nozzle_diameter.set(TestResult_Unknown);
     }
     if (m_Mask & to_one_hot(stsHeaters_bed_ena)) {
         m_result.bed = TestResult_Unknown;

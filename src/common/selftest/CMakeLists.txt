@@ -26,6 +26,12 @@ if(PRINTER STREQUAL "MK4")
   target_sources(firmware PRIVATE selftest_gears.cpp selftest_hot_end_sock.cpp)
 endif()
 
+if(PRINTER STREQUAL "XL")
+  target_sources(
+    firmware PRIVATE selftest_nozzle_diameter_xl.cpp selftest_nozzle_diameter_xl_interface.cpp
+    )
+endif()
+
 if(HAS_ADVANCED_POWER)
   target_sources(firmware PRIVATE power_check.cpp power_check_both.cpp)
 endif()

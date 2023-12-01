@@ -37,5 +37,8 @@ if(PRINTER STREQUAL "MK4")
 endif()
 
 if(${PRINTER} STREQUAL "XL")
-  target_sources(firmware PRIVATE selftest_frame_dock.cpp selftest_frame_tool_offsets.cpp)
+  target_sources(
+    firmware PRIVATE selftest_frame_dock.cpp selftest_frame_nozzle_diameter.cpp
+                     selftest_frame_tool_offsets.cpp
+    )
 endif()
