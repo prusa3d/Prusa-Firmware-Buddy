@@ -321,12 +321,14 @@ void adc_tick_1ms(void) {
 }
 
 void app_tim14_tick(void) {
+    // run sound first, so it is more synchronized
+    Sound_Update1ms();
+
     Fans::tick();
 
 #if HAS_GUI()
     jogwheel.Update1msFromISR();
 #endif
-    Sound_Update1ms();
     adc_tick_1ms();
 
 #if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
