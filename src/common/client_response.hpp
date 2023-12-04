@@ -191,8 +191,8 @@ enum class PhasesSelftest : uint16_t {
     _first_NozzleDiameter,
     NozzleDiameter_prepare = _first_NozzleDiameter,
     NozzleDiameter_ask_user_for_type,
-    NozzleDiameter_set_default_nozzle_type,
-    _last_NozzleDiameter = NozzleDiameter_set_default_nozzle_type,
+    NozzleDiameter_save_selected_value,
+    _last_NozzleDiameter = NozzleDiameter_save_selected_value,
 
     _first_FSensor,
     FSensor_ask_unload = _first_FSensor,
@@ -503,7 +503,7 @@ class ClientResponses {
         {}, // Loadcell_fail
 
         {}, // NozzleDiameter_prepare = _first_NozzleDiameter,
-        { Response::NozzleDiameter_06, Response::NozzleDiameter_04 }, // NozzleDiameter_ask_user_for_type,
+        { Response::NozzleDiameter_04, Response::NozzleDiameter_06 }, // NozzleDiameter_ask_user_for_type,
         {}, // NozzleDiameter_set_default_nozzle_type,
 
         { Response::Continue, Response::Unload, Response::Abort }, // FSensor_ask_unload

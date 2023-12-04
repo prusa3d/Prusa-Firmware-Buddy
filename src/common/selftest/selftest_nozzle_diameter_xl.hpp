@@ -2,11 +2,14 @@
 
 #include "i_selftest_part.hpp"
 #include "selftest_loop_result.hpp"
+#include "fsm_base_types.hpp"
+#include <cstdint>
 
 namespace selftest {
 
 struct SelftestNozzleDiameterResult {
     float selected_diameter = -1.0f;
+
     void Abort() {};
     void Fail() {};
     void Pass() {};

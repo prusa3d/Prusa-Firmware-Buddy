@@ -44,8 +44,8 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "NozzleDiameter_prepare";
     case PhasesSelftest::NozzleDiameter_ask_user_for_type:
         return "NozzleDiameter_ask_user_for_type";
-    case PhasesSelftest::NozzleDiameter_set_default_nozzle_type:
-        return "NozzleDiameter_set_default_nozzle_type";
+    case PhasesSelftest::NozzleDiameter_save_selected_value:
+        return "NozzleDiameter_save_selected_value";
     case PhasesSelftest::FSensor_wait_tool_pick:
         return "FSensor_wait_tool_pick";
     case PhasesSelftest::FSensor_ask_unload:

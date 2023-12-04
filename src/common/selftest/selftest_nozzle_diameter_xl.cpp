@@ -38,8 +38,9 @@ LoopResult SelftestPartNozzleDiameter::stateAskDefaultNozzleDiameter() {
 }
 
 LoopResult SelftestPartNozzleDiameter::stateSaveResultToEeprom() {
-    IPartHandler::SetFsmPhase(PhasesSelftest::NozzleDiameter_set_default_nozzle_type);
-    // "Empty" state to change the screen so user doesn't stay on screen with button
+    IPartHandler::SetFsmPhase(PhasesSelftest::NozzleDiameter_save_selected_value);
+    // "Empty" state to change the screen so user doesn't stay on screen with button.
+    // The actual saving is done in phaseNozzleDiameter
     return LoopResult::RunNext;
 }
 
