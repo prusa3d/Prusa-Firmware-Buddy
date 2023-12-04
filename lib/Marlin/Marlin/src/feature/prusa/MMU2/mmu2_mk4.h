@@ -356,7 +356,7 @@ private:
         Nothing,
         Ramming,
         RelieveFilament,
-        RelieveFilamentLoadingTest,
+        ExtraRelieveFilament, // longer retraction for E-stall enabled printers
     };
     void UnloadInner(PreUnloadPolicy preUnloadPolicy);
     void CutFilamentInner(uint8_t slot);

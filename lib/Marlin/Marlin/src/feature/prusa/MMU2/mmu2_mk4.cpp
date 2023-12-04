@@ -372,6 +372,7 @@ bool MMU2::RetryIfPossible(ErrorCode ec) {
     return false;
 }
 
+#ifdef USE_TRY_LOAD
 bool MMU2::TryLoad() {
     // MMU has finished its load, push the filament further by some defined constant length
     // If the filament sensor reads 0 at any moment, then report FAILURE
@@ -417,8 +418,7 @@ bool MMU2::TryLoad() {
     tlur.DumpToSerial();
     return filament_inserted;
 }
-
-#ifndef USE_TRY_LOAD
+#else // not USE_TRY_LOAD
 bool MMU2::MeasureEStallAtDifferentSpeeds() {
     #ifndef UNITTEST
     auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
@@ -444,10 +444,10 @@ bool MMU2::FeedWithEStallDetection() {
     // To overcome this, a few tricks have been applied:
     // - lower detection threshold - may also allow the loadcell to "see" when the filament hits the main plate plastic part (when the forces are much lower)
     // - pick a specific speed which is a bit different than the sampling rate
-    static constexpr float feedRate = 31.F;
+    static constexpr float feedRate = MMU2_FEED_RATE;
 
     // ram the filament as deep as possible while checking for any obstacles
-    static constexpr float feedDistance = 50.F; // 50mm
+    static constexpr float feedDistance = MMU2_FEED_DISTANCE;
 
     #ifndef UNITTEST
     // get the best out of the HX717
@@ -461,6 +461,8 @@ bool MMU2::FeedWithEStallDetection() {
     EMotorStallDetector::Instance().Enable();
     // but block invocation of M1601 in Marlin::idle()
     EMotorStallDetector::Instance().Block();
+    // whatever happened before is not interesting
+    EMotorStallDetector::Instance().ClearDetected();
     // lower the detection threshold to overcome the sampling rate limitation - see explanation above
     EMotorStallDetector::Instance().SetDetectionThreshold(500'000.F);
 
@@ -479,15 +481,7 @@ bool MMU2::FeedWithEStallDetection() {
     }
     return true;
 }
-#else
-// not possible on printers without the LoadCell
-bool MMU2::MeasureEStallAtDifferentSpeeds() {
-    return false;
-}
-bool MMU2::FeedWithEStallDetection() {
-    return false;
-}
-#endif
+#endif // USE_TRY_LOAD
 
 bool MMU2::VerifyFilamentEnteredPTFE() {
     planner_synchronize();
@@ -535,8 +529,7 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
             ResumeHotendTemp();
             // if the extruder has been parked, it will get unparked once the ToolChange command finishes OK
             // - so no ResumeUnpark() at this spot
-
-            UnloadInner(PreUnloadPolicy::RelieveFilament);
+            UnloadInner(PreUnloadPolicy::ExtraRelieveFilament);
             // if we run out of retries, we must do something ... may be raise an error screen and allow the user to do something
             // but honestly - if the MMU restarts during every toolchange,
             // something else is seriously broken and stopping a print is probably our best option.
@@ -544,7 +537,7 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
         if (VerifyFilamentEnteredPTFE()) {
             return true; // success
         } else { // Prepare a retry attempt
-            UnloadInner(PreUnloadPolicy::RelieveFilament);
+            UnloadInner(PreUnloadPolicy::ExtraRelieveFilament);
             if (retries == 2 && cutter_enabled()) {
                 CutFilamentInner(slot); // try cutting filament tip at the last attempt
             }
@@ -708,10 +701,17 @@ void MMU2::UnloadInner(PreUnloadPolicy preUnloadPolicy) {
         extruder_move(-40.F, 60.F);
         planner_synchronize();
         break;
-    case PreUnloadPolicy::RelieveFilamentLoadingTest:
-        // loading test doesn't have a ramming sequence preceding the unload,
-        // it needs to relieve the filament manually by a fixed distance (which is 50mm of load + some margin)
-        extruder_move(-70.F, 60.F);
+    case PreUnloadPolicy::ExtraRelieveFilament:
+        extruder_move(
+#ifdef USE_TRY_LOAD
+            // try-loads are symmetrical
+            -40.F,
+#else
+            // But E-stall detection is not symmetrical - it needs to retract way more (because the filament may still be somewhere in the nozzle)
+            // Theoretically, we should be able to retract the same distance as the failed load (when the E-motor skipped) + some extra margin
+            -90.F,
+#endif
+            60.F);
         planner_synchronize();
         break;
     case PreUnloadPolicy::Nothing:
@@ -793,7 +793,7 @@ bool MMU2::loading_test(uint8_t slot) {
         thermal_setExtrudeMintemp(0); // Allow cold extrusion - load test doesn't push filament all the way into the nozzle
         ToolChangeCommon(slot);
         planner_synchronize();
-        UnloadInner(PreUnloadPolicy::RelieveFilamentLoadingTest);
+        UnloadInner(PreUnloadPolicy::ExtraRelieveFilament);
         thermal_setExtrudeMintemp(EXTRUDE_MINTEMP);
     }
     ScreenUpdateEnable();
