@@ -16,7 +16,7 @@
 #include "data_exchange.hpp"
 #include <option/buddy_enable_wui.h>
 
-#ifdef BUDDY_ENABLE_WUI
+#if BUDDY_ENABLE_WUI()
     #include "espif.h"
 #endif
 
@@ -97,7 +97,7 @@ void USART6_IRQHandler(void) {
  * @brief This function handles UART8 global interrupt.
  */
 void UART8_IRQHandler(void) {
-#if defined(BUDDY_ENABLE_WUI) && uart_esp == 8
+#if BUDDY_ENABLE_WUI() && uart_esp == 8
     // block esp in tester mode
     if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
         if (__HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE)) {
