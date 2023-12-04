@@ -8,7 +8,7 @@
 #include <module/endstops.h>
 #include <module/tool_change.h>
 #include <module/prusa/homing_corexy.hpp>
-#include "bsod_gui.hpp"
+#include "bsod.h"
 
 using buddy::puppies::Dwarf;
 using buddy::puppies::dwarfs;

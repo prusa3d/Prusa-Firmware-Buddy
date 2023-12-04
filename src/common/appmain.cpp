@@ -7,7 +7,10 @@
 #include "cmsis_os.h"
 #include "config.h"
 #include "adc.hpp"
-#include "Jogwheel.hpp"
+#include <option/has_gui.h>
+#if HAS_GUI()
+    #include "Jogwheel.hpp"
+#endif
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
@@ -39,7 +42,7 @@
 #include "tasks.hpp"
 #include "Marlin/src/module/planner.h"
 #include <option/filament_sensor.h>
-#include <option/has_gui.h>
+
 #include <tusb.h>
 
 #if BOARD_IS_XLBUDDY
@@ -194,7 +197,9 @@ void app_idle(void) {
 }
 
 void app_run(void) {
+#if HAS_GUI()
     LangEEPROM::getInstance();
+#endif
 
     marlin_server::init();
     marlin_server::idle_cb = app_idle;

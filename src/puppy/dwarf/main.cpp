@@ -50,7 +50,7 @@ extern "C" void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTas
     bsod("vApplicationStackOverflowHook");
 }
 
-__attribute__((noreturn)) void fatal_error(const char *error, [[maybe_unused]] const char *module) {
+extern "C" __attribute__((noreturn)) void fatal_error(const char *error, [[maybe_unused]] const char *module) {
     bsod(error);
 }
 

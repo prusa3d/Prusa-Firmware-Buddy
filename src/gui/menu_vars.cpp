@@ -5,6 +5,7 @@
 #include "../Marlin/src/module/temperature.h"
 
 #include "gui_config_printer.hpp"
+#include "SteelSheets.hpp"
 
 const int x_axis_len = X_LEN;
 const int y_axis_len = Y_LEN;

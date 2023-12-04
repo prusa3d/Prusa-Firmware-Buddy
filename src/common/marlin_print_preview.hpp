@@ -3,12 +3,12 @@
  * @brief state machine for print preview
  */
 #pragma once
-#include "gcode_info.hpp"
 #include "client_response.hpp"
 #include <module/prusa/tool_mapper.hpp>
 #include <module/prusa/spool_join.hpp>
 #include <marlin_events.h>
 #include <bitset>
+#include "gcode_info.hpp"
 
 /**
  * @brief Parent class handling changes of state

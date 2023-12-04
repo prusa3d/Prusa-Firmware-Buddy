@@ -21,7 +21,7 @@
 #include <puppies/puppy_crash_dump.hpp>
 #include <cstring>
 #include <random.h>
-#include "bsod_gui.hpp"
+#include "bsod.h"
 
 LOG_COMPONENT_REF(Puppies);
 

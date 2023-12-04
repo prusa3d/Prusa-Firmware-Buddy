@@ -11,6 +11,7 @@
 #include "fsm_loadunload_type.hpp"
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
+#include "bsod_gui.hpp"
 
 RadioButtonNotice::RadioButtonNotice(window_t *parent, Rect16 rect)
     : AddSuperWindow<RadioButton>(parent, rect) {}

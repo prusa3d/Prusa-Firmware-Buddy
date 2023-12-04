@@ -15,8 +15,11 @@
 #include <option/developer_mode.h>
 #include "printers.h"
 #include <Marlin/src/module/motion.h>
-#include "screen_menu_filament_changeall.hpp"
-#include "box_unfinished_selftest.hpp"
+#include <option/has_gui.h>
+#if HAS_GUI()
+    #include "screen_menu_filament_changeall.hpp"
+    #include "box_unfinished_selftest.hpp"
+#endif
 #include <option/has_selftest_snake.h>
 
 #include <option/has_toolchanger.h>

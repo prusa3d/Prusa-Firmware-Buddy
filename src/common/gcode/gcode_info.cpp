@@ -1,5 +1,8 @@
 #include "gcode_info.hpp"
-#include "GuiDefaults.hpp"
+#include "option/has_gui.h"
+#if HAS_GUI()
+    #include "GuiDefaults.hpp"
+#endif
 #include "gcode_thumb_decoder.h"
 #include <cstring>
 #include <option/developer_mode.h>
@@ -40,9 +43,11 @@ const char *GCodeInfo::GetGcodeFilepath() {
     return gcode_file_path;
 }
 
+#if HAS_GUI()
 bool GCodeInfo::hasThumbnail(IGcodeReader &reader, size_ui16_t size) {
     return reader.stream_thumbnail_start(size.w, size.h, IGcodeReader::ImgType::QOI);
 }
+#endif
 
 uint32_t printer_model2code(const char *model) {
     struct {
@@ -157,13 +162,13 @@ bool GCodeInfo::verify_file(AnyGcodeFormatReader &file_reader) {
 
 void GCodeInfo::load(AnyGcodeFormatReader &file_reader) {
     assert(file_reader.is_open()); // assert file is open
-
+#if HAS_GUI()
     has_preview_thumbnail_ = hasThumbnail(*file_reader.get(), GuiDefaults::PreviewThumbnailRect.Size());
     has_progress_thumbnail_ = hasThumbnail(*file_reader.get(), GuiDefaults::ProgressThumbnailRect.Size());
     if (!has_progress_thumbnail_) {
         has_progress_thumbnail_ = hasThumbnail(*file_reader.get(), { GuiDefaults::OldSlicerProgressImgWidth, GuiDefaults::ProgressThumbnailRect.Height() });
     }
-
+#endif
     // scan info G-codes and comments
     PreviewInit(*file_reader.get());
     is_loaded_ = true;

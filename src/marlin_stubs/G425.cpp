@@ -659,8 +659,10 @@ inline void calibrate_all_simple() {
     // Disable E steppers to reduce noise on loadcell
     disable_e_steppers();
 
+#if ENABLED(CRASH_RECOVERY)
     // Disable crash recovery. It would recover, but the measurement will be inaccurate anyway.
     Crash_Temporary_Deactivate ctd;
+#endif
 
     // Reset planner state
     planner.synchronize();

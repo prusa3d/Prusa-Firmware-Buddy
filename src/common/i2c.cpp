@@ -3,8 +3,9 @@
 #include "bsod.h"
 #include "log.h"
 #include "cmsis_os.h"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include <type_traits>
+#include "HAL/HAL.h"
 
 #define MAX_RETRIES 20
 

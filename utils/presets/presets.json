@@ -187,6 +187,17 @@
             }
         },
         {
+            "name": "xl_dev_kit",
+            "description": "Original Prusa xl_dev_kit",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL_DEV_KIT",
+                "BOARD": "XL_DEV_KIT_XLB",
+                "PRESET_COMPILE_OPTIONS": "",
+                "DEVELOPMENT_ITEMS_ENABLED": true
+            }
+        },
+        {
             "name": "xl-dwarf",
             "description": "Original Prusa XL's Dwarf (the extruder puppy)",
             "cacheVariables": {

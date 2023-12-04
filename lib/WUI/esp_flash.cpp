@@ -1,7 +1,7 @@
 #include <sys/stat.h>
 #include "error_codes.hpp"
 #include "mbedtls/md5.h"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 
 #include <esp_flash.hpp>
 #include <esp_loader.h>

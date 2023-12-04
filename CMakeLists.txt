@@ -113,7 +113,7 @@ elseif(MCU MATCHES "STM32F4")
   target_link_libraries(BuddyHeaders INTERFACE STM32F4::HAL)
 endif()
 
-if(BOARD MATCHES "BUDDY")
+if(BOARD_IS_MASTER_BOARD)
   target_include_directories(BuddyHeaders INTERFACE include/buddy)
 elseif(BOARD MATCHES "DWARF")
   target_include_directories(BuddyHeaders INTERFACE include/dwarf)
@@ -150,6 +150,9 @@ elseif(PRINTER STREQUAL "XL")
 elseif(PRINTER STREQUAL "iX")
   set(PRINTER_TYPE "4")
   set(PRINTER_CODE "16")
+elseif(PRINTER STREQUAL "XL_DEV_KIT")
+  set(PRINTER_TYPE "5")
+  set(PRINTER_CODE "18")
 else()
   message(FATAL_ERROR "Unknown printer \"${PRINTER}\".")
 endif()
@@ -162,7 +165,7 @@ endif()
 
 if(BOARD STREQUAL "BUDDY" OR BOARD STREQUAL "XBUDDY")
   set(MARLIN_BOARD_NUM 1823)
-elseif(BOARD STREQUAL "XLBUDDY")
+elseif(BOARD STREQUAL "XLBUDDY" OR BOARD STREQUAL "XL_DEV_KIT_XLB")
   set(MARLIN_BOARD_NUM 1824)
 elseif(BOARD MATCHES "DWARF")
   set(MARLIN_BOARD_NUM 1825)
@@ -677,9 +680,33 @@ if(BOARD MATCHES "BUDDY")
             heatshrink_decoder
     )
 elseif(BOARD STREQUAL "DWARF")
-  target_link_libraries(firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper)
+  target_link_libraries(
+    firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper error_codes
+    )
 elseif(BOARD STREQUAL "MODULARBED")
-  target_link_libraries(firmware PRIVATE BuddyHeaders)
+  target_link_libraries(firmware PRIVATE BuddyHeaders error_codes)
+elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
+  target_link_libraries(
+    firmware
+    PRIVATE BuddyHeaders
+            Marlin
+            Arduino::Core
+            Arduino::TMCStepper
+            Arduino::LiquidCrystal
+            inih::inih
+            CppStdExtensions
+            printf::printf
+            sysbase
+            Segger
+            $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
+            mbedTLS
+            $<$<BOOL:${HAS_PUPPIES}>:lightmodbus>
+            error_codes
+            error_codes_mmu # TODO once MMU is not necessary for the build, replace with:
+                            # $<$<BOOL:${HAS_MMU2}>:error_codes_mmu>
+            bgcode_core # todo: remove
+            heatshrink_decoder # todo: remove
+    )
 endif()
 
 set_property(

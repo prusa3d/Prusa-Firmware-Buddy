@@ -97,6 +97,52 @@ elseif(BOARD MATCHES "DWARF")
     )
 elseif(BOARD MATCHES "MODULARBED")
   target_sources(firmware PRIVATE heap.cpp otp.cpp)
+elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
+  target_sources(
+    firmware
+    PRIVATE adc.cpp
+            app_metrics.cpp
+            appmain.cpp
+            crc32.cpp # todo: remove
+            data_exchange.cpp
+            ExtInterruptHandler.cpp
+            freertos_mutex.cpp
+            fsm_types.cpp
+            heap.cpp
+            homing_reporter.cpp
+            hwio_XLBuddy.cpp # todo: replace
+            i2c.cpp
+            marlin_client.cpp
+            marlin_errors.cpp
+            marlin_events.cpp
+            marlin_log_component.cpp
+            marlin_print_preview.cpp
+            marlin_server.cpp
+            marlin_vars.cpp
+            MarlinPin.cpp
+            metric.cpp
+            odometer.cpp
+            otp.cpp
+            Pin.cpp
+            print_processor.cpp
+            print_utils.cpp
+            probe_analysis.cpp
+            random_sw.cpp
+            safe_state.cpp
+            serial_printing.cpp
+            sound.cpp
+            st25dv64k.cpp # todo: remove
+            SteelSheets.cpp
+            tasks.cpp
+            tools_mapping.cpp
+            trinamic.cpp
+            uartrxbuff.cpp
+            variant8.cpp
+            version.cpp
+            wdt.cpp
+            z_calibration_fsm.cpp
+            Z_probe.cpp
+    )
 endif()
 
 if(PRINTER STREQUAL "MINI")
@@ -142,7 +188,7 @@ if((BOARD STREQUAL "XBUDDY") OR (BOARD STREQUAL "BUDDY"))
 endif()
 
 if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")
-  if(PRINTER MATCHES "XL")
+  if(PRINTER STREQUAL "XL")
     target_sources(
       firmware PRIVATE filament_sensors_handler_XL.cpp filament_sensors_handler_XL_remap.cpp
       )
@@ -174,6 +220,8 @@ if(BOARD MATCHES "BUDDY")
   add_subdirectory(crash_dump)
   add_subdirectory(automata)
   add_subdirectory(http)
+endif()
+if(BOARD_IS_MASTER_BOARD)
   add_subdirectory(gcode)
 endif()
 

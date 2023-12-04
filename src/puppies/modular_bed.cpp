@@ -1,5 +1,5 @@
 #include "puppies/modular_bed.hpp"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "log.h"
 #include "metric.h"
 #include "puppy/modularbed/PuppyConfig.hpp"

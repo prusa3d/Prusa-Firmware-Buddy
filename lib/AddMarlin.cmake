@@ -38,7 +38,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     )
 endif()
 
-if(BOARD MATCHES ".*BUDDY")
+if(BOARD_IS_MASTER_BOARD)
   # Full Marlin configuration for printing (*BUDDY boards)
   target_sources(
     Marlin

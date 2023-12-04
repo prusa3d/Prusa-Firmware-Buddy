@@ -2,6 +2,8 @@
 
 #include "store_definition.hpp"
 #include <printers.h>
+#include <option/has_selftest.h>
+#include <option/has_gui.h>
 
 namespace config_store_ns {
 namespace deprecated_ids {
@@ -52,11 +54,15 @@ namespace migrations {
  *
  */
 inline constexpr journal::Backend::MigrationFunction migration_functions[] {
+#if HAS_SELFTEST()
     { migrations::selftest_result_pre_23, deprecated_ids::selftest_result_pre_23 },
-#if PRINTER_IS_PRUSA_XL // MINI goes directly from old eeprom to multiple footer items, MK4 gets its footer reset
+#endif
+#if PRINTER_IS_PRUSA_XL && HAS_GUI() // MINI goes directly from old eeprom to multiple footer items, MK4 gets its footer reset
         { migrations::footer_setting_v1, deprecated_ids::footer_setting_v1 },
 #endif
+#if HAS_SELFTEST()
         { migrations::selftest_result_pre_gears, deprecated_ids::selftest_result_pre_gears },
+#endif
         { migrations::fsensor_enabled_v1, deprecated_ids::fsensor_enabled_v1 },
         { migrations::footer_setting_v2, deprecated_ids::footer_setting_v2 },
 };
