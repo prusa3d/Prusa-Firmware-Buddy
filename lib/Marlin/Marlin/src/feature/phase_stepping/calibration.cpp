@@ -215,7 +215,7 @@ static bool wait_for_movement_state(phase_stepping::AxisState &axis_state,
             thermalManager.manage_heater();
             last_thermal_tick -= thermal_tick_int_ms;
         } else {
-            osDelay(1);
+            idle(true);
         }
     }
     return true;
@@ -361,7 +361,13 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
         return 0;
     }
 
-    safe_delay(vibration_delay * 1000);
+    {
+        // Use idle here instead of delay, locking the marlin for too long also blocks GUI
+        const auto end_millis = millis() + vibration_delay * 1000;
+        while (ticks_diff(millis(), end_millis) > 0) {
+            idle(true);
+        }
+    }
 
     int counter = 0;
     PrusaAccelerometer accelerometer;
@@ -426,6 +432,8 @@ std::vector<float> phase_stepping::analyze_resonance(AxisEnum axis,
             float a3 = dft_n_mag(signal, n * motor_period_count + 1);
             res.push_back((a1 + a2 + a3) / 3.f);
         }
+
+        idle(true);
     }
 
     return { res };
@@ -458,6 +466,10 @@ class CalibrationPhaseExecutor {
         F apply_x) {
         auto &axis_state = *phase_stepping::axis_states[_axis];
 
+        // Calibration is quite CPU-heavy, we gotta release the processor to do other stuff from time to time
+        // Also GUI thread is waiting for marlin server acks, so we gotta do marlin idling
+        // That's why the idles are here
+
         for (int i = 0; i != iterations; i++) {
             forward_search.run();
             backward_search.run();
@@ -465,9 +477,14 @@ class CalibrationPhaseExecutor {
             axis_state.forward_current.modify_correction([&](auto &table) {
                 apply_x(table, 0, forward_search.x());
             });
+
+            idle(true);
+
             axis_state.backward_current.modify_correction([&](auto &table) {
                 apply_x(table, 1, backward_search.x());
             });
+
+            idle(true);
 
             for (int retries = 0; retries <= RETRY_COUNT; retries++) {
                 if (retries == RETRY_COUNT) {
@@ -480,8 +497,12 @@ class CalibrationPhaseExecutor {
                 auto b_res = phase_stepping::analyze_resonance(_axis,
                     _phase_config.speed, _printer_config.calib_revs, { _phase_config.harmonic });
 
+                idle(true);
+
                 auto f_res = phase_stepping::analyze_resonance(_axis,
                     _phase_config.speed, -_printer_config.calib_revs, { _phase_config.harmonic });
+
+                idle(true);
 
                 if (!f_res.empty() && !b_res.empty()) {
                     forward_search.submit(f_res[0]);
@@ -490,15 +511,21 @@ class CalibrationPhaseExecutor {
                 }
             }
             _reporter.on_calibration_phase_progress(100 * (_progress++) / _progress_tick_count());
+
+            idle(true);
         }
 
         // Apply the result
         axis_state.forward_current.modify_correction([&](auto &table) {
             apply_x(table, 0, forward_search.arg_min());
         });
+        idle(true);
+
         axis_state.backward_current.modify_correction([&](auto &table) {
             apply_x(table, 1, backward_search.arg_min());
         });
+        idle(true);
+
         return { { forward_search.min(), backward_search.min() } };
     }
 
