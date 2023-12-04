@@ -409,6 +409,9 @@ bool MMU2::TryLoad() {
             filament_inserted = filament_inserted && (WhereIsFilament() == FilamentState::AT_FSENSOR);
             tlur.Progress(filament_inserted);
             safe_delay_keep_alive(0);
+            if (planner_draining()) {
+                return false; // power panic or a similar issue happened, bail out fast
+            }
         }
     }
     tlur.DumpToSerial();
@@ -470,6 +473,9 @@ bool MMU2::FeedWithEStallDetection() {
             return false;
         }
         safe_delay_keep_alive(0);
+        if (planner_draining()) {
+            return false; // power panic or a similar issue happened, bail out fast
+        }
     }
     return true;
 }
@@ -549,9 +555,9 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
 
 void MMU2::ToolChangeCommon(uint8_t slot) {
     while (!ToolChangeCommonOnce(slot)) { // while not successfully fed into extruder's PTFE tube
-        //        if(planner_draining()){ // @@TODO
-        //            return; // power panic happening, pretend the G-code finished ok
-        //        }
+        if (planner_draining()) {
+            return; // power panic happening, pretend the G-code finished ok
+        }
         // failed autoretry, report an error by forcing a "printer" error into the MMU infrastructure - it is a hack to leverage existing code
         // @@TODO theoretically logic layer may not need to be spoiled with the printer error - may be just the manage_response needs it...
         logic.SetPrinterError(ErrorCode::LOAD_TO_EXTRUDER_FAILED);

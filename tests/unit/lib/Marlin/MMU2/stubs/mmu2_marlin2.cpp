@@ -45,6 +45,10 @@ bool planner_any_moves() {
     return false;
 }
 
+bool planner_draining() {
+    return false;
+}
+
 void planner_abort_queued_moves() {}
 
 pos3d planner_current_position() { return { 0, 0, 0 }; }
