@@ -17,7 +17,7 @@ bool selftest_warning_selftest_finished() {
         return ((results == TestResult_Passed) && ...); // all passed
     };
 #if (PRINTER_IS_PRUSA_XL)
-    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
+    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed, config_store().selftest_result_nozzle_diameter.get())) {
         return false;
     }
     for (int8_t e = 0; e < HOTENDS; e++) {
