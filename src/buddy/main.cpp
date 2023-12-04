@@ -89,7 +89,7 @@ osThreadId connectTaskHandle;
 osThreadId prefetch_thread_id;
 
 #if HAS_ACCELEROMETER()
-LIS2DH accelerometer(10);
+LIS2DH accelerometer;
 #endif
 
 unsigned HAL_RCC_CSR = 0;

@@ -54,11 +54,7 @@ typedef enum {
  */
 class LIS2DHCore {
 public:
-    enum class CommInterface : uint8_t {
-        I2C_mode,
-        SPI_mode,
-    };
-    LIS2DHCore(uint8_t inputArg);
+    LIS2DHCore();
     ~LIS2DHCore() = default;
 
     void spiReceiveCompleteCallback() {
@@ -93,12 +89,7 @@ protected:
 
 private:
     // Communication stuff
-    static constexpr CommInterface m_commInterface = CommInterface::SPI_mode;
     volatile int m_ongoing_DMA_rx;
-    union {
-        uint8_t m_I2CAddress;
-        uint8_t m_chipSelectPin;
-    };
     friend class Fifo;
 };
 
@@ -141,7 +132,7 @@ public:
 
     // Constructor generates default SensorSettings.
     //(over-ride after construction if desired)
-    LIS2DH(uint8_t inputArg = 0x19);
+    LIS2DH();
     //~LIS3DH() = default;
 
     // Call to apply SensorSettings
