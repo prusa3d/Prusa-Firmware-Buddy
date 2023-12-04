@@ -15,6 +15,9 @@
     #endif
 
 class PrusaAccelerometer {
+private:
+    LIS2DH accelerometer;
+
 public:
     #if ENABLED(LOCAL_ACCELEROMETER)
     using Acceleration = Fifo::Acceleration;

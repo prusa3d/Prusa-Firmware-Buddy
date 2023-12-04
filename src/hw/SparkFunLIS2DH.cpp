@@ -91,8 +91,7 @@ using namespace buddy::hw;
 //  LIS3DHCore functions.
 //
 //****************************************************************************//
-LIS2DHCore::LIS2DHCore()
-    : m_ongoing_DMA_rx(0) {
+LIS2DHCore::LIS2DHCore() {
 }
 
 status_t LIS2DHCore::beginCore(void) {
@@ -168,77 +167,6 @@ status_t LIS2DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
     return returnError;
 }
 
-/**
- * @brief  Start read using DMA transfer
- *
- * Check readDMACompleted() to see if the transfer has already completed.
- * Thanks to auto increment address bit set you can read multiple registers.
- * There is special treatment of auto increment on register LIS2DH_OUT_Z_H (0x2D).
- * The address to be read is automatically updated by the device and it rolls back to 0x28
- * when register 0x2D is reached.
- *
- * @param outputPointer Pass &variable (base address of) to save read data to
- * @param offset start register to read
- * @param length number of bytes to read
- *
- * @retval IMU_SUCCESS
- * @retval IMU_NOT_SUPPORTED
- * @retval IMU_HW_ERROR
- * @retval IMU_HW_BUSY
- * @retval IMU_TIMEOUT
- * @retval IMU_GENERIC_ERROR
- */
-status_t LIS2DHCore::readRegisterRegionDMA(uint8_t *outputPointer, uint8_t offset, uint8_t length) {
-    status_t returnError = IMU_SUCCESS;
-    // Ensure minimum deselect time from previous transfer.
-    // The chip is deselected in ISR so the minimum delay is not
-    // in ISR but here.
-    delay_ns_precise<50>();
-    // take the chip select low to select the device:
-    acellCs.write(Pin::State::low);
-    delay_ns_precise<5>();
-    // send the device the register you want to read:
-    offset = offset | 0x80 | 0x40; // Ored with "read request" bit and "auto increment" bit
-    HAL_StatusTypeDef hal_status = HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
-    if (HAL_OK != hal_status) {
-        switch (hal_status) {
-        case HAL_ERROR:
-            returnError = IMU_HW_ERROR;
-            break;
-        case HAL_BUSY:
-            returnError = IMU_HW_BUSY;
-            break;
-        case HAL_TIMEOUT:
-            returnError = IMU_TIMEOUT;
-            break;
-        default:
-            returnError = IMU_GENERIC_ERROR;
-            break;
-        }
-        acellCs.write(Pin::State::high);
-        return returnError;
-    }
-    m_ongoing_DMA_rx = 1;
-    hal_status = HAL_SPI_Receive_DMA(&SPI_HANDLE_FOR(accelerometer), outputPointer, length);
-    if (HAL_OK != hal_status) {
-        switch (hal_status) {
-        case HAL_ERROR:
-            returnError = IMU_HW_ERROR;
-            break;
-        case HAL_BUSY:
-            returnError = IMU_HW_BUSY;
-            break;
-        default:
-            returnError = IMU_GENERIC_ERROR;
-            break;
-        }
-        acellCs.write(Pin::State::high);
-        m_ongoing_DMA_rx = 0;
-        return returnError;
-    }
-    return returnError;
-}
-
 //****************************************************************************//
 //
 //  ReadRegister
@@ -305,11 +233,7 @@ status_t LIS2DHCore::readRegisterInt16(int16_t *outputPointer, uint8_t offset) {
 //    dataToWrite -- 8 bit data to write to register
 //
 //****************************************************************************//
-status_t LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
-    if (m_ongoing_DMA_rx) {
-        return IMU_HW_BUSY;
-    }
-    status_t returnError = IMU_SUCCESS;
+void LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
     // Ensure minimum deselect time from previous transfer.
     // The chip might be deselected in ISR so the minimum delay is not
     // in ISR but here.
@@ -323,8 +247,6 @@ status_t LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
     // take the chip select high to de-select:
     delay_ns_precise<20>();
     acellCs.write(Pin::State::high);
-    // No way to check error on this write (Except to read back but that's not reliable)
-    return returnError;
 }
 
 //****************************************************************************//
@@ -615,29 +537,6 @@ void LIS2DH::fifoClear(void) {
     }
 }
 
-void LIS2DH::fifoStartRec(void) {
-    uint8_t dataToWrite = 0; // Temporary variable
-
-    // Turn off...
-    readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
-    dataToWrite &= 0x3F; // clear mode
-#ifdef VERBOSE_SERIAL
-    Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
-    Serial.println(dataToWrite, HEX);
-#endif
-    writeRegister(LIS2DH_FIFO_CTRL_REG, dataToWrite);
-    //  ... then back on again
-    readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
-    dataToWrite &= 0x3F; // clear mode
-    dataToWrite |= (m_settings.fifoMode & 0x03) << 6; // apply mode
-                                                      // Now, write the patched together data
-#ifdef VERBOSE_SERIAL
-    Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
-    Serial.println(dataToWrite, HEX);
-#endif
-    writeRegister(LIS2DH_FIFO_CTRL_REG, dataToWrite);
-}
-
 uint8_t LIS2DH::fifoGetStatus(void) {
     // Return some data on the state of the fifo
     uint8_t tempReadByte = 0;
@@ -647,19 +546,6 @@ uint8_t LIS2DH::fifoGetStatus(void) {
     Serial.println(tempReadByte, HEX);
 #endif
     return tempReadByte;
-}
-
-void LIS2DH::fifoEnd(void) {
-    uint8_t dataToWrite = 0; // Temporary variable
-
-    // Turn off...
-    readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
-    dataToWrite &= 0x3F; // clear mode
-#ifdef VERBOSE_SERIAL
-    Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
-    Serial.println(dataToWrite, HEX);
-#endif
-    writeRegister(LIS2DH_FIFO_CTRL_REG, dataToWrite);
 }
 
 bool LIS2DH::isSetupDone() {
@@ -682,9 +568,6 @@ int Fifo::get(Acceleration &acceleration) {
     int local_num_samples = 0;
     switch (m_state) {
     case State::request_sent:
-        if (!m_accelerometer.readDMACompleted()) {
-            break;
-        }
         m_state = State::draining;
         // fall through
     case State::draining:

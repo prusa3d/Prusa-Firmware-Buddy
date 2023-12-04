@@ -1,5 +1,4 @@
 #include "main.h"
-#include "main.hpp"
 #include "platform.h"
 #include <device/board.h>
 #include "config_features.h"
@@ -34,7 +33,6 @@
 #include "adc.hpp"
 #include "logging.h"
 #include "common/disable_interrupts.h"
-#include <option/has_accelerometer.h>
 #include <option/has_puppies.h>
 #include <option/has_puppies_bootloader.h>
 #include <option/filament_sensor.h>
@@ -87,10 +85,6 @@ osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
 osThreadId connectTaskHandle;
 osThreadId prefetch_thread_id;
-
-#if HAS_ACCELEROMETER()
-LIS2DH accelerometer;
-#endif
 
 unsigned HAL_RCC_CSR = 0;
 int HAL_GPIO_Initialized = 0;
@@ -484,12 +478,6 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
     if (hspi == &SPI_HANDLE_FOR(flash)) {
         w25x_spi_receive_complete_callback();
     }
-
-#if HAS_ACCELEROMETER()
-    if (hspi == &SPI_HANDLE_FOR(accelerometer)) {
-        accelerometer.spiReceiveCompleteCallback();
-    }
-#endif
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {

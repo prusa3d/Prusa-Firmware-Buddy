@@ -3,10 +3,10 @@
  */
 #include "accelerometer.h"
 #if ENABLED(LOCAL_ACCELEROMETER)
-    #include "main.hpp"
 
 PrusaAccelerometer::PrusaAccelerometer()
-    : m_fifo(accelerometer) {
+    : accelerometer {}
+    , m_fifo(accelerometer) {
     m_error = Error::none;
     if (IMU_SUCCESS != accelerometer.begin()) {
         m_error = Error::communication;
