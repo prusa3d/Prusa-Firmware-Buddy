@@ -317,15 +317,18 @@ static void reset_compensation(AxisEnum axis) {
 
 // Return a tuple <motor_period_count, relevant_samples_count> that gives a
 // number of full motor periods in the signal and corresponding signal count
-std::tuple<int, int> matching_samples_count(int sample_count, float sampling_freq,
+std::optional<std::tuple<int, int>> matching_samples_count(int sample_count, float sampling_freq,
     AxisEnum axis, float speed) {
     float motor_period_duration = 1 / (speed * get_motor_steps(axis) / 4);
     float sampling_duration = sample_count / sampling_freq;
     int motor_period_count = int(sampling_duration / motor_period_duration);
     int relevant_samples_count = int(motor_period_count * motor_period_duration / sampling_duration * sample_count);
 
-    assert(relevant_samples_count < sample_count);
-    return { motor_period_count, relevant_samples_count };
+    if (relevant_samples_count >= sample_count) {
+        return std::nullopt;
+    }
+
+    return std::tuple { motor_period_count, relevant_samples_count };
 }
 
 float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
@@ -408,8 +411,13 @@ std::vector<float> phase_stepping::analyze_resonance(AxisEnum axis,
         return {};
     }
 
-    auto [motor_period_count, samples_count] = matching_samples_count(
+    auto msc_r = matching_samples_count(
         signal.size(), sampling_freq, axis, speed);
+
+    if (!msc_r.has_value()) {
+        return {};
+    }
+    auto [motor_period_count, samples_count] = *msc_r;
 
     if (samples_count < 3) {
         log_debug(PhaseStepping, "Too short signal: %d", samples_count);
