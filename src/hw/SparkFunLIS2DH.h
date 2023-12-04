@@ -53,8 +53,11 @@ typedef enum {
  * this class.
  */
 class LIS2DHCore {
+private:
+    const buddy::hw::OutputPin &chip_select_pin;
+
 public:
-    LIS2DHCore();
+    explicit LIS2DHCore(const buddy::hw::OutputPin &chip_select_pin);
     ~LIS2DHCore() = default;
 
 protected:
@@ -115,7 +118,7 @@ public:
 
     // Constructor generates default SensorSettings.
     //(over-ride after construction if desired)
-    LIS2DH();
+    explicit LIS2DH(const buddy::hw::OutputPin &chip_select_pin);
     //~LIS3DH() = default;
 
     // Call to apply SensorSettings

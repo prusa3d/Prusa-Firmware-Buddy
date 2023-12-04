@@ -91,7 +91,8 @@ using namespace buddy::hw;
 //  LIS3DHCore functions.
 //
 //****************************************************************************//
-LIS2DHCore::LIS2DHCore() {
+LIS2DHCore::LIS2DHCore(const buddy::hw::OutputPin &chip_select_pin)
+    : chip_select_pin { chip_select_pin } {
 }
 
 status_t LIS2DHCore::beginCore(void) {
@@ -140,7 +141,7 @@ status_t LIS2DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
     // in ISR but here.
     delay_ns_precise<50>();
     // take the chip select low to select the device:
-    acellCs.write(Pin::State::low);
+    chip_select_pin.write(Pin::State::low);
     delay_ns_precise<5>();
     // send the device the register you want to read:
     offset = offset | 0x80 | 0x40; // Ored with "read request" bit and "auto increment" bit
@@ -162,7 +163,7 @@ status_t LIS2DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
     }
     // take the chip select high to de-select:
     delay_ns_precise<20>();
-    acellCs.write(Pin::State::high);
+    chip_select_pin.write(Pin::State::high);
 
     return returnError;
 }
@@ -186,7 +187,7 @@ status_t LIS2DHCore::readRegister(uint8_t *outputPointer, uint8_t offset) {
     // in ISR but here.
     delay_ns_precise<50>();
     // take the chip select low to select the device:
-    acellCs.write(Pin::State::low);
+    chip_select_pin.write(Pin::State::low);
     delay_ns_precise<5>();
     // send the device the register you want to read:
     offset = offset | 0x80; // Ored with "read request" bit
@@ -194,7 +195,7 @@ status_t LIS2DHCore::readRegister(uint8_t *outputPointer, uint8_t offset) {
     HAL_SPI_Receive(&SPI_HANDLE_FOR(accelerometer), &result, 1, HAL_MAX_DELAY);
     // take the chip select high to de-select:
     delay_ns_precise<20>();
-    acellCs.write(Pin::State::high);
+    chip_select_pin.write(Pin::State::high);
 
     if (result == 0xFF) {
         // we've recieved all ones, report
@@ -239,14 +240,14 @@ void LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
     // in ISR but here.
     delay_ns_precise<50>();
     // take the chip select low to select the device:
-    acellCs.write(Pin::State::low);
+    chip_select_pin.write(Pin::State::low);
     delay_ns_precise<5>();
     // send the device the register you want to read:
     HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
     HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &dataToWrite, 1, HAL_MAX_DELAY);
     // take the chip select high to de-select:
     delay_ns_precise<20>();
-    acellCs.write(Pin::State::high);
+    chip_select_pin.write(Pin::State::high);
 }
 
 //****************************************************************************//
@@ -254,8 +255,8 @@ void LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
 //  Main user class -- wrapper for the core class + maths
 //
 //****************************************************************************//
-LIS2DH::LIS2DH()
-    : LIS2DHCore() {
+LIS2DH::LIS2DH(const buddy::hw::OutputPin &chip_select_pin)
+    : LIS2DHCore { chip_select_pin } {
     // Construct with these default settings
     // ADC stuff
     m_settings.adcEnabled = 0;

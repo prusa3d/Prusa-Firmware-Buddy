@@ -16,7 +16,9 @@
 
 class PrusaAccelerometer {
 private:
+    #if ENABLED(LOCAL_ACCELEROMETER)
     LIS2DH accelerometer;
+    #endif
 
 public:
     #if ENABLED(LOCAL_ACCELEROMETER)
@@ -42,7 +44,12 @@ public:
         corrupted_sample_overrun, // Data not consistent, sample overrun
     };
 
+    #if ENABLED(LOCAL_ACCELEROMETER)
+    explicit PrusaAccelerometer(const buddy::hw::OutputPin &chip_select_pin);
+    #endif
+    #if ENABLED(REMOTE_ACCELEROMETER)
     PrusaAccelerometer();
+    #endif
     ~PrusaAccelerometer();
 
     void clear();

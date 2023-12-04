@@ -341,7 +341,12 @@ static
 
 #if ENABLED(ACCELEROMETER)
     const float acceleration = generator.getAcceleration(frequency);
+    #if ENABLED(LOCAL_ACCELEROMETER)
+    PrusaAccelerometer accelerometer { buddy::hw::acellCs };
+    #endif
+    #if ENABLED(REMOTE_ACCELEROMETER)
     PrusaAccelerometer accelerometer;
+    #endif
     if (PrusaAccelerometer::Error error = accelerometer.get_error(); PrusaAccelerometer::Error::none != error) {
         switch (error) {
         case PrusaAccelerometer::Error::communication:

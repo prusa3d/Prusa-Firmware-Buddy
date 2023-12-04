@@ -4,8 +4,8 @@
 #include "accelerometer.h"
 #if ENABLED(LOCAL_ACCELEROMETER)
 
-PrusaAccelerometer::PrusaAccelerometer()
-    : accelerometer {}
+PrusaAccelerometer::PrusaAccelerometer(const buddy::hw::OutputPin &chip_select_pin)
+    : accelerometer { chip_select_pin }
     , m_fifo(accelerometer) {
     m_error = Error::none;
     if (IMU_SUCCESS != accelerometer.begin()) {
