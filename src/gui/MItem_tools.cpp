@@ -834,7 +834,7 @@ void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
     }
 
     if (index) {
-        if (config_store().selftest_result.get().phase_stepping != TestResult_Passed) {
+        if (config_store().selftest_result_phase_stepping.get() != TestResult_Passed) {
             AutoRestore ar(event_in_progress, true);
             MsgBoxWarning(_("Phase stepping not ready: perform calibration first."), Responses_Ok);
             index = old_index;

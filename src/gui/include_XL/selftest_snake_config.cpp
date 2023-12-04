@@ -75,7 +75,7 @@ TestResult get_test_result(Action action, Tool tool) {
     case Action::NozzleDiameter:
         return evaluate_results(config_store().selftest_result_nozzle_diameter.get());
     case Action::PhaseSteppingCalibration:
-        return evaluate_results(sr.phase_stepping);
+        return evaluate_results(config_store().selftest_result_phase_stepping.get());
     case Action::_count:
         break;
     }

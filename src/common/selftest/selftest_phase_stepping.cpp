@@ -33,13 +33,11 @@ bool phase_phase_stepping(IPartHandler *&selftest_phase_stepping, const Selftest
     if (in_progress) {
         return true;
     }
-    SelftestResult eeres = config_store().selftest_result.get();
-    eeres.phase_stepping = selftest_phase_stepping->GetResult();
+
+    config_store().selftest_result_phase_stepping.set(selftest_phase_stepping->GetResult());
 
     delete selftest_phase_stepping;
     selftest_phase_stepping = nullptr;
-
-    config_store().selftest_result.set(eeres);
 
     return false;
 }

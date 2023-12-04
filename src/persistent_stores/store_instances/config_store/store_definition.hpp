@@ -345,6 +345,10 @@ struct CurrentStore
     StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;
 #endif
 
+#if PRINTER_IS_PRUSA_XL
+    StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Test Result Phase Stepping")> selftest_result_phase_stepping;
+#endif
+
     SelftestTool get_selftest_result_tool(uint8_t index);
     void set_selftest_result_tool(uint8_t index, SelftestTool value);
 
