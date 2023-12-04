@@ -12,9 +12,11 @@
 #include "timing.h"
 #include "Marlin/src/module/stepper.h"
 #include "Marlin/src/module/prusa/toolchanger.h"
-#include <esp_flash.hpp>
-#include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
+#if HAS_EMBEDDED_ESP32()
+    #include <esp_flash.hpp>
+#endif
+#include <tasks.hpp>
 #include <option/has_dwarf.h>
 #include <ccm_thread.hpp>
 #include "bsod_gui.hpp"
