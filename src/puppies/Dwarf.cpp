@@ -4,7 +4,7 @@
 #include "puppies/Dwarf.hpp"
 #include "puppies/fifo_decoder.hpp"
 
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "log.h"
 #include "loadcell.hpp"
 #include "timing.h"

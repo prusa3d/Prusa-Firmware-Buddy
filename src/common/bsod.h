@@ -8,6 +8,11 @@
 #pragma once
 
 #include <stdint.h>
+#if not defined(UNITTESTS)
+    #include "error_codes.hpp"
+#else
+enum class ErrCode;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,13 +39,12 @@ _bsod(const char *fmt, const char *file_name, int line_number, ...); // with fil
  * @param error - error message, that will be displayed as error description (MAX length 107 chars)
  * @param module - module affected by error will be displayed as error title (MAX length 20 chars)
  */
-__attribute__((noreturn)) void fatal_error(const char *error, const char *module);
+[[noreturn]] void fatal_error(const char *error, const char *module);
 
 #ifdef __cplusplus
 }
 #endif //__cplusplus
 
-/**
- * @brief Mark when BSOD would be shown and allow dumping a new BSOD.
- */
-void bsod_mark_shown();
+[[noreturn]] void fatal_error(const ErrCode error_code, ...);
+
+[[noreturn]] void raise_redscreen(ErrCode error_code, const char *error, const char *module);

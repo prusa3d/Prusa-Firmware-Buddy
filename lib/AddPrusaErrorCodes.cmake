@@ -40,7 +40,12 @@ endfunction()
 
 set(error_codes_dir "${CMAKE_CURRENT_SOURCE_DIR}/Prusa-Error-Codes")
 
-add_generated_error_codes_header("${error_codes_dir}/${PRINTER_CODE}_${PRINTER}" FALSE)
+if(PRINTER STREQUAL "XL_DEV_KIT")
+  # use XL error codes for XL_DEV_KIT
+  add_generated_error_codes_header("${error_codes_dir}/17_XL" FALSE)
+else()
+  add_generated_error_codes_header("${error_codes_dir}/${PRINTER_CODE}_${PRINTER}" FALSE)
+endif()
 
 # TODO temporarily build the mmu header, not easy to separate the mmu code, needs refactor
 # if(HAS_MMU2)

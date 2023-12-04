@@ -122,9 +122,18 @@ const ErrDesc &find_error(const ErrCode error_code) {
 }
 
 void raise_redscreen(ErrCode error_code, const char *error, const char *module) {
-
     crash_dump::save_message(crash_dump::MsgType::RSOD, ftrstd::to_underlying(error_code), error, module);
     sys_reset();
+}
+
+[[noreturn]] void fatal_error(const ErrCode error_code, ...) {
+    const ErrDesc &corresponding_error = find_error(error_code);
+    char err_msg[140];
+    va_list args;
+    va_start(args, error_code);
+    snprintf(err_msg, sizeof(err_msg), corresponding_error.err_text, args);
+    va_end(args);
+    raise_redscreen(error_code, err_msg, corresponding_error.err_title);
 }
 
 //! Fatal error that causes Redscreen

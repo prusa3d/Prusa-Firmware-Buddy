@@ -22,7 +22,7 @@
 
 #include "../gcode.h"
 #include "../../module/tool_change.h"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #if ENABLED(PRUSA_TOOL_MAPPING)
   #include "module/prusa/tool_mapper.hpp"
 #endif

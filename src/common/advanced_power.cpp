@@ -10,7 +10,7 @@
 #endif
 
 #if !(BOARD_IS_DWARF)
-    #include "bsod_gui.hpp"
+    #include "bsod.h"
 #endif
 
 #if BOARD_IS_XLBUDDY

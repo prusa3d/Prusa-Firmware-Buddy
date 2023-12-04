@@ -1,5 +1,5 @@
 #include "loadcell.hpp"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "error_codes.hpp"
 #include "gpio.h"
 #include "metric.h"
@@ -11,7 +11,7 @@
 #include "timing.h"
 #include "log.h"
 #include "probe_position_lookback.hpp"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "config_features.h"
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"

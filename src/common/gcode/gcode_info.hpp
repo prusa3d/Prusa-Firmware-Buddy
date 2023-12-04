@@ -6,7 +6,10 @@
  */
 #pragma once
 
-#include "guitypes.hpp"
+#include "option/has_gui.h"
+#if HAS_GUI()
+    #include "guitypes.hpp"
+#endif
 #include "i18n.h"
 #include "marlin_stubs/PrusaGcodeSuite.hpp"
 #include <option/has_toolchanger.h>
@@ -326,12 +329,14 @@ private:
     const char *gcode_file_path; /**< stores current gcode file path */
     const char *gcode_file_name; /**< stores current gcode file name */
 
+#if HAS_GUI()
     /** Set static variable for gcode filename
      *  @param[in] file - gcode file reference
      *  @param[in] size - thumbnail wanted size
      *  @return True - if has thumbnail with those size parameters
      */
     bool hasThumbnail(IGcodeReader &reader, size_ui16_t size);
+#endif
     GCodeInfo();
     GCodeInfo(const GCodeInfo &) = delete;
 

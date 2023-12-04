@@ -2,7 +2,6 @@
 
 #include <span>
 #include <math.h>
-#include <types.h>
 
 /// Approx center using iterative least square fit
 template <size_t ITERATIONS = 10>

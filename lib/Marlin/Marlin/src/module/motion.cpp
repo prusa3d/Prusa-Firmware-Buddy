@@ -25,7 +25,7 @@
  */
 
 #include "motion.h"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "endstops.h"
 #include "stepper.h"
 #include "planner.h"

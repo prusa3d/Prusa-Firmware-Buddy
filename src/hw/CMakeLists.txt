@@ -1,10 +1,13 @@
 target_sources(firmware PRIVATE cpu_utils.cpp)
 
-if(BOARD MATCHES ".*BUDDY")
+if(BOARD_IS_MASTER_BOARD)
   target_sources(firmware PRIVATE buffered_serial.cpp)
 endif()
 
-if((BOARD STREQUAL "XBUDDY") OR BOARD STREQUAL "XLBUDDY")
+if((BOARD STREQUAL "XBUDDY")
+   OR BOARD STREQUAL "XLBUDDY"
+   OR BOARD STREQUAL "XL_DEV_KIT_XLB"
+   )
   target_sources(firmware PRIVATE FUSB302B.cpp)
   add_subdirectory(xbuddy_xlbuddy)
   if(BOOTLOADER STREQUAL "NO")
@@ -25,7 +28,7 @@ if(HAS_ACCELEROMETER)
   endif()
 endif()
 
-if(BOARD MATCHES ".*BUDDY")
+if(BOARD_IS_MASTER_BOARD)
   if((PRINTER STREQUAL "MK4") OR (PRINTER STREQUAL "iX"))
     add_subdirectory(mk4_ix)
   endif()
@@ -36,5 +39,9 @@ if(BOARD MATCHES ".*BUDDY")
 
   if(PRINTER STREQUAL "XL")
     add_subdirectory(xl)
+  endif()
+
+  if(PRINTER STREQUAL "XL_DEV_KIT")
+    add_subdirectory(xl_dev_kit)
   endif()
 endif()

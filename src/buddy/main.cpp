@@ -7,7 +7,7 @@
 #include "usb_device.hpp"
 #include "usb_host.h"
 #include "buffered_serial.hpp"
-#include "bsod.h"
+#include "bsod_gui.hpp"
 #include "media.hpp"
 #include <config_store/store_instance.hpp>
 #include <option/buddy_enable_connect.h>
@@ -54,6 +54,7 @@
 #include "gui_bootstrap_screen.hpp"
 #include "resources/revision.hpp"
 #include "filesystem_semihosting.h"
+#include "disable_interrupts.h"
 
 #if HAS_PUPPIES()
     #include "puppies/PuppyBus.hpp"

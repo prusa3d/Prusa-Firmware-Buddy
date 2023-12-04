@@ -4,6 +4,7 @@
 
 namespace config_store_ns {
 namespace migrations {
+#if HAS_SELFTEST()
     void selftest_result_pre_23(journal::Backend &backend) {
         // Migrating functions are fired if one of the corresponding deprecated_ids (in this case deprecated_ids::selftest_result_pre_23) is found OR if one of the earlier migration functions had its deprecated ids found.
 
@@ -30,8 +31,9 @@ namespace migrations {
 
         backend.save_migration_item(journal::hash("Selftest Result V23"), new_selftest_result); // Save the new data into the backend
     }
+#endif
 
-#if PRINTER_IS_PRUSA_XL // MINI goes directly from old eeprom to multiple footer items, MK4 gets its footer reset
+#if PRINTER_IS_PRUSA_XL and HAS_GUI() // MINI goes directly from old eeprom to multiple footer items, MK4 gets its footer reset
     void footer_setting_v1(journal::Backend &backend) {
         // See selftest_result_pre_23 (above) for in-depth commentary
         using FooterSettingsV1 = decltype(DeprecatedStore::footer_setting_v1);
@@ -115,6 +117,7 @@ namespace migrations {
         }
     }
 
+#if HAS_SELFTEST()
     void selftest_result_pre_gears(journal::Backend &backend) {
         // See selftest_result_pre_23 (above) for in-depth commentary
         using SelftestResultPreGearsT = decltype(DeprecatedStore::selftest_result_pre_gears);
@@ -128,6 +131,7 @@ namespace migrations {
         SelftestResult new_selftest_result { sr_pre_gears };
         backend.save_migration_item(journal::hash("Selftest Result Gears"), new_selftest_result);
     }
+#endif
 
     void fsensor_enabled_v1(journal::Backend &backend) {
         // See selftest_result_pre_23 (above) for in-depth commentary

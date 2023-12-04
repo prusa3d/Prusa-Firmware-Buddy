@@ -27,6 +27,7 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
+#include <option/has_selftest.h>
 
 namespace config_store_ns {
 /**
@@ -334,8 +335,9 @@ struct CurrentStore
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Firmware")> hw_check_firmware;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check G-code")> hw_check_gcode;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Compatibility")> hw_check_compatibility;
-
+#if HAS_SELFTEST()
     StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result Gears")> selftest_result;
+#endif
 
 #if PRINTER_IS_PRUSA_XL
     StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;

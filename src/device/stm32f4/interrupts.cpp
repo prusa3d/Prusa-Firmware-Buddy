@@ -322,9 +322,11 @@ void DMA1_Stream6_IRQHandler(void) {
  * @brief This function handles Ethernet global interrupt.
  */
 void ETH_IRQHandler(void) {
+#if !BOARD_IS_XL_DEV_KIT_XLB
     traceISR_ENTER();
     HAL_ETH_IRQHandler(&heth);
     traceISR_EXIT();
+#endif
 }
 
 /**
@@ -340,8 +342,10 @@ void OTG_FS_IRQHandler(void) {
  * @brief This function handles USB On The Go HS global interrupt.
  */
 void OTG_HS_IRQHandler(void) {
+#if !BOARD_IS_XL_DEV_KIT_XLB
     traceISR_ENTER();
     HAL_HCD_IRQHandler(&hhcd_USB_OTG_HS);
     traceISR_EXIT();
+#endif
 }
 }

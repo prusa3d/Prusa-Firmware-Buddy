@@ -19,7 +19,7 @@
 #include <tasks.hpp>
 #include <option/has_dwarf.h>
 #include <ccm_thread.hpp>
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "gui_bootstrap_screen.hpp"
 
 LOG_COMPONENT_DEF(Puppies, LOG_SEVERITY_DEBUG);
