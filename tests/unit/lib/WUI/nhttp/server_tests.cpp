@@ -565,7 +565,7 @@ TEST_CASE("Digest stale nonce") {
     REQUIRE(client_conn == 1);
 
     SECTION("Real stale nonce") {
-        set_time(0x0000000f);
+        set_time(0x00000fff);
         string request = digest_auth_header("GET", "maker", "aaaaaaaa00000000", "/secret.html", "0cbf0ac5ca4c879c35a3b91430214a47");
         server.send(client_conn, request);
     }
@@ -580,7 +580,7 @@ TEST_CASE("Digest stale nonce") {
 
     const auto response = server.recv_all(client_conn);
     // Note: connection should be kept alive, beacause it is save to do with GET
-    check_unauth_digest(response, "aaaaaaaa0000000f", "true", "keep-alive");
+    check_unauth_digest(response, "aaaaaaaa00000fff", "true", "keep-alive");
 }
 
 // should resolve to stale=false, because client should not retry with different nonce
@@ -592,13 +592,13 @@ TEST_CASE("Stale nonce and wrong auth") {
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
 
-    set_time(0x0000000f);
+    set_time(0x00000fff);
     string request = digest_auth_header("GET", "invaliduser", "aaaaaaaa00000000", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
     server.send(client_conn, request);
 
     const auto response = server.recv_all(client_conn);
     // Note: connection should be kept alive, beacause it is save to do with GET
-    check_unauth_digest(response, "aaaaaaaa0000000f", "false", "keep-alive");
+    check_unauth_digest(response, "aaaaaaaa00000fff", "false", "keep-alive");
 }
 
 TEST_CASE("Not authenticated digest error close") {
