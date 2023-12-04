@@ -127,7 +127,9 @@ class MI_TOOL : public I_MI_TOOL {
 public:
     static constexpr ToolBox::Tool TOOL = tool;
     MI_TOOL()
-        : I_MI_TOOL(get_label(tool, action), tool, action, hidden_if_inactive == is_hidden_if_inactive_t::yes) {}
+        : I_MI_TOOL(get_label(tool, action), tool, action, hidden_if_inactive == is_hidden_if_inactive_t::yes) {
+        has_return_behavior_ = (action == Action::Return);
+    }
 
 protected:
     void click(IWindowMenu &window_menu) override {
