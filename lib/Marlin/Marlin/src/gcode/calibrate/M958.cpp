@@ -342,7 +342,14 @@ static
 #if ENABLED(ACCELEROMETER)
     const float acceleration = generator.getAcceleration(frequency);
     #if ENABLED(LOCAL_ACCELEROMETER)
+        #if PRINTER_IS_PRUSA_MK3_5
+    // TODO: Do we need to disable print fan tachometer?
+    buddy::hw::OutputEnabler output_enabler { buddy::hw::fanPrintTach, buddy::hw::Pin::State::high, buddy::hw::OMode::pushPull, buddy::hw::OSpeed::high };
+    const auto &pin = output_enabler.pin();
+    PrusaAccelerometer accelerometer { pin };
+        #else
     PrusaAccelerometer accelerometer { buddy::hw::acellCs };
+        #endif
     #endif
     #if ENABLED(REMOTE_ACCELEROMETER)
     PrusaAccelerometer accelerometer;
