@@ -58,6 +58,11 @@ int phase_stepping::normalize_motor_phase(int phase) {
     return phase;
 }
 
+void CorrectedCurrentLut::clear() {
+    _spectrum.fill({});
+    _phase_shift.fill({});
+}
+
 void CorrectedCurrentLut::_update_phase_shift() {
     for (size_t i = 0; i != _phase_shift.size(); i++) {
         float item_phase = i * 2 * std::numbers::pi_v<float> / MOTOR_PERIOD;

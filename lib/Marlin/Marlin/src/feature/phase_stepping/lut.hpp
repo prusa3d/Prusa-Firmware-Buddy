@@ -28,6 +28,10 @@ int normalize_motor_phase(int phase);
 int normalize_sin_phase(int phase);
 
 class CorrectedCurrentLut {
+
+public:
+    void clear();
+
 public:
     MotorPhaseCorrection _spectrum = {};
     std::array<int8_t, MOTOR_PERIOD> _phase_shift = {};

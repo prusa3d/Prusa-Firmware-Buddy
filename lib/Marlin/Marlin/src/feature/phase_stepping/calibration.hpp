@@ -25,7 +25,7 @@ namespace phase_stepping {
  * ignored.
  */
 float capture_samples(AxisEnum axis, float speed, float revs,
-    std::function<void(const PrusaAccelerometer::Acceleration &)> yield_sample);
+    const std::function<void(const PrusaAccelerometer::Acceleration &)> &yield_sample);
 
 /**
  * Assuming phase stepping is enabled, measure resonance and return requested
@@ -33,8 +33,8 @@ float capture_samples(AxisEnum axis, float speed, float revs,
  *
  * Returns the measurement measurement.
  */
-std::optional<std::vector<float>> analyze_resonance(AxisEnum axis,
-    float speed, float revs, std::vector<int> requested_harmonics);
+std::vector<float> analyze_resonance(AxisEnum axis,
+    float speed, float revs, const std::vector<int> &requested_harmonics);
 
 /**
  * Calibration routine notifies about the progress made via this class. Subclass

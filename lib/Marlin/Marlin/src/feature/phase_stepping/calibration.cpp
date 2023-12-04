@@ -269,7 +269,7 @@ static float project_to_axis(AxisEnum axis, const PrusaAccelerometer::Accelerati
 }
 
 // Naively compute n-th bin of DFT and return its amplitude
-static float dft_n_mag(const std::vector<float> signal, int n) {
+static float dft_n_mag(const std::vector<float> &signal, int n) {
     assert(n >= 0);
 
     float sum_sin = 0, sum_cos = 0;
@@ -311,8 +311,8 @@ static void move_to_calibration_start(AxisEnum axis, const PrinterCalibrationCon
 }
 
 static void reset_compensation(AxisEnum axis) {
-    phase_stepping::axis_states[axis]->forward_current = {};
-    phase_stepping::axis_states[axis]->backward_current = {};
+    phase_stepping::axis_states[axis]->forward_current.clear();
+    phase_stepping::axis_states[axis]->backward_current.clear();
 }
 
 // Return a tuple <motor_period_count, relevant_samples_count> that gives a
@@ -329,7 +329,7 @@ std::tuple<int, int> matching_samples_count(int sample_count, float sampling_fre
 }
 
 float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
-    std::function<void(const PrusaAccelerometer::Acceleration &)> yield_sample) {
+    const std::function<void(const PrusaAccelerometer::Acceleration &)> &yield_sample) {
     assert(speed > 0);
 
     Planner::synchronize();
@@ -354,13 +354,10 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
 
     plan_move_by(feedrate_mms, d_x, d_y);
 
-    bool success;
-    success = wait_for_movement_start(axis_state);
-    if (!success) {
+    if (!wait_for_movement_start(axis_state)) {
         return 0;
     }
-    success = wait_for_accel_end(axis_state);
-    if (!success) {
+    if (!wait_for_accel_end(axis_state)) {
         return 0;
     }
 
@@ -388,8 +385,8 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
     return accelerometer.get_sampling_rate();
 }
 
-std::optional<std::vector<float>> phase_stepping::analyze_resonance(AxisEnum axis,
-    float speed, float revs, std::vector<int> requested_harmonics) {
+std::vector<float> phase_stepping::analyze_resonance(AxisEnum axis,
+    float speed, float revs, const std::vector<int> &requested_harmonics) {
     const int expected_max_sample_count = 1500 * speed * std::abs(revs);
 
     std::vector<float> signal;
@@ -402,7 +399,7 @@ std::optional<std::vector<float>> phase_stepping::analyze_resonance(AxisEnum axi
 
     log_debug(PhaseStepping, "Sampling freq: %f", sampling_freq);
     if (sampling_freq < 1100 || sampling_freq > 1500) {
-        return std::nullopt;
+        return {};
     }
 
     auto [motor_period_count, samples_count] = matching_samples_count(
@@ -410,12 +407,14 @@ std::optional<std::vector<float>> phase_stepping::analyze_resonance(AxisEnum axi
 
     if (samples_count < 3) {
         log_debug(PhaseStepping, "Too short signal: %d", samples_count);
-        return std::nullopt;
+        return {};
     }
 
     signal.resize(samples_count);
 
     std::vector<float> res;
+    res.reserve(requested_harmonics.size());
+
     for (auto n : requested_harmonics) {
         std::size_t harm = n * motor_period_count;
         assert(harm < signal.size());
@@ -479,14 +478,14 @@ class CalibrationPhaseExecutor {
                 }
 
                 auto b_res = phase_stepping::analyze_resonance(_axis,
-                    _phase_config.speed, _printer_config.calib_revs, { { _phase_config.harmonic } });
+                    _phase_config.speed, _printer_config.calib_revs, { _phase_config.harmonic });
 
                 auto f_res = phase_stepping::analyze_resonance(_axis,
-                    _phase_config.speed, -_printer_config.calib_revs, { { _phase_config.harmonic } });
+                    _phase_config.speed, -_printer_config.calib_revs, { _phase_config.harmonic });
 
-                if (f_res.has_value() && b_res.has_value()) {
-                    forward_search.submit((*f_res)[0]);
-                    backward_search.submit((*b_res)[0]);
+                if (!f_res.empty() && !b_res.empty()) {
+                    forward_search.submit(f_res[0]);
+                    backward_search.submit(b_res[0]);
                     break;
                 }
             }
@@ -527,8 +526,8 @@ public:
             auto f_res = phase_stepping::analyze_resonance(_axis,
                 _phase_config.speed, -_printer_config.calib_revs, { { _phase_config.harmonic } });
 
-            if (f_res.has_value() && b_res.has_value()) {
-                return { { (*f_res)[0], (*b_res)[0] } };
+            if (!f_res.empty() && !b_res.empty()) {
+                return { { f_res[0], b_res[0] } };
             }
         }
 
@@ -539,11 +538,11 @@ public:
     // destination
     std::optional<std::tuple<float, float>> run() {
         // Find phase
-        float initial_f_pha = _phase_config.pha.value_or(_get_fwd_item().pha);
-        float initial_f_mag = _phase_config.mag.value_or(_get_fwd_item().mag);
-        float initial_b_pha = _phase_config.pha.value_or(_get_bwd_item().pha);
-        float initial_b_mag = _phase_config.mag.value_or(_get_bwd_item().mag);
-        float pha_range = _phase_config.pha_window / 2.f;
+        const float initial_f_pha = _phase_config.pha.value_or(_get_fwd_item().pha);
+        const float initial_f_mag = _phase_config.mag.value_or(_get_fwd_item().mag);
+        const float initial_b_pha = _phase_config.pha.value_or(_get_bwd_item().pha);
+        const float initial_b_mag = _phase_config.mag.value_or(_get_bwd_item().mag);
+        const float pha_range = _phase_config.pha_window / 2.f;
         auto phase_res = _run_simultaneous_search(
             { initial_f_pha - pha_range, initial_f_pha + pha_range, "forward-pha" },
             { initial_b_pha - pha_range, initial_b_pha + pha_range, "backward-pha" },
@@ -559,7 +558,7 @@ public:
         }
 
         // Find magnitude
-        float mag_range = _phase_config.mag_window / 2.f;
+        const float mag_range = _phase_config.mag_window / 2.f;
         auto mag_res = _run_simultaneous_search(
             { initial_f_mag - mag_range, initial_f_mag + mag_range, "forward-mag" },
             { initial_b_mag - mag_range, initial_b_mag + mag_range, "backward-mag" },
@@ -577,6 +576,8 @@ public:
 
 std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>>
 phase_stepping::calibrate_axis(AxisEnum axis, CalibrationReporterBase &reporter) {
+    std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>> r;
+
     const auto config = get_printer_calibration_config();
 
     reset_compensation(axis);
@@ -596,21 +597,65 @@ phase_stepping::calibrate_axis(AxisEnum axis, CalibrationReporterBase &reporter)
         auto executor = CalibrationPhaseExecutor(axis, config, calib_phase, reporter);
         auto baseline_res = executor.baseline();
         if (!baseline_res.has_value()) {
-            return std::nullopt;
+            return r;
         }
         auto [baseline_f, baseline_b] = *baseline_res;
 
         auto calib_res = executor.run();
         if (!calib_res.has_value()) {
-            return std::nullopt;
+            return r;
         }
         auto [min_f, min_b] = *calib_res;
 
         reporter.on_calibration_phase_result(min_f / baseline_f, min_b / baseline_b);
     }
 
-    auto forward_correction = phase_stepping::axis_states[axis]->forward_current.get_correction();
-    auto backward_correction = phase_stepping::axis_states[axis]->backward_current.get_correction();
+    r.emplace();
+    std::get<0>(*r) = phase_stepping::axis_states[axis]->forward_current.get_correction();
+    std::get<1>(*r) = phase_stepping::axis_states[axis]->backward_current.get_correction();
+    return r;
+}
 
-    return { { forward_correction, backward_correction } };
+PrinterCalibrationConfig phase_stepping::get_printer_calibration_config() {
+#if PRINTER_IS_PRUSA_XL
+    static constexpr std::array phases = {
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 3.f,
+            .pha = 3.14f,
+            .pha_window = 2.5f,
+            .mag = 0.038f,
+            .mag_window = 0.25f,
+            .iteration_count = 14,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 1.5f,
+            .pha = 0.f,
+            .pha_window = 4.f,
+            .mag = 0.02f,
+            .mag_window = 0.01f,
+            .iteration_count = 14,
+        },
+        CalibrationPhase {
+            .harmonic = 2,
+            .speed = 3.f,
+            .pha_window = 1.f,
+            .mag_window = 0.01f,
+        },
+        CalibrationPhase {
+            .harmonic = 4,
+            .speed = 1.5f,
+            .pha_window = 0.8f,
+            .mag_window = 0.01f,
+        },
+    };
+
+    return PrinterCalibrationConfig {
+        .calib_revs = 0.5f,
+        .phases = std::vector(phases.begin(), phases.end()),
+    };
+#else
+    #error "Unsupported printer"
+#endif
 }

@@ -408,16 +408,14 @@ void GcodeSuite::M976() {
         axis, parser.floatval('F'), parser.floatval('R'),
         { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 } });
 
-    if (!analysis.has_value()) {
+    if (analysis.empty()) {
         print_error("Unsuccessful data capture");
     }
 
-    auto &data = *analysis;
-
-    for (std::size_t i = 0; i != data.size(); i++) {
+    for (std::size_t i = 0; i != analysis.size(); i++) {
         SERIAL_ECHO(i);
         SERIAL_ECHO(": ");
-        SERIAL_ECHOLN(data[i]);
+        SERIAL_ECHOLN(analysis[i]);
     }
 }
 
