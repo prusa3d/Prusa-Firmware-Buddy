@@ -20,6 +20,8 @@
 #include "app.h"
 #include "wdt.h"
 #include <crash_dump/dump.hpp>
+#include "error_codes.hpp"
+#include "bsod_gui.hpp"
 #include "timer_defaults.h"
 #include "tick_timer_api.h"
 #include "thread_measurement.h"
@@ -255,12 +257,13 @@ extern "C" void main_cpp(void) {
     osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
 #endif
 
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
     /*
-     * MK3.5 HW detected
+     * MK3.5 HW detected on MK4 firmware or vice versa
      */
     if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw()) {
-        // TODO do something to show error we want
+        const auto &error = find_error(ErrCode::WARNING_DIFFERENT_FW_REQUIRED);
+        crash_dump::save_message(crash_dump::MsgType::RSOD, static_cast<uint16_t>(error.err_code), error.err_text, error.err_title);
         hwio_safe_state();
         init_error_screen();
         return;
