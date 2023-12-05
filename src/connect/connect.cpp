@@ -267,28 +267,28 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
             return err_to_status(get<Error>(res));
         }
 
-        auto header = get<WebSocket::Message>(res);
+        auto fragment = get<WebSocket::FragmentHeader>(res);
 
         // Control messages can come at any time. Even "in the middle" of
         // multi-fragment message.
-        switch (header.opcode) {
+        switch (fragment.opcode) {
         case WebSocket::Opcode::Ping: {
             // Not allowed to fragment
             constexpr const size_t MAX_FRAGMENT_LEN = 126;
-            if (header.len > MAX_FRAGMENT_LEN) {
+            if (fragment.len > MAX_FRAGMENT_LEN) {
                 conn_factory.invalidate();
                 return OnlineError::Confused;
             }
 
             uint8_t data[MAX_FRAGMENT_LEN];
-            if (auto result = header.conn->rx_exact(data, header.len); result.has_value()) {
+            if (auto error = fragment.conn->rx_exact(data, fragment.len); error.has_value()) {
                 conn_factory.invalidate();
-                return err_to_status(*result);
+                return err_to_status(*error);
             }
 
-            if (auto result = websocket->send(WebSocket::Pong, false, data, header.len); result.has_value()) {
+            if (auto error = websocket->send(WebSocket::Pong, false, data, fragment.len); error.has_value()) {
                 conn_factory.invalidate();
-                return err_to_status(*result);
+                return err_to_status(*error);
             }
 
             // This one is handled, next one please.
@@ -296,7 +296,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
         }
         case WebSocket::Opcode::Pong:
             // We didn't send a ping, so not expecting pong... ignore pongs
-            header.ignore();
+            fragment.ignore();
             continue;
         case WebSocket::Opcode::Close:
             // The server is closing the connection, we are not getting the
@@ -310,33 +310,33 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
 
         first = false;
 
-        if (header.command_id.has_value()) {
-            command_id = *header.command_id;
+        if (fragment.command_id.has_value()) {
+            command_id = *fragment.command_id;
         }
 
-        if (read + header.len > sizeof buffer) {
+        if (read + fragment.len > sizeof buffer) {
             // Note: This will be true until the end of the whole message, not
             // just for this fragment - we need to throw away the whole
             // command.
             oversized = true;
         }
 
-        if (header.opcode == WebSocket::Opcode::Gcode) {
+        if (fragment.opcode == WebSocket::Opcode::Gcode) {
             is_json = false;
         }
 
         if (oversized) {
-            header.ignore();
+            fragment.ignore();
         } else {
-            if (auto result = header.conn->rx_exact(buffer + read, header.len); result.has_value()) {
+            if (auto error = fragment.conn->rx_exact(buffer + read, fragment.len); error.has_value()) {
                 conn_factory.invalidate();
-                return err_to_status(*result);
+                return err_to_status(*error);
             }
 
-            read += header.len;
+            read += fragment.len;
         }
 
-        if (header.last) {
+        if (fragment.last) {
             if (!command_id.has_value()) {
                 planner().command(Command {
                     0,
@@ -486,10 +486,10 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
             break;
         }
 
-        if (auto result = websocket->send(first ? WebSocket::Text : WebSocket::Continuation, !more, buffer, written_json); result.has_value()) {
+        if (auto error = websocket->send(first ? WebSocket::Text : WebSocket::Continuation, !more, buffer, written_json); error.has_value()) {
             conn_factory.invalidate();
             planner().action_done(ActionResult::Failed);
-            return err_to_status(*result);
+            return err_to_status(*error);
         }
 
         first = false;

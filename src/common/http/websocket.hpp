@@ -50,7 +50,7 @@ public:
         Pong = 10,
     };
 
-    struct Message {
+    struct FragmentHeader {
         Opcode opcode;
         size_t len;
         Connection *conn;
@@ -83,7 +83,7 @@ public:
     //
     // Returns:
     // * monostate: In case of poll = true and no message available.
-    // * Message: the message header (the body follows, but it's up to
+    // * FragmentHeader: the fragment header (the body follows, but it's up to
     //   the caller to read it).
     // * Error: Error happened.
     //
@@ -92,7 +92,7 @@ public:
     //
     // Note that if the server sent only part of the header, this'll
     // block before it returns even if poll is set to true.
-    std::variant<std::monostate, Message, Error> receive(std::optional<uint32_t> poll);
+    std::variant<std::monostate, FragmentHeader, Error> receive(std::optional<uint32_t> poll);
 };
 
 // The Sec-WebSocket-Key request and response

@@ -86,7 +86,7 @@ optional<Error> WebSocket::send(Opcode opcode, bool last, uint8_t *data, size_t 
     return conn->tx_all(data, size);
 }
 
-variant<monostate, WebSocket::Message, Error> WebSocket::receive(optional<uint32_t> poll) {
+variant<monostate, WebSocket::FragmentHeader, Error> WebSocket::receive(optional<uint32_t> poll) {
     if (poll.has_value()) {
         if (!conn->poll_readable(*poll)) {
             return monostate {};
@@ -98,7 +98,7 @@ variant<monostate, WebSocket::Message, Error> WebSocket::receive(optional<uint32
         return *err;
     }
 
-    Message result;
+    FragmentHeader result;
     result.conn = conn;
     result.last = header[0] & 0b10000000;
     result.opcode = Opcode(header[0] & 0b00001111);
@@ -145,7 +145,7 @@ variant<monostate, WebSocket::Message, Error> WebSocket::receive(optional<uint32
     return result;
 }
 
-void WebSocket::Message::ignore() {
+void WebSocket::FragmentHeader::ignore() {
     uint8_t buffer[128];
     while (len > 0) {
         size_t chunk = std::min(len, sizeof buffer);
