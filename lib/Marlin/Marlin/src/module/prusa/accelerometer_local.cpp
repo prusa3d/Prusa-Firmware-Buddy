@@ -4,8 +4,14 @@
 #include "accelerometer.h"
 #if ENABLED(LOCAL_ACCELEROMETER)
 
-PrusaAccelerometer::PrusaAccelerometer(const buddy::hw::OutputPin &chip_select_pin)
-    : accelerometer { chip_select_pin }
+PrusaAccelerometer::PrusaAccelerometer()
+    #if PRINTER_IS_PRUSA_MK3_5
+    : output_enabler { buddy::hw::fanPrintTach, buddy::hw::Pin::State::high, buddy::hw::OMode::pushPull, buddy::hw::OSpeed::high }
+    , output_pin { output_enabler.pin() }
+    , accelerometer { output_pin }
+    #else
+    : accelerometer { buddy::hw::acellCs }
+    #endif
     , m_fifo(accelerometer) {
     m_error = Error::none;
     if (IMU_SUCCESS != accelerometer.begin()) {

@@ -356,19 +356,7 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
     StepDir stepDir(generator);
 
     const float acceleration = generator.getAcceleration(frequency);
-    #if ENABLED(LOCAL_ACCELEROMETER)
-        #if PRINTER_IS_PRUSA_MK3_5
-    // TODO: Do we need to disable print fan tachometer?
-    buddy::hw::OutputEnabler output_enabler { buddy::hw::fanPrintTach, buddy::hw::Pin::State::high, buddy::hw::OMode::pushPull, buddy::hw::OSpeed::high };
-    const auto &pin = output_enabler.pin();
-    PrusaAccelerometer accelerometer { pin };
-        #else
-    PrusaAccelerometer accelerometer { buddy::hw::acellCs };
-        #endif
-    #endif
-    #if ENABLED(REMOTE_ACCELEROMETER)
     PrusaAccelerometer accelerometer;
-    #endif
     if (PrusaAccelerometer::Error error = accelerometer.get_error(); PrusaAccelerometer::Error::none != error) {
         switch (error) {
         case PrusaAccelerometer::Error::communication:

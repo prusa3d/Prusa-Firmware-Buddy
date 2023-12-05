@@ -14,9 +14,15 @@
         #include <puppies/fifo_coder.hpp>
     #endif
 
+// This class must not be instantiated globally, because (for MK3.5) it temporarily takes
+// ownership of the tachometer pin and turns it into accelerometer chip select pin.
 class PrusaAccelerometer {
 private:
     #if ENABLED(LOCAL_ACCELEROMETER)
+        #if PRINTER_IS_PRUSA_MK3_5
+    buddy::hw::OutputEnabler output_enabler;
+    buddy::hw::OutputPin output_pin;
+        #endif
     LIS2DH accelerometer;
     #endif
 
@@ -44,12 +50,7 @@ public:
         corrupted_sample_overrun, // Data not consistent, sample overrun
     };
 
-    #if ENABLED(LOCAL_ACCELEROMETER)
-    explicit PrusaAccelerometer(const buddy::hw::OutputPin &chip_select_pin);
-    #endif
-    #if ENABLED(REMOTE_ACCELEROMETER)
     PrusaAccelerometer();
-    #endif
     ~PrusaAccelerometer();
 
     void clear();
