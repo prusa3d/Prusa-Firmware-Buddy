@@ -16,6 +16,7 @@
 #include "../../feature/input_shaper/input_shaper.hpp"
 #include "metric.h"
 #include <cmath>
+#include <complex>
 #include <numbers>
 #include <limits>
 #include <bit>
@@ -271,7 +272,7 @@ static void enqueue_step(int step_us, bool dir, StepEventFlag_t axis_flags) {
 }
 
 struct Acumulator {
-    double val[3][2];
+    std::complex<double> val[3];
 };
 
 /**
@@ -410,7 +411,6 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
     #endif
 
     constexpr int num_axis = sizeof(PrusaAccelerometer::Acceleration::val) / sizeof(PrusaAccelerometer::Acceleration::val[0]);
-    constexpr int cplx_indexes = 2;
 
     uint32_t step_nr = 0;
     GcodeSuite::reset_stepper_timeout();
@@ -429,12 +429,8 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
             if (samples && !enough_samples_collected && (step_nr > STEP_EVENT_QUEUE_SIZE)) {
                 metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)measured_acceleration.val[0], (double)measured_acceleration.val[1], (double)measured_acceleration.val[2]);
                 const float accelerometer_time_2pi_freq = freq_2pi * accelerometer_period_time;
-                const float amplitude[cplx_indexes] = { sinf(accelerometer_time_2pi_freq), cosf(accelerometer_time_2pi_freq) };
-
                 for (int axis = 0; axis < num_axis; ++axis) {
-                    for (int i = 0; i < cplx_indexes; ++i) {
-                        acumulator.val[axis][i] += amplitude[i] * measured_acceleration.val[axis];
-                    }
+                    acumulator.val[axis] += std::polar<double>(measured_acceleration.val[axis], accelerometer_time_2pi_freq);
                 }
 
                 ++sample_nr;
@@ -462,15 +458,13 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
     }
 
     for (int axis = 0; axis < num_axis; ++axis) {
-        for (int i = 0; i < cplx_indexes; ++i) {
-            acumulator.val[axis][i] *= 2.;
-            acumulator.val[axis][i] /= (sample_nr + 1);
-        }
+        acumulator.val[axis] *= 2.;
+        acumulator.val[axis] /= (sample_nr + 1);
     }
 
-    const float x_acceleration_amplitude = sqrt(sq(acumulator.val[0][0]) + sq(acumulator.val[0][1]));
-    const float y_acceleration_amplitude = sqrt(sq(acumulator.val[1][0]) + sq(acumulator.val[1][1]));
-    const float z_acceleration_amplitude = sqrt(sq(acumulator.val[2][0]) + sq(acumulator.val[2][1]));
+    const float x_acceleration_amplitude = std::abs(acumulator.val[0]);
+    const float y_acceleration_amplitude = std::abs(acumulator.val[1]);
+    const float z_acceleration_amplitude = std::abs(acumulator.val[2]);
     const float x_gain = x_acceleration_amplitude / acceleration;
     const float y_gain = y_acceleration_amplitude / acceleration;
     const float z_gain = z_acceleration_amplitude / acceleration;
