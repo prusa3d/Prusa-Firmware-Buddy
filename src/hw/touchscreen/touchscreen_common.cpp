@@ -2,6 +2,13 @@
 
 LOG_COMPONENT_DEF(Touch, LOG_SEVERITY_INFO);
 
+METRIC_DEF(metric_touch_event_, "touch_evt", METRIC_VALUE_STRING, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_touch_pos, "touch_pos", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+
+metric_t *metric_touch_event() {
+    return &metric_touch_event_;
+}
+
 bool Touchscreen_Base::is_enabled() const {
     return config_store().touch_enabled.get();
 }
@@ -12,7 +19,8 @@ void Touchscreen_Base::set_enabled(bool set) {
     }
 
     config_store().touch_enabled.set(set);
-    log_info(Touch, "set enabled %i", set);
+    metric_record_string(metric_touch_event(), "set_enabled %i", set);
+    log_info(Touch, "[touch] set enabled %i", set);
 }
 
 TouchscreenEvent Touchscreen_Base::get_event() {
@@ -35,6 +43,10 @@ void Touchscreen_Base::update() {
 
     TouchState touch_state = last_touch_state_;
     update_impl(touch_state);
+
+    if (touch_state.multitouch_point_count > 0) {
+        metric_record_custom(&metric_touch_pos, " x=%i,y=%i", touch_state.multitouch_points[0].position.x, touch_state.multitouch_points[0].position.y);
+    }
 
     // Touch start -> set up gesture recognition
     if (touch_state.multitouch_point_count == 1 && gesture_recognition_state_ == GestureRecognitionState::idle) {
@@ -88,6 +100,8 @@ void Touchscreen_Base::recognize_gesture() {
     } else if (static_cast<float>(touch_pos_diff_abs.y) / static_cast<float>(touch_pos_diff_abs.x) <= swipe_max_angle_tan) {
         event.type = touch_pos_diff.x < 0 ? GUI_event_t::TOUCH_SWIPE_LEFT : GUI_event_t::TOUCH_SWIPE_RIGHT;
     }
+
+    metric_record_string(metric_touch_event(), "evt t%i x%i y%i", static_cast<int>(event.type), event.pos_x, event.pos_y);
 
     if (event) {
         last_event_ = event;

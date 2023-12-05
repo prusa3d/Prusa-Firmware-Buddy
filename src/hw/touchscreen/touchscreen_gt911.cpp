@@ -36,12 +36,14 @@ void Touchscreen_GT911::upload_touchscreen_config() {
 
     // Download config from the controller
     if (!read_data(register_config_begin, cfg, config_data_size, 5)) {
+        metric_record_string(metric_touch_event(), "config read fail");
         log_info(Touch, "config read failed");
         return;
     }
 
     // If the config is the newest, we don't need to flash a new one -> finished
     if (!memcmp(cfg, touchscreen_gt911_config, config_data_size - 2)) {
+        metric_record_string(metric_touch_event(), "config no change");
         log_info(Touch, "config no change");
         is_hw_ok_ = true;
         return;
@@ -65,6 +67,7 @@ void Touchscreen_GT911::upload_touchscreen_config() {
     }
 
     if (!write_data(register_config_begin, cfg, config_data_size)) {
+        metric_record_string(metric_touch_event(), "config write failed");
         log_info(Touch, "config write failed");
         return;
     }
@@ -75,6 +78,7 @@ void Touchscreen_GT911::upload_touchscreen_config() {
         write_data(0x8041, &data, 1);
     }
 
+    metric_record_string(metric_touch_event(), "new config flashed");
     log_info(Touch, "new config flashed");
     is_hw_ok_ = true;
 }
@@ -102,6 +106,7 @@ void Touchscreen_GT911::perform_check() {
             return;
 
         case RecoveryAction::disable_touch:
+            metric_record_string(metric_touch_event(), "disable_touch");
             log_error(Touch, "Touch error, disabling touch");
 
             set_enabled(false);
@@ -188,6 +193,7 @@ bool Touchscreen_GT911::write_data(uint16_t address, const void *data, uint8_t b
         }
 
         log_warning(Touch, "touch write error");
+        metric_record_string(metric_touch_event(), "write_error");
     }
 
     return false;
@@ -226,6 +232,7 @@ void Touchscreen_GT911::update_impl(TouchState &touch_state) {
 
         if (!(touch_status & 0x80)) {
             log_debug(Touch, "Touch error - touch status register expected to have the 0x80 flag");
+            // metric_record_string(metric_touch_event(), "invalid_touch_status %i", touch_status);
             return;
         }
 
@@ -266,6 +273,8 @@ bool Touchscreen_GT911::handle_read_error() {
         return false;
     }
 
+    metric_record_string(metric_touch_event(), "read_error");
+
     ++consecutive_read_error_count_;
     ++total_read_error_count_;
 
@@ -277,12 +286,14 @@ bool Touchscreen_GT911::handle_read_error() {
     // Before that, try restarting the display a few times
     else if ((consecutive_read_error_count_ % retries_before_reset) == 0) {
         log_warning(Touch, "Touch error, requesting display restarts");
+        metric_record_string(metric_touch_event(), "request_restart_display");
         required_recovery_action_ = RecoveryAction::restart_display;
     }
 
     // And even before that, try restarting just the I2C
     else {
         log_warning(Touch, "Touch error, restarting I2C");
+        metric_record_string(metric_touch_event(), "restart_i2c");
         i2c::ChannelMutex _anym(I2C_HANDLE_FOR(touch));
         HAL_I2C_DeInit(&CONCAT(hi2c, i2c_touch));
         I2C_INIT(touch);
