@@ -21,17 +21,17 @@
 #include <bit>
 #include <option/has_puppies.h>
 
-// #define M958_OUTPUT_SAMPLES
-// #define M958_VERBOSE
-#ifdef M958_OUTPUT_SAMPLES
-    #include "../../../../../tinyusb/src/class/cdc/cdc_device.h"
-#endif
+#if ENABLED(ACCELEROMETER)
+
+    // #define M958_OUTPUT_SAMPLES
+    // #define M958_VERBOSE
+    #ifdef M958_OUTPUT_SAMPLES
+        #include "../../../../../tinyusb/src/class/cdc/cdc_device.h"
+    #endif
 
 METRIC_DEF(metric_excite_freq, "excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
-#if ENABLED(ACCELEROMETER)
 METRIC_DEF(metric_freq_gain, "freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 METRIC_DEF(accel, "tk_accel", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-#endif
 
 namespace {
 class HarmonicGenerator {
@@ -274,7 +274,6 @@ struct Acumulator {
     double val[3][2];
 };
 
-#if ENABLED(ACCELEROMETER)
 /**
  * @brief Get recommended damping ratio for zv input shaper
  *
@@ -311,7 +310,6 @@ static float get_zv_shaper_damping_ratio(float resonant_gain) {
     float shaper_gain = 1.f / resonant_gain;
     return 0.080145136132399f * sq(shaper_gain) + 0.616396503538947f * shaper_gain + 0.000807776046666f;
 }
-#endif
 
 /**
  * @brief Excite harmonic vibration and measure amplitude if there is an accelerometer
@@ -328,18 +326,12 @@ static float get_zv_shaper_damping_ratio(float resonant_gain) {
  * @param calibrate_accelerometer
  * @return Frequency and gain measured on each axis if there is accelerometer
  */
-static
-#if ENABLED(ACCELEROMETER)
-    FrequencyGain3dError
-#else
-    void
-#endif
-    vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles, bool calibrate_accelerometer) {
+static FrequencyGain3dError
+vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles, bool calibrate_accelerometer) {
     HarmonicGenerator generator(frequency_requested, acceleration_requested, step_len);
     const float frequency = generator.getFrequency();
     StepDir stepDir(generator);
 
-#if ENABLED(ACCELEROMETER)
     const float acceleration = generator.getAcceleration(frequency);
     #if ENABLED(LOCAL_ACCELEROMETER)
         #if PRINTER_IS_PRUSA_MK3_5
@@ -420,18 +412,13 @@ static
     const uint32_t samples_to_collect = period * cycles / sample_period;
     bool enough_samples_collected = false;
     bool first_loop = true;
-#else
-    constexpr bool enough_samples_collected = true;
-#endif
     Temporary_Report_Off stop_busy_messages;
-#ifdef M958_OUTPUT_SAMPLES
+    #ifdef M958_OUTPUT_SAMPLES
     SERIAL_ECHOLN("Yraw  sinf cosf");
-#endif
+    #endif
 
-#if ENABLED(ACCELEROMETER)
     constexpr int num_axis = sizeof(PrusaAccelerometer::Acceleration::val) / sizeof(PrusaAccelerometer::Acceleration::val[0]);
     constexpr int cplx_indexes = 2;
-#endif
 
     uint32_t step_nr = 0;
     GcodeSuite::reset_stepper_timeout();
@@ -441,7 +428,6 @@ static
         StepDir::RetVal step_dir = stepDir.get();
 
         while (is_full()) {
-#if ENABLED(ACCELEROMETER)
             if (first_loop) {
                 accelerometer.clear();
                 first_loop = false;
@@ -472,9 +458,6 @@ static
                 tud_cdc_write_flush();
     #endif
             }
-#else
-            constexpr bool samples = false;
-#endif
             metric_record_float(&metric_excite_freq, frequency);
 
             if (!samples) {
@@ -486,7 +469,6 @@ static
         ++step_nr;
     }
 
-#if ENABLED(ACCELEROMETER)
     for (int axis = 0; axis < num_axis; ++axis) {
         for (int i = 0; i < cplx_indexes; ++i) {
             acumulator.val[axis][i] *= 2.;
@@ -535,7 +517,6 @@ static
     metric_record_custom(&metric_freq_gain, " a=%d,f=%.1f,x=%.4f,y=%.4f,z=%.4f",
         axis_flag & (STEP_EVENT_FLAG_STEP_X | STEP_EVENT_FLAG_STEP_Y), frequency, x_gain, y_gain, z_gain);
     return retval;
-#endif
 }
 
 /**
@@ -607,13 +588,13 @@ static float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[])
         }
     }
 
-#if IS_CARTESIAN
+    #if IS_CARTESIAN
     // return correct step length
     if ((motor_cnt == 1 && (motor_idx[0] == X_AXIS || motor_idx[0] == Y_AXIS))
         || (motor_cnt == 2 && motor_idx[0] == X_AXIS && motor_idx[1] == Y_AXIS)) {
-        // X, Y, XY
-    #if IS_CORE
-        #if CORE_IS_XY
+            // X, Y, XY
+        #if IS_CORE
+            #if CORE_IS_XY
         switch (motor_cnt) {
         case 1:
             // diagonal
@@ -622,10 +603,10 @@ static float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[])
             // orthogonal
             return step_len;
         }
+            #else
+                #error "Not implemented."
+            #endif
         #else
-            #error "Not implemented."
-        #endif
-    #else
         switch (motor_cnt) {
         case 1:
             // orthogonal
@@ -634,14 +615,14 @@ static float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[])
             // diagonal
             return sqrt(2.f) * step_len;
         }
-    #endif
+        #endif
     } else if (motor_cnt == 1) {
         // single motor (not XY)
         return step_len;
     }
-#else
-    #error "Not implemented."
-#endif
+    #else
+        #error "Not implemented."
+    #endif
 
     SERIAL_ECHOLN("error: unsupported configuration");
     return NAN;
@@ -658,29 +639,29 @@ AxisEnum get_logical_axis(const uint16_t axis_flag) {
     const bool x_flag = axis_flag & STEP_EVENT_FLAG_STEP_X;
     const bool y_flag = axis_flag & STEP_EVENT_FLAG_STEP_Y;
     const bool z_flag = axis_flag & STEP_EVENT_FLAG_STEP_Z;
-#if IS_CARTESIAN
+    #if IS_CARTESIAN
     if (z_flag) {
         return (!x_flag && !y_flag ? Z_AXIS : NO_AXIS_ENUM);
     }
 
-    #if IS_CORE
-        #if CORE_IS_XY
+        #if IS_CORE
+            #if CORE_IS_XY
     if (x_flag == y_flag) {
         const bool x_dir = axis_flag & STEP_EVENT_FLAG_X_DIR;
         const bool y_dir = axis_flag & STEP_EVENT_FLAG_Y_DIR;
         return (x_dir == y_dir ? X_AXIS : Y_AXIS);
     }
+            #else
+                #error "Not implemented."
+            #endif
         #else
-            #error "Not implemented."
-        #endif
-    #else
     if (x_flag != y_flag) {
         return (x_flag ? X_AXIS : Y_AXIS);
     }
+        #endif
+    #else
+        #error "Not implemented."
     #endif
-#else
-    #error "Not implemented."
-#endif
     return NO_AXIS_ENUM;
 }
 
@@ -737,8 +718,6 @@ void GcodeSuite::M958() {
 }
 
 /** @}*/
-
-#if ENABLED(ACCELEROMETER)
 
 static constexpr float epsilon = 0.01f;
 

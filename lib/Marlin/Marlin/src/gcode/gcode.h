@@ -993,8 +993,8 @@ private:
     static void M951();
   #endif
 
-  static void M958();
 #if ENABLED(ACCELEROMETER)
+  static void M958();
   static void M959();
 #endif
 

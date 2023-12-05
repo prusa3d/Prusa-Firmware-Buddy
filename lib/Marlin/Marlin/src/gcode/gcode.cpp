@@ -899,9 +899,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 951: M951(); break;                                  // M951: Set Magnetic Parking Extruder parameters
       #endif
 
-      case 958: M958(); break;
-
       #if ENABLED(ACCELEROMETER)
+        case 958: M958(); break;
         case 959: M959(); break;
       #endif
 
