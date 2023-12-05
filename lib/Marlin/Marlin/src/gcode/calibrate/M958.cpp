@@ -311,6 +311,29 @@ static float get_zv_shaper_damping_ratio(float resonant_gain) {
     return 0.080145136132399f * sq(shaper_gain) + 0.616396503538947f * shaper_gain + 0.000807776046666f;
 }
 
+static float get_accelerometer_sample_period(PrusaAccelerometer &accelerometer) {
+    for (int i = 0; i < 96; ++i) {
+        idle(true, true);
+        accelerometer.clear();
+    }
+    const uint32_t start_time = millis();
+    constexpr int request_samples_num = 20'000;
+
+    for (int i = 0; i < request_samples_num;) {
+        PrusaAccelerometer::Acceleration measured_acceleration;
+        const int samples = accelerometer.get_sample(measured_acceleration);
+        if (samples) {
+            ++i;
+        } else {
+            idle(true, true);
+        }
+    }
+
+    const uint32_t now = millis();
+    const uint32_t duration_ms = now - start_time;
+    return duration_ms / 1000.f / static_cast<float>(request_samples_num);
+}
+
 /**
  * @brief Excite harmonic vibration and measure amplitude if there is an accelerometer
  *
@@ -381,26 +404,7 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
     static float sample_period = 1.f / 1344.f;
 
     if (calibrate_accelerometer) {
-        for (int i = 0; i < 96; ++i) {
-            idle(true, true);
-            accelerometer.clear();
-        }
-        const uint32_t start_time = millis();
-        constexpr int request_samples_num = 20'000;
-
-        for (int i = 0; i < request_samples_num;) {
-            PrusaAccelerometer::Acceleration measured_acceleration;
-            const int samples = accelerometer.get_sample(measured_acceleration);
-            if (samples) {
-                ++i;
-            } else {
-                idle(true, true);
-            }
-        }
-
-        const uint32_t now = millis();
-        const uint32_t duration_ms = now - start_time;
-        sample_period = duration_ms / 1000.f / static_cast<float>(request_samples_num);
+        sample_period = get_accelerometer_sample_period(accelerometer);
         SERIAL_ECHOLNPAIR_F("Sample freq: ", 1.f / sample_period);
         if (klipper_mode) {
             SERIAL_ECHOLNPGM("freq,psd_x,psd_y,psd_z,psd_xyz,mzv");
