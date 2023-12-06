@@ -20,15 +20,21 @@ enum class DeviceState {
 };
 
 enum class AttentionCode {
-    PrintPreviewQuestions = 3101,
-    PowerpanicColdBed = 3102,
-    CrashRecoveryAxisNok = 3103,
-    CrashRecoveryRepeatedCrash = 3104,
-    CrashRecoveryHomeFail = 3105,
-    CrashRecoveryToolPickup = 3106,
-    PrintPreviewToolsMapping = 3107,
-    FilamentRunout = 3108,
-    MMULoadUnloadError = 3109,
+    PrintPreviewUnfinishedSelftest = 3101,
+    PrintPreviewNewFW = 3102,
+    PrintPreviewWrongPrinter = 3103,
+    PrintPreviewNoFilament = 3104,
+    PrintPreviewWrongFilament = 3105,
+    PrintPreviewMMUFilamentInserted = 3106,
+    PrintPreviewFileError = 3107,
+    PowerpanicColdBed = 3108,
+    CrashRecoveryAxisNok = 3109,
+    CrashRecoveryRepeatedCrash = 3110,
+    CrashRecoveryHomeFail = 3111,
+    CrashRecoveryToolPickup = 3112,
+    PrintPreviewToolsMapping = 3113,
+    FilamentRunout = 3114,
+    MMULoadUnloadError = 3115,
 };
 
 struct StateWithAttentionCode {

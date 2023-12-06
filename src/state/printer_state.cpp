@@ -13,7 +13,9 @@ namespace {
     StateWithAttentionCode get_print_state(State state, bool ready) {
         switch (state) {
         case State::PrintPreviewQuestions:
-            return { DeviceState::Attention, AttentionCode::PrintPreviewQuestions };
+            // Should never happen, we catch this before with FSM states,
+            // so that we can distinquish between various questions.
+            return { DeviceState::Unknown, std::nullopt };
         case State::PowerPanic_AwaitingResume:
             return { DeviceState::Attention, AttentionCode::PowerpanicColdBed };
         case State::CrashRecovery_Axis_NOK:
@@ -106,7 +108,7 @@ namespace {
         }
     }
 
-    std::optional<AttentionCode> is_attention_while_printing(const fsm::Change &q1_change) {
+    std::optional<AttentionCode> attention_while_printing(const fsm::Change &q1_change) {
         assert(q1_change.get_queue_index() == fsm::QueueIndex::q1);
 
         switch (q1_change.get_fsm_type()) {
@@ -129,6 +131,28 @@ namespace {
             return std::nullopt;
         }
     }
+
+    std::optional<AttentionCode> attention_while_printpreview(const PhasesPrintPreview preview_phases) {
+        switch (preview_phases) {
+        case PhasesPrintPreview::unfinished_selftest:
+            return AttentionCode::PrintPreviewUnfinishedSelftest;
+        case PhasesPrintPreview::new_firmware_available:
+            return AttentionCode::PrintPreviewNewFW;
+        case PhasesPrintPreview::wrong_printer:
+            // This one can mean a lot of things, type of printer, nozzle diameter, wrong number of tools etc.
+            // Eventually we want to distinquish between them, to do so we will need to somehow mimic the
+            // logic in window_msgbox_wrong_printer.cpp using GCodeInfo::ValidPrinterSettings
+            return AttentionCode::PrintPreviewWrongPrinter;
+        case PhasesPrintPreview::filament_not_inserted:
+            return AttentionCode::PrintPreviewNoFilament;
+        case PhasesPrintPreview::wrong_filament:
+            return AttentionCode::PrintPreviewWrongFilament;
+        case PhasesPrintPreview::file_error:
+            return AttentionCode::PrintPreviewFileError;
+        default:
+            return std::nullopt;
+        }
+    }
 } // namespace
 
 DeviceState get_state(bool ready) {
@@ -140,8 +164,13 @@ StateWithAttentionCode get_state_with_attenion_code(bool ready) {
     State state = marlin_vars()->print_state;
 
     switch (fsm_change.q0_change.get_fsm_type()) {
+    case ClientFSM::PrintPreview:
+        if (auto attention_code = attention_while_printpreview(GetEnumFromPhaseIndex<PhasesPrintPreview>(fsm_change.q0_change.get_data().GetPhase())); attention_code.has_value()) {
+            return { DeviceState::Attention, attention_code.value() };
+        }
+        break;
     case ClientFSM::Printing:
-        if (auto attention_code = is_attention_while_printing(fsm_change.q1_change); attention_code.has_value()) {
+        if (auto attention_code = attention_while_printing(fsm_change.q1_change); attention_code.has_value()) {
             return { DeviceState::Attention, attention_code.value() };
         }
         break;
