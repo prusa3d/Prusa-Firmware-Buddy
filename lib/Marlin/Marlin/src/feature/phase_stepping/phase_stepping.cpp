@@ -464,7 +464,7 @@ bool phase_stepping::any_axis_active() {
     });
 }
 
-__attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_phase(int axis, float position) {
+int32_t phase_stepping::pos_to_phase(int axis, float position) {
     static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
         static_assert(SUPPORTED_AXIS_COUNT <= 3);
 
@@ -480,7 +480,7 @@ __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_phase(int axi
     return normalize_motor_phase(position * FACTORS[axis]);
 }
 
-__attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_steps(int axis, float position) {
+int32_t phase_stepping::pos_to_steps(int axis, float position) {
     static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
         static_assert(SUPPORTED_AXIS_COUNT <= 3);
 
@@ -495,7 +495,7 @@ __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_steps(int axi
     return position * FACTORS[axis];
 }
 
-__attribute__((optimize("-Ofast"))) int32_t pos_to_msteps(int axis, float position) {
+int32_t pos_to_msteps(int axis, float position) {
     static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
         static_assert(SUPPORTED_AXIS_COUNT <= 3);
 
@@ -510,7 +510,7 @@ __attribute__((optimize("-Ofast"))) int32_t pos_to_msteps(int axis, float positi
     return position * FACTORS[axis];
 }
 
-__attribute__((optimize("-Ofast"))) float phase_stepping::mm_to_rev(int motor, float mm) {
+float phase_stepping::mm_to_rev(int motor, float mm) {
     static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
         static_assert(SUPPORTED_AXIS_COUNT <= 3);
 
