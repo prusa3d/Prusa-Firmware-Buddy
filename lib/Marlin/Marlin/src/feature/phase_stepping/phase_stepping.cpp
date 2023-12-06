@@ -295,7 +295,6 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
             YStep->toggle();
             break;
         case 2:
-            // Why is zStep with lower case initial letter and YStep with upper case?
             zStep.toggle();
             break;
         default:
