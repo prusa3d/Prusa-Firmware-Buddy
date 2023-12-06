@@ -809,6 +809,7 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
 
   uint32_t timeout = ticks_ms();
   uint16_t sof_counter = get_sof_counter(phost);
+  uint32_t sof_counter_delta = 0;
 
   while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)
   {
@@ -820,8 +821,6 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
 
     uint32_t elapsed_ticks = ticks_ms() - timeout;
     uint16_t elapsed_sof = get_sof_counter(phost) - sof_counter;
-    uint32_t sof_counter_delta = 0;
-
     // handle OTG_HS_HFNUM->FRNUM insufficient precision
     // the FRNUM register is only 16-bit, so after reaching half of its range, the beginning is
     // reset and the offset is increased, so that the measurement works even for intervals longer than 16s
@@ -829,7 +828,6 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
       sof_counter += 8000;
       sof_counter_delta += 8000;
     }
-
     // fail if the request takes longer than USBH_MSC_IO_TIMEOUT,
     // or immediately if SOF generation stops (this is behavior observed by logic analyzers directly on the bus,
     // it is an undocumented error condition that will be investigated further)
