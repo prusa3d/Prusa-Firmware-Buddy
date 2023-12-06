@@ -104,6 +104,8 @@ bool dump_read_data(size_t offset, size_t size, uint8_t *ptr);
  */
 void save_message(MsgType invalid, uint16_t error_code, const char *error, const char *title);
 
+void force_save_message_without_dump(MsgType invalid, uint16_t error_code, const char *error, const char *title);
+
 /**
  * @brief Copy error message from XFLASH.
  * @param msg_dst [out] - will be filled with address to dumped error message

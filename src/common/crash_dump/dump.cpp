@@ -206,6 +206,13 @@ void save_message(MsgType type, uint16_t error_code, const char *error, const ch
     if (!w25x_init()) {
         return;
     }
+
+    force_save_message_without_dump(type, error_code, error, title);
+}
+
+void force_save_message_without_dump(MsgType type, uint16_t error_code, const char *error, const char *title) {
+    static_assert(ftrstd::to_underlying(ErrCode::ERR_UNDEF) == 0, "This uses 0 as undefined error");
+
     w25x_sector_erase(w25x_error_start_adress);
 
     const size_t title_len = strnlen(title, std::size(dumpmessage_flash->title));
