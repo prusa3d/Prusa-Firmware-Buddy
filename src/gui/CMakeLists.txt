@@ -191,6 +191,9 @@ if(PRINTER STREQUAL "MK4"
    )
   target_sources(firmware PRIVATE screen_help_fw_update.cpp)
 endif()
+if(PRINTER STREQUAL "MK4" OR PRINTER STREQUAL "MK3.5")
+  target_sources(firmware PRIVATE screen_fatal_warning.cpp)
+endif()
 
 if(BOARD IN_LIST BOARDS_WITH_ST7789V)
   target_sources(firmware PRIVATE display_hw_checks_MINI.cpp version_info_ST7789V.cpp)

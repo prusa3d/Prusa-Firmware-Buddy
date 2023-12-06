@@ -46,6 +46,10 @@
 
 #include <option/has_side_leds.h>
 
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+    #include "screen_fatal_warning.hpp"
+#endif
+
 #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
     #include "hw_configuration.hpp"
 #endif
@@ -338,6 +342,11 @@ static ScreenFactory::Creator get_error_screen() {
     if (crash_dump::message_get_type() == crash_dump::MsgType::RSOD && !crash_dump::message_is_displayed()) {
         return ScreenFactory::Screen<ScreenErrorQR>;
     }
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+    if (crash_dump::message_get_type() == crash_dump::MsgType::FATAL_WARNING && !crash_dump::message_is_displayed()) {
+        return ScreenFactory::Screen<ScreenFatalWarning>;
+    }
+#endif
 
     if (crash_dump::dump_is_valid() && !crash_dump::dump_is_displayed()) {
         if (crash_dump::message_is_displayed()) {
