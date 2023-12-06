@@ -267,7 +267,15 @@ void screen_home_data_t::handle_crash_dump() {
     if (present_dumps.size() == 0) {
         return;
     }
-    if (MsgBoxWarning(_("Crash detected. Save it to USB and send it to Prusa?"), Responses_YesNo)
+    if (MsgBoxWarning(_(
+                          "Crash detected. Save it to "
+                          "USB and send it to: "
+                          "reports@prusa3d.com "
+                          "\n\nDo not share the file "
+                          "publicly, the crash dump "
+                          "may include unencrypted "
+                          "sensitive information."),
+            Responses_YesNo)
         == Response::Yes) {
         auto do_stage = [&](string_view_utf8 msg, std::invocable<const ::crash_dump::DumpHandler *> auto fp) {
             MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, &img::info_58x58);
