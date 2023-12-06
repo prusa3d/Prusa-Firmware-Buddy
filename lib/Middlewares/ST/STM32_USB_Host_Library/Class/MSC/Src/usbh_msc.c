@@ -225,6 +225,17 @@ static USBH_StatusTypeDef USBH_MSC_InterfaceInit(USBH_HandleTypeDef *phost)
     (void)USBH_OpenPipe(phost, MSC_Handle->InPipe, MSC_Handle->InEp,
                         phost->device.address, phost->device.speed, USB_EP_TYPE_BULK,
                         MSC_Handle->InEpSize);
+#if defined(USBH_USE_IN_CHANNEL_BULK_NACK_INTERRUPTS) && (USBH_USE_IN_CHANNEL_BULK_NACK_INTERRUPTS == 0U)
+    // Disable USB in channel bulk NAK interrupts
+    //
+    // It's for the in direction only, thus needs to be done here, lower in the
+    // stack we don't have the information whether it's in or out.
+    //
+    // The NAK interrupts in the in direction can hammer down the MCU and the
+    // handling doesn't actually do anything in case of using DMA.
+    uint32_t USBx_BASE = (uint32_t)((HCD_HandleTypeDef *)phost->pData)->Instance;
+    USBx_HC((uint32_t)MSC_Handle->InPipe)->HCINTMSK &= ~USB_OTG_HCINTMSK_NAKM;
+#endif
   }
   else
   {
