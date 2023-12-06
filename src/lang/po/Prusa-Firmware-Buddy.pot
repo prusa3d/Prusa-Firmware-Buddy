@@ -801,8 +801,12 @@ msgstr ""
 msgid "Crash Sensitivity XY"
 msgstr ""
 
-#: src/gui/screen_home.cpp:270
-msgid "Crash detected. Save it to USB and send it to Prusa?"
+#: src/gui/screen_home.cpp:271
+msgid ""
+"Crash detected. Save it to USB and send it to: reports@prusa3d.com \n"
+"\n"
+"Do not share the file publicly, the crash dump may include unencrypted "
+"sensitive information."
 msgstr ""
 
 #: src/gui/screen_home.cpp:270
