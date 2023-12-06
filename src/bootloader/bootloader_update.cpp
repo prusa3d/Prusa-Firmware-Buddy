@@ -177,6 +177,10 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 
         // do not reflash preboot if not necessary
         if (sector == 0) {
+            if (!buddy::bootloader::preboot_needs_update()) {
+                log_info(Bootloader, "No need to update preboot (bootloader 2.x). Skipping sector 0.");
+                continue;
+            }
             uint32_t expected_preboot_crc = 0;
             if (!calculate_file_crc(bootloader_bin, bootloader_sector_get_size(0), expected_preboot_crc)) {
                 fatal_error("expected preboot crc calculation failed");
@@ -184,7 +188,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 
             uint32_t current_preboot_crc = crc32_calc(reinterpret_cast<const uint8_t *>(bootloader_sector_get_address(0)), bootloader_sector_get_size(0));
             if (current_preboot_crc == expected_preboot_crc) {
-                log_info(Bootloader, "No need to update preboot. Skipping sector 0.");
+                log_info(Bootloader, "No need to update preboot (CRC matches). Skipping sector 0.");
                 continue;
             } else {
                 log_info(Bootloader, "Going to update preboot now.");
@@ -232,16 +236,23 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
     }
 }
 
-bool buddy::bootloader::needs_update() {
+bool buddy::bootloader::needs_update(buddy::bootloader::Version required) {
     if (data_exchange::is_bootloader_valid() == false) {
         return true;
     }
 
     auto current = get_version();
-    auto required = buddy::bootloader::required_version;
 
     return std::tie(current.major, current.minor, current.patch)
         < std::tie(required.major, required.minor, required.patch);
+}
+
+bool buddy::bootloader::needs_update() {
+    return needs_update(buddy::bootloader::required_version);
+}
+
+bool buddy::bootloader::preboot_needs_update() {
+    return needs_update({ 2, 0, 1 });
 }
 
 void buddy::bootloader::update(ProgressHook progress) {
