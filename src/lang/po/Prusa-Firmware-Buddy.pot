@@ -803,10 +803,10 @@ msgstr ""
 
 #: src/gui/screen_home.cpp:271
 msgid ""
-"Crash detected. Save it to USB and send it to: reports@prusa3d.com \n"
+"Crash detected. Save it to USB?\n"
 "\n"
 "Do not share the file publicly, the crash dump may include unencrypted "
-"sensitive information."
+"sensitive information. Send it to: reports@prusa3d.com"
 msgstr ""
 
 #: src/gui/screen_home.cpp:270
