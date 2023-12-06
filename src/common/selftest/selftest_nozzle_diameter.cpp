@@ -1,4 +1,4 @@
-#include "selftest_nozzle_diameter_xl.hpp"
+#include "selftest_nozzle_diameter.hpp"
 #include "i_selftest_part.hpp"
 #include "selftest_loop_result.hpp"
 #include "selftest_log.hpp"

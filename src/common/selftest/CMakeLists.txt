@@ -28,7 +28,7 @@ endif()
 
 if(PRINTER STREQUAL "XL")
   target_sources(
-    firmware PRIVATE selftest_nozzle_diameter_xl.cpp selftest_nozzle_diameter_xl_interface.cpp
+    firmware PRIVATE selftest_nozzle_diameter.cpp selftest_nozzle_diameter_interface.cpp
     )
 endif()
 

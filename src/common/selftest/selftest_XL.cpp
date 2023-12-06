@@ -27,7 +27,7 @@
 #include "selftest_netstatus_interface.hpp"
 #include "selftest_dock_interface.hpp"
 #include "selftest_tool_offsets_interface.hpp"
-#include "selftest_nozzle_diameter_xl_interface.hpp"
+#include "selftest_nozzle_diameter_interface.hpp"
 #include "selftest_axis_config.hpp"
 #include "selftest_heater_config.hpp"
 #include "selftest_loadcell_config.hpp"

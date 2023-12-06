@@ -1,8 +1,8 @@
-#include "selftest_nozzle_diameter_xl_interface.hpp"
+#include "selftest_nozzle_diameter_interface.hpp"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
 #include "selftest_result.hpp"
-#include "selftest_nozzle_diameter_xl.hpp"
+#include "selftest_nozzle_diameter.hpp"
 #include <config_store/store_instance.hpp>
 
 namespace selftest {
