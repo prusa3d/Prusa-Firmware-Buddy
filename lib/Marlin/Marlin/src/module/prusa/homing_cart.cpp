@@ -15,23 +15,6 @@ inline constexpr float homing_bump_divisor_max[] = HOMING_BUMP_DIVISOR_MAX;
 inline constexpr float homing_bump_divisor_min[] = HOMING_BUMP_DIVISOR_MIN;
 
 /**
- * Turns automatic reports off until destructor is called.
- * Then it sets reports to previous value.
- */
-class Temporary_Report_Off {
-    bool suspend_reports = false;
-
-public:
-    Temporary_Report_Off() {
-        suspend_reports = suspend_auto_report;
-        suspend_auto_report = true;
-    }
-    ~Temporary_Report_Off() {
-        suspend_auto_report = suspend_reports;
-    }
-};
-
-/**
  *  Move back and forth to endstop
  * \returns MSCNT position after endstop has been hit
  */
