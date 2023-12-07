@@ -35,20 +35,6 @@ static bool is_one_of(char c, std::string_view sv) {
     return false;
 }
 
-class DisableBusyReport {
-    bool original_state = false;
-
-public:
-    DisableBusyReport() {
-        original_state = suspend_auto_report;
-        suspend_auto_report = true;
-    }
-
-    ~DisableBusyReport() {
-        suspend_auto_report = original_state;
-    }
-};
-
 /**
  * @brief Enable phase stepping for axis
  *
@@ -248,7 +234,7 @@ static bool accelerometer_ok(PrusaAccelerometer &acc, YieldError yield_error) {
  * sampling frequency of the accelerometer as "sample freq: <freq>".
  **/
 void GcodeSuite::M974() {
-    DisableBusyReport disable_busy_report;
+    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 
     bool valid = true;
 
@@ -358,7 +344,7 @@ void GcodeSuite::M975() {
  * Outputs frequency response
  **/
 void GcodeSuite::M976() {
-    DisableBusyReport disable_busy_report;
+    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 
     bool valid = true;
 
@@ -454,7 +440,7 @@ public:
  * Calibrates given motor and sets the newly found compensation.
  **/
 void GcodeSuite::M977() {
-    DisableBusyReport _;
+    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
     phase_stepping::last_calibration_result = phase_stepping::CalibrationResult::Error;
 
     bool valid = true;
