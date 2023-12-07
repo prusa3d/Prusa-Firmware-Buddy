@@ -13,6 +13,7 @@
 LOG_COMPONENT_REF(PhaseStepping);
 
 using namespace std::literals;
+using phase_stepping::SERIAL_DECIMALS;
 
 static constexpr std::array<std::pair<AxisEnum, char>, 2> SUPPORTED_AXES = {
     { { X_AXIS, 'X' }, { Y_AXIS, 'Y' } }
@@ -32,12 +33,6 @@ static bool is_one_of(char c, std::string_view sv) {
         }
     }
     return false;
-}
-
-static const char *fixed_repr(float number, int n = 5) {
-    static char buffer[32];
-    snprintf(buffer, 32, "%.*f", n, number);
-    return buffer;
 }
 
 class DisableBusyReport {
@@ -115,9 +110,9 @@ void GcodeSuite::M972() {
                 SERIAL_ECHO(", ");
                 SERIAL_ECHO(i);
                 SERIAL_ECHO(", ");
-                SERIAL_ECHO(fixed_repr(table[i].mag, 7));
+                SERIAL_PRINT(table[i].mag, SERIAL_DECIMALS);
                 SERIAL_ECHO(", ");
-                SERIAL_ECHO(fixed_repr(table[i].pha, 7));
+                SERIAL_PRINT(table[i].pha, SERIAL_DECIMALS);
                 SERIAL_ECHO('\n');
             }
         }
@@ -507,13 +502,13 @@ void GcodeSuite::M977() {
     for (size_t i = 0; i != forward.size(); i++) {
         SERIAL_ECHO(i);
         SERIAL_ECHO(": F");
-        SERIAL_ECHO(fixed_repr(forward[i].mag));
+        SERIAL_PRINT(forward[i].mag, SERIAL_DECIMALS);
         SERIAL_ECHO(",");
-        SERIAL_ECHO(fixed_repr(forward[i].pha));
+        SERIAL_PRINT(forward[i].pha, SERIAL_DECIMALS);
         SERIAL_ECHO(" B");
-        SERIAL_ECHO(fixed_repr(backward[i].mag));
+        SERIAL_PRINT(backward[i].mag, SERIAL_DECIMALS);
         SERIAL_ECHO(",");
-        SERIAL_ECHO(fixed_repr(backward[i].pha));
+        SERIAL_PRINT(backward[i].pha, SERIAL_DECIMALS);
         SERIAL_ECHO("\n");
     }
 

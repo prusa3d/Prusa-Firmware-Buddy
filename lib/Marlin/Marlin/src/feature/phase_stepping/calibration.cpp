@@ -21,12 +21,6 @@ std::atomic<CalibrationResult> phase_stepping::last_calibration_result = Calibra
 // Temporary debugging to Marlin serial for convenience
 #define SERIAL_DEBUG
 
-static const char *fixed_repr(float number, int n = 5) {
-    static char buffer[32];
-    snprintf(buffer, 32, "%.*f", n, number);
-    return buffer;
-}
-
 // Poor man's "coroutine-like" golden search algorithm. It is instantiated with
 // initial range. The method run() runs the algorithm until it needs to evaluate
 // the cost function. You can get the requested point of evaluation via x(), and
@@ -60,13 +54,13 @@ class InterruptableGoldenSearch {
         SERIAL_ECHO(": it ");
         SERIAL_ECHO(_iterations);
         SERIAL_ECHO(", bracket (");
-        SERIAL_ECHO(fixed_repr(_c));
+        SERIAL_PRINT(_c, SERIAL_DECIMALS);
         SERIAL_ECHO(", ");
-        SERIAL_ECHO(fixed_repr(_d));
+        SERIAL_PRINT(_d, SERIAL_DECIMALS);
         SERIAL_ECHO(") = (");
-        SERIAL_ECHO(fixed_repr(_fc));
+        SERIAL_PRINT(_fc, SERIAL_DECIMALS);
         SERIAL_ECHO(", ");
-        SERIAL_ECHO(fixed_repr(_fd));
+        SERIAL_PRINT(_fd, SERIAL_DECIMALS);
         SERIAL_ECHOLN(")");
 #endif
 
@@ -122,13 +116,13 @@ public:
             SERIAL_ECHO(_debug_name);
             SERIAL_ECHO(": ");
             SERIAL_ECHO("Initial bracket (");
-            SERIAL_ECHO(fixed_repr(_c));
+            SERIAL_PRINT(_c, SERIAL_DECIMALS);
             SERIAL_ECHO(", ");
-            SERIAL_ECHO(fixed_repr(_d));
+            SERIAL_PRINT(_d, SERIAL_DECIMALS);
             SERIAL_ECHO(") = (");
-            SERIAL_ECHO(fixed_repr(_fc));
+            SERIAL_PRINT(_fc, SERIAL_DECIMALS);
             SERIAL_ECHO(", ");
-            SERIAL_ECHO(fixed_repr(_fd));
+            SERIAL_PRINT(_fd, SERIAL_DECIMALS);
             SERIAL_ECHOLN(")");
 #endif
 
