@@ -661,13 +661,9 @@ msgstr "Carico CPU"
 msgid "CRASH DETECTED"
 msgstr "RILEVATA COLLISIONE"
 
-#: src/gui/screen_home.cpp:278
-msgid "Crash detected. Save it to USB?"
-msgstr "Rilevata collisione. Salvare su USB?"
-
 #: src/gui/screen_home.cpp:270
-msgid "Crash detected. Save it to USB and send it to Prusa?"
-msgstr "Rilevato un crash. Salvarlo su USB e inviarlo a Prusa?"
+msgid "Crash detected. Save it to USB?\n\nDo not share the file publicly, the crash dump may include unencrypted sensitive information. Send it to: reports@prusa3d.com"
+msgstr "Errore rilevato. Salvare su USB?\n\nNon condividere il file; rapporto potrebbe contenere info sensibili. Inviarlo a: reports@prusa3d.com"
 
 #: src/gui/MItem_crash.hpp:14
 msgid "Crash Detection"

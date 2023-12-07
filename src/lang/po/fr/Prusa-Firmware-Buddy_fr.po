@@ -664,13 +664,9 @@ msgstr "Charge CPU"
 msgid "CRASH DETECTED"
 msgstr "CRASH DÉTECTÉ"
 
-#: src/gui/screen_home.cpp:278
-msgid "Crash detected. Save it to USB?"
-msgstr "Crash détecté. L'enregistrer sur USB ?"
-
 #: src/gui/screen_home.cpp:270
-msgid "Crash detected. Save it to USB and send it to Prusa?"
-msgstr "Crash détecté. L'enregistrer sur USB et l'envoyer à Prusa ?"
+msgid "Crash detected. Save it to USB?\n\nDo not share the file publicly, the crash dump may include unencrypted sensitive information. Send it to: reports@prusa3d.com"
+msgstr "Erreur détectée. Enregistrer sur USB?\n\nNe partagez pas le fichier; rapport peut inclure des infos sensibles. Envoyez-le à : reports@prusa3d.com"
 
 #: src/gui/MItem_crash.hpp:14
 msgid "Crash Detection"

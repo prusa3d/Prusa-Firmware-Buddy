@@ -642,13 +642,9 @@ msgstr "CPU vyt."
 msgid "CRASH DETECTED"
 msgstr "DETEKOVÁN NÁRAZ"
 
-#: src/gui/screen_home.cpp:278
-msgid "Crash detected. Save it to USB?"
-msgstr "Detekován náraz. Uložit na USB?"
-
 #: src/gui/screen_home.cpp:270
-msgid "Crash detected. Save it to USB and send it to Prusa?"
-msgstr "Detekován náraz. Uložit na USB a odeslat data do Prusa Research?"
+msgid "Crash detected. Save it to USB?\n\nDo not share the file publicly, the crash dump may include unencrypted sensitive information. Send it to: reports@prusa3d.com"
+msgstr "Detekován pád firmware. Uložit na USB?\n\nSoubor nesdílejte veřejně, záznam pádu může obsahovat nešifrované citlivé informace. Pošlete ho na: reports@prusa3d.com"
 
 #: src/gui/MItem_crash.hpp:14
 msgid "Crash Detection"
