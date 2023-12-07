@@ -76,7 +76,7 @@ void CorrectedCurrentLut::_update_phase_shift() {
 }
 
 std::pair<int, int> CorrectedCurrentLut::get_current(int idx) const {
-    int pha = SIN_FRACTION * idx + (buddy::hw::pin_e11.read() == buddy::hw::Pin::State::high ? _phase_shift[normalize_motor_phase(idx)] : 0);
+    int pha = SIN_FRACTION * idx + _phase_shift[normalize_motor_phase(idx)];
     return {
         sin_lut(pha), cos_lut(pha)
     };

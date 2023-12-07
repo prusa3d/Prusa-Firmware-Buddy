@@ -155,10 +155,7 @@ inline Pin::State xyProbeReadFn();
     MACRO_FUNCTION(buddy::hw::OutputPin, pin_e9, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p9, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::OutputPin, pin_d5, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p5, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::OutputPin, pin_a3, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p3, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, GPIOReset, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::openDrain COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::InputPin, pin_e11, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p11, IMode::input COMMA Pull::none, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_e12, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p12, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_a15, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p15, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)
+    MACRO_FUNCTION(buddy::hw::OutputPin, GPIOReset, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::openDrain COMMA OSpeed::low, buddy::hw::noHandler)
 // clang-format on
 
 namespace buddy::hw {
