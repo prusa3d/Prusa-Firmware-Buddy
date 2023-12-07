@@ -74,6 +74,11 @@ struct AxisState {
 void init();
 
 /**
+ * Load and enable previous settings, if any.
+ **/
+void load();
+
+/**
  * Generic function for enabling/disabling axis. Unless needed otherwise, this
  * should be the default way of enabling/disabling it for an axis. When axis is
  * already in desired state, it does nothing.
@@ -141,7 +146,7 @@ step_event_info_t next_step_event_input_shaping(
 void handle_periodic_refresh();
 
 /**
- * Return whether any of the axis is phase stepping mode
+ * Return whether any of the axis is in phase stepping mode
  */
 bool any_axis_active();
 

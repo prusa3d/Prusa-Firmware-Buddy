@@ -61,6 +61,9 @@ float MoveTarget::target_position() const {
 void phase_stepping::init() {
     phase_stepping::axis_states[0].reset(new AxisState(AxisEnum::X_AXIS));
     phase_stepping::axis_states[1].reset(new AxisState(AxisEnum::Y_AXIS));
+}
+
+void phase_stepping::load() {
     load_from_persistent_storage(AxisEnum::X_AXIS);
     load_from_persistent_storage(AxisEnum::Y_AXIS);
 }
@@ -460,7 +463,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
 
 bool phase_stepping::any_axis_active() {
     return std::ranges::any_of(axis_states, [](const auto &state) -> bool {
-        return state->active;
+        return (state && state->active);
     });
 }
 

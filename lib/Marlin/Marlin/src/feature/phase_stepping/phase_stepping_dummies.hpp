@@ -22,6 +22,10 @@ public:
 using EnsureEnabled = EnsureStateDummy;
 using EnsureDisabled = EnsureStateDummy;
 
+static constexpr bool any_axis_active() {
+    return false;
+}
+
 inline void init_step_generator_classic(
     const move_t &,
     move_segment_step_generator_t &,
