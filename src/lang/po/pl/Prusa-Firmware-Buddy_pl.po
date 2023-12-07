@@ -649,13 +649,9 @@ msgstr "Obciążenie CPU"
 msgid "CRASH DETECTED"
 msgstr "WYKRYTO ZDERZENIE"
 
-#: src/gui/screen_home.cpp:278
-msgid "Crash detected. Save it to USB?"
-msgstr "Wykryto zderzenie. Zapisać na USB?"
-
 #: src/gui/screen_home.cpp:270
-msgid "Crash detected. Save it to USB and send it to Prusa?"
-msgstr "Wykryto zderzenie. Zapisać na USB i wysłać do Prusy?"
+msgid "Crash detected. Save it to USB?\n\nDo not share the file publicly, the crash dump may include unencrypted sensitive information. Send it to: reports@prusa3d.com"
+msgstr "Wykryto awarię. Zapisać na USB?\n\nNie udostępniaj pliku publicznie, zrzut awarii może zawierać niezaszyfrowane informacje poufne. Wyślij go na: reports@prusa3d.com"
 
 #: src/gui/MItem_crash.hpp:14
 msgid "Crash Detection"

@@ -668,13 +668,9 @@ msgstr "CPU Auslastung"
 msgid "CRASH DETECTED"
 msgstr "CRASH ERKANNT"
 
-#: src/gui/screen_home.cpp:278
-msgid "Crash detected. Save it to USB?"
-msgstr "Kollision erkannt. Auf USB speichern?"
-
 #: src/gui/screen_home.cpp:270
-msgid "Crash detected. Save it to USB and send it to Prusa?"
-msgstr "Crash erkannt. Auf USB speichern und an Prusa senden?"
+msgid "Crash detected. Save it to USB?\n\nDo not share the file publicly, the crash dump may include unencrypted sensitive information. Send it to: reports@prusa3d.com"
+msgstr "FW Absturz erkannt. Auf USB speichern?\n\nDatei nicht öffentlich teilen; der Bericht kann sensible Informationen enthalten. Senden an: reports@prusa3d.com"
 
 #: src/gui/MItem_crash.hpp:14
 msgid "Crash Detection"
