@@ -5,7 +5,7 @@
 #include <log.h>
 #include <module/planner.h>
 #include <module/motion.h>
-#include <module/temperature.h>
+#include <gcode/gcode.h>
 
 #include <vector>
 #include <cmath>
@@ -196,38 +196,22 @@ static float rev_to_mm(AxisEnum axis, float revs) {
     return revs * get_motor_steps(axis) * FACTORS[axis];
 }
 
-// @brief Wait for a state of a given axis specified by a predicate with a high resolution.
+// @brief Wait for a state of a given axis specified by a predicate.
 // @return true on success, false on timeout
-// Keep managing the heaters at a regular interval, as done in safe_delay()
 template <typename Pred>
 static bool wait_for_movement_state(phase_stepping::AxisState &axis_state,
     int timeout_ms, Pred pred) {
     auto start_time = ticks_ms();
 
-    auto last_thermal_tick = start_time;
-    static constexpr auto thermal_tick_int_ms = 50;
-
     while (!(pred(axis_state))) {
         auto cur_time = ticks_ms();
         if (ticks_diff(cur_time, start_time) > timeout_ms) {
             return false;
-        } else if (ticks_diff(cur_time, last_thermal_tick) > thermal_tick_int_ms) {
-            thermalManager.manage_heater();
-            last_thermal_tick -= thermal_tick_int_ms;
         } else {
-            idle(true);
+            idle(true, true);
         }
     }
     return true;
-}
-
-// Wait for movement start of a given axis. Returns true on success, false on
-// timeout
-static bool wait_for_movement_start(phase_stepping::AxisState &axis_state,
-    int timeout_ms = 1000) {
-    return wait_for_movement_state(axis_state, timeout_ms, [](phase_stepping::AxisState &s) {
-        return s.is_moving.load();
-    });
 }
 
 // Wait for end of acceleration phase of a given axis. Returns true on success,
@@ -357,20 +341,11 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
 
     plan_move_by(feedrate_mms, d_x, d_y);
 
-    if (!wait_for_movement_start(axis_state)) {
-        return 0;
-    }
     if (!wait_for_accel_end(axis_state)) {
         return 0;
     }
 
-    {
-        // Use idle here instead of delay, locking the marlin for too long also blocks GUI
-        const auto end_millis = millis() + vibration_delay * 1000;
-        while (ticks_diff(millis(), end_millis) > 0) {
-            idle(true);
-        }
-    }
+    gcode.dwell(vibration_delay * 1000, true);
 
     int counter = 0;
     PrusaAccelerometer accelerometer;
@@ -441,7 +416,7 @@ std::vector<float> phase_stepping::analyze_resonance(AxisEnum axis,
             res.push_back((a1 + a2 + a3) / 3.f);
         }
 
-        idle(true);
+        idle(true, true);
     }
 
     return { res };
@@ -486,13 +461,13 @@ class CalibrationPhaseExecutor {
                 apply_x(table, 0, forward_search.x());
             });
 
-            idle(true);
+            idle(true, true);
 
             axis_state.backward_current.modify_correction([&](auto &table) {
                 apply_x(table, 1, backward_search.x());
             });
 
-            idle(true);
+            idle(true, true);
 
             for (int retries = 0; retries <= RETRY_COUNT; retries++) {
                 if (retries == RETRY_COUNT) {
@@ -505,12 +480,12 @@ class CalibrationPhaseExecutor {
                 auto b_res = phase_stepping::analyze_resonance(_axis,
                     _phase_config.speed, _printer_config.calib_revs, { _phase_config.harmonic });
 
-                idle(true);
+                idle(true, true);
 
                 auto f_res = phase_stepping::analyze_resonance(_axis,
                     _phase_config.speed, -_printer_config.calib_revs, { _phase_config.harmonic });
 
-                idle(true);
+                idle(true, true);
 
                 if (!f_res.empty() && !b_res.empty()) {
                     forward_search.submit(f_res[0]);
@@ -520,19 +495,19 @@ class CalibrationPhaseExecutor {
             }
             _reporter.on_calibration_phase_progress(100 * (_progress++) / _progress_tick_count());
 
-            idle(true);
+            idle(true, true);
         }
 
         // Apply the result
         axis_state.forward_current.modify_correction([&](auto &table) {
             apply_x(table, 0, forward_search.arg_min());
         });
-        idle(true);
+        idle(true, true);
 
         axis_state.backward_current.modify_correction([&](auto &table) {
             apply_x(table, 1, backward_search.arg_min());
         });
-        idle(true);
+        idle(true, true);
 
         return { { forward_search.min(), backward_search.min() } };
     }
