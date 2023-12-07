@@ -400,7 +400,9 @@ public:
     #define KEEPALIVE_STATE(N) NOOP
   #endif
 
-  static void dwell(millis_t time);
+  // Dwell waits immediately with low precision (+10ms depending on GUI/background activities)
+  // while allowing background processing. It does not synchronize.
+  static void dwell(millis_t time, bool no_stepper_sleep=false);
 
   /**
    * @brief Home.
