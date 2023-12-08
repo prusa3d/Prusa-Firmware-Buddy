@@ -4,15 +4,13 @@
 #include <Marlin/src/feature/input_shaper/input_shaper.hpp>
 #include "WindowMenuItems.hpp"
 
-enum class input_shaper_param {
-    set_values,
-    change_x,
-    change_y
+enum class InputShaperMenuItemChildClickParam {
+    request_gui_update,
+    enable_editing,
 };
 
 class MI_IS_X_ONOFF : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *const label = N_("X-axis");
-    input_shaper_param param = input_shaper_param::change_x;
 
 public:
     MI_IS_X_ONOFF();
@@ -23,7 +21,6 @@ protected:
 
 class MI_IS_Y_ONOFF : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *const label = N_("Y-axis");
-    input_shaper_param param = input_shaper_param::change_y;
 
 public:
     MI_IS_Y_ONOFF();
@@ -79,12 +76,22 @@ protected:
     void OnChange(size_t old_index) override;
 };
 
-class MI_IS_SET : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Set up values");
-    input_shaper_param param = input_shaper_param::set_values;
+class MI_IS_ENABLE_EDITING : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Enable editing");
 
 public:
-    MI_IS_SET();
+    MI_IS_ENABLE_EDITING();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+/// Resets input shaper config to defaults on click
+class MI_IS_RESTORE_DEFAULTS : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Restore defaults");
+
+public:
+    MI_IS_RESTORE_DEFAULTS();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
