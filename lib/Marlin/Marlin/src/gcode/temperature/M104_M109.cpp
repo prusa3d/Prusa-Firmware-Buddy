@@ -59,7 +59,9 @@ void GcodeSuite::M104() {
 
   if (DEBUGGING(DRYRUN)) return;
 
-  #if ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+  #if ENABLED(PRUSA_MMU2) // MMU2 doesn't handle different temps per slot, sayonara! (TODO?)
+	  constexpr int8_t target_extruder = 0;
+  #elif ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     constexpr int8_t target_extruder = 0;
   #else
     const int8_t target_extruder = get_target_extruder_from_command();
@@ -110,7 +112,9 @@ void GcodeSuite::M109() {
 
   if (DEBUGGING(DRYRUN)) return;
 
-  #if ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+  #if ENABLED(PRUSA_MMU2) // MMU2 doesn't handle different temps per slot, sayonara! (TODO?)
+	  constexpr int8_t target_extruder = 0;
+  #elif ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     constexpr int8_t target_extruder = 0;
   #else
     const int8_t target_extruder = get_target_extruder_from_command();
