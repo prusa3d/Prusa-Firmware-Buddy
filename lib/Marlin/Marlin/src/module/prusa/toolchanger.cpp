@@ -634,6 +634,8 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
     planner.synchronize(); // this creates a pause which allow the resonance in the tool to be damped before insertion of the tool in the dock
     conf_restorer.restore_jerk();
 
+    phase_stepping::EnsureDisabled phstep_disabler;
+
     // set motor current and stall sensitivity to parking and remember old value
     auto x_current_ma = stepperX.rms_current();
     auto x_stall_sensitivity = stepperX.stall_sensitivity();
@@ -675,6 +677,8 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
     }
 
     move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // release tool
+
+    phstep_disabler.release();
 
     // Wait until dwarf is registering as not picked
     if (!wait(dwarf_not_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
@@ -761,6 +765,9 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
     move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // go in front of the tool
     move(info.dock_x, info.dock_y + PICK_Y_OFFSET, feedrate_mm_s); // pre-insert fast the tool
     planner.settings.travel_acceleration = SLOW_ACCELERATION_MM_S2; // low acceleration
+
+    phase_stepping::EnsureDisabled phstep_disabler;
+
     move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // insert slowly the last mm to allow part fitting + soft touch between TCM and tool thanks to the gentle deceleration
     planner.synchronize();
 
@@ -800,6 +807,8 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
     stepperX.stall_sensitivity(x_stall_sensitivity);
     stepperY.rms_current(y_current_ma);
     stepperY.stall_sensitivity(y_stall_sensitivity);
+
+    phstep_disabler.release();
 
     // Wait until dwarf is registering as not parked
     if (!wait(dwarf_not_parked, WAIT_TIME_TOOL_PARKED_PICKED)) {
