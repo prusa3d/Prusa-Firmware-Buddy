@@ -42,6 +42,7 @@ METRIC_DEF(metric_dwarf_picked_raw, "dwarf_picked_raw", METRIC_VALUE_CUSTOM, 100
 METRIC_DEF(metric_dwarf_parked_raw, "dwarf_parked_raw", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
 
 METRIC_DEF(metric_dwarf_heater_current, "dwarf_heat_curr", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_dwarf_heater_pwm, "dwarf_heat_pwm", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
 
 Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
     : ModbusDevice(bus, modbus_address)
@@ -133,6 +134,7 @@ CommunicationStatus Dwarf::read_general_status() {
         metric_record_custom(&metric_dwarf_parked_raw, ",n=%u v=%ii", dwarf_nr, RegisterGeneralStatus.value.IsParkedRaw);
         metric_record_custom(&metric_dwarf_picked_raw, ",n=%u v=%ii", dwarf_nr, RegisterGeneralStatus.value.IsPickedRaw);
         metric_record_custom(&metric_dwarf_heater_current, ",n=%u v=%d", dwarf_nr, RegisterGeneralStatus.value.heater_current_mA);
+        metric_record_custom(&metric_dwarf_heater_pwm, ",n=%u v=%d", dwarf_nr, RegisterGeneralStatus.value.HotendPWMState);
     }
     return status;
 }
