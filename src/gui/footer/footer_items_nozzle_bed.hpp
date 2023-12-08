@@ -24,6 +24,14 @@ public:
     FooterItemNozzleDiameter(window_t *parent);
 };
 
+class FooterItemNozzlePWM : public AddSuperWindow<FooterIconText_IntVal> {
+    static string_view_utf8 static_makeView(int value);
+    static int static_readValue();
+
+public:
+    FooterItemNozzlePWM(window_t *parent);
+};
+
 class FooterItemBed : public AddSuperWindow<FooterItemHeater> {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
