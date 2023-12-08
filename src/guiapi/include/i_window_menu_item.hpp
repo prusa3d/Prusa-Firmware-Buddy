@@ -174,18 +174,32 @@ public:
     IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
     virtual ~IWindowMenuItem();
 
-    void Enable() {
-        if (enabled != is_enabled_t::yes) {
-            enabled = is_enabled_t::yes;
-            Invalidate();
-        }
+    bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
+    void set_is_enabled(bool set = true);
+
+    /// Deprecated. Use set_enabled
+    inline void Enable() {
+        set_is_enabled(true);
     }
-    void Disable() {
-        // cannot disable focused item
-        if (!is_focused() && enabled != is_enabled_t::no) {
-            enabled = is_enabled_t::no;
-            Invalidate();
-        }
+
+    /// Deprecated. Use set_enabled
+    inline void Disable() {
+        set_is_enabled(false);
+    }
+
+    bool DoesShowDisabledExtension() const { return show_disabled_extension == show_disabled_extension_t::yes; }
+
+    /// Sets whether the item should show the extension (value) when disabled
+    void set_show_disabled_extension(bool set);
+
+    /// Deprecated. Use set_show_disabled_extension
+    inline void ShowDisabledExtension() {
+        set_show_disabled_extension(true);
+    }
+
+    /// Deprecated. Use set_show_disabled_extension
+    inline void DontShowDisabledExtension() {
+        set_show_disabled_extension(false);
     }
 
     void hide() {
@@ -198,22 +212,6 @@ public:
             Invalidate();
         }
     }
-
-    void ShowDisabledExtension() {
-        if (show_disabled_extension != show_disabled_extension_t::yes) {
-            show_disabled_extension = show_disabled_extension_t::yes;
-            Invalidate();
-        }
-    }
-    void DontShowDisabledExtension() {
-        if (show_disabled_extension != show_disabled_extension_t::no) {
-            show_disabled_extension = show_disabled_extension_t::no;
-            Invalidate();
-        }
-    }
-
-    bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
-    bool DoesShowDisabledExtension() const { return show_disabled_extension == show_disabled_extension_t::yes; }
 
     bool IsHidden() const;
     bool IsDevOnly() const;

@@ -30,6 +30,31 @@ IWindowMenuItem::~IWindowMenuItem() {
     }
 }
 
+void IWindowMenuItem::set_is_enabled(bool set) {
+    if (IsEnabled() == set) {
+        return;
+    }
+
+    // Cannot disable focused element
+    if (!set && is_focused()) {
+        return;
+    }
+
+    enabled = is_enabled_t(set);
+    Invalidate();
+}
+
+void IWindowMenuItem::set_show_disabled_extension(bool set_) {
+    const auto set = show_disabled_extension_t(set_);
+
+    if (show_disabled_extension == set) {
+        return;
+    }
+
+    show_disabled_extension = set;
+    Invalidate();
+}
+
 bool IWindowMenuItem::is_edited() const {
     return is_focused() && focused_menu_item_edited;
 }
