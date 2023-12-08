@@ -144,6 +144,7 @@ enum class esp_credential_action {
     ConfigNOk_wait_user,
     ShowEnableWIFI,
     EnableWIFI,
+    AskCredentialsDelete,
     WaitWIFI_enabled, // pressing abort will just restore connection interface (Eth / WiFi / none)
     Aborted, // currently abort does not wait for user
     // Aborted_wait_user,

@@ -228,9 +228,16 @@ void ESPUpdate::Loop() {
             readCount = 0;
             break;
         case esp_upload_action::WaitWIFI_enabled:
+            // Wi-fi connected -> we can finish automatically
             if (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
                 progress_state = esp_upload_action::Finish;
             }
+
+            // User pressed continue -> continue connecting on the background
+            else if (continue_pressed) {
+                progress_state = esp_upload_action::Finish;
+            }
+
             break;
         case esp_upload_action::Finish:
             phase = PhasesESP::ESP_progress_passed;
@@ -521,7 +528,7 @@ void EspCredentials::loop() {
         if (wait_in_progress(2048)) {
             break;
         }
-        progress_state = upload_config() ? esp_credential_action::ShowEnableWIFI : esp_credential_action::ConfigNOk;
+        progress_state = upload_config() ? esp_credential_action::AskCredentialsDelete : esp_credential_action::ConfigNOk;
         break;
     case esp_credential_action::ConfigNOk:
         // at this point cpu load is to high to draw screen nicely
@@ -537,12 +544,23 @@ void EspCredentials::loop() {
             progress_state = esp_credential_action::VerifyConfig_init;
         }
         break;
-    case esp_credential_action::ShowEnableWIFI:
+    case esp_credential_action::AskCredentialsDelete:
         // at this point cpu load is to high to draw screen nicely
         // so we wait a bit
-        if (wait_in_progress(2048)) {
+        if (wait_in_progress(1024)) {
             break;
         }
+
+        // Start enabling wi-fi on the background
+        phase = PhasesESP::ESP_asking_credentials_delete;
+        if (continue_yes_retry_pressed) {
+            delete_file();
+            progress_state = esp_credential_action::ShowEnableWIFI;
+        } else if (no_pressed) {
+            progress_state = esp_credential_action::ShowEnableWIFI;
+        }
+        break;
+    case esp_credential_action::ShowEnableWIFI:
         progress_state = esp_credential_action::EnableWIFI;
         phase = PhasesESP::ESP_enabling_WIFI;
         break;
@@ -555,12 +573,13 @@ void EspCredentials::loop() {
         progress_state = esp_credential_action::WaitWIFI_enabled;
         break;
     case esp_credential_action::WaitWIFI_enabled:
-        if (continue_yes_retry_pressed) {
-            delete_file();
+        // Wi-fi connected -> we can finish automatically
+        if (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
             progress_state = esp_credential_action::Done;
-            break;
         }
-        if (no_pressed) {
+
+        // User pressed continue -> continue connecting on the background
+        else if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::Done;
         }
         break;
