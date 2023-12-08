@@ -373,6 +373,7 @@ public:
         MarlinVariable<float> temp_nozzle; // nozzle temperature [C]
         MarlinVariable<float> target_nozzle; // nozzle target temperature [C]
         MarlinVariable<float> display_nozzle; // nozzle temperature to display [C]
+        MarlinVariable<uint8_t> pwm_nozzle; ///< Hotend PWM (0-255 or 0-127, depending on the type of the printer, dunno how to determine nicely, sigh)
 
         // heatbreak
         MarlinVariable<float> temp_heatbreak; // heatbreak temperature [C]
