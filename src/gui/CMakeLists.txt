@@ -31,6 +31,7 @@ target_sources(
           MItem_experimental_tools.cpp
           MItem_filament.cpp
           MItem_hardware.cpp
+          MItem_input_shaper.cpp
           MItem_lan.cpp
           MItem_menus.cpp
           MItem_print.cpp

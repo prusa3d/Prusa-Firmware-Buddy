@@ -6,7 +6,7 @@
 #pragma once
 
 #include "screen_menu.hpp"
-#include "MItem_tools.hpp"
+#include "MItem_input_shaper.hpp"
 
 namespace detail {
 using ScreenMenuInputShaper = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_IS_SET, MI_IS_X_ONOFF, MI_IS_X_TYPE, MI_IS_X_FREQUENCY, MI_IS_Y_ONOFF, MI_IS_Y_TYPE, MI_IS_Y_FREQUENCY, MI_IS_Y_COMPENSATION /*, MI_IS_CALIB*/>;
