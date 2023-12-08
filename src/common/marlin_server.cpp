@@ -2535,6 +2535,8 @@ static void _server_update_vars() {
 
         extruder.temp_nozzle = thermalManager.degHotend(e);
         extruder.target_nozzle = thermalManager.degTargetHotend(e);
+        extruder.pwm_nozzle = thermalManager.getHeaterPower(static_cast<heater_ind_t>(H_E0 + e));
+
 #if (TEMP_SENSOR_HEATBREAK > 0)
         // TODO: this should track multiple extruders
         extruder.temp_heatbreak = thermalManager.temp_heatbreak[e].celsius;
