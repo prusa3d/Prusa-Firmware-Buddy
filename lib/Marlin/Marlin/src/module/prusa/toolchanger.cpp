@@ -674,7 +674,7 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
         }
     }
 
-    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // extract tool
+    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // release tool
 
     // Wait until dwarf is registering as not picked
     if (!wait(dwarf_not_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
