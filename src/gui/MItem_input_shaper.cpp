@@ -13,7 +13,7 @@ void MI_IS_X_ONOFF::OnChange(size_t) {
     using AC = std::optional<input_shaper::AxisConfig>;
     input_shaper::set_axis_config(X_AXIS, index ? AC(config_store().input_shaper_axis_x_config.get()) : std::nullopt);
 
-    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)InputShaperMenuItemChildClickParam::request_gui_update);
+    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, ftrstd::bit_cast<void *>(InputShaperMenuItemChildClickParam::request_gui_update));
 }
 
 MI_IS_Y_ONOFF::MI_IS_Y_ONOFF()
@@ -27,7 +27,7 @@ void MI_IS_Y_ONOFF::OnChange(size_t) {
     using AC = std::optional<input_shaper::AxisConfig>;
     input_shaper::set_axis_config(Y_AXIS, index ? AC(config_store().input_shaper_axis_y_config.get()) : std::nullopt);
 
-    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)InputShaperMenuItemChildClickParam::request_gui_update);
+    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, ftrstd::bit_cast<void *>(InputShaperMenuItemChildClickParam::request_gui_update));
 }
 
 MI_IS_X_TYPE::MI_IS_X_TYPE()
@@ -115,7 +115,7 @@ MI_IS_ENABLE_EDITING::MI_IS_ENABLE_EDITING()
 }
 
 void MI_IS_ENABLE_EDITING::click(IWindowMenu &) {
-    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)InputShaperMenuItemChildClickParam::enable_editing);
+    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, ftrstd::bit_cast<void *>(InputShaperMenuItemChildClickParam::enable_editing));
 }
 
 MI_IS_CALIB::MI_IS_CALIB()
@@ -149,5 +149,5 @@ void MI_IS_RESTORE_DEFAULTS::click([[maybe_unused]] IWindowMenu &window_menu) {
     // Reload input shaper config from the store
     input_shaper::current_config() = config_store().get_input_shaper_config();
 
-    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)InputShaperMenuItemChildClickParam::request_gui_update);
+    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, ftrstd::bit_cast<void *>(InputShaperMenuItemChildClickParam::request_gui_update));
 }
