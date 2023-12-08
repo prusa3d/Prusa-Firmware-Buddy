@@ -14,6 +14,8 @@ void GcodeSuite::M46() {
     if (parser.seen('M')) {
         mac_address_t mac;
         get_MAC_address(&mac, netdev_get_active_id());
+        // Append a newline character to the mac parameter
+        strcat(mac, "\n");
         serialprintPGM(mac);
     }
 }
