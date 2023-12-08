@@ -102,7 +102,6 @@ variant<monostate, WebSocket::FragmentHeader, Error> WebSocket::receive(optional
     result.conn = conn;
     result.last = header[0] & 0b10000000;
     result.opcode = Opcode(header[0] & 0b00001111);
-    bool has_command_id = header[0] & 0b01000000;
     if (header[0] & 0b00110000) {
         // Not supported / not negotiated extension
         return Error::WebSocket;
@@ -125,21 +124,6 @@ variant<monostate, WebSocket::FragmentHeader, Error> WebSocket::receive(optional
     } else if (result.len == 127) {
         // Not supported / too big
         return Error::WebSocket;
-    }
-
-    if (has_command_id) {
-        uint32_t cmd_id;
-
-        if (result.len < 4) {
-            return Error::WebSocket;
-        }
-
-        if (auto err = conn->rx_exact(reinterpret_cast<uint8_t *>(&cmd_id), sizeof cmd_id); err.has_value()) {
-            return *err;
-        }
-
-        result.command_id = ntohl(cmd_id);
-        result.len -= 4;
     }
 
     return result;
@@ -201,7 +185,7 @@ bool WebSocketAccept::key_matched() const {
 }
 
 bool WebSocketAccept::all_supported() const {
-    return extension_commands && protocol_connect && upgrade_ws && conn_upgrade;
+    return protocol_connect && upgrade_ws && conn_upgrade;
 }
 
 void WebSocketAccept::character(char c, HeaderName name) {
@@ -217,9 +201,6 @@ void WebSocketAccept::character(char c, HeaderName name) {
         key_pos++;
         break;
     }
-    case HeaderName::WebSocketCommands:
-        extension_commands = true;
-        break;
     case HeaderName::WebSocketPrusaConnect:
         protocol_connect = true;
         break;

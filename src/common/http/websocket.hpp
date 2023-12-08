@@ -21,13 +21,6 @@ namespace http {
 // * We don't support payloads of a single fragment larger than 2^16,
 //   in either direction.
 // * We don't do proper close.
-//
-// We also add our own extension "Commands". It:
-// * Allocates one new opcode.
-// * Reserves the first reserved bit to mean "has a command ID". If it
-//   is set to 1, there's 4 bytes of extension data (preceding the
-//   payload, as per the RFC), which is a 32-bit unsigned int in
-//   network byte order, meaning the command ID.
 // * We do not expect to get a message from the server right away
 //   (that is, we don't expect there to be a "body" leftover when we
 //   decode the response); we expect to be sending the first message
@@ -43,8 +36,6 @@ public:
         Continuation = 0,
         Text = 1,
         Binary = 2,
-        // Extension Commands
-        Gcode = 3,
         Close = 8,
         Ping = 9,
         Pong = 10,
@@ -58,11 +49,6 @@ public:
         //
         // (Using it is caller's responsibility)
         std::optional<std::array<uint8_t, 4>> key;
-        // Already decoded to host byte order.
-        //
-        // In case it is present, len is already adjusted by the size
-        // of the "extension data".
-        std::optional<uint32_t> command_id;
         // Last fragment?
         bool last;
 
@@ -125,7 +111,6 @@ private:
     bool conn_upgrade = false;
     bool upgrade_ws = false;
     bool protocol_connect = false;
-    bool extension_commands = false;
 
 public:
     WebSocketAccept(const WebSocketKey &key)

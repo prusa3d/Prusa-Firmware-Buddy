@@ -60,9 +60,6 @@ ExecutionControl ResponseParser::event(Event event) {
     case Names::WebSocketAccept:
         extra(event.payload, HeaderName::WebSocketAccept);
         return ExecutionControl::Continue;
-    case Names::WsCommands:
-        extra(event.payload, HeaderName::WebSocketCommands);
-        return ExecutionControl::Continue;
     case Names::WsPrusaConnect:
         extra(event.payload, HeaderName::WebSocketPrusaConnect);
         return ExecutionControl::Continue;

@@ -13,7 +13,6 @@ enum class HeaderName {
     WebSocketUpgrade,
     ConnectionUpgrade,
     WebSocketPrusaConnect,
-    WebSocketCommands,
 };
 
 class ExtraHeader {

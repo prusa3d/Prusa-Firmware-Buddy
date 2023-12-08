@@ -283,15 +283,6 @@ def ws_protocol_header():
     }, 'WsProtocol')
 
 
-def ws_protocol_extension():
-    """
-    The Sec-WebSocket-Extensions header, looking for 'commands'.
-    """
-    return keyworded_header({
-        'commands': 'WsCommands',
-    }, 'WsExtension')
-
-
 def accept_header():
     """
     Looking at the accept header.

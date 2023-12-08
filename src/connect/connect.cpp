@@ -18,6 +18,7 @@
 #include <cstring>
 #include <optional>
 #include <variant>
+#include <charconv>
 
 using namespace http;
 using json::ChunkRenderer;
@@ -142,9 +143,9 @@ namespace {
     private:
         // 2 for auth
         // 1 for upgrade
-        // 4 for websocket negotiation
+        // 3 for websocket negotiation
         // 1 for sentinel
-        HeaderOut hdrs[8];
+        HeaderOut hdrs[7];
 
     public:
         UpgradeRequest(Printer &printer, const Printer::Config &config, const WebSocketKey &key)
@@ -157,7 +158,6 @@ namespace {
                 { "Sec-WebSocket-Key", key.req(), nullopt },
                 { "Sec-WebSocket-Version", "13", nullopt },
                 { "Sec-WebSocket-Protocol", "prusa-connect", nullopt },
-                { "Sec-WebSocket-Extensions", "commands", nullopt },
                 { nullptr, nullptr, nullopt }
             } {}
         virtual const char *url() const override {
@@ -252,11 +252,12 @@ Connect::ServerResp Connect::handle_server_resp(http::Response resp, CommandId c
 CommResult Connect::receive_command(CachedFactory &conn_factory) {
     bool first = true;
     bool more = true;
-    optional<uint32_t> command_id = nullopt;
     size_t read = 0;
-    bool is_json = true;
     bool oversized = false;
-    uint8_t buffer[MAX_RESP_SIZE];
+    // The extra 9 are for the message "header"
+    // 1 is for "type", 8 are 32bit command ID in hex (without 0x in front).
+    constexpr size_t HDR_LEN = 9;
+    uint8_t buffer[MAX_RESP_SIZE + HDR_LEN];
     while (more) {
         auto res = websocket->receive(first ? make_optional(0) : nullopt);
 
@@ -310,43 +311,52 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
 
         first = false;
 
-        if (fragment.command_id.has_value()) {
-            command_id = *fragment.command_id;
+        // Even if we know it won't fit, we make sure to read at least the
+        // header, so we have a command ID to refuse.
+        size_t to_read = std::min(sizeof buffer - read, fragment.len);
+        if (auto error = fragment.conn->rx_exact(buffer + read, to_read); error.has_value()) {
+            conn_factory.invalidate();
+            return err_to_status(*error);
         }
-
-        if (read + fragment.len > sizeof buffer) {
-            // Note: This will be true until the end of the whole message, not
-            // just for this fragment - we need to throw away the whole
-            // command.
+        read += to_read;
+        fragment.len -= to_read;
+        if (fragment.len > 0) {
             oversized = true;
-        }
-
-        if (fragment.opcode == WebSocket::Opcode::Gcode) {
-            is_json = false;
-        }
-
-        if (oversized) {
+            // As we decreased the size already, this ignores only the rest.
             fragment.ignore();
-        } else {
-            if (auto error = fragment.conn->rx_exact(buffer + read, fragment.len); error.has_value()) {
-                conn_factory.invalidate();
-                return err_to_status(*error);
-            }
-
-            read += fragment.len;
         }
 
         if (fragment.last) {
-            if (!command_id.has_value()) {
+            if (read < HDR_LEN) {
                 planner().command(Command {
+                    // We don't have a command ID, so we cheat a bit here. Should not happen really.
                     0,
-                    BrokenCommand { "Missing Command ID" } });
-
+                    BrokenCommand { "Message too short to contain header" } });
                 return ConnectionStatus::Ok;
             }
+            uint32_t command_id;
+            auto id_result = std::from_chars(reinterpret_cast<const char *>(buffer + 1), reinterpret_cast<const char *>(buffer + 9), command_id, 16);
+            if (id_result.ec != std::errc {}) {
+                planner().command(Command {
+                    0,
+                    BrokenCommand { "Could not parse command ID" } });
+                return ConnectionStatus::Ok;
+            }
+            bool is_json;
+            if (buffer[0] == 'J') {
+                is_json = true;
+            } else if (buffer[0] == 'G') {
+                is_json = false;
+            } else {
+                planner().command(Command {
+                    command_id,
+                    BrokenCommand { "Unrecognized type of message" } });
+                return ConnectionStatus::Ok;
+            }
+
             if (oversized) {
                 planner().command(Command {
-                    *command_id,
+                    command_id,
                     BrokenCommand { "Command too large" } });
 
                 // We have managed to consume the command alright, we just
@@ -355,7 +365,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
             }
             if (command_id == planner().background_command_id()) {
                 planner().command(Command {
-                    *command_id,
+                    command_id,
                     ProcessingThisCommand {},
                 });
 
@@ -367,17 +377,17 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                 // processing some command. In that case we can't accept another one
                 // and we just reject it.
                 planner().command(Command {
-                    *command_id,
+                    command_id,
                     ProcessingOtherCommand {},
                 });
             }
 
             if (is_json) {
-                auto command = Command::parse_json_command(*command_id, reinterpret_cast<char *>(buffer), read, move(*buff));
+                auto command = Command::parse_json_command(command_id, reinterpret_cast<char *>(buffer + HDR_LEN), read - HDR_LEN, move(*buff));
                 planner().command(command);
             } else {
-                const string_view body(reinterpret_cast<const char *>(buffer), read);
-                auto command = Command::gcode_command(*command_id, body, move(*buff));
+                const string_view body(reinterpret_cast<const char *>(buffer + HDR_LEN), read - HDR_LEN);
+                auto command = Command::gcode_command(command_id, body, move(*buff));
             }
 
             more = false;
