@@ -581,12 +581,8 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   TERN_(HAS_DUPLICATION_MODE, set_duplication_enabled(false));
 
-  #if HAS_PHASE_STEPPING()
-    // Synchronize just in case we performed a toolchange.
-    // This is required to toggle XY phase stepping during a standstill
-    planner.synchronize();
-    phase_stepping::EnsureDisabled phstep_disabler;
-  #endif
+  // Disable phase stepping just before homing XY. This will synchronize only if needed
+  phase_stepping::EnsureDisabled phstep_disabler;
 
   // Homing feedrate
   float fr_mm_s = no_change ? feedrate_mm_s : 0.0f;
@@ -855,10 +851,8 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   endstops.not_homing();
 
-  #if HAS_PHASE_STEPPING()
-    // Restore previous phase stepping state before we move again
-    phstep_disabler.release();
-  #endif
+  // Restore previous phase stepping state before we move again
+  phstep_disabler.release();
 
   if (!failed) {
     // Clear endstop state for polled stallGuard endstops

@@ -222,6 +222,17 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
     };
 }
 
+#ifdef _DEBUG
+void phase_stepping::assert_initialized() {
+    // This is explicitly kept non-inline to serve as a single trap point
+    assert(initialized());
+}
+#endif
+
+void phase_stepping::synchronize() {
+    planner.synchronize();
+}
+
 void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
     assert(!planner.processing());

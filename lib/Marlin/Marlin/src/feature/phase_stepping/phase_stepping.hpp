@@ -15,6 +15,7 @@
     #include <core/types.h>
     #include <bsod.h>
 
+    #include <algorithm>
     #include <memory>
     #include <atomic>
     #include <cassert>
@@ -216,6 +217,11 @@ float extract_physical_position(AxisEnum axis, const Pos &pos) {
 int phase_difference(int a, int b);
 
 /**
+ * A simple wrapper around planner.synchronize() to avoid recursive planner inclusion
+ */
+void synchronize();
+
+/**
  * This array keeps axis state (and LUT tables) for each axis
  **/
 extern std::array<
@@ -224,18 +230,45 @@ extern std::array<
     axis_states;
 
 /**
- * RAII guard for temporary disabling/enabling phase stepping.
+ * Check wether init() has been called
+ */
+static inline bool initialized() {
+    return std::ranges::all_of(axis_states, [](const auto &state) { return state != nullptr; });
+}
+
+    /**
+     * Ensure init() has been called
+     */
+    #ifndef _DEBUG
+static constexpr void assert_initialized() {}
+    #else
+void assert_initialized();
+    #endif
+
+/**
+ * RAII guard for temporary disabling/enabling phase stepping with planner synchronization.
  **/
 template <bool ENABLED>
 class EnsureState {
     bool released = false;
+    bool any_axis_change = false;
     std::array<bool, SUPPORTED_AXIS_COUNT> _prev_active = {};
 
 public:
     EnsureState() {
-        for (std::size_t i = 0; i != axis_states.size(); i++) {
-            _prev_active[i] = axis_states[i]->active;
-            phase_stepping::enable(AxisEnum(i), ENABLED);
+        assert_initialized();
+
+        any_axis_change = std::ranges::any_of(axis_states, [](const auto &state) -> bool {
+            return state->active != ENABLED;
+        });
+
+        if (any_axis_change) {
+            synchronize();
+
+            for (std::size_t i = 0; i != axis_states.size(); i++) {
+                _prev_active[i] = axis_states[i]->active;
+                phase_stepping::enable(AxisEnum(i), ENABLED);
+            }
         }
     }
 
@@ -253,8 +286,11 @@ public:
             return;
         }
         released = true;
-        for (std::size_t i = 0; i != axis_states.size(); i++) {
-            phase_stepping::enable(AxisEnum(i), _prev_active[i]);
+        if (any_axis_change) {
+            synchronize();
+            for (std::size_t i = 0; i != axis_states.size(); i++) {
+                phase_stepping::enable(AxisEnum(i), _prev_active[i]);
+            }
         }
     }
 };
