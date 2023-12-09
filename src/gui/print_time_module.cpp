@@ -47,7 +47,9 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
 
         // Timestamp
         const int8_t timezone_diff = config_store().timezone.get();
-        const time_t local_cur_sec = curr_sec + timezone_diff * 3600;
+        const int8_t timezone_summertime = time_tools::get_current_timezone_summertime();
+        const int8_t timezone_min_diff = time_tools::get_current_timezone_minutes();
+        const time_t local_cur_sec = curr_sec + ((timezone_diff + timezone_summertime) * 3600) + (timezone_min_diff * 60);
         time_end_format = PT_t::timestamp;
         generate_timestamp_string(local_cur_sec, time_to_end);
 
@@ -107,7 +109,9 @@ bool PrintTime::print_end_time(const uint32_t time_to_end, std::span<char> buffe
     }
 
     const int8_t timezone_diff = config_store().timezone.get();
-    curr_sec += timezone_diff * 3600;
+    const int8_t timezone_summertime = time_tools::get_current_timezone_summertime();
+    const int8_t timezone_min_diff = time_tools::get_current_timezone_minutes();
+    curr_sec += ((timezone_diff + timezone_summertime) * 3600) + (timezone_min_diff * 60);
 
     print_timestamp_string_to_buffer(curr_sec, time_to_end, buffer);
     return true;
