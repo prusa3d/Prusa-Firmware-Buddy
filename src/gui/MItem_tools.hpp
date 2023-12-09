@@ -237,11 +237,34 @@ public:
 };
 
 class MI_TIMEZONE : public WiSpinInt {
-    constexpr static const char *const label = N_("Time Zone Offset");
+    constexpr static const char *const label = N_("Time Zone Hour Offset");
 
 public:
     MI_TIMEZONE();
     virtual void OnClick() override;
+};
+
+class MI_TIMEZONE_MIN : public WI_SWITCH_t<3> {
+    constexpr static const char *const label = N_("Time Zone Minute Offset");
+
+    constexpr static const char *str_0min = N_("00 min");
+    constexpr static const char *str_30min = N_("30 min");
+    constexpr static const char *str_45min = N_("45 min");
+
+public:
+    MI_TIMEZONE_MIN();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_TIMEZONE_SUMMER : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = N_("Time Zone Summertime");
+
+    constexpr static const char *str_wintertime = N_("disabled");
+    constexpr static const char *str_summertime = N_("enabled");
+
+public:
+    MI_TIMEZONE_SUMMER();
+    virtual void OnChange(size_t old_index) override;
 };
 
 class MI_TIME_FORMAT : public WI_SWITCH_t<2> {
