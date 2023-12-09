@@ -61,6 +61,8 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("LAN Hostname")> lan_hostname;
 
     StoreItem<int8_t, defaults::lan_timezone, journal::hash("LAN Timezone")> timezone; // hour difference from UTC
+    StoreItem<time_tools::TimeOffsetMinutes, defaults::timezone_minutes, journal::hash("Timezone Minutes")> timezone_minutes; // minutes offset for hour difference from UTC
+    StoreItem<time_tools::TimeOffsetSummerTime, defaults::timezone_summer, journal::hash("Timezone Summertime")> timezone_summer; // Summertime hour offset
 
     // WIFI settings
     // wifi_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1, wifi_flag & 0b1100 -> reserved, previously ap_sec_t security

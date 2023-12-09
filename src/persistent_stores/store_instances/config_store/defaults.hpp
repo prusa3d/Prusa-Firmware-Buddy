@@ -73,6 +73,8 @@ namespace defaults {
 
     inline constexpr std::array<char, lan_hostname_max_len + 1> net_hostname { LAN_HOSTNAME_DEF };
     inline constexpr int8_t lan_timezone { 1 };
+    inline constexpr time_tools::TimeOffsetMinutes timezone_minutes { time_tools::TimeOffsetMinutes::_0min };
+    inline constexpr time_tools::TimeOffsetSummerTime timezone_summer { time_tools::TimeOffsetSummerTime::_wintertime };
     inline constexpr std::array<char, wifi_max_ssid_len + 1> wifi_ap_ssid { "" };
     inline constexpr std::array<char, wifi_max_passwd_len + 1> wifi_ap_password { "" };
 
