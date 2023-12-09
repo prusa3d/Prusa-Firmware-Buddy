@@ -10,7 +10,7 @@
 #include "MItem_menus.hpp"
 #include "menu_items_languages.hpp"
 
-using ScreenMenuLangAndTime__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_LANGUAGE, MI_TIMEZONE, MI_TIME_FORMAT
+using ScreenMenuLangAndTime__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_LANGUAGE, MI_TIMEZONE, MI_TIMEZONE_MIN, MI_TIMEZONE_SUMMER, MI_TIME_FORMAT
 #if PRINTER_IS_PRUSA_MINI
     ,
     MI_TIME_NOW // Mini does not show time in header, so show it here
