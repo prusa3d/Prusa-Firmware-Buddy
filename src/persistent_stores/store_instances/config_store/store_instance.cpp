@@ -1,9 +1,14 @@
 #include "store_instance.hpp"
 #include "old_eeprom/last_migration.hpp"
+#include <option/has_config_store_wo_backend.h>
 
 using namespace config_store_ns;
 
 void init_config_store() {
+#if HAS_CONFIG_STORE_WO_BACKEND()
+    config_store(); // called to ensure object creation
+    config_store_init_result() = config_store_ns::InitResult::normal;
+#else
     st25dv64k_init();
 
     old_eeprom::eeprom_data eeprom_ram_mirror;
@@ -52,6 +57,7 @@ void init_config_store() {
 
         // Since we have at least one migration, bank flip is guaranteed now, which will remove default value journal entries from the old eeprom migration transaction.
     }
+#endif
 }
 
 void init_stores() {

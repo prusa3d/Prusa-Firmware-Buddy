@@ -20,6 +20,7 @@
 #include <cctype>
 #include <mbedtls/sha256.h>
 #include <sys/statvfs.h>
+#include <crc32.h>
 
 #include <config_store/store_instance.hpp>
 #include <option/has_mmu2.h>

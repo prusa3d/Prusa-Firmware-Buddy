@@ -3,8 +3,13 @@
 
 #include "constants.hpp"
 #include "defaults.hpp"
-#include "backend_instance.hpp"
-#include <journal/store.hpp>
+#include <option/has_config_store_wo_backend.h>
+#if HAS_CONFIG_STORE_WO_BACKEND()
+    #include <no_backend/store.hpp>
+#else
+    #include <journal/store.hpp>
+    #include "backend_instance.hpp"
+#endif
 #include <Marlin/src/feature/input_shaper/input_shaper_config.hpp>
 #include <module/temperature.h>
 #include <config.h>
@@ -32,7 +37,14 @@ namespace config_store_ns {
  * !! NEVER JUST DELETE AN ITEM FROM THIS STRUCT; if an item is no longer wanted, deprecate it. See DeprecatedStore (below).
  * !! Changing DEFAULT VALUE is ALSO a deprecation !!
  */
-struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backend> {
+
+struct CurrentStore
+#if HAS_CONFIG_STORE_WO_BACKEND()
+    : public no_backend::NBJournalCurrentStoreConfig
+#else
+    : public journal::CurrentStoreConfig<journal::Backend, backend>
+#endif
+{
     // wizard flags
     StoreItem<bool, defaults::bool_true, journal::hash("Run Selftest")> run_selftest;
     StoreItem<bool, defaults::bool_true, journal::hash("Run XYZ Calibration")> run_xyz_calib;
@@ -396,7 +408,13 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
  *
  * !!! MAKE SURE to move StoreItems from CurrentStore to here KEEP their HASHED ID !!! (to make sure backend works correctly when scanning through entries)
  */
-struct DeprecatedStore : public journal::DeprecatedStoreConfig<journal::Backend> {
+struct DeprecatedStore
+#if HAS_CONFIG_STORE_WO_BACKEND()
+    : public no_backend::NBJournalDeprecatedStoreConfig
+#else
+    : public journal::DeprecatedStoreConfig<journal::Backend>
+#endif
+{
     // There was a ConfigStore version already before last eeprom version of SelftestResult was made, so it doesn't have old eeprom predecessor
     StoreItem<SelftestResult_pre_23, defaults::selftest_result_pre_23, journal::hash("Selftest Result")> selftest_result_pre_23;
     // Selftest Result version before adding Gears Calibration result to EEPROM

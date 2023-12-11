@@ -40,6 +40,7 @@
 #include "connect/marlin_printer.hpp"
 #include <Marlin/src/feature/input_shaper/input_shaper_config.hpp>
 #include <Marlin/src/feature/input_shaper/input_shaper.hpp>
+#include <st25dv64k.h>
 
 static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     constexpr static const char *title = N_("Information");

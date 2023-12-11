@@ -1,4 +1,9 @@
 #pragma once
+
+/**
+ * @brief Journal storing strategy means that items are stored persistently using a journal. Changes to item value are stored as an entry to a journal, and upon device reset this journal is read from the beginning, adjusting individual items as the history is being read. Specific implementation may vary (see journal/backend for the one used).
+ */
+
 #include <cstring>
 #include "common/to_tie.hpp"
 #include "common/extract_member_pointer.hpp"

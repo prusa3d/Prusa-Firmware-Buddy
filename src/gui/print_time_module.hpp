@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <span>
 #include "guitypes.hpp"
 #include "i18n.h"
 #include <array>
