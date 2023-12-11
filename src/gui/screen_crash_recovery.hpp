@@ -3,7 +3,7 @@
 #include "screen.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "window_wizard_icon.hpp"
 #include "window_wizard_progress.hpp"
 #include "radio_button.hpp"

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "screen.hpp"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "window_text.hpp"
 
 class ScreenDoesNotExist : public AddSuperWindow<screen_t> {

@@ -9,7 +9,7 @@
 #include "screen.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "selftest_frame_axis.hpp"
 #include "selftest_frame_fans.hpp"
 #include "selftest_frame_fsensor.hpp"

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <common/fsm_base_types.hpp>
 #include <cstdint>
 #include <optional>
 
@@ -19,7 +20,8 @@ public:
         data_not_valid,
         position,
         menu,
-        selftest_mask
+        selftest_mask,
+        fsm_base_data,
     };
 
     struct menu_t {
@@ -71,6 +73,17 @@ public:
     }
 #endif
 
+    void SetFsmBaseData(fsm::BaseData new_fsm_base_data) {
+        fsm_base_data = new_fsm_base_data;
+        type = type_t::fsm_base_data;
+    }
+    std::optional<fsm::BaseData> GetFsmBaseData() {
+        if (type != type_t::fsm_base_data) {
+            return std::nullopt;
+        }
+        return fsm_base_data;
+    }
+
     constexpr bool IsValid() {
         return type != type_t::data_not_valid;
     }
@@ -83,5 +96,6 @@ private:
 #if __has_include("printer_selftest.hpp")
         SelftestMask_t selftest_mask;
 #endif
+        fsm::BaseData fsm_base_data;
     };
 };
