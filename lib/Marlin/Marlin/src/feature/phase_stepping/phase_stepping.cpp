@@ -248,6 +248,10 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
 
     auto [a, b] = axis_state.forward_current.get_current(current_phase);
 
+    // Set IHOLD to be the same as IRUN (as IHOLD is always used in XDIRECT)
+    axis_state.initial_hold_multiplier = stepper.hold_multiplier();
+    stepper.rms_current(stepper.rms_current(), 1.);
+
     // Swapping coils isn't a mistake - TMC in Xdirect mode swaps coils
     stepper.coil_A(b);
     stepper.coil_B(a);
@@ -318,6 +322,9 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     }
     stepper.direct_mode(false);
     stepper.microsteps(original_microsteps);
+
+    // Reset IHOLD to the original state
+    stepper.rms_current(stepper.rms_current(), axis_state.initial_hold_multiplier);
 
     if (!any_axis_active()) {
         HAL_TIM_OC_Stop_IT(&TIM_HANDLE_FOR(phase_stepping), TIM_CHANNEL_1);

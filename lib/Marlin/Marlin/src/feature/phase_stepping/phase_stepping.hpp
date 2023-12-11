@@ -62,6 +62,7 @@ struct AxisState {
     std::atomic<bool> is_moving = false;
     std::atomic<bool> is_cruising = false;
 
+    float initial_hold_multiplier; // Original holding current multiplier
     int32_t initial_count_position = 0; // Value for updating Stepper::count_position
     int32_t initial_count_position_from_startup = 0; // Value for updating Stepper::count_position_from_startup
 
