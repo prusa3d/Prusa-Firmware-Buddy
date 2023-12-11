@@ -65,7 +65,7 @@ class TMCStepper {
 		void rms_current(uint16_t mA);
 		void rms_current(uint16_t mA, float mult);
 		uint16_t rms_current();
-		void hold_multiplier(float val) { holdMultiplier = val; }
+		void hold_multiplier(float val) { rms_current(rms_current(), val); }
 		float hold_multiplier() { return holdMultiplier; }
 		uint8_t test_connection();
 
