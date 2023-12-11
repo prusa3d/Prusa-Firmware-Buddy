@@ -3,7 +3,7 @@
 #include "gui.hpp"
 #include "screen.hpp"
 #include "window_header.hpp"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "esp_frame_text.hpp"
 #include "esp_frame_progress.hpp"
 #include "esp_frame_qr.hpp"

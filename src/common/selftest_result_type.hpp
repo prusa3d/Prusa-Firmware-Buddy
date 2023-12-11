@@ -1,5 +1,5 @@
 #pragma once
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "device/board.h"
 #include "option/has_loadcell.h"
 #include "option/filament_sensor.h"

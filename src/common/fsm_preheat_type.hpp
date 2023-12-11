@@ -5,7 +5,7 @@
 #pragma once
 
 #include "client_fsm_types.h"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 
 /**
  * @brief object to pass preheat data between threads
