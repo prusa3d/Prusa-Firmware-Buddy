@@ -467,18 +467,18 @@ namespace {
         return JsonResult::Abort;
     }
 
-    off_t child_size(const char *base_path, const char *child_name) {
+    std::optional<off_t> child_size(const char *base_path, const char *child_name) {
         char path_buf[FILE_PATH_BUFFER_LEN];
         int formatted = snprintf(path_buf, sizeof(path_buf), "%s/%s", base_path, child_name);
         // Name didn't fit. That, in theory, should not happen, but better safe than sorry...
         if (formatted >= FILE_NAME_BUFFER_LEN) {
-            return -1;
+            return {};
         }
         struct stat st = {};
         if (stat(path_buf, &st) == 0) {
             return st.st_size;
         } else {
-            return -1;
+            return {};
         }
     }
 
@@ -746,7 +746,9 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
             }
         } else {
             state.read_only = false;
+            state.childsize = child_size(state.base_path, state.ent->d_name);
         }
+
         state.child_cnt ++;
 
         if (!state.first) {
@@ -758,7 +760,7 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
         JSON_OBJ_START;
             JSON_FIELD_STR_ESC("name", state.ent->d_name) JSON_COMMA;
             JSON_FIELD_STR("display_name", dirent_lfn(state.ent)) JSON_COMMA;
-            JSON_FIELD_INT("size", state.childsize.has_value() ? state.childsize.value() : child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
+            JSON_FIELD_INT("size", state.childsize.value_or(0)) JSON_COMMA;
 #ifdef UNITTESTS
             // While "our" dirent contains time, the "real" one doesn't, so disable for unit tests
             JSON_FIELD_INT("m_timestamp", 0) JSON_COMMA;
