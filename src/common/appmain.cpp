@@ -175,7 +175,7 @@ void app_setup(void) {
     loadcell.SetHysteresis(config_store().loadcell_hysteresis.get());
 
     if (config_store().stuck_filament_detection.get()) {
-        EMotorStallDetector::Instance().Enable();
+        EMotorStallDetector::Instance().SetEnabled();
     } // else keep it disabled (which is the default)
 
     #if HAS_LOADCELL_HX717()

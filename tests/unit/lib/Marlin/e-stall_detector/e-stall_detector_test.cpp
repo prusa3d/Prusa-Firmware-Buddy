@@ -45,7 +45,7 @@ TEST_CASE("Marlin::MotorStallFilter filter", "[Marlin][EStallDetector]") {
 // check performed on top of multiple data records
 TEST_CASE("Marlin::EStallDetector", "[Marlin][EStallDetector]") {
     auto &emsd = EMotorStallDetector::Instance();
-    emsd.Enable();
+    emsd.SetEnabled();
     REQUIRE_FALSE(emsd.Blocked());
     REQUIRE_FALSE(emsd.DetectedOnce());
     REQUIRE(emsd.Enabled());
@@ -196,8 +196,8 @@ TEST_CASE("Marlin::MotorStallFilter stall3-300Hz", "[Marlin][EStallDetector]") {
         EStallDetectionStateLatch esdsl;
 
         // activate the detector
-        emsd.Enable();
-        emsd.Unblock();
+        emsd.SetEnabled();
+        emsd.SetBlocked(false);
         // lower the detection threshold to overcome the sampling rate limitation - see explanation above
         // @@TODO we might process all of the recorded data to see the occasions when the filter would have trigger even though the original try-load would have succeeded
         emsd.SetDetectionThreshold(500'000.F);
