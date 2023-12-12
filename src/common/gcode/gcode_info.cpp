@@ -428,6 +428,13 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 };
                 auto feature = cmd.get_string();
                 feature.trim();
+
+#if ENABLED(PRUSA_MMU2)
+                if (MMU2::mmu2.Enabled() && compare(feature, "MMU3")) {
+                    break;
+                }
+#endif
+
                 if (!find(feature)) {
                     valid_printer_settings.add_unsupported_feature(feature.begin, feature.end - feature.begin);
                 }
