@@ -425,9 +425,9 @@ bool DialogLoadUnload::Change(fsm::BaseData base_data) {
         if (is_notice_mmu(phase)) {
             const MMU2::MMUErrDesc *ptr_desc = fsm::PointerSerializer<MMU2::MMUErrDesc>(data).Get();
             PhaseResponses responses {
-                ButtonOperationToResponse(ptr_desc->buttons[0]),
-                ButtonOperationToResponse(ptr_desc->buttons[1]),
-                ButtonOperationToResponse(ptr_desc->buttons[2])
+                MMU2::ButtonOperationToResponse(ptr_desc->buttons[0]),
+                MMU2::ButtonOperationToResponse(ptr_desc->buttons[1]),
+                MMU2::ButtonOperationToResponse(ptr_desc->buttons[2])
             };
 
             notice_radio_button.set_fixed_width_buttons_count(3);
@@ -444,7 +444,7 @@ bool DialogLoadUnload::Change(fsm::BaseData base_data) {
 
             notice_radio_button.set_fixed_width_buttons_count(0);
             notice_radio_button.ChangePhase(phase, { Response::Unload });
-            notice_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text, MMU2::ErrType::WARNING);
+            notice_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text, ErrType::WARNING);
         }
     #endif
         current_phase = phase;
@@ -474,15 +474,15 @@ bool DialogLoadUnload::Change(fsm::BaseData base_data) {
     return true;
 }
 
-void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, MMU2::ErrType type) {
+void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, ErrType type) {
     switch (type) {
-    case MMU2::ErrType::ERROR:
+    case ErrType::ERROR:
         notice_icon_type.SetRes(&img::error_48x48);
         break;
-    case MMU2::ErrType::WARNING:
+    case ErrType::WARNING:
         notice_icon_type.SetRes(&img::warning_48x48);
         break;
-    case MMU2::ErrType::USER_ACTION:
+    case ErrType::USER_ACTION:
         notice_icon_type.SetRes(&img::info_48x48);
         break;
     }

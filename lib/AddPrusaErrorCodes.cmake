@@ -35,7 +35,7 @@ function(add_generated_error_codes_header dir is_mmu)
 
   add_custom_target(error_codes${suffix}_tgt DEPENDS "${error_codes_header}" "${error_list_header}")
   add_dependencies(error_codes${suffix} error_codes${suffix}_tgt)
-  target_include_directories(error_codes${suffix} INTERFACE ${dir})
+  target_include_directories(error_codes${suffix} INTERFACE "${error_codes_dir}/include")
 endfunction()
 
 set(error_codes_dir "${CMAKE_CURRENT_SOURCE_DIR}/Prusa-Error-Codes")

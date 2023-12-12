@@ -80,7 +80,7 @@ public:
 #endif
 
 protected:
-    void notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, MMU2::ErrType type);
+    void notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, ErrType type);
     float deserialize_progress(fsm::PhaseData data) const;
     void phaseEnter();
 
