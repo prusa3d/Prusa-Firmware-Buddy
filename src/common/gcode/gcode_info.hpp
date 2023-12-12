@@ -60,6 +60,8 @@ public:
     static constexpr std::array<const char *, 1> printer_compatibility_list = { PRINTER_MODEL }; ///< Basic compatibility for M862.3 G-code
 #endif
 
+    static constexpr std::array<const char *, 1> supported_features = { "Input shaper" };
+
     // search this many g-code at the beginning of the file for the various g-codes (M862.x nozzle size, bed heating, nozzle heating)
     static constexpr size_t search_first_x_gcodes = 200;
 
