@@ -5,6 +5,8 @@
 #include <option/has_loadcell.h>
 #include <config_store/store_instance.hpp>
 
+LOG_COMPONENT_REF(MarlinServer);
+
 namespace {
 enum class IsPermanent { no,
     yes };
@@ -16,6 +18,7 @@ void m591_no_parser(std::optional<bool> opt_enable_e_stall, IsPermanent is_perma
     if (restore == Restore::yes) {
         bool enabled_in_eeprom = config_store().stuck_filament_detection.get();
         EMotorStallDetector::Instance().SetEnabled(enabled_in_eeprom);
+        log_info(MarlinServer, "E-stall detection %s (restore)", enabled_in_eeprom ? "on" : "off");
         return; // ignore remaining parameters
     }
 
@@ -28,6 +31,8 @@ void m591_no_parser(std::optional<bool> opt_enable_e_stall, IsPermanent is_perma
         }
 
         EMotorStallDetector::Instance().SetEnabled(enable_e_stall);
+        log_info(MarlinServer, "E-stall detection %s%s", enable_e_stall ? "on" : "off", is_permanent == IsPermanent::yes ? " permanent" : nullptr);
+
     } else {
         // restore and opt_enable_e_stall parameters not supplied
         SERIAL_ECHOLNPAIR_F("Filament stuck detection ", EMotorStallDetector::Instance().Enabled() ? "on" : "off");

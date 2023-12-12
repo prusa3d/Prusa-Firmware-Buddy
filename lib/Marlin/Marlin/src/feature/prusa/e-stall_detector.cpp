@@ -1,6 +1,12 @@
 #include "e-stall_detector.h"
 #include <option/has_loadcell.h>
 
+#ifndef UNITTEST
+    #include "log.h"
+
+LOG_COMPONENT_REF(MarlinServer);
+#endif
+
 bool MotorStallFilter::ProcessSample(int32_t value) {
     //    constexpr std::array<float, 5> gaussianFilter = { 0.0065929F, 0.1939811F, 0.5988519F, 0.1939811F, 0.0065929F };
     //    constexpr std::array<float, 3> edgeFilter = { -1.F, 0.F, 1.F };
@@ -70,6 +76,9 @@ bool EMotorStallDetector::Evaluate(bool movingE, bool directionE) {
         SetBlocked();
         return true;
     } else {
+    #ifndef UNITTEST
+        log_debug(MarlinServer, "E-stall detected but surpressed");
+    #endif
         return false;
     }
 }
