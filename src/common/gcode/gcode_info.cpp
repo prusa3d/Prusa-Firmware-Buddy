@@ -558,11 +558,6 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
                 }
                 extruder++;
             }
-        } else if (name == gcode_info::printer) {
-            // Check model with possible extensions as MK4, MK4IS, XL or XL5
-            if (!is_printer_compatible(val, printer_extended_compatibility_list)) {
-                valid_printer_settings.wrong_printer_model.fail();
-            }
         }
 #if EXTRUDERS > 1
         else if (name == gcode_info::filament_wipe_tower_g) {
