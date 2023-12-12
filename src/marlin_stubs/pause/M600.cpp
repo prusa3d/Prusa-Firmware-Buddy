@@ -77,6 +77,9 @@ static void M600_manual();
  *  B[count]    - Number of times to beep, -1 for indefinite (if equipped with a buzzer)
  *  T[toolhead] - Select extruder for filament change
  *  A           - If automatic spool join is configured for this tool, do that instead, if not, do manual filament change
+ *  C[color]    - Set color for filament change (color rgb value as integer)
+ *  C"color"    - Set color for filament change (color name as string)
+ *  S"filament" - Set filament type for filament change. RepRap compatible.
  *
  *  Default values are used for omitted arguments.
  */
@@ -116,10 +119,48 @@ void GcodeSuite::M600() {
 }
 
 void M600_execute(xyz_pos_t park_point, int8_t target_extruder,
-    xyze_float_t resume_point, std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength,
-    pause::Settings::CalledFrom);
+    xyze_float_t resume_point, std::optional<float> unloadLength, std::optional<float> fastLoadLength,
+    std::optional<float> retractLength, std::optional<filament::Colour> filament_colour,
+    std::optional<filament::Type> filament_type, pause::Settings::CalledFrom);
 
 void M600_manual() {
+    char filamenttype[16] = { '\0' };
+    char colourtype[16] = { '\0' };
+
+    auto filament_to_be_loaded = filament::Type::NONE;
+    const char *text_begin = 0;
+    if (parser.seen('S')) {
+        text_begin = strchr(parser.string_arg, '"');
+        if (text_begin) {
+            ++text_begin; // move pointer from '"' to first letter
+            const char *text_end = strchr(text_begin, '"');
+            if (text_end) {
+                auto filament = filament::get_type(text_begin, text_end - text_begin);
+                if (filament != filament::Type::NONE) {
+                    filament_to_be_loaded = filament;
+                }
+            }
+        }
+    }
+
+    if (parser.seenval('C')) {
+        const char *colourtype_ptr = nullptr;
+        if ((colourtype_ptr = strstr(parser.string_arg, " C")) != nullptr) {
+            if (*(colourtype_ptr + 2) == '"' || *(colourtype_ptr + 2) == ' ') {
+                colourtype_ptr++;
+            }
+            if (*(colourtype_ptr + 2)) {
+                strncpy(colourtype, colourtype_ptr + 2, sizeof(colourtype));
+                for (char *fn = colourtype; *fn; ++fn) {
+                    if (*fn == '"' || *fn == ' ') {
+                        *fn = '\0';
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0) {
         return;
@@ -160,11 +201,15 @@ void M600_manual() {
         parser.seen('U') ? std::make_optional(parser.value_axis_units(E_AXIS)) : std::nullopt,
         parser.seen('L') ? std::make_optional(parser.value_axis_units(E_AXIS)) : std::nullopt,
         parser.seen('E') ? std::make_optional(std::abs(parser.value_axis_units(E_AXIS))) : std::nullopt,
+        parser.seen('C') ? std::make_optional(filament::Colour::from_string(filamenttype)) : std::nullopt,
+        parser.seen('S') ? std::make_optional(filament_to_be_loaded) : std::nullopt,
         pause::Settings::CalledFrom::Pause);
 }
 
 void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t resume_point,
-    std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength, pause::Settings::CalledFrom called_from) {
+    std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength,
+    std::optional<filament::Colour> filament_colour, std::optional<filament::Type> filament_type,
+    pause::Settings::CalledFrom called_from) {
 
 #if ENABLED(CRASH_RECOVERY)
     if (crash_s.get_state() != Crash_s::PRINTING && crash_s.get_state() != Crash_s::IDLE) {
@@ -201,8 +246,12 @@ void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t res
         thermalManager.setTargetHotend(disp_temp, target_extruder);
     }
 
+    if (filament_type.has_value()) {
+        config_store().set_filament_type(target_extruder, filament_type.value());
+    }
+
     filament::set_type_to_load(config_store().get_filament_type(target_extruder));
-    filament::set_color_to_load(std::nullopt);
+    filament::set_color_to_load(filament_colour.value());
     Pause::Instance().FilamentChange(settings);
 
     marlin_server::nozzle_timeout_on();
@@ -225,6 +274,7 @@ void PrusaGcodeSuite::M1601() {
         active_extruder,
         current_position,
         std::nullopt, std::nullopt, std::nullopt,
+        std::nullopt, std::nullopt,
         pause::Settings::CalledFrom::FilamentStuck);
 }
 #else
