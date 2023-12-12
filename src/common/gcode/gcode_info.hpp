@@ -55,7 +55,7 @@ public:
     static constexpr uint32_t gcode_level = GCODE_LEVEL;
 
 #if PRINTER_IS_PRUSA_MK4
-    static constexpr std::array<const char *, 3> printer_compatibility_list = { PRINTER_MODEL, "MK3.9", "MK3.9MMU3" }; ///< Basic compatibility for M862.3 G-code
+    static constexpr std::array<const char *, 3> printer_compatibility_list = { PRINTER_MODEL, "MK3.9" }; ///< Basic compatibility for M862.3 G-code
 #else
     static constexpr std::array<const char *, 1> printer_compatibility_list = { PRINTER_MODEL }; ///< Basic compatibility for M862.3 G-code
 #endif
