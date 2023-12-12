@@ -5,6 +5,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_loadcell.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_input_shaper_calibration.h>
 
 #include <inc/MarlinConfigPre.h>
 #include <device/board.h>
@@ -31,6 +32,9 @@ enum class ClientFSM : uint8_t {
     ColdPull,
     #if HAS_PHASE_STEPPING()
     PhaseStepping,
+    #endif
+    #if HAS_INPUT_SHAPER_CALIBRATION()
+    InputShaperCalibration,
     #endif
     _none, // cannot be created, must have same index as _count
     _count = _none

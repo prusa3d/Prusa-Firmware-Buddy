@@ -5,6 +5,7 @@
 #include <marlin_vars.hpp>
 #include <option/has_mmu2.h>
 #include <option/has_dwarf.h>
+#include <option/has_input_shaper_calibration.h>
 #include <config_store/store_instance.hpp>
 #include <device/board.h>
 
@@ -297,6 +298,9 @@ DeviceState get_state(bool ready) {
 #if HAS_PHASE_STEPPING()
     case ClientFSM::PhaseStepping:
 #endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    case ClientFSM::InputShaperCalibration:
+#endif
     case ClientFSM::Serial_printing:
         // FIXME: BFW-3893 Sadly there is no way (without saving state in this function)
         //  to distinguish between preheat from main screen,
@@ -371,6 +375,9 @@ StateWithDialog get_state_with_dialog(bool ready) {
     case ClientFSM::ColdPull:
 #if HAS_PHASE_STEPPING()
     case ClientFSM::PhaseStepping:
+#endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    case ClientFSM::InputShaperCalibration:
 #endif
     case ClientFSM::Preheat:
         // TODO: On some future sunny day, we want to cover all the selftests

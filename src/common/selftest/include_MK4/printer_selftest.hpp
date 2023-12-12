@@ -70,7 +70,7 @@ enum SelftestMask_t : uint32_t {
     stmGears = to_one_hot(stsGears),
     stmSelftestStart = to_one_hot(stsSelftestStart),
     stmSelftestStop = to_one_hot(stsSelftestStop),
-    stmNet_status = to_one_hot(stsNet_status)
+    stmNet_status = to_one_hot(stsNet_status),
 };
 
 // class representing whole self-test

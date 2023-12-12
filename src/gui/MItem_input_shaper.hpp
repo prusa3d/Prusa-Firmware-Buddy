@@ -1,5 +1,6 @@
 #pragma once
 
+#include <option/has_input_shaper_calibration.h>
 #include <Marlin/src/feature/input_shaper/input_shaper_config.hpp>
 #include <Marlin/src/feature/input_shaper/input_shaper.hpp>
 #include "WindowMenuItems.hpp"
@@ -97,6 +98,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+#if HAS_INPUT_SHAPER_CALIBRATION()
 class MI_IS_CALIB : public IWindowMenuItem {
     static constexpr const char *const label = N_("Calibration");
 
@@ -106,3 +108,4 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+#endif

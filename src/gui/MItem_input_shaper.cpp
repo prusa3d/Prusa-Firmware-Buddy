@@ -125,13 +125,15 @@ void MI_IS_ENABLE_EDITING::click(IWindowMenu &) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, ftrstd::bit_cast<void *>(InputShaperMenuItemChildClickParam::enable_editing));
 }
 
+#if HAS_INPUT_SHAPER_CALIBRATION()
 MI_IS_CALIB::MI_IS_CALIB()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_IS_CALIB::click([[maybe_unused]] IWindowMenu &window_menu) {
-    // TODO(InputShaper)
+    marlin_client::gcode("M1959");
 }
+#endif
 
 MI_IS_RESTORE_DEFAULTS::MI_IS_RESTORE_DEFAULTS()
     : IWindowMenuItem(_(label), nullptr) {

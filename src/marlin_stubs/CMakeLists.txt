@@ -56,3 +56,7 @@ endif()
 if(HAS_PHASE_STEPPING)
   target_sources(firmware PRIVATE M1977.cpp)
 endif()
+
+if(HAS_INPUT_SHAPER_CALIBRATION)
+  target_sources(firmware PRIVATE M1959.cpp)
+endif()

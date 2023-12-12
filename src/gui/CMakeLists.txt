@@ -240,6 +240,10 @@ if(CONNECT)
   target_sources(firmware PRIVATE screen_menu_connect.cpp)
 endif()
 
+if(HAS_INPUT_SHAPER_CALIBRATION)
+  target_sources(firmware PRIVATE screen_input_shaper_calibration.cpp)
+endif()
+
 add_subdirectory(dialogs)
 add_subdirectory(footer)
 if(HAS_LEDS)

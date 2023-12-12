@@ -1,0 +1,280 @@
+#include "screen_input_shaper_calibration.hpp"
+
+#include "window_wizard_progress.hpp"
+#include <gui/frame_qr_layout.hpp>
+#include <img_resources.hpp>
+
+static ScreenInputShaperCalibration *instance = nullptr;
+
+static const char *text_header = N_("INPUT SHAPER CALIBRATION");
+
+static constexpr auto rect_screen = WizardDefaults::RectSelftestFrame;
+static constexpr auto rect_radio = WizardDefaults::RectRadioButton(0);
+static constexpr auto rect_frame = Rect16 {
+    rect_screen.Left() + WizardDefaults::MarginLeft,
+    rect_screen.Top() + WizardDefaults::row_0,
+    rect_screen.Width() - (WizardDefaults::MarginLeft + WizardDefaults::MarginRight),
+    rect_radio.Top() - rect_screen.Top() - WizardDefaults::row_0
+};
+static constexpr auto rect_frame_top = Rect16 {
+    rect_frame.Left(),
+    rect_frame.Top(),
+    rect_frame.Width(),
+    WizardDefaults::row_h,
+};
+static constexpr auto rect_frame_bottom = Rect16 {
+    rect_frame.Left(),
+    rect_frame.Top() + WizardDefaults::progress_row_h + WizardDefaults::row_h,
+    rect_frame.Width(),
+    WizardDefaults::row_h,
+};
+static constexpr auto center_frame_bottom = point_i16_t {
+    rect_frame_bottom.Left() + rect_frame_bottom.Width() / 2,
+    rect_frame_bottom.Top() + rect_frame_bottom.Height() / 2,
+};
+static constexpr auto progress_top = Rect16::Top_t { 100 };
+
+class FrameInstructions {
+private:
+    window_text_t text;
+
+protected:
+    FrameInstructions(window_t *parent, string_view_utf8 txt)
+        : text(parent, rect_frame, is_multiline::yes, is_closed_on_click_t::no, txt) {
+    }
+
+public:
+    void update(fsm::PhaseData) {}
+};
+
+class FrameMeasurement {
+private:
+    window_text_t text_above;
+    window_text_t text_below;
+    window_wizard_progress_t progress;
+    std::array<char, sizeof("255 Hz")> text_below_buffer;
+
+protected:
+    FrameMeasurement(window_t *parent, string_view_utf8 txt)
+        : text_above(parent, rect_frame_top, is_multiline::no, is_closed_on_click_t::no, txt)
+        , text_below(parent, rect_frame_bottom, is_multiline::no, is_closed_on_click_t::no)
+        , progress(parent, progress_top) {
+        text_above.SetAlignment(Align_t::CenterTop());
+        text_below.SetAlignment(Align_t::CenterTop());
+    }
+
+public:
+    void update(fsm::PhaseData data) {
+        progress.SetProgressPercent(100 * float(data[2] - data[0]) / (data[1] - data[0]));
+        snprintf(text_below_buffer.data(), text_below_buffer.size(), "%3d Hz", data[2]);
+        text_below.SetText(string_view_utf8::MakeRAM(text_below_buffer.data()));
+        text_below.Invalidate();
+    }
+};
+
+class FrameInfo final {
+private:
+    window_text_t text;
+    window_text_t link;
+    window_icon_t icon_phone;
+    window_qr_t qr;
+
+public:
+    explicit FrameInfo(window_t *parent)
+        : text(parent, FrameQRLayout::text_rect(), is_multiline::yes, is_closed_on_click_t::no, _(text_info))
+        , link(parent, FrameQRLayout::link_rect(), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH(text_link))
+        , icon_phone(parent, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
+        , qr(parent, FrameQRLayout::qrcode_rect(), N_(text_link)) {
+        text.SetAlignment(Align_t::LeftCenter());
+    }
+
+    void update(fsm::PhaseData) {}
+
+    static constexpr const char *text_info = N_("To learn more about the input shaper calibration process, visit our website:");
+    static constexpr const char *text_link = "prusa.io/iscal";
+};
+
+class FrameParking final {
+private:
+    window_text_t text;
+    window_icon_hourglass_t spinner;
+
+public:
+    explicit FrameParking(window_t *parent)
+        : text(parent, rect_frame_top, is_multiline::yes, is_closed_on_click_t::no, _(text_parking))
+        , spinner(parent, center_frame_bottom) {
+        text.SetAlignment(Align_t::Center());
+    }
+
+    void update(fsm::PhaseData) {}
+
+    static constexpr const char *text_parking = N_("Parking");
+};
+
+class FrameConnectToBoard final : public FrameInstructions {
+public:
+    explicit FrameConnectToBoard(window_t *parent)
+        : FrameInstructions(parent, _(text_connect_to_board)) {}
+
+    static constexpr const char *text_connect_to_board = N_("Communication with the accelerometer failed. Connect the accelerometer cable to the buddy board.");
+};
+
+class FrameAttachToExtruder final : public FrameInstructions {
+public:
+    explicit FrameAttachToExtruder(window_t *parent)
+        : FrameInstructions(parent, _(text_attach_to_extruder)) {}
+
+    static constexpr const char *text_attach_to_extruder = N_("Firmly attach the accelerometer to the extruder. In the next step, extruder will start vibrating and acceleration will be measured.");
+};
+
+class FrameCalibratingAccelerometer final {
+    window_text_t text_above;
+    window_wizard_progress_t progress;
+
+public:
+    FrameCalibratingAccelerometer(window_t *parent)
+        : text_above(parent, rect_frame_top, is_multiline::no, is_closed_on_click_t::no, _(text_calibrating_accelerometer))
+        , progress(parent, 100 /*TODO*/) {
+        text_above.SetAlignment(Align_t::CenterTop());
+    }
+
+public:
+    void update(fsm::PhaseData data) {
+        progress.SetProgressPercent(data[0] / 2.55);
+    }
+
+    static constexpr const char *text_calibrating_accelerometer = N_("Calibrating accelerometer...");
+};
+
+class FrameAttachToBed final : public FrameInstructions {
+public:
+    explicit FrameAttachToBed(window_t *parent)
+        : FrameInstructions(parent, _(text_attach_to_bed)) {}
+
+    static constexpr const char *text_attach_to_bed = N_("Firmly attach the accelerometer to the heatbed. In the next step, heatbed will start vibrating and acceleration will be measured.");
+};
+
+class FrameMeasuringExtruder final : public FrameMeasurement {
+public:
+    explicit FrameMeasuringExtruder(window_t *parent)
+        : FrameMeasurement(parent, _(text_measuring_x_axis)) {}
+
+    static constexpr const char *text_measuring_x_axis = N_("Measuring X resonance...");
+};
+
+class FrameMeasuringBed final : public FrameMeasurement {
+public:
+    explicit FrameMeasuringBed(window_t *parent)
+        : FrameMeasurement(parent, _(text_measuring_y_axis)) {}
+
+    static constexpr const char *text_measuring_y_axis = N_("Measuring Y resonance...");
+};
+
+class FrameComputing final {
+private:
+    window_text_t text_above;
+    window_text_t text_below;
+    window_wizard_progress_t progress;
+    std::array<char, sizeof("Axis X shaper XXX")> text_below_buffer; // TODO Add axis
+
+public:
+    FrameComputing(window_t *parent)
+        : text_above(parent, rect_frame_top, is_multiline::no, is_closed_on_click_t::no, _(text_computing))
+        , text_below(parent, rect_frame_bottom, is_multiline::no, is_closed_on_click_t::no)
+        , progress(parent, 100 /*TODO*/) {
+        text_above.SetAlignment(Align_t::CenterTop());
+        text_below.SetAlignment(Align_t::CenterTop());
+    }
+
+    void update(fsm::PhaseData data) {
+        progress.SetProgressPercent(data[0] / 2.55);
+        snprintf(text_below_buffer.data(), text_below_buffer.size(), "Axis %c shaper %3s",
+            data[2] == 0 ? 'X' : (data[2] == 1 ? 'Y' : '?'), input_shaper::to_short_string(static_cast<input_shaper::Type>(data[1])));
+        text_below.SetText(string_view_utf8::MakeRAM(text_below_buffer.data()));
+        text_below.Invalidate();
+    }
+
+    static constexpr const char *text_computing = N_("Computing best shaper...");
+};
+
+class FrameResults {
+private:
+    window_text_t text;
+    std::array<char, 100> text_buffer; // TODO check size...
+
+public:
+    FrameResults(window_t *parent)
+        : text(parent, rect_frame, is_multiline::yes, is_closed_on_click_t::no) {
+    }
+
+    void update(fsm::PhaseData data) {
+        const auto x_type = static_cast<input_shaper::Type>(data[0]);
+        const auto x_freq = data[1];
+        const auto y_type = static_cast<input_shaper::Type>(data[2]);
+        const auto y_freq = data[3];
+
+        decltype(text_buffer) fmt;
+        static const char some_EN_text[] = N_("Computed shapers:\n  X axis %3s %3dHz\n  Y axis %3s %3dHz\nStore and use computed values?");
+        _(some_EN_text).copyToRAM(fmt.data(), fmt.size());
+        snprintf(text_buffer.data(), text_buffer.size(), fmt.data(),
+            to_short_string(x_type), x_freq, to_short_string(y_type), y_freq);
+        text.SetText(string_view_utf8::MakeRAM(text_buffer.data()));
+        text.Invalidate();
+    }
+};
+
+class FrameMeasurementFailed final : public FrameInstructions {
+public:
+    explicit FrameMeasurementFailed(window_t *parent)
+        : FrameInstructions(parent, _(text_measurement_failed)) {}
+
+    static constexpr const char *text_measurement_failed = N_("Measurement failed.");
+};
+
+using Frames = FrameDefinitionList<ScreenInputShaperCalibration::FrameStorage,
+    FrameDefinition<PhasesInputShaperCalibration::info, FrameInfo>,
+    FrameDefinition<PhasesInputShaperCalibration::parking, FrameParking>,
+    FrameDefinition<PhasesInputShaperCalibration::connect_to_board, FrameConnectToBoard>,
+    FrameDefinition<PhasesInputShaperCalibration::attach_to_extruder, FrameAttachToExtruder>,
+    FrameDefinition<PhasesInputShaperCalibration::calibrating_accelerometer, FrameCalibratingAccelerometer>,
+    FrameDefinition<PhasesInputShaperCalibration::measuring_x_axis, FrameMeasuringExtruder>,
+    FrameDefinition<PhasesInputShaperCalibration::attach_to_bed, FrameAttachToBed>,
+    FrameDefinition<PhasesInputShaperCalibration::measuring_y_axis, FrameMeasuringBed>,
+    FrameDefinition<PhasesInputShaperCalibration::measurement_failed, FrameMeasurementFailed>,
+    FrameDefinition<PhasesInputShaperCalibration::computing, FrameComputing>,
+    FrameDefinition<PhasesInputShaperCalibration::results, FrameResults>>;
+
+static PhasesInputShaperCalibration get_phase(const fsm::BaseData &fsm_base_data) {
+    return GetEnumFromPhaseIndex<PhasesInputShaperCalibration>(fsm_base_data.GetPhase());
+}
+
+ScreenInputShaperCalibration::ScreenInputShaperCalibration()
+    : ScreenFSM { text_header, rect_screen }
+    , radio(this, rect_radio, PhasesInputShaperCalibration::info) {
+    CaptureNormalWindow(radio);
+    create_frame();
+    instance = this;
+}
+
+ScreenInputShaperCalibration::~ScreenInputShaperCalibration() {
+    instance = nullptr;
+    destroy_frame();
+    ReleaseCaptureOfNormalWindow();
+}
+
+ScreenInputShaperCalibration *ScreenInputShaperCalibration::GetInstance() {
+    return instance;
+}
+
+void ScreenInputShaperCalibration::create_frame() {
+    Frames::create_frame(frame_storage, get_phase(fsm_base_data), this);
+    radio.Change(get_phase(fsm_base_data));
+}
+
+void ScreenInputShaperCalibration::destroy_frame() {
+    Frames::destroy_frame(frame_storage, get_phase(fsm_base_data));
+}
+
+void ScreenInputShaperCalibration::update_frame() {
+    Frames::update_frame(frame_storage, get_phase(fsm_base_data), fsm_base_data.GetData());
+}

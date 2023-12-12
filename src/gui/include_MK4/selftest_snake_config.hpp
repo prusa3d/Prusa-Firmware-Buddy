@@ -22,6 +22,7 @@ enum class Action {
     Heaters,
     Gears,
     FilamentSensorCalibration,
+    InputShaperCalibration,
     _count,
     _last = _count - 1,
     _first = Fans,
@@ -83,6 +84,7 @@ inline constexpr MenuItemText blank_item_texts[] {
     { Action::Heaters, N_("%d Heater Test") },
     { Action::Gears, N_("%d Gears Calibration") },
     { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
+    { Action::InputShaperCalibration, N_("%d Input Shaper Calibration") },
 };
 
 TestResult get_test_result(Action action, Tool tool);

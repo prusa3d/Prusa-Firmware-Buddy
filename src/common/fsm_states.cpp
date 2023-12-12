@@ -1,6 +1,7 @@
 #include <common/fsm_states.hpp>
 
 #include <option/has_phase_stepping.h>
+#include <option/has_input_shaper_calibration.h>
 
 namespace fsm {
 
@@ -23,6 +24,9 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
     case ClientFSM::ColdPull:
 #if HAS_PHASE_STEPPING()
     case ClientFSM::PhaseStepping:
+#endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    case ClientFSM::InputShaperCalibration:
 #endif
         return 1;
 

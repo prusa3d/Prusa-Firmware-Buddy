@@ -7,10 +7,26 @@
 
 #include "screen_menu.hpp"
 #include "MItem_input_shaper.hpp"
+#include <option/has_input_shaper_calibration.h>
 
 namespace detail {
-using ScreenMenuInputShaper = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_IS_ENABLE_EDITING, MI_IS_X_ONOFF, MI_IS_X_TYPE, MI_IS_X_FREQUENCY, MI_IS_Y_ONOFF, MI_IS_Y_TYPE, MI_IS_Y_FREQUENCY, MI_IS_Y_COMPENSATION /*, MI_IS_CALIB*/, MI_IS_RESTORE_DEFAULTS>;
-}
+
+using ScreenMenuInputShaper = ScreenMenu<
+    GuiDefaults::MenuFooter,
+    MI_RETURN,
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    MI_IS_CALIB,
+#endif
+    MI_IS_ENABLE_EDITING,
+    MI_IS_X_ONOFF,
+    MI_IS_X_TYPE,
+    MI_IS_X_FREQUENCY,
+    MI_IS_Y_ONOFF,
+    MI_IS_Y_TYPE,
+    MI_IS_Y_FREQUENCY,
+    MI_IS_Y_COMPENSATION,
+    MI_IS_RESTORE_DEFAULTS>;
+} // namespace detail
 
 class ScreenMenuInputShaper : public detail::ScreenMenuInputShaper {
 

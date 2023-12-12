@@ -20,6 +20,7 @@
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_input_shaper_calibration.h>
 #include <common/hotend_type.hpp>
 
 enum { RESPONSE_BITS = 4, // number of bits used to encode response
@@ -420,6 +421,25 @@ enum class PhasesPhaseStepping : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhasesPhaseStepping) { return ClientFSM::PhaseStepping; }
 #endif
 
+#if HAS_INPUT_SHAPER_CALIBRATION()
+enum class PhasesInputShaperCalibration : PhaseUnderlyingType {
+    info,
+    parking,
+    connect_to_board,
+    attach_to_extruder,
+    calibrating_accelerometer,
+    measuring_x_axis,
+    attach_to_bed,
+    measuring_y_axis,
+    measurement_failed,
+    computing,
+    results,
+    finish,
+    _last = finish,
+};
+constexpr inline ClientFSM client_fsm_from_phase(PhasesInputShaperCalibration) { return ClientFSM::InputShaperCalibration; }
+#endif
+
 enum class PhasesPrinting : PhaseUnderlyingType {
     active,
 };
@@ -789,6 +809,24 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::PhaseSteppingResponses) == CountPhases<PhasesPhaseStepping>());
 #endif
 
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    static constexpr PhaseResponses InputShaperCalibrationResponses[] = {
+        { Response::Continue, Response::Abort }, // info
+        {}, // parking
+        { Response::Retry, Response::Abort }, // connect_to_board
+        { Response::Continue, Response::Abort }, // attach_to_extruder
+        { Response::Abort }, // calibrating_accelerometer,
+        { Response::Abort }, // measuring_x_axis
+        { Response::Continue, Response::Abort }, // attach_to_bed
+        { Response::Abort }, // measuring_y_axis
+        { Response::Retry, Response::Abort }, // measurement_failed
+        { Response::Abort }, // computing
+        { Response::Yes, Response::No }, // results
+        {}, // finish
+    };
+    static_assert(std::size(ClientResponses::InputShaperCalibrationResponses) == CountPhases<PhasesInputShaperCalibration>());
+#endif
+
     static constexpr EnumArray<ClientFSM, std::span<const PhaseResponses>, ClientFSM::_count> fsm_phase_responses {
         { ClientFSM::Serial_printing, {} },
             { ClientFSM::Load_unload, LoadUnloadResponses },
@@ -803,6 +841,9 @@ class ClientResponses {
             { ClientFSM::ColdPull, ColdPullResponses },
 #if HAS_PHASE_STEPPING()
             { ClientFSM::PhaseStepping, PhaseSteppingResponses },
+#endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+            { ClientFSM::InputShaperCalibration, InputShaperCalibrationResponses },
 #endif
     };
 

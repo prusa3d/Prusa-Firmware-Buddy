@@ -16,6 +16,7 @@
 #include <option/has_side_leds.h>
 #include <option/has_leds.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_input_shaper_calibration.h>
 
 #if HAS_LOADCELL()
     #include "loadcell.hpp"
@@ -23,6 +24,10 @@
 
 #if HAS_PHASE_STEPPING()
     #include "M1977.hpp"
+#endif
+
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    #include "M1959.hpp"
 #endif
 
 #include "log.h"
@@ -190,6 +195,12 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 1702:
             PrusaGcodeSuite::M1702();
             break;
+
+#if HAS_INPUT_SHAPER_CALIBRATION()
+        case 1959:
+            PrusaGcodeSuite::M1959();
+            break;
+#endif
 
 #if HAS_PHASE_STEPPING()
         case 1977:

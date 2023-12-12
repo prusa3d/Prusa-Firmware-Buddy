@@ -64,6 +64,7 @@ exclude: |
         Marlin/src(/gcode)?/feature/phase_stepping/|
         Marlin/src/module/prusa/|
         Marlin/src/gcode/calibrate/M958.cpp
+        Marlin/src/gcode/calibrate/M958.hpp
       )|
     ^lib/Middlewares/Third_Party/FatFs/|
     ^lib/Middlewares/Third_Party/FreeRTOS/|

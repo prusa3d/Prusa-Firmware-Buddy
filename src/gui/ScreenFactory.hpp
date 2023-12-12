@@ -41,6 +41,9 @@
 #if HAS_COLDPULL()
     #include "screen_cold_pull.hpp"
 #endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    #include "screen_input_shaper_calibration.hpp"
+#endif
 
 #include <option/has_mmu2.h>
 #if HAS_MMU2()
@@ -111,6 +114,9 @@ class ScreenFactory {
 #endif
 #if HAS_COLDPULL()
         ScreenColdPull,
+#endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+        ScreenInputShaperCalibration,
 #endif
         screen_home_data_t, screen_splash_data_t, screen_printing_data_t>::type;
 

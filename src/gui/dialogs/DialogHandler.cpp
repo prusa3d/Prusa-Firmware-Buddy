@@ -11,6 +11,7 @@
 #include "window_dlg_quickpause.hpp"
 #include "window_dlg_warning.hpp"
 #include <option/has_phase_stepping.h>
+#include <option/has_input_shaper_calibration.h>
 
 #if HAS_COLDPULL()
     #include "screen_cold_pull.hpp"
@@ -39,6 +40,10 @@ using SerialPrint = ScreenDialogDoesNotExist;
 
 #if HAS_PHASE_STEPPING()
     #include "screen_phase_stepping.hpp"
+#endif
+
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    #include "screen_input_shaper_calibration.hpp"
 #endif
 
 using mem_space = std::aligned_union_t<0, DialogQuickPause, DialogLoadUnload, DialogMenuPreheat, DialogWarning
@@ -140,6 +145,13 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
         }
         break;
 #endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    case ClientFSM::InputShaperCalibration:
+        if (!ScreenInputShaperCalibration::GetInstance()) {
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenInputShaperCalibration>);
+        }
+        break;
+#endif
     case ClientFSM::QuickPause:
         ptr = make_dialog_ptr<DialogQuickPause>(data);
         break;
@@ -171,6 +183,9 @@ void DialogHandler::close(ClientFSM fsm_type) {
     case ClientFSM::ColdPull:
 #if HAS_PHASE_STEPPING()
     case ClientFSM::PhaseStepping:
+#endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    case ClientFSM::InputShaperCalibration:
 #endif
         Screens::Access()->Close();
         break;
@@ -228,6 +243,13 @@ void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
     case ClientFSM::PhaseStepping:
         if (ScreenPhaseStepping::GetInstance()) {
             ScreenPhaseStepping::GetInstance()->Change(data);
+        }
+        break;
+#endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    case ClientFSM::InputShaperCalibration:
+        if (ScreenInputShaperCalibration::GetInstance()) {
+            ScreenInputShaperCalibration::GetInstance()->Change(data);
         }
         break;
 #endif

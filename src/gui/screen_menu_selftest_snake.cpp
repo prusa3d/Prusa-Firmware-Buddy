@@ -129,6 +129,10 @@ const char *snake_gcode(Action action) {
     case Action::PhaseSteppingCalibration:
         return "M1977";
 #endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    case Action::InputShaperCalibration:
+        return "M1959";
+#endif
     default:
         return nullptr;
     }
