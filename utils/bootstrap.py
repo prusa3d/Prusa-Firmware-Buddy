@@ -225,6 +225,9 @@ def get_dependency_directory(dependency) -> Path:
 
 def switch_to_venv_if_nedded():
     if not running_in_venv and os.environ.get('BUDDY_NO_VIRTUALENV') != '1':
+        if not os.path.exists(".venv"):
+            print('Creating needed virtual environment in .venv')
+            os.system(sys.executable + ' -m venv .venv')
         print('Switching to Buddy\'s virtual environment.', file=sys.stderr)
         print(
             'You can disable this by setting the BUDDY_NO_VIRTUALENV=1 env. variable.',
