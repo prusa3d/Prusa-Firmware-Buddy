@@ -134,6 +134,11 @@ msgstr ""
 
 #: src/gui/include_XL/selftest_snake_config.hpp:127
 #, c-format
+msgid "%d Nozzle Diameter Confirmation"
+msgstr ""
+
+#: src/gui/include_XL/selftest_snake_config.hpp:128
+#, c-format
 msgid "%d Nozzle Heaters Test"
 msgstr ""
 
@@ -3524,6 +3529,10 @@ msgid "Nozzle Diameter"
 msgstr ""
 
 #: src/gui/screen_menu_no_tools.hpp:10 src/gui/MItem_print.hpp:14
+msgid "Nozzle Diameter Confirmation"
+msgstr ""
+
+#: src/gui/screen_menu_tools.hpp:229 src/gui/MItem_print.hpp:14
 #: src/gui/MItem_print.hpp:48 src/gui/screen_menu_tools.hpp:229
 msgid "Nozzle Temperature"
 msgstr ""
@@ -4502,6 +4511,10 @@ msgid "Save Touch Registers to Flash Disc"
 msgstr ""
 
 #: src/gui/screen_home.cpp:282
+msgid "Saving selected value"
+msgstr ""
+
+#: src/gui/screen_home.cpp:286
 msgid "Saving to USB"
 msgstr ""
 
@@ -4511,6 +4524,16 @@ msgstr ""
 
 #: src/gui/screen_menu_steel_sheets.hpp:44
 msgid "Select"
+msgstr ""
+
+#: src/gui/screen_menu_fw_update.cpp:37
+msgid ""
+"Select the correct nozzle diameter by counting the markings (dots) on the "
+"nozzle:\n"
+"  0.40 mm nozzle: 3 dots\n"
+"  0.60 mm nozzle: 4 dots\n"
+"\n"
+"For more information, visit prusa.io/nozzle-types"
 msgstr ""
 
 #: src/gui/screen_menu_fw_update.cpp:37
