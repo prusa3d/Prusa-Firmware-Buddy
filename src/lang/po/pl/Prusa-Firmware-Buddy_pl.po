@@ -745,12 +745,12 @@ msgstr "Obcinak"
 #: src/gui/include_XL/selftest_snake_config.hpp:126
 #, c-format
 msgid "%d Bed Heater Test"
-msgstr "Test grzałki stołu %d"
+msgstr "%d Test grzałki stołu"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:120
 #, c-format
 msgid "%d Dock Position Calibration"
-msgstr "Kalibracja pozycji doku %d"
+msgstr "%d Kalibracja pozycji doku"
 
 #: src/gui/MItem_lan.hpp:50
 msgid "Default"
@@ -783,24 +783,24 @@ msgstr "Identyfikator urządzenia w QR"
 #: src/gui/include_XL/selftest_snake_config.hpp:116
 #, c-format
 msgid "%d Fan Test"
-msgstr "Test wentylatora %d"
+msgstr "%d Test wentylatora"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:85
 #: src/gui/include_XL/selftest_snake_config.hpp:125
 #, c-format
 msgid "%d Filament Sensor Calibration"
-msgstr "Kalibracja czujnika filamentu %d"
+msgstr "%d Kalibracja czujnika filamentu"
 
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:81
 #: src/gui/include_MINI/selftest_snake_config.hpp:79
 #, c-format
 msgid "%d First Layer Calibration"
-msgstr "Kalibracja pierwszej warstwy %d"
+msgstr "%d Kalibracja pierwszej warstwy"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:84
 #, c-format
 msgid "%d Gears Calibration"
-msgstr "Osiowanie przekładni %d"
+msgstr "%d Osiowanie przekładni"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:83
 #: src/gui/include_iX/selftest_snake_config.hpp:77
@@ -809,7 +809,7 @@ msgstr "Osiowanie przekładni %d"
 #: src/gui/include_XL/selftest_snake_config.hpp:124
 #, c-format
 msgid "%d Heater Test"
-msgstr "Test grzałki %d"
+msgstr "%d Test grzałki"
 
 #: src/gui/MItem_menus.hpp:299
 msgid "Diagnostics"
@@ -875,12 +875,12 @@ msgstr "Dziel przez zero"
 #: src/gui/include_XL/selftest_snake_config.hpp:121
 #, c-format
 msgid "%d Loadcell Test"
-msgstr "Test tensometru %d"
+msgstr "%d Test tensometru"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:127
 #, c-format
 msgid "%d Nozzle Heaters Test"
-msgstr "Test grzałek dysz %d"
+msgstr "%d Test grzałek dysz"
 
 #: src/gui/screen_menu_connect.cpp:84
 msgid "DNS error"
@@ -1028,7 +1028,7 @@ msgstr "Czy chcesz powtórzyć Selftest grzałki?"
 #: src/gui/include_XL/selftest_snake_config.hpp:122
 #, c-format
 msgid "%d Tool Offset Calibration"
-msgstr "Kalibracja przesunięcia narzędzi %d"
+msgstr "%d Kalibracja przesunięcia narzędzi"
 
 #: src/gui/wizard/selftest_frame_axis.cpp:31
 msgid ""
@@ -1071,7 +1071,7 @@ msgstr "Temp. Dwarf MCU"
 #: src/gui/include_XL/selftest_snake_config.hpp:119
 #, c-format
 msgid "%d X Axis Test"
-msgstr "Test osi X %d"
+msgstr "%d Test osi X"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:80
 #: src/gui/include_iX/selftest_snake_config.hpp:75
@@ -1079,12 +1079,12 @@ msgstr "Test osi X %d"
 #: src/gui/include_MINI/selftest_snake_config.hpp:76
 #, c-format
 msgid "%d XY Axis Test"
-msgstr "Test osi XY %d"
+msgstr "%d Test osi XY"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:118
 #, c-format
 msgid "%d Y Axis Test"
-msgstr "Test osi Y %d"
+msgstr "%d Test osi Y"
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:174
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:184
@@ -1097,7 +1097,7 @@ msgstr ""
 #: src/gui/include_XL/selftest_snake_config.hpp:117
 #, c-format
 msgid "%d Z Alignment Calibration"
-msgstr "Kalibracja wyrównania Z %d"
+msgstr "%d Kalibracja wyrównania Z"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:82
 #: src/gui/include_iX/selftest_snake_config.hpp:76
@@ -1106,7 +1106,7 @@ msgstr "Kalibracja wyrównania Z %d"
 #: src/gui/include_XL/selftest_snake_config.hpp:123
 #, c-format
 msgid "%d Z Axis Test"
-msgstr "Test osi Z %d"
+msgstr "%d Test osi Z"
 
 #: src/gui/MItem_menus.hpp:289
 msgid "Eeprom Diagnostics"
