@@ -115,14 +115,19 @@ class TMCStepper {
 		int16_t cur_a();
 		int16_t cur_b();
 
-		struct CommunicationLockGuard {
-			CommunicationLockGuard() {
-				if (!tmc_serial_lock_acquire())
+		class CommunicationLockGuard {
+			bool lock;
+
+		public:
+			CommunicationLockGuard(bool lock=true)
+			: lock(lock) {
+				if (lock && !tmc_serial_lock_acquire())
 					abort();
 			}
 
 			~CommunicationLockGuard() {
-				tmc_serial_lock_release();
+				if (lock)
+					tmc_serial_lock_release();
 			}
 		};
 
