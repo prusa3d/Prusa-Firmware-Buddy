@@ -264,7 +264,7 @@ bool GCodeInfo::ValidPrinterSettings::is_valid(bool is_tools_mapping_possible) c
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_fatal(bool is_tools_mapping_possible) const {
-    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal() || mk3_compatibility_mode.is_fatal() || unsupported_features
+    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal() || mk3_compatibility_mode.is_fatal()
         || (!is_tools_mapping_possible // if is_possible -> always false -> handled by tools_mapping screen
             && (wrong_tools.is_fatal() || wrong_nozzle_diameter.is_fatal()));
 }
