@@ -419,7 +419,7 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                     return *b == '\0';
                 };
                 auto find = [&](GcodeBuffer::String feature) {
-                    for (auto &f : PrusaGcodeSuite::m862_6SupportedFeatures) {
+                    for (auto &f : supported_features) {
                         if (compare(feature, f)) {
                             return true;
                         }
