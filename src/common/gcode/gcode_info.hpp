@@ -63,21 +63,6 @@ public:
     // search this many g-code at the beginning of the file for the various g-codes (M862.x nozzle size, bed heating, nozzle heating)
     static constexpr size_t search_first_x_gcodes = 200;
 
-    /// Extended compatibility list for "; printer_model = ???" G-code comment
-#if PRINTER_IS_PRUSA_XL
-    // XL is compatible with multitool models XL2 .. XL5
-    static constexpr std::array<const char *, 10> printer_extended_compatibility_list = {
-        PRINTER_MODEL, PRINTER_MODEL "2", PRINTER_MODEL "3", PRINTER_MODEL "4", PRINTER_MODEL "5",
-        PRINTER_MODEL "IS", PRINTER_MODEL "2IS", PRINTER_MODEL "3IS", PRINTER_MODEL "4IS", PRINTER_MODEL "5IS"
-    };
-#elif PRINTER_IS_PRUSA_MK4
-    static constexpr std::array<const char *, 6> printer_extended_compatibility_list = {
-        PRINTER_MODEL, "MK3.9", "MK3.9MMU3", PRINTER_MODEL "IS", "MK3.9IS", "MK3.9MMU3IS"
-    };
-#else
-    static constexpr std::array<const char *, 2> printer_extended_compatibility_list = { PRINTER_MODEL, PRINTER_MODEL "IS" };
-#endif /*PRINTER_IS*/
-
     using time_buff = std::array<char, 16>;
     using filament_buff = std::array<char, 8>;
 
