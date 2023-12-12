@@ -395,7 +395,7 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
             case '2':
 #if PRINTER_IS_PRUSA_MK4
                 if (!config_store().xy_motors_400_step.get()) {
-                    printer_model_code = printer_model2code(MMU2::mmu2.Enabled() ? "MK3.9MMU3" : "MK3.9");
+                    printer_model_code = printer_model2code("MK3.9");
                 } else {
                     printer_model_code = printer_model2code(PRINTER_MODEL);
                 }
