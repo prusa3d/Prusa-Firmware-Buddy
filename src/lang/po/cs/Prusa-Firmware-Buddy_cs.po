@@ -872,6 +872,10 @@ msgstr "%d Test loadcell senzoru"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:127
 #, c-format
+msgid "%d Nozzle Diameter Confirmation"
+msgstr "%d Potvrzení průměru trysky"
+#: src/gui/include_XL/selftest_snake_config.hpp:127
+#, c-format
 msgid "%d Nozzle Heaters Test"
 msgstr "%d Test vyhřívání trysky"
 
@@ -3682,6 +3686,10 @@ msgstr "Výhřev trysky"
 msgid "NOZZLE HEATER OVERCURRENT"
 msgstr "NADPROUD VÝHŘEVU TRYSKY"
 
+#: src/gui/screen_menu_no_tools.hpp:10 src/gui/MItem_print.hpp:14
+msgid "Nozzle Diameter Confirmation"
+msgstr "Potvrzení průměru trysky"
+
 #: src/gui/wizard/selftest_frame_loadcell.cpp:95
 msgid "Nozzle temperature"
 msgstr "Teplota trysky"
@@ -4606,6 +4614,10 @@ msgid "Save Touch Registers to Flash Disc"
 msgstr "Uložit dotykové registry na USB"
 
 #: src/gui/screen_home.cpp:282
+msgid "Saving selected value"
+msgstr "Ukládání vybrané hodnoty"
+
+#: src/gui/screen_home.cpp:282
 msgid "Saving to USB"
 msgstr "Ukládám na USB"
 
@@ -4659,6 +4671,22 @@ msgid ""
 msgstr ""
 "Selektor se nemůže hýbat, FINDA detekuje zavedený filament. Vysuňte filament "
 "ze Selektoru, případně zkontrolujte senzor."
+
+#: src/gui/screen_menu_fw_update.cpp:37
+msgid ""
+"Select the correct nozzle diameter by counting the markings (dots) on the "
+"nozzle:\n"
+"  0.40 mm nozzle: 3 dots\n"
+"  0.60 mm nozzle: 4 dots\n"
+"\n"
+"For more information, visit prusa.io/nozzle-types"
+msgstr ""
+"Vyberte správný průměr trysky počítáním značek (teček) na "
+"trysce:\n"
+"  Tryska 0.40 mm: 3 tečky\n"
+"  Tryska 0.60 mm: 4 tečky\n"
+"\n"
+"Pro více informací navštivte prusa.io/nozzle-types"
 
 #: src/gui/screen_menu_fw_update.cpp:37
 msgid ""

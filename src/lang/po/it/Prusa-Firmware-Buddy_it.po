@@ -893,6 +893,10 @@ msgstr "%d Test Cella di carico"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:127
 #, c-format
+msgid "%d Nozzle Diameter Confirmation"
+msgstr "%d Conferma del diametro dell'ugello"
+#: src/gui/include_XL/selftest_snake_config.hpp:127
+#, c-format
 msgid "%d Nozzle Heaters Test"
 msgstr "%d Test riscaldatore ugello"
 
@@ -3740,6 +3744,10 @@ msgstr "Contr. risc. Ugello"
 msgid "NOZZLE HEATER OVERCURRENT"
 msgstr "SOVRACORRENTE RISCALDATORE UGELLO"
 
+#: src/gui/screen_menu_no_tools.hpp:10 src/gui/MItem_print.hpp:14
+msgid "Nozzle Diameter Confirmation"
+msgstr "Conferma del diametro dell'ugello %d"
+
 #: src/gui/wizard/selftest_frame_loadcell.cpp:95
 msgid "Nozzle temperature"
 msgstr "Temperatura ugello"
@@ -4681,6 +4689,10 @@ msgid "Save Touch Registers to Flash Disc"
 msgstr "Salva i registri touch su Flash Disc"
 
 #: src/gui/screen_home.cpp:282
+msgid "Saving selected value"
+msgstr "Salvataggio del valore selezionato"
+
+#: src/gui/screen_home.cpp:282
 msgid "Saving to USB"
 msgstr "Salvataggio su USB"
 
@@ -4737,6 +4749,22 @@ msgstr ""
 "Il selettore non può muoversi perché FINDA rileva un filamento. Assicurati "
 "che non ci sia alcun filamento nel Selettore e che la FINDA funzioni "
 "correttamente."
+
+#: src/gui/screen_menu_fw_update.cpp:37
+msgid ""
+"Select the correct nozzle diameter by counting the markings (dots) on the "
+"nozzle:\n"
+"  0.40 mm nozzle: 3 dots\n"
+"  0.60 mm nozzle: 4 dots\n"
+"\n"
+"For more information, visit prusa.io/nozzle-types"
+msgstr ""
+"Seleziona il diametro corretto dell'ugello contando i segni (punti) "
+"sull'ugello:\n"
+"  Ugello da 0,40 mm: 3 punti\n"
+"  Ugello da 0,60 mm: 4 punti\n"
+"\n"
+"Per ulteriori informazioni, visita prusa.io/nozzle-types"
 
 #: src/gui/screen_menu_fw_update.cpp:37
 msgid ""

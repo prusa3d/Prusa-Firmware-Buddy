@@ -899,6 +899,10 @@ msgstr "%d Wägezellentest"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:127
 #, c-format
+msgid "%d Nozzle Diameter Confirmation"
+msgstr "%d Bestätigung des Düsendurchmessers"
+#: src/gui/include_XL/selftest_snake_config.hpp:127
+#, c-format
 msgid "%d Nozzle Heaters Test"
 msgstr "%d Düsenheizungen Test"
 
@@ -3776,6 +3780,11 @@ msgstr "Düsenheizung prüfen"
 msgid "NOZZLE HEATER OVERCURRENT"
 msgstr "Überstrom Düsenheizung"
 
+
+#: src/gui/screen_menu_no_tools.hpp:10 src/gui/MItem_print.hpp:14
+msgid "Nozzle Diameter Confirmation"
+msgstr "Bestätigung des Düsendurchmessers"
+
 #: src/gui/wizard/selftest_frame_loadcell.cpp:95
 msgid "Nozzle temperature"
 msgstr "Düsentemperatur"
@@ -4716,6 +4725,10 @@ msgid "Save Touch Registers to Flash Disc"
 msgstr "Touch-Register auf USB-Stick sichern"
 
 #: src/gui/screen_home.cpp:282
+msgid "Saving selected value"
+msgstr "Speichern der ausgewählten Wert"
+
+#: src/gui/screen_home.cpp:282
 msgid "Saving to USB"
 msgstr "Sichern auf USB"
 
@@ -4772,6 +4785,22 @@ msgstr ""
 "Der Selektor kann sich nicht bewegen, weil FINDA ein Filament erkennt. "
 "Stellen Sie sicher, dass sich kein Filament im Selektor befindet und FINDA "
 "ordnungsgemäß funktioniert."
+
+#: src/gui/screen_menu_fw_update.cpp:37
+msgid ""
+"Select the correct nozzle diameter by counting the markings (dots) on the "
+"nozzle:\n"
+"  0.40 mm nozzle: 3 dots\n"
+"  0.60 mm nozzle: 4 dots\n"
+"\n"
+"For more information, visit prusa.io/nozzle-types"
+msgstr ""
+"Wählen Sie den richtigen Düsendurchmesser, indem Sie die Markierungen (Punkte) "
+"auf der Düse zählen:\n"
+"  0,40 mm Düse: 3 Punkte\n"
+"  0,60 mm Düse: 4 Punkte\n"
+"\n"
+"Für weitere Informationen besuchen Sie prusa.io/nozzle-types"
 
 #: src/gui/screen_menu_fw_update.cpp:37
 msgid ""
