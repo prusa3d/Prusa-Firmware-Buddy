@@ -61,7 +61,7 @@ public:
 
 protected:
     virtual bool change(PhasesLoadUnload phase, fsm::PhaseData data) override;
-    void notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, MMU2::ErrType type);
+    void notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, ErrType type);
     virtual float deserialize_progress(fsm::PhaseData data) const override;
     void phaseEnter() override;
 
