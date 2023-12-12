@@ -56,16 +56,22 @@ void EMotorStallDetector::ProcessSample(int32_t value) {
 bool EMotorStallDetector::Evaluate(bool movingE, bool directionE) {
     // only check the E-motor stall when it has to be doing something and it is PUSHING the filament
     // i.e. - prevent triggers on crashes during travel moves and retractions
-    if (movingE && directionE) {
-        if (DetectedOnce()) {
-            Block(); // block further detection reports
-            return true;
-        }
-    } else {
-        // clear the "detected" flag when the E-motor is standing still
+    if (!movingE || !directionE) {
         ClearDetected();
+        return false;
     }
-    return false;
+
+    if (!detected || blocked) {
+        return false;
+    }
+
+    if (enabled) {
+        // Block further reporting of the same e-stall
+        SetBlocked();
+        return true;
+    } else {
+        return false;
+    }
 }
 #else
 // Empty implementation when there is no LoadCell available

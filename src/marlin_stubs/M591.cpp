@@ -15,11 +15,7 @@ enum class Restore { no,
 void m591_no_parser(std::optional<bool> opt_enable_e_stall, IsPermanent is_permanent, Restore restore) {
     if (restore == Restore::yes) {
         bool enabled_in_eeprom = config_store().stuck_filament_detection.get();
-        if (enabled_in_eeprom) {
-            EMotorStallDetector::Instance().Enable();
-        } else {
-            EMotorStallDetector::Instance().Disable();
-        }
+        EMotorStallDetector::Instance().SetEnabled(enabled_in_eeprom);
         return; // ignore remaining parameters
     }
 
@@ -31,13 +27,7 @@ void m591_no_parser(std::optional<bool> opt_enable_e_stall, IsPermanent is_perma
             config_store().stuck_filament_detection.set(enable_e_stall);
         }
 
-        // enable / disable
-        if (enable_e_stall) {
-            EMotorStallDetector::Instance().Enable();
-        } else {
-            EMotorStallDetector::Instance().Disable();
-        }
-
+        EMotorStallDetector::Instance().SetEnabled(enable_e_stall);
     } else {
         // restore and opt_enable_e_stall parameters not supplied
         SERIAL_ECHOLNPAIR_F("Filament stuck detection ", EMotorStallDetector::Instance().Enabled() ? "on" : "off");

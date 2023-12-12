@@ -49,6 +49,7 @@ public:
     constexpr bool DetectedOnce() const { // @@TODO find a better name
         return detected && (!blocked) && enabled;
     }
+
     void ClearDetected() {
         detected = false;
     }
@@ -56,25 +57,25 @@ public:
     constexpr bool Blocked() const {
         return blocked;
     }
+
     /// If blocked, @ref Detected always returns false.
-    void Block() {
-        blocked = true;
-    }
-    void Unblock() {
-        blocked = false;
-        detected = false;
+    void SetBlocked(bool set = true) {
+        blocked = set;
+        if (!set) {
+            detected = false;
+        }
     }
 
     constexpr bool Enabled() const {
         return enabled;
     }
-    void Enable() {
-        enabled = true;
-    }
-    void Disable() {
-        enabled = false;
-        detected = false;
-        blocked = false;
+
+    void SetEnabled(bool set = true) {
+        enabled = set;
+        if (!set) {
+            detected = false;
+            blocked = false;
+        }
     }
 
     /// Performs evaluation of various runtime conditions.
@@ -105,10 +106,10 @@ private:
 class BlockEStallDetection {
 public:
     BlockEStallDetection() {
-        EMotorStallDetector::Instance().Block();
+        EMotorStallDetector::Instance().SetBlocked();
     }
     ~BlockEStallDetection() {
-        EMotorStallDetector::Instance().Unblock();
+        EMotorStallDetector::Instance().SetBlocked(false);
     }
 };
 
@@ -123,16 +124,9 @@ public:
         , detectionThreshold(EMotorStallDetector::Instance().DetectionThreshold()) {}
     ~EStallDetectionStateLatch() {
         auto &emsd = EMotorStallDetector::Instance();
-        if (blocked) {
-            emsd.Block();
-        } else {
-            emsd.Unblock();
-        }
-        if (enabled) {
-            emsd.Enable();
-        } else {
-            emsd.Disable();
-        }
+        emsd.SetBlocked(blocked);
+        emsd.SetEnabled(enabled);
+
         emsd.ClearDetected(); // disregard everything which happened during the state latch being active
         emsd.SetDetectionThreshold(detectionThreshold);
     }

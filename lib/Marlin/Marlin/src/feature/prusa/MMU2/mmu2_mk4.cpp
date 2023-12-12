@@ -458,9 +458,9 @@ bool MMU2::FeedWithEStallDetection() {
     EStallDetectionStateLatch esdsl;
 
     // activate the detector
-    EMotorStallDetector::Instance().Enable();
+    EMotorStallDetector::Instance().SetEnabled();
     // but block invocation of M1601 in Marlin::idle()
-    EMotorStallDetector::Instance().Block();
+    EMotorStallDetector::Instance().SetBlocked();
     // whatever happened before is not interesting
     EMotorStallDetector::Instance().ClearDetected();
     // lower the detection threshold to overcome the sampling rate limitation - see explanation above
