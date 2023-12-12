@@ -609,11 +609,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     } else if (htim->Instance == TICK_TIMER) {
         app_tick_timer_overflow();
     }
-#if HAS_PHASE_STEPPING()
-    else if (htim->Instance == TIM13) {
-        phase_stepping::handle_periodic_refresh();
-    }
-#endif
 }
 
 /**
