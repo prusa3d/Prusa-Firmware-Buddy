@@ -111,6 +111,7 @@ enum StepEventFlag : StepEventFlag_t {
     STEP_EVENT_FLAG_BEGINNING_OF_MOVE_SEGMENT = _BV(12), // Indicate that this step event is the first step event from a move segment.
     STEP_EVENT_END_OF_MOTION = _BV(13), // Last event before coming to a halt
     STEP_EVENT_WAITING = _BV(14), // Step generator is waiting for external event
+    STEP_EVENT_FLAG_FIRST_STEP_EVENT = _BV(15) // First produced step event.
 };
 
 // Ensure XYZE bits are always adjacent and ordered as required in most loops

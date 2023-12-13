@@ -477,6 +477,10 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
             step_event.flags |= STEP_EVENT_WAITING;
         }
 
+        if (step_state.previous_step_time == 0.) {
+            step_event.flags |= STEP_EVENT_FLAG_FIRST_STEP_EVENT;
+        }
+
         step_state.previous_step_time       = step_time_absolute;
         step_state.previous_step_time_ticks = step_time_absolute_ticks;
     } else {
@@ -1025,11 +1029,25 @@ FORCE_INLINE split_step_event_t split_buffered_step(const step_generator_state_t
     return split_step_event;
 }
 
+FORCE_INLINE void trigger_first_step_event_after_specified_ticks(const uint32_t ticks) {
+    assert(ticks <= STEP_TIMER_MAX_TICKS_LIMIT);
+
+    DISABLE_STEPPER_DRIVER_INTERRUPT();
+    const uint16_t counter = __HAL_TIM_GET_COUNTER(&TimerHandle[STEP_TIMER_NUM].handle);
+    const uint16_t deadline = counter + ticks;
+    __HAL_TIM_SET_COMPARE(&TimerHandle[STEP_TIMER_NUM].handle, TIM_CHANNEL_1, deadline);
+    ENABLE_STEPPER_DRIVER_INTERRUPT();
+}
+
 FORCE_INLINE void append_split_step_event(const split_step_event_t &split_step_event, step_event_u16_t *&next_step_event, uint16_t &next_step_event_queue_head) {
     assert(next_step_event != nullptr);
     assert(split_step_event.empty_step_event_cnt + 1 <= PreciseStepping::step_event_queue_free_slots());
 
     for (int32_t empty_step_event_idx = 0; empty_step_event_idx < split_step_event.empty_step_event_cnt; ++empty_step_event_idx) {
+        if ((split_step_event.last_step_event_flags & STEP_EVENT_FLAG_FIRST_STEP_EVENT) && empty_step_event_idx == 0) {
+            trigger_first_step_event_after_specified_ticks(STEP_TIMER_MAX_TICKS_LIMIT);
+        }
+
         next_step_event->time_ticks = STEP_TIMER_MAX_TICKS_LIMIT;
         next_step_event->flags = split_step_event.empty_step_event_flags;
         PreciseStepping::step_event_queue.head = next_step_event_queue_head;
@@ -1037,6 +1055,10 @@ FORCE_INLINE void append_split_step_event(const split_step_event_t &split_step_e
         // advance in the queue: the required space should be already checked-for before calling append!
         next_step_event = PreciseStepping::get_next_free_step_event(next_step_event_queue_head);
         assert(next_step_event);
+    }
+
+    if ((split_step_event.last_step_event_flags & STEP_EVENT_FLAG_FIRST_STEP_EVENT) && split_step_event.empty_step_event_cnt == 0) {
+        trigger_first_step_event_after_specified_ticks(split_step_event.last_step_event_time_ticks);
     }
 
     next_step_event->time_ticks = split_step_event.last_step_event_time_ticks;
