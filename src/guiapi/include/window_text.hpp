@@ -13,7 +13,7 @@ public:
     string_view_utf8 GetText() const { return text; }
     virtual void SetText(string_view_utf8 txt);
 
-    window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
+    window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR());
 
 protected:
     virtual void unconditionalDraw() override;
@@ -22,7 +22,7 @@ protected:
 struct window_text_button_t : public AddSuperWindow<window_text_t> {
     ButtonCallback callback;
 
-    window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, string_view_utf8 txt = string_view_utf8::MakeNULLSTR()); // default action is close screen
+    window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR()); // default action is close screen
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
@@ -42,7 +42,7 @@ public:
     constexpr void EnableBlink() { blink_enable = true; }
     constexpr void DisableBlink() { blink_enable = false; }
 
-    WindowBlinkingText(window_t *parent, Rect16 rect, string_view_utf8 txt = string_view_utf8::MakeNULLSTR(), uint16_t blink_step = 500);
+    WindowBlinkingText(window_t *parent, Rect16 rect, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR(), uint16_t blink_step = 500);
 
 protected:
     virtual void unconditionalDraw() override;

@@ -226,7 +226,7 @@ void DMI_FilamentApplyChanges::click(IWindowMenu & /*window_menu*/) {
     }
 }
 
-DialogChangeAllFilaments::DialogChangeAllFilaments(std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> default_selections, bool exit_on_media_, std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> colors_)
+DialogChangeAllFilaments::DialogChangeAllFilaments(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media_, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors_)
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenNoHeader)
     , exit_on_media(exit_on_media_)
     , colors(colors_)
@@ -288,7 +288,7 @@ void DialogChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
 }
 } // namespace dialog_change_all_filaments
 
-bool ChangeAllFilamentsBox(std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> default_selections, bool exit_on_media, std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> colors) {
+bool ChangeAllFilamentsBox(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors) {
     dialog_change_all_filaments::DialogChangeAllFilaments d { default_selections, exit_on_media, colors };
     d.MakeBlocking();
 

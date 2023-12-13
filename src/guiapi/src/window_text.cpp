@@ -12,7 +12,7 @@ void window_text_t::SetText(string_view_utf8 txt) {
     Invalidate();
 }
 
-window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close, string_view_utf8 txt)
+window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close, const string_view_utf8 &txt)
     : AddSuperWindow<IWindowText>(parent, rect, close)
     , text(txt) {
     flags.multiline = bool(multiline);
@@ -55,7 +55,7 @@ void window_text_t::unconditionalDraw() {
 
 /*****************************************************************************/
 // window_text_button_t
-window_text_button_t::window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, string_view_utf8 txt)
+window_text_button_t::window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, const string_view_utf8 &txt)
     : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
     , callback(cb) {
     Enable();
@@ -69,7 +69,7 @@ void window_text_button_t::windowEvent(EventLock /*has private ctor*/, window_t 
     }
 }
 
-WindowBlinkingText::WindowBlinkingText(window_t *parent, Rect16 rect, string_view_utf8 txt, uint16_t blink_step)
+WindowBlinkingText::WindowBlinkingText(window_t *parent, Rect16 rect, const string_view_utf8 &txt, uint16_t blink_step)
     : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
     , blink_step(blink_step)
     , blink_enable(false) {
