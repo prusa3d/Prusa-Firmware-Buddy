@@ -451,10 +451,12 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
     // So we don't have anything to put into step_event_buffer.
     auto step_status = step_state.step_events[old_nearest_step_event_idx].status;
     if (step_status == STEP_EVENT_INFO_STATUS_GENERATED_VALID || step_status == STEP_EVENT_INFO_STATUS_PENDING) {
-        const double step_time_absolute = step_state.step_events[old_nearest_step_event_idx].time;
-        const double step_time_relative = step_time_absolute - step_state.previous_step_time;
+        const double step_time_absolute         = step_state.step_events[old_nearest_step_event_idx].time;
+        const uint64_t step_time_absolute_ticks = uint64_t(step_time_absolute * PreciseStepping::ticks_per_sec);
+        const uint64_t step_time_relative_ticks = step_time_absolute_ticks - step_state.previous_step_time_ticks;
+        assert(step_time_relative_ticks < std::numeric_limits<uint32_t>::max());
 
-        step_event.time_ticks = int32_t(step_time_relative * PreciseStepping::ticks_per_sec);
+        step_event.time_ticks = int32_t(step_time_relative_ticks);
         step_event.flags = step_state.step_events[old_nearest_step_event_idx].flags;
         assert(step_event.flags); // ensure flags are non-zero
 
@@ -475,7 +477,8 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
             step_event.flags |= STEP_EVENT_WAITING;
         }
 
-        step_state.previous_step_time = step_time_absolute;
+        step_state.previous_step_time       = step_time_absolute;
+        step_state.previous_step_time_ticks = step_time_absolute_ticks;
     } else {
         // Reset flags to indicate no step has been produced
         step_event.flags = 0;
@@ -811,7 +814,8 @@ FORCE_INLINE bool append_move_discarding_step_event(step_generator_state_t &step
         step_event->flags = step_state.flags | STEP_EVENT_FLAG_BEGINNING_OF_MOVE_SEGMENT | extra_step_flags;
 
         PreciseStepping::step_event_queue.head = next_step_event_queue_head;
-        step_state.previous_step_time = 0;
+        step_state.previous_step_time = 0.;
+        step_state.previous_step_time_ticks = 0;
         return true;
     }
     return false;
@@ -1195,6 +1199,7 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
 
     step_generator_state.flags = 0;
     step_generator_state.previous_step_time = 0.;
+    step_generator_state.previous_step_time_ticks = 0;
     step_generator_state.buffered_step.flags = 0;
     step_generator_state.current_distance = { 0, 0, 0, 0 };
     step_generator_state.left_insert_start_of_move_segment = 0;

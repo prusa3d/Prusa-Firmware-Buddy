@@ -229,6 +229,7 @@ struct step_generator_state_t {
     step_event_info_t step_events[4];
     std::array<step_index_t, 4> step_event_index;
     double previous_step_time;
+    uint64_t previous_step_time_ticks;
 
     StepEventFlag_t flags; // current axis/direction flags
     step_event_i32_t buffered_step; // accumulator for multi-axis step fusion
