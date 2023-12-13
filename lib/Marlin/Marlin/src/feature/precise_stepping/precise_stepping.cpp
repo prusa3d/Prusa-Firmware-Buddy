@@ -693,7 +693,6 @@ void PreciseStepping::step_isr() {
 #endif
     constexpr uint16_t min_reserve = 5; // minimum interval for isr re-entry (us)
     constexpr uint16_t max_ticks = (UINT16_MAX / 2); // maximum isr interval for skip detection (us)
-    constexpr uint8_t max_steps = 4; // maximum number of steps to per isr to limit latency
 
 #ifdef ISR_DEADLINE_TRACKING
     // in addition to checking for forward misses, check for past ones
@@ -703,18 +702,21 @@ void PreciseStepping::step_isr() {
     }
 #endif
 
-    uint16_t time_increment = 0;
-    for (uint8_t steps = 0; steps != max_steps;) {
+    const uint32_t compare = __HAL_TIM_GET_COMPARE(&TimerHandle[STEP_TIMER_NUM].handle, TIM_CHANNEL_1);
+
+    uint32_t next = 0;
+    uint32_t time_increment = 0;
+    uint32_t timer_remaining_time = 0;
+    do {
         if (stop_pending)
             [[unlikely]] {
-            time_increment = stepper_isr_period_in_ticks;
+            next = compare + stepper_isr_period_in_ticks;
             Stepper::axis_did_move = 0;
             break;
         }
 
         if (!left_ticks_to_next_step_event) {
             left_ticks_to_next_step_event = process_one_step_event_from_queue();
-            ++steps;
         }
 
         // limit the interval to avoid a counter overflow or runout
@@ -726,27 +728,16 @@ void PreciseStepping::step_isr() {
 
         // Compute the number of ticks for the next ISR.
         time_increment += ticks_to_next_step_event;
-        if (ticks_to_next_step_event > min_delay || steps >= max_steps) {
-            break;
+        if (ticks_to_next_step_event <= min_delay) {
+            continue;
         }
 
-        // the next step is too close for a new isr but still within margin,
-        // spin-wait for accurate delivery
-        if (left_ticks_to_next_step_event) {
-            delay_us_precise(left_ticks_to_next_step_event);
-        }
-    }
+        next = compare + time_increment;
 
-    uint32_t compare = __HAL_TIM_GET_COMPARE(&TimerHandle[STEP_TIMER_NUM].handle, TIM_CHANNEL_1);
-    uint32_t next = compare + time_increment;
-    uint32_t counter = __HAL_TIM_GET_COUNTER(&TimerHandle[STEP_TIMER_NUM].handle);
-    uint32_t deadline = counter + min_reserve;
-    if (((next - deadline) & 0xFFFF) > max_ticks)
-        [[unlikely]] {
-        // next isr too close or missed: reschedule
-        next = __HAL_TIM_GET_COUNTER(&TimerHandle[STEP_TIMER_NUM].handle) + min_reserve;
-        ++step_dl_miss;
-    }
+        const uint32_t counter = __HAL_TIM_GET_COUNTER(&TimerHandle[STEP_TIMER_NUM].handle);
+        timer_remaining_time = next - counter;
+    } while (timer_remaining_time < min_reserve || (timer_remaining_time & 0xFFFF) > max_ticks);
+
     __HAL_TIM_SET_COMPARE(&TimerHandle[STEP_TIMER_NUM].handle, TIM_CHANNEL_1, next);
 
 #ifdef ISR_DEADLINE_TRACKING
