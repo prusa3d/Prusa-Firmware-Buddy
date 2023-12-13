@@ -235,6 +235,8 @@ void PrusaGcodeSuite::M1601() {
         current_position,
         std::nullopt, std::nullopt, std::nullopt,
         pause::Settings::CalledFrom::FilamentStuck);
+
+    EMotorStallDetector::Instance().ClearReported();
 }
 #else
 
