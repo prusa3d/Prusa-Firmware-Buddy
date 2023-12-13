@@ -233,6 +233,12 @@ void phase_stepping::synchronize() {
     planner.synchronize();
 }
 
+bool phase_stepping::processing() {
+    return std::ranges::any_of(axis_states, [](const auto &state) -> bool {
+        return !state->pending_targets.isEmpty() || state->target.has_value();
+    });
+}
+
 void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
     assert(!planner.processing());

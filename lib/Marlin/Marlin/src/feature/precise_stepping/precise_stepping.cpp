@@ -860,7 +860,7 @@ void PreciseStepping::process_queue_of_blocks() {
     // contains the value bigger then MAX_PRINT_TIME) we're waiting for motion to halt and reset.
     if (PreciseStepping::total_print_time >= MAX_PRINT_TIME) {
         // ensure all motion has stopped
-        if (has_blocks_queued()) {
+        if (has_blocks_queued() || phase_stepping::processing()) {
             return;
         }
 

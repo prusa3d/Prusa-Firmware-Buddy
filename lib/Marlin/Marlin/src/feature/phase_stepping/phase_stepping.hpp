@@ -359,6 +359,11 @@ void save_to_persistent_storage(AxisEnum axis);
  */
 void load_from_persistent_storage(AxisEnum axis);
 
+/**
+ * Return if some processing is still pending.
+ */
+bool processing();
+
 } // namespace phase_stepping
 
 #endif // if !HAS_PHASE_STEPPING

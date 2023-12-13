@@ -40,4 +40,8 @@ inline void init_step_generator_input_shaping(
     bsod("Phase stepping enabled when printer doesn't support it");
 }
 
+inline bool processing() {
+    return false;
+}
+
 } // namespace phase_stepping
