@@ -92,7 +92,6 @@ static void init_step_generator_internal(
 
     axis_state.last_position = new_start_position;
     axis_state.last_processed_move = &move;
-    axis_state.last_processed_event_time = move.print_time;
 
     int32_t initial_steps_made = pos_to_steps(AxisEnum(axis), new_start_position);
     axis_state.initial_count_position = Stepper::get_axis_steps(AxisEnum(axis)) - initial_steps_made;
@@ -188,21 +187,21 @@ step_event_info_t phase_stepping::next_step_event_classic(
     return next_step_event;
 }
 
-static bool has_ending_segment(const input_shaper_state_t &is_state) {
-    return is_state.nearest_next_change - is_state.print_time >= 1000000.;
-}
-
 step_event_info_t phase_stepping::next_step_event_input_shaping(
     input_shaper_step_generator_t &step_generator,
     step_generator_state_t & /*step_generator_state*/) {
     AxisState &axis_state = *step_generator.phase_step_state;
 
-    StepEventInfoStatus status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_INVALID;
+    assert(step_generator.is_state != nullptr);
+
+    step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
     if (axis_state.pending_targets.isFull()) {
-        status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
+        next_step_event.time = step_generator.is_state->nearest_next_change;
+        next_step_event.status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
     } else {
-        bool generated_new = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
-        if (generated_new && !has_ending_segment(*step_generator.is_state)) {
+        next_step_event.time = step_generator.is_state->nearest_next_change;
+
+        if (const bool is_updated = input_shaper_state_update(*step_generator.is_state, step_generator.axis); is_updated && step_generator.is_state->nearest_next_change < MAX_PRINT_TIME) {
             uint8_t axis = axis_state.axis_index;
 
             auto new_target = MoveTarget(*step_generator.is_state);
@@ -210,28 +209,22 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
             if (axis_state.inverted) {
                 target_pos = -target_pos;
             }
+
             int32_t target_steps = pos_to_steps(AxisEnum(axis), target_pos);
             PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
 
             axis_state.active = false;
             axis_state.pending_targets.enqueue(new_target);
             axis_state.active = true;
-            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_VALID;
+
+            next_step_event.flags |= STEP_EVENT_FLAG_KEEP_ALIVE;
+            next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE;
         }
-        if (has_ending_segment(*step_generator.is_state) && !axis_state.pending_targets.isEmpty()) {
-            // When the move target queue is not empty, we cannot yield final step
-            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
-        } else {
-            axis_state.last_processed_event_time = step_generator.is_state->nearest_next_change;
-        }
+
         PreciseStepping::move_segment_processed_handler();
     }
 
-    return step_event_info_t {
-        .time = axis_state.last_processed_event_time,
-        .flags = static_cast<StepEventFlag_t>(STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis),
-        .status = status
-    };
+    return next_step_event;
 }
 
 #ifdef _DEBUG

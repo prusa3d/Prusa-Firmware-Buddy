@@ -54,7 +54,6 @@ struct AxisState {
     CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
 
     const move_t *last_processed_move = nullptr;
-    double last_processed_event_time = 0;
 
     uint32_t initial_time = 0; // Initial timestamp when the movement start
     std::optional<MoveTarget> target; // Current target to move
