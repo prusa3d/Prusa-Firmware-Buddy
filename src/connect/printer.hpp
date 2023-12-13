@@ -94,6 +94,7 @@ public:
         uint16_t print_speed = 0;
         uint32_t print_duration = 0;
         uint32_t time_to_end = 0;
+        uint32_t time_to_pause = 0;
         uint8_t progress_percent = 0;
         bool has_usb = false;
         uint64_t usb_space_free = 0;

@@ -1362,6 +1362,8 @@ static void _server_print_loop(void) {
             config_store().job_id.set(job_id + 1);
             // And increment the job ID before we actually stop printing.
             job_id++;
+            // Reset "time to" and percents before asking questions to "unknown"
+            oProgressData.mInit();
 
             new_state = State::PrintPreviewConfirmed;
             break;
@@ -1449,6 +1451,8 @@ static void _server_print_loop(void) {
         media_print_start();
 
         print_job_timer.start();
+        marlin_vars()->time_to_end = TIME_TO_END_INVALID;
+        marlin_vars()->time_to_pause = TIME_TO_END_INVALID;
         marlin_vars()->print_start_time = time(nullptr);
         server.print_state = State::Printing;
         switch (fsm_event_queues.GetFsm0()) {
@@ -2578,7 +2582,8 @@ static void _server_update_vars() {
     }
 
     uint32_t progress = TIME_TO_END_INVALID;
-    if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration)) {
+    uint32_t duration = marlin_vars()->print_duration;
+    if (oProgressData.oPercentDone.mIsActual(duration) && oProgressData.oTime2End.mIsActual(duration)) {
         progress = oProgressData.oTime2End.mGetValue();
     }
 
@@ -2587,6 +2592,18 @@ static void _server_update_vars() {
     } else {
         // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
         marlin_vars()->time_to_end = (progress * 100) / marlin_vars()->print_speed;
+    }
+
+    progress = TIME_TO_END_INVALID;
+    if (oProgressData.oPercentDone.mIsActual(duration) && oProgressData.oTime2Pause.mIsActual(duration)) {
+        progress = oProgressData.oTime2Pause.mGetValue();
+    }
+
+    if (marlin_vars()->print_speed == 100 || progress == TIME_TO_END_INVALID) {
+        marlin_vars()->time_to_pause = progress;
+    } else {
+        // multiply by 100 is safe, it limits time_to_pause to ~21mil. seconds (248 days)
+        marlin_vars()->time_to_pause = (progress * 100) / marlin_vars()->print_speed;
     }
 
     if (server.print_state == State::Printing) {

@@ -330,6 +330,7 @@ public:
     MarlinVariable<float> travel_acceleration; // travel acceleration from planner
     MarlinVariable<uint32_t> print_duration; // print_job_timer.duration() [ms]
     MarlinVariable<uint32_t> time_to_end; // remaining print time (dumbly) calculated with speed [s]
+    MarlinVariable<uint32_t> time_to_pause; // Similar as time_to_end, but with time to pause (M600 / M601) [s]
     MarlinVariableLocked<time_t> print_start_time { marlin_server::TIMESTAMP_INVALID }; // Print start timestamp [s] since epoch
     MarlinVariableLocked<time_t> print_end_time { marlin_server::TIMESTAMP_INVALID }; // Estimated print end timestamp [s] since epoch
 
