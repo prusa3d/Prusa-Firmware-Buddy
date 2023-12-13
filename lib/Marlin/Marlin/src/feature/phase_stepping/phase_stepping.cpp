@@ -113,6 +113,10 @@ void phase_stepping::init_step_generator_classic(
     step_generator_state.step_generator[axis] = &step_generator;
     step_generator_state.next_step_func[axis] = (generator_next_step_f)next_step_event_classic;
 
+    // We are keeping a reference to a move segment in last_processed_move.
+    // Otherwise, a move segment can be discarded while we are using it.
+    move.reference_cnt += 1;
+
     init_step_generator_internal(move, step_generator, step_generator_state);
 }
 
@@ -141,14 +145,15 @@ step_event_info_t phase_stepping::next_step_event_classic(
     AxisState &axis_state = *step_generator.phase_step_state;
 
     assert(axis_state.last_processed_move != nullptr);
+    assert(axis_state.last_processed_move->reference_cnt != 0);
 
-    move_t *next_move = PreciseStepping::move_segment_queue_next_move(*axis_state.last_processed_move);
-    StepEventInfoStatus status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_INVALID;
+    step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
     if (axis_state.pending_targets.isFull()) {
-        status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
-    } else if (next_move != nullptr) {
-        // PreciseStepping generates and infinite move segment on motion stop.
-        // We cannot enqueue such segment
+        next_step_event.time = axis_state.last_processed_move->print_time + axis_state.last_processed_move->move_t;
+        next_step_event.status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
+    } else if (const move_t *next_move = PreciseStepping::move_segment_queue_next_move(*axis_state.last_processed_move); next_move != nullptr) {
+        next_step_event.time = next_move->print_time;
+
         if (!is_ending_empty_move(*next_move)) {
             uint8_t axis = axis_state.axis_index;
 
@@ -157,23 +162,30 @@ step_event_info_t phase_stepping::next_step_event_classic(
             if (axis_state.inverted) {
                 target_pos = -target_pos;
             }
+
             int32_t target_steps = pos_to_steps(AxisEnum(axis), target_pos);
             PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
 
+            axis_state.active = false;
             axis_state.pending_targets.enqueue(new_target);
+            axis_state.active = true;
 
-            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_VALID;
-            axis_state.last_processed_event_time = next_move->print_time + next_move->move_t;
-        } else {
-            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
+            next_step_event.flags |= STEP_EVENT_FLAG_KEEP_ALIVE;
+            next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE;
         }
+
+        // The move segment is fully processed, and in the queue is another unprocessed move segment.
+        // So we decrement reference count of the current move segment and increment reference count of next move segment.
+        --axis_state.last_processed_move->reference_cnt;
         axis_state.last_processed_move = next_move;
+        ++axis_state.last_processed_move->reference_cnt;
+
+        PreciseStepping::move_segment_processed_handler();
+    } else {
+        next_step_event.time = axis_state.last_processed_move->print_time + axis_state.last_processed_move->move_t;
     }
-    return step_event_info_t {
-        .time = axis_state.last_processed_event_time,
-        .flags = static_cast<StepEventFlag_t>(STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis),
-        .status = status
-    };
+
+    return next_step_event;
 }
 
 static bool has_ending_segment(const input_shaper_state_t &is_state) {
