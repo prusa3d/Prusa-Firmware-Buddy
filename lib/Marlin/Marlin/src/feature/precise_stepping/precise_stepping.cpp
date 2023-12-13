@@ -1100,7 +1100,7 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
                     step_generator_state.buffered_step = new_step_event;
                 } else if (new_step_event.time_ticks == 0 // zero delay
                     && !((step_generator_state.buffered_step.flags & new_step_event.flags)
-                        & (STEP_EVENT_FLAG_AXIS_MASK | STEP_EVENT_FLAG_AXIS_OTHER_MASK)) // no step or move flag overlap
+                        & ((STEP_EVENT_FLAG_AXIS_MASK | STEP_EVENT_FLAG_AXIS_OTHER_MASK) & ~STEP_EVENT_FLAG_KEEP_ALIVE)) // no step or move flag overlap except keep-alive flag
                     && !((step_generator_state.buffered_step.flags ^ new_step_event.flags) & STEP_EVENT_FLAG_DIR_MASK) // identical direction flags
                 ) {
                     // TODO @wavexx: there are currently cases where a useless change in direction
