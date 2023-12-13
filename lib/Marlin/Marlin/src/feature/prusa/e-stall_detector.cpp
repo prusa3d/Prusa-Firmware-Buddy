@@ -1,7 +1,9 @@
 #include "e-stall_detector.h"
 #include <option/has_loadcell.h>
 
-#ifndef UNITTEST
+#ifdef UNITTEST
+extern unsigned estall_suppressed_trigger_count;
+#else
     #include "log.h"
 
 LOG_COMPONENT_REF(MarlinServer);
@@ -71,16 +73,18 @@ bool EMotorStallDetector::Evaluate(bool movingE, bool directionE) {
         return false;
     }
 
-    if (enabled) {
-        // Block further reporting of the same e-stall
-        SetBlocked();
-        return true;
-    } else {
-    #ifndef UNITTEST
-        log_debug(MarlinServer, "E-stall detected but surpressed");
+    // Block further reporting until the estall is handled
+    SetBlocked();
+
+    if (!enabled) {
+    #ifdef UNITTEST
+        estall_suppressed_trigger_count++;
+    #else
+        log_info(MarlinServer, "E-stall detected but suppressed");
     #endif
-        return false;
     }
+
+    return enabled;
 }
 #else
 // Empty implementation when there is no LoadCell available

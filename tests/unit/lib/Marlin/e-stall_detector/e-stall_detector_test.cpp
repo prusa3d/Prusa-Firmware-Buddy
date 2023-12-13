@@ -171,6 +171,57 @@ TEST_CASE("Marlin::MotorStallFilter stall2-180Hz", "[Marlin][EStallDetector]") {
     CHECK(DetectStall(raw));
 }
 
+unsigned estall_suppressed_trigger_count;
+
+TEST_CASE("Marlin::MotorStall disabled", "[Marlin][EStallDetector]") {
+    TRawData raw = {
+        1997572, 2054684, 2096993, 2125882, 2072601, 585962, 1976478
+    };
+
+    const auto testData = [&](EMotorStallDetector &emsd) {
+        for (const auto data : raw) {
+            REQUIRE_FALSE(emsd.DetectedOnce());
+            emsd.ProcessSample(data);
+        }
+    };
+
+    {
+        estall_suppressed_trigger_count = 0;
+
+        EMotorStallDetector emsd;
+        emsd.SetEnabled();
+        testData(emsd);
+        REQUIRE(emsd.DetectedOnce());
+
+        REQUIRE(emsd.Evaluate(true, true));
+        REQUIRE(emsd.DetectedRaw());
+        REQUIRE(estall_suppressed_trigger_count == 0);
+    }
+
+    {
+        estall_suppressed_trigger_count = 0;
+
+        EMotorStallDetector emsd;
+        emsd.SetEnabled(false);
+
+        testData(emsd);
+        REQUIRE(!emsd.DetectedOnce());
+        REQUIRE(!emsd.Evaluate(true, true));
+        REQUIRE(emsd.DetectedRaw());
+        REQUIRE(estall_suppressed_trigger_count == 1);
+        emsd.SetBlocked(false);
+
+        REQUIRE(!emsd.Evaluate(false, false));
+        REQUIRE(!emsd.DetectedRaw());
+
+        testData(emsd);
+        REQUIRE(!emsd.DetectedOnce());
+        REQUIRE(!emsd.Evaluate(true, true));
+        REQUIRE(emsd.DetectedRaw());
+        REQUIRE(estall_suppressed_trigger_count == 2);
+    }
+}
+
 TEST_CASE("Marlin::MotorStallFilter stall3-300Hz", "[Marlin][EStallDetector]") {
     // 2023-11-10 this sequence didn't trigger while loading filament, but triggers in the unit tests... the problem seems to be somewhere else...
     // clang-format off
