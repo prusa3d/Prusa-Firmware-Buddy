@@ -1,5 +1,4 @@
 add_subdirectory(CMSIS)
-add_subdirectory(cmsis_device_g0)
-include(AddStm32g0Hal.cmake)
 include(AddStm32f4Hal.cmake)
+include(AddStm32g0Hal.cmake)
 include(AddLIS2DH12.cmake)

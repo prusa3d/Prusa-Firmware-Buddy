@@ -21,5 +21,5 @@ add_library(
   )
 
 target_include_directories(STM32G0_HAL PUBLIC stm32g0xx_hal_driver/Inc)
-target_link_libraries(STM32G0_HAL PUBLIC STM32G0::CMSIS STM32G0_HAL_Config)
+target_link_libraries(STM32G0_HAL PUBLIC STM32G0xx::CMSIS STM32G0_HAL_Config)
 add_library(STM32G0::HAL ALIAS STM32G0_HAL)

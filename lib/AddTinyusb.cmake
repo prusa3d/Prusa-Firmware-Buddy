@@ -19,6 +19,6 @@ target_include_directories(tinyusb PUBLIC tinyusb/src)
 
 target_compile_definitions(tinyusb PUBLIC CFG_TUSB_MCU=OPT_MCU_STM32F4)
 
-target_link_libraries(tinyusb PUBLIC tinyusb_dependencies STM32F4::HAL CMSIS)
+target_link_libraries(tinyusb PUBLIC tinyusb_dependencies)
 
 add_library(tinyusb::tinyusb ALIAS tinyusb)

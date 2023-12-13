@@ -24,6 +24,6 @@ add_library(
 
 target_include_directories(FreeRTOS PUBLIC Source/include Source/CMSIS_RTOS ${port_subdir})
 
-target_link_libraries(FreeRTOS PUBLIC CMSIS FreeRTOS_Config)
+target_link_libraries(FreeRTOS PUBLIC FreeRTOS_Config)
 
 add_library(FreeRTOS::FreeRTOS ALIAS FreeRTOS)

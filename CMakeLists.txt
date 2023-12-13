@@ -103,12 +103,12 @@ if(MCU MATCHES "STM32G0")
   target_include_directories(
     BuddyHeaders BEFORE INTERFACE include/stm32g0_hal include/device/stm32g0
     )
-  target_link_libraries(BuddyHeaders INTERFACE STM32G0::HAL)
+  target_link_libraries(BuddyHeaders INTERFACE STM32G0::HAL STM32G0xx::CMSIS)
 elseif(MCU MATCHES "STM32F4")
   target_include_directories(
     BuddyHeaders BEFORE INTERFACE include/stm32f4_hal include/device/stm32f4
     )
-  target_link_libraries(BuddyHeaders INTERFACE STM32F4::HAL)
+  target_link_libraries(BuddyHeaders INTERFACE STM32F4::HAL STM32F4xx::CMSIS)
 else()
   message(FATAL_ERROR "Undefined HAL for ${MCU}")
 endif()
