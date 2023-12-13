@@ -67,6 +67,7 @@ TEST_CASE("Render") {
             "\"job_id\":42,"
             "\"time_printing\":0,"
             "\"time_remaining\":0,"
+            "\"filament_change_in\":0,"
             "\"progress\":12,"
             "\"temp_nozzle\":200.0,"
             "\"temp_bed\":65.0,"

@@ -235,6 +235,7 @@ Printer::Params MarlinPrinter::params() const {
 
     params.print_duration = marlin_vars()->print_duration;
     params.time_to_end = marlin_vars()->time_to_end;
+    params.time_to_pause = marlin_vars()->time_to_pause;
     params.progress_percent = marlin_vars()->sd_percent_done;
     params.filament_used = Odometer_s::instance().get_extruded_all();
     params.nozzle_diameter = config_store().get_nozzle_diameter(0);

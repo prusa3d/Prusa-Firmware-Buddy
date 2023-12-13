@@ -114,6 +114,12 @@ namespace {
                     if (params.time_to_end != marlin_server::TIME_TO_END_INVALID) {
                         JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
                     }
+                    if (params.time_to_pause != marlin_server::TIME_TO_END_INVALID) {
+                        // Connect calls it "filament change". Slicer "Time to
+                        // color change". But in reality it is both pause and
+                        // filament change (M600 / M601).
+                        JSON_FIELD_INT("filament_change_in", params.time_to_pause) JSON_COMMA;
+                    }
                     JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
                 }
 

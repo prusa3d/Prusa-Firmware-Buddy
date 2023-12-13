@@ -78,13 +78,16 @@ void ClProgressData::mInit(void) {
  *
  * - `P` - [percentage] Set percentage value
  * - `R` - [minutes] Set time to end / percentage done
- * - `T` - [minutes] Set time to pause
+ * - `C` - [minutes] Set time to pause
+ *   (historically also `T`, which is not documented anywhere and we couldn't
+ *   track anyone producing it, but the code accepted it previously - probably
+ *   a typo, but keeping it for backwards compatibility anyway).
  */
 
 void GcodeSuite::M73_PE() {
     std::optional<uint8_t> P = std::nullopt;
     std::optional<uint32_t> R = std::nullopt;
-    std::optional<uint32_t> T = std::nullopt;
+    std::optional<uint32_t> C = std::nullopt;
     if (parser.seen('P')) {
         P = parser.value_byte();
     }
@@ -92,15 +95,18 @@ void GcodeSuite::M73_PE() {
         R = parser.value_ulong() * 60;
     }
     if (parser.seen('T')) {
-        T = parser.value_ulong() * 60;
+        C = parser.value_ulong() * 60;
+    }
+    if (parser.seen('C')) {
+        C = parser.value_ulong() * 60;
     }
 
-    M73_PE_no_parser(P, R, T);
+    M73_PE_no_parser(P, R, C);
 }
 
 /** @}*/
 
-void M73_PE_no_parser(std::optional<uint8_t> P, std::optional<uint32_t> R, std::optional<uint32_t> T) {
+void M73_PE_no_parser(std::optional<uint8_t> P, std::optional<uint32_t> R, std::optional<uint32_t> C) {
     uint32_t nTimeNow;
     uint8_t nValue;
 
@@ -116,8 +122,13 @@ void M73_PE_no_parser(std::optional<uint8_t> P, std::optional<uint32_t> R, std::
         }
     }
 
-    if (T) {
-        oProgressData.oTime2Pause.mSetValue(*T, nTimeNow); // [min] -> [s]
+    if (C) {
+        if (*C == 0) {
+            // Pause happening now, reset the countdown (there doesn't have to be another until the end).
+            oProgressData.oTime2Pause.mInit();
+        } else {
+            oProgressData.oTime2Pause.mSetValue(*C, nTimeNow); // [min] -> [s]
+        }
     }
 }
 
