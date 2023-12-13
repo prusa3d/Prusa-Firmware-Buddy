@@ -457,19 +457,22 @@ bool MMU2::FeedWithEStallDetection() {
     // save state of EStall detection flags including the detection threshold
     EStallDetectionStateLatch esdsl;
 
+    // block invocation of M1601 in Marlin::idle()
+    BlockEStallDetection blocker;
+
+    auto &emsd = EMotorStallDetector::Instance();
+
     // activate the detector
-    EMotorStallDetector::Instance().SetEnabled();
-    // but block invocation of M1601 in Marlin::idle()
-    EMotorStallDetector::Instance().SetBlocked();
+    emsd.SetEnabled();
     // whatever happened before is not interesting
-    EMotorStallDetector::Instance().ClearDetected();
+    emsd.ClearDetected();
     // lower the detection threshold to overcome the sampling rate limitation - see explanation above
-    EMotorStallDetector::Instance().SetDetectionThreshold(500'000.F);
+    emsd.SetDetectionThreshold(500'000.F);
 
     // plan the move
     extruder_move(feedDistance, feedRate);
     while (planner_any_moves()) {
-        if (EMotorStallDetector::Instance().DetectedRaw()) {
+        if (emsd.DetectedRaw()) {
             planner_abort_queued_moves(); // stop instantly
             // @@TODO save the position where it tripped to allow retraction of the same amount
             return false;

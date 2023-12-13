@@ -56,6 +56,18 @@ bool MotorStallFilter::ProcessSample(int32_t value) {
     return filteredValue > detectionThreshold;
 }
 
+void EMotorStallDetector::SetEnabled(bool set) {
+    if (enabled == set) {
+        return;
+    }
+
+    enabled = set;
+
+    if (set) {
+        ClearDetected();
+    }
+}
+
 #if HAS_LOADCELL()
 void EMotorStallDetector::ProcessSample(int32_t value) {
     detected |= emf.ProcessSample(value);
@@ -65,16 +77,21 @@ bool EMotorStallDetector::Evaluate(bool movingE, bool directionE) {
     // only check the E-motor stall when it has to be doing something and it is PUSHING the filament
     // i.e. - prevent triggers on crashes during travel moves and retractions
     if (!movingE || !directionE) {
+        // Clear detection flags if the motor is standing still or retracting
         ClearDetected();
         return false;
     }
 
-    if (!detected || blocked) {
+    if (!detected) {
+        return false;
+    }
+
+    if (blocked > 0 || reported) {
         return false;
     }
 
     // Block further reporting until the estall is handled
-    SetBlocked();
+    reported = true;
 
     if (!enabled) {
     #ifdef UNITTEST

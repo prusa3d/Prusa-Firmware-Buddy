@@ -46,61 +46,63 @@ TEST_CASE("Marlin::MotorStallFilter filter", "[Marlin][EStallDetector]") {
 TEST_CASE("Marlin::EStallDetector", "[Marlin][EStallDetector]") {
     auto &emsd = EMotorStallDetector::Instance();
     emsd.SetEnabled();
-    REQUIRE_FALSE(emsd.Blocked());
-    REQUIRE_FALSE(emsd.DetectedOnce());
+    REQUIRE_FALSE(emsd.Reported());
+    REQUIRE_FALSE(emsd.DetectedUnreported());
     REQUIRE(emsd.Enabled());
 
     // put some data through the detector - this data should work (from the previous test)
     emsd.ProcessSample(1997572);
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(2054684);
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(2096993);
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(2125882);
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(2072601);
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(585962); // now this drop shall be almost detected
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(1976478);
-    REQUIRE(emsd.DetectedOnce());
-    REQUIRE_FALSE(emsd.Blocked());
+    REQUIRE(emsd.DetectedUnreported());
+    REQUIRE_FALSE(emsd.Reported());
 
     // put some more data through the filter - the FW may not respond to the flag immediately
     // the Detected flag should remain intact as well as the Blocked flag
     emsd.ProcessSample(1997572);
-    REQUIRE(emsd.DetectedOnce());
+    REQUIRE(emsd.DetectedUnreported());
     emsd.ProcessSample(2054684);
-    REQUIRE(emsd.DetectedOnce());
+    REQUIRE(emsd.DetectedUnreported());
     emsd.ProcessSample(2096993);
-    REQUIRE(emsd.DetectedOnce());
+    REQUIRE(emsd.DetectedUnreported());
 
     { // now simulate what the firmware would do - process an injected M600
         BlockEStallDetection besd;
-        REQUIRE(emsd.Blocked());
+        REQUIRE_FALSE(emsd.DetectedUnreported());
+        REQUIRE_FALSE(emsd.Reported());
+        emsd.ClearReported();
         // perform M600
     }
 
-    // returned from M600 - Detected and Blocked flags should be off for a new run
-    REQUIRE_FALSE(emsd.DetectedOnce());
-    REQUIRE_FALSE(emsd.Blocked());
+    // returned from M600 - Should not be nor detected or reported
+    REQUIRE_FALSE(emsd.DetectedUnreported());
+    REQUIRE_FALSE(emsd.Reported());
 
     emsd.ProcessSample(1997572);
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(2054684);
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(2096993);
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(2125882);
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(2072601);
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(585962); // now this drop shall be almost detected
-    CHECK_FALSE(emsd.DetectedOnce());
+    CHECK_FALSE(emsd.DetectedUnreported());
     emsd.ProcessSample(1976478);
-    CHECK(emsd.DetectedOnce());
-    CHECK_FALSE(emsd.Blocked());
+    CHECK(emsd.DetectedUnreported());
+    CHECK_FALSE(emsd.Reported());
 }
 
 using TRawData = std::vector<int32_t>;
@@ -180,7 +182,7 @@ TEST_CASE("Marlin::MotorStall disabled", "[Marlin][EStallDetector]") {
 
     const auto testData = [&](EMotorStallDetector &emsd) {
         for (const auto data : raw) {
-            REQUIRE_FALSE(emsd.DetectedOnce());
+            REQUIRE_FALSE(emsd.DetectedUnreported());
             emsd.ProcessSample(data);
         }
     };
@@ -191,7 +193,7 @@ TEST_CASE("Marlin::MotorStall disabled", "[Marlin][EStallDetector]") {
         EMotorStallDetector emsd;
         emsd.SetEnabled();
         testData(emsd);
-        REQUIRE(emsd.DetectedOnce());
+        REQUIRE(emsd.DetectedUnreported());
 
         REQUIRE(emsd.Evaluate(true, true));
         REQUIRE(emsd.DetectedRaw());
@@ -205,17 +207,17 @@ TEST_CASE("Marlin::MotorStall disabled", "[Marlin][EStallDetector]") {
         emsd.SetEnabled(false);
 
         testData(emsd);
-        REQUIRE(!emsd.DetectedOnce());
+        REQUIRE(!emsd.DetectedUnreported());
         REQUIRE(!emsd.Evaluate(true, true));
         REQUIRE(emsd.DetectedRaw());
         REQUIRE(estall_suppressed_trigger_count == 1);
-        emsd.SetBlocked(false);
+        emsd.ClearReported();
 
         REQUIRE(!emsd.Evaluate(false, false));
         REQUIRE(!emsd.DetectedRaw());
 
         testData(emsd);
-        REQUIRE(!emsd.DetectedOnce());
+        REQUIRE(!emsd.DetectedUnreported());
         REQUIRE(!emsd.Evaluate(true, true));
         REQUIRE(emsd.DetectedRaw());
         REQUIRE(estall_suppressed_trigger_count == 2);
@@ -248,7 +250,7 @@ TEST_CASE("Marlin::MotorStallFilter stall3-300Hz", "[Marlin][EStallDetector]") {
 
         // activate the detector
         emsd.SetEnabled();
-        emsd.SetBlocked(false);
+        emsd.ClearReported();
         // lower the detection threshold to overcome the sampling rate limitation - see explanation above
         // @@TODO we might process all of the recorded data to see the occasions when the filter would have trigger even though the original try-load would have succeeded
         emsd.SetDetectionThreshold(500'000.F);
@@ -264,7 +266,7 @@ TEST_CASE("Marlin::MotorStallFilter stall3-300Hz", "[Marlin][EStallDetector]") {
         // Eval shall return false, because it has already detected a trigger + it is now blocked.
         // The only way of checking the detected flag is though a new function DetectedRaw
         CHECK_FALSE(emsd.Evaluate(true, true));
-        CHECK_FALSE(emsd.DetectedOnce());
+        CHECK_FALSE(emsd.DetectedUnreported());
         CHECK(emsd.DetectedRaw());
     }
 }
