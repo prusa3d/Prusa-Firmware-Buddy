@@ -367,59 +367,61 @@ void classic_step_generator_reset_position(classic_step_generator_t &step_genera
 step_event_info_t classic_step_generator_next_step_event(classic_step_generator_t &step_generator, step_generator_state_t &step_generator_state) {
     assert(step_generator.current_move != nullptr);
     step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
-    const move_t *next_move = nullptr;
-    do {
-        const float half_step_dist = Planner::mm_per_half_step[step_generator.axis];
-        const float next_target = float(step_generator_state.current_distance[step_generator.axis] + (step_generator.step_dir ? 0 : -1)) * Planner::mm_per_step[step_generator.axis] + half_step_dist;
-        const float next_distance = next_target - step_generator.start_pos;
-        const float step_time = calc_time_for_distance(step_generator, next_distance);
 
-        // When step_time is infinity, it means that next_distance will never be reached.
-        // This happens when next_target exceeds end_position, and deceleration decelerates velocity to zero or negative value.
-        // Also, we need to stop when step_time exceeds local_end.
-        if (const double step_time_d = double(step_time); step_time_d > (step_generator.current_move->move_t + EPSILON)) {
-            if (next_move = PreciseStepping::move_segment_queue_next_move(*step_generator.current_move); next_move != nullptr) {
-                next_step_event.time = next_move->print_time;
+    const float half_step_dist = Planner::mm_per_half_step[step_generator.axis];
+    const float next_target = float(step_generator_state.current_distance[step_generator.axis] + (step_generator.step_dir ? 0 : -1)) * Planner::mm_per_step[step_generator.axis] + half_step_dist;
+    const float next_distance = next_target - step_generator.start_pos;
+    const float step_time = calc_time_for_distance(step_generator, next_distance);
 
-                // Reset position in steps (current_distance) based on the difference in the position.
-                if (next_move->flags & (MOVE_FLAG_RESET_POSITION_X << step_generator.axis)) {
-                    classic_step_generator_reset_position(step_generator, step_generator_state, *next_move);
-                }
+    // When step_time is infinity, it means that next_distance will never be reached.
+    // This happens when next_target exceeds end_position, and deceleration decelerates velocity to zero or negative value.
+    // Also, we need to stop when step_time exceeds local_end.
+    if (const double step_time_d = double(step_time); step_time_d > (step_generator.current_move->move_t + EPSILON)) {
+        if (const move_t *next_move = PreciseStepping::move_segment_queue_next_move(*step_generator.current_move); next_move != nullptr) {
+            next_step_event.time = next_move->print_time;
 
-                // The move segment is fully processed, and in the queue is another unprocessed move segment.
-                // So we decrement reference count of the current move segment and increment reference count of next move segment.
-                --step_generator.current_move->reference_cnt;
-                step_generator.current_move = next_move;
-                ++step_generator.current_move->reference_cnt;
-
-                classic_step_generator_update(step_generator);
-
-                // Update step direction flag, which is cached until this move segment is processed.
-                // It assumes that dir bit flags for step_event_t and move_t are the same position.
-                const StepEventFlag_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
-                step_generator_state.flags &= ~current_axis_dir_flag;
-                step_generator_state.flags |= !step_generator.step_dir * current_axis_dir_flag;
-
-                // Update active axis flag, which is cached until this move segment is processed.
-                // It assumes that active bit flags for step_event_t and move_t are the same position.
-                const StepEventFlag_t current_axis_active_flag = (STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis);
-                step_generator_state.flags &= ~current_axis_active_flag;
-                step_generator_state.flags |= step_generator.current_move->flags & current_axis_active_flag;
-
-                PreciseStepping::move_segment_processed_handler();
-            } else {
-                next_step_event.time = step_generator.current_move->print_time + step_generator.current_move->move_t;
+            if (!is_ending_empty_move(*next_move)) {
+                next_step_event.flags |= STEP_EVENT_FLAG_KEEP_ALIVE;
+                next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE;
             }
+
+            // Reset position in steps (current_distance) based on the difference in the position.
+            if (next_move->flags & (MOVE_FLAG_RESET_POSITION_X << step_generator.axis)) {
+                classic_step_generator_reset_position(step_generator, step_generator_state, *next_move);
+            }
+
+            // The move segment is fully processed, and in the queue is another unprocessed move segment.
+            // So we decrement reference count of the current move segment and increment reference count of next move segment.
+            --step_generator.current_move->reference_cnt;
+            step_generator.current_move = next_move;
+            ++step_generator.current_move->reference_cnt;
+
+            classic_step_generator_update(step_generator);
+
+            // Update step direction flag, which is cached until this move segment is processed.
+            // It assumes that dir bit flags for step_event_t and move_t are the same position.
+            const StepEventFlag_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
+            step_generator_state.flags &= ~current_axis_dir_flag;
+            step_generator_state.flags |= !step_generator.step_dir * current_axis_dir_flag;
+
+            // Update active axis flag, which is cached until this move segment is processed.
+            // It assumes that active bit flags for step_event_t and move_t are the same position.
+            const StepEventFlag_t current_axis_active_flag = (STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis);
+            step_generator_state.flags &= ~current_axis_active_flag;
+            step_generator_state.flags |= step_generator.current_move->flags & current_axis_active_flag;
+
+            PreciseStepping::move_segment_processed_handler();
         } else {
-            const double elapsed_time = step_time_d + step_generator.current_move->print_time;
-            next_step_event.time = elapsed_time;
-            next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
-            next_step_event.flags |= step_generator_state.flags;
-            next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
-            step_generator_state.current_distance[step_generator.axis] += (step_generator.step_dir ? 1 : -1);
-            break;
+            next_step_event.time = step_generator.current_move->print_time + step_generator.current_move->move_t;
         }
-    } while (next_move != nullptr);
+    } else {
+        const double elapsed_time = step_time_d + step_generator.current_move->print_time;
+        next_step_event.time = elapsed_time;
+        next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
+        next_step_event.flags |= step_generator_state.flags;
+        next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
+        step_generator_state.current_distance[step_generator.axis] += (step_generator.step_dir ? 1 : -1);
+    }
 
     // When std::numeric_limits<double>::max() is returned, it means that for the current state of the move segment queue, there isn't any next step event for this axis.
     return next_step_event;
@@ -450,7 +452,7 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
     // Sorting buffer isn't fulfilled for all active axis, so we need to fulfill.
     // So we don't have anything to put into step_event_buffer.
     auto step_status = step_state.step_events[old_nearest_step_event_idx].status;
-    if (step_status == STEP_EVENT_INFO_STATUS_GENERATED_VALID || step_status == STEP_EVENT_INFO_STATUS_PENDING) {
+    if (step_status == STEP_EVENT_INFO_STATUS_GENERATED_VALID || step_status == STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE) {
         const double step_time_absolute         = step_state.step_events[old_nearest_step_event_idx].time;
         const uint64_t step_time_absolute_ticks = uint64_t(step_time_absolute * PreciseStepping::ticks_per_sec);
         const uint64_t step_time_relative_ticks = step_time_absolute_ticks - step_state.previous_step_time_ticks;
@@ -674,7 +676,7 @@ uint16_t PreciseStepping::process_one_step_event_from_queue() {
 
         if (step_event_u16_t *next_step_event = get_current_step_event(); next_step_event != nullptr) {
             ticks_to_next_isr = next_step_event->time_ticks;
-        } else if ((step_flags & STEP_EVENT_END_OF_MOTION) == false) {
+        } else if ((step_flags & STEP_EVENT_FLAG_END_OF_MOTION) == false) {
             ++step_ev_miss;
         }
     } else {
@@ -1177,7 +1179,7 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
                 // we reached an explicit end block with all generators waiting on it, we can advance
                 if (!is_step_event_queue_full()) {
                     discard_current_unprocessed_move_segment();
-                    [[maybe_unused]] const bool appended = append_move_discarding_step_event(step_generator_state, STEP_EVENT_END_OF_MOTION);
+                    [[maybe_unused]] const bool appended = append_move_discarding_step_event(step_generator_state, STEP_EVENT_FLAG_END_OF_MOTION);
                     assert(appended);
                 }
 

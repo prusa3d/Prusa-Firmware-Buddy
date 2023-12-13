@@ -109,8 +109,8 @@ enum StepEventFlag : StepEventFlag_t {
     STEP_EVENT_FLAG_E_ACTIVE = _BV(11),
 
     STEP_EVENT_FLAG_BEGINNING_OF_MOVE_SEGMENT = _BV(12), // Indicate that this step event is the first step event from a move segment.
-    STEP_EVENT_END_OF_MOTION = _BV(13), // Last event before coming to a halt
-    STEP_EVENT_WAITING = _BV(14), // Step generator is waiting for external event
+    STEP_EVENT_FLAG_END_OF_MOTION = _BV(13), // Last event before coming to a halt
+    STEP_EVENT_FLAG_KEEP_ALIVE = _BV(14), // Step event just for ensuring that the step event queue never dries.
     STEP_EVENT_FLAG_FIRST_STEP_EVENT = _BV(15) // First produced step event.
 };
 
@@ -186,7 +186,8 @@ enum StepEventInfoStatus : uint8_t {
     STEP_EVENT_INFO_STATUS_NOT_GENERATED = 0, // Step event isn't produced by any step event generator. Such a step event cannot be inserted into the step event queue.
     STEP_EVENT_INFO_STATUS_GENERATED_INVALID = 1, // Step event is produced by a step event generator but cannot be inserted into the step event queue.
     STEP_EVENT_INFO_STATUS_GENERATED_VALID = 2, // Step event is produced by a step event generator and can be inserted into the step event queue.
-    STEP_EVENT_INFO_STATUS_PENDING = 3, // Step event isn't produced by the step-event generator, but no new data are needed
+    STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE = 3, // Step event is produced to ensure that the step event queue never dries when an actual step event isn't produces. This step event can be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_PENDING = 4, // Step event isn't produced by the step-event generator, but no new data are needed
 };
 
 typedef struct step_event_info_t {

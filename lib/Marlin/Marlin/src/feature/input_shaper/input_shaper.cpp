@@ -485,43 +485,43 @@ FORCE_INLINE void input_shaper_step_generator_update(input_shaper_step_generator
 step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_generator_t &step_generator, step_generator_state_t &step_generator_state) {
     assert(step_generator.is_state != nullptr);
     step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
-    bool is_updated = false;
-    do {
-        const bool step_dir = step_generator.is_state->step_dir;
-        const float half_step_dist = Planner::mm_per_half_step[step_generator.axis];
-        const float next_target = float(step_generator_state.current_distance[step_generator.axis] + (step_generator.step_dir ? 0 : -1)) * Planner::mm_per_step[step_generator.axis] + half_step_dist;
-        const float next_distance = next_target - step_generator.start_pos;
-        const float step_time = calc_time_for_distance(step_generator, next_distance);
 
-        // When step_time is infinity, it means that next_distance will never be reached.
-        // This happens when next_target exceeds end_position, and deceleration decelerates velocity to zero or negative value.
-        // Also, we need to stop when step_time exceeds local_end.
-        if (const double elapsed_time = double(step_time) + step_generator.is_state->print_time; elapsed_time > (step_generator.is_state->nearest_next_change + EPSILON)) {
-            next_step_event.time = step_generator.is_state->nearest_next_change;
+    const bool step_dir = step_generator.is_state->step_dir;
+    const float half_step_dist = Planner::mm_per_half_step[step_generator.axis];
+    const float next_target = float(step_generator_state.current_distance[step_generator.axis] + (step_generator.step_dir ? 0 : -1)) * Planner::mm_per_step[step_generator.axis] + half_step_dist;
+    const float next_distance = next_target - step_generator.start_pos;
+    const float step_time = calc_time_for_distance(step_generator, next_distance);
 
-            is_updated = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
+    // When step_time is infinity, it means that next_distance will never be reached.
+    // This happens when next_target exceeds end_position, and deceleration decelerates velocity to zero or negative value.
+    // Also, we need to stop when step_time exceeds local_end.
+    if (const double elapsed_time = double(step_time) + step_generator.is_state->print_time; elapsed_time > (step_generator.is_state->nearest_next_change + EPSILON)) {
+        next_step_event.time = step_generator.is_state->nearest_next_change;
 
-            // Update step direction flag, which is cached until this move segment is processed.
-            const uint16_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
-            step_generator_state.flags &= ~current_axis_dir_flag;
-            step_generator_state.flags |= (!step_generator.is_state->step_dir) * current_axis_dir_flag;
-
-            // Update active axis flag, which is cached until this move segment is processed.
-            const uint16_t current_axis_active_flag = (STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis);
-            step_generator_state.flags &= ~current_axis_active_flag;
-            step_generator_state.flags |= (step_generator.is_state->start_v != 0. || step_generator.is_state->half_accel != 0.) * current_axis_active_flag;
-
-            input_shaper_step_generator_update(step_generator);
-            PreciseStepping::move_segment_processed_handler();
-        } else {
-            next_step_event.time = elapsed_time;
-            next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
-            next_step_event.flags |= step_generator_state.flags;
-            next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
-            step_generator_state.current_distance[step_generator.axis] += (step_dir ? 1 : -1);
-            break;
+        if (input_shaper_state_update(*step_generator.is_state, step_generator.axis) && step_generator.is_state->nearest_next_change < MAX_PRINT_TIME) {
+            next_step_event.flags |= STEP_EVENT_FLAG_KEEP_ALIVE;
+            next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE;
         }
-    } while (is_updated);
+
+        // Update step direction flag, which is cached until this move segment is processed.
+        const uint16_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
+        step_generator_state.flags &= ~current_axis_dir_flag;
+        step_generator_state.flags |= (!step_generator.is_state->step_dir) * current_axis_dir_flag;
+
+        // Update active axis flag, which is cached until this move segment is processed.
+        const uint16_t current_axis_active_flag = (STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis);
+        step_generator_state.flags &= ~current_axis_active_flag;
+        step_generator_state.flags |= (step_generator.is_state->start_v != 0. || step_generator.is_state->half_accel != 0.) * current_axis_active_flag;
+
+        input_shaper_step_generator_update(step_generator);
+        PreciseStepping::move_segment_processed_handler();
+    } else {
+        next_step_event.time = elapsed_time;
+        next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
+        next_step_event.flags |= step_generator_state.flags;
+        next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
+        step_generator_state.current_distance[step_generator.axis] += (step_dir ? 1 : -1);
+    }
 
     return next_step_event;
 }
