@@ -187,7 +187,7 @@ enum StepEventInfoStatus : uint8_t {
     STEP_EVENT_INFO_STATUS_GENERATED_INVALID = 1, // Step event is produced by a step event generator but cannot be inserted into the step event queue.
     STEP_EVENT_INFO_STATUS_GENERATED_VALID = 2, // Step event is produced by a step event generator and can be inserted into the step event queue.
     STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE = 3, // Step event is produced to ensure that the step event queue never dries when an actual step event isn't produces. This step event can be inserted into the step event queue.
-    STEP_EVENT_INFO_STATUS_PENDING = 4, // Step event isn't produced by the step-event generator, but no new data are needed
+    STEP_EVENT_INFO_STATUS_GENERATED_PENDING = 4, // Step event is produced to signal that a step event generator wasn't able to produce a new step event for reasons different than the end of the move segment queue was reached. This step event cannot be inserted into the step event queue.
 };
 
 typedef struct step_event_info_t {

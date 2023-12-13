@@ -145,7 +145,7 @@ step_event_info_t phase_stepping::next_step_event_classic(
     move_t *next_move = PreciseStepping::move_segment_queue_next_move(*axis_state.last_processed_move);
     StepEventInfoStatus status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_INVALID;
     if (axis_state.pending_targets.isFull()) {
-        status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
+        status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
     } else if (next_move != nullptr) {
         // PreciseStepping generates and infinite move segment on motion stop.
         // We cannot enqueue such segment
@@ -165,7 +165,7 @@ step_event_info_t phase_stepping::next_step_event_classic(
             status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_VALID;
             axis_state.last_processed_event_time = next_move->print_time + next_move->move_t;
         } else {
-            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
+            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
         }
         axis_state.last_processed_move = next_move;
     }
@@ -187,7 +187,7 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
 
     StepEventInfoStatus status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_INVALID;
     if (axis_state.pending_targets.isFull()) {
-        status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
+        status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
     } else {
         bool generated_new = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
         if (generated_new && !has_ending_segment(*step_generator.is_state)) {
@@ -208,7 +208,7 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
         }
         if (has_ending_segment(*step_generator.is_state) && !axis_state.pending_targets.isEmpty()) {
             // When the move target queue is not empty, we cannot yield final step
-            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
+            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
         } else {
             axis_state.last_processed_event_time = step_generator.is_state->nearest_next_change;
         }

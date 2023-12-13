@@ -475,10 +475,6 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
             --step_state.left_insert_start_of_move_segment;
         }
 
-        if (step_status == STEP_EVENT_INFO_STATUS_PENDING) {
-            step_event.flags |= STEP_EVENT_WAITING;
-        }
-
         if (step_state.previous_step_time == 0.) {
             step_event.flags |= STEP_EVENT_FLAG_FIRST_STEP_EVENT;
         }
@@ -496,7 +492,9 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
 
     // Update nearest step event index.
     step_generator_state_update_nearest_idx(step_state);
-    return StepGeneratorStatus(step_state.step_events[step_state.step_event_index[0]].status == STEP_EVENT_INFO_STATUS_GENERATED_INVALID);
+
+    StepEventInfoStatus nearest_step_event_status = step_state.step_events[step_state.step_event_index[0]].status;
+    return (nearest_step_event_status == STEP_EVENT_INFO_STATUS_GENERATED_INVALID) || (nearest_step_event_status == STEP_EVENT_INFO_STATUS_GENERATED_PENDING);
 }
 
 HAL_MOVE_TIMER_ISR() {
@@ -1106,11 +1104,6 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
             // accumulate into or flush the buffered step
             if (new_step_event.flags) {
                 // a new step event was produced
-                if (new_step_event.flags & STEP_EVENT_WAITING) {
-                    // The step generator that should move is waiting for external event,
-                    // no more work should be done here
-                    break;
-                }
                 if (!step_generator_state.buffered_step.flags) {
                     // no previous buffer: replace
                     step_generator_state.buffered_step = new_step_event;
