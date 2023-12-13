@@ -77,7 +77,7 @@ protected:
     RadioButtonFsm<T> radio;
 
 public:
-    DialogStateful(string_view_utf8 name, States st, std::optional<has_footer> child_has_footer = std::nullopt)
+    DialogStateful(const string_view_utf8 &name, const States &st, std::optional<has_footer> child_has_footer = std::nullopt)
         : IDialogStateful(name, child_has_footer)
         , states(st)
         , radio(&progress_frame, (child_has_footer == has_footer::yes) ? GuiDefaults::GetButtonRect_AvoidFooter(GetRect()) : GuiDefaults::GetButtonRect(GetRect()), T::_first) {
