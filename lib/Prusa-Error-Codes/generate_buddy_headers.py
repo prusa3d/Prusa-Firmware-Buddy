@@ -22,6 +22,7 @@ mmu_template = \
 """#pragma once
 #include "inttypes.h"
 #include "button_operations.h"
+#include "error_type.h"
 
 #include <array>
 
@@ -30,12 +31,6 @@ mmu_template = \
 namespace MMU2 {{
 
 inline constexpr uint8_t ERR_MMU_CODE = {printer_code};
-
-enum class ErrType : uint8_t {{
-    ERROR = 0,
-    WARNING,
-    USER_ACTION
-}};
 
 enum class ErrCode : uint16_t {{
     ERR_UNDEF = 0,
@@ -72,6 +67,10 @@ inline constexpr MMUErrDesc error_list[] = {{{list_items}
 buddy_template = \
 """#pragma once
 #include "inttypes.h"
+#include "button_operations.h"
+#include "error_type.h"
+
+#include <array>
 
 {include_items}
 
@@ -88,6 +87,8 @@ struct ErrDesc {{
     const char *err_text;
     // 16 bit
     ErrCode err_code;
+    std::array<ButtonOperations, 4> buttons;
+    ErrType type;
 }};
 """
 
@@ -132,9 +133,14 @@ def generate_header_file(yaml_file_name, header_file_name, mmu, list, includes):
             err_code = int(code)
             assert err_code not in err_dict, f"Duplicate error code {code}."
 
-            if mmu:
+            btns = []
+            if "action" in err:
                 btns = [f"ButtonOperations::{action}" for action in err["action"]]
 
+            if "type" not in err:
+                    err["type"] = "ERROR"
+
+            if mmu:
                 # Make sure the array always has 3 buttons, NoOperation button
                 # occupying the appropriate "empty" slots
                 if len(btns) == 0:
@@ -143,22 +149,26 @@ def generate_header_file(yaml_file_name, header_file_name, mmu, list, includes):
                     btns.insert(0, "ButtonOperations::NoOperation")
                 if len(btns) == 2:
                     btns.append("ButtonOperations::NoOperation")
-
-                mmu_extra_text = f",\n        {{{', '.join(btns)}}}"
-
-                if "type" not in err:
-                    err["type"] = "ERROR"
-
-                mmu_extra_text += f",\n        ErrType::{err['type']}"
             else:
-                mmu_extra_text = ""
+                # There should always be 4 buttons, NoOperation for empty slots
+                if len(btns) == 0:
+                    btns.append("ButtonOperations::NoOperation")
+                if len(btns) == 1:
+                    btns.append("ButtonOperations::NoOperation")
+                if len(btns) == 2:
+                    btns.append("ButtonOperations::NoOperation")
+                if len(btns) == 3:
+                    btns.append("ButtonOperations::NoOperation")
+
+            extra_text = f",\n        {{{', '.join(btns)}}}"
+            extra_text += f",\n        ErrType::{err['type']}"
 
             err_dict[err_code] = {
                 "id": err_id,
                 "code": err_code,
                 "title": err["title"],
                 "text": err["text"].replace("\n", "\\n"),
-                "mmu_extra_text": mmu_extra_text
+                "extra_text": extra_text
             }
 
     os.makedirs(header_file_name.parent, exist_ok=True)
@@ -169,7 +179,7 @@ def generate_header_file(yaml_file_name, header_file_name, mmu, list, includes):
     {{
         N_("{err['title']}"),
         N_("{err['text']}"),
-        ErrCode::{err['id']}{err['mmu_extra_text']}
+        ErrCode::{err['id']}{err['extra_text']}
     }}""" for err in err_dict.values())
 
     include_items = "\n".join([f"#include <{item}>" for item in includes])

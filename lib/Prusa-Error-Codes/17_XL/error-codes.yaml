@@ -227,7 +227,7 @@ Errors:
   approved: true
 - code: "17321"
   title: "POWER PANIC"
-  text: "Power panic has been detected during printer initialization. Inspect wiring of PP-cable."
+  text: "Power panic detected on startup. Check power panic cable."
   id: "ACF_AT_INIT"
   approved: false
 - code: "17322"
@@ -470,3 +470,4 @@ Errors:
   text: "USB flash drive contains\nunsupported firmware BBF file."
   id: "UNSUPPORTED_BBF_VERSION"
   approved: true
+# 17701 reserved
