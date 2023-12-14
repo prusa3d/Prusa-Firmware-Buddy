@@ -382,6 +382,8 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
 
 void phase_stepping::enable(AxisEnum axis_num, bool enable) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
+    assert_initialized();
+
     auto &axis_state = axis_states[axis_num];
     if (axis_state->active == enable) {
         return;
