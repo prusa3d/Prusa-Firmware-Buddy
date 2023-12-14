@@ -277,7 +277,7 @@ void phase_stepping::synchronize() {
 
 bool phase_stepping::processing() {
     return std::ranges::any_of(axis_states, [](const auto &state) -> bool {
-        return !state->pending_targets.isEmpty() || state->target.has_value();
+        return state && (!state->pending_targets.isEmpty() || state->target.has_value());
     });
 }
 
