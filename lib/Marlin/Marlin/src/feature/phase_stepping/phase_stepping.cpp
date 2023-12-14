@@ -283,11 +283,12 @@ bool phase_stepping::processing() {
 
 void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
-    assert(!planner.processing());
+    assert(!planner.has_blocks_queued() && !PreciseStepping::processing());
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto &stepper = static_cast<TMC2130Stepper &>(stepper_axis(axis_num));
     auto &axis_state = *axis_states[axis_num];
+    assert(!axis_state.active && !axis_state.target.has_value() && axis_state.pending_targets.isEmpty());
 
     // In order to start phase stepping, we have to set phase currents that are
     // in sync with current position, and then switch the driver to current
