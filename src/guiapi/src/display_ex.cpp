@@ -578,7 +578,17 @@ void display_ex_draw_qoi(point_ui16_t pt, const img::Resource &qoi, color_t back
     }
 
     if (!file) {
-        bsod("Could not get image resource file");
+        assert(false);
+        return;
+        /** we can actually get here if we draw img before bootstrap
+         * so we must not call bsod. 3 reproducers:
+         *
+         * 1) flash new mk4 FW to mk3.5 or vice versa - without bootloader
+         *
+         * 2) use bootloader to upload new fw, turn printer off and rebuild mk4 HW to mk3.5 or vice versa
+         *
+         * 3) reset fw in the moment you would get redscreen and upgrade fw
+         */
     }
 
     // Seek to the beginning of the image and draw
