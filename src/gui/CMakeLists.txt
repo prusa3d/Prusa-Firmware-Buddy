@@ -14,6 +14,7 @@ target_sources(
   PRIVATE box_unfinished_selftest.cpp
           file_sort.cpp
           fonts.cpp
+          frame_qr_layout.cpp
           gcode_description.cpp
           gui_bootstrap_screen.cpp
           gui_media_events.cpp
