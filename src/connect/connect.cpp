@@ -393,6 +393,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
             case Type::Json: {
                 auto command = Command::parse_json_command(command_id, reinterpret_cast<char *>(buffer + HDR_LEN), read - HDR_LEN, move(*buff));
                 planner().command(command);
+                break;
             }
             case Type::Gcode:
             case Type::ForcedGcode: {
@@ -406,6 +407,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                 // TODO: We should implement the distinction O:-)
                 const string_view body(reinterpret_cast<const char *>(buffer + HDR_LEN), read - HDR_LEN);
                 auto command = Command::gcode_command(command_id, body, move(*buff));
+                break;
             }
             }
 
