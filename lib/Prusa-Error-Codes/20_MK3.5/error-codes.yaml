@@ -164,7 +164,7 @@ Errors:
   # XX319-XX320 reserved
 - code: "20321"
   title: "POWER PANIC"
-  text: "Power panic has been detected during printer initialization. Inspect wiring of PP-cable."
+  text: "Power panic detected on startup. Check power panic cable."
   id: "ACF_AT_INIT"
   approved: false
 - code: "20401"
@@ -328,4 +328,9 @@ Errors:
   title: ""
   text: "USB flash drive contains\nunsupported firmware BBF file."
   id: "UNSUPPORTED_BBF_VERSION"
+  approved: true
+- code: "20701"
+  title: "Firmware Update Required"
+  text: "To continue, please insert the bundled USB flash drive and install the MK4/MK3.9 firmware"
+  id: "DIFFERENT_FW_REQUIRED"
   approved: true
