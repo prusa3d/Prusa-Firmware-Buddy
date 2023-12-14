@@ -13,6 +13,10 @@
 // #define ISR_DEADLINE_TRACKING // Accurate (but expensive) deadline miss tracking
 // #define ISR_EVENT_DEBUGGING // Enable audible warnings on event queue misses
 
+#ifdef ISR_DEADLINE_DEBUGGING
+    #warning "Dedline detection isn't working as intended after PreciseStepping::step_isr() was rewroted."
+#endif
+
 constexpr const double EPSILON = 0.000000001;
 constexpr const float EPSILON_FLOAT = 0.0000001f;
 
