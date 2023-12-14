@@ -168,6 +168,26 @@ const char *to_string(Type type) {
     return "Unknown";
 }
 
+const char *to_short_string(input_shaper::Type type) {
+    switch (type) {
+    case input_shaper::Type::zv:
+        return "ZV";
+    case input_shaper::Type::zvd:
+        return "ZVD";
+    case input_shaper::Type::mzv:
+        return "MZV";
+    case input_shaper::Type::ei:
+        return "EI";
+    case input_shaper::Type::ei_2hump:
+        return "EI2";
+    case input_shaper::Type::ei_3hump:
+        return "EI3";
+    default:
+        break;
+    }
+    return "UNK";
+}
+
 float clamp_frequency_to_safe_values(float frequency) {
     return std::clamp(frequency, frequency_safe_min, frequency_safe_max);
 }

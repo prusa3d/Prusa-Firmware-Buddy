@@ -7,26 +7,6 @@
 
 static constexpr const char *const str_disabled = N_("Disabled");
 
-static const char *to_short_string(input_shaper::Type type) {
-    switch (type) {
-    case input_shaper::Type::zv:
-        return "ZV";
-    case input_shaper::Type::zvd:
-        return "ZVD";
-    case input_shaper::Type::mzv:
-        return "MZV";
-    case input_shaper::Type::ei:
-        return "EI";
-    case input_shaper::Type::ei_2hump:
-        return "EI2";
-    case input_shaper::Type::ei_3hump:
-        return "EI3";
-    default:
-        break;
-    }
-    return "Unknown";
-}
-
 FooterItemInputShaperX::FooterItemInputShaperX(window_t *parent)
     : AddSuperWindow<FooterIconText_IntVal>(parent, &img::x_axis_16x16, static_makeViewIntoBuff, static_readValue) {}
 

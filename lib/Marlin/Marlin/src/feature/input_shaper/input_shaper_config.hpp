@@ -23,6 +23,7 @@ enum class Type : uint8_t {
 };
 
 const char *to_string(Type type);
+const char *to_short_string(Type type);
 
 static inline constexpr Type operator+(const Type lhs, const std::underlying_type<Type>::type rhs) {
     auto l_value = static_cast<std::underlying_type<Type>::type>(lhs);
