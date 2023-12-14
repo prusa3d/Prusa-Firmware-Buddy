@@ -69,24 +69,24 @@ dependencies = {
         }
     },
     'bootloader-mini': {
-        'version': '2.3.3',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.3.3-FF4CB940-276A-45F7-B8B3-6B053338D033.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.3.4-7B64E593-7827-405D-B11A-0FEAED674B15.zip',
     },
     'bootloader-mk4': {
-        'version': '2.3.3',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.3-A0D7174E-FA51-4D70-85D6-FD401DC2D303.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.4-4D895B74-E8D2-434A-8CCA-ACF549079EC5.zip',
     },
     'bootloader-mk3.5': {
-        'version': '2.3.3',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.3-A0D7174E-FA51-4D70-85D6-FD401DC2D303.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.4-4D895B74-E8D2-434A-8CCA-ACF549079EC5.zip',
     },
     'bootloader-xl': {
-        'version': '2.3.3',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.3.3-48A4ECD5-B06B-4503-A89E-A170F20E74FD.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.3.4-B3918045-C68D-4978-BD7D-CD91F7927B2D.zip',
     },
     'bootloader-ix': {
-        'version': '2.3.3',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.3.3-A1EAA4F7-B090-447F-9364-6C5A5E4D29E9.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.3.4-6474070A-0C8B-4436-BFD2-A5C0F1864CC7.zip',
     },
     'mini404': {
         'version': '0.9.10',
