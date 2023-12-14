@@ -684,7 +684,7 @@ void init_error_screen() {
     if constexpr (option::has_gui) {
         // init lcd spi and timer for buzzer
         SPI_INIT(lcd);
-#if !(BOARD_IS_XLBUDDY && _DEBUG)
+#if !(_DEBUG)
         hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
 #endif
 
