@@ -49,6 +49,7 @@ enum class Response : uint8_t {
     PETG_NH, // PETG without heating bed
     PLA,
     PP,
+    PCTG,
     Print,
     PrusaStock,
     Purge_more,
