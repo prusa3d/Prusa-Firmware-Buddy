@@ -342,11 +342,18 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                     BrokenCommand { "Could not parse command ID" } });
                 return ConnectionStatus::Ok;
             }
-            bool is_json;
+            enum class Type {
+                Json,
+                Gcode,
+                ForcedGcode,
+            };
+            Type type;
             if (buffer[0] == 'J') {
-                is_json = true;
+                type = Type::Json;
             } else if (buffer[0] == 'G') {
-                is_json = false;
+                type = Type::Gcode;
+            } else if (buffer[0] == 'F') {
+                type = Type::ForcedGcode;
             } else {
                 planner().command(Command {
                     command_id,
@@ -382,12 +389,24 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                 });
             }
 
-            if (is_json) {
+            switch (type) {
+            case Type::Json: {
                 auto command = Command::parse_json_command(command_id, reinterpret_cast<char *>(buffer + HDR_LEN), read - HDR_LEN, move(*buff));
                 planner().command(command);
-            } else {
+            }
+            case Type::Gcode:
+            case Type::ForcedGcode: {
+                // Forced GCode: The HTTP version has a `Force` header. The
+                // idea is we would refuse non-forced gcode during a print, but
+                // accept the forced one. We don't have that distinction
+                // implemented, but the websocket protocol needs to put the
+                // distinction somewhere and we need to understand both the `G`
+                // and `F` types.
+                //
+                // TODO: We should implement the distinction O:-)
                 const string_view body(reinterpret_cast<const char *>(buffer + HDR_LEN), read - HDR_LEN);
                 auto command = Command::gcode_command(command_id, body, move(*buff));
+            }
             }
 
             more = false;
