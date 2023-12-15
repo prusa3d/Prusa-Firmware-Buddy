@@ -2,13 +2,14 @@
 
 #include "DialogLoadUnload.hpp"
 #include "window_dlg_preheat.hpp"
+#include "window_dlg_warning.hpp"
 #include "static_alocation_ptr.hpp"
 #include <array>
 
 class DialogFactory {
     DialogFactory() = delete;
     DialogFactory(const DialogFactory &) = delete;
-    using mem_space = std::aligned_union<0, DialogLoadUnload, DialogMenuPreheat>::type;
+    using mem_space = std::aligned_union<0, DialogLoadUnload, DialogMenuPreheat, DialogWarning>::type;
     static mem_space all_dialogs;
 
     // safer than make_static_unique_ptr, checks storage size
@@ -26,6 +27,7 @@ public:
     static static_unique_ptr<IDialogMarlin> Preheat(fsm::BaseData data);
     static static_unique_ptr<IDialogMarlin> screen_not_dialog(fsm::BaseData data);
     static static_unique_ptr<IDialogMarlin> QuickPause(fsm::BaseData data);
+    static static_unique_ptr<IDialogMarlin> Warning(fsm::BaseData data);
 
     static Ctors GetAll(); // returns all factory methods in an array
 };

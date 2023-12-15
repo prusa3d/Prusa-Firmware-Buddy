@@ -59,6 +59,8 @@ const char *to_string(ClientFSM type) {
         return "CrashRecovery";
     case ClientFSM::QuickPause:
         return "QuickPause";
+    case ClientFSM::Warning:
+        return "Warning";
     case ClientFSM::PrintPreview:
         return "PrintPreview";
     case ClientFSM::_none:

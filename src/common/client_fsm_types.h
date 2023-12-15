@@ -17,6 +17,7 @@ enum class ClientFSM : uint8_t {
     Printing, // not a dialog
     CrashRecovery,
     QuickPause,
+    Warning,
     PrintPreview,
     _none, // cannot be created, must have same index as _count
     _count = _none

@@ -19,6 +19,7 @@ target_sources(
           window_dlg_quickpause.cpp
           window_dlg_strong_warning.cpp
           window_dlg_wait.cpp
+          window_dlg_warning.cpp
   )
 
 if(BOARD STREQUAL "BUDDY")

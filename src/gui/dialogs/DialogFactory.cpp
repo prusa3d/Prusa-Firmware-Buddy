@@ -4,6 +4,7 @@
 #include "DialogLoadUnload.hpp"
 #include "window_dlg_preheat.hpp"
 #include "window_dlg_quickpause.hpp"
+#include "window_dlg_warning.hpp"
 
 DialogFactory::mem_space DialogFactory::all_dialogs;
 
@@ -24,6 +25,10 @@ static_unique_ptr<IDialogMarlin> DialogFactory::QuickPause(fsm::BaseData data) {
     return makePtr<DialogQuickPause>(data);
 }
 
+static_unique_ptr<IDialogMarlin> DialogFactory::Warning(fsm::BaseData data) {
+    return makePtr<DialogWarning>(data);
+}
+
 DialogFactory::Ctors DialogFactory::GetAll() {
     // todo check if all fields are set
     std::array<fnc, size_t(ClientFSM::_count)> ret = { nullptr };
@@ -31,6 +36,7 @@ DialogFactory::Ctors DialogFactory::GetAll() {
     ret[size_t(ClientFSM::Printing)] = screen_not_dialog;
     ret[size_t(ClientFSM::CrashRecovery)] = screen_not_dialog;
     ret[size_t(ClientFSM::QuickPause)] = QuickPause;
+    ret[size_t(ClientFSM::Warning)] = Warning;
     ret[size_t(ClientFSM::PrintPreview)] = screen_not_dialog;
     ret[size_t(ClientFSM::Load_unload)] = load_unload;
     ret[size_t(ClientFSM::Preheat)] = Preheat;

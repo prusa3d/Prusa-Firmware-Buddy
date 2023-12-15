@@ -357,6 +357,12 @@ enum class PhasesQuickPause : uint16_t {
     _last = QuickPaused
 };
 
+enum class PhasesWarning : uint16_t {
+    _first = static_cast<uint16_t>(PhasesQuickPause::_last) + 1,
+    Warning = _first,
+    _last = Warning
+};
+
 // static class for work with fsm responses (like button click)
 // encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {
@@ -639,6 +645,11 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::QuickPauseResponses) == CountPhases<PhasesQuickPause>());
 
+    static constexpr PhaseResponses WarningResponses[] = {
+        { Response::Continue }, // Warning
+    };
+    static_assert(std::size(ClientResponses::WarningResponses) == CountPhases<PhasesWarning>());
+
     // methods to "bind" button array with enum type
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
@@ -647,6 +658,7 @@ class ClientResponses {
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesESP phase) { return ESPResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesESP::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesQuickPause phase) { return QuickPauseResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesQuickPause::_first)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesWarning phase) { return WarningResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesWarning::_first)]; }
 
 public:
     // get index of single response in PhaseResponses
