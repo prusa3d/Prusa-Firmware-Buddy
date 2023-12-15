@@ -8,14 +8,13 @@ void GcodeSuite::M46() {
     netdev_get_ipv4_addresses(netdev_get_active_id(), &ethconfig);
     uint8_t *ipp = (uint8_t *)&ethconfig.addr_ip4;
     char ip4[17] = { 0 };
-    sprintf(ip4, "%u.%u.%u.%u\n", ipp[0], ipp[1], ipp[2], ipp[3]);
+    snprintf(ip4, sizeof(ip4), "%u.%u.%u.%u\n", ipp[0], ipp[1], ipp[2], ipp[3]);
     serialprintPGM(ip4);
-
     if (parser.seen('M')) {
         mac_address_t mac;
+        char mac_buffer[19] = { 0 };
         get_MAC_address(&mac, netdev_get_active_id());
-        // Append a newline character to the mac parameter
-        strcat(mac, "\n");
+        snprintf(mac_buffer, sizeof(mac_buffer), "%s\n", mac);
         serialprintPGM(mac);
     }
 }
