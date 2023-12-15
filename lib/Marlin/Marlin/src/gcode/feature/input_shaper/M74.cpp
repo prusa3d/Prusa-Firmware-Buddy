@@ -48,10 +48,10 @@ void GcodeSuite::M74() {
 
     if (parser.seen('W')) {
         const float m = parser.value_float();
-        if (m > 0.f) {
+        if (m >= 0.f) {
             params.mass = m;
         } else {
-            SERIAL_ECHO_MSG("?Mass (W) must be greater than 0");
+            SERIAL_ECHO_MSG("?Mass (W) must be greater or equal 0");
         }
     }
 
