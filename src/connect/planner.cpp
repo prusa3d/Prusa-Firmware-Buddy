@@ -724,6 +724,11 @@ void Planner::command(const Command &command, [[maybe_unused]] const StopTransfe
     }
 }
 
+void Planner::command(const Command &command, const SetToken &params) {
+    printer.init_connect(reinterpret_cast<const char *>(params.token->data()));
+    planned_event = { EventType::Finished, command.id };
+}
+
 // FIXME: Handle the case when we are resent a command we are already
 // processing for a while. In that case, we want to re-Accept it. Nevertheless,
 // we may not be able to parse it again because the background command might be

@@ -294,7 +294,7 @@ const char *MarlinPrinter::get_cancel_object_name(char *buffer, size_t size, siz
 }
 #endif
 
-void MarlinPrinter::init_connect(char *token) {
+void MarlinPrinter::init_connect(const char *token) {
     config_store().connect_token.set(token);
     config_store().connect_enabled.set(true);
 }

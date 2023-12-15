@@ -111,6 +111,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
 
     DownloadAccumulator download_acc;
     bool has_path = false;
+    bool has_token = false;
 
     // Error from jsmn_parse will lead to -1 -> converted to 0, refused by json::search as Broken.
     const bool success = json::search(body, tokens, std::max(parse_result, 0), [&](const Event &event) {
@@ -137,6 +138,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("DELETE_FOLDER", DeleteFolder)
             T("CREATE_FOLDER", CreateFolder)
             T("STOP_TRANSFER", StopTransfer)
+            T("SET_TOKEN", SetToken)
             if (event.value == "START_ENCRYPTED_DOWNLOAD") {
                 data = StartEncryptedDownload {};
             } else {
@@ -154,6 +156,12 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             const size_t len = min(event.value->size() + 1, buff.size());
             strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
             has_path = true;
+            has_token = false;
+        } else if (is_arg("token", Type::String)) {
+            const size_t len = min(event.value->size() + 1, buff.size());
+            strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
+            has_token = true;
+            has_path = false;
         } else if (is_arg("port", Type::Primitive)) {
             port = convert_int<uint16_t>(event);
         } else if (is_arg("key", Type::String)) {
@@ -220,6 +228,15 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         } else {
             // Missing parameters, conflicting parameters, etc..
             data = BrokenCommand { "missing or wrong parameters" };
+        }
+    } else if (auto *token = get_if<SetToken>(&data); token != nullptr) {
+        if (has_token) {
+            token->token = std::make_shared<SharedBuffer::Borrow>(move(buff));
+            if (strlen(reinterpret_cast<const char *>(token->token->data())) > Printer::Config::CONNECT_TOKEN_LEN) {
+                data = BrokenCommand { "Token too long" };
+            }
+        } else {
+            data = BrokenCommand { "missing token" };
         }
     }
 
