@@ -52,7 +52,7 @@ public:
     virtual bool set_ready(bool ready) override;
     virtual bool is_printing() const override;
     virtual bool is_idle() const override;
-    virtual void init_connect(char *token) override;
+    virtual void init_connect(const char *token) override;
     virtual uint32_t cancelable_fingerprint() const override;
 #if ENABLED(CANCEL_OBJECTS)
     virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const override;

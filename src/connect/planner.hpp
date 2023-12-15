@@ -147,6 +147,7 @@ private:
     void command(const Command &, const DeleteFolder &);
     void command(const Command &, const CreateFolder &);
     void command(const Command &, const StopTransfer &);
+    void command(const Command &, const SetToken &);
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;

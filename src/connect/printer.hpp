@@ -191,7 +191,7 @@ public:
     // (The other config ‒ hostname, port, … ‒ are left unchanged).
     //
     // (Not const char * for technical reasons).
-    virtual void init_connect(char *token) = 0;
+    virtual void init_connect(const char *token) = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load
     // (unless the reset_fingerprint is set to false, in which case the flag is

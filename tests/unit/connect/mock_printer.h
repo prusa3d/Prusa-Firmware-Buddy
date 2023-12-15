@@ -82,7 +82,7 @@ public:
         return false;
     }
 
-    virtual void init_connect(char *) override {}
+    virtual void init_connect(const char *) override {}
 
     virtual uint32_t cancelable_fingerprint() const override {
         return 0;

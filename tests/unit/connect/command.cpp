@@ -110,3 +110,16 @@ TEST_CASE("Start connect download - encrypted") {
     }
     REQUIRE(cmd.iv == expected);
 }
+
+TEST_CASE("Set token") {
+    auto cmd = command_test<SetToken>("{\"kwargs\": {\"token\":\"toktoktok\"}, \"command\": \"SET_TOKEN\"}");
+    REQUIRE(strcmp(reinterpret_cast<const char *>(cmd.token->data()), "toktoktok") == 0);
+}
+
+TEST_CASE("Set token ‒ missing params") {
+    command_test<BrokenCommand>("{\"kwargs\": {}, \"command\": \"SET_TOKEN\"}");
+}
+
+TEST_CASE("Set token ‒ Too long") {
+    command_test<BrokenCommand>("{\"kwargs\": {\"token\":\"123456789012345678901234567890\"}, \"command\": \"SET_TOKEN\"}");
+}
