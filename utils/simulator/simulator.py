@@ -50,6 +50,7 @@ class Simulator:
             eeprom_content: Optional[Tuple[Path, Path]] = None,
             xflash_content: Optional[Path] = None,
             nographic=False,
+            usbserial=True,
             invoke_callback: Optional[Callable[[List[str]], None]] = None,
             extra_arguments: Optional[List[str]] = None):
         # prepare the arguments
@@ -61,7 +62,7 @@ class Simulator:
         if machine.is_puppy:
             params += ['-icount', '5']
         else:
-            params += ['-icount', 'auto']
+            params += ['-icount', '2']
         if scriptio_port:
             params += [
                 '-chardev',
@@ -98,6 +99,8 @@ class Simulator:
             ]
         if nographic:
             params += ['-nographic']
+        if usbserial:
+            params += ['-chardev', 'vc,rows=25,cols=80,id=stm32usbfscdc']
         if extra_arguments:
             params += extra_arguments
 
