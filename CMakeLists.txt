@@ -13,6 +13,9 @@ project(
   VERSION ${PROJECT_VERSION}
   )
 
+# Sets Python3_FIND_STRATEGY to "LOCATION"
+cmake_policy(SET CMP0094 NEW)
+
 # Enable initialization of subprojects without their submodules
 cmake_policy(SET CMP0097 NEW)
 
