@@ -192,6 +192,8 @@ constexpr const char *to_string(Item item) {
 #else
         break;
 #endif
+    case Item::nozzle_diameter:
+        return N_("Nozzle diameter");
     case Item::f_sensor_side:
 #if HAS_SIDE_FSENSOR()
         return N_("FSensor side");

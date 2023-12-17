@@ -21,6 +21,7 @@
 #include "footer_item_fsvalue.hpp"
 #include "footer_item_input_shaper.hpp"
 #include "footer_item_enclosure.hpp"
+#include "footer_item_nozzle_diameter.hpp"
 #include <option/has_mmu2.h>
 
 namespace footer {
@@ -63,6 +64,8 @@ using ItemUnion = std::aligned_union<
     ,
     FooterItemEnclosure
 #endif
+    ,
+    FooterItemNozzleDiameter
     >::type;
 
 inline void *encode_item_for_event(Item item) {
