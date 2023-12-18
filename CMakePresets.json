@@ -2467,7 +2467,7 @@
             }
         },
         {
-            "name": "iX-xBuddy027c-200step_debug_boot",
+            "name": "ix_debug_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -2530,7 +2530,7 @@
             }
         },
         {
-            "name": "iX-xBuddy027c-200step_debug_noboot",
+            "name": "ix_debug_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -2593,7 +2593,7 @@
             }
         },
         {
-            "name": "iX-xBuddy027c-200step_release_boot",
+            "name": "ix_release_boot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {
@@ -2656,7 +2656,7 @@
             }
         },
         {
-            "name": "iX-xBuddy027c-200step_release_noboot",
+            "name": "ix_release_noboot",
             "generator": "Ninja",
             "binaryDir": "build-vscode-buddy",
             "cacheVariables": {

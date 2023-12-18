@@ -139,7 +139,7 @@ pipeline {
                             'mk4,release,noboot',
                             'xl,release,yesboot',
                             'xl-xbuddy04,release,emptyboot',
-                            'ix-xBuddy027c-200step,release,yesboot'
+                            'ix,release,yesboot'
                     }
                 }
                 stages {

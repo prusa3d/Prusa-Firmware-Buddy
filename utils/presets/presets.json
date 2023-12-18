@@ -113,8 +113,8 @@
             }
         },
         {
-            "name": "iX-xBuddy027c-200step",
-            "description": "Original Prusa iX with xBuddy 0.2.7c and 200-step motors",
+            "name": "ix",
+            "description": "Original Prusa iX with xBuddy 0.2.7c or newer, with 200-step motors",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "iX",
