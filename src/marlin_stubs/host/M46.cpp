@@ -15,6 +15,6 @@ void GcodeSuite::M46() {
         char mac_buffer[19] = { 0 };
         get_MAC_address(&mac, netdev_get_active_id());
         snprintf(mac_buffer, sizeof(mac_buffer), "%s\n", mac);
-        serialprintPGM(mac);
+        serialprintPGM(mac_buffer);
     }
 }
