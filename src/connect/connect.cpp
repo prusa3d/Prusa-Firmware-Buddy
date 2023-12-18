@@ -182,7 +182,11 @@ namespace {
     // TODO: We probably want to be able to both have a smaller buffer and
     // handle larger responses. We need some kind of parse-as-it-comes approach
     // for that.
-    const constexpr size_t MAX_RESP_SIZE = 340;
+    // Note: This buffer is huge, but we are in the shallow waters of the stack, so it
+    // should be fine, even 3200 buffer still did not overflow in my tests, even in debug.
+    // So unless the call stack changes significantly, we are fine, just beware if doing
+    // larger changes, or using this elsewhere.
+    const constexpr size_t MAX_RESP_SIZE = 512;
 
     // Send a full telemetry every 5 minutes.
     const constexpr Duration FULL_TELEMETRY_EVERY = 5 * 60 * 1000;

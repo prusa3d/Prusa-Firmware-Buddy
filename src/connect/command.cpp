@@ -183,13 +183,11 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
     }
 
     auto get_path = [&](SharedPath &path) -> void {
-        if (has_path) {
-            [[maybe_unused]] const bool unescape_success = json_unescape_bytes(reinterpret_cast<char *>(buff.data()), reinterpret_cast<char *>(buff.data()));
-            assert(unescape_success);
+        if (has_path && json_unescape_bytes(reinterpret_cast<char *>(buff.data()), reinterpret_cast<char *>(buff.data()))) {
             path = SharedPath(move(buff));
         } else {
             // Missing parameters
-            data = BrokenCommand { "missing path" };
+            data = BrokenCommand { "missing or invalid path" };
         }
     };
 
@@ -212,14 +210,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         get_path(create_folder->path);
     } else if (auto *download = get_if<StartEncryptedDownload>(&data); download != nullptr) {
         const bool ok = has_path && download_acc.validate();
-        if (ok) {
-            // XXX: We need some decoding here.
-            //
-            // However, the path is partially SFN (the dirname of it) and
-            // partially LFN (the basename/filename part). Each one needs
-            // different decoding, postponing this one until later, since we
-            // are not yet agreed on the way we'll be doing decoding of the LFN
-            // (or if at all, on our side).
+        if (ok && json_unescape_bytes(reinterpret_cast<char *>(buff.data()), reinterpret_cast<char *>(buff.data()))) {
             download->path = SharedPath(move(buff));
             download->key = download_acc.key;
             download->iv = download_acc.iv;
