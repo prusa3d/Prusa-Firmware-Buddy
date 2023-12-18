@@ -46,7 +46,7 @@ class InterruptableGoldenSearch {
     const char *_debug_name;
 
     void _do_iteration() {
-        log_debug(PhaseStepping, "%s: it %d, bracket (%f, %f) = (%f, %f)",
+        log_info(PhaseStepping, "%s: it %d, bracket (%f, %f) = (%f, %f)",
             _debug_name, _iterations, _c, _d, _fc, _fd);
 
 #ifdef SERIAL_DEBUG
@@ -303,6 +303,8 @@ std::optional<std::tuple<int, int>> matching_samples_count(int sample_count, flo
     int relevant_samples_count = int(motor_period_count * motor_period_duration / sampling_duration * sample_count);
 
     if (relevant_samples_count >= sample_count) {
+        log_error(PhaseStepping, "Not enough samples for calibration: %d/%d",
+            relevant_samples_count, sample_count);
         return std::nullopt;
     }
 
@@ -336,6 +338,7 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
     plan_move_by(feedrate_mms, d_x, d_y);
 
     if (!wait_for_accel_end(axis_state)) {
+        log_error(PhaseStepping, "Acceleration phase didn't ended within timeout");
         return 0;
     }
 
@@ -344,7 +347,7 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
     int counter = 0;
     PrusaAccelerometer accelerometer;
     if (accelerometer.get_error() != PrusaAccelerometer::Error::none) {
-        log_debug(PhaseStepping, "Cannot initialize accelerometer %u", static_cast<unsigned>(accelerometer.get_error()));
+        log_error(PhaseStepping, "Cannot initialize accelerometer %u", static_cast<unsigned>(accelerometer.get_error()));
         return 0;
     }
     accelerometer.clear();
@@ -357,7 +360,7 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
         }
     }
     if (accelerometer.get_error() != PrusaAccelerometer::Error::none) {
-        log_debug(PhaseStepping, "Accelerometer reading failed %u", static_cast<unsigned>(accelerometer.get_error()));
+        log_error(PhaseStepping, "Accelerometer reading failed %u", static_cast<unsigned>(accelerometer.get_error()));
         return 0;
     }
     return accelerometer.get_sampling_rate();
@@ -377,6 +380,7 @@ std::vector<float> phase_stepping::analyze_resonance(AxisEnum axis,
 
     log_info(PhaseStepping, "Accelerometer sampling freq: %f", sampling_freq);
     if (sampling_freq < 1100 || sampling_freq > 1500) {
+        log_error(PhaseStepping, "Sampling freq out of range: %f", sampling_freq);
         return {};
     }
 
@@ -384,12 +388,13 @@ std::vector<float> phase_stepping::analyze_resonance(AxisEnum axis,
         signal.size(), sampling_freq, axis, speed);
 
     if (!msc_r.has_value()) {
+        log_error(PhaseStepping, "Cannot analyze resonance, no matching sample count");
         return {};
     }
     auto [motor_period_count, samples_count] = *msc_r;
 
     if (samples_count < 3) {
-        log_debug(PhaseStepping, "Too short signal: %d", samples_count);
+        log_error(PhaseStepping, "Cannot analyze resonance, too short signal: %d", samples_count);
         return {};
     }
 
@@ -465,6 +470,7 @@ class CalibrationPhaseExecutor {
 
             for (int retries = 0; retries <= RETRY_COUNT; retries++) {
                 if (retries == RETRY_COUNT) {
+                    log_error(PhaseStepping, "Out of retries in argument search");
                     return std::nullopt;
                 }
                 if (retries != 0) {
@@ -486,6 +492,7 @@ class CalibrationPhaseExecutor {
                     backward_search.submit(b_res[0]);
                     break;
                 }
+                log_error(PhaseStepping, "Resonance analysis failed in argument search");
             }
             _reporter.on_calibration_phase_progress(100 * (_progress++) / _progress_tick_count());
 
@@ -535,6 +542,7 @@ public:
             }
         }
 
+        log_error(PhaseStepping, "Cannot obtain baseline measurement");
         return std::nullopt;
     }
 
