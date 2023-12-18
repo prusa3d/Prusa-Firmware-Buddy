@@ -180,6 +180,7 @@ bool     tu_fifo_empty                  (tu_fifo_t* f);
 bool     tu_fifo_full                   (tu_fifo_t* f);
 bool     tu_fifo_overflowed             (tu_fifo_t* f);
 void     tu_fifo_correct_read_pointer   (tu_fifo_t* f);
+bool     tu_fifo_is_overwritable        (tu_fifo_t* f);
 
 TU_ATTR_ALWAYS_INLINE static inline
 uint16_t tu_fifo_depth(tu_fifo_t* f)
