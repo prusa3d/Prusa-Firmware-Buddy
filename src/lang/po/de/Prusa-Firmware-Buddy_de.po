@@ -5464,7 +5464,7 @@ msgstr "Rückziehen von FINDA"
 
 #: src/common/client_response_texts.hpp:116
 msgid "RETRY"
-msgstr "WIEDERHOLEN"
+msgstr "WDH."
 
 #: src/guiapi/include/WindowMenuItems.hpp:72
 #: src/guiapi/include/window_tool_action_box.hpp:100
@@ -7506,8 +7506,7 @@ msgstr ""
 msgid ""
 "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
 msgstr ""
-"Willkommen beim Original Prusa MINI Einrichtungsassistenten. Möchten Sie "
-"fortfahren?"
+"Willkommen zum Original Prusa MINI Einrichtungsassistent\nFortfahren ?"
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:98
 msgid ""
