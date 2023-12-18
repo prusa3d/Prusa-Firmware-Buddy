@@ -147,6 +147,13 @@ static inline void _ff_push(tu_fifo_t* f, void const * app_buf, uint16_t rel)
   memcpy(f->buffer + (rel * f->item_size), app_buf, f->item_size);
 }
 
+// checks if the FIFO buffer is overwritable
+bool tu_fifo_is_overwritable(tu_fifo_t* f)
+{
+  return f->overwritable;
+}
+
+
 // send n items to fifo WITHOUT updating write pointer
 static void _ff_push_n(tu_fifo_t* f, void const * app_buf, uint16_t n, uint16_t wr_ptr, tu_fifo_copy_mode_t copy_mode)
 {

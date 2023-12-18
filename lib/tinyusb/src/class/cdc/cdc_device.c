@@ -190,7 +190,7 @@ uint32_t tud_cdc_n_write_flush (uint8_t itf)
   cdcd_interface_t* p_cdc = &_cdcd_itf[itf];
 
   // Skip if cdc is not ready yet
-  TU_VERIFY( tud_cdc_n_connected(itf), 0 );
+  TU_VERIFY( tud_ready() && !tu_fifo_is_overwritable(&p_cdc->tx_ff), 0 );
 
   // No data to send
   if ( !tu_fifo_count(&p_cdc->tx_ff) ) return 0;
