@@ -833,17 +833,25 @@ void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
         return;
     }
 
-    if (index) {
-        if (config_store().selftest_result_phase_stepping.get() != TestResult_Passed) {
-            AutoRestore ar(event_in_progress, true);
-            MsgBoxWarning(_("Phase stepping not ready: perform calibration first."), Responses_Ok);
-            index = old_index;
-            return;
-        }
+    if (index && (config_store().selftest_result_phase_stepping.get() != TestResult_Passed)) {
+        AutoRestore ar(event_in_progress, true);
+        MsgBoxWarning(_("Phase stepping not ready: perform calibration first."), Responses_Ok);
+        index = old_index;
+        return;
+    }
 
+    if (index) {
         marlin_server::enqueue_gcode("M970 X Y"); // turn phase stepping on
     } else {
         marlin_server::enqueue_gcode("M971 X Y"); // turn phase stepping off
     }
+
+    // we need to wait until the action actually takes place so that when returning
+    // to the menu (if any) the new state is already reflected
+    gui_dlg_wait([&]() {
+        if (index == config_store().phase_stepping_enabled_x.get()) {
+            Screens::Access()->Close();
+        }
+    });
 }
 #endif
