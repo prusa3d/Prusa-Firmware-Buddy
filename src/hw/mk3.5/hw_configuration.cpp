@@ -47,7 +47,7 @@ Configuration::Configuration() {
 }
 
 /**
- * valid ata from loveboard mean, tht we have MK4 HW, since MK3.5 does not have loveboard
+ * valid data from loveboard mean, tht we have MK4 HW, since MK3.5 does not have loveboard
  */
 bool Configuration::is_fw_incompatible_with_hw() {
     return error__loveboard_detected;
