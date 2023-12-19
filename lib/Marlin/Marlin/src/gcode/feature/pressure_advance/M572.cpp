@@ -36,22 +36,15 @@ static void dump_current_config() {
  */
 void GcodeSuite::M572() {
     const pressure_advance::Config &pa_config = pressure_advance::get_axis_e_config();
-    const bool seen_d = parser.seen('D');
-    const bool seen_s = parser.seen('S');
-    const bool seen_w = parser.seen('W');
-
-    if (!seen_d && !seen_s && !seen_w) {
-        dump_current_config();
-        return;
-    }
-
     float pressure_advance = pa_config.pressure_advance;
     float smooth_time = pa_config.smooth_time;
 
+    const bool seen_d = parser.seen('D');
     if (seen_d) {
         SERIAL_ECHO_MSG("?Extruder number is not yet supported");
     }
 
+    const bool seen_s = parser.seen('S');
     if (seen_s) {
         const float s = parser.value_float();
         if (WITHIN(s, 0.f, 10.f)) {
@@ -61,6 +54,7 @@ void GcodeSuite::M572() {
         }
     }
 
+    const bool seen_w = parser.seen('W');
     if (seen_w) {
         const float w = parser.value_float();
         if (WITHIN(w, 0.f, 0.2f)) {
@@ -68,6 +62,11 @@ void GcodeSuite::M572() {
         } else {
             SERIAL_ECHO_MSG("?Pressure advance smooth time (W) value out of range (0-0.2)");
         }
+    }
+
+    if (!seen_d && !seen_s && !seen_w) {
+        dump_current_config();
+        return;
     }
 
     M572_internal(pressure_advance, smooth_time);
