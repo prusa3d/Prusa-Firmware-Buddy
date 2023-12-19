@@ -21,10 +21,6 @@
     #include <feature/prusa/MMU2/mmu2_mk4.h>
 #endif
 
-#ifdef DEBUG_FSENSOR_IN_HEADER
-    #include "filament_sensors_handler.hpp"
-#endif
-
 #include "Marlin/src/module/motion.h"
 #include "Marlin/src/feature/bed_preheat.hpp"
 
@@ -248,30 +244,7 @@ screen_printing_data_t::screen_printing_data_t()
 #endif
 }
 
-#ifdef DEBUG_FSENSOR_IN_HEADER
-extern int _is_in_M600_flg;
-extern uint32_t *pCommand;
-#endif
-
 void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-#ifdef DEBUG_FSENSOR_IN_HEADER
-    static int _last = 0;
-    if (gui::GetTick() - _last > 300) {
-        _last = gui::GetTick();
-
-        static char buff[] = "Sx Mx x xxxx"; //"x"s are replaced
-        buff[1] = FSensors_instance().Get() + '0'; // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
-        buff[4] = FSensors_instance().GetM600_send_on(); // Me edge, Ml level, Mn never, Mx undefined
-        buff[6] = FSensors_instance().WasM600_send() ? 's' : 'n'; // s == send, n== not send
-        buff[8] = _is_in_M600_flg ? 'M' : '0'; // M == marlin is doing M600
-        buff[9] = marlin_event(Event::CommandBegin) ? 'B' : '0'; // B == Event begin
-        buff[10] = marlin_command() == MARLIN_CMD_M600 ? 'C' : '0'; // C == Command M600
-        buff[11] = *pCommand == MARLIN_CMD_M600 ? 's' : '0'; // s == server - Command M600
-        header.SetText(buff);
-    }
-
-#endif
-
     /// check stop clicked when MBL is running
     printing_state_t p_state = GetState();
     if (
@@ -551,10 +524,7 @@ void screen_printing_data_t::screen_printing_reprint() {
     print_begin(gui_media_SFN_path, marlin_server::PreviewSkipIfAble::preview);
     screen_printing_data_t::updateTimes(); // reinit, but should be already set correctly
     SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Stop, LabelRes::Stop);
-
-#ifndef DEBUG_FSENSOR_IN_HEADER
     header.SetText(_(caption));
-#endif
 }
 
 // todo use it

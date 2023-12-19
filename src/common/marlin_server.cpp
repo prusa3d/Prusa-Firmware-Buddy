@@ -356,9 +356,6 @@ osThreadId server_task = 0; // task handle
 osMessageQId server_queue = 0; // input queue (uint8_t)
 osSemaphoreId server_semaphore = 0; // semaphore handle
 
-#ifdef DEBUG_FSENSOR_IN_HEADER
-uint32_t *pCommand = &server.command;
-#endif
 idle_t *idle_cb = 0; // idle callback
 
 void _add_status_msg(const char *const popup_msg) {
@@ -2906,10 +2903,6 @@ static void _server_set_var(const char *const request) {
     // if we got here, no variable was set, return error
     bsod("unimplemented _server_set_var for var_id %i", (int)variable_identifier);
 }
-
-#ifdef DEBUG_FSENSOR_IN_HEADER
-int _is_in_M600_flg = 0;
-#endif
 
 void _fsm_create(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line) {
     fsm_event_queues.PushCreate(type, data, fnc, file, line);

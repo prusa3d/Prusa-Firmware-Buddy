@@ -19,6 +19,3 @@
     #define WDT_IWDG_ENABLED
 // #define WDT_WWDG_ENABLED
 #endif //_DEBUG
-
-// show filament sensor status in header
-// #define DEBUG_FSENSOR_IN_HEADER
