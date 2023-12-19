@@ -5,4 +5,3 @@
 #include <device/board.h>
 #include "printers.h"
 #include "MarlinPin.h"
-#define PRUSA_MARLIN_API
