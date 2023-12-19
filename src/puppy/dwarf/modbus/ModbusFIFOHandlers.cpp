@@ -91,6 +91,7 @@ size_t handle_encoded_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo) {
         pickup_accelerometer_sample(encoder, encoded);
         if (encoded) {
             acc_sample_counter++;
+            continue; // Continue packing accelerometer samples - the highest priority
         }
 
         if (acc_sample_counter >= 100) {
@@ -111,6 +112,7 @@ size_t handle_encoded_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo) {
             if (dwarf::loadcell::get_loadcell_sample(sample)) {
                 if (encoder.encode(sample)) {
                     encoded = true;
+                    continue; // Continue packing loadcell samples - the second highest priority
                 } else {
                     failed_to_encode();
                 }
