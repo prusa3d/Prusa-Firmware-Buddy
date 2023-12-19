@@ -1235,6 +1235,8 @@ void set_axes_length(xy_float_t xy) {
 }
 #endif // ENABLED(AXIS_MEASURE)
 
+static const uint8_t PAUSE_NOZZLE_TIMEOUT = 45; // nozzle "sleep" after 45s inside paused state
+
 void nozzle_timeout_on() {
     server.enable_nozzle_temp_timeout = true;
 };

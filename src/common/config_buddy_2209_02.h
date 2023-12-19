@@ -22,6 +22,3 @@
 
 // show filament sensor status in header
 // #define DEBUG_FSENSOR_IN_HEADER
-
-// new pause settings
-static const uint8_t PAUSE_NOZZLE_TIMEOUT = 45; // nozzle "sleep" after 45s inside paused state
