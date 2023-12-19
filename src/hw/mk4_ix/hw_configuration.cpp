@@ -78,7 +78,7 @@ bool Configuration::is_fw_incompatible_with_hw() {
     return mk35_extruder_detected;
 
 #else
-    return false; // TODO do we want to check something on iX?
+    return false; // There is no need for this compatibility check on other build configurations
 #endif
 }
 
