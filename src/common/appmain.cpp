@@ -37,7 +37,9 @@
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
 #include "main.h"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "timing.h"
 #include "tasks.hpp"
 #include "Marlin/src/module/planner.h"

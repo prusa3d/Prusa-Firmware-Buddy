@@ -1,7 +1,10 @@
 /**
  * @file
  */
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include <wdt.hpp>
 #include "at21csxx_otp.hpp"
 #include "FreeRTOS.h"

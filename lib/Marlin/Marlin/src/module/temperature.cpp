@@ -38,7 +38,10 @@
 #include "bsod.h"
 #include "metric.h"
 #include "../../../../src/common/hwio.h"
-#include "../../../../src/common/config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "../../../../src/common/adc.hpp"
 
 #define MAX6675_SEPARATE_SPI (EITHER(HEATER_0_USES_MAX6675, HEATER_1_USES_MAX6675) && PINS_EXIST(MAX6675_SCK, MAX6675_DO))

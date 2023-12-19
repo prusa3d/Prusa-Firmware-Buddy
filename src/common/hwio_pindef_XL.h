@@ -3,8 +3,10 @@
 #pragma once
 
 #include "PCA9557.hpp"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
 #include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "buddy/priorities_config.h"
 
 #define MARLIN_PORT_X_DIR    MARLIN_PORT_D

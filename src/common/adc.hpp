@@ -4,7 +4,9 @@
 #include <device/hal.h>
 #include <device/board.h>
 #include <device/peripherals.h>
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "sum_ring_buffer.hpp"
 #include <device/hal.h>
 #include <limits>

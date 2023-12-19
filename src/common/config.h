@@ -2,7 +2,9 @@
 #pragma once
 
 #include "printers.h"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "MarlinPin.h"
 
 //--------------------------------------
 // BUDDY_ENABLE_ETHERNET configuration
