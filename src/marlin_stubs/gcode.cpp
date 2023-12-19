@@ -6,8 +6,10 @@
 #include "M330.h"
 #include "M340.h"
 #include "M919-M920.h"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
 #include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "metric.h"
 #include <option/has_loadcell.h>
 #include <option/has_toolchanger.h>

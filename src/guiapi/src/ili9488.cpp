@@ -10,13 +10,15 @@
 #include "bsod.h"
 #include <ccm_thread.hpp>
 #include "cmath_ext.h"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 
 #include "touch_dependency.hpp"
 
 #include "raster_opfn_c.h"
 #include "hwio_pindef.h"
-#include <device/board.h>
 #ifdef ILI9488_USE_RTOS
     #include "cmsis_os.h"
 #endif // ILI9488_USE_RTOS

@@ -2,13 +2,15 @@
  * @file c_fan_ctl.cpp
  */
 
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "c_fan_ctl.hpp"
 #include <device/hal.h>
 #include "cmsis_os.h"
 #include "gpio.h"
 #include <stdlib.h>
-#include <device/board.h>
 #include <random.h>
 
 #if (BOARD_IS_XBUDDY)

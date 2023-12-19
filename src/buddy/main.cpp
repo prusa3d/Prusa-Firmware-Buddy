@@ -25,7 +25,9 @@
 #include "metric_handlers.h"
 #include "hwio_pindef.h"
 #include "gui.hpp"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "crc32.h"
 #include "w25x.h"
 #include "timing.h"
@@ -46,7 +48,6 @@
 #include <espif.h>
 #include "sound.hpp"
 #include <ccm_thread.hpp>
-#include <printers.h>
 #include "version.h"
 #include "str_utils.hpp"
 #include "data_exchange.hpp"
