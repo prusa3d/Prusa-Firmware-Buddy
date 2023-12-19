@@ -98,6 +98,7 @@ void SystemClock_Config(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
 void StartConnectTask(void const *argument);
+void StartConnectTaskError(void const *argument); // Version for redscreen
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
@@ -245,13 +246,50 @@ extern "C" void main_cpp(void) {
         bsod("failed to initialize ext flash");
     }
 
+    const bool want_error_screen = (dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed());
+
+#if BUDDY_ENABLE_CONNECT()
+    // On a place shared for both code branches, so we have just one connectTask buffer.
+    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
+#endif
+
     /*
      * If we have BSOD or red screen we want to have as small boot process as we can.
      * We want to init just xflash, display and start gui task to display the bsod or redscreen
      */
-    if ((dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed())) {
+    if (want_error_screen) {
         hwio_safe_state();
         init_error_screen();
+
+#if BUDDY_ENABLE_WUI() && BUDDY_ENABLE_CONNECT()
+        // We want to send the redscreen/bluescreen/error to Connect to show there.
+        //
+        // For that we need networking (and some other peripherals). We do not
+        // init the rest - including the USB stack.
+        //
+        // We do not start link and we run Connect in special mode that allows
+        // mostly nothing.
+        //
+        // block esp in tester mode (redscreen probably shouldn't happen on tester, but better safe than sorry)
+        if (get_auto_update_flag() != FwAutoUpdate::tester_mode && config_store().connect_enabled.get()) {
+            TaskDeps::components_init();
+            UART_INIT(esp);
+            // Needed for certificate verification
+            hw_rtc_init();
+            // Needed for SSL random data
+            hw_rng_init();
+
+            espif_init_hw();
+
+            espif_task_create();
+
+            TaskDeps::wait(TaskDeps::Tasks::network);
+            start_network_task(/*allow_full=*/false);
+            // definition and creation of connectTask
+            TaskDeps::wait(TaskDeps::Tasks::connect);
+            connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
+        }
+#endif
         return;
     }
     bsod_mark_shown(); // BSOD would be shown, allow new BSOD dump
@@ -421,7 +459,7 @@ extern "C" void main_cpp(void) {
         espif_task_create();
 
         TaskDeps::wait(TaskDeps::Tasks::network);
-        start_network_task();
+        start_network_task(/*allow_full=*/true);
     }
 #endif
 
@@ -434,7 +472,6 @@ extern "C" void main_cpp(void) {
     if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
         // definition and creation of connectTask
         TaskDeps::wait(TaskDeps::Tasks::connect);
-        osThreadCCMDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
         connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
     }
 #endif
@@ -584,6 +621,10 @@ void StartErrorDisplayTask([[maybe_unused]] void const *argument) {
 #if BUDDY_ENABLE_CONNECT()
 void StartConnectTask([[maybe_unused]] void const *argument) {
     connect_client::run();
+}
+
+void StartConnectTaskError([[maybe_unused]] void const *argument) {
+    connect_client::run_error();
 }
 #endif
 
