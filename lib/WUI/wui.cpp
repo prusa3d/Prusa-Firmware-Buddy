@@ -124,6 +124,10 @@ public:
     };
 
 private:
+    // Allow running link, marlin client, etc?
+    //
+    // Set only before starting, then read only.
+    static bool allow_full;
     freertos::Mutex mutex;
     enum class Mode {
         Off,
@@ -215,7 +219,9 @@ private:
         } else {
             // FIXME: ???
         }
-        wui_marlin_client_init();
+        if (allow_full) {
+            wui_marlin_client_init();
+        }
 
         // Won't fail with eSetBits
         xTaskNotify(network_task, CoreInitDone, eSetBits);
@@ -320,7 +326,7 @@ private:
 
         lock.unlock();
 
-        if (config_store().prusalink_enabled.get() == 1) {
+        if (allow_full && config_store().prusalink_enabled.get() == 1) {
             httpd_instance()->start();
         } else {
             httpd_instance()->stop();
@@ -332,7 +338,9 @@ private:
         // thread starts.
         tcpip_init(tcpip_init_done_raw, this);
 
-        prusalink_password_init();
+        if (allow_full) {
+            prusalink_password_init();
+        }
 
         // During init, we store the events for later. Therefore, we accumulate
         // them until consumed.
@@ -464,7 +472,8 @@ public:
         instance = this;
         last_esp_ok = sys_now();
     }
-    static void run_task() {
+    static void run_task(bool allow_full) {
+        NetworkState::allow_full = allow_full;
         osThreadCCMDef(network, task_main, TASK_PRIORITY_WUI, 0, 1024);
         osThreadCreate(osThread(network), nullptr);
     }
@@ -538,11 +547,12 @@ public:
 };
 
 std::atomic<NetworkState *> NetworkState::instance = nullptr;
+bool NetworkState::allow_full = false;
 
 } // namespace
 
-void start_network_task() {
-    NetworkState::run_task();
+void start_network_task(bool allow_full) {
+    NetworkState::run_task(allow_full);
 }
 
 const char *wui_get_password() {

@@ -51,12 +51,14 @@ public:
     virtual void submit_gcode(const char *code) override;
     virtual bool set_ready(bool ready) override;
     virtual bool is_printing() const override;
+    virtual bool is_in_error() const override;
     virtual bool is_idle() const override;
     virtual void init_connect(const char *token) override;
     virtual uint32_t cancelable_fingerprint() const override;
 #if ENABLED(CANCEL_OBJECTS)
     virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const override;
 #endif
+    virtual std::tuple<const char *, uint16_t> err_details() const override;
 
     static bool load_cfg_from_ini();
 

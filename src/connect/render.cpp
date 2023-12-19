@@ -85,6 +85,9 @@ namespace {
         //   update_telemetry block, we just enter it. If it happens after, it
         //   has no effect (it's been already skipped).
         const bool update_telemetry = state.telemetry_changes.set_hash(current_fingerprint);
+        // Prepare them before the hidden switch
+        const auto error_details = state.printer.err_details();
+
         // Keep the indentation of the JSON in here!
         // clang-format off
         JSON_START;
@@ -175,6 +178,12 @@ namespace {
 
                 if (params.state.device_state == DeviceState::Attention && params.state.attention_code.has_value()) {
                     JSON_FIELD_STR("attention_code", to_str(*params.state.attention_code, attention_code_buffer, sizeof(attention_code_buffer))) JSON_COMMA;
+                }
+                if (params.state.device_state == DeviceState::Error && get<const char *>(error_details) != nullptr) {
+                    JSON_FIELD_STR("reason", get<const char *>(error_details)) JSON_COMMA;
+                    if (get<uint16_t>(error_details) != 0) { // 0 means unknown / not available
+                        JSON_FIELD_INT("error_code", get<uint16_t>(error_details)) JSON_COMMA;
+                    }
                 }
                 // State is sent always, first because it seems important, but
                 // also, we want something that doesn't have the final comma on
