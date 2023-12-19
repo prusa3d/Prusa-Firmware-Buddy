@@ -4,6 +4,11 @@
 #include "config.h"
 #include "priorities_config.h"
 
+#ifndef _DEBUG
+    #define WDT_IWDG_ENABLED
+// #define WDT_WWDG_ENABLED
+#endif //_DEBUG
+
 static const constexpr uint16_t WDT_IWDG_RELOAD = 4095; // 4s max period
 static const constexpr uint16_t WDT_IWDG_WARNING_DELAY = (WDT_IWDG_RELOAD - 127); // ~100ms margin
 
