@@ -87,7 +87,7 @@ inline constexpr auto disabled_items { std::to_array<Item>({
 #if not HAS_MMU2()
         Item::finda,
 #endif
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
         Item::heatbreak_temp,
 #endif
 #if not defined(FOOTER_HAS_TOOL_NR)
