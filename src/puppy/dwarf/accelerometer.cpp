@@ -14,7 +14,7 @@ using namespace dwarf::accelerometer;
 using namespace buddy::hw;
 
 namespace {
-static constexpr size_t ACCELEROMETER_BUFFER_RECORDS_NUM = 60;
+static constexpr size_t ACCELEROMETER_BUFFER_RECORDS_NUM = 120;
 static constexpr lis2dh12_odr_t low_sample_rate = LIS2DH12_ODR_400Hz;
 static constexpr lis2dh12_odr_t high_sample_rate = LIS2DH12_ODR_5kHz376_LP_1kHz344_NM_HP;
 
