@@ -12,10 +12,3 @@
 #ifdef _DEBUG
     #define DBG_LEVEL 1 // debug level (0..3)
 #endif //_DEBUG
-
-//--------------------------------------
-// WDT - watchdog timers (IWDG, WWDG)
-#ifndef _DEBUG
-    #define WDT_IWDG_ENABLED
-// #define WDT_WWDG_ENABLED
-#endif //_DEBUG
