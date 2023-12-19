@@ -19,6 +19,7 @@ static constexpr lis2dh12_odr_t low_sample_rate = LIS2DH12_ODR_400Hz;
 static constexpr lis2dh12_odr_t high_sample_rate = LIS2DH12_ODR_5kHz376_LP_1kHz344_NM_HP;
 
 CircleBuffer<AccelerometerRecord, ACCELEROMETER_BUFFER_RECORDS_NUM> sample_buffer;
+size_t sample_buffer_watermark = 0;
 
 uint32_t first_sample_timestamp = 0;
 uint32_t last_sample_timestamp = 0;
@@ -111,6 +112,7 @@ SampleRateDebug debug;
 
 void clear() {
     sample_buffer.clear();
+    sample_buffer_watermark = 0;
     overflown_count = 0;
     overflown_logged_count = 0;
     first_sample_timestamp = 0;
@@ -249,6 +251,9 @@ void dwarf::accelerometer::irq() {
     if (!sample_buffer.push_back_DontRewrite(record)) {
         overflown_count++;
     }
+    if (sample_buffer_watermark < sample_buffer.Count()) {
+        sample_buffer_watermark = sample_buffer.Count();
+    }
 
     debug.sample(record.timestamp);
 }
@@ -274,6 +279,10 @@ size_t dwarf::accelerometer::get_num_samples() {
 }
 
 void dwarf::accelerometer::set_enable(bool enabled) {
+    if (!enabled) {
+        log_info(Accel, "Buffer watermark %d", sample_buffer_watermark);
+    }
+
     clear();
 
     if (initialized == enabled) {
