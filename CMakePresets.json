@@ -4167,10 +4167,6 @@
                     "type": "BOOL",
                     "value": "NO"
                 },
-                "MAKEFSDATA_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
                 "UNITTESTS_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
@@ -4195,10 +4191,6 @@
                     "value": "NO"
                 },
                 "HEX2DFU_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
-                "MAKEFSDATA_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
                 },
@@ -4229,10 +4221,6 @@
                     "type": "BOOL",
                     "value": "NO"
                 },
-                "MAKEFSDATA_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
                 "UNITTESTS_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
@@ -4257,10 +4245,6 @@
                     "value": "YES"
                 },
                 "HEX2DFU_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
-                "MAKEFSDATA_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
                 },
@@ -4291,10 +4275,6 @@
                     "type": "BOOL",
                     "value": "YES"
                 },
-                "MAKEFSDATA_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
                 "UNITTESTS_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
@@ -4319,72 +4299,6 @@
                     "value": "NO"
                 },
                 "HEX2DFU_ENABLE": {
-                    "type": "BOOL",
-                    "value": "YES"
-                },
-                "MAKEFSDATA_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
-                "UNITTESTS_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                }
-            }
-        },
-        {
-            "name": "makefsdata_debug",
-            "generator": "Ninja",
-            "binaryDir": "build-vscode-host",
-            "cacheVariables": {
-                "CMAKE_MAKE_PROGRAM": {
-                    "type": "FILEPATH",
-                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
-                },
-                "PNG2FONT_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
-                "BIN2CC_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
-                "HEX2DFU_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
-                "MAKEFSDATA_ENABLE": {
-                    "type": "BOOL",
-                    "value": "YES"
-                },
-                "UNITTESTS_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                }
-            }
-        },
-        {
-            "name": "makefsdata_release",
-            "generator": "Ninja",
-            "binaryDir": "build-vscode-host",
-            "cacheVariables": {
-                "CMAKE_MAKE_PROGRAM": {
-                    "type": "FILEPATH",
-                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
-                },
-                "PNG2FONT_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
-                "BIN2CC_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
-                "HEX2DFU_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
-                "MAKEFSDATA_ENABLE": {
                     "type": "BOOL",
                     "value": "YES"
                 },
@@ -4415,10 +4329,6 @@
                     "type": "BOOL",
                     "value": "NO"
                 },
-                "MAKEFSDATA_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
                 "UNITTESTS_ENABLE": {
                     "type": "BOOL",
                     "value": "YES"
@@ -4443,10 +4353,6 @@
                     "value": "NO"
                 },
                 "HEX2DFU_ENABLE": {
-                    "type": "BOOL",
-                    "value": "NO"
-                },
-                "MAKEFSDATA_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
                 },
