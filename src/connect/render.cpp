@@ -442,6 +442,7 @@ namespace {
                             JSON_OBJ_START;
                                 //Note: The name has to be copied inside this call, so that it cannot be skipped, if this does not fit the first time.
                                 JSON_FIELD_STR("name", state.printer.get_cancel_object_name(cancel_object_name, sizeof(cancel_object_name), state.cancelabel_iter)) JSON_COMMA;
+                                JSON_FIELD_BOOL("canceled", TEST(state.printer.params().cancel_object_mask, state.cancelabel_iter)) JSON_COMMA;
                                 JSON_FIELD_INT("id", state.cancelabel_iter);
                             JSON_OBJ_END;
                             if (state.cancelabel_iter != params.cancel_object_count - 1) {
