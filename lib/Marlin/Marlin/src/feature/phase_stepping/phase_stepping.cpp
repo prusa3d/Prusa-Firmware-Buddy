@@ -525,7 +525,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
         axis_state.missed_tx_cnt++;
     }
 
-    if (axis_state.missed_tx_cnt > 5000) {
+    if (axis_state.missed_tx_cnt > 200) {
         bsod("Phase stepping: TX failure");
     }
 }
