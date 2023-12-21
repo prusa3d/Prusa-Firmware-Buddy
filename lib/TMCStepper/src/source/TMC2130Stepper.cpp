@@ -276,7 +276,12 @@ void TMC2130Stepper::push() {
 #if HAS_PHASE_STEPPING()
   // This functions can lock the SPI bus for a long time, preventing the phase stepping ISR to run
   // frequently enough: ensure it's not called on an active axis
-  assert(!phase_stepping::any_axis_active() || connection == Connection::Remote);
+#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  const bool localConnection = (connection != Connection::Remote);
+#else
+  const bool localConnection = true;
+#endif
+  assert(!phase_stepping::any_axis_active() || !localConnection);
 #endif
 
   GCONF(GCONF_register.sr);
