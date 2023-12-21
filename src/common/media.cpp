@@ -523,7 +523,7 @@ void media_loop(void) {
         return;
     }
 
-    while (queue.length < (BUFSIZE - 1)) { // Keep one free slot for serial commands
+    while (queue.length < MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) { // Keep one free slot for serial commands
         GCodeFilter::State state;
         char *gcode = gcode_filter.nextGcode(&state);
 
