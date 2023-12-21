@@ -11,6 +11,10 @@
 #define PREFETCH_SIGNAL_GCODE_INFO_STOP 16
 #define PREFETCH_SIGNAL_CHECK           32 ///< Re-checks that the file is still valid
 
+/// Determines how full should the gcode queue be kept when fetching from media
+/// You need at least one free slot for commands from serial (and UI)
+#define MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET (BUFSIZE - 1)
+
 typedef enum {
     media_state_REMOVED = 0, // media is inserted
     media_state_INSERTED = 1, // media is removed
