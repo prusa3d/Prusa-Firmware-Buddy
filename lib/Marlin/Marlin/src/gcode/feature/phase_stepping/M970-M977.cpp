@@ -206,14 +206,16 @@ static bool accelerometer_ok(PrusaAccelerometer &acc, YieldError yield_error) {
     case PrusaAccelerometer::Error::busy:
         yield_error("busy");
         return false;
+#if ENABLED(REMOTE_ACCELEROMETER)
     case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
         yield_error("dwarf overflow");
         return false;
-    case PrusaAccelerometer::Error::corrupted_buddy_overflow:
-        yield_error("buddy overflow");
-        return false;
     case PrusaAccelerometer::Error::corrupted_transmission_error:
         yield_error("dwarf transmission error");
+        return false;
+#endif
+    case PrusaAccelerometer::Error::corrupted_buddy_overflow:
+        yield_error("buddy overflow");
         return false;
     case PrusaAccelerometer::Error::corrupted_sample_overrun:
         yield_error("overrun");
