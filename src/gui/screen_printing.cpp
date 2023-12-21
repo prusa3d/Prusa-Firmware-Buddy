@@ -467,6 +467,7 @@ void screen_printing_data_t::updateTimes() {
     }
 
     auto time_to_end = marlin_vars()->time_to_end.get();
+    auto time_to_change = marlin_vars()->time_to_pause.get();
     if ((currently_showing == CurrentlyShowing::end_time
             || currently_showing == CurrentlyShowing::remaining_time)
         && (time_to_end == marlin_server::TIME_TO_END_INVALID || time_to_end > 60 * 60 * 24 * 365)) {
@@ -496,20 +497,25 @@ void screen_printing_data_t::updateTimes() {
 
         PrintTime::print_formatted_duration(marlin_vars()->print_duration.get(), w_etime_value_buffer, true);
         break;
-    // Currently disabled, left in the code to ease re-enabling it
-    // case CurrentlyShowing::time_to_change:
-    //     w_etime_label.SetText(_("Next change in"));
+    case CurrentlyShowing::time_to_change:
+        w_etime_label.SetText(_("Next change in"));
 
-    //     w_etime_value.SetText(_(txt_na));
-    //     w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
-    //     return;
+        if (time_to_change == marlin_server::TIME_TO_END_INVALID) {
+            w_etime_value.SetText(_(txt_na));
+            w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
+            return;
+        } else {
+            PrintTime::print_formatted_duration(time_to_change, w_etime_value_buffer);
+        }
+        break;
     case CurrentlyShowing::_count:
         assert(false); // invalid value, should never happen
         break;
     }
 
     // Add unknown marker
-    if (marlin_vars()->print_speed != 100) {
+    // (time since start is always exact, not influenced by the print speed)
+    if (marlin_vars()->print_speed != 100 && currently_showing != CurrentlyShowing::time_since_start) {
         strlcat(w_etime_value_buffer.data(), "?", w_etime_value_buffer.size());
     }
 
