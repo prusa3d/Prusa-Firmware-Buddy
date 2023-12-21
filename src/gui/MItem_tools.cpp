@@ -3,6 +3,7 @@
 #include "marlin_client.hpp"
 #include "marlin_server.hpp"
 #include "gui.hpp"
+#include "media.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_calib_z.hpp"
@@ -42,14 +43,27 @@
 #include <Marlin/src/feature/input_shaper/input_shaper.hpp>
 #include <st25dv64k.h>
 
-static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
+namespace {
+void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     constexpr static const char *title = N_("Information");
     MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), &img::info_16x16);
     gui::TickLoop();
     gui_loop();
 }
 
-static constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier during homing.");
+/// Checks if there is space in the gcode queue for inserting further commands.
+/// If there's not, \returns false and shows a message box
+bool check_space_in_gcode_queue_with_msg() {
+    if (marlin_vars()->gqueue <= MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) {
+        return true;
+    }
+
+    MsgBoxWarning(_("Printer is busy. Please try repeating the action later."), Responses_Ok);
+    return false;
+}
+
+constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier during homing.");
+} // namespace
 
 /**********************************************************************************************/
 // MI_FILAMENT_SENSOR
@@ -58,6 +72,12 @@ bool MI_FILAMENT_SENSOR::init_index() const {
 }
 
 void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
+    // Enabling/disabling FS can generate gcodes. Fail the action if there's no space in the queue.
+    if (!check_space_in_gcode_queue_with_msg()) {
+        SetIndex(old_index);
+        return;
+    }
+
     if (old_index) {
         FSensors_instance().Disable();
         // If disabling, send a message to parent to reload the value of
@@ -116,6 +136,11 @@ bool MI_STUCK_FILAMENT_DETECTION::init_index() const {
 }
 
 void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
+    if (!check_space_in_gcode_queue_with_msg()) {
+        SetIndex(old_index);
+        return;
+    }
+
     if (old_index) {
         marlin_client::gcode("M591 S0 P");
     } else {
