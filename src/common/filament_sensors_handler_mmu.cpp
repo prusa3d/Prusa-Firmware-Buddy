@@ -44,6 +44,10 @@ filament_sensor::mmu_enable_result_t FilamentSensors::EnableSide() {
 }
 
 static void mmu_disable() {
+    if (!config_store().mmu2_enabled.get()) {
+        return;
+    }
+
     marlin_client::gcode("M709 S0");
     config_store().mmu2_enabled.set(false);
 }
