@@ -29,7 +29,8 @@ enum class Type : uint8_t {
     FLEX,
     PA,
     PCTG,
-    _last = PCTG
+    NGEN,
+    _last = NGEN
 };
 
 constexpr Type default_type = Type::PLA;

@@ -49,6 +49,7 @@ const std::array<BtnResource, ftrstd::to_underlying(Response::_count)> BtnRespon
     std::make_pair( "PLA",                  &img::spool_58x58 ),        // PLA filament, do not translate
     std::make_pair( "PP",                   &img::spool_58x58 ),        // PP filament, do not translate
     std::make_pair( "PCTG",                 &img::spool_58x58 ),        // PCTG filament, do not translate
+    std::make_pair( "NGEN",                 &img::spool_58x58 ),        // NGEN filament, do not translate
     std::make_pair( "Print",                &img::print_58x58 ),        // Print
     std::make_pair( N_("PRUSA STOCK"),      nullptr ),                  // PrusaStock
     std::make_pair(

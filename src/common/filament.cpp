@@ -27,6 +27,7 @@ const filament::Description filaments[size_t(filament::Type::_last) + 1] = {
     { BtnResponse::GetText(Response::PP), 240, 170, 100, Response::PP },
     { BtnResponse::GetText(Response::PA), 285, 170, 100, Response::PA },
     { BtnResponse::GetText(Response::PCTG), 260, 170, 100, Response::PCTG },
+    { BtnResponse::GetText(Response::NGEN), 240, 170, 90, Response::NGEN },
 #if HAS_LOADCELL()
     { BtnResponse::GetText(Response::FLEX), 240, 170, 50, Response::FLEX },
 #else

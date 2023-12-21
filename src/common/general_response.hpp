@@ -50,6 +50,7 @@ enum class Response : uint8_t {
     PLA,
     PP,
     PCTG,
+    NGEN,
     Print,
     PrusaStock,
     Purge_more,

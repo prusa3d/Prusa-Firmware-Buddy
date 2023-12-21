@@ -438,7 +438,7 @@ class ClientResponses {
 #if PRINTER_IS_PRUSA_iX
             Response::PETG_NH,
 #endif
-            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA, Response::PCTG }, // UserTempSelection
+            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA, Response::PCTG, Response::NGEN }, // UserTempSelection
     };
     static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
 
