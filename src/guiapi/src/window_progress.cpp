@@ -93,7 +93,7 @@ window_progress_t::window_progress_t(window_t *parent, Rect16 rect, uint16_t h_p
     numb.SetAlignment(Align_t::Center());
 }
 
-void window_progress_t::set_font(font_t *val) {
+void window_progress_t::set_font(Font val) {
     numb.set_font(val);
 }
 

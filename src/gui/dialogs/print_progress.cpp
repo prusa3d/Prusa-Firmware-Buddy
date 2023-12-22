@@ -52,11 +52,11 @@ constexpr size_t progress_num_x_offset { icon_x_offset + progress_num_width + pr
 constexpr size_t progress_num_height { GuiDefaults::ProgressTextHeight - GuiDefaults::ProgressTextTopOffset };
 
 #ifdef USE_ILI9488
-constexpr auto progress_num_font { IDR_FNT_LARGE };
+constexpr auto progress_num_font { Font::large };
 constexpr int right_side_perc_magic_number { 4 }; // magic number to align text from left_value with percent-text from progress_num font
 constexpr int right_side_icon_magic_number { -right_side_perc_magic_number }; // align icon with percentile
 #elif defined(USE_ST7789)
-constexpr auto progress_num_font { IDR_FNT_BIG };
+constexpr auto progress_num_font { Font::big };
 constexpr int right_side_perc_magic_number { 0 };
 constexpr int right_side_icon_magic_number { -5 };
 #endif
@@ -67,8 +67,8 @@ constexpr auto icon_y_baseline {
     static_cast<Rect16::Y_t>((GuiDefaults::ScreenHeight - progress_num_y_baseline) / 2 - icon_size_y / 2 + progress_num_y_baseline + right_side_icon_magic_number)
 };
 
-static_assert(resource_font_size(progress_num_font).w * 4 <= progress_num_width);
-static_assert(resource_font_size(progress_num_font).h <= progress_num_height);
+static_assert(width(progress_num_font) * 4 <= progress_num_width);
+static_assert(height(progress_num_font) <= progress_num_height);
 
 } // namespace
 
@@ -95,35 +95,35 @@ PrintProgress::PrintProgress(window_t *parent)
     , time_end_format(PT_t::init)
     , mode(ProgressMode_t::PRINTING_INIT) {
 
-    info_text.set_font(resource_font(IDR_FNT_BIG));
+    info_text.set_font(Font::big);
     info_text.SetPadding({ 0, 0, 0, 0 });
     info_text.SetAlignment(Align_t::LeftCenter());
     info_text.SetText(_(finish_print_text));
     info_text.Hide();
 
-    estime_label.set_font(resource_font(IDR_FNT_SMALL));
+    estime_label.set_font(Font::small);
     estime_label.SetPadding({ 0, 0, 0, 0 });
     estime_label.SetAlignment(Align_t::LeftTop());
     estime_label.SetTextColor(COLOR_SILVER);
     updateEsTime();
 
-    estime_value.set_font(resource_font(IDR_FNT_BIG));
+    estime_value.set_font(Font::big);
     estime_value.SetPadding({ 0, 0, 0, 0 });
     estime_value.SetAlignment(Align_t::LeftTop());
 
     // #if defined(USE_ILI9488)
-    //     middle_col_label.set_font(resource_font(IDR_FNT_SMALL));
+    //     middle_col_label.set_font(Font::small);
     //     middle_col_label.SetPadding({ 0, 0, 0, 0 });
     //     middle_col_label.SetAlignment(Align_t::LeftTop());
     //     middle_col_label.SetTextColor(COLOR_SILVER);
 
-    //     middle_col_value.set_font(resource_font(IDR_FNT_BIG));
+    //     middle_col_value.set_font(Font::big);
     //     middle_col_value.SetPadding({ 0, 0, 0, 0 });
     //     middle_col_value.SetAlignment(Align_t::LeftTop());
     // #endif
 
     progress_num.SetAlignment(Align_t::Center());
-    progress_num.set_font(resource_font(progress_num_font));
+    progress_num.set_font(progress_num_font);
 }
 
 void PrintProgress::init_gcode_info() {

@@ -74,7 +74,7 @@ public:
     }
 
     void set_text_alignment(Align_t alignment);
-    void set_text_font(font_t *font);
+    void set_text_font(Font font);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
@@ -116,7 +116,6 @@ protected:
     Rect16 getLineRect();
     Rect16 getIconRect();
     Rect16 getTitleRect(); // icon must be initialized
-    font_t *getTitleFont();
     padding_ui8_t getTitlePadding();
     static constexpr uint8_t IconTitleDelimeter = 5;
     static constexpr padding_ui8_t TextPadding =

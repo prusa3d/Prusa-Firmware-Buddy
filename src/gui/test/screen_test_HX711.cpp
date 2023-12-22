@@ -51,8 +51,7 @@ void screen_test_hx711_init(screen_t *screen) {
     uint16_t w;
     uint16_t h;
 
-    //font_t* _font_big = resource_font(IDR_FNT_BIG);
-    font_t *_font_term = resource_font(IDR_FNT_SMALL);
+    font_t *_font_term = Font::small;
 
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, rect_ui16(0, 0, 0, 0), &(pd->frame));
 

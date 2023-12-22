@@ -62,7 +62,7 @@ using MenuFwUpdateContainer = WinMenuContainer<MI_RETURN, MI_UPDATE_LABEL, MI_UP
 class ScreenMenuFwUpdate : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("FW UPDATE");
     static constexpr size_t helper_lines = 4;
-    static constexpr ResourceId helper_font = IDR_FNT_SPECIAL;
+    static constexpr Font helper_font = Font::special;
 
     MenuFwUpdateContainer container;
     window_menu_t menu;

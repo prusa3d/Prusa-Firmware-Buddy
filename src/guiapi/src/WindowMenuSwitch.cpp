@@ -55,19 +55,19 @@ Rect16 IWiSwitch::getSwitchRect(Rect16 extension_rect) const {
         return extension_rect;
     }
 
-    extension_rect += Rect16::Left_t(BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
-    extension_rect -= Rect16::Width_t(BracketFont->w * 2 + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
+    extension_rect += Rect16::Left_t(width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
+    extension_rect -= Rect16::Width_t(width(BracketFont) * 2 + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
     return extension_rect;
 }
 
 Rect16 IWiSwitch::getLeftBracketRect(Rect16 extension_rect) const {
-    extension_rect = Rect16::Width_t(BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
+    extension_rect = Rect16::Width_t(width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
     return extension_rect;
 }
 
 Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
-    extension_rect += Rect16::Left_t(extension_rect.Width() - (BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right));
-    extension_rect = Rect16::Width_t(BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
+    extension_rect += Rect16::Left_t(extension_rect.Width() - (width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right));
+    extension_rect = Rect16::Width_t(width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
     return extension_rect;
 }
 
@@ -129,7 +129,7 @@ void IWiSwitch::changeExtentionWidth() {
 
 Rect16::Width_t IWiSwitch::calculateExtensionWidth_text(Items_t items, int32_t idx) {
     size_t len = items.texts[idx].computeNumUtf8CharsAndRewind();
-    size_t ret = GuiDefaults::FontMenuItems->w * len + Padding.left + Padding.right + (GuiDefaults::MenuSwitchHasBrackets ? (BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right) * 2 : 0);
+    size_t ret = width(GuiDefaults::FontMenuItems) * len + Padding.left + Padding.right + (GuiDefaults::MenuSwitchHasBrackets ? (width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right) * 2 : 0);
     return ret;
 }
 

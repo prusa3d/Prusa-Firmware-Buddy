@@ -18,15 +18,15 @@ constexpr Rect16::Width_t base_w { 16 };
 constexpr Rect16::Width_t usb_w { 32 };
 constexpr Rect16::Width_t lan_w { 16 };
 
-static_assert(resource_font_size(GuiDefaults::HeaderTextFont).h <= GuiDefaults::HeaderItemHeight, "Text wouldn't fit into header");
+static_assert(height(GuiDefaults::HeaderTextFont) <= GuiDefaults::HeaderItemHeight, "Text wouldn't fit into header");
 static_assert(GuiDefaults::HeaderTextExtraPaddingTop <= GuiDefaults::HeaderPadding.bottom, "Text wouldn't fit into header");
 
-constexpr Rect16::Width_t transfer_val_w { resource_font_size(GuiDefaults::HeaderTextFont).w * 4 };
+constexpr Rect16::Width_t transfer_val_w { width(GuiDefaults::HeaderTextFont) * 4 };
 constexpr Rect16::Width_t transfer_w { 16 };
-constexpr Rect16::Width_t time_24h_w { resource_font_size(GuiDefaults::HeaderTextFont).w * 5 };
-constexpr Rect16::Width_t time_12h_w { resource_font_size(GuiDefaults::HeaderTextFont).w * 8 };
+constexpr Rect16::Width_t time_24h_w { width(GuiDefaults::HeaderTextFont) * 5 };
+constexpr Rect16::Width_t time_12h_w { width(GuiDefaults::HeaderTextFont) * 8 };
 
-constexpr Rect16::Width_t bed_text_width { resource_font_size(GuiDefaults::HeaderTextFont).w * 5 };
+constexpr Rect16::Width_t bed_text_width { width(GuiDefaults::HeaderTextFont) * 5 };
 constexpr Rect16::Width_t bed_icon_width { 16 };
 
 // how long the icon remains after the transfer is finished [us]
@@ -242,16 +242,16 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
 #endif
 
 {
-    label.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    label.set_font(GuiDefaults::HeaderTextFont);
     label.SetAlignment(Align_t::LeftCenter());
     transfer_val.SetAlignment(Align_t::LeftCenter());
-    transfer_val.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    transfer_val.set_font(GuiDefaults::HeaderTextFont);
     icon_base.SetAlignment(Align_t::LeftCenter());
     icon_usb.SetAlignment(Align_t::LeftCenter());
     icon_network.SetAlignment(Align_t::LeftCenter());
     icon_transfer.SetAlignment(Align_t::LeftCenter());
 
-    bed_text.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    bed_text.set_font(GuiDefaults::HeaderTextFont);
     bed_icon.SetAlignment(Align_t::LeftCenter());
 
     icon_network.Hide();
@@ -259,7 +259,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     icon_transfer.Hide();
 
 #if !defined(USE_ST7789) // Time is not shown on ST7789
-    time_val.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    time_val.set_font(GuiDefaults::HeaderTextFont);
     time_val.SetAlignment(Align_t::RightCenter());
     time_tools::update_time();
     time_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time()));

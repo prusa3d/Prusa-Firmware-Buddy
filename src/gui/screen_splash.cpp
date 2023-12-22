@@ -57,7 +57,7 @@ screen_splash_data_t::screen_splash_data_t()
     , version_displayed(false) {
     super::ClrMenuTimeoutClose();
 
-    text_progress.set_font(resource_font(IDR_FNT_SMALL));
+    text_progress.set_font(Font::small);
     text_progress.SetAlignment(Align_t::Center());
     text_progress.SetTextColor(COLOR_GRAY);
 
@@ -166,10 +166,10 @@ void screen_splash_data_t::draw() {
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
     #if defined(USE_ST7789)
-    display::DrawText(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+    display::DrawText(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), Font::small, COLOR_BLACK, COLOR_RED);
     #endif // USE_ST7789
     #if defined(USE_ILI9488)
-    display::DrawText(Rect16(340, 130, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+    display::DrawText(Rect16(340, 130, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), Font::small, COLOR_BLACK, COLOR_RED);
     #endif // USE_ILI9488
 #endif //_DEBUG
 }

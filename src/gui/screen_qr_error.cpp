@@ -45,12 +45,12 @@ ScreenErrorQR::ScreenErrorQR()
     img::enable_resource_file();
     SetRedLayout();
     title_line.SetBackColor(COLOR_WHITE);
-    help_link.set_font(resource_font(IDR_FNT_SMALL));
-    qr_code_txt.set_font(resource_font(IDR_FNT_SMALL));
+    help_link.set_font(Font::small);
+    qr_code_txt.set_font(Font::small);
 #if defined(USE_ST7789)
-    err_title.set_font(resource_font(IDR_FNT_SMALL));
+    err_title.set_font(Font::small);
     err_title.SetAlignment(Align_t::LeftBottom());
-    err_description.set_font(resource_font(IDR_FNT_SMALL));
+    err_description.set_font(Font::small);
 #elif defined(USE_ILI9488)
     err_title.SetAlignment(Align_t::LeftTop());
 #endif

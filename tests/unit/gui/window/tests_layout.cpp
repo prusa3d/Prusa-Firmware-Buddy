@@ -33,11 +33,6 @@ uint8_t font_2dot_data[] = {
 // 2x2 px font
 font_t font_2dot = { 2, 2, 1, 0, (uint16_t *)font_2dot_data, '0', '1' };
 
-font_t *GuiDefaults::Font = &font_dot;
-font_t *GuiDefaults::FontBig = &font_dot;
-font_t *GuiDefaults::FontMenuItems = &font_dot;
-font_t *GuiDefaults::FontMenuSpecial = &font_dot;
-
 // to be binded - static for easier debug
 static TMockDisplay<240, 320, 16> MockDispBasic;
 static TMockDisplay<5, 5, 256> MockDisp5x5;
@@ -52,6 +47,12 @@ void gui::TickLoop() {}
 point_ui16_t icon_meas(const uint8_t *pi) {
     point_ui16_t wh = { 0, 0 };
     return wh;
+}
+
+static bool g_use_font_2x2 = false;
+
+font_t *resource_font(Font) {
+    return g_use_font_2x2 ? &font_2dot : &font_dot;
 }
 
 static Rect16 DispRect() { return Rect16(0, 0, MockDisplay::Cols(), MockDisplay::Rows()); }
@@ -241,11 +242,11 @@ TEST_CASE("Window layout tests", "[window]") {
     }
 
     SECTION("Multiline Text, font 2x2") {
+        g_use_font_2x2 = true;
         MockDisplay::Bind(MockDisp8x8);
         MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
         TestRectColor(DispRect(), COLOR_RED);
         window_text_t txt(nullptr, DispRect(), is_multiline::yes, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)("1\n0\n1")));
-        txt.set_font(&font_2dot);
         txt.SetPadding({ 0, 0, 0, 0 });
 
         txt.SetAlignment(Align_t::LeftTop());
@@ -259,6 +260,7 @@ TEST_CASE("Window layout tests", "[window]") {
             { 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 } } };
         TestPixelMask(mask, GuiDefaults::ColorBack, GuiDefaults::ColorText);
+        g_use_font_2x2 = false;
 
         /* MockDisplay::Instance().clear(COLOR_RED); // all display must be rewritten, no red pixel can remain
         txt.SetAlignment(Align_t::Center());

@@ -6,7 +6,6 @@
 
 #include "footer_items_heaters.hpp"
 #include "GuiDefaults.hpp"
-#include "display_helper.h" // font_meas_text
 #include <cmath>
 #include "ScreenHandler.hpp"
 #include "footer_eeprom.hpp"

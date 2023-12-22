@@ -61,7 +61,7 @@ void RadioButtonPreview::unconditionalDraw() {
             }
         }
 
-        label.set_font(resource_font(IDR_FNT_SMALL));
+        label.set_font(Font::small);
         label.SetAlignment(Align_t::Center());
 
         icon.Draw();

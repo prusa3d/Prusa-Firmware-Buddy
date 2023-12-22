@@ -47,12 +47,6 @@ void touch::disable() {
 osThreadId gui_task_handle = 0;
 #endif // GUI_USE_RTOS
 
-font_t *GuiDefaults::Font = nullptr;
-font_t *GuiDefaults::FontBig = nullptr;
-font_t *GuiDefaults::FontMenuItems = nullptr;
-font_t *GuiDefaults::FontMenuSpecial = nullptr;
-font_t *GuiDefaults::FooterFont = nullptr;
-
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
 constexpr Rect16 GuiDefaults::RectScreenBody;
@@ -84,12 +78,6 @@ void gui_init(void) {
     jogwheel.SetJogwheelType(0);
     #endif
 #endif
-
-    GuiDefaults::Font = resource_font(IDR_FNT_NORMAL);
-    GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
-    GuiDefaults::FontMenuItems = resource_font(IDR_FNT_NORMAL);
-    GuiDefaults::FontMenuSpecial = resource_font(IDR_FNT_SPECIAL);
-    GuiDefaults::FooterFont = resource_font(IDR_FNT_SPECIAL);
 }
 
 #ifdef GUI_JOGWHEEL_SUPPORT
