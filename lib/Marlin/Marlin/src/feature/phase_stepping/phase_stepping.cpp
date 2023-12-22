@@ -235,7 +235,9 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
     } else {
         next_step_event.time = step_generator.is_state->nearest_next_change;
 
-        if (const bool is_updated = input_shaper_state_update(*step_generator.is_state, step_generator.axis); is_updated && step_generator.is_state->nearest_next_change < MAX_PRINT_TIME) {
+        if (const bool is_updated = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
+            is_updated && step_generator.is_state->nearest_next_change < MAX_PRINT_TIME) {
+
             uint8_t axis = axis_state.axis_index;
 
             const uint64_t next_print_time_ticks = calc_move_segment_end_time_in_ticks(*step_generator.is_state);
