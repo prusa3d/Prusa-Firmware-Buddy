@@ -16,7 +16,7 @@ ScreenResetError::ScreenResetError()
     ClrOnSerialClose();
     start_sound();
 
-    fw_version_txt.set_font(resource_font(IDR_FNT_SMALL));
+    fw_version_txt.set_font(Font::small);
 
     fw_version_txt.SetAlignment(GuiDefaults::EnableDialogBigLayout ? Align_t::LeftTop() : Align_t::CenterTop());
 

@@ -20,7 +20,7 @@ struct GuiDefaults {
     static constexpr Rect16::Height_t FooterItemHeight = 16; // must match font and icon height
     static constexpr size_ui16_t FooterIconSize = { 16, FooterItemHeight }; // DO NOT CHANGE HEIGHT!!! it must match item height (item height can be changed instead), real icon height can be smaller
     static constexpr Rect16::Height_t FooterTextHeight = FooterItemHeight; // DO NOT CHANGE!!!        it must match item height (item height can be changed instead), real text height can be smaller
-    static font_t *FooterFont; // TODO constexpr, font_9x16, IT MUST MATCH OR BE SMALLER THAN FooterItemHeight!!!
+    static constexpr Font FooterFont = Font::special; // TODO font_9x16, IT MUST MATCH OR BE SMALLER THAN FooterItemHeight!!!
 
     // display specific defaults
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
@@ -30,7 +30,7 @@ struct GuiDefaults {
     static constexpr size_t FooterHeight = FooterLines * FooterItemHeight + (FooterLines - 1) * FooterLinesSpace + FooterPadding.top + FooterPadding.bottom;
     static constexpr padding_ui8_t HeaderPadding { 4, 4, 4, 4 }; // number of edge pixels that will remain black in all cases
     static constexpr uint8_t HeaderTextExtraPaddingTop { 1 }; // extra padding to be added to the top, needed if font is weird
-    static constexpr auto HeaderTextFont { IDR_FNT_SPECIAL };
+    static constexpr auto HeaderTextFont { Font::special };
     static constexpr size_t HeaderItemHeight { 16 };
     static constexpr size_t HeaderHeight { HeaderItemHeight + HeaderPadding.top + HeaderPadding.bottom };
     static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };
@@ -61,7 +61,7 @@ struct GuiDefaults {
     static constexpr size_t FooterHeight = 23;
     static constexpr padding_ui8_t HeaderPadding { 14, 12, 14, 4 }; // number of edge pixels that will remain black in all cases
     static constexpr uint8_t HeaderTextExtraPaddingTop { 1 }; // extra padding to be added to the top, needed if font is weird
-    static constexpr auto HeaderTextFont { IDR_FNT_SPECIAL };
+    static constexpr auto HeaderTextFont { Font::special };
     static constexpr size_t HeaderItemHeight { 16 };
     static constexpr size_t HeaderHeight { HeaderItemHeight + HeaderPadding.top + HeaderPadding.bottom };
     static constexpr Rect16 PreviewThumbnailRect = { 30, HeaderHeight + 50, 313, 173 };
@@ -114,8 +114,8 @@ struct GuiDefaults {
     static constexpr padding_ui8_t Padding = { 0, 0, 0, 0 };
 #endif // USE_<display>
     static constexpr Align_t Align() { return Align_t::LeftTop(); }
-    static font_t *Font; // todo constexpr
-    static font_t *FontBig; // todo constexpr
+    static constexpr Font DefaultFont = Font::normal;
+    static constexpr Font FontBig = Font::big;
 
     // Layout settings
     static constexpr size_t BodyHeight = ScreenHeight - FooterHeight - HeaderHeight;
@@ -157,8 +157,8 @@ struct GuiDefaults {
     static constexpr size_t MenuIconWidth = 25;
 
     // Menu text settings
-    static font_t *FontMenuItems; // for menu items
-    static font_t *FontMenuSpecial; // for units in menu
+    static constexpr Font FontMenuItems = Font::normal; // for menu items
+    static constexpr Font FontMenuSpecial = Font::special; // for units in menu
     static constexpr Align_t MenuAlignment() { return Align_t::LeftTop(); }
 
     // Enable new menu features

@@ -6,13 +6,13 @@
 #include <stdint.h>
 #include "guiconfig.h"
 
-enum ResourceId : uint8_t {
-    IDR_FNT_SMALL,
-    IDR_FNT_NORMAL,
-    IDR_FNT_BIG,
-    IDR_FNT_SPECIAL,
+enum class Font : uint8_t {
+    small = 0,
+    normal,
+    big,
+    special,
 #ifdef USE_ILI9488
-    IDR_FNT_LARGE,
+    large,
 #endif
 };
 
@@ -26,7 +26,7 @@ struct font_t {
     char asc_max; // max ascii code (last character)
 };
 
-font_t *resource_font(ResourceId id);
+font_t *resource_font(Font id);
 
 /**
  * @brief Font size in pixels.
@@ -45,32 +45,40 @@ struct font_size_t {
  * This can be used in constant expresisons.
  * @todo Refactor fonts to have public info in '.hpp' and private data in '.cpp'.
  */
-consteval font_size_t resource_font_size(ResourceId id) {
+consteval font_size_t resource_font_size(Font id) {
     switch (id) {
 #ifdef USE_ST7789
-    case IDR_FNT_SMALL:
+    case Font::small:
         return { 7, 13 };
-    case IDR_FNT_NORMAL:
-    case IDR_FNT_BIG: // Big font removed to save flash
+    case Font::normal:
+    case Font::big: // Big font removed to save flash
         return { 11, 18 };
-    case IDR_FNT_SPECIAL:
+    case Font::special:
         return { 9, 16 };
 #endif /*USE_ST7789*/
 
 #ifdef USE_ILI9488
-    case IDR_FNT_SMALL:
+    case Font::small:
         return { 9, 16 };
-    case IDR_FNT_NORMAL:
+    case Font::normal:
         return { 11, 19 };
-    case IDR_FNT_BIG:
+    case Font::big:
         return { 13, 22 };
-    case IDR_FNT_SPECIAL:
+    case Font::special:
         return { 9, 16 };
-    case IDR_FNT_LARGE:
+    case Font::large:
         return { 30, 53 };
 #endif /*USE_ILI9488*/
 
     default:
         return { 0, 0 };
     }
+}
+
+inline consteval auto width(Font font) {
+    return resource_font_size(font).w;
+}
+
+inline consteval auto height(Font font) {
+    return resource_font_size(font).h;
 }

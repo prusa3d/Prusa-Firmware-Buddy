@@ -125,7 +125,7 @@ protected:
     static constexpr Rect16::Width_t icon_width = 16;
 
 private:
-    font_t *label_font = GuiDefaults::FontMenuItems;
+    Font label_font = GuiDefaults::FontMenuItems;
     string_view_utf8 label;
     txtroll_t roll;
 
@@ -154,8 +154,8 @@ protected:
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point);
     virtual invalidate_t change(int /*dif*/) { return invalidate_t::no; }
 
-    void setLabelFont(font_t *src);
-    font_t *getLabelFont() const;
+    void setLabelFont(Font);
+    Font getLabelFont() const;
 
     void reInitRoll(Rect16 rect);
     void deInitRoll();

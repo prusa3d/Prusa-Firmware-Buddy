@@ -1,7 +1,7 @@
 #include "radio_button.hpp"
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
-#include "fonts.hpp" //IDR_FNT_BIG
+#include "fonts.hpp"
 #include "gui.hpp"
 
 #include <algorithm> //find
@@ -38,8 +38,7 @@ size_t IRadioButton::cnt_buttons(const PhaseTexts *labels, Responses_t resp) {
 // nonstatic variables and methods
 
 IRadioButton::IRadioButton(window_t *parent, Rect16 rect, size_t count)
-    : AddSuperWindow<window_t>(parent, rect)
-    , pfont(resource_font(IDR_FNT_BIG)) {
+    : AddSuperWindow<window_t>(parent, rect) {
     SetBackColor(COLOR_ORANGE);
     SetBtnCount(count);
     SetBtnIndex(0);
@@ -157,10 +156,14 @@ void IRadioButton::draw_0_btn() {
     }
 }
 
+static constexpr auto ButtonFont = Font::big;
+
+static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, bool is_selected);
+
 // called internally, responses must exist
 void IRadioButton::draw_1_btn() {
     const char *txt_to_print = getAlternativeTexts() ? (*getAlternativeTexts())[0] : BtnResponse::GetText(responseFromIndex(0));
-    button_draw(GetRect(), GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), _(txt_to_print), pfont,
+    button_draw(GetRect(), GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), _(txt_to_print),
         IsEnabled(0) && !disabled_drawing_selected);
 }
 
@@ -173,14 +176,14 @@ void IRadioButton::draw_n_btns(size_t btn_count) {
         string_view_utf8 drawn = _(layout.txts_to_print[i]);
         char buffer[MAX_TEXT_BUFFER] = { 0 };
         if (layout.text_widths[i] > layout.splits[i].Width()) {
-            uint32_t max_btn_label_text = layout.splits[i].Width() / pfont->w;
+            uint32_t max_btn_label_text = layout.splits[i].Width() / width(ButtonFont);
             size_t length = std::min(max_btn_label_text, MAX_TEXT_BUFFER - 1);
             length = drawn.copyToRAM(buffer, length);
             buffer[length] = 0;
             drawn = string_view_utf8::MakeRAM((const uint8_t *)buffer);
         }
         if (responseFromIndex(i) != Response::_none) {
-            button_draw(layout.splits[i], GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), drawn, pfont,
+            button_draw(layout.splits[i], GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), drawn,
                 GetBtnIndex() == i && IsEnabled(i) && !disabled_drawing_selected);
         }
     }
@@ -204,7 +207,7 @@ IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
 
     for (size_t index = 0; index < btn_count; index++) {
         string_view_utf8 txt = _(ret.txts_to_print[index]);
-        ret.text_widths[index] = pfont->w * static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
+        ret.text_widths[index] = width(ButtonFont) * static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
     }
     GetRect().HorizontalSplit(
         ret.splits,
@@ -224,7 +227,7 @@ void IRadioButton::EnableDrawingSelected() {
     disabled_drawing_selected = false;
 }
 
-void IRadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, const font_t *pf, bool is_selected) {
+static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, bool is_selected) {
     color_t button_cl = is_selected ? back_color : COLOR_GRAY;
     color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
     if (GuiDefaults::RadioButtonCornerRadius) {
@@ -232,7 +235,7 @@ void IRadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent
         rc_btn += Rect16::Left_t(GuiDefaults::RadioButtonCornerRadius);
         rc_btn -= Rect16::Width_t(2 * GuiDefaults::RadioButtonCornerRadius);
     }
-    render_text_align(rc_btn, text, pf, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
+    render_text_align(rc_btn, text, ButtonFont, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
 }
 
 bool IRadioButton::IsEnabled(size_t index) const {

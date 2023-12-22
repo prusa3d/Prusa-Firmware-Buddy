@@ -240,13 +240,13 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
 
     notice_title.set_font(GuiDefaults::FontBig);
 
-    notice_text.set_font(resource_font(IDR_FNT_SPECIAL));
+    notice_text.set_font(Font::special);
 
     filament_type_text.SetAlignment(Align_t::Center());
     filament_color_icon.SetRoundCorners();
     instance = this;
 
-    notice_link.set_font(resource_font(IDR_FNT_SMALL));
+    notice_link.set_font(Font::small);
 
     notice_frame.Hide(); // default state is 'normal' - leave progress frame the only one shown
 
@@ -429,7 +429,7 @@ void DialogLoadUnload::phaseEnter() {
             filament_type_text.SetText(_(fil_name));
             if (filament::get_color_to_load().has_value()) {
 
-                int16_t left_pos = (GuiDefaults::ScreenWidth - (resource_font_size(IDR_FNT_NORMAL).w + 1) * (strlen(fil_name) + 1 + 1) - color_size) / 2; // make the pos to be on the left of the text (+ one added space to the left of the text, + additional one for some reason makes it work )
+                int16_t left_pos = (GuiDefaults::ScreenWidth - (width(Font::normal) + 1) * (strlen(fil_name) + 1 + 1) - color_size) / 2; // make the pos to be on the left of the text (+ one added space to the left of the text, + additional one for some reason makes it work )
                 auto rect = filament_color_icon_rect + Rect16::X_t { static_cast<int16_t>(left_pos) };
 
                 auto col = filament::get_color_to_load().value();

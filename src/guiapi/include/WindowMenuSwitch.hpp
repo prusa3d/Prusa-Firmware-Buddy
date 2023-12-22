@@ -17,7 +17,7 @@
 // IWiSwitch
 class IWiSwitch : public AddSuper<IWindowMenuItem> {
 public:
-    static constexpr font_t *&BracketFont = GuiDefaults::FontMenuSpecial;
+    static constexpr Font BracketFont = GuiDefaults::FontMenuSpecial;
     static constexpr bool has_brackets = GuiDefaults::MenuSwitchHasBrackets;
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSwitchHasBrackets ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
 

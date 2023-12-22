@@ -174,7 +174,7 @@ WinsRepeatedCrash::WinsRepeatedCrash(ScreenCrashRecovery &screen)
 
     text_long.SetAlignment(Align_t::Center());
     text_info.SetAlignment(Align_t::Center());
-    text_info.set_font(resource_font(IDR_FNT_SMALL));
+    text_info.set_font(Font::small);
     Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
@@ -190,7 +190,7 @@ WinsHomeFail::WinsHomeFail(ScreenCrashRecovery &screen)
 
     text_long.SetAlignment(Align_t::Center());
     text_info.SetAlignment(Align_t::Center());
-    text_info.set_font(resource_font(IDR_FNT_SMALL));
+    text_info.set_font(Font::small);
     Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);

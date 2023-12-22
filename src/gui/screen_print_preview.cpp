@@ -30,7 +30,6 @@ ScreenPrintPreview::ScreenPrintPreview()
 
     super::ClrMenuTimeoutClose();
 
-    // title_text.set_font(GuiDefaults::FontBig); //TODO big font somehow does not work
     //  this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
     title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()));
 

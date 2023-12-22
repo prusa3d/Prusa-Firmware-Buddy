@@ -10,7 +10,7 @@
 #include "img_resources.hpp"
 
 uint16_t ScreenMenuVersionInfo::get_help_h() {
-    return helper_lines * (resource_font(helper_font)->h + 1); // +1 for line paddings
+    return helper_lines * (height(helper_font) + 1); // +1 for line paddings
 }
 
 ScreenMenuVersionInfo::ScreenMenuVersionInfo()
@@ -20,7 +20,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     , help(this, Rect16(GuiDefaults::MenuPaddingItems.left, uint16_t(GuiDefaults::RectFooter.Top()) - get_help_h() - blank_space_h, GuiDefaults::RectScreen.Width() - GuiDefaults::MenuPaddingItems.left, get_help_h()), is_multiline::yes)
     , footer(this) {
     header.SetText(_(label));
-    help.set_font(resource_font(helper_font));
+    help.set_font(helper_font);
     CaptureNormalWindow(menu); // set capture to list
 
     header.SetIcon(&img::info_16x16);

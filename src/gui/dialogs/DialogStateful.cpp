@@ -1,7 +1,7 @@
 #include "DialogStateful.hpp"
 #include "guitypes.hpp"
 #include "i18n.h"
-#include "fonts.hpp" //IDR_FNT_BIG
+#include "fonts.hpp"
 
 // suppress warning, gcc bug 80635
 #pragma GCC diagnostic push
@@ -54,8 +54,8 @@ IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer
     , label(&progress_frame, get_label_rect(GetRect(), child_has_footer), is_multiline::yes) {
     title.set_font(GuiDefaults::FontBig);
     title.SetAlignment(Align_t::Center());
-    progress.set_font(resource_font(IDR_FNT_BIG));
+    progress.set_font(Font::big);
 
-    label.set_font(GuiDefaults::EnableDialogBigLayout ? resource_font(IDR_FNT_SPECIAL) : GuiDefaults::FontBig);
+    label.set_font(GuiDefaults::EnableDialogBigLayout ? Font::special : GuiDefaults::FontBig);
     label.SetAlignment(Align_t::CenterTop());
 }

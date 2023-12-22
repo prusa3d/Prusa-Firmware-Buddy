@@ -109,11 +109,11 @@ IWindowMenuItem *IWindowMenuItem::focused_item() {
     return focused_menu_item;
 }
 
-void IWindowMenuItem::setLabelFont(font_t *src) {
+void IWindowMenuItem::setLabelFont(Font src) {
     label_font = src;
 }
 
-font_t *IWindowMenuItem::getLabelFont() const {
+Font IWindowMenuItem::getLabelFont() const {
     return label_font;
 }
 

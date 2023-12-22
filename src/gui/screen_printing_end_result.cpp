@@ -16,7 +16,7 @@ constexpr const char *txt_wipe_tower_pretranslated { N_("Prime tower %dg") };
 constexpr const char *txt_wipe_tower_pretranslated { N_("Wipe tower %dg") };
 #endif
 
-constexpr auto end_result_font { IDR_FNT_SMALL };
+constexpr auto end_result_font { Font::small };
 
 constexpr size_t column_left { 30 };
 constexpr size_t column_right { GuiDefaults::ScreenWidth / 2 + column_left };
@@ -99,20 +99,20 @@ EndResultBody::EndResultBody(window_t *parent, Rect16 rect)
     print_ended_label.SetTextColor(COLOR_SILVER);
     consumed_material_label.SetTextColor(COLOR_SILVER);
 
-    printing_time_label.set_font(resource_font(end_result_font));
-    print_started_label.set_font(resource_font(end_result_font));
-    print_ended_label.set_font(resource_font(end_result_font));
-    consumed_material_label.set_font(resource_font(end_result_font));
-    printing_time_value.set_font(resource_font(end_result_font));
-    print_started_value.set_font(resource_font(end_result_font));
-    print_ended_value.set_font(resource_font(end_result_font));
+    printing_time_label.set_font(end_result_font);
+    print_started_label.set_font(end_result_font);
+    print_ended_label.set_font(end_result_font);
+    consumed_material_label.set_font(end_result_font);
+    printing_time_value.set_font(end_result_font);
+    print_started_value.set_font(end_result_font);
+    print_ended_value.set_font(end_result_font);
     for (auto &consumed_material_value : consumed_material_values) {
-        consumed_material_value.set_font(resource_font(end_result_font));
+        consumed_material_value.set_font(end_result_font);
     }
-    consumed_wipe_tower_value.set_font(resource_font(end_result_font));
+    consumed_wipe_tower_value.set_font(end_result_font);
 
     progress_txt.SetAlignment(progress_alignment);
-    progress_txt.set_font(resource_font(progress_font));
+    progress_txt.set_font(progress_font);
 }
 
 Rect16 EndResultBody::get_progress_txt_rect(int16_t row_0) {

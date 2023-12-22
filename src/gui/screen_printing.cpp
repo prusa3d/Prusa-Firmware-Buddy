@@ -120,9 +120,9 @@ constexpr size_t get_row(size_t idx) {
 }
 
 #if defined(USE_ST7789)
-constexpr auto etime_val_font { IDR_FNT_SMALL };
+constexpr auto etime_val_font { Font::small };
 #elif defined(USE_ILI9488)
-constexpr auto etime_val_font { IDR_FNT_NORMAL };
+constexpr auto etime_val_font { Font::normal };
 
 constexpr auto arrow_left_res { &img::arrow_left_10x16 };
 
@@ -132,7 +132,7 @@ constexpr Rect16 arrow_left_rect { column_left - arrow_left_res->w, middle_of_bu
 constexpr size_t rotating_circles_height { 5 };
 constexpr size_t rotating_circles_width { 35 };
 constexpr size_t rotating_circles_left_offset { 0 };
-constexpr Rect16 rotating_circles_rect { column_left + rotating_circles_left_offset, get_row(1) + resource_font_size(etime_val_font).h + 5, rotating_circles_width, rotating_circles_height };
+constexpr Rect16 rotating_circles_rect { column_left + rotating_circles_left_offset, get_row(1) + height(etime_val_font) + 5, rotating_circles_width, rotating_circles_height };
 
 constexpr Rect16 end_result_body_rect { 0, row_0 - EndResultBody::extra_top_space, GuiDefaults::ScreenWidth, GuiDefaults::ScreenHeight - GuiDefaults::FooterHeight - row_0 };
 #endif
@@ -188,15 +188,15 @@ screen_printing_data_t::screen_printing_data_t()
     w_etime_value.SetAlignment(Align_t::RightTop());
     w_etime_value.SetPadding({ 0, 5, 0, 2 });
 
-    w_progress_txt.set_font(resource_font(EndResultBody::progress_font));
+    w_progress_txt.set_font(EndResultBody::progress_font);
 
     // ST7789 specific variable and it's label
-    w_time_label.set_font(resource_font(IDR_FNT_SMALL));
+    w_time_label.set_font(Font::small);
     w_time_label.SetAlignment(align);
     w_time_label.SetPadding({ 0, 2, 0, 2 });
     w_time_label.SetText(_(EndResultBody::txt_printing_time));
 
-    w_time_value.set_font(resource_font(IDR_FNT_SMALL));
+    w_time_value.set_font(Font::small);
     w_time_value.SetAlignment(align);
     w_time_value.SetPadding({ 0, 2, 0, 2 });
 #elif defined(USE_ILI9488)
@@ -208,10 +208,10 @@ screen_printing_data_t::screen_printing_data_t()
     w_etime_value.SetPadding({ 0, 2, 0, 2 });
 
     w_etime_label.SetTextColor(COLOR_SILVER);
-    w_progress_txt.set_font(resource_font(EndResultBody::progress_font));
+    w_progress_txt.set_font(EndResultBody::progress_font);
 #endif // USE_<display>
 
-    w_filename.set_font(resource_font(IDR_FNT_BIG));
+    w_filename.set_font(Font::big);
     w_filename.SetPadding({ 0, 0, 0, 0 });
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
     {
@@ -222,7 +222,7 @@ screen_printing_data_t::screen_printing_data_t()
     }
     w_filename.SetText(string_view_utf8::MakeRAM((const uint8_t *)gui_media_LFN));
 
-    w_etime_label.set_font(resource_font(IDR_FNT_SMALL));
+    w_etime_label.set_font(Font::small);
 
 #if defined(USE_ILI9488)
     print_progress.init_gcode_info();
@@ -231,7 +231,7 @@ screen_printing_data_t::screen_printing_data_t()
     // Execute first print time update loop
     updateTimes();
 
-    w_etime_value.set_font(resource_font(etime_val_font));
+    w_etime_value.set_font(etime_val_font);
 
 #if defined(USE_ILI9488)
     print_progress.Pause();

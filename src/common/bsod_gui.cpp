@@ -256,7 +256,7 @@ static void fallback_bsod(const char *fmt, const char *file_name, int line_numbe
 
     // Draw buffer
     render_text_align(Rect16(8, 10, 230, 290),
-        string_view_utf8::MakeRAM((const uint8_t *)fallback_bsod_text), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE,
+        string_view_utf8::MakeRAM((const uint8_t *)fallback_bsod_text), Font::small, COLOR_NAVY, COLOR_WHITE,
         { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
 
     // Endless loop

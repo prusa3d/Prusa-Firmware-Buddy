@@ -31,9 +31,9 @@ public:
 
     static constexpr auto progress_font {
 #if defined(USE_ILI9488)
-        IDR_FNT_LARGE
+        Font::large
 #elif defined(USE_ST7789)
-        IDR_FNT_NORMAL
+        Font::normal
 #endif
     };
     static constexpr auto progress_alignment { Align_t::RightTop() };

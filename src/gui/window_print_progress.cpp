@@ -25,7 +25,7 @@ void WindowPrintProgress::windowEvent(EventLock /*has private ctor*/, window_t *
 WindowNumbPrintProgress::WindowNumbPrintProgress(window_t *parent, Rect16 rect)
     : AddSuperWindow<window_numb_t>(parent, rect)
     , last_sd_percent_done(-1) {
-    set_font(resource_font(IDR_FNT_BIG));
+    set_font(Font::big);
     SetAlignment(Align_t::Center());
     PrintAsInt32();
     SetFormat("%d%%");

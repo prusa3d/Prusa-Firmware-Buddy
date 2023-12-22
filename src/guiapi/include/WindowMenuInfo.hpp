@@ -20,13 +20,13 @@
  */
 
 class IWiInfo : public AddSuper<IWindowMenuItem> {
-    static constexpr font_t *&InfoFont = GuiDefaults::FontMenuSpecial;
+    static constexpr Font InfoFont = GuiDefaults::FontMenuSpecial;
     static constexpr uint16_t icon_width = 16;
 
 protected:
     void printInfo(Rect16 extension_rect, color_t color_back, string_view_utf8 info_str) const;
     static uint16_t calculate_extension_width(ExtensionLikeLabel extension_like_label, size_t max_characters) {
-        return max_characters * (extension_like_label == ExtensionLikeLabel::yes ? GuiDefaults::FontMenuItems->w : InfoFont->w);
+        return max_characters * (extension_like_label == ExtensionLikeLabel::yes ? width(GuiDefaults::FontMenuItems) : width(InfoFont));
     }
 
 public:

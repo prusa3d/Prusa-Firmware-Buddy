@@ -87,7 +87,7 @@ using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENER
     MI_PL_PASSWORD_VALUE>;
 
 class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
-    static constexpr ResourceId canvas_font = IDR_FNT_SPECIAL;
+    static constexpr Font canvas_font = Font::special;
 
     PLMenuContainer container;
     window_menu_t menu;
@@ -101,7 +101,7 @@ public:
     ScreenMenuPrusaLink();
 
     static inline uint16_t canvas_font_height() {
-        return resource_font(canvas_font)->h;
+        return height(canvas_font);
     }
 
 protected:

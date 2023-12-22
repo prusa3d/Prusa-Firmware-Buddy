@@ -25,10 +25,10 @@ ScreenBlueError::ScreenBlueError()
     // Simple text instead of header
     header.SetAlignment(Align_t::LeftTop());
     if constexpr (GuiDefaults::EnableDialogBigLayout) {
-        header.set_font(resource_font(IDR_FNT_SPECIAL));
+        header.set_font(Font::special);
     } else {
-        header.set_font(resource_font(IDR_FNT_SMALL));
+        header.set_font(Font::small);
     }
 
-    description.set_font(resource_font(description_font));
+    description.set_font(description_font);
 }
