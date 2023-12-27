@@ -185,6 +185,7 @@
 
 /**
  * High Temperature Thermistor Support
+ * YASS! This is what we want!
  *
  * Thermistors able to support high temperature tend to have a hard time getting
  * good readings at room and lower temperatures. This means HEATER_X_RAW_LO_TEMP
@@ -201,14 +202,14 @@
 
 // The number of consecutive low temperature errors that can occur
 // before a min_temp_error is triggered. (Shouldn't be more than 10.)
-//#define MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED 0
+#define MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED 2
 
 // The number of milliseconds a hotend will preheat before starting to check
 // the temperature. This value should NOT be set to the time it takes the
 // hot end to reach the target temperature, but the time it takes to reach
 // the minimum temperature your thermistor can read. The lower the better/safer.
 // This shouldn't need to be more than 30 seconds (30000)
-//#define MILLISECONDS_PREHEAT_TIME 0
+#define MILLISECONDS_PREHEAT_TIME 10000
 
 // @section extruder
 
