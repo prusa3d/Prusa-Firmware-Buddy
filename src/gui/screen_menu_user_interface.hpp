@@ -42,7 +42,7 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #endif /*HAS_TOOLCHANGER()*/
 #if HAS_TOUCH()
     ,
-    MI_ENABLE_TOUCH, MI_TOUCH_PLAYGROUND
+    MI_ENABLE_TOUCH, TOUCH_SIG_WORKAROUND, MI_TOUCH_PLAYGROUND
 #endif
     >;
 

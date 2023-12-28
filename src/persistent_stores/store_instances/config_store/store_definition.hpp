@@ -244,6 +244,7 @@ struct CurrentStore
     StoreItem<bool, defaults::bool_true, journal::hash("Run LEDs")> run_leds;
     StoreItem<bool, defaults::bool_false, journal::hash("Heat Entire Bed")> heat_entire_bed;
     StoreItem<bool, defaults::bool_false, journal::hash("Touch Enabled")> touch_enabled;
+    StoreItem<bool, defaults::bool_false, journal::hash("Touch Sig Workaround")> touch_sig_workaround;
 
 #if HAS_TOOLCHANGER() // for now not ifdefing per-extruder as well for simplicity
     StoreItem<DockPosition, defaults::dock_position, journal::hash("Dock Position 0")> dock_position_0;

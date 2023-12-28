@@ -209,7 +209,7 @@ void Touchscreen_GT911::update_impl(TouchState &touch_state) {
     const uint32_t now = ticks_ms();
     const auto diff = ticks_diff(now, last_update_ms_);
 
-    if (buddy::hw::touch_sig.read() != touch_sig_read_state_ || diff < 10) {
+    if ((buddy::hw::touch_sig.read() != touch_sig_read_state_ && !config_store().touch_sig_workaround.get()) || diff < 10) {
         return;
     }
 
