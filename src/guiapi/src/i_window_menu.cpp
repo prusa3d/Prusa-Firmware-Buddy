@@ -12,7 +12,7 @@ IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
     : AddSuperWindow<window_t>(parent, rect) {
     Enable();
 
-    assert(GuiDefaults::FontMenuItems->h == font_h_);
+    assert(height(GuiDefaults::FontMenuItems) == font_h_);
     max_items_on_screen_count_ = Height() / (item_height() + GuiDefaults::MenuItemDelimeterHeight);
 }
 
