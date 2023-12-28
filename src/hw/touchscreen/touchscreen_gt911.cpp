@@ -32,43 +32,51 @@ void Touchscreen_GT911::upload_touchscreen_config() {
 
     is_hw_ok_ = false;
 
-    uint8_t cfg[config_data_size];
+    const auto update_config = [&] {
+        uint8_t cfg[config_data_size];
 
-    // Download config from the controller
-    if (!read_data(register_config_begin, cfg, config_data_size, 5)) {
-        metric_record_string(metric_touch_event(), "config read fail");
-        log_info(Touch, "config read failed");
-        return;
-    }
-
-    // If the config is the newest, we don't need to flash a new one -> finished
-    if (!memcmp(cfg, touchscreen_gt911_config, config_data_size - 2)) {
-        metric_record_string(metric_touch_event(), "config no change");
-        log_info(Touch, "config no change");
-        is_hw_ok_ = true;
-        return;
-    }
-
-    // Otherwise prepare new data do be flashed
-    memcpy(cfg, touchscreen_gt911_config, config_data_size - 2);
-
-    cfg[config_data_size - 1] = 1; // enforce update flag
-
-    // Calc config checksum
-    // (not needed when setting from default data, just to be safe)
-    {
-        uint8_t config_checksum = 0;
-        for (uint8_t *it = cfg, *end = cfg + config_data_size - 2; it != end; it++) {
-            config_checksum += *it;
+        // Download config from the controller
+        if (!read_data(register_config_begin, cfg, config_data_size, 5)) {
+            metric_record_string(metric_touch_event(), "config read fail");
+            log_info(Touch, "config read failed");
+            return false;
         }
-        // ccsum %= 256;
-        config_checksum = (~config_checksum) + 1;
-        cfg[config_data_size - 2] = config_checksum;
-    }
 
-    if (!write_data(register_config_begin, cfg, config_data_size)) {
-        metric_record_string(metric_touch_event(), "config write failed");
-        log_info(Touch, "config write failed");
+        // If the config is the newest, we don't need to flash a new one -> finished
+        if (!memcmp(cfg, touchscreen_gt911_config, config_data_size - 2)) {
+            metric_record_string(metric_touch_event(), "config no change");
+            log_info(Touch, "config no change");
+            return true;
+        }
+
+        // Otherwise prepare new data do be flashed
+        memcpy(cfg, touchscreen_gt911_config, config_data_size - 2);
+
+        cfg[config_data_size - 1] = 1; // enforce update flag
+
+        // Calc config checksum
+        // (not needed when setting from default data, just to be safe)
+        {
+            uint8_t config_checksum = 0;
+            for (uint8_t *it = cfg, *end = cfg + config_data_size - 2; it != end; it++) {
+                config_checksum += *it;
+            }
+            // ccsum %= 256;
+            config_checksum = (~config_checksum) + 1;
+            cfg[config_data_size - 2] = config_checksum;
+        }
+
+        if (!write_data(register_config_begin, cfg, config_data_size)) {
+            metric_record_string(metric_touch_event(), "config write failed");
+            log_info(Touch, "config write failed");
+            return false;
+        }
+
+        metric_record_string(metric_touch_event(), "new config flashed");
+        log_info(Touch, "new config flashed");
+        return true;
+    };
+    if (!update_config()) {
         return;
     }
 
@@ -78,8 +86,6 @@ void Touchscreen_GT911::upload_touchscreen_config() {
         write_data(0x8041, &data, 1);
     }
 
-    metric_record_string(metric_touch_event(), "new config flashed");
-    log_info(Touch, "new config flashed");
     is_hw_ok_ = true;
 }
 
