@@ -7,6 +7,7 @@
 #include "marlin_client.hpp"
 #include "client_response.hpp"
 #include "i18n.h"
+#include "window_numb.hpp"
 #include "window_text.hpp"
 #include "window_progress.hpp"
 #include "fsm_types.hpp"
@@ -45,17 +46,18 @@ protected:
     window_frame_t progress_frame;
 
     window_text_t title;
-    window_progress_t progress;
+    window_numberless_progress_t progress_bar;
+    window_numb_t progress_number;
     window_text_t label;
 
     // must be virtual because of `states` list is in template protected
     virtual void phaseEnter() = 0;
     virtual void phaseExit() = 0;
     virtual float deserialize_progress([[maybe_unused]] fsm::PhaseData data) const { return 0.F; }
+    void set_progress_percent(uint8_t val);
 
     static Rect16 get_frame_rect(Rect16 rect, std::optional<has_footer> dialog_has_footer);
     static Rect16 get_title_rect(Rect16 rect);
-    static Rect16 get_progress_rect(Rect16 rect);
     static Rect16 get_label_rect(Rect16 rect, std::optional<has_footer> dialog_has_footer);
 
 public:
@@ -102,7 +104,7 @@ protected:
             phaseEnter();
         }
 
-        progress.SetValue(deserialize_progress(data));
+        set_progress_percent(deserialize_progress(data));
         return true;
     }
 
