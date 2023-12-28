@@ -57,27 +57,28 @@ void NsPreheat::MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {
 // DialogMenuPreheat
 DialogMenuPreheat::DialogMenuPreheat(fsm::BaseData data)
     : AddSuperWindow<IDialogMarlin>(get_title(data).isNULLSTR() ? GuiDefaults::RectScreenNoHeader : GuiDefaults::RectScreen)
-    , menu(this, GuiDefaults::RectScreenNoHeader, newContainer(get_type(data)))
+    , menu(this, GuiDefaults::RectScreenNoHeader, &menu_container)
     , header(this) { // header registration should fail in case name.isNULLSTR(), it is OK
     string_view_utf8 title = get_title(data);
     title.isNULLSTR() ? header.Hide() : header.SetText(title); // hide it anyway, to be safe
 
     CaptureNormalWindow(menu);
-}
 
-IWinMenuContainer *DialogMenuPreheat::newContainer(PreheatData type) {
-    switch (type.RetAndCool()) {
-    case RetAndCool_t::Both:
-        return new (&container_mem_space) NsPreheat::MenuContainerHasRetCool;
-    case RetAndCool_t::Return:
-        return new (&container_mem_space) NsPreheat::MenuContainerHasRet;
-    case RetAndCool_t::Cooldown:
-        return new (&container_mem_space) NsPreheat::MenuContainerHasCool;
-    case RetAndCool_t::Neither:
-    default:
-        break;
+    const PreheatData preheat_data = get_type(data);
+
+    NsPreheat::MI_RETURN &menu_item_return = menu_container.Item<NsPreheat::MI_RETURN>();
+    if (preheat_data.HasReturnOption()) {
+        menu_item_return.show();
+    } else {
+        menu_item_return.hide();
     }
-    return new (&container_mem_space) NsPreheat::MenuContainer;
+
+    NsPreheat::MI_COOLDOWN &menu_item_cooldown = menu_container.Item<NsPreheat::MI_COOLDOWN>();
+    if (preheat_data.HasCooldownOption()) {
+        menu_item_cooldown.show();
+    } else {
+        menu_item_cooldown.hide();
+    }
 }
 
 PreheatData DialogMenuPreheat::get_type(fsm::BaseData data) {
