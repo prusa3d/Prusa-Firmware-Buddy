@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MItem_tools.hpp"
-#include "DialogStateful.hpp"
+#include "IDialogMarlin.hpp"
 #include "screen_menu.hpp"
 #include <utility_extensions.hpp>
 #include "ScreenHandler.hpp"
