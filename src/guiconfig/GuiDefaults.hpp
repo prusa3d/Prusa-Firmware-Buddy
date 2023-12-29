@@ -128,16 +128,6 @@ struct GuiDefaults {
 
     static constexpr Rect16 GetButtonRect(Rect16 rc_frame) { return Rect16(rc_frame.Left() + ButtonSpacing,
         rc_frame.Top() + (rc_frame.Height() - ButtonHeight - FramePadding), rc_frame.Width() - 2 * ButtonSpacing, ButtonHeight); }
-    static constexpr Rect16 GetDialogRect(std::optional<has_footer> footer) {
-        if (!footer) {
-            return DialogFrameRect;
-        }
-        if ((*footer) == has_footer::no) {
-            return RectScreenBody;
-        }
-        // has_footer::yes
-        return RectScreenNoHeader;
-    }
     static constexpr Rect16 GetButtonRect_AvoidFooter(Rect16 rc_frame) { return GetButtonRect(rc_frame - Rect16::Height_t(FooterHeight)); }
 
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)

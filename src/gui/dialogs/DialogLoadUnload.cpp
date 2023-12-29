@@ -207,7 +207,7 @@ constexpr Rect16 filament_type_text_rect { text_margin, top_of_bottom_part - tex
 } // namespace
 
 DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
-    : AddSuperWindow<DialogStateful<PhasesLoadUnload>>(get_name(ProgressSerializerLoadUnload(data.GetData()).mode), LoadUnloadFactory(), has_footer::yes)
+    : AddSuperWindow<DialogStateful<PhasesLoadUnload>>(get_name(ProgressSerializerLoadUnload(data.GetData()).mode), LoadUnloadFactory())
     , footer(this
 #if FOOTER_ITEMS_PER_LINE__ >= 5
           ,
@@ -225,7 +225,7 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     #endif
 #endif
           )
-    , notice_frame(this, get_frame_rect(GetRect(), has_footer::yes))
+    , notice_frame(this, get_frame_rect(GetRect()))
     , notice_title(&notice_frame, notice_title_rect, is_multiline::no)
     , notice_text(&notice_frame, notice_text_rect, is_multiline::yes)
     , notice_link(&notice_frame, notice_link_rect, is_multiline::yes)

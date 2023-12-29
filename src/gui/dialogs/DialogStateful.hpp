@@ -56,12 +56,12 @@ protected:
     virtual float deserialize_progress([[maybe_unused]] fsm::PhaseData data) const { return 0.F; }
     void set_progress_percent(uint8_t val);
 
-    static Rect16 get_frame_rect(Rect16 rect, std::optional<has_footer> dialog_has_footer);
+    static Rect16 get_frame_rect(Rect16 rect);
     static Rect16 get_title_rect(Rect16 rect);
-    static Rect16 get_label_rect(Rect16 rect, std::optional<has_footer> dialog_has_footer);
+    static Rect16 get_label_rect(Rect16 rect);
 
 public:
-    IDialogStateful(string_view_utf8 name, std::optional<has_footer> child_has_footer = std::nullopt);
+    explicit IDialogStateful(string_view_utf8 name);
 };
 
 /*****************************************************************************/
@@ -79,10 +79,10 @@ protected:
     RadioButtonFsm<T> radio;
 
 public:
-    DialogStateful(const string_view_utf8 &name, const States &st, std::optional<has_footer> child_has_footer = std::nullopt)
-        : IDialogStateful(name, child_has_footer)
+    DialogStateful(const string_view_utf8 &name, const States &st)
+        : IDialogStateful(name)
         , states(st)
-        , radio(&progress_frame, (child_has_footer == has_footer::yes) ? GuiDefaults::GetButtonRect_AvoidFooter(GetRect()) : GuiDefaults::GetButtonRect(GetRect()), T::_first) {
+        , radio(&progress_frame, GuiDefaults::GetButtonRect_AvoidFooter(GetRect()), T::_first) {
         progress_frame.CaptureNormalWindow(radio);
         CaptureNormalWindow(progress_frame);
     }
