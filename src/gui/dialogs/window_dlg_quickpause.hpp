@@ -1,10 +1,9 @@
 #pragma once
 
-#include "DialogStateful.hpp"
+#include "IDialogMarlin.hpp"
 #include "window_text.hpp"
 #include "window_roll_text.hpp"
 #include "window_icon.hpp"
-#include "DialogStateful.hpp"
 #include "client_fsm_types.h"
 #include "radio_button_fsm.hpp"
 

@@ -10,7 +10,7 @@
 #include "filament.hpp"
 #include "../../lang/string_view_utf8.hpp"
 #include "screen_menu.hpp"
-#include "DialogStateful.hpp"
+#include "IDialogMarlin.hpp"
 #include "fsm_preheat_type.hpp"
 #include "MItem_tools.hpp"
 
