@@ -23,12 +23,12 @@ static const constexpr int PROGRESS_TOP = GuiDefaults::EnableDialogBigLayout ? 1
 static const constexpr int LABEL_TOP = GuiDefaults::EnableDialogBigLayout ? 180 : PROGRESS_TOP + PROGRESS_H;
 static const constexpr int PROGRESS_BAR_X_PAD = GuiDefaults::EnableDialogBigLayout ? 24 : 10;
 
-Rect16 IDialogStateful::get_frame_rect(Rect16 rect, std::optional<has_footer> dialog_has_footer) {
+Rect16 IDialogStateful::get_frame_rect(Rect16 rect) {
     return Rect16(
         rect.Left(),
         rect.Top(),
         rect.Width(),
-        rect.Height() - (!dialog_has_footer || *dialog_has_footer == has_footer::no ? 0 : GuiDefaults::FooterHeight));
+        rect.Height() - GuiDefaults::FooterHeight);
 }
 
 Rect16 IDialogStateful::get_title_rect(Rect16 rect) {
@@ -39,9 +39,9 @@ static Rect16 get_progress_rect(Rect16 rect) {
     return Rect16(rect.Left() + PROGRESS_BAR_X_PAD, GuiDefaults::EnableDialogBigLayout ? PROGRESS_TOP : rect.Top() + PROGRESS_TOP, rect.Width() - 2 * PROGRESS_BAR_X_PAD, PROGRESS_H);
 }
 
-Rect16 IDialogStateful::get_label_rect(Rect16 rect, std::optional<has_footer> dialog_has_footer) {
+Rect16 IDialogStateful::get_label_rect(Rect16 rect) {
 
-    const int RADION_BUTTON_TOP = !dialog_has_footer || *dialog_has_footer == has_footer::no ? rect.Height() - RADIO_BUTTON_H : rect.Height() - RADIO_BUTTON_H - GuiDefaults::FooterHeight;
+    const int RADION_BUTTON_TOP = rect.Height() - RADIO_BUTTON_H - GuiDefaults::FooterHeight;
     const int LABEL_H = RADION_BUTTON_TOP - LABEL_TOP;
     return Rect16(rect.Left() + LABEL_TEXT_PAD, GuiDefaults::EnableDialogBigLayout ? LABEL_TOP : rect.Top() + LABEL_TOP, rect.Width() - 2 * LABEL_TEXT_PAD, LABEL_H);
 }
@@ -67,13 +67,13 @@ static Rect16 get_progress_number_rect(const Rect16 parent_rect) {
 }
 
 //*****************************************************************************
-IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer> child_has_footer)
-    : IDialogMarlin(GuiDefaults::GetDialogRect(child_has_footer))
-    , progress_frame(this, get_frame_rect(GetRect(), child_has_footer))
+IDialogStateful::IDialogStateful(string_view_utf8 name)
+    : IDialogMarlin(GuiDefaults::RectScreenNoHeader)
+    , progress_frame(this, get_frame_rect(GetRect()))
     , title(&progress_frame, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, name)
     , progress_bar(&progress_frame, get_progress_bar_rect(GetRect()), COLOR_ORANGE, GuiDefaults::EnableDialogBigLayout ? COLOR_DARK_GRAY : COLOR_GRAY, PROGRESS_BAR_CORNER_RADIUS)
     , progress_number(&progress_frame, get_progress_number_rect(GetRect()), 0, "%.0f%%", Font::big)
-    , label(&progress_frame, get_label_rect(GetRect(), child_has_footer), is_multiline::yes) {
+    , label(&progress_frame, get_label_rect(GetRect()), is_multiline::yes) {
     title.set_font(GuiDefaults::FontBig);
     title.SetAlignment(Align_t::Center());
     progress_number.SetAlignment(Align_t::Center());
