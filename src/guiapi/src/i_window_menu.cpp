@@ -56,11 +56,6 @@ bool IWindowMenu::scroll_page(PageScrollDirection direction) {
         return false;
     }
 
-    // Unfocus on page scroll
-    if (!move_focus_to_index(std::nullopt)) {
-        return false;
-    }
-
     // Play the sound before setting the index (set index could take some time, the sound response should be immediate)
     Sound_Play(eSOUND_TYPE::EncoderMove);
 
