@@ -65,7 +65,7 @@ void GcodeSuite::M486() {
     }
 
     if (arg) {
-        if (static_cast<size_t>(cancelable.active_object) >= marlin_vars_t::CANCEL_OBJECTS_NAME_COUNT) {
+        if (static_cast<size_t>(cancelable.active_object) >= marlin_vars_t::CANCEL_OBJECTS_COUNT) {
             return; // out of bounds, nothing can be done
         }
         if (*arg == '\"') {

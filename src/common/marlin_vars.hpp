@@ -12,6 +12,10 @@
 #include "inc/MarlinConfig.h"
 #include <assert.h>
 
+#if ENABLED(CANCEL_OBJECTS)
+    #include "../Marlin/src/feature/cancel_object.h"
+#endif
+
 #if BOARD_IS_DWARF
     #error "You're trying to add marlin_vars to Dwarf. Don't!"
 #endif /*BOARD_IS_DWARF*/
@@ -343,9 +347,9 @@ public:
     MarlinVariable<int8_t> cancel_object_count; ///< Number of objects that can be canceled
 
     static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32; ///< Maximal length of cancel_object_names strings
-    static constexpr size_t CANCEL_OBJECTS_NAME_COUNT = 16; ///< Maximal number of cancel objects
+    static constexpr size_t CANCEL_OBJECTS_COUNT = CancelObject::CANCEL_OBJECTS_COUNT; ///< Maximal number of cancel objects
     /// Names of cancelable objects
-    MarlinVariableString<CANCEL_OBJECT_NAME_LEN> cancel_object_names[CANCEL_OBJECTS_NAME_COUNT];
+    MarlinVariableString<CANCEL_OBJECT_NAME_LEN> cancel_object_names[CANCEL_OBJECTS_COUNT];
 #endif /*ENABLED(CANCEL_OBJECTS)*/
 
     // 2B base types
