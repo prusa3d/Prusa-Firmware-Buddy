@@ -247,7 +247,8 @@ if(BOARD_IS_MASTER_BOARD)
   if(PRINTER IN_LIST PRINTERS_WITH_MMU2)
     target_sources(
       Marlin
-      PRIVATE Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp
+      PRIVATE Marlin/Marlin/src/feature/prusa/MMU2/mmu2_command_guard.cpp
+              Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp
               Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp
               Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp
               Marlin/Marlin/src/gcode/control/T.cpp

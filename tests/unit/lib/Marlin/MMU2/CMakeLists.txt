@@ -17,6 +17,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/stubs/spool_join_stub.cpp
   ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp
   ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp
+  ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_command_guard.cpp
   ${CMAKE_SOURCE_DIR}/lib/Prusa-Firmware-MMU/src/modules/protocol.cpp
   )
 target_include_directories(

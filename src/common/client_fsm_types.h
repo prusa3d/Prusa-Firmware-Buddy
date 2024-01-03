@@ -35,7 +35,9 @@ enum class LoadUnloadMode : uint8_t {
     Unload,
     Purge,
     FilamentStuck,
-    Test
+    Test,
+    Cut, // MMU
+    Eject, // MMU
 };
 
 enum class PreheatMode : uint8_t {

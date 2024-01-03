@@ -95,9 +95,15 @@ namespace MMU2 {
 
 template <typename F>
 void waitForHotendTargetTemp(uint16_t delay, F f) {
+    const auto startTemp = thermal_degHotend();
+
     while (((thermal_degTargetHotend() - thermal_degHotend()) > 5)) {
         f();
         safe_delay_keep_alive(delay);
+
+        if (mmu2.commandInProgressManager.isCommandInProgress()) {
+            ReportProgressHook(ProgressData(mmu2.commandInProgressManager.commandInProgress(), ExtendedProgressCode::WaitingForTemperature, (thermal_degHotend() - startTemp) * 100 / (thermal_degTargetHotend() - startTemp)));
+        }
     }
 }
 
@@ -123,7 +129,6 @@ MMU2::MMU2()
     , tool_change_extruder(MMU2_NO_TOOL)
     , resume_position()
     , resume_hotend_temp(0)
-    , reportingStartedCnt(0)
     , logicStepLastStatus(StepStatus::Finished)
     , state(xState::Stopped)
     , mmu_print_saved(SavedState::None)
@@ -304,48 +309,6 @@ void MMU2::CheckFINDARunout() {
         enqueue_gcode("M600");
     }
 }
-
-struct ReportingRAII {
-    CommandInProgress cip;
-    static uint8_t topLevelReportBlock;
-    // not sure if we should keep this as a reference into the MMU2 class's member
-    // - probably only if there were multiple MMU instances and all of them performed some top level operation simultaneously
-    // -> which the GUI cannot handle at this moment anyway
-    uint8_t &reptStartedCnt;
-    static void BeginReportRR(CommandInProgress cip, uint8_t &reportingStartedCnt) {
-        if (topLevelReportBlock == 0) { // no top level RAII is active - async error screen occurred
-            if (reportingStartedCnt == 0) {
-                BeginReport(ProgressData(cip, ProgressCode::EngagingIdler));
-            }
-            ++reportingStartedCnt;
-        } // otherwise do nothing, BeginReport has already been called by some RAII instance
-    }
-
-    static void EndReportRR(CommandInProgress cip, uint8_t &reportingStartedCnt) {
-        if (topLevelReportBlock == 0) {
-            if (reportingStartedCnt > 0) {
-                --reportingStartedCnt;
-                if (reportingStartedCnt == 0) {
-                    EndReport(ProgressData(cip, ProgressCode::OK));
-                }
-            }
-        } // otherwise do nothing, EndReport will be called by some RAII instance
-    }
-
-    explicit inline ReportingRAII(CommandInProgress cip, uint8_t &reportingStartedCnt)
-        : cip(cip)
-        , reptStartedCnt(reportingStartedCnt) {
-        ++topLevelReportBlock;
-        BeginReport(ProgressData(cip, ProgressCode::EngagingIdler));
-    }
-
-    inline ~ReportingRAII() {
-        --topLevelReportBlock;
-        EndReport(ProgressData(cip, ProgressCode::OK));
-    }
-};
-
-uint8_t ReportingRAII::topLevelReportBlock = 0;
 
 bool MMU2::WaitForMMUReady() {
     switch (State()) {
@@ -587,7 +550,7 @@ bool MMU2::tool_change(uint8_t slot) {
             unload();
         }
 
-        ReportingRAII rep(CommandInProgress::ToolChange, reportingStartedCnt);
+        CommandInProgressGuard cipg(CommandInProgress::ToolChange, commandInProgressManager);
         FSensorBlockRunout blockRunout;
         BlockEStallDetection blockEStallDetection;
         planner_synchronize();
@@ -612,7 +575,7 @@ bool MMU2::tool_change_full(uint8_t slot) {
 
         unload();
 
-        ReportingRAII rep(CommandInProgress::ToolChange, reportingStartedCnt);
+        CommandInProgressGuard cipg(CommandInProgress::ToolChange, commandInProgressManager);
         FSensorBlockRunout blockRunout;
         BlockEStallDetection blockEStallDetection;
         planner_synchronize();
@@ -640,6 +603,7 @@ bool MMU2::tool_change(char code, uint8_t slot) {
         return false;
     }
 
+    CommandInProgressGuard cipg(CommandInProgress::ToolChange, commandInProgressManager);
     FSensorBlockRunout blockRunout;
     BlockEStallDetection blockEStallDetection;
 
@@ -746,12 +710,12 @@ bool MMU2::unload() {
         return false;
     }
 
-    WaitForHotendTargetTempBeep();
-
     {
-        ReportingRAII rep(CommandInProgress::UnloadFilament, reportingStartedCnt);
+        CommandInProgressGuard cipg(CommandInProgress::UnloadFilament, commandInProgressManager);
+        WaitForHotendTargetTempBeep();
         UnloadInner(PreUnloadPolicy::Ramming);
     }
+
     ScreenUpdateEnable();
     return true;
 }
@@ -780,7 +744,7 @@ bool MMU2::cut_filament(uint8_t slot, bool enableFullScreenMsg /*= true*/) {
             unload();
         }
 
-        ReportingRAII rep(CommandInProgress::CutFilament, reportingStartedCnt);
+        CommandInProgressGuard cipg(CommandInProgress::CutFilament, commandInProgressManager);
         CutFilamentInner(slot);
         extruder = MMU2_NO_TOOL;
         tool_change_extruder = MMU2_NO_TOOL;
@@ -793,7 +757,7 @@ bool MMU2::cut_filament(uint8_t slot, bool enableFullScreenMsg /*= true*/) {
 bool MMU2::loading_test(uint8_t slot) {
     FullScreenMsgTest(slot);
     {
-        ReportingRAII rep(CommandInProgress::TestLoad, reportingStartedCnt);
+        CommandInProgressGuard cipg(CommandInProgress::TestLoad, commandInProgressManager);
         FSensorBlockRunout blockRunout;
         BlockEStallDetection blockEStallDetection;
         thermal_setExtrudeMintemp(0); // Allow cold extrusion - load test doesn't push filament all the way into the nozzle
@@ -813,7 +777,7 @@ bool MMU2::load_filament(uint8_t slot) {
 
     FullScreenMsgLoad(slot);
     {
-        ReportingRAII rep(CommandInProgress::LoadFilament, reportingStartedCnt);
+        CommandInProgressGuard cipg(CommandInProgress::LoadFilament, commandInProgressManager);
         for (;;) {
             Disable_E0();
             logic.LoadFilament(slot);
@@ -833,14 +797,14 @@ bool MMU2::load_filament_to_nozzle(uint8_t slot) {
         return false;
     }
 
-    WaitForHotendTargetTempBeep();
-
     FullScreenMsgLoad(slot);
     {
         // used for MMU-menu operation "Load to Nozzle"
-        ReportingRAII rep(CommandInProgress::ToolChange, reportingStartedCnt);
+        CommandInProgressGuard cipg(ExtendedCommandInProgress::LoadToNozzle, commandInProgressManager);
         FSensorBlockRunout blockRunout;
         BlockEStallDetection blockEStallDetection;
+
+        WaitForHotendTargetTempBeep();
 
         if (extruder != MMU2_NO_TOOL) { // we already have some filament loaded - free it + shape its tip properly
             filament_ramming();
@@ -869,7 +833,7 @@ bool MMU2::eject_filament(uint8_t slot, bool enableFullScreenMsg /* = true */) {
             unload();
         }
 
-        ReportingRAII rep(CommandInProgress::EjectFilament, reportingStartedCnt);
+        CommandInProgressGuard cipg(CommandInProgress::EjectFilament, commandInProgressManager);
         for (;;) {
             Disable_E0();
             logic.EjectFilament(slot);
@@ -1206,18 +1170,38 @@ StepStatus MMU2::LogicStep(bool reportErrors) {
 }
 
 void MMU2::filament_ramming() {
-    execute_extruder_sequence(ramming_sequence, sizeof(ramming_sequence) / sizeof(E_Step));
+    execute_extruder_sequence(ramming_sequence, sizeof(ramming_sequence) / sizeof(E_Step), ExtendedProgressCode::Ramming);
 }
 
-void MMU2::execute_extruder_sequence(const E_Step *sequence, uint8_t steps) {
+void MMU2::execute_extruder_sequence(const E_Step *sequence, uint8_t stepCount, ExtendedProgressCode progressCode) {
     planner_synchronize();
 
-    const E_Step *step = sequence;
-    for (uint8_t i = steps; i > 0; --i) {
+    const bool should_report_progress = (progressCode != ExtendedProgressCode::_cnt) && commandInProgressManager.isCommandInProgress();
+
+    // Plan the moves
+    for (const E_Step *step = sequence, *end = sequence + stepCount; step != end; step++) {
         extruder_move(pgm_read_float(&(step->extrude)), pgm_read_float(&(step->feedRate)));
-        step++;
     }
-    planner_synchronize(); // it looks like it's better to sync the moves at the end - smoother move (if the sequence is not too long).
+
+    if (should_report_progress) {
+        const auto initialPlannedCount = planner_moves_planned_count();
+
+        while (initialPlannedCount && planner_any_moves()) {
+            // Power panic or something happened - bail out fast
+            if (planner_draining()) {
+                Disable_E0();
+                return;
+            }
+
+            const auto currentCnt = planner_moves_planned_count();
+            ReportProgressHook(ProgressData(commandInProgressManager.commandInProgress(), progressCode, uint8_t((initialPlannedCount - currentCnt) * 100 / initialPlannedCount)));
+            marlin_idle(true);
+        }
+    }
+
+    // Wait for the movs to finish
+    // it looks like it's better to sync the moves at the end - smoother move (if the sequence is not too long).
+    planner_synchronize();
 
     Disable_E0();
 }
@@ -1226,7 +1210,7 @@ void MMU2::execute_load_to_nozzle_sequence() {
     planner_synchronize();
     // Compensate for configurable Extra Loading Distance
     // @@TODO 8bit needs this: planner_set_current_position_E(planner_get_current_position_E() - (logic.ExtraLoadDistance() - MMU2_FILAMENT_SENSOR_POSITION));
-    execute_extruder_sequence(load_to_nozzle_sequence, sizeof(load_to_nozzle_sequence) / sizeof(load_to_nozzle_sequence[0]));
+    execute_extruder_sequence(load_to_nozzle_sequence, sizeof(load_to_nozzle_sequence) / sizeof(load_to_nozzle_sequence[0]), ExtendedProgressCode::LoadingToNozzle);
 }
 
 void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
@@ -1304,31 +1288,37 @@ void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
 }
 
 void MMU2::ReportProgress(ProgressCode pc) {
-    ReportProgressHook(ProgressData(logic.CommandInProgress(), static_cast<RawProgressCode>(pc)));
+    ReportProgressHook(ProgressData(commandInProgressManager.commandInProgress(), static_cast<RawProgressCode>(pc)));
     LogEchoEvent_P(_O(ProgressCodeToText(pc)));
 }
 
 void MMU2::OnMMUProgressMsg(ProgressCode pc) {
-    if (pc != lastProgressCode) {
-        // some change in progress code
-        if (!reportingStartedCnt) {
-            // no reporting active yet
-            if (lastProgressCode == ProgressCode::OK) {
-                // incoming progress code != OK -> setup reporting explicitly
-                ReportingRAII::BeginReportRR(CommandInProgress::Homing, reportingStartedCnt); // @@TODO homing is probably not the best default
-            }
-        }
-        lastProgressCode = pc;
-        if (pc == ProgressCode::OK) {
-            // Command finished -> explicitly terminate reporting (decrement counter) -> allows closing async error screens
-            ReportingRAII::EndReportRR(CommandInProgress::Homing, reportingStartedCnt);
-        } else if (pc != ProgressCode::ERRWaitingForUser) { // avoid reporting errors as progress codes
-            OnMMUProgressMsgChanged(pc);
-        }
-    } else {
+    if (pc == lastProgressCode) {
         if (pc != ProgressCode::ERRWaitingForUser) { // not sure if this condition is necessary
             OnMMUProgressMsgSame(pc);
         }
+
+        return;
+    }
+
+    // some change in progress code
+    if (!commandInProgressManager.isCommandInProgress() && lastProgressCode == ProgressCode::OK && !mmuOriginatedCommandGuard) {
+        mmuOriginatedCommandGuard = true;
+
+        // @@TODO homing is probably not the best default
+        // TODO: we need to figure out what the MMU is doing
+        CommandInProgressGuard::incGuard(CommandInProgress::Homing, commandInProgressManager);
+    }
+
+    lastProgressCode = pc;
+    if (pc == ProgressCode::OK) {
+        if (mmuOriginatedCommandGuard) {
+            mmuOriginatedCommandGuard = false;
+            CommandInProgressGuard::decGuard(commandInProgressManager);
+        }
+
+    } else if (pc != ProgressCode::ERRWaitingForUser) { // avoid reporting errors as progress codes
+        OnMMUProgressMsgChanged(pc);
     }
 }
 
