@@ -48,6 +48,10 @@ bool planner_any_moves() {
     return planner.processing();
 }
 
+uint8_t planner_moves_planned_count() {
+    return planner.movesplanned();
+}
+
 pos3d planner_current_position() {
     return pos3d(current_position.x, current_position.y, current_position.z);
 }

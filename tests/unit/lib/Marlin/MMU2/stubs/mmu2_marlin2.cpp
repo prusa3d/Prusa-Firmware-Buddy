@@ -45,6 +45,10 @@ bool planner_any_moves() {
     return false;
 }
 
+uint8_t planner_moves_planned_count() {
+    return 0;
+}
+
 bool planner_draining() {
     return false;
 }
