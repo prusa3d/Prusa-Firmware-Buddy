@@ -267,8 +267,8 @@ bool Fsm::IsActive() const {
 // mmu fsm lock??
 void Fsm::Loop() {
     if (!IsActive()) {
-        if (Fsm::Instance().reporter.HasReport()) {
-            if (reporter.GetErrorSource() != MMU2::ErrorSource::ErrorSourceNone) {
+        if (auto rep = Fsm::Instance().reporter.PeekReport()) {
+            if (std::holds_alternative<MMU2::ErrorData>(*rep)) {
                 Activate(); // just open now, next loop will handle error
                 // TODO we might need to modify pause.cpp tho handle this state
             } else {
@@ -287,28 +287,29 @@ void Fsm::Loop() {
         return;
     }
 
-    switch (report->type) {
-    case Reporter::Type::error:
-        // An error always causes one specific screen to occur
-        // Its content is given by the error code translated into Prusa-Error-Codes MMU
-        // That needs to be coded into the context data passed to the screen
-        // - in this case the raw pointer to error description
+    std::visit([&](auto &&r) -> void {
+        using T = std::decay_t<decltype(r)>;
+        if constexpr (std::is_same_v<T, ProgressData>) {
 
-        if (report->error.errorCode != ErrorCode::MMU_NOT_RESPONDING) {
-            log_info(MMU2, "Report error =%u", static_cast<unsigned>(report->error.errorCode));
+            log_info(MMU2, "Report progress =%u", static_cast<unsigned>(r.rawProgressCode));
+
+            FSM_CHANGE_WITH_DATA__LOGGING(
+                Load_unload,
+                ProgressCodeToPhasesLoadUnload(r.progressCode),
+                progress_code_to_phase_data(r.commandInProgress, r.progressCode));
+
+        } else if constexpr (std::is_same_v<T, ErrorData>) {
+            if (r.errorCode == ErrorCode::MMU_NOT_RESPONDING) {
+                return;
+            }
+
+            log_info(MMU2, "Report error =%u", static_cast<unsigned>(r.errorCode));
             FSM_CHANGE_WITH_DATA__LOGGING(Load_unload,
                 PhasesLoadUnload::MMU_ERRWaitingForUser,
-                fsm::PointerSerializer<MMUErrDesc>(ConvertMMUErrorCode(report->error.errorCode)).Serialize());
+                fsm::PointerSerializer<MMUErrDesc>(ConvertMMUErrorCode(r.errorCode)).Serialize());
         }
-        break;
-    case Reporter::Type::progress:
-        log_info(MMU2, "Report progress =%u", static_cast<unsigned>(report->progress.progressCode));
-        FSM_CHANGE_WITH_DATA__LOGGING(
-            Load_unload,
-            ProgressCodeToPhasesLoadUnload(report->progress.progressCode),
-            progress_code_to_phase_data(report->commandInProgress, report->progress.progressCode));
-        break;
-    }
+    },
+        *report);
 }
 
 Response Fsm::GetResponse() const {

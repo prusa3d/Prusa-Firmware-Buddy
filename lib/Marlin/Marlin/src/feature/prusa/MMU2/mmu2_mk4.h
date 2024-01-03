@@ -3,6 +3,7 @@
 
 #include "mmu2_state.h"
 #include "mmu2_marlin.h"
+#include "mmu2_reporting.h"
 
 #ifdef __AVR__
     #include "mmu2_protocol_logic.h"
@@ -57,13 +58,6 @@ public:
         ParkExtruder = 1, // The extruder was parked.
         Cooldown = 2, // The extruder was allowed to cool.
         CooldownPending = 4,
-    };
-
-    /// Source of operation error
-    enum ErrorSource : uint8_t {
-        ErrorSourcePrinter = 0,
-        ErrorSourceMMU = 1,
-        ErrorSourceNone = 0xFF,
     };
 
     /// Tune value in MMU registers as a way to recover from errors
