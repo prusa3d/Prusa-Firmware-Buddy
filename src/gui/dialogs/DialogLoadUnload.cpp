@@ -417,10 +417,6 @@ bool DialogLoadUnload::Change(fsm::BaseData base_data) {
 
     // is notice
     if (is_notice(phase)) {
-        if (!can_change(phase)) {
-            return false;
-        }
-
     #if HAS_MMU2()
         if (is_notice_mmu(phase)) {
             const MMU2::MMUErrDesc *ptr_desc = fsm::PointerSerializer<MMU2::MMUErrDesc>(data).Get();
@@ -461,9 +457,6 @@ bool DialogLoadUnload::Change(fsm::BaseData base_data) {
 #endif
 
     // is normal
-    if (!can_change(phase)) {
-        return false;
-    }
     if ((!current_phase) || (current_phase != phase)) {
         phaseExit();
         current_phase = phase;
