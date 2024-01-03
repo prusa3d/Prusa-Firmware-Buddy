@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:prusa3d/Prusa-Firmware-MMU.git
 	branch = main
-	commit = 3f4658dd569eb25911c860fe4ba5ebf3dd5a98ea
+	commit = d510e1e482b66a92e130586b55e7c1ed53dad11c
 	parent = a3cf7d04308fd91f8ca7a569c4c78e317245719d
 	method = merge
 	cmdver = 0.4.6

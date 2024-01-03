@@ -60,6 +60,11 @@ function(resolve_version_variables)
   # PROJECT_VERSION_TIMESTAMP
   if(NOT PROJECT_VERSION_TIMESTAMP)
     git_head_commit_timestamp(timestamp)
+    set(ERRORS "GIT-NOTFOUND" "HEAD-FORMAT-NOTFOUND" "HEAD-HASH-NOTFOUND")
+     if(timestamp IN_LIST ERRORS)
+       # git not available, set fallback values
+       set(timestamp 0)
+     endif()
     set(PROJECT_VERSION_TIMESTAMP
         "${timestamp}"
         PARENT_SCOPE
