@@ -53,7 +53,6 @@ private:
     RadioButtonFsm<PhasesLoadUnload> radio;
 
     void set_progress_percent(uint8_t val);
-    bool can_change(PhasesLoadUnload phase) { return phase < PhasesLoadUnload::_last; }
     void phaseExit();
 
 public:

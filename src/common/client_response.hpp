@@ -38,6 +38,7 @@ constexpr uint8_t GetPhaseIndex(T phase) {
 
 template <class T>
 constexpr T GetEnumFromPhaseIndex(size_t index) {
+    assert(index < CountPhases<T>());
     return static_cast<T>(static_cast<size_t>(T::_first) + index);
 }
 
