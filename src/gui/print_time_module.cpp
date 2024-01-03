@@ -5,6 +5,7 @@
 #include "marlin_client.hpp"
 #include "print_time_module.hpp"
 #include "time_tools.hpp"
+#include "time_helper.hpp"
 #include <config_store/store_instance.hpp>
 
 PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[maybe_unused]] window_text_t *out_print_dur) {
@@ -65,23 +66,9 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
 }
 
 void PrintTime::print_formatted_duration(uint32_t duration, std::span<char> buffer, bool parse_seconds) {
-    time_t rawtime = static_cast<time_t>(duration);
-    const struct tm *timeinfo = localtime(&rawtime);
     // standard would be:
     // strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
-    if (timeinfo->tm_yday) {
-        snprintf(buffer.data(), buffer.size(), "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
-    } else if (timeinfo->tm_hour) {
-        snprintf(buffer.data(), buffer.size(), "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
-    } else if (parse_seconds) {
-        if (timeinfo->tm_min) {
-            snprintf(buffer.data(), buffer.size(), "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
-        } else {
-            snprintf(buffer.data(), buffer.size(), "%is", timeinfo->tm_sec);
-        }
-    } else {
-        snprintf(buffer.data(), buffer.size(), "%im", timeinfo->tm_min);
-    }
+    format_duration(buffer, duration, parse_seconds);
 }
 
 void PrintTime::generate_countdown_string(const uint32_t time_to_end) {
