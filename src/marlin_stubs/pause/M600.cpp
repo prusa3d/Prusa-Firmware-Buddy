@@ -132,7 +132,6 @@ void M600_execute(xyz_pos_t park_point, int8_t target_extruder,
     std::optional<filament::Type> filament_type, pause::Settings::CalledFrom);
 
 void M600_manual() {
-    char filamenttype[16] = { '\0' };
     char colourtype[16] = { '\0' };
 
     auto filament_to_be_loaded = filament::Type::NONE;
@@ -151,16 +150,27 @@ void M600_manual() {
         }
     }
 
-    if (parser.seenval('C')) {
+    if (parser.seen('C')) {
         const char *colourtype_ptr = nullptr;
-        if ((colourtype_ptr = strstr(parser.string_arg, " C")) != nullptr) {
-            if (*(colourtype_ptr + 2) == '"' || *(colourtype_ptr + 2) == ' ') {
-                colourtype_ptr++;
-            }
-            if (*(colourtype_ptr + 2)) {
-                strncpy(colourtype, colourtype_ptr + 2, sizeof(colourtype));
+        if ((colourtype_ptr = strstr(parser.string_arg, "C\"")) != nullptr) {
+            text_begin = strchr(colourtype_ptr, '"');
+            if (text_begin) {
+                ++text_begin;
+                strlcpy(colourtype, text_begin, sizeof(colourtype));
                 for (char *fn = colourtype; *fn; ++fn) {
-                    if (*fn == '"' || *fn == ' ') {
+                    if (*fn == '"') {
+                        *fn = '\0';
+                        break;
+                    }
+                }
+            }
+        } else if ((colourtype_ptr = strstr(parser.string_arg, "C ")) != nullptr) {
+            text_begin = strchr(colourtype_ptr, ' ');
+            if (text_begin) {
+                ++text_begin;
+                strlcpy(colourtype, text_begin, sizeof(colourtype));
+                for (char *fn = colourtype; *fn; ++fn) {
+                    if (*fn == ' ') {
                         *fn = '\0';
                         break;
                     }
@@ -209,7 +219,7 @@ void M600_manual() {
         parser.seen('U') ? std::make_optional(parser.value_axis_units(E_AXIS)) : std::nullopt,
         parser.seen('L') ? std::make_optional(parser.value_axis_units(E_AXIS)) : std::nullopt,
         parser.seen('E') ? std::make_optional(std::abs(parser.value_axis_units(E_AXIS))) : std::nullopt,
-        parser.seen('C') ? std::make_optional(filament::Colour::from_string(filamenttype)) : std::nullopt,
+        parser.seen('C') ? std::make_optional(filament::Colour::from_string(colourtype)) : std::nullopt,
         parser.seen('S') ? std::make_optional(filament_to_be_loaded) : std::nullopt,
         pause::Settings::CalledFrom::Pause);
 }
