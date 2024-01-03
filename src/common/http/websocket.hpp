@@ -2,6 +2,7 @@
 
 #include "httpc.hpp"
 #include "resp_parser.h"
+#include "buffered_conn.hpp"
 
 namespace http {
 
@@ -27,8 +28,8 @@ namespace http {
 //   ourselves.
 class WebSocket {
 private:
-    Connection *conn;
-    WebSocket(Connection *connection);
+    BufferedConnection connection;
+    WebSocket(Connection *connection, const uint8_t *data, size_t len);
 
 public:
     // https://www.rfc-editor.org/rfc/rfc6455#section-1.6
@@ -59,7 +60,7 @@ public:
         void ignore();
     };
 
-    static std::variant<WebSocket, Error> from_response(const Response &response);
+    static WebSocket from_response(const Response &response);
     // Send a fragment.
     //
     // Note that fragmenting messages is up to the caller.
@@ -79,6 +80,10 @@ public:
     // Note that if the server sent only part of the header, this'll
     // block before it returns even if poll is set to true.
     std::variant<std::monostate, FragmentHeader, Error> receive(std::optional<uint32_t> poll);
+
+    Connection *inner_connection() {
+        return &connection;
+    }
 };
 
 // The Sec-WebSocket-Key request and response
