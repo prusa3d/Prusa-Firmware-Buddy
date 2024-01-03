@@ -1,5 +1,6 @@
 #include "catch2/catch.hpp"
 
+#include "mmu2_supported_version.h"
 #include "protocol_logic.h"
 #include "stubs/stub_interfaces.h"
 
@@ -9,8 +10,12 @@
 
 #define supportedMmuFWVersionMajor    3
 #define supportedMmuFWVersionMinor    0
-#define supportedMmuFWVersionRevision 1
+#define supportedMmuFWVersionRevision 2
 #define supportedMmuFWVersionBuild    814
+
+static_assert(MMU2::mmuVersionMajor == 3);
+static_assert(MMU2::mmuVersionMinor == 0);
+static_assert(MMU2::mmuVersionPatch == 2);
 
 #define xstr(s) Str(s)
 #define Str(s)  #s
