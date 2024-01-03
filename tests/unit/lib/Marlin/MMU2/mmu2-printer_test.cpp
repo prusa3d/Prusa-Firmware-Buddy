@@ -112,6 +112,14 @@ constexpr_workaround IOSimRec MakeQueryResponseProgress(const char *command, Pro
     return MakeQueryResponseProgressM(command, pc, { FormatReportProgressHook(command[0], pc) }, w);
 }
 
+constexpr_workaround IOSimRec MakeLogEntry(const char *logEntry) {
+    return { .mock = { logEntry } };
+}
+
+constexpr_workaround IOSimRec MakeCommandWithoutBeginReport(const char *command, IOSimRec::WorkFunc w = nullptr) {
+    return { command, {}, { "" }, std::string(command) + " A1", MMU2::heartBeatPeriod + 1, w };
+}
+
 constexpr_workaround IOSimRec MakeQueryResponseError(const char *command, ErrorCode pc, IOSimRec::WorkFunc w = nullptr) {
     return { "Q0", { "IncrementMMUFails", "ButtonAvailable", FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " E" + ToHex((uint16_t)pc), 1, w };
 }
