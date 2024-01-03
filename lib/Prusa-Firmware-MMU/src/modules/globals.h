@@ -109,6 +109,10 @@ public:
     void ResetCutIRunCurrent() { cutIRunCurrent = config::selectorCutIRun; }
     void SetCutIRunCurrent(uint8_t v) { cutIRunCurrent = v; }
 
+    config::U_mm CutLength() const { return config::U_mm({ (long double)cutLength_mm }); }
+    void ResetCutLength() { cutLength_mm = config::cutLength.v; }
+    void SetCutLength(uint8_t v) { cutLength_mm = v; }
+
 private:
     /// Sets the active slot, usually after some command/operation.
     /// Also updates the EEPROM records accordingly
@@ -132,6 +136,7 @@ private:
     uint16_t idlerHomingFeedrate_deg_s;
 
     uint8_t cutIRunCurrent;
+    uint8_t cutLength_mm;
 };
 
 /// The one and only instance of global state variables

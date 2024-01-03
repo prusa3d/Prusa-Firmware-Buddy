@@ -94,7 +94,7 @@ bool CutFilament::StepInner() {
     case ProgressCode::PreparingBlade:
         if (ms::selector.Slot() == cutSlot + 1) {
             state = ProgressCode::PushingFilament;
-            mpu::pulley.PlanMove(config::cutLength + config::cuttingEdgeRetract, config::pulleySlowFeedrate);
+            mpu::pulley.PlanMove(mg::globals.CutLength() + config::cuttingEdgeRetract, config::pulleySlowFeedrate);
         }
         break;
     case ProgressCode::PushingFilament:
