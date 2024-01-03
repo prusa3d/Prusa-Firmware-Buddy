@@ -470,12 +470,7 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
                 received = get<size_t>(result);
             } while (received > 0);
 
-            auto result = WebSocket::from_response(resp);
-            if (holds_alternative<Error>(result)) {
-                conn_factory.invalidate();
-                return err_to_status(get<Error>(result));
-            }
-            websocket = get<WebSocket>(result);
+            websocket = WebSocket::from_response(resp);
             break;
         }
         default: {
@@ -691,8 +686,8 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     // The "ordinary" http exchange gets data in the response, websocket at any
     // time so we want to let it get woken up by arriving data in sleep (the
     // planner checks if it _can_ receive the command at that point).
-    if (conn_factory.is_valid()) {
-        wake_on_readable = get<Connection *>(conn_factory.connection());
+    if (conn_factory.is_valid() && websocket.has_value()) {
+        wake_on_readable = websocket->inner_connection();
     }
 #endif
     auto action = planner().next_action(buffer, wake_on_readable);
