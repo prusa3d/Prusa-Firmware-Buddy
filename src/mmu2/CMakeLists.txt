@@ -5,6 +5,7 @@ target_sources(
           mmu2_fsm.cpp
           mmu2_log.cpp
           mmu2_power.cpp
+          mmu2_progress.cpp
           mmu2_progress_converter.cpp
           mmu2_reporter.cpp
           mmu2_reporting.cpp

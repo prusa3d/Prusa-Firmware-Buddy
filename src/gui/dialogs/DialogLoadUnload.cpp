@@ -42,7 +42,7 @@ static const PhaseTexts ph_txt_iscolor       = { BtnResponse::GetText(Response::
 static const PhaseTexts ph_txt_iscolor_purge = { BtnResponse::GetText(Response::Yes),              BtnResponse::GetText(Response::No),    BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none) };
 static const PhaseTexts ph_txt_unload        = { BtnResponse::GetText(Response::Unload),           BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none) };
 
-static constexpr const char *txt_first              = N_("Finishing buffered gcodes.");
+static constexpr const char *txt_first              = N_("Finishing buffered gcodes");
 static constexpr const char *txt_tool               = N_("Changing tool");
 static constexpr const char *txt_parking            = N_("Parking");
 static constexpr const char *txt_unparking          = N_("Unparking");
@@ -496,29 +496,26 @@ void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, con
     notice_qr.SetQRHeader(errCode);
 }
 
-constexpr static const char title_change[] = N_("Changing filament");
-constexpr static const char title_load[] = N_("Loading filament");
-constexpr static const char title_unload[] = N_("Unloading filament");
-constexpr static const char title_purge[] = N_("Purging filament");
-constexpr static const char title_test[] = N_("Testing filament");
-constexpr static const char title_index_error[] = "Index error"; // intentionally not to be translated
-
 string_view_utf8 DialogLoadUnload::get_name(LoadUnloadMode mode) {
     switch (mode) {
     case LoadUnloadMode::Change:
-        return _(title_change);
+        return _("Changing filament");
     case LoadUnloadMode::Load:
-        return _(title_load);
+        return _("Loading filament");
     case LoadUnloadMode::Unload:
-        return _(title_unload);
+        return _("Unloading filament");
     case LoadUnloadMode::Purge:
-        return _(title_purge);
+        return _("Purging filament");
     case LoadUnloadMode::Test:
-        return _(title_test);
+        return _("Testing filament");
+    case LoadUnloadMode::Cut:
+        return _("Cutting filament");
+    case LoadUnloadMode::Eject:
+        return _("Ejecting filament");
     default:
         break;
     }
-    return string_view_utf8::MakeCPUFLASH((const uint8_t *)title_index_error);
+    return string_view_utf8::MakeCPUFLASH((const uint8_t *)"Index error");
 }
 
 float DialogLoadUnload::deserialize_progress(fsm::PhaseData data) const {

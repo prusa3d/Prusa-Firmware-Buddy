@@ -4,6 +4,7 @@
 #include "mmu2_state.h"
 #include "mmu2_marlin.h"
 #include "mmu2_reporting.h"
+#include "mmu2_command_guard.h"
 
 #ifdef __AVR__
     #include "mmu2_protocol_logic.h"
@@ -234,6 +235,8 @@ public:
         printerButtonOperation = Buttons::NoButton;
     }
 
+    CommandInProgressManager commandInProgressManager;
+
 #ifndef UNITTEST
 private:
 #endif
@@ -270,7 +273,10 @@ private:
     StepStatus LogicStep(bool reportErrors);
 
     void filament_ramming();
-    void execute_extruder_sequence(const E_Step *sequence, uint8_t steps);
+
+    /// If \p progressCode is set, reports executing the sequence
+    void execute_extruder_sequence(const E_Step *sequence, uint8_t stepCount, ExtendedProgressCode progressCode = ExtendedProgressCode::_cnt);
+
     void execute_load_to_nozzle_sequence();
 
     /// Reports an error into attached ExtUIs
@@ -368,7 +374,6 @@ private:
     Buttons lastButton = Buttons::NoButton;
     uint16_t lastReadRegisterValue = 0;
     Buttons printerButtonOperation = Buttons::NoButton;
-    uint8_t reportingStartedCnt;
 
     StepStatus logicStepLastStatus;
 
@@ -380,6 +385,9 @@ private:
 
     uint16_t toolchange_counter;
     uint16_t tmcFailures;
+
+    /// MMU originated CIP reports have a custom guard - this variable holds whether we have called incGuard for that case
+    bool mmuOriginatedCommandGuard = false;
 };
 
 /// following Marlin's way of doing stuff - one and only instance of MMU implementation in the code base
