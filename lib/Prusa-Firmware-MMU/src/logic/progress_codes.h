@@ -2,16 +2,19 @@
 #pragma once
 #include <stdint.h>
 
+/// Base class for ProgressCode and its extensions
+using RawProgressCode = uint_fast8_t;
+
 /// A complete set of progress codes which may be reported while running a high-level command/operation
 /// This header file shall be included in the printer's firmware as well as a reference,
 /// therefore the progress codes have been extracted to one place
-enum class ProgressCode : uint_fast8_t {
+enum class ProgressCode : RawProgressCode {
     OK = 0, ///< finished ok
 
     EngagingIdler, // P1
     DisengagingIdler, // P2
     UnloadingToFinda, // P3
-    UnloadingToPulley, //P4
+    UnloadingToPulley, // P4
     FeedingToFinda, // P5
     FeedingToBondtech, // P6
     FeedingToNozzle, // P7
@@ -37,7 +40,7 @@ enum class ProgressCode : uint_fast8_t {
     RetractingFromFinda, // P25
 
     Homing, // P26
-    MovingSelector, // P27
+    MovingSelector, // P2
 
     FeedingToFSensor, // P28
 
@@ -49,6 +52,10 @@ enum class ProgressCode : uint_fast8_t {
     HWTestExec, // P34
     HWTestDisplay, // P35
     ErrHwTestFailed, // P36
+
+    /// Keep as the last item (except for Empty)
+    /// Used for extending the progress codes on the printer side
+    _cnt,
 
     Empty = 0xff // dummy empty state
 };
