@@ -3,6 +3,7 @@ add_executable(
   Marlin_MMU2_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/mmu2-printer_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/mmu2_protocol_logic_test.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/mmu2_percentage_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/stubs/mmu2_marlin2.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/stubs/mmu2_reporting.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/stubs/mmu2_power.cpp
@@ -19,8 +20,10 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp
   ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_command_guard.cpp
   ${CMAKE_SOURCE_DIR}/lib/Prusa-Firmware-MMU/src/modules/protocol.cpp
+  ${CMAKE_SOURCE_DIR}/src/mmu2/mmu2_progress.cpp
   )
 target_include_directories(
   Marlin_MMU2_tests PUBLIC . ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/feature/prusa/MMU2
+                           ${CMAKE_SOURCE_DIR}/src/mmu2 ${CMAKE_SOURCE_DIR}/src/common
   )
 add_catch_test(Marlin_MMU2_tests)
