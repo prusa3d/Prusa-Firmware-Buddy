@@ -176,6 +176,7 @@ namespace {
         bool mbl_failed;
 #endif
         bool pause_unload_requested = false;
+        bool was_print_time_saved = false;
     };
 
     server_t server; // server structure - initialize task to zero
@@ -564,7 +565,16 @@ void static finalize_print() {
 #if ENABLED(POWER_PANIC)
     power_panic::reset();
 #endif
-    Odometer_s::instance().add_time(marlin_vars()->print_duration);
+
+    print_job_timer.stop();
+    _server_update_vars();
+    // Check if the stopwatch was NOT stopped to and add the current printime to the statistics.
+    // finalize_print is beeing called multiple times and we don't want to add the time twice.
+    if (!server.was_print_time_saved) {
+        Odometer_s::instance().add_time(marlin_vars()->print_duration);
+        server.was_print_time_saved = true;
+    }
+
     print_area.reset_bounding_rect();
 #if ENABLED(PRUSA_TOOL_MAPPING)
     tool_mapper.reset();
@@ -1427,6 +1437,7 @@ static void _server_print_loop(void) {
     }
     case State::PrintInit:
         server.print_is_serial = false;
+        server.was_print_time_saved = false;
         feedrate_percentage = 100;
 
         // Reset flow factor for all extruders
@@ -1481,6 +1492,7 @@ static void _server_print_loop(void) {
         break;
     case State::SerialPrintInit:
         server.print_is_serial = true;
+        server.was_print_time_saved = false;
 #if ENABLED(CRASH_RECOVERY)
         crash_s.reset();
         crash_s.counters.reset();
@@ -1763,9 +1775,6 @@ static void _server_print_loop(void) {
                 park_head();
             }
 #endif // PARK_HEAD_ON_PRINT_FINISH
-            if (print_job_timer.isRunning()) {
-                print_job_timer.stop();
-            }
 
             server.print_state = State::Finishing_UnloadFilament;
         }

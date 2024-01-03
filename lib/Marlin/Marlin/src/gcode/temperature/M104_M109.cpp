@@ -87,7 +87,7 @@ void GcodeSuite::M104() {
        * the running print timer.
        */
       if (temp <= (EXTRUDE_MINTEMP) / 2) {
-        print_job_timer.stop();
+        print_job_timer.pause();
         ui.reset_status();
       }
     #endif
@@ -139,8 +139,8 @@ void GcodeSuite::M109() {
        * standby mode, (e.g., in a dual extruder setup) without affecting
        * the running print timer.
        */
-      if (parser.value_celsius() <= (EXTRUDE_MINTEMP) / 2) {
-        print_job_timer.stop();
+      if (temp <= (EXTRUDE_MINTEMP) / 2) {
+        print_job_timer.pause();
         ui.reset_status();
       }
       else
