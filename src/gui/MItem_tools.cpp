@@ -4,6 +4,7 @@
 #include "marlin_server.hpp"
 #include "gui.hpp"
 #include "media.hpp"
+#include "time_helper.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_calib_z.hpp"
@@ -678,20 +679,7 @@ MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
 
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
     : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
-        time_t time = (time_t)value;
-        constexpr static uint32_t secPerDay = 24 * 60 * 60;
-        const struct tm *timeinfo = localtime(&time);
-        if (timeinfo->tm_yday) {
-            // days are recalculated, because timeinfo shows number of days in year and we want more days than 365
-            uint16_t days = value / secPerDay;
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%ud %uh", days, timeinfo->tm_hour);
-        } else if (timeinfo->tm_hour) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
-        } else if (timeinfo->tm_min) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
-        } else {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%is", timeinfo->tm_sec);
-        }
+        format_duration(std::span { buffer, GuiDefaults::infoDefaultLen }, value);
     }) {}
 
 MI_INFO_HEATER_VOLTAGE::MI_INFO_HEATER_VOLTAGE()
