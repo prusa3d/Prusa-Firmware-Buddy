@@ -31,6 +31,7 @@ static_assert(EXTRUDERS == 1);
 constexpr float MMM_TO_MMS(float MM_M) { return MM_M / 60.0f; }
 #endif
 
+namespace {
 template <class T>
 class Timer {
 public:
@@ -87,6 +88,8 @@ private:
 /// @brief Timer unsigned long specialization
 /// Maximum period is at least 49 days.
 using LongTimer = Timer<uint32_t>;
+
+} // namespace
 
 namespace MMU2 {
 
@@ -157,10 +160,10 @@ void MMU2::StopKeepPowered() {
     mmu2Serial.close();
 
     // This should reset the error reporter to no error
-    ReportProgressHook(CommandInProgress::Reset, ProgressCode::OK);
+    ReportProgressHook(ProgressData(CommandInProgress::Reset));
 
     // Deactivate the FSM
-    EndReport(CommandInProgress::Reset, ProgressCode::OK);
+    EndReport(ProgressData(CommandInProgress::Reset));
 }
 
 void MMU2::Tune() {
@@ -312,7 +315,7 @@ struct ReportingRAII {
     static void BeginReportRR(CommandInProgress cip, uint8_t &reportingStartedCnt) {
         if (topLevelReportBlock == 0) { // no top level RAII is active - async error screen occurred
             if (reportingStartedCnt == 0) {
-                BeginReport(cip, ProgressCode::EngagingIdler);
+                BeginReport(ProgressData(cip, ProgressCode::EngagingIdler));
             }
             ++reportingStartedCnt;
         } // otherwise do nothing, BeginReport has already been called by some RAII instance
@@ -323,7 +326,7 @@ struct ReportingRAII {
             if (reportingStartedCnt > 0) {
                 --reportingStartedCnt;
                 if (reportingStartedCnt == 0) {
-                    EndReport(cip, ProgressCode::OK);
+                    EndReport(ProgressData(cip, ProgressCode::OK));
                 }
             }
         } // otherwise do nothing, EndReport will be called by some RAII instance
@@ -333,12 +336,12 @@ struct ReportingRAII {
         : cip(cip)
         , reptStartedCnt(reportingStartedCnt) {
         ++topLevelReportBlock;
-        BeginReport(cip, ProgressCode::EngagingIdler);
+        BeginReport(ProgressData(cip, ProgressCode::EngagingIdler));
     }
 
     inline ~ReportingRAII() {
         --topLevelReportBlock;
-        EndReport(cip, ProgressCode::OK);
+        EndReport(ProgressData(cip, ProgressCode::OK));
     }
 };
 
@@ -984,7 +987,7 @@ void MMU2::CheckUserInput() {
         lastButton = Buttons::NoButton; // Clear it.
     }
 
-    if (mmu2.MMULastErrorSource() == MMU2::ErrorSourcePrinter && btn != Buttons::NoButton) {
+    if (mmu2.MMULastErrorSource() == ErrorSourcePrinter && btn != Buttons::NoButton) {
         // When the printer has raised an error screen, and a button was selected
         // the error screen should always be dismissed.
         ClearPrinterError();
@@ -1002,7 +1005,7 @@ void MMU2::CheckUserInput() {
         SERIAL_ECHOLN(buttons_to_uint8t(btn));
         ResumeHotendTemp(); // Recover the hotend temp before we attempt to do anything else...
 
-        if (mmu2.MMULastErrorSource() == MMU2::ErrorSourceMMU) {
+        if (mmu2.MMULastErrorSource() == ErrorSourceMMU) {
             // Do not send a button to the MMU unless the MMU is in error state
             Button(buttons_to_uint8t(btn));
         }
@@ -1288,7 +1291,7 @@ void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
         // raise the MMU error screen and wait for user input
 
         // @@TODO Here, we assume that BeginReport has already been called - which is not true for errors like MMU_NOT_RESPONDING
-        ReportErrorHook((CommandInProgress)logic.CommandInProgress(), ec, uint8_t(lastErrorSource));
+        ReportErrorHook(ErrorData(static_cast<CommandInProgress>(logic.CommandInProgress()), ec, lastErrorSource));
     }
 
     static_assert(mmu2Magic[0] == 'M'
@@ -1301,7 +1304,7 @@ void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
 }
 
 void MMU2::ReportProgress(ProgressCode pc) {
-    ReportProgressHook((CommandInProgress)logic.CommandInProgress(), pc);
+    ReportProgressHook(ProgressData(logic.CommandInProgress(), static_cast<RawProgressCode>(pc)));
     LogEchoEvent_P(_O(ProgressCodeToText(pc)));
 }
 
