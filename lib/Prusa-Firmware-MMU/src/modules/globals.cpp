@@ -36,6 +36,7 @@ void Globals::Init() {
     ResetIdlerHomingFeedrate();
 
     ResetCutIRunCurrent();
+    ResetCutLength();
 }
 
 uint8_t Globals::ActiveSlot() const {

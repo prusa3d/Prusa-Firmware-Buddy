@@ -619,6 +619,10 @@ def process_gcov_data(data_fname, covdata, source_fname, options):
         is_code_statement = False
         if tmp[0] == '-' or (excluding and tmp[0] in "#=0123456789"):
             is_code_statement = True
+            if len(segments) < 3:
+                noncode.add(lineno)
+                continue
+                
             code = segments[2].strip()
             # remember certain non-executed lines
             if excluding or is_non_code(segments[2]):
@@ -634,7 +638,7 @@ def process_gcov_data(data_fname, covdata, source_fname, options):
             uncovered_exceptional.add(lineno)
         elif tmp[0] in "0123456789":
             is_code_statement = True
-            covered[lineno] = int(segments[0].strip())
+            covered[lineno] = int(segments[0].strip().rstrip('*'))
         elif tmp.startswith('branch'):
             exclude_branch = False
             if options.exclude_unreachable_branches and \
