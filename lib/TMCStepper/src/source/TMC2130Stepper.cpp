@@ -273,7 +273,7 @@ void TMC2130Stepper::begin() {
 bool TMC2130Stepper::isEnabled() { return !drv_enn_cfg6() && toff(); }
 
 void TMC2130Stepper::push() {
-#if HAS_PHASE_STEPPING()
+#if HAS_PHASE_STEPPING() && _DEBUG
   // This functions can lock the SPI bus for a long time, preventing the phase stepping ISR to run
   // frequently enough: ensure it's not called on an active axis
 #if HAS_PUPPIES() && HAS_TOOLCHANGER()
