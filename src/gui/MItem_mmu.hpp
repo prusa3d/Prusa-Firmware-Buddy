@@ -316,14 +316,6 @@ public:
         : MI_MMU_ISSUE_GCODE(label, "M709 X2") {}
 };
 
-class MI_MMU_HOME0 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Home safely");
-
-public:
-    MI_MMU_HOME0()
-        : MI_MMU_ISSUE_GCODE(label, "M1400 S10 H0") {} // TODO G28
-};
-
 // The following homing modes are not yet supported in the MMU FW
 // class MI_MMU_HOME1 : public MI_MMU_ISSUE_GCODE {
 //    static constexpr const char *const label = N_("Force home Idler");
