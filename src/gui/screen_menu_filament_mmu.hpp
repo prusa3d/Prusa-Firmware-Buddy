@@ -21,7 +21,6 @@ using ScreenMenuFilamentMMU__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_MMU_CUT_FILAMENT,
     // MI_PURGE, doing purges in MMU mode is not only unsupported but dangerous and doesn't play well with the preferred workflow of the MMU-enabled machine
     // @@TODO debug items, but the functionality will be used by the error screens
-    MI_MMU_HOME0,
     MI_MMU_SW_RESET,
     MI_MMU_HW_RESET,
     MI_MMU_POWER_CYCLE>;
