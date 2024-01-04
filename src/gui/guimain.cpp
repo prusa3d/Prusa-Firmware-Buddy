@@ -381,6 +381,10 @@ void gui_error_run(void) {
 #endif
     gui_init();
 
+    // This is not safe, because resource file could be corrupted
+    // gui_error_run executes before bootstrap so resources may not be up to date resulting in artefects
+    img::enable_resource_file();
+
     screen_node screen_initializer { get_error_screen() };
     Screens::Init(screen_initializer);
 
