@@ -144,7 +144,6 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 #ifdef USE_MOCK_DISPLAY
     #include "mock_display.hpp"
 /*****************************************************************************/
-void assert([[maybe_unused]] bool arg) {}
 
 // mock_display specific variables objects and function aliases
 static Rect16 DisplayClip() { return Rect16(0, 0, MockDisplay::Cols(), MockDisplay::Rows()); }
@@ -566,7 +565,6 @@ void display_ex_draw_qoi(point_ui16_t pt, const img::Resource &qoi, color_t back
     }
 
     if (!file) {
-        assert(false);
         return;
         /** we can actually get here if we draw img before bootstrap
          * so we must not call bsod. 3 reproducers:
