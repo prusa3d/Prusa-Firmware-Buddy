@@ -20,6 +20,9 @@
 #include <numbers>
 #include <limits>
 #include <bit>
+
+#include <config_store/store_instance.hpp>
+
 #include <option/has_local_accelerometer.h>
 #include <option/has_puppies.h>
 #include <option/has_remote_accelerometer.h>
@@ -1065,6 +1068,7 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
  * - A<mm/s-2>   Acceleration
  * - N<cycles>   Number of excitation signal periods
  *               of active measurement.
+ *   W           Write the detected calibration to EEPROM
  */
 void GcodeSuite::M959() {
     MicrostepRestorer microstepRestorer;
@@ -1100,6 +1104,12 @@ void GcodeSuite::M959() {
         klipper_tune(seen_m, axis_flag, start_frequency, end_frequency, frequency_increment, acceleration_requested, step_len, cycles);
     } else {
         naive_zv_tune(axis_flag, start_frequency, end_frequency, frequency_increment, acceleration_requested, step_len, cycles);
+    }
+
+    if (parser.seen('W')) {
+        SERIAL_ECHO_START();
+        SERIAL_ECHOLN("Storing IS configuration to EEPROM");
+        config_store().set_input_shaper_config(input_shaper::current_config());
     }
 }
 
