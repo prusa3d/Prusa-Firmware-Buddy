@@ -136,9 +136,7 @@ pipeline {
                             'mini-en-pl,release,yesboot',
                             'mk3.5,release,yesboot',
                             'mk4,release,yesboot',
-                            'mk4,release,noboot',
                             'xl,release,yesboot',
-                            'xl-xbuddy04,release,emptyboot',
                             'ix,release,yesboot'
                     }
                 }
