@@ -58,6 +58,9 @@ bool Configuration::is_fw_incompatible_with_hw() {
         return false; // valid data, fw compatible
     }
 
+    // This procedure is checking if MK3.5 extruder is installed,
+    // in which case we have an incompatible FW (MK4) and HW (MK3.5)
+    // It is not possible to continue and info screen saying to reflash has to pop up
     const size_t count_of_validation_edges = 4;
     bool mk35_extruder_detected = true;
     for (size_t i = 0; i < count_of_validation_edges; ++i) {

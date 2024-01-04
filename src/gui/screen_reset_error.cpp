@@ -60,7 +60,7 @@ void ScreenResetError::windowEvent(EventLock /*has private ctor*/, [[maybe_unuse
     }
 }
 
-void ScreenResetError::update_error_code(uint16_t &error_code) {
+void ScreenResetError::update_error_code([[maybe_unused]] uint16_t &error_code) {
 #if PRINTER_IS_PRUSA_MK4
     if (!config_store().xy_motors_400_step.get()) {
         static_assert(ERR_PRINTER_CODE == 13, "PRUSA MK4's PID is no longer 13, which means this hardcoded calculation is no longer correct.");
