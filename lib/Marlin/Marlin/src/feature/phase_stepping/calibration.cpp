@@ -12,6 +12,7 @@
 #include <numbers>
 
 using namespace phase_stepping;
+using namespace phase_stepping::opts;
 
 LOG_COMPONENT_REF(PhaseStepping);
 

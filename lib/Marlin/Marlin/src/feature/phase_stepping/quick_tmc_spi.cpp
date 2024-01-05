@@ -8,18 +8,12 @@
 
 using namespace phase_stepping;
 using namespace phase_stepping::spi;
+using namespace phase_stepping::opts;
 using namespace buddy::hw;
 
 static uint8_t xdirect_comm_buffer[5] = { 0x80 | XDIRECT_t::address, 0, 0, 0, 0 };
 static int active_axis = 0;
 static const std::array<OutputPin, 3> cs_pins = { { xCs, yCs, zCs } };
-
-// You might be wondering why we use hard-coded constants and we don't read
-// them from handles: it is wasted 500 ns - that is 2 % of CPU load
-#define TMC_SPI             SPI3
-#define TMC_DMA             DMA1_Stream5
-#define TMC_DMA_REGS        reinterpret_cast<DMA_Base_Registers *>((((uint32_t)TMC_DMA & (uint32_t)(~0x3FFU)) + 4U))
-#define TMC_DMA_REGS_OFFSET 6U
 
 struct DMA_Base_Registers {
     __IO uint32_t ISR; /*!< DMA interrupt status register */
@@ -52,18 +46,18 @@ void phase_stepping::spi::set_xdirect(int axis, int current_a, int current_b) {
     cs_pins[active_axis].write(Pin::State::low);
 
     // Setup SPI
-    TMC_SPI->CR2 = (TMC_SPI->CR2
-                       & ~(SPI_CR2_RXNEIE_Msk | SPI_CR2_ERRIE_Msk | SPI_CR2_TXEIE_Msk))
+    PHSTEP_TMC_SPI->CR2 = (PHSTEP_TMC_SPI->CR2
+                              & ~(SPI_CR2_RXNEIE_Msk | SPI_CR2_ERRIE_Msk | SPI_CR2_TXEIE_Msk))
         | SPI_CR2_TXDMAEN_Msk;
-    TMC_SPI->CR1 |= SPI_CR1_SPE;
+    PHSTEP_TMC_SPI->CR1 |= SPI_CR1_SPE;
 
     // Setup DMA
-    TMC_DMA->NDTR = 5;
-    TMC_DMA->PAR = reinterpret_cast<uint32_t>(&TMC_SPI->DR);
-    TMC_DMA->M0AR = reinterpret_cast<uint32_t>(&xdirect_comm_buffer[0]);
-    TMC_DMA_REGS->IFCR = 0b111111 << TMC_DMA_REGS_OFFSET;
-    TMC_DMA->CR = (TMC_DMA->CR
-                      & ~(DMA_SxCR_DBM_Msk | DMA_SxCR_DMEIE_Msk | DMA_SxCR_TEIE_Msk | DMA_SxCR_HTIE_Msk | DMA_SxCR_TCIE_Msk))
+    PHSTEP_TMC_DMA->NDTR = 5;
+    PHSTEP_TMC_DMA->PAR = reinterpret_cast<uint32_t>(&PHSTEP_TMC_SPI->DR);
+    PHSTEP_TMC_DMA->M0AR = reinterpret_cast<uint32_t>(&xdirect_comm_buffer[0]);
+    PHSTEP_TMC_DMA_REGS->IFCR = 0b111111 << PHSTEP_TMC_DMA_REGS_OFFSET;
+    PHSTEP_TMC_DMA->CR = (PHSTEP_TMC_DMA->CR
+                             & ~(DMA_SxCR_DBM_Msk | DMA_SxCR_DMEIE_Msk | DMA_SxCR_TEIE_Msk | DMA_SxCR_HTIE_Msk | DMA_SxCR_TCIE_Msk))
         | DMA_SxCR_EN_Msk;
 }
 

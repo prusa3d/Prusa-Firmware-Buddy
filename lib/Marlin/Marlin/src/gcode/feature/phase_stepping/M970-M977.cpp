@@ -13,7 +13,7 @@
 LOG_COMPONENT_REF(PhaseStepping);
 
 using namespace std::literals;
-using phase_stepping::SERIAL_DECIMALS;
+using phase_stepping::opts::SERIAL_DECIMALS;
 
 static constexpr std::array<std::pair<AxisEnum, char>, 2> SUPPORTED_AXES = {
     { { X_AXIS, 'X' }, { Y_AXIS, 'Y' } }

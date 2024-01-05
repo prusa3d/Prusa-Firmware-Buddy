@@ -22,6 +22,7 @@
 LOG_COMPONENT_DEF(PhaseStepping, LOG_SEVERITY_DEBUG);
 
 using namespace phase_stepping;
+using namespace phase_stepping::opts;
 using namespace buddy::hw;
 
 // Global definitions
@@ -453,7 +454,7 @@ static bool is_refresh_period_sane(uint32_t now, uint32_t last_timer_tick) {
     // the interrupt was delayed and the next update might be sooner than we
     // anticipate.
 
-    static constexpr uint REFRESH_PERIOD_US = 1'000'000 / 40'000;
+    static constexpr uint REFRESH_PERIOD_US = 1'000'000 / REFRESH_FREQ;
     static constexpr uint UPDATE_DURATION_US = 20; // Rather pesimistic update
 
     uint32_t refresh_period = ticks_diff(now, last_timer_tick);
@@ -701,7 +702,7 @@ void load_from_persistent_storage(AxisEnum axis) {
 // This function is intentionally placed inside the phase stepping source codes
 // to allow for inlining and cross-function optimizations without LTO being
 // enabled.
-extern "C" void TIM8_UP_TIM13_IRQHandler(void) {
+extern "C" void PHSTEP_TIMER_ISR_HANDLER(void) {
     // We avoid slow HAL handling on purpose as phase stepping is invoked
     // frequently and every microsecond saves about 4 % of CPU load. That is:
     // - we don't use traceISR_ENTER()/EXIT() as it takes 1.2 µs

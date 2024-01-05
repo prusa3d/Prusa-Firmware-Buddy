@@ -227,7 +227,7 @@ void synchronize();
  **/
 extern std::array<
     std::unique_ptr<AxisState>,
-    SUPPORTED_AXIS_COUNT>
+    opts::SUPPORTED_AXIS_COUNT>
     axis_states;
 
 /**
@@ -253,7 +253,7 @@ template <bool ENABLED>
 class EnsureState {
     bool released = false;
     bool any_axis_change = false;
-    std::array<bool, SUPPORTED_AXIS_COUNT> _prev_active = {};
+    std::array<bool, opts::SUPPORTED_AXIS_COUNT> _prev_active = {};
 
 public:
     EnsureState() {

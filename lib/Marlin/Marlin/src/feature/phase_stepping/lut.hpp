@@ -34,7 +34,7 @@ public:
 
 public:
     MotorPhaseCorrection _spectrum = {};
-    std::array<int8_t, MOTOR_PERIOD> _phase_shift = {};
+    std::array<int8_t, opts::MOTOR_PERIOD> _phase_shift = {};
 
     void _update_phase_shift();
 
@@ -61,8 +61,8 @@ public:
 class CorrectedCurrentLutSimple {
 public:
     struct CurrentTrace {
-        std::array<uint8_t, MOTOR_PERIOD> _val;
-        std::bitset<MOTOR_PERIOD> _sign;
+        std::array<uint8_t, opts::MOTOR_PERIOD> _val;
+        std::bitset<opts::MOTOR_PERIOD> _sign;
 
         int get(int idx) const {
             idx = normalize_motor_phase(idx);

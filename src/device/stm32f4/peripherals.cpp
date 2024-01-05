@@ -1,6 +1,7 @@
 #include <device/board.h>
 #include <device/peripherals.h>
 #include <device/mcu.h>
+#include <buddy/phase_stepping_opts.h>
 #include <atomic>
 #include "Pin.hpp"
 #include "hwio_pindef.h"
@@ -962,7 +963,7 @@ void hw_tim13_init() {
     htim13.Instance = TIM13;
     htim13.Init.Prescaler = 0;
     htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim13.Init.Period = 2100 - 1; // Source clock: 84Mhz; resulting 40 kHz
+    htim13.Init.Period = 84'000'000 / phase_stepping::opts::REFRESH_FREQ - 1;
     htim13.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim13.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     if (HAL_TIM_Base_Init(&htim13) != HAL_OK) {
