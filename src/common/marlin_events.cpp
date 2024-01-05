@@ -3,7 +3,6 @@
 #include "marlin_events.h"
 #include "utility_extensions.hpp"
 #include <iterator>
-#include <stdio.h>
 
 namespace marlin_server {
 
@@ -32,7 +31,6 @@ const char *__evt_name[] = {
     "CommandEnd",
     "SafetyTimerExpired",
     "Message",
-    "Warning",
     "Reheat",
     "DialogOpenCloseChange",
     "Acknowledge",

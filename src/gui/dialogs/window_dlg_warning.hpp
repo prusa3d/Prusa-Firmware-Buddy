@@ -11,7 +11,6 @@
 #include <option/has_modularbed.h>
 
 static constexpr const char *Title = N_("INFO");
-static constexpr const char warning_text[] = N_("Some pretty long warning text, whatever. You may just go fuck yourself.");
 static constexpr const char *HotendFanErrorMsg = N_("Hotend fan not spinning. Check it for possible debris, then inspect the wiring.");
 static constexpr const char *PrintFanErrorMsg = N_("Print fan not spinning. Check it for possible debris, then inspect the wiring.");
 static constexpr const char *TitleNozzle = N_("TEMP NOT MATCHING");

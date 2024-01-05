@@ -34,7 +34,6 @@ enum class Event : uint8_t {
     CommandEnd, //
     SafetyTimerExpired, // host action from marlin, hotends and bed turned off
     Message, //
-    Warning, // important messages like fan error or heater timeout
     Reheat, //
     Acknowledge, // onAcknowledge - lowest priority
     NotAcknowledge, // onNotAcknowledge - lowest priority

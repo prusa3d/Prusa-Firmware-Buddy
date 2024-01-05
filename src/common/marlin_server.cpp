@@ -149,7 +149,6 @@ namespace {
             uint32_t usr32;
             uint16_t usr16;
         } last_mesh_evt;
-        uint32_t warning_type;
         int request_len;
         uint32_t last_update; // last update tick count
         uint32_t command; // actually running command
@@ -2482,11 +2481,6 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
             case Event::Reheat:
                 sent |= msk; // fake event sent for unused and forced events
                 break;
-            case Event::Warning:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, server.warning_type, 0)) {
-                    sent |= msk; // event sent, set bit
-                }
-                break;
             case Event::_count:
                 assert(false);
                 break;
@@ -2512,8 +2506,6 @@ static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16) 
                 if (evt_id == Event::MeshUpdate) {
                     server.last_mesh_evt.usr32 = usr32;
                     server.last_mesh_evt.usr16 = usr16;
-                } else if (evt_id == Event::Warning) {
-                    server.warning_type = usr32;
                 }
             } else {
                 // event sent, clear flag

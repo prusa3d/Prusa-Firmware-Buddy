@@ -6,7 +6,6 @@
 #include "gui_time.hpp" //gui::GetTick
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
-#include "window_dlg_strong_warning.hpp"
 #include "IDialog.hpp"
 #include "Jogwheel.hpp"
 #include "ScreenShot.hpp"
@@ -145,10 +144,6 @@ void gui_loop_cb() {
     GuiMediaEventsHandler::Tick();
 }
 
-void gui_loop_display_warning_check() {
-    window_dlg_strong_warning_t::ScreenJumpCheck();
-}
-
 void gui_bare_loop() {
     ++guiloop_nesting;
 
@@ -189,7 +184,6 @@ void gui_loop(void) {
     gui_timers_cycle();
     gui_redraw();
     gui_loop_cb();
-    gui_loop_display_warning_check();
     if (gui_loop_timer.RestartIfIsOver(gui::GetTick())) {
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
     }

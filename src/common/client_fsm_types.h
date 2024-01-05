@@ -90,7 +90,6 @@ enum class WarningType : uint32_t {
 // Only the last sent event is guaranteed to pass its data.
 using fsm_cb_t = void (*)(uint32_t, uint16_t); // create/destroy/change finite state machine
 using message_cb_t = void (*)(const char *);
-using warning_cb_t = void (*)(WarningType);
 using startup_cb_t = void (*)(void);
 #else // !__cplusplus
 // C

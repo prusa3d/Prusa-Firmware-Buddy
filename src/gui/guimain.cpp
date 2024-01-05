@@ -1,18 +1,10 @@
-#include <stdio.h>
-#include "client_fsm_types.h"
 #include "gui_time.hpp"
 #include "gui.hpp"
-#include "config.h"
 #include "marlin_client.hpp"
 #include "display_hw_checks.hpp"
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
-#include "window_file_list.hpp"
-#include "window_header.hpp"
-#include "window_dlg_wait.hpp"
 #include "window_dlg_popup.hpp"
-#include "window_dlg_strong_warning.hpp"
-#include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_hardfault.hpp"
 #include "screen_qr_error.hpp"
@@ -25,19 +17,11 @@
 #include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
-#include "str_utils.hpp"
 #include "knob_event.hpp"
 #include "DialogMoveZ.hpp"
 #include "ScreenShot.hpp"
-#include "i18n.h"
-#include "w25x.h"
-#include "../mmu2/mmu2_error_converter.h"
-#include "../../Marlin/src/feature/prusa/MMU2/mmu2_progress_converter.h"
 #include "screen_home.hpp"
-#include "tasks.hpp"
-#include "timing.h"
 #include "gcode_info.hpp"
-#include "version.h"
 #include "language_eeprom.hpp"
 
 #include <option/has_side_leds.h>
@@ -58,20 +42,10 @@
     #include <leds/side_strip_control.hpp>
 #endif
 
-#include "gpio.h"
 #include "Jogwheel.hpp"
-#include "hwio.h"
-#include "sys.h"
 #include <wdt.hpp>
 #include <crash_dump/dump.hpp>
-#include "gui_media_events.hpp"
-#include "metric.h"
-#include "neopixel.hpp"
-#include "led_lcd_cs_selector.hpp"
 #include "gui_leds.hpp"
-#include "hwio_pindef.h"
-#include "main.h"
-#include "bsod.h"
 #include <option/has_dwarf.h>
 #include <option/has_modularbed.h>
 #include <option/has_leds.h>
@@ -125,61 +99,6 @@ void MsgCircleBuffer_cb(const char *txt) {
         static std::array<uint8_t, MSG_MAX_LENGTH> msg;
         strlcpy((char *)msg.data(), txt, MSG_MAX_LENGTH);
         window_dlg_popup_t::Show(prt_screen->GetPopUpRect(), string_view_utf8::MakeRAM(msg.data()), POPUP_MSG_DUR_MS);
-    }
-}
-
-void Warning_cb(WarningType type) {
-    switch (type) {
-    case WarningType::HotendFanError:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HotendFan);
-        break;
-    case WarningType::PrintFanError:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::PrintFan);
-        break;
-    case WarningType::HotendTempDiscrepancy:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HotendTempDiscrepancy);
-        break;
-    case WarningType::HeatersTimeout:
-    case WarningType::NozzleTimeout:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HeatersTimeout);
-        break;
-#if _DEBUG
-    case WarningType::SteppersTimeout:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::SteppersTimeout);
-        break;
-#endif
-    case WarningType::USBFlashDiskError:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::USBFlashDisk);
-        break;
-    case WarningType::HeatBreakThermistorFail:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HBThermistorFail);
-        break;
-#if ENABLED(POWER_PANIC)
-    case WarningType::HeatbedColdAfterPP:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HeatbedColdAfterPP);
-        break;
-#endif
-    case WarningType::NozzleDoesNotHaveRoundSection:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::NozzleDoesNotHaveRoundSection);
-        break;
-    case WarningType::NotDownloaded:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::NotDownloaded);
-        break;
-    case WarningType::BuddyMCUMaxTemp:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::BuddyMCUMaxTemp);
-        break;
-#if HAS_DWARF()
-    case WarningType::DwarfMCUMaxTemp:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::DwarfMCUMaxTemp);
-        break;
-#endif /* HAS_DWARF() */
-#if HAS_MODULARBED()
-    case WarningType::ModBedMCUMaxTemp:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::ModBedMCUMaxTemp);
-        break;
-#endif /* HAS_MODULARBED() */
-    default:
-        break;
     }
 }
 
@@ -390,7 +309,6 @@ void gui_run(void) {
     DialogHandler::Access(); // to create class NOW, not at first call of one of callback
     marlin_client::set_fsm_cb(DialogHandler::command_c_compatible);
     marlin_client::set_message_cb(MsgCircleBuffer_cb);
-    marlin_client::set_warning_cb(Warning_cb);
     marlin_client::set_startup_cb(Startup_cb);
 
     Sound_Play(eSOUND_TYPE::Start);

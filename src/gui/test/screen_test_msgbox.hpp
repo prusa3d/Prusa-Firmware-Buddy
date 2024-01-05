@@ -17,10 +17,6 @@ struct ScreenTestMSGBox : public AddSuperWindow<screen_t> {
     window_text_button_t tst_ico_warning;
     window_text_button_t tst_ico_info;
     window_text_button_t tst_icon;
-    window_text_button_t tst_strong_hotend_fan;
-    window_text_button_t tst_strong_print_fan;
-    window_text_button_t tst_strong_heater;
-    window_text_button_t tst_strong_usb_error;
 
 public:
     ScreenTestMSGBox();

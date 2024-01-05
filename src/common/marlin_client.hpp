@@ -36,8 +36,6 @@ bool set_fsm_cb(fsm_cb_t cb);
 // sets dialog message, returns true on success
 bool set_message_cb(message_cb_t cb);
 
-// sets dialog message, returns true on success
-bool set_warning_cb(warning_cb_t cb);
 // sets startup callback, returns true on success
 bool set_startup_cb(startup_cb_t cb);
 // returns enabled status of loop processing

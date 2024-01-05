@@ -43,7 +43,6 @@ typedef struct _marlin_client_t {
     uint32_t command; // processed command (G28,G29,M701,M702,M600)
     fsm_cb_t fsm_cb; // to register callback for dialog or screen creation/destruction/change (M876), callback ensures M876 is processed asap, so there is no need for queue
     message_cb_t message_cb; // to register callback message
-    warning_cb_t warning_cb; // to register callback for important message
     startup_cb_t startup_cb; // to register callback after marlin complete initialization
 
     uint16_t flags; // client flags (MARLIN_CFLG_xxx)
@@ -98,7 +97,6 @@ void init() {
         client->reheating = 0;
         client->fsm_cb = NULL;
         client->message_cb = NULL;
-        client->warning_cb = NULL;
         client->startup_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
@@ -172,17 +170,6 @@ bool set_message_cb(message_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
         client->message_cb = cb;
-        return true;
-    }
-    return false;
-}
-
-// register callback to warning_cb_t (fan failure, heater timeout ...)
-// return success
-bool set_warning_cb(warning_cb_t cb) {
-    marlin_client_t *client = _client_ptr();
-    if (client && cb) {
-        client->warning_cb = cb;
         return true;
     }
     return false;
@@ -682,11 +669,6 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             variant8_done(&pvar);
             break;
         }
-        case Event::Warning:
-            if (client->warning_cb) {
-                client->warning_cb(static_cast<WarningType>(variant8_get_i32(msg)));
-            }
-            break;
         case Event::Startup:
             if (client->startup_cb) {
                 client->startup_cb();
