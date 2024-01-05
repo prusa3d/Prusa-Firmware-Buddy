@@ -263,9 +263,7 @@ if(BOARD_IS_MASTER_BOARD)
     target_sources(
       Marlin
       PRIVATE Marlin/Marlin/src/feature/phase_stepping/calibration.cpp
-              Marlin/Marlin/src/feature/phase_stepping/lut.cpp
               Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp
-              Marlin/Marlin/src/feature/phase_stepping/quick_tmc_spi.cpp
               Marlin/Marlin/src/gcode/feature/phase_stepping/M970-M977.cpp
       )
   endif()

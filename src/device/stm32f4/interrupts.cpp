@@ -234,20 +234,12 @@ void DMA1_Stream3_IRQHandler(void) {
 /**
  * @brief This function handles TIM8 trigger and commutation interrupts and TIM13 global interrupt.
  */
-void TIM8_UP_TIM13_IRQHandler(void) {
-    // We avoid slow HAL handling on purpose as phase stepping is invoked
-    // frequently and every microsecond saves about 4 % of CPU load. That is:
-    // - we don't use traceISR_ENTER()/EXIT() as it takes 1.2 µs
-    // - we don't use HAL handler: HAL_TIM_IRQHandler(&htim13) as it takes 3 µs
-    // - we avoid indirect access to peripheral registers via handle as it takes
-    //   0.4 µs
-#if HAS_PHASE_STEPPING()
-    if (TIM13->SR & TIM_FLAG_UPDATE) {
-        TIM13->SR &= ~TIM_FLAG_UPDATE;
-        phase_stepping::handle_periodic_refresh();
-    }
-#endif
-}
+
+// This function is implemented in
+// lib/Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp to allow for
+// inlining without enable LTO.
+//
+// void TIM8_UP_TIM13_IRQHandler(void)
 
 /**
  * @brief This function handles TIM8 trigger and commutation interrupts and TIM14 global interrupt.

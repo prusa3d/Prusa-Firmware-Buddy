@@ -32,7 +32,6 @@ std::array<
 
 // Module definitions
 static uint_fast8_t axis_num_to_refresh = 0;
-static const std::array<OutputPin, SUPPORTED_AXIS_COUNT> cs_pins = { { xCs, yCs } };
 static uint32_t last_timer_tick = 0;
 
 MoveTarget::MoveTarget(float position)
@@ -696,4 +695,24 @@ void load_from_persistent_storage(AxisEnum axis) {
     load_correction_from_file(axis_states[axis]->forward_current, get_correction_file_path(axis, CorrectionType::forward));
     load_correction_from_file(axis_states[axis]->backward_current, get_correction_file_path(axis, CorrectionType::backward));
 }
+
 } // namespace phase_stepping
+
+// This function is intentionally placed inside the phase stepping source codes
+// to allow for inlining and cross-function optimizations without LTO being
+// enabled.
+extern "C" void TIM8_UP_TIM13_IRQHandler(void) {
+    // We avoid slow HAL handling on purpose as phase stepping is invoked
+    // frequently and every microsecond saves about 4 % of CPU load. That is:
+    // - we don't use traceISR_ENTER()/EXIT() as it takes 1.2 µs
+    // - we don't use HAL handler: HAL_TIM_IRQHandler(&htim13) as it takes 3 µs
+    // - we avoid indirect access to peripheral registers via handle as it takes
+    //   0.4 µs
+    TIM13->SR &= ~TIM_FLAG_UPDATE;
+    phase_stepping::handle_periodic_refresh();
+}
+
+// For the same reason as the ISR handler above, we include the
+// quick_tmc_spi.cpp and lut.cpp instead of compiling them separately:
+#include "quick_tmc_spi.cpp"
+#include "lut.cpp"
