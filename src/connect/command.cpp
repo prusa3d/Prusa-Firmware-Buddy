@@ -43,34 +43,32 @@ namespace {
         }
     }
 
-    // Allow gathering the data about a START_ENCRYPTED_DOWNLOAD command.
-    //
-    // Allows tracking which parts are already available.
-    struct DownloadAccumulator {
-        bool ok = true;
-        StartEncryptedDownload::Block key;
-        StartEncryptedDownload::Block iv;
-        size_t orig_size;
-        bool has_key = false;
-        bool has_iv = false;
-        bool has_size = false;
-        bool validate() const {
-            return ok && has_key && has_iv && has_size;
+    template <size_t S>
+    bool decode_hex(const Event &event, array<uint8_t, S> &dest) {
+        if (event.value->size() != 2 * S) {
+            return false;
         }
-        template <size_t S>
-        bool decode_hex(const Event &event, array<uint8_t, S> &dest) {
-            if (event.value->size() != 2 * S) {
+        const char *input = event.value->begin();
+        for (size_t i = 0; i < dest.size(); i++) {
+            if (from_chars(input + 2 * i, input + 2 * (i + 1), dest[i], 16).ec != errc {}) {
                 return false;
             }
-            const char *input = event.value->begin();
-            for (size_t i = 0; i < dest.size(); i++) {
-                if (from_chars(input + 2 * i, input + 2 * (i + 1), dest[i], 16).ec != errc {}) {
-                    return false;
-                }
-            }
-            return true;
         }
+        return true;
+    }
+
+    enum HasArg : uint32_t {
+        ArgJobId = 1 << 0,
+        ArgPath = 1 << 1,
+        ArgToken = 1 << 2,
+        ArgKey = 1 << 3,
+        ArgIv = 1 << 4,
+        ArgOrigSize = 1 << 5,
     };
+
+    constexpr uint32_t NO_ARGS = 0;
+    // Encrypted download can also process a port, but that one is optional, so not listed here.
+    constexpr uint32_t ARGS_ENC_DOWN = ArgPath | ArgKey | ArgIv | ArgOrigSize;
 } // namespace
 
 Command Command::gcode_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
@@ -106,12 +104,9 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
     CommandData data = UnknownCommand {};
 
     bool in_kwargs = false;
-    optional<uint16_t> job_id = nullopt;
-    optional<uint16_t> port = nullopt;
-
-    DownloadAccumulator download_acc;
-    bool has_path = false;
-    bool has_token = false;
+    bool buffer_available = true;
+    uint32_t expected_args = 0;
+    uint32_t seen_args = 0;
 
     // Error from jsmn_parse will lead to -1 -> converted to 0, refused by json::search as Broken.
     const bool success = json::search(body, tokens, std::max(parse_result, 0), [&](const Event &event) {
@@ -120,115 +115,102 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         };
         if (event.depth == 1 && event.type == Type::String && event.key == "command") {
             // Will fill in all the insides later on, if needed
-#define T(NAME, TYPE)          \
+#define T(NAME, TYPE, EXP)     \
     if (event.value == NAME) { \
         data = TYPE {};        \
+        expected_args = EXP;   \
     } else
-            T("SEND_INFO", SendInfo)
-            T("SEND_JOB_INFO", SendJobInfo)
-            T("SEND_FILE_INFO", SendFileInfo)
-            T("SEND_TRANSFER_INFO", SendTransferInfo)
-            T("PAUSE_PRINT", PausePrint)
-            T("STOP_PRINT", StopPrint)
-            T("RESUME_PRINT", ResumePrint)
-            T("START_PRINT", StartPrint)
-            T("SET_PRINTER_READY", SetPrinterReady)
-            T("CANCEL_PRINTER_READY", CancelPrinterReady)
-            T("DELETE_FILE", DeleteFile)
-            T("DELETE_FOLDER", DeleteFolder)
-            T("CREATE_FOLDER", CreateFolder)
-            T("STOP_TRANSFER", StopTransfer)
-            T("SET_TOKEN", SetToken)
-            if (event.value == "START_ENCRYPTED_DOWNLOAD") {
-                data = StartEncryptedDownload {};
-            } else {
+            T("SEND_INFO", SendInfo, NO_ARGS)
+            T("SEND_JOB_INFO", SendJobInfo, ArgJobId)
+            T("SEND_FILE_INFO", SendFileInfo, ArgPath)
+            T("SEND_TRANSFER_INFO", SendTransferInfo, NO_ARGS)
+            T("PAUSE_PRINT", PausePrint, NO_ARGS)
+            T("STOP_PRINT", StopPrint, NO_ARGS)
+            T("RESUME_PRINT", ResumePrint, NO_ARGS)
+            T("START_PRINT", StartPrint, ArgPath)
+            T("SET_PRINTER_READY", SetPrinterReady, NO_ARGS)
+            T("CANCEL_PRINTER_READY", CancelPrinterReady, NO_ARGS)
+            T("DELETE_FILE", DeleteFile, ArgPath)
+            T("DELETE_FOLDER", DeleteFolder, ArgPath)
+            T("CREATE_FOLDER", CreateFolder, ArgPath)
+            T("STOP_TRANSFER", StopTransfer, NO_ARGS)
+            T("SET_TOKEN", SetToken, ArgToken)
+            T("START_ENCRYPTED_DOWNLOAD", StartEncryptedDownload, ARGS_ENC_DOWN) { // else is part of the previous T
                 return;
             }
         }
+
+        // We use macros to get rid of repetitive bits. There probably is some
+        // kind of solution with templated lambda functions taking a
+        // pointer-to-member parameters ‒ but that would be hard to figure out
+        // and arcane („If it was hard to write, it should be hard to read too“
+        // kind).
+#define INT_ARG(TYPE, FIELD_TYPE, FIELD, MARK)                                \
+    if (auto *cmd = get_if<TYPE>(&data); cmd != nullptr) {                    \
+        if (auto value = convert_int<FIELD_TYPE>(event); value.has_value()) { \
+            cmd->FIELD = *value;                                              \
+            seen_args |= MARK;                                                \
+        }                                                                     \
+    }
+#define PATH_ARG(TYPE)                                                                                           \
+    if (auto *cmd = get_if<TYPE>(&data); cmd != nullptr && buffer_available) {                                   \
+        const size_t len = min(event.value->size() + 1, buff.size());                                            \
+        strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);                                \
+        if (json_unescape_bytes(reinterpret_cast<char *>(buff.data()), reinterpret_cast<char *>(buff.data()))) { \
+            cmd->path = SharedPath(move(buff));                                                                  \
+            buffer_available = false;                                                                            \
+            seen_args |= ArgPath;                                                                                \
+        }                                                                                                        \
+    }
+#define HEX_ARG(FIELD, MARK)                                                 \
+    if (auto *cmd = get_if<StartEncryptedDownload>(&data); cmd != nullptr) { \
+        if (decode_hex(event, cmd->FIELD)) {                                 \
+            seen_args |= MARK;                                               \
+        }                                                                    \
+    }
 
         if (event.depth == 1 && event.type == Type::Object && event.key == "kwargs") {
             in_kwargs = true;
         } else if (event.depth == 1 && event.type == Type::Pop) {
             in_kwargs = false;
         } else if (is_arg("job_id", Type::Primitive)) {
-            job_id = convert_int<uint16_t>(event);
+            INT_ARG(SendJobInfo, uint16_t, job_id, ArgJobId)
         } else if (is_arg("path", Type::String) || is_arg("path_sfn", Type::String)) {
-            const size_t len = min(event.value->size() + 1, buff.size());
-            strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
-            has_path = true;
-            has_token = false;
+            PATH_ARG(SendFileInfo)
+            PATH_ARG(StartPrint)
+            PATH_ARG(DeleteFile)
+            PATH_ARG(DeleteFolder)
+            PATH_ARG(CreateFolder)
+            PATH_ARG(StartEncryptedDownload)
         } else if (is_arg("token", Type::String)) {
-            const size_t len = min(event.value->size() + 1, buff.size());
-            strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
-            has_token = true;
-            has_path = false;
-        } else if (is_arg("port", Type::Primitive)) {
-            port = convert_int<uint16_t>(event);
-        } else if (is_arg("key", Type::String)) {
-            download_acc.has_key = download_acc.decode_hex(event, download_acc.key);
-        } else if (is_arg("iv", Type::String)) {
-            download_acc.has_iv = download_acc.decode_hex(event, download_acc.iv);
-        } else if (is_arg("orig_size", Type::Primitive)) {
-            if (auto val = convert_int<uint64_t>(event); val.has_value()) {
-                download_acc.orig_size = *val;
-                download_acc.has_size = true;
-            } else {
-                download_acc.ok = false;
+            if (auto *cmd = get_if<SetToken>(&data); cmd != nullptr && buffer_available) {
+                const size_t len = min(event.value->size() + 1, buff.size());
+                if (len - 1 <= Printer::Config::CONNECT_TOKEN_LEN) {
+                    strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
+                    cmd->token = std::make_shared<SharedBuffer::Borrow>(move(buff));
+                    seen_args |= ArgToken;
+                    buffer_available = false;
+                } else {
+                    data = BrokenCommand { "Token too long" };
+                }
             }
+        } else if (is_arg("port", Type::Primitive)) {
+            INT_ARG(StartEncryptedDownload, uint16_t, port, 0)
+        } else if (is_arg("orig_size", Type::Primitive)) {
+            INT_ARG(StartEncryptedDownload, uint64_t, orig_size, ArgOrigSize)
+        } else if (is_arg("key", Type::String)) {
+            HEX_ARG(key, ArgKey)
+        } else if (is_arg("iv", Type::String)) {
+            HEX_ARG(iv, ArgIv)
         }
     });
 
-    if (!success) {
-        data = BrokenCommand { "Error parsing json" };
+    if (expected_args & ~seen_args) {
+        data = BrokenCommand { "Missing or broken parameters" };
     }
 
-    auto get_path = [&](SharedPath &path) -> void {
-        if (has_path && json_unescape_bytes(reinterpret_cast<char *>(buff.data()), reinterpret_cast<char *>(buff.data()))) {
-            path = SharedPath(move(buff));
-        } else {
-            // Missing parameters
-            data = BrokenCommand { "missing or invalid path" };
-        }
-    };
-
-    if (auto *info = get_if<SendJobInfo>(&data); info != nullptr) {
-        if (job_id.has_value()) {
-            info->job_id = *job_id;
-        } else {
-            // Didn't find all the needed parameters.
-            data = BrokenCommand { "missing parameters" };
-        }
-    } else if (auto *info = get_if<SendFileInfo>(&data); info != nullptr) {
-        get_path(info->path);
-    } else if (auto *start = get_if<StartPrint>(&data); start != nullptr) {
-        get_path(start->path);
-    } else if (auto *del_file = get_if<DeleteFile>(&data); del_file != nullptr) {
-        get_path(del_file->path);
-    } else if (auto *del_folder = get_if<DeleteFolder>(&data); del_folder != nullptr) {
-        get_path(del_folder->path);
-    } else if (auto *create_folder = get_if<CreateFolder>(&data); create_folder != nullptr) {
-        get_path(create_folder->path);
-    } else if (auto *download = get_if<StartEncryptedDownload>(&data); download != nullptr) {
-        const bool ok = has_path && download_acc.validate();
-        if (ok && json_unescape_bytes(reinterpret_cast<char *>(buff.data()), reinterpret_cast<char *>(buff.data()))) {
-            download->path = SharedPath(move(buff));
-            download->key = download_acc.key;
-            download->iv = download_acc.iv;
-            download->orig_size = download_acc.orig_size;
-            download->port = port;
-        } else {
-            // Missing parameters, conflicting parameters, etc..
-            data = BrokenCommand { "missing or wrong parameters" };
-        }
-    } else if (auto *token = get_if<SetToken>(&data); token != nullptr) {
-        if (has_token) {
-            token->token = std::make_shared<SharedBuffer::Borrow>(move(buff));
-            if (strlen(reinterpret_cast<const char *>(token->token->data())) > Printer::Config::CONNECT_TOKEN_LEN) {
-                data = BrokenCommand { "Token too long" };
-            }
-        } else {
-            data = BrokenCommand { "missing token" };
-        }
+    if (!success) {
+        data = BrokenCommand { "Error parsing JSON" };
     }
 
     // Good. We have a "parsed" json.
