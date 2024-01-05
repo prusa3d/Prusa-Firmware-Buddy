@@ -48,8 +48,8 @@ struct AxisState {
 
     bool inverted = false; // Inverted axis direction flag
     int zero_rotor_phase = 0; // Rotor phase for position 0
-    int last_phase = 0; // Last known rotor phase
-    float last_position = 0.f;
+    int last_phase = 0; // Last known physical rotor phase
+    float last_position = 0.f; // Last known logical position
 
     CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
 

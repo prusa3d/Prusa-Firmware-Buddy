@@ -83,6 +83,15 @@ FORCE_INLINE uint64_t calc_move_segment_end_time_in_ticks(const input_shaper_sta
     return convert_absolute_time_to_ticks(is_state.nearest_next_change);
 }
 
+template <typename T>
+FORCE_INLINE T resolve_axis_inversion(bool is_inverted_flag, T val) {
+    // Since the TMC driver in XDirect mode swaps meaning of phases, the
+    // non-inverted axis has to be inverted and vice-versa
+    return is_inverted_flag
+        ? val
+        : -val;
+}
+
 static void init_step_generator_internal(
     const move_t &move,
     move_segment_step_generator_t &step_generator,
@@ -96,19 +105,17 @@ static void init_step_generator_internal(
 
     // Adjust rotor phase such that when we virtually move, we don't move
     // physically
-    float last_target_position = axis_state.last_position;
-    float new_start_position = axis_state.inverted
-        ? axis_state.target->initial_pos
-        : -axis_state.target->initial_pos;
+    float inverted_last_target_position = resolve_axis_inversion(axis_state.inverted, axis_state.last_position);
+    float inverted_start_position = resolve_axis_inversion(axis_state.inverted, axis_state.target->initial_pos);
     axis_state.zero_rotor_phase = normalize_motor_phase(
         +axis_state.zero_rotor_phase
-        - pos_to_phase(axis, new_start_position)
-        + pos_to_phase(axis, last_target_position));
+        - pos_to_phase(axis, inverted_start_position)
+        + pos_to_phase(axis, inverted_last_target_position));
 
-    axis_state.last_position = new_start_position;
+    axis_state.last_position = axis_state.target->initial_pos;
     axis_state.last_processed_move = &move;
 
-    int32_t initial_steps_made = pos_to_steps(AxisEnum(axis), new_start_position);
+    int32_t initial_steps_made = pos_to_steps(AxisEnum(axis), axis_state.target->initial_pos);
     axis_state.initial_count_position = Stepper::get_axis_steps(AxisEnum(axis)) - initial_steps_made;
     axis_state.initial_count_position_from_startup = Stepper::get_axis_steps_from_startup(AxisEnum(axis)) - initial_steps_made;
 
@@ -191,11 +198,8 @@ step_event_info_t phase_stepping::next_step_event_classic(
             const uint64_t move_duration_ticks = next_print_time_ticks - axis_state.current_print_time_ticks;
             auto new_target = MoveTarget(*next_move, axis, move_duration_ticks);
             axis_state.current_print_time_ticks = next_print_time_ticks;
-            float target_pos = new_target.target_position();
-            if (axis_state.inverted) {
-                target_pos = -target_pos;
-            }
 
+            float target_pos = new_target.target_position();
             int32_t target_steps = pos_to_steps(AxisEnum(axis), target_pos);
             PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
 
@@ -244,11 +248,8 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
             const uint64_t move_duration_ticks = next_print_time_ticks - axis_state.current_print_time_ticks;
             auto new_target = MoveTarget(*step_generator.is_state, move_duration_ticks);
             axis_state.current_print_time_ticks = next_print_time_ticks;
-            float target_pos = new_target.target_position();
-            if (axis_state.inverted) {
-                target_pos = -target_pos;
-            }
 
+            float target_pos = new_target.target_position();
             int32_t target_steps = pos_to_steps(AxisEnum(axis), target_pos);
             PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
 
@@ -470,6 +471,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
         uint32_t time_overshoot = 0;
         if (axis_state.target.has_value()) {
             time_overshoot = ticks_diff(move_epoch, axis_state.target->duration);
+            axis_state.last_position = axis_state.target->target_position();
             axis_state.target.reset();
         }
 
@@ -482,6 +484,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
 
             // Time overshoots accounts for the lost time in the previous state
             axis_state.initial_time = now - time_overshoot;
+            axis_state.last_position = axis_state.target->initial_pos;
             move_epoch = time_overshoot;
         } else {
             // No new movement
@@ -493,27 +496,26 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
 
     auto [speed, position] = axis_state.target.has_value()
         ? axis_position(axis_state, move_epoch)
-        : std::make_tuple(0.f, (axis_state.inverted ? axis_state.last_position : -axis_state.last_position));
-    if (!axis_state.inverted) {
-        position = -position;
-        speed = -speed;
-    }
+        : std::make_tuple(0.f, axis_state.last_position);
 
-    int new_phase = normalize_motor_phase(pos_to_phase(axis_num_to_refresh, position) + axis_state.zero_rotor_phase);
+    float physical_position = resolve_axis_inversion(axis_state.inverted, position);
+    float physical_speed = resolve_axis_inversion(axis_state.inverted, speed);
+
+    int new_phase = normalize_motor_phase(pos_to_phase(axis_num_to_refresh, physical_position) + axis_state.zero_rotor_phase);
     assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
     // Report movement to Stepper
     int32_t steps_made = pos_to_steps(axis_num_to_refresh, position);
     Stepper::set_axis_steps(AxisEnum(axis_num_to_refresh),
-        axis_state.initial_count_position - steps_made);
+        axis_state.initial_count_position + steps_made);
     Stepper::set_axis_steps_from_startup(AxisEnum(axis_num_to_refresh),
-        axis_state.initial_count_position_from_startup - steps_made);
+        axis_state.initial_count_position_from_startup + steps_made);
 
-    const auto &current_lut = speed > 0
+    const auto &current_lut = physical_speed > 0
         ? axis_state.forward_current
         : axis_state.backward_current;
     auto [a, b] = current_lut.get_current(new_phase);
-    int c_adj = current_adjustment(axis_num_to_refresh, mm_to_rev(axis_num_to_refresh, speed));
+    int c_adj = current_adjustment(axis_num_to_refresh, mm_to_rev(axis_num_to_refresh, physical_speed));
     a = a * c_adj / 255;
     b = b * c_adj / 255;
 
