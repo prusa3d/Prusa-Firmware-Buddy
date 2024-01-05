@@ -153,6 +153,56 @@ namespace {
             return std::nullopt;
         }
     }
+
+    std::optional<ErrCode> warning_attention(marlin_vars_t::FSMChange &fsm_change) {
+        fsm::Change *warning_change = nullptr;
+        if (fsm_change.q0_change.get_fsm_type() == ClientFSM::Warning) {
+            warning_change = &fsm_change.q0_change;
+        } else if (fsm_change.q1_change.get_fsm_type() == ClientFSM::Warning) {
+            warning_change = &fsm_change.q1_change;
+        } else if (fsm_change.q2_change.get_fsm_type() == ClientFSM::Warning) {
+            warning_change = &fsm_change.q2_change;
+        }
+
+        if (warning_change) {
+            WarningType wtype = static_cast<WarningType>(*warning_change->get_data().GetData().data());
+            switch (wtype) {
+            case WarningType::HotendFanError:
+                return ErrCode::CONNECT_WARNING_HOTEND_FAN_ERROR;
+            case WarningType::PrintFanError:
+                return ErrCode::CONNECT_WARNING_PRINT_FAN_ERROR;
+            case WarningType::HotendTempDiscrepancy:
+                return ErrCode::CONNECT_WARNING_HOTEND_TEMP_DISCREPANCY;
+            case WarningType::HeatersTimeout:
+            case WarningType::NozzleTimeout:
+                return ErrCode::CONNECT_WARNING_HEATERS_TIMEOUT;
+            case WarningType::USBFlashDiskError:
+                return ErrCode::CONNECT_WARNING_USB_FLASH_DISK_ERROR;
+            case WarningType::HeatBreakThermistorFail:
+                return ErrCode::CONNECT_WARNING_HEATBREAK_THERMISTOR_FAIL;
+            case WarningType::HeatbedColdAfterPP:
+                return ErrCode::CONNECT_WARNING_HEATBED_COLD_AFTER_PP;
+            case WarningType::NozzleDoesNotHaveRoundSection:
+                return ErrCode::CONNECT_WARNING_NOZZLE_DOES_NOT_HAVE_ROUND_SECTION;
+            case WarningType::NotDownloaded:
+                return ErrCode::CONNECT_WARNING_NOT_DOWNLOADED;
+            case WarningType::BuddyMCUMaxTemp:
+                return ErrCode::CONNECT_WARNING_BUDDY_MCU_MAX_TEMP;
+            case WarningType::DwarfMCUMaxTemp:
+                return ErrCode::CONNECT_WARNING_DWARF_MCU_MAX_TEMP;
+            case WarningType::ModBedMCUMaxTemp:
+                return ErrCode::CONNECT_WARNING_MOD_BED_MCU_MAX_TEMP;
+#if _DEBUG
+            case WarningType::SteppersTimeout:
+                return ErrCode::CONNECT_WARNING_STEPPERS_TIMEOUT;
+#endif
+            default:
+                assert(false);
+            }
+        }
+
+        return std::nullopt;
+    }
 } // namespace
 
 DeviceState get_state(bool ready) {
@@ -162,6 +212,10 @@ DeviceState get_state(bool ready) {
 StateWithDialog get_state_with_dialog(bool ready) {
     auto fsm_change = marlin_vars()->get_last_fsm_change();
     State state = marlin_vars()->print_state;
+
+    if (auto attention_code = warning_attention(fsm_change); attention_code.has_value()) {
+        return { DeviceState::Attention, attention_code.value() };
+    }
 
     switch (fsm_change.q0_change.get_fsm_type()) {
     case ClientFSM::PrintPreview:
