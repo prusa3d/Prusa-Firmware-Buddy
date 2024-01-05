@@ -95,7 +95,9 @@ tmc_reg_t tmc_reg_map[] = {
 
 // With phase stepping, mutex is not an ideal synchronization mechanism as
 // high-priority ISR cannot safely take it. Since phase-stepping doesn't mind
-// missing transfers much, we can use atomic variable for storing the current owner.
+// missing transfers much, we can use atomic variable for storing the current
+// owner. As phase stepping holds the but all the time, we also have a flag that
+// marks that a task wants to access the bus.
 
 osMutexDef(tmc_mutex);
 osMutexId tmc_mutex_id;
@@ -107,6 +109,7 @@ enum class BusOwner {
 };
 
 std::atomic<BusOwner> tmc_bus_owner = BusOwner::NOBODY;
+std::atomic<bool> tmc_bus_requested = false;
 
 extern "C" {
 
@@ -255,6 +258,7 @@ bool tmc_serial_lock_acquire(void) {
     // We have taken the mutex, now let's try to take over the lock from ISR in
     // busy waiting. We will wait at most one period of phase stepping (~25 µs)
     BusOwner owner = BusOwner::NOBODY;
+    tmc_bus_requested = true;
     uint32_t start = ticks_ms();
     while (!tmc_bus_owner.compare_exchange_weak(owner, BusOwner::TASK,
         std::memory_order_relaxed,
@@ -271,6 +275,7 @@ bool tmc_serial_lock_acquire(void) {
 ///
 /// This implements a weak symbol declared within the TMCStepper library
 void tmc_serial_lock_release(void) {
+    tmc_bus_requested = false;
     osMutexRelease(tmc_mutex_id);
     tmc_bus_owner.store(BusOwner::NOBODY);
 }
@@ -288,6 +293,10 @@ void tmc_serial_lock_release_isr(void) {
 
 bool tmc_serial_lock_held_by_isr(void) {
     return tmc_bus_owner.load() == BusOwner::ISR;
+}
+
+bool tmc_serial_lock_requested_by_task(void) {
+    return tmc_bus_requested;
 }
 
 /// Called when an error occurs when communicating with the TMC over serial

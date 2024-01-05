@@ -10,6 +10,7 @@ static constexpr int CURRENT_AMPLITUDE = 248;
 static constexpr int CORRECTION_HARMONICS = 16;
 static constexpr int SUPPORTED_AXIS_COUNT = 2;
 static constexpr int SERIAL_DECIMALS = 5; // Float decimals written in the serial output
+static constexpr int ALLOWED_MISSED_TX = 5000;
 
 struct SpectralItem {
     float mag = 0, pha = 0;

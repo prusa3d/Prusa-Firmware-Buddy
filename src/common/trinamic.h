@@ -52,6 +52,7 @@ extern void tmc_serial_lock_release(void);
 extern bool tmc_serial_lock_acquire_isr(void);
 extern void tmc_serial_lock_release_isr(void);
 extern bool tmc_serial_lock_held_by_isr(void);
+extern bool tmc_serial_lock_requested_by_task(void);
 #ifdef __cplusplus
 }
 

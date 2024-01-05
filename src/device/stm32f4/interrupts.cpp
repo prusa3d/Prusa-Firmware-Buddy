@@ -242,10 +242,6 @@ void TIM8_UP_TIM13_IRQHandler(void) {
     // - we avoid indirect access to peripheral registers via handle as it takes
     //   0.4 µs
 #if HAS_PHASE_STEPPING()
-    if (TIM13->SR & TIM_FLAG_CC1) {
-        TIM13->SR &= ~TIM_FLAG_CC1;
-        phase_stepping::spi::finish_transmission();
-    }
     if (TIM13->SR & TIM_FLAG_UPDATE) {
         TIM13->SR &= ~TIM_FLAG_UPDATE;
         phase_stepping::handle_periodic_refresh();

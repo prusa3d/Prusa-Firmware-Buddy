@@ -968,17 +968,6 @@ void hw_tim13_init() {
     if (HAL_TIM_Base_Init(&htim13) != HAL_OK) {
         Error_Handler();
     }
-
-    TIM_OC_InitTypeDef sConfigOC {};
-    sConfigOC.OCMode = TIM_OCMODE_ACTIVE;
-    sConfigOC.Pulse = 1600; // This time is fine-tuned such that the CS rising edge goes up after the transmission is finished
-    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-    sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-
-    if (HAL_TIM_OC_ConfigChannel(&htim13, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
-        Error_Handler();
-    }
 }
 
 void hw_tim14_init() {

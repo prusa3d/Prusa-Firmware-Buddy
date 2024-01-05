@@ -10,6 +10,7 @@
 #include <module/motion.h>
 #include <module/stepper.h>
 #include <module/stepper/trinamic.h>
+#include <trinamic.h>
 #include <TMCStepper.h>
 
 #include <Pin.hpp>
@@ -32,6 +33,7 @@ std::array<
 // Module definitions
 static uint_fast8_t axis_num_to_refresh = 0;
 static const std::array<OutputPin, SUPPORTED_AXIS_COUNT> cs_pins = { { xCs, yCs } };
+static uint32_t last_timer_tick = 0;
 
 MoveTarget::MoveTarget(float position)
     : initial_pos(position)
@@ -335,7 +337,6 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     PreciseStepping::physical_axis_step_generator_types |= enable_mask;
 
     HAL_TIM_Base_Start_IT(&TIM_HANDLE_FOR(phase_stepping));
-    HAL_TIM_OC_Start_IT(&TIM_HANDLE_FOR(phase_stepping), TIM_CHANNEL_1);
 }
 
 void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
@@ -439,6 +440,27 @@ int phase_stepping::phase_difference(int a, int b) {
     return std::min(direct_diff, cyclic_diff);
 }
 
+static void mark_missed_transaction() {
+    AxisState &axis_state = *axis_states[axis_num_to_refresh];
+    axis_state.missed_tx_cnt++;
+    if (axis_state.missed_tx_cnt > ALLOWED_MISSED_TX) {
+        bsod("Phase stepping: Too many missed transactions");
+    }
+}
+
+static bool is_refresh_period_sane(uint32_t now, uint32_t last_timer_tick) {
+    // The refresh period of the timer should be constant. We mainly care about
+    // the case when there was too long delay between refreshes as it marks that
+    // the interrupt was delayed and the next update might be sooner than we
+    // anticipate.
+
+    static constexpr uint REFRESH_PERIOD_US = 1'000'000 / 40'000;
+    static constexpr uint UPDATE_DURATION_US = 20; // Rather pesimistic update
+
+    uint32_t refresh_period = ticks_diff(now, last_timer_tick);
+    return refresh_period < 2 * REFRESH_PERIOD_US - UPDATE_DURATION_US;
+}
+
 __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh() {
     // This routine is extremely time sensitive and it should be as fast as
     // possible.
@@ -452,10 +474,26 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     // - current lookup: 800 ns
     // - Quick transmission: 900ns (time from call to first bit) + 1µs transaction termination
 
-    // Move to next axis
+    uint32_t now = ticks_us();
+
+    phase_stepping::spi::finish_transmission();
+    if (!phase_stepping::spi::initialize_transaction()) {
+        mark_missed_transaction();
+        return;
+    }
+
     ++axis_num_to_refresh;
     if (axis_num_to_refresh == axis_states.size()) {
         axis_num_to_refresh = 0;
+    }
+
+    uint32_t old_tick = last_timer_tick;
+    last_timer_tick = now;
+    if (!is_refresh_period_sane(now, old_tick)) {
+        // If the ISR handler was delayed, we don't have enough time to process
+        // the update. Abort the update so we can catch up.
+        mark_missed_transaction();
+        return;
     }
 
     AxisState &axis_state = *axis_states[axis_num_to_refresh];
@@ -464,7 +502,6 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
         return;
     }
 
-    uint32_t now = ticks_us();
     uint32_t move_epoch = ticks_diff(now, axis_state.initial_time);
 
     while (!axis_state.target.has_value() || move_epoch > axis_state.target->duration) {
@@ -519,19 +556,10 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     a = a * c_adj / 255;
     b = b * c_adj / 255;
 
+    spi::set_xdirect(axis_num_to_refresh, a, b);
+
     axis_state.last_position = position;
     axis_state.last_phase = new_phase;
-
-    auto ret = spi::set_xdirect(axis_num_to_refresh, a, b);
-    if (ret == HAL_OK) {
-        axis_state.missed_tx_cnt = 0;
-    } else {
-        axis_state.missed_tx_cnt++;
-    }
-
-    if (axis_state.missed_tx_cnt > 200) {
-        bsod("Phase stepping: TX failure");
-    }
 }
 
 bool phase_stepping::any_axis_active() {

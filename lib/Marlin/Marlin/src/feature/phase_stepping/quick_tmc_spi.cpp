@@ -39,15 +39,14 @@ static void setup_xdirect_buffer(int current_a, int current_b) {
     xdirect_comm_buffer[4] = (raw >> 0) & 0xFF;
 }
 
-HAL_StatusTypeDef phase_stepping::spi::set_xdirect(int axis, int current_a, int current_b) {
-    if (!tmc_serial_lock_acquire_isr()) {
-        return HAL_BUSY;
-    }
+bool phase_stepping::spi::initialize_transaction() {
+    return !tmc_serial_lock_requested_by_task() && tmc_serial_lock_acquire_isr();
+}
 
+void phase_stepping::spi::set_xdirect(int axis, int current_a, int current_b) {
     // You might be wondering why we don't set the state of peripheral in HAL
     // handle: it is a wasted 2 µs ns and since we hold a lock, there cannot be
     // a race.
-
     active_axis = axis;
     setup_xdirect_buffer(current_a, current_b);
     cs_pins[active_axis].write(Pin::State::low);
@@ -66,8 +65,6 @@ HAL_StatusTypeDef phase_stepping::spi::set_xdirect(int axis, int current_a, int 
     TMC_DMA->CR = (TMC_DMA->CR
                       & ~(DMA_SxCR_DBM_Msk | DMA_SxCR_DMEIE_Msk | DMA_SxCR_TEIE_Msk | DMA_SxCR_HTIE_Msk | DMA_SxCR_TCIE_Msk))
         | DMA_SxCR_EN_Msk;
-
-    return HAL_OK;
 }
 
 void phase_stepping::spi::finish_transmission() {
