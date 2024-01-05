@@ -7,6 +7,7 @@
 
 #include "screen_sysinf.hpp"
 #include "config.h"
+#include "sound.hpp"
 #include "stm32f4xx_hal.h"
 #include "ScreenHandler.hpp"
 #include "sys.h"
@@ -91,7 +92,15 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
 }
 
 void screen_sysinfo_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::LOOP) {
+    switch (event) {
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT: {
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        Screens::Access()->Close();
+        return;
+    }
+
+    case GUI_event_t::LOOP: {
         const int actual_CPU_load = osGetCPUUsage();
         if (last_CPU_load != actual_CPU_load) {
             textCPU_load_val.SetValue(actual_CPU_load);
@@ -100,6 +109,12 @@ void screen_sysinfo_data_t::windowEvent(EventLock /*has private ctor*/, window_t
 
         textPrintFan_RPM_val.SetValue(marlin_vars()->active_hotend().print_fan_rpm);
         textHeatBreakFan_RPM_val.SetValue(marlin_vars()->active_hotend().heatbreak_fan_rpm);
+        break;
     }
+
+    default:
+        break;
+    }
+
     SuperWindowEvent(sender, event, param);
 }
