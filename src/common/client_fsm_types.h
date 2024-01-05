@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <utility_extensions.hpp>
 
 #ifdef __cplusplus
 // C++ checks enum classes
@@ -20,6 +21,9 @@ enum class ClientFSM : uint8_t {
     _none, // cannot be created, must have same index as _count
     _count = _none
 };
+
+// We have only 5 bits for it in the serialization of data sent between server and client
+static_assert(ftrstd::to_underlying(ClientFSM::_count) < 32);
 
 enum class ClientFSM_Command : uint8_t {
     none = 0x00,

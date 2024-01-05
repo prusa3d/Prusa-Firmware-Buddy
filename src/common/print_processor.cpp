@@ -11,6 +11,7 @@
 
 ClientFSM type_of_q0 = ClientFSM::_none;
 ClientFSM type_of_q1 = ClientFSM::_none;
+ClientFSM type_of_q2 = ClientFSM::_none;
 
 void PrintProcessor::fsm_cb(uint32_t u32, uint16_t u16) {
     fsm::Change change({ u32, u16 });
@@ -23,6 +24,9 @@ void PrintProcessor::fsm_cb(uint32_t u32, uint16_t u16) {
         break;
     case fsm::QueueIndex::q1:
         fsm_type = &type_of_q1;
+        break;
+    case fsm::QueueIndex::q2:
+        fsm_type = &type_of_q2;
         break;
     }
 

@@ -431,10 +431,12 @@ public:
     struct FSMChange {
         fsm::Change q0_change;
         fsm::Change q1_change;
+        fsm::Change q2_change;
 
         FSMChange()
             : q0_change(fsm::QueueIndex::q0)
-            , q1_change(fsm::QueueIndex::q1) {}
+            , q1_change(fsm::QueueIndex::q1)
+            , q2_change(fsm::QueueIndex::q2) {}
     };
     /**
      * @brief Get the last fsm state
@@ -462,8 +464,10 @@ public:
         auto guard = MarlinVarsLockGuard();
         if (change.get_queue_index() == fsm::QueueIndex::q0) {
             last_fsm_state.q0_change = change;
-        } else { /*(change.get_queue_index() == fsm::QueueIndex::q1)*/
+        } else if (change.get_queue_index() == fsm::QueueIndex::q1) {
             last_fsm_state.q1_change = change;
+        } else {
+            last_fsm_state.q2_change = change;
         }
     }
 

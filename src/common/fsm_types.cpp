@@ -12,12 +12,18 @@ using namespace fsm;
 
 LOG_COMPONENT_DEF(FSM, LOG_SEVERITY_INFO);
 
+// serialization scheme by bits
+// t - type
+// q - queue number
+// p - phase
+// uint32_t - Phase data
+// uint16_t - qqqtttttpppppppp
 std::pair<uint32_t, uint16_t> Change::serialize() const {
     uint16_t u16_lo = 0;
     uint16_t u16_hi = 0;
     uint32_t u32 = 0;
     uint8_t type_and_queue = static_cast<uint8_t>(type);
-    type_and_queue |= uint8_t(queue_index) << 7;
+    type_and_queue |= uint8_t(queue_index) << 5;
     u16_hi = type_and_queue;
     u16_hi = u16_hi << 8;
     memcpy(&u32, &data, sizeof(u32));
@@ -27,8 +33,8 @@ std::pair<uint32_t, uint16_t> Change::serialize() const {
 
 // deserialize ctor
 Change::Change(std::pair<uint32_t, uint16_t> serialized)
-    : type(static_cast<ClientFSM>((serialized.second >> 8) & 0x7F))
-    , queue_index(static_cast<QueueIndex>((serialized.second >> 15) & 0x01)) {
+    : type(static_cast<ClientFSM>((serialized.second >> 8) & 0x1F))
+    , queue_index(static_cast<QueueIndex>((serialized.second >> 13) & 0x07)) {
     fsm::PhaseData phase_data;
     memcpy(&phase_data, &serialized.first, sizeof(serialized.first));
     data = { uint8_t(serialized.second), phase_data };
@@ -241,19 +247,26 @@ size_t Queue::count() const {
 
 /**
  * @brief deques one command
- * Q1 has higher priority
- * with only one exception - when Q0 has pending create
- *                         - create command insertion logic prevents Q1 inserting create to Q0 while Q1 has open FSM
+ * Higher queue has higher priority
+ * for creation it is the other way around, it can be done this way, because we already ensure we create FSMs
+ * only at the highest level
  *
  * @return std::optional<DequeStates> command to be send to another thread
  */
 std::optional<DequeStates> SmartQueue::dequeue() {
-    // create from Q0 is prioritized
+    // creations have priority from lowest queue
     if (queue0.has_pending_create_command()) {
         return queue0.dequeue();
     }
+    if (queue1.has_pending_create_command()) {
+        return queue1.dequeue();
+    }
 
+    // everything else from the highest
     // can have data but no open fsm (contains destroy command)
+    if (queue2.count() || queue2.has_opened_fsm()) {
+        return queue2.dequeue();
+    }
     if (queue1.count() || queue1.has_opened_fsm()) {
         return queue1.dequeue();
     }
@@ -262,8 +275,8 @@ std::optional<DequeStates> SmartQueue::dequeue() {
 
 SmartQueue::Selector SmartQueue::PushCreate(ClientFSM type, BaseData data) {
     // error upper queue contains opened dialog
-    if (queue1.has_opened_fsm()) {
-        bsod("FSM: Attempt to create 3rd level");
+    if (queue2.has_opened_fsm()) {
+        bsod("FSM: Attempt to create 4th level");
     }
 
     // error create cannot have type none
@@ -280,10 +293,21 @@ SmartQueue::Selector SmartQueue::PushCreate(ClientFSM type, BaseData data) {
         return Selector::q1;
     }
 
-    bsod("FSM Cannot push create of %s to Q1", to_string(type));
+    if (queue2.push_create(type, data) == QueueRetVal::ok) {
+        return Selector::q2;
+    }
+
+    bsod("FSM Cannot push create of %s to Q2", to_string(type));
 }
 
 SmartQueue::Selector SmartQueue::PushDestroy(ClientFSM type) {
+    if (queue2.has_opened_fsm()) {
+        if (queue2.push_destroy(type) == QueueRetVal::ok) {
+            return Selector::q2;
+        } else {
+            bsod("FSM Cannot push destroy of %s to Q2", to_string(type));
+        }
+    }
     if (queue1.has_opened_fsm()) {
         if (queue1.push_destroy(type) == QueueRetVal::ok) {
             return Selector::q1;
@@ -299,6 +323,10 @@ SmartQueue::Selector SmartQueue::PushDestroy(ClientFSM type) {
 }
 
 SmartQueue::Selector SmartQueue::PushChange(ClientFSM type, BaseData data) {
+    if (queue2.push_change(type, data) == QueueRetVal::ok) {
+        return Selector::q2;
+    }
+
     if (queue1.push_change(type, data) == QueueRetVal::ok) {
         return Selector::q1;
     }
@@ -323,6 +351,9 @@ void SmartQueue::force_push(Change change) {
     case QueueIndex::q1:
         queue1.force_push(change);
         return;
+    case QueueIndex::q2:
+        queue2.force_push(change);
+        return;
     }
 }
 
@@ -339,6 +370,10 @@ void IQueueWrapper::pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, B
         bsod("FSM CREATE: %s already opened at level 1. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
     }
 
+    if (fsm2 == type) {
+        bsod("FSM CREATE: %s already opened at level 2. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
+    }
+
     log_info(FSM, "CREATE [%s]: %s, %s, ln %i", to_string(type), fnc, file, line);
     fsm_last_phase[static_cast<int>(type)] = -1;
 
@@ -350,6 +385,9 @@ void IQueueWrapper::pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, B
         case SmartQueue::Selector::q1:
             fsm1 = type;
             break;
+        case SmartQueue::Selector::q2:
+            fsm1 = type;
+            break;
         }
     }
 }
@@ -359,11 +397,14 @@ void IQueueWrapper::pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type, 
         bsod(""); // should never happen, no text to save CPU flash
     }
 
-    if (fsm0 != type && fsm1 != type) {
+    // FIXME: Similar checks is also done in the SmartQueue::Push destroy, is it necessary
+    if (fsm0 != type && fsm1 != type && fsm2 != type) {
         bsod("FSM DESTROY: %s does not exist. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
     }
 
-    if (fsm1 != type && fsm1 != ClientFSM::_none) {
+    // toi have both??
+    // Is there a different fsm at higher lvl?
+    if ((fsm2 != type && fsm2 != ClientFSM::_none) || (fsm1 != type && fsm1 != ClientFSM::_none)) {
         bsod("FSM DESTROY: %s blocked by higher level. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
     }
 
@@ -377,6 +418,9 @@ void IQueueWrapper::pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type, 
         case SmartQueue::Selector::q1:
             fsm1 = ClientFSM::_none;
             break;
+        case SmartQueue::Selector::q2:
+            fsm2 = ClientFSM::_none;
+            break;
         }
     }
 }
@@ -387,7 +431,7 @@ void IQueueWrapper::pushChange(SmartQueue *pQueues, size_t sz, ClientFSM type, B
     }
 
     // check if given FSM type is stored in any queue
-    if (fsm0 != type && fsm1 != type) {
+    if (fsm0 != type && fsm1 != type && fsm2 != type) {
         bsod("FSM CHANGE %s mismatch. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
     }
 

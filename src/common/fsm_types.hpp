@@ -18,11 +18,16 @@
 
 namespace fsm {
 
+// FIXME: There is also a SmartQueue::Selector
+//  which is the same, so maybe unify these two??
 enum class QueueIndex : uint8_t {
     q0,
     q1,
-    last_ = q1
+    q2,
+    last_ = q2
 };
+// We have only 3 bits for it in the serialization of data sent between server and client
+static_assert(ftrstd::to_underlying(QueueIndex::last_) < 8);
 
 class Change {
     ClientFSM type;
@@ -97,17 +102,20 @@ public:
 };
 
 /**
- * @brief 2nd level smart queue
- * contains 2 smart queues to support 2 level fsm nesting
+ * @brief 3nd level smart queue
+ * contains 3 smart queues to support 3 level fsm nesting
  */
 class SmartQueue {
 protected:
     Queue queue0 = { QueueIndex::q0 }; // base queue
     Queue queue1 = { QueueIndex::q1 }; // next level queue
+    // FIXME: unit test need to be changed also to add this and test it!!!
+    Queue queue2 = { QueueIndex::q2 }; // next level queue
 
 public:
     enum class Selector { q0,
-        q1 }; // return type
+        q1,
+        q2 }; // return type
 
     std::optional<DequeStates> dequeue();
 
@@ -117,6 +125,7 @@ public:
 
     ClientFSM GetOpenFsmQ0() const { return queue0.get_opened_fsm(); }
     ClientFSM GetOpenFsmQ1() const { return queue1.get_opened_fsm(); }
+    ClientFSM GetOpenFsmQ2() const { return queue2.get_opened_fsm(); }
 
     void force_push(Change change);
 };
@@ -127,6 +136,7 @@ public:
 class IQueueWrapper {
     ClientFSM fsm0 = ClientFSM::_none; // active fsm level 0
     ClientFSM fsm1 = ClientFSM::_none; // active fsm level 1
+    ClientFSM fsm2 = ClientFSM::_none; // active fsm level 2
 
     /// Array of the last phase per fsm
     /// Used for better logging experience in fsm_change
@@ -140,6 +150,7 @@ protected:
 public:
     ClientFSM GetFsm0() const { return fsm0; }
     ClientFSM GetFsm1() const { return fsm1; }
+    ClientFSM GetFsm2() const { return fsm2; }
 };
 
 /**

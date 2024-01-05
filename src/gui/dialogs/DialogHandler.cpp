@@ -234,8 +234,9 @@ void DialogHandler::Loop() {
 bool DialogHandler::IsOpen(ClientFSM fsm) const {
     const ClientFSM q0 = command_queue.GetOpenFsmQ0();
     const ClientFSM q1 = command_queue.GetOpenFsmQ1();
+    const ClientFSM q2 = command_queue.GetOpenFsmQ2();
 
-    return fsm == q0 || fsm == q1;
+    return fsm == q0 || fsm == q1 || fsm == q2;
 }
 
 bool DialogHandler::IsAnyOpen() const {

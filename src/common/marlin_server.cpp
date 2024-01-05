@@ -1332,7 +1332,7 @@ static void resuming_reheating() {
 }
 
 static void _server_print_loop(void) {
-    static bool did_not_start_print = true, abort_resuming = false;
+    static bool did_not_start_print = true, abrt_resuming = false;
     switch (server.print_state) {
     case State::Idle:
         break;
