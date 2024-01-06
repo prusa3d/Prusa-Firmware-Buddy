@@ -170,8 +170,8 @@ auto PrintPreview::check_tools_mapping_validity(const ToolMapper &mapper, const 
             return true;
         }
 
-        float nozzle_diameter_distance = gcode.get_extruder_info(gcode_tool).nozzle_diameter.value() - get_nozzle_diameter(physical_extruder);
-        if (nozzle_diameter_distance > 0.001f || nozzle_diameter_distance < -0.001f) {
+        float nozzle_diameter_distance = std::abs(static_cast<float>(gcode.get_extruder_info(gcode_tool).nozzle_diameter.value()) - static_cast<float>(get_nozzle_diameter(physical_extruder)));
+        if (nozzle_diameter_distance > 0.001f) {
             return false;
         }
 
