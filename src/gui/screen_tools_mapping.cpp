@@ -135,11 +135,11 @@ void disable_radio(RadioButton &radio) {
     radio.Invalidate();
 }
 
-double get_nozzle_diameter([[maybe_unused]] size_t idx) {
+float get_nozzle_diameter([[maybe_unused]] size_t idx) {
 #if HAS_TOOLCHANGER()
-    return static_cast<double>(config_store().get_nozzle_diameter(idx));
+    return static_cast<float>(config_store().get_nozzle_diameter(idx));
 #elif HAS_MMU2()
-    return static_cast<double>(config_store().get_nozzle_diameter(0));
+    return static_cast<float>(config_store().get_nozzle_diameter(0));
 #endif
 }
 
@@ -153,7 +153,7 @@ void print_right_tool_into_buffer(size_t idx, std::array<std::array<char, ToolsM
 
     if (drawing_nozzles) {
         const auto cur_strlen = strlen(text_buffers[idx].data());
-        snprintf(text_buffers[idx].data() + cur_strlen, ToolsMappingBody::max_item_text_width - cur_strlen, " %-4.2f", get_nozzle_diameter(idx));
+        snprintf(text_buffers[idx].data() + cur_strlen, ToolsMappingBody::max_item_text_width - cur_strlen, " %-4.2f", static_cast<double>(get_nozzle_diameter(idx)));
     }
 }
 
@@ -259,8 +259,8 @@ bool all_nozzles_same(GCodeInfo &gcode_info) {
     bool initialized { false };
 
     auto nozzles_are_matching = [](float lhs, float rhs) {
-        float nozzle_diameter_distance = lhs - rhs;
-        return !(nozzle_diameter_distance > 0.001f || nozzle_diameter_distance < -0.001f);
+        float nozzle_diameter_distance = std::abs(lhs - rhs);
+        return nozzle_diameter_distance <= 0.001f;
     };
     // check gcodes
     EXTRUDER_LOOP() {
