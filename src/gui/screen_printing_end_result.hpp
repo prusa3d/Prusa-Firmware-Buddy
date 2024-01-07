@@ -56,7 +56,7 @@ private:
     void handle_consumed_tool_fields(const GCodeInfo &gcode, size_t num_extruders_with_valid_grams);
     void handle_wipe_tower_showing(const GCodeInfo &gcode, bool has_valid_wipe_tower_grams);
 
-    static constexpr float minimum_grams_valid { 1.0f };
+    static constexpr long minimum_grams_valid = 1;
 
     window_text_t printing_time_label;
     window_text_t printing_time_value;
