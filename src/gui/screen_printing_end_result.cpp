@@ -152,13 +152,13 @@ void EndResultBody::handle_consumed_material_showing(const GCodeInfo &gcode) {
 
     // holds how many extruders were printing with specified grammage that's big enough to show
     const size_t num_extruders_with_valid_grams = std::ranges::count_if(gcode.get_per_extruder_info(), [&](auto &elem) {
-        return elem.filament_used_g.has_value() && std::round(elem.filament_used_g.value()) >= minimum_grams_valid;
+        return elem.filament_used_g.has_value() && std::lround(elem.filament_used_g.value()) >= minimum_grams_valid;
     });
 
     const bool has_valid_wipe_tower_grams {
         [&]() {
 #if EXTRUDERS > 1
-            return gcode.get_filament_wipe_tower_g().has_value() && gcode.get_filament_wipe_tower_g().value() >= minimum_grams_valid;
+            return gcode.get_filament_wipe_tower_g().has_value() && std::lround(gcode.get_filament_wipe_tower_g().value()) >= minimum_grams_valid;
 #else
             return false;
 #endif
@@ -185,10 +185,11 @@ void EndResultBody::handle_wipe_tower_showing([[maybe_unused]] const GCodeInfo &
     if (has_valid_wipe_tower_grams) {
 
         auto &buff { consumed_wipe_tower_value_buffer };
+        const auto used_g = static_cast<int>(std::lround(gcode.get_filament_wipe_tower_g().value()));
 
         char translated_fmt[std::tuple_size_v<decltype(consumed_wipe_tower_value_buffer)>];
         _(txt_wipe_tower_pretranslated).copyToRAM(translated_fmt, sizeof(translated_fmt));
-        snprintf(buff.data(), buff.size(), translated_fmt, static_cast<int>(gcode.get_filament_wipe_tower_g().value()));
+        snprintf(buff.data(), buff.size(), translated_fmt, used_g);
 
         consumed_wipe_tower_value.SetText(_(buff.data()));
         consumed_wipe_tower_value.Show();
@@ -201,12 +202,12 @@ void EndResultBody::handle_consumed_tool_fields(const GCodeInfo &gcode, size_t n
     if (num_extruders_with_valid_grams > 0) {
         for (size_t i = 0, consumed_material_line_idx = 0; i < EXTRUDERS; ++i) {
             const auto &ext_info { gcode.get_extruder_info(i) };
-            if (!ext_info.used() || !ext_info.filament_used_g.has_value() || std::round(ext_info.filament_used_g.value()) < minimum_grams_valid) {
+            if (!ext_info.used() || !ext_info.filament_used_g.has_value() || std::lround(ext_info.filament_used_g.value()) < minimum_grams_valid) {
                 continue;
             }
 
             const auto &fname { ext_info.filament_name };
-            const auto &used_g { std::round(ext_info.filament_used_g.value()) }; // guaranteed to have value, see above guard
+            const auto used_g = static_cast<int>(std::lround(ext_info.filament_used_g.value())); // guaranteed to have value, see above guard
 
             auto print_fname = [&]() {
                 return fname.has_value() ? fname.value().data() : "---";
@@ -236,9 +237,9 @@ void EndResultBody::handle_consumed_tool_fields(const GCodeInfo &gcode, size_t n
             };
 
             if (show_t_label) {
-                snprintf(buff.data(), buff.size(), "T%d %s %dg", i + 1, print_fname(), static_cast<int>(used_g));
+                snprintf(buff.data(), buff.size(), "T%d %s %dg", i + 1, print_fname(), used_g);
             } else {
-                snprintf(buff.data(), buff.size(), "%s %dg", print_fname(), static_cast<int>(used_g));
+                snprintf(buff.data(), buff.size(), "%s %dg", print_fname(), used_g);
             }
 
             consumed_material_values[consumed_material_line_idx].SetText(_(buff.data()));
