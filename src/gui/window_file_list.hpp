@@ -100,7 +100,6 @@ protected:
     static char *root; // this is a Short-File-Name path to the root of the dialog
 
     color_t color_text = GuiDefaults::ColorText;
-    font_t *font;
 
     int item_count_; ///< total number of files/entries in a dir
     std::optional<int> focused_index_; // selected index - cursor position within the visible items

@@ -13,6 +13,7 @@
 #include <option/has_mmu2.h>
 #include <printers.h>
 #include "MItem_basic_selftest.hpp"
+#include "MItem_mmu.hpp"
 
 using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
 #if HAS_TOOLCHANGER()
@@ -24,6 +25,11 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_SET_READY,
     MI_DISABLE_STEP,
     MI_LIVE_ADJUST_Z,
+
+#if HAS_MMU2()
+    MI_MMU_LOAD_TEST_FILAMENT,
+#endif
+
 #if HAS_SELFTEST_SNAKE()
     #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
     MI_MESH_BED,

@@ -31,6 +31,7 @@ target_sources(
           MItem_experimental_tools.cpp
           MItem_filament.cpp
           MItem_hardware.cpp
+          MItem_input_shaper.cpp
           MItem_lan.cpp
           MItem_menus.cpp
           MItem_print.cpp
@@ -90,7 +91,6 @@ target_sources(
           ScreenFactory.cpp
           ScreenHandler.cpp
           ScreenPrintingModel.cpp
-          test_display.cpp
           time_tools.cpp
           window_file_list.cpp
           window_filebrowser.cpp
@@ -114,9 +114,9 @@ else()
 endif()
 
 if(HAS_XLCD_TOUCH_DRIVER)
-  target_sources(firmware PRIVATE MItem_touch.cpp screen_touch_error.cpp)
-else()
-  target_sources(firmware PRIVATE no_touch.cpp)
+  target_sources(
+    firmware PRIVATE MItem_touch.cpp screen_touch_error.cpp screen_touch_playground.cpp
+    )
 endif()
 
 if(HAS_TOOLCHANGER)
@@ -192,6 +192,9 @@ if(PRINTER STREQUAL "MK4"
    OR PRINTER STREQUAL "MINI"
    )
   target_sources(firmware PRIVATE screen_help_fw_update.cpp)
+endif()
+if(PRINTER STREQUAL "MK4" OR PRINTER STREQUAL "MK3.5")
+  target_sources(firmware PRIVATE screen_fatal_warning.cpp)
 endif()
 
 if(BOARD IN_LIST BOARDS_WITH_ST7789V)

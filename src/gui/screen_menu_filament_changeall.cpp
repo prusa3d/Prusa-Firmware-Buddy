@@ -208,6 +208,7 @@ void detail::DialogEnabledMI::set_parent(IDialog *new_parent) {
 DMI_RETURN::DMI_RETURN()
     : detail::DialogEnabledMI()
     , IWindowMenuItem(_(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    has_return_behavior_ = true;
 }
 
 void DMI_RETURN::click(IWindowMenu &) {

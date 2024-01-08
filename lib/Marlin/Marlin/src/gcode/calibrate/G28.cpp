@@ -35,7 +35,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 
 #include "../gcode.h"
 
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "homing_reporter.hpp"
 
 #include "../../module/endstops.h"

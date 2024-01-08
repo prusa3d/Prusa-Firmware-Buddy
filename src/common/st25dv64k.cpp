@@ -7,7 +7,7 @@
 #include "main.h"
 #include "metric.h"
 #include "SEGGER_SYSVIEW.h"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "utility_extensions.hpp"
 #include <limits>
 #include <algorithm>

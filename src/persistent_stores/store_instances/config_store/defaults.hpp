@@ -211,8 +211,8 @@ namespace defaults {
     inline constexpr uint32_t side_fs_value_span { 310 };
 
     inline constexpr bool fsensor_enabled {
-#if PRINTER_IS_PRUSA_MINI
-        true // MINI does not require any calibration
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
+        true // MINI and 3.5 do not require any calibration
 #else
         false
 #endif

@@ -20,7 +20,7 @@ namespace TaskDeps {
 using dependency_t = EventBits_t;
 
 /// Definition of different dependencies
-enum class Dependency {
+enum class Dependency : size_t {
     puppies_ready,
     resources_ready,
     usb_device_ready,

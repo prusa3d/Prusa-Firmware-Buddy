@@ -67,7 +67,7 @@ public:
         Params(const std::optional<BorrowPaths> &paths);
         std::array<SlotInfo, NUMBER_OF_SLOTS> slots;
 #if HAS_MMU2()
-        MMU2::Version mmu_version;
+        MMU2::Version mmu_version = { 0, 0, 0 };
 #endif
         uint32_t progress_code = 0;
         char command_code = 0;
@@ -79,7 +79,7 @@ public:
         float temp_bed = 0;
         float target_nozzle = 0;
         float target_bed = 0;
-        float pos[4] = {};
+        float pos[4] = { 0, 0, 0, 0 };
         float filament_used = 0;
         // FIXME: We should handle XL with up to 5 nozzles, but the network protocol
         // does not support it as of now, so for the time being we just send the first one.
@@ -94,13 +94,15 @@ public:
         uint16_t print_speed = 0;
         uint32_t print_duration = 0;
         uint32_t time_to_end = 0;
+        uint32_t time_to_pause = 0;
         uint8_t progress_percent = 0;
         bool has_usb = false;
         uint64_t usb_space_free = 0;
-        PrinterVersion version;
+        PrinterVersion version = { 0, 0, 0 };
         printer_state::StateWithAttentionCode state = { printer_state::DeviceState::Unknown, std::nullopt };
 #if ENABLED(CANCEL_OBJECTS)
         size_t cancel_object_count = 0;
+        uint32_t cancel_object_mask = 0;
 #endif
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;
@@ -178,11 +180,17 @@ public:
     virtual void submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
     virtual bool is_printing() const = 0;
+    // Is the printer in (hard) error?
+    //
+    // If so, most commands, actions, etc, are blocked.
+    virtual bool is_in_error() const = 0;
     virtual bool is_idle() const = 0;
     virtual uint32_t cancelable_fingerprint() const = 0;
 #if ENABLED(CANCEL_OBJECTS)
     virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const = 0;
 #endif
+    /// Error message and error code for when we are in Error state.
+    virtual std::tuple<const char *, uint16_t> err_details() const = 0;
     // Turn connect on and set the token.
     //
     // Part of registration.
@@ -190,7 +198,7 @@ public:
     // (The other config ‒ hostname, port, … ‒ are left unchanged).
     //
     // (Not const char * for technical reasons).
-    virtual void init_connect(char *token) = 0;
+    virtual void init_connect(const char *token) = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load
     // (unless the reset_fingerprint is set to false, in which case the flag is

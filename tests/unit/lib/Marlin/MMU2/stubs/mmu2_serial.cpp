@@ -57,7 +57,9 @@ void IOSimCheck() {
     }
 
     // sumbit new "received data" from the MMU
-    mmu2SerialSim.rxbuff = AppendCRC(r.rx);
+    if (!r.rx.empty()) {
+        mmu2SerialSim.rxbuff = AppendCRC(r.rx);
+    }
     SetTimeoutCountdown(r.incMs);
 
     // advance to next record

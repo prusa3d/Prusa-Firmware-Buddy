@@ -7,7 +7,10 @@
 #include "cmsis_os.h"
 #include "config.h"
 #include "adc.hpp"
-#include "Jogwheel.hpp"
+#include <option/has_gui.h>
+#if HAS_GUI()
+    #include "Jogwheel.hpp"
+#endif
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
@@ -34,12 +37,14 @@
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
 #include "main.h"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "timing.h"
 #include "tasks.hpp"
 #include "Marlin/src/module/planner.h"
 #include <option/filament_sensor.h>
-#include <option/has_gui.h>
+
 #include <tusb.h>
 
 #if BOARD_IS_XLBUDDY
@@ -58,6 +63,11 @@
 #include <option/has_loadcell_hx717.h>
 #if HAS_LOADCELL_HX717()
     #include "hx717mux.hpp"
+#endif
+
+#include <option/has_touch.h>
+#if HAS_TOUCH()
+    #include <hw/touchscreen/touchscreen.hpp>
 #endif
 
 LOG_COMPONENT_REF(MMU2);
@@ -170,7 +180,7 @@ void app_setup(void) {
     loadcell.SetHysteresis(config_store().loadcell_hysteresis.get());
 
     if (config_store().stuck_filament_detection.get()) {
-        EMotorStallDetector::Instance().Enable();
+        EMotorStallDetector::Instance().SetEnabled();
     } // else keep it disabled (which is the default)
 
     #if HAS_LOADCELL_HX717()
@@ -194,7 +204,9 @@ void app_idle(void) {
 }
 
 void app_run(void) {
+#if HAS_GUI()
     LangEEPROM::getInstance();
+#endif
 
     marlin_server::init();
     marlin_server::idle_cb = app_idle;
@@ -329,6 +341,13 @@ void app_tim14_tick(void) {
 #if HAS_GUI()
     jogwheel.Update1msFromISR();
 #endif
+
+#if HAS_TOUCH()
+    if (touchscreen.is_enabled()) {
+        touchscreen.update();
+    }
+#endif
+
     adc_tick_1ms();
 
 #if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())

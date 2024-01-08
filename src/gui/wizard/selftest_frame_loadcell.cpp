@@ -16,7 +16,7 @@ static constexpr size_t col_texts = WizardDefaults::MarginLeft;
 
 static constexpr size_t txt_h = WizardDefaults::txt_h;
 static constexpr size_t row_h = WizardDefaults::row_h;
-static const size_t txt_big_h = resource_font(IDR_FNT_LARGE)->h;
+static const size_t txt_big_h = height(Font::large);
 
 static constexpr size_t row_2 = WizardDefaults::row_1 + WizardDefaults::progress_row_h;
 static constexpr size_t row_4 = row_2 + row_h * 2;
@@ -50,7 +50,7 @@ SelftestFrameLoadcell::SelftestFrameLoadcell(window_t *parent, PhasesSelftest ph
     , text_big(this, Rect16(0, row_6, hand_pos.x, txt_big_h))
     , text_result(this, ChangeableRect, is_multiline::no) {
     text_result.SetAlignment(Align_t::Center());
-    text_big.set_font(resource_font(IDR_FNT_LARGE));
+    text_big.set_font(Font::large);
     text_big.SetBlinkColor(COLOR_ORANGE); // Blink orange if temperature is to high
     text_big.SetAlignment(Align_t::Center());
 

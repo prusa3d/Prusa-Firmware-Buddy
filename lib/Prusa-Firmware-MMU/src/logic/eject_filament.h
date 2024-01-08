@@ -7,10 +7,6 @@
 
 namespace logic {
 
-// These cannot be class memebers without definition until c++17
-static constexpr modules::motion::P_pos_t ejectLength = 50.0_P_mm; //@@TODO
-static constexpr modules::motion::P_speed_t ejectSpeed = 1000.0_P_mm_s; //@@TODO
-
 /// @brief  A high-level command state machine - handles the complex logic of ejecting filament
 ///
 /// The eject operation consists of:

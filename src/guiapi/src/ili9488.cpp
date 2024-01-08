@@ -10,13 +10,13 @@
 #include "bsod.h"
 #include <ccm_thread.hpp>
 #include "cmath_ext.h"
-#include "config_buddy_2209_02.h"
-
-#include "touch_dependency.hpp"
+#include <stdint.h>
+#include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 
 #include "raster_opfn_c.h"
 #include "hwio_pindef.h"
-#include <device/board.h>
 #ifdef ILI9488_USE_RTOS
     #include "cmsis_os.h"
 #endif // ILI9488_USE_RTOS
@@ -25,6 +25,11 @@
 #include "hw_configuration.hpp"
 
 #include <option/bootloader.h>
+#include <option/has_touch.h>
+
+#if HAS_TOUCH()
+    #include <hw/touchscreen/touchscreen.hpp>
+#endif
 
 LOG_COMPONENT_REF(GUI);
 
@@ -376,23 +381,17 @@ void ili9488_reset(void) {
 
     ili9488_clr_rst();
     ili9488_delay_ms(15);
-    touch::reset_chip(ili9488_set_rst); // touch will restore reset
+
+#if HAS_TOUCH()
+    touchscreen.reset_chip(ili9488_set_rst); // touch will restore reset
+#else
+    ili9488_set_rst();
+#endif
 }
 
 void ili9488_power_down() {
     // activate reset pin of display, keep it enabled
     ili9488_clr_rst();
-}
-
-// weak functions to be used without touch driver
-void __attribute__((weak)) touch::reset_chip(touch::reset_clr_fnc_t reset_clr_fnc) {
-    log_info(GUI, "%s not bound to touch", __PRETTY_FUNCTION__);
-    reset_clr_fnc();
-}
-
-bool __attribute__((weak)) touch::set_registers() {
-    log_info(GUI, "%s not bound to touch", __PRETTY_FUNCTION__);
-    return false;
 }
 
 void ili9488_set_complete_lcd_reinit() {
@@ -497,9 +496,11 @@ void ili9488_init(void) {
         ili9488_inversion_on();
     }
 
-    if (touch::is_enabled()) {
-        touch::set_registers(); // do not disable it, it is handled in GUI
+#if HAS_TOUCH()
+    if (touchscreen.is_enabled()) {
+        touchscreen.upload_touchscreen_config();
     }
+#endif
 
     if (Configuration::Instance().has_display_backlight_control()) {
         ili9488_brightness_enable();

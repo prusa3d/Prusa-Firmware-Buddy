@@ -113,12 +113,13 @@ WinsCheckAxis::WinsCheckAxis(ScreenCrashRecovery &screen)
     , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &img::nozzle_crash_101x64)
     , icon_nozzle(&screen, icon_nozzle_rc, &img::nozzle_shape_48x48)
     , text_checking_axis(&screen, text_checking_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_axis_test))
-    , line(&screen, line_rc, line_h, COLOR_ORANGE, COLOR_ORANGE)
+    , line(&screen, line_rc)
     , text_x_axis(&screen, text_x_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_X_axis))
     , icon_x_axis(&screen, { col_2, row_4 })
     , text_y_axis(&screen, text_y_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_Y_axis))
     , icon_y_axis(&screen, { col_2, row_5 }) {
 
+    line.SetBackColor(COLOR_ORANGE);
     text_long.SetAlignment(Align_t::Center());
     icon_x_axis.SetState(SelftestSubtestState_t::running);
     Sound_Play(eSOUND_TYPE::SingleBeep);
@@ -131,10 +132,11 @@ WinsHome::WinsHome(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_check))
     , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &img::nozzle_crash_101x64)
     , icon_nozzle(&screen, icon_nozzle_rc, &img::nozzle_shape_48x48)
-    , line(&screen, line_rc, line_h, COLOR_ORANGE, COLOR_ORANGE)
+    , line(&screen, line_rc)
     , text_home_axes(&screen, text_x_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_home_axes))
     , icon_home_axes(&screen, { col_2, row_4 }) {
 
+    line.SetBackColor(COLOR_ORANGE);
     text_long.SetAlignment(Align_t::Center());
     icon_home_axes.SetState(SelftestSubtestState_t::running);
     Sound_Play(eSOUND_TYPE::SingleBeep);
@@ -145,13 +147,14 @@ WinsHome::WinsHome(ScreenCrashRecovery &screen)
 
 WinsAxisNok::WinsAxisNok(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_nok_rc, is_multiline::yes, is_closed_on_click_t::no, string_view_utf8::MakeNULLSTR())
-    , line(&screen, line_nok_rc, line_h, COLOR_ORANGE, COLOR_ORANGE)
+    , line(&screen, line_nok_rc)
     , text_x_axis(&screen, text_x_axis_nok_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_X_axis))
     , icon_x_axis(&screen, { col_2, row_4 + row_nok_shift })
     , text_y_axis(&screen, text_y_axis_nok_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_Y_axis))
     , icon_y_axis(&screen, { col_2, row_5 + row_nok_shift })
     , radio(&screen, GuiDefaults::GetButtonRect_AvoidFooter(screen.GetRect()), ClientResponses::GetResponses(PhasesCrashRecovery::axis_NOK), &texts) {
 
+    line.SetBackColor(COLOR_ORANGE);
     text_long.SetAlignment(Align_t::Center());
     Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
@@ -174,7 +177,7 @@ WinsRepeatedCrash::WinsRepeatedCrash(ScreenCrashRecovery &screen)
 
     text_long.SetAlignment(Align_t::Center());
     text_info.SetAlignment(Align_t::Center());
-    text_info.set_font(resource_font(IDR_FNT_SMALL));
+    text_info.set_font(Font::small);
     Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
@@ -190,7 +193,7 @@ WinsHomeFail::WinsHomeFail(ScreenCrashRecovery &screen)
 
     text_long.SetAlignment(Align_t::Center());
     text_info.SetAlignment(Align_t::Center());
-    text_info.set_font(resource_font(IDR_FNT_SMALL));
+    text_info.set_font(Font::small);
     Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);

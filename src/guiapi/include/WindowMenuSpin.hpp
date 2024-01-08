@@ -38,7 +38,6 @@ protected:
         value = val;
     }
 
-    static constexpr font_t *&Font = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::FontMenuSpecial : GuiDefaults::FontMenuItems;
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
     static constexpr size_t unit__half_space_padding = 6;
     static constexpr bool has_unit = GuiDefaults::MenuSpinHasUnits;

@@ -7,6 +7,7 @@
 
 #include "screen_sysinf.hpp"
 #include "config.h"
+#include "sound.hpp"
 #include "stm32f4xx_hal.h"
 #include "ScreenHandler.hpp"
 #include "sys.h"
@@ -45,12 +46,12 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     , textHeatBreakFan_RPM_val(this, Rect16(col_1, 100, col_1_w, row_h))
     , textExit(this, Rect16(col_0, 290, 60, 22), is_multiline::no, is_closed_on_click_t::yes) {
 
-    textMenuName.set_font(resource_font(IDR_FNT_BIG));
+    textMenuName.set_font(Font::big);
     static const char dt[] = "System info";
     textMenuName.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)dt));
 
     // write pattern
-    textCPU_load.set_font(resource_font(IDR_FNT_NORMAL));
+    textCPU_load.set_font(Font::normal);
     static const char cl[] = N_("CPU load");
     textCPU_load.SetText(_(cl));
 
@@ -66,15 +67,15 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     localtime_r(&sec, &now);
     static char buff[40];
     FormatMsgPrintWillEnd::Date(buff, 40, &now, true, FormatMsgPrintWillEnd::ISO);
-    textDateTime.set_font(resource_font(IDR_FNT_NORMAL));
+    textDateTime.set_font(Font::normal);
     textDateTime.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)buff));
 #endif
 
-    textPrintFan_RPM.set_font(resource_font(IDR_FNT_NORMAL));
+    textPrintFan_RPM.set_font(Font::normal);
     static const char cl0[] = N_("PrintFan RPM");
     textPrintFan_RPM.SetText(_(cl0));
 
-    textHeatBreakFan_RPM.set_font(resource_font(IDR_FNT_NORMAL));
+    textHeatBreakFan_RPM.set_font(Font::normal);
     static const char cl1[] = N_("HB Fan RPM");
     textHeatBreakFan_RPM.SetText(_(cl1));
 
@@ -84,14 +85,22 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textHeatBreakFan_RPM_val.SetFormat((const char *)"%0.0f");
     textHeatBreakFan_RPM_val.SetValue(marlin_vars()->active_hotend().heatbreak_fan_rpm);
 
-    textExit.set_font(resource_font(IDR_FNT_BIG));
+    textExit.set_font(Font::big);
 
     static const char ex[] = N_("EXIT");
     textExit.SetText(_(ex));
 }
 
 void screen_sysinfo_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::LOOP) {
+    switch (event) {
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT: {
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        Screens::Access()->Close();
+        return;
+    }
+
+    case GUI_event_t::LOOP: {
         const int actual_CPU_load = osGetCPUUsage();
         if (last_CPU_load != actual_CPU_load) {
             textCPU_load_val.SetValue(actual_CPU_load);
@@ -100,6 +109,12 @@ void screen_sysinfo_data_t::windowEvent(EventLock /*has private ctor*/, window_t
 
         textPrintFan_RPM_val.SetValue(marlin_vars()->active_hotend().print_fan_rpm);
         textHeatBreakFan_RPM_val.SetValue(marlin_vars()->active_hotend().heatbreak_fan_rpm);
+        break;
     }
+
+    default:
+        break;
+    }
+
     SuperWindowEvent(sender, event, param);
 }

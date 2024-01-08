@@ -27,7 +27,7 @@
 
 #include <option/has_touch.h>
 #if HAS_TOUCH()
-    #include "touch_get.hpp"
+    #include <hw/touchscreen/touchscreen.hpp>
 #endif // HAS_TOUCH
 
 #if ENABLED(POWER_PANIC)
@@ -57,7 +57,7 @@ screen_splash_data_t::screen_splash_data_t()
     , version_displayed(false) {
     super::ClrMenuTimeoutClose();
 
-    text_progress.set_font(resource_font(IDR_FNT_SMALL));
+    text_progress.set_font(Font::small);
     text_progress.SetAlignment(Align_t::Center());
     text_progress.SetTextColor(COLOR_GRAY);
 
@@ -124,7 +124,7 @@ screen_splash_data_t::screen_splash_data_t()
         { run_lang ? ScreenFactory::Screen<ScreenMenuLanguagesNoRet> : nullptr }, // lang
 #endif
 #if HAS_TOUCH()
-            { touch::is_hw_broken() ? ScreenFactory::Screen<ScreenTouchError> : nullptr }, // touch error will show after language
+            { touchscreen.is_enabled() && !touchscreen.is_hw_ok() ? ScreenFactory::Screen<ScreenTouchError> : nullptr }, // touch error will show after language
 #endif // HAS_TOUCH
 
 #if HAS_SELFTEST()
@@ -166,10 +166,10 @@ void screen_splash_data_t::draw() {
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
     #if defined(USE_ST7789)
-    display::DrawText(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+    display::DrawText(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(Font::small), COLOR_BLACK, COLOR_RED);
     #endif // USE_ST7789
     #if defined(USE_ILI9488)
-    display::DrawText(Rect16(340, 130, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
+    display::DrawText(Rect16(340, 130, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(Font::small), COLOR_BLACK, COLOR_RED);
     #endif // USE_ILI9488
 #endif //_DEBUG
 }

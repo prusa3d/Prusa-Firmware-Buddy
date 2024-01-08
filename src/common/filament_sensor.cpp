@@ -26,15 +26,17 @@ void IFSensor::Cycle() {
 // global thread safe functions
 // but cannot be called from interrupt
 void IFSensor::Enable() {
+    FSensorEEPROM::Set();
+
     CriticalSection C;
     enable();
-    FSensorEEPROM::Set();
 }
 
 void IFSensor::Disable() {
+    FSensorEEPROM::Clr();
+
     CriticalSection C;
     disable();
-    FSensorEEPROM::Clr();
 }
 
 fsensor_t FSensor::WaitInitialized() {

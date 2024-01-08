@@ -208,7 +208,7 @@ screen_home_data_t::screen_home_data_t()
             w_buttons[i].SetRect(buttonRect(col, row));
             w_buttons[i].SetRes(&icons[i]);
             w_labels[i].SetRect(buttonTextRect(col, row));
-            w_labels[i].set_font(resource_font(IDR_FNT_SMALL));
+            w_labels[i].set_font(Font::small);
             w_labels[i].SetAlignment(Align_t::Center());
             w_labels[i].SetPadding({ 0, 0, 0, 0 });
             w_labels[i].SetText(_(labels[i]));

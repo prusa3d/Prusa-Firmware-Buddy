@@ -24,8 +24,6 @@ enum class is_closed_on_timeout_t : bool { no,
     yes };
 enum class is_closed_on_printing_t : bool { no,
     yes };
-enum class has_footer : bool { no,
-    yes };
 enum class positioning : bool { absolute,
     relative };
 enum class dense_t : bool { no,

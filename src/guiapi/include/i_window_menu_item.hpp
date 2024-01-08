@@ -125,7 +125,7 @@ protected:
     static constexpr Rect16::Width_t icon_width = 16;
 
 private:
-    font_t *label_font = GuiDefaults::FontMenuItems;
+    Font label_font = GuiDefaults::FontMenuItems;
     string_view_utf8 label;
     txtroll_t roll;
 
@@ -136,6 +136,9 @@ private:
 protected:
     ExtensionLikeLabel has_extension_like_label : 1 = ExtensionLikeLabel::no; // currently has meaning only for menu item info, but might have meaning for other types as well
     uint16_t extension_width : 10;
+    /// Marks this menu item as returning.
+    /// TOUCH_SWIPE_LEFT gesture tries to find an item with this flag in the menu and execute it.
+    bool has_return_behavior_ : 1 = false;
     bool invalid_icon : 1 = true;
     bool invalid_label : 1 = true;
     bool invalid_extension : 1 = true;
@@ -154,8 +157,8 @@ protected:
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point);
     virtual invalidate_t change(int /*dif*/) { return invalidate_t::no; }
 
-    void setLabelFont(font_t *src);
-    font_t *getLabelFont() const;
+    void setLabelFont(Font);
+    Font getLabelFont() const;
 
     void reInitRoll(Rect16 rect);
     void deInitRoll();
@@ -174,18 +177,32 @@ public:
     IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
     virtual ~IWindowMenuItem();
 
-    void Enable() {
-        if (enabled != is_enabled_t::yes) {
-            enabled = is_enabled_t::yes;
-            Invalidate();
-        }
+    bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
+    void set_is_enabled(bool set = true);
+
+    /// Deprecated. Use set_enabled
+    inline void Enable() {
+        set_is_enabled(true);
     }
-    void Disable() {
-        // cannot disable focused item
-        if (!is_focused() && enabled != is_enabled_t::no) {
-            enabled = is_enabled_t::no;
-            Invalidate();
-        }
+
+    /// Deprecated. Use set_enabled
+    inline void Disable() {
+        set_is_enabled(false);
+    }
+
+    bool DoesShowDisabledExtension() const { return show_disabled_extension == show_disabled_extension_t::yes; }
+
+    /// Sets whether the item should show the extension (value) when disabled
+    void set_show_disabled_extension(bool set);
+
+    /// Deprecated. Use set_show_disabled_extension
+    inline void ShowDisabledExtension() {
+        set_show_disabled_extension(true);
+    }
+
+    /// Deprecated. Use set_show_disabled_extension
+    inline void DontShowDisabledExtension() {
+        set_show_disabled_extension(false);
     }
 
     void hide() {
@@ -198,22 +215,6 @@ public:
             Invalidate();
         }
     }
-
-    void ShowDisabledExtension() {
-        if (show_disabled_extension != show_disabled_extension_t::yes) {
-            show_disabled_extension = show_disabled_extension_t::yes;
-            Invalidate();
-        }
-    }
-    void DontShowDisabledExtension() {
-        if (show_disabled_extension != show_disabled_extension_t::no) {
-            show_disabled_extension = show_disabled_extension_t::no;
-            Invalidate();
-        }
-    }
-
-    bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
-    bool DoesShowDisabledExtension() const { return show_disabled_extension == show_disabled_extension_t::yes; }
 
     bool IsHidden() const;
     bool IsDevOnly() const;
@@ -251,6 +252,10 @@ public:
     void InValidateIcon();
     void InValidateLabel();
     void InValidateExtension();
+
+    inline bool has_return_behavior() const {
+        return has_return_behavior_;
+    }
 
     void set_color_scheme(const ColorScheme *scheme);
     void reset_color_scheme();

@@ -5,7 +5,7 @@
 
 #include "PrusaGcodeSuite.hpp"
 #include <stdint.h>
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "z_calibration_fsm.hpp"
 #include "calibration_z.hpp"
 #include "printers.h"

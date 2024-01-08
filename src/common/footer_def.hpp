@@ -69,6 +69,7 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     all_nozzles = 20,
     f_sensor_side = 21,
     nozzle_diameter = 22,
+    nozzle_pwm = 23,
 
     _count,
 };
@@ -87,7 +88,7 @@ inline constexpr auto disabled_items { std::to_array<Item>({
 #if not HAS_MMU2()
         Item::finda,
 #endif
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
         Item::heatbreak_temp,
 #endif
 #if not defined(FOOTER_HAS_TOOL_NR)
@@ -123,6 +124,8 @@ constexpr const char *to_string(Item item) {
         return N_("Nozzle");
     case Item::nozzle_diameter:
         return N_("Nozzle diameter");
+    case Item::nozzle_pwm:
+        return N_("Nozzle PWM");
     case Item::bed:
         return N_("Bed");
     case Item::filament:

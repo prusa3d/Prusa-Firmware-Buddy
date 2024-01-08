@@ -287,12 +287,6 @@
 //#define HOTEND_OFFSET_Y {0.0, 5.00}  // (mm) relative Y-offset for each nozzle
 //#define HOTEND_OFFSET_Z {0.0, 0.00}  // (mm) relative Z-offset for each nozzle
 
-//#define ACCELEROMETER
-#if ENABLED(ACCELEROMETER)
-    #define LOCAL_ACCELEROMETER
-    //#define REMOTE_ACCELEROMETER
-#endif
-
 // @section temperature
 
 //===========================================================================
@@ -397,7 +391,7 @@
 // Above this temperature the heater will be switched off.
 // This can protect components from overheating, but NOT from shorts and failures.
 // (Use MINTEMP for thermistor short/failure protection.)
-#define HEATER_0_MAXTEMP 290
+#define HEATER_0_MAXTEMP 295
 #define HEATER_1_MAXTEMP 275
 #define HEATER_2_MAXTEMP 275
 #define HEATER_3_MAXTEMP 275

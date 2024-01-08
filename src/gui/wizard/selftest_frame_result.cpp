@@ -14,7 +14,7 @@
 
 static constexpr size_t view_msg_gap = 10;
 static constexpr size_t msg_bottom_gap = 6;
-static Rect16::Height_t msg_height() { return (GuiDefaults::ScreenWidth > 240 ? 2 : 3) * GuiDefaults::Font->h; } // cannot be constexpr, because of font
+static Rect16::Height_t msg_height() { return (GuiDefaults::ScreenWidth > 240 ? 2 : 3) * height(GuiDefaults::DefaultFont); } // cannot be constexpr, because of font
 static Rect16::Height_t view_height() { return WizardDefaults::Y_space - msg_height() - view_msg_gap - msg_bottom_gap; }
 
 SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)

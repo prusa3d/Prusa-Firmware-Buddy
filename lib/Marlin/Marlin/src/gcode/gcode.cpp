@@ -66,6 +66,9 @@ GcodeSuite gcode;
   #include "module/prusa/tool_mapper.hpp"
 #endif
 
+#include <option/has_local_accelerometer.h>
+#include <option/has_remote_accelerometer.h>
+
 millis_t GcodeSuite::previous_move_ms;
 
 // Relative motion mode for each logical axis
@@ -899,7 +902,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 951: M951(); break;                                  // M951: Set Magnetic Parking Extruder parameters
       #endif
 
-      #if ENABLED(ACCELEROMETER)
+      #if HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER()
         case 958: M958(); break;
         case 959: M959(); break;
       #endif

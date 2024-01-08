@@ -2,6 +2,7 @@
 #include <new> // bring in placement new
 #include <mmu2_mk4.h>
 #include <algorithm>
+#include "catch2/catch.hpp"
 
 bool MockLog::Matches(std::initializer_list<std::string_view> msgs) const {
     return std::equal(log.begin(), log.end(), msgs.begin());
@@ -9,6 +10,24 @@ bool MockLog::Matches(std::initializer_list<std::string_view> msgs) const {
 
 bool MockLog::MatchesExpected() const {
     return std::equal(log.cbegin(), log.cend(), expected.cbegin());
+}
+
+std::string MockLog::InfoText() {
+    std::string r;
+
+    r.append("ACTUAL:\n");
+    for (const auto &str : log) {
+        r.append(str);
+        r.push_back('\n');
+    }
+
+    r.append("\nEXPECTED:\n");
+    for (const auto &str : expected) {
+        r.append(str);
+        r.push_back('\n');
+    }
+
+    return r;
 }
 
 void MockLog::Record(std::string_view s) {

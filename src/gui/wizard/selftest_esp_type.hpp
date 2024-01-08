@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "selftest_sub_state.hpp"
 
 struct SelftestESP_t {

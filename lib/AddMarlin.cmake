@@ -38,7 +38,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     )
 endif()
 
-if(BOARD MATCHES ".*BUDDY")
+if(BOARD_IS_MASTER_BOARD)
   # Full Marlin configuration for printing (*BUDDY boards)
   target_sources(
     Marlin
@@ -80,7 +80,6 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/calibrate/G65.cpp
             Marlin/Marlin/src/gcode/calibrate/G80.cpp
             Marlin/Marlin/src/gcode/calibrate/M666.cpp
-            Marlin/Marlin/src/gcode/calibrate/M958.cpp
             Marlin/Marlin/src/gcode/config/M200-M205.cpp
             Marlin/Marlin/src/gcode/config/M217.cpp
             Marlin/Marlin/src/gcode/config/M218.cpp
@@ -191,15 +190,27 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/module/planner_bezier.cpp
             Marlin/Marlin/src/module/printcounter.cpp
             Marlin/Marlin/src/module/probe.cpp
-            Marlin/Marlin/src/module/prusa/accelerometer_local.cpp
-            Marlin/Marlin/src/module/prusa/accelerometer_remote.cpp
-            Marlin/Marlin/src/module/prusa/accelerometer_utils.cpp
             Marlin/Marlin/src/module/prusa/homing_utils.cpp
             Marlin/Marlin/src/module/scara.cpp
             Marlin/Marlin/src/module/servo.cpp
             Marlin/Marlin/src/module/stepper/L6470.cpp
             Marlin/Marlin/src/module/stepper/TMC26X.cpp
     )
+
+  if(HAS_LOCAL_ACCELEROMETER)
+    target_sources(
+      Marlin PRIVATE Marlin/Marlin/src/gcode/calibrate/M958.cpp
+                     Marlin/Marlin/src/module/prusa/accelerometer_local.cpp
+      )
+  endif()
+  if(HAS_REMOTE_ACCELEROMETER)
+    target_sources(
+      Marlin
+      PRIVATE Marlin/Marlin/src/gcode/calibrate/M958.cpp
+              Marlin/Marlin/src/module/prusa/accelerometer_remote.cpp
+              Marlin/Marlin/src/module/prusa/accelerometer_utils.cpp
+      )
+  endif()
 
   if(PRINTER IN_LIST PRINTERS_WITH_POWER_PANIC OR PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)
     # Power panic/crash detection module
@@ -236,7 +247,8 @@ if(BOARD MATCHES ".*BUDDY")
   if(PRINTER IN_LIST PRINTERS_WITH_MMU2)
     target_sources(
       Marlin
-      PRIVATE Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp
+      PRIVATE Marlin/Marlin/src/feature/prusa/MMU2/mmu2_command_guard.cpp
+              Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp
               Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp
               Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp
               Marlin/Marlin/src/gcode/control/T.cpp

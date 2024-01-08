@@ -91,7 +91,6 @@ static void M600_manual();
 void GcodeSuite::M600() {
     const bool is_auto_m600 = parser.seen('A');
 
-    BlockEStallDetection block_e_stall_detection;
     bool do_manual_m600 = true;
 
 #if ENABLED(PRUSA_SPOOL_JOIN)
@@ -175,6 +174,9 @@ void M600_manual() {
 void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t resume_point,
     std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength, pause::Settings::CalledFrom called_from) {
 
+    // Ignore estalls during filament change
+    BlockEStallDetection estall_blocker;
+
 #if ENABLED(CRASH_RECOVERY)
     if (crash_s.get_state() != Crash_s::PRINTING && crash_s.get_state() != Crash_s::IDLE) {
         return; // Ignore M600 if crash recovery is in progress
@@ -235,6 +237,8 @@ void PrusaGcodeSuite::M1601() {
         current_position,
         std::nullopt, std::nullopt, std::nullopt,
         pause::Settings::CalledFrom::FilamentStuck);
+
+    EMotorStallDetector::Instance().ClearReported();
 }
 #else
 

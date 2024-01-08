@@ -32,10 +32,10 @@ class txtroll_t {
 
     static size_t instance_counter;
 
-    static Rect16 rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, Align_t alignment);
-    static uint16_t meas(Rect16 rc, string_view_utf8 text, const font_t *pf);
+    static Rect16 rect_meas(Rect16 rc, string_view_utf8 text, Font font, padding_ui8_t padding, Align_t alignment);
+    static uint16_t meas(Rect16 rc, string_view_utf8 text, Font pf);
 
-    void renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect) const;
+    void renderTextAlign(Rect16 rc, string_view_utf8 text, Font font, color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect) const;
 
 public:
     txtroll_t()
@@ -50,9 +50,9 @@ public:
 
     ~txtroll_t() { --instance_counter; }
 
-    void Init(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, Align_t alignment);
+    void Init(Rect16 rc, string_view_utf8 text, Font font, padding_ui8_t padding, Align_t alignment);
     invalidate_t Tick();
-    void RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect = true) const;
+    void RenderTextAlign(Rect16 rc, string_view_utf8 text, Font font, color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect = true) const;
     bool NeedInit() const { return phase == phase_t::uninitialized; }
     void Reset() {
         if (phase != phase_t::uninitialized) {

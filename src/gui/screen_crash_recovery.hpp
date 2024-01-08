@@ -3,9 +3,8 @@
 #include "screen.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "window_wizard_icon.hpp"
-#include "window_wizard_progress.hpp"
 #include "radio_button.hpp"
 
 class ScreenCrashRecovery;
@@ -17,7 +16,7 @@ struct WinsCheckAxis {
     window_icon_t icon_nozzle_crash;
     window_icon_t icon_nozzle;
     window_text_t text_checking_axis;
-    window_progress_t line;
+    window_t line;
     window_text_t text_x_axis;
     WindowIcon_OkNg icon_x_axis;
     window_text_t text_y_axis;
@@ -30,7 +29,7 @@ struct WinsHome {
     window_text_t text_long;
     window_icon_t icon_nozzle_crash;
     window_icon_t icon_nozzle;
-    window_progress_t line;
+    window_t line;
     window_text_t text_home_axes;
     WindowIcon_OkNg icon_home_axes;
 
@@ -39,7 +38,7 @@ struct WinsHome {
 
 struct WinsAxisNok {
     window_text_t text_long;
-    window_progress_t line;
+    window_t line;
     window_text_t text_x_axis;
     WindowIcon_OkNg icon_x_axis;
     window_text_t text_y_axis;

@@ -19008,4 +19008,4 @@ const uint8_t font_regular_11x18_data[] = {
     0x00,
     0x00,
 };
-const font_t font_regular_11x18 = { 11, 18, 6, 0, (uint16_t *)font_regular_11x18_data, 32, 255 };
+const font_t font_regular_11x18 = { 11, 18, 6, (uint16_t *)font_regular_11x18_data, 32, 255 };

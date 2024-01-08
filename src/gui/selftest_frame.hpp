@@ -6,7 +6,7 @@
  */
 #pragma once
 #include "window_frame.hpp"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "radio_button.hpp"
 #include "radio_button_fsm.hpp"
 #include "wizard_config.hpp"

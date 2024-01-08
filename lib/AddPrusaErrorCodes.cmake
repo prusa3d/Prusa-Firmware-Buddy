@@ -35,12 +35,17 @@ function(add_generated_error_codes_header dir is_mmu)
 
   add_custom_target(error_codes${suffix}_tgt DEPENDS "${error_codes_header}" "${error_list_header}")
   add_dependencies(error_codes${suffix} error_codes${suffix}_tgt)
-  target_include_directories(error_codes${suffix} INTERFACE ${dir})
+  target_include_directories(error_codes${suffix} INTERFACE "${error_codes_dir}/include")
 endfunction()
 
 set(error_codes_dir "${CMAKE_CURRENT_SOURCE_DIR}/Prusa-Error-Codes")
 
-add_generated_error_codes_header("${error_codes_dir}/${PRINTER_CODE}_${PRINTER}" FALSE)
+if(PRINTER STREQUAL "XL_DEV_KIT")
+  # use XL error codes for XL_DEV_KIT
+  add_generated_error_codes_header("${error_codes_dir}/17_XL" FALSE)
+else()
+  add_generated_error_codes_header("${error_codes_dir}/${PRINTER_CODE}_${PRINTER}" FALSE)
+endif()
 
 # TODO temporarily build the mmu header, not easy to separate the mmu code, needs refactor
 # if(HAS_MMU2)

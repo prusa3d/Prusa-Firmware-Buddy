@@ -202,15 +202,15 @@ const MMUErrDesc &ConvertMMUErrorCode(ErrorCode ec) {
     return error_list[PrusaErrorCodeIndex(ec)];
 }
 
-static constexpr uint_fast8_t convItems = 7; // @@TODO probably link with MMU2::ButtonOperations directly
-static constexpr std::pair<MMU2::ButtonOperations, Response> conv[convItems] = {
-    { MMU2::ButtonOperations::NoOperation, Response::_none },
-    { MMU2::ButtonOperations::Retry, Response::Retry },
-    { MMU2::ButtonOperations::Continue, Response::Continue },
-    { MMU2::ButtonOperations::ResetMMU, Response::Restart },
-    { MMU2::ButtonOperations::Unload, Response::Unload },
-    { MMU2::ButtonOperations::StopPrint, Response::Stop },
-    { MMU2::ButtonOperations::DisableMMU, Response::MMU_disable },
+static constexpr uint_fast8_t convItems = 7; // @@TODO probably link with ButtonOperations directly
+static constexpr std::pair<ButtonOperations, Response> conv[convItems] = {
+    { ButtonOperations::NoOperation, Response::_none },
+    { ButtonOperations::Retry, Response::Retry },
+    { ButtonOperations::Continue, Response::Continue },
+    { ButtonOperations::ResetMMU, Response::Restart },
+    { ButtonOperations::Unload, Response::Unload },
+    { ButtonOperations::StopPrint, Response::Stop },
+    { ButtonOperations::DisableMMU, Response::MMU_disable },
 };
 
 template <typename RV, typename IN, typename CMP, typename RVEXTRACT>
@@ -230,21 +230,21 @@ constexpr ButtonOperations ResponseToButtonOperationsCX(Response rsp) {
 }
 
 // make sure the bidirectional translation works to full extent
-static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::NoOperation) == Response::_none);
-static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::Retry) == Response::Retry);
-static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::Continue) == Response::Continue);
-static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::ResetMMU) == Response::Restart);
-static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::Unload) == Response::Unload);
-static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::StopPrint) == Response::Stop);
-static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::DisableMMU) == Response::MMU_disable);
+static_assert(ButtonOperationToResponseCX(ButtonOperations::NoOperation) == Response::_none);
+static_assert(ButtonOperationToResponseCX(ButtonOperations::Retry) == Response::Retry);
+static_assert(ButtonOperationToResponseCX(ButtonOperations::Continue) == Response::Continue);
+static_assert(ButtonOperationToResponseCX(ButtonOperations::ResetMMU) == Response::Restart);
+static_assert(ButtonOperationToResponseCX(ButtonOperations::Unload) == Response::Unload);
+static_assert(ButtonOperationToResponseCX(ButtonOperations::StopPrint) == Response::Stop);
+static_assert(ButtonOperationToResponseCX(ButtonOperations::DisableMMU) == Response::MMU_disable);
 
-static_assert(ResponseToButtonOperationsCX(Response::_none) == MMU2::ButtonOperations::NoOperation);
-static_assert(ResponseToButtonOperationsCX(Response::Retry) == MMU2::ButtonOperations::Retry);
-static_assert(ResponseToButtonOperationsCX(Response::Continue) == MMU2::ButtonOperations::Continue);
-static_assert(ResponseToButtonOperationsCX(Response::Restart) == MMU2::ButtonOperations::ResetMMU);
-static_assert(ResponseToButtonOperationsCX(Response::Unload) == MMU2::ButtonOperations::Unload);
-static_assert(ResponseToButtonOperationsCX(Response::Stop) == MMU2::ButtonOperations::StopPrint);
-static_assert(ResponseToButtonOperationsCX(Response::MMU_disable) == MMU2::ButtonOperations::DisableMMU);
+static_assert(ResponseToButtonOperationsCX(Response::_none) == ButtonOperations::NoOperation);
+static_assert(ResponseToButtonOperationsCX(Response::Retry) == ButtonOperations::Retry);
+static_assert(ResponseToButtonOperationsCX(Response::Continue) == ButtonOperations::Continue);
+static_assert(ResponseToButtonOperationsCX(Response::Restart) == ButtonOperations::ResetMMU);
+static_assert(ResponseToButtonOperationsCX(Response::Unload) == ButtonOperations::Unload);
+static_assert(ResponseToButtonOperationsCX(Response::Stop) == ButtonOperations::StopPrint);
+static_assert(ResponseToButtonOperationsCX(Response::MMU_disable) == ButtonOperations::DisableMMU);
 
 Response ButtonOperationToResponse(ButtonOperations bo) {
     return ButtonOperationToResponseCX(bo);

@@ -12,6 +12,10 @@
 #include "inc/MarlinConfig.h"
 #include <assert.h>
 
+#if ENABLED(CANCEL_OBJECTS)
+    #include "../Marlin/src/feature/cancel_object.h"
+#endif
+
 #if BOARD_IS_DWARF
     #error "You're trying to add marlin_vars to Dwarf. Don't!"
 #endif /*BOARD_IS_DWARF*/
@@ -330,6 +334,7 @@ public:
     MarlinVariable<float> travel_acceleration; // travel acceleration from planner
     MarlinVariable<uint32_t> print_duration; // print_job_timer.duration() [ms]
     MarlinVariable<uint32_t> time_to_end; // remaining print time (dumbly) calculated with speed [s]
+    MarlinVariable<uint32_t> time_to_pause; // Similar as time_to_end, but with time to pause (M600 / M601) [s]
     MarlinVariableLocked<time_t> print_start_time { marlin_server::TIMESTAMP_INVALID }; // Print start timestamp [s] since epoch
     MarlinVariableLocked<time_t> print_end_time { marlin_server::TIMESTAMP_INVALID }; // Estimated print end timestamp [s] since epoch
 
@@ -342,9 +347,9 @@ public:
     MarlinVariable<int8_t> cancel_object_count; ///< Number of objects that can be canceled
 
     static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32; ///< Maximal length of cancel_object_names strings
-    static constexpr size_t CANCEL_OBJECTS_NAME_COUNT = 16; ///< Maximal number of cancel objects
+    static constexpr size_t CANCEL_OBJECTS_COUNT = CancelObject::CANCEL_OBJECTS_COUNT; ///< Maximal number of cancel objects
     /// Names of cancelable objects
-    MarlinVariableString<CANCEL_OBJECT_NAME_LEN> cancel_object_names[CANCEL_OBJECTS_NAME_COUNT];
+    MarlinVariableString<CANCEL_OBJECT_NAME_LEN> cancel_object_names[CANCEL_OBJECTS_COUNT];
 #endif /*ENABLED(CANCEL_OBJECTS)*/
 
     // 2B base types
@@ -372,6 +377,7 @@ public:
         MarlinVariable<float> temp_nozzle; // nozzle temperature [C]
         MarlinVariable<float> target_nozzle; // nozzle target temperature [C]
         MarlinVariable<float> display_nozzle; // nozzle temperature to display [C]
+        MarlinVariable<uint8_t> pwm_nozzle; ///< Hotend PWM (0-255 or 0-127, depending on the type of the printer, dunno how to determine nicely, sigh)
 
         // heatbreak
         MarlinVariable<float> temp_heatbreak; // heatbreak temperature [C]

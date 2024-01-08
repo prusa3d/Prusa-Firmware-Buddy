@@ -27,6 +27,7 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
+#include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
 
 namespace config_store_ns {
@@ -244,6 +245,7 @@ struct CurrentStore
     StoreItem<bool, defaults::bool_true, journal::hash("Run LEDs")> run_leds;
     StoreItem<bool, defaults::bool_false, journal::hash("Heat Entire Bed")> heat_entire_bed;
     StoreItem<bool, defaults::bool_false, journal::hash("Touch Enabled")> touch_enabled;
+    StoreItem<bool, defaults::bool_false, journal::hash("Touch Sig Workaround")> touch_sig_workaround;
 
 #if HAS_TOOLCHANGER() // for now not ifdefing per-extruder as well for simplicity
     StoreItem<DockPosition, defaults::dock_position, journal::hash("Dock Position 0")> dock_position_0;
@@ -335,8 +337,9 @@ struct CurrentStore
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Firmware")> hw_check_firmware;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check G-code")> hw_check_gcode;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Compatibility")> hw_check_compatibility;
-
+#if HAS_SELFTEST()
     StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result Gears")> selftest_result;
+#endif
 
 #if PRINTER_IS_PRUSA_XL
     StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;

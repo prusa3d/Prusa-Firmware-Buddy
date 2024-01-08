@@ -3,6 +3,8 @@
 
 #include "mmu2_state.h"
 #include "mmu2_marlin.h"
+#include "mmu2_reporting.h"
+#include "mmu2_command_guard.h"
 
 #ifdef __AVR__
     #include "mmu2_protocol_logic.h"
@@ -57,13 +59,6 @@ public:
         ParkExtruder = 1, // The extruder was parked.
         Cooldown = 2, // The extruder was allowed to cool.
         CooldownPending = 4,
-    };
-
-    /// Source of operation error
-    enum ErrorSource : uint8_t {
-        ErrorSourcePrinter = 0,
-        ErrorSourceMMU = 1,
-        ErrorSourceNone = 0xFF,
     };
 
     /// Tune value in MMU registers as a way to recover from errors
@@ -240,6 +235,8 @@ public:
         printerButtonOperation = Buttons::NoButton;
     }
 
+    CommandInProgressManager commandInProgressManager;
+
 #ifndef UNITTEST
 private:
 #endif
@@ -276,7 +273,10 @@ private:
     StepStatus LogicStep(bool reportErrors);
 
     void filament_ramming();
-    void execute_extruder_sequence(const E_Step *sequence, uint8_t steps);
+
+    /// If \p progressCode is set, reports executing the sequence
+    void execute_extruder_sequence(const E_Step *sequence, uint8_t stepCount, ExtendedProgressCode progressCode = ExtendedProgressCode::_cnt);
+
     void execute_load_to_nozzle_sequence();
 
     /// Reports an error into attached ExtUIs
@@ -328,19 +328,37 @@ private:
     /// @returns false if the MMU is not ready to perform the command (for whatever reason)
     bool WaitForMMUReady();
 
+    /// Generic testing procedure if filament entered the extruder (PTFE or nube).
+    /// @returns false if test fails, true otherwise
+    bool VerifyFilamentEnteredPTFE();
     /// After MMU completes a tool-change command
     /// the printer will push the filament by a constant distance. If the Fsensor untriggers
     /// at any moment the test fails. Else the test passes, and the E-motor retracts the
     /// filament back to its original position.
     /// @returns false if test fails, true otherwise
-    bool VerifyFilamentEnteredPTFE();
+    bool TryLoad();
+    /// MK4 doesn't need to perform a try-load - it can leverage the LoadCell to detect vibrations of the E-motor in case the filament gets stuck.
+    /// Using this procedure is faster and causes less wear of the filament.
+    /// @returns false if test fails, true otherwise
+    bool FeedWithEStallDetection();
+    /// experimental procedure to perform "try-loads" at different speeds - not usable for printing,
+    /// but important for tuning of the EStall detection while feeding filament into the nube.
+    /// @returns false if test fails, true otherwise
+    bool MeasureEStallAtDifferentSpeeds();
 
     /// Common processing of pushing filament into the extruder - shared by tool_change, load_to_nozzle and probably others
     void ToolChangeCommon(uint8_t slot);
     bool ToolChangeCommonOnce(uint8_t slot);
 
     void HelpUnloadToFinda();
-    void UnloadInner();
+
+    enum class PreUnloadPolicy {
+        Nothing,
+        Ramming,
+        RelieveFilament,
+        ExtraRelieveFilament, // longer retraction for E-stall enabled printers
+    };
+    void UnloadInner(PreUnloadPolicy preUnloadPolicy);
     void CutFilamentInner(uint8_t slot);
 
     ProtocolLogic logic; ///< implementation of the protocol logic layer
@@ -356,7 +374,6 @@ private:
     Buttons lastButton = Buttons::NoButton;
     uint16_t lastReadRegisterValue = 0;
     Buttons printerButtonOperation = Buttons::NoButton;
-    uint8_t reportingStartedCnt;
 
     StepStatus logicStepLastStatus;
 
@@ -368,6 +385,9 @@ private:
 
     uint16_t toolchange_counter;
     uint16_t tmcFailures;
+
+    /// MMU originated CIP reports have a custom guard - this variable holds whether we have called incGuard for that case
+    bool mmuOriginatedCommandGuard = false;
 };
 
 /// following Marlin's way of doing stuff - one and only instance of MMU implementation in the code base

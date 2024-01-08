@@ -11,17 +11,26 @@ public:
 
     bool ProcessSample(int32_t value);
 
+    void SetDetectionThreshold(float dt) {
+        detectionThreshold = dt;
+    }
+
+    constexpr float DetectionThreshold() const { return detectionThreshold; }
+
 #ifndef UNITTEST
 private:
 #endif
     std::array<int32_t, 5> buffer {}; // Buffer to store previous input values
-    static constexpr float detectionThreshold = 700'000.F;
+    float detectionThreshold = 700'000.F;
 #ifdef UNITTEST
     float filteredValue; // for unit tests, filteredValue is a member of the class allowing better debugging experience
 #endif
 };
 
 class EMotorStallDetector {
+    friend class BlockEStallDetection;
+    friend class EStallDetectionStateLatch;
+
 public:
     /// Singleton instance of the E-motor stall detector
     /// Technically, it is not required to have exactly one instance of this class in the firmware,
@@ -34,66 +43,95 @@ public:
     /// Record and process incoming raw readings from the LoadCell
     void ProcessSample(int32_t value);
 
+    /// @returns raw detected flag disregarding blocked and enabled flags
+    constexpr bool DetectedRaw() const { return detected; }
+
     /// @returns true if a stall has been detected somewhere in the past.
     /// The idea is to keep the filter running almost asynchronnously in the back and ask for the @ref detected flag occasionally.
     /// When the flag has been read by the caller code, it may clear it in order to get a new detected == true in the future.
-    constexpr bool Detected() const {
-        return detected && (!blocked) && enabled;
-    }
-    void ClearDetected() {
-        detected = false;
+    constexpr bool DetectedUnreported() const {
+        return detected && (!reported) && (blocked <= 0) && enabled;
     }
 
-    constexpr bool Blocked() const {
-        return blocked;
-    }
-    /// If blocked, @ref Detected always returns false.
-    void Block() {
-        blocked = true;
-    }
-    void Unblock() {
-        blocked = false;
+    inline void ClearDetected() {
         detected = false;
+        reported = false;
+    }
+
+    inline bool Reported() const {
+        return reported;
+    }
+
+    inline void ClearReported() {
+        reported = false;
     }
 
     constexpr bool Enabled() const {
         return enabled;
     }
-    void Enable() {
-        enabled = true;
-    }
-    void Disable() {
-        enabled = false;
-        detected = false;
-        blocked = false;
-    }
+
+    void SetEnabled(bool set = true);
 
     /// Performs evaluation of various runtime conditions.
-    /// @returns true when the preceding sequence of load cell data events is considered as a stalled E-motor
+    /// When a stall is detected, sets \p reported to true (even if not enabled)
+    /// @returns true when the preceding sequence of load cell data events is considered as a stalled E-motor.
     bool Evaluate(bool movingE, bool directionE);
+
+    void SetDetectionThreshold(float dt) {
+        emf.SetDetectionThreshold(dt);
+    }
+    constexpr float DetectionThreshold() const { return emf.DetectionThreshold(); }
 
 #ifndef UNITTEST
 private:
 #endif
-    constexpr EMotorStallDetector()
-        : detected(false)
-        , blocked(false)
-        , enabled(false) // disabled by default, the outer code must enable the filter first (probably after reading a flag from EEPROM)
-    {}
+    constexpr EMotorStallDetector() {}
     ~EMotorStallDetector() = default;
 
     MotorStallFilter emf;
-    bool detected; ///< true if filter value exceeded the threshold
-    bool blocked; ///< The block flag is used to prevent the filter from generating further detected events even if they were real - e.g. while doing a toolchange.
-    bool enabled; ///< Enables/Disables the whole feature - used to control the filter from the UI
+
+    /// Used to prevent the filter from generating further detected events even if they were real - e.g. while doing a toolchange.
+    /// Increased/decreased by each blocker. >0 = blocked. <0 should never happen
+    int blocked = 0;
+
+    /// true if filter value exceeded the threshold
+    bool detected : 1 = false;
+
+    /// Set to true when \ref Evaluate returns true.
+    bool reported : 1 = false;
+
+    /// Enables/Disables the whole feature - used to control the filter from the UI
+    /// Disabled by default, the outer code must enable the filter first (probably after reading a flag from EEPROM)
+    bool enabled : 1 = false;
 };
 
 class BlockEStallDetection {
 public:
     BlockEStallDetection() {
-        EMotorStallDetector::Instance().Block();
+        auto &emsd = EMotorStallDetector::Instance();
+        emsd.blocked++;
+        emsd.detected = false;
     }
     ~BlockEStallDetection() {
-        EMotorStallDetector::Instance().Unblock();
+        auto &emsd = EMotorStallDetector::Instance();
+        emsd.blocked--;
+    }
+};
+
+class EStallDetectionStateLatch {
+    float detectionThreshold;
+    bool enabled;
+
+public:
+    EStallDetectionStateLatch() {
+        auto &emsd = EMotorStallDetector::Instance();
+        enabled = emsd.enabled;
+        detectionThreshold = emsd.DetectionThreshold();
+    }
+    ~EStallDetectionStateLatch() {
+        auto &emsd = EMotorStallDetector::Instance();
+        emsd.SetEnabled(enabled);
+        emsd.ClearDetected(); // disregard everything which happened during the state latch being active
+        emsd.SetDetectionThreshold(detectionThreshold);
     }
 };

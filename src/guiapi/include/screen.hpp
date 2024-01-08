@@ -50,4 +50,7 @@ protected:
     bool canRegisterPopup(window_t &win);
     void hideSubwinsBehindDialogs();
     window_t *findCaptured_first_last(window_t *first, window_t *last) const; // does not use begin - end like normal find
+
+protected:
+    virtual void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

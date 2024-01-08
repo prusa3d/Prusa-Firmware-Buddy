@@ -353,7 +353,7 @@ void migrate(old_eeprom::current::vars_body_t &body, journal::Backend &backend) 
     migrate_one(journal::hash("Nozzle Sock"), body.NOZZLE_SOCK);
     migrate_one(journal::hash("Nozzle Type"), body.NOZZLE_TYPE);
 
-#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_XL
+#if (PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_XL) && HAS_GUI()
     {
         auto decoded_rec = footer::eeprom::decode_from_old_eeprom_v22(body.FOOTER_SETTING);
 

@@ -28,6 +28,10 @@ FooterItemNozzleDiameter::FooterItemNozzleDiameter(window_t *parent)
     : AddSuperWindow<FooterIconText_FloatVal>(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
 }
 
+FooterItemNozzlePWM::FooterItemNozzlePWM(window_t *parent)
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
+}
+
 FooterItemBed::FooterItemBed(window_t *parent)
     : AddSuperWindow<FooterItemHeater>(parent, &img::heatbed_16x16, static_makeView, static_readValue) {
 #if ENABLED(MODULAR_HEATBED)
@@ -186,6 +190,17 @@ float FooterItemNozzleDiameter::static_readValue() {
     return config_store().get_nozzle_diameter(marlin_vars()->active_extruder.get());
 }
 
+int FooterItemNozzlePWM::static_readValue() {
+#if PRINTER_IS_PRUSA_XL
+    // I haven't been able to find out what code is responsible for this not being 255 :/
+    static constexpr float pwm_max = 127.0f;
+#else
+    static constexpr float pwm_max = 255.0f;
+#endif
+
+    return int(round(marlin_vars()->active_hotend().pwm_nozzle.get() / pwm_max * 100.0f));
+}
+
 int FooterItemBed::static_readValue() {
     uint current = marlin_vars()->temp_bed;
     uint target = marlin_vars()->target_bed;
@@ -240,6 +255,27 @@ string_view_utf8 FooterItemNozzleDiameter::static_makeView(float value) {
 #pragma GCC diagnostic pop
 
     return string_view_utf8::MakeRAM((const uint8_t *)(buff.data() + (buff[0] == '0' ? 1 : 0) /* if value ~ 0.xx, skip the 0 */));
+}
+
+string_view_utf8 FooterItemNozzlePWM::static_makeView(int value) {
+    static constexpr const char *static_fmt = "%3" PRIi32 "%%";
+    static constexpr const char *dynamic_fmt = "%" PRIi32 "%%";
+
+    const auto draw_type = footer::eeprom::get_item_draw_type();
+
+    static std::array<char, 5> buff;
+    const char *fmt_str = (draw_type == footer::ItemDrawType::static_) ? static_fmt : dynamic_fmt;
+    auto printed_chars = snprintf(buff.data(), buff.size(), fmt_str, value);
+
+    // static_left_aligned print need to end with spaces ensure fixed size
+    if (draw_type == footer::ItemDrawType::static_left_aligned) {
+        for (; size_t(printed_chars) < buff.size(); ++printed_chars) {
+            buff[printed_chars] = ' ';
+        }
+        buff[printed_chars] = '\0';
+    }
+
+    return string_view_utf8::MakeRAM((const unsigned char *)buff.data());
 }
 
 string_view_utf8 FooterItemBed::static_makeView(int value) {

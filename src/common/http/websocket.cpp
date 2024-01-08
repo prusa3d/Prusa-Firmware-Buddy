@@ -19,18 +19,13 @@ using std::variant;
 
 namespace http {
 
-WebSocket::WebSocket(Connection *conn)
-    : conn(conn) {}
+WebSocket::WebSocket(Connection *conn, const uint8_t *data, size_t len)
+    : connection(conn, data, len) {}
 
-variant<WebSocket, Error> WebSocket::from_response(const Response &response) {
+WebSocket WebSocket::from_response(const Response &response) {
     assert(response.status == Status::SwitchingProtocols);
-    if (response.leftover_size > 0) {
-        // We don't support a message sent by the server sooner than us.
-        // Do we need to?
-        return Error::WebSocket;
-    }
 
-    return WebSocket(response.conn);
+    return WebSocket(response.conn, response.body_leftover.data(), response.leftover_size);
 }
 
 optional<Error> WebSocket::send(Opcode opcode, bool last, uint8_t *data, size_t size) {
@@ -75,7 +70,7 @@ optional<Error> WebSocket::send(Opcode opcode, bool last, uint8_t *data, size_t 
     memcpy(header + pos, key, sizeof key_u);
     pos += sizeof key_u;
 
-    if (auto err = conn->tx_all(header, pos); err.has_value()) {
+    if (auto err = connection.tx_all(header, pos); err.has_value()) {
         return err;
     }
 
@@ -83,23 +78,23 @@ optional<Error> WebSocket::send(Opcode opcode, bool last, uint8_t *data, size_t 
         data[i] ^= key[i % 4];
     }
 
-    return conn->tx_all(data, size);
+    return connection.tx_all(data, size);
 }
 
 variant<monostate, WebSocket::FragmentHeader, Error> WebSocket::receive(optional<uint32_t> poll) {
     if (poll.has_value()) {
-        if (!conn->poll_readable(*poll)) {
+        if (!connection.poll_readable(*poll)) {
             return monostate {};
         }
     }
 
     uint8_t header[2];
-    if (auto err = conn->rx_exact(reinterpret_cast<uint8_t *>(&header), sizeof header); err.has_value()) {
+    if (auto err = connection.rx_exact(reinterpret_cast<uint8_t *>(&header), sizeof header); err.has_value()) {
         return *err;
     }
 
     FragmentHeader result;
-    result.conn = conn;
+    result.conn = &connection;
     result.last = header[0] & 0b10000000;
     result.opcode = Opcode(header[0] & 0b00001111);
     if (header[0] & 0b00110000) {
@@ -117,7 +112,7 @@ variant<monostate, WebSocket::FragmentHeader, Error> WebSocket::receive(optional
 
     if (result.len == 126) {
         uint16_t len;
-        if (auto err = conn->rx_exact(reinterpret_cast<uint8_t *>(&len), sizeof len); err.has_value()) {
+        if (auto err = connection.rx_exact(reinterpret_cast<uint8_t *>(&len), sizeof len); err.has_value()) {
             return *err;
         }
         result.len = ntohs(len);

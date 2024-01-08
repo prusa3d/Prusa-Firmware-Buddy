@@ -12,7 +12,7 @@
 #if ENABLED(CRASH_RECOVERY)
     #include "feature/prusa/crash_recovery.hpp"
 #endif
-#include "bsod_gui.hpp"
+#include "bsod.h"
 
 // convert raw AB steps to XY mm
 void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {

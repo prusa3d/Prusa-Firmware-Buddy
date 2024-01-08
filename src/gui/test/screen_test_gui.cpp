@@ -17,25 +17,24 @@ screen_test_gui_data_t::screen_test_gui_data_t()
     , icon0(this, Rect16(10, 234, 64, 64), &img::print_58x58)
     , icon1(this, Rect16(80, 234, 64, 64), &img::preheat_58x58)
     , icon2(this, Rect16(150, 234, 64, 64), &img::spool_58x58)
-    , progress(this, Rect16(0, 200, 240, 30))
     , text_terminal(this, Rect16(0, 298, 240, 22), is_multiline::no) {
 
-    text0.set_font(resource_font(IDR_FNT_BIG));
+    text0.set_font(Font::big);
     static const char big[] = "Big";
     text0.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)big));
 
-    text1.set_font(resource_font(IDR_FNT_NORMAL)); // ignore GUI_DEF_FONT
+    text1.set_font(Font::normal); // ignore GUI_DEF_FONT
     static const char nrm[] = "Normal";
     text1.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)nrm));
 
-    text2.set_font(resource_font(IDR_FNT_SMALL));
+    text2.set_font(Font::small);
     static const char sml[] = "Small";
     text2.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sml));
 
     numb0.SetFormat((const char *)"%.0f");
     numb0.SetValue(100.0F);
 
-    text_terminal.set_font(resource_font(IDR_FNT_SPECIAL));
+    text_terminal.set_font(Font::special);
     static const char tf[] = "Terminal Font IBM ISO9";
     text_terminal.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tf));
 }

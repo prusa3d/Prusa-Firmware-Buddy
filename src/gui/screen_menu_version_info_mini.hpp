@@ -16,7 +16,7 @@ class ScreenMenuVersionInfo : public AddSuperWindow<screen_t> {
     std::array<char, VERSION_INFO_STR_MAXLEN> version_info_str;
     constexpr static const char *label = N_("VERSION INFO");
     static constexpr size_t helper_lines = 10;
-    static constexpr ResourceId helper_font = IDR_FNT_NORMAL;
+    static constexpr Font helper_font = Font::normal;
 
     MenuInfoContainer container;
     window_menu_t menu;

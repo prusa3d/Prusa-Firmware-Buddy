@@ -290,3 +290,4 @@ Errors:
   text: "USB flash drive contains\nunsupported firmware BBF file."
   id: "UNSUPPORTED_BBF_VERSION"
   approved: true
+# 12701 reserved

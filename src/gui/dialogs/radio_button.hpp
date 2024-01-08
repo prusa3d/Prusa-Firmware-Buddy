@@ -16,6 +16,7 @@
 class RadioButton : public AddSuperWindow<IRadioButton> {
     Responses_t responses;
     const PhaseTexts *texts; // nullptr == autoset texts with default strings
+
 public:
     /**
      * @brief Construct a new Radio Button object

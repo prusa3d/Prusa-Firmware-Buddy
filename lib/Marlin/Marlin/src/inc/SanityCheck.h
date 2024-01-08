@@ -21,6 +21,9 @@
  */
 #pragma once
 
+#include <option/has_remote_accelerometer.h>
+#include <option/has_toolchanger.h>
+
 /**
  * SanityCheck.h
  *
@@ -972,7 +975,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #endif
 #endif
 
-#if ENABLED(REMOTE_ACCELEROMETER) && DISABLED(PRUSA_TOOLCHANGER)
+#if HAS_REMOTE_ACCELEROMETER() && !HAS_TOOLCHANGER()
   #error "REMOTE_ACCELEROMETER requires PRUSA_TOOLCHANGER"
 #endif
 

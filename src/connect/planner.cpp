@@ -195,6 +195,11 @@ namespace {
 
         return Transfer::begin(dpath, request);
     }
+
+    bool command_is_error_whitelisted(const Command &command) {
+        // TODO: Once we have some kind reset printer command, it should go here too.
+        return holds_alternative<SendInfo>(command.command_data) || holds_alternative<SetToken>(command.command_data);
+    }
 } // namespace
 
 const char *to_str(EventType event) {
@@ -242,6 +247,15 @@ void Planner::reset() {
 }
 
 Sleep Planner::sleep(Duration amount, http::Connection *wake_on_readable, bool cooldown) {
+    if (!can_receive_command()) {
+        // We don't want to cut the sleep short in case there is a command waiting but we can't receive it.
+        wake_on_readable = nullptr;
+    }
+
+    // Don't do anything "extra" during bluescreen/redscreen.
+    if (printer.is_in_error()) {
+        return Sleep(amount, nullptr, nullptr, wake_on_readable, false, false);
+    }
     // Note for the case where planned_event.has_value():
     //
     // Processing of background command could generate another event that
@@ -263,10 +277,6 @@ Sleep Planner::sleep(Duration amount, http::Connection *wake_on_readable, bool c
     // We also don't want to allow it during downloading.
     bool allow_transfer_cleanup = !printer.is_printing() && need_transfer_cleanup && !Monitor::instance.id().has_value();
 
-    if (!can_receive_command()) {
-        // We don't want to cut the sleep short in case there is a command waiting but we can't receive it.
-        wake_on_readable = nullptr;
-    }
     return Sleep(
         amount,
         cmd,
@@ -724,6 +734,11 @@ void Planner::command(const Command &command, [[maybe_unused]] const StopTransfe
     }
 }
 
+void Planner::command(const Command &command, const SetToken &params) {
+    printer.init_connect(reinterpret_cast<const char *>(params.token->data()));
+    planned_event = { EventType::Finished, command.id };
+}
+
 // FIXME: Handle the case when we are resent a command we are already
 // processing for a while. In that case, we want to re-Accept it. Nevertheless,
 // we may not be able to parse it again because the background command might be
@@ -732,7 +747,16 @@ void Planner::command(Command command) {
     // We can get commands only as result of telemetry, not of other things.
     // TODO: We probably want to have some more graceful way to deal with the
     // server sending us the command as a result to something else anyway.
+
     assert(!planned_event.has_value());
+    if (printer.is_in_error() && !command_is_error_whitelisted(command)) {
+        planned_event = Event {
+            EventType::Rejected,
+            command.id,
+        };
+        planned_event->reason = "Won't accept commands in error state";
+        return;
+    }
 
     if (background_command.has_value()) {
         // We are already processing a command.

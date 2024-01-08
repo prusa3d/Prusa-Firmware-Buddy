@@ -664,7 +664,7 @@ void ToolsMappingBody::update_bottom_guide() {
         strview = _(state_text);
         bottom_icon.SetRes(img);
         size_t cur_strlen = strview.computeNumUtf8CharsAndRewind();
-        int16_t left_pos = (GuiDefaults::ScreenWidth - (resource_font_size(IDR_FNT_NORMAL).w + 1) * (cur_strlen + 1) - alert_icon_size) / 2; // make the pos to be on the left of the text (+ one added space to the left of the text)
+        int16_t left_pos = (GuiDefaults::ScreenWidth - (width(Font::normal) + 1) * (cur_strlen + 1) - alert_icon_size) / 2; // make the pos to be on the left of the text (+ one added space to the left of the text)
         Rect16 new_icon_rect = bottom_icon_rect + Rect16::X_t { static_cast<int16_t>(left_pos) };
         bottom_icon.SetRect(static_cast<Rect16>(new_icon_rect));
         bottom_icon.Show();
@@ -1111,84 +1111,177 @@ void ToolsMappingBody::windowEvent(EventLock /*has private ctor*/, [[maybe_unuse
     }
 
     switch (event) {
+
     case GUI_event_t::CLICK: {
         const size_t cnt_current_items = get_cnt_current_items();
 
-        if (current_idx >= cnt_current_items) { // in buttons
-
-            auto response = ClientResponses::GetResponse(preview_phase, current_idx - cnt_current_items);
-
-            // Back in right state undoes going to right
-            if (response == Response::Back && state == State::right) {
-                set_idle(left_gcode_texts[left_gcode_idx_to_real[last_left_idx]], &left_gcode_colors[left_gcode_idx_to_real[last_left_idx]]);
-                go_left();
-                return;
-            } else if (response == Response::PRINT || response == Response::Print) {
-                string_view_utf8 warning_text {};
-                bool disable_fs { false };
-
-                // unassigned gcodes doesn't allow clicking print
-                if (num_unloaded_tools > 0) {
-                    disable_fs = true;
-                    warning_text = _("There are printing tools with no filament loaded, this could ruin the print.\nDisable filament sensor and print anyway?");
-                } else if (num_mismatched_filaments > 0) {
-                    warning_text = _("Detected mismatching loaded filament types, this could ruin the print.\nPrint anyway?");
-                } else if (num_mismatched_nozzles > 0) {
-                    warning_text = _("Detected mismatching nozzle diameters, this could ruin the print.\nPrint anyway?");
-                }
-
-                if (!warning_text.isNULLSTR()) {
-                    AutoRestore ar(querying_user, true);
-
-                    if (MsgBoxWarning(warning_text,
-                            { Response::Back, Response::Yes })
-                        == Response::Back) {
-                        return; // go back to tools mapping
-                    } else {
-                        if (disable_fs) {
-                            FSensors_instance().Disable();
-                        }
-                        Screens::Access()->Get()->Validate(); // don't redraw tools mapping screen since we're leaving
-                    }
-                }
-
-                // we're leaving this screen successfully, so update marlin accordingly
-                tool_mapper = mapper;
-                spool_join = joiner;
-            } else if (response == Response::Filament) {
-                if (ChangeAllFilamentsBox(build_preselect_array(), true, build_color_array())) {
-                    // This was closed while changing filament by print_abort()
-                    Screens::Access()->Get()->Validate(); // Do not redraw this
-                    return;
-                }
-                refresh_physical_tool_filament_labels();
-                update_icons();
-                update_bottom_guide();
-            }
-
-            if (response == Response::Filament) { // handling change filament locally
-                if (GetParent()) {
-                    GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, nullptr);
-                }
-            } else { // let marlin handle other responses
-                event_conversion_union un;
-                un.response = response;
-                marlin_client::FSM_response(preview_phase, response);
-                if (GetParent()) {
-                    GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
-                }
-            }
-        } else {
+        if (current_idx < cnt_current_items) {
             handle_item_click();
+            break;
         }
+
+        auto response = ClientResponses::GetResponse(preview_phase, current_idx - cnt_current_items);
+
+        // Back in right state undoes going to right
+        if (response == Response::Back && state == State::right) {
+            set_idle(left_gcode_texts[left_gcode_idx_to_real[last_left_idx]], &left_gcode_colors[left_gcode_idx_to_real[last_left_idx]]);
+            go_left();
+            return;
+        } else if (response == Response::PRINT || response == Response::Print) {
+            string_view_utf8 warning_text {};
+            bool disable_fs { false };
+
+            // unassigned gcodes doesn't allow clicking print
+            if (num_unloaded_tools > 0) {
+                disable_fs = true;
+                warning_text = _("There are printing tools with no filament loaded, this could ruin the print.\nDisable filament sensor and print anyway?");
+            } else if (num_mismatched_filaments > 0) {
+                warning_text = _("Detected mismatching loaded filament types, this could ruin the print.\nPrint anyway?");
+            } else if (num_mismatched_nozzles > 0) {
+                warning_text = _("Detected mismatching nozzle diameters, this could ruin the print.\nPrint anyway?");
+            }
+
+            if (!warning_text.isNULLSTR()) {
+                AutoRestore ar(querying_user, true);
+
+                if (MsgBoxWarning(warning_text,
+                        { Response::Back, Response::Yes })
+                    == Response::Back) {
+                    return; // go back to tools mapping
+                } else {
+                    if (disable_fs) {
+                        FSensors_instance().Disable();
+                    }
+                    Screens::Access()->Get()->Validate(); // don't redraw tools mapping screen since we're leaving
+                }
+            }
+
+            // we're leaving this screen successfully, so update marlin accordingly
+            tool_mapper = mapper;
+            spool_join = joiner;
+        } else if (response == Response::Filament) {
+            if (ChangeAllFilamentsBox(build_preselect_array(), true, build_color_array())) {
+                // This was closed while changing filament by print_abort()
+                Screens::Access()->Get()->Validate(); // Do not redraw this
+                return;
+            }
+            refresh_physical_tool_filament_labels();
+            update_icons();
+            update_bottom_guide();
+        }
+
+        if (response == Response::Filament) { // handling change filament locally
+            if (GetParent()) {
+                GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, nullptr);
+            }
+        } else { // let marlin handle other responses
+            event_conversion_union un;
+            un.response = response;
+            marlin_client::FSM_response(preview_phase, response);
+            if (GetParent()) {
+                GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
+            }
+        }
+
+        return;
+    }
+
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT: {
+        // First radio button should always be "back"
+        assert(bottom_radio.IndexFromResponse(Response::Back) == 0);
+
+        // "Scroll" to the "back" button - first item in the radio ~ cnt_current_items
+        const auto previous_idx = current_idx;
+        current_idx = get_cnt_current_items();
+        update_shown_state_after_scroll(previous_idx);
+
+        // Emulate click
+        WindowEvent(sender, GUI_event_t::CLICK, nullptr);
+        return;
+    }
+
+    case GUI_event_t::TOUCH_CLICK: {
+        const auto touch_point = event_conversion_union { .pvoid = param }.point;
+
+        // We've touched the radio -> process that
+        if (bottom_radio.get_rect_for_touch().Contain(touch_point)) {
+            bottom_radio.WindowEvent(sender, event, param);
+
+            // "Scroll" to the touched radio button
+            const auto previous_idx = current_idx;
+            current_idx = get_cnt_current_items() + bottom_radio.GetBtnIndex();
+            update_shown_state_after_scroll(previous_idx);
+
+            // Emulate click
+            WindowEvent(sender, GUI_event_t::CLICK, nullptr);
+            return;
+        }
+
+        // Check left items
+        for (auto begin = left_gcode_texts.cbegin(), it = begin, end = begin + gcode.UsedExtrudersCount(); it != end; it++) {
+            const auto &txt = *it;
+
+            if (!txt.get_rect_for_touch().Contain(touch_point)) {
+                continue;
+            }
+
+            // If we've touched the left item and are in the "right" state, go back to the left state
+            if (state == State::right) {
+                // Execute "back" behavior by emulating swipe left
+                WindowEvent(sender, GUI_event_t::TOUCH_SWIPE_LEFT, nullptr);
+                return;
+            }
+
+            // Otherwise, select the appropriate item and emulate click
+            const auto previous_idx = current_idx;
+            current_idx = left_gcode_pos_to_real[it - begin];
+
+            // The tool mapping buttons are small, so we require double touch - first one selects the item, second one confirms it
+            if (current_idx == previous_idx) {
+                WindowEvent(sender, GUI_event_t::CLICK, nullptr);
+            } else {
+                update_shown_state_after_scroll(previous_idx);
+            }
+
+            return;
+        }
+
+        // Check right side items
+        if (state == State::right) {
+            for (auto begin = right_phys_texts.cbegin(), it = begin, end = begin + get_num_of_enabled_tools(); it != end; it++) {
+                const auto &txt = *it;
+
+                if (!txt.get_rect_for_touch().Contain(touch_point)) {
+                    continue;
+                }
+
+                // Select the appropriate item and emulate click
+                const auto previous_idx = current_idx;
+                current_idx = right_phys_pos_to_real[it - begin];
+
+                // The tool mapping buttons are small, so we require double touch - first one selects the item, second one confirms it
+                if (current_idx == previous_idx) {
+                    WindowEvent(sender, GUI_event_t::CLICK, nullptr);
+                } else {
+                    update_shown_state_after_scroll(previous_idx);
+                }
+
+                return;
+            }
+        }
+
         break;
     }
+
     case GUI_event_t::ENC_UP:
         adjust_index(1);
-        break;
+        return;
+
     case GUI_event_t::ENC_DN:
         adjust_index(-1);
-        break;
+        return;
+
     default:
         break;
     }

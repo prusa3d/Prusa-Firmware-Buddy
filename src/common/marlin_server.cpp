@@ -356,9 +356,6 @@ osThreadId server_task = 0; // task handle
 osMessageQId server_queue = 0; // input queue (uint8_t)
 osSemaphoreId server_semaphore = 0; // semaphore handle
 
-#ifdef DEBUG_FSENSOR_IN_HEADER
-uint32_t *pCommand = &server.command;
-#endif
 idle_t *idle_cb = 0; // idle callback
 
 void _add_status_msg(const char *const popup_msg) {
@@ -1239,6 +1236,8 @@ void set_axes_length(xy_float_t xy) {
 }
 #endif // ENABLED(AXIS_MEASURE)
 
+static const uint8_t PAUSE_NOZZLE_TIMEOUT = 45; // nozzle "sleep" after 45s inside paused state
+
 void nozzle_timeout_on() {
     server.enable_nozzle_temp_timeout = true;
 };
@@ -1366,6 +1365,8 @@ static void _server_print_loop(void) {
             config_store().job_id.set(job_id + 1);
             // And increment the job ID before we actually stop printing.
             job_id++;
+            // Reset "time to" and percents before asking questions to "unknown"
+            oProgressData.mInit();
 
             new_state = State::PrintPreviewConfirmed;
             break;
@@ -1410,7 +1411,11 @@ static void _server_print_loop(void) {
                 enqueue_gcode_printf("M109 S%i", preheat_temp); // speculatively, use PLA temp for MMU prints, anything else is highly unprobable at this stage
                 enqueue_gcode("T0"); // tool change T0 (can be remapped to anything)
                 enqueue_gcode("G92 E0"); // reset extruder position to 0
-                enqueue_gcode("G1 E77 F6000"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
+                enqueue_gcode("G1 E25 F1860"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
+                enqueue_gcode("G1 E35 F300"); // slowly push another 10mm (absolute E)
+
+                // In case of need, we can perform a custom purge line from the other end of the heatbed
+                // It would require homing the axes first, moving to [maxx-10, -4] and slowly purging while moving towards the origin
             }
 #endif
             break;
@@ -1453,6 +1458,8 @@ static void _server_print_loop(void) {
         media_print_start();
 
         print_job_timer.start();
+        marlin_vars()->time_to_end = TIME_TO_END_INVALID;
+        marlin_vars()->time_to_pause = TIME_TO_END_INVALID;
         marlin_vars()->print_start_time = time(nullptr);
         server.print_state = State::Printing;
         switch (fsm_event_queues.GetFsm0()) {
@@ -2535,6 +2542,8 @@ static void _server_update_vars() {
 
         extruder.temp_nozzle = thermalManager.degHotend(e);
         extruder.target_nozzle = thermalManager.degTargetHotend(e);
+        extruder.pwm_nozzle = thermalManager.getHeaterPower(static_cast<heater_ind_t>(H_E0 + e));
+
 #if (TEMP_SENSOR_HEATBREAK > 0)
         // TODO: this should track multiple extruders
         extruder.temp_heatbreak = thermalManager.temp_heatbreak[e].celsius;
@@ -2582,7 +2591,8 @@ static void _server_update_vars() {
     }
 
     uint32_t progress = TIME_TO_END_INVALID;
-    if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration)) {
+    uint32_t duration = marlin_vars()->print_duration;
+    if (oProgressData.oPercentDone.mIsActual(duration) && oProgressData.oTime2End.mIsActual(duration)) {
         progress = oProgressData.oTime2End.mGetValue();
     }
 
@@ -2591,6 +2601,18 @@ static void _server_update_vars() {
     } else {
         // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
         marlin_vars()->time_to_end = (progress * 100) / marlin_vars()->print_speed;
+    }
+
+    progress = TIME_TO_END_INVALID;
+    if (oProgressData.oPercentDone.mIsActual(duration) && oProgressData.oTime2Pause.mIsActual(duration)) {
+        progress = oProgressData.oTime2Pause.mGetValue();
+    }
+
+    if (marlin_vars()->print_speed == 100 || progress == TIME_TO_END_INVALID) {
+        marlin_vars()->time_to_pause = progress;
+    } else {
+        // multiply by 100 is safe, it limits time_to_pause to ~21mil. seconds (248 days)
+        marlin_vars()->time_to_pause = (progress * 100) / marlin_vars()->print_speed;
     }
 
     if (server.print_state == State::Printing) {
@@ -2889,10 +2911,6 @@ static void _server_set_var(const char *const request) {
     // if we got here, no variable was set, return error
     bsod("unimplemented _server_set_var for var_id %i", (int)variable_identifier);
 }
-
-#ifdef DEBUG_FSENSOR_IN_HEADER
-int _is_in_M600_flg = 0;
-#endif
 
 void _fsm_create(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line) {
     fsm_event_queues.PushCreate(type, data, fnc, file, line);

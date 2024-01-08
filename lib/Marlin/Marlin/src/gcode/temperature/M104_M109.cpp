@@ -39,9 +39,7 @@
   #include "../../module/tool_change.h"
 #endif
 
-#if ENABLED(PRUSA_MARLIN_API)
-  #include "marlin_server.hpp"
-#endif
+#include "marlin_server.hpp"
 
 /** \addtogroup G-Codes
  * @{
@@ -59,7 +57,9 @@ void GcodeSuite::M104() {
 
   if (DEBUGGING(DRYRUN)) return;
 
-  #if ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+  #if ENABLED(PRUSA_MMU2) // MMU2 doesn't handle different temps per slot, sayonara! (TODO?)
+	  constexpr int8_t target_extruder = 0;
+  #elif ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     constexpr int8_t target_extruder = 0;
   #else
     const int8_t target_extruder = get_target_extruder_from_command();
@@ -93,9 +93,7 @@ void GcodeSuite::M104() {
     #endif
   }
 
-  #if ENABLED(PRUSA_MARLIN_API)
-    marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
-  #endif
+  marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
 
   #if ENABLED(AUTOTEMP)
     planner.autotemp_M104_M109();
@@ -110,7 +108,9 @@ void GcodeSuite::M109() {
 
   if (DEBUGGING(DRYRUN)) return;
 
-  #if ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+  #if ENABLED(PRUSA_MMU2) // MMU2 doesn't handle different temps per slot, sayonara! (TODO?)
+	  constexpr int8_t target_extruder = 0;
+  #elif ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     constexpr int8_t target_extruder = 0;
   #else
     const int8_t target_extruder = get_target_extruder_from_command();
@@ -158,9 +158,7 @@ void GcodeSuite::M109() {
   #endif
 
   if (set_temp) {
-    #if ENABLED(PRUSA_MARLIN_API)
-      marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
-    #endif
+    marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
     (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling, parser.seen('F'));
   }
 }

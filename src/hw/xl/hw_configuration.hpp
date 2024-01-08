@@ -17,6 +17,8 @@ public:
      * @return Configuration&
      */
     static Configuration &Instance();
+
+    static bool is_fw_incompatible_with_hw() { return false; } // not incompatible does not mean compatible!
 };
 
 class SandwichConfiguration {

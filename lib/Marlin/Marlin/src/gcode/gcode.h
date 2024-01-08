@@ -295,6 +295,8 @@
 
 #include "../inc/MarlinConfig.h"
 #include "parser.h"
+#include <option/has_local_accelerometer.h>
+#include <option/has_remote_accelerometer.h>
 
 #include <option/has_phase_stepping.h>
 
@@ -1005,7 +1007,7 @@ private:
     static void M951();
   #endif
 
-#if ENABLED(ACCELEROMETER)
+#if HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER()
   static void M958();
   static void M959();
 #endif

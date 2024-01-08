@@ -38,6 +38,7 @@ constexpr uint8_t GetPhaseIndex(T phase) {
 
 template <class T>
 constexpr T GetEnumFromPhaseIndex(size_t index) {
+    assert(index < CountPhases<T>());
     return static_cast<T>(static_cast<size_t>(T::_first) + index);
 }
 
@@ -317,6 +318,7 @@ enum class PhasesESP : uint16_t {
     ESP_insert_USB,
     ESP_invalid,
     ESP_uploading_config,
+    ESP_asking_credentials_delete,
     ESP_enabling_WIFI,
     _last_ESP = ESP_enabling_WIFI,
 
@@ -605,7 +607,8 @@ class ClientResponses {
         { Response::Continue, Response::Abort }, // ESP_insert_USB
         { Response::Retry, Response::Abort }, // ESP_invalid
         { Response::Abort }, // ESP_uploading_config
-        { Response::Yes, Response::No }, // ESP_enabling_WIFI
+        { Response::Yes, Response::No }, // ESP_asking_credentials_delete
+        { Response::Continue }, // ESP_enabling_WIFI
 
         { Response::Continue, Response::Abort }, // ESP_progress_info
         { Response::Abort }, // ESP_progress_upload

@@ -46,6 +46,6 @@ public:
 };
 
 extern ClProgressData oProgressData;
-void M73_PE_no_parser(std::optional<uint8_t> P = std::nullopt, std::optional<uint32_t> R = std::nullopt, std::optional<uint32_t> T = std::nullopt);
+void M73_PE_no_parser(std::optional<uint8_t> P = std::nullopt, std::optional<uint32_t> R = std::nullopt, std::optional<uint32_t> C = std::nullopt);
 
 #endif /* SRC_GCODE_LCD_M73_PE_H_ */
