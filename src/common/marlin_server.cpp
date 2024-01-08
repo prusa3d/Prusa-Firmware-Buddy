@@ -699,9 +699,12 @@ void do_babystep_Z(float offs) {
 }
 
 extern void move_axis(float pos, float feedrate, size_t axis) {
-    xyze_float_t position = current_position;
-    position[axis] = pos;
     current_position[axis] = pos;
+    line_to_current_position(feedrate);
+}
+
+void move_xyz_axes_to(xyz_float_t position, float feedrate) {
+    current_position = position;
     line_to_current_position(feedrate);
 }
 
@@ -2792,6 +2795,15 @@ bool _process_server_valid_request(const char *request, int client_id) {
             return false;
         }
         move_axis(offs, MMM_TO_MMS(fval), uival);
+        return true;
+    }
+    case Msg::MoveMultiple: {
+        xyz_float_t position;
+        float feedrate;
+        if (sscanf(data, "%f %f %f %f", &position[0], &position[1], &position[2], &feedrate) != 4) {
+            return false;
+        }
+        move_xyz_axes_to(position, MMM_TO_MMS(feedrate));
         return true;
     }
     default:

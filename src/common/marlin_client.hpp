@@ -6,6 +6,7 @@
 #include "marlin_vars.hpp"
 #include "client_response.hpp"
 #include <option/has_selftest.h>
+#include "Marlin/src/core/types.h"
 
 namespace marlin_client {
 
@@ -128,6 +129,13 @@ void cancel_current_object();
  * @param axis axis number (0=X, 1=Y, 2=Z, 3=E)
  */
 void move_axis(float logical_pos, float feedrate, uint8_t axis);
+
+/**
+ * @brief Move XYZ axes to a logical position.
+ * @param position requested target position in mm
+ * @param feedrate requested feedrate in mm/min
+ */
+void move_xyz_axes_to(const xyz_float_t &position, float feedrate);
 
 void settings_save();
 

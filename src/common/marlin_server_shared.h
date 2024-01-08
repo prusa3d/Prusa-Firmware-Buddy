@@ -95,6 +95,7 @@ enum class Msg : char {
     CancelObjectID = 'd',
     UncancelObjectID = 'e',
     CancelCurrentObject = 'f',
+    MoveMultiple = 'g',
 };
 
 inline bool is_abort_state(State st) {
