@@ -362,7 +362,7 @@ void move_axis(float logical_pos, float feedrate, uint8_t axis) {
     char request[MARLIN_MAX_REQUEST];
     // check axis
     if (axis <= E_AXIS) {
-        snprintf(
+        [[maybe_unused]] int res = snprintf(
             request,
             MARLIN_MAX_REQUEST,
             "!%c%.4f %.4f %u",
@@ -370,8 +370,26 @@ void move_axis(float logical_pos, float feedrate, uint8_t axis) {
             static_cast<double>(LOGICAL_TO_NATIVE(logical_pos, axis)),
             static_cast<double>(feedrate),
             axis);
+        assert(res > 0);
+        assert(res < MARLIN_MAX_REQUEST);
         _send_request_to_server_and_wait(request);
     }
+}
+
+void move_xyz_axes_to(const xyz_float_t &position, float feedrate) {
+    char request[MARLIN_MAX_REQUEST];
+    [[maybe_unused]] int res = snprintf(
+        request,
+        MARLIN_MAX_REQUEST,
+        "!%c%.4f %.4f %.4f %.4f",
+        ftrstd::to_underlying(Msg::MoveMultiple),
+        static_cast<double>(LOGICAL_TO_NATIVE(position.x, X_AXIS)),
+        static_cast<double>(LOGICAL_TO_NATIVE(position.y, Y_AXIS)),
+        static_cast<double>(LOGICAL_TO_NATIVE(position.z, Z_AXIS)),
+        static_cast<double>(feedrate));
+    assert(res > 0);
+    assert(res < MARLIN_MAX_REQUEST);
+    _send_request_to_server_and_wait(request);
 }
 
 void settings_save() {

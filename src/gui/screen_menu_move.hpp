@@ -14,9 +14,6 @@ public:
     ~I_MI_AXIS();
 
 public:
-    /// Returns whether the move to the target location is finished (planned) yet
-    [[nodiscard]] bool is_move_finished() const;
-
     /// Plans the move to the target location as one single move (uninterrupable) – used when closing the dialog
     void finish_move();
 
@@ -26,7 +23,10 @@ protected:
 
 protected:
     const size_t axis_index;
-    float last_queued_pos;
+
+    static xyz_float_t last_queued_pos;
+    static xyz_float_t target_position;
+    static bool did_final_move;
 };
 
 template <size_t INDEX>
