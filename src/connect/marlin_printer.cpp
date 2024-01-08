@@ -215,15 +215,16 @@ Printer::Config MarlinPrinter::load_config() {
 uint32_t MarlinPrinter::cancelable_fingerprint() const {
     uint32_t crc = 0;
 #if ENABLED(CANCEL_OBJECTS)
+    const auto &parameters = params();
     auto calc_crc = [&](const char *s) {
         crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(*s), strlen(s));
     };
     for (size_t i = 0; i < marlin_vars_t::CANCEL_OBJECTS_COUNT; i++) {
         marlin_vars()->cancel_object_names[i].execute_with(calc_crc);
     }
-    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&marlin_vars()->job_id), sizeof(marlin_vars()->job_id));
-    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&marlin_vars()->cancel_object_count), sizeof(marlin_vars()->cancel_object_count));
-    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&marlin_vars()->cancel_object_mask), sizeof(marlin_vars()->cancel_object_count));
+    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.job_id), sizeof(parameters.job_id));
+    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.cancel_object_count), sizeof(parameters.cancel_object_count));
+    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.cancel_object_mask), sizeof(parameters.cancel_object_count));
 #endif
     return crc;
 }
