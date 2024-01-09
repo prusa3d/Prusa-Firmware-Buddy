@@ -25,8 +25,6 @@
 
 class CancelObject {
 public:
-  static constexpr int8_t CANCEL_OBJECTS_COUNT = 16; ///< Maximal number of cancel objects
-
   static bool skipping;
   static int8_t object_count, active_object;
   static uint32_t canceled;
