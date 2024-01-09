@@ -10,12 +10,6 @@ using namespace phase_stepping::opts;
 using namespace burst_stepping;
 using namespace buddy::hw;
 
-// You might be wondering why we use hard-coded constants and we don't read
-// them from handles: it is wasted 500 ns - that is 2 % of CPU load
-#define BURST_DMA             DMA2_Stream1
-#define BURST_DMA_REGS        reinterpret_cast<DMA_Base_Registers *>((((uint32_t)BURST_DMA & (uint32_t)(~0x3FFU))))
-#define BURST_DMA_REGS_OFFSET 6u
-
 struct DMA_Base_Registers {
     __IO uint32_t ISR; /*!< DMA interrupt status register */
     __IO uint32_t Reserved0;

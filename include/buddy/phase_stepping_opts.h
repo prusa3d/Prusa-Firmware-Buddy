@@ -26,3 +26,7 @@ static constexpr int GPIO_BUFFER_SIZE = 200;
 #define PHSTEP_TMC_DMA             DMA1_Stream5
 #define PHSTEP_TMC_DMA_REGS        reinterpret_cast<DMA_Base_Registers *>((((uint32_t)PHSTEP_TMC_DMA & (uint32_t)(~0x3FFU)) + 4U))
 #define PHSTEP_TMC_DMA_REGS_OFFSET 6U
+
+#define BURST_DMA             DMA2_Stream1
+#define BURST_DMA_REGS        reinterpret_cast<DMA_Base_Registers *>((((uint32_t)BURST_DMA & (uint32_t)(~0x3FFU))))
+#define BURST_DMA_REGS_OFFSET 6U
