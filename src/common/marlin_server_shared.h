@@ -3,6 +3,7 @@
 #include "cmsis_os.h" // for osThreadId
 #include "utils/utility_extensions.hpp"
 #include <limits>
+#include <time.h>
 
 namespace marlin_server {
 

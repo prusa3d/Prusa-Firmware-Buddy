@@ -8,7 +8,7 @@
 #include <functional>
 #include "bsod.h"
 #include <mutex>
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "config.h"
 
 // allocates and deallocates memory space (one size) on statically allocated memory

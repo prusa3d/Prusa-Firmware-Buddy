@@ -14,8 +14,6 @@
  * @brief Prusa specific gcode suite
  */
 namespace PrusaGcodeSuite {
-using M862_6SupportedFeatures = std::array<const char *, 1>;
-extern M862_6SupportedFeatures m862_6SupportedFeatures;
 
 /** \defgroup G-Codes G-Code Commands
  * @{

@@ -4,8 +4,8 @@
 
 typedef void(wdt_iwdg_warning_cb_t)(void); // IWDG warning callback prototype
 
-extern IWDG_HandleTypeDef hiwdg;
-extern WWDG_HandleTypeDef hwwdg;
+extern "C" IWDG_HandleTypeDef hiwdg;
+extern "C" WWDG_HandleTypeDef hwwdg;
 
 extern wdt_iwdg_warning_cb_t *wdt_iwdg_warning_cb; // IWDG warning callback
 

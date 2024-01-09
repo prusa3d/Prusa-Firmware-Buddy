@@ -7,7 +7,6 @@ target_sources(
           DialogHandler.cpp
           DialogLoadUnload.cpp
           DialogMoveZ.cpp
-          DialogStateful.cpp
           DialogTimed.cpp
           i_radio_button.cpp
           IDialog.cpp

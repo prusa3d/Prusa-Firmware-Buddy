@@ -5,6 +5,8 @@
 
 #if PRINTER_IS_PRUSA_MINI
     #include "Configuration_MINI.h"
+#elif PRINTER_IS_PRUSA_XL_DEV_KIT
+    #include "Configuration_XL_DEV_KIT.h"
 #elif PRINTER_IS_PRUSA_XL && BOARD_IS_XLBUDDY
     #include "Configuration_XL.h"
 #elif PRINTER_IS_PRUSA_XL && BOARD_IS_DWARF

@@ -1,14 +1,14 @@
-/**
- * @file
- */
 #include "accelerometer.h"
-#if ENABLED(REMOTE_ACCELEROMETER)
-    #include "toolchanger.h"
-    #include "accelerometer_utils.h"
-    #include <puppies/Dwarf.hpp>
-    #include "bsod.h"
-    #include "../../core/serial.h"
-    #include <mutex>
+
+#include "toolchanger.h"
+#include "accelerometer_utils.h"
+#include <puppies/Dwarf.hpp>
+#include "bsod.h"
+#include "../../core/serial.h"
+#include <mutex>
+#include <option/has_remote_accelerometer.h>
+
+static_assert(HAS_REMOTE_ACCELEROMETER());
 
 freertos::Mutex PrusaAccelerometer::s_buffer_mutex;
 PrusaAccelerometer::Sample_buffer *PrusaAccelerometer::s_sample_buffer = nullptr;
@@ -127,4 +127,3 @@ void PrusaAccelerometer::set_rate(float rate) {
 }
 
 PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;
-#endif // ENABLED(REMOTE_ACCELEROMETER)

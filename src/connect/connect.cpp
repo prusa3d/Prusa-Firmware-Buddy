@@ -161,7 +161,7 @@ namespace {
                 { nullptr, nullptr, nullopt }
             } {}
         virtual const char *url() const override {
-            return "/p/ws-prev";
+            return "/p/ws-pre";
         }
         virtual Method method() const override {
             return Method::Get;
@@ -182,7 +182,11 @@ namespace {
     // TODO: We probably want to be able to both have a smaller buffer and
     // handle larger responses. We need some kind of parse-as-it-comes approach
     // for that.
-    const constexpr size_t MAX_RESP_SIZE = 256;
+    // Note: This buffer is huge, but we are in the shallow waters of the stack, so it
+    // should be fine, even 3200 buffer still did not overflow in my tests, even in debug.
+    // So unless the call stack changes significantly, we are fine, just beware if doing
+    // larger changes, or using this elsewhere.
+    const constexpr size_t MAX_RESP_SIZE = 512;
 
     // Send a full telemetry every 5 minutes.
     const constexpr Duration FULL_TELEMETRY_EVERY = 5 * 60 * 1000;
@@ -342,11 +346,18 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                     BrokenCommand { "Could not parse command ID" } });
                 return ConnectionStatus::Ok;
             }
-            bool is_json;
+            enum class Type {
+                Json,
+                Gcode,
+                ForcedGcode,
+            };
+            Type type;
             if (buffer[0] == 'J') {
-                is_json = true;
+                type = Type::Json;
             } else if (buffer[0] == 'G') {
-                is_json = false;
+                type = Type::Gcode;
+            } else if (buffer[0] == 'F') {
+                type = Type::ForcedGcode;
             } else {
                 planner().command(Command {
                     command_id,
@@ -382,12 +393,26 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                 });
             }
 
-            if (is_json) {
+            switch (type) {
+            case Type::Json: {
                 auto command = Command::parse_json_command(command_id, reinterpret_cast<char *>(buffer + HDR_LEN), read - HDR_LEN, move(*buff));
                 planner().command(command);
-            } else {
+                break;
+            }
+            case Type::Gcode:
+            case Type::ForcedGcode: {
+                // Forced GCode: The HTTP version has a `Force` header. The
+                // idea is we would refuse non-forced gcode during a print, but
+                // accept the forced one. We don't have that distinction
+                // implemented, but the websocket protocol needs to put the
+                // distinction somewhere and we need to understand both the `G`
+                // and `F` types.
+                //
+                // TODO: We should implement the distinction O:-)
                 const string_view body(reinterpret_cast<const char *>(buffer + HDR_LEN), read - HDR_LEN);
                 auto command = Command::gcode_command(command_id, body, move(*buff));
+                break;
+            }
             }
 
             more = false;
@@ -445,12 +470,7 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
                 received = get<size_t>(result);
             } while (received > 0);
 
-            auto result = WebSocket::from_response(resp);
-            if (holds_alternative<Error>(result)) {
-                conn_factory.invalidate();
-                return err_to_status(get<Error>(result));
-            }
-            websocket = get<WebSocket>(result);
+            websocket = WebSocket::from_response(resp);
             break;
         }
         default: {
@@ -666,8 +686,8 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     // The "ordinary" http exchange gets data in the response, websocket at any
     // time so we want to let it get woken up by arriving data in sleep (the
     // planner checks if it _can_ receive the command at that point).
-    if (conn_factory.is_valid()) {
-        wake_on_readable = get<Connection *>(conn_factory.connection());
+    if (conn_factory.is_valid() && websocket.has_value()) {
+        wake_on_readable = websocket->inner_connection();
     }
 #endif
     auto action = planner().next_action(buffer, wake_on_readable);

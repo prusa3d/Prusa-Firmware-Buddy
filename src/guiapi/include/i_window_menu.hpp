@@ -12,7 +12,7 @@
 class IWindowMenu : public AddSuperWindow<window_t> {
 
 protected:
-    static constexpr uint8_t font_h_ = resource_font_size(IDR_FNT_NORMAL).h;
+    static constexpr uint8_t font_h_ = height(Font::normal);
     static constexpr uint16_t item_height_ = font_h_ + GuiDefaults::MenuPaddingItems.top + GuiDefaults::MenuPaddingItems.bottom;
 
 public:

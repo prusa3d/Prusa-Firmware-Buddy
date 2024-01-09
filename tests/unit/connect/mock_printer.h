@@ -82,10 +82,18 @@ public:
         return false;
     }
 
-    virtual void init_connect(char *) override {}
+    virtual void init_connect(const char *) override {}
 
     virtual uint32_t cancelable_fingerprint() const override {
         return 0;
+    }
+
+    virtual bool is_in_error() const override {
+        return false;
+    }
+
+    virtual std::tuple<const char *, uint16_t> err_details() const override {
+        return std::make_tuple(nullptr, 0);
     }
 };
 

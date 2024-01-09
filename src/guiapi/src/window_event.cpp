@@ -6,6 +6,8 @@
 
 LOG_COMPONENT_REF(GUI);
 
+GUI_event_t last_gui_input_event = GUI_event_t::_count;
+
 EventLock::EventLock([[maybe_unused]] const char *event_method_name, [[maybe_unused]] window_t *sender, GUI_event_t event) {
     //
     // Log Events

@@ -27104,4 +27104,4 @@ const uint8_t font_bold_13x22_data[] = {
     0x00,
     0x00,
 };
-const font_t font_bold_13x22 = { 13, 22, 7, 0, (uint16_t *)font_bold_13x22_data, 32, 255 };
+const font_t font_bold_13x22 = { 13, 22, 7, (uint16_t *)font_bold_13x22_data, 32, 255 };

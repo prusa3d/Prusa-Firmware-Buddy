@@ -9,7 +9,7 @@ set(BUDDY_NO_VIRTUALENV
 if(NOT Python3_EXECUTABLE)
   if(NOT ${BUDDY_NO_VIRTUALENV})
     set(Python3_ROOT_DIR "${CMAKE_SOURCE_DIR}/.venv")
-    set(Python3_FIND_STRATEGY "LOCATION")
+    set(Python3_FIND_VIRTUALENV "ONLY")
   endif()
   find_package(Python3 COMPONENTS Interpreter)
   if(NOT Python3_FOUND)

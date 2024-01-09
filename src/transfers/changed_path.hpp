@@ -132,7 +132,7 @@ public:
 private:
     mutable Mutex mutex;
 
-    std::array<char, FILE_PATH_BUFFER_LEN> path {};
+    std::array<char, FILE_PATH_BUFFER_LEN + FILE_NAME_MAX_LEN> path {};
     Type type {};
     Incident incident {};
     std::optional<uint32_t> command_id;

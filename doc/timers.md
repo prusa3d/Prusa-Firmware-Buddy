@@ -12,4 +12,4 @@ TIM10 -
 TIM11 -
 TIM12 -
 TIM13 - Phase stepping
-TIM14 - GUI - jogwheel, hwio                                - src\main.cpp
+TIM14 - GUI - jogwheel, hwio, touch                         - src\main.cpp

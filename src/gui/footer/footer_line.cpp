@@ -130,6 +130,9 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
     case footer::Item::nozzle_diameter:
         new (&items[index]) FooterItemNozzleDiameter(this);
         break;
+    case footer::Item::nozzle_pwm:
+        new (&items[index]) FooterItemNozzlePWM(this);
+        break;
     case footer::Item::none:
     case footer::Item::_count:
         break;

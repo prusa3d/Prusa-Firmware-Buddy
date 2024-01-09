@@ -1,17 +1,17 @@
-/**
- * @file
- */
 #include "accelerometer.h"
-#if ENABLED(LOCAL_ACCELEROMETER)
+
+#include <option/has_local_accelerometer.h>
+
+static_assert(HAS_LOCAL_ACCELEROMETER());
 
 PrusaAccelerometer::PrusaAccelerometer()
-    #if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5
     : output_enabler { buddy::hw::fanPrintTach, buddy::hw::Pin::State::high, buddy::hw::OMode::pushPull, buddy::hw::OSpeed::high }
     , output_pin { output_enabler.pin() }
     , accelerometer { output_pin }
-    #else
+#else
     : accelerometer { buddy::hw::acellCs }
-    #endif
+#endif
     , m_fifo(accelerometer) {
     m_error = Error::none;
     if (IMU_SUCCESS != accelerometer.begin()) {
@@ -30,4 +30,3 @@ int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
 }
 PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;
 float PrusaAccelerometer::m_sampling_rate = 0;
-#endif // ENABLED(LOCAL_ACCELEROMETER)

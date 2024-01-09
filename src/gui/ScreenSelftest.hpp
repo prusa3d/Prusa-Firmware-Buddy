@@ -9,7 +9,7 @@
 #include "screen.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "selftest_frame_axis.hpp"
 #include "selftest_frame_fans.hpp"
 #include "selftest_frame_fsensor.hpp"
@@ -29,6 +29,7 @@
 #include "selftest_invalid_state.hpp"
 #include "static_alocation_ptr.hpp"
 #include "printer_selftest.hpp" // SelftestMask_t
+#include <option/has_phase_stepping.h>
 
 class ScreenSelftest : public AddSuperWindow<screen_t> {
     using mem_space = std::aligned_union<0, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, SelftestFrameFSensor, SelftestFrameGearsCalib, SelftestFrameLoadcell, ScreenSelftestTemp, SelftestFrameCalibZ, SelftestFrameFirstLayerQuestions, SelftestFrameResult, SelftestFrameNozzleDiameter
@@ -67,6 +68,9 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
     static static_unique_ptr<SelftestFrame> creator_tool_offsets(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_nozzle_diameter(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+#if HAS_PHASE_STEPPING()
+    static static_unique_ptr<SelftestFrame> creator_phase_stepping(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+#endif
 
     fnc Get(SelftestParts part); // returns factory method
 

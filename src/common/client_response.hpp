@@ -18,6 +18,7 @@
 #include "option/filament_sensor.h"
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
+#include <option/has_phase_stepping.h>
 
 enum { RESPONSE_BITS = 4, // number of bits used to encode response
     MAX_RESPONSES = (1 << RESPONSE_BITS) }; // maximum number of responses in one phase
@@ -38,6 +39,7 @@ constexpr uint8_t GetPhaseIndex(T phase) {
 
 template <class T>
 constexpr T GetEnumFromPhaseIndex(size_t index) {
+    assert(index < CountPhases<T>());
     return static_cast<T>(static_cast<size_t>(T::_first) + index);
 }
 
@@ -288,6 +290,16 @@ enum class PhasesSelftest : uint16_t {
     ToolOffsets_wait_user_remove_pin,
     _last_Tool_Offsets = ToolOffsets_wait_user_remove_pin,
 
+#if HAS_PHASE_STEPPING()
+    _first_PhaseStepping,
+    PhaseStepping_pick_tool = _first_PhaseStepping,
+    PhaseStepping_calib_x,
+    PhaseStepping_calib_y,
+    PhaseStepping_calib_failed,
+    PhaseStepping_enabling,
+    _last_PhaseStepping = PhaseStepping_enabling,
+#endif
+
     _first_Result,
     Result = _first_Result,
     _last_Result = Result,
@@ -317,6 +329,7 @@ enum class PhasesESP : uint16_t {
     ESP_insert_USB,
     ESP_invalid,
     ESP_uploading_config,
+    ESP_asking_credentials_delete,
     ESP_enabling_WIFI,
     _last_ESP = ESP_enabling_WIFI,
 
@@ -586,6 +599,13 @@ class ClientResponses {
         {}, // ToolOffsets_state_final_park
         { Response::Continue }, // ToolOffsets_wait_user_remove_pin
 
+#if HAS_PHASE_STEPPING()
+        {}, // PhaseStepping_pick_tool
+        {}, // PhaseStepping_calib_x
+        {}, // PhaseStepping_calib_y
+        { Response::Ok }, // PhaseStepping_calib_failed
+        {}, // PhaseStepping_enabling
+#endif
         { Response::Next }, // Result
 
         { Response::Continue }, // WizardEpilogue_ok
@@ -605,7 +625,8 @@ class ClientResponses {
         { Response::Continue, Response::Abort }, // ESP_insert_USB
         { Response::Retry, Response::Abort }, // ESP_invalid
         { Response::Abort }, // ESP_uploading_config
-        { Response::Yes, Response::No }, // ESP_enabling_WIFI
+        { Response::Yes, Response::No }, // ESP_asking_credentials_delete
+        { Response::Continue }, // ESP_enabling_WIFI
 
         { Response::Continue, Response::Abort }, // ESP_progress_info
         { Response::Abort }, // ESP_progress_upload
@@ -723,6 +744,9 @@ enum class SelftestParts {
     Dock,
     ToolOffsets,
 #endif
+#if HAS_PHASE_STEPPING()
+    PhaseStepping,
+#endif
     _none, // cannot be created, must have same index as _count
     _count = _none
 };
@@ -774,6 +798,10 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
         return PhasesSelftest::_first_Dock;
     case SelftestParts::ToolOffsets:
         return PhasesSelftest::_first_Tool_Offsets;
+#endif
+#if HAS_PHASE_STEPPING()
+    case SelftestParts::PhaseStepping:
+        return PhasesSelftest::_first_PhaseStepping;
 #endif
     case SelftestParts::Result:
         return PhasesSelftest::_first_Result;
@@ -840,6 +868,10 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_Dock;
     case SelftestParts::ToolOffsets:
         return PhasesSelftest::_last_Tool_Offsets;
+#endif
+#if HAS_PHASE_STEPPING()
+    case SelftestParts::PhaseStepping:
+        return PhasesSelftest::_last_PhaseStepping;
 #endif
     case SelftestParts::Result:
         return PhasesSelftest::_last_Result;

@@ -47,7 +47,6 @@
 #include "w25x.h"
 #include "sound.hpp"
 #include "bsod.h"
-#include "bsod_gui.hpp"
 #include "sys.h"
 #include "timing.h"
 #include "odometer.hpp"

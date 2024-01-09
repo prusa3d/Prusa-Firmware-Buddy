@@ -3,20 +3,18 @@
 #include "gui.hpp"
 #include <stdarg.h> //va_list
 
-window_term_t::window_term_t(window_t *parent, point_i16_t pt, uint8_t *buff, size_t cols, size_t rows)
-    : window_term_t(parent, pt, buff, cols, rows, GuiDefaults::Font) {
-}
+static constexpr Font font = GuiDefaults::DefaultFont;
+static void render_term(term_t *pterm, size_t x, size_t y, color_t color_back, color_t color_text);
 
-window_term_t::window_term_t(window_t *parent, point_i16_t pt, uint8_t *buff, size_t cols, size_t rows, font_t *fnt)
-    : AddSuperWindow<window_t>(parent, Rect16(pt, fnt->w * cols, fnt->h * rows))
-    , color_text(GuiDefaults::ColorText)
-    , font(fnt) {
+window_term_t::window_term_t(window_t *parent, point_i16_t pt, uint8_t *buff, size_t cols, size_t rows)
+    : AddSuperWindow<window_t>(parent, Rect16(pt, width(font) * cols, height(font) * rows))
+    , color_text(GuiDefaults::ColorText) {
     term_init(&term, cols, rows, buff);
 }
 
 void window_term_t::unconditionalDraw() {
     if (term.flg & TERM_FLG_CHANGED) {
-        render_term(&term, Left(), Top(), font, GetBackColor(), color_text);
+        render_term(&term, Left(), Top(), GetBackColor(), color_text);
     } else {
         super::unconditionalDraw();
     }
@@ -44,9 +42,9 @@ void window_term_t::WriteChar(uint8_t ch) {
     Invalidate();
 }
 
-void render_term(term_t *pterm, size_t x, size_t y, const font_t *font, color_t color_back, color_t color_text) {
-    uint8_t char_w = font->w;
-    uint8_t char_h = font->h;
+static void render_term(term_t *pterm, size_t x, size_t y, color_t color_back, color_t color_text) {
+    uint8_t char_w = width(font);
+    uint8_t char_h = height(font);
     if (pterm->flg & TERM_FLG_CHANGED) {
         uint8_t *pb = pterm->buff;
         uint8_t *pm = pterm->buff + (pterm->cols * pterm->rows * 2);
@@ -59,7 +57,7 @@ void render_term(term_t *pterm, size_t x, size_t y, const font_t *font, color_t 
                     // character is followed by attribute
                     uint8_t ch = *(pb++);
                     pb++; // uint8_t attr = *(pb++);
-                    display::DrawChar(point_ui16(x + c * char_w, y + r * char_h), ch, font, color_back, color_text);
+                    display::DrawChar(point_ui16(x + c * char_w, y + r * char_h), ch, resource_font(font), color_back, color_text);
                 } else {
                     pb += 2;
                 }

@@ -18,7 +18,7 @@ SelftestFrameNozzleDiameter::SelftestFrameNozzleDiameter(window_t *parent, Phase
     , footer(this, 0, footer::Item::nozzle, footer::Item::bed, footer::Item::axis_z) // ItemAxisZ to show Z coord while moving up
     , text_header(this, Rect16(col_texts, row_3_5, display::GetW() - (2 * col_texts), txt_h), is_multiline::no)
     , text_details(this, Rect16(col_texts, row_2, display::GetW() - (2 * col_texts), 7 * txt_h), is_multiline::yes) {
-    text_details.set_font(resource_font(IDR_FNT_SMALL));
+    text_details.set_font(Font::small);
     change();
 }
 

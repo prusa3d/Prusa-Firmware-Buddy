@@ -15,8 +15,11 @@
 #include <option/developer_mode.h>
 #include "printers.h"
 #include <Marlin/src/module/motion.h>
-#include "screen_menu_filament_changeall.hpp"
-#include "box_unfinished_selftest.hpp"
+#include <option/has_gui.h>
+#if HAS_GUI()
+    #include "screen_menu_filament_changeall.hpp"
+    #include "box_unfinished_selftest.hpp"
+#endif
 #include <option/has_selftest_snake.h>
 
 #include <option/has_toolchanger.h>
@@ -268,6 +271,8 @@ IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
         // with MMU, its only possible to check that filament is properly unloaded, no check of filaments presence in each "tool"
         if (FSensors_instance().MMUReadyToPrint()) {
             return State::checks_done;
+        } else if (GCodeInfo::getInstance().is_singletool_gcode() && FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR) {
+            return State::checks_done; // it makes sense to allow starting a single material print with filament loaded
         } else {
             return State::mmu_filament_inserted_wait_user;
         }

@@ -13,7 +13,7 @@
 #include "log.h"
 #include "../lib/Marlin/Marlin/src/core/macros.h"
 #include <module/motion.h>
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "utility_extensions.hpp"
 #include "variant8.h"
 #include "tasks.hpp"

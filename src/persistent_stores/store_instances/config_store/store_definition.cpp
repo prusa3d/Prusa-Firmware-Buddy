@@ -727,7 +727,7 @@ void CurrentStore::set_odometer_toolpicks([[maybe_unused]] uint8_t index, uint32
     }
 #endif
 }
-
+#if HAS_SELFTEST()
 SelftestTool CurrentStore::get_selftest_result_tool(uint8_t index) {
     assert(index < config_store_ns::max_tool_count);
     return selftest_result.get().tools[index];
@@ -739,6 +739,7 @@ void CurrentStore::set_selftest_result_tool(uint8_t index, SelftestTool value) {
     tmp.tools[index] = value;
     selftest_result.set(tmp);
 }
+#endif
 
 Sheet CurrentStore::get_sheet(uint8_t index) {
     assert(index < config_store_ns::sheets_num);

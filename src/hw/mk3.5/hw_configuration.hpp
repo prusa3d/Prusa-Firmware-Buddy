@@ -34,6 +34,8 @@ class Configuration : public ConfigurationCommon {
     Configuration();
     Configuration(const Configuration &) = delete;
 
+    bool error__loveboard_detected = true; // mk3.5 does not have loveboard, detecting it means wrong HW
+
 public:
     /**
      * @brief Meyers singleton
@@ -59,6 +61,8 @@ public:
         const float allegro_zero_curr_voltage = 3.35F / 2.F; // choose half of 3V3 range
         return (voltage - allegro_zero_curr_voltage) * allegro_curr_from_voltage;
     }
+
+    bool is_fw_incompatible_with_hw();
 };
 
 } // namespace buddy::hw

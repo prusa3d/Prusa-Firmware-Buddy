@@ -24,6 +24,8 @@ struct MockLog {
     void DeduplicateLog();
     void DeduplicateExpected();
 
+    std::string InfoText();
+
     consteval std::string_view MethodName(const char *s) {
         std::string_view prettyFunction(s);
         // terminate the string_view with the first occurence of '('

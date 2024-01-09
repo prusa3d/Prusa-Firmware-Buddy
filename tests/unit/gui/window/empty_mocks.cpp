@@ -30,3 +30,5 @@ void _bsod(const char *fmt, const char *fine_name, int line_number, ...) {
     while (1)
         ;
 }
+
+GUI_event_t last_gui_input_event = GUI_event_t::_count;

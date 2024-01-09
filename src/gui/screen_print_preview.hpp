@@ -6,7 +6,7 @@
 #include "gcode_description.hpp"
 #include "fs_event_autolock.hpp"
 #include "static_alocation_ptr.hpp"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include <option/has_toolchanger.h>
 #include <option/has_mmu2.h>
 #if HAS_TOOLCHANGER() || HAS_MMU2()

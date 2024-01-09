@@ -104,7 +104,7 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     enum class CurrentlyShowing {
         remaining_time, // time until end of print
         end_time, // 'date' of end of print
-        // time_to_change, // m600 // currently disabled
+        time_to_change, // m600 / m601
         time_since_start, // real printing time since start
         _count,
     };

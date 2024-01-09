@@ -46,7 +46,7 @@ This file is generated automatically so don't edit it directly
 - Resources: LOG_SEVERITY_DEBUG, src/resources/bootstrap.cpp
 - Selftest: LOG_SEVERITY_DEBUG, src/common/selftest/i_selftest.cpp
 - Syslog: LOG_SEVERITY_INFO, src/syslog/syslog.cpp
-- Touch: LOG_SEVERITY_INFO, src/hw/GT911.cpp
+- Touch: LOG_SEVERITY_INFO, src/hw/touchscreen/touchscreen_common.cpp
 - USBDevice: LOG_SEVERITY_INFO, src/buddy/usb_device.cpp
 - USBHost: LOG_SEVERITY_INFO, src/buddy/usbh_conf.cpp
 - USBMSC: LOG_SEVERITY_DEBUG, src/buddy/usb_device_msc.cpp

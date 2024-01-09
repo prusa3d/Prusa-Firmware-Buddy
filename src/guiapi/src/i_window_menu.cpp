@@ -5,14 +5,14 @@
 
 #include <option/has_touch.h>
 #if HAS_TOUCH()
-    #include "touch_get.hpp"
+    #include <hw/touchscreen/touchscreen.hpp>
 #endif
 
 IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
     : AddSuperWindow<window_t>(parent, rect) {
     Enable();
 
-    assert(GuiDefaults::FontMenuItems->h == font_h_);
+    assert(height(GuiDefaults::FontMenuItems) == font_h_);
     max_items_on_screen_count_ = Height() / (item_height() + GuiDefaults::MenuItemDelimeterHeight);
 }
 
@@ -53,11 +53,6 @@ bool IWindowMenu::scroll_page(PageScrollDirection direction) {
 
     if (scroll_offset() == new_scroll_offset) {
         Sound_Play(eSOUND_TYPE::BlindAlert);
-        return false;
-    }
-
-    // Unfocus on page scroll
-    if (!move_focus_to_index(std::nullopt)) {
         return false;
     }
 
@@ -118,9 +113,9 @@ std::optional<int> IWindowMenu::move_focus_touch_click(void *event_param) {
 
 bool IWindowMenu::should_focus_item_on_init() {
 #if HAS_TOUCH()
-    // Do not focus menu item by default if on touchscreen
-    if (touch::is_enabled()) {
-        return false;
+    // If we're using touchscreen as a primary input, we don't want the first item in menu to be focused, because that's useful for encoder work, not touch
+    if (touchscreen.is_enabled()) {
+        return !GUI_event_is_touch_event(last_gui_input_event);
     }
 #endif
 
@@ -177,8 +172,16 @@ void IWindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         move_focus_by(encoder_value, YNPlaySound::yes);
         break;
 
-    case GUI_event_t::TOUCH:
+    case GUI_event_t::TOUCH_CLICK:
         move_focus_touch_click(param);
+        break;
+
+    case GUI_event_t::TOUCH_SWIPE_DOWN:
+        scroll_page(PageScrollDirection::up);
+        break;
+
+    case GUI_event_t::TOUCH_SWIPE_UP:
+        scroll_page(PageScrollDirection::down);
         break;
 
     default:

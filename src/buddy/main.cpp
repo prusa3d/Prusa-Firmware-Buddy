@@ -7,7 +7,7 @@
 #include "usb_device.hpp"
 #include "usb_host.h"
 #include "buffered_serial.hpp"
-#include "bsod.h"
+#include "bsod_gui.hpp"
 #include "media.hpp"
 #include <config_store/store_instance.hpp>
 #include <option/buddy_enable_connect.h>
@@ -19,13 +19,17 @@
 #include "app.h"
 #include <wdt.hpp>
 #include <crash_dump/dump.hpp>
+#include "error_codes.hpp"
+#include "bsod_gui.hpp"
 #include "timer_defaults.h"
 #include "tick_timer_api.h"
 #include "thread_measurement.h"
 #include "metric_handlers.h"
 #include "hwio_pindef.h"
 #include "gui.hpp"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "crc32.h"
 #include "w25x.h"
 #include "timing.h"
@@ -47,7 +51,6 @@
 #include <espif.h>
 #include "sound.hpp"
 #include <ccm_thread.hpp>
-#include <printers.h>
 #include "version.h"
 #include "str_utils.hpp"
 #include "data_exchange.hpp"
@@ -55,6 +58,7 @@
 #include "gui_bootstrap_screen.hpp"
 #include "resources/revision.hpp"
 #include "filesystem_semihosting.h"
+#include "disable_interrupts.h"
 
 #if HAS_PUPPIES()
     #include "puppies/PuppyBus.hpp"
@@ -101,6 +105,7 @@ void SystemClock_Config(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
 void StartConnectTask(void const *argument);
+void StartConnectTaskError(void const *argument); // Version for redscreen
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
@@ -253,13 +258,63 @@ extern "C" void main_cpp(void) {
         bsod("failed to initialize ext flash");
     }
 
+    const bool want_error_screen = (dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed());
+
+#if BUDDY_ENABLE_CONNECT()
+    // On a place shared for both code branches, so we have just one connectTask buffer.
+    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
+#endif
+
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+    /*
+     * MK3.5 HW detected on MK4 firmware or vice versa
+     */
+    if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw()) {
+        const auto &error = find_error(ErrCode::WARNING_DIFFERENT_FW_REQUIRED);
+        crash_dump::force_save_message_without_dump(crash_dump::MsgType::FATAL_WARNING, static_cast<uint16_t>(error.err_code), error.err_text, error.err_title);
+        hwio_safe_state();
+        init_error_screen();
+        return;
+    }
+#endif
+
     /*
      * If we have BSOD or red screen we want to have as small boot process as we can.
      * We want to init just xflash, display and start gui task to display the bsod or redscreen
      */
-    if ((dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed())) {
+    if (want_error_screen) {
         hwio_safe_state();
         init_error_screen();
+
+#if BUDDY_ENABLE_WUI() && BUDDY_ENABLE_CONNECT()
+        // We want to send the redscreen/bluescreen/error to Connect to show there.
+        //
+        // For that we need networking (and some other peripherals). We do not
+        // init the rest - including the USB stack.
+        //
+        // We do not start link and we run Connect in special mode that allows
+        // mostly nothing.
+        //
+        // block esp in tester mode (redscreen probably shouldn't happen on tester, but better safe than sorry)
+        if (get_auto_update_flag() != FwAutoUpdate::tester_mode && config_store().connect_enabled.get()) {
+            TaskDeps::components_init();
+            UART_INIT(esp);
+            // Needed for certificate verification
+            hw_rtc_init();
+            // Needed for SSL random data
+            hw_rng_init();
+
+            espif_init_hw();
+
+            espif_task_create();
+
+            TaskDeps::wait(TaskDeps::Tasks::network);
+            start_network_task(/*allow_full=*/false);
+            // definition and creation of connectTask
+            TaskDeps::wait(TaskDeps::Tasks::connect);
+            connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
+        }
+#endif
         return;
     }
     bsod_mark_shown(); // BSOD would be shown, allow new BSOD dump
@@ -429,7 +484,7 @@ extern "C" void main_cpp(void) {
         espif_task_create();
 
         TaskDeps::wait(TaskDeps::Tasks::network);
-        start_network_task();
+        start_network_task(/*allow_full=*/true);
     }
 #endif
 
@@ -442,7 +497,6 @@ extern "C" void main_cpp(void) {
     if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
         // definition and creation of connectTask
         TaskDeps::wait(TaskDeps::Tasks::connect);
-        osThreadCCMDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
         connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
     }
 #endif
@@ -593,6 +647,10 @@ void StartErrorDisplayTask([[maybe_unused]] void const *argument) {
 void StartConnectTask([[maybe_unused]] void const *argument) {
     connect_client::run();
 }
+
+void StartConnectTaskError([[maybe_unused]] void const *argument) {
+    connect_client::run_error();
+}
 #endif
 
 /**
@@ -662,7 +720,7 @@ void init_error_screen() {
     if constexpr (option::has_gui) {
         // init lcd spi and timer for buzzer
         SPI_INIT(lcd);
-#if !(BOARD_IS_XLBUDDY && _DEBUG)
+#if !(_DEBUG)
         hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
 #endif
 

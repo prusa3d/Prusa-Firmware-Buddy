@@ -196,7 +196,6 @@ const char *window_file_list_t::TopItemSFN() {
 
 window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
     : AddSuperWindow(parent, rc)
-    , font(GuiDefaults::Font)
     , focused_item_delegate(string_view_utf8(), nullptr) {
 
     assert(max_items_on_screen_count() <= max_max_items_on_screen);

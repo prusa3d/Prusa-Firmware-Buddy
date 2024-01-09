@@ -4,7 +4,6 @@
 
 #include "footer_item_filament.hpp"
 #include "marlin_client.hpp"
-#include "display_helper.h" // font_meas_text
 #include "img_resources.hpp"
 #include "filament.hpp"
 #include <config_store/store_instance.hpp>

@@ -22,7 +22,7 @@
     #include <feature/phase_stepping/quick_tmc_spi.hpp>
 #endif
 
-#ifdef BUDDY_ENABLE_WUI
+#if BUDDY_ENABLE_WUI()
     #include "espif.h"
 #endif
 
@@ -103,7 +103,7 @@ void USART6_IRQHandler(void) {
  * @brief This function handles UART8 global interrupt.
  */
 void UART8_IRQHandler(void) {
-#if defined(BUDDY_ENABLE_WUI) && uart_esp == 8
+#if BUDDY_ENABLE_WUI() && uart_esp == 8
     // block esp in tester mode
     if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
         if (__HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE)) {
@@ -350,9 +350,11 @@ void DMA1_Stream6_IRQHandler(void) {
  * @brief This function handles Ethernet global interrupt.
  */
 void ETH_IRQHandler(void) {
+#if !BOARD_IS_XL_DEV_KIT_XLB
     traceISR_ENTER();
     HAL_ETH_IRQHandler(&heth);
     traceISR_EXIT();
+#endif
 }
 
 /**
@@ -368,9 +370,11 @@ void OTG_FS_IRQHandler(void) {
  * @brief This function handles USB On The Go HS global interrupt.
  */
 void OTG_HS_IRQHandler(void) {
+#if !BOARD_IS_XL_DEV_KIT_XLB
     traceISR_ENTER();
     HAL_HCD_IRQHandler(&hhcd_USB_OTG_HS);
     traceISR_EXIT();
+#endif
 }
 
 /**

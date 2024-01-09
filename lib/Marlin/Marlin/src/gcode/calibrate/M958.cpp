@@ -20,15 +20,20 @@
 #include <numbers>
 #include <limits>
 #include <bit>
+
+#include <config_store/store_instance.hpp>
+
+#include <option/has_local_accelerometer.h>
 #include <option/has_puppies.h>
+#include <option/has_remote_accelerometer.h>
 
-#if ENABLED(ACCELEROMETER)
+static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 
-    // #define M958_OUTPUT_SAMPLES
-    // #define M958_VERBOSE
-    #ifdef M958_OUTPUT_SAMPLES
-        #include "../../../../../tinyusb/src/class/cdc/cdc_device.h"
-    #endif
+// #define M958_OUTPUT_SAMPLES
+// #define M958_VERBOSE
+#ifdef M958_OUTPUT_SAMPLES
+    #include "../../../../../tinyusb/src/class/cdc/cdc_device.h"
+#endif
 
 METRIC_DEF(metric_excite_freq, "excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
 METRIC_DEF(metric_freq_gain, "freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
@@ -352,10 +357,10 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
         case PrusaAccelerometer::Error::busy:
             SERIAL_ERROR_MSG("busy");
             break;
-    #if HAS_PUPPIES()
+#if HAS_PUPPIES()
         case PrusaAccelerometer::Error::corrupted_transmission_error:
         case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
-    #endif
+#endif
         case PrusaAccelerometer::Error::corrupted_sample_overrun:
         case PrusaAccelerometer::Error::corrupted_buddy_overflow:
             SERIAL_ERROR_MSG("corrupted");
@@ -389,9 +394,9 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
     bool enough_samples_collected = false;
     bool first_loop = true;
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
-    #ifdef M958_OUTPUT_SAMPLES
+#ifdef M958_OUTPUT_SAMPLES
     SERIAL_ECHOLN("Yraw  sinf cosf");
-    #endif
+#endif
 
     constexpr int num_axis = sizeof(PrusaAccelerometer::Acceleration::val) / sizeof(PrusaAccelerometer::Acceleration::val[0]);
 
@@ -422,12 +427,12 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
                 if (accelerometer_period_time > period) {
                     accelerometer_period_time -= period;
                 }
-    #ifdef M958_OUTPUT_SAMPLES
+#ifdef M958_OUTPUT_SAMPLES
                 char buff[40];
                 snprintf(buff, 40, "%f %f %f\n", static_cast<double>(measured_acceleration.val[1]), static_cast<double>(amplitude[0]), static_cast<double>(amplitude[1]));
                 tud_cdc_n_write_str(0, buff);
                 tud_cdc_write_flush();
-    #endif
+#endif
             }
             metric_record_float(&metric_excite_freq, frequency);
 
@@ -452,7 +457,7 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
     const float y_gain = y_acceleration_amplitude / acceleration;
     const float z_gain = z_acceleration_amplitude / acceleration;
 
-    #ifdef M958_VERBOSE
+#ifdef M958_VERBOSE
     SERIAL_ECHO_START();
     SERIAL_ECHOPAIR_F("frequency ", frequency);
     SERIAL_ECHOPAIR_F(" Msampl ", (sample_nr + 1));
@@ -465,7 +470,7 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
     SERIAL_ECHOPAIR_F(" X ", x_acceleration_amplitude, 5);
     SERIAL_ECHOPAIR_F(" Y ", y_acceleration_amplitude, 5);
     SERIAL_ECHOLNPAIR_F(" Z ", z_acceleration_amplitude, 5);
-    #else
+#else
     SERIAL_ECHO(frequency);
     if (klipper_mode) {
         SERIAL_ECHOPAIR_F(",", sq(x_gain), 5);
@@ -481,7 +486,7 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
         SERIAL_ECHOPAIR_F(" ", y_gain, 5);
         SERIAL_ECHOLNPAIR_F(" ", z_gain, 5);
     }
-    #endif
+#endif
     FrequencyGain3dError retval = { { frequency, x_gain, y_gain, z_gain }, false };
     metric_record_custom(&metric_freq_gain, " a=%d,f=%.1f,x=%.4f,y=%.4f,z=%.4f",
         axis_flag & (STEP_EVENT_FLAG_STEP_X | STEP_EVENT_FLAG_STEP_Y), frequency, x_gain, y_gain, z_gain);
@@ -557,13 +562,13 @@ static float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[])
         }
     }
 
-    #if IS_CARTESIAN
+#if IS_CARTESIAN
     // return correct step length
     if ((motor_cnt == 1 && (motor_idx[0] == X_AXIS || motor_idx[0] == Y_AXIS))
         || (motor_cnt == 2 && motor_idx[0] == X_AXIS && motor_idx[1] == Y_AXIS)) {
-            // X, Y, XY
-        #if IS_CORE
-            #if CORE_IS_XY
+        // X, Y, XY
+    #if IS_CORE
+        #if CORE_IS_XY
         switch (motor_cnt) {
         case 1:
             // diagonal
@@ -572,10 +577,10 @@ static float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[])
             // orthogonal
             return step_len;
         }
-            #else
-                #error "Not implemented."
-            #endif
         #else
+            #error "Not implemented."
+        #endif
+    #else
         switch (motor_cnt) {
         case 1:
             // orthogonal
@@ -584,14 +589,14 @@ static float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[])
             // diagonal
             return sqrt(2.f) * step_len;
         }
-        #endif
+    #endif
     } else if (motor_cnt == 1) {
         // single motor (not XY)
         return step_len;
     }
-    #else
-        #error "Not implemented."
-    #endif
+#else
+    #error "Not implemented."
+#endif
 
     SERIAL_ECHOLN("error: unsupported configuration");
     return NAN;
@@ -608,29 +613,29 @@ AxisEnum get_logical_axis(const uint16_t axis_flag) {
     const bool x_flag = axis_flag & STEP_EVENT_FLAG_STEP_X;
     const bool y_flag = axis_flag & STEP_EVENT_FLAG_STEP_Y;
     const bool z_flag = axis_flag & STEP_EVENT_FLAG_STEP_Z;
-    #if IS_CARTESIAN
+#if IS_CARTESIAN
     if (z_flag) {
         return (!x_flag && !y_flag ? Z_AXIS : NO_AXIS_ENUM);
     }
 
-        #if IS_CORE
-            #if CORE_IS_XY
+    #if IS_CORE
+        #if CORE_IS_XY
     if (x_flag == y_flag) {
         const bool x_dir = axis_flag & STEP_EVENT_FLAG_X_DIR;
         const bool y_dir = axis_flag & STEP_EVENT_FLAG_Y_DIR;
         return (x_dir == y_dir ? X_AXIS : Y_AXIS);
     }
-            #else
-                #error "Not implemented."
-            #endif
         #else
+            #error "Not implemented."
+        #endif
+    #else
     if (x_flag != y_flag) {
         return (x_flag ? X_AXIS : Y_AXIS);
     }
-        #endif
-    #else
-        #error "Not implemented."
     #endif
+#else
+    #error "Not implemented."
+#endif
     return NO_AXIS_ENUM;
 }
 
@@ -1046,6 +1051,7 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
  * - A<mm/s-2>   Acceleration
  * - N<cycles>   Number of excitation signal periods
  *               of active measurement.
+ *   W           Write the detected calibration to EEPROM
  */
 void GcodeSuite::M959() {
     MicrostepRestorer microstepRestorer;
@@ -1082,8 +1088,12 @@ void GcodeSuite::M959() {
     } else {
         naive_zv_tune(axis_flag, start_frequency, end_frequency, frequency_increment, acceleration_requested, step_len, cycles);
     }
+
+    if (parser.seen('W')) {
+        SERIAL_ECHO_START();
+        SERIAL_ECHOLN("Storing IS configuration to EEPROM");
+        config_store().set_input_shaper_config(input_shaper::current_config());
+    }
 }
 
 /** @}*/
-
-#endif

@@ -3,8 +3,6 @@
 #include "gui.hpp"
 #include <algorithm>
 
-static const constexpr uint8_t WINDOW_PROGRESS_MAX_TEXT = 16;
-
 /*****************************************************************************/
 // window_numberless_progress_t
 window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress, color_t cl_back, int corner_radius)
@@ -68,57 +66,6 @@ void window_numberless_progress_t::unconditionalDraw() {
         } else {
             display::FillRect(rc, color_progress);
         }
-    }
-}
-
-/*****************************************************************************/
-// window_progress_t
-
-static constexpr int PROGRESS_NUM_Y_OFFSET = 10;
-
-void window_progress_t::SetValue(float val) {
-    const float value = std::max(min, std::min(val, max));
-    numb.SetValue(value);
-    progr.SetProgressPercent(value);
-}
-
-window_progress_t::window_progress_t(window_t *parent, Rect16 rect, uint16_t h_progr, color_t cl_progress, color_t cl_back, int corner_radius)
-    : AddSuperWindow<window_frame_t>(parent, rect)
-    , progr(this, { rect.Left(), rect.Top(), rect.Width(), h_progr }, cl_progress, cl_back, corner_radius)
-    , numb(this, { rect.Left(), int16_t(rect.Top() + h_progr + PROGRESS_NUM_Y_OFFSET), rect.Width(), uint16_t(rect.Height() - h_progr - PROGRESS_NUM_Y_OFFSET) })
-    , min(0)
-    , max(100) {
-    Disable();
-    numb.format = "%.0f%%";
-    numb.SetAlignment(Align_t::Center());
-}
-
-void window_progress_t::set_font(font_t *val) {
-    numb.set_font(val);
-}
-
-void window_progress_t::SetProgressColor(color_t clr) {
-    progr.SetColor(clr);
-}
-
-void window_progress_t::SetNumbColor(color_t clr) {
-    numb.SetTextColor(clr);
-}
-
-void window_progress_t::SetProgressHeight(Rect16::Height_t height) {
-    if (progr.Height() != height) {
-        progr.Resize(height);
-        progr.Invalidate();
-        numb -= height;
-        numb.Invalidate();
-    }
-}
-
-void window_progress_t::SetProgressPercent(uint8_t val) {
-    if (val != numb.GetValue()) {
-        progr.SetProgressPercent(val);
-        numb.SetValue(val);
-        Invalidate();
     }
 }
 

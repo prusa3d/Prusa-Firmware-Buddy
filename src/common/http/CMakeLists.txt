@@ -1,6 +1,7 @@
 target_sources(
   firmware
   PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
+          buffered_conn.cpp
           connect_error.cpp
           connection.cpp
           httpc.cpp

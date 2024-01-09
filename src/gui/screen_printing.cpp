@@ -21,10 +21,6 @@
     #include <feature/prusa/MMU2/mmu2_mk4.h>
 #endif
 
-#ifdef DEBUG_FSENSOR_IN_HEADER
-    #include "filament_sensors_handler.hpp"
-#endif
-
 #include "Marlin/src/module/motion.h"
 #include "Marlin/src/feature/bed_preheat.hpp"
 
@@ -124,9 +120,9 @@ constexpr size_t get_row(size_t idx) {
 }
 
 #if defined(USE_ST7789)
-constexpr auto etime_val_font { IDR_FNT_SMALL };
+constexpr auto etime_val_font { Font::small };
 #elif defined(USE_ILI9488)
-constexpr auto etime_val_font { IDR_FNT_NORMAL };
+constexpr auto etime_val_font { Font::normal };
 
 constexpr auto arrow_left_res { &img::arrow_left_10x16 };
 
@@ -136,7 +132,7 @@ constexpr Rect16 arrow_left_rect { column_left - arrow_left_res->w, middle_of_bu
 constexpr size_t rotating_circles_height { 5 };
 constexpr size_t rotating_circles_width { 35 };
 constexpr size_t rotating_circles_left_offset { 0 };
-constexpr Rect16 rotating_circles_rect { column_left + rotating_circles_left_offset, get_row(1) + resource_font_size(etime_val_font).h + 5, rotating_circles_width, rotating_circles_height };
+constexpr Rect16 rotating_circles_rect { column_left + rotating_circles_left_offset, get_row(1) + height(etime_val_font) + 5, rotating_circles_width, rotating_circles_height };
 
 constexpr Rect16 end_result_body_rect { 0, row_0 - EndResultBody::extra_top_space, GuiDefaults::ScreenWidth, GuiDefaults::ScreenHeight - GuiDefaults::FooterHeight - row_0 };
 #endif
@@ -192,15 +188,15 @@ screen_printing_data_t::screen_printing_data_t()
     w_etime_value.SetAlignment(Align_t::RightTop());
     w_etime_value.SetPadding({ 0, 5, 0, 2 });
 
-    w_progress_txt.set_font(resource_font(EndResultBody::progress_font));
+    w_progress_txt.set_font(EndResultBody::progress_font);
 
     // ST7789 specific variable and it's label
-    w_time_label.set_font(resource_font(IDR_FNT_SMALL));
+    w_time_label.set_font(Font::small);
     w_time_label.SetAlignment(align);
     w_time_label.SetPadding({ 0, 2, 0, 2 });
     w_time_label.SetText(_(EndResultBody::txt_printing_time));
 
-    w_time_value.set_font(resource_font(IDR_FNT_SMALL));
+    w_time_value.set_font(Font::small);
     w_time_value.SetAlignment(align);
     w_time_value.SetPadding({ 0, 2, 0, 2 });
 #elif defined(USE_ILI9488)
@@ -212,10 +208,10 @@ screen_printing_data_t::screen_printing_data_t()
     w_etime_value.SetPadding({ 0, 2, 0, 2 });
 
     w_etime_label.SetTextColor(COLOR_SILVER);
-    w_progress_txt.set_font(resource_font(EndResultBody::progress_font));
+    w_progress_txt.set_font(EndResultBody::progress_font);
 #endif // USE_<display>
 
-    w_filename.set_font(resource_font(IDR_FNT_BIG));
+    w_filename.set_font(Font::big);
     w_filename.SetPadding({ 0, 0, 0, 0 });
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
     {
@@ -226,7 +222,7 @@ screen_printing_data_t::screen_printing_data_t()
     }
     w_filename.SetText(string_view_utf8::MakeRAM((const uint8_t *)gui_media_LFN));
 
-    w_etime_label.set_font(resource_font(IDR_FNT_SMALL));
+    w_etime_label.set_font(Font::small);
 
 #if defined(USE_ILI9488)
     print_progress.init_gcode_info();
@@ -235,7 +231,7 @@ screen_printing_data_t::screen_printing_data_t()
     // Execute first print time update loop
     updateTimes();
 
-    w_etime_value.set_font(resource_font(etime_val_font));
+    w_etime_value.set_font(etime_val_font);
 
 #if defined(USE_ILI9488)
     print_progress.Pause();
@@ -248,30 +244,7 @@ screen_printing_data_t::screen_printing_data_t()
 #endif
 }
 
-#ifdef DEBUG_FSENSOR_IN_HEADER
-extern int _is_in_M600_flg;
-extern uint32_t *pCommand;
-#endif
-
 void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-#ifdef DEBUG_FSENSOR_IN_HEADER
-    static int _last = 0;
-    if (gui::GetTick() - _last > 300) {
-        _last = gui::GetTick();
-
-        static char buff[] = "Sx Mx x xxxx"; //"x"s are replaced
-        buff[1] = FSensors_instance().Get() + '0'; // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
-        buff[4] = FSensors_instance().GetM600_send_on(); // Me edge, Ml level, Mn never, Mx undefined
-        buff[6] = FSensors_instance().WasM600_send() ? 's' : 'n'; // s == send, n== not send
-        buff[8] = _is_in_M600_flg ? 'M' : '0'; // M == marlin is doing M600
-        buff[9] = marlin_event(Event::CommandBegin) ? 'B' : '0'; // B == Event begin
-        buff[10] = marlin_command() == MARLIN_CMD_M600 ? 'C' : '0'; // C == Command M600
-        buff[11] = *pCommand == MARLIN_CMD_M600 ? 's' : '0'; // s == server - Command M600
-        header.SetText(buff);
-    }
-
-#endif
-
     /// check stop clicked when MBL is running
     printing_state_t p_state = GetState();
     if (
@@ -494,6 +467,7 @@ void screen_printing_data_t::updateTimes() {
     }
 
     auto time_to_end = marlin_vars()->time_to_end.get();
+    auto time_to_change = marlin_vars()->time_to_pause.get();
     if ((currently_showing == CurrentlyShowing::end_time
             || currently_showing == CurrentlyShowing::remaining_time)
         && (time_to_end == marlin_server::TIME_TO_END_INVALID || time_to_end > 60 * 60 * 24 * 365)) {
@@ -523,20 +497,25 @@ void screen_printing_data_t::updateTimes() {
 
         PrintTime::print_formatted_duration(marlin_vars()->print_duration.get(), w_etime_value_buffer, true);
         break;
-    // Currently disabled, left in the code to ease re-enabling it
-    // case CurrentlyShowing::time_to_change:
-    //     w_etime_label.SetText(_("Next change in"));
+    case CurrentlyShowing::time_to_change:
+        w_etime_label.SetText(_("Next change in"));
 
-    //     w_etime_value.SetText(_(txt_na));
-    //     w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
-    //     return;
+        if (time_to_change == marlin_server::TIME_TO_END_INVALID) {
+            w_etime_value.SetText(_(txt_na));
+            w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
+            return;
+        } else {
+            PrintTime::print_formatted_duration(time_to_change, w_etime_value_buffer);
+        }
+        break;
     case CurrentlyShowing::_count:
         assert(false); // invalid value, should never happen
         break;
     }
 
     // Add unknown marker
-    if (marlin_vars()->print_speed != 100) {
+    // (time since start is always exact, not influenced by the print speed)
+    if (marlin_vars()->print_speed != 100 && currently_showing != CurrentlyShowing::time_since_start) {
         strlcat(w_etime_value_buffer.data(), "?", w_etime_value_buffer.size());
     }
 
@@ -551,10 +530,7 @@ void screen_printing_data_t::screen_printing_reprint() {
     print_begin(gui_media_SFN_path, marlin_server::PreviewSkipIfAble::preview);
     screen_printing_data_t::updateTimes(); // reinit, but should be already set correctly
     SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Stop, LabelRes::Stop);
-
-#ifndef DEBUG_FSENSOR_IN_HEADER
     header.SetText(_(caption));
-#endif
 }
 
 // todo use it

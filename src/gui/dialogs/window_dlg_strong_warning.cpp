@@ -86,7 +86,14 @@ void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, wi
     if (!GetParent()) {
         return;
     }
-    if (event == GUI_event_t::CLICK) { // todo use timer
+
+    switch (event) {
+
+    case GUI_event_t::CLICK:
+    case GUI_event_t::TOUCH_CLICK:
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
+        // todo use timer
         shown[on_top] = false; // remove from mask
         on_top = types::count_; // erase on_top
 
@@ -100,9 +107,11 @@ void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, wi
         } else {
             GetParent()->UnregisterSubWin(*this);
         }
+        break;
 
-    } else {
+    default:
         SuperWindowEvent(sender, event, param);
+        break;
     }
 }
 

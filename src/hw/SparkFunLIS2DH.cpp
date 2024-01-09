@@ -29,7 +29,10 @@ Distributed as-is; no warranty is given.
 // #define VERBOSE_SERIAL
 
 // See header file for additional topology notes.
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "SparkFunLIS2DH.h"
 
 #include "Wire.h"
@@ -39,7 +42,6 @@ Distributed as-is; no warranty is given.
 #include <device/peripherals.h>
 #include <bit>
 #include "Marlin/src/core/serial.h"
-#include "printers.h"
 
 using namespace buddy::hw;
 

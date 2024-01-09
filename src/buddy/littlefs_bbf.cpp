@@ -7,7 +7,7 @@
 #include "bbf.hpp"
 #include "log.h"
 #include "bsod.h"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 
 LOG_COMPONENT_REF(FileSystem);
 

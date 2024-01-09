@@ -31,9 +31,9 @@ public:
 
     static constexpr auto progress_font {
 #if defined(USE_ILI9488)
-        IDR_FNT_LARGE
+        Font::large
 #elif defined(USE_ST7789)
-        IDR_FNT_NORMAL
+        Font::normal
 #endif
     };
     static constexpr auto progress_alignment { Align_t::RightTop() };
@@ -56,7 +56,7 @@ private:
     void handle_consumed_tool_fields(const GCodeInfo &gcode, size_t num_extruders_with_valid_grams);
     void handle_wipe_tower_showing(const GCodeInfo &gcode, bool has_valid_wipe_tower_grams);
 
-    static constexpr float minimum_grams_valid { 1.0f };
+    static constexpr long minimum_grams_valid = 1;
 
     window_text_t printing_time_label;
     window_text_t printing_time_value;

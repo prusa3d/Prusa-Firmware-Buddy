@@ -48,6 +48,13 @@ public:
         do_save();
     }
 
+    /// Sets the config item to its default value.
+    /// \returns the default value
+    DataT set_to_default() {
+        set(default_val);
+        return default_val;
+    }
+
     /**
      * @brief Set overload when DataT is holding a string, ie std::array<char, ...>.
      */

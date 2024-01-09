@@ -2,11 +2,13 @@ add_executable(
   common_http_tests
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/buffered_conn.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/os_porting.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/websocket.cpp
+  buffered_conn.cpp
   http_client.cpp
   websocket.cpp
   missing_functions.c

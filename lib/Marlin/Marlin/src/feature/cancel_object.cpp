@@ -36,7 +36,7 @@ bool CancelObject::skipping; // = false
 
 void CancelObject::set_active_object(const int8_t obj) {
   active_object = obj;
-  if (WITHIN(obj, 0, 31)) {
+  if (WITHIN(obj, 0, CANCEL_OBJECTS_COUNT - 1)) {
     if (obj >= object_count) object_count = obj + 1;
     skipping = TEST(canceled, obj);
   }

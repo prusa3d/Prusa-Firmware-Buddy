@@ -44,14 +44,14 @@ void MI_PL_PASSWORD_VALUE::print_password(const char *passwd) {
 }
 
 MI_PL_PASSWORD_VALUE::MI_PL_PASSWORD_VALUE()
-    : IWindowMenuItem(_(label), PASSWD_STR_LENGTH * GuiDefaults::FontMenuSpecial->w) {}
+    : IWindowMenuItem(_(label), PASSWD_STR_LENGTH * width(GuiDefaults::FontMenuSpecial)) {}
 
 void MI_PL_USER::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
     render_text_align(extension_rect, string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(PRUSA_LINK_USERNAME)), GuiDefaults::FontMenuSpecial, color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
 }
 
 MI_PL_USER::MI_PL_USER()
-    : IWindowMenuItem(_(label), (sizeof(PRUSA_LINK_USERNAME) + 1) * GuiDefaults::FontMenuSpecial->w) {}
+    : IWindowMenuItem(_(label), (sizeof(PRUSA_LINK_USERNAME) + 1) * width(GuiDefaults::FontMenuSpecial)) {}
 
 ScreenMenuPrusaLink::ScreenMenuPrusaLink()
     : AddSuperWindow<screen_t>(nullptr, win_type_t::normal, is_closed_on_timeout_t::no)

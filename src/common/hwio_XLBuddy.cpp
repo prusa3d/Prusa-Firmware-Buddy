@@ -17,7 +17,10 @@
 #include "hwio_pindef.h"
 #include "bsod.h"
 #include "main.h"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "fanctl.hpp"
 #include "appmain.hpp"
 #include "Marlin.h"
@@ -27,7 +30,6 @@
 #include <option/has_gui.h>
 #include <option/debug_with_beeps.h>
 #include <option/is_knoblet.h>
-#include "device/board.h"
 #include "Marlin/src/module/motion.h" // for active_extruder
 #include "puppies/modular_bed.hpp"
 #include "otp.hpp"

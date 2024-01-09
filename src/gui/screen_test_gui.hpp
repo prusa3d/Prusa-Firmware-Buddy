@@ -3,7 +3,7 @@
 #include "window_text.hpp"
 #include "window_icon.hpp"
 #include "window_term.hpp"
-#include "window_progress.hpp"
+#include "window_numb.hpp"
 #include "screen.hpp"
 
 struct screen_test_gui_data_t : public AddSuperWindow<screen_t> {
@@ -16,7 +16,6 @@ struct screen_test_gui_data_t : public AddSuperWindow<screen_t> {
     window_icon_t icon0;
     window_icon_t icon1;
     window_icon_t icon2;
-    window_progress_t progress;
     window_text_t text_terminal;
 
 public:

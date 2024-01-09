@@ -6,7 +6,7 @@
     #include "mmu2/error_codes.h"
 #else
     #include "buttons.h"
-    #include "../../../../../../Prusa-Error-Codes/04_MMU/button_operations.h"
+    #include "../../../../../../Prusa-Error-Codes/include/button_operations.h"
     #include "../../../../../../Prusa-Firmware-MMU/src/logic/error_codes.h"
 #endif
 

@@ -303,6 +303,11 @@ void window_t::Resize(Rect16::Width_t width) {
     SetRectWithoutTransformation(GetRectWithoutTransformation() = width);
 }
 
+Rect16 window_t::get_rect_for_touch() const {
+    // Default implementation - same as rect
+    return GetRect();
+}
+
 void window_t::SetNext(window_t *nxt) {
     next = nxt;
 }
@@ -422,11 +427,19 @@ void window_t::unconditionalDraw() {
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *const param) {
+    if (GUI_event_is_input_event(event)) {
+        last_gui_input_event = event;
+    }
+
     static constexpr const char txt[] = "WindowEvent via public";
     windowEvent(EventLock(txt, sender, event), sender, event, param);
 }
 
 void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *const param) {
+    if (GUI_event_is_input_event(event)) {
+        last_gui_input_event = event;
+    }
+
     static constexpr const char txt[] = "ScreenEvent via public";
     if (event == GUI_event_t::HELD_RELEASED && flags.has_long_hold_screen_action) {
         gui::knob::LongPressScreenAction();

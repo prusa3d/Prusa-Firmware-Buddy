@@ -10,11 +10,8 @@ target_sources(
           M486.cpp
           M591.cpp
           M862_1.cpp
-          M862_2.cpp
           M862_3.cpp
           M862_4.cpp
-          M862_5.cpp
-          M862_6.cpp
           M863.cpp
           M864.cpp
           M876.cpp
@@ -23,6 +20,10 @@ target_sources(
           M997.cpp
           M999.cpp
   )
+
+if(NOT BOARD MATCHES "XL_DEV_KIT_XLB")
+  target_sources(firmware PRIVATE G26.cpp M862_2.cpp M862_5.cpp M862_6.cpp)
+endif()
 
 add_subdirectory(pause)
 add_subdirectory(sdcard)

@@ -31,6 +31,7 @@ private:
 public:
     Rect16 GetRect() const;
     Rect16 GetRectWithoutTransformation() const;
+
     void SetRect(Rect16 rc); // does not transform
     void SetRectWithoutTransformation(Rect16 rc);
     Rect16 TransformRect(Rect16 rc) const; // just transforms given rect, calls parrents transform if this window is relative
@@ -53,6 +54,10 @@ public:
     constexpr void operator-=(T val) {
         SetRect(GetRect() -= val);
     }
+
+    /// Returns rect for checking against touch events.
+    /// Usually, this is same as the window native rectangle, but can be larger for example for radio buttons so that they're easier to click on
+    virtual Rect16 get_rect_for_touch() const;
 
     void SetNext(window_t *nxt);
     void SetParent(window_t *par);

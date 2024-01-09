@@ -41,7 +41,8 @@
 #include <device/board.h>
 #include "FreeRTOS.h"
 #include "MarlinPin.hpp"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include "MarlinPin.h"
 #include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
 #include "device/peripherals.h"
 #include <type_traits>

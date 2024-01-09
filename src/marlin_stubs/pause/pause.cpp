@@ -496,6 +496,7 @@ void Pause::loop_load_mmu([[maybe_unused]] Response response) {
     case LoadPhases_t::_init: {
         auto nextPhase = LoadPhases_t::_finish;
         if constexpr (option::has_mmu2) {
+            // load_filament_to_nozzle introduces it's own loop and FSM, so we'll be blocking-waiting here for the procedure to finish...
             if (!MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load)) {
                 // TODO tell user that he has already loaded filament if he really wants to continue
                 // TODO check fsensor .. how should I behave if filament is not detected ???
@@ -897,7 +898,8 @@ bool Pause::filamentUnload(loop_fn fn) {
         return false;
     }
 
-    if (!ensureSafeTemperatureNotifyProgress(0, 50) && fn != &Pause::loop_unloadFromGear) {
+    // loop_unload_mmu has it's own preheating sequence, use that one for better progress reporting
+    if (fn != &Pause::loop_unload_mmu && !ensureSafeTemperatureNotifyProgress(0, 50) && fn != &Pause::loop_unloadFromGear) {
         return false;
     }
 

@@ -85,6 +85,9 @@ namespace {
         //   update_telemetry block, we just enter it. If it happens after, it
         //   has no effect (it's been already skipped).
         const bool update_telemetry = state.telemetry_changes.set_hash(current_fingerprint);
+        // Prepare them before the hidden switch
+        const auto error_details = state.printer.err_details();
+
         // Keep the indentation of the JSON in here!
         // clang-format off
         JSON_START;
@@ -113,6 +116,12 @@ namespace {
                     JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
                     if (params.time_to_end != marlin_server::TIME_TO_END_INVALID) {
                         JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
+                    }
+                    if (params.time_to_pause != marlin_server::TIME_TO_END_INVALID) {
+                        // Connect calls it "filament change". Slicer "Time to
+                        // color change". But in reality it is both pause and
+                        // filament change (M600 / M601).
+                        JSON_FIELD_INT("filament_change_in", params.time_to_pause) JSON_COMMA;
                     }
                     JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
                 }
@@ -169,6 +178,12 @@ namespace {
 
                 if (params.state.device_state == DeviceState::Attention && params.state.attention_code.has_value()) {
                     JSON_FIELD_STR("attention_code", to_str(*params.state.attention_code, attention_code_buffer, sizeof(attention_code_buffer))) JSON_COMMA;
+                }
+                if (params.state.device_state == DeviceState::Error && get<const char *>(error_details) != nullptr) {
+                    JSON_FIELD_STR("reason", get<const char *>(error_details)) JSON_COMMA;
+                    if (get<uint16_t>(error_details) != 0) { // 0 means unknown / not available
+                        JSON_FIELD_INT("error_code", get<uint16_t>(error_details)) JSON_COMMA;
+                    }
                 }
                 // State is sent always, first because it seems important, but
                 // also, we want something that doesn't have the final comma on
@@ -427,6 +442,7 @@ namespace {
                             JSON_OBJ_START;
                                 //Note: The name has to be copied inside this call, so that it cannot be skipped, if this does not fit the first time.
                                 JSON_FIELD_STR("name", state.printer.get_cancel_object_name(cancel_object_name, sizeof(cancel_object_name), state.cancelabel_iter)) JSON_COMMA;
+                                JSON_FIELD_BOOL("canceled", TEST(state.printer.params().cancel_object_mask, state.cancelabel_iter)) JSON_COMMA;
                                 JSON_FIELD_INT("id", state.cancelabel_iter);
                             JSON_OBJ_END;
                             if (state.cancelabel_iter != params.cancel_object_count - 1) {
