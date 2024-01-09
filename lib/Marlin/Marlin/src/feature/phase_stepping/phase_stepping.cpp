@@ -605,7 +605,8 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     // - current lookup: 800 ns
     // - Quick transmission: 900ns (time from call to first bit) + 1µs transaction termination
 
-    uint32_t now = ticks_us();
+    static constexpr uint REFRESH_PERIOD_US = 1'000'000 / REFRESH_FREQ;
+    uint32_t now = ticks_us() + REFRESH_PERIOD_US;
 
     // always refresh the last_timer_tick
     uint32_t old_tick = last_timer_tick;
