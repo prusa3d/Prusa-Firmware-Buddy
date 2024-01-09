@@ -2563,7 +2563,7 @@ static void _server_update_vars() {
     }
 
 #if ENABLED(CANCEL_OBJECTS)
-    marlin_vars()->cancel_object_mask = cancelable.canceled; // Canceled objects
+    marlin_vars()->set_cancel_object_mask(cancelable.canceled); // Canceled objects
     marlin_vars()->cancel_object_count = cancelable.object_count; // Total number of objects
 #endif /*ENABLED(CANCEL_OBJECTS)*/
 
