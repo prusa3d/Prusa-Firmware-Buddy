@@ -149,8 +149,10 @@ constexpr const char *to_string(Item item) {
     case Item::heatbreak_fan:
 #ifdef USE_ST7789
         return N_("Hbrk fan");
+#elif PRINTER_IS_PRUSA_MK3_5
+        return N_("Hotend Fan");
 #else
-        return N_("Heatbreak fan");
+        return N_("Heatbreak Fan");
 #endif
     case Item::input_shaper_x:
         return N_("Input Shaper X");
