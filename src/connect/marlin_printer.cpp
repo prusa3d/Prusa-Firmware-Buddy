@@ -179,7 +179,7 @@ Printer::Params MarlinPrinter::params() const {
     get_slot_info(params);
 #if ENABLED(CANCEL_OBJECTS)
     params.cancel_object_count = marlin_vars()->cancel_object_count;
-    params.cancel_object_mask = marlin_vars()->cancel_object_mask;
+    params.cancel_object_mask = marlin_vars()->get_cancel_object_mask();
 #endif
 
     params.print_duration = marlin_vars()->print_duration;
@@ -224,7 +224,7 @@ uint32_t MarlinPrinter::cancelable_fingerprint() const {
     }
     crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.job_id), sizeof(parameters.job_id));
     crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.cancel_object_count), sizeof(parameters.cancel_object_count));
-    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.cancel_object_mask), sizeof(parameters.cancel_object_count));
+    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.cancel_object_mask), sizeof(parameters.cancel_object_mask));
 #endif
     return crc;
 }

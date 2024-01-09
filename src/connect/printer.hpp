@@ -103,7 +103,7 @@ public:
         printer_state::StateWithDialog state = { printer_state::DeviceState::Unknown, std::nullopt };
 #if ENABLED(CANCEL_OBJECTS)
         size_t cancel_object_count = 0;
-        uint32_t cancel_object_mask = 0;
+        uint64_t cancel_object_mask = 0;
 #endif
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;
