@@ -332,7 +332,9 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     axis_state.initial_count_position = Stepper::get_axis_steps(axis_num) - initial_steps_made;
     axis_state.initial_count_position_from_startup = Stepper::get_axis_steps_from_startup(axis_num) - initial_steps_made;
 
+    axis_state.missed_tx_cnt = 0;
     axis_state.active = true;
+
     auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
     PreciseStepping::physical_axis_step_generator_types |= enable_mask;
 
@@ -439,9 +441,8 @@ int phase_stepping::phase_difference(int a, int b) {
     return std::min(direct_diff, cyclic_diff);
 }
 
-static void mark_missed_transaction() {
-    AxisState &axis_state = *axis_states[axis_num_to_refresh];
-    axis_state.missed_tx_cnt++;
+static void mark_missed_transaction(AxisState &axis_state) {
+    ++axis_state.missed_tx_cnt;
     if (axis_state.missed_tx_cnt > ALLOWED_MISSED_TX) {
         bsod("Phase stepping: Too many missed transactions");
     }
@@ -476,28 +477,30 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     uint32_t now = ticks_us();
 
     phase_stepping::spi::finish_transmission();
-    if (!phase_stepping::spi::initialize_transaction()) {
-        mark_missed_transaction();
-        return;
-    }
 
     ++axis_num_to_refresh;
     if (axis_num_to_refresh == axis_states.size()) {
         axis_num_to_refresh = 0;
     }
+    AxisState &axis_state = *axis_states[axis_num_to_refresh];
 
+    // always refresh the last_timer_tick
     uint32_t old_tick = last_timer_tick;
     last_timer_tick = now;
-    if (!is_refresh_period_sane(now, old_tick)) {
-        // If the ISR handler was delayed, we don't have enough time to process
-        // the update. Abort the update so we can catch up.
-        mark_missed_transaction();
+
+    if (!axis_state.active) {
         return;
     }
 
-    AxisState &axis_state = *axis_states[axis_num_to_refresh];
+    if (!is_refresh_period_sane(now, old_tick)) {
+        // If the ISR handler was delayed, we don't have enough time to process
+        // the update. Abort the update so we can catch up.
+        mark_missed_transaction(axis_state);
+        return;
+    }
 
-    if (!axis_state.active) {
+    if (!phase_stepping::spi::initialize_transaction()) {
+        mark_missed_transaction(axis_state);
         return;
     }
 
@@ -559,6 +562,9 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
 
     axis_state.last_position = position;
     axis_state.last_phase = new_phase;
+
+    axis_state.missed_tx_cnt = 0;
+    axis_state.last_timer_tick = last_timer_tick;
 }
 
 bool phase_stepping::any_axis_active() {

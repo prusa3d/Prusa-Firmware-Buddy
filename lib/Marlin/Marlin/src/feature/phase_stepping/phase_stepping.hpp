@@ -66,7 +66,8 @@ struct AxisState {
     int32_t initial_count_position = 0; // Value for updating Stepper::count_position
     int32_t initial_count_position_from_startup = 0; // Value for updating Stepper::count_position_from_startup
 
-    int missed_tx_cnt = 0;
+    uint32_t missed_tx_cnt = 0;
+    uint32_t last_timer_tick = 0;
 };
 
 /**
