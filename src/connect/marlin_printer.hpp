@@ -25,6 +25,7 @@ private:
     //, because we want to shield unit tests from marlin stuff, but we want to be
     // sure everything fits.
     static_assert(marlin_vars_t::CANCEL_OBJECT_NAME_LEN == Printer::CANCEL_OBJECT_NAME_LEN);
+    static_assert(marlin_vars_t::CANCEL_OBJECTS_NAME_COUNT == Printer::CANCEL_OBJECT_NAME_COUNT);
 #endif
 
 protected:

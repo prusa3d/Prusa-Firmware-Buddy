@@ -441,7 +441,13 @@ namespace {
                             //right after we would generate next event with the correct ones, so it is OK.
                             JSON_OBJ_START;
                                 //Note: The name has to be copied inside this call, so that it cannot be skipped, if this does not fit the first time.
-                                JSON_FIELD_STR("name", state.printer.get_cancel_object_name(cancel_object_name, sizeof(cancel_object_name), state.cancelabel_iter)) JSON_COMMA;
+                                //
+                                // Also we store only CANCEL_OBJECT_NAME_COUNT names, but can cancel up to the number of bits in the cancel_object_mask
+                                // objects, for the rest we still want to say, if they are canceled or not.
+                                if (state.cancelabel_iter < Printer::CANCEL_OBJECT_NAME_COUNT) {
+
+                                    JSON_FIELD_STR("name", state.printer.get_cancel_object_name(cancel_object_name, sizeof(cancel_object_name), state.cancelabel_iter)) JSON_COMMA;
+                                }
                                 JSON_FIELD_BOOL("canceled", TEST(params.cancel_object_mask, state.cancelabel_iter)) JSON_COMMA;
                                 JSON_FIELD_INT("id", state.cancelabel_iter);
                             JSON_OBJ_END;
