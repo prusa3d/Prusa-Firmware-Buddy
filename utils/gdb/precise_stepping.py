@@ -74,3 +74,24 @@ class StepEventPrinter:
 
 
 gdb.pretty_printers.append(StepEventPrinter.register)
+
+
+# Full step-event-queue prettyprinter
+class PrintStepEventQueue(gdb.Command):
+    def __init__(self):
+        super().__init__('ps-step-event-queue', gdb.COMMAND_USER)
+
+    def invoke(self, cmd, from_tty):
+        seq = gdb.lookup_symbol('PreciseStepping::step_event_queue')[0].value()
+        data = seq['data']
+        head = int(seq['head'])
+        tail = int(seq['tail'])
+        size = data.type.range()[1] + 1
+        items = head - tail if head >= tail else (head + size) - tail
+        print(f'step_event_queue: {items}/{size}')
+        for n in range(tail, tail + items):
+            i = n % size
+            print(f'[{i:4}]', str(data[i]))
+
+
+PrintStepEventQueue()
