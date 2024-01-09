@@ -499,7 +499,11 @@ public:
 };
 
 class MI_INFO_HBR_FAN : public WI_FAN_LABEL_t {
+#if PRINTER_IS_PRUSA_MK3_5
+    static constexpr const char *const label = N_("Hotend Fan");
+#else
     static constexpr const char *const label = N_("Heatbreak Fan");
+#endif
 
 public:
     MI_INFO_HBR_FAN();
