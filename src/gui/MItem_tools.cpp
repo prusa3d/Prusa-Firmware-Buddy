@@ -150,7 +150,7 @@ void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
 // MI_LIVE_ADJUST_Z
 MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes,
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
         is_hidden_t::no
 #else
         is_hidden_t::dev
