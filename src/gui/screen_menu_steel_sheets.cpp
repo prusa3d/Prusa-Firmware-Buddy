@@ -120,7 +120,7 @@ void ISheetProfileMenuScreen::windowEvent(EventLock /*has private ctor*/, window
 #endif // _DEBUG
         break;
     default:
-        log_debug(GUI, "Click: %d\n", static_cast<uint32_t>(action));
+        log_debug(GUI, "Click: %lu\n", static_cast<uint32_t>(action));
         break;
     }
 }
