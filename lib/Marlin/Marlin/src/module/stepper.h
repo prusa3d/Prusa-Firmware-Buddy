@@ -415,7 +415,7 @@ class Stepper {
     // Get the position of a stepper, in steps
     static int32_t position(const AxisEnum axis);
     static int32_t position_from_startup(const AxisEnum axis);
-    
+
     // Report the positions of the steppers, in steps
     static void report_positions();
 
@@ -544,6 +544,10 @@ class Stepper {
       count_position_from_startup[a] = steps_made;
     }
 
+    static void add_axis_steps(const AxisEnum a, long steps_made) {
+      count_position[a] += steps_made;
+      count_position_from_startup[a] += steps_made;
+    }
 private:
 
     // Set the current position in steps

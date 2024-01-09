@@ -297,10 +297,12 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     auto &axis_state = *axis_states[axis_num];
     assert(!axis_state.active && !axis_state.target.has_value() && axis_state.pending_targets.isEmpty());
 
+    axis_state.phase_leftover = 0;
+
 #if HAS_BURST_STEPPING()
     axis_state.original_microsteps = stepper.microsteps();
     axis_state.last_position = 0;
-    axis_state.last_phase = axis_state.zero_rotor_phase = stepper.MSCNT();
+    axis_state.last_phase = axis_state.zero_rotor_phase = axis_state.driver_phase = stepper.MSCNT();
     axis_state.had_interpolation = stepper.intpol();
     stepper.intpol(false);
     stepper.microsteps(256);
@@ -324,7 +326,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // We initialize the zero rotor phase to current phase. The following move
     // segment to come will be move segment to zero, let's prepare for that.
     axis_state.zero_rotor_phase = current_phase;
-    axis_state.last_phase = current_phase;
+    axis_state.last_phase = axis_state.driver_phase = current_phase;
     axis_state.last_position = 0.;
     axis_state.target = MoveTarget(axis_state.last_position);
 #endif
@@ -542,20 +544,21 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
     assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
     // Report movement to Stepper
-    int32_t steps_made = pos_to_steps(axis_num_to_refresh, position);
-    Stepper::set_axis_steps(AxisEnum(axis_num_to_refresh),
-        axis_state.initial_count_position + steps_made);
-    Stepper::set_axis_steps_from_startup(AxisEnum(axis_num_to_refresh),
-        axis_state.initial_count_position_from_startup + steps_made);
+    // int32_t steps_made = pos_to_steps(axis_num_to_refresh, position);
+    // Stepper::set_axis_steps(AxisEnum(axis_num_to_refresh),
+    //     axis_state.initial_count_position + steps_made);
+    // Stepper::set_axis_steps_from_startup(AxisEnum(axis_num_to_refresh),
+    //     axis_state.initial_count_position_from_startup + steps_made);
 
     const auto &current_lut = physical_speed > 0
         ? axis_state.forward_current
         : axis_state.backward_current;
 
 #if HAS_BURST_STEPPING()
-    new_phase = normalize_motor_phase(new_phase + current_lut.get_phase_shift(new_phase));
-    int steps_diff = phase_difference(new_phase, axis_state.last_phase);
+    int shifted_phase = normalize_motor_phase(new_phase + current_lut.get_phase_shift(new_phase));
+    int steps_diff = phase_difference(shifted_phase, axis_state.driver_phase);
     burst_stepping::set_phase_diff(axis_enum, steps_diff);
+    axis_state.driver_phase = shifted_phase;
 #else
     auto [a, b] = current_lut.get_current(new_phase);
     int c_adj = current_adjustment(axis_index, mm_to_rev(axis_enum, physical_speed));
@@ -564,6 +567,22 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
 
     spi::set_xdirect(axis_index, a, b);
 #endif
+
+    // Report movement to Stepper
+    int ustep_width = phase_per_ustep(axis_index);
+
+    int old_phase_leftover = axis_state.phase_leftover;
+    bool had_rounding_step = std::abs(old_phase_leftover) > ustep_width / 2;
+    int old_rounding_steps = std::copysign(had_rounding_step ? 1 : 0, old_phase_leftover);
+
+    axis_state.phase_leftover += phase_difference(new_phase, axis_state.last_phase);
+    int steps = axis_state.phase_leftover / ustep_width;
+    axis_state.phase_leftover -= steps * ustep_width;
+
+    bool has_rounding_step = std::abs(axis_state.phase_leftover) > ustep_width / 2;
+    int rounding_steps = std::copysign(has_rounding_step ? 1 : 0, axis_state.phase_leftover);
+
+    Stepper::add_axis_steps(axis_enum, resolve_axis_inversion(axis_state.inverted, steps - old_rounding_steps + rounding_steps));
 
     axis_state.last_position = position;
     axis_state.last_phase = new_phase;
@@ -676,6 +695,21 @@ float phase_stepping::mm_to_rev(int motor, float mm) {
         return ret;
     }();
     return mm * FACTORS[motor];
+}
+
+int phase_stepping::phase_per_ustep(int axis) {
+    static constinit std::array<int, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
+        static_assert(SUPPORTED_AXIS_COUNT <= 3);
+
+        int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
+
+        std::array<int, SUPPORTED_AXIS_COUNT> ret;
+        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
+            ret[i] = 256 / MICROSTEPS[i];
+        }
+        return ret;
+    }();
+    return FACTORS[axis];
 }
 
 __attribute__((optimize("-Ofast"))) std::tuple<float, float> phase_stepping::axis_position(const AxisState &axis_state, uint32_t move_epoch) {
