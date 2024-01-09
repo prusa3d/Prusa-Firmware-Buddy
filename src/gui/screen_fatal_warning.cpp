@@ -49,8 +49,8 @@ ScreenFatalWarning::ScreenFatalWarning()
 
     img::enable_resource_file();
 
-    help_link.set_font(Font::small);
-    qr_code_txt.set_font(Font::small);
+    help_link.set_font(resource_font(IDR_FNT_SMALL));
+    qr_code_txt.set_font(resource_font(IDR_FNT_SMALL));
     err_title.SetAlignment(Align_t::LeftTop());
 
     help_link.SetAlignment(Align_t::LeftTop());
