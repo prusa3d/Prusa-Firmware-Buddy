@@ -56,6 +56,7 @@ public:
 
 #if ENABLED(CANCEL_OBJECTS)
     static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32;
+    static constexpr size_t CANCEL_OBJECT_NAME_COUNT = 16;
 #endif
 
     class Params {
