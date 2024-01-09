@@ -380,7 +380,6 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     stepper.rms_current(stepper.rms_current(), axis_state.initial_hold_multiplier);
 
     if (!any_axis_active()) {
-        HAL_TIM_OC_Stop_IT(&TIM_HANDLE_FOR(phase_stepping), TIM_CHANNEL_1);
         HAL_TIM_Base_Stop_IT(&TIM_HANDLE_FOR(phase_stepping));
     }
 }
