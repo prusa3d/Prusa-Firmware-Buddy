@@ -762,7 +762,7 @@ msgstr "%d Test Calentador Cama"
 #: src/gui/include_XL/selftest_snake_config.hpp:120
 #, c-format
 msgid "%d Dock Position Calibration"
-msgstr "Calibración Posición Dock %d"
+msgstr "%d Calibración Posición Dock"
 
 #: src/gui/MItem_lan.hpp:50
 msgid "Default"
@@ -823,7 +823,7 @@ msgstr "%d Calibración Engranajes"
 #: src/gui/include_XL/selftest_snake_config.hpp:124
 #, c-format
 msgid "%d Heater Test"
-msgstr "Test Calentador %d"
+msgstr "%d Test Calentador"
 
 #: src/gui/MItem_menus.hpp:299
 msgid "Diagnostics"
@@ -1095,7 +1095,7 @@ msgstr "%d Test Eje X"
 #: src/gui/include_MINI/selftest_snake_config.hpp:76
 #, c-format
 msgid "%d XY Axis Test"
-msgstr "Test Ejes XY %d"
+msgstr "%d Test Ejes XY"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:118
 #, c-format
