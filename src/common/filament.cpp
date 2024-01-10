@@ -12,9 +12,6 @@ const filament::Description filaments[size_t(filament::Type::_last) + 1] = {
     { "---", 0, 0, 0, Response::Cooldown },
     { BtnResponse::GetText(Response::PLA), 215, 170, 60, Response::PLA },
     { BtnResponse::GetText(Response::PETG), 230, 170, 85, Response::PETG },
-#if PRINTER_IS_PRUSA_iX
-    { BtnResponse::GetText(Response::PETG_NH), 230, 170, 0, Response::PETG_NH },
-#endif // PRINTER_IS_PRUSA_iX
     { BtnResponse::GetText(Response::ASA), 260, 170, 100, Response::ASA },
 #if HAS_LOADCELL()
     { BtnResponse::GetText(Response::PC), 275, 170, 100, Response::PC },

@@ -47,7 +47,6 @@ const std::array<BtnResource, ftrstd::to_underlying(Response::_count)> BtnRespon
     std::make_pair( N_("PAUSE"),            &img::pause_58x58 ),        // Pause
     std::make_pair( "PC",                   &img::spool_58x58 ),        // PC filament, do not translate
     std::make_pair( "PETG",                 &img::spool_58x58 ),        // PETG filament, do not translate
-    std::make_pair( "PETG_NH",              &img::spool_58x58 ),        // PETG_NH
     std::make_pair( "PLA",                  &img::spool_58x58 ),        // PLA filament, do not translate
     std::make_pair( "PP",                   &img::spool_58x58 ),        // PP filament, do not translate
     std::make_pair( "Print",                &img::print_58x58 ),        // Print

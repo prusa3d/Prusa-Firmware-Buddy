@@ -17,9 +17,6 @@ enum class Type : uint8_t {
     NONE = 0,
     PLA,
     PETG,
-#if PRINTER_IS_PRUSA_iX
-    PETG_NH,
-#endif
     ASA,
     PC,
     PVB,

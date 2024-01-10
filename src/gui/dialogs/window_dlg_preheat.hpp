@@ -59,9 +59,6 @@ using WinMenuContainer = WinMenuContainer<
     MI_RETURN,
     MI_Filament<filament::Type::PLA>,
     MI_Filament<filament::Type::PETG>,
-#if PRINTER_IS_PRUSA_iX
-    MI_Filament<filament::Type::PETG_NH>,
-#endif
     MI_Filament<filament::Type::ASA>,
     MI_Filament<filament::Type::PC>,
     MI_Filament<filament::Type::PVB>,

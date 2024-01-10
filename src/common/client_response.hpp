@@ -447,9 +447,6 @@ class ClientResponses {
     static constexpr PhaseResponses PreheatResponses[] = {
         {}, //_first
         { Response::Abort, Response::Cooldown, Response::PLA, Response::PETG,
-#if PRINTER_IS_PRUSA_iX
-            Response::PETG_NH,
-#endif
             Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA }, // UserTempSelection
     };
     static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
