@@ -18,6 +18,7 @@
 #ifndef UNITTEST
     // because it brings in whole Marlin and the unit tests commit suicide ...
     #include "../../../module/prusa/spool_join.hpp"
+    #include <metric.h>
 #else
     #include "stubs/spool_join_stub.h"
 #endif
@@ -29,6 +30,10 @@
 static_assert(EXTRUDERS == 1);
 
 constexpr float MMM_TO_MMS(float MM_M) { return MM_M / 60.0f; }
+#else
+    #ifndef UNITTEST
+METRIC_DEF(metric_unloadDistanceFSOff, "mmu_unl_fs_trg_dist", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
+    #endif
 #endif
 
 namespace {
@@ -244,6 +249,16 @@ bool MMU2::ReadRegister(uint8_t address) {
     return true;
 }
 
+/// an extension to MMU register map - abusing the existing principles:
+/// - existing gcode M708 for runtime parametrization
+/// - existing infrastructure
+/// - avoiding propagation of MMU-specific stuff outside
+/// @note must not clash with Registers
+enum class MK4Register : uint8_t {
+    TryLoadVsEStall = 0x80, // 0 tryload, 1 estall
+    NominalEPosFSOff = 0x81, // 14mm
+};
+
 bool __attribute__((noinline)) MMU2::WriteRegister(uint8_t address, uint16_t data) {
     if (!WaitForMMUReady()) {
         return false;
@@ -257,6 +272,12 @@ bool __attribute__((noinline)) MMU2::WriteRegister(uint8_t address, uint16_t dat
     case (uint8_t)Register::Pulley_Slow_Feedrate:
         logic.PlanPulleySlowFeedRate(data);
         break;
+
+    case (uint8_t)MK4Register::TryLoadVsEStall:
+        return true; // not an MMU register @@TODO
+    case (uint8_t)MK4Register::NominalEPosFSOff:
+        nominalEMotorFSOffReg = data; // raw millimeters
+        return true; // not an MMU register
     default:
         break; // do not intercept any other register writes
     }
@@ -413,7 +434,6 @@ bool MMU2::FeedWithEStallDetection() {
     static constexpr float feedRate = MMU2_FEED_RATE;
 
     // ram the filament as deep as possible while checking for any obstacles
-    static constexpr float feedDistance = MMU2_FEED_DISTANCE;
 
     #ifndef UNITTEST
     // get the best out of the HX717
@@ -435,8 +455,17 @@ bool MMU2::FeedWithEStallDetection() {
     // lower the detection threshold to overcome the sampling rate limitation - see explanation above
     emsd.SetDetectionThreshold(500'000.F);
 
-    // plan the move
-    extruder_move(feedDistance, feedRate);
+    // plan the move and tweak by the amount of presumably remaining molten filament in the melt zone
+    float remainingFilament = std::clamp(unloadEPosOnFSOff, 0.F, nominalEMotorFSOffReg); // anything below nominal distance will get subtracted from the load
+    float compensatedFeedDistance = MMU2_FEED_DISTANCE - nominalEMotorFSOffReg + remainingFilament;
+
+    { // dump the compensated feed distance into the syslog for verification
+        char msg[32];
+        snprintf(msg, sizeof(msg), "CompensatedFeedDistance=%2.1f", (double)compensatedFeedDistance);
+        LogEchoEvent_P(msg);
+    }
+
+    extruder_move(compensatedFeedDistance, feedRate);
     while (planner_any_moves()) {
         if (emsd.DetectedRaw()) {
             planner_abort_queued_moves(); // stop instantly
@@ -473,6 +502,7 @@ bool MMU2::VerifyFilamentEnteredPTFE() {
 
 bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
     static_assert(MAX_RETRIES > 1); // need >1 retries to do the cut in the last attempt
+    std::optional<float> firstUnloadEPosOnFSOff = std::nullopt;
     for (uint8_t retries = MAX_RETRIES; retries; --retries) {
         for (;;) {
             Disable_E0(); // it may seem counterintuitive to disable the E-motor, but it gets enabled in the planner whenever the E-motor is to move
@@ -485,8 +515,30 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
             if (extruder != MMU2_NO_TOOL) {
                 extruder_move(MMU2_RETRY_UNLOAD_FINISH_LENGTH, MMU2_RETRY_UNLOAD_FINISH_FEED_RATE);
             }
-            planner_synchronize();
 
+            // Monitor the fsensor - detect the current E-motor stepper position when fsensor turns off.
+            // That switch has some ideal (or expected) distance,
+            // but in case some of the filament remains in the melt zone the distance gets shorter.
+            // The main problem here is the fact, that we need to call the whole marlin infrastructure and there is no simple place to hook into.
+            // Therefore I had to copy planner.synchronize(), which is a nasty hack.
+            auto fs = WhereIsFilament(); // we assume fsensor is still on ... if it isn't we don't do any corrections later
+            float unlFSOff = stepper_get_machine_position_E_mm();
+            planner_synchronize_hook([&]() {
+                if (auto currentFS = WhereIsFilament(); fs != currentFS && currentFS == FilamentState::NOT_PRESENT) {
+                    // fsensor just turned off, remember the E-motor stepper position
+                    unlFSOff -= stepper_get_machine_position_E_mm();
+                    fs = currentFS; // avoid further records
+                }
+            });
+            // Save just the very first unload attempt - that's the "amount" of filament left in the melt zone.
+            // Repeated unload and reload attempts are not interesting for the compensation later.
+            if (!firstUnloadEPosOnFSOff.has_value()) {
+                firstUnloadEPosOnFSOff = unlFSOff;
+            }
+#ifndef UNITTEST
+            // Record as a metric each attempt
+            metric_record_float(&metric_unloadDistanceFSOff, unlFSOff);
+#endif
             logic.ToolChange(slot); // let the MMU pull the filament out and push a new one in
             if (manage_response(true, true)) {
                 break;
@@ -504,6 +556,8 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
             // something else is seriously broken and stopping a print is probably our best option.
         }
         if (VerifyFilamentEnteredPTFE()) {
+            // make sure we don't assert on not having a value (shouldn't be possible)
+            unloadEPosOnFSOff = firstUnloadEPosOnFSOff.value_or(nominalEMotorFSOffReg);
             return true; // success
         } else { // Prepare a retry attempt
             UnloadInner(PreUnloadPolicy::ExtraRelieveFilament);

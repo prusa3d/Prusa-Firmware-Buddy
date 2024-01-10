@@ -593,6 +593,9 @@ class Planner {
     // Check if movement queue is full
     FORCE_INLINE static bool is_full() { return block_buffer_tail == next_block_index(block_buffer_head); }
 
+    // Set emptying buffer
+    FORCE_INLINE static void set_emptying_buffer(bool b) { emptying_buffer = b; }
+
     // Get count of movement slots free
     FORCE_INLINE static uint8_t moves_free() { return BLOCK_BUFFER_SIZE - 1 - movesplanned(); }
 

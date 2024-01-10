@@ -5,6 +5,7 @@
 /// - enable unit testing of MMU top layer
 #pragma once
 #include <stdint.h>
+#include <functional>
 
 namespace MMU2 {
 
@@ -29,6 +30,9 @@ float move_raise_z(float delta);
 
 void planner_abort_queued_moves();
 void planner_synchronize();
+
+void planner_synchronize_hook(std::function<void()> f);
+
 bool planner_draining();
 bool planner_any_moves();
 uint8_t planner_moves_planned_count();

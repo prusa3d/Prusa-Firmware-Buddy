@@ -388,6 +388,14 @@ private:
 
     /// MMU originated CIP reports have a custom guard - this variable holds whether we have called incGuard for that case
     bool mmuOriginatedCommandGuard = false;
+
+    /// Default nominal unload fsensor trigger distance.
+    /// As this largely depends on the slicer profile, a register for setting a custom value is provided along with it.
+    static constexpr float nominalEMotorFSOff = 14.0F;
+    /// The "register" allowing user tweaking of the nominal trigger distance. Set a custom value through M708 A0x81 Xsomething.
+    float nominalEMotorFSOffReg = nominalEMotorFSOff;
+    /// A record of the last E-motor position when fsensor turned off while unloading
+    float unloadEPosOnFSOff = nominalEMotorFSOff;
 };
 
 /// following Marlin's way of doing stuff - one and only instance of MMU implementation in the code base

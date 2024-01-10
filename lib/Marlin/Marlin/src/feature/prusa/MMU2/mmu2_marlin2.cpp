@@ -44,6 +44,22 @@ void planner_synchronize() {
     planner.synchronize();
 }
 
+float stepper_get_machine_position_E_mm() {
+    // it really depends on the coherence of sampling from the stepper
+    // we don't need any extra precision, 1mm should be enough
+    return planner.get_axis_position_mm(E_AXIS);
+}
+
+void planner_synchronize_hook(std::function<void()> f) {
+    bool emptying_buffer_orig = planner.emptying();
+    planner.set_emptying_buffer(true);
+    while (planner.busy()) {
+        idle(true);
+        f();
+    }
+    planner.set_emptying_buffer(emptying_buffer_orig);
+}
+
 bool planner_any_moves() {
     return planner.processing();
 }
