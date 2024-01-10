@@ -104,7 +104,7 @@ void burst_stepping::init() {
 }
 
 __attribute__((optimize("-Ofast"))) void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
-    if (axis > SUPPORTED_AXIS_COUNT) {
+    if (axis >= SUPPORTED_AXIS_COUNT) {
         bsod("Unsupported axis");
     }
 
