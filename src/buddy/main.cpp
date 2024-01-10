@@ -354,7 +354,7 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if HAS_GUI() && !(BOARD_IS_XLBUDDY)
-    hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
+    hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
 #endif
 
 #if BOARD_IS_XLBUDDY
@@ -710,8 +710,11 @@ void init_error_screen() {
     if constexpr (option::has_gui) {
         // init lcd spi and timer for buzzer
         SPI_INIT(lcd);
+
 #if !(_DEBUG)
-        hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
+    #if HAS_GUI() && !(BOARD_IS_XLBUDDY)
+        hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
+    #endif
 #endif
 
         init_only_littlefs();
