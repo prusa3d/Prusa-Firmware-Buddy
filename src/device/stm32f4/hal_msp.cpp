@@ -792,7 +792,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base) {
         /* Peripheral clock enable */
         __HAL_RCC_TIM13_CLK_ENABLE();
 
-        HAL_NVIC_SetPriority(TIM8_UP_TIM13_IRQn, ISR_PRIORITY_STEP_TIMER, 1);
+        HAL_NVIC_SetPriority(TIM8_UP_TIM13_IRQn, ISR_PRIORITY_PHASE_TIMER, 1);
         HAL_NVIC_EnableIRQ(TIM8_UP_TIM13_IRQn);
     } else if (htim_base->Instance == TIM14) {
         /* Peripheral clock enable */
