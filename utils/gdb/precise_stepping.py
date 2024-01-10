@@ -100,3 +100,38 @@ class PrintStepEventQueue(gdb.Command):
 
 
 PrintStepEventQueue()
+
+
+# MoveFlag_t prettyprinter
+class MoveFlagPrinter:
+    def __init__(self, val):
+        self.val = val
+
+    def to_string(self):
+        bits = int(self.val)
+
+        dirs = StepEventFlagPrinter.dirs(bits >> 4)
+        act = StepEventFlagPrinter.xyze(bits >> 8)
+        reset = StepEventFlagPrinter.xyze(bits >> 16)
+
+        phase = ''
+        phase += _bit_flag(bits, 0, '-A')  # ACCELERATION_PHASE
+        phase += _bit_flag(bits, 2, '-C')  # CRUISE_PHASE
+        phase += _bit_flag(bits, 1, '-D')  # DECELERATION_PHASE
+
+        flags = ''
+        flags += _bit_flag(bits, 12, '-F')  # FIRST_MOVE_SEGMENT_OF_BLOCK
+        flags += _bit_flag(bits, 13, '-L')  # LAST_MOVE_SEGMENT_OF_BLOCK
+        flags += _bit_flag(bits, 14, '-B')  # BEGINNING_EMPTY_MOVE
+        flags += _bit_flag(bits, 15, '-E')  # ENDING_EMPTY_MOVE
+
+        return f'|P:{phase} D:{dirs} A:{act} R:{reset} F:{flags}|'
+
+    @classmethod
+    def register(cls, val):
+        if str(val.type) == 'MoveFlag_t':
+            return cls(val)
+        return None
+
+
+gdb.pretty_printers.append(MoveFlagPrinter.register)
