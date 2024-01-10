@@ -156,9 +156,9 @@ int32_t read_reg(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len) {
 
 void init() {
     assert(!initialized);
-    debug.clear();
 
-    clear();
+    // Disable interrupt
+    buddy::hw::lis2dh12_data.disableIRQ();
 
     // Initialize driver
     dev_ctx.write_reg = write_reg;
@@ -197,6 +197,10 @@ void init() {
     }
     int16_t dummy_accel[3];
     lis2dh12_acceleration_raw_get(&dev_ctx, dummy_accel);
+
+    // Clear local data structures
+    clear();
+    debug.clear();
 
     // Mark initialized before enabling the IRQ
     initialized = true;
