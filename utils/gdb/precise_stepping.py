@@ -1,5 +1,7 @@
 import gdb
 
+PS_TICK_FREQ = 1000000
+
 
 def _bit_flag(bits, pos, fmt):
     v = int((bits & (1 << pos)) != 0)
@@ -88,10 +90,13 @@ class PrintStepEventQueue(gdb.Command):
         tail = int(seq['tail'])
         size = data.type.range()[1] + 1
         items = head - tail if head >= tail else (head + size) - tail
+        ticks = 0
         print(f'step_event_queue: {items}/{size}')
         for n in range(tail, tail + items):
             i = n % size
-            print(f'[{i:4}]', str(data[i]))
+            ms = ticks / PS_TICK_FREQ * 1000
+            print(f'[{i:4}]', str(data[i]), f'{ms:7.3f}ms')
+            ticks += int(data[i]['time_ticks'])
 
 
 PrintStepEventQueue()
