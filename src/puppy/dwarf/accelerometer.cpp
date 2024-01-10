@@ -15,8 +15,6 @@ using namespace buddy::hw;
 
 namespace {
 static constexpr size_t ACCELEROMETER_BUFFER_RECORDS_NUM = 120;
-static constexpr lis2dh12_odr_t low_sample_rate = LIS2DH12_ODR_400Hz;
-static constexpr lis2dh12_odr_t high_sample_rate = LIS2DH12_ODR_5kHz376_LP_1kHz344_NM_HP;
 
 CircleBuffer<AccelerometerRecord, ACCELEROMETER_BUFFER_RECORDS_NUM> sample_buffer;
 size_t sample_buffer_watermark = 0;
@@ -28,7 +26,6 @@ size_t samples_extracted = 0;
 size_t overflown_count = 0;
 size_t overflown_logged_count = 0;
 
-lis2dh12_odr_t current_sample_rate = low_sample_rate;
 stmdev_ctx_t dev_ctx;
 std::atomic<bool> initialized = false;
 
@@ -191,7 +188,7 @@ void init() {
     lis2dh12_pin_int1_config_set(&dev_ctx, &reg3);
     lis2dh12_full_scale_set(&dev_ctx, LIS2DH12_2g);
     lis2dh12_operating_mode_set(&dev_ctx, LIS2DH12_NM_10bit);
-    lis2dh12_data_rate_set(&dev_ctx, current_sample_rate);
+    lis2dh12_data_rate_set(&dev_ctx, LIS2DH12_ODR_5kHz376_LP_1kHz344_NM_HP);
 
     // Wait for sample and throw it away to make sure interrupt is not already pending
     lis2dh12_status_reg_t status {};
@@ -298,22 +295,6 @@ void dwarf::accelerometer::set_enable(bool enabled) {
 
 bool dwarf::accelerometer::is_enabled() {
     return initialized;
-}
-
-void dwarf::accelerometer::set_high_sample_rate(bool high) {
-    current_sample_rate = high ? high_sample_rate : low_sample_rate;
-
-    if (!initialized) {
-        return;
-    }
-
-    lis2dh12_data.disableIRQ();
-    lis2dh12_data_rate_set(&dev_ctx, current_sample_rate);
-    lis2dh12_data.enableIRQ();
-}
-
-bool dwarf::accelerometer::is_high_sample_rate() {
-    return current_sample_rate == high_sample_rate;
 }
 
 float dwarf::accelerometer::measured_sampling_rate() {

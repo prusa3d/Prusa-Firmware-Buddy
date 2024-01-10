@@ -28,7 +28,6 @@ enum class MessageType : uint8_t {
     no_data = 0, // Padding
     log = 1,
     loadcell = 2,
-    accelerometer = 3, ///< Single sample with timestamp
     accelerometer_fast = 4, ///< Multiple samples without timestamp
     accelerometer_sampling_rate = 5, /// Single floating point number with frequency in Hz
     // ...
@@ -50,10 +49,6 @@ typedef struct __attribute__((packed)) {
 } LoadcellRecord;
 
 typedef std::array<char, 8> LogData;
-typedef struct __attribute__((packed)) {
-    TimeStamp_us timestamp_us;
-    AccelerometerXyzSample sample;
-} AccelerometerData;
 typedef std::array<AccelerometerXyzSample, 2> AccelerometerFastData;
 
 typedef struct {
@@ -74,11 +69,6 @@ inline constexpr MessageType message_type<LogData>() {
 template <>
 inline constexpr MessageType message_type<LoadcellRecord>() {
     return MessageType::loadcell;
-}
-
-template <>
-inline constexpr MessageType message_type<AccelerometerData>() {
-    return MessageType::accelerometer;
 }
 
 template <>

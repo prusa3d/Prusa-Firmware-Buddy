@@ -184,10 +184,6 @@ void ProcessModbusMessages() {
             dwarf::accelerometer::set_enable(msg->m_Value);
             break;
         }
-        case ((uint16_t)ModbusRegisters::SystemCoil::accelerometer_high): {
-            dwarf::accelerometer::set_high_sample_rate(msg->m_Value);
-            break;
-        }
         case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::nozzle_target_temperature): {
             log_info(ModbusControl, "Set hotend temperature: %" PRIu32, msg->m_Value);
             thermalManager.setTargetHotend(msg->m_Value, 0);

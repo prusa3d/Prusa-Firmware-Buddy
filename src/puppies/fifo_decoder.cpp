@@ -28,9 +28,6 @@ void Decoder::decode(const Callbacks_t callbacks) {
         case MessageType::loadcell:
             make_call(callbacks.loadcell_handler);
             break;
-        case MessageType::accelerometer:
-            make_call(callbacks.accelerometer_handler);
-            break;
         case MessageType::accelerometer_fast:
             make_call(callbacks.accelerometer_fast_handler);
             break;

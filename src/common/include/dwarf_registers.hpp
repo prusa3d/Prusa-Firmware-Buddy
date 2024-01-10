@@ -23,7 +23,6 @@ enum class SystemCoil : uint16_t {
     is_selected = 0x4001,
     loadcell_enable = 0x4002,
     accelerometer_enable = 0x4003,
-    accelerometer_high = 0x4004,
 
     _post_last,
     _last = _post_last - 1,

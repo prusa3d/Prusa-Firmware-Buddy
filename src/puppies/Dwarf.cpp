@@ -65,13 +65,6 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
 
               // Process sample
               loadcell.ProcessSample(data.loadcell_raw_value, loadcell_samplerate.last_timestamp); },
-          .accelerometer_handler = [this](AccelerometerData data) {
-              // throw away samples if time is not synced
-              if (!this->time_sync.is_time_sync_valid() || !this->selected) {
-                  return;
-              }
-              PrusaAccelerometer::put_sample(data.sample);
-              report_accelerometer(1); },
           .accelerometer_fast_handler = [this](AccelerometerFastData data) {
               // throw away samples if not selected
               if (!this->is_selected()) {
@@ -181,7 +174,6 @@ CommunicationStatus Dwarf::initial_scan() {
     IsSelectedCoil.dirty = true;
     LoadcellEnableCoil.dirty = true;
     AccelerometerEnableCoil.dirty = true;
-    AccelerometerHighCoil.dirty = true;
     selected = false;
 
     // Write coil values that are not written automatically
@@ -189,9 +181,6 @@ CommunicationStatus Dwarf::initial_scan() {
         return CommunicationStatus::ERROR;
     }
     if (bus.write(unit, AccelerometerEnableCoil) == CommunicationStatus::ERROR) {
-        return CommunicationStatus::ERROR;
-    }
-    if (bus.write(unit, AccelerometerHighCoil) == CommunicationStatus::ERROR) {
         return CommunicationStatus::ERROR;
     }
 
@@ -441,7 +430,7 @@ CommunicationStatus Dwarf::set_selected(bool selected) {
     if (selected) {
         // Enable loadcell for dwarf being selected in case the accelerometer is not already enabled
         // This condition prevents replacing accelerometer with loadcell when recovering from puppy failure
-        if (!AccelerometerHighCoil.value) {
+        if (!AccelerometerEnableCoil.value) {
             if (!set_loadcell(true)) {
                 return CommunicationStatus::ERROR;
             }
@@ -487,9 +476,7 @@ bool Dwarf::raw_set_loadcell(bool enable) {
 bool Dwarf::raw_set_accelerometer(bool enable) {
     AccelerometerEnableCoil.dirty = true;
     AccelerometerEnableCoil.value = enable;
-    AccelerometerHighCoil.dirty = true;
-    AccelerometerHighCoil.value = enable;
-    return bus.write(unit, AccelerometerEnableCoil) == CommunicationStatus::OK && bus.write(unit, AccelerometerHighCoil) == CommunicationStatus::OK;
+    return bus.write(unit, AccelerometerEnableCoil) == CommunicationStatus::OK;
 }
 
 constexpr log_component_t &Dwarf::get_log_component(uint8_t dwarf_nr) {

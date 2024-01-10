@@ -43,31 +43,20 @@ static void failed_to_encode() {
  */
 static void pickup_accelerometer_sample(Encoder &encoder, bool &encoded) {
     dwarf::accelerometer::AccelerometerRecord record;
-    if (dwarf::accelerometer::is_high_sample_rate()) {
-        if (encoder.can_encode<AccelerometerFastData>() && (dwarf::accelerometer::get_num_samples() >= std::tuple_size<AccelerometerFastData>::value)) {
-            AccelerometerFastData accelerometer_data;
-            for (auto &xyzSample : accelerometer_data) {
-                if (!dwarf::accelerometer::accelerometer_get_sample(record)) {
-                    // This can never happen as we already checked
-                    // there are enough samples before.
-                    bsod("Get accelerometer sample failed.");
-                }
-                xyzSample = AccelerometerUtils::pack_record(record);
+    if (encoder.can_encode<AccelerometerFastData>() && (dwarf::accelerometer::get_num_samples() >= std::tuple_size<AccelerometerFastData>::value)) {
+        AccelerometerFastData accelerometer_data;
+        for (auto &xyzSample : accelerometer_data) {
+            if (!dwarf::accelerometer::accelerometer_get_sample(record)) {
+                // This can never happen as we already checked
+                // there are enough samples before.
+                bsod("Get accelerometer sample failed.");
             }
-            if (encoder.encode(accelerometer_data)) {
-                encoded = true;
-            } else {
-                failed_to_encode();
-            }
+            xyzSample = AccelerometerUtils::pack_record(record);
         }
-    } else {
-        if (encoder.can_encode<AccelerometerData>() && dwarf::accelerometer::accelerometer_get_sample(record)) {
-            AccelerometerData accelerometer_data = { record.timestamp, AccelerometerUtils::pack_record(record) };
-            if (encoder.encode(accelerometer_data)) {
-                encoded = true;
-            } else {
-                failed_to_encode();
-            }
+        if (encoder.encode(accelerometer_data)) {
+            encoded = true;
+        } else {
+            failed_to_encode();
         }
     }
 }
