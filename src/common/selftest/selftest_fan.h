@@ -63,8 +63,8 @@ public:
 #endif
     LoopResult state_rpm_0_init();
     LoopResult state_wait_rpm_0_percent();
-    LoopResult state_wait_rpm_20_percent();
-    LoopResult state_measure_rpm_20_percent();
+    LoopResult state_wait_rpm_40_percent();
+    LoopResult state_measure_rpm_40_percent();
 };
 
 }; // namespace selftest
