@@ -54,6 +54,7 @@ struct AxisState {
     int driver_phase = 0; // Last known phase the driver uses
     #endif
     float last_position = 0.f; // Last known logical position
+    bool direction = true; // Last non-zero movement direction
 
     CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
 

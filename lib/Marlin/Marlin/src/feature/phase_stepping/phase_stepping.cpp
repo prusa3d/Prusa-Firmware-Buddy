@@ -96,6 +96,12 @@ FORCE_INLINE T resolve_axis_inversion(bool is_inverted_flag, T val) {
         : -val;
 }
 
+FORCE_INLINE CorrectedCurrentLut &resolve_current_lut(AxisState &axis_state) {
+    return axis_state.direction
+        ? axis_state.forward_current
+        : axis_state.backward_current;
+}
+
 static void init_step_generator_internal(
     const move_t &move,
     move_segment_step_generator_t &step_generator,
@@ -305,9 +311,11 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     auto &axis_state = *axis_states[axis_num];
     assert(!axis_state.active && !axis_state.target.has_value() && axis_state.pending_targets.isEmpty());
 
+    axis_state.last_position = 0;
+    axis_state.direction = true; // TODO: should use last_direction_bits
+
 #if HAS_BURST_STEPPING()
     axis_state.original_microsteps = stepper.microsteps();
-    axis_state.last_position = 0;
     axis_state.last_phase = axis_state.zero_rotor_phase = axis_state.driver_phase = stepper.MSCNT();
     axis_state.had_interpolation = stepper.intpol();
     stepper.intpol(false);
@@ -318,7 +326,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // mode.
     int current_phase = stepper.MSCNT();
 
-    auto [a, b] = axis_state.forward_current.get_current(current_phase);
+    auto [a, b] = resolve_current_lut(axis_state).get_current(current_phase);
 
     // Set IHOLD to be the same as IRUN (as IHOLD is always used in XDIRECT)
     axis_state.initial_hold_multiplier = stepper.hold_multiplier();
@@ -333,7 +341,6 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // segment to come will be move segment to zero, let's prepare for that.
     axis_state.zero_rotor_phase = current_phase;
     axis_state.last_phase = current_phase;
-    axis_state.last_position = 0.;
     axis_state.target = MoveTarget(axis_state.last_position);
 #endif
     // Read axis configuration and cache it so we can access it fast
@@ -546,12 +553,14 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
     float physical_position = resolve_axis_inversion(axis_state.inverted, position);
     float physical_speed = resolve_axis_inversion(axis_state.inverted, speed);
 
+    if (physical_speed != 0.f) {
+        // update the direction in order to fetch the correct lut
+        axis_state.direction = physical_speed > 0;
+    }
+    const auto &current_lut = resolve_current_lut(axis_state);
+
     int new_phase = normalize_motor_phase(pos_to_phase(axis_num_to_refresh, physical_position) + axis_state.zero_rotor_phase);
     assert(phase_difference(axis_state.last_phase, new_phase) < 256);
-
-    const auto &current_lut = physical_speed > 0
-        ? axis_state.forward_current
-        : axis_state.backward_current;
 
 #if HAS_BURST_STEPPING()
     int shifted_phase = normalize_motor_phase(new_phase + current_lut.get_phase_shift(new_phase));
