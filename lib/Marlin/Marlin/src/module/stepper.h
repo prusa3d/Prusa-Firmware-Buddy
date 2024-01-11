@@ -545,16 +545,15 @@ class Stepper {
     }
 
     static void report_axis_movement(AxisEnum a, float speed) {
-      uint8_t axis_mask = 1 << a;
-      if (speed != 0)
+      if (speed != 0) {
+        uint8_t axis_mask = 1 << a;
         axis_did_move |= axis_mask;
-      else
-        axis_did_move &= ~axis_mask;
 
-      if (speed > 0)
-        last_direction_bits |= axis_mask;
-      else
-        last_direction_bits &= ~axis_mask;
+        if (speed > 0)
+          last_direction_bits |= axis_mask;
+        else
+          last_direction_bits &= ~axis_mask;
+      }
     }
 private:
 
