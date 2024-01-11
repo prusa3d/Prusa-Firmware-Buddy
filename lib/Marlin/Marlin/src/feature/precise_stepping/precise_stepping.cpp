@@ -88,6 +88,7 @@ xyze_long_t PreciseStepping::total_start_pos_msteps = { 0, 0, 0, 0 };
 PreciseSteppingFlag_t PreciseStepping::flags = 0;
 
 uint32_t PreciseStepping::waiting_before_delivering_start_time = 0;
+uint32_t PreciseStepping::last_step_isr_delay = 0;
 
 std::atomic<bool> PreciseStepping::stop_pending = false;
 volatile uint8_t PreciseStepping::step_dl_miss = 0;
@@ -685,6 +686,16 @@ uint16_t PreciseStepping::process_one_step_event_from_queue() {
     return ticks_to_next_isr;
 }
 
+static int32_t counter_signed_diff(uint16_t timestamp1, uint16_t timestamp2) {
+    int32_t diff = int32_t(timestamp1) - int32_t(timestamp2);
+    if (diff > 0xFFFF / 2 - 1) {
+        diff -= 0xFFFF;
+    } else if (diff < -0xFFFF / 2) {
+        diff += 0xFFFF;
+    }
+    return diff;
+}
+
 void PreciseStepping::step_isr() {
 #ifndef ISR_DEADLINE_TRACKING
     constexpr uint16_t min_delay = 6; // fuse isr for steps below this threshold (us)
@@ -738,7 +749,27 @@ void PreciseStepping::step_isr() {
         timer_remaining_time = next - counter;
     } while (timer_remaining_time < min_reserve || (timer_remaining_time & 0xFFFF) > max_ticks);
 
-    __HAL_TIM_SET_COMPARE(&TimerHandle[STEP_TIMER_NUM].handle, TIM_CHANNEL_1, next);
+    // What follows is a not-straightforward scheduling of the next step ISR
+    // time event. If this ISR is interrupted by another routine, we might
+    // schedule an event that is in the past from the perspective of the step
+    // timer. Thus, we check if this is the case and possibly adjust the time.
+    // On the next ISR we will pick up the slack.
+    const auto timer_handle_ptr = &TimerHandle[STEP_TIMER_NUM].handle;
+    uint32_t adjusted_next = next - last_step_isr_delay;
+    __disable_irq();
+    int32_t tim_counter = __HAL_TIM_GET_COUNTER(timer_handle_ptr);
+    int32_t diff = counter_signed_diff(adjusted_next, tim_counter);
+    if (diff < min_reserve) {
+        adjusted_next = tim_counter + min_reserve;
+    }
+    __HAL_TIM_SET_COMPARE(timer_handle_ptr, TIM_CHANNEL_1, adjusted_next);
+    __enable_irq();
+
+    if (diff < min_delay) {
+        last_step_isr_delay = -diff + min_reserve;
+    } else {
+        last_step_isr_delay = 0;
+    }
 
 #ifdef ISR_DEADLINE_TRACKING
     uint32_t scheduled_ticks = (((next & 0xFFFF) - __HAL_TIM_GET_COUNTER(&TimerHandle[STEP_TIMER_NUM].handle)) & 0xFFFF);

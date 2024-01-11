@@ -295,6 +295,7 @@ public:
 
 private:
     static uint32_t waiting_before_delivering_start_time;
+    static uint32_t last_step_isr_delay;
 
     static void step_generator_state_init(const move_t &move);
 
