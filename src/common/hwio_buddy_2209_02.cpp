@@ -107,12 +107,7 @@ static constexpr int _pwm_analogWrite_max = 255;
 static int _pwm_analogWrite_val[_PWM_CNT] = { 0, 0, 0, 0 };
 
 static float hwio_beeper_vol = 1.0F;
-#if HAS_BEEPER_WITHOUT_PWM
-static std::atomic<uint32_t> hwio_beeper_pulses = 0;
-static uint32_t hwio_beeper_period = 0;
-#else
 static uint32_t hwio_beeper_del = 0;
-#endif
 
 /*****************************************************************************
  * private function declarations
@@ -261,7 +256,7 @@ void hwio_beeper_set_vol(float vol) {
     hwio_beeper_vol = vol;
 }
 
-#if HAS_GUI() && !HAS_BEEPER_WITHOUT_PWM
+#if HAS_GUI()
 void hwio_beeper_set_pwm(uint32_t per, uint32_t pul) {
     TIM_OC_InitTypeDef sConfigOC {};
     if (per) {
@@ -285,8 +280,6 @@ void hwio_beeper_set_pwm(uint32_t per, uint32_t pul) {
         HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
     }
 }
-#else
-void hwio_beeper_set_pwm([[maybe_unused]] uint32_t per, [[maybe_unused]] uint32_t pul) {} // Without display, there is no beeper to beep.
 #endif
 
 void hwio_beeper_tone(float frq, uint32_t del) {
@@ -299,17 +292,10 @@ void hwio_beeper_tone(float frq, uint32_t del) {
         if (frq > 100000) {
             frq = 100000;
         }
-#if HAS_BEEPER_WITHOUT_PWM
-        per = (uint32_t)(1'000.0F / frq);
-        pul = (uint32_t)(del / per);
-        hwio_beeper_pulses = pul;
-        hwio_beeper_period = per;
-#else
         per = (uint32_t)(84000000.0F / frq);
         pul = (uint32_t)(per * hwio_beeper_vol / 2);
         hwio_beeper_set_pwm(per, pul);
         hwio_beeper_del = del;
-#endif
     } else {
         hwio_beeper_notone();
     }
@@ -321,36 +307,13 @@ void hwio_beeper_tone2(float frq, uint32_t del, float vol) {
 }
 
 void hwio_beeper_notone(void) {
-#if HAS_BEEPER_WITHOUT_PWM
-    hwio_beeper_pulses = 0;
-#else
     hwio_beeper_set_pwm(0, 0);
-#endif
 }
 
 void hwio_update_1ms(void) {
-#if !HAS_BEEPER_WITHOUT_PWM
     if ((hwio_beeper_del) && ((--hwio_beeper_del) == 0)) {
         hwio_beeper_set_pwm(0, 0);
     }
-#elif HAS_GUI() && !(_DEBUG)
-    static uint32_t skips = 0;
-    if (skips < hwio_beeper_period - 1) {
-        skips++;
-        return;
-    } else {
-        skips = 0;
-    }
-
-    if (hwio_beeper_pulses > 0) {
-        if (hwio_beeper_pulses % 2) {
-            buddy::hw::Buzzer.reset();
-        } else {
-            buddy::hw::Buzzer.set();
-        }
-        hwio_beeper_pulses -= 1;
-    }
-#endif
 }
 
 #if (BOARD_IS_XBUDDY && HAS_TEMP_HEATBREAK)
