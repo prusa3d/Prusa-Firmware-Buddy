@@ -116,7 +116,7 @@ int32_t HX717::ReadValue(Channel nextChannel, uint32_t readyTimestamp) {
         result |= 0xFF000000;
     }
 
-    if (IsValueReady() || result < -0x7FFFFF || result > 0x7FFFFF) {
+    if (IsValueReady() || result < 0xFF80'0000 || result > 0x7FFFFF) {
         // DOUT should automatically switch off after a correct readout. If that happens, and/or if
         // the final result is out of spec, this means we have a communication issue.
         goto reset;
