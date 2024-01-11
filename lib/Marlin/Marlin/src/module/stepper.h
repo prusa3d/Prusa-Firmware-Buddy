@@ -544,11 +544,6 @@ class Stepper {
       count_position_from_startup[a] = steps_made;
     }
 
-    static void add_axis_steps(const AxisEnum a, long steps_made) {
-      count_position[a] += steps_made;
-      count_position_from_startup[a] += steps_made;
-    }
-
     static void report_axis_movement(AxisEnum a, float speed) {
       uint8_t axis_mask = 1 << a;
       if (speed != 0)

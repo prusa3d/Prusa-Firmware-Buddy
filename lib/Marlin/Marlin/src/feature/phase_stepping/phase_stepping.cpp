@@ -297,8 +297,6 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     auto &axis_state = *axis_states[axis_num];
     assert(!axis_state.active && !axis_state.target.has_value() && axis_state.pending_targets.isEmpty());
 
-    axis_state.phase_leftover = 0;
-
 #if HAS_BURST_STEPPING()
     axis_state.original_microsteps = stepper.microsteps();
     axis_state.last_position = 0;
@@ -543,13 +541,6 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
     int new_phase = normalize_motor_phase(pos_to_phase(axis_num_to_refresh, physical_position) + axis_state.zero_rotor_phase);
     assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
-    // Report movement to Stepper
-    // int32_t steps_made = pos_to_steps(axis_num_to_refresh, position);
-    // Stepper::set_axis_steps(AxisEnum(axis_num_to_refresh),
-    //     axis_state.initial_count_position + steps_made);
-    // Stepper::set_axis_steps_from_startup(AxisEnum(axis_num_to_refresh),
-    //     axis_state.initial_count_position_from_startup + steps_made);
-
     const auto &current_lut = physical_speed > 0
         ? axis_state.forward_current
         : axis_state.backward_current;
@@ -567,22 +558,13 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
 
     spi::set_xdirect(axis_index, a, b);
 #endif
-
     // Report movement to Stepper
-    int ustep_width = phase_per_ustep(axis_index);
+    int32_t steps_made = pos_to_steps(axis_num_to_refresh, position);
+    Stepper::set_axis_steps(AxisEnum(axis_num_to_refresh),
+        axis_state.initial_count_position + steps_made);
+    Stepper::set_axis_steps_from_startup(AxisEnum(axis_num_to_refresh),
+        axis_state.initial_count_position_from_startup + steps_made);
 
-    int old_phase_leftover = axis_state.phase_leftover;
-    bool had_rounding_step = std::abs(old_phase_leftover) > ustep_width / 2;
-    int old_rounding_steps = std::copysign(had_rounding_step ? 1 : 0, old_phase_leftover);
-
-    axis_state.phase_leftover += phase_difference(new_phase, axis_state.last_phase);
-    int steps = axis_state.phase_leftover / ustep_width;
-    axis_state.phase_leftover -= steps * ustep_width;
-
-    bool has_rounding_step = std::abs(axis_state.phase_leftover) > ustep_width / 2;
-    int rounding_steps = std::copysign(has_rounding_step ? 1 : 0, axis_state.phase_leftover);
-
-    Stepper::add_axis_steps(axis_enum, resolve_axis_inversion(axis_state.inverted, steps - old_rounding_steps + rounding_steps));
     Stepper::report_axis_movement(axis_enum, speed);
 
     axis_state.last_position = position;

@@ -51,7 +51,6 @@ struct AxisState {
     int zero_rotor_phase = 0; // Rotor phase for position 0
     int last_phase = 0; // Last known physical rotor phase
     int driver_phase = 0; // Last known phase the driver uses
-    int phase_leftover = 0; // Phase left after reporting steps made
     float last_position = 0.f; // Last known logical position
 
     CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
