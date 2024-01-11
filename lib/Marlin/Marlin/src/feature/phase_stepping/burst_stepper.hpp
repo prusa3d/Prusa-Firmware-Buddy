@@ -25,4 +25,11 @@ void set_phase_diff(AxisEnum axis, int diff);
  **/
 void fire();
 
+/**
+ * Return true if burst activity is undergoing
+ * NOTE: this is only sufficient when called _after_ checking phase_stepping to ensure that a new
+ *       burst can't be scheduled!
+ **/
+bool busy();
+
 }; // namespace burst_stepping

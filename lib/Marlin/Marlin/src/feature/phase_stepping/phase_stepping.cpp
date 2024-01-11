@@ -283,9 +283,17 @@ void phase_stepping::synchronize() {
 }
 
 bool phase_stepping::processing() {
-    return std::ranges::any_of(axis_states, [](const auto &state) -> bool {
-        return state && (!state->pending_targets.isEmpty() || state->target.has_value());
-    });
+    for (auto &state : axis_states) {
+        if (state && (!state->pending_targets.isEmpty() || state->target.has_value())) {
+            return true;
+        }
+    }
+#if HAS_BURST_STEPPING()
+    if (burst_stepping::busy()) {
+        return true;
+    }
+#endif
+    return false;
 }
 
 void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {

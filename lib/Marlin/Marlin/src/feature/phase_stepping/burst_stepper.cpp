@@ -48,6 +48,10 @@ public:
         return SIZE;
     }
 
+    bool dirty() {
+        return _dirty;
+    }
+
     const uint32_t *dma_buffer() const {
         return _buffer.data();
     }
@@ -157,6 +161,10 @@ __attribute__((optimize("-Ofast"))) static void setup_and_fire_dma() {
         | DMA_SxCR_EN_Msk;
 }
 
+__attribute__((optimize("-Ofast"))) bool burst_stepping::busy() {
+    return (BURST_DMA->NDTR > 0) && (BURST_DMA->CR & DMA_SxCR_EN_Msk);
+}
+
 __attribute__((optimize("-Ofast"))) void burst_stepping::fire() {
     for (std::size_t i = 0; i != axis_direction.size(); i++) {
         if (!axis_was_set[i]) {
@@ -169,7 +177,9 @@ __attribute__((optimize("-Ofast"))) void burst_stepping::fire() {
             dir_signals[i].write(Pin::State::high);
         }
     }
-    std::swap(setup_buffer, fire_buffer);
-    setup_and_fire_dma();
-    setup_buffer->clear();
+    if (setup_buffer->dirty()) {
+        std::swap(setup_buffer, fire_buffer);
+        setup_and_fire_dma();
+        setup_buffer->clear();
+    }
 }
