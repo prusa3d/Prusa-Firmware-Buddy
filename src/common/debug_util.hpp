@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "traits.hpp"
 #include "timing.h"
+#include <Pin.hpp>
 
 /**
  * Invoke a given function only when its arguments have changed or when given
@@ -37,5 +38,27 @@ public:
             _args = args_tuple;
             _last_ping = now;
         }
+    }
+};
+
+struct TrackTimingViaPin {
+    buddy::hw::OutputPin _pin;
+    bool _stopped = false;
+
+    TrackTimingViaPin(auto pin)
+        : _pin(pin) {
+        _pin.write(buddy::hw::Pin::State::high);
+    }
+
+    void stop() {
+        if (_stopped) {
+            return;
+        }
+        _pin.write(buddy::hw::Pin::State::low);
+        _stopped = true;
+    }
+
+    ~TrackTimingViaPin() {
+        stop();
     }
 };
