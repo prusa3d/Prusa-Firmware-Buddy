@@ -332,7 +332,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // We initialize the zero rotor phase to current phase. The following move
     // segment to come will be move segment to zero, let's prepare for that.
     axis_state.zero_rotor_phase = current_phase;
-    axis_state.last_phase = axis_state.driver_phase = current_phase;
+    axis_state.last_phase = current_phase;
     axis_state.last_position = 0.;
     axis_state.target = MoveTarget(axis_state.last_position);
 #endif

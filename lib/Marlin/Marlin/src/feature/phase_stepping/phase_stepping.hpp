@@ -50,7 +50,9 @@ struct AxisState {
     bool inverted = false; // Inverted axis direction flag
     int zero_rotor_phase = 0; // Rotor phase for position 0
     int last_phase = 0; // Last known physical rotor phase
+    #if HAS_BURST_STEPPING()
     int driver_phase = 0; // Last known phase the driver uses
+    #endif
     float last_position = 0.f; // Last known logical position
 
     CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
@@ -71,8 +73,10 @@ struct AxisState {
     uint32_t missed_tx_cnt = 0;
     uint32_t last_timer_tick = 0;
 
+    #if HAS_BURST_STEPPING()
     int original_microsteps = 0;
     bool had_interpolation = false;
+    #endif
 };
 
 /**
