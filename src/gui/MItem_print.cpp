@@ -1,5 +1,6 @@
 #include "MItem_print.hpp"
 #include "marlin_client.hpp"
+#include "common/conversions.hpp"
 #include "menu_vars.h"
 #include "menu_spin_config.hpp"
 #include "img_resources.hpp"
@@ -55,15 +56,6 @@ MI_PRINTFAN::MI_PRINTFAN()
 void MI_PRINTFAN::OnClick() {
     marlin_client::set_fan_speed(val_mapping(true, GetVal(), 100, 255));
 }
-
-uint8_t MI_PRINTFAN::val_mapping(const bool rounding_floor, const uint8_t val, const uint8_t max_val, const uint8_t new_max_val) {
-    if (rounding_floor) {
-        return uint8_t(static_cast<uint32_t>(val) * new_max_val / max_val);
-    } else {
-        return uint8_t((static_cast<uint32_t>(val) * new_max_val + max_val - 1) / max_val);
-    }
-}
-
 /*****************************************************************************/
 // MI_SPEED
 MI_SPEED::MI_SPEED()
