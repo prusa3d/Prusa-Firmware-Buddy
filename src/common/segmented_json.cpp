@@ -33,23 +33,6 @@ JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
     }
 }
 
-JsonResult JsonOutput::output_field_str_esc(size_t resume_point, const char *name, const char *value) {
-    // There are no JSON-special characters in there in the encoded data because:
-    // " and \ are not allowed in SFN and this is for SFNs and similar only.
-
-    const size_t len_value = strlen(value);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
-    char buffer[len_value * 3 + 1]; // Encoding might grow up to 3 times (+ \0)
-#pragma GCC diagnostic pop
-
-    [[maybe_unused]] const bool encode_successful = json_escape_bytes(value, buffer, sizeof(buffer));
-    assert(encode_successful);
-
-    return output(resume_point, "\"%s\":\"%s\"", name, buffer);
-}
-
 JsonResult JsonOutput::output_field_str(size_t resume_point, const char *name, const char *value) {
     JSONIFY_STR(value);
     return output(resume_point, "\"%s\":\"%s\"", name, value_escaped);
