@@ -21,7 +21,7 @@ MI_CRASH_DETECTION::MI_CRASH_DETECTION()
 }
 
 void MI_CRASH_DETECTION::Loop() {
-    #if HAS_PHASE_STEPPING()
+    #if HAS_PHASE_STEPPING() && !HAS_BURST_STEPPING()
     // Enable or disable according to the current phase stepping state. We can't really use
     // invalidation to reduce calls to config_store, as Print() happens and resets the state before
     // we can trap it here. At the same time, Print is not virtual.
