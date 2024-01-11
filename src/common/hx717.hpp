@@ -12,6 +12,8 @@ class HX717 {
 
 public:
     static constexpr int32_t undefined_value = std::numeric_limits<int32_t>::min();
+    static constexpr int32_t min_value = 0xFF80'0000;
+    static constexpr int32_t max_value = 0x007F'FFFF;
     static constexpr float sample_rate = 320.f; // Samples per second (Hz) for any channel
 
     enum Channel {
