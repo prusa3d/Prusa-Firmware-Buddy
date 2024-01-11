@@ -96,7 +96,7 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
             state.base_folder_timestamp = st.st_mtime;
             JSON_FIELD_INT("m_timestamp", state.base_folder_timestamp) JSON_COMMA;
         }
-        JSON_FIELD_STR_ESC("name", state.filename) JSON_COMMA;
+        JSON_FIELD_STR("name", state.filename) JSON_COMMA;
         JSON_FIELD_ARR("children");
         while (state.dir.get() && (state.ent = readdir(state.dir.get()))) {
             if (const char *lfn = dirent_lfn(state.ent); lfn && lfn[0] == '.') {
@@ -128,7 +128,7 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
                 state.first = false;
             }
             JSON_OBJ_START;
-                JSON_FIELD_STR_ESC("name", state.ent->d_name) JSON_COMMA;
+                JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
                 JSON_FIELD_BOOL("ro", state.read_only) JSON_COMMA;
                 JSON_FIELD_STR("type", file_type(state.ent)) JSON_COMMA;
 #ifdef UNITTESTS
@@ -156,7 +156,7 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
                     JSON_OBJ_END JSON_COMMA;
                 }
 #ifdef UNITTESTS
-                JSON_FIELD_STR_ESC("display_name", state.ent->d_name);
+                JSON_FIELD_STR("display_name", state.ent->d_name);
 #else
                 JSON_FIELD_STR("display_name", state.ent->lfn);
 #endif
@@ -192,13 +192,12 @@ JsonResult FileInfo::DirRenderer::renderStateOctoprint(size_t resume_point, Json
                     }
 
                     JSON_OBJ_START;
-                        JSON_FIELD_STR_ESC("name", state.ent->d_name) JSON_COMMA;
+                        JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
 #ifdef UNITTESTS
-                        JSON_FIELD_STR_ESC("display", state.ent->d_name) JSON_COMMA;
+                        JSON_FIELD_STR("display", state.ent->d_name) JSON_COMMA;
 #else
                         JSON_FIELD_STR("display", state.ent->lfn) JSON_COMMA;
 #endif
-                        // XXX All of these... how?
                         JSON_FIELD_STR_FORMAT("path", "%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
                         JSON_CONTROL("\"origin\":\"usb\",");
                         JSON_FIELD_OBJ("refs");
