@@ -16,36 +16,32 @@ struct DMA_Base_Registers {
     __IO uint32_t IFCR; /*!< DMA interrupt flag clear register */
 };
 
-// GPIO event buffer that can be played via DMA. Supports fast clearing.
+// GPIO event buffer that can be played via DMA. Supports fast clearing. If you
+// ever come to this code and think "Hey, we should use sparse cleaning", stop.
+// For buffers over 25 events it is faster to save the hassle of storing extra
+// indices and instead, just erase the whole buffer.
 template <int SIZE>
 class GpioEventBuffer {
 public:
     GpioEventBuffer() {
         _buffer.fill(0);
-        _event_positions.fill(0);
     }
 
     void clear() {
-        if (_event_count < SIZE) {
-            // It is worth it to erase the array sparely
-            for (int i = 0; i != _event_count; i++) {
-                _buffer[_event_positions[i]] = 0;
-            }
-        } else {
-            // It is not worth it, do bulk erase
-            _buffer.fill(0);
+        if (!_dirty) {
+            return;
         }
-        _event_count = 0;
+        _buffer.fill(0);
+        _dirty = false;
     };
 
-    void add_event(int idx, uint32_t event_mask) {
-        assert(idx < SIZE);
-        _buffer[idx] |= event_mask;
+    void start_fill() {
+        _dirty = true;
+    }
 
-        if (_event_count < SIZE) {
-            _event_positions[_event_count] = idx;
-            _event_count++;
-        }
+    void add_event(int idx, uint32_t event_mask) {
+        // assert(idx < SIZE);
+        _buffer[idx] |= event_mask;
     }
 
     static int size() {
@@ -58,10 +54,7 @@ public:
 
 private:
     std::array<uint32_t, SIZE> _buffer {};
-    // GPIO events are sparse. Therefore, instead of clearing the whole buffer,
-    // we mark the event positions.
-    int _event_count = 0;
-    std::array<uint16_t, SIZE> _event_positions {};
+    bool _dirty = false;
 };
 
 template <typename T>
@@ -131,17 +124,21 @@ __attribute__((optimize("-Ofast"))) void burst_stepping::set_phase_diff(AxisEnum
     }
 
     // We use fixed 16.16 number to find the transition points
-    std::size_t udiff = diff;
-    std::size_t spacing = (GPIO_BUFFER_SIZE << 16) / diff;
+    const std::size_t udiff = diff;
+    const std::size_t spacing = (GPIO_BUFFER_SIZE << 16) / diff;
+    const uint32_t pos_mask = step_masks[axis];
+    const uint32_t neg_mask = step_masks[axis] << 16;
+    auto *lsetup_buffer = setup_buffer;
+
     bool current_state = axis_step_state[axis];
+    lsetup_buffer->start_fill();
     for (std::size_t i = 0; i != udiff; i++) {
         current_state = !current_state;
-        // The added constant rounds the index.
-        std::size_t idx = (spacing * i + (1ul << 15)) >> 16;
+        std::size_t idx = (spacing * i) >> 16;
         if (current_state) {
-            setup_buffer->add_event(idx, step_masks[axis]);
+            lsetup_buffer->add_event(idx, pos_mask);
         } else {
-            setup_buffer->add_event(idx, step_masks[axis] << 16);
+            lsetup_buffer->add_event(idx, neg_mask);
         }
     }
     axis_step_state[axis] = current_state;
@@ -172,7 +169,6 @@ __attribute__((optimize("-Ofast"))) void burst_stepping::fire() {
             dir_signals[i].write(Pin::State::high);
         }
     }
-    delay_ns_precise<100>(); //...to settle DIR pins
     std::swap(setup_buffer, fire_buffer);
     setup_and_fire_dma();
     setup_buffer->clear();
