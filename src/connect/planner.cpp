@@ -197,8 +197,7 @@ namespace {
     }
 
     bool command_is_error_whitelisted(const Command &command) {
-        // TODO: Once we have some kind reset printer command, it should go here too.
-        return holds_alternative<SendInfo>(command.command_data) || holds_alternative<SetToken>(command.command_data);
+        return holds_alternative<SendInfo>(command.command_data) || holds_alternative<SetToken>(command.command_data) || holds_alternative<ResetPrinter>(command.command_data);
     }
 } // namespace
 
@@ -737,6 +736,13 @@ void Planner::command(const Command &command, [[maybe_unused]] const StopTransfe
 void Planner::command(const Command &command, const SetToken &params) {
     printer.init_connect(reinterpret_cast<const char *>(params.token->data()));
     planned_event = { EventType::Finished, command.id };
+}
+
+void Planner::command(const Command &command, const ResetPrinter &) {
+    printer.reset_printer();
+
+    // We reach this place only if the reset_printer fails to execute (can it?)
+    planned_event = { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Failed to reset" };
 }
 
 // FIXME: Handle the case when we are resent a command we are already

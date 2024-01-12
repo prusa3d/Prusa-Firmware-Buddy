@@ -104,4 +104,8 @@ tuple<const char *, uint16_t> ErrorPrinter::err_details() const {
     return make_tuple(message, error_code);
 }
 
+void ErrorPrinter::reset_printer() {
+    NVIC_SystemReset();
+}
+
 } // namespace connect_client

@@ -135,6 +135,15 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("CREATE_FOLDER", CreateFolder, ArgPath)
             T("STOP_TRANSFER", StopTransfer, NO_ARGS)
             T("SET_TOKEN", SetToken, ArgToken)
+
+            // There actually are two different commands to reset. The
+            // distinction comes from MK3, where the printer and the raspberry
+            // can be reset separately, while here the distinction makes no
+            // sense. But due to some discussion what command _is_ being used
+            // and what command _should_ be used by the server, we simply
+            // accept both variants and do the same.
+            T("RESET_PRINTER", ResetPrinter, NO_ARGS)
+            T("RESET", ResetPrinter, NO_ARGS)
             T("START_ENCRYPTED_DOWNLOAD", StartEncryptedDownload, ARGS_ENC_DOWN) { // else is part of the previous T
                 return;
             }
