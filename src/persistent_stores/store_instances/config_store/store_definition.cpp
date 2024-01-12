@@ -528,6 +528,62 @@ void CurrentStore::set_filament_type([[maybe_unused]] uint8_t index, filament::T
 #endif
 }
 
+filament::Type CurrentStore::get_previous_filament_type([[maybe_unused]] uint8_t index) {
+#if EXTRUDERS <= 1
+    assert(index == 0);
+    return filament_prev_type_0.get();
+#else
+    switch (index) {
+    case 0:
+        return filament_prev_type_0.get();
+    case 1:
+        return filament_prev_type_1.get();
+    case 2:
+        return filament_prev_type_2.get();
+    case 3:
+        return filament_prev_type_3.get();
+    case 4:
+        return filament_prev_type_4.get();
+    case 5:
+        return filament_prev_type_5.get();
+    default:
+        assert(false && "invalid index");
+        return {};
+    }
+#endif
+}
+
+void CurrentStore::set_previous_filament_type([[maybe_unused]] uint8_t index, filament::Type value) {
+#if EXTRUDERS <= 1
+    assert(index == 0);
+    filament_type_0.set(value);
+#else
+    switch (index) {
+    case 0:
+        filament_prev_type_0.set(value);
+        break;
+    case 1:
+        filament_prev_type_1.set(value);
+        break;
+    case 2:
+        filament_prev_type_2.set(value);
+        break;
+    case 3:
+        filament_prev_type_3.set(value);
+        break;
+    case 4:
+        filament_prev_type_4.set(value);
+        break;
+    case 5:
+        filament_prev_type_5.set(value);
+        break;
+    default:
+        assert(false && "invalid index");
+        return;
+    }
+#endif
+}
+
 float CurrentStore::get_nozzle_diameter([[maybe_unused]] uint8_t index) {
 #if HOTENDS <= 1
     assert(index == 0);
