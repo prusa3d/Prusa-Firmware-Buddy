@@ -95,6 +95,10 @@ public:
     virtual std::tuple<const char *, uint16_t> err_details() const override {
         return std::make_tuple(nullptr, 0);
     }
+
+    void reset_printer() override {
+        abort();
+    }
 };
 
 } // namespace connect_client

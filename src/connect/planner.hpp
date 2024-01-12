@@ -148,6 +148,7 @@ private:
     void command(const Command &, const CreateFolder &);
     void command(const Command &, const StopTransfer &);
     void command(const Command &, const SetToken &);
+    void command(const Command &, const ResetPrinter &);
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;

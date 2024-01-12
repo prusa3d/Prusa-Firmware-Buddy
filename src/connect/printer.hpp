@@ -201,6 +201,9 @@ public:
     // (Not const char * for technical reasons).
     virtual void init_connect(const char *token) = 0;
 
+    // Does not return if successful
+    virtual void reset_printer() = 0;
+
     // Returns a newly reloaded config and a flag if it changed since last load
     // (unless the reset_fingerprint is set to false, in which case the flag is
     // kept).
