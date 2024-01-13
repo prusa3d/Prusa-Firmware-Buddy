@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lwip/ip_addr.h"
-
 #define LAN_FLAG_ONOFF_POS (1 << 0) // position of ONOFF switch in lan.flag
 #define LAN_FLAG_TYPE_POS  (1 << 1) // position of DHCP/STATIC switch in lan.flag
 
@@ -33,6 +32,7 @@ typedef struct {
     ip_addr_t dns2_ip4; // user defined DNS #2
     lan_t lan; // user defined LAN configurations
     uint32_t var_mask; // mask for setting ethvars
+    char ntp[DNS_MAX_NAME_LENGTH - 68 + 1]; // user defined NTP
 } ETH_config_t;
 
 // those bits were previously assigned to distinguish WPA/WEP/none

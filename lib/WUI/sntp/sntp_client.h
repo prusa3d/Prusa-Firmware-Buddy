@@ -5,8 +5,9 @@
 extern "C" {
 #endif
 
-void sntp_client_init(void);
-void sntp_client_step(void);
+void sntp_client_static_init(const char *ntp_address);
+void sntp_client_step(bool ntp_via_dhcp, const char *ntp_ipv4_address);
+void sntp_client_stop(void);
 
 #ifdef __cplusplus
 }
