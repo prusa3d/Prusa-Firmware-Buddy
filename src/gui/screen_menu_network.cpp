@@ -8,6 +8,7 @@
 #include "netdev.h"
 #include "network_gui_tools.hpp"
 #include <http_lifetime.h>
+#include <sntp.h>
 
 ScreenMenuNetwork::ScreenMenuNetwork()
     : ScreenMenuNetwork__(_(label)) {
@@ -28,8 +29,11 @@ void ScreenMenuNetwork::refresh_address() {
         netdev_get_ipv4_addresses(active_netdev, &ethconfig);
         stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4));
         Item<MI_IP4_ADDR>().ChangeInformation(str);
+        const ip_addr_t *ntp_server = sntp_getserver(0);
+        Item<MI_NTP_ADDR>().ChangeInformation(ipaddr_ntoa(ntp_server));
     } else {
         Item<MI_IP4_ADDR>().ChangeInformation(UNKNOWN_ADDR);
+        Item<MI_NTP_ADDR>().ChangeInformation(UNKNOWN_ADDR);
     }
 }
 
