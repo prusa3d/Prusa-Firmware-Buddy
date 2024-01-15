@@ -22,6 +22,7 @@ protected:
     int32_t fs_ref_nins_value { 0 }; ///< value of filament not inserted in extruder
 
     std::atomic<int32_t> fs_filtered_value; ///< current filtered value set from interrupt
+    static_assert(std::atomic<decltype(fs_filtered_value)::value_type>::is_always_lock_free, "Lock free type must be used from ISR.");
 
     /**
      * @brief Get filtered sensor-specific value.
