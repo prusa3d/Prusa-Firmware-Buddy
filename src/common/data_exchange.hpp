@@ -5,6 +5,9 @@
 
 FwAutoUpdate get_auto_update_flag(void);
 
+/// wrapper around get_auto_update_flag() == FwAutoUpdate::tester_mode
+bool running_in_tester_mode();
+
 /*!****************************************************************************
  * \brief Copy specified BBF's SFN from RAM
  *
