@@ -260,7 +260,7 @@ extern "C" void main_cpp(void) {
      * MK3.5 HW detected on MK4 firmware or vice versa
        Ignore the check in production (tester_mode), the xBuddy's connected peripherals are safe in this mode.
      */
-    if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw() && get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+    if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw() && !running_in_tester_mode()) {
         const auto &error = find_error(ErrCode::WARNING_DIFFERENT_FW_REQUIRED);
         crash_dump::force_save_message_without_dump(crash_dump::MsgType::FATAL_WARNING, static_cast<uint16_t>(error.err_code), error.err_text, error.err_title);
         hwio_safe_state();
@@ -421,7 +421,7 @@ extern "C" void main_cpp(void) {
         NULL
     };
     metric_system_init(handlers);
-    if (get_auto_update_flag() == FwAutoUpdate::tester_mode) {
+    if (running_in_tester_mode()) {
         manufacture_report_endless_loop();
     } else {
         manufacture_report(); // TODO erase this after all printers use manufacture_report_endless_loop (== ESP UART)
@@ -446,7 +446,7 @@ extern "C" void main_cpp(void) {
 
 #if BUDDY_ENABLE_WUI()
     // block esp in tester mode
-    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+    if (!running_in_tester_mode()) {
         espif_init_hw();
     }
 #endif
@@ -471,7 +471,7 @@ extern "C" void main_cpp(void) {
 
 #if BUDDY_ENABLE_WUI()
     // block esp in tester mode
-    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+    if (!running_in_tester_mode()) {
         espif_task_create();
 
         TaskDeps::wait(TaskDeps::Tasks::network);
@@ -485,7 +485,7 @@ extern "C" void main_cpp(void) {
         #error "Can't have connect without WUI"
     #endif
     // block esp in tester mode
-    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+    if (!running_in_tester_mode()) {
         // definition and creation of connectTask
         TaskDeps::wait(TaskDeps::Tasks::connect);
         connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);

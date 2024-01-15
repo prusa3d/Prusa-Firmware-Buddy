@@ -99,7 +99,7 @@ void USART6_IRQHandler(void) {
 void UART8_IRQHandler(void) {
 #if BUDDY_ENABLE_WUI() && uart_esp == 8
     // block esp in tester mode
-    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+    if (!running_in_tester_mode()) {
         if (__HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE)) {
             __HAL_UART_CLEAR_IDLEFLAG(&huart8);
             espif_receive_data(&huart8);
