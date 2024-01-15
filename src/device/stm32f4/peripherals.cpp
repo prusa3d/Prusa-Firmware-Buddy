@@ -444,7 +444,7 @@ void hw_uart6_init() {
 void hw_uart8_init() {
     huart8.Instance = UART8;
     #if uart_esp == 8
-    huart8.Init.BaudRate = get_auto_update_flag() == FwAutoUpdate::tester_mode ? tester_uart_speed : uart8_default_speed;
+    huart8.Init.BaudRate = running_in_tester_mode() ? tester_uart_speed : uart8_default_speed;
     #else
     huart8.Init.BaudRate = uart8_default_speed;
     #endif
