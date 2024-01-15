@@ -445,7 +445,7 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    // block esp in tester mode
+    // In tester mode ESP UART is being used to talk to the testing station, thus it must not be used for the ESP.
     if (!running_in_tester_mode()) {
         espif_init_hw();
     }
@@ -470,7 +470,8 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    // block esp in tester mode
+    // In tester mode ESP UART is being used to talk to the testing station,
+    // thus it must not be used for the ESP -> no networking tasks shall be started.
     if (!running_in_tester_mode()) {
         espif_task_create();
 
@@ -484,7 +485,8 @@ extern "C" void main_cpp(void) {
         // FIXME: We should be able to split networking to the lower-level network part and the Link part. Currently, both are done through WUI.
         #error "Can't have connect without WUI"
     #endif
-    // block esp in tester mode
+    // In tester mode ESP UART is being used to talk to the testing station,
+    // thus it must not be used for the ESP -> no networking tasks shall be started.
     if (!running_in_tester_mode()) {
         // definition and creation of connectTask
         TaskDeps::wait(TaskDeps::Tasks::connect);
