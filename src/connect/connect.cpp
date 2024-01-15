@@ -254,6 +254,7 @@ Connect::ServerResp Connect::handle_server_resp(http::Response resp, CommandId c
 
 #if WEBSOCKET()
 CommResult Connect::receive_command(CachedFactory &conn_factory) {
+    log_debug(connect, "Trying to receive a commandfrom server");
     bool first = true;
     bool more = true;
     size_t read = 0;
@@ -266,6 +267,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
         auto res = websocket->receive(first ? make_optional(0) : nullopt);
 
         if (holds_alternative<monostate>(res)) {
+            log_debug(command, "No command available now");
             break;
         } else if (holds_alternative<Error>(res)) {
             conn_factory.invalidate();
@@ -346,6 +348,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                     BrokenCommand { "Could not parse command ID" } });
                 return ConnectionStatus::Ok;
             }
+            log_debug(connect, "Received a command from server");
             enum class Type {
                 Json,
                 Gcode,
@@ -494,6 +497,7 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
 }
 
 CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Config &, Action &&action, optional<CommandId> background_command_id, uint32_t now) {
+    log_debug(connect, "Sending to server");
     if (!websocket.has_value()) {
         planner().action_done(ActionResult::Failed);
         return OnlineError::Network;
@@ -525,6 +529,8 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
         first = false;
     }
 
+    log_debug(connect, "Sending done");
+
     planner().action_done(ActionResult::Ok);
     if (is_full_telemetry && telemetry_changes.is_dirty()) {
         telemetry_changes.mark_clean();
@@ -545,6 +551,7 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
 }
 
 CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Config &config, Action &&action, optional<CommandId> background_command_id, uint32_t now) {
+    log_debug(connect, "Sending to connect");
     BasicRequest request(printer, config, action, telemetry_changes, background_command_id);
     ExtractCommanId cmd_id;
 
@@ -559,12 +566,14 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
     printer.drop_paths();
 
     if (holds_alternative<Error>(result)) {
+        log_debug(connect, "Failed to exchange");
         planner().action_done(ActionResult::Failed);
         conn_factory.invalidate();
         return err_to_status(get<Error>(result));
     }
 
     http::Response resp = get<http::Response>(result);
+    log_debug(connect, "Response with status %" PRIu16, static_cast<uint16_t>(resp.status));
     if (!resp.can_keep_alive) {
         conn_factory.invalidate();
     }
@@ -572,6 +581,7 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
     switch (resp.status) {
     // The server has nothing to tell us
     case Status::NoContent:
+        log_debug(connect, "Have a response without body");
         planner().action_done(ActionResult::Ok);
         if (is_full_telemetry && telemetry_changes.is_dirty()) {
             // We check the is_dirty too, because if it was _not_ dirty, we
@@ -582,6 +592,7 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
         }
         return ConnectionStatus::Ok;
     case Status::Ok: {
+        log_debug(connect, "Have a response with body");
         if (is_full_telemetry && telemetry_changes.is_dirty()) {
             // Yes, even before checking the command we got is OK. We did send
             // the telemetry, what happens to the command doesn't matter.
@@ -709,6 +720,7 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
 
     auto prepared = prepare_connection(conn_factory, config);
     if (!holds_alternative<monostate>(prepared)) {
+        log_debug(connect, "No connection to communicate");
         return prepared;
     }
 

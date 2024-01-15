@@ -1,5 +1,7 @@
 #include "connection_cache.hpp"
 
+#include <debug.h>
+
 using http::Connection;
 using http::Error;
 using http::socket_con;
@@ -7,6 +9,8 @@ using std::get;
 using std::holds_alternative;
 using std::monostate;
 using std::optional;
+
+LOG_COMPONENT_REF(connect);
 
 namespace {
 
@@ -35,6 +39,7 @@ const char *CachedFactory::host() {
 }
 
 void CachedFactory::invalidate() {
+    log_debug(connect, "Invalidating cached connection");
     cache = monostate();
 }
 
@@ -44,15 +49,20 @@ void CachedFactory::refresh(const Printer::Config &config) {
         Connection *connection;
 
         if (config.tls) {
+            log_debug(connect, "Creating TLS");
             cache.emplace<tls>(SOCKET_TIMEOUT_SEC);
             connection = &get<tls>(cache);
         } else {
+            log_debug(connect, "Creating plain");
             cache.emplace<socket_con>(SOCKET_TIMEOUT_SEC);
             connection = &get<socket_con>(cache);
         }
         if (const optional<Error> result = connection->connection(config.host, config.port); result.has_value()) {
+            log_info(connect, "Creating of connection failed");
             cache = *result;
         }
+    } else {
+        log_debug(connect, "Reusing existing connection");
     }
 }
 

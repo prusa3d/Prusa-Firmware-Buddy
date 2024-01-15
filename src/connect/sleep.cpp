@@ -7,6 +7,10 @@
 
 #include <cmsis_os.h>
 
+#include <debug.h>
+
+LOG_COMPONENT_REF(connect);
+
 using http::Connection;
 using std::min;
 using std::nullopt;
@@ -258,6 +262,7 @@ Sleep Sleep::idle(Duration sleep_for) {
 }
 
 void Sleep::perform(Printer &printer, Planner &planner) {
+    log_debug(connect, "Sleeping up to %" PRIu32 " milliseconds", milliseconds);
     // * Config
     // * Transfer recovery or cleanup (not both)
     // * Background command
@@ -334,6 +339,7 @@ void Sleep::perform(Printer &printer, Planner &planner) {
             break;
         case TaskResult::WakeUp:
         case TaskResult::Reschedule:
+            log_debug(connect, "Early wakeup");
             return;
         }
 
@@ -355,6 +361,8 @@ void Sleep::perform(Printer &printer, Planner &planner) {
             before = after;
         }
     }
+
+    log_debug(connect, "Sleep done");
 }
 
 } // namespace connect_client
