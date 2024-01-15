@@ -133,3 +133,7 @@ bool has_apendix() {
     return ram_data_exchange.appendix_status & APPENDIX_FLAG_MASK;
 }
 } // namespace data_exchange
+
+bool running_in_tester_mode() {
+    return get_auto_update_flag() == FwAutoUpdate::tester_mode;
+}
