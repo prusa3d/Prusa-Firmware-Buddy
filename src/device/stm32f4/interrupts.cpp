@@ -98,7 +98,7 @@ void USART6_IRQHandler(void) {
  */
 void UART8_IRQHandler(void) {
 #if BUDDY_ENABLE_WUI() && uart_esp == 8
-    // block esp in tester mode
+    // In tester mode ESP UART is being used to talk to the testing station, thus it must not be used for the ESP.
     if (!running_in_tester_mode()) {
         if (__HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE)) {
             __HAL_UART_CLEAR_IDLEFLAG(&huart8);
