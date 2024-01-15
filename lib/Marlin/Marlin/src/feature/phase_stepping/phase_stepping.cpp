@@ -34,7 +34,9 @@ std::array<
     phase_stepping::axis_states = { { nullptr, nullptr } };
 
 // Module definitions
+#if !HAS_BURST_STEPPING()
 static uint_fast8_t axis_num_to_refresh = 0;
+#endif
 static uint32_t last_timer_tick = 0;
 
 MoveTarget::MoveTarget(float position)
@@ -559,7 +561,7 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
     }
     const auto &current_lut = resolve_current_lut(axis_state);
 
-    int new_phase = normalize_motor_phase(pos_to_phase(axis_num_to_refresh, physical_position) + axis_state.zero_rotor_phase);
+    int new_phase = normalize_motor_phase(pos_to_phase(axis_index, physical_position) + axis_state.zero_rotor_phase);
     assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
 #if HAS_BURST_STEPPING()
@@ -576,10 +578,10 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
     spi::set_xdirect(axis_index, a, b);
 #endif
     // Report movement to Stepper
-    int32_t steps_made = pos_to_steps(axis_num_to_refresh, position);
-    Stepper::set_axis_steps(AxisEnum(axis_num_to_refresh),
+    int32_t steps_made = pos_to_steps(axis_index, position);
+    Stepper::set_axis_steps(axis_enum,
         axis_state.initial_count_position + steps_made);
-    Stepper::set_axis_steps_from_startup(AxisEnum(axis_num_to_refresh),
+    Stepper::set_axis_steps_from_startup(axis_enum,
         axis_state.initial_count_position_from_startup + steps_made);
 
     Stepper::report_axis_movement(axis_enum, speed);
