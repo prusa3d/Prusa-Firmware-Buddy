@@ -271,8 +271,9 @@ extern "C" void main_cpp(void) {
 #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
     /*
      * MK3.5 HW detected on MK4 firmware or vice versa
+       Ignore the check in production (tester_mode), the xBuddy's connected peripherals are safe in this mode.
      */
-    if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw()) {
+    if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw() && get_auto_update_flag() != FwAutoUpdate::tester_mode) {
         const auto &error = find_error(ErrCode::WARNING_DIFFERENT_FW_REQUIRED);
         crash_dump::force_save_message_without_dump(crash_dump::MsgType::FATAL_WARNING, static_cast<uint16_t>(error.err_code), error.err_text, error.err_title);
         hwio_safe_state();
