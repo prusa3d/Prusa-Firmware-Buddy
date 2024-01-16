@@ -8,26 +8,22 @@
 #include <cstring>
 #include <option/has_loadcell.h>
 
+// These temperatures correspond to slicer defaults for MBL.
+constexpr uint16_t PC_NOZZLE_PREHEAT = HAS_LOADCELL() ? 170 : 275 - 25;
+constexpr uint16_t FLEX_NOZZLE_PREHEAT = HAS_LOADCELL() ? 170 : 210;
+
 const filament::Description filaments[size_t(filament::Type::_last) + 1] = {
     { 0, 0, 0, Response::Cooldown },
     { 215, 170, 60, Response::PLA },
     { 230, 170, 85, Response::PETG },
     { 260, 170, 100, Response::ASA },
-#if HAS_LOADCELL()
-    { 275, 170, 100, Response::PC },
-#else
-    { 275, 275 - 25, 100, Response::PC },
-#endif
+    { 275, PC_NOZZLE_PREHEAT, 100, Response::PC },
     { 215, 170, 75, Response::PVB },
     { 255, 170, 100, Response::ABS },
     { 220, 170, 100, Response::HIPS },
     { 240, 170, 100, Response::PP },
     { 285, 170, 100, Response::PA },
-#if HAS_LOADCELL()
-    { 240, 170, 50, Response::FLEX },
-#else
-    { 240, 210, 50, Response::FLEX },
-#endif
+    { 240, FLEX_NOZZLE_PREHEAT, 50, Response::FLEX },
 };
 
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament::Type::_last) + 1, "Filament count error.");
