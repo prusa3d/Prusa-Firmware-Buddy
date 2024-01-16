@@ -2,7 +2,7 @@
 #include "printer_common.hpp"
 
 using printer_state::DeviceState;
-using printer_state::StateWithAttentionCode;
+using printer_state::StateWithDialog;
 using std::make_tuple;
 using std::nullopt;
 using std::optional;
@@ -29,7 +29,7 @@ void ErrorPrinter::drop_paths() {}
 Printer::Params ErrorPrinter::params() const {
     Params params(nullopt);
 
-    params.state = StateWithAttentionCode { DeviceState::Error };
+    params.state = StateWithDialog { DeviceState::Error };
     // Version can change between MK4 and MK3.9 in runtime
     params.version = get_printer_version();
 
