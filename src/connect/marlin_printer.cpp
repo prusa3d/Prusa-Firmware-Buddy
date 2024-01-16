@@ -146,7 +146,7 @@ namespace {
 #endif
         params.number_of_slots = get_num_of_enabled_tools();
         for (size_t i = 0; i < params.number_of_slots; i++) {
-            params.slots[i].material = filament::get_description(config_store().get_filament_type(i)).name;
+            params.slots[i].material = filament::get_name(config_store().get_filament_type(i));
 
 #if HAS_TOOLCHANGER()
             auto &hotend = marlin_vars()->hotend(i);

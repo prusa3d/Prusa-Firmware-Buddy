@@ -29,7 +29,7 @@ template <filament::Type T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(_(filament::get_description(T).name), filament::get_description(T).nozzle, filament::get_description(T).heatbed) {}
+        : I_MI_Filament(_(filament::get_name(T)), filament::get_description(T).nozzle, filament::get_description(T).heatbed) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {

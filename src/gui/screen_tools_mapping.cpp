@@ -147,9 +147,9 @@ void print_right_tool_into_buffer(size_t idx, std::array<std::array<char, ToolsM
     // IDX here means REAL
 
     const auto loaded_filament_type = config_store().get_filament_type(idx);
-    const auto loaded_filament_desc = filament::get_description(loaded_filament_type);
+    const auto loaded_filament_name = filament::get_name(loaded_filament_type);
 
-    snprintf(text_buffers[idx].data(), ToolsMappingBody::max_item_text_width, "%hhu. %-5.5s", static_cast<uint8_t>(idx + 1), loaded_filament_desc.name);
+    snprintf(text_buffers[idx].data(), ToolsMappingBody::max_item_text_width, "%hhu. %-5.5s", static_cast<uint8_t>(idx + 1), loaded_filament_name);
 
     if (drawing_nozzles) {
         const auto cur_strlen = strlen(text_buffers[idx].data());
