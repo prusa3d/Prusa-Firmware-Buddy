@@ -24,7 +24,7 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_AUTO_HOME,
     MI_SET_READY,
 #if !HAS_LOADCELL()
-    MI_CURRENT_PROFILE,
+    MI_CURRENT_SHEET_PROFILE,
 #endif
     MI_DISABLE_STEP,
     MI_LIVE_ADJUST_Z,

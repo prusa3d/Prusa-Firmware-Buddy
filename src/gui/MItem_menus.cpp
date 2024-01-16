@@ -262,19 +262,19 @@ void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
 
 /*****************************************************************************/
 // MI_CURRENT_PROFILE
-MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
+MI_CURRENT_SHEET_PROFILE::MI_CURRENT_SHEET_PROFILE()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, SteelSheets::NumOfCalibrated() > 1 ? is_hidden_t::no : is_hidden_t::yes) {
     if (SteelSheets::NumOfCalibrated() > 1) {
         UpdateLabel();
     }
 }
 
-void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
+void MI_CURRENT_SHEET_PROFILE::click(IWindowMenu & /*window_menu*/) {
     SteelSheets::NextSheet();
     UpdateLabel();
 }
 
-void MI_CURRENT_PROFILE::UpdateLabel() {
+void MI_CURRENT_SHEET_PROFILE::UpdateLabel() {
     name[0] = '[';
     uint32_t cnt = SteelSheets::ActiveSheetName(name + 1, MAX_SHEET_NAME_LENGTH);
     name[cnt + 1] = ']';

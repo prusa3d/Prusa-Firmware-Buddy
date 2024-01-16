@@ -216,12 +216,12 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_CURRENT_PROFILE : public IWindowMenuItem {
+class MI_CURRENT_SHEET_PROFILE : public IWindowMenuItem {
     static constexpr const char *const label = N_("Current Profile");
     char name[MAX_SHEET_NAME_LENGTH + 3];
 
 public:
-    MI_CURRENT_PROFILE();
+    MI_CURRENT_SHEET_PROFILE();
 
     void UpdateLabel();
 
