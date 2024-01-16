@@ -42,8 +42,4 @@ const char *to_str(DeviceState state) {
     }
 }
 
-const char *to_str(AttentionCode attention_code, char *buffer, size_t size) {
-    return "A-12345";
-}
-
 } // namespace printer_state

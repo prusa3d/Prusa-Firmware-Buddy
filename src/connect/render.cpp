@@ -66,7 +66,6 @@ namespace {
     JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const SendTelemetry &telemetry) {
         const auto params = state.printer.params();
         const bool printing = is_printing(params.state.device_state);
-        char attention_code_buffer[8];
 
         const uint32_t current_fingerprint = params.telemetry_fingerprint(!printing);
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
@@ -176,13 +175,13 @@ namespace {
                     JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
                 }
 
-                if (params.state.device_state == DeviceState::Attention && params.state.attention_code.has_value()) {
-                    JSON_FIELD_STR("attention_code", to_str(*params.state.attention_code, attention_code_buffer, sizeof(attention_code_buffer))) JSON_COMMA;
+                if (params.state.device_state == DeviceState::Attention && params.state.dialog_id.has_value()) {
+                    JSON_FIELD_STR_FORMAT("dialog_id", "%05" PRIu16, static_cast<uint16_t>(*params.state.dialog_id)) JSON_COMMA;
                 }
                 if (params.state.device_state == DeviceState::Error && get<const char *>(error_details) != nullptr) {
                     JSON_FIELD_STR("reason", get<const char *>(error_details)) JSON_COMMA;
                     if (get<uint16_t>(error_details) != 0) { // 0 means unknown / not available
-                        JSON_FIELD_INT("error_code", get<uint16_t>(error_details)) JSON_COMMA;
+                        JSON_FIELD_INT("dialog_id", get<uint16_t>(error_details)) JSON_COMMA;
                     }
                 }
                 // State is sent always, first because it seems important, but
@@ -200,7 +199,6 @@ namespace {
         const auto &info = state.printer.printer_info();
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         const bool printing = is_printing(params.state.device_state);
-        char attention_code_buffer[8];
 #if ENABLED(CANCEL_OBJECTS)
         char cancel_object_name[Printer::CANCEL_OBJECT_NAME_LEN];
 #endif
@@ -461,8 +459,8 @@ namespace {
 #endif
             }
 
-            if (params.state.device_state == DeviceState::Attention && params.state.attention_code.has_value()) {
-                JSON_FIELD_STR("attention_code", to_str(*params.state.attention_code, attention_code_buffer, sizeof(attention_code_buffer))) JSON_COMMA;
+            if (params.state.device_state == DeviceState::Attention && params.state.dialog_id.has_value()) {
+                JSON_FIELD_STR_FORMAT("dialog_id", "%05" PRIu16, static_cast<uint16_t>(*params.state.dialog_id)) JSON_COMMA;
             }
             JSON_FIELD_STR("state", to_str(params.state.device_state)) JSON_COMMA;
             if (event.command_id.has_value()) {
