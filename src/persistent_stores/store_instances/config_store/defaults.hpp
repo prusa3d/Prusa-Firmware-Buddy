@@ -239,7 +239,7 @@ namespace defaults {
     inline constexpr SelftestResult_pre_gears selftest_result_pre_gears {};
     inline constexpr SelftestResult_pre_23 selftest_result_pre_23 {};
 
-    inline constexpr Sheet sheet_0 { "Smooth1", 0.0f };
+    inline constexpr Sheet sheet_0 { "Smooth1", z_offset_uncalibrated };
     inline constexpr Sheet sheet_1 { "Smooth2", z_offset_uncalibrated };
     inline constexpr Sheet sheet_2 { "Textur1", z_offset_uncalibrated };
     inline constexpr Sheet sheet_3 { "Textur2", z_offset_uncalibrated };
