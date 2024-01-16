@@ -12,7 +12,10 @@
 constexpr uint16_t PC_NOZZLE_PREHEAT = HAS_LOADCELL() ? 170 : 275 - 25;
 constexpr uint16_t FLEX_NOZZLE_PREHEAT = HAS_LOADCELL() ? 170 : 210;
 
-const filament::Description filaments[size_t(filament::Type::_last) + 1] = {
+// MINI has slightly lower max nozzle temperature but it is still OK for polyamid
+constexpr uint16_t PA_NOZZLE = PRINTER_IS_PRUSA_MINI ? 280 : 285;
+
+constexpr filament::Description filaments[size_t(filament::Type::_last) + 1] = {
     { 0, 0, 0, Response::Cooldown },
     { 215, 170, 60, Response::PLA },
     { 230, 170, 85, Response::PETG },
@@ -22,11 +25,19 @@ const filament::Description filaments[size_t(filament::Type::_last) + 1] = {
     { 255, 170, 100, Response::ABS },
     { 220, 170, 100, Response::HIPS },
     { 240, 170, 100, Response::PP },
-    { 285, 170, 100, Response::PA },
+    { PA_NOZZLE, 170, 100, Response::PA },
     { 240, FLEX_NOZZLE_PREHEAT, 50, Response::FLEX },
 };
 
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament::Type::_last) + 1, "Filament count error.");
+
+constexpr bool temperatures_are_within_spec(filament::Description filament) {
+    return (filament.nozzle <= HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN)
+        && (filament.nozzle_preheat <= HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN)
+        && (filament.heatbed <= BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN);
+}
+
+static_assert(std::ranges::all_of(filaments, temperatures_are_within_spec));
 
 filament::Type filament::get_type(const char *name, size_t name_len) {
     // first name is not valid ("---")
