@@ -129,40 +129,25 @@ ScreenMenuSteelSheets::ScreenMenuSteelSheets()
     : ScreenMenuSteelSheets__(_(label)) {
 }
 
-void IProfileRecord::name_sheet(uint32_t value, char *buff) {
-    SteelSheets::SheetName(value, buff, MAX_SHEET_NAME_LENGTH + 1);
+I_MI_SHEET_PROFILE::I_MI_SHEET_PROFILE(int sheet_index)
+    : IWindowMenuItem({}, Rect16::W_t(16), nullptr, is_enabled_t::yes, is_hidden_t::no)
+    , sheet_index(sheet_index) {
+
+    // SheetName does not set the leading '\0'! We gotta set it ourselves.
+    const auto len = SteelSheets::SheetName(sheet_index, label_str.data(), label_str.size());
+    label_str[len] = '\0';
+
+    // string_view_utf8::MakeRAM is safe. "label_str" is a member var and exists until I_MI_SHEET_PROFILE is destroyed
+    SetLabel(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(label_str.data())));
 }
 
 // ScreenFactory::Screen depends on ProfileRecord following code cannot stay in header (be template)
-void IProfileRecord::click_index(uint32_t index) {
-    switch (index) {
-    case 0:
-        Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreenT<sheet_index_0>>);
-        return;
-    case 1:
-        Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreenT<sheet_index_1>>);
-        return;
-    case 2:
-        Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreenT<sheet_index_2>>);
-        return;
-    case 3:
-        Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreenT<sheet_index_3>>);
-        return;
-    case 4:
-        Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreenT<sheet_index_4>>);
-        return;
-    case 5:
-        Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreenT<sheet_index_5>>);
-        return;
-    case 6:
-        Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreenT<sheet_index_6>>);
-        return;
-    case 7:
-        Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreenT<sheet_index_7>>);
-        return;
-    }
-}
+void I_MI_SHEET_PROFILE::click([[maybe_unused]] IWindowMenu &window_menu) {
+    static constexpr const auto screen_open_f = ([]<size_t... ix>(const std::index_sequence<ix...>) {
+        return std::array {
+            +[] { return Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreenT<ix>>); }...
+        };
+    })(std::make_index_sequence<config_store_ns::sheets_num>());
 
-IProfileRecord::IProfileRecord()
-    : IWindowMenuItem(string_view_utf8::MakeNULLSTR(), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    screen_open_f[sheet_index]();
 }
