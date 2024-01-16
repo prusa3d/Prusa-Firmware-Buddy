@@ -52,6 +52,7 @@ public:
     static uint32_t NumOfCalibrated();
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Determine the name of the current active print sheet profile.
+    /// !!! DOES NOT APPEND TRAILING '\0'
     ///
     /// @param[out] buffer Buffer to store the print sheet profile
     /// @param[in] length Size of the given buffer.
@@ -60,6 +61,7 @@ public:
     static uint32_t ActiveSheetName(char *buffer, uint32_t length);
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Determine the name of the given print sheet profile.
+    /// !!! DOES NOT APPEND TRAILING '\0'
     ///
     /// @param[in] index Index of the sheet profile
     /// @param[out] buffer Buffer to store the print sheet profile
