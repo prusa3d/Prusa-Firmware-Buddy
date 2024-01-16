@@ -31,9 +31,6 @@ protected:
 /*****************************************************************************/
 
 using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-#if !HAS_LOADCELL()
-    MI_CURRENT_PROFILE,
-#endif
     MI_FILAMENT_SENSOR,
 #if HAS_LOADCELL()
     MI_STUCK_FILAMENT_DETECTION,
