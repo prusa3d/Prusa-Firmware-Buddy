@@ -1,8 +1,8 @@
 /**
- * @file MItem_MINI_MK3.5.cpp
+ * @file MItem_MINI.cpp
  */
 
-#include "MItem_MINI_MK3.5.hpp"
+#include "MItem_MINI.hpp"
 #include "img_resources.hpp"
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor.hpp"
