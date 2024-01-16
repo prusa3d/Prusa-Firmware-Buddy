@@ -16,6 +16,7 @@
 #include "data_exchange.hpp"
 #include <option/buddy_enable_wui.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_burst_stepping.h>
 
 #if HAS_PHASE_STEPPING()
     #include <feature/phase_stepping/phase_stepping.hpp>
@@ -374,6 +375,7 @@ void SPI3_IRQHandler(void) {
     traceISR_EXIT();
 }
 
+#if HAS_BURST_STEPPING()
 /**
  * @brief This function handles SPI4 global interrupt.
  */
@@ -382,4 +384,5 @@ void SPI4_IRQHandler(void) {
     HAL_SPI_IRQHandler(&hspi4);
     traceISR_EXIT();
 }
+#endif
 }
