@@ -414,6 +414,6 @@ Errors:
 
 - code: "13701"
   title: "Firmware Update Required"
-  text: "To continue, please insert the bundled USB flash drive and install the MK3.5 firmware"
+  text: "Insert the bundled USB drive, restart the printer and click the knob once during the boot. This will install the MK3.5 firmware."
   id: "DIFFERENT_FW_REQUIRED"
   approved: true

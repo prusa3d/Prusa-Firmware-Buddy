@@ -64,16 +64,7 @@ Errors:
   text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
   id: "HOTEND_TEMP_NOT_MATCHING"
   approved: true
-- code: "20211"
-  title: "HEATBREAK MINTEMP ERROR"
-  text: "Check the heatbreak thermistor wiring for possible damage."
-  id: "HEATBREAK_MINTEMP_ERR"
-  approved: true
-- code: "20212"
-  title: "HEATBREAK MAXTEMP ERROR"
-  text: "Check the heatbreak thermistor wiring for possible damage."
-  id: "HEATBREAK_MAXTEMP_ERR"
-  approved: true
+  # XX211-XX212 reserved
 - code: "20213"
   title: "MCU MAXTEMP ERROR"
   text: "MCU in %s is overheated."
@@ -331,6 +322,6 @@ Errors:
   approved: true
 - code: "20701"
   title: "Firmware Update Required"
-  text: "To continue, please insert the bundled USB flash drive and install the MK4/MK3.9 firmware"
+  text: "Insert the bundled USB drive, restart the printer and click the knob once during the boot. This will install the MK4/MK3.9 firmware."
   id: "DIFFERENT_FW_REQUIRED"
   approved: true
