@@ -147,7 +147,7 @@ static void save_divisor_to_eeprom(int try_nr, AxisEnum axis) {
     }
 }
 
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
 inline constexpr uint8_t HOMING_SENSITIVITY_CALIBRATION_TRIES = 4;
 
 static void store_homing_sensitivity(AxisEnum axis, int16_t value) {
