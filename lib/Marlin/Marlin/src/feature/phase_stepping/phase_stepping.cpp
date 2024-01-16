@@ -450,17 +450,17 @@ void phase_stepping::stop_immediately() {
 [[maybe_unused]] static int current_adjustment(int /*axis*/, float speed) {
     speed = std::abs(speed);
 #if PRINTER_IS_PRUSA_XL
-    float BREAKPOINT = 4.7f;
-    float ENDPOINT = 8.f;
-    int ENDPOINT_REDUCTION = 100;
+    float BREAKPOINT = 6.f;
+    float ENDPOINT = 10.f;
+    int REDUCTION_TO = 150;
 
     if (speed < BREAKPOINT) {
         return 255;
     }
     if (speed > ENDPOINT) {
-        return ENDPOINT_REDUCTION;
+        return REDUCTION_TO;
     }
-    return 255 - (speed - BREAKPOINT) * (255 - ENDPOINT_REDUCTION) / (ENDPOINT - BREAKPOINT);
+    return 255 - (speed - BREAKPOINT) * (255 - REDUCTION_TO) / (ENDPOINT - BREAKPOINT);
 #else
     #error "Unsupported printer"
 #endif
