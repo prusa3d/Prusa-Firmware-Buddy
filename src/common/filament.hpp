@@ -6,7 +6,6 @@
 namespace filament {
 
 struct Description {
-    const char *name;
     uint16_t nozzle;
     uint16_t nozzle_preheat;
     uint16_t heatbed;
@@ -80,6 +79,7 @@ Type get_type(Response resp);
 Type get_type(const char *name, size_t name_len);
 
 const Description &get_description(Type type);
+const char *get_name(Type type);
 
 Type get_type_to_load();
 void set_type_to_load(Type filament);

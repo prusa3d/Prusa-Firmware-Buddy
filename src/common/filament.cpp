@@ -9,24 +9,24 @@
 #include <option/has_loadcell.h>
 
 const filament::Description filaments[size_t(filament::Type::_last) + 1] = {
-    { "---", 0, 0, 0, Response::Cooldown },
-    { BtnResponse::GetText(Response::PLA), 215, 170, 60, Response::PLA },
-    { BtnResponse::GetText(Response::PETG), 230, 170, 85, Response::PETG },
-    { BtnResponse::GetText(Response::ASA), 260, 170, 100, Response::ASA },
+    { 0, 0, 0, Response::Cooldown },
+    { 215, 170, 60, Response::PLA },
+    { 230, 170, 85, Response::PETG },
+    { 260, 170, 100, Response::ASA },
 #if HAS_LOADCELL()
-    { BtnResponse::GetText(Response::PC), 275, 170, 100, Response::PC },
+    { 275, 170, 100, Response::PC },
 #else
-    { BtnResponse::GetText(Response::PC), 275, 275 - 25, 100, Response::PC },
+    { 275, 275 - 25, 100, Response::PC },
 #endif
-    { BtnResponse::GetText(Response::PVB), 215, 170, 75, Response::PVB },
-    { BtnResponse::GetText(Response::ABS), 255, 170, 100, Response::ABS },
-    { BtnResponse::GetText(Response::HIPS), 220, 170, 100, Response::HIPS },
-    { BtnResponse::GetText(Response::PP), 240, 170, 100, Response::PP },
-    { BtnResponse::GetText(Response::PA), 285, 170, 100, Response::PA },
+    { 215, 170, 75, Response::PVB },
+    { 255, 170, 100, Response::ABS },
+    { 220, 170, 100, Response::HIPS },
+    { 240, 170, 100, Response::PP },
+    { 285, 170, 100, Response::PA },
 #if HAS_LOADCELL()
-    { BtnResponse::GetText(Response::FLEX), 240, 170, 50, Response::FLEX },
+    { 240, 170, 50, Response::FLEX },
 #else
-    { BtnResponse::GetText(Response::FLEX), 240, 210, 50, Response::FLEX },
+    { 240, 210, 50, Response::FLEX },
 #endif
 };
 
@@ -35,7 +35,8 @@ static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament::Type:
 filament::Type filament::get_type(const char *name, size_t name_len) {
     // first name is not valid ("---")
     for (size_t i = size_t(filament::Type::NONE) + 1; i <= size_t(filament::Type::_last); ++i) {
-        if ((strlen(filaments[i].name) == name_len) && (!strncmp(name, filaments[i].name, name_len))) {
+        const char *filament_name = BtnResponse::GetText(filaments[i].response);
+        if ((strlen(filament_name) == name_len) && (!strncmp(name, filament_name, name_len))) {
             return static_cast<filament::Type>(i);
         }
     }
@@ -53,6 +54,14 @@ filament::Type filament::get_type(Response resp) {
 
 const filament::Description &filament::get_description(filament::Type filament) {
     return filaments[size_t(filament)];
+}
+
+const char *filament::get_name(Type type) {
+    if (type == Type::NONE) {
+        return "---";
+    }
+    const Description &description = get_description(type);
+    return BtnResponse::GetText(description.response);
 }
 
 static filament::Type filament_to_load = filament::Type::NONE;

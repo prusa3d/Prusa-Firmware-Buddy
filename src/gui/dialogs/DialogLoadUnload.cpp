@@ -540,7 +540,7 @@ void DialogLoadUnload::phaseEnter() {
     if (mode == LoadUnloadMode::Load) { // Change is currently split into Load/Unload, therefore no need to if (mode == change)
         if (filament::get_type_to_load() != filament::Type::NONE) {
             filament_type_text.Show();
-            auto fil_name = filament::get_description(filament::get_type_to_load()).name;
+            auto fil_name = filament::get_name(filament::get_type_to_load());
             filament_type_text.SetText(_(fil_name));
             if (filament::get_color_to_load().has_value()) {
 
