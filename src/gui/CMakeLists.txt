@@ -182,10 +182,6 @@ if(HAS_MMU2)
     )
 endif()
 
-if(PRINTER STREQUAL "MINI" OR PRINTER STREQUAL "MK3.5")
-  target_sources(firmware PRIVATE MItem_MINI_MK3.5.cpp screen_menu_steel_sheets.cpp)
-endif()
-
 if(PRINTER STREQUAL "MK4"
    OR PRINTER STREQUAL "MK3.5"
    OR PRINTER STREQUAL "XL"
@@ -193,8 +189,17 @@ if(PRINTER STREQUAL "MK4"
    )
   target_sources(firmware PRIVATE screen_help_fw_update.cpp)
 endif()
+
 if(PRINTER STREQUAL "MK4" OR PRINTER STREQUAL "MK3.5")
   target_sources(firmware PRIVATE screen_fatal_warning.cpp)
+endif()
+
+if(PRINTER STREQUAL "MINI")
+  target_sources(firmware PRIVATE MItem_MINI.cpp)
+endif()
+
+if(PRINTER STREQUAL "MK3.5")
+  target_sources(firmware PRIVATE MItem_MK3.5.cpp)
 endif()
 
 if(BOARD IN_LIST BOARDS_WITH_ST7789V)
@@ -209,6 +214,10 @@ endif()
 
 if(PRINTER IN_LIST PRINTERS_WITH_LOVE_BOARD)
   target_sources(firmware PRIVATE MItem_love_board.cpp)
+endif()
+
+if(NOT PRINTER IN_LIST PRINTERS_WITH_LOADCELL)
+  target_sources(firmware PRIVATE screen_menu_steel_sheets.cpp)
 endif()
 
 add_subdirectory(dialogs)
