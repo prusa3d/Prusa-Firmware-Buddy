@@ -111,9 +111,8 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
     case GUI_event_t::CLICK:
         if (focused_item) {
             focused_item->Click(*this);
-            return;
         }
-        break;
+        return; // Must not propagate event to parent in order to prevent infinite loop
 
     case GUI_event_t::CAPT_1:
         // TODO: change flag to checked
