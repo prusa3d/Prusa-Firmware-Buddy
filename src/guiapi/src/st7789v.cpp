@@ -17,9 +17,7 @@
 #include "disable_interrupts.h"
 #include "qoi_decoder.hpp"
 
-#ifdef ST7789V_USE_RTOS
-    #include "cmsis_os.h"
-#endif // ST7789V_USE_RTOS
+#include "cmsis_os.h"
 
 // private flags (pin states)
 #define FLG_CS  0x01 // current CS pin state
@@ -85,18 +83,16 @@ uint16_t st7789v_y = 0; // current y coordinate (RASET)
 uint16_t st7789v_cx = 0; //
 uint16_t st7789v_cy = 0; //
 
-#ifdef ST7789V_USE_RTOS
 osThreadId st7789v_task_handle = 0;
-#endif // ST7789V_USE_RTOS
+
+static const uint32_t ST7789V_SIG_SPI_TX = 0x08;
 
 uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; // display buffer
 bool st7789v_buff_borrowed = false; ///< True if buffer is borrowed by someone else
 
 uint8_t *st7789v_borrow_buffer() {
     assert(!st7789v_buff_borrowed && "Already lent");
-#ifdef ST7789V_USE_RTOS
     assert(st7789v_task_handle == osThreadGetId() && "Must be called only from one task");
-#endif /*ST7789V_USE_RTOS*/
     st7789v_buff_borrowed = true;
     return st7789v_buff;
 }
@@ -187,11 +183,7 @@ static void st7789v_delay_ms(uint32_t ms) {
             } while ((temp & 0x01) && !(temp & (1 << 16)));
         }
     } else {
-#ifdef ST7789V_USE_RTOS
         osDelay(ms);
-#else
-        HAL_Delay(ms);
-#endif
     }
 }
 
@@ -201,17 +193,11 @@ void st7789v_spi_wr_byte(uint8_t b) {
 
 void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
     if ((st7789v_flg & (uint8_t)ST7789V_FLG_DMA) && !(st7789v_flg & (uint8_t)ST7789V_FLG_SAFE) && (size > 4)) {
-#ifdef ST7789V_USE_RTOS
         osSignalSet(st7789v_task_handle, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-#endif // ST7789V_USE_RTOS
         assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(pb)));
         HAL_SPI_Transmit_DMA(st7789v_config.phspi, pb, size);
-#ifdef ST7789V_USE_RTOS
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-#else // ST7789V_USE_RTOS
-// TODO:
-#endif // ST7789V_USE_RTOS
     } else {
         HAL_SPI_Transmit(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
     }
@@ -224,15 +210,11 @@ void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
         HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
     else
     {
-    #ifdef ST7789V_USE_RTOS
         osSignalSet(0, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-    #endif // ST7789V_USE_RTOS
         assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(pb)));
         HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
-    #ifdef ST7789V_USE_RTOS
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-    #endif // ST7789V_USE_RTOS
     }
 #else // ST7789V_DMA
     HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
@@ -380,9 +362,7 @@ void st7789v_init_ctl_pins(void) {
  * delay to detect Jogwheel revision.
  */
 void st7789v_init(void) {
-#ifdef ST7789V_USE_RTOS
     st7789v_task_handle = osThreadGetId();
-#endif // ST7789V_USE_RTOS
     if (st7789v_flg & (uint8_t)ST7789V_FLG_SAFE) {
         st7789v_flg &= ~(uint8_t)ST7789V_FLG_DMA;
     } else {
@@ -742,7 +722,5 @@ void st7789v_enable_safe_mode(void) {
 }
 
 void st7789v_spi_tx_complete(void) {
-#ifdef ST7789V_USE_RTOS
     osSignalSet(st7789v_task_handle, ST7789V_SIG_SPI_TX);
-#endif // ST7789V_USE_RTOS
 }

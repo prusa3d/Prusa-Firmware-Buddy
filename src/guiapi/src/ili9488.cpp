@@ -17,9 +17,7 @@
 
 #include "raster_opfn_c.h"
 #include "hwio_pindef.h"
-#ifdef ILI9488_USE_RTOS
-    #include "cmsis_os.h"
-#endif // ILI9488_USE_RTOS
+#include "cmsis_os.h"
 #include "main.h"
 
 #include "hw_configuration.hpp"
@@ -79,18 +77,17 @@ namespace {
 bool do_complete_lcd_reinit = false;
 }
 
-#ifdef ILI9488_USE_RTOS
 osThreadId ili9488_task_handle = 0;
-#endif // ILI9488_USE_RTOS
+
+#define ILI9488_SIG_SPI_TX 0x0008
+#define ILI9488_SIG_SPI_RX 0x0008
 
 uint8_t ili9488_buff[ILI9488_COLS * 3 * ILI9488_BUFF_ROWS]; // 3 bytes for pixel color
 bool ili9488_buff_borrowed = false; ///< True if buffer is borrowed by someone else
 
 uint8_t *ili9488_borrow_buffer() {
     assert(!ili9488_buff_borrowed && "Already lent");
-#ifdef ILI9488_USE_RTOS
     assert(ili9488_task_handle == osThreadGetId() && "Must be called only from one task");
-#endif /*ILI9488_USE_RTOS*/
     ili9488_buff_borrowed = true;
     return ili9488_buff;
 }
@@ -167,11 +164,7 @@ void ili9488_delay_ms(uint32_t ms) {
             } while ((temp & 0x01) && !(temp & (1 << 16)));
         }
     } else {
-#ifdef ILI9488_USE_RTOS
         osDelay(ms);
-#else
-        HAL_Delay(ms);
-#endif
     }
 }
 
@@ -181,17 +174,11 @@ void ili9488_spi_wr_byte(uint8_t b) {
 
 void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size) {
     if ((ili9488_flg & ILI9488_FLG_DMA) && !(ili9488_flg & ILI9488_FLG_SAFE) && (size > 4)) {
-#ifdef ILI9488_USE_RTOS
         osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_TX);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
-#endif // ILI9488_USE_RTOS
         assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(pb)));
         HAL_SPI_Transmit_DMA(ili9488_config.phspi, const_cast<uint8_t *>(pb), size);
-#ifdef ILI9488_USE_RTOS
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
-#else // ILI9488_USE_RTOS
-// TODO:
-#endif // ILI9488_USE_RTOS
     } else {
         HAL_SPI_Transmit(ili9488_config.phspi, const_cast<uint8_t *>(pb), size, HAL_MAX_DELAY);
     }
@@ -473,9 +460,7 @@ static void startup_new_manufacturer() {
 
 void ili9488_init(void) {
     displayCs.write(Pin::State::low);
-#ifdef ILI9488_USE_RTOS
     ili9488_task_handle = osThreadGetId();
-#endif // ILI9488_USE_RTOS
     if (ili9488_flg & ILI9488_FLG_SAFE) {
         ili9488_flg &= ~ILI9488_FLG_DMA;
     } else {
@@ -831,15 +816,11 @@ void ili9488_enable_safe_mode(void) {
 }
 
 void ili9488_spi_tx_complete(void) {
-#ifdef ILI9488_USE_RTOS
     osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_TX);
-#endif // ILI9488_USE_RTOS
 }
 
 void ili9488_spi_rx_complete(void) {
-#ifdef ILI9488_USE_RTOS
     osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_RX);
-#endif // ILI9488_USE_RTOS
 }
 
 void ili9488_cmd_nop() {
