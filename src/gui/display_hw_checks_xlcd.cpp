@@ -41,9 +41,9 @@ void check_lcd() {
 
 void lcd::communication_check() {
     const uint32_t min_check_period_ms = 2048; // both touch and display
-    static uint32_t last_touch_check_ms = gui::GetTick_IgnoreTickLoop(); // sync with loop time would be unwanted
+    static uint32_t last_touch_check_ms = ticks_ms();
 
-    uint32_t now = gui::GetTick_IgnoreTickLoop();
+    uint32_t now = ticks_ms();
     if ((now - last_touch_check_ms) >= min_check_period_ms) {
         last_touch_check_ms = now;
         check_lcd();

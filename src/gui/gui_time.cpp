@@ -53,10 +53,6 @@ uint64_t gui::GetTickU64() {
     return u64_tick;
 }
 
-uint32_t gui::GetTick_IgnoreTickLoop() {
-    return ticks_ms();
-}
-
 uint32_t gui::GetTick_ForceActualization() {
     gui::StartLoop();
     return gui::GetTick();
