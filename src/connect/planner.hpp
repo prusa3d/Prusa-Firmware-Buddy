@@ -42,6 +42,7 @@ enum class EventType {
     TransferAborted,
     TransferFinished,
     CancelableChanged,
+    StateChanged,
 };
 
 const char *to_str(EventType event);
@@ -149,11 +150,13 @@ private:
     void command(const Command &, const StopTransfer &);
     void command(const Command &, const SetToken &);
     void command(const Command &, const ResetPrinter &);
+    void command(const Command &, const SendStateInfo &);
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;
 
     Tracked cancellable_objects;
+    Tracked state_info;
     // Tracking of ongoing transfers.
     std::optional<transfers::TransferId> observed_transfer;
 
@@ -187,10 +190,7 @@ private:
     Sleep sleep(Duration duration, http::Connection *wake_on_readable, bool cooldown);
 
 public:
-    Planner(Printer &printer)
-        : printer(printer) {
-        reset();
-    }
+    Planner(Printer &printer);
     /// Reset the state.
     ///
     /// This is for the "severe" cases, for example when connect is disabled

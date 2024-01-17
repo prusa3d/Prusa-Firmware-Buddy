@@ -144,6 +144,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             // accept both variants and do the same.
             T("RESET_PRINTER", ResetPrinter, NO_ARGS)
             T("RESET", ResetPrinter, NO_ARGS)
+            T("SEND_STATE_INFO", SendStateInfo, NO_ARGS)
             T("START_ENCRYPTED_DOWNLOAD", StartEncryptedDownload, ARGS_ENC_DOWN) { // else is part of the previous T
                 return;
             }
