@@ -121,6 +121,16 @@ uint32_t Printer::info_fingerprint() const {
         .done();
 }
 
+uint32_t Printer::Params::state_fingerprint() const {
+    Crc crc;
+
+    uint32_t dialog_id = 0;
+    if (state.dialog_id.has_value()) {
+        dialog_id = static_cast<uint32_t>(*state.dialog_id);
+    }
+    return crc.add(state.device_state).add(dialog_id).done();
+}
+
 Printer::Params::Params(const optional<BorrowPaths> &paths)
     : paths(paths) {}
 
