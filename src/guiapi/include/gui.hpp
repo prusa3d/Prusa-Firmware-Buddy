@@ -16,18 +16,17 @@ extern void gui_init(void);
 
 extern void gui_redraw(void);
 
-#ifdef GUI_WINDOW_SUPPORT
-    #include "window.hpp"
-    #include "window_frame.hpp"
-    #include "window_text.hpp"
-    #include "window_roll_text.hpp"
-    #include "window_numb.hpp"
-    #include "window_icon.hpp"
-    #include "window_term.hpp"
-    #include "window_msgbox.hpp"
-    #include "window_progress.hpp"
-    #include "window_qr.hpp"
-    #include "circle_buffer.hpp"
+#include "window.hpp"
+#include "window_frame.hpp"
+#include "window_text.hpp"
+#include "window_roll_text.hpp"
+#include "window_numb.hpp"
+#include "window_icon.hpp"
+#include "window_term.hpp"
+#include "window_msgbox.hpp"
+#include "window_progress.hpp"
+#include "window_qr.hpp"
+#include "circle_buffer.hpp"
 
 extern uint8_t gui_get_nesting(void);
 
@@ -45,5 +44,3 @@ using MsgBuff_t = CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH>;
 
 MsgBuff_t &MsgCircleBuffer();
 void MsgCircleBuffer_cb(const char *txt);
-
-#endif // GUI_WINDOW_SUPPORT

@@ -19,10 +19,6 @@
 #endif
 
 //--------------------------------------
-// GUI configuration
-#define GUI_WINDOW_SUPPORT
-
-//--------------------------------------
 // FreeRTOS Signals
 
 static const uint32_t MENU_TIMEOUT_MS = 30000;

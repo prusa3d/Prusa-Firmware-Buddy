@@ -9,8 +9,6 @@
 #include "marlin_server.hpp"
 #include "unique_file_ptr.hpp"
 #include "timing.h"
-#include "config.h" // GUI_WINDOW_SUPPORT
-#include "guiconfig.h" // GUI_WINDOW_SUPPORT
 #include "unistd.h"
 #include "str_utils.hpp"
 #include "tasks.hpp"

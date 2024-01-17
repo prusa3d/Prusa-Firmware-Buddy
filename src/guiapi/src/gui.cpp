@@ -136,8 +136,6 @@ void gui_invalidate(void) {
     gui_invalid = true;
 }
 
-#ifdef GUI_WINDOW_SUPPORT
-
 static uint8_t guiloop_nesting = 0;
 uint8_t gui_get_nesting(void) { return guiloop_nesting; }
 
@@ -170,9 +168,9 @@ void gui_loop(void) {
 
     gui_handle_jogwheel();
 
-    #if HAS_TOUCH()
+#if HAS_TOUCH()
     gui_handle_touch();
-    #endif
+#endif
 
     MediaState_t media_state = MediaState_t::unknown;
     if (GuiMediaEventsHandler::ConsumeSent(media_state)) {
@@ -196,5 +194,3 @@ void gui_loop(void) {
     }
     --guiloop_nesting;
 }
-
-#endif // GUI_WINDOW_SUPPORT
