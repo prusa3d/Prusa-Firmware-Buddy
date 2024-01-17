@@ -28,13 +28,7 @@
 LOG_COMPONENT_REF(GUI);
 LOG_COMPONENT_REF(Touch);
 
-static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
-
 static bool gui_invalid = false;
-
-#ifdef GUI_USE_RTOS
-osThreadId gui_task_handle = 0;
-#endif // GUI_USE_RTOS
 
 constexpr padding_ui8_t GuiDefaults::Padding;
 constexpr Rect16 GuiDefaults::RectHeader;
@@ -54,7 +48,6 @@ static Sw_Timer<uint32_t> gui_redraw_timer(GUI_DELAY_REDRAW);
 
 void gui_init(void) {
     display::Init();
-    gui_task_handle = osThreadGetId();
 
     // select jogwheel type by measured 'reset delay'
     // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)

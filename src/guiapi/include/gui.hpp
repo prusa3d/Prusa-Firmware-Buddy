@@ -16,13 +16,6 @@ extern void gui_init(void);
 
 extern void gui_redraw(void);
 
-#ifdef GUI_USE_RTOS
-    #include "cmsis_os.h"
-
-extern osThreadId gui_task_handle;
-
-#endif // GUI_USE_RTOS
-
 #ifdef GUI_WINDOW_SUPPORT
     #include "window.hpp"
     #include "window_frame.hpp"
