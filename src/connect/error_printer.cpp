@@ -29,7 +29,13 @@ void ErrorPrinter::drop_paths() {}
 Printer::Params ErrorPrinter::params() const {
     Params params(nullopt);
 
-    params.state = StateWithDialog { DeviceState::Error };
+    auto [err_txt, err_code] = err_details();
+
+    optional<ErrCode> code = nullopt;
+    if (err_code != 0) {
+        code = static_cast<ErrCode>(err_code);
+    }
+    params.state = StateWithDialog { DeviceState::Error, code };
     // Version can change between MK4 and MK3.9 in runtime
     params.version = get_printer_version();
 

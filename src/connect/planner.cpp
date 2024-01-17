@@ -229,10 +229,23 @@ const char *to_str(EventType event) {
         return "FILE_CHANGED";
     case EventType::CancelableChanged:
         return "CANCELABLE_CHANGED";
+    case EventType::StateChanged:
+        return "STATE_CHANGED";
     default:
         assert(false);
         return "???";
     }
+}
+
+Planner::Planner(Printer &printer)
+    : printer(printer) {
+    reset();
+
+    // Prevent emiting a state changed to IDLE on boot.
+    Printer::Params dummy_params(nullopt);
+    dummy_params.state.device_state = printer_state::DeviceState::Idle;
+    state_info.set_hash(dummy_params.state_fingerprint());
+    state_info.mark_clean();
 }
 
 void Planner::reset() {
@@ -398,6 +411,16 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
         }
     }
 
+    const auto params = printer.params();
+
+    if (state_info.set_hash(params.state_fingerprint())) {
+        planned_event = Event {
+            EventType::StateChanged,
+        };
+        planned_event->reason = get<0>(printer.err_details());
+        return *planned_event;
+    }
+
     if (cancellable_objects.set_hash(printer.cancelable_fingerprint())) {
         planned_event = Event {
             EventType::CancelableChanged,
@@ -450,6 +473,8 @@ void Planner::action_done(ActionResult result) {
                 info_changes.mark_clean();
             } else if (planned_event->type == EventType::CancelableChanged) {
                 cancellable_objects.mark_clean();
+            } else if (planned_event->type == EventType::StateChanged) {
+                state_info.mark_clean();
             }
             planned_event = nullopt;
             // Enforce telemetry now. We may get a new command with it.
@@ -743,6 +768,11 @@ void Planner::command(const Command &command, const ResetPrinter &) {
 
     // We reach this place only if the reset_printer fails to execute (can it?)
     planned_event = { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Failed to reset" };
+}
+
+void Planner::command(const Command &command, const SendStateInfo &) {
+    planned_event = { EventType::StateChanged, command.id };
+    planned_event->reason = get<0>(printer.err_details());
 }
 
 // FIXME: Handle the case when we are resent a command we are already

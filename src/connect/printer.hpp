@@ -107,6 +107,7 @@ public:
 #endif
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;
+        uint32_t state_fingerprint() const;
     };
 
     struct Config {

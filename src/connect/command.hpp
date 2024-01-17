@@ -70,8 +70,9 @@ struct SetToken {
     SharedBorrow token;
 };
 struct ResetPrinter {};
+struct SendStateInfo {};
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartEncryptedDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer, SetToken, ResetPrinter>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartEncryptedDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer, SetToken, ResetPrinter, SendStateInfo>;
 
 struct Command {
     CommandId id;

@@ -175,14 +175,11 @@ namespace {
                     JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
                 }
 
-                if (params.state.device_state == DeviceState::Attention && params.state.dialog_id.has_value()) {
+                if (params.state.dialog_id.has_value()) {
                     JSON_FIELD_STR_FORMAT("dialog_id", "%05" PRIu16, static_cast<uint16_t>(*params.state.dialog_id)) JSON_COMMA;
                 }
                 if (params.state.device_state == DeviceState::Error && get<const char *>(error_details) != nullptr) {
                     JSON_FIELD_STR("reason", get<const char *>(error_details)) JSON_COMMA;
-                    if (get<uint16_t>(error_details) != 0) { // 0 means unknown / not available
-                        JSON_FIELD_INT("dialog_id", get<uint16_t>(error_details)) JSON_COMMA;
-                    }
                 }
                 // State is sent always, first because it seems important, but
                 // also, we want something that doesn't have the final comma on
@@ -457,9 +454,13 @@ namespace {
                     JSON_ARR_END;
                 JSON_OBJ_END JSON_COMMA;
 #endif
+            } else if (event.type == EventType::StateChanged) {
+                JSON_FIELD_OBJ("data");
+                    // In the future, we may have some info in here (like, buttons).
+                JSON_OBJ_END JSON_COMMA;
             }
 
-            if (params.state.device_state == DeviceState::Attention && params.state.dialog_id.has_value()) {
+            if (params.state.dialog_id.has_value()) {
                 JSON_FIELD_STR_FORMAT("dialog_id", "%05" PRIu16, static_cast<uint16_t>(*params.state.dialog_id)) JSON_COMMA;
             }
             JSON_FIELD_STR("state", to_str(params.state.device_state)) JSON_COMMA;
