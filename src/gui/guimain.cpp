@@ -138,9 +138,7 @@ marlin_vars_t *gui_marlin_vars = 0;
 char gui_media_LFN[FILE_NAME_BUFFER_LEN];
 char gui_media_SFN_path[FILE_PATH_BUFFER_LEN]; //@@TODO DR - tohle pouzit na ulozeni posledni cesty
 
-#ifdef GUI_JOGWHEEL_SUPPORT
 Jogwheel jogwheel;
-#endif // GUI_JOGWHEEL_SUPPORT
 
 MsgBuff_t &MsgCircleBuffer() {
     static CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;

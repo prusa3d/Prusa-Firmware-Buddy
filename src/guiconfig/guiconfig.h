@@ -20,7 +20,6 @@
 
 //--------------------------------------
 // GUI configuration
-#define GUI_JOGWHEEL_SUPPORT
 #define GUI_WINDOW_SUPPORT
 
 //--------------------------------------

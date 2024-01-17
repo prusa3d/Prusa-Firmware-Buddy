@@ -49,20 +49,17 @@ static Sw_Timer<uint32_t> gui_redraw_timer(GUI_DELAY_REDRAW);
 void gui_init(void) {
     display::Init();
 
-    // select jogwheel type by measured 'reset delay'
-    // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
-    // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
-#ifdef GUI_JOGWHEEL_SUPPORT
-    #ifdef USE_ST7789
+// select jogwheel type by measured 'reset delay'
+// original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
+// new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
+#ifdef USE_ST7789
     // run-time jogwheel type detection decides which type of jogwheel device has (each type has different encoder behaviour)
     jogwheel.SetJogwheelType(st7789v_reset_delay);
-    #else /* ! USE_ST7789 */
+#else /* ! USE_ST7789 */
     jogwheel.SetJogwheelType(0);
-    #endif
 #endif
 }
 
-#ifdef GUI_JOGWHEEL_SUPPORT
 void gui_handle_jogwheel() {
     BtnState_t btn_ev;
     bool is_btn = jogwheel.ConsumeButtonEvent(btn_ev);
@@ -76,7 +73,6 @@ void gui_handle_jogwheel() {
         }
     }
 }
-#endif // GUI_JOGWHEEL_SUPPORT
 
 #if HAS_TOUCH()
 void gui_handle_touch() {
@@ -157,9 +153,7 @@ void gui_loop_display_warning_check() {
 void gui_bare_loop() {
     ++guiloop_nesting;
 
-    #ifdef GUI_JOGWHEEL_SUPPORT
     gui_handle_jogwheel();
-    #endif // GUI_JOGWHEEL_SUPPORT
 
     gui_timers_cycle();
     gui_redraw();
@@ -174,9 +168,7 @@ void gui_bare_loop() {
 void gui_loop(void) {
     ++guiloop_nesting;
 
-    #ifdef GUI_JOGWHEEL_SUPPORT
     gui_handle_jogwheel();
-    #endif // GUI_JOGWHEEL_SUPPORT
 
     #if HAS_TOUCH()
     gui_handle_touch();
