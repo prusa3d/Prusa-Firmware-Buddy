@@ -5,7 +5,6 @@
 #include "sw_timer.hpp"
 
 static uint32_t current_tick = 0;
-static uint32_t current_tick_overflows = 0;
 static uint32_t current_loop_counter = 0;
 
 static uint32_t loop_start_tick = 0;
@@ -15,11 +14,7 @@ static constexpr uint32_t REPORT_DELAY = 100; // Record highest gui loop duratio
 static Sw_Timer report_timer(REPORT_DELAY);
 
 void gui::TickLoop() {
-    uint32_t now = ticks_ms();
-    if (current_tick > now) { // overflow
-        ++current_tick_overflows;
-    }
-    current_tick = now;
+    current_tick = ticks_ms();
     current_loop_counter += 1;
 }
 
@@ -44,13 +39,6 @@ uint32_t gui::GetLoopCounter() {
 
 uint32_t gui::GetTick() {
     return current_tick;
-}
-
-uint64_t gui::GetTickU64() {
-    uint64_t u64_tick = uint64_t(current_tick_overflows);
-    u64_tick <<= 32;
-    u64_tick |= uint64_t(current_tick);
-    return u64_tick;
 }
 
 uint32_t gui::GetTick_ForceActualization() {
