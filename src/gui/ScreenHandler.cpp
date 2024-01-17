@@ -1,6 +1,8 @@
 #include "ScreenHandler.hpp"
 #include "bsod.h"
 
+static const uint32_t MENU_TIMEOUT_MS = 30000;
+
 Screens *Screens::instance = nullptr;
 
 Screens::Screens(screen_node screen_creator)
