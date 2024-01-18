@@ -42,12 +42,16 @@ void Touchscreen_GT911::upload_touchscreen_config() {
             return false;
         }
 
+        log_info(Touch, "config read ok");
+
         // If the config is the newest, we don't need to flash a new one -> finished
         if (!memcmp(cfg, touchscreen_gt911_config, config_data_size - 2)) {
             metric_record_string(metric_touch_event(), "config no change");
             log_info(Touch, "config no change");
             return true;
         }
+
+        log_info(Touch, "needs new config");
 
         // Otherwise prepare new data do be flashed
         memcpy(cfg, touchscreen_gt911_config, config_data_size - 2);
@@ -129,6 +133,7 @@ void Touchscreen_GT911::perform_check() {
         // Error handling resolved inside read_data
 
     } else if (data != touchscreen_gt911_config[0]) {
+        log_debug(Touch, "Read config differs");
         handle_read_error();
 
     } else {
@@ -250,9 +255,15 @@ void Touchscreen_GT911::update_impl(TouchState &touch_state) {
 
         touch_point_count = std::min<uint8_t>((touch_status & 0xf), max_touch_point_count);
         touch_state.multitouch_point_count = touch_point_count;
-        if (!touch_point_count) {
+
+        if (touch_point_count < 0) {
+            handle_read_error();
+            return;
+        } else if (touch_point_count == 0) {
             return;
         }
+
+        log_debug(Touch, "Touch count %d", touch_point_count);
 
         static_assert(sizeof(touch_points) == sizeof(TouchPointData_GT911) * max_touch_point_count);
         if (!read_data(register_touch_status + 1, touch_points, touch_point_count * sizeof(TouchPointData_GT911))) {
@@ -286,6 +297,7 @@ bool Touchscreen_GT911::handle_read_error() {
 
     // If we've tried too many times, just disable the touch
     if (consecutive_read_error_count_ > (retries_before_disable * retries_before_reset)) {
+        log_warning(Touch, "Touch error, requesting disable");
         required_recovery_action_ = RecoveryAction::disable_touch;
     }
 
