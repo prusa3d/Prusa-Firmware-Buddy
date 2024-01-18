@@ -1,6 +1,8 @@
 #include "printer_common.hpp"
 #include "hostname.hpp"
 
+#include <config_store/store_instance.hpp>
+
 #include <support_utils.h>
 #include <version.h>
 

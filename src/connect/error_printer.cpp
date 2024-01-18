@@ -1,5 +1,6 @@
 #include "error_printer.hpp"
 #include "printer_common.hpp"
+#include <config_store/store_instance.hpp>
 
 using printer_state::DeviceState;
 using printer_state::StateWithAttentionCode;

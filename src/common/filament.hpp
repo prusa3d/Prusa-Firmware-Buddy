@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "general_response.hpp"
 #include "printers.h"
+#include <cstring>
 
 namespace filament {
 

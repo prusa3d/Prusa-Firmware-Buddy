@@ -2,6 +2,7 @@
 
 #include <otp.hpp>
 #include <common/shared_buffer.hpp>
+#include <Marlin/src/inc/MarlinConfigPre.h>
 
 #include <cstdint>
 #include <cstddef>

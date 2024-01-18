@@ -11,6 +11,7 @@
 #include "printers.h"
 #include "footer_eeprom.hpp"
 #include <option/has_toolchanger.h>
+#include <config_store/store_instance.hpp>
 
 #if ENABLED(MODULAR_HEATBED)
     #include <puppies/modular_bed.hpp>

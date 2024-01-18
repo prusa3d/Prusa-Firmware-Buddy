@@ -4,6 +4,7 @@
 #include "client_response_texts.hpp"
 #include "../guiconfig/guiconfig.h"
 #include "../../include/printers.h"
+#include <Marlin/src/inc/MarlinConfigPre.h>
 
 #include <cstring>
 #include <option/has_loadcell.h>
