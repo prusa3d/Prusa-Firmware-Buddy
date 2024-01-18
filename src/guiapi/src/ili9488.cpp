@@ -14,7 +14,7 @@
 #include <device/board.h>
 #include "printers.h"
 #include "MarlinPin.h"
-
+#include <common/spi_baud_rate_prescaler_guard.hpp>
 #include "raster_opfn_c.h"
 #include "hwio_pindef.h"
 #include "cmsis_os.h"
@@ -186,33 +186,11 @@ void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size) {
     }
 }
 
-uint32_t saved_prescaler;
-
 void ili9488_spi_rd_bytes(uint8_t *pb, uint16_t size) {
-    saved_prescaler = ili9488_config.phspi->Init.BaudRatePrescaler;
-    if (HAL_SPI_DeInit(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
+    // reading is more reliable at 20MHz
+    SPIBaudRatePrescalerGuard guard { ili9488_config.phspi, SPI_BAUDRATEPRESCALER_4 };
 
-    ili9488_config.phspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
-
-    if (HAL_SPI_Init(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
-
-    HAL_StatusTypeDef ret;
-    ret = HAL_SPI_Receive(ili9488_config.phspi, pb, size, HAL_MAX_DELAY);
-
-    if (HAL_SPI_DeInit(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
-
-    ili9488_config.phspi->Init.BaudRatePrescaler = saved_prescaler;
-    if (HAL_SPI_Init(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
-
-    ret = ret; // prevent warning
+    HAL_SPI_Receive(ili9488_config.phspi, pb, size, HAL_MAX_DELAY);
 }
 
 void ili9488_cmd(uint8_t cmd, const uint8_t *pdata, uint16_t size) {
@@ -240,16 +218,8 @@ void ili9488_cmd_1_data(uint8_t cmd, uint8_t data) {
 }
 
 void ili9488_cmd_rd(uint8_t cmd, uint8_t *pdata) {
-    saved_prescaler = ili9488_config.phspi->Init.BaudRatePrescaler;
-    if (HAL_SPI_DeInit(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
-
-    ili9488_config.phspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
-
-    if (HAL_SPI_Init(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
+    // reading is even more reliable at 10MHz
+    SPIBaudRatePrescalerGuard guard { ili9488_config.phspi, SPI_BAUDRATEPRESCALER_8 };
 
     ili9488_clr_cs(); // CS = L
     ili9488_clr_rs(); // RS = L
@@ -258,14 +228,6 @@ void ili9488_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     data_to_write[1] = 0x00;
     HAL_SPI_TransmitReceive(ili9488_config.phspi, data_to_write, pdata, ILI9488_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
     ili9488_set_cs();
-    if (HAL_SPI_DeInit(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
-
-    ili9488_config.phspi->Init.BaudRatePrescaler = saved_prescaler;
-    if (HAL_SPI_Init(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
 }
 
 void ili9488_wr(uint8_t *pdata, uint16_t size) {
