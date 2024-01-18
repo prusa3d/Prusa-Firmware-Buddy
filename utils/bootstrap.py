@@ -98,7 +98,10 @@ dependencies = {
     },
     'cmsis-svd': {
         'version': '0.4.9999',
-        'url': 'https://github.com/posborne/cmsis-svd/archive/45a1e90afe488f01df94b3e0eb89a67c1a900a9a.zip',
+        'files': [
+            'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd/45a1e90afe488f01df94b3e0eb89a67c1a900a9a/data/STMicro/STM32F427.svd',
+            'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd/45a1e90afe488f01df94b3e0eb89a67c1a900a9a/data/STMicro/STM32G07x.svd',
+        ],
     },
     'CrashDebug': {
         'version': 'ae191d',
@@ -177,10 +180,20 @@ def install_dependency(dependency):
     specs = dependencies[dependency]
     installation_directory = directory_for_dependency(dependency,
                                                       specs['version'])
-    url = specs['url']
-    if isinstance(url, dict):
-        url = url[platform.system()]
-    download_and_unzip(url=url, directory=installation_directory)
+    url = specs.get('url', None)
+    files = specs.get('files', None)
+    if url is not None:
+        if isinstance(url, dict):
+            url = url[platform.system()]
+        download_and_unzip(url=url, directory=installation_directory)
+    elif files is not None:
+        os.mkdir(installation_directory)
+        for file in files:
+            basename = file.split('/')[-1]
+            urlretrieve(file, installation_directory / basename)
+    else:
+        raise ('dependency is missing payload')
+
     fix_executable_permissions(dependency, installation_directory)
 
 
