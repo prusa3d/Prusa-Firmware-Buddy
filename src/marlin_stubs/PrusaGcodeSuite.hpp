@@ -78,9 +78,6 @@ void M864(); ///< spool join control
 
 void M591(); ///< configure Filament stuck monitoring
 
-void M930();
-void M931();
-void M932();
 void M997(); ///< Update firmware. Prusa STM32 platform specific
 void M999();
 

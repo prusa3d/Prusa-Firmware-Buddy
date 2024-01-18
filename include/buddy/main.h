@@ -1,5 +1,4 @@
 #pragma once
-#include <device/hal.h>
 #include <device/cmsis.h>
 #include <device/peripherals.h>
 #include "printers.h"
@@ -27,8 +26,6 @@ extern uartrxbuff_t uart1rxbuff;
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
-
-void spi_set_prescaler(SPI_HandleTypeDef *hspi, int prescaler_num);
 
 #ifdef __cplusplus
 }

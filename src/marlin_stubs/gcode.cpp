@@ -140,15 +140,6 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 920:
             PrusaGcodeSuite::M920();
             break;
-        case 930:
-            PrusaGcodeSuite::M930();
-            break;
-        case 931:
-            PrusaGcodeSuite::M931();
-            break;
-        case 932:
-            PrusaGcodeSuite::M932();
-            break;
         case 997:
             PrusaGcodeSuite::M997();
             break;
