@@ -73,6 +73,8 @@ constexpr static uint8_t CMD_NOP = 0x00;
 
 uint8_t ili9488_flg = 0; // flags
 
+static constexpr uint8_t ILI9488_MAX_COMMAND_READ_LENGHT = 4;
+
 namespace {
 bool do_complete_lcd_reinit = false;
 }
@@ -337,8 +339,13 @@ void ili9488_cmd_ramrd(uint8_t *pdata, uint16_t size) {
     ili9488_rd(pdata, size);
 }
 
-void ili9488_cmd_madctlrd(uint8_t *pdata) {
+bool ili9488_is_reset_required() {
+    uint8_t pdata[ILI9488_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     ili9488_cmd_rd(CMD_MADCTLRD, pdata);
+    if ((pdata[1] != 0xE0 && pdata[1] != 0xF0 && pdata[1] != 0xF8)) {
+        return true;
+    }
+    return false;
 }
 
 /*void ili9488_test_miso(void)

@@ -87,6 +87,8 @@ osThreadId st7789v_task_handle = 0;
 
 static const uint32_t ST7789V_SIG_SPI_TX = 0x08;
 
+static constexpr uint8_t ST7789V_MAX_COMMAND_READ_LENGHT = 4;
+
 uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; // display buffer
 bool st7789v_buff_borrowed = false; ///< True if buffer is borrowed by someone else
 
@@ -328,8 +330,13 @@ void st7789v_cmd_ramrd(uint8_t *pdata, uint16_t size) {
     st7789v_rd(pdata, size);
 }
 
-void st7789v_cmd_madctlrd(uint8_t *pdata) {
+bool st7789v_is_reset_required() {
+    uint8_t pdata[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     st7789v_cmd_rd(CMD_MADCTLRD, pdata);
+    if ((pdata[1] != 0xE0 && pdata[1] != 0xF0 && pdata[1] != 0xF8)) {
+        return true;
+    }
+    return false;
 }
 
 /*void st7789v_test_miso(void)

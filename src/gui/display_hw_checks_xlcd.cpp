@@ -28,16 +28,7 @@ void check_lcd() {
 
     // Determine if we should reset the LCD
     {
-        bool do_reset = false;
-
-        {
-            uint8_t data_buff[ILI9488_MAX_COMMAND_READ_LENGHT] = { 0x00 };
-            display::ReadMADCTL(data_buff);
-
-            if ((data_buff[1] != 0xE0 && data_buff[1] != 0xF0 && data_buff[1] != 0xF8)) {
-                do_reset = true;
-            }
-        }
+        bool do_reset = display::IsResetRequired();
 
 #if HAS_TOUCH()
         if (touchscreen.is_enabled()) {

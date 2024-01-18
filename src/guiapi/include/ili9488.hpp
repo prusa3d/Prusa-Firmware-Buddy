@@ -23,8 +23,6 @@
 #define ILI9488_ROWS      320 //
 #define ILI9488_BUFF_ROWS 4 // Buffer size needs to fit at least one character of the largest font
 
-inline constexpr uint8_t ILI9488_MAX_COMMAND_READ_LENGHT = 4;
-
 typedef struct _ili9488_config_t {
     SPI_HandleTypeDef *phspi; // spi handle pointer
     uint8_t flg; // flags (DMA, MISO)
@@ -112,8 +110,7 @@ extern void ili9488_draw_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_
 
 extern void ili9488_spi_tx_complete(void);
 extern void ili9488_spi_rx_complete(void);
-extern void ili9488_cmd_madctlrd(uint8_t *pdata);
-
+extern bool ili9488_is_reset_required();
 extern void ili9488_set_complete_lcd_reinit();
 
 extern void ili9488_power_down();

@@ -13,10 +13,7 @@ void reinit_lcd_and_redraw() {
 }
 
 void check_lcd() {
-    uint8_t data_buff[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
-    display::ReadMADCTL(data_buff);
-
-    if ((data_buff[1] != 0xE0 && data_buff[1] != 0xF0 && data_buff[1] != 0xF8)) {
+    if (display::IsResetRequired()) {
         reinit_lcd_and_redraw();
     }
 }
