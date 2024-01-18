@@ -50,7 +50,7 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
 
     if (spi_shared_with_lcd) {
         // switch multiplex to send data to side led strip
-        displayCs.reset();
+        displayCs.set();
         SideLed_LcdSelector->set();
 
         // send data
