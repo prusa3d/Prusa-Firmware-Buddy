@@ -195,7 +195,7 @@ void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
     if ((st7789v_flg & (uint8_t)ST7789V_FLG_DMA) && !(st7789v_flg & (uint8_t)ST7789V_FLG_SAFE) && (size > 4)) {
         osSignalSet(st7789v_task_handle, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-        assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(pb)));
+        assert(can_be_used_by_dma(pb));
         HAL_SPI_Transmit_DMA(st7789v_config.phspi, pb, size);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     } else {
@@ -212,7 +212,7 @@ void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
     {
         osSignalSet(0, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-        assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(pb)));
+        assert(can_be_used_by_dma(pb));
         HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     }

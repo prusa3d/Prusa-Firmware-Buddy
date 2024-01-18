@@ -176,7 +176,7 @@ void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size) {
     if ((ili9488_flg & ILI9488_FLG_DMA) && !(ili9488_flg & ILI9488_FLG_SAFE) && (size > 4)) {
         osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_TX);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
-        assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(pb)));
+        assert(can_be_used_by_dma(pb));
         HAL_SPI_Transmit_DMA(ili9488_config.phspi, const_cast<uint8_t *>(pb), size);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
     } else {

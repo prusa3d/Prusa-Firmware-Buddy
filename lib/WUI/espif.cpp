@@ -160,7 +160,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
         if (HAL_UART_Init(huart) != HAL_OK) {
             Error_Handler();
         }
-        assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(dma_buffer_rx)));
+        assert(can_be_used_by_dma(dma_buffer_rx));
         if (HAL_UART_Receive_DMA(huart, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
             Error_Handler();
         }
@@ -223,7 +223,7 @@ static void espif_task_step() {
 
             uint8_t *data = (uint8_t *)tx_pbuf->payload;
             size_t size = tx_pbuf->len;
-            assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(data)));
+            assert(can_be_used_by_dma(data));
             tx_pbuf = tx_pbuf->next;
             tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, data, size);
             if (tx_result != HAL_OK) {
@@ -279,7 +279,7 @@ static void espif_tx_update_metrics(uint32_t len) {
     taskENTER_CRITICAL();
     tx_waiting = true;
     tx_pbuf = p;
-    assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(&tx_message)));
+    assert(can_be_used_by_dma(&tx_message));
     HAL_StatusTypeDef tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, (uint8_t *)&tx_message, sizeof(tx_message));
     if (tx_result == HAL_OK) {
         taskEXIT_CRITICAL();
@@ -346,7 +346,7 @@ static err_t espif_reconfigure_uart(const uint32_t baudrate) {
         return ERR_IF;
     }
 
-    assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(dma_buffer_rx)));
+    assert(can_be_used_by_dma(dma_buffer_rx));
     int hal_dma_res = HAL_UART_Receive_DMA(&ESP_UART_HANDLE, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
     if (hal_dma_res != HAL_OK) {
         log_error(ESPIF, "HAL_UART_Receive_DMA() failed: %d", hal_dma_res);

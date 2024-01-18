@@ -38,10 +38,11 @@ inline bool is_ccm_ram(uintptr_t address) {
  * @brief Check if data can be used by DMA.
  * CCMRAM cannot be accessed by DMA.
  * Use as:
- *    assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(data)));
+ *    assert(can_be_used_by_dma(data));
  * @param address address of data
  * @return true if data can be used by DMA
  */
-inline bool can_be_used_by_dma(uintptr_t address) {
-    return !is_ccm_ram(address);
+template <class T>
+FORCE_INLINE bool can_be_used_by_dma(T *address) {
+    return !is_ccm_ram(reinterpret_cast<uintptr_t>(address));
 }
