@@ -272,7 +272,7 @@ void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t res
     }
 
     filament::set_type_to_load(config_store().get_filament_type(target_extruder));
-    filament::set_color_to_load(filament_colour.value());
+    filament::set_color_to_load(filament_colour);
     Pause::Instance().FilamentChange(settings);
 
     marlin_server::nozzle_timeout_on();
