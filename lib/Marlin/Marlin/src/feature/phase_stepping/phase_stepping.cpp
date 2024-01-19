@@ -520,12 +520,13 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
 #endif
 
     uint32_t move_epoch = ticks_diff(now, axis_state.initial_time);
+    float move_position = axis_state.last_position;
 
     while (!axis_state.target.has_value() || move_epoch > axis_state.target->duration) {
         uint32_t time_overshoot = 0;
         if (axis_state.target.has_value()) {
             time_overshoot = ticks_diff(move_epoch, axis_state.target->duration);
-            axis_state.last_position = axis_state.target->target_position();
+            move_position = axis_state.target->target_position();
             axis_state.target.reset();
         }
 
@@ -538,7 +539,7 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
 
             // Time overshoots accounts for the lost time in the previous state
             axis_state.initial_time = now - time_overshoot;
-            axis_state.last_position = axis_state.target->initial_pos;
+            move_position = axis_state.target->initial_pos;
             move_epoch = time_overshoot;
         } else {
             // No new movement
@@ -550,7 +551,7 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
 
     auto [speed, position] = axis_state.target.has_value()
         ? axis_position(axis_state, move_epoch)
-        : std::make_tuple(0.f, axis_state.last_position);
+        : std::make_tuple(0.f, move_position);
 
     float physical_position = resolve_axis_inversion(axis_state.inverted, position);
     float physical_speed = resolve_axis_inversion(axis_state.inverted, speed);
@@ -577,17 +578,24 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
 
     spi::set_xdirect(axis_index, a, b);
 #endif
-    // Report movement to Stepper
-    int32_t steps_made = pos_to_steps(axis_index, position);
-    Stepper::set_axis_steps(axis_enum,
-        axis_state.initial_count_position + steps_made);
-    Stepper::set_axis_steps_from_startup(axis_enum,
-        axis_state.initial_count_position_from_startup + steps_made);
 
-    Stepper::report_axis_movement(axis_enum, speed);
+    // Only update counters if position didn't change, so that when idling the stepper counters can
+    // be manipulated directly. When motion is restarted init_step_generator is guaranteed to be
+    // called and will refresh the new starting values.
+    if (position != axis_state.last_position) {
+        // update counters to the new position
+        int32_t steps_made = pos_to_steps(axis_index, position);
+        Stepper::set_axis_steps(axis_enum, axis_state.initial_count_position + steps_made);
+        Stepper::set_axis_steps_from_startup(axis_enum, axis_state.initial_count_position_from_startup + steps_made);
 
-    axis_state.last_position = position;
-    axis_state.last_phase = new_phase;
+        // flag axis movement (if any)
+        if (speed != 0.f) {
+            Stepper::report_axis_movement(axis_enum, speed);
+        }
+
+        axis_state.last_position = position;
+        axis_state.last_phase = new_phase;
+    }
 
     axis_state.missed_tx_cnt = 0;
     axis_state.last_timer_tick = last_timer_tick;
