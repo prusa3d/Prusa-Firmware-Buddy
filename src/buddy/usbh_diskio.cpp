@@ -132,37 +132,20 @@ static void USBH_MSC_WorkerTask(void const *) {
 #endif
         if (queue_status == pdPASS && request->operation != UsbhMscRequest::UsbhMscRequestOperation::Noop) {
             {
-                auto retry = 1;
-                do {
-                    switch (request->operation) {
-                    case UsbhMscRequest::UsbhMscRequestOperation::Read: {
-                        freertos::SharedMutexProxy mutex { &hUsbHostHS.class_mutex };
-                        std::shared_lock lock { mutex };
-                        request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
-                    } break;
-                    case UsbhMscRequest::UsbhMscRequestOperation::Write: {
-                        freertos::SharedMutexProxy mutex { &hUsbHostHS.class_mutex };
-                        std::shared_lock lock { mutex };
-                        request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
-                    } break;
-                    default:
-                        abort();
-                    }
-
-                    if (request->result != USBH_OK) {
-                        osThreadSetPriority(osThreadGetId(), TASK_PRIORITY_USB_MSC_WORKER_LOW);
-
-                        log_error(USBHost, "USB MSC operation %d (%d, %" PRIu32 ", %d) failed",
-                            (unsigned)ftrstd::to_underlying(request->operation),
-                            request->lun, request->sector_nbr, request->count);
-
-                        USBH_MSC_StealthReset(&hUsbHostHS, request->lun);
-                        osThreadSetPriority(osThreadGetId(), TASK_PRIORITY_USB_MSC_WORKER_HIGH);
-                        if (!USBH_MSC_UnitIsReady(&hUsbHostHS, request->lun)) {
-                            break;
-                        }
-                    }
-                } while (request->result != USBH_OK && retry--);
+                switch (request->operation) {
+                case UsbhMscRequest::UsbhMscRequestOperation::Read: {
+                    freertos::SharedMutexProxy mutex { &hUsbHostHS.class_mutex };
+                    std::shared_lock lock { mutex };
+                    request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                } break;
+                case UsbhMscRequest::UsbhMscRequestOperation::Write: {
+                    freertos::SharedMutexProxy mutex { &hUsbHostHS.class_mutex };
+                    std::shared_lock lock { mutex };
+                    request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                } break;
+                default:
+                    abort();
+                }
             }
 
             if (request->callback) {

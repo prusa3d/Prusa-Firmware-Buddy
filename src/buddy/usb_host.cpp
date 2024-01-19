@@ -52,35 +52,28 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
         break;
 
     case HOST_USER_DISCONNECTION:
-        if (!phost->stealth_reset) {
-            Appli_state = APPLICATION_DISCONNECT;
+        Appli_state = APPLICATION_DISCONNECT;
 #ifdef USBH_MSC_READAHEAD
-            usbh_msc_readahead.disable();
+        usbh_msc_readahead.disable();
 #endif
-            media_set_removed();
-            f_mount(0, (TCHAR const *)USBHPath, 1); // umount
-            connected_at_startup = false;
-        }
+        media_set_removed();
+        f_mount(0, (TCHAR const *)USBHPath, 1); // umount
+        connected_at_startup = false;
         break;
 
     case HOST_USER_CLASS_ACTIVE: {
-        if (!phost->stealth_reset) {
-
-            Appli_state = APPLICATION_READY;
-            FRESULT result = f_mount(&USBHFatFS, (TCHAR const *)USBHPath, 0);
-            if (result == FR_OK) {
-                if (one_click_print_timeout > 0 && ticks_ms() < one_click_print_timeout) {
-                    connected_at_startup = true;
-                }
-                media_set_inserted();
-#ifdef USBH_MSC_READAHEAD
-                usbh_msc_readahead.enable(USBHFatFS.pdrv);
-#endif
-            } else {
-                media_set_error(media_error_MOUNT);
+        Appli_state = APPLICATION_READY;
+        FRESULT result = f_mount(&USBHFatFS, (TCHAR const *)USBHPath, 0);
+        if (result == FR_OK) {
+            if (one_click_print_timeout > 0 && ticks_ms() < one_click_print_timeout) {
+                connected_at_startup = true;
             }
+            media_set_inserted();
+#ifdef USBH_MSC_READAHEAD
+            usbh_msc_readahead.enable(USBHFatFS.pdrv);
+#endif
         } else {
-            phost->stealth_reset = false;
+            media_set_error(media_error_MOUNT);
         }
         break;
     }
@@ -91,25 +84,6 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
     default:
         break;
     }
-}
-
-// performs a usb reset (including disconnecting the power supply for the USB device)
-// and waits for its reconnection, the operation is masked for higher application layers
-void USBH_MSC_StealthReset(USBH_HandleTypeDef *phost, uint8_t lun) {
-    log_info(USBHost, "USBH stealth reset");
-    phost->stealth_reset = true;
-    USBH_Stop(phost);
-    osDelay(150);
-    USBH_Start(phost);
-    for (auto i = 100; phost->stealth_reset && i; --i) { // total delay 10s
-        osDelay(100);
-    }
-    phost->stealth_reset = false;
-    auto success = USBH_MSC_UnitIsReady(phost, lun);
-    if (!success) {
-        USBH_UserProcess(&hUsbHostHS, HOST_USER_DISCONNECTION);
-    }
-    log_info(USBHost, "USBH stealth reset finished: %s", success ? "SUCCESS" : "FAIL");
 }
 
 bool device_connected_at_startup() {
