@@ -1,6 +1,7 @@
 #include "main.h"
 #include "platform.h"
 #include <device/board.h>
+#include <device/peripherals.h>
 #include <guiconfig/guiconfig.h>
 #include "config_features.h"
 #include "cmsis_os.h"
@@ -504,13 +505,13 @@ extern void st7789v_spi_tx_complete(void);
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
 #if HAS_GUI() && defined(USE_ST7789)
-    if (hspi == st7789v_config.phspi) {
+    if (hspi == &SPI_HANDLE_FOR(lcd)) {
         st7789v_spi_tx_complete();
     }
 #endif
 
 #if HAS_GUI() && defined(USE_ILI9488)
-    if (hspi == ili9488_config.phspi) {
+    if (hspi == &SPI_HANDLE_FOR(lcd)) {
         ili9488_spi_tx_complete();
     }
 #endif
@@ -523,7 +524,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 
 #if HAS_GUI() && defined(USE_ILI9488)
-    if (hspi == ili9488_config.phspi) {
+    if (hspi == &SPI_HANDLE_FOR(lcd)) {
         ili9488_spi_rx_complete();
     }
 #endif

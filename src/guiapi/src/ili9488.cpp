@@ -1,24 +1,20 @@
-// ili9488.cpp
 #include "ili9488.hpp"
-#include <guiconfig.h>
+
+#include <device/board.h>
+#include <device/hal.h>
 #include <span>
 #include <string.h>
 #include <stdlib.h>
 #include "qoi_decoder.hpp"
-#include "stm32f4xx_hal.h"
-#include "gpio.h"
-#include "bsod.h"
 #include <ccm_thread.hpp>
 #include "cmath_ext.h"
 #include <stdint.h>
-#include <device/board.h>
 #include "printers.h"
-#include "MarlinPin.h"
 #include <common/spi_baud_rate_prescaler_guard.hpp>
 #include "raster_opfn_c.h"
 #include "hwio_pindef.h"
 #include "cmsis_os.h"
-#include "main.h"
+#include "display_math_helper.h"
 
 #include "hw_configuration.hpp"
 
@@ -30,6 +26,28 @@
 #endif
 
 LOG_COMPONENT_REF(GUI);
+
+#define ILI9488_FLG_DMA  0x08 // DMA enabled
+#define ILI9488_FLG_SAFE 0x20 // SAFE mode (no DMA and safe delay)
+
+struct ili9488_config_t {
+    uint8_t flg; // flags (DMA, MISO)
+    uint8_t gamma;
+    uint8_t brightness;
+    uint8_t is_inverted;
+    uint8_t control;
+};
+
+constexpr static uint8_t DEFAULT_MADCTL = 0xE0; // memory data access control (mirror XY)
+constexpr static uint8_t DEFAULT_COLMOD = 0x66; // interface pixel format (6-6-6, hi-color)
+
+static ili9488_config_t ili9488_config = {
+    .flg = ILI9488_FLG_DMA, // flags (DMA, MISO)
+    .gamma = 0, // gamma curve
+    .brightness = 0, // brightness
+    .is_inverted = 0, // inverted
+    .control = 0, // default control reg value
+};
 
 // ili9488 commands
 #define CMD_SLPIN     0x10
@@ -171,7 +189,7 @@ void ili9488_delay_ms(uint32_t ms) {
 }
 
 void ili9488_spi_wr_byte(uint8_t b) {
-    HAL_SPI_Transmit(ili9488_config.phspi, &b, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&SPI_HANDLE_FOR(lcd), &b, 1, HAL_MAX_DELAY);
 }
 
 void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size) {
@@ -179,18 +197,18 @@ void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size) {
         osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_TX);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
         assert(can_be_used_by_dma(pb));
-        HAL_SPI_Transmit_DMA(ili9488_config.phspi, const_cast<uint8_t *>(pb), size);
+        HAL_SPI_Transmit_DMA(&SPI_HANDLE_FOR(lcd), const_cast<uint8_t *>(pb), size);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
     } else {
-        HAL_SPI_Transmit(ili9488_config.phspi, const_cast<uint8_t *>(pb), size, HAL_MAX_DELAY);
+        HAL_SPI_Transmit(&SPI_HANDLE_FOR(lcd), const_cast<uint8_t *>(pb), size, HAL_MAX_DELAY);
     }
 }
 
 void ili9488_spi_rd_bytes(uint8_t *pb, uint16_t size) {
     // reading is more reliable at 20MHz
-    SPIBaudRatePrescalerGuard guard { ili9488_config.phspi, SPI_BAUDRATEPRESCALER_4 };
+    SPIBaudRatePrescalerGuard guard { &SPI_HANDLE_FOR(lcd), SPI_BAUDRATEPRESCALER_4 };
 
-    HAL_SPI_Receive(ili9488_config.phspi, pb, size, HAL_MAX_DELAY);
+    HAL_SPI_Receive(&SPI_HANDLE_FOR(lcd), pb, size, HAL_MAX_DELAY);
 }
 
 void ili9488_cmd(uint8_t cmd, const uint8_t *pdata, uint16_t size) {
@@ -219,14 +237,14 @@ void ili9488_cmd_1_data(uint8_t cmd, uint8_t data) {
 
 void ili9488_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     // reading is even more reliable at 10MHz
-    SPIBaudRatePrescalerGuard guard { ili9488_config.phspi, SPI_BAUDRATEPRESCALER_8 };
+    SPIBaudRatePrescalerGuard guard { &SPI_HANDLE_FOR(lcd), SPI_BAUDRATEPRESCALER_8 };
 
     ili9488_clr_cs(); // CS = L
     ili9488_clr_rs(); // RS = L
     uint8_t data_to_write[ILI9488_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     data_to_write[0] = cmd;
     data_to_write[1] = 0x00;
-    HAL_SPI_TransmitReceive(ili9488_config.phspi, data_to_write, pdata, ILI9488_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
+    HAL_SPI_TransmitReceive(&SPI_HANDLE_FOR(lcd), data_to_write, pdata, ILI9488_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
     ili9488_set_cs();
 }
 
@@ -357,8 +375,8 @@ void ili9488_set_complete_lcd_reinit() {
 static void startup_old_manufacturer() {
     ili9488_cmd_slpout(); // wakeup
     ili9488_delay_ms(120); // 120ms wait
-    ili9488_cmd_madctl(ili9488_config.madctl); // interface pixel format
-    ili9488_cmd_colmod(ili9488_config.colmod); // memory data access control
+    ili9488_cmd_madctl(DEFAULT_MADCTL); // interface pixel format
+    ili9488_cmd_colmod(DEFAULT_COLMOD); // memory data access control
     ili9488_cmd_dispon(); // display on
     ili9488_delay_ms(10); // 10ms wait
     ili9488_clear(COLOR_BLACK); // black screen after power on
@@ -374,9 +392,9 @@ static void startup_new_manufacturer() {
     // Memory Access Control
     // defines read/write scanning direction of the frame memory
     // ili9488_cmd_1_data(CMD_MADCTL, 0x48); - original recommended value, does not work, we use 0xe0
-    ili9488_cmd_madctl(ili9488_config.madctl);
+    ili9488_cmd_madctl(DEFAULT_MADCTL);
 
-    ili9488_cmd_colmod(ili9488_config.colmod); // Interface Pixel Format 0x66:RGB666
+    ili9488_cmd_colmod(DEFAULT_COLMOD); // Interface Pixel Format 0x66:RGB666
 
     // Frame Rate Control (In Normal Mode/Full Colors) (this seems to be default)
     ili9488_cmd_array(0xB1, std::to_array<uint8_t>({
@@ -445,8 +463,8 @@ void ili9488_init(void) {
             startup_old_manufacturer();
         }
     } else {
-        ili9488_cmd_madctl(ili9488_config.madctl); // interface pixel format
-        ili9488_cmd_colmod(ili9488_config.colmod); // memory data access control
+        ili9488_cmd_madctl(DEFAULT_MADCTL); // interface pixel format
+        ili9488_cmd_colmod(DEFAULT_COLMOD); // memory data access control
         ili9488_inversion_on();
     }
 
@@ -460,7 +478,8 @@ void ili9488_init(void) {
         ili9488_brightness_enable();
 
         // inverted brightness
-        ili9488_cmd(CMD_CABCCTRL2, &ili9488_config.pwm_inverted, sizeof(ili9488_config.pwm_inverted));
+        uint8_t pwm_inverted = 0b10110001;
+        ili9488_cmd(CMD_CABCCTRL2, &pwm_inverted, sizeof(pwm_inverted));
     }
 
     ili9488_brightness_set(0xFF); // set backlight to maximum
@@ -766,18 +785,6 @@ void ili9488_ctrl_set(uint8_t ctrl) {
     ili9488_config.control = ctrl;
     ili9488_cmd(CMD_WRCTRLD, &ili9488_config.control, sizeof(ili9488_config.control));
 }
-
-ili9488_config_t ili9488_config = {
-    0, // spi handle pointer
-    0, // flags (DMA, MISO)
-    0, // interface pixel format (5-6-5, hi-color)
-    0, // memory data access control (no mirror XY)
-    GAMMA_CURVE0, // gamma curve
-    0, // brightness
-    0, // inverted
-    0, // default control reg value
-    0b10110001 // inverted pwm
-};
 
 //! @brief enable safe mode (direct acces + safe delay)
 void ili9488_enable_safe_mode(void) {

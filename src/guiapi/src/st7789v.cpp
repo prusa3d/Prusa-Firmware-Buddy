@@ -1,28 +1,42 @@
-/**
- * @file st7789v.cpp
- */
 #include "st7789v.hpp"
-#include <guiconfig.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <span>
 
-#include "stm32f4xx_hal.h"
-#include "hwio_pindef.h"
 #include "cmath_ext.h"
-#include "bsod.h"
-#include <ccm_thread.hpp>
-#include "raster_opfn_c.h"
-#include "disable_interrupts.h"
-#include "qoi_decoder.hpp"
-
 #include "cmsis_os.h"
+#include "disable_interrupts.h"
+#include "hwio_pindef.h"
+#include "qoi_decoder.hpp"
+#include "raster_opfn_c.h"
+#include <ccm_thread.hpp>
+#include <device/hal.h>
+#include <span>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
-// private flags (pin states)
-#define FLG_CS  0x01 // current CS pin state
-#define FLG_RS  0x02 // current RS pin state
-#define FLG_RST 0x04 // current RST pin state
+#define FLG_CS           0x01 // current CS pin state
+#define FLG_RS           0x02 // current RS pin state
+#define FLG_RST          0x04 // current RST pin state
+#define ST7789V_FLG_DMA  0x08 // DMA enabled
+#define ST7789V_FLG_SAFE 0x20 // SAFE mode (no DMA and safe delay)
+
+constexpr static uint8_t ST7789V_DEF_MADCTL = 0xC0; // memory data access control (mirror XY)
+constexpr static uint8_t ST7789V_DEF_COLMOD = 0x05; // interface pixel format (5-6-5, hi-color)
+
+struct st7789v_config_t {
+    uint8_t flg; // flags (DMA, MISO)
+    uint8_t gamma;
+    uint8_t brightness;
+    uint8_t is_inverted;
+    uint8_t control;
+};
+
+st7789v_config_t st7789v_config = {
+    .flg = ST7789V_FLG_DMA, // flags (DMA, MISO)
+    .gamma = 0,
+    .brightness = 0,
+    .is_inverted = 0,
+    .control = 0,
+};
 
 // st7789 commands
 enum {
@@ -190,7 +204,7 @@ static void st7789v_delay_ms(uint32_t ms) {
 }
 
 void st7789v_spi_wr_byte(uint8_t b) {
-    HAL_SPI_Transmit(st7789v_config.phspi, &b, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&SPI_HANDLE_FOR(lcd), &b, 1, HAL_MAX_DELAY);
 }
 
 void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
@@ -198,10 +212,10 @@ void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
         osSignalSet(st7789v_task_handle, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
         assert(can_be_used_by_dma(pb));
-        HAL_SPI_Transmit_DMA(st7789v_config.phspi, pb, size);
+        HAL_SPI_Transmit_DMA(&SPI_HANDLE_FOR(lcd), pb, size);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     } else {
-        HAL_SPI_Transmit(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+        HAL_SPI_Transmit(&SPI_HANDLE_FOR(lcd), pb, size, HAL_MAX_DELAY);
     }
 }
 
@@ -209,17 +223,17 @@ void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
 #if 0
 //#ifdef ST7789V_DMA
     if (size <= 4)
-        HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+        HAL_SPI_Receive(&SPI_HANDLE_FOR(lcd), pb, size, HAL_MAX_DELAY);
     else
     {
         osSignalSet(0, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
         assert(can_be_used_by_dma(pb));
-        HAL_SPI_Receive_DMA(st7789v_config.phspi, pb, size);
+        HAL_SPI_Receive_DMA(&SPI_HANDLE_FOR(lcd), pb, size);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     }
 #else // ST7789V_DMA
-    HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
+    HAL_SPI_Receive(&SPI_HANDLE_FOR(lcd), pb, size, HAL_MAX_DELAY);
 #endif // ST7789V_DMA
 }
 
@@ -254,7 +268,7 @@ void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     uint8_t data_to_write[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     data_to_write[0] = cmd;
     data_to_write[1] = 0x00;
-    HAL_SPI_TransmitReceive(st7789v_config.phspi, data_to_write, pdata, ST7789V_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
+    HAL_SPI_TransmitReceive(&SPI_HANDLE_FOR(lcd), data_to_write, pdata, ST7789V_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
     if (tmp_flg & FLG_CS) {
         st7789v_set_cs();
     }
@@ -380,8 +394,8 @@ void st7789v_init(void) {
     st7789v_delay_ms(120); // 120ms wait
     st7789v_cmd_slpout(); // wakeup
     st7789v_delay_ms(120); // 120ms wait
-    st7789v_cmd_madctl(st7789v_config.madctl); // interface pixel format
-    st7789v_cmd_colmod(st7789v_config.colmod); // memory data access control
+    st7789v_cmd_madctl(ST7789V_DEF_MADCTL); // interface pixel format
+    st7789v_cmd_colmod(ST7789V_DEF_COLMOD); // memory data access control
     st7789v_cmd_dispon(); // display on
     st7789v_delay_ms(10); // 10ms wait
 }
@@ -708,17 +722,6 @@ void st7789v_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
     st7789v_wr(p_buf.data(), o_data - p_buf.begin());
     st7789v_set_cs();
 }
-
-st7789v_config_t st7789v_config = {
-    0, // spi handle pointer
-    0, // flags (DMA, MISO)
-    0, // interface pixel format (5-6-5, hi-color)
-    0, // memory data access control (no mirror XY)
-    GAMMA_CURVE0, // gamma curve
-    0, // brightness
-    0, // inverted
-    0, // default control reg value
-};
 
 // measured delay from low to hi in reset cycle
 uint16_t st7789v_reset_delay = 0;

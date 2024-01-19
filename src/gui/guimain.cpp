@@ -4,8 +4,6 @@
 #include "gui.hpp"
 #include "config.h"
 #include "marlin_client.hpp"
-#include <guiconfig/guiconfig.h>
-#include "display.h"
 #include "display_hw_checks.hpp"
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
@@ -106,33 +104,6 @@ LOG_COMPONENT_REF(Buddy);
 LOG_COMPONENT_DEF(XLCD, LOG_SEVERITY_INFO);
 LOG_COMPONENT_DEF(LoveBoard, LOG_SEVERITY_INFO);
 extern void blockISR(); // do not want to include marlin temperature
-
-#ifdef USE_ST7789
-const st7789v_config_t st7789v_cfg = {
-    .phspi = &hspi2, // spi handle pointer
-    .flg = ST7789V_FLG_DMA, // flags (DMA, MISO)
-    .colmod = ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
-    .madctl = ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
-    .gamma = 0,
-    .brightness = 0,
-    .is_inverted = 0,
-    .control = 0,
-};
-#endif // USE_ST7789
-
-#ifdef USE_ILI9488
-const ili9488_config_t ili9488_cfg = {
-    .phspi = &SPI_HANDLE_FOR(lcd), // spi handle pointer
-    .flg = ILI9488_FLG_DMA, // flags (DMA, MISO)
-    .colmod = ILI9488_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
-    .madctl = ILI9488_DEF_MADCTL, // memory data access control (no mirror XY)
-    .gamma = 0,
-    .brightness = 0,
-    .is_inverted = 0,
-    .control = 0,
-    .pwm_inverted = 0b10110001 // inverted
-};
-#endif // USE_ILI9488
 
 marlin_vars_t *gui_marlin_vars = 0;
 
@@ -369,13 +340,6 @@ static ScreenFactory::Creator get_error_screen() {
 }
 
 void gui_error_run(void) {
-#ifdef USE_ST7789
-    st7789v_config = st7789v_cfg;
-#endif
-
-#ifdef USE_ILI9488
-    ili9488_config = ili9488_cfg;
-#endif
     gui_init();
 
     // This is not safe, because resource file could be corrupted
@@ -411,14 +375,6 @@ void gui_error_run(void) {
 }
 
 void gui_run(void) {
-#ifdef USE_ST7789
-    st7789v_config = st7789v_cfg;
-#endif
-
-#ifdef USE_ILI9488
-    ili9488_config = ili9488_cfg;
-#endif
-
     gui_init();
 
     gui::knob::RegisterHeldLeftAction(TakeAScreenshot);

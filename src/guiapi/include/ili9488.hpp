@@ -1,39 +1,13 @@
-// ili9488.hpp
 #pragma once
 
-#include "stm32f4xx_hal.h"
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "guitypes.hpp"
 #include "Rect16.h"
-#include "guiconfig.h"
-#include "display_math_helper.h"
-
-// public flags (config)
-#define ILI9488_FLG_DMA  0x08 // DMA enabled
-#define ILI9488_FLG_MISO 0x10 // MISO enabled
-#define ILI9488_FLG_SAFE 0x20 // SAFE mode (no DMA and safe delay)
-
-#define ILI9488_DEF_COLMOD 0x66 // interface pixel format (6-6-6, hi-color)
-#define ILI9488_DEF_MADCTL 0xE0 // memory data access control (mirror XY)
 
 #define ILI9488_COLS      480 //
 #define ILI9488_ROWS      320 //
 #define ILI9488_BUFF_ROWS 4 // Buffer size needs to fit at least one character of the largest font
-
-typedef struct _ili9488_config_t {
-    SPI_HandleTypeDef *phspi; // spi handle pointer
-    uint8_t flg; // flags (DMA, MISO)
-    uint8_t colmod; // interface pixel format
-    uint8_t madctl; // memory data access control
-
-    uint8_t gamma;
-    uint8_t brightness;
-    uint8_t is_inverted;
-    uint8_t control;
-    uint8_t pwm_inverted;
-} ili9488_config_t;
 
 inline uint32_t color_to_666(uint32_t clr) {
     return ((clr >> 16) & 0x00FC) | (clr & 0xFC00) | ((clr << 16) & 0xFC0000);
@@ -82,8 +56,6 @@ extern uint8_t *ili9488_get_block(uint16_t start_x, uint16_t start_y, uint16_t e
 
 extern uint32_t ili9488_get_pixel_colorFormat666(uint16_t point_x, uint16_t point_y);
 extern void ili9488_set_pixel(uint16_t point_x, uint16_t point_y, uint32_t clr666);
-
-extern ili9488_config_t ili9488_config;
 
 /**
  * @brief Borrow display buffer.
