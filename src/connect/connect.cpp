@@ -355,13 +355,28 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                 ForcedGcode,
             };
             Type type;
-            if (buffer[0] == 'J') {
+            switch (buffer[0]) {
+            case 'J':
                 type = Type::Json;
-            } else if (buffer[0] == 'G') {
+                break;
+            case 'G':
                 type = Type::Gcode;
-            } else if (buffer[0] == 'F') {
+                break;
+            case 'F':
                 type = Type::ForcedGcode;
-            } else {
+                break;
+            case 's':
+                // The `s` was used in some experiments. It's not actually part
+                // of the protocol right now, but it's ignored temporarily to
+                // deal with version transitions. Shall be removed before we
+                // put this to production.
+                return ConnectionStatus::Ok;
+            case 'D':
+                // This is a debug message. We just log it and throw away (and
+                // we don't care about the oversized).
+                log_debug(connect, "Msg from server: %.*s", static_cast<int>(read - HDR_LEN), reinterpret_cast<const char *>(buffer + HDR_LEN));
+                return ConnectionStatus::Ok;
+            default:
                 planner().command(Command {
                     command_id,
                     BrokenCommand { "Unrecognized type of message" } });
