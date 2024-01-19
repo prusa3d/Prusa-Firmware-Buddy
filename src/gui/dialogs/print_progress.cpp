@@ -10,6 +10,7 @@
 #include "fonts.hpp"
 #include "gcode_thumb_decoder.h"
 #include <config_store/store_instance.hpp>
+#include <img_resources.hpp>
 #include <media.hpp>
 
 namespace {

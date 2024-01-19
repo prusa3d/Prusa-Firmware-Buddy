@@ -3,6 +3,7 @@
 #include <marlin_vars.hpp>
 #include <gcode_info.hpp>
 #include <format_print_will_end.hpp>
+#include <img_resources.hpp>
 #include "mmu2_toolchanger_common.hpp"
 #include "print_time_module.hpp"
 

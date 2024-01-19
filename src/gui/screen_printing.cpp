@@ -13,6 +13,7 @@
 #include "DialogMoveZ.hpp"
 #include "metric.h"
 #include "screen_menu_tune.hpp"
+#include <img_resources.hpp>
 #include <option/has_human_interactions.h>
 #include <option/has_loadcell.h>
 #include <option/has_mmu2.h>

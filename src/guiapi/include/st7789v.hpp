@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "guitypes.hpp"
-#include <img_resources.hpp>
 #include "Rect16.h"
 #include "guiconfig.h"
 #include "display_math_helper.h"

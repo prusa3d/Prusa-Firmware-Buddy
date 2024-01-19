@@ -4,6 +4,7 @@
 
 #include "screen_menu_cancel_object.hpp"
 #include "ScreenHandler.hpp"
+#include <img_resources.hpp>
 #include <marlin_vars.hpp>
 #include <marlin_client.hpp>
 
