@@ -14,7 +14,7 @@
 #include "screen_menu_languages.hpp"
 #include "screen_touch_error.hpp"
 #include "bsod.h"
-#include "shared_config.h"
+#include <guiconfig/guiconfig.h>
 
 #include <option/bootloader.h>
 #include <option/developer_mode.h>
@@ -42,6 +42,20 @@
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
+#endif
+
+#if defined(USE_ST7789)
+    #define SPLASHSCREEN_PROGRESSBAR_X 16
+    #define SPLASHSCREEN_PROGRESSBAR_Y 148
+    #define SPLASHSCREEN_PROGRESSBAR_W 206
+    #define SPLASHSCREEN_PROGRESSBAR_H 12
+    #define SPLASHSCREEN_VERSION_Y     165
+#elif defined(USE_ILI9488)
+    #define SPLASHSCREEN_PROGRESSBAR_X 100
+    #define SPLASHSCREEN_PROGRESSBAR_Y 165
+    #define SPLASHSCREEN_PROGRESSBAR_W 280
+    #define SPLASHSCREEN_PROGRESSBAR_H 12
+    #define SPLASHSCREEN_VERSION_Y     185
 #endif
 
 screen_splash_data_t::screen_splash_data_t()
