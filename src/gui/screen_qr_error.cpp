@@ -23,13 +23,14 @@ static const constexpr Rect16 link_rect = GuiDefaults::EnableDialogBigLayout ? R
 static const constexpr Rect16 qr_code_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(180, 265, 100, 20) : Rect16(100, 295, 64, 13);
 static const constexpr Rect16 help_txt_rect = Rect16(30, 200, 215, 20);
 static const constexpr Rect16 title_line_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 70, 420, 1) : Rect16(10, 44, 219, 1);
+static const constexpr Rect16 fw_version_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 265, display::GetW() - 30, 20) : Rect16(6, 295, display::GetW() - 6, 13);
 
 static constexpr const char *const header_label = N_("ERROR");
 static constexpr const char *const help_text = N_("More detail at");
 static constexpr const char *const unknown_err_txt = N_("Unknown Error");
 
 ScreenErrorQR::ScreenErrorQR()
-    : AddSuperWindow<ScreenResetError>()
+    : AddSuperWindow<ScreenResetError>(fw_version_rect)
     , header(this)
     , err_title(this, title_rect, is_multiline::no)
     , err_description(this, descr_rect, is_multiline::yes)
