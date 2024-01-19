@@ -1804,7 +1804,7 @@
                 #define STALL_THRESHOLD_TMC2130 300 // (steps per tick) - reciprocal value of minimal speed
             #else
                 // TODO: this is just a ballpark value
-                #define STALL_THRESHOLD_TMC2130 600 // (steps per tick) - reciprocal value of minimal speed
+                #define STALL_THRESHOLD_TMC2130 400 // (steps per tick) - reciprocal value of minimal speed
             #endif
         #endif
     #endif

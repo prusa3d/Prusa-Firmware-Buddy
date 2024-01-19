@@ -52,6 +52,7 @@ struct AxisState {
     int last_phase = 0; // Last known physical rotor phase
     #if HAS_BURST_STEPPING()
     int driver_phase = 0; // Last known phase the driver uses
+    int phase_correction = 0; // Currently applied phase correction
     #endif
     float last_position = 0.f; // Last known logical position
     bool direction = true; // Last non-zero movement direction
@@ -232,6 +233,13 @@ float extract_physical_position(AxisEnum axis, const Pos &pos) {
  * Compute the smallest difference between motor phases.
  */
 int phase_difference(int a, int b);
+
+    #if HAS_BURST_STEPPING()
+/**
+ * Given an axis, report the current µstep without phase correction
+ */
+int logical_ustep(AxisEnum axis);
+    #endif
 
 /**
  * A simple wrapper around planner.synchronize() to avoid recursive planner inclusion

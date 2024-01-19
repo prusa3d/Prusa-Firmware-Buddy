@@ -318,6 +318,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
 #if HAS_BURST_STEPPING()
     axis_state.original_microsteps = stepper.microsteps();
     axis_state.last_phase = axis_state.zero_rotor_phase = axis_state.driver_phase = stepper.MSCNT();
+    axis_state.phase_correction = 0;
     axis_state.had_interpolation = stepper.intpol();
     stepper.intpol(false);
     stepper.microsteps(256);
@@ -565,7 +566,8 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
     assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
 #if HAS_BURST_STEPPING()
-    int shifted_phase = normalize_motor_phase(new_phase + current_lut.get_phase_shift(new_phase));
+    axis_state.phase_correction = current_lut.get_phase_shift(new_phase);
+    int shifted_phase = normalize_motor_phase(new_phase + axis_state.phase_correction);
     int steps_diff = phase_difference(shifted_phase, axis_state.driver_phase);
     burst_stepping::set_phase_diff(axis_enum, steps_diff);
     axis_state.driver_phase = shifted_phase;
@@ -721,6 +723,25 @@ int phase_stepping::phase_per_ustep(int axis) {
     }();
     return FACTORS[axis];
 }
+
+#if HAS_BURST_STEPPING()
+int phase_stepping::logical_ustep(AxisEnum axis) {
+    int mscnt = stepper_axis(axis).MSCNT();
+    if (axis >= opts::SUPPORTED_AXIS_COUNT) {
+        return mscnt;
+    }
+    const AxisState &axis_state = *axis_states[axis];
+    if (!axis_state.active) {
+        return mscnt;
+    }
+
+    // ensure we're not being called while still moving
+    assert(!axis_state.target.has_value());
+    assert(!burst_stepping::busy());
+
+    return normalize_motor_phase(mscnt - axis_state.phase_correction);
+}
+#endif
 
 __attribute__((optimize("-Ofast"))) std::tuple<float, float> phase_stepping::axis_position(const AxisState &axis_state, uint32_t move_epoch) {
     float epoch = move_epoch / 1000000.f;

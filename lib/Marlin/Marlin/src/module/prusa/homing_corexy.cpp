@@ -80,6 +80,14 @@ static int16_t phase_cycle_steps(const AxisEnum axis) {
     return 1024 / phase_per_ustep(axis);
 }
 
+static int16_t axis_mscnt(const AxisEnum axis) {
+#if HAS_BURST_STEPPING()
+    return phase_stepping::logical_ustep(axis);
+#else
+    return stepper_axis(axis).MSCNT();
+#endif
+}
+
 static int16_t phase_backoff_steps(const AxisEnum axis) {
     int16_t effectorBackoutDir; // Direction in which the effector mm coordinates move away from endstop.
     int16_t stepperBackoutDir; // Direction in which the TMC µstep count(phase) move away from endstop.
@@ -96,26 +104,33 @@ static int16_t phase_backoff_steps(const AxisEnum axis) {
         bsod("invalid backoff axis");
     }
 
-    int16_t phaseCurrent = stepper_axis(axis).MSCNT(); // The TMC µsteps(phase) count of the current position
+    int16_t phaseCurrent = axis_mscnt(axis); // The TMC µsteps(phase) count of the current position
     int16_t phaseDelta = (0 - phaseCurrent) * stepperBackoutDir;
     if (phaseDelta < 0) {
         phaseDelta += 1024;
     }
-    int steps = (phaseDelta + phase_per_ustep(axis) / 2) / phase_per_ustep(axis) * effectorBackoutDir;
-    return steps;
+    return int16_t(phaseDelta / phase_per_ustep(axis)) * effectorBackoutDir;
 }
 
 static bool phase_aligned(AxisEnum axis) {
-    int16_t phase_cur = stepper_axis(axis).MSCNT();
-
-    int16_t ustep_max = phase_per_ustep(axis) +
+    int16_t phase_cur = axis_mscnt(axis);
+    int16_t ustep_max = phase_per_ustep(axis) / 2;
 #if HAS_BURST_STEPPING()
-        16; // The maximal phase shift
-#else
-        0;
+    // TODO: temporarily allow for one logical phase of change until motion is step-exact
+    ustep_max += phase_per_ustep(axis);
 #endif
     return (phase_cur <= ustep_max || phase_cur >= (1024 - ustep_max));
 }
+
+static bool same_steps(long a, long b) {
+#if HAS_BURST_STEPPING()
+    // TODO: When burst stepping is active, the reported position might differ by 1 logical step due
+    // to different rounding. Temporarily allow this to happen.
+    return std::abs(a - b) <= 1;
+#else
+    return a == b;
+#endif
+};
 
 /**
  * @brief Part of precise homing.
@@ -170,17 +185,6 @@ static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_
     plan_raw_move(initial_mm, initial_pos_msteps, homing_feedrate(B_AXIS));
 
     // sanity checks
-    auto same_steps = [](int a, int b) {
-#if HAS_BURST_STEPPING()
-        // When burst stepping is active, the reported position might differ
-        // slightly from the observed driver phase as the phase correction
-        // is active
-        return std::abs(a - b) <= 1;
-#else
-        return a == b;
-#endif
-    };
-
     if (!same_steps(hit_steps.a, initial_steps.a) || !same_steps(initial_steps.a, stepper.position(A_AXIS))) {
         ui.status_printf_P(0, "A_AXIS didn't return");
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
@@ -323,8 +327,9 @@ bool refine_corexy_origin() {
     xy_long_t origin_steps = { stepper.position(A_AXIS) + phase_backoff_steps(A_AXIS),
         stepper.position(B_AXIS) + phase_backoff_steps(B_AXIS) };
     plan_corexy_raw_move(origin_steps, fr_mm_s);
-    if (stepper.position(A_AXIS) != origin_steps[A_AXIS] || stepper.position(B_AXIS) != origin_steps[B_AXIS])
+    if (!same_steps(stepper.position(A_AXIS), origin_steps[A_AXIS]) || !same_steps(stepper.position(B_AXIS), origin_steps[B_AXIS])) {
         bsod("raw move didn't reach requested position");
+    }
 
     // sanity checks
     wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
