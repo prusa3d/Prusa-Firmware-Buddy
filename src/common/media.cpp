@@ -541,8 +541,8 @@ void media_loop(void) {
             // Pause in case of some issue
             usbh_error_count++;
             metric_record_integer(&usbh_error_cnt, usbh_error_count);
-            marlin_server::set_warning(WarningType::USBFlashDiskError);
             media_print_pause();
+            media_print_resume();
             return;
         case GCodeFilter::State::Eof:
             // Stop print on EOF
