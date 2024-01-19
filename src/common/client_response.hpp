@@ -457,7 +457,7 @@ class ClientResponses {
         {
 #if PRINTER_IS_PRUSA_XL
             Response::Continue,
-#elif defined(USE_ST7789)
+#elif PRINTER_IS_PRUSA_MINI
             Response::PRINT,
 #else
             Response::Print,
