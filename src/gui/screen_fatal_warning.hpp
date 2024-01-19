@@ -14,7 +14,6 @@ class ScreenFatalWarning : public AddSuperWindow<ScreenResetError> {
     window_text_t err_title;
     window_text_t err_description;
     window_icon_t hand_icon;
-    window_icon_t warning_icon;
     window_qr_t qr;
     window_text_t help_txt;
     window_text_t help_link;

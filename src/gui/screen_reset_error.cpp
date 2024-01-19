@@ -7,7 +7,7 @@
 #include "version.h"
 #include "support_utils.h"
 
-ScreenResetError::ScreenResetError()
+ScreenResetError::ScreenResetError(const Rect16 &fw_version_rect)
     : AddSuperWindow<screen_t>()
     , fw_version_txt(this, fw_version_rect, is_multiline::no)
     , sound_started(false) {
