@@ -15,32 +15,29 @@
 using namespace crash_dump;
 
 static const constexpr uint16_t left_padding = ScreenFatalWarning::title_rect.Left();
-static const constexpr uint16_t warining_icon_size = 48;
-static const constexpr uint16_t text_start_x = left_padding + warining_icon_size + 10 /* visual delimeter */;
 static const constexpr uint16_t text_start_y = 85;
 static const constexpr uint16_t qr_start_x = (display::GetW() * 2) / 3;
 static const constexpr uint16_t qr_size = 130;
-static const constexpr uint16_t info_text_width = 235;
+static const constexpr uint16_t info_text_width = 293;
 
-static const constexpr Rect16 warning_rect = Rect16(left_padding, text_start_y, warining_icon_size, warining_icon_size);
-static const constexpr Rect16 QR_rect = Rect16(qr_start_x, 44, qr_size, qr_size);
+static const constexpr Rect16 QR_rect = Rect16(qr_start_x, 74, qr_size, qr_size);
 static const constexpr Rect16 hand_rect = Rect16(qr_start_x + /* center under qr */ (qr_size - 59) / 2, qr_size + QR_rect.Top() + 5 /* visual delimeter */, 59, 72);
-static const constexpr Rect16 descr_rect = Rect16(text_start_x, text_start_y, info_text_width, 135);
-static const constexpr Rect16 help_txt_rect = Rect16(text_start_x, 222, info_text_width, 20);
-static const constexpr Rect16 link_rect = Rect16(text_start_x, 244, info_text_width, 20);
-static const constexpr Rect16 qr_code_rect = Rect16(180, 265, 100, 20);
+static const constexpr Rect16 descr_rect = Rect16(left_padding, text_start_y, info_text_width, 155);
+static const constexpr Rect16 help_txt_rect = Rect16(left_padding, 242, info_text_width, 20);
+static const constexpr Rect16 link_rect = Rect16(left_padding, 264, info_text_width, 20);
+static const constexpr Rect16 qr_code_rect = Rect16(180, 295, 100, 20);
+static const constexpr Rect16 fw_version_rect = Rect16(30, 295, display::GetW() - 30, 20);
 
 static constexpr const char *const header_label = N_("Wrong hardware");
 static constexpr const char *const help_text = N_("More detail at");
 static constexpr const char *const unknown_err_txt = N_("Unknown Error");
 
 ScreenFatalWarning::ScreenFatalWarning()
-    : AddSuperWindow<ScreenResetError>()
+    : AddSuperWindow<ScreenResetError>(fw_version_rect)
     , header(this)
     , err_title(this, title_rect, is_multiline::no)
     , err_description(this, descr_rect, is_multiline::yes)
     , hand_icon(this, hand_rect, &img::hand_qr_59x72)
-    , warning_icon(this, warning_rect, &img::warning_48x48)
     , qr(this, QR_rect, 1, Align_t::RightTop()) // error code is passed in the constructor
     , help_txt(this, help_txt_rect, is_multiline::no)
     , help_link(this, link_rect, is_multiline::no)
