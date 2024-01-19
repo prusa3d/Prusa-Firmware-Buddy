@@ -20,16 +20,16 @@
 void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {
     float x = static_cast<float>(steps.a + steps.b) / 2.f;
     float y = static_cast<float>(CORESIGN(steps.a - steps.b)) / 2.f;
-    mm.x = x / planner.settings.axis_steps_per_mm[0];
-    mm.y = y / planner.settings.axis_steps_per_mm[1];
+    mm.x = x * planner.mm_per_step[X_AXIS];
+    mm.y = y * planner.mm_per_step[Y_AXIS];
 }
 
 // convert raw AB steps to XY mm and position in mini-steps
 static void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm, xy_long_t &pos_msteps) {
     float x = static_cast<float>(steps.a + steps.b) / 2.f;
     float y = static_cast<float>(CORESIGN(steps.a - steps.b)) / 2.f;
-    mm.x = x / planner.settings.axis_steps_per_mm[0];
-    mm.y = y / planner.settings.axis_steps_per_mm[1];
+    mm.x = x * planner.mm_per_step[X_AXIS];
+    mm.y = y * planner.mm_per_step[Y_AXIS];
     pos_msteps.x = LROUND(x * PLANNER_STEPS_MULTIPLIER);
     pos_msteps.y = LROUND(y * PLANNER_STEPS_MULTIPLIER);
 }
