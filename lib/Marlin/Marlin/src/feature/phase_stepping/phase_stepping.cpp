@@ -115,8 +115,7 @@ static void init_step_generator_internal(
 
     axis_state.initial_time = ticks_us();
 
-    // Adjust rotor phase such that when we virtually move, we don't move
-    // physically
+    // Adjust rotor phase such that when we virtually move, we don't move physically
     float inverted_last_target_position = resolve_axis_inversion(axis_state.inverted, axis_state.last_position);
     float inverted_start_position = resolve_axis_inversion(axis_state.inverted, axis_state.target->initial_pos);
     axis_state.zero_rotor_phase = normalize_motor_phase(
