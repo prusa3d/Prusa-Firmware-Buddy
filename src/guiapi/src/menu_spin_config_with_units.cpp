@@ -57,4 +57,4 @@ const SpinConfigInt SpinCnf::loadcell_range = { { 5, 30, 1 }, None };
 const SpinConfigInt SpinCnf::print_progress = SpinConfigInt({ 29, 200, 1 }, Second, spin_off_opt_t::yes); // lowest value is off
 const SpinConfigInt SpinCnf::int_num = SpinConfigInt({ 0, std::numeric_limits<int32_t>::max(), 1 }, None, spin_off_opt_t::no);
 
-const SpinConfigFlt SpinCnf::nozzle_diameter = SpinConfigFlt({ 0.25, 1.00, 0.05 }, mm, spin_off_opt_t::no, format_point2);
+const SpinConfigFlt SpinCnf::nozzle_diameter = SpinConfigFlt({ 0.20, 1.20, 0.05 }, mm, spin_off_opt_t::no, format_point2);
