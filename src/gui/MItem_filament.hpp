@@ -5,6 +5,7 @@
 #pragma once
 #include "menu_item_event_dispatcher.hpp"
 #include "i18n.h"
+#include "WindowMenuItems.hpp"
 
 class MI_LOAD : public MI_event_dispatcher {
     constexpr static const char *const label = N_("Load Filament");
@@ -70,4 +71,16 @@ public:
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override;
+};
+
+class MI_AUTO_COOLDOWN : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Cooldown after unload");
+    bool init_index() const;
+
+public:
+    MI_AUTO_COOLDOWN()
+        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+protected:
+    virtual void OnChange(size_t old_index) override;
 };

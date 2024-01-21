@@ -167,3 +167,18 @@ MI_COOLDOWN::MI_COOLDOWN()
 void MI_COOLDOWN::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);
 }
+
+/*****************************************************************************/
+// MI_AUTO_COOLDOWN
+/*****************************************************************************/
+bool MI_AUTO_COOLDOWN::init_index() const {
+    return config_store().auto_cooldown_enabled.get();
+}
+
+void MI_AUTO_COOLDOWN::OnChange(size_t old_index) {
+    if (old_index) {
+        config_store().auto_cooldown_enabled.set(false);
+    } else {
+        config_store().auto_cooldown_enabled.set(true);
+    }
+}
