@@ -13,6 +13,20 @@ window_dlg_strong_warning_t::types window_dlg_strong_warning_t::on_top = window_
 
 const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Response::_none, Response::_none };
 
+static constexpr int16_t iconSize = 48;
+
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+static constexpr Rect16 layoutRect = { 30, 90, GuiDefaults::ScreenWidth - 30 * 2, 120 };
+static constexpr Rect16 textRect = Rect16(layoutRect.Left() + iconSize + 15, layoutRect.Top(), layoutRect.Width() - iconSize - 15, layoutRect.Height());
+
+#else
+static constexpr Rect16 layoutRect = { 70, 90, 363, GuiDefaults::ScreenHeight - 90 - GuiDefaults::ButtonHeight };
+static constexpr Rect16 textRect = Rect16(layoutRect.Left() + iconSize + 15, layoutRect.Top(), 300, layoutRect.Height());
+
+#endif
+
+static constexpr Rect16 iconRect = Rect16(layoutRect.Left(), layoutRect.Top(), iconSize, iconSize);
+
 window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::DialogFrameRect, IsStrong::yes)
     , header(this, _(Title))
@@ -28,8 +42,8 @@ window_dlg_strong_warning_t::window_dlg_strong_warning_t()
 }
 
 void window_dlg_strong_warning_t::adjustLayout() {
-    icon.SetRect(GuiDefaults::MessageIconRect);
-    text.SetRect(GuiDefaults::MessageTextRect);
+    icon.SetRect(iconRect);
+    text.SetRect(textRect);
     AdjustLayout(text, icon);
 }
 
