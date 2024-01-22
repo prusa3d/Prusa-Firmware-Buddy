@@ -5,7 +5,7 @@
  */
 #include "MItem_eeprom.hpp"
 #include "i2c.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "i18n.h"
 
 static constexpr bool use_long_text = GuiDefaults::infoDefaultLen >= 16;

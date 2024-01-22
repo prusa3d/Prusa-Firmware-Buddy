@@ -4,6 +4,7 @@
 #include "gui.hpp"
 #include "config.h"
 #include "marlin_client.hpp"
+#include <guiconfig/guiconfig.h>
 #include "display.h"
 #include "display_hw_checks.hpp"
 #include "ScreenHandler.hpp"

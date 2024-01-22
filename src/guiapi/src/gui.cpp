@@ -24,6 +24,7 @@
 #endif
 
 #include <config_store/store_instance.hpp>
+#include <guiconfig/guiconfig.h>
 
 LOG_COMPONENT_REF(GUI);
 LOG_COMPONENT_REF(Touch);

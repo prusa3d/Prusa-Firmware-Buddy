@@ -8,7 +8,7 @@
 #include "M50.hpp"
 #include <stdint.h>
 #include "z_calibration_fsm.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 
 #include <option/has_gui.h>
 

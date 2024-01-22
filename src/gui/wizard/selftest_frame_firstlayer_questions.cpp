@@ -4,7 +4,7 @@
 
 #include "selftest_frame_firstlayer_questions.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_firstlayer_type.hpp"
 #include "marlin_client.hpp"
 

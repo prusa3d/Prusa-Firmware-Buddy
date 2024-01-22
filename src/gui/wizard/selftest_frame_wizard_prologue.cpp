@@ -4,7 +4,7 @@
 
 #include "selftest_frame_wizard_prologue.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "img_resources.hpp"
 #include "printers.h"
 

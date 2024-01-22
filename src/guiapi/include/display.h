@@ -6,13 +6,13 @@
 
 #include <inttypes.h>
 #include <algorithm>
-#include "guiconfig.h"
 #include "guitypes.hpp"
 #include "printers.h"
 #include "display_helper.h"
 #include "Rect16.h"
 #include "display_ex.hpp"
 #include "fonts.hpp"
+#include <guiconfig/guiconfig.h>
 
 typedef uint16_t(display_size_t)(void);
 typedef void(display_init_t)(void);

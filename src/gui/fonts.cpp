@@ -4,6 +4,7 @@
 
 #include "fonts.hpp"
 #include "config.h"
+#include <guiconfig/guiconfig.h>
 #ifdef USE_ST7789
     #include "res/cc/font_regular_7x13.hpp" //Font::small
     #include "res/cc/font_regular_11x18.hpp" //Font::normal

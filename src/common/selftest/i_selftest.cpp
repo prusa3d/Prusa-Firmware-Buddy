@@ -8,7 +8,7 @@
 #include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "filament_sensors_handler.hpp"
 
 LOG_COMPONENT_DEF(Selftest, LOG_SEVERITY_DEBUG);

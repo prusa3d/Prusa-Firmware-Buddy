@@ -3,7 +3,7 @@
 #include <span>
 #include "gui.hpp"
 #include "gcode_info.hpp"
-#include "guiconfig.h"
+#include <guiconfig/guiconfig.h>
 
 #if defined(USE_ST7789)
 inline constexpr uint16_t SCREEN_WIDTH = display::GetW();

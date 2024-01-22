@@ -1,7 +1,7 @@
 #include "selftest_frame_dock.hpp"
 #include "i18n.h"
 #include "img_resources.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 
 #include <algorithm>
 

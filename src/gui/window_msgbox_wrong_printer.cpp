@@ -1,5 +1,7 @@
 #include "window_msgbox_wrong_printer.hpp"
 
+#include <guiconfig/guiconfig.h>
+
 MsgBoxInvalidPrinter::Message::Message(window_t *parent, string_view_utf8 text, HWCheckSeverity severity, bool valid)
     : icon(parent, {}, (severity == HWCheckSeverity::Abort) ? &img::nok_16x16 : &img::warning_16x16)
     , text(parent, {}, is_multiline::yes, is_closed_on_click_t::no, text) {

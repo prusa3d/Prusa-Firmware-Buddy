@@ -8,7 +8,7 @@
 #pragma once
 #include "printers.h"
 #include <cstddef> //size_t
-#include "guiconfig.h"
+#include <guiconfig/guiconfig.h>
 #include <array>
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>

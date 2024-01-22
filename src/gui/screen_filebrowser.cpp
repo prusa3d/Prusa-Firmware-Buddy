@@ -12,7 +12,7 @@
 #include "gui_media_events.hpp"
 #include "log.h"
 #include "img_resources.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"

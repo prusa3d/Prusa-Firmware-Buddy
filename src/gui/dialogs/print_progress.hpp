@@ -26,11 +26,6 @@ class PrintProgress : public AddSuperWindow<DialogTimed> {
 
     window_text_t estime_label;
     window_text_t estime_value;
-    // currently unused, left in the code to ease reenabling it
-    // #if defined(USE_ILI9488)
-    //     window_text_t middle_col_label;
-    //     window_text_t middle_col_value;
-    // #endif
     window_text_t info_text;
     WindowPrintProgress progress_bar;
     WindowNumbPrintProgress progress_num;

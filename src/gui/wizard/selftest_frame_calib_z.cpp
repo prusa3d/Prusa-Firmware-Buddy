@@ -7,7 +7,7 @@
 #include "selftest_frame_calib_z.hpp"
 #include "i18n.h"
 #include "fonts.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_fans_type.hpp"
 
 static constexpr size_t row_2 = 140;

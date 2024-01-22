@@ -46,9 +46,3 @@ enum {
 // CRC32 config - use hardware CRC32 with RTOS
 #define CRC32_USE_HW
 #define CRC32_USE_RTOS
-
-// guiconfig.h included with config
-#include <option/has_gui.h>
-#if HAS_GUI()
-    #include "../guiconfig/guiconfig.h"
-#endif

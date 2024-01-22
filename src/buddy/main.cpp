@@ -1,6 +1,7 @@
 #include "main.h"
 #include "platform.h"
 #include <device/board.h>
+#include <guiconfig/guiconfig.h>
 #include "config_features.h"
 #include "cmsis_os.h"
 #include "fatfs.h"

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "window.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 
 class ScrollBar : public AddSuperWindow<window_t> {
     Rect16::Height_t offset;

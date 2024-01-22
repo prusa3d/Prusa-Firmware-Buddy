@@ -7,6 +7,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include <config_store/constants.hpp>
+#include <guiconfig/guiconfig.h>
 
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate

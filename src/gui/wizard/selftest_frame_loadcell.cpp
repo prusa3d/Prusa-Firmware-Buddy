@@ -7,7 +7,7 @@
 #include "selftest_frame_loadcell.hpp"
 #include "i18n.h"
 #include "img_resources.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_loadcell_type.hpp"
 #include "marlin_client.hpp"
 #include <array>

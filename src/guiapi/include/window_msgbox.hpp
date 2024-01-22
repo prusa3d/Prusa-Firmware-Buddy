@@ -8,6 +8,7 @@
 #include "window_icon.hpp"
 #include "client_response.hpp"
 #include "window_qr.hpp"
+#include <guiconfig/guiconfig.h>
 
 /*****************************************************************************/
 // clang-format off

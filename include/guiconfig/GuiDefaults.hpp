@@ -3,13 +3,13 @@
 #include "guitypes.hpp"
 #include "Rect16.h"
 #include "display.h"
-#include "guiconfig.h"
 #include "align.hpp"
 #include "footer_def.hpp"
 #include "color_scheme.hpp"
 #include "window_types.hpp"
 #include <optional>
 #include "option/development_items.h"
+#include <guiconfig/guiconfig.h>
 
 struct GuiDefaults {
     // Footer settings

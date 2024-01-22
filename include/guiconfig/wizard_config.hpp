@@ -2,7 +2,8 @@
  * @file wizard_config.hpp
  */
 #pragma once
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
+#include <guiconfig/guiconfig.h>
 
 namespace WizardDefaults {
 #ifdef USE_ST7789

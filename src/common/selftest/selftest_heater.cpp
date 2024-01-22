@@ -2,7 +2,7 @@
 
 #include "selftest_heater.h"
 #include "hwio.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_log.hpp"
 #include "fanctl.hpp"
 #include "../../Marlin/src/module/temperature.h"

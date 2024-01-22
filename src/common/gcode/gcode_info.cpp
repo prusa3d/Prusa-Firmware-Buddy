@@ -1,7 +1,7 @@
 #include "gcode_info.hpp"
 #include "option/has_gui.h"
 #if HAS_GUI()
-    #include "GuiDefaults.hpp"
+    #include <guiconfig/GuiDefaults.hpp>
 #endif
 #include "gcode_thumb_decoder.h"
 #include <cstring>

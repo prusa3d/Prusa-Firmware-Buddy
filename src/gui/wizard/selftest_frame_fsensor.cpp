@@ -6,7 +6,7 @@
 
 #include "selftest_frame_fsensor.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_fsensor_type.hpp"
 #include "marlin_client.hpp"
 #include "img_resources.hpp"

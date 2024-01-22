@@ -6,6 +6,7 @@
 #include "media_state.hpp"
 
 #include <time.h>
+#include <guiconfig/guiconfig.h>
 
 struct window_header_t : public AddSuperWindow<window_frame_t> {
 

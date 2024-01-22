@@ -1,6 +1,6 @@
 #include "selftest_gears.hpp"
 #include "filament_sensors_handler.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "i_selftest.hpp"
 #include "common/RAII.hpp"
 #include "M70X.hpp"

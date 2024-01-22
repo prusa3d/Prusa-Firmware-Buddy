@@ -1,5 +1,6 @@
 #include "gcode_description.hpp"
 #include <cstdarg>
+#include <guiconfig/guiconfig.h>
 #include <span>
 
 size_t description_line_t::title_width(string_view_utf8 *title_str) {

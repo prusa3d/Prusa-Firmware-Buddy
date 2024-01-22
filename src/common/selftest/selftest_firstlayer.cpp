@@ -3,7 +3,7 @@
  */
 
 #include "selftest_firstlayer.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "i_selftest.hpp"
 #include "filament_sensors_handler.hpp"
 #include "filament.hpp"

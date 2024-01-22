@@ -2,7 +2,7 @@
 #pragma once
 
 #include "window_types.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "Rect16.h"
 #include "window_event.hpp"
 #include "align.hpp"

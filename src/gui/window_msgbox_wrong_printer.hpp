@@ -2,6 +2,7 @@
 #include "gui.hpp"
 #include "gcode_info.hpp"
 #include "img_resources.hpp"
+#include <guiconfig/guiconfig.h>
 
 class MsgBoxInvalidPrinter : public MsgBoxTitled {
     static constexpr const char *txt_wrong_printer_title = N_("The G-code isn't fully compatible");

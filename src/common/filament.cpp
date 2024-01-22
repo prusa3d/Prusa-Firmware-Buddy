@@ -2,7 +2,6 @@
 #include "filament.hpp"
 #include "i18n.h"
 #include "client_response_texts.hpp"
-#include "../guiconfig/guiconfig.h"
 #include "../../include/printers.h"
 #include <Marlin/src/inc/MarlinConfigPre.h>
 

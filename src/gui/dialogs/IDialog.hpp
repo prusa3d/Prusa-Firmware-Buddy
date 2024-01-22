@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "window_frame.hpp"
 #include "guitypes.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include <functional>
 
 // todo remove this after jogwheel refactoring

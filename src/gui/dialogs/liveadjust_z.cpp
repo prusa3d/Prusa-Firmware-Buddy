@@ -3,7 +3,7 @@
 #include "liveadjust_z.hpp"
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "marlin_client.hpp"
 #include "display_helper.h"
 #include "SteelSheets.hpp"
@@ -11,6 +11,7 @@
 
 #include "config_features.h"
 #include "gui_config_printer.hpp"
+#include <guiconfig/guiconfig.h>
 
 /*****************************************************************************/
 // WindowScale

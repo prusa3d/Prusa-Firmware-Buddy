@@ -3,7 +3,7 @@
 #pragma once
 
 #include "i_window_text.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 
 enum class printType {
     asInt32,

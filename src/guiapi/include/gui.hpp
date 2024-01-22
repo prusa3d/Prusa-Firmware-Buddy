@@ -1,12 +1,11 @@
 // gui.hpp
 #pragma once
 
-#include "guiconfig.h"
 #include "guitypes.hpp"
 #include "gui_timer.h"
 #include "display_helper.h"
 #include "display.h"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 
 typedef void(gui_loop_cb_t)(void);
 

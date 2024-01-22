@@ -5,6 +5,7 @@
 #include "i18n.h"
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
+#include <guiconfig/guiconfig.h>
 
 class MI_NOZZLE_ABSTRACT : public WiSpinInt {
     static constexpr const char *const generic_label =

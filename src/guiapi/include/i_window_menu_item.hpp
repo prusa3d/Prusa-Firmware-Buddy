@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include <algorithm>
 #include <array>
 #include "display_helper.h"

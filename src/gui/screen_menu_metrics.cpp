@@ -7,6 +7,7 @@
 #include <metric_handlers.h>
 #include <config_store/store_instance.hpp>
 #include <log_dest_syslog.h>
+#include <guiconfig/guiconfig.h>
 
 LOG_COMPONENT_REF(GUI);
 

@@ -6,6 +6,7 @@
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
 #include <config_store/store_instance.hpp>
+#include <guiconfig/guiconfig.h>
 #include <img_resources.hpp>
 
 inline constexpr PhaseResponses Responses_Back = { Response::Back, Response::_none, Response::_none, Response::_none };

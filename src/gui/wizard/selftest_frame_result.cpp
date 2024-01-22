@@ -7,7 +7,7 @@
 
 #include "selftest_frame_result.hpp"
 #include "ScreenHandler.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_result_type.hpp"
 #include "marlin_client.hpp"
 #include "client_response.hpp"

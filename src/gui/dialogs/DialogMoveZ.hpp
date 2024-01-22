@@ -9,6 +9,7 @@
 #include "window_menu_adv.hpp"
 #include "WinMenuContainer.hpp"
 #include "window_arrows.hpp"
+#include <guiconfig/guiconfig.h>
 
 class DialogMoveZ : public AddSuperWindow<IDialog> {
 private:

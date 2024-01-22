@@ -6,7 +6,7 @@
 #include <window_print_progress.hpp>
 #include <gcode_info.hpp>
 #include <marlin_vars.hpp>
-#include <guiconfig.h>
+#include <guiconfig/guiconfig.h>
 #include <fonts.hpp>
 
 /**

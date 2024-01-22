@@ -3,7 +3,7 @@
  */
 #include "selftest_invalid_state.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 
 static constexpr size_t col_0 = WizardDefaults::MarginLeft;
 static constexpr size_t row_0 = WizardDefaults::row_0;

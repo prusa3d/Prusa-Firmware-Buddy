@@ -6,7 +6,7 @@
 
 #include "footer_text.hpp"
 #include "guitypes.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 
 FooterText::FooterText(window_t *parent, Rect16::Left_t left, string_view_utf8 txt)
     : AddSuperWindow<WindowBlinkingText>(

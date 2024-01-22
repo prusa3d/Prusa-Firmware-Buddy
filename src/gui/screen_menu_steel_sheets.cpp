@@ -5,7 +5,7 @@
 #include "screen_menu_steel_sheets.hpp"
 #include <type_traits>
 #include "log.h"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "ScreenHandler.hpp"
 #include "SteelSheets.hpp"
 #include <marlin_client.hpp>

@@ -12,7 +12,7 @@
 #include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/temperature.h"
 #include "selftest_fans_type.hpp"

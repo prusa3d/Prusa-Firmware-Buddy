@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "window.hpp"
 #include "window_filter.hpp"
 

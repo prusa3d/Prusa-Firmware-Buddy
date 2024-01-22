@@ -2,7 +2,7 @@
 
 #include "selftest_esp_type.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "marlin_client.hpp"
 #include "img_resources.hpp"
 

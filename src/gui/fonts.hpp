@@ -4,7 +4,7 @@
 
 #pragma once
 #include <stdint.h>
-#include "guiconfig.h"
+#include <guiconfig/guiconfig.h>
 
 enum class Font : uint8_t {
     small = 0,

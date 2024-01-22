@@ -6,9 +6,10 @@
 
 #include "selftest_frame_fans.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_fans_type.hpp"
 #include "img_resources.hpp"
+#include <guiconfig/guiconfig.h>
 #if HAS_TOOLCHANGER()
     #include "module/prusa/toolchanger.h"
 #endif

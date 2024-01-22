@@ -1,7 +1,7 @@
 #include "esp_frame.hpp"
 
 #include "marlin_client.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 
 ESPFrame::ESPFrame(window_t *parent, PhasesESP ph, fsm::PhaseData data)
     : AddSuperWindow<window_frame_t>(parent, WizardDefaults::RectSelftestFrame)

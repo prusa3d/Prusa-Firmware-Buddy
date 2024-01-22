@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "ScreenHandler.hpp"
 #include "client_response_texts.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "img_resources.hpp"
 
 /*****************************************************************************/

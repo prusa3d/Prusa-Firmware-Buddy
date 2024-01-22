@@ -6,6 +6,7 @@
 #include "sys.h"
 #include "ScreenHandler.hpp"
 #include "data_exchange.hpp"
+#include <guiconfig/guiconfig.h>
 
 constexpr static const char *const label = N_("FW UPDATE");
 

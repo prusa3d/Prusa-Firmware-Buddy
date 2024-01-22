@@ -5,7 +5,7 @@
  */
 
 #include "selftest_view_item.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 
 SelfTestViewItem::SelfTestViewItem(Rect16::Height_t h)
     : next(nullptr)

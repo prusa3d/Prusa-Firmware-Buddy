@@ -5,7 +5,7 @@
 #include "selftest_frame_hot_end_sock.hpp"
 #include "selftest_hot_end_sock_type.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "img_resources.hpp"
 
 static constexpr size_t margin_texts = WizardDefaults::MarginLeft;

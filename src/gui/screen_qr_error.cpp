@@ -11,6 +11,7 @@
 #include <crash_dump/dump.hpp>
 #include <error_codes.hpp>
 #include <config_store/store_instance.hpp>
+#include <guiconfig/guiconfig.h>
 #include <option/has_leds.h>
 
 using namespace crash_dump;

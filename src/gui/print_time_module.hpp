@@ -12,6 +12,7 @@
 #include <array>
 #include "window_text.hpp"
 #include "marlin_server_shared.h"
+#include <guiconfig/guiconfig.h>
 #include <span>
 
 enum class PT_t {

@@ -16,7 +16,7 @@
 #include "lazyfilelist.hpp"
 #include "text_roll.hpp"
 #include "WindowMenuItems.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include <array>
 
 // This enum value is stored to eeprom as file sort settings

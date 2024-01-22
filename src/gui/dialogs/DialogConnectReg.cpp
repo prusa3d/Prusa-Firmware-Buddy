@@ -5,6 +5,7 @@
 #include "../lang/i18n.h"
 #include "bsod_gui.hpp"
 #include <connect/connect.hpp>
+#include <guiconfig/guiconfig.h>
 
 using connect_client::ConnectionStatus;
 using connect_client::OnlineStatus;

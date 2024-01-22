@@ -5,13 +5,14 @@
  */
 
 #include "print_progress.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "menu_spin_config.hpp"
 #include "fonts.hpp"
 #include "gcode_thumb_decoder.h"
 #include <config_store/store_instance.hpp>
 #include <img_resources.hpp>
 #include <media.hpp>
+#include <guiconfig/guiconfig.h>
 
 namespace {
 constexpr const char *finish_print_text = N_("Print finished");
@@ -83,10 +84,6 @@ PrintProgress::PrintProgress(window_t *parent)
                              ,
                              text_value_height),
           is_multiline::no)
-    // #if defined(USE_ILI9488)
-    //     , middle_col_label(this, Rect16(middle_column_start_x, text_baseline_y, middle_column_width, text_label_height), is_multiline::no)
-    //     , middle_col_value(this, Rect16(middle_column_start_x, text_baseline_y + text_label_height + text_value_y_offset, middle_column_width, text_value_height), is_multiline::no)
-    // #endif
     , info_text(this, Rect16(text_left_side_offset, text_baseline_y + text_label_height, info_text_width, text_value_height), is_multiline::no)
     , progress_bar(this, Rect16(Left(), GuiDefaults::ProgressThumbnailRect.Height(), Width(), GuiDefaults::ProgressBarHeight))
     , progress_num(this, Rect16(Width() - progress_num_x_offset, progress_num_y_baseline, progress_num_width, progress_num_height))
@@ -112,17 +109,6 @@ PrintProgress::PrintProgress(window_t *parent)
     estime_value.SetPadding({ 0, 0, 0, 0 });
     estime_value.SetAlignment(Align_t::LeftTop());
 
-    // #if defined(USE_ILI9488)
-    //     middle_col_label.set_font(Font::small);
-    //     middle_col_label.SetPadding({ 0, 0, 0, 0 });
-    //     middle_col_label.SetAlignment(Align_t::LeftTop());
-    //     middle_col_label.SetTextColor(COLOR_SILVER);
-
-    //     middle_col_value.set_font(Font::big);
-    //     middle_col_value.SetPadding({ 0, 0, 0, 0 });
-    //     middle_col_value.SetAlignment(Align_t::LeftTop());
-    // #endif
-
     progress_num.SetAlignment(Align_t::Center());
     progress_num.set_font(progress_num_font);
 }
@@ -143,19 +129,11 @@ uint16_t PrintProgress::getTime() {
 void PrintProgress::show_col_text_fields() {
     estime_label.Show();
     estime_value.Show();
-    // #if defined(USE_ILI9488)
-    //     middle_col_label.Show();
-    //     middle_col_value.Show();
-    // #endif
 }
 
 void PrintProgress::hide_col_text_fields() {
     estime_label.Hide();
     estime_value.Hide();
-    // #if defined(USE_ILI9488)
-    //     middle_col_label.Hide();
-    //     middle_col_value.Hide();
-    // #endif
 }
 
 void PrintProgress::UpdateTexts() {

@@ -9,7 +9,7 @@
 #include <common/fsm_base_types.hpp>
 #include "radio_button.hpp"
 #include "radio_button_fsm.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "window_text.hpp"
 #include "window_wizard_icon.hpp"
 

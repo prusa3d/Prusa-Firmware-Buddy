@@ -2,6 +2,7 @@
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include <guiconfig/guiconfig.h>
 
 /**
  * @brief Parent to show ip or host and pass click to menu.

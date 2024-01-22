@@ -7,6 +7,7 @@
 #include "safe_state.h"
 
 #include <crash_dump/dump.hpp>
+#include <guiconfig/guiconfig.h>
 
 #include "FreeRTOS.h"
 #include "task.h"

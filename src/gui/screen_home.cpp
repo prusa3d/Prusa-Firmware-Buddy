@@ -53,6 +53,7 @@
 #include <crash_dump/crash_dump_handlers.hpp>
 #include "box_unfinished_selftest.hpp"
 #include <transfers/transfer_file_check.hpp>
+#include <guiconfig/guiconfig.h>
 
 // TODO remove netdev_is_enabled after it is defined
 bool __attribute__((weak)) netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) { return true; }

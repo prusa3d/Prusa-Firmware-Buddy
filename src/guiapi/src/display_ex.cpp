@@ -4,7 +4,7 @@
 #include "display_ex.hpp"
 #include <functional>
 #include <cmath>
-#include "guiconfig.h" //USE_ST7789 USE_ILI9488
+#include <guiconfig/guiconfig.h>
 #include <img_resources.hpp>
 #include "display_math_helper.h"
 #include <bsod.h>

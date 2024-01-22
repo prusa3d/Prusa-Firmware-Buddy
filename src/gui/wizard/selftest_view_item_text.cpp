@@ -6,8 +6,8 @@
 
 #include "selftest_view_item_text.hpp"
 #include "display_helper.h"
-#include "GuiDefaults.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/GuiDefaults.hpp>
+#include <guiconfig/wizard_config.hpp>
 #include "img_resources.hpp"
 
 /**

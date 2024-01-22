@@ -6,6 +6,7 @@
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include <guiconfig/guiconfig.h>
 
 #ifdef USE_ILI9488
 class MI_ALWAYS : public WI_ICON_SWITCH_OFF_ON_t {

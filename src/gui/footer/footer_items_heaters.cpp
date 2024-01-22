@@ -5,7 +5,7 @@
  */
 
 #include "footer_items_heaters.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include <cmath>
 #include "ScreenHandler.hpp"
 #include "footer_eeprom.hpp"

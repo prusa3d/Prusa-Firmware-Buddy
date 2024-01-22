@@ -8,7 +8,7 @@
 #pragma once
 
 #include "i_window_menu_item.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 
 /*****************************************************************************/
 // WI_INFO_t

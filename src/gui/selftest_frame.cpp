@@ -6,7 +6,7 @@
 
 #include "selftest_frame.hpp"
 #include "marlin_client.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 
 /*****************************************************************************/
 // SelftestFrame

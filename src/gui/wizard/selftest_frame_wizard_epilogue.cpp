@@ -4,7 +4,7 @@
 
 #include "selftest_frame_wizard_epilogue.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "img_resources.hpp"
 
 static constexpr size_t margin_texts = 0;

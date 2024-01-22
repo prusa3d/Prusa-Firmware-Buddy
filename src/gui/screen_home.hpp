@@ -7,6 +7,7 @@
 #include "gcode_info.hpp"
 #include "window_dlg_wait.hpp"
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_state.h"
+#include <guiconfig/guiconfig.h>
 
 class screen_home_data_t : public AddSuperWindow<screen_t> {
 public:

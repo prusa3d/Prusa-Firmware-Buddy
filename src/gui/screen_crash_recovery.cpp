@@ -9,6 +9,7 @@
 
 #include "config_features.h"
 #include "img_resources.hpp"
+#include <guiconfig/guiconfig.h>
 #include <option/has_side_leds.h>
 #if HAS_SIDE_LEDS()
     #include <leds/side_strip_control.hpp>
@@ -18,7 +19,7 @@
 
     #include "screen_crash_recovery.hpp"
     #include "i18n.h"
-    #include "wizard_config.hpp"
+    #include <guiconfig/wizard_config.hpp>
     #include "crash_recovery_type.hpp"
     #include "marlin_client.hpp" // marlin_client::FSM_response
     #include "sound.hpp"

@@ -5,7 +5,7 @@
 #include "gui_time.hpp" //gui::GetTick
 #include "mock_windows.hpp"
 #include "mock_display.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "window_text.hpp"
 #include "knob_event.hpp"
 #include <memory>
