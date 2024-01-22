@@ -21,6 +21,7 @@ void MX_USB_HOST_Init(void);
 
 bool device_connected_at_startup();
 void USBH_UserProcess(USBH_HandleTypeDef *, uint8_t id);
+extern TimerHandle_t USBH_restart_timer;
 
 #ifdef __cplusplus
 }

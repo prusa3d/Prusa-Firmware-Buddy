@@ -17,6 +17,33 @@ ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 static uint32_t one_click_print_timeout { 0 };
 static std::atomic<bool> connected_at_startup { false };
 
+TimerHandle_t USBH_restart_timer;
+enum class USBHRestartPhase : uint_fast8_t {
+    stop,
+    start
+};
+
+void USBH_restart_timer_callback(TimerHandle_t) {
+    static USBHRestartPhase USBH_restart_phase = USBHRestartPhase::stop;
+    switch (USBH_restart_phase) {
+    case USBHRestartPhase::stop:
+        log_info(USBHost, "USBH power cycle");
+        USBH_restart_phase = USBHRestartPhase::start;
+        xTimerChangePeriod(USBH_restart_timer, 150, portMAX_DELAY);
+        USBH_Stop(&hUsbHostHS);
+        break;
+    case USBHRestartPhase::start:
+        log_info(USBHost, "USBH power cycle complete");
+        USBH_restart_phase = USBHRestartPhase::stop;
+        USBH_Start(&hUsbHostHS);
+    }
+}
+
+void USBH_restart_timer_init() {
+    static StaticTimer_t USBH_restart_timer_buffer;
+    USBH_restart_timer = xTimerCreateStatic("USBHRestart", 10, pdFALSE, 0, USBH_restart_timer_callback, &USBH_restart_timer_buffer);
+}
+
 void MX_USB_HOST_Init(void) {
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET);
@@ -30,6 +57,7 @@ void MX_USB_HOST_Init(void) {
     // A delay of 3000ms for detecting USB device (flash drive) was present at start
     one_click_print_timeout = ticks_ms() + 3000;
 
+    USBH_restart_timer_init();
     if (USBH_Init(&hUsbHostHS, USBH_UserProcess, HOST_HS) != USBH_OK) {
         Error_Handler();
     }
