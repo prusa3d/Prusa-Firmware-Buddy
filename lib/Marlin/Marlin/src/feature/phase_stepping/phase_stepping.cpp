@@ -43,7 +43,8 @@ MoveTarget::MoveTarget(float position)
     : initial_pos(position)
     , half_accel(0)
     , start_v(0)
-    , duration(0) {}
+    , duration(0)
+    , target(position) {}
 
 MoveTarget::MoveTarget(const move_t &move, int axis, const uint64_t move_duration_ticks) {
     assert(move_duration_ticks <= std::numeric_limits<uint32_t>::max());
@@ -52,6 +53,7 @@ MoveTarget::MoveTarget(const move_t &move, int axis, const uint64_t move_duratio
     half_accel = r * float(move.half_accel);
     start_v = r * float(move.start_v);
     duration = uint32_t(move_duration_ticks);
+    target = target_position();
 }
 
 MoveTarget::MoveTarget(const input_shaper_state_t &is_state, const uint64_t move_duration_ticks)
@@ -59,6 +61,7 @@ MoveTarget::MoveTarget(const input_shaper_state_t &is_state, const uint64_t move
     , half_accel(is_state.half_accel)
     , start_v(is_state.start_v)
     , duration(uint32_t(move_duration_ticks)) {
+    target = target_position();
     assert(move_duration_ticks <= std::numeric_limits<uint32_t>::max());
 }
 
@@ -210,7 +213,7 @@ step_event_info_t phase_stepping::next_step_event_classic(
             auto new_target = MoveTarget(*next_move, axis, move_duration_ticks);
             axis_state.current_print_time_ticks = next_print_time_ticks;
 
-            float target_pos = new_target.target_position();
+            float target_pos = new_target.target;
             int32_t target_steps = pos_to_steps(AxisEnum(axis), target_pos);
             PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
 
@@ -260,7 +263,7 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
             auto new_target = MoveTarget(*step_generator.is_state, move_duration_ticks);
             axis_state.current_print_time_ticks = next_print_time_ticks;
 
-            float target_pos = new_target.target_position();
+            float target_pos = new_target.target;
             int32_t target_steps = pos_to_steps(AxisEnum(axis), target_pos);
             PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
 
@@ -526,7 +529,7 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
         uint32_t time_overshoot = 0;
         if (axis_state.target.has_value()) {
             time_overshoot = ticks_diff(move_epoch, axis_state.target->duration);
-            move_position = axis_state.target->target_position();
+            move_position = axis_state.target->target;
             axis_state.target.reset();
         }
 

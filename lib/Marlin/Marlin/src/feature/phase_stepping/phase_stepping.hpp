@@ -33,7 +33,9 @@ struct MoveTarget {
     float half_accel = 0;
     float start_v = 0;
     uint32_t duration = 0; // Movement duration in us
+    float target;
 
+private:
     float target_position() const;
 };
 
