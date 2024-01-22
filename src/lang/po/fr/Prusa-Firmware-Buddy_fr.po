@@ -63,7 +63,7 @@ msgstr "Tension 5V"
 #: src/common/client_response_texts.cpp:17
 #: src/common/client_response_texts.cpp:18
 msgid "ABORT"
-msgstr "STOPPER"
+msgstr "ABANDONNER"
 
 #: src/gui/screen_printing.cpp:433
 msgid "ABORTING ..."
@@ -76,7 +76,7 @@ msgstr "Acquisition du code d'enregistrement, veuillez patienter..."
 #. window_menu
 #: src/gui/MItem_tools.cpp:285
 msgid "A crash dump is being saved."
-msgstr "Un dump sur crash est en cours d'enregistrement."
+msgstr "Un rapport de vidage de mémoire est en cours d'enregistrement."
 
 #: src/gui/MItem_tools.cpp:289
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
@@ -116,7 +116,7 @@ msgstr ""
 
 #: src/gui/wizard/selftest_frame_dock.cpp:209
 msgid "Aligning tool"
-msgstr "Toutes les buses"
+msgstr "Outil d'alignement"
 
 #: src/gui/wizard/selftest_frame_dock.hpp:44
 msgid ""
@@ -266,7 +266,7 @@ msgid ""
 "check your wiring and repeat the test."
 msgstr ""
 "D'après le test, il semble que les connecteurs des ventilateurs soient "
-"commutés. Vérifiez votre câblage et répétez le test."
+"inversés. Vérifiez votre câblage et répétez le test."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:193
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:238
@@ -326,7 +326,7 @@ msgstr ""
 "Version du Bootloader\n"
 "%d.%d.%d\n"
 "\n"
-"Buddy Board\n"
+"Carte Board\n"
 "%d\n"
 "%s"
 
@@ -1343,7 +1343,7 @@ msgstr "Quitter"
 
 #: src/gui/test/screen_mesh_bed_lv.cpp:63 src/gui/screen_sysinf.cpp:89
 msgid "EXIT"
-msgstr "SORTIR"
+msgstr "QUITTER"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:53
 msgid "EXTRUDER MAXTEMP ERROR"
@@ -3542,7 +3542,7 @@ msgstr "Aucune configuration"
 
 #: src/gui/MItem_tools.cpp:287
 msgid "No crash dump to save."
-msgstr "Aucun dump de crash à sauvegarder."
+msgstr "Aucun rapport de vidage de mémoire à sauvegarder."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:264
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:309
