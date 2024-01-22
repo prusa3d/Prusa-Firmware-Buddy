@@ -16,8 +16,8 @@ const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Resp
 static constexpr int16_t iconSize = 48;
 
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
-static constexpr Rect16 layoutRect = { 30, 90, GuiDefaults::ScreenWidth - 30 * 2, 120 };
-static constexpr Rect16 textRect = Rect16(layoutRect.Left() + iconSize + 15, layoutRect.Top(), layoutRect.Width() - iconSize - 15, layoutRect.Height());
+static constexpr Rect16 layoutRect = { 16, 40, GuiDefaults::ScreenWidth - 16 * 2, 170 };
+static constexpr Rect16 textRect = Rect16(layoutRect.Left() + iconSize + 8, layoutRect.Top(), layoutRect.Width() - iconSize - 8, layoutRect.Height());
 
 #else
 static constexpr Rect16 layoutRect = { 70, 90, 363, GuiDefaults::ScreenHeight - 90 - GuiDefaults::ButtonHeight };
