@@ -13,21 +13,17 @@ window_dlg_strong_warning_t::types window_dlg_strong_warning_t::on_top = window_
 
 const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Response::_none, Response::_none };
 
-static constexpr Rect16 textRectIcon = { 0, 104, 240, 120 };
-
 window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::DialogFrameRect, IsStrong::yes)
     , header(this, _(Title))
     , footer(this)
     , icon(this, { 0, 0, 0, 0 }, &img::exposure_times_48x48)
     , text(this, { 0, 0, 0, 0 }, is_multiline::yes)
-    , button(this, GuiDefaults::GetButtonRect(GetRect()) - (GuiDefaults::EnableDialogBigLayout ? Rect16::Top_t(0) : Rect16::Top_t(64)), dlg_responses, &ph_txt_continue) {
-    if (GuiDefaults::EnableDialogBigLayout) {
+    , button(this, GuiDefaults::GetButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::EnableDialogBigLayout ? 0 : 64), dlg_responses, &ph_txt_continue) //
+{
+    if constexpr (GuiDefaults::EnableDialogBigLayout) {
         footer.Hide();
         header.Hide();
-    } else {
-        icon.SetRect(Rect16(120 - 24, 48, 48, 48));
-        text.SetRect(textRectIcon);
     }
 }
 
@@ -38,14 +34,9 @@ void window_dlg_strong_warning_t::adjustLayout() {
 }
 
 void window_dlg_strong_warning_t::setWarningText(types type) {
+    header.SetText(_(icon_title_text[type].title));
 
     icon.SetRes(icon_title_text[type].icon);
-    header.SetText(_(icon_title_text[type].title));
-    if (!icon_title_text[type].icon) {
-        text.SetRect(GuiDefaults::RectScreenBody);
-    } else {
-        text.SetRect(textRectIcon);
-    }
     text.SetText(_(icon_title_text[type].text));
     adjustLayout(); // this could cause invalidation issue
 }
