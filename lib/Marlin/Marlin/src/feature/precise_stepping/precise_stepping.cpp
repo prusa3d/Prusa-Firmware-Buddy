@@ -565,21 +565,13 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
     PreciseStepping::flags = 0;
 
     if (preserve_step_fraction) {
-        bool is_phase_stepping_enabled = physical_axis_step_generator_types & (PHASE_STEPPING_GENERATOR_X | PHASE_STEPPING_GENERATOR_Y);
-
-        if (!is_phase_stepping_enabled) {
 #ifdef COREXY
-            total_start_pos_msteps.x -= (step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
-            total_start_pos_msteps.y -= (step_generator_state.current_distance.a - step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
+        total_start_pos_msteps.x -= (step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
+        total_start_pos_msteps.y -= (step_generator_state.current_distance.a - step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
 #else
-            total_start_pos_msteps.x -= step_generator_state.current_distance.x * PLANNER_STEPS_MULTIPLIER;
-            total_start_pos_msteps.y -= step_generator_state.current_distance.y * PLANNER_STEPS_MULTIPLIER;
+        total_start_pos_msteps.x -= step_generator_state.current_distance.x * PLANNER_STEPS_MULTIPLIER;
+        total_start_pos_msteps.y -= step_generator_state.current_distance.y * PLANNER_STEPS_MULTIPLIER;
 #endif
-        } else {
-            // Phase stepping is always precise, there are no fractional steps
-            // to preserve
-            total_start_pos_msteps.x = total_start_pos_msteps.y = 0;
-        }
 
         total_start_pos_msteps.z -= step_generator_state.current_distance.z * PLANNER_STEPS_MULTIPLIER;
         // Because of pressure advance, the amount of material in total_start_pos_msteps doesn't have to equal to step_generator_state.current_distance.e.
