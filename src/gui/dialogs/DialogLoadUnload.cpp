@@ -478,6 +478,9 @@ void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, con
     case ErrType::USER_ACTION:
         notice_icon_type.SetRes(&img::info_48x48);
         break;
+    case ErrType::CONNECT:
+        // We should not get an attention code in here at all, so just silence the compiler warning.
+        break;
     }
 
     notice_title.SetText(string_view_utf8::MakeRAM((const uint8_t *)errTitle));
