@@ -113,8 +113,10 @@ protected:
         return ret;
     }
 
+#if defined(USE_ST7789)
     window_header_t header;
     StatusFooter footer;
+#endif
 
     window_icon_t icon;
     window_text_t text;

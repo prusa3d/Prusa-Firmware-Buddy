@@ -29,16 +29,14 @@ static constexpr Rect16 iconRect = Rect16(layoutRect.Left(), layoutRect.Top(), i
 
 window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::DialogFrameRect, IsStrong::yes)
+#if defined(USE_ST7789)
     , header(this, _(Title))
     , footer(this)
+#endif
     , icon(this, { 0, 0, 0, 0 }, &img::exposure_times_48x48)
     , text(this, { 0, 0, 0, 0 }, is_multiline::yes)
     , button(this, GuiDefaults::GetButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::EnableDialogBigLayout ? 0 : 64), dlg_responses, &ph_txt_continue) //
 {
-    if constexpr (GuiDefaults::EnableDialogBigLayout) {
-        footer.Hide();
-        header.Hide();
-    }
 }
 
 void window_dlg_strong_warning_t::adjustLayout() {
@@ -48,7 +46,9 @@ void window_dlg_strong_warning_t::adjustLayout() {
 }
 
 void window_dlg_strong_warning_t::setWarningText(types type) {
+#if defined(USE_ST7789)
     header.SetText(_(icon_title_text[type].title));
+#endif
 
     icon.SetRes(icon_title_text[type].icon);
     text.SetText(_(icon_title_text[type].text));
