@@ -122,16 +122,6 @@ static bool phase_aligned(AxisEnum axis) {
     return (phase_cur <= ustep_max || phase_cur >= (1024 - ustep_max));
 }
 
-static bool same_steps(long a, long b) {
-#if HAS_BURST_STEPPING()
-    // TODO: When burst stepping is active, the reported position might differ by 1 logical step due
-    // to different rounding. Temporarily allow this to happen.
-    return std::abs(a - b) <= 1;
-#else
-    return a == b;
-#endif
-};
-
 /**
  * @brief Part of precise homing.
  * @param origin_steps
@@ -185,11 +175,11 @@ static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_
     plan_raw_move(initial_mm, initial_pos_msteps, homing_feedrate(B_AXIS));
 
     // sanity checks
-    if (!same_steps(hit_steps.a, initial_steps.a) || !same_steps(initial_steps.a, stepper.position(A_AXIS))) {
+    if (hit_steps.a != initial_steps.a || initial_steps.a != stepper.position(A_AXIS)) {
         ui.status_printf_P(0, "A_AXIS didn't return");
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
     }
-    if (!same_steps(initial_steps.b, stepper.position(B_AXIS))) {
+    if (initial_steps.b != stepper.position(B_AXIS)) {
         ui.status_printf_P(0, "B_AXIS didn't return");
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
     }
@@ -327,7 +317,7 @@ bool refine_corexy_origin() {
     xy_long_t origin_steps = { stepper.position(A_AXIS) + phase_backoff_steps(A_AXIS),
         stepper.position(B_AXIS) + phase_backoff_steps(B_AXIS) };
     plan_corexy_raw_move(origin_steps, fr_mm_s);
-    if (!same_steps(stepper.position(A_AXIS), origin_steps[A_AXIS]) || !same_steps(stepper.position(B_AXIS), origin_steps[B_AXIS])) {
+    if (stepper.position(A_AXIS) != origin_steps[A_AXIS] || stepper.position(B_AXIS) != origin_steps[B_AXIS]) {
         bsod("raw move didn't reach requested position");
     }
 
