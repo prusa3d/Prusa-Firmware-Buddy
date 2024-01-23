@@ -15,6 +15,7 @@ err_class_mapping = {
     5: "ERR_SYSTEM",
     6: "BOOTLOADER",
     7: "WARNING",
+    8: "CONNECT",
     9: "ERR_OTHER"
 }
 
