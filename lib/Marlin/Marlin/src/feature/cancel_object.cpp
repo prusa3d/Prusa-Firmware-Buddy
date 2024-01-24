@@ -29,15 +29,9 @@
 
 CancelObject cancelable;
 
-//We need 64 bit versions, so that it does not overflow
-#define _BV_64(n)     (static_cast<uint64_t>(1) << (n))
-#define TEST_64(n, b) (!!((n) & _BV_64(b)))
-#define SBI_64(A, B)  (A |= _BV_64(B))
-#define CBI_64(A, B)  (A &= ~_BV(B))
-
 int8_t CancelObject::object_count, // = 0
     CancelObject::active_object = -1;
-uint64_t CancelObject::canceled; // = 0x0000
+uint64_t CancelObject::canceled; // = 0x00000000
 bool CancelObject::skipping; // = false
 
 void CancelObject::set_active_object(const int8_t obj) {
@@ -46,7 +40,7 @@ void CancelObject::set_active_object(const int8_t obj) {
         if (obj >= object_count) {
             object_count = obj + 1;
         }
-        skipping = TEST_64(canceled, obj);
+        skipping = TEST64(canceled, obj);
     } else {
         skipping = false;
     }
@@ -62,7 +56,7 @@ void CancelObject::set_active_object(const int8_t obj) {
 
 void CancelObject::cancel_object(const int8_t obj) {
     if (WITHIN(obj, 0, 63)) {
-        SBI_64(canceled, obj);
+        SBI64(canceled, obj);
         if (obj == active_object) {
             skipping = true;
         }
@@ -71,7 +65,7 @@ void CancelObject::cancel_object(const int8_t obj) {
 
 void CancelObject::uncancel_object(const int8_t obj) {
     if (WITHIN(obj, 0, 63)) {
-        CBI_64(canceled, obj);
+        CBI64(canceled, obj);
         if (obj == active_object) {
             skipping = false;
         }
@@ -90,7 +84,7 @@ void CancelObject::report() {
         SERIAL_ECHO_START();
         SERIAL_ECHOPGM("Canceled:");
         for (int i = 0; i < object_count; i++) {
-            if (TEST_64(canceled, i)) {
+            if (TEST64(canceled, i)) {
                 SERIAL_CHAR(' ');
                 SERIAL_ECHO(i);
             }
