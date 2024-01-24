@@ -48,6 +48,12 @@ public:
         return is_hw_ok_;
     }
 
+    /// Marks the touchscreen as disabled till the printer is reset.
+    /// This is used to disable touchscreen during BSODs, which might casue BSOD loop
+    inline void disable_till_reset() {
+        is_disabled_till_reset_ = true;
+    }
+
 public:
     /// Reads a touchscreen event (and cosumes it)
     TouchscreenEvent get_event();
@@ -77,6 +83,8 @@ protected:
 
 protected:
     bool is_hw_ok_ : 1 = false;
+
+    bool is_disabled_till_reset_ : 1 = false;
 
 private:
     void recognize_gesture();

@@ -691,6 +691,10 @@ void iwdg_warning_cb(void) {
 }
 
 void init_error_screen() {
+#if HAS_TOUCH
+    touchscreen.disable_till_reset();
+#endif
+
     if constexpr (option::has_gui) {
         // init lcd spi and timer for buzzer
         SPI_INIT(lcd);

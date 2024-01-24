@@ -10,7 +10,7 @@ metric_t *metric_touch_event() {
 }
 
 bool Touchscreen_Base::is_enabled() const {
-    return config_store().touch_enabled.get();
+    return config_store().touch_enabled.get() && !is_disabled_till_reset_;
 }
 
 void Touchscreen_Base::set_enabled(bool set) {
