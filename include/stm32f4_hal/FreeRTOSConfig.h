@@ -165,7 +165,7 @@ extern uint32_t SystemCoreClock;
  * tasks yield.*/
 #define configTIMER_TASK_PRIORITY    ((configMAX_PRIORITIES - 1) - 1)
 #define configTIMER_QUEUE_LENGTH     10
-#define configTIMER_TASK_STACK_DEPTH 140
+#define configTIMER_TASK_STACK_DEPTH configMINIMAL_STACK_SIZE
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES           0

@@ -27,13 +27,11 @@ void USBH_restart_timer_callback(TimerHandle_t) {
     static USBHRestartPhase USBH_restart_phase = USBHRestartPhase::stop;
     switch (USBH_restart_phase) {
     case USBHRestartPhase::stop:
-        log_info(USBHost, "USBH power cycle");
         USBH_restart_phase = USBHRestartPhase::start;
         xTimerChangePeriod(USBH_restart_timer, 150, portMAX_DELAY);
         USBH_Stop(&hUsbHostHS);
         break;
     case USBHRestartPhase::start:
-        log_info(USBHost, "USBH power cycle complete");
         USBH_restart_phase = USBHRestartPhase::stop;
         USBH_Start(&hUsbHostHS);
     }
