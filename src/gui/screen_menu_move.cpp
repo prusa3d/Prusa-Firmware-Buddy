@@ -54,7 +54,11 @@ void MI_AXIS_E::OnClick() {
     marlin_client::gcode("M82"); // Set extruder to absolute mode
     marlin_client::gcode("G92 E0"); // Reset position before change
     SetVal(0); // Reset spin before change
-    last_queued_pos = 0; // zero it out so we wont go back when we exit the spinner
+    last_queued_position = 0; // zero it out so we wont go back when we exit the spinner
+}
+
+void MI_AXIS_E::Loop() {
+    jog_axis(last_queued_position, static_cast<float>(GetVal()), AxisEnum::E_AXIS);
 }
 
 void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {
