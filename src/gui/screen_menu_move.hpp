@@ -47,6 +47,10 @@ public:
         : MI_AXIS<E_AXIS>() {}
 
     void OnClick() override;
+    void Loop() override;
+
+protected:
+    float last_queued_position {};
 };
 
 class DUMMY_AXIS_E : public WI_FORMATABLE_LABEL_t<int> {
