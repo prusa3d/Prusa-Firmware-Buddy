@@ -126,6 +126,10 @@
 #define SBI32(n,b) (n |= _BV32(b))
 #define CBI32(n,b) (n &= ~_BV32(b))
 #define TBI32(N,B) (N ^= _BV32(B))
+#define _BV64(n)     (static_cast<uint64_t>(1) << (n))
+#define TEST64(n, b) (!!((n) & _BV64(b)))
+#define SBI64(A, B)  (A |= _BV64(B))
+#define CBI64(A, B)  (A &= ~_BV64(B))
 
 #define cu(x)      ({__typeof__(x) _x = (x); (_x)*(_x)*(_x);})
 #define RADIANS(d) ((d)*float(M_PI)/180.0f)
