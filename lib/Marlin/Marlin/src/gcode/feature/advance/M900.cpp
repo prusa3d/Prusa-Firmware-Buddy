@@ -129,7 +129,8 @@ void GcodeSuite::M900() {
       #endif
 
       if (WITHIN(newK, 0, 10)) {
-        M572_internal(newK, 0.04);
+        const pressure_advance::Config default_config = pressure_advance::Config();
+        M572_internal(newK, default_config.smooth_time);
       }
       else
         SERIAL_ECHOLNPGM("?K value out of range (0-10).");
