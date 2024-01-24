@@ -14,6 +14,19 @@
 
 using namespace buddy::hw;
 
+// target selection matrix on boards with board_bom_id >= 9
+// SideLed_LcdSelector is marked as A77 in the schematic
+// LED strips only use MOSI signal (CLK is ignored) so make sure MOSI is 0 when
+// switching to them
+//
+// | CS  | A77 |  LCD  | FRONT |  SIDE |
+// |     |     |       |  LED  |  LED  |
+// | --- | --- | ----- | ----- | ----- |
+// |  0  |  0  |   X   |       |       |
+// |  0  |  1  |   X   |       |   X   | <- don't use
+// |  1  |  0  |       |   X   |       |
+// |  1  |  1  |       |       |   X   |
+
 // this function is not in header, i prefer one extern over adding it to
 // ili9488.hpp and including it
 extern void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size);
