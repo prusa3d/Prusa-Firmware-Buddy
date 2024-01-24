@@ -809,7 +809,6 @@ EspLinkState esp_link_state() {
         return EspLinkState::Init;
     case ESPIF_NEED_AP:
         return EspLinkState::NoAp;
-        return EspLinkState::Down;
     case ESPIF_RUNNING_MODE: {
         if (espif_link()) {
             if (seen_intron) {
@@ -818,7 +817,7 @@ EspLinkState esp_link_state() {
                 return EspLinkState::Silent;
             }
         } else {
-            return EspLinkState::Down;
+            return EspLinkState::NoAp;
         }
     }
     }
