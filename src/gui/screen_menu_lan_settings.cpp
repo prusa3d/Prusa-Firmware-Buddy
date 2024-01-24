@@ -46,7 +46,7 @@ void ScreenMenuConnectionBase::refresh_addresses() {
         stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_GW_IP4));
         Item<MI_IP4_GWAY>().ChangeInformation(str);
 
-        Item<MI_WIFI_STATUS_t>().ChangeInformation("UP");
+        Item<MI_WIFI_STATUS_t>().ChangeInformation(n_status == NETDEV_NETIF_UP ? _("Up") : _("Down"));
     } else {
         const char *msg = UNKNOWN_ADDR;
         Item<MI_IP4_ADDR>().ChangeInformation(msg);
@@ -63,13 +63,13 @@ void ScreenMenuConnectionBase::refresh_addresses() {
             case EspFwState::Flashing:
             case EspFwState::NoFirmware:
             case EspFwState::WrongVersion:
-                Item<MI_WIFI_STATUS_t>().ChangeInformation("!FW");
+                Item<MI_WIFI_STATUS_t>().ChangeInformation(_("Flash"));
                 break;
             case EspFwState::NoEsp:
-                Item<MI_WIFI_STATUS_t>().ChangeInformation("Gone");
+                Item<MI_WIFI_STATUS_t>().ChangeInformation(_("Gone"));
                 break;
             case EspFwState::Ok:
-                Item<MI_WIFI_STATUS_t>().ChangeInformation("Down");
+                Item<MI_WIFI_STATUS_t>().ChangeInformation(_("Down"));
                 break;
             case EspFwState::Unknown:
                 Item<MI_WIFI_STATUS_t>().ChangeInformation("???");
@@ -77,16 +77,13 @@ void ScreenMenuConnectionBase::refresh_addresses() {
             }
             break;
         case EspLinkState::NoAp:
-            Item<MI_WIFI_STATUS_t>().ChangeInformation("NO AP");
-            break;
-        case EspLinkState::Down:
-            Item<MI_WIFI_STATUS_t>().ChangeInformation("Down");
+            Item<MI_WIFI_STATUS_t>().ChangeInformation(_("No AP"));
             break;
         case EspLinkState::Up:
-            Item<MI_WIFI_STATUS_t>().ChangeInformation("Up");
+            Item<MI_WIFI_STATUS_t>().ChangeInformation(_("Up"));
             break;
         case EspLinkState::Silent:
-            Item<MI_WIFI_STATUS_t>().ChangeInformation("Silent");
+            Item<MI_WIFI_STATUS_t>().ChangeInformation(_("Silent"));
             break;
         }
     }
