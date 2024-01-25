@@ -17,11 +17,11 @@ namespace selftest {
  * 3. stores result to eeprom
  * 4. handles deallocation
  *
- * @param pFirstLayer reference to pointer of state machine
- * @param config      configuration structure
- * @retval true       not finished
- * @retval false      finished
+ * @param pFirstLayer    reference to pointer of state machine
+ * @param previous_sheet index of previous sheet, if out of range, then pick current
+ * @retval true          not finished
+ * @retval false         finished
  */
-bool phaseFirstLayer(IPartHandler *&pFirstLayer, const FirstLayerConfig_t &config);
+bool phaseFirstLayer(IPartHandler *&pFirstLayer, const uint8_t previous_sheet);
 
 }; // namespace selftest

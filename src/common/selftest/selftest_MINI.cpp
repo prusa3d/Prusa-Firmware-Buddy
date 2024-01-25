@@ -30,6 +30,7 @@
 #include "selftest_result_type.hpp"
 #include <config_store/store_instance.hpp>
 #include <printers.h>
+#include "SteelSheets.hpp"
 
 using namespace selftest;
 
@@ -149,8 +150,6 @@ static const HeaterConfig_t Config_HeaterBed = {
     .heat_max_temp = 65,
 };
 
-static const FirstLayerConfig_t Config_FirstLayer = { .partname = "First Layer" };
-
 CSelftest::CSelftest()
     : m_State(stsIdle)
     , m_Mask(stmNone)
@@ -169,7 +168,7 @@ bool CSelftest::IsAborted() const {
     return (m_State == stsAborted);
 }
 
-bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const TestData test_data) {
+bool CSelftest::Start(const uint64_t test_mask, const TestData test_data) {
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));
@@ -193,6 +192,12 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const TestData 
     // dont show message about footer and do not wait response
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo_wait_user)));
+
+    if (std::holds_alternative<FirstLayerCalibrationData>(test_data)) {
+        this->previous_sheet_index = std::get<FirstLayerCalibrationData>(test_data).previous_sheet;
+    } else {
+        this->previous_sheet_index = SteelSheets::GetActiveSheetIndex();
+    }
 
     m_State = stsStart;
     return true;
@@ -317,7 +322,7 @@ void CSelftest::Loop() {
         phaseShowResult();
         break;
     case stsFirstLayer:
-        if (selftest::phaseFirstLayer(pFirstLayer, Config_FirstLayer)) {
+        if (selftest::phaseFirstLayer(pFirstLayer, previous_sheet_index)) {
             return;
         }
         break;
