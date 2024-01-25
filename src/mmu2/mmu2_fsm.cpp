@@ -143,7 +143,7 @@ void Fsm::Loop() {
         if constexpr (std::is_same_v<T, ProgressData>) {
             progressManager.ProcessReport(r);
 
-            log_info(MMU2, "Report progress =%u", static_cast<unsigned>(r.rawProgressCode));
+            log_debug(MMU2, "Report progress =%u", static_cast<unsigned>(r.rawProgressCode));
 
             const auto data = ProgressSerializerLoadUnload(progressManager.GetLoadUnloadMode(), progressManager.GetProgressPercentage()).Serialize();
             FSM_CHANGE_WITH_DATA__LOGGING(Load_unload, ProgressCodeToPhasesLoadUnload(progressManager.GetProgressCode()), data);
@@ -153,7 +153,7 @@ void Fsm::Loop() {
                 return;
             }
 
-            log_info(MMU2, "Report error =%u", static_cast<unsigned>(r.errorCode));
+            log_debug(MMU2, "Report error =%u", static_cast<unsigned>(r.errorCode));
             FSM_CHANGE_WITH_DATA__LOGGING(Load_unload,
                 PhasesLoadUnload::MMU_ERRWaitingForUser,
                 fsm::PointerSerializer<MMUErrDesc>(ConvertMMUErrorCode(r.errorCode)).Serialize());

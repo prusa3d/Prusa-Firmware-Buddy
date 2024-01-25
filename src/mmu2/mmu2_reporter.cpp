@@ -31,7 +31,7 @@ void Reporter::SetReport(ProgressData d) {
     }
 
     report = d;
-    log_info(MMU2, "MMU progress set: cip: %d pc: %u", d.rawCommandInProgress, d.rawProgressCode);
+    log_debug(MMU2, "MMU progress set: cip: %d pc: %u", d.rawCommandInProgress, d.rawProgressCode);
 }
 void Reporter::SetReport(ErrorData d) {
     if (report == Report(d)) {
@@ -39,7 +39,7 @@ void Reporter::SetReport(ErrorData d) {
     }
 
     report = d;
-    log_error(MMU2, "MMU error set: cip: %d ec: %u es: %d", d.rawCommandInProgress, static_cast<unsigned>(d.errorCode), static_cast<unsigned>(d.errorSource));
+    log_debug(MMU2, "MMU error set: cip: %d ec: %u es: %d", d.rawCommandInProgress, static_cast<unsigned>(d.errorCode), static_cast<unsigned>(d.errorSource));
 }
 
 } // namespace MMU2
