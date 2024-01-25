@@ -14,8 +14,8 @@
 #include "hwio.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"
-#include "../../Marlin/src/module/stepper.h"
-#include "../../Marlin/src/module/temperature.h"
+#include "Marlin/src/module/stepper.h"
+#include "Marlin/src/module/temperature.h"
 #include "selftest_fans_type.hpp"
 #include "selftest_axis_type.hpp"
 #include "selftest_heaters_type.hpp"
@@ -175,7 +175,7 @@ bool CSelftest::IsAborted() const {
     return (m_State == stsAborted);
 }
 
-bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t tool_mask) {
+bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const ToolMask tool_mask) {
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));

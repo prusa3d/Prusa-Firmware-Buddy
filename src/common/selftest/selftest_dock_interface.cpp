@@ -1,3 +1,4 @@
+#include "selftest_dock_interface.hpp"
 #include "selftest_part.hpp"
 #include "selftest_dock.h"
 #include "selftest_dock_type.hpp"
@@ -9,7 +10,7 @@ namespace selftest {
 
 std::array<SelftestDock_t, HOTENDS> staticResultDocks;
 
-TestReturn phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &pDocks, const std::array<const DockConfig_t, HOTENDS> &configs) {
+TestReturn phaseDocks(const ToolMask tool_mask, std::array<IPartHandler *, HOTENDS> &pDocks, const std::array<const DockConfig_t, HOTENDS> &configs) {
     for (uint i = 0; i < pDocks.size(); ++i) {
         if (!is_tool_selftest_enabled(i, tool_mask)) {
             continue;

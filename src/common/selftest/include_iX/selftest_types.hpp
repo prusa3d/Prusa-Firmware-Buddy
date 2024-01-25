@@ -4,15 +4,9 @@
 
 #pragma once
 
-#ifdef __cplusplus
-    #include <cstdint>
-#else
-    #include <stdint.h>
-#endif
+#include <cstdint>
 
-// TODO: Convert to enum class once marlin client is C++
-
-enum ToolMask {
+enum class ToolMask : uint8_t {
     NoneTools = 0, /**< NoneTools */
-    AllTools = 0b11111111 /**< AllTools */
+    AllTools = 0xff /**< AllTools */
 };
