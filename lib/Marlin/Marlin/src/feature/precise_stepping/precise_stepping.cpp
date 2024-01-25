@@ -565,23 +565,16 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
     PreciseStepping::flags = 0;
 
     if (preserve_step_fraction) {
-#ifdef COREXY
-        total_start_pos_msteps.x -= (step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
-        total_start_pos_msteps.y -= (step_generator_state.current_distance.a - step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
-#else
-        total_start_pos_msteps.x -= step_generator_state.current_distance.x * PLANNER_STEPS_MULTIPLIER;
-        total_start_pos_msteps.y -= step_generator_state.current_distance.y * PLANNER_STEPS_MULTIPLIER;
-#endif
-
-        total_start_pos_msteps.z -= step_generator_state.current_distance.z * PLANNER_STEPS_MULTIPLIER;
-        // Because of pressure advance, the amount of material in total_start_pos_msteps doesn't have to equal to step_generator_state.current_distance.e.
-        // So we always reset extrude steps to zero because losing a fraction of a step in the E-axis shouldn't cause any issues.
+        // Because of pressure advance, the amount of material in total_start_pos_msteps doesn't
+        // have to equal to step_generator_state.current_distance.e. So we always reset extrude
+        // steps to zero because losing a fraction of a step in the E-axis shouldn't cause any
+        // issues.
         total_start_pos_msteps.e = 0;
-        PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
     } else {
-        PreciseStepping::total_start_pos_msteps = { 0, 0, 0, 0 };
-        PreciseStepping::total_start_pos = { 0., 0., 0., 0. };
+        PreciseStepping::total_start_pos_msteps = stepper.count_position_from_startup * PLANNER_STEPS_MULTIPLIER;
     }
+
+    PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
 }
 
 uint16_t PreciseStepping::process_one_step_event_from_queue() {
@@ -1232,7 +1225,17 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
     step_generator_state.previous_step_time = 0.;
     step_generator_state.previous_step_time_ticks = 0;
     step_generator_state.buffered_step.flags = 0;
-    step_generator_state.current_distance = { 0, 0, 0, 0 };
+    step_generator_state.current_distance = xyze_long_t {
+#ifdef COREXY
+        LROUND((float(move.start_pos.x) + float(move.start_pos.y)) * Planner::settings.axis_steps_per_mm[X_AXIS]),
+        LROUND((float(move.start_pos.x) - float(move.start_pos.y)) * Planner::settings.axis_steps_per_mm[Y_AXIS]),
+#else
+        LROUND(float(move.start_pos.x) * Planner::settings.axis_steps_per_mm[X_AXIS]),
+        LROUND(float(move.start_pos.y) * Planner::settings.axis_steps_per_mm[Y_AXIS]),
+#endif
+        LROUND(float(move.start_pos.z) * Planner::settings.axis_steps_per_mm[Z_AXIS]),
+        LROUND(float(move.start_pos.e) * Planner::settings.axis_steps_per_mm[E_AXIS])
+    };
     step_generator_state.left_insert_start_of_move_segment = 0;
 
     // Reset step events and index
