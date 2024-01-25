@@ -85,7 +85,7 @@ public:
 public:
     virtual bool IsInProgress() const override;
     virtual bool IsAborted() const override;
-    virtual bool Start(const uint64_t test_mask, const ToolMask test_data) override; // parent has no clue about SelftestMask_t
+    virtual bool Start(const uint64_t test_mask, const selftest::TestData test_data) override; // parent has no clue about SelftestMask_t
     virtual void Loop() override;
     virtual bool Abort() override;
 

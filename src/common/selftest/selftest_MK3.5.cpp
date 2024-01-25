@@ -175,7 +175,7 @@ bool CSelftest::IsAborted() const {
     return (m_State == stsAborted);
 }
 
-bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const ToolMask tool_mask) {
+bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const selftest::TestData test_data) {
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));
