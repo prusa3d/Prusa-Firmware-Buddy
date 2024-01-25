@@ -144,7 +144,7 @@ void settings_load();
 void settings_reset();
 
 #if HAS_SELFTEST()
-void test_start_for_tools(const uint64_t test_mask, const uint8_t tool_mask);
+void test_start_for_tools(const uint64_t test_mask, const ToolMask tool_mask);
 void test_start(const uint64_t test_mask);
 void test_abort();
 #endif

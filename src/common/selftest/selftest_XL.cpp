@@ -264,7 +264,7 @@ bool CSelftest::IsAborted() const {
     return (m_State == stsAborted);
 }
 
-bool CSelftest::Start(const uint64_t test_mask, const uint8_t tool_mask) {
+bool CSelftest::Start(const uint64_t test_mask, const ToolMask tool_mask) {
     m_result = config_store().selftest_result.get();
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans) {
@@ -284,8 +284,7 @@ bool CSelftest::Start(const uint64_t test_mask, const uint8_t tool_mask) {
     }
     m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
-
-    this->tool_mask = static_cast<ToolMask>(tool_mask);
+    this->tool_mask = tool_mask;
 
     m_State = stsStart;
     return true;

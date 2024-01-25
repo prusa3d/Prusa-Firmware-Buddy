@@ -405,7 +405,7 @@ void settings_reset() {
 }
 
 #if HAS_SELFTEST()
-void test_start_for_tools(const uint64_t test_mask, const uint8_t tool_mask) {
+void test_start_for_tools(const uint64_t test_mask, const ToolMask tool_mask) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(
         request,
@@ -419,7 +419,7 @@ void test_start_for_tools(const uint64_t test_mask, const uint8_t tool_mask) {
 }
 
 void test_start(const uint64_t test_mask) {
-    test_start_for_tools(test_mask, AllTools);
+    test_start_for_tools(test_mask, ToolMask::AllTools);
 }
 
 void test_abort() {

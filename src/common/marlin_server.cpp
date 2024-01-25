@@ -796,7 +796,7 @@ void set_command(uint32_t command) {
     server.command = command;
 }
 
-void test_start([[maybe_unused]] const uint64_t test_mask, [[maybe_unused]] const uint8_t tool_mask) {
+void test_start([[maybe_unused]] const uint64_t test_mask, [[maybe_unused]] const ToolMask tool_mask) {
 #if HAS_SELFTEST()
     if (((server.print_state == State::Idle) || (server.print_state == State::Finished) || (server.print_state == State::Aborted)) && (!SelftestInstance().IsInProgress())) {
         SelftestInstance().Start(test_mask, tool_mask);
@@ -2791,7 +2791,7 @@ bool _process_server_valid_request(const char *request, int client_id) {
             return false;
         }
         // start selftest
-        test_start(msk32[0] + (((uint64_t)msk32[1]) << 32), tool_mask);
+        test_start(msk32[0] + (((uint64_t)msk32[1]) << 32), static_cast<ToolMask>(tool_mask));
         return true;
     case Msg::TestAbort:
         test_abort();
