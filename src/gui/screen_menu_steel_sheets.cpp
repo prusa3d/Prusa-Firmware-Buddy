@@ -106,12 +106,13 @@ void ISheetProfileMenuScreen::windowEvent(EventLock /*has private ctor*/, window
         log_debug(GUI, "MI_SHEET_SELECT");
         SteelSheets::SelectSheet(value);
         break;
-    case profile_action::Calibrate:
+    case profile_action::Calibrate: {
         log_debug(GUI, "MI_SHEET_CALIBRATE");
+        const auto original_sheet = config_store().active_sheet.get();
         SteelSheets::SelectSheet(value);
-        marlin_client::test_start(stmFirstLayer);
+        marlin_client::test_start_with_data(stmFirstLayer, selftest::FirstLayerCalibrationData { .previous_sheet = original_sheet });
         Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
-        break;
+    } break;
     case profile_action::Rename:
         log_debug(GUI, "MI_SHEET_RENAME");
 #if _DEBUG // todo remove #if _DEBUG after rename is finished
