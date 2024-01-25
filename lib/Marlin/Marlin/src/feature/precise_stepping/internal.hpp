@@ -12,9 +12,16 @@
 // #define ISR_DEADLINE_DEBUGGING // Enable audible warnings on step deadline misses
 // #define ISR_DEADLINE_TRACKING // Accurate (but expensive) deadline miss tracking
 // #define ISR_EVENT_DEBUGGING // Enable audible warnings on event queue misses
+// #define ISR_DEBUG_NOOPT // Do not optimize ISR functiosn for debugging
 
 #ifdef ISR_DEADLINE_DEBUGGING
     #warning "Dedline detection isn't working as intended after PreciseStepping::step_isr() was rewroted."
+#endif
+
+#ifndef ISR_DEBUG_NOOPT
+    #define FORCE_OFAST __attribute__((optimize("-Ofast")))
+#else
+    #define FORCE_OFAST // no-op
 #endif
 
 constexpr const double EPSILON = 0.000000001;

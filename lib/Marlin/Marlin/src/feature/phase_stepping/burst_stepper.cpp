@@ -107,7 +107,7 @@ void burst_stepping::init() {
     __HAL_TIM_ENABLE_DMA(&TIM_HANDLE_FOR(burst_stepping), TIM_DMA_UPDATE);
 }
 
-__attribute__((optimize("-Ofast"))) void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
+FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
     if (axis >= SUPPORTED_AXIS_COUNT) {
         bsod("Unsupported axis");
     }
@@ -149,7 +149,7 @@ __attribute__((optimize("-Ofast"))) void burst_stepping::set_phase_diff(AxisEnum
     axis_was_set[axis] = true;
 }
 
-__attribute__((optimize("-Ofast"))) static void setup_and_fire_dma() {
+FORCE_OFAST static void setup_and_fire_dma() {
     BURST_DMA->CR = BURST_DMA->CR & (~DMA_SxCR_EN_Msk);
     BURST_DMA->NDTR = fire_buffer->size();
     BURST_DMA->PAR = reinterpret_cast<uint32_t>(&step_gpio_port->BSRR);
@@ -161,11 +161,11 @@ __attribute__((optimize("-Ofast"))) static void setup_and_fire_dma() {
         | DMA_SxCR_EN_Msk;
 }
 
-__attribute__((optimize("-Ofast"))) bool burst_stepping::busy() {
+FORCE_OFAST bool burst_stepping::busy() {
     return (BURST_DMA->NDTR > 0) && (BURST_DMA->CR & DMA_SxCR_EN_Msk);
 }
 
-__attribute__((optimize("-Ofast"))) void burst_stepping::fire() {
+FORCE_OFAST void burst_stepping::fire() {
     for (std::size_t i = 0; i != axis_direction.size(); i++) {
         if (!axis_was_set[i]) {
             continue;

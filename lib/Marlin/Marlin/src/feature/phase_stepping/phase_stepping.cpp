@@ -499,7 +499,7 @@ static bool is_refresh_period_sane(uint32_t now, uint32_t last_timer_tick) {
     return refresh_period < 2 * REFRESH_PERIOD_US - UPDATE_DURATION_US;
 }
 
-static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
+static FORCE_INLINE FORCE_OFAST void refresh_axis(
     AxisState &axis_state, uint32_t now, uint32_t previous_tick) {
     if (!axis_state.active) {
         return;
@@ -605,7 +605,7 @@ static FORCE_INLINE __attribute__((optimize("-Ofast"))) void refresh_axis(
     axis_state.last_timer_tick = last_timer_tick;
 }
 
-__attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh() {
+FORCE_OFAST void phase_stepping::handle_periodic_refresh() {
     // This routine is extremely time sensitive and it should be as fast as
     // possible.
     //
@@ -746,7 +746,7 @@ int phase_stepping::logical_ustep(AxisEnum axis) {
 }
 #endif
 
-__attribute__((optimize("-Ofast"))) std::tuple<float, float> phase_stepping::axis_position(const AxisState &axis_state, uint32_t move_epoch) {
+FORCE_OFAST std::tuple<float, float> phase_stepping::axis_position(const AxisState &axis_state, uint32_t move_epoch) {
     float epoch = move_epoch / 1000000.f;
     const MoveTarget &trg = *axis_state.target;
     return {
