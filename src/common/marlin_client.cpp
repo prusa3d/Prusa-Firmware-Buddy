@@ -405,21 +405,22 @@ void settings_reset() {
 }
 
 #if HAS_SELFTEST()
-void test_start_for_tools(const uint64_t test_mask, const ToolMask tool_mask) {
+void test_start_with_data(const uint64_t test_mask, const ::selftest::TestData test_data) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(
         request,
         MARLIN_MAX_REQUEST,
-        "!%c%08lx %08lx %08lx",
+        "!%c%08lx %08lx %02hhx %08lx",
         ftrstd::to_underlying(Msg::TestStart),
         static_cast<uint32_t>(test_mask),
         static_cast<uint32_t>(test_mask >> 32),
-        static_cast<uint32_t>(tool_mask));
+        static_cast<uint8_t>(test_data.index()),
+        ::selftest::serialize_test_data_to_int(test_data));
     _send_request_to_server_and_wait(request);
 }
 
 void test_start(const uint64_t test_mask) {
-    test_start_for_tools(test_mask, ToolMask::AllTools);
+    test_start_with_data(test_mask, ::selftest::TestData {});
 }
 
 void test_abort() {

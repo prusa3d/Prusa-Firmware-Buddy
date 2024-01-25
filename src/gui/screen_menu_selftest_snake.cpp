@@ -138,7 +138,7 @@ void do_snake(Action action, Tool tool = Tool::_first) {
             AutoRestore ar(querying_user, true);
             ask_config(action);
         }
-        marlin_client::test_start_for_tools(get_test_mask(action), get_tool_mask(tool));
+        marlin_client::test_start_with_data(get_test_mask(action), get_tool_mask(tool));
     } else {
         AutoRestore ar(querying_user, true);
         ask_config(action);
