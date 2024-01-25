@@ -23,10 +23,25 @@ enum class DeviceState {
 
 struct StateWithDialog {
     DeviceState device_state;
-    // Due to the fact that we decided to "reuse" the Prusa-Error-Codes to
-    // denote displayed dialogs to Connect, even though they are not errors,
-    // the naming of the type vs the variable feels a bit off.
-    std::optional<ErrCode> dialog_id = std::nullopt;
+    std::optional<uint32_t> dialog_id = std::nullopt;
+    std::optional<ErrCode> code = std::nullopt;
+    const char *title = nullptr;
+    const char *text = nullptr;
+    StateWithDialog(DeviceState state)
+        : device_state(state) {}
+    StateWithDialog(DeviceState state, ErrCode code)
+        : device_state(state)
+        // TODO: For now, we cheat. We reuse the numerical value of the error
+        // code as the dialog ID too, for simplicity. This can't make a
+        // distinction between one error shown twice, but until we implement
+        // the control of dialogs remotely, it doesn't matter. Then we'll have
+        // to somehow generate unique IDs for each shown instance so we can
+        // check the remote touches the right buttons, etc.
+        , dialog_id(static_cast<uint32_t>(code))
+        , code(code) {}
+    static StateWithDialog attention(ErrCode code) {
+        return StateWithDialog(DeviceState::Attention, code);
+    }
 };
 
 DeviceState get_state(bool ready = false);

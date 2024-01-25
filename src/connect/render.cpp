@@ -63,7 +63,7 @@ namespace {
         }
     }
 
-    JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const SendTelemetry &telemetry) {
+    JsonResult render_msg(size_t resume_point, JsonOutput &output, RenderState &state, const SendTelemetry &telemetry) {
         const auto params = state.printer.params();
         const bool printing = is_printing(params.state.device_state);
 
@@ -84,8 +84,6 @@ namespace {
         //   update_telemetry block, we just enter it. If it happens after, it
         //   has no effect (it's been already skipped).
         const bool update_telemetry = state.telemetry_changes.set_hash(current_fingerprint);
-        // Prepare them before the hidden switch
-        const auto error_details = state.printer.err_details();
 
         // Keep the indentation of the JSON in here!
         // clang-format off
@@ -176,10 +174,7 @@ namespace {
                 }
 
                 if (params.state.dialog_id.has_value()) {
-                    JSON_FIELD_STR_FORMAT("dialog_id", "%05" PRIu16, static_cast<uint16_t>(*params.state.dialog_id)) JSON_COMMA;
-                }
-                if (params.state.device_state == DeviceState::Error && get<const char *>(error_details) != nullptr) {
-                    JSON_FIELD_STR("reason", get<const char *>(error_details)) JSON_COMMA;
+                    JSON_FIELD_INT_G(params.state.dialog_id.has_value(), "dialog_id", *params.state.dialog_id) JSON_COMMA;
                 }
                 // State is sent always, first because it seems important, but
                 // also, we want something that doesn't have the final comma on
@@ -430,7 +425,7 @@ namespace {
 #if ENABLED(CANCEL_OBJECTS)
                 JSON_FIELD_OBJ("data");
                     JSON_FIELD_ARR("objects");
-                        while (state.cancelabel_iter <  params.cancel_object_count) {
+                        while (state.cancelable_iter <  params.cancel_object_count) {
                             //Note: It can theoretically happen, that print finishes and new starts as we are sending this (tho really unlikely)
                             //, but in that case we would just send some inconsistent names, probably empty srings and
                             //right after we would generate next event with the correct ones, so it is OK.
@@ -439,29 +434,68 @@ namespace {
                                 //
                                 // Also we store only CANCEL_OBJECT_NAME_COUNT names, but can cancel up to the number of bits in the cancel_object_mask
                                 // objects, for the rest we still want to say, if they are canceled or not.
-                                if (state.cancelabel_iter < Printer::CANCEL_OBJECT_NAME_COUNT) {
+                                if (state.cancelable_iter < Printer::CANCEL_OBJECT_NAME_COUNT) {
 
-                                    JSON_FIELD_STR("name", state.printer.get_cancel_object_name(cancel_object_name, sizeof(cancel_object_name), state.cancelabel_iter)) JSON_COMMA;
+                                    JSON_FIELD_STR("name", state.printer.get_cancel_object_name(cancel_object_name, sizeof(cancel_object_name), state.cancelable_iter)) JSON_COMMA;
                                 }
-                                JSON_FIELD_BOOL("canceled", TEST64(params.cancel_object_mask, state.cancelabel_iter)) JSON_COMMA;
-                                JSON_FIELD_INT("id", state.cancelabel_iter);
+                                JSON_FIELD_BOOL("canceled", TEST64(params.cancel_object_mask, state.cancelable_iter)) JSON_COMMA;
+                                JSON_FIELD_INT("id", state.cancelable_iter);
                             JSON_OBJ_END;
-                            if (state.cancelabel_iter != params.cancel_object_count - 1) {
+                            if (state.cancelable_iter != params.cancel_object_count - 1) {
                                 JSON_COMMA;
                             }
-                            state.cancelabel_iter++;
+                            state.cancelable_iter++;
                         }
                     JSON_ARR_END;
                 JSON_OBJ_END JSON_COMMA;
 #endif
             } else if (event.type == EventType::StateChanged) {
                 JSON_FIELD_OBJ("data");
+                    // Unfortunately, we don't have any field that would be
+                    // guaranteed to be present, so we need to do this insanity
+                    // just to avoid a trailing comman, which is forbidden in
+                    // JSON :-(
+                    state.need_comma = false;
+
+                    if (params.state.code.has_value()) {
+                        state.need_comma = true;
+                        // The additional value() check is there for the event
+                        // where the below doesn't fit, we get resumed and
+                        // the code disappears in between - in that case we
+                        // kind of send a wrong value, but we will generate a
+                        // new one soon after.
+                        //
+                        // (We could use the _GUARD version, but that one seems
+                        // too drastic for this case).
+                        JSON_FIELD_STR_FORMAT("code", "%05" PRIu16, params.state.code.has_value() ? static_cast<uint16_t>(*params.state.code) : 0);
+                    }
+
+                    if (params.state.title) {
+                        if (state.need_comma) {
+                            JSON_COMMA;
+                        }
+
+                        state.need_comma = true;
+
+                        // Similar trick as above for the suspend/resume-race.
+                        JSON_FIELD_STR("title", params.state.title ? : "");
+                    }
+
+                    if (params.state.text) {
+                        if (state.need_comma) {
+                            JSON_COMMA;
+                        }
+
+                        state.need_comma = true;
+
+                        JSON_FIELD_STR("text", params.state.text ? : "");
+                    }
                     // In the future, we may have some info in here (like, buttons).
                 JSON_OBJ_END JSON_COMMA;
             }
 
             if (params.state.dialog_id.has_value()) {
-                JSON_FIELD_STR_FORMAT("dialog_id", "%05" PRIu16, static_cast<uint16_t>(*params.state.dialog_id)) JSON_COMMA;
+                JSON_FIELD_INT_G(params.state.dialog_id.has_value(), "dialog_id", *params.state.dialog_id) JSON_COMMA;
             }
             JSON_FIELD_STR("state", to_str(params.state.device_state)) JSON_COMMA;
             if (event.command_id.has_value()) {

@@ -12,12 +12,9 @@ namespace connect_client {
 
 ErrorPrinter::ErrorPrinter() {
     init_info(info);
-    char msg[crash_dump::MSG_MAX_LEN + 1];
-    char title[crash_dump::MSG_TITLE_MAX_LEN + 1];
-    if (crash_dump::message_is_valid() && crash_dump::load_message(msg, sizeof msg, title, sizeof title)) {
-        snprintf(message, sizeof message, "%s: %s", msg, title);
-    } else {
-        memset(message, 0, sizeof message);
+    if (!crash_dump::message_is_valid() || !crash_dump::load_message(text, sizeof text, title, sizeof title)) {
+        title[0] = '\0';
+        text[0] = '\0';
     }
     error_code = crash_dump::load_message_error_code();
 }
@@ -29,13 +26,22 @@ void ErrorPrinter::drop_paths() {}
 Printer::Params ErrorPrinter::params() const {
     Params params(nullopt);
 
-    auto [err_txt, err_code] = err_details();
-
-    optional<ErrCode> code = nullopt;
-    if (err_code != 0) {
-        code = static_cast<ErrCode>(err_code);
+    if (error_code == 0) {
+        params.state = StateWithDialog(DeviceState::Error);
+        // Set dialog ID, but keep code empty
+        params.state.dialog_id = 0;
+    } else {
+        params.state = StateWithDialog(DeviceState::Error, static_cast<ErrCode>(error_code));
     }
-    params.state = StateWithDialog { DeviceState::Error, code };
+
+    if (title[0]) {
+        params.state.title = title;
+    }
+
+    if (text[0]) {
+        params.state.text = text;
+    }
+
     // Version can change between MK4 and MK3.9 in runtime
     params.version = get_printer_version();
 
@@ -104,10 +110,6 @@ const char *ErrorPrinter::get_cancel_object_name(char *buffer, [[maybe_unused]] 
 
 Printer::Config ErrorPrinter::load_config() {
     return load_eeprom_config();
-}
-
-tuple<const char *, uint16_t> ErrorPrinter::err_details() const {
-    return make_tuple(message, error_code);
 }
 
 void ErrorPrinter::reset_printer() {

@@ -15,19 +15,19 @@ namespace {
         case State::PrintPreviewQuestions:
             // Should never happen, we catch this before with FSM states,
             // so that we can distinquish between various questions.
-            return { DeviceState::Unknown, std::nullopt };
+            return DeviceState::Unknown;
         case State::PowerPanic_AwaitingResume:
-            return { DeviceState::Attention, ErrCode::CONNECT_POWER_PANIC_COLD_BED };
+            return StateWithDialog::attention(ErrCode::CONNECT_POWER_PANIC_COLD_BED);
         case State::CrashRecovery_Axis_NOK:
-            return { DeviceState::Attention, ErrCode::CONNECT_CRASH_RECOVERY_AXIS_NOK };
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_AXIS_NOK);
         case State::CrashRecovery_Repeated_Crash:
-            return { DeviceState::Attention, ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH };
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH);
         case State::CrashRecovery_HOMEFAIL:
-            return { DeviceState::Attention, ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL };
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL);
         case State::CrashRecovery_Tool_Pickup:
-            return { DeviceState::Attention, ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP };
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP);
         case State::PrintPreviewToolsMapping:
-            return { DeviceState::Attention, ErrCode::CONNECT_PRINT_PREVIEW_TOOLS_MAPPING };
+            return StateWithDialog::attention(ErrCode::CONNECT_PRINT_PREVIEW_TOOLS_MAPPING);
         case State::Idle:
         case State::WaitGui:
         case State::PrintPreviewInit:
@@ -35,9 +35,9 @@ namespace {
         case State::PrintInit:
         case State::Exit:
             if (ready) {
-                return { DeviceState::Ready, std::nullopt };
+                return DeviceState::Ready;
             } else {
-                return { DeviceState::Idle, std::nullopt };
+                return DeviceState::Idle;
             }
         case State::Printing:
         case State::Aborting_Begin:
@@ -50,7 +50,7 @@ namespace {
         case State::Finishing_ParkHead:
         case State::PrintPreviewConfirmed:
         case State::SerialPrintInit:
-            return { DeviceState::Printing, std::nullopt };
+            return DeviceState::Printing;
 
         case State::PowerPanic_acFault:
         case State::PowerPanic_Resume:
@@ -60,7 +60,7 @@ namespace {
         case State::CrashRecovery_ToolchangePowerPanic:
         case State::CrashRecovery_XY_Measure:
         case State::CrashRecovery_XY_HOME:
-            return { DeviceState::Busy, std::nullopt };
+            return DeviceState::Busy;
 
         case State::Pausing_Begin:
         case State::Pausing_WaitIdle:
@@ -72,21 +72,21 @@ namespace {
         case State::Pausing_Failed_Code:
         case State::Resuming_UnparkHead_XY:
         case State::Resuming_UnparkHead_ZE:
-            return { DeviceState::Paused, std::nullopt };
+            return DeviceState::Paused;
         case State::Finished:
             if (ready) {
-                return { DeviceState::Ready, std::nullopt };
+                return DeviceState::Ready;
             } else {
-                return { DeviceState::Finished, std::nullopt };
+                return DeviceState::Finished;
             }
         case State::Aborted:
             if (ready) {
-                return { DeviceState::Ready, std::nullopt };
+                return DeviceState::Ready;
             } else {
-                return { DeviceState::Stopped, std::nullopt };
+                return DeviceState::Stopped;
             }
         }
-        return { DeviceState::Unknown, std::nullopt };
+        return DeviceState::Unknown;
     }
 
     // FIXME: these are also caught by the switch statement above, is there any
@@ -166,12 +166,12 @@ StateWithDialog get_state_with_dialog(bool ready) {
     switch (fsm_change.q0_change.get_fsm_type()) {
     case ClientFSM::PrintPreview:
         if (auto attention_code = attention_while_printpreview(GetEnumFromPhaseIndex<PhasesPrintPreview>(fsm_change.q0_change.get_data().GetPhase())); attention_code.has_value()) {
-            return { DeviceState::Attention, attention_code.value() };
+            return StateWithDialog::attention(attention_code.value());
         }
         break;
     case ClientFSM::Printing:
         if (auto attention_code = attention_while_printing(fsm_change.q1_change); attention_code.has_value()) {
-            return { DeviceState::Attention, attention_code.value() };
+            return StateWithDialog::attention(attention_code.value());
         }
         break;
     case ClientFSM::Load_unload:
@@ -185,7 +185,7 @@ StateWithDialog get_state_with_dialog(bool ready) {
     // to allow or not allow remote printing based on this, but this will cause
     // preheat menu to be the only menu screen to not be Idle... :-(
     case ClientFSM::Preheat:
-        return { DeviceState::Busy, std::nullopt };
+        return DeviceState::Busy;
     default:
         break;
     }

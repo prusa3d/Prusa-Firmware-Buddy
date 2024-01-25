@@ -417,7 +417,6 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
         planned_event = Event {
             EventType::StateChanged,
         };
-        planned_event->reason = get<0>(printer.err_details());
         return *planned_event;
     }
 
@@ -772,7 +771,6 @@ void Planner::command(const Command &command, const ResetPrinter &) {
 
 void Planner::command(const Command &command, const SendStateInfo &) {
     planned_event = { EventType::StateChanged, command.id };
-    planned_event->reason = get<0>(printer.err_details());
 }
 
 // FIXME: Handle the case when we are resent a command we are already
