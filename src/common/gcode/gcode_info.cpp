@@ -362,7 +362,7 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
     cmd.skip_ws();
 
     // Parse parameters
-    uint8_t tool = 0; // Default is first tool
+    [[maybe_unused]] uint8_t tool = 0; // Default is first tool
     float p_diameter = NAN;
     while (!cmd.is_empty()) {
         char letter = cmd.pop_front();
@@ -445,10 +445,22 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
         cmd.skip_ws();
     }
 
-    // store nozzle diameter
+#if ENABLED(PRUSA_MMU2)
+    // Store nozzle diameter - MMU-equipped printers have only one nozzle diameter for all tools/slots
+    // Makes the pre-print screen hide the nozzle sizes, which is both good and bad at the same time
+    // -> "?.??" is gone, but no actual diameter is shown anymore - that can be tweaked further on the visualization side.
+    // Here, we must set the correct nozzle diameter for all tools if specified.
+    if (!isnan(p_diameter)) {
+        EXTRUDER_LOOP() {
+            per_extruder_info[e].nozzle_diameter = p_diameter;
+        }
+    }
+#else
+    // store nozzle diameter per tool
     if (!isnan(p_diameter) && tool < EXTRUDERS) {
         per_extruder_info[tool].nozzle_diameter = p_diameter;
     }
+#endif
 }
 
 void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
