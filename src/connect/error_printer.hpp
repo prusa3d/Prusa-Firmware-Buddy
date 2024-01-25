@@ -14,8 +14,8 @@ protected:
     virtual Config load_config() override;
 
 private:
-    // +3 - ": " separator, null char
-    char message[crash_dump::MSG_TITLE_MAX_LEN + crash_dump::MSG_MAX_LEN + 3];
+    char title[crash_dump::MSG_TITLE_MAX_LEN + 1];
+    char text[crash_dump::MSG_MAX_LEN + 1];
     uint16_t error_code;
     virtual void renew(std::optional<SharedBuffer::Borrow> paths) override;
     virtual void drop_paths() override;
@@ -38,7 +38,6 @@ private:
 #if ENABLED(CANCEL_OBJECTS)
     virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const override;
 #endif
-    virtual std::tuple<const char *, uint16_t> err_details() const override;
     virtual void reset_printer() override;
 
 public:

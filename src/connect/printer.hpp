@@ -100,7 +100,7 @@ public:
         bool has_usb = false;
         uint64_t usb_space_free = 0;
         PrinterVersion version = { 0, 0, 0 };
-        printer_state::StateWithDialog state = { printer_state::DeviceState::Unknown, std::nullopt };
+        printer_state::StateWithDialog state = printer_state::DeviceState::Unknown;
 #if ENABLED(CANCEL_OBJECTS)
         size_t cancel_object_count = 0;
         uint64_t cancel_object_mask = 0;
@@ -191,8 +191,6 @@ public:
 #if ENABLED(CANCEL_OBJECTS)
     virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const = 0;
 #endif
-    /// Error message and error code for when we are in Error state.
-    virtual std::tuple<const char *, uint16_t> err_details() const = 0;
     // Turn connect on and set the token.
     //
     // Part of registration.
