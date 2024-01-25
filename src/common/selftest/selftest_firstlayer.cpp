@@ -7,13 +7,14 @@
 #include "i_selftest.hpp"
 #include "filament_sensors_handler.hpp"
 #include "filament.hpp"
-#include "../../Marlin/src/gcode/queue.h"
-#include "../../lib/Marlin/Marlin/src/gcode/lcd/M73_PE.h"
-#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../Marlin/src/module/probe.h"
-#include "../../Marlin/src/module/temperature.h"
-#include "../../marlin_stubs/G26.hpp"
+#include "Marlin/src/gcode/queue.h"
+#include "Marlin/src/gcode/lcd/M73_PE.h"
+#include "Marlin/src/gcode/gcode.h"
+#include "Marlin/src/module/probe.h"
+#include "Marlin/src/module/temperature.h"
+#include "marlin_stubs/G26.hpp"
 #include "M70X.hpp"
+#include "SteelSheets.hpp"
 #include <config_store/store_instance.hpp>
 
 #include <array>
@@ -221,19 +222,36 @@ static constexpr float z_offset_def = nozzle_to_probe[AxisEnum::Z_AXIS];
 
 LoopResult CSelftestPart_FirstLayer::stateInitialDistanceInit() {
     float diff = probe_offset.z - z_offset_def;
-    if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
-        IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_use_val);
-        current_offset_is_default = false;
-        rResult.current_offset = probe_offset.z;
+
+    if (diff > -z_offset_step && diff < z_offset_step) {
+        // Current value is the same as default value => we don't have to ask user to choose
+        skip_user_changing_initial_distance = true;
+    } else if (SteelSheets::GetUnclampedZOffet() > SteelSheets::zOffsetMin && SteelSheets::GetUnclampedZOffet() < SteelSheets::zOffsetMax) {
+        // The current sheet has a valid value => we need to ask the user if they need to reset or continue with current value
+        skip_user_changing_initial_distance = false;
+    } else if (rConfig.previous_sheet < config_store_ns::sheets_num && SteelSheets::GetUnclampedSheetZOffet(rConfig.previous_sheet) > SteelSheets::zOffsetMin && SteelSheets::GetUnclampedSheetZOffet(rConfig.previous_sheet) < SteelSheets::zOffsetMax) {
+        // The current sheet doesn't have a valid value, but we have a valid previous sheet with valid value
+        // => we can use it's z offset as "current" and ask user what value wants to use
+        probe_offset.z = SteelSheets::GetSheetOffset(rConfig.previous_sheet);
+        skip_user_changing_initial_distance = false;
     } else {
-        current_offset_is_default = true;
+        // We don't have any valid values => just use default (aka 0) and don't ask users anything
+        probe_offset.z = z_offset_def;
+        skip_user_changing_initial_distance = true;
+    }
+
+    if (!skip_user_changing_initial_distance) {
+        // Change screen if we don't want to skip the next part
+        IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_use_val);
+        // Set the right offset for GUI
+        rResult.current_offset = probe_offset.z;
     }
 
     return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateInitialDistance() {
-    if (current_offset_is_default) {
+    if (skip_user_changing_initial_distance) {
         return LoopResult::RunNext;
     }
 

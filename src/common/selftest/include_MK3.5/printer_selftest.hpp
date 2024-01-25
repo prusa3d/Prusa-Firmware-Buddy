@@ -101,6 +101,7 @@ protected:
     void phaseDidSelftestPass();
 
 protected:
+    uint8_t previous_sheet_index {};
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
     std::array<selftest::IPartHandler *, HOTENDS> pFans;

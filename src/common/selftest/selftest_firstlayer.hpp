@@ -38,7 +38,7 @@ class CSelftestPart_FirstLayer {
     int temp_bed;
 
     uint32_t how_many_times_finished;
-    bool current_offset_is_default;
+    bool skip_user_changing_initial_distance;
     bool reprint;
     StateSelectedByUser state_selected_by_user;
 

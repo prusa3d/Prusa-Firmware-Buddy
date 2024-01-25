@@ -13,6 +13,7 @@ struct FirstLayerConfig_t {
     using type_evaluation = SelftestFirstLayer_t;
     static constexpr SelftestParts part_type = SelftestParts::FirstLayerQuestions;
     const char *partname;
+    uint8_t previous_sheet;
 };
 
 }; // namespace selftest

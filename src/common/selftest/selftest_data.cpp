@@ -16,6 +16,11 @@ selftest::TestData from_int(uint32_t)
     return std::monostate {};
 }
 
+template <selftest::TypeWithStaticDeserialize T>
+selftest::TestData from_int(uint32_t raw_data) {
+    return T::deserialize(raw_data);
+}
+
 template <typename T>
 uint32_t to_int(const T &) {
     static_assert(!std::same_as<T, T>, "Unimplemented specilaization for to_int in TestData variant serialization");
@@ -30,6 +35,11 @@ uint32_t to_int(const std::monostate &) {
 template <selftest::EnumUnderAndFourBytes Enum>
 uint32_t to_int(const Enum &e) {
     return static_cast<uint32_t>(e);
+}
+
+template <selftest::TypeWithMemberSerialize T>
+uint32_t to_int(const T &t) {
+    return t.serialize();
 }
 
 template <typename... Types>

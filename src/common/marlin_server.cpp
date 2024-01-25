@@ -406,6 +406,7 @@ void init(void) {
     server.mbl_failed = false;
 #endif
     marlin_vars()->init();
+    SteelSheets::CheckIfCurrentValid();
 }
 
 void print_fan_spd() {
