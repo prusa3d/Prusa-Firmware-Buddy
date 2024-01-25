@@ -502,7 +502,7 @@ bool MMU2::VerifyFilamentEnteredPTFE() {
 
 bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
     static_assert(MAX_RETRIES > 1); // need >1 retries to do the cut in the last attempt
-    std::optional<float> firstUnloadEPosOnFSOff = std::nullopt;
+    std::optional<float> firstUnloadEPosOnFSOff;
     for (uint8_t retries = MAX_RETRIES; retries; --retries) {
         for (;;) {
             Disable_E0(); // it may seem counterintuitive to disable the E-motor, but it gets enabled in the planner whenever the E-motor is to move
@@ -514,31 +514,31 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
             // after we've blocked the runout.
             if (extruder != MMU2_NO_TOOL) {
                 extruder_move(MMU2_RETRY_UNLOAD_FINISH_LENGTH, MMU2_RETRY_UNLOAD_FINISH_FEED_RATE);
-            }
 
-            // Monitor the fsensor - detect the current E-motor stepper position when fsensor turns off.
-            // That switch has some ideal (or expected) distance,
-            // but in case some of the filament remains in the melt zone the distance gets shorter.
-            // The main problem here is the fact, that we need to call the whole marlin infrastructure and there is no simple place to hook into.
-            // Therefore I had to copy planner.synchronize(), which is a nasty hack.
-            auto fs = WhereIsFilament(); // we assume fsensor is still on ... if it isn't we don't do any corrections later
-            float unlFSOff = stepper_get_machine_position_E_mm();
-            planner_synchronize_hook([&]() {
-                if (auto currentFS = WhereIsFilament(); fs != currentFS && currentFS == FilamentState::NOT_PRESENT) {
-                    // fsensor just turned off, remember the E-motor stepper position
-                    unlFSOff -= stepper_get_machine_position_E_mm();
-                    fs = currentFS; // avoid further records
+                // Monitor the fsensor - detect the current E-motor stepper position when fsensor turns off.
+                // That switch has some ideal (or expected) distance,
+                // but in case some of the filament remains in the melt zone the distance gets shorter.
+                // The main problem here is the fact, that we need to call the whole marlin infrastructure and there is no simple place to hook into.
+                // Therefore I had to copy planner.synchronize(), which is a nasty hack.
+                auto fs = WhereIsFilament(); // we assume fsensor is still on ... if it isn't we don't do any corrections later
+                float unlFSOff = stepper_get_machine_position_E_mm();
+                planner_synchronize_hook([&]() {
+                    if (auto currentFS = WhereIsFilament(); fs != currentFS && currentFS == FilamentState::NOT_PRESENT) {
+                        // fsensor just turned off, remember the E-motor stepper position
+                        unlFSOff -= stepper_get_machine_position_E_mm();
+                        fs = currentFS; // avoid further records
+                    }
+                });
+                // Save just the very first unload attempt - that's the "amount" of filament left in the melt zone.
+                // Repeated unload and reload attempts are not interesting for the compensation later.
+                if (!firstUnloadEPosOnFSOff.has_value()) {
+                    firstUnloadEPosOnFSOff = unlFSOff;
                 }
-            });
-            // Save just the very first unload attempt - that's the "amount" of filament left in the melt zone.
-            // Repeated unload and reload attempts are not interesting for the compensation later.
-            if (!firstUnloadEPosOnFSOff.has_value()) {
-                firstUnloadEPosOnFSOff = unlFSOff;
-            }
 #ifndef UNITTEST
-            // Record as a metric each attempt
-            metric_record_float(&metric_unloadDistanceFSOff, unlFSOff);
+                // Record as a metric each attempt
+                metric_record_float(&metric_unloadDistanceFSOff, unloadEPosOnFSOff); // unlFSOff);
 #endif
+            }
             logic.ToolChange(slot); // let the MMU pull the filament out and push a new one in
             if (manage_response(true, true)) {
                 break;
