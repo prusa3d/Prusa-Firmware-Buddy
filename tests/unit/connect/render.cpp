@@ -39,7 +39,7 @@ Printer::Params params_printing() {
     params.slots[0].temp_nozzle = 200;
     params.target_bed = 70;
     params.target_nozzle = 195;
-    params.state = { printer_state::DeviceState::Printing, std::nullopt };
+    params.state = printer_state::DeviceState::Printing;
 
     return params;
 };

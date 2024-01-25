@@ -384,10 +384,6 @@ bool MarlinPrinter::set_printer_ready(bool ready) {
     return true;
 }
 
-tuple<const char *, uint16_t> MarlinPrinter::err_details() const {
-    return make_tuple(nullptr, 0);
-}
-
 void MarlinPrinter::reset_printer() {
     NVIC_SystemReset();
 }

@@ -59,7 +59,6 @@ public:
 #if ENABLED(CANCEL_OBJECTS)
     virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const override;
 #endif
-    virtual std::tuple<const char *, uint16_t> err_details() const override;
     virtual void reset_printer() override;
 
     static bool load_cfg_from_ini();
