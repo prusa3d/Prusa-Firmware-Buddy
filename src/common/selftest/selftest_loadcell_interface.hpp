@@ -10,6 +10,7 @@
 #include "selftest_loadcell_config.hpp"
 #include "selftest_loadcell_type.hpp"
 #include "Marlin/src/inc/MarlinConfig.h" // HOTENDS
+#include "selftest_types.hpp"
 #include <span>
 
 class IPartHandler;
@@ -17,6 +18,6 @@ class TestReturn;
 
 namespace selftest {
 
-TestReturn phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pLoadcell, const std::span<const LoadcellConfig_t> config);
+TestReturn phaseLoadcell(const ToolMask tool_mask, std::array<IPartHandler *, HOTENDS> &m_pLoadcell, const std::span<const LoadcellConfig_t> config);
 
 };

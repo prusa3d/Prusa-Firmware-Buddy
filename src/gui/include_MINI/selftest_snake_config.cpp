@@ -31,7 +31,7 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
     return TestResult_Unknown;
 }
 
-uint8_t get_tool_mask([[maybe_unused]] Tool tool) {
+ToolMask get_tool_mask([[maybe_unused]] Tool tool) {
     return ToolMask::AllTools;
 }
 

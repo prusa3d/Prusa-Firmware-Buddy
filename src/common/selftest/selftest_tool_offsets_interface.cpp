@@ -1,3 +1,4 @@
+#include "selftest_tool_offsets_interface.hpp"
 #include "selftest_part.hpp"
 #include "selftest_tool_offsets.hpp"
 #include <module/prusa/toolchanger.h>
@@ -9,7 +10,7 @@ namespace {
     SelftestToolOffsets_t staticResultToolOffsets;
 }
 
-TestReturn phaseToolOffsets([[maybe_unused]] const uint8_t tool_mask, IPartHandler *&pToolOffsets, const ToolOffsetsConfig_t &config) {
+TestReturn phaseToolOffsets([[maybe_unused]] const ToolMask tool_mask, IPartHandler *&pToolOffsets, const ToolOffsetsConfig_t &config) {
     if (!pToolOffsets) {
         pToolOffsets = selftest::Factory::CreateDynamical<CSelftestPart_ToolOffsets>(
             config,

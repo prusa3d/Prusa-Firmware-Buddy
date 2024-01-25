@@ -9,6 +9,7 @@
 #pragma once
 #include <cstdint>
 #include "selftest_fsensor_config.hpp"
+#include "selftest_types.hpp"
 
 #include "config_features.h"
 
@@ -25,5 +26,5 @@ namespace selftest {
  * @return true stay in current selftest state
  * @return false continue to next selftest state
  */
-TestReturn phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pFSensor, const std::array<const FSensorConfig_t, HOTENDS> &configs);
+TestReturn phaseFSensor(const ToolMask tool_mask, std::array<IPartHandler *, HOTENDS> &m_pFSensor, const std::array<const FSensorConfig_t, HOTENDS> &configs);
 }; // namespace selftest
