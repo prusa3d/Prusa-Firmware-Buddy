@@ -7,6 +7,7 @@
 #include "client_response.hpp"
 #include <option/has_selftest.h>
 #include "Marlin/src/core/types.h"
+#include "common/selftest/selftest_data.hpp"
 
 namespace marlin_client {
 
@@ -144,7 +145,7 @@ void settings_load();
 void settings_reset();
 
 #if HAS_SELFTEST()
-void test_start_for_tools(const uint64_t test_mask, const ToolMask tool_mask);
+void test_start_with_data(const uint64_t test_mask, const selftest::TestData test_data);
 void test_start(const uint64_t test_mask);
 void test_abort();
 #endif
