@@ -46,7 +46,7 @@ void ReportErrorHook(ErrorData d) {
     // That needs to be coded into the context data passed to the screen
     // - in this case the raw pointer to error description
     if (d.errorCode != ErrorCode::MMU_NOT_RESPONDING) {
-        log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=%u es=%u", d.rawCommandInProgress, static_cast<unsigned>(d.errorCode), static_cast<unsigned>(d.errorSource));
+        log_debug(MMU2, "Error report: CIP=%" PRIu8 " ec=%u es=%u", d.rawCommandInProgress, static_cast<unsigned>(d.errorCode), static_cast<unsigned>(d.errorSource));
         Fsm::Instance().reporter.SetReport(d);
     } else {
         log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=%u es=%u - cannot be done, fsm closed", static_cast<unsigned>(d.rawCommandInProgress), static_cast<unsigned>(d.errorCode), static_cast<unsigned>(d.errorSource));
@@ -55,7 +55,7 @@ void ReportErrorHook(ErrorData d) {
 
 void ReportProgressHook(ProgressData d) {
     if (Fsm::Instance().IsActive()) { // prevent accidental FSM change reports if there is no MMU progress/error dialog shown
-        log_info(MMU2, "Report: CIP=%" PRIu8 " pc=%" PRIu8, d.rawCommandInProgress, d.rawProgressCode);
+        log_debug(MMU2, "Report: CIP=%" PRIu8 " pc=%" PRIu8, d.rawCommandInProgress, d.rawProgressCode);
         Fsm::Instance().reporter.SetReport(d);
     } else {
         log_warning(MMU2, "Report: CIP=%" PRIu8 " pc=%" PRIu8 " - cannot be done, fsm closed", d.rawCommandInProgress, d.rawProgressCode);
