@@ -435,7 +435,7 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
 /*****************************************************************************/
 // MI_TIMEZONE
 MI_TIMEZONE::MI_TIMEZONE()
-    : WiSpinInt(config_store().timezone.get(), SpinCnf::timezone_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(config_store().timezone.get(), SpinCnf::timezone, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
     config_store().timezone.set(timezone);
@@ -444,59 +444,28 @@ void MI_TIMEZONE::OnClick() {
 /*****************************************************************************/
 // MI_TIMEZONE_MIN
 MI_TIMEZONE_MIN::MI_TIMEZONE_MIN()
-    : WI_SWITCH_t<3>(static_cast<uint8_t>(time_tools::get_timezone_minutes_offset()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_0min), _(str_30min), _(str_45min)) {}
+    : WI_SWITCH_t<3>(static_cast<uint8_t>(config_store().timezone_minutes.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_0min), _(str_30min), _(str_45min)) {}
 
 void MI_TIMEZONE_MIN::OnChange([[maybe_unused]] size_t old_index) {
-    switch (index) {
-    case 0:
-        time_tools::set_timezone_minutes_offset(time_tools::TimeOffsetMinutes::_0min);
-        break;
-    case 1:
-        time_tools::set_timezone_minutes_offset(time_tools::TimeOffsetMinutes::_30min);
-        break;
-    case 2:
-        time_tools::set_timezone_minutes_offset(time_tools::TimeOffsetMinutes::_45min);
-        break;
-    default:
-        assert(0);
-    }
+    config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(index));
 }
 
 /*****************************************************************************/
 // MI_TIMEZONE_SUMMER
 MI_TIMEZONE_SUMMER::MI_TIMEZONE_SUMMER()
-    : WI_SWITCH_t<2>(static_cast<uint8_t>(time_tools::get_timezone_summertime_offset()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_wintertime), _(str_summertime)) {}
+    : WI_ICON_SWITCH_OFF_ON_t(static_cast<uint8_t>(config_store().timezone_summer.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_TIMEZONE_SUMMER::OnChange([[maybe_unused]] size_t old_index) {
-    switch (index) {
-    case 0:
-        time_tools::set_timezone_summertime_offset(time_tools::TimeOffsetSummerTime::_wintertime);
-        break;
-    case 1:
-        time_tools::set_timezone_summertime_offset(time_tools::TimeOffsetSummerTime::_summertime);
-        break;
-    default:
-        assert(0);
-    }
+    config_store().timezone_summer.set(static_cast<time_tools::TimezoneOffsetSummerTime>(index));
 }
 
 /*****************************************************************************/
 // MI_TIME_FORMAT
 MI_TIME_FORMAT::MI_TIME_FORMAT()
-    : WI_SWITCH_t<2>(static_cast<uint8_t>(time_tools::get_time_format()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
+    : WI_SWITCH_t<2>(static_cast<uint8_t>(config_store().time_format.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
 
 void MI_TIME_FORMAT::OnChange([[maybe_unused]] size_t old_index) {
-    switch (index) {
-    case 0:
-        time_tools::set_time_format(time_tools::TimeFormat::_12h);
-        break;
-    case 1:
-        time_tools::set_time_format(time_tools::TimeFormat::_24h);
-        break;
-    default:
-        assert(0);
-        break;
-    }
+    config_store().time_format.set(static_cast<time_tools::TimeFormat>(index));
 }
 
 /*****************************************************************************/

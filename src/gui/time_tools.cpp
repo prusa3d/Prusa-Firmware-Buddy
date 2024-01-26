@@ -4,64 +4,41 @@
 
 namespace time_tools {
 
-void set_time_format(TimeFormat new_format) {
-    config_store().time_format.set(new_format);
-}
-
 TimeFormat get_time_format() {
     return config_store().time_format.get();
 }
 
-int8_t get_current_timezone_minutes() {
-    bool neg = config_store().timezone.get() < 0;
-    switch (config_store().timezone_minutes.get()) {
-    case TimeOffsetMinutes::_0min:
-        return 0;
-    case TimeOffsetMinutes::_30min:
-        if (neg) {
-            return -30;
-        } else {
-            return 30;
-        }
-    case TimeOffsetMinutes::_45min:
-        if (neg) {
-            return -45;
-        } else {
-            return 45;
-        }
-    default:
-        assert(0);
-    }
-    return 0;
-}
-
-void set_timezone_minutes_offset(TimeOffsetMinutes new_offset) {
+void set_timezone_minutes_offset(TimezoneOffsetMinutes new_offset) {
     config_store().timezone_minutes.set(new_offset);
 }
 
-TimeOffsetMinutes get_timezone_minutes_offset() {
+TimezoneOffsetMinutes get_timezone_minutes_offset() {
     return config_store().timezone_minutes.get();
 }
 
-int8_t get_current_timezone_summertime() {
-    switch (config_store().timezone_summer.get()) {
-    case TimeOffsetSummerTime::_summertime:
-        return 1;
-    case TimeOffsetSummerTime::_wintertime:
-        return 0;
-    default:
-        assert(0);
-        break;
-    }
-    return 0;
-}
-
-void set_timezone_summertime_offset(TimeOffsetSummerTime new_offset) {
+void set_timezone_summertime_offset(TimezoneOffsetSummerTime new_offset) {
     config_store().timezone_summer.set(new_offset);
 }
 
-TimeOffsetSummerTime get_timezone_summertime_offset() {
+TimezoneOffsetSummerTime get_timezone_summertime_offset() {
     return config_store().timezone_summer.get();
+}
+
+int32_t calculate_total_timezone_offset_minutes() {
+    const int8_t timezone = config_store().timezone.get();
+    const TimezoneOffsetMinutes timezone_minutes = config_store().timezone_minutes.get();
+
+    static_assert(ftrstd::to_underlying(TimezoneOffsetSummerTime::no_summertime) == 0);
+    static_assert(ftrstd::to_underlying(TimezoneOffsetSummerTime::summertime) == 1);
+
+    return //
+        static_cast<int32_t>(timezone) * 60
+
+        // Minutes timezone, through lookup table, clamped for memory safety
+        + ((timezone < 0) ? -1 : 1) * timezone_offset_minutes_value[std::min(static_cast<size_t>(timezone_minutes), timezone_offset_minutes_value.size() - 1)] //
+
+        // Summer/wintertime. Summertime = +1, so we can simply do a static cast
+        + static_cast<int32_t>(config_store().timezone_summer.get()) * 60;
 }
 
 namespace {
@@ -72,31 +49,32 @@ namespace {
 
 bool update_time() {
     time_t t = time(nullptr);
-    if (t != (time_t)-1) { // Time is initialized in RTC (from sNTP)
-        struct tm now;
-        int8_t timezone_diff = config_store().timezone.get();
-        int8_t timezone_summertime = get_current_timezone_summertime();
-        int8_t timezone_min_diff = get_current_timezone_minutes();
-        t += (timezone_diff + timezone_summertime) * 3600;
-        t += timezone_min_diff * 60;
-        localtime_r(&t, &now);
 
-        TimeFormat current_format = config_store().time_format.get();
-
-        if (!(last_time.tm_hour == now.tm_hour && last_time.tm_min == now.tm_min) // Time (hour || minute) has changed from previous call
-            || current_format != last_format) { // Time format has changed from previous call
-            last_time = now;
-            last_format = current_format;
-            if (current_format == TimeFormat::_24h) {
-                strftime(text_buffer, std::size(text_buffer), "%H:%M", &now);
-            } else {
-                strftime(text_buffer, std::size(text_buffer), "%I:%M %p", &now);
-            }
-            return true; // Time changed and was printed
-        }
+    // Check if time is initialized in RTC (from sNTP)
+    if (t == static_cast<time_t>(-1)) {
+        return false;
     }
 
-    return false;
+    t += calculate_total_timezone_offset_minutes() * 60;
+
+    struct tm now;
+    localtime_r(&t, &now);
+
+    const TimeFormat current_format = config_store().time_format.get();
+
+    // Check if anything has changed from the previous call
+    if (last_time.tm_hour == now.tm_hour && last_time.tm_min == now.tm_min && current_format == last_format) {
+        return false;
+    }
+
+    last_time = now;
+    last_format = current_format;
+
+    const char *format_str = (current_format == TimeFormat::_24h) ? "%H:%M" : "%I:%M %p";
+    strftime(text_buffer, std::size(text_buffer), format_str, &now);
+
+    // Time changed and was printed
+    return true;
 }
 
 const char *get_time() {

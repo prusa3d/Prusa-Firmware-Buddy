@@ -15,7 +15,7 @@ struct SpinCnf {
     static const SpinConfigInt printfan;
     static const SpinConfigInt feedrate;
     static const SpinConfigInt flowfact;
-    static const SpinConfigInt timezone_range;
+    static const SpinConfigInt timezone;
     static const SpinConfigInt volume_range;
     static const SpinConfigInt sensor_range;
     static const SpinConfigInt footer_center_N_range;
