@@ -45,6 +45,7 @@
 #include "screen_menu_settings.hpp"
 #include "screen_menu_filament.hpp"
 #include "screen_menu_control.hpp"
+#include "screen_menu_preheat.hpp"
 
 #if HAS_MMU2()
     #include "screen_menu_filament_mmu.hpp"
@@ -163,7 +164,7 @@ screen_home_data_t::screen_home_data_t()
 #endif // USE_ST7789
     , w_buttons {
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), nullptr, []() { marlin_client::gcode_printf("M1700 T-1"); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuPreheat>); } },
         { this, Rect16(), nullptr, FilamentBtn_cb },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSettings>); } },

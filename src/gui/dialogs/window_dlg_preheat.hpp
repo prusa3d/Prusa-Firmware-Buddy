@@ -37,6 +37,18 @@ protected:
     }
 };
 
+template <filament::Type T>
+class MI_Preheat : public I_MI_Filament {
+public:
+    MI_Preheat()
+        : I_MI_Filament(_(filament::get_name(T)), filament::get_description(T).nozzle_preheat, filament::get_description(T).heatbed) {}
+
+protected:
+    virtual void click(IWindowMenu & /*window_menu*/) override {
+        click_at(T);
+    }
+};
+
 class MI_RETURN : public IWindowMenuItem {
     static constexpr const char *const label = N_("Return");
 

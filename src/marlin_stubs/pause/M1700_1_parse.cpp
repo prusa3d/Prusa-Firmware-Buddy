@@ -30,6 +30,7 @@
  * - `S` - Set filament
  * - `E` - Enforce target temperature
  * - `B0`- Do not preheat bed, default preheat bed
+ * - `H` - Preheat bed only
  */
 void PrusaGcodeSuite::M1700() {
     const uint8_t preheat = std::min(parser.byteval('W', 3), uint8_t(RetAndCool_t::last_));
@@ -45,7 +46,7 @@ void PrusaGcodeSuite::M1700() {
     }
 
     filament_gcodes::M1700_no_parser(RetAndCool_t(preheat), PreheatMode::None, target_extruder,
-        parser.boolval('S'), parser.boolval('E'), parser.boolval('B', true));
+        parser.boolval('S'), parser.boolval('E'), parser.boolval('B', true), parser.boolval('H', false));
 }
 
 /**

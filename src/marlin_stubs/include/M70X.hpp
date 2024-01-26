@@ -62,7 +62,7 @@ void M1600_no_parser(filament::Type filament_to_be_loaded, uint8_t target_extrud
  * @param enforce_target_temp true to enforce target temp, false to use preheat temp
  * @param preheat_bed true to also heat up bed
  */
-void M1700_no_parser(RetAndCool_t preheat, PreheatMode mode, int8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed);
+void M1700_no_parser(RetAndCool_t preheat, PreheatMode mode, int8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed, bool prehead_bedonly);
 
 void M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder);
 
