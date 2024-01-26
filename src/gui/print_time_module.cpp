@@ -44,12 +44,10 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
         }
 
         // Timestamp
-        const int8_t timezone_diff = config_store().timezone.get();
-        const int8_t timezone_summertime = time_tools::get_current_timezone_summertime();
-        const int8_t timezone_min_diff = time_tools::get_current_timezone_minutes();
-        const time_t local_cur_sec = curr_sec + ((timezone_diff + timezone_summertime) * 3600) + (timezone_min_diff * 60);
-        time_end_format = PT_t::timestamp;
+        const time_t local_cur_sec = curr_sec + time_tools::calculate_total_timezone_offset_minutes() * 60;
         generate_timestamp_string(local_cur_sec, time_to_end);
+
+        time_end_format = PT_t::timestamp;
 
         // Add unknown marker
         if (marlin_vars()->print_speed != 100) {
@@ -120,10 +118,7 @@ bool PrintTime::print_end_time(const uint32_t time_to_end, std::span<char> buffe
         return false;
     }
 
-    const int8_t timezone_diff = config_store().timezone.get();
-    const int8_t timezone_summertime = time_tools::get_current_timezone_summertime();
-    const int8_t timezone_min_diff = time_tools::get_current_timezone_minutes();
-    curr_sec += ((timezone_diff + timezone_summertime) * 3600) + (timezone_min_diff * 60);
+    curr_sec += time_tools::calculate_total_timezone_offset_minutes() * 60;
 
     print_timestamp_string_to_buffer(curr_sec, time_to_end, buffer);
     return true;

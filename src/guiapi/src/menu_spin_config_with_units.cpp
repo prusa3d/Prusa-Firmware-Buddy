@@ -24,7 +24,7 @@ const SpinConfigInt SpinCnf::bed = SpinConfigInt(MenuVars::GetBedRange(), Celsiu
 const SpinConfigInt SpinCnf::printfan = SpinConfigInt(MenuVars::percent_range, Percent, spin_off_opt_t::yes);
 const SpinConfigInt SpinCnf::feedrate = SpinConfigInt(MenuVars::feedrate_range, Percent);
 const SpinConfigInt SpinCnf::flowfact = SpinConfigInt(MenuVars::flowfact_range, Percent);
-const SpinConfigInt SpinCnf::timezone_range = { { -12, 14, 1 }, Hour };
+const SpinConfigInt SpinCnf::timezone = SpinConfigInt { { -12, 14, 1 }, Hour };
 
 #if BOARD_IS_BUDDY
 const SpinConfigInt SpinCnf::volume_range = { { 0, 11, 1 }, None, spin_off_opt_t::yes }; // crank it up to 11

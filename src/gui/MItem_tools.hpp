@@ -256,11 +256,8 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_TIMEZONE_SUMMER : public WI_SWITCH_t<2> {
+class MI_TIMEZONE_SUMMER : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Time Zone Summertime");
-
-    constexpr static const char *str_wintertime = N_("disabled");
-    constexpr static const char *str_summertime = N_("enabled");
 
 public:
     MI_TIMEZONE_SUMMER();
