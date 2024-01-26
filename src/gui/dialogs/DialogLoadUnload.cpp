@@ -500,6 +500,8 @@ string_view_utf8 DialogLoadUnload::get_name(LoadUnloadMode mode) {
         return _("Loading filament");
     case LoadUnloadMode::Unload:
         return _("Unloading filament");
+    case LoadUnloadMode::FilamentStuck:
+        return _("Reloading filament");
     case LoadUnloadMode::Purge:
         return _("Purging filament");
     case LoadUnloadMode::Test:
