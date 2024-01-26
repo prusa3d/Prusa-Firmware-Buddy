@@ -122,7 +122,7 @@ std::pair<std::optional<PreheatStatus::Result>, filament::Type> filament_gcodes:
     return { std::nullopt, filament };
 }
 
-void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode, int8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed) {
+void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode, int8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed, bool prehead_bedonly) {
     InProgress progress;
     PreheatData data(mode, preheat_tp);
     Response response = preheatTempUnKnown(data, true);
@@ -146,13 +146,17 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode,
                     continue;
                 }
 #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
-                thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle : fil_cnf.nozzle_preheat, e);
-                marlin_server::set_temp_to_display(fil_cnf.nozzle, e);
+                if (!prehead_bedonly) {
+                    thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle : fil_cnf.nozzle_preheat, e);
+                    marlin_server::set_temp_to_display(fil_cnf.nozzle, e);
+                }
             }
         } else {
-            // Preheat only target tool
-            thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle : fil_cnf.nozzle_preheat, target_extruder);
-            marlin_server::set_temp_to_display(fil_cnf.nozzle, target_extruder);
+            if (!prehead_bedonly) {
+                // Preheat only target tool
+                thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle : fil_cnf.nozzle_preheat, target_extruder);
+                marlin_server::set_temp_to_display(fil_cnf.nozzle, target_extruder);
+            }
         }
 
         if (preheat_bed) {
