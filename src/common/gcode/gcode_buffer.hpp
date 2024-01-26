@@ -13,10 +13,26 @@
  */
 class GcodeBuffer {
 public:
-    // first 80 characters of line is sufficient for all GcodeLine reading purposes rest is discarded
+    // first 80 characters of line is sufficient for most GcodeLine reading purposes rest is discarded
+    //
+    // Can be reconfigured with the continuations field.
     using Container = std::array<char, 81>;
 
     Container buffer;
+
+    enum class Continuations {
+        /// Anything over the limit is discarded.
+        ///
+        /// If anything was discarded can be checked with line_complete.
+        Discard,
+        /// Too long line is returned in multiple chunks. The last chunk is
+        /// marked with line_complete being true.
+        Split,
+    };
+
+    Continuations continuations = Continuations::Discard;
+    bool line_complete = true;
+
     class String {
     public:
         Container::iterator begin;
@@ -51,6 +67,7 @@ public:
         float get_float() { return atof(&*begin); };
         String get_string();
 
+        // FIXME: XXX
         bool operator==(const char *str) const { return std::equal(begin, end, str); }
 
         /// Returns true if the gcode command starts with $str (and is followed by whitespace or string end) and skips the gcode code (plus whitespace).
