@@ -87,7 +87,7 @@ public: // Focus related stuff
     /// Tries to move focus as a result of the touch click event (param is to be passed here).
     ///
     /// !!! It is REQUIRED to use this function when children of i_window_menu are handling TOUCH_CLICK on their own,
-    /// !!! because the focus move can fail (IWindowMenuItem::try_exit_edit_mode)
+    /// !!! because the focus move can fail
     ///
     /// \returns focused index of the clicked item, if the focus move was successful
     std::optional<int> move_focus_touch_click(void *event_param);

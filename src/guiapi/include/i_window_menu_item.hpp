@@ -114,12 +114,6 @@ public:
     static IWindowMenuItem *focused_item();
 
 protected:
-    /// In some situations, one might want to prevent the element from being unselected.
-    /// Returning false from this function does that.
-    /// This function is not called during the object destruction.
-    virtual bool try_exit_edit_mode() { return true; }
-
-protected:
     // could me moved to gui defaults
     static constexpr Rect16::Width_t expand_icon_width = 16;
     static constexpr Rect16::Width_t icon_width = 16;

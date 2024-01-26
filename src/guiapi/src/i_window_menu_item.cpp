@@ -68,11 +68,6 @@ bool IWindowMenuItem::set_is_edited(bool set) {
         return false;
     }
 
-    // If there is an other item currently being edited, we have to exit the edit mode
-    if (focused_menu_item_edited && !focused_menu_item->try_exit_edit_mode()) {
-        return false;
-    }
-
     // Trying to edit an item -> must also set focus
     if (set) {
         set_is_focused(true);
