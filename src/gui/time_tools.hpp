@@ -12,46 +12,32 @@ enum class TimeFormat : uint8_t {
 };
 
 /**
- * @brief Time zone offset in minutes.
+ * @brief Time zone offset in minutes. Adds the amount of minutes in + timezones, removes in -.
  * @warning Never change these values. They are stored in config_store.
  */
-
-enum class TimeOffsetMinutes : int8_t {
-    _0min,
-    _30min,
-    _45min,
+enum class TimezoneOffsetMinutes : uint8_t {
+    no_offset,
+    min30,
+    min45,
+    _cnt
 };
 
-/**
- * @brief Time zone summertime offset.
- * @warning Never change these values. They are stored in config_store.
- */
-
-/// @return current timezone offset in minutes as integer value (minutes * seconds)
-int8_t get_current_timezone_minutes();
-
-/// @param new_offset set timezone minute offset
-void set_timezone_minutes_offset(TimeOffsetMinutes new_offset);
-
-/// @return current timezone minutes offset
-TimeOffsetMinutes get_timezone_minutes_offset();
-
-enum class TimeOffsetSummerTime : int8_t {
-    _wintertime,
-    _summertime
+/// Mapping of TimezoneOffsetMinutes -> actual amount of minutes
+/// !!! This value has to be negated for <0 timezones
+constexpr std::array<int8_t, ftrstd::to_underlying(TimezoneOffsetMinutes::_cnt)> timezone_offset_minutes_value = {
+    0, 30, 45
 };
 
-/// @return current timezone summertime offset in hours
-int8_t get_current_timezone_summertime();
+enum class TimezoneOffsetSummerTime : uint8_t {
+    no_summertime, ///< No offset
+    summertime, ///< +1 hour
+    _cnt
+};
 
-/// @param new_offset set timezone summertime offset
-void set_timezone_summertime_offset(TimeOffsetSummerTime new_offset);
-
-/// @return current timezone summertime offset
-TimeOffsetSummerTime get_timezone_summertime_offset();
-
-/// @param new_format set time format
-void set_time_format(TimeFormat new_format);
+/// Calculates total timezone offset.
+/// This takes into consideration all timezone configs – timezone, minutes offset, summertime
+/// @returns the calculated offset in minutes, to be applied on the UTC standard time
+int32_t calculate_total_timezone_offset_minutes();
 
 /// @return current time format
 TimeFormat get_time_format();

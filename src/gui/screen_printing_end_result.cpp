@@ -60,8 +60,7 @@ void handle_timestamp_text_item(MarlinVariableLocked<time_t> &time_holder, EndRe
         localtime_r(&print_time, &print_tm);
     });
 
-    print_tm.tm_hour += config_store().timezone.get() + time_tools::get_current_timezone_summertime();
-    print_tm.tm_min += time_tools::get_current_timezone_minutes();
+    print_tm.tm_min += time_tools::calculate_total_timezone_offset_minutes();
 
     const time_t adjusted_print_time = mktime(&print_tm);
     localtime_r(&adjusted_print_time, &print_tm);
