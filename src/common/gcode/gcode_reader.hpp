@@ -20,6 +20,11 @@ extern "C" {
  *        User of this class can stream data from different formats without having to deal with what format they are using
  */
 class IGcodeReader {
+protected:
+    // For testing purposes only.
+    IGcodeReader()
+        : file(nullptr) {}
+
 public:
     IGcodeReader(FILE &f)
         : file(&f) {}
