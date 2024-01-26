@@ -274,7 +274,19 @@ void input_shaper_state_init(input_shaper_state_t &is_state, const move_t &move,
 
     is_state.half_accel = get_move_half_accel(move, axis);
     is_state.start_v = get_move_start_v(move, axis);
+
+#ifdef COREXY
+    if (axis == A_AXIS) {
+        is_state.start_pos = move.start_pos.x + move.start_pos.y;
+    } else if (axis == B_AXIS) {
+        is_state.start_pos = move.start_pos.x - move.start_pos.y;
+    } else {
+        fatal_error("Invalid axis", "input_shaper_state_init");
+    }
+#else
     is_state.start_pos = get_move_start_pos(move, axis);
+#endif
+
     is_state.step_dir = get_move_step_dir(move, axis);
 
     is_state.is_crossing_zero_velocity = false;
