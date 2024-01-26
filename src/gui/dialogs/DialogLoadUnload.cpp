@@ -510,9 +510,9 @@ string_view_utf8 DialogLoadUnload::get_name(LoadUnloadMode mode) {
         return _("Cutting filament");
     case LoadUnloadMode::Eject:
         return _("Ejecting filament");
-    default:
-        break;
     }
+
+    // In case we get some invalid data
     return string_view_utf8::MakeCPUFLASH((const uint8_t *)"Index error");
 }
 
