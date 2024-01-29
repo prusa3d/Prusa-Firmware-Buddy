@@ -475,7 +475,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         }
 
 #if HAS_SELFTEST()
-        if (!DialogHandler::Access().IsOpen() && !GuiFSensor::is_calib_dialog_open()) {
+        if (!DialogHandler::Access().IsOpen()) {
             // esp update has bigger priority tha one click print
             const auto fw_state = esp_fw_state();
             const bool esp_need_flash = fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware;

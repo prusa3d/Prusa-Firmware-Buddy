@@ -3,12 +3,6 @@
 #include "filament_sensors_handler.hpp"
 #include "RAII.hpp"
 
-static bool calib_dialog_open = false;
-
-bool GuiFSensor::is_calib_dialog_open() {
-    return calib_dialog_open;
-}
-
 void GuiFSensor::validate() {
     const filament_sensor::init_status_t status = FSensors_instance().get_active_init_status();
     switch (status) {
