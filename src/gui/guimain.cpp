@@ -196,21 +196,6 @@ void led_animation_step() {
 #endif
 }
 
-void filament_sensor_validation() {
-    if (screen_home_data_t::EverBeenOpened()
-#if HAS_SELFTEST()
-    #if HAS_SELFTEST_SNAKE()
-        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
-        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
-    #else
-        && (ScreenSelftest::GetInstance() == nullptr)
-    #endif
-#endif
-    ) {
-        // GuiFSensor::validate_for_cyclical_calls(); // removed for now, unfinished calibration will be sufficient.
-    }
-}
-
 void make_gui_ready_to_print() {
     /**
      * This function is triggered because of marlin_server::State::WaitGui and it is checking if GUI thread is safe to start printing.
@@ -434,8 +419,6 @@ void gui_run(void) {
         gui::StartLoop();
 
         led_animation_step();
-
-        filament_sensor_validation();
 
         lcd::communication_check();
 
