@@ -690,7 +690,15 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
             }
         }
 
-        GcodeBuffer::String::parsed_metadata_t parsed = gcode_line_buffer.line.parse_metadata();
+        // Disallow terminating the value in case it's taking all the 81 chars
+        // ‒ that could touch the 82th char and we don't have that one.
+        // (possibility with Split continuation of reading).
+        //
+        // (It probably can happen only in case the line_complete == false, but
+        // that would look like a fragile assumption, so basing it off the real
+        // "problem").
+        const bool full_size = gcode_line_buffer.line.len() == gcode_line_buffer.buffer.size();
+        GcodeBuffer::String::parsed_metadata_t parsed = gcode_line_buffer.line.parse_metadata(!full_size);
         if (parsed.first.begin == nullptr || parsed.second.begin == nullptr) {
             gcode_line_buffer = GcodeBuffer(); // reset buffer to fetch another line
             continue;
@@ -699,7 +707,27 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
         // Either result of putting something to the buffer, or nullopt if this line should be skipped.
         std::optional<JsonResult> result = nullopt;
 
-        const auto filter = meta_filter(parsed.first.c_str());
+        auto filter = meta_filter(parsed.first.c_str());
+
+        // Too large headers are only handled and allowed for strings, others
+        // aren't expected to exceed 80 chars.
+        if (filter != MetaFilter::String && (full_size || !gcode_line_buffer.line_complete)) {
+            // Eat the rest of the header.
+            bool error = false;
+            while (!gcode_line_buffer.line_complete) {
+                if (gcode->get()->stream_get_line(gcode_line_buffer) != IGcodeReader::Result_t::RESULT_OK) {
+                    error = true;
+                    break;
+                }
+            }
+
+            if (error) {
+                break;
+            }
+
+            filter = MetaFilter::Ignore;
+        }
+
         switch (filter) {
         case MetaFilter::Ignore:
             // do nothing, just go o next line
