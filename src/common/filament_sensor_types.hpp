@@ -25,13 +25,13 @@ struct LogicalSensors {
 };
 
 struct Events {
-    std::optional<IFSensor::event> primary_runout = std::nullopt;
-    std::optional<IFSensor::event> secondary_runout = std::nullopt;
-    std::optional<IFSensor::event> autoload = std::nullopt;
-    std::optional<IFSensor::event> current_extruder = std::nullopt;
-    std::optional<IFSensor::event> current_side = std::nullopt;
+    std::optional<IFSensor::Event> primary_runout = std::nullopt;
+    std::optional<IFSensor::Event> secondary_runout = std::nullopt;
+    std::optional<IFSensor::Event> autoload = std::nullopt;
+    std::optional<IFSensor::Event> current_extruder = std::nullopt;
+    std::optional<IFSensor::Event> current_side = std::nullopt;
 
-    std::optional<IFSensor::event> &get(size_t idx) {
+    std::optional<IFSensor::Event> &get(size_t idx) {
         switch (idx) {
         case 0:
             return primary_runout;
@@ -44,7 +44,7 @@ struct Events {
         case 4:
             return current_side;
         default: {
-            static std::optional<IFSensor::event> empty = std::nullopt;
+            static std::optional<IFSensor::Event> empty = std::nullopt;
             return empty;
         }
         }

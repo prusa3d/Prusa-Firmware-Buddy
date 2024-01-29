@@ -52,25 +52,18 @@ void FSensor::init() {
 }
 
 /*---------------------------------------------------------------------------*/
-IFSensor::event IFSensor::GenerateEvent() {
+IFSensor::Event IFSensor::GenerateEvent() {
     const auto previous_state = last_evaluated_state;
     last_evaluated_state = state;
 
-    const bool has_filament = (state == FilamentSensorState::HasFilament);
-
-    // don't generate edges from not-working states or to not-working states
-    if (((previous_state != FilamentSensorState::HasFilament) && (previous_state != FilamentSensorState::NoFilament))
-        || ((state != FilamentSensorState::HasFilament) && (state != FilamentSensorState::NoFilament))) {
-        return has_filament ? event::HasFilament : event::NoFilament;
+    // Generate edge events only if we go from one working state to another (HasFilament <-> NoFilament)
+    if (!is_fsensor_working_state(state) || !is_fsensor_working_state(previous_state)) {
+        return Event::no_event;
     }
 
-    const bool had_filament = (previous_state == FilamentSensorState::HasFilament);
-    if (has_filament == had_filament) {
-        return has_filament ? event::HasFilament : event::NoFilament;
+    if (state == previous_state) {
+        return Event::no_event;
     }
-    /// state has changed
-    if (has_filament) {
-        return event::EdgeFilamentInserted; // has && !had
-    }
-    return event::EdgeFilamentRemoved; //! has && had
+
+    return (state == FilamentSensorState::HasFilament) ? Event::filament_inserted : Event::filament_removed;
 }

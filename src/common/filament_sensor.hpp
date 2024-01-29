@@ -18,19 +18,19 @@ public:
     typedef int32_t value_type;
     static constexpr int32_t undefined_value = HX717::undefined_value;
 
-    enum class event {
-        NoFilament,
-        HasFilament,
-        EdgeFilamentInserted,
-        EdgeFilamentRemoved
+    enum class Event {
+        no_event,
+        filament_inserted,
+        filament_removed
     };
+
     virtual ~IFSensor() = default;
 
     // Evaluates filament sensor state.
     void Cycle();
 
     // Evaluates if some event happened, will return each event only once, so its meant to be called only internally.
-    event GenerateEvent();
+    Event GenerateEvent();
 
     // thread safe functions
     FilamentSensorState Get() { return state; }

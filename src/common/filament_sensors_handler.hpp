@@ -103,8 +103,8 @@ private:
 
     filament_sensor::Events evaluate_logical_sensors_events();
 
-    bool evaluateM600(std::optional<FSensor::event> ev) const; // must remain const - is called out of critical section
-    bool evaluateAutoload(std::optional<FSensor::event> ev) const; // must remain const - is called out of critical section
+    bool evaluateM600(std::optional<FSensor::Event> ev) const; // must remain const - is called out of critical section
+    bool evaluateAutoload(std::optional<FSensor::Event> ev) const; // must remain const - is called out of critical section
     inline bool isEvLocked() const { return event_lock > 0; }
     inline bool isAutoloadLocked() const { return autoload_lock > 0; }
 
