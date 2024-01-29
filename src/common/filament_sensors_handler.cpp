@@ -75,45 +75,42 @@ FilamentSensors::SensorStateBitset FilamentSensors::get_sensors_states() {
     }
 
     // Check state of all sensors
-    HOTEND_LOOP() {
-        if (IFSensor *s = GetExtruderFSensor(e); s) {
-            result.set(ftrstd::to_underlying(s->get_state()));
-        }
-        if (IFSensor *s = GetSideFSensor(e); s) {
-            result.set(ftrstd::to_underlying(s->get_state()));
-        }
-    }
+    for_all_sensors([&](IFSensor &s) {
+        result.set(ftrstd::to_underlying(s.get_state()));
+    });
 
     return result;
+}
+
+void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &)> &f) {
+    HOTEND_LOOP() {
+        if (IFSensor *s = GetExtruderFSensor(e)) {
+            f(*s);
+        }
+        if (IFSensor *s = GetSideFSensor(e)) {
+            f(*s);
+        }
+    }
 }
 
 // process printer request stored by Enable/Disable
 void FilamentSensors::process_printer_request() {
     switch (request_printer) {
+
     case filament_sensor::cmd_t::on:
-
-        HOTEND_LOOP() {
-            if (IFSensor *s = GetExtruderFSensor(e); s) {
-                s->Enable();
-            }
-            if (IFSensor *s = GetSideFSensor(e); s) {
-                s->Enable();
-            }
-        }
+        for_all_sensors([&](IFSensor &s) {
+            s.Enable();
+        });
         request_printer = filament_sensor::cmd_t::processing;
         break;
+
     case filament_sensor::cmd_t::off:
-        HOTEND_LOOP() {
-            if (IFSensor *s = GetExtruderFSensor(e); s) {
-                s->Disable();
-            }
-            if (IFSensor *s = GetSideFSensor(e); s) {
-                s->Disable();
-            }
-        }
-
+        for_all_sensors([&](IFSensor &s) {
+            s.Disable();
+        });
         request_printer = filament_sensor::cmd_t::processing;
         break;
+
     case filament_sensor::cmd_t::processing:
     case filament_sensor::cmd_t::null:
         break;
@@ -129,20 +126,12 @@ void FilamentSensors::all_sensors_initialized() {
 }
 bool FilamentSensors::run_sensors_cycle() {
     bool any_not_intitialized = false;
-    HOTEND_LOOP() {
-        if (IFSensor *s = GetExtruderFSensor(e); s != nullptr) {
-            s->Cycle();
-            if (s->get_state() == FilamentSensorState::NotInitialized) {
-                any_not_intitialized = true;
-            }
-        }
-        if (IFSensor *s = GetSideFSensor(e); s != nullptr) {
-            s->Cycle();
-            if (s->get_state() == FilamentSensorState::NotInitialized) {
-                any_not_intitialized = true;
-            }
-        }
-    }
+
+    for_all_sensors([&](IFSensor &s) {
+        s.Cycle();
+        any_not_intitialized |= (s.get_state() == FilamentSensorState::NotInitialized);
+    });
+
     return any_not_intitialized;
 }
 
