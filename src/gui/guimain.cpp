@@ -34,7 +34,6 @@
 #include "../mmu2/mmu2_error_converter.h"
 #include "../../Marlin/src/feature/prusa/MMU2/mmu2_progress_converter.h"
 #include "screen_home.hpp"
-#include "gui_fsensor_api.hpp"
 #include "tasks.hpp"
 #include "timing.h"
 #include "gcode_info.hpp"

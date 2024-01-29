@@ -3,7 +3,6 @@
 #include "screen_messages.hpp"
 #include "marlin_client.hpp"
 #include "menu_spin_config.hpp"
-#include "gui_fsensor_api.hpp"
 #include "window_msgbox.hpp"
 #include "ScreenSelftest.hpp"
 

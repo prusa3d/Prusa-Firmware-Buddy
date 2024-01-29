@@ -8,7 +8,6 @@
 #include "marlin_client.hpp"
 #include "screen_filebrowser.hpp"
 #include "print_utils.hpp"
-#include "gui_fsensor_api.hpp"
 #include "filename_type.hpp"
 #include "settings_ini.hpp"
 #include <wui_api.h>
