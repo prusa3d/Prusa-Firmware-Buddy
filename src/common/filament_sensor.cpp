@@ -12,7 +12,7 @@
 // delay between calls must be 1us or longer
 void IFSensor::Cycle() {
     // sensor is disabled (only init can enable it)
-    if (state == fsensor_t::Disabled) {
+    if (state == FilamentSensorState::Disabled) {
         record_state();
         return;
     }
@@ -56,15 +56,15 @@ IFSensor::event IFSensor::GenerateEvent() {
     const auto previous_state = last_evaluated_state;
     last_evaluated_state = state;
 
-    const bool has_filament = fsensor_t::HasFilament == state;
+    const bool has_filament = (state == FilamentSensorState::HasFilament);
 
     // don't generate edges from not-working states or to not-working states
-    if (((previous_state != fsensor_t::HasFilament) && (previous_state != fsensor_t::NoFilament))
-        || ((last_evaluated_state != fsensor_t::HasFilament) && (last_evaluated_state != fsensor_t::NoFilament))) {
+    if (((previous_state != FilamentSensorState::HasFilament) && (previous_state != FilamentSensorState::NoFilament))
+        || ((state != FilamentSensorState::HasFilament) && (state != FilamentSensorState::NoFilament))) {
         return has_filament ? event::HasFilament : event::NoFilament;
     }
 
-    const bool had_filament = fsensor_t::HasFilament == previous_state;
+    const bool had_filament = (previous_state == FilamentSensorState::HasFilament);
     if (has_filament == had_filament) {
         return has_filament ? event::HasFilament : event::NoFilament;
     }

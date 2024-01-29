@@ -20,11 +20,11 @@
 LOG_COMPONENT_REF(FSensor);
 
 void FSensorADC::enable() {
-    state = fsensor_t::NotInitialized;
+    state = FilamentSensorState::NotInitialized;
 }
 
 void FSensorADC::disable() {
-    state = fsensor_t::Disabled;
+    state = FilamentSensorState::Disabled;
 }
 
 void FSensorADC::cycle() {
@@ -49,7 +49,7 @@ void FSensorADC::cycle() {
 
     // disabled FS will not enter cycle, but load_settings can disable it too
     // so better not try to change state when sensor is disabled
-    if (state != fsensor_t::Disabled) {
+    if (state != FilamentSensorState::Disabled) {
         state = FSensorADCEval::evaluate_state(filtered_value, fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
     }
 }
@@ -58,7 +58,7 @@ void FSensorADC::set_filtered_value_from_IRQ(int32_t filtered_value) {
     fs_filtered_value.store(filtered_value);
 }
 
-void FSensorADC::set_state(fsensor_t st) {
+void FSensorADC::set_state(FilamentSensorState st) {
     CriticalSection C;
     state = st;
 }

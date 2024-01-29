@@ -38,27 +38,27 @@ string_view_utf8 FooterItemFSensor::static_makeView(int value) {
         return string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>(no_tool_str));
     }
 
-    fsensor_t state = fsensor_t(value);
+    FilamentSensorState state = FilamentSensorState(value);
     const char *txt = N_("N/A ");
 
     switch (state) {
-    case fsensor_t::HasFilament:
+    case FilamentSensorState::HasFilament:
         txt = N_("ON ");
         break;
-    case fsensor_t::NoFilament:
+    case FilamentSensorState::NoFilament:
         txt = N_("OFF ");
         break;
-    case fsensor_t::Disabled:
+    case FilamentSensorState::Disabled:
         txt = N_("DIS ");
         break;
 #ifdef _DEBUG
-    case fsensor_t::NotInitialized:
+    case FilamentSensorState::NotInitialized:
         txt = N_("NINIT ");
         break;
-    case fsensor_t::NotCalibrated:
+    case FilamentSensorState::NotCalibrated:
         txt = N_("NCAL ");
         break;
-    case fsensor_t::NotConnected:
+    case FilamentSensorState::NotConnected:
         txt = N_("NC ");
         break;
 #else //! DEBUG

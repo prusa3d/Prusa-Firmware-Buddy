@@ -33,7 +33,7 @@ public:
     event GenerateEvent();
 
     // thread safe functions
-    fsensor_t Get() { return state; }
+    FilamentSensorState Get() { return state; }
 
     /**
      * @brief Get filtered sensor-specific value.
@@ -61,8 +61,8 @@ public:
     virtual void MetricsSetEnabled(bool) {} // Enable/disable metrics for this filament sensor
 
 protected:
-    fsensor_t last_evaluated_state = fsensor_t::NotInitialized;
-    std::atomic<fsensor_t> state = fsensor_t::NotInitialized;
+    FilamentSensorState last_evaluated_state = FilamentSensorState::NotInitialized;
+    std::atomic<FilamentSensorState> state = FilamentSensorState::NotInitialized;
 
     virtual void record_state() {}; // record metrics
     virtual void cycle() = 0; // sensor type specific evaluation cycle
@@ -73,8 +73,8 @@ protected:
 // basic filament sensor api
 class FSensor : public IFSensor {
 protected:
-    std::atomic<fsensor_t> last_state = fsensor_t::NotInitialized;
+    std::atomic<FilamentSensorState> last_state = FilamentSensorState::NotInitialized;
 
     void init();
-    virtual void set_state(fsensor_t st) = 0;
+    virtual void set_state(FilamentSensorState st) = 0;
 };

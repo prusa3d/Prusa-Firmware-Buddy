@@ -12,7 +12,7 @@
 #include "algorithm_range.hpp"
 #include "selftest_fsensor_config.hpp"
 #include "selftest_fsensor_type.hpp"
-#include "filament_sensors_handler.hpp" // fsensor_t
+#include "filament_sensors_handler.hpp" // FilamentSensorState
 #include "selftest_log.hpp"
 
 namespace selftest {

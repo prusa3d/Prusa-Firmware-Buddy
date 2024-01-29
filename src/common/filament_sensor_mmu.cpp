@@ -12,13 +12,13 @@ void FSensorMMU::cycle() {
     // convert MMU state, not all states are used
     switch (mmu2.State()) {
     case xState::Active:
-        state = mmu2.FindaDetectsFilament() ? fsensor_t::HasFilament : fsensor_t::NoFilament;
+        state = mmu2.FindaDetectsFilament() ? FilamentSensorState::HasFilament : FilamentSensorState::NoFilament;
         break;
     case xState::Connecting:
-        state = fsensor_t::NotInitialized;
+        state = FilamentSensorState::NotInitialized;
         break;
     case xState::Stopped:
-        state = fsensor_t::Disabled;
+        state = FilamentSensorState::Disabled;
         break;
     }
 }

@@ -609,23 +609,23 @@ MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(string_view_utf8 label)
                 static constexpr char notInitialized[] = N_("uninitialized / %ld");
 
                 char fmt[GuiDefaults::infoDefaultLen]; // max len of extension
-                switch ((fsensor_t)value.first.get_int()) {
-                case fsensor_t::NotInitialized:
+                switch ((FilamentSensorState)value.first.get_int()) {
+                case FilamentSensorState::NotInitialized:
                     _(notInitialized).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case fsensor_t::NotConnected:
+                case FilamentSensorState::NotConnected:
                     _(disconnected).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case fsensor_t::Disabled:
+                case FilamentSensorState::Disabled:
                     _(disabled).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case fsensor_t::NotCalibrated:
+                case FilamentSensorState::NotCalibrated:
                     _(notCalibrated).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case fsensor_t::HasFilament:
+                case FilamentSensorState::HasFilament:
                     _(inserted).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case fsensor_t::NoFilament:
+                case FilamentSensorState::NoFilament:
                     _(notInserted).copyToRAM(fmt, sizeof(fmt));
                     break;
                 }

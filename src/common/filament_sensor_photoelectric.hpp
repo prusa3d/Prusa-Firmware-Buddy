@@ -15,7 +15,7 @@ protected:
         no1 };
     Cycle measure_cycle = Cycle::no0;
 
-    virtual void set_state(fsensor_t st) override;
+    virtual void set_state(FilamentSensorState st) override;
 
     virtual void enable() override;
     virtual void disable() override;

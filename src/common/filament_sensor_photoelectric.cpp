@@ -23,14 +23,14 @@ void FSensorPhotoElectric::cycle0() {
         FSensorPins::pullDown();
         measure_cycle = Cycle::no1; // next cycle shall be 1
     } else {
-        set_state(fsensor_t::NoFilament); // it is filtered, 2 requests are needed to change state
+        set_state(FilamentSensorState::NoFilament); // it is filtered, 2 requests are needed to change state
         measure_cycle = Cycle::no0; // remain in cycle 0
     }
 }
 
 void FSensorPhotoElectric::cycle1() {
     // pulldown was set in cycle 0
-    set_state(FSensorPins::Get() ? fsensor_t::HasFilament : fsensor_t::NotConnected);
+    set_state(FSensorPins::Get() ? FilamentSensorState::HasFilament : FilamentSensorState::NotConnected);
     FSensorPins::pullUp();
     measure_cycle = Cycle::no0; // next cycle shall be 0
 }
@@ -48,20 +48,20 @@ void FSensorPhotoElectric::cycle() {
 
 void FSensorPhotoElectric::enable() {
     FSensorPins::pullUp();
-    state = fsensor_t::NotInitialized;
-    last_state = fsensor_t::NotInitialized;
+    state = FilamentSensorState::NotInitialized;
+    last_state = FilamentSensorState::NotInitialized;
     measure_cycle = Cycle::no0;
 }
 
 void FSensorPhotoElectric::disable() {
-    state = fsensor_t::Disabled;
-    last_state = fsensor_t::Disabled;
+    state = FilamentSensorState::Disabled;
+    last_state = FilamentSensorState::Disabled;
     measure_cycle = Cycle::no0;
 }
 
 // simple filter
 // without filter fs_meas_cycle1 could set FS_NO_SENSOR (in case filament just runout)
-void FSensorPhotoElectric::set_state(fsensor_t st) {
+void FSensorPhotoElectric::set_state(FilamentSensorState st) {
     CriticalSection C;
     if (last_state == st) {
         state = st;

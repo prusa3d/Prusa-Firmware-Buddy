@@ -29,7 +29,7 @@ static Response preheatTempUnKnown(PreheatData preheat_data, bool break_on_autol
     Response ret;
     FSM_HOLDER_WITH_DATA__LOGGING(Preheat, PhasesPreheat::UserTempSelection, preheat_data.serialize());
     while ((ret = marlin_server::ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
-        if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().GetAutoload() == fsensor_t::NoFilament) {
+        if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().GetAutoload() == FilamentSensorState::NoFilament) {
             return Response::Abort;
         }
         if (break_on_autoload && FSensors_instance().IsAutoloadInProgress()) {

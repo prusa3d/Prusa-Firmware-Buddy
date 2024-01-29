@@ -85,23 +85,23 @@ LoopResult SelftestGears::state_ask_first() {
 }
 
 LoopResult SelftestGears::state_get_fsensor_state() {
-    fsensor_t sensor_state = fsensor_t::Disabled;
+    FilamentSensorState sensor_state = FilamentSensorState::Disabled;
     IFSensor *sensor = GetExtruderFSensor(0);
     if (sensor) {
         sensor_state = sensor->Get();
     }
 
     switch (sensor_state) {
-    case fsensor_t::HasFilament:
+    case FilamentSensorState::HasFilament:
         has_filament = Filament::yes;
         break;
-    case fsensor_t::NoFilament:
+    case FilamentSensorState::NoFilament:
         has_filament = Filament::no;
         break;
-    case fsensor_t::NotInitialized:
-    case fsensor_t::NotCalibrated:
-    case fsensor_t::NotConnected:
-    case fsensor_t::Disabled:
+    case FilamentSensorState::NotInitialized:
+    case FilamentSensorState::NotCalibrated:
+    case FilamentSensorState::NotConnected:
+    case FilamentSensorState::Disabled:
         has_filament = Filament::unknown;
         break;
     }

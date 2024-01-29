@@ -27,17 +27,17 @@ public:
     bool HasMMU(); // mmu enabled, might or might not be initialized
 
     struct BothSensors {
-        fsensor_t extruder;
-        fsensor_t side;
+        FilamentSensorState extruder;
+        FilamentSensorState side;
     };
 
     BothSensors GetBothSensors();
 
-    fsensor_t GetPrimaryRunout() { return state_of_primary_runout_sensor; };
-    fsensor_t GetSecondaryRunout() { return state_of_primary_runout_sensor; };
-    fsensor_t GetAutoload() { return state_of_primary_runout_sensor; };
-    fsensor_t GetCurrentExtruder() { return state_of_current_extruder; };
-    fsensor_t GetCurrentSide() { return state_of_current_side; };
+    FilamentSensorState GetPrimaryRunout() { return state_of_primary_runout_sensor; };
+    FilamentSensorState GetSecondaryRunout() { return state_of_primary_runout_sensor; };
+    FilamentSensorState GetAutoload() { return state_of_primary_runout_sensor; };
+    FilamentSensorState GetCurrentExtruder() { return state_of_current_extruder; };
+    FilamentSensorState GetCurrentSide() { return state_of_current_side; };
     void Disable();
     void Enable();
 
@@ -50,8 +50,8 @@ public:
     enum class EnableResult {
         in_progress, ///< Still trying to enable
         ok, ///< Sensors enabled ok
-        not_calibrated, ///< At least one sensor is fsensor_t::NotCalibrated
-        not_connected, ///< At least one sensor is fsensor_t::NotConnected
+        not_calibrated, ///< At least one sensor is FilamentSensorState::NotCalibrated
+        not_connected, ///< At least one sensor is FilamentSensorState::NotConnected
         disabled, ///< Sensors are disabled
     };
 
@@ -92,7 +92,7 @@ public:
     void AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
     void AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
 
-    static constexpr bool IsWorking(fsensor_t sens) { return sens == fsensor_t::HasFilament || sens == fsensor_t::NoFilament; }
+    static constexpr bool IsWorking(FilamentSensorState sens) { return sens == FilamentSensorState::HasFilament || sens == FilamentSensorState::NoFilament; }
 
 private:
     void SetToolIndex();
@@ -124,12 +124,12 @@ private:
     // in case multiple values are needed they should be read during critical section too
     std::atomic<uint32_t> event_lock; // 0 == unlocked
     std::atomic<uint32_t> autoload_lock; // 0 == unlocked
-    std::atomic<fsensor_t> state_of_primary_runout_sensor = fsensor_t::NotInitialized; // We need those. States obtained from from sensors directly might not by synchronized
-    std::atomic<fsensor_t> state_of_secondary_runout_sensor = fsensor_t::NotInitialized;
-    std::atomic<fsensor_t> state_of_autoload_sensor = fsensor_t::NotInitialized;
+    std::atomic<FilamentSensorState> state_of_primary_runout_sensor = FilamentSensorState::NotInitialized; // We need those. States obtained from from sensors directly might not by synchronized
+    std::atomic<FilamentSensorState> state_of_secondary_runout_sensor = FilamentSensorState::NotInitialized;
+    std::atomic<FilamentSensorState> state_of_autoload_sensor = FilamentSensorState::NotInitialized;
 
-    std::atomic<fsensor_t> state_of_current_extruder = fsensor_t::NotInitialized;
-    std::atomic<fsensor_t> state_of_current_side = fsensor_t::NotInitialized;
+    std::atomic<FilamentSensorState> state_of_current_extruder = FilamentSensorState::NotInitialized;
+    std::atomic<FilamentSensorState> state_of_current_side = FilamentSensorState::NotInitialized;
 
     std::atomic<filament_sensor::init_status_t> init_status = filament_sensor::init_status_t::NotReady; // combined status of all sensors, must be invalidated when tool_index changes
 
