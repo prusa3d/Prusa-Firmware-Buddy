@@ -1,6 +1,7 @@
 #include <mmu2_marlin.h>
 #include <mmu2_mk4.h>
 #include "stub_interfaces.h"
+#include <functional>
 
 static bool printingIsActive = false;
 void SetMarlinIsPrinting(bool p) {
@@ -40,6 +41,14 @@ float move_raise_z(float delta) {
 void planner_synchronize() {
     //    mockLog_RecordFn();
 }
+
+float stepper_get_machine_position_E_mm() {
+    return 0;
+}
+
+void planner_synchronize_hook([[maybe_unused]] std::function<void()> f) {
+}
+
 bool planner_any_moves() {
     mockLog_RecordFn();
     return false;
