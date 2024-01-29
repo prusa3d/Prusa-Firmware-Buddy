@@ -87,8 +87,6 @@ public:
     void AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
     void AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
 
-    static constexpr bool IsWorking(FilamentSensorState sens) { return sens == FilamentSensorState::HasFilament || sens == FilamentSensorState::NoFilament; }
-
 private:
     void SetToolIndex();
 
