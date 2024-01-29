@@ -598,7 +598,7 @@ MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(string_view_utf8 label)
                 static constexpr char disabled[] = N_("disabled / %ld");
                 static constexpr char notInitialized[] = N_("uninitialized / %ld");
 
-                char fmt[GuiDefaults::infoDefaultLen]; // max len of extension
+                char fmt[GuiDefaults::infoDefaultLen] = { '\0' }; // max len of extension
                 switch ((FilamentSensorState)value.first.get_int()) {
                 case FilamentSensorState::NotInitialized:
                     _(notInitialized).copyToRAM(fmt, sizeof(fmt));
@@ -617,6 +617,8 @@ MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(string_view_utf8 label)
                     break;
                 case FilamentSensorState::NoFilament:
                     _(notInserted).copyToRAM(fmt, sizeof(fmt));
+                    break;
+                case FilamentSensorState::_cnt:
                     break;
                 }
                 snprintf(buffer, GuiDefaults::infoDefaultLen, fmt, value.second.get_int());
