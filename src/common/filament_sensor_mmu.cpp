@@ -8,12 +8,6 @@
 
 using namespace MMU2;
 
-void FSensorMMU::enable() {
-}
-
-void FSensorMMU::disable() {
-}
-
 void FSensorMMU::cycle() {
     // convert MMU state, not all states are used
     switch (mmu2.State()) {
@@ -27,7 +21,4 @@ void FSensorMMU::cycle() {
         state = fsensor_t::Disabled;
         break;
     }
-}
-
-void FSensorMMU::record_state() {
 }

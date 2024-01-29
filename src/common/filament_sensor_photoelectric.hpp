@@ -23,8 +23,6 @@ protected:
     void cycle0();
     void cycle1();
 
-    virtual void record_state() override; // record metrics
-
 public:
     FSensorPhotoElectric();
 };

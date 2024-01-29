@@ -9,8 +9,5 @@
 
 class FSensorMMU : public IFSensor {
 protected:
-    virtual void record_state() override; // record metrics
     virtual void cycle() override;
-    virtual void enable() override;
-    virtual void disable() override;
 };

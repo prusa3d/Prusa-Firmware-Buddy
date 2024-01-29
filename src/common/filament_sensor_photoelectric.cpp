@@ -59,10 +59,6 @@ void FSensorPhotoElectric::disable() {
     measure_cycle = Cycle::no0;
 }
 
-// not recorded
-void FSensorPhotoElectric::record_state() {
-}
-
 // simple filter
 // without filter fs_meas_cycle1 could set FS_NO_SENSOR (in case filament just runout)
 void FSensorPhotoElectric::set_state(fsensor_t st) {
