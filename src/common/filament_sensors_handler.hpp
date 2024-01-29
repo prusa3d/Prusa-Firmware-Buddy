@@ -69,11 +69,11 @@ public:
 
     char GetM600_send_on() const;
 
-    uint32_t DecEvLock();
-    uint32_t IncEvLock();
+    void DecEvLock();
+    void IncEvLock();
 
-    uint32_t DecAutoloadLock();
-    uint32_t IncAutoloadLock();
+    void DecAutoloadLock();
+    void IncAutoloadLock();
 
     // calling clear of m600 and autoload flags is safe from any thread, but setting them would not be !!!
     void ClrM600Sent() { m600_sent = false; }
@@ -109,8 +109,8 @@ private:
     // all those variables can be accessed from multiple threads
     // all of them are set during critical section, so values are guaranteed to be corresponding
     // in case multiple values are needed they should be read during critical section too
-    std::atomic<uint32_t> event_lock; // 0 == unlocked
-    std::atomic<uint32_t> autoload_lock; // 0 == unlocked
+    std::atomic<uint8_t> event_lock; // 0 == unlocked
+    std::atomic<uint8_t> autoload_lock; // 0 == unlocked
     std::atomic<FilamentSensorState> state_of_primary_runout_sensor = FilamentSensorState::NotInitialized; // We need those. States obtained from from sensors directly might not by synchronized
     std::atomic<FilamentSensorState> state_of_secondary_runout_sensor = FilamentSensorState::NotInitialized;
     std::atomic<FilamentSensorState> state_of_autoload_sensor = FilamentSensorState::NotInitialized;

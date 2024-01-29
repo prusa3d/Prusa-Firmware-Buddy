@@ -275,31 +275,26 @@ bool FilamentSensors::evaluateAutoload(std::optional<IFSensor::Event> ev) const 
             ;
 }
 
-uint32_t FilamentSensors::DecEvLock() {
-    CriticalSection C; // TODO use counting semaphore to avoid critical section
-    if (event_lock > 0) {
-        --event_lock;
-    } else {
-        bsod("Filament sensor event lock out of range");
+void FilamentSensors::DecEvLock() {
+    if ((event_lock--) == 0) {
+        bsod("Filament sensor event underflow");
     }
-    return event_lock;
+}
+void FilamentSensors::IncEvLock() {
+    if ((event_lock++) == std::numeric_limits<decltype(autoload_lock)::value_type>::max()) {
+        bsod("Filament sensor event lock overflow");
+    }
 }
 
-uint32_t FilamentSensors::DecAutoloadLock() {
-    CriticalSection C; // TODO use counting semaphore to avoid critical section
-    if (autoload_lock > 0) {
-        --autoload_lock;
-    } else {
-        bsod("Autoload event lock out of range");
+void FilamentSensors::DecAutoloadLock() {
+    if ((autoload_lock--) == 0) {
+        bsod("Autoload event lock underflow");
     }
-    return autoload_lock;
 }
-
-uint32_t FilamentSensors::IncAutoloadLock() {
-    return ++autoload_lock;
-}
-uint32_t FilamentSensors::IncEvLock() {
-    return ++event_lock;
+void FilamentSensors::IncAutoloadLock() {
+    if ((autoload_lock++) == std::numeric_limits<decltype(autoload_lock)::value_type>::max()) {
+        bsod("Autoload sensor event lock overflow");
+    }
 }
 
 bool FilamentSensors::MMUReadyToPrint() {
