@@ -506,14 +506,14 @@ constexpr log_component_t &Dwarf::get_log_component(uint8_t dwarf_nr) {
     }
 }
 
-FSensor::value_type Dwarf::get_tool_filament_sensor() {
+IFSensor::value_type Dwarf::get_tool_filament_sensor() {
     // ensure AdcGet::undefined_value is representable within FSensor::value_type
-    static_assert(static_cast<FSensor::value_type>(AdcGet::undefined_value) == AdcGet::undefined_value);
+    static_assert(static_cast<IFSensor::value_type>(AdcGet::undefined_value) == AdcGet::undefined_value);
 
     // widen the type to match the HX717 data type and translate the undefined value for consistency
-    FSensor::value_type value = RegisterGeneralStatus.value.ToolFilamentSensor;
+    IFSensor::value_type value = RegisterGeneralStatus.value.ToolFilamentSensor;
     if (value == AdcGet::undefined_value) {
-        value = FSensor::undefined_value;
+        value = IFSensor::undefined_value;
     }
     return value;
 }

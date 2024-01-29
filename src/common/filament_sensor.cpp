@@ -41,7 +41,7 @@ void IFSensor::Disable() {
 
 /*---------------------------------------------------------------------------*/
 // global not thread safe functions
-void FSensor::init() {
+void IFSensor::init() {
     bool enabled = FSensorEEPROM::Get(); // can globally disable all sensors, but some sensors might need another enable
 
     if (enabled) {

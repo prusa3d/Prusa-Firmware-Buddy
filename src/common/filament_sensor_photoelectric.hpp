@@ -9,7 +9,7 @@
 
 #include "filament_sensor.hpp"
 
-class FSensorPhotoElectric : public FSensor {
+class FSensorPhotoElectric : public IFSensor {
 protected:
     virtual void enable() override;
     virtual void disable() override;

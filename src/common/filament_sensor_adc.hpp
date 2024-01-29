@@ -12,7 +12,7 @@
 
 struct metric_s;
 
-class FSensorADC : public FSensor {
+class FSensorADC : public IFSensor {
 public:
     static constexpr float fs_selftest_span_multipler { 1.2 }; // when doing selftest, fs with filament and without has to be different by this value times configured span to pass selftest
 

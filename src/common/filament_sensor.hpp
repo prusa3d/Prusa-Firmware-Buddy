@@ -64,14 +64,10 @@ protected:
     FilamentSensorState last_evaluated_state = FilamentSensorState::NotInitialized;
     std::atomic<FilamentSensorState> state = FilamentSensorState::NotInitialized;
 
+    void init();
+
     virtual void record_state() {}; // record metrics
     virtual void cycle() = 0; // sensor type specific evaluation cycle
     virtual void enable() {}; // enables sensor called from Enable(), does not have locks
     virtual void disable() {}; // disables sensor called from Disable(), does not have locks
-};
-
-// basic filament sensor api
-class FSensor : public IFSensor {
-protected:
-    void init();
 };

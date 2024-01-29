@@ -196,7 +196,7 @@ void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender,
      */
     inline bool refresh_buttons() { return refresh_discrete_general_status(); }
 
-    [[nodiscard]] FSensor::value_type get_tool_filament_sensor();
+    [[nodiscard]] IFSensor::value_type get_tool_filament_sensor();
 
     [[nodiscard]] int16_t get_mcu_temperature(); ///< Get MCU temperature [°C]
     [[nodiscard]] int16_t get_board_temperature(); ///< Get board temperature [°C]

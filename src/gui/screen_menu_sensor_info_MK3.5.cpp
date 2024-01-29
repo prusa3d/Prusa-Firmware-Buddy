@@ -27,7 +27,7 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
         Item<MI_INFO_NOZZLE_TEMP>().UpdateValue(marlin_vars()->hotend(0).temp_nozzle.get());
 
         if (auto fsensor = GetExtruderFSensor(marlin_vars()->active_extruder.get()); fsensor) { // Try to get extruder filament sensor
-            Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->Get()), static_cast<int>(fsensor->GetFilteredValue())));
+            Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->get_state()), static_cast<int>(fsensor->GetFilteredValue())));
         } else {
             Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue({ {}, {} });
         }

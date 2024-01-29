@@ -304,12 +304,12 @@ static void filament_sensor_irq() {
             };
 
             // ensure AdcGet::undefined_value is representable within FSensor::value_type
-            static_assert(static_cast<FSensor::value_type>(AdcGet::undefined_value) == AdcGet::undefined_value);
+            static_assert(static_cast<IFSensor::value_type>(AdcGet::undefined_value) == AdcGet::undefined_value);
 
             // widen the type to match the main sensor data type and translate the undefined value
-            FSensor::value_type fs_raw_value = AdcGet::side_filament_sensor(adc_channel_mapping[remapped]);
+            IFSensor::value_type fs_raw_value = AdcGet::side_filament_sensor(adc_channel_mapping[remapped]);
             if (fs_raw_value == AdcGet::undefined_value) {
-                fs_raw_value = FSensor::undefined_value;
+                fs_raw_value = IFSensor::undefined_value;
             }
             side_fs_process_sample(fs_raw_value, dwarf.get_dwarf_nr() - 1);
         }

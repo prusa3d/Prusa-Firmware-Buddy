@@ -365,17 +365,17 @@ FilamentSensors::BothSensors FilamentSensors::GetBothSensors() {
 // trying to trigger runout at exact moment when print ended could break something
 // also if another M600 happens during clear of M600_sent flag, it could be discarded, this is not a problem, because it could happen only due a bug
 // if it happens move it inside FilamentSensors::Cycle critical section
-bool FilamentSensors::evaluateM600(std::optional<FSensor::Event> ev) const {
-    return ev && ev == FSensor::Event::filament_removed && !m600_sent;
+bool FilamentSensors::evaluateM600(std::optional<IFSensor::Event> ev) const {
+    return ev && ev == IFSensor::Event::filament_removed && !m600_sent;
 }
 
 // this method is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter
 // trying to trigger autoload at exact moment when print starts could break something
 // also if another autoload happens during clear of Autoload_sent flag, it could be discarded, this is not a problem, because it could happen only due a bug
 // if it happens move it inside FilamentSensors::Cycle critical section
-bool FilamentSensors::evaluateAutoload(std::optional<FSensor::Event> ev) const {
+bool FilamentSensors::evaluateAutoload(std::optional<IFSensor::Event> ev) const {
     return //
-        ev && ev == FSensor::Event::filament_inserted
+        ev && ev == IFSensor::Event::filament_inserted
         && !has_mmu
         && !autoload_sent
         && !isAutoloadLocked()

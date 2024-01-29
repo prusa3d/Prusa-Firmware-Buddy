@@ -114,7 +114,7 @@ void FilamentSensors::reconfigure_sensors_if_needed() {
 }
 
 void FilamentSensors::AdcSide_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {
-    assert("no adc sensor");
+    bsod("no adc sensor");
 }
 
 void side_fs_process_sample([[maybe_unused]] int32_t fs_raw_value, [[maybe_unused]] uint8_t tool_index) {
