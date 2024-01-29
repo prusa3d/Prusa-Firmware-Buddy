@@ -11,6 +11,11 @@ using std::make_tuple;
 
 namespace json {
 
+JsonResult JsonOutput::suspend(size_t resume_point) {
+    this->resume_point = resume_point;
+    return written_something ? JsonResult::Incomplete : JsonResult::BufferTooSmall;
+}
+
 JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
     va_list params;
     va_start(params, format);
@@ -28,8 +33,26 @@ JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
         written_something = true;
         return JsonResult::Complete;
     } else {
-        this->resume_point = resume_point;
-        return written_something ? JsonResult::Incomplete : JsonResult::BufferTooSmall;
+        return suspend(resume_point);
+    }
+}
+
+JsonResult JsonOutput::output_str_chunk(size_t resume_point, const char *str, size_t size) {
+    const size_t needed = jsonify_str_buffer_len(str, size) ?: size;
+
+    if (needed <= buffer_size) {
+        if (needed == size) {
+            // No escaping happening
+            memcpy(buffer, str, size);
+        } else {
+            jsonify_str_len(str, size, reinterpret_cast<char *>(buffer));
+        }
+        buffer += needed;
+        buffer_size -= needed;
+        written_something = true;
+        return JsonResult::Complete;
+    } else {
+        return suspend(resume_point);
     }
 }
 
