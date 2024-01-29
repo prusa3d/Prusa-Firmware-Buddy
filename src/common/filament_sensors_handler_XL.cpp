@@ -50,27 +50,21 @@ IFSensor *GetSideFSensor(uint8_t index) {
     return getSideFSensor(index);
 }
 
-void FilamentSensors::SetToolIndex() {
-    tool_index = prusa_toolchanger.get_active_tool_nr();
-}
+void FilamentSensors::reconfigure_sensors_if_needed(bool force) {
+    const uint8_t current_tool = prusa_toolchanger.get_active_tool_nr();
 
-void FilamentSensors::configure_sensors() {
+    if (!force && current_tool == tool_index) {
+        return;
+    }
+
+    tool_index = current_tool;
+
     logical_sensors.current_extruder = GetExtruderFSensor(tool_index);
     logical_sensors.current_side = GetSideFSensor(tool_index);
 
     logical_sensors.primary_runout = logical_sensors.current_side;
     logical_sensors.secondary_runout = logical_sensors.current_extruder;
     logical_sensors.autoload = logical_sensors.current_extruder;
-}
-
-void FilamentSensors::reconfigure_sensors_if_needed() {
-    uint8_t current_tool = prusa_toolchanger.get_active_tool_nr();
-
-    if (current_tool != tool_index) {
-        tool_index = current_tool; // must be done before configure_sensors!!!
-        // configure_sensors uses it
-        configure_sensors();
-    }
 }
 
 void FilamentSensors::AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index) {

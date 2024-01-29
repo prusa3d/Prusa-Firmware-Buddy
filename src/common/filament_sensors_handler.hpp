@@ -85,10 +85,7 @@ public:
     void AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
 
 private:
-    void SetToolIndex();
-
-    void configure_sensors();
-    void reconfigure_sensors_if_needed(); // for some printers might do something else than configure_sensors
+    void reconfigure_sensors_if_needed(bool force);
     void set_corresponding_variables();
 
     filament_sensor::Events evaluate_logical_sensors_events();
@@ -120,7 +117,7 @@ private:
 
     std::atomic<filament_sensor::cmd_t> request_printer = filament_sensor::cmd_t::null;
 
-    std::atomic<uint8_t> tool_index = 0;
+    std::atomic<uint8_t> tool_index = uint8_t(-1);
     std::atomic<bool> m600_sent = false;
     std::atomic<bool> autoload_sent = false;
     std::atomic<bool> has_mmu = false; // affect only MMU, named correctly .. it is not "has_side_sensor"

@@ -26,13 +26,11 @@ LOG_COMPONENT_DEF(FSensor, LOG_SEVERITY_INFO);
 using namespace MMU2;
 
 FilamentSensors::FilamentSensors() {
-    SetToolIndex(); // other config depends on it, do it first
-
     // Set logical sensors
     // MK4 can be reconfigured (connecting MMU)
     // MINI can not
     // XL reconfigures on tool change
-    configure_sensors();
+    reconfigure_sensors_if_needed(true);
 }
 
 freertos::Mutex &FilamentSensors::GetExtruderMutex() {
@@ -229,7 +227,7 @@ void FilamentSensors::Cycle() {
 void FilamentSensors::set_corresponding_variables() {
     std::unique_lock lock_printer(GetExtruderMutex());
 
-    reconfigure_sensors_if_needed();
+    reconfigure_sensors_if_needed(false);
 
     // copy states of sensors while we are in critical section
     state_of_primary_runout_sensor = logical_sensors.primary_runout ? logical_sensors.primary_runout->get_state() : FilamentSensorState::Disabled;

@@ -28,11 +28,9 @@ IFSensor *GetSideFSensor(uint8_t index) {
     return getSideFSensor(index);
 }
 
-void FilamentSensors::SetToolIndex() {
+void FilamentSensors::reconfigure_sensors_if_needed([[maybe_unused]] bool force) {
     tool_index = 0;
-}
 
-void FilamentSensors::configure_sensors() {
     auto side_sensor_state = mmu2.State();
     has_mmu = !(side_sensor_state == xState::Stopped);
 
@@ -42,15 +40,6 @@ void FilamentSensors::configure_sensors() {
     logical_sensors.primary_runout = has_mmu ? logical_sensors.current_side : logical_sensors.current_extruder;
     logical_sensors.secondary_runout = has_mmu ? logical_sensors.current_extruder : nullptr;
     logical_sensors.autoload = has_mmu ? nullptr : logical_sensors.current_extruder;
-}
-
-void FilamentSensors::reconfigure_sensors_if_needed() {
-    // auto static old_mmu_state = mmu2.State();
-    // auto mmu_state = mmu2.State();
-    // if (mmu_state != old_mmu_state) {
-    configure_sensors();
-    //    old_mmu_state = mmu_state;
-    //}
 }
 
 void FilamentSensors::AdcSide_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {
