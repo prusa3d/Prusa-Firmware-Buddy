@@ -87,10 +87,6 @@ private:
     inline bool isEvLocked() const { return event_lock > 0; }
     inline bool isAutoloadLocked() const { return autoload_lock > 0; }
 
-    void process_printer_request();
-    void all_sensors_initialized();
-    bool run_sensors_cycle(); //< returns true,
-
     // logical sensors
     // 1 physical sensor can be linked to multiple logical sensors
     filament_sensor::LogicalSensors logical_sensors;
@@ -107,7 +103,13 @@ private:
     std::atomic<FilamentSensorState> state_of_current_extruder = FilamentSensorState::NotInitialized;
     std::atomic<FilamentSensorState> state_of_current_side = FilamentSensorState::NotInitialized;
 
-    std::atomic<filament_sensor::cmd_t> request_printer = filament_sensor::cmd_t::null;
+    enum class Request {
+        no_request,
+        enable, ///< Request to enable all filament sensors
+        disable, ///< Request to disable all filament sensors
+    };
+    std::atomic<Request> request = Request::no_request;
+    void process_request();
 
     std::atomic<uint8_t> tool_index = uint8_t(-1);
     std::atomic<bool> m600_sent = false;

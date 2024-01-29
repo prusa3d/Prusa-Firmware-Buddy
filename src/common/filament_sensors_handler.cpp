@@ -46,13 +46,13 @@ void FilamentSensors::Disable() {
 #endif
 
     const std::lock_guard lock(GetExtruderMutex());
-    request_printer = filament_sensor::cmd_t::off;
+    request = Request::disable;
 }
 
 // Store request_printer on
 void FilamentSensors::Enable() {
     const std::lock_guard lock(GetExtruderMutex());
-    request_printer = filament_sensor::cmd_t::on;
+    request = Request::enable;
 }
 
 bool FilamentSensors::is_enabled() const {
@@ -63,7 +63,7 @@ FilamentSensors::SensorStateBitset FilamentSensors::get_sensors_states() {
     SensorStateBitset result;
 
     // If we're processing an enable command, consider the sensors not initialized
-    if (filament_sensor::cmd_t request = request_printer.load(); request == filament_sensor::cmd_t::on || request == filament_sensor::cmd_t::processing) {
+    if (Request r = request.load(); r == Request::enable) {
         result.set(ftrstd::to_underlying(FilamentSensorState::NotInitialized));
     }
 
@@ -84,48 +84,6 @@ void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &)> &f) 
             f(*s);
         }
     }
-}
-
-// process printer request stored by Enable/Disable
-void FilamentSensors::process_printer_request() {
-    switch (request_printer) {
-
-    case filament_sensor::cmd_t::on:
-        for_all_sensors([&](IFSensor &s) {
-            s.Enable();
-        });
-        request_printer = filament_sensor::cmd_t::processing;
-        break;
-
-    case filament_sensor::cmd_t::off:
-        for_all_sensors([&](IFSensor &s) {
-            s.Disable();
-        });
-        request_printer = filament_sensor::cmd_t::processing;
-        break;
-
-    case filament_sensor::cmd_t::processing:
-    case filament_sensor::cmd_t::null:
-        break;
-    }
-}
-
-void FilamentSensors::all_sensors_initialized() {
-    // Need lock to avoid loss of command if it is set just after evaluation but before assignment
-    const std::lock_guard lock(GetExtruderMutex());
-    if (request_printer == filament_sensor::cmd_t::processing) {
-        request_printer = filament_sensor::cmd_t::null; // cycle ended clear command, it is atomic so it will not be reordered
-    }
-}
-bool FilamentSensors::run_sensors_cycle() {
-    bool any_not_intitialized = false;
-
-    for_all_sensors([&](IFSensor &s) {
-        s.Cycle();
-        any_not_intitialized |= (s.get_state() == FilamentSensorState::NotInitialized);
-    });
-
-    return any_not_intitialized;
 }
 
 filament_sensor::Events FilamentSensors::evaluate_logical_sensors_events() {
@@ -151,14 +109,12 @@ filament_sensor::Events FilamentSensors::evaluate_logical_sensors_events() {
 }
 
 void FilamentSensors::Cycle() {
-    process_printer_request();
+    process_request();
 
     // run cycle to evaluate state of all sensors (even those not active)
-    bool any_not_intitialized = run_sensors_cycle();
-
-    if (!any_not_intitialized) {
-        all_sensors_initialized();
-    }
+    for_all_sensors([](IFSensor &s) {
+        s.Cycle();
+    });
 
     // Evaluate currently used sensors of all sensors
     filament_sensor::Events events = FilamentSensors::evaluate_logical_sensors_events();
@@ -236,6 +192,28 @@ void FilamentSensors::set_corresponding_variables() {
 
     state_of_current_extruder = logical_sensors.current_extruder ? logical_sensors.current_extruder->get_state() : FilamentSensorState::Disabled;
     state_of_current_side = logical_sensors.current_side ? logical_sensors.current_side->get_state() : FilamentSensorState::Disabled;
+}
+
+void FilamentSensors::process_request() {
+    switch (request) {
+
+    case Request::no_request:
+        break;
+
+    case Request::enable:
+        for_all_sensors([](IFSensor &s) {
+            s.Enable();
+        });
+        break;
+
+    case Request::disable:
+        for_all_sensors([](IFSensor &s) {
+            s.Disable();
+        });
+        break;
+    }
+
+    request = Request::no_request;
 }
 
 // this method is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter

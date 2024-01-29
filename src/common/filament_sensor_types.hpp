@@ -51,16 +51,4 @@ struct Events {
     }
 };
 
-/**
- * @brief command
- * you cannot change state of sensor directly
- * it would not be thread safe
- */
-enum class cmd_t : int32_t {
-    null, // no command
-    on, // request to turn on
-    off, // request to turn off
-    processing, // currently processing command
-};
-
 } // namespace filament_sensor
