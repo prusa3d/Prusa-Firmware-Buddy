@@ -77,8 +77,4 @@ protected:
 
     void init();
     virtual void set_state(fsensor_t st) = 0;
-
-public:
-    // thread safe function, but cannot be called from interrupt
-    fsensor_t WaitInitialized();
 };

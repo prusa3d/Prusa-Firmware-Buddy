@@ -54,14 +54,11 @@ protected:
     void CalibrateInserted(int32_t filtered_value);
 
 public:
-    fsensor_t WaitInitialized();
-
     FSensorADC(uint8_t tool_index, bool is_side_sensor);
 
     /**
      * @brief calibrate filament sensor and store it to eeprom
      * thread safe, only sets flag --> !!! is not done instantly !!!
-     * use FSensor::WaitInitialized if valid state is needed
      */
     virtual void SetCalibrateRequest(CalibrateRequest) override;
     virtual bool IsCalibrationFinished() const override;

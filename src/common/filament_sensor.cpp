@@ -39,15 +39,6 @@ void IFSensor::Disable() {
     disable();
 }
 
-fsensor_t FSensor::WaitInitialized() {
-    fsensor_t ret = FSensor::Get();
-    while (ret == fsensor_t::NotInitialized) {
-        Rtos::Delay(0); // switch to other threads
-        ret = FSensor::Get();
-    }
-    return ret;
-}
-
 /*---------------------------------------------------------------------------*/
 // global not thread safe functions
 void FSensor::init() {

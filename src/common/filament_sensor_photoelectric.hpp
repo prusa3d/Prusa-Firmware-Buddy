@@ -26,7 +26,5 @@ protected:
     virtual void record_state() override; // record metrics
 
 public:
-    fsensor_t WaitInitialized();
-
     FSensorPhotoElectric();
 };
