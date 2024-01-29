@@ -61,10 +61,9 @@ string_view_utf8 FooterItemFSensor::static_makeView(int value) {
     case FilamentSensorState::NotConnected:
         txt = N_("NC ");
         break;
-#else //! DEBUG
+#endif //_DEBUG
     default:
         break;
-#endif //_DEBUG
     }
 
     return string_view_utf8(_(txt));

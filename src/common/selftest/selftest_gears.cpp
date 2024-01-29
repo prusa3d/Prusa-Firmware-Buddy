@@ -102,6 +102,7 @@ LoopResult SelftestGears::state_get_fsensor_state() {
     case FilamentSensorState::NotCalibrated:
     case FilamentSensorState::NotConnected:
     case FilamentSensorState::Disabled:
+    case FilamentSensorState::_cnt:
         has_filament = Filament::unknown;
         break;
     }

@@ -375,6 +375,7 @@ FilamentState FilamentSensors::WhereIsFilament() {
     case FilamentSensorState::NotCalibrated:
     case FilamentSensorState::NotConnected:
     case FilamentSensorState::Disabled:
+    case FilamentSensorState::_cnt:
         break;
     }
     return FilamentState::UNAVAILABLE;
