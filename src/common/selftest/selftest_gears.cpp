@@ -88,7 +88,7 @@ LoopResult SelftestGears::state_get_fsensor_state() {
     FilamentSensorState sensor_state = FilamentSensorState::Disabled;
     IFSensor *sensor = GetExtruderFSensor(0);
     if (sensor) {
-        sensor_state = sensor->Get();
+        sensor_state = sensor->get_state();
     }
 
     switch (sensor_state) {

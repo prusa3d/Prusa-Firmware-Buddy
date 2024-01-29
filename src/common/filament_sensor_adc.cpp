@@ -171,14 +171,14 @@ void FSensorADC::invalidate_calibration() {
 void FSensorAdcExtruder::record_state() {
     if (limit_record()) {
         metric_record_custom(&get_metric__static(), ",n=%u st=%ui,f=%" PRId32 "i,r=%" PRId32 "i,ri=%" PRId32 "i,sp=%" PRId32 "i",
-            tool_index, static_cast<unsigned>(Get()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
+            tool_index, static_cast<unsigned>(get_state()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
     }
 }
 
 void FSensorAdcSide::record_state() {
     if (limit_record()) {
         metric_record_custom(&get_metric__static(), ",n=%u st=%ui,f=%" PRId32 "i,r=%" PRId32 "i,ri=%" PRId32 "i,sp=%" PRId32 "i",
-            tool_index, static_cast<unsigned>(Get()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
+            tool_index, static_cast<unsigned>(get_state()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
     }
 }
 

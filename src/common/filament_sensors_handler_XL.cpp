@@ -31,7 +31,7 @@ void FilamentSensors::DisableSideSensor() {
  * @return filament_sensor::mmu_enable_result_t
  */
 filament_sensor::mmu_enable_result_t FilamentSensors::EnableSide() {
-    if ((!logical_sensors.current_extruder) || (!IsWorking(logical_sensors.current_extruder->Get()))) { // logical_sensors.current_extruder is not synchronized, but in this case it it OK
+    if ((!logical_sensors.current_extruder) || (!IsWorking(logical_sensors.current_extruder->get_state()))) { // logical_sensors.current_extruder is not synchronized, but in this case it it OK
         return filament_sensor::mmu_enable_result_t::error_filament_sensor_disabled;
     }
     const std::lock_guard lock(GetSideMutex());

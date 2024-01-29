@@ -82,7 +82,7 @@ auto FilamentSensors::get_enable_result() -> EnableResult {
     // Check state of all sensors
     HOTEND_LOOP() {
         if (IFSensor *s = GetExtruderFSensor(e); s) {
-            FilamentSensorState state = s->Get();
+            FilamentSensorState state = s->get_state();
             switch (state) {
             case FilamentSensorState::NotInitialized:
                 return EnableResult::in_progress;
@@ -95,7 +95,7 @@ auto FilamentSensors::get_enable_result() -> EnableResult {
             }
         }
         if (IFSensor *s = GetSideFSensor(e); s) {
-            FilamentSensorState state = s->Get();
+            FilamentSensorState state = s->get_state();
             switch (state) {
             case FilamentSensorState::NotInitialized:
                 return EnableResult::in_progress;
@@ -157,13 +157,13 @@ bool FilamentSensors::run_sensors_cycle() {
     HOTEND_LOOP() {
         if (IFSensor *s = GetExtruderFSensor(e); s != nullptr) {
             s->Cycle();
-            if (s->Get() == FilamentSensorState::NotInitialized) {
+            if (s->get_state() == FilamentSensorState::NotInitialized) {
                 any_not_intitialized = true;
             }
         }
         if (IFSensor *s = GetSideFSensor(e); s != nullptr) {
             s->Cycle();
-            if (s->Get() == FilamentSensorState::NotInitialized) {
+            if (s->get_state() == FilamentSensorState::NotInitialized) {
                 any_not_intitialized = true;
             }
         }
@@ -280,12 +280,12 @@ void FilamentSensors::set_corresponding_variables() {
     reconfigure_sensors_if_needed();
 
     // copy states of sensors while we are in critical section
-    state_of_primary_runout_sensor = logical_sensors.primary_runout ? logical_sensors.primary_runout->Get() : FilamentSensorState::Disabled;
-    state_of_secondary_runout_sensor = logical_sensors.secondary_runout ? logical_sensors.secondary_runout->Get() : FilamentSensorState::Disabled;
-    state_of_autoload_sensor = logical_sensors.autoload ? logical_sensors.autoload->Get() : FilamentSensorState::Disabled;
+    state_of_primary_runout_sensor = logical_sensors.primary_runout ? logical_sensors.primary_runout->get_state() : FilamentSensorState::Disabled;
+    state_of_secondary_runout_sensor = logical_sensors.secondary_runout ? logical_sensors.secondary_runout->get_state() : FilamentSensorState::Disabled;
+    state_of_autoload_sensor = logical_sensors.autoload ? logical_sensors.autoload->get_state() : FilamentSensorState::Disabled;
 
-    state_of_current_extruder = logical_sensors.current_extruder ? logical_sensors.current_extruder->Get() : FilamentSensorState::Disabled;
-    state_of_current_side = logical_sensors.current_side ? logical_sensors.current_side->Get() : FilamentSensorState::Disabled;
+    state_of_current_extruder = logical_sensors.current_extruder ? logical_sensors.current_extruder->get_state() : FilamentSensorState::Disabled;
+    state_of_current_side = logical_sensors.current_side ? logical_sensors.current_side->get_state() : FilamentSensorState::Disabled;
 
     if ((request_printer != filament_sensor::cmd_t::null) || (request_side != filament_sensor::cmd_t::null)) {
         init_status = filament_sensor::init_status_t::NotReady;
@@ -295,10 +295,10 @@ void FilamentSensors::set_corresponding_variables() {
 #if HAS_MMU2()
             !has_mmu || // this might be unnecessary TODO try MK4 with MMU without it
 #endif
-            !logical_sensors.current_side || FilamentSensors::IsWorking(logical_sensors.current_side->Get());
-        const bool extruder_sensor_ok = !logical_sensors.current_extruder || FilamentSensors::IsWorking(logical_sensors.current_extruder->Get()) || logical_sensors.current_extruder->Get() == FilamentSensorState::Disabled;
-        const bool side_not_calibrated = (!side_sensor_ok) && logical_sensors.current_side && (logical_sensors.current_side->Get() == FilamentSensorState::NotCalibrated);
-        const bool extruder_not_calibrated = (!extruder_sensor_ok) && logical_sensors.current_extruder && (logical_sensors.current_extruder->Get() == FilamentSensorState::NotCalibrated);
+            !logical_sensors.current_side || FilamentSensors::IsWorking(logical_sensors.current_side->get_state());
+        const bool extruder_sensor_ok = !logical_sensors.current_extruder || FilamentSensors::IsWorking(logical_sensors.current_extruder->get_state()) || logical_sensors.current_extruder->get_state() == FilamentSensorState::Disabled;
+        const bool side_not_calibrated = (!side_sensor_ok) && logical_sensors.current_side && (logical_sensors.current_side->get_state() == FilamentSensorState::NotCalibrated);
+        const bool extruder_not_calibrated = (!extruder_sensor_ok) && logical_sensors.current_extruder && (logical_sensors.current_extruder->get_state() == FilamentSensorState::NotCalibrated);
 
         // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
         // 2^4 = 16 combinations
@@ -434,8 +434,8 @@ bool FilamentSensors::ToolHasFilament(uint8_t tool_nr) {
     // lock both unique_locks without deadlock
     buddy::lock(lock_side, lock_printer);
 
-    FilamentSensorState extruder_state = GetExtruderFSensor(tool_nr) ? GetExtruderFSensor(tool_nr)->Get() : FilamentSensorState::Disabled;
-    FilamentSensorState side_state = GetSideFSensor(tool_nr) ? GetSideFSensor(tool_nr)->Get() : FilamentSensorState::Disabled;
+    FilamentSensorState extruder_state = GetExtruderFSensor(tool_nr) ? GetExtruderFSensor(tool_nr)->get_state() : FilamentSensorState::Disabled;
+    FilamentSensorState side_state = GetSideFSensor(tool_nr) ? GetSideFSensor(tool_nr)->get_state() : FilamentSensorState::Disabled;
 
     return (extruder_state == FilamentSensorState::HasFilament || extruder_state == FilamentSensorState::Disabled) && (side_state == FilamentSensorState::HasFilament || side_state == FilamentSensorState::Disabled);
 }

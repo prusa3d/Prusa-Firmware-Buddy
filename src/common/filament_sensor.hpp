@@ -33,7 +33,7 @@ public:
     Event GenerateEvent();
 
     // thread safe functions
-    FilamentSensorState Get() { return state; }
+    inline FilamentSensorState get_state() const { return state; }
 
     /**
      * @brief Get filtered sensor-specific value.
