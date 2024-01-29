@@ -35,10 +35,6 @@ FilamentSensors::FilamentSensors() {
     configure_sensors();
 }
 
-freertos::Mutex &FilamentSensors::GetSideMutex() {
-    static freertos::Mutex ret;
-    return ret;
-}
 freertos::Mutex &FilamentSensors::GetExtruderMutex() {
     static freertos::Mutex ret;
     return ret;
@@ -157,7 +153,6 @@ filament_sensor::Events FilamentSensors::evaluate_logical_sensors_events() {
 }
 
 void FilamentSensors::Cycle() {
-    process_side_request();
     process_printer_request();
 
     // run cycle to evaluate state of all sensors (even those not active)
@@ -232,13 +227,7 @@ void FilamentSensors::Cycle() {
  * @brief method to store corresponding values inside critical section
  */
 void FilamentSensors::set_corresponding_variables() {
-    // need locks, to ensure all variables have corresponding values
-    // don't actually take the locks yet
-    std::unique_lock lock_mmu(GetSideMutex(), std::defer_lock);
-    std::unique_lock lock_printer(GetExtruderMutex(), std::defer_lock);
-
-    // lock both unique_locks without deadlock
-    buddy::lock(lock_mmu, lock_printer);
+    std::unique_lock lock_printer(GetExtruderMutex());
 
     reconfigure_sensors_if_needed();
 
@@ -252,17 +241,12 @@ void FilamentSensors::set_corresponding_variables() {
 }
 
 FilamentSensors::BothSensors FilamentSensors::GetBothSensors() {
-    // need locks, to ensure all variables have corresponding values
-    // don't actually take the locks yet
-    std::unique_lock lock_mmu(GetSideMutex(), std::defer_lock);
-    std::unique_lock lock_printer(GetExtruderMutex(), std::defer_lock);
+    std::unique_lock lock_printer(GetExtruderMutex());
 
-    // lock both unique_locks without deadlock
-    buddy::lock(lock_mmu, lock_printer);
-
-    BothSensors ret = { state_of_current_extruder, state_of_current_side };
-
-    return ret;
+    return BothSensors {
+        .extruder = state_of_current_extruder,
+        .side = state_of_current_side,
+    };
 }
 
 // this method is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter
@@ -319,24 +303,14 @@ uint32_t FilamentSensors::IncEvLock() {
 }
 
 bool FilamentSensors::MMUReadyToPrint() {
-    // don't actually take the locks yet
-    std::unique_lock lock_mmu(GetSideMutex(), std::defer_lock);
-    std::unique_lock lock_printer(GetExtruderMutex(), std::defer_lock);
-
-    // lock both unique_locks without deadlock
-    buddy::lock(lock_mmu, lock_printer);
+    std::unique_lock lock_printer(GetExtruderMutex());
 
     // filament has to be unloaded from primary tool for MMU print
     return state_of_primary_runout_sensor == FilamentSensorState::NoFilament;
 }
 
 bool FilamentSensors::ToolHasFilament(uint8_t tool_nr) {
-    // don't actually take the locks yet
-    std::unique_lock lock_side(GetSideMutex(), std::defer_lock);
-    std::unique_lock lock_printer(GetExtruderMutex(), std::defer_lock);
-
-    // lock both unique_locks without deadlock
-    buddy::lock(lock_side, lock_printer);
+    std::unique_lock lock_printer(GetExtruderMutex());
 
     FilamentSensorState extruder_state = GetExtruderFSensor(tool_nr) ? GetExtruderFSensor(tool_nr)->get_state() : FilamentSensorState::Disabled;
     FilamentSensorState side_state = GetSideFSensor(tool_nr) ? GetSideFSensor(tool_nr)->get_state() : FilamentSensorState::Disabled;
@@ -384,7 +358,7 @@ FilamentState FilamentSensors::WhereIsFilament() {
 // if it is it will do unnecessary lock and return false
 // I prefer to have single method for both variants
 bool FilamentSensors::HasMMU() {
-    const std::lock_guard lock(GetSideMutex());
+    const std::lock_guard lock(GetExtruderMutex());
     return has_mmu;
 }
 

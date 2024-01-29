@@ -13,24 +13,6 @@
 #include <puppies/Dwarf.hpp>
 #include "src/module/prusa/toolchanger.h"
 
-// process side sensor request
-// currently side sensor of XL is controlled by primary sensors commands
-// we might want to change it
-// see process_printer_request();
-void FilamentSensors::process_side_request() {
-    switch (request_side) {
-    case filament_sensor::cmd_t::on:
-        request_side = filament_sensor::cmd_t::processing;
-        break;
-    case filament_sensor::cmd_t::off:
-        request_side = filament_sensor::cmd_t::processing;
-        break;
-    case filament_sensor::cmd_t::processing:
-    case filament_sensor::cmd_t::null:
-        break;
-    }
-}
-
 // Meyer's singleton
 FSensorAdcExtruder *getExtruderFSensor(uint8_t index) {
     static std::array<FSensorAdcExtruder, EXTRUDERS> printer_sensors = { {

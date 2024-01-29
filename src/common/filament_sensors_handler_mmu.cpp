@@ -17,23 +17,6 @@
 
 using namespace MMU2;
 
-// process side request stored by EnableMMU/DisableSideSensor
-void FilamentSensors::process_side_request() {
-    switch (request_side) {
-    case filament_sensor::cmd_t::on:
-        // TODO printer sensor should be working
-        // if (IsWorking(state_of_printer_sensor))
-        request_side = filament_sensor::cmd_t::processing;
-        break;
-    case filament_sensor::cmd_t::off:
-        request_side = filament_sensor::cmd_t::processing;
-        break;
-    case filament_sensor::cmd_t::processing:
-    case filament_sensor::cmd_t::null:
-        break;
-    }
-}
-
 // Meyer's singleton
 static FSensorMMU *getSideFSensor(uint8_t index) {
     static FSensorMMU side_sensor;

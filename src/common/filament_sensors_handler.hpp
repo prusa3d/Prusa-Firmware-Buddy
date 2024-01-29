@@ -57,7 +57,6 @@ public:
     /// Calls \p f on all filament sensors
     void for_all_sensors(const std::function<void(IFSensor &)> &f);
 
-    bool IsSide_processing_request() { return request_side != filament_sensor::cmd_t::null; }
     bool IsExtruderProcessingRequest() { return request_printer != filament_sensor::cmd_t::null; }
 
     // called from different thread
@@ -101,7 +100,6 @@ private:
 
     void process_printer_request();
     void all_sensors_initialized();
-    void process_side_request();
     bool run_sensors_cycle(); //< returns true,
 
     // logical sensors
@@ -120,7 +118,6 @@ private:
     std::atomic<FilamentSensorState> state_of_current_extruder = FilamentSensorState::NotInitialized;
     std::atomic<FilamentSensorState> state_of_current_side = FilamentSensorState::NotInitialized;
 
-    std::atomic<filament_sensor::cmd_t> request_side = filament_sensor::cmd_t::null;
     std::atomic<filament_sensor::cmd_t> request_printer = filament_sensor::cmd_t::null;
 
     std::atomic<uint8_t> tool_index = 0;
@@ -129,7 +126,6 @@ private:
     std::atomic<bool> has_mmu = false; // affect only MMU, named correctly .. it is not "has_side_sensor"
 
     // I have used reference to forward declared class, so I do not need to include freertos in header
-    freertos::Mutex &GetSideMutex();
     freertos::Mutex &GetExtruderMutex();
 
     friend IFSensor *GetExtruderFSensor(uint8_t index);

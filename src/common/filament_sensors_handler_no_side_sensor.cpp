@@ -7,9 +7,6 @@
 #include "filament_sensor_types.hpp"
 #include <cassert>
 
-void FilamentSensors::process_side_request() {
-}
-
 // function returning abstract sensor - used in higher level api
 IFSensor *GetSideFSensor([[maybe_unused]] uint8_t index) {
     return nullptr;
