@@ -86,9 +86,12 @@ public:
         /**
          * @brief Parses metadata line of gcode, split name=value to two strings, that are returned in pair
          *
+         * @param terminate_value If setting the char after value to \0
+         *   (usually, there's at least one char after that in the buffer, but in
+         *   the Split continuation mode, that doesn't hold).
          * @return parsed_metadata_t {name, value}, when metadata is not valid, name.begin is nullptr
          */
-        parsed_metadata_t parse_metadata();
+        parsed_metadata_t parse_metadata(bool terminate_value = true);
     };
 
     GcodeBuffer();
