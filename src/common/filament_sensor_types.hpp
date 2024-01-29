@@ -52,15 +52,6 @@ struct Events {
 };
 
 /**
- * @brief what mas happen to inject M600
- */
-enum class inject_t : int32_t {
-    on_edge = 0,
-    on_level = 1,
-    never = 2
-};
-
-/**
  * @brief command
  * you cannot change state of sensor directly
  * it would not be thread safe
@@ -72,9 +63,4 @@ enum class cmd_t : int32_t {
     processing, // currently processing command
 };
 
-enum class mmu_enable_result_t : int32_t {
-    ok,
-    error_filament_sensor_disabled,
-    error_mmu_not_supported
-};
 } // namespace filament_sensor

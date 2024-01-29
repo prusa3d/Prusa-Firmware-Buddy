@@ -238,15 +238,6 @@ void FilamentSensors::set_corresponding_variables() {
     state_of_current_side = logical_sensors.current_side ? logical_sensors.current_side->get_state() : FilamentSensorState::Disabled;
 }
 
-FilamentSensors::BothSensors FilamentSensors::GetBothSensors() {
-    std::unique_lock lock_printer(GetExtruderMutex());
-
-    return BothSensors {
-        .extruder = state_of_current_extruder,
-        .side = state_of_current_side,
-    };
-}
-
 // this method is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter
 // trying to trigger runout at exact moment when print ended could break something
 // also if another M600 happens during clear of M600_sent flag, it could be discarded, this is not a problem, because it could happen only due a bug

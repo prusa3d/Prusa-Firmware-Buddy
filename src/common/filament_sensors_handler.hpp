@@ -27,18 +27,12 @@ public:
 
     bool HasMMU(); // mmu enabled, might or might not be initialized
 
-    struct BothSensors {
-        FilamentSensorState extruder;
-        FilamentSensorState side;
-    };
-
-    BothSensors GetBothSensors();
-
     FilamentSensorState GetPrimaryRunout() { return state_of_primary_runout_sensor; };
     FilamentSensorState GetSecondaryRunout() { return state_of_primary_runout_sensor; };
     FilamentSensorState GetAutoload() { return state_of_primary_runout_sensor; };
     FilamentSensorState GetCurrentExtruder() { return state_of_current_extruder; };
     FilamentSensorState GetCurrentSide() { return state_of_current_side; };
+
     void Disable();
     void Enable();
 
@@ -56,8 +50,6 @@ public:
 
     /// Calls \p f on all filament sensors
     void for_all_sensors(const std::function<void(IFSensor &)> &f);
-
-    bool IsExtruderProcessingRequest() { return request_printer != filament_sensor::cmd_t::null; }
 
     // called from different thread
     void Cycle();
