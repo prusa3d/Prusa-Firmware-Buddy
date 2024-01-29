@@ -17,28 +17,6 @@
 
 using namespace MMU2;
 
-// Store request_side off
-void FilamentSensors::DisableSideSensor() {
-    const std::lock_guard lock(GetSideMutex());
-    request_side = filament_sensor::cmd_t::off;
-}
-
-/**
- * @brief store request to enable side sensor
- * there is chance request could not be done
- * there is currently no callback to notify success/failure
- * we could just wait, since request is handled in different thread .. TODO
- * @return filament_sensor::mmu_enable_result_t
- */
-filament_sensor::mmu_enable_result_t FilamentSensors::EnableSide() {
-    if (!logical_sensors.current_extruder || !is_fsensor_working_state(logical_sensors.current_extruder->get_state())) { // logical_sensors.current_extruder is not synchronized, but in this case it it OK
-        return filament_sensor::mmu_enable_result_t::error_filament_sensor_disabled;
-    }
-    const std::lock_guard lock(GetSideMutex());
-    request_side = filament_sensor::cmd_t::on;
-    return filament_sensor::mmu_enable_result_t::ok;
-}
-
 // process side request stored by EnableMMU/DisableSideSensor
 void FilamentSensors::process_side_request() {
     switch (request_side) {

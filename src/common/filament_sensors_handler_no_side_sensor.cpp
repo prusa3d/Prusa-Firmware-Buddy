@@ -10,13 +10,6 @@
 void FilamentSensors::process_side_request() {
 }
 
-void FilamentSensors::DisableSideSensor() {
-}
-
-filament_sensor::mmu_enable_result_t FilamentSensors::EnableSide() {
-    return filament_sensor::mmu_enable_result_t::error_mmu_not_supported;
-}
-
 // function returning abstract sensor - used in higher level api
 IFSensor *GetSideFSensor([[maybe_unused]] uint8_t index) {
     return nullptr;

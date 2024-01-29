@@ -57,8 +57,6 @@ public:
     /// Calls \p f on all filament sensors
     void for_all_sensors(const std::function<void(IFSensor &)> &f);
 
-    void DisableSideSensor();
-    filament_sensor::mmu_enable_result_t EnableSide();
     bool IsSide_processing_request() { return request_side != filament_sensor::cmd_t::null; }
     bool IsExtruderProcessingRequest() { return request_printer != filament_sensor::cmd_t::null; }
 
