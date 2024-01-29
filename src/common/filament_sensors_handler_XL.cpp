@@ -72,7 +72,7 @@ void FilamentSensors::AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index) {
     if (sensor) {
         sensor->set_filtered_value_from_IRQ(val);
     } else {
-        assert("wrong extruder index");
+        bsod("wrong extruder index");
     }
 }
 
@@ -81,7 +81,7 @@ void FilamentSensors::AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index) {
     if (sensor) {
         sensor->set_filtered_value_from_IRQ(val);
     } else {
-        assert("wrong extruder index");
+        bsod("wrong extruder index");
     }
 }
 

@@ -21,10 +21,10 @@ IFSensor *GetExtruderFSensor(uint8_t index) {
 }
 
 void FilamentSensors::AdcExtruder_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {
-    assert("no adc sensor");
+    bsod("no adc sensor");
 }
 
 // IRQ - called from interruption
 void fs_process_sample([[maybe_unused]] int32_t fs_raw_value, [[maybe_unused]] uint8_t tool_index) {
-    assert("no adc sensor");
+    bsod("no adc sensor");
 }
