@@ -231,7 +231,9 @@ void MI_RESET_CURRENTS::click([[maybe_unused]] IWindowMenu &window_menu) {
 /*****************************************************************************/
 // MI_SAVE_AND_RETURN
 MI_SAVE_AND_RETURN::MI_SAVE_AND_RETURN()
-    : IWindowMenuItem(NOTRAN(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(NOTRAN(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    has_return_behavior_ = true;
+}
 
 void MI_SAVE_AND_RETURN::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Return);
