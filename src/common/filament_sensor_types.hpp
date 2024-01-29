@@ -77,7 +77,7 @@ enum class cmd_t : int32_t {
  * so it can be atomically accessed
  * ordered by evaluation priority
  */
-enum class init_status_t : int32_t {
+enum class init_status_t : uint8_t {
     NotReady, // cannot evaluate right now, commands being processed
     BothNotCalibrated,
     SideNotCalibrated,

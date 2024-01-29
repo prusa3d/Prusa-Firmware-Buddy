@@ -16,17 +16,15 @@ protected:
     virtual void cycle() override;
 
 private:
-    void cycle0();
-    void cycle1();
+    void set_state(FilamentSensorState set);
 
-    void set_state(FilamentSensorState st);
-    bool read_pin();
+    FilamentSensorState last_set_state_target = FilamentSensorState::NotInitialized;
 
-    enum class Cycle {
-        no0,
-        no1,
+    enum class MeasurePhase {
+        p0,
+        p1,
     };
-    Cycle measure_cycle = Cycle::no0;
+    MeasurePhase measure_phase = MeasurePhase::p0;
 
 public:
     FSensorPhotoElectric();

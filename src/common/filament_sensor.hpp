@@ -73,7 +73,5 @@ protected:
 // basic filament sensor api
 class FSensor : public IFSensor {
 protected:
-    std::atomic<FilamentSensorState> last_state = FilamentSensorState::NotInitialized;
-
     void init();
 };
