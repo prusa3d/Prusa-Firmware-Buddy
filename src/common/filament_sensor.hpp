@@ -76,5 +76,4 @@ protected:
     std::atomic<FilamentSensorState> last_state = FilamentSensorState::NotInitialized;
 
     void init();
-    virtual void set_state(FilamentSensorState st) = 0;
 };

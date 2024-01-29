@@ -58,11 +58,6 @@ void FSensorADC::set_filtered_value_from_IRQ(int32_t filtered_value) {
     fs_filtered_value.store(filtered_value);
 }
 
-void FSensorADC::set_state(FilamentSensorState st) {
-    CriticalSection C;
-    state = st;
-}
-
 FSensorADC::FSensorADC(uint8_t tool_index, bool is_side_sensor)
     : tool_index(tool_index)
     , is_side(is_side_sensor) {
