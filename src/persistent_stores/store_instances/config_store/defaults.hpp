@@ -126,18 +126,10 @@ namespace defaults {
     inline constexpr std::array<char, connect_token_size + 1> connect_token { "" };
     inline constexpr uint16_t connect_port { 443 };
 
-    // Defaults for metrics
-#if DEVELOPMENT_ITEMS()
-    // Development build has metrics allowed
-    inline constexpr MetricsAllow metrics_allow { MetricsAllow::All };
-    inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "matrix.prusa.vc" };
-    inline constexpr bool metrics_init { true };
-#else /*DEVELOPMENT_ITEMS()*/
     // Production build need user to intentionally allow them
     inline constexpr MetricsAllow metrics_allow { MetricsAllow::None };
     inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "" };
     inline constexpr bool metrics_init { false };
-#endif /*DEVELOPMENT_ITEMS()*/
     inline constexpr uint16_t metrics_port { 8514 };
     inline constexpr uint16_t syslog_port { 13514 };
 
