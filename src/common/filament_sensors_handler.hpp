@@ -11,6 +11,7 @@
 #include "filament_sensor_types.hpp"
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_fsensor.h" // MMU2::FilamentState
 #include <atomic>
+#include <bitset>
 #include <option/has_side_fsensor.h>
 #include "config_features.h"
 #include <option/has_toolchanger.h>
@@ -47,19 +48,11 @@ public:
      */
     bool is_enabled() const;
 
-    enum class EnableResult {
-        in_progress, ///< Still trying to enable
-        ok, ///< Sensors enabled ok
-        not_calibrated, ///< At least one sensor is FilamentSensorState::NotCalibrated
-        not_connected, ///< At least one sensor is FilamentSensorState::NotConnected
-        disabled, ///< Sensors are disabled
-    };
+    using SensorStateBitset = std::bitset<ftrstd::to_underlying(FilamentSensorState::_cnt)>;
 
-    /**
-     * @brief Know what happened after enable.
-     * @return summed up state of the sensors, error in any sensor returns error
-     */
-    EnableResult get_enable_result();
+    /// Overview of all states of all filament sensors
+    /// \returns bitwise or of individual fsensor state bit field
+    SensorStateBitset get_sensors_states();
 
     void DisableSideSensor();
     filament_sensor::mmu_enable_result_t EnableSide();

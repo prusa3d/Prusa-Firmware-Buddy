@@ -8,7 +8,8 @@ enum class FilamentSensorState : uint8_t {
     HasFilament,
     NoFilament,
     NotConnected,
-    Disabled
+    Disabled,
+    _cnt,
 };
 
 /// Returns whether the passed FilamentSensorState means that the filament sensor is working (functional, set up and such)

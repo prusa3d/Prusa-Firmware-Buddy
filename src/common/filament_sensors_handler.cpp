@@ -66,43 +66,25 @@ bool FilamentSensors::is_enabled() const {
     return FSensorEEPROM::Get();
 }
 
-auto FilamentSensors::get_enable_result() -> EnableResult {
-    filament_sensor::cmd_t request = request_printer.load();
-    if (request == filament_sensor::cmd_t::on || request == filament_sensor::cmd_t::processing) {
-        return EnableResult::in_progress;
+FilamentSensors::SensorStateBitset FilamentSensors::get_sensors_states() {
+    SensorStateBitset result;
+
+    // If we're processing an enable command, consider the sensors not initialized
+    if (filament_sensor::cmd_t request = request_printer.load(); request == filament_sensor::cmd_t::on || request == filament_sensor::cmd_t::processing) {
+        result.set(ftrstd::to_underlying(FilamentSensorState::NotInitialized));
     }
 
     // Check state of all sensors
     HOTEND_LOOP() {
         if (IFSensor *s = GetExtruderFSensor(e); s) {
-            FilamentSensorState state = s->get_state();
-            switch (state) {
-            case FilamentSensorState::NotInitialized:
-                return EnableResult::in_progress;
-            case FilamentSensorState::NotConnected:
-                return EnableResult::not_connected;
-            case FilamentSensorState::NotCalibrated:
-                return EnableResult::not_calibrated;
-            default:
-                break;
-            }
+            result.set(ftrstd::to_underlying(s->get_state()));
         }
         if (IFSensor *s = GetSideFSensor(e); s) {
-            FilamentSensorState state = s->get_state();
-            switch (state) {
-            case FilamentSensorState::NotInitialized:
-                return EnableResult::in_progress;
-            case FilamentSensorState::NotConnected:
-                return EnableResult::not_connected;
-            case FilamentSensorState::NotCalibrated:
-                return EnableResult::not_calibrated;
-            default:
-                break;
-            }
+            result.set(ftrstd::to_underlying(s->get_state()));
         }
     }
 
-    return EnableResult::ok;
+    return result;
 }
 
 // process printer request stored by Enable/Disable

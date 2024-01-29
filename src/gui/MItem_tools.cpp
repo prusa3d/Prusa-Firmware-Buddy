@@ -77,52 +77,42 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
         return;
     }
 
-    if (old_index) {
+    // Disable filament sensors
+    if (!index) {
         FSensors_instance().Disable();
+
         // If disabling, send a message to parent to reload the value of
         // MI_ITEM_MMU, because it has just been disabled as well
         Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, reinterpret_cast<void *>(fs_disabled_event));
-    } else {
+    }
+
+    // Enable filament sensors
+    else {
         FSensors_instance().Enable();
+
+        using FSS = FilamentSensorState;
 
         // wait until it is initialized
         // no guiloop here !!! - it could cause show of unwanted error message
-        FilamentSensors::EnableResult res;
-        while ((res = FSensors_instance().get_enable_result()) == FilamentSensors::EnableResult::in_progress) {
+        FilamentSensors::SensorStateBitset res;
+        while ((res = FSensors_instance().get_sensors_states()).test(ftrstd::to_underlying(FSS::NotInitialized))) {
             osDelay(0); // switch to other thread
         }
 
-        // Check if sensor enabled successfully
-        if (res != FilamentSensors::EnableResult::ok) {
-            switch (res) {
-            case FilamentSensors::EnableResult::not_calibrated:
-                MsgBoxWarning(_("Filament sensor not ready: perform calibration first."), Responses_Ok);
-                break;
+        bool failed = false;
 
-            case FilamentSensors::EnableResult::not_connected:
-                MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
-                break;
+        if (res.test(ftrstd::to_underlying(FSS::NotConnected))) {
+            MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
+            failed = true;
 
-            // Should not happen if sensors are working properly
-            case FilamentSensors::EnableResult::disabled:
-                MsgBoxError(_("Sensor logic error, printer filament sensor disabled."), Responses_Ok);
-                break;
+        } else if (res.test(ftrstd::to_underlying(FSS::NotCalibrated))) {
+            MsgBoxWarning(_("Filament sensor not ready: perform calibration first."), Responses_Ok);
+            failed = true;
+        }
 
-            // These cannot happen
-            case FilamentSensors::EnableResult::ok:
-            case FilamentSensors::EnableResult::in_progress:
-                assert(false);
-                break;
-            }
-
-            // Disable sensors again
+        if (failed) {
             FSensors_instance().Disable();
-            index = old_index;
-            // wait until filament sensor command is processed
-            // no guiloop here !!! - it could cause show of unwanted error message
-            while (FSensors_instance().IsExtruderProcessingRequest()) {
-                osDelay(0); // switch to other thread
-            }
+            SetIndex(old_index);
         }
     }
 }
