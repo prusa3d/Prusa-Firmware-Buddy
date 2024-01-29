@@ -753,7 +753,7 @@
 
 // 200 step motors
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
-    { 100, 100, 800, 400 }
+    { 100, 100, 800, 380 }
 
 
 /**
