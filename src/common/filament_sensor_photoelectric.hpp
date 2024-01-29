@@ -20,6 +20,7 @@ private:
     void cycle1();
 
     void set_state(FilamentSensorState st);
+    bool read_pin();
 
     enum class Cycle {
         no0,

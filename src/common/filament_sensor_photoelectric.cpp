@@ -15,12 +15,13 @@
 // Max Tau ~= 20*10^-12 * 50*10^3 = 1*10^-6 s ... about 1us
 
 #include "filament_sensor_photoelectric.hpp"
-#include "fsensor_pins.hpp"
 #include "rtos_api.hpp"
 
+#include <device/board.h>
+
 void FSensorPhotoElectric::cycle0() {
-    if (FSensorPins::Get()) {
-        FSensorPins::pullDown();
+    if (read_pin()) {
+        buddy::hw::fSensor.pullDown();
         measure_cycle = Cycle::no1; // next cycle shall be 1
     } else {
         set_state(FilamentSensorState::NoFilament); // it is filtered, 2 requests are needed to change state
@@ -30,8 +31,9 @@ void FSensorPhotoElectric::cycle0() {
 
 void FSensorPhotoElectric::cycle1() {
     // pulldown was set in cycle 0
-    set_state(FSensorPins::Get() ? FilamentSensorState::HasFilament : FilamentSensorState::NotConnected);
-    FSensorPins::pullUp();
+    set_state(read_pin() ? FilamentSensorState::HasFilament : FilamentSensorState::NotConnected);
+    buddy::hw::fSensor.pullUp();
+
     measure_cycle = Cycle::no0; // next cycle shall be 0
 }
 
@@ -46,8 +48,14 @@ void FSensorPhotoElectric::cycle() {
     }
 }
 
+bool FSensorPhotoElectric::read_pin() {
+    return buddy::hw::fSensor.read() == (BOARD_IS_XBUDDY ? buddy::hw::Pin::State::low : buddy
+                                         : hw::Pin::State::high);
+}
+
 void FSensorPhotoElectric::enable() {
-    FSensorPins::pullUp();
+    buddy::hw::fSensor.pullUp();
+
     state = FilamentSensorState::NotInitialized;
     last_state = FilamentSensorState::NotInitialized;
     measure_cycle = Cycle::no0;
