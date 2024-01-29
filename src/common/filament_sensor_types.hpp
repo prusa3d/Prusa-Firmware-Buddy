@@ -72,22 +72,6 @@ enum class cmd_t : int32_t {
     processing, // currently processing command
 };
 
-/**
- * @brief shared state of extruder + side sensor
- * so it can be atomically accessed
- * ordered by evaluation priority
- */
-enum class init_status_t : uint8_t {
-    NotReady, // cannot evaluate right now, commands being processed
-    BothNotCalibrated,
-    SideNotCalibrated,
-    ExtruderNotCalibrated,
-    BothNotInitialized,
-    SideNotInitialized,
-    ExtruderNotInitialized,
-    Ok, // neither of other states :)
-};
-
 enum class mmu_enable_result_t : int32_t {
     ok,
     error_filament_sensor_disabled,

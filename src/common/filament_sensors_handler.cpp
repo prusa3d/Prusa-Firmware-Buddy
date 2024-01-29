@@ -49,13 +49,6 @@ freertos::Mutex &FilamentSensors::GetExtruderMutex() {
     return ret;
 }
 
-// there is only one init_status
-// active extruder is stored in FilamentSensors
-// changing it must change init_status too
-filament_sensor::init_status_t FilamentSensors::get_active_init_status() const {
-    return init_status;
-}
-
 // Store request_printer off
 void FilamentSensors::Disable() {
     DisableSideSensor(); // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
@@ -286,65 +279,6 @@ void FilamentSensors::set_corresponding_variables() {
 
     state_of_current_extruder = logical_sensors.current_extruder ? logical_sensors.current_extruder->get_state() : FilamentSensorState::Disabled;
     state_of_current_side = logical_sensors.current_side ? logical_sensors.current_side->get_state() : FilamentSensorState::Disabled;
-
-    if ((request_printer != filament_sensor::cmd_t::null) || (request_side != filament_sensor::cmd_t::null)) {
-        init_status = filament_sensor::init_status_t::NotReady;
-    } else {
-        // if we don't have sensor it is automatically ok, "having sensor" is set by (re)configure_sensors
-        const bool side_sensor_ok =
-#if HAS_MMU2()
-            !has_mmu || // this might be unnecessary TODO try MK4 with MMU without it
-#endif
-            !logical_sensors.current_side || FilamentSensors::IsWorking(logical_sensors.current_side->get_state());
-        const bool extruder_sensor_ok = !logical_sensors.current_extruder || FilamentSensors::IsWorking(logical_sensors.current_extruder->get_state()) || logical_sensors.current_extruder->get_state() == FilamentSensorState::Disabled;
-        const bool side_not_calibrated = (!side_sensor_ok) && logical_sensors.current_side && (logical_sensors.current_side->get_state() == FilamentSensorState::NotCalibrated);
-        const bool extruder_not_calibrated = (!extruder_sensor_ok) && logical_sensors.current_extruder && (logical_sensors.current_extruder->get_state() == FilamentSensorState::NotCalibrated);
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 2^4 = 16 combinations
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 1, 1, X, X .. 4 combinations
-        if (side_not_calibrated && extruder_not_calibrated) {
-            init_status = filament_sensor::init_status_t::BothNotCalibrated;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 1, 0, X, X .. 4 combinations
-        if (side_not_calibrated && !extruder_not_calibrated) {
-            init_status = filament_sensor::init_status_t::SideNotCalibrated;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 0, 1, X, X .. 4 combinations
-        if (!side_not_calibrated && extruder_not_calibrated) {
-            init_status = filament_sensor::init_status_t::ExtruderNotCalibrated;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 0, 0, 0, 0 .. 1 combination
-        if (!side_not_calibrated && !extruder_not_calibrated && !side_sensor_ok && !extruder_sensor_ok) {
-            init_status = filament_sensor::init_status_t::BothNotInitialized;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 0, 0, 0, 1 .. 1 combination
-        if (!side_not_calibrated && !extruder_not_calibrated && !side_sensor_ok && extruder_sensor_ok) {
-            init_status = filament_sensor::init_status_t::SideNotInitialized;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 0, 0, 1, 0 .. 1 combination
-        if (!side_not_calibrated && !extruder_not_calibrated && side_sensor_ok && !extruder_sensor_ok) {
-            init_status = filament_sensor::init_status_t::ExtruderNotInitialized;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 0, 0, 1, 1 .. 1 combination
-        if (!side_not_calibrated && !extruder_not_calibrated && side_sensor_ok && extruder_sensor_ok) {
-            init_status = filament_sensor::init_status_t::Ok;
-        }
-    }
 }
 
 FilamentSensors::BothSensors FilamentSensors::GetBothSensors() {

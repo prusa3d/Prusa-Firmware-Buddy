@@ -65,7 +65,6 @@ public:
     filament_sensor::mmu_enable_result_t EnableSide();
     bool IsSide_processing_request() { return request_side != filament_sensor::cmd_t::null; }
     bool IsExtruderProcessingRequest() { return request_printer != filament_sensor::cmd_t::null; }
-    filament_sensor::init_status_t get_active_init_status() const;
 
     // called from different thread
     void Cycle();
@@ -130,8 +129,6 @@ private:
 
     std::atomic<FilamentSensorState> state_of_current_extruder = FilamentSensorState::NotInitialized;
     std::atomic<FilamentSensorState> state_of_current_side = FilamentSensorState::NotInitialized;
-
-    std::atomic<filament_sensor::init_status_t> init_status = filament_sensor::init_status_t::NotReady; // combined status of all sensors, must be invalidated when tool_index changes
 
     std::atomic<filament_sensor::cmd_t> request_side = filament_sensor::cmd_t::null;
     std::atomic<filament_sensor::cmd_t> request_printer = filament_sensor::cmd_t::null;
