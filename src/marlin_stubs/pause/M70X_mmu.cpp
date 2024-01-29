@@ -47,6 +47,7 @@ void filament_gcodes::mmu_reset(uint8_t level) {
  *
  */
 void filament_gcodes::mmu_on() {
+    config_store().mmu2_enabled.set(true);
     MMU2::mmu2.Start();
 }
 
@@ -55,5 +56,6 @@ void filament_gcodes::mmu_on() {
  *
  */
 void filament_gcodes::mmu_off() {
+    config_store().mmu2_enabled.set(false);
     MMU2::mmu2.Stop();
 }

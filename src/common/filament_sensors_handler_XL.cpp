@@ -13,10 +13,6 @@
 #include <puppies/Dwarf.hpp>
 #include "src/module/prusa/toolchanger.h"
 
-bool FilamentSensors::has_mmu2_enabled() const {
-    return false;
-}
-
 // Store request_side off
 void FilamentSensors::DisableSideSensor() {
     const std::lock_guard lock(GetSideMutex());

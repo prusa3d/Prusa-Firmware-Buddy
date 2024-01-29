@@ -101,8 +101,6 @@ private:
     inline bool isEvLocked() const { return event_lock > 0; }
     inline bool isAutoloadLocked() const { return autoload_lock > 0; }
 
-    bool has_mmu2_enabled() const; // turn MMU2 on during init
-
     void process_printer_request();
     void all_sensors_initialized();
     void process_side_request();

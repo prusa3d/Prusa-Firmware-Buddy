@@ -147,28 +147,23 @@ static bool flip_mmu_rework([[maybe_unused]] bool flip_mmu_at_the_end) {
 MI_MMU_ENABLE::MI_MMU_ENABLE()
     : WI_ICON_SWITCH_OFF_ON_t(FSensors_instance().HasMMU(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_MMU_ENABLE::OnChange(size_t old_index) {
-    if (old_index) {
-        // Disable MMU
-        FSensors_instance().DisableSideSensor();
+    if (!index) {
+        // Disale MMU
+        marlin_client::gcode("M709 S0");
+
+    } else if (!config_store().is_mmu_rework.get()) {
+        // if we are enabling MMU and the MMU Rework option is not enabled, enable it
+        flip_mmu_rework(true);
+
     } else {
-        if (!config_store().is_mmu_rework.get()) {
-            // if we are enabling MMU and the MMU Rework option is not enabled, enable it
-            flip_mmu_rework(true);
-        } else {
-            // if MMU Rework is already enabled, just enable MMU straight away (TODO run the wizard ...)
-            switch (FSensors_instance().EnableSide()) {
-            case filament_sensor::mmu_enable_result_t::ok:
-                break;
-            case filament_sensor::mmu_enable_result_t::error_filament_sensor_disabled:
-                index = old_index;
-                MsgBoxWarning(_("Can't enable MMU: enable the printer's filament sensor first."), Responses_Ok);
-                break;
-            case filament_sensor::mmu_enable_result_t::error_mmu_not_supported:
-                index = old_index;
-                MsgBoxError(_("MMU not supported!"), Responses_Ok);
-                break;
-            }
+        // logical_sensors.current_extruder is not synchronized, but in this case it it OK
+        if (!is_fsensor_working_state(FSensors_instance().GetCurrentExtruder())) {
+            MsgBoxWarning(_("Can't enable MMU: enable the printer's filament sensor first."), Responses_Ok);
+            SetIndex(old_index);
+            return;
         }
+
+        marlin_client::gcode("M709 S1");
     }
 }
 

@@ -81,6 +81,10 @@
     #include "hw_configuration.hpp"
 #endif
 
+#if HAS_MMU2()
+    #include "feature/prusa/MMU2/mmu2_mk4.h"
+#endif
+
 using namespace crash_dump;
 
 LOG_COMPONENT_REF(Buddy);
@@ -512,6 +516,12 @@ extern "C" void main_cpp(void) {
         osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 512);
         osThreadCreate(osThread(measurementTask), NULL);
     }
+
+#if HAS_MMU2()
+    if (config_store().mmu2_enabled.get()) {
+        MMU2::mmu2.Start();
+    }
+#endif
 }
 
 #ifdef USE_ST7789

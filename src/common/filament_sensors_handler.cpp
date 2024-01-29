@@ -26,12 +26,7 @@ LOG_COMPONENT_DEF(FSensor, LOG_SEVERITY_INFO);
 using namespace MMU2;
 
 FilamentSensors::FilamentSensors() {
-
     SetToolIndex(); // other config depends on it, do it first
-
-    if (has_mmu2_enabled()) {
-        request_side = filament_sensor::cmd_t::on;
-    }
 
     // Set logical sensors
     // MK4 can be reconfigured (connecting MMU)
@@ -51,7 +46,11 @@ freertos::Mutex &FilamentSensors::GetExtruderMutex() {
 
 // Store request_printer off
 void FilamentSensors::Disable() {
-    DisableSideSensor(); // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
+#if HAS_MMU2()
+    // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
+    marlin_client::gcode("M709 S0");
+#endif
+
     const std::lock_guard lock(GetExtruderMutex());
     request_printer = filament_sensor::cmd_t::off;
 }

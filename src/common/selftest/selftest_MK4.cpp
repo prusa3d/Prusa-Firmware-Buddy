@@ -377,13 +377,10 @@ void CSelftest::Loop() {
         // enable/disable the MMU according to the MMU Rework toggle. Used from
         // the menus when we need to calibrate the FS before enabling/disabling
         // the rework or the MMU itself.
-        if (config_store().is_mmu_rework.get()) {
-            // We don't check the result here. If FS is calibrated and enabled
-            // at the end of the selftest, MMU will be enabled, otherwise not.
-            FSensors_instance().EnableSide();
-        } else {
-            FSensors_instance().DisableSideSensor();
-        }
+
+        // We don't check the result here. If FS is calibrated and enabled
+        // at the end of the selftest, MMU will be enabled, otherwise not.
+        marlin_server::enqueue_gcode(config_store().is_mmu_rework.get() ? "M709 S1" : "M709 S0");
 #endif
 
         break;

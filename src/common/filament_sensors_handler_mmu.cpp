@@ -17,10 +17,6 @@
 
 using namespace MMU2;
 
-bool FilamentSensors::has_mmu2_enabled() const {
-    return config_store().mmu2_enabled.get();
-}
-
 // Store request_side off
 void FilamentSensors::DisableSideSensor() {
     const std::lock_guard lock(GetSideMutex());
@@ -43,32 +39,15 @@ filament_sensor::mmu_enable_result_t FilamentSensors::EnableSide() {
     return filament_sensor::mmu_enable_result_t::ok;
 }
 
-static void mmu_disable() {
-    if (!config_store().mmu2_enabled.get()) {
-        return;
-    }
-
-    marlin_client::gcode("M709 S0");
-    config_store().mmu2_enabled.set(false);
-}
-
-// cannot wait until it is enabled, it takes like 10 seconds !!!
-static void mmu_enable() {
-    marlin_client::gcode("M709 S1");
-    config_store().mmu2_enabled.set(true);
-}
-
 // process side request stored by EnableMMU/DisableSideSensor
 void FilamentSensors::process_side_request() {
     switch (request_side) {
     case filament_sensor::cmd_t::on:
         // TODO printer sensor should be working
         // if (IsWorking(state_of_printer_sensor))
-        mmu_enable();
         request_side = filament_sensor::cmd_t::processing;
         break;
     case filament_sensor::cmd_t::off:
-        mmu_disable();
         request_side = filament_sensor::cmd_t::processing;
         break;
     case filament_sensor::cmd_t::processing:

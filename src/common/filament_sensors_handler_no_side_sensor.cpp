@@ -7,10 +7,6 @@
 #include "filament_sensor_types.hpp"
 #include <cassert>
 
-bool FilamentSensors::has_mmu2_enabled() const {
-    return false;
-}
-
 void FilamentSensors::process_side_request() {
 }
 
