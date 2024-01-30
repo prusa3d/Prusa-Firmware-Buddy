@@ -10,9 +10,8 @@
 #include "filters/median_filter.hpp"
 
 // Meyer's singleton
-static FSensorAdcExtruder *getExtruderFSensor(uint8_t index) {
-    static FSensorAdcExtruder printer_sensor = FSensorAdcExtruder(0, false);
-
+static FSensorADC *getExtruderFSensor(uint8_t index) {
+    static FSensorADC printer_sensor = FSensorADC(0, false);
     return index == 0 ? &printer_sensor : nullptr;
 }
 

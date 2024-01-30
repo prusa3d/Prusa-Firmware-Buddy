@@ -12,7 +12,8 @@
 
 struct metric_s;
 
-class FSensorADC : public IFSensor {
+class FSensorADC final : public IFSensor {
+
 public:
     static constexpr float fs_selftest_span_multipler { 1.2 }; // when doing selftest, fs with filament and without has to be different by this value times configured span to pass selftest
 
@@ -30,8 +31,8 @@ protected:
      */
     virtual int32_t GetFilteredValue() const override { return fs_filtered_value.load(); };
 
-    uint8_t tool_index;
-    bool is_side { false };
+    const uint8_t tool_index;
+    const bool is_side;
 
     CalibrateRequest req_calibrate { CalibrateRequest::NoCalibration };
     bool flg_invalid_calib { false };
@@ -47,6 +48,9 @@ protected:
      * @brief Calibrate reference value with filament inserted
      */
     void CalibrateInserted(int32_t filtered_value);
+
+    virtual void record_state() override;
+    void MetricsSetEnabled(bool) override;
 
 public:
     FSensorADC(uint8_t tool_index, bool is_side_sensor);
@@ -65,41 +69,13 @@ public:
 
     void invalidate_calibration();
 
-    virtual void record_raw(int32_t val) = 0;
-};
+    void record_raw(int32_t val);
 
-class FSensorAdcExtruder : public FSensorADC {
-protected:
+private:
     // Limit metrics recording for each tool
-    buddy::metrics::RunApproxEvery limit_record;
-    buddy::metrics::RunApproxEvery limit_record_raw;
+    buddy::metrics::RunApproxEvery limit_record = 49;
+    buddy::metrics::RunApproxEvery limit_record_raw = 60;
 
-    virtual void record_state() override; // record metrics
-    void MetricsSetEnabled(bool) override;
-
-public:
-    static metric_s &get_metric_raw__static();
-    static metric_s &get_metric__static();
-
-    FSensorAdcExtruder(uint8_t tool_index, bool is_side_sensor);
-
-    virtual void record_raw(int32_t val) override;
-};
-
-class FSensorAdcSide : public FSensorADC {
-protected:
-    // Limit metrics recording for each tool
-    buddy::metrics::RunApproxEvery limit_record;
-    buddy::metrics::RunApproxEvery limit_record_raw;
-
-    virtual void record_state() override; // record metrics
-    void MetricsSetEnabled(bool) override;
-
-public:
-    static metric_s &get_metric_raw__static();
-    static metric_s &get_metric__static();
-
-    FSensorAdcSide(uint8_t tool_index, bool is_side_sensor);
-
-    virtual void record_raw(int32_t val) override;
+    metric_s &metric_raw();
+    metric_s &metric_filtered();
 };

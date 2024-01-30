@@ -19,6 +19,13 @@
 
 LOG_COMPONENT_REF(FSensor);
 
+// min_interval_ms is 0, that is intended here.
+// Rate limiting is done per-sensor inside FSensorADC through limit_record(_raw)
+METRIC_DEF(metric_extruder_raw, "fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_extruder, "fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_side_raw, "side_fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_side, "side_fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+
 void FSensorADC::cycle() {
     const auto filtered_value { fs_filtered_value.load() }; // store value - so interrupt cannot change it during evaluation
 
@@ -37,7 +44,7 @@ void FSensorADC::cycle() {
 
     // disabled FS will not enter cycle, but load_settings can disable it too
     // so better not try to change state when sensor is disabled
-    if (state != FilamentSensorState::Disabled) {
+    if (is_enabled()) {
         state = FSensorADCEval::evaluate_state(filtered_value, fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
     }
 }
@@ -145,71 +152,33 @@ void FSensorADC::invalidate_calibration() {
     load_settings();
 }
 
-void FSensorAdcExtruder::record_state() {
-    if (limit_record()) {
-        metric_record_custom(&get_metric__static(), ",n=%u st=%ui,f=%" PRId32 "i,r=%" PRId32 "i,ri=%" PRId32 "i,sp=%" PRId32 "i",
-            tool_index, static_cast<unsigned>(get_state()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
+void FSensorADC::record_state() {
+    if (!limit_record()) {
+        return;
     }
+
+    metric_record_custom(&metric_filtered(), ",n=%u st=%ui,f=%" PRId32 "i,r=%" PRId32 "i,ri=%" PRId32 "i,sp=%" PRId32 "i",
+        tool_index, static_cast<unsigned>(get_state()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
 }
 
-void FSensorAdcSide::record_state() {
-    if (limit_record()) {
-        metric_record_custom(&get_metric__static(), ",n=%u st=%ui,f=%" PRId32 "i,r=%" PRId32 "i,ri=%" PRId32 "i,sp=%" PRId32 "i",
-            tool_index, static_cast<unsigned>(get_state()), fs_filtered_value.load(), fs_ref_nins_value, fs_ref_ins_value, fs_value_span);
+void FSensorADC::record_raw(int32_t val) {
+    if (!limit_record_raw()) {
+        return;
     }
+
+    metric_record_custom(&metric_raw(), ",n=%u v=%" PRId32 "i", tool_index, val);
 }
 
-void FSensorAdcExtruder::MetricsSetEnabled(bool enable) {
+void FSensorADC::MetricsSetEnabled(bool enable) {
     uint32_t new_state = enable ? METRIC_HANDLER_ENABLE_ALL : METRIC_HANDLER_DISABLE_ALL;
-    get_metric_raw__static().enabled_handlers = new_state;
-    get_metric__static().enabled_handlers = new_state;
-}
-void FSensorAdcSide::MetricsSetEnabled(bool enable) {
-    uint32_t new_state = enable ? METRIC_HANDLER_ENABLE_ALL : METRIC_HANDLER_DISABLE_ALL;
-    get_metric_raw__static().enabled_handlers = new_state;
-    get_metric__static().enabled_handlers = new_state;
+    metric_filtered().enabled_handlers = new_state;
+    metric_raw().enabled_handlers = new_state;
 }
 
-void FSensorAdcExtruder::record_raw(int32_t val) {
-    if (limit_record_raw()) {
-        metric_record_custom(&get_metric_raw__static(), ",n=%u v=%" PRId32 "i", tool_index, val);
-    }
+metric_s &FSensorADC::metric_raw() {
+    return is_side ? metric_side_raw : metric_extruder_raw;
 }
 
-void FSensorAdcSide::record_raw(int32_t val) {
-    if (limit_record_raw()) {
-        metric_record_custom(&get_metric_raw__static(), ",n=%u v=%" PRId32 "i", tool_index, val);
-    }
+metric_s &FSensorADC::metric_filtered() {
+    return is_side ? metric_side : metric_extruder;
 }
-
-#define METRIC_HANDLER METRIC_HANDLER_DISABLE_ALL
-
-metric_s &FSensorAdcExtruder::get_metric_raw__static() {
-    METRIC_DEF(ret, "fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_raw
-    return ret;
-}
-
-metric_s &FSensorAdcExtruder::get_metric__static() {
-    METRIC_DEF(ret, "fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_state
-    return ret;
-}
-
-metric_s &FSensorAdcSide::get_metric_raw__static() {
-    METRIC_DEF(ret, "side_fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_raw
-    return ret;
-}
-
-metric_s &FSensorAdcSide::get_metric__static() {
-    METRIC_DEF(ret, "side_fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_state
-    return ret;
-}
-
-FSensorAdcExtruder::FSensorAdcExtruder(uint8_t tool_index, bool is_side_sensor)
-    : FSensorADC(tool_index, is_side_sensor)
-    , limit_record(49)
-    , limit_record_raw(60) {}
-
-FSensorAdcSide::FSensorAdcSide(uint8_t tool_index, bool is_side_sensor)
-    : FSensorADC(tool_index, is_side_sensor)
-    , limit_record(49)
-    , limit_record_raw(60) {}

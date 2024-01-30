@@ -14,8 +14,8 @@
 #include "src/module/prusa/toolchanger.h"
 
 // Meyer's singleton
-FSensorAdcExtruder *getExtruderFSensor(uint8_t index) {
-    static std::array<FSensorAdcExtruder, EXTRUDERS> printer_sensors = { {
+FSensorADC *getExtruderFSensor(uint8_t index) {
+    static std::array<FSensorADC, EXTRUDERS> printer_sensors = { {
         { 0, false },
         { 1, false },
         { 2, false },
@@ -28,8 +28,8 @@ FSensorAdcExtruder *getExtruderFSensor(uint8_t index) {
 }
 
 // Meyer's singleton
-FSensorAdcSide *getSideFSensor(uint8_t index) {
-    static std::array<FSensorAdcSide, EXTRUDERS> side_sensors = { {
+FSensorADC *getSideFSensor(uint8_t index) {
+    static std::array<FSensorADC, EXTRUDERS> side_sensors = { {
         { 0, true },
         { 1, true },
         { 2, true },
