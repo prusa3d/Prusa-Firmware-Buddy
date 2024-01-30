@@ -659,10 +659,35 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
     return make_tuple(JsonResult::Incomplete, written);
 }
 
+GcodeMetaRenderer::GcodeMetaRenderer(AnyGcodeFormatReader *gcode)
+    : gcode(gcode) {
+    // We want to get long headers in chunks, not their tails being thrown out.
+    gcode_line_buffer.continuations = GcodeBuffer::Continuations::Split;
+}
+
+void GcodeMetaRenderer::reset_buffer() {
+    gcode_line_buffer.line = GcodeBuffer::String();
+}
+
+JsonResult GcodeMetaRenderer::out_str_chunk(JsonOutput &output, const GcodeBuffer::String &str) {
+    auto result = output.output_str_chunk(0, str.begin, str.len());
+
+    if (result == JsonResult::Complete && gcode_line_buffer.line_complete) {
+        result = output.output(0, "\"");
+    }
+
+    if (result == JsonResult::Complete) {
+        // Adjust this only if we were successful - if not, we'll retry with the same stuff.
+        str_continuation = !gcode_line_buffer.line_complete;
+    }
+
+    return result;
+}
+
 tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buffer_size) {
     assert(gcode->is_open());
     if (first_run) {
-        gcode_line_buffer = GcodeBuffer(); // reset buffer
+        reset_buffer();
         if (!gcode->get()->stream_metadata_start()) {
             return make_tuple(JsonResult::Complete, 0);
         }
@@ -690,88 +715,98 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
             }
         }
 
-        // Disallow terminating the value in case it's taking all the 81 chars
-        // ‒ that could touch the 82th char and we don't have that one.
-        // (possibility with Split continuation of reading).
-        //
-        // (It probably can happen only in case the line_complete == false, but
-        // that would look like a fragile assumption, so basing it off the real
-        // "problem").
-        const bool full_size = gcode_line_buffer.line.len() == gcode_line_buffer.buffer.size();
-        GcodeBuffer::String::parsed_metadata_t parsed = gcode_line_buffer.line.parse_metadata(!full_size);
-        if (parsed.first.begin == nullptr || parsed.second.begin == nullptr) {
-            gcode_line_buffer = GcodeBuffer(); // reset buffer to fetch another line
-            continue;
-        }
-
         // Either result of putting something to the buffer, or nullopt if this line should be skipped.
         std::optional<JsonResult> result = nullopt;
 
-        auto filter = meta_filter(parsed.first.c_str());
-
-        // Too large headers are only handled and allowed for strings, others
-        // aren't expected to exceed 80 chars.
-        if (filter != MetaFilter::String && (full_size || !gcode_line_buffer.line_complete)) {
-            // Eat the rest of the header.
-            bool error = false;
-            while (!gcode_line_buffer.line_complete) {
-                if (gcode->get()->stream_get_line(gcode_line_buffer) != IGcodeReader::Result_t::RESULT_OK) {
-                    error = true;
-                    break;
-                }
+        if (str_continuation) {
+            // Will adjust str_continuation as needed
+            result = out_str_chunk(output, gcode_line_buffer.line);
+        } else {
+            // Disallow terminating the value in case it's taking all the 81 chars
+            // ‒ that could touch the 82th char and we don't have that one.
+            // (possibility with Split continuation of reading).
+            //
+            // (It probably can happen only in case the line_complete == false, but
+            // that would look like a fragile assumption, so basing it off the real
+            // "problem").
+            const bool full_size = gcode_line_buffer.line.len() == gcode_line_buffer.buffer.size();
+            GcodeBuffer::String::parsed_metadata_t parsed = gcode_line_buffer.line.parse_metadata(!full_size);
+            if (parsed.first.begin == nullptr || parsed.second.begin == nullptr) {
+                reset_buffer(); // reset buffer to fetch another line
+                continue;
             }
 
-            if (error) {
+            auto filter = meta_filter(parsed.first.c_str());
+
+            // Too large headers are only handled and allowed for strings, others
+            // aren't expected to exceed 80 chars.
+            if (filter != MetaFilter::String && (full_size || !gcode_line_buffer.line_complete)) {
+                // Eat the rest of the header.
+                bool error = false;
+                while (!gcode_line_buffer.line_complete) {
+                    if (gcode->get()->stream_get_line(gcode_line_buffer) != IGcodeReader::Result_t::RESULT_OK) {
+                        error = true;
+                        break;
+                    }
+                }
+
+                if (error) {
+                    break;
+                }
+
+                filter = MetaFilter::Ignore;
+            }
+
+            switch (filter) {
+            case MetaFilter::Ignore:
+                // do nothing, just go o next line
+                break;
+            case MetaFilter::String:
+                // Only the name of the field and starting "
+                result = output.output(0, "\"%s\":\"", parsed.first.c_str());
+                if (result == JsonResult::Complete) {
+                    // Will adjust the str_continuation as needed.
+                    result = out_str_chunk(output, parsed.second);
+                }
+                break;
+
+            case MetaFilter::Float: {
+                char *end = nullptr;
+                double v = strtod(parsed.second.c_str(), &end);
+                if (end != nullptr && *end != '\0') {
+                    // unable to parse, skip this
+                } else {
+                    result = output.output_field_float_fixed(0, parsed.first.c_str(), v, 2);
+                }
                 break;
             }
 
-            filter = MetaFilter::Ignore;
-        }
-
-        switch (filter) {
-        case MetaFilter::Ignore:
-            // do nothing, just go o next line
-            break;
-        case MetaFilter::String:
-            result = output.output_field_str(0, parsed.first.c_str(), parsed.second.c_str());
-            break;
-
-        case MetaFilter::Float: {
-            char *end = nullptr;
-            double v = strtod(parsed.second.c_str(), &end);
-            if (end != nullptr && *end != '\0') {
-                // unable to parse, skip this
-            } else {
-                result = output.output_field_float_fixed(0, parsed.first.c_str(), v, 2);
-            }
-            break;
-        }
-
-        case MetaFilter::Int:
-        case MetaFilter::Bool: {
-            char *end = nullptr;
-            long v = strtol(parsed.second.c_str(), &end, 10);
-            if (end != nullptr && *end != '\0') {
-                // Not really an int there. Skip this line.
-            } else {
-                if (filter == MetaFilter::Int) {
-                    result = output.output_field_int(0, parsed.first.c_str(), v);
+            case MetaFilter::Int:
+            case MetaFilter::Bool: {
+                char *end = nullptr;
+                long v = strtol(parsed.second.c_str(), &end, 10);
+                if (end != nullptr && *end != '\0') {
+                    // Not really an int there. Skip this line.
                 } else {
-                    // The gcode encodes bools as 0/1, JSON has True and False.
-                    result = output.output_field_bool(0, parsed.first.c_str(), v);
+                    if (filter == MetaFilter::Int) {
+                        result = output.output_field_int(0, parsed.first.c_str(), v);
+                    } else {
+                        // The gcode encodes bools as 0/1, JSON has True and False.
+                        result = output.output_field_bool(0, parsed.first.c_str(), v);
+                    }
                 }
+                break;
             }
-            break;
-        }
+            }
         }
 
         if (!result.has_value()) {
             // no result obtained from this line -> skip it
-            gcode_line_buffer = GcodeBuffer();
+            reset_buffer();
             continue;
         }
 
-        if (result.value() == JsonResult::Complete) {
+        if (result.value() == JsonResult::Complete && !str_continuation) {
             // Line successfully put to buffer - now put ending ","
             result = output.output(0, ",");
         }
@@ -780,7 +815,7 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
         case JsonResult::Complete:
             // Successfully put content into into the buffer. update pos, and reset buffer to go to next line
             pos = buffer_size - buffer_size_rest;
-            gcode_line_buffer = GcodeBuffer();
+            reset_buffer();
             break;
         case JsonResult::Abort:
             // We use only the primitive output functions and they are not
