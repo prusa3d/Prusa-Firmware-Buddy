@@ -20,11 +20,13 @@ void FilamentSensors::reconfigure_sensors_if_needed(bool force) {
 
     tool_index = 0;
 
-    logical_sensors.current_extruder = GetExtruderFSensor(tool_index);
+    using LFS = LogicalFilamentSensor;
+    auto &ls = logical_sensors_;
 
-    logical_sensors.primary_runout = logical_sensors.current_extruder;
-    logical_sensors.secondary_runout = nullptr;
-    logical_sensors.autoload = logical_sensors.current_extruder;
+    const auto extruder_fs = GetExtruderFSensor(tool_index);
+
+    ls[LFS::primary_runout] = extruder_fs;
+    ls[LFS::autoload] = extruder_fs;
 }
 
 void FilamentSensors::AdcSide_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {

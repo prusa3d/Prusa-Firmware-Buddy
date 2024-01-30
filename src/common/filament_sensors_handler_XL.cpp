@@ -59,12 +59,17 @@ void FilamentSensors::reconfigure_sensors_if_needed(bool force) {
 
     tool_index = current_tool;
 
-    logical_sensors.current_extruder = GetExtruderFSensor(tool_index);
-    logical_sensors.current_side = GetSideFSensor(tool_index);
+    using LFS = LogicalFilamentSensor;
+    auto &ls = logical_sensors_;
 
-    logical_sensors.primary_runout = logical_sensors.current_side;
-    logical_sensors.secondary_runout = logical_sensors.current_extruder;
-    logical_sensors.autoload = logical_sensors.current_extruder;
+    const auto extruder_fs = GetExtruderFSensor(tool_index);
+    const auto side_fs = GetSideFSensor(tool_index);
+
+    ls[LFS::current_extruder] = extruder_fs;
+    ls[LFS::current_side] = side_fs;
+    ls[LFS::primary_runout] = side_fs;
+    ls[LFS::secondary_runout] = extruder_fs;
+    ls[LFS::autoload] = extruder_fs;
 }
 
 void FilamentSensors::AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index) {

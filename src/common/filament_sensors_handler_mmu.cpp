@@ -34,12 +34,17 @@ void FilamentSensors::reconfigure_sensors_if_needed([[maybe_unused]] bool force)
     auto side_sensor_state = mmu2.State();
     has_mmu = !(side_sensor_state == xState::Stopped);
 
-    logical_sensors.current_extruder = GetExtruderFSensor(tool_index);
-    logical_sensors.current_side = GetSideFSensor(tool_index);
+    using LFS = LogicalFilamentSensor;
+    auto &ls = logical_sensors_;
 
-    logical_sensors.primary_runout = has_mmu ? logical_sensors.current_side : logical_sensors.current_extruder;
-    logical_sensors.secondary_runout = has_mmu ? logical_sensors.current_extruder : nullptr;
-    logical_sensors.autoload = has_mmu ? nullptr : logical_sensors.current_extruder;
+    const auto extruder_fs = GetExtruderFSensor(tool_index);
+    const auto side_fs = GetSideFSensor(tool_index);
+
+    ls[LFS::current_extruder] = extruder_fs;
+    ls[LFS::current_side] = side_fs;
+    ls[LFS::primary_runout] = has_mmu ? side_fs : extruder_fs;
+    ls[LFS::secondary_runout] = has_mmu ? extruder_fs : nullptr;
+    ls[LFS::autoload] = has_mmu ? nullptr : extruder_fs;
 }
 
 void FilamentSensors::AdcSide_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {

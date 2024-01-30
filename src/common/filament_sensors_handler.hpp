@@ -27,12 +27,6 @@ public:
 
     bool HasMMU(); // mmu enabled, might or might not be initialized
 
-    FilamentSensorState GetPrimaryRunout() { return state_of_primary_runout_sensor; };
-    FilamentSensorState GetSecondaryRunout() { return state_of_primary_runout_sensor; };
-    FilamentSensorState GetAutoload() { return state_of_primary_runout_sensor; };
-    FilamentSensorState GetCurrentExtruder() { return state_of_current_extruder; };
-    FilamentSensorState GetCurrentSide() { return state_of_current_side; };
-
     /// Sets global filament sensor enable
     void set_enabled_global(bool set);
 
@@ -73,32 +67,41 @@ public:
     void AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
     void AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
 
+    /// Thread-safe
+    inline IFSensor *sensor(LogicalFilamentSensor sensor) const {
+        std::unique_lock _(GetExtruderMutex());
+        return logical_sensors_[sensor];
+    }
+
+    /// Thread-safe
+    inline FilamentSensorState sensor_state(LogicalFilamentSensor sensor) const {
+        return logical_sensor_states_[sensor];
+    }
+
+    /// \returns whether the printer knows that it HAS the filament (if should_have_filament == true) or that it HASN'T (if should_have_filament == false)
+    /// If the filament sensor is disabled, not callibrated, disconnected and such, always returns false
+    inline bool has_filament(bool should_have_filament = true) {
+        return logical_sensor_states_[LogicalFilamentSensor::current_extruder] == (should_have_filament ? FilamentSensorState::HasFilament : FilamentSensorState::NoFilament);
+    }
+
 private:
     void reconfigure_sensors_if_needed(bool force);
-    void set_corresponding_variables();
+    void process_events();
 
-    filament_sensor::Events evaluate_logical_sensors_events();
-
-    bool evaluateM600(std::optional<IFSensor::Event> ev) const; // must remain const - is called out of critical section
-    bool evaluateAutoload(std::optional<IFSensor::Event> ev) const; // must remain const - is called out of critical section
     inline bool isEvLocked() const { return event_lock > 0; }
     inline bool isAutoloadLocked() const { return autoload_lock > 0; }
 
     // logical sensors
     // 1 physical sensor can be linked to multiple logical sensors
-    filament_sensor::LogicalSensors logical_sensors;
+    LogicalFilamentSensors logical_sensors_;
+
+    LogicalFilamentSensorStates logical_sensor_states_;
 
     // all those variables can be accessed from multiple threads
     // all of them are set during critical section, so values are guaranteed to be corresponding
     // in case multiple values are needed they should be read during critical section too
     std::atomic<uint8_t> event_lock; // 0 == unlocked
     std::atomic<uint8_t> autoload_lock; // 0 == unlocked
-    std::atomic<FilamentSensorState> state_of_primary_runout_sensor = FilamentSensorState::NotInitialized; // We need those. States obtained from from sensors directly might not by synchronized
-    std::atomic<FilamentSensorState> state_of_secondary_runout_sensor = FilamentSensorState::NotInitialized;
-    std::atomic<FilamentSensorState> state_of_autoload_sensor = FilamentSensorState::NotInitialized;
-
-    std::atomic<FilamentSensorState> state_of_current_extruder = FilamentSensorState::NotInitialized;
-    std::atomic<FilamentSensorState> state_of_current_side = FilamentSensorState::NotInitialized;
 
     /// If set, the fsensors enable/disable states
     /// will be reconfigured in the next fsensors update cycle
@@ -113,7 +116,7 @@ private:
     std::atomic<bool> has_mmu = false; // affect only MMU, named correctly .. it is not "has_side_sensor"
 
     // I have used reference to forward declared class, so I do not need to include freertos in header
-    freertos::Mutex &GetExtruderMutex();
+    freertos::Mutex &GetExtruderMutex() const;
 
     friend IFSensor *GetExtruderFSensor(uint8_t index);
     friend IFSensor *GetSideFSensor(uint8_t index);

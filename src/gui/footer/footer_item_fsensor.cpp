@@ -18,14 +18,14 @@ FooterItemFSensorSide::FooterItemFSensorSide(window_t *parent)
 }
 
 int FooterItemFSensor::static_readValue() {
-    if (IFSensor *sensor = get_active_printer_sensor(); sensor) {
+    if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_extruder)) {
         return static_cast<int>(sensor->get_state());
     }
     return no_tool_value;
 }
 
 int FooterItemFSensorSide::static_readValue() {
-    if (IFSensor *sensor = get_active_side_sensor(); sensor) {
+    if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_side)) {
         return static_cast<int>(sensor->get_state());
     }
     return no_tool_value;

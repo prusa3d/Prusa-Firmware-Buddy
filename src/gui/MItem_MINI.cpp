@@ -12,7 +12,7 @@ MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
 }
 
 MI_FILAMENT_SENSOR_STATE::state_t MI_FILAMENT_SENSOR_STATE::get_state() {
-    FilamentSensorState fs = FSensors_instance().GetPrimaryRunout();
+    FilamentSensorState fs = FSensors_instance().sensor_state(LogicalFilamentSensor::primary_runout);
     switch (fs) {
     case FilamentSensorState::HasFilament:
         return state_t::high;

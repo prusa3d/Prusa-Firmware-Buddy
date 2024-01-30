@@ -49,7 +49,7 @@ static filament_status get_filament_status() {
     auto filament = config_store().get_filament_type(0); // first layer calib is on single tool printers only, so should be fine
 
     uint8_t eeprom = filament != filament::Type::NONE ? static_cast<uint8_t>(filament_status::TypeKnown_SensorNoFilament) : uint8_t(0); // set eeprom flag
-    uint8_t sensor = FSensors_instance().GetPrimaryRunout() != FilamentSensorState::NoFilament ? static_cast<uint8_t>(filament_status::TypeUnknown_SensorValid) : uint8_t(0); // set sensor flag
+    uint8_t sensor = FSensors_instance().sensor_state(LogicalFilamentSensor::primary_runout) != FilamentSensorState::NoFilament ? static_cast<uint8_t>(filament_status::TypeUnknown_SensorValid) : uint8_t(0); // set sensor flag
     return static_cast<filament_status>(eeprom | sensor); // combine flags
 }
 

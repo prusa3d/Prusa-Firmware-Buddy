@@ -59,7 +59,6 @@ public:
 protected:
     // Protected functions are only to be called from FilamentSensors to prevent race conditions
 
-    FilamentSensorState last_evaluated_state = FilamentSensorState::Disabled;
     std::atomic<FilamentSensorState> state = FilamentSensorState::Disabled;
 
     /// Records metrics specific for the sensor
@@ -68,12 +67,21 @@ protected:
     /// sensor type specific evaluation cycle
     virtual void cycle() = 0;
 
-    /// Evaluates if some event happened, will return each event only once, so its meant to be called only internally.
-    Event generate_event();
+    /// Compares states between this function calls and sets last_event() accordingly.
+    void check_for_events();
+
+    /// Returns potential event raised by the last check_for_events() call
+    inline Event last_event() const {
+        return last_event_;
+    }
 
     /// Resets the sensor state (sets to disabled if set=false, starts initializing the sensor if true).
     /// Resets the state even if you call set_enabled(true) while the sensor is enabled (that is okay).
     /// Does not change the EEPROM.
     /// This function is not thread-safe.
     virtual void set_enabled(bool set);
+
+private:
+    FilamentSensorState last_check_event_state_ = FilamentSensorState::Disabled;
+    Event last_event_ = Event::no_event;
 };

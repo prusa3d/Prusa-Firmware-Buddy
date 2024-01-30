@@ -8,20 +8,21 @@
 #include "rtos_api.hpp"
 #include "metric.h"
 
-IFSensor::Event IFSensor::generate_event() {
-    const auto previous_state = last_evaluated_state;
-    last_evaluated_state = state;
+void IFSensor::check_for_events() {
+    const auto previous_state = last_check_event_state_;
+    last_check_event_state_ = state;
+    last_event_ = Event::no_event;
 
     // Generate edge events only if we go from one working state to another (HasFilament <-> NoFilament)
     if (!is_fsensor_working_state(state) || !is_fsensor_working_state(previous_state)) {
-        return Event::no_event;
+        return;
     }
 
     if (state == previous_state) {
-        return Event::no_event;
+        return;
     }
 
-    return (state == FilamentSensorState::HasFilament) ? Event::filament_inserted : Event::filament_removed;
+    last_event_ = (state == FilamentSensorState::HasFilament) ? Event::filament_inserted : Event::filament_removed;
 }
 
 void IFSensor::set_enabled(bool set) {
