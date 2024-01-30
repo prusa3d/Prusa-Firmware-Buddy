@@ -346,7 +346,6 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // segment to come will be move segment to zero, let's prepare for that.
     axis_state.zero_rotor_phase = current_phase;
     axis_state.last_phase = current_phase;
-    axis_state.target = MoveTarget(axis_state.last_position);
 #endif
     // Read axis configuration and cache it so we can access it fast
     if (axis_num == AxisEnum::X_AXIS) {
