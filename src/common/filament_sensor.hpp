@@ -55,7 +55,6 @@ public:
     };
     virtual void SetCalibrateRequest(CalibrateRequest) {}
     virtual bool IsCalibrationFinished() const { return true; }
-    virtual void SetLoadSettingsFlag() {}
     virtual void SetInvalidateCalibrationFlag() {}
 
     virtual void MetricsSetEnabled(bool) {} // Enable/disable metrics for this filament sensor

@@ -30,10 +30,6 @@ void FSensorADC::disable() {
 void FSensorADC::cycle() {
     const auto filtered_value { fs_filtered_value.load() }; // store value - so interrupt cannot change it during evaluation
 
-    if (flg_load_settings) {
-        load_settings();
-        init(); // will enable or disable, depends on eeprom disable flag
-    }
     if (flg_invalid_calib) {
         invalidate_calibration();
         Disable();
@@ -71,10 +67,6 @@ void FSensorADC::SetCalibrateRequest(CalibrateRequest req) {
 
 bool FSensorADC::IsCalibrationFinished() const {
     return req_calibrate == CalibrateRequest::NoCalibration;
-}
-
-void FSensorADC::SetLoadSettingsFlag() {
-    flg_load_settings = true;
 }
 
 void FSensorADC::SetInvalidateCalibrationFlag() {
@@ -124,8 +116,6 @@ void FSensorADC::load_settings() {
         is_side ? config_store().get_side_fs_ref_nins_value(tool_index) :
 #endif
                 config_store().get_extruder_fs_ref_nins_value(tool_index);
-
-    flg_load_settings = false;
 }
 
 void FSensorADC::CalibrateNotInserted(int32_t value) {

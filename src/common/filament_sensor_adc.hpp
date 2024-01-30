@@ -33,7 +33,6 @@ protected:
     uint8_t tool_index;
     bool is_side { false };
 
-    bool flg_load_settings { true };
     CalibrateRequest req_calibrate { CalibrateRequest::NoCalibration };
     bool flg_invalid_calib { false };
 
@@ -60,7 +59,6 @@ public:
      */
     virtual void SetCalibrateRequest(CalibrateRequest) override;
     virtual bool IsCalibrationFinished() const override;
-    virtual void SetLoadSettingsFlag() override;
     virtual void SetInvalidateCalibrationFlag() override;
 
     void load_settings();
