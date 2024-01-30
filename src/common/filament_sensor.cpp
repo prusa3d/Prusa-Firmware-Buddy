@@ -9,14 +9,11 @@
 #include "rtos_api.hpp"
 #include "metric.h"
 
-/*---------------------------------------------------------------------------*/
-// global not thread safe functions
 void IFSensor::init() {
     set_enabled(FSensorEEPROM::Get());
 }
 
-/*---------------------------------------------------------------------------*/
-IFSensor::Event IFSensor::GenerateEvent() {
+IFSensor::Event IFSensor::generate_event() {
     const auto previous_state = last_evaluated_state;
     last_evaluated_state = state;
 

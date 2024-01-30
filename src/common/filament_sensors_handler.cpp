@@ -93,7 +93,7 @@ filament_sensor::Events FilamentSensors::evaluate_logical_sensors_events() {
     filament_sensor::Events ret;
     for (size_t logi = 0; logi < arr_logical.size(); ++logi) {
         if (arr_logical[logi]) { // check if current sensor is linked
-            ret.get(logi) = arr_logical[logi]->GenerateEvent();
+            ret.get(logi) = arr_logical[logi]->generate_event();
 
             // Since sensor can repeat inside arr_logical, update every consecutive logical sensor and set it to null so GenerateEvent is not called twice
             for (size_t next_logi = logi + 1; next_logi < arr_logical.size(); ++next_logi) {

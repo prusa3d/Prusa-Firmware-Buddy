@@ -28,9 +28,6 @@ public:
 
     virtual ~IFSensor() = default;
 
-    // Evaluates if some event happened, will return each event only once, so its meant to be called only internally.
-    Event GenerateEvent();
-
     inline FilamentSensorState get_state() const { return state; }
 
     /// Returns whether the filament sensor is enabled.
@@ -67,8 +64,14 @@ protected:
 
     void init();
 
-    virtual void record_state() {}; // record metrics
-    virtual void cycle() = 0; // sensor type specific evaluation cycle
+    /// Records metrics specific for the sensor
+    virtual void record_state() {};
+
+    /// sensor type specific evaluation cycle
+    virtual void cycle() = 0;
+
+    /// Evaluates if some event happened, will return each event only once, so its meant to be called only internally.
+    Event generate_event();
 
     /// Resets the sensor state (sets to disabled if set=false, starts initializing the sensor if true).
     /// Does not change the EEPROM.
