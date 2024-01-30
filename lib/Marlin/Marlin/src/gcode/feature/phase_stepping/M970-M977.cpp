@@ -7,6 +7,7 @@
 #include <feature/phase_stepping/calibration.hpp>
 
 #include <log.h>
+#include <vector>
 #include <string_view>
 #include <config_store/store_instance.hpp>
 
@@ -403,7 +404,14 @@ void GcodeSuite::M976() {
 }
 
 class GCodeCalibrationReporter : public phase_stepping::CalibrationReporterBase {
+    std::vector<std::tuple<float, float>> _calibration_results;
+
 public:
+    void set_calibration_phases_count(int phases) override {
+        phase_stepping::CalibrationReporterBase::set_calibration_phases_count(phases);
+        _calibration_results.resize(phases);
+    }
+
     void on_initial_movement() override {
         SERIAL_ECHOLN("Moving to calibration position");
     }
@@ -419,6 +427,7 @@ public:
     }
 
     void on_calibration_phase_result(float forward_score, float backward_score) override {
+        _calibration_results[_current_calibration_phase] = { forward_score, backward_score };
         SERIAL_ECHO("Phase ");
         SERIAL_ECHO(_current_calibration_phase + 1);
         SERIAL_ECHO(" done. Vibration reduced by: ");
@@ -429,7 +438,25 @@ public:
     };
 
     void on_termination() override {
-        SERIAL_ECHOLN("Done");
+        SERIAL_ECHOLN("Calibration done");
+
+#if PRINTER_IS_PRUSA_XL
+        SERIAL_ECHO("Overall score parameter 1: ");
+        auto [p1_f, p1_b] = _calibration_results[0];
+        auto [p3_f, p3_b] = _calibration_results[2];
+        SERIAL_ECHO(100.f * (1.f - p1_f * p3_f));
+        SERIAL_ECHO("%, ");
+        SERIAL_ECHO(100.f * (1.f - p1_b * p3_b));
+        SERIAL_ECHO("%\n");
+
+        SERIAL_ECHO("Overall score parameter 2: ");
+        auto [p2_f, p2_b] = _calibration_results[1];
+        auto [p4_f, p4_b] = _calibration_results[3];
+        SERIAL_ECHO(100.f * (1.f - p2_f * p4_f));
+        SERIAL_ECHO("%, ");
+        SERIAL_ECHO(100.f * (1.f - p2_b * p4_b));
+        SERIAL_ECHO("%\n");
+#endif
     }
 };
 

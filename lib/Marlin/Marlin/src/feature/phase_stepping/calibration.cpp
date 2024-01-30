@@ -622,6 +622,7 @@ phase_stepping::calibrate_axis(AxisEnum axis, CalibrationReporterBase &reporter)
 
         reporter.on_calibration_phase_result(min_f / baseline_f, min_b / baseline_b);
     }
+    reporter.on_termination();
 
     r.emplace();
     std::get<0>(*r) = phase_stepping::axis_states[axis]->forward_current.get_correction();
