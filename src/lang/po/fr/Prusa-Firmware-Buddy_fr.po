@@ -3542,7 +3542,7 @@ msgstr "Aucune configuration"
 
 #: src/gui/MItem_tools.cpp:287
 msgid "No crash dump to save."
-msgstr "Aucun rapport de vidage de mémoire à sauvegarder."
+msgstr "Aucun dump de crash à sauvegarder."
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:264
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:309
