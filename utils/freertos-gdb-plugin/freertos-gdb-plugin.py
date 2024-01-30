@@ -6,7 +6,7 @@ def value_to_int(value):
 
 
 def set_reg(reg, value):
-    gdb.execute(f'set ${reg} = {value}')
+    gdb.execute('set ${} = {}'.format(reg, value))
 
 
 class Stack(object):
@@ -15,7 +15,7 @@ class Stack(object):
         self._pointer = value_to_int(pointer)
 
     def pop(self):
-        result = value_to_int(gdb.parse_and_eval(f'*{self._pointer}'))
+        result = value_to_int(gdb.parse_and_eval('*{}'.format(self._pointer)))
         self._pointer += 4
         return result
 
@@ -54,7 +54,7 @@ class Task(object):
         return Stack(self._tcb_ptr['pxTopOfStack'])
 
     def gdb_name(self):
-        return f'{self.number()} (Thread <{self.name()}>)'
+        return '{} (Thread <{}>)'.format(self.number(), self.name())
 
 
 def foreach_freertos_list(freertos_list):
@@ -81,10 +81,14 @@ def extract_tasks(task_list_cpp, *args, **kwargs):
 
 
 def collect_all_tasks():
-    yield from extract_tasks('xDelayedTaskList1', status='blocked')
-    yield from extract_tasks('xDelayedTaskList2', status='blocked')
+    for task in extract_tasks('xDelayedTaskList1', status='blocked'):
+        yield task
+    for task in extract_tasks('xDelayedTaskList2', status='blocked'):
+        yield task
     for i in range(0, 7):
-        yield from extract_tasks(f'pxReadyTasksLists[{i}]', status='ready')
+        for task in extract_tasks('pxReadyTasksLists[{}]'.format(i),
+                                  status='ready'):
+            yield task
 
 
 def switch_to_task(task):
@@ -125,7 +129,7 @@ def switch_to_task(task):
     is_fpu_context = bin(r14)[-5] == '0'
     if is_fpu_context:
         for i in range(16, 32):
-            set_reg(f's{i}', stack.pop())
+            set_reg('s{}'.format(i), stack.pop())
 
     # psp will be used by MCU to restore sp when performing mode switch
     set_reg('psp', stack.pointer())
@@ -181,31 +185,32 @@ class FreeRTOS(gdb.Command):
             task_name = task.name().ljust(16)
             task_status = task.status().ljust(7)
             task_priority = str(task.priority()).rjust(8)
-            print(f'  {task_id} {task_name} {task_status} {task_priority}')
+            print('  {} {} {} {}'.format(task_id, task_name, task_status,
+                                         task_priority))
 
     def _thread_apply_all(self, args):
         if not args:
             return
 
         for task in sorted(collect_all_tasks(), key=lambda t: t.number()):
-            print(f'\nThread {task.gdb_name()}:')
+            print('\nThread {}:'.format(task.gdb_name()))
             self._switch_to_task(task)
             gdb.execute(' '.join(args))
 
     def _thread(self, args):
         if not args:
             task = Task(gdb.parse_and_eval('pxCurrentTCB'), status='running')
-            print(f'[Current thread is {task.gdb_name()}]')
+            print('[Current thread is {}]'.format(task.gdb_name()))
             return
 
         for task in collect_all_tasks():
             if str(task.number()) == args[0]:
-                print(f'[Switching to thread {task.gdb_name()}]')
+                print('[Switching to thread {}]'.format(task.gdb_name()))
                 self._switch_to_task(task)
                 gdb.execute('frame')
                 return
 
-        print(f'Unknown thread {args[0]}.')
+        print('Unknown thread {}.'.format(args[0]))
 
     def _switch_to_task(self, task):
         if task.is_running():
@@ -217,7 +222,7 @@ class FreeRTOS(gdb.Command):
         self._saved_regs = {}
 
         def save_reg(name):
-            value = gdb.parse_and_eval(f'${name}')
+            value = gdb.parse_and_eval('${}'.format(name))
             self._saved_regs[name] = value_to_int(value)
 
         save_reg('r0')
