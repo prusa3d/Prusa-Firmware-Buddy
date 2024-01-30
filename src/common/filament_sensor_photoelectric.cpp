@@ -65,7 +65,3 @@ void FSensorPhotoElectric::set_state(FilamentSensorState set) {
     }
     last_set_state_target = set;
 }
-
-FSensorPhotoElectric::FSensorPhotoElectric() {
-    init();
-}

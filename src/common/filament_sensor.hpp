@@ -59,10 +59,8 @@ public:
 protected:
     // Protected functions are only to be called from FilamentSensors to prevent race conditions
 
-    FilamentSensorState last_evaluated_state = FilamentSensorState::NotInitialized;
-    std::atomic<FilamentSensorState> state = FilamentSensorState::NotInitialized;
-
-    void init();
+    FilamentSensorState last_evaluated_state = FilamentSensorState::Disabled;
+    std::atomic<FilamentSensorState> state = FilamentSensorState::Disabled;
 
     /// Records metrics specific for the sensor
     virtual void record_state() {};
@@ -74,6 +72,7 @@ protected:
     Event generate_event();
 
     /// Resets the sensor state (sets to disabled if set=false, starts initializing the sensor if true).
+    /// Resets the state even if you call set_enabled(true) while the sensor is enabled (that is okay).
     /// Does not change the EEPROM.
     /// This function is not thread-safe.
     virtual void set_enabled(bool set);

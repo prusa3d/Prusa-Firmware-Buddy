@@ -206,7 +206,7 @@ LoopResult CSelftestPart_FSensor::state_calibrate() {
         side->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
     }
 
-    FSensors_instance().Enable();
+    FSensors_instance().set_enabled_global(true);
 
     log_info(Selftest, "%s calibrating", rConfig.partname);
     return LoopResult::RunNext;

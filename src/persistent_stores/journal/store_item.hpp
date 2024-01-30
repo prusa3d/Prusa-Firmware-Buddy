@@ -39,13 +39,16 @@ public:
         return data;
     }
 
-    void set(const DataT &in) {
+    /// Sets the config to the provided value \p in
+    /// \returns true if the set value was different from the previous one
+    bool set(const DataT &in) {
         if (in == data) {
-            return;
+            return false;
         }
         auto l = backend().lock();
         data = in;
         do_save();
+        return true;
     }
 
     /// Sets the config item to its default value.

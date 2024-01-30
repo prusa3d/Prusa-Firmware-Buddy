@@ -79,7 +79,7 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
 
     // Disable filament sensors
     if (!index) {
-        FSensors_instance().Disable();
+        FSensors_instance().set_enabled_global(false);
 
         // If disabling, send a message to parent to reload the value of
         // MI_ITEM_MMU, because it has just been disabled as well
@@ -88,7 +88,7 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
 
     // Enable filament sensors
     else {
-        FSensors_instance().Enable();
+        FSensors_instance().set_enabled_global(true);
 
         using FSS = FilamentSensorState;
 
@@ -111,7 +111,7 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
         }
 
         if (failed) {
-            FSensors_instance().Disable();
+            FSensors_instance().set_enabled_global(false);
             SetIndex(old_index);
         }
     }

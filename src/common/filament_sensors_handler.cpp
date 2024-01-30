@@ -26,11 +26,10 @@ LOG_COMPONENT_DEF(FSensor, LOG_SEVERITY_INFO);
 using namespace MMU2;
 
 FilamentSensors::FilamentSensors() {
-    // Set logical sensors
-    // MK4 can be reconfigured (connecting MMU)
-    // MINI can not
-    // XL reconfigures on tool change
     reconfigure_sensors_if_needed(true);
+
+    // Request that the fsensors get properly configured on startup
+    enable_state_update_pending = true;
 }
 
 freertos::Mutex &FilamentSensors::GetExtruderMutex() {
@@ -38,32 +37,26 @@ freertos::Mutex &FilamentSensors::GetExtruderMutex() {
     return ret;
 }
 
-// Store request_printer off
-void FilamentSensors::Disable() {
-#if HAS_MMU2()
-    // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
-    marlin_client::gcode("M709 S0");
-#endif
-
-    const std::lock_guard lock(GetExtruderMutex());
-    request = Request::disable;
-}
-
-// Store request_printer on
-void FilamentSensors::Enable() {
-    const std::lock_guard lock(GetExtruderMutex());
-    request = Request::enable;
-}
-
 bool FilamentSensors::is_enabled() const {
     return FSensorEEPROM::Get();
+}
+
+void FilamentSensors::set_enabled_global(bool set) {
+    if (!set) {
+        // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
+        marlin_client::gcode("M709 S0");
+    }
+
+    if (config_store().fsensor_enabled.set(set)) {
+        enable_state_update_pending = true;
+    }
 }
 
 FilamentSensors::SensorStateBitset FilamentSensors::get_sensors_states() {
     SensorStateBitset result;
 
-    // If we're processing an enable command, consider the sensors not initialized
-    if (Request r = request.load(); r == Request::enable) {
+    // If we're processing an enable update, consider the sensors not initialized
+    if (enable_state_update_pending) {
         result.set(ftrstd::to_underlying(FilamentSensorState::NotInitialized));
     }
 
@@ -109,7 +102,9 @@ filament_sensor::Events FilamentSensors::evaluate_logical_sensors_events() {
 }
 
 void FilamentSensors::Cycle() {
-    process_request();
+    if (enable_state_update_pending) {
+        process_enable_state_update();
+    }
 
     // run cycle to evaluate state of all sensors (even those not active)
     for_all_sensors([](IFSensor &s) {
@@ -198,26 +193,17 @@ void FilamentSensors::set_corresponding_variables() {
     state_of_current_side = logical_sensors.current_side ? logical_sensors.current_side->get_state() : FilamentSensorState::Disabled;
 }
 
-void FilamentSensors::process_request() {
-    switch (request) {
+void FilamentSensors::process_enable_state_update() {
+    enable_state_update_processing = true;
+    enable_state_update_pending = false;
 
-    case Request::no_request:
-        break;
+    const bool enabled = config_store().fsensor_enabled.get();
 
-    case Request::enable:
-        for_all_sensors([](IFSensor &s) {
-            s.set_enabled(true);
-        });
-        break;
+    for_all_sensors([&](IFSensor &s) {
+        s.set_enabled(enabled);
+    });
 
-    case Request::disable:
-        for_all_sensors([](IFSensor &s) {
-            s.set_enabled(false);
-        });
-        break;
-    }
-
-    request = Request::no_request;
+    enable_state_update_processing = false;
 }
 
 // this method is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter

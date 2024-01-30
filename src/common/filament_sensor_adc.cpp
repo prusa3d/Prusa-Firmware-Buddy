@@ -57,7 +57,6 @@ FSensorADC::FSensorADC(uint8_t tool_index, bool is_side_sensor)
     : tool_index(tool_index)
     , is_side(is_side_sensor) {
     load_settings();
-    init();
 }
 
 void FSensorADC::SetCalibrateRequest(CalibrateRequest req) {

@@ -24,7 +24,4 @@ private:
         p1,
     };
     MeasurePhase measure_phase = MeasurePhase::p0;
-
-public:
-    FSensorPhotoElectric();
 };

@@ -33,20 +33,25 @@ public:
     FilamentSensorState GetCurrentExtruder() { return state_of_current_extruder; };
     FilamentSensorState GetCurrentSide() { return state_of_current_side; };
 
-    void Disable();
-    void Enable();
-
     /**
      * @brief Get info from EEPROM if sensors are enabled.
      * @return true if enabled
      */
     bool is_enabled() const;
 
+    /// Sets global filament sensor enable
+    void set_enabled_global(bool set);
+
     using SensorStateBitset = std::bitset<ftrstd::to_underlying(FilamentSensorState::_cnt)>;
 
     /// Overview of all states of all filament sensors
     /// \returns bitwise or of individual fsensor state bit field
     SensorStateBitset get_sensors_states();
+    
+    /// Returns whether fsensors enable state update was requested and is not yet fully processed
+    inline bool is_enable_state_update_processing() const {
+        return enable_state_update_pending || enable_state_update_processing;
+    }
 
     /// Calls \p f on all filament sensors
     void for_all_sensors(const std::function<void(IFSensor &)> &f);
@@ -103,13 +108,12 @@ private:
     std::atomic<FilamentSensorState> state_of_current_extruder = FilamentSensorState::NotInitialized;
     std::atomic<FilamentSensorState> state_of_current_side = FilamentSensorState::NotInitialized;
 
-    enum class Request {
-        no_request,
-        enable, ///< Request to enable all filament sensors
-        disable, ///< Request to disable all filament sensors
-    };
-    std::atomic<Request> request = Request::no_request;
-    void process_request();
+    /// If set, the fsensors enable/disable states
+    /// will be reconfigured in the next fsensors update cycle
+    std::atomic<bool> enable_state_update_pending = false;
+    std::atomic<bool> enable_state_update_processing = false;
+
+    void process_enable_state_update();
 
     std::atomic<uint8_t> tool_index = uint8_t(-1);
     std::atomic<bool> m600_sent = false;

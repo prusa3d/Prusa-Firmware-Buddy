@@ -560,7 +560,7 @@ PrintPreview::Result PrintPreview::Loop() {
         switch (response) {
 
         case Response::FS_disable:
-            FSensors_instance().Disable();
+            FSensors_instance().set_enabled_global(false);
             ChangeState(State::checks_done);
             break;
 

@@ -1150,7 +1150,7 @@ void ToolsMappingBody::windowEvent(EventLock /*has private ctor*/, [[maybe_unuse
                     return; // go back to tools mapping
                 } else {
                     if (disable_fs) {
-                        FSensors_instance().Disable();
+                        FSensors_instance().set_enabled_global(false);
                     }
                     Screens::Access()->Get()->Validate(); // don't redraw tools mapping screen since we're leaving
                 }
