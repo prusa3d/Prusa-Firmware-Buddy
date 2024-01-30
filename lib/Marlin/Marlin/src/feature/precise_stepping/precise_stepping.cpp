@@ -570,11 +570,22 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
         // steps to zero because losing a fraction of a step in the E-axis shouldn't cause any
         // issues.
         total_start_pos_msteps.e = 0;
+
+        PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
     } else {
         PreciseStepping::total_start_pos_msteps = stepper.count_position_from_startup * PLANNER_STEPS_MULTIPLIER;
-    }
+        PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
 
-    PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
+#if HAS_PHASE_STEPPING()
+    #ifdef COREXY
+        phase_stepping::set_phase_origin(X_AXIS, total_start_pos[X_AXIS] + total_start_pos[Y_AXIS]);
+        phase_stepping::set_phase_origin(Y_AXIS, total_start_pos[X_AXIS] - total_start_pos[Y_AXIS]);
+    #else
+        phase_stepping::set_phase_origin(X_AXIS, total_start_pos[X_AXIS]);
+        phase_stepping::set_phase_origin(Y_AXIS, total_start_pos[Y_AXIS]);
+    #endif
+#endif
+    }
 }
 
 uint16_t PreciseStepping::process_one_step_event_from_queue() {
