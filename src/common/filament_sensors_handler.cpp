@@ -36,10 +36,6 @@ freertos::Mutex &FilamentSensors::GetExtruderMutex() {
     return ret;
 }
 
-bool FilamentSensors::is_enabled() const {
-    return config_store().fsensor_enabled.get();
-}
-
 void FilamentSensors::set_enabled_global(bool set) {
     if (!set) {
         // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same

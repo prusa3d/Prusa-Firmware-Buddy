@@ -33,12 +33,6 @@ public:
     FilamentSensorState GetCurrentExtruder() { return state_of_current_extruder; };
     FilamentSensorState GetCurrentSide() { return state_of_current_side; };
 
-    /**
-     * @brief Get info from EEPROM if sensors are enabled.
-     * @return true if enabled
-     */
-    bool is_enabled() const;
-
     /// Sets global filament sensor enable
     void set_enabled_global(bool set);
 

@@ -67,7 +67,7 @@ constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier 
 /**********************************************************************************************/
 // MI_FILAMENT_SENSOR
 bool MI_FILAMENT_SENSOR::init_index() const {
-    return FSensors_instance().is_enabled();
+    return config_store().fsensor_enabled.get();
 }
 
 void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
@@ -556,9 +556,9 @@ MI_INFO_SERIAL_NUM::MI_INFO_SERIAL_NUM()
 
 /*****************************************************************************/
 // MI_FS_AUTOLOAD
-is_hidden_t hide_autoload_item() {
-    // autoload settings doesn't make sense when filament sensors are disabled
-    if (!FSensors_instance().is_enabled()) {
+static is_hidden_t get_autoload_hide_state() {
+    // Autoloading option doesn't make sense with filament sensors disabled
+    if (!config_store().fsensor_enabled.get()) {
         return is_hidden_t::yes;
     }
 
@@ -573,7 +573,8 @@ is_hidden_t hide_autoload_item() {
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
-    : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fs_autoload_enabled), _(label), nullptr, is_enabled_t::yes, hide_autoload_item()) {}
+    : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fs_autoload_enabled), _(label), nullptr, is_enabled_t::yes, get_autoload_hide_state()) {}
+
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
     marlin_client::set_fs_autoload(!old_index);
     config_store().fs_autoload_enabled.set(static_cast<bool>(marlin_vars()->fs_autoload_enabled));
