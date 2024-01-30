@@ -36,6 +36,8 @@
     #include "../../../feature/prusa/crash_recovery.hpp"
 #endif
 
+#include <feature/phase_stepping/phase_stepping.hpp>
+
 /** \addtogroup G-Codes
  * @{
  */
@@ -265,6 +267,8 @@
  */
 void GcodeSuite::G29() {
     BlockEStallDetection block_e_stall_detection;
+    phase_stepping::EnsureSuitableForHoming phstep_disabler;
+
     #if ANY(CRASH_RECOVERY, POWER_PANIC)
       // G29 requires a full restart: inhibit partial replay
       crash_s.inhibit_gcode_replay();
