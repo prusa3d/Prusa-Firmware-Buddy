@@ -575,6 +575,7 @@ namespace {
         { "ironing", MetaFilter::Int },
         { "support_material", MetaFilter::Int },
         { "max_layer_z", MetaFilter::Float },
+        { "objects_info", MetaFilter::String },
     };
 
     MetaFilter meta_filter(const char *name) {
