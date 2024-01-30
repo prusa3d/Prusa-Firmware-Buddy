@@ -59,10 +59,10 @@ public:
             }
         }
 
-        char front() { return *begin; }
+        char front() const { return *begin; }
         char pop_front() { return begin == end ? '\0' : *begin++; }
 
-        bool is_empty() { return begin == end; }
+        bool is_empty() const { return begin == end; }
         uint32_t get_uint() { return atol(&*begin); }
         float get_float() { return atof(&*begin); };
         String get_string();
@@ -80,7 +80,7 @@ public:
         bool skip_to_param(char param);
 
         char *c_str() { return &*begin; }
-        size_t len() { return end - begin; }
+        size_t len() const { return end - begin; }
 
         typedef std::pair<String, String> parsed_metadata_t;
         /**
