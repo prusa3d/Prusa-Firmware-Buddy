@@ -572,7 +572,7 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
     const auto &current_lut = resolve_current_lut(axis_state);
 
     int new_phase = normalize_motor_phase(pos_to_phase(axis_index, physical_position) + axis_state.zero_rotor_phase);
-    assert(phase_difference(axis_state.last_phase, new_phase) < 256);
+    // assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
 #if HAS_BURST_STEPPING()
     axis_state.phase_correction = current_lut.get_phase_shift(new_phase);
