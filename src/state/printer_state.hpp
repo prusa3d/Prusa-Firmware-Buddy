@@ -27,7 +27,7 @@ struct StateWithDialog {
     const char *text = nullptr;
     StateWithDialog(DeviceState state)
         : device_state(state) {}
-    StateWithDialog(DeviceState state, ErrCode code)
+    StateWithDialog(DeviceState state, std::optional<ErrCode> code)
         : device_state(state)
         // TODO: For now, we cheat. We reuse the numerical value of the error
         // code as the dialog ID too, for simplicity. This can't make a
@@ -35,8 +35,11 @@ struct StateWithDialog {
         // the control of dialogs remotely, it doesn't matter. Then we'll have
         // to somehow generate unique IDs for each shown instance so we can
         // check the remote touches the right buttons, etc.
-        , dialog_id(static_cast<uint32_t>(code))
-        , code(code) {}
+        , code(code) {
+        if (code.has_value()) {
+            dialog_id = static_cast<uint32_t>(*code);
+        }
+    }
     static StateWithDialog attention(ErrCode code) {
         return StateWithDialog(DeviceState::Attention, code);
     }

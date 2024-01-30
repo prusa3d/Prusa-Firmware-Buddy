@@ -29,53 +29,41 @@ DialogWarning::types DialogWarning::get_type(fsm::BaseData data) {
     switch (wtype) {
     case WarningType::HotendFanError:
         return HotendFan;
-        break;
     case WarningType::PrintFanError:
         return PrintFan;
-        break;
     case WarningType::HotendTempDiscrepancy:
         return HotendTempDiscrepancy;
-        break;
     case WarningType::HeatersTimeout:
     case WarningType::NozzleTimeout:
         return HeatersTimeout;
-        break;
 #if _DEBUG
     case WarningType::SteppersTimeout:
         return SteppersTimeout;
-        break;
 #endif
     case WarningType::USBFlashDiskError:
         return USBFlashDisk;
-        break;
     case WarningType::HeatBreakThermistorFail:
         return HBThermistorFail;
-        break;
 #if ENABLED(POWER_PANIC)
     case WarningType::HeatbedColdAfterPP:
         return HeatbedColdAfterPP;
-        break;
 #endif
     case WarningType::NozzleDoesNotHaveRoundSection:
         return NozzleDoesNotHaveRoundSection;
-        break;
     case WarningType::NotDownloaded:
         return NotDownloaded;
-        break;
     case WarningType::BuddyMCUMaxTemp:
         return BuddyMCUMaxTemp;
-        break;
 #if HAS_DWARF()
     case WarningType::DwarfMCUMaxTemp:
         return DwarfMCUMaxTemp;
-        break;
 #endif /* HAS_DWARF() */
 #if HAS_MODULARBED()
     case WarningType::ModBedMCUMaxTemp:
         return ModBedMCUMaxTemp;
-        break;
 #endif /* HAS_MODULARBED() */
     default:
         assert(false);
+        return count_;
     }
 }

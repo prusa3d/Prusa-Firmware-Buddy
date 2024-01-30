@@ -10,7 +10,7 @@ using namespace marlin_server;
 
 namespace printer_state {
 namespace {
-    StateWithDialog get_print_state(State state, bool ready) {
+    StateWithDialog get_print_state(State state, bool ready, std::optional<ErrCode> dialog_code) {
         switch (state) {
         case State::PrintPreviewQuestions:
             // Should never happen, we catch this before with FSM states,
@@ -35,9 +35,9 @@ namespace {
         case State::PrintInit:
         case State::Exit:
             if (ready) {
-                return DeviceState::Ready;
+                return { DeviceState::Ready, dialog_code };
             } else {
-                return DeviceState::Idle;
+                return { DeviceState::Idle, dialog_code };
             }
         case State::Printing:
         case State::Aborting_Begin:
@@ -50,7 +50,7 @@ namespace {
         case State::Finishing_ParkHead:
         case State::PrintPreviewConfirmed:
         case State::SerialPrintInit:
-            return DeviceState::Printing;
+            return { DeviceState::Printing, dialog_code };
 
         case State::PowerPanic_acFault:
         case State::PowerPanic_Resume:
@@ -60,7 +60,7 @@ namespace {
         case State::CrashRecovery_ToolchangePowerPanic:
         case State::CrashRecovery_XY_Measure:
         case State::CrashRecovery_XY_HOME:
-            return DeviceState::Busy;
+            return { DeviceState::Busy, dialog_code };
 
         case State::Pausing_Begin:
         case State::Pausing_WaitIdle:
@@ -72,21 +72,21 @@ namespace {
         case State::Pausing_Failed_Code:
         case State::Resuming_UnparkHead_XY:
         case State::Resuming_UnparkHead_ZE:
-            return DeviceState::Paused;
+            return { DeviceState::Paused, dialog_code };
         case State::Finished:
             if (ready) {
-                return DeviceState::Ready;
+                return { DeviceState::Ready, dialog_code };
             } else {
-                return DeviceState::Finished;
+                return { DeviceState::Finished, dialog_code };
             }
         case State::Aborted:
             if (ready) {
-                return DeviceState::Ready;
+                return { DeviceState::Ready, dialog_code };
             } else {
-                return DeviceState::Stopped;
+                return { DeviceState::Stopped, dialog_code };
             }
         }
-        return DeviceState::Unknown;
+        return { DeviceState::Unknown, dialog_code };
     }
 
     // FIXME: these are also caught by the switch statement above, is there any
@@ -149,6 +149,8 @@ namespace {
             return ErrCode::CONNECT_PRINT_PREVIEW_WRONG_FILAMENT;
         case PhasesPrintPreview::file_error:
             return ErrCode::CONNECT_PRINT_PREVIEW_FILE_ERROR;
+        case PhasesPrintPreview::tools_mapping:
+            return ErrCode::CONNECT_PRINT_PREVIEW_TOOLS_MAPPING;
         default:
             return std::nullopt;
         }
@@ -168,33 +170,34 @@ namespace {
             WarningType wtype = static_cast<WarningType>(*warning_change->get_data().GetData().data());
             switch (wtype) {
             case WarningType::HotendFanError:
-                return ErrCode::CONNECT_WARNING_HOTEND_FAN_ERROR;
+                return ErrCode::CONNECT_HOTEND_FAN_ERROR;
             case WarningType::PrintFanError:
-                return ErrCode::CONNECT_WARNING_PRINT_FAN_ERROR;
+                return ErrCode::CONNECT_PRINT_FAN_ERROR;
             case WarningType::HotendTempDiscrepancy:
-                return ErrCode::CONNECT_WARNING_HOTEND_TEMP_DISCREPANCY;
+                return ErrCode::CONNECT_HOTEND_TEMP_DISCREPANCY;
             case WarningType::HeatersTimeout:
+                return ErrCode::CONNECT_HEATERS_TIMEOUT;
             case WarningType::NozzleTimeout:
-                return ErrCode::CONNECT_WARNING_HEATERS_TIMEOUT;
+                return ErrCode::CONNECT_NOZZLE_TIMEOUT;
             case WarningType::USBFlashDiskError:
-                return ErrCode::CONNECT_WARNING_USB_FLASH_DISK_ERROR;
+                return ErrCode::CONNECT_USB_FLASH_DISK_ERROR;
             case WarningType::HeatBreakThermistorFail:
-                return ErrCode::CONNECT_WARNING_HEATBREAK_THERMISTOR_FAIL;
+                return ErrCode::CONNECT_HEATBREAK_THERMISTOR_FAIL;
             case WarningType::HeatbedColdAfterPP:
-                return ErrCode::CONNECT_WARNING_HEATBED_COLD_AFTER_PP;
+                return ErrCode::CONNECT_POWER_PANIC_COLD_BED;
             case WarningType::NozzleDoesNotHaveRoundSection:
-                return ErrCode::CONNECT_WARNING_NOZZLE_DOES_NOT_HAVE_ROUND_SECTION;
+                return ErrCode::CONNECT_NOZZLE_DOES_NOT_HAVE_ROUND_SECTION;
             case WarningType::NotDownloaded:
-                return ErrCode::CONNECT_WARNING_NOT_DOWNLOADED;
+                return ErrCode::CONNECT_NOT_DOWNLOADED;
             case WarningType::BuddyMCUMaxTemp:
-                return ErrCode::CONNECT_WARNING_BUDDY_MCU_MAX_TEMP;
+                return ErrCode::CONNECT_BUDDY_MCU_MAX_TEMP;
             case WarningType::DwarfMCUMaxTemp:
-                return ErrCode::CONNECT_WARNING_DWARF_MCU_MAX_TEMP;
+                return ErrCode::CONNECT_DWARF_MCU_MAX_TEMP;
             case WarningType::ModBedMCUMaxTemp:
-                return ErrCode::CONNECT_WARNING_MOD_BED_MCU_MAX_TEMP;
+                return ErrCode::CONNECT_MOD_BED_MCU_MAX_TEMP;
 #if _DEBUG
             case WarningType::SteppersTimeout:
-                return ErrCode::CONNECT_WARNING_STEPPERS_TIMEOUT;
+                return ErrCode::CONNECT_STEPPERS_TIMEOUT;
 #endif
             default:
                 assert(false);
@@ -212,9 +215,22 @@ DeviceState get_state(bool ready) {
 StateWithDialog get_state_with_dialog(bool ready) {
     auto fsm_change = marlin_vars()->get_last_fsm_change();
     State state = marlin_vars()->print_state;
+    std::optional<ErrCode> warning_err_code = std::nullopt;
 
     if (auto attention_code = warning_attention(fsm_change); attention_code.has_value()) {
-        return { DeviceState::Attention, attention_code.value() };
+        switch (*attention_code) {
+        // Note: We don't consider these attention, so just note the dialog code and slap
+        // it on whatever state we decide, that the printer is in later.
+        case ErrCode::CONNECT_NOZZLE_TIMEOUT:
+        case ErrCode::CONNECT_HEATERS_TIMEOUT:
+#if _DEBUG
+        case ErrCode::CONNECT_STEPPERS_TIMEOUT:
+#endif
+            warning_err_code = *attention_code;
+            break;
+        default:
+            return { DeviceState::Attention, attention_code.value() };
+        }
     }
 
     switch (fsm_change.q0_change.get_fsm_type()) {
@@ -239,12 +255,12 @@ StateWithDialog get_state_with_dialog(bool ready) {
     // to allow or not allow remote printing based on this, but this will cause
     // preheat menu to be the only menu screen to not be Idle... :-(
     case ClientFSM::Preheat:
-        return DeviceState::Busy;
+        return { DeviceState::Busy, warning_err_code };
     default:
         break;
     }
 
-    return get_print_state(state, ready);
+    return get_print_state(state, ready, warning_err_code);
 }
 
 bool remote_print_ready(bool preview_only) {
@@ -253,7 +269,9 @@ bool remote_print_ready(bool preview_only) {
         return !preview_only;
     }
 
-    switch (get_state(false)) {
+    auto state = get_state_with_dialog(false);
+
+    switch (state.device_state) {
     case DeviceState::Idle:
     case DeviceState::Ready:
     case DeviceState::Stopped:

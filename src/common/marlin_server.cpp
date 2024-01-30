@@ -348,6 +348,27 @@ namespace {
         }
 #endif
     }
+
+    void clear_warnings() {
+
+        if (fsm_event_queues.GetFsm0() == ClientFSM::Warning || fsm_event_queues.GetFsm1() == ClientFSM::Warning || fsm_event_queues.GetFsm2() == ClientFSM::Warning) {
+            FSM_DESTROY__LOGGING(Warning);
+        }
+    }
+    void handle_warnings() {
+        // FIXME: This is the simplest solution that works.
+        // Maybe we should make a FSM instance, like the Selftest above, right now it does not really do much, but eventually
+        // we should maybe also use the same FSM (renamed) to display the errors also, make it two phases of the same FSM, or another FSM?
+        //
+        // Is the cheking for existence of the FSM at all the levels the right way, or should we have some flag
+        // (like SelftestInstance().IsInProgress()) and do it based on that??
+        if (fsm_event_queues.GetFsm0() == ClientFSM::Warning || fsm_event_queues.GetFsm1() == ClientFSM::Warning || fsm_event_queues.GetFsm2() == ClientFSM::Warning) {
+            if (ClientResponseHandler::GetResponseFromPhase(PhasesWarning::Warning) != Response::_none) {
+                FSM_DESTROY__LOGGING(Warning);
+            }
+        }
+    }
+
 } // end anonymous namespace
 
 //-----------------------------------------------------------------------------
@@ -493,17 +514,7 @@ int cycle(void) {
     MMU2::Fsm::Instance().Loop();
 #endif
 
-    // FIXME: This is the simplest solution that works.
-    // Maybe we should make a FSM instance, like the Selftest above, right now it does not really do much, but eventually
-    // we should maybe also use the same FSM (renamed) to display the errors also, make it two phases of the same FSM, or another FSM?
-    //
-    // Is the cheking for existence of the FSM at all the levels the right way, or should we have some flag
-    // (like SelftestInstance().IsInProgress()) and do it based on that??
-    if (fsm_event_queues.GetFsm0() == ClientFSM::Warning || fsm_event_queues.GetFsm1() == ClientFSM::Warning || fsm_event_queues.GetFsm2() == ClientFSM::Warning) {
-        if (ClientResponseHandler::GetResponseFromPhase(PhasesWarning::Warning) != Response::_none) {
-            FSM_DESTROY__LOGGING(Warning);
-        }
-    }
+    handle_warnings();
 
     if (call_print_loop) {
         _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)
@@ -874,6 +885,9 @@ void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
     if (filename == nullptr) {
         return;
     }
+
+    // Clear warnings before print, like heaters disabled after 30 minutes.
+    clear_warnings();
 
     // handle preview / reprint
     if (server.print_state == State::Finished || server.print_state == State::Aborted) {
@@ -2975,6 +2989,8 @@ void set_warning(WarningType type) {
     // We are just creating it here, it is then handled in handle_warning in cycle function
     fsm::PhaseData data;
     memcpy(data.data(), &type, sizeof(data));
+    // We don't want to overlay two warnings and the new one is likely more important.
+    clear_warnings();
     FSM_CREATE_WITH_DATA__LOGGING(Warning, PhasesWarning::Warning, data);
 }
 
