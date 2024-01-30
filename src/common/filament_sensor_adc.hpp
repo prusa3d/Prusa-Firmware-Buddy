@@ -36,8 +36,6 @@ protected:
     CalibrateRequest req_calibrate { CalibrateRequest::NoCalibration };
     bool flg_invalid_calib { false };
 
-    virtual void enable() override;
-    virtual void disable() override;
     virtual void cycle() override;
 
     /**

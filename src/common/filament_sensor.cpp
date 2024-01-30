@@ -23,32 +23,9 @@ void IFSensor::Cycle() {
 }
 
 /*---------------------------------------------------------------------------*/
-// global thread safe functions
-// but cannot be called from interrupt
-void IFSensor::Enable() {
-    FSensorEEPROM::Set();
-
-    CriticalSection C;
-    enable();
-}
-
-void IFSensor::Disable() {
-    FSensorEEPROM::Clr();
-
-    CriticalSection C;
-    disable();
-}
-
-/*---------------------------------------------------------------------------*/
 // global not thread safe functions
 void IFSensor::init() {
-    bool enabled = FSensorEEPROM::Get(); // can globally disable all sensors, but some sensors might need another enable
-
-    if (enabled) {
-        enable();
-    } else {
-        disable();
-    }
+    set_enabled(FSensorEEPROM::Get());
 }
 
 /*---------------------------------------------------------------------------*/
@@ -66,4 +43,8 @@ IFSensor::Event IFSensor::GenerateEvent() {
     }
 
     return (state == FilamentSensorState::HasFilament) ? Event::filament_inserted : Event::filament_removed;
+}
+
+void IFSensor::set_enabled(bool set) {
+    state = set ? FilamentSensorState::NotInitialized : FilamentSensorState::Disabled;
 }

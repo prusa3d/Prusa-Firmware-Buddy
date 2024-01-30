@@ -198,12 +198,16 @@ LoopResult CSelftestPart_FSensor::state_calibrate_init() {
 }
 
 LoopResult CSelftestPart_FSensor::state_calibrate() {
-    extruder->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
-    extruder->Enable(); // must be here for synchronization
+    if (extruder) {
+        extruder->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
+    }
+
     if (side) {
         side->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
-        side->Enable(); // must be here for synchronization
     }
+
+    FSensors_instance().Enable();
+
     log_info(Selftest, "%s calibrating", rConfig.partname);
     return LoopResult::RunNext;
 }

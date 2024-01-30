@@ -202,13 +202,13 @@ void FilamentSensors::process_request() {
 
     case Request::enable:
         for_all_sensors([](IFSensor &s) {
-            s.Enable();
+            s.set_enabled(true);
         });
         break;
 
     case Request::disable:
         for_all_sensors([](IFSensor &s) {
-            s.Disable();
+            s.set_enabled(false);
         });
         break;
     }

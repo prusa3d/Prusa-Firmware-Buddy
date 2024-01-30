@@ -19,24 +19,16 @@
 
 LOG_COMPONENT_REF(FSensor);
 
-void FSensorADC::enable() {
-    state = FilamentSensorState::NotInitialized;
-}
-
-void FSensorADC::disable() {
-    state = FilamentSensorState::Disabled;
-}
-
 void FSensorADC::cycle() {
     const auto filtered_value { fs_filtered_value.load() }; // store value - so interrupt cannot change it during evaluation
 
     if (flg_invalid_calib) {
         invalidate_calibration();
-        Disable();
+        set_enabled(false);
     }
     if (req_calibrate == CalibrateRequest::CalibrateNoFilament) {
         CalibrateNotInserted(filtered_value);
-        Enable();
+        set_enabled(true);
     }
 
     if (req_calibrate == CalibrateRequest::CalibrateHasFilament) {

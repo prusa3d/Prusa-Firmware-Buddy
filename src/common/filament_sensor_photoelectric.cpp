@@ -46,17 +46,14 @@ void FSensorPhotoElectric::cycle() {
     }
 }
 
-void FSensorPhotoElectric::enable() {
-    buddy::hw::fSensor.pullUp();
+void FSensorPhotoElectric::set_enabled(bool set) {
+    IFSensor::set_enabled(set);
 
-    state = FilamentSensorState::NotInitialized;
-    last_set_state_target = FilamentSensorState::NotInitialized;
-    measure_phase = MeasurePhase::p0;
-}
+    if (set) {
+        buddy::hw::fSensor.pullUp();
+    }
 
-void FSensorPhotoElectric::disable() {
-    state = FilamentSensorState::Disabled;
-    last_set_state_target = FilamentSensorState::Disabled;
+    last_set_state_target = state;
     measure_phase = MeasurePhase::p0;
 }
 
