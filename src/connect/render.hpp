@@ -30,10 +30,17 @@ private:
     AnyGcodeFormatReader *gcode;
     GcodeBuffer gcode_line_buffer;
     bool first_run = true;
+    bool str_continuation = false;
+    void reset_buffer();
+    // Will (try to) output part of string "body" (escaped per JSON as needed).
+    //
+    // Puts a terminating " on the last segment.
+    //
+    // Will adjust str_continuation based on the buffer's line_complete.
+    json::JsonResult out_str_chunk(json::JsonOutput &output, const GcodeBuffer::String &str);
 
 public:
-    GcodeMetaRenderer(AnyGcodeFormatReader *gcode)
-        : gcode(gcode) {}
+    GcodeMetaRenderer(AnyGcodeFormatReader *gcode);
 
     virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override;
 };
