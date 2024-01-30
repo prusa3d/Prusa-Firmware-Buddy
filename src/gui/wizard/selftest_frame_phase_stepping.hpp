@@ -9,6 +9,7 @@ class SelftestFramePhaseStepping : public AddSuperWindow<SelftestFrameNamedWithR
     FooterLine footer;
 
     window_text_t text;
+    std::array<char, 150> text_buffer;
 
 protected:
     virtual void change() override;

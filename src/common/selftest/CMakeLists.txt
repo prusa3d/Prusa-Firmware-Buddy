@@ -41,7 +41,7 @@ if(FILAMENT_SENSOR STREQUAL ADC)
 endif()
 
 if(HAS_PHASE_STEPPING)
-  target_sources(firmware PRIVATE selftest_phase_stepping.cpp)
+  target_sources(firmware PRIVATE selftest_phase_stepping.cpp selftest_phase_stepping_result.cpp)
 endif()
 
 if(HAS_DWARF)

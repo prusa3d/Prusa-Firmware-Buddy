@@ -16,13 +16,7 @@ class SelftestPhaseStepping {
     SelftestPhaseSteppingResult &result;
     LogTimer log = 1000;
 
-    enum class Filament { yes,
-        no,
-        unknown };
-    Filament has_filament = Filament::unknown;
-    bool need_unload = false;
-
-    void move_gear();
+    LoopResult handle_button(PhasesSelftest, LoopResult);
 
 public:
     SelftestPhaseStepping(IPartHandler &state_machine, const SelftestPhaseSteppingConfig &config, SelftestPhaseSteppingResult &result);
@@ -31,9 +25,8 @@ public:
     LoopResult state_calib_x();
     LoopResult state_calib_y();
     LoopResult state_calib_enable();
+    LoopResult state_calib_save();
     LoopResult state_wait_until_done();
-
-    LoopResult handle_error();
 };
 
 } // namespace selftest

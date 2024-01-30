@@ -295,7 +295,10 @@ enum class PhasesSelftest : uint16_t {
     PhaseStepping_pick_tool = _first_PhaseStepping,
     PhaseStepping_calib_x,
     PhaseStepping_calib_y,
-    PhaseStepping_calib_failed,
+    PhaseStepping_calib_x_nok,
+    PhaseStepping_calib_y_nok,
+    PhaseStepping_calib_error,
+    PhaseStepping_calib_ok,
     PhaseStepping_enabling,
     _last_PhaseStepping = PhaseStepping_enabling,
 #endif
@@ -603,7 +606,10 @@ class ClientResponses {
         {}, // PhaseStepping_pick_tool
         {}, // PhaseStepping_calib_x
         {}, // PhaseStepping_calib_y
-        { Response::Ok }, // PhaseStepping_calib_failed
+        { Response::Ok }, // PhaseStepping_calib_x_nok
+        { Response::Ok }, // PhaseStepping_calib_y_nok
+        { Response::Ok }, // PhaseStepping_calib_error
+        { Response::Ok }, // PhaseStepping_calib_ok
         {}, // PhaseStepping_enabling
 #endif
         { Response::Next }, // Result

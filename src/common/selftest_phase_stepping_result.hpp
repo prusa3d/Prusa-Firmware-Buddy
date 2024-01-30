@@ -1,22 +1,17 @@
 #pragma once
 
 #include <common/fsm_base_types.hpp>
+#include "client_response.hpp"
+#include "feature/phase_stepping/calibration.hpp"
 #include "selftest_sub_state.hpp"
 
 struct SelftestPhaseSteppingResult {
+    phase_stepping::CalibrationResult result_x { phase_stepping::CalibrationResult::make_unknown() };
+    phase_stepping::CalibrationResult result_y { phase_stepping::CalibrationResult::make_unknown() };
+
     constexpr SelftestPhaseSteppingResult() {}
 
-    constexpr SelftestPhaseSteppingResult(fsm::PhaseData new_data)
-        : SelftestPhaseSteppingResult() {
-        deserialize(new_data);
-    }
-
-    constexpr fsm::PhaseData serialize() const {
-        return fsm::PhaseData();
-    }
-
-    constexpr void deserialize([[maybe_unused]] fsm::PhaseData new_data) {
-    }
+    fsm::PhaseData serialize(PhasesSelftest) const;
 
     constexpr bool operator==([[maybe_unused]] const SelftestPhaseSteppingResult &other) const {
         return true;

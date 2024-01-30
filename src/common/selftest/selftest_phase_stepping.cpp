@@ -11,6 +11,17 @@ namespace selftest {
 
 static SelftestPhaseSteppingResult static_result; // automatically initialized by PartHandler
 
+namespace {
+
+    constexpr bool is_ok(const phase_stepping::CalibrationResult::Scores &scores) {
+        return scores.p1f < 1.f
+            && scores.p1b < 1.f
+            && scores.p2f < 1.f
+            && scores.p2b < 1.f;
+    }
+
+} // namespace
+
 bool phase_phase_stepping(IPartHandler *&selftest_phase_stepping, const SelftestPhaseSteppingConfig &config) {
     if (!selftest_phase_stepping) {
         selftest_phase_stepping = selftest::Factory::CreateDynamical<SelftestPhaseStepping>(
@@ -23,12 +34,14 @@ bool phase_phase_stepping(IPartHandler *&selftest_phase_stepping, const Selftest
             &SelftestPhaseStepping::state_calib_y,
             &SelftestPhaseStepping::state_wait_until_done,
             &SelftestPhaseStepping::state_calib_enable,
+            &SelftestPhaseStepping::state_calib_save,
             &SelftestPhaseStepping::state_wait_until_done);
     }
 
     bool in_progress = selftest_phase_stepping->Loop();
 
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), static_result.serialize());
+    const PhasesSelftest phase = IPartHandler::GetFsmPhase();
+    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, phase, static_result.serialize(phase));
 
     if (in_progress) {
         return true;
@@ -63,31 +76,55 @@ LoopResult SelftestPhaseStepping::state_calib_x() {
 }
 
 LoopResult SelftestPhaseStepping::state_calib_y() {
-    // check for calib X error
-    if (phase_stepping::last_calibration_result != phase_stepping::CalibrationResult::Ok) {
-        return handle_error();
+    static_result.result_x = phase_stepping::last_calibration_result;
+    switch (static_result.result_x.get_state()) {
+    case phase_stepping::CalibrationResult::State::unknown:
+        log_error(Selftest, "x calibration result unknown");
+        [[fallthrough]];
+    case phase_stepping::CalibrationResult::State::error:
+        return handle_button(PhasesSelftest::PhaseStepping_calib_error, LoopResult::Abort);
+    case phase_stepping::CalibrationResult::State::known:
+        if (is_ok(static_result.result_x.get_scores())) {
+            IPartHandler::SetFsmPhase(PhasesSelftest::PhaseStepping_calib_y);
+            marlin_server::enqueue_gcode("M977 Y");
+            return LoopResult::RunNext;
+        } else {
+            return handle_button(PhasesSelftest::PhaseStepping_calib_x_nok, LoopResult::Abort);
+        }
     }
-    IPartHandler::SetFsmPhase(PhasesSelftest::PhaseStepping_calib_y);
-    marlin_server::enqueue_gcode("M977 Y");
-    return LoopResult::RunNext;
+    abort();
 }
 
 LoopResult SelftestPhaseStepping::state_calib_enable() {
-    // check for calib Y error
-    if (phase_stepping::last_calibration_result != phase_stepping::CalibrationResult::Ok) {
-        return handle_error();
+    static_result.result_y = phase_stepping::last_calibration_result;
+    switch (static_result.result_y.get_state()) {
+    case phase_stepping::CalibrationResult::State::unknown:
+        log_error(Selftest, "y calibration result unknown");
+        [[fallthrough]];
+    case phase_stepping::CalibrationResult::State::error:
+        return handle_button(PhasesSelftest::PhaseStepping_calib_error, LoopResult::Abort);
+    case phase_stepping::CalibrationResult::State::known:
+        if (is_ok(static_result.result_y.get_scores())) {
+            return handle_button(PhasesSelftest::PhaseStepping_calib_ok, LoopResult::RunNext);
+        } else {
+            return handle_button(PhasesSelftest::PhaseStepping_calib_y_nok, LoopResult::Abort);
+        }
     }
+    abort();
+}
+
+LoopResult SelftestPhaseStepping::state_calib_save() {
     IPartHandler::SetFsmPhase(PhasesSelftest::PhaseStepping_enabling);
     marlin_server::enqueue_gcode("M970 X Y");
     return LoopResult::RunNext;
 }
 
-LoopResult SelftestPhaseStepping::handle_error() {
-    IPartHandler::SetFsmPhase(PhasesSelftest::PhaseStepping_calib_failed);
+LoopResult SelftestPhaseStepping::handle_button(PhasesSelftest phase, LoopResult next) {
+    IPartHandler::SetFsmPhase(phase);
     if (state_machine.GetButtonPressed() != Response::Ok) {
         return LoopResult::RunCurrent;
     }
-    return LoopResult::Abort;
+    return next;
 }
 
 LoopResult SelftestPhaseStepping::state_wait_until_done() {

@@ -186,8 +186,14 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "PhaseStepping_calib_x";
     case PhasesSelftest::PhaseStepping_calib_y:
         return "PhaseStepping_calib_y";
-    case PhasesSelftest::PhaseStepping_calib_failed:
-        return "PhaseStepping_calib_failed";
+    case PhasesSelftest::PhaseStepping_calib_x_nok:
+        return "PhaseStepping_calib_x_nok";
+    case PhasesSelftest::PhaseStepping_calib_y_nok:
+        return "PhaseStepping_calib_y_nok";
+    case PhasesSelftest::PhaseStepping_calib_error:
+        return "PhaseStepping_calib_error";
+    case PhasesSelftest::PhaseStepping_calib_ok:
+        return "PhaseStepping_calib_ok";
     case PhasesSelftest::PhaseStepping_enabling:
         return "PhaseStepping_enabling";
 #endif
