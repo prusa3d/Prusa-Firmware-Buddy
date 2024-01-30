@@ -12,7 +12,6 @@
 #include "bsod.h"
 #include <mutex>
 #include <log.h>
-#include "fsensor_eeprom.hpp"
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
 #include <option/has_human_interactions.h>
@@ -38,7 +37,7 @@ freertos::Mutex &FilamentSensors::GetExtruderMutex() {
 }
 
 bool FilamentSensors::is_enabled() const {
-    return FSensorEEPROM::Get();
+    return config_store().fsensor_enabled.get();
 }
 
 void FilamentSensors::set_enabled_global(bool set) {

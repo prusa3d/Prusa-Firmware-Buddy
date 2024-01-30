@@ -5,7 +5,6 @@
  */
 
 #include "filament_sensor.hpp"
-#include "fsensor_eeprom.hpp"
 #include "rtos_api.hpp"
 #include "metric.h"
 
