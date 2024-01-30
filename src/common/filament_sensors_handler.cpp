@@ -37,30 +37,20 @@ freertos::Mutex &FilamentSensors::GetExtruderMutex() {
 }
 
 void FilamentSensors::set_enabled_global(bool set) {
-    if (!set) {
-        // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
-        marlin_client::gcode("M709 S0");
-    }
-
     if (config_store().fsensor_enabled.set(set)) {
-        enable_state_update_pending = true;
+        request_enable_state_update();
     }
 }
 
-FilamentSensors::SensorStateBitset FilamentSensors::get_sensors_states() {
-    SensorStateBitset result;
-
-    // If we're processing an enable update, consider the sensors not initialized
-    if (enable_state_update_pending) {
-        result.set(ftrstd::to_underlying(FilamentSensorState::NotInitialized));
+void FilamentSensors::request_enable_state_update() {
+#if HAS_MMU2()
+    // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
+    if (!config_store().fsensor_enabled.get()) {
+        marlin_client::gcode("M709 S0");
     }
+#endif
 
-    // Check state of all sensors
-    for_all_sensors([&](IFSensor &s) {
-        result.set(ftrstd::to_underlying(s.get_state()));
-    });
-
-    return result;
+    enable_state_update_pending = true;
 }
 
 void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &)> &f) {

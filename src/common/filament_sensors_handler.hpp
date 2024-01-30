@@ -36,12 +36,10 @@ public:
     /// Sets global filament sensor enable
     void set_enabled_global(bool set);
 
-    using SensorStateBitset = std::bitset<ftrstd::to_underlying(FilamentSensorState::_cnt)>;
+    /// Sends a request to the fsensor task
+    /// to update the sensors enable/disable state based on EEPROM settings
+    void request_enable_state_update();
 
-    /// Overview of all states of all filament sensors
-    /// \returns bitwise or of individual fsensor state bit field
-    SensorStateBitset get_sensors_states();
-    
     /// Returns whether fsensors enable state update was requested and is not yet fully processed
     inline bool is_enable_state_update_processing() const {
         return enable_state_update_pending || enable_state_update_processing;

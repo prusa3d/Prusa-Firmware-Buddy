@@ -77,9 +77,11 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
         return;
     }
 
+    auto &fss = FSensors_instance();
+
     // Disable filament sensors
     if (!index) {
-        FSensors_instance().set_enabled_global(false);
+        fss.set_enabled_global(false);
 
         // If disabling, send a message to parent to reload the value of
         // MI_ITEM_MMU, because it has just been disabled as well
@@ -88,29 +90,35 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
 
     // Enable filament sensors
     else {
-        FSensors_instance().set_enabled_global(true);
+        fss.set_enabled_global(true);
 
-        using FSS = FilamentSensorState;
+        const auto any_fsensor_in_state = [](FilamentSensorState state) {
+            bool result = false;
+            FSensors_instance().for_all_sensors([&](IFSensor &s) {
+                result |= (s.get_state() == state);
+            });
+            return result;
+        };
 
         // wait until it is initialized
         // no guiloop here !!! - it could cause show of unwanted error message
-        FilamentSensors::SensorStateBitset res;
-        while ((res = FSensors_instance().get_sensors_states()).test(ftrstd::to_underlying(FSS::NotInitialized))) {
+        while (fss.is_enable_state_update_processing() || any_fsensor_in_state(FilamentSensorState::NotInitialized)) {
             osDelay(0); // switch to other thread
         }
 
-        bool failed = false;
+        bool is_ok = false;
 
-        if (res.test(ftrstd::to_underlying(FSS::NotConnected))) {
+        if (any_fsensor_in_state(FilamentSensorState::NotConnected)) {
             MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
-            failed = true;
 
-        } else if (res.test(ftrstd::to_underlying(FSS::NotCalibrated))) {
+        } else if (any_fsensor_in_state(FilamentSensorState::NotCalibrated)) {
             MsgBoxWarning(_("Filament sensor not ready: perform calibration first."), Responses_Ok);
-            failed = true;
+
+        } else {
+            is_ok = true;
         }
 
-        if (failed) {
+        if (!is_ok) {
             FSensors_instance().set_enabled_global(false);
             SetIndex(old_index);
         }
