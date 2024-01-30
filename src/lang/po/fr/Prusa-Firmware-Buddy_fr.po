@@ -326,7 +326,7 @@ msgstr ""
 "Version du Bootloader\n"
 "%d.%d.%d\n"
 "\n"
-"Carte Board\n"
+"Buddy Board\n"
 "%d\n"
 "%s"
 
