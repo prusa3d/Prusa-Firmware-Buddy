@@ -31,11 +31,11 @@ void FSensorADC::cycle() {
 
     if (flg_invalid_calib) {
         invalidate_calibration();
-        set_enabled(false);
+        force_set_enabled(false);
     }
     if (req_calibrate == CalibrateRequest::CalibrateNoFilament) {
         CalibrateNotInserted(filtered_value);
-        set_enabled(true);
+        force_set_enabled(true);
     }
 
     if (req_calibrate == CalibrateRequest::CalibrateHasFilament) {

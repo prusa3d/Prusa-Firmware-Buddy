@@ -197,11 +197,18 @@ void FilamentSensors::process_enable_state_update() {
     enable_state_update_processing = true;
     enable_state_update_pending = false;
 
-    const bool enabled = config_store().fsensor_enabled.get();
+    const bool global_enable = config_store().fsensor_enabled.get();
+    const uint8_t extruder_enable_bits = config_store().fsensor_extruder_enabled_bits.get();
+    const uint8_t side_enable_bits = config_store().fsensor_side_enabled_bits.get();
 
-    for_all_sensors([&](IFSensor &s) {
-        s.set_enabled(enabled);
-    });
+    HOTEND_LOOP() {
+        if (IFSensor *s = GetExtruderFSensor(e)) {
+            s->set_enabled(global_enable && (extruder_enable_bits & (1 << e)));
+        }
+        if (IFSensor *s = GetSideFSensor(e)) {
+            s->set_enabled(global_enable && (side_enable_bits & (1 << e)));
+        }
+    }
 
     enable_state_update_processing = false;
 }

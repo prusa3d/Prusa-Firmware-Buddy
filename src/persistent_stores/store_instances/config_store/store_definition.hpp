@@ -51,7 +51,14 @@ struct CurrentStore
     StoreItem<bool, defaults::bool_true, journal::hash("Run XYZ Calibration")> run_xyz_calib;
     StoreItem<bool, defaults::bool_true, journal::hash("Run First Layer")> run_first_layer;
 
+    /// Global filament sensor enable
     StoreItem<bool, defaults::fsensor_enabled, journal::hash("FSensor Enabled V2")> fsensor_enabled;
+
+    /// Bitfield of enabled side filament sensors
+    StoreItem<uint8_t, defaults::uint8_t_ff, journal::hash("Extruder FSensors enabled")> fsensor_side_enabled_bits;
+
+    /// Bitfield of enabled toolhead filament sensors
+    StoreItem<uint8_t, defaults::uint8_t_ff, journal::hash("Side FSensors enabled")> fsensor_extruder_enabled_bits;
 
     // nozzle PID variables
     StoreItem<float, defaults::pid_nozzle_p, journal::hash("PID Nozzle P")> pid_nozzle_p;

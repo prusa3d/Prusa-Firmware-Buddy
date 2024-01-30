@@ -11,7 +11,7 @@
 
 class FSensorPhotoElectric : public IFSensor {
 protected:
-    virtual void set_enabled(bool set) override;
+    virtual void force_set_enabled(bool set) override;
     virtual void cycle() override;
 
 private:

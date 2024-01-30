@@ -25,6 +25,6 @@ void IFSensor::check_for_events() {
     last_event_ = (state == FilamentSensorState::HasFilament) ? Event::filament_inserted : Event::filament_removed;
 }
 
-void IFSensor::set_enabled(bool set) {
+void IFSensor::force_set_enabled(bool set) {
     state = set ? FilamentSensorState::NotInitialized : FilamentSensorState::Disabled;
 }

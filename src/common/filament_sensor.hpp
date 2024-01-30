@@ -79,7 +79,13 @@ protected:
     /// Resets the state even if you call set_enabled(true) while the sensor is enabled (that is okay).
     /// Does not change the EEPROM.
     /// This function is not thread-safe.
-    virtual void set_enabled(bool set);
+    virtual void force_set_enabled(bool set);
+
+    inline void set_enabled(bool set) {
+        if (is_enabled() != set) {
+            force_set_enabled(set);
+        }
+    }
 
 private:
     FilamentSensorState last_check_event_state_ = FilamentSensorState::Disabled;

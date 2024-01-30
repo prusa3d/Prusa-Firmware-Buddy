@@ -46,8 +46,8 @@ void FSensorPhotoElectric::cycle() {
     }
 }
 
-void FSensorPhotoElectric::set_enabled(bool set) {
-    IFSensor::set_enabled(set);
+void FSensorPhotoElectric::force_set_enabled(bool set) {
+    IFSensor::force_set_enabled(set);
 
     if (set) {
         buddy::hw::fSensor.pullUp();
