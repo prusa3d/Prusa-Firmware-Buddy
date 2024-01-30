@@ -4217,7 +4217,7 @@ msgstr "IMPRESSION ..."
 
 #: src/gui/screen_printing.cpp:161
 msgid "Printing time"
-msgstr "Temps d'impression"
+msgstr "Temps impression"
 
 #: src/gui/MItem_tools.hpp:496
 msgid "Print Progress Screen"
@@ -4250,7 +4250,7 @@ msgstr "Temps d'Impression"
 
 #: src/gui/print_time_module.hpp:24
 msgid "Print will end"
-msgstr "L'impression va s'arrêter"
+msgstr "Fin prévue à"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:34
 #, c-format
