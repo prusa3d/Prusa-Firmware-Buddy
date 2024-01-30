@@ -28,9 +28,6 @@ public:
 
     virtual ~IFSensor() = default;
 
-    // Evaluates filament sensor state.
-    void Cycle();
-
     // Evaluates if some event happened, will return each event only once, so its meant to be called only internally.
     Event GenerateEvent();
 

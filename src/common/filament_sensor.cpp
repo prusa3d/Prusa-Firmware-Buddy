@@ -9,19 +9,6 @@
 #include "rtos_api.hpp"
 #include "metric.h"
 
-// delay between calls must be 1us or longer
-void IFSensor::Cycle() {
-    // sensor is disabled (only init can enable it)
-    if (state == FilamentSensorState::Disabled) {
-        record_state();
-        return;
-    }
-
-    cycle();
-
-    record_state();
-}
-
 /*---------------------------------------------------------------------------*/
 // global not thread safe functions
 void IFSensor::init() {

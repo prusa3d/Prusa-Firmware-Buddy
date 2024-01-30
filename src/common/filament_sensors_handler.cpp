@@ -113,7 +113,11 @@ void FilamentSensors::Cycle() {
 
     // run cycle to evaluate state of all sensors (even those not active)
     for_all_sensors([](IFSensor &s) {
-        s.Cycle();
+        if (s.is_enabled()) {
+            s.cycle();
+        }
+
+        s.record_state();
     });
 
     // Evaluate currently used sensors of all sensors
