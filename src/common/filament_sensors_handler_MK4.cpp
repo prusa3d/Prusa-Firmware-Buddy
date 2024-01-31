@@ -19,27 +19,13 @@ IFSensor *GetExtruderFSensor(uint8_t index) {
     return getExtruderFSensor(index);
 }
 
-void FilamentSensors::AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index) {
-    FSensorADC *sensor = getExtruderFSensor(tool_index);
-    if (sensor) {
-        sensor->set_filtered_value_from_IRQ(val);
-    } else {
-        bsod("wrong extruder index");
-    }
-}
-
 // IRQ - called from interruption
 void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
     static MedianFilter filter;
 
     FSensorADC *sensor = getExtruderFSensor(tool_index);
-    if (sensor) {
-        sensor->record_raw(fs_raw_value);
-    }
+    assert(sensor);
 
-    if (filter.filter(fs_raw_value)) { // fs_raw_value is rewritten - passed by reference
-        FSensors_instance().AdcExtruder_FilteredIRQ(fs_raw_value, tool_index);
-    } else {
-        FSensors_instance().AdcExtruder_FilteredIRQ(FSensorADCEval::filtered_value_not_ready, tool_index);
-    }
+    sensor->record_raw(fs_raw_value);
+    sensor->set_filtered_value_from_IRQ(filter.filter(fs_raw_value) ? fs_raw_value : FSensorADCEval::filtered_value_not_ready);
 }

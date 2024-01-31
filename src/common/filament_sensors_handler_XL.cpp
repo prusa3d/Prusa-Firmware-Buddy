@@ -50,42 +50,23 @@ IFSensor *GetSideFSensor(uint8_t index) {
     return getSideFSensor(index);
 }
 
-void FilamentSensors::AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index) {
-    FSensorADC *sensor = getExtruderFSensor(tool_index);
-    if (sensor) {
-        sensor->set_filtered_value_from_IRQ(val);
-    } else {
-        bsod("wrong extruder index");
-    }
-}
-
-void FilamentSensors::AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index) {
-    FSensorADC *sensor = getSideFSensor(tool_index);
-    if (sensor) {
-        sensor->set_filtered_value_from_IRQ(val);
-    } else {
-        bsod("wrong extruder index");
-    }
-}
-
 // IRQ - called from interruption
 void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
+    FSensorADC *sensor = getExtruderFSensor(tool_index);
+    assert(sensor);
+
     // does not need to be filtered (data from tool are already filtered)
-    FSensors_instance().AdcExtruder_FilteredIRQ(fs_raw_value, tool_index);
+    sensor->set_filtered_value_from_IRQ(fs_raw_value);
 }
 
 void side_fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
-    static MedianFilter filter[HOTENDS];
-    assert(tool_index < HOTENDS);
+    static MedianFilter filters[HOTENDS];
 
     FSensorADC *sensor = getSideFSensor(tool_index);
-    if (sensor) {
-        sensor->record_raw(fs_raw_value);
-    }
+    assert(sensor);
 
-    if (filter[tool_index].filter(fs_raw_value)) { // fs_raw_value is rewritten - passed by reference
-        FSensors_instance().AdcSide_FilteredIRQ(fs_raw_value, tool_index);
-    } else {
-        FSensors_instance().AdcSide_FilteredIRQ(FSensorADCEval::filtered_value_not_ready, tool_index);
-    }
+    auto &filter = filters[tool_index];
+
+    sensor->record_raw(fs_raw_value);
+    sensor->set_filtered_value_from_IRQ(filter.filter(fs_raw_value) ? fs_raw_value : FSensorADCEval::filtered_value_not_ready);
 }

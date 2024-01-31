@@ -57,9 +57,6 @@ public:
     bool IsAutoloadInProgress() { return autoload_sent; }
     MMU2::FilamentState WhereIsFilament();
 
-    void AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
-    void AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
-
     /// Thread-safe
     inline IFSensor *sensor(LogicalFilamentSensor sensor) const {
         return logical_sensors_[sensor];
