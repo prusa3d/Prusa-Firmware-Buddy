@@ -8,9 +8,7 @@
 #include "filament_sensors_handler.hpp"
 #include "print_processor.hpp"
 #include "rtos_api.hpp"
-#include <common/freertos_mutex.hpp>
 #include "bsod.h"
-#include <mutex>
 #include <log.h>
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
@@ -35,11 +33,6 @@ FilamentSensors::FilamentSensors() {
 
     // Request that the fsensors get properly configured on startup
     enable_state_update_pending = true;
-}
-
-freertos::Mutex &FilamentSensors::get_mutex() const {
-    static freertos::Mutex ret;
-    return ret;
 }
 
 void FilamentSensors::set_enabled_global(bool set) {
@@ -86,9 +79,6 @@ void FilamentSensors::Cycle() {
     });
 
     {
-        // Usage of the mutex needs reevaluation - I don't really understand when it should be used and when not
-        std::unique_lock lock_printer(get_mutex());
-
         reconfigure_sensors_if_needed(false);
 
         for (uint8_t i = 0; i < logical_filament_sensor_count; i++) {
@@ -140,8 +130,8 @@ void FilamentSensors::process_events() {
         return;
     }
 
-    const auto check_runout = [&](LogicalFilamentSensor sensor) {
-        const auto event = logical_sensors_[sensor]->last_event();
+    const auto check_runout = [&](LogicalFilamentSensor s) {
+        const auto event = sensor(s)->last_event();
         if (m600_sent || event != IFSensor::Event::filament_removed) {
             return false;
         }
@@ -159,7 +149,7 @@ void FilamentSensors::process_events() {
     };
 
     const auto check_autoload = [&]() {
-        const auto event = logical_sensors_[LogicalFilamentSensor::autoload]->last_event();
+        const auto event = sensor(LogicalFilamentSensor::autoload)->last_event();
 
         if (
             event != IFSensor::Event::filament_inserted
@@ -236,25 +226,16 @@ void FilamentSensors::IncAutoloadLock() {
 }
 
 bool FilamentSensors::MMUReadyToPrint() {
-    std::unique_lock lock_printer(get_mutex());
-
     // filament has to be unloaded from primary tool for MMU print
     return logical_sensor_states_[LogicalFilamentSensor::primary_runout] == FilamentSensorState::NoFilament;
 }
 
 bool FilamentSensors::ToolHasFilament(uint8_t tool_nr) {
-    std::unique_lock lock_printer(get_mutex());
-
     FilamentSensorState extruder_state = GetExtruderFSensor(tool_nr) ? GetExtruderFSensor(tool_nr)->get_state() : FilamentSensorState::Disabled;
     FilamentSensorState side_state = GetSideFSensor(tool_nr) ? GetSideFSensor(tool_nr)->get_state() : FilamentSensorState::Disabled;
 
     return (extruder_state == FilamentSensorState::HasFilament || extruder_state == FilamentSensorState::Disabled) && (side_state == FilamentSensorState::HasFilament || side_state == FilamentSensorState::Disabled);
 }
-
-/*****************************************************************************/
-// section with locks
-// Do not nest calls of methods with same mutex !!!
-// Do not call from filament sensor thread
 
 /**
  * @brief encode printer sensor state to MMU enum
@@ -263,31 +244,18 @@ bool FilamentSensors::ToolHasFilament(uint8_t tool_nr) {
  * @return MMU2::FilamentState
  */
 FilamentState FilamentSensors::WhereIsFilament() {
-    const std::lock_guard lock(get_mutex());
     switch (logical_sensor_states_[LogicalFilamentSensor::secondary_runout]) {
+
     case FilamentSensorState::HasFilament:
         return FilamentState::AT_FSENSOR;
+
     case FilamentSensorState::NoFilament:
         return FilamentState::NOT_PRESENT;
-    case FilamentSensorState::NotInitialized:
-    case FilamentSensorState::NotCalibrated:
-    case FilamentSensorState::NotConnected:
-    case FilamentSensorState::Disabled:
-        break;
+
+    default:
+        return FilamentState::UNAVAILABLE;
     }
-    return FilamentState::UNAVAILABLE;
 }
-
-// this method should not be accessed if we don't have MMU
-// if it is it will do unnecessary lock and return false
-// I prefer to have single method for both variants
-bool FilamentSensors::HasMMU() {
-    const std::lock_guard lock(get_mutex());
-    return has_mmu;
-}
-
-// end of section with locks
-/*****************************************************************************/
 
 // Meyer's singleton
 FilamentSensors &FSensors_instance() {

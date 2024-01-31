@@ -16,16 +16,9 @@
 #include "config_features.h"
 #include <option/has_toolchanger.h>
 
-// forward declaration, so I dont need to include freertos
-namespace freertos {
-class Mutex;
-}
-
 class FilamentSensors {
 public:
     FilamentSensors();
-
-    bool HasMMU(); // mmu enabled, might or might not be initialized
 
     /// Sets global filament sensor enable
     void set_enabled_global(bool set);
@@ -45,12 +38,12 @@ public:
     // called from different thread
     void Cycle();
 
+    // mmu enabled, might or might not be initialized
+    inline bool HasMMU() const {
+        return has_mmu;
+    }
     bool MMUReadyToPrint();
     bool ToolHasFilament(uint8_t tool_nr);
-
-    bool WasM600_send() const { return m600_sent; }
-
-    char GetM600_send_on() const;
 
     void DecEvLock();
     void IncEvLock();
@@ -67,9 +60,9 @@ public:
     void AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
     void AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
 
-    inline auto logical_sensors() const {
-        std::unique_lock _(get_mutex());
-        return logical_sensors_;
+    /// Thread-safe
+    inline IFSensor *sensor(LogicalFilamentSensor sensor) const {
+        return logical_sensors_[sensor];
     }
 
     /// Thread-safe
@@ -84,6 +77,9 @@ public:
     }
 
 private:
+    // Non-public members can only be written to from the cycle() function (called from the Measurement task)
+    // The variables are made atomic so that one can read them from different threads and get somewhat valid values.
+
     void reconfigure_sensors_if_needed(bool force);
     void process_events();
     void process_enable_state_update();
@@ -112,9 +108,6 @@ private:
     std::atomic<bool> m600_sent = false;
     std::atomic<bool> autoload_sent = false;
     std::atomic<bool> has_mmu = false; // affect only MMU, named correctly .. it is not "has_side_sensor"
-
-    // I have used reference to forward declared class, so I do not need to include freertos in header
-    freertos::Mutex &get_mutex() const;
 
     friend IFSensor *GetExtruderFSensor(uint8_t index);
     friend IFSensor *GetSideFSensor(uint8_t index);

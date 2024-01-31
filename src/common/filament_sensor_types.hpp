@@ -32,12 +32,12 @@ enum class LogicalFilamentSensor : uint8_t {
 static constexpr size_t logical_filament_sensor_count = 5;
 
 struct LogicalFilamentSensors {
-    std::array<IFSensor *, logical_filament_sensor_count> array = { nullptr };
+    std::array<std::atomic<IFSensor *>, logical_filament_sensor_count> array = { nullptr };
 
     inline auto &operator[](LogicalFilamentSensor fs) {
         return array.at(ftrstd::to_underlying(fs));
     }
-    inline auto operator[](LogicalFilamentSensor fs) const {
+    inline IFSensor *operator[](LogicalFilamentSensor fs) const {
         return array.at(ftrstd::to_underlying(fs));
     }
 };
