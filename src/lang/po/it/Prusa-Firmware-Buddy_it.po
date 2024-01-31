@@ -970,12 +970,12 @@ msgstr "%d Calibrazione sensore filamento"
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:81
 #, c-format
 msgid "%d First Layer Calibration"
-msgstr "Calibrazione primo layer %d"
+msgstr "%d Calibrazione primo layer"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:84
 #, c-format
 msgid "%d Gears Calibration"
-msgstr "Calibrazione Ingranaggi %d"
+msgstr "%d Calibrazione Ingranaggi"
 
 #: src/gui/include_MINI/selftest_snake_config.hpp:78
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:80
