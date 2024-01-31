@@ -367,6 +367,12 @@ msgstr "Échec nivelage plateau. Réessayer ?"
 msgid "Bed Temperature"
 msgstr "Température du Plateau"
 
+#: src/gui/wizard/selftest_frame_temp.cpp:64
+msgid ""
+"Before you continue, make sure the print sheet is installed on the heatbed."
+msgstr ""
+"Avant de continuer, assurez-vous que la plaque d'impression est installée sur le plateau chauffant."
+
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:44
 msgid "Before you proceed, make sure filament is unloaded from the Nextruder."
 msgstr "Avant de continuer, assurez-vous que le filament est déchargé du Nextruder."
