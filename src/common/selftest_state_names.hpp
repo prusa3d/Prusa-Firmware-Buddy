@@ -92,6 +92,8 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "Axis";
     case PhasesSelftest::Heaters:
         return "Heaters";
+    case PhasesSelftest::HeatersPlaceSheetOnBed:
+        return "HeatersPlaceSheetOnBed";
     case PhasesSelftest::HeatersDisabledDialog:
         return "HeatersDisabledDialog";
     case PhasesSelftest::SpecifyHotEnd:

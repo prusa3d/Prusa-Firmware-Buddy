@@ -50,6 +50,18 @@ uint32_t CSelftestPart_Heater::estimate(const HeaterConfig_t &config) {
     return config.heat_time_ms;
 }
 
+LoopResult CSelftestPart_Heater::stateAskUserToPutSheetOnBed() {
+#if PRINTER_IS_PRUSA_MK3_5
+    IPartHandler::SetFsmPhase(PhasesSelftest::HeatersPlaceSheetOnBed);
+    if (state_machine.GetButtonPressed() == Response::Ok) {
+        return LoopResult::RunNext;
+    }
+    return LoopResult::RunCurrent;
+#else
+    return LoopResult::RunNext;
+#endif
+}
+
 LoopResult CSelftestPart_Heater::stateCheckHbrPassed() {
     SelftestResult eeres = config_store().selftest_result.get();
     if (eeres.tools[m_config.tool_nr].heatBreakFan != TestResult_Passed || eeres.tools[m_config.tool_nr].fansSwitched != TestResult_Passed) {
