@@ -31,7 +31,7 @@ FilamentSensors::FilamentSensors() {
     enable_state_update_pending = true;
 }
 
-freertos::Mutex &FilamentSensors::GetExtruderMutex() const {
+freertos::Mutex &FilamentSensors::get_mutex() const {
     static freertos::Mutex ret;
     return ret;
 }
@@ -81,7 +81,7 @@ void FilamentSensors::Cycle() {
 
     {
         // Usage of the mutex needs reevaluation - I don't really understand when it should be used and when not
-        std::unique_lock lock_printer(GetExtruderMutex());
+        std::unique_lock lock_printer(get_mutex());
 
         reconfigure_sensors_if_needed(false);
 
@@ -195,14 +195,14 @@ void FilamentSensors::IncAutoloadLock() {
 }
 
 bool FilamentSensors::MMUReadyToPrint() {
-    std::unique_lock lock_printer(GetExtruderMutex());
+    std::unique_lock lock_printer(get_mutex());
 
     // filament has to be unloaded from primary tool for MMU print
     return logical_sensor_states_[LogicalFilamentSensor::primary_runout] == FilamentSensorState::NoFilament;
 }
 
 bool FilamentSensors::ToolHasFilament(uint8_t tool_nr) {
-    std::unique_lock lock_printer(GetExtruderMutex());
+    std::unique_lock lock_printer(get_mutex());
 
     FilamentSensorState extruder_state = GetExtruderFSensor(tool_nr) ? GetExtruderFSensor(tool_nr)->get_state() : FilamentSensorState::Disabled;
     FilamentSensorState side_state = GetSideFSensor(tool_nr) ? GetSideFSensor(tool_nr)->get_state() : FilamentSensorState::Disabled;
@@ -222,7 +222,7 @@ bool FilamentSensors::ToolHasFilament(uint8_t tool_nr) {
  * @return MMU2::FilamentState
  */
 FilamentState FilamentSensors::WhereIsFilament() {
-    const std::lock_guard lock(GetExtruderMutex());
+    const std::lock_guard lock(get_mutex());
     switch (logical_sensor_states_[LogicalFilamentSensor::secondary_runout]) {
     case FilamentSensorState::HasFilament:
         return FilamentState::AT_FSENSOR;
@@ -242,7 +242,7 @@ FilamentState FilamentSensors::WhereIsFilament() {
 // if it is it will do unnecessary lock and return false
 // I prefer to have single method for both variants
 bool FilamentSensors::HasMMU() {
-    const std::lock_guard lock(GetExtruderMutex());
+    const std::lock_guard lock(get_mutex());
     return has_mmu;
 }
 

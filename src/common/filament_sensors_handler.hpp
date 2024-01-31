@@ -67,10 +67,9 @@ public:
     void AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
     void AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index); // ADC sensor IRQ callback
 
-    /// Thread-safe
-    inline IFSensor *sensor(LogicalFilamentSensor sensor) const {
-        std::unique_lock _(GetExtruderMutex());
-        return logical_sensors_[sensor];
+    inline auto logical_sensors() const {
+        std::unique_lock _(get_mutex());
+        return logical_sensors_;
     }
 
     /// Thread-safe
@@ -116,7 +115,7 @@ private:
     std::atomic<bool> has_mmu = false; // affect only MMU, named correctly .. it is not "has_side_sensor"
 
     // I have used reference to forward declared class, so I do not need to include freertos in header
-    freertos::Mutex &GetExtruderMutex() const;
+    freertos::Mutex &get_mutex() const;
 
     friend IFSensor *GetExtruderFSensor(uint8_t index);
     friend IFSensor *GetSideFSensor(uint8_t index);
