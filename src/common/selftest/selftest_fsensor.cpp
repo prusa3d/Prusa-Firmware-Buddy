@@ -253,10 +253,6 @@ LoopResult CSelftestPart_FSensor::state_calibrate_wait_finished() {
             log_error(Selftest, "%s disabled after calibration", rConfig.partname);
             IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_fail);
             return LoopResult::Fail;
-
-        case FilamentSensorState::_cnt:
-            assert(0);
-            return LoopResult::Fail;
         }
     }
 

@@ -638,8 +638,6 @@ MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(string_view_utf8 label)
                 case FilamentSensorState::NoFilament:
                     _(notInserted).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case FilamentSensorState::_cnt:
-                    break;
                 }
                 snprintf(buffer, GuiDefaults::infoDefaultLen, fmt, value.second.get_int());
             } else {
