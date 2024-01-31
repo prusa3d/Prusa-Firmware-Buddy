@@ -65,6 +65,10 @@ namespace {
     const constexpr Duration TELEMETRY_INTERVAL_LONG = 1000 * 4;
     // Except when we are printing or processing something, we want it more often.
     const constexpr Duration TELEMETRY_INTERVAL_SHORT = 1000;
+    // Wake the loop at least this often, to check for interesting events. This
+    // limits the max amoun of one sleep, but we'd produce several in a row if
+    // we need that.
+    const constexpr Duration LOOP_WAKEUP = 500;
     // If we don't manage to talk to the server for this long, re-init the
     // communication with a new init event.
     const constexpr Duration RECONNECT_AFTER = 1000 * 10;
@@ -440,7 +444,9 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
         if (*since_telemetry >= telemetry_interval) {
             return SendTelemetry { false };
         } else {
-            Duration sleep_amount = telemetry_interval - *since_telemetry;
+            // Don't sleep longer than until the next telemetry.
+            // But also wake up often enough to check for interesting events.
+            Duration sleep_amount = std::min(telemetry_interval - *since_telemetry, LOOP_WAKEUP);
             return sleep(sleep_amount, wake_on_readable, false);
         }
     } else {

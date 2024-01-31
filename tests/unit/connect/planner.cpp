@@ -73,6 +73,9 @@ TEST_CASE("Success scenario") {
     test.consume_telemetry();
 
     test.consume_sleep();
+    // Planner produces sleeps in small chunk, so we would have to consume
+    // several of them. Simply just pretend it took longer.
+    advance_time_s(120);
 
     // But now, after we have slept, we shall send some more telemetries
     test.consume_telemetry();
