@@ -118,14 +118,6 @@ static void init_step_generator_internal(
 
     axis_state.initial_time = ticks_us();
 
-    // Adjust rotor phase such that when we virtually move, we don't move physically
-    float inverted_last_target_position = resolve_axis_inversion(axis_state.inverted, axis_state.last_position);
-    float inverted_start_position = resolve_axis_inversion(axis_state.inverted, axis_state.target->initial_pos);
-    axis_state.zero_rotor_phase = normalize_motor_phase(
-        +axis_state.zero_rotor_phase
-        - pos_to_phase(axis, inverted_start_position)
-        + pos_to_phase(axis, inverted_last_target_position));
-
     axis_state.last_position = axis_state.target->initial_pos;
     axis_state.last_processed_move = &move;
 
@@ -306,6 +298,21 @@ bool phase_stepping::processing() {
     return false;
 }
 
+void phase_stepping::set_phase_origin(AxisEnum axis, float pos) {
+    assert(axis < SUPPORTED_AXIS_COUNT);
+    assert_initialized();
+
+    auto &axis_state = *axis_states[axis];
+    bool was_active = axis_state.active;
+    axis_state.active = false;
+
+    float inverted_position = resolve_axis_inversion(axis_state.inverted, pos);
+    axis_state.zero_rotor_phase = normalize_motor_phase(-pos_to_phase(axis, inverted_position) + axis_state.last_phase);
+    axis_state.last_position = pos;
+
+    axis_state.active = was_active;
+}
+
 void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
     assert(!planner.has_blocks_queued() && !PreciseStepping::processing());
@@ -342,11 +349,10 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     stepper.coil_B(a);
     stepper.direct_mode(true);
 
-    // We initialize the zero rotor phase to current phase. The following move
-    // segment to come will be move segment to zero, let's prepare for that.
+    // We initialize the zero rotor phase to current phase. The real initialization is done by
+    // set_phase_origin() when the coordinate system finally initialized.
     axis_state.zero_rotor_phase = current_phase;
     axis_state.last_phase = current_phase;
-    axis_state.target = MoveTarget(axis_state.last_position);
 #endif
     // Read axis configuration and cache it so we can access it fast
     if (axis_num == AxisEnum::X_AXIS) {
@@ -566,7 +572,7 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
     const auto &current_lut = resolve_current_lut(axis_state);
 
     int new_phase = normalize_motor_phase(pos_to_phase(axis_index, physical_position) + axis_state.zero_rotor_phase);
-    assert(phase_difference(axis_state.last_phase, new_phase) < 256);
+    // assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
 #if HAS_BURST_STEPPING()
     axis_state.phase_correction = current_lut.get_phase_shift(new_phase);

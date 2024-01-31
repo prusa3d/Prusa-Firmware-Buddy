@@ -95,6 +95,11 @@ void init();
 void load();
 
 /**
+ * Set the axis phase origin for a single axis
+ */
+void set_phase_origin(AxisEnum axis_num, float pos);
+
+/**
  * Generic function for enabling/disabling axis. Unless needed otherwise, this
  * should be the default way of enabling/disabling it for an axis. When axis is
  * already in desired state, it does nothing.
