@@ -31,7 +31,9 @@ class ScreenSelftestTemp : public AddSuperWindow<SelftestFrameWithRadio> {
 
     window_text_t text_info;
 
-    window_text_t text_dialog;
+    window_text_t text_dialog_warning;
+
+    window_text_t text_dialog_sheet_on_bed;
 
     // result per each HOTEND
     struct hotend_result_t {
