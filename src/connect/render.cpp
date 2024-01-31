@@ -69,120 +69,102 @@ namespace {
         const auto params = state.printer.params();
         const bool printing = is_printing(params.state.device_state);
 
-        const uint32_t current_fingerprint = params.telemetry_fingerprint(!printing);
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
-
-        // Note:
-        // We don't adhere to the best practice of JSON renderers, that we
-        // prepare everything up-front, store it and then render it. That's
-        // because we don't want to store the copy of the structure while
-        // sending, to be able to reuse the stack space.
-        //
-        // This isn't a big issue because:
-        // * We don't call the printer.renew() / marlin_update_vars() in
-        //   between, so the values _should_ be the same.
-        // * The only way it can concievably change if it changes is to go from
-        //   not changed -> changed telemetry. If it happens before entering the
-        //   update_telemetry block, we just enter it. If it happens after, it
-        //   has no effect (it's been already skipped).
-        const bool update_telemetry = state.telemetry_changes.set_hash(current_fingerprint);
 
         // Keep the indentation of the JSON in here!
         // clang-format off
         JSON_START;
         JSON_OBJ_START;
-            if (!telemetry.empty) {
-                if (transfer_status.has_value()) {
-                    // We use the guard-versions here, because we re-acquire
-                    // the status on each resume of this "coroutine". In the
-                    // very rare case the transfer ends and a new one starts in
-                    // between, it might go away and we need to abort this
-                    // attempt (we'll retry later on).
-                    //
-                    // To minimize the risk, we place these first.
-                    //
-                    // And yes, we need the guard on each one, because we can
-                    // resume at each and every of these fields.
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_transferred", transfer_status->download_progress.get_valid_size()) JSON_COMMA;
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_time_remaining", transfer_status->time_remaining_estimate()) JSON_COMMA;
-                    JSON_FIELD_FFIXED_G(transfer_status.has_value(), "transfer_progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
-                }
+            if (transfer_status.has_value()) {
+                // We use the guard-versions here, because we re-acquire
+                // the status on each resume of this "coroutine". In the
+                // very rare case the transfer ends and a new one starts in
+                // between, it might go away and we need to abort this
+                // attempt (we'll retry later on).
+                //
+                // To minimize the risk, we place these first.
+                //
+                // And yes, we need the guard on each one, because we can
+                // resume at each and every of these fields.
+                JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
+                JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_transferred", transfer_status->download_progress.get_valid_size()) JSON_COMMA;
+                JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_time_remaining", transfer_status->time_remaining_estimate()) JSON_COMMA;
+                JSON_FIELD_FFIXED_G(transfer_status.has_value(), "transfer_progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
+            }
 
-                // These are not included in the fingerprint as they are changing a lot.
+            // These are not included in the fingerprint as they are changing a lot.
+            if (printing) {
+                JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
+                JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
+                if (params.time_to_end != marlin_server::TIME_TO_END_INVALID) {
+                    JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
+                }
+                if (params.time_to_pause != marlin_server::TIME_TO_END_INVALID) {
+                    // Connect calls it "filament change". Slicer "Time to
+                    // color change". But in reality it is both pause and
+                    // filament change (M600 / M601).
+                    JSON_FIELD_INT("filament_change_in", params.time_to_pause) JSON_COMMA;
+                }
+                JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
+            }
+
+            //Note: the zero slot always has the values for printers without
+            //MMU or toolchanger, maybe eventually we should send one slot
+            //in hte same structure even for those printers, but left here for now.
+            if (telemetry.mode == SendTelemetry::Mode::Full) {
+                JSON_FIELD_FFIXED("temp_nozzle", params.slots[0].temp_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
+                JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
+                JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
+                if (params.slots[0].material != nullptr) {
+                    JSON_FIELD_STR("material", params.slots[0].material) JSON_COMMA;
+                }
+                if (!printing) {
+                    // To avoid spamming the DB, connect doesn't want positions during printing
+                    JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
+                    JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
+                }
+                JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
                 if (printing) {
-                    JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
-                    JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
-                    if (params.time_to_end != marlin_server::TIME_TO_END_INVALID) {
-                        JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
-                    }
-                    if (params.time_to_pause != marlin_server::TIME_TO_END_INVALID) {
-                        // Connect calls it "filament change". Slicer "Time to
-                        // color change". But in reality it is both pause and
-                        // filament change (M600 / M601).
-                        JSON_FIELD_INT("filament_change_in", params.time_to_pause) JSON_COMMA;
-                    }
-                    JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
+                    JSON_FIELD_INT("fan_extruder", params.slots[0].heatbreak_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_print", params.slots[0].print_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
                 }
-
-                //Note: the zero slot always has the values for printers without
-                //MMU or toolchanger, maybe eventually we should send one slot
-                //in hte same structure even for those printers, but left here for now.
-                if (update_telemetry) {
-                    JSON_FIELD_FFIXED("temp_nozzle", params.slots[0].temp_nozzle, 1) JSON_COMMA;
-                    JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
-                    JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
-                    JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
-                    JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
-                    JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
-                    if (params.slots[0].material != nullptr) {
-                        JSON_FIELD_STR("material", params.slots[0].material) JSON_COMMA;
-                    }
-                    if (!printing) {
-                        // To avoid spamming the DB, connect doesn't want positions during printing
-                        JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
-                        JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
-                    }
-                    JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
-                    if (printing) {
-                        JSON_FIELD_INT("fan_extruder", params.slots[0].heatbreak_fan_rpm) JSON_COMMA;
-                        JSON_FIELD_INT("fan_print", params.slots[0].print_fan_rpm) JSON_COMMA;
-                        JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
-                    }
-                }
+            }
 
 #if HAS_MMU2() || HAS_TOOLCHANGER()
-                if (params.mmu_enabled || option::has_toolchanger) {
-                    JSON_FIELD_OBJ("slot");
-                        while (state.slot_iter < params.number_of_slots) {
-                            JSON_CUSTOM("\"%zu\":{", state.slot_iter + 1);
-                                JSON_FIELD_STR("material", params.slots[state.slot_iter].material) JSON_COMMA;
-                                JSON_FIELD_FFIXED("temp", params.slots[state.slot_iter].temp_nozzle, 1) JSON_COMMA;
-                                JSON_FIELD_FFIXED("fan_hotend", params.slots[state.slot_iter].heatbreak_fan_rpm, 1) JSON_COMMA;
-                                JSON_FIELD_FFIXED("fan_print", params.slots[state.slot_iter].print_fan_rpm, 1);
-                            JSON_OBJ_END JSON_COMMA;
-                            state.slot_iter++;
-                        }
-                        if (params.mmu_enabled) {
-                            JSON_FIELD_INT("state", params.progress_code) JSON_COMMA;
-                            JSON_FIELD_STR_FORMAT("command", "%c", params.command_code) JSON_COMMA;
-                        }
-                        JSON_FIELD_INT("active", params.active_slot);
-                    JSON_OBJ_END JSON_COMMA;
-                }
-#endif
-                if (state.background_command_id.has_value()) {
-                    JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
-                }
-
-                if (params.state.dialog_id.has_value()) {
-                    JSON_FIELD_INT_G(params.state.dialog_id.has_value(), "dialog_id", *params.state.dialog_id) JSON_COMMA;
-                }
-                // State is sent always, first because it seems important, but
-                // also, we want something that doesn't have the final comma on
-                // it.
-                JSON_FIELD_STR("state", to_str(params.state.device_state));
+            if (params.mmu_enabled || option::has_toolchanger) {
+                JSON_FIELD_OBJ("slot");
+                    while (state.slot_iter < params.number_of_slots) {
+                        JSON_CUSTOM("\"%zu\":{", state.slot_iter + 1);
+                            JSON_FIELD_STR("material", params.slots[state.slot_iter].material) JSON_COMMA;
+                            JSON_FIELD_FFIXED("temp", params.slots[state.slot_iter].temp_nozzle, 1) JSON_COMMA;
+                            JSON_FIELD_FFIXED("fan_hotend", params.slots[state.slot_iter].heatbreak_fan_rpm, 1) JSON_COMMA;
+                            JSON_FIELD_FFIXED("fan_print", params.slots[state.slot_iter].print_fan_rpm, 1);
+                        JSON_OBJ_END JSON_COMMA;
+                        state.slot_iter++;
+                    }
+                    if (params.mmu_enabled) {
+                        JSON_FIELD_INT("state", params.progress_code) JSON_COMMA;
+                        JSON_FIELD_STR_FORMAT("command", "%c", params.command_code) JSON_COMMA;
+                    }
+                    JSON_FIELD_INT("active", params.active_slot);
+                JSON_OBJ_END JSON_COMMA;
             }
+#endif
+            if (state.background_command_id.has_value()) {
+                JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
+            }
+
+            if (params.state.dialog_id.has_value()) {
+                JSON_FIELD_INT_G(params.state.dialog_id.has_value(), "dialog_id", *params.state.dialog_id) JSON_COMMA;
+            }
+            // State is sent always, first because it seems important, but
+            // also, we want something that doesn't have the final comma on
+            // it.
+            JSON_FIELD_STR("state", to_str(params.state.device_state));
         JSON_OBJ_END;
         JSON_END;
         // clang-format on
@@ -901,10 +883,9 @@ FileExtra::FileExtra(std::unique_ptr<AnyGcodeFormatReader> gcode_reader_)
 FileExtra::FileExtra(const char *base_path, unique_dir_ptr dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}
 
-RenderState::RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes, optional<CommandId> background_command_id)
+RenderState::RenderState(const Printer &printer, const Action &action, optional<CommandId> background_command_id)
     : printer(printer)
     , action(action)
-    , telemetry_changes(telemetry_changes)
     , lan(printer.net_info(Printer::Iface::Ethernet))
     , wifi(printer.net_info(Printer::Iface::Wifi))
     , transfer_id(Monitor::instance.id())

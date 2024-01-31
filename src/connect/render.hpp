@@ -88,7 +88,6 @@ struct RenderState {
 
     const Printer &printer;
     const Action &action;
-    Tracked &telemetry_changes;
     bool has_stat = false;
     bool read_only = false;
     struct stat st;
@@ -100,7 +99,7 @@ struct RenderState {
     std::optional<transfers::TransferId> transfer_id = std::nullopt;
     std::optional<CommandId> background_command_id = std::nullopt;
 
-    RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes, std::optional<CommandId> background_command_id);
+    RenderState(const Printer &printer, const Action &action, std::optional<CommandId> background_command_id);
 };
 
 class Renderer : public json::JsonRenderer<RenderState> {

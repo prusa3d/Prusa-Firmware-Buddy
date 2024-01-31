@@ -23,7 +23,11 @@ namespace connect_client {
 class Printer;
 
 struct SendTelemetry {
-    bool empty;
+    enum class Mode {
+        Reduced,
+        Full,
+    };
+    Mode mode;
 };
 
 struct ReadCommand {};
@@ -102,6 +106,10 @@ private:
     std::optional<Event> planned_event;
     /// Last time we've successfully sent a telemetry to the server.
     std::optional<Timestamp> last_telemetry;
+    /// When was the last time the telemetry was full?
+    /// (0 can cause false negative at startup, but we also mark the telemetry tracker as dirty at startup).
+    Timestamp last_full_telemetry = 0;
+    SendTelemetry::Mode last_telemetry_mode = SendTelemetry::Mode::Reduced;
     /// Last time we've successfully talked to the server.
     std::optional<Timestamp> last_success;
     /// When doing comm retries, this is the cooldown time between them.
@@ -154,6 +162,8 @@ private:
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;
+    // Tracking how much we want to send.
+    Tracked telemetry_changes;
 
     Tracked cancellable_objects;
     Tracked state_info;

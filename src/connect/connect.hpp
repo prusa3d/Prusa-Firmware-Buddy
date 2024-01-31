@@ -50,12 +50,6 @@ enum class RequestType {
 
 class Connect {
 private:
-    Tracked telemetry_changes;
-    // We want to make sure to send a full telemetry every now and then even if nothing changed.
-    // (There seems to be a problem on the server, not being able to cope with that).
-    //
-    // This is in addition to the telemetry changes tracker.
-    uint32_t last_full_telemetry;
     std::variant<Planner, Registrator> guts;
     Printer &printer;
     SharedBuffer &buffer;
@@ -77,7 +71,7 @@ private:
 #endif
 
     CommResult prepare_connection(CachedFactory &conn_factory, const Printer::Config &config);
-    CommResult send_command(CachedFactory &conn_factory, const Printer::Config &config, Action &&action, std::optional<CommandId> background_command_id, uint32_t now);
+    CommResult send_command(CachedFactory &conn_factory, const Printer::Config &config, Action &&action, std::optional<CommandId> background_command_id);
     // transmission and reception with Connect server
     CommResult communicate(CachedFactory &conn_factory);
     ServerResp handle_server_resp(http::Response response, CommandId command_id);

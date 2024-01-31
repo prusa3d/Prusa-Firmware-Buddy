@@ -121,7 +121,7 @@ namespace {
         }
 
     public:
-        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action, Tracked &telemetry_changes, optional<CommandId> background_command_id)
+        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action, optional<CommandId> background_command_id)
             : hdrs {
                 // Even though the fingerprint is on a temporary, that
                 // pointer is guaranteed to stay stable.
@@ -129,7 +129,7 @@ namespace {
                 { "Token", config.token, nullopt },
                 { nullptr, nullptr, nullopt }
             }
-            , renderer_impl(RenderState(printer, action, telemetry_changes, background_command_id))
+            , renderer_impl(RenderState(printer, action, background_command_id))
             , target_url(visit([](const auto &action) { return url(action); }, action)) {}
         virtual const char *url() const override {
             return target_url;
@@ -511,14 +511,13 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
     return monostate {};
 }
 
-CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Config &, Action &&action, optional<CommandId> background_command_id, uint32_t now) {
+CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Config &, Action &&action, optional<CommandId> background_command_id) {
     log_debug(connect, "Sending to server");
     if (!websocket.has_value()) {
         planner().action_done(ActionResult::Failed);
         return OnlineError::Network;
     }
-    const bool is_full_telemetry = holds_alternative<SendTelemetry>(action) && !get<SendTelemetry>(action).empty;
-    Renderer renderer(RenderState(printer, action, telemetry_changes, background_command_id));
+    Renderer renderer(RenderState(printer, action, background_command_id));
     uint8_t buffer[MAX_RESP_SIZE];
     bool more = true;
     bool first = true;
@@ -547,10 +546,6 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
     log_debug(connect, "Sending done");
 
     planner().action_done(ActionResult::Ok);
-    if (is_full_telemetry && telemetry_changes.is_dirty()) {
-        telemetry_changes.mark_clean();
-        last_full_telemetry = now;
-    }
 
     return ConnectionStatus::Ok;
 }
@@ -565,9 +560,9 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
     return monostate {};
 }
 
-CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Config &config, Action &&action, optional<CommandId> background_command_id, uint32_t now) {
+CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Config &config, Action &&action, optional<CommandId> background_command_id) {
     log_debug(connect, "Sending to connect");
-    BasicRequest request(printer, config, action, telemetry_changes, background_command_id);
+    BasicRequest request(printer, config, action, background_command_id);
     ExtractCommanId cmd_id;
 
     HttpClient http(conn_factory);
@@ -592,28 +587,14 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
     if (!resp.can_keep_alive) {
         conn_factory.invalidate();
     }
-    const bool is_full_telemetry = holds_alternative<SendTelemetry>(action) && !get<SendTelemetry>(action).empty;
     switch (resp.status) {
     // The server has nothing to tell us
     case Status::NoContent:
         log_debug(connect, "Have a response without body");
         planner().action_done(ActionResult::Ok);
-        if (is_full_telemetry && telemetry_changes.is_dirty()) {
-            // We check the is_dirty too, because if it was _not_ dirty, we
-            // sent only partial telemetry and don't want to reset the
-            // last_full_telemetry.
-            telemetry_changes.mark_clean();
-            last_full_telemetry = now;
-        }
         return ConnectionStatus::Ok;
     case Status::Ok: {
         log_debug(connect, "Have a response with body");
-        if (is_full_telemetry && telemetry_changes.is_dirty()) {
-            // Yes, even before checking the command we got is OK. We did send
-            // the telemetry, what happens to the command doesn't matter.
-            telemetry_changes.mark_clean();
-            last_full_telemetry = now;
-        }
         if (cmd_id.command_id.has_value()) {
             const auto sub_resp = handle_server_resp(resp, *cmd_id.command_id);
             return visit([&](auto &&arg) -> CommResult {
@@ -680,8 +661,8 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     // Make sure to reconnect if the configuration changes .
     if (cfg_changed) {
         conn_factory.invalidate();
-        // Possibly new server, new telemetry cache...
-        telemetry_changes.mark_dirty();
+        // Possibly new server
+        planner().reset();
     }
 
     if (!config.enabled) {
@@ -722,32 +703,12 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     if (auto *s = get_if<Sleep>(&action)) {
         s->perform(printer, planner());
         return monostate {};
-    } else if (auto *e = get_if<Event>(&action); e && e->type == EventType::Info) {
-        // The server may delete its latest copy of telemetry in various case, in particular:
-        // * When it thinks we were offline for a while.
-        // * When it went through an update.
-        //
-        // In either case, we send or the server asks us to send the INFO
-        // event. We may send INFO for other reasons too, but don't bother to
-        // make that distinction for simplicity.
-        telemetry_changes.mark_dirty();
     }
 
     auto prepared = prepare_connection(conn_factory, config);
     if (!holds_alternative<monostate>(prepared)) {
         log_debug(connect, "No connection to communicate");
         return prepared;
-    }
-
-    uint32_t start = now();
-    // Underflow should naturally work
-    if (start - last_full_telemetry >= FULL_TELEMETRY_EVERY) {
-        // The server wants to get a full telemetry from time to time, despite
-        // it not being changed. Some caching reasons/recovery/whatever?
-        //
-        // If we didn't send a new telemetry for too long, reset the
-        // fingerprint, which'll trigger the resend.
-        telemetry_changes.mark_dirty();
     }
 
     const auto background_command_id = planner().background_command_id();
@@ -760,7 +721,7 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
         return err_to_status(Error::InternalError);
 #endif
     } else {
-        return send_command(conn_factory, config, move(action), background_command_id, start);
+        return send_command(conn_factory, config, move(action), background_command_id);
     }
 }
 

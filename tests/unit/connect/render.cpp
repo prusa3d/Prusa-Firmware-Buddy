@@ -53,15 +53,24 @@ TEST_CASE("Render") {
     optional<Monitor::Slot> transfer_slot = nullopt;
     optional<CommandId> background_command_id = nullopt;
 
-    SECTION("Telemetry - empty") {
+    SECTION("Telemetry - reduced") {
         params.emplace(params_printing());
-        action = SendTelemetry { true };
-        expected = "{}";
+        action = SendTelemetry { SendTelemetry::Mode::Reduced };
+        // clang-format off
+        expected = "{"
+            "\"job_id\":42,"
+            "\"time_printing\":0,"
+            "\"time_remaining\":0,"
+            "\"filament_change_in\":0,"
+            "\"progress\":12,"
+            "\"state\":\"PRINTING\""
+        "}";
+        // clang-format on
     }
 
     SECTION("Telemetry - printing") {
         params.emplace(params_printing());
-        action = SendTelemetry { false };
+        action = SendTelemetry { SendTelemetry::Mode::Full };
         // clang-format off
         expected = "{"
             "\"job_id\":42,"
@@ -86,7 +95,7 @@ TEST_CASE("Render") {
 
     SECTION("Telemetry - idle") {
         params.emplace(params_idle());
-        action = SendTelemetry { false };
+        action = SendTelemetry { SendTelemetry::Mode::Full };
         // clang-format off
         expected = "{"
             "\"temp_nozzle\":0.0,"
@@ -105,7 +114,7 @@ TEST_CASE("Render") {
 
     SECTION("Telemetry - transferring") {
         params.emplace(params_idle());
-        action = SendTelemetry { false };
+        action = SendTelemetry { SendTelemetry::Mode::Full };
         transfer_slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/whatever.gcode", 1024);
         REQUIRE(transfer_slot.has_value());
         auto id = Monitor::instance.id();
@@ -134,7 +143,7 @@ TEST_CASE("Render") {
 
     SECTION("Telemetry with background command") {
         params.emplace(params_idle());
-        action = SendTelemetry { false };
+        action = SendTelemetry { SendTelemetry::Mode::Full };
         background_command_id = 13;
         // clang-format off
         expected = "{"
@@ -329,8 +338,7 @@ TEST_CASE("Render") {
     }
 
     MockPrinter printer(params.value());
-    Tracked telemetry_changes;
-    RenderState state(printer, action, telemetry_changes, background_command_id);
+    RenderState state(printer, action, background_command_id);
     Renderer renderer(std::move(state));
     uint8_t buffer[1024];
     const auto [result, amount] = renderer.render(buffer, sizeof buffer);

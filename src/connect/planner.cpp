@@ -4,6 +4,7 @@
 #include <filename_type.hpp>
 #include <log.h>
 #include <transfers/transfer.hpp>
+#include <option/websocket.h>
 
 #include <alloca.h>
 #include <algorithm>
@@ -61,10 +62,20 @@ namespace {
     const constexpr Duration COOLDOWN_BASE = 100;
     // Don't do retries less often than once a minute.
     const constexpr Duration COOLDOWN_MAX = 1000 * 60;
+    // Don't send telemetry more often than this even if things change.
+    const constexpr Duration TELEMETRY_INTERVAL_MIN = 750;
+#if WEBSOCKET()
+    // Max of 2 minutes of telemetry silence.
+    const constexpr Duration TELEMETRY_INTERVAL_LONG = 2 * 60 * 1000;
+#else
     // Telemetry every 4 seconds. We may want to have something more clever later on.
     const constexpr Duration TELEMETRY_INTERVAL_LONG = 1000 * 4;
+#endif
     // Except when we are printing or processing something, we want it more often.
     const constexpr Duration TELEMETRY_INTERVAL_SHORT = 1000;
+    // Make sure to send a full telemetry once in a while, even if there are no
+    // relevant changes. That's because the server might forget the telemetry sometimes.
+    const constexpr Duration TELEMETRY_INTERVAL_FULL = 1000 * 60 * 5;
     // Wake the loop at least this often, to check for interesting events. This
     // limits the max amoun of one sleep, but we'd produce several in a row if
     // we need that.
@@ -250,6 +261,7 @@ Planner::Planner(Printer &printer)
     dummy_params.state.device_state = printer_state::DeviceState::Idle;
     state_info.set_hash(dummy_params.state_fingerprint());
     state_info.mark_clean();
+    telemetry_changes.mark_dirty();
 }
 
 void Planner::reset() {
@@ -257,6 +269,7 @@ void Planner::reset() {
     info_changes.mark_dirty();
     cancellable_objects.mark_clean();
     last_telemetry = nullopt;
+    telemetry_changes.mark_dirty();
     cooldown = nullopt;
     perform_cooldown = false;
     failed_attempts = 0;
@@ -439,19 +452,25 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
         return ReadCommand {};
     }
 
-    if (const auto since_telemetry = since(last_telemetry); since_telemetry.has_value()) {
-        const Duration telemetry_interval = printer.is_printing() || background_command.has_value() ? TELEMETRY_INTERVAL_SHORT : TELEMETRY_INTERVAL_LONG;
-        if (*since_telemetry >= telemetry_interval) {
-            return SendTelemetry { false };
-        } else {
-            // Don't sleep longer than until the next telemetry.
-            // But also wake up often enough to check for interesting events.
-            Duration sleep_amount = std::min(telemetry_interval - *since_telemetry, LOOP_WAKEUP);
-            return sleep(sleep_amount, wake_on_readable, false);
-        }
+    const bool printing = printer.is_printing();
+    const bool changes = telemetry_changes.set_hash(params.telemetry_fingerprint(!printing));
+    const bool want_short = printing || background_command.has_value() || observed_transfer.has_value();
+    const Duration telemetry_interval = want_short ? TELEMETRY_INTERVAL_SHORT : TELEMETRY_INTERVAL_LONG;
+    const Duration since_telemetry = since(last_telemetry).value_or(TELEMETRY_INTERVAL_FULL * 2 /* "Long enough" */);
+    const Duration since_full = since(last_full_telemetry).value_or(TELEMETRY_INTERVAL_FULL * 2);
+
+    const bool send_telemetry = since_telemetry >= TELEMETRY_INTERVAL_MIN && (changes || since_telemetry >= telemetry_interval);
+    const bool want_full = changes || since_full >= TELEMETRY_INTERVAL_FULL;
+
+    if (send_telemetry) {
+        last_telemetry_mode = want_full ? SendTelemetry::Mode::Full : SendTelemetry::Mode::Reduced;
+        return SendTelemetry { last_telemetry_mode };
     } else {
-        // TODO: Optimization: When can we send just empty telemetry instead of full one?
-        return SendTelemetry { false };
+        // Don't sleep longer than until the next telemetry.
+        // But also wake up often enough to check for interesting events.
+        assert(telemetry_interval >= since_telemetry);
+        Duration sleep_amount = std::min(telemetry_interval - since_telemetry, LOOP_WAKEUP);
+        return sleep(sleep_amount, wake_on_readable, false);
     }
 }
 
@@ -482,10 +501,17 @@ void Planner::action_done(ActionResult result) {
                 state_info.mark_clean();
             }
             planned_event = nullopt;
+#if !WEBSOCKET()
             // Enforce telemetry now. We may get a new command with it.
+            // Websocket doesn't need this, commands can come independently from telemetry.
             last_telemetry = nullopt;
+#endif
         } else {
             last_telemetry = n;
+            if (last_telemetry_mode == SendTelemetry::Mode::Full) {
+                last_full_telemetry = n;
+                telemetry_changes.mark_clean();
+            }
         }
         break;
     }
