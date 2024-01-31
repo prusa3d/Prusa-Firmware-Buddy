@@ -86,6 +86,7 @@ public:
 private:
     void reconfigure_sensors_if_needed(bool force);
     void process_events();
+    void process_enable_state_update();
 
     inline bool isEvLocked() const { return event_lock > 0; }
     inline bool isAutoloadLocked() const { return autoload_lock > 0; }
@@ -106,8 +107,6 @@ private:
     /// will be reconfigured in the next fsensors update cycle
     std::atomic<bool> enable_state_update_pending = false;
     std::atomic<bool> enable_state_update_processing = false;
-
-    void process_enable_state_update();
 
     std::atomic<uint8_t> tool_index = uint8_t(-1);
     std::atomic<bool> m600_sent = false;

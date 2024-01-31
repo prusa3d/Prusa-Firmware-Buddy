@@ -12,23 +12,6 @@ IFSensor *GetSideFSensor([[maybe_unused]] uint8_t index) {
     return nullptr;
 }
 
-// printer wit just 1 filament sensor never needs to reconfigure
-void FilamentSensors::reconfigure_sensors_if_needed(bool force) {
-    if (!force) {
-        return;
-    }
-
-    tool_index = 0;
-
-    using LFS = LogicalFilamentSensor;
-    auto &ls = logical_sensors_;
-
-    const auto extruder_fs = GetExtruderFSensor(tool_index);
-
-    ls[LFS::primary_runout] = extruder_fs;
-    ls[LFS::autoload] = extruder_fs;
-}
-
 void FilamentSensors::AdcSide_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {
     bsod("no adc sensor");
 }

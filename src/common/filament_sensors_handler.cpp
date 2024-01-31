@@ -15,9 +15,15 @@
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
 #include <option/has_human_interactions.h>
+#include <option/has_toolchanger.h>
+
 #if HAS_SELFTEST_SNAKE()
     #include <ScreenHandler.hpp>
     #include "screen_menu_selftest_snake.hpp"
+#endif
+
+#if HAS_MMU2()
+    #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
 LOG_COMPONENT_DEF(FSensor, LOG_SEVERITY_INFO);
@@ -92,6 +98,41 @@ void FilamentSensors::Cycle() {
     }
 
     process_events();
+}
+
+void FilamentSensors::reconfigure_sensors_if_needed(bool force) {
+    const uint8_t new_tool_index =
+#if HAS_TOOLCHANGER()
+        prusa_toolchanger.get_active_tool_nr();
+#else
+        0;
+#endif
+
+    const bool new_has_mmu =
+#if HAS_MMU2()
+        mmu2.State() != xState::Stopped;
+#else
+        false;
+#endif
+
+    if (!force && new_tool_index == tool_index && new_has_mmu == has_mmu) {
+        return;
+    }
+
+    tool_index = new_tool_index;
+    has_mmu = new_has_mmu;
+
+    using LFS = LogicalFilamentSensor;
+    auto &ls = logical_sensors_;
+
+    const auto extruder_fs = GetExtruderFSensor(tool_index);
+    const auto side_fs = GetSideFSensor(tool_index);
+
+    ls[LFS::current_extruder] = extruder_fs;
+    ls[LFS::current_side] = side_fs;
+    ls[LFS::primary_runout] = side_fs ?: extruder_fs;
+    ls[LFS::secondary_runout] = side_fs ? extruder_fs : nullptr;
+    ls[LFS::autoload] = has_mmu ? nullptr : extruder_fs;
 }
 
 void FilamentSensors::process_events() {
