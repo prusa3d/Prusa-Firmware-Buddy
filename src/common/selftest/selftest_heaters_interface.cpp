@@ -101,6 +101,7 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
 
             auto pNoz = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(config_nozzle[i],
                 resultHeaters.noz[i],
+                &CSelftestPart_Heater::stateAskUserToPutSheetOnBed,
                 &CSelftestPart_Heater::stateCheckHbrPassed,
                 &CSelftestPart_Heater::stateShowSkippedDialog,
                 &CSelftestPart_Heater::stateSetup,
