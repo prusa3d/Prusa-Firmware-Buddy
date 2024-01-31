@@ -210,14 +210,6 @@ bool FilamentSensors::ToolHasFilament(uint8_t tool_nr) {
     return (extruder_state == FilamentSensorState::HasFilament || extruder_state == FilamentSensorState::Disabled) && (side_state == FilamentSensorState::HasFilament || side_state == FilamentSensorState::Disabled);
 }
 
-IFSensor *get_active_printer_sensor() {
-    return GetExtruderFSensor(FSensors_instance().tool_index);
-}
-
-IFSensor *get_active_side_sensor() {
-    return GetSideFSensor(FSensors_instance().tool_index);
-}
-
 /*****************************************************************************/
 // section with locks
 // Do not nest calls of methods with same mutex !!!

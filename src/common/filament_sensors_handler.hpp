@@ -120,21 +120,13 @@ private:
 
     friend IFSensor *GetExtruderFSensor(uint8_t index);
     friend IFSensor *GetSideFSensor(uint8_t index);
-    friend IFSensor *get_active_printer_sensor();
-
-    friend IFSensor *get_active_side_sensor();
 };
 
 // singleton
 FilamentSensors &FSensors_instance();
 
 IFSensor *GetExtruderFSensor(uint8_t index);
-
 IFSensor *GetSideFSensor(uint8_t index);
-
-IFSensor *get_active_printer_sensor();
-
-IFSensor *get_active_side_sensor();
 
 /**
  * @brief called from IRQ
