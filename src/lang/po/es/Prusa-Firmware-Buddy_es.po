@@ -924,7 +924,7 @@ msgstr "%d Test Calentador Cama"
 #: src/gui/include_XL/selftest_snake_config.hpp:121
 #, c-format
 msgid "%d Dock Position Calibration"
-msgstr "Calibración Posición Dock %d"
+msgstr "%d Calibración Posición Dock"
 
 #: src/gui/MItem_lan.hpp:50
 msgid "Default"
