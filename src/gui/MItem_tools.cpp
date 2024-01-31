@@ -29,19 +29,20 @@
 #include "../../common/PersistentStorage.h"
 #include "sys.h"
 #include "w25x.h"
-#include <option/filament_sensor.h>
-#include <crash_dump/dump.hpp>
-#include <time.h>
-#include "config_features.h"
-#include <option/has_side_fsensor.h>
-#include <config_store/store_instance.hpp>
-#include <option/bootloader.h>
 #include <bootloader/bootloader.hpp>
-#include <feature/prusa/e-stall_detector.h>
+#include "config_features.h"
+#include <config_store/store_instance.hpp>
 #include "connect/marlin_printer.hpp"
-#include <st25dv64k.h>
+#include <crash_dump/dump.hpp>
+#include <feature/prusa/e-stall_detector.h>
+#include <option/bootloader.h>
+#include <option/filament_sensor.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_side_fsensor.h>
+#include <option/has_coldpull.h>
 #include <RAII.hpp>
+#include <st25dv64k.h>
+#include <time.h>
 
 namespace {
 void MsgBoxNonBlockInfo(string_view_utf8 txt) {
@@ -828,5 +829,15 @@ void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
             Screens::Access()->Close();
         }
     });
+}
+#endif
+
+#if HAS_COLDPULL()
+MI_COLD_PULL::MI_COLD_PULL()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_COLD_PULL::click([[maybe_unused]] IWindowMenu &window_menu) {
+    marlin_client::gcode("M1702");
 }
 #endif

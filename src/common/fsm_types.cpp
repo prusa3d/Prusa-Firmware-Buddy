@@ -63,6 +63,8 @@ const char *to_string(ClientFSM type) {
         return "Warning";
     case ClientFSM::PrintPreview:
         return "PrintPreview";
+    case ClientFSM::ColdPull:
+        return "ColdPull";
     case ClientFSM::_none:
         return "none";
     }

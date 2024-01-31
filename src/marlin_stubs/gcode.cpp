@@ -166,6 +166,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 1701:
             PrusaGcodeSuite::M1701();
             break;
+        case 1702:
+            PrusaGcodeSuite::M1702();
+            break;
         default:
             processed = false;
             break;

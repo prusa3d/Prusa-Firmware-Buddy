@@ -230,6 +230,10 @@ if(HAS_FILAMENT_SENSORS_MENU)
   target_sources(firmware PRIVATE screen_menu_filament_sensors.cpp)
 endif()
 
+if(HAS_COLDPULL)
+  target_sources(firmware PRIVATE screen_cold_pull.cpp)
+endif()
+
 add_subdirectory(dialogs)
 add_subdirectory(footer)
 if(HAS_LEDS)

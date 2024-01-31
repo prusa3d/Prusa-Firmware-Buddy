@@ -12,6 +12,7 @@
 #include <option/has_dwarf.h>
 #include <option/has_side_fsensor.h>
 #include <option/has_filament_sensors_menu.h>
+#include <option/has_coldpull.h>
 
 /// Checks if there is space in the gcode queue for inserting further commands.
 /// If there's not, \returns false and shows a message box
@@ -723,3 +724,18 @@ public:
 protected:
     void OnChange(size_t old_index) override;
 };
+
+/******************************************************************/
+#if HAS_COLDPULL()
+
+class MI_COLD_PULL : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Cold Pull");
+
+public:
+    MI_COLD_PULL();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+#endif

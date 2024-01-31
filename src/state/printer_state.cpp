@@ -299,6 +299,7 @@ StateWithDialog get_state_with_dialog(bool ready) {
     case ClientFSM::Load_unload:
     case ClientFSM::Selftest:
     case ClientFSM::ESP:
+    case ClientFSM::ColdPull:
     case ClientFSM::Serial_printing:
     // FIXME: BFW-3893 Sadly there is no way (without saving state in this function)
     //  to distinguish between preheat from main screen,

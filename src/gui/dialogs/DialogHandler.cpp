@@ -12,6 +12,10 @@
 #include "window_dlg_quickpause.hpp"
 #include "window_dlg_warning.hpp"
 
+#if HAS_COLDPULL()
+    #include "screen_cold_pull.hpp"
+#endif
+
 LOG_COMPONENT_REF(GUI);
 
 #if HAS_SELFTEST()
@@ -35,7 +39,12 @@ using SerialPrint = screen_printing_serial_data_t;
 using SerialPrint = ScreenDialogDoesNotExist;
 #endif
 
-using mem_space = std::aligned_union_t<0, DialogQuickPause, DialogLoadUnload, DialogMenuPreheat, DialogWarning>;
+using mem_space = std::aligned_union_t<0, DialogQuickPause, DialogLoadUnload, DialogMenuPreheat, DialogWarning
+#if HAS_COLDPULL()
+    ,
+    ScreenColdPull
+#endif
+    >;
 static mem_space all_dialogs;
 
 // safer than make_static_unique_ptr, checks storage size
@@ -115,6 +124,13 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
             Screens::Access()->Open(ScreenFactory::Screen<ScreenESP>);
         }
         break;
+    case ClientFSM::ColdPull:
+#if HAS_COLDPULL()
+        if (!ScreenColdPull::GetInstance()) {
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenColdPull>);
+        }
+#endif
+        break;
     case ClientFSM::QuickPause:
         ptr = make_dialog_ptr<DialogQuickPause>(data);
         break;
@@ -143,6 +159,7 @@ void DialogHandler::close(ClientFSM fsm_type) {
     case ClientFSM::CrashRecovery:
     case ClientFSM::Selftest:
     case ClientFSM::ESP:
+    case ClientFSM::ColdPull:
         Screens::Access()->Close();
         break;
     default:
@@ -190,6 +207,13 @@ void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
         if (ScreenESP::GetInstance()) {
             ScreenESP::GetInstance()->Change(data);
         }
+        break;
+    case ClientFSM::ColdPull:
+#if HAS_COLDPULL()
+        if (ScreenColdPull::GetInstance()) {
+            ScreenColdPull::GetInstance()->Change(data);
+        }
+#endif
         break;
     default:
         if (ptr) {

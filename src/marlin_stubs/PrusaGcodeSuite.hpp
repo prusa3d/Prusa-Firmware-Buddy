@@ -87,6 +87,8 @@ void M1601(); ///< Filament stuck detected, Prusa STM32 platform specific
 void M1700(); ///< Preheat. Prusa STM32 platform specific
 void M1701(); ///< Autoload. Prusa STM32 platform specific
 
+void M1702(); ///< Coldpull. Prusa platform specific
+
 #if HAS_TOOLCHANGER()
 void P0(); ///< Tool park
 #endif

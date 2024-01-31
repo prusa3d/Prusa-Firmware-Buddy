@@ -391,6 +391,20 @@ enum class PhasesWarning : PhaseUnderlyingType {
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesWarning) { return ClientFSM::Warning; }
 
+enum class PhasesColdPull : PhaseUnderlyingType {
+    introduction,
+    prepare_filament,
+    blank_load,
+    blank_unload,
+    cool_down,
+    heat_up,
+    pull_now,
+    pull_done,
+    finish,
+    _last = finish,
+};
+constexpr inline ClientFSM client_fsm_from_phase(PhasesColdPull) { return ClientFSM::ColdPull; }
+
 // static class for work with fsm responses (like button click)
 // encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {
@@ -696,6 +710,19 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::WarningResponses) == CountPhases<PhasesWarning>());
 
+    static constexpr PhaseResponses ColdPullResponses[] = {
+        { Response::Continue, Response::Stop }, // introduction,
+        { Response::Unload, Response::Load, Response::Continue, Response::Abort }, // prepare_filament,
+        {}, // blank_load
+        {}, // blank_unload
+        { Response::Abort }, // cool_down,
+        { Response::Abort }, // heat_up,
+        {}, // pull_now,
+        { Response::Finish }, // pull_done,
+        {}, // finish,
+    };
+    static_assert(std::size(ClientResponses::ColdPullResponses) == CountPhases<PhasesColdPull>());
+
     // methods to "bind" button array with enum type
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase)]; }
@@ -705,6 +732,7 @@ class ClientResponses {
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesQuickPause phase) { return QuickPauseResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesWarning phase) { return WarningResponses[static_cast<size_t>(phase)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesColdPull phase) { return ColdPullResponses[static_cast<size_t>(phase)]; }
 
 public:
     // get index of single response in PhaseResponses

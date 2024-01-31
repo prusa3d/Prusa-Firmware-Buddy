@@ -11,6 +11,7 @@
 #include <option/has_selftest.h>
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
+#include <option/has_coldpull.h>
 #include <printers.h>
 #include "MItem_basic_selftest.hpp"
 #include "MItem_mmu.hpp"
@@ -28,9 +29,15 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
 #endif
     MI_DISABLE_STEP,
     MI_LIVE_ADJUST_Z,
+
 #if PRINTER_IS_PRUSA_XL
     MI_ENCLOSURE,
 #endif
+
+#if HAS_COLDPULL()
+    MI_COLD_PULL,
+#endif
+
 #if HAS_MMU2()
     MI_MMU_LOAD_TEST_FILAMENT,
 #endif

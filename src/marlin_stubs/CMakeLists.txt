@@ -4,6 +4,7 @@ target_sources(
           G64.cpp
           gcode.cpp
           M123.cpp
+          M1702.cpp
           M300.cpp
           M330.cpp
           M340.cpp

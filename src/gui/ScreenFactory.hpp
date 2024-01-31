@@ -38,6 +38,10 @@
 #include "screen_menu_enclosure.hpp"
 #include "screen_printing.hpp"
 
+#if HAS_COLDPULL()
+    #include "screen_cold_pull.hpp"
+#endif
+
 #include "gui/test/screen_menu_test.hpp"
 
 #include <option/has_mmu2.h>
@@ -107,6 +111,9 @@ class ScreenFactory {
         ScreenMenuMMUEjectFilament,
         ScreenMenuMMUPreloadToMMU,
         ScreenMenuMMULoadToNozzle,
+#endif
+#if HAS_COLDPULL()
+        ScreenColdPull,
 #endif
         screen_home_data_t, screen_splash_data_t, screen_printing_data_t>::type;
 
