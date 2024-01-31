@@ -1,7 +1,6 @@
 #include <mmu2_marlin.h>
 #include <mmu2_mk4.h>
 #include "stub_interfaces.h"
-#include <functional>
 
 static bool printingIsActive = false;
 void SetMarlinIsPrinting(bool p) {

@@ -254,7 +254,7 @@ bool MMU2::ReadRegister(uint8_t address) {
 /// - existing infrastructure
 /// - avoiding propagation of MMU-specific stuff outside
 /// @note must not clash with Registers
-enum class MK4Register : uint8_t {
+enum MK4Register : uint8_t {
     TryLoadVsEStall = 0x80, // 0 tryload, 1 estall
     NominalEPosFSOff = 0x81, // 14mm
 };
@@ -273,9 +273,10 @@ bool __attribute__((noinline)) MMU2::WriteRegister(uint8_t address, uint16_t dat
         logic.PlanPulleySlowFeedRate(data);
         break;
 
-    case (uint8_t)MK4Register::TryLoadVsEStall:
-        return true; // not an MMU register @@TODO
-    case (uint8_t)MK4Register::NominalEPosFSOff:
+    case MK4Register::TryLoadVsEStall:
+        // ignored now, for future use
+        return true; // not an MMU register
+    case MK4Register::NominalEPosFSOff:
         nominalEMotorFSOffReg = data; // raw millimeters
         return true; // not an MMU register
     default:
