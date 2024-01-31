@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <cinttypes>
 
 #include <marlin_server_shared.h>
 #include <mbedtls/base64.h>

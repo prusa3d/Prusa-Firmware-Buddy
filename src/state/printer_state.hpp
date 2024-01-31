@@ -1,6 +1,7 @@
 #pragma once
 
 #include <error_codes.hpp>
+#include <cstdint>
 
 #include <optional>
 

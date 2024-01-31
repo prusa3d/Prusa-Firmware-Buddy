@@ -23,7 +23,9 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/mmu2/mmu2_progress.cpp
   )
 target_include_directories(
-  Marlin_MMU2_tests PUBLIC . ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/feature/prusa/MMU2
-                           ${CMAKE_SOURCE_DIR}/src/mmu2 ${CMAKE_SOURCE_DIR}/src/common
+  Marlin_MMU2_tests
+  PUBLIC . ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/feature/prusa/MMU2
+         ${CMAKE_SOURCE_DIR}/src/mmu2 ${CMAKE_SOURCE_DIR}/src/common
+         ${CMAKE_SOURCE_DIR}/src/common/utils
   )
 add_catch_test(Marlin_MMU2_tests)

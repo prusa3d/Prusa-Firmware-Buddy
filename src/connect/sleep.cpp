@@ -8,6 +8,7 @@
 #include <cmsis_os.h>
 
 #include <debug.h>
+#include <cinttypes>
 
 LOG_COMPONENT_REF(connect);
 

@@ -50,6 +50,7 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/gui
          ${CMAKE_SOURCE_DIR}/include
          ${CMAKE_BINARY_DIR}/include
+         ${CMAKE_SOURCE_DIR}/src/common/utils
   )
 target_compile_definitions(
   window_tests PUBLIC BOARD=3 BOARD_VERSION_MINOR=3 BOARD_VERSION_MAJOR=3 BOARD_VERSION_PATCH=3

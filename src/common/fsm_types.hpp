@@ -109,7 +109,6 @@ class SmartQueue {
 protected:
     Queue queue0 = { QueueIndex::q0 }; // base queue
     Queue queue1 = { QueueIndex::q1 }; // next level queue
-    // FIXME: unit test need to be changed also to add this and test it!!!
     Queue queue2 = { QueueIndex::q2 }; // next level queue
 
 public:
