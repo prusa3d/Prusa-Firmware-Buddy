@@ -50,12 +50,25 @@ float stepper_get_machine_position_E_mm() {
     return planner.get_axis_position_mm(E_AXIS);
 }
 
-void planner_synchronize_hook(std::function<void()> f) {
+UnloadDistanceDetector::UnloadDistanceDetector() {
+    fs = WhereIsFilament();
+    unlFSOff = stepper_get_machine_position_E_mm();
+}
+
+void UnloadDistanceDetector::operator()() {
+    if (auto currentFS = WhereIsFilament(); fs != currentFS && currentFS == FilamentState::NOT_PRESENT) {
+        // fsensor just turned off, remember the E-motor stepper position
+        unlFSOff -= stepper_get_machine_position_E_mm();
+        fs = currentFS; // avoid further records
+    }
+}
+
+void planner_synchronize_hook(UnloadDistanceDetector &udd) {
     bool emptying_buffer_orig = planner.emptying();
     planner.set_emptying_buffer(true);
     while (planner.busy()) {
         idle(true);
-        f();
+        udd();
     }
     planner.set_emptying_buffer(emptying_buffer_orig);
 }

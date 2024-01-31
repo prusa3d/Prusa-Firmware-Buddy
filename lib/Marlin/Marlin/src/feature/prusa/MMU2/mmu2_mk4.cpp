@@ -520,23 +520,17 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
                 // but in case some of the filament remains in the melt zone the distance gets shorter.
                 // The main problem here is the fact, that we need to call the whole marlin infrastructure and there is no simple place to hook into.
                 // Therefore I had to copy planner.synchronize(), which is a nasty hack.
-                auto fs = WhereIsFilament(); // we assume fsensor is still on ... if it isn't we don't do any corrections later
-                float unlFSOff = stepper_get_machine_position_E_mm();
-                planner_synchronize_hook([&]() {
-                    if (auto currentFS = WhereIsFilament(); fs != currentFS && currentFS == FilamentState::NOT_PRESENT) {
-                        // fsensor just turned off, remember the E-motor stepper position
-                        unlFSOff -= stepper_get_machine_position_E_mm();
-                        fs = currentFS; // avoid further records
-                    }
-                });
+                UnloadDistanceDetector udd;
+                planner_synchronize_hook(udd);
+
                 // Save just the very first unload attempt - that's the "amount" of filament left in the melt zone.
                 // Repeated unload and reload attempts are not interesting for the compensation later.
                 if (!firstUnloadEPosOnFSOff.has_value()) {
-                    firstUnloadEPosOnFSOff = unlFSOff;
+                    firstUnloadEPosOnFSOff = udd.FSTriggerDistance();
                 }
 #ifndef UNITTEST
                 // Record as a metric each attempt
-                metric_record_float(&metric_unloadDistanceFSOff, unloadEPosOnFSOff); // unlFSOff);
+                metric_record_float(&metric_unloadDistanceFSOff, unloadEPosOnFSOff);
 #endif
             }
             logic.ToolChange(slot); // let the MMU pull the filament out and push a new one in

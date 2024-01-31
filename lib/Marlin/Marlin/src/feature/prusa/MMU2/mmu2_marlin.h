@@ -5,7 +5,9 @@
 /// - enable unit testing of MMU top layer
 #pragma once
 #include <stdint.h>
-#include <functional>
+
+// it would have been better if this file didn't depend on mmu2_fsensor, but downcasting FilamentState is actually worse than that
+#include "mmu2_fsensor.h"
 
 namespace MMU2 {
 
@@ -31,7 +33,16 @@ float move_raise_z(float delta);
 void planner_abort_queued_moves();
 void planner_synchronize();
 
-void planner_synchronize_hook(std::function<void()> f);
+struct UnloadDistanceDetector {
+    UnloadDistanceDetector();
+    void operator()();
+    constexpr float FSTriggerDistance() const { return unlFSOff; }
+
+private:
+    FilamentState fs;
+    float unlFSOff;
+};
+void planner_synchronize_hook(UnloadDistanceDetector &udd);
 
 bool planner_draining();
 bool planner_any_moves();

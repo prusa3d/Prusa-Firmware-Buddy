@@ -46,7 +46,10 @@ float stepper_get_machine_position_E_mm() {
     return 0;
 }
 
-void planner_synchronize_hook([[maybe_unused]] std::function<void()> f) {
+UnloadDistanceDetector::UnloadDistanceDetector() {}
+void UnloadDistanceDetector::operator()() {}
+
+void planner_synchronize_hook([[maybe_unused]] UnloadDistanceDetector &udd) {
 }
 
 bool planner_any_moves() {
