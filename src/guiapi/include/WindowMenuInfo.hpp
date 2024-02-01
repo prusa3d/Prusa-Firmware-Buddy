@@ -19,7 +19,7 @@
  *  For now, if string is longer than ..MAX_LEN, it will print only ..MAX_LEN - 1 (null-terminated) chars.
  */
 
-class IWiInfo : public AddSuper<IWindowMenuItem> {
+class IWiInfo : public IWindowMenuItem {
     static constexpr Font InfoFont = GuiDefaults::FontMenuSpecial;
     static constexpr uint16_t icon_width = 16;
 
@@ -37,12 +37,12 @@ public:
 };
 
 template <size_t INFO_LEN>
-class WiInfo : public AddSuper<IWiInfo> {
+class WiInfo : public IWiInfo {
     char information[INFO_LEN] = "";
 
 public:
     WiInfo(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no)
-        : AddSuper<IWiInfo>(label, id_icon, INFO_LEN, enabled, hidden, extension_like_label) {}
+        : IWiInfo(label, id_icon, INFO_LEN, enabled, hidden, extension_like_label) {}
 
     WiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const img::Resource *id_icon = nullptr)
         : WiInfo(label, id_icon, is_enabled_t::yes, hidden) {
@@ -71,12 +71,12 @@ public:
 
 // Dev version of info
 template <size_t INFO_LEN>
-class WiInfoDev : public AddSuper<WiInfo<INFO_LEN>> {
+class WiInfoDev : public WiInfo<INFO_LEN> {
 public:
     WiInfoDev(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled = is_enabled_t::yes)
-        : AddSuper<WiInfo<INFO_LEN>>(label, id_icon, enabled, is_hidden_t::dev) {}
+        : WiInfo<INFO_LEN>(label, id_icon, enabled, is_hidden_t::dev) {}
     WiInfoDev(uint32_t num_to_print, string_view_utf8 label, const img::Resource *id_icon = nullptr)
-        : AddSuper<WiInfo<INFO_LEN>>(num_to_print, label, is_hidden_t::dev, id_icon) {}
+        : WiInfo<INFO_LEN>(num_to_print, label, is_hidden_t::dev, id_icon) {}
 };
 
 using WI_INFO_t = WiInfo<GuiDefaults::infoDefaultLen>;

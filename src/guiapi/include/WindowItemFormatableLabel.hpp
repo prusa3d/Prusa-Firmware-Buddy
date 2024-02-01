@@ -7,7 +7,7 @@
 #include "i_window_menu_item.hpp"
 #include <functional>
 
-class WI_LAMBDA_LABEL_t : public AddSuper<IWindowMenuItem> {
+class WI_LAMBDA_LABEL_t : public IWindowMenuItem {
 protected:
     static constexpr Font InfoFont = GuiDefaults::FontMenuSpecial;
     static constexpr uint16_t icon_width = 16;
@@ -30,7 +30,7 @@ protected:
 
 public:
     WI_LAMBDA_LABEL_t(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, std::function<void(char *)> printAs)
-        : AddSuper<IWindowMenuItem>(label, icon ? icon_width : GuiDefaults::infoDefaultLen * width(InfoFont), icon, enabled, hidden)
+        : IWindowMenuItem(label, icon ? icon_width : GuiDefaults::infoDefaultLen * width(InfoFont), icon, enabled, hidden)
         , printAs(printAs) {}
 };
 
