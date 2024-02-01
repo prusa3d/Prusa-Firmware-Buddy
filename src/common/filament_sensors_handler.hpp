@@ -16,6 +16,9 @@
 #include "config_features.h"
 #include <option/has_toolchanger.h>
 
+/// Filament sensors manager
+/// All public functions are thread-safe
+/// All other functions can be only called from process()
 class FilamentSensors {
 public:
     FilamentSensors();
@@ -34,9 +37,6 @@ public:
 
     /// Calls \p f on all filament sensors
     void for_all_sensors(const std::function<void(IFSensor &)> &f);
-
-    // called from different thread
-    void Cycle();
 
     // mmu enabled, might or might not be initialized
     inline bool HasMMU() const {
@@ -72,6 +72,12 @@ public:
     inline bool has_filament(bool should_have_filament = true) {
         return logical_sensor_states_[LogicalFilamentSensor::current_extruder] == (should_have_filament ? FilamentSensorState::HasFilament : FilamentSensorState::NoFilament);
     }
+
+protected:
+    friend void StartMeasurementTask(void const *);
+
+    /// Periodically called from the measurement task
+    void cycle();
 
 private:
     // Non-public members can only be written to from the cycle() function (called from the Measurement task)

@@ -66,7 +66,7 @@ void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &)> &f) 
     }
 }
 
-void FilamentSensors::Cycle() {
+void FilamentSensors::cycle() {
     if (enable_state_update_pending) {
         process_enable_state_update();
     }
