@@ -40,23 +40,30 @@ void window_t::ClrHasIcon() {
 }
 
 void window_t::SetRedLayout() {
-    setRedLayout();
+    set_layout(ColorLayout::red);
 }
 void window_t::SetBlackLayout() {
-    setBlackLayout();
+    set_layout(ColorLayout::black);
 }
 void window_t::SetBlueLayout() {
-    setBlueLayout();
+    set_layout(ColorLayout::blue);
 }
 
-void window_t::setRedLayout() {
-    SetBackColor(COLOR_RED_ALERT);
-}
-void window_t::setBlackLayout() {
-    SetBackColor(COLOR_BLACK);
-}
-void window_t::setBlueLayout() {
-    SetBackColor(COLOR_NAVY);
+void window_t::set_layout(ColorLayout set) {
+    switch (set) {
+
+    case ColorLayout::red:
+        SetBackColor(COLOR_RED_ALERT);
+        break;
+
+    case ColorLayout::black:
+        SetBackColor(COLOR_BLACK);
+        break;
+
+    case ColorLayout::blue:
+        SetBackColor(COLOR_NAVY);
+        break;
+    }
 }
 
 void window_t::Validate(Rect16 validation_rect) {

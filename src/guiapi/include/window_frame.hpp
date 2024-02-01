@@ -78,9 +78,7 @@ protected:
 
     window_t *getCapturedNormalWin() const;
 
-    virtual void setRedLayout() override;
-    virtual void setBlackLayout() override;
-    virtual void setBlueLayout() override;
+    virtual void set_layout(ColorLayout lt) override;
 
 public:
     bool IsChildCaptured() const;

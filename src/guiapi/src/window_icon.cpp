@@ -85,17 +85,13 @@ void window_icon_t::unconditionalDraw() {
     display::DrawImg(point_ui16(rc_ico.Left(), rc_ico.Top()), *pRes, GetBackColor(), raster_op);
 }
 
-void window_icon_t::setRedLayout() {
-    super::setRedLayout();
-    SetHasIcon(); // alternative icon
-}
-void window_icon_t::setBlackLayout() {
-    super::setBlackLayout();
-    ClrHasIcon(); // normal icon
-}
-void window_icon_t::setBlueLayout() {
-    super::setBlueLayout();
-    SetHasIcon(); // alternative icon
+void window_icon_t::set_layout(ColorLayout lt) {
+    super::set_layout(lt);
+    if (lt == ColorLayout::black) {
+        ClrHasIcon(); // normal icon
+    } else {
+        SetHasIcon(); // alternative icon
+    }
 }
 
 /*****************************************************************************/

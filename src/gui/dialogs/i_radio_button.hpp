@@ -91,7 +91,5 @@ protected:
 
     // radio buttons currently do not support layout change
     // it is done by having multiple radio buttons and show/hide them
-    virtual void setRedLayout() override {}
-    virtual void setBlackLayout() override {}
-    virtual void setBlueLayout() override {}
+    virtual void set_layout(ColorLayout) override {}
 };

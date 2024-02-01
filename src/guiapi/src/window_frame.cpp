@@ -558,15 +558,20 @@ void window_frame_t::RecursiveCall(mem_fnc fnc) {
     }
 }
 
-void window_frame_t::setRedLayout() {
-    super::setRedLayout();
-    RecursiveCall(&window_t::SetRedLayout); // SetRedLayout is non virtual one
-}
-void window_frame_t::setBlackLayout() {
-    super::setBlackLayout();
-    RecursiveCall(&window_t::SetBlackLayout); // SetBlackLayout is non virtual one
-}
-void window_frame_t::setBlueLayout() {
-    super::setBlueLayout();
-    RecursiveCall(&window_t::SetBlueLayout); // SetBlueLayout is non virtual one
+void window_frame_t::set_layout(ColorLayout lt) {
+    super::set_layout(lt);
+    switch (lt) {
+
+    case ColorLayout::red:
+        RecursiveCall(&window_t::SetRedLayout);
+        break;
+
+    case ColorLayout::black:
+        RecursiveCall(&window_t::SetBlackLayout);
+        break;
+
+    case ColorLayout::blue:
+        RecursiveCall(&window_t::SetRedLayout);
+        break;
+    }
 }

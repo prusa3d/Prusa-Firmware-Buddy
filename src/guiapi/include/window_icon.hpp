@@ -45,9 +45,7 @@ public:
 
 protected:
     virtual void unconditionalDraw() override;
-    virtual void setRedLayout() override;
-    virtual void setBlackLayout() override;
-    virtual void setBlueLayout() override;
+    virtual void set_layout(ColorLayout lt) override;
 };
 
 class window_icon_button_t : public AddSuperWindow<window_icon_t> {
