@@ -135,28 +135,25 @@ void screen_t::unregisterSubWin(window_t &win) {
     hideSubwinsBehindDialogs();
 }
 
-window_t *screen_t::GetFirstDialog() const {
-    return first_dialog;
-}
+window_t *screen_t::get_child_dialog(ChildDialogParam param) const {
+    switch (param) {
+    case ChildDialogParam::first_dialog:
+        return first_dialog;
+    case ChildDialogParam::last_dialog:
+        return last_dialog;
 
-window_t *screen_t::GetLastDialog() const {
-    return last_dialog;
-}
+    case ChildDialogParam::first_strong_dialog:
+        return first_strong_dialog;
+    case ChildDialogParam::last_strong_dialog:
+        return last_strong_dialog;
 
-window_t *screen_t::GetFirstStrongDialog() const {
-    return first_strong_dialog;
-}
+    case ChildDialogParam::first_popup:
+        return first_popup;
+    case ChildDialogParam::last_popup:
+        return last_popup;
+    }
 
-window_t *screen_t::GetLastStrongDialog() const {
-    return last_strong_dialog;
-}
-
-window_t *screen_t::GetFirstPopUp() const {
-    return first_popup;
-}
-
-window_t *screen_t::GetLastPopUp() const {
-    return last_popup;
+    return nullptr;
 }
 
 window_t *screen_t::GetCapturedWindow() {

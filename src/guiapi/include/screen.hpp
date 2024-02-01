@@ -29,14 +29,7 @@ public:
     virtual window_t *GetCapturedWindow() override;
     virtual void ChildVisibilityChanged(window_t &child) override;
 
-    virtual window_t *GetFirstDialog() const override;
-    virtual window_t *GetLastDialog() const override;
-
-    virtual window_t *GetFirstStrongDialog() const override;
-    virtual window_t *GetLastStrongDialog() const override;
-
-    virtual window_t *GetFirstPopUp() const override;
-    virtual window_t *GetLastPopUp() const override;
+    window_t *get_child_dialog([[maybe_unused]] ChildDialogParam param) const override;
 
     /// Restores state from the provided variant
     virtual void InitState([[maybe_unused]] screen_init_variant var) {}
