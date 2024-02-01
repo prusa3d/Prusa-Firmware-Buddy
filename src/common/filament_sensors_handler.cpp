@@ -36,15 +36,18 @@ FilamentSensors::FilamentSensors() {
 }
 
 void FilamentSensors::set_enabled_global(bool set) {
-    if (config_store().fsensor_enabled.set(set)) {
-        request_enable_state_update();
+    if (config_store().fsensor_enabled.get() == set) {
+        return;
     }
+
+    config_store().fsensor_enabled.set(set);
+    request_enable_state_update();
 }
 
 void FilamentSensors::request_enable_state_update() {
 #if HAS_MMU2()
     // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
-    if (!config_store().fsensor_enabled.get()) {
+    if (has_mmu && !config_store().fsensor_enabled.get()) {
         marlin_client::gcode("M709 S0");
     }
 #endif
