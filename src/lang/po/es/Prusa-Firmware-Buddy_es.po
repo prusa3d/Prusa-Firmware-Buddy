@@ -371,12 +371,6 @@ msgstr "Falló la nivelación. ¿Reintentar?"
 msgid "Bed Temperature"
 msgstr "Temperatura Base"
 
-#: src/gui/wizard/selftest_frame_temp.cpp:64
-msgid ""
-"Before you continue, make sure the print sheet is installed on the heatbed."
-msgstr ""
-"Antes de continuar, asegúrate de que la lámina de impresión está instalada en la base calefactable."
-
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:44
 msgid "Before you proceed, make sure filament is unloaded from the Nextruder."
 msgstr "Antes de continuar, asegúrate de que el filamento está descargado del Nextruder."

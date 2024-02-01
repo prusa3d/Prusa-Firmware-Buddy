@@ -369,12 +369,6 @@ msgstr "Mesh Bed L. selhal. Opakovat?"
 msgid "Bed Temperature"
 msgstr "Teplota podložky"
 
-#: src/gui/wizard/selftest_frame_temp.cpp:64
-msgid ""
-"Before you continue, make sure the print sheet is installed on the heatbed."
-msgstr ""
-"Než budete pokračovat, ujistěte se, že máte tiskový plát na vyhřívané podložce."
-
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:44
 msgid "Before you proceed, make sure filament is unloaded from the Nextruder."
 msgstr "Před pokračováním se ujistěte, že v Nextruderu není filament."

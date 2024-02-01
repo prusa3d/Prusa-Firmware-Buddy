@@ -369,12 +369,6 @@ msgstr "Bettnivellierung fehlgeschlagen. Nochmals versuchen?"
 msgid "Bed Temperature"
 msgstr "Temperatur Heizbett"
 
-#: src/gui/wizard/selftest_frame_temp.cpp:64
-msgid ""
-"Before you continue, make sure the print sheet is installed on the heatbed."
-msgstr ""
-"Bevor Sie fortfahren, stellen Sie sicher, dass das Druckblech auf dem Heizbett installiert ist."
-
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:44
 msgid "Before you proceed, make sure filament is unloaded from the Nextruder."
 msgstr "Bevor Sie fortfahren, stellen Sie sicher, dass das Filament aus dem Nextruder entnommen wurde."
