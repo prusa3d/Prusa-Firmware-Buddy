@@ -198,15 +198,20 @@ LoopResult CSelftestPart_FSensor::state_calibrate_init() {
 }
 
 LoopResult CSelftestPart_FSensor::state_calibrate() {
+    // Global fsensors enable
+    config_store().fsensor_enabled.set(true);
+
     if (extruder) {
         extruder->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
+        config_store().fsensor_extruder_enabled_bits.transform([&](auto val) { return val | (1 << rConfig.extruder_id); });
     }
-
     if (side) {
         side->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
+        config_store().fsensor_side_enabled_bits.transform([&](auto val) { return val | (1 << rConfig.extruder_id); });
     }
 
-    FSensors_instance().set_enabled_global(true);
+    // Make sure that the config store changes are processed by the fsensors manager
+    FSensors_instance().request_enable_state_update();
 
     log_info(Selftest, "%s calibrating", rConfig.partname);
     return LoopResult::RunNext;
