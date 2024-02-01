@@ -60,8 +60,6 @@ constexpr const char *en_text_heat = N_("Heater testing");
 constexpr const char *en_text_heatbreak = N_("Heatbreak status");
 // dialog is for non-toolchanger printers
 constexpr const char *en_text_dialog_noz_disabled = N_("The heater test will be skipped due to the failed hotend fan check. You may continue, but we strongly recommend resolving this issue before you start printing.");
-// dialog to ask a user to put the printsheet on bed
-constexpr const char *en_text_ask_user_to_put_sheet_on_the_bed = N_("Before you continue, make sure the print sheet is installed on the heatbed.");
 // info text without a dialog is for >1 tool ToolChanger
 constexpr const char *en_text_info_noz_disabled = N_("Some nozzle heater checks were disabled due to their hotend fan checks not having passed.");
 } // namespace
@@ -109,7 +107,7 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
 #else
     , footer(this, 0, footer::Item::nozzle, footer::Item::bed, footer::Item::heatbreak_temp)
 #endif
-    , test_frame(this, GetRect() - Rect16::H_t(txt_h))
+    , test_frame(this, GetRect())
     // noz
     , text_noz(&test_frame, top_label_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_noz))
     , progress_noz(&test_frame, top_progress_rect.Top())
@@ -128,8 +126,7 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
     , text_heatbreak(&test_frame, heatbreak_text_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_heatbreak))
 #endif
     , text_info(&test_frame, info_text_rect, is_multiline::yes)
-    , text_dialog_warning(this, GetRect() + Rect16::X_t(WizardDefaults::MarginLeft) + Rect16::Y_t(GuiDefaults::FramePadding) - Rect16::H_t(80) - Rect16::W_t(2 * WizardDefaults::MarginLeft), is_multiline::yes, is_closed_on_click_t::no, _(en_text_dialog_noz_disabled))
-    , text_dialog_sheet_on_bed(this, Rect16(static_cast<int16_t>(WizardDefaults::MarginLeft), static_cast<int16_t>(WizardDefaults::row_0 + 2 * txt_h), static_cast<uint16_t>(display::GetW() - WizardDefaults::MarginRight - WizardDefaults::MarginLeft), static_cast<uint16_t>(3 * txt_h)), is_multiline::yes, is_closed_on_click_t::no, _(en_text_ask_user_to_put_sheet_on_the_bed))
+    , text_dialog(this, GetRect() + Rect16::X_t(WizardDefaults::MarginLeft) + Rect16::Y_t(GuiDefaults::FramePadding) - Rect16::H_t(80) - Rect16::W_t(2 * WizardDefaults::MarginLeft), is_multiline::yes, is_closed_on_click_t::no, _(en_text_dialog_noz_disabled))
     // results
     , hotend_results(make_hotend_result_array(std::make_index_sequence<HOTENDS>())) {
 
@@ -243,7 +240,7 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
         }
 
         radio.Hide();
-        text_dialog_warning.Hide();
+        text_dialog.Hide();
     }
 
     change();
@@ -259,23 +256,12 @@ void ScreenSelftestTemp::change() {
 #endif
         {
             test_frame.Hide();
-            text_dialog_sheet_on_bed.Hide();
-            text_dialog_warning.Show();
+            text_dialog.Show();
             radio.Show();
             break;
         }
-
-    case PhasesSelftest::HeatersPlaceSheetOnBed: {
-        test_frame.Hide();
-        text_dialog_warning.Hide();
-        text_dialog_sheet_on_bed.Show();
-        radio.Show();
-        break;
-    }
-
     case PhasesSelftest::Heaters: {
-        text_dialog_warning.Hide();
-        text_dialog_sheet_on_bed.Hide();
+        text_dialog.Hide();
         test_frame.Show();
         radio.Hide();
 

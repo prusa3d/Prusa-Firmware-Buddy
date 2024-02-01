@@ -232,7 +232,6 @@ enum class PhasesSelftest : uint16_t {
 
     _first_Heaters,
     Heaters = _first_Heaters,
-    HeatersPlaceSheetOnBed,
     HeatersDisabledDialog,
     _last_Heaters = HeatersDisabledDialog,
 
@@ -540,7 +539,6 @@ class ClientResponses {
         {}, // Axis
 
         {}, // Heaters
-        { Response::Ok }, // HeatersPlaceSheetOnBed
         { Response::Ok }, // HeatersDisabledDialog
 
         { Response::Adjust, Response::Skip }, // SpecifyHotEnd
