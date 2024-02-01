@@ -233,6 +233,10 @@ public:
         return s;
     }
 
+    static inline string_view_utf8 MakeRAM(const char *utf8raw) {
+        return MakeRAM(reinterpret_cast<const uint8_t *>(utf8raw));
+    }
+
     /// Construct string_view_utf8 to provide data from FILE
     /// The FILE *f shall aready be positioned to the spot, where the string starts
     static string_view_utf8 MakeFILE(::FILE *f, uint32_t offset) {

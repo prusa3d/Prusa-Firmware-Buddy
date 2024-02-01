@@ -9,6 +9,7 @@
 #include "print_processor.hpp"
 #include "rtos_api.hpp"
 #include "bsod.h"
+#include "window_msgbox.hpp"
 #include <log.h>
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
@@ -53,6 +54,33 @@ void FilamentSensors::request_enable_state_update() {
 #endif
 
     enable_state_update_pending = true;
+}
+
+bool FilamentSensors::gui_wait_for_init_with_msg() {
+    const auto any_fsensor_in_state = [&](FilamentSensorState state) {
+        bool result = false;
+        for_all_sensors([&](IFSensor &s) {
+            result |= (s.get_state() == state);
+        });
+        return result;
+    };
+
+    // wait until it is initialized
+    // no guiloop here !!! - it could cause show of unwanted error message
+    while (is_enable_state_update_processing() || any_fsensor_in_state(FilamentSensorState::NotInitialized)) {
+        osDelay(0);
+    }
+
+    if (any_fsensor_in_state(FilamentSensorState::NotConnected)) {
+        MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
+        return false;
+
+    } else if (any_fsensor_in_state(FilamentSensorState::NotCalibrated)) {
+        MsgBoxWarning(_("Filament sensor not ready: perform calibration first."), Responses_Ok);
+        return false;
+    }
+
+    return true;
 }
 
 void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &)> &f) {

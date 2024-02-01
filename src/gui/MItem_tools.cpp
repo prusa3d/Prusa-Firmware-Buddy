@@ -50,9 +50,10 @@ void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     gui_loop();
 }
 
-/// Checks if there is space in the gcode queue for inserting further commands.
-/// If there's not, \returns false and shows a message box
-bool check_space_in_gcode_queue_with_msg() {
+constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier during homing.");
+} // namespace
+
+bool gui_check_space_in_gcode_queue_with_msg() {
     if (marlin_vars()->gqueue <= MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) {
         return true;
     }
@@ -61,68 +62,36 @@ bool check_space_in_gcode_queue_with_msg() {
     return false;
 }
 
-constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier during homing.");
-} // namespace
-
 /**********************************************************************************************/
 // MI_FILAMENT_SENSOR
-bool MI_FILAMENT_SENSOR::init_index() const {
-    return config_store().fsensor_enabled.get();
+MI_FILAMENT_SENSOR::MI_FILAMENT_SENSOR()
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    update();
+}
+
+void MI_FILAMENT_SENSOR::update() {
+    SetIndex(config_store().fsensor_enabled.get());
 }
 
 void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
-    // Enabling/disabling FS can generate gcodes. Fail the action if there's no space in the queue.
-    if (!check_space_in_gcode_queue_with_msg()) {
+    // Enabling/disabling FS can generate gcodes (I'm looking at you, MMU!).
+    // Fail the action if there's no space in the queue.
+    if (!gui_check_space_in_gcode_queue_with_msg()) {
+        // SetIndex doesn't call OnChange
         SetIndex(old_index);
         return;
     }
 
     auto &fss = FSensors_instance();
+    fss.set_enabled_global(index);
 
-    // Disable filament sensors
-    if (!index) {
-        fss.set_enabled_global(false);
-
-        // If disabling, send a message to parent to reload the value of
-        // MI_ITEM_MMU, because it has just been disabled as well
-        Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, reinterpret_cast<void *>(fs_disabled_event));
+    if (index && !fss.gui_wait_for_init_with_msg()) {
+        FSensors_instance().set_enabled_global(false);
+        SetIndex(old_index);
     }
 
-    // Enable filament sensors
-    else {
-        fss.set_enabled_global(true);
-
-        const auto any_fsensor_in_state = [](FilamentSensorState state) {
-            bool result = false;
-            FSensors_instance().for_all_sensors([&](IFSensor &s) {
-                result |= (s.get_state() == state);
-            });
-            return result;
-        };
-
-        // wait until it is initialized
-        // no guiloop here !!! - it could cause show of unwanted error message
-        while (fss.is_enable_state_update_processing() || any_fsensor_in_state(FilamentSensorState::NotInitialized)) {
-            osDelay(0); // switch to other thread
-        }
-
-        bool is_ok = false;
-
-        if (any_fsensor_in_state(FilamentSensorState::NotConnected)) {
-            MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
-
-        } else if (any_fsensor_in_state(FilamentSensorState::NotCalibrated)) {
-            MsgBoxWarning(_("Filament sensor not ready: perform calibration first."), Responses_Ok);
-
-        } else {
-            is_ok = true;
-        }
-
-        if (!is_ok) {
-            FSensors_instance().set_enabled_global(false);
-            SetIndex(old_index);
-        }
-    }
+    // Signal to the parent to check for changed
+    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, nullptr);
 }
 
 /*****************************************************************************/
@@ -133,7 +102,7 @@ bool MI_STUCK_FILAMENT_DETECTION::init_index() const {
 }
 
 void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
-    if (!check_space_in_gcode_queue_with_msg()) {
+    if (!gui_check_space_in_gcode_queue_with_msg()) {
         SetIndex(old_index);
         return;
     }

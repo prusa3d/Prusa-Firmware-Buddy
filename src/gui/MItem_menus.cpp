@@ -73,6 +73,10 @@
     #include <leds/side_strip_control.hpp>
 #endif
 
+#if HAS_FILAMENT_SENSORS_MENU()
+    #include "screen_menu_filament_sensors.hpp"
+#endif
+
 #include <config_store/store_instance.hpp>
 
 /*****************************************************************************/
@@ -569,6 +573,18 @@ MI_TOOLS_SETUP::MI_TOOLS_SETUP()
 
 void MI_TOOLS_SETUP::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTools>);
+}
+#endif
+
+#if HAS_FILAMENT_SENSORS_MENU()
+/*****************************************************************************/
+// MI_FILAMENT_SENSORS
+MI_FILAMENT_SENSORS::MI_FILAMENT_SENSORS()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_FILAMENT_SENSORS::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilamentSensors>);
 }
 #endif
 

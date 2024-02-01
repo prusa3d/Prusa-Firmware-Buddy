@@ -6,6 +6,7 @@
 #include "i18n.h"
 #include <option/has_toolchanger.h>
 #include <option/has_side_leds.h>
+#include <option/has_filament_sensors_menu.h>
 #include <option/has_leds.h>
 #include <option/developer_mode.h>
 #include <common/sheet.hpp>
@@ -450,7 +451,6 @@ public:
     MI_TOOL_LEDS_ENABLE();
     virtual void OnChange(size_t old_index) override;
 };
-#endif /*HAS_TOOLCHANGER()*/
 
 class MI_TOOLS_SETUP : public IWindowMenuItem {
     static constexpr const char *const label = N_("Tools");
@@ -461,6 +461,19 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+#endif /*HAS_TOOLCHANGER()*/
+
+#if HAS_FILAMENT_SENSORS_MENU()
+class MI_FILAMENT_SENSORS : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Filament sensors");
+
+public:
+    MI_FILAMENT_SENSORS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+#endif /*HAS_FILAMENT_SENSORS_MENU()*/
 
 class MI_TRIGGER_POWER_PANIC : public IWindowMenuItem {
     static constexpr const char *const label = N_("Trigger Power Panic");

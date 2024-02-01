@@ -11,16 +11,22 @@
 #include <utility_extensions.hpp>
 #include <option/has_dwarf.h>
 #include <option/has_side_fsensor.h>
+#include <option/has_filament_sensors_menu.h>
 
+/// Checks if there is space in the gcode queue for inserting further commands.
+/// If there's not, \returns false and shows a message box
+bool gui_check_space_in_gcode_queue_with_msg();
+
+/// Global filamen sensing enable/disable
 class MI_FILAMENT_SENSOR : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Filament Sensor");
-
-    bool init_index() const;
+    // If the printer has filament sensors menu, this item is inside it and is supposed to be called differently (BFW-4973)
+    static constexpr const char *const label = HAS_FILAMENT_SENSORS_MENU() ? N_("Filament Sensing") : N_("Filament Sensor");
 
 public:
-    constexpr static const uint32_t fs_disabled_event { 1 };
-    MI_FILAMENT_SENSOR()
-        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    MI_FILAMENT_SENSOR();
+
+    /// Set the index to the correct value based on config_store
+    void update();
 
 protected:
     virtual void OnChange(size_t old_index) override;

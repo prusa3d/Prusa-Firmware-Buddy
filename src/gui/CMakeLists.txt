@@ -219,6 +219,10 @@ if(NOT PRINTER IN_LIST PRINTERS_WITH_LOADCELL)
   target_sources(firmware PRIVATE screen_menu_steel_sheets.cpp)
 endif()
 
+if(HAS_FILAMENT_SENSORS_MENU)
+  target_sources(firmware PRIVATE screen_menu_filament_sensors.cpp)
+endif()
+
 add_subdirectory(dialogs)
 add_subdirectory(footer)
 if(HAS_LEDS)

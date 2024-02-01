@@ -45,15 +45,13 @@ ScreenMenuSettings::~ScreenMenuSettings() {
 
 void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
-        switch (reinterpret_cast<uint32_t>(param)) {
 #if HAS_MMU2()
-        case MI_FILAMENT_SENSOR::fs_disabled_event:
+        // If filament sensor gets disabled, set the MMU enable to false as well
+        if (!Item<MI_FILAMENT_SENSOR>().GetIndex()) {
             Item<MI_MMU_ENABLE>().SetIndex(0);
-            break;
-#endif
-        default:
-            break;
         }
+#endif
+
     } else {
         SuperWindowEvent(sender, event, param);
     }

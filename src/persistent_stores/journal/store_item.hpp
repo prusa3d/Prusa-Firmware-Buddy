@@ -50,6 +50,18 @@ public:
         do_save();
     }
 
+    /// Sets the item to f(old_value).
+    /// This is done under the lock, so the operation is atomic
+    void transform(std::invocable<DataT> auto f) {
+        auto l = backend().lock();
+        const auto old_value = data;
+        const auto new_value = f(old_value);
+        if (new_value != old_value) {
+            data = new_value;
+            do_save();
+        }
+    }
+
     /// Sets the config item to its default value.
     /// \returns the default value
     DataT set_to_default() {

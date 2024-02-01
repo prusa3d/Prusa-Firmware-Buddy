@@ -198,15 +198,24 @@ public:
         set_show_disabled_extension(false);
     }
 
+    inline void set_is_hidden(is_hidden_t set) {
+        const bool wasHidden = IsHidden();
+        hidden = static_cast<uint8_t>(set);
+
+        if (!IsHidden() && wasHidden) {
+            Invalidate();
+        }
+    }
+    inline void set_is_hidden(bool set = true) {
+        set_is_hidden(set ? is_hidden_t::yes : is_hidden_t::no);
+    }
+
     void hide() {
-        hidden = (uint8_t)is_hidden_t::yes;
+        set_is_hidden(true);
     }
 
     void show() {
-        if (hidden != (uint8_t)is_hidden_t::no) {
-            hidden = (uint8_t)is_hidden_t::no;
-            Invalidate();
-        }
+        set_is_hidden(false);
     }
 
     bool IsHidden() const;

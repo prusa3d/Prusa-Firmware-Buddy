@@ -35,6 +35,12 @@ public:
         return enable_state_update_pending || enable_state_update_processing;
     }
 
+    /// !!! To be called only from the GUI thread
+    /// Blockingly waits till the newly enabled sensors get initialized.
+    /// Pops up a warning if the newly enabled sensors need calibration or are disconnected.
+    /// \returns if everything was okay
+    bool gui_wait_for_init_with_msg();
+
     /// Calls \p f on all filament sensors
     void for_all_sensors(const std::function<void(IFSensor &)> &f);
 
