@@ -7,7 +7,6 @@
 #pragma once
 
 #include "i_selftest.hpp"
-#include "super.hpp"
 #include "selftest_part.hpp"
 #include "selftest_result_type.hpp"
 #include "config_features.h"
@@ -81,7 +80,7 @@ enum SelftestMask_t : uint32_t {
 };
 
 // class representing whole self-test
-class CSelftest : public AddSuper<ISelftest> {
+class CSelftest : public ISelftest {
 public:
     CSelftest();
 

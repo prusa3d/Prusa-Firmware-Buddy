@@ -15,7 +15,7 @@
 
 /*****************************************************************************/
 // IWiSwitch
-class IWiSwitch : public AddSuper<IWindowMenuItem> {
+class IWiSwitch : public IWindowMenuItem {
 public:
     static constexpr Font BracketFont = GuiDefaults::FontMenuSpecial;
     static constexpr bool has_brackets = GuiDefaults::MenuSwitchHasBrackets;

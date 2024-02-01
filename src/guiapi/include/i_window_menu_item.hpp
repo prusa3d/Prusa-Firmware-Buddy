@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <array>
 #include "display_helper.h"
-#include "super.hpp"
 #include "i18n.h"
 #include "i_window_menu.hpp" //needed invalidate for click
 #include "text_roll.hpp"

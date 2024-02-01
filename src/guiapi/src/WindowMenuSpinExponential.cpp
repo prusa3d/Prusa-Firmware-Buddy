@@ -7,7 +7,7 @@
 #include "WindowMenuSpinExponential.hpp"
 
 WiSpinExp::WiSpinExp(int val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : AddSuper<WiSpinInt>(val, cnf, label, id_icon, enabled, hidden) {
+    : WiSpinInt(val, cnf, label, id_icon, enabled, hidden) {
     if (config.Min() <= 0) {
         bsod("WiSpinExp requires minimal value to be > 0, use WiSpinExpWith0 instead");
     }
@@ -15,7 +15,7 @@ WiSpinExp::WiSpinExp(int val, const Config &cnf, string_view_utf8 label, const i
 
 invalidate_t WiSpinExp::change(int dif) {
     set_val(exponential_change(dif, GetVal(), config));
-    return super::change(0); // parent must handle it .. just invalidation and check of limits
+    return WiSpinInt::change(0); // parent must handle it .. just invalidation and check of limits
 }
 
 int WiSpinExp::exponential_change(int dif, int val, const Config &cnf) {
@@ -37,7 +37,7 @@ int WiSpinExp::exponential_change(int dif, int val, const Config &cnf) {
 }
 
 WiSpinExpWith0::WiSpinExpWith0(int val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : AddSuper<WiSpinInt>(val, cnf, label, id_icon, enabled, hidden) {
+    : WiSpinInt(val, cnf, label, id_icon, enabled, hidden) {
     if (config.Min() != 0) {
         bsod("WiSpinExpWith0 requires minimal value to be 0, use WiSpinExp instead");
     }
@@ -55,5 +55,5 @@ invalidate_t WiSpinExpWith0::change(int dif) {
     }
 
     set_val(WiSpinExp::exponential_change(dif, val, config));
-    return super::change(0);
+    return WiSpinInt::change(0);
 }
