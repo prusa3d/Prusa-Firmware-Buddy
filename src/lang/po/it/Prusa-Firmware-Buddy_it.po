@@ -371,12 +371,6 @@ msgstr "Livellamento del piano non riuscito. Riprovare?"
 msgid "Bed Temperature"
 msgstr "Temperatura piano"
 
-#: src/gui/wizard/selftest_frame_temp.cpp:64
-msgid ""
-"Before you continue, make sure the print sheet is installed on the heatbed."
-msgstr ""
-"Prima di continuare, assicurati che il piano di stampa sia installato sul piano riscaldato."
-
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:44
 msgid "Before you proceed, make sure filament is unloaded from the Nextruder."
 msgstr "Prima di procedere, assicurati che il filamento sia stato scaricato dal Nextruder."
