@@ -4353,7 +4353,7 @@ msgstr "Jednou"
 
 #: src/gui/wizard/selftest_frame_firstlayer.hpp:16
 msgid "Once the printer starts extruding plastic, adjust the nozzle height by turning the knob until the filament sticks to the print sheet."
-msgstr "Až začne MINI vytlačovat plast, nastav výšku trysky otáčením ovládacího tlačítka. Filament musí být správně přitlačen k podložce."
+msgstr "Až začne tiskárna vytlačovat plast, nastav výšku trysky otáčením ovládacího tlačítka. Filament musí být správně přitlačen k podložce."
 
 #: src/gui/screen_menu_connect.cpp:71
 msgid "Online"
