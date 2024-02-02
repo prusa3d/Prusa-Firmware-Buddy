@@ -209,7 +209,7 @@ MI_MMU_NEXTRUDER_REWORK::MI_MMU_NEXTRUDER_REWORK()
 
 void MI_MMU_NEXTRUDER_REWORK::OnChange([[maybe_unused]] size_t old_index) {
     if (!flip_mmu_rework(index == 0)) {
-        SetIndex(0); // revert the index change of the toggle in case the user aborted the dialog
+        SetIndex(old_index); // revert the index change of the toggle in case the user aborted the dialog
         return;
     }
 
