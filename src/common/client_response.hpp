@@ -347,8 +347,12 @@ enum class PhasesCrashRecovery : uint16_t {
     axis_long,
     repeated_crash,
     home_fail, //< Homing failed, ask to retry
+#if HAS_TOOLCHANGER()
     tool_recovery, //< Toolchanger recovery, tool fell off
     _last = tool_recovery
+#else
+    _last = home_fail
+#endif
 };
 
 enum class PhasesQuickPause : uint16_t {
@@ -636,7 +640,9 @@ class ClientResponses {
         {}, // axis long
         { Response::Resume, Response::Pause }, // repeated crash
         { Response::Retry }, // home_fail
+#if HAS_TOOLCHANGER()
         { Response::Continue }, // toolchanger recovery
+#endif
     };
     static_assert(std::size(ClientResponses::CrashRecoveryResponses) == CountPhases<PhasesCrashRecovery>());
 

@@ -51,7 +51,9 @@ enum class State {
     CrashRecovery_Lifting,
     CrashRecovery_ToolchangePowerPanic, // Prepare for toolchange after power panic
     CrashRecovery_XY_Measure,
+#if HAS_TOOLCHANGER()
     CrashRecovery_Tool_Pickup,
+#endif
     CrashRecovery_XY_HOME,
     CrashRecovery_HOMEFAIL, // Shows retry button after homing fails
     CrashRecovery_Axis_NOK,

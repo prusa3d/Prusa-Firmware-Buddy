@@ -954,7 +954,9 @@ void serial_print_finalize(void) {
     case State::Paused:
     case State::Resuming_Reheating:
     case State::Finishing_WaitIdle:
+#if HAS_TOOLCHANGER()
     case State::CrashRecovery_Tool_Pickup:
+#endif
         server.print_state = State::Finishing_WaitIdle;
         break;
     default:
@@ -974,7 +976,9 @@ void print_abort(void) {
     case State::Paused:
     case State::Resuming_Reheating:
     case State::Finishing_WaitIdle:
+#if HAS_TOOLCHANGER()
     case State::CrashRecovery_Tool_Pickup:
+#endif
         server.print_state = State::Aborting_Begin;
         break;
 

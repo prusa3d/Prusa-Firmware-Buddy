@@ -263,8 +263,8 @@ WinUnion::screen_type WinUnion::ScreenType(PhasesCrashRecovery ph) {
     case PhasesCrashRecovery::check_X:
     case PhasesCrashRecovery::check_Y:
         return WinUnion::CheckAxis;
-    case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()
+    case PhasesCrashRecovery::tool_recovery:
         return WinUnion::ToolRecovery;
     #else /*HAS_TOOLCHANGER()*/
         bsod("Tool recovery window without toolchanger");
@@ -307,8 +307,8 @@ void WinUnion::Destroy() {
     case PhasesCrashRecovery::home_fail:
         homeFail->~WinsHomeFail();
         return;
-    case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()
+    case PhasesCrashRecovery::tool_recovery:
         toolRecovery->~WinsToolRecovery();
     #else /*HAS_TOOLCHANGER()*/
         bsod("Tool recovery window without toolchanger");
@@ -343,8 +343,8 @@ void WinUnion::New(PhasesCrashRecovery ph) {
     case PhasesCrashRecovery::home_fail:
         homeFail = new (&mem_space) WinsHomeFail(parent_screen);
         return;
-    case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()
+    case PhasesCrashRecovery::tool_recovery:
         toolRecovery = new (&mem_space) WinsToolRecovery(parent_screen);
     #else /*HAS_TOOLCHANGER()*/
         bsod("Tool recovery window without toolchanger");
@@ -398,8 +398,8 @@ bool ScreenCrashRecovery::Change(fsm::BaseData data) {
         break;
     case PhasesCrashRecovery::home_fail:
         break;
-    case PhasesCrashRecovery::tool_recovery: {
     #if HAS_TOOLCHANGER()
+    case PhasesCrashRecovery::tool_recovery: {
         Crash_recovery_tool_fsm state(data.GetData());
         for (int i = 0; i < buddy::puppies::DWARF_MAX_COUNT; i++) {
             if (state.enabled & (0x01 << i)) { // This tool exists
@@ -418,11 +418,9 @@ bool ScreenCrashRecovery::Change(fsm::BaseData data) {
         } else {
             win_union.toolRecovery->radio.Hide(); // Disable button until all are parked
         }
-    #else /*HAS_TOOLCHANGER()*/
-        bsod("Tool recovery window without toolchanger");
-    #endif /*HAS_TOOLCHANGER()*/
         break;
     }
+    #endif /*HAS_TOOLCHANGER()*/
     }
 
     return true;
@@ -455,8 +453,8 @@ void WinUnion::ButtonEvent(GUI_event_t event) {
     case PhasesCrashRecovery::home_fail:
         radio = &homeFail->radio;
         break;
-    case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()
+    case PhasesCrashRecovery::tool_recovery:
         radio = &toolRecovery->radio;
     #else /*HAS_TOOLCHANGER()*/
         bsod("Tool recovery window without toolchanger");

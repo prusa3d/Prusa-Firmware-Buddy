@@ -714,7 +714,9 @@ void screen_printing_data_t::change_print_state() {
     case State::CrashRecovery_Lifting:
     case State::CrashRecovery_ToolchangePowerPanic:
     case State::CrashRecovery_XY_Measure:
+#if HAS_TOOLCHANGER()
     case State::CrashRecovery_Tool_Pickup:
+#endif
     case State::CrashRecovery_XY_HOME:
     case State::CrashRecovery_HOMEFAIL:
     case State::CrashRecovery_Axis_NOK:

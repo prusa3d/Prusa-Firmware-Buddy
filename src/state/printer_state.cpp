@@ -24,8 +24,10 @@ namespace {
             return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH);
         case State::CrashRecovery_HOMEFAIL:
             return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL);
+#if HAS_TOOLCHANGER()
         case State::CrashRecovery_Tool_Pickup:
             return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP);
+#endif
         case State::PrintPreviewToolsMapping:
             return StateWithDialog::attention(ErrCode::CONNECT_PRINT_PREVIEW_TOOLS_MAPPING);
         case State::Idle:
@@ -101,8 +103,10 @@ namespace {
             return ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH;
         case PhasesCrashRecovery::home_fail:
             return ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL;
+#if HAS_TOOLCHANGER()
         case PhasesCrashRecovery::tool_recovery:
             return ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP;
+#endif
         default:
             return std::nullopt;
         }
