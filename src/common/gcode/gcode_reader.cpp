@@ -33,7 +33,7 @@ IGcodeReader::Result_t IGcodeReader::stream_get_line(GcodeBuffer &b) {
     b.line.begin = begin(b.buffer);
     b.line.end = begin(b.buffer);
 
-    if (b.continuations == GcodeBuffer::Continuations::Discard) {
+    if (line_continuations == IGcodeReader::Continuations::Discard) {
         // Even incomplete lines "eat up" the data in the Discard mode, so at
         // this point they _act_ as complete (for the purposes of EOF and similar).
         b.line_complete = true;
@@ -80,8 +80,8 @@ IGcodeReader::Result_t IGcodeReader::stream_get_line(GcodeBuffer &b) {
     // At this point, the buffer is full.
     b.line_complete = false;
 
-    switch (b.continuations) {
-    case GcodeBuffer::Continuations::Discard:
+    switch (line_continuations) {
+    case IGcodeReader::Continuations::Discard:
         // In this mode, we need to really have the final \0, so kill the final char instead.
         *--b.line.end = '\0';
 
@@ -105,7 +105,7 @@ IGcodeReader::Result_t IGcodeReader::stream_get_line(GcodeBuffer &b) {
                 break;
             }
         }
-    case GcodeBuffer::Continuations::Split:
+    case IGcodeReader::Continuations::Split:
         return Result_t::RESULT_OK;
     }
 

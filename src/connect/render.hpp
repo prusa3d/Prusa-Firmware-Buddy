@@ -40,7 +40,8 @@ private:
     json::JsonResult out_str_chunk(json::JsonOutput &output, const GcodeBuffer::String &str);
 
 public:
-    GcodeMetaRenderer(AnyGcodeFormatReader *gcode);
+    GcodeMetaRenderer(AnyGcodeFormatReader *gcode)
+        : gcode(gcode) {}
 
     virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override;
 };
