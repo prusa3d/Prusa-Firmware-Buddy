@@ -558,7 +558,18 @@ MI_INFO_SERIAL_NUM::MI_INFO_SERIAL_NUM()
 // MI_FS_AUTOLOAD
 is_hidden_t hide_autoload_item() {
     // autoload settings doesn't make sense when filament sensors are disabled
-    return FSensors_instance().is_enabled() ? is_hidden_t::no : is_hidden_t::yes;
+    if (!FSensors_instance().is_enabled()) {
+        return is_hidden_t::yes;
+    }
+
+#if HAS_MMU2()
+    // Do not show autoload option with MMU rework enabled - BFW-4290
+    if (config_store().is_mmu_rework.get()) {
+        return is_hidden_t::yes;
+    }
+#endif
+
+    return is_hidden_t::no;
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
