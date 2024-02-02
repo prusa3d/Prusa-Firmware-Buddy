@@ -6,10 +6,18 @@
 #include "marlin_client.hpp"
 #include "marlin_server.hpp"
 #include "utility_extensions.hpp"
+#include <option/has_mmu2.h>
 
 ScreenMenuTune::ScreenMenuTune()
     : ScreenMenuTune__(_(label)) {
     ScreenMenuTune__::ClrMenuTimeoutClose();
+
+#if HAS_MMU2()
+    // Do not allow disabling filament sensor
+    if (config_store().mmu2_enabled.get()) {
+        Item<MI_FILAMENT_SENSOR>().hide();
+    }
+#endif
 }
 
 void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
