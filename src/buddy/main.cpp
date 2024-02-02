@@ -468,6 +468,14 @@ extern "C" void main_cpp(void) {
     }
 #endif
 
+#if HAS_MMU2()
+    // mmu2 is normally serviced from the marlin thread
+    // so execute it before the defaultTask is created to prevent race conditions
+    if (config_store().mmu2_enabled.get()) {
+        MMU2::mmu2.Start();
+    }
+#endif
+
     media_prefetch_init();
     osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 1024);
     prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
@@ -516,12 +524,6 @@ extern "C" void main_cpp(void) {
         osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 512);
         osThreadCreate(osThread(measurementTask), NULL);
     }
-
-#if HAS_MMU2()
-    if (config_store().mmu2_enabled.get()) {
-        MMU2::mmu2.Start();
-    }
-#endif
 }
 
 #ifdef USE_ST7789
