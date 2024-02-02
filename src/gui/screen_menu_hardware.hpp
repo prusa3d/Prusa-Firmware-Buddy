@@ -105,7 +105,7 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #endif
 #if HAS_MMU2()
     ,
-    MI_MMU_REWORK
+    MI_MMU_NEXTRUDER_REWORK
 #endif
     >;
 
