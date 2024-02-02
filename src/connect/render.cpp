@@ -611,6 +611,7 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
     size_t written = 0;
 
     if (!started) {
+        gcode->get()->line_continuations = IGcodeReader::Continuations::Discard;
         // get any thumbnail bigger than 17x17
         if (!gcode->get()->stream_thumbnail_start(17, 17, IGcodeReader::ImgType::PNG, true)) {
             // no thumbnail found in gcode, just dont send anything
@@ -660,12 +661,6 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
     return make_tuple(JsonResult::Incomplete, written);
 }
 
-GcodeMetaRenderer::GcodeMetaRenderer(AnyGcodeFormatReader *gcode)
-    : gcode(gcode) {
-    // We want to get long headers in chunks, not their tails being thrown out.
-    gcode_line_buffer.continuations = GcodeBuffer::Continuations::Split;
-}
-
 void GcodeMetaRenderer::reset_buffer() {
     gcode_line_buffer.line = GcodeBuffer::String();
 }
@@ -689,6 +684,7 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
     assert(gcode->is_open());
     if (first_run) {
         reset_buffer();
+        gcode->get()->line_continuations = IGcodeReader::Continuations::Split;
         if (!gcode->get()->stream_metadata_start()) {
             return make_tuple(JsonResult::Complete, 0);
         }

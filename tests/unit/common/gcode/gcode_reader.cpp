@@ -319,7 +319,7 @@ TEST_CASE("File size estimate", "[GcodeReader]") {
 TEST_CASE("Reader: Long comment, split") {
     DummyReader reader(DUMMY_DATA_LONG, IGcodeReader::Result_t::RESULT_EOF);
     GcodeBuffer buffer;
-    buffer.continuations = GcodeBuffer::Continuations::Split;
+    reader.line_continuations = IGcodeReader::Continuations::Split;
 
     REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == "; Short line");
@@ -382,7 +382,7 @@ TEST_CASE("Reader: Long comment, discard") {
 TEST_CASE("Reader: Exact long, split") {
     DummyReader reader(DUMMY_DATA_EXACT, IGcodeReader::Result_t::RESULT_EOF);
     GcodeBuffer buffer;
-    buffer.continuations = GcodeBuffer::Continuations::Split;
+    reader.line_continuations = IGcodeReader::Continuations::Split;
 
     // The first line fits exactly. But the reader doesn't know it ended.
     REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
@@ -423,7 +423,7 @@ TEST_CASE("Reader: Exact long, discard") {
 TEST_CASE("Reader: Exact at EOF, split") {
     DummyReader reader(DUMMY_DATA_EXACT_EOF, IGcodeReader::Result_t::RESULT_EOF);
     GcodeBuffer buffer;
-    buffer.continuations = GcodeBuffer::Continuations::Split;
+    reader.line_continuations = IGcodeReader::Continuations::Split;
 
     // The first line fits exactly. But the reader doesn't know it ended.
     REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
@@ -455,7 +455,7 @@ TEST_CASE("Reader: Exact at EOF, discard") {
 TEST_CASE("Reader: Error in long, split") {
     DummyReader reader(DUMMY_DATA_ERR, IGcodeReader::Result_t::RESULT_ERROR);
     GcodeBuffer buffer;
-    buffer.continuations = GcodeBuffer::Continuations::Split;
+    reader.line_continuations = IGcodeReader::Continuations::Split;
 
     // The first line fits exactly. But the reader doesn't know it ended.
     REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);

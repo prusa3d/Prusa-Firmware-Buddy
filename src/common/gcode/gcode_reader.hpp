@@ -38,6 +38,18 @@ public:
 
     virtual ~IGcodeReader();
 
+    enum class Continuations {
+        /// Anything over the limit is discarded.
+        ///
+        /// If anything was discarded can be checked with line_complete.
+        Discard,
+        /// Too long line is returned in multiple chunks. The last chunk is
+        /// marked with line_complete being true.
+        Split,
+    };
+
+    Continuations line_continuations = Continuations::Discard;
+
     /// Result type
     enum class Result_t {
         RESULT_OK,
