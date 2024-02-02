@@ -19,18 +19,6 @@ public:
     using Container = std::array<char, 81>;
 
     Container buffer;
-
-    enum class Continuations {
-        /// Anything over the limit is discarded.
-        ///
-        /// If anything was discarded can be checked with line_complete.
-        Discard,
-        /// Too long line is returned in multiple chunks. The last chunk is
-        /// marked with line_complete being true.
-        Split,
-    };
-
-    Continuations continuations = Continuations::Discard;
     bool line_complete = true;
 
     class String {
