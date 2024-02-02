@@ -267,6 +267,8 @@ StepStatus ProtocolLogic::ScopeStep() {
     if (!ExpectsResponse()) {
         // we are waiting for something
         switch (currentScope) {
+        case Scope::StartSeq:
+            return Processing;
         case Scope::DelayedRestart:
             return DelayedRestartWait();
         case Scope::Idle:
