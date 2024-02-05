@@ -9,6 +9,7 @@
 #include <marlin_events.h>
 #include <bitset>
 #include "gcode_info.hpp"
+#include <option/has_mmu2.h>
 
 /**
  * @brief Parent class handling changes of state
@@ -34,8 +35,10 @@ public:
         filament_not_inserted_wait_user,
         filament_not_inserted_load,
 
+#if HAS_MMU2()
         mmu_filament_inserted_wait_user,
         mmu_filament_inserted_unload,
+#endif
 
         tools_mapping_wait_user,
 

@@ -71,10 +71,11 @@ std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPre
     case State::filament_not_inserted_load:
         return PhasesPrintPreview::filament_not_inserted;
 
+#if HAS_MMU2()
     case State::mmu_filament_inserted_wait_user:
     case State::mmu_filament_inserted_unload:
         return PhasesPrintPreview::mmu_filament_inserted;
-
+#endif
     case State::wrong_filament_wait_user:
     case State::wrong_filament_change:
         return PhasesPrintPreview::wrong_filament;
@@ -264,6 +265,7 @@ static bool check_correct_filament_type_tools_mapping(uint8_t physical_extruder)
 
 IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
 
+#if HAS_MMU2()
     if (FSensors_instance().HasMMU()) {
         if (!config_store().fsensor_enabled.get()) {
             return State::checks_done;
@@ -276,7 +278,9 @@ IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
         } else {
             return State::mmu_filament_inserted_wait_user;
         }
-    } else {
+    } else
+#endif
+    {
         if (!config_store().fsensor_enabled.get()) {
             return stateFromFilamentType();
         }
@@ -584,6 +588,7 @@ PrintPreview::Result PrintPreview::Loop() {
         }
         break;
 
+#if HAS_MMU2()
     case State::mmu_filament_inserted_wait_user:
         switch (response) {
 
@@ -607,6 +612,7 @@ PrintPreview::Result PrintPreview::Loop() {
             ChangeState(State::checks_done);
         }
         break;
+#endif
 
     case State::wrong_filament_wait_user: // change / ignore / abort
         switch (response) {
@@ -699,8 +705,10 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     case State::wrong_filament_wait_user:
     case State::filament_not_inserted_load:
     case State::filament_not_inserted_wait_user:
+#if HAS_MMU2()
     case State::mmu_filament_inserted_unload:
     case State::mmu_filament_inserted_wait_user:
+#endif
     case State::checks_done:
     case State::file_error_wait_user:
         return Result::Questions;

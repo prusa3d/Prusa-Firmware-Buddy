@@ -154,7 +154,9 @@ enum class PhasesPrintPreview : uint16_t {
     wrong_printer,
     wrong_printer_abort,
     filament_not_inserted,
+#if HAS_MMU2()
     mmu_filament_inserted,
+#endif
     tools_mapping,
     wrong_filament,
     file_error, ///< Something is wrong with the gcode file
@@ -478,7 +480,9 @@ class ClientResponses {
         { Response::Abort, Response::PRINT }, // wrong_printer
         { Response::Abort }, // wrong_printer_abort
         { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted
+#if HAS_MMU2()
         { Response::Yes, Response::No }, // mmu_filament_inserted
+#endif
         { Response::Back, Response::Filament, Response::PRINT }, // tools_mapping
         {
 #if !PRINTER_IS_PRUSA_XL

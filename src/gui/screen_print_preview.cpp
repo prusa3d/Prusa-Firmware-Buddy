@@ -109,10 +109,11 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_not_detected));
         break;
 
+#if HAS_MMU2()
     case PhasesPrintPreview::mmu_filament_inserted:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_detected_mmu));
         break;
-
+#endif
     case PhasesPrintPreview::wrong_filament:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_wrong_fil_type));
         break;

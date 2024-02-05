@@ -155,6 +155,10 @@ namespace {
             return ErrCode::CONNECT_PRINT_PREVIEW_FILE_ERROR;
         case PhasesPrintPreview::tools_mapping:
             return ErrCode::CONNECT_PRINT_PREVIEW_TOOLS_MAPPING;
+#if HAS_MMU2()
+        case PhasesPrintPreview::mmu_filament_inserted:
+            return ErrCode::CONNECT_PRINT_PREVIEW_MMU_FILAMENT_INSERTED;
+#endif
         default:
             return std::nullopt;
         }
