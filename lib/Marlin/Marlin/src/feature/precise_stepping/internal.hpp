@@ -12,7 +12,7 @@
 // #define ISR_DEADLINE_DEBUGGING // Enable audible warnings on step deadline misses
 // #define ISR_DEADLINE_TRACKING // Accurate (but expensive) deadline miss tracking
 // #define ISR_EVENT_DEBUGGING // Enable audible warnings on event queue misses
-// #define ISR_DEBUG_NOOPT // Do not optimize ISR functiosn for debugging
+// #define ISR_DEBUG_NOOPT // Do not optimize ISR functions for debugging
 
 #ifdef ISR_DEADLINE_DEBUGGING
     #warning "Dedline detection isn't working as intended after PreciseStepping::step_isr() was rewroted."
