@@ -350,7 +350,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     stepper.direct_mode(true);
 
     // We initialize the zero rotor phase to current phase. The real initialization is done by
-    // set_phase_origin() when the coordinate system finally initialized.
+    // set_phase_origin() when the local coordinate system is effectively initialized.
     axis_state.zero_rotor_phase = current_phase;
     axis_state.last_phase = current_phase;
 #endif
