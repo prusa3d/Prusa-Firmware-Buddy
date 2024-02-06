@@ -206,6 +206,13 @@ bool Touchscreen_GT911::write_data(uint16_t address, const void *data, uint8_t b
 }
 
 void Touchscreen_GT911::update_impl(TouchState &touch_state) {
+    // This function can be called from IRQ – so in the middle of some thread doing stuff with the I2C.
+    // This was actually happening - BFW-5054.
+    // So if the I2C is being used, simply do not update and try it later
+    if (I2C_HANDLE_FOR(touch).Lock != HAL_UNLOCKED) {
+        return;
+    }
+
     const uint32_t now = ticks_ms();
     const auto diff = ticks_diff(now, last_update_ms_);
 
