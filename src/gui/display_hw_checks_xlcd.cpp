@@ -6,7 +6,6 @@
 #include "ScreenHandler.hpp"
 #include <option/has_touch.h>
 #include <device/peripherals.h>
-#include <option/has_leds.h>
 
 LOG_COMPONENT_REF(GUI);
 
@@ -22,10 +21,6 @@ void reinit_lcd_and_redraw() {
 }
 
 void check_lcd() {
-#if HAS_LEDS()
-    leds::ForceRefresh(4);
-#endif
-
     // Determine if we should reset the LCD
     {
         bool do_reset = display::IsResetRequired();

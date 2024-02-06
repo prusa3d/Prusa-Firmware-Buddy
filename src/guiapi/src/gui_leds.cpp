@@ -41,9 +41,8 @@ void leds::ForceRefresh(size_t cnt) {
 }
 
 void leds::TickLoop() {
-    if (getNeopixels().LedsToRewrite() > 0 || getNeopixels().GetForceRefresh()) {
-        getNeopixels().Send();
-    }
+    getNeopixels().Tick();
+
 #if HAS_SIDE_LEDS()
     leds::side_strip_control.Tick();
 #endif
@@ -97,7 +96,7 @@ void leds::enter_power_panic() {
     SPI_INIT(lcd);
     leds::SetNth(Color(0, 0, 0), leds::index::count_);
     leds::ForceRefresh(size_t(leds::index::count_));
-    getNeopixels().Send();
+    getNeopixels().Tick();
 
     // 5. reenable display task
     osThreadResume(displayTaskHandle);

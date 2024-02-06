@@ -40,6 +40,10 @@ public:
     }
 
     void SetColor(Color color) {
+        if (color == current_color) {
+            return;
+        }
+
         current_color = color;
         needs_update = true;
     }

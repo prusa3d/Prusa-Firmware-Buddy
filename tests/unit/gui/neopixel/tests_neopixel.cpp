@@ -30,7 +30,7 @@ void led_test(typename Leds_base<LED_COUNT>::color_array colors, const std::vect
     neopixel::LedsSPI<LED_COUNT, spi_wr_bytes, T1H, T1L, T0H, T0L, RESET_TIME> led;
 
     led.Set(colors);
-    led.Send();
+    led.Tick();
 }
 
 static std::string cmp_string;
@@ -58,7 +58,7 @@ void led_test(typename Leds_base<LED_COUNT>::color_array colors, const std::stri
     neopixel::LedsSPI<LED_COUNT, spi_wr_bytes__string<SZ>, T1H, T1L, T0H, T0L, RESET_TIME> led;
 
     led.Set(colors);
-    led.Send();
+    led.Tick();
 }
 
 // replace '1' with T1H * '1' and with T1L * '0'

@@ -23,6 +23,5 @@ void SideStrip::Update() {
         leds.Set(Color(current_color.g, current_color.r, current_color.b).data, i);
     }
 
-    leds.ForceRefresh(led_drivers_count);
-    leds.Send();
+    leds.Tick();
 }
