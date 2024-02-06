@@ -31,9 +31,10 @@ void leds::Init() {
     // TODO move SetBrightness to display
     leds::SetBrightness(100);
     leds::TickLoop();
+
 #if HAS_SIDE_LEDS()
-    bool ena = config_store().side_leds_enabled.get();
-    leds::side_strip_control.SetEnable(ena);
+    leds::side_strip_control.SetEnable(config_store().side_leds_enabled.get());
+    leds::side_strip_control.set_dimming_enabled(config_store().side_leds_dimming_enabled.get());
 #endif
 }
 void leds::ForceRefresh(size_t cnt) {

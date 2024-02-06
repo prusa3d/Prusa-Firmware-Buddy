@@ -27,7 +27,10 @@ void SideStripControl::Tick() {
     std::unique_lock lock(mutex);
 
     bool active = false;
-    if (active_start_timestamp.has_value()) {
+    if (!dimming_enabled) {
+        active = true;
+
+    } else if (active_start_timestamp.has_value()) {
         if (ticks_diff(ticks_ms(), active_start_timestamp.value()) > active_timeout_ms) {
             active_start_timestamp.reset();
         } else {
@@ -217,6 +220,10 @@ void SideStripControl::SetEnable(bool isEnable) {
     } else {
         state = State::SetOff;
     }
+}
+void SideStripControl::set_dimming_enabled(bool set) {
+    std::unique_lock lock(mutex);
+    dimming_enabled = set;
 }
 
 void SideStripControl::PanicOff() {
