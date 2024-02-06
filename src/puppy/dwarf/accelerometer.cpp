@@ -8,8 +8,6 @@
 #include <lis2dh12_reg.h>
 #include "hwio_pindef.h"
 
-// #define DEBUG_SAMPLERATE
-
 using namespace dwarf::accelerometer;
 using namespace buddy::hw;
 
@@ -17,103 +15,20 @@ namespace {
 static constexpr size_t ACCELEROMETER_BUFFER_RECORDS_NUM = 128;
 
 CircularBuffer<AccelerometerRecord, ACCELEROMETER_BUFFER_RECORDS_NUM> sample_buffer;
-size_t sample_buffer_watermark = 0;
-
 uint32_t first_sample_timestamp = 0;
 uint32_t last_sample_timestamp = 0;
 size_t samples_extracted = 0;
-
 size_t overflown_count = 0;
-size_t overflown_logged_count = 0;
-
 stmdev_ctx_t dev_ctx;
 std::atomic<bool> initialized = false;
 
 LOG_COMPONENT_DEF(Accel, LOG_SEVERITY_INFO);
 
-#ifdef DEBUG_SAMPLERATE
-class SampleRateDebug {
-public:
-    SampleRateDebug() {
-        clear();
-    }
-
-    void clear() {
-        last_timestamp_us = 0;
-        last_milestone_timestamp_us = 0;
-        max_interval = 0;
-        min_interval = std::numeric_limits<uint32_t>::max();
-        sample_counter = 0;
-        last_milestone_time_us = 0;
-        hist.fill(0);
-    }
-
-    void sample(uint32_t timestamp_us) {
-        if (last_milestone_timestamp_us != 0 && sample_counter % milestone_interval == 0) {
-            last_milestone_time_us = timestamp_us - last_milestone_timestamp_us;
-            log_info(Accel, "%d samples in %d us", milestone_interval, last_milestone_time_us);
-            last_milestone_timestamp_us = timestamp_us;
-        }
-
-        volatile const uint32_t diff = timestamp_us - last_timestamp_us;
-        if (last_timestamp_us != 0 && diff < std::numeric_limits<uint32_t>::max() / 2) {
-            if (max_interval < diff) {
-                max_interval = diff;
-            }
-            if (min_interval > diff) {
-                min_interval = diff;
-            }
-
-            assert(diff < hist.size() * hist_step_us);
-            hist[diff / hist_step_us]++;
-        }
-
-        sample_counter++;
-        last_timestamp_us = timestamp_us;
-    }
-
-    void report() {
-        log_info(Accel, "Sample interval: min: %d us, max: %d us", min_interval, max_interval);
-
-        size_t pos = 0;
-        static char buff[8 * hist_buckets];
-        for (size_t &val : hist) {
-            pos += snprintf(buff + pos, sizeof(buff) - pos, "%d,", val);
-        }
-        log_info(Accel, buff);
-    }
-
-private:
-    static constexpr size_t hist_step_us = 10;
-    static constexpr uint32_t milestone_interval = 1000;
-    static constexpr size_t hist_buckets = 200;
-    std::array<size_t, hist_buckets> hist {};
-
-    uint32_t last_timestamp_us = 0;
-    uint32_t max_interval = 0;
-    uint32_t min_interval = std::numeric_limits<uint32_t>::max();
-    size_t sample_counter = 0;
-    uint32_t last_milestone_timestamp_us = 0;
-    uint32_t last_milestone_time_us = 0;
-};
-#else
-class SampleRateDebug {
-public:
-    void clear() {}
-    void sample([[maybe_unused]] uint32_t timestamp_us) {}
-    void report() {}
-};
-#endif
-
-SampleRateDebug debug;
-
 void clear() {
     taskENTER_CRITICAL();
     sample_buffer.clear();
     taskEXIT_CRITICAL();
-    sample_buffer_watermark = 0;
     overflown_count = 0;
-    overflown_logged_count = 0;
     first_sample_timestamp = 0;
     last_sample_timestamp = 0;
     samples_extracted = 0;
@@ -202,7 +117,6 @@ void init() {
 
     // Clear local data structures
     clear();
-    debug.clear();
 
     // Mark initialized before enabling the IRQ
     initialized = true;
@@ -215,7 +129,6 @@ void deinit() {
     assert(initialized);
     buddy::hw::lis2dh12_data.disableIRQ();
     initialized = false;
-    debug.report();
 }
 
 void on_new_samples(uint32_t count) {
@@ -247,27 +160,12 @@ void dwarf::accelerometer::irq() {
     // Get sample and store sample
     on_new_samples(1);
     AccelerometerRecord record;
-    record.timestamp = ticks_us();
     record.buffer_overflow = overflown_count > 0;
     record.sample_overrun = status.zyxor;
     lis2dh12_acceleration_raw_get(&dev_ctx, record.raw);
     // No need for locking, we are the only interrupt touching the sample buffer
     if (!sample_buffer.try_put(record)) {
         overflown_count++;
-    }
-    if (sample_buffer_watermark < sample_buffer.size()) {
-        sample_buffer_watermark = sample_buffer.size();
-    }
-
-    debug.sample(record.timestamp);
-}
-
-void dwarf::accelerometer::accelerometer_loop() {
-    static uint32_t buffer_over_reported_time = 0;
-    if (overflown_count != overflown_logged_count && (buffer_over_reported_time + 5000U) < ticks_ms()) {
-        log_critical(Accel, "accelerometer overflowed, %d samples didn't fit ", overflown_count);
-        buffer_over_reported_time = ticks_ms();
-        overflown_logged_count = overflown_count;
     }
 }
 
@@ -288,10 +186,6 @@ size_t dwarf::accelerometer::get_num_samples() {
 }
 
 void dwarf::accelerometer::set_enable(bool enabled) {
-    if (!enabled) {
-        log_info(Accel, "Buffer watermark %d", sample_buffer_watermark);
-    }
-
     clear();
 
     if (initialized == enabled) {
@@ -304,11 +198,6 @@ void dwarf::accelerometer::set_enable(bool enabled) {
         deinit();
     }
 }
-
-bool dwarf::accelerometer::is_enabled() {
-    return initialized;
-}
-
 float dwarf::accelerometer::measured_sampling_rate() {
     uint32_t duration = ticks_diff(last_sample_timestamp, first_sample_timestamp);
     if (duration == 0 || samples_extracted == 0) {

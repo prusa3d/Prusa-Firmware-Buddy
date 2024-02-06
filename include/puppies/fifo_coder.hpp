@@ -84,7 +84,6 @@ inline constexpr MessageType message_type<AccelerometerSamplingRate>() {
 
 namespace dwarf::accelerometer {
 struct AccelerometerRecord {
-    common::puppies::fifo::TimeStamp_us timestamp;
     union {
         struct {
             int16_t x, y, z;
