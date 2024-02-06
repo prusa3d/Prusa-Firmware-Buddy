@@ -38,7 +38,7 @@ JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
 }
 
 JsonResult JsonOutput::output_str_chunk(size_t resume_point, const char *str, size_t size) {
-    const size_t needed = jsonify_str_buffer_len(str, size) ?: size;
+    size_t needed = jsonify_str_buffer_len(str, size) ?: size;
 
     if (needed <= buffer_size) {
         if (needed == size) {
@@ -46,6 +46,9 @@ JsonResult JsonOutput::output_str_chunk(size_t resume_point, const char *str, si
             memcpy(buffer, str, size);
         } else {
             jsonify_str_len(str, size, reinterpret_cast<char *>(buffer));
+            // The above stores a terminating \0 (and includes it in the needed
+            // size), so "erase" that one.
+            needed--;
         }
         buffer += needed;
         buffer_size -= needed;
