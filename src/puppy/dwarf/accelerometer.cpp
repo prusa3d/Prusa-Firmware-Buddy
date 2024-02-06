@@ -131,20 +131,6 @@ void deinit() {
     initialized = false;
 }
 
-void on_new_samples(uint32_t count) {
-    if (count == 0) {
-        return;
-    }
-
-    uint32_t now = ticks_us();
-    if (first_sample_timestamp == 0) {
-        first_sample_timestamp = now;
-        samples_extracted = 0;
-    }
-    last_sample_timestamp = now;
-    samples_extracted += count;
-}
-
 } // end anonymous namespace
 
 void dwarf::accelerometer::irq() {
@@ -158,7 +144,14 @@ void dwarf::accelerometer::irq() {
     lis2dh12_status_get(&dev_ctx, &status);
 
     // Get sample and store sample
-    on_new_samples(1);
+    uint32_t now = ticks_us();
+    if (first_sample_timestamp == 0) {
+        first_sample_timestamp = now;
+        samples_extracted = 0;
+    }
+    last_sample_timestamp = now;
+    ++samples_extracted;
+
     AccelerometerRecord record;
     record.buffer_overflow = overflown_count > 0;
     record.sample_overrun = status.zyxor;
