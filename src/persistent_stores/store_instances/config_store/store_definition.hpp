@@ -300,6 +300,10 @@ struct CurrentStore
     StoreItem<float, defaults::float_zero, journal::hash("Homing Bump Divisor Y")> homing_bump_divisor_y;
 
     StoreItem<bool, defaults::bool_true, journal::hash("Enable Side LEDs")> side_leds_enabled;
+
+    /// Whether the side leds should dim down a bit when user is not interacting with the printer or stay on full power the whole time
+    StoreItem<bool, defaults::bool_true, journal::hash("Enable Side LEDs dimming")> side_leds_dimming_enabled;
+
     StoreItem<bool, defaults::bool_true, journal::hash("Enable Tool LEDs")> tool_leds_enabled;
 
     StoreItem<float, defaults::float_zero, journal::hash("Odometer X")> odometer_x;

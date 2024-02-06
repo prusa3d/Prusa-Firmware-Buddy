@@ -32,6 +32,7 @@ public:
     void Tick();
 
     void SetEnable(bool isEnable);
+    void set_dimming_enabled(bool set);
 
     /**
      * @brief Quickly turn off LEDs.
@@ -140,6 +141,7 @@ private:
     std::optional<ActiveColorTransition> current_transition;
     void TransitionToColor(Color color, uint32_t transition_ms);
     State state = State::Startup;
+    bool dimming_enabled = false;
     freertos::Mutex mutex;
 
     // Active State
