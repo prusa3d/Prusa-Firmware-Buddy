@@ -257,9 +257,9 @@ namespace {
     /// Check MCU temperature and trigger warning and redscreen
     template <WarningType p_warning>
     class MCUTempErrorChecker : public ErrorChecker<p_warning, true> {
-        static constexpr const int32_t mcu_temp_warning = 80; ///< When to show warning and pause the print
-        static constexpr const int32_t mcu_temp_hysteresis = 5; ///< Hysteresis to reset warning
-        static constexpr const int32_t mcu_temp_redscreen = 100; ///< When to show redscreen error
+        static constexpr const int32_t mcu_temp_warning = 85; ///< When to show warning and pause the print
+        static constexpr const int32_t mcu_temp_hysteresis = 2; ///< Hysteresis to reset warning
+        static constexpr const int32_t mcu_temp_redscreen = 95; ///< When to show redscreen error
 
         const char *name; ///< Name of board with the MCU
 
