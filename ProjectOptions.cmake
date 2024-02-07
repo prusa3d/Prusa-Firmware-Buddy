@@ -729,3 +729,8 @@ set(WEBSOCKET
     CACHE BOOL "Use websocket to talk to connect. In development"
     )
 define_boolean_option(WEBSOCKET ${WEBSOCKET})
+set(MDNS
+    "ON"
+    CACHE BOOL "Enable MDNS responder"
+    )
+define_boolean_option(MDNS ${MDNS})

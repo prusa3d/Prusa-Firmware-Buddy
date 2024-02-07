@@ -36,17 +36,18 @@
  *
  */
 
-#include "lwip/apps/mdns_out.h"
-#include "lwip/apps/mdns_priv.h"
-#include "lwip/apps/mdns_domain.h"
-#include "lwip/prot/dns.h"
-#include "lwip/prot/iana.h"
-#include "lwip/udp.h"
+#include "mdns_out.h"
+#include "mdns_priv.h"
+#include "mdns_domain.h"
+
+#include <lwip/prot/dns.h>
+#include <lwip/prot/iana.h>
+#include <lwip/udp.h>
 
 #include <string.h>
 
 #if LWIP_IPV6
-    #include "lwip/prot/ip6.h"
+    #include <lwip/prot/ip6.h>
 #endif
 
 #if LWIP_MDNS_RESPONDER

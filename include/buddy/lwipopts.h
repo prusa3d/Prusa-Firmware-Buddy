@@ -8,16 +8,24 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <option/mdns.h>
 
 #define WITH_RTOS            1
 #define MEM_LIBC_MALLOC      0
 #define CHECKSUM_BY_HARDWARE 0
 #define LWIP_DHCP            1
 #define MEM_ALIGNMENT        4
-#define MEMP_NUM_SYS_TIMEOUT 8
+#define MEMP_NUM_SYS_TIMEOUT 9
 #define LWIP_ETHERNET        1
 #define LWIP_DNS_SECURE      7
 #define DNS_MAX_NAME_LENGTH  128
+
+#if MDNS()
+    #define LWIP_MDNS_RESPONDER 1
+    // For MDNS
+    #define LWIP_IGMP                  1
+    #define LWIP_NUM_NETIF_CLIENT_DATA 1
+#endif
 
 #define TCP_MSS                1024
 #define TCP_WND                (8 * TCP_MSS)

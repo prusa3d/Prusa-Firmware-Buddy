@@ -55,19 +55,20 @@
  *
  */
 
-#include "lwip/apps/mdns.h"
-#include "lwip/apps/mdns_priv.h"
-#include "lwip/apps/mdns_domain.h"
-#include "lwip/apps/mdns_out.h"
-#include "lwip/netif.h"
-#include "lwip/udp.h"
-#include "lwip/ip_addr.h"
-#include "lwip/mem.h"
-#include "lwip/memp.h"
-#include "lwip/prot/dns.h"
-#include "lwip/prot/iana.h"
-#include "lwip/timeouts.h"
-#include "lwip/sys.h"
+#include "mdns.h"
+#include "mdns_priv.h"
+#include "mdns_domain.h"
+#include "mdns_out.h"
+
+#include <lwip/netif.h>
+#include <lwip/udp.h>
+#include <lwip/ip_addr.h>
+#include <lwip/mem.h>
+#include <lwip/memp.h>
+#include <lwip/prot/dns.h>
+#include <lwip/prot/iana.h>
+#include <lwip/timeouts.h>
+#include <lwip/sys.h>
 
 #include <string.h> /* memset */
 #include <stdio.h> /* snprintf */
@@ -2071,10 +2072,10 @@ mdns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr,
     #endif
     #if LWIP_IPV4
     if (!IP_IS_V6(ip_current_dest_addr())) {
-        if (!ip_addr_eq(ip_current_dest_addr(), &v4group)) {
+        if (!ip_addr_cmp(ip_current_dest_addr(), &v4group)) {
             packet.recv_unicast = 1;
 
-            if (!ip4_addr_net_eq(ip_2_ip4(ip_current_src_addr()),
+            if (!ip_addr_netcmp(ip_2_ip4(ip_current_src_addr()),
                     netif_ip4_addr(recv_netif),
                     netif_ip4_netmask(recv_netif))) {
                 goto dealloc;
@@ -2104,7 +2105,7 @@ mdns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr,
             /* this packet is a known-answer packet for a truncated question previously received */
             struct mdns_packet *q = pending_tc_questions;
             while (q) {
-                if ((packet.source_port == q->source_port) && ip_addr_eq(&packet.source_addr, &q->source_addr)) {
+                if ((packet.source_port == q->source_port) && ip_addr_cmp(&packet.source_addr, &q->source_addr)) {
                     break;
                 }
                 q = q->next_tc_question;

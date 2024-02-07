@@ -39,10 +39,11 @@
 #ifndef LWIP_HDR_APPS_MDNS_OUT_H
 #define LWIP_HDR_APPS_MDNS_OUT_H
 
-#include "lwip/apps/mdns_opts.h"
-#include "lwip/apps/mdns_priv.h"
-#include "lwip/netif.h"
-#include "lwip/timeouts.h"
+#include "mdns_opts.h"
+#include "mdns_priv.h"
+
+#include <lwip/netif.h>
+#include <lwip/timeouts.h>
 
 #ifdef __cplusplus
 extern "C" {
