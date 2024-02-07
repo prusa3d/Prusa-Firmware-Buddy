@@ -77,7 +77,9 @@ enum class WarningType : uint32_t {
     USBFlashDiskError,
     HeatbedColdAfterPP,
     HeatBreakThermistorFail,
+    #if ENABLED(CALIBRATION_GCODE)
     NozzleDoesNotHaveRoundSection,
+    #endif
     NotDownloaded,
     BuddyMCUMaxTemp,
     DwarfMCUMaxTemp,

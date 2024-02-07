@@ -197,8 +197,10 @@ namespace {
                 return ErrCode::CONNECT_HEATBREAK_THERMISTOR_FAIL;
             case WarningType::HeatbedColdAfterPP:
                 return ErrCode::CONNECT_POWER_PANIC_COLD_BED;
+#if ENABLED(CALIBRATION_GCODE)
             case WarningType::NozzleDoesNotHaveRoundSection:
                 return ErrCode::CONNECT_NOZZLE_DOES_NOT_HAVE_ROUND_SECTION;
+#endif
             case WarningType::NotDownloaded:
                 return ErrCode::CONNECT_NOT_DOWNLOADED;
             case WarningType::BuddyMCUMaxTemp:

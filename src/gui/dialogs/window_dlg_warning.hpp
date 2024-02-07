@@ -24,7 +24,9 @@ static constexpr const char *USBFlashDiskError = N_("USB drive or file error, th
 static constexpr const char *HeatbedColdAfterPPMsg = N_("The heatbed cooled down during the power outage, printed object might have detached. Inspect it before continuing.");
 #endif
 static constexpr const char *HeatBreakThermistorFail = N_("Heatbreak thermistor is disconnected. Inspect the wiring.");
+#if ENABLED(CALIBRATION_GCODE)
 static constexpr const char *NozzleDoesNotHaveRoundSectionMsg = N_("Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed.");
+#endif
 static constexpr const char *NotDownloadedMsg = N_("G-Code transfer running too slow. Check your network for issues or use different USB drive. Press Continue to resume printing.");
 static constexpr const char *BuddyMCUMaxTempMsg = N_("MCU in Buddy is overheated. Any higher will result in fatal error.");
 #if HAS_DWARF()
@@ -54,7 +56,9 @@ class DialogWarning : public AddSuperWindow<IDialogMarlin> {
 #if ENABLED(POWER_PANIC)
         HeatbedColdAfterPP,
 #endif
+#if ENABLED(CALIBRATION_GCODE)
         NozzleDoesNotHaveRoundSection,
+#endif
         NotDownloaded,
         BuddyMCUMaxTemp,
 #if HAS_DWARF()
@@ -86,7 +90,9 @@ class DialogWarning : public AddSuperWindow<IDialogMarlin> {
 #if ENABLED(POWER_PANIC)
         { nullptr, Title, HeatbedColdAfterPPMsg },
 #endif
+#if ENABLED(CALIBRATION_GCODE)
         { &img::nozzle_34x32, Title, NozzleDoesNotHaveRoundSectionMsg },
+#endif
         { &img::no_stream_48x48, Title, NotDownloadedMsg }, // NotDownloaded
         { &img::warning_48x48, Title, BuddyMCUMaxTempMsg }, // BuddyMCUMaxTemp
 #if HAS_DWARF()

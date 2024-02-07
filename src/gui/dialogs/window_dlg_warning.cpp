@@ -48,8 +48,10 @@ DialogWarning::types DialogWarning::get_type(fsm::BaseData data) {
     case WarningType::HeatbedColdAfterPP:
         return HeatbedColdAfterPP;
 #endif
+#if ENABLED(CALIBRATION_GCODE)
     case WarningType::NozzleDoesNotHaveRoundSection:
         return NozzleDoesNotHaveRoundSection;
+#endif
     case WarningType::NotDownloaded:
         return NotDownloaded;
     case WarningType::BuddyMCUMaxTemp:
