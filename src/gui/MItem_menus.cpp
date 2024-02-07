@@ -409,6 +409,8 @@ void MI_LOAD_SETTINGS::click(IWindowMenu & /*window_menu*/) {
         notify_reconfigure();
     }
 
+    // Ignore return flags -- no action necessary
+    (void)wui_load_ini_file();
 // FIXME: Error handling
 #if BUDDY_ENABLE_CONNECT()
     connect_client::MarlinPrinter::load_cfg_from_ini();

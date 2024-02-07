@@ -15,7 +15,8 @@ using nhttp::handler::Selector;
 class EmptyServerDefs : public ServerDefs {
 public:
     virtual const Selector *const *selectors() const override { return {}; }
-    virtual const char *get_password() const override { return ""; }
+    virtual const char *get_user_password() const override { return ""; }
+    virtual const char *get_apikey() const override { return ""; }
     virtual altcp_pcb *listener_alloc() const override { return {}; }
 };
 

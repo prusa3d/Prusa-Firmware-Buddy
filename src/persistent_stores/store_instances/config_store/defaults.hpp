@@ -120,6 +120,7 @@ namespace defaults {
 
     inline constexpr uint32_t footer_draw_type { footer::ItemDrawCnf::get_default() };
     inline constexpr std::array<char, pl_password_size> prusalink_password { "" };
+    inline constexpr std::array<char, pl_password_size> prusalink_user_password { "" };
 
     inline constexpr std::array<char, connect_host_size + 1> connect_host { "buddy-a.\x01\x01" }; // "Compressed" - this means buddy-a.connect.prusa3d.com.
     inline constexpr std::array<char, connect_token_size + 1> connect_token { "" };
