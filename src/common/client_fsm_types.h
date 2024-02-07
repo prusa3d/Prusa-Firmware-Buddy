@@ -1,5 +1,7 @@
 #pragma once
 
+#include <option/has_dwarf.h>
+
 #include <stdint.h>
 #include <utility_extensions.hpp>
 
@@ -82,7 +84,9 @@ enum class WarningType : uint32_t {
     #endif
     NotDownloaded,
     BuddyMCUMaxTemp,
+    #if HAS_DWARF()
     DwarfMCUMaxTemp,
+    #endif
     ModBedMCUMaxTemp,
     _last = ModBedMCUMaxTemp
 };

@@ -4,6 +4,7 @@
 #include <client_response.hpp>
 #include <marlin_vars.hpp>
 #include <option/has_mmu2.h>
+#include <option/has_dwarf.h>
 #include <config_store/store_instance.hpp>
 
 using namespace marlin_server;
@@ -205,8 +206,10 @@ namespace {
                 return ErrCode::CONNECT_NOT_DOWNLOADED;
             case WarningType::BuddyMCUMaxTemp:
                 return ErrCode::CONNECT_BUDDY_MCU_MAX_TEMP;
+#if HAS_DWARF()
             case WarningType::DwarfMCUMaxTemp:
                 return ErrCode::CONNECT_DWARF_MCU_MAX_TEMP;
+#endif
             case WarningType::ModBedMCUMaxTemp:
                 return ErrCode::CONNECT_MOD_BED_MCU_MAX_TEMP;
 #if _DEBUG
