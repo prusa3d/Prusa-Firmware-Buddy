@@ -47,7 +47,8 @@ private:
     static constexpr uint16_t register_config_begin = 0x8047;
     static constexpr uint16_t register_touch_status = 0x814E;
 
-    static constexpr int read_write_timeout = 20;
+    // Tried 20 before, was causing touchscreen init problems with USB & bootloader - BFW-5009
+    static constexpr int read_write_timeout_ms = 50;
     static constexpr uint16_t i2c_device_address = 0xBA;
     static constexpr int config_data_size = 0x8100 - register_config_begin + 1;
 
