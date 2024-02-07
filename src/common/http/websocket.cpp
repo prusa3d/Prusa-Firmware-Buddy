@@ -1,5 +1,7 @@
 #include "websocket.hpp"
 
+#include "debug.h"
+
 #include <random.h>
 
 // htons
@@ -16,6 +18,8 @@ using std::array;
 using std::monostate;
 using std::optional;
 using std::variant;
+
+LOG_COMPONENT_REF(httpc);
 
 namespace http {
 
@@ -90,6 +94,7 @@ variant<monostate, WebSocket::FragmentHeader, Error> WebSocket::receive(optional
 
     uint8_t header[2];
     if (auto err = connection.rx_exact(reinterpret_cast<uint8_t *>(&header), sizeof header); err.has_value()) {
+        log_error(httpc, "Initial RX exact failed");
         return *err;
     }
 
@@ -99,12 +104,14 @@ variant<monostate, WebSocket::FragmentHeader, Error> WebSocket::receive(optional
     result.opcode = Opcode(header[0] & 0b00001111);
     if (header[0] & 0b00110000) {
         // Not supported / not negotiated extension
+        log_error(httpc, "Invalid extension");
         return Error::WebSocket;
     }
 
     bool mask = header[1] & 0b10000000;
     if (mask) {
         // Masked from the server. Not supported.
+        log_error(httpc, "Masked from server");
         return Error::WebSocket;
     }
 
@@ -113,6 +120,7 @@ variant<monostate, WebSocket::FragmentHeader, Error> WebSocket::receive(optional
     if (result.len == 126) {
         uint16_t len;
         if (auto err = connection.rx_exact(reinterpret_cast<uint8_t *>(&len), sizeof len); err.has_value()) {
+            log_error(httpc, "RX exact for length");
             return *err;
         }
         result.len = ntohs(len);

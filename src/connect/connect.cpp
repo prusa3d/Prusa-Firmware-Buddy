@@ -267,9 +267,10 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
         auto res = websocket->receive(first ? make_optional(0) : nullopt);
 
         if (holds_alternative<monostate>(res)) {
-            log_debug(command, "No command available now");
+            log_debug(connect, "No command available now");
             break;
         } else if (holds_alternative<Error>(res)) {
+            log_error(connect, "Lost connection when reading command");
             conn_factory.invalidate();
             return err_to_status(get<Error>(res));
         }
@@ -280,6 +281,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
         // multi-fragment message.
         switch (fragment.opcode) {
         case WebSocket::Opcode::Ping: {
+            log_debug(connect, "Ping from server");
             // Not allowed to fragment
             constexpr const size_t MAX_FRAGMENT_LEN = 126;
             if (fragment.len > MAX_FRAGMENT_LEN) {
@@ -309,6 +311,7 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
             // The server is closing the connection, we are not getting the
             // message. Throw the connection away.
             conn_factory.invalidate();
+            log_info(connect, "Close from server");
             return OnlineError::Network;
         default:
             // It's not websocket control message, handle it below

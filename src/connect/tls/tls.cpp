@@ -168,10 +168,8 @@ std::variant<size_t, Error> tls::rx(uint8_t *read_buffer, size_t buffer_len, [[m
     return bytes_received;
 }
 
-bool tls::poll_readable(uint32_t) {
-    // Not supported on tls connections (because not needed right now).
-    assert(false);
-    return true;
+bool tls::poll_readable(uint32_t timeout) {
+    return mbedtls_ssl_check_pending(&ssl_context) || net_context.plain_conn.poll_readable(timeout);
 }
 
 } // namespace connect_client
