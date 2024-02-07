@@ -20,7 +20,7 @@ void Touchscreen_Base::set_enabled(bool set) {
 
     config_store().touch_enabled.set(set);
     metric_record_string(metric_touch_event(), "set_enabled %i", set);
-    log_info(Touch, "[touch] set enabled %i", set);
+    log_info(Touch, "set enabled %i", set);
 }
 
 TouchscreenEvent Touchscreen_Base::get_event() {
