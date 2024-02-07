@@ -14,7 +14,7 @@
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate
 class MI_PL_REGENERATE_PASSWORD : public IWindowMenuItem {
-    constexpr static const char *const label = N_("Generate Password");
+    constexpr static const char *const label = N_("Update Keys");
 
 public:
     MI_PL_REGENERATE_PASSWORD();
@@ -56,6 +56,35 @@ public:
     MI_PL_PASSWORD_VALUE();
 
     void update_explicit();
+
+protected:
+    void click(IWindowMenu &menu) override;
+};
+
+class MI_PL_APIKEY_LABEL : public IWindowMenuItem {
+    constexpr static const char *const label = N_("Api-Key");
+
+public:
+    MI_PL_APIKEY_LABEL();
+
+protected:
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
+};
+
+class MI_PL_APIKEY_VALUE : public WiInfo<config_store_ns::pl_password_size> {
+#if HAS_MINI_DISPLAY()
+    constexpr static const char *const label = N_("");
+#else
+    constexpr static const char *const label = N_("Api-Key");
+#endif
+
+public:
+    MI_PL_APIKEY_VALUE();
+
+    void update_explicit();
+
+protected:
+    void click(IWindowMenu &menu) override;
 };
 
 class MI_PL_USER : public IWiInfo {
@@ -78,6 +107,10 @@ using ScreenMenuPrusaLink_ = ScreenMenu<EFooter::Off, MI_RETURN, MI_PL_ENABLED, 
     MI_PL_PASSWORD_LABEL,
 #endif
     MI_PL_PASSWORD_VALUE,
+#if HAS_MINI_DISPLAY()
+    MI_PL_APIKEY_LABEL,
+#endif
+    MI_PL_APIKEY_VALUE,
     MI_IP4_ADDR,
     MI_HOSTNAME,
     MI_PL_REGENERATE_PASSWORD,

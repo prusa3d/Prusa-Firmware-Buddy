@@ -70,7 +70,8 @@ public:
      *   deleting the old one is a data race/UB. We need to find a solution,
      *   but for now, changing the key is very rare and happens in-place.
      */
-    virtual const char *get_password() const = 0;
+    virtual const char *get_apikey() const = 0;
+    virtual const char *get_user_password() const = 0;
     /**
      * \brief Allocate the listener socket.
      */
@@ -433,8 +434,12 @@ public:
         return defs.selectors();
     }
 
-    const char *get_password() const {
-        return defs.get_password();
+    const char *get_user_password() const {
+        return defs.get_user_password();
+    }
+
+    const char *get_apikey() const {
+        return defs.get_apikey();
     }
 
     void inject_transfer(altcp_pcb *conn, pbuf *data, uint16_t data_offset, splice::Transfer *transfer, size_t expected_data);

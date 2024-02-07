@@ -10,6 +10,7 @@
 
 #include <array>
 #include <gui/frame_qr_layout.hpp>
+#include <dialog_text_input.hpp>
 
 #include "wui_api.h"
 #include <config_store/store_instance.hpp>
@@ -22,8 +23,15 @@ MI_PL_REGENERATE_PASSWORD::MI_PL_REGENERATE_PASSWORD()
 
 void MI_PL_REGENERATE_PASSWORD::click(IWindowMenu &) {
     std::array<char, config_store_ns::pl_password_size> password;
-    wui_generate_password(password.data(), password.size());
-    wui_store_password(password.data(), password.size());
+    uint8_t key_flags = wui_load_ini_file();
+    if (!(key_flags & 1)) {
+        wui_generate_password(password.data(), password.size());
+        wui_store_apikey(password.data(), password.size());
+    }
+    // Set user password to api-key if none given
+    if (!(key_flags & 2)) {
+        wui_store_user_password((char *)wui_get_apikey(), config_store_ns::pl_password_size);
+    }
 
     // Notify the screen so that it updates the pasword display
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, nullptr);
@@ -37,10 +45,18 @@ MI_PL_ENABLED::MI_PL_ENABLED()
 
 void MI_PL_ENABLED::OnChange([[maybe_unused]] size_t old_index) {
     config_store().prusalink_enabled.set(index);
+    // Load keys now?
+    if (wui_load_ini_file() != 0) {
+        // Keys found - update display
+        Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, nullptr);
+    }
     notify_reconfigure();
 }
 
 MI_PL_PASSWORD_LABEL::MI_PL_PASSWORD_LABEL()
+    : IWindowMenuItem(_(label), 0) {}
+
+MI_PL_APIKEY_LABEL::MI_PL_APIKEY_LABEL()
     : IWindowMenuItem(_(label), 0) {}
 
 // ----------------------------------------------------------------
@@ -52,7 +68,45 @@ MI_PL_PASSWORD_VALUE::MI_PL_PASSWORD_VALUE()
 }
 
 void MI_PL_PASSWORD_VALUE::update_explicit() {
+    ChangeInformation(config_store().prusalink_user_password.get().data());
+}
+
+void MI_PL_PASSWORD_VALUE::click(IWindowMenu &) {
+    std::array<char, config_store_ns::pl_password_size> password = config_store().prusalink_user_password.get();
+
+    if (!DialogTextInput::exec(_("Password"), password)) {
+        return;
+    }
+
+    wui_store_user_password(password.data(), password.size());
+
+    // Notify the screen so that it updates the pasword display
+    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, nullptr);
+}
+
+// ----------------------------------------------------------------
+// MI_PL_APIKEY_VALUE
+// ----------------------------------------------------------------
+MI_PL_APIKEY_VALUE::MI_PL_APIKEY_VALUE()
+    : WiInfo(_(label)) {
+    update_explicit();
+}
+
+void MI_PL_APIKEY_VALUE::update_explicit() {
     ChangeInformation(config_store().prusalink_password.get().data());
+}
+
+void MI_PL_APIKEY_VALUE::click(IWindowMenu &) {
+    std::array<char, config_store_ns::pl_password_size> password = config_store().prusalink_password.get();
+
+    if (!DialogTextInput::exec(_("Api-Key"), password)) {
+        return;
+    }
+
+    wui_store_apikey(password.data(), password.size());
+
+    // Notify the screen so that it updates the pasword display
+    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, nullptr);
 }
 
 // ----------------------------------------------------------------
@@ -83,6 +137,7 @@ void ScreenMenuPrusaLink::windowEvent(window_t *sender, GUI_event_t event, void 
 
     case GUI_event_t::CHILD_CLICK:
         Item<MI_PL_PASSWORD_VALUE>().update_explicit();
+        Item<MI_PL_APIKEY_VALUE>().update_explicit();
         break;
 
     default:
@@ -104,7 +159,7 @@ ScreenPrusaLinkQRCode::ScreenPrusaLinkQRCode()
     netdev_get_ipv4_addresses(netdev_get_active_id(), &config);
 
     std::array<char, 100> buff;
-    snprintf(buff.data(), buff.size(), "http://" PRUSA_LINK_USERNAME ":%s@%lu.%lu.%lu.%lu/", wui_get_password(),
+    snprintf(buff.data(), buff.size(), "http://" PRUSA_LINK_USERNAME ":%s@%lu.%lu.%lu.%lu/", wui_get_user_password(),
         (config.addr_ip4.addr >> 0) & 0xff,
         (config.addr_ip4.addr >> 8) & 0xff,
         (config.addr_ip4.addr >> 16) & 0xff,

@@ -389,6 +389,10 @@ void MI_LOAD_SETTINGS::click(IWindowMenu & /*window_menu*/) {
     }
     build_message(msg_builder, _("Network"), network_settings_loaded);
 
+    // Ignore return flags -- no action necessary
+    (void)wui_load_ini_file();
+
+// FIXME: Error handling
 #if BUDDY_ENABLE_CONNECT()
     build_message(msg_builder, _("Connect"), connect_client::MarlinPrinter::load_cfg_from_ini());
 #endif

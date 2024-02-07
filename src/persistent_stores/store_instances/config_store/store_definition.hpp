@@ -144,6 +144,7 @@ struct CurrentStore
     StoreItem<uint8_t, 0, journal::hash("Active NetDev")> active_netdev; // active network device
     StoreItem<bool, true, journal::hash("PrusaLink Enabled")> prusalink_enabled;
     StoreItem<std::array<char, pl_password_size>, defaults::prusalink_password, journal::hash("PrusaLink Password")> prusalink_password;
+    StoreItem<std::array<char, pl_password_size>, defaults::prusalink_user_password, journal::hash("PrusaLink User Password")> prusalink_user_password;
 
     StoreItem<bool, false, journal::hash("USB MSC Enabled")> usb_msc_enabled;
 

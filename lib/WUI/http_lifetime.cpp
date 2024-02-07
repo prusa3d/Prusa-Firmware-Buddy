@@ -45,7 +45,8 @@ private:
 
 public:
     virtual const Selector *const *selectors() const override { return selectors_array; }
-    virtual const char *get_password() const override { return wui_get_password(); }
+    virtual const char *get_apikey() const override { return wui_get_apikey(); }
+    virtual const char *get_user_password() const override { return wui_get_user_password(); }
     virtual altcp_pcb *listener_alloc() const override {
         /*
          * We know we are in the part where ALTCP is turned off. That means the

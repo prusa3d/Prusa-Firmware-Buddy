@@ -230,7 +230,8 @@ public:
     MockServerDefs(vector<shared_ptr<ConnInfo>> &conn_infos)
         : infos(conn_infos) {}
     virtual const Selector *const *selectors() const override { return selectors_array; }
-    virtual const char *get_password() const override { return password.c_str(); }
+    virtual const char *get_user_password() const override { return password.c_str(); }
+    virtual const char *get_apikey() const override { return password.c_str(); }
     virtual altcp_pcb *listener_alloc() const override {
         auto conn = new_conn();
         return altcp_listen(conn);
