@@ -122,9 +122,11 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         pMsgbox = makeMsgBox(_("File error"), _(gcode.error_str()), img::error_16x16);
         break;
 
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case PhasesPrintPreview::tools_mapping:
         show_tools_mapping();
         break;
+#endif
     }
 
     if (pMsgbox) {

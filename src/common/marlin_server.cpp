@@ -860,7 +860,9 @@ bool print_preview() {
         || server.print_state == State::PrintPreviewImage
         || server.print_state == State::PrintPreviewConfirmed
         || server.print_state == State::PrintPreviewQuestions
+#if HAS_TOOLCHANGER() || HAS_MMU2()
         || server.print_state == State::PrintPreviewToolsMapping
+#endif
         || server.print_state == State::WaitGui;
 }
 
@@ -908,7 +910,9 @@ void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
     case State::PrintPreviewImage:
     case State::PrintPreviewConfirmed:
     case State::PrintPreviewQuestions:
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::PrintPreviewToolsMapping:
+#endif
         media_print_start__prepare(filename);
         server.print_state = State::WaitGui;
         PrintPreview::Instance().set_skip_if_able(skip_preview);
@@ -986,7 +990,9 @@ void print_abort(void) {
     case State::PrintPreviewImage:
     case State::PrintPreviewConfirmed:
     case State::PrintPreviewQuestions:
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::PrintPreviewToolsMapping:
+#endif
         server.print_state = State::Aborting_Preview;
         break;
 
@@ -1380,8 +1386,10 @@ static void _server_print_loop(void) {
 
     case State::PrintPreviewImage:
     case State::PrintPreviewConfirmed:
-    case State::PrintPreviewQuestions:
-    case State::PrintPreviewToolsMapping: {
+#if HAS_TOOLCHANGER() || HAS_MMU2()
+    case State::PrintPreviewToolsMapping:
+#endif
+    case State::PrintPreviewQuestions: {
         // button evaluation
         // We don't particularly care about the
         // difference, but downstream users do.
@@ -1424,9 +1432,11 @@ static void _server_print_loop(void) {
             FSM_DESTROY__LOGGING(PrintPreview);
             break;
 
+#if HAS_TOOLCHANGER() || HAS_MMU2()
         case PrintPreview::Result::ToolsMapping:
             new_state = State::PrintPreviewToolsMapping;
             break;
+#endif
 
         case PrintPreview::Result::Print:
         case PrintPreview::Result::Inactive:
@@ -1779,9 +1789,11 @@ static void _server_print_loop(void) {
             }
         }
 
+#if HAS_TOOLCHANGER() || HAS_MMU2()
         if (PrintPreview::Instance().GetState() == PrintPreview::State::tools_mapping_wait_user) {
             PrintPreview::tools_mapping_cleanup();
         }
+#endif
 
         // Can go directly to Idle because we didn't really start printing.
         server.print_state = State::Idle;

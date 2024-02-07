@@ -10,6 +10,7 @@
 #include <bitset>
 #include "gcode_info.hpp"
 #include <option/has_mmu2.h>
+#include <option/has_toolchanger.h>
 
 /**
  * @brief Parent class handling changes of state
@@ -40,7 +41,9 @@ public:
         mmu_filament_inserted_unload,
 #endif
 
+#if HAS_MMU2() || HAS_TOOLCHANGER()
         tools_mapping_wait_user,
+#endif
 
         wrong_filament_wait_user,
         wrong_filament_change,
@@ -79,7 +82,9 @@ public:
         Image,
         // Asking the user something (wrong printer, etc).
         Questions,
+#if HAS_TOOLCHANGER() || HAS_MMU2()
         ToolsMapping,
+#endif
         MarkStarted,
         Abort,
         Print,

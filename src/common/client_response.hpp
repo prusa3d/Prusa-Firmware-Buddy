@@ -157,7 +157,9 @@ enum class PhasesPrintPreview : uint16_t {
 #if HAS_MMU2()
     mmu_filament_inserted,
 #endif
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     tools_mapping,
+#endif
     wrong_filament,
     file_error, ///< Something is wrong with the gcode file
     _last = file_error
@@ -483,7 +485,9 @@ class ClientResponses {
 #if HAS_MMU2()
         { Response::Yes, Response::No }, // mmu_filament_inserted
 #endif
+#if HAS_TOOLCHANGER() || HAS_MMU2()
         { Response::Back, Response::Filament, Response::PRINT }, // tools_mapping
+#endif
         {
 #if !PRINTER_IS_PRUSA_XL
             Response::Change,

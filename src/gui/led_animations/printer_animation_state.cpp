@@ -32,7 +32,9 @@ PrinterState leds::mpsToAnimationState(marlin_server::State state) {
     case State::PrintPreviewImage:
     case State::PrintPreviewConfirmed:
     case State::PrintPreviewQuestions:
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::PrintPreviewToolsMapping:
+#endif
     case State::Exit:
         return PrinterState::Idle;
 

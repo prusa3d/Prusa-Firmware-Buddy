@@ -28,8 +28,10 @@ namespace {
         case State::CrashRecovery_Tool_Pickup:
             return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP);
 #endif
+#if HAS_TOOLCHANGER() || HAS_MMU2()
         case State::PrintPreviewToolsMapping:
             return StateWithDialog::attention(ErrCode::CONNECT_PRINT_PREVIEW_TOOLS_MAPPING);
+#endif
         case State::Idle:
         case State::WaitGui:
         case State::PrintPreviewInit:
@@ -153,8 +155,10 @@ namespace {
             return ErrCode::CONNECT_PRINT_PREVIEW_WRONG_FILAMENT;
         case PhasesPrintPreview::file_error:
             return ErrCode::CONNECT_PRINT_PREVIEW_FILE_ERROR;
+#if HAS_TOOLCHANGER() || HAS_MMU2()
         case PhasesPrintPreview::tools_mapping:
             return ErrCode::CONNECT_PRINT_PREVIEW_TOOLS_MAPPING;
+#endif
 #if HAS_MMU2()
         case PhasesPrintPreview::mmu_filament_inserted:
             return ErrCode::CONNECT_PRINT_PREVIEW_MMU_FILAMENT_INSERTED;

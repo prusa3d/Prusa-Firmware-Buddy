@@ -545,7 +545,9 @@ bool is_printing() {
     case State::Finished:
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::PrintPreviewToolsMapping:
+#endif
         return false;
     default:
         return true;

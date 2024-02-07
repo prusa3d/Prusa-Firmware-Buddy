@@ -115,7 +115,9 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case State::WaitGui:
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::PrintPreviewToolsMapping:
+#endif
     case State::PrintInit:
         break;
     case State::PrintPreviewQuestions:
@@ -309,7 +311,9 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     case State::WaitGui:
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::PrintPreviewToolsMapping:
+#endif
     case State::PrintInit:
         state = "Operational";
         break;

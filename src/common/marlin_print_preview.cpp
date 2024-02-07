@@ -58,8 +58,10 @@ std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPre
     case State::new_firmware_available_wait_user:
         return PhasesPrintPreview::new_firmware_available;
 
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::tools_mapping_wait_user:
         return PhasesPrintPreview::tools_mapping;
+#endif
 
     case State::wrong_printer_wait_user:
         return PhasesPrintPreview::wrong_printer;
@@ -525,6 +527,7 @@ PrintPreview::Result PrintPreview::Loop() {
         }
         break;
 
+#if HAS_MMU2() || HAS_TOOLCHANGER()
     case State::tools_mapping_wait_user:
         switch (response) {
 
@@ -542,6 +545,7 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
         }
         break;
+#endif
 
     case State::wrong_printer_wait_user:
     case State::wrong_printer_wait_user_abort:
@@ -662,7 +666,6 @@ PrintPreview::Result PrintPreview::Loop() {
                 ChangeState(State::done);
                 break;
             }
-#endif
 
             ChangeState(State::tools_mapping_wait_user);
 
@@ -675,6 +678,7 @@ PrintPreview::Result PrintPreview::Loop() {
                 marlin_server::set_target_bed(GCodeInfo::getInstance().get_bed_preheat_temp().value());
             }
             break;
+#endif
         }
         // else go to print, checks are done
         ChangeState(State::done);
@@ -717,8 +721,10 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     case State::done:
         return Result::Inactive;
 
+#if HAS_MMU2() || HAS_TOOLCHANGER()
     case State::tools_mapping_wait_user:
         return Result::ToolsMapping;
+#endif
     }
     return Result::Inactive;
 }
