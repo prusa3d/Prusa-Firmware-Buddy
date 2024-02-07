@@ -181,7 +181,11 @@ void ProcessModbusMessages() {
             break;
         }
         case ((uint16_t)ModbusRegisters::SystemCoil::accelerometer_enable): {
-            dwarf::accelerometer::set_enable(msg->m_Value);
+            if (msg->m_Value) {
+                dwarf::accelerometer::enable();
+            } else {
+                dwarf::accelerometer::disable();
+            }
             break;
         }
         case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::nozzle_target_temperature): {

@@ -19,7 +19,13 @@ uint32_t first_sample_timestamp = 0;
 uint32_t last_sample_timestamp = 0;
 size_t samples_extracted = 0;
 size_t overflown_count = 0;
-std::atomic<bool> initialized = false;
+
+enum class State : uint8_t {
+    uninitialized = 0,
+    disabled,
+    enabled,
+};
+State state = State::uninitialized;
 
 void clear() {
     taskENTER_CRITICAL();
@@ -89,50 +95,74 @@ void configure_interrupt() {
     lis2dh12_pin_int1_config_set(&dev_ctx, &reg3);
 }
 
-void init() {
-    assert(!initialized);
-
-    // Disable interrupt
-    buddy::hw::lis2dh12_data.disableIRQ();
-
-    // Check device ID
-    check_device_id();
-
-    // Configure device
-    configure_interrupt();
-    lis2dh12_operating_mode_set(&dev_ctx, LIS2DH12_NM_10bit);
-    lis2dh12_data_rate_set(&dev_ctx, LIS2DH12_ODR_5kHz376_LP_1kHz344_NM_HP);
-
-    // Wait for sample and throw it away to make sure interrupt is not already pending
-    lis2dh12_status_reg_t status {};
-    while (!status.zyxda) {
-        lis2dh12_status_get(&dev_ctx, &status);
-    }
-    int16_t dummy_accel[3];
-    lis2dh12_acceleration_raw_get(&dev_ctx, dummy_accel);
-
-    // Clear local data structures
-    clear();
-
-    // Mark initialized before enabling the IRQ
-    initialized = true;
-
-    // Enable new sample interrupt
-    lis2dh12_data.enableIRQ();
+void enable_sampling() {
+    constexpr lis2dh12_ctrl_reg1_t ctrl_reg1 {
+        .xen = 1, // enable x axis
+        .yen = 1, // enable y axis
+        .zen = 1, // enable z axis
+        .lpen = 0, // disable low power mode
+        .odr = 0x9, // enable output
+    };
+    write_reg(dev_ctx.handle, LIS2DH12_CTRL_REG1, (const uint8_t *)&ctrl_reg1, 1);
 }
 
-void deinit() {
-    assert(initialized);
-    buddy::hw::lis2dh12_data.disableIRQ();
-    initialized = false;
+void disable_sampling() {
+    constexpr lis2dh12_ctrl_reg1_t ctrl_reg1 {
+        .xen = 1, // enable x axis
+        .yen = 1, // enable y axis
+        .zen = 1, // enable z axis
+        .lpen = 0, // disable low power mode
+        .odr = 0x0, // disable output
+    };
+    write_reg(dev_ctx.handle, LIS2DH12_CTRL_REG1, (const uint8_t *)&ctrl_reg1, 1);
+}
+
+void throwaway_sample() {
+    int16_t dummy_accel[3];
+    lis2dh12_acceleration_raw_get(&dev_ctx, dummy_accel);
 }
 
 } // end anonymous namespace
 
-void dwarf::accelerometer::irq() {
-    assert(initialized);
-    if (!initialized) {
+void dwarf::accelerometer::enable() {
+    switch (state) {
+    case State::uninitialized:
+        check_device_id();
+        configure_interrupt();
+        [[fallthrough]];
+    case State::disabled:
+        clear();
+        enable_sampling();
+        state = State::enabled;
         return;
+    case State::enabled:
+        return;
+    }
+}
+
+void dwarf::accelerometer::disable() {
+    switch (state) {
+    case State::uninitialized:
+        return;
+    case State::disabled:
+        return;
+    case State::enabled:
+        state = State::disabled;
+        disable_sampling();
+        throwaway_sample();
+        clear();
+        return;
+    }
+}
+
+void dwarf::accelerometer::irq() {
+    switch (state) {
+    case State::uninitialized:
+        return;
+    case State::disabled:
+        return;
+    case State::enabled:
+        break;
     }
 
     // Check status for overrun
@@ -174,19 +204,6 @@ size_t dwarf::accelerometer::get_num_samples() {
     return size;
 }
 
-void dwarf::accelerometer::set_enable(bool enabled) {
-    clear();
-
-    if (initialized == enabled) {
-        return;
-    }
-
-    if (enabled) {
-        init();
-    } else {
-        deinit();
-    }
-}
 float dwarf::accelerometer::measured_sampling_rate() {
     uint32_t duration = ticks_diff(last_sample_timestamp, first_sample_timestamp);
     if (duration == 0 || samples_extracted == 0) {
