@@ -82,13 +82,15 @@ enum class WarningType : uint32_t {
     #if ENABLED(CALIBRATION_GCODE)
     NozzleDoesNotHaveRoundSection,
     #endif
-    NotDownloaded,
     BuddyMCUMaxTemp,
     #if HAS_DWARF()
     DwarfMCUMaxTemp,
     #endif
+    #if HAS_MODULARBED()
     ModBedMCUMaxTemp,
-    _last = ModBedMCUMaxTemp
+    #endif
+    NotDownloaded,
+    _last = NotDownloaded
 };
 
 // Open dialog has a parameter because I need to set a caption of change filament dialog (load / unload / change).

@@ -210,8 +210,10 @@ namespace {
             case WarningType::DwarfMCUMaxTemp:
                 return ErrCode::CONNECT_DWARF_MCU_MAX_TEMP;
 #endif
+#if HAS_MODULARBED()
             case WarningType::ModBedMCUMaxTemp:
                 return ErrCode::CONNECT_MOD_BED_MCU_MAX_TEMP;
+#endif
 #if _DEBUG
             case WarningType::SteppersTimeout:
                 return ErrCode::CONNECT_STEPPERS_TIMEOUT;
