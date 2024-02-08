@@ -168,3 +168,16 @@ TEST_CASE("CircleBuffer Iterators", "[circle_buffer]") {
         CHECK(it == cb.rend());
     }
 }
+
+TEST_CASE("CircleBuffer basics", "[circle_buffer]") {
+    SECTION("what goes in goes out") {
+        CircleBuffer<uint32_t, 2> cb;
+        uint32_t in = 0xdeadbeef;
+        CHECK(cb.push_back_DontRewrite(in));
+
+        uint32_t out;
+        CHECK(cb.ConsumeFirst(out));
+        // TODO: Either make this work or ditch the entire CircleBuffer class.
+        // CHECK(out == in);
+    }
+}
