@@ -13,7 +13,7 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
     #include "SparkFunLIS2DH.h"
 #elif HAS_REMOTE_ACCELEROMETER()
     #include <common/freertos_mutex.hpp>
-    #include "circle_buffer.hpp"
+    #include <common/circular_buffer.hpp>
     #include <puppies/fifo_coder.hpp>
 #endif
 
@@ -71,7 +71,7 @@ private:
 #elif HAS_REMOTE_ACCELEROMETER()
     // Mutex is very RAM (80B) consuming for this fast operation, consider switching to critical section
     static freertos::Mutex s_buffer_mutex;
-    using Sample_buffer = CircleBuffer<common::puppies::fifo::AccelerometerXyzSample, 128>;
+    using Sample_buffer = CircularBuffer<common::puppies::fifo::AccelerometerXyzSample, 128>;
     static Sample_buffer *s_sample_buffer;
     Sample_buffer m_sample_buffer;
 #endif
