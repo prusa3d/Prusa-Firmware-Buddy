@@ -1,6 +1,10 @@
 #pragma once
 
 #include <option/has_dwarf.h>
+#include <option/has_modularbed.h>
+#include <option/has_toolchanger.h>
+
+#include <inc/MarlinConfig.h>
 
 #include <stdint.h>
 #include <utility_extensions.hpp>

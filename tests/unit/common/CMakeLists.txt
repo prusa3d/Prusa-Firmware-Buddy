@@ -41,6 +41,7 @@ target_include_directories(
   fsm_types_test
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC ${CMAKE_SOURCE_DIR}/src/common
+  PUBLIC ${CMAKE_SOURCE_DIR}/tests/stubs/
   PUBLIC ${CMAKE_SOURCE_DIR}/include
   PUBLIC ${CMAKE_SOURCE_DIR}/src/common/utils ${OPTIONS_INCLUDE_DIR}
   )
