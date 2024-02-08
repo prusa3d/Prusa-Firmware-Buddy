@@ -93,8 +93,9 @@ void PrusaAccelerometer::clear() {
     m_error = Error::none;
 }
 int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
+    std::lock_guard lock(s_buffer_mutex);
     common::puppies::fifo::AccelerometerXyzSample sample;
-    bool ret_val = m_sample_buffer.ConsumeFirst(sample);
+    const bool ret_val = m_sample_buffer.try_get(sample);
     if (ret_val) {
         acceleration = AccelerometerUtils::unpack_sample(sample);
         if (acceleration.buffer_overflow) {
@@ -109,7 +110,7 @@ int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
 void PrusaAccelerometer::put_sample(common::puppies::fifo::AccelerometerXyzSample sample) {
     std::lock_guard lock(s_buffer_mutex);
     if (s_sample_buffer) {
-        if (!s_sample_buffer->push_back_DontRewrite(sample)) {
+        if (!s_sample_buffer->try_put(sample)) {
             mark_corrupted(Error::corrupted_buddy_overflow);
         }
     }
