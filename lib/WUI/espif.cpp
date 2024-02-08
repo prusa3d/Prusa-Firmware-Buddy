@@ -98,10 +98,10 @@ enum MessageType {
 
 #if PRINTER_IS_PRUSA_XL
 // ESP32 FW version
-static const uint32_t SUPPORTED_FW_VERSION = 10;
+static constexpr uint8_t SUPPORTED_FW_VERSION = 10;
 #else
 // ESP8266 FW version
-static const uint32_t SUPPORTED_FW_VERSION = 11;
+static constexpr uint8_t SUPPORTED_FW_VERSION = 11;
 #endif
 
 // NIC state
@@ -386,7 +386,7 @@ static void process_mac(uint8_t *data, struct netif *netif) {
 
     ESPIFOperatingMode old = ESPIF_WAIT_INIT;
     if (esp_operating_mode.compare_exchange_strong(old, ESPIF_NEED_AP)) {
-        uint8_t version = fw_version.load();
+        const uint8_t version = fw_version.load();
         if (version != SUPPORTED_FW_VERSION) {
             log_warning(ESPIF, "Firmware version mismatch: %u != %u",
                 version, static_cast<unsigned>(SUPPORTED_FW_VERSION));
