@@ -81,6 +81,9 @@ target_include_directories(
   circle_buffer_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/include
   )
 
+add_executable(circular_buffer_tests circular_buffer_test.cpp)
+target_include_directories(circular_buffer_tests PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
 add_executable(
   weighted_modus_tests ${CMAKE_CURRENT_SOURCE_DIR}/weighted_modus_test.cpp
                        ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/module/prusa/homing_modus.cpp
@@ -154,6 +157,7 @@ add_catch_test(fsm_serializers_test)
 add_catch_test(gcode_filter_tests)
 add_catch_test(timing_tests)
 add_catch_test(circle_buffer_tests)
+add_catch_test(circular_buffer_tests)
 add_catch_test(weighted_modus_tests)
 add_catch_test(algorithm_range_tests)
 add_catch_test(algorithm_scale_tests)
