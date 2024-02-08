@@ -2,7 +2,7 @@
 #include "accelerometer.hpp"
 #include "timing.h"
 #include <cstdint>
-#include "circle_buffer.hpp"
+#include <common/circular_buffer.hpp>
 #include <atomic>
 #include <lis2dh12_reg.h>
 #include "hwio_pindef.h"
@@ -13,11 +13,11 @@ using namespace dwarf::accelerometer;
 using namespace buddy::hw;
 
 namespace {
-static constexpr size_t ACCELEROMETER_BUFFER_RECORDS_NUM = 60;
+static constexpr size_t ACCELEROMETER_BUFFER_RECORDS_NUM = 64;
 static constexpr lis2dh12_odr_t low_sample_rate = LIS2DH12_ODR_400Hz;
 static constexpr lis2dh12_odr_t high_sample_rate = LIS2DH12_ODR_5kHz376_LP_1kHz344_NM_HP;
 
-CircleBuffer<AccelerometerRecord, ACCELEROMETER_BUFFER_RECORDS_NUM> sample_buffer;
+CircularBuffer<AccelerometerRecord, ACCELEROMETER_BUFFER_RECORDS_NUM> sample_buffer;
 size_t overflown_count = 0;
 size_t overflown_logged_count = 0;
 lis2dh12_odr_t current_sample_rate = low_sample_rate;
@@ -144,7 +144,9 @@ void init() {
     debug.clear();
 
     // Clear buffer
+    taskENTER_CRITICAL();
     sample_buffer.clear();
+    taskEXIT_CRITICAL();
     overflown_count = 0;
     overflown_logged_count = 0;
 
@@ -218,7 +220,8 @@ void dwarf::accelerometer::irq() {
     record.buffer_overflow = overflown_count > 0;
     record.sample_overrun = status.zyxor;
     lis2dh12_acceleration_raw_get(&dev_ctx, record.raw);
-    if (!sample_buffer.push_back_DontRewrite(record)) {
+    // No need for locking, we are the only interrupt touching the sample buffer
+    if (!sample_buffer.try_put(record)) {
         overflown_count++;
     }
 
@@ -235,14 +238,19 @@ void dwarf::accelerometer::accelerometer_loop() {
 }
 
 bool dwarf::accelerometer::accelerometer_get_sample(AccelerometerRecord &sample) {
-    bool ret = sample_buffer.ConsumeFirst(sample);
+    taskENTER_CRITICAL();
+    const bool ret = sample_buffer.try_get(sample);
+    taskEXIT_CRITICAL();
     // Mark all outgoing packets as corrupted when there is an overflow
     sample.buffer_overflow = overflown_count > 0;
     return ret;
 }
 
 size_t dwarf::accelerometer::get_num_samples() {
-    return sample_buffer.Count();
+    taskENTER_CRITICAL();
+    const size_t size = sample_buffer.size();
+    taskEXIT_CRITICAL();
+    return size;
 }
 
 void dwarf::accelerometer::set_enable(bool enabled) {
