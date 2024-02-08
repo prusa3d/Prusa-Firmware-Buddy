@@ -285,16 +285,24 @@ void phase_stepping::synchronize() {
 }
 
 bool phase_stepping::processing() {
+    // check for pending targets
     for (auto &state : axis_states) {
         if (state && (!state->pending_targets.isEmpty() || state->target.has_value())) {
             return true;
         }
     }
+
+    // ensure the last target has also been flushed
 #if HAS_BURST_STEPPING()
     if (burst_stepping::busy()) {
         return true;
     }
+#else
+    if (phase_stepping::spi::busy()) {
+        return true;
+    }
 #endif
+
     return false;
 }
 

@@ -23,4 +23,5 @@ namespace phase_stepping::spi {
 bool initialize_transaction();
 void set_xdirect(int axis, int current_a, int current_b);
 void finish_transmission();
+bool busy();
 } // namespace phase_stepping::spi

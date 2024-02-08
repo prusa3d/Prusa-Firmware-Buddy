@@ -150,6 +150,7 @@ FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
 }
 
 FORCE_OFAST static void setup_and_fire_dma() {
+    assert(!busy());
     BURST_DMA->CR = BURST_DMA->CR & (~DMA_SxCR_EN_Msk);
     BURST_DMA->NDTR = fire_buffer->size();
     BURST_DMA->PAR = reinterpret_cast<uint32_t>(&step_gpio_port->BSRR);

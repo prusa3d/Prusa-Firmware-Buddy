@@ -53,6 +53,7 @@ void phase_stepping::spi::set_xdirect(int axis, int current_a, int current_b) {
     PHSTEP_TMC_SPI->CR1 |= SPI_CR1_SPE;
 
     // Setup DMA
+    assert(!busy());
     PHSTEP_TMC_DMA->NDTR = 5;
     PHSTEP_TMC_DMA->PAR = reinterpret_cast<uint32_t>(&PHSTEP_TMC_SPI->DR);
     PHSTEP_TMC_DMA->M0AR = reinterpret_cast<uint32_t>(&xdirect_comm_buffer[0]);
@@ -69,4 +70,8 @@ void phase_stepping::spi::finish_transmission() {
 
     cs_pins[active_axis].write(Pin::State::high);
     tmc_serial_lock_release_isr();
+}
+
+bool phase_stepping::spi::busy() {
+    return (PHSTEP_TMC_DMA->NDTR > 0) && (PHSTEP_TMC_DMA->CR & DMA_SxCR_EN_Msk);
 }
