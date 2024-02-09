@@ -19,7 +19,6 @@ uint32_t first_sample_timestamp = 0;
 uint32_t last_sample_timestamp = 0;
 size_t samples_extracted = 0;
 size_t overflown_count = 0;
-stmdev_ctx_t dev_ctx;
 std::atomic<bool> initialized = false;
 
 LOG_COMPONENT_DEF(Accel, LOG_SEVERITY_INFO);
@@ -71,16 +70,18 @@ int32_t read_reg(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len) {
     return reg_stat == HAL_OK && data_stat == HAL_OK ? 0 : -1;
 }
 
+stmdev_ctx_t dev_ctx {
+    .write_reg = write_reg,
+    .read_reg = read_reg,
+    .mdelay = nullptr,
+    .handle = &SPI_HANDLE_FOR(accelerometer),
+};
+
 void init() {
     assert(!initialized);
 
     // Disable interrupt
     buddy::hw::lis2dh12_data.disableIRQ();
-
-    // Initialize driver
-    dev_ctx.write_reg = write_reg;
-    dev_ctx.read_reg = read_reg;
-    dev_ctx.handle = &SPI_HANDLE_FOR(accelerometer);
 
     // Soft reboot device
     lis2dh12_boot_set(&dev_ctx, PROPERTY_ENABLE);
