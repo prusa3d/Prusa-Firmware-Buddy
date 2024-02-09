@@ -92,7 +92,6 @@ void init() {
     }
 
     // Configure device
-    lis2dh12_block_data_update_set(&dev_ctx, PROPERTY_ENABLE);
     lis2dh12_ctrl_reg3_t reg3 {};
     reg3.i1_zyxda = true;
     lis2dh12_pin_int1_config_set(&dev_ctx, &reg3);
