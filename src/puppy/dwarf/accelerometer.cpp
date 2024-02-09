@@ -77,6 +77,12 @@ stmdev_ctx_t dev_ctx {
     .handle = &SPI_HANDLE_FOR(accelerometer),
 };
 
+void configure_interrupt() {
+    lis2dh12_ctrl_reg3_t reg3 {};
+    reg3.i1_zyxda = true;
+    lis2dh12_pin_int1_config_set(&dev_ctx, &reg3);
+}
+
 void init() {
     assert(!initialized);
 
@@ -92,9 +98,7 @@ void init() {
     }
 
     // Configure device
-    lis2dh12_ctrl_reg3_t reg3 {};
-    reg3.i1_zyxda = true;
-    lis2dh12_pin_int1_config_set(&dev_ctx, &reg3);
+    configure_interrupt();
     lis2dh12_full_scale_set(&dev_ctx, LIS2DH12_2g);
     lis2dh12_operating_mode_set(&dev_ctx, LIS2DH12_NM_10bit);
     lis2dh12_data_rate_set(&dev_ctx, LIS2DH12_ODR_5kHz376_LP_1kHz344_NM_HP);
