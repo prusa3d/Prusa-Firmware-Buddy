@@ -38,12 +38,12 @@ bool phase_stepping::spi::initialize_transaction() {
     return !tmc_serial_lock_requested_by_task() && tmc_serial_lock_acquire_isr();
 }
 
-void phase_stepping::spi::set_xdirect(int axis, int current_a, int current_b) {
+void phase_stepping::spi::set_xdirect(int axis, const CoilCurrents &currents) {
     // You might be wondering why we don't set the state of peripheral in HAL
     // handle: it is a wasted 2 µs ns and since we hold a lock, there cannot be
     // a race.
     active_axis = axis;
-    setup_xdirect_buffer(current_a, current_b);
+    setup_xdirect_buffer(currents.a, currents.b);
     cs_pins[active_axis].write(Pin::State::low);
 
     // Setup SPI

@@ -77,7 +77,7 @@ void CorrectedCurrentLut::_update_phase_shift() {
     }
 }
 
-std::pair<int, int> CorrectedCurrentLut::get_current(int idx) const {
+CoilCurrents CorrectedCurrentLut::get_current(int idx) const {
     int pha = SIN_FRACTION * idx + _phase_shift[normalize_motor_phase(idx)];
     return {
         sin_lut(pha), cos_lut(pha)
@@ -101,6 +101,6 @@ void CorrectedCurrentLutSimple::_update_phase_shift() {
     }
 }
 
-std::pair<int, int> CorrectedCurrentLutSimple::get_current(int idx) const {
+CoilCurrents CorrectedCurrentLutSimple::get_current(int idx) const {
     return { _sin.get(idx), _cos.get(idx) };
 }

@@ -350,15 +350,15 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // mode.
     int current_phase = stepper.MSCNT();
 
-    auto [a, b] = resolve_current_lut(axis_state).get_current(current_phase);
+    axis_state.last_currents = resolve_current_lut(axis_state).get_current(current_phase);
 
     // Set IHOLD to be the same as IRUN (as IHOLD is always used in XDIRECT)
     axis_state.initial_hold_multiplier = stepper.hold_multiplier();
     stepper.rms_current(stepper.rms_current(), 1.);
 
     // Swapping coils isn't a mistake - TMC in Xdirect mode swaps coils
-    stepper.coil_A(b);
-    stepper.coil_B(a);
+    stepper.coil_A(axis_state.last_currents.b);
+    stepper.coil_B(axis_state.last_currents.a);
     stepper.direct_mode(true);
 
     // We initialize the zero rotor phase to current phase. The real initialization is done by
@@ -595,12 +595,14 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
     burst_stepping::set_phase_diff(axis_enum, steps_diff);
     axis_state.driver_phase = shifted_phase;
 #else
-    auto [a, b] = current_lut.get_current(new_phase);
+    auto new_currents = current_lut.get_current(new_phase);
     int c_adj = current_adjustment(axis_index, mm_to_rev(axis_enum, physical_speed));
-    a = a * c_adj / 255;
-    b = b * c_adj / 255;
-
-    spi::set_xdirect(axis_index, a, b);
+    new_currents.a = new_currents.a * c_adj / 255;
+    new_currents.b = new_currents.b * c_adj / 255;
+    if (new_currents != axis_state.last_currents) {
+        spi::set_xdirect(axis_index, new_currents);
+        axis_state.last_currents = new_currents;
+    }
 #endif
 
     // Only update counters if position didn't change, so that when idling the stepper counters can

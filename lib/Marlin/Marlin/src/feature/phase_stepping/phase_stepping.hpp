@@ -55,6 +55,8 @@ struct AxisState {
     #if HAS_BURST_STEPPING()
     int driver_phase = 0; // Last known phase the driver uses
     int phase_correction = 0; // Currently applied phase correction
+    #else
+    CoilCurrents last_currents; // Currently applied coil currents
     #endif
     float last_position = 0.f; // Last known logical position
     bool direction = true; // Last non-zero movement direction

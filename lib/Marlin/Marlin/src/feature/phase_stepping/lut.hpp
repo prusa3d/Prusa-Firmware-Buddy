@@ -27,6 +27,13 @@ int normalize_motor_phase(int phase);
  **/
 int normalize_sin_phase(int phase);
 
+struct CoilCurrents {
+    int a;
+    int b;
+
+    bool operator==(const CoilCurrents &) const = default;
+};
+
 class CorrectedCurrentLut {
 
 public:
@@ -52,7 +59,7 @@ public:
         _update_phase_shift();
     }
 
-    std::pair<int, int> get_current(int idx) const;
+    CoilCurrents get_current(int idx) const;
     int get_phase_shift(int idx) const;
 };
 
@@ -98,7 +105,7 @@ public:
         _update_phase_shift();
     }
 
-    std::pair<int, int> get_current(int idx) const;
+    CoilCurrents get_current(int idx) const;
 };
 
 } // namespace phase_stepping

@@ -1,5 +1,5 @@
 #pragma once
-#include <HAL/HAL.h>
+#include "lut.hpp"
 
 // This module has one responsibility: set XDirect register for given TMC driver
 // as quick as possible with as little CPU intervention as possible.
@@ -21,7 +21,7 @@
 
 namespace phase_stepping::spi {
 bool initialize_transaction();
-void set_xdirect(int axis, int current_a, int current_b);
+void set_xdirect(int axis, const CoilCurrents &currents);
 void finish_transmission();
 bool busy();
 } // namespace phase_stepping::spi
