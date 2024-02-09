@@ -25,6 +25,7 @@ private:
     //, because we want to shield unit tests from marlin stuff, but we want to be
     // sure everything fits.
     static_assert(marlin_vars_t::CANCEL_OBJECT_NAME_LEN == Printer::CANCEL_OBJECT_NAME_LEN);
+    static_assert(marlin_vars_t::CANCEL_OBJECTS_NAME_COUNT == Printer::CANCEL_OBJECT_NAME_COUNT);
 #endif
 
 protected:
@@ -58,7 +59,7 @@ public:
 #if ENABLED(CANCEL_OBJECTS)
     virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const override;
 #endif
-    virtual std::tuple<const char *, uint16_t> err_details() const override;
+    virtual void reset_printer() override;
 
     static bool load_cfg_from_ini();
 

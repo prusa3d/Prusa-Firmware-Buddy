@@ -76,6 +76,8 @@ namespace defaults {
 
     inline constexpr std::array<char, lan_hostname_max_len + 1> net_hostname { LAN_HOSTNAME_DEF };
     inline constexpr int8_t lan_timezone { 1 };
+    inline constexpr time_tools::TimezoneOffsetMinutes timezone_minutes { time_tools::TimezoneOffsetMinutes::no_offset };
+    inline constexpr time_tools::TimezoneOffsetSummerTime timezone_summer { time_tools::TimezoneOffsetSummerTime::no_summertime };
     inline constexpr std::array<char, wifi_max_ssid_len + 1> wifi_ap_ssid { "" };
     inline constexpr std::array<char, wifi_max_passwd_len + 1> wifi_ap_password { "" };
 
@@ -126,18 +128,10 @@ namespace defaults {
     inline constexpr std::array<char, connect_token_size + 1> connect_token { "" };
     inline constexpr uint16_t connect_port { 443 };
 
-    // Defaults for metrics
-#if DEVELOPMENT_ITEMS()
-    // Development build has metrics allowed
-    inline constexpr MetricsAllow metrics_allow { MetricsAllow::All };
-    inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "matrix.prusa.vc" };
-    inline constexpr bool metrics_init { true };
-#else /*DEVELOPMENT_ITEMS()*/
     // Production build need user to intentionally allow them
     inline constexpr MetricsAllow metrics_allow { MetricsAllow::None };
     inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "" };
     inline constexpr bool metrics_init { false };
-#endif /*DEVELOPMENT_ITEMS()*/
     inline constexpr uint16_t metrics_port { 8514 };
     inline constexpr uint16_t syslog_port { 13514 };
 
@@ -239,7 +233,7 @@ namespace defaults {
     inline constexpr SelftestResult_pre_gears selftest_result_pre_gears {};
     inline constexpr SelftestResult_pre_23 selftest_result_pre_23 {};
 
-    inline constexpr Sheet sheet_0 { "Smooth1", 0.0f };
+    inline constexpr Sheet sheet_0 { "Smooth1", z_offset_uncalibrated };
     inline constexpr Sheet sheet_1 { "Smooth2", z_offset_uncalibrated };
     inline constexpr Sheet sheet_2 { "Textur1", z_offset_uncalibrated };
     inline constexpr Sheet sheet_3 { "Textur2", z_offset_uncalibrated };

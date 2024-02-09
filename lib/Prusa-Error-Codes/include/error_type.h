@@ -5,5 +5,6 @@
 enum class ErrType : uint8_t {
     ERROR = 0,
     WARNING,
-    USER_ACTION
+    USER_ACTION,
+    CONNECT
 };

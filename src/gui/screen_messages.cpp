@@ -24,10 +24,17 @@ screen_messages_data_t::screen_messages_data_t()
 }
 
 void screen_messages_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::CLICK) {
+    switch (event) {
+
+    case GUI_event_t::CLICK:
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
         Screens::Access()->Close();
-    } else {
+        return;
+
+    default:
         SuperWindowEvent(sender, event, param);
+        break;
     }
 
     CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH>::Elem elem;

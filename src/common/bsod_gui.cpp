@@ -165,10 +165,12 @@ void fatal_error(const char *error, const char *module) {
     } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_BED_MINTEMP_ERROR);
 #endif // !PRINTER_IS_PRUSA_XL
+#if !PRINTER_IS_PRUSA_MK3_5
     } else if (strcmp(MSG_ERR_MINTEMP_HEATBREAK, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MINTEMP_ERR);
     } else if (strcmp(MSG_ERR_MAXTEMP_HEATBREAK, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MAXTEMP_ERR);
+#endif
     }
 #if PRINTER_IS_PRUSA_XL
     else if (strcmp(MSG_ERR_NOZZLE_OVERCURRENT, error) == 0) {

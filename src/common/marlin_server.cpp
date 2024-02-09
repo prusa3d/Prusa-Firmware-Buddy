@@ -176,6 +176,7 @@ namespace {
         bool mbl_failed;
 #endif
         bool pause_unload_requested = false;
+        bool was_print_time_saved = false;
     };
 
     server_t server; // server structure - initialize task to zero
@@ -257,9 +258,9 @@ namespace {
     /// Check MCU temperature and trigger warning and redscreen
     template <WarningType p_warning>
     class MCUTempErrorChecker : public ErrorChecker<p_warning, true> {
-        static constexpr const int32_t mcu_temp_warning = 80; ///< When to show warning and pause the print
-        static constexpr const int32_t mcu_temp_hysteresis = 5; ///< Hysteresis to reset warning
-        static constexpr const int32_t mcu_temp_redscreen = 100; ///< When to show redscreen error
+        static constexpr const int32_t mcu_temp_warning = 85; ///< When to show warning and pause the print
+        static constexpr const int32_t mcu_temp_hysteresis = 2; ///< Hysteresis to reset warning
+        static constexpr const int32_t mcu_temp_redscreen = 95; ///< When to show redscreen error
 
         const char *name; ///< Name of board with the MCU
 
@@ -405,6 +406,7 @@ void init(void) {
     server.mbl_failed = false;
 #endif
     marlin_vars()->init();
+    SteelSheets::CheckIfCurrentValid();
 }
 
 void print_fan_spd() {
@@ -563,7 +565,16 @@ void static finalize_print() {
 #if ENABLED(POWER_PANIC)
     power_panic::reset();
 #endif
-    Odometer_s::instance().add_time(marlin_vars()->print_duration);
+
+    print_job_timer.stop();
+    _server_update_vars();
+    // Check if the stopwatch was NOT stopped to and add the current printime to the statistics.
+    // finalize_print is beeing called multiple times and we don't want to add the time twice.
+    if (!server.was_print_time_saved) {
+        Odometer_s::instance().add_time(marlin_vars()->print_duration);
+        server.was_print_time_saved = true;
+    }
+
     print_area.reset_bounding_rect();
 #if ENABLED(PRUSA_TOOL_MAPPING)
     tool_mapper.reset();
@@ -699,9 +710,12 @@ void do_babystep_Z(float offs) {
 }
 
 extern void move_axis(float pos, float feedrate, size_t axis) {
-    xyze_float_t position = current_position;
-    position[axis] = pos;
     current_position[axis] = pos;
+    line_to_current_position(feedrate);
+}
+
+void move_xyz_axes_to(xyz_float_t position, float feedrate) {
+    current_position = position;
     line_to_current_position(feedrate);
 }
 
@@ -787,10 +801,10 @@ void set_command(uint32_t command) {
     server.command = command;
 }
 
-void test_start([[maybe_unused]] const uint64_t test_mask, [[maybe_unused]] const uint8_t tool_mask) {
+void test_start([[maybe_unused]] const uint64_t test_mask, [[maybe_unused]] const selftest::TestData test_data) {
 #if HAS_SELFTEST()
     if (((server.print_state == State::Idle) || (server.print_state == State::Finished) || (server.print_state == State::Aborted)) && (!SelftestInstance().IsInProgress())) {
-        SelftestInstance().Start(test_mask, tool_mask);
+        SelftestInstance().Start(test_mask, test_data);
     }
 #endif
 }
@@ -1427,6 +1441,7 @@ static void _server_print_loop(void) {
     }
     case State::PrintInit:
         server.print_is_serial = false;
+        server.was_print_time_saved = false;
         feedrate_percentage = 100;
 
         // Reset flow factor for all extruders
@@ -1481,6 +1496,7 @@ static void _server_print_loop(void) {
         break;
     case State::SerialPrintInit:
         server.print_is_serial = true;
+        server.was_print_time_saved = false;
 #if ENABLED(CRASH_RECOVERY)
         crash_s.reset();
         crash_s.counters.reset();
@@ -1763,9 +1779,6 @@ static void _server_print_loop(void) {
                 park_head();
             }
 #endif // PARK_HEAD_ON_PRINT_FINISH
-            if (print_job_timer.isRunning()) {
-                print_job_timer.stop();
-            }
 
             server.print_state = State::Finishing_UnloadFilament;
         }
@@ -2555,7 +2568,7 @@ static void _server_update_vars() {
     }
 
 #if ENABLED(CANCEL_OBJECTS)
-    marlin_vars()->cancel_object_mask = cancelable.canceled; // Canceled objects
+    marlin_vars()->set_cancel_object_mask(cancelable.canceled); // Canceled objects
     marlin_vars()->cancel_object_count = cancelable.object_count; // Total number of objects
 #endif /*ENABLED(CANCEL_OBJECTS)*/
 
@@ -2659,7 +2672,6 @@ void bsod_unknown_request(const char *request) {
 bool _process_server_valid_request(const char *request, int client_id) {
     const char *data = request + 2;
     uint32_t msk32[2];
-    uint32_t tool_mask;
     int ival;
 
     log_info(MarlinServer, "Processing %s (from %u)", request, client_id);
@@ -2778,13 +2790,24 @@ bool _process_server_valid_request(const char *request, int client_id) {
             server.client_events[client_id] |= make_mask(Event::MediaInserted);
         }
         return true;
-    case Msg::TestStart:
-        if (sscanf(data, "%08" SCNx32 " %08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1, &tool_mask) != 3) {
+    case Msg::TestStart: {
+        // FIXME: Replace uint16t and SCNx16 with uint8_t and SCNx8
+        // There might be a bug in a compiler or its implementation of sscanf,
+        // because when data is "00000200 00000000 00 00000000" it will stop after
+        // SCNx8 and it doesn't continue the scan. Just increasing the variable size
+        // fixes the issue and I don't know why, because "00" should be valid 8bit
+        // value and there should be any issues. Also it doesn't make sense to increase
+        // the variable when printfing the pattern since we will never have more then
+        // 256 types selftests.
+        uint16_t index = 0;
+        uint32_t raw_test_data = 0;
+        if (sscanf(data, "%08" SCNx32 " %08" SCNx32 " %02" SCNx16 " %08" SCNx32, msk32 + 0, msk32 + 1, &index, &raw_test_data) != 4) {
             return false;
         }
         // start selftest
-        test_start(msk32[0] + (((uint64_t)msk32[1]) << 32), tool_mask);
+        marlin_server::test_start(msk32[0] + (((uint64_t)msk32[1]) << 32), selftest::deserialize_test_data_from_int(index, raw_test_data));
         return true;
+    }
     case Msg::TestAbort:
         test_abort();
         return true;
@@ -2796,6 +2819,15 @@ bool _process_server_valid_request(const char *request, int client_id) {
             return false;
         }
         move_axis(offs, MMM_TO_MMS(fval), uival);
+        return true;
+    }
+    case Msg::MoveMultiple: {
+        xyz_float_t position;
+        float feedrate;
+        if (sscanf(data, "%f %f %f %f", &position[0], &position[1], &position[2], &feedrate) != 4) {
+            return false;
+        }
+        move_xyz_axes_to(position, MMM_TO_MMS(feedrate));
         return true;
     }
     default:

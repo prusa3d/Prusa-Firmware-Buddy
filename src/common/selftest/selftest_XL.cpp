@@ -38,6 +38,7 @@
 #include "timing.h"
 #include "selftest_result_type.hpp"
 #include <config_store/store_instance.hpp>
+#include "common/selftest/selftest_data.hpp"
 
 using namespace selftest;
 
@@ -269,7 +270,7 @@ bool CSelftest::IsAborted() const {
     return (m_State == stsAborted);
 }
 
-bool CSelftest::Start(const uint64_t test_mask, const uint8_t tool_mask) {
+bool CSelftest::Start(const uint64_t test_mask, const selftest::TestData test_data) {
     m_result = config_store().selftest_result.get();
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans) {
@@ -290,7 +291,11 @@ bool CSelftest::Start(const uint64_t test_mask, const uint8_t tool_mask) {
     m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
 
-    this->tool_mask = static_cast<ToolMask>(tool_mask);
+    if (std::holds_alternative<ToolMask>(test_data)) {
+        this->tool_mask = std::get<ToolMask>(test_data);
+    } else {
+        this->tool_mask = ToolMask::AllTools;
+    }
 
     m_State = stsStart;
     return true;

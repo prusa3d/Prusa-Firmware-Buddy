@@ -14,8 +14,8 @@
 #include "hwio.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"
-#include "../../Marlin/src/module/stepper.h"
-#include "../../Marlin/src/module/temperature.h"
+#include "Marlin/src/module/stepper.h"
+#include "Marlin/src/module/temperature.h"
 #include "selftest_fans_type.hpp"
 #include "selftest_axis_type.hpp"
 #include "selftest_heaters_type.hpp"
@@ -30,6 +30,7 @@
 #include "timing.h"
 #include "selftest_result_type.hpp"
 #include "selftest_types.hpp"
+#include "SteelSheets.hpp"
 
 using namespace selftest;
 
@@ -155,8 +156,6 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .min_pwm_to_measure = 26,
 };
 
-static const FirstLayerConfig_t Config_FirstLayer = { .partname = "First Layer" };
-
 CSelftest::CSelftest()
     : m_State(stsIdle)
     , m_Mask(stmNone)
@@ -175,7 +174,7 @@ bool CSelftest::IsAborted() const {
     return (m_State == stsAborted);
 }
 
-bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t tool_mask) {
+bool CSelftest::Start(const uint64_t test_mask, const selftest::TestData test_data) {
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));
@@ -199,6 +198,12 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     // dont show message about footer and do not wait response
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo_wait_user)));
+
+    if (std::holds_alternative<FirstLayerCalibrationData>(test_data)) {
+        this->previous_sheet_index = std::get<FirstLayerCalibrationData>(test_data).previous_sheet;
+    } else {
+        this->previous_sheet_index = SteelSheets::GetActiveSheetIndex();
+    }
 
     m_State = stsStart;
     return true;
@@ -336,7 +341,7 @@ void CSelftest::Loop() {
         phaseShowResult();
         break;
     case stsFirstLayer:
-        if (selftest::phaseFirstLayer(pFirstLayer, Config_FirstLayer)) {
+        if (selftest::phaseFirstLayer(pFirstLayer, previous_sheet_index)) {
             return;
         }
         break;

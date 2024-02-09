@@ -85,7 +85,7 @@ public:
 public:
     virtual bool IsInProgress() const override;
     virtual bool IsAborted() const override;
-    virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) override; // parent has no clue about SelftestMask_t
+    virtual bool Start(const uint64_t test_mask, const selftest::TestData test_data) override; // parent has no clue about SelftestMask_t
     virtual void Loop() override;
     virtual bool Abort() override;
 
@@ -98,6 +98,7 @@ protected:
     void phaseDidSelftestPass();
 
 protected:
+    uint8_t previous_sheet_index {};
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
     std::array<selftest::IPartHandler *, HOTENDS> pFans;

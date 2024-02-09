@@ -1,5 +1,11 @@
 #include "touchscreen_common.hpp"
 
+#include <option/has_side_leds.h>
+
+#if HAS_SIDE_LEDS()
+    #include <leds/side_strip_control.hpp>
+#endif
+
 LOG_COMPONENT_DEF(Touch, LOG_SEVERITY_INFO);
 
 METRIC_DEF(metric_touch_event_, "touch_evt", METRIC_VALUE_STRING, 0, METRIC_HANDLER_ENABLE_ALL);
@@ -20,13 +26,19 @@ void Touchscreen_Base::set_enabled(bool set) {
 
     config_store().touch_enabled.set(set);
     metric_record_string(metric_touch_event(), "set_enabled %i", set);
-    log_info(Touch, "[touch] set enabled %i", set);
+    log_info(Touch, "set enabled %i", set);
 }
 
 TouchscreenEvent Touchscreen_Base::get_event() {
     if (is_last_event_consumed_) {
         return TouchscreenEvent();
     }
+
+#if HAS_SIDE_LEDS()
+    // We cannot put this into recognize_gesture or such,
+    // because those are in the timer interrupt and ActivityPing uses mutex.
+    leds::side_strip_control.ActivityPing();
+#endif
 
     is_last_event_consumed_ = true;
     return last_event_;

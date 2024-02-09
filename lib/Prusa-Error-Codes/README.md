@@ -26,6 +26,8 @@ Example: 12201
 13 - Original Prusa MK4
 
 17 - Original Prusa XL
+
+23 - Original Prusa MK3.5
 ## Error categories
 1. Mechanical - XYZ motors, tower, axis range
 2. Temperature - thermistors/heating

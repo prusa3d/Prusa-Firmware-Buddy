@@ -4,6 +4,7 @@
 #include "marlin_server.hpp"
 #include "gui.hpp"
 #include "media.hpp"
+#include "time_helper.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_calib_z.hpp"
@@ -152,7 +153,7 @@ void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
 // MI_LIVE_ADJUST_Z
 MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes,
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
         is_hidden_t::no
 #else
         is_hidden_t::dev
@@ -436,29 +437,37 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
 /*****************************************************************************/
 // MI_TIMEZONE
 MI_TIMEZONE::MI_TIMEZONE()
-    : WiSpinInt(config_store().timezone.get(), SpinCnf::timezone_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(config_store().timezone.get(), SpinCnf::timezone, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
     config_store().timezone.set(timezone);
 }
 
 /*****************************************************************************/
+// MI_TIMEZONE_MIN
+MI_TIMEZONE_MIN::MI_TIMEZONE_MIN()
+    : WI_SWITCH_t<3>(static_cast<uint8_t>(config_store().timezone_minutes.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_0min), _(str_30min), _(str_45min)) {}
+
+void MI_TIMEZONE_MIN::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(index));
+}
+
+/*****************************************************************************/
+// MI_TIMEZONE_SUMMER
+MI_TIMEZONE_SUMMER::MI_TIMEZONE_SUMMER()
+    : WI_ICON_SWITCH_OFF_ON_t(static_cast<uint8_t>(config_store().timezone_summer.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_TIMEZONE_SUMMER::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().timezone_summer.set(static_cast<time_tools::TimezoneOffsetSummerTime>(index));
+}
+
+/*****************************************************************************/
 // MI_TIME_FORMAT
 MI_TIME_FORMAT::MI_TIME_FORMAT()
-    : WI_SWITCH_t<2>(static_cast<uint8_t>(time_tools::get_time_format()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
+    : WI_SWITCH_t<2>(static_cast<uint8_t>(config_store().time_format.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
 
 void MI_TIME_FORMAT::OnChange([[maybe_unused]] size_t old_index) {
-    switch (index) {
-    case 0:
-        time_tools::set_time_format(time_tools::TimeFormat::_12h);
-        break;
-    case 1:
-        time_tools::set_time_format(time_tools::TimeFormat::_24h);
-        break;
-    default:
-        assert(0);
-        break;
-    }
+    config_store().time_format.set(static_cast<time_tools::TimeFormat>(index));
 }
 
 /*****************************************************************************/
@@ -680,20 +689,7 @@ MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
 
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
     : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
-        time_t time = (time_t)value;
-        constexpr static uint32_t secPerDay = 24 * 60 * 60;
-        const struct tm *timeinfo = localtime(&time);
-        if (timeinfo->tm_yday) {
-            // days are recalculated, because timeinfo shows number of days in year and we want more days than 365
-            uint16_t days = value / secPerDay;
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%ud %uh", days, timeinfo->tm_hour);
-        } else if (timeinfo->tm_hour) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
-        } else if (timeinfo->tm_min) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
-        } else {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%is", timeinfo->tm_sec);
-        }
+        format_duration(std::span { buffer, GuiDefaults::infoDefaultLen }, value);
     }) {}
 
 MI_INFO_HEATER_VOLTAGE::MI_INFO_HEATER_VOLTAGE()

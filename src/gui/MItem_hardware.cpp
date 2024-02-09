@@ -67,7 +67,7 @@ void MI_SIDE_FSENSOR_REMAP::OnChange([[maybe_unused]] size_t old_index) {
         Screens::Access()->Get()->Validate(); // Do not redraw this menu yet
         index = side_fsensor_remap::is_remapped(); // Change index by what user selected
         Validate(); // Do not redraw this switch yet
-        marlin_client::test_start_for_tools(stmFSensor, mask); // Start filament sensor calibration for moved tools
+        marlin_client::test_start_with_data(stmFSensor, static_cast<ToolMask>(mask)); // Start filament sensor calibration for moved tools
     } else {
         index = side_fsensor_remap::is_remapped(); // Change index by what user selected
     }

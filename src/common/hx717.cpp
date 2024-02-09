@@ -116,9 +116,11 @@ int32_t HX717::ReadValue(Channel nextChannel, uint32_t readyTimestamp) {
         result |= 0xFF000000;
     }
 
-    if (IsValueReady() || result < -0x7FFFFF || result > 0x7FFFFF) {
-        // DOUT should automatically switch off after a correct readout. If that happens, and/or if
+    if (IsValueReady() || result < min_value || result > max_value) {
+        // DOUT should automatically switch off after a correct readout. If that doesn't happen, and/or if
         // the final result is out of spec, this means we have a communication issue.
+        // Final result can never be out of spec as we read exactly 24 bits and any possible
+        // 24-bit value is valid.
         goto reset;
     }
 

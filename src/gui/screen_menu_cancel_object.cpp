@@ -33,7 +33,7 @@ MI_CO_OBJECT_N::MI_CO_OBJECT_N(int ObjectId_)
 }
 
 void MI_CO_OBJECT_N::UpdateState() {
-    size_t new_index = (marlin_vars()->cancel_object_mask & (1 << ObjectId)) ? 1 : 0;
+    size_t new_index = (marlin_vars()->get_cancel_object_mask() & (static_cast<uint64_t>(1) << ObjectId)) ? 1 : 0;
     if (GetIndex() != new_index) {
         SetIndex(new_index);
     }

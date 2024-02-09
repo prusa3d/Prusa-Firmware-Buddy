@@ -783,7 +783,7 @@
 #endif
 
 #define DEFAULT_MAX_FEEDRATE \
-    { 3000, 3000, 12, DEFAULT_MAX_MAX_E_FEEDRATE }
+    { 550, 550, 12, DEFAULT_MAX_MAX_E_FEEDRATE }
 
 /**
  * Default feedrate after startup as used by G0/G1 etc

@@ -478,6 +478,9 @@ void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, con
     case ErrType::USER_ACTION:
         notice_icon_type.SetRes(&img::info_48x48);
         break;
+    case ErrType::CONNECT:
+        // We should not get an attention code in here at all, so just silence the compiler warning.
+        break;
     }
 
     notice_title.SetText(string_view_utf8::MakeRAM((const uint8_t *)errTitle));
@@ -540,7 +543,7 @@ void DialogLoadUnload::phaseEnter() {
     if (mode == LoadUnloadMode::Load) { // Change is currently split into Load/Unload, therefore no need to if (mode == change)
         if (filament::get_type_to_load() != filament::Type::NONE) {
             filament_type_text.Show();
-            auto fil_name = filament::get_description(filament::get_type_to_load()).name;
+            auto fil_name = filament::get_name(filament::get_type_to_load());
             filament_type_text.SetText(_(fil_name));
             if (filament::get_color_to_load().has_value()) {
 

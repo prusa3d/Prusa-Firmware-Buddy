@@ -176,7 +176,7 @@ bool Touchscreen_GT911::read_data(uint16_t address, void *dest, uint8_t bytes, u
     }
 
     for (uint8_t attempt = 0; attempt < attempts; attempt++) {
-        if (HAL_I2C_Mem_Read(&I2C_HANDLE_FOR(touch), i2c_device_address, address, I2C_MEMADD_SIZE_16BIT, reinterpret_cast<uint8_t *>(dest), bytes, read_write_timeout) == HAL_StatusTypeDef::HAL_OK) {
+        if (HAL_I2C_Mem_Read(&I2C_HANDLE_FOR(touch), i2c_device_address, address, I2C_MEMADD_SIZE_16BIT, reinterpret_cast<uint8_t *>(dest), bytes, read_write_timeout_ms) == HAL_StatusTypeDef::HAL_OK) {
             return true;
         }
 
@@ -194,7 +194,7 @@ bool Touchscreen_GT911::write_data(uint16_t address, const void *data, uint8_t b
     }
 
     for (uint8_t attempt = 0; attempt < attempts; attempt++) {
-        if (HAL_I2C_Mem_Write(&I2C_HANDLE_FOR(touch), i2c_device_address, address, I2C_MEMADD_SIZE_16BIT, reinterpret_cast<uint8_t *>(const_cast<void *>(data)), bytes, read_write_timeout) == HAL_StatusTypeDef::HAL_OK) {
+        if (HAL_I2C_Mem_Write(&I2C_HANDLE_FOR(touch), i2c_device_address, address, I2C_MEMADD_SIZE_16BIT, reinterpret_cast<uint8_t *>(const_cast<void *>(data)), bytes, read_write_timeout_ms) == HAL_StatusTypeDef::HAL_OK) {
             return true;
         }
 
@@ -206,6 +206,13 @@ bool Touchscreen_GT911::write_data(uint16_t address, const void *data, uint8_t b
 }
 
 void Touchscreen_GT911::update_impl(TouchState &touch_state) {
+    // This function can be called from IRQ – so in the middle of some thread doing stuff with the I2C.
+    // This was actually happening - BFW-5054.
+    // So if the I2C is being used, simply do not update and try it later
+    if (I2C_HANDLE_FOR(touch).Lock != HAL_UNLOCKED) {
+        return;
+    }
+
     const uint32_t now = ticks_ms();
     const auto diff = ticks_diff(now, last_update_ms_);
 

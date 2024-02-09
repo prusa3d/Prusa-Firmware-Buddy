@@ -33,8 +33,8 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
 #endif
                 &CSelftestPart_Fan::state_rpm_0_init,
                 &CSelftestPart_Fan::state_wait_rpm_0_percent,
-                &CSelftestPart_Fan::state_wait_rpm_20_percent,
-                &CSelftestPart_Fan::state_measure_rpm_20_percent);
+                &CSelftestPart_Fan::state_wait_rpm_40_percent,
+                &CSelftestPart_Fan::state_measure_rpm_40_percent);
         }
     }
 

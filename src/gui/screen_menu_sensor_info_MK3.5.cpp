@@ -54,6 +54,8 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
 
         res = buffer.GetValue(SensorData::Sensor::mmuCurrent);
         Item<MI_INFO_MMU_CURRENT>().UpdateValue(res);
+
+        Item<MI_PINDA>().UpdateValue(buddy::hw::zMin.read() == buddy::hw::Pin::State::low);
     }
 
     if (event == GUI_event_t::HELD_RELEASED) {

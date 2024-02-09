@@ -20,6 +20,11 @@ extern "C" {
  *        User of this class can stream data from different formats without having to deal with what format they are using
  */
 class IGcodeReader {
+protected:
+    // For testing purposes only.
+    IGcodeReader()
+        : file(nullptr) {}
+
 public:
     IGcodeReader(FILE &f)
         : file(&f) {}
@@ -32,6 +37,18 @@ public:
     IGcodeReader &operator=(IGcodeReader &&);
 
     virtual ~IGcodeReader();
+
+    enum class Continuations {
+        /// Anything over the limit is discarded.
+        ///
+        /// If anything was discarded can be checked with line_complete.
+        Discard,
+        /// Too long line is returned in multiple chunks. The last chunk is
+        /// marked with line_complete being true.
+        Split,
+    };
+
+    Continuations line_continuations = Continuations::Discard;
 
     /// Result type
     enum class Result_t {

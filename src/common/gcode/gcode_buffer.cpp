@@ -67,7 +67,7 @@ bool GcodeBuffer::String::skip_to_param(char param) {
     return false;
 }
 
-GcodeBuffer::String::parsed_metadata_t GcodeBuffer::String::parse_metadata() {
+GcodeBuffer::String::parsed_metadata_t GcodeBuffer::String::parse_metadata(bool terminate_value) {
     parsed_metadata_t result = { GcodeBuffer::String(nullptr, nullptr), GcodeBuffer::String(nullptr, nullptr) };
 
     skip_ws();
@@ -87,6 +87,8 @@ GcodeBuffer::String::parsed_metadata_t GcodeBuffer::String::parse_metadata() {
     *name.end = 0;
     auto val = GcodeBuffer::String(equal + 1, end);
     val.trim();
-    *val.end = 0;
+    if (terminate_value) {
+        *val.end = 0;
+    }
     return { name, val };
 }

@@ -73,7 +73,7 @@ void buddy::metrics::RecordRuntimeStats() {
 
     METRIC_DEF(current_filamnet, "filament", METRIC_VALUE_STRING, 10 * 1007, METRIC_HANDLER_ENABLE_ALL);
     auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
-    metric_record_string(&current_filamnet, "%s", filament::get_description(current_filament).name);
+    metric_record_string(&current_filamnet, "%s", filament::get_name(current_filament));
 
     METRIC_DEF(stack, "stack", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL); // Thread stack usage
     METRIC_DEF(runtime, "runtime", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL); // Thread runtime usage

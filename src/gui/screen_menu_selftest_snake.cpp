@@ -16,6 +16,8 @@ using namespace SelftestSnake;
 
 namespace {
 
+constexpr const char *text_put_sheet_on_bed = N_("Before you continue, make sure the print sheet is installed on the heatbed.");
+
 inline bool is_multitool() {
 #if HAS_TOOLCHANGER()
     return prusa_toolchanger.is_toolchanger_enabled();
@@ -138,7 +140,7 @@ void do_snake(Action action, Tool tool = Tool::_first) {
             AutoRestore ar(querying_user, true);
             ask_config(action);
         }
-        marlin_client::test_start_for_tools(get_test_mask(action), get_tool_mask(tool));
+        marlin_client::test_start_with_data(get_test_mask(action), get_tool_mask(tool));
     } else {
         AutoRestore ar(querying_user, true);
         ask_config(action);
@@ -387,7 +389,13 @@ void ScreenMenuSTSWizard::windowEvent(EventLock /*has private ctor*/, window_t *
             == Response::Cancel) {
             Screens::Access()->Close();
         } else {
+#if PRINTER_IS_PRUSA_MK3_5
+            if (MsgBoxInfo(_(text_put_sheet_on_bed), Responses_Ok) == Response::Ok) {
+                do_snake(get_first_action());
+            }
+#else
             do_snake(get_first_action());
+#endif
         }
         return;
     }

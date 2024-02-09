@@ -33,27 +33,85 @@ IGcodeReader::Result_t IGcodeReader::stream_get_line(GcodeBuffer &b) {
     b.line.begin = begin(b.buffer);
     b.line.end = begin(b.buffer);
 
-    for (;;) {
+    if (line_continuations == IGcodeReader::Continuations::Discard) {
+        // Even incomplete lines "eat up" the data in the Discard mode, so at
+        // this point they _act_ as complete (for the purposes of EOF and similar).
+        b.line_complete = true;
+    }
+
+    while (b.line.end < end(b.buffer)) {
         char c;
         Result_t result = stream_getc(c);
-        if (result == Result_t::RESULT_EOF) {
-            // null terminate => safe atof+atol
-            (b.line.end == end(b.buffer)) ? *(b.line.end - 1) = '\0' : *b.line.end = '\0';
-            return b.line.is_empty() ? Result_t::RESULT_EOF : Result_t::RESULT_OK;
+
+        switch (result) {
+        case Result_t::RESULT_EOF:
+            c = '\n';
+            break;
+        case Result_t::RESULT_ERROR:
+        case Result_t::RESULT_OUT_OF_RANGE:
+        case Result_t::RESULT_TIMEOUT:
+            return result;
+        case Result_t::RESULT_OK:
+            break;
         }
+
         if (c == '\r' || c == '\n') {
-            if (b.line.is_empty()) {
-                continue; // skip blank lines
+            // null terminate => safe atof+atol
+            // (we do not advance the end, it's not part of the string)
+            *b.line.end = '\0';
+            if (b.line.is_empty() && b.line_complete) {
+                if (result == Result_t::RESULT_EOF) {
+                    return Result_t::RESULT_EOF;
+                } else {
+                    // Skip blank lines
+                    continue;
+                }
             } else {
-                // null terminate => safe atof+atol
-                (b.line.end == end(b.buffer)) ? *(b.line.end - 1) = '\0' : *b.line.end = '\0';
+                // We either have some actual data in the line or we have a
+                // last empty chunk of line that continues from previous calls.
+                b.line_complete = true;
                 return Result_t::RESULT_OK;
             }
         }
-        if (b.line.end != end(b.buffer)) {
-            *b.line.end++ = c;
-        }
+
+        *b.line.end++ = c;
     }
+
+    // At this point, the buffer is full.
+    b.line_complete = false;
+
+    switch (line_continuations) {
+    case IGcodeReader::Continuations::Discard:
+        // In this mode, we need to really have the final \0, so kill the final char instead.
+        *--b.line.end = '\0';
+
+        for (;;) {
+            char c;
+            Result_t result = stream_getc(c);
+
+            switch (result) {
+            case Result_t::RESULT_EOF:
+                // The below ones are errors. Nevertheless, we run into the
+                // error at the part of the line we are discarding, so the
+                // part we have is fine.
+            case Result_t::RESULT_ERROR:
+            case Result_t::RESULT_OUT_OF_RANGE:
+            case Result_t::RESULT_TIMEOUT:
+                return Result_t::RESULT_OK;
+            case Result_t::RESULT_OK:
+                if (c == '\r' || c == '\n') {
+                    return Result_t::RESULT_OK;
+                }
+                break;
+            }
+        }
+    case IGcodeReader::Continuations::Split:
+        return Result_t::RESULT_OK;
+    }
+
+    // Unreachable, but C++ and its non-exhaustive enums :-|
+    assert(0);
+    return Result_t::RESULT_ERROR;
 }
 
 bool IGcodeReader::range_valid(size_t start, size_t end) const {
@@ -181,11 +239,21 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
         return Result_t::RESULT_OUT_OF_RANGE;
     }
 
+    // Note: We assume, at least for now, that an incomplete line can happen
+    // only in metadata, not in actual gcode.
+    const bool previous_incomplete = !buffer.line_complete;
+
     while (true) {
         // get raw line, then decide if to output it or not
         auto res = IGcodeReader::stream_get_line(buffer);
         if (res != Result_t::RESULT_OK) {
             return res;
+        }
+
+        if (previous_incomplete) {
+            // This is a continuation of previously incomplete line. That one is already analyzed.
+
+            return Result_t::RESULT_OK;
         }
 
         // detect if line is metadata (it starts with ;)

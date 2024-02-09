@@ -32,7 +32,7 @@ void MI_MMU_PRELOAD::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_MMU_LOAD_TEST_FILAMENT
 MI_MMU_LOAD_TEST_FILAMENT::MI_MMU_LOAD_TEST_FILAMENT()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes) {
 }
 void MI_MMU_LOAD_TEST_FILAMENT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMULoadTestFilament>);

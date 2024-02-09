@@ -22,8 +22,15 @@ static constexpr const size_t bootloader_sector_count = std::size(bootloader_sec
 
 #if BOOTLOADER_UPDATE()
 
-/// Return true if the bootloader needs to be updated/reflashed
+/// @returns true if the bootloader needs to be updated/reflashed
+/// @param required minimal version
+bool needs_update(Version required);
+
+/// @returns true if the bootloader needs to be updated/reflashed
 bool needs_update();
+
+/// @returns true if the pre-boot needs to be updated/reflashed
+bool preboot_needs_update();
 
 enum class UpdateStage {
     LookingForBbf,

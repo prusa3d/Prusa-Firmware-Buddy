@@ -1,6 +1,7 @@
 // selftest_fan.cpp
 
 #include "selftest_fan.h"
+#include "common/conversions.hpp"
 #include "wizard_config.hpp"
 #include "fanctl.hpp"
 #include "config_features.h" //EXTRUDER_AUTO_FAN_TEMPERATURE
@@ -16,18 +17,26 @@
 
 #include <algorithm>
 
+namespace {
+
+constexpr std::uint8_t percentage_to_pwm(std::uint8_t target_percentage) {
+    return val_mapping(true, target_percentage, 100, 255);
+}
+
 // Start at 100% and wait longer to allow spreading stuck lubricant after first assembly.
 // Then set PWM to 0% and wait for quite a long time to ensure fan stopped.
 // (We can't measure RPM without at least some PWM)
-// Then continue with 20% PWM to test if 20% is enough to start spinning.
-static constexpr uint8_t pwm_100_percent = 255;
-static constexpr uint8_t pwm_20_percent = 51;
-static constexpr uint32_t state_measure_rpm_delay = 5000;
-static constexpr uint32_t state_wait_rpm_100_percent_delay = 6000;
-static constexpr uint32_t state_measure_rpm_100_percent_delay = state_measure_rpm_delay;
-static constexpr uint32_t state_wait_rpm_0_percent_delay = 10000;
-static constexpr uint32_t state_wait_rpm_20_percent_delay = 3000;
-static constexpr uint32_t state_measure_rpm_20_percent_delay = state_measure_rpm_delay;
+// Then continue with 40% PWM to test if 40% is enough to start spinning.
+constexpr uint8_t pwm_100_percent = percentage_to_pwm(100);
+constexpr uint8_t pwm_40_percent = percentage_to_pwm(40);
+constexpr uint32_t state_measure_rpm_delay = 5000;
+constexpr uint32_t state_wait_rpm_100_percent_delay = 6000;
+constexpr uint32_t state_measure_rpm_100_percent_delay = state_measure_rpm_delay;
+constexpr uint32_t state_wait_rpm_0_percent_delay = 10000;
+constexpr uint32_t state_wait_rpm_40_percent_delay = 3000;
+constexpr uint32_t state_measure_rpm_40_percent_delay = state_measure_rpm_delay;
+
+} // namespace
 
 using namespace selftest;
 LOG_COMPONENT_REF(Selftest);
@@ -111,8 +120,8 @@ uint32_t CSelftestPart_Fan::estimate() {
         = state_wait_rpm_100_percent_delay
         + state_measure_rpm_100_percent_delay
         + state_wait_rpm_0_percent_delay
-        + state_wait_rpm_20_percent_delay
-        + state_measure_rpm_20_percent_delay;
+        + state_wait_rpm_40_percent_delay
+        + state_measure_rpm_40_percent_delay;
     return total_time;
 }
 
@@ -274,13 +283,13 @@ LoopResult CSelftestPart_Fan::state_wait_rpm_0_percent() {
         return LoopResult::RunCurrent;
     }
 
-    print_fan.set_pwm(pwm_20_percent);
-    heatbreak_fan.set_pwm(pwm_20_percent);
+    print_fan.set_pwm(pwm_40_percent);
+    heatbreak_fan.set_pwm(pwm_40_percent);
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_Fan::state_wait_rpm_20_percent() {
-    if (state_machine.IsInState_ms() <= state_wait_rpm_20_percent_delay) {
+LoopResult CSelftestPart_Fan::state_wait_rpm_40_percent() {
+    if (state_machine.IsInState_ms() <= state_wait_rpm_40_percent_delay) {
         update_progress();
         return LoopResult::RunCurrent;
     }
@@ -290,8 +299,8 @@ LoopResult CSelftestPart_Fan::state_wait_rpm_20_percent() {
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_Fan::state_measure_rpm_20_percent() {
-    if (state_machine.IsInState_ms() <= state_measure_rpm_20_percent_delay) {
+LoopResult CSelftestPart_Fan::state_measure_rpm_40_percent() {
+    if (state_machine.IsInState_ms() <= state_measure_rpm_40_percent_delay) {
         print_fan.record_sample();
         heatbreak_fan.record_sample();
         update_progress();
@@ -329,8 +338,8 @@ void CSelftestPart_Fan::update_progress() {
     // Time update is necessary because of possible human interaction which causes unpredictable delay
     if (IPartHandler::GetFsmPhase() != PhasesSelftest::Fans_second) {
         end_time = SelftestInstance().GetTime() + state_wait_rpm_0_percent_delay
-            + state_wait_rpm_20_percent_delay
-            + state_measure_rpm_20_percent_delay;
+            + state_wait_rpm_40_percent_delay
+            + state_measure_rpm_40_percent_delay;
     }
 #endif
     if (start_time == end_time) {

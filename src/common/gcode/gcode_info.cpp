@@ -225,8 +225,8 @@ void GCodeInfo::EvaluateToolsValid() {
         if (per_extruder_info[e].nozzle_diameter.has_value()) {
             auto do_nozzle_check = [&](uint8_t hotend) {
                 assert(hotend < HOTENDS);
-                float nozzle_diameter_distance = per_extruder_info[e].nozzle_diameter.value() - config_store().get_nozzle_diameter(hotend);
-                if (nozzle_diameter_distance > 0.001f || nozzle_diameter_distance < -0.001f) {
+                float nozzle_diameter_distance = std::abs(per_extruder_info[e].nozzle_diameter.value() - config_store().get_nozzle_diameter(hotend));
+                if (nozzle_diameter_distance > 0.001f) {
                     valid_printer_settings.wrong_nozzle_diameter.fail();
                 }
             };

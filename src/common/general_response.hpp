@@ -48,7 +48,6 @@ enum class Response : uint8_t {
     Pause,
     PC,
     PETG,
-    PETG_NH, // PETG without heating bed
     PLA,
     PP,
     Print,

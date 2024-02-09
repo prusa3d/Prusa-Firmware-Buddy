@@ -75,6 +75,8 @@ struct CurrentStore
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("LAN Hostname")> lan_hostname;
 
     StoreItem<int8_t, defaults::lan_timezone, journal::hash("LAN Timezone")> timezone; // hour difference from UTC
+    StoreItem<time_tools::TimezoneOffsetMinutes, defaults::timezone_minutes, journal::hash("Timezone Minutes")> timezone_minutes; // minutes offset for hour difference from UTC
+    StoreItem<time_tools::TimezoneOffsetSummerTime, defaults::timezone_summer, journal::hash("Timezone Summertime")> timezone_summer; // Summertime hour offset
 
     // WIFI settings
     // wifi_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1, wifi_flag & 0b1100 -> reserved, previously ap_sec_t security
@@ -299,6 +301,10 @@ struct CurrentStore
     StoreItem<float, defaults::float_zero, journal::hash("Homing Bump Divisor Y")> homing_bump_divisor_y;
 
     StoreItem<bool, defaults::bool_true, journal::hash("Enable Side LEDs")> side_leds_enabled;
+
+    /// Whether the side leds should dim down a bit when user is not interacting with the printer or stay on full power the whole time
+    StoreItem<bool, defaults::bool_true, journal::hash("Enable Side LEDs dimming")> side_leds_dimming_enabled;
+
     StoreItem<bool, defaults::bool_true, journal::hash("Enable Tool LEDs")> tool_leds_enabled;
 
     StoreItem<float, defaults::float_zero, journal::hash("Odometer X")> odometer_x;
