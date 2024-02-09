@@ -1,7 +1,7 @@
-#include "log.h"
 #include "accelerometer.hpp"
 #include "timing.h"
 #include <cstdint>
+#include <common/bsod.h>
 #include <common/circular_buffer.hpp>
 #include <atomic>
 #include <cassert>
@@ -20,8 +20,6 @@ uint32_t last_sample_timestamp = 0;
 size_t samples_extracted = 0;
 size_t overflown_count = 0;
 std::atomic<bool> initialized = false;
-
-LOG_COMPONENT_DEF(Accel, LOG_SEVERITY_INFO);
 
 void clear() {
     taskENTER_CRITICAL();
@@ -77,6 +75,14 @@ stmdev_ctx_t dev_ctx {
     .handle = &SPI_HANDLE_FOR(accelerometer),
 };
 
+void check_device_id() {
+    uint8_t who_am_i;
+    lis2dh12_device_id_get(&dev_ctx, &who_am_i);
+    if (who_am_i != LIS2DH12_ID) {
+        bsod("Invalid device ID: 0x%x", who_am_i);
+    }
+}
+
 void configure_interrupt() {
     lis2dh12_ctrl_reg3_t reg3 {};
     reg3.i1_zyxda = true;
@@ -90,12 +96,7 @@ void init() {
     buddy::hw::lis2dh12_data.disableIRQ();
 
     // Check device ID
-    uint8_t who_am_i;
-    lis2dh12_device_id_get(&dev_ctx, &who_am_i);
-    if (who_am_i != LIS2DH12_ID) {
-        log_critical(Accel, "Invalid device ID: 0x%x", who_am_i);
-        return;
-    }
+    check_device_id();
 
     // Configure device
     configure_interrupt();

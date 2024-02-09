@@ -1,7 +1,6 @@
 # Logging - Defined Components
 This file is generated automatically so don't edit it directly
 
-- Accel: LOG_SEVERITY_INFO, src/puppy/dwarf/accelerometer.cpp
 - Bootloader: LOG_SEVERITY_INFO, src/bootloader/bootloader.cpp
 - Buddy: LOG_SEVERITY_DEBUG, src/common/appmain.cpp
 - BufferedSerial: LOG_SEVERITY_DEBUG, src/hw/buffered_serial.cpp
