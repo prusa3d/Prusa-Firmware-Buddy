@@ -665,6 +665,10 @@ err_t espif_init(struct netif *netif) {
     return ERR_OK;
 }
 
+uint8_t espif_firmware_version() {
+    return fw_version.load();
+}
+
 void espif_flash_initialize(const bool take_down_interfaces) {
     // NOTE: There is no extra synchronization with reader thread. This assumes
     // it is not a problem if reader thread reads some garbage until it notices

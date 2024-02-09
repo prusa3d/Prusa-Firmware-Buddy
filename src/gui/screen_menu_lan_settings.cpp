@@ -24,6 +24,13 @@ ScreenMenuConnectionBase::ScreenMenuConnectionBase(uint32_t dev_id, const char *
 void ScreenMenuConnectionBase::refresh_addresses() {
     char str[ADDR_LEN];
 
+    if (const auto fw_version = espif_firmware_version()) {
+        char fwver[4];
+        snprintf(fwver, sizeof(fwver), "%d", fw_version);
+        Item<MI_WIFI_FWVER_t>().ChangeInformation(fwver);
+    } else {
+        Item<MI_WIFI_FWVER_t>().ChangeInformation("-");
+    }
     if (!mac_init) {
         mac_init = true;
 

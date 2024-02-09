@@ -16,6 +16,13 @@ public:
     MI_WIFI_STATUS_t();
 };
 
+class MI_WIFI_FWVER_t : public WI_INFO_t {
+    constexpr static const char *const label = N_("FW Version");
+
+public:
+    MI_WIFI_FWVER_t();
+};
+
 class MI_WIFI_INIT_t : public WI_LABEL_t {
     constexpr static const char *const label = N_("Setup Wi-Fi Module");
 

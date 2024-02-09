@@ -60,6 +60,9 @@ bool espif_need_ap();
 /// Perform a reset of the ESP and bring it up again.
 void espif_reset();
 
+// Retrieve firmware version
+uint8_t espif_firmware_version();
+
 // UART buffer stuff
 // The data received should fit into the buffer. Or, some guaratees has to be
 // provided to ensure the excessive data can be copied from the RX buffer
