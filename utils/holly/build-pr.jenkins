@@ -132,6 +132,7 @@ pipeline {
                             'mk3.5,release,yesboot',
                             'mk4,release,yesboot',
                             'xl,release,yesboot',
+                            'xl-burst,release,yesboot',
                             'ix,release,yesboot'
                     }
                 }

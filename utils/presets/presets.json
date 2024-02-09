@@ -147,6 +147,27 @@
             }
         },
         {
+            "name": "xl-burst",
+            "description": "Original Prusa XL with Burst Stepping",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.9.0",
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": "",
+                "ENABLE_BURST":true,
+                "IS_KNOBLET":"FALSE"
+            }
+        },
+        {
             "name": "xl-knoblet",
             "description": "Knoblet of Original Prusa XL",
             "cacheVariables": {
