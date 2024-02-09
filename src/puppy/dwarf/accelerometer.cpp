@@ -99,7 +99,6 @@ void init() {
 
     // Configure device
     configure_interrupt();
-    lis2dh12_full_scale_set(&dev_ctx, LIS2DH12_2g);
     lis2dh12_operating_mode_set(&dev_ctx, LIS2DH12_NM_10bit);
     lis2dh12_data_rate_set(&dev_ctx, LIS2DH12_ODR_5kHz376_LP_1kHz344_NM_HP);
 
