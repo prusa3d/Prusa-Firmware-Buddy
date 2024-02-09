@@ -1,7 +1,11 @@
 #include "phase_stepping.hpp"
-#include "burst_stepper.hpp"
 #include "debug_util.hpp"
-#include "quick_tmc_spi.hpp"
+
+#if HAS_BURST_STEPPING()
+    #include "burst_stepper.hpp"
+#else
+    #include "quick_tmc_spi.hpp"
+#endif
 
 #include "../precise_stepping/precise_stepping.hpp"
 #include "../precise_stepping/internal.hpp"
