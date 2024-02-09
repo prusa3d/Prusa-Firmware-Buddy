@@ -83,10 +83,6 @@ void init() {
     // Disable interrupt
     buddy::hw::lis2dh12_data.disableIRQ();
 
-    // Soft reboot device
-    lis2dh12_boot_set(&dev_ctx, PROPERTY_ENABLE);
-    delay_ms(5);
-
     // Check device ID
     uint8_t who_am_i;
     lis2dh12_device_id_get(&dev_ctx, &who_am_i);
