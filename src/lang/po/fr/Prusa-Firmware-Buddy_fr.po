@@ -76,7 +76,7 @@ msgstr "Acquisition du code d'enregistrement, veuillez patienter..."
 #. window_menu
 #: src/gui/MItem_tools.cpp:285
 msgid "A crash dump is being saved."
-msgstr "Un rapport de vidage de mémoire est en cours d'enregistrement."
+msgstr "Une copie de la mémoire vive est en cours d'enregistrement."
 
 #: src/gui/MItem_tools.cpp:289
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
