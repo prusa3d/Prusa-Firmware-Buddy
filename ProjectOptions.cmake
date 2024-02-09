@@ -730,7 +730,7 @@ set(WEBSOCKET
     )
 define_boolean_option(WEBSOCKET ${WEBSOCKET})
 set(MDNS
-    "ON"
+    "OFF"
     CACHE BOOL "Enable MDNS responder"
     )
 define_boolean_option(MDNS ${MDNS})

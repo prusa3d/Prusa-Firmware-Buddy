@@ -5,6 +5,11 @@
 #include "wui_api.h"
 #include "ethernetif.h"
 #include "espif.h"
+#include <option/mdns.h>
+#if MDNS()
+    #include "mdns/mdns.h"
+#endif
+
 #include <otp.hpp>
 #include <mbedtls/sha256.h>
 #include <tasks.hpp>
@@ -121,6 +126,9 @@ public:
         EspData = 1 << 5,
         TriggerNtp = 1 << 6,
         HealthCheck = 1 << 7,
+#if MDNS()
+        MdnsInitCheck = 1 << 8,
+#endif
     };
 
 private:
@@ -138,6 +146,9 @@ private:
     struct Iface {
         netif dev = {};
         ETH_config_t desired_config = {};
+#if MDNS()
+        bool mdns_initialized = false;
+#endif
     };
 
     // If ESP is not working for a minute, try to reset it if it reconnects.
@@ -204,7 +215,29 @@ private:
         static_cast<NetworkState *>(iface->state)->status_callback(*iface);
     }
 
+#if MDNS()
+    static void add_txt(struct mdns_service *, void *) {
+    }
+
+    static void mdns_netif_init(netif *iface) {
+        iface->flags |= NETIF_FLAG_IGMP;
+        igmp_start(iface);
+        //  TODO: Any way to handle errors? Can they even happen?
+        mdns_resp_add_netif(iface, iface->hostname);
+        if (config_store().prusalink_enabled.get() == 1) {
+            mdns_resp_add_service(iface, iface->hostname, "_octoprint", DNSSD_PROTO_TCP, 80, add_txt, nullptr);
+        }
+    }
+#endif
+
     void tcpip_init_done() {
+#if MDNS()
+        if (allow_full) {
+            igmp_init();
+            mdns_resp_init();
+        }
+#endif
+
         // We assume this callback is run from within the tcpip thread, not our
         // own!
         if (netif_add_noaddr(&ifaces[NETDEV_ETH_ID].dev, this, ethernetif_init, tcpip_input)) {
@@ -262,6 +295,9 @@ private:
     }
 
     void set_down(netif &iface) {
+#if MDNS()
+        netifapi_netif_common(&iface, nullptr, mdns_resp_remove_netif);
+#endif
         // Already locked by the caller.
         netifapi_dhcp_stop(&iface);
         netifapi_netif_set_link_down(&iface);
@@ -300,6 +336,9 @@ private:
             lock.unlock();
             set_down(iface.dev);
             lock.lock();
+#if MDNS()
+            iface.mdns_initialized = false;
+#endif
 
             // FIXME: Track down where exactly the hostname is stored, when it
             // can change, how it is synchronized with threads (or isn't!).
@@ -360,6 +399,11 @@ private:
             if (now - last_poll >= LOOP_EVT_TIMEOUT) {
                 last_poll = now;
                 events |= EspData | HealthCheck | EthData | TriggerNtp;
+#if MDNS()
+                if (allow_full) {
+                    events |= MdnsInitCheck;
+                }
+#endif
             }
 
             if (events & CoreInitDone) {
@@ -436,6 +480,18 @@ private:
                     last_esp_ok = now;
                 }
             }
+
+#if MDNS()
+            if (events & MdnsInitCheck) {
+                for (auto &iface : ifaces) {
+                    if (!iface.mdns_initialized && netif_ip4_addr(&iface.dev)->addr != 0) {
+                        iface.mdns_initialized = true;
+                        // Wait with initialization until we get an IP address.
+                        netifapi_netif_common(&iface.dev, mdns_netif_init, nullptr);
+                    }
+                }
+            }
+#endif
 
             events = 0;
         }
