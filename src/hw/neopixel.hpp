@@ -208,6 +208,12 @@ size_t LedsSPI_base<COUNT, T1H, T1L, T0H, T0L>::setBitset() {
         return 0; // nothing to set
     }
 
+    // Optimization via leds_to_rewrite does not work correctly
+    // thanks to LedsSPI_MSB inverting the indexing and breaking the daisy-chaining.
+    // As a quick fix, we always update everything
+    // BFW-5067 - Someone please fix this :(
+    this->leds_to_rewrite = COUNT;
+
     led_bitset.reset(); // clear bit array
 
     size_t bitfield_position = 0;
@@ -233,6 +239,7 @@ size_t LedsSPI_base<COUNT, T1H, T1L, T0H, T0L>::setBitset() {
  * @tparam T0L   lenght of low  bus status of converted logical "0" bit value
  * @tparam RESET_PULSE number of pulses needed to be in low state to write signals on LEDs
  */
+// This class is not used at all and should probably be thrown out of the codee -> BFW-5067
 template <size_t COUNT, size_t T1H, size_t T1L, size_t T0H, size_t T0L, size_t RESET_PULSE>
 class LedsSPI_LSB : public LedsSPI_base<COUNT, T1H, T1L, T0H, T0L> {
 protected:
@@ -301,6 +308,10 @@ protected:
 
         size_t bit_read_index = bit_count - 1;
         size_t bit_write_index = 0;
+
+        // This function reverses completely everything,
+        // which screws up neopixel driver indexing (doesn't correspond with the daisy-chain order)
+        // BFW-5067
 
         for (; bit_write_index < bit_count; ++bit_write_index, --bit_read_index) {
             uint8_t &r_target_byte = send_buff[bit_write_index / 8];

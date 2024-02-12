@@ -59,6 +59,10 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
     /// true when SPI to control LEDs is shared with LCD
     const bool spi_shared_with_lcd = (hspi == &SPI_HANDLE_FOR(lcd));
 
+    // This nop is sent because it ends the transmission with the MO pin on LOW.
+    // If we chip select the neopixel with the data set to high, it registers it as an input and screws up the communication.
+    // The correct solution would possibly be to pull the pin to LOW after the chip select for at least the prescribed RESET duration.¨
+    // BFW-5067
     ili9488_cmd_nop();
 
     if (spi_shared_with_lcd) {
