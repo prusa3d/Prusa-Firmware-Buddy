@@ -275,9 +275,9 @@ bool tmc_serial_lock_acquire(void) {
 ///
 /// This implements a weak symbol declared within the TMCStepper library
 void tmc_serial_lock_release(void) {
+    tmc_bus_owner.store(BusOwner::NOBODY);
     tmc_bus_requested = false;
     osMutexRelease(tmc_mutex_id);
-    tmc_bus_owner.store(BusOwner::NOBODY);
 }
 
 bool tmc_serial_lock_acquire_isr(void) {
