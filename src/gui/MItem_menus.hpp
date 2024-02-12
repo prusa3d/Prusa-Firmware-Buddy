@@ -216,17 +216,20 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_CURRENT_PROFILE : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Current Profile");
-    char name[MAX_SHEET_NAME_LENGTH + 3];
+class MI_CURRENT_SHEET_PROFILE : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Sheet Profile");
+
+    static constexpr Font font = GuiDefaults::FontMenuItems;
+    static constexpr auto extension_width = Rect16::W_t((MAX_SHEET_NAME_LENGTH + 2) * width(font) + GuiDefaults::MenuPaddingItems.left + GuiDefaults::MenuPaddingItems.right);
+
+    std::array<char, MAX_SHEET_NAME_LENGTH + 3> extension_str;
 
 public:
-    MI_CURRENT_PROFILE();
-
-    void UpdateLabel();
+    MI_CURRENT_SHEET_PROFILE();
 
 protected:
-    virtual void click(IWindowMenu &window_menu) override;
+    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
+    void click(IWindowMenu &) override;
 };
 
 class MI_EEPROM : public IWindowMenuItem {
@@ -427,6 +430,14 @@ class MI_SIDE_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
 
 public:
     MI_SIDE_LEDS_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_SIDE_LEDS_DIMMING : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("RGB Side Strip Dimming");
+
+public:
+    MI_SIDE_LEDS_DIMMING();
     virtual void OnChange(size_t old_index) override;
 };
 #endif

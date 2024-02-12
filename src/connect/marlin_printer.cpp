@@ -30,7 +30,7 @@
 
 using printer_state::DeviceState;
 using printer_state::get_state;
-using printer_state::get_state_with_attenion_code;
+using printer_state::get_state_with_dialog;
 using std::atomic;
 using std::make_tuple;
 using std::move;
@@ -146,7 +146,7 @@ namespace {
 #endif
         params.number_of_slots = get_num_of_enabled_tools();
         for (size_t i = 0; i < params.number_of_slots; i++) {
-            params.slots[i].material = filament::get_description(config_store().get_filament_type(i)).name;
+            params.slots[i].material = filament::get_name(config_store().get_filament_type(i));
 
 #if HAS_TOOLCHANGER()
             auto &hotend = marlin_vars()->hotend(i);
@@ -164,7 +164,7 @@ namespace {
 Printer::Params MarlinPrinter::params() const {
 
     Params params(borrow);
-    params.state = get_state_with_attenion_code(ready);
+    params.state = get_state_with_dialog(ready);
     params.temp_bed = marlin_vars()->temp_bed;
     params.target_bed = marlin_vars()->target_bed;
     params.target_nozzle = marlin_vars()->active_hotend().target_nozzle;
@@ -179,7 +179,7 @@ Printer::Params MarlinPrinter::params() const {
     get_slot_info(params);
 #if ENABLED(CANCEL_OBJECTS)
     params.cancel_object_count = marlin_vars()->cancel_object_count;
-    params.cancel_object_mask = marlin_vars()->cancel_object_mask;
+    params.cancel_object_mask = marlin_vars()->get_cancel_object_mask();
 #endif
 
     params.print_duration = marlin_vars()->print_duration;
@@ -215,15 +215,16 @@ Printer::Config MarlinPrinter::load_config() {
 uint32_t MarlinPrinter::cancelable_fingerprint() const {
     uint32_t crc = 0;
 #if ENABLED(CANCEL_OBJECTS)
+    const auto &parameters = params();
     auto calc_crc = [&](const char *s) {
         crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(*s), strlen(s));
     };
-    for (size_t i = 0; i < marlin_vars_t::CANCEL_OBJECTS_COUNT; i++) {
+    for (size_t i = 0; i < marlin_vars_t::CANCEL_OBJECTS_NAME_COUNT; i++) {
         marlin_vars()->cancel_object_names[i].execute_with(calc_crc);
     }
-    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&marlin_vars()->job_id), sizeof(marlin_vars()->job_id));
-    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&marlin_vars()->cancel_object_count), sizeof(marlin_vars()->cancel_object_count));
-    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&marlin_vars()->cancel_object_mask), sizeof(marlin_vars()->cancel_object_count));
+    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.job_id), sizeof(parameters.job_id));
+    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.cancel_object_count), sizeof(parameters.cancel_object_count));
+    crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(&parameters.cancel_object_mask), sizeof(parameters.cancel_object_mask));
 #endif
     return crc;
 }
@@ -383,8 +384,8 @@ bool MarlinPrinter::set_printer_ready(bool ready) {
     return true;
 }
 
-tuple<const char *, uint16_t> MarlinPrinter::err_details() const {
-    return make_tuple(nullptr, 0);
+void MarlinPrinter::reset_printer() {
+    NVIC_SystemReset();
 }
 
 } // namespace connect_client

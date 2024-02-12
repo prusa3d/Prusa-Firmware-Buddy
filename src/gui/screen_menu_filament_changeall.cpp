@@ -23,7 +23,7 @@ I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
                 strncpy(buffer, label_unload, GuiDefaults::infoDefaultLen);
             } else {
                 // Print "Change to"/"Load" and filament name to buffer
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%s %s", loaded ? label_change_fil : label_load_fil, filament::get_description(filament::Type(index)).name);
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%s %s", loaded ? label_change_fil : label_load_fil, filament::get_name(filament::Type(index)));
             }
         })
     , loaded(config_store().get_filament_type(tool_n) != filament::Type::NONE) {
@@ -106,16 +106,16 @@ void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_c
             marlin_client::gcode_printf("M702 T%d W2", tool); // Unload
         } else if (old_filament[tool] == filament::Type::NONE) { // Load
             if (colors[tool].has_value()) {
-                marlin_client::gcode_printf("M701 S\"%s\" T%d W2 O%d", filament::get_description(new_filament[tool]).name, tool,
+                marlin_client::gcode_printf("M701 S\"%s\" T%d W2 O%d", filament::get_name(new_filament[tool]), tool,
                     colors[tool].value().to_int());
             } else {
-                marlin_client::gcode_printf("M701 S\"%s\" T%d W2", filament::get_description(new_filament[tool]).name, tool);
+                marlin_client::gcode_printf("M701 S\"%s\" T%d W2", filament::get_name(new_filament[tool]), tool);
             }
         } else { // Change, don't ask for unload
             if (colors[tool].has_value()) {
-                marlin_client::gcode_printf("M1600 S\"%s\" T%d R O%d", filament::get_description(new_filament[tool]).name, tool, colors[tool].value().to_int());
+                marlin_client::gcode_printf("M1600 S\"%s\" T%d R O%d", filament::get_name(new_filament[tool]), tool, colors[tool].value().to_int());
             } else {
-                marlin_client::gcode_printf("M1600 S\"%s\" T%d R", filament::get_description(new_filament[tool]).name, tool);
+                marlin_client::gcode_printf("M1600 S\"%s\" T%d R", filament::get_name(new_filament[tool]), tool);
             }
         }
 

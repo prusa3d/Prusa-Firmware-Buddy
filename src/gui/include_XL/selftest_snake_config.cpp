@@ -82,7 +82,7 @@ TestResult get_test_result(Action action, Tool tool) {
     return TestResult_Unknown;
 }
 
-uint8_t get_tool_mask(Tool tool) {
+ToolMask get_tool_mask(Tool tool) {
 #if HAS_TOOLCHANGER()
     switch (tool) {
     case Tool::Tool1:

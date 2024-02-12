@@ -38,7 +38,7 @@ if (args.elf == None):
     args.elf = project_root_dir / Path('build-vscode-buddy/firmware')
     print(f"ELF file not provided, using default: {args.elf}")
 if (args.gdb == None):
-    args.gdb = f'{project_root_dir}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/arm-none-eabi-gdb'
+    args.gdb = f'{project_root_dir}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/arm-none-eabi-gdb-py'
     print(f"GDB executable not provided, using default: {args.gdb}")
 
 if not os.path.isfile(args.elf):
@@ -55,6 +55,7 @@ if not os.path.isfile(args.gdb) and which(args.gdb) is None:
 
 # setup command and launch debugger
 cmd = f'{args.gdb} {args.elf} -ex "set target-charset ASCII" -ex "target remote | {crash_debug_path} --elf {args.elf} --dump {args.dump}"'
+cmd += f' -ex "source {project_root_dir}/utils/freertos-gdb-plugin/freertos-gdb-plugin.py"'
 print("Launching GDB with arguments:")
 print(cmd)
 os.system(cmd)

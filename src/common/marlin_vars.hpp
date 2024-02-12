@@ -12,10 +12,6 @@
 #include "inc/MarlinConfig.h"
 #include <assert.h>
 
-#if ENABLED(CANCEL_OBJECTS)
-    #include "../Marlin/src/feature/cancel_object.h"
-#endif
-
 #if BOARD_IS_DWARF
     #error "You're trying to add marlin_vars to Dwarf. Don't!"
 #endif /*BOARD_IS_DWARF*/
@@ -343,13 +339,23 @@ public:
     MarlinVariable<marlin_server::State> print_state; // marlin_server.print_state
 
 #if ENABLED(CANCEL_OBJECTS)
-    MarlinVariable<uint32_t> cancel_object_mask; ///< Copy of mask of canceled objects
+    void set_cancel_object_mask(uint64_t mask) {
+        if (osThreadGetId() != marlin_server::server_task) {
+            bsod("set_cancel_object_mask");
+        }
+        auto guard = MarlinVarsLockGuard();
+        cancel_object_mask = mask;
+    }
+    uint64_t get_cancel_object_mask() {
+        auto guard = MarlinVarsLockGuard();
+        return cancel_object_mask;
+    }; ///< Copy of mask of canceled objects
     MarlinVariable<int8_t> cancel_object_count; ///< Number of objects that can be canceled
 
     static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32; ///< Maximal length of cancel_object_names strings
-    static constexpr size_t CANCEL_OBJECTS_COUNT = CancelObject::CANCEL_OBJECTS_COUNT; ///< Maximal number of cancel objects
+    static constexpr size_t CANCEL_OBJECTS_NAME_COUNT = 16; ///< Maximal number of cancel objects
     /// Names of cancelable objects
-    MarlinVariableString<CANCEL_OBJECT_NAME_LEN> cancel_object_names[CANCEL_OBJECTS_COUNT];
+    MarlinVariableString<CANCEL_OBJECT_NAME_LEN> cancel_object_names[CANCEL_OBJECTS_NAME_COUNT];
 #endif /*ENABLED(CANCEL_OBJECTS)*/
 
     // 2B base types
@@ -470,7 +476,9 @@ private:
     std::atomic<osThreadId> current_mutex_owner; // current mutex owner -> to check for recursive locking
     std::array<Hotend, HOTENDS> hotends; // array of hotends (use hotend()/active_hotend() getter)
     FSMChange last_fsm_state; // last fsm state, used in connect and link
-
+#if ENABLED(CANCEL_OBJECTS)
+    uint64_t cancel_object_mask;
+#endif
     // disable copy constructor
     marlin_vars_t(const marlin_vars_t &) = delete;
     marlin_vars_t &operator=(marlin_vars_t const &) = delete;

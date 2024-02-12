@@ -95,7 +95,7 @@ MI_DOCK_CALIBRATE::MI_DOCK_CALIBRATE()
 }
 
 void MI_DOCK_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::test_start_for_tools(stmDocks, 1 << displayed_tool);
+    marlin_client::test_start_with_data(stmDocks, static_cast<ToolMask>(1 << displayed_tool));
 }
 
 MI_FSENSORS_CALIBRATE::MI_FSENSORS_CALIBRATE()
@@ -107,7 +107,7 @@ void MI_FSENSORS_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
         return;
     }
 
-    marlin_client::test_start_for_tools(stmFSensor, 1 << displayed_tool);
+    marlin_client::test_start_with_data(stmFSensor, static_cast<ToolMask>(1 << displayed_tool));
 }
 
 ScreenMenuToolSetup::ScreenMenuToolSetup()

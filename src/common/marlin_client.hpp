@@ -6,6 +6,8 @@
 #include "marlin_vars.hpp"
 #include "client_response.hpp"
 #include <option/has_selftest.h>
+#include "Marlin/src/core/types.h"
+#include "common/selftest/selftest_data.hpp"
 
 namespace marlin_client {
 
@@ -129,6 +131,13 @@ void cancel_current_object();
  */
 void move_axis(float logical_pos, float feedrate, uint8_t axis);
 
+/**
+ * @brief Move XYZ axes to a logical position.
+ * @param position requested target position in mm
+ * @param feedrate requested feedrate in mm/min
+ */
+void move_xyz_axes_to(const xyz_float_t &position, float feedrate);
+
 void settings_save();
 
 void settings_load();
@@ -136,7 +145,7 @@ void settings_load();
 void settings_reset();
 
 #if HAS_SELFTEST()
-void test_start_for_tools(const uint64_t test_mask, const uint8_t tool_mask);
+void test_start_with_data(const uint64_t test_mask, const selftest::TestData test_data);
 void test_start(const uint64_t test_mask);
 void test_abort();
 #endif

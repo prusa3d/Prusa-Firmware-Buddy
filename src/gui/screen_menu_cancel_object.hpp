@@ -48,7 +48,7 @@ protected:
  */
 template <int ObjectIdN>
 class MI_CO_OBJECT : public MI_CO_OBJECT_N {
-    static_assert(ObjectIdN < marlin_vars_t::CANCEL_OBJECTS_COUNT, "Too many objects to cancel!");
+    static_assert(ObjectIdN < marlin_vars_t::CANCEL_OBJECTS_NAME_COUNT, "Too many objects to cancel!");
 
 public:
     MI_CO_OBJECT()

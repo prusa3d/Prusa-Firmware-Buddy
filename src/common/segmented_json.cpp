@@ -11,6 +11,11 @@ using std::make_tuple;
 
 namespace json {
 
+JsonResult JsonOutput::suspend(size_t resume_point) {
+    this->resume_point = resume_point;
+    return written_something ? JsonResult::Incomplete : JsonResult::BufferTooSmall;
+}
+
 JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
     va_list params;
     va_start(params, format);
@@ -28,26 +33,30 @@ JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
         written_something = true;
         return JsonResult::Complete;
     } else {
-        this->resume_point = resume_point;
-        return written_something ? JsonResult::Incomplete : JsonResult::BufferTooSmall;
+        return suspend(resume_point);
     }
 }
 
-JsonResult JsonOutput::output_field_str_esc(size_t resume_point, const char *name, const char *value) {
-    // There are no JSON-special characters in there in the encoded data because:
-    // " and \ are not allowed in SFN and this is for SFNs and similar only.
+JsonResult JsonOutput::output_str_chunk(size_t resume_point, const char *str, size_t size) {
+    size_t needed = jsonify_str_buffer_len(str, size) ?: size;
 
-    const size_t len_value = strlen(value);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
-    char buffer[len_value * 3 + 1]; // Encoding might grow up to 3 times (+ \0)
-#pragma GCC diagnostic pop
-
-    [[maybe_unused]] const bool encode_successful = json_escape_bytes(value, buffer, sizeof(buffer));
-    assert(encode_successful);
-
-    return output(resume_point, "\"%s\":\"%s\"", name, buffer);
+    if (needed <= buffer_size) {
+        if (needed == size) {
+            // No escaping happening
+            memcpy(buffer, str, size);
+        } else {
+            jsonify_str_len(str, size, reinterpret_cast<char *>(buffer));
+            // The above stores a terminating \0 (and includes it in the needed
+            // size), so "erase" that one.
+            needed--;
+        }
+        buffer += needed;
+        buffer_size -= needed;
+        written_something = true;
+        return JsonResult::Complete;
+    } else {
+        return suspend(resume_point);
+    }
 }
 
 JsonResult JsonOutput::output_field_str(size_t resume_point, const char *name, const char *value) {

@@ -1,5 +1,5 @@
 /**
- * @file MItem_MINI_MK3.5.hpp
+ * @file MItem_MINI.hpp
  */
 
 #pragma once

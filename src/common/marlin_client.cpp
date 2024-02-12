@@ -362,7 +362,7 @@ void move_axis(float logical_pos, float feedrate, uint8_t axis) {
     char request[MARLIN_MAX_REQUEST];
     // check axis
     if (axis <= E_AXIS) {
-        snprintf(
+        [[maybe_unused]] int res = snprintf(
             request,
             MARLIN_MAX_REQUEST,
             "!%c%.4f %.4f %u",
@@ -370,8 +370,26 @@ void move_axis(float logical_pos, float feedrate, uint8_t axis) {
             static_cast<double>(LOGICAL_TO_NATIVE(logical_pos, axis)),
             static_cast<double>(feedrate),
             axis);
+        assert(res > 0);
+        assert(res < MARLIN_MAX_REQUEST);
         _send_request_to_server_and_wait(request);
     }
+}
+
+void move_xyz_axes_to(const xyz_float_t &position, float feedrate) {
+    char request[MARLIN_MAX_REQUEST];
+    [[maybe_unused]] int res = snprintf(
+        request,
+        MARLIN_MAX_REQUEST,
+        "!%c%.4f %.4f %.4f %.4f",
+        ftrstd::to_underlying(Msg::MoveMultiple),
+        static_cast<double>(LOGICAL_TO_NATIVE(position.x, X_AXIS)),
+        static_cast<double>(LOGICAL_TO_NATIVE(position.y, Y_AXIS)),
+        static_cast<double>(LOGICAL_TO_NATIVE(position.z, Z_AXIS)),
+        static_cast<double>(feedrate));
+    assert(res > 0);
+    assert(res < MARLIN_MAX_REQUEST);
+    _send_request_to_server_and_wait(request);
 }
 
 void settings_save() {
@@ -387,21 +405,22 @@ void settings_reset() {
 }
 
 #if HAS_SELFTEST()
-void test_start_for_tools(const uint64_t test_mask, const uint8_t tool_mask) {
+void test_start_with_data(const uint64_t test_mask, const ::selftest::TestData test_data) {
     char request[MARLIN_MAX_REQUEST];
     snprintf(
         request,
         MARLIN_MAX_REQUEST,
-        "!%c%08lx %08lx %08lx",
+        "!%c%08lx %08lx %02hhx %08lx",
         ftrstd::to_underlying(Msg::TestStart),
         static_cast<uint32_t>(test_mask),
         static_cast<uint32_t>(test_mask >> 32),
-        static_cast<uint32_t>(tool_mask));
+        static_cast<uint8_t>(test_data.index()),
+        ::selftest::serialize_test_data_to_int(test_data));
     _send_request_to_server_and_wait(request);
 }
 
 void test_start(const uint64_t test_mask) {
-    test_start_for_tools(test_mask, AllTools);
+    test_start_with_data(test_mask, ::selftest::TestData {});
 }
 
 void test_abort() {

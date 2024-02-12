@@ -56,6 +56,7 @@ public:
 
 #if ENABLED(CANCEL_OBJECTS)
     static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32;
+    static constexpr size_t CANCEL_OBJECT_NAME_COUNT = 16;
 #endif
 
     class Params {
@@ -99,13 +100,14 @@ public:
         bool has_usb = false;
         uint64_t usb_space_free = 0;
         PrinterVersion version = { 0, 0, 0 };
-        printer_state::StateWithAttentionCode state = { printer_state::DeviceState::Unknown, std::nullopt };
+        printer_state::StateWithDialog state = printer_state::DeviceState::Unknown;
 #if ENABLED(CANCEL_OBJECTS)
         size_t cancel_object_count = 0;
-        uint32_t cancel_object_mask = 0;
+        uint64_t cancel_object_mask = 0;
 #endif
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;
+        uint32_t state_fingerprint() const;
     };
 
     struct Config {
@@ -189,8 +191,6 @@ public:
 #if ENABLED(CANCEL_OBJECTS)
     virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const = 0;
 #endif
-    /// Error message and error code for when we are in Error state.
-    virtual std::tuple<const char *, uint16_t> err_details() const = 0;
     // Turn connect on and set the token.
     //
     // Part of registration.
@@ -199,6 +199,9 @@ public:
     //
     // (Not const char * for technical reasons).
     virtual void init_connect(const char *token) = 0;
+
+    // Does not return if successful
+    virtual void reset_printer() = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load
     // (unless the reset_fingerprint is set to false, in which case the flag is

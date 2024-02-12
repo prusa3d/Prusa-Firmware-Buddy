@@ -266,15 +266,29 @@ extern "C" void main_cpp(void) {
     const bool want_error_screen = (dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed());
 
 #if BUDDY_ENABLE_CONNECT()
+    #if PRINTER_IS_PRUSA_MINI
+    // For some reason, MINI needs larger stack, otherwise we get stack overflows on "Add printer to connect".
+    // @Michal Vaner speculated that this is because mini doesn't have HW clock, and because of that
+    // it's causindg different codepaths because of certificate verification failures.
+    // Incerasing only for MINI because we wouldn't fit into XL CCRAM if we did this globally.
+    // BFW-4982
+    static constexpr int connect_task_stack_size = 2432;
+
+    #else
+    static constexpr int connect_task_stack_size = 2304;
+
+    #endif
+
     // On a place shared for both code branches, so we have just one connectTask buffer.
-    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
+    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, connect_task_stack_size);
 #endif
 
 #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
     /*
      * MK3.5 HW detected on MK4 firmware or vice versa
+       Ignore the check in production (tester_mode), the xBuddy's connected peripherals are safe in this mode.
      */
-    if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw()) {
+    if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw() && !running_in_tester_mode()) {
         const auto &error = find_error(ErrCode::WARNING_DIFFERENT_FW_REQUIRED);
         crash_dump::force_save_message_without_dump(crash_dump::MsgType::FATAL_WARNING, static_cast<uint16_t>(error.err_code), error.err_text, error.err_title);
         hwio_safe_state();
@@ -369,7 +383,7 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if HAS_GUI() && !(BOARD_IS_XLBUDDY)
-    hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
+    hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
 #endif
 
 #if BOARD_IS_XLBUDDY
@@ -435,7 +449,7 @@ extern "C" void main_cpp(void) {
         NULL
     };
     metric_system_init(handlers);
-    if (get_auto_update_flag() == FwAutoUpdate::tester_mode) {
+    if (running_in_tester_mode()) {
         manufacture_report_endless_loop();
     } else {
         manufacture_report(); // TODO erase this after all printers use manufacture_report_endless_loop (== ESP UART)
@@ -459,8 +473,8 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    // block esp in tester mode
-    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+    // In tester mode ESP UART is being used to talk to the testing station, thus it must not be used for the ESP.
+    if (!running_in_tester_mode()) {
         espif_init_hw();
     }
 #endif
@@ -484,8 +498,9 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    // block esp in tester mode
-    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+    // In tester mode ESP UART is being used to talk to the testing station,
+    // thus it must not be used for the ESP -> no networking tasks shall be started.
+    if (!running_in_tester_mode()) {
         espif_task_create();
 
         TaskDeps::wait(TaskDeps::Tasks::network);
@@ -498,8 +513,9 @@ extern "C" void main_cpp(void) {
         // FIXME: We should be able to split networking to the lower-level network part and the Link part. Currently, both are done through WUI.
         #error "Can't have connect without WUI"
     #endif
-    // block esp in tester mode
-    if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+    // In tester mode ESP UART is being used to talk to the testing station,
+    // thus it must not be used for the ESP -> no networking tasks shall be started.
+    if (!running_in_tester_mode()) {
         // definition and creation of connectTask
         TaskDeps::wait(TaskDeps::Tasks::connect);
         connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
@@ -725,8 +741,11 @@ void init_error_screen() {
     if constexpr (option::has_gui) {
         // init lcd spi and timer for buzzer
         SPI_INIT(lcd);
+
 #if !(_DEBUG)
-        hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
+    #if HAS_GUI() && !(BOARD_IS_XLBUDDY)
+        hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
+    #endif
 #endif
 
         init_only_littlefs();

@@ -75,8 +75,6 @@ class MI_PRINTFAN : public WiSpinInt {
         N_("Print Fan Speed");
 #endif
 
-    uint8_t val_mapping(const bool rounding_floor, const uint8_t val, const uint8_t max_val, const uint8_t new_max_val);
-
 public:
     MI_PRINTFAN();
     virtual void OnClick() override;

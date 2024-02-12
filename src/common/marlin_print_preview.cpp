@@ -170,8 +170,8 @@ auto PrintPreview::check_tools_mapping_validity(const ToolMapper &mapper, const 
             return true;
         }
 
-        float nozzle_diameter_distance = gcode.get_extruder_info(gcode_tool).nozzle_diameter.value() - get_nozzle_diameter(physical_extruder);
-        if (nozzle_diameter_distance > 0.001f || nozzle_diameter_distance < -0.001f) {
+        float nozzle_diameter_distance = std::abs(static_cast<float>(gcode.get_extruder_info(gcode_tool).nozzle_diameter.value()) - static_cast<float>(get_nozzle_diameter(physical_extruder)));
+        if (nozzle_diameter_distance > 0.001f) {
             return false;
         }
 
@@ -253,9 +253,9 @@ bool PrintPreview::check_correct_filament_type(uint8_t physical_extruder, uint8_
     }
 
     const auto loaded_filament_type = config_store().get_filament_type(physical_extruder);
-    const auto loaded_filament_desc = filament::get_description(loaded_filament_type);
+    const auto loaded_filament_name = filament::get_name(loaded_filament_type);
     // when loaded filament type not known, return that filament type is OK
-    return !filament_known(extruder_info.filament_name.value().data()) || is_same(loaded_filament_desc.name, extruder_info.filament_name.value());
+    return !filament_known(extruder_info.filament_name.value().data()) || is_same(loaded_filament_name, extruder_info.filament_name.value());
 }
 
 static bool check_correct_filament_type_tools_mapping(uint8_t physical_extruder) {

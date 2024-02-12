@@ -308,7 +308,7 @@ def content_encryption_mode_header():
     for t in terminals:
         terminals[t].mark_enter()
         terminals[t].set_name(encryption_modes[t])
-    # Eat spaces before the content type
+    # Eat spaces before the encryption mode
     start = tr.start()
     start.loop('HorizWhitespace', LabelType.Special)
 
@@ -343,23 +343,45 @@ def create_folder_header():
 
 
 def auth_value(name):
+    name_unquoted = f"{name}Unquoted" if name != None else None
+
     auto = Automaton()
     start = auto.start()
-    value = auto.add_state()
+    quote = auto.add_state()
+    value_quoted = auto.add_state()
+    value_unquoted = auto.add_state()
+    end = auto.add_state()
 
     start.loop("HorizWhitespace", LabelType.Special)
-    start.loop("\"", LabelType.Char)
-    value.set_name(name)
-    value.mark_enter()
-    line, end = newline()
-    end.loop('HorizWhitespace', LabelType.Special)
-    end.loop(',', LabelType.Char)
-    auto.join(start, line)
-    start.add_transition('All', LabelType.Special, value)
-    value.add_transition('\"', LabelType.Char, end)
-    value.loop_fallback()
+    start.add_transition('\"', LabelType.Char, quote)
+    start.add_transition('Whitespace',
+                         LabelType.Special,
+                         end,
+                         fallthrough=True)  # Vertical whitespace
+    start.add_transition(',', LabelType.Char, end, fallthrough=True)
+    start.add_transition('All', LabelType.Special, value_unquoted)
 
-    return auto, end, False
+    quote.add_transition('\"', LabelType.Char, end)
+    quote.add_transition('All', LabelType.Special, value_quoted)
+
+    value_quoted.set_name(name)
+    value_quoted.mark_enter()
+    value_quoted.add_transition('\"', LabelType.Char, end)
+    value_quoted.loop_fallback()
+
+    value_unquoted.set_name(name_unquoted)
+    value_unquoted.mark_enter()
+    value_unquoted.add_transition('Whitespace',
+                                  LabelType.Special,
+                                  end,
+                                  fallthrough=True)
+    value_unquoted.add_transition(',', LabelType.Char, end, fallthrough=True)
+    value_unquoted.loop_fallback()
+
+    end.loop("HorizWhitespace", LabelType.Special)
+    end.loop(',', LabelType.Char)
+
+    return auto, end, True
 
 
 def authorization_header():
@@ -368,39 +390,48 @@ def authorization_header():
     Authorization: Digest username="user", realm="Printer API", nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093", uri="/api/version", response="684d849df474f295771de997e7412ea4"
     """
 
+    # Consume the auth scheme (Digest)
+    auto, scheme_spaces = read_until("HorizWhitespace", LabelType.Special)
+
+    # Eat spaces before the parameters
+    scheme_spaces.loop('HorizWhitespace', LabelType.Special)
+
     # We only really read nonce and response, the rest is assumed for
     # performance reasons.
     auth_values = {
         'nonce': auth_value('Nonce'),
         'response': auth_value('Response'),
     }
-    auto, terminals, add_unknowns = trie(auth_values)
-    start = auto.start()
+    tr, terminals, add_unknowns = trie(auth_values)
+    tr_start = tr.start()
     line, end = newline()
-    auto.join(start, line)
+    tr.join(tr_start, line)
 
     for parameter in auth_values:
         term = terminals[parameter]
         term.loop("HorizWhitespace", LabelType.Special)
-        separator = auto.add_state()
+        separator = tr.add_state()
         separator.loop("HorizWhitespace", LabelType.Special)
         term.add_transition('=', LabelType.Char, separator)
         read_par, read_par_end, fallthrough = auth_values[parameter]
-        auto.join_transition(separator, read_par, fallthrough=fallthrough)
-        read_par_end.add_fallback(start, fallthrough=True)
+        tr.join_transition(separator, read_par, fallthrough=fallthrough)
+        read_par_end.add_fallback(tr_start, fallthrough=True)
 
     # Handling of unknown/ not parsed values
-    unknown = auto.add_state()
+    unknown = tr.add_state()
     for u in add_unknowns:
         u.add_fallback(unknown)
-    unknown.loop("HorizWhitespace", LabelType.Special)
-    after_unknown = auto.add_state()
+    after_unknown = tr.add_state()
     unknown.add_transition('=', LabelType.Char, after_unknown)
     unknown.loop_fallback()
     after_unknown.loop("HorizWhitespace", LabelType.Special)
-    ignore_unknown_header, iuh_end, _ = auth_value(None)
-    auto.join_transition(after_unknown, ignore_unknown_header)
-    iuh_end.add_fallback(start, fallthrough=True)
+    ignore_unknown_header, iuh_end, fallthrough = auth_value(None)
+    tr.join_transition(after_unknown,
+                       ignore_unknown_header,
+                       fallthrough=fallthrough)
+    iuh_end.add_fallback(tr_start, fallthrough=True)
+
+    auto.join(scheme_spaces, tr)
 
     return auto, end, True
 

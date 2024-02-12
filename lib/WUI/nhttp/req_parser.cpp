@@ -111,7 +111,8 @@ ExecutionControl RequestParser::event(Event event) {
             error_code = Status::RequestHeaderFieldsTooLarge;
             return ExecutionControl::Continue;
         }
-    case Names::Nonce: {
+    case Names::Nonce:
+    case Names::NonceUnquoted: {
         if (!holds_alternative<DigestAuthParams>(auth_status)) {
             auth_status = DigestAuthParams {};
         }
@@ -126,7 +127,8 @@ ExecutionControl RequestParser::event(Event event) {
         digest_params.recieved_nonce += static_cast<uint64_t>(value);
         return ExecutionControl::Continue;
     }
-    case Names::Response: {
+    case Names::Response:
+    case Names::ResponseUnquoted: {
         if (!holds_alternative<DigestAuthParams>(auth_status)) {
             auth_status = DigestAuthParams {};
         }

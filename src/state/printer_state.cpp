@@ -10,24 +10,24 @@ using namespace marlin_server;
 
 namespace printer_state {
 namespace {
-    StateWithAttentionCode get_print_state(State state, bool ready) {
+    StateWithDialog get_print_state(State state, bool ready) {
         switch (state) {
         case State::PrintPreviewQuestions:
             // Should never happen, we catch this before with FSM states,
             // so that we can distinquish between various questions.
-            return { DeviceState::Unknown, std::nullopt };
+            return DeviceState::Unknown;
         case State::PowerPanic_AwaitingResume:
-            return { DeviceState::Attention, AttentionCode::PowerpanicColdBed };
+            return StateWithDialog::attention(ErrCode::CONNECT_POWER_PANIC_COLD_BED);
         case State::CrashRecovery_Axis_NOK:
-            return { DeviceState::Attention, AttentionCode::CrashRecoveryAxisNok };
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_AXIS_NOK);
         case State::CrashRecovery_Repeated_Crash:
-            return { DeviceState::Attention, AttentionCode::CrashRecoveryRepeatedCrash };
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH);
         case State::CrashRecovery_HOMEFAIL:
-            return { DeviceState::Attention, AttentionCode::CrashRecoveryHomeFail };
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL);
         case State::CrashRecovery_Tool_Pickup:
-            return { DeviceState::Attention, AttentionCode::CrashRecoveryToolPickup };
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP);
         case State::PrintPreviewToolsMapping:
-            return { DeviceState::Attention, AttentionCode::PrintPreviewToolsMapping };
+            return StateWithDialog::attention(ErrCode::CONNECT_PRINT_PREVIEW_TOOLS_MAPPING);
         case State::Idle:
         case State::WaitGui:
         case State::PrintPreviewInit:
@@ -35,9 +35,9 @@ namespace {
         case State::PrintInit:
         case State::Exit:
             if (ready) {
-                return { DeviceState::Ready, std::nullopt };
+                return DeviceState::Ready;
             } else {
-                return { DeviceState::Idle, std::nullopt };
+                return DeviceState::Idle;
             }
         case State::Printing:
         case State::Aborting_Begin:
@@ -50,7 +50,7 @@ namespace {
         case State::Finishing_ParkHead:
         case State::PrintPreviewConfirmed:
         case State::SerialPrintInit:
-            return { DeviceState::Printing, std::nullopt };
+            return DeviceState::Printing;
 
         case State::PowerPanic_acFault:
         case State::PowerPanic_Resume:
@@ -60,7 +60,7 @@ namespace {
         case State::CrashRecovery_ToolchangePowerPanic:
         case State::CrashRecovery_XY_Measure:
         case State::CrashRecovery_XY_HOME:
-            return { DeviceState::Busy, std::nullopt };
+            return DeviceState::Busy;
 
         case State::Pausing_Begin:
         case State::Pausing_WaitIdle:
@@ -72,43 +72,43 @@ namespace {
         case State::Pausing_Failed_Code:
         case State::Resuming_UnparkHead_XY:
         case State::Resuming_UnparkHead_ZE:
-            return { DeviceState::Paused, std::nullopt };
+            return DeviceState::Paused;
         case State::Finished:
             if (ready) {
-                return { DeviceState::Ready, std::nullopt };
+                return DeviceState::Ready;
             } else {
-                return { DeviceState::Finished, std::nullopt };
+                return DeviceState::Finished;
             }
         case State::Aborted:
             if (ready) {
-                return { DeviceState::Ready, std::nullopt };
+                return DeviceState::Ready;
             } else {
-                return { DeviceState::Stopped, std::nullopt };
+                return DeviceState::Stopped;
             }
         }
-        return { DeviceState::Unknown, std::nullopt };
+        return DeviceState::Unknown;
     }
 
     // FIXME: these are also caught by the switch statement above, is there any
     // harm in having it in both places? Maybe couple more bytes of flash will
     // be used, so should we just remove it and let the get_print_state handle
     // this one, or is this better, because it's more robust?
-    std::optional<AttentionCode> crash_recovery_attention(const PhasesCrashRecovery &phase) {
+    std::optional<ErrCode> crash_recovery_attention(const PhasesCrashRecovery &phase) {
         switch (phase) {
         case PhasesCrashRecovery::axis_NOK:
-            return AttentionCode::CrashRecoveryAxisNok;
+            return ErrCode::CONNECT_CRASH_RECOVERY_AXIS_NOK;
         case PhasesCrashRecovery::repeated_crash:
-            return AttentionCode::CrashRecoveryRepeatedCrash;
+            return ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH;
         case PhasesCrashRecovery::home_fail:
-            return AttentionCode::CrashRecoveryHomeFail;
+            return ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL;
         case PhasesCrashRecovery::tool_recovery:
-            return AttentionCode::CrashRecoveryToolPickup;
+            return ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP;
         default:
             return std::nullopt;
         }
     }
 
-    std::optional<AttentionCode> attention_while_printing(const fsm::Change &q1_change) {
+    std::optional<ErrCode> attention_while_printing(const fsm::Change &q1_change) {
         assert(q1_change.get_queue_index() == fsm::QueueIndex::q1);
 
         switch (q1_change.get_fsm_type()) {
@@ -117,14 +117,14 @@ namespace {
             if (config_store().mmu2_enabled.get()) {
                 // distinguish between regular progress of MMU Load/Unload and a real attention/MMU error screen (which is only one particular FSM state)
                 if (GetEnumFromPhaseIndex<PhasesLoadUnload>(q1_change.get_data().GetPhase()) == PhasesLoadUnload::MMU_ERRWaitingForUser) {
-                    return AttentionCode::MMULoadUnloadError;
+                    return ErrCode::CONNECT_MMU_LOAD_UNLOAD_ERROR;
                 } else {
                     return std::nullopt;
                 }
             }
 #endif
             // MMU not supported or not active -> all load/unload during print is really attention.
-            return AttentionCode::FilamentRunout;
+            return ErrCode::CONNECT_PRINT_PREVIEW_FILE_ERROR;
         case ClientFSM::CrashRecovery:
             return crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(q1_change.get_data().GetPhase()));
         default:
@@ -132,23 +132,23 @@ namespace {
         }
     }
 
-    std::optional<AttentionCode> attention_while_printpreview(const PhasesPrintPreview preview_phases) {
+    std::optional<ErrCode> attention_while_printpreview(const PhasesPrintPreview preview_phases) {
         switch (preview_phases) {
         case PhasesPrintPreview::unfinished_selftest:
-            return AttentionCode::PrintPreviewUnfinishedSelftest;
+            return ErrCode::CONNECT_PRINT_PREVIEW_UNFINISHED_SELFTEST;
         case PhasesPrintPreview::new_firmware_available:
-            return AttentionCode::PrintPreviewNewFW;
+            return ErrCode::CONNECT_PRINT_PREVIEW_NEW_FW;
         case PhasesPrintPreview::wrong_printer:
             // This one can mean a lot of things, type of printer, nozzle diameter, wrong number of tools etc.
             // Eventually we want to distinquish between them, to do so we will need to somehow mimic the
             // logic in window_msgbox_wrong_printer.cpp using GCodeInfo::ValidPrinterSettings
-            return AttentionCode::PrintPreviewWrongPrinter;
+            return ErrCode::CONNECT_PRINT_PREVIEW_WRONG_PRINTER;
         case PhasesPrintPreview::filament_not_inserted:
-            return AttentionCode::PrintPreviewNoFilament;
+            return ErrCode::CONNECT_PRINT_PREVIEW_NO_FILAMENT;
         case PhasesPrintPreview::wrong_filament:
-            return AttentionCode::PrintPreviewWrongFilament;
+            return ErrCode::CONNECT_PRINT_PREVIEW_WRONG_FILAMENT;
         case PhasesPrintPreview::file_error:
-            return AttentionCode::PrintPreviewFileError;
+            return ErrCode::CONNECT_PRINT_PREVIEW_FILE_ERROR;
         default:
             return std::nullopt;
         }
@@ -156,22 +156,22 @@ namespace {
 } // namespace
 
 DeviceState get_state(bool ready) {
-    return get_state_with_attenion_code(ready).device_state;
+    return get_state_with_dialog(ready).device_state;
 }
 
-StateWithAttentionCode get_state_with_attenion_code(bool ready) {
+StateWithDialog get_state_with_dialog(bool ready) {
     auto fsm_change = marlin_vars()->get_last_fsm_change();
     State state = marlin_vars()->print_state;
 
     switch (fsm_change.q0_change.get_fsm_type()) {
     case ClientFSM::PrintPreview:
         if (auto attention_code = attention_while_printpreview(GetEnumFromPhaseIndex<PhasesPrintPreview>(fsm_change.q0_change.get_data().GetPhase())); attention_code.has_value()) {
-            return { DeviceState::Attention, attention_code.value() };
+            return StateWithDialog::attention(attention_code.value());
         }
         break;
     case ClientFSM::Printing:
         if (auto attention_code = attention_while_printing(fsm_change.q1_change); attention_code.has_value()) {
-            return { DeviceState::Attention, attention_code.value() };
+            return StateWithDialog::attention(attention_code.value());
         }
         break;
     case ClientFSM::Load_unload:
@@ -185,7 +185,7 @@ StateWithAttentionCode get_state_with_attenion_code(bool ready) {
     // to allow or not allow remote printing based on this, but this will cause
     // preheat menu to be the only menu screen to not be Idle... :-(
     case ClientFSM::Preheat:
-        return { DeviceState::Busy, std::nullopt };
+        return DeviceState::Busy;
     default:
         break;
     }
@@ -247,11 +247,6 @@ const char *to_str(DeviceState state) {
     default:
         return "UNKNOWN";
     }
-}
-
-const char *to_str(AttentionCode attention_code, char *buffer, size_t size) {
-    snprintf(buffer, size, "A-%05d", ftrstd::to_underlying(attention_code));
-    return buffer;
 }
 
 } // namespace printer_state

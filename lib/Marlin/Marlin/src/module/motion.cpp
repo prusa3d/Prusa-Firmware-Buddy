@@ -559,10 +559,8 @@ void remember_feedrate_scaling_off() {
   feedrate_percentage = 100;
 }
 void restore_feedrate_and_scaling() {
-  if (feedrate_percentage == 100) {
-    feedrate_mm_s = saved_feedrate_mm_s;
-    feedrate_percentage = saved_feedrate_percentage;
-  }
+  feedrate_mm_s = saved_feedrate_mm_s;
+  feedrate_percentage = saved_feedrate_percentage;
 }
 
 #if HAS_SOFTWARE_ENDSTOPS

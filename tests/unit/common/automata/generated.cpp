@@ -288,3 +288,19 @@ TEST_CASE("Digest auth whole") {
     REQUIRE(ex.collect_entered(Names::Nonce) == "dcd98b7102dd2f0e");
     REQUIRE(ex.collect_entered(Names::Response) == "684d849df474f295771de997e7412ea4");
 }
+
+TEST_CASE("Digest auth with algorithm") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET /api/version HTTP/1.1\r\nAuthorization: Digest username=\"user\", realm=\"Printer API\", nonce=\"dcd98b7102dd2f0e\", uri=\"/api/version\", algorithm=MD5, response=\"684d849df474f295771de997e7412ea4\"\r\n\r\n");
+    REQUIRE(ex.collect_entered(Names::Nonce) == "dcd98b7102dd2f0e");
+    REQUIRE(ex.collect_entered(Names::Response) == "684d849df474f295771de997e7412ea4");
+}
+
+TEST_CASE("Digest auth without quotes") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET /api/version HTTP/1.1\r\nAuthorization: Digest username=\"user\", realm=\"Printer API\", nonce=dcd98b7102dd2f0e, uri=\"/api/version\", response=684d849df474f295771de997e7412ea4\r\n\r\n");
+    REQUIRE(ex.collect_entered(Names::NonceUnquoted) == "dcd98b7102dd2f0e");
+    REQUIRE(ex.collect_entered(Names::ResponseUnquoted) == "684d849df474f295771de997e7412ea4");
+}

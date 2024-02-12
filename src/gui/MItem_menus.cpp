@@ -262,25 +262,25 @@ void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
 
 /*****************************************************************************/
 // MI_CURRENT_PROFILE
-MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, SteelSheets::NumOfCalibrated() > 1 ? is_hidden_t::no : is_hidden_t::yes) {
-    if (SteelSheets::NumOfCalibrated() > 1) {
-        UpdateLabel();
-    }
+MI_CURRENT_SHEET_PROFILE::MI_CURRENT_SHEET_PROFILE()
+    : IWindowMenuItem(_(label), extension_width, nullptr, is_enabled_t::yes, SteelSheets::NumOfCalibrated() > 1 ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
-void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
+void MI_CURRENT_SHEET_PROFILE::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn) const {
+    std::array<char, MAX_SHEET_NAME_LENGTH + 3> nameBuf;
+    char *name = nameBuf.data();
+    *(name++) = '[';
+    name += SteelSheets::ActiveSheetName(name, nameBuf.size() - 3);
+    *(name++) = ']';
+    *(name++) = '\0';
+
+    render_text_align(extension_rect, string_view_utf8::MakeRAM((uint8_t *)nameBuf.data()), font, color_back,
+        is_focused() ? COLOR_ORANGE : color_text, GuiDefaults::MenuPaddingItems, Align_t::RightCenter(), false);
+}
+
+void MI_CURRENT_SHEET_PROFILE::click(IWindowMenu &) {
     SteelSheets::NextSheet();
-    UpdateLabel();
-}
-
-void MI_CURRENT_PROFILE::UpdateLabel() {
-    name[0] = '[';
-    uint32_t cnt = SteelSheets::ActiveSheetName(name + 1, MAX_SHEET_NAME_LENGTH);
-    name[cnt + 1] = ']';
-    name[cnt + 2] = 0;
-    // string_view_utf8::MakeRAM is safe. "name" is member var, exists until MI_CURRENT_PROFILE is destroyed
-    SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
+    InValidateExtension();
 }
 
 /*****************************************************************************/
@@ -533,6 +533,18 @@ MI_SIDE_LEDS_ENABLE::MI_SIDE_LEDS_ENABLE()
 void MI_SIDE_LEDS_ENABLE::OnChange(size_t old_index) {
     leds::side_strip_control.SetEnable(!old_index);
     config_store().side_leds_enabled.set(!old_index);
+}
+#endif
+
+#if HAS_SIDE_LEDS()
+/**********************************************************************************************/
+// MI_SIDE_LEDS_DIMMING
+MI_SIDE_LEDS_DIMMING::MI_SIDE_LEDS_DIMMING()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().side_leds_dimming_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+void MI_SIDE_LEDS_DIMMING::OnChange(size_t) {
+    config_store().side_leds_dimming_enabled.set(index);
+    leds::side_strip_control.set_dimming_enabled(index);
 }
 #endif
 

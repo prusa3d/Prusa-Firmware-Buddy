@@ -35,5 +35,5 @@ string_view_utf8 FooterItemFilament::static_makeView(int value) {
     }
 
     auto filament = static_cast<filament::Type>(value);
-    return string_view_utf8::MakeCPUFLASH((const uint8_t *)filament::get_description(filament).name);
+    return string_view_utf8::MakeCPUFLASH((const uint8_t *)filament::get_name(filament));
 }

@@ -7,6 +7,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include "selftest_part.hpp"
+#include "common/selftest/selftest_data.hpp"
 
 #define SELFTEST_LOOP_PERIODE 50
 
@@ -19,7 +20,7 @@ public:
 
     virtual bool IsInProgress() const = 0;
     virtual bool IsAborted() const = 0;
-    virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) = 0;
+    virtual bool Start(const uint64_t test_mask, const ::selftest::TestData test_data) = 0;
     virtual void Loop() = 0;
     virtual bool Abort() = 0;
     uint32_t GetTime() { return m_Time; } // to synchronize time in selftest by loop ticks

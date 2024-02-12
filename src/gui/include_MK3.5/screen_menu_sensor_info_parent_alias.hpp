@@ -7,7 +7,7 @@
 #include "screen_menu.hpp"
 #include "MItem_tools.hpp"
 #include "Configuration_adv.h"
-#include "MItem_MINI_MK3.5.hpp"
+#include "MItem_MK3.5.hpp"
 #include "screen_menu_no_tools.hpp"
 
 namespace detail {
@@ -21,7 +21,7 @@ using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
     MI_INFO_BED_TEMP,
     MI_INFO_MCU_TEMP,
     MI_INFO_NOZZLE_TEMP,
-    MI_MINDA,
+    MI_PINDA,
     MI_INFO_PRINTER_FILL_SENSOR,
     MI_INFO_PRINT_FAN,
     MI_INFO_HBR_FAN,

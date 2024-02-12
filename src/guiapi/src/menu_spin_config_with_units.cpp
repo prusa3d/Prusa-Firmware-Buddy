@@ -12,6 +12,7 @@ static constexpr const char *Celsius = "\xC2\xB0\x43"; // degree Celsius
 static constexpr const char *Percent = "%";
 static constexpr const char *None = "";
 static constexpr const char *Hour = "h";
+static constexpr const char *Minutes = "min";
 static constexpr const char *mm = "mm";
 static constexpr const char *mA = "mA";
 static constexpr const char *rpm = "rpm"; // todo should I translate it?
@@ -23,7 +24,8 @@ const SpinConfigInt SpinCnf::bed = SpinConfigInt(MenuVars::GetBedRange(), Celsiu
 const SpinConfigInt SpinCnf::printfan = SpinConfigInt(MenuVars::percent_range, Percent, spin_off_opt_t::yes);
 const SpinConfigInt SpinCnf::feedrate = SpinConfigInt(MenuVars::feedrate_range, Percent);
 const SpinConfigInt SpinCnf::flowfact = SpinConfigInt(MenuVars::flowfact_range, Percent);
-const SpinConfigInt SpinCnf::timezone_range = { { -12, 12, 1 }, Hour };
+const SpinConfigInt SpinCnf::timezone = SpinConfigInt { { -12, 14, 1 }, Hour };
+
 #if BOARD_IS_BUDDY
 const SpinConfigInt SpinCnf::volume_range = { { 0, 11, 1 }, None, spin_off_opt_t::yes }; // crank it up to 11
 #else

@@ -20,7 +20,9 @@ struct Crc {
     }
 
     Crc &add_str(const char *s) {
-        crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(s), strlen(s));
+        if (s != nullptr) {
+            crc = crc32_calc_ex(crc, reinterpret_cast<const uint8_t *>(s), strlen(s));
+        }
         return *this;
     }
 
@@ -119,6 +121,14 @@ uint32_t Printer::info_fingerprint() const {
         .add(parameters.version.version)
         .add(parameters.version.subversion)
         .done();
+}
+
+uint32_t Printer::Params::state_fingerprint() const {
+    Crc crc;
+
+    const uint32_t dialog_id = state.dialog_id.value_or(0xFFFFFFFF);
+    const uint32_t code = static_cast<uint32_t>(state.code.value_or(ErrCode::ERR_UNDEF));
+    return crc.add(state.device_state).add(dialog_id).add(code).add_str(state.title).add_str(state.text).done();
 }
 
 Printer::Params::Params(const optional<BorrowPaths> &paths)

@@ -30,6 +30,14 @@ private:
     AnyGcodeFormatReader *gcode;
     GcodeBuffer gcode_line_buffer;
     bool first_run = true;
+    bool str_continuation = false;
+    void reset_buffer();
+    // Will (try to) output part of string "body" (escaped per JSON as needed).
+    //
+    // Puts a terminating " on the last segment.
+    //
+    // Will adjust str_continuation based on the buffer's line_complete.
+    json::JsonResult out_str_chunk(json::JsonOutput &output, const GcodeBuffer::String &str);
 
 public:
     GcodeMetaRenderer(AnyGcodeFormatReader *gcode)
@@ -73,8 +81,11 @@ public:
 
 struct RenderState {
     // variable used to iterate through mmu/xl slots
-    mutable size_t slot_iter = 0;
-    mutable size_t cancelabel_iter = 0;
+    size_t slot_iter = 0;
+    size_t cancelable_iter = 0;
+    // Because JSON can't have trailing commas :-(
+    bool need_comma = false;
+
     const Printer &printer;
     const Action &action;
     Tracked &telemetry_changes;

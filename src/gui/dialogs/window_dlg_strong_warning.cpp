@@ -13,39 +13,44 @@ window_dlg_strong_warning_t::types window_dlg_strong_warning_t::on_top = window_
 
 const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Response::_none, Response::_none };
 
-static constexpr Rect16 textRectIcon = { 0, 104, 240, 120 };
+static constexpr int16_t iconSize = 48;
+
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+static constexpr Rect16 layoutRect = { 16, 40, GuiDefaults::ScreenWidth - 16 * 2, 170 };
+static constexpr Rect16 textRect = Rect16(layoutRect.Left() + iconSize + 8, layoutRect.Top(), layoutRect.Width() - iconSize - 8, layoutRect.Height());
+
+#else
+static constexpr Rect16 layoutRect = { 70, 90, 363, GuiDefaults::ScreenHeight - 90 - GuiDefaults::ButtonHeight };
+static constexpr Rect16 textRect = Rect16(layoutRect.Left() + iconSize + 15, layoutRect.Top(), 300, layoutRect.Height());
+
+#endif
+
+static constexpr Rect16 iconRect = Rect16(layoutRect.Left(), layoutRect.Top(), iconSize, iconSize);
 
 window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::DialogFrameRect, IsStrong::yes)
+#if defined(USE_ST7789)
     , header(this, _(Title))
     , footer(this)
+#endif
     , icon(this, { 0, 0, 0, 0 }, &img::exposure_times_48x48)
     , text(this, { 0, 0, 0, 0 }, is_multiline::yes)
-    , button(this, GuiDefaults::GetButtonRect(GetRect()) - (GuiDefaults::EnableDialogBigLayout ? Rect16::Top_t(0) : Rect16::Top_t(64)), dlg_responses, &ph_txt_continue) {
-    if (GuiDefaults::EnableDialogBigLayout) {
-        footer.Hide();
-        header.Hide();
-    } else {
-        icon.SetRect(Rect16(120 - 24, 48, 48, 48));
-        text.SetRect(textRectIcon);
-    }
+    , button(this, GuiDefaults::GetButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::EnableDialogBigLayout ? 0 : 64), dlg_responses, &ph_txt_continue) //
+{
 }
 
 void window_dlg_strong_warning_t::adjustLayout() {
-    icon.SetRect(GuiDefaults::MessageIconRect);
-    text.SetRect(GuiDefaults::MessageTextRect);
+    icon.SetRect(iconRect);
+    text.SetRect(textRect);
     AdjustLayout(text, icon);
 }
 
 void window_dlg_strong_warning_t::setWarningText(types type) {
+#if defined(USE_ST7789)
+    header.SetText(_(icon_title_text[type].title));
+#endif
 
     icon.SetRes(icon_title_text[type].icon);
-    header.SetText(_(icon_title_text[type].title));
-    if (!icon_title_text[type].icon) {
-        text.SetRect(GuiDefaults::RectScreenBody);
-    } else {
-        text.SetRect(textRectIcon);
-    }
     text.SetText(_(icon_title_text[type].text));
     adjustLayout(); // this could cause invalidation issue
 }
