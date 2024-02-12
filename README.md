@@ -1,8 +1,9 @@
 # WiFi NIC
 
-## How to run this
+This implements Wifi NIC on top of UART and ESP32. The code base is a copy of the ESP8266 implementation with only a minor changes to support the ESP32.
 
-This implements Wifi NIC on top of UART and ESP8266. The NIC can be used either on Linux using provided script or attached to another MCU and integrated with LwIP as network interface.
+## How to run this
+The NIC can be used either on Linux using provided script or attached to another MCU and integrated with LwIP as network interface.
 
 ## Build environment
 
