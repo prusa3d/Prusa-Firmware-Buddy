@@ -17,6 +17,7 @@
 #include <stddef.h>
 
 #include <serial_printing.hpp>
+#include <common/freertos_queue.hpp>
 
 #if BOARD_IS_DWARF
     #error "You're trying to add marlin_server to Dwarf. Don't!"
@@ -29,7 +30,6 @@ namespace marlin_server {
 constexpr uint16_t MARLIN_SFLG_STARTED = 0x0001; // server started (set in marlin_server::init)
 constexpr uint16_t MARLIN_SFLG_PROCESS = 0x0002; // loop processing in main thread is enabled
 constexpr uint16_t MARLIN_SFLG_BUSY = 0x0004; // loop is busy
-constexpr uint16_t MARLIN_SFLG_PENDREQ = 0x0008; // pending request
 constexpr uint16_t MARLIN_SFLG_EXCMODE = 0x0010; // exclusive mode enabled (currently used for selftest/wizard)
 constexpr uint16_t MARLIN_SFLG_STOPPED = 0x0020; // moves stopped until command drain
 
@@ -41,7 +41,12 @@ typedef void(idle_t)();
 // callback for idle operation inside marlin (called from ExtUI handler onIdle)
 extern idle_t *idle_cb;
 
-extern osMessageQId server_queue; // input queue (uint8_t)
+struct ServerQueueItem {
+    char client_id;
+    char request[MARLIN_MAX_REQUEST + 1];
+};
+using ServerQueue = freertos::Queue<ServerQueueItem, 1>;
+extern ServerQueue server_queue;
 extern osSemaphoreId server_semaphore; // semaphore handle
 
 //-----------------------------------------------------------------------------

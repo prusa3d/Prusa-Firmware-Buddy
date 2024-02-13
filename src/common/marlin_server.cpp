@@ -149,7 +149,6 @@ namespace {
             uint32_t usr32;
             uint16_t usr16;
         } last_mesh_evt;
-        int request_len;
         uint32_t last_update; // last update tick count
         uint32_t command; // actually running command
         uint32_t command_begin; // variable for notification
@@ -157,7 +156,6 @@ namespace {
         uint32_t knob_click_counter;
         uint32_t knob_move_counter;
         uint16_t flags; // server flags (MARLIN_SFLG)
-        char request[MARLIN_MAX_REQUEST];
         uint8_t idle_cnt; // idle call counter
         uint8_t pqueue_head; // copy of planner.block_buffer_head
         uint8_t pqueue_tail; // copy of planner.block_buffer_tail
@@ -375,7 +373,7 @@ namespace {
 // variables
 
 osThreadId server_task = 0; // task handle
-osMessageQId server_queue = 0; // input queue (uint8_t)
+ServerQueue server_queue;
 osSemaphoreId server_semaphore = 0; // semaphore handle
 
 idle_t *idle_cb = 0; // idle callback
@@ -403,7 +401,7 @@ static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16);
 static void _server_update_gqueue(void);
 static void _server_update_pqueue(void);
 static void _server_update_vars();
-static bool _process_server_request(const char *request);
+static bool _process_server_request(const ServerQueueItem &);
 static void _server_set_var(const char *const name_val_str);
 
 //-----------------------------------------------------------------------------
@@ -412,8 +410,6 @@ static void _server_set_var(const char *const name_val_str);
 void init(void) {
     int i;
     server = server_t();
-    osMessageQDef(serverQueue, MARLIN_SERVER_QUEUE, uint8_t);
-    server_queue = osMessageCreate(osMessageQ(serverQueue), NULL);
     osSemaphoreDef(serverSema);
     server_semaphore = osSemaphoreCreate(osSemaphore(serverSema), 1);
     server.flags = MARLIN_SFLG_STARTED;
@@ -534,40 +530,9 @@ int cycle(void) {
 #endif /*HAS_TOOLCHANGER()*/
 
     int count = 0;
-    if (server.flags & MARLIN_SFLG_PENDREQ) {
-        if (_process_server_request(server.request)) {
-            server.request_len = 0;
-            count++;
-            server.flags &= ~MARLIN_SFLG_PENDREQ;
-        }
-    }
-
-    osEvent ose;
-    if ((server.flags & MARLIN_SFLG_PENDREQ) == 0) {
-        while ((ose = osMessageGet(server_queue, 0)).status == osEventMessage) {
-            char ch = (char)((uint8_t)(ose.value.v));
-            switch (ch) {
-            case '\r':
-            case '\n':
-                ch = 0;
-                break;
-            }
-            if (server.request_len < MARLIN_MAX_REQUEST) {
-                server.request[server.request_len++] = ch;
-            } else {
-                // TODO: request too long
-                server.request_len = 0;
-            }
-            if ((ch == 0) && (server.request_len > 1)) {
-                if (_process_server_request(server.request)) {
-                    server.request_len = 0;
-                    count++;
-                } else {
-                    server.flags |= MARLIN_SFLG_PENDREQ;
-                    break;
-                }
-            }
-        }
+    if (ServerQueueItem payload; server_queue.receive(payload, 0)) {
+        _process_server_request(payload);
+        ++count;
     }
     // update gqueue (gcode queue)
     _server_update_gqueue();
@@ -2877,11 +2842,9 @@ bool _process_server_valid_request(const char *request, int client_id) {
 //   3) message ID : char
 //   4) data (rest of the message, optional)
 // Example of messages: "2!R" or "0!PA546F18B 5D391C83"
-static bool _process_server_request(const char *request) {
-    if (request == nullptr) {
-        return false;
-    }
-    int client_id = *(request++) - '0';
+static bool _process_server_request(const ServerQueueItem &server_queue_item) {
+    const char *request = server_queue_item.request;
+    const int client_id = server_queue_item.client_id - '0';
     if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS)) {
         return true;
     }
