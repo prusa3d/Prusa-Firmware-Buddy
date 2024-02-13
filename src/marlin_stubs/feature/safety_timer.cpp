@@ -28,7 +28,7 @@ void SafetyTimer::ReInit() {
 
 void SafetyTimer::SetInterval(millis_t ms) {
     interval = ms;
-    last_reset = ms;
+    last_reset = millis();
 }
 
 SafetyTimer::expired_t SafetyTimer::Loop() {
