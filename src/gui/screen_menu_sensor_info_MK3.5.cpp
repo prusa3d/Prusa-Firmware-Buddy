@@ -19,6 +19,10 @@
 
 void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
+
+        SensorData::Value boardRes = buffer.GetValue(SensorData::Sensor::boardTemp);
+        Item<MI_INFO_BOARD_TEMP>().UpdateValue(boardRes);
+
         SensorData::Value res = buffer.GetValue(SensorData::Sensor::bedTemp);
         Item<MI_INFO_BED_TEMP>().UpdateValue(res);
 
