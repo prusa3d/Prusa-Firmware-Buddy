@@ -1,6 +1,6 @@
-// marlin_client.cpp
-
 #include "marlin_client.hpp"
+
+#include "marlin_server_request.hpp"
 #include "marlin_events.h"
 #include "marlin_server.hpp"
 #include <cassert>
@@ -190,24 +190,22 @@ bool is_processing() {
     return client && client->flags & MARLIN_CFLG_PROCESS;
 }
 
-static void _send_request_to_server_and_wait(ServerQueueItem &server_queue_item) {
+static void _send_request_to_server_and_wait(Request &request) {
     marlin_client_t *client = _client_ptr();
     if (client == 0) {
         return;
     }
     uint8_t retries_left = max_retries;
 
-    server_queue_item.client_id = '0' + client->id;
+    request.client_id = client->id;
     do {
         // Note: no need to lock here, we are the only client who accesses this
         clients[client->id].events &= ~make_mask(Event::Acknowledge);
-        server_queue.send(server_queue_item);
-        log_info(MarlinClient, "Request (client %u): %s", client->id, server_queue_item.request);
+        server_queue.send(request);
         _wait_ack_from_server(client->id);
         if ((client->events & make_mask(Event::NotAcknowledge)) != 0) {
             // clear nack flag
             client->events &= ~make_mask(Event::NotAcknowledge);
-            log_warning(MarlinClient, "Request %s to marlin server not acknowledged, retries left %u ", server_queue_item.request, retries_left);
             // give marlin server time to process other requests
             osDelay(10);
         }
@@ -221,16 +219,11 @@ static void _send_request_to_server_and_wait(ServerQueueItem &server_queue_item)
     client->events &= ~make_mask(Event::Acknowledge);
 }
 
-void set_event_notify(uint64_t notify_events) {
-    ServerQueueItem server_queue_item;
-    snprintf(
-        server_queue_item.request,
-        MARLIN_MAX_REQUEST,
-        "!%c%08lx %08lx",
-        ftrstd::to_underlying(Msg::EventMask),
-        static_cast<uint32_t>(notify_events & 0xffffffff),
-        static_cast<uint32_t>(notify_events >> 32));
-    _send_request_to_server_and_wait(server_queue_item);
+void set_event_notify(uint64_t event_mask) {
+    Request request;
+    request.type = Request::Type::EventMask;
+    request.event_mask = event_mask;
+    _send_request_to_server_and_wait(request);
 }
 
 marlin_server::Cmd get_command() {
@@ -241,33 +234,50 @@ marlin_server::Cmd get_command() {
     return Cmd::NONE;
 }
 
-void _send_request_id_to_server_and_wait(const Msg id) {
-    ServerQueueItem server_queue_item;
-    marlin_msg_to_str(id, server_queue_item.request);
-    _send_request_to_server_and_wait(server_queue_item);
+void _send_request_id_to_server_and_wait(const Request::Type type) {
+    Request request;
+    request.type = type;
+    _send_request_to_server_and_wait(request);
 }
 
 void gcode(const char *gcode) {
-    ServerQueueItem server_queue_item;
-    snprintf(server_queue_item.request, MARLIN_MAX_REQUEST, "!%c%s", ftrstd::to_underlying(Msg::Gcode), gcode);
-    _send_request_to_server_and_wait(server_queue_item);
+    Request request;
+    request.type = Request::Type::Gcode;
+    if (strlcpy(request.gcode, gcode, sizeof(request.gcode)) >= sizeof(request.gcode)) {
+        // TODO It would be much better to ensure gcode always points
+        //      to some static buffer and only serialize the pointer.
+        log_error(MarlinClient, "ignoring truncated gcode");
+    } else {
+        _send_request_to_server_and_wait(request);
+    }
 }
 
-int gcode_printf(const char *format, ...) {
-    ServerQueueItem server_queue_item;
-    snprintf(server_queue_item.request, MARLIN_MAX_REQUEST, "!%c", ftrstd::to_underlying(Msg::Gcode));
+void gcode_printf(const char *format, ...) {
+    Request request;
+    request.type = Request::Type::Gcode;
     va_list ap;
     va_start(ap, format);
-    const int ret = vsnprintf(server_queue_item.request + 2, MARLIN_MAX_REQUEST - 3, format, ap);
+    const int ret = vsnprintf(request.gcode, sizeof(request.gcode), format, ap);
     va_end(ap);
-    _send_request_to_server_and_wait(server_queue_item);
-    return ret;
+    if (ret == -1 || ret >= (int)sizeof(request.gcode)) {
+        // TODO It would be much better to remove gcode_printf() altogether
+        //      and instead craft individual request types.
+        log_error(MarlinClient, "ignoring truncated gcode");
+    } else {
+        _send_request_to_server_and_wait(request);
+    }
 }
 
 void gcode_push_front(const char *gcode) {
-    ServerQueueItem server_queue_item;
-    snprintf(server_queue_item.request, MARLIN_MAX_REQUEST, "!%c0x%p", ftrstd::to_underlying(Msg::InjectGcode), gcode);
-    _send_request_to_server_and_wait(server_queue_item);
+    Request request;
+    request.type = Request::Type::InjectGcode;
+    if (strlcpy(request.inject_gcode, gcode, sizeof(request.inject_gcode)) >= sizeof(request.inject_gcode)) {
+        // TODO It would be much better to ensure gcode always points
+        //      to some static buffer and only serialize the pointer.
+        log_error(MarlinClient, "ignoring truncated gcode");
+    } else {
+        _send_request_to_server_and_wait(request);
+    }
 }
 
 int event(Event evt_id) {
@@ -334,75 +344,51 @@ uint64_t errors() {
 }
 
 void do_babysteps_Z(float offs) {
-    ServerQueueItem server_queue_item;
-    snprintf(
-        server_queue_item.request,
-        MARLIN_MAX_REQUEST,
-        "!%c%.4f",
-        ftrstd::to_underlying(Msg::Babystep),
-        static_cast<double>(offs));
-    _send_request_to_server_and_wait(server_queue_item);
+    Request request;
+    request.type = Request::Type::Babystep;
+    request.babystep = offs;
+    _send_request_to_server_and_wait(request);
 }
 
 void move_axis(float logical_pos, float feedrate, uint8_t axis) {
-    ServerQueueItem server_queue_item;
-    // check axis
-    if (axis <= E_AXIS) {
-        [[maybe_unused]] int res = snprintf(
-            server_queue_item.request,
-            MARLIN_MAX_REQUEST,
-            "!%c%.4f %.4f %u",
-            ftrstd::to_underlying(Msg::Move),
-            static_cast<double>(LOGICAL_TO_NATIVE(logical_pos, axis)),
-            static_cast<double>(feedrate),
-            axis);
-        assert(res > 0);
-        assert(res < MARLIN_MAX_REQUEST);
-        _send_request_to_server_and_wait(server_queue_item);
-    }
+    Request request;
+    request.type = Request::Type::Move;
+    request.move.position = LOGICAL_TO_NATIVE(logical_pos, axis);
+    request.move.feedrate = feedrate;
+    request.move.axis = axis;
+    _send_request_to_server_and_wait(request);
 }
 
 void move_xyz_axes_to(const xyz_float_t &position, float feedrate) {
-    ServerQueueItem server_queue_item;
-    [[maybe_unused]] int res = snprintf(
-        server_queue_item.request,
-        MARLIN_MAX_REQUEST,
-        "!%c%.4f %.4f %.4f %.4f",
-        ftrstd::to_underlying(Msg::MoveMultiple),
-        static_cast<double>(LOGICAL_TO_NATIVE(position.x, X_AXIS)),
-        static_cast<double>(LOGICAL_TO_NATIVE(position.y, Y_AXIS)),
-        static_cast<double>(LOGICAL_TO_NATIVE(position.z, Z_AXIS)),
-        static_cast<double>(feedrate));
-    assert(res > 0);
-    assert(res < MARLIN_MAX_REQUEST);
-    _send_request_to_server_and_wait(server_queue_item);
+    Request request;
+    request.type = Request::Type::MoveMultiple;
+    request.move_multiple.x = LOGICAL_TO_NATIVE(position.x, X_AXIS);
+    request.move_multiple.y = LOGICAL_TO_NATIVE(position.y, Y_AXIS);
+    request.move_multiple.z = LOGICAL_TO_NATIVE(position.z, Z_AXIS);
+    request.move_multiple.feedrate = feedrate;
+    _send_request_to_server_and_wait(request);
 }
 
 void settings_save() {
-    _send_request_id_to_server_and_wait(Msg::ConfigSave);
+    _send_request_id_to_server_and_wait(Request::Type::ConfigSave);
 }
 
 void settings_load() {
-    _send_request_id_to_server_and_wait(Msg::ConfigLoad);
+    _send_request_id_to_server_and_wait(Request::Type::ConfigLoad);
 }
 
 void settings_reset() {
-    _send_request_id_to_server_and_wait(Msg::ConfigReset);
+    _send_request_id_to_server_and_wait(Request::Type::ConfigReset);
 }
 
 #if HAS_SELFTEST()
 void test_start_with_data(const uint64_t test_mask, const ::selftest::TestData test_data) {
-    ServerQueueItem server_queue_item;
-    snprintf(
-        server_queue_item.request,
-        MARLIN_MAX_REQUEST,
-        "!%c%08lx %08lx %02hhx %08lx",
-        ftrstd::to_underlying(Msg::TestStart),
-        static_cast<uint32_t>(test_mask),
-        static_cast<uint32_t>(test_mask >> 32),
-        static_cast<uint8_t>(test_data.index()),
-        ::selftest::serialize_test_data_to_int(test_data));
-    _send_request_to_server_and_wait(server_queue_item);
+    Request request;
+    request.type = Request::Type::TestStart;
+    request.test_start.test_mask = test_mask;
+    request.test_start.test_data_index = test_data.index();
+    request.test_start.test_data_data = ::selftest::serialize_test_data_to_int(test_data);
+    _send_request_to_server_and_wait(request);
 }
 
 void test_start(const uint64_t test_mask) {
@@ -410,22 +396,19 @@ void test_start(const uint64_t test_mask) {
 }
 
 void test_abort() {
-    _send_request_id_to_server_and_wait(Msg::TestAbort);
+    _send_request_id_to_server_and_wait(Request::Type::TestAbort);
 }
 #endif
 
 void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview) {
-    ServerQueueItem server_queue_item;
-    assert(skip_preview < marlin_server::PreviewSkipIfAble::_count);
-    static_assert(ftrstd::to_underlying(marlin_server::PreviewSkipIfAble::_count) < ('9' - '0'), "Too many skip preview options.");
-    const int len = snprintf(server_queue_item.request, sizeof(server_queue_item.request), "!%c%c%s", ftrstd::to_underlying(Msg::PrintStart), '0' + ftrstd::to_underlying(skip_preview), filename);
-    if (len < 0) {
-        bsod("Error formatting request.");
+    Request request;
+    request.type = Request::Type::PrintStart;
+    request.print_start.skip_preview = skip_preview;
+    if (strlcpy(request.print_start.filename, filename, sizeof(request.print_start.filename)) >= sizeof(request.print_start.filename)) {
+        log_error(MarlinClient, "ignoring truncated filename");
+    } else {
+        _send_request_to_server_and_wait(request);
     }
-    if ((size_t)len >= sizeof(server_queue_item.request)) {
-        bsod("Request too long.");
-    }
-    _send_request_to_server_and_wait(server_queue_item);
 }
 
 bool is_print_started() {
@@ -489,39 +472,39 @@ bool is_print_exited() {
 }
 
 void marlin_gui_ready_to_print() {
-    _send_request_id_to_server_and_wait(Msg::PrintReady);
+    _send_request_id_to_server_and_wait(Request::Type::PrintReady);
 }
 
 void marlin_gui_cant_print() {
-    _send_request_id_to_server_and_wait(Msg::GuiCantPrint);
+    _send_request_id_to_server_and_wait(Request::Type::GuiCantPrint);
 }
 
 void print_abort() {
-    _send_request_id_to_server_and_wait(Msg::PrintAbort);
+    _send_request_id_to_server_and_wait(Request::Type::PrintAbort);
 }
 
 void print_exit() {
-    _send_request_id_to_server_and_wait(Msg::PrintExit);
+    _send_request_id_to_server_and_wait(Request::Type::PrintExit);
 }
 
 void print_pause() {
-    _send_request_id_to_server_and_wait(Msg::PrintPause);
+    _send_request_id_to_server_and_wait(Request::Type::PrintPause);
 }
 
 void print_resume() {
-    _send_request_id_to_server_and_wait(Msg::PrintResume);
+    _send_request_id_to_server_and_wait(Request::Type::PrintResume);
 }
 
 void park_head() {
-    _send_request_id_to_server_and_wait(Msg::Park);
+    _send_request_id_to_server_and_wait(Request::Type::Park);
 }
 
 void notify_server_about_encoder_move() {
-    _send_request_id_to_server_and_wait(Msg::KnobMove);
+    _send_request_id_to_server_and_wait(Request::Type::KnobMove);
 }
 
 void notify_server_about_knob_click() {
-    _send_request_id_to_server_and_wait(Msg::KnobClick);
+    _send_request_id_to_server_and_wait(Request::Type::KnobClick);
 }
 
 // returns true if reheating is in progress, otherwise false
@@ -533,9 +516,10 @@ bool is_reheating() {
 //-----------------------------------------------------------------------------
 // responses from client finite state machine (like button click)
 void encoded_response(uint32_t enc_phase_and_response) {
-    ServerQueueItem server_queue_item;
-    snprintf(server_queue_item.request, MARLIN_MAX_REQUEST, "!%c%d", ftrstd::to_underlying(Msg::FSM), (int)enc_phase_and_response);
-    _send_request_to_server_and_wait(server_queue_item);
+    Request request;
+    request.type = Request::Type::FSM;
+    request.fsm = enc_phase_and_response;
+    _send_request_to_server_and_wait(request);
 }
 bool is_printing() {
     switch (marlin_vars()->print_state) {
@@ -710,33 +694,19 @@ static marlin_client_t *_client_ptr() {
 
 template <typename T>
 void marlin_set_variable(MarlinVariable<T> &variable, T value) {
-    ServerQueueItem server_queue_item;
+    Request request;
+    request.type = Request::Type::SetVariable;
+    request.set_variable.variable = reinterpret_cast<uintptr_t>(&variable);
 
-    const int n = snprintf(server_queue_item.request, MARLIN_MAX_REQUEST, "!%c%d ", ftrstd::to_underlying(Msg::SetVariable), reinterpret_cast<uintptr_t>(&variable));
-    if (n < 0) {
-        bsod("Error formatting var name.");
-    }
-    if (size_t(n) >= sizeof(server_queue_item.request)) {
-        bsod("Request too long.");
-    }
-
-    int v;
     if constexpr (std::is_floating_point<T>::value) {
-        v = snprintf(server_queue_item.request + n, sizeof(server_queue_item.request) - n, "%f", static_cast<double>(value));
+        request.set_variable.float_value = static_cast<float>(value);
     } else if constexpr (std::is_integral<T>::value) {
-        v = snprintf(server_queue_item.request + n, sizeof(server_queue_item.request) - n, "%d", value);
+        request.set_variable.uint32_value = static_cast<uint32_t>(value);
     } else {
         bsod("no conversion");
     }
 
-    if (v < 0) {
-        bsod("Error formatting var value.");
-    }
-    if (((size_t)v + (size_t)n) >= sizeof(server_queue_item.request)) {
-        bsod("Request too long.");
-    }
-
-    _send_request_to_server_and_wait(server_queue_item);
+    _send_request_to_server_and_wait(request);
 }
 
 void set_target_nozzle(float val, uint8_t hotend) {
@@ -769,19 +739,21 @@ void set_fs_autoload(bool val) {
 
 #if ENABLED(CANCEL_OBJECTS)
 void cancel_object(int object_id) {
-    ServerQueueItem server_queue_item;
-    snprintf(server_queue_item.request, MARLIN_MAX_REQUEST, "!%c%d", ftrstd::to_underlying(Msg::CancelObjectID), object_id);
-    _send_request_to_server_and_wait(server_queue_item);
+    Request request;
+    request.type = Request::Type::CancelObjectID;
+    request.cancel_object_id = object_id;
+    _send_request_to_server_and_wait(request);
 }
 
 void uncancel_object(int object_id) {
-    ServerQueueItem server_queue_item;
-    snprintf(server_queue_item.request, MARLIN_MAX_REQUEST, "!%c%d", ftrstd::to_underlying(Msg::UncancelObjectID), object_id);
-    _send_request_to_server_and_wait(server_queue_item);
+    Request request;
+    request.type = Request::Type::UncancelObjectID;
+    request.uncancel_object_id = object_id;
+    _send_request_to_server_and_wait(request);
 }
 
 void cancel_current_object() {
-    _send_request_id_to_server_and_wait(Msg::CancelCurrentObject);
+    _send_request_id_to_server_and_wait(Request::Type::CancelCurrentObject);
 }
 #endif
 

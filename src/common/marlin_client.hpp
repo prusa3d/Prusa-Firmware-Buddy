@@ -47,14 +47,14 @@ void set_event_notify(uint64_t notify_events);
 // returns currently running command or marlin_server::Cmd::NONE
 marlin_server::Cmd get_command();
 
-// enqueue gcode - thread-safe version  (request '!g xxx')
+// enqueue gcode - thread-safe version
 void gcode(const char *gcode);
 
-// enqueue gcode - printf-like, returns number of chars printed
-int __attribute__((format(__printf__, 1, 2)))
+// enqueue gcode - printf-like
+void __attribute__((format(__printf__, 1, 2)))
 gcode_printf(const char *format, ...);
 
-// inject gcode - thread-safe version  (request '!ig xxx')
+// inject gcode - thread-safe version
 void gcode_push_front(const char *gcode);
 
 // returns current event status for evt_id

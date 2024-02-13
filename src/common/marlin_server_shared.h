@@ -66,50 +66,9 @@ enum class State {
     PowerPanic_AwaitingResume,
 };
 
-/// Marlin client -> server messages
-enum class Msg : char {
-    EventMask = 'A',
-    _RESERVED_0 = 'B',
-    Stop = 'C',
-    _RESERVED_3 = 'D',
-    Start = 'E',
-    Gcode = 'F',
-    InjectGcode = 'G',
-    SetVariable = 'H',
-    _RESERVED_1 = 'I',
-    Babystep = 'J',
-    ConfigSave = 'K',
-    ConfigLoad = 'L',
-    ConfigReset = 'M',
-    _RESERVED_2 = 'N',
-    _RESERVED_4 = 'O',
-    TestStart = 'P',
-    TestAbort = 'Q',
-    PrintStart = 'R',
-    PrintAbort = 'S',
-    PrintPause = 'T',
-    PrintResume = 'U',
-    PrintExit = 'V',
-    Park = 'W',
-    KnobMove = 'X',
-    KnobClick = 'Y',
-    FSM = 'Z',
-    Move = 'a',
-    PrintReady = 'b',
-    GuiCantPrint = 'c',
-    CancelObjectID = 'd',
-    UncancelObjectID = 'e',
-    CancelCurrentObject = 'f',
-    MoveMultiple = 'g',
-};
-
 inline bool is_abort_state(State st) {
     return ftrstd::to_underlying(st) >= ftrstd::to_underlying(State::Aborting_Begin) && ftrstd::to_underlying(st) <= ftrstd::to_underlying(State::Aborted);
 }
-
-// converts message's ID to string
-// string must have 3 bytes at least
-void marlin_msg_to_str(const Msg id, char *str);
 
 extern osThreadId server_task; // task of marlin server
 

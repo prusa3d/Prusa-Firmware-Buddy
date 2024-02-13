@@ -552,24 +552,6 @@ void screen_printing_data_t::screen_printing_reprint() {
     header.SetText(_(caption));
 }
 
-// todo use it
-/*static void mesh_err_stop_print() {
-    float target_nozzle = marlin_vars()->target_nozzle;
-    float target_bed = marlin_vars()->target_bed;
-    marlin_print_abort();
-    while (marlin_vars()->sd_printing) {
-        gui_loop();
-    }
-    //marlin_park_head();
-    marlin_client::gcode_printf("M104 S%F", (double)target_nozzle);
-    marlin_client::gcode_printf("M140 S%F", (double)target_bed);
-    marlin_client::gcode("G0 Z30"); //Z 30mm
-    marlin_client::gcode("M84");    //Disable steppers
-    while (marlin_vars()->pqueue) {
-        gui_loop();
-    }
-}*/
-
 void screen_printing_data_t::set_pause_icon_and_label() {
     // todo it is static, because menu tune is not dialog
     // switch (state__readonly__use_change_print_state)

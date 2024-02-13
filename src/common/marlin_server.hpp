@@ -17,7 +17,6 @@
 #include <stddef.h>
 
 #include <serial_printing.hpp>
-#include <common/freertos_queue.hpp>
 
 #if BOARD_IS_DWARF
     #error "You're trying to add marlin_server to Dwarf. Don't!"
@@ -41,12 +40,6 @@ typedef void(idle_t)();
 // callback for idle operation inside marlin (called from ExtUI handler onIdle)
 extern idle_t *idle_cb;
 
-struct ServerQueueItem {
-    char client_id;
-    char request[MARLIN_MAX_REQUEST + 1];
-};
-using ServerQueue = freertos::Queue<ServerQueueItem, 1>;
-extern ServerQueue server_queue;
 extern osSemaphoreId server_semaphore; // semaphore handle
 
 //-----------------------------------------------------------------------------

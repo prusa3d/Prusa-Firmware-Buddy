@@ -130,9 +130,7 @@ void DialogMoveZ::change(int diff) {
 
 DialogMoveZ::~DialogMoveZ() {
     DialogShown = false;
-    char msg[20];
-    snprintf(msg, sizeof(msg), "M204 T%f", (double)prev_accel);
-    marlin_client::gcode(msg);
+    marlin_client::gcode_printf("M204 T%f", (double)prev_accel);
 }
 void DialogMoveZ::Show() {
     // checking nesting to not open over some other blocking dialog

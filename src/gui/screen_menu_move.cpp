@@ -62,7 +62,7 @@ void MI_AXIS_E::Loop() {
 }
 
 void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode_printf("M1700 S E W2 B0"); // set filament, preheat to target, do not heat bed, return option
+    marlin_client::gcode("M1700 S E W2 B0"); // set filament, preheat to target, do not heat bed, return option
 }
 
 /**
@@ -186,9 +186,7 @@ ScreenMenuMove::ScreenMenuMove()
 }
 
 ScreenMenuMove::~ScreenMenuMove() {
-    char msg[20];
-    snprintf(msg, sizeof(msg), "M204 T%f", (double)prev_accel);
-    marlin_client::gcode(msg);
+    marlin_client::gcode_printf("M204 T%f", (double)prev_accel);
 }
 
 void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

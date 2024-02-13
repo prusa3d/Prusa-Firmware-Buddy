@@ -60,24 +60,6 @@ public:
     }
 
     /**
-     * @brief Load this variable from string (for compatibility with marlin_server)
-     */
-    void from_string(const char *str_begin, const char *str_end) {
-        if constexpr (std::is_floating_point<T>::value) {
-            // our GCC doesn't support std::from_chars with floating point arguments :(
-            value = strtof(str_begin, nullptr);
-        } else {
-            T new_value;
-            auto [ptr, ec] = std::from_chars(str_begin, str_end, new_value);
-
-            if (ec != std::errc {}) {
-                bsod("marlin var: from string fail");
-            }
-            value = new_value;
-        }
-    }
-
-    /**
      * @brief Call a callback with the current value.
      *
      * Calls the callback with the contained value (without copying it),

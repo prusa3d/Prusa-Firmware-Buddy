@@ -1,6 +1,6 @@
-// marlin_server.cpp
-
 #include "marlin_server.hpp"
+
+#include "marlin_server_request.hpp"
 #include <inttypes.h>
 #include <stdarg.h>
 #include <cstdint>
@@ -401,8 +401,8 @@ static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16);
 static void _server_update_gqueue(void);
 static void _server_update_pqueue(void);
 static void _server_update_vars();
-static bool _process_server_request(const ServerQueueItem &);
-static void _server_set_var(const char *const name_val_str);
+static bool _process_server_request(const Request &);
+static void _server_set_var(const Request &);
 
 //-----------------------------------------------------------------------------
 // server side functions
@@ -530,8 +530,8 @@ int cycle(void) {
 #endif /*HAS_TOOLCHANGER()*/
 
     int count = 0;
-    if (ServerQueueItem payload; server_queue.receive(payload, 0)) {
-        _process_server_request(payload);
+    if (Request request; server_queue.receive(request, 0)) {
+        _process_server_request(request);
         ++count;
     }
     // update gqueue (gcode queue)
@@ -2663,124 +2663,85 @@ static void _server_update_vars() {
     marlin_vars()->print_state = static_cast<State>(server.print_state);
 }
 
-void bsod_unknown_request(const char *request) {
-    bsod("Unknown request %s", request);
-}
-
-// request must have 2 chars at least
-bool _process_server_valid_request(const char *request, int client_id) {
-    const char *data = request + 2;
-    uint32_t msk32[2];
-    int ival;
-
-    log_info(MarlinServer, "Processing %s (from %u)", request, client_id);
-
-    switch (Msg(request[1])) {
-
-    case Msg::Gcode:
+bool _process_server_valid_request(const Request &request, int client_id) {
+    switch (request.type) {
+    case Request::Type::Gcode:
         //@TODO return value depending on success of enqueueing gcode
-        return enqueue_gcode(data);
-    case Msg::InjectGcode: {
-        unsigned long int iptr = strtoul(data, NULL, 0);
-        return inject_gcode((const char *)iptr);
-    }
-    case Msg::Start:
+        return enqueue_gcode(request.gcode);
+    case Request::Type::InjectGcode:
+        return inject_gcode(request.inject_gcode);
+    case Request::Type::Start:
         start_processing();
         return true;
-    case Msg::Stop:
+    case Request::Type::Stop:
         stop_processing();
         return true;
-    case Msg::SetVariable:
-        _server_set_var(data);
+    case Request::Type::SetVariable:
+        _server_set_var(request);
         return true;
-    case Msg::Babystep: {
-        float offs;
-        if (sscanf(data, "%f", &offs) != 1) {
-            return false;
-        }
-        do_babystep_Z(offs);
+    case Request::Type::Babystep:
+        do_babystep_Z(request.babystep);
         return true;
-    }
 #if ENABLED(CANCEL_OBJECTS)
-    case Msg::CancelObjectID: {
-        int obj_id;
-        if (sscanf(data, "%d", &obj_id) != 1) {
-            return false;
-        }
-
-        cancelable.cancel_object(obj_id);
+    case Request::Type::CancelObjectID:
+        cancelable.cancel_object(request.cancel_object_id);
         return true;
-    }
-    case Msg::UncancelObjectID: {
-        int obj_id;
-        if (sscanf(data, "%d", &obj_id) != 1) {
-            return false;
-        }
-        cancelable.uncancel_object(obj_id);
+    case Request::Type::UncancelObjectID:
+        cancelable.uncancel_object(request.uncancel_object_id);
         return true;
-    }
-    case Msg::CancelCurrentObject:
+    case Request::Type::CancelCurrentObject:
         cancelable.cancel_active_object();
         return true;
 #else
-    case Msg::CancelObjectID:
-    case Msg::UncancelObjectID:
-    case Msg::CancelCurrentObject:
+    case Request::Type::CancelObjectID:
+    case Request::Type::UncancelObjectID:
+    case Request::Type::CancelCurrentObject:
         return false;
 #endif
-    case Msg::ConfigSave:
+    case Request::Type::ConfigSave:
         settings_save();
         return true;
-    case Msg::ConfigLoad:
+    case Request::Type::ConfigLoad:
         settings_load();
         return true;
-    case Msg::ConfigReset:
+    case Request::Type::ConfigReset:
         settings_reset();
         return true;
-    case Msg::PrintStart: {
-        auto skip_if_able = static_cast<marlin_server::PreviewSkipIfAble>(data[0] - '0');
-        assert(skip_if_able < marlin_server::PreviewSkipIfAble::_count);
-        print_start(data + 1, skip_if_able);
+    case Request::Type::PrintStart:
+        print_start(request.print_start.filename, request.print_start.skip_preview);
         return true;
-    }
-    case Msg::PrintReady:
+    case Request::Type::PrintReady:
         gui_ready_to_print();
         return true;
-    case Msg::GuiCantPrint:
+    case Request::Type::GuiCantPrint:
         gui_cant_print();
         return true;
-    case Msg::PrintAbort:
+    case Request::Type::PrintAbort:
         print_abort();
         return true;
-    case Msg::PrintPause:
+    case Request::Type::PrintPause:
         print_pause();
         return true;
-    case Msg::PrintResume:
+    case Request::Type::PrintResume:
         print_resume();
         return true;
-    case Msg::PrintExit:
+    case Request::Type::PrintExit:
         print_exit();
         return true;
-    case Msg::Park:
+    case Request::Type::Park:
         park_head();
         return true;
-    case Msg::KnobMove:
+    case Request::Type::KnobMove:
         ++server.knob_move_counter;
         return true;
-    case Msg::KnobClick:
+    case Request::Type::KnobClick:
         ++server.knob_click_counter;
         return true;
-    case Msg::FSM:
-        if (sscanf(data, "%d", &ival) != 1) {
-            return false;
-        }
-        ClientResponseHandler::SetResponse(ival);
+    case Request::Type::FSM:
+        ClientResponseHandler::SetResponse(request.fsm);
         return true;
-    case Msg::EventMask:
-        if (sscanf(data, "%08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1) != 2) {
-            return false;
-        }
-        server.notify_events[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
+    case Request::Type::EventMask:
+        server.notify_events[client_id] = request.event_mask;
         // Send Event::MediaInserted event if media currently inserted
         // This is temporary solution, Event::MediaInserted and Event::MediaRemoved events are replaced
         // with variable media_inserted, but some parts of application still using the events.
@@ -2789,68 +2750,31 @@ bool _process_server_valid_request(const char *request, int client_id) {
             server.client_events[client_id] |= make_mask(Event::MediaInserted);
         }
         return true;
-    case Msg::TestStart: {
-        // FIXME: Replace uint16t and SCNx16 with uint8_t and SCNx8
-        // There might be a bug in a compiler or its implementation of sscanf,
-        // because when data is "00000200 00000000 00 00000000" it will stop after
-        // SCNx8 and it doesn't continue the scan. Just increasing the variable size
-        // fixes the issue and I don't know why, because "00" should be valid 8bit
-        // value and there should be any issues. Also it doesn't make sense to increase
-        // the variable when printfing the pattern since we will never have more then
-        // 256 types selftests.
-        uint16_t index = 0;
-        uint32_t raw_test_data = 0;
-        if (sscanf(data, "%08" SCNx32 " %08" SCNx32 " %02" SCNx16 " %08" SCNx32, msk32 + 0, msk32 + 1, &index, &raw_test_data) != 4) {
-            return false;
-        }
-        // start selftest
-        marlin_server::test_start(msk32[0] + (((uint64_t)msk32[1]) << 32), selftest::deserialize_test_data_from_int(index, raw_test_data));
+    case Request::Type::TestStart:
+        marlin_server::test_start(
+            request.test_start.test_mask,
+            selftest::deserialize_test_data_from_int(request.test_start.test_data_index, request.test_start.test_data_data));
         return true;
-    }
-    case Msg::TestAbort:
+    case Request::Type::TestAbort:
         test_abort();
         return true;
-    case Msg::Move: {
-        float offs;
-        float fval;
-        unsigned int uival;
-        if (sscanf(data, "%f %f %u", &offs, &fval, &uival) != 3) {
-            return false;
-        }
-        move_axis(offs, MMM_TO_MMS(fval), uival);
+    case Request::Type::Move:
+        move_axis(request.move.position, MMM_TO_MMS(request.move.feedrate), request.move.axis);
         return true;
-    }
-    case Msg::MoveMultiple: {
-        xyz_float_t position;
-        float feedrate;
-        if (sscanf(data, "%f %f %f %f", &position[0], &position[1], &position[2], &feedrate) != 4) {
-            return false;
-        }
+    case Request::Type::MoveMultiple: {
+        xyz_float_t position = { .pos = { request.move_multiple.x, request.move_multiple.y, request.move_multiple.z } };
+        float feedrate = request.move_multiple.feedrate;
         move_xyz_axes_to(position, MMM_TO_MMS(feedrate));
         return true;
     }
-    default:
-        bsod_unknown_request(request);
     }
-    return false;
+    bsod("Unknown request %d", ftrstd::to_underlying(request.type));
 }
 
-// process request on server side
-// Message consists of
-//   1) client ID : char
-//   2) '!'
-//   3) message ID : char
-//   4) data (rest of the message, optional)
-// Example of messages: "2!R" or "0!PA546F18B 5D391C83"
-static bool _process_server_request(const ServerQueueItem &server_queue_item) {
-    const char *request = server_queue_item.request;
-    const int client_id = server_queue_item.client_id - '0';
-    if ((client_id < 0) || (client_id >= MARLIN_MAX_CLIENTS)) {
+static bool _process_server_request(const Request &request) {
+    const uint8_t client_id = request.client_id;
+    if (client_id >= MARLIN_MAX_CLIENTS) {
         return true;
-    }
-
-    if (strlen(request) < 2 || request[0] != '!') {
-        bsod_unknown_request(request);
     }
 
     const bool processed = _process_server_valid_request(request, client_id);
@@ -2867,48 +2791,40 @@ static bool _process_server_request(const ServerQueueItem &server_queue_item) {
 }
 
 // set variable from string request
-static void _server_set_var(const char *const request) {
-    const char *request_end = request + MARLIN_MAX_REQUEST; // todo: this is not exactly correct, but we don't know the correct length anymore
-
-    uintptr_t variable_identifier;
-    auto [request_value, error] = std::from_chars(request, request_end, variable_identifier);
-    if (error != std::errc {}) {
-        bsod("_server_set_var: identifier");
-    }
-    // skip space after variable_identifier
-    request_value += 1;
+static void _server_set_var(const Request &request) {
+    const uintptr_t variable_identifier = request.set_variable.variable;
 
     // Set normal (non-extruder) variables
     if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->target_bed)) {
-        marlin_vars()->target_bed.from_string(request_value, request_end);
+        marlin_vars()->target_bed = request.set_variable.float_value;
         thermalManager.setTargetBed(marlin_vars()->target_bed);
         return;
     }
     if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->z_offset)) {
-        marlin_vars()->z_offset.from_string(request_value, request_end);
+        marlin_vars()->z_offset = request.set_variable.float_value;
 #if HAS_BED_PROBE
         probe_offset.z = marlin_vars()->z_offset;
 #endif // HAS_BED_PROBE
         return;
     }
     if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->print_fan_speed)) {
-        marlin_vars()->print_fan_speed.from_string(request_value, request_end);
+        marlin_vars()->print_fan_speed = request.set_variable.uint32_value;
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, marlin_vars()->print_fan_speed);
 #endif
         return;
     }
     if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->print_speed)) {
-        marlin_vars()->print_speed.from_string(request_value, request_end);
+        marlin_vars()->print_speed = request.set_variable.uint32_value;
         feedrate_percentage = (int16_t)marlin_vars()->print_speed;
         return;
     }
     if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->fan_check_enabled)) {
-        marlin_vars()->fan_check_enabled.from_string(request_value, request_end);
+        marlin_vars()->fan_check_enabled = request.set_variable.uint32_value;
         return;
     }
     if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->fs_autoload_enabled)) {
-        marlin_vars()->fs_autoload_enabled.from_string(request_value, request_end);
+        marlin_vars()->fs_autoload_enabled = request.set_variable.uint32_value;
         return;
     }
 
@@ -2916,7 +2832,7 @@ static void _server_set_var(const char *const request) {
     HOTEND_LOOP() {
         auto &extruder = marlin_vars()->hotend(e);
         if (reinterpret_cast<uintptr_t>(&extruder.target_nozzle) == variable_identifier) {
-            extruder.target_nozzle.from_string(request_value, request_end);
+            extruder.target_nozzle = request.set_variable.float_value;
 
             // if print is paused we want to change the resume temp and turn off timeout
             // this prevents going back to temperature before pause and enables to heat nozzle during pause
@@ -2927,12 +2843,12 @@ static void _server_set_var(const char *const request) {
             thermalManager.setTargetHotend(extruder.target_nozzle, e);
             return;
         } else if (reinterpret_cast<uintptr_t>(&extruder.flow_factor) == variable_identifier) {
-            extruder.flow_factor.from_string(request_value, request_end);
+            extruder.flow_factor = request.set_variable.uint32_value;
             planner.flow_percentage[e] = (int16_t)extruder.flow_factor;
             planner.refresh_e_factor(e);
             return;
         } else if (reinterpret_cast<uintptr_t>(&extruder.display_nozzle) == variable_identifier) {
-            extruder.display_nozzle.from_string(request_value, request_end);
+            extruder.display_nozzle = request.set_variable.float_value;
             return;
         }
     }
@@ -3044,12 +2960,6 @@ uint8_t get_var_sd_percent_done() {
 
 void set_var_sd_percent_done(uint8_t value) {
     marlin_vars()->sd_percent_done = value;
-}
-
-void marlin_msg_to_str(const marlin_server::Msg id, char *str) {
-    str[0] = '!';
-    str[1] = ftrstd::to_underlying(id);
-    str[2] = 0;
 }
 
 } // namespace marlin_server
