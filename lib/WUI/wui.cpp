@@ -220,7 +220,7 @@ private:
         iface->flags |= NETIF_FLAG_IGMP;
         igmp_start(iface);
         //  TODO: Any way to handle errors? Can they even happen?
-        mdns_resp_add_netif(iface, iface->hostname);
+        mdns_resp_add_netif(iface);
         if (config_store().prusalink_enabled.get() == 1) {
             mdns_resp_add_service_prusalink(iface);
         }

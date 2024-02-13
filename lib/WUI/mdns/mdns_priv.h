@@ -198,8 +198,6 @@ typedef enum {
 
 /** Description of a host/netif */
 struct mdns_host {
-    /** Hostname */
-    char name[MDNS_LABEL_MAXLEN + 1];
     /** Pointer to services */
     const struct mdns_service *services[MDNS_MAX_SERVICES];
     /** Number of probes/announces sent for the current name */

@@ -280,7 +280,7 @@ check_host(struct netif *netif, struct mdns_rr_info *rr, u8_t *reverse_v6_reply)
     #endif
     }
 
-    res = mdns_build_host_domain(&mydomain, NETIF_TO_HOST(netif));
+    res = mdns_build_host_domain(&mydomain, netif->hostname);
     /* Handle requests for our hostname */
     if (res == ERR_OK && mdns_domain_eq(&rr->domain, &mydomain)) {
         /* TODO return NSEC if unsupported protocol requested */
@@ -1073,7 +1073,7 @@ mdns_parse_pkt_questions(struct netif *netif, struct mdns_packet *pkt,
             if (!service) {
                 continue;
             }
-            reply->serv_replies[i] |= check_service(service, &q.info, mdns->name);
+            reply->serv_replies[i] |= check_service(service, &q.info, netif->hostname);
         }
     }
 
@@ -1129,7 +1129,7 @@ mdns_parse_pkt_known_answers(struct netif *netif, struct mdns_packet *pkt,
                 struct mdns_domain known_ans, my_ans;
                 u16_t len;
                 len = mdns_readname(pkt->pbuf, ans.rd_offset, &known_ans);
-                res = mdns_build_host_domain(&my_ans, mdns);
+                res = mdns_build_host_domain(&my_ans, netif->hostname);
                 if (len != MDNS_READNAME_ERROR && res == ERR_OK && mdns_domain_eq(&known_ans, &my_ans)) {
     #if LWIP_IPV4
                     if (match & REPLY_HOST_PTR_V4) {
@@ -1171,7 +1171,7 @@ mdns_parse_pkt_known_answers(struct netif *netif, struct mdns_packet *pkt,
             if (!service) {
                 continue;
             }
-            match = reply->serv_replies[i] & check_service(service, &ans.info, mdns->name);
+            match = reply->serv_replies[i] & check_service(service, &ans.info, netif->hostname);
             if (match & REPLY_SERVICE_TYPE_PTR) {
                 rr_ttl = MDNS_TTL_4500;
             }
@@ -1194,7 +1194,7 @@ mdns_parse_pkt_known_answers(struct netif *netif, struct mdns_packet *pkt,
                             }
                         }
                         if (match & REPLY_SERVICE_NAME_PTR) {
-                            res = mdns_build_service_domain(&my_ans, service, mdns->name);
+                            res = mdns_build_service_domain(&my_ans, service, netif->hostname);
                             if (res == ERR_OK && mdns_domain_eq(&known_ans, &my_ans)) {
                                 LWIP_DEBUGF(MDNS_DEBUG, ("MDNS: Skipping known answer: service name PTR\n"));
                                 reply->serv_replies[i] &= ~REPLY_SERVICE_NAME_PTR;
@@ -1227,7 +1227,7 @@ mdns_parse_pkt_known_answers(struct netif *netif, struct mdns_packet *pkt,
                         read_pos += len;
                         /* Check host field */
                         len = mdns_readname(pkt->pbuf, read_pos, &known_ans);
-                        mdns_build_host_domain(&my_ans, mdns);
+                        mdns_build_host_domain(&my_ans, netif->hostname);
                         if (len == MDNS_READNAME_ERROR || !mdns_domain_eq(&known_ans, &my_ans)) {
                             break;
                         }
@@ -1297,7 +1297,7 @@ mdns_parse_pkt_authoritative_answers(struct netif *netif, struct mdns_packet *pk
             if (!service) {
                 continue;
             }
-            match = reply->serv_replies[i] & check_service(service, &ans.info, mdns->name);
+            match = reply->serv_replies[i] & check_service(service, &ans.info, netif->hostname);
 
             if (match) {
                 reply->probe_query_recv = 1;
@@ -1875,7 +1875,7 @@ mdns_handle_response(struct mdns_packet *pkt, struct netif *netif) {
             struct mdns_domain domain;
             u8_t i;
 
-            res = mdns_build_host_domain(&domain, mdns);
+            res = mdns_build_host_domain(&domain, netif->hostname);
             if (res == ERR_OK && mdns_domain_eq(&ans.info.domain, &domain)) {
                 LWIP_DEBUGF(MDNS_DEBUG, ("MDNS: Probe response matches host domain!\n"));
                 mdns_probe_conflict(netif, 0);
@@ -1887,7 +1887,7 @@ mdns_handle_response(struct mdns_packet *pkt, struct netif *netif) {
                 if (!service) {
                     continue;
                 }
-                res = mdns_build_service_domain(&domain, service, mdns->name);
+                res = mdns_build_service_domain(&domain, service, netif->hostname);
                 if ((res == ERR_OK) && mdns_domain_eq(&ans.info.domain, &domain)) {
                     LWIP_DEBUGF(MDNS_DEBUG, ("MDNS: Probe response matches service domain!\n"));
                     mdns_probe_conflict(netif, i + 1);
@@ -1912,7 +1912,7 @@ mdns_handle_response(struct mdns_packet *pkt, struct netif *netif) {
             u8_t conflict = 0;
 
             /* Evaluate unique hostname records -> A and AAAA */
-            res = mdns_build_host_domain(&domain, mdns);
+            res = mdns_build_host_domain(&domain, netif->hostname);
             if (res == ERR_OK && mdns_domain_eq(&ans.info.domain, &domain)) {
                 LWIP_DEBUGF(MDNS_DEBUG, ("mDNS: response matches host domain, assuming conflict\n"));
                 /* This means a conflict has taken place, except when the packet contains
@@ -1945,7 +1945,7 @@ mdns_handle_response(struct mdns_packet *pkt, struct netif *netif) {
                 if (!service) {
                     continue;
                 }
-                res = mdns_build_service_domain(&domain, service, mdns->name);
+                res = mdns_build_service_domain(&domain, service, netif->hostname);
                 if ((res == ERR_OK) && mdns_domain_eq(&ans.info.domain, &domain)) {
                     LWIP_DEBUGF(MDNS_DEBUG, ("mDNS: response matches service domain, assuming conflict\n"));
                     /* This means a conflict has taken place, except when the packet contains
@@ -1978,7 +1978,7 @@ mdns_handle_response(struct mdns_packet *pkt, struct netif *netif) {
                             read_pos += len;
                             /* Check host field */
                             len = mdns_readname(pkt->pbuf, read_pos, &srv_ans);
-                            mdns_build_host_domain(&my_ans, mdns);
+                            mdns_build_host_domain(&my_ans, netif->hostname);
                             if (len == MDNS_READNAME_ERROR || !mdns_domain_eq(&srv_ans, &my_ans)) {
                                 break;
                             }
@@ -2291,21 +2291,19 @@ mdns_probe_and_announce(void *arg) {
  *                 given pointer can be on the stack.
  * @return ERR_OK if netif was added, an err_t otherwise
  */
-err_t mdns_resp_add_netif(struct netif *netif, const char *hostname) {
+err_t mdns_resp_add_netif(struct netif *netif) {
     err_t res;
     struct mdns_host *mdns;
 
     LWIP_ASSERT_CORE_LOCKED();
     LWIP_ERROR("mdns_resp_add_netif: netif != NULL", (netif != NULL), return ERR_VAL);
-    LWIP_ERROR("mdns_resp_add_netif: Hostname too long", (strlen(hostname) <= MDNS_LABEL_MAXLEN), return ERR_VAL);
 
     LWIP_ASSERT("mdns_resp_add_netif: Double add", NETIF_TO_HOST(netif) == NULL);
+    static_assert(sizeof(struct mdns_host) <= 128); // We want to fit into the smaller mempool bucket
     mdns = (struct mdns_host *)mem_calloc(1, sizeof(struct mdns_host));
     LWIP_ERROR("mdns_resp_add_netif: Alloc failed", (mdns != NULL), return ERR_MEM);
 
     netif_set_client_data(netif, mdns_netif_client_id, mdns);
-
-    MEMCPY(&mdns->name, hostname, LWIP_MIN(MDNS_LABEL_MAXLEN, strlen(hostname)));
 
     /* Init delayed message structs with address and port */
     #if LWIP_IPV4
@@ -2388,6 +2386,7 @@ err_t mdns_resp_remove_netif(struct netif *netif) {
     return ERR_OK;
 }
 
+    #if 0
 /**
  * @ingroup mdns
  * Update MDNS hostname for a network interface.
@@ -2415,6 +2414,7 @@ err_t mdns_resp_rename_netif(struct netif *netif, const char *hostname) {
 
     return ERR_OK;
 }
+    #endif
 
 /**
  * @ingroup mdns

@@ -108,7 +108,7 @@ void mdns_resp_init(void);
 
 void mdns_resp_register_name_result_cb(mdns_name_result_cb_t cb);
 
-err_t mdns_resp_add_netif(struct netif *netif, const char *hostname);
+err_t mdns_resp_add_netif(struct netif *netif);
 err_t mdns_resp_remove_netif(struct netif *netif);
 err_t mdns_resp_rename_netif(struct netif *netif, const char *hostname);
 int mdns_resp_netif_active(struct netif *netif);

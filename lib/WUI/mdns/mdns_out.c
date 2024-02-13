@@ -225,10 +225,10 @@ mdns_add_answer(struct mdns_outpacket *reply, struct mdns_domain *domain,
 /** Write an ANY host question to outpacket */
 static err_t
 mdns_add_any_host_question(struct mdns_outpacket *outpkt,
-    struct mdns_host *mdns,
-    u16_t request_unicast_reply) {
+    u16_t request_unicast_reply,
+    const char *name) {
     struct mdns_domain host;
-    mdns_build_host_domain(&host, mdns);
+    mdns_build_host_domain(&host, name);
     LWIP_DEBUGF(MDNS_DEBUG, ("MDNS: Adding host question for ANY type\n"));
     return mdns_add_question(outpkt, &host, DNS_RRTYPE_ANY, DNS_RRCLASS_IN,
         request_unicast_reply);
@@ -254,7 +254,7 @@ mdns_add_a_answer(struct mdns_outpacket *reply, struct mdns_outmsg *msg,
     err_t res;
     u32_t ttl = MDNS_TTL_120;
     struct mdns_domain host;
-    mdns_build_host_domain(&host, netif_mdns_data(netif));
+    mdns_build_host_domain(&host, netif->hostname);
     /* When answering to a legacy querier, we need to repeat the question and
      * limit the ttl to the short legacy ttl */
     if (msg->legacy_query) {
@@ -284,7 +284,7 @@ mdns_add_hostv4_ptr_answer(struct mdns_outpacket *reply, struct mdns_outmsg *msg
     err_t res;
     u32_t ttl = MDNS_TTL_120;
     struct mdns_domain host, revhost;
-    mdns_build_host_domain(&host, netif_mdns_data(netif));
+    mdns_build_host_domain(&host, netif->hostname);
     mdns_build_reverse_v4_domain(&revhost, netif_ip4_addr(netif));
     /* When answering to a legacy querier, we need to repeat the question and
      * limit the ttl to the short legacy ttl */
@@ -433,13 +433,13 @@ mdns_add_servicename_ptr_answer(struct mdns_outpacket *reply, struct mdns_outmsg
 /** Write a SRV RR to outpacket */
 static err_t
 mdns_add_srv_answer(struct mdns_outpacket *reply, struct mdns_outmsg *msg,
-    struct mdns_host *mdns, const struct mdns_service *service) {
+    const struct mdns_service *service, const char *name) {
     err_t res;
     u32_t ttl = MDNS_TTL_120;
     struct mdns_domain service_instance, srvhost;
     u16_t srvdata[3];
-    mdns_build_service_domain(&service_instance, service, mdns->name);
-    mdns_build_host_domain(&srvhost, mdns);
+    mdns_build_service_domain(&service_instance, service, name);
+    mdns_build_host_domain(&srvhost, name);
     if (msg->legacy_query) {
         /* RFC 6762 section 18.14:
          * In legacy unicast responses generated to answer legacy queries,
@@ -510,7 +510,7 @@ mdns_add_probe_questions_to_outpacket(struct mdns_outpacket *outpkt, struct mdns
 
     /* Write host questions (probing or legacy query) */
     if (msg->host_questions & QUESTION_PROBE_HOST_ANY) {
-        res = mdns_add_any_host_question(outpkt, mdns, 1);
+        res = mdns_add_any_host_question(outpkt, 1, netif->hostname);
         if (res != ERR_OK) {
             return res;
         }
@@ -523,7 +523,7 @@ mdns_add_probe_questions_to_outpacket(struct mdns_outpacket *outpkt, struct mdns
             continue;
         }
         if (msg->serv_questions[i] & QUESTION_PROBE_SERVICE_NAME_ANY) {
-            res = mdns_add_any_service_question(outpkt, service, 1, mdns->name);
+            res = mdns_add_any_service_question(outpkt, service, 1, netif->hostname);
             if (res != ERR_OK) {
                 return res;
             }
@@ -643,7 +643,7 @@ err_t mdns_create_outpacket(struct netif *netif, struct mdns_outmsg *msg,
         }
 
         if (msg->serv_replies[i] & REPLY_SERVICE_NAME_PTR) {
-            res = mdns_add_servicename_ptr_answer(outpkt, msg, service, mdns->name);
+            res = mdns_add_servicename_ptr_answer(outpkt, msg, service, netif->hostname);
             if (res != ERR_OK) {
                 return res;
             }
@@ -651,7 +651,7 @@ err_t mdns_create_outpacket(struct netif *netif, struct mdns_outmsg *msg,
         }
 
         if (msg->serv_replies[i] & REPLY_SERVICE_SRV) {
-            res = mdns_add_srv_answer(outpkt, msg, mdns, service);
+            res = mdns_add_srv_answer(outpkt, msg, service, netif->hostname);
             if (res != ERR_OK) {
                 return res;
             }
@@ -659,7 +659,7 @@ err_t mdns_create_outpacket(struct netif *netif, struct mdns_outmsg *msg,
         }
 
         if (msg->serv_replies[i] & REPLY_SERVICE_TXT) {
-            res = mdns_add_txt_answer(outpkt, msg, service, mdns->name);
+            res = mdns_add_txt_answer(outpkt, msg, service, netif->hostname);
             if (res != ERR_OK) {
                 return res;
             }
@@ -686,7 +686,7 @@ err_t mdns_create_outpacket(struct netif *netif, struct mdns_outmsg *msg,
             /* Our service instance requested, include SRV & TXT
              * if they are already not requested. */
             if (!(msg->serv_replies[i] & REPLY_SERVICE_SRV)) {
-                res = mdns_add_srv_answer(outpkt, msg, mdns, service);
+                res = mdns_add_srv_answer(outpkt, msg, service, netif->hostname);
                 if (res != ERR_OK) {
                     return res;
                 }
@@ -694,7 +694,7 @@ err_t mdns_create_outpacket(struct netif *netif, struct mdns_outmsg *msg,
             }
 
             if (!(msg->serv_replies[i] & REPLY_SERVICE_TXT)) {
-                res = mdns_add_txt_answer(outpkt, msg, service, mdns->name);
+                res = mdns_add_txt_answer(outpkt, msg, service, netif->hostname);
                 if (res != ERR_OK) {
                     return res;
                 }
