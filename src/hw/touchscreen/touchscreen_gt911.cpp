@@ -260,7 +260,37 @@ void Touchscreen_GT911::update_impl(TouchState &touch_state) {
             write_data(register_touch_status, &data, 1);
         };
 
+        touch_event_update_count_++;
+
         touch_point_count = std::min<uint8_t>((touch_status & 0xf), max_touch_point_count);
+        if (touch_point_count > 0 && !touch_start_ms_) {
+            touch_start_ms_ = now;
+
+        } else if (touch_point_count == 0 && touch_start_ms_) {
+            const auto touch_duration_ms = ticks_diff(now, touch_start_ms_);
+
+            // Detection code for ghost touch events caused by EMC
+            // These values were empirically sucked out of my thumb as a part of BFW-5073
+            if (
+                (touch_duration_ms < 15) || //
+                (touch_duration_ms > 15 && touch_duration_ms < 35 && touch_event_update_count_ != 4) //
+            ) {
+                // Invalidate the current exture
+                touch_state.invalidate = true;
+
+                // Stop receiving touch events for some time
+                last_update_ms_ = now + 5000;
+
+                log_info(Touch, "EMC DETECTED TDUR %li UPD %li", touch_duration_ms, touch_event_update_count_);
+                metric_record_string(metric_touch_event(), "emc_detected");
+                metric_record_string(metric_touch_event(), "emc_detected td=%li uc=%li", touch_duration_ms, touch_event_update_count_);
+            }
+            // log_info(Touch, "TDUR %i UPD %i", touch_duration_ms, touch_event_update_count_);
+
+            touch_start_ms_ = 0;
+            touch_event_update_count_ = 0;
+        }
+
         touch_state.multitouch_point_count = touch_point_count;
 
         if (touch_point_count < 0) {

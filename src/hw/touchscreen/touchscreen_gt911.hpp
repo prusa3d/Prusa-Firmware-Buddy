@@ -72,5 +72,12 @@ private:
     uint32_t total_read_error_count_ = 0;
     uint32_t consecutive_read_error_count_ = 0;
     uint32_t last_update_ms_ = 0;
+
+    /// Timestamp of when the touch event started
+    uint32_t touch_start_ms_ = 0;
+
+    /// How many updates there have been since the touch event started
+    uint32_t touch_event_update_count_ = 0;
+
     RecoveryAction required_recovery_action_ = RecoveryAction::none;
 };
