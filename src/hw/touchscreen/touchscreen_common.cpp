@@ -54,25 +54,32 @@ void Touchscreen_Base::update() {
     }
 
     TouchState touch_state = last_touch_state_;
+    touch_state.invalidate = false;
     update_impl(touch_state);
 
     if (touch_state.multitouch_point_count > 0) {
         metric_record_custom(&metric_touch_pos, " x=%i,y=%i", touch_state.multitouch_points[0].position.x, touch_state.multitouch_points[0].position.y);
     }
 
+    // Gesture reported as invalid -> invalidate
+    if (touch_state.invalidate) {
+        gesture_recognition_state_ = GestureRecognitionState::invalid;
+    }
+
     // Touch start -> set up gesture recognition
-    if (touch_state.multitouch_point_count == 1 && gesture_recognition_state_ == GestureRecognitionState::idle) {
+    else if (touch_state.multitouch_point_count == 1 && gesture_recognition_state_ == GestureRecognitionState::idle) {
         gesture_recognition_state_ = GestureRecognitionState::active;
         gesture_start_pos_ = touch_state.multitouch_points[0].position;
+    }
 
-    } else if (touch_state.multitouch_point_count > 1) {
-        // Multiple touch points -> invalid gesture state
+    // Multiple touch points -> invalid gesture state
+    else if (touch_state.multitouch_point_count > 1) {
         gesture_recognition_state_ = GestureRecognitionState::invalid;
+    }
 
-    } else if (touch_state.multitouch_point_count == 0 && gesture_recognition_state_ != GestureRecognitionState::idle) {
+    // Touch end - recognize gesture
+    else if (touch_state.multitouch_point_count == 0 && gesture_recognition_state_ != GestureRecognitionState::idle) {
         recognize_gesture();
-
-        // Touch end - recognize gesture
         gesture_recognition_state_ = GestureRecognitionState::idle;
     }
 

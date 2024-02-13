@@ -75,6 +75,10 @@ protected:
     struct TouchState {
         TouchPointDataArray multitouch_points;
         size_t multitouch_point_count = 0;
+
+        /// Marks that the touch has been deemed invalid and no events should be emitted
+        /// This is used for discarding events caused by an EMC noise
+        bool invalidate : 1 = false;
     };
 
 protected:
