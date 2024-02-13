@@ -9,7 +9,7 @@
 # ELECTRICAL     xx3xx   # Electrical - TMC non-temperature-related errors
 # CONNECTIVITY   xx4xx   # Connectivity - UART/RS485 connectivity
 # SYSTEM         xx5xx   # System - internal MMU errors
-# BOOTLOADER     xx6xx   #
+# BOOTLOADER     xx6xx   # Bootloader related issues
 # WARNINGS       xx7xx   # Category-less warnings
 #
 # for TMC-related errors the decimal digit specifies the TMC/motor in question:
@@ -36,6 +36,7 @@ Errors:
   action: [Retry]
   id: "FINDA_FILAMENT_STUCK"
   approved: true
+  type: WARNING
 
 - code: "04103"
   title: "FSENSOR DIDNT TRIGG."
@@ -43,6 +44,7 @@ Errors:
   action: [Retry]
   id: "FSENSOR_DIDNT_TRIGGER"
   approved: true
+  type: WARNING
 
 - code: "04104"
   title: "FSENSOR FIL. STUCK"
@@ -50,6 +52,7 @@ Errors:
   action: [Retry]
   id: "FSENSOR_FILAMENT_STUCK"
   approved: true
+  type: WARNING
 
 - code: "04105"
   title: "PULLEY CANNOT MOVE"
@@ -57,6 +60,7 @@ Errors:
   action: [Retry]
   id: "PULLEY_CANNOT_MOVE"
   approved: true
+  type: WARNING
 
 - code: "04106"
   title: "FSENSOR TOO EARLY"
@@ -64,6 +68,7 @@ Errors:
   action: [Retry]
   id: "FSENSOR_TOO_EARLY"
   approved: true
+  type: WARNING
 
 - code: "04107"
   title: "INSPECT FINDA"
@@ -71,6 +76,7 @@ Errors:
   action: [Retry]
   id: "INSPECT_FINDA"
   approved: true
+  type: WARNING
 
 - code: "04108"
   title: "LOAD TO EXTR. FAILED"
@@ -78,6 +84,7 @@ Errors:
   action: [Continue]
   id: "LOAD_TO_EXTRUDER_FAILED"
   approved: true
+  type: WARNING
 
 - code: "04115"
   title: "SELECTOR CANNOT HOME"
@@ -85,6 +92,7 @@ Errors:
   action: [Retry]
   id: "SELECTOR_CANNOT_HOME"
   approved: true
+  type: WARNING
 
 - code: "04116"
   title: "SELECTOR CANNOT MOVE"
@@ -92,6 +100,7 @@ Errors:
   action: [Retry]
   id: "SELECTOR_CANNOT_MOVE"
   approved: true
+  type: WARNING
 
 - code: "04125"
   title: "IDLER CANNOT HOME"
@@ -99,6 +108,7 @@ Errors:
   action: [Retry]
   id: "IDLER_CANNOT_HOME"
   approved: true
+  type: WARNING
 
 - code: "04126"
   title: "IDLER CANNOT MOVE"
@@ -106,6 +116,7 @@ Errors:
   action: [Retry]
   id: "IDLER_CANNOT_MOVE"
   approved: true
+  type: WARNING
 
 # TEMPERATURE    xx2xx   # Temperature measurement
 - code: "04201"
@@ -124,6 +135,7 @@ Errors:
   action: [Continue,ResetMMU]
   id: "WARNING_TMC_SELECTOR_TOO_HOT"
   approved: true
+  type: ERROR
 
 - code: "04221"
   title: "WARNING TMC TOO HOT"
@@ -132,6 +144,7 @@ Errors:
   action: [Continue,ResetMMU]
   id: "WARNING_TMC_IDLER_TOO_HOT"
   approved: true
+  type: ERROR
 
 - code: "04202"
   title: "TMC OVERHEAT ERROR"
@@ -140,6 +153,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_PULLEY_OVERHEAT_ERROR"
   approved: true
+  type: ERROR
 
 - code: "04212"
   title: "TMC OVERHEAT ERROR"
@@ -148,6 +162,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_SELECTOR_OVERHEAT_ERROR"
   approved: true
+  type: ERROR
 
 - code: "04222"
   title: "TMC OVERHEAT ERROR"
@@ -156,6 +171,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_IDLER_OVERHEAT_ERROR"
   approved: true
+  type: ERROR
 
 # ELECTRICAL     xx3xx
 - code: "04301"
@@ -165,6 +181,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_PULLEY_DRIVER_ERROR"
   approved: true
+  type: ERROR
 
 - code: "04311"
   title: "TMC DRIVER ERROR"
@@ -173,6 +190,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_SELECTOR_DRIVER_ERROR"
   approved: true
+  type: ERROR
 
 - code: "04321"
   title: "TMC DRIVER ERROR"
@@ -181,6 +199,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_IDLER_DRIVER_ERROR"
   approved: true
+  type: ERROR
 
 - code: "04302"
   title: "TMC DRIVER RESET"
@@ -189,6 +208,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_PULLEY_DRIVER_RESET"
   approved: true
+  type: ERROR
 
 - code: "04312"
   title: "TMC DRIVER RESET"
@@ -197,6 +217,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_SELECTOR_DRIVER_RESET"
   approved: true
+  type: ERROR
 
 - code: "04322"
   title: "TMC DRIVER RESET"
@@ -205,6 +226,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_IDLER_DRIVER_RESET"
   approved: true
+  type: ERROR
 
 - code: "04303"
   title: "TMC UNDERVOLTAGE ERR"
@@ -213,6 +235,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_PULLEY_UNDERVOLTAGE_ERROR"
   approved: true
+  type: ERROR
 
 - code: "04313"
   title: "TMC UNDERVOLTAGE ERR"
@@ -221,6 +244,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_SELECTOR_UNDERVOLTAGE_ERROR"
   approved: true
+  type: ERROR
 
 - code: "04323"
   title: "TMC UNDERVOLTAGE ERR"
@@ -229,6 +253,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_IDLER_UNDERVOLTAGE_ERROR"
   approved: true
+  type: ERROR
 
 - code: "04304"
   title: "TMC DRIVER SHORTED"
@@ -237,6 +262,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_PULLEY_DRIVER_SHORTED"
   approved: true
+  type: ERROR
 
 - code: "04314"
   title: "TMC DRIVER SHORTED"
@@ -245,6 +271,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_SELECTOR_DRIVER_SHORTED"
   approved: true
+  type: ERROR
 
 - code: "04324"
   title: "TMC DRIVER SHORTED"
@@ -253,6 +280,7 @@ Errors:
   action: [ResetMMU]
   id: "TMC_IDLER_DRIVER_SHORTED"
   approved: true
+  type: ERROR
 
 - code: "04305"
   title: "MMU SELFTEST FAILED"
@@ -261,6 +289,7 @@ Errors:
   action: [ResetMMU]
   id: "MMU_PULLEY_SELFTEST_FAILED"
   approved: true
+  type: ERROR
 
 - code: "04315"
   title: "MMU SELFTEST FAILED"
@@ -269,6 +298,7 @@ Errors:
   action: [ResetMMU]
   id: "MMU_SELECTOR_SELFTEST_FAILED"
   approved: true
+  type: ERROR
 
 - code: "04325"
   title: "MMU SELFTEST FAILED"
@@ -277,6 +307,7 @@ Errors:
   action: [ResetMMU]
   id: "MMU_IDLER_SELFTEST_FAILED"
   approved: true
+  type: ERROR
 
 - code: "04306"
   title: "MMU MCU ERROR"
@@ -285,6 +316,7 @@ Errors:
   action: [ResetMMU]
   id: "MCU_POWER_ERROR"
   approved: true
+  type: ERROR
 
 - code: "04307"
   title: "MMU MCU UNDERPOWER"
@@ -293,6 +325,7 @@ Errors:
   action: [ResetMMU]
   id: "MCU_UNDERVOLTAGE_VCC"
   approved: true
+  type: ERROR
 
 # CONNECTIVITY
 - code: "04401"
@@ -301,6 +334,7 @@ Errors:
   action: [ResetMMU,DisableMMU]
   id: "MMU_NOT_RESPONDING"
   approved: true
+  type: ERROR
 
 - code: "04402"
   title: "COMMUNICATION ERROR"
@@ -308,6 +342,7 @@ Errors:
   action: [ResetMMU,DisableMMU]
   id: "COMMUNICATION_ERROR"
   approved: true
+  type: ERROR
 
 # SYSTEM
 - code: "04501"
@@ -316,6 +351,7 @@ Errors:
   action: [Unload,Continue]
   id: "FILAMENT_ALREADY_LOADED"
   approved: true
+  type: WARNING
 
 - code: "04502"
   title: "INVALID TOOL"
@@ -323,6 +359,7 @@ Errors:
   action: [StopPrint,ResetMMU]
   id: "INVALID_TOOL"
   approved: true
+  type: ERROR
 
 - code: "04503"
   title: "QUEUE FULL"
@@ -330,6 +367,7 @@ Errors:
   action: [ResetMMU]
   id: "QUEUE_FULL"
   approved: true
+  type: ERROR
 
 - code: "04504"
   title: "MMU FW UPDATE NEEDED"
@@ -338,6 +376,7 @@ Errors:
   action: [ResetMMU,DisableMMU]
   id: "FW_UPDATE_NEEDED"
   approved: true
+  type: USER_ACTION
 
 - code: "04505"
   title: "FW RUNTIME ERROR"
@@ -345,6 +384,7 @@ Errors:
   action: [ResetMMU]
   id: "FW_RUNTIME_ERROR"
   approved: true
+  type: ERROR
 
 - code: "04506"
   title: "UNLOAD MANUALLY"
@@ -352,10 +392,12 @@ Errors:
   action: [Retry]
   id: "UNLOAD_MANUALLY"
   approved: true
+  type: USER_ACTION
 
 - code: "04507"
   title: "FILAMENT EJECTED"
-  text: "Remove the ejected filament from the front of the MMU."
+  text: "Remove the ejected filament from the front of the MMU.\n\nTip: Filament is automatically ejected when the end of the spool is reached."
+  text_short: "Remove the ejected filament from the front of the MMU."
   action: [Continue]
   id: "FILAMENT_EJECTED"
   approved: true
@@ -367,3 +409,4 @@ Errors:
   action: [ResetMMU]
   id: "UNKNOWN_ERROR"
   approved: false
+  type: ERROR
