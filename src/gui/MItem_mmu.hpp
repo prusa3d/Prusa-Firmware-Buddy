@@ -3,6 +3,7 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "WindowMenuInfo.hpp"
+#include "WindowItemFormatableLabel.hpp"
 #include "i18n.h"
 
 class MI_MMU_PRELOAD : public IWindowMenuItem {
@@ -394,4 +395,11 @@ public:
 
 protected:
     virtual void OnChange(size_t old_index) override;
+};
+
+class MI_INFO_FINDA : public WI_FORMATABLE_LABEL_t<bool> {
+    static constexpr const char *label = N_("FINDA");
+
+public:
+    MI_INFO_FINDA();
 };

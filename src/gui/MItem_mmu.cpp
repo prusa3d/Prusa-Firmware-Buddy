@@ -215,3 +215,18 @@ void MI_MMU_REWORK::OnChange([[maybe_unused]] size_t old_index) {
         Change(0); // revert the index change of the toggle in case the user aborted the dialog
     }
 };
+
+/*****************************************************************************/
+// MI_INFO_FINDA
+MI_INFO_FINDA::MI_INFO_FINDA()
+    : WI_FORMATABLE_LABEL_t<bool>(
+        _(label), nullptr, is_enabled_t::yes, MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes, false, [&](char *buffer) {
+            if (MMU2::mmu2.Enabled()) {
+                // TODO: change of visualization scheme is expected soon, some unification with fsensor visualization will happen as a result.
+                // For now, FINDA is visualized the same way like filament sensors' states
+                static constexpr char inserted[] = N_(" INS / 1");
+                static constexpr char notInserted[] = N_("NINS / 0");
+
+                _(value ? inserted : notInserted).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
+            } // else: when MMU is not active, the MI_INFO_FINDA item is hidden anyway, so no update is really needed
+        }) {}
