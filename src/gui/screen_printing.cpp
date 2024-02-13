@@ -130,6 +130,7 @@ constexpr auto arrow_left_res { &img::arrow_left_10x16 };
 
 constexpr size_t middle_of_buttons { 185 + 40 };
 constexpr Rect16 arrow_left_rect { column_left - arrow_left_res->w, middle_of_buttons - arrow_left_res->h / 2, arrow_left_res->w, arrow_left_res->h };
+constexpr Rect16 arrow_left_touch_rect = Rect16::AddPadding(arrow_left_rect, padding_t<int8_t> { 16, 16, 16, 16 });
 
 constexpr size_t rotating_circles_height { 5 };
 constexpr size_t rotating_circles_width { 35 };
@@ -346,6 +347,22 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     }
 
     if (p_state == printing_state_t::PRINTED && !shown_end_result) {
+        start_showing_end_result();
+        return;
+    }
+
+    // Touch swipe left/right toggles showing end result
+    if (event == GUI_event_t::TOUCH_SWIPE_LEFT || event == GUI_event_t::TOUCH_SWIPE_RIGHT) {
+        if (showing_end_result) {
+            stop_showing_end_result();
+        } else {
+            start_showing_end_result();
+        }
+        return;
+    }
+
+    // Clicking on the left arrow also shows end result
+    if (!showing_end_result && event == GUI_event_t::TOUCH_CLICK && arrow_left_touch_rect.Contain(event_conversion_union { .pvoid = param }.point)) {
         start_showing_end_result();
         return;
     }
