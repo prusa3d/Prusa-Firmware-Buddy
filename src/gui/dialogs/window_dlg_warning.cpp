@@ -5,23 +5,35 @@
 static constexpr int16_t iconSize = 48;
 
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
-static constexpr Rect16 layoutRect = { 16, 40, GuiDefaults::ScreenWidth - 16 * 2, 170 };
-static constexpr Rect16 textRect = Rect16(layoutRect.Left() + iconSize + 8, layoutRect.Top(), layoutRect.Width() - iconSize - 8, layoutRect.Height());
-
+static constexpr uint16_t side_padding = 16;
+static constexpr uint16_t top_padding = 40;
+static constexpr Rect16 textRect = { side_padding, top_padding + iconSize + 8, GuiDefaults::ScreenWidth - side_padding * 2, 170 - iconSize - 8 };
+static constexpr Rect16 textRectNoIcon = { side_padding, top_padding, GuiDefaults::ScreenWidth - side_padding * 2, 170 };
+static constexpr Rect16 iconRect = Rect16(GuiDefaults::ScreenWidth / 2 - iconSize / 2, top_padding, iconSize, iconSize);
 #else
-static constexpr Rect16 layoutRect = { 70, 90, 363, GuiDefaults::ScreenHeight - 90 - GuiDefaults::ButtonHeight };
-static constexpr Rect16 textRect = Rect16(layoutRect.Left() + iconSize + 15, layoutRect.Top(), 300, layoutRect.Height());
-
+static constexpr uint16_t side_padding = 70;
+static constexpr uint16_t top_padding = 90;
+static constexpr Rect16 textRect = Rect16(side_padding + iconSize + 15, top_padding, 300, GuiDefaults::ScreenHeight - top_padding - GuiDefaults::ButtonHeight);
+static constexpr Rect16 iconRect = Rect16(side_padding, top_padding, iconSize, iconSize);
 #endif
-
-static constexpr Rect16 iconRect = Rect16(layoutRect.Left(), layoutRect.Top(), iconSize, iconSize);
 
 DialogWarning::DialogWarning(fsm::BaseData data)
     : AddSuperWindow<IDialogMarlin>(GuiDefaults::RectScreenBody)
     , icon(this, iconRect, &img::warning_48x48)
-    , text(this, textRect, is_multiline::yes, is_closed_on_click_t::yes, _(icon_title_text[get_type(data)].text))
-    , button(this, GuiDefaults::GetButtonRect_AvoidFooter(GuiDefaults::RectScreenBody), PhasesWarning::Warning) {
+    , text(this, textRect, is_multiline::yes, is_closed_on_click_t::yes, _(icon_text[get_type(data)].text))
+    , button(this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), PhasesWarning::Warning) {
     CaptureNormalWindow(button);
+
+    if (icon_text[get_type(data)].icon) {
+        icon.SetRes(icon_text[get_type(data)].icon);
+    }
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+    // Lack of space on ST7789 -> long text warnings does not have icon
+    else {
+        icon.Hide();
+        text.SetRect(textRectNoIcon);
+    }
+#endif
 }
 
 DialogWarning::types DialogWarning::get_type(fsm::BaseData data) {

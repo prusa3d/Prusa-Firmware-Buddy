@@ -10,10 +10,8 @@
 #include <option/has_dwarf.h>
 #include <option/has_modularbed.h>
 
-static constexpr const char *Title = N_("INFO");
 static constexpr const char *HotendFanErrorMsg = N_("Hotend fan not spinning. Check it for possible debris, then inspect the wiring.");
 static constexpr const char *PrintFanErrorMsg = N_("Print fan not spinning. Check it for possible debris, then inspect the wiring.");
-static constexpr const char *TitleNozzle = N_("TEMP NOT MATCHING");
 static constexpr const char *HotendTempDiscrepancyMsg = N_("Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it.");
 static constexpr const char *HeaterTimeoutMsg = N_("Heating disabled due to 30 minutes of inactivity.");
 #if _DEBUG
@@ -43,8 +41,8 @@ class DialogWarning : public AddSuperWindow<IDialogMarlin> {
     RadioButtonFsm<PhasesWarning> button;
 
     // TODO unify this with WarningType, so we don't have to do the conversion??
-    enum types {
-        HotendFan,
+    enum types : uint8_t {
+        HotendFan = 0,
         PrintFan,
         HotendTempDiscrepancy,
         HeatersTimeout,
@@ -72,37 +70,40 @@ class DialogWarning : public AddSuperWindow<IDialogMarlin> {
 
     types get_type(fsm::BaseData data);
 
-    struct icon_title_text_t {
+    struct icon_text {
         const img::Resource *icon;
-        const char *title;
         const char *text;
     };
-    static constexpr icon_title_text_t icon_title_text[] = {
-        { &img::fan_error_48x48, Title, HotendFanErrorMsg },
-        { &img::fan_error_48x48, Title, PrintFanErrorMsg },
-        { nullptr, TitleNozzle, HotendTempDiscrepancyMsg },
-        { &img::exposure_times_48x48, Title, HeaterTimeoutMsg },
+    static constexpr icon_text icon_text[] = {
+        { &img::fan_error_48x48, HotendFanErrorMsg },
+        { &img::fan_error_48x48, PrintFanErrorMsg },
+        { nullptr, HotendTempDiscrepancyMsg },
+        { &img::exposure_times_48x48, HeaterTimeoutMsg },
 #if _DEBUG
-        { &img::exposure_times_48x48, Title, SteppersTimeoutMsg },
+        { &img::exposure_times_48x48, SteppersTimeoutMsg },
 #endif
-        { &img::usb_error_48x48, Title, USBFlashDiskError },
-        { nullptr, Title, HeatBreakThermistorFail }, // TODO need icon for heatbreak thermistor disconnect
+        { &img::usb_error_48x48, USBFlashDiskError },
+        { nullptr, HeatBreakThermistorFail }, // TODO need icon for heatbreak thermistor disconnect
 #if ENABLED(POWER_PANIC)
-        { nullptr, Title, HeatbedColdAfterPPMsg },
+        { nullptr, HeatbedColdAfterPPMsg },
 #endif
 #if ENABLED(CALIBRATION_GCODE)
-        { &img::nozzle_34x32, Title, NozzleDoesNotHaveRoundSectionMsg },
+        { &img::nozzle_34x32, NozzleDoesNotHaveRoundSectionMsg },
 #endif
-        { &img::no_stream_48x48, Title, NotDownloadedMsg }, // NotDownloaded
-        { &img::warning_48x48, Title, BuddyMCUMaxTempMsg }, // BuddyMCUMaxTemp
+#if defined(USE_ILI9488)
+        { &img::no_stream_48x48, NotDownloadedMsg }, // NotDownloaded
+#else
+        { nullptr, NotDownloadedMsg }, // NotDownloaded -- Text is too long - ST7789 has to have no icon
+#endif
+        { &img::warning_48x48, BuddyMCUMaxTempMsg }, // BuddyMCUMaxTemp
 #if HAS_DWARF()
-        { &img::warning_48x48, Title, DwarfMCUMaxTempMsg }, // DwarfMCUMaxTemp
+        { &img::warning_48x48, DwarfMCUMaxTempMsg }, // DwarfMCUMaxTemp
 #endif /* HAS_DWARF() */
 #if HAS_MODULARBED()
-        { &img::warning_48x48, Title, ModBedMCUMaxTempMsg }, // ModBedMCUMaxTemp
+        { &img::warning_48x48, ModBedMCUMaxTempMsg }, // ModBedMCUMaxTemp
 #endif /* HAS_MODULARBED() */
     };
-    static_assert(std::size(icon_title_text) == types::count_);
+    static_assert(std::size(icon_text) == types::count_);
 
 public:
     DialogWarning(fsm::BaseData);
