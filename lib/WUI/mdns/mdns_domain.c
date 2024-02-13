@@ -451,12 +451,12 @@ err_t mdns_build_dnssd_domain(struct mdns_domain *domain) {
  *         \<name\>.\<type\>.\<proto\>.local. will be written, otherwise \<type\>.\<proto\>.local.
  *         An err_t is returned on error.
  */
-err_t mdns_build_service_domain(struct mdns_domain *domain, struct mdns_service *service, int include_name) {
+err_t mdns_build_service_domain(struct mdns_domain *domain, const struct mdns_service *service, const char *name) {
     err_t res;
     LWIP_UNUSED_ARG(res);
     memset(domain, 0, sizeof(struct mdns_domain));
-    if (include_name) {
-        res = mdns_domain_add_label(domain, service->name, (u8_t)strlen(service->name));
+    if (name) {
+        res = mdns_domain_add_label(domain, name, (u8_t)strlen(name));
         LWIP_ERROR("mdns_build_service_domain: Failed to add label", (res == ERR_OK), return res);
     }
     res = mdns_domain_add_label(domain, service->service, (u8_t)strlen(service->service));

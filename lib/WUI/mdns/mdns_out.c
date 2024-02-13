@@ -55,6 +55,8 @@
 /* Function prototypes */
 static void mdns_clear_outmsg(struct mdns_outmsg *outmsg);
 
+    #if 0
+Abusing to hardcode prusalink service
 /**
  * Call user supplied function to setup TXT data
  * @param service The service to build TXT record for
@@ -65,6 +67,7 @@ void mdns_prepare_txtdata(struct mdns_service *service) {
         service->txt_fn(service, service->txt_userdata);
     }
 }
+    #endif
 
 /**
  * Write a question to an outpacket
@@ -234,10 +237,10 @@ mdns_add_any_host_question(struct mdns_outpacket *outpkt,
 /** Write an ANY service instance question to outpacket */
 static err_t
 mdns_add_any_service_question(struct mdns_outpacket *outpkt,
-    struct mdns_service *service,
-    u16_t request_unicast_reply) {
+    const struct mdns_service *service,
+    u16_t request_unicast_reply, const char *name) {
     struct mdns_domain domain;
-    mdns_build_service_domain(&domain, service, 1);
+    mdns_build_service_domain(&domain, service, name);
     LWIP_DEBUGF(MDNS_DEBUG, ("MDNS: Adding service instance question for ANY type\n"));
     return mdns_add_question(outpkt, &domain, DNS_RRTYPE_ANY, DNS_RRCLASS_IN,
         request_unicast_reply);
@@ -370,11 +373,11 @@ mdns_add_hostv6_ptr_answer(struct mdns_outpacket *reply, struct mdns_outmsg *msg
 /** Write an all-services -> servicetype PTR RR to outpacket */
 static err_t
 mdns_add_servicetype_ptr_answer(struct mdns_outpacket *reply, struct mdns_outmsg *msg,
-    struct mdns_service *service) {
+    const struct mdns_service *service) {
     err_t res;
     u32_t ttl = MDNS_TTL_4500;
     struct mdns_domain service_type, service_dnssd;
-    mdns_build_service_domain(&service_type, service, 0);
+    mdns_build_service_domain(&service_type, service, NULL);
     mdns_build_dnssd_domain(&service_dnssd);
     /* When answering to a legacy querier, we need to repeat the question and
      * limit the ttl to the short legacy ttl */
@@ -400,12 +403,12 @@ mdns_add_servicetype_ptr_answer(struct mdns_outpacket *reply, struct mdns_outmsg
 /** Write a servicetype -> servicename PTR RR to outpacket */
 static err_t
 mdns_add_servicename_ptr_answer(struct mdns_outpacket *reply, struct mdns_outmsg *msg,
-    struct mdns_service *service) {
+    const struct mdns_service *service, const char *name) {
     err_t res;
     u32_t ttl = MDNS_TTL_120;
     struct mdns_domain service_type, service_instance;
-    mdns_build_service_domain(&service_type, service, 0);
-    mdns_build_service_domain(&service_instance, service, 1);
+    mdns_build_service_domain(&service_type, service, NULL);
+    mdns_build_service_domain(&service_instance, service, name);
     /* When answering to a legacy querier, we need to repeat the question and
      * limit the ttl to the short legacy ttl */
     if (msg->legacy_query) {
@@ -430,12 +433,12 @@ mdns_add_servicename_ptr_answer(struct mdns_outpacket *reply, struct mdns_outmsg
 /** Write a SRV RR to outpacket */
 static err_t
 mdns_add_srv_answer(struct mdns_outpacket *reply, struct mdns_outmsg *msg,
-    struct mdns_host *mdns, struct mdns_service *service) {
+    struct mdns_host *mdns, const struct mdns_service *service) {
     err_t res;
     u32_t ttl = MDNS_TTL_120;
     struct mdns_domain service_instance, srvhost;
     u16_t srvdata[3];
-    mdns_build_service_domain(&service_instance, service, 1);
+    mdns_build_service_domain(&service_instance, service, mdns->name);
     mdns_build_host_domain(&srvhost, mdns);
     if (msg->legacy_query) {
         /* RFC 6762 section 18.14:
@@ -470,12 +473,12 @@ mdns_add_srv_answer(struct mdns_outpacket *reply, struct mdns_outmsg *msg,
 /** Write a TXT RR to outpacket */
 static err_t
 mdns_add_txt_answer(struct mdns_outpacket *reply, struct mdns_outmsg *msg,
-    struct mdns_service *service) {
+    const struct mdns_service *service, const char *name) {
     err_t res;
     u32_t ttl = MDNS_TTL_120;
     struct mdns_domain service_instance;
-    mdns_build_service_domain(&service_instance, service, 1);
-    mdns_prepare_txtdata(service);
+    mdns_build_service_domain(&service_instance, service, name);
+    // mdns_prepare_txtdata(service);
     /* When answering to a legacy querier, we need to repeat the question and
      * limit the ttl to the short legacy ttl */
     if (msg->legacy_query) {
@@ -515,12 +518,12 @@ mdns_add_probe_questions_to_outpacket(struct mdns_outpacket *outpkt, struct mdns
     }
     /* Write service questions (probing or legacy query) */
     for (i = 0; i < MDNS_MAX_SERVICES; i++) {
-        struct mdns_service *service = mdns->services[i];
+        const struct mdns_service *service = mdns->services[i];
         if (!service) {
             continue;
         }
         if (msg->serv_questions[i] & QUESTION_PROBE_SERVICE_NAME_ANY) {
-            res = mdns_add_any_service_question(outpkt, service, 1);
+            res = mdns_add_any_service_question(outpkt, service, 1, mdns->name);
             if (res != ERR_OK) {
                 return res;
             }
@@ -560,7 +563,7 @@ mdns_add_query_question_to_outpacket(struct mdns_outpacket *outpkt, struct mdns_
 err_t mdns_create_outpacket(struct netif *netif, struct mdns_outmsg *msg,
     struct mdns_outpacket *outpkt) {
     struct mdns_host *mdns = netif_mdns_data(netif);
-    struct mdns_service *service;
+    const struct mdns_service *service;
     err_t res;
     int i;
     u16_t answers = 0;
@@ -640,7 +643,7 @@ err_t mdns_create_outpacket(struct netif *netif, struct mdns_outmsg *msg,
         }
 
         if (msg->serv_replies[i] & REPLY_SERVICE_NAME_PTR) {
-            res = mdns_add_servicename_ptr_answer(outpkt, msg, service);
+            res = mdns_add_servicename_ptr_answer(outpkt, msg, service, mdns->name);
             if (res != ERR_OK) {
                 return res;
             }
@@ -656,7 +659,7 @@ err_t mdns_create_outpacket(struct netif *netif, struct mdns_outmsg *msg,
         }
 
         if (msg->serv_replies[i] & REPLY_SERVICE_TXT) {
-            res = mdns_add_txt_answer(outpkt, msg, service);
+            res = mdns_add_txt_answer(outpkt, msg, service, mdns->name);
             if (res != ERR_OK) {
                 return res;
             }
@@ -691,7 +694,7 @@ err_t mdns_create_outpacket(struct netif *netif, struct mdns_outmsg *msg,
             }
 
             if (!(msg->serv_replies[i] & REPLY_SERVICE_TXT)) {
-                res = mdns_add_txt_answer(outpkt, msg, service);
+                res = mdns_add_txt_answer(outpkt, msg, service, mdns->name);
                 if (res != ERR_OK) {
                     return res;
                 }

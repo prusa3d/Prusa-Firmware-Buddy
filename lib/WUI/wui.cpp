@@ -216,16 +216,13 @@ private:
     }
 
 #if MDNS()
-    static void add_txt(struct mdns_service *, void *) {
-    }
-
     static void mdns_netif_init(netif *iface) {
         iface->flags |= NETIF_FLAG_IGMP;
         igmp_start(iface);
         //  TODO: Any way to handle errors? Can they even happen?
         mdns_resp_add_netif(iface, iface->hostname);
         if (config_store().prusalink_enabled.get() == 1) {
-            mdns_resp_add_service(iface, iface->hostname, "_octoprint", DNSSD_PROTO_TCP, 80, add_txt, nullptr);
+            mdns_resp_add_service_prusalink(iface);
         }
     }
 #endif

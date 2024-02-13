@@ -307,7 +307,7 @@ check_host(struct netif *netif, struct mdns_rr_info *rr, u8_t *reverse_v6_reply)
  * @return Bitmask of which replies to send
  */
 static int
-check_service(struct mdns_service *service, struct mdns_rr_info *rr) {
+check_service(const struct mdns_service *service, struct mdns_rr_info *rr, const char *name) {
     err_t res;
     int replies = 0;
     struct mdns_domain mydomain;
@@ -323,13 +323,13 @@ check_service(struct mdns_service *service, struct mdns_rr_info *rr) {
         replies |= REPLY_SERVICE_TYPE_PTR;
     }
 
-    res = mdns_build_service_domain(&mydomain, service, 0);
+    res = mdns_build_service_domain(&mydomain, service, NULL);
     if (res == ERR_OK && mdns_domain_eq(&rr->domain, &mydomain) && (rr->type == DNS_RRTYPE_PTR || rr->type == DNS_RRTYPE_ANY)) {
         /* Request for the instance of my service */
         replies |= REPLY_SERVICE_NAME_PTR;
     }
 
-    res = mdns_build_service_domain(&mydomain, service, 1);
+    res = mdns_build_service_domain(&mydomain, service, name);
     if (res == ERR_OK && mdns_domain_eq(&rr->domain, &mydomain)) {
         /* Request for info about my service */
         if (rr->type == DNS_RRTYPE_SRV || rr->type == DNS_RRTYPE_ANY) {
@@ -534,7 +534,7 @@ mdns_announce(struct netif *netif, const ip_addr_t *destination) {
     #endif
 
     for (i = 0; i < MDNS_MAX_SERVICES; i++) {
-        struct mdns_service *serv = mdns->services[i];
+        const struct mdns_service *serv = mdns->services[i];
         if (serv) {
             announce.serv_replies[i] = REPLY_SERVICE_TYPE_PTR | REPLY_SERVICE_NAME_PTR | REPLY_SERVICE_SRV | REPLY_SERVICE_TXT;
         }
@@ -1044,7 +1044,7 @@ static err_t
 mdns_parse_pkt_questions(struct netif *netif, struct mdns_packet *pkt,
     struct mdns_outmsg *reply) {
     struct mdns_host *mdns = NETIF_TO_HOST(netif);
-    struct mdns_service *service;
+    const struct mdns_service *service;
     int i;
     err_t res;
 
@@ -1073,7 +1073,7 @@ mdns_parse_pkt_questions(struct netif *netif, struct mdns_packet *pkt,
             if (!service) {
                 continue;
             }
-            reply->serv_replies[i] |= check_service(service, &q.info);
+            reply->serv_replies[i] |= check_service(service, &q.info, mdns->name);
         }
     }
 
@@ -1092,7 +1092,7 @@ static err_t
 mdns_parse_pkt_known_answers(struct netif *netif, struct mdns_packet *pkt,
     struct mdns_outmsg *reply) {
     struct mdns_host *mdns = NETIF_TO_HOST(netif);
-    struct mdns_service *service;
+    const struct mdns_service *service;
     int i;
     err_t res;
 
@@ -1171,7 +1171,7 @@ mdns_parse_pkt_known_answers(struct netif *netif, struct mdns_packet *pkt,
             if (!service) {
                 continue;
             }
-            match = reply->serv_replies[i] & check_service(service, &ans.info);
+            match = reply->serv_replies[i] & check_service(service, &ans.info, mdns->name);
             if (match & REPLY_SERVICE_TYPE_PTR) {
                 rr_ttl = MDNS_TTL_4500;
             }
@@ -1187,14 +1187,14 @@ mdns_parse_pkt_known_answers(struct netif *netif, struct mdns_packet *pkt,
                     len = mdns_readname(pkt->pbuf, ans.rd_offset, &known_ans);
                     if (len != MDNS_READNAME_ERROR) {
                         if (match & REPLY_SERVICE_TYPE_PTR) {
-                            res = mdns_build_service_domain(&my_ans, service, 0);
+                            res = mdns_build_service_domain(&my_ans, service, NULL);
                             if (res == ERR_OK && mdns_domain_eq(&known_ans, &my_ans)) {
                                 LWIP_DEBUGF(MDNS_DEBUG, ("MDNS: Skipping known answer: service type PTR\n"));
                                 reply->serv_replies[i] &= ~REPLY_SERVICE_TYPE_PTR;
                             }
                         }
                         if (match & REPLY_SERVICE_NAME_PTR) {
-                            res = mdns_build_service_domain(&my_ans, service, 1);
+                            res = mdns_build_service_domain(&my_ans, service, mdns->name);
                             if (res == ERR_OK && mdns_domain_eq(&known_ans, &my_ans)) {
                                 LWIP_DEBUGF(MDNS_DEBUG, ("MDNS: Skipping known answer: service name PTR\n"));
                                 reply->serv_replies[i] &= ~REPLY_SERVICE_NAME_PTR;
@@ -1235,7 +1235,7 @@ mdns_parse_pkt_known_answers(struct netif *netif, struct mdns_packet *pkt,
                         reply->serv_replies[i] &= ~REPLY_SERVICE_SRV;
                     } while (0);
                 } else if (match & REPLY_SERVICE_TXT) {
-                    mdns_prepare_txtdata(service);
+                    // mdns_prepare_txtdata(service);
                     if (service->txtdata.length == ans.rd_length && pbuf_memcmp(pkt->pbuf, ans.rd_offset, service->txtdata.name, ans.rd_length) == 0) {
                         LWIP_DEBUGF(MDNS_DEBUG, ("MDNS: Skipping known answer: TXT\n"));
                         reply->serv_replies[i] &= ~REPLY_SERVICE_TXT;
@@ -1261,7 +1261,7 @@ static err_t
 mdns_parse_pkt_authoritative_answers(struct netif *netif, struct mdns_packet *pkt,
     struct mdns_outmsg *reply) {
     struct mdns_host *mdns = NETIF_TO_HOST(netif);
-    struct mdns_service *service;
+    const struct mdns_service *service;
     int i;
     err_t res;
 
@@ -1297,7 +1297,7 @@ mdns_parse_pkt_authoritative_answers(struct netif *netif, struct mdns_packet *pk
             if (!service) {
                 continue;
             }
-            match = reply->serv_replies[i] & check_service(service, &ans.info);
+            match = reply->serv_replies[i] & check_service(service, &ans.info, mdns->name);
 
             if (match) {
                 reply->probe_query_recv = 1;
@@ -1883,11 +1883,11 @@ mdns_handle_response(struct mdns_packet *pkt, struct netif *netif) {
             }
 
             for (i = 0; i < MDNS_MAX_SERVICES; i++) {
-                struct mdns_service *service = mdns->services[i];
+                const struct mdns_service *service = mdns->services[i];
                 if (!service) {
                     continue;
                 }
-                res = mdns_build_service_domain(&domain, service, 1);
+                res = mdns_build_service_domain(&domain, service, mdns->name);
                 if ((res == ERR_OK) && mdns_domain_eq(&ans.info.domain, &domain)) {
                     LWIP_DEBUGF(MDNS_DEBUG, ("MDNS: Probe response matches service domain!\n"));
                     mdns_probe_conflict(netif, i + 1);
@@ -1941,11 +1941,11 @@ mdns_handle_response(struct mdns_packet *pkt, struct netif *netif) {
             }
             /* Evaluate unique service name records -> SRV and TXT */
             for (i = 0; i < MDNS_MAX_SERVICES; i++) {
-                struct mdns_service *service = mdns->services[i];
+                const struct mdns_service *service = mdns->services[i];
                 if (!service) {
                     continue;
                 }
-                res = mdns_build_service_domain(&domain, service, 1);
+                res = mdns_build_service_domain(&domain, service, mdns->name);
                 if ((res == ERR_OK) && mdns_domain_eq(&ans.info.domain, &domain)) {
                     LWIP_DEBUGF(MDNS_DEBUG, ("mDNS: response matches service domain, assuming conflict\n"));
                     /* This means a conflict has taken place, except when the packet contains
@@ -1986,7 +1986,7 @@ mdns_handle_response(struct mdns_packet *pkt, struct netif *netif) {
                             conflict = 0;
                         } while (0);
                     } else if (ans.info.type == DNS_RRTYPE_TXT) {
-                        mdns_prepare_txtdata(service);
+                        // mdns_prepare_txtdata(service);
                         if (service->txtdata.length == ans.rd_length && pbuf_memcmp(pkt->pbuf, ans.rd_offset, service->txtdata.name, ans.rd_length) == 0) {
                             LWIP_DEBUGF(MDNS_DEBUG, ("mDNS: response equals our own TXT record -> no conflict\n"));
                             conflict = 0;
@@ -2170,7 +2170,7 @@ mdns_define_probe_rrs_to_send(struct netif *netif, struct mdns_outmsg *outmsg) {
     outmsg->host_questions = QUESTION_PROBE_HOST_ANY;
 
     for (i = 0; i < MDNS_MAX_SERVICES; i++) {
-        struct mdns_service *service = mdns->services[i];
+        const struct mdns_service *service = mdns->services[i];
         if (!service) {
             continue;
         }
@@ -2192,7 +2192,7 @@ mdns_define_probe_rrs_to_send(struct netif *netif, struct mdns_outmsg *outmsg) {
     #endif
 
     for (i = 0; i < MDNS_MAX_SERVICES; i++) {
-        struct mdns_service *serv = mdns->services[i];
+        const struct mdns_service *serv = mdns->services[i];
         if (serv) {
             outmsg->serv_replies[i] = REPLY_SERVICE_SRV;
         }
@@ -2352,7 +2352,10 @@ cleanup:
  * @return ERR_OK if netif was removed, an err_t otherwise
  */
 err_t mdns_resp_remove_netif(struct netif *netif) {
+    #if 0
+    Abuse of the original code to hardcode the services.
     int i;
+    #endif
     struct mdns_host *mdns;
 
     LWIP_ASSERT_CORE_LOCKED();
@@ -2362,12 +2365,15 @@ err_t mdns_resp_remove_netif(struct netif *netif) {
 
     sys_untimeout(mdns_probe_and_announce, netif);
 
+    #if 0
+    Abuse of the original code to hardcode the services.
     for (i = 0; i < MDNS_MAX_SERVICES; i++) {
         struct mdns_service *service = mdns->services[i];
         if (service) {
             mem_free(service);
         }
     }
+    #endif
 
     /* Leave multicast groups */
     #if LWIP_IPV4
@@ -2420,6 +2426,37 @@ int mdns_resp_netif_active(struct netif *netif) {
     return NETIF_TO_HOST(netif) != NULL;
 }
 
+static const struct mdns_service prusalink_service = {
+    .service = "_octoprint",
+    .proto = DNSSD_PROTO_TCP,
+    .port = 80,
+};
+
+s8_t mdns_resp_add_service_prusalink(struct netif *netif) {
+    u8_t slot;
+    struct mdns_host *mdns;
+
+    LWIP_ASSERT_CORE_LOCKED();
+    LWIP_ASSERT("mdns_resp_add_service: netif != NULL", netif);
+    mdns = NETIF_TO_HOST(netif);
+    LWIP_ERROR("mdns_resp_add_service: Not an mdns netif", (mdns != NULL), return ERR_VAL);
+
+    for (slot = 0; slot < MDNS_MAX_SERVICES; slot++) {
+        if (mdns->services[slot] == NULL) {
+            break;
+        }
+    }
+    LWIP_ERROR("mdns_resp_add_service: Service list full (increase MDNS_MAX_SERVICES)", (slot < MDNS_MAX_SERVICES), return ERR_MEM);
+
+    mdns->services[slot] = &prusalink_service;
+
+    mdns_resp_restart(netif);
+
+    return slot;
+}
+
+    #if 0
+Abuse of the original code to hardcode the services.
 /**
  * @ingroup mdns
  * Add a service to the selected network interface.
@@ -2542,6 +2579,7 @@ err_t mdns_resp_add_service_txtitem(struct mdns_service *service, const char *tx
     /* Use a mdns_domain struct to store txt chunks since it is the same encoding */
     return mdns_domain_add_label(&service->txtdata, txt, txt_len);
 }
+    #endif
 
     #if LWIP_MDNS_SEARCH
 /**
@@ -2741,7 +2779,7 @@ void mdns_resp_init(void) {
  */
 void *mdns_get_service_txt_userdata(struct netif *netif, s8_t slot) {
     struct mdns_host *mdns = NETIF_TO_HOST(netif);
-    struct mdns_service *s;
+    const struct mdns_service *s;
     LWIP_ASSERT("mdns_get_service_txt_userdata: index out of range", slot < MDNS_MAX_SERVICES);
     s = mdns->services[slot];
     return s ? s->txt_userdata : NULL;

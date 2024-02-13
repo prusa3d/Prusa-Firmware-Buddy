@@ -96,12 +96,10 @@ struct mdns_service {
     /** TXT record to answer with */
     struct mdns_domain txtdata;
     /** Name of service, like 'myweb' */
-    char name[MDNS_LABEL_MAXLEN + 1];
+    // char name[MDNS_LABEL_MAXLEN + 1];
     /** Type of service, like '_http' */
-    char service[MDNS_LABEL_MAXLEN + 1];
-    /** Callback function and userdata
-     * to update txtdata buffer */
-    service_get_txt_fn_t txt_fn;
+    const char *service;
+    // Not used, but left in here to minimize code changes.
     void *txt_userdata;
     /** Protocol, TCP or UDP */
     u16_t proto;
@@ -203,7 +201,7 @@ struct mdns_host {
     /** Hostname */
     char name[MDNS_LABEL_MAXLEN + 1];
     /** Pointer to services */
-    struct mdns_service *services[MDNS_MAX_SERVICES];
+    const struct mdns_service *services[MDNS_MAX_SERVICES];
     /** Number of probes/announces sent for the current name */
     u8_t sent_num;
     /** State of the mdns responder */
