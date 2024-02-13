@@ -40,6 +40,8 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
             Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue({ {}, {} });
         }
 
+        Item<MI_INFO_FINDA>().UpdateValue(marlin_vars()->mmu2_finda);
+
         res = buffer.GetValue(SensorData::Sensor::printFan);
         SensorData::Value res1 = buffer.GetValue(SensorData::Sensor::printFanAct);
         Item<MI_INFO_PRINT_FAN>().UpdateValue(std::make_pair(res, res1));
