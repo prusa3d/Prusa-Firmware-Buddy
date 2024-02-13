@@ -42,7 +42,7 @@ bool set_startup_cb(startup_cb_t cb);
 bool is_processing();
 
 // sets event notification mask
-void set_event_notify(uint64_t notify_events, void (*cb)());
+void set_event_notify(uint64_t notify_events);
 
 // returns currently running command or marlin_server::Cmd::NONE
 marlin_server::Cmd get_command();

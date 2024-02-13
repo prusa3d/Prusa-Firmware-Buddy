@@ -64,7 +64,7 @@ uint8_t marlin_clients = 0; // number of connected clients
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)());
+static uint32_t _wait_ack_from_server(uint8_t client_id);
 static void _process_client_message(marlin_client_t *client, variant8_t msg);
 static marlin_client_t *_client_ptr();
 
@@ -190,7 +190,7 @@ bool is_processing() {
     return client && client->flags & MARLIN_CFLG_PROCESS;
 }
 
-static void _send_request_to_server_and_wait_with_callback(ServerQueueItem &server_queue_item, void (*cb)()) {
+static void _send_request_to_server_and_wait(ServerQueueItem &server_queue_item) {
     marlin_client_t *client = _client_ptr();
     if (client == 0) {
         return;
@@ -203,7 +203,7 @@ static void _send_request_to_server_and_wait_with_callback(ServerQueueItem &serv
         clients[client->id].events &= ~make_mask(Event::Acknowledge);
         server_queue.send(server_queue_item);
         log_info(MarlinClient, "Request (client %u): %s", client->id, server_queue_item.request);
-        _wait_ack_from_server_with_callback(client->id, cb);
+        _wait_ack_from_server(client->id);
         if ((client->events & make_mask(Event::NotAcknowledge)) != 0) {
             // clear nack flag
             client->events &= ~make_mask(Event::NotAcknowledge);
@@ -221,7 +221,7 @@ static void _send_request_to_server_and_wait_with_callback(ServerQueueItem &serv
     client->events &= ~make_mask(Event::Acknowledge);
 }
 
-void set_event_notify(uint64_t notify_events, void (*cb)()) {
+void set_event_notify(uint64_t notify_events) {
     ServerQueueItem server_queue_item;
     snprintf(
         server_queue_item.request,
@@ -230,7 +230,7 @@ void set_event_notify(uint64_t notify_events, void (*cb)()) {
         ftrstd::to_underlying(Msg::EventMask),
         static_cast<uint32_t>(notify_events & 0xffffffff),
         static_cast<uint32_t>(notify_events >> 32));
-    _send_request_to_server_and_wait_with_callback(server_queue_item, cb);
+    _send_request_to_server_and_wait(server_queue_item);
 }
 
 marlin_server::Cmd get_command() {
@@ -239,10 +239,6 @@ marlin_server::Cmd get_command() {
         return marlin_server::Cmd(client->command);
     }
     return Cmd::NONE;
-}
-
-static void _send_request_to_server_and_wait(ServerQueueItem &server_queue_item) {
-    _send_request_to_server_and_wait_with_callback(server_queue_item, NULL);
 }
 
 void _send_request_id_to_server_and_wait(const Msg id) {
@@ -579,13 +575,10 @@ bool is_idle() {
 // private functions
 
 // wait for ack event, blocking - used for synchronization, called typically at end of client request functions
-static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)()) {
+static uint32_t _wait_ack_from_server(uint8_t client_id) {
     while ((clients[client_id].events & make_mask(Event::Acknowledge)) == 0 && (clients[client_id].events & make_mask(Event::NotAcknowledge)) == 0) {
         loop();
         if (clients[client_id].last_count == 0) {
-            if (cb) {
-                cb();
-            }
             osDelay(10);
         }
     }

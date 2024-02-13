@@ -313,7 +313,7 @@ void gui_run(void) {
 
     Sound_Play(eSOUND_TYPE::Start);
 
-    marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF, nullptr);
+    marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF);
 
     // Close bootstrap screen, open home screen
     Screens::Access()->Close();
