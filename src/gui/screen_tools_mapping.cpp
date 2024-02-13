@@ -1135,8 +1135,14 @@ void ToolsMappingBody::windowEvent(EventLock /*has private ctor*/, [[maybe_unuse
             if (num_unloaded_tools > 0) {
                 disable_fs = true;
                 warning_text = _("There are printing tools with no filament loaded, this could ruin the print.\nDisable filament sensor and print anyway?");
+#if not HAS_MMU2()
             } else if (num_mismatched_filaments > 0) {
+                // Hide warning about mismatching filament types for MMU prints
+                // - it is yet to be decided how shall we set filament types and work with them in the FW.
+                // Contrary to the XL, the MMU is rarely used to switch among different filament types
+                // in the same print due to filament mixing in the melt zone.
                 warning_text = _("Detected mismatching loaded filament types, this could ruin the print.\nPrint anyway?");
+#endif
             } else if (num_mismatched_nozzles > 0) {
                 warning_text = _("Detected mismatching nozzle diameters, this could ruin the print.\nPrint anyway?");
             }
