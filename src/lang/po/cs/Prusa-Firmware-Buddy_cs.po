@@ -1169,7 +1169,7 @@ msgstr "Dolů"
 
 #: src/gui/dialogs/DialogMoveZ.hpp:26
 msgid "DOWN"
-msgstr "DOLŮ"
+msgstr "DOLU"
 
 #: src/gui/screen_help_fw_update.cpp:31
 msgid "Download and copy the firmware (.bbf) file to the USB flash drive. Insert the drive into the printer and turn it on or restart it. Confirm the installation of the new firmware."
