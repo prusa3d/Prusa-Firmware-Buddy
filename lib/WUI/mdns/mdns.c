@@ -2427,7 +2427,7 @@ int mdns_resp_netif_active(struct netif *netif) {
 }
 
 static const struct mdns_service prusalink_service = {
-    .service = "_octoprint",
+    .service = "_prusalink",
     .proto = DNSSD_PROTO_TCP,
     .port = 80,
 };
