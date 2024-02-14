@@ -306,7 +306,10 @@ namespace {
 #endif
     HotendErrorChecker hotendErrorChecker;
 
+#if !HAS_PHASE_STEPPING()
+    // TODO: temporarily disabled with phase or burst stepping
     MCUTempErrorChecker<WarningType::BuddyMCUMaxTemp> mcuMaxTempErrorChecker("Buddy"); ///< Check Buddy MCU temperature
+#endif
 #if HAS_DWARF()
     /// Check Dwarf MCU temperature
     MCUTempErrorChecker<WarningType::DwarfMCUMaxTemp> dwarfMaxTempErrorChecker[HOTENDS] {
@@ -2136,7 +2139,9 @@ static void _server_print_loop(void) {
     hotendErrorChecker.checkTrue(Temperature::saneTempReadingHotend(0));
 
     // Check MCU temperatures
+#if !HAS_PHASE_STEPPING()
     mcuMaxTempErrorChecker.check(AdcGet::getMCUTemp());
+#endif
 #if HAS_DWARF()
     HOTEND_LOOP() {
         if (prusa_toolchanger.is_tool_enabled(e)) {
@@ -2156,7 +2161,9 @@ void resuming_begin(void) {
     }
     printFanErrorChecker.reset();
 
+#if !HAS_PHASE_STEPPING()
     mcuMaxTempErrorChecker.reset();
+#endif
 #if HAS_DWARF()
     HOTEND_LOOP() {
         if (prusa_toolchanger.is_tool_enabled(e)) {
