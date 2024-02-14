@@ -203,11 +203,13 @@ void screen_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
     // GUI touch events (SWIPE) are to be distributed only to the first active popup/dialog
     if (GUI_event_is_touch_event(event)) {
         const auto checkList = [&](window_t *start, window_t *end) {
-            for (auto w = start; w; w->GetNext()) {
+            for (auto w = start; w; w = w->GetNext()) {
                 if (w->IsVisible()) {
                     w->ScreenEvent(sender, event, param);
                     return true;
                 }
+
+                // Has to be checked at the end of the loop, cannot be in the for condition
                 if (w == end) {
                     break;
                 }
