@@ -24,7 +24,7 @@ DialogMoveZ::DialogMoveZ()
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
 #endif /*PRINTER_TYPE*/
     , arrows(this, text_rc.TopRight(), { 0, 6, 0, 6 })
-    , numb(this, numb_rc, value, "%d mm", GuiDefaults::FontBig)
+    , numb(this, numb_rc, value, "%d mm", font)
     , header(this, _(headerLabel))
     , icon(this, icon_rc, &img::turn_knob_81x55) {
     DialogShown = true;
