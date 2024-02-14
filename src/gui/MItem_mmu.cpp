@@ -67,8 +67,8 @@ void MI_MMU_LOAD_TO_NOZZLE::click(IWindowMenu & /*window_menu*/) {
 
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT_base
-MI_MMU_ISSUE_GCODE::MI_MMU_ISSUE_GCODE(const char *lbl, const char *gcode)
-    : IWindowMenuItem(_(lbl), nullptr, is_enabled_t::yes, is_hidden_t::no)
+MI_MMU_ISSUE_GCODE::MI_MMU_ISSUE_GCODE(const char *lbl, const char *gcode, is_hidden_t hidden)
+    : IWindowMenuItem(_(lbl), nullptr, is_enabled_t::yes, hidden)
     , gcode(gcode) {
 }
 

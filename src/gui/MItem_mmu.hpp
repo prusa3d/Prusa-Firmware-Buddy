@@ -71,7 +71,7 @@ class MI_MMU_ISSUE_GCODE : public IWindowMenuItem {
     const char *gcode;
 
 public:
-    MI_MMU_ISSUE_GCODE(const char *lbl, const char *gcode);
+    MI_MMU_ISSUE_GCODE(const char *lbl, const char *gcode, is_hidden_t hidden = is_hidden_t::no);
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -298,7 +298,7 @@ class MI_MMU_SW_RESET : public MI_MMU_ISSUE_GCODE {
 
 public:
     MI_MMU_SW_RESET()
-        : MI_MMU_ISSUE_GCODE(label, "M709 X0") {}
+        : MI_MMU_ISSUE_GCODE(label, "M709 X0", is_hidden_t::dev) {}
 };
 
 class MI_MMU_HW_RESET : public MI_MMU_ISSUE_GCODE {
@@ -306,7 +306,7 @@ class MI_MMU_HW_RESET : public MI_MMU_ISSUE_GCODE {
 
 public:
     MI_MMU_HW_RESET()
-        : MI_MMU_ISSUE_GCODE(label, "M709 X1") {}
+        : MI_MMU_ISSUE_GCODE(label, "M709 X1", is_hidden_t::dev) {}
 };
 
 class MI_MMU_POWER_CYCLE : public MI_MMU_ISSUE_GCODE {
@@ -314,7 +314,7 @@ class MI_MMU_POWER_CYCLE : public MI_MMU_ISSUE_GCODE {
 
 public:
     MI_MMU_POWER_CYCLE()
-        : MI_MMU_ISSUE_GCODE(label, "M709 X2") {}
+        : MI_MMU_ISSUE_GCODE(label, "M709 X2", is_hidden_t::dev) {}
 };
 
 // The following homing modes are not yet supported in the MMU FW
