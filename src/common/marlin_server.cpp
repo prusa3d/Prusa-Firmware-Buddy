@@ -1,5 +1,6 @@
 #include "marlin_server.hpp"
 
+#include "marlin_client_queue.hpp"
 #include "marlin_server_request.hpp"
 #include <inttypes.h>
 #include <stdarg.h>
@@ -118,6 +119,8 @@
 #include <config_store/store_instance.hpp>
 using namespace ExtUI;
 
+using ClientQueue = marlin_client::ClientQueue;
+
 LOG_COMPONENT_DEF(MarlinServer, LOG_SEVERITY_INFO);
 
 //-----------------------------------------------------------------------------
@@ -125,7 +128,7 @@ LOG_COMPONENT_DEF(MarlinServer, LOG_SEVERITY_INFO);
 
 namespace marlin_client {
 extern osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
-extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue handles (uint32_t)
+extern ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
 } // namespace marlin_client
 
 namespace marlin_server {
@@ -394,9 +397,7 @@ void _add_status_msg(const char *const popup_msg) {
 // forward declarations of private functions
 
 static void _server_print_loop(void);
-static int _send_notify_to_client(osMessageQId queue, variant8_t msg);
-static bool _send_notify_event_to_client(int client_id, osMessageQId queue, Event evt_id, uint32_t usr32, uint16_t usr16);
-static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk);
+static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue, uint64_t evt_msk);
 static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16);
 static void _server_update_gqueue(void);
 static void _server_update_pqueue(void);
@@ -480,13 +481,11 @@ void server_update_vars() {
 }
 
 void send_notifications_to_clients() {
-    osMessageQId queue;
     uint64_t msk = 0;
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
-        if ((queue = marlin_client::marlin_client_queue[client_id]) != 0) {
-            if ((msk = server.client_events[client_id]) != 0) {
-                server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
-            }
+        ClientQueue &queue = marlin_client::marlin_client_queue[client_id];
+        if ((msk = server.client_events[client_id]) != 0) {
+            server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
         }
     }
 }
@@ -2347,22 +2346,8 @@ extern uint32_t get_user_move_count(void) {
 //-----------------------------------------------------------------------------
 // private functions
 
-// send notify message (variant8_t) to client queue (called from server thread)
-static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
-    // synchronization not necessary because only server thread can write to this queue
-    if (queue == 0) {
-        return 0;
-    }
-    if (osMessageAvailableSpace(queue) < 2) {
-        return 0;
-    }
-    osMessagePut(queue, (uint32_t)(msg & 0xFFFFFFFFU), osWaitForever);
-    osMessagePut(queue, (uint32_t)(msg >> 32), osWaitForever);
-    return 1;
-}
-
 // send all FSM messages from the FSM queue
-static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
+static bool _send_FSM_event_to_client(int client_id, ClientQueue &queue) {
     while (1) {
         std::optional<fsm::DequeStates> commands = fsm_event_queues.dequeue(client_id);
         if (!commands) {
@@ -2373,7 +2358,8 @@ static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
         log_debug(FSM, "data sent u32 %" PRIu32 ", u16 %" PRIu16 ", client %d",
             data.first, data.second, client_id);
 
-        if (!_send_notify_to_client(queue, variant8_user(data.first, data.second, ftrstd::to_underlying(Event::FSM)))) {
+        const variant8_t payload = variant8_user(data.first, data.second, ftrstd::to_underlying(Event::FSM));
+        if (!queue.send(payload, 0)) {
             // unable to send all messages
             return false;
         }
@@ -2381,7 +2367,7 @@ static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
 }
 
 // send event notification to client (called from server thread)
-static bool _send_notify_event_to_client(int client_id, osMessageQId queue, Event evt_id, uint32_t usr32, uint16_t usr16) {
+static bool _send_notify_event_to_client(int client_id, ClientQueue &queue, Event evt_id, uint32_t usr32, uint16_t usr16) {
     variant8_t msg;
     switch (evt_id) {
     case Event::Message:
@@ -2393,7 +2379,7 @@ static bool _send_notify_event_to_client(int client_id, osMessageQId queue, Even
         msg = variant8_user(usr32, usr16, ftrstd::to_underlying(evt_id));
     }
 
-    bool ret = _send_notify_to_client(queue, msg);
+    const bool ret = queue.send(msg, 0);
 
     if (ret) {
         switch (evt_id) {
@@ -2411,7 +2397,7 @@ static bool _send_notify_event_to_client(int client_id, osMessageQId queue, Even
 
 // send event notification to client - multiple events (called from server thread)
 // returns mask of successfully sent events
-static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk) {
+static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue, uint64_t evt_msk) {
     if (evt_msk == 0) {
         return 0;
     }

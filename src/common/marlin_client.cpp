@@ -1,5 +1,6 @@
 #include "marlin_client.hpp"
 
+#include "marlin_client_queue.hpp"
 #include "marlin_server_request.hpp"
 #include "marlin_events.h"
 #include "marlin_server.hpp"
@@ -56,7 +57,7 @@ typedef struct _marlin_client_t {
 // variables
 
 osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
-osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue handles (uint32_t)
+ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
 
 marlin_client_t clients[MARLIN_MAX_CLIENTS]; // client structure
 uint8_t marlin_clients = 0; // number of connected clients
@@ -84,8 +85,6 @@ void init() {
     if (client_id < MARLIN_MAX_CLIENTS) {
         client = clients + client_id;
         memset(client, 0, sizeof(marlin_client_t));
-        osMessageQDef(clientQueue, MARLIN_CLIENT_QUEUE * 2, uint32_t);
-        marlin_client_queue[client_id] = osMessageCreate(osMessageQ(clientQueue), NULL);
         client->id = client_id;
         client->flags = 0;
         client->events = 0;
@@ -104,12 +103,10 @@ void init() {
 
 void loop() {
     uint16_t count = 0;
-    osEvent ose;
     variant8_t msg;
     variant8_t *pmsg = &msg;
     int client_id;
     marlin_client_t *client;
-    osMessageQId queue;
     osThreadId taskHandle = osThreadGetId();
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         if (taskHandle == marlin_client_task[client_id]) {
@@ -120,18 +117,11 @@ void loop() {
         return;
     }
     client = clients + client_id;
-    if ((queue = marlin_client_queue[client_id]) != 0) {
-        while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
-            if (client->flags & MARLIN_CFLG_LOWHIGH) {
-                msg |= ((variant8_t)ose.value.v << 32); // store high dword
-                _process_client_message(client, msg); // call handler
-                variant8_done(&pmsg);
-                count++;
-            } else {
-                msg = ose.value.v; // store low dword
-            }
-            client->flags ^= MARLIN_CFLG_LOWHIGH; // flip flag
-        }
+    ClientQueue &queue = marlin_client_queue[client_id];
+    while (queue.receive(msg, 0)) {
+        _process_client_message(client, msg);
+        variant8_done(&pmsg);
+        count++;
     }
     client->last_count = count;
 }

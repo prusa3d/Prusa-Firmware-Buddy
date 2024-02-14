@@ -17,7 +17,6 @@
 enum {
     MARLIN_MAX_CLIENTS = 5, // maximum number of clients registered in same time
     MARLIN_MAX_REQUEST = 110, // maximum request length in chars
-    MARLIN_CLIENT_QUEUE = 16, // size of marlin client input message queue (number of messages)
 };
 
 // default string used as LAN hostname
