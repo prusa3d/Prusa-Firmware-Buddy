@@ -486,8 +486,8 @@ void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, con
         break;
     }
 
-    notice_title.SetText(string_view_utf8::MakeRAM((const uint8_t *)errTitle));
-    notice_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)errDesc));
+    notice_title.SetText(_(errTitle));
+    notice_text.SetText(_(errDesc));
 
     snprintf(error_code_str, sizeof(error_code_str), error_code_link_format, errCode);
     notice_link.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_code_str));
