@@ -36,6 +36,10 @@ Example: 12201
 5. System - FW crash, …
 6. Bootloader - FW update, USB/SD card fail
 7. Warnings
+8. Dialogs for Connect - not really errors, identifiers for communicating
+   dialogs to the server. If there's an error in one of the above categories, it
+   is possible to reuse that error code directly, no need to create a duplicate
+   one in this category.
 
 More information about the error codes can be found at:
 [prusa.io/error-codes](https://prusa.io/error-codes)

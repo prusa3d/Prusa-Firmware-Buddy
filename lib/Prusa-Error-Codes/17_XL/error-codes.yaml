@@ -599,3 +599,8 @@ Errors:
   text: ""
   id: "HOTEND_FAN_ERROR"
   type: "CONNECT"
+- code: "17828"
+  title: ""
+  text: ""
+  id: "FILAMENT_RUNOUT"
+  type: "CONNECT"
