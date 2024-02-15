@@ -47,7 +47,6 @@ typedef struct _marlin_client_t {
     startup_cb_t startup_cb; // to register callback after marlin complete initialization
 
     uint16_t flags; // client flags (MARLIN_CFLG_xxx)
-    uint16_t last_count; // number of messages received in last client loop
 
     uint8_t id; // client id (0..MARLIN_MAX_CLIENTS-1)
     uint8_t reheating; // reheating in progress
@@ -65,7 +64,7 @@ uint8_t marlin_clients = 0; // number of connected clients
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-static uint32_t _wait_ack_from_server(uint8_t client_id);
+static uint32_t _wait_ack_from_server(marlin_client_t *client);
 static void _process_client_message(marlin_client_t *client, variant8_t msg);
 static marlin_client_t *_client_ptr();
 
@@ -101,29 +100,24 @@ void init() {
     osSemaphoreRelease(server_semaphore);
 }
 
-void loop() {
-    uint16_t count = 0;
+static bool receive_and_process_client_message(marlin_client_t *client, TickType_t ticks_to_wait) {
     variant8_t msg;
     variant8_t *pmsg = &msg;
-    int client_id;
-    marlin_client_t *client;
-    osThreadId taskHandle = osThreadGetId();
-    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
-        if (taskHandle == marlin_client_task[client_id]) {
-            break;
-        }
-    }
-    if (client_id >= MARLIN_MAX_CLIENTS) {
-        return;
-    }
-    client = clients + client_id;
-    ClientQueue &queue = marlin_client_queue[client_id];
-    while (queue.receive(msg, 0)) {
+    ClientQueue &queue = marlin_client_queue[client->id];
+    if (queue.receive(msg, ticks_to_wait)) {
         _process_client_message(client, msg);
         variant8_done(&pmsg);
-        count++;
+        return true;
+    } else {
+        return false;
     }
-    client->last_count = count;
+}
+
+void loop() {
+    if (marlin_client_t *client = _client_ptr()) {
+        while (receive_and_process_client_message(client, 0)) {
+        }
+    }
 }
 
 int get_id() {
@@ -135,10 +129,10 @@ int get_id() {
 }
 
 void wait_for_start_processing() {
-    // wait for startup
-    while (!event_clr(Event::StartProcessing)) {
-        loop();
-        osDelay(100);
+    if (marlin_client_t *client = _client_ptr()) {
+        while (!event_clr(Event::StartProcessing)) {
+            receive_and_process_client_message(client, portMAX_DELAY);
+        }
     }
 }
 
@@ -192,7 +186,7 @@ static void _send_request_to_server_and_wait(Request &request) {
         // Note: no need to lock here, we are the only client who accesses this
         clients[client->id].events &= ~make_mask(Event::Acknowledge);
         server_queue.send(request);
-        _wait_ack_from_server(client->id);
+        _wait_ack_from_server(client);
         if ((client->events & make_mask(Event::NotAcknowledge)) != 0) {
             // clear nack flag
             client->events &= ~make_mask(Event::NotAcknowledge);
@@ -549,14 +543,11 @@ bool is_idle() {
 // private functions
 
 // wait for ack event, blocking - used for synchronization, called typically at end of client request functions
-static uint32_t _wait_ack_from_server(uint8_t client_id) {
-    while ((clients[client_id].events & make_mask(Event::Acknowledge)) == 0 && (clients[client_id].events & make_mask(Event::NotAcknowledge)) == 0) {
-        loop();
-        if (clients[client_id].last_count == 0) {
-            osDelay(10);
-        }
+static uint32_t _wait_ack_from_server(marlin_client_t *client) {
+    while ((client->events & make_mask(Event::Acknowledge)) == 0 && (client->events & make_mask(Event::NotAcknowledge)) == 0) {
+        receive_and_process_client_message(client, portMAX_DELAY);
     }
-    return clients[client_id].ack;
+    return client->ack;
 }
 
 // process message on client side (set flags, update vars etc.)
