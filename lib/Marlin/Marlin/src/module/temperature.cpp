@@ -898,7 +898,7 @@ void Temperature::max_temp_error(const heater_ind_t heater) {
   #if HAS_TEMP_HEATBREAK
     //we have multiple heartbreak thermistors and they have always the highest ID
     if(heater >= H_HEATBREAK_E0){
-        _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MAXTEMP_HEATBREAK));
+        _temp_error(heater, PSTR(MSG_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP_HEATBREAK));
     }
   #endif
   _temp_error(heater, PSTR(MSG_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP));
