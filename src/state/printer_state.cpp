@@ -131,7 +131,7 @@ namespace {
             }
 #endif
             // MMU not supported or not active -> all load/unload during print is really attention.
-            return ErrCode::CONNECT_PRINT_PREVIEW_FILE_ERROR;
+            return ErrCode::CONNECT_FILAMENT_RUNOUT;
         case ClientFSM::CrashRecovery:
             return crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(q1_change.get_data().GetPhase()));
         default:
