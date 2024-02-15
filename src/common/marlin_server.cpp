@@ -481,10 +481,9 @@ void server_update_vars() {
 }
 
 void send_notifications_to_clients() {
-    uint64_t msk = 0;
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         ClientQueue &queue = marlin_client::marlin_client_queue[client_id];
-        if ((msk = server.client_events[client_id]) != 0) {
+        if (const uint64_t msk = server.client_events[client_id]) {
             server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
         }
     }
