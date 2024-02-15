@@ -391,7 +391,12 @@ public:
 /// (fsensor has to trigger only after the extruder wheels engage the filament)
 /// This switch gives allows the user to set if the printer has the stock extruder or the MMU reworked one.
 class MI_MMU_NEXTRUDER_REWORK : public WI_SWITCH_t<2> {
+#if HAS_LOADCELL()
     static constexpr const char *const label = N_("Nextruder");
+#else
+    // for MK3.5 we call this option simply "Extruder"
+    static constexpr const char *const label = N_("Extruder");
+#endif
     static constexpr const char *const val_0 = N_("Stock");
     static constexpr const char *const val_1 = N_("MMU");
 
