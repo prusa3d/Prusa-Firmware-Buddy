@@ -55,7 +55,6 @@ uint8_t marlin_clients = 0; // number of connected clients
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-static uint32_t _wait_ack_from_server(marlin_client_t *client);
 static void _process_client_message(marlin_client_t *client, variant8_t msg);
 static marlin_client_t *_client_ptr();
 
@@ -154,24 +153,24 @@ static void _send_request_to_server_and_wait(Request &request) {
 
     request.client_id = client->id;
     do {
-        // Note: no need to lock here, we are the only client who accesses this
-        clients[client->id].events &= ~make_mask(Event::Acknowledge);
+        client->events &= ~(make_mask(Event::Acknowledge) | make_mask(Event::NotAcknowledge));
         server_queue.send(request);
-        _wait_ack_from_server(client);
-        if ((client->events & make_mask(Event::NotAcknowledge)) != 0) {
-            // clear nack flag
-            client->events &= ~make_mask(Event::NotAcknowledge);
-            // give marlin server time to process other requests
-            osDelay(10);
+        for (;;) {
+            receive_and_process_client_message(client, portMAX_DELAY);
+            if (client->events & make_mask(Event::Acknowledge)) {
+                client->events &= ~make_mask(Event::Acknowledge);
+                return;
+            }
+            if (client->events & make_mask(Event::NotAcknowledge)) {
+                client->events &= ~make_mask(Event::NotAcknowledge);
+                // give marlin server time to process other requests
+                osDelay(10);
+                retries_left--;
+                break;
+            }
         }
-        retries_left--;
-    } while ((client->events & make_mask(Event::Acknowledge)) == 0 && retries_left > 0);
-
-    if (retries_left <= 0) {
-        fatal_error(ErrCode::ERR_SYSTEM_MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT);
-    }
-    // clear the flag of ack events
-    client->events &= ~make_mask(Event::Acknowledge);
+    } while (retries_left > 0);
+    fatal_error(ErrCode::ERR_SYSTEM_MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT);
 }
 
 void set_event_notify(uint64_t event_mask) {
@@ -494,14 +493,6 @@ bool is_idle() {
 
 //-----------------------------------------------------------------------------
 // private functions
-
-// wait for ack event, blocking - used for synchronization, called typically at end of client request functions
-static uint32_t _wait_ack_from_server(marlin_client_t *client) {
-    while ((client->events & make_mask(Event::Acknowledge)) == 0 && (client->events & make_mask(Event::NotAcknowledge)) == 0) {
-        receive_and_process_client_message(client, portMAX_DELAY);
-    }
-    return client->ack;
-}
 
 // process message on client side (set flags, update vars etc.)
 static void _process_client_message(marlin_client_t *client, variant8_t msg) {
