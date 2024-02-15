@@ -70,7 +70,6 @@ if(BOARD MATCHES ".*BUDDY")
             tools_mapping.cpp
             trinamic.cpp
             uartrxbuff.cpp
-            variant8.cpp
             version.cpp
             w25x.cpp
             w25x_communication.cpp
@@ -137,7 +136,6 @@ elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
             tools_mapping.cpp
             trinamic.cpp
             uartrxbuff.cpp
-            variant8.cpp
             version.cpp
             wdt.cpp
             z_calibration_fsm.cpp
