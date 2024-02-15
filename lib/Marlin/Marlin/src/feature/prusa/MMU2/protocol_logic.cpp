@@ -759,6 +759,7 @@ void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
         MMU2::LogRequestMsg(tmp);
     }
     strncpy(lastMsg, tmp, rqs);
+    lastMsg[rqs - 1] = '\0';
 }
 
 void ProtocolLogic::LogError(const char *reason_P) {
