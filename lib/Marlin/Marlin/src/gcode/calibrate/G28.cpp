@@ -769,15 +769,40 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
           #if ENABLED(Z_SAFE_HOMING)
             if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) {
               failed = !home_z_safely();
+
               #if ENABLED(DETECT_PRINT_SHEET)
               if (!failed && check_sheet) {
-                failed = !detect_print_sheet(z_homing_height);
-                if (failed) {
-                  do_blocking_move_to_z(DETECT_PRINT_SHEET_Z_AFTER_FAILURE, homing_feedrate(Z_AXIS));
-                  kill(GET_TEXT(MSG_LCD_MISSING_SHEET));
-                }
+                failed = [&] {
+                  // Do multiple attempts of detect print sheet
+                  // The point is that we want to prevent false failures caused by a dirty nozzle (cold filament left hanging out)
+                  // BFW-5028
+                  for(uint8_t attempt = 0;; attempt++) {
+                    if(detect_print_sheet(z_homing_height)) {
+                      return false;
+                    }
+
+                    // Ran out of attempts -> fail
+                    if(attempt == 2) {
+                      // Move the bed to the bottom to give space for the user to insert the sheet
+                      do_blocking_move_to_z(DETECT_PRINT_SHEET_Z_AFTER_FAILURE, homing_feedrate(Z_AXIS));
+
+                      // Fall into red screen
+                      kill(GET_TEXT(MSG_LCD_MISSING_SHEET));
+
+                      // Return failed = true for good measure
+                      return true;
+                    }
+
+                    // Raise the Z again to prevent crashing into the sheet
+                    do_z_clearance(z_homing_height);
+                    
+                    // Return to the previous XY positions
+                    home_z_safely();
+                  }
+                }();
               }
               #endif
+
             } else {
               failed = !homeaxis(Z_AXIS);
             }
