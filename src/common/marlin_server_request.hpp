@@ -9,15 +9,10 @@ namespace marlin_server {
 struct __attribute__((packed)) Request {
     enum class Type : uint8_t {
         EventMask,
-        Stop,
-        Start,
         Gcode,
         InjectGcode,
         SetVariable,
         Babystep,
-        ConfigSave,
-        ConfigLoad,
-        ConfigReset,
         TestStart,
         TestAbort,
         PrintStart,

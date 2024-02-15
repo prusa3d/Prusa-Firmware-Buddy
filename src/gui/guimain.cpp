@@ -102,9 +102,6 @@ void MsgCircleBuffer_cb(const char *txt) {
     }
 }
 
-static void Startup_cb(void) {
-}
-
 namespace {
 void led_animation_step() {
 #if HAS_LEDS()
@@ -309,7 +306,6 @@ void gui_run(void) {
     DialogHandler::Access(); // to create class NOW, not at first call of one of callback
     marlin_client::set_fsm_cb(DialogHandler::command_c_compatible);
     marlin_client::set_message_cb(MsgCircleBuffer_cb);
-    marlin_client::set_startup_cb(Startup_cb);
 
     Sound_Play(eSOUND_TYPE::Start);
 

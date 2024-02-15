@@ -725,23 +725,6 @@ bool inject_gcode(const char *gcode) {
     return true;
 }
 
-void settings_save(void) {
-#if HAS_BED_PROBE
-    SteelSheets::SetZOffset(probe_offset.z);
-#endif
-#if ENABLED(PIDTEMPBED)
-    config_store().pid_bed_p.set(Temperature::temp_bed.pid.Kp);
-    config_store().pid_bed_i.set(Temperature::temp_bed.pid.Ki);
-    config_store().pid_bed_d.set(Temperature::temp_bed.pid.Kd);
-#endif
-#if ENABLED(PIDTEMP)
-    // Save only first nozzle PID
-    config_store().pid_nozzle_p.set(Temperature::temp_hotend[0].pid.Kp);
-    config_store().pid_nozzle_i.set(Temperature::temp_hotend[0].pid.Ki);
-    config_store().pid_nozzle_d.set(Temperature::temp_hotend[0].pid.Kd);
-#endif
-}
-
 void settings_load(void) {
     (void)settings.reset();
 #if HAS_BED_PROBE
@@ -770,10 +753,6 @@ void settings_load(void) {
     // TODO: This is temporary until better offset store method is implemented
     prusa_toolchanger.load_tool_offsets();
 #endif
-}
-
-void settings_reset(void) {
-    (void)settings.reset();
 }
 
 uint32_t get_command(void) {
@@ -2457,9 +2436,7 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
             case Event::Error:
             case Event::PlayTone:
             case Event::UserConfirmRequired:
-            case Event::SafetyTimerExpired:
             case Event::Message:
-            case Event::Reheat:
                 sent |= msk; // fake event sent for unused and forced events
                 break;
             case Event::_count:
@@ -2656,12 +2633,6 @@ bool _process_server_valid_request(const Request &request, int client_id) {
         return enqueue_gcode(request.gcode);
     case Request::Type::InjectGcode:
         return inject_gcode(request.inject_gcode);
-    case Request::Type::Start:
-        start_processing();
-        return true;
-    case Request::Type::Stop:
-        stop_processing();
-        return true;
     case Request::Type::SetVariable:
         _server_set_var(request);
         return true;
@@ -2684,15 +2655,6 @@ bool _process_server_valid_request(const Request &request, int client_id) {
     case Request::Type::CancelCurrentObject:
         return false;
 #endif
-    case Request::Type::ConfigSave:
-        settings_save();
-        return true;
-    case Request::Type::ConfigLoad:
-        settings_load();
-        return true;
-    case Request::Type::ConfigReset:
-        settings_reset();
-        return true;
     case Request::Type::PrintStart:
         print_start(request.print_start.filename, request.print_start.skip_preview);
         return true;

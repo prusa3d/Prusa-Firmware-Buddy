@@ -32,9 +32,7 @@ enum class Event : uint8_t {
     Error, // sent onStatusChanged etc.
     CommandBegin, //
     CommandEnd, //
-    SafetyTimerExpired, // host action from marlin, hotends and bed turned off
     Message, //
-    Reheat, //
     Acknowledge, // onAcknowledge - lowest priority
     NotAcknowledge, // onNotAcknowledge - lowest priority
 

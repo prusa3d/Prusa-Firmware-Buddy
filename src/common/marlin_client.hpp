@@ -11,10 +11,6 @@
 
 namespace marlin_client {
 
-// client flags
-inline constexpr uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
-inline constexpr uint16_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main thread is enabled
-
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
 
@@ -34,11 +30,6 @@ void wait_for_start_processing();
 bool set_fsm_cb(fsm_cb_t cb);
 // sets dialog message, returns true on success
 bool set_message_cb(message_cb_t cb);
-
-// sets startup callback, returns true on success
-bool set_startup_cb(startup_cb_t cb);
-// returns enabled status of loop processing
-bool is_processing();
 
 // sets event notification mask
 void set_event_notify(uint64_t notify_events);
@@ -135,12 +126,6 @@ void move_axis(float logical_pos, float feedrate, uint8_t axis);
  */
 void move_xyz_axes_to(const xyz_float_t &position, float feedrate);
 
-void settings_save();
-
-void settings_load();
-
-void settings_reset();
-
 #if HAS_SELFTEST()
 void test_start_with_data(const uint64_t test_mask, const selftest::TestData test_data);
 void test_start(const uint64_t test_mask);
@@ -180,9 +165,6 @@ bool is_printing();
 bool is_paused();
 
 bool is_idle();
-
-// returns true if reheating is in progress, otherwise 0
-bool is_reheating();
 
 // radio button click
 void encoded_response(uint32_t enc_phase_and_response);

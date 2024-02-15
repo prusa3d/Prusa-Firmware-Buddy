@@ -29,10 +29,6 @@ namespace marlin_client {
 
 LOG_COMPONENT_DEF(MarlinClient, LOG_SEVERITY_INFO);
 
-// maximum string length for DBG_VAR
-enum {
-    DBG_VAR_STR_MAX_LEN = 128
-};
 static constexpr uint8_t max_retries = 5;
 
 // client
@@ -44,12 +40,7 @@ typedef struct _marlin_client_t {
     uint32_t command; // processed command (G28,G29,M701,M702,M600)
     fsm_cb_t fsm_cb; // to register callback for dialog or screen creation/destruction/change (M876), callback ensures M876 is processed asap, so there is no need for queue
     message_cb_t message_cb; // to register callback message
-    startup_cb_t startup_cb; // to register callback after marlin complete initialization
-
-    uint16_t flags; // client flags (MARLIN_CFLG_xxx)
-
     uint8_t id; // client id (0..MARLIN_MAX_CLIENTS-1)
-    uint8_t reheating; // reheating in progress
 } marlin_client_t;
 
 //-----------------------------------------------------------------------------
@@ -85,16 +76,12 @@ void init() {
         client = clients + client_id;
         memset(client, 0, sizeof(marlin_client_t));
         client->id = client_id;
-        client->flags = 0;
         client->events = 0;
         marlin_clients++;
-        client->flags |= (MARLIN_CFLG_STARTED | MARLIN_CFLG_PROCESS);
         client->errors = 0;
         client->command = ftrstd::to_underlying(Cmd::NONE);
-        client->reheating = 0;
         client->fsm_cb = NULL;
         client->message_cb = NULL;
-        client->startup_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(server_semaphore);
@@ -156,22 +143,6 @@ bool set_message_cb(message_cb_t cb) {
         return true;
     }
     return false;
-}
-
-// register callback to startup_cb_t (complete initialization)
-// return success
-bool set_startup_cb(startup_cb_t cb) {
-    marlin_client_t *client = _client_ptr();
-    if (client && cb) {
-        client->startup_cb = cb;
-        return true;
-    }
-    return false;
-}
-
-bool is_processing() {
-    marlin_client_t *client = _client_ptr();
-    return client && client->flags & MARLIN_CFLG_PROCESS;
 }
 
 static void _send_request_to_server_and_wait(Request &request) {
@@ -353,18 +324,6 @@ void move_xyz_axes_to(const xyz_float_t &position, float feedrate) {
     _send_request_to_server_and_wait(request);
 }
 
-void settings_save() {
-    _send_request_id_to_server_and_wait(Request::Type::ConfigSave);
-}
-
-void settings_load() {
-    _send_request_id_to_server_and_wait(Request::Type::ConfigLoad);
-}
-
-void settings_reset() {
-    _send_request_id_to_server_and_wait(Request::Type::ConfigReset);
-}
-
 #if HAS_SELFTEST()
 void test_start_with_data(const uint64_t test_mask, const ::selftest::TestData test_data) {
     Request request;
@@ -491,12 +450,6 @@ void notify_server_about_knob_click() {
     _send_request_id_to_server_and_wait(Request::Type::KnobClick);
 }
 
-// returns true if reheating is in progress, otherwise false
-bool is_reheating() {
-    marlin_client_t *client = _client_ptr();
-    return client && client->reheating;
-}
-
 //-----------------------------------------------------------------------------
 // responses from client finite state machine (like button click)
 void encoded_response(uint32_t enc_phase_and_response) {
@@ -557,18 +510,6 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
     {
         client->events |= ((uint64_t)1 << id);
         switch ((Event)id) {
-        case Event::MeshUpdate: {
-            uint8_t _UNUSED x = variant8_get_usr16(msg) & 0xff;
-            uint8_t _UNUSED y = variant8_get_usr16(msg) >> 8;
-            float _UNUSED z = variant8_get_flt(msg);
-            break;
-        }
-        case Event::StartProcessing:
-            client->flags |= MARLIN_CFLG_PROCESS;
-            break;
-        case Event::StopProcessing:
-            client->flags &= ~MARLIN_CFLG_PROCESS;
-            break;
         case Event::Error:
             client->errors |= MARLIN_ERR_MSK(variant8_get_ui32(msg));
             break;
@@ -577,9 +518,6 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             break;
         case Event::CommandEnd:
             client->command = ftrstd::to_underlying(Cmd::NONE);
-            break;
-        case Event::Reheat:
-            client->reheating = (uint8_t)variant8_get_ui32(msg);
             break;
         case Event::NotAcknowledge:
         case Event::Acknowledge:
@@ -600,13 +538,12 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             variant8_done(&pvar);
             break;
         }
-        case Event::Startup:
-            if (client->startup_cb) {
-                client->startup_cb();
-            }
-            break;
             // not handled events
             // do not use default, i want all events listed here, so new event will generate warning, when not added
+        case Event::MeshUpdate:
+        case Event::Startup:
+        case Event::StartProcessing:
+        case Event::StopProcessing:
         case Event::PrinterKilled:
         case Event::MediaInserted:
         case Event::MediaError:
@@ -621,43 +558,10 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case Event::FactoryReset:
         case Event::LoadSettings:
         case Event::StoreSettings:
-        case Event::SafetyTimerExpired:
             break;
         case Event::_count:
             assert(false);
         }
-#ifdef DBG_EVT_MSK
-        if (DBG_EVT_MSK & ((uint64_t)1 << id)) {
-            switch (id) {
-            // Event Event::MeshUpdate - ui32 is float z, ui16 low byte is x index, high byte y index
-            case Event::MeshUpdate: {
-                uint8_t x = msg.usr16 & 0xff;
-                uint8_t y = msg.usr16 >> 8;
-                float z = msg.flt;
-                DBG_EVT("CL%c: EVT %s %d %d %.3f", '0' + client->id, marlin_events_get_name(id),
-                    x, y, static_cast<double>(z));
-                x = x;
-                y = y;
-                z = z; // prevent warning
-            } break;
-            // Event Event::CommandBegin/End - ui32 is encoded command
-            case Event::CommandBegin:
-            case Event::CommandEnd:
-                DBG_EVT("CL%c: EVT %s %c%u", '0' + client->id, marlin_events_get_name(id),
-                    (msg.ui32 >> 16) & 0xff, msg.ui32 & 0xffff);
-                break;
-            // Event Event::Acknowledge - ui32 is result (not used in this time)
-            case Event::Reheat:
-            case Event::Acknowledge:
-                DBG_EVT("CL%c: EVT %s %lu", '0' + client->id, marlin_events_get_name(id), msg.ui32);
-                break;
-            // Other events and events without arguments
-            default:
-                DBG_EVT("CL%c: EVT %s", '0' + client->id, marlin_events_get_name(id));
-                break;
-            }
-        }
-#endif // DBG_EVT_MSK
     }
 }
 
