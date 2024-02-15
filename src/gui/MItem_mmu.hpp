@@ -335,7 +335,7 @@ public:
 // };
 
 class MI_MMU_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("MMU Enable");
+    constexpr static const char *const label = N_("MMU Unit");
 
 public:
     MI_MMU_ENABLE();
