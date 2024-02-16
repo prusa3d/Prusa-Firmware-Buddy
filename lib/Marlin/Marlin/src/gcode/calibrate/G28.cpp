@@ -777,6 +777,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
                   // The point is that we want to prevent false failures caused by a dirty nozzle (cold filament left hanging out)
                   // BFW-5028
                   for(uint8_t attempt = 0;; attempt++) {
+                    // If detect_print_sheet, return success (failed -> false)
                     if(detect_print_sheet(z_homing_height)) {
                       return false;
                     }
@@ -789,15 +790,18 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
                       // Fall into red screen
                       kill(GET_TEXT(MSG_LCD_MISSING_SHEET));
 
-                      // Return failed = true for good measure
+                      // Return failure
                       return true;
                     }
 
                     // Raise the Z again to prevent crashing into the sheet
                     do_z_clearance(z_homing_height);
                     
-                    // Return to the previous XY positions
-                    home_z_safely();
+                    // Return to the XY homing position over the printbed and try rehoming z
+                    if(!home_z_safely()) {
+                      // Fail straight away if z homing fails, only repeat if detect_print_sheet fails
+                      return true;
+                    }
                   }
                 }();
               }
