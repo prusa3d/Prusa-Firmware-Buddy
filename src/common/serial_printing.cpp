@@ -11,17 +11,23 @@ void SerialPrinting::print_loop() {
 
 void SerialPrinting::abort() {
     marlin_server::enqueue_gcode("M118 A1 action:cancel");
+    // Send ";@cancel" to let printcore know we have stopped the print
+    marlin_server::enqueue_gcode("\n;@cancel");
 }
 
 void SerialPrinting::resume() {
     last_serial_indicator_ms = ticks_ms();
     GCodeQueue::pause_serial_commands = false;
     marlin_server::enqueue_gcode("M118 A1 action:resume");
+    // Send ";@resume" to let printcore know we have resumed the print
+    marlin_server::enqueue_gcode("\n;@resume");
 }
 
 void SerialPrinting::pause() {
     GCodeQueue::pause_serial_commands = false;
     marlin_server::enqueue_gcode("M118 A1 action:pause");
+    // Send ";@pause" to let printcore know we have paused the print
+    marlin_server::enqueue_gcode("\n;@pause");
 }
 
 bool SerialPrinting::has_serial_timeouted() {
