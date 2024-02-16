@@ -55,8 +55,7 @@ public:
         float get_float() { return atof(&*begin); };
         String get_string();
 
-        // FIXME: XXX
-        bool operator==(const char *str) const { return std::equal(begin, end, str); }
+        bool operator==(const char *str) const { return std::equal(begin, end, str) && str[end - begin] == '\0' /* safe, after the equal passed */; }
 
         /// Returns true if the gcode command starts with $str (and is followed by whitespace or string end) and skips the gcode code (plus whitespace).
         /// Returns false and does nothing otherwise.
