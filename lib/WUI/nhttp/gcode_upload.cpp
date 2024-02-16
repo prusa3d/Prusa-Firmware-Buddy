@@ -234,7 +234,7 @@ namespace {
         if (std::get<0>(error) != Status::Ok) {
             return error;
         }
-        if (mkdir(path, 777) != 0) {
+        if (mkdir(path, 0777) != 0) {
             // teoretically could fail not on the first
             // folder and we would then leave some previous
             // folder in place ,but this is improbable...

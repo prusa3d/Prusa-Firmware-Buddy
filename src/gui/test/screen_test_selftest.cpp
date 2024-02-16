@@ -30,7 +30,7 @@ static void WaitAndShot(const char *file_name, uint32_t wait = 512) {
 }
 
 static void SelftestTest() {
-    mkdir("/usb/selftest", 777);
+    mkdir("/usb/selftest", 0777);
     fsm::Change change(fsm::QueueIndex::q0);
     fsm::BaseData data;
     // push create

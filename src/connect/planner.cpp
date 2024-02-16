@@ -143,7 +143,7 @@ namespace {
     }
 
     const char *make_dir(const char *path) {
-        if (mkdir(path, 777) != 0) {
+        if (mkdir(path, 0777) != 0) {
             if (errno == EEXIST) {
                 return "Directory already exists";
             } else {
