@@ -45,7 +45,6 @@ if(BOARD MATCHES ".*BUDDY")
             path_utils.cpp
             PersistentStorage.cpp
             Pin.cpp
-            print_processor.cpp
             print_utils.cpp
             probe_analysis.cpp
             random_hw.cpp
@@ -123,7 +122,6 @@ elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
             odometer.cpp
             otp.cpp
             Pin.cpp
-            print_processor.cpp
             print_utils.cpp
             probe_analysis.cpp
             random_sw.cpp

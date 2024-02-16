@@ -80,10 +80,14 @@ public:
     }
 
 protected:
+    /// For some historical reason, filament sensor runs in the context of measurement task
     friend void StartMeasurementTask(void const *);
 
+    /// Called from measurement task once
+    void task_init();
+
     /// Periodically called from the measurement task
-    void cycle();
+    void task_cycle();
 
 private:
     // Non-public members can only be written to from the cycle() function (called from the Measurement task)

@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <algorithm>
 #include "thread_measurement.h"
-#include "print_processor.hpp"
 #include "cmsis_os.h" //osDelay
 #include "filament_sensors_handler.hpp"
 #include "marlin_client.hpp"
@@ -37,10 +36,7 @@ static inline bool checkTimestampsAscendingOrder(uint32_t a, uint32_t b) {
 }
 
 void StartMeasurementTask([[maybe_unused]] void const *argument) {
-    marlin_client::init();
-    marlin_client::wait_for_start_processing();
-    marlin_client::set_event_notify(marlin_server::EVENT_MSK_FSM);
-    PrintProcessor::Init(); // this cannot be inside filament sensor ctor, because it can be created in any thread (outside them)
+    FSensors_instance().task_init();
 
     uint32_t next_fs_cycle = ticks_ms();
     uint32_t next_sg_cycle = ticks_ms();
@@ -54,12 +50,11 @@ void StartMeasurementTask([[maybe_unused]] void const *argument) {
     );
 
     for (;;) {
-        marlin_client::loop();
         uint32_t now = ticks_ms();
 
         // sample filament sensor
         if (checkTimestampsAscendingOrder(next_fs_cycle, now)) {
-            FSensors_instance().cycle();
+            FSensors_instance().task_cycle();
             // call fs_cycle every ~50 ms
             next_fs_cycle = now + 50;
         }

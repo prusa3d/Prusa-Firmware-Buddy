@@ -6,7 +6,6 @@
  */
 
 #include "filament_sensors_handler.hpp"
-#include "print_processor.hpp"
 #include "rtos_api.hpp"
 #include "bsod.h"
 #include "window_msgbox.hpp"
@@ -94,7 +93,50 @@ void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &)> &f) 
     }
 }
 
-void FilamentSensors::cycle() {
+static ClientFSM type_of_q0 = ClientFSM::_none;
+static ClientFSM type_of_q1 = ClientFSM::_none;
+static ClientFSM type_of_q2 = ClientFSM::_none;
+
+// called when Serial print screen is opened
+// printer is not in sd printing mode, so filament sensor does not trigger M600
+static void fsm_cb(uint32_t u32, uint16_t u16) {
+    fsm::Change change({ u32, u16 });
+    ClientFSM *fsm_type = &type_of_q0;
+
+    // point to variable corresponding to queue from Change
+    switch (change.get_queue_index()) {
+    case fsm::QueueIndex::q0:
+        fsm_type = &type_of_q0;
+        break;
+    case fsm::QueueIndex::q1:
+        fsm_type = &type_of_q1;
+        break;
+    case fsm::QueueIndex::q2:
+        fsm_type = &type_of_q2;
+        break;
+    }
+
+    // fsm created or destroyed
+    if (*fsm_type != change.get_fsm_type()) {
+        if (*fsm_type == ClientFSM::Load_unload) {
+            FSensors_instance().DecEvLock(); // ClientFSM::Load_unload destroy
+        } else if (change.get_fsm_type() == ClientFSM::Load_unload) {
+            FSensors_instance().IncEvLock(); // ClientFSM::Load_unload create
+        }
+        *fsm_type = change.get_fsm_type(); // store new FSM type
+    }
+}
+
+void FilamentSensors::task_init() {
+    marlin_client::init();
+    marlin_client::wait_for_start_processing();
+    marlin_client::set_event_notify(marlin_server::EVENT_MSK_FSM);
+    marlin_client::set_fsm_cb(fsm_cb);
+}
+
+void FilamentSensors::task_cycle() {
+    marlin_client::loop();
+
     if (enable_state_update_pending) {
         process_enable_state_update();
     }
@@ -170,9 +212,9 @@ void FilamentSensors::process_events() {
         m600_sent = true;
 
         if constexpr (option::has_human_interactions) {
-            PrintProcessor::InjectGcode("M600 A"); // change filament
+            marlin_client::gcode_push_front("M600 A"); // change filament
         } else {
-            PrintProcessor::InjectGcode("M25 U"); // pause and unload filament
+            marlin_client::gcode_push_front("M25 U"); // pause and unload filament
         }
 
         log_info(FSensor, "Injected runout");
@@ -187,7 +229,7 @@ void FilamentSensors::process_events() {
             || has_mmu
             || autoload_sent
             || isAutoloadLocked()
-            || !PrintProcessor::IsAutoloadEnabled() //
+            || !marlin_vars()->fs_autoload_enabled //
 #if HAS_SELFTEST_SNAKE()
             // We're accessing screens from the filamentsensors thread here. This looks quite unsafe.
             || Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
@@ -198,13 +240,13 @@ void FilamentSensors::process_events() {
         }
 
         autoload_sent = true;
-        PrintProcessor::InjectGcode("M1701 Z40"); // autoload with return option and minimal Z value of 40mm
+        marlin_client::gcode_push_front("M1701 Z40"); // autoload with return option and minimal Z value of 40mm
         log_info(FSensor, "Injected autoload");
 
         return true;
     };
 
-    if (PrintProcessor::IsPrinting()) {
+    if (marlin_client::is_printing()) {
         if (check_runout(LogicalFilamentSensor::primary_runout)) {
             return;
         }
