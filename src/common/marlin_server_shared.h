@@ -8,9 +8,6 @@
 
 namespace marlin_server {
 
-// usr8 in variant8_t message contains id (bit0..6) and event flag (bit7)
-inline constexpr uint8_t MARLIN_USR8_MSK_ID = 0x7f; // usr8 - event id mask
-
 inline constexpr uint32_t TIME_TO_END_INVALID = std::numeric_limits<uint32_t>::max();
 inline constexpr time_t TIMESTAMP_INVALID = std::numeric_limits<time_t>::max();
 

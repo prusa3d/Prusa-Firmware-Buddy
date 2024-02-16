@@ -16,7 +16,6 @@
 #include <module/motion.h>
 #include "bsod.h"
 #include "utility_extensions.hpp"
-#include "variant8.h"
 #include "tasks.hpp"
 
 #if HAS_SELFTEST()
@@ -55,7 +54,7 @@ uint8_t marlin_clients = 0; // number of connected clients
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-static void _process_client_message(marlin_client_t *client, variant8_t msg);
+static bool receive_and_process_client_message(marlin_client_t *client, TickType_t ticks_to_wait);
 static marlin_client_t *_client_ptr();
 
 //-----------------------------------------------------------------------------
@@ -84,19 +83,6 @@ void init() {
         marlin_client_task[client_id] = osThreadGetId();
     }
     osSemaphoreRelease(server_semaphore);
-}
-
-static bool receive_and_process_client_message(marlin_client_t *client, TickType_t ticks_to_wait) {
-    variant8_t msg;
-    variant8_t *pmsg = &msg;
-    ClientQueue &queue = marlin_client_queue[client->id];
-    if (queue.receive(msg, ticks_to_wait)) {
-        _process_client_message(client, msg);
-        variant8_done(&pmsg);
-        return true;
-    } else {
-        return false;
-    }
 }
 
 void loop() {
@@ -495,38 +481,37 @@ bool is_idle() {
 // private functions
 
 // process message on client side (set flags, update vars etc.)
-static void _process_client_message(marlin_client_t *client, variant8_t msg) {
-    uint8_t id = variant8_get_usr8(msg) & MARLIN_USR8_MSK_ID;
-    if (variant8_get_type(msg) == VARIANT8_USER) // event received
-    {
-        client->events |= ((uint64_t)1 << id);
-        switch ((Event)id) {
+static bool receive_and_process_client_message(marlin_client_t *client, TickType_t ticks_to_wait) {
+    ClientEvent client_event;
+    ClientQueue &queue = marlin_client_queue[client->id];
+    if (!queue.receive(client_event, ticks_to_wait)) {
+        return false;
+    } else {
+        client->events |= make_mask(client_event.event);
+        switch (client_event.event) {
         case Event::Error:
-            client->errors |= MARLIN_ERR_MSK(variant8_get_ui32(msg));
+            client->errors |= MARLIN_ERR_MSK(client_event.usr32);
             break;
         case Event::CommandBegin:
-            client->command = variant8_get_ui32(msg);
+            client->command = client_event.usr32;
             break;
         case Event::CommandEnd:
             client->command = ftrstd::to_underlying(Cmd::NONE);
             break;
         case Event::NotAcknowledge:
         case Event::Acknowledge:
-            client->ack = variant8_get_ui32(msg);
+            client->ack = client_event.usr32;
             break;
         case Event::FSM:
             if (client->fsm_cb) {
-                client->fsm_cb(variant8_get_ui32(msg), variant8_get_usr16(msg));
+                client->fsm_cb(client_event.usr32, client_event.usr16);
             }
             break;
         case Event::Message: {
-            variant8_t *pvar = &msg;
-            variant8_set_type(pvar, VARIANT8_PCHAR);
-            const char *str = variant8_get_pch(msg);
             if (client->message_cb) {
-                client->message_cb(str);
+                client->message_cb(client_event.message);
             }
-            variant8_done(&pvar);
+            free(client_event.message);
             break;
         }
             // not handled events
@@ -553,6 +538,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         case Event::_count:
             assert(false);
         }
+        return true;
     }
 }
 

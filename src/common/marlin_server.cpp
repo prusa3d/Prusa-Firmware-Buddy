@@ -115,7 +115,6 @@
     #include "mmu2_fsm.hpp"
 #endif
 
-#include <variant8.h>
 #include <config_store/store_instance.hpp>
 using namespace ExtUI;
 
@@ -139,7 +138,7 @@ namespace {
         EventMask notify_events[MARLIN_MAX_CLIENTS]; // event notification mask - message filter
         EventMask notify_changes[MARLIN_MAX_CLIENTS]; // variable change notification mask - message filter
         EventMask client_events[MARLIN_MAX_CLIENTS]; // client event mask - unsent messages
-        variant8_t event_messages[MARLIN_MAX_CLIENTS]; // last Event::Message for clients, cannot use cvariant, destructor would free memory
+        char *event_messages[MARLIN_MAX_CLIENTS]; // last Event::Message for clients
         State print_state; // printing state (printing, paused, ...)
         bool print_is_serial = false; //< When true, current print is not from USB, but sent via gcode commands.
 #if ENABLED(CRASH_RECOVERY) //
@@ -380,12 +379,15 @@ idle_t *idle_cb = 0; // idle callback
 void _add_status_msg(const char *const popup_msg) {
     // I could check client mask here
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
-        variant8_t *pvar = &(server.event_messages[i]);
-        variant8_set_type(pvar, VARIANT8_PCHAR);
-        variant8_done(&pvar); // destroy unsent message - free dynamic memory
-        server.event_messages[i] = variant8_pchar((char *)popup_msg, 0, 1); // variant malloc - detached on send
-        variant8_set_type(&(server.event_messages[i]), VARIANT8_USER); // set user type so client can recognize it as event
-        variant8_set_usr8(&(server.event_messages[i]), ftrstd::to_underlying(Event::Message));
+        if (server.event_messages[i]) {
+            // FIXME: It would be great if we didn't lose messages there.
+            //        For now, let's keep the original implementation.
+            free(server.event_messages[i]);
+        }
+        // FIXME: It would be really great if we didn't allocate here.
+        //        Maybe we could instead setup some state in marlin_vars_t
+        //        For now, let's keep the original implementation.
+        server.event_messages[i] = strdup(popup_msg);
     }
 }
 
@@ -413,6 +415,7 @@ void init(void) {
     for (i = 0; i < MARLIN_MAX_CLIENTS; i++) {
         server.notify_events[i] = make_mask(Event::Acknowledge) | make_mask(Event::Startup) | make_mask(Event::StartProcessing); // by default only ack, startup and processing
         server.notify_changes[i] = 0; // by default nothing
+        server.event_messages[i] = nullptr;
     }
     server_task = osThreadGetId();
     server.enable_nozzle_temp_timeout = true;
@@ -2320,6 +2323,25 @@ extern uint32_t get_user_move_count(void) {
 //-----------------------------------------------------------------------------
 // private functions
 
+static bool _send_message_event_to_client(int client_id, ClientQueue &queue) {
+    char *message = std::exchange(server.event_messages[client_id], nullptr);
+
+    const marlin_client::ClientEvent client_event {
+        .event = Event::Message,
+        .unused = 0,
+        .usr16 = 0,
+        .message = message,
+    };
+    if (queue.send(client_event, 0)) {
+        // message was sent, client will free it
+        return true;
+    } else {
+        // message was not sent, we have to free it
+        free(message);
+        return false;
+    }
+}
+
 // send all FSM messages from the FSM queue
 static bool _send_FSM_event_to_client(int client_id, ClientQueue &queue) {
     while (1) {
@@ -2332,7 +2354,12 @@ static bool _send_FSM_event_to_client(int client_id, ClientQueue &queue) {
         log_debug(FSM, "data sent u32 %" PRIu32 ", u16 %" PRIu16 ", client %d",
             data.first, data.second, client_id);
 
-        const variant8_t payload = variant8_user(data.first, data.second, ftrstd::to_underlying(Event::FSM));
+        const marlin_client::ClientEvent payload = {
+            .event = Event::FSM,
+            .unused = 0,
+            .usr16 = data.second,
+            .usr32 = data.first,
+        };
         if (!queue.send(payload, 0)) {
             // unable to send all messages
             return false;
@@ -2342,31 +2369,21 @@ static bool _send_FSM_event_to_client(int client_id, ClientQueue &queue) {
 
 // send event notification to client (called from server thread)
 static bool _send_notify_event_to_client(int client_id, ClientQueue &queue, Event evt_id, uint32_t usr32, uint16_t usr16) {
-    variant8_t msg;
     switch (evt_id) {
     case Event::Message:
-        msg = server.event_messages[client_id];
-        break;
+        return _send_message_event_to_client(client_id, queue);
     case Event::FSM:
         return _send_FSM_event_to_client(client_id, queue);
-    default:
-        msg = variant8_user(usr32, usr16, ftrstd::to_underlying(evt_id));
+    default: {
+        const marlin_client::ClientEvent client_message {
+            .event = evt_id,
+            .unused = 0,
+            .usr16 = usr16,
+            .usr32 = usr32,
+        };
+        return queue.send(client_message, 0);
     }
-
-    const bool ret = queue.send(msg, 0);
-
-    if (ret) {
-        switch (evt_id) {
-        case Event::Message:
-            // clear sent client message
-            server.event_messages[client_id] = variant8_empty();
-            break;
-        default:
-            break;
-        }
     }
-
-    return ret;
 }
 
 // send event notification to client - multiple events (called from server thread)
