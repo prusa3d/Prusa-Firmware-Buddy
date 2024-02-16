@@ -45,9 +45,6 @@
 LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
 
-// FIXME: " " vs <>
-#include "variant8.h"
-
 using std::unique_lock;
 
 #define LOOP_EVT_TIMEOUT 500UL

@@ -12,7 +12,7 @@
 #include <cstddef> //size_t
 
 namespace fsm {
-#pragma pack(push, 1) // must be packed to fit in variant8
+#pragma pack(push, 1)
 
 inline constexpr size_t BaseDataSZ = 5;
 using PhaseData = std::array<uint8_t, BaseDataSZ - 1>;

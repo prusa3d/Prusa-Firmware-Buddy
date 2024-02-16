@@ -19,7 +19,6 @@
 #include <string.h>
 #include "netdev.h"
 
-#include "variant8.h"
 #include "netifapi.h"
 #include "ethernetif.h"
 

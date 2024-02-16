@@ -4,7 +4,6 @@
 #include "../common/sys.h"
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
-#include "../common/variant8.h"
 #include <bsod_gui.hpp>
 #include <config_store/store_instance.hpp>
 #include <logging/log.h>
