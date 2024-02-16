@@ -486,60 +486,60 @@ static bool receive_and_process_client_message(marlin_client_t *client, TickType
     ClientQueue &queue = marlin_client_queue[client->id];
     if (!queue.receive(client_event, ticks_to_wait)) {
         return false;
-    } else {
-        client->events |= make_mask(client_event.event);
-        switch (client_event.event) {
-        case Event::Error:
-            client->errors |= MARLIN_ERR_MSK(client_event.usr32);
-            break;
-        case Event::CommandBegin:
-            client->command = client_event.usr32;
-            break;
-        case Event::CommandEnd:
-            client->command = ftrstd::to_underlying(Cmd::NONE);
-            break;
-        case Event::NotAcknowledge:
-        case Event::Acknowledge:
-            client->ack = client_event.usr32;
-            break;
-        case Event::FSM:
-            if (client->fsm_cb) {
-                client->fsm_cb(client_event.usr32, client_event.usr16);
-            }
-            break;
-        case Event::Message: {
-            if (client->message_cb) {
-                client->message_cb(client_event.message);
-            }
-            free(client_event.message);
-            break;
-        }
-            // not handled events
-            // do not use default, i want all events listed here, so new event will generate warning, when not added
-        case Event::MeshUpdate:
-        case Event::Startup:
-        case Event::StartProcessing:
-        case Event::StopProcessing:
-        case Event::PrinterKilled:
-        case Event::MediaInserted:
-        case Event::MediaError:
-        case Event::MediaRemoved:
-        case Event::PlayTone:
-        case Event::PrintTimerStarted:
-        case Event::PrintTimerPaused:
-        case Event::PrintTimerStopped:
-        case Event::FilamentRunout:
-        case Event::UserConfirmRequired:
-        case Event::StatusChanged:
-        case Event::FactoryReset:
-        case Event::LoadSettings:
-        case Event::StoreSettings:
-            break;
-        case Event::_count:
-            assert(false);
-        }
-        return true;
     }
+
+    client->events |= make_mask(client_event.event);
+    switch (client_event.event) {
+    case Event::Error:
+        client->errors |= MARLIN_ERR_MSK(client_event.usr32);
+        break;
+    case Event::CommandBegin:
+        client->command = client_event.usr32;
+        break;
+    case Event::CommandEnd:
+        client->command = ftrstd::to_underlying(Cmd::NONE);
+        break;
+    case Event::NotAcknowledge:
+    case Event::Acknowledge:
+        client->ack = client_event.usr32;
+        break;
+    case Event::FSM:
+        if (client->fsm_cb) {
+            client->fsm_cb(client_event.usr32, client_event.usr16);
+        }
+        break;
+    case Event::Message: {
+        if (client->message_cb) {
+            client->message_cb(client_event.message);
+        }
+        free(client_event.message);
+        break;
+    }
+        // not handled events
+        // do not use default, i want all events listed here, so new event will generate warning, when not added
+    case Event::MeshUpdate:
+    case Event::Startup:
+    case Event::StartProcessing:
+    case Event::StopProcessing:
+    case Event::PrinterKilled:
+    case Event::MediaInserted:
+    case Event::MediaError:
+    case Event::MediaRemoved:
+    case Event::PlayTone:
+    case Event::PrintTimerStarted:
+    case Event::PrintTimerPaused:
+    case Event::PrintTimerStopped:
+    case Event::FilamentRunout:
+    case Event::UserConfirmRequired:
+    case Event::StatusChanged:
+    case Event::FactoryReset:
+    case Event::LoadSettings:
+    case Event::StoreSettings:
+        break;
+    case Event::_count:
+        assert(false);
+    }
+    return true;
 }
 
 // returns client pointer for calling client thread (client thread)
