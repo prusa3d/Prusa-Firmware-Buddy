@@ -148,10 +148,6 @@ namespace {
         uint32_t paused_ticks; // tick count in moment when printing paused
         resume_state_t resume; // resume data (state before pausing)
         bool enable_nozzle_temp_timeout; // enables nozzle temperature timeout in print pause
-        struct {
-            uint32_t usr32;
-            uint16_t usr16;
-        } last_mesh_evt;
         uint32_t last_update; // last update tick count
         uint32_t command; // actually running command
         uint32_t command_begin; // variable for notification
@@ -2400,6 +2396,7 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
             case Event::StoreSettings:
             case Event::StartProcessing:
             case Event::StopProcessing:
+            case Event::MeshUpdate:
             case Event::FSM: // arguments handled elsewhere
             // StatusChanged event - one string argument
             case Event::StatusChanged:
@@ -2415,12 +2412,6 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
                 break;
             case Event::CommandEnd:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, server.command_end, 0)) {
-                    sent |= msk; // event sent, set bit
-                }
-                break;
-            case Event::MeshUpdate:
-                if (_send_notify_event_to_client(client_id, queue, evt_id,
-                        server.last_mesh_evt.usr32, server.last_mesh_evt.usr16)) {
                     sent |= msk; // event sent, set bit
                 }
                 break;
@@ -2459,11 +2450,6 @@ static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16) 
         if (server.notify_events[client_id] & ((uint64_t)1 << ftrstd::to_underlying(evt_id))) {
             if (_send_notify_event_to_client(client_id, marlin_client::marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
                 server.client_events[client_id] |= ((uint64_t)1 << ftrstd::to_underlying(evt_id)); // event not sent, set bit
-                // save unsent data of the event for later retransmission
-                if (evt_id == Event::MeshUpdate) {
-                    server.last_mesh_evt.usr32 = usr32;
-                    server.last_mesh_evt.usr16 = usr16;
-                }
             } else {
                 // event sent, clear flag
                 client_msk |= (1 << client_id);
@@ -3068,9 +3054,7 @@ void onConfigurationStoreRead([[maybe_unused]] bool success) {
 
 void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
     _log_event(LOG_SEVERITY_DEBUG, &LOG_COMPONENT(MarlinServer), "ExtUI: onMeshUpdate x: %u, y: %u, z: %.2f", xpos, ypos, (double)zval);
-    uint32_t usr32 = variant8_get_ui32(variant8_flt(zval));
-    uint16_t usr16 = xpos | ((uint16_t)ypos << 8);
-    _send_notify_event(Event::MeshUpdate, usr32, usr16);
+    _send_notify_event(Event::MeshUpdate, 0, 0);
 }
 
 } // namespace ExtUI
