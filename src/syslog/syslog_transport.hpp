@@ -4,6 +4,8 @@
 #include <config_store/constants.hpp>
 #include <sys/socket.h>
 
+#include <atomic>
+
 struct SyslogTransport {
 private:
     int sock = -1;
@@ -43,7 +45,18 @@ public:
      */
     uint16_t get_remote_port();
 
+    void dns_done_callback(const ip_addr_t *ip);
+    void dns_resolve();
+
 private:
     void close_unlocked();
     void open_unlocked();
+
+    enum class DnsState {
+        None,
+        Resolved,
+        Progress,
+    };
+
+    std::atomic<DnsState> dns_resolved = DnsState::None;
 };
