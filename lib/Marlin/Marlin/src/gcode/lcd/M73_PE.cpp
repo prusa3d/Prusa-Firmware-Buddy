@@ -6,6 +6,7 @@
 
 #include "M73_PE.h"
 #include "../Marlin/src/libs/stopwatch.h"
+#include "marlin_vars.hpp"
 extern Stopwatch print_job_timer;
 
 ClProgressData oProgressData;
@@ -128,6 +129,23 @@ void M73_PE_no_parser(std::optional<uint8_t> P, std::optional<uint32_t> R, std::
             oProgressData.oTime2Pause.mInit();
         } else {
             oProgressData.oTime2Pause.mSetValue(*C, nTimeNow); // [min] -> [s]
+        }
+    }
+
+    // Print progress report. Do not remove as third party tools might depend on this
+    if (!P && !R && !C) {
+        SERIAL_ECHO_START();
+        SERIAL_ECHOLNPAIR(" M73 Progress: ", marlin_vars()->sd_percent_done, "%;");
+        const uint32_t time_to_end = marlin_vars_t().time_to_end;
+        if (time_to_end != marlin_server::TIME_TO_END_INVALID) {
+            SERIAL_ECHOPAIR(" Time left: ", time_to_end / 60, "m;");
+            SERIAL_EOL();
+        }
+        const uint32_t time_to_pause = oProgressData.oTime2Pause.mGetValue();
+        if (time_to_pause != marlin_server::TIME_TO_END_INVALID) {
+            const int print_speed = marlin_vars()->print_speed;
+            SERIAL_ECHOPAIR(" Change: ", print_speed > 0 ? ((time_to_pause * 100) / print_speed) / 60 : 0, "m;");
+            SERIAL_EOL();
         }
     }
 }
