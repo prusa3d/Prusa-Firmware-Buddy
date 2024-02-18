@@ -4,9 +4,75 @@
 #include <dirent.h>
 
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "libs/hex_print_routines.h"
 #include "marlin_server.hpp"
 #include "media.hpp"
 #include "marlin_vars.hpp"
+#include "str_utils.hpp"
+
+struct TimeFlags {
+    bool print_lfn : 1;
+    bool print_timestamps : 1;
+};
+
+static void time_to_m20(const struct stat stat_buf, uint16_t *m20_date, uint16_t *m20_time) {
+    time_t t = stat_buf.st_mtim.tv_sec;
+    struct tm lt;
+    localtime_r(&t, &lt);
+    *m20_date = (lt.tm_year + 1900 - 1980) << 9 | (lt.tm_mon + 1) << 5 | lt.tm_mday;
+    *m20_time = lt.tm_hour << 11 | lt.tm_min << 5;
+    *m20_time |= int((lt.tm_sec - (lt.tm_sec % 2)) / 2);
+}
+
+static void print_file_info(const char *const prefix, const char *const path, const char *const long_path, const struct TimeFlags tf) {
+    // we skip the /usb/ prefix on print as it is only used internally
+    SERIAL_ECHO(&path[strlen_constexpr(prefix) + 1]);
+    SERIAL_CHAR(' ');
+    struct stat stat_buf;
+    int rc = stat(path, &stat_buf);
+    if (rc == 0) {
+        SERIAL_ECHO(stat_buf.st_size);
+        if (tf.print_timestamps) {
+            uint16_t m20_date;
+            uint16_t m20_time;
+            time_to_m20(stat_buf, &m20_date, &m20_time);
+            SERIAL_ECHOPGM(" 0x");
+            print_hex_word(m20_date);
+            print_hex_word(m20_time);
+        }
+        if (tf.print_lfn) {
+            SERIAL_CHAR(' ');
+            SERIAL_CHAR('"');
+            SERIAL_ECHO(&long_path[strlen_constexpr(prefix) + 1]);
+            SERIAL_CHAR('"');
+        }
+    }
+    SERIAL_EOL();
+}
+
+static void print_listing(const char *const prefix, const char *const prefix_long, const struct TimeFlags tf) {
+    DIR *dir;
+    dir = opendir(prefix);
+    if (dir != NULL) {
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != NULL && entry->d_name[0]) {
+            char *path = nullptr;
+            char *long_path = nullptr;
+            int path_length = strlen_constexpr(prefix) + 1 + strlen_constexpr(entry->d_name) + 1;
+            int long_path_length = strlen_constexpr(prefix_long) + 1 + strlen_constexpr(entry->lfn) + 1;
+            path = (char *)malloc(path_length);
+            snprintf(path, path_length, "%s/%s", prefix, entry->d_name);
+            long_path = (char *)malloc(long_path_length);
+            snprintf(long_path, long_path_length, "%s/%s", prefix_long, entry->lfn);
+            if (entry->d_type != DT_DIR) {
+                print_file_info(prefix, path, long_path, tf);
+            }
+            free(path);
+            free(long_path);
+        }
+        closedir(dir);
+    }
+}
 
 /** \addtogroup G-Codes
  * @{
@@ -16,16 +82,15 @@
  * M20 - List SD card on serial port
  */
 void GcodeSuite::M20() {
-    SERIAL_ECHOLNPGM(MSG_BEGIN_FILE_LIST);
-    DIR *dir;
-    dir = opendir("/usb/");
-    if (dir != NULL) {
-        struct dirent *entry;
-        while ((entry = readdir(dir)) != NULL && entry->d_name[0]) {
-            SERIAL_ECHOLN(entry->d_name);
-        }
-        closedir(dir);
+    TimeFlags tf;
+    if (parser.seen('L')) {
+        tf.print_lfn = 1;
     }
+    if (parser.seen('T')) {
+        tf.print_timestamps = 1;
+    }
+    SERIAL_ECHOLNPGM(MSG_BEGIN_FILE_LIST);
+    print_listing("/usb", "/usb", tf);
     SERIAL_ECHOLNPGM(MSG_END_FILE_LIST);
 }
 

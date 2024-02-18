@@ -218,6 +218,9 @@ void GcodeSuite::M115() {
     #endif
     );
 
+    // PARSE FILES ON USB (M20)
+    cap_line(PSTR("EXTENDED_M20"), true);
+
 #endif // EXTENDED_CAPABILITIES_REPORT
 }
 
