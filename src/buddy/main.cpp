@@ -521,7 +521,7 @@ extern "C" void main_cpp(void) {
 #endif
 
     // There is no point in initializing syslog before networking is up
-    TaskDeps::wait(TaskDeps::Tasks::connect);
+    TaskDeps::wait(TaskDeps::Tasks::syslog);
     syslog_initialize();
     metric_handlers_init();
 

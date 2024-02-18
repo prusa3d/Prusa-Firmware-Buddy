@@ -86,6 +86,7 @@ namespace Tasks {
 #endif
     );
     inline constexpr dependency_t connect = make(Dependency::networking_ready);
+    inline constexpr dependency_t syslog = make(Dependency::networking_ready);
 
     inline constexpr dependency_t network = make(
 #if NETWORK_DEPENDS_ON_ESP_FLASHED
