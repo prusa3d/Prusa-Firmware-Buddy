@@ -54,6 +54,8 @@ void GcodeSuite::M23() {
         }
     }
     marlin_vars()->media_SFN_path.set(parser.string_arg);
+    // Do not remove. Used by third party tools to detect that a file has been selected
+    SERIAL_ECHOLNPGM(MSG_SD_FILE_SELECTED);
 }
 
 /**
@@ -131,7 +133,8 @@ void GcodeSuite::M30() {
 
 // M32 - Select file and start SD print
 void GcodeSuite::M32() {
-    // TODO
+    M23();
+    M24();
 }
 
 //
