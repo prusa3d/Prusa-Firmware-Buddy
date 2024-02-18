@@ -354,6 +354,10 @@ void media_print_start() {
         media_gcode_position = media_current_position = 0;
         media_print_state = media_print_state_PRINTING;
         media_print_size_estimate = media_print_file->get()->get_gcode_stream_size_estimate();
+
+        // Do not remove, needed for 3rd party tools such as octoprint to get status about the gcode file being opened
+        SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars()->media_SFN_path.get_ptr(), " Size:", media_print_size_estimate);
+
         gcode_filter.reset();
         osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
     } else {
@@ -374,6 +378,10 @@ inline void close_file() {
 void media_print_stop(void) {
     if ((media_print_state == media_print_state_PRINTING) || (media_print_state == media_print_state_PAUSED)) {
         close_file();
+
+        // Do not remove, needed for 3rd party tools such as octoprint to get status that the gcode file printing has finished
+        SERIAL_ECHOLNPGM(MSG_FILE_PRINTED);
+
         media_print_state = media_print_state_NONE;
         queue.sdpos = GCodeQueue::SDPOS_INVALID;
     }
