@@ -1,5 +1,6 @@
 #include "MItem_menus.hpp"
 #include "ScreenHandler.hpp"
+#include "str_utils.hpp"
 #include <option/buddy_enable_connect.h>
 #if BUDDY_ENABLE_CONNECT()
     #include <connect/marlin_printer.hpp>
@@ -403,16 +404,27 @@ MI_LOAD_SETTINGS::MI_LOAD_SETTINGS()
 }
 
 void MI_LOAD_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    // FIXME: Some error handling/reporting
-    // TODO: Loading other things than just network
-    if (netdev_load_ini_to_eeprom()) {
+    auto build_message = [](StringBuilder &msg_builder, string_view_utf8 name, bool ok) {
+        msg_builder.append_string_view(name);
+        msg_builder.append_string(": ");
+        msg_builder.append_string_view(ok ? _("Ok") : _("Failed"));
+        msg_builder.append_char('\n');
+    };
+    std::array<char, 150> msg;
+    StringBuilder msg_builder(msg);
+    msg_builder.append_string_view(_("\nLoading settings finished.\n\n"));
+
+    const bool network_settings_loaded = netdev_load_ini_to_eeprom();
+    if (network_settings_loaded) {
         notify_reconfigure();
     }
+    build_message(msg_builder, _("Network"), network_settings_loaded);
 
-// FIXME: Error handling
 #if BUDDY_ENABLE_CONNECT()
-    connect_client::MarlinPrinter::load_cfg_from_ini();
+    build_message(msg_builder, _("Connect"), connect_client::MarlinPrinter::load_cfg_from_ini());
 #endif
+
+    MsgBoxInfo(string_view_utf8::MakeRAM((const uint8_t *)msg.data()), Responses_Ok);
 }
 
 /**********************************************************************************************/
