@@ -31,6 +31,7 @@
 using printer_state::DeviceState;
 using printer_state::get_state;
 using printer_state::get_state_with_dialog;
+using printer_state::has_job;
 using std::atomic;
 using std::make_tuple;
 using std::move;
@@ -165,6 +166,7 @@ Printer::Params MarlinPrinter::params() const {
 
     Params params(borrow);
     params.state = get_state_with_dialog(ready);
+    params.has_job = has_job();
     params.temp_bed = marlin_vars()->temp_bed;
     params.target_bed = marlin_vars()->target_bed;
     params.target_nozzle = marlin_vars()->active_hotend().target_nozzle;

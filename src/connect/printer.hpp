@@ -99,6 +99,7 @@ public:
         uint32_t time_to_pause = 0;
         uint8_t progress_percent = 0;
         bool has_usb = false;
+        bool has_job = false;
         uint64_t usb_space_free = 0;
         PrinterVersion version = { 0, 0, 0 };
         printer_state::StateWithDialog state = printer_state::DeviceState::Unknown;

@@ -306,9 +306,11 @@ bool has_job() {
     case DeviceState::Printing:
     case DeviceState::Paused:
         return true;
-    case DeviceState::Attention:
-        // has job only if attention while printing
-        return marlin_vars()->get_last_fsm_change().q0_change.get_fsm_type() == ClientFSM::Printing;
+    case DeviceState::Attention: {
+        auto fsm = marlin_vars()->get_last_fsm_change();
+        // Attention while printing or one of these questions before print(eg. wrong filament)
+        return (fsm.q0_change.get_fsm_type() == ClientFSM::Printing || fsm.q0_change.get_fsm_type() == ClientFSM::PrintPreview);
+    }
     default:
         return false;
     }

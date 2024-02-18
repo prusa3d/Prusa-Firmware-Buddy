@@ -34,6 +34,7 @@ Printer::Params params_printing() {
     Printer::Params params(paths);
 
     params.job_id = 42;
+    params.has_job = true;
     params.progress_percent = 12;
     params.temp_bed = 65;
     params.slots[0].temp_nozzle = 200;

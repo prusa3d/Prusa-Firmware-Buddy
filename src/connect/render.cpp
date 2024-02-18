@@ -40,17 +40,6 @@ namespace connect_client {
 
 namespace {
 
-    bool is_printing(DeviceState state) {
-        switch (state) {
-        case DeviceState::Printing:
-        case DeviceState::Paused:
-        case DeviceState::Attention:
-            return true;
-        default:
-            return false;
-        }
-    }
-
     std::optional<transfers::Monitor::Status> get_transfer_status(size_t resume_point, const RenderState &state) {
         if (state.transfer_id.has_value()) {
             // If we've seen a transfer info previously, allow using a stale one to continue there.
@@ -67,7 +56,6 @@ namespace {
 
     JsonResult render_msg(size_t resume_point, JsonOutput &output, RenderState &state, const SendTelemetry &telemetry) {
         const auto params = state.printer.params();
-        const bool printing = is_printing(params.state.device_state);
 
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
 
@@ -93,7 +81,7 @@ namespace {
             }
 
             // These are not included in the fingerprint as they are changing a lot.
-            if (printing) {
+            if (params.has_job) {
                 JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
                 JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
                 if (params.time_to_end != marlin_server::TIME_TO_END_INVALID) {
@@ -121,13 +109,13 @@ namespace {
                 if (params.slots[0].material != nullptr) {
                     JSON_FIELD_STR("material", params.slots[0].material) JSON_COMMA;
                 }
-                if (!printing) {
+                if (!params.has_job) {
                     // To avoid spamming the DB, connect doesn't want positions during printing
                     JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
                     JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
                 }
                 JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
-                if (printing) {
+                if (params.has_job) {
                     JSON_FIELD_INT("fan_extruder", params.slots[0].heatbreak_fan_rpm) JSON_COMMA;
                     JSON_FIELD_INT("fan_print", params.slots[0].print_fan_rpm) JSON_COMMA;
                     JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
@@ -174,7 +162,6 @@ namespace {
         const auto params = state.printer.params();
         const auto &info = state.printer.printer_info();
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
-        const bool printing = is_printing(params.state.device_state);
 #if ENABLED(CANCEL_OBJECTS)
         char cancel_object_name[Printer::CANCEL_OBJECT_NAME_LEN];
 #endif
@@ -194,11 +181,11 @@ namespace {
             creds = state.printer.net_creds();
         }
 
-        if (event.type == EventType::JobInfo && (!printing || event.job_id.value_or(params.job_id) != params.job_id)) {
+        if (event.type == EventType::JobInfo && (!params.has_job || event.job_id.value_or(params.job_id) != params.job_id)) {
             // Can't send a job info when not printing, refuse instead.
             //
             // Can't provide historic/future jobs.
-            reject_with = printing ? "Job ID doesn't match" : "No job in progress";
+            reject_with = params.has_job ? "Job ID doesn't match" : "No job in progress";
         }
 
         if (event.type == EventType::FileInfo && !state.has_stat && !state.file_extra.renderer.holds_alternative<DirRenderer>()) {
@@ -222,7 +209,7 @@ namespace {
         // clang-format off
         JSON_START;
         JSON_OBJ_START;
-            if (has_extra && printing) {
+            if (has_extra && params.has_job) {
                 JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
             }
 
@@ -899,7 +886,7 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
 
         switch (event->type) {
         case EventType::JobInfo:
-            if (is_printing(params.state.device_state)) {
+            if (params.has_job) {
                 path = params.job_path();
             }
             break;
