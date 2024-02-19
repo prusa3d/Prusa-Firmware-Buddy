@@ -193,7 +193,7 @@ namespace {
             return Storage { "Not allowed outside /usb" };
         }
 
-        if (!filename_is_firmware(dpath) && !filename_is_printable(dpath)) {
+        if (!filename_is_transferrable(dpath)) {
             return Storage { "Unsupported file type" };
         }
 

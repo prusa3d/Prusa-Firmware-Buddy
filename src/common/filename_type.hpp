@@ -26,3 +26,6 @@ bool filename_is_plain_gcode(const char *fname);
  * @brief Filename is binary gcode
  */
 bool filename_is_bgcode(const char *fname);
+
+/// Returns whether the filename is supported by connect transfers
+bool filename_is_transferrable(const char *filename);

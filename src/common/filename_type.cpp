@@ -23,14 +23,26 @@ bool filename_is_bgcode(const char *fname) {
     return filename_is_bgcode(fname, strlen(fname));
 }
 
-bool filename_is_printable(const char *fname) {
-    const auto len = strlen(fname);
-    return filename_is_plain_gcode(fname, len) || filename_is_bgcode(fname, len);
+inline bool filename_is_printable(const char *fname, size_t fname_len) {
+    return filename_is_plain_gcode(fname, fname_len) || filename_is_bgcode(fname, fname_len);
 }
 
-bool filename_is_firmware(const char *fname) {
-    return filename_has_ext<'b', 'b', 'f'>(fname, strlen(fname));
+bool filename_is_printable(const char *fname) {
+    return filename_is_printable(fname, strlen(fname));
+}
+
+inline bool filename_is_firmware(const char *fname, size_t fname_len) {
+    return filename_has_ext(fname, fname_len, ".bbf");
 };
+
+bool filename_is_firmware(const char *fname) {
+    return filename_is_firmware(fname, strlen(fname));
+};
+
+bool filename_is_transferrable(const char *fname) {
+    const auto len = strlen(fname);
+    return filename_is_printable(fname, len) || filename_is_firmware(fname, len);
+}
 
 const char *file_type_by_ext(const char *fname) {
     if (filename_is_printable(fname)) {

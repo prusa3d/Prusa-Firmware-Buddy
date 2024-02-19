@@ -11,7 +11,7 @@ TransferCheckResult transfer_check(const MutablePath &filepath, TransferCheckVal
     TransferCheckResult r;
 
     // This early rejection saves us two stat lookups, which are very expensive (tens of ms).
-    if (!filename_is_printable(filepath.get())) {
+    if (!filename_is_transferrable(filepath.get())) {
         return r;
     }
 
