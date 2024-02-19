@@ -1454,7 +1454,7 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
         return; // already paused
     }
 
-    if (!DEBUGGING(DRYRUN) && settings.unload_length && thermalManager.targetTooColdToExtrude(active_extruder)) {
+    if (!DEBUGGING(DRYRUN) && settings.unload_length && thermalManager.targetTooColdToExtrude(settings.target_extruder)) {
         SERIAL_ECHO_MSG(MSG_ERR_HOTEND_TOO_COLD);
         return; // unable to reach safe temperature
     }

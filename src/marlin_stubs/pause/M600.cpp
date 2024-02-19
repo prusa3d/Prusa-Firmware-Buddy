@@ -23,7 +23,7 @@
 #include "config_features.h"
 #include "module/motion.h"
 #include "module/tool_change.h"
-#include "../PrusaGcodeSuite.hpp"
+#include "marlin_stubs/PrusaGcodeSuite.hpp"
 #include <logging/log.h>
 
 LOG_COMPONENT_REF(PRUSA_GCODE);
@@ -39,10 +39,10 @@ LOG_COMPONENT_REF(PRUSA_GCODE);
 #endif
 // clang-format on
 
-#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../../lib/Marlin/Marlin/src/module/motion.h"
-#include "../../../lib/Marlin/Marlin/src/module/temperature.h"
-#include "../../../lib/Marlin/Marlin/src/feature/prusa/e-stall_detector.h"
+#include "Marlin/src/gcode/gcode.h"
+#include "Marlin/src/module/motion.h"
+#include "Marlin/src/module/temperature.h"
+#include "Marlin/src/feature/prusa/e-stall_detector.h"
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
 #include <cmath>
@@ -61,7 +61,7 @@ LOG_COMPONENT_REF(PRUSA_GCODE);
 #include <option/has_toolchanger.h>
 #include <option/has_mmu2.h>
 #if HAS_MMU2()
-    #include "../../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
+    #include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
 static void M600_manual();
@@ -75,18 +75,20 @@ static void M600_manual();
 /**
  * M600: Pause for filament change
  *
- *  E[distance] - Retract the filament this far
- *  Z[distance] - Move the Z axis by this distance
- *  X[position] - Move to this X position, with Y
- *  Y[position] - Move to this Y position, with X
- *  U[distance] - Retract distance for removal (manual reload)
- *  L[distance] - Extrude distance for insertion (manual reload)
- *  B[count]    - Number of times to beep, -1 for indefinite (if equipped with a buzzer)
- *  T[toolhead] - Select extruder for filament change
- *  A           - If automatic spool join is configured for this tool, do that instead, if not, do manual filament change
- *  C[color]    - Set color for filament change (color rgb value as integer)
- *  C"color"    - Set color for filament change (color name as string)
- *  S"filament" - Set filament type for filament change. RepRap compatible.
+ * Parameters:
+ * - E[distance] - Retract the filament this far (initial retraction)
+ * - Z[distance] - Move the Z axis by this distance
+ * - X[position] - Move to this X position, with Y
+ * - Y[position] - Move to this Y position, with X
+ * - U[distance] - Retract distance for removal (manual reload)
+ * - L[distance] - Extrude distance for insertion (manual reload)
+ * - B[count]    - Number of times to beep, -1 for indefinite (if equipped with a buzzer)
+ * - T[toolhead] - Select extruder for filament change
+ * - A           - If automatic spool join is configured for this tool, do that instead, if not, do manual filament change
+ * - C[color]    - Set color for filament change (color rgb value as integer)
+ * - C"color"    - Set color for filament change (color name as string)
+ * - S"filament" - Set filament type for filament change. RepRap compatible.
+ * - N           - No return, don't return to previous position after fillament change
  *
  *  Default values are used for omitted arguments.
  */
@@ -126,7 +128,7 @@ void GcodeSuite::M600() {
 
 /** @}*/
 
-void M600_execute(xyz_pos_t park_point, int8_t target_extruder,
+void M600_execute(xyz_pos_t park_point, uint8_t target_extruder,
     xyze_float_t resume_point, std::optional<float> unloadLength, std::optional<float> fastLoadLength,
     std::optional<float> retractLength, std::optional<filament::Colour> filament_colour,
     std::optional<filament::Type> filament_type, pause::Settings::CalledFrom);
@@ -197,14 +199,17 @@ void M600_manual() {
     // Lift Z axis
     if (parser.seenval('Z')) {
         park_point.z = parser.linearval('Z');
+        LOGICAL_TO_NATIVE(park_point.z, Z_AXIS);
     }
 
     // Move XY axes to filament change position or given position
     if (parser.seenval('X')) {
         park_point.x = parser.linearval('X');
+        LOGICAL_TO_NATIVE(park_point.x, X_AXIS);
     }
     if (parser.seenval('Y')) {
         park_point.y = parser.linearval('Y');
+        LOGICAL_TO_NATIVE(park_point.y, Y_AXIS);
     }
 
 #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA) && DISABLED(PRUSA_TOOLCHANGER)
@@ -253,18 +258,19 @@ void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t res
         settings.SetRetractLength(retractLength.value());
     } // Initial retract before move to filament change position
     settings.SetCalledFrom(called_from);
+    settings.SetExtruder(target_extruder);
 
     // If paused restore nozzle temperature from pre-paused state
     if (marlin_server::printer_paused()) {
         marlin_server::unpause_nozzle(target_extruder);
     }
 
-    float disp_temp = marlin_vars()->hotend(target_extruder).display_nozzle;
-    float targ_temp = Temperature::degTargetHotend(target_extruder);
+    const float disp_temp = marlin_vars()->hotend(target_extruder).display_nozzle;
+    const float targ_temp = Temperature::degTargetHotend(target_extruder);
 
     marlin_server::nozzle_timeout_off();
     if (disp_temp > targ_temp) {
-        thermalManager.setTargetHotend(disp_temp, target_extruder);
+        Temperature::setTargetHotend(disp_temp, target_extruder);
     }
 
     if (filament_type.has_value()) {
@@ -277,7 +283,7 @@ void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t res
 
     marlin_server::nozzle_timeout_on();
     if (disp_temp > targ_temp) {
-        thermalManager.setTargetHotend(targ_temp, target_extruder);
+        Temperature::setTargetHotend(targ_temp, target_extruder);
     }
 }
 
