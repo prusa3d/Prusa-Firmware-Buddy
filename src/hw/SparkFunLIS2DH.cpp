@@ -613,6 +613,15 @@ status_t LIS2DH::fifoGetStatus(uint8_t *tempReadByte) {
  * @retval 0 nothing returned
  */
 int Fifo::get(Acceleration &acceleration) {
+    if (m_sampling_start_time == 0) {
+        m_sampling_start_time = micros();
+    }
+    if (int32_t(micros() - m_sampling_start_time) < 0) {
+        // Overrun, let's reset the timer
+        m_sampling_start_time = micros();
+        m_samples_taken = 0;
+    }
+
     int local_num_samples = 0;
     switch (m_state) {
     case State::request_sent:
@@ -651,10 +660,19 @@ int Fifo::get(Acceleration &acceleration) {
             m_num_records = remote_num_samples;
             m_succeded_samples += remote_num_samples;
             m_record_index_to_get = 0;
+
+            m_samples_taken += remote_num_samples;
         }
         break;
     }
     return local_num_samples;
+}
+
+float Fifo::get_sampling_rate() {
+    if (m_samples_taken == 0) {
+        return 0;
+    }
+    return m_samples_taken / (int32_t(micros() - m_sampling_start_time) / 1'000'000.f);
 }
 
 Fifo::Acceleration Fifo::to_acceleration(Record record) {

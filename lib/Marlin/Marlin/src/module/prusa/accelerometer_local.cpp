@@ -36,7 +36,9 @@ void PrusaAccelerometer::clear() {
     accelerometer.fifoClear();
 }
 int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
-    return m_fifo.get(acceleration);
+    int new_samples = m_fifo.get(acceleration);
+    m_sampling_rate = m_fifo.get_sampling_rate();
+    return new_samples;
 }
 PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;
 float PrusaAccelerometer::m_sampling_rate = 0;
