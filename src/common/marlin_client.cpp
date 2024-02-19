@@ -211,13 +211,8 @@ void gcode_printf(const char *format, ...) {
 void gcode_push_front(const char *gcode) {
     Request request;
     request.type = Request::Type::InjectGcode;
-    if (strlcpy(request.inject_gcode, gcode, sizeof(request.inject_gcode)) >= sizeof(request.inject_gcode)) {
-        // TODO It would be much better to ensure gcode always points
-        //      to some static buffer and only serialize the pointer.
-        log_error(MarlinClient, "ignoring truncated gcode");
-    } else {
-        _send_request_to_server_and_wait(request);
-    }
+    request.inject_gcode = gcode;
+    _send_request_to_server_and_wait(request);
 }
 
 int event(Event evt_id) {

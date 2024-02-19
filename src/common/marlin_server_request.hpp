@@ -64,7 +64,7 @@ struct __attribute__((packed)) Request {
             float feedrate;
         } move_multiple; // Type::MoveMultiple
         char gcode[MARLIN_MAX_REQUEST + 1]; // Type::Gcode
-        char inject_gcode[MARLIN_MAX_REQUEST + 1]; // Type::InjectGcode
+        const char *inject_gcode; // Type::InjectGcode
         uint32_t fsm; // Type::FSM
         float babystep; // Type::Babystep
         struct {
