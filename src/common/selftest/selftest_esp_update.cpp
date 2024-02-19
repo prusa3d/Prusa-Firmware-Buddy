@@ -643,12 +643,12 @@ void update_esp() {
 
     task_state = ESPUpdate::state::did_not_finished;
     FSM_HOLDER__LOGGING(ESP);
-    status_t status;
+    ESPUpdate::status_t status;
     status.Empty();
 
     // wait until task kills itself
     while (task_state == ESPUpdate::state::did_not_finished) {
-        status_t current = ESPUpdate::GetStatus();
+        ESPUpdate::status_t current = ESPUpdate::GetStatus();
 
         if (current != status) {
             status = current;
