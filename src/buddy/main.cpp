@@ -261,7 +261,7 @@ extern "C" void main_cpp(void) {
     // it's causindg different codepaths because of certificate verification failures.
     // Incerasing only for MINI because we wouldn't fit into XL CCRAM if we did this globally.
     // BFW-4982
-    static constexpr int connect_task_stack_size = 2432;
+    static constexpr int connect_task_stack_size = 2368;
 
     #else
     static constexpr int connect_task_stack_size = 2304;
