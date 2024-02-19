@@ -342,7 +342,7 @@ bool MMU2::RetryIfPossible(ErrorCode ec) {
 bool MMU2::TryLoad() {
     // MMU has finished its load, push the filament further by some defined constant length
     // If the filament sensor reads 0 at any moment, then report FAILURE
-    float tryload_length = MMU2_EXTRUDER_HEATBREAK_LENGTH - logic.ExtraLoadDistance() + MMU2_VERIFY_LOAD_TO_NOZZLE_TWEAK;
+    const float tryload_length = MMU2_CHECK_FILAMENT_PRESENCE_EXTRUSION_LENGTH - logic.ExtraLoadDistance();
     TryLoadUnloadReporter tlur(tryload_length);
 
     /* The position is a triangle wave
@@ -371,7 +371,9 @@ bool MMU2::TryLoad() {
     // The change in this number is used to indicate a new pixel
     // should be drawn on the display
     for (uint8_t move = 0; move < 2; move++) {
-        extruder_move(move == 0 ? tryload_length : -tryload_length, MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE);
+        // mk35 is loading somewhat deeper than MK3S, this is just a tweak to make MK3S gcodes compatible
+        static constexpr float tweakMK35MK3SCompatibility = 4.F;
+        extruder_move(move == 0 ? tryload_length - tweakMK35MK3SCompatibility : -tryload_length, MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE);
         while (planner_any_moves()) {
             filament_inserted = filament_inserted && (WhereIsFilament() == FilamentState::AT_FSENSOR);
             tlur.Progress(filament_inserted);
