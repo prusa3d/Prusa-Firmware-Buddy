@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <common/version.h>
+#include <transfers/transfer_file_check.hpp>
 
 extern "C" {
 
@@ -27,6 +28,12 @@ void mbedtls_platform_zeroize(void *b, size_t size) {
     memset(b, 0, size);
 }
 }
+
+namespace transfers {
+TransferCheckResult transfer_check(const MutablePath &, TransferCheckValidOnly) {
+    return {};
+}
+} // namespace transfers
 
 bool random32bit(uint32_t *output) {
     *output = random();

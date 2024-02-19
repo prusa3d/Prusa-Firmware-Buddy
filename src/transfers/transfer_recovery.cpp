@@ -341,10 +341,8 @@ Transfer::RecoverySearchResult Transfer::search_transfer_for_recovery(Path &path
     for (;;) {
         switch (next_in_index(index, path)) {
         case IndexIter::Ok: {
-            struct stat st = {};
-            bool download_file_found = stat(path.as_backup(), &st) == 0 && S_ISREG(st.st_mode);
-            bool partial_file_found = stat(path.as_partial(), &st) == 0 && S_ISREG(st.st_mode);
-            if (download_file_found && partial_file_found) {
+            const auto r = transfers::transfer_check(path.as_destination(), TransferCheckValidOnly::yes);
+            if (r.backup_file_found && r.partial_file_found) {
                 return RecoverySearchResult::Success;
             }
             break;

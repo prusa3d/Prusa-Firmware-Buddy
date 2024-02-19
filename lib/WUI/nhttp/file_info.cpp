@@ -103,22 +103,26 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
                 continue;
             }
 
-            if (state.ent->d_type != DT_DIR and !filename_is_printable(state.ent->d_name)) {
-                continue;
-            }
-
-            state.read_only = false;
-            state.partial = false;
-
-            if (state.ent->d_type == DT_DIR && filename_is_printable(state.ent->d_name)) {
-                MutablePath mp(state.filepath);
-                mp.push(state.ent->d_name);
-                if (transfers::is_valid_transfer(mp)) {
-                    state.ent->d_type = DT_REG;
-                    state.read_only = true;
-                    state.partial = true;
-                } else {
+            {
+                const bool filename_printable = filename_is_printable(state.ent->d_name);
+                if (state.ent->d_type != DT_DIR && !filename_printable) {
                     continue;
+                }
+
+                state.read_only = false;
+                state.partial = false;
+
+                if(state.ent->d_type == DT_DIR && filename_printable) {
+                    MutablePath mp(state.filepath);
+                    mp.push(state.ent->d_name);
+                    if (transfers::is_valid_transfer(mp)) {
+
+                        state.ent->d_type = DT_REG;
+                        state.read_only = true;
+                        state.partial = true;
+                    } else {
+                        continue;
+                    }
                 }
             }
 

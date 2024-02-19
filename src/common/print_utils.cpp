@@ -32,13 +32,15 @@
 
 #if ENABLED(POWER_PANIC)
 static bool file_exists(const char *filename) {
-    auto open_file = unique_file_ptr(fopen(filename, "r"));
-    bool file_exists = open_file != nullptr;
-    if (!file_exists) {
-        MutablePath path(filename);
-        file_exists = transfers::is_valid_transfer(path);
+    if (unique_file_ptr(fopen(filename, "r"))) {
+        return true;
     }
-    return file_exists;
+
+    if (MutablePath path(filename); transfers::is_valid_transfer(path)) {
+        return true;
+    }
+
+    return false;
 }
 #endif
 
