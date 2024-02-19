@@ -15,9 +15,14 @@
 #include <option/has_toolchanger.h>
 #include <option/has_side_leds.h>
 #include <option/has_leds.h>
+#include <option/has_phase_stepping.h>
 
 #if HAS_LOADCELL()
     #include "loadcell.hpp"
+#endif
+
+#if HAS_PHASE_STEPPING()
+    #include "M1977.hpp"
 #endif
 
 #include "log.h"
@@ -169,6 +174,11 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 1702:
             PrusaGcodeSuite::M1702();
             break;
+#if HAS_PHASE_STEPPING()
+        case 1977:
+            PrusaGcodeSuite::M1977();
+            break;
+#endif
         default:
             processed = false;
             break;

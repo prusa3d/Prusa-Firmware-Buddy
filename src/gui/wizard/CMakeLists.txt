@@ -42,7 +42,3 @@ if(${PRINTER} STREQUAL "XL")
                      selftest_frame_tool_offsets.cpp
     )
 endif()
-
-if(HAS_PHASE_STEPPING)
-  target_sources(firmware PRIVATE selftest_frame_phase_stepping.cpp)
-endif()

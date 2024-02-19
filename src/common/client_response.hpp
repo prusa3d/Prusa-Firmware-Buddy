@@ -298,20 +298,6 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     ToolOffsets_wait_user_remove_pin,
     _last_Tool_Offsets = ToolOffsets_wait_user_remove_pin,
 
-#if HAS_PHASE_STEPPING()
-    _first_PhaseStepping,
-    PhaseStepping_intro = _first_PhaseStepping,
-    PhaseStepping_pick_tool,
-    PhaseStepping_calib_x,
-    PhaseStepping_calib_y,
-    PhaseStepping_calib_x_nok,
-    PhaseStepping_calib_y_nok,
-    PhaseStepping_calib_error,
-    PhaseStepping_calib_ok,
-    PhaseStepping_enabling,
-    _last_PhaseStepping = PhaseStepping_enabling,
-#endif
-
     _first_Result,
     Result = _first_Result,
     _last_Result = Result,
@@ -409,6 +395,23 @@ enum class PhasesColdPull : PhaseUnderlyingType {
     _last = finish,
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesColdPull) { return ClientFSM::ColdPull; }
+
+#if HAS_PHASE_STEPPING()
+enum class PhasesPhaseStepping : PhaseUnderlyingType {
+    intro,
+    pick_tool,
+    calib_x,
+    calib_y,
+    calib_x_nok,
+    calib_y_nok,
+    calib_error,
+    calib_ok,
+    enabling,
+    finish,
+    _last = finish,
+};
+constexpr inline ClientFSM client_fsm_from_phase(PhasesPhaseStepping) { return ClientFSM::PhaseStepping; }
+#endif
 
 // static class for work with fsm responses (like button click)
 // encode responses - get them from marlin client, to marlin server and decode them again
@@ -670,18 +673,6 @@ class ClientResponses {
         {}, // ToolOffsets_wait_calibrate
         {}, // ToolOffsets_state_final_park
         { Response::Continue }, // ToolOffsets_wait_user_remove_pin
-
-#if HAS_PHASE_STEPPING()
-        { Response::Continue, Response::Abort }, // PhaseStepping_intro
-        {}, // PhaseStepping_pick_tool
-        {}, // PhaseStepping_calib_x
-        {}, // PhaseStepping_calib_y
-        { Response::Ok }, // PhaseStepping_calib_x_nok
-        { Response::Ok }, // PhaseStepping_calib_y_nok
-        { Response::Ok }, // PhaseStepping_calib_error
-        { Response::Ok }, // PhaseStepping_calib_ok
-        {}, // PhaseStepping_enabling
-#endif
         { Response::Next }, // Result
 
         { Response::Continue }, // WizardEpilogue_ok
@@ -770,6 +761,24 @@ class ClientResponses {
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesWarning phase) { return WarningResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesColdPull phase) { return ColdPullResponses[static_cast<size_t>(phase)]; }
 
+#if HAS_PHASE_STEPPING()
+    static constexpr PhaseResponses PhaseSteppingResponses[] = {
+        { Response::Continue, Response::Abort }, // PhasesPhaseStepping::intro
+        {}, // PhasesPhaseStepping::pick_tool
+        {}, // PhasesPhaseStepping::calib_x
+        {}, // PhasesPhaseStepping::calib_y
+        { Response::Ok }, // PhasesPhaseStepping::calib_x_nok
+        { Response::Ok }, // PhasesPhaseStepping::calib_y_nok
+        { Response::Ok }, // PhasesPhaseStepping::calib_error
+        { Response::Ok }, // case PhasesPhaseStepping::calib_ok
+        {}, // PhasesPhaseStepping::enabling
+        {}, // PhasesPhaseStepping::finish
+    };
+    static_assert(std::size(ClientResponses::PhaseSteppingResponses) == CountPhases<PhasesPhaseStepping>());
+
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPhaseStepping phase) { return PhaseSteppingResponses[static_cast<size_t>(phase)]; }
+#endif
+
 public:
     // get index of single response in PhaseResponses
     // return -1 (maxval) if does not exist
@@ -833,9 +842,6 @@ enum class SelftestParts {
     Dock,
     ToolOffsets,
 #endif
-#if HAS_PHASE_STEPPING()
-    PhaseStepping,
-#endif
     _none, // cannot be created, must have same index as _count
     _count = _none
 };
@@ -887,10 +893,6 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
         return PhasesSelftest::_first_Dock;
     case SelftestParts::ToolOffsets:
         return PhasesSelftest::_first_Tool_Offsets;
-#endif
-#if HAS_PHASE_STEPPING()
-    case SelftestParts::PhaseStepping:
-        return PhasesSelftest::_first_PhaseStepping;
 #endif
     case SelftestParts::Result:
         return PhasesSelftest::_first_Result;
@@ -957,10 +959,6 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_Dock;
     case SelftestParts::ToolOffsets:
         return PhasesSelftest::_last_Tool_Offsets;
-#endif
-#if HAS_PHASE_STEPPING()
-    case SelftestParts::PhaseStepping:
-        return PhasesSelftest::_last_PhaseStepping;
 #endif
     case SelftestParts::Result:
         return PhasesSelftest::_last_Result;

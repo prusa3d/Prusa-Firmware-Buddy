@@ -1,9 +1,9 @@
-#include "selftest_frame_phase_stepping.hpp"
+#include <screen_phase_stepping.hpp>
+
 #include "frame_qr_layout.hpp"
 #include "i18n.h"
 #include "str_utils.hpp"
 #include <guiconfig/wizard_config.hpp>
-#include "selftest_phase_stepping_result.hpp"
 #include "img_resources.hpp"
 
 namespace {
@@ -35,52 +35,94 @@ string_view_utf8 fmt_calibration_ok(auto &text_buffer, const fsm::PhaseData &dat
     return string_view_utf8::MakeRAM((const uint8_t *)text_buffer.data());
 }
 
+ScreenPhaseStepping *instance = nullptr;
+
 } // namespace
 
-SelftestFramePhaseStepping::SelftestFramePhaseStepping(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data, 0)
+ScreenPhaseStepping::ScreenPhaseStepping()
+    : AddSuperWindow<screen_t> {}
     , text(this, FrameQRLayout::text_rect(), is_multiline::yes)
     , link(this, FrameQRLayout::link_rect(), is_multiline::no)
     , icon_phone(this, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
-    , qr(this, FrameQRLayout::qrcode_rect(), QR_ADDR) {
+    , qr(this, FrameQRLayout::qrcode_rect(), QR_ADDR)
+    , radio(this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), PhasesPhaseStepping::intro) {
+    ClrMenuTimeoutClose();
+    CaptureNormalWindow(radio);
+
     link.SetText(string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>(ADDR_IN_TEXT)));
     text.SetText(_("To learn more about the phase stepping calibration process, read the article:"));
-    change();
+    instance = this;
 }
 
-void SelftestFramePhaseStepping::change() {
-    switch (phase_current) {
-    case PhasesSelftest::PhaseStepping_intro:
+ScreenPhaseStepping::~ScreenPhaseStepping() {
+    instance = nullptr;
+    ReleaseCaptureOfNormalWindow();
+}
+
+ScreenPhaseStepping *ScreenPhaseStepping::GetInstance() {
+    return instance;
+}
+
+void ScreenPhaseStepping::Change(fsm::BaseData data) {
+    return do_change(data);
+}
+
+void ScreenPhaseStepping::InitState(screen_init_variant var) {
+    if (auto fsm_base_data = var.GetFsmBaseData()) {
+        do_change(*fsm_base_data);
+    }
+}
+
+screen_init_variant ScreenPhaseStepping::GetCurrentState() const {
+    screen_init_variant var;
+    var.SetFsmBaseData(fsm_base_data);
+    return var;
+}
+
+void ScreenPhaseStepping::do_change(fsm::BaseData new_fsm_base_data) {
+    if (new_fsm_base_data.GetPhase() != fsm_base_data.GetPhase()) {
+        // destroy_frame();
+        fsm_base_data = new_fsm_base_data;
+        // create_frame();
+        radio.Change(GetEnumFromPhaseIndex<PhasesPhaseStepping>(fsm_base_data.GetPhase()));
+    } else {
+        fsm_base_data = new_fsm_base_data;
+    }
+    // update_frame();
+
+    auto data_current = fsm_base_data.GetData();
+    switch ((PhasesPhaseStepping)fsm_base_data.GetPhase()) {
+    case PhasesPhaseStepping::intro:
         break;
-    case PhasesSelftest::PhaseStepping_pick_tool:
+    case PhasesPhaseStepping::pick_tool:
         flip_layout();
         text.SetText(_(txt_picking_tool));
         break;
-    case PhasesSelftest::PhaseStepping_calib_x:
+    case PhasesPhaseStepping::calib_x:
         flip_layout();
         text.SetText(_(txt_calibrating_x));
         break;
-    case PhasesSelftest::PhaseStepping_calib_y:
+    case PhasesPhaseStepping::calib_y:
         flip_layout();
         text.SetText(_(txt_calibrating_y));
         break;
-    case PhasesSelftest::PhaseStepping_calib_x_nok:
+    case PhasesPhaseStepping::calib_x_nok:
         flip_layout();
         text.SetText(fmt_calibration_nok('X', text_buffer, data_current));
         break;
-    case PhasesSelftest::PhaseStepping_calib_y_nok:
+    case PhasesPhaseStepping::calib_y_nok:
         flip_layout();
         text.SetText(fmt_calibration_nok('Y', text_buffer, data_current));
         break;
-    case PhasesSelftest::PhaseStepping_calib_error:
+    case PhasesPhaseStepping::calib_error:
         flip_layout();
         text.SetText(_(txt_calibration_error));
         break;
-    case PhasesSelftest::PhaseStepping_calib_ok:
+    case PhasesPhaseStepping::calib_ok:
         flip_layout();
         text.SetText(fmt_calibration_ok(text_buffer, data_current));
         break;
-    case PhasesSelftest::PhaseStepping_enabling:
+    case PhasesPhaseStepping::enabling:
         flip_layout();
         text.SetText(_(txt_enabling));
         break;
@@ -92,7 +134,7 @@ void SelftestFramePhaseStepping::change() {
 // TODO: This is quite hackish way to do this but oh well.
 //       Proper way would be to have actual frames with the individual GUI elements.
 //       This will be changed eventually after we add progress bars and what not.
-void SelftestFramePhaseStepping::flip_layout() {
+void ScreenPhaseStepping::flip_layout() {
     icon_phone.Hide();
     qr.Hide();
     link.Hide();
