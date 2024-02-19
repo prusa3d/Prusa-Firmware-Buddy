@@ -268,21 +268,8 @@ extern "C" void main_cpp(void) {
     const bool want_error_screen = (dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed());
 
 #if BUDDY_ENABLE_CONNECT()
-    #if PRINTER_IS_PRUSA_MINI
-    // For some reason, MINI needs larger stack, otherwise we get stack overflows on "Add printer to connect".
-    // @Michal Vaner speculated that this is because mini doesn't have HW clock, and because of that
-    // it's causindg different codepaths because of certificate verification failures.
-    // Incerasing only for MINI because we wouldn't fit into XL CCRAM if we did this globally.
-    // BFW-4982
-    static constexpr int connect_task_stack_size = 2432;
-
-    #else
-    static constexpr int connect_task_stack_size = 2304;
-
-    #endif
-
     // On a place shared for both code branches, so we have just one connectTask buffer.
-    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, connect_task_stack_size);
+    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
 #endif
 
 #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
