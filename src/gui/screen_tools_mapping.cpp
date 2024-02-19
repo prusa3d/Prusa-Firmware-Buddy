@@ -147,7 +147,40 @@ void print_right_tool_into_buffer(size_t idx, std::array<std::array<char, ToolsM
     // IDX here means REAL
 
     const auto loaded_filament_type = config_store().get_filament_type(idx);
-    const auto loaded_filament_name = filament::get_name(loaded_filament_type);
+    const char *loaded_filament_name = filament::get_name(loaded_filament_type);
+
+#if HAS_MMU2()
+    // upon request from the Content team - if we get "---", translate it into FILAM - a crude and awful hack :(
+    static constexpr const char unknownFilName[] = "---";
+    if (!strcmp(loaded_filament_name, unknownFilName)) {
+        // Note: this part is a subject to changes soon, there is no need to make this piece of code "nice"
+        // Hopefully, it will disappear completely in future releases
+        static const char unknownFilamentName1[] = "FIL1";
+        static const char unknownFilamentName2[] = "FIL2";
+        static const char unknownFilamentName3[] = "FIL3";
+        static const char unknownFilamentName4[] = "FIL4";
+        static const char unknownFilamentName5[] = "FIL5";
+        switch (idx) {
+        case 0:
+            loaded_filament_name = unknownFilamentName1;
+            break;
+        case 1:
+            loaded_filament_name = unknownFilamentName2;
+            break;
+        case 2:
+            loaded_filament_name = unknownFilamentName3;
+            break;
+        case 3:
+            loaded_filament_name = unknownFilamentName4;
+            break;
+        case 4:
+            loaded_filament_name = unknownFilamentName5;
+            break;
+        default:
+            break; // keep "---" by default
+        }
+    }
+#endif
 
     snprintf(text_buffers[idx].data(), ToolsMappingBody::max_item_text_width, "%hhu. %-5.5s", static_cast<uint8_t>(idx + 1), loaded_filament_name);
 
@@ -656,7 +689,9 @@ void ToolsMappingBody::update_bottom_guide() {
     static constexpr const char *unassigned_gcodes_pre_translated = N_("Unassigned G-Code filament(s)");
     static constexpr const char *unloaded_tools_pre_translated = N_("Assigned tool(s) without filament");
     static constexpr const char *mismatched_nozzles_pre_translated = N_("Mismatching nozzle diameters");
+#if not HAS_MMU2()
     static constexpr const char *mismatched_filaments_pre_translated = N_("Mismatching filament types");
+#endif
 
     string_view_utf8 strview;
 
@@ -677,8 +712,11 @@ void ToolsMappingBody::update_bottom_guide() {
         print_alert_part_of_guide(unloaded_tools_pre_translated, unloaded_tools_icon);
     } else if (num_mismatched_nozzles > 0) {
         print_alert_part_of_guide(mismatched_nozzles_pre_translated, mismatched_nozzles_icon);
+#if not HAS_MMU2()
     } else if (num_mismatched_filaments > 0) {
+        // disabled for MMU upon request from Content
         print_alert_part_of_guide(mismatched_filaments_pre_translated, mismatched_filaments_icon);
+#endif
     } else {
         bottom_icon.Hide();
         bottom_icon.Invalidate();
@@ -805,8 +843,10 @@ void ToolsMappingBody::update_icons() {
             right_phys_icons[real_physical].SetRes(unloaded_tools_icon);
         } else if (validity.mismatched_nozzles.test(real_physical)) {
             right_phys_icons[real_physical].SetRes(mismatched_nozzles_icon);
+#if not HAS_MMU2()
         } else if (validity.mismatched_filaments.test(real_physical)) {
             right_phys_icons[real_physical].SetRes(mismatched_filaments_icon);
+#endif
         } else {
             right_phys_icons[real_physical].SetRes(nullptr);
         }
