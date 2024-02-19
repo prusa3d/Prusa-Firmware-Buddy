@@ -6,29 +6,28 @@
  * @date 2020-12-18
  */
 
-#include "../../lib/Marlin/Marlin/src/Marlin.h"
-#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../lib/Marlin/Marlin/src/module/endstops.h"
-#include "../../lib/Marlin/Marlin/src/module/motion.h"
-#include "../../lib/Marlin/Marlin/src/module/planner.h"
-#include "../../lib/Marlin/Marlin/src/module/stepper.h"
-#include "../../lib/Marlin/Marlin/src/module/printcounter.h"
-#include "../../lib/Marlin/Marlin/src/module/temperature.h"
+#include "Marlin/src/Marlin.h"
+#include "Marlin/src/gcode/gcode.h"
+#include "Marlin/src/module/endstops.h"
+#include "Marlin/src/module/motion.h"
+#include "Marlin/src/module/planner.h"
+#include "Marlin/src/module/stepper.h"
+#include "Marlin/src/module/printcounter.h"
+#include "Marlin/src/module/temperature.h"
 #if ENABLED(PRUSA_MMU2)
-    #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
+    #include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
 #if ENABLED(FWRETRACT)
     #include "fwretract.h"
 #endif
 
-#include "../../lib/Marlin/Marlin/src/lcd/extensible_ui/ui_api.h"
-#include "../../lib/Marlin/Marlin/src/core/language.h"
-#include "../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
+#include "Marlin/src/lcd/extensible_ui/ui_api.h"
+#include "Marlin/src/core/language.h"
+#include "Marlin/src/lcd/ultralcd.h"
 
-#include "../../lib/Marlin/Marlin/src/libs/nozzle.h"
-#include "../../lib/Marlin/Marlin/src/feature/pause.h"
-#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "Marlin/src/libs/nozzle.h"
+#include "Marlin/src/feature/pause.h"
 #include "filament_sensors_handler.hpp"
 #include "pause_stubbed.hpp"
 #include "safety_timer_stubbed.hpp"
@@ -1406,14 +1405,19 @@ void Pause::unpark_nozzle_and_notify() {
         auto resume_pos_adj = settings.resume_pos;
 
         // Gotta apply leveling, otherwise the move would move the axes to non-leveled coordinates
-        // (because that's what do_blocking_move->line_to_current_position->buffer_line does :/)
+        // (because do_blocking_move_to->plan_park_move_to->buffer_line doesn't apply the leveling :/)
         // If PLANNER_LEVELING is true, the leveling is applied inside buffer_line
 #if HAS_LEVELING && !PLANNER_LEVELING
         planner.apply_leveling(resume_pos_adj);
 #endif
 
         PauseFsmNotifier N(*this, current_position.z, resume_pos_adj.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
+        // FIXME: use a beter movement api when available
         do_blocking_move_to_z(resume_pos_adj.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+        // But since the plan_park_move_to overrides the current position values (which are by default in
+        // native (without MBL) coordinates and we apply MBL to them) we need to reset the z height to
+        // make all the future moves correct.
+        current_position.z = settings.resume_pos.z;
     }
 
     // Unretract
