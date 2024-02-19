@@ -10,8 +10,6 @@ const char *file_type_by_ext(const char *fname);
 
 const char *file_type(const dirent *ent);
 
-bool filename_has_ext(const char *fname, const char *ext);
-
 /**
  * \brief Does the filename look like printable file (bgcode or plain gcode)
  *
