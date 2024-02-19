@@ -43,21 +43,14 @@ FileSort::EntryRef::EntryRef(const dirent &de, const char *sfnPath)
     if (de.d_type & DT_DIR) {
         MutablePath path(sfnPath);
         path.push(de.d_name);
+        const auto r = transfers::transfer_check(path);
 
-        using R = transfers::IsTransferResult;
-        switch (transfers::is_transfer(path)) {
-
-        case R::invalid_transfer:
-            type = EntryType::INVALID;
-            break;
-
-        case R::valid_transfer:
+        if (r.is_valid()) {
             type = EntryType::FILE;
-            break;
-
-        case R::not_a_transfer:
+        } else if (r.is_transfer()) {
+            type = EntryType::INVALID;
+        } else {
             type = EntryType::DIR;
-            break;
         }
     }
 

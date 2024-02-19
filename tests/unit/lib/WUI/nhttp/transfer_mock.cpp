@@ -10,7 +10,7 @@ std::optional<struct stat> Transfer::get_transfer_partial_file_stat(MutablePath 
 }
 
 namespace transfers {
-IsTransferResult is_transfer(const MutablePath &) {
-    return IsTransferResult::valid_transfer;
+TransferCheckResult transfer_check(const MutablePath &, TransferCheckValidOnly) {
+    return {};
 }
 } // namespace transfers

@@ -1,33 +1,32 @@
 #include <sys/stat.h>
 
 #include <stat_retry.hpp>
+
+#include "filename_type.hpp"
 #include "transfer_file_check.hpp"
 
 namespace transfers {
 
-IsTransferResult is_transfer(const MutablePath &filepath) {
-    struct stat st;
+TransferCheckResult transfer_check(const MutablePath &filepath, TransferCheckValidOnly check_valid_only) {
+    TransferCheckResult r;
 
-    const bool partial_file_found = filepath.execute_with_pushed(partial_filename, stat_retry, &st) == 0 && S_ISREG(st.st_mode);
-    const bool backup_file_found = filepath.execute_with_pushed(backup_filename, stat_retry, &st) == 0 && S_ISREG(st.st_mode);
-    const bool backup_is_empty = backup_file_found && st.st_size == 0;
-
-    // No backup or partial file -> this is not a transfer
-    if (!backup_file_found && !partial_file_found) {
-        return IsTransferResult::not_a_transfer;
+    // This early rejection saves us two stat lookups, which are very expensive (tens of ms).
+    if (!filename_is_printable(filepath.get())) {
+        return r;
     }
 
-    // No partial file -> some invalid state
-    // Existing empty backup file -> transfer is waiting to be removed
-    else if (!partial_file_found || backup_is_empty) {
-        return IsTransferResult::invalid_transfer;
+    r.partial_file_found = filepath.execute_with_pushed(partial_filename, stat_retry, &r.partial_file_stat) == 0 && S_ISREG(r.partial_file_stat.st_mode);
+
+    // Partial file not found -> definitely not valid, we can return early
+    if (!r.partial_file_found && check_valid_only == TransferCheckValidOnly::yes) {
+        return r;
     }
 
-    // Partial file & no backup -> finished transfer waiting to be moved
-    // Partial file & backup not empty -> running transfer
-    else {
-        return IsTransferResult::valid_transfer;
-    }
+    struct stat backup_file_stat;
+    r.backup_file_found = filepath.execute_with_pushed(backup_filename, stat_retry, &backup_file_stat) == 0 && S_ISREG(backup_file_stat.st_mode);
+    r.backup_file_empty = r.backup_file_found && backup_file_stat.st_size == 0;
+
+    return r;
 }
 
 bool is_valid_file_or_transfer(const MutablePath &file) {
