@@ -234,6 +234,10 @@ if(HAS_COLDPULL)
   target_sources(firmware PRIVATE screen_cold_pull.cpp)
 endif()
 
+if(HAS_PHASE_STEPPING)
+  target_sources(firmware PRIVATE screen_phase_stepping.cpp)
+endif()
+
 add_subdirectory(dialogs)
 add_subdirectory(footer)
 if(HAS_LEDS)

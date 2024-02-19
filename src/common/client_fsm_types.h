@@ -4,6 +4,7 @@
 #include <option/has_modularbed.h>
 #include <option/has_toolchanger.h>
 #include <option/has_loadcell.h>
+#include <option/has_phase_stepping.h>
 
 #include <inc/MarlinConfig.h>
 #include <device/board.h>
@@ -28,6 +29,9 @@ enum class ClientFSM : uint8_t {
     Warning,
     PrintPreview,
     ColdPull,
+    #if HAS_PHASE_STEPPING()
+    PhaseStepping,
+    #endif
     _none, // cannot be created, must have same index as _count
     _count = _none
 };

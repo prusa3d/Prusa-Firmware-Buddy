@@ -49,3 +49,7 @@ endif()
 if(HAS_GUI)
   target_sources(firmware PRIVATE M0.cpp)
 endif()
+
+if(HAS_PHASE_STEPPING)
+  target_sources(firmware PRIVATE M1977.cpp)
+endif()

@@ -11,6 +11,7 @@
 #include "window_dlg_preheat.hpp"
 #include "window_dlg_quickpause.hpp"
 #include "window_dlg_warning.hpp"
+#include <option/has_phase_stepping.h>
 
 #if HAS_COLDPULL()
     #include "screen_cold_pull.hpp"
@@ -39,10 +40,18 @@ using SerialPrint = screen_printing_serial_data_t;
 using SerialPrint = ScreenDialogDoesNotExist;
 #endif
 
+#if HAS_PHASE_STEPPING()
+    #include "screen_phase_stepping.hpp"
+#endif
+
 using mem_space = std::aligned_union_t<0, DialogQuickPause, DialogLoadUnload, DialogMenuPreheat, DialogWarning
 #if HAS_COLDPULL()
     ,
     ScreenColdPull
+#endif
+#if HAS_PHASE_STEPPING()
+    ,
+    ScreenPhaseStepping
 #endif
     >;
 static mem_space all_dialogs;
@@ -127,6 +136,13 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
         }
 #endif
         break;
+#if HAS_PHASE_STEPPING()
+    case ClientFSM::PhaseStepping:
+        if (!ScreenPhaseStepping::GetInstance()) {
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenPhaseStepping>);
+        }
+        break;
+#endif
     case ClientFSM::QuickPause:
         ptr = make_dialog_ptr<DialogQuickPause>(data);
         break;
@@ -156,6 +172,9 @@ void DialogHandler::close(ClientFSM fsm_type) {
     case ClientFSM::Selftest:
     case ClientFSM::ESP:
     case ClientFSM::ColdPull:
+#if HAS_PHASE_STEPPING()
+    case ClientFSM::PhaseStepping:
+#endif
         Screens::Access()->Close();
         break;
     default:
@@ -208,6 +227,13 @@ void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
         }
 #endif
         break;
+#if HAS_PHASE_STEPPING()
+    case ClientFSM::PhaseStepping:
+        if (ScreenPhaseStepping::GetInstance()) {
+            ScreenPhaseStepping::GetInstance()->Change(data);
+        }
+        break;
+#endif
     default:
         if (ptr) {
             ptr->Change(data);

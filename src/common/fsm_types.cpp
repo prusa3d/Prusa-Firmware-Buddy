@@ -7,6 +7,7 @@
 #include "fsm_types.hpp"
 #include "log.h"
 #include "bsod.h"
+#include <option/has_phase_stepping.h>
 
 using namespace fsm;
 
@@ -65,6 +66,10 @@ const char *to_string(ClientFSM type) {
         return "PrintPreview";
     case ClientFSM::ColdPull:
         return "ColdPull";
+#if HAS_PHASE_STEPPING()
+    case ClientFSM::PhaseStepping:
+        return "PhaseStepping";
+#endif
     case ClientFSM::_none:
         return "none";
     }
