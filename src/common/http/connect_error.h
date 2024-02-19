@@ -11,6 +11,7 @@ enum class Error {
     Connect,
     Network,
     Tls,
+    Memory,
     // Framing errors (in case of websocket)
     WebSocket,
     // Unexpected EOF,

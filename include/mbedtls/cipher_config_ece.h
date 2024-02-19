@@ -22,6 +22,9 @@
 #define MBEDTLS_ENTROPY_C
 #define MBEDTLS_ENTROPY_HARDWARE_ALT
 #define MBEDTLS_NO_PLATFORM_ENTROPY
+// We don't need full 20 sources pre-configured and we want the structure to
+// fit into 512B.
+#define MBEDTLS_ENTROPY_MAX_SOURCES 19
 #define MBEDTLS_MD_C
 #define MBEDTLS_OID_C
 #define MBEDTLS_PK_C
