@@ -229,7 +229,7 @@ void M600_manual() {
         pause::Settings::CalledFrom::Pause);
 }
 
-void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t resume_point,
+void M600_execute(xyz_pos_t park_point, uint8_t target_extruder, xyze_float_t resume_point,
     std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength,
     std::optional<filament::Colour> filament_colour, std::optional<filament::Type> filament_type,
     pause::Settings::CalledFrom called_from) {
@@ -243,6 +243,36 @@ void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t res
     }
 #endif /*ENABLED(CRASH_RECOVERY)*/
 
+#if HAS_TOOLCHANGER()
+    struct ToolChangeData {
+        xyze_float_t original_resume_point;
+        int16_t target_extruder_original_temperature;
+        uint8_t original_extruder;
+    };
+
+    // Check if we need to do a toolchange
+    std::optional<ToolChangeData> tool_change_data {};
+    if (target_extruder != marlin_vars()->active_extruder) {
+        // Since the native coordinates contain hotend_currently_applied_offset we need to store the logical
+        // version of these coordinates to make it easier to convert to the target_extruder's native coordinates.
+        const auto logical_resume = resume_point.asLogical();
+        tool_change_data = ToolChangeData {
+            .original_resume_point = logical_resume,
+            .target_extruder_original_temperature = Temperature::degTargetHotend(target_extruder),
+            .original_extruder = marlin_vars()->active_extruder,
+        };
+
+        tool_change(target_extruder, tool_return_t::no_return, tool_change_lift_t::mbl_only_lift, true);
+
+        resume_point = logical_resume.asNative(); // Convert original resume point to the new native coordinates
+        resume_point = prusa_toolchanger.get_tool_dock_position(target_extruder); // Sets only x, y coordinates
+
+        // Preheat the tool for filament change -> normally we don't do that for M600. But the slicer team wanted this.
+        const auto &filament_data = filament::get_description(config_store().get_filament_type(target_extruder));
+        Temperature::setTargetHotend(filament_data.nozzle, target_extruder);
+        Temperature::wait_for_hotend(target_extruder);
+    }
+#endif
     park_point.z += current_position.z;
 
     pause::Settings settings;
@@ -285,6 +315,24 @@ void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t res
     if (disp_temp > targ_temp) {
         Temperature::setTargetHotend(targ_temp, target_extruder);
     }
+
+#if HAS_TOOLCHANGER()
+    if (tool_change_data.has_value()) {
+        const auto &change_data = *tool_change_data;
+
+        if (std::isfinite(change_data.target_extruder_original_temperature)) {
+            Temperature::setTargetHotend(change_data.target_extruder_original_temperature, target_extruder);
+        }
+
+        if (std::isfinite(change_data.original_resume_point.x) && std::isfinite(change_data.original_resume_point.y) && std::isfinite(change_data.original_resume_point.z)) {
+            destination = change_data.original_resume_point.asNative();
+        } else {
+            destination = prusa_toolchanger.get_tool_dock_position(change_data.original_extruder);
+        }
+        tool_change(change_data.original_extruder, tool_return_t::to_destination, tool_change_lift_t::mbl_only_lift, true);
+        report_current_position();
+    }
+#endif
 }
 
 /// Filament stuck detected during print

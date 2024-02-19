@@ -587,6 +587,12 @@ void PrusaToolChanger::move(const float x, const float y, const feedRate_t feedr
     line_to_current_position(feedrate);
 }
 
+const xy_float_t PrusaToolChanger::get_tool_dock_position(uint8_t tool_nr) {
+    const auto &dwarf = dwarfs[tool_nr];
+    const auto info = PrusaToolChangerUtils::get_tool_info(dwarf, true);
+    return xy_float_t { info.dock_x, SAFE_Y_WITH_TOOL };
+}
+
 bool PrusaToolChanger::park(Dwarf &dwarf) {
     auto dwarf_parked = [&dwarf]() {
         if (!dwarf.refresh_park_pick_status()) {

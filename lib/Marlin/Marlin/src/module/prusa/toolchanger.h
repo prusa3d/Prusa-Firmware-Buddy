@@ -58,6 +58,13 @@ public:
     }
 
     /**
+     * @brief Returns calibrated value with the tools docking position
+     *
+     * @param tool_nr number of tool
+     */
+    const xy_float_t get_tool_dock_position(uint8_t tool_nr);
+
+    /**
      * @brief Loop that checks toolchanger state.
      * @warning Called only directly from marlin server.
      * @param printing true if currently printing, to not start toolchange spontaneously
