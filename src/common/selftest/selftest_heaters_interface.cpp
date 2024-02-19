@@ -10,6 +10,7 @@
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
 #include "selftest_log.hpp"
+#include "power_check_both.hpp"
 #include <config_store/store_instance.hpp>
 #include <printers.h>
 
@@ -53,27 +54,6 @@ static void HeatbreakCorrelation(CSelftestPart_Heater &h) {
 #else
 static void HeatbreakCorrelation([[maybe_unused]] CSelftestPart_Heater &h) {}
 #endif // HAS_TEMP_HEATBREAK_CONTROL
-
-#if !HAS_ADVANCED_POWER()
-// Dummy class in case there is no advanced power
-class PowerCheckBoth {
-    constexpr PowerCheckBoth() = default;
-    PowerCheckBoth(const PowerCheckBoth &) = delete;
-
-public:
-    void Callback([[maybe_unused]] CSelftestPart_Heater &part) {}
-
-    constexpr void BindNozzle([[maybe_unused]] CSelftestPart_Heater *) {}
-    constexpr void BindBed([[maybe_unused]] CSelftestPart_Heater *) {}
-    constexpr void UnBindNozzle() {}
-    constexpr void UnBindBed() {}
-
-    static PowerCheckBoth &Instance() {
-        static PowerCheckBoth ret;
-        return ret;
-    }
-};
-#endif
 
 // Shared check callback
 // Splits implementation for printers with independent bed, nozzle measurement and others

@@ -35,6 +35,8 @@ endif()
 
 if(HAS_ADVANCED_POWER)
   target_sources(firmware PRIVATE power_check.cpp power_check_both.cpp)
+else()
+  target_sources(firmware PRIVATE power_check.cpp power_check_both_dummy.cpp)
 endif()
 
 if(FILAMENT_SENSOR STREQUAL ADC)
