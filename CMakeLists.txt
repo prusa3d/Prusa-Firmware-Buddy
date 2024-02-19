@@ -527,11 +527,9 @@ objcopy(firmware "binary" ".bin")
 target_link_options(firmware PUBLIC -Wl,-Map=firmware.map,--print-memory-usage)
 
 # link time optimizations
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  if(MCU MATCHES "STM32F40")
-    set_target_properties(firmware PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
-  endif()
-endif() # "Release"
+if(NOT DEVELOPER_MODE)
+  set_target_properties(firmware PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
+endif()
 
 # inform about the firmware's size in terminal
 report_size(firmware)
