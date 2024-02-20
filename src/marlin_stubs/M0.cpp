@@ -13,8 +13,16 @@
  * Add parameter logic from "M0_M1.cpp" if you need it
  */
 void PrusaGcodeSuite::M0() {
+    fsm::PhaseData data = {};
+    const char *msg_ptr;
+    if (parser.string_arg) {
+        msg_ptr = parser.string_arg;
+    } else {
+        msg_ptr = nullptr;
+    }
+    memcpy(&data[0], &msg_ptr, sizeof(uint32_t));
 
-    FSM_HOLDER_WITH_DATA__LOGGING(QuickPause, PhasesQuickPause::QuickPaused, fsm::PhaseData());
+    FSM_HOLDER_WITH_DATA__LOGGING(QuickPause, PhasesQuickPause::QuickPaused, data);
     planner.synchronize();
 
     while (marlin_server::ClientResponseHandler::GetResponseFromPhase(PhasesQuickPause::QuickPaused) == Response::_none) {
