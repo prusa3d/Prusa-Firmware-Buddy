@@ -3,6 +3,7 @@
 #include "marlin_events.h"
 #include "marlin_errors.h"
 #include "client_fsm_types.h"
+#include "encoded_fsm_response.hpp"
 #include "marlin_vars.hpp"
 #include "client_response.hpp"
 #include <option/has_selftest.h>
@@ -167,7 +168,7 @@ bool is_paused();
 bool is_idle();
 
 // internal function, use FSM_response()
-void FSM_response_internal(uint32_t enc_phase_and_response);
+void FSM_response_internal(EncodedFSMResponse);
 
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
@@ -176,9 +177,11 @@ void FSM_response_internal(uint32_t enc_phase_and_response);
 // called in client finite state machine
 template <class T>
 void FSM_response(T phase, Response response) {
-    const uint16_t encoded_phase { ftrstd::to_underlying(phase) };
-    const uint8_t encoded_response { ftrstd::to_underlying(response) };
-    FSM_response_internal((encoded_phase << 8) | encoded_response);
+    FSM_response_internal({
+        .encoded_phase = ftrstd::to_underlying(phase),
+        .encoded_fsm = ftrstd::to_underlying(client_fsm_from_phase_v<T>),
+        .encoded_response = ftrstd::to_underlying(response),
+    });
 }
 
 } // namespace marlin_client

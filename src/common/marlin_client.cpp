@@ -432,10 +432,10 @@ void notify_server_about_knob_click() {
 
 //-----------------------------------------------------------------------------
 // responses from client finite state machine (like button click)
-void FSM_response_internal(uint32_t enc_phase_and_response) {
+void FSM_response_internal(EncodedFSMResponse encoded_fsm_response) {
     Request request;
     request.type = Request::Type::FSM;
-    request.fsm = enc_phase_and_response;
+    request.encoded_fsm_response = encoded_fsm_response;
     _send_request_to_server_and_wait(request);
 }
 bool is_printing() {

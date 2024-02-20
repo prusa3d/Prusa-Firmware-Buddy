@@ -5,7 +5,7 @@
 #include <atomic>
 #include "marlin_vars.hpp"
 
-#include "general_response.hpp"
+#include "client_response.hpp"
 #include "fsm_types.hpp"
 
 #include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
@@ -227,13 +227,15 @@ bool can_stop_wait_for_heatup();
 void can_stop_wait_for_heatup(bool val);
 
 // internal function, do not use directly
-Response get_response_from_phase_internal(uint16_t);
+Response get_response_from_phase_internal(uint8_t, uint16_t);
 
 /// If the phase matches currently recorded response, return it and consume it.
 /// Otherwise, return Response::_none and do not consume it.
 template <class T>
 Response get_response_from_phase(T phase) {
-    return get_response_from_phase_internal(ftrstd::to_underlying(phase));
+    return get_response_from_phase_internal(
+        ftrstd::to_underlying(client_fsm_from_phase_v<T>),
+        ftrstd::to_underlying(phase));
 }
 
 // FSM_notifier

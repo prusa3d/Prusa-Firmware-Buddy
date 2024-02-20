@@ -376,8 +376,12 @@ osSemaphoreId server_semaphore = 0; // semaphore handle
 
 idle_t *idle_cb = 0; // idle callback
 
-// UINT32_MAX is used as no response from client
-static std::atomic<uint32_t> server_side_encoded_response = UINT32_MAX;
+constexpr EncodedFSMResponse empty_encoded_fsm_response = {
+    .encoded_phase = 0xffff,
+    .encoded_fsm = 0xff,
+    .encoded_response = 0xff,
+};
+static EncodedFSMResponse server_side_encoded_fsm_response = empty_encoded_fsm_response;
 
 void _add_status_msg(const char *const popup_msg) {
     // I could check client mask here
@@ -2691,7 +2695,7 @@ bool _process_server_valid_request(const Request &request, int client_id) {
         ++server.knob_click_counter;
         return true;
     case Request::Type::FSM:
-        server_side_encoded_response = request.fsm;
+        server_side_encoded_fsm_response = request.encoded_fsm_response;
         return true;
     case Request::Type::EventMask:
         server.notify_events[client_id] = request.event_mask;
@@ -2909,20 +2913,17 @@ void set_var_sd_percent_done(uint8_t value) {
     marlin_vars()->sd_percent_done = value;
 }
 
-Response get_response_from_phase_internal(uint16_t phase) {
+Response get_response_from_phase_internal(uint8_t encoded_fsm, uint16_t encoded_phase) {
     // FIXME: Critical section is used to mimic original behaviour with std::atomic
     //        However, maybe we should instead require that the calling task
     //        is actually Marlin task. This is most probably the case,
     //        but checking that is beyond the scope of this patch.
     taskENTER_CRITICAL();
-    const uint32_t value = server_side_encoded_response;
-    const uint16_t encoded_phase = value >> 8;
-    const uint8_t encoded_response = value & 0xff;
-
-    if (phase == encoded_phase) {
-        server_side_encoded_response = UINT32_MAX;
+    const EncodedFSMResponse value = server_side_encoded_fsm_response;
+    if (encoded_fsm == value.encoded_fsm && encoded_phase == value.encoded_phase) {
+        server_side_encoded_fsm_response = empty_encoded_fsm_response;
         taskEXIT_CRITICAL();
-        return Response(encoded_response);
+        return Response(value.encoded_response);
     } else {
         taskEXIT_CRITICAL();
         return Response::_none;

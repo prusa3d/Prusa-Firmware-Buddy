@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/encoded_fsm_response.hpp>
 #include <common/freertos_queue.hpp>
 #include <common/marlin_events.h>
 
@@ -65,7 +66,7 @@ struct __attribute__((packed)) Request {
         } move_multiple; // Type::MoveMultiple
         char gcode[MARLIN_MAX_REQUEST + 1]; // Type::Gcode
         const char *inject_gcode; // Type::InjectGcode
-        uint32_t fsm; // Type::FSM
+        EncodedFSMResponse encoded_fsm_response; // Type::FSM
         float babystep; // Type::Babystep
         struct {
             marlin_server::PreviewSkipIfAble skip_preview;
