@@ -124,7 +124,7 @@ struct State {
 };
 
 static constexpr State states[CountPhases<PhasesLoadUnload>()] = {
-        { txt_first,                 ClientResponses::GetResponses(PhasesLoadUnload::_first),                        ph_txt_none },
+        { txt_first,                 ClientResponses::GetResponses(PhasesLoadUnload::initial),                       ph_txt_none },
         { txt_tool,                  ClientResponses::GetResponses(PhasesLoadUnload::ChangingTool),                  ph_txt_none },
         { txt_parking,               ClientResponses::GetResponses(PhasesLoadUnload::Parking_stoppable),             ph_txt_stop },
         { txt_parking,               ClientResponses::GetResponses(PhasesLoadUnload::Parking_unstoppable),           ph_txt_none },
@@ -295,7 +295,7 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     , progress_bar(&progress_frame, get_progress_bar_rect(GetRect()), COLOR_ORANGE, GuiDefaults::EnableDialogBigLayout ? COLOR_DARK_GRAY : COLOR_GRAY, PROGRESS_BAR_CORNER_RADIUS)
     , progress_number(&progress_frame, get_progress_number_rect(GetRect()), 0, "%.0f%%", Font::big)
     , label(&progress_frame, get_label_rect(GetRect()), is_multiline::yes)
-    , radio(&progress_frame, GuiDefaults::GetButtonRect_AvoidFooter(GetRect()), PhasesLoadUnload::_first)
+    , radio(&progress_frame, GuiDefaults::GetButtonRect_AvoidFooter(GetRect()), PhasesLoadUnload::initial)
     , footer(this
 #if FOOTER_ITEMS_PER_LINE__ >= 5
           ,

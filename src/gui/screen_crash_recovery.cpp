@@ -245,7 +245,7 @@ WinsToolRecovery::WinsToolRecovery(ScreenCrashRecovery &screen)
 
 WinUnion::WinUnion(ScreenCrashRecovery &screen)
     : parent_screen(screen) {
-    New(PhasesCrashRecovery::_first);
+    New(PhasesCrashRecovery::check_X);
 }
 
 WinUnion::screen_type WinUnion::ScreenType(PhasesCrashRecovery ph) {

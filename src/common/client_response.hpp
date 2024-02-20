@@ -37,31 +37,30 @@ enum { RESPONSE_BITS = 4, // number of bits used to encode response
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
 
-// count enum class members (if "_first" and "_last" is defined)
+// count enum class members (if "_last" is defined)
 template <class T>
 constexpr size_t CountPhases() {
-    return static_cast<size_t>(T::_last) - static_cast<size_t>(T::_first) + 1;
+    return static_cast<size_t>(T::_last) + 1;
 }
 // use this when creating an event
 // encodes enum to position in phase
 template <class T>
 constexpr uint8_t GetPhaseIndex(T phase) {
-    return static_cast<size_t>(phase) - static_cast<size_t>(T::_first);
+    return static_cast<size_t>(phase);
 }
 
 template <class T>
 constexpr T GetEnumFromPhaseIndex(size_t index) {
     assert(index < CountPhases<T>());
-    return static_cast<T>(static_cast<size_t>(T::_first) + index);
+    return static_cast<T>(index);
 }
 
 // define enum classes for responses here
 // and YES phase can have 0 responses
-// every enum must have "_first" and "_last"
-//"_first" ==  "previous_enum::_last" + 1
+// every enum must have "_last"
 // EVERY response shall have a unique ID (so every button in GUI is unique)
 enum class PhasesLoadUnload : uint16_t {
-    _first = 0,
+    initial,
     ChangingTool,
     Parking_stoppable,
     Parking_unstoppable,
@@ -153,15 +152,14 @@ enum class PhasesLoadUnload : uint16_t {
 DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::Load_unload, PhasesLoadUnload);
 
 enum class PhasesPreheat : uint16_t {
-    _first = static_cast<uint16_t>(PhasesLoadUnload::_last) + 1,
+    initial,
     UserTempSelection,
     _last = UserTempSelection
 };
 DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::Preheat, PhasesPreheat);
 
 enum class PhasesPrintPreview : uint16_t {
-    _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
-    loading = _first,
+    loading,
     download_wait,
     main_dialog,
     unfinished_selftest,
@@ -183,8 +181,7 @@ DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::PrintPreview, PhasesPrintPreview);
 
 // GUI phases of selftest/wizard
 enum class PhasesSelftest : uint16_t {
-    _first = static_cast<uint16_t>(PhasesPrintPreview::_last) + 1,
-    _none = _first,
+    _none,
 
     _first_WizardPrologue,
     WizardPrologue_ask_run = _first_WizardPrologue,
@@ -326,8 +323,7 @@ enum class PhasesSelftest : uint16_t {
 DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::Selftest, PhasesSelftest);
 
 enum class PhasesESP : uint16_t {
-    _first = static_cast<uint16_t>(PhasesSelftest::_last) + 1,
-    _none = _first,
+    _none,
 
     _first_ESP,
     ESP_instructions = _first_ESP,
@@ -360,8 +356,7 @@ enum class PhasesESP : uint16_t {
 DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::ESP, PhasesESP);
 
 enum class PhasesCrashRecovery : uint16_t {
-    _first = static_cast<uint16_t>(PhasesESP::_last) + 1,
-    check_X = _first, // in this case is safe to have check_X == _first
+    check_X,
     check_Y,
     home,
     axis_NOK, //< just for unification of the two below
@@ -379,15 +374,13 @@ enum class PhasesCrashRecovery : uint16_t {
 DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::CrashRecovery, PhasesCrashRecovery);
 
 enum class PhasesQuickPause : uint16_t {
-    _first = static_cast<uint16_t>(PhasesCrashRecovery::_last) + 1,
-    QuickPaused = _first,
+    QuickPaused,
     _last = QuickPaused
 };
 DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::QuickPause, PhasesQuickPause);
 
 enum class PhasesWarning : uint16_t {
-    _first = static_cast<uint16_t>(PhasesQuickPause::_last) + 1,
-    Warning = _first,
+    Warning,
     _last = Warning
 };
 DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::Warning, PhasesWarning);
@@ -400,7 +393,7 @@ class ClientResponses {
 
     // declare 2d arrays of single buttons for radio buttons
     static constexpr PhaseResponses LoadUnloadResponses[] = {
-        {}, //_first
+        {}, // inactive
         {}, // ChangingTool,
         { Response::Stop }, // Parking_stoppable
         {}, // Parking_unstoppable,
@@ -480,7 +473,7 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::LoadUnloadResponses) == CountPhases<PhasesLoadUnload>());
 
     static constexpr PhaseResponses PreheatResponses[] = {
-        {}, //_first
+        {}, // inactive
         { Response::Abort, Response::Cooldown, Response::PLA, Response::PETG,
             Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA }, // UserTempSelection
     };
@@ -519,7 +512,7 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
     static constexpr PhaseResponses SelftestResponses[] = {
-        {}, // _none == _first
+        {}, // _none
 
         { Response::Continue, Response::Cancel }, // WizardPrologue_ask_run
         { Response::Continue, Response::Cancel
@@ -632,7 +625,7 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::SelftestResponses) == CountPhases<PhasesSelftest>());
 
     static constexpr PhaseResponses ESPResponses[] = {
-        {}, // _none == _first
+        {}, // _none
 
         { Response::Continue, Response::Abort }, // ESP_instructions
         { Response::Yes, Response::Skip }, // ESP_USB_not_inserted
@@ -661,7 +654,7 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::ESPResponses) == CountPhases<PhasesESP>());
 
     static constexpr PhaseResponses CrashRecoveryResponses[] = {
-        {}, // check X == _first
+        {}, // check X
         {}, // check Y
         {}, // home
         { Response::Retry, Response::Pause, Response::Resume }, // axis NOK
@@ -687,13 +680,13 @@ class ClientResponses {
 
     // methods to "bind" button array with enum type
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPrintPreview::_first)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesESP phase) { return ESPResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesESP::_first)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesQuickPause phase) { return QuickPauseResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesQuickPause::_first)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesWarning phase) { return WarningResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesWarning::_first)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesESP phase) { return ESPResponses[static_cast<size_t>(phase)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesQuickPause phase) { return QuickPauseResponses[static_cast<size_t>(phase)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesWarning phase) { return WarningResponses[static_cast<size_t>(phase)]; }
 
 public:
     // get index of single response in PhaseResponses

@@ -33,7 +33,7 @@ static void LoadUnloadTest() {
     fsm::Change change(fsm::QueueIndex::q0);
     fsm::BaseData base_data;
 #if HAS_MMU2()
-    for (PhasesLoadUnload i = PhasesLoadUnload::_first; i < PhasesLoadUnload::MMU_ERRWaitingForUser; i = PhasesLoadUnload(int(i) + 1)) {
+    for (PhasesLoadUnload i = PhasesLoadUnload::initial; i < PhasesLoadUnload::MMU_ERRWaitingForUser; i = PhasesLoadUnload(int(i) + 1)) {
         set_state(i, progress);
 
         WaitLoop();
@@ -83,7 +83,7 @@ static void LoadUnloadTest() {
         progress %= 110;
     }
 #else
-    for (PhasesLoadUnload i = PhasesLoadUnload::_first; i <= PhasesLoadUnload::_last; i = PhasesLoadUnload(int(i) + 1)) {
+    for (PhasesLoadUnload i = PhasesLoadUnload::initial; i <= PhasesLoadUnload::_last; i = PhasesLoadUnload(int(i) + 1)) {
         set_state(i, progress);
 
         WaitLoop();

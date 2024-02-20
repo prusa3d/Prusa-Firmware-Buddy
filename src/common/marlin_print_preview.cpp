@@ -107,7 +107,7 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
         break;
 
     case FSM_action::create:
-        if (wantedPhase && *wantedPhase != PhasesPrintPreview::_first) {
+        if (wantedPhase && *wantedPhase != PhasesPrintPreview::loading) {
             FSM_CREATE_WITH_DATA__LOGGING(PrintPreview, *wantedPhase, fsm::PhaseData({ 0, 0, 0, 0 }));
         } else {
             FSM_CREATE__LOGGING(PrintPreview);

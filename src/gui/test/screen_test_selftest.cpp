@@ -40,8 +40,8 @@ static void SelftestTest() {
     WaitLoop();
     Screens::Access()->Loop(); // for test only, this is very unsafe, do not use it like this anywhere else !!!
 
-    for (PhasesSelftest i = PhasesSelftest::_first; int(i) <= int(PhasesSelftest::_last); i = PhasesSelftest(int(i) + 1)) {
-        data.SetPhase(int(i) - int(PhasesSelftest::_first));
+    for (PhasesSelftest i = PhasesSelftest::initial; int(i) <= int(PhasesSelftest::_last); i = PhasesSelftest(int(i) + 1)) {
+        data.SetPhase(int(i));
 
         // push change
         change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
@@ -54,14 +54,14 @@ static void SelftestTest() {
     SelftestLoadcell_t loadcell_data;
     loadcell_data.pressed_too_soon = true;
     data.SetData(loadcell_data.Serialize());
-    data.SetPhase(int(PhasesSelftest::Loadcell_user_tap_ask_abort) - int(PhasesSelftest::_first));
+    data.SetPhase(int(PhasesSelftest::Loadcell_user_tap_ask_abort));
     // push change
     change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
     DialogHandler::Command(change.serialize());
     WaitAndShot("Loadcell_user_tap_ask_abort__soon");
 
     // alternative stated for Result (default state is unknown == some tests did not pass)
-    data.SetPhase(int(PhasesSelftest::Result) - int(PhasesSelftest::_first));
+    data.SetPhase(int(PhasesSelftest::Result));
     data.SetData(FsmSelftestResult(0xaa).Serialize()); // 0xaa is 4 times Passed state
     // push change
     change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
@@ -76,7 +76,7 @@ static void SelftestTest() {
     WaitLoop();
 
     // 1x failed
-    data.SetPhase(int(PhasesSelftest::Result) - int(PhasesSelftest::_first));
+    data.SetPhase(int(PhasesSelftest::Result));
     data.SetData(FsmSelftestResult(0xa8).Serialize()); // 3 passed, one failed
     // push change
     change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);

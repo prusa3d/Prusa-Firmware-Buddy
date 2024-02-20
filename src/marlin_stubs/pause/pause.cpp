@@ -160,7 +160,7 @@ constexpr RammingSequence unloadRammingSequence = RammingSequence(ramUnloadSeqIt
 // PausePrivatePhase
 
 PausePrivatePhase::PausePrivatePhase()
-    : phase(PhasesLoadUnload::_first)
+    : phase(PhasesLoadUnload::initial)
     , load_unload_shared_phase(int(UnloadPhases_t::_init))
     , bed_restore_temp(NAN) {
     HOTEND_LOOP() {
