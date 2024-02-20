@@ -19,7 +19,7 @@ TestReturn phaseNozzleDiameter(IPartHandler *&pNozzleDiameter) {
     }
 
     auto in_progress = pNozzleDiameter->Loop();
-    FSM_CHANGE__LOGGING(Selftest, IPartHandler::GetFsmPhase());
+    FSM_CHANGE__LOGGING(IPartHandler::GetFsmPhase());
     if (!in_progress) {
         if (static_result.selected_diameter > 0.0f) {
             // PASSED

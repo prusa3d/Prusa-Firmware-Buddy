@@ -172,7 +172,7 @@ void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress) {
     phase = ph;
     if (load_unload_mode) {
         ProgressSerializerLoadUnload serializer(*load_unload_mode, progress);
-        FSM_CHANGE_WITH_DATA__LOGGING(Load_unload, phase, serializer.Serialize());
+        FSM_CHANGE_WITH_DATA__LOGGING(phase, serializer.Serialize());
     }
 }
 

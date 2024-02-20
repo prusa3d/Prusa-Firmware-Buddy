@@ -23,7 +23,7 @@ static constexpr float Z_CALIB_EXTRA_HIGHT = 5.f; // mm
     #include <module/prusa/toolchanger.h>
 
 void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
-    FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::CalibZ);
+    FSM_CHANGE__LOGGING(PhasesSelftest::CalibZ);
 
     // backup original acceleration/feedrates and reset defaults for calibration
     Temporary_Reset_Motion_Parameters mp;
@@ -104,7 +104,7 @@ void selftest::calib_Z(bool move_down_after) {
     planner.set_max_acceleration(Z_AXIS, def_accel[Z_AXIS]);
 
     // Z axis lift
-    FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::CalibZ);
+    FSM_CHANGE__LOGGING(PhasesSelftest::CalibZ);
     endstops.enable(true); // Stall endstops need to be enabled manually as in G28
     if (!homeaxis(Z_AXIS, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z), true)) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);

@@ -31,7 +31,7 @@ LOG_COMPONENT_REF(FSM);
  * Send data from server:
  *     DataType_t data
  *     data.value = 123;
- *     FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(Selftest, phase, data);
+ *     FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(phase, data);
  *
  *  Receive data in client:
  *      DataType_t dt;

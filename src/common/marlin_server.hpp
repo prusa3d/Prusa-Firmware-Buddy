@@ -275,13 +275,13 @@ public:
 };
 
 // macros to call automatically fsm_create/change/destroy the way it logs __PRETTY_FUNCTION__, __FILE__, __LINE__
-#define FSM_CREATE_WITH_DATA__LOGGING(fsm_type, phase, data)          marlin_server::fsm_create(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CREATE__LOGGING(fsm_type)                                 marlin_server::_fsm_create(ClientFSM::fsm_type, fsm::BaseData(), __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_DESTROY_AND_CREATE__LOGGING(fsm_old, fsm_new)             marlin_server::_fsm_destroy_and_create(ClientFSM::fsm_old, ClientFSM::fsm_new, fsm::BaseData(), __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_DESTROY__LOGGING(fsm_type)                                marlin_server::fsm_destroy(ClientFSM::fsm_type, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CHANGE_WITH_DATA__LOGGING(fsm_type, phase, data)          marlin_server::fsm_change(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(fsm_type, phase, data) marlin_server::fsm_change_extended(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CHANGE__LOGGING(fsm_type, phase)                          marlin_server::fsm_change(ClientFSM::fsm_type, phase, fsm::PhaseData({ 0, 0, 0, 0 }), __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CREATE_WITH_DATA__LOGGING(fsm_type, phase, data) marlin_server::fsm_create(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CREATE__LOGGING(fsm_type)                        marlin_server::_fsm_create(ClientFSM::fsm_type, fsm::BaseData(), __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_DESTROY_AND_CREATE__LOGGING(fsm_old, fsm_new)    marlin_server::_fsm_destroy_and_create(ClientFSM::fsm_old, ClientFSM::fsm_new, fsm::BaseData(), __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_DESTROY__LOGGING(fsm_type)                       marlin_server::fsm_destroy(ClientFSM::fsm_type, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CHANGE_WITH_DATA__LOGGING(phase, data)           marlin_server::fsm_change(phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(phase, data)  marlin_server::fsm_change_extended(phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CHANGE__LOGGING(phase)                           marlin_server::fsm_change(phase, fsm::PhaseData({ 0, 0, 0, 0 }), __PRETTY_FUNCTION__, __FILE__, __LINE__)
 // notify all clients to create finite statemachine
 void _fsm_create(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line);
 // notify all clients to destroy finite statemachine, must match fsm_destroy_t signature
@@ -298,17 +298,17 @@ void fsm_create(ClientFSM type, T phase, fsm::PhaseData data, const char *fnc, c
 }
 
 template <class T>
-void fsm_change(ClientFSM type, T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) {
-    _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), data), fnc, file, line);
+void fsm_change(T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) {
+    _fsm_change(client_fsm_from_phase_v<T>, fsm::BaseData(GetPhaseIndex(phase), data), fnc, file, line);
 }
 
 template <class T, FSMExtendedDataSubclass DATA_TYPE>
-void fsm_change_extended(ClientFSM type, T phase, DATA_TYPE data, const char *fnc, const char *file, int line) {
+void fsm_change_extended(T phase, DATA_TYPE data, const char *fnc, const char *file, int line) {
     FSMExtendedDataManager::store(data);
     //  We use this ugly hack that we increment fsm_change_data[0] every time data changed, to force redraw of GUI
     static std::array<uint8_t, 4> fsm_change_data = { 0 };
     fsm_change_data[0]++;
-    _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
+    _fsm_change(client_fsm_from_phase_v<T>, fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
 }
 
 template <class T>
@@ -346,17 +346,17 @@ public:
 
     template <class T>
     void Change(T phase) const {
-        fsm_change(dialog, phase);
+        fsm_change(phase);
     }
 
     template <class T>
     void Change(T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) const {
-        fsm_change(dialog, phase, data, fnc, file, line);
+        fsm_change(phase, data, fnc, file, line);
     }
 
     template <class T, class U>
     void Change(T phase, const U &serializer, const char *fnc, const char *file, int line) const {
-        fsm_change(dialog, phase, serializer.Serialize(), fnc, file, line);
+        fsm_change(phase, serializer.Serialize(), fnc, file, line);
     }
 
     ~FSM_Holder() {

@@ -107,7 +107,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
 
     bool in_progress = m_pAxis->Loop();
     SelftestAxis_t result = SelftestAxis_t(staticResults[0], staticResults[1], staticResults[2], (separate == Separate::yes) ? config_axis.axis : (Z_AXIS + 1)); // If separate, use >Z_AXIS
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), result.Serialize());
 
     if (in_progress) {
         return true;

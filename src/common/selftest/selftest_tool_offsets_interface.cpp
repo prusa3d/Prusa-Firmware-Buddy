@@ -38,7 +38,7 @@ TestReturn phaseToolOffsets([[maybe_unused]] const ToolMask tool_mask, IPartHand
 
     const bool in_progress = pToolOffsets->Loop();
     SelftestToolOffsets_t result_tool_offsets(staticResultToolOffsets);
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result_tool_offsets.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), result_tool_offsets.Serialize());
     if (in_progress) {
         return true;
     }

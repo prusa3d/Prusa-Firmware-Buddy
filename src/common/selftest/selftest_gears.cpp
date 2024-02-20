@@ -40,7 +40,7 @@ bool phase_gears(IPartHandler *&selftest_gears, const SelftestGearsConfig &confi
 
     bool in_progress = selftest_gears->Loop();
 
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), static_result.serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), static_result.serialize());
 
     if (in_progress) {
         return true;

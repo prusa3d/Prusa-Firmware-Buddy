@@ -1933,7 +1933,7 @@ static void _server_print_loop(void) {
 
             // Show homing screen, TODO: perhaps a new screen would be better
             Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
+            FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::home, cr_fsm.Serialize());
 
             // Pickup lost tool
             tool_return_t return_type = tool_return_t::no_return; // If it continues with replay, no need to return
@@ -1956,7 +1956,7 @@ static void _server_print_loop(void) {
                 // Toolchange failed again, ask user again to park all dwarves
                 crash_s.count_crash(); // Count as another crash
                 Crash_recovery_tool_fsm cr_fsm(prusa_toolchanger.get_enabled_mask(), 0);
-                FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize());
+                FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize());
 
                 prepare_tool_pickup();
                 break;
@@ -1965,7 +1965,7 @@ static void _server_print_loop(void) {
             server.print_state = State::CrashRecovery_XY_HOME; // Reheat and resume, unpark is skipped in later stages
         } else {
             Crash_recovery_tool_fsm cr_fsm(prusa_toolchanger.get_enabled_mask(), prusa_toolchanger.get_parked_mask());
-            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize());
+            FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize());
             gcode.reset_stepper_timeout(); // Prevent disable axis
         }
         break;
@@ -1988,7 +1988,7 @@ static void _server_print_loop(void) {
                 if (crash_s.is_repeated_crash()) { // Cannot home repeatedly
                     disable_XY(); // Let user move the carriage
                     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
-                    FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home_fail, cr_fsm.Serialize()); // Retry screen
+                    FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::home_fail, cr_fsm.Serialize()); // Retry screen
                     server.print_state = State::CrashRecovery_HOMEFAIL; // Ask to retry
                 }
                 break;
@@ -2007,12 +2007,12 @@ static void _server_print_loop(void) {
             server.print_state = State::CrashRecovery_Axis_NOK;
             Crash_recovery_fsm cr_fsm(axis_length_check(X_AXIS), axis_length_check(Y_AXIS));
             PhasesCrashRecovery pcr = (alok == Axis_length_t::shorter) ? PhasesCrashRecovery::axis_short : PhasesCrashRecovery::axis_long;
-            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, pcr, cr_fsm.Serialize());
+            FSM_CHANGE_WITH_DATA__LOGGING(pcr, cr_fsm.Serialize());
             break;
         }
     #endif
         Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
-        FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::repeated_crash, cr_fsm.Serialize());
+        FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::repeated_crash, cr_fsm.Serialize());
         server.print_state = State::CrashRecovery_Repeated_Crash;
         break;
     }
@@ -2021,7 +2021,7 @@ static void _server_print_loop(void) {
         switch (marlin_server::get_response_from_phase(PhasesCrashRecovery::home_fail)) {
         case Response::Retry: {
             Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize()); // Homing screen
+            FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::home, cr_fsm.Serialize()); // Homing screen
             measure_axes_and_home();
             break;
         }

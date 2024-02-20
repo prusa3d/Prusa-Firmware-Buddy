@@ -174,7 +174,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
     const bool just_finished_bed = pBed && *pBed && !(*pBed)->Loop();
 
     // change dialog state
-    FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), resultHeaters);
+    FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(IPartHandler::GetFsmPhase(), resultHeaters);
 
     // Continue below only if some of the tests just finished, if not, just run this again until some finishes
     if (!just_finished_bed && !std::ranges::any_of(just_finished_noz, [](bool val) { return val; })) {
@@ -241,7 +241,7 @@ bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) 
             &CSelftestPart_HotEndSock::stateAskRetry);
     }
     bool in_progress = machine->Loop();
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), sock_result.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), sock_result.Serialize());
 
     if (in_progress) {
         return true;

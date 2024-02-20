@@ -120,7 +120,7 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
         break;
 
     case FSM_action::change:
-        FSM_CHANGE__LOGGING(PrintPreview, *wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
+        FSM_CHANGE__LOGGING(*wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
         break;
     }
     phase = wantedPhase;

@@ -410,7 +410,7 @@ void CSelftest::Loop() {
 
 void CSelftest::phaseShowResult() {
     m_result = config_store().selftest_result.get();
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, PhasesSelftest::Result, FsmSelftestResult().Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(PhasesSelftest::Result, FsmSelftestResult().Serialize());
 }
 
 void CSelftest::phaseDidSelftestPass() {
