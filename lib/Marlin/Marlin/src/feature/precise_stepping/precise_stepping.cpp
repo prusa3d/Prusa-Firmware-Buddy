@@ -130,6 +130,7 @@ FORCE_INLINE MoveFlag_t get_active_axis_flags_from_block(const block_t &block) {
 
 FORCE_INLINE bool append_move_segment_to_queue(const double move_time, const double start_v, const double half_accel, const double print_time,
     const xyze_double_t axes_r, const xyze_double_t start_pos, const MoveFlag_t flags) {
+    assert(PreciseStepping::total_print_time > 0 && PreciseStepping::total_print_time < MAX_PRINT_TIME);
     uint8_t next_move_segment_queue_head;
     if (move_t *m = PreciseStepping::get_next_free_move_segment(next_move_segment_queue_head); m != nullptr) {
         m->move_time = move_time;
@@ -774,6 +775,7 @@ void PreciseStepping::step_isr() {
 }
 
 FORCE_INLINE move_t *append_beginning_empty_move() {
+    assert(PreciseStepping::total_print_time == 0.);
     uint8_t next_move_segment_queue_head = 0;
     move_t *move = PreciseStepping::get_next_free_move_segment(next_move_segment_queue_head);
     if (move != nullptr) {
@@ -793,6 +795,7 @@ FORCE_INLINE move_t *append_beginning_empty_move() {
 }
 
 FORCE_INLINE move_t *append_block_discarding_move() {
+    assert(PreciseStepping::total_print_time > 0 && PreciseStepping::total_print_time < MAX_PRINT_TIME);
     uint8_t next_move_segment_queue_head = 0;
     move_t *move = PreciseStepping::get_next_free_move_segment(next_move_segment_queue_head);
     if (move != nullptr) {
@@ -811,6 +814,7 @@ FORCE_INLINE move_t *append_block_discarding_move() {
 }
 
 FORCE_INLINE move_t *append_ending_empty_move() {
+    assert(PreciseStepping::total_print_time > 0 && PreciseStepping::total_print_time < MAX_PRINT_TIME);
     uint8_t next_move_segment_queue_head = 0;
     move_t *move = PreciseStepping::get_next_free_move_segment(next_move_segment_queue_head);
     if (move != nullptr) {
