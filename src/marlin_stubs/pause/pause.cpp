@@ -342,7 +342,7 @@ void Pause::loop_load(Response response) {
         set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
-        if (!FSensors_instance().has_filament()) {
+        if (FSensors_instance().has_filament(false)) {
             setPhase(PhasesLoadUnload::MakeSureInserted_stoppable);
         } else {
             setPhase(PhasesLoadUnload::UserPush_stoppable);
@@ -569,7 +569,7 @@ void Pause::loop_autoload(Response response) {
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
-        if (!FSensors_instance().has_filament()) {
+        if (FSensors_instance().has_filament(false)) {
             setPhase(PhasesLoadUnload::MakeSureInserted_stoppable);
         } else {
             setPhase(PhasesLoadUnload::UserPush_stoppable);
@@ -666,7 +666,7 @@ void Pause::loop_load_change(Response response) {
         set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
-        if (!FSensors_instance().has_filament()) {
+        if (FSensors_instance().has_filament(false)) {
             setPhase(PhasesLoadUnload::MakeSureInserted_unstoppable);
         } else {
             setPhase(PhasesLoadUnload::UserPush_unstoppable);
@@ -747,7 +747,7 @@ void Pause::loop_load_filament_stuck(Response response) {
         set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
-        if (!FSensors_instance().has_filament()) {
+        if (FSensors_instance().has_filament(false)) {
             setPhase(PhasesLoadUnload::MakeSureInserted_unstoppable);
         } else {
             setPhase(PhasesLoadUnload::UserPush_unstoppable);
@@ -1026,13 +1026,13 @@ void Pause::loop_unload_AskUnloaded(Response response) {
         break;
     case UnloadPhases_t::filament_not_in_fs:
         setPhase(PhasesLoadUnload::FilamentNotInFS);
-        if (!FSensors_instance().has_filament()) {
+        if (!FSensors_instance().has_filament(true)) { // Either no filament in FS or unknown (FS off)
             set(UnloadPhases_t::_finish);
         }
         break;
     case UnloadPhases_t::manual_unload:
         if (response == Response::Continue
-            && !FSensors_instance().has_filament()) { // Allow to continue when nothing remains in filament sensor
+            && !FSensors_instance().has_filament(true)) { // Allow to continue when nothing remains in filament sensor
             enable_e_steppers();
             set(UnloadPhases_t::_finish);
         } else if (response == Response::Retry) { // Retry unloading
@@ -1138,13 +1138,13 @@ void Pause::loop_unload_change(Response response) {
         break;
     case UnloadPhases_t::filament_not_in_fs:
         setPhase(PhasesLoadUnload::FilamentNotInFS);
-        if (!FSensors_instance().has_filament()) {
+        if (!FSensors_instance().has_filament(true)) { // Either no filament in FS or unknown (FS off)
             set(UnloadPhases_t::_finish);
         }
         break;
     case UnloadPhases_t::manual_unload:
         if (response == Response::Continue
-            && !FSensors_instance().has_filament()) { // Allow to continue when nothing remains in filament sensor
+            && !FSensors_instance().has_filament(true)) { // Allow to continue when nothing remains in FS or FS is off
             enable_e_steppers();
             set(UnloadPhases_t::_finish);
         } else if (response == Response::Retry) { // Retry unloading
@@ -1200,13 +1200,13 @@ void Pause::loop_unload_filament_stuck([[maybe_unused]] Response response) {
         break;
     case UnloadPhases_t::filament_not_in_fs:
         setPhase(PhasesLoadUnload::FilamentNotInFS);
-        if (!FSensors_instance().has_filament()) {
+        if (!FSensors_instance().has_filament(true)) { // Either no filament in FS or unknown (FS off)
             set(UnloadPhases_t::_finish);
         }
         break;
     case UnloadPhases_t::manual_unload:
         if (response == Response::Continue
-            && !FSensors_instance().has_filament()) { // Allow to continue when nothing remains in filament sensor
+            && !FSensors_instance().has_filament(true)) { // Allow to continue when nothing remains in FS or FS is off
             enable_e_steppers();
             set(UnloadPhases_t::_finish);
         } else if (response == Response::Retry) { // Retry unloading
@@ -1619,6 +1619,7 @@ void Pause::finalize_user_stop() {
     planner.set_position_mm(current_position);
 }
 void Pause::handle_filament_removal(LoadPhases_t phase_to_set) {
+    // only if there is no filament present and we are sure (FS on and sees no filament)
     if (FSensors_instance().has_filament(false)) {
         set(phase_to_set);
         config_store().set_filament_type(settings.GetExtruder(), filament::Type::NONE);
