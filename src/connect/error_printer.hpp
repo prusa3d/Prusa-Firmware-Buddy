@@ -17,6 +17,7 @@ private:
     char title[crash_dump::MSG_TITLE_MAX_LEN + 1];
     char text[crash_dump::MSG_MAX_LEN + 1];
     uint16_t error_code;
+    uint32_t dialog_id;
     virtual void renew(std::optional<SharedBuffer::Borrow> paths) override;
     virtual void drop_paths() override;
     virtual Params params() const override;

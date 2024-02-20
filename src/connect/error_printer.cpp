@@ -1,6 +1,7 @@
 #include "error_printer.hpp"
 #include "printer_common.hpp"
 #include <config_store/store_instance.hpp>
+#include <common/random.h>
 
 using printer_state::DeviceState;
 using printer_state::StateWithDialog;
@@ -11,7 +12,9 @@ using std::tuple;
 
 namespace connect_client {
 
-ErrorPrinter::ErrorPrinter() {
+ErrorPrinter::ErrorPrinter()
+    // Random at start to avoid collisions in case of several redscreens in a row.
+    : dialog_id(rand_u()) {
     init_info(info);
     if (!crash_dump::message_is_valid() || !crash_dump::load_message(text, sizeof text, title, sizeof title)) {
         title[0] = '\0';
@@ -30,9 +33,9 @@ Printer::Params ErrorPrinter::params() const {
     if (error_code == 0) {
         params.state = StateWithDialog(DeviceState::Error);
         // Set dialog ID, but keep code empty
-        params.state.dialog_id = 0;
+        params.state.dialog_id = dialog_id;
     } else {
-        params.state = StateWithDialog(DeviceState::Error, static_cast<ErrCode>(error_code));
+        params.state = StateWithDialog(DeviceState::Error, static_cast<ErrCode>(error_code), dialog_id);
     }
 
     if (title[0]) {

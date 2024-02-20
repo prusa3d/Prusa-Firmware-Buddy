@@ -8,30 +8,37 @@
 #include <config_store/store_instance.hpp>
 
 using namespace marlin_server;
+using std::make_optional;
+using std::nullopt;
+using std::optional;
 
 namespace printer_state {
 namespace {
-    StateWithDialog get_print_state(State state, bool ready, std::optional<ErrCode> dialog_code) {
+    StateWithDialog get_print_state(State state, bool ready, optional<ErrCode> dialog_code, uint32_t fsm_gen) {
+        optional<uint32_t> dialog_id;
+        if (dialog_code.has_value()) {
+            dialog_id = fsm_gen;
+        }
         switch (state) {
         case State::PrintPreviewQuestions:
             // Should never happen, we catch this before with FSM states,
             // so that we can distinquish between various questions.
             return DeviceState::Unknown;
         case State::PowerPanic_AwaitingResume:
-            return StateWithDialog::attention(ErrCode::CONNECT_POWER_PANIC_COLD_BED);
+            return StateWithDialog::attention(ErrCode::CONNECT_POWER_PANIC_COLD_BED, fsm_gen);
         case State::CrashRecovery_Axis_NOK:
-            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_AXIS_NOK);
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_AXIS_NOK, fsm_gen);
         case State::CrashRecovery_Repeated_Crash:
-            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH);
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH, fsm_gen);
         case State::CrashRecovery_HOMEFAIL:
-            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL);
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL, fsm_gen);
 #if HAS_TOOLCHANGER()
         case State::CrashRecovery_Tool_Pickup:
-            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP);
+            return StateWithDialog::attention(ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP, fsm_gen);
 #endif
 #if HAS_TOOLCHANGER() || HAS_MMU2()
         case State::PrintPreviewToolsMapping:
-            return StateWithDialog::attention(ErrCode::CONNECT_PRINT_PREVIEW_TOOLS_MAPPING);
+            return StateWithDialog::attention(ErrCode::CONNECT_PRINT_PREVIEW_TOOLS_MAPPING, fsm_gen);
 #endif
         case State::Idle:
         case State::WaitGui:
@@ -40,9 +47,9 @@ namespace {
         case State::PrintInit:
         case State::Exit:
             if (ready) {
-                return { DeviceState::Ready, dialog_code };
+                return { DeviceState::Ready, dialog_code, dialog_id };
             } else {
-                return { DeviceState::Idle, dialog_code };
+                return { DeviceState::Idle, dialog_code, dialog_id };
             }
         case State::Printing:
         case State::Aborting_Begin:
@@ -55,7 +62,7 @@ namespace {
         case State::Finishing_ParkHead:
         case State::PrintPreviewConfirmed:
         case State::SerialPrintInit:
-            return { DeviceState::Printing, dialog_code };
+            return { DeviceState::Printing, dialog_code, dialog_id };
 
         case State::PowerPanic_acFault:
         case State::PowerPanic_Resume:
@@ -65,7 +72,7 @@ namespace {
         case State::CrashRecovery_ToolchangePowerPanic:
         case State::CrashRecovery_XY_Measure:
         case State::CrashRecovery_XY_HOME:
-            return { DeviceState::Busy, dialog_code };
+            return { DeviceState::Busy, dialog_code, dialog_id };
 
         case State::Pausing_Begin:
         case State::Pausing_WaitIdle:
@@ -77,28 +84,28 @@ namespace {
         case State::Pausing_Failed_Code:
         case State::Resuming_UnparkHead_XY:
         case State::Resuming_UnparkHead_ZE:
-            return { DeviceState::Paused, dialog_code };
+            return { DeviceState::Paused, dialog_code, dialog_id };
         case State::Finished:
             if (ready) {
-                return { DeviceState::Ready, dialog_code };
+                return { DeviceState::Ready, dialog_code, dialog_id };
             } else {
-                return { DeviceState::Finished, dialog_code };
+                return { DeviceState::Finished, dialog_code, dialog_id };
             }
         case State::Aborted:
             if (ready) {
-                return { DeviceState::Ready, dialog_code };
+                return { DeviceState::Ready, dialog_code, dialog_id };
             } else {
-                return { DeviceState::Stopped, dialog_code };
+                return { DeviceState::Stopped, dialog_code, dialog_id };
             }
         }
-        return { DeviceState::Unknown, dialog_code };
+        return { DeviceState::Unknown, dialog_code, dialog_id };
     }
 
     // FIXME: these are also caught by the switch statement above, is there any
     // harm in having it in both places? Maybe couple more bytes of flash will
     // be used, so should we just remove it and let the get_print_state handle
     // this one, or is this better, because it's more robust?
-    std::optional<ErrCode> crash_recovery_attention(const PhasesCrashRecovery &phase) {
+    optional<ErrCode> crash_recovery_attention(const PhasesCrashRecovery &phase) {
         switch (phase) {
         case PhasesCrashRecovery::axis_NOK:
             return ErrCode::CONNECT_CRASH_RECOVERY_AXIS_NOK;
@@ -111,11 +118,11 @@ namespace {
             return ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP;
 #endif
         default:
-            return std::nullopt;
+            return nullopt;
         }
     }
 
-    std::optional<ErrCode> attention_while_printing(const fsm::Change &q1_change) {
+    optional<ErrCode> attention_while_printing(const fsm::Change &q1_change) {
         assert(q1_change.get_queue_index() == fsm::QueueIndex::q1);
 
         switch (q1_change.get_fsm_type()) {
@@ -126,7 +133,7 @@ namespace {
                 if (GetEnumFromPhaseIndex<PhasesLoadUnload>(q1_change.get_data().GetPhase()) == PhasesLoadUnload::MMU_ERRWaitingForUser) {
                     return ErrCode::CONNECT_MMU_LOAD_UNLOAD_ERROR;
                 } else {
-                    return std::nullopt;
+                    return nullopt;
                 }
             }
 #endif
@@ -135,11 +142,11 @@ namespace {
         case ClientFSM::CrashRecovery:
             return crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(q1_change.get_data().GetPhase()));
         default:
-            return std::nullopt;
+            return nullopt;
         }
     }
 
-    std::optional<ErrCode> attention_while_printpreview(const PhasesPrintPreview preview_phases) {
+    optional<ErrCode> attention_while_printpreview(const PhasesPrintPreview preview_phases) {
         switch (preview_phases) {
         case PhasesPrintPreview::unfinished_selftest:
             return ErrCode::CONNECT_PRINT_PREVIEW_UNFINISHED_SELFTEST;
@@ -165,11 +172,11 @@ namespace {
             return ErrCode::CONNECT_PRINT_PREVIEW_MMU_FILAMENT_INSERTED;
 #endif
         default:
-            return std::nullopt;
+            return nullopt;
         }
     }
 
-    std::optional<ErrCode> warning_attention(marlin_vars_t::FSMChange &fsm_change) {
+    optional<ErrCode> warning_attention(marlin_vars_t::FSMChange &fsm_change) {
         fsm::Change *warning_change = nullptr;
         if (fsm_change.q0_change.get_fsm_type() == ClientFSM::Warning) {
             warning_change = &fsm_change.q0_change;
@@ -223,7 +230,7 @@ namespace {
             }
         }
 
-        return std::nullopt;
+        return nullopt;
     }
 } // namespace
 
@@ -232,9 +239,9 @@ DeviceState get_state(bool ready) {
 }
 
 StateWithDialog get_state_with_dialog(bool ready) {
-    auto fsm_change = marlin_vars()->get_last_fsm_change();
+    auto [fsm_change, fsm_gen] = marlin_vars()->get_last_fsm_change();
     State state = marlin_vars()->print_state;
-    std::optional<ErrCode> warning_err_code = std::nullopt;
+    optional<ErrCode> warning_err_code = nullopt;
 
     if (auto attention_code = warning_attention(fsm_change); attention_code.has_value()) {
         switch (*attention_code) {
@@ -248,19 +255,19 @@ StateWithDialog get_state_with_dialog(bool ready) {
             warning_err_code = *attention_code;
             break;
         default:
-            return { DeviceState::Attention, attention_code.value() };
+            return { DeviceState::Attention, attention_code.value(), attention_code.has_value() ? make_optional(fsm_gen) : nullopt };
         }
     }
 
     switch (fsm_change.q0_change.get_fsm_type()) {
     case ClientFSM::PrintPreview:
         if (auto attention_code = attention_while_printpreview(GetEnumFromPhaseIndex<PhasesPrintPreview>(fsm_change.q0_change.get_data().GetPhase())); attention_code.has_value()) {
-            return StateWithDialog::attention(attention_code.value());
+            return StateWithDialog::attention(attention_code.value(), fsm_gen);
         }
         break;
     case ClientFSM::Printing:
         if (auto attention_code = attention_while_printing(fsm_change.q1_change); attention_code.has_value()) {
-            return StateWithDialog::attention(attention_code.value());
+            return StateWithDialog::attention(attention_code.value(), fsm_gen);
         }
         break;
     case ClientFSM::Load_unload:
@@ -274,12 +281,12 @@ StateWithDialog get_state_with_dialog(bool ready) {
     // to allow or not allow remote printing based on this, but this will cause
     // preheat menu to be the only menu screen to not be Idle... :-(
     case ClientFSM::Preheat:
-        return { DeviceState::Busy, warning_err_code };
+        return { DeviceState::Busy, warning_err_code, warning_err_code.has_value() ? make_optional(fsm_gen) : nullopt };
     default:
         break;
     }
 
-    return get_print_state(state, ready, warning_err_code);
+    return get_print_state(state, ready, warning_err_code, fsm_gen);
 }
 
 bool remote_print_ready(bool preview_only) {
@@ -307,7 +314,7 @@ bool has_job() {
     case DeviceState::Paused:
         return true;
     case DeviceState::Attention: {
-        auto fsm = marlin_vars()->get_last_fsm_change();
+        auto [fsm, fsm_gen] = marlin_vars()->get_last_fsm_change();
         // Attention while printing or one of these questions before print(eg. wrong filament)
         return (fsm.q0_change.get_fsm_type() == ClientFSM::Printing || fsm.q0_change.get_fsm_type() == ClientFSM::PrintPreview);
     }

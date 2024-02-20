@@ -427,11 +427,11 @@ public:
      * marlin_client::loop periodically. Also for this to be stored in an atomic, we would need to make
      * atomic<uint64_t> work, which I was not able to do, if anyone knows how to, let me know.
      *
-     * @return last change for both FSM queues
+     * @return last change for both FSM queues and the generation (which changes every time a value here changes).
      */
-    FSMChange get_last_fsm_change() {
+    std::tuple<FSMChange, uint32_t> get_last_fsm_change() {
         auto guard = MarlinVarsLockGuard();
-        return last_fsm_state;
+        return std::make_tuple(last_fsm_state, fsm_state_generation);
     }
 
     /**
@@ -451,6 +451,8 @@ public:
         } else {
             last_fsm_state.q2_change = change;
         }
+
+        fsm_state_generation++;
     }
 
     void lock();
@@ -462,6 +464,7 @@ private:
     std::atomic<osThreadId> current_mutex_owner; // current mutex owner -> to check for recursive locking
     std::array<Hotend, HOTENDS> hotends; // array of hotends (use hotend()/active_hotend() getter)
     FSMChange last_fsm_state; // last fsm state, used in connect and link
+    uint32_t fsm_state_generation = 0;
 #if ENABLED(CANCEL_OBJECTS)
     uint64_t cancel_object_mask;
 #endif
