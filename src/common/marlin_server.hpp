@@ -234,7 +234,7 @@ Response get_response_from_phase_internal(uint8_t, uint16_t);
 template <class T>
 Response get_response_from_phase(T phase) {
     return get_response_from_phase_internal(
-        ftrstd::to_underlying(client_fsm_from_phase_v<T>),
+        ftrstd::to_underlying(client_fsm_from_phase(phase)),
         ftrstd::to_underlying(phase));
 }
 
@@ -299,7 +299,7 @@ void fsm_create(ClientFSM type, T phase, fsm::PhaseData data, const char *fnc, c
 
 template <class T>
 void fsm_change(T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) {
-    _fsm_change(client_fsm_from_phase_v<T>, fsm::BaseData(GetPhaseIndex(phase), data), fnc, file, line);
+    _fsm_change(client_fsm_from_phase(phase), fsm::BaseData(GetPhaseIndex(phase), data), fnc, file, line);
 }
 
 template <class T, FSMExtendedDataSubclass DATA_TYPE>
@@ -308,7 +308,7 @@ void fsm_change_extended(T phase, DATA_TYPE data, const char *fnc, const char *f
     //  We use this ugly hack that we increment fsm_change_data[0] every time data changed, to force redraw of GUI
     static std::array<uint8_t, 4> fsm_change_data = { 0 };
     fsm_change_data[0]++;
-    _fsm_change(client_fsm_from_phase_v<T>, fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
+    _fsm_change(client_fsm_from_phase(phase), fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
 }
 
 template <class T>

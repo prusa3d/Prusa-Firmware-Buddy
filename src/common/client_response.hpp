@@ -20,18 +20,6 @@
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
 
-template <class T>
-struct client_fsm_from_phase;
-
-template <class T>
-inline constexpr ClientFSM client_fsm_from_phase_v = client_fsm_from_phase<T>::value;
-
-#define DECLARE_CLIENT_FSM_FROM_PHASE(client_fsm_enum, phase_enum) \
-    template <>                                                    \
-    struct client_fsm_from_phase<phase_enum> {                     \
-        static inline constexpr ClientFSM value = client_fsm_enum; \
-    }
-
 enum { RESPONSE_BITS = 4, // number of bits used to encode response
     MAX_RESPONSES = (1 << RESPONSE_BITS) }; // maximum number of responses in one phase
 
@@ -149,14 +137,14 @@ enum class PhasesLoadUnload : uint16_t {
     _last = Unparking
 #endif
 };
-DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::Load_unload, PhasesLoadUnload);
+constexpr inline ClientFSM client_fsm_from_phase(PhasesLoadUnload) { return ClientFSM::Load_unload; }
 
 enum class PhasesPreheat : uint16_t {
     initial,
     UserTempSelection,
     _last = UserTempSelection
 };
-DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::Preheat, PhasesPreheat);
+constexpr inline ClientFSM client_fsm_from_phase(PhasesPreheat) { return ClientFSM::Preheat; }
 
 enum class PhasesPrintPreview : uint16_t {
     loading,
@@ -177,7 +165,7 @@ enum class PhasesPrintPreview : uint16_t {
     file_error, ///< Something is wrong with the gcode file
     _last = file_error
 };
-DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::PrintPreview, PhasesPrintPreview);
+constexpr inline ClientFSM client_fsm_from_phase(PhasesPrintPreview) { return ClientFSM::PrintPreview; }
 
 // GUI phases of selftest/wizard
 enum class PhasesSelftest : uint16_t {
@@ -320,7 +308,7 @@ enum class PhasesSelftest : uint16_t {
 
     _last = _last_WizardEpilogue_nok
 };
-DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::Selftest, PhasesSelftest);
+constexpr inline ClientFSM client_fsm_from_phase(PhasesSelftest) { return ClientFSM::Selftest; }
 
 enum class PhasesESP : uint16_t {
     _none,
@@ -353,7 +341,7 @@ enum class PhasesESP : uint16_t {
 
     _last = _last_ESP_qr,
 };
-DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::ESP, PhasesESP);
+constexpr inline ClientFSM client_fsm_from_phase(PhasesESP) { return ClientFSM::ESP; }
 
 enum class PhasesCrashRecovery : uint16_t {
     check_X,
@@ -371,19 +359,19 @@ enum class PhasesCrashRecovery : uint16_t {
     _last = home_fail
 #endif
 };
-DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::CrashRecovery, PhasesCrashRecovery);
+constexpr inline ClientFSM client_fsm_from_phase(PhasesCrashRecovery) { return ClientFSM::CrashRecovery; }
 
 enum class PhasesQuickPause : uint16_t {
     QuickPaused,
     _last = QuickPaused
 };
-DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::QuickPause, PhasesQuickPause);
+constexpr inline ClientFSM client_fsm_from_phase(PhasesQuickPause) { return ClientFSM::QuickPause; }
 
 enum class PhasesWarning : uint16_t {
     Warning,
     _last = Warning
 };
-DECLARE_CLIENT_FSM_FROM_PHASE(ClientFSM::Warning, PhasesWarning);
+constexpr inline ClientFSM client_fsm_from_phase(PhasesWarning) { return ClientFSM::Warning; }
 
 // static class for work with fsm responses (like button click)
 // encode responses - get them from marlin client, to marlin server and decode them again

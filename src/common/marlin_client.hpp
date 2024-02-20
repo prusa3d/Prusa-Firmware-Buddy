@@ -179,7 +179,7 @@ template <class T>
 void FSM_response(T phase, Response response) {
     FSM_response_internal({
         .encoded_phase = ftrstd::to_underlying(phase),
-        .encoded_fsm = ftrstd::to_underlying(client_fsm_from_phase_v<T>),
+        .encoded_fsm = ftrstd::to_underlying(client_fsm_from_phase(phase)),
         .encoded_response = ftrstd::to_underlying(response),
     });
 }
