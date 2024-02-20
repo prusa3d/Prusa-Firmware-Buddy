@@ -97,8 +97,8 @@ void Touchscreen_Base::recognize_gesture() {
     const point_i16_t touch_pos_diff = point_i16_t::from_point(last_touch_pos) - point_i16_t::from_point(gesture_start_pos_);
     const point_i16_t touch_pos_diff_abs(abs(touch_pos_diff.x), abs(touch_pos_diff.y));
 
-    /// Distance (manhattan) from the gesture_start_pos that is still considered to be a click
-    static constexpr int16_t click_tolerance = 10;
+    /// Distance from the gesture_start_pos that starts being considered a swipe gesture
+    static constexpr int16_t gesture_min_diff = 10;
 
     /// Tangens of max angle that considers as a swipe gesture
     static constexpr float swipe_max_angle_tan = 0.5;
@@ -110,13 +110,13 @@ void Touchscreen_Base::recognize_gesture() {
 
     log_info(Touch, "abs diff %i %i", touch_pos_diff_abs.x, touch_pos_diff_abs.y);
 
-    if (touch_pos_diff_abs.x <= click_tolerance && touch_pos_diff_abs.y <= click_tolerance) {
+    if (touch_pos_diff_abs == point_i16_t { 0, 0 }) {
         event.type = GUI_event_t::TOUCH_CLICK;
 
-    } else if (static_cast<float>(touch_pos_diff_abs.x) / static_cast<float>(touch_pos_diff_abs.y) <= swipe_max_angle_tan) {
+    } else if (touch_pos_diff_abs.y >= gesture_min_diff && static_cast<float>(touch_pos_diff_abs.x) / static_cast<float>(touch_pos_diff_abs.y) <= swipe_max_angle_tan) {
         event.type = touch_pos_diff.y < 0 ? GUI_event_t::TOUCH_SWIPE_UP : GUI_event_t::TOUCH_SWIPE_DOWN;
 
-    } else if (static_cast<float>(touch_pos_diff_abs.y) / static_cast<float>(touch_pos_diff_abs.x) <= swipe_max_angle_tan) {
+    } else if (touch_pos_diff_abs.x >= gesture_min_diff && static_cast<float>(touch_pos_diff_abs.y) / static_cast<float>(touch_pos_diff_abs.x) <= swipe_max_angle_tan) {
         event.type = touch_pos_diff.x < 0 ? GUI_event_t::TOUCH_SWIPE_LEFT : GUI_event_t::TOUCH_SWIPE_RIGHT;
     }
 
