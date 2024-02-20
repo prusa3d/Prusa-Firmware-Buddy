@@ -46,7 +46,7 @@ FORCE_INLINE void pressure_advance_precalculate_parameters(pressure_advance_step
     }
 
     if (!is_ending_empty_move(current_move)) {
-        const double current_move_end_time = current_move.print_time + current_move.move_t;
+        const double current_move_end_time = current_move.print_time + current_move.move_time;
         state.current_move_last_total_sample_idx = uint32_t(current_move_end_time / params.sampling_rate);
     } else {
         state.current_move_last_total_sample_idx = std::numeric_limits<uint32_t>::max();
@@ -279,7 +279,7 @@ double calc_time_for_distance_pressure_advance(const float distance, pressure_ad
     pressure_advance_state_t &state = *step_generator.pa_state;
     // We need to ensure that when the filter is applied for the first time, then the value will be 0.
     // Because of that, we need the beginning empty move segment with duration at least equal to sampling_rate * filter.length.
-    assert(!is_beginning_empty_move(*state.current_move) || state.current_move->move_t >= (params.sampling_rate * params.filter.length));
+    assert(!is_beginning_empty_move(*state.current_move) || state.current_move->move_time >= (params.sampling_rate * params.filter.length));
 
 #ifndef NDEBUG
     {
@@ -400,8 +400,8 @@ step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advan
     const double elapsed_time = step_time;
     if (step_time >= MAX_PRINT_TIME) {
         if (is_pressure_advance_reached_end(*step_generator.pa_state)) {
-            assert(step_generator.pa_state->current_move->move_t == MAX_PRINT_TIME);
-            next_step_event.time = step_generator.pa_state->current_move->print_time + step_generator.pa_state->current_move->move_t;
+            assert(step_generator.pa_state->current_move->move_time == MAX_PRINT_TIME);
+            next_step_event.time = step_generator.pa_state->current_move->print_time + step_generator.pa_state->current_move->move_time;
         } else {
             next_step_event.time = pressure_advance_step_time_of_next_sample(*step_generator.pa_state, PressureAdvance::pressure_advance_params);
         }

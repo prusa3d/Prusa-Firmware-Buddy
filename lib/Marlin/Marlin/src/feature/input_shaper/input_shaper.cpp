@@ -327,27 +327,27 @@ bool logical_axis_input_shaper_t::update(const input_shaper_state_t &axis_is) {
     }
 
     const move_t *curr_move = m_move[curr_idx];
-    m_next_change[curr_idx] = curr_move->print_time + curr_move->move_t - m_pulses->pulses[curr_idx].t;
+    m_next_change[curr_idx] = curr_move->print_time + curr_move->move_time - m_pulses->pulses[curr_idx].t;
 
     const double move_elapsed_time = (nearest_next_change - m_print_time);
     if (const move_t *first_move = m_move[0], *last_move = m_move[m_pulses->num_pulses - 1]; first_move == last_move) {
         // When all pointers point on the same move segment (iff the first and the last pointers point on the same move segment),
         // then we can compute start_v, start_pos, and half_accel without accumulation, so we can suppress accumulated errors.
-        const double move_t = (nearest_next_change - first_move->print_time); // Mapped nearest_next_change into current move segment.
+        const double move_time = (nearest_next_change - first_move->print_time); // Mapped nearest_next_change into current move segment.
         const double start_v = get_move_start_v(*first_move, m_axis);
         const double half_accel = get_move_half_accel(*first_move, m_axis);
-        assert(move_t >= 0. && move_t < first_move->move_t);
+        assert(move_time >= 0. && move_time < first_move->move_time);
 
         // After applying the input shape filter, the velocity during the acceleration or deceleration phase doesn't equal the velocity of the input move segment at the same time.
         // Because of that also, the position will not equal, so during the acceleration or deceleration phase, we cannot compute start_pos just from the input move segment.
         // We can compute start_pos from the input move segment (without accumulated error) just for the cruise phase where velocity is constant.
         if (std::abs(half_accel) <= EPSILON) {
-            m_start_pos = get_move_start_pos(*first_move, m_axis) + start_v * move_t;
+            m_start_pos = get_move_start_pos(*first_move, m_axis) + start_v * move_time;
         } else {
             m_start_pos += (m_start_v + m_half_accel * move_elapsed_time) * move_elapsed_time;
         }
 
-        m_start_v = start_v + 2. * half_accel * move_t;
+        m_start_v = start_v + 2. * half_accel * move_time;
         m_half_accel = half_accel;
     } else {
         const double half_velocity_diff = m_half_accel * move_elapsed_time; // (1/2) * a * t
@@ -413,16 +413,16 @@ bool input_shaper_state_update(input_shaper_state_t &is_state, const int axis) {
     double x_start_pos = is_state.m_axis_shaper[0].m_start_pos;
     double y_start_pos = is_state.m_axis_shaper[1].m_start_pos;
 
-    const double x_move_t = is_state.nearest_next_change - is_state.m_axis_shaper[0].m_print_time;
-    const double y_move_t = is_state.nearest_next_change - is_state.m_axis_shaper[1].m_print_time;
+    const double x_move_time = is_state.nearest_next_change - is_state.m_axis_shaper[0].m_print_time;
+    const double y_move_time = is_state.nearest_next_change - is_state.m_axis_shaper[1].m_print_time;
 
     // If just one logical axis input shaper was updated, then we need to calculate new start_pos and start_v for the other logical axis input shaper.
     if (x_updated && !y_updated) {
-        y_start_pos = y_start_pos + (y_start_v + is_state.m_axis_shaper[1].m_half_accel * y_move_t) * y_move_t;
-        y_start_v = y_start_v + 2. * is_state.m_axis_shaper[1].m_half_accel * y_move_t;
+        y_start_pos = y_start_pos + (y_start_v + is_state.m_axis_shaper[1].m_half_accel * y_move_time) * y_move_time;
+        y_start_v = y_start_v + 2. * is_state.m_axis_shaper[1].m_half_accel * y_move_time;
     } else if (y_updated && !x_updated) {
-        x_start_pos = x_start_pos + (x_start_v + is_state.m_axis_shaper[0].m_half_accel * x_move_t) * x_move_t;
-        x_start_v = x_start_v + 2. * is_state.m_axis_shaper[0].m_half_accel * x_move_t;
+        x_start_pos = x_start_pos + (x_start_v + is_state.m_axis_shaper[0].m_half_accel * x_move_time) * x_move_time;
+        x_start_v = x_start_v + 2. * is_state.m_axis_shaper[0].m_half_accel * x_move_time;
     }
 
     if (axis == A_AXIS) {
@@ -464,8 +464,8 @@ bool input_shaper_state_update(input_shaper_state_t &is_state, const int axis) {
     if (std::signbit(is_state.start_v) != std::signbit(is_state.half_accel) && is_state.start_v != 0.) {
         // Micro move segment is crossing zero velocity only when start_v and end_v are different.
         // Division in doubles is quite an expensive operation, so it is much cheaper to make these pre-checks instead of checks based on the computed time of crossing the zero velocity.
-        const double move_t = is_state.nearest_next_change - is_state.print_time;
-        const double end_v = is_state.start_v + 2. * is_state.half_accel * move_t;
+        const double move_time = is_state.nearest_next_change - is_state.print_time;
+        const double end_v = is_state.start_v + 2. * is_state.half_accel * move_time;
         if (std::signbit(is_state.start_v) != std::signbit(end_v)) {
             const double zero_velocity_crossing_time_absolute = is_state.start_v / (-2. * is_state.half_accel) + is_state.print_time;
 
@@ -543,7 +543,7 @@ void logical_axis_input_shaper_t::init(const move_t &move, uint8_t axis) {
 
     for (uint8_t pulse_idx = 0; pulse_idx < m_pulses->num_pulses; ++pulse_idx) {
         m_move[pulse_idx] = &move;
-        m_next_change[pulse_idx] = move.print_time + move.move_t - m_pulses->pulses[pulse_idx].t;
+        m_next_change[pulse_idx] = move.print_time + move.move_time - m_pulses->pulses[pulse_idx].t;
     }
 
     m_half_accel = get_move_half_accel(move, axis);
