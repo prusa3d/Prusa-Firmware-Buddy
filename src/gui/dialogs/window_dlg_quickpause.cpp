@@ -11,7 +11,7 @@
 
 constexpr static const char quick_pause_txt[] = N_("Waiting for the user. Press \"Resume\" once the printer is ready.");
 
-DialogQuickPause::DialogQuickPause(fsm::BaseData)
+DialogQuickPause::DialogQuickPause(fsm::BaseData data)
     : AddSuperWindow<IDialogMarlin>(GuiDefaults::RectScreenBody)
     , icon(this, GuiDefaults::MessageIconRect, &img::warning_48x48)
     , text(this, GuiDefaults::MessageTextRect, is_multiline::yes, is_closed_on_click_t::yes, _(quick_pause_txt))
@@ -24,5 +24,12 @@ DialogQuickPause::DialogQuickPause(fsm::BaseData)
         marlin_vars()->media_LFN.copy_to(buff, FILE_NAME_BUFFER_LEN, lock);
         gcode_name.SetText(_(buff));
     }
+
+    const char *msg;
+    memcpy(&msg, (uint32_t *)data.GetData().data(), sizeof(uint32_t));
+    if (msg) {
+        text.SetText(string_view_utf8::MakeRAM((const uint8_t *)msg));
+    }
+
     CaptureNormalWindow(radio);
 }
