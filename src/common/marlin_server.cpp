@@ -377,7 +377,7 @@ osSemaphoreId server_semaphore = 0; // semaphore handle
 idle_t *idle_cb = 0; // idle callback
 
 constexpr EncodedFSMResponse empty_encoded_fsm_response = {
-    .encoded_phase = 0xffff,
+    .encoded_phase = 0xff,
     .encoded_fsm = 0xff,
     .encoded_response = 0xff,
 };
@@ -2913,7 +2913,7 @@ void set_var_sd_percent_done(uint8_t value) {
     marlin_vars()->sd_percent_done = value;
 }
 
-Response get_response_from_phase_internal(uint8_t encoded_fsm, uint16_t encoded_phase) {
+Response get_response_from_phase_internal(uint8_t encoded_fsm, uint8_t encoded_phase) {
     // FIXME: Critical section is used to mimic original behaviour with std::atomic
     //        However, maybe we should instead require that the calling task
     //        is actually Marlin task. This is most probably the case,

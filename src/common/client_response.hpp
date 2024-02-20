@@ -43,11 +43,13 @@ constexpr T GetEnumFromPhaseIndex(size_t index) {
     return static_cast<T>(index);
 }
 
+using PhaseUnderlyingType = uint8_t;
+
 // define enum classes for responses here
 // and YES phase can have 0 responses
 // every enum must have "_last"
 // EVERY response shall have a unique ID (so every button in GUI is unique)
-enum class PhasesLoadUnload : uint16_t {
+enum class PhasesLoadUnload : PhaseUnderlyingType {
     initial,
     ChangingTool,
     Parking_stoppable,
@@ -139,14 +141,14 @@ enum class PhasesLoadUnload : uint16_t {
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesLoadUnload) { return ClientFSM::Load_unload; }
 
-enum class PhasesPreheat : uint16_t {
+enum class PhasesPreheat : PhaseUnderlyingType {
     initial,
     UserTempSelection,
     _last = UserTempSelection
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesPreheat) { return ClientFSM::Preheat; }
 
-enum class PhasesPrintPreview : uint16_t {
+enum class PhasesPrintPreview : PhaseUnderlyingType {
     loading,
     download_wait,
     main_dialog,
@@ -168,7 +170,7 @@ enum class PhasesPrintPreview : uint16_t {
 constexpr inline ClientFSM client_fsm_from_phase(PhasesPrintPreview) { return ClientFSM::PrintPreview; }
 
 // GUI phases of selftest/wizard
-enum class PhasesSelftest : uint16_t {
+enum class PhasesSelftest : PhaseUnderlyingType {
     _none,
 
     _first_WizardPrologue,
@@ -310,7 +312,7 @@ enum class PhasesSelftest : uint16_t {
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesSelftest) { return ClientFSM::Selftest; }
 
-enum class PhasesESP : uint16_t {
+enum class PhasesESP : PhaseUnderlyingType {
     _none,
 
     _first_ESP,
@@ -343,7 +345,7 @@ enum class PhasesESP : uint16_t {
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesESP) { return ClientFSM::ESP; }
 
-enum class PhasesCrashRecovery : uint16_t {
+enum class PhasesCrashRecovery : PhaseUnderlyingType {
     check_X,
     check_Y,
     home,
@@ -361,13 +363,13 @@ enum class PhasesCrashRecovery : uint16_t {
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesCrashRecovery) { return ClientFSM::CrashRecovery; }
 
-enum class PhasesQuickPause : uint16_t {
+enum class PhasesQuickPause : PhaseUnderlyingType {
     QuickPaused,
     _last = QuickPaused
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesQuickPause) { return ClientFSM::QuickPause; }
 
-enum class PhasesWarning : uint16_t {
+enum class PhasesWarning : PhaseUnderlyingType {
     Warning,
     _last = Warning
 };
@@ -884,9 +886,9 @@ static constexpr PhasesESP ESPGetLastPhaseFromPart(ESPParts part) {
 }
 
 static constexpr bool SelftestPartContainsPhase(SelftestParts part, PhasesSelftest ph) {
-    const uint16_t ph_u16 = uint16_t(ph);
+    const PhaseUnderlyingType ph_u16 = PhaseUnderlyingType(ph);
 
-    return (ph_u16 >= uint16_t(SelftestGetFirstPhaseFromPart(part))) && (ph_u16 <= uint16_t(SelftestGetLastPhaseFromPart(part)));
+    return (ph_u16 >= PhaseUnderlyingType(SelftestGetFirstPhaseFromPart(part))) && (ph_u16 <= PhaseUnderlyingType(SelftestGetLastPhaseFromPart(part)));
 }
 
 static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
@@ -964,9 +966,9 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 };
 
 static constexpr bool ESPPartContainsPhase(ESPParts part, PhasesESP ph) {
-    const uint16_t ph_u16 = uint16_t(ph);
+    const PhaseUnderlyingType ph_u16 = PhaseUnderlyingType(ph);
 
-    return (ph_u16 >= uint16_t(ESPGetFirstPhaseFromPart(part))) && (ph_u16 <= uint16_t(ESPGetLastPhaseFromPart(part)));
+    return (ph_u16 >= PhaseUnderlyingType(ESPGetFirstPhaseFromPart(part))) && (ph_u16 <= PhaseUnderlyingType(ESPGetLastPhaseFromPart(part)));
 }
 
 static constexpr ESPParts ESPGetPartFromPhase(PhasesESP ph) {
