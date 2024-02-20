@@ -707,18 +707,6 @@ public:
     static bool HasButton(const T phase) {
         return GetResponse(phase, 0) != Response::_none; // this phase has no responses
     }
-
-    // encode phase and client response (in GUI radio button and clicked index) into int
-    // use on client side
-    // return -1 (maxval) if does not exist
-    template <class T>
-    static uint32_t Encode(T phase, Response response) {
-        uint8_t clicked_index = GetIndex(phase, response);
-        if (clicked_index >= MAX_RESPONSES) {
-            return -1; // this phase does not have response with this index
-        }
-        return ((static_cast<uint32_t>(phase)) << RESPONSE_BITS) + uint32_t(clicked_index);
-    }
 };
 
 enum class SelftestParts {

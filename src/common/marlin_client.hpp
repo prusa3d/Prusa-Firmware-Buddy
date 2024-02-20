@@ -166,8 +166,8 @@ bool is_paused();
 
 bool is_idle();
 
-// radio button click
-void encoded_response(uint32_t enc_phase_and_response);
+// internal function, use FSM_response()
+void FSM_response_internal(uint32_t enc_phase_and_response);
 
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
@@ -175,14 +175,10 @@ void encoded_response(uint32_t enc_phase_and_response);
 // returns if response send succeeded
 // called in client finite state machine
 template <class T>
-bool FSM_response(T phase, Response response) {
-    uint32_t encoded = ClientResponses::Encode(phase, response);
-    if (encoded == uint32_t(-1)) {
-        return false;
-    }
-
-    encoded_response(encoded);
-    return true;
+void FSM_response(T phase, Response response) {
+    const uint16_t encoded_phase { ftrstd::to_underlying(phase) };
+    const uint8_t encoded_response { ftrstd::to_underlying(response) };
+    FSM_response_internal((encoded_phase << 8) | encoded_response);
 }
 
 } // namespace marlin_client

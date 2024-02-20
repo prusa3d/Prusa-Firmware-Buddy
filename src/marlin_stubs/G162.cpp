@@ -8,6 +8,7 @@
 #include "bsod.h"
 #include "z_calibration_fsm.hpp"
 #include "calibration_z.hpp"
+#include "client_response.hpp"
 #include "printers.h"
 
 #include <option/has_loadcell.h>

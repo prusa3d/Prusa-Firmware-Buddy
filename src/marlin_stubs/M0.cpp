@@ -4,6 +4,7 @@
 #include "safety_timer_stubbed.hpp"
 #include "../../module/stepper.h"
 #include "Marlin/src/gcode/gcode.h"
+#include "client_response.hpp"
 
 /** \addtogroup G-Codes
  * @{

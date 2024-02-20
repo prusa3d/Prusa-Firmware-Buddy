@@ -376,6 +376,9 @@ osSemaphoreId server_semaphore = 0; // semaphore handle
 
 idle_t *idle_cb = 0; // idle callback
 
+// UINT32_MAX is used as no response from client
+static std::atomic<uint32_t> server_side_encoded_response = UINT32_MAX;
+
 void _add_status_msg(const char *const popup_msg) {
     // I could check client mask here
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
@@ -2688,7 +2691,7 @@ bool _process_server_valid_request(const Request &request, int client_id) {
         ++server.knob_click_counter;
         return true;
     case Request::Type::FSM:
-        ClientResponseHandler::SetResponse(request.fsm);
+        server_side_encoded_response = request.fsm;
         return true;
     case Request::Type::EventMask:
         server.notify_events[client_id] = request.event_mask;
@@ -2898,18 +2901,25 @@ FSM_notifier::~FSM_notifier() {
     activeInstance = nullptr;
 }
 
-/*****************************************************************************/
-// ClientResponseHandler
-// define static member
-// UINT32_MAX is used as no response from client
-std::atomic<uint32_t> ClientResponseHandler::server_side_encoded_response = UINT32_MAX;
-
 uint8_t get_var_sd_percent_done() {
     return marlin_vars()->sd_percent_done;
 }
 
 void set_var_sd_percent_done(uint8_t value) {
     marlin_vars()->sd_percent_done = value;
+}
+
+Response get_response_from_phase(uint16_t phase) {
+    const uint32_t value = server_side_encoded_response.exchange(UINT32_MAX);
+    const uint16_t encoded_phase = value >> 8;
+    const uint8_t encoded_response = value & 0xff;
+
+    if (phase == encoded_phase) {
+        return Response(encoded_response);
+    } else {
+        // TODO: It would be great if we didn't discard the response here...
+        return Response::_none;
+    }
 }
 
 } // namespace marlin_server

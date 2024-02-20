@@ -5,7 +5,7 @@
 #include <atomic>
 #include "marlin_vars.hpp"
 
-#include "client_response.hpp"
+#include "general_response.hpp"
 #include "fsm_types.hpp"
 
 #include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
@@ -226,34 +226,22 @@ public:
 bool can_stop_wait_for_heatup();
 void can_stop_wait_for_heatup(bool val);
 
-// inherited class for server side to be able to work with server_side_encoded_response
-class ClientResponseHandler : public ClientResponses {
-    ClientResponseHandler() = delete;
-    ClientResponseHandler(ClientResponseHandler &) = delete;
-    static std::atomic<uint32_t> server_side_encoded_response;
+// internal function, use ClientResponseHandler::GetResponseFromPhase()
+Response get_response_from_phase(uint16_t);
 
-public:
-    // call inside marlin server on received response from client
-    static void SetResponse(uint32_t encoded_bt) {
-        server_side_encoded_response = encoded_bt;
-    }
+namespace ClientResponseHandler {
+
     /// @returns currently recorded response and erases it
     /// @returns UINT32_MAX if phase does not match
     /// Can be used from a sub thread, as long as only one thread at the time reads it.
     /// Beware: calling this function erases the previous response (if any). That means calling this function from multiple
     /// dialogs/threads/places just for checking if there has been some input renders the whole printer unresponsive in all of the dialogs.
     template <class T>
-    static Response GetResponseFromPhase(T phase) {
-        const uint32_t value = server_side_encoded_response.exchange(UINT32_MAX); // read and erase response
-
-        uint32_t _phase = value >> RESPONSE_BITS;
-        if ((static_cast<uint32_t>(phase)) != _phase) {
-            return Response::_none;
-        }
-        uint32_t index = value & uint32_t(MAX_RESPONSES - 1); // get response index
-        return GetResponse(phase, index);
+    Response GetResponseFromPhase(T phase) {
+        return get_response_from_phase(ftrstd::to_underlying(phase));
     }
-};
+
+} // namespace ClientResponseHandler
 
 // FSM_notifier
 class FSM_notifier {
