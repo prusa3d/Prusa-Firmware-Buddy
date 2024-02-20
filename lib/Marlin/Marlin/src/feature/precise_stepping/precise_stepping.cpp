@@ -1019,9 +1019,9 @@ void PreciseStepping::move_isr() {
 // will be STEP_TIMER_MAX_TICKS_LIMIT. The second part is the actual step event.
 struct split_step_event_t {
     int32_t empty_step_event_cnt = 0;
-    uint16_t empty_step_event_flags = 0;
+    StepEventFlag_t empty_step_event_flags = 0;
     uint16_t last_step_event_time_ticks = 0;
-    uint16_t last_step_event_flags = 0;
+    StepEventFlag_t last_step_event_flags = 0;
 };
 
 FORCE_INLINE split_step_event_t split_buffered_step(const step_generator_state_t &step_generator_state) {
