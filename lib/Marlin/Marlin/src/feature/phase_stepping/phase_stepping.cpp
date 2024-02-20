@@ -89,7 +89,7 @@ FORCE_INLINE uint64_t convert_absolute_time_to_ticks(const double time) {
 }
 
 FORCE_INLINE uint64_t calc_move_segment_end_time_in_ticks(const move_t &move) {
-    return convert_absolute_time_to_ticks(move.print_time + move.move_t);
+    return convert_absolute_time_to_ticks(move.print_time + move.move_time);
 }
 
 FORCE_INLINE uint64_t calc_move_segment_end_time_in_ticks(const input_shaper_state_t &is_state) {
@@ -196,7 +196,7 @@ step_event_info_t phase_stepping::next_step_event_classic(
 
     step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
     if (axis_state.pending_targets.isFull()) {
-        next_step_event.time = axis_state.last_processed_move->print_time + axis_state.last_processed_move->move_t;
+        next_step_event.time = axis_state.last_processed_move->print_time + axis_state.last_processed_move->move_time;
         next_step_event.status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
     } else if (const move_t *next_move = PreciseStepping::move_segment_queue_next_move(*axis_state.last_processed_move); next_move != nullptr) {
         next_step_event.time = next_move->print_time;
@@ -229,7 +229,7 @@ step_event_info_t phase_stepping::next_step_event_classic(
 
         PreciseStepping::move_segment_processed_handler();
     } else {
-        next_step_event.time = axis_state.last_processed_move->print_time + axis_state.last_processed_move->move_t;
+        next_step_event.time = axis_state.last_processed_move->print_time + axis_state.last_processed_move->move_time;
     }
 
     return next_step_event;

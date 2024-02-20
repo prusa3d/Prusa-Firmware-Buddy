@@ -44,7 +44,7 @@ FORCE_INLINE xyze_double_t calc_end_position(const double start_v, const double 
 }
 
 FORCE_INLINE xyze_double_t calc_end_position_move(const move_t *move) {
-    return calc_end_position(move->start_v, move->half_accel, move->move_t, move->start_pos, move->axes_r);
+    return calc_end_position(move->start_v, move->half_accel, move->move_time, move->start_pos, move->axes_r);
 }
 
 FORCE_INLINE float fast_sqrt(float in) {
@@ -90,7 +90,7 @@ FORCE_INLINE double get_move_start_v(const move_t &move, const int axis) {
 }
 
 FORCE_INLINE double get_move_end_v(const move_t &move, const int axis) {
-    return (move.start_v + 2. * move.half_accel * move.move_t) * move.axes_r[axis];
+    return (move.start_v + 2. * move.half_accel * move.move_time) * move.axes_r[axis];
 }
 
 FORCE_INLINE double get_move_start_pos(const move_t &move, const int axis) {
@@ -99,7 +99,7 @@ FORCE_INLINE double get_move_start_pos(const move_t &move, const int axis) {
 
 FORCE_INLINE double get_move_end_pos(const move_t &move, const int axis) {
     const double axis_r = move.axes_r[axis];
-    return move.start_pos[axis] + calc_distance<double>(move.start_v * axis_r, move.half_accel * axis_r, move.move_t);
+    return move.start_pos[axis] + calc_distance<double>(move.start_v * axis_r, move.half_accel * axis_r, move.move_time);
 }
 
 // True - Positive direction

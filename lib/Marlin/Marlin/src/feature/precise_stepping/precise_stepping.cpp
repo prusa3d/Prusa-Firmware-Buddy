@@ -132,7 +132,7 @@ FORCE_INLINE bool append_move_segment_to_queue(const double move_time, const dou
     const xyze_double_t axes_r, const xyze_double_t start_pos, const MoveFlag_t flags) {
     uint8_t next_move_segment_queue_head;
     if (move_t *m = PreciseStepping::get_next_free_move_segment(next_move_segment_queue_head); m != nullptr) {
-        m->move_t = move_time;
+        m->move_time = move_time;
         m->start_v = start_v;
         m->half_accel = half_accel;
         m->print_time = print_time;
@@ -377,7 +377,7 @@ step_event_info_t classic_step_generator_next_step_event(classic_step_generator_
     // When step_time is infinity, it means that next_distance will never be reached.
     // This happens when next_target exceeds end_position, and deceleration decelerates velocity to zero or negative value.
     // Also, we need to stop when step_time exceeds local_end.
-    if (const double step_time_d = double(step_time); step_time_d > (step_generator.current_move->move_t + EPSILON)) {
+    if (const double step_time_d = double(step_time); step_time_d > (step_generator.current_move->move_time + EPSILON)) {
         if (const move_t *next_move = PreciseStepping::move_segment_queue_next_move(*step_generator.current_move); next_move != nullptr) {
             next_step_event.time = next_move->print_time;
 
@@ -413,7 +413,7 @@ step_event_info_t classic_step_generator_next_step_event(classic_step_generator_
 
             PreciseStepping::move_segment_processed_handler();
         } else {
-            next_step_event.time = step_generator.current_move->print_time + step_generator.current_move->move_t;
+            next_step_event.time = step_generator.current_move->print_time + step_generator.current_move->move_time;
         }
     } else {
         const double elapsed_time = step_time_d + step_generator.current_move->print_time;
@@ -781,12 +781,12 @@ FORCE_INLINE move_t *append_beginning_empty_move() {
         move->start_v = 0.;
         move->half_accel = 0.;
         move->axes_r = { 0., 0., 0., 0. };
-        move->move_t = PreciseStepping::max_lookback_time + 0.001; // For now, the epsilon o 1ms is applied to ensure that even with big rounding errors, move_t will be much bigger than max_lookback_time.
+        move->move_time = PreciseStepping::max_lookback_time + 0.001; // For now, the epsilon o 1ms is applied to ensure that even with big rounding errors, move_time will be much bigger than max_lookback_time.
         move->start_pos = PreciseStepping::total_start_pos;
         move->print_time = 0.;
         move->reference_cnt = 0;
         PreciseStepping::move_segment_queue.head = next_move_segment_queue_head;
-        PreciseStepping::total_print_time = move->print_time + move->move_t;
+        PreciseStepping::total_print_time = move->print_time + move->move_time;
     }
 
     return move;
@@ -800,7 +800,7 @@ FORCE_INLINE move_t *append_block_discarding_move() {
         move->start_v = 0.;
         move->half_accel = 0.;
         move->axes_r = { 0., 0., 0., 0. };
-        move->move_t = 0.;
+        move->move_time = 0.;
         move->start_pos = PreciseStepping::total_start_pos;
         move->print_time = PreciseStepping::total_print_time;
         move->reference_cnt = 0;
@@ -818,12 +818,12 @@ FORCE_INLINE move_t *append_ending_empty_move() {
         move->start_v = 0.;
         move->half_accel = 0.;
         move->axes_r = { 0., 0., 0., 0. };
-        move->move_t = MAX_PRINT_TIME;
+        move->move_time = MAX_PRINT_TIME;
         move->start_pos = PreciseStepping::total_start_pos;
         move->print_time = PreciseStepping::total_print_time;
         move->reference_cnt = 0;
         PreciseStepping::move_segment_queue.head = next_move_segment_queue_head;
-        PreciseStepping::total_print_time = move->print_time + move->move_t;
+        PreciseStepping::total_print_time = move->print_time + move->move_time;
     }
 
     return move;
@@ -1228,7 +1228,7 @@ void PreciseStepping::update_maximum_lookback_time() {
 
 void PreciseStepping::step_generator_state_init(const move_t &move) {
     assert(is_beginning_empty_move(move));
-    if (max_lookback_time > move.move_t) {
+    if (max_lookback_time > move.move_time) {
         bsod("Max lookback time exceeds the length of the beginning empty move segment.");
     }
 
