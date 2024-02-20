@@ -23,13 +23,3 @@ void delay(uint32_t ms) {
         abort(); // TODO: add support for delay from IRQ
     }
 }
-
-void delayMicroseconds(uint32_t usec) {
-    if (!is_interrupt()) {
-        uint32_t start = ticks_us();
-        while ((start + usec) > ticks_us())
-            ;
-    } else {
-        abort(); // TODO: add support for delay from IRQ
-    }
-}
