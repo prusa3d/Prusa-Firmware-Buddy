@@ -16,6 +16,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_MMU_PRELOAD_LEGACY : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Preload to MMU Legacy");
+
+public:
+    MI_MMU_PRELOAD_LEGACY();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_MMU_LOAD_TEST_FILAMENT : public IWindowMenuItem {
     static constexpr const char *const label = N_("Loading Test");
 
