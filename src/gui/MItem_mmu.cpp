@@ -11,6 +11,7 @@
 #include "screen_menu_mmu_eject_filament.hpp"
 #include "screen_menu_mmu_cut_filament.hpp"
 #include "screen_menu_mmu_load_to_nozzle.hpp"
+#include "screen_menu_filament_changeall.hpp"
 
 #include <config_store/store_instance.hpp>
 #include <feature/prusa/MMU2/mmu2_mk4.h>
@@ -25,6 +26,18 @@ MI_MMU_PRELOAD::MI_MMU_PRELOAD()
         expands_t::yes) {
 }
 void MI_MMU_PRELOAD::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenChangeAllFilaments>);
+}
+
+/**********************************************************************************************/
+// MI_MMU_PRELOAD_LEGACY
+MI_MMU_PRELOAD_LEGACY::MI_MMU_PRELOAD_LEGACY()
+    : IWindowMenuItem(_(label), nullptr,
+        FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR ? is_enabled_t::no : is_enabled_t::yes,
+        is_hidden_t::no,
+        expands_t::yes) {
+}
+void MI_MMU_PRELOAD_LEGACY::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMUPreloadToMMU>);
 }
 
