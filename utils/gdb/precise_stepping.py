@@ -135,3 +135,35 @@ class MoveFlagPrinter:
 
 
 gdb.pretty_printers.append(MoveFlagPrinter.register)
+
+
+# Full move-segment-queue prettyprinter
+class PrintMoveSegmentQueue(gdb.Command):
+    def __init__(self):
+        super().__init__('ps-move-segment-queue', gdb.COMMAND_USER)
+
+    def invoke(self, cmd, from_tty):
+        seq = gdb.lookup_symbol(
+            'PreciseStepping::move_segment_queue')[0].value()
+        data = seq['data']
+        head = int(seq['head'])
+        tail = int(seq['tail'])
+        unprocessed = int(seq['unprocessed'])
+        size = data.type.range()[1] + 1
+        items = head - tail if head >= tail else (head + size) - tail
+        move_time = 0.
+        processed = True
+        print(f'move_segment_queue: {items}/{size}')
+        for n in range(tail, tail + items):
+            i = n % size
+            ms = move_time * 1000
+
+            if unprocessed == i:
+                processed = False
+            state = 'P' if processed else 'U'
+
+            print(f'[{i:4} {state}] {ms:10.3f}ms', str(data[i]))
+            move_time += float(data[i]['move_time'])
+
+
+PrintMoveSegmentQueue()
