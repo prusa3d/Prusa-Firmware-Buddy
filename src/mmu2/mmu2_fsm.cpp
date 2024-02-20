@@ -163,7 +163,7 @@ void Fsm::Loop() {
 }
 
 Response Fsm::GetResponse() const {
-    return IsActive() ? marlin_server::ClientResponseHandler::GetResponseFromPhase(PhasesLoadUnload::MMU_ERRWaitingForUser) : Response::_none;
+    return IsActive() ? marlin_server::get_response_from_phase(PhasesLoadUnload::MMU_ERRWaitingForUser) : Response::_none;
 }
 
 bool Fsm::Activate() {

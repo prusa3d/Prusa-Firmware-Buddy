@@ -127,7 +127,7 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
 }
 
 Response IPrintPreview::GetResponse() {
-    return phase ? marlin_server::ClientResponseHandler::GetResponseFromPhase(*phase) : Response::_none;
+    return phase ? marlin_server::get_response_from_phase(*phase) : Response::_none;
 }
 
 static bool is_same(const char *curr_filament, const GCodeInfo::filament_buff &filament_type) {

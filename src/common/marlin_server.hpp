@@ -226,19 +226,15 @@ public:
 bool can_stop_wait_for_heatup();
 void can_stop_wait_for_heatup(bool val);
 
-// internal function, use ClientResponseHandler::GetResponseFromPhase()
-Response get_response_from_phase(uint16_t);
+// internal function, do not use directly
+Response get_response_from_phase_internal(uint16_t);
 
-namespace ClientResponseHandler {
-
-    /// If the phase matches currently recorded response, return it and consume it.
-    /// Otherwise, return Response::_none and do not consume it.
-    template <class T>
-    Response GetResponseFromPhase(T phase) {
-        return get_response_from_phase(ftrstd::to_underlying(phase));
-    }
-
-} // namespace ClientResponseHandler
+/// If the phase matches currently recorded response, return it and consume it.
+/// Otherwise, return Response::_none and do not consume it.
+template <class T>
+Response get_response_from_phase(T phase) {
+    return get_response_from_phase_internal(ftrstd::to_underlying(phase));
+}
 
 // FSM_notifier
 class FSM_notifier {

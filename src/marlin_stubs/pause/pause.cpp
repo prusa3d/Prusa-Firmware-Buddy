@@ -179,7 +179,7 @@ void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress) {
 PhasesLoadUnload PausePrivatePhase::getPhase() const { return phase; }
 
 Response PausePrivatePhase::getResponse() {
-    const Response ret = marlin_server::ClientResponseHandler::GetResponseFromPhase(phase);
+    const Response ret = marlin_server::get_response_from_phase(phase);
     // user just clicked
     if (ret != Response::_none) {
         RestoreTemp();

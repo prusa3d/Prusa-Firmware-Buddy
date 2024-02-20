@@ -371,7 +371,7 @@ void CSelftest::phaseDidSelftestPass() {
 }
 
 bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
-    const Response response = marlin_server::ClientResponseHandler::GetResponseFromPhase(phase);
+    const Response response = marlin_server::get_response_from_phase(phase);
     if (response == Response::Abort || response == Response::Cancel) {
         Abort();
     }

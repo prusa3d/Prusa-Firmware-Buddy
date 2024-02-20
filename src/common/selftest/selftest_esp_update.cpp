@@ -79,7 +79,7 @@ void ESPUpdate::Loop() {
         bool continue_pressed = false;
         bool wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
 
-        switch (marlin_server::ClientResponseHandler::GetResponseFromPhase(phase)) {
+        switch (marlin_server::get_response_from_phase(phase)) {
         case Response::Continue:
             continue_pressed = true;
             netdev_set_enabled(NETDEV_ESP_ID, true);
@@ -358,7 +358,7 @@ void EspCredentials::Loop() {
         no_pressed = false;
 
         if (phase) {
-            switch (marlin_server::ClientResponseHandler::GetResponseFromPhase(*phase)) {
+            switch (marlin_server::get_response_from_phase(*phase)) {
             case Response::Continue:
             case Response::Retry:
             case Response::Yes:

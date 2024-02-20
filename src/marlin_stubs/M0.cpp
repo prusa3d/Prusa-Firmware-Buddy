@@ -23,7 +23,7 @@ void PrusaGcodeSuite::M0() {
     FSM_HOLDER_WITH_DATA__LOGGING(QuickPause, PhasesQuickPause::QuickPaused, fsm::PhaseData());
     planner.synchronize();
 
-    while (marlin_server::ClientResponseHandler::GetResponseFromPhase(PhasesQuickPause::QuickPaused) == Response::_none) {
+    while (marlin_server::get_response_from_phase(PhasesQuickPause::QuickPaused) == Response::_none) {
         SafetyTimer::Instance().ReInit();
         idle(true, true);
         // It's not enough to call idle with no_stepper_sleep = true, as the

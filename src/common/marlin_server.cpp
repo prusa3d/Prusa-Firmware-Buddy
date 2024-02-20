@@ -359,7 +359,7 @@ namespace {
         // Is the cheking for existence of the FSM at all the levels the right way, or should we have some flag
         // (like SelftestInstance().IsInProgress()) and do it based on that??
         if (fsm_event_queues.GetFsm0() == ClientFSM::Warning || fsm_event_queues.GetFsm1() == ClientFSM::Warning || fsm_event_queues.GetFsm2() == ClientFSM::Warning) {
-            if (ClientResponseHandler::GetResponseFromPhase(PhasesWarning::Warning) != Response::_none) {
+            if (marlin_server::get_response_from_phase(PhasesWarning::Warning) != Response::_none) {
                 FSM_DESTROY__LOGGING(Warning);
             }
         }
@@ -1924,7 +1924,7 @@ static void _server_print_loop(void) {
             break;
         }
 
-        if ((ClientResponseHandler::GetResponseFromPhase(PhasesCrashRecovery::tool_recovery) == Response::Continue)
+        if ((marlin_server::get_response_from_phase(PhasesCrashRecovery::tool_recovery) == Response::Continue)
             && (prusa_toolchanger.get_enabled_mask() == prusa_toolchanger.get_parked_mask())) {
 
             // Show homing screen, TODO: perhaps a new screen would be better
@@ -2014,7 +2014,7 @@ static void _server_print_loop(void) {
     }
     case State::CrashRecovery_HOMEFAIL: {
         nozzle_timeout_loop();
-        switch (ClientResponseHandler::GetResponseFromPhase(PhasesCrashRecovery::home_fail)) {
+        switch (marlin_server::get_response_from_phase(PhasesCrashRecovery::home_fail)) {
         case Response::Retry: {
             Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
             FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize()); // Homing screen
@@ -2029,7 +2029,7 @@ static void _server_print_loop(void) {
     }
     case State::CrashRecovery_Axis_NOK: {
         nozzle_timeout_loop();
-        switch (ClientResponseHandler::GetResponseFromPhase(PhasesCrashRecovery::axis_NOK)) {
+        switch (marlin_server::get_response_from_phase(PhasesCrashRecovery::axis_NOK)) {
         case Response::Retry:
             measure_axes_and_home();
             break;
@@ -2051,7 +2051,7 @@ static void _server_print_loop(void) {
     }
     case State::CrashRecovery_Repeated_Crash: {
         nozzle_timeout_loop();
-        switch (ClientResponseHandler::GetResponseFromPhase(PhasesCrashRecovery::repeated_crash)) {
+        switch (marlin_server::get_response_from_phase(PhasesCrashRecovery::repeated_crash)) {
         case Response::Resume:
             server.print_state = State::Resuming_Begin;
             FSM_DESTROY__LOGGING(CrashRecovery);
@@ -2909,7 +2909,7 @@ void set_var_sd_percent_done(uint8_t value) {
     marlin_vars()->sd_percent_done = value;
 }
 
-Response get_response_from_phase(uint16_t phase) {
+Response get_response_from_phase_internal(uint16_t phase) {
     // FIXME: Critical section is used to mimic original behaviour with std::atomic
     //        However, maybe we should instead require that the calling task
     //        is actually Marlin task. This is most probably the case,
