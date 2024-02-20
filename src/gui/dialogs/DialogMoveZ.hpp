@@ -63,7 +63,7 @@ private:
     static constexpr Rect16 closeText_rc { 0, 90, 480, 60 };
     static constexpr Rect16 icon_rc { 200, 171, 81, 55 };
     static constexpr Rect16 rightText_rc { 240 + 51, 187, font_size.w *longest_text_char_count, font_size.h };
-    static constexpr Rect16 leftText_rc { 240 - 51 - font_size.w * longest_text_char_count, 187, font_size.w *longest_text_char_count, font_size.w *longest_text_char_count };
+    static constexpr Rect16 leftText_rc { 240 - 51 - font_size.w * longest_text_char_count, 187, font_size.w *longest_text_char_count, font_size.h };
     static constexpr Rect16 text_rc { 0, 240, 237, 22 };
     static constexpr Rect16 numb_rc { 243, 240, 237, 22 };
     static constexpr Rect16 arrows_rc { 236, 240, 8, 22 };
