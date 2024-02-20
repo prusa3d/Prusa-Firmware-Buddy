@@ -2910,14 +2910,21 @@ void set_var_sd_percent_done(uint8_t value) {
 }
 
 Response get_response_from_phase(uint16_t phase) {
-    const uint32_t value = server_side_encoded_response.exchange(UINT32_MAX);
+    // FIXME: Critical section is used to mimic original behaviour with std::atomic
+    //        However, maybe we should instead require that the calling task
+    //        is actually Marlin task. This is most probably the case,
+    //        but checking that is beyond the scope of this patch.
+    taskENTER_CRITICAL();
+    const uint32_t value = server_side_encoded_response;
     const uint16_t encoded_phase = value >> 8;
     const uint8_t encoded_response = value & 0xff;
 
     if (phase == encoded_phase) {
+        server_side_encoded_response = UINT32_MAX;
+        taskEXIT_CRITICAL();
         return Response(encoded_response);
     } else {
-        // TODO: It would be great if we didn't discard the response here...
+        taskEXIT_CRITICAL();
         return Response::_none;
     }
 }

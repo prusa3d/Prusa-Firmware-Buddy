@@ -231,11 +231,8 @@ Response get_response_from_phase(uint16_t);
 
 namespace ClientResponseHandler {
 
-    /// @returns currently recorded response and erases it
-    /// @returns UINT32_MAX if phase does not match
-    /// Can be used from a sub thread, as long as only one thread at the time reads it.
-    /// Beware: calling this function erases the previous response (if any). That means calling this function from multiple
-    /// dialogs/threads/places just for checking if there has been some input renders the whole printer unresponsive in all of the dialogs.
+    /// If the phase matches currently recorded response, return it and consume it.
+    /// Otherwise, return Response::_none and do not consume it.
     template <class T>
     Response GetResponseFromPhase(T phase) {
         return get_response_from_phase(ftrstd::to_underlying(phase));

@@ -79,8 +79,6 @@ void ESPUpdate::Loop() {
         bool continue_pressed = false;
         bool wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
 
-        // we use only 2 responses here
-        // it is safe to use it from different thread as long as no other thread reads it
         switch (marlin_server::ClientResponseHandler::GetResponseFromPhase(phase)) {
         case Response::Continue:
             continue_pressed = true;
@@ -359,8 +357,6 @@ void EspCredentials::Loop() {
         continue_yes_retry_pressed = false;
         no_pressed = false;
 
-        // we use only 3 responses here
-        // it is safe to use it from different thread as long as no other thread reads it
         if (phase) {
             switch (marlin_server::ClientResponseHandler::GetResponseFromPhase(*phase)) {
             case Response::Continue:
