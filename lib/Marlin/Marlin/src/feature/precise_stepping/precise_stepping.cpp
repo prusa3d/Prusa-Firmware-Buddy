@@ -1038,10 +1038,6 @@ FORCE_INLINE split_step_event_t split_buffered_step(const step_generator_state_t
             split_step_event.empty_step_event_cnt = (step_generator_state.buffered_step.time_ticks - 1) / STEP_TIMER_MAX_TICKS_LIMIT;
             split_step_event.last_step_event_time_ticks = step_generator_state.buffered_step.time_ticks - split_step_event.empty_step_event_cnt * STEP_TIMER_MAX_TICKS_LIMIT;
 
-            if (split_step_event.empty_step_event_cnt > STEP_EVENT_QUEUE_SIZE) {
-                bsod("Step event time exceeds the size of the step event queue.");
-            }
-
             // We left only the direction and the active axes flags because other flags have to be present only in the last step event.
             split_step_event.empty_step_event_flags = step_generator_state.buffered_step.flags & (STEP_EVENT_FLAG_DIR_MASK | STEP_EVENT_FLAG_AXIS_ACTIVE_MASK);
             split_step_event.last_step_event_flags = step_generator_state.buffered_step.flags;
@@ -1095,6 +1091,38 @@ FORCE_INLINE void append_split_step_event(const split_step_event_t &split_step_e
 #pragma GCC diagnostic pop
 }
 
+static void check_step_time_(const split_step_event_t &split_step_event, const int32_t max_move_ticks) {
+    assert(split_step_event.last_step_event_time_ticks <= min(STEP_TIMER_MAX_TICKS_LIMIT, max_move_ticks));
+}
+
+static void check_step_time_(const step_event_i32_t &new_step_event, const int32_t max_move_ticks) {
+    assert(new_step_event.time_ticks <= max_move_ticks);
+}
+
+/// @brief Ensure a new step event never exceeds the time of the last move in the queue
+template <typename T>
+static void check_step_time(const T &step_event, const step_generator_state_t &step_generator_state) {
+    // When producing a new step the unprocessed move queue should never be empty, as the move
+    // should only be processed (and discarded) when all step events have been produced.
+    const move_t *cur_move = PreciseStepping::get_current_unprocessed_move_segment();
+    assert(cur_move != nullptr);
+
+    // Fetch the last move, as the produced step event can span past the current move
+    const move_t *last_move = PreciseStepping::get_last_move_segment();
+    assert(last_move != nullptr);
+
+    // When calculating the absolute move end time further restrict the limit on ending empty moves
+    // to ensure that any scheduled keep-alive event is never split past the end of motion.
+    const double last_move_time = is_ending_empty_move(*last_move) ? (STEP_TIMER_MAX_TICKS_LIMIT / PreciseStepping::ticks_per_sec) : last_move->move_time;
+    const double last_move_time_end = last_move->print_time + last_move_time;
+
+    const double cur_move_time = cur_move->print_time;
+    assert(last_move_time_end >= cur_move_time);
+
+    const int32_t max_move_ticks = (last_move_time_end - cur_move_time) * PreciseStepping::ticks_per_sec;
+    check_step_time_(step_event, max_move_ticks);
+}
+
 StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
     uint16_t produced_step_events_cnt = 0;
 
@@ -1126,6 +1154,8 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
             // accumulate into or flush the buffered step
             if (new_step_event.flags) {
                 // a new step event was produced
+                check_step_time(new_step_event, step_generator_state);
+
                 if (!step_generator_state.buffered_step.flags) {
                     // no previous buffer: replace
                     step_generator_state.buffered_step = new_step_event;
@@ -1143,6 +1173,7 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
                     step_generator_state.buffered_step.flags |= new_step_event.flags;
                 } else {
                     // merge disallowed: flush buffer and replace
+                    check_step_time(split_step_event, step_generator_state);
                     append_split_step_event(split_step_event, next_step_event, next_step_event_queue_head);
                     step_generator_state.buffered_step = new_step_event;
                 }
@@ -1176,6 +1207,7 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
                     return STEP_GENERATOR_STATUS_FULL_STEP_EVENT_QUEUE;
                 }
 
+                check_step_time(split_step_event, step_generator_state);
                 append_split_step_event(split_step_event, next_step_event, next_step_event_queue_head);
                 step_generator_state.buffered_step.flags = 0;
             }
