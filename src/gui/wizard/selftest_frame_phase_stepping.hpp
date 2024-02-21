@@ -5,11 +5,14 @@
 #include "window_wizard_progress.hpp"
 #include "status_footer.hpp"
 
-class SelftestFramePhaseStepping : public AddSuperWindow<SelftestFrameNamedWithRadio> {
-    FooterLine footer;
-
+class SelftestFramePhaseStepping : public AddSuperWindow<SelftestFrameWithRadio> {
     window_text_t text;
+    window_text_t link;
+    window_icon_t icon_phone;
+    window_qr_t qr;
     std::array<char, 150> text_buffer;
+
+    void flip_layout();
 
 protected:
     virtual void change() override;

@@ -26,6 +26,7 @@ void serialize_ok(fsm::PhaseData &data, const phase_stepping::CalibrationResult 
 fsm::PhaseData SelftestPhaseSteppingResult::serialize(PhasesSelftest phase) const {
     fsm::PhaseData data;
     switch (phase) {
+    case PhasesSelftest::PhaseStepping_intro:
     case PhasesSelftest::PhaseStepping_pick_tool:
     case PhasesSelftest::PhaseStepping_calib_x:
     case PhasesSelftest::PhaseStepping_calib_y:

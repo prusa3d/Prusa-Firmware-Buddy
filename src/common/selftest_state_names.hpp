@@ -180,6 +180,8 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
     case PhasesSelftest::ToolOffsets_wait_user_remove_pin:
         return "ToolOffsets_wait_user_remove_pin";
 #if HAS_PHASE_STEPPING()
+    case PhasesSelftest::PhaseStepping_intro:
+        return "PhaseStepping_intro";
     case PhasesSelftest::PhaseStepping_pick_tool:
         return "PhaseStepping_pick_tool";
     case PhasesSelftest::PhaseStepping_calib_x:
