@@ -383,7 +383,7 @@ class ClientResponses {
 
     // declare 2d arrays of single buttons for radio buttons
     static constexpr PhaseResponses LoadUnloadResponses[] = {
-        {}, // inactive
+        {}, // initial
         {}, // ChangingTool,
         { Response::Stop }, // Parking_stoppable
         {}, // Parking_unstoppable,
@@ -463,7 +463,7 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::LoadUnloadResponses) == CountPhases<PhasesLoadUnload>());
 
     static constexpr PhaseResponses PreheatResponses[] = {
-        {}, // inactive
+        {}, // initial
         { Response::Abort, Response::Cooldown, Response::PLA, Response::PETG,
             Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA }, // UserTempSelection
     };

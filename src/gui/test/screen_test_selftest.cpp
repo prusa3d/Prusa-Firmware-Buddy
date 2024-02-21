@@ -40,7 +40,7 @@ static void SelftestTest() {
     WaitLoop();
     Screens::Access()->Loop(); // for test only, this is very unsafe, do not use it like this anywhere else !!!
 
-    for (PhasesSelftest i = PhasesSelftest::initial; int(i) <= int(PhasesSelftest::_last); i = PhasesSelftest(int(i) + 1)) {
+    for (PhasesSelftest i = PhasesSelftest::_none; int(i) <= int(PhasesSelftest::_last); i = PhasesSelftest(int(i) + 1)) {
         data.SetPhase(int(i));
 
         // push change
