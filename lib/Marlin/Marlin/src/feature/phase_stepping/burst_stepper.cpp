@@ -132,17 +132,16 @@ FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
     const std::size_t spacing = (GPIO_BUFFER_SIZE << 16) / diff;
     const uint32_t pos_mask = step_masks[axis];
     const uint32_t neg_mask = step_masks[axis] << 16;
-    auto *lsetup_buffer = setup_buffer;
 
     bool current_state = axis_step_state[axis];
-    lsetup_buffer->start_fill();
+    setup_buffer->start_fill();
     for (std::size_t i = 0; i != udiff; i++) {
         current_state = !current_state;
         std::size_t idx = (spacing * i) >> 16;
         if (current_state) {
-            lsetup_buffer->add_event(idx, pos_mask);
+            setup_buffer->add_event(idx, pos_mask);
         } else {
-            lsetup_buffer->add_event(idx, neg_mask);
+            setup_buffer->add_event(idx, neg_mask);
         }
     }
     axis_step_state[axis] = current_state;
