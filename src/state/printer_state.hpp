@@ -5,6 +5,8 @@
 
 #include <optional>
 
+enum class Response : uint8_t;
+
 namespace printer_state {
 
 enum class DeviceState {
@@ -25,6 +27,17 @@ struct Dialog {
     std::optional<ErrCode> code = std::nullopt;
     const char *title = nullptr;
     const char *text = nullptr;
+    // Buttons for the given dialog (if any, may be nullptr)
+    //
+    // It might look "wrong" to have a dialog without any buttons, but we know of two cases:
+    // * Not-implemented part where we don't yet provide the buttons (that should improve over time).
+    // * Redscreens/bluescreens are considered a "dialog" towards Connect, but don't have buttons.
+    //
+    // This is "pointer to array"; we don't use PhaseResponses, because it's
+    // impossible to forward-declare. But it's a std::array<Response>, so we
+    // can point to that without introducing another (fat) header dependency.
+    // There's at most MAX_RESPONSES responses.
+    const Response *buttons = nullptr;
 };
 
 struct StateWithDialog {
@@ -32,17 +45,18 @@ struct StateWithDialog {
     std::optional<Dialog> dialog = std::nullopt;
     StateWithDialog(DeviceState state)
         : device_state(state) {}
-    StateWithDialog(DeviceState state, std::optional<ErrCode> code, std::optional<uint32_t> dialog_id)
+    StateWithDialog(DeviceState state, std::optional<ErrCode> code, std::optional<uint32_t> dialog_id, const Response *buttons = nullptr)
         : device_state(state) {
         if (dialog_id.has_value()) {
             dialog = Dialog {
                 *dialog_id,
                 code,
             };
+            dialog->buttons = buttons;
         }
     }
-    static StateWithDialog attention(ErrCode code, uint32_t dialog_id) {
-        return StateWithDialog(DeviceState::Attention, code, dialog_id);
+    static StateWithDialog attention(ErrCode code, uint32_t dialog_id, const Response *buttons = nullptr) {
+        return StateWithDialog(DeviceState::Attention, code, dialog_id, buttons);
     }
     // If there's a dialog with code
     bool has_code() const {

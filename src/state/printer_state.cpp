@@ -14,10 +14,16 @@ using std::optional;
 
 namespace printer_state {
 namespace {
+    // Same as the one in window_msgbox.hpp, but that dependency would lead "the wrong way", so having a copy.
+    constexpr PhaseResponses responses_continue = { Response::Continue, Response::_none, Response::_none, Response::_none };
+
     StateWithDialog get_print_state(State state, bool ready, optional<ErrCode> dialog_code, uint32_t fsm_gen) {
         optional<uint32_t> dialog_id;
+        const Response *buttons = nullptr;
         if (dialog_code.has_value()) {
             dialog_id = fsm_gen;
+            // Dialog_code is set only for warnings currently, and warnings have just the continue button.
+            buttons = responses_continue.data();
         }
         switch (state) {
         case State::PrintPreviewQuestions:
@@ -47,9 +53,9 @@ namespace {
         case State::PrintInit:
         case State::Exit:
             if (ready) {
-                return { DeviceState::Ready, dialog_code, dialog_id };
+                return StateWithDialog(DeviceState::Ready, dialog_code, dialog_id, buttons);
             } else {
-                return { DeviceState::Idle, dialog_code, dialog_id };
+                return StateWithDialog(DeviceState::Idle, dialog_code, dialog_id, buttons);
             }
         case State::Printing:
         case State::Aborting_Begin:
@@ -62,7 +68,7 @@ namespace {
         case State::Finishing_ParkHead:
         case State::PrintPreviewConfirmed:
         case State::SerialPrintInit:
-            return { DeviceState::Printing, dialog_code, dialog_id };
+            return StateWithDialog(DeviceState::Printing, dialog_code, dialog_id, buttons);
 
         case State::PowerPanic_acFault:
         case State::PowerPanic_Resume:
@@ -72,7 +78,7 @@ namespace {
         case State::CrashRecovery_ToolchangePowerPanic:
         case State::CrashRecovery_XY_Measure:
         case State::CrashRecovery_XY_HOME:
-            return { DeviceState::Busy, dialog_code, dialog_id };
+            return StateWithDialog(DeviceState::Busy, dialog_code, dialog_id, buttons);
 
         case State::Pausing_Begin:
         case State::Pausing_WaitIdle:
@@ -84,21 +90,21 @@ namespace {
         case State::Pausing_Failed_Code:
         case State::Resuming_UnparkHead_XY:
         case State::Resuming_UnparkHead_ZE:
-            return { DeviceState::Paused, dialog_code, dialog_id };
+            return StateWithDialog(DeviceState::Paused, dialog_code, dialog_id, buttons);
         case State::Finished:
             if (ready) {
-                return { DeviceState::Ready, dialog_code, dialog_id };
+                return StateWithDialog(DeviceState::Ready, dialog_code, dialog_id, buttons);
             } else {
-                return { DeviceState::Finished, dialog_code, dialog_id };
+                return StateWithDialog(DeviceState::Finished, dialog_code, dialog_id, buttons);
             }
         case State::Aborted:
             if (ready) {
-                return { DeviceState::Ready, dialog_code, dialog_id };
+                return StateWithDialog(DeviceState::Ready, dialog_code, dialog_id, buttons);
             } else {
-                return { DeviceState::Stopped, dialog_code, dialog_id };
+                return StateWithDialog(DeviceState::Stopped, dialog_code, dialog_id, buttons);
             }
         }
-        return { DeviceState::Unknown, dialog_code, dialog_id };
+        return StateWithDialog(DeviceState::Unknown, dialog_code, dialog_id, buttons);
     }
 
     // FIXME: these are also caught by the switch statement above, is there any
@@ -242,6 +248,7 @@ StateWithDialog get_state_with_dialog(bool ready) {
     auto [fsm_change, fsm_gen] = marlin_vars()->get_last_fsm_change();
     State state = marlin_vars()->print_state;
     optional<ErrCode> warning_err_code = nullopt;
+    const Response *buttons = nullptr;
 
     if (auto attention_code = warning_attention(fsm_change); attention_code.has_value()) {
         switch (*attention_code) {
@@ -253,19 +260,29 @@ StateWithDialog get_state_with_dialog(bool ready) {
         case ErrCode::CONNECT_STEPPERS_TIMEOUT:
 #endif
             warning_err_code = *attention_code;
+            // All warnings are dialogs with just an Continue button.
+            buttons = responses_continue.data();
             break;
         default:
-            return { DeviceState::Attention, attention_code.value(), attention_code.has_value() ? make_optional(fsm_gen) : nullopt };
+            // All warnings are dialogs with just an Continue button.
+            return StateWithDialog::attention(*attention_code, fsm_gen, responses_continue.data());
         }
     }
 
     switch (fsm_change.q0_change.get_fsm_type()) {
-    case ClientFSM::PrintPreview:
-        if (auto attention_code = attention_while_printpreview(GetEnumFromPhaseIndex<PhasesPrintPreview>(fsm_change.q0_change.get_data().GetPhase())); attention_code.has_value()) {
-            return StateWithDialog::attention(attention_code.value(), fsm_gen);
+    case ClientFSM::PrintPreview: {
+        auto phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(fsm_change.q0_change.get_data().GetPhase());
+        if (auto attention_code = attention_while_printpreview(phase); attention_code.has_value()) {
+            buttons = ClientResponses::GetResponses(phase).data();
+            return StateWithDialog::attention(attention_code.value(), fsm_gen, buttons);
         }
         break;
+    }
     case ClientFSM::Printing:
+        // Buttons left out for the first round. Things like filament runout and crash
+        // recovery problems likely need local access to the printer anyway and
+        // it's actually not entirely clear what „buttons“ we would have for
+        // eg. the runout.
         if (auto attention_code = attention_while_printing(fsm_change.q1_change); attention_code.has_value()) {
             return StateWithDialog::attention(attention_code.value(), fsm_gen);
         }
@@ -281,7 +298,13 @@ StateWithDialog get_state_with_dialog(bool ready) {
     // to allow or not allow remote printing based on this, but this will cause
     // preheat menu to be the only menu screen to not be Idle... :-(
     case ClientFSM::Preheat:
-        return { DeviceState::Busy, warning_err_code, warning_err_code.has_value() ? make_optional(fsm_gen) : nullopt };
+        // TODO: On some future sunny day, we want to cover all the selftests
+        // and ESP flashing with actual dialogs too; currently we only show a
+        // possible warning dialog sitting _on top_ of these.
+        //
+        // But that's a lot of work, complex, etc, and may need some „special“
+        // dialogs too. Leaving it out for now.
+        return { DeviceState::Busy, warning_err_code, warning_err_code.has_value() ? make_optional(fsm_gen) : nullopt, buttons };
     default:
         break;
     }
