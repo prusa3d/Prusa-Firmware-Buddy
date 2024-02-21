@@ -249,8 +249,8 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const TestData 
     }
 
     // cannot have both stsXAxisWithMotorDetection and stsXAxis
-    if (m_Mask & stsXAxisWithMotorDetection) {
-        m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsXAxis)));
+    if (m_Mask & to_one_hot(stsXAxisWithMotorDetection)) {
+        m_Mask = (SelftestMask_t)(m_Mask & ~to_one_hot(stsXAxis));
     }
 
     m_State = stsStart;
