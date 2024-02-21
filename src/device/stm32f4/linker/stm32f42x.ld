@@ -207,9 +207,9 @@ SECTIONS
   /* Remove information from the standard libraries */
   /DISCARD/ :
   {
-    libc.a ( * )
-    libm.a ( * )
-    libgcc.a ( * )
+    libc.a:* ( * )
+    libm.a:* ( * )
+    libgcc.a:* ( * )
     *(.ARM.exidx*)
     *(.ARM.extab* .gnu.linkonce.armextab.*)
   }
