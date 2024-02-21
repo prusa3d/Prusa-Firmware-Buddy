@@ -80,10 +80,6 @@ void BedPreheat::wait_for_preheat() {
     waiting = false;
 }
 
-bool BedPreheat::can_skip() {
-    return can_preheat && !preheated;
-}
-
 bool BedPreheat::is_waiting() {
     return waiting;
 }
