@@ -214,7 +214,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
     }
 
     // if any is still in progress, return true to run this again, otherwise end test
-    if (std::ranges::any_of(pNozzles, [](IPartHandler *val) { return val != nullptr; }) || *pBed != nullptr) {
+    if (std::ranges::any_of(pNozzles, [](IPartHandler *val) { return val != nullptr; }) || (pBed && *pBed != nullptr)) {
         return true;
     }
 
