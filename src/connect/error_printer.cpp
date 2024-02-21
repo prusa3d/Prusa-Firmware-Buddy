@@ -4,6 +4,7 @@
 #include <common/random.h>
 
 using printer_state::DeviceState;
+using printer_state::Dialog;
 using printer_state::StateWithDialog;
 using std::make_tuple;
 using std::nullopt;
@@ -33,17 +34,19 @@ Printer::Params ErrorPrinter::params() const {
     if (error_code == 0) {
         params.state = StateWithDialog(DeviceState::Error);
         // Set dialog ID, but keep code empty
-        params.state.dialog_id = dialog_id;
+        params.state.dialog = Dialog {
+            dialog_id,
+        };
     } else {
         params.state = StateWithDialog(DeviceState::Error, static_cast<ErrCode>(error_code), dialog_id);
     }
 
     if (title[0]) {
-        params.state.title = title;
+        params.state.dialog->title = title;
     }
 
     if (text[0]) {
-        params.state.text = text;
+        params.state.dialog->text = text;
     }
 
     // Version can change between MK4 and MK3.9 in runtime

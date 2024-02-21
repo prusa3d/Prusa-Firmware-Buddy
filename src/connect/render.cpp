@@ -146,8 +146,8 @@ namespace {
                 JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
             }
 
-            if (params.state.dialog_id.has_value()) {
-                JSON_FIELD_INT_G(params.state.dialog_id.has_value(), "dialog_id", *params.state.dialog_id) JSON_COMMA;
+            if (params.state.dialog.has_value()) {
+                JSON_FIELD_INT_G(params.state.dialog.has_value(), "dialog_id", params.state.dialog->dialog_id) JSON_COMMA;
             }
             // State is sent always, first because it seems important, but
             // also, we want something that doesn't have the final comma on
@@ -428,7 +428,7 @@ namespace {
                     // JSON :-(
                     state.need_comma = false;
 
-                    if (params.state.code.has_value()) {
+                    if (params.state.has_code()) {
                         state.need_comma = true;
                         // The additional value() check is there for the event
                         // where the below doesn't fit, we get resumed and
@@ -438,10 +438,10 @@ namespace {
                         //
                         // (We could use the _GUARD version, but that one seems
                         // too drastic for this case).
-                        JSON_FIELD_STR_FORMAT("code", "%05" PRIu16, params.state.code.has_value() ? static_cast<uint16_t>(*params.state.code) : 0);
+                        JSON_FIELD_STR_FORMAT("code", "%05" PRIu16, params.state.code_num());
                     }
 
-                    if (params.state.title) {
+                    if (params.state.title()) {
                         if (state.need_comma) {
                             JSON_COMMA;
                         }
@@ -449,24 +449,24 @@ namespace {
                         state.need_comma = true;
 
                         // Similar trick as above for the suspend/resume-race.
-                        JSON_FIELD_STR("title", params.state.title ? : "");
+                        JSON_FIELD_STR("title", params.state.title() ? : "");
                     }
 
-                    if (params.state.text) {
+                    if (params.state.text()) {
                         if (state.need_comma) {
                             JSON_COMMA;
                         }
 
                         state.need_comma = true;
 
-                        JSON_FIELD_STR("text", params.state.text ? : "");
+                        JSON_FIELD_STR("text", params.state.text() ? : "");
                     }
                     // In the future, we may have some info in here (like, buttons).
                 JSON_OBJ_END JSON_COMMA;
             }
 
-            if (params.state.dialog_id.has_value()) {
-                JSON_FIELD_INT_G(params.state.dialog_id.has_value(), "dialog_id", *params.state.dialog_id) JSON_COMMA;
+            if (params.state.dialog.has_value()) {
+                JSON_FIELD_INT_G(params.state.dialog.has_value(), "dialog_id", params.state.dialog->dialog_id) JSON_COMMA;
             }
             JSON_FIELD_STR("state", to_str(params.state.device_state)) JSON_COMMA;
             if (event.command_id.has_value()) {
