@@ -103,26 +103,22 @@ inline constexpr ErrDesc error_list[] = {{{list_items}
 }};
 """
 
-def generate_header_file(yaml_file_name, header_file_name, mmu, list, includes):
+def generate_header_file(yaml_file_name, header_file_name, printer_id, printer_code, mmu, list, includes):
     with open(yaml_file_name, "r") as yaml_file:
         parsed_file = yaml.safe_load(yaml_file)
-
-        printer_code = None
 
         err_id_cache = set()
         err_dict = {}
 
         for err in parsed_file["Errors"]:
+            if ("printers" in err) and (printer_id not in err["printers"]):
+                continue
+
             code = err["code"]
             assert len(code) == 5, f"Error code {code} is not five digits."
+            assert code[0:2] == "XX" or code[0:2] == printer_code, f"Code '{code}' has conflicting prefix, expected 'XX' or '{printer_code}'"
 
-            curr_printer_code = int(code[0:2])
-            if printer_code is None:
-                printer_code = curr_printer_code
-            else:
-                assert curr_printer_code == printer_code, \
-                f"Printer code {curr_printer_code} of error code {code} is not " + \
-                f"the same as previously specified printer code {printer_code}."
+            code = f"{printer_code}{code[2:]}"
 
             err_class = int(code[2:3])
             assert err_class in err_class_mapping, f"Unknown error class {err_class} in error code {code}."
@@ -196,7 +192,7 @@ def generate_header_file(yaml_file_name, header_file_name, mmu, list, includes):
         else:
             template = buddy_template
 
-    content = template.format(printer_code=printer_code, enum_items=enum_items, list_items=list_items, include_items=include_items)
+    content = template.format(printer_code=int(printer_code), enum_items=enum_items, list_items=list_items, include_items=include_items)
 
     with open(header_file_name, 'w') as f:
         f.write(content)
@@ -205,6 +201,8 @@ def generate_header_file(yaml_file_name, header_file_name, mmu, list, includes):
 def main(args):
     generate_header_file(getattr(args, "yaml-file"),
                          getattr(args, "output-file"),
+                         getattr(args, "printer-id"),
+                         getattr(args, "printer-code"),
                          args.mmu, args.list, args.include)
 
 
@@ -212,6 +210,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('yaml-file', type=Path)
     parser.add_argument('output-file', type=Path)
+    parser.add_argument('printer-id', type=str)
+    parser.add_argument('printer-code', type=str)
     parser.add_argument('--mmu', default=False, action='store_true', help='Generate mmu error codes')
     parser.add_argument('--list', default=False, action='store_true', help='Generate error list, requires translations')
     parser.add_argument('--include', default=[], action='append', help='List of files to include')
