@@ -27,6 +27,7 @@ bool phase_phase_stepping(IPartHandler *&selftest_phase_stepping, const Selftest
         selftest_phase_stepping = selftest::Factory::CreateDynamical<SelftestPhaseStepping>(
             config,
             static_result,
+            &SelftestPhaseStepping::state_intro,
             &SelftestPhaseStepping::state_calib_pick_tool,
             &SelftestPhaseStepping::state_wait_until_done,
             &SelftestPhaseStepping::state_calib_x,
@@ -59,6 +60,18 @@ SelftestPhaseStepping::SelftestPhaseStepping(IPartHandler &state_machine, const 
     : state_machine(state_machine)
     , config(config)
     , result(result) {
+}
+
+LoopResult SelftestPhaseStepping::state_intro() {
+    IPartHandler::SetFsmPhase(PhasesSelftest::PhaseStepping_intro);
+    switch (state_machine.GetButtonPressed()) {
+    case Response::Abort:
+        return LoopResult::Abort;
+    case Response::Continue:
+        return LoopResult::RunNext;
+    default:
+        return LoopResult::RunCurrent;
+    }
 }
 
 LoopResult SelftestPhaseStepping::state_calib_pick_tool() {

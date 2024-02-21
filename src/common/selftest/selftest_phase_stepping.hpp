@@ -21,6 +21,7 @@ class SelftestPhaseStepping {
 public:
     SelftestPhaseStepping(IPartHandler &state_machine, const SelftestPhaseSteppingConfig &config, SelftestPhaseSteppingResult &result);
 
+    LoopResult state_intro();
     LoopResult state_calib_pick_tool();
     LoopResult state_calib_x();
     LoopResult state_calib_y();

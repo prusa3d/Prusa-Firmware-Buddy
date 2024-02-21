@@ -292,7 +292,8 @@ enum class PhasesSelftest : uint16_t {
 
 #if HAS_PHASE_STEPPING()
     _first_PhaseStepping,
-    PhaseStepping_pick_tool = _first_PhaseStepping,
+    PhaseStepping_intro = _first_PhaseStepping,
+    PhaseStepping_pick_tool,
     PhaseStepping_calib_x,
     PhaseStepping_calib_y,
     PhaseStepping_calib_x_nok,
@@ -600,6 +601,7 @@ class ClientResponses {
         { Response::Continue }, // ToolOffsets_wait_user_remove_pin
 
 #if HAS_PHASE_STEPPING()
+        { Response::Continue, Response::Abort }, // PhaseStepping_intro
         {}, // PhaseStepping_pick_tool
         {}, // PhaseStepping_calib_x
         {}, // PhaseStepping_calib_y
