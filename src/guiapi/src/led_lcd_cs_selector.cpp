@@ -53,19 +53,19 @@ void GuiLedsWriter::write(uint8_t *pb, uint16_t size) {
 void SideStripWriter::write(uint8_t *pb, uint16_t size) {
     SPI_HandleTypeDef *hspi = hw_get_spi_side_strip();
 
-    // LEDs use MHz10_5, reconfigure prescaler accordingly
-    SPIBaudRatePrescalerGuard guard { hspi, SPI_BAUDRATEPRESCALER_8 };
-
     /// true when SPI to control LEDs is shared with LCD
     const bool spi_shared_with_lcd = (hspi == &SPI_HANDLE_FOR(lcd));
 
-    // This nop is sent because it ends the transmission with the MO pin on LOW.
-    // If we chip select the neopixel with the data set to high, it registers it as an input and screws up the communication.
-    // The correct solution would possibly be to pull the pin to LOW after the chip select for at least the prescribed RESET duration.¨
-    // BFW-5067
-    ili9488_cmd_nop();
-
     if (spi_shared_with_lcd) {
+        // LEDs use MHz10_5, reconfigure prescaler accordingly
+        SPIBaudRatePrescalerGuard guard { hspi, SPI_BAUDRATEPRESCALER_8 };
+
+        // This nop is sent because it ends the transmission with the MO pin on LOW.
+        // If we chip select the neopixel with the data set to high, it registers it as an input and screws up the communication.
+        // The correct solution would possibly be to pull the pin to LOW after the chip select for at least the prescribed RESET duration.¨
+        // BFW-5067
+        ili9488_cmd_nop();
+
         // switch multiplex to send data to side led strip
         displayCs.set();
         SideLed_LcdSelector->set();
@@ -76,6 +76,7 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
         // switch multiplex back
         displayCs.reset();
         SideLed_LcdSelector->reset();
+
     } else {
         HAL_SPI_Abort(hspi);
         assert(can_be_used_by_dma(pb));
