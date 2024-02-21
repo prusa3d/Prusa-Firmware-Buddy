@@ -18,7 +18,8 @@ def bin2cc(src_filename: Path, dst_filename: Path, var_name: str):
         return 1
     with open(src_filename.resolve(),
               "rb") as src_file, open(str(dst_filename), "w") as dst_file:
-        dst_file.write("const uint8_t {}[] = ".format(str(var_name)) + "{\n")
+        dst_file.write("constexpr uint8_t {}[] = ".format(str(var_name)) +
+                       "{\n")
         byte = src_file.read(1)
         while byte:
             dst_file.write("\t0x{},\n".format(byte.hex()))
