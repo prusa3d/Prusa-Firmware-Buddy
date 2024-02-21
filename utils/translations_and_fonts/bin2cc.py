@@ -14,7 +14,7 @@ def bin2cc(src_filename: Path, dst_filename: Path, var_name: str, w: int,
         return 1
     with open(src_filename.resolve(),
               "rb") as src_file, open(str(dst_filename), "w") as dst_file:
-        dst_file.write("const uint8_t font_{}_{}x{}_data[] = ".format(
+        dst_file.write("constexpr uint8_t font_{}_{}x{}_data[] = ".format(
             str(var_name), str(w), str(h)) + "{\n")
         byte = src_file.read(1)
         while byte:
@@ -22,7 +22,7 @@ def bin2cc(src_filename: Path, dst_filename: Path, var_name: str, w: int,
             byte = src_file.read(1)
         dst_file.write("};\n")
         dst_file.write(
-            f"const font_t font_{var_name}_{w}x{h} = {{ {w}, {h}, {math.ceil(w/2)}, (uint16_t *)font_{var_name}_{w}x{h}_data, 32, 255 }};\n"
+            f"constexpr font_t font_{var_name}_{w}x{h} = {{ {w}, {h}, {math.ceil(w/2)}, font_{var_name}_{w}x{h}_data, 32, 255 }};\n"
         )
 
 
