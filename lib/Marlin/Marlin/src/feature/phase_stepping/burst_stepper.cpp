@@ -28,28 +28,27 @@ public:
     }
 
     void clear() {
-        if (!_dirty) {
+        if (_max_idx < 0) {
             return;
         }
         _buffer.fill(0);
-        _dirty = false;
+        _max_idx = -1;
     };
 
-    void start_fill() {
-        _dirty = true;
+    void add_event(int idx, uint32_t event_mask) {
+        assert(idx < SIZE);
+        _buffer[idx] |= event_mask;
+        if (idx > _max_idx) {
+            _max_idx = idx;
+        }
     }
 
-    void add_event(int idx, uint32_t event_mask) {
-        // assert(idx < SIZE);
-        _buffer[idx] |= event_mask;
+    int max_event_count() {
+        return _max_idx + 1;
     }
 
     static int size() {
         return SIZE;
-    }
-
-    bool dirty() {
-        return _dirty;
     }
 
     const uint32_t *dma_buffer() const {
@@ -58,7 +57,7 @@ public:
 
 private:
     std::array<uint32_t, SIZE> _buffer {};
-    bool _dirty = false;
+    int _max_idx = -1;
 };
 
 template <typename T>
@@ -134,7 +133,6 @@ FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
     const uint32_t neg_mask = step_masks[axis] << 16;
 
     bool current_state = axis_step_state[axis];
-    setup_buffer->start_fill();
     for (std::size_t i = 0; i != udiff; i++) {
         current_state = !current_state;
         std::size_t idx = (spacing * i) >> 16;
@@ -151,7 +149,7 @@ FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
 FORCE_OFAST static void setup_and_fire_dma() {
     assert(!busy());
     BURST_DMA->CR = BURST_DMA->CR & (~DMA_SxCR_EN_Msk);
-    BURST_DMA->NDTR = fire_buffer->size();
+    BURST_DMA->NDTR = fire_buffer->max_event_count();
     BURST_DMA->PAR = reinterpret_cast<uint32_t>(&step_gpio_port->BSRR);
     BURST_DMA->M0AR = reinterpret_cast<uint32_t>(fire_buffer->dma_buffer());
     BURST_DMA_REGS->IFCR = 0b111111 << BURST_DMA_REGS_OFFSET;
@@ -177,7 +175,7 @@ FORCE_OFAST void burst_stepping::fire() {
             dir_signals[i].write(Pin::State::high);
         }
     }
-    if (setup_buffer->dirty()) {
+    if (setup_buffer->max_event_count()) {
         std::swap(setup_buffer, fire_buffer);
         setup_and_fire_dma();
         setup_buffer->clear();
