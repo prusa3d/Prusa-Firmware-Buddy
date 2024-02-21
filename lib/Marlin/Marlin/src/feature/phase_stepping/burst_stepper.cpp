@@ -107,6 +107,9 @@ void burst_stepping::init() {
 }
 
 FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
+    // ensure we're called at most once per burst in order not to trash the sparse map
+    assert(!axis_was_set[axis]);
+
     if (axis >= SUPPORTED_AXIS_COUNT) {
         bsod("Unsupported axis");
     }
