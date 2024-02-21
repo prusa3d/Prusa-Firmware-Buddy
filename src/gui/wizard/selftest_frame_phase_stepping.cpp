@@ -96,6 +96,6 @@ void SelftestFramePhaseStepping::flip_layout() {
     icon_phone.Hide();
     qr.Hide();
     link.Hide();
-    text.SetRect({ 0, GuiDefaults::HeaderHeight, GuiDefaults::ScreenWidth, GuiDefaults::BodyHeight });
+    text.SetRect({ 0, GuiDefaults::HeaderHeight, GuiDefaults::ScreenWidth, GuiDefaults::BodyHeight - GuiDefaults::HeaderHeight });
     text.SetAlignment(Align_t::Center());
 }
