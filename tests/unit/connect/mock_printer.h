@@ -1,6 +1,7 @@
 #pragma once
 
 #include <connect/printer.hpp>
+#include <common/general_response.hpp>
 
 #include <cstring>
 #include <optional>
@@ -14,6 +15,20 @@ inline Printer::Params params_idle() {
 
     params.job_id = 13;
     params.state = printer_state::DeviceState::Idle;
+    params.nozzle_diameter = 0.4;
+    params.version = { 2, 3, 0 };
+    params.number_of_slots = 1;
+
+    return params;
+}
+
+constexpr Response yes_no[] = { Response::Yes, Response::No, Response::_none, Response::_none };
+
+inline Printer::Params params_dialog() {
+    Printer::Params params(std::nullopt);
+
+    params.job_id = 13;
+    params.state = printer_state::StateWithDialog(printer_state::DeviceState::Attention, ErrCode::ERR_UNDEF, 42, yes_no);
     params.nozzle_diameter = 0.4;
     params.version = { 2, 3, 0 };
     params.number_of_slots = 1;

@@ -338,6 +338,26 @@ TEST_CASE("Render") {
         expected = e.str();
     }
 
+    SECTION("Event - state changed with dialog") {
+        action = Event {
+            EventType::StateChanged,
+            11
+        };
+        params.emplace(params_dialog());
+        // clang-format off
+        expected = "{"
+            "\"data\":{"
+                "\"code\":\"00000\","
+                "\"buttons\":[\"Yes\",\"No\"]"
+            "},"
+            "\"dialog_id\":42,"
+            "\"state\":\"ATTENTION\","
+            "\"command_id\":11,"
+            "\"event\":\"STATE_CHANGED\""
+        "}";
+        // clang-format on
+    }
+
     MockPrinter printer(params.value());
     RenderState state(printer, action, background_command_id);
     Renderer renderer(std::move(state));
