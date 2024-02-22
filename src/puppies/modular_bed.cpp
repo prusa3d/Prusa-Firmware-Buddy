@@ -325,21 +325,25 @@ float ModularBed::get_target(const uint8_t column, const uint8_t row) {
 }
 
 uint16_t ModularBed::idx(const uint8_t column, const uint8_t row) {
+    assert(column < BEDLET_MAX_X);
+    assert(row < BEDLET_MAX_Y);
+
+#if PRINTER_IS_PRUSA_XL
     static_assert(BEDLET_MAX_X == 4);
     static_assert(BEDLET_MAX_Y == 4);
-#if PRINTER_IS_PRUSA_XL
-    const static uint16_t map[4][4] = {
+    static constexpr uint8_t map[BEDLET_MAX_Y][BEDLET_MAX_X] = {
         { 7, 8, 9, 10 },
         { 6, 5, 12, 11 },
         { 3, 4, 13, 14 },
         { 2, 1, 16, 15 },
     };
 #elif PRINTER_IS_PRUSA_iX
-    const static uint16_t map[4][4] = {
-        { 5, 6, 11, 11 },
-        { 4, 13, 12, 12 },
-        { 3, 2, 14, 14 },
-        { 3, 2, 14, 14 },
+    static_assert(BEDLET_MAX_X == 3);
+    static_assert(BEDLET_MAX_Y == 3);
+    static constexpr uint8_t map[BEDLET_MAX_Y][BEDLET_MAX_X] = {
+        { 5, 6, 11 },
+        { 4, 13, 12 },
+        { 3, 2, 14 },
     };
 #else
     #error "Not defined for this printer."

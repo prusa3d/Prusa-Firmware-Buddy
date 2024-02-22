@@ -15,9 +15,12 @@ constexpr size_t bedlet_idx_to_board_number(size_t idx) {
 class ModularBed : public ModbusDevice, public AdvancedModularBed {
 public:
     static constexpr auto BEDLET_PERIOD_MS = 300;
-    static constexpr auto BEDLET_MAX_X = 4;
-    static constexpr auto BEDLET_MAX_Y = 4;
-    static constexpr auto BEDLET_COUNT = BEDLET_MAX_X * BEDLET_MAX_Y;
+    static constexpr auto BEDLET_MAX_X = X_HBL_COUNT;
+    static constexpr auto BEDLET_MAX_Y = Y_HBL_COUNT;
+    static constexpr auto BEDLET_SW_COUNT = BEDLET_MAX_X * BEDLET_MAX_Y;
+
+    /// Bedlet controller has 16 slots (even on iX - it's the same as on XL), we need to be checking all of them. (BFW-5109)
+    static constexpr auto BEDLET_COUNT = 16;
 
     using SystemDiscreteInput = modular_bed_shared::registers::SystemDiscreteInput;
     using HBDiscreteInput = modular_bed_shared::registers::HBDiscreteInput;
