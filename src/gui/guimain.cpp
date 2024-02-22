@@ -1,5 +1,6 @@
 #include "gui_time.hpp"
 #include "gui.hpp"
+#include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include "display_hw_checks.hpp"
 #include "ScreenHandler.hpp"
