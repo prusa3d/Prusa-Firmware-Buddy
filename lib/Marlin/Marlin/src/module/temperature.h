@@ -196,7 +196,6 @@ struct PIDHeaterInfo : public HeaterInfo {
 // Modular heater
 #if ENABLED(MODULAR_HEATBED)
 struct ModularBedHeater: public HeaterInfo {
-  HeaterInfo bedlets[X_HBL_COUNT][Y_HBL_COUNT];
   uint16_t enabled_mask = 0xffff;
 };
 #endif
@@ -741,9 +740,6 @@ class Temperature {
       FORCE_INLINE static bool isCoolingBed()     { return temp_bed.target < temp_bed.celsius; }
 
       #if ENABLED(MODULAR_HEATBED)
-        FORCE_INLINE static float degBedlet(const uint8_t x, const uint8_t y) {
-          return temp_bed.bedlets[x][y].celsius;
-        }
         FORCE_INLINE static uint16_t getEnabledBedletMask() {
           return temp_bed.enabled_mask;
         }
@@ -755,7 +751,6 @@ class Temperature {
               if(temp_bed.enabled_mask & (1 << advanced_modular_bed->idx(x, y))) {
                 target_temp = temp_bed.target;
               }
-              temp_bed.bedlets[x][y].target = target_temp;
               advanced_modular_bed->set_target(x, y, target_temp);
             }
           }
@@ -794,7 +789,6 @@ class Temperature {
               if(temp_bed.enabled_mask & (1 << advanced_modular_bed->idx(x, y))) {
                 target_temp = temp_bed.target;
               }
-              temp_bed.bedlets[x][y].target = target_temp;
               advanced_modular_bed->set_target(x, y, target_temp);
             }
           }
