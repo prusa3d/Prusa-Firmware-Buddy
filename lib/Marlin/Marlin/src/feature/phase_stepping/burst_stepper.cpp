@@ -38,6 +38,9 @@ public:
     void add_event(int idx, uint32_t event_mask) {
         assert(idx < SIZE);
         _buffer[idx] |= event_mask;
+    }
+
+    void mark_max_event(int idx) {
         if (idx > _max_idx) {
             _max_idx = idx;
         }
@@ -136,15 +139,17 @@ FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
     const uint32_t neg_mask = step_masks[axis] << 16;
 
     bool current_state = axis_step_state[axis];
+    std::size_t idx = 0;
     for (std::size_t i = 0; i != udiff; i++) {
         current_state = !current_state;
-        std::size_t idx = (spacing * i) >> 16;
+        idx = (spacing * i) >> 16;
         if (current_state) {
             setup_buffer->add_event(idx, pos_mask);
         } else {
             setup_buffer->add_event(idx, neg_mask);
         }
     }
+    setup_buffer->mark_max_event(idx);
     axis_step_state[axis] = current_state;
     axis_was_set[axis] = true;
 }
