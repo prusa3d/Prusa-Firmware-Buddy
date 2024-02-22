@@ -1,7 +1,6 @@
 // DialogHandler.cpp
 #include "DialogHandler.hpp"
 #include "DialogLoadUnload.hpp"
-#include "DialogFactory.hpp"
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
 #include "ScreenESP.hpp"
@@ -9,6 +8,9 @@
 #include "config_features.h"
 #include "screen_print_preview.hpp"
 #include "log.h"
+#include "window_dlg_preheat.hpp"
+#include "window_dlg_quickpause.hpp"
+#include "window_dlg_warning.hpp"
 LOG_COMPONENT_REF(GUI);
 
 #if HAS_SELFTEST()
@@ -31,6 +33,16 @@ using SerialPrint = screen_printing_serial_data_t;
     #include "screen_dialog_does_not_exist.hpp"
 using SerialPrint = ScreenDialogDoesNotExist;
 #endif
+
+using mem_space = std::aligned_union_t<0, DialogQuickPause, DialogLoadUnload, DialogMenuPreheat, DialogWarning>;
+static mem_space all_dialogs;
+
+// safer than make_static_unique_ptr, checks storage size
+template <class T, class... Args>
+static static_unique_ptr<IDialogMarlin> make_dialog_ptr(Args &&...args) {
+    static_assert(sizeof(T) <= sizeof(all_dialogs), "Error dialog does not fit");
+    return make_static_unique_ptr<T>(&all_dialogs, std::forward<Args>(args)...);
+}
 
 static void OpenPrintScreen(ClientFSM dialog) {
     switch (dialog) {
@@ -96,8 +108,20 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
             Screens::Access()->Open(ScreenFactory::Screen<ScreenESP>);
         }
         break;
-    default:
-        ptr = dialog_ctors[size_t(fsm_type)](data);
+    case ClientFSM::QuickPause:
+        ptr = make_dialog_ptr<DialogQuickPause>(data);
+        break;
+    case ClientFSM::Warning:
+        ptr = make_dialog_ptr<DialogWarning>(data);
+        break;
+    case ClientFSM::Load_unload:
+        ptr = make_dialog_ptr<DialogLoadUnload>(data);
+        break;
+    case ClientFSM::Preheat:
+        ptr = make_dialog_ptr<DialogMenuPreheat>(data);
+        break;
+    case ClientFSM::_none:
+        break;
     }
 }
 
@@ -164,11 +188,9 @@ bool DialogHandler::IsOpen() const {
     return ptr != nullptr;
 }
 
-//*****************************************************************************
-// Meyers singleton
 DialogHandler &DialogHandler::Access() {
-    static DialogHandler ret(DialogFactory::GetAll());
-    return ret;
+    static DialogHandler instance;
+    return instance;
 }
 
 void DialogHandler::Command(std::pair<uint32_t, uint16_t> serialized) {

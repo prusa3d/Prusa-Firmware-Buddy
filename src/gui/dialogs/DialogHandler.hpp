@@ -1,16 +1,16 @@
 #pragma once
 
 #include <stdint.h>
+#include "IDialogMarlin.hpp"
 #include "fsm_types.hpp"
-#include "DialogFactory.hpp"
+#include "screen_init_variant.hpp"
+#include "static_alocation_ptr.hpp"
 
 class DialogHandler {
     static_unique_ptr<IDialogMarlin> ptr;
-    DialogFactory::Ctors dialog_ctors;
     fsm::SmartQueue command_queue;
 
-    DialogHandler(DialogFactory::Ctors ctors)
-        : dialog_ctors(ctors) {}
+    DialogHandler() = default;
     DialogHandler(DialogHandler &) = delete;
 
     void close(ClientFSM fsm_type);

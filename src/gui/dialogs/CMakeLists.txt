@@ -3,7 +3,6 @@ target_include_directories(firmware PRIVATE .)
 target_sources(
   firmware
   PRIVATE DialogConnectReg.cpp
-          DialogFactory.cpp
           DialogHandler.cpp
           DialogLoadUnload.cpp
           DialogMoveZ.cpp
