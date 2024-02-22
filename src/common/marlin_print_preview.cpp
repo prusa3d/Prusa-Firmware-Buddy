@@ -659,6 +659,15 @@ PrintPreview::Result PrintPreview::Loop() {
         break;
 
     case State::checks_done:
+#if PRINTER_IS_PRUSA_iX
+        // We've removed reset_bounding_rect at the end of the print for the iX (in marlin_server.cpp::finalize_print).
+        // So now, just to make sure, we reset the bounding rect at the start if we don't see it being set in the gcode.
+        // BFW-5085
+        if (!GCodeInfo::getInstance().get_bed_preheat_area().has_value()) {
+            PrintArea::reset_bounding_rect();
+        }
+#endif
+
         if (tools_mapping::is_tool_mapping_possible()) {
 #if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
             if ((skip_if_able >= marlin_server::PreviewSkipIfAble::tool_mapping) && PrintPreview::check_tools_mapping_validity(tool_mapper, spool_join, gcode_info).all_ok()) {
