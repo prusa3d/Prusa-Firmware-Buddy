@@ -78,6 +78,10 @@ struct StateWithDialog {
     const char *text() const {
         return dialog.has_value() ? dialog->text : nullptr;
     }
+
+    const Response *buttons() const {
+        return dialog.has_value() ? dialog->buttons : nullptr;
+    }
 };
 
 DeviceState get_state(bool ready = false);

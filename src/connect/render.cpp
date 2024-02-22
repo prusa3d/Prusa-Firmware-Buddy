@@ -2,6 +2,7 @@
 #include "printer_type.hpp"
 #include "str_utils.hpp"
 
+#include <client_response.hpp>
 #include <segmented_json_macros.h>
 #include <lfn.h>
 #include <filename_type.hpp>
@@ -39,6 +40,78 @@ using transfers::Monitor;
 namespace connect_client {
 
 namespace {
+
+    const char *to_str(Response response) {
+        switch (response) {
+#define R(NAME)          \
+    case Response::NAME: \
+        return #NAME
+            R(Abort);
+            R(Abort_invalidate_test);
+            R(ABS);
+            R(Adjust);
+            R(All);
+            R(ASA);
+            R(Back);
+            R(Cancel);
+            R(Change);
+            R(Continue);
+            R(Cooldown);
+            R(Disable);
+            R(Filament);
+            R(Filament_removed);
+            R(Finish);
+            R(FLEX);
+            R(FS_disable);
+            R(HighFlow);
+            R(HIPS);
+            R(Ignore);
+            R(Left);
+            R(Load);
+            R(MMU_disable);
+            R(Never);
+            R(Next);
+            R(No);
+            R(NotNow);
+            R(NozzleDiameter_04);
+            R(NozzleDiameter_06);
+            R(Ok);
+            R(Pause);
+            R(PC);
+            R(PETG);
+            R(PLA);
+            R(PP);
+            R(Print);
+            R(PrusaStock);
+            R(Purge_more);
+            R(PVB);
+            R(Quit);
+            R(Reheat);
+            R(Replace);
+            R(Remove);
+            R(Restart);
+            R(Resume);
+            R(Retry);
+            R(Right);
+            R(Skip);
+            R(Slowly);
+            R(SpoolJoin);
+            R(Stop);
+            R(Unload);
+            R(Yes);
+            R(Heatup);
+            R(PA);
+            R(PRINT);
+        // These should never reach here
+        case Response::_count:
+        case Response::_none:
+            break;
+        }
+#undef R
+
+        assert(0);
+        return "";
+    }
 
     std::optional<transfers::Monitor::Status> get_transfer_status(size_t resume_point, const RenderState &state) {
         if (state.transfer_id.has_value()) {
@@ -125,14 +198,15 @@ namespace {
 #if HAS_MMU2() || HAS_TOOLCHANGER()
             if (params.mmu_enabled || option::has_toolchanger) {
                 JSON_FIELD_OBJ("slot");
-                    while (state.slot_iter < params.number_of_slots) {
-                        JSON_CUSTOM("\"%zu\":{", state.slot_iter + 1);
-                            JSON_FIELD_STR("material", params.slots[state.slot_iter].material) JSON_COMMA;
-                            JSON_FIELD_FFIXED("temp", params.slots[state.slot_iter].temp_nozzle, 1) JSON_COMMA;
-                            JSON_FIELD_FFIXED("fan_hotend", params.slots[state.slot_iter].heatbreak_fan_rpm, 1) JSON_COMMA;
-                            JSON_FIELD_FFIXED("fan_print", params.slots[state.slot_iter].print_fan_rpm, 1);
+                    state.iter = 0;
+                    while (state.iter < params.number_of_slots) {
+                        JSON_CUSTOM("\"%zu\":{", state.iter + 1);
+                            JSON_FIELD_STR("material", params.slots[state.iter].material) JSON_COMMA;
+                            JSON_FIELD_FFIXED("temp", params.slots[state.iter].temp_nozzle, 1) JSON_COMMA;
+                            JSON_FIELD_FFIXED("fan_hotend", params.slots[state.iter].heatbreak_fan_rpm, 1) JSON_COMMA;
+                            JSON_FIELD_FFIXED("fan_print", params.slots[state.iter].print_fan_rpm, 1);
                         JSON_OBJ_END JSON_COMMA;
-                        state.slot_iter++;
+                        state.iter++;
                     }
                     if (params.mmu_enabled) {
                         JSON_FIELD_INT("state", params.progress_code) JSON_COMMA;
@@ -396,7 +470,8 @@ namespace {
 #if ENABLED(CANCEL_OBJECTS)
                 JSON_FIELD_OBJ("data");
                     JSON_FIELD_ARR("objects");
-                        while (state.cancelable_iter <  params.cancel_object_count) {
+                        state.iter = 0;
+                        while (state.iter <  params.cancel_object_count) {
                             //Note: It can theoretically happen, that print finishes and new starts as we are sending this (tho really unlikely)
                             //, but in that case we would just send some inconsistent names, probably empty srings and
                             //right after we would generate next event with the correct ones, so it is OK.
@@ -405,17 +480,17 @@ namespace {
                                 //
                                 // Also we store only CANCEL_OBJECT_NAME_COUNT names, but can cancel up to the number of bits in the cancel_object_mask
                                 // objects, for the rest we still want to say, if they are canceled or not.
-                                if (state.cancelable_iter < Printer::CANCEL_OBJECT_NAME_COUNT) {
+                                if (state.iter < Printer::CANCEL_OBJECT_NAME_COUNT) {
 
-                                    JSON_FIELD_STR("name", state.printer.get_cancel_object_name(cancel_object_name, sizeof(cancel_object_name), state.cancelable_iter)) JSON_COMMA;
+                                    JSON_FIELD_STR("name", state.printer.get_cancel_object_name(cancel_object_name, sizeof(cancel_object_name), state.iter)) JSON_COMMA;
                                 }
-                                JSON_FIELD_BOOL("canceled", TEST64(params.cancel_object_mask, state.cancelable_iter)) JSON_COMMA;
-                                JSON_FIELD_INT("id", state.cancelable_iter);
+                                JSON_FIELD_BOOL("canceled", TEST64(params.cancel_object_mask, state.iter)) JSON_COMMA;
+                                JSON_FIELD_INT("id", state.iter);
                             JSON_OBJ_END;
-                            if (state.cancelable_iter != params.cancel_object_count - 1) {
+                            if (state.iter != params.cancel_object_count - 1) {
                                 JSON_COMMA;
                             }
-                            state.cancelable_iter++;
+                            state.iter++;
                         }
                     JSON_ARR_END;
                 JSON_OBJ_END JSON_COMMA;
@@ -461,7 +536,37 @@ namespace {
 
                         JSON_FIELD_STR("text", params.state.text() ? : "");
                     }
-                    // In the future, we may have some info in here (like, buttons).
+
+                    // We store the buttons here to preserve them across the
+                    // resume points. This is fine, as these are all static
+                    // global variables, nothing allocated dynamically.
+                    //
+                    // We do so to:
+                    // * Make the iteration code simpler (no need to worry about changes).
+                    // * Make sure the result is consistent set of buttons that
+                    //   make sense to at least some dialog.
+                    if ((state.buttons = params.state.buttons()) != nullptr) {
+                        if (state.need_comma) {
+                            JSON_COMMA;
+                        }
+
+                        state.need_comma = true;
+
+                        JSON_FIELD_ARR("buttons");
+                        state.iter = 0;
+                        while (state.iter < MAX_RESPONSES) {
+                            if (state.buttons[state.iter] == Response::_none) {
+                                // We've run out of buttons.
+                                break;
+                            }
+                            if (state.iter > 0) {
+                                JSON_COMMA;
+                            }
+                            JSON_CUSTOM("\"%s\"", to_str(state.buttons[state.iter]));
+                            state.iter ++;
+                        }
+                        JSON_ARR_END;
+                    }
                 JSON_OBJ_END JSON_COMMA;
             }
 

@@ -7,7 +7,7 @@
 #include <inc/MarlinConfig.h>
 
 #include <stdint.h>
-#include <utility_extensions.hpp>
+#include <utils/utility_extensions.hpp>
 
 #ifdef __cplusplus
 // C++ checks enum classes

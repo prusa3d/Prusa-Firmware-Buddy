@@ -81,8 +81,7 @@ public:
 
 struct RenderState {
     // variable used to iterate through mmu/xl slots
-    size_t slot_iter = 0;
-    size_t cancelable_iter = 0;
+    size_t iter = 0;
     // Because JSON can't have trailing commas :-(
     bool need_comma = false;
 
@@ -98,6 +97,8 @@ struct RenderState {
 
     std::optional<transfers::TransferId> transfer_id = std::nullopt;
     std::optional<CommandId> background_command_id = std::nullopt;
+    // Temporary store to keep iteration stable.
+    const Response *buttons = nullptr;
 
     RenderState(const Printer &printer, const Action &action, std::optional<CommandId> background_command_id);
 };

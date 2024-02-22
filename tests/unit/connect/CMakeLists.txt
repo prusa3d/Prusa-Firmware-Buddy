@@ -97,7 +97,11 @@ target_include_directories(
           ${CMAKE_BINARY_DIR}/lib/libbgcode/src/
   )
 target_link_libraries(connect_tests mbedTLS bgcode_core)
-add_definitions(-DPRINTER_VERSION=3 -DPRINTER_SUBVERSION=0)
+# The board and version doesn't matter here, but it still insists on having them
+add_definitions(
+  -DPRINTER_VERSION=3 -DPRINTER_SUBVERSION=0 -DBOARD=1 -DBOARD_VERSION_MAJOR=0
+  -DBOARD_VERSION_MINOR=0 -DBOARD_VERSION_PATCH=0
+  )
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 
