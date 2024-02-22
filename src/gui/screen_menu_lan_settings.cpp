@@ -16,8 +16,7 @@
 ScreenMenuConnectionBase::ScreenMenuConnectionBase(uint32_t dev_id, const char *label)
     : ScreenMenuConnectionBase__(_(label))
     , dev_id(dev_id)
-    , mac_init(false)
-    , msg_shown(false) {
+    , mac_init(false) {
     refresh_addresses();
 }
 
@@ -87,15 +86,6 @@ void ScreenMenuConnectionBase::refresh_addresses() {
             break;
         }
     }
-}
-
-void ScreenMenuConnectionBase::show_msg() {
-    if (msg_shown) {
-        return;
-    }
-    AutoRestore<bool> AR(msg_shown);
-    msg_shown = true;
-    MsgBoxError(_("Static IPv4 addresses were not set."), Responses_Ok);
 }
 
 void ScreenMenuConnectionBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

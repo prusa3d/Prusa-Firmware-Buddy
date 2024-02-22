@@ -18,14 +18,12 @@ class ScreenMenuConnectionBase : public ScreenMenuConnectionBase__ {
 
     uint32_t dev_id;
     bool mac_init;
-    bool msg_shown;
 
 public:
     ScreenMenuConnectionBase(uint32_t dev_id, const char *label);
 
 protected:
     void refresh_addresses();
-    void show_msg();
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
