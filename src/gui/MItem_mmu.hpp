@@ -6,21 +6,21 @@
 #include "WindowItemFormatableLabel.hpp"
 #include "i18n.h"
 
-class MI_MMU_PRELOAD : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Preload to MMU");
+class MI_MMU_PRELOAD_ADVANCED : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Preload to MMU Advanced");
 
 public:
-    MI_MMU_PRELOAD();
+    MI_MMU_PRELOAD_ADVANCED();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_PRELOAD_LEGACY : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Preload to MMU Legacy");
+class MI_MMU_PRELOAD : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Preload to MMU");
 
 public:
-    MI_MMU_PRELOAD_LEGACY();
+    MI_MMU_PRELOAD();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
