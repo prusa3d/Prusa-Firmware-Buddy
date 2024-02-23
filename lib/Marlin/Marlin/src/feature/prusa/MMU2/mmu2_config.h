@@ -50,7 +50,7 @@ static constexpr float MMU2_EXTRUDER_NOZZLE_LENGTH = 20.F;
 static constexpr float MMU2_FILAMENT_SENSOR_POSITION = 0; // mm
 static constexpr float MMU2_EXTRUDER_PTFE_LENGTH = 42.3f; // mm
 static constexpr float MMU2_EXTRUDER_HEATBREAK_LENGTH = 17.7f; // mm
-static constexpr float MMU2_VERIFY_LOAD_TO_NOZZLE_TWEAK = -5.F; // mm used to shorten/lenghten (negative number -> shorten) the distange of verify load to nozzle
+static constexpr float MMU2_VERIFY_LOAD_TO_NOZZLE_TWEAK = -15.F; // mm used to shorten/lenghten (negative number -> shorten) the distange of verify load to nozzle
 static constexpr float MMU2_CHECK_FILAMENT_PRESENCE_EXTRUSION_LENGTH = MMU2_EXTRUDER_PTFE_LENGTH + MMU2_EXTRUDER_HEATBREAK_LENGTH + MMU2_VERIFY_LOAD_TO_NOZZLE_TWEAK + MMU2_FILAMENT_SENSOR_POSITION;
 
 static constexpr float MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE = 50.F;
