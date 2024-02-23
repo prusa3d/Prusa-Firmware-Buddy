@@ -17,6 +17,7 @@
 #include "bsod.h"
 #include "module/prusa/tool_mapper.hpp"
 #include "module/prusa/spool_join.hpp"
+#include "print_utils.hpp"
 #include "timing.h"
 #include "cmsis_os.h"
 #include "log.h"
@@ -62,6 +63,7 @@
 #include "fsm_types.hpp"
 #include "odometer.hpp"
 #include "metric.h"
+#include "app_metrics.h"
 
 #include <option/has_leds.h>
 #if HAS_LEDS()
@@ -373,8 +375,6 @@ namespace {
 osThreadId server_task = 0; // task handle
 ServerQueue server_queue;
 osSemaphoreId server_semaphore = 0; // semaphore handle
-
-idle_t *idle_cb = 0; // idle callback
 
 constexpr EncodedFSMResponse empty_encoded_fsm_response = {
     .encoded_phase = 0xff,
@@ -2950,9 +2950,13 @@ void onStartup() {
 
 void onIdle() {
     idle();
-    if (idle_cb) {
-        idle_cb();
-    }
+    buddy::metrics::RecordMarlinVariables();
+    buddy::metrics::RecordRuntimeStats();
+    buddy::metrics::RecordPrintFilename();
+#if (BOARD_IS_XLBUDDY)
+    buddy::metrics::record_dwarf_internal_temperatures();
+#endif
+    print_utils_loop();
 }
 
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {

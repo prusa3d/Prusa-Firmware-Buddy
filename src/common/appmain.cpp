@@ -16,7 +16,6 @@
 #include "gpio.h"
 #include "metric.h"
 #include "cpu_utils.hpp"
-#include "print_utils.hpp"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
 #include <device/board.h>
@@ -193,23 +192,12 @@ void app_setup(void) {
     marlin_server::settings_load(); // load marlin variables from eeprom
 }
 
-void app_idle(void) {
-    buddy::metrics::RecordMarlinVariables();
-    buddy::metrics::RecordRuntimeStats();
-    buddy::metrics::RecordPrintFilename();
-#if (BOARD_IS_XLBUDDY)
-    buddy::metrics::record_dwarf_internal_temperatures();
-#endif
-    print_utils_loop();
-}
-
 void app_run(void) {
 #if HAS_GUI()
     LangEEPROM::getInstance();
 #endif
 
     marlin_server::init();
-    marlin_server::idle_cb = app_idle;
 
     log_info(Marlin, "Starting setup");
 

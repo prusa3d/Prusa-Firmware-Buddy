@@ -35,11 +35,6 @@ constexpr uint16_t MARLIN_SFLG_STOPPED = 0x0020; // moves stopped until command 
 // server variable update interval [ms]
 constexpr uint8_t MARLIN_UPDATE_PERIOD = 100;
 
-typedef void(idle_t)();
-
-// callback for idle operation inside marlin (called from ExtUI handler onIdle)
-extern idle_t *idle_cb;
-
 extern osSemaphoreId server_semaphore; // semaphore handle
 
 //-----------------------------------------------------------------------------
