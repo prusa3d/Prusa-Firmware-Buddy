@@ -68,14 +68,26 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
 
         // switch multiplex to send data to side led strip
         displayCs.set();
-        SideLed_LcdSelector->set();
+
+    // On iX, we're getting null warning here even though we're behind a false check and null-checking...
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wnonnull"
+
+        if (SideLed_LcdSelector) {
+            SideLed_LcdSelector->set();
+        }
 
         // send data
         ili9488_spi_wr_bytes(pb, size);
 
         // switch multiplex back
         displayCs.reset();
-        SideLed_LcdSelector->reset();
+
+        if (SideLed_LcdSelector) {
+            SideLed_LcdSelector->reset();
+        }
+
+    #pragma GCC diagnostic pop
 
     } else {
         HAL_SPI_Abort(hspi);
