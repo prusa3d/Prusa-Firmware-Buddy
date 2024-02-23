@@ -42,6 +42,8 @@ char **environ = __env;
 void initialise_monitor_handles() {
 }
 
+extern "C" {
+
 int _getpid(void) {
     return 1;
 }
@@ -130,4 +132,5 @@ int _fork(void) {
 int _execve([[maybe_unused]] char *name, [[maybe_unused]] char **argv, [[maybe_unused]] char **env) {
     errno = ENOMEM;
     return -1;
+}
 }
