@@ -160,7 +160,7 @@ static void app_startup() {
     log_info(Buddy, "marlin task is starting");
 }
 
-void app_setup(void) {
+static void app_setup(void) {
     metric_record_event(&metric_app_start);
 
     if constexpr (!INIT_TRINAMIC_FROM_MARLIN_ONLY()) {
