@@ -225,7 +225,6 @@ public:
         id_icon = id;
         InValidateIcon();
     }
-    const img::Resource *GetIconId() const { return id_icon; }
     void SetLabel(string_view_utf8 text);
     /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text
