@@ -16,12 +16,27 @@
 
 namespace MMU2 {
 
+#if PRINTER_IS_PRUSA_MK3_5
+// MK3.5 underextrudes by default to match mk3's behaviour,
+// that doesn't play nicely with the absolute move distances of the MMU
+// -> need to compensate for the slight discrepancy.
+static constexpr float eStepsMultiplier = 1 / 0.95F;
+#else
+static constexpr float eStepsMultiplier = 1.0F;
+#endif
+
 void extruder_move(float distance, float feed_rate) {
-    mapi::extruder_move(distance, feed_rate);
+    mapi::extruder_move(distance * eStepsMultiplier, feed_rate);
 }
 
 void extruder_schedule_turning(float feed_rate) {
     mapi::extruder_schedule_turning(feed_rate);
+}
+
+float stepper_get_machine_position_E_mm() {
+    // it really depends on the coherence of sampling from the stepper
+    // we don't need any extra precision, 1mm should be enough
+    return planner.get_axis_position_mm(E_AXIS);
 }
 
 void planner_abort_queued_moves() {
@@ -42,12 +57,6 @@ float move_raise_z(float delta) {
 
 void planner_synchronize() {
     planner.synchronize();
-}
-
-float stepper_get_machine_position_E_mm() {
-    // it really depends on the coherence of sampling from the stepper
-    // we don't need any extra precision, 1mm should be enough
-    return planner.get_axis_position_mm(E_AXIS);
 }
 
 UnloadDistanceDetector::UnloadDistanceDetector() {
