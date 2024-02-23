@@ -400,7 +400,7 @@ void screen_home_data_t::handle_wifi_credentials() {
         fl.reset(fopen(settings_ini::file_name, "r"));
         has_wifi_credentials = fl.get() != nullptr;
     }
-    if (has_wifi_credentials && (name_and_psk_status() == Config::Status::not_equal)) {
+    if (has_wifi_credentials && (name_and_psk_status() == Config::Status::not_equal) && !option::developer_mode) {
         if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo, 1)
             == Response::Yes) {
             const auto fw_state = esp_fw_state();
@@ -478,7 +478,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
             // esp update has bigger priority tha one click print
             const auto fw_state = esp_fw_state();
             const bool esp_need_flash = fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware;
-            if (try_esp_flash && esp_need_flash && netdev_is_enabled(NETDEV_ESP_ID)) {
+            if (try_esp_flash && esp_need_flash && netdev_is_enabled(NETDEV_ESP_ID) && !option::developer_mode) {
                 try_esp_flash = false; // do esp flash only once (user can press abort)
                 marlin_client::gcode("M997 S1 O");
                 return;
