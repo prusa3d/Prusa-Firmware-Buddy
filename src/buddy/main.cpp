@@ -623,8 +623,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void StartDefaultTask([[maybe_unused]] void const *argument) {
-    app_startup();
-
     app_run();
     for (;;) {
         osDelay(1);

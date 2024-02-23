@@ -148,7 +148,7 @@ static void wait_for_serial() {
     }
 }
 
-void app_startup() {
+static void app_startup() {
     // Attempt to wait for CDC to initialize to get the full Marlin startup output
     wait_for_serial();
 
@@ -191,6 +191,8 @@ void app_setup(void) {
 }
 
 void app_run(void) {
+    app_startup();
+
 #if HAS_GUI()
     LangEEPROM::getInstance();
 #endif
