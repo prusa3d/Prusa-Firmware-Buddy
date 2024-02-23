@@ -4,6 +4,7 @@
 #if ENABLED(CRASH_RECOVERY)
 
     #include <array>
+    #include <stddef.h>
 
     #include "utility_extensions.hpp"
 
