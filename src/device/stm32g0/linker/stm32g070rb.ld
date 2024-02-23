@@ -199,9 +199,9 @@ SECTIONS
   /* Remove information from the compiler libraries */
   /DISCARD/ :
   {
-    libc.a ( * )
-    libm.a ( * )
-    libgcc.a ( * )
+    libc.a:* ( * )
+    libm.a:* ( * )
+    libgcc.a:* ( * )
   }
 
   .fw_descriptor : {
