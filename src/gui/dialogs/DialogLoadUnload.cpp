@@ -36,11 +36,11 @@ void RadioButtonNotice::ChangePhase(PhasesLoadUnload phase, PhaseResponses respo
 
 /*****************************************************************************/
 // clang-format off
-static const PhaseTexts ph_txt_reheat        = { BtnResponse::GetText(Response::Reheat),           BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none) };
-static const PhaseTexts ph_txt_disa          = { BtnResponse::GetText(Response::Filament_removed), BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none) };
-static const PhaseTexts ph_txt_iscolor       = { BtnResponse::GetText(Response::Yes),              BtnResponse::GetText(Response::No),    BtnResponse::GetText(Response::Retry), BtnResponse::GetText(Response::_none) };
-static const PhaseTexts ph_txt_iscolor_purge = { BtnResponse::GetText(Response::Yes),              BtnResponse::GetText(Response::No),    BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none) };
-static const PhaseTexts ph_txt_unload        = { BtnResponse::GetText(Response::Unload),           BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none) };
+static const PhaseTexts ph_txt_reheat        = { get_response_text(Response::Reheat),           get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
+static const PhaseTexts ph_txt_disa          = { get_response_text(Response::Filament_removed), get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
+static const PhaseTexts ph_txt_iscolor       = { get_response_text(Response::Yes),              get_response_text(Response::No),    get_response_text(Response::Retry), get_response_text(Response::_none) };
+static const PhaseTexts ph_txt_iscolor_purge = { get_response_text(Response::Yes),              get_response_text(Response::No),    get_response_text(Response::_none), get_response_text(Response::_none) };
+static const PhaseTexts ph_txt_unload        = { get_response_text(Response::Unload),           get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
 
 static constexpr const char *txt_first              = N_("Finishing buffered gcodes");
 static constexpr const char *txt_tool               = N_("Changing tool");

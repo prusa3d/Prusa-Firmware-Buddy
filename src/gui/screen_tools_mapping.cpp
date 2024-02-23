@@ -246,7 +246,7 @@ std::array<window_icon_t, sizeof...(Is)> make_right_phys_icon(std::index_sequenc
 
 Response tools_mapping_box(bool &querying_user, string_view_utf8 msg, PhaseResponses responses, size_t default_button = 0) {
     AutoRestore ar(querying_user, true);
-    const PhaseTexts labels = { BtnResponse::GetText(responses[0]), BtnResponse::GetText(responses[1]), BtnResponse::GetText(responses[2]), BtnResponse::GetText(responses[3]) };
+    const PhaseTexts labels = { get_response_text(responses[0]), get_response_text(responses[1]), get_response_text(responses[2]), get_response_text(responses[3]) };
     MsgBoxBase msgbox(GuiDefaults::DialogFrameRect, responses, default_button, &labels, msg, is_multiline::yes);
     msgbox.set_text_alignment(Align_t::Center());
     msgbox.MakeBlocking();

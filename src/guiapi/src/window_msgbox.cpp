@@ -362,10 +362,10 @@ Response MsgBoxBuilder::exec() const {
     const string_view_utf8 used_title = title.isNULLSTR() ? _(implicit_config.title) : title;
 
     const PhaseTexts labels = {
-        BtnResponse::GetText(responses[0]),
-        BtnResponse::GetText(responses[1]),
-        BtnResponse::GetText(responses[2]),
-        BtnResponse::GetText(responses[3]),
+        get_response_text(responses[0]),
+        get_response_text(responses[1]),
+        get_response_text(responses[2]),
+        get_response_text(responses[3]),
     };
 
     const auto box_f = [&]<typename T, MsgBoxDialogClass CS = MsgBoxDialogClass::_count, typename... Args>(Args... args) {

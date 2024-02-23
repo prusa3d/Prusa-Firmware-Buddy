@@ -46,7 +46,7 @@ void NsPreheat::MI_RETURN::click(IWindowMenu &window_menu) {
 /*****************************************************************************/
 // NsPreheat::MI_COOLDOWN
 NsPreheat::MI_COOLDOWN::MI_COOLDOWN()
-    : IWindowMenuItem(_(BtnResponse::GetText(Response::Cooldown)), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(get_response_text(Response::Cooldown)), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void NsPreheat::MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {

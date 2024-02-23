@@ -74,7 +74,7 @@ MI_METRICS_INFO_LABEL::MI_METRICS_INFO_LABEL()
 
 Response MetricsInfoMsgbox(string_view_utf8 txt) {
     static constexpr Response rsp { Response::Ok };
-    const PhaseTexts labels = { BtnResponse::GetText(rsp) };
+    const PhaseTexts labels = { get_response_text(rsp) };
     MsgBoxBase msgbox(GuiDefaults::RectScreen, { rsp }, 0, &labels, txt);
     msgbox.set_text_font(GuiDefaults::FontMenuSpecial);
     msgbox.MakeBlocking();

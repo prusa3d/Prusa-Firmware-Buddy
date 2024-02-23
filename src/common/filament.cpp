@@ -42,7 +42,7 @@ static_assert(std::ranges::all_of(filaments, temperatures_are_within_spec));
 filament::Type filament::get_type(const char *name, size_t name_len) {
     // first name is not valid ("---")
     for (size_t i = size_t(filament::Type::NONE) + 1; i <= size_t(filament::Type::_last); ++i) {
-        const char *filament_name = BtnResponse::GetText(filaments[i].response);
+        const char *filament_name = get_response_text(filaments[i].response);
         if ((strlen(filament_name) == name_len) && (!strncmp(name, filament_name, name_len))) {
             return static_cast<filament::Type>(i);
         }
@@ -68,7 +68,7 @@ const char *filament::get_name(Type type) {
         return "---";
     }
     const Description &description = get_description(type);
-    return BtnResponse::GetText(description.response);
+    return get_response_text(description.response);
 }
 
 static filament::Type filament_to_load = filament::Type::NONE;
