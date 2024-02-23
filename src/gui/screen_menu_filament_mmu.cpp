@@ -7,7 +7,6 @@
 #include "filament_sensors_handler.hpp"
 #include "marlin_client.hpp"
 #include "ScreenHandler.hpp"
-#include "DialogHandler.hpp"
 #include "sound.hpp"
 #include "img_resources.hpp"
 

@@ -4,7 +4,6 @@
 #include <marlin_client.hpp>
 #include <ScreenHandler.hpp>
 #include <ScreenSelftest.hpp>
-#include <DialogHandler.hpp>
 #include <selftest_types.hpp>
 #include <RAII.hpp>
 #include <option/has_toolchanger.h>

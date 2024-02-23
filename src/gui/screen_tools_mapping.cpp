@@ -4,7 +4,6 @@
 #include <string.h>
 #include <window_msgbox.hpp>
 #include <printers.h>
-#include <DialogHandler.hpp>
 #include <RAII.hpp>
 #include <ScreenHandler.hpp>
 #include <screen_menu_filament_changeall.hpp>

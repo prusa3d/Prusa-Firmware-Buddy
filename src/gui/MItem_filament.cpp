@@ -4,7 +4,6 @@
 
 #include "MItem_filament.hpp"
 #include "sound.hpp"
-#include "DialogHandler.hpp"
 #include "marlin_client.hpp"
 #include "ScreenHandler.hpp"
 #include <option/has_toolchanger.h>

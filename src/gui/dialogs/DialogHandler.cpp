@@ -1,5 +1,5 @@
-// DialogHandler.cpp
 #include "DialogHandler.hpp"
+
 #include "DialogLoadUnload.hpp"
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"

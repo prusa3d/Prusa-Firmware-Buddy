@@ -17,7 +17,6 @@
 #include "bsod.h"
 #include "filament_sensors_handler.hpp"
 #include "liveadjust_z.hpp"
-#include "DialogHandler.hpp"
 #include "filament_sensor.hpp"
 #include "main.h"
 #include "Pin.hpp"

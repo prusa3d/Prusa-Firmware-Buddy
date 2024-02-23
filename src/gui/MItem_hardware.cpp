@@ -3,7 +3,6 @@
 #include "menu_spin_config.hpp"
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor.h>
-#include "DialogHandler.hpp"
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>

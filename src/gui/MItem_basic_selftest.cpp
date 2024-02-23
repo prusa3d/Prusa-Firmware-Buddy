@@ -2,7 +2,6 @@
 #include "marlin_client.hpp"
 #include "gui.hpp"
 #include "sys.h"
-#include "DialogHandler.hpp"
 #include "ScreenHandler.hpp"
 #include "printer_selftest.hpp"
 #include "main.h"
