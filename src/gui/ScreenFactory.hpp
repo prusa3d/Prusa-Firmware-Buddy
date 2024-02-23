@@ -42,8 +42,6 @@
     #include "screen_cold_pull.hpp"
 #endif
 
-#include "gui/test/screen_menu_test.hpp"
-
 #include <option/has_mmu2.h>
 #if HAS_MMU2()
     #include "screen_menu_mmu_preload_to_mmu.hpp"
@@ -93,7 +91,6 @@ class ScreenFactory {
         ScreenMenuSteelSheets,
         ScreenMenuSystem,
         ScreenMenuTemperature,
-        ScreenMenuTest,
         ScreenTouchError,
         ScreenMenuTune,
         ScreenMenuUserInterface,

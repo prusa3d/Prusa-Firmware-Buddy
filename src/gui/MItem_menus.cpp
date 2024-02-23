@@ -71,8 +71,6 @@
     #endif
 #endif
 
-#include "gui/test/screen_menu_test.hpp"
-
 #include <option/has_side_leds.h>
 #if HAS_SIDE_LEDS()
     #include <leds/side_strip_control.hpp>
@@ -195,16 +193,6 @@ void MI_ERROR_TEST::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuErrorTest>);
 }
 #endif /*DEVELOPMENT_ITEMS()*/
-
-/*****************************************************************************/
-// MI_TEST
-MI_TEST::MI_TEST()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
-}
-
-void MI_TEST::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTest>);
-}
 
 /*****************************************************************************/
 // MI_FW_UPDATE

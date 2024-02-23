@@ -80,9 +80,6 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #endif /*(!PRINTER_IS_PRUSA_MINI) || defined(_DEBUG)*/
     MI_TIMEZONE, MI_TIMEZONE_MIN, MI_TIMEZONE_SUMMER, MI_INFO, MI_TRIGGER_POWER_PANIC,
 
-#ifdef _DEBUG
-    MI_TEST,
-#endif //_DEBUG
 /* MI_FOOTER_SETTINGS,*/ // currently experimental, but we want it in future
 #if DEVELOPER_MODE()
     MI_ERROR_TEST,

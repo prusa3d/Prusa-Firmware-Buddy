@@ -135,7 +135,6 @@ if(HAS_MODULARBED)
 endif()
 
 if(DEBUG)
-  add_subdirectory(test)
   target_sources(firmware PRIVATE screen_menu_experimental_settings_debug.cpp)
 else()
   target_sources(firmware PRIVATE screen_menu_experimental_settings_release.cpp)

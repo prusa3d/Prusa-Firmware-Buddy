@@ -137,16 +137,6 @@ protected:
 };
 #endif /*DEVELOPMENT_ITEMS()*/
 
-class MI_TEST : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Test");
-
-public:
-    MI_TEST();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_FW_UPDATE : public IWindowMenuItem {
     static constexpr const char *const label = N_("FW Update");
 
