@@ -8,11 +8,7 @@
 #include <algorithm>
 #include <array>
 
-/**
- * @brief list of all button types
- * there is an array of texts in "client_response_texts.cpp", order and count must match!
- * !!! MAINTAIN ALPHABETICAL ORDER !!!
- */
+/** list of all button types */
 enum class Response : uint8_t {
     _none = 0, // none must be zero because of empty initialization of array
     Abort, // when used in selftest, handled automatically in PartHandler

@@ -212,7 +212,7 @@ static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color,
 
 // called internally, responses must exist
 void IRadioButton::draw_1_btn() {
-    const char *txt_to_print = getAlternativeTexts() ? (*getAlternativeTexts())[0] : BtnResponse::GetText(responseFromIndex(0));
+    const char *txt_to_print = getAlternativeTexts() ? (*getAlternativeTexts())[0] : get_response_text(responseFromIndex(0));
     button_draw(GetRect(), GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), _(txt_to_print),
         IsEnabled(0) && !disabled_drawing_selected);
 }
@@ -249,7 +249,7 @@ IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
         ret.txts_to_print = *getAlternativeTexts();
     } else {
         for (size_t i = 0; i < max_buttons; ++i) {
-            ret.txts_to_print[i] = BtnResponse::GetText(responseFromIndex(i));
+            ret.txts_to_print[i] = get_response_text(responseFromIndex(i));
         }
     }
 
