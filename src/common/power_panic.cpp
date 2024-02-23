@@ -196,7 +196,7 @@ struct flash_toolchanger_t {
 #pragma GCC diagnostic pop
 
 // Data storage layout
-struct __attribute__((packed)) flash_data {
+struct flash_data {
     // non-changing print parameters
     struct fixed_t {
         xy_pos_t bounding_rect_a;
