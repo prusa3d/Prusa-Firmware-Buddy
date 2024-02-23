@@ -124,7 +124,7 @@ void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     }
 }
 
-void app_setup_marlin_logging() {
+static void app_setup_marlin_logging() {
     SerialUSB.lineBufferHook = app_marlin_serial_output_write_hook;
 }
 
