@@ -372,8 +372,7 @@ bool MMU2::TryLoad() {
     // should be drawn on the display
     for (uint8_t move = 0; move < 2; move++) {
         // mk35 is loading somewhat deeper than MK3S, this is just a tweak to make MK3S gcodes compatible
-        static constexpr float tweakMK35MK3SCompatibility = 4.F;
-        extruder_move(move == 0 ? tryload_length - tweakMK35MK3SCompatibility : -tryload_length, MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE);
+        extruder_move(move == 0 ? tryload_length : -tryload_length, MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE);
         while (planner_any_moves()) {
             filament_inserted = filament_inserted && (WhereIsFilament() == FilamentState::AT_FSENSOR);
             tlur.Progress(filament_inserted);
@@ -1377,14 +1376,25 @@ void MMU2::OnMMUProgressMsgSame(ProgressCode pc) {
             case FilamentState::AT_FSENSOR:
                 // fsensor triggered, finish FeedingToExtruder state
                 loadFilamentStarted = false;
-                // After the MMU knows the FSENSOR is triggered it will:
-                // 1. Push the filament by additional 30mm (see fsensorToNozzle)
-                // 2. Disengage the idler and push another 2mm.
-                extruder_move(logic.ExtraLoadDistance() + 2, logic.PulleySlowFeedRate());
+                planner_abort_queued_moves();
+                {
+#if PRINTER_IS_PRUSA_MK3_5
+                    // on the MK3.5 due to fsensor filtering delay (compared to MK3S),
+                    // we are getting 0.175mm of extra loaded filament per 1mm/s speed increase of slow loading speed.
+                    // i.e. for 20mm/s we get roughly 4mm of extra loaded filament
+                    float loadingSpeedCompensation = 0.175 * logic.PulleySlowFeedRate();
+#else
+                    // no change for MK4 and MK3.9, fsensor is different there
+                    static constexpr float loadingSpeedCompensation = 0.F;
+#endif
+                    extruder_move(logic.ExtraLoadDistance() + 2 - loadingSpeedCompensation, logic.PulleySlowFeedRate());
+                }
                 break;
             case FilamentState::NOT_PRESENT:
                 // fsensor not triggered, continue moving extruder
-                extruder_schedule_turning(logic.PulleySlowFeedRate());
+                if (!planner_any_moves()) { // Only plan a move if there is no move ongoing
+                    extruder_move(189.9f, logic.PulleySlowFeedRate()); // we cannot plan anything longer than 200mm, but that's probably good enough
+                }
                 break;
             case FilamentState::UNAVAILABLE:
                 // @@TODO houston, we have a problem, fsensor unavailable, the MMU cannot continue doing anything without it
