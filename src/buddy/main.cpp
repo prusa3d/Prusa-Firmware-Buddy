@@ -743,6 +743,8 @@ static void eeprom_init_i2c() {
     I2C_INIT(eeprom);
 }
 
+extern "C" void __libc_init_array(void);
+
 namespace {
 /// The entrypoint of the startup task
 ///
@@ -770,7 +772,6 @@ extern "C" void startup_task(void const *) {
 #endif
 
     // init global variables and call constructors
-    extern void __libc_init_array(void);
     __libc_init_array();
 
     // call the main main() function

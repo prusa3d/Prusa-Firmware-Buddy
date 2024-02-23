@@ -365,7 +365,7 @@ public:
     }
 
     void read_all_channels() {
-        for (uint i = 0; i < NUM_CHANNELS / 2; ++i) {
+        for (size_t i = 0; i < NUM_CHANNELS / 2; ++i) {
             // Switch channel and wait for it to be updated
             switch_channel();
             osDelay(1);

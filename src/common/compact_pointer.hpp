@@ -153,3 +153,13 @@ template <typename T>
 inline bool operator!=(const T *ptr, const CompactRAMPointer<T> &cp) {
     return ptr != cp.ptr();
 }
+
+template <typename T>
+inline bool operator==(T *ptr, const CompactRAMPointer<T> &cp) {
+    return ptr == cp.ptr();
+}
+
+template <typename T>
+inline bool operator!=(T *ptr, const CompactRAMPointer<T> &cp) {
+    return ptr != cp.ptr();
+}
