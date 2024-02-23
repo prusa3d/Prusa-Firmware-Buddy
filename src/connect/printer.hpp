@@ -178,10 +178,14 @@ public:
     virtual const char *delete_file(const char *path) = 0;
     // Enqueues a gcode command (single one).
     //
-    // FIXME: For now, this is a "black hole". It'll just submit it without any
-    // kind of feedback. It'll either block if the queue is full, or just throw
-    // it in. But that doesn't meen it has been executed.
-    virtual void submit_gcode(const char *gcode) = 0;
+    // FIXME: This takes care only of submitting the gcode. If it returns Submitted,
+    // it sits in the queue, but it doesn't mean it has been executed.
+    enum class GcodeResult {
+        Submitted,
+        Later,
+        Failed,
+    };
+    virtual GcodeResult submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
     virtual bool is_printing() const = 0;
     // Is the printer in (hard) error?

@@ -28,6 +28,7 @@
     #include <mmu2_fsm.hpp>
 #endif
 
+using marlin_client::GcodeTryResult;
 using printer_state::DeviceState;
 using printer_state::get_state;
 using printer_state::get_state_with_dialog;
@@ -348,8 +349,17 @@ const char *MarlinPrinter::delete_file(const char *path) {
     }
 }
 
-void MarlinPrinter::submit_gcode(const char *code) {
-    marlin_client::gcode(code);
+Printer::GcodeResult MarlinPrinter::submit_gcode(const char *code) {
+    switch (marlin_client::gcode_try(code)) {
+    case GcodeTryResult::Submitted:
+        return GcodeResult::Submitted;
+    case GcodeTryResult::QueueFull:
+        return GcodeResult::Later;
+    case GcodeTryResult::GcodeTooLong:
+        return GcodeResult::Failed;
+    }
+
+    bsod("Invalid gcode_try result");
 }
 
 bool MarlinPrinter::set_ready(bool ready) {

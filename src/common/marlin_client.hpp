@@ -41,6 +41,17 @@ marlin_server::Cmd get_command();
 // enqueue gcode - thread-safe version
 void gcode(const char *gcode);
 
+enum class GcodeTryResult {
+    Submitted,
+    QueueFull,
+    GcodeTooLong,
+};
+
+// Like above, but may fail.
+//
+// May fail if the queue is currently full; doesn't go to redscreen or block indefinitely.
+GcodeTryResult gcode_try(const char *gcode);
+
 // enqueue gcode - printf-like
 void __attribute__((format(__printf__, 1, 2)))
 gcode_printf(const char *format, ...);

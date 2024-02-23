@@ -76,7 +76,9 @@ const char *ErrorPrinter::delete_file(const char *) {
     return "In error state, not doing anything";
 }
 
-void ErrorPrinter::submit_gcode(const char *) {}
+Printer::GcodeResult ErrorPrinter::submit_gcode(const char *) {
+    return GcodeResult::Failed;
+}
 
 bool ErrorPrinter::set_ready(bool) {
     return false;

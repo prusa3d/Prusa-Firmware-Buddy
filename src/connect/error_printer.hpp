@@ -29,7 +29,7 @@ private:
     // trying to delete the file, that just got printed,
     // this first exits the print and then deletes the file.
     virtual const char *delete_file(const char *path) override;
-    virtual void submit_gcode(const char *code) override;
+    virtual GcodeResult submit_gcode(const char *code) override;
     virtual bool set_ready(bool ready) override;
     virtual bool is_printing() const override;
     virtual bool is_in_error() const override;

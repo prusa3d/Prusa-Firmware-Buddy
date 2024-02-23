@@ -23,6 +23,8 @@
 #endif
 
 using namespace marlin_server;
+using std::nullopt;
+using std::optional;
 
 namespace marlin_client {
 
@@ -130,30 +132,41 @@ bool set_message_cb(message_cb_t cb) {
     return false;
 }
 
+static bool try_send(Request &request) {
+    marlin_client_t *client = _client_ptr();
+    if (client == nullptr) {
+        bsod("Marlin client used before init");
+    }
+    request.client_id = client->id;
+
+    client->events &= ~(make_mask(Event::Acknowledge) | make_mask(Event::NotAcknowledge));
+    server_queue.send(request);
+    for (;;) {
+        receive_and_process_client_message(client, portMAX_DELAY);
+        if (client->events & make_mask(Event::Acknowledge)) {
+            client->events &= ~make_mask(Event::Acknowledge);
+            return true;
+        }
+        if (client->events & make_mask(Event::NotAcknowledge)) {
+            client->events &= ~make_mask(Event::NotAcknowledge);
+            return false;
+        }
+    }
+}
+
 static void _send_request_to_server_and_wait(Request &request) {
     marlin_client_t *client = _client_ptr();
-    if (client == 0) {
+    if (client == nullptr) {
         return;
     }
     uint8_t retries_left = max_retries;
-
-    request.client_id = client->id;
     do {
-        client->events &= ~(make_mask(Event::Acknowledge) | make_mask(Event::NotAcknowledge));
-        server_queue.send(request);
-        for (;;) {
-            receive_and_process_client_message(client, portMAX_DELAY);
-            if (client->events & make_mask(Event::Acknowledge)) {
-                client->events &= ~make_mask(Event::Acknowledge);
-                return;
-            }
-            if (client->events & make_mask(Event::NotAcknowledge)) {
-                client->events &= ~make_mask(Event::NotAcknowledge);
-                // give marlin server time to process other requests
-                osDelay(10);
-                retries_left--;
-                break;
-            }
+        if (try_send(request)) {
+            return;
+        } else {
+            // give marlin server time to process other requests
+            osDelay(10);
+            retries_left--;
         }
     } while (retries_left > 0);
     fatal_error(ErrCode::ERR_SYSTEM_MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT);
@@ -180,15 +193,38 @@ void _send_request_id_to_server_and_wait(const Request::Type type) {
     _send_request_to_server_and_wait(request);
 }
 
+namespace {
+
+    optional<Request> gcode_request(const char *gcode) {
+        Request request;
+        request.type = Request::Type::Gcode;
+        if (strlcpy(request.gcode, gcode, sizeof(request.gcode)) >= sizeof(request.gcode)) {
+            // TODO It would be much better to ensure gcode always points
+            //      to some static buffer and only serialize the pointer.
+            log_error(MarlinClient, "ignoring truncated gcode");
+            return nullopt;
+        } else {
+            return request;
+        }
+    }
+
+} // namespace
+
 void gcode(const char *gcode) {
-    Request request;
-    request.type = Request::Type::Gcode;
-    if (strlcpy(request.gcode, gcode, sizeof(request.gcode)) >= sizeof(request.gcode)) {
-        // TODO It would be much better to ensure gcode always points
-        //      to some static buffer and only serialize the pointer.
-        log_error(MarlinClient, "ignoring truncated gcode");
+    if (auto request = gcode_request(gcode); request.has_value()) {
+        _send_request_to_server_and_wait(*request);
+    }
+}
+
+GcodeTryResult gcode_try(const char *gcode) {
+    if (auto request = gcode_request(gcode); request.has_value()) {
+        if (try_send(*request)) {
+            return GcodeTryResult::Submitted;
+        } else {
+            return GcodeTryResult::QueueFull;
+        }
     } else {
-        _send_request_to_server_and_wait(request);
+        return GcodeTryResult::GcodeTooLong;
     }
 }
 

@@ -66,8 +66,9 @@ public:
         return nullptr;
     }
 
-    virtual void submit_gcode(const char *gcode) override {
+    virtual GcodeResult submit_gcode(const char *gcode) override {
         submitted_gcodes.push_back(gcode);
+        return GcodeResult::Submitted;
     }
 
     virtual bool set_ready(bool) override {

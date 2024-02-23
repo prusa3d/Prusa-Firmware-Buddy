@@ -49,9 +49,17 @@ namespace {
         }
 
         // Skip over empty ones to not hog the queue
-        if (strlen(g_start) > 0) {
-            // FIXME: This can block if the queue is full.
-            printer.submit_gcode(g_start);
+        if (strlen(g_start)) {
+            switch (printer.submit_gcode(g_start)) {
+            case Printer::GcodeResult::Submitted:
+                break;
+            case Printer::GcodeResult::Later:
+                // In case this gcode doesn't fit, retry again without moving
+                // the position - we'll reparse it next time.
+                return BackgroundResult::More;
+            case Printer::GcodeResult::Failed:
+                return BackgroundResult::Failure;
+            }
         }
 
         gcode.position += end_pos + 1;
