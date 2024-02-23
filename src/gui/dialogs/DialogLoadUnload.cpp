@@ -36,8 +36,11 @@ void RadioButtonNotice::ChangePhase(PhasesLoadUnload phase, PhaseResponses respo
 
 /*****************************************************************************/
 // clang-format off
-static const PhaseTexts ph_txt_reheat        = { get_response_text(Response::Reheat),           get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
-static const PhaseTexts ph_txt_disa          = { get_response_text(Response::Filament_removed), get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
+static const PhaseTexts ph_txt_stop          = { get_response_text(Response::Stop),             get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
+static const PhaseTexts ph_txt_continue      = { get_response_text(Response::Continue),         get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
+static const PhaseTexts ph_txt_continue_stop = { get_response_text(Response::Continue),         get_response_text(Response::Stop),  get_response_text(Response::_none), get_response_text(Response::_none) };
+static const PhaseTexts ph_txt_none          = { get_response_text(Response::_none),            get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };
+static const PhaseTexts ph_txt_yesno         = { get_response_text(Response::Yes),              get_response_text(Response::No),    get_response_text(Response::_none), get_response_text(Response::_none) };
 static const PhaseTexts ph_txt_iscolor       = { get_response_text(Response::Yes),              get_response_text(Response::No),    get_response_text(Response::Retry), get_response_text(Response::_none) };
 static const PhaseTexts ph_txt_iscolor_purge = { get_response_text(Response::Yes),              get_response_text(Response::No),    get_response_text(Response::_none), get_response_text(Response::_none) };
 static const PhaseTexts ph_txt_unload        = { get_response_text(Response::Unload),           get_response_text(Response::_none), get_response_text(Response::_none), get_response_text(Response::_none) };

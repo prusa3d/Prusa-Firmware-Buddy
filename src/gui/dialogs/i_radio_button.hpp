@@ -10,6 +10,8 @@
 #include "window.hpp"
 #include "../../lang/string_view_utf8.hpp"
 
+using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
+
 class IRadioButton : public AddSuperWindow<window_t> {
 public:
     // if greater than 0, we're drawing a fixed amount of buttons

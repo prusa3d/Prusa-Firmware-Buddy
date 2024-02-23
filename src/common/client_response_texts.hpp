@@ -1,10 +1,6 @@
-// client_response_texts.hpp
-// texts for all types of response any Dialog can return
-
 #pragma once
 
-#include "client_response.hpp" //MAX_RESPONSES
-#include <array>
+#include "general_response.hpp"
 #include "i18n.h"
 #include <printers.h>
 
@@ -133,11 +129,3 @@ inline constexpr const char *get_response_text(Response response) {
     }
     abort();
 }
-
-using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
-
-extern const PhaseTexts ph_txt_stop;
-extern const PhaseTexts ph_txt_continue;
-extern const PhaseTexts ph_txt_continue_stop;
-extern const PhaseTexts ph_txt_none;
-extern const PhaseTexts ph_txt_yesno;
