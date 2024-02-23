@@ -495,11 +495,10 @@ void send_notifications_to_clients() {
     }
 }
 
-int cycle(void) {
-
+static void cycle() {
     static int processing = 0;
     if (processing) {
-        return 0;
+        return;
     }
     processing = 1;
     bool call_print_loop = true;
@@ -533,10 +532,8 @@ int cycle(void) {
     prusa_toolchanger.loop(!printer_idle(), printer_paused());
 #endif /*HAS_TOOLCHANGER()*/
 
-    int count = 0;
     if (Request request; server_queue.receive(request, 0)) {
         _process_server_request(request);
-        ++count;
     }
     // update gqueue (gcode queue)
     _server_update_gqueue();
@@ -550,7 +547,6 @@ int cycle(void) {
         wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
     }
     processing = 0;
-    return count;
 }
 
 void static finalize_print() {
@@ -613,7 +609,7 @@ static void check_crash() {
 }
 #endif // ENABLED(CRASH_RECOVERY)
 
-int loop(void) {
+void loop() {
 #if ANY(CRASH_RECOVERY, POWER_PANIC)
     check_crash();
 #endif
@@ -636,15 +632,15 @@ int loop(void) {
 
     server.idle_cnt = 0;
     media_loop();
-    return cycle();
+    cycle();
 }
 
-int idle(void) {
+static void idle(void) {
     // TODO: avoid a re-entrant cycle caused by:
     // cycle -> loop -> idle -> MarlinUI::update() -> ExtUI::onIdle -> idle -> cycle
     // This is only a work-around: this should be avoided at a higher level
     if (planner.draining()) {
-        return 1;
+        return;
     }
 
     if (server.idle_cnt < MARLIN_IDLE_CNT_BUSY) {
@@ -678,7 +674,7 @@ int idle(void) {
             _send_notify_event(Event::CommandBegin, server.command, 0);
         }
     }
-    return cycle();
+    cycle();
 }
 
 bool processing(void) {

@@ -49,7 +49,7 @@ extern osSemaphoreId server_semaphore; // semaphore handle
 void init();
 
 // server loop - must be called periodically in server thread
-int loop();
+void loop();
 
 // returns enabled status of loop processing
 bool processing();
