@@ -19,26 +19,26 @@
 
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT
-MI_MMU_PRELOAD::MI_MMU_PRELOAD()
+MI_MMU_PRELOAD_ADVANCED::MI_MMU_PRELOAD_ADVANCED()
     : IWindowMenuItem(_(label), nullptr,
         // enable the PreLoad menu only if there is no filament already loaded
         FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR ? is_enabled_t::no : is_enabled_t::yes,
         is_hidden_t::no,
         expands_t::yes) {
 }
-void MI_MMU_PRELOAD::click(IWindowMenu & /*window_menu*/) {
+void MI_MMU_PRELOAD_ADVANCED::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenChangeAllFilaments>);
 }
 
 /**********************************************************************************************/
-// MI_MMU_PRELOAD_LEGACY
-MI_MMU_PRELOAD_LEGACY::MI_MMU_PRELOAD_LEGACY()
+// MI_MMU_PRELOAD
+MI_MMU_PRELOAD::MI_MMU_PRELOAD()
     : IWindowMenuItem(_(label), nullptr,
         FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR ? is_enabled_t::no : is_enabled_t::yes,
         is_hidden_t::no,
         expands_t::yes) {
 }
-void MI_MMU_PRELOAD_LEGACY::click(IWindowMenu & /*window_menu*/) {
+void MI_MMU_PRELOAD::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMUPreloadToMMU>);
 }
 
