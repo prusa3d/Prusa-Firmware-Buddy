@@ -234,10 +234,6 @@ void app_error(void) {
     bsod("app_error");
 }
 
-void app_assert([[maybe_unused]] uint8_t *file, [[maybe_unused]] uint32_t line) {
-    bsod("app_assert");
-}
-
 #if HAS_ADVANCED_POWER()
 static uint8_t cnt_advanced_power_update = 0;
 
