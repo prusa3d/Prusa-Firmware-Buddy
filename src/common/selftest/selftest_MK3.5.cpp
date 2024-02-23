@@ -9,7 +9,6 @@
 #include "selftest_firstlayer.hpp"
 #include "selftest_firstlayer_interface.hpp"
 #include "stdarg.h"
-#include "app.h"
 #include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"

@@ -9,7 +9,6 @@
 #include "selftest_loadcell.h"
 #include "selftest_dock.h"
 #include "stdarg.h"
-#include "app.h"
 #include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"

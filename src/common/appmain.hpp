@@ -1,13 +1,11 @@
-/**
- * @file
- * @date Sep 17, 2020
- * @author Marek Bel
- */
-
 #pragma once
-#include <stdint.h>
-#include <device/board.h>
-#include "printers.h"
-#include "MarlinPin.h"
 
-extern "C" void app_startup();
+#include <cstdint>
+
+void app_assert(uint8_t *file, uint32_t line);
+void app_error();
+void app_run();
+void app_setup_marlin_logging();
+void app_setup();
+void app_startup();
+void app_tim14_tick();

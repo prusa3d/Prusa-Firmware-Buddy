@@ -10,7 +10,6 @@
 #include "selftest_heater.h"
 #include "selftest_loadcell.h"
 #include "stdarg.h"
-#include "app.h"
 #include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"

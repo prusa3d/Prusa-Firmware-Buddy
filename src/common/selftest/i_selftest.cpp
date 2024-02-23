@@ -4,7 +4,6 @@
 #include "feature/prusa/crash_recovery.hpp"
 #include "stdarg.h"
 #include "log.h"
-#include "app.h"
 #include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"

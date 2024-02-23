@@ -13,7 +13,6 @@
 #include "adc.hpp"
 #include "marlin_events.h"
 #include "marlin_print_preview.hpp"
-#include "app.h"
 #include "bsod.h"
 #include "module/prusa/tool_mapper.hpp"
 #include "module/prusa/spool_join.hpp"

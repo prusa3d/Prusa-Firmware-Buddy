@@ -18,7 +18,6 @@
 #endif
 
 #include "sys.h"
-#include "app.h"
 #include <wdt.hpp>
 #include <crash_dump/dump.hpp>
 #include "error_codes.hpp"
@@ -112,8 +111,6 @@ void iwdg_warning_cb(void);
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[32];
 #endif
-
-extern "C" void app_setup_marlin_logging();
 
 /**
  * @brief Bootstrap finished

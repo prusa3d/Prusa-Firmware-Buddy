@@ -1,7 +1,5 @@
-// appmain.cpp - arduino-like app start
-
 #include "appmain.hpp"
-#include "app.h"
+
 #include "app_metrics.h"
 #include "log.h"
 #include "cmsis_os.h"
@@ -37,6 +35,7 @@
 #include "../Marlin/src/module/configuration_store.h"
 #include "main.h"
 #include <stdint.h>
+#include "fanctl.hpp"
 #include "printers.h"
 #include "MarlinPin.h"
 #include "timing.h"
@@ -84,7 +83,6 @@ LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
 LOG_COMPONENT_DEF(MMU2, LOG_SEVERITY_INFO);
 
-extern "C" {
 METRIC_DEF(metric_app_start, "app_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
 METRIC_DEF(metric_maintask_event, "maintask_loop", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_DISABLE_ALL);
 METRIC_DEF(metric_cpu_usage, "cpu_usage", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
@@ -340,7 +338,5 @@ void app_tim14_tick(void) {
     filament_sensor_irq();
 #endif
 }
-
-} // extern "C"
 
 // cpp code
