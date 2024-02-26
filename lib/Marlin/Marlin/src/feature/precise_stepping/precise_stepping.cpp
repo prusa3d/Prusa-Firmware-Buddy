@@ -537,7 +537,7 @@ void PreciseStepping::init() {
     Stepper::count_direction.z = (Stepper::last_direction_bits & STEP_EVENT_FLAG_Z_DIR) ? -1 : 1;
     Stepper::count_direction.e = (Stepper::last_direction_bits & STEP_EVENT_FLAG_E_DIR) ? -1 : 1;
 #if HAS_PHASE_STEPPING()
-    LOOP_XYZ(i) {
+    for (std::size_t i = 0; i != phase_stepping::opts::SUPPORTED_AXIS_COUNT; ++i) {
         PreciseStepping::step_generators_pool.classic_step_generator[i].phase_step_state = phase_stepping::axis_states[i].get();
     }
 #endif
@@ -545,7 +545,9 @@ void PreciseStepping::init() {
     LOOP_XYZ(i) {
         PreciseStepping::step_generators_pool.input_shaper_step_generator[i].is_state = &InputShaper::is_state[i];
     #if HAS_PHASE_STEPPING()
-        PreciseStepping::step_generators_pool.input_shaper_step_generator[i].phase_step_state = phase_stepping::axis_states[i].get();
+        if (i < phase_stepping::opts::SUPPORTED_AXIS_COUNT) {
+            PreciseStepping::step_generators_pool.input_shaper_step_generator[i].phase_step_state = phase_stepping::axis_states[i].get();
+        }
     #endif
     }
     PreciseStepping::step_generators_pool.pressure_advance_step_generator_e.pa_state = &PressureAdvance::pressure_advance_state;
