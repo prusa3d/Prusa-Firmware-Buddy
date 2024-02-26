@@ -361,8 +361,8 @@ const char *get_hardfault_reason() {
 
     crash_dump::CrashCatcherDumpParser parser;
     uint8_t scg_regs_data[sizeof(SCB_Type)];
-    SCB_Type *scg_regs = reinterpret_cast<SCB_Type *>(&scg_regs);
     parser.load_data(scg_regs_data, reinterpret_cast<uintptr_t>(SCB), sizeof(*SCB));
+    SCB_Type *scg_regs = reinterpret_cast<SCB_Type *>(&scg_regs_data);
     const uint32_t cfsr = scg_regs->CFSR;
 
     switch ((cfsr) & (IACCVIOL_Msk | DACCVIOL_Msk | MSTKERR_Msk | MUNSTKERR_Msk | MLSPERR_Msk | STKERR_Msk | UNSTKERR_Msk | IBUSERR_Msk | LSPERR_Msk | PRECISERR_Msk | IMPRECISERR_Msk | UNDEFINSTR_Msk | INVSTATE_Msk | INVPC_Msk | NOCPC_Msk | UNALIGNED_Msk | DIVBYZERO_Msk)) {
@@ -441,7 +441,7 @@ size_t get_regs(char *&buffer, size_t buffer_size) {
 
     uint8_t scg_regs_data[sizeof(SCB_Type)];
     parser.load_data(scg_regs_data, reinterpret_cast<uintptr_t>(SCB), sizeof(*SCB));
-    SCB_Type *scg_regs = reinterpret_cast<SCB_Type *>(&scg_regs);
+    SCB_Type *scg_regs = reinterpret_cast<SCB_Type *>(&scg_regs_data);
     const uint32_t cfsr = scg_regs->CFSR;
 
     auto add_reg = [&](const char *name, unsigned int value, bool even_if_zero = false) {
