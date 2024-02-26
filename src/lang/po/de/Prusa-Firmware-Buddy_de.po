@@ -4760,6 +4760,10 @@ msgid "Preload to MMU"
 msgstr "Vorladen zur MMU"
 
 #: src/gui/wizard/selftest_frame_temp.cpp:58
+msgid "Preload to MMU (advanced)"
+msgstr "Vorladen zur MMU (erweitert)"
+
+#: src/gui/wizard/selftest_frame_temp.cpp:58
 #: src/gui/wizard/selftest_frame_nozzle_diameter.cpp:31
 msgid "Preparing"
 msgstr "Vorbereiten"

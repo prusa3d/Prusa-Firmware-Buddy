@@ -1173,7 +1173,7 @@ msgstr "Dolů"
 
 #: src/gui/dialogs/DialogMoveZ.hpp:25
 msgid "DOWN"
-msgstr "DOLU"
+msgstr "DOLŮ"
 
 #: src/gui/screen_help_fw_update.cpp:29
 msgid "Download and copy the firmware (.bbf) file to the USB flash drive. Insert the drive into the printer and turn it on or restart it. Confirm the installation of the new firmware."
@@ -4746,6 +4746,10 @@ msgstr "Zavést do slotu 5"
 #: src/gui/MItem_mmu.hpp:9 src/gui/screen_menu_mmu_preload_to_mmu.hpp:13
 msgid "Preload to MMU"
 msgstr "Zavést do MMU"
+
+#: src/gui/MItem_mmu.hpp:9
+msgid "Preload to MMU (advanced)"
+msgstr "Zavést do MMU (pokročilé)"
 
 #: src/gui/wizard/selftest_frame_temp.cpp:58
 #: src/gui/wizard/selftest_frame_nozzle_diameter.cpp:31

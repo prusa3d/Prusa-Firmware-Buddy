@@ -108,6 +108,12 @@ msgid " INS / %7ld"
 msgstr ""
 
 #: src/gui/screen_crash_recovery.cpp:110
+#. For now, FINDA is visualized the same way like filament sensors' states
+#: src/gui/MItem_tools.cpp:652
+msgid " INS / 1"
+msgstr ""
+
+#: src/gui/screen_crash_recovery.cpp:109
 msgid "!! Careful, tools are hot !!"
 msgstr ""
 
@@ -1464,6 +1470,11 @@ msgid "Exit"
 msgstr ""
 
 #: src/gui/screen_menu_factory_reset.hpp:12
+#: src/gui/MItem_mmu.hpp:397
+msgid "Extruder"
+msgstr ""
+
+#: src/gui/screen_menu_factory_reset.hpp:12
 msgid "FACTORY RESET"
 msgstr ""
 
@@ -1502,6 +1513,10 @@ msgid "FILAMENT REMOVED"
 msgstr ""
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:10
+msgid "FINDA"
+msgstr ""
+
+#: build/mini-en-cs_release_noboot/lib/error_codes/error_list_mmu.hpp:10
 #: build/mk3.5_release_boot/lib/error_codes/error_list_mmu.hpp:10
 #: build/mk4_release_boot/lib/error_codes/error_list_mmu.hpp:10
 #: build/ix_release_boot/lib/error_codes/error_list_mmu.hpp:10
@@ -1732,6 +1747,10 @@ msgstr ""
 #: build/ix_release_boot/lib/error_codes/error_list.hpp:170
 msgid ""
 "Failed to home the extruder in Z-axis, make sure the loadcell is working."
+msgstr ""
+
+#: src/gui/screen_menu_connect.cpp:43
+msgid "Failed to home the extruder in Z-axis."
 msgstr ""
 
 #: src/gui/screen_menu_connect.cpp:43
@@ -3321,11 +3340,11 @@ msgid "MK3 Compatibility"
 msgstr ""
 
 #: src/gui/MItem_tools.hpp:625
-msgid "MMU Current"
+msgid "MMU"
 msgstr ""
 
 #: src/gui/MItem_mmu.hpp:337
-msgid "MMU Enable"
+msgid "MMU Current"
 msgstr ""
 
 #: build/mini_release_boot/lib/error_codes/error_list_mmu.hpp:290
@@ -3401,6 +3420,10 @@ msgstr ""
 #: build/xl_release_boot/lib/error_codes/error_list_mmu.hpp:227
 #: build/xl_release_boot/lib/error_codes/error_list_mmu.hpp:234
 msgid "MMU SELFTEST FAILED"
+msgstr ""
+
+#: src/gui/MItem_mmu.hpp:337
+msgid "MMU Unit"
 msgstr ""
 
 #: src/gui/MItem_tools.hpp:455
@@ -3706,6 +3729,10 @@ msgid "NINS / %7ld"
 msgstr ""
 
 #. Next
+msgid "NINS / 0"
+msgstr ""
+
+#. Next
 #: src/common/client_response_texts.cpp:42
 msgid "NO"
 msgstr ""
@@ -3760,11 +3787,11 @@ msgid "Next change in"
 msgstr ""
 
 #: src/gui/MItem_hardware.hpp:158
-msgid "Nextruder silicone sock"
+msgid "Nextruder"
 msgstr ""
 
 #: src/gui/screen_menu_lan_settings.cpp:80
-msgid "No AP"
+msgid "Nextruder silicone sock"
 msgstr ""
 
 #: src/gui/screen_menu_connect.cpp:69
@@ -4403,6 +4430,10 @@ msgstr ""
 
 #: src/gui/screen_menu_mmu_preload_to_mmu.hpp:13 src/gui/MItem_mmu.hpp:9
 msgid "Preload to MMU"
+msgstr ""
+
+#: src/gui/wizard/selftest_frame_temp.cpp:58
+msgid "Preload to MMU (advanced)"
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_nozzle_diameter.cpp:31
