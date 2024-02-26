@@ -199,17 +199,17 @@ void M600_manual() {
     // Lift Z axis
     if (parser.seenval('Z')) {
         park_point.z = parser.linearval('Z');
-        LOGICAL_TO_NATIVE(park_point.z, Z_AXIS);
+        park_point.z = LOGICAL_TO_NATIVE(park_point.z, Z_AXIS);
     }
 
     // Move XY axes to filament change position or given position
     if (parser.seenval('X')) {
         park_point.x = parser.linearval('X');
-        LOGICAL_TO_NATIVE(park_point.x, X_AXIS);
+        park_point.x = LOGICAL_TO_NATIVE(park_point.x, X_AXIS);
     }
     if (parser.seenval('Y')) {
         park_point.y = parser.linearval('Y');
-        LOGICAL_TO_NATIVE(park_point.y, Y_AXIS);
+        park_point.y = LOGICAL_TO_NATIVE(park_point.y, Y_AXIS);
     }
 
 #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA) && DISABLED(PRUSA_TOOLCHANGER)
