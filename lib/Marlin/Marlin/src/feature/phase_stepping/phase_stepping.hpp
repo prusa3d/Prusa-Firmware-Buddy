@@ -20,6 +20,7 @@
     #include <memory>
     #include <atomic>
     #include <cassert>
+    #include <optional>
 
 namespace phase_stepping {
 
