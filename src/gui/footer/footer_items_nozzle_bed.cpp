@@ -270,7 +270,7 @@ string_view_utf8 FooterItemNozzlePWM::static_makeView(int value) {
 
     // static_left_aligned print need to end with spaces ensure fixed size
     if (draw_type == footer::ItemDrawType::static_left_aligned) {
-        for (; size_t(printed_chars) < buff.size(); ++printed_chars) {
+        for (; size_t(printed_chars) < (buff.size() - 1); ++printed_chars) {
             buff[printed_chars] = ' ';
         }
         buff[printed_chars] = '\0';
