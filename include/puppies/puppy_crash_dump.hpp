@@ -12,8 +12,8 @@ namespace buddy::puppies::crash_dump {
  * @param buffer Buffer to be used for the communication
  * @param flasher Bootloader protocol instance with correct address set
  */
-std::pair<bool, puppy_crash_dump::FWDescriptor> fetch_fw_descriptor(std::span<uint8_t> buffer, BootloaderProtocol &flasher,
-    const char *puppy_name);
+std::optional<puppy_crash_dump::FWDescriptor>
+fetch_fw_descriptor(std::span<uint8_t> buffer, BootloaderProtocol &flasher, const char *puppy_name);
 
 /**
  * @brief Downloads crash dump on the given offset (if present) and stores it into a file

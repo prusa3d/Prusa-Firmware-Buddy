@@ -10,51 +10,54 @@
 LOG_COMPONENT_REF(Puppies);
 
 namespace buddy::puppies::crash_dump {
-std::pair<bool, puppy_crash_dump::FWDescriptor> fetch_fw_descriptor(std::span<uint8_t> buffer,
-    BootloaderProtocol &flasher, const char *puppy_name) {
+std::optional<puppy_crash_dump::FWDescriptor>
+fetch_fw_descriptor(std::span<uint8_t> buffer, BootloaderProtocol &flasher, const char *puppy_name) {
     assert(buffer.size() >= puppy_crash_dump::APP_DESCRIPTOR_LENGTH);
 
     if (auto st = flasher.read_flash_cmd(puppy_crash_dump::APP_DESCRIPTOR_OFFSET, buffer.data(), puppy_crash_dump::APP_DESCRIPTOR_LENGTH);
         st != BootloaderProtocol::COMMAND_OK) {
         log_error(Puppies, "Failed getting descriptor from %s", puppy_name);
-        return { false, {} };
-    } else {
-        return { true, *reinterpret_cast<puppy_crash_dump::FWDescriptor *>(buffer.data()) }; // return a copy
+        return std::nullopt;
     }
+
+    return *reinterpret_cast<puppy_crash_dump::FWDescriptor *>(buffer.data());
 }
 
 bool download_dump_into_file(std::span<uint8_t> buffer,
     BootloaderProtocol &flasher, const char *puppy_name, const char *file_path) {
-    if (auto [rc, fw_descriptor] = fetch_fw_descriptor(buffer, flasher, puppy_name); rc != true) {
-        return rc;
-    } else {
-        if (fw_descriptor.stored_type != puppy_crash_dump::FWDescriptor::StoredType::crash_dump) {
-            log_info(Puppies, "%s doesn't contain crash_dump", puppy_name); // not an error
-            return false;
-        }
 
-        unique_file_ptr dump_file(fopen(file_path, "wb"));
-        if (!dump_file) {
-            log_error(Puppies, "Unable to open file to save %s crash_dump", puppy_name);
-            return false;
-        }
-
-        for (uint32_t cur_offset = 0; cur_offset < fw_descriptor.dump_size; cur_offset += buffer.size()) {
-            const uint32_t read_sz = std::min(fw_descriptor.dump_size - cur_offset,
-                std::min(static_cast<uint32_t>(buffer.size()), static_cast<uint32_t>(BootloaderProtocol::MAX_RESPONSE_DATA_LEN)));
-            if (auto st = flasher.read_flash_cmd(fw_descriptor.dump_offset + cur_offset, buffer.data(), read_sz);
-                st != BootloaderProtocol::COMMAND_OK) {
-                log_error(Puppies, "Failed reading crash_dump from %s", puppy_name);
-                return false;
-            }
-            if (auto rc = fwrite(buffer.data(), 1, read_sz, dump_file.get()); rc != read_sz) {
-                log_error(Puppies, "File saving failed during %s crash_dump download rc:%d", puppy_name, rc);
-                return false;
-            }
-        }
-        log_info(Puppies, "Successfully downloaded crash_dump for %s", puppy_name);
-        return true;
+    const auto res = fetch_fw_descriptor(buffer, flasher, puppy_name);
+    if (!res.has_value()) {
+        return false;
     }
+    const puppy_crash_dump::FWDescriptor &fw_descriptor = res.value();
+
+    if (fw_descriptor.stored_type != puppy_crash_dump::FWDescriptor::StoredType::crash_dump) {
+        log_info(Puppies, "%s doesn't contain crash_dump", puppy_name); // not an error
+        return false;
+    }
+
+    unique_file_ptr dump_file(fopen(file_path, "wb"));
+    if (!dump_file) {
+        log_error(Puppies, "Unable to open file to save %s crash_dump", puppy_name);
+        return false;
+    }
+
+    for (uint32_t cur_offset = 0; cur_offset < fw_descriptor.dump_size; cur_offset += buffer.size()) {
+        const uint32_t read_sz = std::min(fw_descriptor.dump_size - cur_offset,
+            std::min(static_cast<uint32_t>(buffer.size()), static_cast<uint32_t>(BootloaderProtocol::MAX_RESPONSE_DATA_LEN)));
+        if (auto st = flasher.read_flash_cmd(fw_descriptor.dump_offset + cur_offset, buffer.data(), read_sz);
+            st != BootloaderProtocol::COMMAND_OK) {
+            log_error(Puppies, "Failed reading crash_dump from %s", puppy_name);
+            return false;
+        }
+        if (auto rc = fwrite(buffer.data(), 1, read_sz, dump_file.get()); rc != read_sz) {
+            log_error(Puppies, "File saving failed during %s crash_dump download rc:%d", puppy_name, rc);
+            return false;
+        }
+    }
+    log_info(Puppies, "Successfully downloaded crash_dump for %s", puppy_name);
+    return true;
 }
 
 [[nodiscard]] bool file_exists(const char *path) {
