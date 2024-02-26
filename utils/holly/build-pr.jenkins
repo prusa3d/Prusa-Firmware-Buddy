@@ -150,7 +150,7 @@ pipeline {
                                 echo "Building ${config.preset} ${config.build_type} ${config.bootloader}"
 
                                 def dev_items
-                                if (env.BRANCH_NAME.startsWith("RELEASE-") || env.BRANCH_NAME == "xl" || env.BRANCH_NAME == "mk4-release") {
+                                if (env.BRANCH_NAME.startsWith("RELEASE-") || env.BRANCH_NAME == "xl" || env.BRANCH_NAME == "mk4-release" || env.BRANCH_NAME == "phase_stepping") {
                                     // This is an RC build
                                     dev_items = "no"
                                 } else {
