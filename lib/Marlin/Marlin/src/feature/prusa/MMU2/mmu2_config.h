@@ -46,7 +46,11 @@ static constexpr float MMU2_RETRY_UNLOAD_FINISH_FEED_RATE = 20.0f; // mm/s
 
 static constexpr float MMU2_EXTRUDER_NOZZLE_LENGTH = 20.F;
 #ifdef USE_TRY_LOAD
-// Beware - this part has been tuned for MK35 (copied from MK3S), it probably won't work for MK4 anymore
+    #ifndef UNITTEST
+        #if not PRINTER_IS_PRUSA_MK3_5
+            #error "Beware - this part has been tuned for MK35 (copied from MK3S), it probably won't work for MK4 anymore"
+        #endif
+    #endif
 static constexpr float MMU2_FILAMENT_SENSOR_POSITION = 0; // mm
 static constexpr float MMU2_EXTRUDER_PTFE_LENGTH = 42.3f; // mm
 static constexpr float MMU2_EXTRUDER_HEATBREAK_LENGTH = 17.7f; // mm
