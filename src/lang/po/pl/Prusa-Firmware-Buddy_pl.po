@@ -4750,6 +4750,10 @@ msgstr "Załaduj do slotu 5"
 msgid "Preload to MMU"
 msgstr "Załaduj do MMU"
 
+#: src/gui/MItem_mmu.hpp:9
+msgid "Preload to MMU (advanced)"
+msgstr "Załaduj do MMU (zaawansowane)"
+
 #: src/gui/wizard/selftest_frame_temp.cpp:58
 #: src/gui/wizard/selftest_frame_nozzle_diameter.cpp:31
 msgid "Preparing"

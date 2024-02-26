@@ -7,7 +7,7 @@
 #include "i18n.h"
 
 class MI_MMU_PRELOAD_ADVANCED : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Preload to MMU Advanced");
+    static constexpr const char *const label = N_("Preload to MMU (advanced)");
 
 public:
     MI_MMU_PRELOAD_ADVANCED();

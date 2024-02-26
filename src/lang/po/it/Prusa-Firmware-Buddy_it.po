@@ -4756,6 +4756,10 @@ msgstr "Precarica slot 5"
 msgid "Preload to MMU"
 msgstr "Precaricare su MMU"
 
+#: src/gui/MItem_mmu.hpp:9
+msgid "Preload to MMU (advanced)"
+msgstr "Precaricare su MMU (avanzato)"
+
 #: src/gui/wizard/selftest_frame_temp.cpp:58
 #: src/gui/wizard/selftest_frame_nozzle_diameter.cpp:31
 msgid "Preparing"
