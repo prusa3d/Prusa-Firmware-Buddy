@@ -69,13 +69,13 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
         // switch multiplex to send data to side led strip
         displayCs.set();
 
-    // On iX, we're getting null warning here even though we're behind a false check and null-checking...
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wnonnull"
-
+    #if PRINTER_IS_PRUSA_XL
+        // On XL the sideleds are optional (depending on BOM), ensure the SideLed_LcdSelector is
+        // actually available on the printer before using it
         if (SideLed_LcdSelector) {
             SideLed_LcdSelector->set();
         }
+    #endif
 
         // send data
         ili9488_spi_wr_bytes(pb, size);
@@ -83,12 +83,11 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
         // switch multiplex back
         displayCs.reset();
 
+    #if PRINTER_IS_PRUSA_XL
         if (SideLed_LcdSelector) {
             SideLed_LcdSelector->reset();
         }
-
-    #pragma GCC diagnostic pop
-
+    #endif
     } else {
         HAL_SPI_Abort(hspi);
         assert(can_be_used_by_dma(pb));

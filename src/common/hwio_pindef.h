@@ -81,8 +81,6 @@ void hw_init_spi_side_leds();
 #else // Not special board with separate pin definition file.
 
     #if PRINTER_IS_PRUSA_iX
-inline constexpr buddy::hw::OutputPin *SideLed_LcdSelector = nullptr;
-
 inline void hw_init_spi_side_leds() {}
 
 inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
