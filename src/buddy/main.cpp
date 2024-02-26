@@ -44,6 +44,7 @@
 #include <option/has_mmu2.h>
 #include <option/resources.h>
 #include <option/bootloader_update.h>
+#include <option/has_side_leds.h>
 #include <option/has_phase_stepping.h>
 #include <option/has_burst_stepping.h>
 #include "tasks.hpp"
@@ -386,7 +387,7 @@ extern "C" void main_cpp(void) {
     hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
 #endif
 
-#if BOARD_IS_XLBUDDY
+#if HAS_SIDE_LEDS()
     hw_init_spi_side_leds();
 #endif
 

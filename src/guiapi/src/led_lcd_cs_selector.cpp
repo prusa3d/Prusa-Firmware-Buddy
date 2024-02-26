@@ -101,9 +101,14 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
     // switch multiplex to send data to side led strip
     if (spi_shared_with_lcd) {
         displayCs.reset();
+
+    #if PRINTER_IS_PRUSA_XL
+        // On XL the sideleds are optional (depending on BOM), ensure the SideLed_LcdSelector is
+        // actually available on the printer before using it
         if (SideLed_LcdSelector) {
             SideLed_LcdSelector->set();
         }
+    #endif
     }
 
     writer.WrBytes(pb, size);
@@ -112,9 +117,12 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
     // switch multiplex back
     if (spi_shared_with_lcd) {
         displayCs.reset();
+
+    #if PRINTER_IS_PRUSA_XL
         if (SideLed_LcdSelector) {
             SideLed_LcdSelector->reset();
         }
+    #endif
     }
 }
 #endif
