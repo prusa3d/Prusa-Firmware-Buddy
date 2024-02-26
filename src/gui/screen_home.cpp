@@ -40,6 +40,7 @@
 #include <option/development_items.h>
 #include <device/peripherals.h>
 #include <option/has_mmu2.h>
+#include <option/has_human_interactions.h>
 
 #include "screen_menu_settings.hpp"
 #include "screen_menu_filament.hpp"
@@ -484,7 +485,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                 return;
             } else {
                 // on esp update, can use one click print
-                if (
+                if (HAS_HUMAN_INTERACTIONS() &&
     #if ENABLED(POWER_PANIC)
                     TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming() &&
     #endif // ENABLED(POWER_PANIC)
