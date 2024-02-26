@@ -357,6 +357,9 @@ if(CMAKE_CROSSCOMPILING)
 
   # wrap _dtoa to ensure formatting of floats isn't being called from ISR
   add_link_options(-Wl,--wrap=_dtoa_r)
+
+  # disable warnings about RWX sections due to CrashCatcher's "safe" page
+  add_link_options(-Wl,--no-warn-rwx-segments)
 endif()
 
 # support _DEBUG macro (some code uses to recognize debug builds)
