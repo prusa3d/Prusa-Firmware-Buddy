@@ -36,7 +36,7 @@ ipp_path            - destionation path with name of the to be generated ipp fil
 ```bash
 mkdir -p build_tests
 cd build_tests
-../.dependencies/cmake-3.22.5/bin/cmake -D CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=YES -D CMAKE_C_FLAGS="-O0 -ggdb3" -D CMAKE_CXX_FLAGS="-O0 -ggdb3 -std=c++20" -D CMAKE_BUILD_TYPE=Debug ..
+../.dependencies/cmake-3.82.3/bin/cmake -D CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=YES -D CMAKE_C_FLAGS="-O0 -ggdb3" -D CMAKE_CXX_FLAGS="-O0 -ggdb3 -std=c++20" -D CMAKE_BUILD_TYPE=Debug ..
 cd utils/translations_and_fonts/png2font
 make
 ```
