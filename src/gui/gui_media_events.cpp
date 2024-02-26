@@ -61,10 +61,6 @@ void GuiMediaEventsHandler::tick() {
     media_state = actual_state; // update
 }
 
-void GuiMediaEventsHandler::SetOneClickPrinting() {
-    Instance().one_click_printing = true;
-}
-
 bool GuiMediaEventsHandler::ConsumeOneClickPrinting() {
     bool ret = Instance().one_click_printing;
     Instance().one_click_printing = false;
