@@ -101,7 +101,9 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
     // switch multiplex to send data to side led strip
     if (spi_shared_with_lcd) {
         displayCs.reset();
-        SideLed_LcdSelector->set();
+        if (SideLed_LcdSelector) {
+            SideLed_LcdSelector->set();
+        }
     }
 
     writer.WrBytes(pb, size);
@@ -110,7 +112,9 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
     // switch multiplex back
     if (spi_shared_with_lcd) {
         displayCs.reset();
-        SideLed_LcdSelector->reset();
+        if (SideLed_LcdSelector) {
+            SideLed_LcdSelector->reset();
+        }
     }
 }
 #endif
