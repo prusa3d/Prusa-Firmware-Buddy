@@ -11,6 +11,7 @@
 #include <charconv>
 #include "inc/MarlinConfig.h"
 #include <assert.h>
+#include <tuple>
 
 #if BOARD_IS_DWARF
     #error "You're trying to add marlin_vars to Dwarf. Don't!"
