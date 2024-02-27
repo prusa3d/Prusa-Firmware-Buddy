@@ -9,7 +9,7 @@
 #include "selftest_sub_state.hpp"
 
 struct SelftestHotEndSockType {
-    bool has_sock = false;
+    HotendType hotend_type = HotendType::stock;
     NozzleType nozzle_type = NozzleType::Normal;
 
     constexpr SelftestHotEndSockType() = default;
@@ -20,12 +20,12 @@ struct SelftestHotEndSockType {
     }
 
     constexpr fsm::PhaseData Serialize() const {
-        fsm::PhaseData ret = { { has_sock, ftrstd::to_underlying(nozzle_type) } };
+        fsm::PhaseData ret = { { ftrstd::to_underlying(hotend_type), ftrstd::to_underlying(nozzle_type) } };
         return ret;
     }
 
     constexpr void Deserialize(fsm::PhaseData new_data) {
-        has_sock = new_data[0];
+        hotend_type = static_cast<HotendType>(new_data[0]);
         nozzle_type = static_cast<NozzleType>(new_data[1]);
     }
 
