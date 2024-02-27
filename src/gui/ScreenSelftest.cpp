@@ -45,7 +45,7 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_temp(ScreenSelftest &rT
 
 #if !PRINTER_IS_PRUSA_MINI
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_specify_hot_end(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
-    return rThs.makePtr<SelftestFrameHotEndSock>(&rThs, phase, data);
+    return rThs.makePtr<SelftestFrameHotendSpecify>(&rThs, phase, data);
 }
 #endif
 
@@ -120,7 +120,7 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
 #endif
     case SelftestParts::Heaters:
         return creator_temp;
-    case SelftestParts::SpecifyHotEnd:
+    case SelftestParts::SpecifyHotend:
 #if PRINTER_IS_PRUSA_MINI
         break;
 #else
@@ -213,7 +213,7 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::GearsCalib:
 #endif
     case SelftestParts::Heaters:
-    case SelftestParts::SpecifyHotEnd:
+    case SelftestParts::SpecifyHotend:
     case SelftestParts::CalibZ:
     case SelftestParts::Result:
 #if BOARD_IS_XLBUDDY
@@ -253,7 +253,7 @@ const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::NozzleDiameter:
 #endif
     case SelftestParts::Heaters:
-    case SelftestParts::SpecifyHotEnd:
+    case SelftestParts::SpecifyHotend:
     case SelftestParts::CalibZ:
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:

@@ -94,14 +94,14 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "Heaters";
     case PhasesSelftest::HeatersDisabledDialog:
         return "HeatersDisabledDialog";
-    case PhasesSelftest::SpecifyHotEnd:
-        return "SpecifyHotEnd";
-    case PhasesSelftest::SpecifyHotEnd_type:
-        return "SpecifyHotEnd_type";
-    case PhasesSelftest::SpecifyHotEnd_nozzle_type:
-        return "SpecifyHotEnd_nozzle_type";
-    case PhasesSelftest::SpecifyHotEnd_retry:
-        return "SpecifyHotEnd_retry";
+    case PhasesSelftest::SpecifyHotend:
+        return "SpecifyHotend";
+    case PhasesSelftest::SpecifyHotend_type:
+        return "SpecifyHotend_type";
+    case PhasesSelftest::SpecifyHotend_nozzle_type:
+        return "SpecifyHotend_nozzle_type";
+    case PhasesSelftest::SpecifyHotend_retry:
+        return "SpecifyHotend_retry";
     case PhasesSelftest::FirstLayer_mbl:
         return "FirstLayer_mbl";
     case PhasesSelftest::FirstLayer_print:

@@ -1,6 +1,5 @@
 /**
- * @file selftest_hot_end_sock_type.hpp
- * @brief selftest filament sensor data to be passed between threads
+ * @file selftest_hot_end_specify_type.hpp
  */
 
 #pragma once
@@ -8,14 +7,14 @@
 #include <common/fsm_base_types.hpp>
 #include "selftest_sub_state.hpp"
 
-struct SelftestHotEndSockType {
+struct SelftestHotendSpecifyType {
     HotendType hotend_type = HotendType::stock;
     NozzleType nozzle_type = NozzleType::Normal;
 
-    constexpr SelftestHotEndSockType() = default;
+    constexpr SelftestHotendSpecifyType() = default;
 
-    constexpr SelftestHotEndSockType(fsm::PhaseData new_data)
-        : SelftestHotEndSockType() {
+    constexpr SelftestHotendSpecifyType(fsm::PhaseData new_data)
+        : SelftestHotendSpecifyType() {
         Deserialize(new_data);
     }
 
@@ -29,8 +28,8 @@ struct SelftestHotEndSockType {
         nozzle_type = static_cast<NozzleType>(new_data[1]);
     }
 
-    constexpr bool operator==(const SelftestHotEndSockType &) const = default;
-    constexpr bool operator!=(const SelftestHotEndSockType &other) const = default;
+    constexpr bool operator==(const SelftestHotendSpecifyType &) const = default;
+    constexpr bool operator!=(const SelftestHotendSpecifyType &other) const = default;
 
     void Pass() {}
     void Fail() {}

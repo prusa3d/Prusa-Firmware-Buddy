@@ -210,7 +210,7 @@ static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensorMMU = 
 
 static constexpr SelftestGearsConfig gears_config = { .feedrate = 8 };
 
-static constexpr HotEndSockConfig sock_config = { .partname = "Sock" };
+static constexpr HotendSpecifyConfig hotend_config = { .partname = "Hotend" };
 
 CSelftest::CSelftest()
     : m_State(stsIdle)
@@ -363,9 +363,9 @@ void CSelftest::Loop() {
             return;
         }
         break;
-    case stsHotEndSock:
+    case stsHotendSpecify:
         if (m_result.tools[0].nozzle == TestResult_Failed) {
-            if (phase_hot_end_sock(pSock, sock_config)) {
+            if (phase_hotend_specify(pSock, hotend_config)) {
                 return;
             }
             if (get_retry_heater()) {

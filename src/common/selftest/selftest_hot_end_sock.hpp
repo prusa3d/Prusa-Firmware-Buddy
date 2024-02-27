@@ -12,15 +12,14 @@ namespace selftest {
 /**
  * @brief Object handling states of hot end configuration
  */
-class CSelftestPart_HotEndSock {
-
+class CSelftestPart_HotendSpecify {
     IPartHandler &rStateMachine;
-    const HotEndSockConfig &rConfig;
-    SelftestHotEndSockType &rResult;
+    const HotendSpecifyConfig &rConfig;
+    SelftestHotendSpecifyType &rResult;
 
 public:
-    CSelftestPart_HotEndSock(IPartHandler &state_machine, const HotEndSockConfig &config,
-        SelftestHotEndSockType &result);
+    CSelftestPart_HotendSpecify(IPartHandler &state_machine, const HotendSpecifyConfig &config, SelftestHotendSpecifyType &result);
+
     LoopResult stateStart();
     LoopResult stateAskAdjust();
     LoopResult stateAskHotendInit();

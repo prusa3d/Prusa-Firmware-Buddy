@@ -10,21 +10,21 @@
 
 using namespace selftest;
 
-CSelftestPart_HotEndSock::CSelftestPart_HotEndSock(IPartHandler &state_machine, const HotEndSockConfig &config,
-    SelftestHotEndSockType &result)
+CSelftestPart_HotendSpecify::CSelftestPart_HotendSpecify(IPartHandler &state_machine, const HotendSpecifyConfig &config,
+    SelftestHotendSpecifyType &result)
     : rStateMachine(state_machine)
     , rConfig(config)
     , rResult(result) {
     rStateMachine.SetTimeToShowResult(0);
 }
 
-LoopResult CSelftestPart_HotEndSock::stateStart() {
+LoopResult CSelftestPart_HotendSpecify::stateStart() {
     rResult.hotend_type = config_store().hotend_type.get();
     rResult.nozzle_type = config_store().nozzle_type.get();
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_HotEndSock::stateAskAdjust() {
+LoopResult CSelftestPart_HotendSpecify::stateAskAdjust() {
     const Response response = rStateMachine.GetButtonPressed();
     switch (response) {
     case Response::Adjust:
@@ -37,12 +37,12 @@ LoopResult CSelftestPart_HotEndSock::stateAskAdjust() {
     return LoopResult::RunCurrent;
 }
 
-LoopResult CSelftestPart_HotEndSock::stateAskHotendInit() {
-    IPartHandler::SetFsmPhase(PhasesSelftest::SpecifyHotEnd_type);
+LoopResult CSelftestPart_HotendSpecify::stateAskHotendInit() {
+    IPartHandler::SetFsmPhase(PhasesSelftest::SpecifyHotend_type);
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_HotEndSock::stateAskHotend() {
+LoopResult CSelftestPart_HotendSpecify::stateAskHotend() {
     // Revisit this when new hotends are added
     static_assert(hotend_type_count == 2);
 
@@ -63,12 +63,12 @@ LoopResult CSelftestPart_HotEndSock::stateAskHotend() {
     }
 }
 
-LoopResult CSelftestPart_HotEndSock::stateAskNozzleInit() {
-    IPartHandler::SetFsmPhase(PhasesSelftest::SpecifyHotEnd_nozzle_type);
+LoopResult CSelftestPart_HotendSpecify::stateAskNozzleInit() {
+    IPartHandler::SetFsmPhase(PhasesSelftest::SpecifyHotend_nozzle_type);
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_HotEndSock::stateAskNozzle() {
+LoopResult CSelftestPart_HotendSpecify::stateAskNozzle() {
     const Response response = rStateMachine.GetButtonPressed();
 
     // When some new nozzle type gets added, we might want to revisit this
@@ -89,12 +89,12 @@ LoopResult CSelftestPart_HotEndSock::stateAskNozzle() {
     return LoopResult::RunCurrent;
 }
 
-LoopResult CSelftestPart_HotEndSock::stateAskRetryInit() {
-    IPartHandler::SetFsmPhase(PhasesSelftest::SpecifyHotEnd_retry);
+LoopResult CSelftestPart_HotendSpecify::stateAskRetryInit() {
+    IPartHandler::SetFsmPhase(PhasesSelftest::SpecifyHotend_retry);
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_HotEndSock::stateAskRetry() {
+LoopResult CSelftestPart_HotendSpecify::stateAskRetry() {
     const Response response = rStateMachine.GetButtonPressed();
     switch (response) {
     case Response::Yes:

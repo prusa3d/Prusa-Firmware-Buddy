@@ -48,7 +48,7 @@ static constexpr Rect16 get_text_nozzle_value_rect() {
     return ret;
 }
 
-SelftestFrameHotEndSock::SelftestFrameHotEndSock(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
+SelftestFrameHotendSpecify::SelftestFrameHotendSpecify(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
     , text(this, get_text_rect(), is_multiline::yes)
     , text_nozzle(this, get_text_nozzle_rect(), is_multiline::no, is_closed_on_click_t::no, _("Nozzle type"))
@@ -62,29 +62,29 @@ SelftestFrameHotEndSock::SelftestFrameHotEndSock(window_t *parent, PhasesSelftes
     change();
 }
 
-void SelftestFrameHotEndSock::change() {
-    SelftestHotEndSockType result(data_current);
+void SelftestFrameHotendSpecify::change() {
+    SelftestHotendSpecifyType result(data_current);
 
     const char *txt = nullptr;
     bool show_settings = false;
 
     // texts
     switch (phase_current) {
-    case PhasesSelftest::SpecifyHotEnd:
+    case PhasesSelftest::SpecifyHotend:
         txt = N_("Attention, the test has failed. Check below the expected printer setup and adjust it accordingly:");
         show_settings = true;
         break;
-    case PhasesSelftest::SpecifyHotEnd_type:
+    case PhasesSelftest::SpecifyHotend_type:
         if (hotend_type_only_sock) {
             txt = N_("Do you have a silicone hotend sock installed?");
         } else {
             txt = N_("What kind of hotend do you have installed?");
         }
         break;
-    case PhasesSelftest::SpecifyHotEnd_nozzle_type:
+    case PhasesSelftest::SpecifyHotend_nozzle_type:
         txt = N_("What kind of nozzle type do you have installed?");
         break;
-    case PhasesSelftest::SpecifyHotEnd_retry:
+    case PhasesSelftest::SpecifyHotend_retry:
         txt = N_("Do you wish to retry the heater selftest?");
         break;
     default:
