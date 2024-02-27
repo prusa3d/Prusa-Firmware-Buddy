@@ -239,7 +239,7 @@ enum class PhasesSelftest : uint16_t {
 
     _first_SpecifyHotEnd,
     SpecifyHotEnd = _first_SpecifyHotEnd,
-    SpecifyHotEnd_sock,
+    SpecifyHotEnd_type,
     SpecifyHotEnd_nozzle_type,
     SpecifyHotEnd_retry,
     _last_SpecifyHotEnd = SpecifyHotEnd_retry,

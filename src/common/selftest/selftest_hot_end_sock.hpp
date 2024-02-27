@@ -23,8 +23,8 @@ public:
         SelftestHotEndSockType &result);
     LoopResult stateStart();
     LoopResult stateAskAdjust();
-    LoopResult stateAskSockInit();
-    LoopResult stateAskSock();
+    LoopResult stateAskHotendInit();
+    LoopResult stateAskHotend();
     LoopResult stateAskNozzleInit();
     LoopResult stateAskNozzle();
     LoopResult stateAskRetryInit();
