@@ -128,7 +128,7 @@ extern uint8_t __attribute__((section(".ccmram"))) memp_memory_PBUF_base[];
 extern uint8_t __attribute__((section(".ccmram"))) memp_memory_PBUF_POOL_base[];
 #endif
 extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCPIP_MSG_INPKT_base[];
-extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCP_PCB_LISTEN_base[];
-extern uint8_t __attribute__((section(".ccmram"))) memp_memory_REASSDATA_base[];
+extern uint8_t memp_memory_TCP_PCB_LISTEN_base[];
+extern uint8_t memp_memory_REASSDATA_base[];
 
 #endif /* __CC_H__ */

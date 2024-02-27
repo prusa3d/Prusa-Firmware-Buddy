@@ -19,6 +19,7 @@ typedef enum {
     stsYAxis,
     stsZcalib,
     stsDocks,
+    stsPhaseStepping,
     stsLoadcell,
     stsWait_loadcell,
     stsNozzleDiameter,
@@ -62,6 +63,7 @@ enum SelftestMask_t : uint32_t {
     stmSelftestStop = to_one_hot(stsSelftestStop),
     stmDocks = to_one_hot(stsDocks),
     stmToolOffsets = to_one_hot(stsToolOffsets),
+    stmPhaseStepping = to_one_hot(stsPhaseStepping),
 };
 
 // class representing whole self-test
@@ -98,6 +100,7 @@ protected:
     selftest::IPartHandler *pToolOffsets;
     std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
     selftest::IPartHandler *pNozzleDiameter;
+    selftest::IPartHandler *pPhaseStepping;
 
     SelftestResult m_result;
 };

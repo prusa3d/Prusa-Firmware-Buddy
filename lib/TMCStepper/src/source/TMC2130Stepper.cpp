@@ -8,6 +8,7 @@
 #if HAS_PUPPIES() && HAS_TOOLCHANGER()
   #include "module/prusa/toolchanger.h"
 #endif
+#include <feature/phase_stepping/phase_stepping.hpp>
 
 int8_t TMC2130Stepper::chain_length = 0;
 uint32_t TMC2130Stepper::spi_speed = 16000000/8;
@@ -89,7 +90,13 @@ void TMC2130Stepper::switchCSpin(bool state) {
 
 uint32_t TMC2130Stepper::read(uint8_t addressByte) {
 
-  auto lockGuard = TMCStepper::CommunicationLockGuard();
+#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  const bool localConnection = (connection != Connection::Remote);
+#else
+  const bool localConnection = true;
+#endif
+  auto lockGuard = TMCStepper::CommunicationLockGuard(localConnection);
+
   uint32_t out = 0UL;
   int8_t i = 1;
 
@@ -183,7 +190,12 @@ uint32_t TMC2130Stepper::read(uint8_t addressByte) {
 
 void TMC2130Stepper::write(uint8_t addressByte, uint32_t config) {
 
-  auto lockGuard = TMCStepper::CommunicationLockGuard();
+#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  const bool localConnection = (connection != Connection::Remote);
+#else
+  const bool localConnection = true;
+#endif
+  auto lockGuard = TMCStepper::CommunicationLockGuard(localConnection);
 
   tmc_register_write_hook(0, addressByte, config);
   addressByte |= TMC_WRITE;
@@ -261,6 +273,17 @@ void TMC2130Stepper::begin() {
 bool TMC2130Stepper::isEnabled() { return !drv_enn_cfg6() && toff(); }
 
 void TMC2130Stepper::push() {
+#if HAS_PHASE_STEPPING() && _DEBUG
+  // This functions can lock the SPI bus for a long time, preventing the phase stepping ISR to run
+  // frequently enough: ensure it's not called on an active axis
+#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  const bool localConnection = (connection != Connection::Remote);
+#else
+  const bool localConnection = true;
+#endif
+  assert(!phase_stepping::any_axis_active() || !localConnection);
+#endif
+
   GCONF(GCONF_register.sr);
   IHOLD_IRUN(IHOLD_IRUN_register.sr);
   TPOWERDOWN(TPOWERDOWN_register.sr);

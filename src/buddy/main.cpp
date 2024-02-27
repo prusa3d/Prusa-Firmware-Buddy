@@ -44,6 +44,8 @@
 #include <option/has_mmu2.h>
 #include <option/resources.h>
 #include <option/bootloader_update.h>
+#include <option/has_phase_stepping.h>
+#include <option/has_burst_stepping.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -79,6 +81,10 @@
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     #include "hw_configuration.hpp"
+#endif
+
+#if HAS_PHASE_STEPPING()
+    #include <feature/phase_stepping/phase_stepping.hpp>
 #endif
 
 using namespace crash_dump;
@@ -239,6 +245,15 @@ extern "C" void main_cpp(void) {
 #if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
     hw_tim1_init();
 #endif
+
+#if HAS_PHASE_STEPPING()
+    hw_tim13_init();
+#endif
+
+#if HAS_BURST_STEPPING()
+    hw_tim8_init();
+#endif
+
     hw_tim14_init();
 
     SPI_INIT(flash);
@@ -468,7 +483,7 @@ extern "C" void main_cpp(void) {
     osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 1024);
     prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
 
-    osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1024);
+    osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1152);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
 #if ENABLED(POWER_PANIC)

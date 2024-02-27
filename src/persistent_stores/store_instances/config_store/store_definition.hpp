@@ -28,6 +28,7 @@
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
+#include <option/has_phase_stepping.h>
 
 namespace config_store_ns {
 /**
@@ -350,6 +351,10 @@ struct CurrentStore
     StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;
 #endif
 
+#if PRINTER_IS_PRUSA_XL
+    StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Test Result Phase Stepping")> selftest_result_phase_stepping;
+#endif
+
     SelftestTool get_selftest_result_tool(uint8_t index);
     void set_selftest_result_tool(uint8_t index, SelftestTool value);
 
@@ -405,6 +410,14 @@ struct CurrentStore
 
 #if PRINTER_IS_PRUSA_MK3_5
     StoreItem<bool, defaults::bool_false, journal::hash("Has Alt Fans")> has_alt_fans;
+#endif
+
+#if HAS_PHASE_STEPPING()
+    StoreItem<bool, defaults::bool_false, journal::hash("Phase Stepping Enabled X")> phase_stepping_enabled_x;
+    StoreItem<bool, defaults::bool_false, journal::hash("Phase Stepping Enabled Y")> phase_stepping_enabled_y;
+
+    bool get_phase_stepping_enabled(AxisEnum axis);
+    void set_phase_stepping_enabled(AxisEnum axis, bool new_state);
 #endif
 };
 

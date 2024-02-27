@@ -37,6 +37,7 @@
     #include <config_store/store_instance.hpp>
 #endif
 
+#include <feature/phase_stepping/phase_stepping.hpp>
 #include <HardwareSerial.h>
 
 
@@ -675,6 +676,8 @@ void restore_trinamic_drivers() {
 }
 
 void reset_trinamic_drivers() {
+  assert(!phase_stepping::any_axis_active());
+
   static constexpr bool stealthchop_by_axis[] = {
     #if ENABLED(STEALTHCHOP_XY)
       true

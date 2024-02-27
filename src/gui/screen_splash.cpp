@@ -90,7 +90,8 @@ screen_splash_data_t::screen_splash_data_t()
             if (any_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed
         #if PRINTER_IS_PRUSA_XL
                     ,
-                    config_store().selftest_result_nozzle_diameter.get()
+                    config_store().selftest_result_nozzle_diameter.get(), config_store().selftest_result_phase_stepping.get()
+
         #endif
                         )) {
                 return false;

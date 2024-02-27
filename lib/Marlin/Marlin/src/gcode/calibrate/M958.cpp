@@ -115,23 +115,6 @@ private:
     bool m_dir_forward;
 };
 
-/**
- * Turns automatic reports off until destructor is called.
- * Then it sets reports to previous value.
- */
-class Temporary_Report_Off {
-    bool suspend_reports = false;
-
-public:
-    Temporary_Report_Off() {
-        suspend_reports = suspend_auto_report;
-        suspend_auto_report = true;
-    }
-    ~Temporary_Report_Off() {
-        suspend_auto_report = suspend_reports;
-    }
-};
-
 class StepDir {
 public:
     static constexpr float m_ticks_per_second = STEPPER_TIMER_RATE;
@@ -410,7 +393,7 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
     const uint32_t samples_to_collect = period * cycles / sample_period;
     bool enough_samples_collected = false;
     bool first_loop = true;
-    Temporary_Report_Off stop_busy_messages;
+    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 #ifdef M958_OUTPUT_SAMPLES
     SERIAL_ECHOLN("Yraw  sinf cosf");
 #endif
@@ -1030,7 +1013,7 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
         psd.put(psd_xyz);
     }
 
-    Temporary_Report_Off stop_busy_messages;
+    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 
     if (subtract_excitation) {
         SERIAL_ECHOLN("Excitation subtracted power spectrum density");

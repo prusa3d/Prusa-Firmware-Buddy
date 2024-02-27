@@ -258,6 +258,15 @@ if(BOARD_IS_MASTER_BOARD)
               Marlin/Marlin/src/module/tool_change.cpp
       )
   endif()
+
+  if(PRINTER IN_LIST PRINTERS_WITH_PHASE_STEPPING)
+    target_sources(
+      Marlin
+      PRIVATE Marlin/Marlin/src/feature/phase_stepping/calibration.cpp
+              Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp
+              Marlin/Marlin/src/gcode/feature/phase_stepping/M970-M977.cpp
+      )
+  endif()
 endif()
 
 target_compile_features(Marlin PUBLIC cxx_std_17)

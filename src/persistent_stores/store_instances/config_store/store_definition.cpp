@@ -840,4 +840,33 @@ void CurrentStore::set_input_shaper_config(const input_shaper::Config &config) {
     }
 }
 
+#if HAS_PHASE_STEPPING()
+bool CurrentStore::get_phase_stepping_enabled(AxisEnum axis) {
+    switch (axis) {
+    case AxisEnum::X_AXIS:
+        return phase_stepping_enabled_x.get();
+        break;
+    case AxisEnum::Y_AXIS:
+        return phase_stepping_enabled_y.get();
+        break;
+    default:
+        assert(false && "invalid index");
+        return {};
+    }
+}
+
+void CurrentStore::set_phase_stepping_enabled(AxisEnum axis, bool new_state) {
+    switch (axis) {
+    case AxisEnum::X_AXIS:
+        phase_stepping_enabled_x.set(new_state);
+        break;
+    case AxisEnum::Y_AXIS:
+        phase_stepping_enabled_y.set(new_state);
+        break;
+    default:
+        assert(false && "invalid index");
+        return;
+    }
+}
+#endif
 } // namespace config_store_ns

@@ -295,6 +295,7 @@ public:
 
 private:
     static uint32_t waiting_before_delivering_start_time;
+    static uint32_t last_step_isr_delay;
 
     static void step_generator_state_init(const move_t &move);
 
@@ -306,3 +307,8 @@ private:
 void classic_step_generator_init(const move_t &move, classic_step_generator_t &step_generator, step_generator_state_t &step_generator_state);
 
 FORCE_INLINE void classic_step_generator_update(classic_step_generator_t &step_generator);
+
+// Common functions:
+float get_move_axis_r(const move_t &move, const int axis);
+void mark_ownership(move_t &move);
+void discard_ownership(move_t &move);

@@ -98,6 +98,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 #include "../../core/debug_out.h"
 
 #include "../../../../../../src/common/trinamic.h" // for disabling Wave Table during homing
+#include <feature/phase_stepping/phase_stepping.hpp> // for disabling phase stepping during homing
 
 #if ENABLED(QUICK_HOME)
 
@@ -580,6 +581,9 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   TERN_(HAS_DUPLICATION_MODE, set_duplication_enabled(false));
 
+  // Disable phase stepping just before homing XY. This will synchronize only if needed
+  phase_stepping::EnsureSuitableForHoming phstep_disabler;
+
   // Homing feedrate
   float fr_mm_s = no_change ? feedrate_mm_s : 0.0f;
   remember_feedrate_scaling_off();
@@ -846,6 +850,9 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   #endif // DUAL_X_CARRIAGE
 
   endstops.not_homing();
+
+  // Restore previous phase stepping state before we move again
+  phstep_disabler.release();
 
   if (!failed) {
     // Clear endstop state for polled stallGuard endstops

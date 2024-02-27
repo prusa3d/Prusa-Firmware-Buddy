@@ -24,6 +24,7 @@
 // clang-format off
 
 #include "filename_defs.h"
+#include <option/has_burst_stepping.h>
 
 /**
  * Configuration_adv.h
@@ -1246,7 +1247,7 @@
 // @section serial
 
 // The ASCII buffer for serial input
-#define MAX_CMD_SIZE 96
+#define MAX_CMD_SIZE 256
 #define BUFSIZE 8
 
 // Transmission to Host Buffer Size
@@ -1799,7 +1800,12 @@
         #if (BOARD_VER_EQUAL_TO(0, 4, 0))
             #define STALL_THRESHOLD_TMC2130 247 // (steps per tick) - reciprocal value of minimal speed
         #else
-            #define STALL_THRESHOLD_TMC2130 300 // (steps per tick) - reciprocal value of minimal speed
+            #if !HAS_BURST_STEPPING()
+                #define STALL_THRESHOLD_TMC2130 300 // (steps per tick) - reciprocal value of minimal speed
+            #else
+                // TODO: this is just a ballpark value
+                #define STALL_THRESHOLD_TMC2130 400 // (steps per tick) - reciprocal value of minimal speed
+            #endif
         #endif
     #endif
 

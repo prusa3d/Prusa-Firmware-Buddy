@@ -355,6 +355,9 @@ extern bool wait_for_heatup;
 
 #if HAS_AUTO_REPORTING || ENABLED(HOST_KEEPALIVE_FEATURE)
   extern bool suspend_auto_report;
+  #define TEMPORARY_AUTO_REPORT_OFF(name) REMEMBER(name, suspend_auto_report, true)
+#else
+  #define TEMPORARY_AUTO_REPORT_OFF(name)
 #endif
 
 extern uint16_t job_id;

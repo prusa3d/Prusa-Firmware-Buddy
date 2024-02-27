@@ -41,6 +41,8 @@
 #include <feature/prusa/e-stall_detector.h>
 #include "connect/marlin_printer.hpp"
 #include <st25dv64k.h>
+#include <option/has_phase_stepping.h>
+#include <RAII.hpp>
 
 namespace {
 void MsgBoxNonBlockInfo(string_view_utf8 txt) {
@@ -815,3 +817,37 @@ void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
         Disable();
     }
 }
+
+#if HAS_PHASE_STEPPING()
+MI_PHASE_STEPPING::MI_PHASE_STEPPING()
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    index = config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get();
+}
+
+void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
+    if (event_in_progress) {
+        return;
+    }
+
+    if (index && (config_store().selftest_result_phase_stepping.get() != TestResult_Passed)) {
+        AutoRestore ar(event_in_progress, true);
+        MsgBoxWarning(_("Phase stepping not ready: perform calibration first."), Responses_Ok);
+        index = old_index;
+        return;
+    }
+
+    if (index) {
+        marlin_server::enqueue_gcode("M970 X Y"); // turn phase stepping on
+    } else {
+        marlin_server::enqueue_gcode("M971 X Y"); // turn phase stepping off
+    }
+
+    // we need to wait until the action actually takes place so that when returning
+    // to the menu (if any) the new state is already reflected
+    gui_dlg_wait([&]() {
+        if (index == config_store().phase_stepping_enabled_x.get()) {
+            Screens::Access()->Close();
+        }
+    });
+}
+#endif

@@ -197,7 +197,7 @@ inline void fast_line_to_current(const AxisEnum fr_axis) { _line_to_current(fr_a
     planner.synchronize();
 
     // Delay before moving tool, to allow magnetic coupling
-    gcode.dwell(150);
+    gcode.dwell(150, true);
 
     // STEP 3
 
@@ -265,7 +265,7 @@ inline void fast_line_to_current(const AxisEnum fr_axis) { _line_to_current(fr_a
       default: OUT_WRITE(SOL0_PIN, state); break;
     }
     #if PARKING_EXTRUDER_SOLENOIDS_DELAY > 0
-      gcode.dwell(PARKING_EXTRUDER_SOLENOIDS_DELAY);
+      gcode.dwell(PARKING_EXTRUDER_SOLENOIDS_DELAY, true);
     #endif
   }
 
