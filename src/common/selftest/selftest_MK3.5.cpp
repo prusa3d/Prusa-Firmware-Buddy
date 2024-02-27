@@ -59,6 +59,8 @@ static constexpr SelftestFansConfig fans_configs[] = {
     }
 };
 
+static constexpr HotEndSpecifyConfig hotend_config = { .partname = "Hotend" };
+
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
     .partname = "X-Axis",
@@ -314,6 +316,17 @@ void CSelftest::Loop() {
     case stsWait_heaters:
         if (phaseWait()) {
             return;
+        }
+        break;
+    case stsHotEndSpecify:
+        if (m_result.tools[0].nozzle == TestResult_Failed) {
+            if (phase_hot_end_specify(pHotEndSpecify, hotend_config)) {
+                return;
+            }
+            if (get_retry_heater()) {
+                m_State = stsHeaters_noz_ena;
+                return;
+            }
         }
         break;
     case stsSelftestStop:
