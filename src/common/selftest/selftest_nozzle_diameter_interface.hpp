@@ -5,6 +5,6 @@ class TestReturn;
 
 namespace selftest {
 
-TestReturn phaseNozzleDiameter(IPartHandler *&nozzleDiameter);
+bool phaseNozzleDiameter(IPartHandler *&nozzleDiameter);
 
 }
