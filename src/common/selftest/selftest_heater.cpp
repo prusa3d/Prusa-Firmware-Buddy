@@ -251,32 +251,19 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
 #endif // 0
 
     // Adapt test to HW differences
-    int8_t hw_diff = 0;
+    int16_t hw_diff = 0;
     if (m_config.type == heater_type_t::Nozzle) {
-        switch (config_store().hotend_type.get()) {
+        // Bounds check, there might be invalid value in the config_store
+        const auto hotend_type = static_cast<size_t>(config_store().hotend_type.get());
+        hw_diff += m_config.hotend_type_temp_offsets[hotend_type < static_cast<size_t>(HotendType::_cnt) ? hotend_type : 0];
 
-        case HotendType::stock_with_sock:
-            hw_diff += m_config.nozzle_sock_temp_offset;
-            break;
+        // Bounds check, there might be invalid value in the config_store
+        const auto nozzle_type = static_cast<size_t>(config_store().nozzle_type.get());
+        hw_diff += m_config.nozzle_type_temp_offsets[nozzle_type < static_cast<size_t>(NozzleType::_cnt) ? nozzle_type : 0];
+    }
 
-        case HotendType::stock:
-        case HotendType::_cnt:
-            break;
-        }
-
-        switch (config_store().nozzle_type.get()) {
-        case NozzleType::HighFlow:
-            hw_diff += m_config.high_flow_nozzle_temp_offset;
-            break;
-
-        case NozzleType::Normal:
-        case NozzleType::_cnt:
-            break;
-        }
-
-        if (hw_diff) {
-            log_info(Selftest, "%s heat range offseted by %d degrees Celsius due to HW differences", m_config.partname, hw_diff);
-        }
+    if (hw_diff) {
+        log_info(Selftest, "%s heat range offseted by %d degrees Celsius due to HW differences", m_config.partname, hw_diff);
     }
 
     if ((m_config.getTemp() < m_config.heat_min_temp + hw_diff) || (m_config.getTemp() > m_config.heat_max_temp + hw_diff)) {

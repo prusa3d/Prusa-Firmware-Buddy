@@ -49,8 +49,9 @@ struct HeaterConfig_t {
     float heater_full_load_max_W { 0 };
     uint32_t pwm_100percent_equivalent_value { 0 };
     uint32_t min_pwm_to_measure { 0 };
-    int8_t nozzle_sock_temp_offset { 0 };
-    int8_t high_flow_nozzle_temp_offset { 0 };
+
+    std::array<int8_t, static_cast<size_t>(HotendType::_cnt)> hotend_type_temp_offsets { 0 };
+    std::array<int8_t, static_cast<size_t>(NozzleType::_cnt)> nozzle_type_temp_offsets { 0 };
 };
 
 }; // namespace selftest
