@@ -7,7 +7,7 @@
 
 namespace selftest {
 
-TestReturn phaseNozzleDiameter(IPartHandler *&pNozzleDiameter) {
+bool phaseNozzleDiameter(IPartHandler *&pNozzleDiameter) {
     static SelftestNozzleDiameterResult static_result {};
     static SelftestNozzleDiameterConfig config {};
 
