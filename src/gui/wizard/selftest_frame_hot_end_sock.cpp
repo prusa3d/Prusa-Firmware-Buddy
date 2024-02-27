@@ -74,7 +74,7 @@ void SelftestFrameHotEndSock::change() {
         txt = N_("Attention, the test has failed. Check below the expected printer setup and adjust it accordingly:");
         show_settings = true;
         break;
-    case PhasesSelftest::SpecifyHotEnd_sock:
+    case PhasesSelftest::SpecifyHotEnd_type:
         if (hotend_type_only_sock) {
             txt = N_("Do you have a silicone hotend sock installed?");
         } else {

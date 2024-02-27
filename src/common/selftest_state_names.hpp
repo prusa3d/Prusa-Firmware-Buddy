@@ -97,8 +97,8 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "HeatersDisabledDialog";
     case PhasesSelftest::SpecifyHotEnd:
         return "SpecifyHotEnd";
-    case PhasesSelftest::SpecifyHotEnd_sock:
-        return "SpecifyHotEnd_sock";
+    case PhasesSelftest::SpecifyHotEnd_type:
+        return "SpecifyHotEnd_type";
     case PhasesSelftest::SpecifyHotEnd_nozzle_type:
         return "SpecifyHotEnd_nozzle_type";
     case PhasesSelftest::SpecifyHotEnd_retry:

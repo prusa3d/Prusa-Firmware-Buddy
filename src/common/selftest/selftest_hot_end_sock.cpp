@@ -37,12 +37,12 @@ LoopResult CSelftestPart_HotEndSock::stateAskAdjust() {
     return LoopResult::RunCurrent;
 }
 
-LoopResult CSelftestPart_HotEndSock::stateAskSockInit() {
-    IPartHandler::SetFsmPhase(PhasesSelftest::SpecifyHotEnd_sock);
+LoopResult CSelftestPart_HotEndSock::stateAskHotendInit() {
+    IPartHandler::SetFsmPhase(PhasesSelftest::SpecifyHotEnd_type);
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_HotEndSock::stateAskSock() {
+LoopResult CSelftestPart_HotEndSock::stateAskHotend() {
     // Revisit this when new hotends are added
     static_assert(hotend_type_count == 2);
 
