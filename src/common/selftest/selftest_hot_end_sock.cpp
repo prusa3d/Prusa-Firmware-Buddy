@@ -19,7 +19,7 @@ CSelftestPart_HotEndSock::CSelftestPart_HotEndSock(IPartHandler &state_machine, 
 }
 
 LoopResult CSelftestPart_HotEndSock::stateStart() {
-    rResult.has_sock = config_store().nozzle_sock.get();
+    rResult.hotend_type = config_store().hotend_type.get();
     rResult.nozzle_type = config_store().nozzle_type.get();
     return LoopResult::RunNext;
 }
@@ -46,10 +46,10 @@ LoopResult CSelftestPart_HotEndSock::stateAskSock() {
     const Response response = rStateMachine.GetButtonPressed();
     switch (response) {
     case Response::Yes:
-        rResult.has_sock = true;
+        rResult.hotend_type = HotendType::stock_with_sock;
         return LoopResult::RunNext;
     case Response::No:
-        rResult.has_sock = false;
+        rResult.hotend_type = HotendType::stock;
         return LoopResult::RunNext;
     default:
         break;

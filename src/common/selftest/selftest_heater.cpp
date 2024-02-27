@@ -253,7 +253,16 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
     // Adapt test to HW differences
     int8_t hw_diff = 0;
     if (m_config.type == heater_type_t::Nozzle) {
-        hw_diff += config_store().nozzle_sock.get() ? m_config.nozzle_sock_temp_offset : 0;
+        switch (config_store().hotend_type.get()) {
+
+        case HotendType::stock_with_sock:
+            hw_diff += m_config.nozzle_sock_temp_offset;
+            break;
+
+        case HotendType::stock:
+        case HotendType::_cnt:
+            break;
+        }
 
         switch (config_store().nozzle_type.get()) {
         case NozzleType::HighFlow:

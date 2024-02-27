@@ -1,5 +1,5 @@
 #pragma once
-#include "constants.hpp"
+
 #include <module/temperature.h>
 #include <config.h>
 #include <sound_enum.h>
@@ -13,6 +13,10 @@
 #include <module/prusa/tool_offset.hpp>
 #include <filament_sensors_remap_data.hpp>
 #include <printers.h>
+
+#include "constants.hpp"
+#include <common/nozzle_type.hpp>
+#include <common/hotend_type.hpp>
 
 namespace config_store_ns {
 
@@ -279,11 +283,11 @@ namespace defaults {
         false
 #endif
     };
-    inline constexpr bool has_sock {
+    inline constexpr HotendType hotend_type {
 #if PRINTER_IS_PRUSA_iX
-        true
+        HotendType::stock_with_sock
 #else
-        false
+        HotendType::stock
 #endif
     };
     inline constexpr NozzleType nozzle_type {

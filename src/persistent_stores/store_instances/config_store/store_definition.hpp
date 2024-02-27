@@ -1,7 +1,8 @@
 #pragma once
 #include <Marlin/src/inc/MarlinConfigPre.h>
 
-#include "common/nozzle_type.hpp"
+#include <common/nozzle_type.hpp>
+#include <common/hotend_type.hpp>
 #include "constants.hpp"
 #include "defaults.hpp"
 #include <option/has_config_store_wo_backend.h>
@@ -389,7 +390,9 @@ struct CurrentStore
     StoreItem<uint16_t, defaults::axis_rms_current_ma_Z_, journal::hash("Axis RMS Current MA Z")> axis_rms_current_ma_Z_;
     StoreItem<uint16_t, defaults::axis_rms_current_ma_E0_, journal::hash("Axis RMS Current MA E0")> axis_rms_current_ma_E0_;
     StoreItem<float, defaults::axis_z_max_pos_mm, journal::hash("Axis Z Max Pos MM")> axis_z_max_pos_mm;
-    StoreItem<bool, defaults::has_sock, journal::hash("Nozzle Sock")> nozzle_sock;
+
+    // Nozzle Sock has is here for backwards compatibility (should be binary compatible)
+    StoreItem<HotendType, defaults::hotend_type, journal::hash("Nozzle Sock")> hotend_type;
     StoreItem<NozzleType, defaults::nozzle_type, journal::hash("Nozzle Type")> nozzle_type;
 
     StoreItem<restore_z::Position, restore_z::default_position, journal::hash("Restore Z Coordinate After Boot")> restore_z_after_boot;
