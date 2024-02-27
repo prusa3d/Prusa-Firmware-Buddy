@@ -11,6 +11,7 @@
 #include "window_dlg_preheat.hpp"
 #include "window_dlg_quickpause.hpp"
 #include "window_dlg_warning.hpp"
+
 LOG_COMPONENT_REF(GUI);
 
 #if HAS_SELFTEST()
@@ -33,6 +34,25 @@ using SerialPrint = screen_printing_serial_data_t;
     #include "screen_dialog_does_not_exist.hpp"
 using SerialPrint = ScreenDialogDoesNotExist;
 #endif
+
+constexpr bool is_fsm_dialog(ClientFSM fsm) {
+    switch (fsm) {
+    case ClientFSM::_none:
+    case ClientFSM::Selftest:
+    case ClientFSM::Printing:
+    case ClientFSM::PrintPreview:
+    case ClientFSM::Serial_printing:
+    case ClientFSM::CrashRecovery:
+    case ClientFSM::ESP:
+        return false;
+    case ClientFSM::Load_unload:
+    case ClientFSM::QuickPause:
+    case ClientFSM::Preheat:
+    case ClientFSM::Warning:
+        return true;
+    }
+    bsod("Unknown FSM type");
+}
 
 using mem_space = std::aligned_union_t<0, DialogQuickPause, DialogLoadUnload, DialogMenuPreheat, DialogWarning>;
 static mem_space all_dialogs;
@@ -63,14 +83,23 @@ static void OpenPrintScreen(ClientFSM dialog) {
 // method definitions
 void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
     if (ptr) {
-        return; // the dialog is already opened, not an error (TODO really?)
-    }
+        if (dialog_cache.has_value()) {
+            // TODO: Make all dialogs screens and use Screens state stack
+            bsod("Can't open more then 2 dialogs at a time.");
+        }
 
-    {
-        auto screen = Screens::Access()->Get();
+        // Trying open screen over dialog - should not happen.
+        assert(is_fsm_dialog(fsm_type));
+
+        dialog_cache = last_fsm_change;
+        ptr = nullptr;
+    } else {
+        auto *screen = Screens::Access()->Get();
         assert(screen);
         underlying_screen_state_ = screen->GetCurrentState();
     }
+
+    last_fsm_change = std::make_pair(fsm_type, data);
 
     // todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     //  only ptr = dialog_creators[dialog](data); should remain
@@ -143,16 +172,23 @@ void DialogHandler::close(ClientFSM fsm_type) {
     }
 
     // Attempt to restore underlying screen state
-    if (ptr) {
-        auto screen = Screens::Access()->Get();
-        assert(screen);
-        screen->InitState(underlying_screen_state_);
+    if (ptr != nullptr) {
+        if (dialog_cache.has_value()) {
+            ptr = nullptr;
+            const auto cache = *dialog_cache;
+            dialog_cache = std::nullopt;
+            open(cache.first, cache.second);
+        } else {
+            auto *screen = Screens::Access()->Get();
+            assert(screen);
+            screen->InitState(underlying_screen_state_);
+            ptr = nullptr; // destroy current dialog
+        }
     }
-
-    ptr = nullptr; // destroy current dialog
 }
 
 void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
+    last_fsm_change = std::make_pair(fsm_type, data);
 
     switch (fsm_type) {
     case ClientFSM::PrintPreview:
@@ -241,7 +277,6 @@ void DialogHandler::command(fsm::DequeStates changes) {
     // last and new command fsms are the same
     // no need to check if data changed, queue handles it
     change(changes.current.get_fsm_type(), changes.current.get_data());
-    return;
 }
 
 void DialogHandler::Loop() {

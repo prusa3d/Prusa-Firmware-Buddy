@@ -9,7 +9,8 @@
 class DialogHandler {
     static_unique_ptr<IDialogMarlin> ptr;
     fsm::SmartQueue command_queue;
-
+    std::pair<ClientFSM, fsm::BaseData> last_fsm_change;
+    std::optional<std::pair<ClientFSM, fsm::BaseData>> dialog_cache;
     DialogHandler() = default;
     DialogHandler(DialogHandler &) = delete;
 
