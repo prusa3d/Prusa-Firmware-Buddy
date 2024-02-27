@@ -12,8 +12,8 @@ class SelftestFrameHotEndSock : public AddSuperWindow<SelftestFrameWithRadio> {
     window_text_t text;
     window_text_t text_nozzle;
     window_text_t text_nozzle_value;
-    window_text_t text_sock;
-    window_text_t text_sock_value;
+    window_text_t text_hotend;
+    window_text_t text_hotend_value;
 
 protected:
     virtual void change() override;

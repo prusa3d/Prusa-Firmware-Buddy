@@ -19,7 +19,7 @@ static constexpr Rect16 get_text_rect() {
     return ret;
 }
 
-static constexpr Rect16 get_text_sock_rect() {
+static constexpr Rect16 get_text_hotend_rect() {
     Rect16 ret = get_text_rect();
     ret = Rect16::Width_t(160);
     ret = Rect16::Height_t(WizardDefaults::txt_h);
@@ -28,12 +28,12 @@ static constexpr Rect16 get_text_sock_rect() {
 }
 
 static constexpr Rect16 get_text_nozzle_rect() {
-    Rect16 ret = get_text_sock_rect();
+    Rect16 ret = get_text_hotend_rect();
     ret += Rect16::Top_t(WizardDefaults::row_h);
     return ret;
 }
 
-static constexpr Rect16 get_text_sock_value_rect() {
+static constexpr Rect16 get_text_hotend_value_rect() {
     Rect16 ret = get_text_rect();
     ret += Rect16::Left_t(ret.Width() - 160);
     ret = Rect16::Width_t(160);
@@ -43,7 +43,7 @@ static constexpr Rect16 get_text_sock_value_rect() {
 }
 
 static constexpr Rect16 get_text_nozzle_value_rect() {
-    Rect16 ret = get_text_sock_value_rect();
+    Rect16 ret = get_text_hotend_value_rect();
     ret += Rect16::Top_t(WizardDefaults::row_h);
     return ret;
 }
@@ -53,12 +53,12 @@ SelftestFrameHotEndSock::SelftestFrameHotEndSock(window_t *parent, PhasesSelftes
     , text(this, get_text_rect(), is_multiline::yes)
     , text_nozzle(this, get_text_nozzle_rect(), is_multiline::no, is_closed_on_click_t::no, _("Nozzle type"))
     , text_nozzle_value(this, get_text_nozzle_value_rect(), is_multiline::no)
-    , text_sock(this, get_text_sock_rect(), is_multiline::no, is_closed_on_click_t::no, _("Hotend sock"))
-    , text_sock_value(this, get_text_sock_value_rect(), is_multiline::no)
+    , text_hotend(this, get_text_hotend_rect(), is_multiline::no, is_closed_on_click_t::no, _("Hotend type"))
+    , text_hotend_value(this, get_text_hotend_value_rect(), is_multiline::no)
 
 {
     text_nozzle_value.SetAlignment(Align_t::Right());
-    text_sock_value.SetAlignment(Align_t::Right());
+    text_hotend_value.SetAlignment(Align_t::Right());
     change();
 }
 
@@ -75,7 +75,11 @@ void SelftestFrameHotEndSock::change() {
         show_settings = true;
         break;
     case PhasesSelftest::SpecifyHotEnd_sock:
-        txt = N_("Do you have a silicone hotend sock installed?");
+        if (hotend_type_only_sock) {
+            txt = N_("Do you have a silicone hotend sock installed?");
+        } else {
+            txt = N_("What kind of hotend do you have installed?");
+        }
         break;
     case PhasesSelftest::SpecifyHotEnd_nozzle_type:
         txt = N_("What kind of nozzle type do you have installed?");
@@ -96,15 +100,15 @@ void SelftestFrameHotEndSock::change() {
         text_nozzle.Hide();
         text_nozzle_value.Hide();
 
-        text_sock.Show();
-        text_sock_value.Show();
+        text_hotend.Show();
+        text_hotend_value.Show();
 
-        text_sock_value.SetText(result.hotend_type == HotendType::stock_with_sock ? _("Installed") : _("Not installed"));
+        text_hotend_value.SetText(_(hotend_type_names[ftrstd::to_underlying(result.hotend_type)]));
         text_nozzle_value.SetText(_(nozzle_type_names[result.nozzle_type]));
     } else {
         text_nozzle.Hide();
         text_nozzle_value.Hide();
-        text_sock.Hide();
-        text_sock_value.Hide();
+        text_hotend.Hide();
+        text_hotend_value.Hide();
     }
 };

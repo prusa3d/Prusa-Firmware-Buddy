@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+
 #include <enum_array.hpp>
 #include <i18n.h>
 
@@ -40,3 +41,9 @@ static constexpr auto supported_hotend_types = [] {
     }
     return r;
 }();
+
+/// Whether only the "stock" and "sock" options are supported
+/// This affects some texts and dialogs:
+/// true -> "Do you have nozzle sock installed?"
+/// false -> "What hotend do you have?"
+static constexpr bool hotend_type_only_sock = (supported_hotend_types.size() == 2 && hotend_type_supported[HotendType::stock] && hotend_type_supported[HotendType::stock_with_sock]);

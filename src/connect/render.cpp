@@ -64,7 +64,8 @@ namespace {
             R(Finish);
             R(FLEX);
             R(FS_disable);
-            R(HighFlow);
+            R(NozzleType_Normal);
+            R(NozzleType_HighFlow);
             R(HIPS);
             R(Ignore);
             R(Left);
@@ -83,7 +84,8 @@ namespace {
             R(PLA);
             R(PP);
             R(Print);
-            R(PrusaStock);
+            R(HotendType_Stock);
+            R(HotendType_StockWithSock);
             R(Purge_more);
             R(PVB);
             R(Quit);
