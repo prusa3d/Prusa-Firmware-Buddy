@@ -8,14 +8,13 @@
 
 /**********************************************************************************************/
 // MI_HEAT_ENTIRE_BED
-bool MI_HEAT_ENTIRE_BED::init_index() const {
-    return config_store().heat_entire_bed.get();
+MI_HEAT_ENTIRE_BED::MI_HEAT_ENTIRE_BED()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().heat_entire_bed.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_HEAT_ENTIRE_BED::OnChange(size_t old_index) {
-    config_store().heat_entire_bed.set(!old_index);
-    index = !old_index;
-    if (index == 1) {
+void MI_HEAT_ENTIRE_BED::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().heat_entire_bed.set(value());
+    if (value()) {
         marlin_client::gcode("M556 A"); // enable all bedlets now
     }
 }

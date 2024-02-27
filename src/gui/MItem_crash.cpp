@@ -9,14 +9,13 @@
     #include <config_store/store_instance.hpp>
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
-    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes,
+    : WI_ICON_SWITCH_OFF_ON_t(crash_s.is_enabled(), _(label), nullptr, is_enabled_t::yes,
     #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5)
         is_hidden_t::dev
     #else
         is_hidden_t::no
     #endif // (( PRINTER_IS_PRUSA_MK4) || ( PRINTER_IS_PRUSA_MK3_5))
     ) {
-    index = crash_s.is_enabled();
 }
 
 void MI_CRASH_DETECTION::OnChange([[maybe_unused]] size_t old_index) {
@@ -160,12 +159,11 @@ MI_CRASHES_Y::MI_CRASHES_Y()
 
     #if HAS_DRIVER(TMC2130)
 MI_CRASH_FILTERING::MI_CRASH_FILTERING()
-    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-    index = crash_s.get_filter();
+    : WI_ICON_SWITCH_OFF_ON_t(crash_s.get_filter(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_CRASH_FILTERING::OnChange([[maybe_unused]] size_t old_index) {
-    crash_s.set_filter(index);
+    crash_s.set_filter(value());
 }
     #endif
 #endif // ANY(CRASH_RECOVERY, POWER_PANIC)
