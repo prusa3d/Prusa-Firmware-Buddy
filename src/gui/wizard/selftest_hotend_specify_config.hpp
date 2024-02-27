@@ -1,10 +1,10 @@
 /**
- * @file selftest_hot_end_sock_config.hpp
+ * @file selftest_hotend_specify_config.hpp
  */
 
 #pragma once
 #include <cstdint>
-#include "selftest_hot_end_sock_type.hpp"
+#include "selftest_hotend_specify_type.hpp"
 #include "client_response.hpp"
 
 namespace selftest {

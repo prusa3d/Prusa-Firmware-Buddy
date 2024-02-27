@@ -5,7 +5,7 @@
  */
 #include "selftest_heaters_interface.hpp"
 #include "selftest_heater.h"
-#include "selftest_hot_end_sock.hpp"
+#include "selftest_hotend_specify.hpp"
 #include "../../Marlin/src/module/temperature.h"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"

@@ -1,5 +1,5 @@
 /**
- * @file selftest_hot_end_specify_type.hpp
+ * @file selftest_hotend_specify_type.hpp
  */
 
 #pragma once

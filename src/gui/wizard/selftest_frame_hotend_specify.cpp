@@ -1,9 +1,9 @@
 /**
- * @file selftest_frame_hot_end_sock.cpp
+ * @file selftest_frame_hotend_specify.cpp
  */
 
-#include "selftest_frame_hot_end_sock.hpp"
-#include "selftest_hot_end_sock_type.hpp"
+#include "selftest_frame_hotend_specify.hpp"
+#include "selftest_hotend_specify_type.hpp"
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "img_resources.hpp"

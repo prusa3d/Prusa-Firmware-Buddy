@@ -1,5 +1,5 @@
 /**
- * @file selftest_frame_hot_end_sock.hpp
+ * @file selftest_frame_hotend_specify.hpp
  */
 
 #pragma once

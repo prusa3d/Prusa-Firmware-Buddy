@@ -17,7 +17,7 @@
 #include "selftest_frame_loadcell.hpp"
 #include "selftest_frame_calib_z.hpp"
 #include "selftest_frame_temp.hpp"
-#include "selftest_frame_hot_end_sock.hpp"
+#include "selftest_frame_hotend_specify.hpp"
 #include "selftest_frame_firstlayer.hpp"
 #include "selftest_frame_firstlayer_questions.hpp"
 #include "selftest_frame_result.hpp"

@@ -1,11 +1,11 @@
 /**
- * @file selftest_hot_end_sock.hpp
+ * @file selftest_hotend_specify.hpp
  */
 #pragma once
 
 #include <inttypes.h>
 #include "i_selftest_part.hpp"
-#include "selftest_hot_end_sock_config.hpp"
+#include "selftest_hotend_specify_config.hpp"
 
 namespace selftest {
 

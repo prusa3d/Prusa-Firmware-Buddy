@@ -8,8 +8,8 @@
  */
 #pragma once
 #include "selftest_heater_config.hpp"
-#include "selftest_hot_end_sock_config.hpp"
-#include "selftest_hot_end_sock_type.hpp"
+#include "selftest_hotend_specify_config.hpp"
+#include "selftest_hotend_specify_type.hpp"
 #include <span>
 
 class IPartHandler;
