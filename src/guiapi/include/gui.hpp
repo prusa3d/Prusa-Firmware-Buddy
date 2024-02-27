@@ -7,8 +7,6 @@
 #include "display.h"
 #include <guiconfig/GuiDefaults.hpp>
 
-typedef void(gui_loop_cb_t)(void);
-
 extern void gui_run(void);
 
 extern void gui_init(void);
@@ -28,8 +26,6 @@ extern void gui_redraw(void);
 #include "circle_buffer.hpp"
 
 extern uint8_t gui_get_nesting(void);
-
-extern void gui_loop_cb();
 
 extern void gui_loop(void);
 extern void gui_error_run(void);

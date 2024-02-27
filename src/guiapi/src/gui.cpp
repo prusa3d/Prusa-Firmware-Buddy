@@ -139,11 +139,6 @@ void gui_invalidate(void) {
 static uint8_t guiloop_nesting = 0;
 uint8_t gui_get_nesting(void) { return guiloop_nesting; }
 
-void gui_loop_cb() {
-    marlin_client::loop();
-    GuiMediaEventsHandler::Tick();
-}
-
 void gui_bare_loop() {
     ++guiloop_nesting;
 
@@ -183,7 +178,8 @@ void gui_loop(void) {
 
     gui_timers_cycle();
     gui_redraw();
-    gui_loop_cb();
+    marlin_client::loop();
+    GuiMediaEventsHandler::Tick();
     if (gui_loop_timer.RestartIfIsOver(gui::GetTick())) {
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
     }
