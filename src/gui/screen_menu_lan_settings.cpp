@@ -119,6 +119,8 @@ ScreenMenuEthernetSettings::ScreenMenuEthernetSettings()
     Hide<MI_WIFI_INIT_t>();
     Hide<MI_WIFI_CREDENTIALS_INI_FILE_t>();
     Hide<MI_WIFI_CREDENTIALS_t>();
+
+    Item<MI_HOSTNAME>().ChangeInformation(config_store().lan_hostname.get_c_str());
 }
 
 // ------------------------ WIFI -----------------------------------
@@ -139,4 +141,5 @@ ScreenMenuWifiSettings::ScreenMenuWifiSettings()
         DisableItem<MI_WIFI_CREDENTIALS_INI_FILE_t>();
         DisableItem<MI_WIFI_CREDENTIALS_t>();
     }
+    Item<MI_HOSTNAME>().ChangeInformation(config_store().wifi_hostname.get_c_str());
 }

@@ -52,6 +52,10 @@ void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)param);
 }
 
+MI_HOSTNAME::MI_HOSTNAME()
+    : WiInfo<config_store_ns::lan_hostname_max_len + 1>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
 MI_NET_IP_t::MI_NET_IP_t()
     : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_DHCP), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_static)) {
     this->index = netdev_get_ip_obtained_type(netdev_get_active_id()) == NETDEV_DHCP

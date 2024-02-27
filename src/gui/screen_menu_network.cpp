@@ -21,6 +21,7 @@ ScreenMenuNetwork::ScreenMenuNetwork()
 void ScreenMenuNetwork::refresh_address() {
     const uint32_t active_netdev = netdev_get_active_id();
     netdev_status_t n_status = netdev_get_status(active_netdev);
+    Item<MI_HOSTNAME>().ChangeInformation(active_netdev == NETDEV_ESP_ID ? config_store().wifi_hostname.get_c_str() : config_store().lan_hostname.get_c_str());
     if (n_status == NETDEV_NETIF_UP || n_status == NETDEV_NETIF_NOADDR) {
         char str[ADDR_LEN];
         lan_t ethconfig = {};

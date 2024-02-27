@@ -60,6 +60,13 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
+class MI_HOSTNAME : public WiInfo<config_store_ns::lan_hostname_max_len + 1> {
+    // Printer's name within network
+    constexpr static const char *const label { N_("Hostname") };
+
+public:
+    MI_HOSTNAME();
+};
 class MI_NET_IP_t : public WI_SWITCH_t<2> {
     constexpr static const char *const label = "LAN"; // do not translate
 
