@@ -14,6 +14,8 @@
 #include <media.hpp>
 #include <guiconfig/guiconfig.h>
 
+LOG_COMPONENT_REF(GUI);
+
 namespace {
 constexpr const char *finish_print_text = N_("Print finished");
 constexpr const char *stop_print_text = N_("Print stopped");
@@ -203,9 +205,13 @@ void PrintProgress::Pause() {
 }
 
 void PrintProgress::Resume() {
-    thumbnail.pauseReinit();
+    // Since the gcode was already read in media prefetch, it should be known whether there is a  progress thumbnail to begin with and therefore can be checked before opening a trying to load it.
     if (gcode_info.has_progress_thumbnail()) {
+        thumbnail.pauseReinit();
         resumeDialog();
+    } else {
+        disableDialog();
+        log_warning(GUI, "GCode has no thumbnail or was unable to read it - Disabling Print Progress Screen.");
     }
 }
 
