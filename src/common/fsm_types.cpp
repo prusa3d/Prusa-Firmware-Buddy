@@ -388,7 +388,7 @@ void IQueueWrapper::pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, B
             fsm1 = type;
             break;
         case SmartQueue::Selector::q2:
-            fsm1 = type;
+            fsm2 = type;
             break;
         }
     }
