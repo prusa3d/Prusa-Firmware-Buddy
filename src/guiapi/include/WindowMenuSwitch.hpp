@@ -21,41 +21,26 @@ public:
     static constexpr bool has_brackets = GuiDefaults::MenuSwitchHasBrackets;
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSwitchHasBrackets ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
 
-    struct Items_t {
-        string_view_utf8 *texts;
-        uint16_t size;
-
-        // text ctor
-        Items_t(string_view_utf8 array[], size_t SZ)
-            : texts(array)
-            , size(SZ) {}
-    };
-
-protected:
-    using TextMemSpace_t = std::aligned_storage<sizeof(string_view_utf8), alignof(string_view_utf8)>;
-
-    template <class T, class... E>
-    Items_t FillArray(void *ArrayMem, E &&...e) {
-        const size_t SZ = sizeof...(E);
-        T *pArr = new (ArrayMem) T[SZ] { std::forward<E>(e)... };
-        Items_t ret = Items_t(pArr, SZ);
-        return ret;
-    }
-
 protected:
     size_t index;
-    const Items_t items;
 
 public:
-    IWiSwitch(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_);
+    // !!! Call changeExtentionWidth() after the items are initialized in the child
+    IWiSwitch(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
 
     void SetIndex(size_t idx);
-    size_t GetIndex() const;
+
+    inline size_t GetIndex() const {
+        return index;
+    }
+
+    virtual size_t item_count() const = 0;
+    virtual string_view_utf8 item_text(size_t item) const = 0;
 
 protected:
-    static Rect16::Width_t calculateExtensionWidth(Items_t items, int32_t index);
-
+    Rect16::Width_t calculateExtensionWidth() const;
     void changeExtentionWidth();
+
     Rect16 getSwitchRect(Rect16 extension_rect) const;
     Rect16 getLeftBracketRect(Rect16 extension_rect) const;
     Rect16 getRightBracketRect(Rect16 extension_rect) const;
@@ -72,11 +57,25 @@ protected:
 // I think it is caused by two phase lookup
 template <size_t SZ>
 class WI_SWITCH_t : public IWiSwitch {
-    // properly aligned uninitialized storage for N T's
-    typename TextMemSpace_t::type ArrayMemSpace[SZ];
 
 public:
     template <class... E>
     WI_SWITCH_t(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
-        : IWiSwitch(index, label, id_icon, enabled, hidden, FillArray<string_view_utf8>(&ArrayMemSpace, std::forward<E>(e)...)) {}
+        : IWiSwitch(index, label, id_icon, enabled, hidden)
+        , items_ { std::forward<E>(e)... } //
+    {
+        // This has to be done after initializing items, so we cannot do it in the parent
+        changeExtentionWidth();
+    }
+
+    inline size_t item_count() const final {
+        return SZ;
+    }
+    inline string_view_utf8 item_text(size_t item) const final {
+        assert(item < SZ);
+        return items_[item];
+    }
+
+private:
+    std::array<string_view_utf8, SZ> items_;
 };
