@@ -43,18 +43,24 @@ LoopResult CSelftestPart_HotEndSock::stateAskSockInit() {
 }
 
 LoopResult CSelftestPart_HotEndSock::stateAskSock() {
-    const Response response = rStateMachine.GetButtonPressed();
-    switch (response) {
-    case Response::Yes:
-        rResult.hotend_type = HotendType::stock_with_sock;
-        return LoopResult::RunNext;
-    case Response::No:
+    // Revisit this when new hotends are added
+    static_assert(hotend_type_count == 2);
+
+    switch (rStateMachine.GetButtonPressed()) {
+
+    case Response::HotendType_Stock:
+    case Response::No: // If only stock & sock is available, only yes/no do you have sock dialog is shown
         rResult.hotend_type = HotendType::stock;
         return LoopResult::RunNext;
+
+    case Response::HotendType_StockWithSock:
+    case Response::Yes: // If only stock & sock is available, only yes/no do you have sock dialog is shown
+        rResult.hotend_type = HotendType::stock_with_sock;
+        return LoopResult::RunNext;
+
     default:
-        break;
+        return LoopResult::RunCurrent;
     }
-    return LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_HotEndSock::stateAskNozzleInit() {
@@ -68,12 +74,15 @@ LoopResult CSelftestPart_HotEndSock::stateAskNozzle() {
     // When some new nozzle type gets added, we might want to revisit this
     static_assert(size_t(NozzleType::_cnt) == 2);
     switch (response) {
-    case Response::PrusaStock:
+
+    case Response::NozzleType_Normal:
         rResult.nozzle_type = NozzleType::Normal;
         return LoopResult::RunNext;
-    case Response::HighFlow:
+
+    case Response::NozzleType_HighFlow:
         rResult.nozzle_type = NozzleType::HighFlow;
         return LoopResult::RunNext;
+
     default:
         break;
     }

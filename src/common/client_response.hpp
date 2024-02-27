@@ -18,6 +18,8 @@
 #include "option/filament_sensor.h"
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
+#include <option/has_phase_stepping.h>
+#include <common/hotend_type.hpp>
 
 enum { RESPONSE_BITS = 4, // number of bits used to encode response
     MAX_RESPONSES = (1 << RESPONSE_BITS) }; // maximum number of responses in one phase
@@ -479,6 +481,32 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
+    static constexpr PhaseResponses SpecifyHotEnd_type_responses = [] {
+        // Only HotendType::stock && HotendType::stock_and_sock available ->
+        // "Do you have sock installed" question is shown
+        if (hotend_type_only_sock) {
+            return PhaseResponses { Response::Yes, Response::No };
+        }
+
+        // Otherwise, "what hotend type" question is shown
+        // This is a bit ugly, shouldn't be done via a dialog
+        // Please remove all the added Response::XX items that were introduced when creating this
+
+        // Revisit this when new hotends are added
+        static_assert(hotend_type_count == 2);
+
+        PhaseResponses r = {
+            Response::HotendType_Stock
+        };
+
+        uint8_t i = 1;
+        if (hotend_type_supported[size_t(HotendType::stock_with_sock)]) {
+            r[i++] = Response::HotendType_StockWithSock;
+        }
+
+        return r;
+    }();
+
     static constexpr PhaseResponses SelftestResponses[] = {
         {}, // _none == _first
 
@@ -542,8 +570,8 @@ class ClientResponses {
         { Response::Ok }, // HeatersDisabledDialog
 
         { Response::Adjust, Response::Skip }, // SpecifyHotEnd
-        { Response::Yes, Response::No }, // SpecifyHotEnd_sock
-        { Response::PrusaStock, Response::HighFlow }, // SpecifyHotEnd_nozzle_type
+        SpecifyHotEnd_type_responses, // SpecifyHotEnd_type
+        { Response::NozzleType_Normal, Response::NozzleType_HighFlow }, // SpecifyHotEnd_nozzle_type
         { Response::Yes, Response::No }, // SpecifyHotEnd_retry
 
         {}, // FirstLayer_mbl

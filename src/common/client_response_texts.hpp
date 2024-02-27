@@ -46,8 +46,10 @@ inline constexpr const char *get_response_text(Response response) {
         return "FLEX";
     case Response::FS_disable:
         return N_("DISABLE FS");
-    case Response::HighFlow:
-        return N_("HIGH-FLOW");
+    case Response::NozzleType_Normal:
+        return nozzle_type_names[NozzleType::Normal];
+    case Response::NozzleType_HighFlow:
+        return nozzle_type_names[NozzleType::HighFlow];
     case Response::HIPS:
         return "HIPS";
     case Response::Ignore:
@@ -84,8 +86,10 @@ inline constexpr const char *get_response_text(Response response) {
         return "PP";
     case Response::Print:
         return "Print";
-    case Response::PrusaStock:
-        return N_("PRUSA STOCK");
+    case Response::HotendType_Stock:
+        return hotend_type_names[HotendType::stock];
+    case Response::HotendType_StockWithSock:
+        return hotend_type_names[HotendType::stock_with_sock];
     case Response::Purge_more:
 #if PRINTER_IS_PRUSA_MINI
         return N_("MORE");
