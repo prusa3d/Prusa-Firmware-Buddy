@@ -86,6 +86,7 @@ namespace {
             R(Print);
             R(HotendType_Stock);
             R(HotendType_StockWithSock);
+            R(HotendType_E3DRevo);
             R(Purge_more);
             R(PVB);
             R(Quit);

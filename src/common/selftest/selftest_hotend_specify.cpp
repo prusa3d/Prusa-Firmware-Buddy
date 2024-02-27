@@ -44,7 +44,7 @@ LoopResult CSelftestPart_HotendSpecify::stateAskHotendInit() {
 
 LoopResult CSelftestPart_HotendSpecify::stateAskHotend() {
     // Revisit this when new hotends are added
-    static_assert(hotend_type_count == 2);
+    static_assert(hotend_type_count == 3);
 
     switch (rStateMachine.GetButtonPressed()) {
 
@@ -56,6 +56,10 @@ LoopResult CSelftestPart_HotendSpecify::stateAskHotend() {
     case Response::HotendType_StockWithSock:
     case Response::Yes: // If only stock & sock is available, only yes/no do you have sock dialog is shown
         rResult.hotend_type = HotendType::stock_with_sock;
+        return LoopResult::RunNext;
+
+    case Response::HotendType_E3DRevo:
+        rResult.hotend_type = HotendType::e3d_revo;
         return LoopResult::RunNext;
 
     default:

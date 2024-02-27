@@ -28,7 +28,7 @@ if(PRINTER STREQUAL "MK4")
 endif()
 
 if(PRINTER STREQUAL "MK3.5")
-  target_sources(firmware PRIVATE selftest_hot_end_specify.cpp)
+  target_sources(firmware PRIVATE selftest_hotend_specify.cpp)
 endif()
 
 if(PRINTER STREQUAL "XL")

@@ -58,7 +58,7 @@ static constexpr SelftestFansConfig fans_configs[] = {
     }
 };
 
-static constexpr HotEndSpecifyConfig hotend_config = { .partname = "Hotend" };
+static constexpr HotendSpecifyConfig hotend_config = { .partname = "Hotend" };
 
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
@@ -128,6 +128,11 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .heater_full_load_max_W = 50,
         .pwm_100percent_equivalent_value = 127,
         .min_pwm_to_measure = 26,
+        .hotend_type_temp_offsets = EnumArray<HotendType, int8_t, HotendType::_cnt> {
+            { HotendType::stock, 0 },
+            { HotendType::stock_with_sock, 0 }, // TODO: not callibrated yet for MK3.5
+            { HotendType::e3d_revo, 40 },
+        },
     }
 };
 
@@ -164,6 +169,7 @@ CSelftest::CSelftest()
     , pYAxis(nullptr)
     , pZAxis(nullptr)
     , pBed(nullptr)
+    , pHotendSpecify(nullptr)
     , pFirstLayer(nullptr) {
 }
 
@@ -317,9 +323,9 @@ void CSelftest::Loop() {
             return;
         }
         break;
-    case stsHotEndSpecify:
+    case stsHotendSpecify:
         if (m_result.tools[0].nozzle == TestResult_Failed) {
-            if (phase_hot_end_specify(pHotEndSpecify, hotend_config)) {
+            if (phase_hotend_specify(pHotendSpecify, hotend_config)) {
                 return;
             }
             if (get_retry_heater()) {
