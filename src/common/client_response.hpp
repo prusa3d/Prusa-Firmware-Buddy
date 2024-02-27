@@ -244,12 +244,12 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     HeatersDisabledDialog,
     _last_Heaters = HeatersDisabledDialog,
 
-    _first_SpecifyHotEnd,
-    SpecifyHotEnd = _first_SpecifyHotEnd,
-    SpecifyHotEnd_type,
-    SpecifyHotEnd_nozzle_type,
-    SpecifyHotEnd_retry,
-    _last_SpecifyHotEnd = SpecifyHotEnd_retry,
+    _first_SpecifyHotend,
+    SpecifyHotend = _first_SpecifyHotend,
+    SpecifyHotend_type,
+    SpecifyHotend_nozzle_type,
+    SpecifyHotend_retry,
+    _last_SpecifyHotend = SpecifyHotend_retry,
 
     _first_FirstLayer,
     FirstLayer_mbl = _first_FirstLayer,
@@ -532,7 +532,7 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
-    static constexpr PhaseResponses SpecifyHotEnd_type_responses = [] {
+    static constexpr PhaseResponses SpecifyHotend_type_responses = [] {
         // Only HotendType::stock && HotendType::stock_and_sock available ->
         // "Do you have sock installed" question is shown
         if (hotend_type_only_sock) {
@@ -620,10 +620,10 @@ class ClientResponses {
         {}, // Heaters
         { Response::Ok }, // HeatersDisabledDialog
 
-        { Response::Adjust, Response::Skip }, // SpecifyHotEnd
-        SpecifyHotEnd_type_responses, // SpecifyHotEnd_type
-        { Response::NozzleType_Normal, Response::NozzleType_HighFlow }, // SpecifyHotEnd_nozzle_type
-        { Response::Yes, Response::No }, // SpecifyHotEnd_retry
+        { Response::Adjust, Response::Skip }, // SpecifyHotend
+        SpecifyHotend_type_responses, // SpecifyHotend_type
+        { Response::NozzleType_Normal, Response::NozzleType_HighFlow }, // SpecifyHotend_nozzle_type
+        { Response::Yes, Response::No }, // SpecifyHotend_retry
 
         {}, // FirstLayer_mbl
         {}, // FirstLayer_print
@@ -808,7 +808,7 @@ enum class SelftestParts {
 #endif
     CalibZ,
     Heaters,
-    SpecifyHotEnd,
+    SpecifyHotend,
 #if FILAMENT_SENSOR_IS_ADC()
     FSensor,
 #endif
@@ -867,8 +867,8 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
         return PhasesSelftest::_first_CalibZ;
     case SelftestParts::Heaters:
         return PhasesSelftest::_first_Heaters;
-    case SelftestParts::SpecifyHotEnd:
-        return PhasesSelftest::_first_SpecifyHotEnd;
+    case SelftestParts::SpecifyHotend:
+        return PhasesSelftest::_first_SpecifyHotend;
     case SelftestParts::FirstLayer:
         return PhasesSelftest::_first_FirstLayer;
     case SelftestParts::FirstLayerQuestions:
@@ -937,8 +937,8 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_CalibZ;
     case SelftestParts::Heaters:
         return PhasesSelftest::_last_Heaters;
-    case SelftestParts::SpecifyHotEnd:
-        return PhasesSelftest::_last_SpecifyHotEnd;
+    case SelftestParts::SpecifyHotend:
+        return PhasesSelftest::_last_SpecifyHotend;
     case SelftestParts::FirstLayer:
         return PhasesSelftest::_last_FirstLayer;
     case SelftestParts::FirstLayerQuestions:
@@ -1030,8 +1030,8 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
         return SelftestParts::Heaters;
     }
 
-    if (SelftestPartContainsPhase(SelftestParts::SpecifyHotEnd, ph)) {
-        return SelftestParts::SpecifyHotEnd;
+    if (SelftestPartContainsPhase(SelftestParts::SpecifyHotend, ph)) {
+        return SelftestParts::SpecifyHotend;
     }
 
     if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph)) {

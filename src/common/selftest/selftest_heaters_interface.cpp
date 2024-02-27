@@ -222,28 +222,28 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
     return false; // finished
 }
 
-SelftestHotEndSockType sock_result;
+SelftestHotendSpecifyType hotend_result;
 bool retry_heater = false;
 bool get_retry_heater() { return retry_heater; }
 
-bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) {
+bool phase_hotend_specify(IPartHandler *&machine, const HotendSpecifyConfig &config) {
     if (!machine) {
-        machine = Factory::CreateDynamical<selftest::CSelftestPart_HotEndSock>(
+        machine = Factory::CreateDynamical<selftest::CSelftestPart_HotendSpecify>(
             config,
-            sock_result,
-            &CSelftestPart_HotEndSock::stateStart,
-            &CSelftestPart_HotEndSock::stateAskAdjust,
-            &CSelftestPart_HotEndSock::stateAskSockInit,
-            &CSelftestPart_HotEndSock::stateAskSock,
+            hotend_result,
+            &CSelftestPart_HotendSpecify::stateStart,
+            &CSelftestPart_HotendSpecify::stateAskAdjust,
+            &CSelftestPart_HotendSpecify::stateAskHotendInit,
+            &CSelftestPart_HotendSpecify::stateAskHotend,
 #if NOZZLE_TYPE_SUPPORT()
-            &CSelftestPart_HotEndSock::stateAskNozzleInit,
-            &CSelftestPart_HotEndSock::stateAskNozzle,
+            &CSelftestPart_HotendSpecify::stateAskNozzleInit,
+            &CSelftestPart_HotendSpecifyx::stateAskNozzle,
 #endif
-            &CSelftestPart_HotEndSock::stateAskRetryInit,
-            &CSelftestPart_HotEndSock::stateAskRetry);
+            &CSelftestPart_HotendSpecify::stateAskRetryInit,
+            &CSelftestPart_HotendSpecify::stateAskRetry);
     }
     bool in_progress = machine->Loop();
-    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), sock_result.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), hotend_result.Serialize());
 
     if (in_progress) {
         return true;
@@ -251,8 +251,8 @@ bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) 
 
     retry_heater = machine->GetResult() != TestResult_Skipped;
 
-    config_store().hotend_type.set(sock_result.hotend_type);
-    config_store().nozzle_type.set(sock_result.nozzle_type);
+    config_store().hotend_type.set(hotend_result.hotend_type);
+    config_store().nozzle_type.set(hotend_result.nozzle_type);
 
     delete machine;
     machine = nullptr;
