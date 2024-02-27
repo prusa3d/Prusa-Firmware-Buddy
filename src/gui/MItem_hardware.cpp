@@ -47,12 +47,21 @@ void MI_NOZZLE_TYPE::OnChange([[maybe_unused]] size_t old_index) {
     config_store().nozzle_type.set(static_cast<NozzleType>(index));
 }
 
-// MI_NOZZLE_SOCK
-MI_NOZZLE_SOCK::MI_NOZZLE_SOCK()
-    : WI_ICON_SWITCH_OFF_ON_t(config_store().hotend_type.get() == HotendType::stock_with_sock, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+// MI_HOTEND_TYPE
+MI_HOTEND_TYPE::MI_HOTEND_TYPE()
+    : IWiSwitch(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) //
+{
+    // Determine current index
+    if (auto he = std::find(supported_hotend_types.begin(), supported_hotend_types.end(), config_store().hotend_type.get()); he != supported_hotend_types.end()) {
+        index = he - supported_hotend_types.begin();
+    }
 
-void MI_NOZZLE_SOCK::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().hotend_type.set(index ? HotendType::stock_with_sock : HotendType::stock);
+    // This has to be done after initializing items, so we cannot do it in the parent
+    changeExtentionWidth();
+}
+
+void MI_HOTEND_TYPE::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().hotend_type.set(static_cast<HotendType>(index));
 }
 
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()

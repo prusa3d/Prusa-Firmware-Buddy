@@ -154,11 +154,18 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_NOZZLE_SOCK : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Nextruder silicone sock");
+class MI_HOTEND_TYPE : public IWiSwitch {
+    static constexpr const char *const label = N_("Hotend Type");
 
 public:
-    MI_NOZZLE_SOCK();
+    MI_HOTEND_TYPE();
+
+    size_t item_count() const final {
+        return supported_hotend_types.size();
+    }
+    string_view_utf8 current_item_text() const final {
+        return _(hotend_type_names[supported_hotend_types[index]]);
+    }
 
 protected:
     virtual void OnChange(size_t old_index) override;
