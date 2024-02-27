@@ -71,18 +71,7 @@ Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
     return extension_rect;
 }
 
-void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
-    switch (items.type) {
-    case Items_t::type_t::text:
-        printExtension_text(extension_rect, color_text, color_back, raster_op);
-        break;
-    case Items_t::type_t::icon:
-        printExtension_icon(extension_rect, color_text, color_back, raster_op);
-        break;
-    }
-}
-
-void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
+void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
     // draw switch
     render_text_align(getSwitchRect(extension_rect), items.texts[index], GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
@@ -101,45 +90,16 @@ void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, c
     }
 }
 
-void IWiSwitch::printExtension_icon(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, ropfn raster_op) const {
-    render_icon_align(extension_rect, items.icon_resources[index], color_back, { Align_t::Center(), raster_op });
-}
-
 Rect16::Width_t IWiSwitch::calculateExtensionWidth(Items_t items, int32_t idx) {
-    switch (items.type) {
-    case Items_t::type_t::text:
-        return calculateExtensionWidth_text(items, idx);
-        break;
-    case Items_t::type_t::icon:
-        return calculateExtensionWidth_icon(items);
-        break;
-    }
-    return 0;
-}
-
-void IWiSwitch::changeExtentionWidth() {
-    if (items.type == Items_t::type_t::text) {
-        Rect16::Width_t new_extension_width = calculateExtensionWidth_text(items, index);
-        if (extension_width != new_extension_width) {
-            extension_width = new_extension_width;
-            Invalidate();
-        }
-    }
-}
-
-Rect16::Width_t IWiSwitch::calculateExtensionWidth_text(Items_t items, int32_t idx) {
     size_t len = items.texts[idx].computeNumUtf8CharsAndRewind();
     size_t ret = width(GuiDefaults::FontMenuItems) * len + Padding.left + Padding.right + (GuiDefaults::MenuSwitchHasBrackets ? (width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right) * 2 : 0);
     return ret;
 }
 
-Rect16::Width_t IWiSwitch::calculateExtensionWidth_icon(Items_t items) {
-    size_t max_width = 0;
-    for (size_t i = 0; i < items.size; ++i) {
-        size_t width = items.icon_resources[i]->w;
-        if (width > max_width) {
-            max_width = width;
-        }
+void IWiSwitch::changeExtentionWidth() {
+    Rect16::Width_t new_extension_width = calculateExtensionWidth(items, index);
+    if (extension_width != new_extension_width) {
+        extension_width = new_extension_width;
+        Invalidate();
     }
-    return max_width + Padding.left + Padding.right;
 }

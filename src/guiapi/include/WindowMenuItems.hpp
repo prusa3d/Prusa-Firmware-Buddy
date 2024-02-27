@@ -30,9 +30,41 @@ public:
         : WI_SWITCH_t(size_t(index), label, id_icon, enabled, hidden, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_0), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_1), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_NA)) {}
 };
 
-class WI_ICON_SWITCH_OFF_ON_t : public WI_ICON_SWITCH_t<2> {
+class WI_ICON_SWITCH_OFF_ON_t : public IWindowMenuItem {
+
 public:
-    WI_ICON_SWITCH_OFF_ON_t(bool index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
+    WI_ICON_SWITCH_OFF_ON_t(bool value, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
+
+public:
+    void set_value(bool set, bool emit_change);
+
+    inline bool value() const {
+        return value_;
+    }
+
+    // TODO: Remove this legacy function
+    inline size_t GetIndex() const {
+        return value_;
+    }
+
+    // TODO: Remove this legacy function
+    inline void SetIndex(size_t index) {
+        set_value(index > 0, false);
+    }
+
+protected:
+    virtual invalidate_t change(int dif) override;
+    virtual void OnChange([[maybe_unused]] size_t old_index) {} // TODO: Remove this ugly legacy parameter
+
+    virtual void click(IWindowMenu &window_menu) override;
+    virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) override;
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
+
+    /// Legacy reference to value_
+    const bool &index; // TODO: Remove this legacy variable
+
+private:
+    bool value_ = false;
 };
 
 class MI_RETURN : public IWindowMenuItem {
