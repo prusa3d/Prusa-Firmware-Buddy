@@ -50,6 +50,7 @@ enum class Response : uint8_t {
     Print,
     HotendType_Stock,
     HotendType_StockWithSock,
+    HotendType_E3DRevo,
     Purge_more,
     PVB,
     Quit,

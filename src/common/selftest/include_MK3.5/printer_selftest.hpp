@@ -33,7 +33,7 @@ typedef enum {
     stsHeaters_bed_ena,
     stsHeaters,
     stsWait_heaters,
-    stsHotEndSpecify,
+    stsHotendSpecify,
     stsNet_status,
     stsSelftestStop,
     stsDidSelftestPass,
@@ -65,7 +65,7 @@ enum SelftestMask_t : uint32_t {
     stmXYAxis = stmXAxis | stmYAxis,
     stmXYZAxis = stmXAxis | stmYAxis | stmZAxis,
     stmWait_axes = to_one_hot(stsWait_axes),
-    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena) | to_one_hot(stsHotEndSpecify),
+    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena) | to_one_hot(stsHotendSpecify),
     stmHeaters_bed = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_bed_ena),
     stmHeaters = stmHeaters_bed | stmHeaters_noz,
     stmWait_heaters = to_one_hot(stsWait_heaters),
@@ -110,7 +110,7 @@ protected:
     selftest::IPartHandler *pZAxis;
     std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
     selftest::IPartHandler *pBed;
-    selftest::IPartHandler *pHotEndSpecify;
+    selftest::IPartHandler *pHotendSpecify;
     selftest::IPartHandler *pFirstLayer;
 
     SelftestResult m_result;

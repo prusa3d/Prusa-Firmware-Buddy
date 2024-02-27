@@ -15,6 +15,9 @@ enum class HotendType : uint8_t {
     /// Stock Prusa hotend with sillicone sock
     stock_with_sock,
 
+    /// E3D Revo (MK3.5 only)
+    e3d_revo,
+
     _cnt,
 };
 
@@ -23,12 +26,14 @@ static constexpr auto hotend_type_count = ftrstd::to_underlying(HotendType::_cnt
 static constexpr EnumArray<HotendType, const char *, HotendType::_cnt> hotend_type_names {
     { HotendType::stock, N_("Stock") },
     { HotendType::stock_with_sock, N_("With sock") },
+    { HotendType::e3d_revo, N_("E3D Revo") },
 };
 
 /// Some hotend types are only supported by some printers, but the enum is the same for all -> hence this filtering array
 static constexpr EnumArray<HotendType, bool, HotendType::_cnt> hotend_type_supported {
     { HotendType::stock, true },
     { HotendType::stock_with_sock, true },
+    { HotendType::e3d_revo, PRINTER_IS_PRUSA_MK3_5 },
 };
 
 /// std::array<HotendType> - list of hotend types supported for this printer

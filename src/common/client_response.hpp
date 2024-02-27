@@ -493,7 +493,7 @@ class ClientResponses {
         // Please remove all the added Response::XX items that were introduced when creating this
 
         // Revisit this when new hotends are added
-        static_assert(hotend_type_count == 2);
+        static_assert(hotend_type_count == 3);
 
         PhaseResponses r = {
             Response::HotendType_Stock
@@ -502,6 +502,9 @@ class ClientResponses {
         uint8_t i = 1;
         if (hotend_type_supported[size_t(HotendType::stock_with_sock)]) {
             r[i++] = Response::HotendType_StockWithSock;
+        }
+        if (hotend_type_supported[size_t(HotendType::e3d_revo)]) {
+            r[i++] = Response::HotendType_E3DRevo;
         }
 
         return r;
