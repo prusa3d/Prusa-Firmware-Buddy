@@ -1,8 +1,8 @@
 /**
- * @file selftest_hot_end_sock.cpp
+ * @file selftest_hotend_specify.cpp
  */
 
-#include "selftest_hot_end_sock.hpp"
+#include "selftest_hotend_specify.hpp"
 #include <guiconfig/wizard_config.hpp>
 #include <config_store/store_instance.hpp>
 
