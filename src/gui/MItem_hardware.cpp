@@ -43,7 +43,13 @@ void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {
 
 // MI_NOZZLE_TYPE
 MI_NOZZLE_TYPE::MI_NOZZLE_TYPE()
-    : WI_SWITCH_t<2>(static_cast<size_t>(config_store().nozzle_type.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, _(str_normal), _(str_high_flow)) {};
+    : IWiSwitch(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    // SetIndex has bounds checking, there might be invalid value inside config_store
+    SetIndex(ftrstd::to_underlying(config_store().nozzle_type.get()));
+
+    // Items are initialized, update extension width
+    changeExtentionWidth();
+};
 
 void MI_NOZZLE_TYPE::OnChange([[maybe_unused]] size_t old_index) {
     config_store().nozzle_type.set(static_cast<NozzleType>(index));

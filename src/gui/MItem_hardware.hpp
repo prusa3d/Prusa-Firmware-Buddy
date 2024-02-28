@@ -141,17 +141,21 @@ public:
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };
 
-class MI_NOZZLE_TYPE : public WI_SWITCH_t<2> {
+class MI_NOZZLE_TYPE final : public IWiSwitch {
     static constexpr const char *const label = N_("Nozzle Type");
-
-    constexpr static const char *str_normal = N_("Normal");
-    constexpr static const char *str_high_flow = N_("High Flow");
 
 public:
     MI_NOZZLE_TYPE();
 
 protected:
     virtual void OnChange(size_t old_index) override;
+
+    inline size_t item_count() const final {
+        return nozzle_type_names.size();
+    }
+    inline string_view_utf8 current_item_text() const final {
+        return _(nozzle_type_names[index]);
+    }
 };
 
 class MI_HOTEND_TYPE : public IWiSwitch {
