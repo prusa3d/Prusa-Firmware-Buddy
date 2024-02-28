@@ -201,19 +201,22 @@ namespace {
             : m_failed(false) {};
 
         void checkTrue(bool condition) {
-            if (!condition && !m_failed) {
-                set_warning(p_warning);
-                if (server.print_state == State::Printing) {
-                    pause_print(); // Must store current hotend temperatures before they are set to 0
-                    server.print_state = State::Pausing_WaitIdle;
-                }
-                if (p_disableHotend) {
-                    HOTEND_LOOP() {
-                        thermalManager.setTargetHotend(0, e);
-                    }
-                }
-                m_failed = true;
+            if (condition || m_failed) {
+                return;
             }
+            set_warning(p_warning);
+
+            if (server.print_state == State::Printing) {
+                pause_print(); // Must store current hotend temperatures before they are set to 0
+                server.print_state = State::Pausing_WaitIdle;
+            }
+
+            if (p_disableHotend) {
+                HOTEND_LOOP() {
+                    thermalManager.setTargetHotend(0, e);
+                }
+            }
+            m_failed = true;
         };
         void reset() { m_failed = false; }
 
@@ -2115,8 +2118,8 @@ static void _server_print_loop(void) {
             heatBreakThermistorErrorChecker[e].reset();
         }
         // Getting 0 -> heatbreak error
-        else if (NEAR_ZERO(temp)) {
-            heatBreakThermistorErrorChecker[e].checkTrue(false);
+        else {
+            heatBreakThermistorErrorChecker[e].checkTrue(!NEAR_ZERO(temp));
         }
     }
 #endif
