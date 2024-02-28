@@ -2097,22 +2097,26 @@ static void _server_print_loop(void) {
     }
 
 #if HAS_TEMP_HEATBREAK
-    // FIXME Why is this here? It does not work, the warning comes later. With the previous implementation
-    // fo warning it did not matter, but now with them being handled in FSM this causes troubles. Raised it
-    // from 2s to 20, so I can get the rest to work, but needs to be investigated and handled somehow.
-    if (ticks_s() >= 20) { // Start checking 2 seconds after system start
-        // This gives 0 deg celsius MINTEMP for heat break temperature reading
-        HOTEND_LOOP() {
+    HOTEND_LOOP() {
     #if ENABLED(PRUSA_TOOLCHANGER)
-            if (!prusa_toolchanger.is_tool_enabled(e)) {
-                continue;
-            }
+        if (!prusa_toolchanger.is_tool_enabled(e)) {
+            continue;
+        }
     #endif
 
-            heatBreakThermistorErrorChecker[e].checkTrue(!NEAR_ZERO(thermalManager.degHeatbreak(e)));
-            if (thermalManager.degHeatbreak(e) > 10) {
-                heatBreakThermistorErrorChecker[e].reset();
-            }
+        const auto temp = thermalManager.degHeatbreak(e);
+
+        // Heatbreak is not yet initialized -> nothing to check
+        if (temp == TempInfo::celsius_uninitialized) {
+            continue;
+        }
+        // Heatbreak started reporting valid temperatures -> clear the warning
+        else if (temp > 10) {
+            heatBreakThermistorErrorChecker[e].reset();
+        }
+        // Getting 0 -> heatbreak error
+        else if (NEAR_ZERO(temp)) {
+            heatBreakThermistorErrorChecker[e].checkTrue(false);
         }
     }
 #endif

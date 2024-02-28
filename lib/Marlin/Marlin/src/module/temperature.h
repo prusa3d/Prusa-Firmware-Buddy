@@ -171,9 +171,11 @@ enum ADCSensorState : char {
 
 // A temperature sensor
 typedef struct TempInfo {
+  static constexpr float celsius_uninitialized = -1.0f;
+
   uint16_t acc;
   int16_t raw;
-  float celsius;
+  float celsius = celsius_uninitialized;
   inline void reset() { acc = 0; }
   inline void sample(const uint16_t s) { acc += s; }
   inline void update() { raw = acc; }
