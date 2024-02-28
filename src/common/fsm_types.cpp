@@ -406,7 +406,7 @@ void IQueueWrapper::pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type, 
 
     // toi have both??
     // Is there a different fsm at higher lvl?
-    if ((fsm2 != type && fsm2 != ClientFSM::_none) || (fsm1 != type && fsm1 != ClientFSM::_none)) {
+    if ((fsm2 != ClientFSM::_none && fsm2 != type) || (fsm2 == ClientFSM::_none && fsm1 != ClientFSM::_none && fsm1 != type)) {
         bsod("FSM DESTROY: %s blocked by higher level. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
     }
 
