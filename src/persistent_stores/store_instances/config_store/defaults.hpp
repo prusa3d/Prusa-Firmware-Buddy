@@ -286,6 +286,9 @@ namespace defaults {
         false
 #endif
     };
+    inline constexpr NozzleType nozzle_type {
+        NozzleType::Normal
+    };
 } // namespace defaults
 
 } // namespace config_store_ns

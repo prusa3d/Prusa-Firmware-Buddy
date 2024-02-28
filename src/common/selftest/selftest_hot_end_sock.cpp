@@ -20,7 +20,7 @@ CSelftestPart_HotEndSock::CSelftestPart_HotEndSock(IPartHandler &state_machine, 
 
 LoopResult CSelftestPart_HotEndSock::stateStart() {
     rResult.has_sock = config_store().nozzle_sock.get();
-    rResult.prusa_stock_nozzle = config_store().nozzle_type.get() == 0;
+    rResult.nozzle_type = config_store().nozzle_type.get();
     return LoopResult::RunNext;
 }
 
@@ -64,12 +64,15 @@ LoopResult CSelftestPart_HotEndSock::stateAskNozzleInit() {
 
 LoopResult CSelftestPart_HotEndSock::stateAskNozzle() {
     const Response response = rStateMachine.GetButtonPressed();
+
+    // When some new nozzle type gets added, we might want to revisit this
+    static_assert(size_t(NozzleType::_cnt) == 2);
     switch (response) {
     case Response::PrusaStock:
-        rResult.prusa_stock_nozzle = true;
+        rResult.nozzle_type = NozzleType::Normal;
         return LoopResult::RunNext;
     case Response::HighFlow:
-        rResult.prusa_stock_nozzle = false;
+        rResult.nozzle_type = NozzleType::HighFlow;
         return LoopResult::RunNext;
     default:
         break;

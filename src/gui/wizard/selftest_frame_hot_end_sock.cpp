@@ -100,7 +100,7 @@ void SelftestFrameHotEndSock::change() {
         text_sock_value.Show();
 
         text_sock_value.SetText(result.has_sock ? _("Installed") : _("Not installed"));
-        text_nozzle_value.SetText(result.prusa_stock_nozzle ? _("Stock Prusa") : _("High-flow"));
+        text_nozzle_value.SetText(result.nozzle_type == NozzleType::Normal ? _("Stock Prusa") : _("High-flow"));
     } else {
         text_nozzle.Hide();
         text_nozzle_value.Hide();
