@@ -254,9 +254,15 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
     int8_t hw_diff = 0;
     if (m_config.type == heater_type_t::Nozzle) {
         hw_diff += config_store().nozzle_sock.get() ? m_config.nozzle_sock_temp_offset : 0;
-        uint8_t nozzle_type = config_store().nozzle_type.get(); // There will be more nozzle types in the future
-        if (nozzle_type == ftrstd::to_underlying(NozzleType::HighFlow)) {
+
+        switch (config_store().nozzle_type.get()) {
+        case NozzleType::HighFlow:
             hw_diff += m_config.high_flow_nozzle_temp_offset;
+            break;
+
+        case NozzleType::Normal:
+        case NozzleType::_cnt:
+            break;
         }
 
         if (hw_diff) {

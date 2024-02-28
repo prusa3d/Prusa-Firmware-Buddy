@@ -43,10 +43,10 @@ void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {
 
 // MI_NOZZLE_TYPE
 MI_NOZZLE_TYPE::MI_NOZZLE_TYPE()
-    : WI_SWITCH_t<2>(config_store().nozzle_type.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, _(str_normal), _(str_high_flow)) {};
+    : WI_SWITCH_t<2>(static_cast<size_t>(config_store().nozzle_type.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, _(str_normal), _(str_high_flow)) {};
 
 void MI_NOZZLE_TYPE::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().nozzle_type.set(index);
+    config_store().nozzle_type.set(static_cast<NozzleType>(index));
 }
 
 // MI_NOZZLE_SOCK

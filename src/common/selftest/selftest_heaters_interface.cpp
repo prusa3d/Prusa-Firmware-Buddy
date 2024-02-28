@@ -270,7 +270,7 @@ bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) 
     retry_heater = machine->GetResult() != TestResult_Skipped;
 
     config_store().nozzle_sock.set(sock_result.has_sock);
-    config_store().nozzle_type.set(sock_result.prusa_stock_nozzle ? 0 : 1);
+    config_store().nozzle_type.set(sock_result.nozzle_type);
 
     delete machine;
     machine = nullptr;
