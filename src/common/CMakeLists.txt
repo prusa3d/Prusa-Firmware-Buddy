@@ -59,6 +59,7 @@ if(BOARD MATCHES ".*BUDDY")
             sound.cpp
             st25dv64k.cpp
             stat_retry.cpp
+            static_storage.cpp
             SteelSheets.cpp
             str_utils.cpp
             stubs.cpp
