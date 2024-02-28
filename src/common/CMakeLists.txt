@@ -12,6 +12,7 @@ if(BOARD MATCHES ".*BUDDY")
             crc32.cpp
             crc32_zlib.cpp
             data_exchange.cpp
+            enum_array.cpp
             ExtInterruptHandler.cpp
             filename_type.cpp
             filepath_operation.cpp
