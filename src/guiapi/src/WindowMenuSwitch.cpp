@@ -70,7 +70,7 @@ Rect16 IWiSwitch::getRightBracketRect(Rect16 extension_rect) const {
 
 void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
     // draw switch
-    render_text_align(getSwitchRect(extension_rect), item_text(index), GuiDefaults::FontMenuItems, color_back,
+    render_text_align(getSwitchRect(extension_rect), current_item_text(), GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
         padding_ui8(0, 4, 0, 0), Align_t::Center(), false);
 
@@ -88,7 +88,7 @@ void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_
 }
 
 Rect16::Width_t IWiSwitch::calculateExtensionWidth() const {
-    const size_t len = item_text(index).computeNumUtf8CharsAndRewind();
+    const size_t len = current_item_text().computeNumUtf8CharsAndRewind();
     const size_t ret = width(GuiDefaults::FontMenuItems) * len + Padding.left + Padding.right + (GuiDefaults::MenuSwitchHasBrackets ? (width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right) * 2 : 0);
     return ret;
 }

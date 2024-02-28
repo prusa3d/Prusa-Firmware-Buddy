@@ -35,7 +35,7 @@ public:
     }
 
     virtual size_t item_count() const = 0;
-    virtual string_view_utf8 item_text(size_t item) const = 0;
+    virtual string_view_utf8 current_item_text() const = 0;
 
 protected:
     Rect16::Width_t calculateExtensionWidth() const;
@@ -71,9 +71,8 @@ public:
     inline size_t item_count() const final {
         return SZ;
     }
-    inline string_view_utf8 item_text(size_t item) const final {
-        assert(item < SZ);
-        return items_[item];
+    inline string_view_utf8 current_item_text() const final {
+        return items_[index];
     }
 
 private:
