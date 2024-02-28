@@ -4,6 +4,7 @@
 
 #include <enum_array.hpp>
 #include <i18n.h>
+#include <printers.h>
 
 /// Shared for all printers.
 /// !!! Never change order, never remove items - this is used in config store

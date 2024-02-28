@@ -5,7 +5,9 @@ add_executable(
   )
 
 # define required search paths
-target_include_directories(format_print_will_end_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/lang)
+target_include_directories(
+  format_print_will_end_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/lang ${CMAKE_SOURCE_DIR}/include
+  )
 
 # define custom macros
 

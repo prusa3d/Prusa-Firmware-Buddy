@@ -52,9 +52,6 @@ target_include_directories(
          ${CMAKE_BINARY_DIR}/include
          ${CMAKE_SOURCE_DIR}/src/common/utils
   )
-target_compile_definitions(
-  window_tests PUBLIC BOARD=3 BOARD_VERSION_MINOR=3 BOARD_VERSION_MAJOR=3 BOARD_VERSION_PATCH=3
-  )
 
 target_include_directories(
   layout_tests
@@ -70,9 +67,6 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/include
   )
 
-target_compile_definitions(
-  layout_tests PUBLIC BOARD=3 BOARD_VERSION_MINOR=3 BOARD_VERSION_MAJOR=3 BOARD_VERSION_PATCH=3
-  )
 # tell build system about the test case
 add_catch_test(window_tests)
 add_catch_test(layout_tests)
