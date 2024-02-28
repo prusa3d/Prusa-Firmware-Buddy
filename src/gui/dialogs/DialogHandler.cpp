@@ -35,25 +35,6 @@ using SerialPrint = screen_printing_serial_data_t;
 using SerialPrint = ScreenDialogDoesNotExist;
 #endif
 
-constexpr bool is_fsm_dialog(ClientFSM fsm) {
-    switch (fsm) {
-    case ClientFSM::_none:
-    case ClientFSM::Selftest:
-    case ClientFSM::Printing:
-    case ClientFSM::PrintPreview:
-    case ClientFSM::Serial_printing:
-    case ClientFSM::CrashRecovery:
-    case ClientFSM::ESP:
-        return false;
-    case ClientFSM::Load_unload:
-    case ClientFSM::QuickPause:
-    case ClientFSM::Preheat:
-    case ClientFSM::Warning:
-        return true;
-    }
-    bsod("Unknown FSM type");
-}
-
 using mem_space = std::aligned_union_t<0, DialogQuickPause, DialogLoadUnload, DialogMenuPreheat, DialogWarning>;
 static mem_space all_dialogs;
 
@@ -87,9 +68,6 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
             // TODO: Make all dialogs screens and use Screens state stack
             bsod("Can't open more then 2 dialogs at a time.");
         }
-
-        // Trying open screen over dialog - should not happen.
-        assert(is_fsm_dialog(fsm_type));
 
         dialog_cache = last_fsm_change;
         ptr = nullptr;
