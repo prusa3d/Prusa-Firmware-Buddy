@@ -60,8 +60,8 @@ class WI_SWITCH_t : public IWiSwitch {
 
 public:
     template <class... E>
-    WI_SWITCH_t(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
-        : IWiSwitch(index, label, id_icon, enabled, hidden)
+    WI_SWITCH_t(size_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
+        : IWiSwitch(index < SZ ? index : 0, label, id_icon, enabled, hidden)
         , items_ { std::forward<E>(e)... } //
     {
         // This has to be done after initializing items, so we cannot do it in the parent
