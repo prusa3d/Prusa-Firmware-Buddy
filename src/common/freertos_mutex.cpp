@@ -1,6 +1,5 @@
 #include <common/freertos_mutex.hpp>
 
-#include "rtos_api.hpp"
 #include "semphr.h"
 
 namespace freertos {

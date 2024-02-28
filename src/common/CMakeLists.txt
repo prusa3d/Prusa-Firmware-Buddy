@@ -87,6 +87,7 @@ elseif(BOARD MATCHES "DWARF")
   target_sources(
     firmware
     PRIVATE adc.cpp
+            freertos_mutex.cpp
             heap.cpp
             homing_reporter.cpp
             marlin_log_component.cpp
@@ -96,7 +97,7 @@ elseif(BOARD MATCHES "DWARF")
             safe_state.cpp
     )
 elseif(BOARD MATCHES "MODULARBED")
-  target_sources(firmware PRIVATE heap.cpp otp.cpp)
+  target_sources(firmware PRIVATE freertos_mutex.cpp heap.cpp otp.cpp)
 elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
   target_sources(
     firmware
