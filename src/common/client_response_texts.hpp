@@ -7,6 +7,8 @@
 #include <array>
 #include "i18n.h"
 #include <printers.h>
+#include <common/nozzle_type.hpp>
+#include <common/hotend_type.hpp>
 
 inline constexpr const char *get_response_text(Response response) {
     switch (response) {

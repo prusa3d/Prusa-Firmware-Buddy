@@ -17,9 +17,6 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src/guiconfig
          ${CMAKE_SOURCE_DIR}/include
   )
-target_compile_definitions(
-  rectangle_tests PUBLIC BOARD=3 BOARD_VERSION_MINOR=3 BOARD_VERSION_MAJOR=3 BOARD_VERSION_PATCH=3
-  )
 
 target_include_directories(
   gui_time_tests PUBLIC ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/common
