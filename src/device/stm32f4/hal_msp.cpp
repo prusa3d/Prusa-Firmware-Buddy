@@ -238,7 +238,10 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c) {
 
         HAL_GPIO_DeInit(GPIOF, GPIO_PIN_1);
 
-    } else if (hi2c->Instance == I2C3) {
+    }
+
+    #if HAS_I2CN(3)
+    else if (hi2c->Instance == I2C3) {
         /* Peripheral clock disable */
         __HAL_RCC_I2C3_CLK_DISABLE();
 
@@ -251,6 +254,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c) {
 
         HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8);
     }
+    #endif
 #endif
 
 #if (BOARD_IS_BUDDY || BOARD_IS_XLBUDDY)

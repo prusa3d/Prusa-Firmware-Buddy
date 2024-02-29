@@ -12,11 +12,6 @@
 #include "bsod_gui.hpp"
 #include "media.hpp"
 #include <config_store/store_instance.hpp>
-#include <option/buddy_enable_connect.h>
-#if BUDDY_ENABLE_CONNECT()
-    #include "connect/run.hpp"
-#endif
-
 #include "sys.h"
 #include <wdt.hpp>
 #include <crash_dump/dump.hpp>
@@ -37,6 +32,7 @@
 #include "filesystem.h"
 #include "adc.hpp"
 #include "logging.h"
+#include <option/buddy_enable_connect.h>
 #include <option/has_puppies.h>
 #include <option/has_puppies_bootloader.h>
 #include <option/filament_sensor.h>
@@ -47,6 +43,8 @@
 #include <option/has_side_leds.h>
 #include <option/has_phase_stepping.h>
 #include <option/has_burst_stepping.h>
+#include <option/buddy_enable_wui.h>
+#include <option/has_touch.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -61,6 +59,9 @@
 #include "resources/revision.hpp"
 #include "filesystem_semihosting.h"
 
+#if BUDDY_ENABLE_CONNECT()
+    #include "connect/run.hpp"
+#endif
 #if HAS_PUPPIES()
     #include "puppies/PuppyBus.hpp"
     #include "puppies/puppy_task.hpp"
@@ -74,7 +75,6 @@
     #include "power_panic.hpp"
 #endif
 
-#include <option/buddy_enable_wui.h>
 #if BUDDY_ENABLE_WUI()
     #include "wui.h"
 #endif
@@ -346,7 +346,7 @@ extern "C" void main_cpp(void) {
     I2C_INIT(usbc);
 #endif
 
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if HAS_TOUCH()
     I2C_INIT(touch);
 #endif
 
