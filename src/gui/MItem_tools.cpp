@@ -799,7 +799,8 @@ void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
 #if HAS_PHASE_STEPPING()
 MI_PHASE_STEPPING::MI_PHASE_STEPPING()
     : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-    index = config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get();
+    bool phstep_enabled = config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get();
+    set_value(phstep_enabled, false);
 }
 
 void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
@@ -810,7 +811,7 @@ void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
     if (index && (config_store().selftest_result_phase_stepping.get() != TestResult_Passed)) {
         AutoRestore ar(event_in_progress, true);
         MsgBoxWarning(_("Phase stepping not ready: perform calibration first."), Responses_Ok);
-        index = old_index;
+        set_value(old_index, false);
         return;
     }
 
