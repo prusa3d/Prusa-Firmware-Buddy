@@ -42,7 +42,7 @@ bool phase_phase_stepping(IPartHandler *&selftest_phase_stepping, const Selftest
     bool in_progress = selftest_phase_stepping->Loop();
 
     const PhasesSelftest phase = IPartHandler::GetFsmPhase();
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, phase, static_result.serialize(phase));
+    FSM_CHANGE_WITH_DATA__LOGGING(phase, static_result.serialize(phase));
 
     if (in_progress) {
         return true;
