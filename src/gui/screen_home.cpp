@@ -285,7 +285,6 @@ void screen_home_data_t::handle_crash_dump() {
         };
 
         do_stage(_("Saving to USB"), [](const ::crash_dump::DumpHandler *handler) { handler->usb_save(); });
-        do_stage(_("Sending to Prusa"), [](const ::crash_dump::DumpHandler *handler) { handler->server_upload(); });
     }
 
     for (const auto &dump_handler : present_dumps) {

@@ -9,6 +9,13 @@
 #include "metric.h"
 #include "timing.h"
 #include "printers.h"
+#include <inc/MarlinConfig.h>
+#include <option/has_phase_stepping.h>
+#include <option/has_burst_stepping.h>
+
+#if HAS_PHASE_STEPPING()
+    #include <feature/phase_stepping/phase_stepping.hpp>
+#endif
 
 METRIC_DEF(metric_tmc_sg_x, "tmc_sg_x", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
 METRIC_DEF(metric_tmc_sg_y, "tmc_sg_y", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
@@ -61,9 +68,14 @@ void StartMeasurementTask([[maybe_unused]] void const *argument) {
 
         // sample stallguard
         if (checkTimestampsAscendingOrder(next_sg_cycle, now)) {
-            uint8_t updated_axes = tmc_sample();
-
-            record_trinamic_metrics(updated_axes);
+#if HAS_PHASE_STEPPING() && !HAS_BURST_STEPPING()
+            if (!phase_stepping::any_axis_active()) {
+#endif
+                uint8_t updated_axes = tmc_sample();
+                record_trinamic_metrics(updated_axes);
+#if HAS_PHASE_STEPPING() && !HAS_BURST_STEPPING()
+            }
+#endif
 
             // This represents the lowest samplerate per axis
             uint32_t next_delay = 40;

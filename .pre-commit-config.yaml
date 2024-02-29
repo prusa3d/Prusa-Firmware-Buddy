@@ -56,6 +56,7 @@ exclude: |
         Marlin/src(/gcode)?/feature/input_shaper/|
         Marlin/src(/gcode)?/feature/pressure_advance/|
         Marlin/src(/gcode)?/feature/precise_stepping/|
+        Marlin/src(/gcode)?/feature/phase_stepping/|
         Marlin/src/module/prusa/|
         Marlin/src/gcode/calibrate/M958.cpp
       )|

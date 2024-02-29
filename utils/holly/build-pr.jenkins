@@ -138,6 +138,7 @@ pipeline {
                             'mk4,release,yesboot',
                             'mk4,release,noboot', // Needed for integration tests, please don't delete
                             'xl,release,yesboot',
+                            'xl-burst,release,yesboot',
                             'ix,release,yesboot'
                     }
                 }

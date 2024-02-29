@@ -101,8 +101,6 @@ void dwarf::modules::marlin::start() {
 
         dwarf::loadcell::loadcell_loop();
 
-        dwarf::accelerometer::accelerometer_loop();
-
         Cheese::update();
 
         // process any modbus request that are pending

@@ -6,6 +6,7 @@
 #pragma once
 
 #include "client_response.hpp"
+#include <option/has_phase_stepping.h>
 
 constexpr const char *get_selftest_state_name(PhasesSelftest state) {
 
@@ -178,6 +179,26 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "ToolOffsets_wait_move_away";
     case PhasesSelftest::ToolOffsets_wait_user_remove_pin:
         return "ToolOffsets_wait_user_remove_pin";
+#if HAS_PHASE_STEPPING()
+    case PhasesSelftest::PhaseStepping_intro:
+        return "PhaseStepping_intro";
+    case PhasesSelftest::PhaseStepping_pick_tool:
+        return "PhaseStepping_pick_tool";
+    case PhasesSelftest::PhaseStepping_calib_x:
+        return "PhaseStepping_calib_x";
+    case PhasesSelftest::PhaseStepping_calib_y:
+        return "PhaseStepping_calib_y";
+    case PhasesSelftest::PhaseStepping_calib_x_nok:
+        return "PhaseStepping_calib_x_nok";
+    case PhasesSelftest::PhaseStepping_calib_y_nok:
+        return "PhaseStepping_calib_y_nok";
+    case PhasesSelftest::PhaseStepping_calib_error:
+        return "PhaseStepping_calib_error";
+    case PhasesSelftest::PhaseStepping_calib_ok:
+        return "PhaseStepping_calib_ok";
+    case PhasesSelftest::PhaseStepping_enabling:
+        return "PhaseStepping_enabling";
+#endif
     }
     return "ERROR_not_a_selftest_state";
 }

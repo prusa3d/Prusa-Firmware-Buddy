@@ -45,6 +45,8 @@
 #include <option/resources.h>
 #include <option/bootloader_update.h>
 #include <option/has_side_leds.h>
+#include <option/has_phase_stepping.h>
+#include <option/has_burst_stepping.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -83,6 +85,10 @@
 
 #if HAS_MMU2()
     #include "feature/prusa/MMU2/mmu2_mk4.h"
+#endif
+
+#if HAS_PHASE_STEPPING()
+    #include <feature/phase_stepping/phase_stepping.hpp>
 #endif
 
 using namespace crash_dump;
@@ -241,6 +247,15 @@ extern "C" void main_cpp(void) {
 #if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
     hw_tim1_init();
 #endif
+
+#if HAS_PHASE_STEPPING()
+    hw_tim13_init();
+#endif
+
+#if HAS_BURST_STEPPING()
+    hw_tim8_init();
+#endif
+
     hw_tim14_init();
 
     SPI_INIT(flash);
@@ -253,8 +268,21 @@ extern "C" void main_cpp(void) {
     const bool want_error_screen = (dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed());
 
 #if BUDDY_ENABLE_CONNECT()
+    #if PRINTER_IS_PRUSA_MINI
+    // For some reason, MINI needs larger stack, otherwise we get stack overflows on "Add printer to connect".
+    // @Michal Vaner speculated that this is because mini doesn't have HW clock, and because of that
+    // it's causindg different codepaths because of certificate verification failures.
+    // Incerasing only for MINI because we wouldn't fit into XL CCRAM if we did this globally.
+    // BFW-4982
+    static constexpr int connect_task_stack_size = 2432;
+
+    #else
+    static constexpr int connect_task_stack_size = 2304;
+
+    #endif
+
     // On a place shared for both code branches, so we have just one connectTask buffer.
-    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
+    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, connect_task_stack_size);
 #endif
 
 #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
@@ -465,7 +493,7 @@ extern "C" void main_cpp(void) {
     osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 1024);
     prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
 
-    osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1024);
+    osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1152);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
 #if ENABLED(POWER_PANIC)

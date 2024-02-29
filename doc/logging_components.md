@@ -1,7 +1,6 @@
 # Logging - Defined Components
 This file is generated automatically so don't edit it directly
 
-- Accel: LOG_SEVERITY_INFO, src/puppy/dwarf/accelerometer.cpp
 - Bootloader: LOG_SEVERITY_INFO, src/bootloader/bootloader.cpp
 - Buddy: LOG_SEVERITY_DEBUG, src/common/appmain.cpp
 - BufferedSerial: LOG_SEVERITY_DEBUG, src/hw/buffered_serial.cpp
@@ -38,7 +37,9 @@ This file is generated automatically so don't edit it directly
 - ModularBed: LOG_SEVERITY_INFO, src/puppies/modular_bed.cpp
 - Network: LOG_SEVERITY_INFO, lib/WUI/wui.cpp
 - PRUSA_GCODE: LOG_SEVERITY_INFO, src/marlin_stubs/gcode.cpp
+- PhaseStepping: LOG_SEVERITY_DEBUG, lib/Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp
 - PowerPanic: LOG_SEVERITY_INFO, src/common/power_panic.cpp
+- PreciseStepping: LOG_SEVERITY_DEBUG, lib/Marlin/Marlin/src/feature/precise_stepping/precise_stepping.cpp
 - PrusaToolChanger: LOG_SEVERITY_DEBUG, lib/Marlin/Marlin/src/module/prusa/toolchanger_utils.cpp
 - Puppies: LOG_SEVERITY_DEBUG, src/puppies/puppy_task.cpp
 - Resources: LOG_SEVERITY_DEBUG, src/resources/bootstrap.cpp

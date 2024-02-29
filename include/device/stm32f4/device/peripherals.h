@@ -74,6 +74,9 @@ extern DMA_HandleTypeDef hdma_adc3;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim8;
+extern DMA_HandleTypeDef hdma_tim8;
+extern TIM_HandleTypeDef htim13;
 extern TIM_HandleTypeDef htim14;
 
 //
@@ -255,19 +258,21 @@ extern TIM_HandleTypeDef htim14;
         #define uart_mmu 6
     #endif
 #elif BOARD_IS_XLBUDDY
-    #define i2c_eeprom        2
-    #define i2c_usbc          1
-    #define i2c_touch         3
-    #define i2c_io_extender   2
-    #define spi_flash         5
-    #define spi_lcd           6
-    #define spi_tmc           3
-    #define uart_esp          8
-    #define spi_accelerometer 2
+    #define i2c_eeprom         2
+    #define i2c_usbc           1
+    #define i2c_touch          3
+    #define i2c_io_extender    2
+    #define spi_flash          5
+    #define spi_lcd            6
+    #define spi_tmc            3
+    #define uart_esp           8
+    #define spi_accelerometer  2
     // Side LEDs use either SPI4 or share SPI with LCD, depending on HW revision
     // #define spi_led           4 or spi_lcd
-    #define uart_puppies      3
-    #define uart_reserved     6
+    #define uart_puppies       3
+    #define uart_reserved      6
+    #define tim_burst_stepping 8
+    #define tim_phase_stepping 13
 #else
     #error Unknown board
 #endif
@@ -332,6 +337,8 @@ void hw_spi6_init();
 void hw_tim1_init();
 void hw_tim2_init();
 void hw_tim3_init();
+void hw_tim8_init();
+void hw_tim13_init();
 void hw_tim14_init();
 
 //
@@ -346,6 +353,9 @@ void hw_tim14_init();
 
 /// Get handle for given peripheral: SPI_HANDLE_FOR(lcd) -> hspi3
 #define SPI_HANDLE_FOR(peripheral) _JOIN(hspi, spi_##peripheral, )
+
+/// Get handle for given peripheral: TIM_HANDLE_FOR(phase_stepping) -> htim12
+#define TIM_HANDLE_FOR(peripheral) _JOIN(htim, tim_##peripheral, )
 
 /// Get handle for given peripheral: UART_HANDLE_FOR(esp) -> huart3
 #define UART_HANDLE_FOR(peripheral) _JOIN(huart, uart_##peripheral, )

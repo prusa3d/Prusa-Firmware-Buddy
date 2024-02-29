@@ -14,20 +14,22 @@
 #endif
 #include "bsod.h"
 
+#include "feature/phase_stepping/phase_stepping.hpp"
+
 // convert raw AB steps to XY mm
 void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {
     float x = static_cast<float>(steps.a + steps.b) / 2.f;
     float y = static_cast<float>(CORESIGN(steps.a - steps.b)) / 2.f;
-    mm.x = x / planner.settings.axis_steps_per_mm[0];
-    mm.y = y / planner.settings.axis_steps_per_mm[1];
+    mm.x = x * planner.mm_per_step[X_AXIS];
+    mm.y = y * planner.mm_per_step[Y_AXIS];
 }
 
 // convert raw AB steps to XY mm and position in mini-steps
 static void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm, xy_long_t &pos_msteps) {
     float x = static_cast<float>(steps.a + steps.b) / 2.f;
     float y = static_cast<float>(CORESIGN(steps.a - steps.b)) / 2.f;
-    mm.x = x / planner.settings.axis_steps_per_mm[0];
-    mm.y = y / planner.settings.axis_steps_per_mm[1];
+    mm.x = x * planner.mm_per_step[X_AXIS];
+    mm.y = y * planner.mm_per_step[Y_AXIS];
     pos_msteps.x = LROUND(x * PLANNER_STEPS_MULTIPLIER);
     pos_msteps.y = LROUND(y * PLANNER_STEPS_MULTIPLIER);
 }
@@ -65,12 +67,25 @@ static void plan_corexy_raw_move(const xy_long_t &target_steps_ab, const feedRat
 
 // TMC µsteps(phase) per Marlin µsteps
 static int16_t phase_per_ustep(const AxisEnum axis) {
-    return 256 / stepper_axis(axis).microsteps();
-}
+    // Originally, we read the microstep configuration from the driver; this no
+    // longer make sense with 256 microsteps.
+    // Thus, we use the printer defaults instead of stepper_axis(axis).microsteps();
+    assert(axis <= AxisEnum::Z_AXIS);
+    static const int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
+    return 256 / MICROSTEPS[axis];
+};
 
 // TMC full cycle µsteps per Marlin µsteps
 static int16_t phase_cycle_steps(const AxisEnum axis) {
     return 1024 / phase_per_ustep(axis);
+}
+
+static int16_t axis_mscnt(const AxisEnum axis) {
+#if HAS_BURST_STEPPING()
+    return phase_stepping::logical_ustep(axis);
+#else
+    return stepper_axis(axis).MSCNT();
+#endif
 }
 
 static int16_t phase_backoff_steps(const AxisEnum axis) {
@@ -89,7 +104,7 @@ static int16_t phase_backoff_steps(const AxisEnum axis) {
         bsod("invalid backoff axis");
     }
 
-    int16_t phaseCurrent = stepper_axis(axis).MSCNT(); // The TMC µsteps(phase) count of the current position
+    int16_t phaseCurrent = axis_mscnt(axis); // The TMC µsteps(phase) count of the current position
     int16_t phaseDelta = (0 - phaseCurrent) * stepperBackoutDir;
     if (phaseDelta < 0) {
         phaseDelta += 1024;
@@ -98,8 +113,12 @@ static int16_t phase_backoff_steps(const AxisEnum axis) {
 }
 
 static bool phase_aligned(AxisEnum axis) {
-    int16_t phase_cur = stepper_axis(axis).MSCNT();
+    int16_t phase_cur = axis_mscnt(axis);
     int16_t ustep_max = phase_per_ustep(axis) / 2;
+#if HAS_BURST_STEPPING()
+    // TODO: temporarily allow for one logical phase of change until motion is step-exact
+    ustep_max += phase_per_ustep(axis);
+#endif
     return (phase_cur <= ustep_max || phase_cur >= (1024 - ustep_max));
 }
 
@@ -298,6 +317,9 @@ bool refine_corexy_origin() {
     xy_long_t origin_steps = { stepper.position(A_AXIS) + phase_backoff_steps(A_AXIS),
         stepper.position(B_AXIS) + phase_backoff_steps(B_AXIS) };
     plan_corexy_raw_move(origin_steps, fr_mm_s);
+    if (stepper.position(A_AXIS) != origin_steps[A_AXIS] || stepper.position(B_AXIS) != origin_steps[B_AXIS]) {
+        bsod("raw move didn't reach requested position");
+    }
 
     // sanity checks
     wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));

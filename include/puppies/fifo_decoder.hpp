@@ -23,8 +23,8 @@ public:
     typedef struct {
         std::function<void(LogData)> log_handler;
         std::function<void(LoadcellRecord)> loadcell_handler;
-        std::function<void(AccelerometerData)> accelerometer_handler;
         std::function<void(AccelerometerFastData)> accelerometer_fast_handler;
+        std::function<void(AccelerometerSamplingRate)> accelerometer_freq_handler;
     } Callbacks_t;
 
     Decoder(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo, size_t len);

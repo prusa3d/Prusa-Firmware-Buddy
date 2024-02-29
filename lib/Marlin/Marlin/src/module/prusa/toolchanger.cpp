@@ -680,7 +680,7 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
         }
     }
 
-    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // extract tool
+    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // release tool
 
     // Wait until dwarf is registering as not picked
     if (!wait(dwarf_not_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
@@ -767,6 +767,7 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
     move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // go in front of the tool
     move(info.dock_x, info.dock_y + PICK_Y_OFFSET, feedrate_mm_s); // pre-insert fast the tool
     planner.settings.travel_acceleration = SLOW_ACCELERATION_MM_S2; // low acceleration
+
     move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // insert slowly the last mm to allow part fitting + soft touch between TCM and tool thanks to the gentle deceleration
     planner.synchronize();
 

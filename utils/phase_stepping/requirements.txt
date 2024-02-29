@@ -1,0 +1,6 @@
+pyserial
+click
+pandas
+plotly
+numpy
+scipy

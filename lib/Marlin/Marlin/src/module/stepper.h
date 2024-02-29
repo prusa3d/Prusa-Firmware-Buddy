@@ -49,6 +49,12 @@
   #include "speed_lookuptable.h"
 #endif
 
+#include <option/has_phase_stepping.h>
+
+#if HAS_PHASE_STEPPING()
+  #include "../feature/phase_stepping/phase_stepping.hpp"
+#endif
+
 // Disable multiple steps per ISR
 //#define DISABLE_MULTI_STEPPING
 
@@ -409,7 +415,7 @@ class Stepper {
     // Get the position of a stepper, in steps
     static int32_t position(const AxisEnum axis);
     static int32_t position_from_startup(const AxisEnum axis);
-    
+
     // Report the positions of the steppers, in steps
     static void report_positions();
 
@@ -521,6 +527,32 @@ class Stepper {
       // Return accumulated LA steps
       static uint16_t get_LA_steps() { return LA_current_adv_steps; }
     #endif
+
+    static long get_axis_steps(const AxisEnum a) {
+      return count_position[a];
+    }
+
+    static long get_axis_steps_from_startup(const AxisEnum a) {
+      return count_position_from_startup[a];
+    }
+
+    static void set_axis_steps(const AxisEnum a, long steps_made) {
+      count_position[a] = steps_made;
+    }
+
+    static void set_axis_steps_from_startup(const AxisEnum a, long steps_made) {
+      count_position_from_startup[a] = steps_made;
+    }
+
+    static void report_axis_movement(AxisEnum a, float speed) {
+      uint8_t axis_mask = 1 << a;
+      axis_did_move |= axis_mask;
+
+      if (speed > 0)
+        last_direction_bits |= axis_mask;
+      else
+        last_direction_bits &= ~axis_mask;
+    }
 
 private:
 

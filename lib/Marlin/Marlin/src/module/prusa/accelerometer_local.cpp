@@ -29,3 +29,4 @@ int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
     return m_fifo.get(acceleration);
 }
 PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;
+float PrusaAccelerometer::m_sampling_rate = 0;

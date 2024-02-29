@@ -12,6 +12,12 @@ using namespace common::puppies::fifo;
 LOG_COMPONENT_DEF(ModbusFIFOHandlers, LOG_SEVERITY_DEBUG);
 
 /**
+ * @brief Holds number of sent accelerometer samples; used for rate-limiting of
+ * frequency report
+ */
+static int acc_sample_counter = 0;
+
+/**
  * @brief Failed to encode
  *
  * to be used to handle impossible cases
@@ -37,31 +43,20 @@ static void failed_to_encode() {
  */
 static void pickup_accelerometer_sample(Encoder &encoder, bool &encoded) {
     dwarf::accelerometer::AccelerometerRecord record;
-    if (dwarf::accelerometer::is_high_sample_rate()) {
-        if (encoder.can_encode<AccelerometerFastData>() && (dwarf::accelerometer::get_num_samples() >= std::tuple_size<AccelerometerFastData>::value)) {
-            AccelerometerFastData accelerometer_data;
-            for (auto &xyzSample : accelerometer_data) {
-                if (!dwarf::accelerometer::accelerometer_get_sample(record)) {
-                    // This can never happen as we already checked
-                    // there are enough samples before.
-                    bsod("Get accelerometer sample failed.");
-                }
-                xyzSample = AccelerometerUtils::pack_record(record);
+    if (encoder.can_encode<AccelerometerFastData>() && (dwarf::accelerometer::get_num_samples() >= std::tuple_size<AccelerometerFastData>::value)) {
+        AccelerometerFastData accelerometer_data;
+        for (auto &xyzSample : accelerometer_data) {
+            if (!dwarf::accelerometer::accelerometer_get_sample(record)) {
+                // This can never happen as we already checked
+                // there are enough samples before.
+                bsod("Get accelerometer sample failed.");
             }
-            if (encoder.encode(accelerometer_data)) {
-                encoded = true;
-            } else {
-                failed_to_encode();
-            }
+            xyzSample = AccelerometerUtils::pack_record(record);
         }
-    } else {
-        if (encoder.can_encode<AccelerometerData>() && dwarf::accelerometer::accelerometer_get_sample(record)) {
-            AccelerometerData accelerometer_data = { record.timestamp, AccelerometerUtils::pack_record(record) };
-            if (encoder.encode(accelerometer_data)) {
-                encoded = true;
-            } else {
-                failed_to_encode();
-            }
+        if (encoder.encode(accelerometer_data)) {
+            encoded = true;
+        } else {
+            failed_to_encode();
         }
     }
 }
@@ -83,6 +78,22 @@ size_t handle_encoded_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo) {
         encoded = false;
 
         pickup_accelerometer_sample(encoder, encoded);
+        if (encoded) {
+            acc_sample_counter++;
+            continue; // Continue packing accelerometer samples - the highest priority
+        }
+
+        if (acc_sample_counter >= 100) {
+            acc_sample_counter = 0;
+            if (encoder.can_encode<AccelerometerSamplingRate>()) {
+                AccelerometerSamplingRate sample = { .frequency = dwarf::accelerometer::measured_sampling_rate() };
+                if (encoder.encode(sample)) {
+                    encoded = true;
+                } else {
+                    failed_to_encode();
+                }
+            }
+        }
 
         // Pickup loadcell sample
         if (encoder.can_encode<LoadcellRecord>()) {
@@ -90,6 +101,7 @@ size_t handle_encoded_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo) {
             if (dwarf::loadcell::get_loadcell_sample(sample)) {
                 if (encoder.encode(sample)) {
                     encoded = true;
+                    continue; // Continue packing loadcell samples - the second highest priority
                 } else {
                     failed_to_encode();
                 }
