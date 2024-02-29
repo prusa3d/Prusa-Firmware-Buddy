@@ -49,12 +49,6 @@
   #include "speed_lookuptable.h"
 #endif
 
-#include <option/has_phase_stepping.h>
-
-#if HAS_PHASE_STEPPING()
-  #include "../feature/phase_stepping/phase_stepping.hpp"
-#endif
-
 // Disable multiple steps per ISR
 //#define DISABLE_MULTI_STEPPING
 
