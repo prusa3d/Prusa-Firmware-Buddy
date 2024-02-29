@@ -26,18 +26,18 @@ void MI_CRASH_DETECTION::Loop() {
     // we can trap it here. At the same time, Print is not virtual.
     bool phstep_enabled = (config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get());
     if (phstep_enabled) {
-        index = 0;
+        set_value(false, false);
         Disable();
     } else {
-        index = crash_s.is_enabled();
+        set_value(crash_s.is_enabled(), false);
         Enable();
     }
     #endif
     return WI_ICON_SWITCH_OFF_ON_t::Loop();
 }
 
-void MI_CRASH_DETECTION::OnChange([[maybe_unused]] size_t old_index) {
-    crash_s.enable(index);
+void MI_CRASH_DETECTION::OnChange(size_t /*old_index*/) {
+    crash_s.enable(value());
 }
 
 MI_CRASH_SENSITIVITY_X::MI_CRASH_SENSITIVITY_X()
