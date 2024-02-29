@@ -2,7 +2,7 @@
 #include "frame_qr_layout.hpp"
 #include "i18n.h"
 #include "str_utils.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_phase_stepping_result.hpp"
 #include "img_resources.hpp"
 

@@ -1,5 +1,5 @@
 #include "selftest_phase_stepping.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "i_selftest.hpp"
 
 #include <option/has_toolchanger.h>
