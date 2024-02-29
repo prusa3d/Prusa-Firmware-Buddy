@@ -41,11 +41,11 @@ void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {
 
 // MI_NOZZLE_TYPE
 MI_NOZZLE_TYPE::MI_NOZZLE_TYPE()
-    : IWiSwitch(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-    // SetIndex has bounds checking, there might be invalid value inside config_store
+    : IWiSwitch(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+
     SetIndex(ftrstd::to_underlying(config_store().nozzle_type.get()));
 
-    // Items are initialized, update extension width
+    // Items are initialized now, update extension width
     changeExtentionWidth();
 };
 
@@ -55,14 +55,14 @@ void MI_NOZZLE_TYPE::OnChange([[maybe_unused]] size_t old_index) {
 
 // MI_HOTEND_TYPE
 MI_HOTEND_TYPE::MI_HOTEND_TYPE()
-    : IWiSwitch(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) //
+    : IWiSwitch(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) //
 {
     // Determine current index
     if (auto he = std::find(supported_hotend_types.begin(), supported_hotend_types.end(), config_store().hotend_type.get()); he != supported_hotend_types.end()) {
-        index = he - supported_hotend_types.begin();
+        SetIndex(he - supported_hotend_types.begin());
     }
 
-    // This has to be done after initializing items, so we cannot do it in the parent
+    // Items are initialized now, update extension width
     changeExtentionWidth();
 }
 
