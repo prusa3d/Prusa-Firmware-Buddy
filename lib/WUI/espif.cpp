@@ -16,6 +16,7 @@
 #include <semphr.h>
 #include <ccm_thread.hpp>
 #include <bsod.h>
+#include <lwip/netifapi.h>
 
 #include "main.h"
 #include "../metric.h"
@@ -406,13 +407,13 @@ static void process_link_change(bool link_up, struct netif *netif) {
     assert(netif != nullptr);
     if (link_up) {
         if (!associated.exchange(true)) {
-            netif_set_link_up(netif);
+            netifapi_netif_set_link_up(netif);
             log_info(ESPIF, "Link went up");
         }
     } else {
         if (associated.exchange(false)) {
             log_info(ESPIF, "Link went down");
-            netif_set_link_down(netif);
+            netifapi_netif_set_link_down(netif);
         }
     }
 }

@@ -123,6 +123,12 @@ extern "C" {
 
 #define MEMP_NUM_TCPIP_MSG_INPKT TCPIP_MBOX_SIZE
 
+#define LWIP_ASSERT_CORE_LOCKED()                  \
+    do {                                           \
+        extern void wui_lwip_assert_core_locked(); \
+        wui_lwip_assert_core_locked();             \
+    } while (0)
+
 #ifdef __cplusplus
 }
 #endif

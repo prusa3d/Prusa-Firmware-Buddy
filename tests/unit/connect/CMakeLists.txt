@@ -51,7 +51,6 @@ add_executable(
   # LwIP parts
   # See reason why we do it this way in
   # tests/unit/lib/WUI/nhttp/CMakeLists.txt
-  ${CMAKE_SOURCE_DIR}/src/buddy/lwip.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/lib/WUI/nhttp/missing_functions.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp_tcp.c
@@ -164,7 +163,6 @@ add_executable(
   # LwIP parts
   # See reason why we do it this way in
   # tests/unit/lib/WUI/nhttp/CMakeLists.txt
-  ${CMAKE_SOURCE_DIR}/src/buddy/lwip.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/lib/WUI/nhttp/missing_functions.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp_tcp.c
@@ -249,7 +247,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   missing_functions.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/lib/WUI/nhttp/missing_functions.c
-  ${CMAKE_SOURCE_DIR}/src/buddy/lwip.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp_tcp.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/def.c
