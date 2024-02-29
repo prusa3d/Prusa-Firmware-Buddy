@@ -5,6 +5,7 @@
 #include "display_hw_checks.hpp"
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
+#include "tasks.hpp"
 #include "window_dlg_popup.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_hardfault.hpp"
@@ -308,12 +309,14 @@ void gui_run(void) {
     marlin_client::set_fsm_cb(DialogHandler::command_c_compatible);
     marlin_client::set_message_cb(MsgCircleBuffer_cb);
 
-    Sound_Play(eSOUND_TYPE::Start);
-
     marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF);
+
+    TaskDeps::provide(TaskDeps::Dependency::gui_task_ready);
 
     // Close bootstrap screen, open home screen
     Screens::Access()->Close();
+
+    Sound_Play(eSOUND_TYPE::Start);
 
 #if HAS_LEDS() && !HAS_SIDE_LEDS()
     // we need to step the animator, to move the started animation to current to let it run for one cycle

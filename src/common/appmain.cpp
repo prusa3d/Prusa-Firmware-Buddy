@@ -220,6 +220,15 @@ void app_run(void) {
 
     TaskDeps::provide(TaskDeps::Dependency::default_task_ready);
 
+    // Wait for the other tasks to init marlin clients
+    // Marlin might create some FSMs right at the start and if the gui task doesn't process the message, it might not show the dialogs.
+    // We gotta loop the marlin server though, because the clients configure event masks through request messages
+    // BFW-5057
+    while (!TaskDeps::check(TaskDeps::Tasks::marlin_server)) {
+        marlin_server::barebones_loop();
+        osDelay(1);
+    }
+
     while (1) {
         metric_record_event(&metric_maintask_event);
         metric_record_integer(&metric_cpu_usage, osGetCPUUsage());

@@ -637,6 +637,14 @@ void loop() {
     cycle();
 }
 
+void barebones_loop() {
+    if (Request request; server_queue.receive(request, 0)) {
+        _process_server_request(request);
+    }
+
+    send_notifications_to_clients();
+}
+
 static void idle(void) {
     // TODO: avoid a re-entrant cycle caused by:
     // cycle -> loop -> idle -> MarlinUI::update() -> ExtUI::onIdle -> idle -> cycle

@@ -46,6 +46,11 @@ void init();
 // server loop - must be called periodically in server thread
 void loop();
 
+/// A very minimal loop that only processes messages and sends back to clients
+/// This is used during the marlin client initialization phase,
+/// where we want to process messages from client, but nothing else
+void barebones_loop();
+
 // returns enabled status of loop processing
 bool processing();
 
