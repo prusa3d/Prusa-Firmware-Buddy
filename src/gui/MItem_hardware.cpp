@@ -69,7 +69,7 @@ MI_HOTEND_TYPE::MI_HOTEND_TYPE()
 }
 
 void MI_HOTEND_TYPE::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().hotend_type.set(static_cast<HotendType>(index));
+    config_store().hotend_type.set(supported_hotend_types[index]);
 }
 
 // MI_NOZZLE_SOCK
