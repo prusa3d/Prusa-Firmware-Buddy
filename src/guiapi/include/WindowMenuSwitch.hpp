@@ -22,11 +22,11 @@ public:
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSwitchHasBrackets ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
 
 protected:
-    size_t index;
+    size_t index = 0;
 
 public:
     // !!! Call changeExtentionWidth() after the items are initialized in the child
-    IWiSwitch(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
+    IWiSwitch(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
 
     void SetIndex(size_t idx);
 
@@ -52,19 +52,19 @@ protected:
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
 };
 
-// I could use single template with type parameter and make aliases for WI_SWITCH_t and WI_ICON_SWITCH_t
-// but I would have to rewrite all base ctor calls from ": WI_SWITCH_t(...)" to ": WI_SWITCH_t<N>(...)"
-// I think it is caused by two phase lookup
+/// IWiSwitch implementation with fixed number of fixed items, stored in a buffer
 template <size_t SZ>
 class WI_SWITCH_t : public IWiSwitch {
 
 public:
     template <class... E>
     WI_SWITCH_t(size_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
-        : IWiSwitch(index < SZ ? index : 0, label, id_icon, enabled, hidden)
+        : IWiSwitch(label, id_icon, enabled, hidden)
         , items_ { std::forward<E>(e)... } //
     {
-        // This has to be done after initializing items, so we cannot do it in the parent
+        SetIndex(index);
+
+        // Items are initialized now, update extension width
         changeExtentionWidth();
     }
 
