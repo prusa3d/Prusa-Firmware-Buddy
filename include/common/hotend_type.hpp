@@ -10,13 +10,13 @@
 /// Shared for all printers.
 /// !!! Never change order, never remove items - this is used in config store
 enum class HotendType : uint8_t {
-    stock,
+    stock = 0,
 
     /// Stock Prusa hotend with sillicone sock
-    stock_with_sock,
+    stock_with_sock = 1,
 
     /// E3D Revo (MK3.5 only)
-    e3d_revo,
+    e3d_revo = 2,
 
     _cnt,
 };
