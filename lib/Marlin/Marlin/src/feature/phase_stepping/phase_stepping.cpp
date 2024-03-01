@@ -424,7 +424,7 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
         default:
             break;
         }
-        delayMicroseconds(20);
+        delay_us_precise(20);
     }
     stepper.direct_mode(false);
     stepper.microsteps(original_microsteps);
