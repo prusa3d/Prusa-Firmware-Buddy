@@ -286,7 +286,7 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
             MACRO_FUNCTION(buddy::hw::OutputPin, extFlashCs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::InputPin, fanPrintTach, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p10, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::InputPin, fanHeatBreakTach, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p14, IMode::input COMMA Pull::up, buddy::hw::noHandler)
-    #elif ((BOARD_IS_XBUDDY) && PRINTER_IS_PRUSA_iX)
+    #elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_iX)
         #define PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION) \
             MACRO_FUNCTION(buddy::hw::OutputPin, heaterEnable, BUDDY_PIN(HEATER_ENABLE), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, displayCs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p11, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
@@ -319,7 +319,10 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
             MACRO_FUNCTION(buddy::hw::OutputPin, tachoSelectPrintFan, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p13, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::InterruptPin, hx717Dout, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p7, IMode::IT_falling COMMA Pull::up COMMA ISR_PRIORITY_HX717_HARD COMMA 0 COMMA false, buddy::hw::hx717_irq) \
             MACRO_FUNCTION(buddy::hw::InterruptPin, hx717Soft, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p3, IMode::IT_rising_falling COMMA Pull::none COMMA ISR_PRIORITY_HX717_SOFT COMMA 0 COMMA false, buddy::hw::hx717_soft) \
-            MACRO_FUNCTION(buddy::hw::OutputPin, hx717Sck, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p1, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler)
+            MACRO_FUNCTION(buddy::hw::OutputPin, hx717Sck, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p1, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+            MACRO_FUNCTION(buddy::hw::InputPin, backFilamentSensorState, buddy::hw::IoPort::C COMMA buddy::hw::IoPin::p9, IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+            MACRO_FUNCTION(buddy::hw::InputPin, backFilamentSensorDetect, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p8, IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+
     #elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
         #define PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION) \
             MACRO_FUNCTION(buddy::hw::InputPin, fSensor, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p13, IMode::input COMMA Pull::up, buddy::hw::noHandler) \

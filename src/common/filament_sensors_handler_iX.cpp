@@ -2,6 +2,7 @@
  * @file filament_sensors_handler_iX.cpp
  */
 
+#include "filament_sensor_ix_side.hpp"
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_types.hpp"
 #include "filament_sensor_adc.hpp"
@@ -12,12 +13,17 @@
 // Meyer's singleton
 static FSensorADC *getExtruderFSensor(uint8_t index) {
     static FSensorADC printer_sensor = FSensorADC(0, false);
-    return index == 0 ? &printer_sensor : nullptr;
+    return (index == 0) ? &printer_sensor : nullptr;
 }
 
 // function returning abstract sensor - used in higher level api
 IFSensor *GetExtruderFSensor(uint8_t index) {
     return getExtruderFSensor(index);
+}
+
+IFSensor *GetSideFSensor(uint8_t index) {
+    static FSensor_iXSide sensor;
+    return (index == 0) ? &sensor : nullptr;
 }
 
 // IRQ - called from interruption
