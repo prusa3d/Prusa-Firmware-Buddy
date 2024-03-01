@@ -9,6 +9,10 @@
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include <option/has_selftest_snake.h>
+#include <option/has_phase_stepping.h>
+#if HAS_PHASE_STEPPING()
+    #include "selftest_frame_phase_stepping.hpp"
+#endif
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<SelftestFrameWizardPrologue>(&rThs, phase, data);
@@ -69,6 +73,12 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_epilogue(ScreenSelftest
     return rThs.makePtr<SelftestFrameWizardEpilogue>(&rThs, phase, data);
 }
 
+#if HAS_PHASE_STEPPING()
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_phase_stepping(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFramePhaseStepping>(&rThs, phase, data);
+}
+#endif
+
 #if BOARD_IS_XLBUDDY
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_dock(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<SelftestFrameDock>(&rThs, phase, data);
@@ -125,6 +135,10 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
         break;
 #else
         return creator_specify_hot_end;
+#endif
+#if HAS_PHASE_STEPPING()
+    case SelftestParts::PhaseStepping:
+        return creator_phase_stepping;
 #endif
     case SelftestParts::CalibZ:
         return creator_calib_z;
@@ -220,6 +234,9 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::Dock:
     case SelftestParts::ToolOffsets:
 #endif
+#if HAS_PHASE_STEPPING()
+    case SelftestParts::PhaseStepping:
+#endif
         return _(en_selftest);
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
@@ -261,6 +278,9 @@ const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
 #if BOARD_IS_XLBUDDY
     case SelftestParts::Dock:
     case SelftestParts::ToolOffsets:
+#endif
+#if HAS_PHASE_STEPPING()
+    case SelftestParts::PhaseStepping:
 #endif
         return &img::selftest_16x16;
     case SelftestParts::WizardEpilogue_ok:

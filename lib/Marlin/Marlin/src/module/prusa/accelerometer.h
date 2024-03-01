@@ -58,14 +58,17 @@ public:
 
     void clear();
     int get_sample(Acceleration &acceleration);
+    float get_sampling_rate() const { return m_sampling_rate; }
     Error get_error() { return m_error; }
 
 #if HAS_REMOTE_ACCELEROMETER()
     static void put_sample(common::puppies::fifo::AccelerometerXyzSample sample);
     static void mark_corrupted(const Error error);
+    static void set_rate(float rate);
 #endif
 private:
     static Error m_error;
+    static float m_sampling_rate;
 #if HAS_LOCAL_ACCELEROMETER()
     Fifo m_fifo;
 #elif HAS_REMOTE_ACCELEROMETER()

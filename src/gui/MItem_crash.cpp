@@ -6,6 +6,7 @@
     #include "menu_spin_config.hpp"
     #include "../lib/Marlin/Marlin/src/module/stepper/trinamic.h"
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
+    #include "../Marlin/src/feature/phase_stepping/phase_stepping.hpp"
     #include <config_store/store_instance.hpp>
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
@@ -18,8 +19,25 @@ MI_CRASH_DETECTION::MI_CRASH_DETECTION()
     ) {
 }
 
-void MI_CRASH_DETECTION::OnChange([[maybe_unused]] size_t old_index) {
-    crash_s.enable(index);
+void MI_CRASH_DETECTION::Loop() {
+    #if HAS_PHASE_STEPPING() && !HAS_BURST_STEPPING()
+    // Enable or disable according to the current phase stepping state. We can't really use
+    // invalidation to reduce calls to config_store, as Print() happens and resets the state before
+    // we can trap it here. At the same time, Print is not virtual.
+    bool phstep_enabled = (config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get());
+    if (phstep_enabled) {
+        set_value(false, false);
+        Disable();
+    } else {
+        set_value(crash_s.is_enabled(), false);
+        Enable();
+    }
+    #endif
+    return WI_ICON_SWITCH_OFF_ON_t::Loop();
+}
+
+void MI_CRASH_DETECTION::OnChange(size_t /*old_index*/) {
+    crash_s.enable(value());
 }
 
 MI_CRASH_SENSITIVITY_X::MI_CRASH_SENSITIVITY_X()

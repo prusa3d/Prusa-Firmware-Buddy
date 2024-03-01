@@ -15,6 +15,13 @@
 #include "safe_state.h"
 #include "data_exchange.hpp"
 #include <option/buddy_enable_wui.h>
+#include <option/has_phase_stepping.h>
+#include <option/has_burst_stepping.h>
+
+#if HAS_PHASE_STEPPING()
+    #include <feature/phase_stepping/phase_stepping.hpp>
+    #include <feature/phase_stepping/quick_tmc_spi.hpp>
+#endif
 
 #if BUDDY_ENABLE_WUI()
     #include "espif.h"
@@ -226,6 +233,16 @@ void DMA1_Stream3_IRQHandler(void) {
 #endif
 
 /**
+ * @brief This function handles TIM8 trigger and commutation interrupts and TIM13 global interrupt.
+ */
+
+// This function is implemented in
+// lib/Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp to allow for
+// inlining without enable LTO.
+//
+// void TIM8_UP_TIM13_IRQHandler(void)
+
+/**
  * @brief This function handles TIM8 trigger and commutation interrupts and TIM14 global interrupt.
  */
 void TIM8_TRG_COM_TIM14_IRQHandler(void) {
@@ -348,4 +365,24 @@ void OTG_HS_IRQHandler(void) {
     traceISR_EXIT();
 #endif
 }
+
+/**
+ * @brief This function handles SPI3 global interrupt.
+ */
+void SPI3_IRQHandler(void) {
+    traceISR_ENTER();
+    HAL_SPI_IRQHandler(&hspi3);
+    traceISR_EXIT();
+}
+
+#if HAS_BURST_STEPPING()
+/**
+ * @brief This function handles SPI4 global interrupt.
+ */
+void SPI4_IRQHandler(void) {
+    traceISR_ENTER();
+    HAL_SPI_IRQHandler(&hspi4);
+    traceISR_EXIT();
+}
+#endif
 }

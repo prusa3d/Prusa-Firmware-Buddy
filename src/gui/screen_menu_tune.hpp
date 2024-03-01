@@ -52,6 +52,9 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
     MI_SOUND_VOLUME,
 #endif
     MI_INPUT_SHAPER,
+#if HAS_PHASE_STEPPING()
+    MI_PHASE_STEPPING,
+#endif
     MI_FAN_CHECK
 #if HAS_MMU2()
     ,

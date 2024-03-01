@@ -764,6 +764,10 @@ void settings_load(void) {
     // TODO: This is temporary until better offset store method is implemented
     prusa_toolchanger.load_tool_offsets();
 #endif
+
+#if HAS_PHASE_STEPPING()
+    phase_stepping::load();
+#endif
 }
 
 uint32_t get_command(void) {

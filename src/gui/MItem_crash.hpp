@@ -15,6 +15,7 @@ class MI_CRASH_DETECTION : public WI_ICON_SWITCH_OFF_ON_t {
 
 public:
     MI_CRASH_DETECTION();
+    virtual void Loop() override;
     virtual void OnChange(size_t old_index) override;
 };
 

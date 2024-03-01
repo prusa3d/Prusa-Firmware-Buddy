@@ -4,3 +4,6 @@
 
 # PreciseStepping utils
 source -s utils/gdb/precise_stepping.py
+
+# Marlin utils
+source -s utils/gdb/marlin.py

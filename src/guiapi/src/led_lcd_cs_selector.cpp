@@ -11,6 +11,7 @@
 #include <ccm_thread.hpp>
 #include "option/has_side_leds.h"
 #include <common/spi_baud_rate_prescaler_guard.hpp>
+#include <option/has_burst_stepping.h>
 
 using namespace buddy::hw;
 
@@ -91,7 +92,11 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
     } else {
         HAL_SPI_Abort(hspi);
         assert(can_be_used_by_dma(pb));
+    #if HAS_BURST_STEPPING()
+        HAL_SPI_Transmit_IT(hspi, pb, size);
+    #else
         HAL_SPI_Transmit_DMA(hspi, pb, size);
+    #endif
         // wait for transmission complete
         while (HAL_SPI_GetState(hspi) == HAL_SPI_STATE_BUSY_TX) {
             osDelay(1);

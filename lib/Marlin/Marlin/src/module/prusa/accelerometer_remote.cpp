@@ -12,6 +12,7 @@ static_assert(HAS_REMOTE_ACCELEROMETER());
 
 freertos::Mutex PrusaAccelerometer::s_buffer_mutex;
 PrusaAccelerometer::Sample_buffer *PrusaAccelerometer::s_sample_buffer = nullptr;
+float PrusaAccelerometer::m_sampling_rate = 0;
 
 /**
  * If this is the first instance of PrusaAccelerometer
@@ -89,6 +90,7 @@ void PrusaAccelerometer::clear() {
     Acceleration acceleration;
     while (get_sample(acceleration))
         ;
+    m_error = Error::none;
 }
 int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
     std::lock_guard lock(s_buffer_mutex);
@@ -120,4 +122,9 @@ void PrusaAccelerometer::mark_corrupted(const Error error) {
         || error == Error::corrupted_sample_overrun);
     m_error = error;
 }
+
+void PrusaAccelerometer::set_rate(float rate) {
+    m_sampling_rate = rate;
+}
+
 PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;

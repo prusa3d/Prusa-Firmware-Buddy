@@ -1,6 +1,7 @@
 #include <device/board.h>
 #include <device/peripherals.h>
 #include <device/mcu.h>
+#include <buddy/phase_stepping_opts.h>
 #include <atomic>
 #include "Pin.hpp"
 #include "hwio_pindef.h"
@@ -13,6 +14,7 @@
 #include "timing_precise.hpp"
 #include "data_exchange.hpp"
 #include <option/has_puppies.h>
+#include <option/has_burst_stepping.h>
 #include <printers.h>
 
 // breakpoint
@@ -86,6 +88,9 @@ DMA_HandleTypeDef hdma_adc3;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim8;
+DMA_HandleTypeDef hdma_tim8;
+TIM_HandleTypeDef htim13;
 TIM_HandleTypeDef htim14;
 
 //
@@ -760,7 +765,7 @@ void hw_spi3_init() {
 #if (BOARD_IS_BUDDY)
     hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
 #else
-    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
 #endif
     hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
@@ -957,6 +962,45 @@ void hw_tim3_init() {
     }
 
     HAL_TIM_MspPostInit(&htim3);
+}
+
+void hw_tim8_init() {
+    TIM_ClockConfigTypeDef sClockSourceConfig {};
+    TIM_MasterConfigTypeDef sMasterConfig {};
+
+    htim8.Instance = TIM8;
+    htim8.Init.Prescaler = 0;
+    htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim8.Init.Period = 168'000'000 / (phase_stepping::opts::REFRESH_FREQ * phase_stepping::opts::GPIO_BUFFER_SIZE) - 1;
+    htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    if (HAL_TIM_Base_Init(&htim8) != HAL_OK) {
+        Error_Handler();
+    }
+
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    if (HAL_TIM_ConfigClockSource(&htim8, &sClockSourceConfig) != HAL_OK) {
+        Error_Handler();
+    }
+
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK) {
+        Error_Handler();
+    }
+
+    HAL_TIM_MspPostInit(&htim8);
+}
+
+void hw_tim13_init() {
+    htim13.Instance = TIM13;
+    htim13.Init.Prescaler = 0;
+    htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim13.Init.Period = 84'000'000 / phase_stepping::opts::REFRESH_FREQ - 1;
+    htim13.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    htim13.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+    if (HAL_TIM_Base_Init(&htim13) != HAL_OK) {
+        Error_Handler();
+    }
 }
 
 void hw_tim14_init() {

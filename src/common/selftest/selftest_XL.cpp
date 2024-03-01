@@ -31,6 +31,7 @@
 #include "selftest_heater_config.hpp"
 #include "selftest_loadcell_config.hpp"
 #include "selftest_fsensor_config.hpp"
+#include "selftest_phase_stepping.hpp"
 #include "calibration_z.hpp"
 #include "fanctl.hpp"
 #include "timing.h"
@@ -246,6 +247,10 @@ static constexpr std::array<const DockConfig_t, HOTENDS> Config_Docks = { { make
 
 static constexpr ToolOffsetsConfig_t Config_ToolOffsets = {};
 
+namespace {
+constexpr SelftestPhaseSteppingConfig phase_stepping_config {};
+}
+
 CSelftest::CSelftest()
     : m_State(stsIdle)
     , m_Mask(stmNone)
@@ -319,6 +324,11 @@ void CSelftest::Loop() {
         break;
     case stsToolOffsets:
         if ((ret = selftest::phaseToolOffsets(tool_mask, pToolOffsets, Config_ToolOffsets))) {
+            return;
+        }
+        break;
+    case stsPhaseStepping:
+        if (selftest::phase_phase_stepping(pPhaseStepping, phase_stepping_config)) {
             return;
         }
         break;

@@ -35,6 +35,7 @@
 #include "motion.h"
 #include "../gcode/queue.h"
 #include "../feature/precise_stepping/precise_stepping.hpp"
+#include "../feature/phase_stepping/phase_stepping.hpp"
 
 // Value by which steps are multiplied to increase the precision of the Planner.
 constexpr const int PLANNER_STEPS_MULTIPLIER = 4;
@@ -859,7 +860,7 @@ class Planner {
     /**
      * Return if some processing is still pending before all queues are flushed
      */
-    FORCE_INLINE static bool processing() { return has_blocks_queued() || PreciseStepping::processing(); }
+    FORCE_INLINE static bool processing() { return has_blocks_queued() || PreciseStepping::processing() || phase_stepping::processing(); }
 
     /**
      * Returns the current block that PreciseStepping already processed and that is waiting for discarding,
