@@ -56,13 +56,21 @@ void FilamentSensors::request_enable_state_update() {
 }
 
 bool FilamentSensors::gui_wait_for_init_with_msg() {
-    const auto any_fsensor_in_state = [&](FilamentSensorState state) {
-        bool result = false;
-        for_all_sensors([&](IFSensor &s) {
-            result |= (s.get_state() == state);
-        });
-        return result;
+    enum : uint8_t {
+        f_extruder = 1,
+        f_side = 2,
     };
+
+    const auto any_fsensor_in_state
+        = [&](FilamentSensorState state) {
+              uint8_t result = 0;
+              for_all_sensors([&](IFSensor &s, [[maybe_unused]] uint8_t index, bool is_side) {
+                  if (s.get_state() == state) {
+                      result |= is_side ? f_side : f_extruder;
+                  }
+              });
+              return result;
+          };
 
     // wait until it is initialized
     // no guiloop here !!! - it could cause show of unwanted error message
@@ -70,11 +78,18 @@ bool FilamentSensors::gui_wait_for_init_with_msg() {
         osDelay(0);
     }
 
-    if (any_fsensor_in_state(FilamentSensorState::NotConnected)) {
-        MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
-        return false;
+    if ([[maybe_unused]] auto ncf = any_fsensor_in_state(FilamentSensorState::NotConnected)) {
+        if (ncf & f_extruder) {
+            MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
+            return false;
 
-    } else if (any_fsensor_in_state(FilamentSensorState::NotCalibrated)) {
+        } else {
+            // Only side sensors are not connected, not that tragic, show message but keep on going
+            MsgBoxWarning(_("Side filament sensor not connected, check wiring."), Responses_Ok);
+        }
+    }
+
+    if (any_fsensor_in_state(FilamentSensorState::NotCalibrated)) {
         MsgBoxWarning(_("Filament sensor not ready: perform calibration first."), Responses_Ok);
         return false;
     }
@@ -82,13 +97,13 @@ bool FilamentSensors::gui_wait_for_init_with_msg() {
     return true;
 }
 
-void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &)> &f) {
+void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &sensor, uint8_t index, bool is_side)> &f) {
     HOTEND_LOOP() {
         if (IFSensor *s = GetExtruderFSensor(e)) {
-            f(*s);
+            f(*s, e, false);
         }
         if (IFSensor *s = GetSideFSensor(e)) {
-            f(*s);
+            f(*s, e, true);
         }
     }
 }
@@ -142,7 +157,7 @@ void FilamentSensors::task_cycle() {
     }
 
     // Run cycle to evaluate state of all sensors (even those not active)
-    for_all_sensors([](IFSensor &s) {
+    for_all_sensors([](IFSensor &s, uint8_t, bool) {
         if (s.is_enabled()) {
             s.cycle();
         }

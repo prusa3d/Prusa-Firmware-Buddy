@@ -42,7 +42,7 @@ public:
     bool gui_wait_for_init_with_msg();
 
     /// Calls \p f on all filament sensors
-    void for_all_sensors(const std::function<void(IFSensor &)> &f);
+    void for_all_sensors(const std::function<void(IFSensor &sensor, uint8_t index, bool is_side)> &f);
 
     // mmu enabled, might or might not be initialized
     inline bool HasMMU() const {
