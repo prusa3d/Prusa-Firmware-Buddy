@@ -256,6 +256,16 @@ void FilamentSensors::process_events() {
             return;
         }
 
+#if PRINTER_IS_PRUSA_iX
+        // On filament runout on iX, the filament gets unloaded and the printer paused.
+        // So when the user inserts a filament during a pause, we want the autoload to trigger,
+        // because it's part of the filament change sequence.
+        // BFW-5106
+        if (marlin_vars()->print_state.get() == marlin_server::State::Paused && check_autoload()) {
+            return;
+        }
+#endif
+
     } else {
         if (check_autoload()) {
             return;
