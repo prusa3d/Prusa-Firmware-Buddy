@@ -658,7 +658,6 @@ if(BOARD MATCHES "BUDDY")
             Marlin
             Arduino::Core
             Arduino::TMCStepper
-            Arduino::LiquidCrystal
             LwIP
             FatFs
             flasher
@@ -696,7 +695,6 @@ elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
             Marlin
             Arduino::Core
             Arduino::TMCStepper
-            Arduino::LiquidCrystal
             inih::inih
             CppStdExtensions
             printf::printf

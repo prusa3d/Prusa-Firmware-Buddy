@@ -8,9 +8,8 @@
 
 /*****************************************************************************/
 // IWiSwitch
-IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : IWindowMenuItem(label, 0, id_icon, enabled, hidden)
-    , index(index) //
+IWiSwitch::IWiSwitch(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+    : IWindowMenuItem(label, 0, id_icon, enabled, hidden) //
 {}
 
 invalidate_t IWiSwitch::change(int /*dif*/) {
