@@ -4,6 +4,8 @@
 #include "Pin.hpp"
 #include "CFanCtlCommon.hpp"
 
+/// class for controlling a 4-pin enclosure fan -- it is not very suitable for general 4-pin fan,
+/// if there is ever a need, it would be better to write something with a pid regulator and control it with percentage of rpm instead pwm)
 class CFanCtlEnclosure : public CfanCtlCommon {
     static_assert(FANCTLENCLOSURE_PWM_MAX == 255);
 
@@ -12,7 +14,8 @@ public:
         uint16_t min_rpm, uint16_t max_rpm);
 
 public:
-    void tick(); // tick callback from 1kHz timer interrupt
+    /// tick callback from 1kHz timer interrupt
+    void tick();
 
     uint16_t getMinRPM() const { return min_rpm; }
     uint16_t getMaxRPM() const { return max_rpm; }
@@ -32,7 +35,7 @@ private:
     struct Tachometer {
         Tachometer(const buddy::hw::InputPin &pin)
             : pin(pin) {}
-        // tick callback from 1kHz timer interrupt, returns true if edge detected
+        /// tick callback from 1kHz timer interrupt, returns true if edge detected
         bool tick();
         std::optional<uint16_t> get_rpm() const { return rpm; }
 
@@ -52,11 +55,13 @@ private:
     Tachometer tachometer;
 
     // state handling
-    static constexpr uint16_t start_timeout = 2000;
+
+    static constexpr uint16_t start_timeout = 2000; //< first edge detection timeout [milliseconds]
+    static constexpr uint16_t rpm_delay = 5000; //< rpm stabilization phase timeout [mimmiseconds]
+
     static constexpr uint16_t start_edges = 4;
-    static constexpr uint16_t rpm_delay = 5000;
 
     std::atomic<FanState> state = idle;
     uint16_t edges = 0;
-    uint16_t ticks = 0;
+    uint16_t ticks = 0; //< state machine time measurement [milliseconds]
 };
