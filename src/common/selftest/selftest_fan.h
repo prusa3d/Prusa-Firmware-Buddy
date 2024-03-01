@@ -9,7 +9,11 @@ namespace selftest {
 
 class FanHandler {
 public:
+#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY
+    using FanCtlFnc = CFanCtlPuppy &(*)(size_t);
+#else
     using FanCtlFnc = CFanCtl &(*)(size_t);
+#endif
 
     FanHandler(const char *name, const FanCtlFnc &fanctl_fnc, uint8_t tool_nr);
 

@@ -1,7 +1,6 @@
 // fanctl.hpp
 #pragma once
 
-#include <inttypes.h>
 #include <stdbool.h>
 #include "Pin.hpp"
 #include "CFanCtlCommon.hpp"

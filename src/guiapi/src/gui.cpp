@@ -15,6 +15,9 @@
 #include "marlin_client.hpp"
 #include "sw_timer.hpp"
 #include "log.h"
+#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY
+    #include "leds/side_strip.hpp"
+#endif
 
 #include <option/has_touch.h>
 
@@ -157,6 +160,10 @@ void gui_bare_loop() {
 void gui_loop(void) {
     ++guiloop_nesting;
 
+    // Update XL enclosure fan pwm, it is connected to the same PWM generator as the side LEDs
+#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY
+    leds::side_strip.Update();
+#endif
     gui_handle_jogwheel();
 
 #if HAS_TOUCH()

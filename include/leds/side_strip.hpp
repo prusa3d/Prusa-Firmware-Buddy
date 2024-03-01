@@ -21,6 +21,7 @@ public:
 
     SideStrip()
         : current_color()
+        , enclosure_fan_pwm(0)
         , needs_update(true)
         , leds() {
     }
@@ -48,11 +49,17 @@ public:
         needs_update = true;
     }
 
+    void SetEnclosureFanPwm(uint8_t pwm) {
+        enclosure_fan_pwm = pwm;
+        needs_update = true;
+    }
+
     void Update();
 
 private:
     Color current_color;
-    bool needs_update = false;
+    std::atomic<uint8_t> enclosure_fan_pwm;
+    std::atomic<bool> needs_update = false;
 
 #if PRINTER_IS_PRUSA_XL
     /// First driver in the daisy chain: RGB, second driver: W + enclosure fan

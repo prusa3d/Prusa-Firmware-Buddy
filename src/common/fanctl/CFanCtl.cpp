@@ -6,7 +6,7 @@
 #include <device/board.h>
 #include "printers.h"
 #include "MarlinPin.h"
-#include "c_fan_ctl.hpp"
+#include "CFanCtl.hpp"
 #include <device/hal.h>
 #include "cmsis_os.h"
 #include "gpio.h"

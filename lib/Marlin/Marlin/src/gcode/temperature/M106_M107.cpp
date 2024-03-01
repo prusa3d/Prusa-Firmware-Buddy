@@ -27,6 +27,7 @@
 #include "../gcode.h"
 #include "../../module/motion.h"
 #include "../../module/temperature.h"
+#include "fanctl.hpp"
 
 #if ENABLED(SINGLENOZZLE)
   #define _ALT_P active_extruder
@@ -56,20 +57,29 @@
  *              3-255 = Set the speed for use with T2
  */
 void GcodeSuite::M106() {
-  const uint8_t p = parser.byteval('P', _ALT_P);
+    const uint8_t p = parser.byteval('P', _ALT_P);
 
-  if (p < _CNT_P) {
+#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY 
+    if (p == 3) {
+        uint16_t s = parser.ushortval('S', 255);
+        Fans::enclosure().setPWM(s);
+        return;
+    }
+#endif
+    if (p < _CNT_P) {
 
     #if ENABLED(EXTRA_FAN_SPEED)
-      const uint16_t t = parser.intval('T');
-      if (t > 0) return thermalManager.set_temp_fan_speed(p, t);
+        const uint16_t t = parser.intval('T');
+        if (t > 0) {
+            return thermalManager.set_temp_fan_speed(p, t);
+        }
     #endif
-    uint16_t d = parser.seen('A') ? thermalManager.fan_speed[active_extruder] : 255;
-    uint16_t s = parser.ushortval('S', d);
-    NOMORE(s, 255U);
+        uint16_t d = parser.seen('A') ? thermalManager.fan_speed[active_extruder] : 255;
+        uint16_t s = parser.ushortval('S', d);
+        NOMORE(s, 255U);
 
-    thermalManager.set_fan_speed(p, s);
-  }
+        thermalManager.set_fan_speed(p, s);
+    }
 }
 
 /**
@@ -81,6 +91,14 @@ void GcodeSuite::M106() {
  */
 void GcodeSuite::M107() {
   const uint8_t p = parser.byteval('P', _ALT_P);
+
+#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY 
+  if (p == 3) {
+    Fans::enclosure().setPWM(0);
+    return;
+  }
+#endif
+
   thermalManager.set_fan_speed(p, 0);
 }
 

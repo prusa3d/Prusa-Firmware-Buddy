@@ -1268,7 +1268,7 @@ bool heatbreak_fan_check() {
         // Allow fan check only if fan had time to build up RPM (after CFanClt::rpm_stabilization)
         // CFanClt error states are checked in the end of each _server_print_loop()
         auto hb_state = Fans::heat_break(active_extruder).getState();
-        if ((hb_state == CFanCtl::running || hb_state == CFanCtl::error_running || hb_state == CFanCtl::error_starting) && !Fans::heat_break(active_extruder).getRPMIsOk()) {
+        if ((hb_state == CfanCtlCommon::FanState::running || hb_state == CfanCtlCommon::FanState::error_running || hb_state == CfanCtlCommon::FanState::error_starting) && !Fans::heat_break(active_extruder).getRPMIsOk()) {
             log_error(MarlinServer, "HeatBreak FAN RPM is not OK - Actual: %d rpm, PWM: %d",
                 (int)Fans::heat_break(active_extruder).getActualRPM(),
                 Fans::heat_break(active_extruder).getPWM());
@@ -2096,10 +2096,10 @@ static void _server_print_loop(void) {
     if (marlin_vars()->fan_check_enabled) {
         HOTEND_LOOP() {
             const auto fan_state = Fans::heat_break(e).getState();
-            hotendFanErrorChecker[e].checkTrue(fan_state != CFanCtl::error_running && fan_state != CFanCtl::error_starting);
+            hotendFanErrorChecker[e].checkTrue(fan_state != CfanCtlCommon::FanState::error_running && fan_state != CfanCtlCommon::FanState::error_starting);
         }
         const auto fan_state = Fans::print(active_extruder).getState();
-        printFanErrorChecker.checkTrue(fan_state != CFanCtl::error_running && fan_state != CFanCtl::error_starting);
+        printFanErrorChecker.checkTrue(fan_state != CfanCtlCommon::FanState::error_running && fan_state != CfanCtlCommon::FanState::error_starting);
     }
 
     HOTEND_LOOP() {

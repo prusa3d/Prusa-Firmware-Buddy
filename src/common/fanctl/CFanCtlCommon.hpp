@@ -42,3 +42,11 @@ inline constexpr uint16_t FANCTLHEATBREAK_RPM_MAX =
 #endif
     ;
 inline constexpr uint8_t FANCTLHEATBREAK_PWM_THR = 20;
+
+// FANCTLENCLOSURE - enclosure fan
+#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY
+inline constexpr uint8_t FANCTLENCLOSURE_PWM_MIN = 0;
+inline constexpr uint8_t FANCTLENCLOSURE_PWM_MAX = 255;
+inline constexpr uint16_t FANCTLENCLOSURE_RPM_MIN = 600;
+inline constexpr uint16_t FANCTLENCLOSURE_RPM_MAX = 2700;
+#endif // PRINTER_IS_PRUSA_XL

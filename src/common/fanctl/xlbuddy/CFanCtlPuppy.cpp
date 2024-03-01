@@ -1,21 +1,22 @@
-#include "c_fan_ctl.hpp"
+#include "CFanCtlPuppy.hpp"
+#include "puppies/Dwarf.hpp"
 
-void CFanCtl::EnterSelftestMode() {
+void CFanCtlPuppy::EnterSelftestMode() {
     selftest_active = true;
 }
 
-void CFanCtl::ExitSelftestMode() {
+void CFanCtlPuppy::ExitSelftestMode() {
     selftest_active = false;
 
     // upon exit selftestt, either switch fan back to AUTO mode, or turn it off and let marlin turn it on if needed
     reset_fan();
 }
 
-void CFanCtl::reset_fan() {
+void CFanCtlPuppy::reset_fan() {
     setPWM(is_autofan ? buddy::puppies::Dwarf::FAN_MODE_AUTO_PWM : 0);
 }
 
-bool CFanCtl::setPWM(uint16_t pwm) {
+bool CFanCtlPuppy::setPWM(uint16_t pwm) {
     if (selftest_active) {
         return false;
     }
@@ -24,7 +25,7 @@ bool CFanCtl::setPWM(uint16_t pwm) {
     return true;
 }
 
-bool CFanCtl::SelftestSetPWM(uint8_t pwm) {
+bool CFanCtlPuppy::SelftestSetPWM(uint8_t pwm) {
     if (!selftest_active) {
         return false;
     }
@@ -33,18 +34,18 @@ bool CFanCtl::SelftestSetPWM(uint8_t pwm) {
     return true;
 }
 
-uint8_t CFanCtl::getPWM() const {
+uint8_t CFanCtlPuppy::getPWM() const {
     return buddy::puppies::dwarfs[dwarf_nr].RegisterGeneralStatus.value.fan[fan_nr].pwm;
 }
 
-uint16_t CFanCtl::getActualRPM() const {
+uint16_t CFanCtlPuppy::getActualRPM() const {
     return buddy::puppies::dwarfs[dwarf_nr].RegisterGeneralStatus.value.fan[fan_nr].rpm;
 }
 
-bool CFanCtl::getRPMIsOk() {
+bool CFanCtlPuppy::getRPMIsOk() {
     return buddy::puppies::dwarfs[dwarf_nr].RegisterGeneralStatus.value.fan[fan_nr].is_rpm_ok;
 }
 
-CFanCtl::FanState CFanCtl::getState() const {
+CfanCtlCommon::FanState CFanCtlPuppy::getState() const {
     return static_cast<FanState>(buddy::puppies::dwarfs[dwarf_nr].RegisterGeneralStatus.value.fan[fan_nr].state);
 }

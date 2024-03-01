@@ -2,11 +2,10 @@
 
 #include <stdint.h>
 #include "CFanCtlCommon.hpp"
-#include "puppies/Dwarf.hpp"
 
-class CFanCtl : public CfanCtlCommon {
+class CFanCtlPuppy : public CfanCtlCommon {
 public:
-    CFanCtl(uint8_t dwarf_nr, uint8_t fan_nr, bool is_autofan, uint16_t max_rpm)
+    CFanCtlPuppy(uint8_t dwarf_nr, uint8_t fan_nr, bool is_autofan, uint16_t max_rpm)
         : dwarf_nr(dwarf_nr)
         , fan_nr(fan_nr)
         , is_autofan(is_autofan)
