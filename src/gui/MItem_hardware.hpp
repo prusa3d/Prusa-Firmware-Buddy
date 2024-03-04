@@ -175,6 +175,18 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 
+class MI_NOZZLE_SOCK : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Nextruder silicone sock");
+
+public:
+    MI_NOZZLE_SOCK();
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+
+using MI_HOTEND_SOCK_OR_TYPE = std::conditional_t<hotend_type_only_sock, MI_NOZZLE_SOCK, MI_HOTEND_TYPE>;
+
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
 class MI_SIDE_FSENSOR_REMAP : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *const label = N_("Side FSensor Remap");
