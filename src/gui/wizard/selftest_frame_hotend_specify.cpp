@@ -93,22 +93,19 @@ void SelftestFrameHotendSpecify::change() {
 
     text.SetText(_(txt));
 
+#if NOZZLE_TYPE_SUPPORT()
+    text_nozzle.set_visible(show_settings);
+    text_nozzle_value.set_visible(show_settings);
+#else
+    text_nozzle.set_visible(false);
+    text_nozzle_value.set_visible(false);
+#endif
+
+    text_hotend.set_visible(show_settings);
+    text_hotend_value.set_visible(show_settings);
+
     if (show_settings) {
-        // Disable showing of nozzle
-        // text_nozzle.Show();
-        // text_nozzle_value.Show();
-        text_nozzle.Hide();
-        text_nozzle_value.Hide();
-
-        text_hotend.Show();
-        text_hotend_value.Show();
-
-        text_hotend_value.SetText(_(hotend_type_names[ftrstd::to_underlying(result.hotend_type)]));
+        text_hotend_value.SetText(_(hotend_type_names[result.hotend_type]));
         text_nozzle_value.SetText(_(nozzle_type_names[result.nozzle_type]));
-    } else {
-        text_nozzle.Hide();
-        text_nozzle_value.Hide();
-        text_hotend.Hide();
-        text_hotend_value.Hide();
     }
 };
