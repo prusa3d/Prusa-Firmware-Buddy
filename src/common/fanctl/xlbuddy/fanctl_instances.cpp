@@ -2,8 +2,10 @@
 #include "bsod.h"
 #include "Marlin/src/inc/MarlinConfig.h" // HOTENDS
 #include <array>
+#include "CFanCtlEnclosure.hpp"
+#include "CFanCtlPuppy.hpp"
 
-CFanCtlPuppy &Fans::print(size_t index) {
+CFanCtlCommon &Fans::print(size_t index) {
     static std::array<CFanCtlPuppy, HOTENDS> instances = {
         CFanCtlPuppy(0, 0, false, FANCTLPRINT_RPM_MAX),
         CFanCtlPuppy(1, 0, false, FANCTLPRINT_RPM_MAX),
@@ -18,7 +20,7 @@ CFanCtlPuppy &Fans::print(size_t index) {
     }
     return instances[index];
 }
-CFanCtlPuppy &Fans::heat_break(size_t index) {
+CFanCtlCommon &Fans::heat_break(size_t index) {
     static std::array<CFanCtlPuppy, HOTENDS> instances = {
         CFanCtlPuppy(0, 1, true, FANCTLHEATBREAK_RPM_MAX),
         CFanCtlPuppy(1, 1, true, FANCTLHEATBREAK_RPM_MAX),
@@ -34,7 +36,7 @@ CFanCtlPuppy &Fans::heat_break(size_t index) {
     return instances[index];
 }
 
-CFanCtlEnclosure &Fans::enclosure() {
+CFanCtlCommon &Fans::enclosure() {
     static auto instance = CFanCtlEnclosure(
         buddy::hw::fan1_tach0,
         FANCTLENCLOSURE_RPM_MIN, FANCTLENCLOSURE_RPM_MAX);

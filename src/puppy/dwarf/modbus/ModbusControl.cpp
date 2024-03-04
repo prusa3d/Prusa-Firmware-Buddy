@@ -208,17 +208,17 @@ void ProcessModbusMessages() {
                 // switch back to auto control
                 if (Fans::heat_break(0).isSelftest()) {
                     log_info(ModbusControl, "Heatbreak fan: AUTO");
-                    Fans::heat_break(0).ExitSelftestMode();
+                    Fans::heat_break(0).exitSelftestMode();
                 }
             } else {
                 // direct PWM control mode (for selftest)
                 if (!Fans::heat_break(0).isSelftest()) {
                     log_info(ModbusControl, "Heatbreak fan: SELFTEST");
-                    Fans::heat_break(0).EnterSelftestMode();
+                    Fans::heat_break(0).enterSelftestMode();
                 }
 
                 log_info(ModbusControl, "Set heatbreak fan PWM:: %" PRIu32, msg->m_Value);
-                Fans::heat_break(0).SelftestSetPWM(msg->m_Value);
+                Fans::heat_break(0).selftestSetPWM(msg->m_Value);
             }
 
             break;

@@ -28,6 +28,7 @@
 #include "../../module/motion.h"
 #include "../../module/temperature.h"
 #include "fanctl.hpp"
+#include <device/board.h>
 
 #if ENABLED(SINGLENOZZLE)
   #define _ALT_P active_extruder
@@ -55,12 +56,15 @@
  *              1     = Restore previous speed after T2
  *              2     = Use temporary speed set with T3-255
  *              3-255 = Set the speed for use with T2
+ *              Enclosure fan (index 3) don't support T parameter
  */
 void GcodeSuite::M106() {
     const uint8_t p = parser.byteval('P', _ALT_P);
 
-#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY 
+#if XL_ENCLOSURE_SUPPORT()
+    static_assert(FAN_COUNT < 3, "Fan index 3 is reserved for Enclosure fan and should not be set by thermalManager");
     if (p == 3) {
+        // Enclosure fan does not support T parameter
         uint16_t s = parser.ushortval('S', 255);
         Fans::enclosure().setPWM(s);
         return;
@@ -92,7 +96,8 @@ void GcodeSuite::M106() {
 void GcodeSuite::M107() {
   const uint8_t p = parser.byteval('P', _ALT_P);
 
-#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY 
+#if XL_ENCLOSURE_SUPPORT()
+  static_assert(FAN_COUNT < 3, "Fan index 3 is reserved for Enclosure fan and should not be set by thermalManager");
   if (p == 3) {
     Fans::enclosure().setPWM(0);
     return;

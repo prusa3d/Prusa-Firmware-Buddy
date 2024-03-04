@@ -3,48 +3,41 @@
 #include <stdint.h>
 #include "CFanCtlCommon.hpp"
 
-class CFanCtlPuppy : public CfanCtlCommon {
+class CFanCtlPuppy final : public CFanCtlCommon {
 public:
     CFanCtlPuppy(uint8_t dwarf_nr, uint8_t fan_nr, bool is_autofan, uint16_t max_rpm)
-        : dwarf_nr(dwarf_nr)
+        : CFanCtlCommon(0, max_rpm)
+        , dwarf_nr(dwarf_nr)
         , fan_nr(fan_nr)
-        , is_autofan(is_autofan)
-        , max_rpm(max_rpm)
-        , selftest_active(false) {
+        , is_autofan(is_autofan) {
         reset_fan();
     }
 
-    void EnterSelftestMode();
+    virtual void enterSelftestMode() override;
 
-    void ExitSelftestMode();
+    virtual void exitSelftestMode() override;
 
     void reset_fan();
 
-    bool setPWM(uint16_t pwm);
+    virtual bool setPWM(uint16_t pwm) override;
 
-    bool SelftestSetPWM(uint8_t pwm);
+    virtual bool selftestSetPWM(uint8_t pwm) override;
 
-    uint8_t getPWM() const;
+    virtual uint8_t getPWM() const override;
 
-    uint16_t getActualRPM() const;
+    virtual uint16_t getActualRPM() const override;
 
-    bool getRPMIsOk();
+    virtual bool getRPMIsOk() override;
 
-    FanState getState() const;
+    virtual FanState getState() const override;
 
-    inline uint8_t getMaxPWM() const {
-        return 255;
-    }
-
-    inline uint16_t getMaxRPM() const {
-        return max_rpm;
-    }
+    // Not used
+    virtual uint16_t getMinPWM() const override { return 0; }
+    virtual bool getRPMMeasured() const override { return false; }
+    virtual void tick() override {}
 
 private:
     const uint8_t dwarf_nr;
     const uint8_t fan_nr;
     const bool is_autofan;
-    const uint16_t max_rpm;
-
-    bool selftest_active;
 };

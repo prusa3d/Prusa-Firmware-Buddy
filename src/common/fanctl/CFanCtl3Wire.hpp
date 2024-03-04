@@ -108,48 +108,39 @@ enum class skip_tacho_t : bool {
 };
 
 //
-class CFanCtl : public CfanCtlCommon {
+class CFanCtl3Wire final : public CFanCtlCommon {
 
 public:
     // constructor
-    CFanCtl(const buddy::hw::OutputPin &pinOut, const buddy::hw::InputPin &pinTach, uint8_t minPWM, uint8_t maxPWM,
+    CFanCtl3Wire(const buddy::hw::OutputPin &pinOut, const buddy::hw::InputPin &pinTach, uint8_t minPWM, uint8_t maxPWM,
         uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan, skip_tacho_t skip_tacho);
 
 public:
-    void tick(); // tick callback from timer interrupt
+    virtual void tick() override; // tick callback from timer interrupt
 
-    // getters (in-lined)
-    inline uint8_t getMinPWM() const // get minimum PWM, this should be safe value for self starting
+    // getters
+    virtual uint16_t getMinPWM() const override // get minimum PWM, this should be safe value for self starting
     { return m_pwm.get_min_PWM(); }
-    inline uint8_t getMaxPWM() const // get maximum PWM, this is value representing 100% power
-    {
-        // internally its different number, but every public function takes 255 as max RPM
-        return 255;
-    }
-    inline uint16_t getMinRPM() const // get minimum RPM [n/min], this is lowest RPM that can be reached with reliable response
-    { return m_MinRPM; }
-    inline uint16_t getMaxRPM() const // get maximup RPM [n/min], this is highest RPM at 100% power
-    { return m_MaxRPM; }
-    inline FanState getState() const // get fan control state
+    virtual FanState getState() const override // get fan control state
     { return m_State; }
-    inline uint8_t getPWM() const // get PWM value
+    virtual uint8_t getPWM() const override // get PWM value
     { return unscalePWM(m_PWMValue); }
-    inline uint16_t getActualRPM() const // get actual (measured) RPM
+    virtual uint16_t getActualRPM() const override // get actual (measured) RPM
     { return m_tach.getRPM(); }
-    inline uint8_t getPhaseShiftMode() const // get PhaseShiftMode
+    uint8_t getPhaseShiftMode() const // get PhaseShiftMode
     { return m_pwm.get_PhaseShiftMode(); }
-    bool getRPMIsOk();
+    virtual bool getRPMIsOk() override;
     inline bool isAutoFan() const // get fan type
     { return is_autofan == is_autofan_t::yes; }
 
-    inline bool getRPMMeasured() const { return m_tach.getValueReady(); }
+    virtual bool getRPMMeasured() const override { return m_tach.getValueReady(); }
     inline skip_tacho_t getSkipTacho() const { return m_skip_tacho; }
 
-    uint16_t scalePWM(uint8_t pwm) const; // scale pwm from 0-255 to range used by this instance
-    uint16_t unscalePWM(uint8_t pwm) const; // unscale pwm from range used by this instance to 0-255
+    uint16_t scalePWM(uint16_t pwm) const; // scale pwm from 0-255 to range used by this instance
+    uint16_t unscalePWM(uint16_t pwm) const; // unscale pwm from range used by this instance to 0-255
 
     // setters
-    bool setPWM(uint8_t pwm); // set PWM value - switch to non closed-loop mode
+    virtual bool setPWM(uint16_t pwm) override; // set PWM value - switch to non closed-loop mode
     bool setPhaseShiftMode(uint8_t psm); // set phase shift mode (none/triangle/random)
     void safeState();
 
@@ -158,13 +149,10 @@ public:
         m_tach.setValueReady(false);
     }
 
-    inline bool isSelftest() { return selftest_mode; }
-    void EnterSelftestMode();
-    void ExitSelftestMode();
-    bool SelftestSetPWM(uint8_t pwm); // sets pwm in selftest, doesn't work outside selftest
+    virtual void enterSelftestMode() override;
+    virtual void exitSelftestMode() override;
+    virtual bool selftestSetPWM(uint8_t pwm) override; // sets pwm in selftest, doesn't work outside selftest
 private:
-    const uint16_t m_MinRPM; // minimum rpm value (set in constructor)
-    const uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
     uint16_t m_Ticks; // tick counter - used for starting and measurement
     uint16_t m_Result;
     FanState m_State; // fan control state
@@ -174,7 +162,6 @@ private:
     CFanCtlPWM m_pwm;
     CFanCtlTach m_tach;
 
-    bool selftest_mode;
     uint8_t selftest_initial_pwm;
     skip_tacho_t m_skip_tacho; // skip tacho measure
 };

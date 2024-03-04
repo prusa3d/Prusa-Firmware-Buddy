@@ -15,7 +15,7 @@
 #include "marlin_client.hpp"
 #include "sw_timer.hpp"
 #include "log.h"
-#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY
+#if XL_ENCLOSURE_SUPPORT()
     #include "leds/side_strip.hpp"
 #endif
 
@@ -160,8 +160,8 @@ void gui_bare_loop() {
 void gui_loop(void) {
     ++guiloop_nesting;
 
+#if XL_ENCLOSURE_SUPPORT()
     // Update XL enclosure fan pwm, it is connected to the same PWM generator as the side LEDs
-#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY
     leds::side_strip.Update();
 #endif
     gui_handle_jogwheel();

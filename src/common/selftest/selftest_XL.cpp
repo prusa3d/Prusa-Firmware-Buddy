@@ -541,8 +541,8 @@ void CSelftest::restoreAfterSelftest() {
     }
 
     // restore fan behavior
-    Fans::print(0).ExitSelftestMode();
-    Fans::heat_break(0).ExitSelftestMode();
+    Fans::print(0).exitSelftestMode();
+    Fans::heat_break(0).exitSelftestMode();
 
     thermalManager.disable_all_heaters();
 

@@ -4,6 +4,7 @@
 #include <hw/neopixel.hpp>
 #include "led_lcd_cs_selector.hpp"
 #include "printers.h"
+#include <device/board.h>
 
 namespace leds {
 
@@ -49,10 +50,14 @@ public:
         needs_update = true;
     }
 
+#if XL_ENCLOSURE_SUPPORT()
     void SetEnclosureFanPwm(uint8_t pwm) {
-        enclosure_fan_pwm = pwm;
-        needs_update = true;
+        if (enclosure_fan_pwm != pwm) {
+            enclosure_fan_pwm = pwm;
+            needs_update = true;
+        }
     }
+#endif // XL_ENCLOSURE_SUPPORT
 
     void Update();
 

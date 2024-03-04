@@ -2,9 +2,10 @@
 #include <fanctl.hpp>
 #include "hwio_pindef.h"
 #include "bsod.h"
+#include "CFanCtl3Wire.hpp"
 
-CFanCtl &Fans::print(size_t index) {
-    static CFanCtl instance = CFanCtl(
+CFanCtlCommon &Fans::print(size_t index) {
+    static CFanCtl3Wire instance = CFanCtl3Wire(
         buddy::hw::fanPrintPwm,
         buddy::hw::fanPrintTach,
         FANCTLPRINT_PWM_MIN, FANCTLPRINT_PWM_MAX,
@@ -19,8 +20,8 @@ CFanCtl &Fans::print(size_t index) {
     return instance;
 };
 
-CFanCtl &Fans::heat_break(size_t index) {
-    static CFanCtl instance = CFanCtl(
+CFanCtlCommon &Fans::heat_break(size_t index) {
+    static CFanCtl3Wire instance = CFanCtl3Wire(
         buddy::hw::fanHeatBreakPwm,
         buddy::hw::fanHeatBreakTach,
         FANCTLHEATBREAK_PWM_MIN, FANCTLHEATBREAK_PWM_MAX,

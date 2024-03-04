@@ -11,6 +11,7 @@
 #include "fanctl.hpp"
 #include <option/has_puppies.h>
 #include <option/has_dwarf.h>
+#include "CFanCtl3Wire.hpp"
 
 using namespace buddy::hw;
 
@@ -38,8 +39,8 @@ void hwio_safe_state(void) {
     dwarf5Reset.reset();
     dwarf6Reset.reset();
     #else
-    Fans::print(0).safeState();
-    Fans::heat_break(0).safeState();
+    static_cast<CFanCtl3Wire &>(Fans::print(0)).safeState();
+    static_cast<CFanCtl3Wire &>(Fans::heat_break(0)).safeState();
 
     // disable hotend
     gpio_init(MARLIN_PIN(HEAT0), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
@@ -82,8 +83,8 @@ void hwio_safe_state(void) {
     // motor off
     e0Enable.write(Pin::State::high);
 
-    Fans::print(0).safeState();
-    Fans::heat_break(0).safeState();
+    static_cast<CFanCtl3Wire &>(Fans::print(0)).safeState();
+    static_cast<CFanCtl3Wire &>(Fans::heat_break(0)).safeState();
 #endif
 }
 

@@ -20,11 +20,7 @@ enum class heater_type_t {
 // using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
 struct HeaterConfig_t {
     using type_evaluation = SelftestHeater_t;
-#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY
-    using FanCtlFnc = CFanCtlPuppy &(*)(size_t);
-#else
-    using FanCtlFnc = CFanCtl &(*)(size_t);
-#endif
+    using FanCtlFnc = CFanCtlCommon &(*)(size_t);
     static constexpr SelftestParts part_type = SelftestParts::Heaters;
     using temp_getter = float (*)();
     using temp_setter = void (*)(int);

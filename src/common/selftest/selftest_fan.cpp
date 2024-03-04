@@ -47,15 +47,15 @@ FanHandler::FanHandler(const char *name, const FanCtlFnc &fanctl_fnc, uint8_t to
     , tool_nr(tool_nr) {}
 
 void FanHandler::enter_selftest() {
-    fanctl_fnc(tool_nr).EnterSelftestMode();
+    fanctl_fnc(tool_nr).enterSelftestMode();
 }
 
 void FanHandler::exit_selftest() {
-    fanctl_fnc(tool_nr).ExitSelftestMode();
+    fanctl_fnc(tool_nr).exitSelftestMode();
 }
 
 void FanHandler::set_pwm(uint8_t pwm) {
-    fanctl_fnc(tool_nr).SelftestSetPWM(pwm);
+    fanctl_fnc(tool_nr).selftestSetPWM(pwm);
 }
 
 void FanHandler::record_sample() {
@@ -104,8 +104,8 @@ CSelftestPart_Fan::CSelftestPart_Fan(IPartHandler &state_machine, const Selftest
     : state_machine(state_machine)
     , config(config)
     , result(result)
-    , print_fan("Print fan", Fans::print, config.tool_nr)
-    , heatbreak_fan("Heatbreak fan", Fans::heat_break, config.tool_nr) {
+    , print_fan("Print fan", &Fans::print, config.tool_nr)
+    , heatbreak_fan("Heatbreak fan", &Fans::heat_break, config.tool_nr) {
     print_fan.enter_selftest();
     heatbreak_fan.enter_selftest();
 }

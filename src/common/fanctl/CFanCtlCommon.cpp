@@ -9,7 +9,7 @@ void record_fanctl_metrics() {
     METRIC_DEF(metric, "fan", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
     METRIC_DEF(fan_print, "print_fan_act", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
     METRIC_DEF(fan_hbr, "hbr_fan_act", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
-#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY // XLBOARD has additional enclosure fan
+#if XL_ENCLOSURE_SUPPORT() // XLBOARD has additional enclosure fan
     METRIC_DEF(fan_enclosure, "hbr_fan_enc", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
 #endif
     static uint32_t last_update = 0;
@@ -29,7 +29,7 @@ void record_fanctl_metrics() {
         metric_record_integer(&fan_print, Fans::print(active_extruder).getActualRPM());
         record(Fans::heat_break(active_extruder), "heatbreak");
         metric_record_integer(&fan_hbr, Fans::heat_break(active_extruder).getActualRPM());
-#if defined(BOARD_IS_XLBUDDY) && BOARD_IS_XLBUDDY // XLBOARD has additional enclosure fan
+#if XL_ENCLOSURE_SUPPORT() // XLBOARD has additional enclosure fan
         record(Fans::enclosure(), "enclosure");
         metric_record_integer(&fan_enclosure, Fans::enclosure().getActualRPM());
 #endif

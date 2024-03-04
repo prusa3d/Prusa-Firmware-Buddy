@@ -6,7 +6,7 @@
 #include <device/board.h>
 #include "printers.h"
 #include "MarlinPin.h"
-#include "CFanCtl.hpp"
+#include "CFanCtl3Wire.hpp"
 #include <device/hal.h>
 #include "cmsis_os.h"
 #include "gpio.h"
@@ -156,23 +156,21 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
 }
 
 //------------------------------------------------------------------------------
-// CFanCtl implementation
+// CFanCtl3Wire implementation
 
-CFanCtl::CFanCtl(const OutputPin &pinOut, const InputPin &pinTach,
+CFanCtl3Wire::CFanCtl3Wire(const OutputPin &pinOut, const InputPin &pinTach,
     uint8_t minPWM, uint8_t maxPWM, uint16_t minRPM, uint16_t maxRPM, uint8_t thrPWM, is_autofan_t autofan, skip_tacho_t skip_tacho)
-    : m_MinRPM(minRPM)
-    , m_MaxRPM(maxRPM)
+    : CFanCtlCommon(minRPM, maxRPM)
     , m_State(idle)
     , m_PWMValue(0)
     , is_autofan(autofan)
     , m_pwm(pinOut, minPWM, maxPWM, thrPWM)
     , m_tach(pinTach)
-    , selftest_mode(false)
     , selftest_initial_pwm(0)
     , m_skip_tacho(skip_tacho) {
 }
 
-void CFanCtl::tick() {
+void CFanCtl3Wire::tick() {
     // PWM control
     int8_t pwm_on = m_pwm.tick();
     // RPM measurement
@@ -246,15 +244,15 @@ void CFanCtl::tick() {
     }
 }
 
-uint16_t CFanCtl::scalePWM(uint8_t pwm) const {
-    return static_cast<uint16_t>(pwm) * m_pwm.get_max_PWM() / 255;
+uint16_t CFanCtl3Wire::scalePWM(uint16_t pwm) const {
+    return pwm * m_pwm.get_max_PWM() / 255;
 }
 
-uint16_t CFanCtl::unscalePWM(uint8_t pwm) const {
-    return static_cast<uint16_t>(pwm) * 255 / m_pwm.get_max_PWM();
+uint16_t CFanCtl3Wire::unscalePWM(uint16_t pwm) const {
+    return pwm * 255 / m_pwm.get_max_PWM();
 }
 
-bool CFanCtl::setPWM(uint8_t pwm) {
+bool CFanCtl3Wire::setPWM(uint16_t pwm) {
     if (selftest_mode) {
         return false;
     }
@@ -262,7 +260,7 @@ bool CFanCtl::setPWM(uint8_t pwm) {
     return true;
 }
 
-bool CFanCtl::SelftestSetPWM(uint8_t pwm) {
+bool CFanCtl3Wire::selftestSetPWM(uint8_t pwm) {
     if (!selftest_mode) {
         return false;
     }
@@ -270,7 +268,7 @@ bool CFanCtl::SelftestSetPWM(uint8_t pwm) {
     return true;
 }
 
-bool CFanCtl::setPhaseShiftMode(uint8_t psm) {
+bool CFanCtl3Wire::setPhaseShiftMode(uint8_t psm) {
     if (selftest_mode) {
         return false;
     }
@@ -278,20 +276,20 @@ bool CFanCtl::setPhaseShiftMode(uint8_t psm) {
     return true;
 }
 
-void CFanCtl::safeState() {
+void CFanCtl3Wire::safeState() {
     setPWM(m_pwm.get_max_PWM());
     m_pwm.safeState();
     selftest_mode = false;
 }
 
-bool CFanCtl::getRPMIsOk() {
-    if (m_PWMValue && (getActualRPM() < m_MinRPM)) {
+bool CFanCtl3Wire::getRPMIsOk() {
+    if (m_PWMValue && (getActualRPM() < min_rpm)) {
         return false;
     }
     return true;
 }
 
-void CFanCtl::EnterSelftestMode() {
+void CFanCtl3Wire::enterSelftestMode() {
     if (selftest_mode) {
         return;
     }
@@ -299,7 +297,7 @@ void CFanCtl::EnterSelftestMode() {
     selftest_initial_pwm = getPWM();
 }
 
-void CFanCtl::ExitSelftestMode() {
+void CFanCtl3Wire::exitSelftestMode() {
     if (!selftest_mode) {
         return;
     }

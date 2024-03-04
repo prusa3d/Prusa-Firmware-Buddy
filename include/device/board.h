@@ -54,10 +54,11 @@
     #define BOARD_IS_XLBUDDY 0
     #define BOARD_STRING     "XBuddy"
 #elif defined(BOARD) && BOARD == BOARD_XLBUDDY
-    #define BOARD_IS_BUDDY   0
-    #define BOARD_IS_XBUDDY  0
-    #define BOARD_IS_XLBUDDY 1
-    #define BOARD_STRING     "XLBuddy"
+    #define BOARD_IS_BUDDY         0
+    #define BOARD_IS_XBUDDY        0
+    #define BOARD_IS_XLBUDDY       1
+    #define BOARD_STRING           "XLBuddy"
+    #define XL_ENCLOSURE_SUPPORT() 1
 #elif defined(BOARD) && BOARD == BOARD_DWARF
     #define BOARD_IS_DWARF 1
     #define BOARD_STRING   "Dwarf"
@@ -72,6 +73,10 @@
     #define BOARD_STRING            "XL_DEV_KIT_XLB"
 #else
     #error Please define the BOARD macro
+#endif
+
+#ifndef XL_ENCLOSURE_SUPPORT
+    #define XL_ENCLOSURE_SUPPORT() 0
 #endif
 
 #if !defined(BOARD_VERSION_MAJOR) || !defined(BOARD_VERSION_MINOR) || !defined(BOARD_VERSION_PATCH)
