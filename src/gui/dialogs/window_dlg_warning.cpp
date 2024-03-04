@@ -76,6 +76,14 @@ DialogWarning::types DialogWarning::get_type(fsm::BaseData data) {
     case WarningType::ModBedMCUMaxTemp:
         return ModBedMCUMaxTemp;
 #endif /* HAS_MODULARBED() */
+#if XL_ENCLOSURE_SUPPORT()
+    case WarningType::EnclosureFilterExpirWarning:
+        return EnclosureFilterExpirWarning;
+    case WarningType::EnclosureFilterExpiration:
+        return EnclosureFilterExpiration;
+    case WarningType::EnclosureFanError:
+        return EnclosureFanError;
+#endif /* XL_ENCLOSURE_SUPPORT */
     default:
         assert(false);
         return count_;

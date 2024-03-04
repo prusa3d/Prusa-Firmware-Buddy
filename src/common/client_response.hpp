@@ -386,7 +386,8 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesQuickPause) { return Clie
 
 enum class PhasesWarning : PhaseUnderlyingType {
     Warning,
-    _last = Warning
+    EnclosureFilterExpiration,
+    _last = EnclosureFilterExpiration
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesWarning) { return ClientFSM::Warning; }
 
@@ -691,6 +692,7 @@ class ClientResponses {
 
     static constexpr PhaseResponses WarningResponses[] = {
         { Response::Continue }, // Warning
+        { Response::Ignore, Response::Postpone5Days, Response::Done }, // Enclosure filter expiration
     };
     static_assert(std::size(ClientResponses::WarningResponses) == CountPhases<PhasesWarning>());
 

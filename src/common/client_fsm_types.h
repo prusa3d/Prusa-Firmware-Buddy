@@ -72,6 +72,7 @@ enum class RetAndCool_t {
 };
 
 enum class WarningType : uint32_t {
+    NoWarning,
     HotendFanError,
     PrintFanError,
     HeatersTimeout,
@@ -94,7 +95,10 @@ enum class WarningType : uint32_t {
     ModBedMCUMaxTemp,
     #endif
     NotDownloaded,
-    _last = NotDownloaded
+    EnclosureFilterExpirWarning,
+    EnclosureFilterExpiration,
+    EnclosureFanError,
+    _last = EnclosureFanError
 };
 
 // Open dialog has a parameter because I need to set a caption of change filament dialog (load / unload / change).

@@ -293,6 +293,8 @@ namespace defaults {
     inline constexpr NozzleType nozzle_type {
         NozzleType::Normal
     };
+    inline constexpr uint8_t uint8_percentage_80 { 80 };
+    inline constexpr int64_t int64_zero { 0 };
 } // namespace defaults
 
 } // namespace config_store_ns

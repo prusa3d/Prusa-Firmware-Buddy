@@ -58,6 +58,7 @@ namespace {
             R(Continue);
             R(Cooldown);
             R(Disable);
+            R(Done);
             R(Filament);
             R(Filament_removed);
             R(Finish);
@@ -101,6 +102,7 @@ namespace {
             R(Yes);
             R(Heatup);
             R(PA);
+            R(Postpone5Days);
             R(PRINT);
         // These should never reach here
         case Response::_count:

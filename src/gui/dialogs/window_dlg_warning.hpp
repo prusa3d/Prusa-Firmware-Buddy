@@ -33,6 +33,11 @@ static constexpr const char *DwarfMCUMaxTempMsg = N_("MCU in Dwarf is overheated
 #if HAS_MODULARBED()
 static constexpr const char *ModBedMCUMaxTempMsg = N_("MCU in Modular Bed is overheated. Any higher will result in fatal error.");
 #endif /* HAS_MODULARBED() */
+#if XL_ENCLOSURE_SUPPORT()
+static constexpr const char *EnclosureFilterExpirWarningMsg = N_("The HEPA filter is nearing the end of its life span (100 hours of printing time remaining). We recommend purchasing a new one. Visit prusa.io/xl-filter for more information.");
+static constexpr const char *EnclosureFilterExpirationMsg = N_("The HEPA filter has expired. Change the HEPA filter before your next print. Visit prusa.io/xl-filter for more information.");
+static constexpr const char *EnclosureFanErrorMsg = N_("Enclosure fan not spinning. Check it for possible debris, then inspect the wiring.");
+#endif
 
 static_assert(sizeof(fsm::PhaseData) == sizeof(WarningType), "If this does not hold, we need to revise how we send the type through teh fsm machinery.");
 class DialogWarning : public AddSuperWindow<IDialogMarlin> {
@@ -65,6 +70,11 @@ class DialogWarning : public AddSuperWindow<IDialogMarlin> {
 #if HAS_MODULARBED()
         ModBedMCUMaxTemp,
 #endif /* HAS_MODULARBED() */
+#if XL_ENCLOSURE_SUPPORT()
+        EnclosureFilterExpirWarning,
+        EnclosureFilterExpiration,
+        EnclosureFanError,
+#endif /* XLBUDDY BOARD */
         count_
     };
 
@@ -102,6 +112,11 @@ class DialogWarning : public AddSuperWindow<IDialogMarlin> {
 #if HAS_MODULARBED()
         { &img::warning_48x48, ModBedMCUMaxTempMsg }, // ModBedMCUMaxTemp
 #endif /* HAS_MODULARBED() */
+#if XL_ENCLOSURE_SUPPORT()
+        { &img::warning_48x48, EnclosureFilterExpirWarningMsg },
+        { &img::warning_48x48, EnclosureFilterExpirationMsg },
+        { &img::warning_48x48, EnclosureFanErrorMsg },
+#endif /* XLBUDDY BOARD */
     };
     static_assert(std::size(icon_text) == types::count_);
 

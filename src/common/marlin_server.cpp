@@ -117,6 +117,11 @@
 #endif
 
 #include <config_store/store_instance.hpp>
+
+#if XL_ENCLOSURE_SUPPORT()
+    #include "xl_enclosure.hpp"
+#endif
+
 using namespace ExtUI;
 
 using ClientQueue = marlin_client::ClientQueue;
@@ -363,12 +368,17 @@ namespace {
         // Is the cheking for existence of the FSM at all the levels the right way, or should we have some flag
         // (like SelftestInstance().IsInProgress()) and do it based on that??
         if (fsm_event_queues.GetFsm0() == ClientFSM::Warning || fsm_event_queues.GetFsm1() == ClientFSM::Warning || fsm_event_queues.GetFsm2() == ClientFSM::Warning) {
+            if (auto response = marlin_server::get_response_from_phase(PhasesWarning::EnclosureFilterExpiration); response != Response::_none) {
+                FSM_DESTROY__LOGGING(Warning);
+#if XL_ENCLOSURE_SUPPORT()
+                xl_enclosure.setUpReminder(response);
+#endif
+            }
             if (marlin_server::get_response_from_phase(PhasesWarning::Warning) != Response::_none) {
                 FSM_DESTROY__LOGGING(Warning);
             }
         }
     }
-
 } // end anonymous namespace
 
 //-----------------------------------------------------------------------------
@@ -516,6 +526,20 @@ static void cycle() {
 #endif
 
     handle_warnings();
+
+#if XL_ENCLOSURE_SUPPORT()
+    int16_t dwarf_temp = std::numeric_limits<int16_t>().min();
+    #if HAS_TOOLCHANGER()
+    dwarf_temp = prusa_toolchanger.getActiveToolOrFirst().get_board_temperature();
+    #endif
+    auto notif = xl_enclosure.loop(buddy::puppies::modular_bed.mcu_temperature.value, dwarf_temp, server.print_state);
+
+    // Filter expiration, expiration warning, 5 day postponed reminder
+    if (notif != WarningType::NoWarning) {
+        set_warning(notif); // Notify the GUI about the warning
+    }
+
+#endif
 
     if (call_print_loop) {
         _server_print_loop(); // we need call print loop here because it must be processed while blocking commands (M109)

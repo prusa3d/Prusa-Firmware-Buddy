@@ -32,6 +32,8 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("COOLDOWN");
     case Response::Disable:
         return N_("DISABLE");
+    case Response::Done:
+        return N_("DONE");
     case Response::Filament:
         return N_("FILAMENT");
     case Response::Filament_removed:
@@ -122,6 +124,8 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("HEATUP");
     case Response::PA:
         return "PA";
+    case Response::Postpone5Days:
+        return "POSTPONE 5 DAYS";
     case Response::PRINT:
         return "PRINT";
     case Response::_count:
