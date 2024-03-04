@@ -16,7 +16,7 @@ protected:
 };
 
 class MI_ENABLE_TOUCH : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Touch (Experimental)");
+    constexpr static const char *const label = N_("Touch");
 
 public:
     MI_ENABLE_TOUCH();
