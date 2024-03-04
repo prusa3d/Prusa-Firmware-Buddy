@@ -238,7 +238,7 @@ class TMC2130Stepper : public TMCStepper {
 		uint32_t THIGH();
 		void THIGH(								uint32_t input);
 
-		// RW: XDRIRECT
+		// RW: XDIRECT
 		uint32_t XDIRECT();
 		void XDIRECT(							uint32_t input);
 		void coil_A(							int16_t 	B);
