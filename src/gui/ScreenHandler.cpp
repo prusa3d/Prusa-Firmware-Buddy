@@ -375,10 +375,6 @@ void Screens::SetDisplayReinitialized() {
 }
 
 void Screens::gui_loop_until_dialog_closed(std::function<void()> callback) {
-    screen_t *screen = Get();
-    assert(screen);
-    screen_init_variant underlying_screen_state = screen->GetCurrentState();
-
     for (;;) {
         const bool dialog_closed = close || close_all;
         close = false; // Note: We reset close flag because it is reused for closing both dialogs and screens
@@ -392,6 +388,4 @@ void Screens::gui_loop_until_dialog_closed(std::function<void()> callback) {
             callback();
         }
     }
-
-    screen->InitState(underlying_screen_state);
 }

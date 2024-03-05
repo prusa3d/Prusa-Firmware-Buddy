@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include "IDialogMarlin.hpp"
 #include "fsm_types.hpp"
-#include "screen_init_variant.hpp"
 #include "static_alocation_ptr.hpp"
 
 class DialogHandler {
@@ -30,8 +29,4 @@ public:
 
     bool IsOpen(ClientFSM fsm) const;
     bool IsAnyOpen() const;
-
-private:
-    /// When a dialog is opened, underlying screen state is saved. It then gets restored on dialog close
-    screen_init_variant underlying_screen_state_;
 };

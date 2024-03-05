@@ -80,10 +80,6 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
 
         dialog_cache = last_fsm_change;
         ptr = nullptr;
-    } else {
-        auto *screen = Screens::Access()->Get();
-        assert(screen);
-        underlying_screen_state_ = screen->GetCurrentState();
     }
 
     last_fsm_change = std::make_pair(fsm_type, data);
@@ -174,9 +170,6 @@ void DialogHandler::close(ClientFSM fsm_type) {
             dialog_cache = std::nullopt;
             open(cache.first, cache.second);
         } else {
-            auto *screen = Screens::Access()->Get();
-            assert(screen);
-            screen->InitState(underlying_screen_state_);
             ptr = nullptr; // destroy current dialog
         }
     }
