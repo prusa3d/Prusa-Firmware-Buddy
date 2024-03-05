@@ -22,8 +22,9 @@ void set_phase_diff(AxisEnum axis, int diff);
 
 /**
  * Starts asynchronously generating steps previously set via set_phase_diff;
+ * @returns False if the burst can't be scheduled yet, True on success
  **/
-void fire();
+bool fire();
 
 /**
  * Return true if burst activity is undergoing

@@ -171,7 +171,13 @@ FORCE_OFAST bool burst_stepping::busy() {
     return (BURST_DMA->NDTR > 0) && (BURST_DMA->CR & DMA_SxCR_EN_Msk);
 }
 
-FORCE_OFAST void burst_stepping::fire() {
+FORCE_OFAST bool burst_stepping::fire() {
+    if (busy()) {
+        // old burst didn't finish yet, skip this cycle
+        return false;
+    }
+
+    // set axis directions
     for (std::size_t i = 0; i != axis_direction.size(); i++) {
         if (!axis_was_set[i]) {
             continue;
@@ -183,9 +189,13 @@ FORCE_OFAST void burst_stepping::fire() {
             dir_signals[i].write(Pin::State::high);
         }
     }
+
+    // setup a new burst
     if (setup_buffer->max_event_count()) {
         std::swap(setup_buffer, fire_buffer);
         setup_and_fire_dma();
         setup_buffer->clear();
     }
+
+    return true;
 }
