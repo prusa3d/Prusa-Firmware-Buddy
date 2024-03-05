@@ -29,38 +29,6 @@ using std::is_same_v;
 LOG_COMPONENT_REF(USBHost);
 LOG_COMPONENT_REF(MarlinServer);
 
-#ifdef REENUMERATE_USB
-
-extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
-
-static const constexpr uint8_t USBHOST_REENUM_DELAY = 100; // pool delay [ms]
-static const constexpr uint16_t USBHOST_REENUM_TIMEOUT = 500; // state-hang timeout [ms]
-
-// Re-enumerate UsbHost in case that it hangs in enumeration state (HOST_ENUMERATION,ENUM_IDLE)
-// this is not solved in original UsbHost driver
-// this occurs e.g. when user connects and then quickly disconnects usb flash during connection process
-// state is checked every 100ms, timeout for re-enumeration is 500ms
-// TODO: maybe we will change condition for states, because it can hang also in different state
-static void _usbhost_reenum(void) {
-    static uint32_t timer = 0; // static timer variable
-    uint32_t tick = HAL_GetTick(); // read tick
-    if ((tick - timer) > USBHOST_REENUM_DELAY) { // every 100ms
-        // timer is valid, UsbHost is in enumeration state
-        if ((timer) && (hUsbHostHS.gState == HOST_ENUMERATION) && (hUsbHostHS.EnumState == ENUM_IDLE)) {
-            // longer than 500ms
-            if ((tick - timer) > USBHOST_REENUM_TIMEOUT) {
-                log_info(USBHost, "USB host reenumerating"); // trace
-                USBH_ReEnumerate(&hUsbHostHS); // re-enumerate UsbHost
-            }
-        } else { // otherwise update timer
-            timer = tick;
-        }
-    }
-}
-#else
-static void _usbhost_reenum(void) {};
-#endif
-
 char getByte(GCodeFilter::State *state);
 namespace {
 volatile media_state_t media_state = media_state_REMOVED;
@@ -519,8 +487,6 @@ static size_t media_get_bytes_prefetched() {
 
 void media_loop(void) {
     assert(media_print_file);
-
-    _usbhost_reenum();
 
     if (media_print_state != media_print_state_PRINTING) {
         if (media_print_file->get() != nullptr) { // Read pointer without mutex lock, should be safe
