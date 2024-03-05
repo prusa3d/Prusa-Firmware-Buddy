@@ -13,6 +13,8 @@
 #include <filament_sensor_states.hpp>
 #include <state/printer_state.hpp>
 
+#include <client_response.hpp>
+
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -398,6 +400,81 @@ bool MarlinPrinter::set_printer_ready(bool ready) {
 
 void MarlinPrinter::reset_printer() {
     NVIC_SystemReset();
+}
+
+namespace {
+    bool validate_response(const PhaseResponses &responses, Response to_check) {
+        for (auto resp : responses) {
+            if (to_check == resp) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    template <class Phase>
+    const char *send_click(uint8_t phase, Response response) {
+        auto phase_enum = GetEnumFromPhaseIndex<Phase>(phase);
+        if (!validate_response(ClientResponses::GetResponses(phase_enum), response)) {
+            return "Invalid button for dialog";
+        }
+        marlin_client::FSM_response(phase_enum, response);
+        return nullptr;
+    }
+} // namespace
+
+const char *MarlinPrinter::click_button(uint32_t dialog_id, Response response) {
+    auto [last_fsm, fsm_gen] = marlin_vars()->get_last_fsm_change();
+
+    // How to get tha phase and FSM, that send this??
+    // for now pick the top one
+    fsm::Change *top_change = nullptr;
+    if (last_fsm.q2_change.get_fsm_type() != ClientFSM::_none) {
+        top_change = &last_fsm.q2_change;
+    } else if (last_fsm.q1_change.get_fsm_type() != ClientFSM::_none) {
+        top_change = &last_fsm.q1_change;
+    } else if (last_fsm.q0_change.get_fsm_type() != ClientFSM::_none) {
+        top_change = &last_fsm.q0_change;
+    } else {
+        return "No buttons";
+    }
+    if (fsm_gen != dialog_id) {
+        return "Invalid dialog id";
+    }
+
+    fsm::BaseData data = top_change->get_data();
+    uint8_t phase = data.GetPhase();
+
+    switch (top_change->get_fsm_type()) {
+    case ClientFSM::Load_unload:
+        return send_click<PhasesLoadUnload>(phase, response);
+    case ClientFSM::Preheat:
+        return send_click<PhasesPreheat>(phase, response);
+    case ClientFSM::Selftest:
+        return send_click<PhasesSelftest>(phase, response);
+    case ClientFSM::ESP:
+        return send_click<PhasesESP>(phase, response);
+    case ClientFSM::CrashRecovery:
+        return send_click<PhasesCrashRecovery>(phase, response);
+    case ClientFSM::QuickPause:
+        return send_click<PhasesQuickPause>(phase, response);
+    case ClientFSM::Warning:
+        return send_click<PhasesWarning>(phase, response);
+    case ClientFSM::ColdPull:
+        return send_click<PhasesColdPull>(phase, response);
+    case ClientFSM::PrintPreview:
+        return send_click<PhasesPrintPreview>(phase, response);
+        // NOTE: These have no Phases and no buttons
+#if HAS_PHASE_STEPPING()
+    case ClientFSM::PhaseStepping:
+        return send_click<PhasesPhaseStepping>(phase, response);
+#endif
+    case ClientFSM::Printing:
+    case ClientFSM::Serial_printing:
+    case ClientFSM::_none:
+        return "No buttons";
+    }
+    return nullptr;
 }
 
 } // namespace connect_client

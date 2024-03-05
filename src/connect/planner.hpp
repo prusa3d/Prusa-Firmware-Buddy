@@ -159,6 +159,7 @@ private:
     void command(const Command &, const SetToken &);
     void command(const Command &, const ResetPrinter &);
     void command(const Command &, const SendStateInfo &);
+    void command(const Command &, const ClickButton &);
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;

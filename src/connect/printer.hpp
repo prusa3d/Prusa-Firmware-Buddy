@@ -209,6 +209,8 @@ public:
     // Does not return if successful
     virtual void reset_printer() = 0;
 
+    virtual const char *click_button(uint32_t dialog_id, Response response) = 0;
+
     // Returns a newly reloaded config and a flag if it changed since last load
     // (unless the reset_fingerprint is set to false, in which case the flag is
     // kept).
