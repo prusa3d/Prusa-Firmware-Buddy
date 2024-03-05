@@ -223,7 +223,7 @@ Step RequestParser::step(string_view input, bool terminated_by_client, uint8_t *
         return Step { 0, 0, Continue() };
     }
 
-    api_key = server->get_password();
+    api_key = server->get_apikey();
     if (api_key && api_key[0] == '\0') {
         // An empty password means "login disabled".
         // (can be a result of generator failure)
@@ -385,7 +385,7 @@ namespace {
 bool RequestParser::check_digest_auth(uint64_t nonce_to_use) const {
     if (auto digest_params = get_if<DigestAuthParams>(&auth_status)) {
 
-        const char *pass = server->get_password();
+        const char *pass = server->get_user_password();
         if (pass == nullptr || pass[0] == '\0') {
             // Login disabled
             return false;

@@ -11,7 +11,7 @@
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate
 class MI_PL_REGENERATE_PASSWORD : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Generate Password");
+    constexpr static const char *const label = N_("Update Keys");
 
 public:
     MI_PL_REGENERATE_PASSWORD();
@@ -68,6 +68,36 @@ public:
     MI_PL_PASSWORD_VALUE();
 };
 
+class MI_PL_APIKEY_LABEL : public WI_LABEL_t {
+    constexpr static const char *const label = N_("Api-Key");
+
+public:
+    MI_PL_APIKEY_LABEL();
+
+protected:
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
+};
+
+class MI_PL_APIKEY_VALUE : public WI_LABEL_t {
+    static constexpr size_t PASSWD_STR_LENGTH = config_store_ns::pl_password_size + 1; // don't need space for '%s' and '\0' since pl_password_size contains '\0' too
+
+#ifdef USE_ST7789
+    constexpr static const char *const label = N_("");
+#else
+    constexpr static const char *const label = N_("Api-Key");
+#endif
+    char apikey_buffer[PASSWD_STR_LENGTH];
+
+protected:
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {
+    }
+
+public:
+    void print_apikey(const char *passwd);
+    MI_PL_APIKEY_VALUE();
+};
+
 class MI_PL_USER : public WI_LABEL_t {
     constexpr static const char *const label = N_("User");
 
@@ -82,9 +112,9 @@ public:
 
 using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENERATE_PASSWORD, MI_PL_USER,
 #ifdef USE_ST7789
-    MI_PL_PASSWORD_LABEL,
+    MI_PL_APIKEY_LABEL,
 #endif
-    MI_PL_PASSWORD_VALUE>;
+    MI_PL_APIKEY_VALUE, MI_PL_PASSWORD_VALUE>;
 
 class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
     static constexpr ResourceId canvas_font = IDR_FNT_SPECIAL;
@@ -92,6 +122,10 @@ class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
     PLMenuContainer container;
     window_menu_t menu;
     window_header_t header;
+
+    inline void display_apikey(const char *apikey) {
+        container.Item<MI_PL_APIKEY_VALUE>().print_apikey(apikey);
+    }
 
     inline void display_passwd(const char *password) {
         container.Item<MI_PL_PASSWORD_VALUE>().print_password(password);
