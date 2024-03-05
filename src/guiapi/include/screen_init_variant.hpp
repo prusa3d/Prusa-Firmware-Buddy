@@ -84,7 +84,7 @@ public:
         return fsm_base_data;
     }
 
-    constexpr bool IsValid() {
+    constexpr bool IsValid() const {
         return type != type_t::data_not_valid;
     }
 
