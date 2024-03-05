@@ -136,10 +136,11 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
             { HotendType::stock, 0 },
             { HotendType::stock_with_sock, -20 },
         },
+#if NOZZLE_TYPE_SUPPORT()
         .nozzle_type_temp_offsets = EnumArray<NozzleType, int8_t, NozzleType::_cnt> {
             { NozzleType::Normal, 0 },
-            { NozzleType::HighFlow, -5 },
         },
+#endif
     }
 };
 

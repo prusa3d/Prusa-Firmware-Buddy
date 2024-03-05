@@ -255,8 +255,10 @@ bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) 
             &CSelftestPart_HotEndSock::stateAskAdjust,
             &CSelftestPart_HotEndSock::stateAskSockInit,
             &CSelftestPart_HotEndSock::stateAskSock,
-            // Disable asking questions about nozzle
-            // &CSelftestPart_HotEndSock::stateAskNozzleInit, &CSelftestPart_HotEndSock::stateAskNozzle,
+#if NOZZLE_TYPE_SUPPORT()
+            &CSelftestPart_HotEndSock::stateAskNozzleInit,
+            &CSelftestPart_HotEndSock::stateAskNozzle,
+#endif
             &CSelftestPart_HotEndSock::stateAskRetryInit,
             &CSelftestPart_HotEndSock::stateAskRetry);
     }
