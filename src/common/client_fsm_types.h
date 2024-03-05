@@ -72,7 +72,6 @@ enum class RetAndCool_t {
 };
 
 enum class WarningType : uint32_t {
-    NoWarning,
     HotendFanError,
     PrintFanError,
     HeatersTimeout,

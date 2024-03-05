@@ -25,7 +25,6 @@ const SpinConfigInt SpinCnf::printfan = SpinConfigInt(MenuVars::percent_range, P
 const SpinConfigInt SpinCnf::feedrate = SpinConfigInt(MenuVars::feedrate_range, Percent);
 const SpinConfigInt SpinCnf::flowfact = SpinConfigInt(MenuVars::flowfact_range, Percent);
 const SpinConfigInt SpinCnf::timezone = SpinConfigInt { { -12, 14, 1 }, Hour };
-
 #if BOARD_IS_BUDDY
 const SpinConfigInt SpinCnf::volume_range = { { 0, 11, 1 }, None, spin_off_opt_t::yes }; // crank it up to 11
 #else
@@ -60,3 +59,6 @@ const SpinConfigInt SpinCnf::print_progress = SpinConfigInt({ 29, 200, 1 }, Seco
 const SpinConfigInt SpinCnf::int_num = SpinConfigInt({ 0, std::numeric_limits<int32_t>::max(), 1 }, None, spin_off_opt_t::no);
 
 const SpinConfigFlt SpinCnf::nozzle_diameter = SpinConfigFlt({ 0.25, 1.00, 0.05 }, mm, spin_off_opt_t::no, format_point2);
+#if XL_ENCLOSURE_SUPPORT()
+const SpinConfigInt SpinCnf::enclosure_fan = SpinConfigInt(MenuVars::enclosure_fan_percent_range, Percent);
+#endif

@@ -17,24 +17,22 @@ constexpr size_t row_0 = 44;
 constexpr size_t descr_h = height(Font::normal) * 8;
 constexpr size_t row_1 = row_0 + descr_h + height(Font::normal) / 2;
 
-constexpr size_t qr_size = 130;
 constexpr size_t col_0 = 30;
 constexpr size_t col_0_w = 285;
 constexpr size_t col_1 = 320;
-constexpr size_t col_1_w = qr_size;
+constexpr size_t col_1_w = GuiDefaults::QRSize;
 constexpr size_t col_0_1_gap = col_1 - col_0 - col_0_w;
 constexpr size_t tot_w = col_0_w + col_1_w + col_0_1_gap;
 
 static const constexpr Rect16 descr_rect = Rect16(col_0, row_0, col_0_w, descr_h);
-static const constexpr Rect16 QR_rect = Rect16(col_1, row_0, qr_size, qr_size);
+static const constexpr Rect16 QR_rect = Rect16(col_1, row_0, GuiDefaults::QRSize, GuiDefaults::QRSize);
 static const constexpr Rect16 help_rect = Rect16(col_0, row_1, tot_w, height(Font::normal) * 3);
 static constexpr const char *txt_descr = N_("Download and copy the firmware (.bbf) file to the USB flash drive. Insert the drive into the printer and turn it on or restart it. Confirm the installation of the new firmware.");
 #elif defined(USE_ST7789)
-constexpr size_t qr_size = 100;
 constexpr size_t col_0 = 10;
 constexpr size_t col_0_w = 120;
 constexpr size_t col_1 = 130;
-constexpr size_t col_1_w = qr_size;
+constexpr size_t col_1_w = GuiDefaults::QRSize;
 constexpr size_t tot_w = col_0_w + col_1_w;
 
 constexpr size_t descr1_h = height(Font::special) * 5;
@@ -42,7 +40,7 @@ constexpr size_t descr2_h = height(Font::special) * 4;
 constexpr size_t row_1 = row_0 + descr1_h + descr2_h + height(Font::special) + 3 /*Visual alignment*/;
 static const constexpr Rect16 descr_rect = Rect16(col_0, row_0, col_0_w, descr1_h);
 static const constexpr Rect16 descr_rect2 = Rect16(col_0, row_0 + descr1_h + 13 /*Visual alignment*/, col_0_w + col_1_w + 5 /*Visual alignment*/, descr2_h);
-static const constexpr Rect16 QR_rect = Rect16(col_1, row_0, qr_size, qr_size);
+static const constexpr Rect16 QR_rect = Rect16(col_1, row_0, GuiDefaults::QRSize, GuiDefaults::QRSize);
 static const constexpr Rect16 help_rect = Rect16(col_0, row_1, tot_w, height(Font::special) * 4);
 static constexpr const char *txt_descr = N_("Download the firmware (.bbf) file to the USB flash drive.");
 static constexpr const char *txt_descr2 = N_("Insert the drive into the printer and turn it on or restart it. Confirm the installation.");

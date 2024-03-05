@@ -79,6 +79,7 @@ class DialogWarning : public AddSuperWindow<IDialogMarlin> {
     };
 
     types get_type(fsm::BaseData data);
+    PhasesWarning getPhaseWarning(fsm::BaseData data);
 
     struct icon_text {
         const img::Resource *icon;

@@ -7,6 +7,7 @@
 
 #include "marlin_server_shared.h"
 #include "client_fsm_types.h"
+#include <optional>
 
 /*
  *  Timers    - description                                - measuring time during
@@ -30,15 +31,14 @@
 
 class Enclosure {
 public:
+    static constexpr const int INVALID_TEMPERATURE = std::numeric_limits<int>::min();
+
     Enclosure();
     int getEnclosureTemperature();
 
-    void enable(); // enable enclosure (activetes only mode cooling)
-    void disable();
-    void enableAlwaysOn(); /** Fan is spinning with manual rpm (80% power on default) for the whole print */
-    void disableAlwaysOn();
-    void enablePostPrint(); /** Base on the used materials - fan will filter out the enclosure after the print */
-    void disablePostPrint();
+    void setEnabled(bool enable); // enable enclosure
+    void setAlwaysOn(bool enable); /** Fan is spinning with manual rpm (80% power on default) for the whole print */
+    void setPostPrint(bool enable); /** Base on the used materials - fan will filter out the enclosure after the print */
 
     /** Enclosure loop function embedded in marlin_server
      * Handling timers and enclosure fan.
@@ -46,9 +46,9 @@ public:
      * @param MCU_modular_bed_temp [in] - MCU Temperature for handling fan cooling/filtration
      * @param active_dwarf_board_temp [in] - Current or first dwarf board temperature
      * @param print_state [in]
-     * @return WarningType for GUI (WarningType::NoWarning on default)
+     * @return WarningType for GUI
      */
-    WarningType loop(int32_t MCU_modular_bed_temp, int16_t active_dwarf_board_temp, marlin_server::State print_state);
+    std::optional<WarningType> loop(int32_t MCU_modular_bed_temp, int16_t active_dwarf_board_temp, marlin_server::State print_state);
 
     /**
      *  Set up reminder for expired filter change
@@ -91,9 +91,9 @@ private:
 
     /**
      *  Test enclosure fan presence
-     *  @return WarningType - returns WarningType::EnclosureFanError if test did not pass. Otherwise returns WarningType::NoWarning
+     *  @return WarningType - returns WarningType::EnclosureFanError if test did not pass. Otherwise returns std::optional without value
      */
-    WarningType testFanPresence(uint32_t curr_sec);
+    std::optional<WarningType> testFanPresence(uint32_t curr_sec);
 
     /**
      *  Looks which filament are required for this print and set up post-print filtration period for the smelly ones
@@ -104,7 +104,7 @@ private:
     /**
      *  Update and check filter expiration timer. On 500. & 600. hour of printing notification to GUI is sent
      */
-    WarningType updateFilterExpirationTimer(uint32_t delta_sec);
+    std::optional<WarningType> updateFilterExpirationTimer(uint32_t delta_sec);
 
     /**
      *  Timing validation period of recorded temperature: 5 minutes
@@ -119,9 +119,9 @@ private:
 
     /**
      *  Handles fan activation during printing state
-     *  @return NoWarning or WarningType::EnclosureFilterExpiration
+     *  @return optional with no value or WarningType::EnclosureFilterExpiration
      */
-    WarningType checkPrintState(marlin_server::State print_state, uint32_t curr_sec);
+    std::optional<WarningType> checkPrintState(marlin_server::State print_state, uint32_t curr_sec);
 
     enum class EnclosureMode {
         IDLE = 0,

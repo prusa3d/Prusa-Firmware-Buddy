@@ -199,6 +199,7 @@ struct GuiDefaults {
     static constexpr Rect16 DialogFrameRect = Rect16(RectScreenNoHeader.Left() + 5, RectScreenNoHeader.Top(), RectScreenNoHeader.Width() - 10, RectScreenNoHeader.Height());
     static constexpr uint16_t RadioButtonCornerRadius = 6;
     static constexpr bool EnableDialogBigLayout = false;
+    static constexpr uint16_t QRSize = 100;
 #elif defined(USE_ILI9488)
     static constexpr Rect16 MsgBoxLayoutRect = { 70, 90, 363, ScreenHeight - 90 - ButtonHeight }; // Msgbox rect for drawing icon + text
     static constexpr Rect16 MessageTextRect = Rect16(MsgBoxLayoutRect.Left() + 48 + 15, MsgBoxLayoutRect.Top(), 300, MsgBoxLayoutRect.Height()); // 48px icon + 10px icon-text delimeter
@@ -206,6 +207,7 @@ struct GuiDefaults {
     static constexpr Rect16 DialogFrameRect = RectScreenNoHeader;
     static constexpr uint16_t RadioButtonCornerRadius = 8;
     static constexpr bool EnableDialogBigLayout = true;
+    static constexpr uint16_t QRSize = 130;
 #endif // USE_<DISPLAY>
     static constexpr Rect16 MessageIconRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left(), GuiDefaults::MsgBoxLayoutRect.Top(), 48, 48);
 

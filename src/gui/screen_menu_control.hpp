@@ -28,7 +28,9 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
 #endif
     MI_DISABLE_STEP,
     MI_LIVE_ADJUST_Z,
-
+#if PRINTER_IS_PRUSA_XL
+    MI_ENCLOSURE,
+#endif
 #if HAS_MMU2()
     MI_MMU_LOAD_TEST_FILAMENT,
 #endif

@@ -41,6 +41,7 @@ target_sources(
           qoi_decoder.cpp
           screen_blue_error.cpp
           screen_bsod.cpp
+          screen_change_filter.cpp
           screen_dialog_does_not_exist.cpp
           screen_filebrowser.cpp
           screen_hardfault.cpp
@@ -51,6 +52,7 @@ target_sources(
           screen_menu_control.cpp
           screen_menu_eeprom.cpp
           screen_menu_eeprom_diagnostics.cpp
+          screen_menu_enclosure.cpp
           screen_menu_error_test.cpp
           screen_menu_factory_reset.cpp
           screen_menu_fail_stat.cpp
@@ -210,6 +212,10 @@ endif()
 
 if(BOARD STREQUAL "XBUDDY" OR BOARD STREQUAL "XLBUDDY")
   target_sources(firmware PRIVATE menu_item_xlcd.cpp)
+endif()
+
+if(BOARD STREQUAL "XLBUDDY")
+  target_sources(firmware PRIVATE MItem_enclosure.cpp)
 endif()
 
 if(PRINTER IN_LIST PRINTERS_WITH_LOVE_BOARD)

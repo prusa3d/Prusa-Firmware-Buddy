@@ -10,6 +10,7 @@
 #include <option/has_leds.h>
 #include <option/developer_mode.h>
 #include <common/sheet.hpp>
+#include <device/board.h>
 
 class MI_VERSION_INFO : public IWindowMenuItem {
     static constexpr const char *const label = N_("Version Info");
@@ -534,3 +535,15 @@ public:
 protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
+
+#if XL_ENCLOSURE_SUPPORT()
+class MI_ENCLOSURE : public IWindowMenuItem {
+    constexpr static const char *label = N_("Enclosure");
+
+public:
+    MI_ENCLOSURE();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+#endif // XL_ENCLOSURE_SUPPORT()

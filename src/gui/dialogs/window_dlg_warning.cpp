@@ -21,7 +21,7 @@ DialogWarning::DialogWarning(fsm::BaseData data)
     : AddSuperWindow<IDialogMarlin>(GuiDefaults::RectScreenBody)
     , icon(this, iconRect, &img::warning_48x48)
     , text(this, textRect, is_multiline::yes, is_closed_on_click_t::yes, _(icon_text[get_type(data)].text))
-    , button(this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), PhasesWarning::Warning) {
+    , button(this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), getPhaseWarning(data)) {
     CaptureNormalWindow(button);
 
     if (icon_text[get_type(data)].icon) {
@@ -34,6 +34,17 @@ DialogWarning::DialogWarning(fsm::BaseData data)
         text.SetRect(textRectNoIcon);
     }
 #endif
+}
+
+// Different button configurations (Warning has only 'Continue')
+PhasesWarning DialogWarning::getPhaseWarning(fsm::BaseData data) {
+    WarningType wtype = static_cast<WarningType>(*data.GetData().data());
+    switch (wtype) {
+    case WarningType::EnclosureFilterExpiration:
+        return PhasesWarning::EnclosureFilterExpiration;
+    default:
+        return PhasesWarning::Warning;
+    }
 }
 
 DialogWarning::types DialogWarning::get_type(fsm::BaseData data) {

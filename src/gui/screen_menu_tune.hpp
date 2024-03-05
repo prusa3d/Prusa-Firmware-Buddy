@@ -47,6 +47,9 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #if HAS_LOADCELL()
     MI_STUCK_FILAMENT_DETECTION,
 #endif
+#if XL_ENCLOSURE_SUPPORT()
+    MI_ENCLOSURE,
+#endif
     MI_SOUND_MODE,
 #if PRINTER_IS_PRUSA_MINI
     MI_SOUND_VOLUME,

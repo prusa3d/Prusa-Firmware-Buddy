@@ -17,11 +17,10 @@ using namespace crash_dump;
 static const constexpr uint16_t left_padding = ScreenFatalWarning::title_rect.Left();
 static const constexpr uint16_t text_start_y = 85;
 static const constexpr uint16_t qr_start_x = (display::GetW() * 2) / 3;
-static const constexpr uint16_t qr_size = 130;
 static const constexpr uint16_t info_text_width = 293;
 
-static const constexpr Rect16 QR_rect = Rect16(qr_start_x, 74, qr_size, qr_size);
-static const constexpr Rect16 hand_rect = Rect16(qr_start_x + /* center under qr */ (qr_size - 59) / 2, qr_size + QR_rect.Top() + 5 /* visual delimeter */, 59, 72);
+static const constexpr Rect16 QR_rect = Rect16(qr_start_x, 74, GuiDefaults::QRSize, GuiDefaults::QRSize);
+static const constexpr Rect16 hand_rect = Rect16(qr_start_x + /* center under qr */ (GuiDefaults::QRSize - 59) / 2, GuiDefaults::QRSize + QR_rect.Top() + 5 /* visual delimeter */, 59, 72);
 static const constexpr Rect16 descr_rect = Rect16(left_padding, text_start_y, info_text_width, 155);
 static const constexpr Rect16 help_txt_rect = Rect16(left_padding, 242, info_text_width, 20);
 static const constexpr Rect16 link_rect = Rect16(left_padding, 264, info_text_width, 20);
