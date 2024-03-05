@@ -14,6 +14,7 @@
 #include <option/has_mmu2.h>
 #include "i18n.h"
 #include <bsod.h>
+#include <device/board.h>
 
 // sadly this must be macros, it is used in preprocessor
 #if (defined(PRINTER_TYPE) && PRINTER_IS_PRUSA_MINI) || defined(USE_MOCK_DISPLAY)
@@ -70,7 +71,7 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     f_sensor_side = 21,
     nozzle_diameter = 22,
     nozzle_pwm = 23,
-
+    enclosure_temp = 24,
     _count,
 };
 
@@ -194,6 +195,12 @@ constexpr const char *to_string(Item item) {
 #else
         break;
 #endif /*HAS_SIDE_FSENSOR()*/
+    case Item::enclosure_temp:
+#if XL_ENCLOSURE_SUPPORT()
+        return N_("Enclosure temperature");
+#else
+        break;
+#endif
     case Item::none:
         return N_("None");
     case Item::_count:

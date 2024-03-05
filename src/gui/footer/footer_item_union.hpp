@@ -20,6 +20,7 @@
 #include "footer_item_multitool.hpp"
 #include "footer_item_fsvalue.hpp"
 #include "footer_item_input_shaper.hpp"
+#include "footer_item_enclosure.hpp"
 #include <option/has_mmu2.h>
 
 namespace footer {
@@ -57,6 +58,10 @@ using ItemUnion = std::aligned_union<
     ,
     FooterItemCurrentTool,
     FooterItemAllNozzles
+#endif
+#if XL_ENCLOSURE_SUPPORT()
+    ,
+    FooterItemEnclosure
 #endif
     >::type;
 

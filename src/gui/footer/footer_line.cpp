@@ -133,6 +133,11 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
     case footer::Item::nozzle_pwm:
         new (&items[index]) FooterItemNozzlePWM(this);
         break;
+    case footer::Item::enclosure_temp:
+#if XL_ENCLOSURE_SUPPORT()
+        new (&items[index]) FooterItemEnclosure(this);
+#endif
+        break;
     case footer::Item::none:
     case footer::Item::_count:
         break;

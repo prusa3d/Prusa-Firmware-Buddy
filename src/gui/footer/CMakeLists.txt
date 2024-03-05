@@ -31,3 +31,7 @@ endif()
 if(HAS_MMU2 OR HAS_TOOLCHANGER)
   target_sources(firmware PRIVATE footer_item_multitool.cpp)
 endif()
+
+if(BOARD MATCHES "XLBUDDY")
+  target_sources(firmware PRIVATE footer_item_enclosure.cpp)
+endif()
