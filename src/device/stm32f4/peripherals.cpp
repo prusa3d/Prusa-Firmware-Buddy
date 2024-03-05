@@ -968,10 +968,18 @@ void hw_tim8_init() {
     TIM_ClockConfigTypeDef sClockSourceConfig {};
     TIM_MasterConfigTypeDef sMasterConfig {};
 
+    using phase_stepping::opts::GPIO_BUFFER_SIZE;
+    using phase_stepping::opts::REFRESH_FREQ;
+
+    // Clock the period ever-so-slighly faster than the required number of events to create a gap
+    // between two bursts big enough to allow scheduling in the case of two full buffers and a
+    // shorter-than-expected interval between the ISRs.
+    uint32_t period = 168'000'000 / (REFRESH_FREQ * (GPIO_BUFFER_SIZE + 1)) - 1;
+
     htim8.Instance = TIM8;
     htim8.Init.Prescaler = 0;
     htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim8.Init.Period = 168'000'000 / (phase_stepping::opts::REFRESH_FREQ * phase_stepping::opts::GPIO_BUFFER_SIZE) - 1;
+    htim8.Init.Period = period;
     htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     if (HAL_TIM_Base_Init(&htim8) != HAL_OK) {
         Error_Handler();

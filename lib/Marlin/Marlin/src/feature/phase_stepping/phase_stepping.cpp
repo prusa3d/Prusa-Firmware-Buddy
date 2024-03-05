@@ -650,11 +650,11 @@ FORCE_OFAST void phase_stepping::handle_periodic_refresh() {
 
 #if HAS_BURST_STEPPING()
     // Fire the previously setup steps...
-    burst_stepping::fire();
-
-    // ...and refresh all axes
-    for (std::size_t i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
-        refresh_axis(*axis_states[i], now, old_tick);
+    if (burst_stepping::fire()) {
+        // ...and refresh all axes
+        for (std::size_t i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
+            refresh_axis(*axis_states[i], now, old_tick);
+        }
     }
 #else
     phase_stepping::spi::finish_transmission();
