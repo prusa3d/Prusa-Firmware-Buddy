@@ -305,8 +305,7 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
           footer::Item::nozzle, footer::Item::bed, footer::Item::f_sensor
     #if HAS_MMU2()
           ,
-          FSensors_instance().HasMMU() ? footer::Item::finda : footer::Item::none,
-          FSensors_instance().HasMMU() ? footer::Item::f_s_value : footer::Item::none
+          FSensors_instance().HasMMU() ? footer::Item::finda : footer::Item::none
     #elif HAS_SIDE_FSENSOR()
           ,
           footer::Item::f_sensor_side
