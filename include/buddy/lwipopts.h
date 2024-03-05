@@ -15,7 +15,8 @@ extern "C" {
 #define CHECKSUM_BY_HARDWARE 0
 #define LWIP_DHCP            1
 #define MEM_ALIGNMENT        4
-#define MEMP_NUM_SYS_TIMEOUT 10
+// TODO: Investigate why we suddenly need so many timeouts BFW-5183
+#define MEMP_NUM_SYS_TIMEOUT 13
 #define LWIP_ETHERNET        1
 #define LWIP_DNS_SECURE      7
 #define DNS_MAX_NAME_LENGTH  128
