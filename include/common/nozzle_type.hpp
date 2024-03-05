@@ -15,3 +15,9 @@ static constexpr EnumArray<NozzleType, const char *, NozzleType::_cnt> nozzle_ty
     { NozzleType::Normal, N_("Standard") },
     { NozzleType::HighFlow, N_("High Flow") },
 };
+
+/// High-flow nozzle is not supported yet, it will be introduced later.
+/// Plus it probably doesn't need a special firmware behavior.
+/// So remove/hide everything related for now. Simply remove this define afterwards.
+/// BFW-5171
+#define NOZZLE_TYPE_SUPPORT() 0
