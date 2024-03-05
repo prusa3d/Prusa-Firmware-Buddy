@@ -6,6 +6,7 @@
 #include <option/has_mmu2.h>
 #include <option/has_dwarf.h>
 #include <config_store/store_instance.hpp>
+#include <device/board.h>
 
 using namespace marlin_server;
 using std::make_optional;
@@ -231,6 +232,14 @@ namespace {
             case WarningType::SteppersTimeout:
                 return ErrCode::CONNECT_STEPPERS_TIMEOUT;
 #endif
+#if XL_ENCLOSURE_SUPPORT()
+            case WarningType::EnclosureFanError:
+                return ErrCode::CONNECT_ENCLOSURE_FAN_ERROR;
+            case WarningType::EnclosureFilterExpirWarning:
+                return ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION_WARNING;
+            case WarningType::EnclosureFilterExpiration:
+                return ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION;
+#endif // XL_ENCLOSURE_SUPPORT
             default:
                 assert(false);
             }
