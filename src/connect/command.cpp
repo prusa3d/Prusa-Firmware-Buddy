@@ -3,6 +3,8 @@
 #include <search_json.h>
 #include <json_encode.h>
 
+#include <common/general_response.hpp>
+
 #include <cstdlib>
 #include <charconv>
 
@@ -64,11 +66,14 @@ namespace {
         ArgKey = 1 << 3,
         ArgIv = 1 << 4,
         ArgOrigSize = 1 << 5,
+        ArgDialogId = 1 << 6,
+        ArgResponse = 1 << 7,
     };
 
     constexpr uint32_t NO_ARGS = 0;
     // Encrypted download can also process a port, but that one is optional, so not listed here.
     constexpr uint32_t ARGS_ENC_DOWN = ArgPath | ArgKey | ArgIv | ArgOrigSize;
+    constexpr uint32_t ARGS_CLICK_BUTTON = ArgDialogId | ArgResponse;
 } // namespace
 
 Command Command::gcode_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
@@ -145,6 +150,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("RESET_PRINTER", ResetPrinter, NO_ARGS)
             T("RESET", ResetPrinter, NO_ARGS)
             T("SEND_STATE_INFO", SendStateInfo, NO_ARGS)
+            T("CLICK_BUTTON", ClickButton, ARGS_CLICK_BUTTON)
             T("START_ENCRYPTED_DOWNLOAD", StartEncryptedDownload, ARGS_ENC_DOWN) { // else is part of the previous T
                 return;
             }
@@ -202,6 +208,15 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                     data = BrokenCommand { "Token too long" };
                 }
             }
+        } else if (is_arg("response", Type::String)) {
+            if (auto *cmd = get_if<ClickButton>(&data); cmd != nullptr) {
+                cmd->response = from_str(event.value.value());
+                seen_args |= ArgResponse;
+                if (cmd->response == Response::_none) {
+                    data = BrokenCommand { "Invalid button" };
+                }
+            }
+
         } else if (is_arg("port", Type::Primitive)) {
             INT_ARG(StartEncryptedDownload, uint16_t, port, 0)
         } else if (is_arg("orig_size", Type::Primitive)) {
@@ -210,6 +225,8 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             HEX_ARG(key, ArgKey)
         } else if (is_arg("iv", Type::String)) {
             HEX_ARG(iv, ArgIv)
+        } else if (is_arg("dialog_id", Type::Primitive)) {
+            INT_ARG(ClickButton, uint32_t, dialog_id, ArgDialogId)
         }
     });
 

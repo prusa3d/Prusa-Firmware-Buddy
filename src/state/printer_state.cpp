@@ -241,7 +241,7 @@ namespace {
         return ErrCode::ERR_UNDEF;
     }
 
-    optional<tuple<ErrCode, const Response *>> warning_attention(marlin_vars_t::FSMChange &fsm_change) {
+    optional<tuple<ErrCode, const Response *>> warning_dialog(marlin_vars_t::FSMChange &fsm_change) {
         fsm::Change *warning_change = nullptr;
         if (fsm_change.q0_change.get_fsm_type() == ClientFSM::Warning) {
             warning_change = &fsm_change.q0_change;
@@ -273,9 +273,9 @@ StateWithDialog get_state_with_dialog(bool ready) {
     optional<ErrCode> warning_err_code = nullopt;
     const Response *buttons = nullptr;
 
-    if (auto attention = warning_attention(fsm_change); attention.has_value()) {
-        auto [attention_code, attention_buttons] = *attention;
-        switch (attention_code) {
+    if (auto dialog = warning_dialog(fsm_change); dialog.has_value()) {
+        auto [dialog_code, dialog_buttons] = *dialog;
+        switch (dialog_code) {
         // Note: We don't consider these attention, so just note the dialog code and slap
         // it on whatever state we decide, that the printer is in later.
         case ErrCode::CONNECT_NOZZLE_TIMEOUT:
@@ -283,13 +283,11 @@ StateWithDialog get_state_with_dialog(bool ready) {
 #if _DEBUG
         case ErrCode::CONNECT_STEPPERS_TIMEOUT:
 #endif
-            warning_err_code = attention_code;
-            // All warnings are dialogs with just an Continue button.
-            buttons = attention_buttons;
+            warning_err_code = dialog_code;
+            buttons = dialog_buttons;
             break;
         default:
-            // All warnings are dialogs with just an Continue button.
-            return StateWithDialog::attention(attention_code, fsm_gen, attention_buttons);
+            return StateWithDialog::attention(dialog_code, fsm_gen, dialog_buttons);
         }
     }
 

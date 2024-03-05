@@ -111,6 +111,10 @@ public:
     void reset_printer() override {
         abort();
     }
+
+    virtual const char *click_button(uint32_t dialog_id, Response response) {
+        return nullptr;
+    }
 };
 
 } // namespace connect_client

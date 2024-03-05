@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <algorithm>
 #include <array>
+#include <string_view>
 
 /** list of all button types */
 enum class Response : uint8_t {
@@ -87,3 +88,6 @@ template <size_t N>
 constexpr size_t get_response_idx(const std::array<Response, N> &resps, Response resp) {
     return std::distance(resps.begin(), std::find(resps.begin(), resps.end(), resp));
 }
+
+Response from_str(std::string_view str);
+const char *to_str(const Response response);

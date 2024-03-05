@@ -5,6 +5,7 @@
 #include <log.h>
 #include <transfers/transfer.hpp>
 #include <option/websocket.h>
+#include <common/general_response.hpp>
 
 #include <alloca.h>
 #include <algorithm>
@@ -803,6 +804,14 @@ void Planner::command(const Command &command, const ResetPrinter &) {
 
 void Planner::command(const Command &command, const SendStateInfo &) {
     planned_event = { EventType::StateChanged, command.id };
+}
+
+void Planner::command(const Command &command, const ClickButton &params) {
+    if (const char *error = printer.click_button(params.dialog_id, params.response); error != nullptr) {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, error };
+    } else {
+        planned_event = { EventType::Finished, command.id };
+    }
 }
 
 // FIXME: Handle the case when we are resent a command we are already

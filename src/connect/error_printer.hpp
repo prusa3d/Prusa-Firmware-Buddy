@@ -40,6 +40,7 @@ private:
     virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const override;
 #endif
     virtual void reset_printer() override;
+    virtual const char *click_button(uint32_t dialog_id, Response response) override;
 
 public:
     ErrorPrinter();
