@@ -104,6 +104,9 @@ inline constexpr auto disabled_items { std::to_array<Item>({
 #if not HAS_SIDE_FSENSOR()
         Item::f_sensor_side,
 #endif
+#if not XL_ENCLOSURE_SUPPORT()
+        Item::enclosure_temp,
+#endif
 }) };
 
 consteval bool all_disabled_items_are_unique() {
