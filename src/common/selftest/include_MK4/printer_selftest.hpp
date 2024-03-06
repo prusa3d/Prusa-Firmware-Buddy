@@ -101,7 +101,7 @@ protected:
     selftest::IPartHandler *pZAxis;
     std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
     selftest::IPartHandler *pBed;
-    selftest::IPartHandler *pSock;
+    selftest::IPartHandler *pHotendSpecify;
     std::array<selftest::IPartHandler *, HOTENDS> m_pLoadcell;
     std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
     selftest::IPartHandler *pGearsCalib;
