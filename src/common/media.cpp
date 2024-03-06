@@ -518,6 +518,7 @@ void media_loop(void) {
             metric_record_integer(&usbh_error_cnt, usbh_error_count);
             usbh_power_cycle::media_state_error();
             media_print_pause();
+            media_print_resume();
             return;
         case GCodeFilter::State::Eof:
             // Stop print on EOF
