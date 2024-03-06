@@ -21,7 +21,7 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
 
     static constexpr const char *txt_unfinished_selftest = N_("Please complete Calibrations & Tests before using the printer.");
     static constexpr const char *txt_fil_not_detected = N_("Filament not detected. Load filament now?\nSelect NO to cancel the print.\nSelect DISABLE FS to disable the filament sensor and continue print.");
-    static constexpr const char *txt_fil_detected_mmu = N_("Filament detected. Unload filament now? Select NO to cancel.");
+    static constexpr const char *txt_fil_detected_mmu = N_("Filament detected. Unload filament now? Select NO to start the print with the currently loaded filament.");
 
 #if defined(USE_ST7789)
     static constexpr const char *txt_new_fw_available = N_("New FW available");
