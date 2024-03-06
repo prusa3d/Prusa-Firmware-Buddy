@@ -783,6 +783,13 @@ Errors:
     id: "DIFFERENT_FW_REQUIRED"
     approved: true
 
+  - code: "XX702"
+    printers: [MK4]
+    title: "Cold Pull"
+    text: "Next steps require user cooperation, please read the link first."
+    id: "COLD_PULL_INTRO"
+    approved: true
+
   - code: "XX801"
     title: ""
     text: ""
