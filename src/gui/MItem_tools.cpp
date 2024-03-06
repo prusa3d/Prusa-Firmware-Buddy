@@ -154,30 +154,20 @@ MI_MESH_BED::MI_MESH_BED()
 }
 
 void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
-    Response response = Response::No;
-    do {
-        // home if we repeat MBL, nozzle may be in different position than expected
-        if (!marlin_server::all_axes_homed() || response == Response::Yes) {
-            marlin_client::event_clr(marlin_server::Event::CommandBegin);
-            marlin_client::gcode("G28");
-            while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
-                marlin_client::loop();
-            }
-            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
-        }
-        response = Response::No;
+    if (!marlin_server::all_axes_homed()) {
         marlin_client::event_clr(marlin_server::Event::CommandBegin);
-        marlin_client::gcode("G29");
+        marlin_client::gcode("G28");
         while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
             marlin_client::loop();
         }
-        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
-
-        if (marlin_client::error(MARLIN_ERR_ProbingFailed)) {
-            marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
-            response = MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo);
-        }
-    } while (response != Response::No);
+        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
+    }
+    marlin_client::event_clr(marlin_server::Event::CommandBegin);
+    marlin_client::gcode("G29");
+    while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
+        marlin_client::loop();
+    }
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
 /*****************************************************************************/

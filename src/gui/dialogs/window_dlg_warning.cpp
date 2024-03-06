@@ -21,7 +21,7 @@ DialogWarning::DialogWarning(fsm::BaseData data)
     : AddSuperWindow<IDialogMarlin>(GuiDefaults::RectScreenBody)
     , icon(this, iconRect, &img::warning_48x48)
     , text(this, textRect, is_multiline::yes, is_closed_on_click_t::yes, _(icon_text[get_type(data)].text))
-    , button(this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), getPhaseWarning(data)) {
+    , button(this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), GetEnumFromPhaseIndex<PhasesWarning>(data.GetPhase())) {
     CaptureNormalWindow(button);
 
     if (icon_text[get_type(data)].icon) {
@@ -34,17 +34,6 @@ DialogWarning::DialogWarning(fsm::BaseData data)
         text.SetRect(textRectNoIcon);
     }
 #endif
-}
-
-// Different button configurations (Warning has only 'Continue')
-PhasesWarning DialogWarning::getPhaseWarning(fsm::BaseData data) {
-    WarningType wtype = static_cast<WarningType>(*data.GetData().data());
-    switch (wtype) {
-    case WarningType::EnclosureFilterExpiration:
-        return PhasesWarning::EnclosureFilterExpiration;
-    default:
-        return PhasesWarning::Warning;
-    }
 }
 
 DialogWarning::types DialogWarning::get_type(fsm::BaseData data) {
@@ -95,8 +84,15 @@ DialogWarning::types DialogWarning::get_type(fsm::BaseData data) {
     case WarningType::EnclosureFanError:
         return EnclosureFanError;
 #endif /* XL_ENCLOSURE_SUPPORT */
-    default:
-        assert(false);
-        return count_;
+#if HAS_BED_PROBE
+    case WarningType::ProbingFailed:
+        return ProbingFailed;
+#endif
+#if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
+    case WarningType::NozzleCleaningFailed:
+        return NozzleCleaningFailed;
+#endif
     }
+    assert(false);
+    return count_;
 }

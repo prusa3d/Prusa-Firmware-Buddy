@@ -35,7 +35,6 @@ static constexpr uint8_t max_retries = 5;
 // client
 typedef struct _marlin_client_t {
     EventMask events; // event mask
-    uint64_t errors;
 
     uint32_t ack; // cached ack value from last Acknowledge event
     uint32_t command; // processed command (G28,G29,M701,M702,M600)
@@ -78,7 +77,6 @@ void init() {
         client->id = client_id;
         client->events = 0;
         marlin_clients++;
-        client->errors = 0;
         client->command = ftrstd::to_underlying(Cmd::NONE);
         client->fsm_cb = NULL;
         client->message_cb = NULL;
@@ -287,43 +285,6 @@ int event_clr(Event evt_id) {
 uint64_t events() {
     marlin_client_t *client = _client_ptr();
     return (client) ? client->events : 0;
-}
-
-int error(uint8_t err_id) {
-    int ret = 0;
-    marlin_client_t *client = _client_ptr();
-    uint64_t msk = (uint64_t)1 << err_id;
-    if (client) {
-        ret = (client->errors & msk) ? 1 : 0;
-    }
-    return ret;
-}
-
-int error_set(uint8_t err_id) {
-    int ret = 0;
-    marlin_client_t *client = _client_ptr();
-    uint64_t msk = (uint64_t)1 << err_id;
-    if (client) {
-        ret = (client->errors & msk) ? 1 : 0;
-        client->errors |= msk;
-    }
-    return ret;
-}
-
-int error_clr(uint8_t err_id) {
-    int ret = 0;
-    marlin_client_t *client = _client_ptr();
-    uint64_t msk = (uint64_t)1 << err_id;
-    if (client) {
-        ret = (client->errors & msk) ? 1 : 0;
-        client->errors &= ~msk;
-    }
-    return ret;
-}
-
-uint64_t errors() {
-    marlin_client_t *client = _client_ptr();
-    return (client) ? client->errors : 0;
 }
 
 void do_babysteps_Z(float offs) {
@@ -540,9 +501,6 @@ static bool receive_and_process_client_message(marlin_client_t *client, TickType
 
     client->events |= make_mask(client_event.event);
     switch (client_event.event) {
-    case Event::Error:
-        client->errors |= MARLIN_ERR_MSK(client_event.usr32);
-        break;
     case Event::CommandBegin:
         client->command = client_event.usr32;
         break;

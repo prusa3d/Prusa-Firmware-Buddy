@@ -31,8 +31,6 @@ if(BOARD MATCHES ".*BUDDY")
             language_eeprom.cpp
             lfn.cpp
             marlin_client.cpp
-            marlin_errors.cpp
-            marlin_events.cpp
             marlin_log_component.cpp
             marlin_print_preview.cpp
             marlin_server.cpp
@@ -115,7 +113,6 @@ elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
             i2c.cpp
             marlin_client.cpp
             marlin_errors.cpp
-            marlin_events.cpp
             marlin_log_component.cpp
             marlin_print_preview.cpp
             marlin_server.cpp

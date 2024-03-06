@@ -176,7 +176,6 @@ screen_printing_data_t::screen_printing_data_t()
     , end_result_body(this, end_result_body_rect) // safe to pass even if order changes because EndScreen constructor doesn't use it (therefore guaranteed to be valid)
 #endif // USE_<display>
 {
-    marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
     // we will handle HELD_RELEASED event in this window
     DisableLongHoldScreenAction();
 
@@ -259,30 +258,6 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         waiting_for_abort = false;
         return;
     }
-
-#if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
-    if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_client::error(MARLIN_ERR_NozzleCleaningFailed)) {
-        marlin_client::error_clr(MARLIN_ERR_NozzleCleaningFailed);
-        if (MsgBox(_("Nozzle cleaning failed."), Responses_RetryAbort) == Response::Retry) {
-            marlin_client::print_resume();
-        } else {
-            marlin_client::print_abort();
-            return;
-        }
-    }
-#endif
-
-#if HAS_BED_PROBE
-    if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_client::error(MARLIN_ERR_ProbingFailed)) {
-        marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
-        if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
-            marlin_client::print_resume();
-        } else {
-            marlin_client::print_abort();
-            return;
-        }
-    }
-#endif
 
     change_print_state();
 

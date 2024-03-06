@@ -361,21 +361,30 @@ namespace {
         }
     }
     void handle_warnings() {
-        // FIXME: This is the simplest solution that works.
-        // Maybe we should make a FSM instance, like the Selftest above, right now it does not really do much, but eventually
-        // we should maybe also use the same FSM (renamed) to display the errors also, make it two phases of the same FSM, or another FSM?
-        //
         // Is the cheking for existence of the FSM at all the levels the right way, or should we have some flag
         // (like SelftestInstance().IsInProgress()) and do it based on that??
         if (fsm_event_queues.GetFsm0() == ClientFSM::Warning || fsm_event_queues.GetFsm1() == ClientFSM::Warning || fsm_event_queues.GetFsm2() == ClientFSM::Warning) {
-            if (auto response = marlin_server::get_response_from_phase(PhasesWarning::EnclosureFilterExpiration); response != Response::_none) {
+            if (get_response_from_phase(PhasesWarning::Warning) != Response::_none) {
+                FSM_DESTROY__LOGGING(Warning);
+            } else if (auto response = get_response_from_phase(PhasesWarning::EnclosureFilterExpiration); response != Response::_none) {
                 FSM_DESTROY__LOGGING(Warning);
 #if XL_ENCLOSURE_SUPPORT()
                 xl_enclosure.setUpReminder(response);
 #endif
-            }
-            if (marlin_server::get_response_from_phase(PhasesWarning::Warning) != Response::_none) {
+            } else if (auto resp = get_response_from_phase(PhasesWarning::ProbingFailed); resp != Response::_none) {
                 FSM_DESTROY__LOGGING(Warning);
+                if (resp == Response::Yes) {
+                    print_resume();
+                } else {
+                    print_abort();
+                }
+            } else if (auto resp = get_response_from_phase(PhasesWarning::NozzleCleaningFailed); resp != Response::_none) {
+                FSM_DESTROY__LOGGING(Warning);
+                if (resp == Response::Retry) {
+                    print_resume();
+                } else {
+                    print_abort();
+                }
             }
         }
     }
@@ -536,7 +545,7 @@ static void cycle() {
 
     // Filter expiration, expiration warning, 5 day postponed reminder
     if (notif.has_value()) {
-        set_warning(notif.value()); // Notify the GUI about the warning
+        set_warning(*notif, *notif == WarningType::EnclosureFilterExpiration ? PhasesWarning::EnclosureFilterExpiration : PhasesWarning::Warning); // Notify the GUI about the warning
     }
 
 #endif
@@ -2492,7 +2501,6 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
                 break;
             // unused events
             case Event::PrinterKilled:
-            case Event::Error:
             case Event::PlayTone:
             case Event::UserConfirmRequired:
             case Event::Message:
@@ -2884,7 +2892,7 @@ void _fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::BaseDa
     _send_notify_event(Event::FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
-void set_warning(WarningType type) {
+void set_warning(WarningType type, PhasesWarning phase) {
     _log_event(LOG_SEVERITY_WARNING, &LOG_COMPONENT(MarlinServer), "Warning type %d set", (int)type);
     log_info(MarlinServer, "WARNING: %" PRIu32, ftrstd::to_underlying(type));
 
@@ -2893,7 +2901,7 @@ void set_warning(WarningType type) {
     memcpy(data.data(), &type, sizeof(data));
     // We don't want to overlay two warnings and the new one is likely more important.
     clear_warnings();
-    FSM_CREATE_WITH_DATA__LOGGING(Warning, PhasesWarning::Warning, data);
+    FSM_CREATE_WITH_DATA__LOGGING(Warning, phase, data);
 }
 
 /*****************************************************************************/
@@ -3066,7 +3074,7 @@ void onUserConfirmRequired(const char *const msg) {
 }
 
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
-static void mbl_error(int error_code) {
+static void mbl_error(WarningType warning, PhasesWarning phase) {
     if (server.print_state != State::Printing && server.print_state != State::Pausing_Begin) {
         return;
     }
@@ -3075,7 +3083,7 @@ static void mbl_error(int error_code) {
     /// pause immediatelly to save current file position
     pause_print(Pause_Type::Repeat_Last_Code);
     server.mbl_failed = true;
-    _send_notify_event(Event::Error, error_code, 0);
+    set_warning(warning, phase);
 }
 #endif
 
@@ -3091,7 +3099,8 @@ void onStatusChanged(const char *const msg) {
     if (msg != nullptr && strcmp(msg, "Prusa-mini Ready.") == 0) {
     } // TODO
     else if (strcmp(msg, "TMC CONNECTION ERROR") == 0) {
-        _send_notify_event(Event::Error, MARLIN_ERR_TMCDriverError, 0);
+        // FIXME: Nobody was consuming this at all, so disabled.
+        //_send_notify_event(Event::Error, MARLIN_ERR_TMCDriverError, 0);
     } else {
         if (!is_abort_state(server.print_state)) {
             pending_err_msg = false;
@@ -3100,13 +3109,13 @@ void onStatusChanged(const char *const msg) {
 /// FIXME: Message through Marlin's UI could be delayed and we won't pause print at the MBL command
 #if HAS_BED_PROBE
             if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0) {
-                mbl_error(MARLIN_ERR_ProbingFailed);
+                mbl_error(WarningType::ProbingFailed, PhasesWarning::ProbingFailed);
                 pending_err_msg = true;
             }
 #endif
 #if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
             if (strcmp(msg, MSG_ERR_NOZZLE_CLEANING_FAILED) == 0) {
-                mbl_error(MARLIN_ERR_NozzleCleaningFailed);
+                mbl_error(WarningType::NozzleCleaningFailed, PhasesWarning::NozzleCleaningFailed);
                 pending_err_msg = true;
             }
 #endif

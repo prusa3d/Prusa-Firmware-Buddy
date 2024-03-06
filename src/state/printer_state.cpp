@@ -10,21 +10,17 @@
 
 using namespace marlin_server;
 using std::make_optional;
+using std::make_tuple;
 using std::nullopt;
 using std::optional;
+using std::tuple;
 
 namespace printer_state {
 namespace {
-    // Same as the one in window_msgbox.hpp, but that dependency would lead "the wrong way", so having a copy.
-    constexpr PhaseResponses responses_continue = { Response::Continue, Response::_none, Response::_none, Response::_none };
-
-    StateWithDialog get_print_state(State state, bool ready, optional<ErrCode> dialog_code, uint32_t fsm_gen) {
+    StateWithDialog get_print_state(State state, bool ready, optional<ErrCode> dialog_code, const Response *buttons, uint32_t fsm_gen) {
         optional<uint32_t> dialog_id;
-        const Response *buttons = nullptr;
         if (dialog_code.has_value()) {
             dialog_id = fsm_gen;
-            // Dialog_code is set only for warnings currently, and warnings have just the continue button.
-            buttons = responses_continue.data();
         }
         switch (state) {
         case State::PrintPreviewQuestions:
@@ -183,7 +179,69 @@ namespace {
         }
     }
 
-    optional<ErrCode> warning_attention(marlin_vars_t::FSMChange &fsm_change) {
+    ErrCode warningToErr(WarningType wtype) {
+        switch (wtype) {
+        case WarningType::HotendFanError:
+            return ErrCode::CONNECT_HOTEND_FAN_ERROR;
+        case WarningType::PrintFanError:
+            return ErrCode::CONNECT_PRINT_FAN_ERROR;
+        case WarningType::HotendTempDiscrepancy:
+            return ErrCode::CONNECT_HOTEND_TEMP_DISCREPANCY;
+        case WarningType::HeatersTimeout:
+            return ErrCode::CONNECT_HEATERS_TIMEOUT;
+        case WarningType::NozzleTimeout:
+            return ErrCode::CONNECT_NOZZLE_TIMEOUT;
+        case WarningType::USBFlashDiskError:
+            return ErrCode::CONNECT_USB_FLASH_DISK_ERROR;
+        case WarningType::HeatBreakThermistorFail:
+            return ErrCode::CONNECT_HEATBREAK_THERMISTOR_FAIL;
+#if ENABLED(POWER_PANIC)
+        case WarningType::HeatbedColdAfterPP:
+            return ErrCode::CONNECT_POWER_PANIC_COLD_BED;
+#endif
+#if ENABLED(CALIBRATION_GCODE)
+        case WarningType::NozzleDoesNotHaveRoundSection:
+            return ErrCode::CONNECT_NOZZLE_DOES_NOT_HAVE_ROUND_SECTION;
+#endif
+        case WarningType::NotDownloaded:
+            return ErrCode::CONNECT_NOT_DOWNLOADED;
+        case WarningType::BuddyMCUMaxTemp:
+            return ErrCode::CONNECT_BUDDY_MCU_MAX_TEMP;
+#if HAS_DWARF()
+        case WarningType::DwarfMCUMaxTemp:
+            return ErrCode::CONNECT_DWARF_MCU_MAX_TEMP;
+#endif
+#if HAS_MODULARBED()
+        case WarningType::ModBedMCUMaxTemp:
+            return ErrCode::CONNECT_MOD_BED_MCU_MAX_TEMP;
+#endif
+#if HAS_BED_PROBE
+        case WarningType::ProbingFailed:
+            return ErrCode::CONNECT_PROBING_FAILED;
+#endif
+#if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
+        case WarningType::NozzleCleaningFailed:
+            return ErrCode::CONNECT_NOZZLE_CLEANING_FAILED;
+#endif
+#if _DEBUG
+        case WarningType::SteppersTimeout:
+            return ErrCode::CONNECT_STEPPERS_TIMEOUT;
+#endif
+#if XL_ENCLOSURE_SUPPORT()
+        case WarningType::EnclosureFanError:
+            return ErrCode::CONNECT_ENCLOSURE_FAN_ERROR;
+        case WarningType::EnclosureFilterExpirWarning:
+            return ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION_WARNING;
+        case WarningType::EnclosureFilterExpiration:
+            return ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION;
+#endif // XL_ENCLOSURE_SUPPORT
+        }
+
+        assert(false);
+        return ErrCode::ERR_UNDEF;
+    }
+
+    optional<tuple<ErrCode, const Response *>> warning_attention(marlin_vars_t::FSMChange &fsm_change) {
         fsm::Change *warning_change = nullptr;
         if (fsm_change.q0_change.get_fsm_type() == ClientFSM::Warning) {
             warning_change = &fsm_change.q0_change;
@@ -195,54 +253,10 @@ namespace {
 
         if (warning_change) {
             WarningType wtype = static_cast<WarningType>(*warning_change->get_data().GetData().data());
-            switch (wtype) {
-            case WarningType::HotendFanError:
-                return ErrCode::CONNECT_HOTEND_FAN_ERROR;
-            case WarningType::PrintFanError:
-                return ErrCode::CONNECT_PRINT_FAN_ERROR;
-            case WarningType::HotendTempDiscrepancy:
-                return ErrCode::CONNECT_HOTEND_TEMP_DISCREPANCY;
-            case WarningType::HeatersTimeout:
-                return ErrCode::CONNECT_HEATERS_TIMEOUT;
-            case WarningType::NozzleTimeout:
-                return ErrCode::CONNECT_NOZZLE_TIMEOUT;
-            case WarningType::USBFlashDiskError:
-                return ErrCode::CONNECT_USB_FLASH_DISK_ERROR;
-            case WarningType::HeatBreakThermistorFail:
-                return ErrCode::CONNECT_HEATBREAK_THERMISTOR_FAIL;
-            case WarningType::HeatbedColdAfterPP:
-                return ErrCode::CONNECT_POWER_PANIC_COLD_BED;
-#if ENABLED(CALIBRATION_GCODE)
-            case WarningType::NozzleDoesNotHaveRoundSection:
-                return ErrCode::CONNECT_NOZZLE_DOES_NOT_HAVE_ROUND_SECTION;
-#endif
-            case WarningType::NotDownloaded:
-                return ErrCode::CONNECT_NOT_DOWNLOADED;
-            case WarningType::BuddyMCUMaxTemp:
-                return ErrCode::CONNECT_BUDDY_MCU_MAX_TEMP;
-#if HAS_DWARF()
-            case WarningType::DwarfMCUMaxTemp:
-                return ErrCode::CONNECT_DWARF_MCU_MAX_TEMP;
-#endif
-#if HAS_MODULARBED()
-            case WarningType::ModBedMCUMaxTemp:
-                return ErrCode::CONNECT_MOD_BED_MCU_MAX_TEMP;
-#endif
-#if _DEBUG
-            case WarningType::SteppersTimeout:
-                return ErrCode::CONNECT_STEPPERS_TIMEOUT;
-#endif
-#if XL_ENCLOSURE_SUPPORT()
-            case WarningType::EnclosureFanError:
-                return ErrCode::CONNECT_ENCLOSURE_FAN_ERROR;
-            case WarningType::EnclosureFilterExpirWarning:
-                return ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION_WARNING;
-            case WarningType::EnclosureFilterExpiration:
-                return ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION;
-#endif // XL_ENCLOSURE_SUPPORT
-            default:
-                assert(false);
-            }
+            auto phase = GetEnumFromPhaseIndex<PhasesWarning>(warning_change->get_data().GetPhase());
+            const Response *buttons = ClientResponses::GetResponses(phase).data();
+            const ErrCode code(warningToErr(wtype));
+            return make_tuple(code, buttons);
         }
 
         return nullopt;
@@ -259,8 +273,9 @@ StateWithDialog get_state_with_dialog(bool ready) {
     optional<ErrCode> warning_err_code = nullopt;
     const Response *buttons = nullptr;
 
-    if (auto attention_code = warning_attention(fsm_change); attention_code.has_value()) {
-        switch (*attention_code) {
+    if (auto attention = warning_attention(fsm_change); attention.has_value()) {
+        auto [attention_code, attention_buttons] = *attention;
+        switch (attention_code) {
         // Note: We don't consider these attention, so just note the dialog code and slap
         // it on whatever state we decide, that the printer is in later.
         case ErrCode::CONNECT_NOZZLE_TIMEOUT:
@@ -268,13 +283,13 @@ StateWithDialog get_state_with_dialog(bool ready) {
 #if _DEBUG
         case ErrCode::CONNECT_STEPPERS_TIMEOUT:
 #endif
-            warning_err_code = *attention_code;
+            warning_err_code = attention_code;
             // All warnings are dialogs with just an Continue button.
-            buttons = responses_continue.data();
+            buttons = attention_buttons;
             break;
         default:
             // All warnings are dialogs with just an Continue button.
-            return StateWithDialog::attention(*attention_code, fsm_gen, responses_continue.data());
+            return StateWithDialog::attention(attention_code, fsm_gen, attention_buttons);
         }
     }
 
@@ -319,7 +334,7 @@ StateWithDialog get_state_with_dialog(bool ready) {
         break;
     }
 
-    return get_print_state(state, ready, warning_err_code, fsm_gen);
+    return get_print_state(state, ready, warning_err_code, buttons, fsm_gen);
 }
 
 bool remote_print_ready(bool preview_only) {

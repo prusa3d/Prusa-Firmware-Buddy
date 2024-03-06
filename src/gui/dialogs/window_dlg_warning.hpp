@@ -38,6 +38,12 @@ static constexpr const char *EnclosureFilterExpirWarningMsg = N_("The HEPA filte
 static constexpr const char *EnclosureFilterExpirationMsg = N_("The HEPA filter has expired. Change the HEPA filter before your next print. Visit prusa.io/xl-filter for more information.");
 static constexpr const char *EnclosureFanErrorMsg = N_("Enclosure fan not spinning. Check it for possible debris, then inspect the wiring.");
 #endif
+#if HAS_BED_PROBE
+static constexpr const char *ProbingFailedMsg = N_("Bed leveling failed. Try again?");
+#endif
+#if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
+static constexpr const char *NozzleCleaningFailedMsg = N_("Nozzle cleaning failed.");
+#endif
 
 static_assert(sizeof(fsm::PhaseData) == sizeof(WarningType), "If this does not hold, we need to revise how we send the type through teh fsm machinery.");
 class DialogWarning : public AddSuperWindow<IDialogMarlin> {
@@ -64,6 +70,12 @@ class DialogWarning : public AddSuperWindow<IDialogMarlin> {
 #endif
         NotDownloaded,
         BuddyMCUMaxTemp,
+#if HAS_BED_PROBE
+        ProbingFailed,
+#endif
+#if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
+        NozzleCleaningFailed,
+#endif
 #if HAS_DWARF()
         DwarfMCUMaxTemp,
 #endif /* HAS_DWARF() */
@@ -79,7 +91,6 @@ class DialogWarning : public AddSuperWindow<IDialogMarlin> {
     };
 
     types get_type(fsm::BaseData data);
-    PhasesWarning getPhaseWarning(fsm::BaseData data);
 
     struct icon_text {
         const img::Resource *icon;
@@ -107,6 +118,12 @@ class DialogWarning : public AddSuperWindow<IDialogMarlin> {
         { nullptr, NotDownloadedMsg }, // NotDownloaded -- Text is too long - ST7789 has to have no icon
 #endif
         { &img::warning_48x48, BuddyMCUMaxTempMsg }, // BuddyMCUMaxTemp
+#if HAS_BED_PROBE
+        { nullptr, ProbingFailedMsg },
+#endif
+#if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
+        { nullptr, NozzleCleaningFailedMsg },
+#endif
 #if HAS_DWARF()
         { &img::warning_48x48, DwarfMCUMaxTempMsg }, // DwarfMCUMaxTemp
 #endif /* HAS_DWARF() */

@@ -386,9 +386,13 @@ enum class PhasesQuickPause : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhasesQuickPause) { return ClientFSM::QuickPause; }
 
 enum class PhasesWarning : PhaseUnderlyingType {
+    // Generic warning with a Continue button, just for dismissing it.
     Warning,
+    // These have some actual buttons that need to be handled.
     EnclosureFilterExpiration,
-    _last = EnclosureFilterExpiration
+    ProbingFailed,
+    NozzleCleaningFailed,
+    _last = NozzleCleaningFailed,
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesWarning) { return ClientFSM::Warning; }
 
@@ -734,6 +738,8 @@ class ClientResponses {
     static constexpr PhaseResponses WarningResponses[] = {
         { Response::Continue }, // Warning
         { Response::Ignore, Response::Postpone5Days, Response::Done }, // Enclosure filter expiration
+        { Response::Yes, Response::No }, // ProbingFailed
+        { Response::Retry, Response::Abort }, // NozzleCleaningFailed
     };
     static_assert(std::size(ClientResponses::WarningResponses) == CountPhases<PhasesWarning>());
 

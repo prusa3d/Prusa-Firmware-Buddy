@@ -1,7 +1,6 @@
 #pragma once
 
 #include "marlin_events.h"
-#include "marlin_errors.h"
 #include "client_fsm_types.h"
 #include "encoded_fsm_response.hpp"
 #include "marlin_vars.hpp"
@@ -67,18 +66,6 @@ int event_clr(marlin_server::Event evt_id);
 
 // returns current event status for all events as 64bit mask
 uint64_t events();
-
-// returns current error status for err_id
-int error(uint8_t err_id);
-
-// returns current error status for err_id and set error
-int error_set(uint8_t err_id);
-
-// returns current error status for err_id and clear error
-int error_clr(uint8_t err_id);
-
-// returns current error status for all errors as 64bit mask
-uint64_t errors();
 
 // returns number of commands in gcode queue
 uint8_t get_gqueue();

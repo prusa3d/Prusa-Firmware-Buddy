@@ -3,6 +3,7 @@
 #include <option/has_dwarf.h>
 #include <option/has_modularbed.h>
 #include <option/has_toolchanger.h>
+#include <option/has_loadcell.h>
 
 #include <inc/MarlinConfig.h>
 
@@ -82,7 +83,9 @@ enum class WarningType : uint32_t {
     SteppersTimeout,
     #endif
     USBFlashDiskError,
+    #if ENABLED(POWER_PANIC)
     HeatbedColdAfterPP,
+    #endif
     HeatBreakThermistorFail,
     #if ENABLED(CALIBRATION_GCODE)
     NozzleDoesNotHaveRoundSection,
@@ -94,11 +97,19 @@ enum class WarningType : uint32_t {
     #if HAS_MODULARBED()
     ModBedMCUMaxTemp,
     #endif
-    NotDownloaded,
+    #if HAS_BED_PROBE
+    ProbingFailed,
+    #endif
+    #if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
+    NozzleCleaningFailed,
+    #endif
+    #if XL_ENCLOSURE_SUPPORT()
     EnclosureFilterExpirWarning,
     EnclosureFilterExpiration,
     EnclosureFanError,
-    _last = EnclosureFanError
+    #endif
+    NotDownloaded,
+    _last = NotDownloaded
 };
 
 // Open dialog has a parameter because I need to set a caption of change filament dialog (load / unload / change).

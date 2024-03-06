@@ -10,7 +10,6 @@
 
 #include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "marlin_events.h"
-#include "marlin_errors.h"
 #include "client_fsm_types.h"
 #include "marlin_server_extended_fsm_data.hpp"
 
@@ -373,7 +372,7 @@ public:
 
 uint8_t get_var_sd_percent_done();
 void set_var_sd_percent_done(uint8_t value);
-void set_warning(WarningType type);
+void set_warning(WarningType type, PhasesWarning phase = PhasesWarning::Warning);
 
 #if ENABLED(AXIS_MEASURE)
 // Sets length of X and Y axes for crash recovery

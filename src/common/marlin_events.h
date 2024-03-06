@@ -29,7 +29,6 @@ enum class Event : uint8_t {
     // Marlin events - other
     StartProcessing, // sent from marlin_server_start_processing
     StopProcessing, // sent from marlin_server_stop_processing
-    Error, // sent onStatusChanged etc.
     CommandBegin, //
     CommandEnd, //
     Message, //
@@ -68,8 +67,6 @@ enum class Cmd : uint32_t {
     M702 = M + 702,
     M876 = M + 876,
 };
-
-const char *marlin_events_get_name(Event evt_id);
 
 /**
  * @brief Parameter to start printing.

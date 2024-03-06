@@ -952,7 +952,6 @@ Errors:
     text: ""
     id: "MOD_BED_MCU_MAX_TEMP"
     type: "CONNECT"
-    
   - code: "XX827"
     title: ""
     text: ""
