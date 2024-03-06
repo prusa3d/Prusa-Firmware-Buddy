@@ -108,7 +108,7 @@ void HAL_HCD_PortEnabled_Callback(HCD_HandleTypeDef *hhcd) {
 
 void HAL_HCD_PortDisabled_Callback(HCD_HandleTypeDef *hhcd) {
     USBH_LL_PortDisabled(static_cast<USBH_HandleTypeDef *>(hhcd->pData));
-    xTimerChangePeriodFromISR(USBH_restart_timer, 10, nullptr);
+    usbh_power_cycle::port_disabled();
 }
 
 /*******************************************************************************

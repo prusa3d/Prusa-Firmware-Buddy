@@ -2,13 +2,25 @@
 #define __USB_HOST__H__
 
 #ifdef __cplusplus
+
+namespace usbh_power_cycle {
+
+void init();
+
+/// callback from media_loop when printing is paused
+void media_state_error();
+
+/// callback from USBH_MSC_Worker when an io error occurs
+void io_error();
+
+/// callback from isr, it is called when the USB is disconnected or when USB flash is deadlocked
+void port_disabled();
+} // namespace usbh_power_cycle
+
 extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
 #include "usbh_def.h"
-#include "stm32f4xx.h"
-#include "stm32f4xx_hal.h"
 
 typedef enum {
     APPLICATION_IDLE = 0,

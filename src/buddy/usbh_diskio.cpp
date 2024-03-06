@@ -148,6 +148,9 @@ static void USBH_MSC_WorkerTask(void const *) {
                 }
             }
 
+            if (request->result != USBH_OK) {
+                usbh_power_cycle::io_error();
+            }
             if (request->callback) {
                 request->callback(request->result, request->callback_param1, request->callback_param2);
             }

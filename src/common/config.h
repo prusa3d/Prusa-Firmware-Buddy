@@ -15,7 +15,7 @@
 
 // marlin api config
 enum {
-    MARLIN_MAX_CLIENTS = 4, // maximum number of clients registered in same time
+    MARLIN_MAX_CLIENTS = 6, // maximum number of clients registered in same time
     MARLIN_MAX_REQUEST = 110, // maximum request length in chars
 };
 

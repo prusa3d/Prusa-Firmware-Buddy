@@ -21,6 +21,7 @@
 #include "gcode_info.hpp"
 #include <ccm_thread.hpp>
 #include <transfers/transfer.hpp>
+#include "usb_host.h"
 
 using transfers::Transfer;
 using State = transfers::PartialFile::State;
@@ -515,8 +516,8 @@ void media_loop(void) {
             // Pause in case of some issue
             usbh_error_count++;
             metric_record_integer(&usbh_error_cnt, usbh_error_count);
+            usbh_power_cycle::media_state_error();
             media_print_pause();
-            media_print_resume();
             return;
         case GCodeFilter::State::Eof:
             // Stop print on EOF
