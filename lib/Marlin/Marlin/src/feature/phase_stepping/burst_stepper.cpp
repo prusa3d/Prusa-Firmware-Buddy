@@ -81,6 +81,7 @@ static std::array<GpioEventBuffer<GPIO_BUFFER_SIZE>, 2> porta_event_buffers;
 static GpioEventBuffer<GPIO_BUFFER_SIZE>
     *setup_buffer = &porta_event_buffers[0],
     *fire_buffer = &porta_event_buffers[1];
+static std::atomic<bool> burst_busy = false;
 
 static void setup_pinout_1() {
     step_gpio_port = GPIOA;
@@ -154,8 +155,12 @@ FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
     axis_was_set[axis] = true;
 }
 
+FORCE_OFAST static bool burst_dma_busy() {
+    return (BURST_DMA->NDTR > 0) && (BURST_DMA->CR & DMA_SxCR_EN_Msk);
+}
+
 FORCE_OFAST static void setup_and_fire_dma() {
-    assert(!busy());
+    assert(!burst_dma_busy());
     BURST_DMA->CR = BURST_DMA->CR & (~DMA_SxCR_EN_Msk);
     BURST_DMA->NDTR = fire_buffer->max_event_count();
     BURST_DMA->PAR = reinterpret_cast<uint32_t>(&step_gpio_port->BSRR);
@@ -168,11 +173,11 @@ FORCE_OFAST static void setup_and_fire_dma() {
 }
 
 FORCE_OFAST bool burst_stepping::busy() {
-    return (BURST_DMA->NDTR > 0) && (BURST_DMA->CR & DMA_SxCR_EN_Msk);
+    return burst_busy;
 }
 
 FORCE_OFAST bool burst_stepping::fire() {
-    if (busy()) {
+    if (burst_dma_busy()) {
         // old burst didn't finish yet, skip this cycle
         return false;
     }
@@ -191,7 +196,8 @@ FORCE_OFAST bool burst_stepping::fire() {
     }
 
     // setup a new burst
-    if (setup_buffer->max_event_count()) {
+    burst_busy = setup_buffer->max_event_count();
+    if (burst_busy) {
         std::swap(setup_buffer, fire_buffer);
         setup_and_fire_dma();
         setup_buffer->clear();
