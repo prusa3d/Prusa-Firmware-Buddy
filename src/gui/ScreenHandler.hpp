@@ -59,8 +59,6 @@ public:
 
     void ClosePrinting();
 
-    bool ConsumeClose(); // dialog can erase close signal and close itself
-
     size_t Count() { return stack_iterator - stack.begin(); } // count of closed screens under current one
 
     void Draw();

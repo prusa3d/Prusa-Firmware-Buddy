@@ -205,13 +205,6 @@ void Screens::ClosePrinting() {
     creator_node.MakeEmpty();
 }
 
-// used to close blocking dialogs
-bool Screens::ConsumeClose() {
-    bool ret = close | close_all; // close_all must also close dialogs
-    close = false; // close_all cannot be consumed
-    return ret;
-}
-
 void Screens::PushBeforeCurrent(screen_node screen_creator) {
     if (stack_iterator != stack.end()) {
         (*(stack_iterator + 1)) = *stack_iterator; // copy current creator
@@ -386,7 +379,13 @@ void Screens::gui_loop_until_dialog_closed(std::function<void()> callback) {
     assert(screen);
     screen_init_variant underlying_screen_state = screen->GetCurrentState();
 
-    while (!ConsumeClose()) {
+    for (;;) {
+        const bool dialog_closed = close || close_all;
+        close = false; // Note: We reset close flag because it is reused for closing both dialogs and screens
+        if (dialog_closed) {
+            break;
+        }
+
         gui::TickLoop();
         gui_loop();
         if (callback) {
