@@ -171,6 +171,8 @@ void notify_server_about_encoder_move();
 
 void notify_server_about_knob_click();
 
+void set_warning(WarningType type);
+
 // returns true if printer is printing, else false;
 bool is_printing();
 

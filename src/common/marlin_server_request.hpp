@@ -32,6 +32,7 @@ struct __attribute__((packed)) Request {
         UncancelObjectID,
         CancelCurrentObject,
         MoveMultiple,
+        SetWarning
     };
 
     /// if it is set to 1, then the marlin server sends an acknowledge (default)
@@ -75,6 +76,7 @@ struct __attribute__((packed)) Request {
             marlin_server::PreviewSkipIfAble skip_preview;
             char filename[FILE_PATH_BUFFER_LEN];
         } print_start; // Type::PrintStart
+        WarningType warning_type;
     };
 };
 static_assert(std::is_trivial_v<Request>);

@@ -478,6 +478,13 @@ void notify_server_about_knob_click() {
     _send_request_id_to_server_and_wait(Request::Type::KnobClick);
 }
 
+void set_warning(WarningType type) {
+    Request request;
+    request.type = Request::Type::SetWarning;
+    request.warning_type = type;
+    _send_request_to_server_noreply(request);
+}
+
 //-----------------------------------------------------------------------------
 // responses from client finite state machine (like button click)
 void FSM_response_internal(EncodedFSMResponse encoded_fsm_response) {
