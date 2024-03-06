@@ -26,6 +26,3 @@ protected:
     bool consumeCloseFlag() const;
     void guiLoop() const;
 };
-
-void create_blocking_dialog_from_normal_window(window_t &dlg);
-void create_blocking_dialog(IDialog &dlg);
