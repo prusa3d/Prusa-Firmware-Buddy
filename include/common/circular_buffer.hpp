@@ -22,7 +22,7 @@ private:
     std::array<T, N> buffer;
 
 public:
-    bool try_put(const T &item) {
+    [[nodiscard]] bool try_put(const T &item) {
         const size_t new_write_index = (write_index + 1) % N;
         if (new_write_index == read_index) {
             return false; // buffer is full
@@ -32,7 +32,7 @@ public:
         return true;
     }
 
-    bool try_get(T &item) {
+    [[nodiscard]] bool try_get(T &item) {
         if (read_index == write_index) {
             return false; // buffer is empty
         }
