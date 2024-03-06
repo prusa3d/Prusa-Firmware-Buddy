@@ -129,6 +129,11 @@ public:
         return IsScreenOpened<T>() || IsScreenClosed<T>();
     }
 
+    // This function is used to keep gui responsive when showing some dialog.
+    // TODO: Perhaps it would be better to create the required dialog
+    //       on the actual stack of screens.
+    void gui_loop_until_dialog_closed(std::function<void()> callback = {});
+
 private:
     void InnerLoop(); // call inside Loop of this class
 

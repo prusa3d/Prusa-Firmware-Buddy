@@ -137,6 +137,6 @@ void DialogMoveZ::Show() {
     // when blocking dialog is open, the nesting is larger than one
     if (!DialogShown && gui_get_nesting() <= 1) {
         DialogMoveZ moveZ;
-        moveZ.MakeBlocking();
+        Screens::Access()->gui_loop_until_dialog_closed();
     }
 }

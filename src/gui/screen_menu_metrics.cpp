@@ -77,7 +77,7 @@ Response MetricsInfoMsgbox(string_view_utf8 txt) {
     const PhaseTexts labels = { get_response_text(rsp) };
     MsgBoxBase msgbox(GuiDefaults::RectScreen, { rsp }, 0, &labels, txt);
     msgbox.set_text_font(GuiDefaults::FontMenuSpecial);
-    msgbox.MakeBlocking();
+    Screens::Access()->gui_loop_until_dialog_closed();
     return msgbox.GetResult();
 }
 

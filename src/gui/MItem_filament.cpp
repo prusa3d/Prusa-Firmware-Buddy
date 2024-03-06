@@ -26,7 +26,7 @@
                 d.DisableNotAvailable(available_for_tool);
             }
             d.Preselect(prusa_toolchanger.get_active_tool_nr() + 1); // PickAndGo has return;
-            d.MakeBlocking();
+            Screens::Access()->gui_loop_until_dialog_closed();
             result = d.get_result();
         }
 

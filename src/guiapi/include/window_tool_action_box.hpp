@@ -286,6 +286,6 @@ public:
 template <ToolBox::ActionMenuC ToolMenuT>
 ToolBox::DialogResult ToolActionBox() {
     ToolBox::DialogToolActionBox<ToolMenuT> d;
-    d.MakeBlocking();
+    Screens::Access()->gui_loop_until_dialog_closed();
     return d.get_result();
 }

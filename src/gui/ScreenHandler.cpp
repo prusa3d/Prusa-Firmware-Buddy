@@ -380,3 +380,19 @@ void Screens::InnerLoop() {
 void Screens::SetDisplayReinitialized() {
     display_reinitialized = true;
 }
+
+void Screens::gui_loop_until_dialog_closed(std::function<void()> callback) {
+    screen_t *screen = Get();
+    assert(screen);
+    screen_init_variant underlying_screen_state = screen->GetCurrentState();
+
+    while (!ConsumeClose()) {
+        gui::TickLoop();
+        gui_loop();
+        if (callback) {
+            callback();
+        }
+    }
+
+    screen->InitState(underlying_screen_state);
+}

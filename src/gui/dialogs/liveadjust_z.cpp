@@ -248,5 +248,5 @@ void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
 /// static
 void LiveAdjustZ::Show() {
     LiveAdjustZ liveadjust;
-    liveadjust.MakeBlocking();
+    Screens::Access()->gui_loop_until_dialog_closed();
 }

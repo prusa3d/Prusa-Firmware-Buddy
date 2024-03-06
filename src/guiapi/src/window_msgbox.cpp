@@ -376,7 +376,7 @@ Response MsgBoxBuilder::exec() const {
             msgbox.set_title_alignment(Align_t::Center());
         }
 
-        msgbox.MakeBlocking(loop_callback);
+        Screens::Access()->gui_loop_until_dialog_closed(loop_callback);
         return msgbox.GetResult();
     };
 

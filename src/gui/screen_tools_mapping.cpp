@@ -281,7 +281,7 @@ Response tools_mapping_box(bool &querying_user, string_view_utf8 msg, PhaseRespo
     const PhaseTexts labels = { get_response_text(responses[0]), get_response_text(responses[1]), get_response_text(responses[2]), get_response_text(responses[3]) };
     MsgBoxBase msgbox(GuiDefaults::DialogFrameRect, responses, default_button, &labels, msg, is_multiline::yes);
     msgbox.set_text_alignment(Align_t::Center());
-    msgbox.MakeBlocking();
+    Screens::Access()->gui_loop_until_dialog_closed();
     return msgbox.GetResult();
 }
 

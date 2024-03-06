@@ -291,7 +291,6 @@ void DialogChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
 
 bool ChangeAllFilamentsBox(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors) {
     dialog_change_all_filaments::DialogChangeAllFilaments d { default_selections, exit_on_media, colors };
-    d.MakeBlocking();
-
+    Screens::Access()->gui_loop_until_dialog_closed();
     return d.was_exited_by_media();
 }
