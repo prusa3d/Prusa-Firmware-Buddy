@@ -219,7 +219,7 @@ CSelftest::CSelftest()
     , pYAxis(nullptr)
     , pZAxis(nullptr)
     , pBed(nullptr)
-    , pSock(nullptr) {
+    , pHotendSpecify(nullptr) {
 }
 
 bool CSelftest::IsInProgress() const {
@@ -365,7 +365,7 @@ void CSelftest::Loop() {
         break;
     case stsHotendSpecify:
         if (m_result.tools[0].nozzle == TestResult_Failed) {
-            if (phase_hotend_specify(pSock, hotend_config)) {
+            if (phase_hotend_specify(pHotendSpecify, hotend_config)) {
                 return;
             }
             if (get_retry_heater()) {
@@ -446,7 +446,7 @@ bool CSelftest::Abort() {
         abort_part(&pNozzle);
     }
     abort_part(&pBed);
-    abort_part(&pSock);
+    abort_part(&pHotendSpecify);
     for (auto &loadcell : m_pLoadcell) {
         abort_part(&loadcell);
     }
