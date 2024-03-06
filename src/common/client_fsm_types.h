@@ -6,6 +6,7 @@
 #include <option/has_loadcell.h>
 
 #include <inc/MarlinConfig.h>
+#include <device/board.h>
 
 #include <stdint.h>
 #include <utils/utility_extensions.hpp>
