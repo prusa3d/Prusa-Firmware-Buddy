@@ -425,29 +425,8 @@ void Pause::loop_load_not_blocking([[maybe_unused]] Response response) {
 
 #if ENABLED(PRUSA_MMU2)
 // This method is only called when the MMU is active (which implies the printer is in MMU mode)
-void Pause::loop_load_mmu([[maybe_unused]] Response response) {
-    // transitions
-    switch (getLoadPhase()) {
-    case LoadPhases_t::_init: {
-        auto nextPhase = LoadPhases_t::_finish;
-        if constexpr (option::has_mmu2) {
-            // load_filament_to_nozzle introduces it's own loop and FSM, so we'll be blocking-waiting here for the procedure to finish...
-            if (!MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load)) {
-                // TODO tell user that he has already loaded filament if he really wants to continue
-                // TODO check fsensor .. how should I behave if filament is not detected ???
-                //  nextPhase = LoadPhases_t::_finish; // some error?
-            } else {
-                // loaded correctly, skip the crap around the standard pause impl.
-                nextPhase = LoadPhases_t::_finish;
-            }
-        }
-        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
-        set(nextPhase);
-        break;
-    }
-    default:
-        set(LoadPhases_t::_finish);
-    }
+void Pause::loop_load_mmu(Response response) {
+    loop_load_common(response, CommonLoadType::mmu);
 }
 
 void Pause::loop_load_mmu_change([[maybe_unused]] Response response) {
@@ -514,6 +493,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
 
     case CommonLoadType::filament_change:
     case CommonLoadType::filament_stuck:
+    case CommonLoadType::mmu: // Let's make MMU ejection unstoppable for now - it probably is
         is_unstoppable = true;
         break;
     }
@@ -521,15 +501,35 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     // transitions
     switch (getLoadPhase()) {
     case LoadPhases_t::_init:
-        if (load_type == CommonLoadType::autoload) {
+        switch (load_type) {
+
+        case CommonLoadType::autoload:
             // if filament is not present we want to break and not set loaded filament
             // we have already loaded the filament in gear, now just wait for temperature to rise
             config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
             set(LoadPhases_t::wait_temp);
             handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            break;
 
-        } else {
+#if HAS_MMU2()
+        case CommonLoadType::mmu:
+            if (!MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load)) {
+                // TODO tell user that he has already loaded filament if he really wants to continue
+                // TODO check fsensor .. how should I behave if filament is not detected ???
+                // some error?
+                set(LoadPhases_t::_finish);
+                break;
+            }
+
+            config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
+            
+            set(LoadPhases_t::_finish);
+            break;
+#endif
+
+        default:
             set(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            break;
         }
         break;
 
