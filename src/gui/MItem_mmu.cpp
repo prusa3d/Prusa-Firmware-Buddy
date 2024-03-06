@@ -53,7 +53,10 @@ void MI_MMU_LOAD_TEST_FILAMENT::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_MMU_EJECT_FILAMENT
 MI_MMU_EJECT_FILAMENT::MI_MMU_EJECT_FILAMENT()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr,
+        // enable the eject menu only if there is no filament already loaded
+        FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR ? is_enabled_t::no : is_enabled_t::yes,
+        is_hidden_t::no, expands_t::yes) {
 }
 void MI_MMU_EJECT_FILAMENT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMUEjectFilament>);
@@ -62,7 +65,9 @@ void MI_MMU_EJECT_FILAMENT::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_MMU_CUT_FILAMENT
 MI_MMU_CUT_FILAMENT::MI_MMU_CUT_FILAMENT()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr,
+        FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR ? is_enabled_t::no : is_enabled_t::yes,
+        is_hidden_t::no, expands_t::yes) {
 }
 void MI_MMU_CUT_FILAMENT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMUCutFilament>);
