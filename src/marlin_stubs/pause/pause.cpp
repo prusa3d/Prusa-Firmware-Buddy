@@ -344,11 +344,21 @@ void Pause::loop_load(Response response) {
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
         if (FSensors_instance().has_filament(false)) {
             setPhase(PhasesLoadUnload::MakeSureInserted_stoppable);
-        } else {
-            setPhase(PhasesLoadUnload::UserPush_stoppable);
-            if (response == Response::Continue) {
-                set(LoadPhases_t::load_in_gear);
+
+            // With extruder MMU rework, we gotta assist the user with inserting the filament
+            // BFW-5134
+            if (settings.extruder_mmu_rework) {
+                AutoRestore ar_ce(thermalManager.allow_cold_extrude, true);
+                mapi::extruder_schedule_turning(3);
             }
+        } else {
+            // MMU rework - do not wait for confirmation that the filament has been inserted, go straight to insertion
+            if (response == Response::Continue || settings.extruder_mmu_rework) {
+                set(LoadPhases_t::load_in_gear);
+                break;
+            }
+
+            setPhase(PhasesLoadUnload::UserPush_stoppable);
         }
         if (response == Response::Stop) {
             settings.do_stop = true;

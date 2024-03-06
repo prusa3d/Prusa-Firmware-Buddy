@@ -8,6 +8,7 @@
 #include "../../../lib/Marlin/Marlin/src/core/types.h"
 #include "../../../lib/Marlin/Marlin/src/feature/pause.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
+#include <option/has_mmu2.h>
 
 // cannot be class member (externed in marlin)
 fil_change_settings_t fc_settings[EXTRUDERS];
@@ -25,7 +26,12 @@ Settings::Settings()
     , resume_pos { NAN, NAN, NAN, NAN }
     , target_extruder(0)
     , can_stop(true)
-    , do_stop(false) {
+    , do_stop(false)
+#if HAS_MMU2()
+    , extruder_mmu_rework(config_store().is_mmu_rework.get())
+#endif
+//
+{
 }
 
 float Settings::GetDefaultFastLoadLength() {
