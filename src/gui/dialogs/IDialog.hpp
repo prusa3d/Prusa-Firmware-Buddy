@@ -7,9 +7,6 @@
 #include <guiconfig/GuiDefaults.hpp>
 #include <functional>
 
-// todo remove this after jogwheel refactoring
-extern void gui_loop(void);
-
 // interface for dialog
 class IDialog : public AddSuperWindow<window_frame_t> {
 public:
