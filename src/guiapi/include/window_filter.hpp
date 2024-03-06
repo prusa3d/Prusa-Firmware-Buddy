@@ -80,12 +80,6 @@ public:
     };
 };
 
-// filter strong dialog windows
-class WinFilterStrongDialog : public WinFilter {
-public:
-    virtual bool operator()(const window_t &win) const override { return win.GetType() == win_type_t::strong_dialog; };
-};
-
 // filter normal windows
 class WinFilterNormal : public WinFilter {
 public:

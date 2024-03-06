@@ -18,18 +18,6 @@ bool screen_t::registerSubWin(window_t &win) {
         registerAnySubWin(win, first_dialog, last_dialog);
         if (&win == first_dialog && last_normal) { // connect to list
             last_normal->SetNext(&win);
-            win.SetNext(first_strong_dialog ? first_strong_dialog : first_popup);
-        }
-        break;
-    case win_type_t::strong_dialog:
-        registerAnySubWin(win, first_strong_dialog, last_strong_dialog);
-        // connect to list
-        if (&win == first_strong_dialog) {
-            if (last_dialog) {
-                last_dialog->SetNext(&win);
-            } else if (last_normal) {
-                last_normal->SetNext(&win);
-            }
             win.SetNext(first_popup);
         }
         break;
@@ -40,9 +28,7 @@ bool screen_t::registerSubWin(window_t &win) {
         registerAnySubWin(win, first_popup, last_popup);
         // connect to list
         if (&win == first_popup) {
-            if (last_strong_dialog) {
-                last_strong_dialog->SetNext(&win);
-            } else if (last_dialog) {
+            if (last_dialog) {
                 last_dialog->SetNext(&win);
             } else if (last_normal) {
                 last_normal->SetNext(&win);
@@ -89,9 +75,6 @@ void screen_t::hideSubwinsBehindDialogs() {
         return; // error, must have normal window
     }
     window_t *pBeginAbnormal = first_popup;
-    if (first_strong_dialog) {
-        pBeginAbnormal = first_strong_dialog;
-    }
     if (first_dialog) {
         pBeginAbnormal = first_dialog;
     }
@@ -126,9 +109,6 @@ void screen_t::unregisterSubWin(window_t &win) {
     case win_type_t::popup:
         unregisterAnySubWin(win, first_popup, last_popup);
         break;
-    case win_type_t::strong_dialog:
-        unregisterAnySubWin(win, first_strong_dialog, last_strong_dialog);
-        break;
     }
 
     clearAllHiddenBehindDialogFlags();
@@ -142,11 +122,6 @@ window_t *screen_t::get_child_dialog(ChildDialogParam param) const {
     case ChildDialogParam::last_dialog:
         return last_dialog;
 
-    case ChildDialogParam::first_strong_dialog:
-        return first_strong_dialog;
-    case ChildDialogParam::last_strong_dialog:
-        return last_strong_dialog;
-
     case ChildDialogParam::first_popup:
         return first_popup;
     case ChildDialogParam::last_popup:
@@ -158,11 +133,6 @@ window_t *screen_t::get_child_dialog(ChildDialogParam param) const {
 
 window_t *screen_t::GetCapturedWindow() {
     window_t *ret;
-
-    ret = findCaptured_first_last(first_strong_dialog, last_strong_dialog);
-    if (ret) {
-        return ret;
-    }
 
     ret = findCaptured_first_last(first_dialog, last_dialog);
     if (ret) {
@@ -218,9 +188,6 @@ void screen_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
             return false;
         };
 
-        if (checkList(GetFirstStrongDialog(), GetLastStrongDialog())) {
-            return;
-        }
         if (checkList(GetFirstPopUp(), GetLastPopUp())) {
             return;
         }

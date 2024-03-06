@@ -13,11 +13,7 @@ extern void gui_loop(void);
 // interface for dialog
 class IDialog : public AddSuperWindow<window_frame_t> {
 public:
-    enum class IsStrong : bool {
-        no,
-        yes,
-    };
-    IDialog(Rect16 rc = GuiDefaults::DialogFrameRect, IsStrong strong = IsStrong::no);
+    IDialog(Rect16 rc = GuiDefaults::DialogFrameRect);
     IDialog(window_t *parent, Rect16 rc = GuiDefaults::DialogFrameRect);
 
 public:

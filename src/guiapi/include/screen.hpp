@@ -17,9 +17,6 @@ class screen_t : public AddSuperWindow<window_frame_t> {
     CompactRAMPointer<window_t> first_dialog;
     CompactRAMPointer<window_t> last_dialog;
 
-    CompactRAMPointer<window_t> first_strong_dialog;
-    CompactRAMPointer<window_t> last_strong_dialog;
-
     CompactRAMPointer<window_t> first_popup;
     CompactRAMPointer<window_t> last_popup;
 

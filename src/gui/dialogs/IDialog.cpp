@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include "ScreenHandler.hpp"
 
-IDialog::IDialog(Rect16 rc, IsStrong strong)
-    : AddSuperWindow<window_frame_t>(strong == IsStrong::yes ? nullptr : Screens::Access()->Get(), rc, strong == IsStrong::yes ? win_type_t::strong_dialog : win_type_t::dialog) { // use dialog ctor
+IDialog::IDialog(Rect16 rc)
+    : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rc, win_type_t::dialog) {
     Enable();
 }
 

@@ -136,8 +136,6 @@ public:
     enum class ChildDialogParam : uint8_t {
         first_dialog,
         last_dialog,
-        first_strong_dialog,
-        last_strong_dialog,
         first_popup,
         last_popup,
     };
@@ -148,9 +146,6 @@ public:
 
     inline window_t *GetFirstDialog() const { return get_child_dialog(ChildDialogParam::first_dialog); }
     inline window_t *GetLastDialog() const { return get_child_dialog(ChildDialogParam::last_dialog); }
-
-    inline window_t *GetFirstStrongDialog() const { return get_child_dialog(ChildDialogParam::first_strong_dialog); }
-    inline window_t *GetLastStrongDialog() const { return get_child_dialog(ChildDialogParam::last_strong_dialog); }
 
     inline window_t *GetFirstPopUp() const { return get_child_dialog(ChildDialogParam::first_popup); }
     inline window_t *GetLastPopUp() const { return get_child_dialog(ChildDialogParam::last_popup); }
