@@ -13,6 +13,8 @@
 #include "i18n.h"
 #include "gui.hpp"
 
+MessageBuffer screen_messages_data_t::message_buffer;
+
 screen_messages_data_t::screen_messages_data_t()
     : AddSuperWindow<screen_t>()
     , header(this)
@@ -37,10 +39,10 @@ void screen_messages_data_t::windowEvent(EventLock /*has private ctor*/, window_
         break;
     }
 
-    CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH>::Elem elem;
-
     // must be last window_frame_t could validate term
-    while (MsgCircleBuffer().ConsumeFirst(elem)) {
-        term.Printf("%s\n", (const char *)elem);
+    char *txt = nullptr;
+    while (message_buffer.try_get(txt)) {
+        term.Printf("%s\n", txt);
+        free(txt);
     }
 }

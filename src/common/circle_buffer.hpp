@@ -263,25 +263,3 @@ const T &CircleBuffer<T, SIZE>::GetLastIfAble() const {
     decrementIndex(index);
     return data[index];
 }
-
-/*****************************************************************************/
-// circular buffer for strings (T == std::array<char, MAX_LENGTH>)
-#include <array>
-
-template <size_t MAX_LENGTH>
-class Message {
-    std::array<char, MAX_LENGTH> arr;
-
-public:
-    Message() { arr.fill('\0'); }
-    Message(const char *msg) {
-        strlcpy(arr.data(), msg, MAX_LENGTH);
-    }
-
-    operator const char *() const {
-        return arr.data();
-    }
-};
-
-template <size_t SIZE, size_t MAX_LENGTH>
-using CircleStringBuffer = CircleBuffer<Message<MAX_LENGTH>, SIZE>;

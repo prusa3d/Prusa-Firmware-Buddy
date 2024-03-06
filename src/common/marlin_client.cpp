@@ -518,9 +518,10 @@ static bool receive_and_process_client_message(marlin_client_t *client, TickType
         break;
     case Event::Message: {
         if (client->message_cb) {
-            client->message_cb(client_event.message);
+            client->message_cb(client_event.message); // callback takes ownership
+        } else {
+            free(client_event.message);
         }
-        free(client_event.message);
         break;
     }
         // not handled events

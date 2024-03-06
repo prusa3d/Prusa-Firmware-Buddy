@@ -25,6 +25,7 @@
 #include "screen_home.hpp"
 #include "gcode_info.hpp"
 #include "language_eeprom.hpp"
+#include "screen_messages.hpp"
 
 #include <option/has_side_leds.h>
 
@@ -87,13 +88,9 @@ char gui_media_SFN_path[FILE_PATH_BUFFER_LEN]; //@@TODO DR - tohle pouzit na ulo
 
 Jogwheel jogwheel;
 
-MsgBuff_t &MsgCircleBuffer() {
-    static CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;
-    return ret;
-}
+inline constexpr size_t MSG_MAX_LENGTH = 63; // status message max length
 
-void MsgCircleBuffer_cb(const char *txt) {
-    MsgCircleBuffer().push_back(txt);
+void MsgCircleBuffer_cb(char *txt) {
     // cannot open == already opened
     IScreenPrinting *const prt_screen = IScreenPrinting::GetInstance();
     if (prt_screen && (!prt_screen->GetPopUpRect().IsEmpty())) {
@@ -102,6 +99,7 @@ void MsgCircleBuffer_cb(const char *txt) {
         strlcpy((char *)msg.data(), txt, MSG_MAX_LENGTH);
         window_dlg_popup_t::Show(prt_screen->GetPopUpRect(), string_view_utf8::MakeRAM(msg.data()), POPUP_MSG_DUR_MS);
     }
+    screen_messages_data_t::message_buffer.put(txt);
 }
 
 namespace {
