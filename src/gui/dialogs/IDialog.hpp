@@ -16,10 +16,4 @@ public:
 public:
     // could be static, but I want it to be usable only from dialog
     void MakeBlocking(std::function<void()> loopCallback = {}) const;
-
-protected:
-    // used in MakeBlocking
-    // needs included files which cannot be included in header
-    bool consumeCloseFlag() const;
-    void guiLoop() const;
 };
