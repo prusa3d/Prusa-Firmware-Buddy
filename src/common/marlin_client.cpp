@@ -138,6 +138,7 @@ static bool try_send(Request &request) {
         bsod("Marlin client used before init");
     }
     request.client_id = client->id;
+    request.response_required = 1;
 
     client->events &= ~(make_mask(Event::Acknowledge) | make_mask(Event::NotAcknowledge));
     server_queue.send(request);
@@ -170,6 +171,17 @@ static void _send_request_to_server_and_wait(Request &request) {
         }
     } while (retries_left > 0);
     fatal_error(ErrCode::ERR_SYSTEM_MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT);
+}
+
+/// send the request to the marlin server and don't ask for acknowledgement
+static void _send_request_to_server_noreply(Request &request) {
+    marlin_client_t *client = _client_ptr();
+    if (client == nullptr) {
+        return;
+    }
+    request.client_id = client->id;
+    request.response_required = 0;
+    server_queue.send(request);
 }
 
 void set_event_notify(uint64_t event_mask) {

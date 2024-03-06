@@ -34,7 +34,10 @@ struct __attribute__((packed)) Request {
         MoveMultiple,
     };
 
-    uint8_t client_id;
+    /// if it is set to 1, then the marlin server sends an acknowledge (default)
+    /// in some cases (sending a request from svc task) waiting is prohibited and it is necessary not to request an acknowledgment
+    unsigned response_required : 1;
+    unsigned client_id : 7;
     Type type;
 
     union {

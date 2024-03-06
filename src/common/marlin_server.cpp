@@ -2784,10 +2784,12 @@ static bool _process_server_request(const Request &request) {
     // force update of marlin variables after proecssing request -> to ensure client can read latest variables after request completion
     _server_update_vars();
 
-    Event evt_result = processed ? Event::Acknowledge : Event::NotAcknowledge;
-    if (!_send_notify_event_to_client(client_id, marlin_client::marlin_client_queue[client_id], evt_result, 0, 0)) {
-        // FIXME: Take care of resending process elsewhere.
-        server.client_events[client_id] |= make_mask(evt_result); // set bit if notification not sent
+    if (request.response_required) {
+        Event evt_result = processed ? Event::Acknowledge : Event::NotAcknowledge;
+        if (!_send_notify_event_to_client(client_id, marlin_client::marlin_client_queue[client_id], evt_result, 0, 0)) {
+            // FIXME: Take care of resending process elsewhere.
+            server.client_events[client_id] |= make_mask(evt_result); // set bit if notification not sent
+        }
     }
     return processed;
 }
