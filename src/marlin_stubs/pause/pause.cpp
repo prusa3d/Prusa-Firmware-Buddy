@@ -522,8 +522,9 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             }
 
             config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
-            
-            set(LoadPhases_t::_finish);
+
+            setPhase(PhasesLoadUnload::IsColor, 99);
+            set(LoadPhases_t::ask_is_color_correct);
             break;
 #endif
 
@@ -610,24 +611,35 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
             break;
 
         default:
-            handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            // This doesn't make sense with the MMU on
+            if (load_type != CommonLoadType::mmu) {
+                handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
+            }
             break;
         }
         break;
 
     case LoadPhases_t::eject:
-        setPhase(is_unstoppable ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
-        ram_filament(RammingType::unload);
+#if HAS_MMU2()
+        if (load_type == CommonLoadType::mmu) {
+            MMU2::mmu2.unload();
+        } else
+#endif
+        {
+            setPhase(is_unstoppable ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
+            ram_filament(RammingType::unload);
 
-        planner.synchronize(); // do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
+            planner.synchronize(); // do_pause_e_move(0, (FILAMENT_CHANGE_UNLOAD_FEEDRATE));//do previous moves, so Ramming text is visible
 
-        setPhase(is_unstoppable ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
-        unload_filament(RammingType::unload);
+            setPhase(is_unstoppable ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
+            unload_filament(RammingType::unload);
+        }
 
         switch (load_type) {
 
         case CommonLoadType::filament_change:
         case CommonLoadType::filament_stuck:
+        case CommonLoadType::mmu:
             set(LoadPhases_t::_init);
             break;
 
