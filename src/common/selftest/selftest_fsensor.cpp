@@ -295,8 +295,7 @@ LoopResult CSelftestPart_FSensor::state_insertion_wait() {
                         rConfig.partname, (double)extruder_move_limit);
                     return LoopResult::Fail;
                 }
-                AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
-                thermalManager.allow_cold_extrude = true;
+                AutoRestore ar_ce(thermalManager.allow_cold_extrude, true);
                 extruder_moved_amount += mapi::extruder_schedule_turning(extruder_fr); // make extruder turn at 4mm/s
             }
             return LoopResult::RunCurrent;
