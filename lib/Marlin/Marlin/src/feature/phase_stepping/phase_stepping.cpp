@@ -338,9 +338,15 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     axis_state.last_position = 0;
     axis_state.direction = true; // TODO: should use last_direction_bits
 
+    // We initialize the zero rotor phase to current phase. The real initialization is done by
+    // set_phase_origin() when the local coordinate system is effectively initialized.
+    int current_phase = stepper.MSCNT();
+    axis_state.zero_rotor_phase = current_phase;
+    axis_state.last_phase = current_phase;
+
 #if HAS_BURST_STEPPING()
     axis_state.original_microsteps = stepper.microsteps();
-    axis_state.last_phase = axis_state.zero_rotor_phase = axis_state.driver_phase = stepper.MSCNT();
+    axis_state.driver_phase = current_phase;
     axis_state.phase_correction = 0;
     axis_state.had_interpolation = stepper.intpol();
     stepper.intpol(false);
@@ -349,8 +355,6 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // In order to start phase stepping, we have to set phase currents that are
     // in sync with current position, and then switch the driver to current
     // mode.
-    int current_phase = stepper.MSCNT();
-
     axis_state.last_currents = resolve_current_lut(axis_state).get_current(current_phase);
 
     // Set IHOLD to be the same as IRUN (as IHOLD is always used in XDIRECT)
@@ -361,11 +365,6 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     stepper.coil_A(axis_state.last_currents.b);
     stepper.coil_B(axis_state.last_currents.a);
     stepper.direct_mode(true);
-
-    // We initialize the zero rotor phase to current phase. The real initialization is done by
-    // set_phase_origin() when the local coordinate system is effectively initialized.
-    axis_state.zero_rotor_phase = current_phase;
-    axis_state.last_phase = current_phase;
 #endif
     // Read axis configuration and cache it so we can access it fast
     if (axis_num == AxisEnum::X_AXIS) {
