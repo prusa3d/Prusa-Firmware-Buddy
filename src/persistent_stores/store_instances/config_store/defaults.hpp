@@ -84,6 +84,33 @@ namespace defaults {
 
     inline constexpr TestResult test_result_unknown { TestResult_Unknown };
 
+    struct custom_filament_t {
+        // std::array<char, max_filament_name_size + 1> name;
+        int16_t nozzle_temp;
+        int16_t nozzle_preheat_temp;
+        int16_t heatbed_temp;
+    };
+
+    inline constexpr std::array<std::array<int16_t, 3>, max_custom_filament_slots> custom_filament_temps {
+        { { 215, 170, 60 },
+            { 215, 170, 60 },
+            { 215, 170, 60 },
+            { 215, 170, 60 } }
+    };
+
+    inline constexpr std::array<char, max_filament_name_size + 1> custom_filament_name_1 {
+        { "CUSTOM_1" }
+    };
+    inline constexpr std::array<char, max_filament_name_size + 1> custom_filament_name_2 {
+        { "CUSTOM_2" }
+    };
+    inline constexpr std::array<char, max_filament_name_size + 1> custom_filament_name_3 {
+        { "CUSTOM_3" }
+    };
+    inline constexpr std::array<char, max_filament_name_size + 1> custom_filament_name_4 {
+        { "CUSTOM_4" }
+    };
+
     inline constexpr std::array<char, lan_hostname_max_len + 1> net_hostname { LAN_HOSTNAME_DEF };
     inline constexpr int8_t lan_timezone { 1 };
     inline constexpr time_tools::TimezoneOffsetMinutes timezone_minutes { time_tools::TimezoneOffsetMinutes::no_offset };

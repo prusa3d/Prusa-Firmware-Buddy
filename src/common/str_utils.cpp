@@ -261,6 +261,22 @@ void StringBuilder::append_string(const char *str) {
     *current_pos_ = '\0';
 }
 
+void StringBuilder::append_string_view(string_view_utf8 str) {
+
+    while (true) {
+        if (is_problem()) {
+            return;
+        }
+
+        char b = str.getbyte();
+        if (b == '\0') {
+            return;
+        }
+
+        append_char(b);
+    }
+}
+
 void StringBuilder::append_printf(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);

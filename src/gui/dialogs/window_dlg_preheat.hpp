@@ -67,6 +67,10 @@ using WinMenuContainer = WinMenuContainer<
     MI_Filament<filament::Type::PP>,
     MI_Filament<filament::Type::PA>,
     MI_Filament<filament::Type::FLEX>,
+    MI_Filament<filament::Type::CUSTOM_1>,
+    MI_Filament<filament::Type::CUSTOM_2>,
+    MI_Filament<filament::Type::CUSTOM_3>,
+    MI_Filament<filament::Type::CUSTOM_4>,
     MI_COOLDOWN>;
 
 }; // namespace NsPreheat

@@ -25,6 +25,10 @@ enum class Type : uint8_t {
     PP,
     FLEX,
     PA,
+    CUSTOM_1,
+    CUSTOM_2,
+    CUSTOM_3,
+    CUSTOM_4,
     _last = PA
 };
 

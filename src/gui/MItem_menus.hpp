@@ -546,3 +546,13 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 #endif
+
+class MI_CUSTOM_FILAMENT : public IWindowMenuItem {
+    constexpr static const char *label = N_("Custom Filament");
+
+public:
+    MI_CUSTOM_FILAMENT();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};

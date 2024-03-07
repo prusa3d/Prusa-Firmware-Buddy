@@ -1,5 +1,6 @@
 #include "assert.h"
 #include "filament.hpp"
+#include "custom_filament_tools.hpp"
 #include "i18n.h"
 #include "client_response_texts.hpp"
 #include "../../include/printers.h"
@@ -29,6 +30,13 @@ constexpr filament::Description filaments[size_t(filament::Type::_last) + 1] = {
     { 240, FLEX_NOZZLE_PREHEAT, 50, Response::FLEX },
 };
 
+filament::Description custom_filaments[config_store_ns::max_custom_filament_slots] = {
+    { 215, 170, 60, Response::CUSTOM_1 },
+    { 215, 170, 60, Response::CUSTOM_2 },
+    { 215, 170, 60, Response::CUSTOM_3 },
+    { 215, 170, 60, Response::CUSTOM_4 }
+};
+
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament::Type::_last) + 1, "Filament count error.");
 
 constexpr bool temperatures_are_within_spec(filament::Description filament) {
@@ -39,6 +47,42 @@ constexpr bool temperatures_are_within_spec(filament::Description filament) {
 
 static_assert(std::ranges::all_of(filaments, temperatures_are_within_spec));
 
+filament::Type filament::get_type(Response resp) {
+    for (size_t i = size_t(filament::Type::NONE); i <= size_t(filament::Type::_last); ++i) {
+        if (filaments[i].response == resp) {
+            return static_cast<filament::Type>(i);
+        }
+    }
+    for (size_t i = 0; i <= size_t(custom_filaments); ++i) {
+        if (custom_filaments[i].response == resp) {
+            return static_cast<filament::Type>(size_t(filament::Type::_last) + 1 + i);
+        }
+    }
+    return filament::Type::NONE;
+}
+
+const filament::Description &filament::get_description(const filament::Type filament) {
+    uint8_t slot = custom_filament_tools::SlotToIndex(custom_filament_tools::CustomFilamentSlots::END);
+    if (filament == filament::Type::CUSTOM_1) {
+        slot = custom_filament_tools::SlotToIndex(custom_filament_tools::CustomFilamentSlots::CUSTOM_1);
+    } else if (filament == filament::Type::CUSTOM_2) {
+        slot = custom_filament_tools::SlotToIndex(custom_filament_tools::CustomFilamentSlots::CUSTOM_2);
+    } else if (filament == filament::Type::CUSTOM_3) {
+        slot = custom_filament_tools::SlotToIndex(custom_filament_tools::CustomFilamentSlots::CUSTOM_3);
+    } else if (filament == filament::Type::CUSTOM_4) {
+        slot = custom_filament_tools::SlotToIndex(custom_filament_tools::CustomFilamentSlots::CUSTOM_4);
+    }
+    if (slot == custom_filament_tools::SlotToIndex(custom_filament_tools::CustomFilamentSlots::END)) {
+        return filaments[size_t(filament)];
+    } else {
+        custom_filaments[slot].nozzle = config_store().custom_filament_temps.get()[slot].at(custom_filament_tools::TempToIndex(custom_filament_tools::CustomFilamentTemperatures::nozzle));
+        custom_filaments[slot].nozzle_preheat = config_store().custom_filament_temps.get()[slot].at(custom_filament_tools::TempToIndex(custom_filament_tools::CustomFilamentTemperatures::nozzle_preheat));
+        custom_filaments[slot].heatbed = config_store().custom_filament_temps.get()[slot].at(custom_filament_tools::TempToIndex(custom_filament_tools::CustomFilamentTemperatures::heatbed));
+        const filament::Description &filamentsetting = custom_filaments[slot];
+        return filamentsetting;
+    }
+}
+
 filament::Type filament::get_type(const char *name, size_t name_len) {
     // first name is not valid ("---")
     for (size_t i = size_t(filament::Type::NONE) + 1; i <= size_t(filament::Type::_last); ++i) {
@@ -47,20 +91,7 @@ filament::Type filament::get_type(const char *name, size_t name_len) {
             return static_cast<filament::Type>(i);
         }
     }
-    return filament::Type::NONE;
-}
-
-filament::Type filament::get_type(Response resp) {
-    for (size_t i = size_t(filament::Type::NONE); i <= size_t(filament::Type::_last); ++i) {
-        if (filaments[i].response == resp) {
-            return static_cast<filament::Type>(i);
-        }
-    }
-    return filament::Type::NONE;
-}
-
-const filament::Description &filament::get_description(filament::Type filament) {
-    return filaments[size_t(filament)];
+    return static_cast<filament::Type>(filament::Type::NONE);
 }
 
 const char *filament::get_name(Type type) {
