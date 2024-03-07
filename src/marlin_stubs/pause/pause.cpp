@@ -612,18 +612,23 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         MMU2::mmu2.load_filament(settings.mmu_filament_to_load);
         MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load);
 
-        set(LoadPhases_t::_finish);
+        setPhase(PhasesLoadUnload::IsColor, 99);
+        set(LoadPhases_t::ask_is_color_correct);
         break;
     }
 #endif
 
     case LoadPhases_t::eject:
+        switch (load_type) {
+
 #if HAS_MMU2()
-        if (load_type == CommonLoadType::mmu) {
+        case CommonLoadType::mmu:
+        case CommonLoadType::mmu_change:
             MMU2::mmu2.unload();
-        } else
+            break;
 #endif
-        {
+
+        default:
             setPhase(is_unstoppable ? PhasesLoadUnload::Ramming_unstoppable : PhasesLoadUnload::Ramming_stoppable, 98);
             ram_filament(RammingType::unload);
 
@@ -631,6 +636,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
 
             setPhase(is_unstoppable ? PhasesLoadUnload::Ejecting_unstoppable : PhasesLoadUnload::Ejecting_stoppable, 99);
             unload_filament(RammingType::unload);
+            break;
         }
 
         switch (load_type) {
@@ -638,8 +644,11 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         case CommonLoadType::filament_change:
         case CommonLoadType::filament_stuck:
         case CommonLoadType::mmu:
-        case CommonLoadType::mmu_change:
             set(LoadPhases_t::_init);
+            break;
+
+        case CommonLoadType::mmu_change:
+            set(LoadPhases_t::mmu_load_filament);
             break;
 
         case CommonLoadType::standard:
