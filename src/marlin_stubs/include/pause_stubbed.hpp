@@ -191,6 +191,7 @@ private:
         filament_change,
         filament_stuck,
         mmu, ///< MMU load to nozzle
+        mmu_change, ///< MMU filament change (for example filament runout)
     };
     void loop_load_common(Response response, CommonLoadType load_type);
     // TODO loop_load_change_mmu

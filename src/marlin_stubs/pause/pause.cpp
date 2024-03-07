@@ -429,43 +429,8 @@ void Pause::loop_load_mmu(Response response) {
     loop_load_common(response, CommonLoadType::mmu);
 }
 
-void Pause::loop_load_mmu_change([[maybe_unused]] Response response) {
-    switch (getLoadPhase()) {
-
-    case LoadPhases_t::_init: {
-        if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-            set(LoadPhases_t::_finish);
-            break;
-        }
-
-        setPhase(PhasesLoadUnload::LoadFilamentIntoMMU);
-        set(LoadPhases_t::ask_mmu_load_filament);
-        break;
-    }
-
-    case LoadPhases_t::ask_mmu_load_filament: {
-        if (response == Response::Continue) {
-            set(LoadPhases_t::mmu_load_filament);
-        }
-        break;
-    }
-
-    case LoadPhases_t::mmu_load_filament: {
-        if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-            set(LoadPhases_t::_finish);
-            break;
-        }
-
-        MMU2::mmu2.load_filament(settings.mmu_filament_to_load);
-        MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load);
-
-        set(LoadPhases_t::_finish);
-        break;
-    }
-
-    default:
-        set(LoadPhases_t::_finish);
-    }
+void Pause::loop_load_mmu_change(Response response) {
+    loop_load_common(response, CommonLoadType::mmu_change);
 }
 #else
 void Pause::loop_load_mmu([[maybe_unused]] Response response) {
@@ -494,6 +459,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
     case CommonLoadType::filament_change:
     case CommonLoadType::filament_stuck:
     case CommonLoadType::mmu: // Let's make MMU ejection unstoppable for now - it probably is
+    case CommonLoadType::mmu_change:
         is_unstoppable = true;
         break;
     }
@@ -525,6 +491,16 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
 
             setPhase(PhasesLoadUnload::IsColor, 99);
             set(LoadPhases_t::ask_is_color_correct);
+            break;
+
+        case CommonLoadType::mmu_change:
+            if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
+                set(LoadPhases_t::_finish);
+                break;
+            }
+
+            setPhase(PhasesLoadUnload::LoadFilamentIntoMMU);
+            set(LoadPhases_t::ask_mmu_load_filament);
             break;
 #endif
 
@@ -619,6 +595,28 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         }
         break;
 
+#if HAS_MMU2()
+    case LoadPhases_t::ask_mmu_load_filament: {
+        if (response == Response::Continue) {
+            set(LoadPhases_t::mmu_load_filament);
+        }
+        break;
+    }
+
+    case LoadPhases_t::mmu_load_filament: {
+        if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
+            set(LoadPhases_t::_finish);
+            break;
+        }
+
+        MMU2::mmu2.load_filament(settings.mmu_filament_to_load);
+        MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load);
+
+        set(LoadPhases_t::_finish);
+        break;
+    }
+#endif
+
     case LoadPhases_t::eject:
 #if HAS_MMU2()
         if (load_type == CommonLoadType::mmu) {
@@ -640,6 +638,7 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         case CommonLoadType::filament_change:
         case CommonLoadType::filament_stuck:
         case CommonLoadType::mmu:
+        case CommonLoadType::mmu_change:
             set(LoadPhases_t::_init);
             break;
 
