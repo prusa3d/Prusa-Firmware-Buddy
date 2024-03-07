@@ -548,7 +548,7 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
             ResumeHotendTemp();
             // if the extruder has been parked, it will get unparked once the ToolChange command finishes OK
             // - so no ResumeUnpark() at this spot
-            UnloadInner(PreUnloadPolicy::ExtraRelieveFilament);
+            UnloadInner(PreUnloadPolicy::RelieveFilament);
             // if we run out of retries, we must do something ... may be raise an error screen and allow the user to do something
             // but honestly - if the MMU restarts during every toolchange,
             // something else is seriously broken and stopping a print is probably our best option.
@@ -720,7 +720,16 @@ void MMU2::UnloadInner(PreUnloadPolicy preUnloadPolicy) {
         filament_ramming();
         break;
     case PreUnloadPolicy::RelieveFilament:
-        extruder_move(-40.F, 60.F);
+        extruder_move(
+#ifdef USE_TRY_LOAD
+            // try-loads are symmetrical
+            -40.F,
+#else
+            // But E-stall detection is not symmetrical - it needs to retract way more (because the filament may still be somewhere in the nozzle)
+            // Theoretically, we should be able to retract the same distance as the failed load (when the E-motor skipped) + some extra margin
+            -120.F,
+#endif
+            60.F);
         planner_synchronize();
         break;
     case PreUnloadPolicy::ExtraRelieveFilament:
@@ -731,7 +740,7 @@ void MMU2::UnloadInner(PreUnloadPolicy preUnloadPolicy) {
 #else
             // But E-stall detection is not symmetrical - it needs to retract way more (because the filament may still be somewhere in the nozzle)
             // Theoretically, we should be able to retract the same distance as the failed load (when the E-motor skipped) + some extra margin
-            -90.F,
+            -180.F,
 #endif
             60.F);
         planner_synchronize();
@@ -815,7 +824,7 @@ bool MMU2::loading_test(uint8_t slot) {
         thermal_setExtrudeMintemp(0); // Allow cold extrusion - load test doesn't push filament all the way into the nozzle
         ToolChangeCommon(slot);
         planner_synchronize();
-        UnloadInner(PreUnloadPolicy::ExtraRelieveFilament);
+        UnloadInner(PreUnloadPolicy::RelieveFilament);
         thermal_setExtrudeMintemp(EXTRUDE_MINTEMP);
     }
     ScreenUpdateEnable();
