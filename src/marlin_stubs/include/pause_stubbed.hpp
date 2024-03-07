@@ -129,21 +129,6 @@ class Pause : public PausePrivatePhase {
     Pause(const Pause &) = delete;
     Pause &operator=(const Pause &) = delete;
 
-    enum class unload_mode_t {
-        standalone,
-        standalone_mmu,
-        change_filament,
-        ask_unloaded,
-        autoload_abort // unload from gear - full long unload at high speed
-    };
-    enum class load_mode_t {
-        standalone,
-        standalone_mmu,
-        change_filament,
-        autoload,
-        load_in_gear
-    };
-
     static constexpr const float heating_phase_min_hotend_diff = 5.0F;
 
 public:
