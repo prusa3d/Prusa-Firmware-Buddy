@@ -22,17 +22,16 @@ ScreenMenuTune::ScreenMenuTune()
 
 void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
-    case GUI_event_t::LOOP:
-        if (marlin_server::all_axes_homed()
+    case GUI_event_t::LOOP: {
+        const auto current_command = marlin_client::get_command();
+        Item<MI_M600>().set_is_enabled( //
+            marlin_server::all_axes_homed()
             && marlin_server::all_axes_known()
-            && (marlin_client::get_command() != marlin_server::Cmd::G28)
-            && (marlin_client::get_command() != marlin_server::Cmd::G29)
-            && (marlin_client::get_command() != marlin_server::Cmd::M109)
-            && (marlin_client::get_command() != marlin_server::Cmd::M190)) {
-            Item<MI_M600>().Enable();
-        } else {
-            Item<MI_M600>().Disable();
-        }
+            && (current_command != marlin_server::Cmd::G28)
+            && (current_command != marlin_server::Cmd::G29)
+            && (current_command != marlin_server::Cmd::M109)
+            && (current_command != marlin_server::Cmd::M190) //
+        );
 
 #if ENABLED(CANCEL_OBJECTS)
         // Enable cancel object menu
@@ -43,6 +42,8 @@ void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sende
         }
 #endif /* ENABLED(CANCEL_OBJECTS) */
         break;
+    }
+
     default:
         break;
     }
