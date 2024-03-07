@@ -23,15 +23,10 @@ private:
     MediaState_t media_state;
 
     void tick();
-    void clr() {
-        media_state = MediaState_t::unknown;
-        state_sent = true;
-    }
 
 public:
     static void Tick();
     static bool ConsumeOneClickPrinting();
-    static void ClrMediaError(); // clear - update - clear again
     static bool ConsumeSent(MediaState_t &ret); // update - remember - set sent - return
     static MediaState_t Get();
 };

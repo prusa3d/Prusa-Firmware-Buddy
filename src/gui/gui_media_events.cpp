@@ -67,19 +67,6 @@ bool GuiMediaEventsHandler::ConsumeOneClickPrinting() {
     return ret;
 }
 
-void GuiMediaEventsHandler::ClrMediaError() {
-    // clear
-    if (Instance().media_state == MediaState_t::error) {
-        Instance().clr();
-    }
-    // update
-    Tick();
-    // clear again
-    if (Instance().media_state == MediaState_t::error) {
-        Instance().clr();
-    }
-}
-
 bool GuiMediaEventsHandler::ConsumeSent(MediaState_t &ret) {
     Tick(); // first update
     ret = Instance().media_state; // remember
