@@ -13,6 +13,7 @@
     #include "feature/prusa/crash_recovery.hpp"
 #endif
 #include "bsod.h"
+#include "log.h"
 
 #include "feature/phase_stepping/phase_stepping.hpp"
 
@@ -289,6 +290,8 @@ static bool wait_for_standstill(uint8_t axis_mask, millis_t max_delay = 150) {
     }
 }
 
+LOG_COMPONENT_REF(Marlin);
+
 /**
  * @brief Precise homing on core-XY.
  * @return true on success
@@ -318,7 +321,11 @@ bool refine_corexy_origin() {
         stepper.position(B_AXIS) + phase_backoff_steps(B_AXIS) };
     plan_corexy_raw_move(origin_steps, fr_mm_s);
     if (stepper.position(A_AXIS) != origin_steps[A_AXIS] || stepper.position(B_AXIS) != origin_steps[B_AXIS]) {
-        bsod("raw move didn't reach requested position");
+        // This does actually happen.
+        // For example, somebody may call planner.quick_stop()
+        // while we were waiting in planner.synchronize()
+        log_warning(Marlin, "raw move didn't reach requested position");
+        return false;
     }
 
     // sanity checks
