@@ -25,6 +25,10 @@ const std::array<BtnResource, ftrstd::to_underlying(Response::_count)> BtnRespon
     std::make_pair( N_("CHANGE"),           nullptr ),                  // Change
     std::make_pair( N_("CONTINUE"),         &img::resume_48x48 ),       // Continue
     std::make_pair( N_("COOLDOWN"),         nullptr ),                  // Cooldown
+    std::make_pair( "CUSTOM_1",              &img::spool_58x58 ),        // Custom slot 1 filament, do not translate
+    std::make_pair( "CUSTOM_2",              &img::spool_58x58 ),        // Custom slot 2 filament, do not translate
+    std::make_pair( "CUSTOM_3",              &img::spool_58x58 ),        // Custom slot 3 filament, do not translate
+    std::make_pair( "CUSTOM_4",              &img::spool_58x58 ),        // Custom slot 4 filament, do not translate
     std::make_pair( N_("DISABLE"),          nullptr ),                  // Disable
     std::make_pair( N_("FILAMENT"),         nullptr ),                  // Filament
     std::make_pair( N_("FILAMENT REMOVED"), nullptr ),                  // Filament_removed

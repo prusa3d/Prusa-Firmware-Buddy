@@ -800,3 +800,35 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_CUSTOM_FILAMENT_SLOT : public WI_SWITCH_t<4> {
+    constexpr static const char *const label = N_("Filament Slot");
+
+public:
+    MI_CUSTOM_FILAMENT_SLOT();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_CUSTOM_FILAMENT_NOZZLE_TEMP : public WiSpinInt {
+    constexpr static const char *const label = N_("Nozzle Temperature");
+
+public:
+    MI_CUSTOM_FILAMENT_NOZZLE_TEMP();
+    virtual void OnClick() override;
+};
+
+class MI_CUSTOM_FILAMENT_NOZZLE_PREHEAT_TEMP : public WiSpinInt {
+    constexpr static const char *const label = N_("Nozzle Preheat Temperature");
+
+public:
+    MI_CUSTOM_FILAMENT_NOZZLE_PREHEAT_TEMP();
+    virtual void OnClick() override;
+};
+
+class MI_CUSTOM_FILAMENT_HEATBED_TEMP : public WiSpinInt {
+    constexpr static const char *const label = N_("Heatbed Temperature");
+
+public:
+    MI_CUSTOM_FILAMENT_HEATBED_TEMP();
+    virtual void OnClick() override;
+};

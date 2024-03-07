@@ -510,3 +510,13 @@ public:
 protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
+
+class MI_CUSTOM_FILAMENT : public WI_LABEL_t {
+    constexpr static const char *label = N_("Custom Filament");
+
+public:
+    MI_CUSTOM_FILAMENT();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};

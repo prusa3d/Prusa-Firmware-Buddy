@@ -12,6 +12,7 @@ endif()
 target_sources(
   firmware
   PRIVATE box_unfinished_selftest.cpp
+          custom_filament_tools.cpp
           file_sort.cpp
           fonts.cpp
           gcode_description.cpp
@@ -47,6 +48,7 @@ target_sources(
           screen_menu_cancel_object.cpp
           screen_menu_connect.cpp
           screen_menu_control.cpp
+          screen_menu_custom_filament.cpp
           screen_menu_eeprom.cpp
           screen_menu_eeprom_diagnostics.cpp
           screen_menu_error_test.cpp

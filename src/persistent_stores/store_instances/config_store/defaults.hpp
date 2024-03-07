@@ -71,6 +71,24 @@ namespace defaults {
 #endif
     };
 
+    inline constexpr TestResult test_result_unknown { TestResult_Unknown };
+    inline constexpr std::array<char, max_filament_name_size + 1> custom_filament_name_1 { "CUSTOM_1" };
+    inline constexpr int16_t custom_filament_nozzle_temp_1 { 215 };
+    inline constexpr int16_t custom_filament_nozzle_preheat_temp_1 { 170 };
+    inline constexpr int16_t custom_filament_heatbed_temp_1 { 60 };
+    inline constexpr std::array<char, max_filament_name_size + 1> custom_filament_name_2 { "CUSTOM_2" };
+    inline constexpr int16_t custom_filament_nozzle_temp_2 { 215 };
+    inline constexpr int16_t custom_filament_nozzle_preheat_temp_2 { 170 };
+    inline constexpr int16_t custom_filament_heatbed_temp_2 { 60 };
+    inline constexpr std::array<char, max_filament_name_size + 1> custom_filament_name_3 { "CUSTOM_3" };
+    inline constexpr int16_t custom_filament_nozzle_temp_3 { 215 };
+    inline constexpr int16_t custom_filament_nozzle_preheat_temp_3 { 170 };
+    inline constexpr int16_t custom_filament_heatbed_temp_3 { 60 };
+    inline constexpr std::array<char, max_filament_name_size + 1> custom_filament_name_4 { "CUSTOM_4" };
+    inline constexpr int16_t custom_filament_nozzle_temp_4 { 215 };
+    inline constexpr int16_t custom_filament_nozzle_preheat_temp_4 { 170 };
+    inline constexpr int16_t custom_filament_heatbed_temp_4 { 60 };
+
     inline constexpr std::array<char, lan_hostname_max_len + 1> net_hostname { LAN_HOSTNAME_DEF };
     inline constexpr int8_t lan_timezone { 1 };
     inline constexpr time_tools::TimeOffsetMinutes timezone_minutes { time_tools::TimeOffsetMinutes::_0min };

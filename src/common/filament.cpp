@@ -33,6 +33,13 @@ const filament::Description filaments[size_t(filament::Type::_last) + 1] = {
 #endif
 };
 
+filament::Description custom_filaments[config_store_ns::max_custom_filament_slots] = {
+    { BtnResponse::GetText(Response::CUSTOM_1), 215, 170, 60, Response::CUSTOM_1 },
+    { BtnResponse::GetText(Response::CUSTOM_2), 215, 170, 60, Response::CUSTOM_2 },
+    { BtnResponse::GetText(Response::CUSTOM_3), 215, 170, 60, Response::CUSTOM_3 },
+    { BtnResponse::GetText(Response::CUSTOM_4), 215, 170, 60, Response::CUSTOM_4 }
+};
+
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament::Type::_last) + 1, "Filament count error.");
 
 filament::Type filament::get_type(const char *name, size_t name_len) {
@@ -40,6 +47,11 @@ filament::Type filament::get_type(const char *name, size_t name_len) {
     for (size_t i = size_t(filament::Type::NONE) + 1; i <= size_t(filament::Type::_last); ++i) {
         if ((strlen(filaments[i].name) == name_len) && (!strncmp(name, filaments[i].name, name_len))) {
             return static_cast<filament::Type>(i);
+        }
+    }
+    for (size_t i = 0; i <= size_t(custom_filaments); ++i) {
+        if ((strlen(custom_filaments[i].name) == name_len) && (!strncmp(name, custom_filaments[i].name, name_len))) {
+            return static_cast<filament::Type>(size_t(filament::Type::_last) + 1 + i);
         }
     }
     return filament::Type::NONE;
@@ -51,10 +63,44 @@ filament::Type filament::get_type(Response resp) {
             return static_cast<filament::Type>(i);
         }
     }
+    for (size_t i = 0; i <= size_t(custom_filaments); ++i) {
+        if (custom_filaments[i].response == resp) {
+            return static_cast<filament::Type>(size_t(filament::Type::_last) + 1 + i);
+        }
+    }
     return filament::Type::NONE;
 }
 
-const filament::Description &filament::get_description(filament::Type filament) {
+const filament::Description &filament::get_description(const filament::Type filament) {
+    if (filament == filament::Type::CUSTOM_1) {
+        custom_filaments[0].name = config_store().custom_filament_name_1.get_c_str();
+        custom_filaments[0].nozzle = config_store().custom_filament_nozzle_1.get();
+        custom_filaments[0].nozzle_preheat = config_store().custom_filament_nozzle_preheat_1.get();
+        custom_filaments[0].heatbed = config_store().custom_filament_heatbed_1.get();
+        const filament::Description &filamentsetting = custom_filaments[0];
+        return filamentsetting;
+    } else if (filament == filament::Type::CUSTOM_2) {
+        custom_filaments[1].name = config_store().custom_filament_name_2.get_c_str();
+        custom_filaments[1].nozzle = config_store().custom_filament_nozzle_2.get();
+        custom_filaments[1].nozzle_preheat = config_store().custom_filament_nozzle_preheat_2.get();
+        custom_filaments[1].heatbed = config_store().custom_filament_heatbed_2.get();
+        const filament::Description &filamentsetting = custom_filaments[1];
+        return filamentsetting;
+    } else if (filament == filament::Type::CUSTOM_3) {
+        custom_filaments[2].name = config_store().custom_filament_name_3.get_c_str();
+        custom_filaments[2].nozzle = config_store().custom_filament_nozzle_3.get();
+        custom_filaments[2].nozzle_preheat = config_store().custom_filament_nozzle_preheat_3.get();
+        custom_filaments[2].heatbed = config_store().custom_filament_heatbed_3.get();
+        const filament::Description &filamentsetting = custom_filaments[2];
+        return filamentsetting;
+    } else if (filament == filament::Type::CUSTOM_4) {
+        custom_filaments[3].name = config_store().custom_filament_name_4.get_c_str();
+        custom_filaments[3].nozzle = config_store().custom_filament_nozzle_4.get();
+        custom_filaments[3].nozzle_preheat = config_store().custom_filament_nozzle_preheat_4.get();
+        custom_filaments[3].heatbed = config_store().custom_filament_heatbed_4.get();
+        const filament::Description &filamentsetting = custom_filaments[3];
+        return filamentsetting;
+    }
     return filaments[size_t(filament)];
 }
 
