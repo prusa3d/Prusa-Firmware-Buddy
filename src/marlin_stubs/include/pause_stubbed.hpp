@@ -57,6 +57,8 @@ protected:
         purge,
         ask_is_color_correct,
         eject,
+        unloaded_ask,
+        manual_unload,
         ask_mmu_load_filament,
         mmu_load_filament,
         _last = mmu_load_filament,
@@ -178,6 +180,14 @@ private:
     void loop_unloadFromGear(Response response); // autoload abort
     void loop_unload_change(Response response);
     void loop_unload_filament_stuck(Response response);
+
+    enum class CommonUnloadType : uint8_t {
+        standard,
+        ask_unloaded,
+        filament_change,
+        filament_stuck,
+    };
+    void loop_unload_common(Response response, CommonUnloadType unload_type);
     // TODO loop_unload_change_mmu
 
     void loop_load(Response response);
@@ -189,6 +199,14 @@ private:
     void loop_loadToGear(Response response);
     void loop_load_change(Response response);
     void loop_load_filament_stuck(Response response);
+
+    enum class CommonLoadType : uint8_t {
+        standard,
+        autoload,
+        filament_change,
+        filament_stuck,
+    };
+    void loop_load_common(Response response, CommonLoadType load_type);
     // TODO loop_load_change_mmu
 
     // does not create FSM_HolderLoadUnload
