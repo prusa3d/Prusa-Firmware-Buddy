@@ -20,6 +20,7 @@ struct __attribute__((packed)) Request {
         PrintAbort,
         PrintPause,
         PrintResume,
+        MediaPrintReopen,
         PrintExit,
         Park,
         KnobMove,

@@ -35,7 +35,7 @@ namespace {
 volatile media_state_t media_state = media_state_REMOVED;
 volatile media_error_t media_error = media_error_OK;
 
-media_print_state_t media_print_state = media_print_state_NONE;
+std::atomic<media_print_state_t> media_print_state = media_print_state_NONE;
 AnyGcodeFormatReader *media_print_file; ///< File used to print
 AnyGcodeFormatReader *gcode_info_file; ///< File used to scan GcodeInfo
 uint32_t media_print_size_estimate = 0; ///< Estimated uncompressed G-code size in bytes
@@ -391,6 +391,18 @@ void media_print_pause(bool repeat_last = false) {
     skip_gcode = !repeat_last;
 }
 
+static bool media_print_file_reset_position() {
+    media_print_size_estimate = media_print_file->get()->get_gcode_stream_size_estimate();
+    if (media_reset_position != GCodeQueue::SDPOS_INVALID) {
+        media_print_set_position(media_reset_position);
+        media_reset_position = GCodeQueue::SDPOS_INVALID;
+    }
+    if (media_print_file->get_prusa_pack()) {
+        media_print_file->get_prusa_pack()->set_restore_info(media_get_restore_info());
+    }
+    return media_print_file->get()->stream_gcode_start(media_current_position);
+}
+
 void media_print_resume(void) {
     assert(prefetch_mutex_file_reader && media_print_file);
 
@@ -404,16 +416,8 @@ void media_print_resume(void) {
         media_print_file->open(marlin_vars()->media_SFN_path.get_ptr());
     }
     if (media_print_file->is_open()) {
-        media_print_size_estimate = media_print_file->get()->get_gcode_stream_size_estimate();
-        if (media_reset_position != GCodeQueue::SDPOS_INVALID) {
-            media_print_set_position(media_reset_position);
-            media_reset_position = GCodeQueue::SDPOS_INVALID;
-        }
-        if (media_print_file->get_prusa_pack()) {
-            media_print_file->get_prusa_pack()->set_restore_info(media_get_restore_info());
-        }
         // file was left open between pause/resume or re-opened successfully
-        if (media_print_file->get()->stream_gcode_start(media_current_position)) {
+        if (media_print_file_reset_position()) {
             gcode_filter.reset();
             media_print_state = media_print_state_PRINTING;
             osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
@@ -423,6 +427,19 @@ void media_print_resume(void) {
         }
     } else {
         marlin_server::set_warning(WarningType::USBFlashDiskError);
+    }
+    xSemaphoreGive(prefetch_mutex_file_reader);
+}
+
+void media_print_reopen() {
+    xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
+    if (media_print_file->is_open()) {
+        media_print_file->close();
+        skip_gcode = true;
+        media_print_file->open(marlin_vars()->media_SFN_path.get_ptr());
+        if (!media_print_file->is_open() || !media_print_file_reset_position()) {
+            usbh_power_cycle::trigger_usb_failed_dialog = true;
+        }
     }
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
@@ -516,9 +533,10 @@ void media_loop(void) {
             // Pause in case of some issue
             usbh_error_count++;
             metric_record_integer(&usbh_error_cnt, usbh_error_count);
-            usbh_power_cycle::media_state_error();
             media_print_pause();
-            media_print_resume();
+            if (usbh_power_cycle::trigger_usb_failed_dialog) {
+                marlin_server::set_warning(WarningType::USBFlashDiskError);
+            }
             return;
         case GCodeFilter::State::Eof:
             // Stop print on EOF

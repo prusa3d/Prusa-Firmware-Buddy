@@ -25,10 +25,14 @@ namespace usbh_power_cycle {
 // if printing was in progress:
 //   if the usb is successfully initialized within 5s, it will connect automatically,
 //   otherwise the "USB drive or file error" warning will appear.
+// network transfers should continue (it's actually a new flash insertion)
+// other operations may fail (highly unlikely situation)
 
 // timer to handle the restart procedure
 TimerHandle_t restart_timer;
 void restart_timer_callback(TimerHandle_t);
+
+uint32_t block_one_click_print_until_ms = 0;
 
 enum class Phase : uint_fast8_t {
     idle,
@@ -38,6 +42,7 @@ enum class Phase : uint_fast8_t {
 
 std::atomic<Phase> phase = Phase::idle;
 std::atomic<bool> printing_paused = false;
+std::atomic<bool> trigger_usb_failed_dialog = true;
 
 // Initialize FreeRTOS timer
 void init() {
@@ -48,6 +53,7 @@ void init() {
 // callback from USBH_MSC_Worker when an io error occurs => start the restart procedure
 void io_error() {
     if (phase == Phase::idle) {
+        trigger_usb_failed_dialog = false;
         xTimerChangePeriod(restart_timer, 10, portMAX_DELAY);
     }
 }
@@ -55,23 +61,17 @@ void io_error() {
 // callback from isr => start the restart procedure
 void port_disabled() {
     if (phase == Phase::idle) {
+        trigger_usb_failed_dialog = false;
         xTimerChangePeriodFromISR(restart_timer, 10, nullptr);
     }
 }
 
-// callback from marlin media_loop
-// it means that printing has been paused and in the case of a successful reinitialization it will be necessary to call resume
-void media_state_error() {
-    printing_paused = true;
-}
-
 // called from USBH_Thread
-// usb msc has been connected => if a reinitialization attempt is in progress, it is completed successfully, and if the print was paused, resume it
 void msc_active() {
-    if (phase == Phase::power_on && printing_paused) {
-        printing_paused = false;
+    if (phase == Phase::power_on) {
         xTimerStop(restart_timer, portMAX_DELAY);
         phase = Phase::idle;
+        block_one_click_print_until_ms = ticks_ms() + 1000;
 
         // lazy initialization of marlin_client
         static bool marlin_client_initializated = false;
@@ -79,19 +79,28 @@ void msc_active() {
             marlin_client_initializated = true;
             marlin_client::init();
         }
-        marlin_client::print_resume();
+        switch (media_print_get_state()) {
+        case media_print_state_NONE:
+            break;
+        case media_print_state_PAUSED:
+            marlin_client::print_resume();
+            break;
+        case media_print_state_PRINTING:
+            marlin_client::media_print_reopen();
+            trigger_usb_failed_dialog = true;
+            break;
+        }
     }
 }
 
 // called from SVC task
 void restart_timer_callback(TimerHandle_t) {
-    static bool marlin_client_initializated = false;
-
     switch (phase) {
     case Phase::idle:
         phase = Phase::power_off;
         xTimerChangePeriod(restart_timer, 150, portMAX_DELAY);
         USBH_Stop(&hUsbHostHS);
+        block_one_click_print_until_ms = ticks_ms() + 5000;
         break;
     case Phase::power_off:
         phase = Phase::power_on;
@@ -100,17 +109,28 @@ void restart_timer_callback(TimerHandle_t) {
         break;
     case Phase::power_on:
         phase = Phase::idle;
+        trigger_usb_failed_dialog = true;
 
-        if (printing_paused) {
+        switch (media_print_get_state()) {
+        case media_print_state_NONE:
+        case media_print_state_PRINTING:
+            break;
+        case media_print_state_PAUSED:
+            static bool marlin_client_initializated = false;
             // lazy initialization of marlin_client
             if (!marlin_client_initializated) {
                 marlin_client_initializated = true;
                 marlin_client::init();
             }
             marlin_client::set_warning(WarningType::USBFlashDiskError);
+            break;
         }
         break;
     }
+}
+
+bool block_one_click_print() {
+    return block_one_click_print_until_ms > ticks_ms();
 }
 
 } // namespace usbh_power_cycle
