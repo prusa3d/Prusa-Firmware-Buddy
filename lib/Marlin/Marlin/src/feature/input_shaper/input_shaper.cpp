@@ -513,6 +513,11 @@ step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_
         if (input_shaper_state_update(*step_generator.is_state, step_generator.axis) && step_generator.is_state->nearest_next_change < MAX_PRINT_TIME) {
             next_step_event.flags |= STEP_EVENT_FLAG_KEEP_ALIVE;
             next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE;
+        } else {
+            // We reached the ending move segment, so we will never produce any valid step event from this micro move segment.
+            // When we return GENERATED_INVALID, we always have to return the value of nearest_next_change for this new micro
+            // move segment and not for the previous one.
+            next_step_event.time = step_generator.is_state->nearest_next_change;
         }
 
         // Update step direction flag, which is cached until this move segment is processed.
