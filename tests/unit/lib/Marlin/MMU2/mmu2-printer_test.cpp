@@ -141,7 +141,7 @@ constexpr_workaround IOSimRec MakeQueryResponseFinished(const char *command, IOS
 }
 
 constexpr_workaround IOSimRec MakeQueryResponseToolChangeFinished(const char *command, IOSimRec::WorkFunc w = nullptr) {
-    return { "Q0", { "TryLoadUnloadReporter::TryLoadUnloadReporter", "planner_any_moves", "TryLoadUnloadReporter::DumpToSerial", FormatEndReport(command[0]) }, {}, std::string(command) + " F0", 1, w };
+    return { "Q0", { "TryLoadUnloadReporter::TryLoadUnloadReporter", "planner_any_moves", "TryLoadUnloadReporter::DumpToSerial", "IncrementMMUChanges", FormatEndReport(command[0]) }, {}, std::string(command) + " F0", 1, w };
 }
 
 constexpr_workaround IOSimRec MakeFSensorAccepted(uint8_t state, IOSimRec::WorkFunc w = nullptr) {

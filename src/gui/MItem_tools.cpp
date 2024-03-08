@@ -656,6 +656,14 @@ MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
     : MI_ODOMETER_DIST(_(generic_label), nullptr, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
 
+MI_ODOMETER_MMU_CHANGES::MI_ODOMETER_MMU_CHANGES()
+    : WI_FORMATABLE_LABEL_t<uint32_t>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {},
+        [&](char *buffer) {
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%lu %s", value, times_label);
+        }) {
+}
+
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
     : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
         format_duration(std::span { buffer, GuiDefaults::infoDefaultLen }, value);

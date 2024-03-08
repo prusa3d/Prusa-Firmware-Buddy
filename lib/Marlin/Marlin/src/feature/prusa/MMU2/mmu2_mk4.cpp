@@ -586,6 +586,7 @@ void MMU2::ToolChangeCommon(uint8_t slot) {
     // @@TODO SpoolJoin::spooljoin.setSlot(slot);
 
     ++toolchange_counter;
+    IncrementMMUChanges();
 }
 
 bool MMU2::tool_change(uint8_t slot) {

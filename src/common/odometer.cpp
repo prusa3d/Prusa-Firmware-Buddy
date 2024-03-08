@@ -29,6 +29,10 @@ bool Odometer_s::changed() {
         return true;
     }
 
+    if (mmu_changes != 0) {
+        return true;
+    }
+
     return false;
 }
 
@@ -54,6 +58,9 @@ void Odometer_s::force_to_eeprom() {
 
     config_store().odometer_time.set(get_time());
     duration_time = 0;
+
+    config_store().mmu_changes.set(get_mmu_changes());
+    mmu_changes = 0;
 }
 
 void Odometer_s::add_axis(axis_t axis, float value) {
@@ -107,6 +114,14 @@ uint32_t Odometer_s::get_toolpick_all() {
         sum += get_toolpick(i);
     }
     return sum;
+}
+
+void Odometer_s::add_mmu_change() {
+    mmu_changes++;
+}
+
+uint32_t Odometer_s::get_mmu_changes() {
+    return config_store().mmu_changes.get() + mmu_changes;
 }
 
 void Odometer_s::add_time(uint32_t value) {
