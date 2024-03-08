@@ -586,6 +586,14 @@ public:
     MI_ODOMETER_TOOL();
 };
 
+class MI_ODOMETER_MMU_CHANGES : public WI_FORMATABLE_LABEL_t<uint32_t> {
+    constexpr static const char *const label = N_("MMU Changed");
+    constexpr static const char *const times_label = N_("times"); // MMU Changed      123 times
+
+public:
+    MI_ODOMETER_MMU_CHANGES();
+};
+
 class MI_ODOMETER_TIME : public WI_FORMATABLE_LABEL_t<uint32_t> {
     constexpr static const char *const label = N_("Print Time");
 

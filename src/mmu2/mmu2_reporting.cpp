@@ -11,6 +11,7 @@
 #include "pause_stubbed.hpp"
 #include "log.h"
 #include <config_store/store_instance.hpp>
+#include <odometer.hpp>
 #include "gui/dialogs/DialogLoadUnload.hpp"
 
 LOG_COMPONENT_REF(MMU2);
@@ -155,6 +156,10 @@ void IncrementLoadFails() {
 void IncrementMMUFails() {
     config_store().mmu2_fails.set(config_store().mmu2_fails.get() + 1);
     config_store().mmu2_total_fails.set(config_store().mmu2_total_fails.get() + 1);
+}
+
+void IncrementMMUChanges() {
+    Odometer_s::instance().add_mmu_change();
 }
 
 bool cutter_enabled() {

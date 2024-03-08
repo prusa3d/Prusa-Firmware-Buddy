@@ -8,6 +8,7 @@
 #include "MItem_tools.hpp"
 #include "DialogMoveZ.hpp"
 #include <option/has_toolchanger.h>
+#include <option/has_mmu2.h>
 
 void ScreenMenuOdometer::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::HELD_RELEASED) {
@@ -38,6 +39,9 @@ ScreenMenuOdometer::ScreenMenuOdometer()
     Item<MI_ODOMETER_TOOL_N<2>>().UpdateValue(Odometer_s::instance().get_toolpick(2));
     Item<MI_ODOMETER_TOOL_N<3>>().UpdateValue(Odometer_s::instance().get_toolpick(3));
     Item<MI_ODOMETER_TOOL_N<4>>().UpdateValue(Odometer_s::instance().get_toolpick(4));
+#endif
+#if HAS_MMU2()
+    Item<MI_ODOMETER_MMU_CHANGES>().UpdateValue(Odometer_s::instance().get_mmu_changes());
 #endif
     Item<MI_ODOMETER_TIME>().UpdateValue(Odometer_s::instance().get_time());
 }

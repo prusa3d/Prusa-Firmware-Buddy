@@ -198,6 +198,9 @@ void IncrementLoadFails();
 /// Increments EEPROM cell - number of MMU errors
 void IncrementMMUFails();
 
+/// Increments EEPROM cell - number of filament changes
+void IncrementMMUChanges();
+
 /// @returns true when Cutter is enabled in the menus
 bool cutter_enabled();
 

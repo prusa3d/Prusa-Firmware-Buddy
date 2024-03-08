@@ -347,6 +347,8 @@ struct CurrentStore
     uint32_t get_odometer_toolpicks(uint8_t index);
     void set_odometer_toolpicks(uint8_t index, uint32_t value);
 
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("MMU toolchanges")> mmu_changes;
+
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Nozzle")> hw_check_nozzle;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Model")> hw_check_model;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Firmware")> hw_check_firmware;

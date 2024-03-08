@@ -85,6 +85,10 @@ void IncrementMMUFails() {
     mockLog_RecordFn();
 }
 
+void IncrementMMUChanges() {
+    mockLog_RecordFn();
+}
+
 /// @returns true when Cutter is enabled in the menus
 bool cutter_enabled() { return true; }
 
