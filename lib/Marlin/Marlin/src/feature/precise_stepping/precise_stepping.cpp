@@ -1104,24 +1104,40 @@ static void check_step_time_(const step_event_i32_t &new_step_event, const int32
 /// @brief Ensure a new step event never exceeds the time of the last move in the queue
 template <typename T>
 static void check_step_time(const T &step_event, const step_generator_state_t &step_generator_state) {
-    // When producing a new step the unprocessed move queue should never be empty, as the move
-    // should only be processed (and discarded) when all step events have been produced.
-    const move_t *cur_move = PreciseStepping::get_current_unprocessed_move_segment();
-    assert(cur_move != nullptr);
+    // Due to the buffered step, the maximum time delta of a new step might refer to a move which
+    // has just been processed
+    move_t *prev_move = PreciseStepping::get_last_processed_move_segment();
+    if (prev_move == nullptr) {
+        // ... unless it's also the first move being processed
+        prev_move = PreciseStepping::get_current_move_segment();
+
+        // the move queue should never be empty though, as the move should only be processed (and
+        // discarded) when all step events for it have been consumed.
+        assert(prev_move != nullptr);
+    }
+    const double prev_move_time = prev_move->print_time;
 
     // Fetch the last move, as the produced step event can span past the current move
     const move_t *last_move = PreciseStepping::get_last_move_segment();
     assert(last_move != nullptr);
 
-    // When calculating the absolute move end time further restrict the limit on ending empty moves
-    // to ensure that any scheduled keep-alive event is never split past the end of motion.
-    const double last_move_time = is_ending_empty_move(*last_move) ? (STEP_TIMER_MAX_TICKS_LIMIT / PreciseStepping::ticks_per_sec) : last_move->move_time;
+    double last_move_time;
+    if (is_ending_empty_move(*last_move)) {
+        // When calculating the absolute move end time restrict the limit on ending empty moves to
+        // ensure that any scheduled keep-alive event is never split past the end of motion.
+        last_move_time = (STEP_TIMER_MAX_TICKS_LIMIT / PreciseStepping::ticks_per_sec);
+    } else {
+        last_move_time = last_move->move_time;
+        if (last_move == prev_move) {
+            // We have no look-ahead, but we must still account for the possibility of the last step
+            // being just past the end of the current move
+            last_move_time += (STEP_TIMER_MAX_TICKS_LIMIT / PreciseStepping::ticks_per_sec);
+        }
+    }
     const double last_move_time_end = last_move->print_time + last_move_time;
+    assert(last_move_time_end >= prev_move_time);
 
-    const double cur_move_time = cur_move->print_time;
-    assert(last_move_time_end >= cur_move_time);
-
-    const int32_t max_move_ticks = (last_move_time_end - cur_move_time) * PreciseStepping::ticks_per_sec;
+    const int32_t max_move_ticks = (last_move_time_end - prev_move_time) * PreciseStepping::ticks_per_sec;
     check_step_time_(step_event, max_move_ticks);
 }
 

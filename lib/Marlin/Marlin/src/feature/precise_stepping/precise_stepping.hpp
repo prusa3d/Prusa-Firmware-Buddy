@@ -161,6 +161,17 @@ public:
         return nullptr;
     }
 
+    // Returns the last move segment that has been processed by
+    // PreciseStepping::process_queue_of_move_segments(), nullptr if the queue is empty or not
+    // processed.
+    FORCE_INLINE static move_t *get_last_processed_move_segment() {
+        if (move_segment_queue.unprocessed != move_segment_queue.tail) {
+            return &move_segment_queue.data[move_segment_queue_prev_index(move_segment_queue.unprocessed)];
+        }
+
+        return nullptr;
+    }
+
     // Returns the last move segment inside the queue (at the bottom of the queue), nullptr if the queue is empty.
     FORCE_INLINE static move_t *get_last_move_segment() {
         if (has_move_segments_queued()) {
