@@ -2735,6 +2735,9 @@ bool _process_server_valid_request(const Request &request, int client_id) {
     case Request::Type::PrintResume:
         print_resume();
         return true;
+    case Request::Type::MediaPrintReopen:
+        media_print_reopen();
+        return true;
     case Request::Type::PrintExit:
         print_exit();
         return true;

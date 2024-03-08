@@ -152,6 +152,8 @@ void print_pause();
 
 void print_resume();
 
+void media_print_reopen();
+
 void park_head();
 
 void notify_server_about_encoder_move();

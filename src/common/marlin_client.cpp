@@ -427,6 +427,10 @@ void print_resume() {
     _send_request_id_to_server_and_wait(Request::Type::PrintResume);
 }
 
+void media_print_reopen() {
+    _send_request_id_to_server_and_wait(Request::Type::MediaPrintReopen);
+}
+
 void park_head() {
     _send_request_id_to_server_and_wait(Request::Type::Park);
 }

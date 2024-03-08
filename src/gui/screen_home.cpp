@@ -55,6 +55,8 @@
 #include <transfers/transfer_file_check.hpp>
 #include <guiconfig/guiconfig.h>
 
+#include "usb_host.h"
+
 // TODO remove netdev_is_enabled after it is defined
 bool __attribute__((weak)) netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) { return true; }
 
@@ -488,7 +490,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     #if ENABLED(POWER_PANIC)
                     TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming() &&
     #endif // ENABLED(POWER_PANIC)
-                    GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
+                    GuiMediaEventsHandler::ConsumeOneClickPrinting() && !usbh_power_cycle::block_one_click_print()) {
                     // TODO this should be done in main thread before Event::MediaInserted is generated
                     // if it is not the latest gcode might not be selected
                     if (find_latest_gcode(

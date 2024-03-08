@@ -7,14 +7,19 @@ namespace usbh_power_cycle {
 
 void init();
 
-/// callback from media_loop when printing is paused
-void media_state_error();
-
-/// callback from USBH_MSC_Worker when an io error occurs
+// callback from USBH_MSC_Worker when an io error occurs
 void io_error();
 
-/// callback from isr, it is called when the USB is disconnected or when USB flash is deadlocked
+// callback from isr, it is called when the USB is disconnected or when USB flash is deadlocked
 void port_disabled();
+
+// indication that the one click dialog during USB recovery reset should be blocked
+bool block_one_click_print();
+
+// indication that a USB error dialog should be displayed
+// usb reset was unsuccessful and nothing else remains after emptying the prefetch buffer
+extern std::atomic<bool> trigger_usb_failed_dialog;
+
 } // namespace usbh_power_cycle
 
 extern "C" {

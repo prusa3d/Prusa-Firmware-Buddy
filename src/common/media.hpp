@@ -54,6 +54,7 @@ extern void media_print_stop(void);
 /// \param repeat_last Repeat last command after print resume
 extern void media_print_pause(bool repeat_last);
 extern void media_print_resume(void);
+void media_print_reopen();
 
 /// Stop adding new commands immediately and pause the reading
 /// \param pos position in the file where the print should be resumed
