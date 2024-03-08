@@ -521,6 +521,7 @@ static USBH_StatusTypeDef USBH_MSC_Process(USBH_HandleTypeDef *phost)
         (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
+        rw_mutex_writer_give(&phost->class_mutex);
       }
       else
       {
@@ -535,9 +536,9 @@ static USBH_StatusTypeDef USBH_MSC_Process(USBH_HandleTypeDef *phost)
         (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
 #endif
 #endif
+        rw_mutex_writer_give(&phost->class_mutex);
         phost->pUser(phost, HOST_USER_CLASS_ACTIVE);
       }
-      rw_mutex_writer_give(&phost->class_mutex);
       break;
 
     case MSC_IDLE:
