@@ -1,22 +1,23 @@
 #pragma once
 
+#include <common/static_storage.hpp>
 #include <radio_button_fsm.hpp>
 #include <screen.hpp>
-#include <window_text.hpp>
-#include <window_icon.hpp>
-#include <window_qr.hpp>
-#include <array>
+#include <window_frame.hpp>
 
 class ScreenPhaseStepping : public AddSuperWindow<screen_t> {
-    window_text_t text;
-    window_text_t link;
-    window_icon_t icon_phone;
-    window_qr_t qr;
+public:
+    using FrameStorage = StaticStorage<420>;
+
+private:
+    FrameStorage frame_storage;
+    window_frame_t inner_frame;
     RadioButtonFsm<PhasesPhaseStepping> radio;
-    std::array<char, 150> text_buffer;
     fsm::BaseData fsm_base_data;
 
-    void flip_layout();
+    void create_frame();
+    void destroy_frame();
+    void update_frame();
     void do_change(fsm::BaseData);
 
 public:
