@@ -420,7 +420,6 @@ private:
     CommunicationStatus read_discrete_general_status();
     CommunicationStatus read_general_status();
     void handle_dwarf_fault();
-    void report_accelerometer(int samples_received);
     bool raw_set_loadcell(bool active); // Low level loadcell enable/disable, no dependencies
     bool raw_set_accelerometer(bool active); // Low level accelerometer enable/disable, no dependencies
     CommunicationStatus read_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo, size_t &read); // Handle fifo read retries
