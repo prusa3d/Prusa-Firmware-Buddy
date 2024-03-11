@@ -48,7 +48,7 @@ BufferedSerial::BufferedSerial(
     , pendingWrite(false)
     , rxBufPool(rxBufPool)
     , rxBufPoolSize(rxBufPoolSize) {
-    eventGroup = xEventGroupCreate();
+    eventGroup = xEventGroupCreate(); // Event group for writing (Event group for reading is in rxBuff)
 }
 
 BufferedSerial::~BufferedSerial() {
@@ -57,6 +57,7 @@ BufferedSerial::~BufferedSerial() {
 
 void BufferedSerial::Open() {
     if (isOpen) {
+        uartrxbuff_reset(&rxBuf);
         return;
     }
 

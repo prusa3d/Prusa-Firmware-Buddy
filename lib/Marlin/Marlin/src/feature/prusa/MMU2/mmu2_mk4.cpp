@@ -169,7 +169,7 @@ void MMU2::Stop() {
 void MMU2::StopKeepPowered() {
     state = xState::Stopped;
     logic.Stop();
-    mmu2Serial.close();
+    /* mmu2Serial.close(); closing serial comm bricks "Tmr Svc" thread during MMU reflash on MMU_FW_UPDATE_NEEDED screen (low percentage reproducibility) */
 
     // This should reset the error reporter to no error
     ReportProgressHook(ProgressData(CommandInProgress::Reset));
