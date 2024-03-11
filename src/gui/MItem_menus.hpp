@@ -547,3 +547,15 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 #endif // XL_ENCLOSURE_SUPPORT()
+
+#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+class MI_BED_LEVEL_CORRECTION : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Bed Level Correction");
+
+public:
+    MI_BED_LEVEL_CORRECTION();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+#endif

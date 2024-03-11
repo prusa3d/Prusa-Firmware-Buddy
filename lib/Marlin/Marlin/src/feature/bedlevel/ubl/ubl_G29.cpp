@@ -21,6 +21,7 @@
  */
 
 #include "../../../inc/MarlinConfig.h"
+#include "config_store/store_instance.hpp"
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
 
@@ -294,6 +295,35 @@
    *   3-Point and Grid Based leveling. Combining their contributions we now have the functionality and
    *   features of all three systems combined.
    */
+
+  #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+
+  // Apply weighted correction on each point based on it's location.
+  // The whole correction is then conversed from µm to mm. 
+
+  float x_axis_correction(int x, int y) {
+    int32_t left_correction_um{config_store().left_bed_correction.get()};
+    int32_t right_correction_um{config_store().right_bed_correction.get()};
+
+    int32_t x_len{GRID_MAX_POINTS_X-1};
+    
+    return ( (left_correction_um*(x_len-x)) + (right_correction_um*(x)) ) / static_cast<float>(x_len);
+  }
+
+  float y_axis_correction(int x, int y) {
+    int32_t front_correction_um{config_store().front_bed_correction.get()};
+    int32_t rear_correction_um{config_store().rear_bed_correction.get()};
+
+    int32_t y_len{GRID_MAX_POINTS_Y-1};
+
+    return ( (front_correction_um*(y_len-y)) + (rear_correction_um*(y)) ) / static_cast<float>(y_len);
+  }
+
+  void apply_bed_level_correction(int x, int y) {
+    ubl.z_values[x][y] += 0.001f*(x_axis_correction(x, y) + y_axis_correction(x,y));
+  }
+
+  #endif
 
   void unified_bed_leveling::G29() {
 
@@ -947,6 +977,12 @@
             return;
           }
           z_values[x][y] = measured_z;
+          
+          #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+            //apply bed level correction on each probed point
+            apply_bed_level_correction(x,y);
+          #endif 
+
           #if ENABLED(EXTENSIBLE_UI)
             ExtUI::onMeshUpdate(x, y, measured_z);
           #endif

@@ -436,6 +436,13 @@ struct CurrentStore
     StoreItem<int64_t, defaults::int64_zero, journal::hash("XL Enclosure Filter Timer")> xl_enclosure_filter_timer;
     StoreItem<uint8_t, defaults::uint8_percentage_80, journal::hash("XL Enclosure Fan Manual Setting")> xl_enclosure_fan_manual;
 #endif
+
+#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Left Bed Correction")> left_bed_correction;
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Right Bed Correction")> right_bed_correction;
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Front Bed Correction")> front_bed_correction;
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Rear Bed Correction")> rear_bed_correction;
+#endif
 };
 
 /**
