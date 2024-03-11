@@ -744,8 +744,12 @@ void load_correction_from_file(CorrectedCurrentLut &lut, const char *file_path) 
 
 void save_to_persistent_storage(AxisEnum axis) {
     assert(axis < SUPPORTED_AXIS_COUNT);
+    save_to_persistent_storage_without_enabling(axis);
     config_store().set_phase_stepping_enabled(axis, axis_states[axis]->active);
+}
 
+void save_to_persistent_storage_without_enabling(AxisEnum axis) {
+    assert(axis < SUPPORTED_AXIS_COUNT);
     save_correction_to_file(axis_states[axis]->forward_current, get_correction_file_path(axis, CorrectionType::forward));
     save_correction_to_file(axis_states[axis]->backward_current, get_correction_file_path(axis, CorrectionType::backward));
 }
