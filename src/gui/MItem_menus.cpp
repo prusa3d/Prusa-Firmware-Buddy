@@ -56,6 +56,10 @@
 #include "screen_menu_error_test.hpp"
 #include "screen_menu_input_shaper.hpp"
 
+#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+    #include <screen_menu_bed_level_correction.hpp>
+#endif
+
 #include <printers.h>
 
 #if HAS_SELFTEST()
@@ -670,3 +674,16 @@ void MI_DONE_EXTRUDER_MAINTENANCE::click(IWindowMenu &) {
         config_store().mmu_fail_bucket.set(0);
     }
 }
+
+#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+/*****************************************************************************/
+// MI_BED_LEVEL_CORRECTION
+
+MI_BED_LEVEL_CORRECTION::MI_BED_LEVEL_CORRECTION()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_BED_LEVEL_CORRECTION::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuBedLevelCorrection>);
+}
+#endif

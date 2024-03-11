@@ -50,6 +50,7 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
 #if HAS_SELFTEST_SNAKE()
     #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
     MI_MESH_BED,
+    MI_BED_LEVEL_CORRECTION,
     #endif
     MI_SELFTEST_SNAKE
 #else
