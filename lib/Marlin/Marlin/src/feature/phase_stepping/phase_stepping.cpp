@@ -756,10 +756,10 @@ void save_to_persistent_storage_without_enabling(AxisEnum axis) {
 
 void load_from_persistent_storage(AxisEnum axis) {
     assert(axis < SUPPORTED_AXIS_COUNT);
-    phase_stepping::enable(axis, config_store().get_phase_stepping_enabled(axis));
-
     load_correction_from_file(axis_states[axis]->forward_current, get_correction_file_path(axis, CorrectionType::forward));
     load_correction_from_file(axis_states[axis]->backward_current, get_correction_file_path(axis, CorrectionType::backward));
+
+    phase_stepping::enable(axis, config_store().get_phase_stepping_enabled(axis));
 }
 
 } // namespace phase_stepping
