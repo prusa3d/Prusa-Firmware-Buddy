@@ -29,15 +29,6 @@ add_library(
   Marlin/Marlin/src/module/temperature.cpp
   )
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  # Avoid mis-compilation of XY*Val types inside some large functions at -Og
-  set_property(
-    SOURCE Marlin/Marlin/src/module/motion.cpp
-    APPEND
-    PROPERTY COMPILE_OPTIONS "-O0"
-    )
-endif()
-
 if(BOARD_IS_MASTER_BOARD)
   # Full Marlin configuration for printing (*BUDDY boards)
   target_sources(
