@@ -75,6 +75,7 @@ float MoveTarget::target_position() const {
 }
 
 void phase_stepping::init() {
+    phase_stepping::initialize_axis_motor_params();
     phase_stepping::axis_states[0].reset(new AxisState(AxisEnum::X_AXIS));
     phase_stepping::axis_states[1].reset(new AxisState(AxisEnum::Y_AXIS));
 }
@@ -585,7 +586,7 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
     }
     const auto &current_lut = resolve_current_lut(axis_state);
 
-    int new_phase = normalize_motor_phase(pos_to_phase(axis_index, physical_position) + axis_state.zero_rotor_phase);
+    int new_phase = normalize_motor_phase(pos_to_phase(axis_enum, physical_position) + axis_state.zero_rotor_phase);
     assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
 #if HAS_BURST_STEPPING()
@@ -610,7 +611,7 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
     // called and will refresh the new starting values.
     if (position != axis_state.last_position) {
         // update counters to the new position
-        int32_t steps_made = pos_to_steps(axis_index, position);
+        int32_t steps_made = pos_to_steps(axis_enum, position);
         Stepper::set_axis_steps(axis_enum, axis_state.initial_count_position + steps_made);
         Stepper::set_axis_steps_from_startup(axis_enum, axis_state.initial_count_position_from_startup + steps_made);
 
@@ -670,83 +671,6 @@ bool phase_stepping::any_axis_active() {
     return std::ranges::any_of(axis_states, [](const auto &state) -> bool {
         return (state && state->active);
     });
-}
-
-int32_t phase_stepping::pos_to_phase(int axis, float position) {
-    static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
-        static_assert(SUPPORTED_AXIS_COUNT <= 3);
-
-        int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-        int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
-
-        std::array<float, SUPPORTED_AXIS_COUNT> ret;
-        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
-            ret[i] = 256.f * STEPS_PER_UNIT[i] / MICROSTEPS[i];
-        }
-        return ret;
-    }();
-    return normalize_motor_phase(position * FACTORS[axis]);
-}
-
-int32_t phase_stepping::pos_to_steps(int axis, float position) {
-    static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
-        static_assert(SUPPORTED_AXIS_COUNT <= 3);
-
-        int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-
-        std::array<float, SUPPORTED_AXIS_COUNT> ret;
-        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
-            ret[i] = float(STEPS_PER_UNIT[i]);
-        }
-        return ret;
-    }();
-    return position * FACTORS[axis];
-}
-
-int32_t pos_to_msteps(int axis, float position) {
-    static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
-        static_assert(SUPPORTED_AXIS_COUNT <= 3);
-
-        int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-
-        std::array<float, SUPPORTED_AXIS_COUNT> ret;
-        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
-            ret[i] = float(STEPS_PER_UNIT[i]) / PLANNER_STEPS_MULTIPLIER;
-        }
-        return ret;
-    }();
-    return position * FACTORS[axis];
-}
-
-float phase_stepping::mm_to_rev(int motor, float mm) {
-    static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
-        static_assert(SUPPORTED_AXIS_COUNT <= 3);
-
-        int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-        int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
-
-        std::array<float, SUPPORTED_AXIS_COUNT> ret;
-        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
-            ret[i] = 1.f / (get_motor_steps(AxisEnum(i)) * float(MICROSTEPS[i]) / float(STEPS_PER_UNIT[i]));
-        }
-        return ret;
-    }();
-    return mm * FACTORS[motor];
-}
-
-int phase_stepping::phase_per_ustep(int axis) {
-    static constinit std::array<int, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
-        static_assert(SUPPORTED_AXIS_COUNT <= 3);
-
-        int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
-
-        std::array<int, SUPPORTED_AXIS_COUNT> ret;
-        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
-            ret[i] = 256 / MICROSTEPS[i];
-        }
-        return ret;
-    }();
-    return FACTORS[axis];
 }
 
 #if HAS_BURST_STEPPING()
@@ -852,11 +776,12 @@ extern "C" void PHSTEP_TIMER_ISR_HANDLER(void) {
 }
 
 // For the same reason as the ISR handler above, we include the
-// quick_tmc_spi.cpp, burst_stepper.cpp and lut.cpp instead of compiling them
-// separately:
+// quick_tmc_spi.cpp, burst_stepper.cpp, axes.cpp and lut.cpp instead of
+// compiling them separately:
 #if HAS_BURST_STEPPING()
     #include "burst_stepper.cpp"
 #else
     #include "quick_tmc_spi.cpp"
 #endif
 #include "lut.cpp"
+#include "axes.cpp"

@@ -11,6 +11,7 @@
 
     #include "common.hpp"
     #include "lut.hpp"
+    #include "axes.hpp"
 
     #include <libs/circularqueue.h>
     #include <core/types.h>
@@ -173,45 +174,6 @@ void handle_periodic_refresh();
  * Return whether any of the axis is in phase stepping mode
  */
 bool any_axis_active();
-
-/**
- * Given position, compute coefficient for converting position to motor phase
- **/
-int32_t pos_to_phase(int axis, float position);
-
-/**
- * Given position, compute step equivalent
- **/
-int32_t pos_to_steps(int axis, float position);
-
-/**
- * Given position, compute planner msteps equivalent
- **/
-int32_t pos_to_msteps(int axis, float position);
-
-/**
- * Given position or speed in length unit, return it in revolution units
- **/
-float mm_to_rev(int motor, float mm);
-
-/**
- * Given axis, report number of phase steps for single µstep
- */
-int phase_per_ustep(int axis);
-
-/**
- * Return a motor step count for given axis
- **/
-constexpr int get_motor_steps(AxisEnum axis) {
-    if (axis == AxisEnum::X_AXIS || axis == AxisEnum::Y_AXIS) {
-    #ifdef HAS_LDO_400_STEP
-        return 400;
-    #else
-        return 200;
-    #endif
-    }
-    return 200;
-}
 
 /**
  * Given axis state and time in µs ticks from movement start, compute axis

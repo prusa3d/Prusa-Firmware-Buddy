@@ -175,22 +175,6 @@ static std::tuple<float, float> physical_to_logical(float x, float y) {
 #endif
 }
 
-static float rev_to_mm(AxisEnum axis, float revs) {
-    static constinit std::array<float, SUPPORTED_AXIS_COUNT> FACTORS = []() consteval {
-        static_assert(SUPPORTED_AXIS_COUNT <= 3);
-
-        int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-        int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
-
-        std::array<float, SUPPORTED_AXIS_COUNT> ret;
-        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
-            ret[i] = float(MICROSTEPS[i]) / float(STEPS_PER_UNIT[i]);
-        }
-        return ret;
-    }();
-    return revs * get_motor_steps(axis) * FACTORS[axis];
-}
-
 // @brief Wait for a state of a given axis specified by a predicate.
 // @return true on success, false on timeout
 template <typename Pred>
