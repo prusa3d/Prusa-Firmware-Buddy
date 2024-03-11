@@ -348,6 +348,8 @@ struct CurrentStore
     void set_odometer_toolpicks(uint8_t index, uint32_t value);
 
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("MMU toolchanges")> mmu_changes;
+    // A "leaky bucket" for MMU failures.
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU fail bucket")> mmu_fail_bucket;
 
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Nozzle")> hw_check_nozzle;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Model")> hw_check_model;

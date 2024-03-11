@@ -8,6 +8,7 @@
 #include "mmu2_error_converter.h"
 #include "mmu2_fsm.hpp"
 #include "mmu2_reporter.hpp"
+#include "fail_bucket.hpp"
 #include "pause_stubbed.hpp"
 #include "log.h"
 #include <config_store/store_instance.hpp>
@@ -17,6 +18,12 @@
 LOG_COMPONENT_REF(MMU2);
 
 namespace MMU2 {
+
+namespace {
+
+    FailLeakyBucket fail_leaky_bucket;
+
+}
 
 void CheckErrorScreenUserInput() {
     if (!DialogLoadUnload::is_mmu2_error_screen_running()) {
@@ -151,15 +158,19 @@ void ScreenClear() {
 void IncrementLoadFails() {
     config_store().mmu2_load_fails.set(config_store().mmu2_load_fails.get() + 1);
     config_store().mmu2_total_load_fails.set(config_store().mmu2_total_load_fails.get() + 1);
+    fail_leaky_bucket.add_failure();
 }
 
 void IncrementMMUFails() {
     config_store().mmu2_fails.set(config_store().mmu2_fails.get() + 1);
     config_store().mmu2_total_fails.set(config_store().mmu2_total_fails.get() + 1);
+    fail_leaky_bucket.add_failure();
 }
 
 void IncrementMMUChanges() {
     Odometer_s::instance().add_mmu_change();
+    const auto total_successes = Odometer_s::instance().get_mmu_changes();
+    fail_leaky_bucket.success(total_successes);
 }
 
 bool cutter_enabled() {
