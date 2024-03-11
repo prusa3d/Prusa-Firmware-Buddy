@@ -72,8 +72,7 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
               }
               for (AccelerometerXyzSample sample : data) {
                   PrusaAccelerometer::put_sample(sample);
-              }
-              report_accelerometer(data.size()); },
+              } },
           .accelerometer_freq_handler = [this](AccelerometerSamplingRate data) {
               if (!this->is_selected()) {
                     return;
@@ -606,17 +605,6 @@ float Dwarf::get_heatbreak_temp() {
 
 uint16_t Dwarf::get_heatbreak_fan_pwr() {
     return RegisterGeneralStatus.value.fan[1].pwm;
-}
-
-void Dwarf::report_accelerometer(int samples_received) {
-    static uint32_t last_report = 0;
-    static uint32_t sample_count = 0;
-    sample_count += samples_received;
-    if (ticks_ms() - last_report > 1000) {
-        DWARF_LOG(LOG_SEVERITY_INFO, "acc sample rate: %" PRIu32, sample_count);
-        sample_count = 0;
-        last_report = ticks_ms();
-    }
 }
 
 std::array<Dwarf, DWARF_MAX_COUNT> dwarfs { {

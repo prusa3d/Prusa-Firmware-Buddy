@@ -363,7 +363,6 @@ std::vector<float> phase_stepping::analyze_resonance(AxisEnum axis,
         }
     });
 
-    log_info(PhaseStepping, "Accelerometer sampling freq: %f", sampling_freq);
     if (sampling_freq < 1100 || sampling_freq > 1500) {
         log_error(PhaseStepping, "Sampling freq out of range: %f", sampling_freq);
         return {};
