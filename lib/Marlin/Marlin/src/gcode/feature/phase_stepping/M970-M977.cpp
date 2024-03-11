@@ -533,7 +533,5 @@ void GcodeSuite::M977() {
         SERIAL_PRINT(backward[i].pha, SERIAL_DECIMALS);
         SERIAL_ECHO("\n");
     }
-
-    phase_stepping::save_correction_to_file(phase_stepping::axis_states[axis]->forward_current, phase_stepping::get_correction_file_path(axis, phase_stepping::CorrectionType::forward));
-    phase_stepping::save_correction_to_file(phase_stepping::axis_states[axis]->backward_current, phase_stepping::get_correction_file_path(axis, phase_stepping::CorrectionType::backward));
+    phase_stepping::save_to_persistent_storage_without_enabling(axis);
 }

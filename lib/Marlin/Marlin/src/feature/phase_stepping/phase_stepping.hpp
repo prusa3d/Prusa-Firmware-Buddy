@@ -413,6 +413,9 @@ void save_correction_to_file(const CorrectedCurrentLut &lut, const char *file_pa
  */
 void load_correction_from_file(CorrectedCurrentLut &lut, const char *file_path);
 
+/** Like save_to_persistent_storage() but does not enable */
+void save_to_persistent_storage_without_enabling(AxisEnum axis);
+
 /**
  * @brief Call to save current state into persistent media (ie eeprom/xflash)
  * state == lookup tables, is enabled/disabled
