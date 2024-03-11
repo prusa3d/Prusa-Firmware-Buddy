@@ -400,6 +400,13 @@ struct CurrentStore
 #if PRINTER_IS_PRUSA_MK3_5
     StoreItem<bool, defaults::bool_false, journal::hash("Has Alt Fans")> has_alt_fans;
 #endif
+
+#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Left Bed Correction")> left_bed_correction;
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Right Bed Correction")> right_bed_correction;
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Front Bed Correction")> front_bed_correction;
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Rear Bed Correction")> rear_bed_correction;
+#endif
 };
 
 /**

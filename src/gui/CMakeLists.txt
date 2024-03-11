@@ -225,3 +225,7 @@ add_subdirectory(footer)
 if(HAS_LEDS)
   add_subdirectory(led_animations)
 endif()
+
+if(PRINTER IN_LIST PRINTERS_WITH_BED_LEVEL_CORRECTION)
+  target_sources(firmware PRIVATE screen_menu_bed_level_correction.cpp)
+endif()

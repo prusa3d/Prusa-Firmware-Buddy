@@ -26,6 +26,7 @@ namespace defaults {
     inline constexpr uint8_t uint8_t_zero { 0 };
     inline constexpr uint16_t uint16_t_zero { 0 };
     inline constexpr uint32_t uint32_t_zero { 0 };
+    inline constexpr int8_t int8_t_zero { 0 };
 
     // default values for variables that have distinct requirements
     inline constexpr float pid_nozzle_p {
