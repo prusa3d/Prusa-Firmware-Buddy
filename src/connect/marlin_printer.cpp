@@ -426,18 +426,14 @@ namespace {
 const char *MarlinPrinter::click_button(uint32_t dialog_id, Response response) {
     auto [last_fsm, fsm_gen] = marlin_vars()->get_last_fsm_change();
 
-    // How to get tha phase and FSM, that send this??
-    // for now pick the top one
-    fsm::Change *top_change = nullptr;
-    if (last_fsm.q2_change.get_fsm_type() != ClientFSM::_none) {
-        top_change = &last_fsm.q2_change;
-    } else if (last_fsm.q1_change.get_fsm_type() != ClientFSM::_none) {
-        top_change = &last_fsm.q1_change;
-    } else if (last_fsm.q0_change.get_fsm_type() != ClientFSM::_none) {
-        top_change = &last_fsm.q0_change;
-    } else {
+    // We always send dialog from the top FSM, so we can
+    // just check the dialog_id and if it is the same
+    // we know it is for the top one
+    fsm::Change *top_change = last_fsm.get_top_fsm();
+    if (top_change == nullptr) {
         return "No buttons";
     }
+
     if (fsm_gen != dialog_id) {
         return "Invalid dialog id";
     }
