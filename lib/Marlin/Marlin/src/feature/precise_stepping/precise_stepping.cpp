@@ -568,6 +568,20 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
     PreciseStepping::flags = 0;
 
     if (preserve_step_fraction) {
+        xyz_long_t step_fraction;
+#ifdef COREXY
+        step_fraction.x = total_start_pos_msteps.x - ((step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2);
+        step_fraction.y = total_start_pos_msteps.y - ((step_generator_state.current_distance.a - step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2);
+#else
+        step_fraction.x = total_start_pos_msteps.x - (step_generator_state.current_distance.x * PLANNER_STEPS_MULTIPLIER);
+        step_fraction.y = total_start_pos_msteps.y - (step_generator_state.current_distance.y * PLANNER_STEPS_MULTIPLIER);
+#endif
+        step_fraction.z = total_start_pos_msteps.z - (step_generator_state.current_distance.z * PLANNER_STEPS_MULTIPLIER);
+
+        LOOP_XYZ(i) {
+            total_start_pos_msteps[i] += step_fraction[i];
+        }
+
         // Because of pressure advance, the amount of material in total_start_pos_msteps doesn't
         // have to equal to step_generator_state.current_distance.e. So we always reset extrude
         // steps to zero because losing a fraction of a step in the E-axis shouldn't cause any
