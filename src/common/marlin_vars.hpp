@@ -421,6 +421,18 @@ public:
             : q0_change(fsm::QueueIndex::q0)
             , q1_change(fsm::QueueIndex::q1)
             , q2_change(fsm::QueueIndex::q2) {}
+
+        fsm::Change *get_top_fsm() {
+            if (q2_change.get_fsm_type() != ClientFSM::_none) {
+                return &q2_change;
+            } else if (q1_change.get_fsm_type() != ClientFSM::_none) {
+                return &q1_change;
+            } else if (q0_change.get_fsm_type() != ClientFSM::_none) {
+                return &q0_change;
+            } else {
+                return nullptr;
+            }
+        }
     };
     /**
      * @brief Get the last fsm state
