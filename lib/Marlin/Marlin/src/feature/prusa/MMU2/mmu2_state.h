@@ -15,6 +15,7 @@ namespace MMU2 {
 enum class xState : uint_fast8_t {
     Active, ///< MMU has been detected, connected, communicates and is ready to be worked with.
     Connecting, ///< MMU is connected but it doesn't communicate (yet). The user wants the MMU, but it is not ready to be worked with.
+    Bootloader, ///< Trying to communicate with the MMU bootloader
     Stopped ///< The user doesn't want the printer to work with the MMU. The MMU itself is not powered and does not work at all.
 };
 
