@@ -16,9 +16,6 @@ using namespace phase_stepping::opts;
 
 LOG_COMPONENT_REF(PhaseStepping);
 
-// Currently re/set by M977
-CalibrationResult phase_stepping::last_calibration_result = CalibrationResult::make_unknown();
-
 // Temporary debugging to Marlin serial for convenience
 #define SERIAL_DEBUG
 

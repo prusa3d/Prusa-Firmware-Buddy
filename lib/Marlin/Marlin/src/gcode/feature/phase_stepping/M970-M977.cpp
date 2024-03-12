@@ -462,13 +462,6 @@ public:
         SERIAL_ECHO("%, ");
         SERIAL_ECHO(100.f * (1.f - p2_b * p4_b));
         SERIAL_ECHO("%\n");
-        phase_stepping::last_calibration_result = phase_stepping::CalibrationResult::make_known(
-            phase_stepping::CalibrationResult::Scores {
-                .p1f = p1_f * p3_f,
-                .p1b = p1_b * p3_b,
-                .p2f = p2_f * p4_f,
-                .p2b = p2_b * p4_b,
-            });
 #endif
     }
 };
@@ -483,7 +476,6 @@ public:
  **/
 void GcodeSuite::M977() {
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
-    phase_stepping::last_calibration_result = phase_stepping::CalibrationResult::make_error();
 
     bool valid = true;
 
