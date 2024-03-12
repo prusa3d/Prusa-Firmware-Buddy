@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace MMU2 {
 
 /// A leaky bucket algorithm for checking if we should ask the user to do an extruder maintanence.
