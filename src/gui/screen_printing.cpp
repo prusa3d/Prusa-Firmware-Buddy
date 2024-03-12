@@ -21,6 +21,8 @@
 #include <option/has_toolchanger.h>
 #if HAS_MMU2()
     #include <feature/prusa/MMU2/mmu2_mk4.h>
+    #include <window_msgbox.hpp>
+    #include <mmu2/maintenance.hpp>
 #endif
 
 #include "Marlin/src/module/motion.h"
@@ -313,6 +315,30 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 #endif
         show_time_information();
     }
+
+#if HAS_MMU2()
+    // FIXME: This is, technically, a wrong place to do it. The marlin server
+    // would be better, as it would also allow Connect to see the dialog. But
+    // that was problematic and it got postponed.
+    //
+    // See BFW-5221.
+    if (!mmu_maintenance_checked && (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED)) {
+        mmu_maintenance_checked = true;
+        if (auto reason = MMU2::check_maintenance(); reason.has_value()) {
+            string_view_utf8 txt;
+            switch (*reason) {
+            case MMU2::MaintenanceReason::Failures:
+                txt = _("High failure rate of MMU changes, maintenance suggested. Visit prusa.io/mmu-maintenance for more information.");
+                break;
+            case MMU2::MaintenanceReason::Changes:
+                txt = _("Performed many MMU changes, maintenance suggested. Visit prusa.io/mmu-maintenance for more information.");
+                break;
+            }
+
+            MsgBoxWarning(txt, Responses_Ok);
+        }
+    }
+#endif
 
 #if defined(USE_ILI9488)
     if (shown_end_result && event == GUI_event_t::ENC_DN

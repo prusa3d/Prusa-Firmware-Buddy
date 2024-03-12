@@ -1,6 +1,7 @@
 target_sources(
   firmware
   PRIVATE fail_bucket.cpp
+          maintenance.cpp
           mmu2_error_converter.cpp
           mmu2_fsensor.cpp
           mmu2_fsm.cpp
