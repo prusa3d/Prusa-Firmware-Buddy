@@ -698,3 +698,14 @@ void MI_BED_LEVEL_CORRECTION::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuBedLevelCorrection>);
 }
 #endif
+
+MI_DONE_EXTRUDER_MAINTENANCE::MI_DONE_EXTRUDER_MAINTENANCE()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::no) {
+}
+
+void MI_DONE_EXTRUDER_MAINTENANCE::click(IWindowMenu &) {
+    if (MsgBoxQuestion(_("Reset the extruder maintenance reminder?"), Responses_YesNo) == Response::Yes) {
+        config_store().mmu_last_maintenance.set(config_store().mmu_changes.get());
+        config_store().mmu_fail_bucket.set(0);
+    }
+}

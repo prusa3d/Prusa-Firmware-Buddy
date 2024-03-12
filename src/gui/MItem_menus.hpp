@@ -559,3 +559,12 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 #endif
+
+class MI_DONE_EXTRUDER_MAINTENANCE : public IWindowMenuItem {
+    constexpr static const char *const label = N_("Extruder maintenance");
+
+public:
+    MI_DONE_EXTRUDER_MAINTENANCE();
+
+    virtual void click(IWindowMenu &) override;
+};
