@@ -1,0 +1,4 @@
+#pragma once
+
+/// Version on the MMU firmware that is stored in the xflash
+constexpr const uint16_t mmu_fw_attached_version[] = { ${CMAKE_MATCH_1}, ${CMAKE_MATCH_2}, ${CMAKE_MATCH_3} };
