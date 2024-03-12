@@ -430,7 +430,7 @@ class CalibrationPhaseExecutor {
     AxisEnum _axis;
     const PrinterCalibrationConfig &_printer_config;
     const CalibrationPhase &_phase_config;
-    CalibrationReporterBase &_reporter;
+    CalibrateAxisHooks &_hooks;
     int _progress = 0;
 
     int _progress_tick_count() const {
@@ -494,7 +494,7 @@ class CalibrationPhaseExecutor {
                 }
                 log_error(PhaseStepping, "Resonance analysis failed in argument search");
             }
-            _reporter.on_calibration_phase_progress(100 * (_progress++) / _progress_tick_count());
+            _hooks.on_calibration_phase_progress(100 * (_progress++) / _progress_tick_count());
 
             idle(true, true);
         }
@@ -524,11 +524,11 @@ class CalibrationPhaseExecutor {
 public:
     CalibrationPhaseExecutor(
         AxisEnum axis, const PrinterCalibrationConfig &printer_config,
-        const CalibrationPhase &phase_config, CalibrationReporterBase &reporter)
+        const CalibrationPhase &phase_config, CalibrateAxisHooks &hooks)
         : _axis(axis)
         , _printer_config(printer_config)
         , _phase_config(phase_config)
-        , _reporter(reporter) {}
+        , _hooks(hooks) {}
 
     std::optional<std::tuple<float, float>> baseline() {
         for (int retries = 0; retries != RETRY_COUNT; retries++) {
@@ -587,7 +587,7 @@ public:
 };
 
 std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>>
-phase_stepping::calibrate_axis(AxisEnum axis, CalibrationReporterBase &reporter) {
+phase_stepping::calibrate_axis(AxisEnum axis, CalibrateAxisHooks &hooks) {
     std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>> r;
 
     const auto config = get_printer_calibration_config();
@@ -596,17 +596,17 @@ phase_stepping::calibrate_axis(AxisEnum axis, CalibrationReporterBase &reporter)
 
     phase_stepping::EnsureEnabled _;
 
-    reporter.on_initial_movement();
+    hooks.on_initial_movement();
     move_to_calibration_start(axis, config);
     Planner::synchronize();
 
-    reporter.set_calibration_phases_count(config.phases.size());
+    hooks.set_calibration_phases_count(config.phases.size());
     for (std::size_t phase_i = 0; phase_i != config.phases.size(); phase_i++) {
         const CalibrationPhase &calib_phase = config.phases[phase_i];
 
-        reporter.on_enter_calibration_phase(phase_i);
+        hooks.on_enter_calibration_phase(phase_i);
 
-        auto executor = CalibrationPhaseExecutor(axis, config, calib_phase, reporter);
+        auto executor = CalibrationPhaseExecutor(axis, config, calib_phase, hooks);
         auto baseline_res = executor.baseline();
         if (!baseline_res.has_value()) {
             return r;
@@ -619,9 +619,9 @@ phase_stepping::calibrate_axis(AxisEnum axis, CalibrationReporterBase &reporter)
         }
         auto [min_f, min_b] = *calib_res;
 
-        reporter.on_calibration_phase_result(min_f / baseline_f, min_b / baseline_b);
+        hooks.on_calibration_phase_result(min_f / baseline_f, min_b / baseline_b);
     }
-    reporter.on_termination();
+    hooks.on_termination();
 
     r.emplace();
     std::get<0>(*r) = phase_stepping::axis_states[axis]->forward_current.get_correction();

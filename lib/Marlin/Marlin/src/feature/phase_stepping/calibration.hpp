@@ -41,13 +41,9 @@ std::vector<float> analyze_resonance(AxisEnum axis,
  * Calibration routine notifies about the progress made via this class. Subclass
  * it and pass it to the calibration routine.
  */
-class CalibrationReporterBase {
-protected:
-    int _calibration_phases_count = -1;
-    int _current_calibration_phase = 0;
-
+class CalibrateAxisHooks {
 public:
-    virtual ~CalibrationReporterBase() = default;
+    virtual ~CalibrateAxisHooks() = default;
 
     /**
      * Report initial movement is in progress
@@ -57,16 +53,12 @@ public:
     /**
      * Set number of calibration phases
      */
-    virtual void set_calibration_phases_count(int phases) {
-        _calibration_phases_count = phases;
-    }
+    virtual void set_calibration_phases_count(int phases) = 0;
 
     /**
      * Report beginning of the new phase
      */
-    virtual void on_enter_calibration_phase(int phase) {
-        _current_calibration_phase = phase;
-    }
+    virtual void on_enter_calibration_phase(int phase) = 0;
 
     /**
      * Report progress in percent for given phase
@@ -86,12 +78,12 @@ public:
 
 /**
  * Assuming the printer is homed, calibrate given axis. The progress is reported
- * via reporter. The routine is blocking.
+ * via hooks. The routine is blocking.
  *
  * Returns a tuple with forward and backward calibration
  */
 std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>>
-calibrate_axis(AxisEnum axis, CalibrationReporterBase &reporter);
+calibrate_axis(AxisEnum axis, CalibrateAxisHooks &hooks);
 
 class CalibrationResult {
 public:
