@@ -18,6 +18,8 @@ public:
     void success(uint32_t successes);
     /// Is the bucket in an overflown state?
     bool reached_limit() const;
+
+    static FailLeakyBucket instance;
 };
 
 } // namespace MMU2
