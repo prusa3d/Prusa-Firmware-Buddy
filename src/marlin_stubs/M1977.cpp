@@ -32,24 +32,25 @@ Response wait_for_response(const PhasesPhaseStepping phase) {
     }
 }
 
-class CalibrationReporter final : public phase_stepping::CalibrationReporterBase {
+class CalibrateAxisHooks final : public phase_stepping::CalibrateAxisHooks {
 private:
     PhasesPhaseStepping phase;
     fsm::PhaseData data;
+    int current_calibration_phase = 0;
+    std::array<std::tuple<float, float>, 4> calibration_results;
 
 public:
-    std::array<std::tuple<float, float>, 4> _calibration_results;
     phase_stepping::CalibrationResult result = phase_stepping::CalibrationResult::make_error();
 
-    explicit CalibrationReporter(PhasesPhaseStepping phase)
+    explicit CalibrateAxisHooks(PhasesPhaseStepping phase)
         : phase { phase } {
         data[0] = 0;
-        data[1] = _calibration_results.size();
+        data[1] = calibration_results.size();
         data[2] = 0;
     }
 
     void set_calibration_phases_count(int phases) override {
-        if (static_cast<size_t>(phases) != _calibration_results.size()) {
+        if (static_cast<size_t>(phases) != calibration_results.size()) {
             bsod("phase count mismatch");
         }
     }
@@ -58,7 +59,7 @@ public:
         data[0] = calibration_phase;
         data[2] = 0;
         FSM_CHANGE_WITH_DATA__LOGGING(phase, data);
-        _current_calibration_phase = calibration_phase;
+        current_calibration_phase = calibration_phase;
     }
 
     void on_initial_movement() override {
@@ -70,14 +71,14 @@ public:
     }
 
     void on_calibration_phase_result(float forward_score, float backward_score) override {
-        _calibration_results[_current_calibration_phase] = { forward_score, backward_score };
+        calibration_results[current_calibration_phase] = { forward_score, backward_score };
     };
 
     void on_termination() override {
-        auto [p1_f, p1_b] = _calibration_results[0];
-        auto [p3_f, p3_b] = _calibration_results[2];
-        auto [p2_f, p2_b] = _calibration_results[1];
-        auto [p4_f, p4_b] = _calibration_results[3];
+        auto [p1_f, p1_b] = calibration_results[0];
+        auto [p3_f, p3_b] = calibration_results[2];
+        auto [p2_f, p2_b] = calibration_results[1];
+        auto [p4_f, p4_b] = calibration_results[3];
         result = phase_stepping::CalibrationResult::make_known(
             phase_stepping::CalibrationResult::Scores {
                 .p1f = p1_f * p3_f,
@@ -88,8 +89,8 @@ public:
     }
 };
 
-void calibration_helper(AxisEnum axis, CalibrationReporter &calibration_reporter) {
-    auto result = phase_stepping::calibrate_axis(axis, calibration_reporter);
+void calibration_helper(AxisEnum axis, CalibrateAxisHooks &hooks) {
+    auto result = phase_stepping::calibrate_axis(axis, hooks);
     if (result.has_value()) {
         phase_stepping::save_to_persistent_storage_without_enabling(axis);
     }
@@ -133,16 +134,16 @@ namespace state {
     }
 
     PhasesPhaseStepping calib_x(Context &context) {
-        CalibrationReporter calibration_reporter { PhasesPhaseStepping::calib_x };
-        calibration_helper(AxisEnum::X_AXIS, calibration_reporter);
-        switch (calibration_reporter.result.get_state()) {
+        CalibrateAxisHooks hooks { PhasesPhaseStepping::calib_x };
+        calibration_helper(AxisEnum::X_AXIS, hooks);
+        switch (hooks.result.get_state()) {
         case phase_stepping::CalibrationResult::State::unknown:
             [[fallthrough]];
         case phase_stepping::CalibrationResult::State::error:
             return PhasesPhaseStepping::calib_error;
         case phase_stepping::CalibrationResult::State::known:
-            if (is_ok(calibration_reporter.result.get_scores())) {
-                context.result_x = calibration_reporter.result;
+            if (is_ok(hooks.result.get_scores())) {
+                context.result_x = hooks.result;
                 return PhasesPhaseStepping::calib_y;
             } else {
                 return PhasesPhaseStepping::calib_x_nok;
@@ -152,16 +153,16 @@ namespace state {
     }
 
     PhasesPhaseStepping calib_y(Context &context) {
-        CalibrationReporter calibration_reporter { PhasesPhaseStepping::calib_y };
-        calibration_helper(AxisEnum::Y_AXIS, calibration_reporter);
-        switch (calibration_reporter.result.get_state()) {
+        CalibrateAxisHooks hooks { PhasesPhaseStepping::calib_y };
+        calibration_helper(AxisEnum::Y_AXIS, hooks);
+        switch (hooks.result.get_state()) {
         case phase_stepping::CalibrationResult::State::unknown:
             [[fallthrough]];
         case phase_stepping::CalibrationResult::State::error:
             return PhasesPhaseStepping::calib_error;
         case phase_stepping::CalibrationResult::State::known:
-            if (is_ok(calibration_reporter.result.get_scores())) {
-                context.result_y = calibration_reporter.result;
+            if (is_ok(hooks.result.get_scores())) {
+                context.result_y = hooks.result;
                 return PhasesPhaseStepping::calib_ok;
             } else {
                 return PhasesPhaseStepping::calib_y_nok;

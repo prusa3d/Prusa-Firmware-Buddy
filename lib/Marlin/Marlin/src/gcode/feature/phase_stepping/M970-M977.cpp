@@ -403,17 +403,23 @@ void GcodeSuite::M976() {
     }
 }
 
-class GCodeCalibrationReporter : public phase_stepping::CalibrationReporterBase {
+class CalibrateAxisHooks final : public phase_stepping::CalibrateAxisHooks {
     std::vector<std::tuple<float, float>> _calibration_results;
+    int _calibration_phases_count = -1;
+    int _current_calibration_phase = 0;
 
 public:
     void set_calibration_phases_count(int phases) override {
-        phase_stepping::CalibrationReporterBase::set_calibration_phases_count(phases);
+        _calibration_phases_count = phases;
         _calibration_results.resize(phases);
     }
 
     void on_initial_movement() override {
         SERIAL_ECHOLN("Moving to calibration position");
+    }
+
+    virtual void on_enter_calibration_phase(int phase) override {
+        _current_calibration_phase = phase;
     }
 
     void on_calibration_phase_progress(int progress) override {
@@ -511,8 +517,8 @@ void GcodeSuite::M977() {
     );
     Planner::synchronize();
 
-    GCodeCalibrationReporter reporter;
-    auto result = phase_stepping::calibrate_axis(axis, reporter);
+    CalibrateAxisHooks hooks;
+    auto result = phase_stepping::calibrate_axis(axis, hooks);
 
     if (!result.has_value()) {
         print_error("Calibration failed");
