@@ -4,6 +4,7 @@
 #include <radio_button_fsm.hpp>
 #include <screen.hpp>
 #include <window_frame.hpp>
+#include <window_header.hpp>
 
 class ScreenPhaseStepping : public AddSuperWindow<screen_t> {
 public:
@@ -11,6 +12,7 @@ public:
 
 private:
     FrameStorage frame_storage;
+    window_header_t header;
     window_frame_t inner_frame;
     RadioButtonFsm<PhasesPhaseStepping> radio;
     fsm::BaseData fsm_base_data;

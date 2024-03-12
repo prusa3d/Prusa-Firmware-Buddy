@@ -18,6 +18,7 @@ constexpr const char *ADDR_IN_TEXT = "prusa.io/xl-phstep";
 #else
     #error
 #endif
+constexpr const char *txt_header { N_("PHASE STEPPING CALIBRATION") };
 constexpr const char *txt_learn_more { N_("To learn more about the phase stepping calibration process, read the article:") };
 constexpr const char *txt_picking_tool { N_("Picking Tool") };
 constexpr const char *txt_calibrating_x { N_("Calibrating X-axis") };
@@ -265,6 +266,7 @@ using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
 
 ScreenPhaseStepping::ScreenPhaseStepping()
     : AddSuperWindow<screen_t> {}
+    , header { this, _(txt_header) }
     , inner_frame { this, inner_frame_rect }
     , radio(this, radio_rect, PhasesPhaseStepping::intro) {
     ClrMenuTimeoutClose();
