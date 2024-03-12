@@ -9,14 +9,58 @@
 
 namespace {
 
+class CalibrationResult {
+public:
+    struct Scores {
+        float p1f;
+        float p1b;
+        float p2f;
+        float p2b;
+    };
+
+    enum class State {
+        unknown, // calibration not run
+        known, // calibration ran to completion
+        error, // calibration failed
+    };
+
+private:
+    Scores scores;
+    State state;
+
+    constexpr CalibrationResult(const Scores &scores, const State &state)
+        : scores { scores }
+        , state { state } {}
+
+public:
+    constexpr State get_state() const { return state; }
+
+    constexpr static CalibrationResult make_unknown() {
+        return { Scores {}, State::unknown };
+    }
+
+    constexpr static CalibrationResult make_error() {
+        return { Scores {}, State::error };
+    }
+
+    constexpr static CalibrationResult make_known(const Scores &scores) {
+        return { scores, State::known };
+    }
+
+    constexpr const Scores &get_scores() const {
+        assert(get_state() == State::known);
+        return scores;
+    }
+};
+
 struct Context {
-    phase_stepping::CalibrationResult result_x { phase_stepping::CalibrationResult::make_unknown() };
-    phase_stepping::CalibrationResult result_y { phase_stepping::CalibrationResult::make_unknown() };
+    CalibrationResult result_x { CalibrationResult::make_unknown() };
+    CalibrationResult result_y { CalibrationResult::make_unknown() };
 
     fsm::PhaseData serialize(PhasesPhaseStepping) const;
 };
 
-constexpr bool is_ok(const phase_stepping::CalibrationResult::Scores &scores) {
+constexpr bool is_ok(const CalibrationResult::Scores &scores) {
     return scores.p1f < 1.f
         && scores.p1b < 1.f
         && scores.p2f < 1.f
@@ -40,7 +84,7 @@ private:
     std::array<std::tuple<float, float>, 4> calibration_results;
 
 public:
-    phase_stepping::CalibrationResult result = phase_stepping::CalibrationResult::make_error();
+    CalibrationResult result = CalibrationResult::make_error();
 
     explicit CalibrateAxisHooks(PhasesPhaseStepping phase)
         : phase { phase } {
@@ -79,8 +123,8 @@ public:
         auto [p3_f, p3_b] = calibration_results[2];
         auto [p2_f, p2_b] = calibration_results[1];
         auto [p4_f, p4_b] = calibration_results[3];
-        result = phase_stepping::CalibrationResult::make_known(
-            phase_stepping::CalibrationResult::Scores {
+        result = CalibrationResult::make_known(
+            CalibrationResult::Scores {
                 .p1f = p1_f * p3_f,
                 .p1b = p1_b * p3_b,
                 .p2f = p2_f * p4_f,
@@ -137,11 +181,11 @@ namespace state {
         CalibrateAxisHooks hooks { PhasesPhaseStepping::calib_x };
         calibration_helper(AxisEnum::X_AXIS, hooks);
         switch (hooks.result.get_state()) {
-        case phase_stepping::CalibrationResult::State::unknown:
+        case CalibrationResult::State::unknown:
             [[fallthrough]];
-        case phase_stepping::CalibrationResult::State::error:
+        case CalibrationResult::State::error:
             return PhasesPhaseStepping::calib_error;
-        case phase_stepping::CalibrationResult::State::known:
+        case CalibrationResult::State::known:
             if (is_ok(hooks.result.get_scores())) {
                 context.result_x = hooks.result;
                 return PhasesPhaseStepping::calib_y;
@@ -156,11 +200,11 @@ namespace state {
         CalibrateAxisHooks hooks { PhasesPhaseStepping::calib_y };
         calibration_helper(AxisEnum::Y_AXIS, hooks);
         switch (hooks.result.get_state()) {
-        case phase_stepping::CalibrationResult::State::unknown:
+        case CalibrationResult::State::unknown:
             [[fallthrough]];
-        case phase_stepping::CalibrationResult::State::error:
+        case CalibrationResult::State::error:
             return PhasesPhaseStepping::calib_error;
-        case phase_stepping::CalibrationResult::State::known:
+        case CalibrationResult::State::known:
             if (is_ok(hooks.result.get_scores())) {
                 context.result_y = hooks.result;
                 return PhasesPhaseStepping::calib_ok;
@@ -204,8 +248,8 @@ namespace state {
 
 } // namespace state
 
-fsm::PhaseData serialize_axis_nok(const phase_stepping::CalibrationResult &result) {
-    const phase_stepping::CalibrationResult::Scores scores = result.get_scores();
+fsm::PhaseData serialize_axis_nok(const CalibrationResult &result) {
+    const CalibrationResult::Scores scores = result.get_scores();
     // TODO maybe these should be saturated at 255?
     fsm::PhaseData data;
     data[0] = 100 * scores.p1f;
@@ -215,9 +259,9 @@ fsm::PhaseData serialize_axis_nok(const phase_stepping::CalibrationResult &resul
     return data;
 }
 
-fsm::PhaseData serialize_ok(const phase_stepping::CalibrationResult &result_x, const phase_stepping::CalibrationResult &result_y) {
-    const phase_stepping::CalibrationResult::Scores scores_x = result_x.get_scores();
-    const phase_stepping::CalibrationResult::Scores scores_y = result_y.get_scores();
+fsm::PhaseData serialize_ok(const CalibrationResult &result_x, const CalibrationResult &result_y) {
+    const CalibrationResult::Scores scores_x = result_x.get_scores();
+    const CalibrationResult::Scores scores_y = result_y.get_scores();
     // take the worst of forward and backward, subtract from 1 to get reduction and scale up to percents
     fsm::PhaseData data;
     data[0] = 100 - 100 * std::max(scores_x.p1f, scores_x.p1b);
