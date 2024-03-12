@@ -21,6 +21,7 @@ constexpr const char *ADDR_IN_TEXT = "prusa.io/xl-phstep";
 constexpr const char *txt_header { N_("PHASE STEPPING CALIBRATION") };
 constexpr const char *txt_learn_more { N_("To learn more about the phase stepping calibration process, read the article:") };
 constexpr const char *txt_picking_tool { N_("Picking Tool") };
+constexpr const char *txt_calibrating { N_("Running the phase stepping calibration to reduce vibrations. Please wait...") };
 constexpr const char *txt_calibrating_x { N_("Calibrating X-axis") };
 constexpr const char *txt_calibrating_y { N_("Calibrating Y-axis") };
 constexpr const char *txt_calibration_nok { N_("Calibration of axis %c failed.\nParameter 1: forward %3d%%, backward %3d%%\nParameter 2: forward %3d%%, backward %3d%%") };
@@ -71,39 +72,49 @@ namespace frame {
 
     class CalibratingAxis {
     private:
+        window_text_t text;
         window_text_t title;
         window_numberless_progress_t progress_bar;
         window_text_t phase_x_of_y;
         std::array<char, 10> phase_x_of_y_buffer;
 
-        static constexpr uint16_t title_top_margin = 70;
-        static constexpr uint16_t title_height = 40;
+        static constexpr uint16_t padding = 20;
+
+        static constexpr Rect16 text_rect {
+            inner_frame_rect.Left() + padding,
+            inner_frame_rect.Top() + padding,
+            inner_frame_rect.Width() - 2 * padding,
+            2 * height(GuiDefaults::DefaultFont),
+        };
+
+        static constexpr uint16_t additional_title_rect_padding = 30;
         static constexpr Rect16 title_rect {
-            inner_frame_rect.Left(),
-            inner_frame_rect.Top() + title_top_margin,
-            inner_frame_rect.Width(),
-            title_height,
+            text_rect.Left(),
+            text_rect.Bottom() + padding + additional_title_rect_padding,
+            text_rect.Width(),
+            height(GuiDefaults::DefaultFont),
         };
 
         static constexpr uint16_t progress_bar_height = 4;
         static constexpr uint16_t progress_bar_vertical_margin = 50;
         static constexpr Rect16 progress_bar_rect {
             inner_frame_rect.Left() + progress_bar_vertical_margin,
-            title_rect.Bottom(),
+            title_rect.Bottom() + padding,
             inner_frame_rect.Width() - 2 * progress_bar_vertical_margin,
             progress_bar_height,
         };
 
         static constexpr Rect16 phase_x_of_y_rect {
-            inner_frame_rect.Left(),
-            progress_bar_rect.Bottom(),
-            inner_frame_rect.Width(),
-            title_rect.Height(),
+            text_rect.Left(),
+            progress_bar_rect.Bottom() + padding,
+            text_rect.Width(),
+            height(GuiDefaults::DefaultFont),
         };
 
     public:
         CalibratingAxis(window_t *parent, string_view_utf8 txt)
-            : title { parent, title_rect, is_multiline::no, is_closed_on_click_t::no, txt }
+            : text { parent, text_rect, is_multiline::yes, is_closed_on_click_t::no, _(txt_calibrating) }
+            , title { parent, title_rect, is_multiline::no, is_closed_on_click_t::no, txt }
             , progress_bar { parent, progress_bar_rect, COLOR_ORANGE, COLOR_DARK_GRAY }
             , phase_x_of_y { parent, phase_x_of_y_rect, is_multiline::no, is_closed_on_click_t::no } {
             title.SetAlignment(Align_t::Center());
