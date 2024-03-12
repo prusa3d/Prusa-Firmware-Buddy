@@ -15,6 +15,7 @@ void FSensorMMU::cycle() {
         state = mmu2.FindaDetectsFilament() ? FilamentSensorState::HasFilament : FilamentSensorState::NoFilament;
         break;
     case xState::Connecting:
+    case xState::Bootloader:
         state = FilamentSensorState::NotInitialized;
         break;
     case xState::Stopped:

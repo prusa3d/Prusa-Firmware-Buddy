@@ -247,6 +247,7 @@ void screen_home_data_t::filamentBtnSetState(MMU2::xState mmu) {
             w_buttons[buttonFilamentIndex].Enable();
             break;
         case MMU2::xState::Connecting:
+        case MMU2::xState::Bootloader:
             w_buttons[buttonFilamentIndex].SetRes(&icons[iconMMUId]);
             if (w_buttons[buttonFilamentIndex].IsFocused()) {
                 w_buttons[buttonFilamentIndex - 1].SetFocus();

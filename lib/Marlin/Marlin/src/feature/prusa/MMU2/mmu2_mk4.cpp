@@ -26,6 +26,8 @@
 #endif
 #include "strlen_cx.h"
 
+#include "../../../../src/mmu2/mmu2_bootloader.hpp"
+
 #ifdef __AVR__
 // As of FW 3.12 we only support building the FW with only one extruder, all the multi-extruder infrastructure will be removed.
 // Saves at least 800B of code size
@@ -153,13 +155,24 @@ void MMU2::Start() {
     mmu2Serial.flush(); // make sure the UART buffer is clear before starting communication
 
     extruder = MMU2_NO_TOOL;
-    state = xState::Connecting;
 
     // start the communication
-    logic.Start();
     logic.ResetRetryAttempts();
     logic.ResetCommunicationTimeoutAttempts();
+
+    #if MMU_USE_BOOTLOADER()
+    state = xState::Bootloader;
+    bootloader = std::make_unique<MMU2BootloaderManager>(mmu2Serial);
+    bootloader->start();
+
+    #else
+    state = xState::Connecting;
+    logic.Start();
+
+    #endif
 }
+
+MMU2::~MMU2() {}
 
 void MMU2::Stop() {
     StopKeepPowered();
@@ -301,14 +314,27 @@ void MMU2::mmu_loop() {
         return;
     }
     avoidRecursion = true;
-
     mmu_loop_inner(true);
-
     avoidRecursion = false;
 }
 
 void __attribute__((noinline)) MMU2::mmu_loop_inner(bool reportErrors) {
-    logicStepLastStatus = LogicStep(reportErrors); // it looks like the mmu_loop doesn't need to be a blocking call
+    #if MMU_USE_BOOTLOADER()
+    if (state == xState::Bootloader) {
+        bootloader->loop();
+
+        if (!bootloader->is_active()) {
+            bootloader.reset();
+            state = xState::Connecting;
+            logic.Start();
+        }
+
+    } else
+    #endif
+    {
+        logicStepLastStatus = LogicStep(reportErrors); // it looks like the mmu_loop doesn't need to be a blocking call
+    }
+
     CheckErrorScreenUserInput();
 }
 
@@ -339,6 +365,7 @@ bool MMU2::WaitForMMUReady() {
     case xState::Stopped:
         return false;
     case xState::Connecting:
+    case xState::Bootloader:
         // shall we wait until the MMU reconnects?
         // fire-up a fsm_dlg and show "MMU not responding"?
     default:

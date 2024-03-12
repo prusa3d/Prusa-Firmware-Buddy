@@ -13,9 +13,16 @@ typedef float feedRate_t;
 #else
     #include "protocol_logic.h"
     #include <atomic>
+    #include <memory>
 #endif
 
 struct E_Step;
+
+#ifdef UNITTEST
+    #define MMU_USE_BOOTLOADER() 0
+#else
+    #define MMU_USE_BOOTLOADER() 1
+#endif
 
 namespace MMU2 {
 
@@ -28,12 +35,15 @@ struct Version {
     uint8_t major, minor, build;
 };
 
+class MMU2BootloaderManager;
+
 /// Top-level interface between Logic and Marlin.
 /// Intentionally named MMU2 to be (almost) a drop-in replacement for the previous implementation.
 /// Most of the public methods share the original naming convention as well.
 class MMU2 {
 public:
     MMU2();
+    ~MMU2();
 
     /// Powers ON the MMU, then initializes the UART and protocol logic
     void Start();
@@ -362,6 +372,11 @@ private:
     void CutFilamentInner(uint8_t slot);
 
     ProtocolLogic logic; ///< implementation of the protocol logic layer
+
+#if MMU_USE_BOOTLOADER()
+    std::unique_ptr<MMU2BootloaderManager> bootloader; ///< Bootloader manager, handles firmware updates and such
+#endif
+
     uint8_t extruder; ///< currently active slot in the MMU ... somewhat... not sure where to get it from yet
     uint8_t tool_change_extruder; ///< only used for UI purposes
 
