@@ -567,7 +567,10 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
     PreciseStepping::total_print_time = 0.;
     PreciseStepping::flags = 0;
 
-    if (preserve_step_fraction) {
+    if (!preserve_step_fraction) {
+        // rebuild msteps from the stepper counters
+        PreciseStepping::total_start_pos_msteps = stepper.count_position_from_startup * PLANNER_STEPS_MULTIPLIER;
+    } else {
         xyz_long_t step_fraction;
 #ifdef COREXY
         step_fraction.x = total_start_pos_msteps.x - ((step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2);
@@ -587,12 +590,9 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
         // steps to zero because losing a fraction of a step in the E-axis shouldn't cause any
         // issues.
         total_start_pos_msteps.e = 0;
-
-        PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
-    } else {
-        PreciseStepping::total_start_pos_msteps = stepper.count_position_from_startup * PLANNER_STEPS_MULTIPLIER;
-        PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
     }
+
+    PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
 
 #if HAS_PHASE_STEPPING()
     #ifdef COREXY
