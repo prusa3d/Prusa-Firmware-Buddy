@@ -32,23 +32,41 @@ Response wait_for_response(const PhasesPhaseStepping phase) {
     }
 }
 
-class CalibrationReporter : public phase_stepping::CalibrationReporterBase {
+class CalibrationReporter final : public phase_stepping::CalibrationReporterBase {
+private:
+    PhasesPhaseStepping phase;
+    fsm::PhaseData data;
+
 public:
     std::array<std::tuple<float, float>, 4> _calibration_results;
     phase_stepping::CalibrationResult result = phase_stepping::CalibrationResult::make_error();
+
+    explicit CalibrationReporter(PhasesPhaseStepping phase)
+        : phase { phase } {
+        data[0] = 0;
+        data[1] = _calibration_results.size();
+        data[2] = 0;
+    }
 
     void set_calibration_phases_count(int phases) override {
         if (static_cast<size_t>(phases) != _calibration_results.size()) {
             bsod("phase count mismatch");
         }
-        phase_stepping::CalibrationReporterBase::set_calibration_phases_count(phases);
+    }
+
+    void on_enter_calibration_phase(int calibration_phase) override {
+        data[0] = calibration_phase;
+        data[2] = 0;
+        FSM_CHANGE_WITH_DATA__LOGGING(phase, data);
+        _current_calibration_phase = calibration_phase;
     }
 
     void on_initial_movement() override {
     }
 
-    void on_calibration_phase_progress(int) override {
-        // TODO report calibration progress
+    void on_calibration_phase_progress(int progress) override {
+        data[2] = progress;
+        FSM_CHANGE_WITH_DATA__LOGGING(phase, data);
     }
 
     void on_calibration_phase_result(float forward_score, float backward_score) override {
@@ -115,7 +133,7 @@ namespace state {
     }
 
     PhasesPhaseStepping calib_x(Context &context) {
-        CalibrationReporter calibration_reporter;
+        CalibrationReporter calibration_reporter { PhasesPhaseStepping::calib_x };
         calibration_helper(AxisEnum::X_AXIS, calibration_reporter);
         switch (calibration_reporter.result.get_state()) {
         case phase_stepping::CalibrationResult::State::unknown:
@@ -134,7 +152,7 @@ namespace state {
     }
 
     PhasesPhaseStepping calib_y(Context &context) {
-        CalibrationReporter calibration_reporter;
+        CalibrationReporter calibration_reporter { PhasesPhaseStepping::calib_y };
         calibration_helper(AxisEnum::Y_AXIS, calibration_reporter);
         switch (calibration_reporter.result.get_state()) {
         case phase_stepping::CalibrationResult::State::unknown:

@@ -7,6 +7,7 @@
 #include <array>
 #include <guiconfig/wizard_config.hpp>
 #include <window_icon.hpp>
+#include <window_progress.hpp>
 #include <window_qr.hpp>
 #include <window_text.hpp>
 
@@ -19,8 +20,8 @@ constexpr const char *ADDR_IN_TEXT = "prusa.io/xl-phstep";
 #endif
 constexpr const char *txt_learn_more { N_("To learn more about the phase stepping calibration process, read the article:") };
 constexpr const char *txt_picking_tool { N_("Picking Tool") };
-constexpr const char *txt_calibrating_x { N_("Calibrating X") };
-constexpr const char *txt_calibrating_y { N_("Calibrating Y") };
+constexpr const char *txt_calibrating_x { N_("Calibrating X-axis") };
+constexpr const char *txt_calibrating_y { N_("Calibrating Y-axis") };
 constexpr const char *txt_calibration_nok { N_("Calibration of axis %c failed.\nParameter 1: forward %3d%%, backward %3d%%\nParameter 2: forward %3d%%, backward %3d%%") };
 constexpr const char *txt_calibration_error { N_("Calibration failed with error.") };
 constexpr const char *txt_enabling { N_("Finishing") };
@@ -67,11 +68,57 @@ namespace frame {
         }
     };
 
-    class CalibratingAxis : public CenteredStaticText {
-    public:
-        using CenteredStaticText::CenteredStaticText;
+    class CalibratingAxis {
+    private:
+        window_text_t title;
+        window_numberless_progress_t progress_bar;
+        window_text_t phase_x_of_y;
+        std::array<char, 10> phase_x_of_y_buffer;
 
-        // TODO add progress report
+        static constexpr uint16_t title_top_margin = 70;
+        static constexpr uint16_t title_height = 40;
+        static constexpr Rect16 title_rect {
+            inner_frame_rect.Left(),
+            inner_frame_rect.Top() + title_top_margin,
+            inner_frame_rect.Width(),
+            title_height,
+        };
+
+        static constexpr uint16_t progress_bar_height = 4;
+        static constexpr uint16_t progress_bar_vertical_margin = 50;
+        static constexpr Rect16 progress_bar_rect {
+            inner_frame_rect.Left() + progress_bar_vertical_margin,
+            title_rect.Bottom(),
+            inner_frame_rect.Width() - 2 * progress_bar_vertical_margin,
+            progress_bar_height,
+        };
+
+        static constexpr Rect16 phase_x_of_y_rect {
+            inner_frame_rect.Left(),
+            progress_bar_rect.Bottom(),
+            inner_frame_rect.Width(),
+            title_rect.Height(),
+        };
+
+    public:
+        CalibratingAxis(window_t *parent, string_view_utf8 txt)
+            : title { parent, title_rect, is_multiline::no, is_closed_on_click_t::no, txt }
+            , progress_bar { parent, progress_bar_rect, COLOR_ORANGE, COLOR_DARK_GRAY }
+            , phase_x_of_y { parent, phase_x_of_y_rect, is_multiline::no, is_closed_on_click_t::no } {
+            title.SetAlignment(Align_t::Center());
+            phase_x_of_y.SetAlignment(Align_t::Center());
+        }
+
+        void update(const fsm::PhaseData &data) {
+            const uint8_t current_calibration_phase = data[0];
+            const uint8_t calibration_phases_count = data[1];
+            const uint8_t progress = data[2];
+
+            snprintf(phase_x_of_y_buffer.data(), phase_x_of_y_buffer.size(), "%d / %d", current_calibration_phase + 1, calibration_phases_count);
+            phase_x_of_y.SetText(string_view_utf8::MakeRAM(phase_x_of_y_buffer.data()));
+            phase_x_of_y.Invalidate();
+            progress_bar.SetProgressPercent(progress);
+        }
     };
 
     class Introduction final {
