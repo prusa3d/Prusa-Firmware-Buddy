@@ -15,6 +15,10 @@
 #include <printers.h>
 #include "MItem_basic_selftest.hpp"
 #include "MItem_mmu.hpp"
+#include <device/board.h>
+#if XL_ENCLOSURE_SUPPORT()
+    #include "MItem_enclosure.hpp"
+#endif
 
 using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
 #if HAS_TOOLCHANGER()
@@ -30,7 +34,8 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_DISABLE_STEP,
     MI_LIVE_ADJUST_Z,
 
-#if PRINTER_IS_PRUSA_XL
+#if XL_ENCLOSURE_SUPPORT()
+    MI_ENCLOSURE_ENABLE,
     MI_ENCLOSURE,
 #endif
 

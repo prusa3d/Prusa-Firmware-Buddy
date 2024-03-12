@@ -6,7 +6,7 @@
 #pragma once
 
 #include "screen_menu.hpp"
-#include "Mitem_enclosure.hpp"
+#include "MItem_enclosure.hpp"
 #include "MItem_menus.hpp"
 #include "option/has_side_leds.h"
 #include "option/has_toolchanger.h"
@@ -44,7 +44,7 @@ using ScreenMenuManualSetting = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
 class ScreenMenuEnclosure : public detail::ScreenMenuEnclosure {
 
 public:
-    constexpr static const char *label = N_("ENCLOSURE");
+    constexpr static const char *label = N_("ENCLOSURE SETTINGS");
     constexpr static const uint8_t loop_delay_s = 3;
     ScreenMenuEnclosure();
 
@@ -65,6 +65,6 @@ public:
 class ScreenMenuManualSetting : public detail::ScreenMenuManualSetting {
 
 public:
-    constexpr static const char *label = N_("MANUAL SETTINGS");
+    constexpr static const char *label = N_("MANUAL CONFIGURATION");
     ScreenMenuManualSetting();
 };

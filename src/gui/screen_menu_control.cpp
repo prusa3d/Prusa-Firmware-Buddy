@@ -2,6 +2,10 @@
 #include "ScreenFactory.hpp"
 #include "img_resources.hpp"
 #include "DialogMoveZ.hpp"
+#include <device/board.h>
+#if XL_ENCLOSURE_SUPPORT()
+    #include "xl_enclosure.hpp"
+#endif
 
 ScreenMenuControl::ScreenMenuControl()
     : ScreenMenuControlSpec(_(label)) {
@@ -13,6 +17,15 @@ void ScreenMenuControl::windowEvent(EventLock /*has private ctor*/, window_t *se
         DialogMoveZ::Show();
         return;
     }
+#if XL_ENCLOSURE_SUPPORT()
+    if (event == GUI_event_t::LOOP) {
+        if (xl_enclosure.isActive() && Item<MI_ENCLOSURE>().IsHidden()) {
+            SwapVisibility<MI_ENCLOSURE, MI_ENCLOSURE_ENABLE>();
+        } else if (!xl_enclosure.isActive() && Item<MI_ENCLOSURE_ENABLE>().IsHidden()) {
+            SwapVisibility<MI_ENCLOSURE_ENABLE, MI_ENCLOSURE>();
+        }
+    }
+#endif
 
     SuperWindowEvent(sender, event, param);
 }

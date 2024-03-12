@@ -659,13 +659,3 @@ MI_INPUT_SHAPER::MI_INPUT_SHAPER()
 void MI_INPUT_SHAPER::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInputShaper>);
 }
-
-#if XL_ENCLOSURE_SUPPORT()
-MI_ENCLOSURE::MI_ENCLOSURE()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-
-void MI_ENCLOSURE::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuEnclosure>);
-}
-#endif // XL_ENCLOSURE_SUPPORT()
