@@ -295,6 +295,7 @@ bool append_move_segments_to_queue(const block_t &block) {
         print_time += decel_t;
     }
 
+    PreciseStepping::flags |= active_axis;
     PreciseStepping::total_start_pos_msteps += get_oriented_msteps_from_block(block);
     PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
     PreciseStepping::total_print_time = print_time;
@@ -563,9 +564,7 @@ void PreciseStepping::init() {
 }
 
 void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
-    PreciseStepping::step_generator_state_clear();
-    PreciseStepping::total_print_time = 0.;
-    PreciseStepping::flags = 0;
+    assert(!PreciseStepping::has_blocks_queued());
 
     if (!preserve_step_fraction) {
         // rebuild msteps from the stepper counters unconditionally
@@ -578,19 +577,34 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
         total_start_pos_msteps = stepper.count_position_from_startup * PLANNER_STEPS_MULTIPLIER;
 #endif
     } else {
-        xyz_long_t step_fraction;
-#ifdef COREXY
-        step_fraction.x = total_start_pos_msteps.x - ((step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2);
-        step_fraction.y = total_start_pos_msteps.y - ((step_generator_state.current_distance.a - step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2);
-#else
-        step_fraction.x = total_start_pos_msteps.x - (step_generator_state.current_distance.x * PLANNER_STEPS_MULTIPLIER);
-        step_fraction.y = total_start_pos_msteps.y - (step_generator_state.current_distance.y * PLANNER_STEPS_MULTIPLIER);
-#endif
-        step_fraction.z = total_start_pos_msteps.z - (step_generator_state.current_distance.z * PLANNER_STEPS_MULTIPLIER);
+        // Attempt to recover the step fraction only on axes which weren't interrupted by a stop as
+        // the generator state can be ahead of the actual motion. We rely on reset_from_halt being
+        // called from the main thread just before clearing the stop_pending flag
 
-        LOOP_XYZ(i) {
-            total_start_pos_msteps[i] += step_fraction[i];
+#ifdef COREXY
+        // Handle XY as linked, resetting both if any is used
+        if (PreciseStepping::stop_pending && (PreciseStepping::flags & (PRECISE_STEPPING_FLAG_X_USED | PRECISE_STEPPING_FLAG_Y_USED))) {
+            total_start_pos_msteps.x = (stepper.count_position_from_startup.x + stepper.count_position_from_startup.y) * PLANNER_STEPS_MULTIPLIER / 2;
+            total_start_pos_msteps.y = (stepper.count_position_from_startup.x - stepper.count_position_from_startup.y) * PLANNER_STEPS_MULTIPLIER / 2;
+        } else {
+            total_start_pos_msteps.x += total_start_pos_msteps.x - ((step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2);
+            total_start_pos_msteps.y += total_start_pos_msteps.y - ((step_generator_state.current_distance.a - step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2);
         }
+
+        if (PreciseStepping::stop_pending && (PreciseStepping::flags & PRECISE_STEPPING_FLAG_Z_USED)) {
+            total_start_pos_msteps.z = stepper.count_position_from_startup.z * PLANNER_STEPS_MULTIPLIER;
+        } else {
+            total_start_pos_msteps.z += total_start_pos_msteps.z - (step_generator_state.current_distance.z * PLANNER_STEPS_MULTIPLIER);
+        }
+#else
+        LOOP_XYZ(i) {
+            if (PreciseStepping::stop_pending && (PreciseStepping::flags & (PRECISE_STEPPING_FLAG_X_USED << i))) {
+                total_start_pos_msteps[i] = stepper.count_position_from_startup[i] * PLANNER_STEPS_MULTIPLIER;
+            } else {
+                total_start_pos_msteps[i] += total_start_pos_msteps[i] - (step_generator_state.current_distance[i] * PLANNER_STEPS_MULTIPLIER);
+            }
+        }
+#endif
 
         // Because of pressure advance, the amount of material in total_start_pos_msteps doesn't
         // have to equal to step_generator_state.current_distance.e. So we always reset extrude
@@ -610,6 +624,10 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
     phase_stepping::set_phase_origin(Y_AXIS, total_start_pos[Y_AXIS]);
     #endif
 #endif
+
+    PreciseStepping::step_generator_state_clear();
+    PreciseStepping::total_print_time = 0.;
+    PreciseStepping::flags = 0;
 }
 
 uint16_t PreciseStepping::process_one_step_event_from_queue() {
@@ -910,7 +928,7 @@ void PreciseStepping::process_queue_of_blocks() {
         }
 
         // we can now reset to a halt
-        reset_from_halt(true);
+        reset_from_halt();
     }
 
     // fetch next block
@@ -1374,7 +1392,7 @@ void PreciseStepping::reset_queues() {
 #if HAS_PHASE_STEPPING()
     phase_stepping::stop_immediately();
 #endif
-    reset_from_halt(false);
+    reset_from_halt();
 
     // at this point the planner might still have queued extra moves, flush them
     planner.clear_block_buffer();

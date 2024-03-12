@@ -838,6 +838,8 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
     sync_plan_position();
 
+    // clear any step fraction: we're at home
+    PreciseStepping::reset_from_halt(false);
   #endif
 
   /**

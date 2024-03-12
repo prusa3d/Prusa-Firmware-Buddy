@@ -38,6 +38,12 @@ enum PreciseSteppingFlag : PreciseSteppingFlag_t {
     PRECISE_STEPPING_FLAG_RESET_POSITION_Y = _BV(1),
     PRECISE_STEPPING_FLAG_RESET_POSITION_Z = _BV(2),
     PRECISE_STEPPING_FLAG_RESET_POSITION_E = _BV(3),
+
+    // Indicating logical axis usage until reset
+    PRECISE_STEPPING_FLAG_X_USED = _BV(8),
+    PRECISE_STEPPING_FLAG_Y_USED = _BV(9),
+    PRECISE_STEPPING_FLAG_Z_USED = _BV(10),
+    PRECISE_STEPPING_FLAG_E_USED = _BV(11),
 };
 
 // Ensure XYZE bits are always adjacent and ordered.
@@ -50,6 +56,11 @@ static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_X == (PreciseSteppingFlag::PREC
 static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_Y == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_Y << MOVE_FLAG_RESET_POSITION_SHIFT));
 static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_Z == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_Z << MOVE_FLAG_RESET_POSITION_SHIFT));
 static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_E == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_E << MOVE_FLAG_RESET_POSITION_SHIFT));
+
+static_assert(MoveFlag::MOVE_FLAG_X_ACTIVE == (MoveFlag)PreciseSteppingFlag::PRECISE_STEPPING_FLAG_X_USED);
+static_assert(MoveFlag::MOVE_FLAG_Y_ACTIVE == (MoveFlag)PreciseSteppingFlag::PRECISE_STEPPING_FLAG_Y_USED);
+static_assert(MoveFlag::MOVE_FLAG_Z_ACTIVE == (MoveFlag)PreciseSteppingFlag::PRECISE_STEPPING_FLAG_Z_USED);
+static_assert(MoveFlag::MOVE_FLAG_E_ACTIVE == (MoveFlag)PreciseSteppingFlag::PRECISE_STEPPING_FLAG_E_USED);
 
 class PreciseStepping {
 
