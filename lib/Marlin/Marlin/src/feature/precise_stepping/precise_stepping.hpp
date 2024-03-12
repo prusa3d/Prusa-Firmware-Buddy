@@ -82,9 +82,10 @@ public:
     // ordering of step events.
     static double max_lookback_time;
 
-    static double total_print_time;
-    static xyze_double_t total_start_pos;
-    static xyze_long_t total_start_pos_msteps;
+    static xyze_double_t initial_start_pos; // Initial absolute position (mm, cartesian)
+    static double total_print_time; // Cumulative time since beginning of motion (s)
+    static xyze_double_t total_start_pos; // Current absolute position (mm, cartesian)
+    static xyze_long_t total_start_pos_msteps; // Current absolute position in mini-steps (msteps, cartesian)
 
     // Flags that affect the whole precise stepping. Those flags are reset when all queues are empty.
     // For now, used only for resetting the positions of axes.

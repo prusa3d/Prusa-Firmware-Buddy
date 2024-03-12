@@ -248,7 +248,7 @@ struct step_generator_state_t {
     StepEventFlag_t flags; // current axis/direction flags
     step_event_i32_t buffered_step; // accumulator for multi-axis step fusion
 
-    xyze_long_t current_distance;
+    xyze_long_t current_distance; // current axis position (steps, physical)
 
     // Number of markers indicating the start of move segments that need to be inserted into step events.
     // Be aware that very short move segments could produce just one single step event or none step event
