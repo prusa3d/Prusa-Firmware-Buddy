@@ -20,6 +20,7 @@ enum class State {
     error,
     ok,
     nok,
+    aborted,
 };
 
 struct Context {
@@ -101,6 +102,15 @@ public:
         };
         state = is_ok(scores) ? State::ok : State::nok;
     }
+
+    ContinueOrAbort on_idle() override {
+        if (marlin_server::get_response_from_phase(phase) == Response::Abort) {
+            state = State::aborted;
+            return ContinueOrAbort::Abort;
+        } else {
+            return ContinueOrAbort::Continue;
+        }
+    }
 };
 
 void calibration_helper(AxisEnum axis, CalibrateAxisHooks &hooks) {
@@ -158,6 +168,8 @@ namespace state {
             return PhasesPhaseStepping::calib_y;
         case State::nok:
             return PhasesPhaseStepping::calib_x_nok;
+        case State::aborted:
+            return PhasesPhaseStepping::finish;
         }
         bsod(__FUNCTION__);
     }
@@ -173,6 +185,8 @@ namespace state {
             return PhasesPhaseStepping::calib_ok;
         case State::nok:
             return PhasesPhaseStepping::calib_y_nok;
+        case State::aborted:
+            return PhasesPhaseStepping::finish;
         }
         bsod(__FUNCTION__);
     }
