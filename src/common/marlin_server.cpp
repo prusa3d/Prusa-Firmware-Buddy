@@ -743,7 +743,7 @@ void stop_processing(void) {
 }
 
 void do_babystep_Z(float offs) {
-    babystep.add_steps(Z_AXIS, offs * planner.settings.axis_steps_per_mm[Z_AXIS]);
+    babystep.add_steps(Z_AXIS, std::round(offs * planner.settings.axis_steps_per_mm[Z_AXIS]));
     babystep.task();
 }
 
