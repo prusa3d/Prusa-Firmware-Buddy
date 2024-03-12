@@ -85,48 +85,4 @@ public:
 std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>>
 calibrate_axis(AxisEnum axis, CalibrateAxisHooks &hooks);
 
-class CalibrationResult {
-public:
-    struct Scores {
-        float p1f;
-        float p1b;
-        float p2f;
-        float p2b;
-    };
-
-    enum class State {
-        unknown, // calibration not run
-        known, // calibration ran to completion
-        error, // calibration failed
-    };
-
-private:
-    Scores scores;
-    State state;
-
-    constexpr CalibrationResult(const Scores &scores, const State &state)
-        : scores { scores }
-        , state { state } {}
-
-public:
-    constexpr State get_state() const { return state; }
-
-    constexpr static CalibrationResult make_unknown() {
-        return { Scores {}, State::unknown };
-    }
-
-    constexpr static CalibrationResult make_error() {
-        return { Scores {}, State::error };
-    }
-
-    constexpr static CalibrationResult make_known(const Scores &scores) {
-        return { scores, State::known };
-    }
-
-    constexpr const Scores &get_scores() const {
-        assert(get_state() == State::known);
-        return scores;
-    }
-};
-
 } // namespace phase_stepping
