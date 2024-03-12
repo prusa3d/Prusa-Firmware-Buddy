@@ -212,7 +212,7 @@ namespace {
     }
 
     bool command_is_error_whitelisted(const Command &command) {
-        return holds_alternative<SendInfo>(command.command_data) || holds_alternative<SetToken>(command.command_data) || holds_alternative<ResetPrinter>(command.command_data);
+        return holds_alternative<SendInfo>(command.command_data) || holds_alternative<SetToken>(command.command_data) || holds_alternative<ResetPrinter>(command.command_data) || holds_alternative<SendStateInfo>(command.command_data);
     }
 } // namespace
 
