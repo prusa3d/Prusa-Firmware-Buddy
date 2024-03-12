@@ -449,7 +449,7 @@ void phase_stepping::enable(AxisEnum axis_num, bool enable) {
     if (enable) {
         // Enable phase stepping and reset PS to update the phase origin
         phase_stepping::enable_phase_stepping(axis_num);
-        PreciseStepping::reset_from_halt(true);
+        PreciseStepping::reset_from_halt();
     } else {
         phase_stepping::disable_phase_stepping(axis_num);
     }
