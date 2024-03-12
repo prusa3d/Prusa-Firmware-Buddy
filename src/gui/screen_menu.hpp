@@ -70,5 +70,10 @@ public:
     void Show() {
         menu.Show(Item<ITEM>());
     }
+
+    template <class ITEM1, class ITEM2>
+    bool SwapVisibility() {
+        return menu.SwapVisibility(Item<ITEM1>(), Item<ITEM2>());
+    }
     // ShowDevOnly intentionally not supported, can be set only in ctor
 };

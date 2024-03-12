@@ -676,16 +676,6 @@ void MI_INPUT_SHAPER::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInputShaper>);
 }
 
-#if XL_ENCLOSURE_SUPPORT()
-MI_ENCLOSURE::MI_ENCLOSURE()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-
-void MI_ENCLOSURE::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuEnclosure>);
-}
-#endif // XL_ENCLOSURE_SUPPORT()
-
 #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
 /*****************************************************************************/
 // MI_BED_LEVEL_CORRECTION

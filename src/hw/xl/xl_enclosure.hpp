@@ -67,6 +67,7 @@ public:
     inline void flagRPMChange() { runtime_flags |= RUNTIME::RPM_CHANGE; }
     inline bool isExpirationShown() { return config_flags & CONFIG::EXPIRATION_SHOWN; }
     inline bool is5DayReminderSet() { return config_flags & CONFIG::REMINDER_5DAYS; }
+    inline bool isActive() const { return mode == EnclosureMode::ACTIVE; }
 
 private:
     inline bool isWarningShown() { return config_flags & CONFIG::WARNING_SHOWN; }

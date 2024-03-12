@@ -133,7 +133,7 @@ inline constexpr const char *get_response_text(Response response) {
     case Response::PA:
         return "PA";
     case Response::Postpone5Days:
-        return "POSTPONE 5 DAYS";
+        return "POSTPONE";
     case Response::PRINT:
         return "PRINT";
     case Response::_count:

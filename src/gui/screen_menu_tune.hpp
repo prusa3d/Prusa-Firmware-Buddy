@@ -15,7 +15,10 @@
 #include <option/has_toolchanger.h>
 #include <option/developer_mode.h>
 #include <option/has_mmu2.h>
-
+#include <device/board.h>
+#if XL_ENCLOSURE_SUPPORT()
+    #include "MItem_enclosure.hpp"
+#endif
 /*****************************************************************************/
 // parent alias
 using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
@@ -48,6 +51,7 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
     MI_STUCK_FILAMENT_DETECTION,
 #endif
 #if XL_ENCLOSURE_SUPPORT()
+    MI_ENCLOSURE_ENABLE,
     MI_ENCLOSURE,
 #endif
     MI_STEALTH_MODE,

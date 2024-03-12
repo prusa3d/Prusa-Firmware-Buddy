@@ -7,6 +7,9 @@
 #include "marlin_server.hpp"
 #include "utility_extensions.hpp"
 #include <option/has_mmu2.h>
+#if XL_ENCLOSURE_SUPPORT()
+    #include "xl_enclosure.hpp"
+#endif
 
 ScreenMenuTune::ScreenMenuTune()
     : ScreenMenuTune__(_(label)) {
@@ -32,6 +35,18 @@ void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sende
             && (current_command != marlin_server::Cmd::M109)
             && (current_command != marlin_server::Cmd::M190) //
         );
+
+#if XL_ENCLOSURE_SUPPORT()
+        /* Once is Enclosure enabled in menu with ON/OFF switch (MI_ENCLOSURE_ENABLED), it tests the fan and if it passes, Enclosure is declared Active */
+        /* If the test passes, MI_ENCLOSURE_ENABLE is swapped with MI_ENCLOSURE and enclosure settings can be accessed */
+        /* This hides enclosure settings for Users without enclosure */
+
+        if (xl_enclosure.isActive() && Item<MI_ENCLOSURE>().IsHidden()) {
+            SwapVisibility<MI_ENCLOSURE, MI_ENCLOSURE_ENABLE>();
+        } else if (!xl_enclosure.isActive() && Item<MI_ENCLOSURE_ENABLE>().IsHidden()) {
+            SwapVisibility<MI_ENCLOSURE_ENABLE, MI_ENCLOSURE>();
+        }
+#endif
 
 #if ENABLED(CANCEL_OBJECTS)
         // Enable cancel object menu
