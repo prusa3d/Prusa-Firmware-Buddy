@@ -23,7 +23,7 @@ bool OtpFromEeprom::loadData() {
     // Read data from EEPROM
     wdt_iwdg_refresh();
     status.data_valid = false;
-    memset(&calib_data, 0, sizeof(calib_data));
+    calib_data = {};
 
     for (status.retried = 0; status.retried < MAX_RETRY; ++status.retried) {
         if (eeprom.read_block(0, (uint8_t *)&calib_data, sizeof(calib_data)) != 1) {

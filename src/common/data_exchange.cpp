@@ -2,6 +2,10 @@
 #include "otp_types.hpp"
 #include <cstdint>
 #include <cstring>
+#include <option/bootloader.h>
+
+#include "at21csxx_otp.hpp"
+#include <device/hal.h>
 
 // pin PA13 state
 static constexpr uint8_t APPENDIX_FLAG_MASK = 0x01;
@@ -20,6 +24,60 @@ struct __attribute__((packed)) DataExchange {
 }; // 100B in total
 
 DataExchange ram_data_exchange __attribute__((section(".boot_fw_data_exchange")));
+
+#if !BOOTLOADER()
+    #if HAS_XLCD()
+static std::pair<XlcdEeprom, OtpStatus> read_xlcd() {
+    // LCD reset
+    __HAL_RCC_GPIOG_CLK_ENABLE(); // enable lcd reset pin port clock
+    GPIO_InitTypeDef GPIO_InitStruct {};
+    GPIO_InitStruct.Pin = GPIO_PIN_4;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_WritePin(GPIOG, GPIO_PIN_4, GPIO_PIN_RESET);
+    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
+    __HAL_RCC_GPIOC_CLK_ENABLE(); // enable lcd eeprom pin port clock
+    OtpFromEeprom XlcdEeprom = OtpFromEeprom(GPIOC, GPIO_PIN_8);
+    return { XlcdEeprom.calib_data, XlcdEeprom.get_status() };
+}
+    #endif
+
+    #if HAS_LOVE_BOARD()
+static std::pair<LoveBoardEeprom, OtpStatus> read_loveboard() {
+    __HAL_RCC_GPIOF_CLK_ENABLE(); // enable loveboard eeprom pin port clock
+    OtpFromEeprom LoveBoard = OtpFromEeprom(GPIOF, GPIO_PIN_13);
+    return { LoveBoard.calib_data, LoveBoard.get_status() };
+}
+    #endif
+
+void data_exchange_init() {
+    ram_data_exchange.fw_update_flag = FwAutoUpdate::off;
+    ram_data_exchange.appendix_status = 0; // the state is actually unknown, this represents no appendix
+    ram_data_exchange.fw_signature = 0;
+    ram_data_exchange.bootloader_valid = 0;
+    ram_data_exchange.bbf_sfn[0] = '\0';
+
+    ram_data_exchange.xlcd_status = {};
+    ram_data_exchange.xlcd_eeprom = {};
+    ram_data_exchange.loveboard_status = {};
+    ram_data_exchange.loveboard_eeprom = {};
+
+    #if HAS_XLCD()
+    auto xlcd = read_xlcd();
+    ram_data_exchange.xlcd_eeprom = xlcd.first;
+    ram_data_exchange.xlcd_status = xlcd.second;
+    #endif
+
+    #if HAS_LOVE_BOARD()
+    auto loveboard = read_loveboard();
+    ram_data_exchange.loveboard_eeprom = loveboard.first;
+    ram_data_exchange.loveboard_status = loveboard.second;
+    #endif
+}
+#else
+void data_exchange_init() {}
+#endif
 
 FwAutoUpdate get_auto_update_flag(void) {
     // EEPROM flag is temporarly removed (for new bootloader downgrade testing)
@@ -66,24 +124,9 @@ void clr_bbf_sfn() {
     ram_data_exchange.bbf_sfn[0] = 0;
 }
 
-void set_xlcd_status(OtpStatus status) {
-    ram_data_exchange.xlcd_status = status;
-}
-
-void set_xlcd_eeprom(XlcdEeprom eeprom) {
-    ram_data_exchange.xlcd_eeprom = eeprom;
-}
-
-void set_loveboard_status(OtpStatus status) {
-    ram_data_exchange.loveboard_status = status;
-}
-
-void set_loveboard_eeprom(LoveBoardEeprom eeprom) {
-    ram_data_exchange.loveboard_eeprom = eeprom;
-}
-
 namespace data_exchange {
 
+#if HAS_XLCD()
 OtpStatus get_xlcd_status() {
     return ram_data_exchange.xlcd_status;
 }
@@ -91,7 +134,9 @@ OtpStatus get_xlcd_status() {
 XlcdEeprom get_xlcd_eeprom() {
     return ram_data_exchange.xlcd_eeprom;
 }
+#endif
 
+#if HAS_LOVE_BOARD()
 OtpStatus get_loveboard_status() {
     return ram_data_exchange.loveboard_status;
 }
@@ -99,6 +144,7 @@ OtpStatus get_loveboard_status() {
 LoveBoardEeprom get_loveboard_eeprom() {
     return ram_data_exchange.loveboard_eeprom;
 }
+#endif
 
 bool has_fw_signature() {
     return ram_data_exchange.fw_signature != 0;

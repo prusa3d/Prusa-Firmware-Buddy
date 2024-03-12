@@ -2,8 +2,15 @@
 
 #include "shared_config.h"
 #include "otp_types.hpp"
+#include <option/has_xlcd.h>
+#include <option/has_love_board.h>
 
 FwAutoUpdate get_auto_update_flag(void);
+
+/**
+ * Init the data_exchange struct in case of no-bootloader build.
+ */
+void data_exchange_init();
 
 /// wrapper around get_auto_update_flag() == FwAutoUpdate::tester_mode
 bool running_in_tester_mode();
@@ -30,23 +37,19 @@ void set_bootloader_invalid();
 
 void clr_bbf_sfn();
 
-void set_xlcd_status(OtpStatus status);
-
-void set_xlcd_eeprom(XlcdEeprom eeprom);
-
-void set_loveboard_status(OtpStatus status);
-
-void set_loveboard_eeprom(LoveBoardEeprom eeprom);
-
 namespace data_exchange {
 
+#if HAS_XLCD()
 OtpStatus get_xlcd_status();
 
 XlcdEeprom get_xlcd_eeprom();
+#endif
 
+#if HAS_LOVE_BOARD()
 OtpStatus get_loveboard_status();
 
 LoveBoardEeprom get_loveboard_eeprom();
+#endif
 
 bool is_fw_update_on_restart();
 

@@ -829,6 +829,10 @@ int main() {
     enable_segger_sysview();
     enable_dfu_entry();
 
+    // init the RAM area that serves for exchanging data with bootloader in
+    // case this is a noboot build
+    data_exchange_init();
+
     // define the startup task
     osThreadDef(startup, startup_task, TASK_PRIORITY_STARTUP, 0, 1024 + 512 + 256);
     osThreadCreate(osThread(startup), NULL);

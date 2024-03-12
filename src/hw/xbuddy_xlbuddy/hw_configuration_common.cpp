@@ -3,38 +3,15 @@
  */
 
 #include "hw_configuration_common.hpp"
-#include "at21csxx_otp.hpp"
+#include "data_exchange.hpp"
 #include "otp.hpp"
 #include <device/hal.h>
 #include <option/bootloader.h>
 
-#if BOOTLOADER()
-    #include "data_exchange.hpp"
 static std::pair<XlcdEeprom, OtpStatus> read_xlcd() {
     return { data_exchange::get_xlcd_eeprom(), data_exchange::get_xlcd_status() };
 }
-#else
-/**
- * @brief use this  function only once during startup!!!
- * currently LoveBoardEeprom has to be OTP_v2
- *
- * @return LoveBoardEeprom data from loveboards eeprom + error counts
- */
-static std::pair<XlcdEeprom, OtpStatus> read_xlcd() {
-    // LCD reset
-    __HAL_RCC_GPIOG_CLK_ENABLE(); // enable lcd reset pin port clock
-    GPIO_InitTypeDef GPIO_InitStruct {};
-    GPIO_InitStruct.Pin = GPIO_PIN_4;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_WritePin(GPIOG, GPIO_PIN_4, GPIO_PIN_RESET);
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-    __HAL_RCC_GPIOC_CLK_ENABLE(); // enable lcd eeprom pin port clock
-    OtpFromEeprom XlcdEeprom = OtpFromEeprom(GPIOC, GPIO_PIN_8);
-    return { XlcdEeprom.calib_data, XlcdEeprom.get_status() };
-}
-#endif
 namespace buddy::hw {
 
 ConfigurationCommon::ConfigurationCommon()

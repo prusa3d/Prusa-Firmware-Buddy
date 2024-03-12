@@ -3,35 +3,14 @@
  */
 
 #include "hw_configuration.hpp"
+#include "data_exchange.hpp"
 #include "otp.hpp"
 #include "timing_precise.hpp"
 #include <option/bootloader.h>
 
-#if BOOTLOADER()
-    #include "data_exchange.hpp"
 static std::pair<LoveBoardEeprom, OtpStatus> read_loveboard() {
     return { data_exchange::get_loveboard_eeprom(), data_exchange::get_loveboard_status() };
 }
-#else
-    #include "at21csxx_otp.hpp"
-    #include <device/hal.h>
-
-using buddy::hw::hx717Dout;
-using buddy::hw::hx717Sck;
-using buddy::hw::Pin;
-
-/**
- * @brief use this  function only once during startup!!!
- * currently LoveBoardEeprom has to be OTP_v2
- *
- * @return LoveBoardEeprom data from loveboards eeprom
- */
-static std::pair<LoveBoardEeprom, OtpStatus> read_loveboard() {
-    __HAL_RCC_GPIOF_CLK_ENABLE(); // enable loveboard eeprom pin port clock
-    OtpFromEeprom LoveBoard = OtpFromEeprom(GPIOF, GPIO_PIN_13);
-    return { LoveBoard.calib_data, LoveBoard.get_status() };
-}
-#endif
 
 namespace buddy::hw {
 
