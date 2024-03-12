@@ -439,6 +439,14 @@ class CalibrationPhaseExecutor {
     template <typename F>
         requires requires(F f, MotorPhaseCorrection &mpc, int i, float x) { f(mpc, i, x); }
     std::optional<std::tuple<float, float>> _run_simultaneous_search(
+#define IDLE()                                                                                \
+    do {                                                                                      \
+        idle(true, true);                                                                     \
+        if (_hooks.on_idle() == phase_stepping::CalibrateAxisHooks::ContinueOrAbort::Abort) { \
+            return {};                                                                        \
+        }                                                                                     \
+    } while (0)
+
         InterruptableGoldenSearch forward_search,
         InterruptableGoldenSearch backward_search,
         int iterations,
@@ -457,13 +465,13 @@ class CalibrationPhaseExecutor {
                 apply_x(table, 0, forward_search.x());
             });
 
-            idle(true, true);
+            IDLE();
 
             axis_state.backward_current.modify_correction([&](auto &table) {
                 apply_x(table, 1, backward_search.x());
             });
 
-            idle(true, true);
+            IDLE();
 
             for (int retries = 0; retries <= RETRY_COUNT; retries++) {
                 if (retries == RETRY_COUNT) {
@@ -477,12 +485,12 @@ class CalibrationPhaseExecutor {
                 auto b_res = phase_stepping::analyze_resonance(_axis,
                     _phase_config.speed, _printer_config.calib_revs, { _phase_config.harmonic });
 
-                idle(true, true);
+                IDLE();
 
                 auto f_res = phase_stepping::analyze_resonance(_axis,
                     _phase_config.speed, -_printer_config.calib_revs, { _phase_config.harmonic });
 
-                idle(true, true);
+                IDLE();
 
                 if (!f_res.empty() && !b_res.empty()) {
                     forward_search.submit(f_res[0]);
@@ -493,21 +501,22 @@ class CalibrationPhaseExecutor {
             }
             _hooks.on_calibration_phase_progress(100 * (_progress++) / _progress_tick_count());
 
-            idle(true, true);
+            IDLE();
         }
 
         // Apply the result
         axis_state.forward_current.modify_correction([&](auto &table) {
             apply_x(table, 0, forward_search.arg_min());
         });
-        idle(true, true);
+        IDLE();
 
         axis_state.backward_current.modify_correction([&](auto &table) {
             apply_x(table, 1, backward_search.arg_min());
         });
-        idle(true, true);
+        IDLE();
 
         return { { forward_search.min(), backward_search.min() } };
+#undef IDLE
     }
 
     const SpectralItem &_get_fwd_item() const {

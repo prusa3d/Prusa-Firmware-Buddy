@@ -765,8 +765,8 @@ class ClientResponses {
     static constexpr PhaseResponses PhaseSteppingResponses[] = {
         { Response::Continue, Response::Abort }, // PhasesPhaseStepping::intro
         {}, // PhasesPhaseStepping::pick_tool
-        {}, // PhasesPhaseStepping::calib_x
-        {}, // PhasesPhaseStepping::calib_y
+        { Response::Abort }, // PhasesPhaseStepping::calib_x
+        { Response::Abort }, // PhasesPhaseStepping::calib_y
         { Response::Ok }, // PhasesPhaseStepping::calib_x_nok
         { Response::Ok }, // PhasesPhaseStepping::calib_y_nok
         { Response::Ok }, // PhasesPhaseStepping::calib_error

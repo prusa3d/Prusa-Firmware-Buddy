@@ -74,6 +74,12 @@ public:
      * Report calibration termination
      */
     virtual void on_termination() = 0;
+
+    enum class ContinueOrAbort {
+        Continue,
+        Abort,
+    };
+    virtual ContinueOrAbort on_idle() = 0;
 };
 
 /**

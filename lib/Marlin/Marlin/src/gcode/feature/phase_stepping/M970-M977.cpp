@@ -464,6 +464,10 @@ public:
         SERIAL_ECHO("%\n");
 #endif
     }
+
+    ContinueOrAbort on_idle() override {
+        return ContinueOrAbort::Continue;
+    }
 };
 
 /**
