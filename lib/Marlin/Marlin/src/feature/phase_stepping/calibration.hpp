@@ -129,9 +129,4 @@ public:
     }
 };
 
-/**
- * Global state of the last axis calibration. Re/set by M977.
- */
-extern CalibrationResult last_calibration_result;
-
 } // namespace phase_stepping
