@@ -38,19 +38,19 @@ if (args.elf == None):
     args.elf = project_root_dir / Path('build-vscode-buddy/firmware')
     print(f"ELF file not provided, using default: {args.elf}")
 if (args.gdb == None):
-    args.gdb = f'{project_root_dir}/.dependencies/gcc-arm-none-eabi-13.2.1/bin/arm-none-eabi-gdb-py'
+    args.gdb = f'{project_root_dir}/.dependencies/gcc-arm-none-eabi-13.2.1/bin/arm-none-eabi-gdb'
     print(f"GDB executable not provided, using default: {args.gdb}")
 
 if not os.path.isfile(args.elf):
-    print(f"ELF file not fount at: {args.elf}")
+    print(f"ELF file not found at: {args.elf}")
     exit(1)
 
 if not os.path.isfile(args.dump):
-    print(f"Crash dump file not fount at: {args.dump}")
+    print(f"Crash dump file not found at: {args.dump}")
     exit(1)
 
 if not os.path.isfile(args.gdb) and which(args.gdb) is None:
-    print(f"GDB executable not fount at: {args.gdb}")
+    print(f"GDB executable not found at: {args.gdb}")
     exit(1)
 
 # setup command and launch debugger
