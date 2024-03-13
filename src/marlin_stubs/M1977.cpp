@@ -25,8 +25,6 @@ enum class State {
 struct Context {
     Scores scores_x;
     Scores scores_y;
-
-    fsm::PhaseData serialize(PhasesPhaseStepping) const;
 };
 
 constexpr bool is_ok(const Scores &scores) {
@@ -34,6 +32,26 @@ constexpr bool is_ok(const Scores &scores) {
         && scores.p1b < 1.f
         && scores.p2f < 1.f
         && scores.p2b < 1.f;
+}
+
+fsm::PhaseData serialize_axis_nok(const Scores &scores) {
+    // TODO maybe these should be saturated at 255?
+    fsm::PhaseData data;
+    data[0] = 100 * scores.p1f;
+    data[1] = 100 * scores.p1b;
+    data[2] = 100 * scores.p2f;
+    data[3] = 100 * scores.p2b;
+    return data;
+}
+
+fsm::PhaseData serialize_ok(const Scores &scores_x, const Scores &scores_y) {
+    // take the worst of forward and backward, subtract from 1 to get reduction and scale up to percents
+    fsm::PhaseData data;
+    data[0] = 100 - 100 * std::max(scores_x.p1f, scores_x.p1b);
+    data[1] = 100 - 100 * std::max(scores_x.p2f, scores_x.p2b);
+    data[2] = 100 - 100 * std::max(scores_y.p1f, scores_y.p1b);
+    data[3] = 100 - 100 * std::max(scores_y.p2f, scores_y.p2b);
+    return data;
 }
 
 Response wait_for_response(const PhasesPhaseStepping phase) {
@@ -144,6 +162,7 @@ namespace state {
     }
 
     PhasesPhaseStepping pick_tool() {
+        FSM_CHANGE__LOGGING(PhasesPhaseStepping::pick_tool);
         GcodeSuite::G28_no_parser( // home
             true, // always_home_all
             true, // home only if needed,
@@ -190,7 +209,8 @@ namespace state {
         bsod(__FUNCTION__);
     }
 
-    PhasesPhaseStepping calib_ok() {
+    PhasesPhaseStepping calib_ok(Context &context) {
+        FSM_CHANGE_WITH_DATA__LOGGING(PhasesPhaseStepping::calib_ok, serialize_ok(context.scores_x, context.scores_y));
         switch (wait_for_response(PhasesPhaseStepping::calib_ok)) {
         case Response::Ok:
             return PhasesPhaseStepping::enabling;
@@ -200,6 +220,7 @@ namespace state {
     }
 
     PhasesPhaseStepping enabling() {
+        FSM_CHANGE__LOGGING(PhasesPhaseStepping::enabling);
         Planner::synchronize();
         phase_stepping::enable(X_AXIS, true);
         config_store().set_phase_stepping_enabled(X_AXIS, true);
@@ -209,59 +230,22 @@ namespace state {
         return PhasesPhaseStepping::finish;
     }
 
-    PhasesPhaseStepping calib_x_nok() {
+    PhasesPhaseStepping calib_x_nok(Context &context) {
+        FSM_CHANGE_WITH_DATA__LOGGING(PhasesPhaseStepping::calib_x_nok, serialize_axis_nok(context.scores_x));
         return fail_helper(PhasesPhaseStepping::calib_x_nok);
     }
 
-    PhasesPhaseStepping calib_y_nok() {
+    PhasesPhaseStepping calib_y_nok(Context &context) {
+        FSM_CHANGE_WITH_DATA__LOGGING(PhasesPhaseStepping::calib_y_nok, serialize_axis_nok(context.scores_y));
         return fail_helper(PhasesPhaseStepping::calib_y_nok);
     }
 
     PhasesPhaseStepping calib_error() {
+        FSM_CHANGE__LOGGING(PhasesPhaseStepping::calib_error);
         return fail_helper(PhasesPhaseStepping::calib_error);
     }
 
 } // namespace state
-
-fsm::PhaseData serialize_axis_nok(const Scores &scores) {
-    // TODO maybe these should be saturated at 255?
-    fsm::PhaseData data;
-    data[0] = 100 * scores.p1f;
-    data[1] = 100 * scores.p1b;
-    data[2] = 100 * scores.p2f;
-    data[3] = 100 * scores.p2b;
-    return data;
-}
-
-fsm::PhaseData serialize_ok(const Scores &scores_x, const Scores &scores_y) {
-    // take the worst of forward and backward, subtract from 1 to get reduction and scale up to percents
-    fsm::PhaseData data;
-    data[0] = 100 - 100 * std::max(scores_x.p1f, scores_x.p1b);
-    data[1] = 100 - 100 * std::max(scores_x.p2f, scores_x.p2b);
-    data[2] = 100 - 100 * std::max(scores_y.p1f, scores_y.p1b);
-    data[3] = 100 - 100 * std::max(scores_y.p2f, scores_y.p2b);
-    return data;
-}
-
-fsm::PhaseData Context::serialize(PhasesPhaseStepping phase) const {
-    switch (phase) {
-    case PhasesPhaseStepping::intro:
-    case PhasesPhaseStepping::pick_tool:
-    case PhasesPhaseStepping::calib_x:
-    case PhasesPhaseStepping::calib_y:
-    case PhasesPhaseStepping::calib_error:
-    case PhasesPhaseStepping::enabling:
-    case PhasesPhaseStepping::finish:
-        return fsm::PhaseData {};
-    case PhasesPhaseStepping::calib_ok:
-        return serialize_ok(scores_x, scores_y);
-    case PhasesPhaseStepping::calib_x_nok:
-        return serialize_axis_nok(scores_x);
-    case PhasesPhaseStepping::calib_y_nok:
-        return serialize_axis_nok(scores_y);
-    }
-    bsod(__FUNCTION__);
-}
 
 PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping phase) {
     switch (phase) {
@@ -274,13 +258,13 @@ PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping p
     case PhasesPhaseStepping::calib_y:
         return state::calib_y(context);
     case PhasesPhaseStepping::calib_x_nok:
-        return state::calib_x_nok();
+        return state::calib_x_nok(context);
     case PhasesPhaseStepping::calib_y_nok:
-        return state::calib_y_nok();
+        return state::calib_y_nok(context);
     case PhasesPhaseStepping::calib_error:
         return state::calib_error();
     case PhasesPhaseStepping::calib_ok:
-        return state::calib_ok();
+        return state::calib_ok(context);
     case PhasesPhaseStepping::enabling:
         return state::enabling();
     case PhasesPhaseStepping::finish:
@@ -299,7 +283,6 @@ void M1977() {
     FSM_HOLDER_WITH_DATA__LOGGING(PhaseStepping, phase, {});
     do {
         phase = get_next_phase(context, phase);
-        FSM_CHANGE_WITH_DATA__LOGGING(phase, context.serialize(phase));
     } while (phase != PhasesPhaseStepping::finish);
 }
 
