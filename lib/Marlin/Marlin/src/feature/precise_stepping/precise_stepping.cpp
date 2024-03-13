@@ -606,7 +606,7 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
         total_start_pos_msteps.e = 0;
     }
 
-    PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
+    total_start_pos = convert_oriented_msteps_to_distance(total_start_pos_msteps);
 
 #if HAS_PHASE_STEPPING()
     #ifdef COREXY
