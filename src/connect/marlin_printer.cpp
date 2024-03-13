@@ -423,7 +423,7 @@ namespace {
     }
 } // namespace
 
-const char *MarlinPrinter::click_button(uint32_t dialog_id, Response response) {
+const char *MarlinPrinter::dialog_action(uint32_t dialog_id, Response response) {
     auto [last_fsm, fsm_gen] = marlin_vars()->get_last_fsm_change();
 
     // We always send dialog from the top FSM, so we can
