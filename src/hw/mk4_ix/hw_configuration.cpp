@@ -8,19 +8,16 @@
 #include "timing_precise.hpp"
 #include <option/bootloader.h>
 
-static std::pair<LoveBoardEeprom, OtpStatus> read_loveboard() {
-    return { data_exchange::get_loveboard_eeprom(), data_exchange::get_loveboard_status() };
-}
-
 namespace buddy::hw {
 
 Configuration &Configuration::Instance() {
-    static Configuration ths = Configuration(read_loveboard());
+    static Configuration ths = Configuration();
     return ths;
 }
 
-Configuration::Configuration(std::pair<LoveBoardEeprom, OtpStatus> loveboard_)
-    : loveboard(loveboard_) {
+Configuration::Configuration() {
+    loveboard_eeprom = data_exchange::get_loveboard_eeprom();
+    loveboard_status = data_exchange::get_loveboard_status();
 }
 
 float Configuration::curr_measurement_voltage_to_current(float voltage) const {
