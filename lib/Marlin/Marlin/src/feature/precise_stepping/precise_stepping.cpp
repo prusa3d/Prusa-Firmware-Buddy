@@ -586,22 +586,15 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
         if (PreciseStepping::stop_pending && (PreciseStepping::flags & (PRECISE_STEPPING_FLAG_X_USED | PRECISE_STEPPING_FLAG_Y_USED))) {
             total_start_pos_msteps.x = (stepper.count_position_from_startup.x + stepper.count_position_from_startup.y) * PLANNER_STEPS_MULTIPLIER / 2;
             total_start_pos_msteps.y = (stepper.count_position_from_startup.x - stepper.count_position_from_startup.y) * PLANNER_STEPS_MULTIPLIER / 2;
-        } else {
-            total_start_pos_msteps.x += total_start_pos_msteps.x - ((step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2);
-            total_start_pos_msteps.y += total_start_pos_msteps.y - ((step_generator_state.current_distance.a - step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2);
         }
 
         if (PreciseStepping::stop_pending && (PreciseStepping::flags & PRECISE_STEPPING_FLAG_Z_USED)) {
             total_start_pos_msteps.z = stepper.count_position_from_startup.z * PLANNER_STEPS_MULTIPLIER;
-        } else {
-            total_start_pos_msteps.z += total_start_pos_msteps.z - (step_generator_state.current_distance.z * PLANNER_STEPS_MULTIPLIER);
         }
 #else
         LOOP_XYZ(i) {
             if (PreciseStepping::stop_pending && (PreciseStepping::flags & (PRECISE_STEPPING_FLAG_X_USED << i))) {
                 total_start_pos_msteps[i] = stepper.count_position_from_startup[i] * PLANNER_STEPS_MULTIPLIER;
-            } else {
-                total_start_pos_msteps[i] += total_start_pos_msteps[i] - (step_generator_state.current_distance[i] * PLANNER_STEPS_MULTIPLIER);
             }
         }
 #endif
@@ -1329,17 +1322,7 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
     step_generator_state.previous_step_time = 0.;
     step_generator_state.previous_step_time_ticks = 0;
     step_generator_state.buffered_step.flags = 0;
-    step_generator_state.current_distance = xyze_long_t {
-#ifdef COREXY
-        LROUND((float(move.start_pos.x) + float(move.start_pos.y)) * Planner::settings.axis_steps_per_mm[X_AXIS]),
-        LROUND((float(move.start_pos.x) - float(move.start_pos.y)) * Planner::settings.axis_steps_per_mm[Y_AXIS]),
-#else
-        LROUND(float(move.start_pos.x) * Planner::settings.axis_steps_per_mm[X_AXIS]),
-        LROUND(float(move.start_pos.y) * Planner::settings.axis_steps_per_mm[Y_AXIS]),
-#endif
-        LROUND(float(move.start_pos.z) * Planner::settings.axis_steps_per_mm[Z_AXIS]),
-        LROUND(float(move.start_pos.e) * Planner::settings.axis_steps_per_mm[E_AXIS])
-    };
+    step_generator_state.current_distance = stepper.count_position_from_startup;
     step_generator_state.left_insert_start_of_move_segment = 0;
 
     // Reset step events and index
