@@ -806,8 +806,8 @@ void Planner::command(const Command &command, const SendStateInfo &) {
     planned_event = { EventType::StateChanged, command.id };
 }
 
-void Planner::command(const Command &command, const ClickButton &params) {
-    if (const char *error = printer.click_button(params.dialog_id, params.response); error != nullptr) {
+void Planner::command(const Command &command, const DialogAction &params) {
+    if (const char *error = printer.dialog_action(params.dialog_id, params.response); error != nullptr) {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, error };
     } else {
         planned_event = { EventType::Finished, command.id };

@@ -112,7 +112,7 @@ public:
         abort();
     }
 
-    virtual const char *click_button(uint32_t dialog_id, Response response) {
+    virtual const char *dialog_action(uint32_t dialog_id, Response response) {
         return nullptr;
     }
 };

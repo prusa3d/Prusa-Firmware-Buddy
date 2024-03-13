@@ -121,7 +121,7 @@ Printer::Config ErrorPrinter::load_config() {
     return load_eeprom_config();
 }
 
-const char *ErrorPrinter::click_button(uint32_t, Response) {
+const char *ErrorPrinter::dialog_action(uint32_t, Response) {
     return "Click not allowed.";
 }
 
