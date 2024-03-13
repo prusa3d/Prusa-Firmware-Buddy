@@ -406,7 +406,6 @@ enum class PhasesPhaseStepping : PhaseUnderlyingType {
     calib_y_nok,
     calib_error,
     calib_ok,
-    enabling,
     finish,
     _last = finish,
 };
@@ -771,7 +770,6 @@ class ClientResponses {
         { Response::Ok }, // PhasesPhaseStepping::calib_y_nok
         { Response::Ok }, // PhasesPhaseStepping::calib_error
         { Response::Ok }, // case PhasesPhaseStepping::calib_ok
-        {}, // PhasesPhaseStepping::enabling
         {}, // PhasesPhaseStepping::finish
     };
     static_assert(std::size(ClientResponses::PhaseSteppingResponses) == CountPhases<PhasesPhaseStepping>());

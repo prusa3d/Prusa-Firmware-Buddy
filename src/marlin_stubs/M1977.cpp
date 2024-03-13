@@ -211,23 +211,18 @@ namespace state {
 
     PhasesPhaseStepping calib_ok(Context &context) {
         FSM_CHANGE_WITH_DATA__LOGGING(PhasesPhaseStepping::calib_ok, serialize_ok(context.scores_x, context.scores_y));
-        switch (wait_for_response(PhasesPhaseStepping::calib_ok)) {
-        case Response::Ok:
-            return PhasesPhaseStepping::enabling;
-        default:
-            bsod(__FUNCTION__);
-        }
-    }
-
-    PhasesPhaseStepping enabling() {
-        FSM_CHANGE__LOGGING(PhasesPhaseStepping::enabling);
         Planner::synchronize();
         phase_stepping::enable(X_AXIS, true);
         config_store().set_phase_stepping_enabled(X_AXIS, true);
         phase_stepping::enable(Y_AXIS, true);
         config_store().set_phase_stepping_enabled(Y_AXIS, true);
         config_store().selftest_result_phase_stepping.set(TestResult::TestResult_Passed);
-        return PhasesPhaseStepping::finish;
+        switch (wait_for_response(PhasesPhaseStepping::calib_ok)) {
+        case Response::Ok:
+            return PhasesPhaseStepping::finish;
+        default:
+            bsod(__FUNCTION__);
+        }
     }
 
     PhasesPhaseStepping calib_x_nok(Context &context) {
@@ -265,8 +260,6 @@ PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping p
         return state::calib_error();
     case PhasesPhaseStepping::calib_ok:
         return state::calib_ok(context);
-    case PhasesPhaseStepping::enabling:
-        return state::enabling();
     case PhasesPhaseStepping::finish:
         return PhasesPhaseStepping::finish;
     }

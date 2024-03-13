@@ -26,7 +26,6 @@ constexpr const char *txt_calibrating_x { N_("Calibrating X motor") };
 constexpr const char *txt_calibrating_y { N_("Calibrating Y motor") };
 constexpr const char *txt_calibration_nok { N_("Calibration of motor %c failed.\nParameter 1: forward %3d%%, backward %3d%%\nParameter 2: forward %3d%%, backward %3d%%") };
 constexpr const char *txt_calibration_error { N_("Calibration failed with error.") };
-constexpr const char *txt_enabling { N_("Finishing") };
 
 constexpr Rect16 radio_rect = GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody);
 constexpr Rect16 inner_frame_rect = GuiDefaults::RectScreenBody - radio_rect.Height();
@@ -226,13 +225,6 @@ namespace frame {
         }
     };
 
-    class Enabling final : public CenteredStaticText {
-    public:
-        explicit Enabling(window_t *parent)
-            : CenteredStaticText { parent, _(txt_enabling) } {
-        }
-    };
-
     class CalibrationError final : public CenteredStaticText {
     public:
         explicit CalibrationError(window_t *parent)
@@ -309,8 +301,7 @@ using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
     FrameDefinition<PhasesPhaseStepping::calib_x_nok, frame::CalibrationXNOK>,
     FrameDefinition<PhasesPhaseStepping::calib_y_nok, frame::CalibrationYNOK>,
     FrameDefinition<PhasesPhaseStepping::calib_error, frame::CalibrationError>,
-    FrameDefinition<PhasesPhaseStepping::calib_ok, frame::CalibrationOK>,
-    FrameDefinition<PhasesPhaseStepping::enabling, frame::Enabling>>;
+    FrameDefinition<PhasesPhaseStepping::calib_ok, frame::CalibrationOK>>;
 
 } // namespace
 
