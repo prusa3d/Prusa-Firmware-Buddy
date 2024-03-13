@@ -214,6 +214,18 @@ namespace Frame {
             progress_number.SetValue(data.percent);
         }
 
+        // Texts that will be used in Cold Pull dialog. They have to be translated before dialog changes are applied, due to lack of time.
+        [[maybe_unused]] static constexpr const char *TODOtext1 = N_("Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and follow the instructions. For more details, visit: prusa.io/coldpull");
+        [[maybe_unused]] static constexpr const char *TODOtext2 = N_("Before you continue, make sure that PLA filament is loaded.");
+        [[maybe_unused]] static constexpr const char *TODOtext3 = N_("Before you continue, unload the filament. Then press down the blue part on the fitting and pull the PTFE tube from the tool head.");
+        [[maybe_unused]] static constexpr const char *TODOtext4 = N_("Before you continue, make sure PLA filament is loaded directly into the extruder.");
+        [[maybe_unused]] static constexpr const char *TODOtext5 = N_("Heating the nozzle to 215 C. Don't touch the extruder.");
+        [[maybe_unused]] static constexpr const char *TODOtext6 = N_("Cooling the nozzle to 30 C. Don't touch the extruder.");
+        [[maybe_unused]] static constexpr const char *TODOtext7 = N_("Heating the nozzle to 80 C. The filament will be unloaded automatically.");
+        [[maybe_unused]] static constexpr const char *TODOtext8 = N_("Remove the filament manually, there might be a slight resistance. If the filament is stuck, open the idler lever.");
+        [[maybe_unused]] static constexpr const char *TODOtext9 = N_("Cold Pull successfully completed. You can continue printing. If the issue persists, repeat this procedure again.");
+        [[maybe_unused]] static constexpr const char *TODOtext10 = N_("Cold Pull successfully completed. Insert PTFE tube back in the fitting. You can continue printing. If the issue persists, repeat this procedure again.");
+
         static constexpr const char *text1 = N_("Heating up nozzle");
         static constexpr const char *text2 = N_("Prepare to pull the fillament.");
     };
