@@ -35,8 +35,8 @@ struct TransferCheckResult {
     }
 
     inline bool is_running() const {
-        // Partial file & backup not empty -> running transfer
-        return partial_file_found && !backup_file_empty;
+        // Partial file & backup present and not empty -> running transfer
+        return partial_file_found && backup_file_found && !backup_file_empty;
     }
 };
 
