@@ -568,8 +568,15 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
     PreciseStepping::flags = 0;
 
     if (!preserve_step_fraction) {
-        // rebuild msteps from the stepper counters
-        PreciseStepping::total_start_pos_msteps = stepper.count_position_from_startup * PLANNER_STEPS_MULTIPLIER;
+        // rebuild msteps from the stepper counters unconditionally
+#ifdef COREXY
+        total_start_pos_msteps.x = (stepper.count_position_from_startup.x + stepper.count_position_from_startup.y) * PLANNER_STEPS_MULTIPLIER / 2;
+        total_start_pos_msteps.y = (stepper.count_position_from_startup.x - stepper.count_position_from_startup.y) * PLANNER_STEPS_MULTIPLIER / 2;
+        total_start_pos_msteps.z = stepper.count_position_from_startup.z * PLANNER_STEPS_MULTIPLIER;
+        total_start_pos_msteps.e = stepper.count_position_from_startup.e * PLANNER_STEPS_MULTIPLIER;
+#else
+        total_start_pos_msteps = stepper.count_position_from_startup * PLANNER_STEPS_MULTIPLIER;
+#endif
     } else {
         xyz_long_t step_fraction;
 #ifdef COREXY
