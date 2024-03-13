@@ -3,31 +3,10 @@
  */
 
 #include "hw_configuration.hpp"
+#include "data_exchange.hpp"
 #include "bsod.h"
 #include "otp.hpp"
 #include <option/bootloader.h>
-
-#if BOOTLOADER()
-    #include "data_exchange.hpp"
-static bool loveboard_detected() {
-    return data_exchange::get_loveboard_status().data_valid;
-}
-#else
-    #include "at21csxx_otp.hpp"
-    #include <device/hal.h>
-
-/**
- * @brief use this  function only once during startup!!!
- * it must return false since mk3.5 does not have loveboard
- *
- * @return if loveboard was detected
- */
-static bool loveboard_detected() {
-    __HAL_RCC_GPIOF_CLK_ENABLE(); // enable loveboard eeprom pin port clock
-    OtpFromEeprom LoveBoard = OtpFromEeprom(GPIOF, GPIO_PIN_13);
-    return LoveBoard.get_status().data_valid;
-}
-#endif
 
 namespace buddy::hw {
 
@@ -43,7 +22,7 @@ Configuration::Configuration() {
         bsod("Wrong board version");
     }
 
-    error__loveboard_detected = loveboard_detected();
+    error__loveboard_detected = data_exchange::get_loveboard_status().data_valid;
 }
 
 /**
