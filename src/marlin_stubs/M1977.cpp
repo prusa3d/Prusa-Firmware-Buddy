@@ -5,7 +5,6 @@
 #include <common/marlin_server.hpp>
 #include <Marlin/src/feature/phase_stepping/calibration.hpp>
 #include <Marlin/src/gcode/gcode.h>
-#include <option/has_toolchanger.h>
 
 namespace {
 
