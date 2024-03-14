@@ -341,12 +341,9 @@ bool refine_corexy_origin() {
         if (planner.draining()) {
             return true;
         }
-
         SERIAL_ECHOLN("phase alignment failed");
-        SERIAL_ECHOLNPAIR("phase A:", stepperX.MSCNT(), " B:", stepperY.MSCNT());
-        ui.status_printf_P(0, "Phase alignment failed");
-        homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
-        return false;
+        SERIAL_ECHOLNPAIR("phase A:", axis_mscnt(A_AXIS), " B:", axis_mscnt(B_AXIS));
+        bsod("phase alignment failed");
     }
 
     // increase current of the holding motor
