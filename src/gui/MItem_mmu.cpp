@@ -174,11 +174,11 @@ void MI_MMU_ENABLE::OnChange(size_t old_index) {
             case filament_sensor::mmu_enable_result_t::ok:
                 break;
             case filament_sensor::mmu_enable_result_t::error_filament_sensor_disabled:
-                index = old_index;
+                SetIndex(old_index);
                 MsgBoxWarning(_("Can't enable MMU: enable the printer's filament sensor first."), Responses_Ok);
                 break;
             case filament_sensor::mmu_enable_result_t::error_mmu_not_supported:
-                index = old_index;
+                SetIndex(old_index);
                 MsgBoxError(_("MMU not supported!"), Responses_Ok);
                 break;
             }

@@ -116,7 +116,7 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
 
             // Disable sensors again
             FSensors_instance().Disable();
-            index = old_index;
+            SetIndex(old_index);
             // wait until filament sensor command is processed
             // no guiloop here !!! - it could cause show of unwanted error message
             while (FSensors_instance().IsExtruderProcessingRequest()) {
