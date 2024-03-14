@@ -18,7 +18,6 @@
 #include "option/filament_sensor.h"
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
-#include <option/has_phase_stepping.h>
 #include <common/hotend_type.hpp>
 
 enum { RESPONSE_BITS = 4, // number of bits used to encode response
