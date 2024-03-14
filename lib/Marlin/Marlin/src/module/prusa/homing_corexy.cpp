@@ -12,9 +12,8 @@
 #if ENABLED(CRASH_RECOVERY)
     #include "feature/prusa/crash_recovery.hpp"
 #endif
-#include "bsod.h"
-#include "log.h"
 
+#include "bsod.h"
 #include "feature/phase_stepping/phase_stepping.hpp"
 
 // convert raw AB steps to XY mm
@@ -289,8 +288,6 @@ static bool wait_for_standstill(uint8_t axis_mask, millis_t max_delay = 150) {
         safe_delay(10);
     }
 }
-
-LOG_COMPONENT_REF(Marlin);
 
 /**
  * @brief Precise homing on core-XY.
