@@ -317,15 +317,22 @@ bool refine_corexy_origin() {
 
     // align both motors to a full phase
     wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
-    xy_long_t origin_steps = { stepper.position(A_AXIS) + phase_backoff_steps(A_AXIS),
-        stepper.position(B_AXIS) + phase_backoff_steps(B_AXIS) };
+    xy_long_t origin_steps = {
+        stepper.position(A_AXIS) + phase_backoff_steps(A_AXIS),
+        stepper.position(B_AXIS) + phase_backoff_steps(B_AXIS)
+    };
     plan_corexy_raw_move(origin_steps, fr_mm_s);
-    if (stepper.position(A_AXIS) != origin_steps[A_AXIS] || stepper.position(B_AXIS) != origin_steps[B_AXIS]) {
-        // This does actually happen.
-        // For example, somebody may call planner.quick_stop()
-        // while we were waiting in planner.synchronize()
-        log_warning(Marlin, "raw move didn't reach requested position");
-        return false;
+    xy_long_t raw_move_diff = {
+        stepper.position(A_AXIS) - origin_steps[A_AXIS],
+        stepper.position(B_AXIS) - origin_steps[B_AXIS]
+    };
+    if (raw_move_diff[A_AXIS] != 0 || raw_move_diff[B_AXIS] != 0) {
+        if (planner.draining()) {
+            return true;
+        }
+        SERIAL_ECHOLN("raw move failed");
+        SERIAL_ECHOLNPAIR("diff A:", raw_move_diff[A_AXIS], " B:", raw_move_diff[B_AXIS]);
+        bsod("raw move didn't reach requested position");
     }
 
     // sanity checks
