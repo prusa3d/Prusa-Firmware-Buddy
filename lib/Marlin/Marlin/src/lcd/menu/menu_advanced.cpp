@@ -320,8 +320,8 @@ void menu_backlash();
     //
     #if ENABLED(AUTOTEMP) && HAS_TEMP_HOTEND
       EDIT_ITEM(bool, MSG_AUTOTEMP, &planner.autotemp_enabled);
-      EDIT_ITEM(float3, MSG_MIN, &planner.autotemp_min, 0, float(HEATER_0_MAXTEMP) - 15);
-      EDIT_ITEM(float3, MSG_MAX, &planner.autotemp_max, 0, float(HEATER_0_MAXTEMP) - 15);
+      EDIT_ITEM(float3, MSG_MIN, &planner.autotemp_min, 0, float(HEATER_0_MAXTEMP) - HEATER_MAXTEMP_SAFETY_MARGIN);
+      EDIT_ITEM(float3, MSG_MAX, &planner.autotemp_max, 0, float(HEATER_0_MAXTEMP) - HEATER_MAXTEMP_SAFETY_MARGIN);
       EDIT_ITEM(float52, MSG_FACTOR, &planner.autotemp_factor, 0, 10);
     #endif
 
@@ -367,7 +367,7 @@ void menu_backlash();
     #if ENABLED(PID_AUTOTUNE_MENU)
       #define PID_EDIT_MENU_ITEMS(N) \
         _PID_EDIT_MENU_ITEMS(N); \
-        EDIT_ITEM_FAST(int3, PID_LABEL(MSG_AUTOTUNE_PID,N), &autotune_temp[N], 150, heater_maxtemp[N] - 15, [](){ _lcd_autotune(N); })
+        EDIT_ITEM_FAST(int3, PID_LABEL(MSG_AUTOTUNE_PID,N), &autotune_temp[N], 150, heater_maxtemp[N] - HEATER_MAXTEMP_SAFETY_MARGIN, [](){ _lcd_autotune(N); })
     #else
       #define PID_EDIT_MENU_ITEMS(N) _PID_EDIT_MENU_ITEMS(N)
     #endif
@@ -398,12 +398,6 @@ void menu_backlash();
 
   #if ENABLED(DISTINCT_E_FACTORS)
     inline void _reset_e_acceleration_rate(const uint8_t e) { if (e == active_extruder) planner.reset_acceleration_rates(); }
-    inline void _planner_refresh_e_positioning(const uint8_t e) {
-      if (e == active_extruder)
-        planner.refresh_positioning();
-      else
-        planner.mm_per_step[E_AXIS_N(e)] = 1.0f / planner.settings.axis_steps_per_mm[E_AXIS_N(e)];
-    }
   #endif
 
   // M203 / M205 Velocity options
@@ -571,7 +565,7 @@ void menu_backlash();
     EDIT_QSTEPS(C);
 
     #if ENABLED(DISTINCT_E_FACTORS)
-      #define EDIT_ESTEPS(N) EDIT_ITEM_FAST(float51, MSG_E##N##_STEPS, &planner.settings.axis_steps_per_mm[E_AXIS_N(N)], 5, 9999, [](){ _planner_refresh_e_positioning(N); })
+      #define EDIT_ESTEPS(N) EDIT_ITEM_FAST(float51, MSG_E##N##_STEPS, &planner.settings.axis_steps_per_mm[E_AXIS_N(N)], 5, 9999, [](){ planner.refresh_e_positioning(N); })
       EDIT_ITEM_FAST(float51, MSG_E_STEPS, &planner.settings.axis_steps_per_mm[E_AXIS_N(active_extruder)], 5, 9999, [](){ planner.refresh_positioning(); });
       EDIT_ESTEPS(0);
       EDIT_ESTEPS(1);

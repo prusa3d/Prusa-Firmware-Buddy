@@ -2,126 +2,255 @@
 
 #include "selftest_fan.h"
 #include "wizard_config.hpp"
-#include "fanctl.h"
+#include "fanctl.hpp"
 #include "config_features.h" //EXTRUDER_AUTO_FAN_TEMPERATURE
-#include "marlin_server.h"   //marlin_server_get_temp_nozzle()
+#include "marlin_server.hpp" //marlin_server::get_temp_nozzle()
+#include "selftest_log.hpp"
+#include "i_selftest.hpp"
+#include "algorithm_scale.hpp"
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include "module/prusa/toolchanger.h"
+#endif
 
-#define FANTEST_STOP_DELAY    2000
-#define FANTEST_WAIT_DELAY    2500
-#define FANTEST_MEASURE_DELAY 7500
+#include <algorithm>
 
-CSelftestPart_Fan::CSelftestPart_Fan(const selftest_fan_config_t &config)
-    : m_config(config) {
-    m_State = spsStart;
+// Start at 100% and wait longer to allow spreading stuck lubricant after first assembly.
+// Then set PWM to 0% and wait for quite a long time to ensure fan stopped.
+// (We can't measure RPM without at least some PWM)
+// Then continue with 20% PWM to test if 20% is enough to start spinning.
+static constexpr uint8_t pwm_100_percent = 255;
+static constexpr uint8_t pwm_20_percent = 51;
+static constexpr uint32_t state_measure_rpm_delay = 5000;
+static constexpr uint32_t state_wait_rpm_100_percent_delay = 6000;
+static constexpr uint32_t state_measure_rpm_100_percent_delay = state_measure_rpm_delay;
+static constexpr uint32_t state_wait_rpm_0_percent_delay = 10000;
+static constexpr uint32_t state_wait_rpm_20_percent_delay = 3000;
+static constexpr uint32_t state_measure_rpm_20_percent_delay = state_measure_rpm_delay;
+
+using namespace selftest;
+LOG_COMPONENT_REF(Selftest);
+
+FanHandler::FanHandler(const char *name, const FanCtlFnc &fanctl_fnc, uint8_t tool_nr)
+    : name(name)
+    , fanctl_fnc(fanctl_fnc)
+    , tool_nr(tool_nr) {}
+
+void FanHandler::enter_selftest() {
+    fanctl_fnc(tool_nr).EnterSelftestMode();
 }
 
-bool CSelftestPart_Fan::IsInProgress() const {
-    return ((m_State != spsIdle) && (m_State < spsFinished));
+void FanHandler::exit_selftest() {
+    fanctl_fnc(tool_nr).ExitSelftestMode();
 }
 
-bool CSelftestPart_Fan::Start() {
-    if (IsInProgress())
-        return false;
-    m_State = spsStart;
-    initial_pwm = m_config.fanctl.getPWM();
-    return true;
+void FanHandler::set_pwm(uint8_t pwm) {
+    fanctl_fnc(tool_nr).SelftestSetPWM(pwm);
 }
 
-bool CSelftestPart_Fan::Loop() {
-    switch ((TestState)m_State) {
-    case spsIdle:
-        return false;
-    case spsStart:
-        Selftest.log_printf("%s Started\n", m_config.partname);
-        m_Time = Selftest.m_Time;
-        m_StartTime = m_Time;
-        m_EndTime = m_StartTime + estimate(m_config);
-        if ((m_config.fanctl.getPWM() == 0) && (m_config.fanctl.getActualRPM() == 0)) {
-            m_Time += FANTEST_STOP_DELAY;
-            m_EndTime -= FANTEST_STOP_DELAY;
-        }
-        m_config.fanctl.setPWM(0);
-        break;
-    case spsWait_stopped:
-        if ((Selftest.m_Time - m_Time) <= FANTEST_STOP_DELAY)
-            return true;
-        m_config.fanctl.setPWM(m_config.pwm_start);
-        m_Step = 0;
-        m_Time = Selftest.m_Time;
-        break;
-    case spsWait_rpm:
-        if ((Selftest.m_Time - m_Time) <= FANTEST_WAIT_DELAY)
-            return true;
-        m_Time = Selftest.m_Time;
-        m_SampleCount = 0;
-        m_SampleSum = 0;
-        break;
-    case spsMeasure_rpm: {
-        if ((Selftest.m_Time - m_Time) <= FANTEST_MEASURE_DELAY) {
-            m_SampleCount++;
-            m_SampleSum += m_config.fanctl.getActualRPM();
-            return true;
-        }
-        uint16_t rpm = m_SampleSum / m_SampleCount;
-        Selftest.log_printf("%s at %u%% PWM = %u RPM\n", m_config.partname, 2 * (m_config.fanctl.getPWM()), rpm);
-        if ((m_config.rpm_min_table != nullptr) && (m_config.rpm_max_table != nullptr))
-            if ((rpm < m_config.rpm_min_table[m_Step]) || (rpm > m_config.rpm_max_table[m_Step])) {
-                Selftest.log_printf("%s %u RPM out of range (%u - %u)\n", m_config.partname, rpm, m_config.rpm_min_table[m_Step], m_config.rpm_max_table[m_Step]);
-                m_Result = sprFailed;
-                m_State = spsFinish;
-                return true;
-            }
-        if (++m_Step < m_config.steps) {
-            m_config.fanctl.setPWM(m_config.fanctl.getPWM() + m_config.pwm_step);
-            m_Time = Selftest.m_Time;
-            m_State = spsWait_rpm;
-            return true;
-        }
-        break;
+void FanHandler::record_sample() {
+    sample_count++;
+    sample_sum += fanctl_fnc(tool_nr).getActualRPM();
+}
+
+void FanHandler::reset_samples() {
+    sample_count = 0;
+    sample_sum = 0;
+}
+
+static bool is_rpm_within_bounds(const FanConfig &fan_config, uint16_t rpm) {
+    return rpm > fan_config.rpm_min && rpm < fan_config.rpm_max;
+}
+
+uint16_t FanHandler::calculate_avg_rpm() const {
+    return sample_count ? (sample_sum / sample_count) : 0;
+}
+
+void FanHandler::evaluate(const FanConfig &fan_config, uint16_t avg_rpm) {
+    const uint16_t rpm_min = fan_config.rpm_min;
+    const uint16_t rpm_max = fan_config.rpm_max;
+
+    if (is_rpm_within_bounds(fan_config, avg_rpm)) {
+        log_info(Selftest, "%s %u %u RPM in range (%u - %u)",
+            name,
+            tool_nr,
+            avg_rpm,
+            rpm_min,
+            rpm_max);
+    } else {
+        log_error(Selftest, "%s %u %u RPM out of range (%u - %u)",
+            name,
+            tool_nr,
+            avg_rpm,
+            rpm_min,
+            rpm_max);
+
+        failed = true;
     }
-    case spsFinish:
-        restorePWM();
-        if (m_Result == sprFailed)
-            m_State = spsFailed;
-        else
-            m_Result = sprPassed;
-        Selftest.log_printf("%s %s\n", m_config.partname, (m_Result == sprPassed) ? "Passed" : "Failed");
-        break;
-    case spsFinished:
-    case spsAborted:
-    case spsFailed:
-        return false;
-    }
-    return next();
 }
 
-bool CSelftestPart_Fan::Abort() {
-    if (!IsInProgress())
-        return false;
-    restorePWM();
-    m_State = spsAborted;
-    return true;
+CSelftestPart_Fan::CSelftestPart_Fan(IPartHandler &state_machine, const SelftestFansConfig &config,
+    SelftestFanHotendResult &result)
+    : state_machine(state_machine)
+    , config(config)
+    , result(result)
+    , print_fan("Print fan", Fans::print, config.tool_nr)
+    , heatbreak_fan("Heatbreak fan", Fans::heat_break, config.tool_nr) {
+    print_fan.enter_selftest();
+    heatbreak_fan.enter_selftest();
 }
 
-void CSelftestPart_Fan::restorePWM() {
-    uint8_t pwm_to_restore;
-    if (m_config.fanctl.isAutoFan())
-        pwm_to_restore = (marlin_server_get_temp_nozzle() >= EXTRUDER_AUTO_FAN_TEMPERATURE) ? initial_pwm : 0;
-    else
-        pwm_to_restore = initial_pwm;
-
-    m_config.fanctl.setPWM(pwm_to_restore);
+CSelftestPart_Fan::~CSelftestPart_Fan() {
+    print_fan.exit_selftest();
+    heatbreak_fan.exit_selftest();
 }
 
-uint8_t CSelftestPart_Fan::getFSMState() {
-    if (m_State <= spsStart)
-        return (uint8_t)(SelftestSubtestState_t::undef);
-    else if (m_State < spsFinished)
-        return (uint8_t)(SelftestSubtestState_t::running);
-    return (uint8_t)((m_Result == sprPassed) ? (SelftestSubtestState_t::ok) : (SelftestSubtestState_t::not_good));
-}
-
-uint32_t CSelftestPart_Fan::estimate(const selftest_fan_config_t &config) {
-    uint32_t total_time = FANTEST_STOP_DELAY + config.steps * (FANTEST_WAIT_DELAY + FANTEST_MEASURE_DELAY);
+uint32_t CSelftestPart_Fan::estimate() {
+    uint32_t total_time
+        = state_wait_rpm_100_percent_delay
+        + state_measure_rpm_100_percent_delay
+        + state_wait_rpm_0_percent_delay
+        + state_wait_rpm_20_percent_delay
+        + state_measure_rpm_20_percent_delay;
     return total_time;
+}
+
+LoopResult CSelftestPart_Fan::state_start() {
+#if HAS_TOOLCHANGER()
+    if (!prusa_toolchanger.is_tool_enabled(config.tool_nr)) {
+        start_time = end_time = SelftestInstance().GetTime();
+        result.print_fan_state = SelftestSubtestState_t::undef;
+        result.heatbreak_fan_state = SelftestSubtestState_t::undef;
+        result.fans_switched_state = SelftestSubtestState_t::undef;
+        return LoopResult::Abort;
+    }
+#endif
+
+    log_info(Selftest, "Fan test %u started", config.tool_nr);
+
+    result.print_fan_state = SelftestSubtestState_t::running;
+    result.heatbreak_fan_state = SelftestSubtestState_t::running;
+
+    start_time = SelftestInstance().GetTime();
+    end_time = start_time + estimate();
+
+    print_fan.set_pwm(pwm_100_percent);
+    heatbreak_fan.set_pwm(pwm_100_percent);
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Fan::state_wait_rpm_100_percent() {
+    if (state_machine.IsInState_ms() <= state_wait_rpm_100_percent_delay) {
+        update_progress();
+        return LoopResult::RunCurrent;
+    }
+
+    heatbreak_fan.reset_samples();
+    print_fan.reset_samples();
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Fan::state_measure_rpm_100_percent() {
+    if (state_machine.IsInState_ms() <= state_measure_rpm_100_percent_delay) {
+        print_fan.record_sample();
+        heatbreak_fan.record_sample();
+        update_progress();
+        return LoopResult::RunCurrent;
+    }
+
+    const uint16_t print_fan_rpm = print_fan.calculate_avg_rpm();
+    print_fan.evaluate(config.print_fan, print_fan_rpm);
+    if (print_fan.is_failed()) {
+        result.print_fan_state = SelftestSubtestState_t::not_good;
+    }
+
+    const uint16_t heatbreak_fan_rpm = heatbreak_fan.calculate_avg_rpm();
+    heatbreak_fan.evaluate(config.heatbreak_fan, heatbreak_fan_rpm);
+    if (heatbreak_fan.is_failed()) {
+        result.heatbreak_fan_state = SelftestSubtestState_t::not_good;
+    }
+
+    if (print_fan.is_failed() && heatbreak_fan.is_failed()) {
+        // try if the rpms fit into the ranges when switched, if yes, fail the
+        // "fans switched" test and pass the RPM tests
+        if (is_rpm_within_bounds(config.heatbreak_fan, print_fan_rpm) && is_rpm_within_bounds(config.print_fan, heatbreak_fan_rpm)) {
+            log_error(Selftest, "Fans test %u print and hotend fan appear to be switched (the RPM of each fits into the range of the other)", config.tool_nr);
+            result.print_fan_state = SelftestSubtestState_t::ok;
+            result.heatbreak_fan_state = SelftestSubtestState_t::ok;
+            result.fans_switched_state = SelftestSubtestState_t::not_good;
+            return LoopResult::Fail;
+        }
+    }
+
+    if (!print_fan.is_failed() && !heatbreak_fan.is_failed()) {
+        result.fans_switched_state = SelftestSubtestState_t::ok;
+    }
+
+    print_fan.set_pwm(0);
+    heatbreak_fan.set_pwm(0);
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Fan::state_wait_rpm_0_percent() {
+    if (state_machine.IsInState_ms() <= state_wait_rpm_0_percent_delay) {
+        update_progress();
+        return LoopResult::RunCurrent;
+    }
+
+    print_fan.set_pwm(pwm_20_percent);
+    heatbreak_fan.set_pwm(pwm_20_percent);
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Fan::state_wait_rpm_20_percent() {
+    if (state_machine.IsInState_ms() <= state_wait_rpm_20_percent_delay) {
+        update_progress();
+        return LoopResult::RunCurrent;
+    }
+
+    print_fan.reset_samples();
+    heatbreak_fan.reset_samples();
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Fan::state_measure_rpm_20_percent() {
+    if (state_machine.IsInState_ms() <= state_measure_rpm_20_percent_delay) {
+        print_fan.record_sample();
+        heatbreak_fan.record_sample();
+        update_progress();
+        return LoopResult::RunCurrent;
+    }
+
+    const uint16_t print_fan_rpm = print_fan.calculate_avg_rpm();
+    print_fan.evaluate(benevolent_fan_config, print_fan_rpm);
+    if (print_fan.is_failed()) {
+        result.print_fan_state = SelftestSubtestState_t::not_good;
+    }
+
+    const uint16_t heatbreak_fan_rpm = heatbreak_fan.calculate_avg_rpm();
+    heatbreak_fan.evaluate(benevolent_fan_config, heatbreak_fan_rpm);
+    if (heatbreak_fan.is_failed()) {
+        result.heatbreak_fan_state = SelftestSubtestState_t::not_good;
+    }
+
+    if (!print_fan.is_failed()) {
+        result.print_fan_state = SelftestSubtestState_t::ok;
+    }
+    if (!heatbreak_fan.is_failed()) {
+        result.heatbreak_fan_state = SelftestSubtestState_t::ok;
+    }
+
+    if (result.print_fan_state == SelftestSubtestState_t::not_good || result.heatbreak_fan_state == SelftestSubtestState_t::not_good || result.fans_switched_state == SelftestSubtestState_t::not_good) {
+        return LoopResult::Fail;
+    }
+
+    return LoopResult::RunNext;
+}
+
+void CSelftestPart_Fan::update_progress() {
+    if (start_time == end_time) {
+        return; // don't have estimated end set correctly
+    }
+
+    result.progress = static_cast<uint8_t>(scale_percent(SelftestInstance().GetTime(), start_time, end_time));
 }

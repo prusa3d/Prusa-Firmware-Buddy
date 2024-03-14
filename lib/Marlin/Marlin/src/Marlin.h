@@ -30,6 +30,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "SPI.h"
 
 #if HAS_DRIVER(L6470)
   #include "libs/L6470/L6470_Marlin.h"
@@ -101,8 +102,18 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
   #define Y2_disable NOOP
 #endif
 
+#if DISABLED(XY_LINKED_ENABLE)
 #define  enable_Y() do{ Y_enable; Y2_enable; }while(0)
 #define disable_Y() do{ Y_disable; Y2_disable; CBI(axis_known_position, Y_AXIS); }while(0)
+#endif
+
+#if ENABLED(XY_LINKED_ENABLE)
+  #define  enable_XY() enable_X()
+  #define disable_XY() []{ disable_X(); CBI(axis_known_position, Y_AXIS); }()
+#else
+  #define  enable_XY() do{enable_X(); enable_Y(); }while(0)
+  #define disable_XY() do{disable_X(); disable_Y(); }while(0)
+#endif
 
 #if AXIS_DRIVER_TYPE_Z(L6470)
   extern L6470 stepperZ;
@@ -164,7 +175,7 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
   extern L6470 stepperE1;
   #define  E1_enable NOOP
   #define E1_disable do{ stepperE1.free(); CBI(axis_known_position, E_AXIS); }while(0)
-#elif E_STEPPERS > 1 && HAS_E1_ENABLE
+#elif (E_STEPPERS > 1 || ENABLED(PRUSA_TOOLCHANGER)) && HAS_E1_ENABLE
   #define  E1_enable E1_ENABLE_WRITE( E_ENABLE_ON)
   #define E1_disable E1_ENABLE_WRITE(!E_ENABLE_ON)
 #else
@@ -176,7 +187,7 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
   extern L6470 stepperE2;
   #define  E2_enable NOOP
   #define E2_disable do{ stepperE2.free(); CBI(axis_known_position, E_AXIS); }while(0)
-#elif E_STEPPERS > 2 && HAS_E2_ENABLE
+#elif (E_STEPPERS > 2 || ENABLED(PRUSA_TOOLCHANGER)) && HAS_E2_ENABLE
   #define  E2_enable E2_ENABLE_WRITE( E_ENABLE_ON)
   #define E2_disable E2_ENABLE_WRITE(!E_ENABLE_ON)
 #else
@@ -188,7 +199,7 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
   extern L6470 stepperE3;
   #define  E3_enable NOOP
   #define E3_disable do{ stepperE3.free(); CBI(axis_known_position, E_AXIS); }while(0)
-#elif E_STEPPERS > 3 && HAS_E3_ENABLE
+#elif (E_STEPPERS > 3 || ENABLED(PRUSA_TOOLCHANGER)) && HAS_E3_ENABLE
   #define  E3_enable E3_ENABLE_WRITE( E_ENABLE_ON)
   #define E3_disable E3_ENABLE_WRITE(!E_ENABLE_ON)
 #else
@@ -200,7 +211,7 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
   extern L6470 stepperE4;
   #define  E4_enable NOOP
   #define E4_disable do{ stepperE4.free(); CBI(axis_known_position, E_AXIS); }while(0)
-#elif E_STEPPERS > 4 && HAS_E4_ENABLE
+#elif (E_STEPPERS > 4 || ENABLED(PRUSA_TOOLCHANGER)) && HAS_E4_ENABLE
   #define  E4_enable E4_ENABLE_WRITE( E_ENABLE_ON)
   #define E4_disable E4_ENABLE_WRITE(!E_ENABLE_ON)
 #else
@@ -212,7 +223,7 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
   extern L6470 stepperE5;
   #define  E5_enable NOOP
   #define E5_disable do{ stepperE5.free(); CBI(axis_known_position, E_AXIS); }while(0)
-#elif E_STEPPERS > 5 && HAS_E5_ENABLE
+#elif (E_STEPPERS > 5 || ENABLED(PRUSA_TOOLCHANGER)) && HAS_E5_ENABLE
   #define  E5_enable E5_ENABLE_WRITE( E_ENABLE_ON)
   #define E5_disable E5_ENABLE_WRITE(!E_ENABLE_ON)
 #else
@@ -262,7 +273,7 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
     #define disable_E0() NOOP
   #endif
 
-  #if E_STEPPERS > 1 && HAS_E1_ENABLE
+  #if (E_STEPPERS > 1 || ENABLED(PRUSA_TOOLCHANGER)) && HAS_E1_ENABLE
     #define  enable_E1() E1_enable
     #define disable_E1() E1_disable
   #else
@@ -270,7 +281,7 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
     #define disable_E1() NOOP
   #endif
 
-  #if E_STEPPERS > 2 && HAS_E2_ENABLE
+  #if (E_STEPPERS > 2 || ENABLED(PRUSA_TOOLCHANGER)) && HAS_E2_ENABLE
     #define  enable_E2() E2_enable
     #define disable_E2() E2_disable
   #else
@@ -278,7 +289,7 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
     #define disable_E2() NOOP
   #endif
 
-  #if E_STEPPERS > 3 && HAS_E3_ENABLE
+  #if (E_STEPPERS > 3 || ENABLED(PRUSA_TOOLCHANGER)) && HAS_E3_ENABLE
     #define  enable_E3() E3_enable
     #define disable_E3() E3_disable
   #else
@@ -286,7 +297,7 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
     #define disable_E3() NOOP
   #endif
 
-  #if E_STEPPERS > 4 && HAS_E4_ENABLE
+  #if (E_STEPPERS > 4 || ENABLED(PRUSA_TOOLCHANGER)) && HAS_E4_ENABLE
     #define  enable_E4() E4_enable
     #define disable_E4() E4_disable
   #else
@@ -294,7 +305,7 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
     #define disable_E4() NOOP
   #endif
 
-  #if E_STEPPERS > 5 && HAS_E5_ENABLE
+  #if (E_STEPPERS > 5 || ENABLED(PRUSA_TOOLCHANGER)) && HAS_E5_ENABLE
     #define  enable_E5() E5_enable
     #define disable_E5() E5_disable
   #else
@@ -345,6 +356,8 @@ extern bool wait_for_heatup;
 #if HAS_AUTO_REPORTING || ENABLED(HOST_KEEPALIVE_FEATURE)
   extern bool suspend_auto_report;
 #endif
+
+extern uint16_t job_id;
 
 // Inactivity shutdown timer
 extern millis_t max_inactive_time, stepper_inactive_time;

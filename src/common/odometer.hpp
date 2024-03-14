@@ -1,5 +1,10 @@
 // odometer.hpp
+#pragma once
+
 #include <stdint.h>
+#include <atomic>
+#include <utils/utility_extensions.hpp>
+#include <inc/MarlinConfig.h>
 
 /// Singleton class that measures
 /// distance traveled and filament consumed
@@ -9,34 +14,96 @@ public:
         X,
         Y,
         Z,
-        E,
         count_
     };
-    static constexpr size_t axis_count = size_t(axis_t::count_);
+    static constexpr size_t axis_count = ftrstd::to_underlying(axis_t::count_);
 
 private:
-    Odometer_s() {}
-
     /// stores value changes from the last save
     /// extruder trip counts length of filament used (not moved)
     /// new values are stored to RAM (fast, unlimited writes)
     /// it should be stored to EEPROM after a while (slow, limited number of writes)
-    float trip_xyze[axis_count];
-    uint32_t duration_time = 0;
+    std::atomic<float> trip_xyz[axis_count] = {};
+    std::atomic<float> extruded[HOTENDS] = {};
+    std::atomic<uint32_t> toolpick[HOTENDS] = {};
+    std::atomic<uint32_t> duration_time = 0;
+
+    Odometer_s() = default;
 
 public:
     /// saves values to EEPROM if they are not zero
     void force_to_eeprom();
-    /// save new movement
-    void add_value(int axis, float value);
-    /// save new print duration
+
+    /**
+     * @brief Are there changes compared to value in EEPROM?
+     * @return true when changes exist
+     */
+    bool changed();
+
+    /**
+     * @brief Save new movement.
+     * @param axis for this axis
+     * @param value distance to add [meters]
+     */
+    void add_axis(axis_t axis, float value);
+
+    /**
+     * @brief Get cumulative movements.
+     * @param axis for this axis
+     * @return distance moved [meter]
+     */
+    float get_axis(axis_t axis);
+
+    /**
+     * @brief Add extruded length to count.
+     * @param extruder for this extruders [indexed from 0]
+     * @param value extruded length [meter]
+     */
+    void add_extruded(uint8_t extruder, float value);
+
+    /**
+     * @brief Get extruded length for a particular extruder.
+     * @param extruder for this extruder [indexed from 0]
+     * @return extruded length [meter]
+     */
+    float get_extruded(uint8_t extruder);
+
+    /**
+     * @brief Get extruded length for all extruders.
+     * @return extruded length [meter]
+     */
+    float get_extruded_all();
+
+    /**
+     * @brief Add one toolpick to count.
+     * @param extruder for this extruder [indexed from 0]
+     */
+    void add_toolpick(uint8_t extruder);
+
+    /**
+     * @brief Get count of toolchanges for one tool.
+     * @param extruder for this extruder [indexed from 0]
+     * @return toolpicks for one extruder [1]
+     */
+    uint32_t get_toolpick(uint8_t extruder);
+
+    /**
+     * @brief Get count of all toolchanges.
+     * @return sum of toolpicks of all tools [1]
+     */
+    uint32_t get_toolpick_all();
+
+    /**
+     * @brief Save new print duration.
+     * @param value print time to accumulate [second]
+     */
     void add_time(uint32_t value);
 
+    /**
+     * @brief Get print duration.
+     * @return print time since eeprom reset [second]
+     */
     uint32_t get_time();
-    /// read values from EEPROM
-    float get_from_eeprom(axis_t axis);
-    /// \returns a value of the specific axis
-    float get(axis_t axis);
 
     /// Mayer's singleton must have part
 public:

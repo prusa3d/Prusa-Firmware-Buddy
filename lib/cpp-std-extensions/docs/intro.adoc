@@ -1,0 +1,56 @@
+== Introduction
+
+`stdx` has several aims:
+
+* Where possible, to enable using parts of the C++ standard library in versions
+  earlier than when they were introduced, and where standard library
+  implementations are lagging behind the standard.
+* To provide a common interface across C++ versions such that preprocessor
+  directives in application code are minimized.
+* To provide implementations of standard behaviour that are richer or more
+  efficient -- at either compile-time or runtime -- than the standard versions.
+* To provide useful functionality that is missing from the C++ standard but
+  arguably belongs at a base level.
+
+=== Compiler and C++ version support
+
+The following compilers are supported:
+
+* clang 14
+* clang 15
+* clang 16
+* clang 17
+* gcc 12
+* gcc 13
+
+In general, `stdx` supports the C++17 standard; however some functionality is
+available only in 20 and later.
+
+=== Synopsis
+
+Everything is in the `stdx` namespace. Where suitable, functionality is grouped
+into headers whose names match the standard.
+
+The following headers are available:
+
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/bitset.hpp[`bit.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/bitset.hpp[`bitset.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/compiler.hpp[`compiler.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/concepts.hpp[`concepts.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/ct_conversions.hpp[`ct_conversions.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/ct_string.hpp[`ct_string.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/cx_map.hpp[`cx_map.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/cx_multimap.hpp[`cx_multimap.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/cx_queue.hpp[`cx_queue.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/cx_set.hpp[`cx_set.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/cx_vector.hpp[`cx_vector.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/function_traits.hpp[`function_traits.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/functional.hpp[`functional.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/intrusive_list.hpp[`instrusive_list.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/panic.hpp[`panic.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/priority.hpp[`priority.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/tuple.hpp[`tuple.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/tuple_algorithms.hpp[`tuple_algorithms.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/tuple_destructure.hpp[`tuple_destructure.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/type_traits.hpp[`type_traits.hpp`]
+* https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/utility.hpp[`utility.hpp`]

@@ -8,6 +8,7 @@
 #pragma once
 #include <type_traits>
 #include "footer_items_nozzle_bed.hpp"
+#include "footer_item_heatbreak.hpp"
 #include "footer_item_filament.hpp"
 #include "footer_item_fsensor.hpp"
 #include "footer_item_printspeed.hpp"
@@ -16,6 +17,10 @@
 #include "footer_def.hpp"
 #include "footer_item_axis.hpp"
 #include "footer_item_fans.hpp"
+#include "footer_item_multitool.hpp"
+#include "footer_item_fsvalue.hpp"
+#include "footer_item_input_shaper.hpp"
+#include <option/has_mmu2.h>
 
 namespace footer {
 using ItemUnion = std::aligned_union<
@@ -24,13 +29,16 @@ using ItemUnion = std::aligned_union<
     FooterItemBed,
     FooterItemFilament,
     FooterItemFSensor,
+    FooterItemFSValue,
     FooterItemSpeed,
     FooterItemAxisX,
     FooterItemAxisY,
     FooterItemAxisZ,
     FooterItemZHeight,
     FooterItemPrintFan,
-    FooterItemHeatBreakFan
+    FooterItemHeatBreakFan,
+    FooterItemInputShaperX,
+    FooterItemInputShaperY
 #if defined(FOOTER_HAS_LIVE_Z)
     ,
     FooterItemLiveZ
@@ -39,14 +47,25 @@ using ItemUnion = std::aligned_union<
     ,
     FooterItemSheets
 #endif
+    ,
+    FooterItemHeatBreak
+#if HAS_MMU2()
+    ,
+    FooterItemFinda
+#endif
+#if defined(FOOTER_HAS_TOOL_NR)
+    ,
+    FooterItemCurrentTool,
+    FooterItemAllNozzles
+#endif
     >::type;
 
-constexpr void *EncodeItemForEvent(items item) {
-    return reinterpret_cast<void *>(static_cast<int>(item));
+inline void *encode_item_for_event(Item item) {
+    return reinterpret_cast<void *>(static_cast<intptr_t>(item));
 }
 
-constexpr items DecodeItemFromEvent(void *encoded) {
-    return static_cast<items>(reinterpret_cast<int>(encoded));
+inline Item decode_item_from_event(const void *const encoded) {
+    return static_cast<Item>(reinterpret_cast<intptr_t>(encoded));
 }
 
-}
+} // namespace footer

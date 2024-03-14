@@ -51,6 +51,7 @@
 #include <memory>
 #include <string_view>
 
+using http::Status;
 using std::array;
 using std::make_tuple;
 using std::string_view;
@@ -65,7 +66,7 @@ constexpr const char *const FILENAME = "filename";
 constexpr const char *const FILE_TOKEN = "file";
 constexpr const char *const PRINT_TOKEN = "print";
 
-}
+} // namespace
 
 namespace nhttp::printer {
 
@@ -237,10 +238,10 @@ int UploadState::header_value(const string_view &payload) {
         case State::CDispHeader:
             if (c == ';') {
                 /*
-                     * End of the field without = in it, something we don't
-                     * care about (or leftover from the previous one). Just
-                     * reset the buffer and start fresh.
-                     */
+                 * End of the field without = in it, something we don't
+                 * care about (or leftover from the previous one). Just
+                 * reset the buffer and start fresh.
+                 */
                 accumulator.start(HEADER_SEP, true);
             } else if (!isspace(c)) {
                 if (accumulator.feed(c) == Accumulator::Lookup::Found) {
@@ -251,12 +252,12 @@ int UploadState::header_value(const string_view &payload) {
         case State::ReadString:
         case State::ReadPartName:
             /*
-                 * FIXME: In reality, this is a bit more involved and
-                 * complex. It can be escaped/otherwise encoded, since the
-                 * string also can contain special characters...
-                 *
-                 * For now we just assume trivial case here.
-                 */
+             * FIXME: In reality, this is a bit more involved and
+             * complex. It can be escaped/otherwise encoded, since the
+             * string also can contain special characters...
+             *
+             * For now we just assume trivial case here.
+             */
             if (c == '"') {
                 if (state == State::ReadPartName) {
                     const char *start = accumulator.borrow_buf().begin();
@@ -277,12 +278,12 @@ int UploadState::header_value(const string_view &payload) {
                 *(string_dst_pos++) = c;
             }
             /*
-                 * else:
-                 * If both are null, then we just throw the string away.
-                 * Otherwise we have filled the string to the brim. What
-                 * do we do with it now? Should we use the shorter one or
-                 * error?
-                 */
+             * else:
+             * If both are null, then we just throw the string away.
+             * Otherwise we have filled the string to the brim. What
+             * do we do with it now? Should we use the shorter one or
+             * error?
+             */
             break;
         case State::NoState:
         case State::CheckHeaderIsCDisp:
@@ -433,4 +434,4 @@ void UploadState::setup(UploadHooks *hooks) {
     this->hooks = hooks;
 }
 
-}
+} // namespace nhttp::printer

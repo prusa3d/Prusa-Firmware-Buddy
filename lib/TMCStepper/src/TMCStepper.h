@@ -12,6 +12,9 @@
 
 #include <Stream.h>
 
+#include <option/has_puppies.h>
+#include <option/has_toolchanger.h>
+
 #if (__cplusplus == 201703L) && defined(__has_include)
 	#define SW_CAPABLE_PLATFORM __has_include(<SoftwareSerial.h>)
 #else
@@ -53,6 +56,8 @@
 extern "C" bool tmc_serial_lock_acquire();
 extern "C" void tmc_serial_lock_release();
 extern "C" void tmc_communication_error();
+extern "C" void tmc_register_write_hook(uint8_t slave_addr, uint8_t reg_addr, uint32_t val);
+extern "C" void tmc_register_read_hook(uint8_t slave_addr, uint8_t reg_addr, uint32_t val);
 
 class TMCStepper {
 	public:
@@ -123,6 +128,7 @@ class TMCStepper {
 
 	protected:
 		TMCStepper(float RS) : Rsense(RS) {};
+	    virtual ~TMCStepper() = default;
 		INIT_REGISTER(IHOLD_IRUN){{.sr=0}};	// 32b
 		INIT_REGISTER(TPOWERDOWN){.sr=0};		// 8b
 		INIT_REGISTER(TPWMTHRS){.sr=0};			// 32b
@@ -153,6 +159,10 @@ class TMCStepper {
 
 class TMC2130Stepper : public TMCStepper {
 	public:
+	#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+		enum class Connection { Direct, Remote };
+		TMC2130Stepper(Connection connection, float RS = default_RS);
+	#endif
 		TMC2130Stepper(uint16_t pinCS, float RS = default_RS, int8_t link_index = -1);
 		TMC2130Stepper(uint16_t pinCS, uint16_t pinMOSI, uint16_t pinMISO, uint16_t pinSCK, int8_t link_index = -1);
 		TMC2130Stepper(uint16_t pinCS, float RS, uint16_t pinMOSI, uint16_t pinMISO, uint16_t pinSCK, int8_t link_index = -1);
@@ -345,9 +355,9 @@ class TMC2130Stepper : public TMCStepper {
 
 		uint8_t status_response;
 
-	protected:
-		void write(uint8_t addressByte, uint32_t config);
 		uint32_t read(uint8_t addressByte);
+		void write(uint8_t addressByte, uint32_t config);
+	protected:
 
 		INIT_REGISTER(GCONF){{.sr=0}};		// 32b
 		INIT_REGISTER(TCOOLTHRS){.sr=0};	// 32b
@@ -368,6 +378,9 @@ class TMC2130Stepper : public TMCStepper {
 		static uint32_t spi_speed; // Default 2MHz
 		const uint16_t _pinCS;
 		SW_SPIClass * TMC_SW_SPI = NULL;
+	#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+		Connection connection = Connection::Direct;
+	#endif
 		static constexpr float default_RS = 0.11;
 
 		int8_t link_index;
@@ -981,6 +994,12 @@ class TMC2208Stepper : public TMCStepper {
 		uint16_t bytesWritten = 0;
 		float Rsense = 0.11;
 		bool CRCerror = false;
+
+		//Need for read/write TMC reg via g-code in public section
+		void write(uint8_t, uint32_t);
+		uint32_t read(uint8_t);
+
+		uint8_t get_slave_address() {return slave_address;}
 	protected:
 		INIT2208_REGISTER(GCONF)			{{.sr=0}};
 		INIT_REGISTER(SLAVECONF)			{{.sr=0}};
@@ -1007,8 +1026,6 @@ class TMC2208Stepper : public TMCStepper {
       	    SSwitch *sswitch = NULL;
     	#endif
 
-		void write(uint8_t, uint32_t);
-		uint32_t read(uint8_t);
 		const uint8_t slave_address;
 		uint8_t calcCRC(uint8_t datagram[], uint8_t len);
 		static constexpr uint8_t  TMC2208_SYNC = 0x05,

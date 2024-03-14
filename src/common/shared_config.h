@@ -1,4 +1,4 @@
-//config.h - main configuration file
+// config.h - main configuration file
 #pragma once
 
 #include "stdint.h"
@@ -7,34 +7,29 @@
 static const uint32_t BOOTLOADER_VERSION_ADDRESS = 0x0801FFFA;
 
 // EEPROM firmware update flag
-static const uint8_t FW_UPDATE_ENABLE = 0xAA;
-static const uint8_t FW_UPDATE_OLDER = 0x55;
-static const uint8_t FW_UPDATE_DISABLE = 0x00;
+enum class FwAutoUpdate : uint8_t {
+    on = 0xAA,
+    off = 0x00,
+    older = 0x55,
+    specified = 0xBB,
+};
 
-// pin PA13 state
-static const uint8_t APPENDIX_FLAG_MASK = 0x01;
+#if defined(USE_ST7789)
+    #define SPLASHSCREEN_PROGRESSBAR_X 16
+    #define SPLASHSCREEN_PROGRESSBAR_Y 148
+    #define SPLASHSCREEN_PROGRESSBAR_W 206
+    #define SPLASHSCREEN_PROGRESSBAR_H 12
+    #define SPLASHSCREEN_VERSION_Y     165
+#elif defined(USE_ILI9488)
+    #define SPLASHSCREEN_PROGRESSBAR_X 100
+    #define SPLASHSCREEN_PROGRESSBAR_Y 165
+    #define SPLASHSCREEN_PROGRESSBAR_W 280
+    #define SPLASHSCREEN_PROGRESSBAR_H 12
+    #define SPLASHSCREEN_VERSION_Y     185
+#endif
 
-typedef struct {
-    uint8_t fw_update_flag;
-    uint8_t model_specific_flags; // ~ "reserved1" originally
-    uint8_t fw_signature;
-    uint8_t reserved3;
-    uint8_t reserved4;
-    uint8_t reserved5;
-    uint8_t reserved6;
-    uint8_t reserved7;
-    uint8_t reserved8;
-    uint8_t reserved9;
-    uint8_t reserved10;
-    uint8_t reserved11;
-    uint8_t reserved12;
-    uint8_t reserved13;
-    uint8_t reserved14;
-    uint8_t reserved15;
-} data_exchange_t;
-
-typedef struct {
+struct __attribute__((packed)) version_t {
     uint8_t major;
     uint8_t minor;
     uint8_t patch;
-} version_t;
+};

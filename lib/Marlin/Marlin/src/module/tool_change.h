@@ -97,8 +97,28 @@
   void est_init();
 #endif
 
+enum class tool_return_t {
+  no_return, // lift and/or retract as needed, but don't return to any position after toolchange
+  to_current, // return to the current position
+  purge_and_to_destination, // purge nozlle, then return to destination
+  to_destination, // return to destination
+};
+
+/// Enum that configures what kind of Z lift will be done during toolchange
+enum class tool_change_lift_t {
+  no_lift,       // will not do any Z lift
+  mbl_only_lift, // will lift by with maximal MBL
+  full_lift,     // do full lift rutine (by M217 Z value & MBL)
+
+  _last_item = full_lift,
+};
+
+
 /**
- * Perform a tool-change, which may result in moving the
- * previous tool out of the way and the new tool into place.
+ * Perform a tool-change which may result in moving the previous tool out of the way and the new
+ * tool into place. Unless no_move is set, return to destination.
  */
-void tool_change(const uint8_t tmp_extruder, bool no_move=false);
+void tool_change(const uint8_t new_tool,
+                 tool_return_t return_type=tool_return_t::to_current,
+                 tool_change_lift_t z_lift = tool_change_lift_t::full_lift,
+                 bool z_return = true);

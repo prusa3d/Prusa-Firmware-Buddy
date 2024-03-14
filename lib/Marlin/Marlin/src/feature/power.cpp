@@ -55,7 +55,11 @@ bool Power::is_power_needed() {
   #endif
 
   // If any of the drivers or the bed are enabled...
-  if (X_ENABLE_READ() == X_ENABLE_ON || Y_ENABLE_READ() == Y_ENABLE_ON || Z_ENABLE_READ() == Z_ENABLE_ON
+  if (X_ENABLE_READ() == X_ENABLE_ON || Y_ENABLE_READ() == Y_ENABLE_ON
+    #if POWER_IGNORE_Z
+    #else
+      || Z_ENABLE_READ() == Z_ENABLE_ON
+    #endif
     #if HAS_HEATED_BED
       || thermalManager.temp_bed.soft_pwm_amount > 0
     #endif
@@ -121,11 +125,6 @@ void Power::power_on() {
   lastPowerOn = millis();
   if (!powersupply_on) {
     PSU_PIN_ON();
-
-    #if HAS_TRINAMIC
-      delay(100); // Wait for power to settle
-      restore_stepper_drivers();
-    #endif
   }
 }
 

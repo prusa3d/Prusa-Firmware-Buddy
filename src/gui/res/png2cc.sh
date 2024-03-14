@@ -11,7 +11,7 @@ cd $WRK_DIR
 PNG_DIR=$WRK_DIR/png
 PAL_DIR=$WRK_DIR/palette
 CC_DIR=$WRK_DIR/cc
-BIN2CC_PATH="../../../bin2cc"
+BIN2CC_PATH="./bin2cc"	# ON WINDOWS ADD ".exe"
 
 
 #uses image magick tool to convert png from normal to indexed
@@ -58,12 +58,12 @@ read input
 for image in $input
 do
 	echo "$PNG_DIR/$image.png to $PAL_DIR/$image.png"
-	$MAGICK_PATH "$PNG_DIR/$image.png" -type paletteAlpha -define PNG:bit-depth=8 "$PAL_DIR/$image.png"
+	$MAGICK_PATH "$PNG_DIR/$image.png" -type PaletteAlpha -define PNG:bit-depth=8 "$PAL_DIR/$image.png"
 done
 
 for image in $input
 do
-	optipng -fix -o7 -zc6 -zw32k -nb -nc  -strip all "$PAL_DIR/$image.png"
+	optipng -fix -o7 -zc6 -zw32k   -strip all "$PAL_DIR/$image.png"
 done
 
 }

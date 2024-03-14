@@ -1,11 +1,13 @@
 #include "wui.h"
 #include "netif_settings.h"
 
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "wui_api.h"
 #include "ethernetif.h"
 #include "espif.h"
-#include "stm32f4xx_hal.h"
+#include <otp.hpp>
+#include <mbedtls/sha256.h>
+#include <tasks.hpp>
 
 #include "sntp_client.h"
 #include "log.h"
@@ -25,56 +27,56 @@
 #include <mutex>
 #include "http_lifetime.h"
 #include "main.h"
+#include <ccm_thread.hpp>
+#include "tasks.hpp"
 
 #include "netdev.h"
+
+#include "otp.hpp"
+#include <config_store/store_instance.hpp>
+#include <random.h>
 
 LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
 
 // FIXME: " " vs <>
-#include "eeprom.h"
 #include "variant8.h"
-#include "otp.h"
 
 using std::unique_lock;
 
 #define LOOP_EVT_TIMEOUT 500UL
 
-static variant8_t prusa_link_api_key;
+// Avoid confusing character pairs ‒ 1/l/I, 0/O.
+static char charset[] = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-const char *wui_generate_api_key(char *api_key, uint32_t length) {
-    // Avoid confusing character pairs ‒ 1/l/I, 0/O.
-    static char charset[] = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+void wui_generate_password(char *password, uint32_t length) {
     // One less, as the above contains '\0' at the end which we _do not_ want to generate.
     const uint32_t charset_length = sizeof(charset) / sizeof(char) - 1;
     uint32_t i = 0;
 
     while (i < length - 1) {
         uint32_t random = 0;
-        HAL_StatusTypeDef status = HAL_RNG_GenerateRandomNumber(&hrng, &random);
-        if (HAL_OK == status) {
-            api_key[i++] = charset[random % charset_length];
+        if (!rand_u_secure(&random)) {
+            // Failure in RNG, reset the password to „login disabled“.
+            password[0] = 0;
+            return;
         }
+        password[i++] = charset[random % charset_length];
     }
-    api_key[i] = 0;
-    return api_key;
+    password[i] = 0;
 }
 
-void wui_store_api_key(char *api_key, uint32_t length) {
-    variant8_t *p_prusa_link_api_key = &prusa_link_api_key;
-    variant8_done(&p_prusa_link_api_key);
-    prusa_link_api_key = variant8_init(VARIANT8_PCHAR, length, api_key);
-    eeprom_set_var(EEVAR_PL_API_KEY, prusa_link_api_key);
+void wui_store_password(char *password, uint32_t length) {
+    config_store().prusalink_password.set(password, length);
 }
 
 namespace {
 
-void prusalink_api_key_init(void) {
-    prusa_link_api_key = eeprom_get_var(EEVAR_PL_API_KEY);
-    if (!strcmp(variant8_get_pch(prusa_link_api_key), "")) {
-        char api_key[PL_API_KEY_SIZE] = { 0 };
-        wui_generate_api_key(api_key, PL_API_KEY_SIZE);
-        wui_store_api_key(api_key, PL_API_KEY_SIZE);
+void prusalink_password_init(void) {
+    if (!strcmp(config_store().prusalink_password.get().data(), "")) {
+        char password[config_store_ns::pl_password_size] = { 0 };
+        wui_generate_password(password, config_store_ns::pl_password_size);
+        wui_store_password(password, config_store_ns::pl_password_size);
     }
 }
 
@@ -139,7 +141,7 @@ private:
     static const constexpr uint32_t RESET_FAULTY_AFTER = 60 * 1000;
 
     std::array<Iface, NETDEV_COUNT> ifaces;
-    ap_entry_t ap = { "", "", AP_SEC_NONE };
+    ap_entry_t ap = { "", "" };
     uint32_t last_esp_ok;
 
     TaskHandle_t network_task;
@@ -269,19 +271,7 @@ private:
 
     void join_ap() {
         unique_lock lock(mutex);
-        const char *passwd;
-        switch (ap.security) {
-        case AP_SEC_NONE:
-            passwd = NULL;
-            break;
-        case AP_SEC_WEP:
-        case AP_SEC_WPA:
-            passwd = ap.pass;
-            break;
-        default:
-            assert(0 /* Unhandled AP_SEC_* value*/);
-            return;
-        }
+        const char *passwd = ap.pass[0] == '\0' ? NULL : ap.pass;
         espif_join_ap(ap.ssid, passwd);
     }
 
@@ -291,7 +281,7 @@ private:
         // Lock (even the desired config can be read from other threads, eg. the tcpip_thread from a callback :-(
         // (using unique_lock instead of scoped_lock as at other places, we need "pause")
         unique_lock lock(mutex);
-        const uint32_t active_local = eeprom_get_ui8(EEVAR_ACTIVE_NETDEV);
+        const uint32_t active_local = config_store().active_netdev.get();
         // Store into the atomic variable, but keep working with the stack copy.
         active = active_local;
         load_net_params(&ifaces[NETDEV_ETH_ID].desired_config, nullptr, NETDEV_ETH_ID);
@@ -329,7 +319,7 @@ private:
 
         lock.unlock();
 
-        if (eeprom_get_ui8(EEVAR_PL_RUN) == 1) {
+        if (config_store().prusalink_enabled.get() == 1) {
             httpd_start();
         } else {
             httpd_close();
@@ -339,11 +329,9 @@ private:
     void run() __attribute__((noreturn)) {
         // Note: this is the only thing to initialize now, rest is after the tcpip
         // thread starts.
-        //
-        // Q: Do other threads, like connect, need to wait for this?
         tcpip_init(tcpip_init_done_raw, this);
 
-        prusalink_api_key_init();
+        prusalink_password_init();
 
         httpd_init();
 
@@ -372,8 +360,7 @@ private:
                 // (No need to go through the notification.)
                 events |= Reconfigure;
                 initialized = true;
-                // TODO: Publish to the world we are initialized. Maybe something
-                // (connect) wants to wait for that.
+                TaskDeps::provide(TaskDeps::Dependency::networking_ready);
             }
 
             // Note: This is allowed even before we are fully initialized. This
@@ -425,12 +412,11 @@ private:
             }
 
             if (events & HealthCheck) {
-                espif_tick();
+                const bool was_alive = espif_tick();
 
                 // It's OK if the ESP is turned off on purpose or if it's up and running.
-                const bool esp_ok = (iface_mode(ifaces[NETDEV_ESP_ID]) == Mode::Off || ap.ssid[0] == '\0' || espif_link());
+                const bool esp_ok = (iface_mode(ifaces[NETDEV_ESP_ID]) == Mode::Off || ap.ssid[0] == '\0' || (espif_link() && was_alive));
 
-                const uint32_t now = sys_now();
                 if (esp_ok) {
                     last_esp_ok = now;
                 }
@@ -480,7 +466,7 @@ public:
         last_esp_ok = sys_now();
     }
     static void run_task() {
-        osThreadDef(network, task_main, osPriorityBelowNormal, 0, 1024);
+        osThreadCCMDef(network, task_main, TASK_PRIORITY_WUI, 0, 1024);
         osThreadCreate(osThread(network), nullptr);
     }
     static void notify(NetworkAction action) {
@@ -500,17 +486,24 @@ public:
         });
     }
 
-    static void get_mac(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE]) {
+    static bool get_mac(uint32_t netdev_id, uint8_t mac[6]) {
         NetworkState *state = instance;
         if (netdev_id == NETDEV_ETH_ID) {
             // TODO: Why not to copy address from netif? Maybe because we need
             // it sooner than when it's initialized?
-            memcpy(mac, (void *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
+            memcpy(mac, otp_get_mac_address()->mac, sizeof(otp_get_mac_address()->mac));
+            return true;
         } else if (state != nullptr && netdev_id == NETDEV_ESP_ID) {
             unique_lock lock(state->mutex);
-            memcpy(mac, state->ifaces[NETDEV_ESP_ID].dev.hwaddr, state->ifaces[NETDEV_ESP_ID].dev.hwaddr_len);
+            if (esp_fw_state() == EspFwState::Ok) {
+                memcpy(mac, state->ifaces[NETDEV_ESP_ID].dev.hwaddr, state->ifaces[NETDEV_ESP_ID].dev.hwaddr_len);
+                return true;
+            } else {
+                return false;
+            }
         } else {
-            memset(mac, 0, OTP_MAC_ADDRESS_SIZE);
+            memset(mac, 0, sizeof(otp_get_mac_address()->mac));
+            return false;
         }
     }
 
@@ -524,7 +517,11 @@ public:
         netdev_status_t status = NETDEV_NETIF_DOWN;
         with_iface(netdev_id, [&](netif &iface, NetworkState &instance) {
             if (netif_is_link_up(&iface)) {
-                status = instance.netif_link(netdev_id) ? NETDEV_NETIF_UP : NETDEV_UNLINKED;
+                if (instance.netif_link(netdev_id)) {
+                    status = netif_ip4_addr(&iface)->addr != 0 ? NETDEV_NETIF_UP : NETDEV_NETIF_NOADDR;
+                } else {
+                    status = NETDEV_UNLINKED;
+                }
             }
         });
         return status;
@@ -543,14 +540,14 @@ public:
 
 std::atomic<NetworkState *> NetworkState::instance = nullptr;
 
-}
+} // namespace
 
 void start_network_task() {
     NetworkState::run_task();
 }
 
-const char *wui_get_api_key() {
-    return variant8_get_pch(prusa_link_api_key);
+const char *wui_get_password() {
+    return config_store().prusalink_password.get_c_str();
 }
 
 void notify_esp_data() {
@@ -565,8 +562,8 @@ void netdev_get_ipv4_addresses(uint32_t netdev_id, lan_t *config) {
     NetworkState::get_addresses(netdev_id, config);
 }
 
-void netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE]) {
-    NetworkState::get_mac(netdev_id, mac);
+bool netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[6]) {
+    return NetworkState::get_mac(netdev_id, mac);
 }
 
 void netdev_get_hostname(uint32_t netdev_id, char *buffer, size_t buffer_len) {
@@ -588,7 +585,7 @@ void notify_reconfigure() {
 void netdev_set_active_id(uint32_t netdev_id) {
     assert(netdev_id <= NETDEV_COUNT);
 
-    eeprom_set_ui8(EEVAR_ACTIVE_NETDEV, (uint8_t)(netdev_id & 0xFF));
+    config_store().active_netdev.set(static_cast<uint8_t>(netdev_id & 0xFF));
 
     notify_reconfigure();
 }
@@ -597,17 +594,7 @@ namespace {
 
 template <class F>
 void modify_flag(uint32_t netdev_id, F &&f) {
-    eevar_id var = EEVAR_LAN_FLAG;
-    switch (netdev_id) {
-    case NETDEV_ETH_ID:
-        var = EEVAR_LAN_FLAG;
-        break;
-    case NETDEV_ESP_ID:
-        var = EEVAR_WIFI_FLAG;
-        break;
-    default:
-        assert(0);
-    }
+    assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
 
     // Read it from the EEPROM, not from the state. For two reasons:
     // * While it likely can't happen, it's unclear what should happen if the
@@ -616,15 +603,15 @@ void modify_flag(uint32_t netdev_id, F &&f) {
     //   as fresh value as possible. This still leaves the possibility of a
     //   race condition (two threads messing with the same variable), but that
     //   is unlikely.
-    const uint8_t old = eeprom_get_ui8(var);
+    const uint8_t old = netdev_id == NETDEV_ETH_ID ? config_store().lan_flag.get() : config_store().wifi_flag.get();
     uint8_t flag = f(old);
     if (old != flag) {
-        eeprom_set_ui8(var, flag);
+        netdev_id == NETDEV_ETH_ID ? config_store().lan_flag.set(flag) : config_store().wifi_flag.set(flag);
         notify_reconfigure();
     }
 }
 
-}
+} // namespace
 
 void netdev_set_static(uint32_t netdev_id) {
     modify_flag(netdev_id, [](uint8_t flag) -> uint8_t {
@@ -642,7 +629,22 @@ void netdev_set_dhcp(uint32_t netdev_id) {
     });
 }
 
-// TODO: Do we want an ability to turn a device off?
+// Support for enable disable device (i.e. to disable wifi)
+void netdev_set_enabled(const uint32_t netdev_id, const bool enabled) {
+    modify_flag(netdev_id, [&enabled](uint8_t flag) -> uint8_t {
+        if (enabled) {
+            TURN_FLAG_ON(flag);
+        } else {
+            TURN_FLAG_OFF(flag);
+        }
+        return flag;
+    });
+}
+
+bool netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) {
+    const uint8_t flag = config_store().wifi_flag.get();
+    return IS_LAN_ON(flag);
+}
 
 netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t netdev_id) {
     // FIXME: This API is subtly wrong. What if the device is off or not exist?

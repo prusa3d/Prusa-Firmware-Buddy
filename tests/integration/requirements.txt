@@ -1,4 +1,0 @@
-pytest
-pytest-asyncio
-easyocr
-aiohttp

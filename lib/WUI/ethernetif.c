@@ -1,4 +1,7 @@
+#include <inttypes.h>
 #include "main.h"
+#include "metric.h"
+#include "pbuf_rx.h"
 #include "wui.h"
 #include "lwip/opt.h"
 #include "lwip/timeouts.h"
@@ -10,8 +13,8 @@
 #include "cmsis_os.h"
 #include "lwip/netifapi.h"
 #include "wui_api.h"
-#include "otp.h"
 #include <stdbool.h>
+#include "buddy/priorities_config.h"
 
 /* The time to block waiting for input. */
 #define TIME_WAITING_FOR_INPUT (portMAX_DELAY)
@@ -40,6 +43,9 @@ __ALIGN_BEGIN uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE] __ALIGN_END; /* Ethe
     #pragma data_alignment = 4
 #endif
 __ALIGN_BEGIN uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __ALIGN_END; /* Ethernet Transmit Buffer */
+
+static metric_t metric_eth_out = METRIC("eth_out", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
+static metric_t metric_eth_in = METRIC("eth_in", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
 
 /* Global Ethernet handle */
 ETH_HandleTypeDef heth;
@@ -84,7 +90,7 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef *ethHandle) {
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
         /* Peripheral interrupt init */
-        HAL_NVIC_SetPriority(ETH_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+        HAL_NVIC_SetPriority(ETH_IRQn, ISR_PRIORITY_DEFAULT, 0);
         HAL_NVIC_EnableIRQ(ETH_IRQn);
     }
 }
@@ -153,9 +159,12 @@ static void low_level_init(struct netif *netif) {
     heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
     heth.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
     // set  mac address from OTP memory
-    heth.Init.MACAddr = (uint8_t *)OTP_MAC_ADDRESS_ADDR;
+    heth.Init.MACAddr = ethernetif_get_mac();
     heth.Init.RxMode = ETH_RXINTERRUPT_MODE;
-    heth.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
+    // Hardware checksum seems to reset correctly computed ICMP checksums to 0
+    // Anyway we don't need it, since we compute checksums in software because of the ESP
+    // TODO: LWIP now supports setting checksum policy per device.
+    heth.Init.ChecksumMode = ETH_CHECKSUM_BY_SOFTWARE;
     heth.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
 
     HAL_ETH_Init(&heth);
@@ -278,6 +287,11 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
 
     errval = ERR_OK;
 
+    // record metrics
+    static uint32_t bytes_sent_count = 0;
+    bytes_sent_count += framelength;
+    metric_record_custom(&metric_eth_out, " sent=%" PRIu32 "i", bytes_sent_count);
+
 error:
 
     /* When Transmit Underflow flag is set, clear it and issue a Transmit Poll Demand to resume transmission */
@@ -311,16 +325,22 @@ static struct pbuf *low_level_input(struct netif *netif) {
     uint32_t i = 0;
 
     /* get received frame */
-    if (HAL_ETH_GetReceivedFrame_IT(&heth) != HAL_OK)
+    if (HAL_ETH_GetReceivedFrame_IT(&heth) != HAL_OK) {
         return NULL;
+    }
 
     /* Obtain the size of the packet and put it into the "len" variable. */
     len = heth.RxFrameInfos.length;
     buffer = (uint8_t *)heth.RxFrameInfos.buffer;
 
+    // record metrics
+    static uint32_t bytes_received_count = 0;
+    bytes_received_count += len;
+    metric_record_custom(&metric_eth_in, " recv=%" PRIu32 "i", bytes_received_count);
+
     if (len > 0) {
         /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
-        p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
+        p = pbuf_alloc_rx(len);
     }
 
     if (p != NULL) {
@@ -415,7 +435,7 @@ err_t ethernetif_init(struct netif *netif) {
 
 #if LWIP_NETIF_HOSTNAME
     /* Initialize interface hostname */
-    netif->hostname = "MINI";
+    netif->hostname = "";
 #endif /* LWIP_NETIF_HOSTNAME */
 
     netif->name[0] = IFNAME0;
@@ -433,8 +453,8 @@ err_t ethernetif_init(struct netif *netif) {
     /* The user should write ist own code in low_level_output_arp_off function */
     netif->output = low_level_output_arp_off;
         #endif /* LWIP_ARP */
-    #endif     /* LWIP_ARP || LWIP_ETHERNET */
-#endif         /* LWIP_IPV4 */
+    #endif /* LWIP_ARP || LWIP_ETHERNET */
+#endif /* LWIP_IPV4 */
 
 #if LWIP_IPV6
     netif->output_ip6 = ethip6_output;

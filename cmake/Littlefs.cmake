@@ -20,7 +20,6 @@ define_property(
   )
 
 set(mklittlefs "${CMAKE_SOURCE_DIR}/utils/mklittlefs.py")
-set(generate_hash_file_py "${CMAKE_SOURCE_DIR}/utils/resources/generate_hash_file.py")
 
 function(add_lfs_image image_name)
   set(one_value_args BLOCK_SIZE BLOCK_COUNT)
@@ -36,9 +35,8 @@ function(add_lfs_image image_name)
   set_target_properties(${image_name} PROPERTIES LFS_IMAGE_BLOCK_SIZE ${arg_BLOCK_SIZE})
   add_custom_command(
     OUTPUT ${image_location}
-    COMMAND
-      "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${arg_BLOCK_SIZE}" "--block-count"
-      "${arg_BLOCK_COUNT}" "create-image" "${image_location}"
+    COMMAND "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${arg_BLOCK_SIZE}"
+            "--block-count" "${arg_BLOCK_COUNT}" "create-image" "${image_location}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     VERBATIM
     )
@@ -50,9 +48,8 @@ function(lfs_image_add_file image_name file target)
   get_target_property(block_size ${image_name} LFS_IMAGE_BLOCK_SIZE)
   add_custom_command(
     OUTPUT ${image_location}
-    COMMAND
-      "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${block_size}" "--block-count"
-      "${block_count}" "add-file" "${image_location}" "${file}" "${target}"
+    COMMAND "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${block_size}" "--block-count"
+            "${block_count}" "add-file" "${image_location}" "${file}" "${target}"
     DEPENDS "${file}"
     APPEND VERBATIM
     )
@@ -60,24 +57,13 @@ endfunction()
 
 function(lfs_image_generate_hash_bin_file image_name file)
   get_target_property(image_location ${image_name} LFS_IMAGE_LOCATION)
+  get_target_property(block_count ${image_name} LFS_IMAGE_BLOCK_COUNT)
+  get_target_property(block_size ${image_name} LFS_IMAGE_BLOCK_SIZE)
   add_custom_command(
     OUTPUT "${file}"
-    COMMAND "${Python3_EXECUTABLE}" "${generate_hash_file_py}" "--format" "binary"
-            "${image_location}" "${file}"
-    DEPENDS "${image_location}" "${generate_hash_file_py}"
-    VERBATIM
-    )
-endfunction()
-
-function(lfs_image_generate_hash_header_file image_name file namespace variable)
-  get_target_property(image_location ${image_name} LFS_IMAGE_LOCATION)
-  add_custom_command(
-    OUTPUT "${file}"
-    COMMAND
-      "${Python3_EXECUTABLE}" "${generate_hash_file_py}" "--format" "header"
-      "--header-variable-name" "${variable}" "--header-namespace-name" "${namespace}"
-      "${image_location}" "${file}"
-    DEPENDS "${image_location}" "${generate_hash_file_py}"
+    COMMAND "${Python3_EXECUTABLE}" "${mklittlefs}" "--block-size" "${block_size}" "--block-count"
+            "${block_count}" "get-content-hash" "${image_location}" "${file}"
+    DEPENDS "${image_location}" "${mklittlefs}"
     VERBATIM
     )
 endfunction()

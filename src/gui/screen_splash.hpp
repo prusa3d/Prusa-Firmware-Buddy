@@ -3,20 +3,23 @@
 #include "screen.hpp"
 
 class screen_splash_data_t : public AddSuperWindow<screen_t> {
-    window_icon_t logo_prusa_mini;
-    window_text_t text_progress;
-    char text_progress_buffer[32];
-    window_progress_t progress;
-    window_text_t text_version;
-    char text_version_buffer[16];
-    window_icon_t icon_logo_buddy;
+#if defined(USE_ST7789)
+    img::ResourceSingleFile img_printer;
+    img::ResourceSingleFile img_marlin;
+
+    window_icon_t icon_logo_printer;
     window_icon_t icon_logo_marlin;
+#endif // USE_7789
 
-    window_icon_t icon_debug;
+    window_text_t text_progress;
+    window_numberless_progress_t progress;
 
-    // uint32_t last_timer;
+    bool version_displayed;
+    char text_progress_buffer[32];
+
 public:
     screen_splash_data_t();
+    virtual ~screen_splash_data_t();
 
     static void bootstrap_cb(unsigned percent, std::optional<const char *> str);
 

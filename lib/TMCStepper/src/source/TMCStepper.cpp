@@ -18,17 +18,19 @@
 */
 
 void __attribute__((weak)) tmc_communication_error() {}
+void __attribute__((weak)) tmc_register_write_hook(uint8_t slave_addr, uint8_t reg_addr, uint32_t val) {}
+void __attribute__((weak)) tmc_register_read_hook(uint8_t slave_addr, uint8_t reg_addr, uint32_t val) {}
 
 uint16_t TMCStepper::cs2rms(uint8_t CS) {
-  return (float)(CS+1)/32.0 * (vsense() ? 0.180 : 0.325)/(Rsense+0.02) / 1.41421 * 1000;
+  return ((float)(CS+1)/32.0 * (vsense() ? 0.180 : 0.325)/(Rsense+0.02) / 1.41421 * 1000) + 0.5;
 }
 
 void TMCStepper::rms_current(uint16_t mA) {
-  uint8_t CS = 32.0*1.41421*mA/1000.0*(Rsense+0.02)/0.325 - 1;
+  uint8_t CS = (32.0*1.41421*mA/1000.0*(Rsense+0.02)/0.325 - 1) + 0.5;
   // If Current Scale is too low, turn on high sensitivity R_sense and calculate again
   if (CS < 16) {
     vsense(true);
-    CS = 32.0*1.41421*mA/1000.0*(Rsense+0.02)/0.180 - 1;
+    CS = (32.0*1.41421*mA/1000.0*(Rsense+0.02)/0.180 - 1) + 0.5;
   } else { // If CS >= 16, turn off high_sense_r
     vsense(false);
   }

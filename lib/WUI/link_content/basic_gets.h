@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nhttp/segmented_json.h"
+#include <segmented_json.h>
 
 #define PL_VERSION_MAJOR    2
 #define PL_VERSION_MINOR    0
@@ -24,8 +24,11 @@ namespace nhttp::link_content {
 // properly with state would currently be more work than it's worth (the
 // inconsistent state is unlikely and not _that_ bad here).
 
-JsonResult get_version(size_t resume_point, JsonOutput &output);
-JsonResult get_printer(size_t resume_point, JsonOutput &output);
-JsonResult get_job(size_t resume_point, JsonOutput &output);
+json::JsonResult get_version(size_t resume_point, json::JsonOutput &output);
+json::JsonResult get_printer(size_t resume_point, json::JsonOutput &output);
+json::JsonResult get_job_octoprint(size_t resume_point, json::JsonOutput &output);
+json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output);
+json::JsonResult get_storage(size_t resume_point, json::JsonOutput &output);
+json::JsonResult get_info(size_t resume_point, json::JsonOutput &output);
 
-}
+} // namespace nhttp::link_content

@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/littlefs-project/littlefs
-	branch = master
-	commit = ead50807f1ca3fdf2da00b77a0ce02651ded2d13
-	parent = 7c13354b5da9b1c8d1694a00f930e04dbb619830
+	branch = v2.8.0
+	commit = f77214d1f0a8ccd7ddc7e1204fedd25ee5a41534
+	parent = 1acc364b96797fbbbc6215f34e15696f6355a7f0
 	method = merge
-	cmdver = 0.4.3
+	cmdver = 0.4.6

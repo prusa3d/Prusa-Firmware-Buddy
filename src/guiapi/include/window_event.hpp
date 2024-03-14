@@ -1,33 +1,37 @@
-//window_event.hpp
+// window_event.hpp
 #pragma once
 
 #include <inttypes.h>
 
-//window events
+#undef CHANGE /// collision with Arduino macro
+
+// window events
 enum class GUI_event_t {
-    LOOP = 1,      // gui loop (every 50ms)
-    BTN_DN,        // button down                ... all windows - not only captured
-    BTN_UP,        // button up                  ... all windows - not only captured
-    ENC_CHANGE,    // value/index encoder change ... all windows - not only captured
-    ENC_DN,        // encoder minus              ... captured window only
-    ENC_UP,        // encoder plus               ... captured window only
-    CLICK,         // clicked (tag > 0)          ... captured window only
-    HOLD,          // held button                ... captured window only
-    HELD_LEFT,     // held and moved left        ... captured window only
-    HELD_RIGHT,    // held and moved right       ... captured window only
+    LOOP = 1, // gui loop (every 50ms)
+    BTN_DN, // button down                ... all windows - not only captured
+    BTN_UP, // button up                  ... all windows - not only captured
+    ENC_CHANGE, // value/index encoder change ... all windows - not only captured
+    ENC_DN, // encoder minus              ... captured window only
+    ENC_UP, // encoder plus               ... captured window only
+    CLICK, // clicked (tag > 0)          ... captured window only
+    HOLD, // held button                ... captured window only
+    HELD_LEFT, // held and moved left        ... captured window only
+    HELD_RIGHT, // held and moved right       ... captured window only
     HELD_RELEASED, // held and released          ... captured window only
-    CHILD_CLICK,   // click at the child screen
-    FOCUS0,        // focus lost
-    FOCUS1,        // focus set
-    CAPT_0,        // capture lost
-    CAPT_1,        // capture set
-    TIMER,         // gui timer
-    TEXT_ROLL,     // tick for text rolling classes
-    MESSAGE,       // onStatusChange() message notification
-    MEDIA,         // marlin media change
-    GUI_STARTUP,   // finish splash screen => initialization finish
+    CHILD_CLICK, // click at the child screen
+    FOCUS0, // focus lost
+    FOCUS1, // focus set
+    CAPT_0, // capture lost
+    CAPT_1, // capture set
+    TIMER, // gui timer
+    TEXT_ROLL, // tick for text rolling classes
+    MESSAGE, // onStatusChange() message notification
+    MEDIA, // marlin media change
+    GUI_STARTUP, // finish splash screen => initialization finish
     CHILD_CHANGED, // notify parent about child window change, bahavior depends on implementation
-    REINIT_FOOTER  // forces reinitialization of all footers in GUI
+    REINIT_FOOTER, // forces reinitialization of all footers in GUI
+    TOUCH, // event from touch screen
+    HEADER_COMMAND // commands header to do something
 };
 
 // lower lever knob events
@@ -48,6 +52,7 @@ constexpr bool GUI_event_IsCaptureEv(GUI_event_t event) {
     case GUI_event_t::ENC_UP:
     case GUI_event_t::CLICK:
     case GUI_event_t::HOLD:
+    case GUI_event_t::TOUCH:
         return true;
     default:
         return false;
@@ -122,12 +127,16 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
         return "child changed";
     case GUI_event_t::REINIT_FOOTER:
         return "footers items invalid";
+    case GUI_event_t::TOUCH:
+        return "touch";
+    case GUI_event_t::HEADER_COMMAND:
+        return "header command";
     }
 
     return "error bad index";
 }
 
-//forward declarations
+// forward declarations
 class window_t;
 template <class Base>
 struct AddSuperWindow;
@@ -136,8 +145,8 @@ struct AddSuperWindow;
 // hasprivate ctor - only friend (AddSuperWindow or base window_t) can create lock and call locked methods
 // also provides trace
 class EventLock {
-    EventLock(const char *event_method_name, window_t *sender, GUI_event_t event); //ctor must be private
+    EventLock(const char *event_method_name, window_t *sender, GUI_event_t event); // ctor must be private
     template <class T>
-    friend class AddSuperWindow;
+    friend struct AddSuperWindow;
     friend class window_t;
 };

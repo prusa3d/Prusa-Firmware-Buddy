@@ -1,8 +1,6 @@
-//screen_test_graph.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"
-#include "window_temp_graph.hpp"
 #include "screen.hpp"
 
 struct screen_test_dlg_data_t : public AddSuperWindow<screen_t> {

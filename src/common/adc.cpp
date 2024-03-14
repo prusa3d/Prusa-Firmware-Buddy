@@ -1,50 +1,49 @@
 #include "adc.hpp"
+#include "hwio_pindef.h"
 
 AdcDma1 adcDma1;
-ADC_HandleTypeDef hadc1;
-DMA_HandleTypeDef hdma_adc1;
 
-void config_adc_ch(ADC_HandleTypeDef *hadc, uint32_t Channel, uint32_t Rank) {
-    Rank++; // Channel rank starts at 1, but for array indexing, we need to start from 0.
-    ADC_ChannelConfTypeDef sConfig = { Channel, Rank, ADC_SAMPLETIME_480CYCLES, 0 };
-    if (HAL_ADC_ConfigChannel(hadc, &sConfig) != HAL_OK) {
-        Error_Handler();
+#ifdef HAS_ADC3
+AdcDma3 adcDma3;
+#endif
+
+using namespace buddy::hw;
+
+#if BOARD_IS_XBUDDY
+namespace AdcGet {
+SumRingBuffer<uint32_t, nozzle_buff_size> nozzle_ring_buff;
+}
+#endif
+
+#if BOARD_IS_XLBUDDY
+AdcMultiplexer<AdcDma1, DMA2_Stream4_IRQn, AdcChannel::POWER_MONITOR_HWID_AND_TEMP_CH_CNT>
+    PowerHWIDAndTempMux(adcDma1,
+        buddy::hw::AD1setA, buddy::hw::AD1setB,
+        AdcChannel::mux1_x, AdcChannel::mux1_y);
+
+AdcMultiplexer<AdcDma3, DMA2_Stream0_IRQn, AdcChannel::SFS_AND_TEMP_CH_CNT>
+    SFSAndTempMux(adcDma3,
+        buddy::hw::AD2setA, buddy::hw::AD2setB,
+        AdcChannel::mux2_x, AdcChannel::mux2_y);
+
+// NOTE: This ISR is currently only enabled during AdcMultiplexer channel switching,
+//   and kept disabled most of the time. See AdcMultiplexer::switch_channel.
+extern "C" void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+    if (hadc == &PowerHWIDAndTempMux.adc_handle()) {
+        PowerHWIDAndTempMux.conv_isr();
+    } else if (hadc == &SFSAndTempMux.adc_handle()) {
+        SFSAndTempMux.conv_isr();
     }
 }
 
-void config_adc(ADC_HandleTypeDef *hadc, ADC_TypeDef *ADC_NUM, uint32_t NbrOfConversion) {
-    hadc->Instance = ADC_NUM;
-    hadc->Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
-    hadc->Init.Resolution = ADC_RESOLUTION_10B;
-    hadc->Init.ScanConvMode = ENABLE;
-    hadc->Init.ContinuousConvMode = ENABLE;
-    hadc->Init.DiscontinuousConvMode = DISABLE;
-    hadc->Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-    hadc->Init.ExternalTrigConv = ADC_SOFTWARE_START;
-    hadc->Init.DataAlign = ADC_DATAALIGN_RIGHT;
-    hadc->Init.NbrOfConversion = NbrOfConversion;
-    hadc->Init.DMAContinuousRequests = ENABLE;
-    hadc->Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-    if (HAL_ADC_Init(hadc) != HAL_OK) {
-        Error_Handler();
+#endif
+
+int32_t AdcGet::getMCUTemp() {
+    // there is division somewhere in formula below, so avoid division by zero in case vref is not measured properly (for example in simulator)
+    if (AdcGet::vref() == 0) {
+        return 0;
     }
-}
-
-/**
-  * @brief ADC1 Initialization Function
-  * @param None
-  * @retval None
-  */
-void MX_ADC1_Init(void) {
-
-    /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)*/
-    config_adc(&hadc1, ADC1, AdcChannel::ADC1_CH_CNT);
-    /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.*/
-    config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
-    config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
-    config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::board_T);
-    config_adc_ch(&hadc1, ADC_CHANNEL_6, AdcChannel::pinda_T);
-    config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::heatbed_U);
-
-    HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn); //Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
+    // Use LL calculation with factory calibration values
+    ///@note ADC bit resolution shouldn't matter as it cancels out, but we use 12b on all platforms.
+    return __LL_ADC_CALC_TEMPERATURE(__LL_ADC_CALC_VREFANALOG_VOLTAGE(AdcGet::vref(), LL_ADC_RESOLUTION_12B), AdcGet::mcuTemperature(), LL_ADC_RESOLUTION_12B);
 }

@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "llvm-vs-code-extensions.vscode-clangd",
+        "twxs.cmake",
+        "ms-vscode.cmake-tools",
+        "marus25.cortex-debug",
+        "marus25.cortex-debug-dp-stm32f4",
+        "IBM.output-colorizer"
+    ],
+    "unwantedRecommendations": ["ms-vscode.cpptools-extension-pack", "ccls-project.ccls", "ms-vscode.cpptools"]
+}

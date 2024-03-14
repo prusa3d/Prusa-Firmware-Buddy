@@ -1,11 +1,17 @@
+/**
+ * @file
+ */
 #include <algorithm>
 
 #include "../../lib/Marlin/Marlin/src/module/temperature.h"
+#include "../../lib/Marlin/Marlin/src/gcode/lcd/M73_PE.h"
+#include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "marlin_server.hpp"
-#include "client_fsm_types.h"
 #include "PrusaGcodeSuite.hpp"
+#include "filament.hpp"
 #include "G26.hpp"
 #include "cmath_ext.h"
+#include <config_store/store_instance.hpp>
 
 static const constexpr float filamentD = 1.75f;
 static const constexpr float layerHeight = 0.2f;
@@ -19,11 +25,11 @@ static const constexpr float pi = 3.1415926535897932384626433832795f;
 /// First X and Y are a starting point.
 static const constexpr float snake1[] = {
     /// use 0.5 extrusion width
-    10,  /// start X
+    10, /// start X
     150, /// start Y
     170, /// X
     130, /// Y
-    10,  /// X
+    10, /// X
     110, /// ...
     170,
     90,
@@ -100,11 +106,11 @@ static const constexpr float snake1[] = {
 /// First X and Y are a starting point.
 static const constexpr float snake2[] = {
     /// use 0.5 extrusion width
-    10,        /// start X
+    10, /// start X
     180 - 150, /// start Y
-    170,       /// X
+    170, /// X
     180 - 130, /// Y
-    10,        /// X
+    10, /// X
     180 - 110, /// ...
     170,
     180 - 90,
@@ -175,7 +181,10 @@ static const constexpr float snake2[] = {
     10,
 };
 
-bool FirstLayer::isPrinting_ = false;
+// static variables
+uint32_t FirstLayerProgressLock::isPrinting_ = 0;
+uint32_t FirstLayer::finished_n_times = 0;
+uint32_t FirstLayer::started_n_times = 0;
 
 void FirstLayer::finish_printing() {
     current_line = 1;
@@ -183,28 +192,33 @@ void FirstLayer::finish_printing() {
 }
 
 void FirstLayer::plan_destination(const float x, const float y, const float z, const float e, const float f) {
-    if (isfinite(x))
+    if (isfinite(x)) {
         destination[0] = x;
-    else
+    } else {
         destination[0] = current_position[0];
+    }
 
-    if (isfinite(y))
+    if (isfinite(y)) {
         destination[1] = y;
-    else
+    } else {
         destination[1] = current_position[1];
+    }
 
-    if (isfinite(z))
+    if (isfinite(z)) {
         destination[2] = z;
-    else
+    } else {
         destination[2] = current_position[2];
+    }
 
-    if (isfinite(e))
+    if (isfinite(e)) {
         destination[3] = current_position[3] + e;
-    else
+    } else {
         destination[3] = current_position[3];
+    }
 
-    if (isfinite(f))
+    if (isfinite(f)) {
         feedrate_mm_s = f / 60.f;
+    }
 
     prepare_move_to_destination();
 }
@@ -214,7 +228,7 @@ void FirstLayer::inc_progress() {
     const uint8_t progress = std::min(uint8_t(100), uint8_t(100.f * current_line / (float)total_lines));
     if (last_progress != progress) {
         last_progress = progress;
-        set_var_sd_percent_done(progress);
+        marlin_server::set_var_sd_percent_done(progress);
     }
 
     // const variant8_t var = variant8_i8(100 * current_line / (float)total_lines);
@@ -291,7 +305,7 @@ void FirstLayer::print_shape_1() {
 
 void FirstLayer::print_shape_2() {
     enable_all_steppers();
-    //M221 S100 ; reset flow
+    // M221 S100 ; reset flow
     planner.flow_percentage[0] = 100;
     planner.refresh_e_factor(0);
     /// fixed lines - constant to show 100% at the end + calibration pattern
@@ -310,29 +324,53 @@ void FirstLayer::print_shape_2() {
     print_snake(snake2, ARRAY_SIZE(snake2), 1000.f);
 
     /// finish printing
-    //go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
-    //go_to_destination(178.f, 180.f, 10.f, NAN, 3000.f);
+    // go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
+    // go_to_destination(178.f, 180.f, 10.f, NAN, 3000.f);
 
-    //TYPE:Custom
-    // Filament-specific end gcode
-    //TODO setprecent? ////M73 P94 R0
-    go_to_destination(NAN, NAN, NAN, -1.f, 2100.f);    // G1 E-1 F2100 ; retract
-    go_to_destination(NAN, NAN, 2.2f, NAN, 720.f);     // G1 Z2.2 F720 ; Move print head up
+    // TYPE:Custom
+    //  Filament-specific end gcode
+    // TODO setprecent? ////M73 P94 R0
+    go_to_destination(NAN, NAN, NAN, -1.f, 2100.f); // G1 E-1 F2100 ; retract
+    go_to_destination(NAN, NAN, 2.2f, NAN, 720.f); // G1 Z2.2 F720 ; Move print head up
     go_to_destination(178.f, 178.f, NAN, NAN, 4200.f); // G1 X178 Y178 F4200 ; park print head
-    //TODO setprecent? ////M73 P96 R0
+    // TODO setprecent? ////M73 P96 R0
     go_to_destination(NAN, NAN, 30.2f, NAN, 720.f); // G1 Z30.2 F720 ; Move print head further up
-    planner.synchronize();                          // G4 ; wait .. finish moves == M400
+    planner.synchronize(); // G4 ; wait .. finish moves == M400
 
-    //no need lro reset linear advance, was not set // M900 K0 ; reset LA
+    // no need lro reset linear advance, was not set // M900 K0 ; reset LA
     planner.finish_and_disable(); // M84 ; disable motors
-    //TODO setprecent? // M73 P100 R0
+    // TODO setprecent? // M73 P100 R0
     finish_printing();
 }
 
+/**
+ * @brief gcode to draw a first layer on bed
+ *
+ * does not take any parameters
+ * meant to be called from selftest
+ */
 void PrusaGcodeSuite::G26() {
-    if (all_axes_known()) { /// checks if axes are calibrated (homed) before
-        FirstLayer fl;
-        //fl.print_shape_1();
-        fl.print_shape_2();
+    // is filament selected
+    auto filament = config_store().get_filament_type(active_extruder);
+    if (filament == filament::Type::NONE) {
+        return;
     }
+
+    FirstLayer fl;
+
+    auto filament_description = filament::get_description(filament);
+    const int temp_nozzle = filament_description.nozzle;
+
+    // nozzle temperature print
+    thermalManager.setTargetHotend(temp_nozzle, 0);
+    marlin_server::set_temp_to_display(temp_nozzle, 0);
+    thermalManager.wait_for_hotend(0, false);
+
+    // fl.print_shape_1();
+    fl.print_shape_2();
+
+    thermalManager.setTargetHotend(0, 0);
+    marlin_server::set_temp_to_display(0, 0);
+
+    thermalManager.setTargetBed(0);
 }

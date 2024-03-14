@@ -61,22 +61,27 @@ public:
     }
 
     phase_t GetEncoderPhase() {
-        if (jogWheelEN1.state == Pin::State::low && jogWheelEN2.state == Pin::State::low)
+        if (jogWheelEN1.state == Pin::State::low && jogWheelEN2.state == Pin::State::low) {
             return phase_t::P0lo_P1lo;
-        if (jogWheelEN1.state == Pin::State::high && jogWheelEN2.state == Pin::State::low)
+        }
+        if (jogWheelEN1.state == Pin::State::high && jogWheelEN2.state == Pin::State::low) {
             return phase_t::P0hi_P1lo;
-        if (jogWheelEN1.state == Pin::State::high && jogWheelEN2.state == Pin::State::high)
+        }
+        if (jogWheelEN1.state == Pin::State::high && jogWheelEN2.state == Pin::State::high) {
             return phase_t::P0hi_P1hi;
-        if (jogWheelEN1.state == Pin::State::low && jogWheelEN2.state == Pin::State::high)
+        }
+        if (jogWheelEN1.state == Pin::State::low && jogWheelEN2.state == Pin::State::high) {
             return phase_t::P0lo_P1hi;
+        }
 
-        //cannot happen, avoid warning
+        // cannot happen, avoid warning
         return phase_t::P0lo_P1lo;
     }
 
     void SetEncoderPhase(phase_t ph, uint32_t ms) {
-        while (ms--)
+        while (ms--) {
             SetEncoderPhase(ph);
+        }
     }
 
     void QuaterSpinR(uint32_t cnt, uint32_t ms = 2) { // 2 ms will pass noise filter
@@ -106,14 +111,14 @@ TEST_CASE("Jogwheel tests", "[jogwheel]") {
     BtnState_t ev;
     TestJogwheel j;
 
-    //without ConsumeButtonEvent there should be no click or encoder change
+    // without ConsumeButtonEvent there should be no click or encoder change
     SECTION("uninitialized jogwheel test") {
 
         j.SetEncoderPhase(phase_t::P0lo_P1lo);
 
         REQUIRE(j.GetEncoder() == 0); // read at tick 0
 
-        j.SpinR(1, 2);                //2 ms  not filtered out
+        j.SpinR(1, 2); // 2 ms  not filtered out
         REQUIRE(j.GetEncoder() == 0); // not initialized by read, must return 0
 
         jogWheelENC.state = Pin::State::high; // inverted
@@ -131,20 +136,20 @@ TEST_CASE("Jogwheel tests", "[jogwheel]") {
         REQUIRE_FALSE(j.ConsumeButtonEvent(ev)); // clicks before first read must be discarded
     }
 
-    j.ConsumeButtonEvent(ev); //this call will initialize queue
+    j.ConsumeButtonEvent(ev); // this call will initialize queue
 
     SECTION("encoder - noise filter") {
         j.SetEncoderPhase(phase_t::P0lo_P1lo);
 
         REQUIRE(j.GetEncoder() == 0); // read at tick 0
 
-        j.SpinR(1, 0);                //0 ms must be filtered out
+        j.SpinR(1, 0); // 0 ms must be filtered out
         REQUIRE(j.GetEncoder() == 0); // must still be 0, noise filter filtered spin out
 
-        j.SpinR(1, 1);                //1 ms must be filtered out
+        j.SpinR(1, 1); // 1 ms must be filtered out
         REQUIRE(j.GetEncoder() == 0); // must still be 0, noise filter filtered spin out
 
-        j.SpinR(1, 2);                      //2 ms must not be filtered out
+        j.SpinR(1, 2); // 2 ms must not be filtered out
         REQUIRE_FALSE(j.GetEncoder() == 0); // tick did not changed, must read 0
     }
 
@@ -156,6 +161,6 @@ TEST_CASE("Jogwheel tests", "[jogwheel]") {
         jogWheelENC.state = Pin::State::low; // inverted
         j.Update1msFromISR();
 
-        //REQUIRE(j.ConsumeButtonEvent(ev)); // clicked
+        // REQUIRE(j.ConsumeButtonEvent(ev)); // clicked
     }
 }

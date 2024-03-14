@@ -11,60 +11,282 @@
 # SYSTEM         xx5xx   # System - BSOD, ...
 # BOOTLOADER     xx6xx   #
 # WARNINGS       xx7xx   # Category-less warnings
+
+
 Errors:
-# TEMPERATURE    xx2xx   # Temperature measurement, thermistors, heating
+# XX103 reserved
 - code: "12201"
   title: "PREHEAT ERROR"
   text: "Check the heatbed heater & thermistor wiring for possible damage."
-  id: ""
+  id: "BED_PREHEAT_ERROR"
   approved: true
 - code: "12202"
   title: "PREHEAT ERROR"
   text: "Check the print head heater & thermistor wiring for possible damage."
-  id: ""
+  id: "HOTEND_PREHEAT_ERROR"
   approved: true
 - code: "12203"
   title: "THERMAL RUNAWAY"
   text: "Check the heatbed thermistor wiring for possible damage."
-  id: ""
+  id: "BED_THERMAL_RUNAWAY"
   approved: true
 - code: "12204"
   title: "THERMAL RUNAWAY"
   text: "Check the print head thermistor wiring for possible damage."
-  id: ""
+  id: "HOTEND_THERMAL_RUNAWAY"
   approved: true
 - code: "12205"
   title: "MAXTEMP ERROR"
   text: "Check the heatbed thermistor wiring for possible damage."
-  id: ""
+  id: "BED_MAXTEMP_ERROR"
   approved: true
 - code: "12206"
   title: "MAXTEMP ERROR"
   text: "Check the print head thermistor wiring for possible damage."
-  id: ""
+  id: "HOTEND_MAXTEMP_ERROR"
   approved: true
 - code: "12207"
   title: "MINTEMP ERROR"
   text: "Check the heatbed thermistor wiring for possible damage."
-  id: ""
+  id: "BED_MINTEMP_ERROR"
   approved: true
 - code: "12208"
   title: "MINTEMP ERROR"
   text: "Check the print head thermistor wiring for possible damage."
-  id: ""
+  id: "HOTEND_MINTEMP_ERROR"
   approved: true
 - code: "12209"
   title: "TEMP NOT MATCHING"
   text: "Measured temperature is not matching expected value. Check the thermistor is in contact with heatbed. In case of damage, replace it."
-  id: ""
+  id: "BED_TEMP_NOT_MATCHING"
   approved: true
 - code: "12210"
   title: "TEMP NOT MATCHING"
   text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
-  id: ""
+  id: "HOTEND_TEMP_NOT_MATCHING"
   approved: true
+- code: "12211"
+  title: "HEATBREAK MINTEMP ERROR"
+  text: "Check the heatbreak thermistor wiring for possible damage."
+  id: "HEATBREAK_MINTEMP_ERR"
+  approved: true
+- code: "12212"
+  title: "HEATBREAK MAXTEMP ERROR"
+  text: "Check the heatbreak thermistor wiring for possible damage."
+  id: "HEATBREAK_MAXTEMP_ERR"
+  approved: true
+- code: "12213"
+  title: "MCU MAXTEMP ERROR"
+  text: "MCU in %s is overheated."
+  id: "MCU_MAXTEMP_ERR"
+  approved: false
+  # XX250-XX257 reserved
 - code: "12301"
-  title: "HOMING ERROR"
+  title: "HOMING ERROR Z"
   text: "SuperPINDA sensor is probably broken or disconnected, could not home Z-axis properly."
-  id: ""
+  id: "HOMING_ERROR_Z"
+  approved: true
+  # XX302-XX303 reserved
+- code: "12304"
+  title: "HOMING ERROR X"
+  text: "Failed to home the extruder in X-axis, make sure there is no obstacle on X-axis."
+  id: "HOMING_ERROR_X"
+  approved: true
+- code: "12305"
+  title: "HOMING ERROR Y"
+  text: "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
+  id: "HOMING_ERROR_Y"
+  approved: true
+- code: "12306"
+  title: "USB PORT OVERCURRENT"
+  text: "Overcurrent detected on USB port."
+  id: "USB_HOST_OVERCURRENT"
+  approved: true
+- code: "12307"
+  title: "USB DEVICE OVERCURRENT"
+  text: "Overcurrent detected on connected USB device, disconnect it."
+  id: "USB_DEVICE_OVERCURRENT"
+  approved: true
+- code: "12308"
+  title: "NOZZLE HEATER OVERCURRENT"
+  text: "Overcurrent detected on nozzle heater."
+  id: "NOZZLE_OVERCURRENT"
+  approved: true
+- code: "12309"
+  title: "HEATBED PORT OVERCURRENT"
+  text: "Overcurrent detected on heatbed port, disconnect the device."
+  id: "INPUT_OVERCURRENT"
+  approved: true
+- code: "12310"
+  title: "MMU OVERCURRENT"
+  text: "Overcurrent detected on the MMU port, disconnect the device."
+  id: "MMU_OVERCURRENT"
+  approved: true
+- code: "12311"
+  title: "I2C SEND FAILED"
+  text: "HAL detected an I2C error when sending data via I2C."
+  id: "I2C_TX_ERROR"
+  approved: true
+- code: "12312"
+  title: "I2C SEND BUSY"
+  text: "HAL detected an I2C busy when sending data via I2C."
+  id: "I2C_TX_BUSY"
+  approved: true
+- code: "12313"
+  title: "I2C SEND TIMEOUT"
+  text: "HAL detected an I2C timeout when sending data via I2C."
+  id: "I2C_TX_TIMEOUT"
+  approved: true
+- code: "12314"
+  title: "I2C SEND UNDEFINED"
+  text: "HAL detected an I2C undefined error when sending data via I2C."
+  id: "I2C_TX_UNDEFINED"
+  approved: true
+- code: "12315"
+  title: "I2C RECEIVE FAILED"
+  text: "HAL detected an I2C error when receiving data via I2C."
+  id: "I2C_RX_ERROR"
+  approved: true
+- code: "12316"
+  title: "I2C RECEIVE BUSY"
+  text: "HAL detected an I2C busy when receiving data via I2C."
+  id: "I2C_RX_BUSY"
+  approved: true
+- code: "12317"
+  title: "I2C RECEIVE TIMEOUT"
+  text: "HAL detected an I2C timeout when receiving data via I2C."
+  id: "I2C_RX_TIMEOUT"
+  approved: true
+- code: "12318"
+  title: "I2C RECEIVE UNDEFINED"
+  text: "HAL detected an I2C undefined error when receiving data via I2C."
+  id: "I2C_RX_UNDEFINED"
+  approved: true
+  # XX319-XX320 reserved
+- code: "12401"
+  title: "CONNECT REGISTRATION FAILED"
+  text: "Registration to Prusa Connect failed due to:"
+  id: "CONNECT_REGISTRATION_FAILED"
+  approved: true
+  # XX501-XX503 reserved
+- code: "12504"
+  title: "ESP ERROR"
+  text: "Reading ESP firmware failed."
+  id: "ESP_FW_READ"
+  approved: true
+- code: "12505"
+  title: "ESP ERROR"
+  text: "ESP detected command error."
+  id: "ESP_COMMAND_ERR"
+  approved: true
+- code: "12506"
+  title: "ESP ERROR"
+  text: "ESP detected unknown error."
+  id: "ESP_UNKNOWN_ERR"
+  approved: true
+- code: "12507"
+  title: "OUT OF MEMORY"
+  text: "Dynamic allocation failed - out of memory. Reset the printer."
+  id: "MALLOC_ERROR"
+  approved: true
+- code: "12508"
+  title: "PNG BUFFER FULL"
+  text: "Allocation of dynamic buffer for PNG failed - out of memory."
+  id: "PNG_MALLOC_ERROR"
+  approved: true
+- code: "12510"
+  title: "EMERGENCY STOP"
+  text: "Emergency stop invoked from G-code (M112)."
+  id: "EMERGENCY_STOP"
+  approved: true
+  # XX511-XX529 reserved
+- code: "12530"
+  title: "MARLIN REQUEST TIMEOUT"
+  text: "Marlin client could not send message to Marlin server and timeout was reached."
+  id: "MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT"
+  approved: true
+- code: "12531"
+  title: "BBF ALLOCATION FAILED"
+  text: "Space allocation for firmware BBF file failed. Repeat the action or try another USB drive."
+  id: "BBF_ALLOCATION_FAILED"
+  approved: true
+- code: "12532"
+  title: "BBF INITIALIZATION FAILED"
+  text: "BBF initialization failed, repeat the action or try another USB drive."
+  id: "BBF_INIT_FAILED"
+  approved: true
+- code: "12533"
+  title: "ESP NOT CONNECTED"
+  text: "ESP doesn't seem to be connected."
+  id: "ESP_NOT_CONNECTED"
+  approved: false
+- code: "12601"
+  title: ""
+  text: "This error code\nis not found in\nour database.\nContact the support."
+  id: "UNKNOWN_ERROR_CODE"
+  approved: true
+- code: "12602"
+  title: ""
+  text: "USB drive not\nconnected! Please\ninsert a USB drive\nwith a valid\nfirmware file."
+  id: "USB_NOT_CONNECTED"
+  approved: true
+- code: "12603"
+  title: ""
+  text: "Firmware file has\ninvalid size!\nCheck the file\non the USB drive\nand try again."
+  id: "INVALID_FW_SIZE_ON_USB"
+  approved: true
+- code: "12604"
+  title: ""
+  text: "Firmware file\nmissing in the USB\nflash!"
+  id: "NO_FW_ON_USB"
+  approved: true
+- code: "12605"
+  title: ""
+  text: "Error erasing\n flash! Restart\nthe printer and\ntry again."
+  id: "FLASH_ERASE_ERROR"
+  approved: true
+- code: "12606"
+  title: ""
+  text: "Firmware signature\nverification failed!\nOnly official\nsigned firmware can\nbe flashed."
+  id: "SIGNATURE_VERIFICATION_FAILED"
+  approved: true
+- code: "12607"
+  title: ""
+  text: "Firmware hash\nverification failed!\nFirmware file is\ndamaged. Try\ndownloading and\ncopying it onto the\nUSB drive again."
+  id: "HASH_VERIFICATION_FAILED"
+  approved: true
+- code: "12608"
+  title: ""
+  text: "Firmware in the\ninternal flash\ncorrupted! Please\nreflash the\nfirmware."
+  id: "FW_IN_INTERNAL_FLASH_CORRUPTED"
+  approved: true
+- code: "12609"
+  title: ""
+  text: "Firmware and hardware\nversions do not\nmatch. Make sure\nyou have the right\nfirmware file for\nyour printer."
+  id: "HW_VERSION_ERR"
+  approved: true
+- code: "12610"
+  title: ""
+  text: "Firmware/printer\ntypes do not match.\nMake sure you have\nthe right firmware\nfile for your\nprinter model."
+  id: "UNSUPPORTED_PRINTER_TYPE"
+  approved: true
+- code: "12611"
+  title: ""
+  text: "Firmware/printer\nversions do not\nmatch! You are\ntrying to flash\nFW meant for other\nrevision of the\nBuddy board."
+  id: "UNSUPPORTED_PRINTER_VERSION"
+  approved: true
+- code: "12612"
+  title: ""
+  text: "No firmware found\nin the internal\nflash! Please\nflash firmware\nfirst!"
+  id: "NO_FW_IN_INTERNAL_FLASH"
+  approved: true
+- code: "12613"
+  title: ""
+  text: "File system error!\nTry a different USB\ndrive or format the\ndrive with FAT32\nfilesystem (all \ndata will be lost)!"
+  id: "FILE_SYSTEM_ERROR"
+  approved: true
+- code: "12614"
+  title: ""
+  text: "USB flash drive contains\nunsupported firmware BBF file."
+  id: "UNSUPPORTED_BBF_VERSION"
   approved: true

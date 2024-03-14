@@ -10,10 +10,11 @@
 #include <cstdint>
 #include <cstddef>
 #include <stdio.h>
+#include "i18n.h"
 // const char* Unit() is not virtual, because only one of SpinConfig SpinConfigWithUnit is used
 
 enum class spin_off_opt_t : bool { no,
-    yes };
+    yes }; // yes == lowest value is off
 
 union SpinType {
     float flt;
@@ -32,10 +33,13 @@ template <class T>
 struct SpinConfig {
     std::array<T, 3> range; // todo change array to struct containing min, max, step
     static const char *const prt_format;
+    const char *const prt_format_override;
     spin_off_opt_t off_opt;
+    static constexpr const char *const off_opt_str = N_("Off");
 
-    constexpr SpinConfig(const std::array<T, 3> &arr, spin_off_opt_t off_opt_ = spin_off_opt_t::no)
+    constexpr SpinConfig(const std::array<T, 3> &arr, spin_off_opt_t off_opt_ = spin_off_opt_t::no, const char *const format_override = nullptr)
         : range(arr)
+        , prt_format_override(format_override)
         , off_opt(off_opt_) {}
     constexpr T Min() const { return range[0]; }
     constexpr T Max() const { return range[1]; }
@@ -43,9 +47,9 @@ struct SpinConfig {
     constexpr const char *Unit() const { return nullptr; } // not virtual
     bool IsOffOptionEnabled() const { return off_opt == spin_off_opt_t::yes; }
 
-    static size_t txtMeas(T val);
+    size_t txtMeas(T val) const;
 
-    //calculate all possible values
+    // calculate all possible values
     size_t calculateMaxDigits() const {
         size_t max_len = txtMeas(Max());
         for (T step_sum = Min(); step_sum < Max(); step_sum += Step()) {
@@ -57,21 +61,29 @@ struct SpinConfig {
 };
 
 template <class T>
-size_t SpinConfig<T>::txtMeas(T val) {
-    return snprintf(nullptr, 0, prt_format, val);
+size_t SpinConfig<T>::txtMeas(T val) const {
+    if (IsOffOptionEnabled() && val == Min()) {
+        return _(off_opt_str).computeNumUtf8CharsAndRewind();
+    } else {
+        return snprintf(nullptr, 0, prt_format_override ? prt_format_override : prt_format, val);
+    }
 }
 
 template <>
-inline size_t SpinConfig<float>::txtMeas(float val) {
-    return snprintf(nullptr, 0, prt_format, (double)val);
+inline size_t SpinConfig<float>::txtMeas(float val) const {
+    if (IsOffOptionEnabled() && val == Min()) {
+        return _(off_opt_str).computeNumUtf8CharsAndRewind();
+    } else {
+        return snprintf(nullptr, 0, prt_format_override ? prt_format_override : prt_format, (double)val);
+    }
 }
 
 template <class T>
 struct SpinConfigWithUnit : public SpinConfig<T> {
     const char *const unit;
 
-    constexpr SpinConfigWithUnit(const std::array<T, 3> &arr, const char *unit_, spin_off_opt_t off_opt_ = spin_off_opt_t::no)
-        : SpinConfig<T>(arr, off_opt_)
+    constexpr SpinConfigWithUnit(const std::array<T, 3> &arr, const char *unit_, spin_off_opt_t off_opt_ = spin_off_opt_t::no, const char *const format = nullptr)
+        : SpinConfig<T>(arr, off_opt_, format)
         , unit(unit_) {}
     constexpr const char *Unit() const { return unit; } // not virtual
 };

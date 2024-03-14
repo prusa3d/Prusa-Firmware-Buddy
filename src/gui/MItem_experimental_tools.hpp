@@ -26,7 +26,7 @@ public:
 };
 
 class MI_RESET_Z_AXIS_LEN : public WI_LABEL_t {
-    static constexpr const char *const label = "Default Z-length";
+    static constexpr const char *const label = "Reset Z-length";
 
 public:
     MI_RESET_Z_AXIS_LEN();
@@ -68,7 +68,7 @@ public:
 };
 
 class MI_RESET_STEPS_PER_UNIT : public WI_LABEL_t {
-    static constexpr const char *const label = "Default steps per unit";
+    static constexpr const char *const label = "Reset steps per unit";
 
 public:
     MI_RESET_STEPS_PER_UNIT();
@@ -118,7 +118,7 @@ public:
 };
 
 class MI_RESET_DIRECTION : public WI_LABEL_t {
-    static constexpr const char *const label = "Default directions";
+    static constexpr const char *const label = "Reset directions";
 
 public:
     MI_RESET_DIRECTION();
@@ -127,16 +127,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MICROSTEPS_X : public WiSpinExp {
-    constexpr static const char *const label = "X-axis microsteps";
+class MI_MICROSTEPS_X : public WiSpinExpWith0 {
+    constexpr static const char *const label = "X-axis microsteps (0 default)";
 
 public:
     MI_MICROSTEPS_X();
     void Store();
 };
 
-class MI_MICROSTEPS_Y : public WiSpinExp {
-    constexpr static const char *const label = "Y-axis microsteps";
+class MI_MICROSTEPS_Y : public WiSpinExpWith0 {
+    constexpr static const char *const label = "Y-axis microsteps (0 default)";
 
 public:
     MI_MICROSTEPS_Y();
@@ -170,7 +170,7 @@ protected:
 };
 
 class MI_CURRENT_X : public WiSpinInt {
-    constexpr static const char *const label = "X current";
+    constexpr static const char *const label = "X current (0 default)";
 
 public:
     MI_CURRENT_X();
@@ -178,7 +178,7 @@ public:
 };
 
 class MI_CURRENT_Y : public WiSpinInt {
-    constexpr static const char *const label = "Y current";
+    constexpr static const char *const label = "Y current (0 default)";
 
 public:
     MI_CURRENT_Y();

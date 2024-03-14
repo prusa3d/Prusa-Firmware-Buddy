@@ -12,5 +12,5 @@
 
 class FooterIcon : public AddSuperWindow<window_icon_t> {
 public:
-    FooterIcon(window_t *parent, uint16_t id_res);
+    FooterIcon(window_t *parent, const img::Resource *icon);
 };

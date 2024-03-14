@@ -16,9 +16,11 @@
  */
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <lwip/tcpip.h>
+#include <cmsis_os.h>
 
-#include "../../../src/common/basename.h"
+#include "../../../src/common/filepath_operation.h"
 
 size_t strlcpy(char *, const char *, size_t);
 
@@ -31,6 +33,8 @@ size_t strlcat(char *dst, const char *src, size_t size) {
     strncat(dst + start, src, size - 1 - start);
     return start + strlen(src);
 }
+
+const char project_version_full[] = "1.0.0";
 
 void *mem_malloc(size_t size) {
     return malloc(size);
@@ -62,6 +66,30 @@ err_t tcpip_try_callback(tcpip_callback_fn fn, void *ctx) {
     return ERR_OK;
 }
 
+err_t tcpip_callback(tcpip_callback_fn fn, void *ctx) {
+    fn(ctx);
+    return ERR_OK;
+}
+
 void get_LFN(char *lfn, size_t lfn_size, char *path) {
-    strlcpy(lfn, basename(path), lfn_size);
+    strlcpy(lfn, basename_b(path), lfn_size);
+}
+
+void mbedtls_platform_zeroize(void *b, size_t size) {
+    memset(b, 0, size);
+}
+
+bool wui_is_file_being_printed(const char *filename) {
+    return false;
+}
+
+int mkdir(const char *path, mode_t mode) {
+    return 0;
+}
+
+void get_SFN_path(char *path) {
+}
+
+uint32_t osDelay(uint32_t time) {
+    return 0;
 }

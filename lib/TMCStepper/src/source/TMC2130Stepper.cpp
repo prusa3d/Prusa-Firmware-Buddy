@@ -1,8 +1,28 @@
 #include "TMCStepper.h"
 #include "TMC_MACROS.h"
+#include "SPI.h"
+#include "log.h"
+
+#include <option/has_puppies.h>
+#include <option/has_toolchanger.h>
+#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  #include "module/prusa/toolchanger.h"
+#endif
 
 int8_t TMC2130Stepper::chain_length = 0;
 uint32_t TMC2130Stepper::spi_speed = 16000000/8;
+
+
+#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+TMC2130Stepper::TMC2130Stepper(Connection connection, float RS) :
+  TMCStepper(RS),
+  _pinCS(0),
+  connection(connection)
+{
+  assert(connection == Connection::Remote);
+  defaults();
+}
+#endif
 
 TMC2130Stepper::TMC2130Stepper(uint16_t pinCS, float RS, int8_t link) :
   TMCStepper(RS),
@@ -42,6 +62,11 @@ TMC2130Stepper::TMC2130Stepper(uint16_t pinCS, float RS, uint16_t pinMOSI, uint1
   }
 
 void TMC2130Stepper::defaults() {
+  TPOWERDOWN_register.sr = 0x0A;
+  CHOPCONF_register.sr = 0x000100C3;
+  PWMCONF_register.sr = 0x000401C8;
+  TPWMTHRS_register.sr = 0x000001F4;
+  IHOLD_IRUN_register.sr = 0x00061F0A;
   //MSLUT0_register.sr = ???;
   //MSLUT1_register.sr = ???;
   //MSLUT2_register.sr = ???;
@@ -63,6 +88,8 @@ void TMC2130Stepper::switchCSpin(bool state) {
 }
 
 uint32_t TMC2130Stepper::read(uint8_t addressByte) {
+
+  auto lockGuard = TMCStepper::CommunicationLockGuard();
   uint32_t out = 0UL;
   int8_t i = 1;
 
@@ -102,7 +129,14 @@ uint32_t TMC2130Stepper::read(uint8_t addressByte) {
     out <<= 8;
     out |= TMC_SW_SPI->transfer(0x00);
 
-  } else {
+    switchCSpin(HIGH);
+  }
+  #if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  else if (connection == Connection::Remote) {
+     out = prusa_toolchanger.getActiveToolOrFirst().tmc_read(addressByte);
+  }
+  #endif
+  else {
     SPI.beginTransaction(SPISettings(spi_speed, MSBFIRST, SPI_MODE3));
     switchCSpin(LOW);
     SPI.transfer(addressByte & 0xFF);
@@ -140,12 +174,18 @@ uint32_t TMC2130Stepper::read(uint8_t addressByte) {
     out |= SPI.transfer(0x00);
 
     SPI.endTransaction();
+    switchCSpin(HIGH);
   }
-  switchCSpin(HIGH);
+
+  tmc_register_read_hook(0, addressByte,out);
   return out;
 }
 
 void TMC2130Stepper::write(uint8_t addressByte, uint32_t config) {
+
+  auto lockGuard = TMCStepper::CommunicationLockGuard();
+
+  tmc_register_write_hook(0, addressByte, config);
   addressByte |= TMC_WRITE;
   int8_t i = 1;
   if (TMC_SW_SPI != NULL) {
@@ -162,7 +202,14 @@ void TMC2130Stepper::write(uint8_t addressByte, uint32_t config) {
       TMC_SW_SPI->transfer(0x00);
       i++;
     }
-  } else {
+    switchCSpin(HIGH);
+  }
+  #if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  else if (connection == Connection::Remote) {
+    prusa_toolchanger.getActiveToolOrFirst().tmc_write(addressByte, config);
+  }
+  #endif
+  else {
     SPI.beginTransaction(SPISettings(spi_speed, MSBFIRST, SPI_MODE3));
     switchCSpin(LOW);
     status_response = SPI.transfer(addressByte & 0xFF);
@@ -179,19 +226,26 @@ void TMC2130Stepper::write(uint8_t addressByte, uint32_t config) {
     }
     
     SPI.endTransaction();
+    switchCSpin(HIGH);
   }
-  switchCSpin(HIGH);
+
 }
 
 void TMC2130Stepper::begin() {
   //set pins
-  pinMode(_pinCS, OUTPUT);
-  switchCSpin(HIGH);
+  #if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  if (connection == Connection::Direct)
+  #endif
+  {
+    pinMode(_pinCS, OUTPUT);
+    switchCSpin(HIGH);
+  }
 
   if (TMC_SW_SPI != NULL) TMC_SW_SPI->init();
 
   GCONF(GCONF_register.sr);
   CHOPCONF(CHOPCONF_register.sr);
+  
   COOLCONF(COOLCONF_register.sr);
   PWMCONF(PWMCONF_register.sr);
   IHOLD_IRUN(IHOLD_IRUN_register.sr);

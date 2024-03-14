@@ -107,8 +107,8 @@
   #define analogInputToDigitalPin(p) (p)
 #endif
 
-#define CRITICAL_SECTION_START  uint32_t primask = __get_PRIMASK(); __disable_irq()
-#define CRITICAL_SECTION_END    if (!primask) __enable_irq()
+#define CRITICAL_SECTION_START  const uint32_t primask = __get_PRIMASK(); __disable_irq()
+#define CRITICAL_SECTION_END    __set_PRIMASK(primask)
 #define ISRS_ENABLED() (!__get_PRIMASK())
 #define ENABLE_ISRS()  __enable_irq()
 #define DISABLE_ISRS() __disable_irq()
@@ -152,8 +152,11 @@ extern uint16_t HAL_adc_result;
 
 inline void HAL_init() {}
 
+// Startup reset flags
+extern unsigned HAL_RCC_CSR;
+
 // Clear reset reason
-void HAL_clear_reset_source();
+static inline void HAL_clear_reset_source() {}
 
 // Reset reason
 uint8_t HAL_get_reset_source();
@@ -166,7 +169,7 @@ extern "C" {
 }
 */
 
-extern "C" char* _sbrk(int incr);
+extern "C" void* _sbrk(int incr);
 
 /*
 int freeMemory() {

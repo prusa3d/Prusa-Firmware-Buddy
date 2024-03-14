@@ -30,6 +30,9 @@
 
 #include "Marlin.h"
 
+#include "feature/input_shaper/input_shaper_config.hpp"
+#include "feature/pressure_advance/pressure_advance_config.hpp"
+
 #include "core/utility.h"
 #include "lcd/ultralcd.h"
 #include "module/motion.h"
@@ -43,7 +46,10 @@
 #include "module/printcounter.h" // PrintCounter or Stopwatch
 #include "feature/closedloop.h"
 #include "feature/safety_timer.h"
-#include "marlin_server.hpp"
+#include "feature/bed_preheat.hpp"
+#if !BOARD_IS_DWARF
+#include "pause_stubbed.hpp"
+#endif
 
 #include "HAL/shared/Delay.h"
 
@@ -86,6 +92,11 @@
 
 #if ENABLED(BLTOUCH)
   #include "feature/bltouch.h"
+#endif
+
+#if ENABLED(NOZZLE_LOAD_CELL)
+  #include "loadcell.hpp"
+  #include "feature/prusa/e-stall_detector.h"
 #endif
 
 #if ENABLED(POLL_JOG)
@@ -169,7 +180,7 @@
 #endif
 
 #if ENABLED(PRUSA_MMU2)
-  #include "feature/prusa_MMU2/mmu2.h"
+  #include "feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
 #if HAS_DRIVER(L6470)
@@ -201,6 +212,8 @@ millis_t max_inactive_time, // = 0
 #if ENABLED(I2C_POSITION_ENCODERS)
   I2CPositionEncodersMgr I2CPEM;
 #endif
+
+uint16_t job_id = 0;
 
 /**
  * ***************************************************************************
@@ -270,7 +283,7 @@ void protected_pin_err() {
 void quickstop_stepper() {
   planner.quick_stop();
   planner.synchronize();
-  set_current_from_steppers_for_axis(ALL_AXES);
+  set_current_from_steppers_for_axis(ALL_AXES_ENUM);
   sync_plan_position();
 }
 
@@ -282,8 +295,7 @@ void enable_all_steppers() {
   #if ENABLED(AUTO_POWER_CONTROL)
     powerManager.power_on();
   #endif
-  enable_X();
-  enable_Y();
+  enable_XY();
   enable_Z();
   enable_e_steppers();
 }
@@ -304,8 +316,7 @@ void disable_e_stepper(const uint8_t e) {
 }
 
 void disable_all_steppers() {
-  disable_X();
-  disable_Y();
+  disable_XY();
   disable_Z();
   disable_e_steppers();
 }
@@ -417,16 +428,32 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
 
   if (stepper_inactive_time) {
     static bool already_shutdown_steppers; // = false
-    if (planner.has_blocks_queued())
+    if (planner.busy())
       gcode.reset_stepper_timeout();
     else if (MOVE_AWAY_TEST && !ignore_stepper_queue && ELAPSED(ms, gcode.previous_move_ms + stepper_inactive_time)) {
       if (!already_shutdown_steppers) {
         already_shutdown_steppers = true;  // L6470 SPI will consume 99% of free time without this
-        #if ENABLED(DISABLE_INACTIVE_X)
-          disable_X();
+
+        #if _DEBUG && PRINTER_IS_PRUSA_XL && !BOARD_IS_DWARF
+        // Report steppers being disabled to the user
+        // Skip if position not trusted to avoid warnings when position is not important
+        if(axis_known_position) {
+          /// @note Hacky link from marlin_server which cannot be included here.
+          /// @todo Remove when stepper timeout screen is solved properly.
+          extern void marlin_server_steppers_timeout_warning();
+          marlin_server_steppers_timeout_warning();
+        }
         #endif
-        #if ENABLED(DISABLE_INACTIVE_Y)
-          disable_Y();
+
+        #if (ENABLED(XY_LINKED_ENABLE) && (ENABLED(DISABLE_INACTIVE_X) || ENABLED(DISABLE_INACTIVE_Y)))
+          disable_XY();
+        #else
+          #if ENABLED(DISABLE_INACTIVE_X)
+            disable_X();
+          #endif
+          #if ENABLED(DISABLE_INACTIVE_Y)
+            disable_Y();
+          #endif
         #endif
         #if ENABLED(DISABLE_INACTIVE_Z)
           disable_Z();
@@ -499,7 +526,7 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
     if (thermalManager.degHotend(active_extruder) > EXTRUDER_RUNOUT_MINTEMP
       && ELAPSED(ms, gcode.previous_move_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)
-      && !planner.has_blocks_queued()
+      && !planner.busy()
     ) {
       #if ENABLED(SWITCHING_EXTRUDER)
         bool oldstatus;
@@ -645,6 +672,8 @@ void idle(
     }
   #endif
 
+  endstops.event_handler();
+
   #if ENABLED(MAX7219_DEBUG)
     max7219.idle_tasks();
   #endif
@@ -664,6 +693,10 @@ void idle(
   thermalManager.manage_heater();
   thermalManager.check_and_reset_fan_speeds();
 
+  #if HAS_HEATED_BED
+    bed_preheat.update();
+  #endif
+
   #if ENABLED(PRINTCOUNTER)
     print_job_timer.tick();
   #endif
@@ -674,7 +707,7 @@ void idle(
 
   #if ENABLED(I2C_POSITION_ENCODERS)
     static millis_t i2cpem_next_update_ms;
-    if (planner.has_blocks_queued()) {
+    if (planner.busy()) {
       const millis_t ms = millis();
       if (ELAPSED(ms, i2cpem_next_update_ms)) {
         I2CPEM.update();
@@ -703,15 +736,28 @@ void idle(
   #endif
 
   #if ENABLED(PRUSA_MMU2)
-    mmu2.mmu_loop();
+    MMU2::mmu2.mmu_loop();
   #endif
 
   #if ENABLED(POLL_JOG)
     joystick.inject_jog_moves();
   #endif
+
+  PreciseStepping::loop();
+
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    if( EMotorStallDetector::Instance().Evaluate(stepper.axis_is_moving(E_AXIS), stepper.motor_direction(E_AXIS))){
+        // E-motor stall has been detected, issue a modified M600
+        SERIAL_ECHOLNPGM("E-motor stall detected");
+        queue.inject_P(PSTR("M1601"));
+    }
+  #endif
+
   if (waiting) delay(1);
 }
 
+
+#if DISABLED(OVERRIDE_KILL_METHOD)
 /**
  * Kill all activity and lock the machine.
  * After this the machine will need to be reset.
@@ -736,6 +782,7 @@ void kill(PGM_P const lcd_error/*=nullptr*/, PGM_P const lcd_component/*=nullptr
 
   minkill(steppers_off);
 }
+#endif
 
 void minkill(const bool steppers_off/*=false*/) {
 
@@ -965,7 +1012,15 @@ void setup() {
 
   endstops.init();          // Init endstops and pullups
 
-  stepper.init();           // Init stepper. This enables interrupts!
+  // Init the motion system (order is relevant!)
+  // NOTE: this enables (timer) interrupts!
+  planner.init();
+  stepper.init();
+  PreciseStepping::init();
+#ifdef ADVANCED_STEP_GENERATORS
+  input_shaper::init();
+  pressure_advance::init();
+#endif
 
   #if HAS_SERVOS
     servo_init();
@@ -1017,6 +1072,10 @@ void setup() {
   #if HAS_HOME
     SET_INPUT_PULLUP(HOME_PIN);
   #endif
+
+  #ifdef Z_ALWAYS_ON  
+    enable_Z();  
+  #endif    
 
   #if PIN_EXISTS(STAT_LED_RED)
     OUT_WRITE(STAT_LED_RED_PIN, LOW); // OFF
@@ -1111,11 +1170,17 @@ void setup() {
   #endif
 
   #if HAS_TRINAMIC && DISABLED(PS_DEFAULT_OFF)
-    test_tmc_connection(true, true, true, true);
+    #if ENABLED(PRUSA_DWARF)
+      test_tmc_connection(false, false, false, true); // we have the extruder only
+    #else
+      test_tmc_connection(true, true, true, true);
+    #endif
   #endif
 
-  #if ENABLED(PRUSA_MMU2)
-    mmu2.init();
+  #if HAS_TEMP_HEATBREAK_CONTROL
+    HOTEND_LOOP(){
+      thermalManager.setTargetHeatbreak(DEFAULT_HEATBREAK_TEMPERATURE, e);
+    }
   #endif
 }
 
@@ -1131,6 +1196,9 @@ void loop() {
 
   #if !ENABLED(MARLIN_DISABLE_INFINITE_LOOP)
   for (;;) {
+  #endif
+  #if !BOARD_IS_DWARF
+    Pause::Instance().finalize_user_stop();
   #endif
 
     idle(false); // Do an idle first so boot is slightly faster
@@ -1164,7 +1232,6 @@ void loop() {
     #endif // SDSUPPORT
 
     queue.advance();
-    endstops.event_handler();
 
   #if !ENABLED(MARLIN_DISABLE_INFINITE_LOOP)
   }

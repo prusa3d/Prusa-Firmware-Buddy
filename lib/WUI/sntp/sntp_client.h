@@ -12,4 +12,4 @@ void sntp_client_step(void);
 }
 #endif
 
-#endif //SNTP_HANDLE_H
+#endif // SNTP_HANDLE_H

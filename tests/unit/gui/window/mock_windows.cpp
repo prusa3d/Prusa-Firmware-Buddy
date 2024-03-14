@@ -6,8 +6,9 @@
 
 #include "mock_windows.hpp"
 #include "ScreenHandler.hpp"
+
 void MockScreen::ParrentCheck() const {
-    //check parrent
+    // check parrent
     REQUIRE(w_first.GetParent() == this);
     REQUIRE(w_last.GetParent() == this);
     REQUIRE(w0.GetParent() == this);
@@ -17,7 +18,7 @@ void MockScreen::ParrentCheck() const {
 }
 
 void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_dialog_cnt) const {
-    //check linked list
+    // check linked list
     REQUIRE(getFirstNormal() == &(w_first));
     REQUIRE(getLastNormal() == &(w_last));
     REQUIRE(getFirstNormal()->GetNext() == &(w0));
@@ -36,10 +37,10 @@ void MockScreen::LinkedListCheck(size_t popup_cnt, size_t dialog_cnt, size_t str
 }
 
 void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_dialog_cnt) const {
-    //check parrent
+    // check parrent
     ParrentCheck();
 
-    //check IsHiddenBehindDialog()
+    // check IsHiddenBehindDialog()
     REQUIRE_FALSE(w_first.IsHiddenBehindDialog());
     REQUIRE_FALSE(w_last.IsHiddenBehindDialog());
     REQUIRE_FALSE(w0.IsHiddenBehindDialog());
@@ -47,7 +48,7 @@ void MockScreen::BasicCheck(size_t popup_cnt, size_t dialog_cnt, size_t strong_d
     REQUIRE_FALSE(w2.IsHiddenBehindDialog());
     REQUIRE_FALSE(w3.IsHiddenBehindDialog());
 
-    //check linked list
+    // check linked list
     LinkedListCheck(popup_cnt, dialog_cnt, strong_dialog_cnt);
 }
 
@@ -58,7 +59,7 @@ Rect16 MockScreen::GetInvalidationRect() const {
 void MockScreen::checkPtrRange(window_t *&iter, size_t cnt, window_t *first, window_t *last) const {
     REQUIRE_FALSE(iter == nullptr);
     if (cnt) {
-        //not empty list
+        // not empty list
         REQUIRE_FALSE(first == nullptr);
         REQUIRE_FALSE(last == nullptr);
         REQUIRE(iter->GetNext() == first);
@@ -68,7 +69,7 @@ void MockScreen::checkPtrRange(window_t *&iter, size_t cnt, window_t *first, win
         }
         REQUIRE(iter == last);
     } else {
-        //empty list
+        // empty list
         REQUIRE(first == nullptr);
         REQUIRE(last == nullptr);
     }
@@ -78,7 +79,7 @@ window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreen, IDialog::IsStrong::yes) {
 }
 
-void window_dlg_strong_warning_t::setIcon(int16_t resId) {
+void window_dlg_strong_warning_t::setIcon(const img::Resource *res) {
 }
 
 void window_dlg_strong_warning_t::show(string_view_utf8 txt) {
@@ -91,9 +92,10 @@ void window_dlg_strong_warning_t::show(string_view_utf8 txt) {
 }
 
 void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (!GetParent())
+    if (!GetParent()) {
         return;
-    if (event == GUI_event_t::CLICK) { //todo use timer
+    }
+    if (event == GUI_event_t::CLICK) { // todo use timer
         GetParent()->UnregisterSubWin(*this);
     } else {
         SuperWindowEvent(sender, event, param);

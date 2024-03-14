@@ -1,0 +1,38 @@
+
+== `concepts.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/concepts.hpp[`concepts.hpp`]
+implements various https://en.cppreference.com/w/cpp/concepts[standard concepts]. In C++17 they are surfaced as compile-time
+boolean values.
+
+* https://en.cppreference.com/w/cpp/concepts/same_as[`same_as`]
+* https://en.cppreference.com/w/cpp/concepts/derived_from[`derived_from`]
+* https://en.cppreference.com/w/cpp/concepts/convertible_to[`convertible_to`]
+* https://en.cppreference.com/w/cpp/concepts/integral[`integral`]
+* https://en.cppreference.com/w/cpp/concepts/signed_integral[`signed_integral`]
+* https://en.cppreference.com/w/cpp/concepts/unsigned_integral[`unsigned_integral`]
+* https://en.cppreference.com/w/cpp/concepts/floating_point[`floating_point`]
+* https://en.cppreference.com/w/cpp/concepts/equality_comparable[`equality_comparable`]
+* https://en.cppreference.com/w/cpp/concepts/totally_ordered[`totally_ordered`]
+* https://en.cppreference.com/w/cpp/concepts/invocable[`invocable`]
+* https://en.cppreference.com/w/cpp/concepts/predicate[`predicate`]
+
+NOTE: For compatibility with the standard and with
+https://en.cppreference.com/w/cpp/types/is_base_of[`std::is_base_of`], a class
+is considered to be `derived_from` itself.
+
+Also one non-standard but useful concept: `callable`. `callable` is modelled by
+functions by and objects with `operator()`. In particular it is true for generic
+lambda expressions, where `operator()` is a function template.
+
+[source,cpp]
+----
+auto f() -> void {}
+static_assert(stdx::callable<decltype(f)>);
+
+auto lambda = [] (int i) { return i + 1; };
+static_assert(stdx::callable<decltype(lambda)>);
+
+auto generic_lambda = [] (auto i) { return i + 1; };
+static_assert(stdx::callable<decltype(generic_lambda)>);
+----

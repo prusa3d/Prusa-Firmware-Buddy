@@ -1,5 +1,4 @@
 #include "headers.h"
-#include "../../src/common/sha256.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -8,27 +7,30 @@
 
 #include <sys/stat.h>
 #include <inttypes.h> // PRIu* macros (not available in <cinttypes>)
+#include <mbedtls/sha256.h>
+
+using http::ConnectionHandling;
+using http::ContentType;
+using http::Status;
 
 namespace nhttp {
 
 namespace {
 
-    const char *authenticate_hdrs[] = {
-        "WWW-Authenticate: ApiKey realm=\"Printer API\"\r\n",
-        nullptr,
-    };
-
     const constexpr StatusText texts[] = {
         { Status::UnknownStatus, "???" },
         { Status::Ok, "OK" },
         { Status::Created, "Created" },
+        { Status::Accepted, "Accepted" },
         { Status::NoContent, "No Content" },
+        { Status::PartialContent, "Partial Content" },
         { Status::NotModified, "Not Modified" },
         { Status::BadRequest, "Bad Request" },
         { Status::Forbidden, "Forbidden" },
-        { Status::Unauthorized, "Unauthorized", authenticate_hdrs },
+        { Status::Unauthorized, "Unauthorized" },
         { Status::NotFound, "Not Found" },
         { Status::MethodNotAllowed, "Method Not Allowed" },
+        { Status::RequestTimeout, "Request Timeout" },
         { Status::Conflict, "Conflict" },
         { Status::LengthRequired, "Length Required" },
         { Status::UnsupportedMediaType, "Unsupported Media Type" },
@@ -36,41 +38,17 @@ namespace {
         { Status::PayloadTooLarge, "Payload Too Large" },
         { Status::UriTooLong, "URI Too Long" },
         { Status::UnprocessableEntity, "Unprocessable Entity" },
+        { Status::TooManyRequests, "Too Many Requests" },
         { Status::RequestHeaderFieldsTooLarge, "Request Header Fields Too Large" },
         { Status::InternalServerError, "Infernal Server Error" },
         { Status::NotImplemented, "Not Implemented" },
         { Status::ServiceTemporarilyUnavailable, "Service Temporarily Unavailable" },
+        { Status::GatewayTimeout, "Gateway Timeout" },
         { Status::InsufficientStorage, "Insufficient Storage" },
     };
 
     constexpr const size_t content_buffer_len = 128;
-
-    const char *content_type_string(ContentType content_type) {
-        switch (content_type) {
-        case ContentType::TextPlain:
-            return "text/plain";
-        case ContentType::TextHtml:
-            return "text/html; charset=utf-8";
-        case ContentType::TextCss:
-            return "text/css";
-        case ContentType::ImageIco:
-            return "image/vnd.microsoft.icon";
-        case ContentType::ImagePng:
-            return "image/png";
-        case ContentType::ImageSvg:
-            return "image/xml+svg";
-        case ContentType::ApplicationJavascript:
-            return "application/javascript";
-        case ContentType::ApplicationJson:
-            return "application/json";
-        case ContentType::ApplicationOctetStream:
-            return "application/octet-stream";
-        default:
-            assert(0);
-            return "application/octet-stream";
-        }
-    }
-}
+} // namespace
 
 const StatusText &StatusText::find(Status status) {
     for (const StatusText *t = texts; t < (texts + sizeof(texts) / sizeof(*texts)); t++) {
@@ -82,7 +60,7 @@ const StatusText &StatusText::find(Status status) {
     return *texts;
 }
 
-size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length, std::optional<uint32_t> etag, const char **extra_hdrs) {
+size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length, std::optional<uint32_t> etag, const char *const *extra_hdrs) {
     // Always leave space for the body-newline separator
     assert(buffer_len > 2);
     buffer_len -= 2;
@@ -95,7 +73,7 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
         "Connection: %s\r\n",
         static_cast<unsigned>(status),
         text.text,
-        content_type_string(content_type),
+        to_str(content_type),
         handling == ConnectionHandling::Close ? "close" : "keep-alive");
     // snprintf likes to return how much it _would_ print were there enough space.
     pos = std::min(buffer_len, pos);
@@ -103,11 +81,11 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
         pos += snprintf(buf + pos, buffer_len - pos, "Content-Length: %" PRIu64 "\r\n", *content_length);
         pos = std::min(buffer_len, pos);
     }
-    if (handling == ConnectionHandling::ChunkedKeep) {
+    if (handling == ConnectionHandling::ChunkedKeep && pos < buffer_len) {
         pos += snprintf(buf + pos, buffer_len - pos, "Transfer-Encoding: chunked\r\n");
         pos = std::min(buffer_len, pos);
     }
-    if (etag.has_value()) {
+    if (etag.has_value() && pos < buffer_len) {
         pos += snprintf(buf + pos, buffer_len - pos, "ETag: \"%" PRIu32 "\"\r\n", *etag);
         pos = std::min(buffer_len, pos);
     }
@@ -117,6 +95,7 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
         pos += copy;
     }
 
+    // That 2 fits, reserved at the top of the function.
     memcpy(buf + pos, "\r\n", 2);
     pos += 2;
     return pos;
@@ -177,4 +156,4 @@ uint32_t compute_etag(const struct stat &stat) {
     return result;
 }
 
-}
+} // namespace nhttp

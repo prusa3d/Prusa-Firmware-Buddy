@@ -18,4 +18,4 @@ public:
 
 extern const StaticFile static_file;
 
-}
+} // namespace nhttp::link_content

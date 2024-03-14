@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "types.h"
+#include <http/types.h>
 
 #include <cstdint>
 #include <optional>
@@ -20,15 +20,9 @@ namespace nhttp {
  */
 struct StatusText {
     /// The status.
-    Status status;
+    http::Status status;
     /// Text acompanied for the status.
     const char *text;
-    /**
-     * \brief Recommended extra headers for that status.
-     *
-     * Most have an empty list.
-     */
-    const char **extra_hdrs = nullptr;
 
     /**
      * \brief Performs a lookup of the text.
@@ -38,7 +32,7 @@ struct StatusText {
      * client is supposed to use the numeric code, but as it provides some
      * guidance to humans, it is still better to extend the lookup table.
      */
-    static const StatusText &find(Status status);
+    static const StatusText &find(http::Status status);
 };
 
 /**
@@ -54,7 +48,7 @@ struct StatusText {
  *
  * The body separator (two lines) is included.
  */
-size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length = std::nullopt, std::optional<uint32_t> etag = std::nullopt, const char **extra_hdrs = nullptr);
+size_t write_headers(uint8_t *buffer, size_t buffer_len, http::Status status, http::ContentType content_type, http::ConnectionHandling handling, std::optional<uint64_t> content_length = std::nullopt, std::optional<uint32_t> etag = std::nullopt, const char *const *extra_hdrs = nullptr);
 
 /**
  * \brief Makes a guess about a content type based on a file extension.
@@ -64,11 +58,11 @@ size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentT
  *
  * If it is not recognized, application/octet-stream is used as fallback.
  */
-ContentType guess_content_by_ext(const char *fname);
+http::ContentType guess_content_by_ext(const char *fname);
 
 /**
  * \brief Compute an etag for the given file.
  */
 uint32_t compute_etag(const struct stat &stat);
 
-}
+} // namespace nhttp

@@ -1,5 +1,5 @@
 """Generate bin file for boolader."""
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Action
 from os.path import splitext
 from hashlib import sha256
 from enum import Enum
@@ -26,7 +26,11 @@ SemVer = namedtuple('SemVer',
 
 
 class PrinterType(Enum):
+    MK4 = 1
     MINI = 2
+    XL = 3
+    iX = 4
+    MK3point5 = 5
 
 
 class TLVType(Enum):
@@ -38,6 +42,11 @@ class TLVType(Enum):
     RESOURCES_IMAGE_BLOCK_SIZE = 2  # Block size used by the image in RESOURCES_IMAGE (uint32_t, little endian)
     RESOURCES_IMAGE_BLOCK_COUNT = 3  # Block count used by the image in RESOURCES_IMAGE (uint32_t, little endian)
     RESOURCES_IMAGE_HASH = 4  # SHA256 of the RESOURCES_IMAGE entry content
+
+    RESOURCES_BOOTLOADER_IMAGE = 5  # Littlefs image containing bootloader.bin in the root
+    RESOURCES_BOOTLOADER_IMAGE_BLOCK_SIZE = 6  # Block size used by the image in RESOURCES_BOOTLOADER_IMAGE (uint32_t, little endian)
+    RESOURCES_BOOTLOADER_IMAGE_BLOCK_COUNT = 7  # Block count used by the image in RESOURCES_BOOTLOADER_IMAGE (uint32_t, little endian)
+    RESOURCES_BOOTLOADER_IMAGE_HASH = 8  # SHA256 of the RESOURCES_BOOTLOADER_IMAGE content
 
     @staticmethod
     def from_user_spec(spec: str) -> int:
@@ -98,8 +107,16 @@ def write_version(ver, *, build_number: int):
     return data
 
 
+class ExtendAction(Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        items = getattr(namespace, self.dest) or []
+        items.extend(values)
+        setattr(namespace, self.dest, items)
+
+
 def main():
     parser = ArgumentParser(description=__doc__)
+    parser.register('action', 'extend', ExtendAction)
     # yapf: disable
     parser.add_argument(
         "firmware", type=str,
@@ -131,8 +148,17 @@ def main():
         "-V", "--printer-version", type=int, required=True,
         help="Printer version of printer type.")
     parser.add_argument(
+        "--printer-subversion", type=int, required=True,
+        help="Printer subversion of printer type.")
+    parser.add_argument(
         "--tlv", type=str,
-        help='TLV data (TYPE:FILE format)', nargs='*', default=[])
+        help='TLV data (TYPE:FILE format)', action='extend', nargs='*', default=[])
+    parser.add_argument(
+        "--bbf-version", type=int, required=False, default=1,
+        help="Version of the BBF. 0: original first version, 1: version with TLV extension")
+    parser.add_argument(
+        "--output-file", type=str,
+        help="Optional filepath of the final generated bbf")
     parser.add_argument('-TCI', '--TCI', action='store_true', required=False,
         help='evoked from Travis script')
     # yapf: enable
@@ -142,6 +168,7 @@ def main():
     check_byte(args.board, "Board major version")
     printer_type = PrinterType(args.printer_type)  # could raise ValueError
     check_byte(args.printer_version, "Printer type version")
+    check_byte(args.printer_subversion, "Printer type subversion")
     fw_file = splitext(args.firmware)[0]
     if args.build_number is not None:
         build_number = args.build_number
@@ -158,8 +185,15 @@ def main():
                                   build_number=build_number)  # 10 bytes
         bin_data += args.board.to_bytes(1, 'little')
         bin_data += printer_type.value.to_bytes(1, 'little')
-        bin_data += args.printer_version.to_bytes(1, 'little')
-        bin_data += bytes(463)  # aligmnent to 512B (32B for SHA)
+        if args.bbf_version == 1:
+            bin_data += args.printer_version.to_bytes(1, 'little')
+            bin_data += args.printer_subversion.to_bytes(1, 'little')
+            bin_data += bytes(1)
+        elif args.bbf_version == 2:
+            bin_data += args.bbf_version.to_bytes(1, 'little')
+            bin_data += args.printer_subversion.to_bytes(1, 'little')
+            bin_data += args.printer_version.to_bytes(1, 'little')
+        bin_data += bytes(461)  # aligmnent to 512B (32B for SHA)
 
     if version.prerelease:
         fmt = "\tversion:  {v.major}.{v.minor}.{v.patch}-{v.prerelease}+{bn}"
@@ -170,6 +204,8 @@ def main():
     printer_name = printer_type.name
     if args.printer_version > 1:
         printer_name += "%s" % args.printer_version
+    if args.printer_subversion > 0:
+        printer_name += ".%s" % args.printer_subversion
 
     print("\tboard: %d" % args.board)
     print("\tprinter: %s" % printer_name)
@@ -181,6 +217,7 @@ def main():
 
     # TLV Data
     for tlv in args.tlv:
+        assert args.bbf_version >= 2, "TLV extension is supported starting with BBF version 2"
         tlv_entry = tlv.split(":", maxsplit=1)
         assert len(tlv_entry) == 2, "For -tlv use format TYPE:FILE"
         type = TLVType.from_user_spec(tlv_entry[0])
@@ -208,7 +245,7 @@ def main():
     print("\tsign:     ", sig.hex())
 
     # Bootloader Binary File / Firmware
-    with open("%s.bbf" % fw_file, "wb") as bbf:
+    with open(args.output_file or "%s.bbf" % fw_file, "wb") as bbf:
         bbf.write(sig)
         bbf.write(sha.digest())
         bbf.write(bin_data)

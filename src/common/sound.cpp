@@ -1,64 +1,159 @@
 #include "sound.hpp"
 #include "hwio.h"
-#include "eeprom.h"
+#include <config_store/store_instance.hpp>
 
-static bool SOUND_INIT = false;
-
-/// main constant of main volume which is maximal volume that we allow
-const float Sound::volumeInit = 0.35F;
-
-/// durations of signals in ms
-// const int16_t Sound::durations[eSOUND_TYPE::count] = { 100, 500, 200, 500,
-// 10, 50, 100, 800, 100 };
-/// frequency of signals in ms
-const float Sound::frequencies[eSOUND_TYPE::count] = { 900.F, 600.F, 950.F,
-    999.F, 800.F, 500.F, 999.F, 950.F, 800.F };
-/// volumes of signals in ms
-const float Sound::volumes[eSOUND_TYPE::count] = {
-    Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit,
-    0.175F, 0.175F, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit
+struct SoundPattern {
+    int8_t repeat; /// signals repeats - how many times will sound signals repeat (-1 is infinite)
+    int16_t delay; /// delays for repeat sounds (ms)
+    int16_t duration; /// durations for sound modes
 };
-/// forced types of sounds - mainly for ERROR sounds. Ignores volume settings.
-const bool Sound::forced[eSOUND_TYPE::count] = { false, false, false, true, false, false, false, false, false };
 
-/// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
-const eSOUND_TYPE Sound::onceTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
-    eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep,
-    eSOUND_TYPE::WaitingBeep };
-const eSOUND_TYPE Sound::loudTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
-    eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::CriticalAlert,
-    eSOUND_TYPE::SingleBeep, eSOUND_TYPE::WaitingBeep };
-const eSOUND_TYPE Sound::silentTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::StandardAlert,
-    eSOUND_TYPE::CriticalAlert };
-const eSOUND_TYPE Sound::assistTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
-    eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::EncoderMove,
-    eSOUND_TYPE::BlindAlert, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep,
-    eSOUND_TYPE::WaitingBeep };
+static constexpr SoundPattern SILENCE = { 0, 0, 0 };
 
-/// signals repeats - how many times will sound signals repeat (-1 is infinite)
-const int8_t Sound::onceRepeats[] = { 1, 1, 1, -1, 1, 1 };
-const int8_t Sound::loudRepeats[] = { 1, 1, -1, 3, -1, 1, -1 };
-const int8_t Sound::silentRepeats[] = { 1, 1, -1 };
-const int8_t Sound::assistRepeats[] = { 1, 1, -1, 3, 1, 1, -1, 1, -1 };
+struct SoundSettings {
+    SoundPattern once;
+    SoundPattern loud;
+    SoundPattern silent;
+    SoundPattern assist;
+    float frequency; /// frequency of signals in ms
+    float volume; /// volumes of signals in ms
+    bool forced; /// forced types of sounds - mainly for ERROR sounds. Ignores volume settings.
 
-/// delays for repeat sounds (ms)
-const int16_t Sound::onceDelays[] = { 1, 1, 1, 250, 1 };
-const int16_t Sound::loudDelays[] = { 1, 1, 1, 1, 250, 1, 2000 };
-const int16_t Sound::silentDelays[] = { 1, 1, 250 };
-const int16_t Sound::assistDelays[] = { 1, 1, 1, 1, 1, 1, 250, 1, 2000 };
-
-/// durations for sound modes
-const int16_t Sound::onceDurations[] = {
-    100, 100, 500, 500, 800, 800
+    const SoundPattern &pattern(eSOUND_MODE mode) const {
+        switch (mode) {
+        case eSOUND_MODE::ONCE:
+            return once;
+        case eSOUND_MODE::LOUD:
+            return loud;
+        case eSOUND_MODE::SILENT:
+            return silent;
+        case eSOUND_MODE::ASSIST:
+            return assist;
+        default:
+            bsod("sound pattern");
+        }
+    }
 };
-const int16_t Sound::loudDurations[] = {
-    100, 100, 500, 200, 500, 800, 100
+
+struct AllSoundSettings {
+    SoundSettings button_echo;
+    SoundSettings standard_prompt;
+    SoundSettings standard_alert;
+    SoundSettings critical_alert;
+    SoundSettings encoder_move;
+    SoundSettings blind_alert;
+    SoundSettings start;
+    SoundSettings single_beep;
+    SoundSettings waiting_beep;
+
+    const SoundSettings &settings(eSOUND_TYPE type) const {
+        switch (type) {
+        case eSOUND_TYPE::ButtonEcho:
+            return button_echo;
+        case eSOUND_TYPE::StandardPrompt:
+            return standard_prompt;
+        case eSOUND_TYPE::StandardAlert:
+            return standard_alert;
+        case eSOUND_TYPE::CriticalAlert:
+            return critical_alert;
+        case eSOUND_TYPE::EncoderMove:
+            return encoder_move;
+        case eSOUND_TYPE::BlindAlert:
+            return blind_alert;
+        case eSOUND_TYPE::Start:
+            return start;
+        case eSOUND_TYPE::SingleBeep:
+            return single_beep;
+        case eSOUND_TYPE::WaitingBeep:
+            return waiting_beep;
+        default:
+            bsod("sound pattern");
+        }
+    }
 };
-const int16_t Sound::silentDurations[] = {
-    100, 200, 500
-};
-const int16_t Sound::assistDurations[] = {
-    100, 100, 500, 200, 10, 50, 500, 800, 100
+
+static constexpr AllSoundSettings all_sound_settings = {
+    .button_echo = {
+        .once = { 1, 1, 100 },
+        .loud = { 1, 1, 100 },
+        .silent = SILENCE,
+        .assist = { 1, 1, 100 },
+        .frequency = 900.F,
+        .volume = Sound::volumeInit,
+        .forced = false,
+    },
+    .standard_prompt = {
+        .once = { 1, 1, 500 },
+        .loud = { -1, 1, 500 },
+        .silent = SILENCE,
+        .assist = { -1, 1, 500 },
+        .frequency = 600.F,
+        .volume = Sound::volumeInit,
+        .forced = false,
+    },
+    .standard_alert = {
+        .once = SILENCE,
+        .loud = { 3, 1, 200 },
+        .silent = { 1, 1, 200 },
+        .assist = { 3, 1, 200 },
+        .frequency = 950.F,
+        .volume = Sound::volumeInit,
+        .forced = false,
+    },
+    .critical_alert = {
+        .once = { -1, 250, 500 },
+        .loud = { -1, 250, 500 },
+        .silent = { -1, 250, 500 },
+        .assist = { -1, 250, 500 },
+        .frequency = 999.F,
+        .volume = Sound::volumeInit,
+        .forced = true,
+    },
+    .encoder_move = {
+        .once = SILENCE,
+        .loud = SILENCE,
+        .silent = SILENCE,
+        .assist = { 1, 1, 10 },
+        .frequency = 800.F,
+        .volume = 0.175F,
+        .forced = false,
+    },
+    .blind_alert = {
+        .once = SILENCE,
+        .loud = SILENCE,
+        .silent = SILENCE,
+        .assist = { 1, 1, 50 },
+        .frequency = 500.F,
+        .volume = 0.175F,
+        .forced = false,
+    },
+    .start = {
+        .once = { 1, 1, 100 },
+        .loud = { 1, 1, 100 },
+        .silent = { 1, 1, 100 },
+        .assist = { 1, 1, 100 },
+        .frequency = 999.F,
+        .volume = Sound::volumeInit,
+        .forced = false,
+    },
+    .single_beep = {
+        .once = { 1, 1, 800 },
+        .loud = { 1, 1, 800 },
+        .silent = SILENCE,
+        .assist = { 1, 1, 800 },
+        .frequency = 950.F,
+        .volume = Sound::volumeInit,
+        .forced = false,
+    },
+    .waiting_beep = {
+        .once = { 1, 1, 800 },
+        .loud = { -1, 2000, 100 },
+        .silent = SILENCE,
+        .assist = { -1, 2000, 100 },
+        .frequency = 800.F,
+        .volume = Sound::volumeInit,
+        .forced = false,
+    },
 };
 
 eSOUND_MODE Sound_GetMode() { return Sound::getInstance().getMode(); }
@@ -68,41 +163,24 @@ void Sound_SetVolume(int volume) { Sound::getInstance().setVolume(volume); }
 void Sound_Play(eSOUND_TYPE eSoundType) { Sound::getInstance().play(eSoundType); }
 void Sound_Stop() { Sound::getInstance().stop(); }
 void Sound_Update1ms() {
-    if (SOUND_INIT) {
-        Sound::getInstance().update1ms();
-    }
+    Sound::getInstance().update1ms();
 }
 
 /*!
  * Sound signals implementation
  * Simple sound implementation supporting few sound modes and having different sound types.
  * [Sound] is updated every 1ms with tim14 tick from [appmain.cpp] for measured durations of sound signals for non-blocking GUI.
- * Beeper is controled over [hwio_buddy_2209_02.c] functions for beeper.
+ * Beeper is controlled over [hwio_buddy_2209_02.c] functions for beeper.
  */
-Sound::Sound()
-    : duration_active(0)
-    , duration_set(0)
-    , repeat(0)
-    , frequency(100.F)
-    , volume(volumeInit)
-    , delay_active(0)
-    , delay_set(100) {
-    init();
-}
 
-/*!
- * Initialization of Singleton Class needs to be AFTER eeprom initialization.
- * [soundInit] is getting stored EEPROM value of his sound mode.
- * [soundInit] sets global variable [SOUND_INIT] for safe update method([soundUpdate1ms]) because tim14 tick update method is called before [eeprom.c] is initialized.
- */
-void Sound::init() {
-    eSoundMode = static_cast<eSOUND_MODE>(eeprom_get_ui8(EEVAR_SOUND_MODE));
-    if (eSoundMode == eSOUND_MODE::UNDEF) {
-        setMode(eSOUND_MODE::DEFAULT_SOUND);
+void Sound::restore_from_eeprom() {
+    // Restore mode
+    eSOUND_MODE eeprom_mode = config_store().sound_mode.get();
+    if (eeprom_mode <= eSOUND_MODE::_last) {
+        setMode(eeprom_mode);
     }
-    varVolume = real_volume(eeprom_get_ui8(EEVAR_SOUND_VOLUME));
-    /// GLOBAL FLAG set on demand when first sound method is called
-    SOUND_INIT = true;
+    // Restore volume
+    varVolume = real_volume(config_store().sound_volume.get());
 }
 
 eSOUND_MODE Sound::getMode() const {
@@ -121,12 +199,12 @@ void Sound::setVolume(int vol) {
 
 /// Store new Sound mode value into a EEPROM. Stored value size is 1byte
 void Sound::saveMode() {
-    eeprom_set_ui8(EEVAR_SOUND_MODE, (uint8_t)eSoundMode);
+    config_store().sound_mode.set(eSoundMode);
 }
 
 /// Store new Sound VOLUME value into a EEPROM.
 void Sound::saveVolume() {
-    eeprom_set_ui8(EEVAR_SOUND_VOLUME, displayed_volume(varVolume));
+    config_store().sound_volume.set(displayed_volume(varVolume));
 }
 
 /// [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode
@@ -138,15 +216,11 @@ void Sound::stop() {
     delay_active = 0;
 }
 
-void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
-    const int8_t repeats[], const int16_t durations[], const int16_t delays[], unsigned size) {
-    for (unsigned i = 0; i < size; i++) {
-        eSOUND_TYPE type = types[i];
-        if (type == sound) {
-            _sound(repeats[i], frequencies[(size_t)type],
-                durations[i], delays[i], volumes[(size_t)type], forced[(size_t)type]);
-            break;
-        }
+void Sound::_playSound(eSOUND_TYPE type, eSOUND_MODE mode) {
+    const SoundSettings &settings = all_sound_settings.settings(type);
+    const SoundPattern &pattern = settings.pattern(mode);
+    if (pattern.duration) {
+        _sound(pattern.repeat, settings.frequency, pattern.duration, pattern.delay, settings.volume, settings.forced);
     }
 }
 
@@ -155,38 +229,40 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
  * Every mode handle just his own signal types.
  */
 void Sound::play(eSOUND_TYPE eSoundType) {
-    int t_size = 0;
-    switch (eSoundMode) {
+    eSOUND_MODE mode = eSoundMode;
+
+    if (eSoundType == eSOUND_TYPE::CriticalAlert) {
+        mode = eSOUND_MODE::LOUD;
+    }
+
+    switch (mode) {
     case eSOUND_MODE::ONCE:
-        t_size = sizeof(onceTypes) / sizeof(onceTypes[0]);
-        _playSound(eSoundType, onceTypes, onceRepeats, onceDurations, onceDelays, t_size);
-        break;
     case eSOUND_MODE::SILENT:
-        t_size = sizeof(silentTypes) / sizeof(silentTypes[0]);
-        _playSound(eSoundType, silentTypes, silentRepeats, silentDurations, silentDelays, t_size);
-        break;
     case eSOUND_MODE::ASSIST:
-        t_size = sizeof(assistTypes) / sizeof(assistTypes[0]);
-        _playSound(eSoundType, assistTypes, assistRepeats, assistDurations, assistDelays, t_size);
-        break;
     case eSOUND_MODE::LOUD:
+        _playSound(eSoundType, mode);
+        break;
     default:
-        t_size = sizeof(loudTypes) / sizeof(loudTypes[0]);
-        _playSound(eSoundType, loudTypes, loudRepeats, loudDurations, loudDelays, t_size);
+        _playSound(eSoundType, eSOUND_MODE::LOUD);
         break;
     }
 }
 
 /// Generic [_sound] method with setting values and repeating logic
-void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f) {
+void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, [[maybe_unused]] float vol, bool f) {
     /// forced non-repeat sounds - can be played when another
     /// repeating sound is playing
     float tmpVol;
+
+#if BOARD_IS_BUDDY
     if (varVolume > 1) {
         tmpVol = 1.F;
     } else {
         tmpVol = f ? 0.3F : (vol * varVolume) * 0.3F;
     }
+#else
+    tmpVol = f ? volumeInit : varVolume;
+#endif
     if (rep == 1) {
         singleSound(frq, dur, tmpVol);
     } else {
@@ -201,13 +277,15 @@ void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool
         duration_set = dur;
         delay_set = del;
         volume = tmpVol;
+#ifdef _DEBUG
         /// for BSOD debugging
         if (eSoundMode == eSOUND_MODE::DEBUG) {
             volume = 0;
         }
+#endif
 
         /// end previous beep
-        hwio_beeper_set_pwm(0, 0);
+        hwio_beeper_notone();
         nextRepeat();
     }
 }
@@ -224,18 +302,26 @@ void Sound::nextRepeat() {
 }
 
 float Sound::real_volume(int displayed_volume) {
+#if BOARD_IS_BUDDY
     return displayed_volume == 11 ? displayed_volume : displayed_volume / 10.F;
+#else
+    return displayed_volume == 0 ? 0 : 1.51F - displayed_volume / 2.F;
+#endif
 }
 
 uint8_t Sound::displayed_volume(float real_volume) {
+#if BOARD_IS_BUDDY
     return real_volume > 1.1F ? real_volume : real_volume * 10.F;
+#else
+    return real_volume == 0 ? 0 : -(real_volume - 1.51F) * 2.F;
+#endif
 }
 
 /// starts single sound when it's not playing another
 /// this is usable when some infinitely repeating sound is playing.
 void Sound::singleSound(float frq, int16_t dur, float vol) {
     if (duration_active <= 0) {
-        hwio_beeper_set_pwm(0, 0);
+        hwio_beeper_notone();
         hwio_beeper_tone2(frq, dur, vol);
     }
 }

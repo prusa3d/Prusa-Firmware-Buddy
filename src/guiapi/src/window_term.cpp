@@ -17,8 +17,9 @@ window_term_t::window_term_t(window_t *parent, point_i16_t pt, uint8_t *buff, si
 void window_term_t::unconditionalDraw() {
     if (term.flg & TERM_FLG_CHANGED) {
         render_term(&term, Left(), Top(), font, GetBackColor(), color_text);
-    } else
+    } else {
         super::unconditionalDraw();
+    }
 }
 
 int window_term_t::Printf(const char *fmt, ...) {
@@ -30,8 +31,9 @@ int window_term_t::Printf(const char *fmt, ...) {
     va_end(va);
 
     const size_t range = std::min(ret, TERM_PRINTF_MAX);
-    for (size_t i = 0; i < range; i++)
+    for (size_t i = 0; i < range; i++) {
         term_write_char(&term, text[i]);
+    }
 
     Invalidate();
     return ret;
@@ -51,15 +53,16 @@ void render_term(term_t *pterm, size_t x, size_t y, const font_t *font, color_t 
         uint8_t msk = 0x01;
         uint8_t c;
         int i = 0;
-        for (uint8_t r = 0; r < pterm->rows; ++r)
+        for (uint8_t r = 0; r < pterm->rows; ++r) {
             for (c = 0; c < pterm->cols; ++c) {
                 if ((*pm) & msk) {
-                    //character is followed by attribute
+                    // character is followed by attribute
                     uint8_t ch = *(pb++);
-                    pb++; //uint8_t attr = *(pb++);
+                    pb++; // uint8_t attr = *(pb++);
                     display::DrawChar(point_ui16(x + c * char_w, y + r * char_h), ch, font, color_back, color_text);
-                } else
+                } else {
                     pb += 2;
+                }
                 i++;
                 msk <<= 1;
                 if ((i & 7) == 0) {
@@ -68,5 +71,6 @@ void render_term(term_t *pterm, size_t x, size_t y, const font_t *font, color_t 
                     msk = 0x01;
                 }
             }
+        }
     }
 }

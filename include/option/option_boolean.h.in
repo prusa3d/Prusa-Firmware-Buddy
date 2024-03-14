@@ -1,0 +1,11 @@
+#pragma once
+
+#define ${OPTION_NAME}() ${OPTION_ENABLED}
+
+#ifdef __cplusplus
+
+namespace option {
+    inline constexpr bool ${OPTION_NAME_lowered} = ${OPTION_ENABLED};
+}
+
+#endif

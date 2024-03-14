@@ -272,7 +272,7 @@ TEST_CASE("memory layout", "[variant8][.]") {
     REQUIRE(sizeof(origin_variant) == 8);
     REQUIRE(sizeof(new_variant) == 8);
 
-    //const size_t bench_count = 100000ul;
+    // const size_t bench_count = 100000ul;
 
     // BENCHMARK("access origin a") {
     //     uint8_t l = 0;

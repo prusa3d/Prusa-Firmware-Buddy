@@ -9,7 +9,7 @@
 #include <map>
 #include <set>
 #include "hash.hpp"
-#include "unaccent.hpp"
+#include "fnt-indices.hpp"
 #include "provider.h"
 
 #define CHECK_MESSAGE(cond, msg) \
@@ -35,7 +35,7 @@ const TPBSH::BucketRange hash_table_ForComparison[TPBSH::Buckets()] =
 #include "hash_table_string_indices.ipp"
 
         constexpr size_t maxStringBegins = TPBSH::MaxStrings();
-constexpr size_t maxUtf8Raw = 16384;
+constexpr size_t maxUtf8Raw = 100000;
 
 /// just like the StringTableCS, but without const data - to be able to fill them during testing at runtime
 struct StringTableCSTest {
@@ -346,16 +346,14 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     CompareProviders(&providerIT, "it");
     CompareProviders(&providerPL, "pl");
 
-    // @@TODO Things to check
-    // 1. Check the content of generated non-ascii-chars - to see, if we have enough font bitmaps
+    // Check the content of generated non-ascii-chars - to see, if we have enough font bitmaps
 
     {
-        for_each(nonASCIICharacters.begin(), nonASCIICharacters.end(), [/*&f, &fr*/](unichar c) {
+        for_each(nonASCIICharacters.begin(), nonASCIICharacters.end(), [](unichar c) {
             // with accents, we don't need the unaccent table anymore
             // but is important for character generation (newly added characters)
             // check, that we have this character in our temporary translation table
-            const auto &cASCII = UnaccentTable::Utf8RemoveAccents(c);
-            CHECK_MESSAGE(cASCII.key != 0xffff, "Missing char ord=0x" << std::hex << c);
+            CHECK_MESSAGE(NonASCIICharKnown(c), "Missing char ord=0x" << std::hex << c);
         });
     }
 }

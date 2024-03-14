@@ -8,57 +8,75 @@
 #pragma once
 
 #include <stdbool.h>
+#include <bitset>
 
+#include "filename_defs.h"
 #include "window.hpp"
 #include "display_helper.h"
-#include "lazyfilelist.h"
+#include "lazyfilelist.hpp"
 #include "text_roll.hpp"
 #include "WindowMenuItems.hpp"
-
-static constexpr size_t LazyDirViewSize = 9; //cannot be calculated, font is not constexpr
-using LDV9 = LazyDirView<LazyDirViewSize>;
+#include "GuiDefaults.hpp"
+#include <array>
 
 // This enum value is stored to eeprom as file sort settings
 typedef enum {
     WF_SORT_BY_TIME,
     WF_SORT_BY_NAME
-
 } WF_Sort_t;
 
-extern WF_Sort_t screen_filebrowser_sort;
+class GuiFileSort {
+    WF_Sort_t sort;
 
-inline LDV9 *LDV_Get(void) {
-    static LDV9 ldv;
-    return &ldv;
-}
+    GuiFileSort();
+    GuiFileSort(const GuiFileSort &) = delete;
+    static GuiFileSort &instance();
+
+public:
+    static WF_Sort_t Get();
+    static void Set(WF_Sort_t val);
+};
 
 class FL_LABEL : public WI_LABEL_t {
 public:
-    FL_LABEL(string_view_utf8 label, uint16_t id_icon)
-        : WI_LABEL_t(label, id_icon, is_enabled_t::yes, is_hidden_t::no) {}
+    FL_LABEL(string_view_utf8 label, const img::Resource *icon)
+        : WI_LABEL_t(label, icon, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
-    virtual void click(IWindowMenu &window_menu) {}
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
 };
 
-struct window_file_list_t : public window_aligned_t {
-    color_t color_text;
-    font_t *font;
-    padding_ui8_t padding;
-    txtroll_t roll;
-    int count;                           // total number of files/entries in a dir
-    int index;                           // selected index - cursor position within the visible items
-    LDV9 *ldv;                           // I'm a C-pig and I need a pointer to my LazyDirView class instance ... subject to change when this gets rewritten to C++
-    char sfn_path[FILE_PATH_BUFFER_LEN]; // this is a Short-File-Name path where we start the file dialog
-    static char *root;                   // this is a Short-File-Name path to the root of the dialog
-    window_file_list_t(window_t *parent, Rect16 rect);
-    void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
+class window_file_list_t : public AddSuperWindow<IWindowMenu> {
 
 public:
-    void SetItemIndex(int index);
+    static constexpr int max_max_items_on_screen = GuiDefaults::FileBrowserRect.Height() / item_height();
+    using LDV = LazyDirView<max_max_items_on_screen>;
+
+public:
+    inline int item_count() const final {
+        return item_count_;
+    }
+
+public: // Scroll stuff
+    void set_scroll_offset(int set) final;
+
+public: // Focus stuff
+    std::optional<int> focused_item_index() const final;
+
+    bool move_focus_to_index(std::optional<int> index) final;
+
+    [[nodiscard]] bool is_return_slot(const int slot) const;
+
+public:
+    // TODO private
+    char sfn_path[FILE_PATH_BUFFER_LEN]; // this is a Short-File-Name path where we start the file dialog
+public:
+    window_file_list_t(window_t *parent, Rect16 rc); // height is calculated from LazyDirViewSize
+    void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
+
     const char *TopItemSFN();
-    const char *CurrentLFN(bool *isFile);
-    const char *CurrentSFN(bool *isFile);
+    const char *CurrentLFN(bool *isFile = nullptr) const;
+    const char *CurrentSFN(bool *isFile = nullptr) const;
     static void SetRoot(char *rootPath);
 
     /// @return true if path is either empty or contains just a "/"
@@ -67,8 +85,32 @@ public:
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
-private:
+    virtual void invalidate(Rect16 validation_rect) override;
+    void invalidate_slot(std::optional<int> slot);
+    void invalidate_all_slots();
+
+    virtual void validate(Rect16 validation_rect) override;
+
     virtual void unconditionalDraw() override;
-    void inc(int dif);   ///< negative values move cursor in opposite direction
-    FL_LABEL activeItem; ///< used for text rolling
+    string_view_utf8 itemText(int slot) const;
+    const img::Resource *itemIcon(int slot) const;
+
+protected:
+    LDV ldv;
+    static char *root; // this is a Short-File-Name path to the root of the dialog
+
+    color_t color_text = GuiDefaults::ColorText;
+    font_t *font;
+
+    int item_count_; ///< total number of files/entries in a dir
+    std::optional<int> focused_index_; // selected index - cursor position within the visible items
+
+    std::bitset<max_max_items_on_screen> valid_slots;
+
+    /// We usually want to avoid painting background, because it fills the whole menu rect, which is very inefficient.
+    bool should_paint_background = true;
+
+protected:
+    FL_LABEL focused_item_delegate; ///< used for text rolling
+    MI_RETURN return_item_delegate; ///< used for return item
 };

@@ -31,6 +31,8 @@
 #include "../sd/cardreader.h"
 #include "temperature.h"
 #include "../lcd/ultralcd.h"
+#include <option/has_loadcell.h>
+#include <option/has_toolchanger.h>
 
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
   #include HAL_PATH(../HAL, endstop_interrupts.h)
@@ -52,6 +54,10 @@
   #include "Z_probe.hpp"
 #endif
 
+#if HAS_LOADCELL()
+  #include "loadcell.hpp"
+#endif
+
 Endstops endstops;
 
 // private:
@@ -67,7 +73,11 @@ Endstops::esbits_t Endstops::live_state = 0;
 #endif
 
 #if HAS_BED_PROBE
-  volatile bool Endstops::z_probe_enabled = false;
+  std::atomic<bool> Endstops::z_probe_enabled { false };
+#endif
+
+#ifdef PRUSA_TOOLCHANGER
+  std::atomic<bool> Endstops::xy_probe_enabled { false };
 #endif
 
 // Initialized by settings.load()
@@ -87,7 +97,7 @@ Endstops::esbits_t Endstops::live_state = 0;
 #if ENABLED(SPI_ENDSTOPS)
   Endstops::tmc_spi_homing_t Endstops::tmc_spi_homing; // = 0
 #endif
-#if ENABLED(IMPROVE_HOMING_RELIABILITY)
+#if ENABLED(IMPROVE_HOMING_RELIABILITY) && HOMING_SG_GUARD_DURATION > 0
   millis_t sg_guard_period; // = 0
 #endif
 
@@ -284,6 +294,17 @@ void Endstops::poll() {
   #elif ENDSTOP_NOISE_THRESHOLD
     if (endstop_poll_count) update();
   #endif
+
+  // Call Loadcell::HomingSafetyCheck when homing (safeguard to stop homing when loadcell samples stop comming)
+  #if HAS_LOADCELL()
+  bool is_homing = z_probe_enabled;
+  #if HAS_TOOLCHANGER()
+  is_homing = is_homing || xy_probe_enabled;
+  #endif
+  if (is_homing) {
+    loadcell.HomingSafetyCheck();
+  }
+  #endif
 }
 
 void Endstops::enable_globally(const bool onoff) {
@@ -297,7 +318,7 @@ void Endstops::enable(const bool onoff) {
   resync();
 }
 
-// Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
+// Disable / Enable endstops based on ENDSTOPS_ONLY_FOR_HOMING and global enable
 void Endstops::not_homing() {
   enabled = enabled_globally;
 }
@@ -314,6 +335,14 @@ void Endstops::not_homing() {
 #if HAS_BED_PROBE
   void Endstops::enable_z_probe(const bool onoff) {
     z_probe_enabled = onoff;
+    resync();
+  }
+#endif
+
+// Enable / disable endstop xy-probe checking
+#ifdef PRUSA_TOOLCHANGER
+  void Endstops::enable_xy_probe(const bool onoff) {
+    xy_probe_enabled = onoff;
     resync();
   }
 #endif
@@ -399,7 +428,7 @@ static void print_es_state(const bool is_hit, PGM_P const label=nullptr) {
   SERIAL_EOL();
 }
 
-void _O2 Endstops::M119() {
+void __O2 Endstops::M119() {
   #if ENABLED(BLTOUCH)
     bltouch._set_SW_mode();
   #endif
@@ -730,6 +759,29 @@ void Endstops::update() {
     }
   }
 
+// Handle XY probing
+#if BOARD_IS_XLBUDDY
+  // TODO: This does not clean the endstop bits on xy_probe disable. It cannot as it might clear the real endstops.
+  // The hit_on_purpose is supposed to be called cleaning the bits.
+  if(stepper.axis_is_moving(X_AXIS)) {
+    if(xy_probe_enabled) {
+      SET_BIT_TO(live_state, _ENDSTOP(X, MIN), READ(MARLIN_PIN(XY_PROBE)) != XY_PROBE_ENDSTOP_INVERTING && stepper.motor_direction(X_AXIS_HEAD));
+      PROCESS_ENDSTOP(X, MIN);
+      SET_BIT_TO(live_state, _ENDSTOP(X, MAX), READ(MARLIN_PIN(XY_PROBE)) != XY_PROBE_ENDSTOP_INVERTING && !stepper.motor_direction(X_AXIS_HEAD));
+      PROCESS_ENDSTOP(X, MAX);
+    }
+  }
+  if(stepper.axis_is_moving(Y_AXIS)) {
+    if(xy_probe_enabled) {
+      SET_BIT_TO(live_state, _ENDSTOP(Y, MIN), READ(MARLIN_PIN(XY_PROBE)) != XY_PROBE_ENDSTOP_INVERTING && stepper.motor_direction(Y_AXIS_HEAD));
+      PROCESS_ENDSTOP(Y, MIN);
+      SET_BIT_TO(live_state, _ENDSTOP(Y, MAX), READ(MARLIN_PIN(XY_PROBE)) != XY_PROBE_ENDSTOP_INVERTING && !stepper.motor_direction(Y_AXIS_HEAD));
+      PROCESS_ENDSTOP(Y, MAX);
+    }
+  }
+#endif
+
+
   if (stepper.axis_is_moving(Y_AXIS)) {
     if (stepper.motor_direction(Y_AXIS_HEAD)) { // -direction
       #if HAS_Y_MIN || (Y_SPI_SENSORLESS && Y_HOME_DIR < 0)
@@ -759,7 +811,9 @@ void Endstops::update() {
         #elif ENABLED(Z_DUAL_ENDSTOPS)
           PROCESS_DUAL_ENDSTOP(Z, Z2, MIN);
         #else
-          #if ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
+          #if HAS_LOADCELL()
+            PROCESS_ENDSTOP(Z, MIN); // Loadcell is disabled elsewhere
+          #elif ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
             if (z_probe_enabled) PROCESS_ENDSTOP(Z, MIN);
           #elif HAS_CUSTOM_PROBE_PIN
             if (!z_probe_enabled) PROCESS_ENDSTOP(Z, MIN);

@@ -186,7 +186,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     int16_t id0 = window_create_ptr(WINDOW_CLS_FRAME, -1, Rect16(0, 0, 0, 0), pd);
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, Rect16(0, 0, display::GetW(), 22), &(pd->textMenuName));
-    pd->textMenuName.font = resource_font(IDR_FNT_BIG);
+    pd->textMenuName.set_font(resource_font(IDR_FNT_BIG));
     static const char dtrm[] = "Disp. TEST rd mem.";
     pd->textMenuName.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)dtrm));
 
@@ -194,7 +194,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     //write pattern
     window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textMode));
-    pd->textMode.font = resource_font(IDR_FNT_NORMAL);
+    pd->textMode.set_font(resource_font(IDR_FNT_NORMAL));
     static const char mod[] = "MODE";
     pd->textMode.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)mod));
 
@@ -207,7 +207,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     //clk setting
     window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textSpiClk));
-    pd->textSpiClk.font = resource_font(IDR_FNT_NORMAL);
+    pd->textSpiClk.set_font(resource_font(IDR_FNT_NORMAL));
     static const char spi[] = "SPI clk";
     pd->textSpiClk.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)spi));
 
@@ -220,14 +220,21 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     //Gamma setting
     window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textGamma));
-    pd->textMode.font = resource_font(IDR_FNT_NORMAL);
+    pd->textMode.set_font(resource_font(IDR_FNT_NORMAL));
     static const char gam[] = "Gamma";
     pd->textMode.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)gam));
 
     window_create_ptr(WINDOW_CLS_SPIN, id0, Rect16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
     pd->spinGamma.SetFormat("%1.0f");
     pd->spinGamma.SetMinMaxStep(0.0F, 3.0F, 1.0F);
+
+    #ifdef USE_ST7789
     pd->spinGamma.SetValue((float)st7789v_gamma_get());
+    #endif
+
+    #ifdef USE_ILI9488
+    pd->spinGamma.SetValue((float)ili9488_gamma_get());
+    #endif
 
     //INVERSION
     window_create_ptr(WINDOW_CLS_LIST, id0, Rect16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
@@ -238,14 +245,22 @@ void screen_test_disp_mem_init(screen_t *screen) {
     row2draw += 25;
     //Brightness setting
     window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textBrightness));
-    pd->textMode.font = resource_font(IDR_FNT_NORMAL);
+    pd->textMode.set_font(resource_font(IDR_FNT_NORMAL));
     static const char bri[] = "Brightn.";
     pd->textBrightness.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bri));
 
     window_create_ptr(WINDOW_CLS_SPIN, id0, Rect16(col_1, row2draw, col_2_w, row_h), &(pd->spinBrightness));
     pd->spinBrightness.SetFormat("%1.0f");
     pd->spinBrightness.SetMinMaxStep(0.0F, 255.0F, 5.0F);
+
+    #ifdef USE_ST7789
     pd->spinBrightness.SetValue((float)st7789v_brightness_get());
+    #endif
+
+    #ifdef USE_ILI9488
+    pd->spinBrightness.SetValue((float)ili9488_brightness_get());
+    #endif
+
     pd->spinBrightness.SetTag(TAG_BRIGHTNESS);
 
     //Brightness enabled
@@ -261,11 +276,11 @@ void screen_test_disp_mem_init(screen_t *screen) {
     int16_t offset = 12;
     //user write pattern
     window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(0), &(pd->textSpiUserPattern1));
-    pd->textMode.font = resource_font(IDR_FNT_NORMAL);
+    pd->textMode.set_font(resource_font(IDR_FNT_NORMAL));
     static const char wrw[] = "Wr-Rd-Wr";
     pd->textSpiUserPattern1.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)wrw));
     window_create_ptr(WINDOW_CLS_TEXT, id0, RECT_MACRO(1), &(pd->text0x));
-    pd->textMode.font = resource_font(IDR_FNT_NORMAL);
+    pd->textMode.set_font(resource_font(IDR_FNT_NORMAL));
     static const char zx[] = "0x";
     pd->text0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)zx));
 
@@ -284,7 +299,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
 
     col = col_0;
     window_create_ptr(WINDOW_CLS_TEXT, id0, Rect16(col, row2draw, w_of_0xX, row_h), &(pd->textR0x));
-    pd->textMode.font = resource_font(IDR_FNT_NORMAL);
+    pd->textMode.set_font(resource_font(IDR_FNT_NORMAL));
     static const char rzx[] = "R 0x";
     pd->textR0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)rzx));
     pd->textR0x.SetTextColor(COLOR_RED);
@@ -297,7 +312,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     col += RGBspaceW;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, Rect16(col, row2draw, w_of_0xX, row_h), &(pd->textG0x));
-    pd->textMode.font = resource_font(IDR_FNT_NORMAL);
+    pd->textMode.set_font(resource_font(IDR_FNT_NORMAL));
     static const char gzx[] = "G 0x";
     pd->textG0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)gzx));
     pd->textG0x.SetTextColor(COLOR_GREEN);
@@ -310,7 +325,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     col += RGBspaceW;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, Rect16(col, row2draw, w_of_0xX, row_h), &(pd->textB0x));
-    pd->textMode.font = resource_font(IDR_FNT_NORMAL);
+    pd->textMode.set_font(resource_font(IDR_FNT_NORMAL));
     static const char bzx[] = "B 0x";
     pd->textB0x.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bzx));
     pd->textB0x.SetTextColor(COLOR_BLUE);
@@ -323,7 +338,7 @@ void screen_test_disp_mem_init(screen_t *screen) {
     row2draw += 25; //position for drawing - it is global in this file
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, Rect16(col_0, 290, 60, 22), &(pd->textExit));
-    pd->textExit.font = resource_font(IDR_FNT_BIG);
+    pd->textExit.set_font(resource_font(IDR_FNT_BIG));
     static const char ex[] = "EXIT";
     pd->textExit.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ex));
     pd->textExit.Enable();
@@ -514,6 +529,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
         isBrightness_ena_actual = pd->spinBrigt_ena.GetItemIndex();
         brightness_actual = pd->spinBrightness.GetValue();
 
+    #ifdef USE_ST7789
         if ((isBrightness_ena_actual != isBrightness_ena_last) || (brightness_actual != brightness_last)) {
             st7789v_brightness_set(brightness_actual);
             brightness_last = brightness_actual;
@@ -524,6 +540,20 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
                 st7789v_brightness_disable();
             isBrightness_ena_last = isBrightness_ena_actual;
         }
+    #endif
+
+    #ifdef USE_ILI9488
+        if ((isBrightness_ena_actual != isBrightness_ena_last) || (brightness_actual != brightness_last)) {
+            ili9488_brightness_set(brightness_actual);
+            brightness_last = brightness_actual;
+
+            if (isBrightness_ena_actual)
+                ili9488_brightness_enable();
+            else
+                ili9488_brightness_disable();
+            isBrightness_ena_last = isBrightness_ena_actual;
+        }
+    #endif
 
         mode = pd->spinMode.GetItemIndex();
 
@@ -536,6 +566,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
         clrG = (pd->spinStrG0.GetItemIndex() << 4) | pd->spinStrG1.GetItemIndex();
         clrB = (pd->spinStrB0.GetItemIndex() << 4) | pd->spinStrB1.GetItemIndex();
 
+    #ifdef USE_ST7789
         gamma_actual = pd->spinGamma.GetItemIndex();
         if (gamma_actual != gamma_last) {
             st7789v_gamma_set(gamma_actual);
@@ -550,6 +581,24 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
                 st7789v_inversion_off();
             isInverted_last = isInverted_actual;
         }
+    #endif // USE_ST7789
+
+    #ifdef USE_ILI9488
+        gamma_actual = pd->spinGamma.GetItemIndex();
+        if (gamma_actual != gamma_last) {
+            ili9488_gamma_set(gamma_actual);
+            gamma_last = gamma_actual;
+        }
+
+        isInverted_actual = pd->spinInversion.GetItemIndex();
+        if (isInverted_actual != isInverted_last) {
+            if (isInverted_actual)
+                ili9488_inversion_on();
+            else
+                ili9488_inversion_off();
+            isInverted_last = isInverted_actual;
+        }
+    #endif // USE_ILI9488
 
         //check if spin changed
         spinSpiClkVal_actual = pd->spinSpiClk.GetItemIndex();
@@ -563,4 +612,4 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
 
     return 0;
 }
-#endif //#if 0
+#endif // #if 0

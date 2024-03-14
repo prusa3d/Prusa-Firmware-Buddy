@@ -1,0 +1,168 @@
+
+== `tuple_algorithms.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/tuple_algorithms.hpp[`tuple_algorithms.hpp`]
+contains various (free function) algorithms that work on `stdx::tuple`.
+
+=== Summary of tuple algorithms
+
+* `all_of`, `any_of`, `none_of` - like the standard versions, but over a tuple
+* `apply` - like `std::apply`, but also a xref:tuple.adoc#_member_functions_on_a_tuple[member function] on `tuple`
+* `chunk_by` - split a tuple into a tuple-of-tuples according to a type function
+* `contains_type` - a variable template that is true when a tuple contains a given type
+* `filter` - for compile-time filtering
+* `for_each` - like the standard version, but over a tuple
+* `fold_left` and `fold_right` - xref:tuple.adoc#_member_functions_on_a_tuple[member functions] on `tuple`
+* `join` - a xref:tuple.adoc#_member_functions_on_a_tuple[member function] on `tuple`, like `fold_left` but without an initial value
+* `sort` - sort a tuple by a function on the contained types
+* `transform` - a variadic transform on tuple(s)
+* `tuple_cat` - like `std::tuple_cat`
+
+=== `all_of`, `any_of`, `none_of`
+
+`all_of`, `any_of` and `none_of` work in the same way as the standard versions
+on ranges, but over a tuple instead.
+[source,cpp]
+----
+auto t = stdx::tuple{1, 2, 3};
+auto x = stdx::any_of([](auto n) { return n % 2 == 0; }, t); // true
+----
+
+=== `apply`
+
+See xref:tuple.adoc#_member_functions_on_a_tuple[member functions]. `stx::apply`
+is also available as a free function, for compatibility with `std::apply`.
+[source,cpp]
+----
+auto t = stdx::tuple{1, 2, 3};
+auto sum = stdx::apply([] (auto... args) { return (args + ... + 0); }, t); // 6
+----
+
+=== `chunk_by`
+
+`chunk_by` takes a tuple and returns a tuple-of-tuples, where each tuple is
+grouped by type name.
+[source,cpp]
+----
+auto t = stdx::tuple{1, 2, 3, true, false}; // tuple<int, int, int, bool, bool>
+auto c1 = stdx::chunk_by(t); // tuple<tuple<int, int, int>, tuple<bool, bool>>
+auto c2 = stdx::chunk(t);    // without a template argument, the same as chunk_by
+----
+
+Notice that `chunk_by` doesn't `sort` the tuple first; it only chunks elements
+that are adjacent.
+[source,cpp]
+----
+auto t = stdx::tuple{1, true, 3}; // tuple<int, bool, int>
+auto c = stdx::chunk_by(t);      // tuple<tuple<int>, tuple<bool>, tuple<int>>
+----
+
+`chunk_by` takes an optional template argument which is a type
+function (a template of one argument). This will be applied to each type in the
+tuple to obtain a type name that is then used to chunk. By default, this
+type function is `std::type_identity_t`.
+
+=== `contains_type`
+
+`contains_type` is a variable template that is `true` when a tuple contains a given type.
+[source,cpp]
+----
+using T = stdx::tuple<int, bool, int &>;
+static_assert(stdx::contains_type<T, int>);
+----
+
+It also works on xref:tuple.adoc#_indexed_tuples[indexed tuples].
+[source,cpp]
+----
+// see "Indexed tuples"
+using T = stdx::indexed_tuple<stdx::detail::index_function_list<key_for>,
+                              map_entry<X, int>, map_entry<Y, int>>;
+static_assert(stdx::contains_type<T, X>);
+----
+
+If `contains_type<Tuple, Type>` is `true`, then you can use `get<Type>` to
+retrieve the appropriate member (assuming the type is contained exactly once).
+
+=== `filter`
+
+`filter` allows compile-time filtering of a tuple based on the types contained.
+[source,cpp]
+----
+auto t = stdx::tuple{
+  std::integral_constant<int, 1>{}, std::integral_constant<int, 2>{},
+  std::integral_constant<int, 3>{}, std::integral_constant<int, 4>{}};
+
+template <typename T>
+using is_even = std::bool_constant<T::value % 2 == 0>;
+
+auto filtered = stdx::filter<is_even>(t);
+// filtered is a stdx::tuple<std::integral_constant<int, 2>,
+//                           std::integral_constant<int, 4>>
+----
+NOTE: filtering a tuple can only be done on the types, not on the values! The
+type of the filtered result must obviously be known at compile time. However,
+the values within the tuple are also preserved.
+
+=== `for_each`
+
+`for_each` runs a given function on each element of a tuple in order. Like
+`transform`, it is variadic, taking an n-ary function and n tuples.
+[source,cpp]
+----
+auto t = stdx::tuple{1, 2, 3};
+stdx::for_each([] (auto x) { std::cout << x << '\n'; });
+----
+NOTE: Like
+https://en.cppreference.com/w/cpp/algorithm/for_each[`std::for_each`],
+`stdx::for_each` returns the function object passed to it. This can be useful
+for stateful function objects.
+
+=== `sort`
+
+`sort` is used to sort a tuple by type name.
+[source,cpp]
+----
+auto t = stdx::tuple{42, true}; // tuple<int, bool>
+auto s = stdx::sort(t);         // tuple<bool, int> {true, 42}
+----
+
+Like `chunk_by`, `sort` takes an optional template argument which is a type
+function (a template of one argument). This will be applied to each type in the
+tuple to obtain a type name that is then sorted alphabetically. By default, this
+type function is `std::type_identity_t`.
+
+=== `transform`
+
+`transform` is used to transform the values (and potentially the types) in one
+tuple, producing another.
+[source,cpp]
+----
+auto t = stdx::tuple{1, 2, 3};
+auto u = stdx::transform([](auto x) { return x + 1; }, t); // {2, 3, 4}
+----
+
+`transform` is not limited to working on a single tuple: given an n-ary function
+and n tuples, it will do the correct thing and "zip" the tuples together:
+[source,cpp]
+----
+auto t1 = stdx::tuple{1, 2, 3};
+auto t2 = stdx::tuple{2, 3, 4};
+auto u = stdx::transform(std::multiplies{}, t1, t2); // {2, 6, 12}
+----
+
+`transform` can also apply xref:tuple.adoc#_indexed_tuples[indexing functions]
+while it transforms:
+[source,cpp]
+----
+// see "Indexed tuples"
+struct X;
+auto t = stdx::transform<key_for>(
+  [](auto value) { return map_entry<X, int>{value}; },
+  stdx::tuple{42});
+auto x = get<X>(t).value; // 42
+----
+
+=== `tuple_cat`
+
+`tuple_cat` works just like
+https://en.cppreference.com/w/cpp/utility/tuple/tuple_cat[`std::tuple_cat`].

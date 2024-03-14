@@ -30,7 +30,15 @@ extern "C" {
 
 #define USBH_USE_OS 1
 
-#define USE_HAL_HCD_REGISTER_CALLBACKS 1U
+#define USBH_USE_MSC_CLASS_EVENTS 0
+
+#define USBH_USE_ACK_INTERRUPTS 0
+
+#define USBH_USE_URB_EVENTS 0
+
+#define USBH_MSC_TRANSFER_SIZE 512
+
+#define USBH_MSC_IO_TIMEOUT (25 * 1000)
 
 /****************************************/
 /* #define for FS and HS identification */
@@ -39,7 +47,8 @@ extern "C" {
 
 #if (USBH_USE_OS == 1)
     #include "cmsis_os.h"
-    #define USBH_PROCESS_PRIO       osPriorityNormal
+    #include "buddy/priorities_config.h"
+    #define USBH_PROCESS_PRIO       TASK_PRIORITY_USB_HOST
     #define USBH_PROCESS_STACK_SIZE ((uint16_t)320)
 #endif /* (USBH_USE_OS == 1) */
 

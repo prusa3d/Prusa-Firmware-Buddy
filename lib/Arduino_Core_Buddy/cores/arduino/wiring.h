@@ -26,23 +26,22 @@
 #include <string.h>
 #include <math.h>
 
-//#include "avr/dtostrf.h"
+// #include "avr/dtostrf.h"
 #include "binary.h"
-#include "itoa.h"
 
 #include "wiring_analog.h"
 #include "wiring_constants.h"
 #include "wiring_digital.h"
-//#include "wiring_pulse.h"
-//#include "wiring_shift.h"
+// #include "wiring_pulse.h"
+// #include "wiring_shift.h"
 #include "wiring_time.h"
-//#include "WInterrupts.h"
+// #include "WInterrupts.h"
 
-//#include <board.h>
+// #include <board.h>
 
 #ifdef __cplusplus
-    //#include "Tone.h"
-    //#include "WCharacter.h"
+    // #include "Tone.h"
+    // #include "WCharacter.h"
     #include "WSerial.h"
     #include "WMath.h"
     #include "WString.h"

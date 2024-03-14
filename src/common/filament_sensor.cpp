@@ -9,27 +9,29 @@
 #include "rtos_api.hpp"
 #include "metric.h"
 
-FSensor::FSensor()
-    : state(fsensor_t::NotInitialized)
-    , meas_cycle(0) {
-    init();
+// delay between calls must be 1us or longer
+void IFSensor::Cycle() {
+    // sensor is disabled (only init can enable it)
+    if (state == fsensor_t::Disabled) {
+        record_state();
+        return;
+    }
+
+    cycle();
+
+    record_state();
 }
 
 /*---------------------------------------------------------------------------*/
-//global thread safe functions
-fsensor_t FSensor::Get() {
-    return state;
-}
-/*---------------------------------------------------------------------------*/
-//global thread safe functions
-//but cannot be called from interrupt
-void FSensor::Enable() {
+// global thread safe functions
+// but cannot be called from interrupt
+void IFSensor::Enable() {
     CriticalSection C;
     enable();
     FSensorEEPROM::Set();
 }
 
-void FSensor::Disable() {
+void IFSensor::Disable() {
     CriticalSection C;
     disable();
     FSensorEEPROM::Clr();
@@ -45,46 +47,37 @@ fsensor_t FSensor::WaitInitialized() {
 }
 
 /*---------------------------------------------------------------------------*/
-//global not thread safe functions
+// global not thread safe functions
 void FSensor::init() {
-    bool enabled = FSensorEEPROM::Get();
+    bool enabled = FSensorEEPROM::Get(); // can globally disable all sensors, but some sensors might need another enable
 
-    if (enabled)
+    if (enabled) {
         enable();
-    else
+    } else {
         disable();
+    }
 }
 
 /*---------------------------------------------------------------------------*/
-//methods called only in fs_cycle
-FSensor::event FSensor::generateEvent(fsensor_t previous_state) const {
+IFSensor::event IFSensor::GenerateEvent() {
+    const auto previous_state = last_evaluated_state;
+    last_evaluated_state = state;
+
     const bool has_filament = fsensor_t::HasFilament == state;
 
-    // don't generate edges from not working states
-    if ((previous_state != fsensor_t::HasFilament) && (previous_state != fsensor_t::NoFilament)) {
+    // don't generate edges from not-working states or to not-working states
+    if (((previous_state != fsensor_t::HasFilament) && (previous_state != fsensor_t::NoFilament))
+        || ((last_evaluated_state != fsensor_t::HasFilament) && (last_evaluated_state != fsensor_t::NoFilament))) {
         return has_filament ? event::HasFilament : event::NoFilament;
     }
 
     const bool had_filament = fsensor_t::HasFilament == previous_state;
-    if (has_filament == had_filament)
+    if (has_filament == had_filament) {
         return has_filament ? event::HasFilament : event::NoFilament;
-    /// state has changed
-    if (has_filament)
-        return event::EdgeFilamentInserted; //has && !had
-    return event::EdgeFilamentRemoved;      //!has && had
-}
-
-//delay between calls must be 1us or longer
-std::optional<FSensor::event> FSensor::Cycle() {
-    volatile const fsensor_t last_state_before_cycle = state;
-
-    //sensor is disabled (only init can enable it)
-    if (last_state_before_cycle == fsensor_t::Disabled) {
-        return std::nullopt;
     }
-
-    cycle();
-    record_state();
-
-    return generateEvent(last_state_before_cycle);
+    /// state has changed
+    if (has_filament) {
+        return event::EdgeFilamentInserted; // has && !had
+    }
+    return event::EdgeFilamentRemoved; //! has && had
 }

@@ -14,7 +14,7 @@
 namespace fsm {
 #pragma pack(push, 1) // must be packed to fit in variant8
 
-static const size_t BaseDataSZ = 5;
+inline constexpr size_t BaseDataSZ = 5;
 using PhaseData = std::array<uint8_t, BaseDataSZ - 1>;
 
 class BaseData {
@@ -46,4 +46,47 @@ public:
 static_assert(sizeof(BaseData) == BaseDataSZ, "Wrong size of BaseData");
 
 #pragma pack(pop)
+
+template <typename T>
+struct PointerSerializer {
+    typedef T *ptr_t;
+
+    constexpr inline PointerSerializer(const T &p)
+        : ptr(&p) {}
+
+    constexpr inline PointerSerializer(fsm::PhaseData new_data)
+        : ptr(nullptr) {
+        Deserialize(new_data);
+    }
+
+    constexpr inline fsm::PhaseData Serialize() const {
+        return fsm::PhaseData({ { ptr.bytes[0], ptr.bytes[1], ptr.bytes[2], ptr.bytes[3] } });
+    }
+
+    constexpr inline void Deserialize(fsm::PhaseData new_data) {
+        std::copy(new_data.begin(), new_data.end(), ptr.bytes);
+    }
+
+    constexpr inline bool operator==(const PointerSerializer &other) const {
+        return ptr == other.ptr;
+    }
+
+    constexpr inline bool operator!=(const PointerSerializer &other) const {
+        return !((*this) == other);
+    }
+
+    constexpr const T *Get() const { return ptr.p; }
+
+private:
+    union U {
+        const T *p;
+        uint8_t bytes[4];
+        constexpr U(const T *p)
+            : p(p) {}
+    };
+    static_assert(sizeof(ptr_t) == 4, "Incompatible pointer size");
+
+    U ptr;
 };
+
+}; // namespace fsm

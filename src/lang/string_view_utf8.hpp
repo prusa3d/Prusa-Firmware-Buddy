@@ -1,10 +1,11 @@
 #pragma once
 
 #include <cstdint>
-//#include "unicode.h"
+// #include "unicode.h"
 #include <string.h>
 #include <stdio.h>
 #include "assert.h"
+#include <cstdlib>
 
 #define UTF8_IS_NONASCII(ch) ((ch)&0x80)
 #define UTF8_IS_CONT(ch)     (((ch)&0xC0) == 0x80)
@@ -31,21 +32,55 @@ class string_view_utf8 {
         /// interface for utf-8 strings stored in the CPU FLASH.
         struct FromCPUFLASH_RAM {
             const uint8_t *utf8raw; ///< pointer to raw utf8 data
-            const uint8_t *readp;   ///< read pointer, aka read iterator
-            constexpr FromCPUFLASH_RAM()
-                : utf8raw(nullptr)
-                , readp(nullptr) {}
+            const uint8_t *readp; ///< read pointer, aka read iterator
         } cpuflash;
         /// interface for utf-8 string stored in a FILE - used for validation of the whole translation infrastructure
         struct FromFile {
-            ::FILE *f;           ///< shared FILE pointer with other instances accessing the same file
-            uint16_t startOfs;   ///< start offset in input file
-            uint16_t currentOfs; ///<position of next byt to read
+            ::FILE *f; ///< shared FILE pointer with other instances accessing the same file
+            uint32_t startOfs; ///< start offset in input file
+            uint32_t currentOfs; ///< position of next byt to read
         } file;
-        constexpr Attrs()
-            : cpuflash() {}
     };
     Attrs attrs;
+
+    /// Extracts one byte from source media and advances internal read ptr, implementation defined in derived classes
+    /// The caller of this function makes sure it does not get called repeatedly after returning the end of input data.
+    /// @return 0 in case of end of input data or an error
+    uint8_t getbyte(Attrs &attributes) {
+        switch (type) {
+        case EType::CPUFLASH:
+        case EType::RAM:
+            return CPUFLASH_getbyte(attributes);
+        case EType::FILE:
+            return FILE_getbyte(attributes);
+        case EType::NULLSTR:
+            return NULLSTR_getbyte(attributes);
+        default:
+            break;
+        }
+        abort();
+        return 0;
+    }
+
+    /// Rewinds the input data stream to its beginning
+    /// Simple for memory-based sources, more complex for files
+    void rewind_impl(Attrs &attributes) {
+        switch (type) {
+        case EType::CPUFLASH:
+        case EType::RAM:
+            CPUFLASH_rewind(attributes);
+            return;
+        case EType::FILE:
+            FILE_rewind(attributes);
+            return;
+        case EType::NULLSTR:
+            NULLSTR_rewind(attributes);
+            return;
+        default:
+            break;
+        }
+        abort();
+    }
 
     /// cached length of string. Computed at various spots where not too costly.
     /// Deliberately typed as signed int, because -1 means "not computed yet"
@@ -62,62 +97,64 @@ class string_view_utf8 {
 
     mutable uint8_t s; ///< must remember the last read character
 
-    static constexpr uint8_t CPUFLASH_getbyte(Attrs &attrs) {
+    static uint8_t CPUFLASH_getbyte(Attrs &attrs) {
         return *attrs.cpuflash.readp++; // beware - expecting, that the input string is null-terminated! No other checks are done
     }
-    static constexpr void CPUFLASH_rewind(Attrs &attrs) {
+    static void CPUFLASH_rewind(Attrs &attrs) {
         attrs.cpuflash.readp = attrs.cpuflash.utf8raw;
     }
 
     static uint8_t FILE_getbyte(Attrs &attrs) {
+        if (!attrs.file.f) {
+            return '\0';
+        }
         uint8_t c;
-        //sync among multiple reads from the sameMO file
-        if (ftell(attrs.file.f) != attrs.file.currentOfs)
-            fseek(attrs.file.f, attrs.file.currentOfs, SEEK_SET);
+        // sync among multiple reads from the sameMO file
+        if (ftell(attrs.file.f) != static_cast<long>(attrs.file.currentOfs)) {
+            if (fseek(attrs.file.f, attrs.file.currentOfs, SEEK_SET) != 0) {
+                return '\0';
+            }
+        }
         attrs.file.currentOfs++;
-        fread(&c, 1, 1, attrs.file.f);
+        if (fread(&c, 1, 1, attrs.file.f) != 1) {
+            return '\0';
+        }
         return c;
     }
     static void FILE_rewind(Attrs &attrs) {
         if (attrs.file.f) {
-            fseek(attrs.file.f, attrs.file.startOfs, SEEK_SET);
+            if (fseek(attrs.file.f, attrs.file.startOfs, SEEK_SET) != 0) {
+                // seek failed, so make this string view invalid so it doesn't cause problems later
+                attrs.file.f = nullptr;
+                return;
+            }
             attrs.file.currentOfs = attrs.file.startOfs;
         }
     }
 
-    static constexpr uint8_t NULLSTR_getbyte(Attrs & /*attrs*/) {
+    static uint8_t NULLSTR_getbyte(Attrs & /*attrs*/) {
         return 0;
     }
-    static constexpr void NULLSTR_rewind(Attrs & /*attrs*/) {
-    }
-
-    /// Extracts one byte from source media and advances internal read ptr depending on the type of string_view (type of source data)
-    /// The caller of this function makes sure it does not get called repeatedly after returning the end of input data.
-    /// @return 0 in case of end of input data or an error
-    constexpr uint8_t getbyte() {
-        switch (type) {
-        case EType::RAM:
-        case EType::CPUFLASH:
-            return CPUFLASH_getbyte(attrs);
-        case EType::FILE:
-            return FILE_getbyte(attrs);
-        default: // behave as nullstr
-            return NULLSTR_getbyte(attrs);
-        }
+    static void NULLSTR_rewind(Attrs & /*attrs*/) {
     }
 
 public:
-    constexpr string_view_utf8()
+    inline string_view_utf8()
         : utf8Length(-1)
         , type(EType::NULLSTR)
         , s(0xff) {}
     ~string_view_utf8() = default;
 
+    /// @returns one uint8_t from the input data
+    uint8_t getbyte() {
+        return getbyte(attrs);
+    }
+
     /// @returns one UTF-8 character from the input data
     /// and advances internal pointers (in derived classes) to the next one
     unichar getUtf8Char() {
         if (s == 0xff) { // in case we don't have any character from the last run, get a new one from the input stream
-            s = getbyte();
+            s = getbyte(attrs);
         }
         unichar ord = s;
         if (!UTF8_IS_NONASCII(ord)) {
@@ -128,10 +165,10 @@ public:
         for (unichar mask = 0x40; ord & mask; mask >>= 1) {
             ord &= ~mask;
         }
-        s = getbyte();
+        s = getbyte(attrs);
         while (UTF8_IS_CONT(s)) {
             ord = (ord << 6) | (s & 0x3F);
-            s = getbyte();
+            s = getbyte(attrs);
         }
         return ord;
     }
@@ -143,28 +180,19 @@ public:
     /// Therefore it is not a const method.
     uint16_t computeNumUtf8CharsAndRewind() {
         if (utf8Length < 0) {
-            rewind();
+            rewind_impl(attrs);
             do {
                 ++utf8Length;
             } while (getUtf8Char());
         }
-        rewind(); // always return stream back to the beginning @@TODO subject to change
+        rewind_impl(attrs); // always return stream back to the beginning @@TODO subject to change
         // now we have either 0 or some positive number in utf8Length, can be safely cast to unsigned int
         return uint32_t(utf8Length);
     }
 
-    /// Rewinds the input data stream to its beginning
-    /// Simple for memory-based sources, more complex for files
+    /// rewind the stream to its beginning
     void rewind() {
-        switch (type) {
-        case EType::RAM:
-        case EType::CPUFLASH:
-            return CPUFLASH_rewind(attrs);
-        case EType::FILE:
-            return FILE_rewind(attrs);
-        default: // behave as nullstr
-            return NULLSTR_rewind(attrs);
-        }
+        rewind_impl(attrs);
     }
 
     /// returns true if the string is of type NULLSTR - typically used as a replacement for nullptr or "" strings
@@ -182,9 +210,10 @@ public:
     size_t copyToRAM(char *dst, size_t max_size) {
         size_t bytesCopied = 0;
         for (size_t i = 0; i < max_size; ++i) {
-            *dst = getbyte();
-            if (*dst == 0)
+            *dst = getbyte(attrs);
+            if (*dst == 0) {
                 return bytesCopied;
+            }
             ++dst;
             ++bytesCopied;
         }
@@ -193,7 +222,7 @@ public:
     }
 
     /// Construct string_view_utf8 to provide data from CPU FLASH
-    static constexpr string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
+    static string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
         string_view_utf8 s;
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
         s.type = EType::CPUFLASH;
@@ -202,7 +231,7 @@ public:
 
     /// Construct string_view_utf8 to provide data from RAM
     /// basically the same as from CPU FLASH, only the string_view_utf8's type differs of course
-    static constexpr string_view_utf8 MakeRAM(const uint8_t *utf8raw) {
+    static string_view_utf8 MakeRAM(const uint8_t *utf8raw) {
         string_view_utf8 s;
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
         s.type = EType::RAM;
@@ -210,8 +239,8 @@ public:
     }
 
     /// Construct string_view_utf8 to provide data from FILE
-    /// The FILE *f shall already be positioned to the spot, where the string starts
-    static constexpr string_view_utf8 MakeFILE(::FILE *f, uint16_t offset) {
+    /// The FILE *f shall aready be positioned to the spot, where the string starts
+    static string_view_utf8 MakeFILE(::FILE *f, uint32_t offset) {
         string_view_utf8 s;
         s.attrs.file.f = f;
         if (f) {
@@ -223,19 +252,29 @@ public:
     }
 
     /// Construct an empty string_view_utf8 - behaves like a "" but is a special type NULL
-    static constexpr string_view_utf8 MakeNULLSTR() {
+    static string_view_utf8 MakeNULLSTR() {
         string_view_utf8 s;
         s.type = EType::NULLSTR;
         return s;
     }
 
+    /// Use is_same_ref instead
+    bool operator==(const string_view_utf8 &other) const = delete;
+
+    /// Use !is_same_ref instead
+    bool operator!=(const string_view_utf8 &other) const = delete;
+
     /// string view has the same resource
-    bool operator==(const string_view_utf8 &other) const {
-        if (type != other.type)
+    bool is_same_ref(const string_view_utf8 &other) const {
+        if (type != other.type) {
             return false; // type mismatch
+        }
 
         switch (type) {
         case EType::RAM:
+            // even though data on RAM can change, stringview never copies any data and therefore comparing pointers is enough
+            // => if pointer wasn't changed, data on the other end is the exact same data that is saved by stringview
+            // check MakeRAM; that should make everything clear
         case EType::CPUFLASH:
             return attrs.cpuflash.utf8raw == other.attrs.cpuflash.utf8raw;
         case EType::FILE:
@@ -248,9 +287,5 @@ public:
             return true;
         }
         return false; // somehow out of enum range
-    }
-
-    bool operator!=(const string_view_utf8 &other) const {
-        return !((*this) == other);
     }
 };

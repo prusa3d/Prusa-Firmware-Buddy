@@ -6,8 +6,5 @@
 
 #pragma once
 #include "config_buddy_2209_02.h"
-#ifdef NEW_FANCTL
-    #include "fanctl.h"
-extern CFanCtl fanCtlPrint;
-extern CFanCtl fanCtlHeatBreak;
-#endif
+
+extern "C" void app_startup();

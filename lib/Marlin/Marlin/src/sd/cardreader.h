@@ -27,10 +27,6 @@
 
 #define SD_RESORT BOTH(SDCARD_SORT_ALPHA, SDSORT_DYNAMIC_RAM)
 
-#define MAX_DIR_DEPTH     10       // Maximum folder depth
-#define MAXDIRNAMELENGTH   8       // DOS folder name size
-#define MAXPATHNAMELENGTH  (1 + (MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + FILENAME_LENGTH) // "/" + N * ("ADIRNAME/") + "filename.ext"
-
 #include "SdFile.h"
 
 typedef struct {

@@ -23,6 +23,9 @@
 #include "../gcode.h"
 #include "../../module/motion.h"
 
+#include "../../../../../../src/common/variant8.h"
+#include <config_store/store_instance.hpp>
+
 #if ENABLED(CNC_COORDINATE_SYSTEMS)
 
 #include "../../module/stepper.h"
@@ -39,6 +42,15 @@ bool GcodeSuite::select_coordinate_system(const int8_t _new) {
   xyz_float_t new_offset{0};
   if (WITHIN(_new, 0, MAX_COORDINATE_SYSTEMS - 1))
     new_offset = coordinate_system[_new];
+
+    #ifdef Z_SHIFTED_COOR_SYS //Load Z axis size to workspace offset
+      if(_new == Z_SHIFTED_COOR_SYS){
+        float Z_size =  config_store().axis_z_max_pos_mm.get();
+        new_offset[Z_AXIS] = -Z_size;
+        SERIAL_ECHOLNPAIR("Load Z axis size ", Z_size);
+      }
+    #endif
+
   LOOP_XYZ(i) {
     if (position_shift[i] != new_offset[i]) {
       position_shift[i] = new_offset[i];
@@ -47,6 +59,16 @@ bool GcodeSuite::select_coordinate_system(const int8_t _new) {
   }
   return true;
 }
+
+int8_t GcodeSuite::get_coordinate_system(){
+  return active_coordinate_system;
+}
+
+void GcodeSuite::set_coordinate_system_offset(int8_t system, AxisEnum axis, float offset){
+  coordinate_system[system][axis] = offset;
+}
+
+
 
 /**
  * G53: Apply native workspace to the current move

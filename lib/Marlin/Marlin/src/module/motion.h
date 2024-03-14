@@ -75,8 +75,8 @@ extern xyz_pos_t cartes;
 #if HAS_ABL_NOT_UBL
   extern float xy_probe_feedrate_mm_s;
   #define XY_PROBE_FEEDRATE_MM_S xy_probe_feedrate_mm_s
-#elif defined(XY_PROBE_SPEED)
-  #define XY_PROBE_FEEDRATE_MM_S MMM_TO_MMS(XY_PROBE_SPEED)
+#elif defined(XY_PROBE_SPEED_INITIAL)
+  #define XY_PROBE_FEEDRATE_MM_S MMM_TO_MMS(XY_PROBE_SPEED_INITIAL)
 #else
   #define XY_PROBE_FEEDRATE_MM_S PLANNER_XY_FEEDRATE()
 #endif
@@ -95,10 +95,13 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis);
 
 extern feedRate_t feedrate_mm_s;
 
+extern float homing_bump_divisor[];
+
 /**
- * Feedrate scaling
+ * Feedrate scaling is applied to all G0/G1, G2/G3, and G5 moves
  */
 extern int16_t feedrate_percentage;
+#define MMS_SCALED(V) ((V) * 0.01f * feedrate_percentage)
 
 // The active extruder (tool). Set with T<extruder> command.
 #if EXTRUDERS > 1
@@ -129,11 +132,12 @@ XYZ_DEFS(signed char, home_dir, HOME_DIR);
 
 #if HAS_HOTEND_OFFSET
   extern xyz_pos_t hotend_offset[HOTENDS];
+  extern xyz_pos_t hotend_currently_applied_offset; // Difference to position without hotend offset. Used for tool park/pickup
   void reset_hotend_offsets();
 #elif HOTENDS
-  constexpr xyz_pos_t hotend_offset[HOTENDS] = { { 0 } };
+  constexpr xyz_pos_t hotend_offset[HOTENDS] { };
 #else
-  constexpr xyz_pos_t hotend_offset[1] = { { 0 } };
+  constexpr xyz_pos_t hotend_offset[1]  {  };
 #endif
 
 typedef struct { xyz_pos_t min, max; } axis_limits_t;
@@ -146,19 +150,25 @@ typedef struct { xyz_pos_t min, max; } axis_limits_t;
       , const uint8_t old_tool_index=0, const uint8_t new_tool_index=0
     #endif
   );
-#else
+  #define SET_SOFT_ENDSTOP_LOOSE(loose) NOOP
+
+#else // !HAS_SOFTWARE_ENDSTOPS
+
   constexpr bool soft_endstops_enabled = false;
   //constexpr axis_limits_t soft_endstop = {
   //  { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
   //  { X_MAX_POS, Y_MAX_POS, Z_MAX_POS } };
   #define apply_motion_limits(V)    NOOP
   #define update_software_endstops(...) NOOP
-#endif
+  #define SET_SOFT_ENDSTOP_LOOSE(V)     NOOP
+
+#endif // !HAS_SOFTWARE_ENDSTOPS
 
 void report_current_position();
 
 void get_cartesian_from_steppers();
 void set_current_from_steppers_for_axis(const AxisEnum axis);
+void set_current_from_steppers();
 
 /**
  * sync_plan_position
@@ -175,7 +185,13 @@ void sync_plan_position_e();
  */
 void line_to_current_position(const feedRate_t &fr_mm_s=feedrate_mm_s);
 
+/// Plans (non-blocking) linear move to relative distance.
+/// It uses prepare_move_to_destination() for the planning which
+/// is suitable with UBL.
+void plan_move_by(const feedRate_t fr, const float dx, const float dy = 0, const float dz = 0, const float de = 0);
+
 void prepare_move_to_destination();
+static inline void prepare_line_to_destination() { prepare_move_to_destination(); } // stub
 
 void _internal_move_to_destination(const feedRate_t &fr_mm_s=0.0f
   #if IS_KINEMATIC
@@ -209,6 +225,11 @@ static inline void plan_park_move_to_xyz(const xyz_pos_t &xyz, const feedRate_t 
 /**
  * Blocking movement and shorthand functions
  */
+
+/**
+ * Performs a blocking fast parking move to (X, Y, Z) and sets the current_position.
+ * Parking (Z-Manhattan): Moves XY and Z independently. Raises Z before or lowers Z after XY motion.
+ */
 void do_blocking_move_to(const float rx, const float ry, const float rz, const feedRate_t &fr_mm_s=0.0f);
 void do_blocking_move_to(const xy_pos_t &raw, const feedRate_t &fr_mm_s=0.0f);
 void do_blocking_move_to(const xyz_pos_t &raw, const feedRate_t &fr_mm_s=0.0f);
@@ -231,6 +252,12 @@ void remember_feedrate_and_scaling();
 void remember_feedrate_scaling_off();
 void restore_feedrate_and_scaling();
 
+#if HAS_Z_AXIS
+  void do_z_clearance(const_float_t zclear, const bool lower_allowed=false);
+#else
+  inline void do_z_clearance(float, bool=false) {}
+#endif
+
 //
 // Homing
 //
@@ -238,17 +265,29 @@ void restore_feedrate_and_scaling();
 uint8_t axes_need_homing(uint8_t axis_bits=0x07);
 bool axis_unhomed_error(uint8_t axis_bits=0x07);
 
+static inline bool axes_should_home(uint8_t axis_bits=0x07) { return axes_need_homing(axis_bits); }
+static inline bool homing_needed_error(uint8_t axis_bits=0x07) { return axis_unhomed_error(axis_bits); }
+
 #if ENABLED(NO_MOTION_BEFORE_HOMING)
   #define MOTION_CONDITIONS (IsRunning() && !axis_unhomed_error())
 #else
   #define MOTION_CONDITIONS IsRunning()
 #endif
 
-void set_axis_is_at_home(const AxisEnum axis);
+void set_axis_is_at_home(const AxisEnum axis, bool homing_z_with_probe = true);
 
 void set_axis_is_not_at_home(const AxisEnum axis);
 
-void homeaxis(const AxisEnum axis);
+void homing_failed(std::function<void()> fallback_error, bool crash_was_active = false, bool recover_z = false);
+
+// Home a single logical axis
+[[nodiscard]] bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false, void (*enable_wavetable)(AxisEnum) = NULL, bool can_calibrate = true, bool homing_z_with_probe = true);
+
+// Perform a single homing probe on a logical axis
+float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s = 0.0, bool invert_home_dir = false, bool homing_z_with_probe = true);
+
+// Perform a single homing move on a logical axis
+uint8_t do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0, bool can_move_back_before_homing = false, bool homing_z_with_probe = true);
 
 /**
  * Workspace offsets
@@ -268,14 +307,25 @@ void homeaxis(const AxisEnum axis);
   #else
     #define _WS position_shift
   #endif
-  #define NATIVE_TO_LOGICAL(POS, AXIS) ((POS) + _WS[AXIS])
-  #define LOGICAL_TO_NATIVE(POS, AXIS) ((POS) - _WS[AXIS])
-  FORCE_INLINE void toLogical(xy_pos_t &raw)   { raw += _WS; }
-  FORCE_INLINE void toLogical(xyz_pos_t &raw)  { raw += _WS; }
-  FORCE_INLINE void toLogical(xyze_pos_t &raw) { raw += _WS; }
-  FORCE_INLINE void toNative(xy_pos_t &raw)    { raw -= _WS; }
-  FORCE_INLINE void toNative(xyz_pos_t &raw)   { raw -= _WS; }
-  FORCE_INLINE void toNative(xyze_pos_t &raw)  { raw -= _WS; }
+  #if DISABLED(PRUSA_TOOLCHANGER)
+    #define NATIVE_TO_LOGICAL(POS, AXIS) ((POS) + _WS[AXIS])
+    #define LOGICAL_TO_NATIVE(POS, AXIS) ((POS) - _WS[AXIS])
+    FORCE_INLINE void toLogical(xy_pos_t &raw)   { raw += _WS; }
+    FORCE_INLINE void toLogical(xyz_pos_t &raw)  { raw += _WS; }
+    FORCE_INLINE void toLogical(xyze_pos_t &raw) { raw += _WS; }
+    FORCE_INLINE void toNative(xy_pos_t &raw)    { raw -= _WS; }
+    FORCE_INLINE void toNative(xyz_pos_t &raw)   { raw -= _WS; }
+    FORCE_INLINE void toNative(xyze_pos_t &raw)  { raw -= _WS; }
+  #else
+    #define NATIVE_TO_LOGICAL(POS, AXIS) ((AXIS <= Z_AXIS) ? ((POS) + _WS[AXIS] + hotend_currently_applied_offset[AXIS]) : (POS))
+    #define LOGICAL_TO_NATIVE(POS, AXIS) ((AXIS <= Z_AXIS) ? ((POS) - _WS[AXIS] - hotend_currently_applied_offset[AXIS]) : (POS))
+    FORCE_INLINE void toLogical(xy_pos_t &raw)   { raw += _WS + hotend_currently_applied_offset; }
+    FORCE_INLINE void toLogical(xyz_pos_t &raw)  { raw += _WS + hotend_currently_applied_offset; }
+    FORCE_INLINE void toLogical(xyze_pos_t &raw) { raw += _WS + hotend_currently_applied_offset; }
+    FORCE_INLINE void toNative(xy_pos_t &raw)    { raw -= _WS + hotend_currently_applied_offset; }
+    FORCE_INLINE void toNative(xyz_pos_t &raw)   { raw -= _WS + hotend_currently_applied_offset; }
+    FORCE_INLINE void toNative(xyze_pos_t &raw)  { raw -= _WS + hotend_currently_applied_offset; }
+  #endif
 #else
   #define NATIVE_TO_LOGICAL(POS, AXIS) (POS)
   #define LOGICAL_TO_NATIVE(POS, AXIS) (POS)
@@ -355,7 +405,7 @@ void homeaxis(const AxisEnum axis);
      *          nozzle must be be able to reach +10,-10.
      */
     inline bool position_is_reachable_by_probe(const float &rx, const float &ry) {
-      return position_is_reachable(rx - probe_offset.x, ry - probe_offset.y)
+      return position_is_reachable(rx - probe_offset.x - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.x), ry - probe_offset.y - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.y))
           && WITHIN(rx, probe_min_x() - slop, probe_max_x() + slop)
           && WITHIN(ry, probe_min_y() - slop, probe_max_y() + slop);
     }
@@ -412,8 +462,18 @@ FORCE_INLINE bool position_is_reachable_by_probe(const xy_pos_t &pos) { return p
     DXC_DUPLICATION_MODE = 2
   };
 
+#else
+
+  #define TOOL_X_HOME_DIR(T) X_HOME_DIR
+
 #endif
 
 #if HAS_M206_COMMAND
   void set_home_offset(const AxisEnum axis, const float v);
+#endif
+
+#if USE_SENSORLESS
+  struct sensorless_t;
+  sensorless_t start_sensorless_homing_per_axis(const AxisEnum axis);
+  void end_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth);
 #endif

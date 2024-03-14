@@ -1,19 +1,26 @@
-//HardwareSerial.cpp - Buddy/STM32
-#include <Arduino.h>
-#include "buffered_serial.hpp"
-#include "cmsis_os.h"
-#include "bsod.h"
+// HardwareSerial.cpp - Buddy/STM32
+#include <device/board.h>
+
+#if (BOARD_IS_BUDDY)
+    #include <Arduino.h>
+    #include "buffered_serial.hpp"
+    #include "cmsis_os.h"
+    #include "bsod.h"
 
 using namespace buddy::hw;
 
-HardwareSerial::HardwareSerial(void *peripheral) {
+HardwareSerial::HardwareSerial([[maybe_unused]] void *peripheral) {
 }
 
-void HardwareSerial::begin(unsigned long baud) {
+void HardwareSerial::begin([[maybe_unused]] unsigned long baud) {
     BufferedSerial::uart2.Open();
 }
 
-void HardwareSerial::begin(unsigned long baud, byte config) {
+void HardwareSerial::begin([[maybe_unused]] unsigned long baud, [[maybe_unused]] byte config) {
+}
+
+void HardwareSerial::close() {
+    BufferedSerial::uart2.Close();
 }
 
 int HardwareSerial::available(void) {
@@ -48,3 +55,4 @@ HardwareSerial::operator bool() {
 }
 
 HardwareSerial Serial3(USART3);
+#endif

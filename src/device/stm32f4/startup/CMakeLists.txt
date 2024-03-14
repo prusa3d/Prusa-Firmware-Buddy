@@ -1,0 +1,11 @@
+if(BOOTLOADER)
+  set(boot_suffix "_boot")
+else()
+  set(boot_suffix "")
+endif()
+
+if(MCU MATCHES "STM32F40")
+  target_sources(firmware PRIVATE stm32f407xx${boot_suffix}.s)
+elseif(MCU MATCHES "STM32F42")
+  target_sources(firmware PRIVATE stm32f427zitx${boot_suffix}.s)
+endif()

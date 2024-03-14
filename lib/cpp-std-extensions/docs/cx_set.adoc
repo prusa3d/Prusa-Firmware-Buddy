@@ -1,0 +1,55 @@
+
+== `cx_set.hpp`
+
+`cx_set` implements a constexpr-capable set with a compile-time capacity. The
+set is unordered.
+
+[source,cpp]
+----
+template <typename Key, std::size_t N>
+class cx_set;
+----
+
+The `cx_set` interface:
+[source,cpp]
+----
+template <typename K, std::size_t N>
+auto f(stdx::cx_set<K, N> s) {
+    // here we can:
+    std::size_t sz = s.size(); // ask for s's size
+    constexpr std::size_t cap = s.capacity(); // ask for s's capacity (same as N)
+    bool is_empty = m.empty(); // ask whether a cx_set is empty
+    m.clear() // clear a cx_set
+
+    // we can use some of the usual functions
+    s.insert(K{});
+    bool c = s.contains(K{});
+    s.erase(K{});
+
+    // and use iterators:
+    // begin and end
+    // cbegin and cend
+    // (therefore also range-for loops)
+
+    // we can also pop an arbitrary element
+    auto k = s.pop_back();
+
+    // and merge two sets (assuming s has capacity)
+    s.merge(cx_set{1, 2, 3});
+};
+----
+
+`insert` returns `true` if a value was inserted, `false` if it already existed.
+
+CAUTION: When merging one set into another, the destination set must have enough
+capacity!
+
+NOTE: `capacity` is always available as `constexpr`, even though `s` above is a
+function parameter and therefore not `constexpr`.
+
+A `cx_set` may also be initialized with CTAD:
+[source,cpp]
+----
+// s is a cx_set<int, 3>
+auto s = cx_set{1, 2, 3};
+----

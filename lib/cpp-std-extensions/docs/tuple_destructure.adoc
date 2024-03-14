@@ -1,0 +1,13 @@
+
+== `tuple_destructure.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/tuple_destructure.hpp[`tuple_destructure.hpp`]
+allows the use of structured bindings with `stdx::tuple`.
+
+[source,cpp]
+----
+auto t = stdx::tuple{1, 2};
+auto &[x, y] = t;
+----
+
+NOTE: `tie` is not implemented.

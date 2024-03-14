@@ -1,0 +1,74 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Bootstrap",
+            "type": "shell",
+            "command": "python3 ${workspaceFolder}/utils/bootstrap.py",
+            "windows": {
+                "command": "python ${workspaceFolder}\\utils\\bootstrap.py"
+            }
+        },
+        {
+            "label": "Install simulator_as_qemu",
+            "type": "process",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "windows":{
+                "command": "${workspaceFolder}/.venv/Scripts/python.exe"
+            },
+            "args": ["-m", "pip", "install", "-e", "./.vscode/simulator_as_qemu", "--disable-pip-version-check"],
+        },
+        {
+            "label": "Install pre-commit",
+            "type": "process",
+            "command": "${workspaceFolder}/.venv/bin/pre-commit",
+            "windows":{
+                "command": "${workspaceFolder}/.venv/Scripts/pre-commit.exe"
+            },
+            "args": ["install"],
+        },
+        {
+            "label": "Prepare Visual Studio Code",
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Bootstrap",
+                "Install simulator_as_qemu",
+                "Install pre-commit",
+            ]
+        },
+        {
+            "label": "Wait 1",
+            "type": "shell",
+            "command": "sleep 1",
+            "hide": true,
+            "windows": {
+                "command": "ping 127.0.0.1 -n 1 > $null"
+            }
+        },
+        {
+            "label": "Wait 2",
+            "type": "shell",
+            "command": "sleep 2",
+            "hide": true,
+            "windows": {
+                "command": "ping 127.0.0.1 -n 2 > $null"
+            }
+        },
+        {
+            "label": "Backup current ELF",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python utils/backup_elf.py",
+            "windows": {
+                "command": "${workspaceFolder}/.venv/Scripts/python utils/backup_elf.py",
+            },
+            "presentation": {
+                "reveal": "silent",
+            }
+        },
+    ]
+}

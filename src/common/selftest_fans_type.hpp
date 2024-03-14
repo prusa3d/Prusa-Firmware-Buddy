@@ -8,48 +8,55 @@
 #pragma once
 
 #include "fsm_base_types.hpp"
+#include "marlin_server_extended_fsm_data.hpp"
 #include "selftest_sub_state.hpp"
+#include <limits>
+#include "inc/MarlinConfig.h"
 
-struct SelftestFans_t {
-    uint8_t print_fan_progress;
-    uint8_t heatbreak_fan_progress;
-    uint8_t tot_progress;
-    SelftestSubtestState_t print_fan_state;
-    SelftestSubtestState_t heatbreak_fan_state;
+#include <span>
 
-    constexpr SelftestFans_t(uint8_t prt_fan_prog = 0, uint8_t hb_fan_prog = 0, uint8_t tot_prog = 0,
-        SelftestSubtestState_t prt_fan_st = SelftestSubtestState_t::undef,
-        SelftestSubtestState_t hb_fan_st = SelftestSubtestState_t::undef)
-        : print_fan_progress(prt_fan_prog)
-        , heatbreak_fan_progress(hb_fan_prog)
-        , tot_progress(tot_prog)
-        , print_fan_state(prt_fan_st)
-        , heatbreak_fan_state(hb_fan_st) {}
+struct SelftestFanHotendResult {
+    uint8_t progress { 0 };
+    SelftestSubtestState_t print_fan_state { SelftestSubtestState_t::undef };
+    SelftestSubtestState_t heatbreak_fan_state { SelftestSubtestState_t::undef };
+    SelftestSubtestState_t fans_switched_state { SelftestSubtestState_t::undef };
 
-    constexpr SelftestFans_t(fsm::PhaseData new_data)
-        : SelftestFans_t() {
-        Deserialize(new_data);
+    constexpr bool operator==(SelftestFanHotendResult const &other) const {
+        return progress == other.progress && print_fan_state == other.print_fan_state && heatbreak_fan_state == other.heatbreak_fan_state && fans_switched_state == other.fans_switched_state;
     }
 
-    constexpr fsm::PhaseData Serialize() const {
-        fsm::PhaseData ret = { { print_fan_progress, heatbreak_fan_progress, tot_progress,
-            uint8_t(uint8_t(print_fan_state) | (uint8_t(heatbreak_fan_state) << 2)) } };
-        return ret;
+    constexpr bool operator!=(const SelftestFanHotendResult &other) const {
+        return !((*this) == other);
     }
 
-    constexpr void Deserialize(fsm::PhaseData new_data) {
-        print_fan_progress = new_data[0];
-        heatbreak_fan_progress = new_data[1];
-        tot_progress = new_data[2];
-        print_fan_state = SelftestSubtestState_t(new_data[3] & 0x03);
-        heatbreak_fan_state = SelftestSubtestState_t((new_data[3] >> 2) & 0x03);
+    void Pass() {
+        progress = 100;
+    }
+    void Fail() {
+        progress = 100;
+    }
+    void Abort() {} // currently not needed
+};
+
+struct SelftestFansResult : public FSMExtendedData {
+    uint8_t progress { 0 };
+    std::array<SelftestFanHotendResult, HOTENDS> hotend_results;
+
+    constexpr SelftestFansResult() {}
+
+    SelftestFansResult(const std::span<SelftestFanHotendResult> &results) {
+        progress = std::numeric_limits<decltype(progress)>::max();
+        for (size_t i = 0; i < results.size(); ++i) {
+            hotend_results[i] = results[i];
+            progress = std::min(progress, results[i].progress);
+        }
     }
 
-    constexpr bool operator==(const SelftestFans_t &other) const {
-        return (print_fan_progress == other.print_fan_progress) && (heatbreak_fan_progress == other.heatbreak_fan_progress) && (tot_progress == other.tot_progress) && (print_fan_state == other.print_fan_state) && (heatbreak_fan_state == other.heatbreak_fan_state);
+    constexpr bool operator==(SelftestFansResult const &other) const {
+        return hotend_results == other.hotend_results;
     }
 
-    constexpr bool operator!=(const SelftestFans_t &other) const {
+    constexpr bool operator!=(const SelftestFansResult &other) const {
         return !((*this) == other);
     }
 };

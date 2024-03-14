@@ -14,9 +14,9 @@ enum class printType {
 
 class window_numb_t : public AddSuperWindow<IWindowText> {
 public:
-    float value;        // TODO private
+    float value; // TODO private
     const char *format; // TODO private
-    printType printAs;  // TODO private
+    printType printAs; // TODO private
 
     void SetFormat(const char *frmt);
     const char *GetFormat() { return format; }

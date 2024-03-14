@@ -38,7 +38,7 @@ typedef struct {
 ///
 /// Returns true on success. In such case, it is the responsibility of the user to call
 /// `syslog_transport_close` to free system resources.
-bool syslog_transport_open(syslog_transport_t *transport, const char *host, int port);
+bool syslog_transport_open(syslog_transport_t *transport, const char *host, uint16_t port);
 
 /// Get the open state of the transport.
 bool syslog_transport_check_is_open(syslog_transport_t *transport);

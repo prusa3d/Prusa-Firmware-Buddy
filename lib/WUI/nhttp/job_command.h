@@ -1,7 +1,8 @@
 #pragma once
 
-#include "types.h"
 #include "status_page.h"
+
+#include <http/types.h>
 
 #include <array>
 #include <string_view>
@@ -31,17 +32,6 @@ private:
     bool can_keep_alive;
     bool json_errors;
 
-    enum class Command {
-        ErrMem,
-        ErrReq,
-        ErrUnknownCommand,
-        Stop,
-        Pause,
-        Resume,
-        PauseToggle,
-    };
-
-    Command parse_command();
     handler::StatusPage process();
 
     /*
@@ -64,4 +54,4 @@ public:
     handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
 };
 
-}
+} // namespace nhttp::printer

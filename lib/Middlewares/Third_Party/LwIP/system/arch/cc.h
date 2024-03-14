@@ -124,7 +124,9 @@ extern uint8_t __attribute__((section(".ccmram"))) memp_memory_FRAG_PBUF_base[];
 extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCPIP_MSG_API_base[];
 extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCP_PCB_base[];
 extern uint8_t __attribute__((section(".ccmram"))) memp_memory_PBUF_base[];
+#if 0
 extern uint8_t __attribute__((section(".ccmram"))) memp_memory_PBUF_POOL_base[];
+#endif
 extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCPIP_MSG_INPKT_base[];
 extern uint8_t __attribute__((section(".ccmram"))) memp_memory_TCP_PCB_LISTEN_base[];
 extern uint8_t __attribute__((section(".ccmram"))) memp_memory_REASSDATA_base[];

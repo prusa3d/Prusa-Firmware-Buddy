@@ -3,7 +3,8 @@
  */
 #pragma once
 
-#include "types.h"
+#include "step.h"
+#include <http/types.h>
 
 #include <string_view>
 
@@ -20,14 +21,14 @@ namespace nhttp::handler {
 class SendStaticMemory {
 private:
     std::string_view data;
-    ContentType content_type;
+    http::ContentType content_type;
     bool can_keep_alive;
     bool headers_sent = false;
     bool is_done() const;
     const char **extra_hdrs;
 
 public:
-    SendStaticMemory(std::string_view data, ContentType content_type, bool can_keep_alive, const char **extra_hdrs = nullptr)
+    SendStaticMemory(std::string_view data, http::ContentType content_type, bool can_keep_alive, const char **extra_hdrs = nullptr)
         : data(data)
         , content_type(content_type)
         , can_keep_alive(can_keep_alive)
@@ -37,4 +38,4 @@ public:
     bool want_read() const { return false; }
 };
 
-}
+} // namespace nhttp::handler

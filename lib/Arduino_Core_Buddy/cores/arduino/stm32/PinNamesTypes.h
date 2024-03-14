@@ -124,7 +124,7 @@ typedef enum {
 // Check PinName is valid: FirstPort <= PortName <= LastPort
 // As FirstPort is equal to 0 and STM_PORT cast as an unsigned
 // (STM_PORT(X) >= FirstPort)  is always true
-//#define STM_VALID_PINNAME(X) ((STM_PORT(X) >= FirstPort) && (STM_PORT(X) <= LastPort))
+// #define STM_VALID_PINNAME(X) ((STM_PORT(X) >= FirstPort) && (STM_PORT(X) <= LastPort))
 #define STM_VALID_PINNAME(X) (STM_PORT(X) <= LastPort)
 
 #define STM_GPIO_PIN(X) ((uint16_t)(1 << STM_PIN(X)))

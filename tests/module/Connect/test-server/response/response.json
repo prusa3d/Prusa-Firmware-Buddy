@@ -1,0 +1,4 @@
+[
+{"Content-Type": "application/json", "command": "SEND_INFO", "delay_s" : 10},
+{"Content-Type": "application/json", "command": "SEND_JOB_INFO", "delay_s" : 10}
+]

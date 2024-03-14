@@ -9,53 +9,68 @@
 
 #include "fsm_base_types.hpp"
 #include "selftest_sub_state.hpp"
+#include "inc/MarlinConfig.h"
+#include "marlin_server_extended_fsm_data.hpp"
+#include <utility_extensions.hpp>
 
-struct SelftestHeaters_t {
-    uint8_t noz_progress;
-    uint8_t bed_progress;
-    SelftestSubtestState_t noz_prep_state;
-    SelftestSubtestState_t noz_heat_state;
-    SelftestSubtestState_t bed_prep_state;
-    SelftestSubtestState_t bed_heat_state;
+struct SelftestHeater_t {
+    uint8_t progress;
+    bool heatbreak_error;
+    SelftestSubtestState_t prep_state;
+    SelftestSubtestState_t heat_state;
 
-    constexpr SelftestHeaters_t(uint8_t noz_progress = 0, uint8_t bed_progress = 0,
-        SelftestSubtestState_t noz_prep_state = SelftestSubtestState_t::undef,
-        SelftestSubtestState_t noz_heat_state = SelftestSubtestState_t::undef,
-        SelftestSubtestState_t bed_prep_state = SelftestSubtestState_t::undef,
-        SelftestSubtestState_t bed_heat_state = SelftestSubtestState_t::undef)
-        : noz_progress(noz_progress)
-        , bed_progress(bed_progress)
-        , noz_prep_state(noz_prep_state)
-        , noz_heat_state(noz_heat_state)
-        , bed_prep_state(bed_prep_state)
-        , bed_heat_state(bed_heat_state) {}
+    constexpr SelftestHeater_t(uint8_t progress = 0,
+        SelftestSubtestState_t prep_state = SelftestSubtestState_t::undef,
+        SelftestSubtestState_t heat_state = SelftestSubtestState_t::undef)
+        : progress(progress)
+        , heatbreak_error(false)
+        , prep_state(prep_state)
+        , heat_state(heat_state) {}
 
-    constexpr SelftestHeaters_t(fsm::PhaseData new_data)
-        : SelftestHeaters_t() {
-        Deserialize(new_data);
+    constexpr bool operator==(const SelftestHeater_t &other) const {
+        return (progress == other.progress) && (prep_state == other.prep_state)
+            && (heat_state == other.heat_state) && (heatbreak_error == other.heatbreak_error);
     }
 
-    constexpr fsm::PhaseData Serialize() const {
-        fsm::PhaseData ret = { { noz_progress, bed_progress,
-            uint8_t(uint8_t(noz_prep_state) | (uint8_t(noz_heat_state) << 2)),
-            uint8_t(uint8_t(bed_prep_state) | (uint8_t(bed_heat_state) << 2)) } };
-        return ret;
-    }
-
-    constexpr void Deserialize(fsm::PhaseData new_data) {
-        noz_progress = new_data[0];
-        bed_progress = new_data[1];
-        noz_prep_state = SelftestSubtestState_t(new_data[2] & 0x03);
-        noz_heat_state = SelftestSubtestState_t((new_data[2] >> 2) & 0x03);
-        bed_prep_state = SelftestSubtestState_t(new_data[3] & 0x03);
-        bed_heat_state = SelftestSubtestState_t((new_data[3] >> 2) & 0x03);
-    }
-
-    constexpr bool operator==(const SelftestHeaters_t &other) const {
-        return (noz_progress == other.noz_progress) && (bed_progress == other.bed_progress) && (noz_prep_state == other.noz_prep_state) && (noz_heat_state == other.noz_heat_state) && (bed_prep_state == other.bed_prep_state) && (bed_heat_state == other.bed_heat_state);
-    }
-
-    constexpr bool operator!=(const SelftestHeaters_t &other) const {
+    constexpr bool operator!=(const SelftestHeater_t &other) const {
         return !((*this) == other);
     }
+    void Pass() {
+        heat_state = SelftestSubtestState_t::ok;
+        prep_state = SelftestSubtestState_t::ok;
+        progress = 100;
+    }
+    void Fail() {
+        heat_state = SelftestSubtestState_t::not_good;
+        if (prep_state != SelftestSubtestState_t::ok) {
+            prep_state = SelftestSubtestState_t::not_good; // prepare part passed - dont change that
+        }
+        progress = 100;
+    }
+
+    void Abort() {} // currently not needed
 };
+
+struct SelftestHeaters_t : public FSMExtendedData {
+public:
+    // class to be converted to one_hot coding
+    enum class TestedParts : uint8_t {
+        noz = 1,
+        bed = 2,
+    };
+
+    std::array<SelftestHeater_t, HOTENDS> noz;
+    SelftestHeater_t bed;
+
+    std::underlying_type_t<TestedParts> tested_parts { 0 };
+
+    constexpr SelftestHeaters_t() {}
+
+    bool operator==(SelftestHeaters_t const &other) const {
+        return noz == other.noz && bed == other.bed && tested_parts == other.tested_parts;
+    }
+};
+
+constexpr std::underlying_type_t<SelftestHeaters_t::TestedParts> to_one_hot(SelftestHeaters_t::TestedParts p) {
+    return 1 << ftrstd::to_underlying(p);
+}

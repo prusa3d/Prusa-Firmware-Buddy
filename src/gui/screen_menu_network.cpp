@@ -1,67 +1,50 @@
-#include "gui.hpp"
-#include "screen_menus.hpp"
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
-#include "MItem_menus.hpp"
-#include "MItem_tools.hpp"
-#include "MItem_lan.hpp"
+/**
+ * @file screen_menu_network.cpp
+ */
+#include "screen_menu_network.hpp"
+#include "printers.h"
+#include "DialogMoveZ.hpp"
 #include "wui_api.h"
 #include "netdev.h"
 #include "network_gui_tools.hpp"
 #include <http_lifetime.h>
-#include "printers.h"
-#include "DialogMoveZ.hpp"
 
-using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_PRUSALINK, MI_NET_INTERFACE_t, MI_IP4_ADDR, MI_MAC_ADDR, MI_ETH_SETTINGS, MI_WIFI_SETTINGS>;
+ScreenMenuNetwork::ScreenMenuNetwork()
+    : ScreenMenuNetwork__(_(label)) {
+    const uint32_t active_netdev = netdev_get_active_id();
+    mac_address_t mac;
+    get_MAC_address(&mac, active_netdev);
+    Item<MI_MAC_ADDR>().ChangeInformation(mac);
+    refresh_address();
+}
 
-class ScreenMenuNetwork : public Screen {
-public:
-    constexpr static const char *label = N_("NETWORK");
+void ScreenMenuNetwork::refresh_address() {
+    const uint32_t active_netdev = netdev_get_active_id();
+    netdev_status_t n_status = netdev_get_status(active_netdev);
+    if (n_status == NETDEV_NETIF_UP || n_status == NETDEV_NETIF_NOADDR) {
+        char str[ADDR_LEN];
+        lan_t ethconfig = {};
+        netdev_get_ipv4_addresses(active_netdev, &ethconfig);
+        stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4));
+        Item<MI_IP4_ADDR>().ChangeInformation(str);
+    } else {
+        Item<MI_IP4_ADDR>().ChangeInformation(UNKNOWN_ADDR);
+    }
+}
 
-    ScreenMenuNetwork()
-        : Screen(_(label)) {
-        const uint32_t active_netdev = netdev_get_active_id();
-        mac_address_t mac;
-        get_MAC_address(&mac, active_netdev);
-        Item<MI_MAC_ADDR>().ChangeInformation(mac);
+void ScreenMenuNetwork::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CHILD_CLICK) {
+        uint32_t action = ((uint32_t)param) & 0xFFFF;
+        uint32_t type = ((uint32_t)param) & 0xFFFF0000;
+        switch (type) {
+        case MI_NET_INTERFACE_t::EventMask::value:
+            netdev_set_active_id(action);
+            // TODO: By now, the network is not yet fully reconfigured. Do
+            // it periodically (below)? Have some notification?
+            refresh_address();
+            break;
+        }
+    } else if (event == GUI_event_t::LOOP) {
         refresh_address();
     }
-
-    void refresh_address() {
-        const uint32_t active_netdev = netdev_get_active_id();
-        if (netdev_get_status(active_netdev) == NETDEV_NETIF_UP) {
-            char str[GuiDefaults::infoMaxLen];
-            lan_t ethconfig = {};
-            netdev_get_ipv4_addresses(active_netdev, &ethconfig);
-            stringify_address_for_screen(str, GuiDefaults::infoMaxLen, ethconfig, ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4));
-            if (Item<MI_IP4_ADDR>().ChangeInformation(str) == invalidate_t::yes) {
-                Invalidate();
-            }
-        } else {
-            if (Item<MI_IP4_ADDR>().ChangeInformation("---") == invalidate_t::yes) {
-                Invalidate();
-            }
-        }
-    }
-
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
-        if (event == GUI_event_t::CHILD_CLICK) {
-            uint32_t action = ((uint32_t)param) & 0xFFFF;
-            uint32_t type = ((uint32_t)param) & 0xFFFF0000;
-            switch (type) {
-            case MI_NET_INTERFACE_t::EventMask::value:
-                netdev_set_active_id(action);
-                // TODO: By now, the network is not yet fully reconfigured. Do
-                // it periodically (below)? Have some notification?
-                refresh_address();
-                break;
-            }
-        } else if (event == GUI_event_t::LOOP) {
-            refresh_address();
-        }
-    }
-};
-
-ScreenFactory::UniquePtr GetScreenMenuNetwork() {
-    return ScreenFactory::Screen<ScreenMenuNetwork>();
 }

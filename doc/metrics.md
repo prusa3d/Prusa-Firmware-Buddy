@@ -141,6 +141,14 @@ What are metrics good for, if you have no way to store, view, and process them? 
     > - You can view logs of all the running services using `docker-compose logs -f`
     > - To stop the services, run `docker-compose stop`
 
+1. If you're on **WSL**, you might need to forward the UDP packets from your host machine to the WSL. For that purpose, we've written a simple UDP proxy application you can compile and run on your PC.
+
+    1. Download [DMD](https://dlang.org/) compiler.
+    1. Compile `metricsProxy.d` located in this directory (`doc`): `dmd metricsProxy.d`
+    1. Find out your WSL IP address: `(wsl) ifconfig`
+    1. Start the proxy: `metricsProxy.exe (your-wsl-address)`.
+
+
 ##### This will start the following services
 
 1. An InfluxDB database instance storing all your metrics.

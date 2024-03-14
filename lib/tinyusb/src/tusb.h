@@ -38,8 +38,15 @@
 #include "osal/osal.h"
 #include "common/tusb_fifo.h"
 
+#include "class/hid/hid.h"
+
+//------------- TypeC -------------//
+#if CFG_TUC_ENABLED
+  #include "typec/usbc.h"
+#endif
+
 //------------- HOST -------------//
-#if TUSB_OPT_HOST_ENABLED
+#if CFG_TUH_ENABLED
   #include "host/usbh.h"
 
   #if CFG_TUH_HID
@@ -57,11 +64,14 @@
   #if CFG_TUH_VENDOR
     #include "class/vendor/vendor_host.h"
   #endif
-
+#else
+  #ifndef tuh_int_handler
+  #define tuh_int_handler(...)
+  #endif
 #endif
 
 //------------- DEVICE -------------//
-#if TUSB_OPT_DEVICE_ENABLED
+#if CFG_TUD_ENABLED
   #include "device/usbd.h"
 
   #if CFG_TUD_HID
@@ -111,14 +121,16 @@
   #if CFG_TUD_BTH
     #include "class/bth/bth_device.h"
   #endif
+#else
+  #ifndef tud_int_handler
+  #define tud_int_handler(...)
+  #endif
 #endif
 
 
 //--------------------------------------------------------------------+
 // APPLICATION API
 //--------------------------------------------------------------------+
-/** \ingroup group_application_api
- *  @{ */
 
 // Initialize device/host stack
 // Note: when using with RTOS, this should be called after scheduler/kernel is started.
@@ -130,8 +142,6 @@ bool tusb_inited(void);
 
 // TODO
 // bool tusb_teardown(void);
-
-/** @} */
 
 #ifdef __cplusplus
  }

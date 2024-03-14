@@ -1,0 +1,188 @@
+
+== `tuple.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/tuple.hpp[`tuple.hpp`]
+provides a tuple implementation that mirrors
+https://en.cppreference.com/w/cpp/utility/tuple[`std::tuple`]. Mostly,
+`stdx::tuple` works the same way as `std::tuple`, with some extra functonality
+and faster compilation times. All functions on tuples are `constexpr`-capable.
+
+NOTE: `tuple` is available only in C++20 and later.
+
+=== Element types and size of a tuple
+
+As with `std::tuple`, we can ask for the compile-time elements and size of a
+`stdx::tuple` using `tuple_element_t` and `tuple_size_v`.
+[source,cpp]
+----
+template <typename T>
+constexpr auto tuple_size_v = /* implementation */;
+template <std::size_t I, typename T>
+using tuple_element_t = /* implementation */;
+----
+
+The standard provides `std::tuple_element` and `std::tuple_size` as types; in
+`stdx`, only `tuple_element_t` and `tuple_size_v` are provided, since they are
+the most frequently used constructs. If needed, types can be synthesized from
+them, but if not, it's quicker to compile just an alias and a variable template.
+
+=== Constructing a tuple
+
+A `tuple` can be constructed either with CTAD, or with `make_tuple`, or with
+`forward_as_tuple`.
+
+[source,cpp]
+----
+auto t = stdx::tuple{1, 2};            // tuple<int, int>
+auto t = stdx::make_tuple(1, 2);       // the same
+auto t = stdx::forward_as_tuple(1, 2); // tuple<int&&, int&&>
+----
+
+`make_tuple` decays its arguments, just like `std::make_tuple`. However,
+`std::make_tuple` also does `std::reference_wrapper`-unwrapping, which
+`stdx::make_tuple` does not.
+
+`forward_as_tuple` creates a tuple of forwarded references, like
+`std::forward_as_tuple`.
+
+=== Accessing tuple elements
+
+The ordinary way to access tuple elements is to use `get`, as with a `std::tuple`:
+[source,cpp]
+----
+auto t = stdx::tuple{1, true}; // tuple<int, bool>
+auto x_by_index = get<0>(t); // int
+auto y_by_index = get<1>(t); // bool
+auto x_by_type = get<int>(t); // int
+auto y_by_type = get<bool>(t); // bool
+----
+NOTE: `stdx::get` is accessed here by argument-dependent lookup.
+
+Like `std::get`, `stdx::get` with a type will be ambiguous if that type is in
+the tuple multiple times.
+
+_Unlike_ `std::get`, `stdx::get` is "SFINAE-friendly". If `stdx::get` causes a
+function template instantiation to be ill-formed, it will not cause an error,
+but instead will cause that function to be silently removed from the overload
+set candidates. With `stdx::get`, Substitution Failure Is Not An Error.
+
+For access by index, we can also use indexing syntax:
+[source,cpp]
+----
+using namespace stdx::literals;
+auto t = stdx::tuple{1, true};
+auto x_by_index1 = t[index<0>];
+auto x_by_index2 = t[0_idx]; // equivalent
+----
+`_idx` is a user-defined literal in the `stdx::literals` namespace. It is
+equivalent to using the `index` variable template.
+
+`get` is also available as a member function on `stdx::tuple` and works either
+by index or by type (using the `tag` variable template):
+[source,cpp]
+----
+using namespace stdx::literals;
+auto t = stdx::tuple{1, true};
+auto x_by_index1 = t.get(index<0>);
+auto x_by_index2 = t.get(0_idx);
+auto x_by_type = t.get(tag<int>);
+----
+
+NOTE: All forms of access preserve the value category of the tuple; i.e.
+accessing an `int` member of a `stdx::tuple const &` gives an `int const &` and
+so on.
+
+=== Comparing tuples
+
+Comparing one `stdx::tuple` with another works
+https://en.cppreference.com/w/cpp/utility/tuple/operator_cmp[the same way] as
+with `std::tuple`.
+
+=== Member functions on a tuple
+
+`apply` can be used like
+https://en.cppreference.com/w/cpp/utility/apply[`std::apply`], but is a member
+function.
+[source,cpp]
+----
+auto t = stdx::tuple{1, 2};
+auto sum = t.apply([] (auto... args) { return (args + ... + 0); }); // 3
+----
+`apply` is also available as a free function in
+xref:tuple_algorithms.adoc#_tuple_algorithms_hpp[`tuple_algorithms.hpp`].
+
+`fold_left` and `fold_right` can be used to fold over a tuple and compute a
+reduction. They both take an initial value for the fold as the first argument,
+and a binary reduction function as the second.
+[source,cpp]
+----
+auto t = stdx::tuple{1, 2, 3};
+auto sum1 = t.fold_left(0, std::plus{});  // 6
+auto sum2 = t.fold_right(0, std::plus{}); // also 6
+----
+Here, `fold_left` computes a _left-fold_, i.e. `(0 + (1 + (2 + 3)))`. `fold_right`
+computes the _right-fold_ `(((0 + 1) + 2) + 3)`.
+
+Both forms of fold can perform computations in type-space as well as
+value-space. That is, the return type of the binary function passed to the fold
+can depend on the arguments. In this way a fold can build up a type dependent on
+what is in the tuple.
+[source,cpp]
+----
+auto t1 = stdx::tuple{1, 2, 3};
+auto t2 = t.fold_left(
+  stdx::tuple{},
+  [] (auto so_far, auto y) { return tuple_cat(so_far, stdx::tuple{y}); });
+// t1 and t2 are the same, but intermediate types in the fold varied
+----
+
+NOTE: `tuple_cat` is an algorithm in
+xref:tuple_algorithms.adoc#_tuple_algorithms_hpp[`tuple_algorithms.hpp`].
+
+`join` is a member function that works the same way as `fold_left`, but without
+needing an initial value. It is only defined for non-empty tuples.
+[source,cpp]
+----
+auto t = stdx::tuple{1, 2, 3};
+auto sum = t.join(std::plus{});  // 6
+----
+
+=== Indexed tuples
+
+Sometimes, it is useful to index a tuple by something other than a plain
+`std::size_t` or a type. A tuple can act as a sort of map by indexing on
+multiple types, for instance. That's the job of `indexed_tuple`.
+
+[source,cpp]
+----
+template <typename Key, typename Value> struct map_entry {
+  using key_t = Key;
+  using value_t = Value;
+  value_t value;
+};
+template <typename T> using key_for = typename T::key_t;
+
+struct X;
+struct Y;
+auto t = stdx::make_indexed_tuple<key_for>(map_entry<X, int>{42},
+                                           map_entry<Y, int>{17});
+auto x = get<X>(t).value; // 42
+auto y = get<Y>(t).value; // 17
+----
+Notice a few things here:
+
+* `X` and `Y` are tag types; declared only and not defined.
+* `make_indexed_tuple` takes a number of type functions (here just `key_for`)
+  that define how to look up elements.
+* `get` is working not with a `std::size_t` index or the actual type contained
+  within the tuple, but with the tag type that will be found by `key_for`.
+
+A regular (unindexed) `tuple` can be converted to an `indexed_tuple` using
+`apply_indices` to add type-indexing functions:
+[source,cpp]
+----
+// with definitions as above
+auto t = stdx::tuple{map_entry<X, int>{42}}; // regular tuple
+auto i = stdx::apply_indices<key_for>(t);    // tuple indexed with key_for
+auto x = get<X>(i).value;                    // 42
+----

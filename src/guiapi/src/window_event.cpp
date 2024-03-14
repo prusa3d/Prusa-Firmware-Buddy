@@ -1,10 +1,12 @@
-//window_event.cpp
+// window_event.cpp
 
 #include "window_event.hpp"
 #include "log.h"
 #include "gui_time.hpp"
 
-EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {
+LOG_COMPONENT_REF(GUI);
+
+EventLock::EventLock([[maybe_unused]] const char *event_method_name, [[maybe_unused]] window_t *sender, GUI_event_t event) {
     //
     // Log Events
     //
@@ -22,7 +24,8 @@ EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_
         logged_events |= 1 << static_cast<int>(event);
 
         if (event != GUI_event_t::LOOP && event != GUI_event_t::TEXT_ROLL
-            && event != GUI_event_t::GUI_STARTUP && event != GUI_event_t::TIMER)
+            && event != GUI_event_t::GUI_STARTUP && event != GUI_event_t::TIMER) {
             log_info(GUI, "Distributing event %s", GUI_event_prt(event));
+        }
     }
-} //ctor must be private
+} // ctor must be private

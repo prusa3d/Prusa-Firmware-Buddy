@@ -15225,18 +15225,19 @@ WCHAR ff_uni2oem (	/* Returns OEM code character, zero on error */
 )
 {
 	WCHAR c = 0;
-	const WCHAR *p = CVTBL(uc, FF_CODE_PAGE);
+//	const WCHAR *p = CVTBL(uc, FF_CODE_PAGE);
 
 
 	if (uni < 0x80) {	/* ASCII? */
 		c = (WCHAR)uni;
 
 	} else {			/* Non-ASCII */
-		if (uni < 0x10000 && cp == FF_CODE_PAGE) {	/* Is it in BMP and valid code page? */
-			for (c = 0; c < 0x80 && uni != p[c]; c++) ;
-			c = (c + 0x80) & 0xFF;
-		}
-	}
+//		if (uni < 0x10000 && cp == FF_CODE_PAGE) {	/* Is it in BMP and valid code page? */
+//			for (c = 0; c < 0x80 && uni != p[c]; c++) ;
+//			c = (c + 0x80) & 0xFF;
+//		}
+        c = '?';
+    }
 
 	return c;
 }

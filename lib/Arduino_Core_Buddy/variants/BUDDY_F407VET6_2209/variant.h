@@ -53,59 +53,59 @@ extern "C" {
 // Below ADC, DAC and PWM definitions already done in the core
 // Could be redefined here if needed
 // ADC resolution is 12bits
-//#define ADC_RESOLUTION          12
-//#define DACC_RESOLUTION         12
+// #define ADC_RESOLUTION          12
+// #define DACC_RESOLUTION         12
 
 // PWM resolution
-//#define PWM_RESOLUTION          8
-//#define PWM_FREQUENCY           1000
-//#define PWM_MAX_DUTY_CYCLE      255
+// #define PWM_RESOLUTION          8
+// #define PWM_FREQUENCY           1000
+// #define PWM_MAX_DUTY_CYCLE      255
 
 // On-board LED pin number
 // #define LED_BUILTIN TPC13
 
 // On-board user button
-//#define BTN_K_UP                PA0   - no user button
+// #define BTN_K_UP                PA0   - no user button
 
 // Below SPI and I2C definitions already done in the core
 // Could be redefined here if differs from the default one
 // SPI Definitions
 
-//#define PIN_SPI_MOSI TPB15
-//#define PIN_SPI_MISO TPB14
-//#define PIN_SPI_SCK  TPB13
-//#define PIN_SPI_SS   TPB12
+// #define PIN_SPI_MOSI TPB15
+// #define PIN_SPI_MISO TPB14
+// #define PIN_SPI_SCK  TPB13
+// #define PIN_SPI_SS   TPB12
 
 // I2C Definitions
-//#define PIN_WIRE_SDA TPB7
-//#define PIN_WIRE_SCL TPB6
+// #define PIN_WIRE_SDA TPB7
+// #define PIN_WIRE_SCL TPB6
 
 // Timer Definitions
-//Do not use timer used by PWM pins when possible. See PinMap_PWM in PeripheralPins.c
-//#define TIMER_TONE TIM7
+// Do not use timer used by PWM pins when possible. See PinMap_PWM in PeripheralPins.c
+// #define TIMER_TONE TIM7
 
 // Do not use basic timer: OC is required
-//#define TIMER_SERVO TIM2 //TODO: advanced-control timers don't work
+// #define TIMER_SERVO TIM2 //TODO: advanced-control timers don't work
 
 // UART Definitions
 // Define here Serial instance number to map on Serial generic name
-//#define SERIAL_UART_INSTANCE    1 //ex: 2 for Serial2 (USART2)
+// #define SERIAL_UART_INSTANCE    1 //ex: 2 for Serial2 (USART2)
 // DEBUG_UART could be redefined to print on another instance than 'Serial'
-//#define DEBUG_UART              ((USART_TypeDef *) U(S)ARTX) // ex: USART3
+// #define DEBUG_UART              ((USART_TypeDef *) U(S)ARTX) // ex: USART3
 // DEBUG_UART baudrate, default: 9600 if not defined
-//#define DEBUG_UART_BAUDRATE     x
+// #define DEBUG_UART_BAUDRATE     x
 // DEBUG_UART Tx pin name, default: the first one found in PinMap_UART_TX for DEBUG_UART
-//#define DEBUG_PINNAME_TX        PX_n // PinName used for TX
+// #define DEBUG_PINNAME_TX        PX_n // PinName used for TX
 
 // Default pin used for 'Serial' instance (ex: ST-Link)
 // Mandatory for Firmata
-//#define PIN_SERIAL_RX           PC11
-//#define PIN_SERIAL_TX           PC10
+// #define PIN_SERIAL_RX           PC11
+// #define PIN_SERIAL_TX           PC10
 
-//#define PIN_SERIAL3_RX           PC11
-//#define PIN_SERIAL3_TX           PC10
-//#define PIN_SERIAL3_RX PB11
-//#define PIN_SERIAL3_TX PB10
+// #define PIN_SERIAL3_RX           PC11
+// #define PIN_SERIAL3_TX           PC10
+// #define PIN_SERIAL3_RX PB11
+// #define PIN_SERIAL3_TX PB10
 
 #ifdef __cplusplus
 } // extern "C"
@@ -131,8 +131,8 @@ extern "C" {
     //
     // SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
     //                            pins are NOT connected to anything by default.
-    //#define SERIAL_PORT_MONITOR     Serial
-    //#define SERIAL_PORT_HARDWARE Serial3
+    // #define SERIAL_PORT_MONITOR     Serial
+    // #define SERIAL_PORT_HARDWARE Serial3
 #endif
 
 #endif /* _VARIANT_ARDUINO_STM32_ */

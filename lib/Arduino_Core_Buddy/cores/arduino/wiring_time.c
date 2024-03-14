@@ -1,4 +1,4 @@
-//wiring_time.c
+// wiring_time.c
 
 #include "Arduino.h"
 #include "cmsis_os.h"
@@ -17,10 +17,11 @@ static inline int is_interrupt(void) {
 }
 
 void delay(uint32_t ms) {
-    if (!is_interrupt())
+    if (!is_interrupt()) {
         osDelay(ms);
-    else
+    } else {
         abort(); // TODO: add support for delay from IRQ
+    }
 }
 
 void delayMicroseconds(uint32_t usec) {

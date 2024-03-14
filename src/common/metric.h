@@ -2,10 +2,40 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h> //NULL
+#include <timing.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
+
+///
+/// # Metrics
+///
+/// What is it?
+/// Let's say you want to fine-tune some real-time algorithm - metrics allow
+/// you to easily define the values you care about and observe them
+/// in real-time while your algorithm runs on a real printer.
+///
+/// Quick start
+/// 1. Define your metrics (or use an existing one)
+///
+///    static metric_t val_xyz = METRIC("val_xyz", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
+///
+///     - The first parameter - "val_xyz" - is the metric's name. Keep it as short as possible!
+///     - The second parameter defines the type of recorded points (values) of this metric.
+///     - The third parameter - `100` - defines the minimal interval between consecutive recorded points in ms.
+///          - E.g. the value 100 ms makes the `val_xyz` metric being transmitted at maximum frequency 10 Hz.
+///          - If you want to disable throttling and send the values as fast as possible, set it to 0.
+///     - The last parameter is a bitmap specifying which handlers should have this metric enabled after startup.
+///
+/// 2. Record your values
+///
+///    metric_record_integer(&val_xyz, 314);
+///
+/// 3. Observe!
+///
+///    TODO: complete those instructions
+///
 
 #define METRIC_HANDLER_ENABLE_ALL  (0xffffffff)
 #define METRIC_HANDLER_DISABLE_ALL (0x00000000)
@@ -15,7 +45,7 @@ typedef enum {
     METRIC_VALUE_FLOAT = 0x01,
     METRIC_VALUE_INTEGER = 0x02,
     METRIC_VALUE_STRING = 0x03,
-    METRIC_VALUE_CUSTOM = 0x04, // multiple values formatted via customized line protocol
+    METRIC_VALUE_CUSTOM = 0x04, // multiple values formatted via customized line protocol (see metrics.md)
 } metric_value_type_t;
 
 /// A metric definition.
@@ -71,11 +101,15 @@ typedef struct metric_s {
 ///
 /// Do not create this manually. It is created automatically
 /// by metric_record_* functions and passed to handlers.
+///
+/// This is an internal short-lived object with the purpose of transfering
+/// a recording of a metric from one task to another.
 typedef struct {
     /// The metric for which the value was recorded.
     metric_t *metric;
 
-    /// Timestamp of the metric in us
+    /// Timestamp of the metric in us.
+    /// Oveflows and we are fine with it. Measures the interval between metric transfers only.
     uint32_t timestamp;
 
     /// Is it an error message?
@@ -132,19 +166,50 @@ void metric_system_init(metric_handler_t *handlers[]);
 void metric_register(metric_t *metric);
 
 /// Record a float (metric.type has to be METRIC_VALUE_FLOAT)
-void metric_record_float(metric_t *metric, float value);
+#define metric_record_float(metric, value) metric_record_float_at_time(metric, ticks_us(), value)
+
+/// Record a float with given timestamp (metric.type has to be METRIC_VALUE_FLOAT)
+void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float value);
 
 /// Record an integer (metric.type has to be METRIC_VALUE_INTEGER)
-void metric_record_integer(metric_t *metric, int value);
+#define metric_record_integer(metric, value) metric_record_integer_at_time(metric, ticks_us(), value)
+
+/// Record an integer with given timestamp (metric.type has to be METRIC_VALUE_INTEGER)
+void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int value);
 
 /// Record a string (metric.type has to be METRIC_VALUE_STRING)
-void metric_record_string(metric_t *metric, const char *fmt, ...);
+///
+/// The string is automatically truncated to the length of metric_point_t.value_str buffer size.
+#define metric_record_string(metric, fmt, ...) metric_record_string_at_time(metric, ticks_us(), fmt, ##__VA_ARGS__)
+
+/// Record a string with given timestamp (metric.type has to be METRIC_VALUE_STRING)
+///
+/// The string is automatically truncated to the length of metric_point_t.value_str buffer size.
+void metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
 
 /// Record an event (metric.type has to be METRIC_VALUE_EVENT)
-void metric_record_event(metric_t *metric);
+#define metric_record_event(metric) metric_record_event_at_time(metric, ticks_us())
+
+/// Record an event with given timestamp (metric.type has to be METRIC_VALUE_EVENT)
+void metric_record_event_at_time(metric_t *metric, uint32_t timestamp);
 
 /// Record a custom event (metric.type has to be METRIC_VALUE_CUSTOM)
-void metric_record_custom(metric_t *metric, const char *fmt, ...);
+///
+/// This is a lower-level function. Improper use can lead to terible things.
+/// And nobody wants that, so use only if you know what you are doing.
+///
+/// A metric error (datapoint with error=<message>) is recorded in case the resulting
+/// string does not fit the internal buffers.
+#define metric_record_custom(metric, fmt, ...) metric_record_custom_at_time(metric, ticks_us(), fmt, ##__VA_ARGS__)
+
+/// Record a custom event with given timestamp (metric.type has to be METRIC_VALUE_CUSTOM)
+///
+/// This is a lower-level function. Improper use can lead to terible things.
+/// And nobody wants that, so use only if you know what you are doing.
+///
+/// A metric error (datapoint with error=<message>) is recorded in case the resulting
+/// string does not fit the internal buffers.
+void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
 
 /// Records an error for a given metric.
 void metric_record_error(metric_t *metric, const char *fmt, ...);
@@ -160,6 +225,10 @@ void metric_enable_for_handler(metric_t *metric, metric_handler_t *handler);
 
 /// Disable metric for given handler
 void metric_disable_for_handler(metric_t *metric, metric_handler_t *handler);
+
+/// returns true, when metric min_interval_ms already passed and new record can be created
+/// note: useful if obtaining record value takes significant time
+bool metric_record_is_due(metric_t *metric);
 
 #ifdef __cplusplus
 }

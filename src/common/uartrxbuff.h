@@ -6,18 +6,21 @@ extern "C" {
 
 #include <inttypes.h>
 #include <stdbool.h>
-#include "stm32f4xx_hal.h"
+#include <device/hal.h>
 #include "cmsis_os.h"
 #include "FreeRTOS.h"
 
 #define UARTRXBUFF_ERR_NO_DATA  -1
 #define UARTRXBUFF_ERR_OVERFLOW -2
+#define UARTRXBUFF_ERR_IDLE     -3
 
 enum {
     UARTRXBUFF_EVT_FIRST_HALF_FULL = (1 << 0),
     UARTRXBUFF_EVT_SECOND_HALF_FULL = (1 << 1),
     UARTRXBUFF_EVT_OVERFLOW_DETECTED = (1 << 2),
     UARTRXBUFF_EVT_IDLE = (1 << 3),
+
+    UARTRXBUFF_EVT_ALL = UARTRXBUFF_EVT_FIRST_HALF_FULL | UARTRXBUFF_EVT_SECOND_HALF_FULL | UARTRXBUFF_EVT_OVERFLOW_DETECTED | UARTRXBUFF_EVT_IDLE,
 };
 
 typedef struct _uartrxbuff_t {
@@ -34,9 +37,14 @@ typedef struct _uartrxbuff_t {
 
     /// Index of the next position in the buffer to read from
     int buffer_pos;
+
+    /// position in buffer where idle occured (UINT32_MAX when no idle occured)
+    uint32_t idle_at_NDTR;
 } uartrxbuff_t;
 
-extern void uartrxbuff_init(uartrxbuff_t *prxbuff, UART_HandleTypeDef *phuart, DMA_HandleTypeDef *phdma, int size, uint8_t *pdata);
+extern void uartrxbuff_init(uartrxbuff_t *prxbuff, DMA_HandleTypeDef *phdma, int size, uint8_t *pdata);
+
+extern void uartrxbuff_deinit(uartrxbuff_t *prxbuff);
 
 extern void uartrxbuff_reset(uartrxbuff_t *prxbuff);
 

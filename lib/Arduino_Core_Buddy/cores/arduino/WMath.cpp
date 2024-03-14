@@ -22,10 +22,10 @@ extern "C" {
 }
 #include "WMath.h"
 
+#include <random.h>
+
 extern void randomSeed(uint32_t dwSeed) {
-    if (dwSeed != 0) {
-        srand(dwSeed);
-    }
+    // We're using HW RNG, there's no way to seed
 }
 
 extern long random(long howbig) {

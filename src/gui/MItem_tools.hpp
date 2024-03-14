@@ -1,30 +1,37 @@
 /*****************************************************************************/
-//menu items running tools
+// menu items running tools
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 #include "filament.hpp"
 #include "WindowItemFormatableLabel.hpp"
+#include "WindowItemFanLabel.hpp"
+#include "WindowItemTempLabel.hpp"
 #include "config.h"
+#include <utility_extensions.hpp>
+#include <option/has_dwarf.h>
+#include <option/has_side_fsensor.h>
 
-class MI_WIZARD : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Wizard");
-
-public:
-    MI_WIZARD();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
+class MI_FILAMENT_SENSOR : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Filament Sensor");
 
     bool init_index() const;
 
 public:
     MI_FILAMENT_SENSOR()
-        : WI_SWITCH_OFF_ON_t(init_index(), _(label), 0, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_STUCK_FILAMENT_DETECTION : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Stuck filament detection");
+    bool init_index() const;
+
+public:
+    MI_STUCK_FILAMENT_DETECTION()
+        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 protected:
     virtual void OnChange(size_t old_index) override;
@@ -60,88 +67,18 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SELFTEST : public WI_LABEL_t {
-    static constexpr const char *const label = N_("SelfTest");
+class MI_CALIB_Z : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Calibrate Z");
 
 public:
-    MI_SELFTEST();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_SELFTEST_RESULT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Show SelfTest result");
-
-public:
-    MI_SELFTEST_RESULT();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_CALIB_FIRST : public WI_LABEL_t {
-    static constexpr const char *const label = N_("First Layer Calibration");
-
-public:
-    MI_CALIB_FIRST();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_TEST_FANS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test FANs");
-
-public:
-    MI_TEST_FANS();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_TEST_XYZ : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test XYZ-Axis");
-
-public:
-    MI_TEST_XYZ();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_TEST_HEAT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Test Heaters");
-
-public:
-    MI_TEST_HEAT();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ADVANCED_FAN_TEST : public WI_LABEL_t {
-    static constexpr const char *const label = "Advanced fan test"; // debug only - not translated
-
-public:
-    MI_ADVANCED_FAN_TEST();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_TEST_ABORT : public WI_LABEL_t {
-    static constexpr const char *const label = "Test Abort"; // debug only - not translated
-
-public:
-    MI_TEST_ABORT();
+    MI_CALIB_Z();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
 class MI_DISABLE_STEP : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Disable Steppers");
+    static constexpr const char *const label = N_("Disable Motors");
 
 public:
     MI_DISABLE_STEP();
@@ -150,11 +87,21 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_FACTORY_DEFAULTS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Factory Reset");
+class MI_FACTORY_SOFT_RESET : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Reset Settings & Calibrations");
 
 public:
-    MI_FACTORY_DEFAULTS();
+    MI_FACTORY_SOFT_RESET();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_FACTORY_HARD_RESET : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Hard Reset (USB with FW needed)");
+
+public:
+    MI_FACTORY_HARD_RESET();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -182,18 +129,8 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_XFLASH_DELETE : public WI_LABEL_t {
-    static constexpr const char *const label = "XFLASH DELETE"; // intentionally not translated, only for debugging
-
-public:
-    MI_XFLASH_DELETE();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_XFLASH_RESET : public WI_LABEL_t {
-    static constexpr const char *const label = "XFLASH RESET"; // intentionally not translated, only for debugging
+    static constexpr const char *const label = "Delete Crash Dump"; // intentionally not translated, only for debugging
 
 public:
     MI_XFLASH_RESET();
@@ -202,101 +139,21 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_HF_TEST_0 : public WI_LABEL_t {
-    static constexpr const char *const label = "HF0 test"; // intentionally not translated, only for debugging
-
-public:
-    MI_HF_TEST_0();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_HF_TEST_1 : public WI_LABEL_t {
-    static constexpr const char *const label = "HF1 test"; // intentionally not translated, only for debugging
-
-public:
-    MI_HF_TEST_1();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD_400 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.0"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD_400();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD_401 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.1"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD_401();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD_402 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.2"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD_402();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD_403RC1 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.3-RC1"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD_403RC1();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD_403 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.3"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD_403();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD : public WI_LABEL_t {
-    static constexpr const char *const label = "EE load"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_SAVE : public WI_LABEL_t {
-    static constexpr const char *const label = "EE save"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_SAVE();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_EE_SAVEXML : public WI_LABEL_t {
-    static constexpr const char *const label = "EE save xml"; // intentionally not translated, only for debugging
+    static constexpr const char *const label = "TODO EE Save XML"; // intentionally not translated, only for debugging
 
 public:
     MI_EE_SAVEXML();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_EE_CLEAR : public WI_LABEL_t {
+    static constexpr const char *const label = "EE Clear"; // intentionally not translated, only for debugging
+
+public:
+    MI_EE_CLEAR();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -312,7 +169,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_TIMEOUT : public WI_SWITCH_OFF_ON_t {
+class MI_TIMEOUT : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Menu Timeout");
 
 public:
@@ -321,9 +178,9 @@ public:
 };
 
 #ifdef _DEBUG
-static constexpr size_t MI_SOUND_MODE_COUNT = 5;
+inline constexpr size_t MI_SOUND_MODE_COUNT = 5;
 #else
-static constexpr size_t MI_SOUND_MODE_COUNT = 4;
+inline constexpr size_t MI_SOUND_MODE_COUNT = 4;
 #endif
 class MI_SOUND_MODE : public WI_SWITCH_t<MI_SOUND_MODE_COUNT> {
     constexpr static const char *const label = N_("Sound Mode");
@@ -359,7 +216,7 @@ public:
 };
 
 class MI_SORT_FILES : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = N_("Sort Files by");
+    constexpr static const char *const label = N_("Sort Files");
 
     constexpr static const char *str_name = N_("Name");
     constexpr static const char *str_time = N_("Time");
@@ -379,56 +236,200 @@ public:
 };
 
 class MI_TIMEZONE : public WiSpinInt {
-    constexpr static const char *const label = "TZ UTC(+/-)"; // intentionally not translated
+    constexpr static const char *const label = N_("Time Zone Hour Offset");
 
 public:
     MI_TIMEZONE();
     virtual void OnClick() override;
 };
 
-class I_MI_Filament : public WI_LABEL_t {
-public:
-    I_MI_Filament(string_view_utf8 long_name)
-        : WI_LABEL_t(long_name, 0, is_enabled_t::yes, is_hidden_t::no) {}
+class MI_TIMEZONE_MIN : public WI_SWITCH_t<3> {
+    constexpr static const char *const label = N_("Time Zone Minute Offset");
 
-protected:
-    void click_at(filament_t filament_index);
+    constexpr static const char *str_0min = N_("00 min");
+    constexpr static const char *str_30min = N_("30 min");
+    constexpr static const char *str_45min = N_("45 min");
+
+public:
+    MI_TIMEZONE_MIN();
+    virtual void OnChange(size_t old_index) override;
 };
 
-template <filament_t T>
-class MI_Filament : public I_MI_Filament {
-public:
-    MI_Filament()
-        : I_MI_Filament(_(Filaments::Get(T).long_name)) {}
+class MI_TIMEZONE_SUMMER : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = N_("Time Zone Summertime");
 
-protected:
-    virtual void click(IWindowMenu & /*window_menu*/) override {
-        click_at(T);
+    constexpr static const char *str_wintertime = N_("disabled");
+    constexpr static const char *str_summertime = N_("enabled");
+
+public:
+    MI_TIMEZONE_SUMMER();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_TIME_FORMAT : public WI_SWITCH_t<2> {
+    constexpr static const char *const label = N_("Time Format");
+
+    constexpr static const char *str_24h = N_("24h");
+    constexpr static const char *str_12h = N_("12h");
+
+public:
+    MI_TIME_FORMAT();
+    virtual void OnChange(size_t old_index) override;
+};
+
+/**
+ * @brief Menu item with current time.
+ * @warning This uses time_tools::get_time() which needs to be updated periodically.
+ *     It needs to be done from the menu which has windowEvent() method.
+ */
+class MI_TIME_NOW : public WI_SWITCH_t<1> {
+    static constexpr const char *label = N_("Time");
+
+public:
+    MI_TIME_NOW();
+};
+
+// TODO move to different files (filament sensor adc related ones ...)
+class IMI_FS_SPAN : public WiSpinInt {
+#if HAS_SIDE_FSENSOR()
+    bool is_side;
+#endif
+    size_t index;
+
+public:
+    IMI_FS_SPAN(bool is_side_, size_t index, const char *label);
+    virtual void OnClick() override;
+};
+
+template <size_t Index, bool IsSide>
+class MI_FS_SPAN : public IMI_FS_SPAN {
+    static_assert(Index < 6, "Index out of range");
+#if not HAS_SIDE_FSENSOR()
+    static_assert(IsSide == false, "Invalid configuration");
+#endif
+
+    struct index_data {
+        const char *label;
+        size_t extruder_index;
+    };
+
+    static consteval const char *get_label() {
+        // gui counts sensors from 1, but internally they are counted from 0
+        if (IsSide) {
+            switch (Index) {
+            case 0:
+                return N_("Side FS span 1");
+            case 1:
+                return N_("Side FS span 2");
+            case 2:
+                return N_("Side FS span 3");
+            case 3:
+                return N_("Side FS span 4");
+            case 4:
+                return N_("Side FS span 5");
+            case 5:
+                return N_("Side FS span 6");
+            default:
+                consteval_assert_false();
+                return ""; // cannot happen
+            }
+        } else {
+            switch (Index) {
+            case 0:
+                return N_("FS span 1");
+            case 1:
+                return N_("FS span 2");
+            case 2:
+                return N_("FS span 3");
+            case 3:
+                return N_("FS span 4");
+            case 4:
+                return N_("FS span 5");
+            case 5:
+                return N_("FS span 6");
+            default:
+                consteval_assert_false();
+                return ""; // cannot happen
+            }
+        }
     }
-};
-
-class MI_FILAMENT_SENSOR_STATE : public WI_SWITCH_0_1_NA_t {
-    static constexpr const char *const label = N_("Filament Sensor");
-    static state_t get_state();
 
 public:
-    MI_FILAMENT_SENSOR_STATE();
-    bool StateChanged();
-    virtual void OnChange(size_t old_index) override {}
+    MI_FS_SPAN()
+        : IMI_FS_SPAN(IsSide, Index, get_label()) {}
 };
 
-class MI_MINDA : public WI_SWITCH_0_1_NA_t {
-    static constexpr const char *const label = N_("M.I.N.D.A.");
-    static state_t get_state();
+class IMI_FS_REF : public WiSpinInt {
+#if HAS_SIDE_FSENSOR()
+    bool is_side;
+#endif
+    size_t index;
 
 public:
-    MI_MINDA();
-    bool StateChanged();
-    virtual void OnChange(size_t old_index) override {}
+    IMI_FS_REF(bool is_side_, size_t index, const char *label);
+    virtual void OnClick() override;
 };
 
-class MI_FAN_CHECK : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Fan check");
+template <size_t Index, bool IsSide>
+class MI_FS_REF : public IMI_FS_REF {
+    static_assert(Index < 6, "Index out of range");
+#if not HAS_SIDE_FSENSOR()
+    static_assert(IsSide == false, "Invalid configuration");
+#endif
+
+    struct index_data {
+        const char *label;
+        size_t extruder_index;
+    };
+
+    static consteval const char *get_label() {
+        // gui counts sensors from 1, but internally they are counted from 0
+        if (IsSide) {
+            switch (Index) {
+            case 0:
+                return N_("Side FS not inserted ref 1");
+            case 1:
+                return N_("Side FS not inserted ref 2");
+            case 2:
+                return N_("Side FS not inserted ref 3");
+            case 3:
+                return N_("Side FS not inserted ref 4");
+            case 4:
+                return N_("Side FS not inserted ref 5");
+            case 5:
+                return N_("Side FS not inserted ref 6");
+            default:
+                consteval_assert_false();
+                return ""; // cannot happen
+            }
+        } else {
+            switch (Index) {
+            case 0:
+                return N_("FS not inserted ref 1");
+            case 1:
+                return N_("FS not inserted ref 2");
+            case 2:
+                return N_("FS not inserted ref 3");
+            case 3:
+                return N_("FS not inserted ref 4");
+            case 4:
+                return N_("FS not inserted ref 5");
+            case 5:
+                return N_("FS not inserted ref 6");
+            default:
+                consteval_assert_false();
+                return ""; // cannot happen
+            }
+        }
+    }
+
+public:
+    MI_FS_REF()
+        : IMI_FS_REF(IsSide, Index, get_label()) {}
+};
+
+class MI_FAN_CHECK : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Fan Check");
 
 public:
     MI_FAN_CHECK();
@@ -437,74 +438,365 @@ public:
 
 /******************************************************************/
 // WI_INFO_t
-
-class MI_IP4_ADDR : public WI_INFO_t {
-    static constexpr const char *const label = N_("IPv4 Address");
-
-public:
-    MI_IP4_ADDR();
-};
-
-class MI_IP4_NMSK : public WI_INFO_t {
-    static constexpr const char *const label = N_("IPv4 Netmask");
+class MI_INFO_FW : public WI_INFO_t {
+    static constexpr const char *const label = N_("Firmware Version");
 
 public:
-    MI_IP4_NMSK();
+    MI_INFO_FW();
+    virtual void click(IWindowMenu &window_menu) override; // FW version is clickable when development tools are shown
 };
 
-class MI_IP4_GWAY : public WI_INFO_t {
-    static constexpr const char *const label = N_("IPv4 Gateway");
+class MI_INFO_BOOTLOADER : public WI_INFO_t {
+    static constexpr const char *const label = N_("Bootloader Version");
 
 public:
-    MI_IP4_GWAY();
+    MI_INFO_BOOTLOADER();
 };
 
-class MI_MAC_ADDR : public WI_INFO_t {
-    static constexpr const char *const label = N_("MAC Address");
+class MI_INFO_MMU : public WI_INFO_t {
+    static constexpr const char *const label = N_("MMU Version");
 
 public:
-    MI_MAC_ADDR();
+    MI_INFO_MMU();
 };
 
-class MI_FS_AUTOLOAD : public WI_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("FS autoload");
+class MI_INFO_BOARD : public WI_INFO_t {
+    static constexpr const char *const label = N_("Buddy Board");
+
+public:
+    MI_INFO_BOARD();
+};
+
+class MI_INFO_SERIAL_NUM : public WiInfo<28> {
+    static constexpr const char *const label = N_("Serial Number");
+
+public:
+    MI_INFO_SERIAL_NUM();
+};
+
+class MI_FS_AUTOLOAD : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Filament Autoloading");
 
 public:
     MI_FS_AUTOLOAD();
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_INFO_BED_TEMP : public WI_TEMP_LABEL_t {
+    static constexpr const char *const label = N_("Bed Temperature");
+
+public:
+    MI_INFO_BED_TEMP();
+};
+
+class MI_INFO_FILL_SENSOR : public WI_FORMATABLE_LABEL_t<std::pair<SensorData::Value, SensorData::Value>> {
+public:
+    MI_INFO_FILL_SENSOR(string_view_utf8 label);
+};
+
+class MI_INFO_PRINTER_FILL_SENSOR : public MI_INFO_FILL_SENSOR {
+    static constexpr const char *label =
+#if PRINTER_IS_PRUSA_XL
+        N_("Tool Filament sensor");
+#else
+        N_("Filament Sensor");
+#endif
+
+public:
+    MI_INFO_PRINTER_FILL_SENSOR();
+};
+
+class MI_INFO_SIDE_FILL_SENSOR : public MI_INFO_FILL_SENSOR {
+    static constexpr const char *label = N_("Side Filament Sensor");
+
+public:
+    MI_INFO_SIDE_FILL_SENSOR();
+};
+
+class MI_INFO_PRINT_FAN : public WI_FAN_LABEL_t {
+    static constexpr const char *const label = N_("Print Fan");
+
+public:
+    MI_INFO_PRINT_FAN();
+};
+
+class MI_INFO_HBR_FAN : public WI_FAN_LABEL_t {
+    static constexpr const char *const label = N_("Heatbreak Fan");
+
+public:
+    MI_INFO_HBR_FAN();
+};
+
+class MI_PRINT_PROGRESS_TIME : public WiSpinInt {
+    constexpr static const char *label = N_("Print Progress Screen");
+
+public:
+    MI_PRINT_PROGRESS_TIME();
+    virtual void OnClick() override;
+};
 class MI_ODOMETER_DIST : public WI_FORMATABLE_LABEL_t<float> {
 public:
-    MI_ODOMETER_DIST(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
+    MI_ODOMETER_DIST(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
 };
 
 class MI_ODOMETER_DIST_X : public MI_ODOMETER_DIST {
-    constexpr static const char *const label = N_("X axis");
+    constexpr static const char *const label = N_("X Axis");
 
 public:
     MI_ODOMETER_DIST_X();
 };
 class MI_ODOMETER_DIST_Y : public MI_ODOMETER_DIST {
-    constexpr static const char *const label = N_("Y axis");
+    constexpr static const char *const label = N_("Y Axis");
 
 public:
     MI_ODOMETER_DIST_Y();
 };
 class MI_ODOMETER_DIST_Z : public MI_ODOMETER_DIST {
-    constexpr static const char *const label = N_("Z axis");
+    constexpr static const char *const label = N_("Z Axis");
 
 public:
     MI_ODOMETER_DIST_Z();
 };
+
+/// Extruded filament
 class MI_ODOMETER_DIST_E : public MI_ODOMETER_DIST {
-    constexpr static const char *const label = N_("Filament");
+    constexpr static const char *const generic_label = N_("Filament");
 
 public:
+    MI_ODOMETER_DIST_E(const char *const label, int index);
     MI_ODOMETER_DIST_E();
 };
+
+/// Tool picked
+class MI_ODOMETER_TOOL : public WI_FORMATABLE_LABEL_t<uint32_t> {
+    constexpr static const char *const generic_label = N_("Tools Changed");
+    constexpr static const char *const times_label = N_("times"); // Tools Changed      123 times
+
+public:
+    MI_ODOMETER_TOOL(const char *const label, int index);
+    MI_ODOMETER_TOOL();
+};
+
 class MI_ODOMETER_TIME : public WI_FORMATABLE_LABEL_t<uint32_t> {
-    constexpr static const char *const label = N_("Print time");
+    constexpr static const char *const label = N_("Print Time");
 
 public:
     MI_ODOMETER_TIME();
+};
+
+class MI_INFO_HEATER_VOLTAGE : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+    static constexpr const char *const label = N_("Heater Voltage");
+
+public:
+    MI_INFO_HEATER_VOLTAGE();
+};
+
+class MI_INFO_INPUT_VOLTAGE : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+    static constexpr const char *const label = N_("Input Voltage");
+
+public:
+    MI_INFO_INPUT_VOLTAGE();
+};
+
+class MI_INFO_5V_VOLTAGE : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+    static constexpr const char *const label = N_("5V Voltage");
+
+public:
+    MI_INFO_5V_VOLTAGE();
+};
+
+class MI_INFO_HEATER_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+    static constexpr const char *const label = N_("Heater Current");
+
+public:
+    MI_INFO_HEATER_CURRENT();
+};
+
+class MI_INFO_INPUT_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+    static constexpr const char *const label = N_("Input Current");
+
+public:
+    MI_INFO_INPUT_CURRENT();
+};
+
+class MI_INFO_MMU_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+    static constexpr const char *const label = N_("MMU Current");
+
+public:
+    MI_INFO_MMU_CURRENT();
+};
+
+class MI_INFO_SPLITTER_5V_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+    static constexpr const char *const label = N_("Splitter 5V Current");
+
+public:
+    MI_INFO_SPLITTER_5V_CURRENT();
+};
+
+class MI_INFO_SANDWICH_5V_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+    static constexpr const char *const label = N_("Sandwich 5V Current");
+
+public:
+    MI_INFO_SANDWICH_5V_CURRENT();
+};
+
+class MI_INFO_BUDDY_5V_CURRENT : public WI_FORMATABLE_LABEL_t<SensorData::Value> {
+    static constexpr const char *const label = N_("XL Buddy 5V Current");
+
+public:
+    MI_INFO_BUDDY_5V_CURRENT();
+};
+
+class MI_INFO_BOARD_TEMP : public WI_TEMP_LABEL_t {
+    static constexpr const char *const label = N_("Board Temperature");
+
+public:
+    MI_INFO_BOARD_TEMP();
+};
+
+class MI_INFO_MCU_TEMP : public WI_TEMP_LABEL_t {
+    static constexpr const char *const label = N_("MCU Temperature");
+
+public:
+    MI_INFO_MCU_TEMP();
+};
+
+class MI_FOOTER_RESET : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Reset");
+
+public:
+    MI_FOOTER_RESET();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_CO_CANCEL_OBJECT : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Cancel Object");
+
+public:
+    MI_CO_CANCEL_OBJECT();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_HEATUP_BED : public WI_SWITCH_t<2> {
+    static constexpr const char *const label = N_("For filament change, preheat");
+    static constexpr const char *const nozzle = N_("Nozzle");
+    static constexpr const char *const nozzle_bed = N_("Noz&Bed");
+
+public:
+    MI_HEATUP_BED();
+
+protected:
+    void OnChange(size_t old_index) override;
+};
+
+/******************************************************************/
+
+enum class input_shaper_param {
+    set_values,
+    change_x,
+    change_y
+};
+
+class MI_IS_X_ONOFF : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("X-axis");
+    input_shaper_param param = input_shaper_param::change_x;
+
+public:
+    MI_IS_X_ONOFF();
+
+protected:
+    void OnChange(size_t old_index) override;
+};
+
+class MI_IS_Y_ONOFF : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Y-axis");
+    input_shaper_param param = input_shaper_param::change_y;
+
+public:
+    MI_IS_Y_ONOFF();
+
+protected:
+    void OnChange(size_t old_index) override;
+};
+
+class MI_IS_X_TYPE : public WI_SWITCH_t<6> {
+    static constexpr const char *const label = N_("X-axis filter");
+
+public:
+    MI_IS_X_TYPE();
+
+protected:
+    void OnChange(size_t old_index) override;
+};
+
+class MI_IS_Y_TYPE : public WI_SWITCH_t<6> {
+    static constexpr const char *const label = N_("Y-axis filter");
+
+public:
+    MI_IS_Y_TYPE();
+
+protected:
+    void OnChange(size_t old_index) override;
+};
+
+class MI_IS_X_FREQUENCY : public WiSpinInt {
+    static constexpr const char *const label = N_("X-axis freq.");
+
+public:
+    MI_IS_X_FREQUENCY();
+
+    virtual void OnClick() override;
+};
+
+class MI_IS_Y_FREQUENCY : public WiSpinInt {
+    static constexpr const char *const label = N_("Y-axis freq.");
+
+public:
+    MI_IS_Y_FREQUENCY();
+    virtual void OnClick() override;
+};
+
+class MI_IS_Y_COMPENSATION : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Y weight compensation");
+
+public:
+    MI_IS_Y_COMPENSATION();
+
+protected:
+    void OnChange(size_t old_index) override;
+};
+
+class MI_IS_SET : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Set up values");
+    input_shaper_param param = input_shaper_param::set_values;
+
+public:
+    MI_IS_SET();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_IS_CALIB : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Calibration");
+
+public:
+    MI_IS_CALIB();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_SET_READY : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Set Ready");
+
+public:
+    MI_SET_READY();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
 };

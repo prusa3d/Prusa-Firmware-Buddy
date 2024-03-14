@@ -18,6 +18,12 @@ Notable contributors
 -  Design the project logo
 
 
+`Gordon McNab <https://github.com/ftdigdm>`__
+---------------------------------------------
+
+-  Add new DCD port for Bridgetek FT90x and FT93x
+
+
 `Ha Thach <https://github.com/hathach>`__
 -----------------------------------------
 
@@ -53,6 +59,7 @@ Notable contributors
 -----------------------------------------------
 
 -  Add new DCD port for Dialog DA1469x
+-  Add new DCD port for PIC32MZ
 -  Add new class driver for Bluetooth HCI
 -  Add ISO transfer for STM32 Synopsys, Nordic nRF, Dialog DA1469x
 -  Improve Audio driver and add uac2\_headset example
@@ -81,10 +88,10 @@ Notable contributors
 `Koji KITAYAMA <https://github.com/kkitayam>`__
 -----------------------------------------------
 
--  Add new DCD port for NXP Kinetis KL25
--  Add new DCD port for Renesas RX family (RX600, RX700 ..) with GR-CITRUS, RX65n target board
+-  Add new DCD and HCD port for NXP Kinetis KL25
+-  Add new DCD and HCD port for Renesas RX family (RX600, RX700 ..) with GR-CITRUS, RX65n target board
+-  Add new DCD and HCD port for Mentor musb with MSP432E4
 -  Add new class driver for USB Video Class (UVC 1.5)
-
 
 `Nathan Conrad <https://github.com/pigrew>`__
 ---------------------------------------------
@@ -112,6 +119,7 @@ Notable contributors
 
 -  Port DCD Synopsys to support Silabs EFM32GG12 with SLTB009A board
 -  Rewrite documentation in rst and setup for readthedocs
+-  Generalize Renesas driver and support RA family with EK-RA4M3 board
 
 
 `Raspberry Pi Team <https://github.com/raspberrypi>`__
@@ -153,6 +161,12 @@ Notable contributors
 -  Add new class driver for DFU Runtime
 
 
+`Tian Yunhao <https://github.com/t123yh>`__
+-------------------------------------------
+
+-  Add new DCD port for Allwinner F1C100S/F1C200S
+-  Add support for osal_rtx4
+
 `Timon Skerutsch <https://github.com/PTS93>`__
 ----------------------------------------------
 
@@ -186,6 +200,8 @@ Notable contributors
 -  Add new DCD port for Microchip SAMx7x
 -  Add IAR compiler support
 -  Improve UAC2, CDC, DFU class driver
+-  Improve stm32_fsdev, chipidea_ci_hs, lpc_ip3511 DCD
+-  Host IAR Build CI & hardware in the loop (HITL) test
 
 
 `Full contributors list <https://github.com/hathach/tinyusb/contributors>`__

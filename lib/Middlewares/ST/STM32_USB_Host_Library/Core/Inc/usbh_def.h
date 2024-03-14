@@ -33,8 +33,8 @@ extern "C" {
   */
 
 /** @addtogroup USBH_LIB_CORE
-* @{
-*/
+  * @{
+  */
 
 /** @defgroup USBH_DEF
   * @brief This file is includes USB descriptors
@@ -60,6 +60,14 @@ extern "C" {
 #define ValBit(VAR,POS)                               (VAR & (1 << POS))
 #define SetBit(VAR,POS)                               (VAR |= (1 << POS))
 #define ClrBit(VAR,POS)                               (VAR &= ((1 << POS)^255))
+
+#ifndef MIN
+#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef MAX
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+#endif
 
 #define LE16(addr)        (((uint16_t)(addr)[0]) | \
                            ((uint16_t)(((uint32_t)(addr)[1]) << 8)))
@@ -87,7 +95,11 @@ extern "C" {
 #define LE32S(addr)       ((int32_t)(LE32((addr))))
 #define LE64S(addr)       ((int64_t)(LE64((addr))))
 
+#ifndef USBH_MAX_DATA_BUFFER
+#define USBH_MAX_DATA_BUFFER                               0x400U
+#endif
 
+#define USBH_MAX_EP_PACKET_SIZE                            0x400U
 
 #define  USB_LEN_DESC_HDR                                  0x02U
 #define  USB_LEN_DEV_DESC                                  0x12U
@@ -171,16 +183,16 @@ extern "C" {
 #define  USB_EP_DIR_MSK                                    0x80U
 
 #ifndef USBH_MAX_PIPES_NBR
-#define USBH_MAX_PIPES_NBR                                15U
+#define USBH_MAX_PIPES_NBR                                 16U
 #endif /* USBH_MAX_PIPES_NBR */
 
 #define USBH_DEVICE_ADDRESS_DEFAULT                        0x00U
 #define USBH_DEVICE_ADDRESS                                0x01U
 
-#define USBH_MAX_ERROR_COUNT                               0x02U
+#define USBH_MAX_ERROR_COUNT                               0x50U
 
 #if (USBH_USE_OS == 1U)
-#define MSGQUEUE_OBJECTS                                   0x10U
+#define MSGQUEUE_OBJECTS                                   0x30U
 #endif
 
 
@@ -190,12 +202,12 @@ extern "C" {
 
 
 #define USBH_CONFIGURATION_DESCRIPTOR_SIZE (USB_CONFIGURATION_DESC_SIZE \
-                                           + USB_INTERFACE_DESC_SIZE\
-                                           + (USBH_MAX_NUM_ENDPOINTS * USB_ENDPOINT_DESC_SIZE))
+                                            + USB_INTERFACE_DESC_SIZE\
+                                            + (USBH_MAX_NUM_ENDPOINTS * USB_ENDPOINT_DESC_SIZE))
 
 
 #define CONFIG_DESC_wTOTAL_LENGTH (ConfigurationDescriptorData.ConfigDescfield.\
-                                          ConfigurationDescriptor.wTotalLength)
+                                   ConfigurationDescriptor.wTotalLength)
 
 
 typedef union
@@ -477,7 +489,7 @@ typedef struct _USBH_HandleTypeDef
 #endif
   uint32_t              os_msg;
 #endif
-
+  bool                  stealth_reset;
 } USBH_HandleTypeDef;
 
 

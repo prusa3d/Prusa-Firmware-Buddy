@@ -27,15 +27,15 @@
 /*
   Theory of operation:
 
-  The NUC121/NUC125/NUC126 USBD peripheral has eight "EP"s, but each is simplex, 
-  so two collectively (peripheral nomenclature of "EP0" and "EP1") are needed to 
-  implement USB EP0.  PERIPH_EP0 and PERIPH_EP1 are used by this driver for 
+  The NUC121/NUC125/NUC126 USBD peripheral has eight "EP"s, but each is simplex,
+  so two collectively (peripheral nomenclature of "EP0" and "EP1") are needed to
+  implement USB EP0.  PERIPH_EP0 and PERIPH_EP1 are used by this driver for
   EP0_IN and EP0_OUT respectively.  This leaves up to six for user usage.
 */
 
 #include "tusb_option.h"
 
-#if TUSB_OPT_DEVICE_ENABLED && ( (CFG_TUSB_MCU == OPT_MCU_NUC121) || (CFG_TUSB_MCU == OPT_MCU_NUC126) )
+#if CFG_TUD_ENABLED && ( (CFG_TUSB_MCU == OPT_MCU_NUC121) || (CFG_TUSB_MCU == OPT_MCU_NUC126) )
 
 #include "device/dcd.h"
 #include "NuMicro.h"
@@ -549,6 +549,14 @@ void dcd_connect(uint8_t rhport)
 {
   (void) rhport;
   usb_attach();
+}
+
+void dcd_sof_enable(uint8_t rhport, bool en)
+{
+  (void) rhport;
+  (void) en;
+
+  // TODO implement later
 }
 
 #endif

@@ -26,7 +26,7 @@
 
 #include "tusb_option.h"
 
-#if TUSB_OPT_DEVICE_ENABLED && CFG_TUSB_MCU == OPT_MCU_DA1469X
+#if CFG_TUD_ENABLED && CFG_TUSB_MCU == OPT_MCU_DA1469X
 
 #include "mcu/mcu.h"
 
@@ -243,7 +243,7 @@ static struct
 
 // Converts xfer pointer to epnum (0,1,2,3) regardless of xfer direction
 #define XFER_EPNUM(xfer)      ((xfer - &_dcd.xfer_status[0][0]) >> 1)
-// Converts xfer pinter to EPx_REGS pointer (returns same pointer for IN and OUT with same endpoint number)
+// Converts xfer pointer to EPx_REGS pointer (returns same pointer for IN and OUT with same endpoint number)
 #define XFER_REGS(xfer)       ep_regs[XFER_EPNUM(xfer)]
 // Converts epnum (0,1,2,3) to EPx_REGS pointer
 #define EPNUM_REGS(epnum)     ep_regs[epnum]
@@ -651,7 +651,7 @@ static void handle_epx_tx_ev(xfer_ctl_t *xfer)
   }
   if (txs & USB_USB_TXS1_REG_USB_TX_URUN_Msk)
   {
-    TU_LOG1("EP %d FIFO underrun\n", epnum);
+    TU_LOG1("EP %d FIFO underrun\r\n", epnum);
   }
   // Start next or repeated packet.
   start_tx_packet(xfer);
@@ -733,6 +733,15 @@ static void handle_alt_ev(void)
       set_nfsr(NFSR_NODE_OPERATIONAL);
       USB->USB_ALTMSK_REG = USB_USB_ALTMSK_REG_USB_M_RESET_Msk |
                             USB_USB_ALTMSK_REG_USB_M_SD3_Msk;
+      // Re-enable reception of endpoint with pending transfer
+      for (int epnum = 1; epnum <= 3; ++epnum)
+      {
+        xfer_ctl_t * xfer = XFER_CTL_BASE(epnum, TUSB_DIR_OUT);
+        if (xfer->total_len > xfer->transferred)
+        {
+          start_rx_packet(xfer);
+        }
+      }
       dcd_event_bus_signal(0, DCD_EVENT_RESUME, true);
     }
   }
@@ -873,6 +882,14 @@ void dcd_disconnect(uint8_t rhport)
   REG_CLR_BIT(USB_MCTRL_REG, USB_NAT);
 }
 
+void dcd_sof_enable(uint8_t rhport, bool en)
+{
+  (void) rhport;
+  (void) en;
+
+  // TODO implement later
+}
+
 TU_ATTR_ALWAYS_INLINE static inline bool is_in_isr(void)
 {
   return (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0;
@@ -935,13 +952,13 @@ bool dcd_edpt_open(uint8_t rhport, tusb_desc_endpoint_t const * desc_edpt)
     if (dir == TUSB_DIR_OUT)
     {
       regs->epc_out = epnum | USB_USB_EPC1_REG_USB_EP_EN_Msk | iso_mask;
-      USB->USB_RXMSK_REG |= 0x101 << (epnum - 1);
+      USB->USB_RXMSK_REG |= 0x11 << (epnum - 1);
       REG_SET_BIT(USB_MAMSK_REG, USB_M_RX_EV);
     }
     else
     {
       regs->epc_in = epnum | USB_USB_EPC1_REG_USB_EP_EN_Msk | iso_mask;
-      USB->USB_TXMSK_REG |= 0x101 << (epnum - 1);
+      USB->USB_TXMSK_REG |= 0x11 << (epnum - 1);
       REG_SET_BIT(USB_MAMSK_REG, USB_M_TX_EV);
     }
   }
@@ -982,7 +999,7 @@ void dcd_edpt_close(uint8_t rhport, uint8_t ep_addr)
     {
       regs->rxc = USB_USB_RXC1_REG_USB_FLUSH_Msk;
       regs->epc_out = 0;
-      USB->USB_RXMSK_REG &= ~(0x101 << (epnum - 1));
+      USB->USB_RXMSK_REG &= ~(0x11 << (epnum - 1));
       // Release DMA if needed
       if (_dcd.dma_ep[TUSB_DIR_OUT] == epnum)
       {
@@ -994,7 +1011,7 @@ void dcd_edpt_close(uint8_t rhport, uint8_t ep_addr)
     {
       regs->txc = USB_USB_TXC1_REG_USB_FLUSH_Msk;
       regs->epc_in = 0;
-      USB->USB_TXMSK_REG &= ~(0x101 << (epnum - 1));
+      USB->USB_TXMSK_REG &= ~(0x11 << (epnum - 1));
       // Release DMA if needed
       if (_dcd.dma_ep[TUSB_DIR_IN] == epnum)
       {

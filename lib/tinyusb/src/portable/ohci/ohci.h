@@ -34,13 +34,16 @@
 //--------------------------------------------------------------------+
 // OHCI CONFIGURATION & CONSTANTS
 //--------------------------------------------------------------------+
-#define HOST_HCD_XFER_INTERRUPT // TODO interrupt is used widely, should always be enalbed
+#define HOST_HCD_XFER_INTERRUPT // TODO interrupt is used widely, should always be enabled
 #define OHCI_PERIODIC_LIST (defined HOST_HCD_XFER_INTERRUPT || defined HOST_HCD_XFER_ISOCHRONOUS)
 
 // TODO merge OHCI with EHCI
 enum {
   OHCI_MAX_ITD = 4
 };
+
+#define ED_MAX       (CFG_TUH_DEVICE_MAX*CFG_TUH_ENDPOINT_MAX)
+#define GTD_MAX      ED_MAX
 
 //--------------------------------------------------------------------+
 // OHCI Data Structure
@@ -55,7 +58,9 @@ typedef struct {
 
 TU_VERIFY_STATIC( sizeof(ohci_hcca_t) == 256, "size is not correct" );
 
-typedef struct {
+// common link item for gtd and itd for list travel
+// use as pointer only
+typedef struct TU_ATTR_ALIGNED(16) {
   uint32_t reserved[2];
   volatile uint32_t next;
   uint32_t reserved2;
@@ -159,11 +164,11 @@ typedef struct TU_ATTR_ALIGNED(256)
   struct {
     ohci_ed_t ed;
     ohci_gtd_t gtd;
-  }control[CFG_TUH_DEVICE_MAX+1];
+  }control[CFG_TUH_DEVICE_MAX+CFG_TUH_HUB+1];
 
   //  ochi_itd_t itd[OHCI_MAX_ITD]; // itd requires alignment of 32
-  ohci_ed_t ed_pool[HCD_MAX_ENDPOINT];
-  ohci_gtd_t gtd_pool[HCD_MAX_XFER];
+  ohci_ed_t ed_pool[ED_MAX];
+  ohci_gtd_t gtd_pool[GTD_MAX];
 
   volatile uint16_t frame_number_hi;
 
@@ -227,8 +232,27 @@ typedef volatile struct
   uint32_t periodic_start;
   uint32_t lowspeed_threshold;
 
-  uint32_t rh_descriptorA;
-  uint32_t rh_descriptorB;
+  union {
+    uint32_t rh_descriptorA;
+    struct {
+      uint32_t number_downstream_ports     : 8;
+      uint32_t power_switching_mode        : 1;
+      uint32_t no_power_switching          : 1;
+      uint32_t device_type                 : 1;
+      uint32_t overcurrent_protection_mode : 1;
+      uint32_t no_over_current_protection  : 1;
+      uint32_t reserved                    : 11;
+      uint32_t power_on_to_good_time       : 8;
+    } rh_descriptorA_bit;
+  };
+
+  union {
+    uint32_t rh_descriptorB;
+    struct {
+      uint32_t device_removable        : 16;
+      uint32_t port_power_control_mask : 16;
+    } rh_descriptorB_bit;
+  };
 
   union {
     uint32_t rh_status;
@@ -245,7 +269,7 @@ typedef volatile struct
   };
 
   union {
-    uint32_t rhport_status[2]; // TODO NXP OHCI controller only has 2 ports
+    uint32_t rhport_status[TUP_OHCI_RHPORTS];
     struct {
       uint32_t current_connect_status             : 1;
       uint32_t port_enable_status                 : 1;
@@ -262,11 +286,11 @@ typedef volatile struct
       uint32_t port_over_current_indicator_change : 1;
       uint32_t port_reset_status_change           : 1;
       uint32_t TU_RESERVED                        : 11;
-    }rhport_status_bit[2];
+    }rhport_status_bit[TUP_OHCI_RHPORTS];
   };
 }ohci_registers_t;
 
-TU_VERIFY_STATIC( sizeof(ohci_registers_t) == 0x5c, "size is not correct");
+TU_VERIFY_STATIC( sizeof(ohci_registers_t) == (0x54 + (4 * TUP_OHCI_RHPORTS)), "size is not correct");
 
 #ifdef __cplusplus
  }

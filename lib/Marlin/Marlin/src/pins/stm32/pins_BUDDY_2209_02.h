@@ -20,8 +20,8 @@
  *
  */
 
-#include "main.h"
 #include "hwio_pindef.h"
+#include <device/board.h>
 
 #if !defined(STM32F4) && !defined(STM32F4xx)
   #error "Oops! Select a Buddy board in 'Tools > Board.'"
@@ -33,7 +33,6 @@
 #define I2C_EEPROM
 
 #define E2END 0x03ff // EEPROM end address (1kB)
-
 
 #if HOTENDS > 1 || E_STEPPERS > 2
   #error "Buddy supports up to 1 hotends / E-steppers."
@@ -73,7 +72,6 @@
 #define E0_DIR_PIN             MARLIN_PIN(E0_DIR)
 #define E0_ENABLE_PIN          MARLIN_PIN(E0_ENA)
 
-
 #if HAS_DRIVER(TMC2208)
   /**
    * TMC2208 stepper drivers
@@ -96,11 +94,22 @@
 
   #define X_SLAVE_ADDRESS 1
   #define Y_SLAVE_ADDRESS 3
+#if BOARD_IS_XBUDDY
+  #define Z_SLAVE_ADDRESS 2
+  #define E0_SLAVE_ADDRESS 0
+#elif(BOARD_TYPE == BUDDY_BOARD)
   #define Z_SLAVE_ADDRESS 0
   #define E0_SLAVE_ADDRESS 2
 #else
-  #error Unknown stepper driver
+  #error "macro BOARD_TYPE is not defined"
 #endif
+#elif HAS_DRIVER(TMC2130)
+#define X_CS_PIN MARLIN_PIN(CS_X)
+#define Y_CS_PIN MARLIN_PIN(CS_Y)
+#define Z_CS_PIN MARLIN_PIN(CS_Z)
+#define E0_CS_PIN MARLIN_PIN(CS_E)
+#endif
+
 
 //
 // Temperature Sensors
@@ -110,7 +119,8 @@
 #define TEMP_BED_PIN           MARLIN_PIN(TEMP_BED)   // Analog Input
 
 #define TEMP_BOARD_PIN         MARLIN_PIN(THERM2) // Analog Input
-
+#define TEMP_HEATBREAK_PIN     MARLIN_PIN(TEMP_HEATBREAK) // Analog Input todo: why it is defined for all printers?
+#define TEMP_CHAMBER_PIN       MARLIN_PIN(AMBIENT) // Analog Input
 
 //
 // Heaters / Fans
@@ -120,12 +130,27 @@
 #define HEATER_BED_PIN         MARLIN_PIN(BED_HEAT)
 
 #define FAN_PIN                MARLIN_PIN(FAN)
-
-#undef E0_AUTO_FAN_PIN         //todo fixme, remove other definition of E0_AUTO_FAN_PIN
-#define E0_AUTO_FAN_PIN        MARLIN_PIN(FAN1)
+#if BOARD_IS_XBUDDY
+  #if (TEMP_SENSOR_HEATBREAK > 0)
+    #define HEATER_HEATBREAK_PIN   MARLIN_PIN(FAN1)
+    #define FAN1_PIN               MARLIN_PIN(FAN1)
+  #elif (TEMP_SENSOR_HEATBREAK == 0)
+    #undef E0_AUTO_FAN_PIN         //todo fixme, remove other definition of E0_AUTO_FAN_PIN
+    #define E0_AUTO_FAN_PIN        MARLIN_PIN(FAN1)
+  #endif
+#elif (BOARD_TYPE == BUDDY_BOARD)
+  #undef E0_AUTO_FAN_PIN         //todo fixme, remove other definition of E0_AUTO_FAN_PIN
+  #define E0_AUTO_FAN_PIN        MARLIN_PIN(FAN1)
+#else
+  #error "macro BOARD_TYPE is not defined"
+#endif
 
 
 
 #define SDSS                   80  //it means "NC"
 #define SD_DETECT_PIN          80  //it means "NC"
 
+
+#if defined(MARLIN_PORT_HEATER_ENABLE) && defined(MARLIN_PIN_NR_HEATER_ENABLE)
+  #define PS_ON_PIN              MARLIN_PIN(HEATER_ENABLE)
+#endif

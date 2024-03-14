@@ -21,6 +21,7 @@
  */
 
 #include "../inc/MarlinConfig.h"
+#include "bsod.h"
 
 #if HAS_TRINAMIC
 
@@ -31,6 +32,8 @@
 #include "../module/printcounter.h"
 #include "../libs/duration_t.h"
 #include "../gcode/gcode.h"
+
+#include "printers.h"
 
 #if ENABLED(TMC_DEBUG)
   #include "../module/planner.h"
@@ -43,6 +46,62 @@
 #if HAS_LCD_MENU
   #include "../module/stepper.h"
 #endif
+
+#include "bsod.h"
+
+#ifndef STALL_THRESHOLD_TMC2130
+#if !(BOARD_IS_DWARF)
+#include "configuration.hpp"
+#endif
+#endif
+
+#include <device/board.h>
+#if BOARD_IS_XBUDDY
+  #include <hw_configuration.hpp>
+#endif
+
+static constexpr uint32_t TMC2130_INT_OSC_FREQ = 12650000;
+static constexpr uint32_t TMC2130_EXT_OSC_FREQ = 16000000;
+
+static inline uint32_t get_tmc_freq(AxisEnum axis_id) {
+  switch (axis_id) {
+  case X_AXIS:
+  case Y_AXIS:
+  case Z_AXIS:
+#if BOARD_IS_XBUDDY
+    return buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? TMC2130_EXT_OSC_FREQ : TMC2130_INT_OSC_FREQ;
+#elif BOARD_IS_XLBUDDY
+    return TMC2130_EXT_OSC_FREQ;
+#else
+    return TMC2130_INT_OSC_FREQ;
+#endif
+
+  default:
+    return TMC2130_INT_OSC_FREQ;
+  }
+}
+
+// The conversion between period and feedrate is symmetric, use a shared
+// implementation and just do a cast from float to uint32_t when needed.
+static float period_feedrate_conversion(AxisEnum axis_id, uint16_t msteps, const float value, const uint32_t steps_per_mm) {
+  if (value == 0) {
+      return std::numeric_limits<float>::infinity();
+  }
+  if (steps_per_mm == 0) {
+      bsod("0 steps per mm.");
+  }
+  msteps = std::max<uint16_t>(1, msteps); // 0 msteps is infact 1
+
+  return get_tmc_freq(axis_id) * msteps / (256.f * value * steps_per_mm);
+}
+
+float tmc_period_to_feedrate(AxisEnum axis_id, uint16_t msteps, const uint32_t period, const uint32_t steps_per_mm) {
+  return period_feedrate_conversion(axis_id, msteps, period, steps_per_mm);
+}
+
+uint32_t tmc_feedrate_to_period(AxisEnum axis_id, uint16_t msteps, const float feedrate, const uint32_t steps_per_mm) {
+  return static_cast<uint32_t>(period_feedrate_conversion(axis_id, msteps, feedrate, steps_per_mm));
+}
 
 /**
  * Check for over temperature or short to ground error flags.
@@ -285,6 +344,12 @@
       // Report if a warning was triggered
       if (data.is_otpw && st.otpw_count == 0)
         report_driver_otpw(st);
+
+      #ifdef SHOW_ERROR_AFTER_OVERTEMP
+      if (data.is_otpw) {
+        kill("TMC", "TMC overtemp!");
+      }
+      #endif
 
       #if CURRENT_STEP_DOWN > 0
         // Decrease current if is_otpw is true and driver is enabled and there's been more than 4 warnings
@@ -966,35 +1031,45 @@
 
 #if USE_SENSORLESS
 
-  bool tmc_enable_stallguard(TMC2130Stepper &st) {
+#if HAS_DRIVER(TMC2130)
+  bool tmc_enable_stallguard(TMCMarlin<TMC2130Stepper> &st) {
     bool stealthchop_was_enabled = st.en_pwm_mode();
-
-    st.TCOOLTHRS(0xFFFFF);
+#ifdef STALL_THRESHOLD_TMC2130
+    st.TCOOLTHRS(STALL_THRESHOLD_TMC2130);
+#else
+    st.TCOOLTHRS(get_homing_stall_threshold(st.axis_id));
+#endif
     st.en_pwm_mode(false);
     st.diag1_stall(true);
     st.sfilt(false);
 
     return stealthchop_was_enabled;
   }
-  void tmc_disable_stallguard(TMC2130Stepper &st, const bool restore_stealth) {
+  void tmc_disable_stallguard(TMCMarlin<TMC2130Stepper> &st, const bool restore_stealth) {
     st.TCOOLTHRS(0);
     st.en_pwm_mode(restore_stealth);
     st.diag1_stall(false);
   }
+#endif // HAS_DRIVER(TMC2130)
 
-  bool tmc_enable_stallguard(TMC2209Stepper &st) {
-    st.TCOOLTHRS(0xFFFFF);
+#if HAS_DRIVER(TMC2209)
+  bool tmc_enable_stallguard(TMCMarlin<TMC2209Stepper> &st) {
+    st.TCOOLTHRS(STALL_THRESHOLD_TMC2209);
     return true;
   }
-  void tmc_disable_stallguard(TMC2209Stepper &st, const bool restore_stealth _UNUSED) {
+  void tmc_disable_stallguard(TMCMarlin<TMC2209Stepper> &st, const bool restore_stealth _UNUSED) {
     st.TCOOLTHRS(0);
   }
+#endif // HAS_DRIVER(TMC2209)
 
-  bool tmc_enable_stallguard(TMC2660Stepper) {
+#if HAS_DRIVER(TMC2260)
+  bool tmc_enable_stallguard(TMCMarlin<TMC2660Stepper>) {
     // TODO
     return false;
   }
-  void tmc_disable_stallguard(TMC2660Stepper, const bool) {};
+  void tmc_disable_stallguard(TMCMarlin<TMC2660Stepper>, const bool) {};
+#endif // HAS_DRIVER(TMC2260)
+
 
 #endif // USE_SENSORLESS
 
@@ -1119,7 +1194,10 @@ void test_tmc_connection(const bool test_x, const bool test_y, const bool test_z
     #endif
   }
 
-  if (axis_connection) ui.set_status_P(GET_TEXT(MSG_ERROR_TMC));
+  if (axis_connection) {
+	  ui.set_status_P(GET_TEXT(MSG_ERROR_TMC));
+	  bsod(GET_TEXT(MSG_ERROR_TMC));
+  }
 }
 
 #endif // HAS_TRINAMIC

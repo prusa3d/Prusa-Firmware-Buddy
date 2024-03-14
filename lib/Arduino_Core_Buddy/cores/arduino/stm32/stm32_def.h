@@ -1,6 +1,8 @@
 #ifndef _STM32_DEF_
 #define _STM32_DEF_
 
+#include <device/cmsis.h>
+
 /**
  * @brief STM32 core version number
  */
@@ -20,12 +22,12 @@
     | (STM32_CORE_VERSION_EXTRA))
 
 #ifndef F_CPU
-    #define F_CPU SystemCoreClock
-#endif //F_CPU
+    #define F_CPU SYSTEM_CORE_CLOCK
+#endif // F_CPU
 
 #ifndef USE_HAL_DRIVER
     #define USE_HAL_DRIVER
-#endif //USE_HAL_DRIVER
+#endif // USE_HAL_DRIVER
 
 #ifdef STM32F0xx
     #include "stm32f0xx.h"
@@ -51,6 +53,8 @@
     #include "stm32l4xx.h"
 #elif defined(STM32WBxx)
     #include "stm32wbxx.h"
+#elif defined(STM32G0xx)
+    #include "stm32g0xx.h"
 #else
     #error "STM32YYxx chip series is not defined in boards.txt."
 #endif
@@ -74,9 +78,9 @@ extern "C" {
 // weaked functions declaration
 void SystemClock_Config(void);
 
-//void _Error_Handler(const char *, int);
+// void _Error_Handler(const char *, int);
 
-//#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+// #define Error_Handler() _Error_Handler(__FILE__, __LINE__)
 
 #ifdef __cplusplus
 } // extern "C"

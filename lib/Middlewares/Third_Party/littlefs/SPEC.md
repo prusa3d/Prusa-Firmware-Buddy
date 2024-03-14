@@ -1,10 +1,10 @@
 ## littlefs technical specification
 
-This is the technical specification of the little filesystem. This document
-covers the technical details of how the littlefs is stored on disk for
-introspection and tooling. This document assumes you are familiar with the
-design of the littlefs, for more info on how littlefs works check
-out [DESIGN.md](DESIGN.md).
+This is the technical specification of the little filesystem with on-disk
+version lfs2.1. This document covers the technical details of how the littlefs
+is stored on disk for introspection and tooling. This document assumes you are
+familiar with the design of the littlefs, for more info on how littlefs works
+check out [DESIGN.md](DESIGN.md).
 
 ```
    | | |     .---._____
@@ -133,12 +133,6 @@ tags XORed together, starting with `0xffffffff`.
 '-------------------'                    '-------------------'
 ```
 
-One last thing to note before we get into the details around tag encoding. Each
-tag contains a valid bit used to indicate if the tag and containing commit is
-valid. This valid bit is the first bit found in the tag and the commit and can
-be used to tell if we've attempted to write to the remaining space in the
-block.
-
 Here's a more complete example of metadata block containing 4 entries:
 
 ```
@@ -191,6 +185,53 @@ Here's a more complete example of metadata block containing 4 entries:
                                              '---- most recent D
 ```
 
+Two things to note before we get into the details around tag encoding:
+
+1. Each tag contains a valid bit used to indicate if the tag and containing
+   commit is valid. After XORing, this bit should always be zero.
+
+   At the end of each commit, the valid bit of the previous tag is XORed
+   with the lowest bit in the type field of the CRC tag. This allows
+   the CRC tag to force the next commit to fail the valid bit test if it
+   has not yet been written to.
+
+2. The valid bit alone is not enough info to know if the next commit has been
+   erased. We don't know the order bits will be programmed in a program block,
+   so it's possible that the next commit had an attempted program that left the
+   valid bit unchanged.
+
+   To ensure we only ever program erased bytes, each commit can contain an
+   optional forward-CRC (FCRC). An FCRC contains a checksum of some amount of
+   bytes in the next commit at the time it was erased.
+
+   ```
+   .-------------------. \      \
+   |  revision count   | |      |
+   |-------------------| |      |
+   |     metadata      | |      |
+   |                   | +---.  +-- current commit
+   |                   | |   |  |
+   |-------------------| |   |  |
+   |       FCRC       ---|-. |  |
+   |-------------------| / | |  |
+   |        CRC       -----|-'  /
+   |-------------------|   |
+   |      padding      |   |        padding (does't need CRC)
+   |                   |   |
+   |-------------------| \ |    \
+   |      erased?      | +-'    |
+   |         |         | |      +-- next commit
+   |         v         | /      |
+   |                   |        /
+   |                   |
+   '-------------------'
+   ```
+
+   If the FCRC is missing or the checksum does not match, we must assume a
+   commit was attempted but failed due to power-loss.
+
+   Note that end-of-block commits do not need an FCRC.
+
 ## Metadata tags
 
 So in littlefs, 32-bit tags describe every type of metadata. And this means
@@ -233,19 +274,19 @@ Metadata tag fields:
    into a 3-bit abstract type and an 8-bit chunk field. Note that the value
    `0x000` is invalid and not assigned a type.
 
-3. **Type1 (3-bits)** - Abstract type of the tag. Groups the tags into
-   8 categories that facilitate bitmasked lookups.
+    1. **Type1 (3-bits)** - Abstract type of the tag. Groups the tags into
+       8 categories that facilitate bitmasked lookups.
 
-4. **Chunk (8-bits)** - Chunk field used for various purposes by the different
-   abstract types.  type1+chunk+id form a unique identifier for each tag in the
-   metadata block.
+    2. **Chunk (8-bits)** - Chunk field used for various purposes by the different
+       abstract types.  type1+chunk+id form a unique identifier for each tag in the
+       metadata block.
 
-5. **Id (10-bits)** - File id associated with the tag. Each file in a metadata
+3. **Id (10-bits)** - File id associated with the tag. Each file in a metadata
    block gets a unique id which is used to associate tags with that file. The
    special value `0x3ff` is used for any tags that are not associated with a
    file, such as directory and global metadata.
 
-6. **Length (10-bits)** - Length of the data in bytes. The special value
+4. **Length (10-bits)** - Length of the data in bytes. The special value
    `0x3ff` indicates that this tag has been deleted.
 
 ## Metadata types
@@ -783,5 +824,43 @@ CRC fields:
 
 3. **Padding** - Padding to the next program-aligned boundary. No guarantees
    are made about the contents.
+
+---
+#### `0x5ff` LFS_TYPE_FCRC
+
+Added in lfs2.1, the optional FCRC tag contains a checksum of some amount of
+bytes in the next commit at the time it was erased. This allows us to ensure
+that we only ever program erased bytes, even if a previous commit failed due
+to power-loss.
+
+When programming a commit, the FCRC size must be at least as large as the
+program block size. However, the program block is not saved on disk, and can
+change between mounts, so the FCRC size on disk may be different than the
+current program block size.
+
+If the FCRC is missing or the checksum does not match, we must assume a
+commit was attempted but failed due to power-loss.
+
+Layout of the FCRC tag:
+
+```
+        tag                          data
+[--      32      --][--      32      --|--      32      --]
+[1|- 11 -| 10 | 10 ][--      32      --|--      32      --]
+ ^    ^     ^    ^            ^- fcrc size       ^- fcrc
+ |    |     |    '- size (8)
+ |    |     '------ id (0x3ff)
+ |    '------------ type (0x5ff)
+ '----------------- valid bit
+```
+
+FCRC fields:
+
+1. **FCRC size (32-bits)** - Number of bytes after this commit's CRC tag's
+   padding to include in the FCRC.
+
+2. **FCRC (32-bits)** - CRC of the bytes after this commit's CRC tag's padding
+   when erased. Like the CRC tag, this uses a CRC-32 with a polynomial of
+   `0x04c11db7` initialized with `0xffffffff`.
 
 ---

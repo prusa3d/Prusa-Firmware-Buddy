@@ -71,14 +71,6 @@
 
 #endif
 
-#ifndef STEP_TIMER_IRQ_PRIO
-  #define STEP_TIMER_IRQ_PRIO 1
-#endif
-
-#ifndef TEMP_TIMER_IRQ_PRIO
-  #define TEMP_TIMER_IRQ_PRIO 2
-#endif
-
 #define STEP_TIMER_NUM 0  // index of timer to use for stepper
 #define TEMP_TIMER_NUM 1  // index of timer to use for temperature
 #define PULSE_TIMER_NUM STEP_TIMER_NUM

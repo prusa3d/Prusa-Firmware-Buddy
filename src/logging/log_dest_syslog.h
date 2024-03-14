@@ -25,6 +25,25 @@ void syslog_format_event(log_event_t *event, void (*out_fn)(char character, void
 /// `syslog_format_event` message formatter.
 void syslog_log_event(log_destination_t *destination, log_event_t *event);
 
+/**
+ * @brief Configure syslog handler address and port.
+ * @param ip IP address or short hostname
+ * @param port port number
+ */
+void syslog_configure(const char *ip, uint16_t port);
+
+/**
+ * @brief Get address of the metrics syslog host.
+ * @return IP address or short hostname
+ */
+const char *syslog_get_host();
+
+/**
+ * @brief Get port of the metrics syslog host.
+ * @return port number
+ */
+uint16_t syslog_get_port();
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

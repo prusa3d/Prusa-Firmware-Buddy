@@ -35,14 +35,18 @@
 #define HAL_TIMER_RATE         (HAL_RCC_GetSysClockFreq() / 2)  // frequency of timer peripherals
 
 #define STEP_TIMER_NUM 0  // index of timer to use for stepper
-#define TEMP_TIMER_NUM 1  // index of timer to use for temperature
+#define MOVE_TIMER_NUM 1  // index of timer to use for move processing
+#define TEMP_TIMER_NUM 2  // index of timer to use for temperature
 #define PULSE_TIMER_NUM STEP_TIMER_NUM
 
 #define TEMP_TIMER_PRESCALE     1000 // prescaler for setting Temp timer, 72Khz
 #define TEMP_TIMER_FREQUENCY    1000 // temperature interrupt frequency
 
-#define STEPPER_TIMER_PRESCALE 54 // was 40,prescaler for setting stepper timer, 2Mhz
-#define STEPPER_TIMER_RATE     (HAL_TIMER_RATE / STEPPER_TIMER_PRESCALE)   // frequency of stepper timer
+#define MOVE_TIMER_PRESCALE     1000 // prescaler for setting Move timer, 72Khz
+#define MOVE_TIMER_FREQUENCY    400 // move interrupt frequency
+
+#define STEPPER_TIMER_PRESCALE (SYSTEM_CORE_CLOCK / 1000000)
+#define STEPPER_TIMER_RATE     1000000   // frequency of stepper timer
 #define STEPPER_TIMER_TICKS_PER_US ((STEPPER_TIMER_RATE) / 1000000) // stepper timer ticks per µs
 
 #define PULSE_TIMER_RATE       STEPPER_TIMER_RATE   // frequency of pulse timer
@@ -56,19 +60,16 @@
 #define ENABLE_TEMPERATURE_INTERRUPT() HAL_timer_enable_interrupt(TEMP_TIMER_NUM)
 #define DISABLE_TEMPERATURE_INTERRUPT() HAL_timer_disable_interrupt(TEMP_TIMER_NUM)
 
-// TODO change this
+#define ENABLE_MOVE_INTERRUPT() HAL_timer_enable_interrupt(MOVE_TIMER_NUM)
+#define DISABLE_MOVE_INTERRUPT() HAL_timer_disable_interrupt(MOVE_TIMER_NUM)
+#define MOVE_ISR_ENABLED() HAL_timer_interrupt_enabled(MOVE_TIMER_NUM)
 
-#ifdef STM32GENERIC
-  extern void TC5_Handler();
-  extern void TC7_Handler();
-  #define HAL_STEP_TIMER_ISR() void TC5_Handler()
-  #define HAL_TEMP_TIMER_ISR() void TC7_Handler()
-#else
-  extern void TC5_Handler(stimer_t *htim);
-  extern void TC7_Handler(stimer_t *htim);
-  #define HAL_STEP_TIMER_ISR() void TC5_Handler(stimer_t *htim)
-  #define HAL_TEMP_TIMER_ISR() void TC7_Handler(stimer_t *htim)
-#endif
+extern void TC8_Handler();
+extern void TC7_Handler();
+extern void TC6_Handler();
+#define HAL_STEP_TIMER_ISR() void TC8_Handler()
+#define HAL_TEMP_TIMER_ISR() void TC7_Handler()
+#define HAL_MOVE_TIMER_ISR() void TC6_Handler()
 
 
 // ------------------------

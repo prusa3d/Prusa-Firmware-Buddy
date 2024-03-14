@@ -1,20 +1,21 @@
 // wdt.cpp - watchdog timers (IWDG, WWDG)
 
+#include <device/hal.h>
 #include "wdt.h"
 #include "config.h"
-#include "stm32f4xx_hal.h"
+#include "priorities_config.h"
 
 static const constexpr uint16_t WDT_IWDG_WARNING_DELAY = 3000; // 3s warning delay (1s for some actions)
-static const constexpr uint16_t WDT_IWDG_RELOAD = 4095;        // 4s max period
+static const constexpr uint16_t WDT_IWDG_RELOAD = 4095; // 4s max period
 
 static const constexpr uint8_t WDT_WWDG_REFRESH_DELAY = 32; // refresh every 32ms
-static const constexpr uint8_t WDT_WWDG_WINDOW = 100;       // ~22ms min period
-static const constexpr uint8_t WDT_WWDG_RELOAD = 127;       // ~48ms max period
+static const constexpr uint8_t WDT_WWDG_WINDOW = 100; // ~22ms min period
+static const constexpr uint8_t WDT_WWDG_RELOAD = 127; // ~48ms max period
 
 extern "C" {
 
-IWDG_HandleTypeDef hiwdg = { 0 }; // set Instance member to null
-WWDG_HandleTypeDef hwwdg = { 0 }; // ..
+IWDG_HandleTypeDef hiwdg {}; // set Instance member to null
+WWDG_HandleTypeDef hwwdg {}; // ..
 
 extern void Error_Handler(void);
 
@@ -31,7 +32,7 @@ void wdt_iwdg_init(void) {
     if (HAL_IWDG_Init(&hiwdg) != HAL_OK) {
         Error_Handler();
     }
-#endif //WDT_IWDG_ENABLED
+#endif // WDT_IWDG_ENABLED
 }
 
 void wdt_iwdg_refresh(void) {
@@ -40,7 +41,7 @@ void wdt_iwdg_refresh(void) {
         HAL_IWDG_Refresh(&hiwdg);
         wdt_iwdg_counter = 0;
     }
-#endif //WDT_IWDG_ENABLED
+#endif // WDT_IWDG_ENABLED
 }
 
 void wdt_wwdg_init(void) {
@@ -63,18 +64,20 @@ void wdt_tick_1ms(void) {
             wdt_wwdg_counter = 0;
         }
     }
-#endif //WDT_WWDG_ENABLED
+#endif // WDT_WWDG_ENABLED
 #ifdef WDT_IWDG_ENABLED
     if (hiwdg.Instance) {
-        if (wdt_iwdg_counter++ < WDT_IWDG_WARNING_DELAY)
+        if (wdt_iwdg_counter++ < WDT_IWDG_WARNING_DELAY) {
             return;
-        if (wdt_iwdg_warning_cb)
+        }
+        if (wdt_iwdg_warning_cb) {
             wdt_iwdg_warning_cb();
+        }
     }
-#endif //WDT_IWDG_ENABLED
+#endif // WDT_IWDG_ENABLED
 }
 
-void HAL_WWDG_EarlyWakeupCallback(WWDG_HandleTypeDef *hwwdg) {
+void HAL_WWDG_EarlyWakeupCallback([[maybe_unused]] WWDG_HandleTypeDef *hwwdg) {
     // TODO: handle this callback
 }
 
@@ -83,16 +86,16 @@ void HAL_WWDG_MspInit(WWDG_HandleTypeDef *hwwdg) {
         // Peripheral clock enable
         __HAL_RCC_WWDG_CLK_ENABLE();
         // WWDG interrupt Init
-        HAL_NVIC_SetPriority(WWDG_IRQn, 0, 0);
+        HAL_NVIC_SetPriority(WWDG_IRQn, ISR_PRIORITY_WWDG, 0);
         HAL_NVIC_EnableIRQ(WWDG_IRQn);
     }
 }
 
-} //extern "C"
+} // extern "C"
 
 void watchdog_init() {
     wdt_iwdg_init();
-    //wdt_wwdg_init();
+    // wdt_wwdg_init();
 }
 
 void HAL_watchdog_refresh() {

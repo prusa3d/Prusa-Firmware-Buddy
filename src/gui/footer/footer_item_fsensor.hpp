@@ -1,8 +1,6 @@
 /**
  * @file footer_item_fsensor.hpp
- * @author Radek Vana
  * @brief footer item displaying filament sensor state
- * @date 2021-12-12
  */
 
 #pragma once
@@ -10,10 +8,36 @@
 #include "filament.hpp"
 
 class FooterItemFSensor : public AddSuperWindow<FooterIconText_IntVal> {
-    static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName() { return _("F. Sensor"); }
+    static string_view_utf8 static_makeView(int value);
     FooterItemFSensor(window_t *parent);
+};
+
+/**
+ * @brief Variant of filament sensor for side sensor.
+ */
+class FooterItemFSensorSide : public AddSuperWindow<FooterIconText_IntVal> {
+
+    /**
+     * @brief Reuse makeView from tool filament sensor.
+     * @param value fsensor_t state converted to int
+     */
+    static inline string_view_utf8 static_makeView(int value) {
+        return FooterItemFSensor::static_makeView(value);
+    }
+
+    /**
+     * @brief Get side filament sensor value converted to int.
+     * To be used by FooterItemFSensor::static_makeView().
+     */
+    static int static_readValue();
+
+public:
+    /**
+     * @brief Construct side filament sensor footer.
+     * @param parent uncommented GUI stuff
+     */
+    FooterItemFSensorSide(window_t *parent);
 };

@@ -1,10 +1,12 @@
 #include "catch2/catch.hpp"
 
+#include <random>
 #include <iostream>
 #include <assert.h>
 
 #include "ourPosix.hpp"
-#include "lazyfilelist.h"
+#include "lazyfilelist.hpp"
+#include "file_sort.hpp"
 #include <string.h>
 
 // to be able to compile under Windows
@@ -41,12 +43,14 @@ TEST_CASE("LazyDirView::Entries test", "[LazyDirView]") {
         LDV::Entry e = { false, "\xff\xff\xff\xff\xff", "", LONG_MAX };
         LDV::Entry e1 = { false, "nold", "", 1 };
         dirent f = { DT_DIR, "old", txt_old, 1 };
+        MutablePath p { "we/dont/care/about/transfer/here" };
+        FileSort::DirentWPath dwp { f, p };
 
-        CHECK(LDV::LessByTimeEF(e, &f));
-        CHECK(LDV::LessByTimeFE(&f, e1));
+        CHECK(LDV::LessByTimeEF(e, dwp));
+        CHECK(LDV::LessByTimeFE(dwp, e1));
 
-        CHECK(!LDV::LessByFNameEF(e, &f));
-        CHECK(!LDV::LessByFNameFE(&f, e1));
+        CHECK(!LDV::LessByFNameEF(e, dwp));
+        CHECK(!LDV::LessByFNameFE(dwp, e1));
     }
 }
 
@@ -72,7 +76,9 @@ TEST_CASE("LazyDirView::SortByName test", "[LazyDirView]") {
     };
 
     for (size_t i = 0; i < 20; ++i) {
-        std::random_shuffle(testFiles0.begin(), testFiles0.end());
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(testFiles0.begin(), testFiles0.end(), g);
 
         LDV ldv;
         ldv.ChangeDirectory("path",
@@ -136,7 +142,9 @@ TEST_CASE("LazyDirView::SortByCrModDateTime test", "[LazyDirView]") {
     };
 
     for (size_t i = 0; i < 20; ++i) {
-        std::random_shuffle(testFiles0.begin(), testFiles0.end());
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(testFiles0.begin(), testFiles0.end(), g);
         LDV ldv;
         ldv.ChangeDirectory("path",
             LDV::SortPolicy::BY_CRMOD_DATETIME,
@@ -205,7 +213,9 @@ TEST_CASE("LazyDirView::StartWithDir test", "[LazyDirView]") {
     };
 
     for (size_t i = 0; i < 20; ++i) {
-        std::random_shuffle(testFiles0.begin(), testFiles0.end());
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(testFiles0.begin(), testFiles0.end(), g);
         LDV ldv;
         ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, "fw");
         CHECK(CheckFilesSeq(ldv, { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" }));
@@ -265,7 +275,9 @@ TEST_CASE("LazyDirView::StartWithFile test", "[LazyDirView]") {
         { "12.g", 10, false }
     };
     for (size_t i = 0; i < 20; ++i) {
-        std::random_shuffle(testFiles0.begin(), testFiles0.end());
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(testFiles0.begin(), testFiles0.end(), g);
         LDV ldv;
         ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, "07.g");
         // and this is gonna be interesting

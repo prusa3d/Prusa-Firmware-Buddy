@@ -167,6 +167,12 @@
 #define MSG_INVALID_EXTRUDER                "Invalid extruder"
 #define MSG_INVALID_E_STEPPER               "Invalid E stepper"
 #define MSG_E_STEPPER_NOT_SPECIFIED         "E stepper not specified"
+#define MSG_INVALID_MACHINE                 "Invalid machine"
+#define MSG_SEND                            "Send:"
+#define MSG_RECEIVE                         "Receive:"
+#define MSG_UART_ERROR                      "UART Error"
+#define MSG_UART_BUSY                       "UART Busy"
+#define MSG_UART_TIMED_OUT                  "UART timed out"
 #define MSG_INVALID_SOLENOID                "Invalid solenoid"
 #define MSG_M115_REPORT                     "FIRMWARE_NAME:Marlin " DETAILED_BUILD_VERSION " SOURCE_CODE_URL:" SOURCE_CODE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:" MACHINE_NAME " EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID
 #define MSG_COUNT_X                         " Count X:"
@@ -177,7 +183,7 @@
 #define MSG_BUSY_PROCESSING                 "busy: processing"
 #define MSG_BUSY_PAUSED_FOR_USER            "busy: paused for user"
 #define MSG_BUSY_PAUSED_FOR_INPUT           "busy: paused for input"
-#define MSG_Z_MOVE_COMP                     "Z_move_comp"
+#define STR_Z_MOVE_COMP                     "Z_move_comp"
 #define MSG_RESEND                          "Resend: "
 #define MSG_UNKNOWN_COMMAND                 "Unknown command: \""
 #define MSG_ACTIVE_EXTRUDER                 "Active Extruder: "
@@ -204,7 +210,7 @@
 #define MSG_ERR_M421_PARAMETERS             "M421 incorrect parameter usage"
 #define MSG_ERR_BAD_PLANE_MODE              "G5 requires XY plane mode"
 #define MSG_ERR_MESH_XY                     "Mesh point cannot be resolved"
-#define MSG_ERR_ARC_ARGS                    "G2/G3 bad parameters"
+#define STR_ERR_ARC_ARGS                    "G2/G3 bad parameters"
 #define MSG_ERR_PROTECTED_PIN               "Protected Pin"
 #define MSG_ERR_M420_FAILED                 "Failed to enable Bed Leveling"
 #define MSG_ERR_M428_TOO_FAR                "Too far from reference point"
@@ -244,6 +250,7 @@
 #define MSG_ERR_HOTEND_TOO_COLD             "Hotend too cold"
 #define MSG_ERR_Z_HOMING_SER                "Home XY first"
 #define MSG_ERR_EEPROM_WRITE                "Error writing to EEPROM!"
+#define MSG_ERR_NOZZLE_CLEANING_FAILED      "Nozzle Cleaning Failed"
 
 #define MSG_FILAMENT_CHANGE_HEAT_LCD        "Press button to heat nozzle"
 #define MSG_FILAMENT_CHANGE_INSERT_LCD      "Insert filament and press button"
@@ -295,7 +302,7 @@
 #define MSG_T_MAXTEMP                       "MAXTEMP triggered"
 #define MSG_T_MINTEMP                       "MINTEMP triggered"
 #define MSG_ERR_PROBING_FAILED              "Probing Failed"
-#define MSG_ZPROBE_OUT_SER                  "Z Probe Past Bed"
+#define STR_ZPROBE_OUT_SER                  "Z Probe Past Bed"
 
 // Debug
 #define MSG_DEBUG_PREFIX                    "DEBUG:"
@@ -318,6 +325,8 @@
 // Never translate these strings
 #define MSG_X "X"
 #define MSG_Y "Y"
+#define STR_X MSG_X
+#define STR_Y MSG_Y
 #define MSG_Z "Z"
 #define MSG_E "E"
 #if IS_KINEMATIC

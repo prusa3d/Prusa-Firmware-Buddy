@@ -1,14 +1,16 @@
 /**
  * @file empty_mocks.cpp
  * @author Radek Vana
- * @brief dummy definitions of unused functions, so tests can be compilled
+ * @brief dummy definitions of unused functions, so tests can be compiled
  * @date 2021-01-13
  */
 
+#include "guitypes.hpp"
 #include "sound_enum.h"
 #include "ScreenHandler.hpp"
 #include "cmsis_os.h" //HAL_GetTick
 #include "mock_windows.hpp"
+#include "img_resources.hpp"
 #include <memory>
 
 void gui_timers_delete_by_window(window_t *pWin) {}
@@ -16,5 +18,15 @@ void gui_invalidate(void) {}
 EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {}
 void Sound_Play(eSOUND_TYPE eSoundType) {}
 void gui_loop() {}
-extern "C" void marlin_notify_server_about_encoder_move() {}
-extern "C" void marlin_notify_server_about_knob_click() {}
+
+namespace marlin_client {
+void notify_server_about_encoder_move() {}
+void notify_server_about_knob_click() {}
+} // namespace marlin_client
+
+FILE *img::get_resource_file() { return nullptr; }
+
+void _bsod(const char *fmt, const char *fine_name, int line_number, ...) {
+    while (1)
+        ;
+}

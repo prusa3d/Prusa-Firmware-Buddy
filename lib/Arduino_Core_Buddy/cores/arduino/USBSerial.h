@@ -33,7 +33,7 @@ public:
     virtual size_t write(const uint8_t *buffer, size_t size);
     operator bool(void);
 
-    void (*lineBufferHook)(const uint8_t *buf, int len);
+    void (*lineBufferHook)(const uint8_t *buf, int len) { nullptr };
 };
 
 extern USBSerial SerialUSB;

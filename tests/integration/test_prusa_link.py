@@ -2,11 +2,23 @@ import aiohttp
 import asyncio
 import logging
 import pytest
+import struct
 
-from .actions import encoder, screen, temperature, network
+from .actions import encoder, screen, temperature, network, utils
 from simulator import MachineType, Thermistor, Printer
 
-pytestmark = pytest.mark.asyncio
+PRUSALINK_PASSWORD = '0123456789123456'
+PRUSALINK_EEPROM = {
+    'PrusaLink Password':
+    struct.pack('<16s', bytearray(PRUSALINK_PASSWORD.encode('utf-8')))
+}
+
+pytestmark = [
+    pytest.mark.asyncio,
+    pytest.mark.parametrize('specific_eeprom_variables', [PRUSALINK_EEPROM])
+]
+gcode_filename = 'box'
+gcode_file = gcode_filename + '.gcode'
 
 
 def wui_base_url(printer):
@@ -16,7 +28,7 @@ def wui_base_url(printer):
 @pytest.fixture
 async def wui_client(printer):
     # Make sure the printer is running before returning the client.
-    await screen.wait_for_text(printer, 'HOME')
+    await utils.wait_for_bootstrap(printer)
 
     async with aiohttp.ClientSession(
             base_url=wui_base_url(printer)) as session:
@@ -24,7 +36,7 @@ async def wui_client(printer):
 
 
 def valid_headers():
-    return {'X-Api-Key': '0123456789'}
+    return {'X-Api-Key': PRUSALINK_PASSWORD}
 
 
 async def test_web_interface_is_accessible(wui_client: aiohttp.ClientSession):
@@ -106,14 +118,14 @@ async def test_idle_job(wui_client: aiohttp.ClientSession):
 
 @pytest.fixture
 async def printer_with_files(printer_factory, printer_flash_dir, data_dir):
-    gcode_name = 'box.gcode'
+    gcode_name = gcode_file
     gcode = (data_dir / gcode_name).read_bytes()
-    (printer_flash_dir / gcode_name).write(gcode)
+    (printer_flash_dir / gcode_name).write_bytes(gcode)
 
     async with printer_factory() as printer:
         printer: Printer
         # Wait for boot
-        await screen.wait_for_text(printer, 'HOME')
+        await utils.wait_for_bootstrap(printer)
         # Wait for mounting of the USB
         await screen.wait_for_text(printer, 'Print')
 
@@ -124,20 +136,23 @@ async def printer_with_files(printer_factory, printer_flash_dir, data_dir):
 
 @pytest.fixture
 async def running_printer_client(printer_factory, printer_flash_dir, data_dir):
-    gcode_name = 'box.gcode'
+    gcode_name = gcode_file
     gcode = (data_dir / gcode_name).read_bytes()
-    (printer_flash_dir / gcode_name).write(gcode)
+    (printer_flash_dir / gcode_name).write_bytes(gcode)
 
     async with printer_factory() as printer:
         printer: Printer
         # Wait for boot
-        await screen.wait_for_text(printer, 'HOME')
+        await utils.wait_for_bootstrap(printer)
         # Wait for mounting of the USB
         await screen.wait_for_text(printer, 'Print')
 
         # "Preheat" the printer
         await temperature.set(printer, Thermistor.BED, 60)
         await temperature.set(printer, Thermistor.NOZZLE, 170)
+
+        tmp = await temperature.get(printer, Thermistor.NOZZLE)
+        print(tmp, type(tmp))
 
         # Start a print
         await encoder.click(printer)
@@ -191,9 +206,9 @@ async def test_printing_job(running_printer_client):
     assert job["state"] == "Printing"
     # Hopefully the test won't take that long
     assert job["progress"]["printTime"] < 300
-    assert job["job"]["file"]["name"] == "box.gcode"
-    assert job["job"]["file"]["display"] == "box.gcode"
-    assert job["job"]["file"]["path"] == "/usb/BOX~1.GCO"
+    assert job["job"]["file"]["name"] == gcode_file
+    assert job["job"]["file"]["display"] == gcode_file
+    assert job["job"]["file"]["path"] == f"/usb/BOX~1.GCO"
     # It's something around 25 minutes...
     # FIXME: The following sometimes fail too. It seems marlin_vars are not
     # always properly updated?
@@ -210,8 +225,8 @@ async def test_download_gcode(printer_with_files, data_dir):
     Test both human readable and "short" file names (the latter are used within
     the job API so they are the ones the client may discover on its own).
     """
-    gcode = (data_dir / 'box.gcode').read_bytes()
-    for fname in ['BOX~1.GCO', 'box.gcode']:
+    gcode = (data_dir / gcode_file).read_bytes()
+    for fname in [f'BOX~1.GCO', gcode_file]:
         download_r = await printer_with_files.get('/usb/' + fname,
                                                   headers=valid_headers())
         assert download_r.status == 200
@@ -220,7 +235,7 @@ async def test_download_gcode(printer_with_files, data_dir):
 
 
 async def test_thumbnails(printer_with_files):
-    metadata_r = await printer_with_files.get('/api/files/usb/BOX~1.GCO',
+    metadata_r = await printer_with_files.get(f'/api/files/usb/BOX~1.GCO',
                                               headers=valid_headers())
     assert metadata_r.status == 200
     metadata = await metadata_r.json()
@@ -234,7 +249,7 @@ async def test_thumbnails(printer_with_files):
 
 
 async def test_delete_project_printing(running_printer_client):
-    fname = '/api/files/usb/BOX~1.GCO'
+    fname = f'/api/files/usb/BOX~1.GCO'
     heads = valid_headers()
     # We are printing the file right now
     printing_attempt = await running_printer_client.delete(fname,
@@ -248,7 +263,7 @@ async def test_delete_project_printing(running_printer_client):
 
 
 async def test_delete_project(printer_with_files):
-    fname = '/api/files/usb/BOX~1.GCO'
+    fname = f'/api/files/usb/BOX~1.GCO'
     heads = valid_headers()
     idle_attempt = await printer_with_files.delete(fname, headers=heads)
     assert idle_attempt.status == 204
@@ -257,7 +272,7 @@ async def test_delete_project(printer_with_files):
     listing_r = await printer_with_files.get('/api/files', headers=heads)
     assert listing_r.status == 200
     listing = await listing_r.json()
-    assert listing["files"] == []
+    assert listing["files"][0]["children"] == []
 
 
 async def test_list_files(printer_with_files):
@@ -265,33 +280,33 @@ async def test_list_files(printer_with_files):
                                              headers=valid_headers())
     assert listing_r.status == 200
     listing = await listing_r.json()
-    file = listing["files"][0]
-    assert file["name"] == "BOX~1.GCO"
-    assert file["display"] == "box.gcode"
+    file = listing["files"][0]["children"][0]
+    assert file["name"] == f"BOX~1.GCO"
+    assert file["display"] == gcode_file
     refs = file["refs"]
-    assert refs["thumbnailSmall"] == "/thumb/s/usb/BOX~1.GCO"
-    download = await printer_with_files.get(refs["download"],
+    assert refs["thumbnailSmall"] == f"/thumb/s/usb/BOX~1.GCO"
+    download = await printer_with_files.get(refs["resource"],
                                             headers=valid_headers())
     assert download.status == 200
 
 
 async def test_caching(printer_with_files):
-    for path in ['/thumb/s/usb/BOX~1.GCO', '/usb/BOX~1.GCO']:
-        h = valid_headers()
-        get1 = await printer_with_files.get(path, headers=h)
-        assert get1.status == 200
-        print(dict(get1.headers))
-        etag = get1.headers['ETag']
+    path = f'/thumb/s/usb/BOX~1.GCO'
+    h = valid_headers()
+    get1 = await printer_with_files.get(path, headers=h)
+    assert get1.status == 200
+    print(dict(get1.headers))
+    etag = get1.headers['Etag']
 
-        # Match
-        h['If-None-Match'] = etag
-        get2 = await printer_with_files.get(path, headers=h)
-        assert get2.status == 304  # Not Modified
+    # Match
+    h['If-None-Match'] = etag
+    get2 = await printer_with_files.get(path, headers=h)
+    assert get2.status == 304  # Not Modified
 
-        # Cache miss
-        h['If-None-Match'] = "hello-123"
-        get3 = await printer_with_files.get(path, headers=h)
-        assert get3.status == 200
+    # Cache miss
+    h['If-None-Match'] = "hello-123"
+    get3 = await printer_with_files.get(path, headers=h)
+    assert get3.status == 200
 
 
 # See below, needs investigation

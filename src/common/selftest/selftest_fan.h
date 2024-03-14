@@ -2,56 +2,61 @@
 #pragma once
 
 #include <inttypes.h>
-#include "selftest_MINI.h"
-#include "fanctl.h"
+#include "i_selftest_part.hpp"
+#include "selftest_fan_config.hpp"
 
-struct selftest_fan_config_t {
-    const char *partname;
-    CFanCtl &fanctl;
-    int pwm_start;
-    int pwm_step;
-    const uint16_t *rpm_min_table;
-    const uint16_t *rpm_max_table;
-    uint8_t steps;
+namespace selftest {
+
+class FanHandler {
+public:
+    using FanCtlFnc = CFanCtl &(*)(size_t);
+
+    FanHandler(const char *name, const FanCtlFnc &fanctl_fnc, uint8_t tool_nr);
+
+    void enter_selftest();
+    void exit_selftest();
+    void set_pwm(uint8_t pwm);
+    void reset_samples();
+    void record_sample();
+    void evaluate(const FanConfig &fan_config, uint16_t avg_rpm);
+    uint16_t calculate_avg_rpm() const;
+
+    bool is_failed() { return failed; }
+
+private:
+    const char *name;
+    const FanCtlFnc fanctl_fnc;
+    uint8_t tool_nr { 0 };
+    bool failed { false };
+    uint16_t sample_count { 0 };
+    uint32_t sample_sum { 0 };
 };
 
-class CSelftestPart_Fan : public CSelftestPart {
-public:
-    enum TestState : uint8_t {
-        spsIdle = 0,
-        spsStart,
-        spsWait_stopped,
-        spsWait_rpm,
-        spsMeasure_rpm,
-        spsFinish,
-        spsFinished,
-        spsAborted,
-        spsFailed,
-    };
+class CSelftestPart_Fan {
+    IPartHandler &state_machine;
+    const SelftestFansConfig &config;
+    SelftestFanHotendResult &result;
+
+    uint32_t start_time { 0 };
+    uint32_t end_time { 0 };
+
+    FanHandler print_fan;
+    FanHandler heatbreak_fan;
+
+    static uint32_t estimate();
+    void update_progress();
 
 public:
-    CSelftestPart_Fan(const selftest_fan_config_t &config);
+    CSelftestPart_Fan(IPartHandler &state_machine, const SelftestFansConfig &config,
+        SelftestFanHotendResult &result);
+    ~CSelftestPart_Fan();
 
-public:
-    virtual bool IsInProgress() const override;
-
-public:
-    virtual bool Start() override;
-    virtual bool Loop() override;
-    virtual bool Abort() override;
-
-public:
-    uint8_t getFSMState();
-
-protected:
-    static uint32_t estimate(const selftest_fan_config_t &config);
-    void restorePWM();
-
-protected:
-    const selftest_fan_config_t &m_config;
-    uint32_t m_Time;
-    uint8_t m_Step;
-    uint8_t initial_pwm;
-    uint16_t m_SampleCount;
-    uint32_t m_SampleSum;
+    LoopResult state_start();
+    LoopResult state_wait_rpm_100_percent();
+    LoopResult state_measure_rpm_100_percent();
+    LoopResult state_wait_rpm_0_percent();
+    LoopResult state_wait_rpm_20_percent();
+    LoopResult state_measure_rpm_20_percent();
 };
+
+}; // namespace selftest

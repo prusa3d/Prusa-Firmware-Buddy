@@ -9,8 +9,7 @@
 #include "config.h"
 #include "ScreenHandler.hpp"
 #include "math.h"
-#include "marlin_client.h"
-#include "../../lang/i18n.h"
+#include "marlin_client.hpp"
 
 static const char *btnMeshStrings[] = { "Run mesh", "Mesh in progress" };
 #define btnMeshStrings_sz (sizeof(btnMeshStrings) / sizeof(const char *))
@@ -18,12 +17,12 @@ static const char *btnMeshStrings[] = { "Run mesh", "Mesh in progress" };
 static const char *meshStrings[] = { "Mesh not in failed state", "Mesh in failed state" };
 #define meshStrings_sz (sizeof(meshStrings) / sizeof(const char *))
 //-----------------------------------------------------------------------------
-//methods
+// methods
 
 static const constexpr color_t MESH_DEFAULT_CL = COLOR_WHITE;
 static const constexpr color_t MESH_ACTIVE_CL = COLOR_RED;
 
-//mesh callbacks
+// mesh callbacks
 void screen_mesh_bed_lv_data_t::gui_state_mesh_off() {
     btMesh.SetTextColor(MESH_DEFAULT_CL);
     btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
@@ -47,63 +46,67 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     : AddSuperWindow<screen_t>()
     , footer(this)
     , textMenuName(this, Rect16(0, 0, display::GetW(), row_h), is_multiline::no)
-    , btMesh(this, Rect16(2, 50, 200, row_h), []() { if (mesh_state == mesh_state_t::idle) mesh_state = mesh_state_t::start; })
+    , btMesh(this, Rect16(2, 50, 200, row_h), []() { if (mesh_state == mesh_state_t::idle){ mesh_state = mesh_state_t::start;
+} })
     , text_mesh_state(this, Rect16(2, 75, 200, row_h), is_multiline::no)
     , term(this, { 10, 28 }, &term_buff)
-    , textExit(this, Rect16(2, 245, 60, 22), []() {if (mesh_state != mesh_state_t::idle) return; Screens::Access()->Close(); }) {
+    , textExit(this, Rect16(2, 245, 60, 22), []() {if (mesh_state != mesh_state_t::idle){ return;
+} Screens::Access()->Close(); }) {
 
-    textMenuName.font = resource_font(IDR_FNT_BIG);
+    textMenuName.set_font(resource_font(IDR_FNT_BIG));
     textMenuName.SetText(_("MESH BED LEVELING"));
 
     btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
 
-    //exit and footer
-    textExit.font = resource_font(IDR_FNT_BIG);
+    // exit and footer
+    textExit.set_font(resource_font(IDR_FNT_BIG));
     textExit.SetText(_("EXIT"));
 }
 
 void screen_mesh_bed_lv_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        if (marlin_error(MARLIN_ERR_ProbingFailed)) {
+        if (marlin_client::error(MARLIN_ERR_ProbingFailed)) {
             text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[1]));
         } else {
             text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[0]));
         }
         switch (mesh_state) {
         case mesh_state_t::idle:
-            //do nothing
+            // do nothing
             break;
         case mesh_state_t::start:
             gui_state_mesh_on();
             mesh_state = mesh_state_t::home;
             break;
         case mesh_state_t::home:
-            marlin_error_clr(MARLIN_ERR_ProbingFailed);
-            marlin_event_clr(MARLIN_EVT_CommandBegin);
-            marlin_event_clr(MARLIN_EVT_CommandEnd);
-            marlin_gcode_printf("G28");
-            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-                marlin_client_loop();
+            marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
+            marlin_client::event_clr(marlin_server::Event::CommandBegin);
+            marlin_client::event_clr(marlin_server::Event::CommandEnd);
+            marlin_client::gcode_printf("G28");
+            while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
+                marlin_client::loop();
+            }
             mesh_state = mesh_state_t::homeing;
             break;
         case mesh_state_t::homeing:
-            if (marlin_event_clr(MARLIN_EVT_CommandEnd)) {
+            if (marlin_client::event_clr(marlin_server::Event::CommandEnd)) {
                 mesh_state = mesh_state_t::homed;
             }
             break;
         case mesh_state_t::homed:
             mesh_state = mesh_state_t::mesh;
-            //there is no break;
+            [[fallthrough]];
         case mesh_state_t::mesh:
-            marlin_event_clr(MARLIN_EVT_CommandBegin);
-            marlin_event_clr(MARLIN_EVT_CommandEnd);
-            marlin_gcode_printf("G29");
-            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
-                marlin_client_loop();
+            marlin_client::event_clr(marlin_server::Event::CommandBegin);
+            marlin_client::event_clr(marlin_server::Event::CommandEnd);
+            marlin_client::gcode_printf("G29");
+            while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
+                marlin_client::loop();
+            }
             mesh_state = mesh_state_t::meshing;
             break;
         case mesh_state_t::meshing:
-            if (marlin_event_clr(MARLIN_EVT_CommandEnd)) {
+            if (marlin_client::event_clr(marlin_server::Event::CommandEnd)) {
                 mesh_state = mesh_state_t::meshed;
             }
             break;

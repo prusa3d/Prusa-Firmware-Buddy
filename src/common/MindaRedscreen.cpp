@@ -5,7 +5,6 @@
 #include <inttypes.h>
 
 #include "MindaRedscreen.h"
-#include "stm32f4xx_hal.h"
 #include "config.h"
 #include "gui.hpp"
 #include "safe_state.h"
@@ -34,9 +33,9 @@ static const constexpr uint8_t POINT_PX = 7;
 static const constexpr uint8_t POINT_DIST = 40;
 static const constexpr uint8_t POINT_BASE_X_OFFSET = 30;
 static const constexpr uint8_t POINT_BASE_Y_OFFSET = 60;
-//x y w h
+// x y w h
 static const constexpr Rect16 rct_points[POINT_CNT] = {
-    { 3 * POINT_DIST, 3 * POINT_DIST, POINT_PX, POINT_PX }, //bot right point
+    { 3 * POINT_DIST, 3 * POINT_DIST, POINT_PX, POINT_PX }, // bot right point
     { 2 * POINT_DIST, 3 * POINT_DIST, POINT_PX, POINT_PX },
     { 1 * POINT_DIST, 3 * POINT_DIST, POINT_PX, POINT_PX },
     { 0 * POINT_DIST, 3 * POINT_DIST, POINT_PX, POINT_PX },
@@ -48,7 +47,7 @@ static const constexpr Rect16 rct_points[POINT_CNT] = {
     { 2 * POINT_DIST, 1 * POINT_DIST, POINT_PX, POINT_PX },
     { 1 * POINT_DIST, 1 * POINT_DIST, POINT_PX, POINT_PX },
     { 0 * POINT_DIST, 1 * POINT_DIST, POINT_PX, POINT_PX },
-    { 0 * POINT_DIST, 0 * POINT_DIST, POINT_PX, POINT_PX }, //top left point
+    { 0 * POINT_DIST, 0 * POINT_DIST, POINT_PX, POINT_PX }, // top left point
     { 1 * POINT_DIST, 0 * POINT_DIST, POINT_PX, POINT_PX },
     { 2 * POINT_DIST, 0 * POINT_DIST, POINT_PX, POINT_PX },
     { 3 * POINT_DIST, 0 * POINT_DIST, POINT_PX, POINT_PX }
@@ -102,83 +101,84 @@ void mbl_error(uint16_t moves, uint16_t points) {
         GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
-    //bed
+    // bed
     Rect16 rect(POINT_BASE_X_OFFSET - BED_EDGE, POINT_BASE_Y_OFFSET - BED_EDGE, BED_W, BED_H);
 
     display::FillRect(rect, COLOR_DARK_KHAKI);
     display::DrawRect(rect, COLOR_BLACK);
 
-    //top part surounding
+    // top part surounding
     rect = Rect16(rect.Left() + BED_W / 2 - BED_TOP_W / 2, rect.Top() - BED_TOP_H, BED_TOP_W, BED_TOP_H);
 
     display::DrawRect(rect, COLOR_BLACK);
-    //top part filling
+    // top part filling
     rect += Rect16::Left_t(1);
     rect += Rect16::Top_t(1);
     rect -= Rect16::Width_t(2);
-    //h must remain the same
+    // h must remain the same
     display::FillRect(rect, COLOR_DARK_KHAKI);
 
-    //bot left part surounding
+    // bot left part surounding
     rect = Rect16(POINT_BASE_X_OFFSET - BED_EDGE, POINT_BASE_Y_OFFSET - BED_EDGE + BED_H, BED_BOT_W, BED_BOT_H);
 
     display::DrawRect(rect, COLOR_BLACK);
-    //bot left part filling
+    // bot left part filling
     rect += Rect16::Left_t(1);
     rect -= Rect16::Top_t(1);
     rect -= Rect16::Width_t(2);
-    //h must remain the same
+    // h must remain the same
     display::FillRect(rect, COLOR_DARK_KHAKI);
 
-    //bot right part surounding
+    // bot right part surounding
     rect = Rect16(POINT_BASE_X_OFFSET - BED_EDGE + BED_W - BED_BOT_W, POINT_BASE_Y_OFFSET - BED_EDGE + BED_H, BED_BOT_W, BED_BOT_H);
 
     display::DrawRect(rect, COLOR_BLACK);
-    //bot right part filling
+    // bot right part filling
     rect += Rect16::Left_t(1);
     rect -= Rect16::Top_t(1);
     rect -= Rect16::Width_t(2);
-    //h must remain the same
+    // h must remain the same
     display::FillRect(rect, COLOR_DARK_KHAKI);
 
-    //points
+    // points
     for (size_t i = 0; i < POINT_CNT; ++i) {
-        Rect16 rect = rct_points[i];
-        rect += Rect16::Left_t(POINT_BASE_X_OFFSET);
-        rect += Rect16::Top_t(POINT_BASE_Y_OFFSET);
+        Rect16 rct = rct_points[i];
+        rct += Rect16::Left_t(POINT_BASE_X_OFFSET);
+        rct += Rect16::Top_t(POINT_BASE_Y_OFFSET);
         if (points & (1 << i)) {
-            //err
-            display::FillRect(rect, COLOR_RED);
+            // err
+            display::FillRect(rct, COLOR_RED);
 
         } else {
-            //no err
-            display::FillRect(rect, COLOR_GREEN);
+            // no err
+            display::FillRect(rct, COLOR_GREEN);
         }
-        display::DrawRect(rect, COLOR_BLACK);
+        display::DrawRect(rct, COLOR_BLACK);
     }
-    //moves
+    // moves
     for (size_t i = 0; i < MOVE_CNT; ++i) {
-        Rect16 rect = rct_moves[i];
-        rect += Rect16::Left_t(POINT_BASE_X_OFFSET);
-        rect += Rect16::Top_t(POINT_BASE_Y_OFFSET);
+        Rect16 rct = rct_moves[i];
+        rct += Rect16::Left_t(POINT_BASE_X_OFFSET);
+        rct += Rect16::Top_t(POINT_BASE_Y_OFFSET);
         if (moves & (1 << i)) {
-            //err
-            display::FillRect(rect, COLOR_RED);
+            // err
+            display::FillRect(rct, COLOR_RED);
 
         } else {
-            //no err
-            display::FillRect(rect, COLOR_GREEN);
+            // no err
+            display::FillRect(rct, COLOR_GREEN);
         }
-        display::DrawRect(rect, COLOR_BLACK);
+        display::DrawRect(rct, COLOR_BLACK);
     }
 
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), GuiDefaults::Font,
         COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, Align_t::Center());
 
-    //cannot use jogwheel_signals  (disabled interrupt)
+    // cannot use jogwheel_signals  (disabled interrupt)
     while (1) {
         wdt_iwdg_refresh();
-        if (!jogwheel.GetJogwheelButtonPinState())
-            sys_reset(); //button press
+        if (!jogwheel.GetJogwheelButtonPinState()) {
+            sys_reset(); // button press
+        }
     }
 }

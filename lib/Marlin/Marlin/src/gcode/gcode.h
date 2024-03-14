@@ -222,10 +222,13 @@
  * M524 - Abort the current SD print job started with M24. (Requires SDSUPPORT)
  * M540 - Enable/disable SD card abort on endstop hit: "M540 S<state>". (Requires SD_ABORT_ON_ENDSTOP_HIT)
  * M569 - Enable stealthChop on an axis. (Requires at least one _DRIVER_TYPE to be TMC2130/2160/2208/2209/5130/5160)
+ * M572 - Set parameters for pressure advance.
+ * M593 - Set parameters for input shapers.
  * M600 - Pause for filament change: "M600 X<pos> Y<pos> Z<raise> E<first_retract> L<later_retract>". (Requires ADVANCED_PAUSE_FEATURE)
  * M601 - Pause and park print-head in marlin's defined position. (Requires ADVANCED_PAUSE_FEATURE)
  * M602 - Unpark print-head parked with M601 called before and unpause print process. (Requires ADVANCED_PAUSE_FEATURE)
  * M603 - Configure filament change: "M603 T<tool> U<unload_length> L<load_length>". (Requires ADVANCED_PAUSE_FEATURE)
+ * M604 - Abort (serial) print
  * M605 - Set Dual X-Carriage movement mode: "M605 S<mode> [X<x_offset>] [R<temp_offset>]". (Requires DUAL_X_CARRIAGE)
  * M665 - Set delta configurations: "M665 H<delta height> L<diagonal rod> R<delta radius> S<segments/s> B<calibration radius> X<Alpha angle trim> Y<Beta angle trim> Z<Gamma angle trim> (Requires DELTA)
  * M666 - Set/get offsets for delta (Requires DELTA) or dual endstops (Requires [XYZ]_DUAL_ENDSTOPS).
@@ -270,6 +273,8 @@
  * ************ Custom codes - This can change to suit future G-code regulations
  * G425 - Calibrate using a conductive object. (Requires CALIBRATION_GCODE)
  * M928 - Start SD logging: "M928 filename.gco". Stop with M29. (Requires SDSUPPORT)
+ * M958 - Excite harmonic vibration and measure amplitude
+ * M959 - Tune input shaper
  * M997 - Perform in-application firmware update
  * M999 - Restart after being stopped by error
  *
@@ -277,6 +282,7 @@
  *
  * T0-T3 - Select an extruder (tool) by index: "T<n> F<units/min>"
  *
+ * R1 - Redirect nested gcode to another machine using uart
  */
 
 #include "../inc/MarlinConfig.h"
@@ -284,6 +290,10 @@
 
 #if ENABLED(I2C_POSITION_ENCODERS)
   #include "../feature/I2CPositionEncoder.h"
+#endif
+
+#if EITHER(IS_SCARA, POLAR) || defined(G0_FEEDRATE)
+  #define HAS_FAST_MOVES 1
 #endif
 
 enum AxisRelative : uint8_t { REL_X, REL_Y, REL_Z, REL_E, E_MODE_ABS, E_MODE_REL };
@@ -312,6 +322,14 @@ public:
     SBI(axis_relative, E_MODE_ABS);
   }
 
+  #if ENABLED(GCODE_COMPATIBILITY_MK3)
+    enum class CompatibilityMode {
+      NONE,
+      MK3,
+    };
+    static CompatibilityMode compatibility_mode;
+  #endif
+
   #if ENABLED(CNC_WORKSPACE_PLANES)
     /**
      * Workspace planes only apply to G2/G3 moves
@@ -326,8 +344,9 @@ public:
     static int8_t active_coordinate_system;
     static xyz_pos_t coordinate_system[MAX_COORDINATE_SYSTEMS];
     static bool select_coordinate_system(const int8_t _new);
+    static int8_t get_coordinate_system();
+    static void set_coordinate_system_offset(int8_t system, AxisEnum axis, float offset);
   #endif
-
   static millis_t previous_move_ms;
   FORCE_INLINE static void reset_stepper_timeout() { previous_move_ms = millis(); }
 
@@ -341,7 +360,7 @@ public:
   #if ENABLED(PROCESS_CUSTOM_GCODE)
     static bool process_parsed_command_custom(const bool no_ok=false);
   #endif
-  
+
   // Execute G-code in-place, preserving current G-code parameters
   static void process_subcommands_now_P(PGM_P pgcode);
   static void process_subcommands_now(char * gcode);
@@ -372,15 +391,25 @@ public:
   #endif
 
   static void dwell(millis_t time);
-  static void G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y,bool Z);
+
+  /**
+   * @brief Home.
+   * @param * see GcodeSuite::G28() for details
+   * @return true on success
+   */
+  static bool G28_no_parser(bool always_home_all = true, bool O = false, float R = false, bool S = false, bool X = false, bool Y = false, bool Z = false
+    , bool no_change = false OPTARG(PRECISE_HOMING_COREXY, bool precise = true) OPTARG(DETECT_PRINT_SHEET, bool check_sheet = false));
+  
+  static void T(const uint8_t tool_index);
 
 private:
 
-  static void G0_G1(
-    #if IS_SCARA || defined(G0_FEEDRATE)
-      const bool fast_move=false
-    #endif
-  );
+  friend class MarlinSettings;
+  #if ENABLED(ARC_SUPPORT)
+    friend void plan_arc(const xyze_pos_t&, const ab_float_t&, const bool, const uint8_t);
+  #endif
+
+  static void G0_G1(TERN_(HAS_FAST_MOVES, const bool fast_move=false));
 
   #if ENABLED(ARC_SUPPORT)
     static void G2_G3(const bool clockwise);
@@ -390,6 +419,10 @@ private:
 
   #if ENABLED(BEZIER_CURVE_SUPPORT)
     static void G5();
+  #endif
+
+  #if ENABLED(DIRECT_STEPPING)
+    static void G6();
   #endif
 
   #if ENABLED(FWRETRACT)
@@ -431,6 +464,10 @@ private:
     #endif
     static G29_TYPE G29();
   #endif
+  #if ENABLED(ADVANCED_HOMING)
+    static void G65();
+  #endif
+
 
   #if HAS_BED_PROBE
     static void G30();
@@ -467,7 +504,7 @@ private:
     static void G59();
   #endif
 
-  #if ENABLED(GCODE_MOTION_MODES)
+  #if ENABLED(GCODE_MOTION_MODES) || ENABLED(GCODE_COMPATIBILITY_MK3)
     static void G80();
   #endif
 
@@ -540,6 +577,8 @@ private:
     static void M43();
   #endif
 
+  static void M46();
+
   #if ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
     static void M48();
   #endif
@@ -551,6 +590,8 @@ private:
 #if ENABLED(M73_PRUSA)
   static void M73_PE();
 #endif
+
+  static void M74();
 
   static void M75();
   static void M76();
@@ -634,6 +675,10 @@ private:
   #if HAS_HEATED_CHAMBER
     static void M141();
     static void M191();
+  #endif
+
+  #if HAS_TEMP_HEATBREAK_CONTROL
+    static void M142();
   #endif
 
   #if HOTENDS && HAS_LCD_MENU
@@ -752,8 +797,10 @@ private:
     static void M305();
   #endif
 
-  #if HAS_MICROSTEPS
+  #if HAS_DRIVER(TMC2130) ||HAS_MICROSTEPS
     static void M350();
+  #endif
+  #if HAS_MICROSTEPS
     static void M351();
   #endif
 
@@ -809,6 +856,10 @@ private:
     static void M428();
   #endif
 
+  #if ENABLED(CANCEL_OBJECTS)
+    static void M486();
+  #endif
+
   static void M500();
   static void M501();
   static void M502();
@@ -827,9 +878,21 @@ private:
     static void M540();
   #endif
 
+  static void M555();
+
+  #if ENABLED(MODULAR_HEATBED)
+    static void M556();
+    static void M557();
+  #endif
+
+  static void M572();
+  static void M572_internal(float pressure_advance, float smooth_time);
+
   #if ENABLED(BAUD_RATE_GCODE)
     static void M575();
   #endif
+
+  static void M593();
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     static void M600();
@@ -837,6 +900,7 @@ private:
     static void M602();
     static void M603();
   #endif
+  static void M604();
 
   #if HAS_DUPLICATION_MODE
     static void M605();
@@ -880,9 +944,9 @@ private:
     FORCE_INLINE static void M869() { I2CPEM.M869(); }
   #endif
 
-  #if ENABLED(LIN_ADVANCE)
+//  #if ENABLED(LIN_ADVANCE)
     static void M900();
-  #endif
+//  #endif
 
   #if HAS_TRINAMIC
     static void M122();
@@ -929,6 +993,11 @@ private:
     static void M951();
   #endif
 
+  static void M958();
+#if ENABLED(ACCELEROMETER)
+  static void M959();
+#endif
+
   #if ENABLED(PLATFORM_M997_SUPPORT)
     static void M997();
   #endif
@@ -944,7 +1013,9 @@ private:
     static void M7219();
   #endif
 
-  static void T(const uint8_t tool_index);
+  #if ENABLED(REDIRECT_GCODE_SUPPORT)
+    static void R(const uint8_t machine_index);
+  #endif
 
 };
 

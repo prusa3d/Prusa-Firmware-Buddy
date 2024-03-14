@@ -8,7 +8,7 @@
 #include <optional>
 #include <vector>
 
-using nhttp::Status;
+using http::Status;
 using std::get;
 using std::make_tuple;
 using std::nullopt;
@@ -94,7 +94,7 @@ public:
     }
 };
 
-}
+} // namespace
 
 // This simply creates and destroyes the parsers and checks that nothing "happens"
 TEST_CASE("Unused") {

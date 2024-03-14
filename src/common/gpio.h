@@ -1,9 +1,9 @@
 // gpio.h
 #pragma once
 
-#include "stm32f4xx_hal.h"
+#include <device/hal.h>
 
-//port of pin8
+// port of pin8
 static inline GPIO_TypeDef *gpio_port(uint8_t pin8) {
     return (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * (pin8 >> 4));
 }
@@ -17,7 +17,7 @@ static inline void gpio_set(uint8_t pin8, int state) {
 }
 
 static inline void gpio_init(uint8_t pin8, uint32_t mode, uint32_t pull, uint32_t speed) {
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct {};
     GPIO_InitStruct.Pin = (1 << (pin8 & 0x0f));
     GPIO_InitStruct.Mode = mode;
     GPIO_InitStruct.Pull = pull;

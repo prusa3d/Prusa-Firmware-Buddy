@@ -4,13 +4,16 @@
 #include <string.h>
 #include <array>
 #include <cstdint>
+#include <algorithm>
+#include <assert.h>
+#include "../lang/string_view_utf8.hpp"
 
-static const constexpr char CHAR_SPACE = ' ';
-static const constexpr char CHAR_NBSP = '\xA0'; /// Non Breaking Space
-#define NBSP "\xA0"                             /// Non Breaking Space
-static const constexpr char CHAR_NL = '\n';     /// New Line
-#define NL "\n"                                 /// New Line
-static const constexpr char EOS = '\0';         /// End Of String
+inline constexpr char CHAR_SPACE = ' ';
+inline constexpr char CHAR_NBSP = '\xA0'; /// Non Breaking Space
+#define NBSP "\xA0" /// Non Breaking Space
+inline constexpr char CHAR_NL = '\n'; /// New Line
+#define NL "\n" /// New Line
+inline constexpr char EOS = '\0'; /// End Of String
 
 enum str_err {
     nullptr_err = -1,
@@ -24,6 +27,10 @@ int str2multiline(char *str, size_t max_size, const size_t line_width);
 int strshiftUnicode(uint32_t *str, size_t max_size, const size_t n = 1, const uint32_t default_char = ' ');
 int strinsUnicode(uint32_t *str, size_t max_size, const uint32_t *const ins, size_t times = 1);
 int str2multilineUnicode(uint32_t *str, size_t max_size, const size_t line_width);
+
+constexpr size_t strlen_constexpr(const char *str) {
+    return *str ? 1 + strlen_constexpr(str + 1) : 0;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -84,11 +91,13 @@ struct memory_source {
 
     value_type getUtf8Char() const {
         value_type c;
-        if (index_ >= buffer_.size())
+        if (index_ >= buffer_.size()) {
             return EOS;
+        }
         c = buffer_[index_++];
-        if (c == EOS)
+        if (c == EOS) {
             index_ = buffer_.size();
+        }
         return c;
     }
 
@@ -134,7 +143,7 @@ private:
 class RectTextLayout {
 public:
     static constexpr size_t MaxLines = 31;
-    static constexpr uint8_t MaxCharInLine = 255;     //uint8_t
+    static constexpr uint8_t MaxCharInLine = 255; // uint8_t
     using Data_t = std::array<uint8_t, MaxLines + 1>; // last elem stores current line
 private:
     Data_t data;
@@ -157,19 +166,22 @@ public:
         return CurrentLineCharacters() == 0 ? currentLine() : currentLine() + 1;
     }
 
-    //increment number of lines
+    // increment number of lines
     bool NewLine() {
-        if (currentLine() >= MaxLines)
+        if (currentLine() >= MaxLines) {
             return false;
+        }
         data[MaxLines] += 1;
         return true;
     }
 
     bool IncrementNumOfCharsUpTo(uint8_t max_val) {
-        if (currentLine() >= MaxLines)
+        if (currentLine() >= MaxLines) {
             return false;
-        if (CurrentLineCharacters() >= max_val)
+        }
+        if (CurrentLineCharacters() >= max_val) {
             return false;
+        }
         data[currentLine()] += 1;
         return true;
     }
@@ -209,88 +221,224 @@ template <
 struct text_wrapper {
     using value_type = typename memory_buffer::value_type;
 
-    text_wrapper(uint32_t width, font_type font)
-        : width_(width)     ///< width of the space for the text in pixels
-        , index_(-1)        ///< current position in buffer where single word is
-        , current_width_(0) ///< width used already
-        , word_length_(0)   ///< number characters of current word + trailing white character
+    text_wrapper(uint32_t wrap_width, font_type font)
+        : wrap_width_(wrap_width)
         , font_(font) {};
 
-    /// \returns false if the new word does not fit current line
-    template <typename source>
-    bool buffer_next_word(source &s) {
-        const uint32_t w = buffering(s); ///< current word's width in pixels
-        index_ = 0;
-        if ((w + current_width_) > width_ && current_width_ != 0) {
-            /// this word will not fit to this line but it's not the first word
-            /// on this line => break the line
-            current_width_ = w;
-            return false;
-        }
-        current_width_ += w;
-        return true;
-    }
-
+    /// Yields next character of the string
     template <typename source>
     value_type character(source &s) {
-        if (index_ < 0)
-            /// empty buffer => buffer next word
-            if (!buffer_next_word(s))
+        // Nothing in the buffer -> load next word
+        if (buffer_pos_ >= buffer_count_) {
+            if (buffer_next_word(s)) {
                 return static_cast<value_type>(CHAR_NL);
+            }
+        }
 
-        const value_type c = buffer_[index_];
-        buffer_[index_] = 0;
-        if (index_ < word_length_) {
-            /// buffer not empty => send a character
-            index_++;
+        const value_type c = buffer_[buffer_pos_++];
+
+        // We're not at the end of the word -> simply return the character
+        if (buffer_pos_ < buffer_count_) {
             return c;
         }
-        /// last character in the buffer
-        index_ = -1; ///< read next word next time
-        if (c == static_cast<value_type>(EOS)) {
-            return c;
-        } else if (c == static_cast<value_type>(CHAR_SPACE)) {
-            current_width_ += width::value(font_);
-            if (!buffer_next_word(s))
-                return static_cast<value_type>(CHAR_NL);
 
-        } else if (c == static_cast<value_type>(CHAR_NL))
-            current_width_ = 0;
+        // Mark that we should read next word in the next character call
+        buffer_count_ = 0;
+
+        if (c == static_cast<value_type>(CHAR_SPACE)) {
+            // Increase current width by the space size
+            // (because the word_width is not increased trailing space in buffer_next_word)
+            current_line_width_ += width::value(font_);
+
+            // Should the space be trailing at the end of the line, omit it and go straight to newline
+            if (buffer_next_word(s)) {
+                return static_cast<value_type>(CHAR_NL);
+            }
+
+        } else if (c == static_cast<value_type>(CHAR_NL)) {
+            current_line_width_ = 0;
+        }
+
         return c;
     }
 
 private:
-    /// Copies current word to the buffer
-    /// \returns word's width in pixels
+    /// Loads next word (potentially including a trailing whitespace) into the buffer.
+    /// Updates buffer_count_, current_line_width_. Resets buffer_pos_.
+    /// If the loaded word wouldn't fit on the current line, resets current_line_width_ and returns TRUE
+    /// to indicate a new line should be started before yielding the current buffer contents.
     template <typename source>
-    uint32_t buffering(source &s) {
+    bool buffer_next_word(source &s) {
         uint32_t i = 0;
-        uint32_t word_width = 0;
+        uint32_t buffer_width = 0;
         value_type c = 0;
 
-        //read max size() characters continuosly
-        //in our case word_buffer = std::array<uint32_t, 32>;
-        while (i < buffer_.size()) {
+        const bool was_long_word_mode = long_word_mode_;
+
+        // read max size() characters continuosly
+        // in our case word_buffer = std::array<uint32_t, 32>;
+        while (true) {
+            if (i >= buffer_.size()) {
+                long_word_mode_ = true;
+                break;
+            }
+
             c = s.getUtf8Char();
-            buffer_[i] = c;
+            buffer_[i++] = c;
+
             if (c == static_cast<value_type>(CHAR_NL)
                 || c == static_cast<value_type>(CHAR_SPACE)
-                || c == static_cast<value_type>(EOS))
+                || c == static_cast<value_type>(EOS)) {
+                long_word_mode_ = false;
                 break;
-            word_width += width::value(font_);
-            if (c == static_cast<value_type>(CHAR_NBSP)) {
-                buffer_[i] = static_cast<value_type>(CHAR_SPACE);
             }
-            ++i;
+
+            buffer_width += width::value(font_);
+
+            if (c == static_cast<value_type>(CHAR_NBSP)) {
+                buffer_[i - 1] = static_cast<value_type>(CHAR_SPACE);
+            }
         }
-        word_length_ = i;
-        return word_width;
+
+        buffer_count_ = i;
+        buffer_pos_ = 0;
+
+        // If the current loaded word doesn't fit to the current line (and is not the first thing in the line) -> break the line
+        if ((buffer_width + current_line_width_) > wrap_width_ && current_line_width_ != 0 && !was_long_word_mode) {
+            current_line_width_ = buffer_width;
+            return true;
+        } else {
+            current_line_width_ += buffer_width;
+            return false;
+        }
     }
 
+private:
+    const uint32_t wrap_width_; ///< width of the space for the text in pixels
+    const font_type font_;
+
+private:
     memory_buffer buffer_;
-    uint32_t width_;
-    int32_t index_;
-    uint32_t current_width_;
-    int32_t word_length_;
-    font_type font_;
+    uint32_t buffer_pos_ = 0; ///< current position in buffer where single word is
+    uint32_t buffer_count_ = 0; ///< number of characters in the buffer (current word + trailing white character, if the word is shorter than the buffer)
+
+private:
+    uint32_t current_line_width_ = 0; ///< pixels already used in the current line
+    bool long_word_mode_ = false; ///< Set to true for consecutive buffer loads if the word is longer than buffer size
+};
+
+/// Class that allows safely building strings in char buffers.
+/// The class ensures that the string is always validly null terminated. Last character in the buffer is always reserved for \0.
+/// Use this class instead of snprintf, because it does all the checks.
+/// The class does NOT take the OWNERSHIP in the buffer in any way, the buffer has to exist for the whole existence of StringBuilder (but see ArrayStringBuilder)
+/// The builder always considers terminating \0, so the actual available size for string is buffer_size - 1
+class StringBuilder {
+
+public:
+    StringBuilder() = default;
+
+    template <size_t n>
+    StringBuilder(std::array<char, n> &arr) {
+        init(arr.data(), n);
+    }
+
+    template <size_t n>
+    StringBuilder(char (&arr)[n], size_t start = 0) {
+        assert(start < n);
+        init(arr + start, n - start);
+    }
+
+    /// See StringBuilder::init
+    static StringBuilder from_ptr(char *buffer, size_t buffer_size) {
+        StringBuilder result;
+        result.init(buffer, buffer_size);
+        return result;
+    }
+
+public:
+    /// Initializes string builder on the buffer.
+    void init(char *buffer, size_t buffer_size);
+
+public:
+    /// Returns false if there is no space left to write further text or if any of the called functions failed
+    inline bool is_ok() const {
+        return is_ok_;
+    }
+
+    /// See is_ok
+    inline bool is_problem() const {
+        return !is_ok_;
+    }
+
+    /// Returns number of characters in the buffer (NOT counting the terminating \0 which is always there)
+    inline size_t char_count() const {
+        return current_pos_ - buffer_start_;
+    }
+
+    /// Returns number of bytes used of the buffer (COUNTING the terminating \0 which is always there)
+    inline size_t byte_count() const {
+        return char_count() + 1;
+    }
+
+public:
+    void append_char(char ch);
+
+    void append_string(const char *str);
+
+    void append_string_view(string_view_utf8 str);
+
+    /// Appends text to the builder, using vsnprintf under the hood.
+    void append_printf(const char *fmt, ...);
+
+    /// Appends text to the builder, using vsnprintf under the hood.
+    void append_vprintf(const char *fmt, va_list args);
+
+public:
+    /// Allocates $cnt chars at the end of the string and returns the pointer to them.
+    /// Appends \0 at the end of the allocation.
+    /// Returns pointer to the allocated string or nullptr on failure
+    char *alloc_chars(size_t cnt);
+
+private:
+    /// For safety reasons, string builder copying is only for static constructors
+    StringBuilder(const StringBuilder &o) = default;
+
+private:
+    /// Pointer to start of the buffer
+    char *buffer_start_ = nullptr;
+
+    /// Pointer after end of the buffer (1 char after the terminating null character)
+    char *buffer_end_ = nullptr;
+
+    /// Pointer to the current writable position on the buffer (should always contain terminating null char)
+    char *current_pos_ = nullptr;
+
+    /// Error flag, can be set by for example when printf fails
+    bool is_ok_ = true;
+};
+
+/// StringBuilder bundled together with an array
+template <size_t array_size_>
+class ArrayStringBuilder : public StringBuilder {
+
+public:
+    inline ArrayStringBuilder()
+        : StringBuilder(array) {}
+
+public:
+    inline const char *str() const {
+        assert(is_ok());
+        return array.data();
+    }
+    inline const char *str_nocheck() const {
+        return array.data();
+    }
+
+    inline const uint8_t *str_bytes() const {
+        assert(is_ok());
+        return reinterpret_cast<const uint8_t *>(array.data());
+    }
+
+private:
+    std::array<char, array_size_> array;
 };

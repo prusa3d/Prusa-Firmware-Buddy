@@ -14,12 +14,14 @@ for image in $input
 do
 	echo "$PNG_DIR/$image.png to $PAL_DIR/$image.png"
 	#uses image magick tool to convert png from normal to indexed
-	magick "$PNG_DIR/$image.png" -type paletteAlpha -define PNG:bit-depth=8 "$PAL_DIR/$image.png"
+
+	$MAGICK_PATH "$PNG_DIR/$image.png" -type PaletteAlpha  -define PNG:bit-depth=8 "$PAL_DIR/$image.png"
+
 done
 
 for image in $input
 do
-	optipng -fix -o7 -zc6 -zw32k -nb -nc  -strip all "$PAL_DIR/$image.png"
+	optipng -fix -o7 -zc6 -zw32k   -q -strip all "$PAL_DIR/$image.png"
 done
 
 }

@@ -1,8 +1,6 @@
 /**
  * @file footer_item_printspeed.hpp
- * @author Radek Vana
  * @brief footer item displaying filament type
- * @date 2021-04-16
  */
 
 #pragma once
@@ -14,6 +12,5 @@ class FooterItemSpeed : public AddSuperWindow<FooterIconText_IntVal> {
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName() { return _("Speed"); }
     FooterItemSpeed(window_t *parent);
 };

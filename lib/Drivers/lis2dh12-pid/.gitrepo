@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/STMicroelectronics/lis2dh12-pid.git
+	branch = master
+	commit = 32bf6c84e58e6e73cbbb28f288451ee16cb9e61b
+	parent = b3034a84308ae7d45f265538c08830a519cca890
+	method = merge
+	cmdver = 0.4.6

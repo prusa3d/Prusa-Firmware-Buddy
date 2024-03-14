@@ -245,7 +245,7 @@ public:
 
   // Code value as a long or ulong
   static inline int32_t value_long() { return value_ptr ? strtol(value_ptr, nullptr, 10) : 0L; }
-  static inline uint32_t value_ulong() { return value_ptr ? strtoul(value_ptr, nullptr, 10) : 0UL; }
+  static inline uint32_t value_ulong(int16_t base = 10) { return value_ptr ? strtoul(value_ptr, nullptr, base) : 0UL; }
 
   // Code value for use as time
   static inline millis_t value_millis() { return value_ulong(); }
@@ -376,6 +376,7 @@ public:
   static inline uint16_t ushortval(const char c, const uint16_t dval=0) { return seenval(c) ? value_ushort()       : dval; }
   static inline int32_t  longval(const char c, const int32_t dval=0)    { return seenval(c) ? value_long()         : dval; }
   static inline uint32_t ulongval(const char c, const uint32_t dval=0)  { return seenval(c) ? value_ulong()        : dval; }
+  static inline uint32_t ulongval_hex(const char c, const uint32_t dval=0) { return seenval(c) ? value_ulong(16)   : dval; }
   static inline float    linearval(const char c, const float dval=0)    { return seenval(c) ? value_linear_units() : dval; }
   static inline float    celsiusval(const char c, const float dval=0)   { return seenval(c) ? value_celsius()      : dval; }
 

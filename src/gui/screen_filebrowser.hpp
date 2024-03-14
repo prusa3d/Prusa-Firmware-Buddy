@@ -1,23 +1,26 @@
 #pragma once
 #include "gui.hpp"
-#include "window_file_list.hpp"
+#include "window_menu_adv.hpp"
 #include "window_header.hpp"
 #include "screen.hpp"
-#include "gcode_info.hpp"
-#include "marlin_vars.h"
+#include "window_dlg_wait.hpp"
 
 class screen_filebrowser_data_t : public AddSuperWindow<screen_t> {
     window_header_t header;
-    window_file_list_t w_filelist;
-    GCodeInfo &gcode_info;
-    static void clear_firstVisibleSFN(marlin_vars_t *vars);
-    static char root[FILE_PATH_BUFFER_LEN]; // we can have only one screen_filebrowser at time, so this variable can be static
+    FileBrowser file_browser;
+
+    static void clearFirstVisibleSFN(); // this method writes into pointer received from marlin_vars, it is super ugly
+    void printTheFile();
+    void goHome();
+
+    /**
+     * @brief Check if media is removed and close filebrowser.
+     * @param media_state media state from event or from global state
+     */
+    void checkMissingMedia(MediaState_t media_state);
 
 public:
     screen_filebrowser_data_t();
-
-    //sets root variable
-    static void SetRoot(const char *path);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

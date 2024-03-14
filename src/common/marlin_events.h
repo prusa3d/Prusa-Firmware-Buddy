@@ -1,79 +1,91 @@
 // marlin_events.h
 #pragma once
 
-#include "variant8.h"
+#include <cstdint>
+#include <limits>
+#include <utils/utility_extensions.hpp>
 
-typedef enum {
+namespace marlin_server {
+
+enum class Event : uint8_t {
     // Marlin events - UIAPI
-    MARLIN_EVT_Startup,             // onStartup()
-    MARLIN_EVT_PrinterKilled,       // onPrinterKilled(PGM_P const msg)
-    MARLIN_EVT_MediaInserted,       // onMediaInserted();
-    MARLIN_EVT_MediaError,          // onMediaError();
-    MARLIN_EVT_MediaRemoved,        // onMediaRemoved();
-    MARLIN_EVT_FSM,                 // create/destroy finite state machine or change phase/state/progress in client
-    MARLIN_EVT_PlayTone,            // onPlayTone(const uint16_t frequency, const uint16_t duration)
-    MARLIN_EVT_PrintTimerStarted,   // onPrintTimerStarted()
-    MARLIN_EVT_PrintTimerPaused,    // onPrintTimerPaused()
-    MARLIN_EVT_PrintTimerStopped,   // onPrintTimerStopped()
-    MARLIN_EVT_FilamentRunout,      // onFilamentRunout()
-    MARLIN_EVT_UserConfirmRequired, // onUserConfirmRequired(const char * const msg)
-    MARLIN_EVT_StatusChanged,       // onStatusChanged(const char * const msg)
-    MARLIN_EVT_FactoryReset,        // onFactoryReset()
-    MARLIN_EVT_LoadSettings,        // onLoadSettings()
-    MARLIN_EVT_StoreSettings,       // onStoreSettings()
-    MARLIN_EVT_MeshUpdate,          // onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval)
-                                    // Marlin events - other
-    MARLIN_EVT_StartProcessing,     // sent from marlin_server_start_processing
-    MARLIN_EVT_StopProcessing,      // sent from marlin_server_stop_processing
-    MARLIN_EVT_Error,               // sent onStatusChanged etc.
-    MARLIN_EVT_CommandBegin,        //
-    MARLIN_EVT_CommandEnd,          //
-    MARLIN_EVT_SafetyTimerExpired,  // host action from marlin, hotends and bed turned off
-    MARLIN_EVT_Message,             //
-    MARLIN_EVT_Warning,             // important messages like fan error or heater timeout
-    MARLIN_EVT_Reheat,              //
-    MARLIN_EVT_Acknowledge,         // onAcknowledge - lowest priority
+    Startup, // onStartup()
+    PrinterKilled, // onPrinterKilled(PGM_P const msg)
+    MediaInserted, // onMediaInserted();
+    MediaError, // onMediaError();
+    MediaRemoved, // onMediaRemoved();
+    FSM, // create/destroy finite state machine or change phase/state/progress in client
+    PlayTone, // onPlayTone(const uint16_t frequency, const uint16_t duration)
+    PrintTimerStarted, // onPrintTimerStarted()
+    PrintTimerPaused, // onPrintTimerPaused()
+    PrintTimerStopped, // onPrintTimerStopped()
+    FilamentRunout, // onFilamentRunout()
+    UserConfirmRequired, // onUserConfirmRequired(const char * const msg)
+    StatusChanged, // onStatusChanged(const char * const msg)
+    FactoryReset, // onFactoryReset()
+    LoadSettings, // onLoadSettings()
+    StoreSettings, // onStoreSettings()
+    MeshUpdate, // onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval)
+    // Marlin events - other
+    StartProcessing, // sent from marlin_server_start_processing
+    StopProcessing, // sent from marlin_server_stop_processing
+    Error, // sent onStatusChanged etc.
+    CommandBegin, //
+    CommandEnd, //
+    SafetyTimerExpired, // host action from marlin, hotends and bed turned off
+    Message, //
+    Warning, // important messages like fan error or heater timeout
+    Reheat, //
+    Acknowledge, // onAcknowledge - lowest priority
+    NotAcknowledge, // onNotAcknowledge - lowest priority
 
-    MARLIN_EVT_MAX = MARLIN_EVT_Acknowledge
-} MARLIN_EVT_t;
-
-// event masks
-#define MARLIN_EVT_MSK(e_id) ((uint64_t)1 << (e_id))
-#define MARLIN_EVT_MSK_ALL   ((MARLIN_EVT_MSK(MARLIN_EVT_MAX + 1) - (uint64_t)1))
-
-static const uint64_t MARLIN_EVT_MSK_DEF = MARLIN_EVT_MSK_ALL - (MARLIN_EVT_MSK(MARLIN_EVT_PrinterKilled));
-static const uint64_t MARLIN_EVT_MSK_FSM = MARLIN_EVT_MSK(MARLIN_EVT_FSM);
-
-// commands
-enum {
-    MARLIN_CMD_NONE = 0,
-    MARLIN_CMD_G = (uint32_t)'G' << 16,
-    MARLIN_CMD_M = (uint32_t)'M' << 16,
-    MARLIN_CMD_G28 = MARLIN_CMD_G + 28,
-    MARLIN_CMD_G29 = MARLIN_CMD_G + 29,
-    MARLIN_CMD_M109 = MARLIN_CMD_M + 109,
-    MARLIN_CMD_M190 = MARLIN_CMD_M + 190,
-    MARLIN_CMD_M303 = MARLIN_CMD_M + 303,
-    MARLIN_CMD_M600 = MARLIN_CMD_M + 600,
-    MARLIN_CMD_M701 = MARLIN_CMD_M + 701,
-    MARLIN_CMD_M702 = MARLIN_CMD_M + 702,
-    MARLIN_CMD_M876 = MARLIN_CMD_M + 876,
-
-    MARLIN_MAX_MESH_POINTS = (4 * 4),
+    _last = NotAcknowledge,
+    _count
 };
 
-typedef struct _marlin_mesh_t {
-    float z[MARLIN_MAX_MESH_POINTS];
-    uint8_t xc;
-    uint8_t yc;
-} marlin_mesh_t;
+using EventMask = uint64_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
+static_assert(sizeof(EventMask) * 8 > ftrstd::to_underlying(Event::_last));
 
-extern const char *marlin_events_get_name(MARLIN_EVT_t evt_id);
-
-#ifdef __cplusplus
+// event masks
+constexpr EventMask make_mask(Event id) {
+    return static_cast<EventMask>(1) << ftrstd::to_underlying(id);
 }
-#endif //__cplusplus
+
+inline constexpr EventMask EVENT_MSK_ALL = std::numeric_limits<EventMask>::max();
+inline constexpr EventMask EVENT_MSK_DEF = EVENT_MSK_ALL & ~make_mask(Event::PrinterKilled);
+inline constexpr EventMask EVENT_MSK_FSM = make_mask(Event::FSM);
+
+// commands
+enum class Cmd : uint32_t {
+    NONE = 0,
+    G = (uint32_t)'G' << 16,
+    M = (uint32_t)'M' << 16,
+    G28 = G + 28,
+    G29 = G + 29,
+    M109 = M + 109,
+    M190 = M + 190,
+    M303 = M + 303,
+    M600 = M + 600,
+    M701 = M + 701,
+    M702 = M + 702,
+    M876 = M + 876,
+};
+
+const char *marlin_events_get_name(Event evt_id);
+
+/**
+ * @brief Parameter to start printing.
+ * Tells whether to skip parts of preview when printing is started.
+ * @warning The order matters. Element skips its screen and all screens with lower number.
+ */
+enum class PreviewSkipIfAble : uint8_t {
+    no = 0, ///< Show all
+    preview, ///< Skip preview thumbnail
+    tool_mapping, ///< Skip preview thumbnail and toolmapping
+    _count,
+    _last = _count - 1,
+    all = _last, ///< Skip all
+};
+
+} // namespace marlin_server

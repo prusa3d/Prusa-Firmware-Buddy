@@ -21,8 +21,8 @@
 #include <memory>
 #include <tuple>
 
-#include "types.h"
 #include "../../src/gui/file_list_defs.h"
+#include <http/types.h>
 
 struct multipart_parser;
 
@@ -30,7 +30,7 @@ namespace nhttp::printer {
 
 class UploadHooks {
 public:
-    using Result = std::tuple<nhttp::Status, const char *>;
+    using Result = std::tuple<http::Status, const char *>;
     virtual ~UploadHooks() = default;
     virtual Result data(std::string_view data) = 0;
     virtual Result finish(const char *final_filename, bool start_print) = 0;
@@ -219,7 +219,7 @@ private:
      */
     Accumulator accumulator;
 
-    UploadHooks::Result error = std::make_tuple(nhttp::Status::Ok, nullptr);
+    UploadHooks::Result error = std::make_tuple(http::Status::Ok, nullptr);
 
     TokenType type : 2;
     State state : 3;
@@ -288,4 +288,4 @@ public:
     }
 };
 
-}
+} // namespace nhttp::printer

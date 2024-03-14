@@ -4,6 +4,8 @@
 
 #include <cstring>
 
+using http::ConnectionHandling;
+using http::Status;
 using std::string_view;
 
 namespace nhttp::handler {
@@ -36,4 +38,4 @@ Step SendStaticMemory::step(string_view, bool, uint8_t *buffer, size_t buff_len)
     }
 }
 
-}
+} // namespace nhttp::handler

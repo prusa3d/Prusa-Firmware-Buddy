@@ -1,4 +1,4 @@
-/* 
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019, hathach (tinyusb.org)
@@ -24,7 +24,7 @@
  */
 
 #include "sam.h"
-#include "bsp/board.h"
+#include "bsp/board_api.h"
 
 #include "peripheral_clk_config.h"
 #include "hal/include/hal_init.h"
@@ -99,7 +99,7 @@ void board_init(void)
 //--------------------------------------------------------------------+
 void UDP_Handler(void)
 {
-  #if CFG_TUSB_RHPORT0_MODE & OPT_MODE_DEVICE
+  #if CFG_TUD_ENABLED
     tud_int_handler(0);
   #endif
 }

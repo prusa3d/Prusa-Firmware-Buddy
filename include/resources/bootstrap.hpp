@@ -1,13 +1,21 @@
 #pragma once
 #include <optional>
+#include <functional>
+
 #include "resources/revision.hpp"
 
 namespace buddy::resources {
 
-bool is_bootstrap_needed();
+bool has_resources(const Revision &revision);
 
-using ProgressHook = void (*)(int percent_done, std::optional<const char *> description);
-
-bool bootstrap(ProgressHook progress_hook);
-
+enum class BootstrapStage {
+    LookingForBbf,
+    PreparingBootstrap,
+    CopyingFiles,
 };
+
+using ProgressHook = std::function<void(int percent_done, BootstrapStage stage)>;
+
+bool bootstrap(const Revision &revision, ProgressHook progress_hook);
+
+}; // namespace buddy::resources

@@ -1,53 +1,43 @@
-// screen_menu_odometer.cpp
+/**
+ * @file screen_menu_odometer.cpp
+ */
 
-#include <stdlib.h>
-
-#include "cmath_ext.h"
-#include "screen_menus.hpp"
+#include "screen_menu_odometer.hpp"
 #include "screen_menu.hpp"
-#include "i18n.h"
 #include "odometer.hpp"
 #include "MItem_tools.hpp"
 #include "DialogMoveZ.hpp"
+#include <option/has_toolchanger.h>
 
-using MenuContainer = WinMenuContainer<MI_RETURN>;
-
-using OdometerScreen = ScreenMenu<EFooter::On, MI_RETURN, MI_ODOMETER_DIST_X, MI_ODOMETER_DIST_Y, MI_ODOMETER_DIST_Z, MI_ODOMETER_DIST_E, MI_ODOMETER_TIME>;
-
-class ScreenOdometer : public OdometerScreen {
-    static constexpr const char *label = N_("ODOMETER");
-
-    static float getVal(Odometer_s::axis_t axis) {
-        Odometer_s::instance().force_to_eeprom();
-        return Odometer_s::instance().get(axis) * .001f;
-    }
-    static uint32_t getTime() {
-        Odometer_s::instance().force_to_eeprom();
-        return Odometer_s::instance().get_time();
+void ScreenMenuOdometer::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::HELD_RELEASED) {
+        DialogMoveZ::Show();
+        return;
     }
 
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-        if (event == GUI_event_t::HELD_RELEASED) {
-            DialogMoveZ::Show();
-            return;
-        }
+    SuperWindowEvent(sender, event, param);
+}
 
-        SuperWindowEvent(sender, event, param);
-    }
-
-public:
-    ScreenOdometer()
-        : OdometerScreen(_(label)) {
-        EnableLongHoldScreenAction();
-        Odometer_s::instance().force_to_eeprom();
-        Item<MI_ODOMETER_DIST_X>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::X));
-        Item<MI_ODOMETER_DIST_Y>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::Y));
-        Item<MI_ODOMETER_DIST_Z>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::Z));
-        Item<MI_ODOMETER_DIST_E>().UpdateValue(Odometer_s::instance().get_from_eeprom(Odometer_s::axis_t::E));
-        Item<MI_ODOMETER_TIME>().UpdateValue(Odometer_s::instance().get_time());
-    }
-};
-
-ScreenFactory::UniquePtr GetScreenMenuOdometer() {
-    return ScreenFactory::Screen<ScreenOdometer>();
+ScreenMenuOdometer::ScreenMenuOdometer()
+    : ScreenMenuOdometer__(_(label)) {
+    EnableLongHoldScreenAction();
+    Odometer_s::instance().force_to_eeprom();
+    Item<MI_ODOMETER_DIST_X>().UpdateValue(Odometer_s::instance().get_axis(Odometer_s::axis_t::X));
+    Item<MI_ODOMETER_DIST_Y>().UpdateValue(Odometer_s::instance().get_axis(Odometer_s::axis_t::Y));
+    Item<MI_ODOMETER_DIST_Z>().UpdateValue(Odometer_s::instance().get_axis(Odometer_s::axis_t::Z));
+    Item<MI_ODOMETER_DIST_E>().UpdateValue(Odometer_s::instance().get_extruded_all());
+#if HAS_TOOLCHANGER()
+    Item<MI_ODOMETER_DIST_E_N<0>>().UpdateValue(Odometer_s::instance().get_extruded(0));
+    Item<MI_ODOMETER_DIST_E_N<1>>().UpdateValue(Odometer_s::instance().get_extruded(1));
+    Item<MI_ODOMETER_DIST_E_N<2>>().UpdateValue(Odometer_s::instance().get_extruded(2));
+    Item<MI_ODOMETER_DIST_E_N<3>>().UpdateValue(Odometer_s::instance().get_extruded(3));
+    Item<MI_ODOMETER_DIST_E_N<4>>().UpdateValue(Odometer_s::instance().get_extruded(4));
+    Item<MI_ODOMETER_TOOL>().UpdateValue(Odometer_s::instance().get_toolpick_all());
+    Item<MI_ODOMETER_TOOL_N<0>>().UpdateValue(Odometer_s::instance().get_toolpick(0));
+    Item<MI_ODOMETER_TOOL_N<1>>().UpdateValue(Odometer_s::instance().get_toolpick(1));
+    Item<MI_ODOMETER_TOOL_N<2>>().UpdateValue(Odometer_s::instance().get_toolpick(2));
+    Item<MI_ODOMETER_TOOL_N<3>>().UpdateValue(Odometer_s::instance().get_toolpick(3));
+    Item<MI_ODOMETER_TOOL_N<4>>().UpdateValue(Odometer_s::instance().get_toolpick(4));
+#endif
+    Item<MI_ODOMETER_TIME>().UpdateValue(Odometer_s::instance().get_time());
 }

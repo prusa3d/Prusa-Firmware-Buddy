@@ -1,0 +1,59 @@
+
+== `bitset.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/bitset.hpp[`bitset.hpp`]
+provides an implementation that mirrors
+https://en.cppreference.com/w/cpp/utility/bitset[`std::bitset`], but is
+`constexpr` in C++17 and has the following differences:
+
+The underlying type can be specified: `stdx::bitset<8, std::uint16_t>` defines a
+bitset with 8 bits whose storage type is `std::uint16_t`. The storage type must
+be an unsigned integral type. It controls the `value_type` of the underlying
+storage and hence may affect efficiency for some operations according to
+platform.
+
+* Stream input and output operators are not implemented.
+* A `std::hash` specialization is not implemented.
+* `to_string`, `to_ulong` and `to_ullong` are not implemented; `to_uint64_t` is available.
+
+A bitset has two template parameters: the size of the bitset and the storage
+element type to use. The storage element type must be unsigned.
+[source,cpp]
+----
+template <std::size_t N, typename Element = void>
+struct bitset;
+----
+
+If the storage element type is omitted, the smallest unsigned type that will fit
+the size is selected, or `std::uint64_t` if the size is more than 64.
+[source,cpp]
+----
+using A = stdx::bitset<8>;   // uses uint8_t
+using B = stdx::bitset<16>;  // uses uint16_t
+using C = stdx::bitset<32>;  // uses uint32_t
+using D = stdx::bitset<64>;  // uses uint64_t
+using E = stdx::bitset<128>; // uses (array of) uint64_t
+using F = stdx::bitset<128, std::uint8_t>; // uses (array of) uint8_t
+----
+
+A bitset can be created from a `std::uint64_t`:
+[source,cpp]
+----
+auto bs = stdx::bitset<8>{0b1100}; // bits 2 and 3 set
+----
+
+Or by specifying which bits are set and using `stdx::place_bits`:
+[source,cpp]
+----
+auto bs = stdx::bitset<8>{stdx::place_bits, 2, 3}; // bits 2 and 3 set
+----
+
+Or with a string_view (potentially by substring and with a known value for
+set bits):
+[source,cpp]
+----
+using namespace std::string_view_literals;
+auto bs1 = stdx::bitset<8>{"1100"sv};            // bits 2 and 3 set
+auto bs2 = stdx::bitset<8>{"1100"sv, 0, 2};      // bits 0 and 1 set
+auto bs3 = stdx::bitset<8>{"AABB"sv, 0, 2, 'A'}; // bits 0 and 1 set
+----

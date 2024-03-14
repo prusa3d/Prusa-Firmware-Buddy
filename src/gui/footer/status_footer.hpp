@@ -5,4 +5,7 @@
 #ifdef USE_ST7789
     #include "footer_doubleline.hpp"
 using StatusFooter = FooterDoubleLine;
-#endif //USE_ST7789
+#else
+    #include "footer_singleline.hpp"
+using StatusFooter = FooterSingleline;
+#endif // USE_ST7789

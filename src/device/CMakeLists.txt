@@ -1,0 +1,5 @@
+if(MCU MATCHES "STM32F4")
+  add_subdirectory(stm32f4)
+elseif(MCU MATCHES "STM32G0")
+  add_subdirectory(stm32g0)
+endif()

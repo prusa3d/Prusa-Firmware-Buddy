@@ -18,9 +18,6 @@ public:
     static GuiMediaEventsHandler &Instance();
 
 private:
-    static constexpr uint32_t startup_finished_delay = 1000;
-    uint32_t start_time;
-    bool is_starting;
     bool one_click_printing;
     bool state_sent;
     MediaState_t media_state;
@@ -33,9 +30,9 @@ private:
 
 public:
     static void Tick();
+    static void SetOneClickPrinting();
     static bool ConsumeOneClickPrinting();
-    static bool IsStarting();
-    static void ClrMediaError();                //clear - update - clear again
-    static bool ConsumeSent(MediaState_t &ret); //update - remember - set sent - return
+    static void ClrMediaError(); // clear - update - clear again
+    static bool ConsumeSent(MediaState_t &ret); // update - remember - set sent - return
     static MediaState_t Get();
 };

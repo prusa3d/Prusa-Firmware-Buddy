@@ -26,8 +26,6 @@ Be aware please, that the Prusa-Firmware-Buddy/Master repository is a **developm
 ssid= enter here the SSID of your wireless network
 
 psk= enter here the valid password
-
-key_mgmt=WPA
 ```
 
 - Store the `prusa_printer_settings.ini` file in the root folder of the USB flash drive and plug in to the printer
@@ -37,9 +35,9 @@ key_mgmt=WPA
 
 
 
-## Connect printer to PRUSA LINK ##
+## Connect printer to PrusaLink ##
 - Make sure your printer is connected to the network
 - Open an internet browser and copy the IP address from **Setting->Lan settings->WiFI**
-- PrusaLink page should open and request you to enter an api-key.You will find it in **Settings->PRUSA LINK->X-Api-Key**
-- Enter the api key
--  Telemetric and graphical information regarding the printer status should be displayed
+- PrusaLink page should open and request you to enter a username and a password. You will find it in **Settings->Network->PrusaLink**.
+- Enter the credentials
+- Telemetric and graphical information regarding the printer status should be displayed

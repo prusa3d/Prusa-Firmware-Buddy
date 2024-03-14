@@ -1,4 +1,4 @@
-//test_display.c - display performance testing functions
+// test_display.c - display performance testing functions
 
 #include <inttypes.h>
 #include <stdlib.h>
@@ -6,9 +6,10 @@
 
 #include "cmsis_os.h"
 #include "gui.hpp"
-#include "resource.h"
 #include "display_helper.h"
 #include "log.h"
+
+LOG_COMPONENT_REF(Buddy);
 
 typedef void(test_display_t)(uint16_t cnt);
 
@@ -24,7 +25,7 @@ void test_display_fade(uint16_t cnt);
 void test_display_rgbcolors(uint16_t cnt);
 void test_display_spectrum(uint16_t cnt);
 
-void do_test(test_display_t *func, int cnt, const char *name, const char *unit) {
+void do_test(test_display_t *func, int cnt, [[maybe_unused]] const char *name, [[maybe_unused]] const char *unit) {
     display::Clear(COLOR_BLACK);
 
 #if (DBG_LEVEL >= 3)
@@ -74,23 +75,27 @@ Rect16 random_rect() {
 }
 
 void test_display_random_dots(uint16_t cnt) {
-    for (uint16_t n = 0; n < cnt; ++n)
+    for (uint16_t n = 0; n < cnt; ++n) {
         display::SetPixel(random_point(), random_color());
+    }
 }
 
 void test_display_random_lines(uint16_t cnt) {
-    for (uint16_t n = 0; n < cnt; ++n)
+    for (uint16_t n = 0; n < cnt; ++n) {
         display::DrawLine(random_point(), random_point(), random_color());
+    }
 }
 
 void test_display_random_rects(uint16_t cnt) {
-    for (uint16_t n = 0; n < cnt; ++n)
+    for (uint16_t n = 0; n < cnt; ++n) {
         display::DrawRect(random_rect(), random_color());
+    }
 }
 
 void test_display_random_filled_rects(uint16_t cnt) {
-    for (uint16_t n = 0; n < cnt; ++n)
+    for (uint16_t n = 0; n < cnt; ++n) {
         display::FillRect(random_rect(), random_color());
+    }
 }
 
 void test_display_random_chars(uint16_t cnt, font_t *font) {
@@ -123,7 +128,7 @@ void test_display_random_chars_big(uint16_t cnt) {
 }
 
 void test_display_random_chars_terminal(uint16_t cnt) {
-    font_t *font = resource_font(IDR_FNT_TERMINAL);
+    font_t *font = resource_font(IDR_FNT_SPECIAL);
     test_display_random_chars(cnt, font);
 }
 
@@ -171,12 +176,15 @@ void spectral_color(float l, float *pr, float *pg, float *pb) {
         b = 0.70F - (t) + (0.30F * t * t);
     }
 
-    if (pr)
+    if (pr) {
         *pr = r;
-    if (pg)
+    }
+    if (pg) {
         *pg = g;
-    if (pb)
+    }
+    if (pb) {
         *pb = b;
+    }
 }
 
 void test_display_fade(uint16_t cnt) {
@@ -207,53 +215,51 @@ void test_display_rgbcolors(uint16_t cnt) {
     const uint16_t count = sizeof(colors) / sizeof(color_t);
     font_t *font = resource_font(IDR_FNT_NORMAL);
     const uint8_t item_height = 20;
-    for (int n = 0; n < cnt; n++)
+    for (int n = 0; n < cnt; n++) {
         for (int i = 0; i < count; i++) {
             Rect16 rc_item = Rect16(0, item_height * i, 240, item_height);
             Rect16 rc_text = Rect16(10, item_height * i + 1, strlen(names[i]) * font->w, font->h);
-            //display::FillRect(rc_item, colors[i]);
+            // display::FillRect(rc_item, colors[i]);
             fill_between_rectangles(&rc_item, &rc_text, colors[i]);
             display::DrawText(rc_text, string_view_utf8::MakeCPUFLASH((const uint8_t *)names[i]), font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);
         }
+    }
 }
 
 void test_display_spectrum(uint16_t cnt) {
     float r, g, b;
-    for (int n = 0; n < cnt; ++n)
+    for (int n = 0; n < cnt; ++n) {
         for (int y = 0; y < display::GetH(); ++y) {
             const float l = 400.0F + (3.0F * y / 3.2F);
             spectral_color(l, &r, &g, &b);
             const color_t clr = color_rgb(255 * r, 255 * g, 255 * b);
             display::DrawLine(point_ui16(0, y), point_ui16(display::GetW() - 1, y), clr);
         }
+    }
 }
 
-//extern uint8_t png_data[];
-//extern const uint8_t png_buddy_logo[];
-//extern const uint8_t png_splash_screen[];
-//extern const uint8_t png_status_screen[];
-//extern const uint8_t png_main_menu[];
-
-extern const uint8_t png_icon_64x64_noise[];
-extern const uint16_t png_icon_64x64_noise_size;
+extern const uint8_t img_icon_64x64_noise[];
+extern const uint16_t img_icon_64x64_noise_size;
 
 void test_display_random_png_64x64(uint16_t count) {
+    img::Resource res(0, 0, 64, 64);
+
     uint16_t x;
     uint16_t y;
-    FILE *pf = fmemopen((void *)png_icon_64x64_noise, png_icon_64x64_noise_size, "rb");
+    res.file = fmemopen((void *)img_icon_64x64_noise, img_icon_64x64_noise_size, "rb");
     for (uint16_t n = 0; n < count; n++) {
         x = rand() % (display::GetW() - 64 + 1);
         y = rand() % (display::GetH() - 64 + 1);
-        display::DrawPng(point_ui16(x, y), pf);
+        display::DrawImg(point_ui16(x, y), res);
     }
-    fclose(pf);
+    fclose(res.file);
 }
 
-int __read(struct _reent *_r, void *pv, char *pc, int n) {
+int __read([[maybe_unused]] struct _reent *_r, [[maybe_unused]] void *pv, [[maybe_unused]] char *pc, [[maybe_unused]] int n) {
     return 0;
 }
 
-int __write(struct _reent *_r, void *pv, const char *pc, int n) {
+int __write([[maybe_unused]] struct _reent *_r, [[maybe_unused]] void *pv, [[maybe_unused]] const char *pc, [[maybe_unused]] int n) {
     return 0;
 }
 
@@ -266,23 +272,23 @@ void test_display2(void) {
     //	int c = fread(buf, 1, 6, pf);
 
     /*	FILE f;
-		memset(&f, 0, sizeof(f));
-		f._read = __read;
-	//	f._write = __write;
-		f._file = -1;
-		f._flags = __SRD | __SNBF;
-		f._blksize = 0;
-		f._lbfsize = 0;
-	//	f.
-		uint8_t buf[10];
-		int c = fread(buf, 1, 1, &f);
-	*/
+                memset(&f, 0, sizeof(f));
+                f._read = __read;
+        //	f._write = __write;
+                f._file = -1;
+                f._flags = __SRD | __SNBF;
+                f._blksize = 0;
+                f._lbfsize = 0;
+        //	f.
+                uint8_t buf[10];
+                int c = fread(buf, 1, 1, &f);
+        */
     //	printf("test\n");
     while (1) {
 //		osDelay((c>0)?c:0);
 //		if (pf)
 //	  pf = fopen("test.x", "rb");
-//fdev_setup_stream()
+// fdev_setup_stream()
 //	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, 1)
 #if 0
 		uint32_t tim;
@@ -307,10 +313,10 @@ void test_display2(void) {
 #endif
 
         /*		tim = _microseconds();
-		display::FillRect(64, 64, 128, 128, CLR565_BLUE);
-		tim = _microseconds() - tim;
-		_log_info(Buddy, "fill_rect %u", tim);
-		osDelay(1000);*/
+                display::FillRect(64, 64, 128, 128, CLR565_BLUE);
+                tim = _microseconds() - tim;
+                _log_info(Buddy, "fill_rect %u", tim);
+                osDelay(1000);*/
 
         //	  	st7789v_draw_pict(10, 10, 83, 63, (uint16_t*)png_buddy_logo);
         //	  	display_ex_draw_png(10, 10, pf);
@@ -326,26 +332,26 @@ void test_display2(void) {
         //	  	display_ex_draw_png(0, 0, pf2);
         //	  	osDelay(2000);
         /*
-		osDelay(1000);*/
+                osDelay(1000);*/
         /*	  	st7789v_display_clear(CLR565_GREEN);
-	  //	display_ex_draw_line(0, 0, 239, 0, CLR565_BLUE);
-		st7789v_display_clear(CLR565_RED);
-		display_ex_fill_rect(20, 20, 64, 64, CLR565_YELLOW);
-		osDelay(1000);
-	  //	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, 0);
-		st7789v_display_clear(CLR565_GREEN);
-		osDelay(1000);
-		st7789v_display_clear(CLR565_BLUE);
-		display_ex_draw_text(10, 10, 0, 0, "Testik", &font_12x12, CLR565_YELLOW);
-		osDelay(1000);
-		//osDelay(1000);
-		st7789v_spectrum();
-		osDelay(1000);
-		//osDelay(1000);
-		for (i = 0; i < 200; i++)
-		{
-			disp_set_pixel(i, i, CLR565_RED);
-		}
-		osDelay(1000);*/
+          //	display_ex_draw_line(0, 0, 239, 0, CLR565_BLUE);
+                st7789v_display_clear(CLR565_RED);
+                display_ex_fill_rect(20, 20, 64, 64, CLR565_YELLOW);
+                osDelay(1000);
+          //	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, 0);
+                st7789v_display_clear(CLR565_GREEN);
+                osDelay(1000);
+                st7789v_display_clear(CLR565_BLUE);
+                --display_ex_draw_text was replaced--(10, 10, 0, 0, "Testik", &font_12x12, CLR565_YELLOW);
+                osDelay(1000);
+                //osDelay(1000);
+                st7789v_spectrum();
+                osDelay(1000);
+                //osDelay(1000);
+                for (i = 0; i < 200; i++)
+                {
+                        disp_set_pixel(i, i, CLR565_RED);
+                }
+                osDelay(1000);*/
     }
 }

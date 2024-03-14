@@ -7,7 +7,11 @@
 #include "lwip/sockets.h"
 #include "esp/esp.h"
 #include "sockets/lwesp_sockets.h"
-#include "dbg.h"
+#if 0
+    #include "dbg.h"
+#else
+    #define _dbg(...)
+#endif // 0
 
 void socket_listen_test_lwip() {
     _dbg("LWIP TCP HELLO SERVER TEST\n");
@@ -409,7 +413,7 @@ void socket_udp_server_test_lwesp() {
         char buff[20];
 
         socklen_t len = 0;
-        //int recvd = lwesp_recvfrom(sockfd, buff, BUF_SIZE, 0, (struct sockaddr *)&otheraddr, &len);
+        // int recvd = lwesp_recvfrom(sockfd, buff, BUF_SIZE, 0, (struct sockaddr *)&otheraddr, &len);
         int recvd = lwesp_recv(sockfd, buff, BUF_SIZE, 0);
         if (recvd < 0) {
             _dbg("RECVFROM FAILED\n");

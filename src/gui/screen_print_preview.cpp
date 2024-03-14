@@ -1,146 +1,190 @@
+#include <cstddef>
 #include <unistd.h>
 
 #include "screen_print_preview.hpp"
 #include "log.h"
-#include "gcode_file.h"
-#include "marlin_client.h"
-#include "resource.h"
-#include "window_dlg_load_unload.hpp"
-#include "filament_sensor_api.hpp"
+#include "marlin_client.hpp"
+#include "filament_sensors_handler.hpp"
 #include <stdarg.h>
 #include "sound.hpp"
 #include "DialogHandler.hpp"
 #include "ScreenHandler.hpp"
+#include "screen_printing.hpp"
 #include "print_utils.hpp"
+#include "client_response.hpp"
 #include "printers.h"
-
-const uint16_t menu_icons[2] = {
-    IDR_PNG_print_58px,
-    IDR_PNG_stop_58px,
-};
-
-/// \returns true if filament is (finally) present or FS is disabled
-static bool check_filament_presence(GCodeInfo &gcode) {
-    // While in non-MMU2 mode perform a pre-print filament check.
-    // While in MMU2 mode the operation is directly opposite
-    // - the filament must NOT be present and the G-code specifies which filament shall be loaded after the start of the print.
-    while (!FSensors_instance().CanStartPrint()) {
-        bool has_mmu = FSensors_instance().HasMMU();
-        Sound_Play(eSOUND_TYPE::SingleBeep);
-        const PhaseResponses btns = has_mmu ? Responses_YesNo : Responses_YesNoIgnore;
-        string_view_utf8 txt_fil_not_detected = has_mmu ? _("Filament detected. Unload filament now? Select NO to cancel.") : _("Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue.");
-        // this MakeRAM is safe - gcode.gcode_file_name is valid during the lifetime of the MsgBox
-        switch (
-#ifdef USE_ST7789
-            MsgBoxWarning(txt_fil_not_detected, btns, 0, GuiDefaults::RectScreenNoHeader)
-#else
-            MsgBoxTitle(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()), txt_fil_not_detected, btns, 0, GuiDefaults::RectScreenNoHeader)
+#include "RAII.hpp"
+#include "box_unfinished_selftest.hpp"
+#include "window_msgbox_wrong_printer.hpp"
+#include <option/has_toolchanger.h>
+#include <option/has_mmu2.h>
+#include <device/board.h>
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
 #endif
-        ) {
-        case Response::Yes: //YES - load
-            if (has_mmu) {
-                PreheatStatus::DialogBlockingUnLoad(RetAndCool_t::Neither);
-            } else {
-                PreheatStatus::DialogBlockingLoad(RetAndCool_t::Return);
-            }
-            break;
-        case Response::No: //NO - cancel
-            return false;
-        case Response::Ignore: //IGNORE - disable, outside MMU mode only
-            FSensors_instance().Disable();
-            return true;
-        default:
-            break;
-        }
-    }
-    return true;
-}
 
-/// \returns true if filament has (finally) the correct type or the type is ignored
-static bool check_filament_type(GCodeInfo &gcode) {
-    const char *curr_filament = Filaments::Current().name;
-    while (gcode.filament_described && strncmp(curr_filament, "---", 3) != 0 && strncmp(curr_filament, gcode.filament_type, sizeof(gcode.filament_type)) != 0) {
-        string_view_utf8 txt_wrong_fil_type = _("This G-CODE was set up for another filament type.");
-        switch (MsgBoxWarning(txt_wrong_fil_type, Responses_ChangeIgnoreAbort, 0, GuiDefaults::RectScreenNoHeader)) {
-        case Response::Change:
-            PreheatStatus::DialogBlockingChangeLoad(RetAndCool_t::Return);
-            break;
-        case Response::Ignore:
-            return true;
-        case Response::Abort:
-            return false;
-        default:
-            break;
-        }
-    }
-    return true;
-}
-
-/// \returns true if it's correct printer or printer type is ignored
-static bool check_printer_type(GCodeInfo &gcode) {
-    if (gcode.IsSettingsValid())
-        return true;
-    string_view_utf8 txt_wrong_printer_type = _("This G-CODE was set up for another printer type.");
-    switch (MsgBoxWarning(txt_wrong_printer_type, Responses_IgnoreAbort, 0, GuiDefaults::RectScreenNoHeader)) {
-    case Response::Abort:
-        return false;
-    default:
-        break;
-    }
-    return true;
-}
-
-static void print_button_pressed() {
-    GCodeInfo &gcode = GCodeInfo::getInstance();
-    if (!check_printer_type(gcode)
-        || !check_filament_presence(gcode)
-        || !check_filament_type(gcode)) {
-        Sound_Play(eSOUND_TYPE::SingleBeep);
-        Screens::Access()->Close();
-        return;
-    }
-
-    print_begin(gcode.GetGcodeFilepath());
-}
-
-screen_print_preview_data_t::screen_print_preview_data_t()
-    : AddSuperWindow<screen_t>()
-    , title_text(this, Rect16(PADDING, PADDING, SCREEN_WIDTH - 2 * PADDING, TITLE_HEIGHT))
-    , print_button(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_print_58px, print_button_pressed)
-    , print_label(this, Rect16(PADDING, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
-    , back_button(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT - 64, 64, 64), IDR_PNG_back_32px, []() { Screens::Access()->Close(); })
-    , back_label(this, Rect16(SCREEN_WIDTH - PADDING - 64, SCREEN_HEIGHT - PADDING - LINE_HEIGHT, 64, LINE_HEIGHT), is_multiline::no)
-    , thumbnail(this, GuiDefaults::PreviewThumbnailRect)
-    , gcode(GCodeInfo::getInstance())
-    , gcode_description(this, gcode) {
-
-    marlin_set_print_speed(100);
+ScreenPrintPreview::ScreenPrintPreview()
+    : gcode(GCodeInfo::getInstance())
+    , gcode_description(this)
+    , thumbnail(this, GuiDefaults::PreviewThumbnailRect) {
 
     super::ClrMenuTimeoutClose();
-    // Title
-    title_text.font = resource_font(IDR_FNT_BIG);
-    // this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
+
+    // title_text.set_font(GuiDefaults::FontBig); //TODO big font somehow does not work
+    //  this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
     title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()));
 
-    print_label.SetText(_("Print"));
-    print_label.SetAlignment(Align_t::Center());
-    print_label.font = resource_font(IDR_FNT_SMALL);
-
-    back_label.SetText(_("Back"));
-    back_label.SetAlignment(Align_t::Center());
-    back_label.font = resource_font(IDR_FNT_SMALL);
+    CaptureNormalWindow(radio);
+    ths = this;
 }
 
-bool screen_print_preview_data_t::gcode_file_exists() {
-    return access(gcode.GetGcodeFilepath(), F_OK) == 0;
+ScreenPrintPreview::~ScreenPrintPreview() {
+    ths = nullptr;
 }
 
-void screen_print_preview_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    // In case the file is no longer present, close this screen.
-    // (Most likely because of usb flash drive disconnection).
-    if (!gcode_file_exists()) {
-        Screens::Access()->Close(); //if an dialog is openned, it will be closed first
+// static variables and member functions
+ScreenPrintPreview *ScreenPrintPreview::ths = nullptr;
+
+ScreenPrintPreview *ScreenPrintPreview::GetInstance() { return ths; }
+
+void ScreenPrintPreview::Change(fsm::BaseData data) {
+    auto old_phase = phase;
+    phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(data.GetPhase());
+
+    if (phase == old_phase) {
         return;
     }
-    SuperWindowEvent(sender, event, param);
+
+    // need to call deleter before pointer is assigned, because new object is in same area of memory
+    pMsgbox.reset();
+
+    if (phase != PhasesPrintPreview::main_dialog) {
+        hide_main_dialog();
+    }
+#if HAS_TOOLCHANGER() || HAS_MMU2()
+    if (phase != PhasesPrintPreview::tools_mapping) {
+        spool_join.reset();
+        header.hide_bed_info();
+    }
+#endif
+
+    const auto makeMsgBox = [this](string_view_utf8 caption, string_view_utf8 text, const img::Resource &icon = img::warning_16x16) {
+        return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &icon, is_closed_on_click_t::no);
+    };
+    const auto makeMsgBoxWait = [this](string_view_utf8 text) {
+        return make_static_unique_ptr<MsgBoxIconnedWait>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
+    };
+
+    switch (phase) {
+
+    case PhasesPrintPreview::loading:
+        pMsgbox = makeMsgBoxWait(_("Loading..."));
+        break;
+
+    case PhasesPrintPreview::download_wait:
+        pMsgbox = makeMsgBoxWait(_("Downloading..."));
+        break;
+
+    case PhasesPrintPreview::main_dialog:
+        gcode_description.update(gcode);
+        assert(gcode.is_loaded() && "GCodeInfo must be initialized before ScreenPrintPreview is created");
+        show_main_dialog();
+        break;
+
+    case PhasesPrintPreview::unfinished_selftest:
+        pMsgbox = makeMsgBox(_(labelWarning), _(txt_unfinished_selftest));
+        break;
+
+    case PhasesPrintPreview::new_firmware_available: {
+        const auto version = GCodeInfo::getInstance().get_valid_printer_settings().latest_fw_version;
+        pMsgbox = makeMsgBox(_(txt_new_fw_available), string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(version)));
+        break;
+    }
+
+    case PhasesPrintPreview::wrong_printer:
+    case PhasesPrintPreview::wrong_printer_abort:
+        pMsgbox = make_static_unique_ptr<MsgBoxInvalidPrinter>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, _(labelWarning), &img::warning_16x16);
+        break;
+
+    case PhasesPrintPreview::filament_not_inserted:
+        pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_not_detected));
+        break;
+
+    case PhasesPrintPreview::mmu_filament_inserted:
+        pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_detected_mmu));
+        break;
+
+    case PhasesPrintPreview::wrong_filament:
+        pMsgbox = makeMsgBox(_(labelWarning), _(txt_wrong_fil_type));
+        break;
+
+    case PhasesPrintPreview::file_error:
+        pMsgbox = makeMsgBox(_("File error"), _(gcode.error_str()), img::error_16x16);
+        break;
+
+    case PhasesPrintPreview::tools_mapping:
+        show_tools_mapping();
+        break;
+    }
+
+    if (pMsgbox) {
+        pMsgbox->BindToFSM(phase);
+    }
+}
+
+void ScreenPrintPreview::hide_main_dialog() {
+    for (auto &line : gcode_description.description_lines) {
+        line.title.Hide();
+        line.value.Hide();
+    }
+
+    thumbnail.Hide();
+    radio.Hide();
+    title_text.Hide();
+}
+
+void ScreenPrintPreview::show_main_dialog() {
+    for (auto &line : gcode_description.description_lines) {
+        line.title.Show();
+        line.value.Show();
+    }
+
+    thumbnail.Show();
+    radio.Show();
+    title_text.Show();
+    CaptureNormalWindow(radio);
+#if BOARD_IS_XBUDDY or BOARD_IS_XLBUDDY
+    header.SetText(_("PRINT"));
+#endif
+}
+
+void ScreenPrintPreview::show_tools_mapping() {
+#if HAS_TOOLCHANGER() || HAS_MMU2()
+    #if HAS_MMU2()
+    if (!MMU2::mmu2.Enabled()) {
+        return;
+    }
+    #endif
+
+    tools_mapping = make_static_unique_ptr<ToolsMappingBody>(&msgBoxMemSpace, this, gcode);
+    CaptureNormalWindow(*tools_mapping);
+    tools_mapping->Show();
+    tools_mapping->Invalidate();
+
+    #if BOARD_IS_XBUDDY or BOARD_IS_XLBUDDY
+    header.SetText(_("TOOLS MAPPING"));
+    #endif
+
+    header.show_bed_info();
+#endif
+}
+
+void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
+    // Catch event when USB is removed
+    if (event == GUI_event_t::MEDIA) {
+        const MediaState_t media_state = MediaState_t(reinterpret_cast<int>(param));
+        if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
+            marlin_client::print_abort(); // Abort print from marlin_server and close printing screens
+        }
+    }
 }

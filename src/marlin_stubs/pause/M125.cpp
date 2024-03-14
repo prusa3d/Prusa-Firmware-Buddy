@@ -61,16 +61,19 @@ void GcodeSuite::M125() {
     xyz_pos_t park_point = NOZZLE_PARK_POINT;
 
     // Move XY axes to filament change position or given position
-    if (parser.seenval('X'))
+    if (parser.seenval('X')) {
         park_point.x = RAW_X_POSITION(parser.linearval('X'));
-    if (parser.seenval('Y'))
+    }
+    if (parser.seenval('Y')) {
         park_point.y = RAW_X_POSITION(parser.linearval('Y'));
+    }
 
     // Lift Z axis
-    if (parser.seenval('Z'))
+    if (parser.seenval('Z')) {
         park_point.z = parser.linearval('Z');
+    }
 
-    #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA)
+    #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA) && DISABLED(PRUSA_TOOLCHANGER)
     park_point += hotend_offset[active_extruder];
     #endif
 

@@ -1,0 +1,14 @@
+pip~=23.0
+ecdsa~=0.18
+polib~=1.2
+pyyaml~=6.0
+littlefs-python==0.8
+numpy~=1.24.0
+pillow~=9.5
+qoi~=0.3.1
+click~=8.1.3
+pytest~=7.3.2
+pytest-asyncio~=0.21
+easyocr~=1.7
+aiohttp~=3.8
+pre-commit

@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-        dockerfile {
-            label 'docker'
-            filename 'utils/holly/Dockerfile'
-            additionalBuildArgs '-t prusa-firmware-buddy'
-        }
-    }
+    agent none
 
     parameters {
         string(name: 'VERSION_SUFFIX', defaultValue: '<default>', description: 'Specify custom version suffix for the build (e.g. "-RC1+1010"). Set to "<default>" to use the default one. Leave empty to make a final-version build without any suffix.')
@@ -18,15 +12,26 @@ pipeline {
 
     stages {
         stage('Check Formatting') {
+            agent {
+                dockerfile {
+                    label 'docker-v2'
+                    filename 'utils/holly/Dockerfile'
+                    additionalBuildArgs '-t prusa-firmware-buddy'
+                }
+            }
             when {
                 expression { env.CHANGE_TARGET }
             }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     sh """
-                    ln -fs /.dependencies
+                    ln -fs /work/.dependencies
+                    ln -fs /work/.venv
 
                     export XDG_CACHE_HOME=\$PWD/.precommit
+                    . .venv/bin/activate
+                    python3 utils/bootstrap.py
+                    git config --unset-all core.hooksPath
                     pre-commit install
                     pre-commit run \
                         --source remotes/origin/${env.CHANGE_TARGET} \
@@ -36,59 +41,128 @@ pipeline {
                     """
                 }
             }
+            post {
+                cleanup {
+                    deleteDir()
+                }
+            }
         }
 
-        stage('Prepare Build Stages') {
-            steps {
-                script {
-                    // required configurations
-                    def configurations = [
-                        [preset: "mini", build_type: "release", bootloader: "yes"],
-                    ]
-
-                    // prepare version suffix
-                    def commit_nr = sh(script: 'git rev-list HEAD --count', returnStdout: true).trim()
-                    def short_suffix
-                    def full_suffix
-                    if (env.CHANGE_ID) {
-                        // This is a PR build
-                        short_suffix = "-BETA+${commit_nr}"
-                        full_suffix = "${short_suffix}.PR${env.CHANGE_ID}.B${env.BUILD_NUMBER}"
-                    } else if (env.BRANCH_NAME.startsWith("RELEASE-")) {
-                        // This is an RC build
-                        short_suffix = "-RC+${commit_nr}"
-                        full_suffix = "${short_suffix}.B${env.BUILD_NUMBER}"
-                    } else {
-                        // This is build of an ordinary branch (not a release branch)
-                        short_suffix = "-BETA+${commit_nr}"
-                        def branch_spec = env.BRANCH_NAME.replaceAll("_", "-")
-                        full_suffix = "${short_suffix}.BRANCH-${branch_spec}.B${env.BUILD_NUMBER}"
+        stage('Build') {
+            matrix {
+                agent {
+                    dockerfile {
+                        label 'docker-v2'
+                        filename 'utils/holly/Dockerfile'
+                        additionalBuildArgs '-t prusa-firmware-buddy'
                     }
-
-                    if (params.VERSION_SUFFIX != '<default>') {
-                        full_suffix = params.VERSION_SUFFIX
+                }
+                axes {
+                    axis {
+                        name 'configuration'
+                        // preset,build_type,bootloader(yesboot|noboot|emptyboot)
+                        values 'mini-en-cs,release,yesboot',
+                            'mini-en-de,release,yesboot',
+                            'mini-en-es,release,yesboot',
+                            'mini-en-fr,release,yesboot',
+                            'mini-en-it,release,yesboot',
+                            'mini-en-pl,release,yesboot',
+                            'mk3.5,release,yesboot',
+                            'mk4,release,yesboot',
+                            'mk4,release,noboot',
+                            'xl,release,yesboot',
+                            'xl-xbuddy04,release,emptyboot',
+                            'ix-xBuddy027c-200step,release,yesboot'
                     }
-                    if (params.VERSION_SUFFIX_SHORT != '<default>') {
-                        short_suffix = params.VERSION_SUFFIX_SHORT
-                    }
+                }
+                stages {
+                    stage('Build') {
+                        steps {
+                            script {
+                                def config_components = configuration.split(',')
+                                def config = [
+                                    preset: config_components[0],
+                                    build_type: config_components[1],
+                                    bootloader: config_components[2]]
 
-                    // create the build stages
-                    configurations.each { config ->
-                        stage("Build - ${config.preset},${config.build_type},${config.bootloader}boot") {
-                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                sh """
-                                    ln -fs /.dependencies
-                                    python3 utils/build.py \
-                                        --preset ${config.preset} \
-                                        --build-type ${config.build_type} \
-                                        --bootloader ${config.bootloader} \
-                                        --generate-bbf \
-                                        --generate-dfu \
-                                        --no-store-output \
-                                        --version-suffix=${full_suffix} \
-                                        --version-suffix-short=${short_suffix} \
-                                        -DCUSTOM_COMPILE_OPTIONS:STRING=-Werror
-                                """
+                                echo "Building ${config.preset} ${config.build_type} ${config.bootloader}"
+
+                                // prepare version suffix
+                                def commit_nr = sh(script: 'git rev-list HEAD --count', returnStdout: true).trim()
+                                def short_suffix
+                                def full_suffix
+                                def dev_items
+                                if (env.CHANGE_ID) {
+                                    // This is a PR build
+                                    short_suffix = "-BETA+${commit_nr}"
+                                    full_suffix = "${short_suffix}.PR${env.CHANGE_ID}.B${env.BUILD_NUMBER}"
+                                    dev_items = "yes"
+                                } else if (env.BRANCH_NAME.startsWith("RELEASE-")) {
+                                    // This is an RC build
+                                    short_suffix = "-RC3+${commit_nr}"
+                                    full_suffix = "${short_suffix}.B${env.BUILD_NUMBER}"
+                                    dev_items = "no"
+                                } else {
+                                    // This is build of an ordinary branch (not a release branch)
+                                    short_suffix = "-BETA+${commit_nr}"
+                                    def branch_spec = env.BRANCH_NAME.replaceAll("_", "-")
+                                    full_suffix = "${short_suffix}.BRANCH-${branch_spec}.B${env.BUILD_NUMBER}"
+                                    dev_items = "yes"
+                                }
+
+                                if (env.BRANCH_NAME == "xl") {
+                                    dev_items = "no"
+                                }
+
+                                if (env.BRANCH_NAME == "mk4-release") {
+                                    dev_items = "no"
+                                }
+
+                                if (params.VERSION_SUFFIX != '<default>') {
+                                    full_suffix = params.VERSION_SUFFIX
+                                }
+                                if (params.VERSION_SUFFIX_SHORT != '<default>') {
+                                    short_suffix = params.VERSION_SUFFIX_SHORT
+                                }
+
+                                // remove the "boot" suffix from the config.bootloader
+                                if (config.bootloader != "boot" && config.bootloader.endsWith("boot")) {
+                                    config.bootloader = config.bootloader.substring(0, config.bootloader.length() - 4)
+                                }
+
+                                // create the build stages
+                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                    sshagent(credentials: ['prusa_holly']) {
+                                        sh """
+                                            export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+                                            ln -fs /work/.dependencies
+                                            ln -fs /work/.venv
+                                            rm -rf build
+                                            python3 utils/build.py \
+                                                --preset ${config.preset} \
+                                                --build-type ${config.build_type} \
+                                                --bootloader ${config.bootloader} \
+                                                --generate-bbf \
+                                                --generate-dfu \
+                                                --no-store-output \
+                                                --version-suffix=${full_suffix} \
+                                                --version-suffix-short=${short_suffix} \
+                                                -DCUSTOM_COMPILE_OPTIONS:STRING="-Werror" \
+                                            -DDEVELOPMENT_ITEMS_ENABLED:BOOL=${dev_items}
+                                        """
+                                    }
+                                    // stash the build artifacts for use by the integration tests
+                                    stash(name: configuration, includes: "build/*boot/firmware*")
+                                    // archive build products
+                                    archiveArtifacts artifacts: 'build/products/*', fingerprint: true
+                                    // cleanup
+                                    sh """rm -rf build*"""
+                                }
+                            }
+                        }
+                        post {
+                            cleanup {
+                                deleteDir()
                             }
                         }
                     }
@@ -96,31 +170,85 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                sh """
-                python3 utils/bootstrap.py
-                export PATH=\$PWD/.dependencies/cmake-3.21.3/bin:\$PWD/.dependencies/ninja-1.10.2:\$PATH
-                mkdir -p build-test
-                LD_LIBRARY_PATH=/usr/local/lib32 \$PWD/.dependencies/cmake-3.21.3/bin/ctest --build-and-test . build-test \
-                    -DCMAKE_MAKE_PROGRAM=\$PWD/.dependencies/ninja-1.10.2/ninja \
-                    --build-generator Ninja \
-                    --build-target tests \
-                    --test-command ctest
-                """
-            }
-        }
-    }
+        stage('Tests') {
+            parallel {
+                stage('Unit Tests') {
+                    agent {
+                        dockerfile {
+                            label 'docker-v2'
+                            filename 'utils/holly/Dockerfile'
+                            additionalBuildArgs '-t prusa-firmware-buddy'
+                        }
+                    }
+                    steps {
+                        sh """
+                        export PATH=/work/.dependencies/cmake-3.22.5/bin:/work/.dependencies/ninja-1.10.2:\$PATH
+                        ln -fs /work/.dependencies
+                        ln -fs /work/.venv
+                        . .venv/bin/activate
+                        mkdir -p build-test
+                        LD_LIBRARY_PATH=/usr/local/lib32 /work/.dependencies/cmake-3.22.5/bin/ctest --build-and-test . build-test \
+                            -DCMAKE_MAKE_PROGRAM=/work/.dependencies/ninja-1.10.2/ninja \
+                            --build-generator Ninja \
+                            --build-target tests \
+                            --test-command ctest
+                        """
+                    }
+                    post {
+                        failure {
+                            // archive test logs
+                            archiveArtifacts artifacts: 'build-test/Testing/Temporary/LastTest.log'
+                        }
+                        cleanup {
+                            deleteDir()
+                        }
+                    }
+                }
 
-    post {
-        always {
-            // archive build products
-            archiveArtifacts artifacts: 'build/products/*', fingerprint: true
-            // archive test products
-            archiveArtifacts artifacts: 'build-test/Testing/Temporary/LastTest.log'
-        }
-        cleanup {
-            deleteDir()
+                stage('Integration Tests') {
+                    agent {
+                        dockerfile {
+                            label 'integrationtests'
+                            filename 'utils/holly/IntegrationTestsDockerfile'
+                            additionalBuildArgs '-t it-prusa-firmware-buddy'
+                        }
+                    }
+                    steps {
+                        script {
+                            Exception caughtException = null
+
+                            timeout(time: 30, unit: "MINUTES") {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    try {
+                                        unstash "mk4,release,noboot"
+                                        sh """
+                                        ln -fs /work/.dependencies
+                                        ln -fs /work/.venv
+                                        export EASYOCR_MODULE_PATH=./easyocr
+                                        . .venv/bin/activate
+                                        python3 utils/bootstrap.py
+                                        python3 -m pytest tests/integration --firmware build/mk4_release_noboot/firmware.bin --log-cli-level info --log-cli-format="%(asctime)s [%(levelname)8s] (%(filename)s:%(lineno)s) %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S" | grep -v "Bus unhandled low duration"
+                                        """
+                                    } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+                                        error "Caught ${e.toString()}"
+                                    } catch (Throwable e) {
+                                        caughtException = e
+                                    }
+                                }
+                            }
+
+                            if (caughtException) {
+                                error caughtException.message
+                            }
+                        }
+                    }
+                    post {
+                        failure {
+                            archiveArtifacts artifacts: '/tmp/pytest-of-root'
+                        }
+                    }
+                }
+            }
         }
     }
 }

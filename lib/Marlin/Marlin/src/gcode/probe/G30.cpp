@@ -21,6 +21,7 @@
  */
 
 #include "../../inc/MarlinConfig.h"
+#include "module/motion.h"
 
 #if HAS_BED_PROBE
 
@@ -39,8 +40,8 @@
  *   E   Engage the probe for each probe (default 1)
  */
 void GcodeSuite::G30() {
-  const xy_pos_t pos = { parser.linearval('X', current_position.x + probe_offset.x),
-                         parser.linearval('Y', current_position.y + probe_offset.y) };
+  const xy_pos_t pos = { parser.linearval('X', current_position.x + probe_offset.x + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.x)),
+                         parser.linearval('Y', current_position.y + probe_offset.y + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.y)) };
 
   if (!position_is_reachable_by_probe(pos)) return;
 

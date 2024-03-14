@@ -1,3 +1,4 @@
+from os import sep
 from common import Automaton, LabelType
 from parts import constant, keywords, newline, read_until, trie
 
@@ -21,6 +22,46 @@ def methods():
                     unknown="MethodUnknown")
 
 
+def http_version():
+    """
+    The HTTP/?.? version.
+    """
+    http, slash = constant("HTTP/", nocase=True)
+    version = http.add_state("Version")
+    version.mark_enter()
+    slash.add_transition("Digit", LabelType.Special, version)
+    version.loop(".", LabelType.Char)
+    version.loop("Digit", LabelType.Special)
+    return http, version
+
+
+def content_type():
+    """
+    Content type decoder.
+    """
+    content_types = {
+        'application/json': 'ApplicationJson',
+        'text/x.gcode': 'TextGcodeDot',
+        'text/x-gcode': 'TextGcodeDash',
+    }
+    tr, terminals, add_unknowns = trie(content_types)
+    for t in terminals:
+        terminals[t].mark_enter()
+        terminals[t].set_name(content_types[t])
+    # Eat spaces before the content type
+    start = tr.start()
+    start.loop('HorizWhitespace', LabelType.Special)
+
+    # Now handle all the rest by a header-parsing automaton that doesn't emit
+    # any events.
+    other, other_end, _ = read_header_value(None)
+    fallback = other.start()
+    tr.join_transition(start, other, fallthrough=True)
+    for unknown in add_unknowns:
+        unknown.add_fallback(fallback, fallthrough=True)
+    return tr, other_end, True
+
+
 # TODO: Eventually, we may want to have a upfront-known list of URLs
 # so we don't need to accumulate in a buffer.
 def req_line():
@@ -31,12 +72,7 @@ def req_line():
     meth_spaces.loop("HorizWhitespace", LabelType.Special)
     url, url_spaces = read_until("HorizWhitespace", LabelType.Special, "Url")
     url_spaces.loop("HorizWhitespace", LabelType.Special)
-    http, slash = constant("HTTP/", nocase=True)
-    version = http.add_state("Version")
-    version.mark_enter()
-    slash.add_transition("Digit", LabelType.Special, version)
-    version.loop(".", LabelType.Char)
-    version.loop("Digit", LabelType.Special)
+    http, version = http_version()
     line, end = newline()
 
     req_line = method
@@ -44,6 +80,27 @@ def req_line():
     req_line.join(url_spaces, http)
     req_line.join(version, line)
     return req_line, end
+
+
+def resp_line():
+    """
+    Response line.
+    """
+    auto, version = http_version()
+    version_space = auto.add_state()
+    version.add_transition("HorizWhitespace", LabelType.Special, version_space)
+    version_space.loop("HorizWhitespace", LabelType.Special)
+    status = auto.add_state("StatusCode")
+    status.mark_enter()
+    status.loop("Digit", LabelType.Special)
+    version_space.add_transition("Digit", LabelType.Special, status)
+    rest = auto.add_state()
+    status.add_transition("HorizWhitespace", LabelType.Special, rest)
+    line, end = newline()
+    auto.join(rest, line)
+    rest.loop_fallback()
+
+    return auto, end
 
 
 # Header values with internal parsing too?
@@ -144,7 +201,7 @@ def read_boundary():
     return auto, end, False
 
 
-def keyworded_header(keywords):
+def keyworded_header(keywords, entry_name=None):
     """
     Header reader with keywords.
 
@@ -153,6 +210,9 @@ def keyworded_header(keywords):
     auto = Automaton()
     start = auto.start()
     start.loop('HorizWhitespace', LabelType.Special)
+    if entry_name is not None:
+        start.set_name(entry_name)
+        start.mark_enter()
 
     terminals = []
 
@@ -160,11 +220,16 @@ def keyworded_header(keywords):
         kw_start = auto.add_state()
         kw_start.mark_enter()
         start.add_transition(kw[0], LabelType.CharNoCase, kw_start)
-        kw_start.set_path(kw[1:], nocase=True)  # Will lead to the next state
-        end = auto.add_state(keywords[kw])
-        end.mark_enter()
-        terminals.append(kw_start)
-        terminals.append(end)
+        if len(kw) > 1:
+            kw_start.set_path(kw[1:],
+                              nocase=True)  # Will lead to the next state
+            end = auto.add_state(keywords[kw])
+            end.mark_enter()
+            terminals.append(kw_start)
+            terminals.append(end)
+        else:
+            kw_start.set_name(keywords[kw])
+            terminals.append(kw_start)
 
     # Now handle all the rest by a header-parsing automaton that doesn't emit
     # any events.
@@ -190,10 +255,11 @@ def connection_header():
     our automata-handling utilities) with very little gain, so we cheat a
     little bit.
     """
-    return keyworded_header({
-        'close': 'ConnectionClose',
-        'keep-alive': 'ConnectionKeepAlive',
-    })
+    return keyworded_header(
+        {
+            'close': 'ConnectionClose',
+            'keep-alive': 'ConnectionKeepAlive',
+        }, 'ConnectionHeader')
 
 
 def accept_header():
@@ -207,6 +273,146 @@ def accept_header():
     return keyworded_header({
         'application/json': 'AcceptJson',
     })
+
+
+def content_encryption_mode_header():
+    """
+    Content encryption mode decoder.
+    """
+    encryption_modes = {
+        'AES-CBC': 'ContentEncryptionModeCBC',
+        'AES-CTR': 'ContentEncryptionModeCTR',
+    }
+    tr, terminals, add_unknowns = trie(encryption_modes)
+    for t in terminals:
+        terminals[t].mark_enter()
+        terminals[t].set_name(encryption_modes[t])
+    # Eat spaces before the encryption mode
+    start = tr.start()
+    start.loop('HorizWhitespace', LabelType.Special)
+
+    # Now handle all the rest by a header-parsing automaton that doesn't emit
+    # any events.
+    other, other_end, _ = read_header_value(None)
+    fallback = other.start()
+    tr.join_transition(start, other, fallthrough=True)
+    for unknown in add_unknowns:
+        unknown.add_fallback(fallback, fallthrough=True)
+    return tr, other_end, True
+
+
+def print_after_upload_header():
+    return keyworded_header({
+        'true': 'PrintAfterUpload',
+        '1': 'PrintAfterUploadNumeric',
+        '?1': 'PrintAfterUploadRFC',
+    })
+
+
+def overwrite_file_header():
+    return keyworded_header({
+        '?1': 'OverwriteFile',
+    })
+
+
+def create_folder_header():
+    return keyworded_header({
+        '?1': 'CreateFolder',
+    })
+
+
+def auth_value(name):
+    name_unquoted = f"{name}Unquoted" if name != None else None
+
+    auto = Automaton()
+    start = auto.start()
+    quote = auto.add_state()
+    value_quoted = auto.add_state()
+    value_unquoted = auto.add_state()
+    end = auto.add_state()
+
+    start.loop("HorizWhitespace", LabelType.Special)
+    start.add_transition('\"', LabelType.Char, quote)
+    start.add_transition('Whitespace',
+                         LabelType.Special,
+                         end,
+                         fallthrough=True)  # Vertical whitespace
+    start.add_transition(',', LabelType.Char, end, fallthrough=True)
+    start.add_transition('All', LabelType.Special, value_unquoted)
+
+    quote.add_transition('\"', LabelType.Char, end)
+    quote.add_transition('All', LabelType.Special, value_quoted)
+
+    value_quoted.set_name(name)
+    value_quoted.mark_enter()
+    value_quoted.add_transition('\"', LabelType.Char, end)
+    value_quoted.loop_fallback()
+
+    value_unquoted.set_name(name_unquoted)
+    value_unquoted.mark_enter()
+    value_unquoted.add_transition('Whitespace',
+                                  LabelType.Special,
+                                  end,
+                                  fallthrough=True)
+    value_unquoted.add_transition(',', LabelType.Char, end, fallthrough=True)
+    value_unquoted.loop_fallback()
+
+    end.loop("HorizWhitespace", LabelType.Special)
+    end.loop(',', LabelType.Char)
+
+    return auto, end, True
+
+
+def authorization_header():
+    """
+    Reads the digest Authorization header
+    Authorization: Digest username="user", realm="Printer API", nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093", uri="/api/version", response="684d849df474f295771de997e7412ea4"
+    """
+
+    # Consume the auth scheme (Digest)
+    auto, scheme_spaces = read_until("HorizWhitespace", LabelType.Special)
+
+    # Eat spaces before the parameters
+    scheme_spaces.loop('HorizWhitespace', LabelType.Special)
+
+    # We only really read nonce and response, the rest is assumed for
+    # performance reasons.
+    auth_values = {
+        'nonce': auth_value('Nonce'),
+        'response': auth_value('Response'),
+    }
+    tr, terminals, add_unknowns = trie(auth_values)
+    tr_start = tr.start()
+    line, end = newline()
+    tr.join(tr_start, line)
+
+    for parameter in auth_values:
+        term = terminals[parameter]
+        term.loop("HorizWhitespace", LabelType.Special)
+        separator = tr.add_state()
+        separator.loop("HorizWhitespace", LabelType.Special)
+        term.add_transition('=', LabelType.Char, separator)
+        read_par, read_par_end, fallthrough = auth_values[parameter]
+        tr.join_transition(separator, read_par, fallthrough=fallthrough)
+        read_par_end.add_fallback(tr_start, fallthrough=True)
+
+    # Handling of unknown/ not parsed values
+    unknown = tr.add_state()
+    for u in add_unknowns:
+        u.add_fallback(unknown)
+    after_unknown = tr.add_state()
+    unknown.add_transition('=', LabelType.Char, after_unknown)
+    unknown.loop_fallback()
+    after_unknown.loop("HorizWhitespace", LabelType.Special)
+    ignore_unknown_header, iuh_end, fallthrough = auth_value(None)
+    tr.join_transition(after_unknown,
+                       ignore_unknown_header,
+                       fallthrough=fallthrough)
+    iuh_end.add_fallback(tr_start, fallthrough=True)
+
+    auto.join(scheme_spaces, tr)
+
+    return auto, end, True
 
 
 def headers(interested):
@@ -273,18 +479,12 @@ def request(interested):
     return line, body
 
 
-if __name__ == "__main__":
-    want_headers = {
-        'X-Api-Key': read_header_value('XApiKey'),
-        'Content-Length': read_header_value('ContentLength'),
-        'If-None-Match': read_header_value('IfNoneMatch'),
-        'Content-Type': read_boundary(),
-        'Connection': connection_header(),
-        'Accept': accept_header(),
-    }
-    http, final = request(want_headers)
-    compiled = http.compile("nhttp::parser::request")
-    with open("http_req_automaton.h", "w") as header:
-        header.write(compiled.cpp_header())
-    with open("http_req_automaton.cpp", "w") as file:
-        file.write(compiled.cpp_file())
+def response(interested):
+    """
+    Parser for the response, terminating by a body transition.
+    """
+    line, line_end = resp_line()
+    head, body = headers(interested)
+    line.join_transition(line_end, head, fallthrough=True)
+
+    return line, body

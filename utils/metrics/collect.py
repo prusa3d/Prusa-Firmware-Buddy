@@ -1,13 +1,20 @@
+import logging
+import logging.config
+import yaml
 import socket
 import re
 import bisect
-from datetime import datetime, timedelta, timezone
-import aioserial
 import asyncio
 import click
 import aioinflux
+import uuid
+
+from typing import Union, Optional
+from datetime import datetime, timedelta, timezone
 from line_protocol_parser import parse_line, LineFormatError
-from collections import defaultdict
+
+logger = logging.getLogger(__name__)
+handler_identifier = uuid.uuid4().hex[:8]
 
 
 class MetricError(Exception):
@@ -17,7 +24,13 @@ class MetricError(Exception):
 
 
 class Point:
-    def __init__(self, timestamp, metric_name, value, tags):
+    def __init__(self,
+                 timestamp: Union[int, datetime],
+                 metric_name,
+                 value: Union[dict, MetricError, int, float, str],
+                 tags: Optional[dict] = None):
+
+        # relative if int, absolute if datetime
         self.timestamp = timestamp
         self.metric_name = metric_name
         if isinstance(value, MetricError):
@@ -26,7 +39,7 @@ class Point:
             self.values = dict(value=value)
         else:
             self.values = value
-        self.tags = tags
+        self.tags = tags or dict()
 
     @property
     def is_error(self):
@@ -37,53 +50,53 @@ class Point:
                                       self.values)
 
 
-class TextProtocolParser:
-    point_re = re.compile(r'\[([^:]*):([^:]*):([^:]*):([^\[]*)]')
-
-    def parse(self, text):
-        for match in re.finditer(TextProtocolParser.point_re, text):
-            timediff, metric_name, flag, value = match.group(1), match.group(
-                2), match.group(3), match.group(4)
-            value, tags = self.parse_value(value, flag)
-            yield Point(int(timediff), metric_name, value, tags)
-
-    def parse_value(self, value, flag, tags=None):
-        tags = tags or dict()
-
-        if '&' in value:
-            value, *tags_raw = value.split('&')
-            tags.update({t.split('=')[0]: t.split('=')[1] for t in tags_raw})
-
-        if flag == 's' and value.startswith('!'):
-            return self.parse_value(value[2:], flag=value[1], tags=tags)
-        elif flag == 'i':
-            return int(value), tags
-        elif flag == 'f':
-            return float(value), tags
-        elif flag == 's':
-            return str(value), tags
-        elif flag == 'e':
-            return 1, tags
-        elif flag == 'error':
-            return MetricError(str(value)), tags
-        else:
-            print('invalid value:', value)
-            return None, None
-
-
 class LineProtocolParser:
+    valid_metric_name_re = re.compile(r'^[a-zA-Z_0-9]+$')
+
+    def __init__(self, version):
+        self.version = version
+        assert self.version in [2, 3, 4]
+
     def parse(self, text):
         for line in text.splitlines():
             try:
                 data = parse_line(line)
-            except LineFormatError as e:
-                print(e, line)
+            except LineFormatError:
+                if self.version >= 4 and 'value too long' not in line:
+                    logger.warning('received invalid line: %r', line)
                 continue
+
             fields = data['fields']
             if len(fields) == 1 and 'v' in fields:
                 fields = dict(value=fields['v'])
-            yield Point(int(data['time']), data['measurement'], fields,
-                        data['tags'])
+
+            metric_name = data['measurement']
+
+            if self.version == 3 and '_seq' in data['tags']:
+                # ignore metric_record_log metrics which were for a few weeks part of the firmware & were overflowing the database
+                continue
+
+            if LineProtocolParser.valid_metric_name_re.match(
+                    metric_name) is None:
+                logger.warning("Invalid metric name %r", metric_name)
+                yield Point(
+                    int(data['time']), "metric_error",
+                    dict(error_type="parse",
+                         metric_name=metric_name,
+                         message=text), dict())
+                continue
+
+            if 'value' in fields and fields['value'] == float('nan'):
+                logger.info('skipping NaN value of %s', metric_name)
+                continue
+
+            yield Point(int(data['time']), metric_name, fields, data['tags'])
+
+    def make_timedelta(self, timestamp):
+        if self.version < 4:
+            return timedelta(milliseconds=int(timestamp))
+        else:
+            return timedelta(microseconds=int(timestamp))
 
 
 class SyslogHandlerClient(asyncio.DatagramProtocol):
@@ -91,6 +104,12 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
         r'<(?P<PRI>\d+)>1\s+(?P<TM>\S+)\s+(?P<HOST>\S+)'
         r'\s+(?P<APP>\S+)\s+(?P<PROCID>\S+)\s+(?P<SD>\S+)'
         r'\s+(?P<MSGID>\S+)\s+(?P<MSG>.*)', re.MULTILINE | re.DOTALL)
+
+    parsers = {
+        2: LineProtocolParser(version=2),
+        3: LineProtocolParser(version=3),
+        4: LineProtocolParser(version=4),
+    }
 
     class RemotePrinter:
         def __init__(self, mac_address):
@@ -106,7 +125,8 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
                 if check_index >= 0 and check_index < len(
                         self.msg_timestamps
                 ) and self.msg_timestamps[check_index][0] == entry[0]:
-                    print('duplicate datagram from %s' % self.mac_address)
+                    logger.info('detected duplicate datagram for %s',
+                                self.mac_address)
                     return
             else:
                 self.msg_timestamps.insert(idx, entry)
@@ -127,8 +147,6 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
                 0], self.msg_timestamps[-1][0]
             expected_number_of_msgs = highest_msgid - lowest_msgid + 1
             received_number_of_msgs = len(self.msg_timestamps)
-            if received_number_of_msgs > expected_number_of_msgs:
-                print(self.msg_timestamps)
 
             return dict(
                 expected_number_of_messages=int(expected_number_of_msgs),
@@ -138,7 +156,7 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
                 (received_number_of_msgs / expected_number_of_msgs))
 
     def connection_made(self, transport):
-        print(transport)
+        pass
 
     def datagram_received(self, data, addr):
         match = self.syslog_msg_re.fullmatch(data.decode('utf-8'))
@@ -152,16 +170,26 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
                 self.printers[mac_address] = SyslogHandlerClient.RemotePrinter(
                     mac_address)
             printer = self.printers[mac_address]
-            self.process_message(printer, headerdict, serialized_points)
+            self.process_message(printer,
+                                 headerdict,
+                                 serialized_points,
+                                 data_size=len(data))
 
-    def process_message(self, printer, headerdict, serialized_points):
-        if int(headerdict.get('v', 1)) < 2:
-            points = list(self.parser_v1.parse(serialized_points))
-        else:
-            points = list(self.parser_v2.parse(serialized_points))
+    def process_message(self, printer, headerdict, serialized_points,
+                        data_size):
+        version = int(headerdict.get('v', 1))
+        if version not in self.parsers:
+            logging.warning('received unsupported version %s', version)
+            return
+        parser = self.parsers[version]
+        points = list(parser.parse(serialized_points))
         msgid = int(headerdict['msg'])
         printer.register_received_message(msgid)
-        msgdelta = timedelta(milliseconds=int(headerdict['tm']))
+        self.handle_fn(
+            Point(datetime.now(tz=timezone.utc), 'udp_datagram',
+                  dict(size=8 + data_size, points=len(points)),
+                  dict(mac_address=printer.mac_address)))
+        msgdelta = parser.make_timedelta(int(headerdict['tm']))
         if printer.last_received_msgid is None:
             printer.session_start_time = datetime.now(
                 tz=timezone.utc) - msgdelta
@@ -174,19 +202,28 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
             printer.last_received_msgid = msgid
         timestamp = printer.session_start_time + msgdelta
         for point in points:
-            timestamp += timedelta(milliseconds=point.timestamp)
-            point.timestamp = timestamp
+            try:
+                if version <= 2:
+                    # timestamp in v2 is relative to the previous point
+                    timestamp += parser.make_timedelta(point.timestamp)
+                    point.timestamp = timestamp  # type: ignore
+                elif version in (3, 4):
+                    # timestamp in v3 is relative to the first point in the message
+                    point.timestamp = timestamp + parser.make_timedelta(  # type: ignore
+                        point.timestamp)
+            except OverflowError:
+                logging.info(
+                    'failed to increment timestamp %d by %d ms (mac address %s)',
+                    timestamp, point.timestamp, printer.mac_address)
             point.tags = dict(mac_address=printer.mac_address,
                               **point.tags,
                               **self.tags)
             self.handle_fn(point)
 
-    def __init__(self, port, handle_fn):
-        self.port = port
+    def __init__(self, syslog_address, handle_fn):
+        self.host, self.port = syslog_address
         self.handle_fn = handle_fn
         self.tags = self.get_session_tags()
-        self.parser_v1 = TextProtocolParser()
-        self.parser_v2 = LineProtocolParser()
         self.printers = dict()
 
     def get_session_tags(self):
@@ -209,86 +246,39 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
                     self.handle_fn(
                         Point(datetime.now(tz=timezone.utc), 'udp_stats',
                               report, dict(mac_address=printer.mac_address)))
-                except Exception as e:
-                    print('failure when collection reports: %s' % e)
+                except Exception:
+                    logger.exception('failure when collecting reports')
             await asyncio.sleep(1.0)
 
     async def run(self):
         loop = asyncio.get_event_loop()
         asyncio.ensure_future(self.create_periodic_reports())
         await loop.create_datagram_endpoint(lambda: self,
-                                            local_addr=('0.0.0.0', self.port),
+                                            local_addr=(self.host, self.port),
                                             reuse_port=True)
 
 
-class SerialHandlerClient:
-    def __init__(self, port, handle_fn):
-        self.serial = aioserial.AioSerial(port, baudrate=115200)
-        self.handle_fn = handle_fn
-        self.tags = self.get_session_tags()
-        self.line_queue = asyncio.Queue()
-        self.parser = TextProtocolParser()
-        self.last_point_datetime = None
-
-    def get_session_tags(self):
-        return {
-            'handler': 'serial_port',
-            'hostname': socket.gethostname(),
-            'port': self.serial.port,
-            'session_start_time':
-            datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-        }
-
-    async def task_listen_on_serial(self):
-        while True:
-            try:
-                line = (await self.serial.readline_async()).decode('ascii')
-                await self.line_queue.put(line)
-            except UnicodeDecodeError as e:
-                print('serial: failed to decode line', str(e))
-
-    async def task_parse_lines(self):
-        while True:
-            try:
-                line = (await self.line_queue.get()).strip()
-                for point in self.parser.parse(line):
-                    if self.last_point_datetime is None:
-                        point.timestamp = datetime.utcnow()
-                    else:
-                        point.timestamp = self.last_point_datetime + timedelta(
-                            milliseconds=point.timediff)
-                    point.tags = dict(**point.tags, **self.tags)
-                    self.handle_fn(point)
-            except Exception as e:
-                print('serial: error when parsing line', str(e))
-
-    async def run(self):
-        await asyncio.gather(self.task_listen_on_serial(),
-                             self.task_parse_lines())
-
-
 class Application:
-    def __init__(self, influx, syslog_port=None, serial_port=None):
+    def __init__(self, influx, syslog_address):
         self.influx: aioinflux.InfluxDBClient = influx
         self.points = []
-        if serial_port:
-            self.uart_handler = SerialHandlerClient(serial_port,
-                                                    self.handle_point)
-        else:
-            self.uart_handler = None
-        if syslog_port:
-            self.syslog_handler = SyslogHandlerClient(syslog_port,
-                                                      self.handle_point)
-        else:
-            self.syslog_handler = None
+        self.syslog_handler = SyslogHandlerClient(syslog_address,
+                                                  self.handle_point)
+        self.points_counter = 0
 
     def handle_point(self, point):
         self.points.append(point)
+        self.points_counter += 1
 
     async def task_write_points(self):
-        last_sent = asyncio.get_event_loop().time()
         while True:
             try:
+                self.handle_point(
+                    Point(datetime.now(tz=timezone.utc),
+                          'datapoints_count',
+                          value=dict(points=self.points_counter),
+                          tags=dict(metric_handler_id=handler_identifier)))
+
                 points, self.points = self.points, []
                 influx_points = []
                 for point in points:
@@ -311,48 +301,72 @@ class Application:
                             point.values,
                         })
 
-                print('writing', len(influx_points), 'points')
+                logging.info('Sending %d data points to InfluxDB',
+                             len(influx_points))
                 await self.influx.write(influx_points)
+            except aioinflux.client.InfluxDBWriteError as e:
+                influxdb_error = e.headers.get("X-Influxdb-Error", "")
+                pattern = r'^partial write: field type conflict: input field "(.+)" on measurement "(.+)" is type (\w+), already exists as type (\w+) dropped=(\d+)$'
+                match = re.search(pattern, influxdb_error)
+                if match:
+                    field_name = match.group(1)
+                    measurement_name = match.group(2)
+                    new_type = match.group(3)
+                    existing_type = match.group(4)
+                    dropped_records = int(match.group(5))
+                    self.handle_point(
+                        Point(datetime.now(tz=timezone.utc),
+                              'field_type_conflict',
+                              value=dict(field_name=field_name,
+                                         measurement_name=measurement_name,
+                                         new_type=new_type,
+                                         existing_type=existing_type,
+                                         dropped_records=dropped_records),
+                              tags=dict(metric_handler_id=handler_identifier)))
+                else:
+                    logging.warning('influxdb write error: %s', e)
             except Exception as e:
-                print('error when sending points: %s' % e)
+                logging.exception(
+                    'failure when sending data points to InfluxDB')
             await asyncio.sleep(1)
 
     async def run(self):
-        tasks = [self.task_write_points()]
-        if self.uart_handler:
-            tasks.append(self.uart_handler.run())
-        if self.syslog_handler:
-            tasks.append(self.syslog_handler.run())
-        await asyncio.gather(*tasks)
+        await asyncio.gather(self.task_write_points(),
+                             self.syslog_handler.run())
 
 
-async def main(database, serial_port, syslog_port, database_password,
-               database_username, database_host):
+async def main(syslog_address, database, database_password, database_username,
+               database_host):
     async with aioinflux.InfluxDBClient(host=database_host,
                                         db=database,
                                         username=database_username,
                                         password=database_password) as influx:
         await influx.create_database(db=database)
-        app = Application(influx,
-                          serial_port=serial_port,
-                          syslog_port=syslog_port)
+        app = Application(influx, syslog_address=syslog_address)
         await app.run()
 
 
 @click.command()
+@click.option('--host', 'host', default='0.0.0.0')
+@click.option('--port', '--syslog-port', 'port', default=8514, type=int)
 @click.option('--database', default='buddy')
 @click.option('--database-host', default='localhost')
 @click.option('--database-username')
 @click.option('--database-password')
-@click.option('--serial')
-@click.option('--syslog-port', default=8500, type=int)
-def cmd(database, serial, syslog_port, database_username, database_password,
-        database_host):
+@click.option('--logging-config', type=click.Path(dir_okay=False))
+def cmd(host, port, database, database_username, database_password,
+        database_host, logging_config):
+
+    if logging_config:
+        with open(logging_config, 'r') as f:
+            logging.config.dictConfig(yaml.full_load(f))
+    else:
+        logging.basicConfig(level=logging.INFO)
+
     loop = asyncio.get_event_loop()
     asyncio.ensure_future(
-        main(database=database,
-             serial_port=serial,
-             syslog_port=syslog_port,
+        main(syslog_address=(host, port),
+             database=database,
              database_username=database_username,
              database_password=database_password,
              database_host=database_host))
@@ -361,4 +375,4 @@ def cmd(database, serial, syslog_port, database_username, database_password,
 
 
 if __name__ == '__main__':
-    cmd()
+    cmd()  # type: ignore

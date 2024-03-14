@@ -1,0 +1,55 @@
+
+== `cx_queue.hpp`
+
+`cx_queue` is a circular queue with a compile-time capacity and a policy that
+controls whether and how over/underflow is handled.
+
+[source,cpp]
+----
+template <typename T, std::size_t N,
+          typename OverflowPolicy = safe_overflow_policy>
+class cx_queue;
+----
+
+NOTE: By default, `cx_queue` uses the `safe_overflow_policy` which means that
+over/underflow will result in a call to xref:panic.adoc#_panic_hpp[`panic`].
+`unsafe_overflow_policy` (which does no checking) is also available.
+
+The `cx_queue` interface:
+[source,cpp]
+----
+template <typename T, std::size_t N, typename P>
+auto f(stdx::cx_queue<T, N, P> q) {
+    // here we can:
+    std::size_t sz = q.size(); // ask for q's size
+    constexpr std::size_t cap = q.capacity(); // ask for q's capacity (same as N)
+    bool is_empty = q.empty(); // ask whether a cx_queue is empty
+    bool is_full = q.full(); // ask whether a cx_queue is full
+    q.clear(); // clear a cx_queue
+
+    // we can use some of the usual queue functions
+    q.push(T{});
+    T& t1 = q.front();
+    T& t2 = q.back();
+    T t = q.pop();
+  }
+};
+----
+NOTE: `capacity` is always available as `constexpr`, even though `q` above is a
+function parameter and therefore not `constexpr`.
+
+Users of `cx_queue` may provide custom overflow policies. A policy must
+implement two (`static`) functions:
+[source,cpp]
+----
+struct custom_overflow_policy {
+    constexpr static auto check_push(std::size_t size, std::size_t capacity) -> void {
+      // push is safe if size < capacity
+      // otherwise, overflow panic
+    }
+    constexpr static auto check_pop(std::size_t size) -> void {
+      // pop is safe if size > 0
+      // otherwise, underflow panic
+    }
+};
+----

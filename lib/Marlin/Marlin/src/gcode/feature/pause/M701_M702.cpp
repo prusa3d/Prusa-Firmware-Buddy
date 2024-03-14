@@ -39,7 +39,7 @@
 #endif
 
 #if ENABLED(PRUSA_MMU2)
-  #include "../../../feature/prusa_MMU2/mmu2.h"
+  #include "../../../feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
 #if ENABLED(MIXING_EXTRUDER)
@@ -101,7 +101,7 @@ void GcodeSuite::M701() {
 
   // Load filament
   #if ENABLED(PRUSA_MMU2)
-    mmu2.load_filament_to_nozzle(target_extruder);
+    MMU2::mmu2.load_filament_to_nozzle(target_extruder);
   #else
     constexpr float     purge_length = ADVANCED_PAUSE_PURGE_LENGTH,
                     slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
@@ -205,7 +205,7 @@ void GcodeSuite::M702() {
 
   // Unload filament
   #if ENABLED(PRUSA_MMU2)
-    mmu2.unload();
+    MMU2::mmu2.unload();
   #else
     #if EXTRUDERS > 1 && ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
       if (!parser.seenval('T')) {

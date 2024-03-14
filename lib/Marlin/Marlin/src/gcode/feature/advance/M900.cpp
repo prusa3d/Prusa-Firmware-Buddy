@@ -22,11 +22,11 @@
 
 #include "../../../inc/MarlinConfig.h"
 
-#if ENABLED(LIN_ADVANCE)
+//#if ENABLED(LIN_ADVANCE)
 
 #include "../../gcode.h"
 #include "../../../module/planner.h"
-#include "../../../module/stepper.h"
+#include "../../../feature/pressure_advance/pressure_advance_config.hpp"
 
 #if ENABLED(EXTRA_LIN_ADVANCE_K)
   float saved_extruder_advance_K[EXTRUDERS];
@@ -52,6 +52,7 @@ void GcodeSuite::M900() {
       return;
     }
   #endif
+  static_cast<void>(tool_index); // TODO support multiple extruders
 
   #if ENABLED(EXTRA_LIN_ADVANCE_K)
 
@@ -115,9 +116,17 @@ void GcodeSuite::M900() {
 
     if (parser.seenval('K')) {
       const float newK = parser.value_float();
+
+      #if ENABLED(GCODE_COMPATIBILITY_MK3)
+        if (gcode.compatibility_mode == GcodeSuite::CompatibilityMode::MK3 && newK >= 3) {
+          // Higher K values on MK3 mean LA version 1.0 => we don't support those
+          // Lower values on MK3 are very similar to MK4's, so we can use them and expect OK results.
+          return;
+        }
+      #endif
+
       if (WITHIN(newK, 0, 10)) {
-        planner.synchronize();
-        planner.extruder_advance_K[tool_index] = newK;
+        M572_internal(newK, 0.04);
       }
       else
         SERIAL_ECHOLNPGM("?K value out of range (0-10).");
@@ -125,12 +134,12 @@ void GcodeSuite::M900() {
     else {
       SERIAL_ECHO_START();
       #if EXTRUDERS < 2
-        SERIAL_ECHOLNPAIR("Advance K=", planner.extruder_advance_K[0]);
+        SERIAL_ECHOLNPAIR("Advance K=", pressure_advance::get_axis_e_config().pressure_advance);
       #else
         SERIAL_ECHOPGM("Advance K");
         LOOP_L_N(i, EXTRUDERS) {
           SERIAL_CHAR(' '); SERIAL_ECHO(int(i));
-          SERIAL_CHAR('='); SERIAL_ECHO(planner.extruder_advance_K[i]);
+          SERIAL_CHAR('='); SERIAL_ECHO(pressure_advance::get_axis_e_config().pressure_advance);
         }
         SERIAL_EOL();
       #endif
@@ -139,4 +148,4 @@ void GcodeSuite::M900() {
   #endif
 }
 
-#endif // LIN_ADVANCE
+//#endif // LIN_ADVANCE

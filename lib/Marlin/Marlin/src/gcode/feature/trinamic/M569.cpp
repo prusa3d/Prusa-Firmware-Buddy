@@ -42,66 +42,76 @@ void tmc_set_stealthChop(TMC &st, const bool enable) {
 }
 
 static void set_stealth_status(const bool enable, const int8_t target_extruder) {
-  #define TMC_SET_STEALTH(Q) tmc_set_stealthChop(stepper##Q, enable)
 
   #if AXIS_HAS_STEALTHCHOP(X) || AXIS_HAS_STEALTHCHOP(X2) || AXIS_HAS_STEALTHCHOP(Y) || AXIS_HAS_STEALTHCHOP(Y2) || AXIS_HAS_STEALTHCHOP(Z) || AXIS_HAS_STEALTHCHOP(Z2) || AXIS_HAS_STEALTHCHOP(Z3)
     const uint8_t index = parser.byteval('I');
+  #endif
+  #if defined(DEFAULT_MAX_FEEDRATE_STEALTHCHOP)
+    constexpr feedRate_t DMF[] = DEFAULT_MAX_FEEDRATE;
+    constexpr feedRate_t DMFS[] = DEFAULT_MAX_FEEDRATE_STEALTHCHOP;
+    #define TMC_SET_STEALTH(Q, I) do{ \
+      tmc_set_stealthChop(stepper##Q, enable); \
+      planner.settings.max_feedrate_mm_s[I] = enable ? DMFS[I] : DMF[I]; \
+      } while(0)
+  #else
+    #define TMC_SET_STEALTH(Q, I) tmc_set_stealthChop(stepper##Q, enable);
   #endif
 
   LOOP_XYZE(i) if (parser.seen(axis_codes[i])) {
     switch (i) {
       case X_AXIS:
         #if AXIS_HAS_STEALTHCHOP(X)
-          if (index == 0) TMC_SET_STEALTH(X);
+          if (index == 0) TMC_SET_STEALTH(X, i);
         #endif
         #if AXIS_HAS_STEALTHCHOP(X2)
-          if (index == 1) TMC_SET_STEALTH(X2);
+          if (index == 1) TMC_SET_STEALTH(X2, i);
         #endif
         break;
       case Y_AXIS:
         #if AXIS_HAS_STEALTHCHOP(Y)
-          if (index == 0) TMC_SET_STEALTH(Y);
+          if (index == 0) TMC_SET_STEALTH(Y, i);
         #endif
         #if AXIS_HAS_STEALTHCHOP(Y2)
-          if (index == 1) TMC_SET_STEALTH(Y2);
+          if (index == 1) TMC_SET_STEALTH(Y2, i);
         #endif
         break;
       case Z_AXIS:
         #if AXIS_HAS_STEALTHCHOP(Z)
-          if (index == 0) TMC_SET_STEALTH(Z);
+          if (index == 0) TMC_SET_STEALTH(Z, i);
         #endif
         #if AXIS_HAS_STEALTHCHOP(Z2)
-          if (index == 1) TMC_SET_STEALTH(Z2);
+          if (index == 1) TMC_SET_STEALTH(Z2, i);
         #endif
         #if AXIS_HAS_STEALTHCHOP(Z3)
-          if (index == 2) TMC_SET_STEALTH(Z3);
+          if (index == 2) TMC_SET_STEALTH(Z3, i);
         #endif
         break;
       case E_AXIS: {
         if (target_extruder < 0) return;
         switch (target_extruder) {
           #if AXIS_HAS_STEALTHCHOP(E0)
-            case 0: TMC_SET_STEALTH(E0); break;
+            case 0: TMC_SET_STEALTH(E0, i); break;
           #endif
           #if AXIS_HAS_STEALTHCHOP(E1)
-            case 1: TMC_SET_STEALTH(E1); break;
+            case 1: TMC_SET_STEALTH(E1, i); break;
           #endif
           #if AXIS_HAS_STEALTHCHOP(E2)
-            case 2: TMC_SET_STEALTH(E2); break;
+            case 2: TMC_SET_STEALTH(E2, i); break;
           #endif
           #if AXIS_HAS_STEALTHCHOP(E3)
-            case 3: TMC_SET_STEALTH(E3); break;
+            case 3: TMC_SET_STEALTH(E3, i); break;
           #endif
           #if AXIS_HAS_STEALTHCHOP(E4)
-            case 4: TMC_SET_STEALTH(E4); break;
+            case 4: TMC_SET_STEALTH(E4, i); break;
           #endif
           #if AXIS_HAS_STEALTHCHOP(E5)
-            case 5: TMC_SET_STEALTH(E5); break;
+            case 5: TMC_SET_STEALTH(E5, i); break;
           #endif
         }
       } break;
     }
   }
+  #undef TMC_SET_STEALTH
 }
 
 static void say_stealth_status() {
@@ -156,9 +166,11 @@ static void say_stealth_status() {
  *   No arguments reports the stealthChop status of all capable drivers.
  */
 void GcodeSuite::M569() {
-  if (parser.seen('S'))
-    set_stealth_status(parser.value_bool(), get_target_extruder_from_command());
-  else
+  if (parser.seen('S')){
+    int8_t target_extruder = get_target_extruder_from_command();
+    if (target_extruder < 0) return;
+    set_stealth_status(parser.value_bool(), target_extruder);
+  } else
     say_stealth_status();
 }
 

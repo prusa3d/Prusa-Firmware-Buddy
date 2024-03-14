@@ -1,0 +1,64 @@
+
+== `utility.hpp`
+
+`overload` is a struct designed to encapsulate an overload set. It inherits from
+all the lambda expressions used to construct it. As an example, it's useful for
+visiting a variant.
+
+[source,cpp]
+----
+auto f(std::variant<int, float, std::string> const& v) {
+  return std::visit(
+    stdx::overload{
+      [] (std::string const& s) { return s; },
+      [] (auto num) { return std::to_string(num); }
+    }, v);
+}
+----
+
+`unreachable` is an implementation of
+https://en.cppreference.com/w/cpp/utility/unreachable[`std::unreachable`].
+
+[source,cpp]
+----
+[[noreturn]] inline auto unreachable() -> void {
+  // if this function is ever called, it's
+  // undefined behaviour
+}
+----
+
+`utility.hpp` also contains a few handy user-defined literals so that code using
+boolean values can be more expressive at the call site than just using bare
+`true` and `false`. This also makes it safer to use templates with `bool`
+parameters.
+
+[source,cpp]
+----
+using namespace stdx::literals;
+
+template <bool X>
+struct my_type { ... };
+
+using my_type_with_X = my_type<"X"_true>;
+using my_type_without_X = my_type<"X"_false>;
+
+using my_type_with_X_alt = my_type<"X"_b>;
+using my_type_without_X_alt = my_type<not "X"_b>;
+----
+
+And some UDLs that are useful when specifying sizes in bytes:
+
+[source,cpp]
+----
+using namespace stdx::literals;
+
+// decimal SI prefixes
+constexpr auto a = 1_k;  // 1,000
+constexpr auto b = 1_M;  // 1,000,000
+constexpr auto c = 1_G;  // 1,000,000,000
+
+// binary equivalents
+constexpr auto d = 1_ki; // 1,024
+constexpr auto e = 1_Mi; // 1,048,567
+constexpr auto f = 1_Gi; // 1,073,741,824
+----

@@ -7,29 +7,32 @@
 #include "ifooter.hpp"
 #include "ScreenHandler.hpp"
 #include "footer_eeprom.hpp"
+#include <config_store/store_instance.hpp>
 
 IFooter::IFooter(window_t *parent)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectFooter, positioning::absolute) {
     Disable();
 }
 
-bool IFooter::SetSlot(FooterLine &line, size_t slot_id, footer::items item) {
+bool IFooter::SetSlot(FooterLine &line, size_t slot_id, footer::Item item) {
     return SetSlotInit(slot_id, item) && line.Create(item, slot_id);
 }
 
-bool IFooter::SetSlotInit(size_t slot_id, footer::items item) {
-    if (slot_id >= footer::eeprom::Load().size())
+bool IFooter::SetSlotInit(size_t slot_id, footer::Item item) {
+    if (slot_id >= FOOTER_ITEMS_PER_LINE__) {
         return false;
-    if (footer::eeprom::Load()[slot_id] != item) {
-        footer::eeprom::Set(item, slot_id);
-        //send event to all windows - there can be multiple footers, ScreenEvent is the best way
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(item));
+    }
+    if (config_store().get_footer_setting(slot_id) != item) {
+        config_store().set_footer_setting(slot_id, item);
+        // send event to all windows - there can be multiple footers, ScreenEvent is the best way
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::encode_item_for_event(item));
     }
     return true;
 }
 
-footer::items IFooter::GetSlotInit(size_t slot_id) {
-    if (slot_id >= footer::eeprom::Load().size())
-        return footer::items::count_;
-    return footer::eeprom::Load()[slot_id];
+footer::Item IFooter::GetSlotInit(size_t slot_id) {
+    if (slot_id >= FOOTER_ITEMS_PER_LINE__) {
+        return footer::Item::none;
+    }
+    return config_store().get_footer_setting(slot_id);
 }

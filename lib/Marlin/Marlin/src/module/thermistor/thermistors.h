@@ -26,7 +26,7 @@
 #define OVERSAMPLENR 16
 #define OV(N) int16_t((N) * (OVERSAMPLENR))
 
-#define ANY_THERMISTOR_IS(n) (THERMISTOR_HEATER_0 == n || THERMISTOR_HEATER_1 == n || THERMISTOR_HEATER_2 == n || THERMISTOR_HEATER_3 == n || THERMISTOR_HEATER_4 == n || THERMISTOR_HEATER_5 == n || THERMISTORBED == n || THERMISTORCHAMBER == n || TEMP_SENSOR_BOARD == n)
+#define ANY_THERMISTOR_IS(n) (THERMISTOR_HEATER_0 == n || THERMISTOR_HEATER_1 == n || THERMISTOR_HEATER_2 == n || THERMISTOR_HEATER_3 == n || THERMISTOR_HEATER_4 == n || THERMISTOR_HEATER_5 == n || THERMISTORBED == n || THERMISTORCHAMBER == n || TEMP_SENSOR_HEATBREAK == n  || TEMP_SENSOR_BOARD == n)
 
 // Pt1000 and Pt100 handling
 //
@@ -92,6 +92,12 @@
 #if ANY_THERMISTOR_IS(20) // Pt100 with INA826 amp on Ultimaker v2.0 electronics
   #include "thermistor_20.h"
 #endif
+#if ANY_THERMISTOR_IS(21) // PT100 with HX717 ADC convertor
+  #include "thermistor_21.h"
+#endif
+#if ANY_THERMISTOR_IS(22) // PT100 with LMV358IDT preamp 3.3V MCU only
+  #include "thermistor_22.h"
+#endif
 #if ANY_THERMISTOR_IS(51) // beta25 = 4092 K, R25 = 100 kOhm, Pull-up = 1 kOhm, "EPCOS"
   #include "thermistor_51.h"
 #endif
@@ -148,6 +154,18 @@
 #endif
 #if ANY_THERMISTOR_IS(2000) // 100k TDK NTC Chip Thermistor NTCG104LH104JT1 with 4k7 pullup
   #include "thermistor_2000.h"
+#endif
+#if ANY_THERMISTOR_IS(2004) // beta25 = 4390 100k Semitec NTC Thermistor 104 JT-025 with 4k7 pullup - ULTIMATE THINNESS, JT THERMISTOR
+  #include "thermistor_2004.h"
+#endif
+#if ANY_THERMISTOR_IS(2005) // 100k TDK NTC Chip Thermistor NTCG104LH104JT1 with 4k7 pullup
+  #include "thermistor_2005.h"
+#endif
+#if ANY_THERMISTOR_IS(2007) // XL prototype termistor, TODO: FIX
+  #include "thermistor_2007.h"
+#endif
+#if ANY_THERMISTOR_IS(2008) // XL prototype termistor, TODO: FIX
+  #include "thermistor_2008.h"
 #endif
 #if ANY_THERMISTOR_IS(998) // User-defined table 1
   #include "thermistor_998.h"
@@ -240,6 +258,15 @@
   #define CHAMBER_TEMPTABLE_LEN 0
 #endif
 
+#ifdef THERMISTORHEATBREAK
+  #define HEATBREAK_TEMPTABLE TT_NAME(TEMP_SENSOR_HEATBREAK)
+  #define HEATBREAK_TEMPTABLE_LEN COUNT(HEATBREAK_TEMPTABLE)
+#elif defined(HEATBREAK_USES_THERMISTOR)
+  #error "No chamber thermistor table specified"
+#else
+  #define HEATBREAK_TEMPTABLE_LEN 0
+#endif
+
 #ifdef THERMISTORBOARD
   #define BOARD_TEMPTABLE TT_NAME(TEMP_SENSOR_BOARD)
   #define BOARD_TEMPTABLE_LEN COUNT(BOARD_TEMPTABLE)
@@ -247,14 +274,15 @@
   #error "No board thermistor table specified"
 #else
   #define BOARD_TEMPTABLE_LEN 0
-#endif  
+#endif
 
 // The SCAN_THERMISTOR_TABLE macro needs alteration?
 static_assert(
      HEATER_0_TEMPTABLE_LEN < 256 && HEATER_1_TEMPTABLE_LEN < 256
   && HEATER_2_TEMPTABLE_LEN < 256 && HEATER_3_TEMPTABLE_LEN < 256
   && HEATER_4_TEMPTABLE_LEN < 256 && HEATER_5_TEMPTABLE_LEN < 256
-  &&      BED_TEMPTABLE_LEN < 256 &&  CHAMBER_TEMPTABLE_LEN < 256,
+  &&      BED_TEMPTABLE_LEN < 256 &&  CHAMBER_TEMPTABLE_LEN < 256
+  &&  HEATBREAK_TEMPTABLE_LEN < 256,
   "Temperature conversion tables over 255 entries need special consideration."
 );
 
@@ -331,6 +359,16 @@ static_assert(
   #else
     #define HEATER_CHAMBER_RAW_HI_TEMP 0
     #define HEATER_CHAMBER_RAW_LO_TEMP 16383
+  #endif
+#endif
+
+#ifndef HEATBREAK_RAW_HI_TEMP
+  #if defined(REVERSE_TEMP_SENSOR_RANGE) || !defined(HEATBREAK_USES_THERMISTOR)
+    #define HEATBREAK_RAW_HI_TEMP 16383
+    #define HEATBREAK_RAW_LO_TEMP 0
+  #else
+    #define HEATBREAK_RAW_HI_TEMP 0
+    #define HEATBREAK_RAW_LO_TEMP 16383
   #endif
 #endif
 

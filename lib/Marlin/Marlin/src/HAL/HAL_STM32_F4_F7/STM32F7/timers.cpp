@@ -57,8 +57,8 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
       timerConfig[0].timerdef.Init.CounterMode       = TIM_COUNTERMODE_UP;
       timerConfig[0].timerdef.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
       timerConfig[0].IRQ_Id = TIM5_IRQn;
-      timerConfig[0].callback = (uint32_t)TC5_Handler;
-      HAL_NVIC_SetPriority(timerConfig[0].IRQ_Id, 1, 0);
+      timerConfig[0].callback = (uint32_t)TC6_Handler;
+      HAL_NVIC_SetPriority(timerConfig[0].IRQ_Id, ISR_PRIORITY_STEP_TIMER, 0);
       #if PIN_EXISTS(STEPPER_ENABLE)
         OUT_WRITE(STEPPER_ENABLE_PIN, HIGH);
       #endif
@@ -72,7 +72,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
       timerConfig[1].timerdef.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
       timerConfig[1].IRQ_Id = TIM7_IRQn;
       timerConfig[1].callback = (uint32_t)TC7_Handler;
-      HAL_NVIC_SetPriority(timerConfig[1].IRQ_Id, 2, 0);
+      HAL_NVIC_SetPriority(timerConfig[1].IRQ_Id, ISR_PRIORITY_TEMP_TIMER, 0);
       break;
     }
     timers_initialized[timer_num] = true;

@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "IWindowMenuItem.hpp"
+#include "i_window_menu_item.hpp"
 
 /*****************************************************************************/
-//WI_LABEL_t
+// WI_LABEL_t
 using WI_LABEL_t = IWindowMenuItem;

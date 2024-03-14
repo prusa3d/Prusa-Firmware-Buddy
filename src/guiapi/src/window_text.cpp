@@ -4,8 +4,10 @@
 #include "ScreenHandler.hpp"
 
 void window_text_t::SetText(string_view_utf8 txt) {
-    if (text == txt)
+    if (text.is_same_ref(txt)) {
         return; // prevent invalidation if texts are the same
+    }
+
     text = txt;
     Invalidate();
 }
@@ -16,22 +18,43 @@ window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multili
     flags.multiline = bool(multiline);
 }
 
+namespace {
+
+void do_draw(Rect16 rect, string_view_utf8 text, const font_t *font, color_t parent_background, color_t clr_text_background, color_t clr_text_foreground, padding_ui8_t padding, text_flags text_flags, uint8_t rounding_rad, uint8_t rounding_flag, bool has_round_corners) {
+    if (has_round_corners) {
+        render_rounded_rect(rect, parent_background, clr_text_background, rounding_rad, rounding_flag);
+
+        rect = Rect16::Width_t { static_cast<uint16_t>(rect.Width() - rounding_rad * 2) };
+        rect = Rect16::X_t { static_cast<int16_t>(rect.Left() + rounding_rad) };
+    }
+
+    render_text_align(rect, text, font,
+        clr_text_background,
+        clr_text_foreground,
+        padding, text_flags);
+}
+} // namespace
+
 void window_text_t::unconditionalDraw() {
     if (flags.color_scheme_background || flags.color_scheme_foreground) {
-        //TODO keep only following 3 lines in function body, remove rest
-        super::unconditionalDraw();
-        render_text_align(GetRect(), text, font, GetBackColor(), GetTextColor(),
-            padding, { GetAlignment(), is_multiline(flags.multiline) });
+        do_draw(GetRect(), text, get_font(),
+            GetParent() ? GetParent()->GetBackColor() : GetBackColor(),
+            GetBackColor(),
+            GetTextColor(),
+            padding, { GetAlignment(), is_multiline(flags.multiline) },
+            GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS, flags.has_round_corners);
     } else {
-        render_text_align(GetRect(), text, font,
-            (IsFocused()) ? GetTextColor() : GetBackColor(),
-            (IsFocused()) ? GetBackColor() : GetTextColor(),
-            padding, { GetAlignment(), is_multiline(flags.multiline) });
+        do_draw(GetRect(), text, get_font(),
+            GetParent() ? GetParent()->GetBackColor() : GetBackColor(),
+            IsFocused() ? GetTextColor() : GetBackColor(),
+            IsFocused() ? GetBackColor() : GetTextColor(),
+            padding, { GetAlignment(), is_multiline(flags.multiline) },
+            GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS, flags.has_round_corners);
     }
 }
 
 /*****************************************************************************/
-//window_text_button_t
+// window_text_button_t
 window_text_button_t::window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, string_view_utf8 txt)
     : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
     , callback(cb) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 
 // dekodovani 3 bajtu ze 4 base64 znaku - jelikoz mame 80 znaku na radek
 // a 2 znaky jsou uvodni, tak 78/4 rozhodne neni cely cislo, takze to bude
@@ -37,7 +38,7 @@ private:
     uint8_t lastbits = 0;
     enum class States : uint8_t {
         AwaitingFirst, // ocekavam prvni znak, nemam nic
-        FirstByteOut,  // mam prvni znak, a prisel mi 2. znak - vracim 1. bajt,
+        FirstByteOut, // mam prvni znak, a prisel mi 2. znak - vracim 1. bajt,
         // ukladam si zbyly 4 bity pro dalsi pouziti
         SecondByteOut, // mam 2. znak a prisel mi 3. znak, pouziju z nej 4 bity,
         // slozim s predchozimi 4 bity, vracim 1 bajt, zustavaji

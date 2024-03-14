@@ -7,27 +7,19 @@
 #include "WindowMenuInfo.hpp"
 
 /*****************************************************************************/
-// WI_INFO_t
-
-WI_INFO_t::WI_INFO_t(string_view_utf8 label, uint16_t id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : AddSuper<WI_LABEL_t>(label, id_icon ? icon_width : GuiDefaults::infoMaxLen * InfoFont->w, id_icon, enabled, hidden) {}
-
-WI_INFO_t::WI_INFO_t(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden, uint16_t id_icon)
-    : WI_INFO_t(label, id_icon, is_enabled_t::yes, hidden) {
-    itoa(num_to_print, information, 10);
+// IWiInfo
+IWiInfo::IWiInfo(string_view_utf8 label, const img::Resource *id_icon, size_t info_len, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label)
+    : AddSuper<WI_LABEL_t>(label, id_icon ? icon_width : calculate_extension_width(extension_like_label, info_len), id_icon, enabled, hidden) {
+    has_extension_like_label = extension_like_label;
 }
 
-invalidate_t WI_INFO_t::ChangeInformation(const char *str) {
-    if (strncmp(information, str, GuiDefaults::infoMaxLen)) {
-        strlcpy(information, str, GuiDefaults::infoMaxLen);
-        information[GuiDefaults::infoMaxLen - 1] = 0;
-        return invalidate_t::yes;
+void IWiInfo::printInfo(Rect16 extension_rect, color_t color_back, string_view_utf8 info_str) const {
+
+    if (has_extension_like_label == ExtensionLikeLabel::yes) {
+        render_text_align(extension_rect, info_str, getLabelFont(), color_back, GetTextColor(),
+            { (uint8_t)0U, (uint8_t)0U, (uint8_t)0U, (uint8_t)0U }, Align_t::RightCenter());
+    } else {
+        render_text_align(extension_rect, info_str, InfoFont, color_back, IsFocused() ? COLOR_DARK_GRAY : COLOR_SILVER,
+            GuiDefaults::MenuPaddingSpecial, Align_t::RightCenter());
     }
-    return invalidate_t::no;
-}
-
-void WI_INFO_t::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
-
-    render_text_align(extension_rect, _(information), InfoFont, color_back,
-        (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingSpecial, Align_t::RightCenter());
 }

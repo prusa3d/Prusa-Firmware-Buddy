@@ -40,14 +40,38 @@ add_executable(
 
 # define required search paths
 target_include_directories(
-  window_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_SOURCE_DIR}/src/common
-                      ${CMAKE_SOURCE_DIR}/src/gui/dialogs ${CMAKE_SOURCE_DIR}/tests/stubs
+  window_tests
+  PUBLIC .
+         ${CMAKE_SOURCE_DIR}/src/guiapi/include
+         ${CMAKE_SOURCE_DIR}/src/guiconfig
+         ${CMAKE_SOURCE_DIR}/src/common
+         ${CMAKE_SOURCE_DIR}/src/gui/dialogs
+         ${CMAKE_SOURCE_DIR}/tests/stubs
+         ${CMAKE_SOURCE_DIR}/src/gui
+         ${CMAKE_SOURCE_DIR}/include
+         ${CMAKE_BINARY_DIR}/include
   )
-target_include_directories(
-  layout_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_SOURCE_DIR}/src/common
-                      ${CMAKE_SOURCE_DIR}/src/gui/dialogs ${CMAKE_SOURCE_DIR}/tests/stubs
+target_compile_definitions(
+  window_tests PUBLIC BOARD=3 BOARD_VERSION_MINOR=3 BOARD_VERSION_MAJOR=3 BOARD_VERSION_PATCH=3
   )
 
+target_include_directories(
+  layout_tests
+  PUBLIC .
+         ${CMAKE_SOURCE_DIR}/src/guiapi/include
+         ${CMAKE_SOURCE_DIR}/src/guiconfig
+         ${CMAKE_SOURCE_DIR}/src/common
+         ${CMAKE_SOURCE_DIR}/src/common/utils
+         ${CMAKE_SOURCE_DIR}/src/gui/dialogs
+         ${CMAKE_SOURCE_DIR}/tests/stubs
+         ${CMAKE_SOURCE_DIR}/src/gui
+         ${CMAKE_BINARY_DIR}/include
+         ${CMAKE_SOURCE_DIR}/include
+  )
+
+target_compile_definitions(
+  layout_tests PUBLIC BOARD=3 BOARD_VERSION_MINOR=3 BOARD_VERSION_MAJOR=3 BOARD_VERSION_PATCH=3
+  )
 # tell build system about the test case
 add_catch_test(window_tests)
 add_catch_test(layout_tests)

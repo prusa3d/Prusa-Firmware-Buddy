@@ -7,4 +7,5 @@
 
 #include "filament_sensor.hpp"
 
-FSensor &GetPrinterFSensor();
+IFSensor *GetExtruderFSensor(uint8_t index);
+IFSensor *GetSideFSensor(uint8_t index);

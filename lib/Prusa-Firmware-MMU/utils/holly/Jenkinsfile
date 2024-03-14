@@ -1,0 +1,120 @@
+pipeline {
+    agent {
+        dockerfile {
+            label 'docker'
+            filename 'utils/holly/Dockerfile'
+            additionalBuildArgs '-t prusa-firmware-mmu'
+        }
+    }
+
+    parameters {
+        string(name: 'VERSION_SUFFIX', defaultValue: '<default>', description: 'Specify custom version suffix for the build (e.g. "-RC1+1010"). Set to "<default>" to use the default one. Leave empty to make a final-version build without any suffix.')
+        string(name: 'VERSION_SUFFIX_SHORT', defaultValue: '<default>', description: 'Specify custom version suffix for the build (e.g. "-RC1"). Set to "<default>" to use the default one. Leave empty to make a final-version build without any suffix.')
+    }
+
+    stages {
+        stage('Prepare Build Stages') {
+            steps {
+                script {
+                    // required configurations
+                    def configurations = [
+                        [build_type: "release"],
+                    ]
+
+                    // prepare version suffix
+                    def commit_nr = sh(script: 'git rev-list HEAD --count', returnStdout: true).trim()
+                    def short_suffix
+                    def full_suffix
+                    if (env.CHANGE_ID) {
+                        // This is a PR build
+                        short_suffix = "-BETA+${commit_nr}"
+                        full_suffix = "${short_suffix}.PR${env.CHANGE_ID}.B${env.BUILD_NUMBER}"
+                    } else if (env.BRANCH_NAME.startsWith("RELEASE-")) {
+                        // This is an RC build
+                        short_suffix = "-RC+${commit_nr}"
+                        full_suffix = "${short_suffix}.B${env.BUILD_NUMBER}"
+                    } else {
+                        // This is build of an ordinary branch (not a release branch)
+                        short_suffix = "-BETA+${commit_nr}"
+                        def branch_spec = env.BRANCH_NAME.replaceAll("_", "-")
+                        full_suffix = "${short_suffix}.BRANCH-${branch_spec}.B${env.BUILD_NUMBER}"
+                    }
+
+                    if (params.VERSION_SUFFIX != '<default>') {
+                        full_suffix = params.VERSION_SUFFIX
+                    }
+                    if (params.VERSION_SUFFIX_SHORT != '<default>') {
+                        short_suffix = params.VERSION_SUFFIX_SHORT
+                    }
+
+                    // create the build stages
+                    configurations.each { config ->
+                        stage("Build - ${config.build_type}") {
+                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                sh """
+                                    python3 utils/bootstrap.py
+                                    exit 0 # temporarily disable building (as we don't have avr-gcc in dependencies)
+                                    ln -fs /.dependencies
+                                    python3 utils/build.py \
+                                        --build-type ${config.build_type} \
+                                        --generate-bbf \
+                                        --generate-dfu \
+                                        --no-store-output \
+                                        --version-suffix=${full_suffix} \
+                                        --version-suffix-short=${short_suffix} \
+                                        -DCUSTOM_COMPILE_OPTIONS:STRING=-Werror
+                                """
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Check Formatting') {
+            when {
+                expression { env.CHANGE_TARGET }
+            }
+            steps {
+                sh """
+                export XDG_CACHE_HOME=\$PWD/.precommit
+                git config --unset-all core.hooksPath
+                pre-commit install
+                pre-commit run \
+                    --source remotes/origin/${env.CHANGE_TARGET} \
+                    --origin HEAD \
+                    --show-diff-on-failure \
+                    --hook-stage manual
+                """
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh """
+                python3 utils/bootstrap.py
+                export PATH=\$PWD/.dependencies/cmake-3.22.5/bin:\$PWD/.dependencies/ninja-1.10.2:\$PATH
+                export CTEST_OUTPUT_ON_FAILURE=1
+                mkdir -p build-test
+                LD_LIBRARY_PATH=/usr/local/lib32 \$PWD/.dependencies/cmake-3.22.5/bin/ctest --build-and-test . build-test \
+                    -DCMAKE_MAKE_PROGRAM=\$PWD/.dependencies/ninja-1.10.2/ninja \
+                    --build-generator Ninja \
+                    --build-target tests \
+                    --test-command ctest
+                """
+            }
+        }
+    }
+
+    post {
+        always {
+            // archive build products
+            //archiveArtifacts artifacts: 'build/products/*', fingerprint: true
+            // archive test products
+            archiveArtifacts artifacts: 'build-test/Testing/Temporary/LastTest.log'
+        }
+        cleanup {
+            deleteDir()
+        }
+    }
+}

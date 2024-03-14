@@ -329,15 +329,15 @@ class FilamentSensorBase {
       }
 
       static inline void block_completed(const block_t* const b) {
-        if (b->steps.x || b->steps.y || b->steps.z
+        if (b->msteps.x || b->msteps.y || b->msteps.z
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
             || did_pause_print // Allow pause purge move to re-trigger runout state
           #endif
         ) {
           // Only trigger on extrusion with XYZ movement to allow filament change and retract/recover.
           const uint8_t e = b->extruder;
-          const int32_t steps = b->steps.e;
-          runout_mm_countdown[e] -= (TEST(b->direction_bits, E_AXIS) ? -steps : steps) * planner.mm_per_step[E_AXIS_N(e)];
+          const int32_t msteps = b->msteps.e;
+          runout_mm_countdown[e] -= (TEST(b->direction_bits, E_AXIS) ? -msteps : msteps) * planner.mm_per_mstep[E_AXIS_N(e)];
         }
       }
   };

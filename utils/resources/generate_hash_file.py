@@ -1,4 +1,3 @@
-import hashlib
 import sys
 import os
 import argparse
@@ -13,7 +12,7 @@ def generate_header_file(*, input_hash, namespace, variable_name, output_path):
     #include "resources/revision.hpp"
 
     namespace {namespace} {{
-        static const Revision {variable_name} = {{ {{ { ", ".join(str(b) for b in input_hash.digest()) } }} }};
+        static const Revision {variable_name} = {{ {{ { ", ".join(str(b) for b in input_hash) } }} }};
     }};
     """
     os.makedirs(output_path.parent, exist_ok=True)
@@ -21,32 +20,19 @@ def generate_header_file(*, input_hash, namespace, variable_name, output_path):
         f.write(content)
 
 
-def generate_binary_file(*, input_hash, output_path):
-    os.makedirs(output_path.parent, exist_ok=True)
-    with open(output_path, 'wb') as f:
-        f.write(input_hash.digest())
-
-
 def main(args):
-    input_path = getattr(args, 'input-file')
+    input_path: Path = getattr(args, 'hash-file')
+    input_hash = input_path.read_bytes()
     output_path = getattr(args, 'output-file')
-    with open(input_path, 'rb') as f:
-        input_hash = hashlib.sha256(f.read())
-    if args.format == 'binary':
-        generate_binary_file(input_hash=input_hash, output_path=output_path)
-    elif args.format == 'header':
-        generate_header_file(input_hash=input_hash,
-                             namespace=args.header_namespace_name,
-                             variable_name=args.header_variable_name,
-                             output_path=output_path)
+    generate_header_file(input_hash=input_hash,
+                         namespace=args.header_namespace_name,
+                         variable_name=args.header_variable_name,
+                         output_path=output_path)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--format',
-                        choices=['binary', 'header'],
-                        required=True)
-    parser.add_argument('input-file', type=Path)
+    parser.add_argument('hash-file', type=Path)
     parser.add_argument('output-file', type=Path)
     parser.add_argument('--header-namespace-name', required=False)
     parser.add_argument('--header-variable-name', required=False)

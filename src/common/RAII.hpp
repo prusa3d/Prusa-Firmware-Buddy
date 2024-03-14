@@ -24,7 +24,7 @@ public:
      * @param ref reference to variable to be restored
      * @param set_to change value after construction
      */
-    AutoRestore(T &ref, T set_to)
+    [[nodiscard]] AutoRestore(T &ref, T set_to)
         : ref(ref)
         , val(ref) {
         ref = set_to;
@@ -34,7 +34,7 @@ public:
      *
      * @param ref reference to variable to be restored
      */
-    AutoRestore(T &ref)
+    [[nodiscard]] AutoRestore(T &ref)
         : ref(ref)
         , val(ref) {}
     /**

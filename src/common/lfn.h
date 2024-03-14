@@ -1,11 +1,10 @@
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
-
 /**
  * \brief Get the long file name of a given file.
  *
@@ -20,6 +19,18 @@ extern "C" {
  * internally, the short file name from the path might be returned.
  */
 void get_LFN(char *lfn, size_t lfn_size, char *path);
+
+/**
+ * \brief Get a SFN path for a given path.
+ *
+ * Given a full path to a file (either LFN or SFN, doesn't matter), converts
+ * the last part to SFN, in-place. This assumes LFN is never shorter than SFN,
+ * therefore the result can't overflow the buffer.
+ *
+ * This might fail internally (eg. for files that don't exist), in such case
+ * the path is not modified.
+ */
+void get_SFN_path(char *path);
 
 #ifdef __cplusplus
 }

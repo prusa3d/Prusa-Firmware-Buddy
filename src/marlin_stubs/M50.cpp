@@ -1,4 +1,7 @@
-//selftest
+/**
+ * @file
+ * @brief selftest
+ */
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 
@@ -7,9 +10,16 @@
 #include "z_calibration_fsm.hpp"
 #include "wizard_config.hpp"
 
-// M50 .. selftest
-// use M50 because M48 is test of Z probing (also some kind of test)
-// and M49 was used
+#include <option/has_gui.h>
+
+#if HAS_GUI()
+
+/**
+ * @brief selftest
+ *
+ * use M50 because M48 is test of Z probing (also some kind of test)
+ * and M49 was used
+ */
 void PrusaGcodeSuite::M50() {
     bool X_test = parser.seen('X');
     bool Y_test = parser.seen('Y');
@@ -20,7 +30,7 @@ void PrusaGcodeSuite::M50() {
     bool axis_test = X_test || Y_test || Z_test;
     bool fan_axis_test = axis_test || fan_test;
 
-    //no parameter? set all tests
+    // no parameter? set all tests
     if (!fan_axis_test && heater_test) {
         X_test = Y_test = Z_test = fan_test = heater_test = true;
 
@@ -28,12 +38,12 @@ void PrusaGcodeSuite::M50() {
     }
 
     {
-        FSM_Holder D(ClientFSM::SelftestAxis, 0);
+        FSM_HOLDER__LOGGING(SelftestAxis);
         const float target_Z = 20;
-        Z_Calib_FSM N(ClientFSM::SelftestAxis, GetPhaseIndex(PhasesG162::Parking), current_position.z, target_Z, 0, 100); //bind to variable and automatically notify progress
+        Z_Calib_FSM N(ClientFSM::SelftestAxis, GetPhaseIndex(PhasesSelftest::CalibZ), current_position.z, target_Z, 0, 100); // bind to variable and automatically notify progress
         do_blocking_move_to_z(20, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
-    /*    FSM_Holder D(ClientFSM::G162, 0);
+    /*    FSM_HOLDER__LOGGING(G162);
 
     // Z axis lift
     if (parser.seen('Z')) {
@@ -43,3 +53,9 @@ void PrusaGcodeSuite::M50() {
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }*/
 }
+
+#else
+
+void PrusaGcodeSuite::M50() {}
+
+#endif

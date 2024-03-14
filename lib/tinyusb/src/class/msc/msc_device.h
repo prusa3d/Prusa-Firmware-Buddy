@@ -1,4 +1,4 @@
-/* 
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Ha Thach (tinyusb.org)
@@ -130,6 +130,9 @@ TU_ATTR_WEAK uint8_t tud_msc_get_maxlun_cb(void);
 // - Start = 0 : stopped power mode, if load_eject = 1 : unload disk storage
 // - Start = 1 : active mode, if load_eject = 1 : load disk storage
 TU_ATTR_WEAK bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, bool load_eject);
+
+// Invoked when received REQUEST_SENSE
+TU_ATTR_WEAK int32_t tud_msc_request_sense_cb(uint8_t lun, void* buffer, uint16_t bufsize);
 
 // Invoked when Read10 command is complete
 TU_ATTR_WEAK void tud_msc_read10_complete_cb(uint8_t lun);

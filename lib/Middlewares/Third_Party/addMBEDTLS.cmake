@@ -1,0 +1,83 @@
+set(MBEDTLS_ROOT ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls)
+
+add_library(
+  mbedTLS
+  ${MBEDTLS_ROOT}/library/ssl_msg.c
+  ${MBEDTLS_ROOT}/library/aes.c
+  ${MBEDTLS_ROOT}/library/aesni.c
+  ${MBEDTLS_ROOT}/library/aria.c
+  ${MBEDTLS_ROOT}/library/asn1parse.c
+  ${MBEDTLS_ROOT}/library/asn1write.c
+  ${MBEDTLS_ROOT}/library/base64.c
+  ${MBEDTLS_ROOT}/library/constant_time.c
+  ${MBEDTLS_ROOT}/library/bignum.c
+  ${MBEDTLS_ROOT}/library/camellia.c
+  ${MBEDTLS_ROOT}/library/ccm.c
+  ${MBEDTLS_ROOT}/library/chacha20.c
+  ${MBEDTLS_ROOT}/library/chachapoly.c
+  ${MBEDTLS_ROOT}/library/cipher.c
+  ${MBEDTLS_ROOT}/library/cipher_wrap.c
+  ${MBEDTLS_ROOT}/library/cmac.c
+  ${MBEDTLS_ROOT}/library/ctr_drbg.c
+  ${MBEDTLS_ROOT}/library/debug.c
+  ${MBEDTLS_ROOT}/library/des.c
+  ${MBEDTLS_ROOT}/library/dhm.c
+  ${MBEDTLS_ROOT}/library/ecdh.c
+  ${MBEDTLS_ROOT}/library/ecdsa.c
+  ${MBEDTLS_ROOT}/library/ecjpake.c
+  ${MBEDTLS_ROOT}/library/ecp.c
+  ${MBEDTLS_ROOT}/library/ecp_curves.c
+  ${MBEDTLS_ROOT}/library/entropy.c
+  ${MBEDTLS_ROOT}/library/entropy_poll.c
+  ${MBEDTLS_ROOT}/library/error.c
+  ${MBEDTLS_ROOT}/library/gcm.c
+  ${MBEDTLS_ROOT}/library/hkdf.c
+  ${MBEDTLS_ROOT}/library/hmac_drbg.c
+  ${MBEDTLS_ROOT}/library/md.c
+  ${MBEDTLS_ROOT}/library/md5.c
+  ${MBEDTLS_ROOT}/library/memory_buffer_alloc.c
+  ${MBEDTLS_ROOT}/library/nist_kw.c
+  ${MBEDTLS_ROOT}/library/oid.c
+  ${MBEDTLS_ROOT}/library/padlock.c
+  ${MBEDTLS_ROOT}/library/pem.c
+  ${MBEDTLS_ROOT}/library/pk.c
+  ${MBEDTLS_ROOT}/library/pkcs11.c
+  ${MBEDTLS_ROOT}/library/pkcs12.c
+  ${MBEDTLS_ROOT}/library/pkcs5.c
+  ${MBEDTLS_ROOT}/library/pkparse.c
+  ${MBEDTLS_ROOT}/library/pkwrite.c
+  ${MBEDTLS_ROOT}/library/pk_wrap.c
+  ${MBEDTLS_ROOT}/library/platform.c
+  ${MBEDTLS_ROOT}/library/platform_util.c
+  ${MBEDTLS_ROOT}/library/poly1305.c
+  ${MBEDTLS_ROOT}/library/ripemd160.c
+  ${MBEDTLS_ROOT}/library/rsa.c
+  ${MBEDTLS_ROOT}/library/rsa_internal.c
+  ${MBEDTLS_ROOT}/library/sha1.c
+  ${MBEDTLS_ROOT}/library/sha256.c
+  ${MBEDTLS_ROOT}/library/sha512.c
+  ${MBEDTLS_ROOT}/library/ssl_cache.c
+  ${MBEDTLS_ROOT}/library/ssl_ciphersuites.c
+  ${MBEDTLS_ROOT}/library/ssl_cli.c
+  ${MBEDTLS_ROOT}/library/ssl_cookie.c
+  ${MBEDTLS_ROOT}/library/ssl_srv.c
+  ${MBEDTLS_ROOT}/library/ssl_ticket.c
+  ${MBEDTLS_ROOT}/library/ssl_tls.c
+  ${MBEDTLS_ROOT}/library/threading.c
+  ${MBEDTLS_ROOT}/library/timing.c
+  ${MBEDTLS_ROOT}/library/version.c
+  ${MBEDTLS_ROOT}/library/version_features.c
+  ${MBEDTLS_ROOT}/library/x509.c
+  ${MBEDTLS_ROOT}/library/x509write_crt.c
+  ${MBEDTLS_ROOT}/library/x509write_csr.c
+  ${MBEDTLS_ROOT}/library/x509_create.c
+  ${MBEDTLS_ROOT}/library/x509_crl.c
+  ${MBEDTLS_ROOT}/library/x509_crt.c
+  ${MBEDTLS_ROOT}/library/x509_csr.c
+  )
+
+target_include_directories(mbedTLS PUBLIC ${MBEDTLS_ROOT}/include ${MBEDTLS_ROOT}/include/mbedtls)
+
+target_compile_definitions(
+  mbedTLS PUBLIC MBEDTLS_CONFIG_FILE=\"${CMAKE_SOURCE_DIR}/include/mbedtls/cipher_config_ece.h\"
+  )

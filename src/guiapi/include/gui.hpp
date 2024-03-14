@@ -21,7 +21,7 @@ extern void gui_redraw(void);
 
 extern osThreadId gui_task_handle;
 
-#endif //GUI_USE_RTOS
+#endif // GUI_USE_RTOS
 
 #ifdef GUI_WINDOW_SUPPORT
     #include "window.hpp"
@@ -41,15 +41,16 @@ extern uint8_t gui_get_nesting(void);
 extern void gui_loop_cb();
 
 extern void gui_loop(void);
+extern void gui_error_run(void);
 
-extern void gui_reset_menu_timer();
+extern void gui_bare_loop(void);
 
-//meant to be use as MsgCircleBuffer().push_back(txt);
-static constexpr size_t MSG_STACK_SIZE = 8 + 1; //status message stack size
-static constexpr size_t MSG_MAX_LENGTH = 21;    //status message max length
+// meant to be use as MsgCircleBuffer().push_back(txt);
+inline constexpr size_t MSG_STACK_SIZE = 8 + 1; // status message stack size
+inline constexpr size_t MSG_MAX_LENGTH = 63; // status message max length
 using MsgBuff_t = CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH>;
 
 MsgBuff_t &MsgCircleBuffer();
 void MsgCircleBuffer_cb(const char *txt);
 
-#endif //GUI_WINDOW_SUPPORT
+#endif // GUI_WINDOW_SUPPORT
