@@ -952,6 +952,7 @@ Errors:
     text: ""
     id: "MOD_BED_MCU_MAX_TEMP"
     type: "CONNECT"
+    
   - code: "XX827"
     title: ""
     text: ""
@@ -995,4 +996,10 @@ Errors:
     title: ""
     text: ""
     id: "NOZZLE_CLEANING_FAILED"
+    type: "CONNECT"
+  - code: "XX834"
+    printers: [iX, MK4, MK3.5, MINI, XL]
+    title: ""
+    text: ""
+    id: "QUICK_PAUSE"
     type: "CONNECT"

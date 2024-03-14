@@ -33,6 +33,7 @@ Example: 12201
    dialogs to the server. If there's an error in one of the above categories, it
    is possible to reuse that error code directly, no need to create a duplicate
    one in this category.
+9. Other 
 
 More information about the error codes can be found at:
 [prusa.io/error-codes](https://prusa.io/error-codes)
