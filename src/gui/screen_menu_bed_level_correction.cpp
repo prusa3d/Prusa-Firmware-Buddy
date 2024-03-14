@@ -7,6 +7,17 @@ I_MI_CORRECT::I_MI_CORRECT(CorrectionIndex index)
     , index(index) {
 }
 
+void I_MI_CORRECT::Reset() {
+    SetVal(0);
+    // TODO It would be great if we could invalidate just the extension.
+    //      Unfortunately extension width is incorrectly recalculated
+    //      inside IWiSpin based on the new value. It would best be solved
+    //      by not recomputing the width at all. Such a change is too large
+    //      for a bugfix build so we are keeping it simple. For now,
+    //      we invalidate entire menu item and suffer some flickering.
+    Invalidate();
+}
+
 void I_MI_CORRECT::OnClick() {
     set_correction_value(index, GetVal());
 }
@@ -27,10 +38,10 @@ void ScreenMenuBedLevelCorrection::windowEvent(EventLock /*has private ctor*/, w
         set_correction_value(RIGHT, 0);
         set_correction_value(FRONT, 0);
         set_correction_value(REAR, 0);
-        Item<MI_CORRECT<LEFT>>().SetVal(0);
-        Item<MI_CORRECT<RIGHT>>().SetVal(0);
-        Item<MI_CORRECT<FRONT>>().SetVal(0);
-        Item<MI_CORRECT<REAR>>().SetVal(0);
+        Item<MI_CORRECT<LEFT>>().Reset();
+        Item<MI_CORRECT<RIGHT>>().Reset();
+        Item<MI_CORRECT<FRONT>>().Reset();
+        Item<MI_CORRECT<REAR>>().Reset();
     } else {
         SuperWindowEvent(sender, event, param);
     }

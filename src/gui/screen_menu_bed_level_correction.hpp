@@ -78,6 +78,7 @@ public:
     I_MI_CORRECT(CorrectionIndex);
 
     void OnClick() override;
+    void Reset();
 };
 
 template <CorrectionIndex INDEX>
