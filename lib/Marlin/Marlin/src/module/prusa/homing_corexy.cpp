@@ -321,6 +321,10 @@ bool refine_corexy_origin() {
         stepper.position(A_AXIS) + phase_backoff_steps(A_AXIS),
         stepper.position(B_AXIS) + phase_backoff_steps(B_AXIS)
     };
+
+    // sanity checks: don't remove these! Issues in repositioning are a result of planner/stepper
+    // calculation issues which will show up elsewhere and are NOT just mechanical issues. We need
+    // step-accuracy while homing! ask @wavexx when in doubt regarding these
     plan_corexy_raw_move(origin_steps, fr_mm_s);
     xy_long_t raw_move_diff = {
         stepper.position(A_AXIS) - origin_steps[A_AXIS],
@@ -335,7 +339,6 @@ bool refine_corexy_origin() {
         bsod("raw move didn't reach requested position");
     }
 
-    // sanity checks
     wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
     if (!phase_aligned(A_AXIS) || !phase_aligned(B_AXIS)) {
         if (planner.draining()) {
