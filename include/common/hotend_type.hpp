@@ -31,7 +31,7 @@ static constexpr EnumArray<HotendType, const char *, HotendType::_cnt> hotend_ty
 /// Some hotend types are only supported by some printers, but the enum is the same for all -> hence this filtering array
 static constexpr EnumArray<HotendType, bool, HotendType::_cnt> hotend_type_supported {
     { HotendType::stock, true },
-    { HotendType::stock_with_sock, true },
+    { HotendType::stock_with_sock, PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX },
     { HotendType::e3d_revo, PRINTER_IS_PRUSA_MK3_5 },
 };
 
