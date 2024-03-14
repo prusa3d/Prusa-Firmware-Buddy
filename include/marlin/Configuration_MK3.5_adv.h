@@ -1087,10 +1087,15 @@
 
 #if EITHER(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
 // Override the mesh area if the automatic (max) area is too large
-#define MESH_MIN_X 0
-#define MESH_MIN_Y 0
-#define MESH_MAX_X X_BED_SIZE
-#define MESH_MAX_Y Y_BED_SIZE
+// The numbers are from the distance equation combined with relative position due to probe offset MESH_X_DIST define and function position_reachable_by_probe from motion.h respectively
+
+// Positions were found by simple trial and error using G0.
+// Leftmost position for X is 225
+// Reartmost postition for Y is 204
+#define MESH_MIN_X (10.5f)
+#define MESH_MIN_Y (-10.5f)
+#define MESH_MAX_X (X_BED_SIZE + MESH_MIN_X)
+#define MESH_MAX_Y (Y_BED_SIZE - MESH_MIN_Y)
 #endif
 
 /**
