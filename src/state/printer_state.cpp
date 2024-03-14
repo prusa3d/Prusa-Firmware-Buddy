@@ -336,11 +336,11 @@ StateWithDialog get_state_with_dialog(bool ready) {
             return { state, attention_code, fsm_gen, responses };
         } // TODO: handle normal load unload
         break;
-    case ClientFSM::QuickPause:
-        // TODO
-        // const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesQuickPause>(top_change->get_data().GetPhase())).data();
-        // return { state, ErrCode::CONNECT_QUICK_PAUSE, fsm_gen, responses };
+    case ClientFSM::QuickPause: {
+        const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesQuickPause>(top_change->get_data().GetPhase())).data();
+        return { state, ErrCode::CONNECT_QUICK_PAUSE, fsm_gen, responses };
         break;
+    }
     case ClientFSM::CrashRecovery:
         if (auto attention_code = crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(top_change->get_data().GetPhase())); attention_code.has_value()) {
             const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesCrashRecovery>(top_change->get_data().GetPhase())).data();
