@@ -1322,6 +1322,7 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
     step_generator_state.previous_step_time_ticks = 0;
     step_generator_state.buffered_step.flags = 0;
     step_generator_state.current_distance = stepper.count_position_from_startup;
+    step_generator_state.current_distance.e = 0;
     step_generator_state.left_insert_start_of_move_segment = 0;
 
     // Reset step events and index
