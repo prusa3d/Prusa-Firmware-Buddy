@@ -11,8 +11,6 @@
 #include <common/marlin_server.hpp>
 #include <common/RAII.hpp>
 
-#include <algorithm>
-#include <exception>
 #include <optional>
 
 namespace PrusaGcodeSuite {
@@ -174,10 +172,10 @@ namespace {
             bsod("Invalid phase encountered.");
         }
 
-        return PhasesColdPull::pull_now;
+        return PhasesColdPull::automatic_pull;
     }
 
-    PhasesColdPull pull_now() {
+    PhasesColdPull automatic_pull() {
         thermalManager.setTargetHotend(HOTEND_END_TEMP, active_extruder);
         marlin_server::set_temp_to_display(HOTEND_END_TEMP, active_extruder);
 
@@ -188,14 +186,24 @@ namespace {
             plan_move_by(50, 0, 0, 0, -EXTRUDE_MAXLENGTH);
             planner.synchronize();
         }
+        return PhasesColdPull::manual_pull;
+    }
+
+    PhasesColdPull manual_pull() {
+        thermalManager.disable_hotend();
+        marlin_server::set_temp_to_display(0, active_extruder);
+
+        switch (wait_for_response(PhasesColdPull::manual_pull)) {
+        case Response::Continue:
+            break;
+        default:
+            bsod("Invalid phase encountered.");
+        }
+
         return PhasesColdPull::pull_done;
     }
 
     PhasesColdPull pull_done() {
-        // Turn off heating before waiting for user input to avoid heating idle warning.
-        thermalManager.disable_hotend();
-        marlin_server::set_temp_to_display(0, active_extruder);
-
         switch (wait_for_response(PhasesColdPull::pull_done)) {
         case Response::Finish:
             break;
@@ -220,8 +228,10 @@ namespace {
             return cool_down();
         case PhasesColdPull::heat_up:
             return heat_up();
-        case PhasesColdPull::pull_now:
-            return pull_now();
+        case PhasesColdPull::automatic_pull:
+            return automatic_pull();
+        case PhasesColdPull::manual_pull:
+            return manual_pull();
         case PhasesColdPull::pull_done:
             return pull_done();
         case PhasesColdPull::finish:
