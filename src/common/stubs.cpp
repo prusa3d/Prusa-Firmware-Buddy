@@ -10,6 +10,7 @@ void __assert_func(const char *file, int line, const char * /*func*/, const char
     if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
         buddy_disable_heaters(); // put HW to safe state
         __asm("BKPT #0\n"); /* Only halt mcu if debugger is attached */
+        __builtin_unreachable();
     } else
 #endif
         _bsod("ASSERT %s", file, line, msg);
