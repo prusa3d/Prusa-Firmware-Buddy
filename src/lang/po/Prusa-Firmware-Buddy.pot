@@ -1,14 +1,70 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# Prusa-Firmware-Buddy
+# Copyright (C) 2024 Prusa Research
 # This file is distributed under the same license as the Prusa-Firmware-Buddy package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Prusa Research <info@prusa3d.com>, 2024
 #
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:351
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:407
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:463
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:464
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:470
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:471
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:477
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:478
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:484
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:485
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:491
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:492
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:498
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:499
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:505
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:506
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:512
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:513
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:519
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:520
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:526
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:527
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:533
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:534
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:540
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:541
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:547
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:548
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:554
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:555
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:561
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:562
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:568
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:569
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:575
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:576
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:582
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:583
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:589
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:590
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:596
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:597
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:603
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:604
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:610
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:611
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:617
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:618
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:624
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:625
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:631
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:632
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:638
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:639
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:645
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:646
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2024-03-14 08:54+0100\n"
+"POT-Creation-Date: 2024-03-15 15:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -301,7 +357,7 @@ msgstr ""
 msgid "ABORT"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:584
+#: src/gui/screen_printing.cpp:610
 msgid "ABORTING ..."
 msgstr ""
 
@@ -382,7 +438,7 @@ msgstr ""
 msgid "Approx. %d min"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:97
+#: src/gui/screen_printing.cpp:99
 msgid "Are you sure to stop this printing?"
 msgstr ""
 
@@ -499,14 +555,16 @@ msgstr ""
 msgid "Bed leveling failed. Try again?"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:221
+#: src/gui/screen_cold_pull.cpp:174
+msgid ""
+"Before you continue,\n"
+"make sure that PLA filament is loaded."
+msgstr ""
+
+#: src/gui/screen_cold_pull.cpp:129
 msgid ""
 "Before you continue, make sure PLA filament is loaded directly into the "
 "extruder."
-msgstr ""
-
-#: src/gui/screen_cold_pull.cpp:219
-msgid "Before you continue, make sure that PLA filament is loaded."
 msgstr ""
 
 #: src/gui/screen_menu_selftest_snake.cpp:18
@@ -514,7 +572,8 @@ msgid ""
 "Before you continue, make sure the print sheet is installed on the heatbed."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:220
+#. For future use with XL/MMU; now here just for translations
+#: src/gui/screen_cold_pull.cpp:128
 msgid ""
 "Before you continue, unload the filament. Then press down the blue part on "
 "the fitting and pull the PTFE tube from the tool head."
@@ -822,20 +881,15 @@ msgstr ""
 msgid "Cold Pull"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:227
+#: src/gui/screen_cold_pull.cpp:266
+msgid "Cold Pull successfully completed"
+msgstr ""
+
+#. for XL only, enabled now because of translations
+#: src/gui/screen_cold_pull.cpp:270
 msgid ""
 "Cold Pull successfully completed. Insert PTFE tube back in the fitting. You "
 "can continue printing. If the issue persists, repeat this procedure again."
-msgstr ""
-
-#: src/gui/screen_cold_pull.cpp:226
-msgid ""
-"Cold Pull successfully completed. You can continue printing. If the issue "
-"persists, repeat this procedure again."
-msgstr ""
-
-#: src/gui/screen_cold_pull.cpp:253
-msgid "Cold pull has finished"
 msgstr ""
 
 #: src/gui/esp_frame_text.cpp:34
@@ -890,12 +944,8 @@ msgstr ""
 msgid "Cooling down. Do not touch the nozzle!"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:199
+#: src/gui/screen_cold_pull.cpp:211
 msgid "Cooling the nozzle"
-msgstr ""
-
-#: src/gui/screen_cold_pull.cpp:223
-msgid "Cooling the nozzle to 30 C. Don't touch the extruder."
 msgstr ""
 
 #: src/gui/MItem_crash.hpp:14
@@ -910,7 +960,7 @@ msgstr ""
 msgid "Crash Sensitivity XY"
 msgstr ""
 
-#: src/gui/screen_home.cpp:273
+#: src/gui/screen_home.cpp:274
 msgid ""
 "Crash detected. Save it to USB?\n"
 "\n"
@@ -1177,6 +1227,10 @@ msgstr ""
 msgid "Don't change"
 msgstr ""
 
+#: src/gui/screen_cold_pull.cpp:212
+msgid "Don't touch the extruder."
+msgstr ""
+
 #: src/gui/screen_help_fw_update.cpp:30
 msgid ""
 "Download and copy the firmware (.bbf) file to the USB flash drive. Insert "
@@ -1438,12 +1492,6 @@ msgstr ""
 
 #. //MSG_PROGRESS_OK c=4
 #. MMU-related
-#. //MSG_PROGRESS_OK c=4
-#. MMU-related
-#. //MSG_PROGRESS_OK c=4
-#. MMU-related
-#. //MSG_PROGRESS_OK c=4
-#. MMU-related
 #: src/mmu2/mmu2_progress_converter.cpp:8
 #: src/gui/dialogs/DialogLoadUnload.cpp:72
 msgid "Engaging idler"
@@ -1507,6 +1555,10 @@ msgstr ""
 #. for MK3.5 we call this option simply "Extruder"
 #: src/gui/MItem_mmu.hpp:408
 msgid "Extruder"
+msgstr ""
+
+#: src/gui/MItem_menus.hpp:539
+msgid "Extruder maintenance"
 msgstr ""
 
 #: src/gui/screen_menu_factory_reset.hpp:12
@@ -1585,7 +1637,7 @@ msgid ""
 "If you QUIT, all data up to this point is saved."
 msgstr ""
 
-#: src/gui/screen_printing.cpp:590
+#: src/gui/screen_printing.cpp:616
 msgid "FINISHED"
 msgstr ""
 
@@ -1875,6 +1927,10 @@ msgid ""
 "anyway?"
 msgstr ""
 
+#: src/gui/screen_cold_pull.cpp:173
+msgid "Filament check"
+msgstr ""
+
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:305
 msgid ""
 "Filament detected unexpectedly. Ensure no filament is loaded. Check the "
@@ -1882,7 +1938,9 @@ msgid ""
 msgstr ""
 
 #: src/gui/screen_print_preview.hpp:24
-msgid "Filament detected. Unload filament now? Select NO to cancel."
+msgid ""
+"Filament detected. Unload filament now? Select NO to start the print with "
+"the currently loaded filament."
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:110
@@ -1993,10 +2051,6 @@ msgstr ""
 
 #: src/common/footer_def.hpp:179
 msgid "Finda"
-msgstr ""
-
-#: src/gui/screen_phase_stepping.cpp:29
-msgid "Finishing"
 msgstr ""
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:48
@@ -2298,7 +2352,7 @@ msgid "HAL detected an I2C undefined error when sending data via I2C."
 msgstr ""
 
 #: src/gui/screen_menu_hardware_tune.hpp:24
-#: src/gui/screen_menu_hardware.hpp:119
+#: src/gui/screen_menu_hardware.hpp:120
 msgid "HARDWARE"
 msgstr ""
 
@@ -2567,17 +2621,13 @@ msgstr ""
 msgid "Heating disabled due to 30 minutes of inactivity."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:222
+#. Screen not in the implementation now; removed as not needed.
+#: src/gui/screen_cold_pull.cpp:132
 msgid "Heating the nozzle to 215 C. Don't touch the extruder."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:224
-msgid ""
-"Heating the nozzle to 80 C. The filament will be unloaded automatically."
-msgstr ""
-
-#: src/gui/screen_cold_pull.cpp:229
-msgid "Heating up nozzle"
+#: src/gui/screen_cold_pull.cpp:230
+msgid "Heating up the nozzle"
 msgstr ""
 
 #: src/gui/ScreenPrintingModel.cpp:22
@@ -2630,6 +2680,12 @@ msgstr ""
 
 #: src/gui/MItem_crash.hpp:55
 msgid "High"
+msgstr ""
+
+#: src/gui/screen_printing.cpp:331
+msgid ""
+"High failure rate of MMU changes, maintenance suggested. Visit prusa.io/mmu-"
+"maintenance for more information."
 msgstr ""
 
 #: src/gui/ScreenPrintingModel.cpp:24
@@ -2793,12 +2849,6 @@ msgstr ""
 
 #: src/gui/MItem_lan.hpp:108
 msgid "IPv4 Netmask"
-msgstr ""
-
-#: src/gui/screen_cold_pull.cpp:254
-msgid ""
-"If the filament is stuck,open the idler\n"
-"and pull the rest out."
 msgstr ""
 
 #: src/gui/screen_change_filter.cpp:29
@@ -3562,7 +3612,7 @@ msgid ""
 "prusa.io/%05u"
 msgstr ""
 
-#: src/gui/screen_phase_stepping.cpp:205
+#: src/gui/screen_phase_stepping.cpp:204
 #, c-format
 msgid "Motor %c vibration reduced by %2d%%"
 msgstr ""
@@ -3606,7 +3656,7 @@ msgid "Moving up"
 msgstr ""
 
 #: src/guiapi/include/WindowItemFormatableLabel.hpp:18
-#: src/gui/screen_printing.cpp:113
+#: src/gui/screen_printing.cpp:115
 msgid "N/A"
 msgstr ""
 
@@ -3698,7 +3748,7 @@ msgstr ""
 msgid "Newer FW req.: %s"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:495
+#: src/gui/screen_printing.cpp:521
 msgid "Next change in"
 msgstr ""
 
@@ -3993,11 +4043,11 @@ msgstr ""
 msgid "PAUSE"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:581
+#: src/gui/screen_printing.cpp:607
 msgid "PAUSED"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:577
+#: src/gui/screen_printing.cpp:603
 msgid "PAUSING ..."
 msgstr ""
 
@@ -4007,10 +4057,6 @@ msgstr ""
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:50
 msgid "PIN NOT REACHED"
-msgstr ""
-
-#: src/gui/screen_cold_pull.cpp:166
-msgid "PLA filament is required"
 msgstr ""
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:246
@@ -4143,13 +4189,19 @@ msgid ""
 "sensors calibration. The extruder will be replaced during calibration"
 msgstr ""
 
+#: src/gui/screen_printing.cpp:334
+msgid ""
+"Performed many MMU changes, maintenance suggested. Visit prusa.io/mmu-"
+"maintenance for more information."
+msgstr ""
+
 #. //MSG_PROGRESS_PUSH_FILAMENT c=20
 #: src/mmu2/mmu2_progress_converter.cpp:26
 #: src/gui/dialogs/DialogLoadUnload.cpp:89
 msgid "Performing cut"
 msgstr ""
 
-#: src/gui/screen_phase_stepping.cpp:216
+#: src/gui/screen_phase_stepping.cpp:215
 msgid "Phase stepping calibration completed"
 msgstr ""
 
@@ -4327,10 +4379,6 @@ msgstr ""
 msgid "Preload to MMU Advanced"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:230
-msgid "Prepare to pull the fillament."
-msgstr ""
-
 #: src/gui/wizard/selftest_frame_nozzle_diameter.cpp:31
 #: src/gui/wizard/selftest_frame_temp.cpp:58
 msgid "Preparing"
@@ -4489,10 +4537,6 @@ msgstr ""
 msgid ""
 "Prusa Connect setup is not finished. Do you want to exit and abort the "
 "process?"
-msgstr ""
-
-#: src/gui/screen_cold_pull.cpp:242
-msgid "Pull the filament now"
 msgstr ""
 
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:39
@@ -4683,10 +4727,8 @@ msgid ""
 "Tip: Filament is automatically ejected when the end of the spool is reached."
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:225
-msgid ""
-"Remove the filament manually, there might be a slight resistance. If the "
-"filament is stuck, open the idler lever."
+#: src/gui/screen_cold_pull.cpp:254
+msgid "Remove the filament manually"
 msgstr ""
 
 #: src/gui/screen_menu_steel_sheets.hpp:55
@@ -4719,6 +4761,10 @@ msgstr ""
 
 #: src/gui/MItem_tools.cpp:218
 msgid "Reset complete. The system will now restart."
+msgstr ""
+
+#: src/gui/MItem_menus.cpp:668
+msgid "Reset the extruder maintenance reminder?"
 msgstr ""
 
 #: src/gui/MItem_basic_selftest.hpp:186
@@ -4821,7 +4867,7 @@ msgstr ""
 msgid "STOP"
 msgstr ""
 
-#: src/gui/screen_printing.cpp:587
+#: src/gui/screen_printing.cpp:613
 msgid "STOPPED"
 msgstr ""
 
@@ -4855,7 +4901,7 @@ msgstr ""
 msgid "Saving selected value"
 msgstr ""
 
-#: src/gui/screen_home.cpp:289
+#: src/gui/screen_home.cpp:290
 msgid "Saving to USB"
 msgstr ""
 
@@ -5407,7 +5453,7 @@ msgstr ""
 msgid "TUNE"
 msgstr ""
 
-#: src/gui/screen_cold_pull.cpp:200
+#: src/gui/screen_cold_pull.cpp:213
 msgid "Takes too long, will skip soon."
 msgstr ""
 
@@ -5577,6 +5623,10 @@ msgid ""
 "again."
 msgstr ""
 
+#: src/gui/screen_cold_pull.cpp:231
+msgid "The filament will be unloaded automatically."
+msgstr ""
+
 #: src/transfers/transfer_recovery.cpp:222
 msgid "The file disappeared"
 msgstr ""
@@ -5638,6 +5688,12 @@ msgid ""
 "Disable filament sensor and print anyway?"
 msgstr ""
 
+#: src/gui/screen_cold_pull.cpp:255
+msgid ""
+"There might be a slight resistance.\n"
+"If the filament is stuck, open the idler lever."
+msgstr ""
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:310
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:492
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:520
@@ -5692,7 +5748,7 @@ msgid ""
 "selected tool for the SPOOL JOIN functionality?"
 msgstr ""
 
-#: src/gui/screen_home.cpp:328
+#: src/gui/screen_home.cpp:329
 msgid ""
 "This firmware is still\n"
 "in development.\n"
@@ -6018,7 +6074,7 @@ msgstr ""
 msgid "Touch Sig Workaround"
 msgstr ""
 
-#: src/gui/screen_home.cpp:318
+#: src/gui/screen_home.cpp:319
 msgid ""
 "Touch disabled. This feature is work-in-progress and is going to be fully "
 "available in a future update."
@@ -6238,7 +6294,7 @@ msgstr ""
 msgid "Unload Filament"
 msgstr ""
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:55
+#: src/gui/screen_cold_pull.cpp:243 src/gui/dialogs/DialogLoadUnload.cpp:55
 msgid "Unloading"
 msgstr ""
 
@@ -6408,11 +6464,10 @@ msgstr ""
 msgid "Wed"
 msgstr ""
 
-#. Texts that will be used in Cold Pull dialog. They have to be translated before dialog changes are applied, due to lack of time.
-#: src/gui/screen_cold_pull.cpp:218
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:457
 msgid ""
 "Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and "
-"follow the instructions. For more details, visit: prusa.io/coldpull"
+"follow the instructions. For more details, visit:"
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_wizard_prologue.cpp:14
@@ -6446,7 +6501,7 @@ msgstr ""
 msgid "Wi-Fi (ESP) module firmware updater."
 msgstr ""
 
-#: src/gui/screen_home.cpp:406
+#: src/gui/screen_home.cpp:407
 msgid ""
 "Wi-Fi credentials (SSID and password) discovered on the USB flash drive. "
 "Would you like to connect your printer to Wi-Fi now?"
@@ -6535,6 +6590,12 @@ msgstr ""
 
 #: src/common/client_response_texts.hpp:130
 msgid "YES"
+msgstr ""
+
+#: src/gui/screen_cold_pull.cpp:267
+msgid ""
+"You can continue printing. If the issue persists,\n"
+"repeat this procedure again."
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_loadcell.cpp:100
