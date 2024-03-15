@@ -11,9 +11,6 @@
 #include <ctime>
 #include "option/development_items.h"
 
-#define FLG_SET(VAR, FLAG)   VAR = VAR | (FLAG)
-#define FLG_CLEAR(VAR, FLAG) VAR = VAR & ~(FLAG)
-
 #if DEVELOPMENT_ITEMS()
 static constexpr int64_t expiration_deadline_sec = 2 * 3600; // TEST values
 static constexpr int64_t expiration_warning_sec = 1 * 3600; // TEST values
@@ -51,43 +48,40 @@ static bool is_same(const char *curr_filament, const GCodeInfo::filament_buff &f
 Enclosure xl_enclosure;
 
 Enclosure::Enclosure()
-    : config_flags(config_store().xl_enclosure_config_flags.get())
+    : persistent_flags(config_store().xl_enclosure_flags.get())
     , runtime_flags(0)
-    , mode(EnclosureMode::IDLE)
+    , user_rpm(config_store().xl_enclosure_fan_manual.get())
+    , active_mode(EnclosureMode::Idle)
     , post_print_timer_sec(0)
+    , print_start_sec(0)
+    , print_end_sec(0)
+    , filter_postpone_sec(0)
+    , fan_presence_test_sec(0)
     , previous_print_state(marlin_server::State::Idle)
     , active_dwarf_board_temp(INVALID_TEMPERATURE) {
 
     // Set up timers
     last_timer_update_sec = last_sec = ticks_s();
-    print_start_sec = print_end_sec = fan_presence_test_sec = 0;
 }
 
 std::optional<WarningType> Enclosure::testFanPresence(uint32_t curr_tick) {
-    std::optional<WarningType> ret;
-    if (fan_presence_test_sec == 0) {
-        fan_presence_test_sec = curr_tick;
-        Fans::enclosure().setPWM(pwm_on_50_percent);
-        return ret;
-    }
+    std::optional<WarningType> ret = std::nullopt;
     if (curr_tick - fan_presence_test_sec >= fan_presence_test_period_sec) {
         if (Fans::enclosure().getRPMIsOk()) {
-            mode = EnclosureMode::ACTIVE;
-            config_store().xl_enclosure_config_flags.set(config_flags);
+            setPersistentFlg(PERSISTENT::ENABLED);
+            active_mode = EnclosureMode::Active;
         } else {
-            FLG_CLEAR(config_flags, CONFIG::ENABLED);
-            config_store().xl_enclosure_config_flags.set(config_flags);
-            mode = EnclosureMode::IDLE;
-            ret = std::make_optional<WarningType>(WarningType::EnclosureFanError);
+            clrPersistentFlg(PERSISTENT::ENABLED);
+            active_mode = EnclosureMode::Idle;
+            ret = { WarningType::EnclosureFanError };
         }
-        Fans::enclosure().setPWM(0);
         fan_presence_test_sec = 0;
     }
     return ret;
 }
 
 bool Enclosure::testFanTacho() {
-    if (isEnabled() && isFanOn()) {
+    if (isEnabled() && Fans::enclosure().getPWM() != 0) {
         auto state = Fans::enclosure().getState();
         return (state == CFanCtlCommon::FanState::running || state == CFanCtlCommon::FanState::error_running || state == CFanCtlCommon::FanState::error_starting) && !Fans::enclosure().getRPMIsOk();
     }
@@ -96,42 +90,38 @@ bool Enclosure::testFanTacho() {
 
 void Enclosure::setEnabled(bool enable) {
     if (enable) {
-        FLG_SET(config_flags, CONFIG::ENABLED);
+        setPersistentFlg(PERSISTENT::ENABLED);
     } else {
-        FLG_CLEAR(config_flags, CONFIG::ENABLED);
+        clrPersistentFlg(PERSISTENT::ENABLED);
     }
-    config_store().xl_enclosure_config_flags.set(config_flags);
 }
 
 void Enclosure::setAlwaysOn(bool enable) {
     if (enable) {
-        FLG_SET(config_flags, CONFIG::ALWAYS_ON);
+        setPersistentFlg(PERSISTENT::ALWAYS_ON);
     } else {
-        FLG_CLEAR(config_flags, CONFIG::ALWAYS_ON);
+        clrPersistentFlg(PERSISTENT::ALWAYS_ON);
     }
-    config_store().xl_enclosure_config_flags.set(config_flags);
 }
 
 void Enclosure::setPostPrint(bool enable) {
     if (enable) {
-        FLG_SET(config_flags, CONFIG::POST_PRINT);
+        setPersistentFlg(PERSISTENT::POST_PRINT);
     } else {
-        FLG_CLEAR(config_flags, CONFIG::POST_PRINT);
+        clrPersistentFlg(PERSISTENT::POST_PRINT);
     }
-    config_store().xl_enclosure_config_flags.set(config_flags);
 }
 
 int Enclosure::getEnclosureTemperature() {
-    if (isTempValid() && active_dwarf_board_temp != INVALID_TEMPERATURE) {
+    if (isTemperatureValid() && active_dwarf_board_temp != INVALID_TEMPERATURE) {
         return active_dwarf_board_temp + dwarf_board_temp_model_difference;
     }
     return INVALID_TEMPERATURE;
 }
 
 void Enclosure::resetFilterTimer() {
-    FLG_CLEAR(config_flags, CONFIG::WARNING_SHOWN | CONFIG::EXPIRATION_SHOWN);
+    clrPersistentFlg(PERSISTENT::WARNING_SHOWN | PERSISTENT::EXPIRATION_SHOWN);
     config_store().xl_enclosure_filter_timer.set(0);
-    config_store().xl_enclosure_config_flags.set(config_flags);
 }
 
 void Enclosure::setUpReminder(Response response) {
@@ -143,8 +133,7 @@ void Enclosure::setUpReminder(Response response) {
         // RTC time is saved in EEPROM (xl_enclosure_filter_timer) on filter expiration
         // Check if RTC is initialized
         if (int64_t t = time(nullptr); t != static_cast<time_t>(-1)) {
-            FLG_SET(config_flags, CONFIG::REMINDER_5DAYS);
-            config_store().xl_enclosure_config_flags.set(config_flags);
+            setPersistentFlg(PERSISTENT::REMINDER_5DAYS);
             config_store().xl_enclosure_filter_timer.set(t); // Reuse filter counter for 5 day reminder - set timestamp of expiration
         } else {
             // Do not set REMINDER_5DAY flag, with uninitialized RTC there is no way to measure off-power time -> Expiration dialog pops up on every print start
@@ -162,7 +151,7 @@ void Enclosure::setUpReminder(Response response) {
 
 void Enclosure::updateTempValidationTimer(uint32_t curr_sec) {
     if (curr_sec - print_start_sec >= footer_temp_delay_sec) {
-        FLG_SET(runtime_flags, RUNTIME::TEMP_VALID);
+        setRuntimeFlg(RUNTIME::TEMP_VALID);
         print_start_sec = 0;
     }
 }
@@ -179,26 +168,24 @@ bool Enclosure::updatePostPrintFiltrationTimer(uint32_t curr_sec) {
 // Expiration timer + Expiration warning timer
 // expiration_shown flag and xl_enclosure_filter_timer EEPROM value are reused for 5 day reminder
 std::optional<WarningType> Enclosure::updateFilterExpirationTimer(uint32_t delta_sec) {
-    std::optional<WarningType> ret;
+    std::optional<WarningType> ret = std::nullopt;
     int64_t expiration_timer = config_store().xl_enclosure_filter_timer.get();
 
     if (isExpirationShown()) {
         // 5 day reminder after filter already expired (RTC time)
-        if (is5DayReminderSet() && time(nullptr) - expiration_timer >= expiration_5day_reminder_period_sec) {
-            ret = std::make_optional<WarningType>(WarningType::EnclosureFilterExpiration);
+        if (isReminderSet() && time(nullptr) - expiration_timer >= expiration_5day_reminder_period_sec) {
+            ret = { WarningType::EnclosureFilterExpiration };
         }
         return ret;
     }
 
     // check filter expiration
     if (!isWarningShown() && expiration_timer + delta_sec >= expiration_warning_sec) {
-        FLG_SET(config_flags, CONFIG::WARNING_SHOWN);
-        config_store().xl_enclosure_config_flags.set(config_flags);
-        ret = std::make_optional<WarningType>(WarningType::EnclosureFilterExpirWarning);
+        setPersistentFlg(PERSISTENT::WARNING_SHOWN);
+        ret = { WarningType::EnclosureFilterExpirWarning };
     } else if (!isExpirationShown() && expiration_timer + delta_sec >= expiration_deadline_sec) {
-        FLG_SET(config_flags, CONFIG::EXPIRATION_SHOWN);
-        config_store().xl_enclosure_config_flags.set(config_flags);
-        return std::make_optional<WarningType>(WarningType::EnclosureFilterExpiration);
+        setPersistentFlg(PERSISTENT::EXPIRATION_SHOWN);
+        return { WarningType::EnclosureFilterExpiration };
     }
 
     expiration_timer += delta_sec;
@@ -229,143 +216,146 @@ uint32_t Enclosure::setUpPostPrintFiltrationPeriod() {
 }
 
 std::optional<WarningType> Enclosure::checkPrintState(marlin_server::State print_state, uint32_t curr_sec) {
-    std::optional<WarningType> ret;
+
+    std::optional<WarningType> ret = std::nullopt;
     if (print_state == marlin_server::State::Printing) {
         if (!isPrinting()) {
             // PRINT STARTED - can be Start / Resume / Recovery
-            FLG_SET(runtime_flags, RUNTIME::PRINTING);
-            FLG_CLEAR(runtime_flags, RUNTIME::TEMP_VALID);
+            setRuntimeFlg(RUNTIME::PRINTING);
+            clrRuntimeFlg(RUNTIME::TEMP_VALID);
             print_start_sec = curr_sec;
             print_end_sec = 0;
             post_print_timer_sec = setUpPostPrintFiltrationPeriod();
 
             // Pop up expiration dialog
-            if (isExpirationShown() && !is5DayReminderSet() && (previous_print_state == marlin_server::State::PrintInit || previous_print_state == marlin_server::State::SerialPrintInit)) {
+            if (isExpirationShown() && !isReminderSet() && (previous_print_state == marlin_server::State::PrintInit || previous_print_state == marlin_server::State::SerialPrintInit)) {
                 // Print start (except for resuming)
-                ret = std::make_optional<WarningType>(WarningType::EnclosureFilterExpiration);
+                ret = { WarningType::EnclosureFilterExpiration };
             }
         }
     } else {
         if (isPrinting()) {
             // PRINT ENDED - can be Pause / Abort / Crash / Power Panic
-            FLG_CLEAR(runtime_flags, RUNTIME::PRINTING | RUNTIME::TEMP_VALID);
-            FLG_SET(runtime_flags, RUNTIME::POST_PRINT);
-            print_end_sec = curr_sec;
+            clrRuntimeFlg(RUNTIME::PRINTING | RUNTIME::TEMP_VALID);
+            if (isPostPrintEnabled()) {
+                setRuntimeFlg(RUNTIME::ACTIVE_POST_PRINT);
+                print_end_sec = curr_sec;
+            }
             print_start_sec = 0;
         }
     }
     return ret;
 }
 
-uint8_t Enclosure::getFanPwm() {
-    uint8_t percentage = config_store().xl_enclosure_fan_manual.get();
-    FLG_CLEAR(runtime_flags, RUNTIME::RPM_CHANGE);
-    return (FANCTLENCLOSURE_PWM_MAX * percentage) / 100;
+uint8_t Enclosure::getPwmFromMode() const {
+
+    switch (active_mode) {
+
+    case EnclosureMode::Idle:
+        return isEnabled() ? pwm_on_50_percent : 0;
+
+    case EnclosureMode::Test:
+        return pwm_on_50_percent;
+
+    case EnclosureMode::Active:
+        if (isCooling()) {
+            return FANCTLENCLOSURE_PWM_MAX;
+        }
+
+        if ((isAlwaysOnEnabled() && isPrinting()) || (isPostPrintEnabled() && isPostPrintActive())) {
+            return (FANCTLENCLOSURE_PWM_MAX * user_rpm) / 100;
+        }
+
+        return 0;
+    }
+
+    return 0;
 }
 
 std::optional<WarningType> Enclosure::loop(int32_t MCU_modular_bed_temp, int16_t dwarf_board_temp, marlin_server::State print_state) {
-    std::optional<WarningType> ret;
 
     // 1s loop delay
     uint32_t curr_sec = ticks_s();
     if (curr_sec - last_sec < tick_delay_sec) {
-        return ret;
+        return std::nullopt;
     }
 
     last_sec = curr_sec;
     active_dwarf_board_temp = dwarf_board_temp; // update actual temp of active dwarf board
 
-    ret = checkPrintState(print_state, curr_sec);
+    std::optional<WarningType> warning_opt = checkPrintState(print_state, curr_sec);
     previous_print_state = print_state;
-    if (ret.has_value()) {
-        return ret; // Expiration reminder on the start of every print
+
+    // Deactivated enclosure
+    if (!isEnabled() && active_mode != EnclosureMode::Idle) {
+        active_mode = EnclosureMode::Idle;
+        clrRuntimeFlg(RUNTIME::ACTIVE_COOLING | RUNTIME::ACTIVE_POST_PRINT | RUNTIME::TEMP_VALID);
     }
 
-    // Deactivate enclosure
-    if (!isEnabled() && mode != EnclosureMode::IDLE) {
-        mode = EnclosureMode::IDLE;
-        FLG_CLEAR(runtime_flags, RUNTIME::FAN_ON | RUNTIME::COOLING | RUNTIME::POST_PRINT | RUNTIME::RPM_CHANGE | RUNTIME::TEMP_VALID);
-        Fans::enclosure().setPWM(0);
-    }
+    switch (active_mode) {
+    case EnclosureMode::Idle:
 
-    switch (mode) {
-    case EnclosureMode::IDLE:
         if (isEnabled()) {
-            mode = EnclosureMode::TEST;
-            fan_presence_test_sec = 0;
-            testFanPresence(curr_sec);
+            active_mode = EnclosureMode::Test;
+            fan_presence_test_sec = curr_sec;
         }
-        return ret;
-    case EnclosureMode::TEST:
-        ret = testFanPresence(curr_sec);
-        return ret;
-    case EnclosureMode::ACTIVE:
+        break;
+
+    case EnclosureMode::Test:
+
+        warning_opt = testFanPresence(curr_sec);
+        break;
+
+    case EnclosureMode::Active: {
+
         if (testFanTacho()) {
-            FLG_CLEAR(config_flags, CONFIG::ENABLED);
-            FLG_CLEAR(runtime_flags, RUNTIME::FAN_ON | RUNTIME::COOLING | RUNTIME::POST_PRINT | RUNTIME::TEMP_VALID);
-            Fans::enclosure().setPWM(0);
-            return WarningType::EnclosureFanError;
-        }
-        // Performing MCU cooling has a priority
-        // Fan start threshold >= 80°C
-        // Fan stop threshold < 75°C
-        if (!isCooling() && MCU_modular_bed_temp >= fan_start_temp_treshold) {
-
-            FLG_SET(runtime_flags, RUNTIME::COOLING | RUNTIME::FAN_ON);
-
-            Fans::enclosure().setPWM(FANCTLENCLOSURE_PWM_MAX); // MCU cooling runs the fan at 100% speed
-        } else if (isCooling() && MCU_modular_bed_temp < fan_stop_temp_treshold) {
-
-            FLG_CLEAR(runtime_flags, RUNTIME::COOLING);
-
-            if (isAlwaysOn() && (isPrinting() || isPostPrintActive())) {
-                // FAN_ON stays true, continue with filtration
-                Fans::enclosure().setPWM(getFanPwm());
-            } else {
-                FLG_CLEAR(runtime_flags, RUNTIME::FAN_ON);
-                Fans::enclosure().setPWM(0);
-            }
+            clrPersistentFlg(PERSISTENT::ENABLED);
+            clrRuntimeFlg(RUNTIME::ACTIVE_COOLING | RUNTIME::ACTIVE_POST_PRINT | RUNTIME::TEMP_VALID);
+            warning_opt = { WarningType::EnclosureFanError };
+            break;
         }
 
-        // Filtration (active fan) for the whole printing
-        if (isAlwaysOn() && isPrinting() && !isFanOn()) {
-            FLG_SET(runtime_flags, RUNTIME::FAN_ON);
-            Fans::enclosure().setPWM(getFanPwm());
-        }
-
-        // React on manual rpm change (flag is cleared by getFanPwm)
-        if (isFanOn() && isRMPChanged()) {
-            Fans::enclosure().setPWM(getFanPwm());
-        }
-
-        // Update active fan timers
-        if (!isTempValid() && isPrinting() && print_start_sec != 0) {
+        // Update temperature validation timer (even during MCU Cooling)
+        if (!isTemperatureValid() && isPrinting() && print_start_sec != 0) {
             updateTempValidationTimer(curr_sec);
         }
 
-        // Post print filtration handles switching off the fan
-        // It can be turned on/off and time period is calculated beforehand on print start by checkPrintState()
-        if (isPostPrintActive() && (!isPostPrintEnabled() || print_end_sec == 0 || updatePostPrintFiltrationTimer(curr_sec))) {
-            FLG_CLEAR(runtime_flags, RUNTIME::POST_PRINT | RUNTIME::FAN_ON | RUNTIME::TEMP_VALID);
-            Fans::enclosure().setPWM(0);
+        // MCU Cooling has a priority and cannot be overriden by Always On / Post Print / Users manual RPM change
+        if (!isCooling() && MCU_modular_bed_temp >= fan_start_temp_treshold) {
+            setRuntimeFlg(RUNTIME::ACTIVE_COOLING);
+        } else if (isCooling() && MCU_modular_bed_temp < fan_stop_temp_treshold) {
+            clrRuntimeFlg(RUNTIME::ACTIVE_COOLING);
         }
 
-        break;
-    default:
-        break;
+        if (isCooling() || (isAlwaysOnEnabled() && isPrinting())) {
+            break;
+        }
+
+        if (isPostPrintEnabled() && isPostPrintActive()) {
+            if (print_end_sec == 0 || updatePostPrintFiltrationTimer(curr_sec)) {
+                clrRuntimeFlg(RUNTIME::ACTIVE_POST_PRINT | RUNTIME::TEMP_VALID);
+            }
+        }
+
+    } break;
     }
 
-    if (!isFanOn()) {
+    // Control Fan PWM
+    const uint8_t fan_pwm = getPwmFromMode();
+    Fans::enclosure().setPWM(fan_pwm);
+
+    if (!isActive() || fan_pwm == 0) {
         last_timer_update_sec = curr_sec;
-        FLG_CLEAR(runtime_flags, RUNTIME::TEMP_VALID);
-        return ret;
     }
 
-    // Check timer every minute of active FAN_ON - longer period because it writes to EEPROM
+    // Check timer every minute of active fan - longer period because it writes to EEPROM
     if (curr_sec - last_timer_update_sec >= timers_update_period_sec) {
         // Filter expiration notification
-        ret = updateFilterExpirationTimer(curr_sec - last_timer_update_sec);
+        std::optional<WarningType> expir_warning = updateFilterExpirationTimer(curr_sec - last_timer_update_sec);
+        if (expir_warning.has_value()) {
+            warning_opt = expir_warning;
+        }
         last_timer_update_sec = curr_sec;
     }
-    return ret;
+    return warning_opt;
 }
