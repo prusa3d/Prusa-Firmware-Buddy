@@ -169,6 +169,12 @@ if(HAS_MMU2)
   get_dependency_version("firmware-mmu" mmu_fw_version)
 
   file(GLOB mmu_fw_hex_file "${mmu_fw_dir}/*.hex")
+  if(NOT EXISTS "${mmu_fw_hex_file}")
+    message(
+      FATAL_ERROR
+        "Failed to locate MMU FW in .dependencies. You probably need to rerun bootstrap.py"
+      )
+  endif()
 
   set(mmu_fw_file_base "${CMAKE_CURRENT_BINARY_DIR}/mmu_fw_${mmu_fw_version}")
   set(mmu_fw_adj_hex_file "${mmu_fw_file_base}.hex")
