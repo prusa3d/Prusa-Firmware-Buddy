@@ -116,10 +116,6 @@ static int16_t phase_backoff_steps(const AxisEnum axis) {
 static bool phase_aligned(AxisEnum axis) {
     int16_t phase_cur = axis_mscnt(axis);
     int16_t ustep_max = phase_per_ustep(axis) / 2;
-#if HAS_BURST_STEPPING()
-    // TODO: temporarily allow for one logical phase of change until motion is step-exact
-    ustep_max += phase_per_ustep(axis);
-#endif
     return (phase_cur <= ustep_max || phase_cur >= (1024 - ustep_max));
 }
 
