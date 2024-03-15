@@ -1,6 +1,6 @@
 #include "MItem_hardware.hpp"
 #include "ScreenHandler.hpp"
-#include "menu_spin_config.hpp"
+#include "WindowMenuSpin.hpp"
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor.h>
 
@@ -11,14 +11,16 @@
     #endif /*HAS_SIDE_FSENSOR()*/
 #endif /*HAS_TOOLCHANGER()*/
 
+static constexpr SpinConfig<float> nozzle_diameter_spin_config { { 0.25, 1.00, 0.05 }, SpinUnit::millimeter, spin_off_opt_t::no, "%0.2f" };
+
 #if ENABLED(PRUSA_TOOLCHANGER)
 MI_NOZZLE_DIAMETER::MI_NOZZLE_DIAMETER(int tool_idx, is_hidden_t with_toolchanger)
-    : WiSpinFlt(get_eeprom(tool_idx), SpinCnf::nozzle_diameter, _(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? with_toolchanger : is_hidden_t::no) //< Hide if toolchanger is enabled
+    : WiSpinFlt(get_eeprom(tool_idx), nozzle_diameter_spin_config, _(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? with_toolchanger : is_hidden_t::no) //< Hide if toolchanger is enabled
     , tool_idx(tool_idx) {
 }
 #else /*ENABLED(PRUSA_TOOLCHANGER)*/
 MI_NOZZLE_DIAMETER::MI_NOZZLE_DIAMETER(int tool_idx, [[maybe_unused]] is_hidden_t with_toolchanger)
-    : WiSpinFlt(get_eeprom(tool_idx), SpinCnf::nozzle_diameter, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
+    : WiSpinFlt(get_eeprom(tool_idx), nozzle_diameter_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , tool_idx(tool_idx) {
 }
 #endif /*ENABLED(PRUSA_TOOLCHANGER)*/

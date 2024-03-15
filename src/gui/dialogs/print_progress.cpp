@@ -6,7 +6,7 @@
 
 #include "print_progress.hpp"
 #include <guiconfig/GuiDefaults.hpp>
-#include "menu_spin_config.hpp"
+#include "WindowMenuSpin.hpp"
 #include "fonts.hpp"
 #include "gcode_thumb_decoder.h"
 #include <config_store/store_instance.hpp>
@@ -77,7 +77,7 @@ static_assert(height(progress_num_font) <= progress_num_height);
 } // namespace
 
 PrintProgress::PrintProgress(window_t *parent)
-    : AddSuperWindow<DialogTimed>(getTime() > SpinCnf::print_progress.Min() ? parent : nullptr, GuiDefaults::RectScreen, 1000 * getTime())
+    : AddSuperWindow<DialogTimed>(getTime() > print_progress_spin_config.Min() ? parent : nullptr, GuiDefaults::RectScreen, 1000 * getTime())
     , estime_label(this, Rect16(text_left_side_offset, text_baseline_y, left_column_width, text_label_height), is_multiline::no)
     , estime_value(this, Rect16(text_left_side_offset, text_baseline_y + text_label_height + text_value_y_offset, left_column_width
 #ifdef USE_ILI9488 // adding middle_column_width because middle column is currently unused & the left estime_value doesn't have enough space to hold the current version of all the data
@@ -124,7 +124,7 @@ void PrintProgress::init_gcode_info() {
 
 uint16_t PrintProgress::getTime() {
     int val = config_store().print_progress_time.get();
-    val = std::clamp(val, SpinCnf::print_progress.Min(), SpinCnf::print_progress.Max());
+    val = std::clamp(val, print_progress_spin_config.Min(), print_progress_spin_config.Max());
     return val;
 }
 

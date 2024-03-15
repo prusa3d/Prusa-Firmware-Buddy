@@ -1,7 +1,7 @@
 
 #include "Mitem_enclosure.hpp"
 #include "img_resources.hpp"
-#include "menu_spin_config.hpp"
+#include "WindowMenuSpin.hpp"
 #include "xl_enclosure.hpp"
 #include "ScreenHandler.hpp"
 #include "screen_change_filter.hpp"
@@ -50,8 +50,10 @@ MI_ENCLOSURE_FILTER_COUNTER::MI_ENCLOSURE_FILTER_COUNTER()
     ChangeInformation(_(time_info));
 }
 
+static constexpr SpinConfig<int> enclosure_fan_spin_config { { 40, 100, 1 }, SpinUnit::percent };
+
 MI_ENCLOSURE_FAN_SETTING::MI_ENCLOSURE_FAN_SETTING()
-    : WiSpinInt(config_store().xl_enclosure_fan_manual.get(), SpinCnf::enclosure_fan, _(label), &img::fan_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    : WiSpinInt(config_store().xl_enclosure_fan_manual.get(), enclosure_fan_spin_config, _(label), &img::fan_16x16, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_ENCLOSURE_FAN_SETTING::OnClick() {

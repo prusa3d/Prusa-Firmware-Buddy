@@ -20,7 +20,7 @@ MI_TOOL_NOZZLE_DIAMETER::MI_TOOL_NOZZLE_DIAMETER()
     : MI_NOZZLE_DIAMETER(displayed_tool, is_hidden_t::no) {
 }
 
-static constexpr SpinConfig_t<float> POSITION_CONFIG({ 0, 500, 0.1 }, "mm");
+static constexpr SpinConfig<float> POSITION_CONFIG({ 0, 500, 0.1 }, SpinUnit::millimeter);
 
 MI_POSITION::MI_POSITION(string_view_utf8 label, [[maybe_unused]] const img::Resource *id_icon, [[maybe_unused]] is_enabled_t enabled, [[maybe_unused]] is_hidden_t hidden, float initVal)
     : WiSpinFlt(initVal, POSITION_CONFIG, label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
@@ -50,11 +50,11 @@ void MI_DOCK_POSITION_Y::set_pos(const float pos) {
     prusa_toolchanger.set_tool_info(dwarf, info);
 }
 
-static constexpr SpinConfig_t<float> OFFSET_CONFIG_X({ X_MIN_OFFSET, X_MAX_OFFSET, 0.01 }, "mm");
-static constexpr SpinConfig_t<float> OFFSET_CONFIG_Y({ Y_MIN_OFFSET, Y_MAX_OFFSET, 0.01 }, "mm");
-static constexpr SpinConfig_t<float> OFFSET_CONFIG_Z({ Z_MIN_OFFSET, Z_MAX_OFFSET, 0.01 }, "mm");
+static constexpr SpinConfig<float> OFFSET_CONFIG_X({ X_MIN_OFFSET, X_MAX_OFFSET, 0.01 }, SpinUnit::millimeter);
+static constexpr SpinConfig<float> OFFSET_CONFIG_Y({ Y_MIN_OFFSET, Y_MAX_OFFSET, 0.01 }, SpinUnit::millimeter);
+static constexpr SpinConfig<float> OFFSET_CONFIG_Z({ Z_MIN_OFFSET, Z_MAX_OFFSET, 0.01 }, SpinUnit::millimeter);
 
-MI_OFFSET::MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig_t<float> &config)
+MI_OFFSET::MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig<float> &config)
     : WiSpinFlt(initVal, config, label, id_icon, enabled, hidden) {}
 
 MI_OFFSET_X::MI_OFFSET_X()

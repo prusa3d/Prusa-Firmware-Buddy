@@ -2,7 +2,7 @@
 #include "ScreenHandler.hpp"
 #include "screen_messages.hpp"
 #include "marlin_client.hpp"
-#include "menu_spin_config.hpp"
+#include "WindowMenuSpin.hpp"
 #include "window_msgbox.hpp"
 #include "ScreenSelftest.hpp"
 

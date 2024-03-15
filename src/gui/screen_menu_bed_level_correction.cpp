@@ -1,9 +1,11 @@
 #include <screen_menu_bed_level_correction.hpp>
-#include <menu_spin_config.hpp>
+#include <WindowMenuSpin.hpp>
 #include <ScreenHandler.hpp>
 
+static constexpr SpinConfig<int> correction_range_spin_config { { -100, 100, 1 }, SpinUnit::micrometer };
+
 I_MI_CORRECT::I_MI_CORRECT(CorrectionIndex index)
-    : WiSpinInt(get_correction_value(index), SpinCnf::correction_range, _(correction_label(index)), nullptr, is_enabled_t::yes, is_hidden_t::no)
+    : WiSpinInt(get_correction_value(index), correction_range_spin_config, _(correction_label(index)), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , index(index) {
 }
 

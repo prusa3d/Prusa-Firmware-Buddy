@@ -8,9 +8,26 @@
 #pragma once
 
 #include "i_window_menu_item.hpp"
-#include "menu_spin_config_type.hpp" //SpinConfig_t
-
+#include "i18n.h"
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <printers.h>
+#include <stdio.h>
 #include "feature/tmc_util.h"
+
+union SpinType {
+    float flt;
+    int i;
+
+    constexpr operator float() const { return flt; }
+    constexpr operator int() const { return i; }
+
+    constexpr SpinType(float x)
+        : flt(x) {}
+    constexpr SpinType(int x)
+        : i(x) {}
+};
 
 /*****************************************************************************/
 // IWiSpin
@@ -65,13 +82,121 @@ public:
     /// and C++ does not allow return type overloading (yet)
 };
 
+enum class SpinUnit : uint8_t {
+    none,
+    percent,
+    celsius,
+    hour,
+    second,
+    hertz,
+    millimeter,
+    micrometer,
+    milliamper,
+};
+
+enum class spin_off_opt_t : bool { no,
+    yes }; // yes == lowest value is off
+
+template <class T>
+struct SpinConfig {
+    std::array<T, 3> range; // todo change array to struct containing min, max, step
+    const char *const prt_format;
+    spin_off_opt_t off_opt;
+    const SpinUnit unit;
+    static constexpr const char *const off_opt_str = N_("Off");
+
+    constexpr SpinConfig(const std::array<T, 3> &arr, const SpinUnit unit_ = SpinUnit::none, spin_off_opt_t off_opt_ = spin_off_opt_t::no, const char *const format_override = nullptr)
+        : range(arr)
+        , prt_format([format_override] {
+            if (format_override) {
+                return format_override;
+            }
+            if constexpr (std::is_same_v<T, int>) {
+                return "%d";
+            }
+            if constexpr (std::is_same_v<T, int>) {
+                return "%f";
+            }
+            return "";
+        }())
+        , off_opt(off_opt_)
+        , unit(unit_) {}
+
+#if PRINTER_IS_PRUSA_MINI
+    // MINI does not have screen space for units
+    constexpr const char *Unit() const { return nullptr; }
+#else
+    constexpr const char *Unit() const {
+        // Note: These do not need translation
+        switch (unit) {
+        case SpinUnit::none:
+            return "";
+        case SpinUnit::percent:
+            return "%";
+        case SpinUnit::celsius:
+            return "\xC2\xB0\x43"; // degree Celsius
+        case SpinUnit::hour:
+            return "h";
+        case SpinUnit::second:
+            return "s";
+        case SpinUnit::hertz:
+            return "Hz";
+        case SpinUnit::millimeter:
+            return "mm";
+        case SpinUnit::micrometer:
+            return "um"; //"µm";
+        case SpinUnit::milliamper:
+            return "mA";
+        }
+        abort();
+    }
+#endif
+
+    constexpr T Min() const { return range[0]; }
+    constexpr T Max() const { return range[1]; }
+    constexpr T Step() const { return range[2]; }
+    bool IsOffOptionEnabled() const { return off_opt == spin_off_opt_t::yes; }
+
+    size_t txtMeas(T val) const;
+};
+
+template <class T>
+size_t SpinConfig<T>::txtMeas(T val) const {
+    if (IsOffOptionEnabled() && val == Min()) {
+        return _(off_opt_str).computeNumUtf8CharsAndRewind();
+    } else {
+        return snprintf(nullptr, 0, prt_format, val);
+    }
+}
+
+template <>
+inline size_t SpinConfig<float>::txtMeas(float val) const {
+    if (IsOffOptionEnabled() && val == Min()) {
+        return _(off_opt_str).computeNumUtf8CharsAndRewind();
+    } else {
+        return snprintf(nullptr, 0, prt_format, (double)val);
+    }
+}
+
+static inline constexpr SpinConfig<int> default_int_spin_config = { { 0, std::numeric_limits<int32_t>::max(), 1 } };
+
+// TODO find a better way to share these constants...
+static constexpr SpinConfig<int> print_progress_spin_config {
+#if PRINTER_IS_PRUSA_MINI
+    { 30, 200, 1 }
+#else
+    // 29 because spin_off_opt_t::yes uses lowest value to represent off...
+    { 29, 200, 1 }, SpinUnit::second, spin_off_opt_t::yes,
+#endif
+};
+
 /*****************************************************************************/
 // WI_SPIN_t
 template <class T>
 class WI_SPIN_t : public IWiSpin {
 
 public: // todo private
-    using Config = SpinConfig_t<T>;
+    using Config = SpinConfig<T>;
     const Config &config;
 
 protected:
@@ -145,13 +270,13 @@ void WI_SPIN_t<T>::printSpinToBuffer() {
     if (config.IsOffOptionEnabled() && GetVal() == config.Min()) {
         _(config.off_opt_str).copyToRAM(spin_text_buff.data(), _(config.off_opt_str).computeNumUtf8CharsAndRewind() + 1);
     } else {
-        snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format_override ? config.prt_format_override : config.prt_format, GetVal());
+        snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, GetVal());
     }
 }
 
 template <>
 inline void WI_SPIN_t<float>::printSpinToBuffer() {
-    snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format_override ? config.prt_format_override : config.prt_format, static_cast<double>(GetVal()));
+    snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, static_cast<double>(GetVal()));
 }
 
 using WiSpinInt = WI_SPIN_t<int>;
@@ -163,7 +288,7 @@ using WiSpinFlt = WI_SPIN_t<float>;
 class WI_SPIN_CRASH_PERIOD_t : public IWiSpin {
 
 public: // todo private
-    using Config = SpinConfig_t<int>;
+    using Config = SpinConfig<int>;
     const Config &config;
 
 protected:

@@ -3,7 +3,7 @@
  */
 
 #include "screen_menu_experimental_settings.hpp"
-#include "menu_spin_config.hpp"
+#include "WindowMenuSpin.hpp"
 #include "ScreenHandler.hpp"
 #include "window_msgbox.hpp"
 #include "sys.h"

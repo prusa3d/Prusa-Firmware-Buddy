@@ -12,7 +12,6 @@ target_sources(
           knob_event.cpp
           menu_item_event_dispatcher.cpp
           menu_opener.cpp
-          menu_spin_config_types.cpp
           Rect16.cpp
           screen.cpp
           ScreenShot.cpp
@@ -55,7 +54,7 @@ if(HAS_TOOLCHANGER)
 endif()
 
 if(BOARD IN_LIST BOARDS_WITH_ST7789V)
-  target_sources(firmware PRIVATE menu_spin_config_basic.cpp st7789v.cpp)
+  target_sources(firmware PRIVATE st7789v.cpp)
 elseif(BOARD IN_LIST BOARDS_WITH_ILI9488)
-  target_sources(firmware PRIVATE ili9488.cpp menu_spin_config_with_units.cpp)
+  target_sources(firmware PRIVATE ili9488.cpp)
 endif()

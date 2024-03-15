@@ -48,7 +48,7 @@ public:
 
 class MI_OFFSET : public WiSpinFlt {
 public:
-    MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig_t<float> &config);
+    MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig<float> &config);
 };
 
 class MI_OFFSET_X : public MI_OFFSET {

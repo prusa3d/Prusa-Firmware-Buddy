@@ -46,28 +46,16 @@ using std::size_t;
 struct MenuVars {
     constexpr static const size_t AXIS_CNT = 4;
     constexpr static const size_t RANGE_SZ = 3;
-    constexpr static const char *const zoffset_prt_format = "%.3f";
     constexpr static const char *const labels[] = { N_("Move X"), N_("Move Y"), N_("Move Z"), N_("Move E") };
-
-    constexpr static std::array<int, RANGE_SZ> printfan_range = { 0, 255, 1 };
-    constexpr static std::array<int, RANGE_SZ> percent_range = { 0, 100, 1 };
-    constexpr static std::array<int, RANGE_SZ> flowfact_range = { 50, 150, 1 };
+    // TODO This is not a feedrate, it is a print speed. And it does not make any sense.
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX)
     constexpr static std::array<int, RANGE_SZ> feedrate_range = { 50, 1000, 1 };
 #else
     constexpr static std::array<int, RANGE_SZ> feedrate_range = { 10, 255, 1 };
 #endif
-    constexpr static std::array<int, MenuVars::RANGE_SZ> microstep_exponential_range = { 1, 256, 2 }; // 2^0 - 2^8 .. 1, 2, 4, .. , 128, 256
-    constexpr static std::array<int, MenuVars::RANGE_SZ> microstep_exponential_range_with_0 = { 0, 256, 2 }; // 0 + 2^0 - 2^8 .. 0, 1, 2, 4, .. , 128, 256
-    constexpr static std::array<int, MenuVars::RANGE_SZ> axis_rms_currents_range = { 0, 800, 1 };
-    constexpr static std::array<int, MenuVars::RANGE_SZ> steps_per_unit_range = { 1, 1000, 1 }; // small range, experimental feature
-#if XL_ENCLOSURE_SUPPORT()
-    constexpr static std::array<int, RANGE_SZ> enclosure_fan_percent_range = { 40, 100, 1 };
-#endif
-
     static const std::array<int, AXIS_CNT> GetManualFeedrate();
     static const std::array<char, AXIS_CNT> GetAxisLetters();
-
+    static const std::array<int, RANGE_SZ> GetCrashSensitivity();
     static const std::array<int, RANGE_SZ> GetNozzleRange();
     static const std::array<int, RANGE_SZ> GetBedRange();
     static const std::array<int, RANGE_SZ> GetMaximumZRange();

@@ -1,9 +1,11 @@
 #include "config_features.h"
+#include <gui/menu_vars.h>
+
 // TODO do it in cmake
 #if ENABLED(CRASH_RECOVERY)
 
     #include "MItem_crash.hpp"
-    #include "menu_spin_config.hpp"
+    #include "WindowMenuSpin.hpp"
     #include "../lib/Marlin/Marlin/src/module/stepper/trinamic.h"
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
     #include "../Marlin/src/feature/phase_stepping/phase_stepping.hpp"
@@ -40,8 +42,11 @@ void MI_CRASH_DETECTION::OnChange(size_t /*old_index*/) {
     crash_s.enable(value());
 }
 
+static const SpinConfig<int> crash_sensitivity_spin_config = { MenuVars::GetCrashSensitivity() };
+static constexpr SpinConfig<int> crash_max_period_spin_config = { { 0, 0xFFFFF, 1 } };
+
 MI_CRASH_SENSITIVITY_X::MI_CRASH_SENSITIVITY_X()
-    : WiSpinInt(crash_s.get_sensitivity().x, SpinCnf::crash_sensitivity,
+    : WiSpinInt(crash_s.get_sensitivity().x, crash_sensitivity_spin_config,
         _(label), nullptr, is_enabled_t::yes,
     #if PRINTER_IS_PRUSA_XL
         is_hidden_t::no
@@ -58,7 +63,7 @@ void MI_CRASH_SENSITIVITY_X::OnClick() {
 }
 
 MI_CRASH_SENSITIVITY_Y::MI_CRASH_SENSITIVITY_Y()
-    : WiSpinInt(crash_s.get_sensitivity().y, SpinCnf::crash_sensitivity,
+    : WiSpinInt(crash_s.get_sensitivity().y, crash_sensitivity_spin_config,
         _(label), nullptr, is_enabled_t::yes,
     #if PRINTER_IS_PRUSA_XL
         is_hidden_t::no
@@ -97,7 +102,7 @@ void MI_CRASH_SENSITIVITY_XY::OnChange([[maybe_unused]] size_t old_index) {
 }
     #else
 MI_CRASH_SENSITIVITY_XY::MI_CRASH_SENSITIVITY_XY()
-    : WiSpinInt(crash_s.get_sensitivity().x, SpinCnf::crash_sensitivity,
+    : WiSpinInt(crash_s.get_sensitivity().x, crash_sensitivity_spin_config,
         _(label), nullptr, is_enabled_t::yes,
         is_hidden_t::dev) {
 }
@@ -111,7 +116,7 @@ void MI_CRASH_SENSITIVITY_XY::OnClick() {
     #endif
 
 MI_CRASH_MAX_PERIOD_X::MI_CRASH_MAX_PERIOD_X()
-    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().x, SpinCnf::crash_max_period, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().x, crash_max_period_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_MAX_PERIOD_X::OnClick() {
     xy_long_t mp = crash_s.get_max_period();
@@ -120,7 +125,7 @@ void MI_CRASH_MAX_PERIOD_X::OnClick() {
 }
 
 MI_CRASH_MAX_PERIOD_Y::MI_CRASH_MAX_PERIOD_Y()
-    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().y, SpinCnf::crash_max_period, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().y, crash_max_period_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_MAX_PERIOD_Y::OnClick() {
     xy_long_t mp = crash_s.get_max_period();

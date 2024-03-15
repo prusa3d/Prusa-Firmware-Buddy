@@ -2,7 +2,7 @@
 
 #include <screen_menu.hpp>
 #include <i_window_menu_item.hpp>
-#include <menu_spin_config.hpp>
+#include <WindowMenuSpin.hpp>
 
 enum CorrectionIndex : uint8_t {
     LEFT,

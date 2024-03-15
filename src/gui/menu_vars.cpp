@@ -23,11 +23,6 @@ const float z_offset_step = 1.0F / float(axis_steps_per_unit[2]);
 const float z_offset_min = Z_OFFSET_MIN;
 const float z_offset_max = Z_OFFSET_MAX;
 
-// must be in this file, need to access marlin
-#if ENABLED(NOZZLE_PARK_FEATURE)
-constexpr const int park_points[3] = NOZZLE_PARK_POINT;
-#endif
-
 constexpr const int default_Z_max_pos = DEFAULT_Z_MAX_POS;
 
 // min int -2147483648 .. 8 digits + 1 for /0
@@ -85,21 +80,14 @@ const std::array<std::array<int, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVa
 
 const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetManualFeedrate() { return { MANUAL_FEEDRATE }; };
 const std::array<char, MenuVars::AXIS_CNT> MenuVars::GetAxisLetters() { return { 'X', 'Y', 'Z', 'E' }; };
-
+const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetCrashSensitivity() {
+#if AXIS_DRIVER_TYPE_X(TMC2209)
+    return { 0, 255, 1 };
+#elif AXIS_DRIVER_TYPE_X(TMC2130)
+    return { -64, 63, 1 };
+#else
+    #error "Unknown driver type."
+#endif
+}
 const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetNozzleRange() { return { 0, (HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN), 1 }; };
 const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetBedRange() { return { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 }; };
-
-#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX || PRINTER_IS_PRUSA_XL)
-constexpr const int filament_change_slow_load_length = 45;
-constexpr const int filament_change_fast_load_length = 40;
-constexpr const int filament_change_slow_purge_length = 30;
-constexpr const float filament_unload_mini_length = 80.0F;
-#else
-constexpr const int filament_change_slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
-constexpr const int filament_change_fast_load_length = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
-constexpr const int filament_change_slow_purge_length = 40;
-constexpr const float filament_unload_mini_length = 392.0F;
-#endif
-
-constexpr const int filament_change_full_load_length = filament_change_fast_load_length + filament_change_slow_load_length;
-constexpr const int filament_change_full_purge_load_length = filament_change_full_load_length + filament_change_slow_purge_length;

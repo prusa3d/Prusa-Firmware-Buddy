@@ -9,7 +9,7 @@
 #include "screen_qr_error.hpp"
 #include "screen_messages.hpp"
 #include "marlin_client.hpp"
-#include "menu_spin_config.hpp"
+#include "WindowMenuSpin.hpp"
 #include "filament_sensors_handler.hpp"
 #include "trinamic.h"
 #include "../../../lib/Marlin/Marlin/src/module/stepper.h"

@@ -5,7 +5,7 @@
 #include "screen_menu_footer_settings.hpp"
 #include "footer_item_union.hpp"
 #include "status_footer.hpp"
-#include "menu_spin_config.hpp"
+#include "WindowMenuSpin.hpp"
 #include "footer_eeprom.hpp"
 #include "DialogMoveZ.hpp"
 #include "footer_def.hpp"
@@ -92,9 +92,15 @@ void MI_SHOW_ZERO_TEMP_TARGET::OnChange(size_t old_index) {
     old_index == 0 ? FooterItemHeater::EnableDrawZeroTarget() : FooterItemHeater::DisableDrawZeroTarget();
 }
 
+#if PRINTER_IS_PRUSA_MINI
+static const SpinConfig<int> footer_center_N_spin_config = { { 0, 3, 1 } };
+#else
+static const SpinConfig<int> footer_center_N_spin_config = { { 0, 5, 1 }, SpinUnit::none, spin_off_opt_t::yes };
+#endif
+
 MI_FOOTER_CENTER_N::MI_FOOTER_CENTER_N()
     : WiSpinInt(uint8_t(FooterLine::GetCenterN()),
-        SpinCnf::footer_center_N_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+        footer_center_N_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_FOOTER_CENTER_N::OnClick() {
     FooterLine::SetCenterN(GetVal());
 }

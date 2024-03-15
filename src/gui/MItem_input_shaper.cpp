@@ -70,10 +70,10 @@ void MI_IS_Y_TYPE::OnChange(size_t) {
     input_shaper::set_axis_config(Y_AXIS, axis_y);
 }
 
-static constexpr SpinConfigInt is_frequency_spin_config = makeSpinConfig<int>(
+static constexpr SpinConfig<int> is_frequency_spin_config {
     { static_cast<int>(input_shaper::frequency_safe_min), static_cast<int>(input_shaper::frequency_safe_max), 1 },
-    "Hz",
-    spin_off_opt_t::no);
+    SpinUnit::hertz
+};
 
 MI_IS_X_FREQUENCY::MI_IS_X_FREQUENCY()
     : WiSpinInt(0 /* set in ScreenMenuInputShaper::update_gui*/, is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {

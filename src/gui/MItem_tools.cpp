@@ -22,7 +22,7 @@
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "config.h"
-#include "menu_spin_config.hpp"
+#include "WindowMenuSpin.hpp"
 #include "time_tools.hpp"
 #include "footer_eeprom.hpp"
 #include "version.h"
@@ -371,10 +371,16 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
     }
 }
 
+#if PRINTER_IS_PRUSA_MINI
+const SpinConfig<int> sound_volume_spin_config = { { 0, 11, 1 }, SpinUnit::none, spin_off_opt_t::yes };
+#else
+const SpinConfig<int> sound_volume_spin_config = { { 0, 3, 1 }, SpinUnit::none, spin_off_opt_t::yes };
+#endif
+
 /*****************************************************************************/
 // MI_SOUND_VOLUME
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
-    : WiSpinInt(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(static_cast<uint8_t>(Sound_GetVolume()), sound_volume_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_SOUND_VOLUME::OnClick() {
     Sound_SetVolume(GetVal());
 }
@@ -391,10 +397,12 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
     }
 }
 
+static constexpr SpinConfig<int> timezone_spin_config = { { -12, 14, 1 }, SpinUnit::hour };
+
 /*****************************************************************************/
 // MI_TIMEZONE
 MI_TIMEZONE::MI_TIMEZONE()
-    : WiSpinInt(config_store().timezone.get(), SpinCnf::timezone, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(config_store().timezone.get(), timezone_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
     config_store().timezone.set(timezone);
@@ -433,6 +441,14 @@ MI_TIME_NOW::MI_TIME_NOW()
     : WI_SWITCH_t<1>(0, _(label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time())) {
 }
 
+static constexpr SpinConfig<int> fs_span_spin_config = {
+#if PRINTER_IS_PRUSA_XL
+    { 50, 1500, 10 },
+#else
+    { 50000, 2500000, 1000 },
+#endif
+};
+
 /*****************************************************************************/
 // IMI_FS_SPAN
 IMI_FS_SPAN::IMI_FS_SPAN([[maybe_unused]] bool is_side_, size_t index_, const char *label)
@@ -441,7 +457,7 @@ IMI_FS_SPAN::IMI_FS_SPAN([[maybe_unused]] bool is_side_, size_t index_, const ch
         is_side_ ? config_store().get_side_fs_value_span(index_) :
 #endif
                  config_store().get_extruder_fs_value_span(index_),
-        SpinCnf::fs_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
+        fs_span_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
 #if HAS_SIDE_FSENSOR()
     , is_side(is_side_)
 #endif
@@ -468,7 +484,7 @@ IMI_FS_REF::IMI_FS_REF([[maybe_unused]] bool is_side_, size_t index_, const char
         is_side_ ? config_store().get_side_fs_ref_nins_value(index_) :
 #endif
                  config_store().get_extruder_fs_ref_nins_value(index_),
-        SpinCnf::int_num, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
+        default_int_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
 #if HAS_SIDE_FSENSOR()
     , is_side(is_side_)
 #endif
@@ -553,7 +569,7 @@ void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
 // MI_PRINT_PROGRESS_TIME
 MI_PRINT_PROGRESS_TIME::MI_PRINT_PROGRESS_TIME()
     : WiSpinInt(config_store().print_progress_time.get(),
-        SpinCnf::print_progress, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+        print_progress_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_PRINT_PROGRESS_TIME::OnClick() {
     config_store().print_progress_time.set(GetVal());

@@ -8,7 +8,7 @@
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "config.h"
-#include "menu_spin_config.hpp"
+#include "WindowMenuSpin.hpp"
 #include "ScreenSelftest.hpp"
 #include <option/has_toolchanger.h>
 #include <option/has_selftest_snake.h>

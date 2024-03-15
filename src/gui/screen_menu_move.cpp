@@ -5,11 +5,12 @@
 #include "screen_menu_move.hpp"
 #include "screen_menu_move_utils.hpp"
 #include "marlin_client.hpp"
-#include "menu_spin_config.hpp"
+#include "WindowMenuSpin.hpp"
 #include "ScreenHandler.hpp"
 #include "img_resources.hpp"
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
+#include <gui/menu_vars.h>
 
 static constexpr const char *const heating_str = N_("Heating");
 static constexpr const char *const low_temp_str = N_("Low temp");
@@ -18,9 +19,16 @@ xyz_float_t I_MI_AXIS::last_queued_pos {};
 xyz_float_t I_MI_AXIS::target_position {};
 bool I_MI_AXIS::did_final_move {};
 
+static const std::array<SpinConfig<int>, MenuVars::AXIS_CNT> axis_ranges_spin_config {
+    SpinConfig<int>(MenuVars::GetAxisRanges()[0], SpinUnit::millimeter),
+    SpinConfig<int>(MenuVars::GetAxisRanges()[1], SpinUnit::millimeter),
+    SpinConfig<int>(MenuVars::GetAxisRanges()[2], SpinUnit::millimeter),
+    SpinConfig<int>(MenuVars::GetAxisRanges()[3], SpinUnit::millimeter),
+};
+
 I_MI_AXIS::I_MI_AXIS(size_t index)
     : WiSpinInt(round(marlin_vars()->logical_curr_pos[index]),
-        SpinCnf::axis_ranges[index], _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
+        axis_ranges_spin_config[index], _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , axis_index(index) {
     xyz_float_t init_pos {
         marlin_vars()->logical_curr_pos[X_AXIS],
