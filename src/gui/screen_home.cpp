@@ -146,13 +146,11 @@ static void FilamentBtn_cb() {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilament>);
 }
 
-static void FilamentBtnMMU_cb() {
 #if HAS_MMU2()
+static void FilamentBtnMMU_cb() {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilamentMMU>);
-#else
-    FilamentBtn_cb();
-#endif
 }
+#endif
 
 // clang-format off
 screen_home_data_t::screen_home_data_t()
@@ -218,7 +216,7 @@ screen_home_data_t::screen_home_data_t()
         }
     }
 
-    filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
+    filamentBtnSetState();
 
     if (!usbInserted) {
         printBtnDis();
@@ -232,9 +230,11 @@ screen_home_data_t::~screen_home_data_t() {
     GuiMediaEventsHandler::ConsumeOneClickPrinting();
 }
 
-void screen_home_data_t::filamentBtnSetState(MMU2::xState mmu) {
-    if (mmu != mmu_state) {
-        mmu_state = mmu;
+void screen_home_data_t::filamentBtnSetState() {
+#if HAS_MMU2()
+    const MMU2::xState new_state = MMU2::xState(marlin_vars()->mmu2_state.get());
+    if (new_state != mmu_state) {
+        mmu_state = new_state;
 
         // did not want to include MMU
         // it might be good idea to move mmu enum to extra header
@@ -263,6 +263,7 @@ void screen_home_data_t::filamentBtnSetState(MMU2::xState mmu) {
             break;
         }
     }
+#endif
 }
 
 void screen_home_data_t::handle_crash_dump() {
@@ -460,7 +461,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     }
 
     if (event == GUI_event_t::LOOP) {
-        filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
+        filamentBtnSetState();
 
 #if ENABLED(POWER_PANIC)
         if (TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming())
