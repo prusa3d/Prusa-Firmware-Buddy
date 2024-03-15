@@ -11,7 +11,7 @@ import json
 import re
 from enum import unique, IntEnum
 from pathlib import Path
-from typing import Optional, TextIO, Dict
+from typing import TextIO, Dict
 import yaml
 
 
@@ -24,7 +24,14 @@ class Printer(IntEnum):
     """
 
     UNKNOWN = 0
+    MMU = 0x0004
     SL1 = 0x000A
+    MINI = 0x000C
+    MK4 = 0x000D
+    IX = 0x0010
+    XL = 0x0011
+    MK35 = 0x0017
+    MK39 = 0x0015
 
 
 @unique
@@ -42,6 +49,8 @@ class Category(IntEnum):
     SYSTEM = 5  # System - BSOD, ...
     BOOTLOADER = 6  #
     WARNINGS = 7  # Category-less warnings
+    DIALOGS = 8  # Remote Dialogs
+    UNKNOWN = 9
 
 
 @functools.total_ordering
@@ -56,8 +65,8 @@ class Code:
             printer: Printer,
             category: Category,
             error: int,
-            title: Optional[str],
-            message: Optional[str],
+            title: str,
+            message: str,
             approved: bool,
     ):
         if printer.value < 0 or printer.value > 99:
