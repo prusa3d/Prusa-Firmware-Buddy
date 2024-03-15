@@ -117,18 +117,16 @@ def switch_to_task(task):
     # r0-r3 will be restored by MCU performing mode switch
 
     # r4-r11 are restored by PendSV_Handler from the stack
-    set_reg('r4', stack.pop())
-    set_reg('r5', stack.pop())
-    set_reg('r6', stack.pop())
-    set_reg('r7', stack.pop())
-    set_reg('r8', stack.pop())
-    set_reg('r9', stack.pop())
-    set_reg('r10', stack.pop())
-    set_reg('r11', stack.pop())
+    for i in range(4, 12):
+        set_reg(f'r{i}', stack.pop())
 
     # r12 (scratch register) will be restored by MCU performing mode switch
 
     # r13 (sp) will be restored by MCU performing mode switch
+
+    # Get rid of sp-msp warning
+    # I have no idea what I am doing here.
+    set_reg('sp', '$msp')
 
     # r14 (lr) is restored by PendSV_Handler from the stack
     r14 = stack.pop()
