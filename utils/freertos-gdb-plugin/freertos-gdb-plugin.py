@@ -106,7 +106,7 @@ def switch_to_task(task):
     if task.is_running():
         # this would restore the task to the last context switch
         # instead of the current state, which is not what we want
-        raise ValueError('Switching to running task')
+        raise Exception('Switching to running task')
 
     # Restore registers from the task's top of the stack
     # This basically reimplements xPortPendSVHandler()/PendSV_Handler()
@@ -189,12 +189,13 @@ class FreeRTOS(gdb.Command):
         self.dont_repeat()
 
     def _info_threads(self):
-        print('  Id Name             Status  Priority')
-        print('  ------------------------------------')
-        for task in sorted(collect_all_tasks(), key=lambda t: t.number()):
+        task_list = sorted(collect_all_tasks(), key=lambda t: t.number())
+        print('  Id Name             Status      Priority')
+        print('  ----------------------------------------')
+        for task in task_list:
             task_id = str(task.number()).rjust(2)
             task_name = task.name().ljust(16)
-            task_status = task.status().ljust(7)
+            task_status = task.status().ljust(11)
             task_priority = str(task.priority()).rjust(8)
             print('  {} {} {} {}'.format(task_id, task_name, task_status,
                                          task_priority))
