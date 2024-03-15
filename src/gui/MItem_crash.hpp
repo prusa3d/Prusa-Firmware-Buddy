@@ -7,6 +7,7 @@
 
 #pragma once
 #include "WindowMenuItems.hpp"
+#include "feature/tmc_util.h"
 #include "i18n.h"
 #include "config_features.h"
 
@@ -72,6 +73,27 @@ public:
 #endif
 
 #if ANY(CRASH_RECOVERY, POWER_PANIC)
+
+class WI_SPIN_CRASH_PERIOD_t : public IWiSpin {
+
+public: // todo private
+    using Config = SpinConfig<int>;
+    const Config &config;
+
+protected:
+    void printSpinToBuffer() {
+        float display = tmc_period_to_feedrate(X_AXIS, get_microsteps_x(), get_val<int>(), get_steps_per_unit_x());
+        int chars = snprintf(spin_text_buff.data(), spin_text_buff.size(), "%f", double(display));
+        changeExtentionWidth(0, 0, std::min<int>(chars, spin_text_buff.size() - 1));
+    }
+
+public:
+    WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    virtual invalidate_t change(int dif) override;
+    /// returns the same type to be on the safe side (SpinType is not type safe)
+    int GetVal() const { return get_val<int>(); }
+};
+
 class MI_CRASH_MAX_PERIOD_X : public WI_SPIN_CRASH_PERIOD_t {
 private:
     constexpr static const char *const label = "Crash Min. Speed X";
