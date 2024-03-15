@@ -85,6 +85,17 @@ def collect_all_tasks():
         yield task
     for task in extract_tasks('xDelayedTaskList2', status='blocked'):
         yield task
+
+    for task in extract_tasks('xPendingReadyList', status='pending'):
+        yield task
+
+    for task in extract_tasks('xTasksWaitingTermination',
+                              status='terminating'):
+        yield task
+
+    for task in extract_tasks('xSuspendedTaskList', status='suspended'):
+        yield task
+
     for i in range(0, 7):
         for task in extract_tasks('pxReadyTasksLists[{}]'.format(i),
                                   status='ready'):
