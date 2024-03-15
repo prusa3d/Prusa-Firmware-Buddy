@@ -40,6 +40,14 @@ public:
     void setAlwaysOn(bool enable); /** Fan is spinning with manual rpm (80% power on default) for the whole print */
     void setPostPrint(bool enable); /** Base on the used materials - fan will filter out the enclosure after the print */
 
+    /**
+     *  Set RPM percentage defined by user in Manual Configuration. This value applies on AlwaysOn & PostPrint modes
+     */
+    void setUserFanRPM(uint8_t value) {
+        user_rpm = value;
+        config_store().xl_enclosure_fan_manual.set(value);
+    }
+
     /** Enclosure loop function embedded in marlin_server
      * Handling timers and enclosure fan.
      *
@@ -61,28 +69,74 @@ public:
      */
     void resetFilterTimer();
 
-    inline bool isEnabled() { return config_flags & CONFIG::ENABLED; }
-    inline bool isAlwaysOn() { return config_flags & CONFIG::ALWAYS_ON; }
-    inline bool isPostPrintEnabled() { return config_flags & CONFIG::POST_PRINT; }
-    inline void flagRPMChange() { runtime_flags |= RUNTIME::RPM_CHANGE; }
-    inline bool isExpirationShown() { return config_flags & CONFIG::EXPIRATION_SHOWN; }
-    inline bool is5DayReminderSet() { return config_flags & CONFIG::REMINDER_5DAYS; }
-    inline bool isActive() const { return mode == EnclosureMode::ACTIVE; }
+    // FLAG GETTER FUNCTION
+    inline bool isEnabled() const { return persistent_flags & PERSISTENT::ENABLED; }
+    inline bool isAlwaysOnEnabled() const { return persistent_flags & PERSISTENT::ALWAYS_ON; }
+    inline bool isPostPrintEnabled() const { return persistent_flags & PERSISTENT::POST_PRINT; }
+    inline bool isWarningShown() const { return persistent_flags & PERSISTENT::WARNING_SHOWN; }
+    inline bool isExpirationShown() const { return persistent_flags & PERSISTENT::EXPIRATION_SHOWN; }
+    inline bool isReminderSet() const { return persistent_flags & PERSISTENT::REMINDER_5DAYS; }
+
+    inline bool isActive() const { return active_mode == EnclosureMode::Active; }
+
+    inline bool isPrinting() const { return runtime_flags & RUNTIME::PRINTING; }
+    inline bool isCooling() const { return runtime_flags & RUNTIME::ACTIVE_COOLING; }
+    inline bool isPostPrintActive() const { return runtime_flags & RUNTIME::ACTIVE_POST_PRINT; }
+    inline bool isTemperatureValid() const { return runtime_flags & RUNTIME::TEMP_VALID; }
+
+    struct PERSISTENT {
+        static constexpr uint8_t ENABLED = 0x01;
+        static constexpr uint8_t ALWAYS_ON = 0x02;
+        static constexpr uint8_t WARNING_SHOWN = 0x04;
+        static constexpr uint8_t EXPIRATION_SHOWN = 0x08;
+        static constexpr uint8_t POST_PRINT = 0x10;
+        static constexpr uint8_t REMINDER_5DAYS = 0x20;
+    };
+
+    struct RUNTIME {
+        static constexpr uint8_t PRINTING = 0x01;
+        static constexpr uint8_t ACTIVE_COOLING = 0x02;
+        static constexpr uint8_t ACTIVE_POST_PRINT = 0x04;
+        static constexpr uint8_t TEMP_VALID = 0x08;
+    };
 
 private:
-    inline bool isWarningShown() { return config_flags & CONFIG::WARNING_SHOWN; }
+    enum class FanMode {
+        Off = 0,
+        Test,
+        User,
+        Max,
+    };
 
-    inline bool isPrinting() { return runtime_flags & RUNTIME::PRINTING; }
-    inline bool isFanOn() { return runtime_flags & RUNTIME::FAN_ON; }
-    inline bool isCooling() { return runtime_flags & RUNTIME::COOLING; }
-    inline bool isPostPrintActive() { return runtime_flags & RUNTIME::POST_PRINT; }
-    inline bool isRMPChanged() { return runtime_flags & RUNTIME::RPM_CHANGE; }
-    inline bool isTempValid() { return runtime_flags & RUNTIME::TEMP_VALID; }
+    enum class EnclosureMode {
+        Idle = 0,
+        Test,
+        Active,
+    };
 
     /**
-     *  Get rotation speed from EEPROM nad calculate PWM for the fan
+     *  Set persistent flag and save it to EEPROM
      */
-    uint8_t getFanPwm();
+    void setPersistentFlg(uint8_t flg) {
+        persistent_flags |= flg;
+        config_store().xl_enclosure_flags.set(persistent_flags);
+    }
+
+    /**
+     *  Clear persistent flag and save it to EEPROM
+     */
+    void clrPersistentFlg(uint8_t flg) {
+        persistent_flags &= ~flg;
+        config_store().xl_enclosure_flags.set(persistent_flags);
+    }
+
+    void setRuntimeFlg(uint8_t flg) { runtime_flags |= flg; }
+    void clrRuntimeFlg(uint8_t flg) { runtime_flags &= ~flg; }
+
+    /**
+     *  Get Fan PWM from active_mode and enclosure state
+     */
+    uint8_t getPwmFromMode() const;
 
     /**
      *  Test enclosure fan.
@@ -124,34 +178,11 @@ private:
      */
     std::optional<WarningType> checkPrintState(marlin_server::State print_state, uint32_t curr_sec);
 
-    enum class EnclosureMode {
-        IDLE = 0,
-        TEST,
-        ACTIVE,
-    };
-
-    struct CONFIG {
-        static constexpr const uint8_t ENABLED = 0x01;
-        static constexpr const uint8_t ALWAYS_ON = 0x02;
-        static constexpr const uint8_t WARNING_SHOWN = 0x04;
-        static constexpr const uint8_t EXPIRATION_SHOWN = 0x08;
-        static constexpr const uint8_t POST_PRINT = 0x10;
-        static constexpr const uint8_t REMINDER_5DAYS = 0x20;
-    };
-
-    struct RUNTIME {
-        static constexpr const uint8_t PRINTING = 0x01;
-        static constexpr const uint8_t FAN_ON = 0x02;
-        static constexpr const uint8_t COOLING = 0x04;
-        static constexpr const uint8_t POST_PRINT = 0x08;
-        static constexpr const uint8_t RPM_CHANGE = 0x10;
-        static constexpr const uint8_t TEMP_VALID = 0x20;
-    };
-
-    std::atomic<uint8_t> config_flags;
+    std::atomic<uint8_t> persistent_flags;
     std::atomic<uint8_t> runtime_flags;
+    std::atomic<uint8_t> user_rpm;
 
-    EnclosureMode mode;
+    EnclosureMode active_mode;
     uint32_t post_print_timer_sec; ///< Holds seconds of post print filtration period (based on filaments used)
     uint32_t last_sec;
     uint32_t last_timer_update_sec;

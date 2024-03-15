@@ -10,7 +10,7 @@ ScreenMenuEnclosure::ScreenMenuEnclosure()
     : detail::ScreenMenuEnclosure(_(label))
     , last_ticks_s(ticks_s()) {
 #if XL_ENCLOSURE_SUPPORT()
-    // MI_ENCLOSURE_ENABLE item is Swapped in Control menu with MI_ENCLOSURE. It's visibility depends on xl_enclosure's state (active or not)
+    // MI_ENCLOSURE_ENABLE item is Swapped in Control menu with MI_ENCLOSURE. Its visibility depends on xl_enclosure's state (active or not)
     // In this screen MI_ENCLOSURE_ENABLE is always present
     Show<MI_ENCLOSURE_ENABLE>();
 #endif

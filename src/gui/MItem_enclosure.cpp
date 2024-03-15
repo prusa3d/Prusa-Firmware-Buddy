@@ -50,7 +50,7 @@ MI_ENCLOSURE_TEMP::MI_ENCLOSURE_TEMP()
 }
 
 MI_ENCLOSURE_ALWAYS_ON::MI_ENCLOSURE_ALWAYS_ON()
-    : WI_ICON_SWITCH_OFF_ON_t(xl_enclosure.isAlwaysOn(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_ICON_SWITCH_OFF_ON_t(xl_enclosure.isAlwaysOnEnabled(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_ENCLOSURE_ALWAYS_ON::OnChange([[maybe_unused]] size_t old_index) {
@@ -78,8 +78,7 @@ MI_ENCLOSURE_FAN_SETTING::MI_ENCLOSURE_FAN_SETTING()
 }
 
 void MI_ENCLOSURE_FAN_SETTING::OnClick() {
-    config_store().xl_enclosure_fan_manual.set(GetVal());
-    xl_enclosure.flagRPMChange();
+    xl_enclosure.setUserFanRPM(GetVal());
 }
 
 MI_ENCLOSURE_MANUAL_SETTINGS::MI_ENCLOSURE_MANUAL_SETTINGS()
