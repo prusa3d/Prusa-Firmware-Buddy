@@ -16,7 +16,7 @@ class FrameQRLayout {
     static constexpr size_t qrcodeHeight { 140 };
     static constexpr size_t phoneWidth { 64 };
     static constexpr size_t phoneHeight { 82 };
-    static constexpr size_t textHeight { WizardDefaults::txt_h * 4 };
+    static constexpr size_t textHeight { WizardDefaults::txt_h * 8 };
 
 public:
     static constexpr Rect16 qrcode_rect() {
@@ -58,7 +58,7 @@ public:
     /** @returns Rect16 position and size of the link widget */
     static constexpr Rect16 link_rect() {
         if (GuiDefaults::ScreenWidth > 240) {
-            return Rect16 { WizardDefaults::col_0, WizardDefaults::Y_space - textHeight, phone_icon_rect().Left() - WizardDefaults::col_0, textHeight };
+            return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + textHeight, phone_icon_rect().Left() - WizardDefaults::col_0, WizardDefaults::txt_h };
         } else {
             return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + textHeight, WizardDefaults::X_space, WizardDefaults::txt_h };
         }

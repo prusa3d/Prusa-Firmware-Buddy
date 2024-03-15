@@ -1,7 +1,6 @@
 #include "frame_qr_layout.hpp"
 #include "img_resources.hpp"
 #include "screen_cold_pull.hpp"
-#include "window_wizard_progress.hpp"
 #include "window_progress.hpp"
 #include "fonts.hpp"
 #include "bsod_gui.hpp"
@@ -12,7 +11,6 @@
 #include <common/sound.hpp>
 #include <common/str_utils.hpp>
 #include <lang/i18n.h>
-#include <type_traits>
 
 namespace {
 
@@ -124,6 +122,10 @@ namespace Frame {
         virtual ~ProgressFrame() = default;
     };
 
+    // For future use with XL/MMU; now here just for translations
+    [[maybe_unused]] static constexpr const char *TODOtext3 = N_("Before you continue, unload the filament. Then press down the blue part on the fitting and pull the PTFE tube from the tool head.");
+    [[maybe_unused]] static constexpr const char *TODOtext4 = N_("Before you continue, make sure PLA filament is loaded directly into the extruder.");
+
     /** individual frames */
     class Introduction final {
         window_text_t text;
@@ -153,17 +155,18 @@ namespace Frame {
 
         void update(fsm::PhaseData) {}
 
-        static constexpr const char *text_link = "prusa.io/%05u"; // FIXME
+        static constexpr const char *text_link = "prusa.io/%05u";
     };
 
     class PrepareFilament final : public TextFrame {
     public:
         explicit PrepareFilament(window_t *parent)
-            : TextFrame(parent, _(text_info)) {}
+            : TextFrame(parent, _(text_title), _(text_info)) {}
 
         void update(fsm::PhaseData) {}
 
-        static constexpr const char *text_info = N_("PLA filament is required");
+        static constexpr const char *text_title = N_("Filament check");
+        static constexpr const char *text_info = N_("Before you continue,\nmake sure that PLA filament is loaded.");
     };
 
     // Blank screen is needed to avoid short flicker of the lower screen when switching from Load filament dialog
@@ -178,10 +181,11 @@ namespace Frame {
     };
 
     class CoolDown final : public ProgressFrame {
+        bool has_text3 { false };
+
     public:
         explicit CoolDown(window_t *parent)
             : ProgressFrame(parent, _(text1), _(text2)) {
-            info.Hide();
         }
 
         void update(fsm::PhaseData fsm_data) {
@@ -190,14 +194,19 @@ namespace Frame {
             if (data.time_sec > TAKING_TOO_LONG_TIMEOUT_SEC) {
                 progress_number.SetValue(data.percent);
             } else {
-                info.Show();
-                progress_number.PrintAsTime();
+                if (!has_text3) {
+                    // one-time change
+                    has_text3 = true;
+                    info.SetText(_(text3));
+                    progress_number.PrintAsTime();
+                }
                 progress_number.SetValue(data.time_sec);
             }
         }
 
         static constexpr const char *text1 = N_("Cooling the nozzle");
-        static constexpr const char *text2 = N_("Takes too long, will skip soon.");
+        static constexpr const char *text2 = N_("Don't touch the extruder.");
+        static constexpr const char *text3 = N_("Takes too long, will skip soon.");
     };
 
     class HeatUp final : public ProgressFrame {
@@ -214,32 +223,32 @@ namespace Frame {
             progress_number.SetValue(data.percent);
         }
 
-        // Texts that will be used in Cold Pull dialog. They have to be translated before dialog changes are applied, due to lack of time.
-        [[maybe_unused]] static constexpr const char *TODOtext1 = N_("Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and follow the instructions. For more details, visit: prusa.io/coldpull");
-        [[maybe_unused]] static constexpr const char *TODOtext2 = N_("Before you continue, make sure that PLA filament is loaded.");
-        [[maybe_unused]] static constexpr const char *TODOtext3 = N_("Before you continue, unload the filament. Then press down the blue part on the fitting and pull the PTFE tube from the tool head.");
-        [[maybe_unused]] static constexpr const char *TODOtext4 = N_("Before you continue, make sure PLA filament is loaded directly into the extruder.");
-        [[maybe_unused]] static constexpr const char *TODOtext5 = N_("Heating the nozzle to 215 C. Don't touch the extruder.");
-        [[maybe_unused]] static constexpr const char *TODOtext6 = N_("Cooling the nozzle to 30 C. Don't touch the extruder.");
-        [[maybe_unused]] static constexpr const char *TODOtext7 = N_("Heating the nozzle to 80 C. The filament will be unloaded automatically.");
-        [[maybe_unused]] static constexpr const char *TODOtext8 = N_("Remove the filament manually, there might be a slight resistance. If the filament is stuck, open the idler lever.");
-        [[maybe_unused]] static constexpr const char *TODOtext9 = N_("Cold Pull successfully completed. You can continue printing. If the issue persists, repeat this procedure again.");
-        [[maybe_unused]] static constexpr const char *TODOtext10 = N_("Cold Pull successfully completed. Insert PTFE tube back in the fitting. You can continue printing. If the issue persists, repeat this procedure again.");
-
-        static constexpr const char *text1 = N_("Heating up nozzle");
-        static constexpr const char *text2 = N_("Prepare to pull the fillament.");
+        static constexpr const char *text1 = N_("Heating up the nozzle");
+        static constexpr const char *text2 = N_("The filament will be unloaded automatically.");
     };
 
-    class PullNow final : public TextFrame {
+    class AutomaticPull final : public TextFrame {
     public:
-        explicit PullNow(window_t *parent)
+        explicit AutomaticPull(window_t *parent)
             : TextFrame(parent, _(text1)) {
             Sound_Play(eSOUND_TYPE::SingleBeep);
         }
 
         void update(fsm::PhaseData) {}
 
-        static constexpr const char *text1 = N_("Pull the filament now");
+        static constexpr const char *text1 = N_("Unloading");
+    };
+
+    class ManualPull final : public TextFrame {
+    public:
+        explicit ManualPull(window_t *parent)
+            : TextFrame(parent, _(text1), _(text2)) {
+        }
+
+        void update(fsm::PhaseData) {}
+
+        static constexpr const char *text1 = N_("Remove the filament manually");
+        static constexpr const char *text2 = N_("There might be a slight resistance.\nIf the filament is stuck, open the idler lever.");
     };
 
     class PullDone final : public TextFrame {
@@ -250,8 +259,11 @@ namespace Frame {
 
         void update(fsm::PhaseData) {}
 
-        static constexpr const char *text1 = N_("Cold pull has finished");
-        static constexpr const char *text2 = N_("If the filament is stuck,open the idler\nand pull the rest out.");
+        static constexpr const char *text1 = N_("Cold Pull successfully completed");
+        static constexpr const char *text2 = N_("You can continue printing. If the issue persists,\nrepeat this procedure again.");
+
+        // for XL only, enabled now because of translations
+        [[maybe_unused]] static constexpr const char *TODOtext10 = N_("Cold Pull successfully completed. Insert PTFE tube back in the fitting. You can continue printing. If the issue persists, repeat this procedure again.");
     };
 
 } // namespace Frame
@@ -308,7 +320,8 @@ using Frames = FrameDefinitionList<ScreenColdPull::FrameStorage,
     FrameDefinition<PhasesColdPull::blank_unload, Frame::Blank>,
     FrameDefinition<PhasesColdPull::cool_down, Frame::CoolDown>,
     FrameDefinition<PhasesColdPull::heat_up, Frame::HeatUp>,
-    FrameDefinition<PhasesColdPull::pull_now, Frame::PullNow>,
+    FrameDefinition<PhasesColdPull::automatic_pull, Frame::AutomaticPull>,
+    FrameDefinition<PhasesColdPull::manual_pull, Frame::ManualPull>,
     FrameDefinition<PhasesColdPull::pull_done, Frame::PullDone>>;
 
 } // namespace

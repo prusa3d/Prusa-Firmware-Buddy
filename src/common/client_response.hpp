@@ -389,7 +389,8 @@ enum class PhasesColdPull : PhaseUnderlyingType {
     blank_unload,
     cool_down,
     heat_up,
-    pull_now,
+    automatic_pull,
+    manual_pull,
     pull_done,
     finish,
     _last = finish,
@@ -743,7 +744,8 @@ class ClientResponses {
         {}, // blank_unload
         { Response::Abort }, // cool_down,
         { Response::Abort }, // heat_up,
-        {}, // pull_now,
+        {}, // automatic_pull,
+        { Response::Continue }, // manual_pull,
         { Response::Finish }, // pull_done,
         {}, // finish,
     };
