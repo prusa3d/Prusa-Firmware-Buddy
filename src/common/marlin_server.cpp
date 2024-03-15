@@ -2669,7 +2669,7 @@ static void _server_update_vars() {
 #if HAS_MMU2()
         uint8_t(MMU2::mmu2.State());
 #else
-        2;
+        0;
 #endif
     marlin_vars()->mmu2_state = mmu2State;
 
