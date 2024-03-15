@@ -15,19 +15,24 @@ extern "C" {
 #define CHECKSUM_BY_HARDWARE 0
 #define LWIP_DHCP            1
 #define MEM_ALIGNMENT        4
-// TODO: Investigate why we suddenly need so many timeouts BFW-5183
-#define MEMP_NUM_SYS_TIMEOUT 13
 #define LWIP_ETHERNET        1
 #define LWIP_DNS_SECURE      7
 #define DNS_MAX_NAME_LENGTH  128
 
 #if MDNS()
+    #define MDNS_MAX_STORED_PKTS 1
+    // 1 for each interface (we have 2) and 1 for each stored delayed packet
+    #define MDNS_EXTRA_TIMEOUTS 2 + MDNS_MAX_STORED_PKTS
     #define LWIP_MDNS_RESPONDER 1
     // For MDNS
     #define LWIP_IGMP                      1
     #define LWIP_NUM_NETIF_CLIENT_DATA     1
     #define LWIP_NETIF_EXT_STATUS_CALLBACK 1
+#else
+    // No extra timeouts if no MDNS
+    #define MDNS_EXTRA_TIMEOUTS 0
 #endif
+#define MEMP_NUM_SYS_TIMEOUT 8 + MDNS_EXTRA_TIMEOUTS
 
 #define TCP_MSS                1024
 #define TCP_WND                (8 * TCP_MSS)
