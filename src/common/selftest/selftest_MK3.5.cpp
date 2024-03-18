@@ -131,7 +131,7 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .min_pwm_to_measure = 26,
         .hotend_type_temp_offsets = EnumArray<HotendType, int8_t, HotendType::_cnt> {
             { HotendType::stock, 0 },
-            { HotendType::stock_with_sock, 0 }, // TODO: not callibrated yet for MK3.5
+            { HotendType::stock_with_sock, -25 },
             { HotendType::e3d_revo, 40 },
         },
     }
