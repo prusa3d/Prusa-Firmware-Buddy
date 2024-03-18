@@ -49,6 +49,16 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 
+class MI_STEALTH_MODE : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Stealth mode");
+
+public:
+    MI_STEALTH_MODE(); // @@TODO probably XL only
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+
 class MI_LIVE_ADJUST_Z : public IWindowMenuItem {
     static constexpr const char *const label = N_("Live Adjust Z");
 

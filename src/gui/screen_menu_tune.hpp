@@ -50,6 +50,7 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #if XL_ENCLOSURE_SUPPORT()
     MI_ENCLOSURE,
 #endif
+    MI_STEALTH_MODE,
     MI_SOUND_MODE,
 #if PRINTER_IS_PRUSA_MINI
     MI_SOUND_VOLUME,

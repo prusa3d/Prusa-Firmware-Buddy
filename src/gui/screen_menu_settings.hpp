@@ -43,6 +43,7 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_MMU_ENABLE,
     MI_MMU_CUTTER,
 #endif
+    MI_STEALTH_MODE,
     MI_FAN_CHECK,
 #if ENABLED(CRASH_RECOVERY)
     MI_CRASH_DETECTION,
