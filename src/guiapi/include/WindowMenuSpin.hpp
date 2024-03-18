@@ -14,45 +14,10 @@
 #include <cstdint>
 #include <printers.h>
 
-union SpinType {
-    float flt;
-    int i;
-
-    constexpr operator float() const { return flt; }
-    constexpr operator int() const { return i; }
-
-    constexpr SpinType(float x)
-        : flt(x) {}
-    constexpr SpinType(int x)
-        : i(x) {}
-};
-
 /*****************************************************************************/
 // IWiSpin
 class IWiSpin : public IWindowMenuItem {
-    SpinType value;
-
 protected:
-    /**
-     * @brief returns the same type to be on the safe side (SpinType is not type safe)
-     *
-     * @tparam T int or float
-     * @return T member of union
-     */
-    template <class T>
-    T get_val() const { return value; }
-
-    /**
-     * @brief Set value.
-     * intentionally does not validate data with Change(0)
-     * @tparam T int or float
-     * @param val new value of the correct type (SpinType is not type safe)
-     */
-    template <class T>
-    inline void set_val(T val) {
-        value = val;
-    }
-
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
     static constexpr size_t unit__half_space_padding = 6;
     static constexpr bool has_unit = GuiDefaults::MenuSpinHasUnits;
@@ -73,11 +38,8 @@ protected:
     void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
 
 public:
-    IWiSpin(SpinType val, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
+    IWiSpin(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
     virtual void OnClick() {}
-
-    /// don't define GetVal nor SetVal here since we don't know the type yet
-    /// and C++ does not allow return type overloading (yet)
 };
 
 enum class SpinUnit : uint8_t {
@@ -193,6 +155,8 @@ static constexpr SpinConfig<int> print_progress_spin_config {
 // WI_SPIN_t
 template <class T>
 class WI_SPIN_t : public IWiSpin {
+private:
+    T value;
 
 public: // todo private
     using Config = SpinConfig<T>;
@@ -201,17 +165,16 @@ public: // todo private
 protected:
     void printSpinToBuffer();
     virtual invalidate_t change(int dif) override;
+    void set_val(T val) { value = val; }
 
 public:
     WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
 
-    /// returns the same type to be on the safe side (SpinType is not type safe)
-    T GetVal() const { return get_val<T>(); }
+    T GetVal() const { return value; }
 
     /**
      * @brief Set value.
      * validates data with Change(0)
-     * @param val new value of the correct type (SpinType is not type safe)
      */
     inline void SetVal(T val) {
         set_val(val);
@@ -224,8 +187,9 @@ public:
 // WI_SPIN_t
 template <class T>
 WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : IWiSpin(cnf.clamp(val), label, id_icon, enabled, hidden,
+    : IWiSpin(label, id_icon, enabled, hidden,
         cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), 0)
+    , value { cnf.clamp(val) }
     , config(cnf) {
     printSpinToBuffer();
 
