@@ -148,6 +148,9 @@ def switch_to_task(task):
 
     # xpsr, fpscr and msp should not be touched
 
+    # TODO: maybe we want to set up FPSCR and FPCAR registers somehow.
+    # They're not in the dump, just 'emulated' and set to 0 by CrashDebug
+
 
 class FreeRTOS(gdb.Command):
     '''FreeRTOS gdb plugin.

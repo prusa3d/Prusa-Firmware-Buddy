@@ -110,8 +110,8 @@ dependencies = {
         ],
     },
     'CrashDebug': {
-        'version': 'ae191d',
-        'url': 'https://github.com/adamgreen/CrashDebug/archive/ae191d7ad96258570d5e6685619cab31c0d3859c.zip',
+        'version': 'ab03f8b6fb6e3445c62fe3fa5f3263d2945d74ff',
+        'url': 'https://github.com/prusa3d/CrashDebug/archive/ab03f8b6fb6e3445c62fe3fa5f3263d2945d74ff.zip',
     },
 }
 # yapf: enable
