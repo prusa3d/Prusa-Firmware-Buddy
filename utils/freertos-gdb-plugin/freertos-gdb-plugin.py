@@ -85,6 +85,17 @@ def collect_all_tasks():
         yield task
     for task in extract_tasks('xDelayedTaskList2', status='blocked'):
         yield task
+
+    for task in extract_tasks('xPendingReadyList', status='pending'):
+        yield task
+
+    for task in extract_tasks('xTasksWaitingTermination',
+                              status='terminating'):
+        yield task
+
+    for task in extract_tasks('xSuspendedTaskList', status='suspended'):
+        yield task
+
     for i in range(0, 7):
         for task in extract_tasks('pxReadyTasksLists[{}]'.format(i),
                                   status='ready'):
@@ -95,7 +106,7 @@ def switch_to_task(task):
     if task.is_running():
         # this would restore the task to the last context switch
         # instead of the current state, which is not what we want
-        raise ValueError('Switching to running task')
+        raise Exception('Switching to running task')
 
     # Restore registers from the task's top of the stack
     # This basically reimplements xPortPendSVHandler()/PendSV_Handler()
@@ -106,18 +117,16 @@ def switch_to_task(task):
     # r0-r3 will be restored by MCU performing mode switch
 
     # r4-r11 are restored by PendSV_Handler from the stack
-    set_reg('r4', stack.pop())
-    set_reg('r5', stack.pop())
-    set_reg('r6', stack.pop())
-    set_reg('r7', stack.pop())
-    set_reg('r8', stack.pop())
-    set_reg('r9', stack.pop())
-    set_reg('r10', stack.pop())
-    set_reg('r11', stack.pop())
+    for i in range(4, 12):
+        set_reg(f'r{i}', stack.pop())
 
     # r12 (scratch register) will be restored by MCU performing mode switch
 
     # r13 (sp) will be restored by MCU performing mode switch
+
+    # Get rid of sp-msp warning
+    # I have no idea what I am doing here.
+    set_reg('sp', '$msp')
 
     # r14 (lr) is restored by PendSV_Handler from the stack
     r14 = stack.pop()
@@ -126,7 +135,7 @@ def switch_to_task(task):
     # r15 (pc) will be restored by MCU performing mode switch
 
     # s16-s31 are restored by from stack if we are returning to fpu context
-    is_fpu_context = bin(r14)[-5] == '0'
+    is_fpu_context = (int(r14) & 0x10) == 0
     if is_fpu_context:
         for i in range(16, 32):
             set_reg('s{}'.format(i), stack.pop())
@@ -138,6 +147,9 @@ def switch_to_task(task):
     set_reg('pc', r14)
 
     # xpsr, fpscr and msp should not be touched
+
+    # TODO: maybe we want to set up FPSCR and FPCAR registers somehow.
+    # They're not in the dump, just 'emulated' and set to 0 by CrashDebug
 
 
 class FreeRTOS(gdb.Command):
@@ -178,12 +190,13 @@ class FreeRTOS(gdb.Command):
         self.dont_repeat()
 
     def _info_threads(self):
-        print('  Id Name             Status  Priority')
-        print('  ------------------------------------')
-        for task in sorted(collect_all_tasks(), key=lambda t: t.number()):
+        task_list = sorted(collect_all_tasks(), key=lambda t: t.number())
+        print('  Id Name             Status      Priority')
+        print('  ----------------------------------------')
+        for task in task_list:
             task_id = str(task.number()).rjust(2)
             task_name = task.name().ljust(16)
-            task_status = task.status().ljust(7)
+            task_status = task.status().ljust(11)
             task_priority = str(task.priority()).rjust(8)
             print('  {} {} {} {}'.format(task_id, task_name, task_status,
                                          task_priority))
@@ -225,22 +238,14 @@ class FreeRTOS(gdb.Command):
             value = gdb.parse_and_eval('${}'.format(name))
             self._saved_regs[name] = value_to_int(value)
 
-        save_reg('r0')
-        save_reg('r1')
-        save_reg('r2')
-        save_reg('r3')
-        save_reg('r4')
-        save_reg('r5')
-        save_reg('r6')
-        save_reg('r7')
-        save_reg('r8')
-        save_reg('r9')
-        save_reg('r10')
-        save_reg('r11')
-        save_reg('r12')
-        save_reg('r13')
-        save_reg('r14')
-        save_reg('r15')
+        for i in range(0, 15):
+            save_reg(f'r{i}')
+
+        for i in range(16, 32):
+            save_reg(f's{i}')
+
+        save_reg('psp')
+        save_reg('pc')
 
     def _restore_state(self):
         for name, value in self._saved_regs.items():
