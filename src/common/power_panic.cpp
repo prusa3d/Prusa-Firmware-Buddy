@@ -175,10 +175,14 @@ struct flash_crash_t {
 
 // print progress data
 struct flash_progress_t {
+    struct ModeSpecificData {
+        uint32_t percent_done;
+        uint32_t time_to_end;
+        uint32_t time_to_pause;
+    };
+
     millis_t print_duration;
-    uint32_t percent_done;
-    uint32_t time_to_end;
-    uint32_t time_to_pause;
+    ModeSpecificData standard_mode, stealth_mode;
 };
 
 // toolchanger recovery info
@@ -431,9 +435,13 @@ bool setup_auto_recover_check() {
     print_job_timer.resume(state_buf.progress.print_duration);
     print_job_timer.pause();
 
-    oProgressData.oPercentDone.mSetValue(state_buf.progress.percent_done, state_buf.progress.print_duration);
-    oProgressData.oTime2End.mSetValue(state_buf.progress.time_to_end, state_buf.progress.print_duration);
-    oProgressData.oTime2Pause.mSetValue(state_buf.progress.time_to_pause, state_buf.progress.print_duration);
+    const auto mode_specific = [](const flash_progress_t::ModeSpecificData &mbuf, ClProgressData::ModeSpecificData &pdata) {
+        pdata.percent_done.mSetValue(mbuf.percent_done, state_buf.progress.print_duration);
+        pdata.percent_done.mSetValue(mbuf.time_to_end, state_buf.progress.print_duration);
+        pdata.percent_done.mSetValue(mbuf.time_to_pause, state_buf.progress.print_duration);
+    };
+    mode_specific(state_buf.progress.standard_mode, oProgressData.standard_mode);
+    mode_specific(state_buf.progress.stealth_mode, oProgressData.stealth_mode);
 
     // decide whether to auto-recover
     return auto_recover_check();
@@ -901,7 +909,7 @@ void panic_loop() {
         power_panic_state = PPState::SaveState;
         break;
 
-    case PPState::SaveState:
+    case PPState::SaveState: {
         if (shutdown_loop_checked()) {
             break;
         }
@@ -913,9 +921,14 @@ void panic_loop() {
 
         // timer & progress state
         state_buf.progress.print_duration = print_job_timer.duration();
-        state_buf.progress.percent_done = oProgressData.oPercentDone.mGetValue();
-        state_buf.progress.time_to_end = oProgressData.oTime2End.mGetValue();
-        state_buf.progress.time_to_pause = oProgressData.oTime2Pause.mGetValue();
+
+        const auto mode_specific = [](flash_progress_t::ModeSpecificData &mbuf, const ClProgressData::ModeSpecificData &pdata) {
+            mbuf.percent_done = pdata.percent_done.mGetValue();
+            mbuf.time_to_end = pdata.time_to_end.mGetValue();
+            mbuf.time_to_pause = pdata.time_to_pause.mGetValue();
+        };
+        mode_specific(state_buf.progress.standard_mode, oProgressData.standard_mode);
+        mode_specific(state_buf.progress.stealth_mode, oProgressData.stealth_mode);
 
 #if ENABLED(CANCEL_OBJECTS)
         state_buf.canceled_objects = cancelable.canceled;
@@ -993,6 +1006,7 @@ void panic_loop() {
         Sound_Play(eSOUND_TYPE::CriticalAlert);
         power_panic_state = PPState::WaitingToDie;
         break;
+    }
 
     case PPState::WaitingToDie:
         // turn off any remaining peripherals

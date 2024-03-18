@@ -1377,7 +1377,9 @@ static void _server_print_loop(void) {
 #endif
     case State::PrintPreviewInit:
         did_not_start_print = true;
-        oProgressData.oPercentDone.mSetValue(0, 0);
+        // reset both percentage counters (normal and silent)
+        oProgressData.standard_mode.percent_done.mSetValue(0, 0);
+        oProgressData.stealth_mode.percent_done.mSetValue(0, 0);
         PrintPreview::Instance().Init();
         server.print_state = State::PrintPreviewImage;
         break;
@@ -2608,10 +2610,12 @@ static void _server_update_vars() {
 #endif
     marlin_vars()->print_speed = static_cast<uint16_t>(feedrate_percentage);
 
+    const auto &progress_data = oProgressData.mode_specific(marlin_vars()->stealth_mode);
+
     if (!FirstLayer::isPrinting()) { /// push notifications used for first layer calibration
         uint8_t progress = 0;
-        if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration)) {
-            progress = static_cast<uint8_t>(oProgressData.oPercentDone.mGetValue());
+        if (progress_data.percent_done.mIsActual(marlin_vars()->print_duration)) {
+            progress = static_cast<uint8_t>(progress_data.percent_done.mGetValue());
         } else {
             progress = static_cast<uint8_t>(media_print_get_percent_done());
         }
@@ -2627,30 +2631,24 @@ static void _server_update_vars() {
         _send_notify_event(marlin_vars()->media_inserted ? Event::MediaInserted : Event::MediaRemoved, 0, 0);
     }
 
-    uint32_t progress = TIME_TO_END_INVALID;
-    uint32_t duration = marlin_vars()->print_duration;
-    if (oProgressData.oPercentDone.mIsActual(duration) && oProgressData.oTime2End.mIsActual(duration)) {
-        progress = oProgressData.oTime2End.mGetValue();
-    }
+    const auto duration = marlin_vars()->print_duration.get();
+    const auto print_speed = marlin_vars()->print_speed.get();
 
-    if (marlin_vars()->print_speed == 100 || progress == TIME_TO_END_INVALID) {
-        marlin_vars()->time_to_end = progress;
-    } else {
-        // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
-        marlin_vars()->time_to_end = (progress * 100) / marlin_vars()->print_speed;
-    }
+    const auto update_time_to = [&](const ClValidityValueSec &progress_data_value, MarlinVariable<uint32_t> &marlin_var) {
+        uint32_t v = TIME_TO_END_INVALID;
+        if (progress_data.percent_done.mIsActual(duration) && progress_data_value.mIsActual(duration)) {
+            v = progress_data_value.mGetValue();
+        }
 
-    progress = TIME_TO_END_INVALID;
-    if (oProgressData.oPercentDone.mIsActual(duration) && oProgressData.oTime2Pause.mIsActual(duration)) {
-        progress = oProgressData.oTime2Pause.mGetValue();
-    }
-
-    if (marlin_vars()->print_speed == 100 || progress == TIME_TO_END_INVALID) {
-        marlin_vars()->time_to_pause = progress;
-    } else {
-        // multiply by 100 is safe, it limits time_to_pause to ~21mil. seconds (248 days)
-        marlin_vars()->time_to_pause = (progress * 100) / marlin_vars()->print_speed;
-    }
+        if (print_speed == 100 || v == TIME_TO_END_INVALID) {
+            marlin_var = v;
+        } else {
+            // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
+            marlin_var = (v * 100) / print_speed;
+        }
+    };
+    update_time_to(progress_data.time_to_end, marlin_vars()->time_to_end);
+    update_time_to(progress_data.time_to_pause, marlin_vars()->time_to_pause);
 
     if (server.print_state == State::Printing) {
         marlin_vars()->time_to_end.execute_with([&](const uint32_t &time_to_end) {
