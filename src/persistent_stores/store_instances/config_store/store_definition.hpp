@@ -415,6 +415,8 @@ struct CurrentStore
 
     StoreItem<bool, defaults::bool_false, journal::hash("Stuck filament detection")> stuck_filament_detection;
 
+    StoreItem<bool, defaults::bool_false, journal::hash("Stealth mode")> stealth_mode;
+
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis X Enabled")> input_shaper_axis_x_enabled;
     StoreItem<input_shaper::AxisConfig, input_shaper::axis_x_default, journal::hash("Input Shaper Axis X Config")> input_shaper_axis_x_config;
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis Y Enabled")> input_shaper_axis_y_enabled;

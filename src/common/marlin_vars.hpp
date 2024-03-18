@@ -361,6 +361,8 @@ public:
     // TODO: prints fans should be in extruder struct, but we are not able to control multiple print fans yet
     MarlinVariable<uint8_t> print_fan_speed; // print fan speed [0..255]
 
+    MarlinVariable<uint8_t> stealth_mode; // stealth = 1, normal = 0
+
     // PER-Hotend variables (access via hotend(num) or active_hotend())
     struct Hotend {
         // nozzle
