@@ -173,7 +173,7 @@ struct GuiDefaults {
     static constexpr padding_ui8_t MenuPaddingSpecial = padding_ui8_t({ 0, 6, 0, 0 });
 #elif defined(USE_ILI9488)
     static constexpr size_t MenuUseFixedUnitWidth = 0; // 0 == calculate in runtime
-    static constexpr Rect16::Width_t MenuScrollbarWidth = 4;
+    static constexpr Rect16::Width_t MenuScrollbarWidth = 8;
     static constexpr uint8_t MenuItemCornerRadius = 5; //
     static constexpr padding_ui8_t MenuItemDelimiterPadding = padding_ui8_t({ 41, 0, 37, 0 });
     static constexpr padding_ui8_t MenuPaddingItems = padding_ui8_t({ 6, 10, 6, 10 });
