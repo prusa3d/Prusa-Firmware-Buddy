@@ -116,7 +116,7 @@ void MI_CRASH_SENSITIVITY_XY::OnClick() {
     #endif
 
 WI_SPIN_CRASH_PERIOD_t::WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : IWiSpin(std::clamp(int(val), cnf.Min(), cnf.Max()), label, id_icon, enabled, hidden,
+    : IWiSpin(cnf.clamp(val), label, id_icon, enabled, hidden,
         cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), 0)
     , config(cnf) {
     printSpinToBuffer();
@@ -138,7 +138,7 @@ invalidate_t WI_SPIN_CRASH_PERIOD_t::change(int dif) {
     int old = val;
     val += (int)dif * config.Step();
     val = dif >= 0 ? std::max(val, old) : std::min(val, old); // check overflow/underflow
-    val = std::clamp(val, config.Min(), config.Max());
+    val = config.clamp(val);
     set_val(val);
     invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; // 0 dif forces redraw
     if (invalid == invalidate_t::yes) {
