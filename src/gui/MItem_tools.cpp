@@ -129,6 +129,18 @@ void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
 }
 
 /*****************************************************************************/
+// MI_STEALTH_MODE
+/*****************************************************************************/
+MI_STEALTH_MODE::MI_STEALTH_MODE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().stealth_mode.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_STEALTH_MODE::OnChange(size_t old_index) {
+    if (!gui_try_gcode_with_msg(value() ? "M9150" : "M9140")) {
+        set_value(old_index, false);
+    }
+}
+
+/*****************************************************************************/
 // MI_LIVE_ADJUST_Z
 MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes,
