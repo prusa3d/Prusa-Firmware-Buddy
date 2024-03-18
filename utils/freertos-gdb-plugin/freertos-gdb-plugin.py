@@ -135,7 +135,7 @@ def switch_to_task(task):
     # r15 (pc) will be restored by MCU performing mode switch
 
     # s16-s31 are restored by from stack if we are returning to fpu context
-    is_fpu_context = bin(r14)[-5] == '0'
+    is_fpu_context = (int(r14) & 0x10) == 0
     if is_fpu_context:
         for i in range(16, 32):
             set_reg('s{}'.format(i), stack.pop())
@@ -235,22 +235,14 @@ class FreeRTOS(gdb.Command):
             value = gdb.parse_and_eval('${}'.format(name))
             self._saved_regs[name] = value_to_int(value)
 
-        save_reg('r0')
-        save_reg('r1')
-        save_reg('r2')
-        save_reg('r3')
-        save_reg('r4')
-        save_reg('r5')
-        save_reg('r6')
-        save_reg('r7')
-        save_reg('r8')
-        save_reg('r9')
-        save_reg('r10')
-        save_reg('r11')
-        save_reg('r12')
-        save_reg('r13')
-        save_reg('r14')
-        save_reg('r15')
+        for i in range(0, 15):
+            save_reg(f'r{i}')
+
+        for i in range(16, 32):
+            save_reg(f's{i}')
+
+        save_reg('psp')
+        save_reg('pc')
 
     def _restore_state(self):
         for name, value in self._saved_regs.items():
