@@ -303,39 +303,6 @@ extern "C" uint16_t get_microsteps_e() {
     return ret;
 }
 
-extern "C" void set_microsteps_x(uint16_t microsteps) {
-    if (is_microstep_value_valid(microsteps) || microsteps == 0) {
-        config_store().axis_microsteps_X_.set(microsteps);
-        log_debug(EEPROM, "%s: microsteps %d ", __PRETTY_FUNCTION__, microsteps);
-    } else {
-        log_error(EEPROM, "%s: microsteps %d not set", __PRETTY_FUNCTION__, microsteps);
-    }
-}
-extern "C" void set_microsteps_y(uint16_t microsteps) {
-    if (is_microstep_value_valid(microsteps) || microsteps == 0) {
-        config_store().axis_microsteps_Y_.set(microsteps);
-        log_debug(EEPROM, "%s: microsteps %d ", __PRETTY_FUNCTION__, microsteps);
-    } else {
-        log_error(EEPROM, "%s: microsteps %d not set", __PRETTY_FUNCTION__, microsteps);
-    }
-}
-extern "C" void set_microsteps_z(uint16_t microsteps) {
-    if (is_microstep_value_valid(microsteps)) {
-        config_store().axis_microsteps_Z_.set(microsteps);
-        log_debug(EEPROM, "%s: microsteps %d ", __PRETTY_FUNCTION__, microsteps);
-    } else {
-        log_error(EEPROM, "%s: microsteps %d not set", __PRETTY_FUNCTION__, microsteps);
-    }
-}
-extern "C" void set_microsteps_e(uint16_t microsteps) {
-    if (is_microstep_value_valid(microsteps)) {
-        config_store().axis_microsteps_E0_.set(microsteps);
-        log_debug(EEPROM, "%s: microsteps %d ", __PRETTY_FUNCTION__, microsteps);
-    } else {
-        log_error(EEPROM, "%s: microsteps %d not set", __PRETTY_FUNCTION__, microsteps);
-    }
-}
-
 extern "C" uint16_t get_default_rms_current_ma_x() {
 #ifdef X_CURRENT
     return X_CURRENT;

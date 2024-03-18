@@ -7,14 +7,12 @@
 
 #pragma once
 #include "WindowMenuItems.hpp"
-#include "WindowMenuSpinExponential.hpp"
 #include "i18n.h"
 
 enum class ClickCommand : intptr_t { Return,
     Reset_Z,
     Reset_steps,
     Reset_directions,
-    Reset_microsteps,
     Reset_currents };
 
 #if PRINTER_IS_PRUSA_MK3_5
@@ -138,48 +136,6 @@ class MI_RESET_DIRECTION : public IWindowMenuItem {
 
 public:
     MI_RESET_DIRECTION();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_MICROSTEPS_X : public WiSpinExpWith0 {
-    constexpr static const char *const label = "X-axis microsteps (0 default)";
-
-public:
-    MI_MICROSTEPS_X();
-    void Store();
-};
-
-class MI_MICROSTEPS_Y : public WiSpinExpWith0 {
-    constexpr static const char *const label = "Y-axis microsteps (0 default)";
-
-public:
-    MI_MICROSTEPS_Y();
-    void Store();
-};
-
-class MI_MICROSTEPS_Z : public WiSpinExp {
-    constexpr static const char *const label = "Z-axis microsteps";
-
-public:
-    MI_MICROSTEPS_Z();
-    void Store();
-};
-
-class MI_MICROSTEPS_E : public WiSpinExp {
-    constexpr static const char *const label = "Extruder microsteps";
-
-public:
-    MI_MICROSTEPS_E();
-    void Store();
-};
-
-class MI_RESET_MICROSTEPS : public IWindowMenuItem {
-    static constexpr const char *const label = "Reset microsteps";
-
-public:
-    MI_RESET_MICROSTEPS();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;

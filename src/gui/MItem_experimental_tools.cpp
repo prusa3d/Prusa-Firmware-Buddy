@@ -143,55 +143,6 @@ void MI_RESET_DIRECTION::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_directions);
 }
 
-// TODO Why do we even have two options here? It is experimental menu anyway...
-static constexpr SpinConfig<int> microstep_exponential = { { 1, 256, 2 } }; // 2^0 - 2^8 .. 1, 2, 4, .. , 128, 256
-static constexpr SpinConfig<int> microstep_exponential_with_0 = { { 0, 256, 2 } }; // 0 + 2^0 - 2^8 .. 0, 1, 2, 4, .. , 128, 256
-
-/*****************************************************************************/
-// MI_MICROSTEPS_X
-MI_MICROSTEPS_X::MI_MICROSTEPS_X()
-    : WiSpinExpWith0(config_store().axis_microsteps_X_.get(), microstep_exponential_with_0, NOTRAN(label)) {}
-
-void MI_MICROSTEPS_X::Store() {
-    set_microsteps_x(GetVal());
-}
-
-/*****************************************************************************/
-// MI_MICROSTEPS_Y
-MI_MICROSTEPS_Y::MI_MICROSTEPS_Y()
-    : WiSpinExpWith0(config_store().axis_microsteps_Y_.get(), microstep_exponential_with_0, NOTRAN(label)) {}
-
-void MI_MICROSTEPS_Y::Store() {
-    set_microsteps_y(GetVal());
-}
-
-/*****************************************************************************/
-// MI_MICROSTEPS_Z
-MI_MICROSTEPS_Z::MI_MICROSTEPS_Z()
-    : WiSpinExp(get_microsteps_z(), microstep_exponential, NOTRAN(label)) {}
-
-void MI_MICROSTEPS_Z::Store() {
-    set_microsteps_z(GetVal());
-}
-
-/*****************************************************************************/
-// MI_MICROSTEPS_E
-MI_MICROSTEPS_E::MI_MICROSTEPS_E()
-    : WiSpinExp(get_microsteps_e(), microstep_exponential, NOTRAN(label)) {}
-
-void MI_MICROSTEPS_E::Store() {
-    set_microsteps_e(GetVal());
-}
-
-/*****************************************************************************/
-// MI_RESET_MICROSTEPS
-MI_RESET_MICROSTEPS::MI_RESET_MICROSTEPS()
-    : IWindowMenuItem(NOTRAN(label)) {}
-
-void MI_RESET_MICROSTEPS::click([[maybe_unused]] IWindowMenu &window_menu) {
-    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_microsteps);
-}
-
 static constexpr SpinConfig<int> rms_current_spin_config = { { 0, 800, 1 }, SpinUnit::milliamper };
 
 /*****************************************************************************/

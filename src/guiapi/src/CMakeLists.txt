@@ -40,7 +40,6 @@ target_sources(
           WindowMenuInfo.cpp
           WindowMenuItems.cpp
           WindowMenuSpin.cpp
-          WindowMenuSpinExponential.cpp
           WindowMenuSwitch.cpp
   )
 
