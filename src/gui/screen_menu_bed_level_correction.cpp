@@ -11,13 +11,6 @@ I_MI_CORRECT::I_MI_CORRECT(CorrectionIndex index)
 
 void I_MI_CORRECT::Reset() {
     SetVal(0);
-    // TODO It would be great if we could invalidate just the extension.
-    //      Unfortunately extension width is incorrectly recalculated
-    //      inside IWiSpin based on the new value. It would best be solved
-    //      by not recomputing the width at all. Such a change is too large
-    //      for a bugfix build so we are keeping it simple. For now,
-    //      we invalidate entire menu item and suffer some flickering.
-    Invalidate();
 }
 
 void I_MI_CORRECT::OnClick() {

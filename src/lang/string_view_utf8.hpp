@@ -190,6 +190,16 @@ public:
         return uint32_t(utf8Length);
     }
 
+    auto computeNumUtf8Chars() const {
+        string_view_utf8 copy = *this;
+        return copy.computeNumUtf8CharsAndRewind();
+    }
+
+    auto getFirstUtf8Char() const {
+        string_view_utf8 copy = *this;
+        return copy.getUtf8Char();
+    }
+
     /// rewind the stream to its beginning
     void rewind() {
         rewind_impl(attrs);

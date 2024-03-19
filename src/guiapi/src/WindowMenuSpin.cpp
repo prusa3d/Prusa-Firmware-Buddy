@@ -9,7 +9,6 @@
 IWiSpin::IWiSpin(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_)
     : IWindowMenuItem(label, extension_width_, id_icon, enabled, hidden)
     , units(units_) {
-    // printSpinToBuffer(); initialized by parrent so it does not have to be virtual
 }
 
 void IWiSpin::click(IWindowMenu & /*window_menu*/) {
@@ -37,11 +36,9 @@ Rect16 IWiSpin::getSpinRect(Rect16 extension_rect) const {
 Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
     Rect16 ret = extension_rect;
     if (has_unit && !units.isNULLSTR()) {
-        string_view_utf8 un = units; // local var because of const
-        unichar uchar = un.getUtf8Char();
+        const unichar uchar = units.getFirstUtf8Char();
         size_t half_space_padding = (uchar == 0 || uchar == 0xB0) ? 0 : unit__half_space_padding;
-        un.rewind();
-        Rect16::Width_t unit_width = un.computeNumUtf8CharsAndRewind() * width(GuiDefaults::FontMenuSpecial) + Rect16::Width_t(half_space_padding);
+        Rect16::Width_t unit_width = units.computeNumUtf8Chars() * width(GuiDefaults::FontMenuSpecial) + Rect16::Width_t(half_space_padding);
         unit_width = unit_width + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right;
         ret = unit_width;
     } else {
@@ -49,14 +46,6 @@ Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
     }
     ret += Rect16::Left_t(extension_rect.Width() - ret.Width());
     return ret;
-}
-
-void IWiSpin::changeExtentionWidth(size_t unit_len, unichar uchar, size_t width) {
-    if (width != spin_val_width) {
-        spin_val_width = width;
-        extension_width = calculateExtensionWidth(unit_len, uchar, width);
-        deInitRoll();
-    }
 }
 
 static constexpr Font TheFont = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::FontMenuSpecial : GuiDefaults::FontMenuItems;
@@ -100,7 +89,11 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
     }
 }
 
-Rect16::Width_t IWiSpin::calculateExtensionWidth(size_t unit_len, unichar uchar, size_t value_max_digits) {
+Rect16::Width_t IWiSpin::calculateExtensionWidth(const string_view_utf8 &units, size_t value_max_digits) {
+    size_t unit_len = 0;
+    if (has_unit) {
+        unit_len = units.computeNumUtf8Chars();
+    }
     size_t ret = value_max_digits * width(TheFont);
     uint8_t half_space = 0;
     if (unit_len) {
@@ -109,6 +102,7 @@ Rect16::Width_t IWiSpin::calculateExtensionWidth(size_t unit_len, unichar uchar,
         }
         ret += unit_len * width(GuiDefaults::FontMenuSpecial);
         ret += GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right;
+        const unichar uchar = units.getFirstUtf8Char();
         half_space = uchar == '\xB0' ? 0 : unit__half_space_padding;
     }
     ret += Padding.left + Padding.right + half_space;

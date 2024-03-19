@@ -26,12 +26,10 @@ protected:
     SpinTextArray spin_text_buff; // temporary buffer to print value for text measurements
 
     string_view_utf8 units;
-    size_t spin_val_width;
 
-    static Rect16::Width_t calculateExtensionWidth(size_t unit_len, unichar uchar, size_t value_max_digits);
+    static Rect16::Width_t calculateExtensionWidth(const string_view_utf8 &units, size_t value_max_digits);
     Rect16 getSpinRect(Rect16 extension_rect) const;
     Rect16 getUnitRect(Rect16 extension_rect) const;
-    void changeExtentionWidth(size_t unit_len, unichar uchar, size_t width);
 
     void click(IWindowMenu &window_menu) override;
     void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
@@ -118,26 +116,23 @@ struct SpinConfig {
     constexpr T Step() const { return range[2]; }
     bool IsOffOptionEnabled() const { return off_opt == spin_off_opt_t::yes; }
 
-    size_t txtMeas(T val) const;
+    size_t snprintf(char *data, size_t size, T val) const {
+        // Variadic function ABI requires promotion of floats to doubles.
+        // We ignore diagnostics here in order to not have multiple specializations.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+        return ::snprintf(data, size, prt_format, val);
+#pragma GCC diagnostic pop
+    }
+
+    size_t compute_max_chars() const {
+        return std::max<size_t>({
+            IsOffOptionEnabled() ? _(off_opt_str).computeNumUtf8CharsAndRewind() : 0ul,
+            snprintf(nullptr, 0, Max()),
+            snprintf(nullptr, 0, Min()),
+        });
+    }
 };
-
-template <class T>
-size_t SpinConfig<T>::txtMeas(T val) const {
-    if (IsOffOptionEnabled() && val == Min()) {
-        return _(off_opt_str).computeNumUtf8CharsAndRewind();
-    } else {
-        return snprintf(nullptr, 0, prt_format, val);
-    }
-}
-
-template <>
-inline size_t SpinConfig<float>::txtMeas(float val) const {
-    if (IsOffOptionEnabled() && val == Min()) {
-        return _(off_opt_str).computeNumUtf8CharsAndRewind();
-    } else {
-        return snprintf(nullptr, 0, prt_format, (double)val);
-    }
-}
 
 // TODO find a better way to share these constants...
 static constexpr SpinConfig<int> print_progress_spin_config {
@@ -160,13 +155,41 @@ public: // todo private
     using Config = SpinConfig<T>;
     const Config &config;
 
+private:
+    void update() {
+        if (config.IsOffOptionEnabled() && value == config.Min()) {
+            _(config.off_opt_str).copyToRAM(spin_text_buff.data(), spin_text_buff.size());
+        } else {
+            config.snprintf(spin_text_buff.data(), spin_text_buff.size(), value);
+        }
+    }
+
 protected:
-    void printSpinToBuffer();
-    virtual invalidate_t change(int dif) override;
+    virtual invalidate_t change(int dif) override {
+        T val = GetVal();
+        T old = val;
+        val += (T)dif * config.Step();
+        val = dif >= 0 ? std::max(val, old) : std::min(val, old); // check overflow/underflow
+        val = config.clamp(val);
+        set_val(val);
+        if (!dif || old != val) { // 0 dif forces redraw
+            update();
+            return invalidate_t::yes;
+        } else {
+            return invalidate_t::no;
+        }
+    }
     void set_val(T val) { value = val; }
 
 public:
-    WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no)
+        : IWiSpin(label, id_icon, enabled, hidden,
+            cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), 0)
+        , value { cnf.clamp(val) }
+        , config(cnf) {
+        extension_width = calculateExtensionWidth(units, config.compute_max_chars());
+        update();
+    }
 
     T GetVal() const { return value; }
 
@@ -179,66 +202,6 @@ public:
         Change(0);
     }
 };
-
-/*****************************************************************************/
-// template definitions
-// WI_SPIN_t
-template <class T>
-WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : IWiSpin(label, id_icon, enabled, hidden,
-        cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), 0)
-    , value { cnf.clamp(val) }
-    , config(cnf) {
-    printSpinToBuffer();
-
-    spin_val_width = cnf.txtMeas(val);
-    size_t unit_len = 0;
-    unichar uchar = 0;
-    if (config.Unit() != nullptr) {
-        string_view_utf8 un = units;
-        uchar = un.getUtf8Char();
-        un.rewind();
-        unit_len = un.computeNumUtf8CharsAndRewind();
-    }
-    extension_width = calculateExtensionWidth(unit_len, uchar, spin_val_width);
-}
-
-template <class T>
-invalidate_t WI_SPIN_t<T>::change(int dif) {
-    T val = GetVal();
-    T old = val;
-    val += (T)dif * config.Step();
-    val = dif >= 0 ? std::max(val, old) : std::min(val, old); // check overflow/underflow
-    val = config.clamp(val);
-    set_val(val);
-    invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; // 0 dif forces redraw
-    if (invalid == invalidate_t::yes) {
-        if (!has_unit || config.Unit() == nullptr) {
-            changeExtentionWidth(0, 0, config.txtMeas(GetVal()));
-        } else {
-            string_view_utf8 un = units;
-            unichar uchar = un.getUtf8Char();
-            un.rewind();
-            changeExtentionWidth(units.computeNumUtf8CharsAndRewind(), uchar, config.txtMeas(GetVal()));
-        }
-        printSpinToBuffer(); // could be in draw method, but traded little performance for code size (printSpinToBuffer is not virtual when it is here)
-    }
-    return invalid;
-}
-
-template <class T>
-void WI_SPIN_t<T>::printSpinToBuffer() {
-    if (config.IsOffOptionEnabled() && GetVal() == config.Min()) {
-        _(config.off_opt_str).copyToRAM(spin_text_buff.data(), _(config.off_opt_str).computeNumUtf8CharsAndRewind() + 1);
-    } else {
-        snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, GetVal());
-    }
-}
-
-template <>
-inline void WI_SPIN_t<float>::printSpinToBuffer() {
-    snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, static_cast<double>(GetVal()));
-}
 
 using WiSpinInt = WI_SPIN_t<int>;
 using WiSpinFlt = WI_SPIN_t<float>;
