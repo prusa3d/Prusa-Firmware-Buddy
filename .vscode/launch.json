@@ -9,8 +9,15 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
-            "openOCDPreConfigLaunchCommands": ["set bbf_over_debugger_path ./build-vscode-buddy/firmware.bbf"],
-            "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_buddy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
+            "openOCDPreConfigLaunchCommands": [
+                "set bbf_over_debugger_path ./build-vscode-buddy/firmware.bbf"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_buddy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32F427ZI",
             // swd file is disabled, it is known to cause issues in some cases. Enable it if you need to see register view.
@@ -18,6 +25,9 @@
             "rtos": "FreeRTOS",
             "breakAfterReset": false,
             "preLaunchTask": "Backup current ELF",
+            "liveWatch": {
+                "enabled": true,
+            },
             "rttConfig": {
                 "enabled": true,
                 "address": "auto",
@@ -43,13 +53,23 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
-            "openOCDPreConfigLaunchCommands": ["set bbf_over_debugger_path ./build-vscode-buddy/firmware.bbf"],
-            "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_buddy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
+            "openOCDPreConfigLaunchCommands": [
+                "set bbf_over_debugger_path ./build-vscode-buddy/firmware.bbf"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_buddy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32F427ZI",
             // swd file is disabled, it is known to cause issues in some cases. Enable it if you need to see register view.
             //"svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32F427.svd",
             "rtos": "FreeRTOS",
+            "liveWatch": {
+                "enabled": true,
+            },
             "rttConfig": {
                 "enabled": true,
                 "address": "auto",
@@ -75,8 +95,15 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
-            "openOCDPreConfigLaunchCommands": ["set PUPPY_TYPE dwarf"],
-            "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_puppy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
+            "openOCDPreConfigLaunchCommands": [
+                "set PUPPY_TYPE dwarf"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32G07",
             "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
@@ -110,8 +137,15 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
-            "openOCDPreConfigLaunchCommands": ["set PUPPY_TYPE dwarf"],
-            "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_puppy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
+            "openOCDPreConfigLaunchCommands": [
+                "set PUPPY_TYPE dwarf"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32G07",
             "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
@@ -141,8 +175,15 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
-            "openOCDPreConfigLaunchCommands": ["set PUPPY_TYPE modularbed"],
-            "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_puppy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
+            "openOCDPreConfigLaunchCommands": [
+                "set PUPPY_TYPE modularbed"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32G07",
             "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
@@ -160,8 +201,15 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin",
-            "openOCDPreConfigLaunchCommands": ["set PUPPY_TYPE modularbed"],
-            "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_puppy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
+            "openOCDPreConfigLaunchCommands": [
+                "set PUPPY_TYPE modularbed"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/00_common.cfg",
+                "${workspaceRoot}/utils/debug/10_custom_config.cfg",
+                "${workspaceRoot}/utils/debug/20_board_puppy.cfg",
+                "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"
+            ],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32G07",
             "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
@@ -188,7 +236,9 @@
             "type": "cortex-debug",
             "servertype": "qemu",
             "serverpath": "${workspaceRoot}/.venv/bin/simulator_as_qemu",
-            "serverArgs": ["--scripted"],
+            "serverArgs": [
+                "--scripted"
+            ],
             "windows": {
                 "serverpath": "${workspaceRoot}/.venv/Scripts/simulator_as_qemu"
             },
@@ -221,7 +271,11 @@
     "compounds": [
         {
             "name": "XL - ALL",
-            "configurations": ["Launch Buddy","Launch Dwarf", "Launch ModularBed"],
+            "configurations": [
+                "Launch Buddy",
+                "Launch Dwarf",
+                "Launch ModularBed"
+            ],
             "presentation": {
                 "group": "XL Puppies",
             },
