@@ -139,8 +139,6 @@ inline size_t SpinConfig<float>::txtMeas(float val) const {
     }
 }
 
-static inline constexpr SpinConfig<int> default_int_spin_config = { { 0, std::numeric_limits<int32_t>::max(), 1 } };
-
 // TODO find a better way to share these constants...
 static constexpr SpinConfig<int> print_progress_spin_config {
 #if PRINTER_IS_PRUSA_MINI

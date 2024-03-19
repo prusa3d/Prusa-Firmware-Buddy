@@ -475,6 +475,8 @@ void IMI_FS_SPAN::OnClick() {
     }
 }
 
+static constexpr SpinConfig<int> fs_ref_spin_config = { { 0, std::numeric_limits<int32_t>::max(), 1 } };
+
 /*****************************************************************************/
 // IMI_FS_REF
 // in case we don't want to allow modification just change is_enabled_t to yes
@@ -484,7 +486,7 @@ IMI_FS_REF::IMI_FS_REF([[maybe_unused]] bool is_side_, size_t index_, const char
         is_side_ ? config_store().get_side_fs_ref_nins_value(index_) :
 #endif
                  config_store().get_extruder_fs_ref_nins_value(index_),
-        default_int_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
+        fs_ref_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
 #if HAS_SIDE_FSENSOR()
     , is_side(is_side_)
 #endif
