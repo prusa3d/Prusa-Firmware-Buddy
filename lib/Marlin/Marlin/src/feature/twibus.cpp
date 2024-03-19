@@ -26,42 +26,74 @@
 
 #include "twibus.h"
 
-#include <Wire.h>
+FORCE_INLINE char hex_nybble(const uint8_t n) {
+  return (n & 0xF) + ((n & 0xF) < 10 ? '0' : 'A' - 10);
+}
 
-#include "../libs/hex_print.h"
-
-TWIBus i2c;
+TWIBus twibus;
 
 TWIBus::TWIBus() {
-  #if I2C_SLAVE_ADDRESS == 0
-
-    #if PINS_EXIST(I2C_SCL, I2C_SDA) && DISABLED(SOFT_I2C_EEPROM)
-      Wire.setSDA(pin_t(I2C_SDA_PIN));
-      Wire.setSCL(pin_t(I2C_SCL_PIN));
-    #endif
-
-    Wire.begin();                   // No address joins the BUS as the master
-
-  #else
-
-    Wire.begin(I2C_SLAVE_ADDRESS);  // Join the bus as a slave
-
-  #endif
   reset();
 }
 
 void TWIBus::reset() {
   buffer_s = 0;
   buffer[0] = 0x00;
+  read_buffer_available = 0;
+  read_buffer_pos = 0;
 }
 
-void TWIBus::address(const uint8_t adr) {
-  if (!WITHIN(adr, 8, 127))
+bool TWIBus::read_buffer_has_byte() {
+  return read_buffer_pos < read_buffer_available;
+}
+
+uint8_t TWIBus::read_buffer_read_byte() {
+  if (!read_buffer_has_byte()) {
+    return 0;
+  }
+  return read_buffer[read_buffer_pos++];
+}
+
+bool TWIBus::address(const uint8_t adr) {
+  if (!WITHIN(adr, 8, 127)) {
     SERIAL_ECHO_MSG("Bad I2C address (8-127)");
+    return false;
+  }
+
+  if (isRestrictedAddress(adr)) {
+    SERIAL_ECHO_MSG("Restricted I2C address.");
+    return false;
+  }
 
   addr = adr;
 
   debug(F("address"), adr);
+  return true;
+}
+
+bool TWIBus::isRestrictedAddress(uint8_t addr) {
+  switch (addr) {
+    case 0x53:
+    case 0x57:
+      // EEPROM
+      return true;
+    case 0x22:
+    case 0x23:
+      // USBC
+      return true;
+     case 0x18:
+     case 0x19:
+     case 0x1A:
+     case 0x1B:
+     case 0x1C:
+     case 0x1D:
+     case 0x1E:
+     case 0x1F:
+      // IO Extender
+      return true;
+  }
+
+  return false;
 }
 
 void TWIBus::addbyte(const char c) {
@@ -82,29 +114,41 @@ void TWIBus::addstring(char str[]) {
 
 void TWIBus::send() {
   debug(F("send"), addr);
-
-  Wire.beginTransmission(I2C_ADDRESS(addr));
-  Wire.write(buffer, buffer_s);
-  Wire.endTransmission();
-
+  
+  i2c::Result ret = i2c::Transmit(hi2c2, addr << 1, buffer, buffer_s, 100);
   reset();
+
+  check_hal_response(ret);
 }
 
-// static
-void TWIBus::echoprefix(uint8_t bytes, FSTR_P const pref, uint8_t adr) {
-  SERIAL_ECHO_START();
-  SERIAL_ECHO(pref, F(": from:"), adr, F(" bytes:"), bytes, F(" data:"));
+bool TWIBus::check_hal_response(i2c::Result response) {
+  if (response == i2c::Result::ok) {
+    return true;
+  }
+
+  switch (response)
+  {
+  case i2c::Result::error:
+    SERIAL_ERROR_MSG("TWIBus::send failed with: ERROR");
+    break;
+  case i2c::Result::busy_after_retries:
+    SERIAL_ERROR_MSG("TWIBus::send failed with: BUSY");
+    break;
+  case i2c::Result::timeout:
+     SERIAL_ERROR_MSG("TWIBus::send failed with: TIMEOUT");
+    break;
+  default:
+    SERIAL_ERROR_MSG("TWIBus::send failed with: UNKNOWN");
+  }
+  return false;
 }
 
-// static
 void TWIBus::echodata(uint8_t bytes, FSTR_P const pref, uint8_t adr, const uint8_t style/*=0*/) {
   union TwoBytesToInt16 { uint8_t bytes[2]; int16_t integervalue; };
   TwoBytesToInt16 ConversionUnion;
 
-  echoprefix(bytes, pref, adr);
-
-  while (bytes-- && Wire.available()) {
-    int value = Wire.read();
+  while (bytes-- && read_buffer_has_byte()) {
+    int value = read_buffer_read_byte();
     switch (style) {
 
       // Style 1, HEX DUMP
@@ -142,23 +186,26 @@ void TWIBus::echodata(uint8_t bytes, FSTR_P const pref, uint8_t adr, const uint8
   SERIAL_EOL();
 }
 
-void TWIBus::echobuffer(FSTR_P const prefix, uint8_t adr) {
-  echoprefix(buffer_s, prefix, adr);
-  for (uint8_t i = 0; i < buffer_s; ++i) SERIAL_CHAR(buffer[i]);
-  SERIAL_EOL();
-}
-
 bool TWIBus::request(const uint8_t bytes) {
   if (!addr) return false;
 
   debug(F("request"), bytes);
 
-  // requestFrom() is a blocking function
-  if (Wire.requestFrom(I2C_ADDRESS(addr), bytes) == 0) {
-    debug(F("request fail"), I2C_ADDRESS(addr));
+  if (bytes > TWIBUS_BUFFER_SIZE) {
+    SERIAL_ERROR_MSG("TWIBus::request Tried to read more than max buffer size.");
+
     return false;
   }
 
+  flush();
+
+  i2c::Result ret = i2c::Receive(hi2c2, addr << 1 | 0x1, read_buffer, bytes, 100);
+
+  if (!check_hal_response(ret)) {
+    return false;
+  }
+
+  read_buffer_available = bytes;
   return true;
 }
 
@@ -172,48 +219,18 @@ void TWIBus::relay(const uint8_t bytes, const uint8_t style/*=0*/) {
 uint8_t TWIBus::capture(char *dst, const uint8_t bytes) {
   reset();
   uint8_t count = 0;
-  while (count < bytes && Wire.available())
-    dst[count++] = Wire.read();
+  while (count < bytes && read_buffer_has_byte())
+    dst[count++] = read_buffer_read_byte();
 
   debug(F("capture"), count);
 
   return count;
 }
 
-// static
 void TWIBus::flush() {
-  while (Wire.available()) Wire.read();
+  read_buffer_available = 0;
+  read_buffer_pos = 0;
 }
-
-#if I2C_SLAVE_ADDRESS > 0
-
-  void TWIBus::receive(uint8_t bytes) {
-    debug(F("receive"), bytes);
-    echodata(bytes, F("i2c-receive"), 0);
-  }
-
-  void TWIBus::reply(char str[]/*=nullptr*/) {
-    debug(F("reply"), str);
-
-    if (str) {
-      reset();
-      addstring(str);
-    }
-
-    Wire.write(buffer, buffer_s);
-
-    reset();
-  }
-
-  void i2c_on_receive(int bytes) { // just echo all bytes received to serial
-    i2c.receive(bytes);
-  }
-
-  void i2c_on_request() {          // just send dummy data for now
-    i2c.reply("Hello World!\n");
-  }
-
-#endif
 
 #if ENABLED(DEBUG_TWIBUS)
 

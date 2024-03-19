@@ -2037,7 +2037,7 @@
 
 // @section i2cbus
 
-//#define EXPERIMENTAL_I2CBUS
+#define EXPERIMENTAL_I2CBUS
 #define I2C_SLAVE_ADDRESS 0 // Set a value from 8 to 127 to act as a slave
 
 // @section extras

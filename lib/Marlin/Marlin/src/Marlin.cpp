@@ -121,11 +121,6 @@
   #include "feature/dac/stepper_dac.h"
 #endif
 
-#if ENABLED(EXPERIMENTAL_I2CBUS)
-  #include "feature/twibus.h"
-  TWIBus i2c;
-#endif
-
 #if ENABLED(I2C_POSITION_ENCODERS)
   #include "feature/I2CPositionEncoder.h"
 #endif
