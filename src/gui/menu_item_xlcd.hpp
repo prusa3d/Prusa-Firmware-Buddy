@@ -17,28 +17,28 @@ public:
     static Buff to_array();
 };
 
-class MI_XLCD_SINGLE_ERR : public WiSpinInt {
+class MI_XLCD_SINGLE_ERR : public WI_INFO_DEV_t {
     constexpr static const char *const label = "XLCD Single e.";
 
 public:
     MI_XLCD_SINGLE_ERR();
 };
 
-class MI_XLCD_REPEATED_ERR : public WiSpinInt {
+class MI_XLCD_REPEATED_ERR : public WI_INFO_DEV_t {
     constexpr static const char *const label = "XLCD Repeated e.";
 
 public:
     MI_XLCD_REPEATED_ERR();
 };
 
-class MI_XLCD_CYCLIC_ERR : public WiSpinInt {
+class MI_XLCD_CYCLIC_ERR : public WI_INFO_DEV_t {
     constexpr static const char *const label = "XLCD Cyclic e.";
 
 public:
     MI_XLCD_CYCLIC_ERR();
 };
 
-class MI_XLCD_RETRIED : public WiSpinInt {
+class MI_XLCD_RETRIED : public WI_INFO_DEV_t {
     constexpr static const char *const label = "XLCD Retried";
 
 public:

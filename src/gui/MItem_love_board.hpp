@@ -25,28 +25,28 @@ public:
     MI_INFO_HEATBREAK_TEMP();
 };
 
-class MI_LOVEBOARD_SINGLE_ERR : public WiSpinInt {
+class MI_LOVEBOARD_SINGLE_ERR : public WI_INFO_DEV_t {
     constexpr static const char *const label = "Loveboard Single e.";
 
 public:
     MI_LOVEBOARD_SINGLE_ERR();
 };
 
-class MI_LOVEBOARD_REPEATED_ERR : public WiSpinInt {
+class MI_LOVEBOARD_REPEATED_ERR : public WI_INFO_DEV_t {
     constexpr static const char *const label = "Loveboard Repeated e.";
 
 public:
     MI_LOVEBOARD_REPEATED_ERR();
 };
 
-class MI_LOVEBOARD_CYCLIC_ERR : public WiSpinInt {
+class MI_LOVEBOARD_CYCLIC_ERR : public WI_INFO_DEV_t {
     constexpr static const char *const label = "Loveboard Cyclic e.";
 
 public:
     MI_LOVEBOARD_CYCLIC_ERR();
 };
 
-class MI_LOVEBOARD_RETRIED : public WiSpinInt {
+class MI_LOVEBOARD_RETRIED : public WI_INFO_DEV_t {
     constexpr static const char *const label = "Loveboard Retried";
 
 public:
