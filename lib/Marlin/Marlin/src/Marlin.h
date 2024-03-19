@@ -317,7 +317,6 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
 
 #if ENABLED(EXPERIMENTAL_I2CBUS)
   #include "feature/twibus.h"
-  extern TWIBus i2c;
 #endif
 
 #if ENABLED(G38_PROBE_TARGET)
