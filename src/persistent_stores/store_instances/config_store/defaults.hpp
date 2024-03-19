@@ -18,6 +18,9 @@
 #include <common/nozzle_type.hpp>
 #include <common/hotend_type.hpp>
 
+#include <option/has_sheet_support.h>
+#include <option/has_loadcell.h>
+
 namespace config_store_ns {
 
 // Holds default constants so they can be referenced by store item. Placing these constants in another header where it's more meaningful is welcome. These defaults could be passed directly as template parameter to store items from gcc 11 onwards (and store items would accept them as value instead of as a const ref).
@@ -240,7 +243,13 @@ namespace defaults {
     inline constexpr SelftestResult_pre_gears selftest_result_pre_gears {};
     inline constexpr SelftestResult_pre_23 selftest_result_pre_23 {};
 
+#if (HAS_SHEET_SUPPORT())
+    static_assert(!HAS_LOADCELL(), "This caused major issues on XL.");
+    // Sheet[0] is used both as default sheet and as storage for z offset set by LiveAdjust Z. XL have had and issue that caused the tool offset calibration to fail due to aforementioned z offset. Uncalibrated value being float:max caused z offset to be set to 2 mm which lead to printer missing the calibration pin by almost 2 whole mm. This happens to all XLs that do not have a LiveAdjust Z value set and therefore use the default value.
     inline constexpr Sheet sheet_0 { "Smooth1", z_offset_uncalibrated };
+#else
+    inline constexpr Sheet sheet_0 { "Smooth1", 0.0f };
+#endif
     inline constexpr Sheet sheet_1 { "Smooth2", z_offset_uncalibrated };
     inline constexpr Sheet sheet_2 { "Textur1", z_offset_uncalibrated };
     inline constexpr Sheet sheet_3 { "Textur2", z_offset_uncalibrated };
