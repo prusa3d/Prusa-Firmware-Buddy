@@ -21,8 +21,14 @@ extern "C" {
 
 #if MDNS()
     #define MDNS_MAX_STORED_PKTS 1
-    // 1 for each interface (we have 2) and 1 for each stored delayed packet
-    #define MDNS_EXTRA_TIMEOUTS 2 + MDNS_MAX_STORED_PKTS
+    // Each interface takes up to 6 timeouts (in addition to the packets).
+    // One is the "main" one, the other 5 deal with some delayed answering (and
+    // probably can be lowered, a lot of these could come in sequence instead
+    // of starting them in parallel).
+    //
+    // We limit ourselves to only one active interface and don't do mdns on the
+    // other.
+    #define MDNS_EXTRA_TIMEOUTS 6 + MDNS_MAX_STORED_PKTS
     #define LWIP_MDNS_RESPONDER 1
     // For MDNS
     #define LWIP_IGMP                      1
