@@ -177,6 +177,9 @@ typedef struct {
             min_travel_feedrate_mm_s;           // (mm/s) M205 T - Minimum travel feedrate
 } planner_settings_t;
 
+/// Subclass to enforce that people are using user settings when applying settings
+struct user_planner_settings_t : public planner_settings_t {};
+
 // Structure for saving/loading movement parameters
 typedef struct {
    uint32_t max_acceleration_mm_per_s2[XYZE_N], // (mm/s^2) M201 XYZE
@@ -283,7 +286,16 @@ class Planner {
                                                       // May be auto-adjusted by a filament width sensor
     #endif
 
-    static planner_settings_t settings;
+    /// Reference to working_settings - settings with applied limits
+    static const planner_settings_t &settings;
+
+    /// Reference to user_settings - settings before limits are applied
+    static const user_planner_settings_t &user_settings;
+
+    /// Sets new settings for the planner.
+    /// Writes the settings raw to user_settings, and with limits applied to settings/working_settings
+    /// !!! Always base your settings on user_settings, not on settings
+    static void apply_settings(const user_planner_settings_t &settings);
 
     static uint32_t max_acceleration_msteps_per_s2[XYZE_N]; // (mini-steps/s^2) Derived from mm_per_s2
     static float mm_per_step[XYZE_N];                       // Millimeters per step
@@ -952,7 +964,13 @@ class Planner {
     #endif
 
   private:
+    /// Target planner settings, withOUT limits applied.
+    static user_planner_settings_t user_settings_;
 
+    /// Actual settings the planner is using, with limits applied
+    static planner_settings_t working_settings_;
+
+  private:
     /**
      * Get the index of the next / previous block in the ring buffer
      */

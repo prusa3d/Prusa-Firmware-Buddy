@@ -477,14 +477,20 @@ void PrusaToolChangerUtils::ConfRestorer::restore_jerk() {
     if (!sampled.load()) {
         bsod("Restoring not sampled jerk");
     }
+
+    auto s = planner.user_settings;
     planner.max_jerk = sampled_jerk;
+    planner.apply_settings(s);
 }
 
 void PrusaToolChangerUtils::ConfRestorer::restore_acceleration() {
     if (!sampled.load()) {
         bsod("Restoring not sampled acceleration");
     }
-    planner.settings.travel_acceleration = sampled_travel_acceleration;
+
+    auto s = planner.user_settings;
+    s.travel_acceleration = sampled_travel_acceleration;
+    planner.apply_settings(s);
 }
 
 void PrusaToolChangerUtils::ConfRestorer::restore_feedrate() {

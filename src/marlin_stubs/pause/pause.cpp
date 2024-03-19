@@ -41,6 +41,7 @@
 #include <cmath>
 #include <config_store/store_instance.hpp>
 #include <option/has_mmu2.h>
+#include <scope_guard.hpp>
 
 #ifndef NOZZLE_UNPARK_XY_FEEDRATE
     #define NOZZLE_UNPARK_XY_FEEDRATE NOZZLE_PARK_XY_FEEDRATE
@@ -404,12 +405,18 @@ void Pause::loop_load_not_blocking([[maybe_unused]] Response response) {
         set(LoadPhases_t::_finish);
         break;
 
-    case LoadPhases_t::long_load:
-        planner.settings.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
+    case LoadPhases_t::long_load: {
+        {
+            auto s = planner.user_settings;
+            s.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
+            planner.apply_settings(s);
+        }
+
         setPhase(PhasesLoadUnload::Loading_stoppable, 50);
         do_e_move_notify_progress_hotextrude(settings.fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
         set(LoadPhases_t::purge);
         break;
+    }
 
     case LoadPhases_t::purge:
         // Extrude filament to get into hotend
@@ -553,14 +560,20 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         set(LoadPhases_t::_finish);
         break;
 
-    case LoadPhases_t::long_load:
+    case LoadPhases_t::long_load: {
         setPhase(is_unstoppable ? PhasesLoadUnload::Loading_unstoppable : PhasesLoadUnload::Loading_stoppable, 50);
 
-        planner.settings.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
+        {
+            auto s = planner.user_settings;
+            s.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
+            planner.apply_settings(s);
+        }
+
         do_e_move_notify_progress_hotextrude(settings.fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
         set(LoadPhases_t::purge);
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
+    }
 
     case LoadPhases_t::purge:
         // Extrude filament to get into hotend
@@ -795,9 +808,10 @@ bool Pause::filamentLoad(loop_fn fn) {
         return false;
     }
 
-    AutoRestore<float> AR(planner.settings.retract_acceleration);
-    set(LoadPhases_t::_init);
+    const auto orig_settings = planner.user_settings;
+    ScopeGuard _sg([&] { planner.apply_settings(orig_settings); });
 
+    set(LoadPhases_t::_init);
     return invoke_loop(fn);
 }
 
@@ -1361,8 +1375,12 @@ void Pause::ram_filament(const Pause::RammingType type) {
 void Pause::unload_filament(const Pause::RammingType type) {
     const RammingSequence &sequence = get_ramming_sequence(type);
 
-    const float saved_acceleration = planner.settings.retract_acceleration;
-    planner.settings.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
+    const float saved_acceleration = planner.user_settings.retract_acceleration;
+    {
+        auto s = planner.user_settings;
+        s.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
+        planner.apply_settings(s);
+    }
 
     // subtract the already performed extruder movement from the total unload length and ensure it is negative
 
@@ -1372,7 +1390,11 @@ void Pause::unload_filament(const Pause::RammingType type) {
     }
     do_e_move_notify_progress_hotextrude(remaining_unload_length, (FILAMENT_CHANGE_UNLOAD_FEEDRATE), 51, 99);
 
-    planner.settings.retract_acceleration = saved_acceleration;
+    {
+        auto s = planner.user_settings;
+        s.retract_acceleration = saved_acceleration;
+        planner.apply_settings(s);
+    }
 }
 const RammingSequence &Pause::get_ramming_sequence(const RammingType type) const {
     switch (type) {

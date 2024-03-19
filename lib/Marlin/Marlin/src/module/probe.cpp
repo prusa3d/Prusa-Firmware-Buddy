@@ -866,8 +866,12 @@ void cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max) {
   auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
 
   // set acceleration to known value
-  auto saved_acceleration = planner.settings.travel_acceleration;
-  planner.settings.travel_acceleration = PROBE_CLEANUP_TRAVEL_ACCELERATION;
+  auto saved_acceleration = planner.user_settings.travel_acceleration;
+  {
+    auto s = planner.user_settings;
+    s.travel_acceleration = PROBE_CLEANUP_TRAVEL_ACCELERATION;
+    planner.apply_settings(s);
+  }
 
   bool should_continue = true;
   for (float y = rect_min.y + radius; (y + radius) <= rect_max.y && should_continue; y += 2 * radius) {
@@ -911,7 +915,11 @@ void cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max) {
   }
 
   // restore acceleration
-  planner.settings.travel_acceleration = saved_acceleration;
+  {
+    auto s = planner.user_settings;
+    s.travel_acceleration = saved_acceleration;
+    planner.apply_settings(s);
+  }
 
   if (probe_deployed) {
     STOW_PROBE();

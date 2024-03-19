@@ -120,7 +120,7 @@ static constexpr uint32_t FLASH_SIZE = w25x_pp_size;
 // planner state (TODO: a _lot_ of essential state is missing here and Crash_s also due to
 // the partial Motion_Parameters implementation)
 struct flash_planner_t {
-    planner_settings_t settings;
+    user_planner_settings_t settings;
     xyze_pos_t max_jerk;
 
     float z_position;
@@ -579,7 +579,7 @@ void resume_loop() {
         thermalManager.allow_cold_extrude = state_buf.planner.allow_cold_extrude;
 #endif
         // planner settings
-        planner.settings = state_buf.planner.settings;
+        planner.apply_settings(state_buf.planner.settings);
         planner.refresh_acceleration_rates();
 #if HAS_CLASSIC_JERK
         planner.max_jerk = state_buf.planner.max_jerk;
@@ -1183,7 +1183,7 @@ void ac_fault_isr() {
         prusa_toolchanger.try_restore();
 #endif /*HAS_TOOLCHANGER()*/
 
-        state_buf.planner.settings = planner.settings;
+        state_buf.planner.settings = planner.user_settings;
 #if HAS_CLASSIC_JERK
         state_buf.planner.max_jerk = planner.max_jerk;
 #else

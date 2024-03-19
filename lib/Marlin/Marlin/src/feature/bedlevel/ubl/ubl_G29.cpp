@@ -836,8 +836,12 @@
       #endif
 
       #if UBL_TRAVEL_ACCELERATION
-        auto saved_acceleration = planner.settings.travel_acceleration;
-        planner.settings.travel_acceleration = UBL_TRAVEL_ACCELERATION;
+        auto saved_acceleration = planner.user_settings.travel_acceleration;
+        {
+          auto s = planner.user_settings;
+          s.travel_acceleration = UBL_TRAVEL_ACCELERATION;
+          planner.apply_settings(s);
+        }
       #endif
 
       uint16_t count = GRID_MAX_POINTS;
@@ -887,7 +891,11 @@
       #endif
 
       #if UBL_TRAVEL_ACCELERATION
-        planner.settings.travel_acceleration = saved_acceleration;
+        {
+          auto s = planner.user_settings;
+          s.travel_acceleration = saved_acceleration;
+          planner.apply_settings(s);
+        }
       #endif
 
       restore_ubl_active_state_and_leave();
@@ -908,7 +916,11 @@
 
       #if UBL_TRAVEL_ACCELERATION
         auto saved_acceleration = planner.settings.travel_acceleration;
-        planner.settings.travel_acceleration = UBL_TRAVEL_ACCELERATION;
+        {
+          auto s = planner.user_settings;
+          s.travel_acceleration = UBL_TRAVEL_ACCELERATION;
+          planner.apply_settings(s);
+        }
       #endif
 
       PrintArea::rect_t probe_area(area_a, area_b);
@@ -1000,7 +1012,11 @@
       #endif
 
       #if UBL_TRAVEL_ACCELERATION
-        planner.settings.travel_acceleration = saved_acceleration;
+        {
+          auto s = planner.user_settings;
+          s.travel_acceleration = saved_acceleration;
+          planner.apply_settings(s);
+        }
       #endif
 
       restore_ubl_active_state_and_leave();
