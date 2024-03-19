@@ -7,6 +7,48 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n%10 >= 2 && n%10 <=4 && (n%100 < 12 || n%100 > 14)) ? 1 : ((n%10 == 0 || n%10 == 1 || (n%10 >= 5 && n%10 <=9)) || (n%100 >= 12 && n%100 <= 14)) ? 2 : 3);\n"
 "X-Generator: Prusalator\n"
 
+msgid "With sock"
+msgstr "S ponožkou"
+
+msgid "BED LEVEL CORRECTION"
+msgstr "KOREKCE PODLOŽKY"
+
+msgid "Bed Level Correction"
+msgstr "Korekce Podložky"
+
+msgid "Front side [um]:"
+msgstr "Přední strana [um]:"
+
+msgid "Front side:"
+msgstr "Přední strana:"
+
+msgid "Hotend Type"
+msgstr "Typ trysky"
+
+msgid "Hotend type"
+msgstr "Typ trysky"
+
+msgid "Left side [um]:"
+msgstr "Levá strana [um]:"
+
+msgid "Left side:"
+msgstr "Levá strana:"
+
+msgid "Rear side [um]:"
+msgstr "Zadní strana [um]:"
+
+msgid "Rear side:"
+msgstr "Zadní strana:"
+
+msgid "Right side [um]:"
+msgstr "Pravá strana [um]:"
+
+msgid "Right side:"
+msgstr "Pravá strana:"
+
+msgid "What kind of hotend do you have installed?"
+msgstr "Jaký typ trysky máte nainstalovaný?"
+
 #: src/gui/screen_menu_connect.cpp:83
 msgid "---"
 msgstr "---"

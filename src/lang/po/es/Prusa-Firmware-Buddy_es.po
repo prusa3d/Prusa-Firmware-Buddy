@@ -7,6 +7,48 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Prusalator\n"
 
+msgid "With sock"
+msgstr "Con calcetín"
+
+msgid "BED LEVEL CORRECTION"
+msgstr "CORRECCIÓN DE LA CAMA"
+
+msgid "Bed Level Correction"
+msgstr "Corrección de la cama"
+
+msgid "Front side [um]:"
+msgstr "Lado delantero [um]:"
+
+msgid "Front side:"
+msgstr "Lado delantero:"
+
+msgid "Hotend Type"
+msgstr "Tipo de cabezal caliente"
+
+msgid "Hotend type"
+msgstr "Tipo de cabezal caliente"
+
+msgid "Left side [um]:"
+msgstr "Lado izquierdo [um]:"
+
+msgid "Left side:"
+msgstr "Lado izquierdo:"
+
+msgid "Rear side [um]:"
+msgstr "Lado trasero [um]:"
+
+msgid "Rear side:"
+msgstr "Lado trasero:"
+
+msgid "Right side [um]:"
+msgstr "Lado derecho [um]:"
+
+msgid "Right side:"
+msgstr "Lado derecho:"
+
+msgid "What kind of hotend do you have installed?"
+msgstr "¿Qué tipo de cabezal caliente tiene instalado?"
+
 #: src/gui/screen_menu_connect.cpp:83
 msgid "---"
 msgstr "---"

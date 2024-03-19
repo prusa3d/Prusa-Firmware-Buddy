@@ -7,6 +7,48 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n%10 >= 2 && n%10 <=4 && (n%100 < 12 || n%100 > 14)) ? 1 : ((n%10 == 0 || n%10 == 1 || (n%10 >= 5 && n%10 <=9)) || (n%100 >= 12 && n%100 <= 14)) ? 2 : 3);\n"
 "X-Generator: Prusalator\n"
 
+msgid "With sock"
+msgstr "Z skarpetką"
+
+msgid "BED LEVEL CORRECTION"
+msgstr "KOREKCJA STOŁU"
+
+msgid "Bed Level Correction"
+msgstr "Korekcja stołu"
+
+msgid "Front side [um]:"
+msgstr "Przednia strona [um]:"
+
+msgid "Front side:"
+msgstr "Przednia strona:"
+
+msgid "Hotend Type"
+msgstr "Typ głowicy"
+
+msgid "Hotend type"
+msgstr "Typ głowicy"
+
+msgid "Left side [um]:"
+msgstr "Lewa strona [um]:"
+
+msgid "Left side:"
+msgstr "Lewa strona:"
+
+msgid "Rear side [um]:"
+msgstr "Tylna strona [um]:"
+
+msgid "Rear side:"
+msgstr "Tylna strona:"
+
+msgid "Right side [um]:"
+msgstr "Prawa strona [um]:"
+
+msgid "Right side:"
+msgstr "Prawa strona:"
+
+msgid "What kind of hotend do you have installed?"
+msgstr "Jaki rodzaj głowicy masz zainstalowany?"
+
 #: src/gui/screen_menu_connect.cpp:83
 msgid "---"
 msgstr "---"
