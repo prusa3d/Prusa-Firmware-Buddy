@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include "FreeRTOS.h"
 
 // This is stub for tests

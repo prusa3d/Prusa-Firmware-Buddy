@@ -1,6 +1,11 @@
 #include <common/freertos_mutex.hpp>
 
-#include "semphr.h"
+// Do not check the concept on boards where #include <mutex> fills FLASH
+#include <device/board.h>
+#if !defined(BOARD_IS_MODULARBED) && !defined(BOARD_IS_DWARF)
+    #include <common/concepts.hpp>
+static_assert(concepts::Lockable<freertos::Mutex>);
+#endif
 
 namespace freertos {
 
@@ -38,13 +43,3 @@ void Mutex::lock() {
 }
 
 } // namespace freertos
-
-void buddy::lock(std::unique_lock<freertos::Mutex> &l1, std::unique_lock<freertos::Mutex> &l2) {
-    if (&l1 < &l2) {
-        l1.lock();
-        l2.lock();
-    } else {
-        l2.lock();
-        l1.lock();
-    }
-}

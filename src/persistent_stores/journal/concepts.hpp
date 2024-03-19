@@ -2,6 +2,7 @@
 #include <functional>
 #include <common/freertos_mutex.hpp>
 #include <span>
+#include <mutex>
 
 namespace journal {
 using UpdateFunction = std::function<void(uint16_t, std::span<uint8_t>)>;

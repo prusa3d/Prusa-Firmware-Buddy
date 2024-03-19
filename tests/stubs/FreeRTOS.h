@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 // This is stub for unit tests
 typedef void *SemaphoreHandle_t;
 

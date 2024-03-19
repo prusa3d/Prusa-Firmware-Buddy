@@ -18,10 +18,10 @@
  */
 #pragma once
 
-#include <common/concepts.hpp>
-#include <mutex>
 #include <FreeRTOS.h>
-#include "semphr.h"
+#include <semphr.h>
+// As tempting as that may be, do not #include <mutex> here because it pulls in
+// a bunch of std::crap which breaks XL debug build due to FLASH inflation.
 
 namespace freertos {
 
@@ -51,15 +51,5 @@ public:
 private:
     StaticSemaphore_t xSemaphoreData;
 };
-static_assert(concepts::Lockable<Mutex>);
 
 } // namespace freertos
-
-// we need our own lock, because GCC uses try and back off which internally uses try_lock and because FreeRTOS does not use priority inheritance when trying to lock mutex without blocking
-// this results in deadlock (inverse priority problem), because thread with lower priority does not get CPU time while still holding mutex.
-namespace buddy {
-
-// not template, because someone could try to lock mutex once in wrapper and once not in wrapper => order could be inconsistent
-void lock(std::unique_lock<freertos::Mutex> &l1, std::unique_lock<freertos::Mutex> &l2);
-
-} // namespace buddy
