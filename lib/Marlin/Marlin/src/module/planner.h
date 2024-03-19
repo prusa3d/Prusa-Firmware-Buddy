@@ -304,6 +304,8 @@ class Planner {
     /// Writes the settings raw to user_settings, and with limits applied to settings/working_settings
     /// !!! Always base your settings on user_settings, not on settings
     static void apply_settings(const user_planner_settings_t &settings);
+    
+    static void set_stealth_mode(bool set);
 
     static uint32_t max_acceleration_msteps_per_s2[XYZE_N]; // (mini-steps/s^2) Derived from mm_per_s2
     static float mm_per_step[XYZE_N];                       // Millimeters per step
@@ -969,6 +971,8 @@ class Planner {
 
     /// Actual settings the planner is using, with limits applied
     static planner_settings_t working_settings_;
+
+    static bool stealth_mode_;
 
   private:
     /**
