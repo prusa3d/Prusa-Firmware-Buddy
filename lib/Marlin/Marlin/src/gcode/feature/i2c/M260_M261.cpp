@@ -45,16 +45,20 @@
  */
 void GcodeSuite::M260() {
   // Set the target address
-  if (parser.seenval('A')) i2c.address(parser.value_byte());
+  if (parser.seenval('A')) {
+    if (!twibus.address(parser.value_byte())) {
+      return;
+    }
+  }
 
   // Add a new byte to the buffer
-  if (parser.seenval('B')) i2c.addbyte(parser.value_byte());
+  if (parser.seenval('B')) twibus.addbyte(parser.value_byte());
 
   // Flush the buffer to the bus
-  if (parser.seen('S')) i2c.send();
+  if (parser.seen('S')) twibus.send();
 
   // Reset and rewind the buffer
-  else if (parser.seen('R')) i2c.reset();
+  else if (parser.seen('R')) twibus.reset();
 }
 
 /**
@@ -63,13 +67,17 @@ void GcodeSuite::M260() {
  * Usage: M261 A<slave device address base 10> B<number of bytes> S<style>
  */
 void GcodeSuite::M261() {
-  if (parser.seenval('A')) i2c.address(parser.value_byte());
+  if (parser.seenval('A')) {
+    if (!twibus.address(parser.value_byte())) {
+      return;
+    }
+  }
 
   const uint8_t bytes = parser.byteval('B', 1),   // Bytes to request
                 style = parser.byteval('S');      // Serial output style (ASCII, HEX etc)
 
-  if (i2c.addr && bytes && bytes <= TWIBUS_BUFFER_SIZE)
-    i2c.relay(bytes, style);
+  if (twibus.addr && bytes && bytes <= TWIBUS_BUFFER_SIZE)
+    twibus.relay(bytes, style);
   else
     SERIAL_ERROR_MSG("Bad i2c request");
 }

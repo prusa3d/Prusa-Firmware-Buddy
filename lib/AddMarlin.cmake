@@ -68,6 +68,7 @@ if(BOARD_IS_MASTER_BOARD)
             Marlin/Marlin/src/feature/runout.cpp
             Marlin/Marlin/src/feature/spindle_laser.cpp
             Marlin/Marlin/src/feature/touch/xpt2046.cpp
+            Marlin/Marlin/src/feature/twibus.cpp
             Marlin/Marlin/src/gcode/bedlevel/abl/G29.cpp
             Marlin/Marlin/src/gcode/bedlevel/abl/M421.cpp
             Marlin/Marlin/src/gcode/bedlevel/G26.cpp
@@ -106,6 +107,7 @@ if(BOARD_IS_MASTER_BOARD)
             Marlin/Marlin/src/gcode/control/R.cpp
             Marlin/Marlin/src/gcode/eeprom/M500-M504.cpp
             Marlin/Marlin/src/gcode/feature/advance/M900.cpp
+            Marlin/Marlin/src/gcode/feature/i2c/M260_M261.cpp
             Marlin/Marlin/src/gcode/feature/input_shaper/M593.cpp
             Marlin/Marlin/src/gcode/feature/input_shaper/M74.cpp
             Marlin/Marlin/src/gcode/feature/modular_bed/M556.cpp
