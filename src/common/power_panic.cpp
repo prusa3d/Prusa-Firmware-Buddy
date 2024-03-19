@@ -121,7 +121,6 @@ static constexpr uint32_t FLASH_SIZE = w25x_pp_size;
 // the partial Motion_Parameters implementation)
 struct flash_planner_t {
     user_planner_settings_t settings;
-    xyze_pos_t max_jerk;
 
     float z_position;
 #if DISABLED(CLASSIC_JERK)
@@ -581,9 +580,7 @@ void resume_loop() {
         // planner settings
         planner.apply_settings(state_buf.planner.settings);
         planner.refresh_acceleration_rates();
-#if HAS_CLASSIC_JERK
-        planner.max_jerk = state_buf.planner.max_jerk;
-#else
+#if !HAS_CLASSIC_JERK
         planner.max_e_jerk = state_buf.planner.max_jerk.e;
         planner.junction_deviation_mm = state_buf.planner.junction_deviation_mm;
 #endif
@@ -1184,9 +1181,8 @@ void ac_fault_isr() {
 #endif /*HAS_TOOLCHANGER()*/
 
         state_buf.planner.settings = planner.user_settings;
-#if HAS_CLASSIC_JERK
-        state_buf.planner.max_jerk = planner.max_jerk;
-#else
+
+#if !HAS_CLASSIC_JERK
         state_buf.planner.max_jerk.e = planner.max_e_jerk;
         state_buf.planner.junction_deviation_mm = planner.junction_deviation_mm;
 #endif

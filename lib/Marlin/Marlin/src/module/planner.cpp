@@ -150,13 +150,6 @@ float Planner::mm_per_mstep[XYZE_N];          // (mm) Millimeters per mini-step
 #if DISABLED(CLASSIC_JERK)
   float Planner::junction_deviation_mm;       // (mm) M205 J
 #endif
-#if HAS_CLASSIC_JERK
-  #if HAS_LINEAR_E_JERK
-    xyz_pos_t Planner::max_jerk;              // (mm/s^2) M205 XYZ - The largest speed change requiring no acceleration.
-  #else
-    xyze_pos_t Planner::max_jerk;             // (mm/s^2) M205 XYZE - The largest speed change requiring no acceleration.
-  #endif
-#endif
 
 #if ENABLED(DISTINCT_E_FACTORS)
   uint8_t Planner::last_extruder = 0;     // Respond to extruder change
@@ -1864,7 +1857,7 @@ bool Planner::_populate_block(block_t * const block,
     #endif
     {
       const float jerk = ABS(current_speed[i]),   // cs : Starting from zero, change in speed for this axis
-                  maxj = max_jerk[i];             // mj : The max jerk setting for this axis
+                  maxj = settings.max_jerk[i];             // mj : The max jerk setting for this axis
       if (jerk > maxj) {                          // cs > mj : New current speed too fast?
         if (limited) {                            // limited already?
           const float mjerk = block->nominal_speed * maxj; // ns*mj
@@ -1914,8 +1907,8 @@ bool Planner::_populate_block(block_t * const block,
             : // v_exit <= v_entry                coasting             axis reversal
               ( (v_entry < 0 || v_exit > 0) ? (v_entry - v_exit) : _MAX(-v_exit, v_entry) );
 
-        if (jerk > max_jerk[axis]) {
-          v_factor *= max_jerk[axis] / jerk;
+        if (jerk > settings.max_jerk[axis]) {
+          v_factor *= settings.max_jerk[axis] / jerk;
           ++limited;
         }
       }
@@ -2349,9 +2342,9 @@ void Planner::set_max_jerk(const AxisEnum axis, float targetValue) {
       ;
       limit_and_warn(targetValue, axis, PSTR("Jerk"), max_jerk_edit);
     #endif
-    auto new_settings = user_settings;
-    max_jerk[axis] = targetValue;
-    apply_settings(new_settings);
+    auto s = user_settings;
+    s.max_jerk[axis] = targetValue;
+    apply_settings(s);
   #else
     UNUSED(axis); UNUSED(targetValue);
   #endif
@@ -2389,7 +2382,7 @@ void Motion_Parameters::save() {
     mp.junction_deviation_mm = planner.junction_deviation_mm;
   #endif
   #if HAS_CLASSIC_JERK
-    mp.max_jerk = planner.max_jerk;
+    mp.max_jerk = planner.settings.max_jerk;
   #endif
 }
 
@@ -2412,7 +2405,7 @@ void Motion_Parameters::load() const {
     planner.junction_deviation_mm = mp.junction_deviation_mm;
   #endif
   #if HAS_CLASSIC_JERK
-    planner.max_jerk = mp.max_jerk;
+    s.max_jerk = mp.max_jerk;
   #endif
 
   planner.apply_settings(s);

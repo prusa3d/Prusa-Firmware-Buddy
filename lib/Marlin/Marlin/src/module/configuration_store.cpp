@@ -2249,9 +2249,9 @@ void MarlinSettings::reset_motion() {
     #ifndef DEFAULT_ZJERK
       #define DEFAULT_ZJERK 0
     #endif
-    planner.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
+    s.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
     #if HAS_CLASSIC_E_JERK
-      planner.max_jerk.e = DEFAULT_EJERK;
+      s.max_jerk.e = DEFAULT_EJERK;
     #endif
   #endif
 
@@ -2797,11 +2797,11 @@ void MarlinSettings::reset() {
         , " J", LINEAR_UNIT(planner.junction_deviation_mm)
       #endif
       #if HAS_CLASSIC_JERK
-        , " X", LINEAR_UNIT(planner.max_jerk.x)
-        , " Y", LINEAR_UNIT(planner.max_jerk.y)
-        , " Z", LINEAR_UNIT(planner.max_jerk.z)
+        , " X", LINEAR_UNIT(planner.settings.max_jerk.x)
+        , " Y", LINEAR_UNIT(planner.settings.max_jerk.y)
+        , " Z", LINEAR_UNIT(planner.settings.max_jerk.z)
         #if HAS_CLASSIC_E_JERK
-          , " E", LINEAR_UNIT(planner.max_jerk.e)
+          , " E", LINEAR_UNIT(planner.settings.max_jerk.e)
         #endif
       #endif
     );

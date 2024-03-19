@@ -95,7 +95,7 @@ Motion_Parameters reset_acceleration_if(bool condition) {
         s.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
         s.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
     #if HAS_CLASSIC_JERK
-        planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
+        s.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
     #endif
         planner.apply_settings(s);
     }
