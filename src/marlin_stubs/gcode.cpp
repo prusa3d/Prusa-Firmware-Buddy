@@ -165,6 +165,7 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 1601:
             PrusaGcodeSuite::M1601();
             break;
+
         case 1700:
             PrusaGcodeSuite::M1700();
             break;
@@ -174,11 +175,20 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 1702:
             PrusaGcodeSuite::M1702();
             break;
+
 #if HAS_PHASE_STEPPING()
         case 1977:
             PrusaGcodeSuite::M1977();
             break;
 #endif
+
+        case 9140:
+            PrusaGcodeSuite::M9140();
+            break;
+        case 9150:
+            PrusaGcodeSuite::M9150();
+            break;
+
         default:
             processed = false;
             break;
