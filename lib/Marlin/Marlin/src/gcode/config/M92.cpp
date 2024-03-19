@@ -84,7 +84,7 @@ void GcodeSuite::M92() {
           if (value < 20) {
             float factor = planner.settings.axis_steps_per_mm[E_AXIS_N(target_extruder)] / value; // increase e constants if M92 E14 is given for netfab.
             #if HAS_CLASSIC_E_JERK
-              planner.max_jerk.e *= factor;
+              s.max_jerk.e *= factor;
             #endif
             s.max_feedrate_mm_s[E_AXIS_N(target_extruder)] *= factor;
             planner.max_acceleration_msteps_per_s2[E_AXIS_N(target_extruder)] *= factor;

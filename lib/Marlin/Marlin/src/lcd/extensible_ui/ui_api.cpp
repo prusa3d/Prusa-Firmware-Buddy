@@ -659,11 +659,11 @@ namespace ExtUI {
   #else
 
     float getAxisMaxJerk_mm_s(const axis_t axis) {
-      return planner.max_jerk[axis];
+      return planner.settings.max_jerk[axis];
     }
 
     float getAxisMaxJerk_mm_s(const extruder_t) {
-      return planner.max_jerk.e;
+      return planner.settings.max_jerk.e;
     }
 
     void setAxisMaxJerk_mm_s(const float value, const axis_t axis) {
