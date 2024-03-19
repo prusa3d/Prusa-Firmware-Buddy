@@ -74,39 +74,18 @@ public:
 
 #if ANY(CRASH_RECOVERY, POWER_PANIC)
 
-class WI_SPIN_CRASH_PERIOD_t : public IWiSpin {
+class MI_CRASH_MAX_PERIOD_X : public WiSpinInt {
 private:
-    int value;
-
-public: // todo private
-    using Config = SpinConfig<int>;
-    const Config &config;
-
-protected:
-    void printSpinToBuffer() {
-        float display = tmc_period_to_feedrate(X_AXIS, get_microsteps_x(), value, get_steps_per_unit_x());
-        int chars = snprintf(spin_text_buff.data(), spin_text_buff.size(), "%f", double(display));
-        changeExtentionWidth(0, 0, std::min<int>(chars, spin_text_buff.size() - 1));
-    }
-
-public:
-    WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
-    virtual invalidate_t change(int dif) override;
-    int GetVal() const { return value; }
-};
-
-class MI_CRASH_MAX_PERIOD_X : public WI_SPIN_CRASH_PERIOD_t {
-private:
-    constexpr static const char *const label = "Crash Min. Speed X";
+    constexpr static const char *const label = "Crash Max. Period X";
 
 public:
     MI_CRASH_MAX_PERIOD_X();
     virtual void OnClick() override;
 };
 
-class MI_CRASH_MAX_PERIOD_Y : public WI_SPIN_CRASH_PERIOD_t {
+class MI_CRASH_MAX_PERIOD_Y : public WiSpinInt {
 private:
-    constexpr static const char *const label = "Crash Min. Speed Y";
+    constexpr static const char *const label = "Crash Max. Period Y";
 
 public:
     MI_CRASH_MAX_PERIOD_Y();
