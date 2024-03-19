@@ -477,11 +477,30 @@ private:
 
 #if MDNS()
             if (events & MdnsInitCheck) {
-                for (auto &iface : ifaces) {
-                    if (!iface.mdns_initialized && netif_ip4_addr(&iface.dev)->addr != 0) {
-                        iface.mdns_initialized = true;
+                // We can afford to have only one interface active for the responder.
+                //
+                // Doing a check through all the interfaces out of
+                // overabundance of caution - making sure we don't start the
+                // second MDNS instance in case the active netdev changes and
+                // we didn't _yet_ have time to call reconfigure and similar
+                // situations (that would introduce a risk of exhausting some
+                // resource - like the number of timeouts, where the code is
+                // not prepared for the callback not being run eventually,
+                // leading to some inconsistent internal state).
+                bool any_active = false;
+                for (const auto &iface : ifaces) {
+                    if (iface.mdns_initialized) {
+                        any_active = true;
+                        break;
+                    }
+                }
+
+                if (!any_active) {
+                    const uint32_t active = config_store().active_netdev.get();
+                    if (active < ifaces.size() && netif_ip4_addr(&ifaces[active].dev)->addr != 0) {
                         // Wait with initialization until we get an IP address.
-                        netifapi_netif_common(&iface.dev, mdns_netif_init, nullptr);
+                        ifaces[active].mdns_initialized = true;
+                        netifapi_netif_common(&ifaces[active].dev, mdns_netif_init, nullptr);
                     }
                 }
             }
