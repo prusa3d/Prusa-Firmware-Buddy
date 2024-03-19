@@ -12,7 +12,7 @@
 #include "fsm_loadunload_type.hpp"
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
-#include "bsod_gui.hpp"
+#include <find_error.hpp>
 
 RadioButtonNotice::RadioButtonNotice(window_t *parent, Rect16 rect)
     : AddSuperWindow<RadioButton>(parent, rect) {}
@@ -105,7 +105,7 @@ static constexpr const char *txt_mmu_errhw_test_fail= N_("ERR HW test failed");
 static constexpr const char *txt_mmu_insert_filament= N_("Press CONTINUE and push filament into MMU.");
 
 //MMU_ErrWaitForUser, // need to distinguish error states based on prusa-error-codes @@TODO
-static constexpr const char *txt_mmu_err_wait_user  = N_("Waiting for user input");
+static constexpr const char *txt_mmu_err_wait_user  = find_error(ErrCode::CONNECT_MMU_LOAD_UNLOAD_ERROR).err_text;
 #endif
 
 // function pointer for onEnter & onExit callbacks

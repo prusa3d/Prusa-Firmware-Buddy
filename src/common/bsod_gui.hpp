@@ -7,8 +7,6 @@
 
 [[noreturn]] void raise_redscreen(ErrCode error_code, const char *error, const char *module);
 
-const ErrDesc &find_error(const ErrCode error_code);
-
 namespace bsod_details {
 /**
  * @brief Get reason for hardfault.

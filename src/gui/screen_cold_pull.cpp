@@ -3,7 +3,7 @@
 #include "screen_cold_pull.hpp"
 #include "window_progress.hpp"
 #include "fonts.hpp"
-#include "bsod_gui.hpp"
+#include <find_error.hpp>
 #include "utility_extensions.hpp"
 
 #include <guiconfig/wizard_config.hpp>

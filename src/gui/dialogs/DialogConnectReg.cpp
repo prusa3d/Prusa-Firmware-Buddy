@@ -3,7 +3,7 @@
 #include "../img_resources.hpp"
 #include "../ScreenHandler.hpp"
 #include "../lang/i18n.h"
-#include "bsod_gui.hpp"
+#include <find_error.hpp>
 #include <connect/connect.hpp>
 #include <guiconfig/guiconfig.h>
 

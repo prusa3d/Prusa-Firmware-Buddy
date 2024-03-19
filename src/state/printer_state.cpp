@@ -103,8 +103,10 @@ namespace {
     // this one, or is this better, because it's more robust?
     optional<ErrCode> crash_recovery_attention(const PhasesCrashRecovery &phase) {
         switch (phase) {
-        case PhasesCrashRecovery::axis_NOK:
-            return ErrCode::CONNECT_CRASH_RECOVERY_AXIS_NOK;
+        case PhasesCrashRecovery::axis_long:
+            return ErrCode::CONNECT_CRASH_RECOVERY_AXIS_LONG;
+        case PhasesCrashRecovery::axis_short:
+            return ErrCode::CONNECT_CRASH_RECOVERY_AXIS_SHORT;
         case PhasesCrashRecovery::repeated_crash:
             return ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH;
         case PhasesCrashRecovery::home_fail:

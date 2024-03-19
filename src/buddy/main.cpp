@@ -16,7 +16,7 @@
 #include <wdt.hpp>
 #include <crash_dump/dump.hpp>
 #include "error_codes.hpp"
-#include "bsod_gui.hpp"
+#include <find_error.hpp>
 #include "timer_defaults.h"
 #include "tick_timer_api.h"
 #include "thread_measurement.h"

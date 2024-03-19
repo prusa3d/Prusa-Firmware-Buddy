@@ -8,8 +8,9 @@
 #include "img_resources.hpp"
 #include "marlin_vars.hpp"
 #include "marlin_server_shared.h"
+#include <find_error.hpp>
 
-constexpr static const char quick_pause_txt[] = N_("Waiting for the user. Press \"Resume\" once the printer is ready.");
+constexpr static const char *quick_pause_txt = find_error(ErrCode::CONNECT_QUICK_PAUSE).err_text;
 
 DialogQuickPause::DialogQuickPause(fsm::BaseData data)
     : AddSuperWindow<IDialogMarlin>(GuiDefaults::RectScreenBody)
