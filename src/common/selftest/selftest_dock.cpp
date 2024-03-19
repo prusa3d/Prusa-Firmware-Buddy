@@ -287,8 +287,14 @@ LoopResult CSelftestPart_Dock::state_selftest_check_unlock() {
     // Unlock the clamps
     current_position.x = prusa_toolchanger.get_tool_info(dwarf, false).dock_x + PrusaToolChanger::PARK_X_OFFSET_2;
     line_to_current_position(PrusaToolChanger::SLOW_MOVE_MM_S);
-    auto original_acceleration = planner.settings.travel_acceleration;
-    planner.settings.travel_acceleration = PrusaToolChanger::SLOW_ACCELERATION_MM_S2; // Low acceleration
+
+    const auto original_acceleration = planner.settings.travel_acceleration;
+    {
+        auto s = planner.user_settings;
+        s.travel_acceleration = PrusaToolChanger::SLOW_ACCELERATION_MM_S2;
+        planner.apply_settings(s);
+    }
+
     current_position.x = prusa_toolchanger.get_tool_info(dwarf, false).dock_x + PrusaToolChanger::PARK_X_OFFSET_3;
     line_to_current_position(PrusaToolChanger::SLOW_MOVE_MM_S);
 
@@ -297,7 +303,11 @@ LoopResult CSelftestPart_Dock::state_selftest_check_unlock() {
     planner.synchronize();
 
     // Back to high acceleration
-    planner.settings.travel_acceleration = original_acceleration;
+    {
+        auto s = planner.user_settings;
+        s.travel_acceleration = original_acceleration;
+        planner.apply_settings(s);
+    }
 
     // Reset motor current and stall sensitivity to old value
     stepperX.rms_current(x_current_ma);

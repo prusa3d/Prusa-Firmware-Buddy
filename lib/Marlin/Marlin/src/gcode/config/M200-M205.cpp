@@ -108,12 +108,15 @@ void GcodeSuite::M204() {
     SERIAL_ECHOLNPAIR(" T", planner.settings.travel_acceleration);
   }
   else {
+    auto s = planner.user_settings;
     //planner.synchronize();
     // 'S' for legacy compatibility. Should NOT BE USED for new development
-    if (parser.seenval('S')) planner.settings.travel_acceleration = planner.settings.acceleration = parser.value_linear_units();
-    if (parser.seenval('P')) planner.settings.acceleration = parser.value_linear_units();
-    if (parser.seenval('R')) planner.settings.retract_acceleration = parser.value_linear_units();
-    if (parser.seenval('T')) planner.settings.travel_acceleration = parser.value_linear_units();
+    if (parser.seenval('S')) s.travel_acceleration = s.acceleration = parser.value_linear_units();
+    if (parser.seenval('P')) s.acceleration = parser.value_linear_units();
+    if (parser.seenval('R')) s.retract_acceleration = parser.value_linear_units();
+    if (parser.seenval('T')) s.travel_acceleration = parser.value_linear_units();
+
+    planner.apply_settings(s);
   }
 }
 
@@ -143,9 +146,15 @@ void GcodeSuite::M205() {
   if (!parser.seen("BST" J_PARAM XYZE_PARAM)) return;
 
   //planner.synchronize();
-  if (parser.seen('B')) planner.settings.min_segment_time_us = parser.value_ulong();
-  if (parser.seen('S')) planner.settings.min_feedrate_mm_s = parser.value_linear_units();
-  if (parser.seen('T')) planner.settings.min_travel_feedrate_mm_s = parser.value_linear_units();
+  {
+    auto s = planner.user_settings;
+
+    if (parser.seen('B')) s.min_segment_time_us = parser.value_ulong();
+    if (parser.seen('S')) s.min_feedrate_mm_s = parser.value_linear_units();
+    if (parser.seen('T')) s.min_travel_feedrate_mm_s = parser.value_linear_units();
+    
+    planner.apply_settings(s);
+  }
   #if DISABLED(CLASSIC_JERK)
     if (parser.seen('J')) {
       const float junc_dev = parser.value_linear_units();
