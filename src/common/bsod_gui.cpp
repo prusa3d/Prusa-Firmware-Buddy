@@ -1,7 +1,7 @@
 // bsod_gui.cpp - blue screen of death
 #include "bsod.h"
 #include "bsod_gui.hpp"
-#include "error_list.hpp"
+#include <find_error.hpp>
 #include "wdt.hpp"
 #include <crash_dump/dump.hpp>
 #include "safe_state.h"
@@ -112,15 +112,6 @@ typedef tskTCB TCB_t;
 
 // current thread from FreeRTOS
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
-
-const ErrDesc &find_error(const ErrCode error_code) {
-    // Iterating through error_list to find the error
-    const auto error = std::ranges::find_if(error_list, [error_code](const auto &elem) { return (elem.err_code) == error_code; });
-    if (error == std::end(error_list)) {
-        bsod("Unknown error");
-    }
-    return *error;
-}
 
 void raise_redscreen(ErrCode error_code, const char *error, const char *module) {
     crash_dump::save_message(crash_dump::MsgType::RSOD, ftrstd::to_underlying(error_code), error, module);

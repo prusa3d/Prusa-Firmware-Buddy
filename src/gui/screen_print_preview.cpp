@@ -90,7 +90,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         break;
 
     case PhasesPrintPreview::unfinished_selftest:
-        pMsgbox = makeMsgBox(_(labelWarning), _(txt_unfinished_selftest));
+        pMsgbox = makeMsgBox(_(label_unfinished_selftest), _(txt_unfinished_selftest));
         break;
 
     case PhasesPrintPreview::new_firmware_available: {
@@ -101,24 +101,24 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
 
     case PhasesPrintPreview::wrong_printer:
     case PhasesPrintPreview::wrong_printer_abort:
-        pMsgbox = make_static_unique_ptr<MsgBoxInvalidPrinter>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, _(labelWarning), &img::warning_16x16);
+        pMsgbox = make_static_unique_ptr<MsgBoxInvalidPrinter>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, _(label_wrong_printer), &img::warning_16x16);
         break;
 
     case PhasesPrintPreview::filament_not_inserted:
-        pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_not_detected));
+        pMsgbox = makeMsgBox(_(label_fil_not_detected), _(txt_fil_not_detected));
         break;
 
 #if HAS_MMU2()
     case PhasesPrintPreview::mmu_filament_inserted:
-        pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_detected_mmu));
+        pMsgbox = makeMsgBox(_(label_fil_detected_mmu), _(txt_fil_detected_mmu));
         break;
 #endif
     case PhasesPrintPreview::wrong_filament:
-        pMsgbox = makeMsgBox(_(labelWarning), _(txt_wrong_fil_type));
+        pMsgbox = makeMsgBox(_(label_wrong_filament), _(txt_wrong_fil_type));
         break;
 
     case PhasesPrintPreview::file_error:
-        pMsgbox = makeMsgBox(_("File error"), _(gcode.error_str()), img::error_16x16);
+        pMsgbox = makeMsgBox(_(label_file_error), _(gcode.error_str()), img::error_16x16);
         break;
 
 #if HAS_TOOLCHANGER() || HAS_MMU2()

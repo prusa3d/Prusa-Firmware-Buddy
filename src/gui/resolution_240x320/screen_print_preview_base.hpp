@@ -5,6 +5,7 @@
 #include "screen.hpp"
 #include "radio_button_preview.hpp"
 #include "window_roll_text.hpp"
+#include <bsod_gui.hpp>
 
 class ScreenPrintPreviewBase : public AddSuperWindow<screen_t> {
 protected:
@@ -12,7 +13,5 @@ protected:
     RadioButtonPreview radio; // shows 2 mutually exclusive buttons Print and Back
 
 public:
-    static constexpr const char *txt_wrong_fil_type = N_("This G-code was set up for another filament type.");
-
     ScreenPrintPreviewBase();
 };

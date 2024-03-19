@@ -20,12 +20,12 @@ static constexpr Rect16 iconRect = Rect16(side_padding, top_padding, iconSize, i
 DialogWarning::DialogWarning(fsm::BaseData data)
     : AddSuperWindow<IDialogMarlin>(GuiDefaults::RectScreenBody)
     , icon(this, iconRect, &img::warning_48x48)
-    , text(this, textRect, is_multiline::yes, is_closed_on_click_t::yes, _(icon_text[get_type(data)].text))
+    , text(this, textRect, is_multiline::yes, is_closed_on_click_t::yes, _(find_error(icon_code[get_type(data)].code).err_text))
     , button(this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), GetEnumFromPhaseIndex<PhasesWarning>(data.GetPhase())) {
     CaptureNormalWindow(button);
 
-    if (icon_text[get_type(data)].icon) {
-        icon.SetRes(icon_text[get_type(data)].icon);
+    if (icon_code[get_type(data)].icon) {
+        icon.SetRes(icon_code[get_type(data)].icon);
     }
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
     // Lack of space on ST7789 -> long text warnings does not have icon

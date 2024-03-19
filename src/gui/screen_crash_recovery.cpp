@@ -11,6 +11,7 @@
 #include "img_resources.hpp"
 #include <guiconfig/guiconfig.h>
 #include <option/has_side_leds.h>
+#include <find_error.hpp>
 #if HAS_SIDE_LEDS()
     #include <leds/side_strip_control.hpp>
 #endif
@@ -92,7 +93,7 @@ static constexpr const char *en_text_home_axes = N_("Homing");
 static constexpr const char *en_text_X_axis = N_("X-axis");
 static constexpr const char *en_text_Y_axis = N_("Y-axis");
 
-static constexpr const char *en_text_long_short = N_("Length of an axis is too short.\nThere's an obstacle or bearing issue.\nRetry check, pause or resume the print?");
+static constexpr const char *en_text_long_short = find_error(ErrCode::CONNECT_CRASH_RECOVERY_AXIS_SHORT).err_text;
 /**
  * There is no known way how this might happen on MINI printer to ordinary user.
  * If the motor is electrically disconnected, axis is too short.
@@ -100,12 +101,14 @@ static constexpr const char *en_text_long_short = N_("Length of an axis is too s
  * as there is homing attempt before showing the screen which fails after 45 tries,
  * printer resets with homing failed red screen.
  */
-static constexpr const char *en_text_long_long = N_("Length of an axis is too long.\nMotor current is too low, probably.\nRetry check, pause or resume the print?");
-static constexpr const char *en_text_long_repeat = N_("Repeated collision has been detected.\nDo you want to resume or pause the print?");
+static constexpr const char *en_text_long_long = find_error(ErrCode::CONNECT_CRASH_RECOVERY_AXIS_LONG).err_text;
+static constexpr const char *en_text_long_repeat = find_error(ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH).err_text;
 static constexpr const char *en_text_repeat_info = N_("Try checking belt tension or decreasing\nsensitivity in the tune menu.");
+    #if HAS_TOOLCHANGER()
 static constexpr const char *en_text_repeat_info_tool = N_("Try checking belt tension, decreasing sensitivity\nin the tune menu or recalibrating dock position.");
-static constexpr const char *en_text_long_tool = N_("Toolchanger problem has been detected.\nPark all tools to docks\nand leave the carriage free.");
-static constexpr const char *en_text_long_homefail = N_("Unable to home the printer.\nDo you want to try again?");
+static constexpr const char *en_text_long_tool = find_error(ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP).err_text;
+    #endif
+static constexpr const char *en_text_long_homefail = find_error(ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL).err_text;
 static constexpr const char *en_text_homefail_info = N_("Try checking belt tension\nor debris on the axes.");
 static constexpr const char *en_text_tool_careful = N_("!! Careful, tools are hot !!");
 

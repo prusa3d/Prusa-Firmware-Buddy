@@ -14,7 +14,5 @@ protected:
     RadioButtonPreview radio; // shows 2 mutually exclusive buttons Print and Back
 
 public:
-    static constexpr const char *txt_wrong_fil_type = N_("A filament specified in the G-code is either not loaded or wrong type.");
-
     ScreenPrintPreviewBase();
 };

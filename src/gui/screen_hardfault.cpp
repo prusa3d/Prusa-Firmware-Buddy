@@ -2,6 +2,7 @@
 #include "config.h"
 #include "ScreenHandler.hpp"
 #include "bsod_gui.hpp"
+#include <find_error.hpp>
 #include "sound.hpp"
 
 using namespace bsod_details;
