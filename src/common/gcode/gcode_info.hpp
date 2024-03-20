@@ -5,7 +5,6 @@
  * @date 2021-03-25
  */
 #pragma once
-
 #include "guitypes.hpp"
 #include "i18n.h"
 #include "marlin_stubs/PrusaGcodeSuite.hpp"
@@ -76,7 +75,7 @@ public:
 #endif /*PRINTER_IS*/
 
     using time_buff = std::array<char, 16>;
-    using filament_buff = std::array<char, 8>;
+    using filament_buff = std::array<char, config_store_ns::max_filament_name_size>;
 
     struct ExtruderInfo {
         struct Colour {

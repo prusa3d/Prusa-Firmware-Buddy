@@ -23,6 +23,7 @@
 #include "config.h"
 #include "menu_spin_config.hpp"
 #include "time_tools.hpp"
+#include "custom_filament_tools.hpp"
 #include "footer_eeprom.hpp"
 #include "version.h"
 #include "../../common/PersistentStorage.h"
@@ -1007,4 +1008,39 @@ MI_IS_CALIB::MI_IS_CALIB()
 
 void MI_IS_CALIB::click([[maybe_unused]] IWindowMenu &window_menu) {
     // TODO(InputShaper)
+}
+
+/*****************************************************************************/
+// MI_CUSTOM_FILAMENT_SLOT
+/*****************************************************************************/
+MI_CUSTOM_FILAMENT_SLOT::MI_CUSTOM_FILAMENT_SLOT()
+    : WI_SWITCH_t<4>(static_cast<uint8_t>(custom_filament_tools::GetCurrentSlot()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(custom_filament_tools::GetSlotName(0)), _(custom_filament_tools::GetSlotName(1)), _(custom_filament_tools::GetSlotName(2)), _(custom_filament_tools::GetSlotName(3))) {}
+
+void MI_CUSTOM_FILAMENT_SLOT::OnChange([[maybe_unused]] size_t old_index) {
+    custom_filament_tools::SetCurrentSlot((int8_t)index);
+    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)&index);
+}
+
+/*****************************************************************************/
+// MI_CUSTOM_FILAMENT_NOZZLE_TEMP
+MI_CUSTOM_FILAMENT_NOZZLE_TEMP::MI_CUSTOM_FILAMENT_NOZZLE_TEMP()
+    : WiSpinInt(custom_filament_tools::GetSlotTemp(custom_filament_tools::CustomFilamentTemperatures::nozzle), SpinCnf::nozzle, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_CUSTOM_FILAMENT_NOZZLE_TEMP::OnClick() {
+    custom_filament_tools::SetSlotTemp(custom_filament_tools::CustomFilamentTemperatures::nozzle, GetVal());
+}
+
+/*****************************************************************************/
+// MI_CUSTOM_FILAMENT_NOZZLE_PREHEAT_TEMP
+MI_CUSTOM_FILAMENT_NOZZLE_PREHEAT_TEMP::MI_CUSTOM_FILAMENT_NOZZLE_PREHEAT_TEMP()
+    : WiSpinInt(custom_filament_tools::GetSlotTemp(custom_filament_tools::CustomFilamentTemperatures::nozzle_preheat), SpinCnf::nozzle, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_CUSTOM_FILAMENT_NOZZLE_PREHEAT_TEMP::OnClick() {
+    custom_filament_tools::SetSlotTemp(custom_filament_tools::CustomFilamentTemperatures::nozzle_preheat, GetVal());
+}
+
+/*****************************************************************************/
+// MI_CUSTOM_FILAMENT_HEATBED_TEMP
+MI_CUSTOM_FILAMENT_HEATBED_TEMP::MI_CUSTOM_FILAMENT_HEATBED_TEMP()
+    : WiSpinInt(custom_filament_tools::GetSlotTemp(custom_filament_tools::CustomFilamentTemperatures::heatbed), SpinCnf::bed, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_CUSTOM_FILAMENT_HEATBED_TEMP::OnClick() {
+    custom_filament_tools::SetSlotTemp(custom_filament_tools::CustomFilamentTemperatures::heatbed, GetVal());
 }

@@ -1,6 +1,7 @@
 #include "MItem_menus.hpp"
 #include "ScreenHandler.hpp"
 #include "str_utils.hpp"
+#include "custom_filament_tools.hpp"
 #include <option/buddy_enable_connect.h>
 #if BUDDY_ENABLE_CONNECT()
     #include <connect/marlin_printer.hpp>
@@ -56,6 +57,7 @@
 #include "screen_menu_factory_reset.hpp"
 #include "screen_menu_error_test.hpp"
 #include "screen_menu_input_shaper.hpp"
+#include "screen_menu_custom_filament.hpp"
 
 #include <printers.h>
 
@@ -424,6 +426,8 @@ void MI_LOAD_SETTINGS::click(IWindowMenu & /*window_menu*/) {
     build_message(msg_builder, _("Connect"), connect_client::MarlinPrinter::load_cfg_from_ini());
 #endif
 
+    build_message(msg_builder, _("Custom Filament"), custom_filament_tools::load_cfg_from_ini());
+
     MsgBoxInfo(string_view_utf8::MakeRAM((const uint8_t *)msg.data()), Responses_Ok);
 }
 
@@ -642,4 +646,12 @@ MI_INPUT_SHAPER::MI_INPUT_SHAPER()
 
 void MI_INPUT_SHAPER::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInputShaper>);
+}
+
+MI_CUSTOM_FILAMENT::MI_CUSTOM_FILAMENT()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_CUSTOM_FILAMENT::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuCustomFilament>);
 }

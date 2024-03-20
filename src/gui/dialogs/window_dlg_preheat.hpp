@@ -56,28 +56,37 @@ protected:
 };
 
 #if PRINTER_IS_PRUSA_iX
-    #define ALL_FILAMENTS MI_Filament<filament::Type::PLA>,     \
-                          MI_Filament<filament::Type::PETG>,    \
-                          MI_Filament<filament::Type::PETG_NH>, \
-                          MI_Filament<filament::Type::ASA>,     \
-                          MI_Filament<filament::Type::PC>,      \
-                          MI_Filament<filament::Type::PVB>,     \
-                          MI_Filament<filament::Type::ABS>,     \
-                          MI_Filament<filament::Type::HIPS>,    \
-                          MI_Filament<filament::Type::PP>,      \
-                          MI_Filament<filament::Type::PA>,      \
-                          MI_Filament<filament::Type::FLEX>
+    #define ALL_FILAMENTS MI_Filament<filament::Type::PLA>,      \
+                          MI_Filament<filament::Type::PETG>,     \
+                          MI_Filament<filament::Type::PETG_NH>,  \
+                          MI_Filament<filament::Type::ASA>,      \
+                          MI_Filament<filament::Type::PC>,       \
+                          MI_Filament<filament::Type::PVB>,      \
+                          MI_Filament<filament::Type::ABS>,      \
+                          MI_Filament<filament::Type::HIPS>,     \
+                          MI_Filament<filament::Type::PP>,       \
+                          MI_Filament<filament::Type::PA>,       \
+                          MI_Filament<filament::Type::FLEX>,     \
+                          MI_Filament<filament::Type::CUSTOM_1>, \
+                          MI_Filament<filament::Type::CUSTOM_2>, \
+                          MI_Filament<filament::Type::CUSTOM_3>, \
+                          MI_Filament<filament::Type::CUSTOM_4>
+
 #else
-    #define ALL_FILAMENTS MI_Filament<filament::Type::PLA>,  \
-                          MI_Filament<filament::Type::PETG>, \
-                          MI_Filament<filament::Type::ASA>,  \
-                          MI_Filament<filament::Type::PC>,   \
-                          MI_Filament<filament::Type::PVB>,  \
-                          MI_Filament<filament::Type::ABS>,  \
-                          MI_Filament<filament::Type::HIPS>, \
-                          MI_Filament<filament::Type::PP>,   \
-                          MI_Filament<filament::Type::PA>,   \
-                          MI_Filament<filament::Type::FLEX>
+    #define ALL_FILAMENTS MI_Filament<filament::Type::PLA>,      \
+                          MI_Filament<filament::Type::PETG>,     \
+                          MI_Filament<filament::Type::ASA>,      \
+                          MI_Filament<filament::Type::PC>,       \
+                          MI_Filament<filament::Type::PVB>,      \
+                          MI_Filament<filament::Type::ABS>,      \
+                          MI_Filament<filament::Type::HIPS>,     \
+                          MI_Filament<filament::Type::PP>,       \
+                          MI_Filament<filament::Type::PA>,       \
+                          MI_Filament<filament::Type::FLEX>,     \
+                          MI_Filament<filament::Type::CUSTOM_1>, \
+                          MI_Filament<filament::Type::CUSTOM_2>, \
+                          MI_Filament<filament::Type::CUSTOM_3>, \
+                          MI_Filament<filament::Type::CUSTOM_4>
 #endif
 
 // TODO try to use HIDDEN on return and filament_t::NONE

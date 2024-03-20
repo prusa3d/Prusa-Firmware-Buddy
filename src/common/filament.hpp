@@ -28,6 +28,10 @@ enum class Type : uint8_t {
     PP,
     FLEX,
     PA,
+    CUSTOM_1,
+    CUSTOM_2,
+    CUSTOM_3,
+    CUSTOM_4,
     _last = PA
 };
 
@@ -82,7 +86,7 @@ constexpr float cold_bed = 45.f;
 Type get_type(Response resp);
 Type get_type(const char *name, size_t name_len);
 
-const Description &get_description(Type type);
+const Description &get_description(const Type type);
 
 Type get_type_to_load();
 void set_type_to_load(Type filament);

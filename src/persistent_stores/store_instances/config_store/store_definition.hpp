@@ -50,6 +50,24 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<float, defaults::pid_bed_i, journal::hash("PID Bed I")> pid_bed_i;
     StoreItem<float, defaults::pid_bed_d, journal::hash("PID Bed D")> pid_bed_d;
 
+    // custom filament setting
+    StoreItem<std::array<char, max_filament_name_size + 1>, defaults::custom_filament_name_1, journal::hash("Custom Filament 1 Name")> custom_filament_name_1;
+    StoreItem<int16_t, defaults::custom_filament_nozzle_temp_1, journal::hash("Custom Filament 1 Nozzle Temp")> custom_filament_nozzle_1; // filament 1 nozzle temperature
+    StoreItem<int16_t, defaults::custom_filament_nozzle_preheat_temp_1, journal::hash("Custom Filament 1 Nozzle Preheat Temp")> custom_filament_nozzle_preheat_1; // filament 1 nozzle preheat temperature
+    StoreItem<int16_t, defaults::custom_filament_heatbed_temp_1, journal::hash("Custom Filament 1 Bed Temp")> custom_filament_heatbed_1; // filament 1 bed temperature
+    StoreItem<std::array<char, max_filament_name_size + 1>, defaults::custom_filament_name_2, journal::hash("Custom Filament 2 Name")> custom_filament_name_2;
+    StoreItem<int16_t, defaults::custom_filament_nozzle_temp_2, journal::hash("Custom Filament 2 Nozzle Temp")> custom_filament_nozzle_2; // filament 2 nozzle temperature
+    StoreItem<int16_t, defaults::custom_filament_nozzle_preheat_temp_2, journal::hash("Custom Filament 2 Nozzle Preheat Temp")> custom_filament_nozzle_preheat_2; // filament 2 nozzle preheat temperature
+    StoreItem<int16_t, defaults::custom_filament_heatbed_temp_2, journal::hash("Custom Filament 2 Bed Temp")> custom_filament_heatbed_2; // filament 2 bed temperature
+    StoreItem<std::array<char, max_filament_name_size + 1>, defaults::custom_filament_name_3, journal::hash("Custom Filament 3 Name")> custom_filament_name_3;
+    StoreItem<int16_t, defaults::custom_filament_nozzle_temp_3, journal::hash("Custom Filament 3 Nozzle Temp")> custom_filament_nozzle_3; // filament 3 nozzle temperature
+    StoreItem<int16_t, defaults::custom_filament_nozzle_preheat_temp_3, journal::hash("Custom Filament 3 Nozzle Preheat Temp")> custom_filament_nozzle_preheat_3; // filament 3 nozzle preheat temperature
+    StoreItem<int16_t, defaults::custom_filament_heatbed_temp_3, journal::hash("Custom Filament 3 Bed Temp")> custom_filament_heatbed_3; // filament 3 bed temperature
+    StoreItem<std::array<char, max_filament_name_size + 1>, defaults::custom_filament_name_4, journal::hash("Custom Filament 4 Name")> custom_filament_name_4;
+    StoreItem<int16_t, defaults::custom_filament_nozzle_temp_4, journal::hash("Custom Filament 4 Nozzle Temp")> custom_filament_nozzle_4; // filament 4 nozzle temperature
+    StoreItem<int16_t, defaults::custom_filament_nozzle_preheat_temp_4, journal::hash("Custom Filament 4 Nozzle Preheat Temp")> custom_filament_nozzle_preheat_4; // filament 4 nozzle preheat temperature
+    StoreItem<int16_t, defaults::custom_filament_heatbed_temp_4, journal::hash("Custom Filament 4 Bed Temp")> custom_filament_heatbed_4; // filament 4 bed temperature
+
     // LAN settings
     // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
     StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("LAN Flag")> lan_flag;
