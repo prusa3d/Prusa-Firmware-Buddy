@@ -145,18 +145,6 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
-
-    #if HAS_MMU2()
-class MI_CALIB_FSENSOR_MMU : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Filament Sensor Calibration MMU");
-
-public:
-    MI_CALIB_FSENSOR_MMU();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-    #endif
 #endif
 
 #if PRINTER_IS_PRUSA_MK4
