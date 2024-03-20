@@ -30,7 +30,7 @@ protected:
 };
 
 class MI_IS_X_TYPE : public WI_SWITCH_t<6> {
-    static constexpr const char *const label = N_("X-axis filter");
+    static constexpr const char *const label = N_("X-axis Filter");
 
 public:
     MI_IS_X_TYPE();
@@ -40,7 +40,7 @@ protected:
 };
 
 class MI_IS_Y_TYPE : public WI_SWITCH_t<6> {
-    static constexpr const char *const label = N_("Y-axis filter");
+    static constexpr const char *const label = N_("Y-axis Filter");
 
 public:
     MI_IS_Y_TYPE();
@@ -50,7 +50,7 @@ protected:
 };
 
 class MI_IS_X_FREQUENCY : public WiSpinInt {
-    static constexpr const char *const label = N_("X-axis freq.");
+    static constexpr const char *const label = N_("X-axis Freq.");
 
 public:
     MI_IS_X_FREQUENCY();
@@ -59,7 +59,7 @@ public:
 };
 
 class MI_IS_Y_FREQUENCY : public WiSpinInt {
-    static constexpr const char *const label = N_("Y-axis freq.");
+    static constexpr const char *const label = N_("Y-axis Freq.");
 
 public:
     MI_IS_Y_FREQUENCY();
@@ -67,7 +67,7 @@ public:
 };
 
 class MI_IS_Y_COMPENSATION : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Y weight compensation");
+    static constexpr const char *const label = N_("Y Weight Compensation");
 
 public:
     MI_IS_Y_COMPENSATION();
@@ -77,7 +77,7 @@ protected:
 };
 
 class MI_IS_ENABLE_EDITING : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Enable editing");
+    static constexpr const char *const label = N_("Enable Editing");
 
 public:
     MI_IS_ENABLE_EDITING();
@@ -88,7 +88,7 @@ protected:
 
 /// Resets input shaper config to defaults on click
 class MI_IS_RESTORE_DEFAULTS : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Restore defaults");
+    static constexpr const char *const label = N_("Restore Defaults");
 
 public:
     MI_IS_RESTORE_DEFAULTS();

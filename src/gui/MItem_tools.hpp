@@ -38,7 +38,7 @@ protected:
 };
 
 class MI_STUCK_FILAMENT_DETECTION : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Stuck filament detection");
+    constexpr static const char *const label = N_("Stuck Filament Detection");
     bool init_index() const;
 
 public:
@@ -50,7 +50,7 @@ protected:
 };
 
 class MI_STEALTH_MODE : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Stealth mode");
+    constexpr static const char *const label = N_("Stealth Mode");
 
 public:
     MI_STEALTH_MODE(); // @@TODO probably XL only
@@ -713,7 +713,7 @@ protected:
 };
 
 class MI_HEATUP_BED : public WI_SWITCH_t<2> {
-    static constexpr const char *const label = N_("For filament change, preheat");
+    static constexpr const char *const label = N_("For Filament Change, Preheat");
     static constexpr const char *const nozzle = N_("Nozzle");
     static constexpr const char *const nozzle_bed = N_("Noz&Bed");
 

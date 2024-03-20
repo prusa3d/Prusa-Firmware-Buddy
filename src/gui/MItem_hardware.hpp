@@ -176,7 +176,7 @@ protected:
 };
 
 class MI_NOZZLE_SOCK : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Nextruder silicone sock");
+    static constexpr const char *const label = N_("Nextruder Silicone Sock");
 
 public:
     MI_NOZZLE_SOCK();

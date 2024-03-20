@@ -43,7 +43,7 @@ protected:
 };
 
 class MI_CONNECT_REGISTER : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Add printer to Connect");
+    static constexpr const char *const label = N_("Add Printer to Connect");
 
 public:
     MI_CONNECT_REGISTER();
