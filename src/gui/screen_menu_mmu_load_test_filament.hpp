@@ -8,10 +8,15 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_mmu.hpp"
 
-using ScreenMenuMMULoadTestFilament__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-    MI_MMU_LOAD_TEST_ALL, MI_MMU_LOAD_TEST_FILAMENT_1, MI_MMU_LOAD_TEST_FILAMENT_2, MI_MMU_LOAD_TEST_FILAMENT_3, MI_MMU_LOAD_TEST_FILAMENT_4, MI_MMU_LOAD_TEST_FILAMENT_5>;
+template <typename>
+struct ScreenMenuMMULoadTestFilament_;
 
-class ScreenMenuMMULoadTestFilament : public ScreenMenuMMULoadTestFilament__ {
+template <size_t... i>
+struct ScreenMenuMMULoadTestFilament_<std::index_sequence<i...>> {
+    using T = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_MMU_LOAD_TEST_FILAMENT_I<i>...>;
+};
+
+class ScreenMenuMMULoadTestFilament : public ScreenMenuMMULoadTestFilament_<std::make_index_sequence<EXTRUDERS>>::T {
 public:
     constexpr static const char *label = N_("Loading test");
     ScreenMenuMMULoadTestFilament();
