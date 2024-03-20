@@ -8,10 +8,15 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_mmu.hpp"
 
-using ScreenMenuMMUCutFilament__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-    MI_MMU_CUT_FILAMENT_1, MI_MMU_CUT_FILAMENT_2, MI_MMU_CUT_FILAMENT_3, MI_MMU_CUT_FILAMENT_4, MI_MMU_CUT_FILAMENT_5>;
+template <typename>
+struct ScreenMenuMMUCutFilament_;
 
-class ScreenMenuMMUCutFilament : public ScreenMenuMMUCutFilament__ {
+template <size_t... i>
+struct ScreenMenuMMUCutFilament_<std::index_sequence<i...>> {
+    using T = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_MMU_CUT_FILAMENT_I<i>...>;
+};
+
+class ScreenMenuMMUCutFilament : public ScreenMenuMMUCutFilament_<std::make_index_sequence<EXTRUDERS>>::T {
 public:
     constexpr static const char *label = N_("Cut Filament");
     ScreenMenuMMUCutFilament();

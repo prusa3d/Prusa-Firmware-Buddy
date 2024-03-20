@@ -132,41 +132,12 @@ public:
         : MI_MMU_ISSUE_GCODE_SLOT(slot_i, "Load Filament", "M701 W2 P%i") {}
 };
 
-class MI_MMU_CUT_FILAMENT_1 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Cut Filament 1");
+template <uint8_t slot_i>
+class MI_MMU_CUT_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT {
 
 public:
-    MI_MMU_CUT_FILAMENT_1()
-        : MI_MMU_ISSUE_GCODE(label, "M706 P0") {}
-};
-
-class MI_MMU_CUT_FILAMENT_2 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Cut Filament 2");
-
-public:
-    MI_MMU_CUT_FILAMENT_2()
-        : MI_MMU_ISSUE_GCODE(label, "M706 P1") {}
-};
-class MI_MMU_CUT_FILAMENT_3 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Cut Filament 3");
-
-public:
-    MI_MMU_CUT_FILAMENT_3()
-        : MI_MMU_ISSUE_GCODE(label, "M706 P2") {}
-};
-class MI_MMU_CUT_FILAMENT_4 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Cut Filament 4");
-
-public:
-    MI_MMU_CUT_FILAMENT_4()
-        : MI_MMU_ISSUE_GCODE(label, "M706 P3") {}
-};
-class MI_MMU_CUT_FILAMENT_5 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Cut Filament 5");
-
-public:
-    MI_MMU_CUT_FILAMENT_5()
-        : MI_MMU_ISSUE_GCODE(label, "M706 P4") {}
+    MI_MMU_CUT_FILAMENT_I()
+        : MI_MMU_ISSUE_GCODE_SLOT(slot_i, "Cut Filament", "M706 P%i") {}
 };
 
 class MI_MMU_UNLOAD_FILAMENT : public MI_MMU_ISSUE_GCODE {
