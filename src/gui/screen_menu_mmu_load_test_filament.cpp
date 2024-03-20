@@ -6,6 +6,6 @@
 #include "img_resources.hpp"
 
 ScreenMenuMMULoadTestFilament::ScreenMenuMMULoadTestFilament()
-    : ScreenMenuMMULoadTestFilament__(_(label)) {
+    : ScreenMenu(_(label)) {
     header.SetIcon({ &img::info_16x16 });
 }
