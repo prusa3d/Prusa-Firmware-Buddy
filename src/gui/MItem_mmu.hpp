@@ -47,7 +47,7 @@ protected:
 };
 
 class MI_MMU_EJECT_FILAMENT : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Eject Filament");
+    static constexpr const char *const label = N_("Eject From MMU");
 
 public:
     MI_MMU_EJECT_FILAMENT();
@@ -112,7 +112,7 @@ class MI_MMU_EJECT_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT {
 
 public:
     MI_MMU_EJECT_FILAMENT_I()
-        : MI_MMU_ISSUE_GCODE_SLOT(slot_i, N_("Eject Filament"), "M705 P%i") {}
+        : MI_MMU_ISSUE_GCODE_SLOT(slot_i, N_("Eject From MMU"), "M705 P%i") {}
 };
 
 template <uint8_t slot_i>
