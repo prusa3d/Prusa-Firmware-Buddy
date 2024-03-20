@@ -181,9 +181,9 @@ Temperature thermalManager;
   #endif
 
   /**
-   * Set the print fan speed for a target extruder
+   * Private set of fan speed
    */
-  void Temperature::set_fan_speed(uint8_t target, uint16_t speed) {
+  void Temperature::set_fan_speed_(uint8_t target, uint16_t speed) {
 
     NOMORE(speed, 255U);
 
@@ -202,6 +202,44 @@ Temperature thermalManager;
     if (target >= FAN_COUNT) return;
 
     fan_speed[target] = speed;
+  }
+
+  /**
+   * Set the print fan speed for a target extruder
+   */
+  void Temperature::set_fan_speed(uint8_t target, uint16_t speed) {
+    if (target >= EXTRUDERS)
+      return;
+    if (previous_fan_speed[target]) {
+      previous_fan_speed[target] = speed;
+      return;
+    }
+    set_fan_speed_(target, speed);
+  }
+
+  constexpr int nozzle_cooling_fan_speed = 255;
+  constexpr int nozzle_min_temp_cooling = 50;
+
+  void Temperature::start_nozzle_cooling(const uint8_t target) {    
+    if (target < EXTRUDERS && !previous_fan_speed[target]) {
+      previous_fan_speed[target] = fan_speed[target];
+      set_fan_speed_(target, nozzle_cooling_fan_speed);
+    }
+  }
+
+  void Temperature::reset_fan_speed(uint8_t target) {
+    if (target < EXTRUDERS && previous_fan_speed[target]) {
+      if (fan_speed[target] == nozzle_cooling_fan_speed)
+        set_fan_speed_(target, *previous_fan_speed[target]);
+      previous_fan_speed[target] = std::nullopt;
+    }
+  }
+
+  void Temperature::check_and_reset_fan_speeds(){
+    for (int i = 0; i < EXTRUDERS; ++i) {
+      if (previous_fan_speed[i] && (degTargetHotend(i) + TEMP_HYSTERESIS > degHotend(i) || degHotend(i) < nozzle_min_temp_cooling))
+        reset_fan_speed(i);
+    }
   }
 
   #if EITHER(PROBING_FANS_OFF, ADVANCED_PAUSE_FANS_PAUSE)
@@ -345,6 +383,8 @@ volatile bool Temperature::temp_meas_ready = false;
 #if HAS_AUTO_FAN
   millis_t Temperature::next_auto_fan_check_ms = 0;
 #endif
+
+std::optional<uint8_t> Temperature::previous_fan_speed[EXTRUDERS];
 
 #if ENABLED(FAN_SOFT_PWM)
   uint8_t Temperature::soft_pwm_amount_fan[FAN_COUNT],
@@ -3900,13 +3940,11 @@ void Temperature::isr() {
       bool wants_to_cool = false;
       wait_for_heatup = true;
       millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
-      uint8_t fan_speed_at_start = fan_speed[target_extruder];
-      bool fan_cools = false;
 
-      if (isCoolingHotend(target_extruder) && fan_cooling) {
-        fan_cools = true;
-        thermalManager.set_fan_speed(target_extruder, 255);
-      }
+      if (isCoolingHotend(target_extruder) && fan_cooling)
+        start_nozzle_cooling(target_extruder);
+      else
+        reset_fan_speed(target_extruder);
 
       do {
         // Check if we're aborting
@@ -3919,8 +3957,6 @@ void Temperature::isr() {
 
           // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
           if (no_wait_for_cooling && wants_to_cool) break;
-          if (!wants_to_cool && fan_cools) // Nozzle too cold now
-            thermalManager.set_fan_speed(target_extruder, fan_speed_at_start);
         }
 
         now = millis();
@@ -3970,10 +4006,6 @@ void Temperature::isr() {
         #endif
 
       } while (wait_for_heatup && TEMP_CONDITIONS);
-
-      /// reset fan speed
-      if (fan_cools)
-        thermalManager.set_fan_speed(target_extruder, fan_speed_at_start);
 
       if (wait_for_heatup) {
         ui.reset_status();

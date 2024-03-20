@@ -691,6 +691,7 @@ void idle(
   );
 
   thermalManager.manage_heater();
+  thermalManager.check_and_reset_fan_speeds();
 
   #if HAS_HEATED_BED
     bed_preheat.update();
