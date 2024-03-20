@@ -18,6 +18,10 @@
 /// If there's not, \returns false and shows a message box
 bool gui_check_space_in_gcode_queue_with_msg();
 
+/// Attempts to execute the gcode.
+/// \returns false on failure (when the queue is full) and shows a message box saying the printer is busy
+bool gui_try_gcode_with_msg(const char *gcode);
+
 /// Global filamen sensing enable/disable
 class MI_FILAMENT_SENSOR : public WI_ICON_SWITCH_OFF_ON_t {
     // If the printer has filament sensors menu, this item is inside it and is supposed to be called differently (BFW-4973)
