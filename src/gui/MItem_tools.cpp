@@ -53,6 +53,8 @@ void MsgBoxNonBlockInfo(string_view_utf8 txt) {
 }
 
 constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier during homing.");
+constexpr const char *printer_busy_text = N_("Printer is busy. Please try repeating the action later.");
+
 } // namespace
 
 bool gui_check_space_in_gcode_queue_with_msg() {
@@ -60,7 +62,24 @@ bool gui_check_space_in_gcode_queue_with_msg() {
         return true;
     }
 
-    MsgBoxWarning(_("Printer is busy. Please try repeating the action later."), Responses_Ok);
+    MsgBoxWarning(_(printer_busy_text), Responses_Ok);
+    return false;
+}
+
+bool gui_try_gcode_with_msg(const char *gcode) {
+    switch (marlin_client::gcode_try(gcode)) {
+
+    case marlin_client::GcodeTryResult::Submitted:
+        return true;
+
+    case marlin_client::GcodeTryResult::QueueFull:
+        MsgBoxWarning(_(printer_busy_text), Responses_Ok);
+        return false;
+
+    case marlin_client::GcodeTryResult::GcodeTooLong:
+        bsod("Gcode too long");
+    }
+
     return false;
 }
 
