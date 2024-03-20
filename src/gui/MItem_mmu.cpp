@@ -165,7 +165,16 @@ static bool flip_mmu_rework([[maybe_unused]] bool flip_mmu_at_the_end) {
         return false;
     }
 
-    config_store().is_mmu_rework.set(!config_store().is_mmu_rework.get());
+    const bool set_mmu_rework = !config_store().is_mmu_rework.get();
+
+    // When enabling MMU rework, force set footer items
+    // BFW-5219
+    if (set_mmu_rework) {
+        StatusFooter::SetSlotInit(3, footer::Item::f_sensor);
+        StatusFooter::SetSlotInit(4, footer::Item::finda);
+    }
+
+    config_store().is_mmu_rework.set(set_mmu_rework);
 
 // The FS is not calibrated on MK3.5
 #if !PRINTER_IS_PRUSA_MK3_5
