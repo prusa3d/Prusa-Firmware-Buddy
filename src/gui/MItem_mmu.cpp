@@ -99,6 +99,27 @@ void MI_MMU_ISSUE_GCODE::click(IWindowMenu & /*window_menu*/) {
 }
 
 /**********************************************************************************************/
+// MI_MMU_ISSUE_GCODE_SLOT
+MI_MMU_ISSUE_GCODE_SLOT::MI_MMU_ISSUE_GCODE_SLOT(uint8_t slot_i, const char *label_prefix, const char *gcode_fmt)
+    : IWindowMenuItem({})
+    , gcode_fmt_(gcode_fmt)
+    , slot_i_(slot_i) {
+
+    std::array<char, 32> translated_prefix;
+    _(label_prefix).copyToRAM(translated_prefix.data(), translated_prefix.size());
+    snprintf(label_.data(), label_.size(), "%s %i", translated_prefix.data(), slot_i + 1);
+    SetLabel(string_view_utf8::MakeRAM(label_.data()));
+}
+
+void MI_MMU_ISSUE_GCODE_SLOT::click(IWindowMenu &) {
+    std::array<char, MAX_CMD_SIZE> gcode;
+    snprintf(gcode.data(), gcode.size(), gcode_fmt_, slot_i_);
+
+    marlin_client::event_clr(marlin_server::Event::CommandBegin);
+    gui_try_gcode_with_msg(gcode.data());
+}
+
+/**********************************************************************************************/
 // MI_MMU_PRELOAD_ALL
 MI_MMU_PRELOAD_ALL::MI_MMU_PRELOAD_ALL()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
