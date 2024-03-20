@@ -16,7 +16,12 @@ ESPFrameQR::ESPFrameQR(window_t *parent, PhasesESP ph, fsm::PhaseData data)
     , qr(this, FrameQRLayout::qrcode_rect(), QR_ADDR)
 
 {
+#if defined(USE_ILI9488)
     text.SetAlignment(Align_t::LeftCenter());
+#endif
+#if defined(USE_ST7789)
+    link.SetAlignment(Align_t::CenterTop());
+#endif
     change();
 }
 
