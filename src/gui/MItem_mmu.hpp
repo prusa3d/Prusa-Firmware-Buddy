@@ -115,44 +115,12 @@ public:
         : MI_MMU_ISSUE_GCODE_SLOT(slot_i, N_("Eject Filament"), "M705 P%i") {}
 };
 
-class MI_MMU_PRELOAD_SLOT_1 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Preload slot 1");
+template <uint8_t slot_i>
+class MI_MMU_PRELOAD_SLOT_I : public MI_MMU_ISSUE_GCODE_SLOT {
 
 public:
-    MI_MMU_PRELOAD_SLOT_1()
-        : MI_MMU_ISSUE_GCODE(label, "M704 P0") {}
-};
-
-class MI_MMU_PRELOAD_SLOT_2 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Preload slot 2");
-
-public:
-    MI_MMU_PRELOAD_SLOT_2()
-        : MI_MMU_ISSUE_GCODE(label, "M704 P1") {}
-};
-
-class MI_MMU_PRELOAD_SLOT_3 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Preload slot 3");
-
-public:
-    MI_MMU_PRELOAD_SLOT_3()
-        : MI_MMU_ISSUE_GCODE(label, "M704 P2") {}
-};
-
-class MI_MMU_PRELOAD_SLOT_4 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Preload slot 4");
-
-public:
-    MI_MMU_PRELOAD_SLOT_4()
-        : MI_MMU_ISSUE_GCODE(label, "M704 P3") {}
-};
-
-class MI_MMU_PRELOAD_SLOT_5 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Preload slot 5");
-
-public:
-    MI_MMU_PRELOAD_SLOT_5()
-        : MI_MMU_ISSUE_GCODE(label, "M704 P4") {}
+    MI_MMU_PRELOAD_SLOT_I()
+        : MI_MMU_ISSUE_GCODE_SLOT(slot_i, "Preload Slot", "M704 P%i") {}
 };
 
 class MI_MMU_LOAD_TO_NOZZLE_1 : public MI_MMU_ISSUE_GCODE {

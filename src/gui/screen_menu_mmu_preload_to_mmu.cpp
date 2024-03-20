@@ -3,6 +3,6 @@
 #include "img_resources.hpp"
 
 ScreenMenuMMUPreloadToMMU::ScreenMenuMMUPreloadToMMU()
-    : ScreenMenuMMUPreloadToMMU__(_(label)) {
+    : ScreenMenu(_(label)) {
     header.SetIcon({ &img::info_16x16 });
 }
