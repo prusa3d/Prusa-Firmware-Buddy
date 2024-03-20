@@ -28,7 +28,7 @@ public:
                 qrcodeHeight
             };
         } else {
-            return Rect16 { 160 - qrcodeWidth / 2, WizardDefaults::RectRadioButton(0).Top() - qrcodeHeight - 5, qrcodeWidth, qrcodeHeight };
+            return Rect16 { 160 - qrcodeWidth / 2, WizardDefaults::RectRadioButton(0).Top() - qrcodeHeight - 15, qrcodeWidth, qrcodeHeight };
         }
     }
 
@@ -51,7 +51,7 @@ public:
         if (GuiDefaults::ScreenWidth > 240) {
             return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0, phone_icon_rect().Left() - WizardDefaults::col_0, textHeight };
         } else {
-            return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0, WizardDefaults::X_space, textHeight };
+            return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + 10, WizardDefaults::X_space, textHeight };
         }
     }
 
@@ -60,7 +60,7 @@ public:
         if (GuiDefaults::ScreenWidth > 240) {
             return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + textHeight, phone_icon_rect().Left() - WizardDefaults::col_0, WizardDefaults::txt_h };
         } else {
-            return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + textHeight, WizardDefaults::X_space, WizardDefaults::txt_h };
+            return Rect16 { WizardDefaults::col_0, qrcode_rect().Bottom() - 5 /* QR is actually smaller than its rect */, WizardDefaults::X_space, WizardDefaults::txt_h };
         }
     }
 };
