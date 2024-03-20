@@ -47,26 +47,26 @@ class I_MI_CORRECT : public WiSpinInt {
 #if PRINTER_IS_PRUSA_MK3_5
         switch (index) {
         case LEFT:
-            return N_("Left side:");
+            return N_("Left Side");
         case RIGHT:
-            return N_("Right side:");
+            return N_("Right Side");
         case FRONT:
-            return N_("Front side:");
+            return N_("Front Side");
         case REAR:
-            return N_("Rear side:");
+            return N_("Rear Side");
         }
 #endif
 
 #if PRINTER_IS_PRUSA_MINI
         switch (index) {
         case LEFT:
-            return N_("Left side [um]:");
+            return N_("Left Side [um]");
         case RIGHT:
-            return N_("Right side [um]:");
+            return N_("Right Side [um]");
         case FRONT:
-            return N_("Front side [um]:");
+            return N_("Front Side [um]");
         case REAR:
-            return N_("Rear side [um]:");
+            return N_("Rear Side [um]");
         }
 #endif
         return "";
