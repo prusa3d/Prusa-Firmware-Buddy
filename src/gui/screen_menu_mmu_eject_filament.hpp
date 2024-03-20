@@ -18,6 +18,6 @@ struct ScreenMenuMMUEjectFilament_<std::index_sequence<i...>> {
 
 class ScreenMenuMMUEjectFilament : public ScreenMenuMMUEjectFilament_<std::make_index_sequence<EXTRUDERS>>::T {
 public:
-    constexpr static const char *label = N_("Eject Filament");
+    constexpr static const char *label = N_("EJECT FROM MMU");
     ScreenMenuMMUEjectFilament();
 };
