@@ -34,7 +34,6 @@ static constexpr const char *en_text_test_name = N_("Filament sensors calibratio
 static constexpr const char *en_text_test_name = N_("Filament sensor calibration");
 #endif
 
-static constexpr const char *en_text_have_filament = N_("Filament is required for the test, if you don't have it, press Abort. If filament is loaded in extruder press unload. If you have filament and filament is not loaded in extruder press next.");
 SelftestFrameFSensor::SelftestFrameFSensor(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_test_name), 1)
 
