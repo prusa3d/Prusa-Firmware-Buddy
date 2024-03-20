@@ -123,15 +123,8 @@ bool MI_STUCK_FILAMENT_DETECTION::init_index() const {
 }
 
 void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
-    if (!gui_check_space_in_gcode_queue_with_msg()) {
-        SetIndex(old_index);
-        return;
-    }
-
-    if (old_index) {
-        marlin_client::gcode("M591 S0 P");
-    } else {
-        marlin_client::gcode("M591 S1 P");
+    if (!gui_try_gcode_with_msg(value() ? "M591 S1 P" : "M591 S0 P")) {
+        set_value(old_index, false);
     }
 }
 
