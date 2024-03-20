@@ -107,6 +107,14 @@ private:
     const uint8_t slot_i_;
 };
 
+template <uint8_t slot_i>
+class MI_MMU_EJECT_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT {
+
+public:
+    MI_MMU_EJECT_FILAMENT_I()
+        : MI_MMU_ISSUE_GCODE_SLOT(slot_i, N_("Eject Filament"), "M705 P%i") {}
+};
+
 class MI_MMU_PRELOAD_SLOT_1 : public MI_MMU_ISSUE_GCODE {
     static constexpr const char *const label = N_("Preload slot 1");
 
@@ -185,47 +193,6 @@ class MI_MMU_LOAD_TO_NOZZLE_5 : public MI_MMU_ISSUE_GCODE {
 public:
     MI_MMU_LOAD_TO_NOZZLE_5()
         : MI_MMU_ISSUE_GCODE(label, "M701 W2 P4") {}
-};
-
-// Eject filament
-class MI_MMU_EJECT_FILAMENT_1 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Eject Filament 1");
-
-public:
-    MI_MMU_EJECT_FILAMENT_1()
-        : MI_MMU_ISSUE_GCODE(label, "M705 P0") {}
-};
-
-class MI_MMU_EJECT_FILAMENT_2 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Eject Filament 2");
-
-public:
-    MI_MMU_EJECT_FILAMENT_2()
-        : MI_MMU_ISSUE_GCODE(label, "M705 P1") {}
-};
-
-class MI_MMU_EJECT_FILAMENT_3 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Eject Filament 3");
-
-public:
-    MI_MMU_EJECT_FILAMENT_3()
-        : MI_MMU_ISSUE_GCODE(label, "M705 P2") {}
-};
-
-class MI_MMU_EJECT_FILAMENT_4 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Eject Filament 4");
-
-public:
-    MI_MMU_EJECT_FILAMENT_4()
-        : MI_MMU_ISSUE_GCODE(label, "M705 P3") {}
-};
-
-class MI_MMU_EJECT_FILAMENT_5 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Eject Filament 5");
-
-public:
-    MI_MMU_EJECT_FILAMENT_5()
-        : MI_MMU_ISSUE_GCODE(label, "M705 P4") {}
 };
 
 class MI_MMU_CUT_FILAMENT_1 : public MI_MMU_ISSUE_GCODE {
