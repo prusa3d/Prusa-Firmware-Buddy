@@ -11,6 +11,7 @@ target_sources(
           footer_item_heatbreak.cpp
           footer_item_input_shaper.cpp
           footer_item_live_z.cpp
+          footer_item_nozzle_diameter.cpp
           footer_item_printspeed.cpp
           footer_item_sheet_profile.cpp
           footer_items_heaters.cpp

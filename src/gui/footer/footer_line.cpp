@@ -123,6 +123,9 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
         new (&items[index]) FooterItemFSensorSide(this);
 #endif
         break;
+    case footer::Item::nozzle_diameter:
+        new (&items[index]) FooterItemNozzleDiameter(this);
+        break;
     case footer::Item::none:
     case footer::Item::_count:
         break;

@@ -20,6 +20,7 @@
 #include "footer_item_multitool.hpp"
 #include "footer_item_fsvalue.hpp"
 #include "footer_item_input_shaper.hpp"
+#include "footer_item_nozzle_diameter.hpp"
 #include <option/has_mmu2.h>
 
 namespace footer {
@@ -58,7 +59,8 @@ using ItemUnion = std::aligned_union<
     FooterItemCurrentTool,
     FooterItemAllNozzles
 #endif
-    >::type;
+    ,
+    FooterItemNozzleDiameter>::type;
 
 inline void *encode_item_for_event(Item item) {
     return reinterpret_cast<void *>(static_cast<intptr_t>(item));

@@ -68,7 +68,7 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     current_tool = 19,
     all_nozzles = 20,
     f_sensor_side = 21,
-
+    nozzle_diameter = 22,
     _count,
 };
 
@@ -182,6 +182,8 @@ constexpr const char *to_string(Item item) {
 #else
         break;
 #endif
+    case Item::nozzle_diameter:
+        return N_("Nozzle diameter");
     case Item::f_sensor_side:
 #if HAS_SIDE_FSENSOR()
         return N_("FSensor side");
