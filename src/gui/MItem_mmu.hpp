@@ -87,6 +87,26 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_MMU_ISSUE_GCODE_SLOT : public IWindowMenuItem {
+
+public:
+    /// \param slot_i Slot index, starting at 0. For label, +1 is shown
+    /// \param gcode_fmt Format used for snprintf. An '%i' parameter is passed, being the 0-indexed slot number.
+    MI_MMU_ISSUE_GCODE_SLOT(uint8_t slot_i, const char *label_prefix, const char *gcode_fmt);
+
+protected:
+    void click(IWindowMenu &window_menu) final;
+
+private:
+    // We need a buffer to store the formatted string
+    // because the label_base needs to go through snprintf
+    std::array<char, 32> label_;
+
+    const char *const gcode_fmt_;
+
+    const uint8_t slot_i_;
+};
+
 class MI_MMU_PRELOAD_SLOT_1 : public MI_MMU_ISSUE_GCODE {
     static constexpr const char *const label = N_("Preload slot 1");
 
