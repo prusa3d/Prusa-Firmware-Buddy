@@ -98,6 +98,11 @@ bool IWindowMenuItem::set_is_focused(bool set) {
 }
 
 bool IWindowMenuItem::move_focus(IWindowMenuItem *target) {
+    // Moving focus to the same item -> instant success
+    if (target == focused_menu_item) {
+        return true;
+    }
+
     // Changing focus - we have to cancel edit mode for previously edited item
     if (focused_menu_item_edited && !focused_menu_item->set_is_edited(false)) {
         return false;
