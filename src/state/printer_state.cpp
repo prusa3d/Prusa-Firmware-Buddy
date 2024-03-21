@@ -236,23 +236,19 @@ namespace {
     }
 
     // fsm unused on printers, that do not have MMU.
-    optional<ErrCode> load_unload_attention(bool printing, [[maybe_unused]] fsm::Change &fsm) {
-        if (printing) {
+    optional<ErrCode> load_unload_attention_while_printing([[maybe_unused]] fsm::Change &fsm) {
 #if HAS_MMU2()
-            if (config_store().mmu2_enabled.get()) {
-                // distinguish between regular progress of MMU Load/Unload and a real attention/MMU error screen (which is only one particular FSM state)
-                if (GetEnumFromPhaseIndex<PhasesLoadUnload>(fsm.get_data().GetPhase()) == PhasesLoadUnload::MMU_ERRWaitingForUser) {
-                    return ErrCode::CONNECT_MMU_LOAD_UNLOAD_ERROR;
-                } else {
-                    return nullopt;
-                }
+        if (config_store().mmu2_enabled.get()) {
+            // distinguish between regular progress of MMU Load/Unload and a real attention/MMU error screen (which is only one particular FSM state)
+            if (GetEnumFromPhaseIndex<PhasesLoadUnload>(fsm.get_data().GetPhase()) == PhasesLoadUnload::MMU_ERRWaitingForUser) {
+                return ErrCode::CONNECT_MMU_LOAD_UNLOAD_ERROR;
+            } else {
+                return nullopt;
             }
-#endif
-            // MMU not supported or not active -> all load/unload during print is really attention.
-            return ErrCode::CONNECT_FILAMENT_RUNOUT;
         }
-
-        return nullopt;
+#endif
+        // MMU not supported or not active -> all load/unload during print is really attention.
+        return ErrCode::CONNECT_FILAMENT_RUNOUT;
     }
 } // namespace
 
@@ -284,8 +280,12 @@ DeviceState get_state(bool ready) {
         break;
     case ClientFSM::Load_unload:
         // NOTE: Printing can only be at q0
-        if (load_unload_attention(fsm_change.q0_change.get_fsm_type() == ClientFSM::Printing, *top_change)) {
-            return DeviceState::Attention;
+        if (fsm_change.q0_change.get_fsm_type() == ClientFSM::Printing) {
+            if (load_unload_attention_while_printing(*top_change)) {
+                return DeviceState::Attention;
+            } else {
+                return DeviceState::Printing;
+            }
         } else {
             return DeviceState::Busy;
         }
@@ -331,9 +331,11 @@ StateWithDialog get_state_with_dialog(bool ready) {
 
     switch (top_change->get_fsm_type()) {
     case ClientFSM::Load_unload:
-        if (auto attention_code = load_unload_attention(fsm_change.q0_change.get_fsm_type() == ClientFSM::Printing, *top_change); attention_code.has_value()) {
-            const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesLoadUnload>(top_change->get_data().GetPhase())).data();
-            return { state, attention_code, fsm_gen, responses };
+        if (fsm_change.q0_change.get_fsm_type() == ClientFSM::Printing) {
+            if (auto attention_code = load_unload_attention_while_printing(*top_change); attention_code.has_value()) {
+                const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesLoadUnload>(top_change->get_data().GetPhase())).data();
+                return { state, attention_code, fsm_gen, responses };
+            }
         } // TODO: handle normal load unload
         break;
     case ClientFSM::QuickPause: {
