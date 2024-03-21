@@ -32,7 +32,4 @@ MarlinVarsLockGuard::~MarlinVarsLockGuard() {
 
 void marlin_vars_t::init() {
     mutex_id = osMutexCreate(osMutex(mutex));
-    // Random at boot, to avoid chance of reusing the same (0/1) dialog ID
-    // after a reboot.
-    fsm_state_generation = rand_u();
 }

@@ -17,7 +17,6 @@ This file is generated automatically so don't edit it directly
 - EEPROM: LOG_SEVERITY_INFO, src/persistent_stores/store_instances/config_store/store_c_api.cpp
 - ESPIF: LOG_SEVERITY_INFO, lib/WUI/espif.cpp
 - EspFlash: LOG_SEVERITY_DEBUG, lib/WUI/esp_flash.cpp
-- FSM: LOG_SEVERITY_INFO, src/common/fsm_types.cpp
 - FSensor: LOG_SEVERITY_INFO, src/common/filament_sensors_handler.cpp
 - FileSystem: LOG_SEVERITY_INFO, src/buddy/filesystem.cpp
 - GUI: LOG_SEVERITY_DEBUG, src/gui/logger.cpp

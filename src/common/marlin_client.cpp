@@ -39,7 +39,6 @@ typedef struct _marlin_client_t {
 
     uint32_t ack; // cached ack value from last Acknowledge event
     uint32_t command; // processed command (G28,G29,M701,M702,M600)
-    fsm_cb_t fsm_cb; // to register callback for dialog or screen creation/destruction/change (M876), callback ensures M876 is processed asap, so there is no need for queue
     message_cb_t message_cb; // to register callback message
     uint8_t id; // client id (0..MARLIN_MAX_CLIENTS-1)
 } marlin_client_t;
@@ -79,7 +78,6 @@ void init() {
         client->events = 0;
         marlin_clients++;
         client->command = ftrstd::to_underlying(Cmd::NONE);
-        client->fsm_cb = NULL;
         client->message_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
@@ -107,17 +105,6 @@ void wait_for_start_processing() {
             receive_and_process_client_message(client, portMAX_DELAY);
         }
     }
-}
-
-// register callback to fsm creation
-// return success
-bool set_fsm_cb(fsm_cb_t cb) {
-    marlin_client_t *client = _client_ptr();
-    if (client && cb) {
-        client->fsm_cb = cb;
-        return true;
-    }
-    return false;
 }
 
 // register callback to message
@@ -534,11 +521,6 @@ static bool receive_and_process_client_message(marlin_client_t *client, TickType
     case Event::NotAcknowledge:
     case Event::Acknowledge:
         client->ack = client_event.usr32;
-        break;
-    case Event::FSM:
-        if (client->fsm_cb) {
-            client->fsm_cb(client_event.usr32, client_event.usr16);
-        }
         break;
     case Event::Message: {
         if (client->message_cb) {

@@ -14,7 +14,6 @@ enum class Event : uint8_t {
     MediaInserted, // onMediaInserted();
     MediaError, // onMediaError();
     MediaRemoved, // onMediaRemoved();
-    FSM, // create/destroy finite state machine or change phase/state/progress in client
     PlayTone, // onPlayTone(const uint16_t frequency, const uint16_t duration)
     PrintTimerStarted, // onPrintTimerStarted()
     PrintTimerPaused, // onPrintTimerPaused()
@@ -50,7 +49,6 @@ constexpr EventMask make_mask(Event id) {
 
 inline constexpr EventMask EVENT_MSK_ALL = std::numeric_limits<EventMask>::max();
 inline constexpr EventMask EVENT_MSK_DEF = EVENT_MSK_ALL & ~make_mask(Event::PrinterKilled);
-inline constexpr EventMask EVENT_MSK_FSM = make_mask(Event::FSM);
 
 // commands
 enum class Cmd : uint32_t {

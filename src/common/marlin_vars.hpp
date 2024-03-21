@@ -6,7 +6,7 @@
 #include "bsod.h"
 #include <atomic>
 #include "file_list_defs.h"
-#include "fsm_types.hpp"
+#include "fsm_states.hpp"
 
 #include <cstring>
 #include <charconv>
@@ -414,28 +414,6 @@ public:
         }
     }
 
-    struct FSMChange {
-        fsm::Change q0_change;
-        fsm::Change q1_change;
-        fsm::Change q2_change;
-
-        FSMChange()
-            : q0_change(fsm::QueueIndex::q0)
-            , q1_change(fsm::QueueIndex::q1)
-            , q2_change(fsm::QueueIndex::q2) {}
-
-        fsm::Change *get_top_fsm() {
-            if (q2_change.get_fsm_type() != ClientFSM::_none) {
-                return &q2_change;
-            } else if (q1_change.get_fsm_type() != ClientFSM::_none) {
-                return &q1_change;
-            } else if (q0_change.get_fsm_type() != ClientFSM::_none) {
-                return &q0_change;
-            } else {
-                return nullptr;
-            }
-        }
-    };
     /**
      * @brief Get the last fsm state
      *
@@ -445,9 +423,9 @@ public:
      *
      * @return last change for both FSM queues and the generation (which changes every time a value here changes).
      */
-    std::tuple<FSMChange, uint32_t> get_last_fsm_change() {
+    fsm::States get_fsm_states() {
         auto guard = MarlinVarsLockGuard();
-        return std::make_tuple(last_fsm_state, fsm_state_generation);
+        return fsm_states; // copy is intended
     }
 
     /**
@@ -455,20 +433,12 @@ public:
      *
      * Can be called only from main task
      */
-    void set_last_fsm_state(const fsm::Change &change) {
+    void set_fsm_states(const fsm::States &states) {
         if (osThreadGetId() != marlin_server::server_task) {
-            bsod("set_last_fsm_state");
+            bsod("set_fsm_states");
         }
         auto guard = MarlinVarsLockGuard();
-        if (change.get_queue_index() == fsm::QueueIndex::q0) {
-            last_fsm_state.q0_change = change;
-        } else if (change.get_queue_index() == fsm::QueueIndex::q1) {
-            last_fsm_state.q1_change = change;
-        } else {
-            last_fsm_state.q2_change = change;
-        }
-
-        fsm_state_generation++;
+        fsm_states = states;
     }
 
     void lock();
@@ -479,8 +449,7 @@ private:
     osMutexId mutex_id; // Mutex ID
     std::atomic<osThreadId> current_mutex_owner; // current mutex owner -> to check for recursive locking
     std::array<Hotend, HOTENDS> hotends; // array of hotends (use hotend()/active_hotend() getter)
-    FSMChange last_fsm_state; // last fsm state, used in connect and link
-    uint32_t fsm_state_generation = 0;
+    fsm::States fsm_states;
 #if ENABLED(CANCEL_OBJECTS)
     uint64_t cancel_object_mask;
 #endif

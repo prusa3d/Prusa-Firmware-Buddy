@@ -6,7 +6,6 @@
 #include "marlin_vars.hpp"
 
 #include "client_response.hpp"
-#include "fsm_types.hpp"
 
 #include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "marlin_events.h"

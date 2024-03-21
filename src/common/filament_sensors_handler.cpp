@@ -108,49 +108,25 @@ void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &sensor,
     }
 }
 
-static ClientFSM type_of_q0 = ClientFSM::_none;
-static ClientFSM type_of_q1 = ClientFSM::_none;
-static ClientFSM type_of_q2 = ClientFSM::_none;
-
-// called when Serial print screen is opened
-// printer is not in sd printing mode, so filament sensor does not trigger M600
-static void fsm_cb(uint32_t u32, uint16_t u16) {
-    fsm::Change change({ u32, u16 });
-    ClientFSM *fsm_type = &type_of_q0;
-
-    // point to variable corresponding to queue from Change
-    switch (change.get_queue_index()) {
-    case fsm::QueueIndex::q0:
-        fsm_type = &type_of_q0;
-        break;
-    case fsm::QueueIndex::q1:
-        fsm_type = &type_of_q1;
-        break;
-    case fsm::QueueIndex::q2:
-        fsm_type = &type_of_q2;
-        break;
-    }
-
-    // fsm created or destroyed
-    if (*fsm_type != change.get_fsm_type()) {
-        if (*fsm_type == ClientFSM::Load_unload) {
-            FSensors_instance().DecEvLock(); // ClientFSM::Load_unload destroy
-        } else if (change.get_fsm_type() == ClientFSM::Load_unload) {
-            FSensors_instance().IncEvLock(); // ClientFSM::Load_unload create
-        }
-        *fsm_type = change.get_fsm_type(); // store new FSM type
-    }
-}
-
 void FilamentSensors::task_init() {
     marlin_client::init();
     marlin_client::wait_for_start_processing();
-    marlin_client::set_event_notify(marlin_server::EVENT_MSK_FSM);
-    marlin_client::set_fsm_cb(fsm_cb);
 }
 
 void FilamentSensors::task_cycle() {
     marlin_client::loop();
+
+    static bool old_state = false;
+    const bool new_state = marlin_vars_t().get_fsm_states().is_active(ClientFSM::Load_unload);
+
+    if (old_state && !new_state) {
+        FSensors_instance().DecEvLock(); // ClientFSM::Load_unload destroy
+    }
+    if (!old_state && new_state) {
+        FSensors_instance().IncEvLock(); // ClientFSM::Load_unload create
+    }
+
+    old_state = new_state;
 
     if (enable_state_update_pending) {
         process_enable_state_update();

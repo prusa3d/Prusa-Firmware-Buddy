@@ -18,7 +18,7 @@ if(BOARD MATCHES ".*BUDDY")
             filepath_operation.cpp
             footer_eeprom.cpp
             freertos_mutex.cpp
-            fsm_types.cpp
+            fsm_states.cpp
             general_response.cpp
             hardware_serial.cpp
             heap.cpp
@@ -107,7 +107,7 @@ elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
             data_exchange.cpp
             ExtInterruptHandler.cpp
             freertos_mutex.cpp
-            fsm_types.cpp
+            fsm_states.cpp
             heap.cpp
             homing_reporter.cpp
             hwio_XLBuddy.cpp # todo: replace
