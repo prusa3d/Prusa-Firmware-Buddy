@@ -164,7 +164,7 @@ def generate_header_file(yaml_file_name, header_file_name, printer_id, printer_c
                 "id": err_id,
                 "code": err_code,
                 "title": err["title"],
-                "text": err["text"].replace("\n", "\\n"),
+                "text": err["text"].translate(str.maketrans({"\n": "\\n", "\"": "\\\""})),
                 "extra_text": extra_text
             }
 
