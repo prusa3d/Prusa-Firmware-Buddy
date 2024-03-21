@@ -10,8 +10,8 @@ MI_IS_X_ONOFF::MI_IS_X_ONOFF()
 void MI_IS_X_ONOFF::OnChange(size_t) {
     config_store().input_shaper_axis_x_enabled.set(index);
 
-    using AC = std::optional<input_shaper::AxisConfig>;
-    input_shaper::set_axis_config(X_AXIS, index ? AC(config_store().input_shaper_axis_x_config.get()) : std::nullopt);
+    // Make the input shaper reload config from config_store
+    gui_try_gcode_with_msg("M9200");
 
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, ftrstd::bit_cast<void *>(InputShaperMenuItemChildClickParam::request_gui_update));
 }
@@ -24,8 +24,8 @@ MI_IS_Y_ONOFF::MI_IS_Y_ONOFF()
 void MI_IS_Y_ONOFF::OnChange(size_t) {
     config_store().input_shaper_axis_y_enabled.set(index);
 
-    using AC = std::optional<input_shaper::AxisConfig>;
-    input_shaper::set_axis_config(Y_AXIS, index ? AC(config_store().input_shaper_axis_y_config.get()) : std::nullopt);
+    // Make the input shaper reload config from config_store
+    gui_try_gcode_with_msg("M9200");
 
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, ftrstd::bit_cast<void *>(InputShaperMenuItemChildClickParam::request_gui_update));
 }
@@ -47,7 +47,9 @@ void MI_IS_X_TYPE::OnChange(size_t) {
     auto axis_x = config_store().input_shaper_axis_x_config.get();
     axis_x.type = static_cast<input_shaper::Type>(GetIndex());
     config_store().input_shaper_axis_x_config.set(axis_x);
-    input_shaper::set_axis_config(X_AXIS, axis_x);
+
+    // Make the input shaper reload config from config_store
+    gui_try_gcode_with_msg("M9200");
 }
 
 MI_IS_Y_TYPE::MI_IS_Y_TYPE()
@@ -67,7 +69,9 @@ void MI_IS_Y_TYPE::OnChange(size_t) {
     auto axis_y = config_store().input_shaper_axis_y_config.get();
     axis_y.type = static_cast<input_shaper::Type>(GetIndex());
     config_store().input_shaper_axis_y_config.set(axis_y);
-    input_shaper::set_axis_config(Y_AXIS, axis_y);
+
+    // Make the input shaper reload config from config_store
+    gui_try_gcode_with_msg("M9200");
 }
 
 static constexpr SpinConfigInt is_frequency_spin_config = makeSpinConfig<int>(
@@ -83,7 +87,9 @@ void MI_IS_X_FREQUENCY::OnClick() {
     auto axis_x = config_store().input_shaper_axis_x_config.get();
     axis_x.frequency = static_cast<float>(GetVal());
     config_store().input_shaper_axis_x_config.set(axis_x);
-    input_shaper::set_axis_config(X_AXIS, axis_x);
+
+    // Make the input shaper reload config from config_store
+    gui_try_gcode_with_msg("M9200");
 }
 
 MI_IS_Y_FREQUENCY::MI_IS_Y_FREQUENCY()
@@ -94,7 +100,9 @@ void MI_IS_Y_FREQUENCY::OnClick() {
     auto axis_y = config_store().input_shaper_axis_y_config.get();
     axis_y.frequency = static_cast<float>(GetVal());
     config_store().input_shaper_axis_y_config.set(axis_y);
-    input_shaper::set_axis_config(Y_AXIS, axis_y);
+
+    // Make the input shaper reload config from config_store
+    gui_try_gcode_with_msg("M9200");
 }
 
 MI_IS_Y_COMPENSATION::MI_IS_Y_COMPENSATION()
@@ -103,11 +111,9 @@ MI_IS_Y_COMPENSATION::MI_IS_Y_COMPENSATION()
 
 void MI_IS_Y_COMPENSATION::OnChange(size_t) {
     config_store().input_shaper_weight_adjust_y_enabled.set(index);
-    if (index) {
-        input_shaper::current_config().weight_adjust_y = config_store().input_shaper_weight_adjust_y_config.get();
-    } else {
-        input_shaper::current_config().weight_adjust_y = std::nullopt;
-    }
+
+    // Make the input shaper reload config from config_store
+    gui_try_gcode_with_msg("M9200");
 }
 
 MI_IS_ENABLE_EDITING::MI_IS_ENABLE_EDITING()
@@ -146,8 +152,8 @@ void MI_IS_RESTORE_DEFAULTS::click([[maybe_unused]] IWindowMenu &window_menu) {
         store.input_shaper_weight_adjust_y_enabled.set_to_default();
     }
 
-    // Reload input shaper config from the store
-    input_shaper::current_config() = config_store().get_input_shaper_config();
+    // Make the input shaper reload config from config_store
+    gui_try_gcode_with_msg("M9200");
 
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, ftrstd::bit_cast<void *>(InputShaperMenuItemChildClickParam::request_gui_update));
 }

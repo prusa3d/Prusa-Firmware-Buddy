@@ -21,10 +21,8 @@ void ScreenMenuInputShaper::update_gui() {
 
     AutoRestore _ar(is_updating_gui, true);
 
-    auto &is_config = input_shaper::current_config();
-
-    const bool x_enabled = is_config.axis[X_AXIS].has_value();
-    const bool y_enabled = is_config.axis[Y_AXIS].has_value();
+    const bool x_enabled = config_store().input_shaper_axis_x_enabled.get();
+    const bool y_enabled = config_store().input_shaper_axis_y_enabled.get();
 
     Item<MI_IS_X_ONOFF>().set_is_enabled(is_editing_enabled);
     Item<MI_IS_Y_ONOFF>().set_is_enabled(is_editing_enabled);
@@ -43,16 +41,18 @@ void ScreenMenuInputShaper::update_gui() {
 
     Item<MI_IS_X_ONOFF>().SetIndex(x_enabled);
     Item<MI_IS_Y_ONOFF>().SetIndex(y_enabled);
-    Item<MI_IS_Y_COMPENSATION>().SetIndex(is_config.weight_adjust_y.has_value());
 
     if (x_enabled) {
-        Item<MI_IS_X_TYPE>().SetIndex(static_cast<unsigned>(is_config.axis[X_AXIS]->type));
-        Item<MI_IS_X_FREQUENCY>().SetVal(static_cast<int>(is_config.axis[X_AXIS]->frequency));
+        const auto axis_config = config_store().input_shaper_axis_x_config.get();
+        Item<MI_IS_X_TYPE>().SetIndex(static_cast<unsigned>(axis_config.type));
+        Item<MI_IS_X_FREQUENCY>().SetVal(static_cast<int>(axis_config.frequency));
     }
 
     if (y_enabled) {
-        Item<MI_IS_Y_TYPE>().SetIndex(static_cast<unsigned>(is_config.axis[Y_AXIS]->type));
-        Item<MI_IS_Y_FREQUENCY>().SetVal(static_cast<int>(is_config.axis[Y_AXIS]->frequency));
+        const auto axis_config = config_store().input_shaper_axis_y_config.get();
+        Item<MI_IS_Y_TYPE>().SetIndex(static_cast<unsigned>(axis_config.type));
+        Item<MI_IS_Y_FREQUENCY>().SetVal(static_cast<int>(axis_config.frequency));
+        Item<MI_IS_Y_COMPENSATION>().SetIndex(config_store().input_shaper_weight_adjust_y_enabled.get());
     }
 }
 
