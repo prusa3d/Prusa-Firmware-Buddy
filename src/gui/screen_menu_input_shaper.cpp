@@ -7,9 +7,6 @@
 ScreenMenuInputShaper::ScreenMenuInputShaper()
     : detail::ScreenMenuInputShaper(_(label)) {
 
-    // If the "enable editing" button is hiden, enable editing by default
-    is_editing_enabled = Item<MI_IS_ENABLE_EDITING>().IsHidden();
-
     update_gui();
 }
 
@@ -17,6 +14,10 @@ void ScreenMenuInputShaper::update_gui() {
     if (is_updating_gui) {
         return;
     }
+
+    // If the "enable editing" button is hiden, enable editing by default
+    // Also do not allow IS tuning mid-print
+    is_editing_enabled = Item<MI_IS_ENABLE_EDITING>().IsHidden() && !marlin_client::is_printing();
 
     AutoRestore _ar(is_updating_gui, true);
 
@@ -32,6 +33,7 @@ void ScreenMenuInputShaper::update_gui() {
     Item<MI_IS_Y_TYPE>().set_is_enabled(is_editing_enabled && y_enabled);
     Item<MI_IS_Y_FREQUENCY>().set_is_enabled(is_editing_enabled && y_enabled);
     Item<MI_IS_Y_COMPENSATION>().set_is_enabled(is_editing_enabled && y_enabled);
+    Item<MI_IS_RESTORE_DEFAULTS>().set_is_enabled(is_editing_enabled);
 
     Item<MI_IS_X_TYPE>().set_show_disabled_extension(x_enabled);
     Item<MI_IS_X_FREQUENCY>().set_show_disabled_extension(x_enabled);
