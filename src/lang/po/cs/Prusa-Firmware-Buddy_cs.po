@@ -4093,7 +4093,7 @@ msgstr "Příprava pro instalaci kalibračního pinu."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:48
 msgid "Preparing to ram"
-msgstr "Příprava na ramming"
+msgstr "Příprava na vysunutí"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:100
 msgid "Press CONTINUE and push filament into MMU."
@@ -4379,7 +4379,7 @@ msgstr "KONEC"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:49
 msgid "Ramming"
-msgstr "Ramming"
+msgstr "Vysouvání"
 
 #: build/mini_release_boot/lib/error_codes/error_list.hpp:159
 #: build/mk4_release_boot/lib/error_codes/error_list.hpp:169
