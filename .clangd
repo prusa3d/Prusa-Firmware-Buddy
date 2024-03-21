@@ -1,2 +1,6 @@
 CompileFlags:
-  Add: [-D__GNUC__=10, -ferror-limit=0]
+  Add:
+    - "-ferror-limit=0"
+    - "-D__GNUC__=13"
+    - "-D__GNUC_MINOR__=3"
+    - "-D__GNUC__PATCHLEVEL__=1"
