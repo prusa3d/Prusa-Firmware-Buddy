@@ -1,6 +1,6 @@
 #include "printer_state.hpp"
 
-#include <fsm_types.hpp>
+#include <fsm_states.hpp>
 #include <client_response.hpp>
 #include <marlin_vars.hpp>
 #include <option/has_mmu2.h>
@@ -9,7 +9,6 @@
 #include <device/board.h>
 
 using namespace marlin_server;
-using std::make_optional;
 using std::make_tuple;
 using std::nullopt;
 using std::optional;
@@ -212,8 +211,8 @@ namespace {
         return ErrCode::ERR_UNDEF;
     }
 
-    bool is_warning_attention(fsm::Change &fsm_change) {
-        WarningType wtype = static_cast<WarningType>(*fsm_change.get_data().GetData().data());
+    bool is_warning_attention(const fsm::BaseData &data) {
+        WarningType wtype = static_cast<WarningType>(*data.GetData().data());
         const ErrCode code(warningToErr(wtype));
         switch (code) {
         // Note: We don't consider these attention, so just note the dialog code and slap
@@ -229,20 +228,20 @@ namespace {
         }
     }
 
-    tuple<ErrCode, const Response *> warning_dialog(fsm::Change &top_fsm) {
-        WarningType wtype = static_cast<WarningType>(*top_fsm.get_data().GetData().data());
-        auto phase = GetEnumFromPhaseIndex<PhasesWarning>(top_fsm.get_data().GetPhase());
+    tuple<ErrCode, const Response *> warning_dialog(const fsm::BaseData &data) {
+        WarningType wtype = static_cast<WarningType>(*data.GetData().data());
+        auto phase = GetEnumFromPhaseIndex<PhasesWarning>(data.GetPhase());
         const Response *buttons = ClientResponses::GetResponses(phase).data();
         const ErrCode code(warningToErr(wtype));
         return make_tuple(code, buttons);
     }
 
     // fsm unused on printers, that do not have MMU.
-    optional<ErrCode> load_unload_attention_while_printing([[maybe_unused]] fsm::Change &fsm) {
+    optional<ErrCode> load_unload_attention_while_printing([[maybe_unused]] const fsm::BaseData &data) {
 #if HAS_MMU2()
         if (config_store().mmu2_enabled.get()) {
             // distinguish between regular progress of MMU Load/Unload and a real attention/MMU error screen (which is only one particular FSM state)
-            if (GetEnumFromPhaseIndex<PhasesLoadUnload>(fsm.get_data().GetPhase()) == PhasesLoadUnload::MMU_ERRWaitingForUser) {
+            if (GetEnumFromPhaseIndex<PhasesLoadUnload>(data.GetPhase()) == PhasesLoadUnload::MMU_ERRWaitingForUser) {
                 return ErrCode::CONNECT_MMU_LOAD_UNLOAD_ERROR;
             } else {
                 return nullopt;
@@ -255,23 +254,18 @@ namespace {
 } // namespace
 
 DeviceState get_state(bool ready) {
-    auto [fsm_change, fsm_gen] = marlin_vars()->get_last_fsm_change();
+    const auto &fsm_states = marlin_vars()->get_fsm_states();
+    const auto &top = fsm_states.get_top();
     State state = marlin_vars()->print_state;
-    fsm::Change *top_change = fsm_change.get_top_fsm();
-    if (top_change == nullptr) {
+    if (!top) {
         // No FSM present...
         return get_print_state(state, ready);
     }
 
-    if (top_change->get_fsm_type() == ClientFSM::Warning) {
-        if (is_warning_attention(*top_change)) {
-            return DeviceState::Attention;
-        }
-    }
-
-    switch (top_change->get_fsm_type()) {
+    const fsm::BaseData &data = top->data;
+    switch (top->fsm_type) {
     case ClientFSM::PrintPreview: {
-        auto phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(top_change->get_data().GetPhase());
+        auto phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(data.GetPhase());
         if (attention_while_printpreview(phase)) {
             return DeviceState::Attention;
         }
@@ -281,9 +275,8 @@ DeviceState get_state(bool ready) {
         // NOTE: handled in get_print_state, it can be Printing, Paused or Stopped
         break;
     case ClientFSM::Load_unload:
-        // NOTE: Printing can only be at q0
-        if (fsm_change.q0_change.get_fsm_type() == ClientFSM::Printing) {
-            if (load_unload_attention_while_printing(*top_change)) {
+        if (const fsm::States::State &fsm_state = fsm_states[ClientFSM::Printing]) {
+            if (load_unload_attention_while_printing(*fsm_state)) {
                 return DeviceState::Attention;
             } else {
                 return DeviceState::Printing;
@@ -292,7 +285,7 @@ DeviceState get_state(bool ready) {
             return DeviceState::Busy;
         }
     case ClientFSM::CrashRecovery:
-        if (crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(top_change->get_data().GetPhase()))) {
+        if (crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase()))) {
             return DeviceState::Attention;
         }
         break;
@@ -313,9 +306,11 @@ DeviceState get_state(bool ready) {
         // preheat menu to be the only menu screen to not be Idle... :-(
     case ClientFSM::Preheat:
         return DeviceState::Busy;
-        // NOTE: these are here just to satisfy the compiler and get warning, if some cases are not handled.
-        // Both are handled above the switch.
     case ClientFSM::Warning:
+        if (is_warning_attention(data)) {
+            return DeviceState::Attention;
+        }
+        break;
     case ClientFSM::_none:
         break;
     }
@@ -325,38 +320,40 @@ DeviceState get_state(bool ready) {
 StateWithDialog get_state_with_dialog(bool ready) {
     // Get the state and slap top FSM dialog on top of it, if any
     DeviceState state = get_state(ready);
-    auto [fsm_change, fsm_gen] = marlin_vars()->get_last_fsm_change();
-    fsm::Change *top_change = fsm_change.get_top_fsm();
-    if (top_change == nullptr) {
+    const auto &fsm_states = marlin_vars()->get_fsm_states();
+    const auto &fsm_gen = fsm_states.generation;
+    const auto &top = fsm_states.get_top();
+    if (!top) {
         return state;
     }
 
-    switch (top_change->get_fsm_type()) {
+    const auto &data = top->data;
+    switch (top->fsm_type) {
     case ClientFSM::Load_unload:
-        if (fsm_change.q0_change.get_fsm_type() == ClientFSM::Printing) {
-            if (auto attention_code = load_unload_attention_while_printing(*top_change); attention_code.has_value()) {
-                const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesLoadUnload>(top_change->get_data().GetPhase())).data();
+        if (const fsm::States::State &fsm_state = fsm_states[ClientFSM::Printing]) {
+            if (auto attention_code = load_unload_attention_while_printing(*fsm_state); attention_code.has_value()) {
+                const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesLoadUnload>(fsm_state->GetPhase())).data();
                 return { state, attention_code, fsm_gen, responses };
             }
         } // TODO: handle normal load unload
         break;
     case ClientFSM::QuickPause: {
-        const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesQuickPause>(top_change->get_data().GetPhase())).data();
+        const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesQuickPause>(data.GetPhase())).data();
         return { state, ErrCode::CONNECT_QUICK_PAUSE, fsm_gen, responses };
         break;
     }
     case ClientFSM::CrashRecovery:
-        if (auto attention_code = crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(top_change->get_data().GetPhase())); attention_code.has_value()) {
-            const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesCrashRecovery>(top_change->get_data().GetPhase())).data();
+        if (auto attention_code = crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase())); attention_code.has_value()) {
+            const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase())).data();
             return { state, attention_code, fsm_gen, responses };
         }
         break;
     case ClientFSM::Warning: {
-        auto [code, response] = warning_dialog(*top_change);
+        auto [code, response] = warning_dialog(data);
         return { state, code, fsm_gen, response };
     }
     case ClientFSM::PrintPreview: {
-        auto phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(top_change->get_data().GetPhase());
+        auto phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(data.GetPhase());
         if (auto attention_code = attention_while_printpreview(phase); attention_code.has_value()) {
             const Response *responses = ClientResponses::GetResponses(phase).data();
             return { state, attention_code, fsm_gen, responses };
@@ -416,9 +413,9 @@ bool has_job() {
     case DeviceState::Paused:
         return true;
     case DeviceState::Attention: {
-        auto [fsm, fsm_gen] = marlin_vars()->get_last_fsm_change();
+        const auto &fsm_states = marlin_vars()->get_fsm_states();
         // Attention while printing or one of these questions before print(eg. wrong filament)
-        return (fsm.q0_change.get_fsm_type() == ClientFSM::Printing || fsm.q0_change.get_fsm_type() == ClientFSM::PrintPreview);
+        return (fsm_states[ClientFSM::Printing] || fsm_states[ClientFSM::PrintPreview]);
     }
     default:
         return false;

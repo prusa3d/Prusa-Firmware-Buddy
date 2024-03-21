@@ -1,4 +1,4 @@
-#include "fsm_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "marlin_server.hpp"
 #include "PrusaGcodeSuite.hpp"
 #include "safety_timer_stubbed.hpp"

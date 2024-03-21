@@ -17,6 +17,7 @@
 #include "module/prusa/tool_mapper.hpp"
 #include "module/prusa/spool_join.hpp"
 #include "print_utils.hpp"
+#include "random.h"
 #include "timing.h"
 #include "cmsis_os.h"
 #include "log.h"
@@ -59,7 +60,7 @@
 #include "media.hpp"
 #include "../marlin_stubs/G26.hpp"
 #include "../marlin_stubs/M123.hpp"
-#include "fsm_types.hpp"
+#include "fsm_states.hpp"
 #include "odometer.hpp"
 #include "metric.h"
 #include "app_metrics.h"
@@ -197,7 +198,7 @@ namespace {
      */
     void pause_print(Pause_Type type = Pause_Type::Pause, uint32_t resume_pos = UINT32_MAX);
 
-    fsm::QueueWrapper<MARLIN_MAX_CLIENTS> fsm_event_queues;
+    fsm::States fsm_states;
 
     template <WarningType p_warning, bool p_disableHotend>
     class ErrorChecker {
@@ -356,14 +357,14 @@ namespace {
 
     void clear_warnings() {
 
-        if (fsm_event_queues.GetFsm0() == ClientFSM::Warning || fsm_event_queues.GetFsm1() == ClientFSM::Warning || fsm_event_queues.GetFsm2() == ClientFSM::Warning) {
+        if (fsm_states.is_active(ClientFSM::Warning)) {
             FSM_DESTROY__LOGGING(Warning);
         }
     }
     void handle_warnings() {
         // Is the cheking for existence of the FSM at all the levels the right way, or should we have some flag
         // (like SelftestInstance().IsInProgress()) and do it based on that??
-        if (fsm_event_queues.GetFsm0() == ClientFSM::Warning || fsm_event_queues.GetFsm1() == ClientFSM::Warning || fsm_event_queues.GetFsm2() == ClientFSM::Warning) {
+        if (fsm_states.is_active(ClientFSM::Warning)) {
             if (get_response_from_phase(PhasesWarning::Warning) != Response::_none) {
                 FSM_DESTROY__LOGGING(Warning);
             } else if (auto response = get_response_from_phase(PhasesWarning::EnclosureFilterExpiration); response != Response::_none) {
@@ -450,6 +451,10 @@ void init(void) {
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
     server.mbl_failed = false;
 #endif
+    // Random at boot, to avoid chance of reusing the same (0/1) dialog ID
+    // after a reboot.
+    fsm_states.generation = rand_u();
+
     marlin_vars()->init();
     SteelSheets::CheckIfCurrentValid();
 }
@@ -896,7 +901,7 @@ void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
     if (server.print_state == State::Finished || server.print_state == State::Aborted) {
         // correctly end previous print
         finalize_print();
-        if (fsm_event_queues.GetFsm0() == ClientFSM::Printing) {
+        if (fsm_states.is_active(ClientFSM::Printing)) {
             // exit from print screen, if opened
             FSM_DESTROY__LOGGING(Printing);
         }
@@ -1516,18 +1521,14 @@ static void _server_print_loop(void) {
         marlin_vars()->time_to_pause = TIME_TO_END_INVALID;
         marlin_vars()->print_start_time = time(nullptr);
         server.print_state = State::Printing;
-        switch (fsm_event_queues.GetFsm0()) {
-        case ClientFSM::PrintPreview:
+        if (fsm_states.is_active(ClientFSM::PrintPreview)) {
             FSM_DESTROY_AND_CREATE__LOGGING(PrintPreview, Printing);
-            break;
-        case ClientFSM::_none:
+        }
+        if (!fsm_states.is_active(ClientFSM::Printing)) {
             // FIXME make this atomic change. It would require improvements in PrintScreen so that it can re-initialize upon phase change.
             // FYI the DESTROY invoke is in print_start()
             // NOTE this works surely thanks to State::WaitGui being in between the DESTROY and CREATE
             FSM_CREATE__LOGGING(Printing);
-            break;
-        default:
-            log_error(MarlinServer, "Wrong FSM state %d", (int)fsm_event_queues.GetFsm0());
         }
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
         server.mbl_failed = false;
@@ -1786,12 +1787,6 @@ static void _server_print_loop(void) {
             break;
         }
 
-        if (fsm_event_queues.GetFsm0() == ClientFSM::PrintPreview) { // the printing state can only occur in the Fsm0 queue
-            if (fsm_event_queues.GetFsm1() != ClientFSM::_none) { // Cannot destroy FSM0 while FSM1 shows anything (would BSOD)
-                break; // Wait for FSM1 to end
-            }
-        }
-
 #if HAS_TOOLCHANGER() || HAS_MMU2()
         if (PrintPreview::Instance().GetState() == PrintPreview::State::tools_mapping_wait_user) {
             PrintPreview::tools_mapping_cleanup();
@@ -1846,14 +1841,11 @@ static void _server_print_loop(void) {
         break;
     case State::Exit:
         // make the State::Exit state more resilient to repeated calls (e.g. USB drive pulled out prematurely at the end-of-print screen)
-        if (fsm_event_queues.GetFsm0() == ClientFSM::Printing) { // the printing state can only occur in the Fsm0 queue
-            if (fsm_event_queues.GetFsm1() != ClientFSM::_none) { // Cannot destroy FSM0 while FSM1 shows anything (would BSOD)
-                break; // Wait for FSM1 to end
-            }
+        if (fsm_states.is_active(ClientFSM::Printing)) {
             finalize_print();
             FSM_DESTROY__LOGGING(Printing);
         }
-        if (fsm_event_queues.GetFsm0() == ClientFSM::Serial_printing) {
+        if (fsm_states.is_active(ClientFSM::Serial_printing)) {
             finalize_print();
         }
         server.print_state = State::Idle;
@@ -2408,38 +2400,11 @@ static bool _send_message_event_to_client(int client_id, ClientQueue &queue) {
     }
 }
 
-// send all FSM messages from the FSM queue
-static bool _send_FSM_event_to_client(int client_id, ClientQueue &queue) {
-    while (1) {
-        std::optional<fsm::DequeStates> commands = fsm_event_queues.dequeue(client_id);
-        if (!commands) {
-            return true; // no event to send, return 'sent' to erase 'send' flag
-        }
-        marlin_vars()->set_last_fsm_state(commands->current);
-        std::pair<uint32_t, uint16_t> data = commands->current.serialize();
-        log_debug(FSM, "data sent u32 %" PRIu32 ", u16 %" PRIu16 ", client %d",
-            data.first, data.second, client_id);
-
-        const marlin_client::ClientEvent payload = {
-            .event = Event::FSM,
-            .unused = 0,
-            .usr16 = data.second,
-            .usr32 = data.first,
-        };
-        if (!queue.send(payload, 0)) {
-            // unable to send all messages
-            return false;
-        }
-    }
-}
-
 // send event notification to client (called from server thread)
 static bool _send_notify_event_to_client(int client_id, ClientQueue &queue, Event evt_id, uint32_t usr32, uint16_t usr16) {
     switch (evt_id) {
     case Event::Message:
         return _send_message_event_to_client(client_id, queue);
-    case Event::FSM:
-        return _send_FSM_event_to_client(client_id, queue);
     default: {
         const marlin_client::ClientEvent client_message {
             .event = evt_id,
@@ -2480,7 +2445,6 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
             case Event::StartProcessing:
             case Event::StopProcessing:
             case Event::MeshUpdate:
-            case Event::FSM: // arguments handled elsewhere
             // StatusChanged event - one string argument
             case Event::StatusChanged:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0)) {
@@ -2876,24 +2840,30 @@ static void _server_set_var(const Request &request) {
     bsod("unimplemented _server_set_var for var_id %i", (int)variable_identifier);
 }
 
-void _fsm_create(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line) {
-    fsm_event_queues.PushCreate(type, data, fnc, file, line);
-    _send_notify_event(Event::FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
+static void commit_fsm_states() {
+    ++fsm_states.generation;
+    marlin_vars()->set_fsm_states(fsm_states);
 }
 
-void fsm_destroy(ClientFSM type, const char *fnc, const char *file, int line) {
-    fsm_event_queues.PushDestroy(type, fnc, file, line);
-    _send_notify_event(Event::FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
+void _fsm_create(ClientFSM type, fsm::BaseData data, const char *, const char *, int) {
+    fsm_states[type] = data;
+    commit_fsm_states();
 }
 
-void _fsm_change(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line) {
-    fsm_event_queues.PushChange(type, data, fnc, file, line);
-    _send_notify_event(Event::FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
+void fsm_destroy(ClientFSM type, const char *, const char *, int) {
+    fsm_states[type] = std::nullopt;
+    commit_fsm_states();
 }
 
-void _fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::BaseData data, const char *fnc, const char *file, int line) {
-    fsm_event_queues.PushDestroyAndCreate(old_type, new_type, data, fnc, file, line);
-    _send_notify_event(Event::FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
+void _fsm_change(ClientFSM type, fsm::BaseData data, const char *, const char *, int) {
+    fsm_states[type] = data;
+    commit_fsm_states();
+}
+
+void _fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::BaseData data, const char *, const char *, int) {
+    fsm_states[old_type] = std::nullopt;
+    fsm_states[new_type] = data;
+    commit_fsm_states();
 }
 
 void set_warning(WarningType type, PhasesWarning phase) {

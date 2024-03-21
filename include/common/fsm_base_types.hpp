@@ -36,12 +36,8 @@ public:
         SetPhase(phase);
         SetData(data);
     }
-    constexpr bool operator==(const BaseData &other) const {
-        return GetPhase() == other.GetPhase() && GetData() == other.GetData();
-    }
-    constexpr bool operator!=(const BaseData &other) const {
-        return !((*this) == other);
-    }
+
+    constexpr auto operator<=>(const BaseData &) const = default;
 };
 static_assert(sizeof(BaseData) == BaseDataSZ, "Wrong size of BaseData");
 

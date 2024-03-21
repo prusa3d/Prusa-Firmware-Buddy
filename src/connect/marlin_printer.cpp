@@ -36,10 +36,8 @@ using printer_state::get_state;
 using printer_state::get_state_with_dialog;
 using printer_state::has_job;
 using std::atomic;
-using std::make_tuple;
 using std::move;
 using std::nullopt;
-using std::tuple;
 using namespace marlin_server;
 
 namespace connect_client {
@@ -424,24 +422,22 @@ namespace {
 } // namespace
 
 const char *MarlinPrinter::dialog_action(uint32_t dialog_id, Response response) {
-    auto [last_fsm, fsm_gen] = marlin_vars()->get_last_fsm_change();
+    const fsm::States fsm_states = marlin_vars()->get_fsm_states();
+    const std::optional<fsm::States::Top> top = fsm_states.get_top();
 
     // We always send dialog from the top FSM, so we can
     // just check the dialog_id and if it is the same
     // we know it is for the top one
-    fsm::Change *top_change = last_fsm.get_top_fsm();
-    if (top_change == nullptr) {
+    if (!top) {
         return "No buttons";
     }
 
-    if (fsm_gen != dialog_id) {
+    if (fsm_states.generation != dialog_id) {
         return "Invalid dialog id";
     }
 
-    fsm::BaseData data = top_change->get_data();
-    uint8_t phase = data.GetPhase();
-
-    switch (top_change->get_fsm_type()) {
+    const uint8_t phase = top->data.GetPhase();
+    switch (top->fsm_type) {
     case ClientFSM::Load_unload:
         return send_click<PhasesLoadUnload>(phase, response);
     case ClientFSM::Preheat:

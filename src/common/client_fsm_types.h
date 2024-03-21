@@ -117,14 +117,9 @@ enum class WarningType : uint32_t {
     _last = NotDownloaded
 };
 
-// Open dialog has a parameter because I need to set a caption of change filament dialog (load / unload / change).
-// Use extra state of statemachine to set the caption would be cleaner, but I can miss events.
-// Only the last sent event is guaranteed to pass its data.
-using fsm_cb_t = void (*)(uint32_t, uint16_t); // create/destroy/change finite state machine
 using message_cb_t = void (*)(const char *);
 #else // !__cplusplus
 // C
-typedef void (*fsm_cb_t)(uint32_t, uint16_t); // create/destroy/change finite state machine
 typedef void (*message_cb_t)(const char *);
 typedef void (*warning_cb_t)(uint32_t);
 #endif //__cplusplus

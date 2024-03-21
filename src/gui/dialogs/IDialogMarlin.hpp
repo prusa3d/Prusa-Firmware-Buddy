@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IDialog.hpp"
-#include "fsm_types.hpp"
+#include <common/fsm_base_types.hpp>
 
 /**
  * Parent class for all dialogs usable from DialogHandler.

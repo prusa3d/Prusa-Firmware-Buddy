@@ -7,7 +7,6 @@
 #include "screen_printing.hpp"
 #include "config_features.h"
 #include "screen_print_preview.hpp"
-#include "log.h"
 #include "window_dlg_preheat.hpp"
 #include "window_dlg_quickpause.hpp"
 #include "window_dlg_warning.hpp"
@@ -16,8 +15,6 @@
 #if HAS_COLDPULL()
     #include "screen_cold_pull.hpp"
 #endif
-
-LOG_COMPONENT_REF(GUI);
 
 #if HAS_SELFTEST()
     #include "ScreenSelftest.hpp"
@@ -250,74 +247,48 @@ DialogHandler &DialogHandler::Access() {
     return instance;
 }
 
-void DialogHandler::Command(std::pair<uint32_t, uint16_t> serialized) {
-
-    fsm::Change change(serialized);
-    Access().command_queue.force_push(change);
-}
-
-/**
- * @brief determine correct operation with data
- * 3 possibilities: create(open), change(modify), destroy(destroy)
- * can contain close screen + open dialog
- *
- * @param change data containing description of a change, can be even open + close
- */
-void DialogHandler::command(fsm::DequeStates changes) {
-    log_debug(GUI, "fsm changes from %d, to %d", static_cast<int>(changes.last_sent.get_fsm_type()), static_cast<int>(changes.current.get_fsm_type()));
-
-    // destroy
-    // new fsm is ClientFSM::_none, old fsm being ClientFSM::_none should not happen
-    if (changes.current.get_fsm_type() == ClientFSM::_none) {
-        close(changes.last_sent.get_fsm_type());
-        return;
-    }
-
-    // create
-    // last command was no fsm, new command has fsm
-    // or last command was different fsm
-    if (changes.current.get_fsm_type() != changes.last_sent.get_fsm_type()) {
-        if (changes.last_sent.get_fsm_type() == ClientFSM::_none) {
-            // regular open
-            open(changes.current.get_fsm_type(), changes.current.get_data());
-            Screens::Access()->Loop(); // ensure screen is opened before call of Draw
-            // now continue to change
-            // open currently does not support change directly
-            // TODO make it so .. than Screens::Access()->Loop(); could be removed
-        } else {
-            // close + open
-            close(changes.last_sent.get_fsm_type());
-            Screens::Access()->Loop(); // currently it is the simplest way to ensure screen is closed in case close called it
-            open(changes.current.get_fsm_type(), changes.current.get_data());
-            Screens::Access()->Loop(); // ensure screen is opened before call of Draw
-            return;
-        }
-    }
-
-    // change
-    // last and new command fsms are the same
-    // no need to check if data changed, queue handles it
-    change(changes.current.get_fsm_type(), changes.current.get_data());
-}
-
 void DialogHandler::Loop() {
-    std::optional<fsm::DequeStates> change = command_queue.dequeue();
-    if (!change) {
+    const auto &new_fsm_states = marlin_vars()->get_fsm_states();
+    const auto &old_fsm_states = fsm_states;
+    if (old_fsm_states == new_fsm_states) {
         return;
     }
 
-    command(*change);
+    const auto &new_top = new_fsm_states.get_top();
+    const auto &old_top = old_fsm_states.get_top();
+
+    // TODO Investigate whether Screens::Access()->Loop() is really needed.
+    // TODO Update open() so that we won't need to call change() afterwards.
+    if (new_top && old_top) {
+        if (new_top->fsm_type == old_top->fsm_type) {
+            if (new_top->data != old_top->data) {
+                change(new_top->fsm_type, new_top->data);
+            }
+        } else {
+            close(old_top->fsm_type);
+            Screens::Access()->Loop();
+            open(new_top->fsm_type, new_top->data);
+            Screens::Access()->Loop();
+            change(new_top->fsm_type, new_top->data);
+        }
+    } else if (new_top && !old_top) {
+        open(new_top->fsm_type, new_top->data);
+        Screens::Access()->Loop();
+        change(new_top->fsm_type, new_top->data);
+    } else if (!new_top && old_top) {
+        close(old_top->fsm_type);
+        Screens::Access()->Loop();
+    } else {
+        abort();
+    }
+
+    fsm_states = new_fsm_states;
 }
 
 bool DialogHandler::IsOpen(ClientFSM fsm) const {
-    const ClientFSM q0 = command_queue.GetOpenFsmQ0();
-    const ClientFSM q1 = command_queue.GetOpenFsmQ1();
-    const ClientFSM q2 = command_queue.GetOpenFsmQ2();
-
-    return fsm == q0 || fsm == q1 || fsm == q2;
+    return fsm_states.is_active(fsm);
 }
 
 bool DialogHandler::IsAnyOpen() const {
-    const ClientFSM q0 = command_queue.GetOpenFsmQ0();
-    return q0 != ClientFSM::_none; // cannot have q1 without q0
+    return fsm_states.get_top().has_value();
 }

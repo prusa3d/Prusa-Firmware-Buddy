@@ -26,8 +26,6 @@ int get_id();
 // infinite loop while server not ready
 void wait_for_start_processing();
 
-// sets dialog callback, returns true on success
-bool set_fsm_cb(fsm_cb_t cb);
 // sets dialog message, returns true on success
 bool set_message_cb(message_cb_t cb);
 

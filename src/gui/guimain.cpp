@@ -306,7 +306,6 @@ void gui_run(void) {
     GCodeInfo::getInstance().Init(gui_media_LFN, gui_media_SFN_path);
 
     DialogHandler::Access(); // to create class NOW, not at first call of one of callback
-    marlin_client::set_fsm_cb(DialogHandler::command_c_compatible);
     marlin_client::set_message_cb(MsgCircleBuffer_cb);
 
     marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF);

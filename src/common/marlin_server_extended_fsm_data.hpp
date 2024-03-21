@@ -15,7 +15,7 @@ public:
 template <class T>
 concept FSMExtendedDataSubclass = std::is_base_of<FSMExtendedData, T>::value;
 
-LOG_COMPONENT_REF(FSM);
+LOG_COMPONENT_REF(Marlin);
 
 /**
  * @brief Class used to send extended (bigger then 31bits) data between marlin server and marlin client
@@ -86,7 +86,7 @@ public:
             result = *reinterpret_cast<T *>(&extended_data_buffer);
             return true;
         } else {
-            log_info(FSM, "FSM extended data get fail");
+            log_info(Marlin, "FSM extended data get fail");
             return false;
         }
     }
