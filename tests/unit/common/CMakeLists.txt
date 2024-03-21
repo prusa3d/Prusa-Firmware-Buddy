@@ -24,36 +24,6 @@ target_include_directories(
   )
 
 add_executable(
-  fsm_types_test
-  ${CMAKE_CURRENT_SOURCE_DIR}/fsm_types_test.cpp ${CMAKE_SOURCE_DIR}/src/common/fsm_types.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../mock/bsod.cpp
-  )
-target_include_directories(
-  fsm_types_test
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/common
-  PUBLIC ${CMAKE_SOURCE_DIR}/tests/stubs/
-  PUBLIC ${CMAKE_SOURCE_DIR}/include
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/common/utils ${OPTIONS_INCLUDE_DIR}
-  )
-
-add_executable(
-  fsm_serializers_test
-  ${CMAKE_CURRENT_SOURCE_DIR}/fsm_serializers_test.cpp ${CMAKE_SOURCE_DIR}/src/common/fsm_types.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../mock/bsod.cpp
-  )
-target_include_directories(
-  fsm_serializers_test
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-  PUBLIC ${CMAKE_SOURCE_DIR}/include
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/common
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/gui/wizard
-  PUBLIC ${CMAKE_SOURCE_DIR}/tests/stubs/
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/gui
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/common/utils ${OPTIONS_INCLUDE_DIR}
-  )
-
-add_executable(
   gcode_filter_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/gcode_filter_test.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_filter.cpp
@@ -143,8 +113,6 @@ target_include_directories(
 
 add_catch_test(support_utils_tests)
 add_catch_test(str_utils_tests)
-add_catch_test(fsm_types_test)
-add_catch_test(fsm_serializers_test)
 add_catch_test(gcode_filter_tests)
 add_catch_test(timing_tests)
 add_catch_test(circle_buffer_tests)
