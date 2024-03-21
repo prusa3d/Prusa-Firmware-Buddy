@@ -64,7 +64,7 @@ public:
     }
 
     virtual void printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const override {
-        printInfo(extension_rect, color_back, _(information));
+        printInfo(extension_rect, color_back, string_view_utf8::MakeRAM(information));
     }
     static constexpr size_t GetInfoLen() { return INFO_LEN; }
 };
