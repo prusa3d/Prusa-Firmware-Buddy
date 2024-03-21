@@ -18,6 +18,7 @@ target_sources(
           M876.cpp
           M9140_M9150.cpp
           M919-M920.cpp
+          M9200.cpp
           M997.cpp
           M999.cpp
   )

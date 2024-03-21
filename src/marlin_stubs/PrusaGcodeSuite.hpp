@@ -86,11 +86,12 @@ void M1600(); ///< Menu change filament. Prusa STM32 platform specific
 void M1601(); ///< Filament stuck detected, Prusa STM32 platform specific
 void M1700(); ///< Preheat. Prusa STM32 platform specific
 void M1701(); ///< Autoload. Prusa STM32 platform specific
-
 void M1702(); ///< Coldpull. Prusa platform specific
 
 void M9140(); ///< Set normal (non-stealth) mode
 void M9150(); ///< Set stealth mode
+
+void M9200(); ///< Re-load IS settings from config store
 
 #if HAS_TOOLCHANGER()
 void P0(); ///< Tool park
