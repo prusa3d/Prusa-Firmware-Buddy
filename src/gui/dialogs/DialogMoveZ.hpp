@@ -53,7 +53,7 @@ private:
     static constexpr Rect16 infoText_rc { 0, 45, 240, 60 };
     static constexpr Rect16 closeText_rc { 0, 90, 240, 60 };
     static constexpr Rect16 icon_rc { 80, 154, 81, 55 };
-    static constexpr Rect16 rightText_rc { 120 + 47, 171, 56, 21 };
+    static constexpr Rect16 rightText_rc { 120 + 47, 171, 70, 21 };
     static constexpr Rect16 leftText_rc { 120 - 47 - 56, 171, 56, 21 };
     static constexpr Rect16 text_rc { 0, 223, 114, 21 };
     static constexpr Rect16 numb_rc { 126, 223, 114, 21 };

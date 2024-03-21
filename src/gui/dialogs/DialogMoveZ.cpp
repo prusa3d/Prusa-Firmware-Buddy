@@ -15,7 +15,7 @@ DialogMoveZ::DialogMoveZ()
     , lastQueuedPos(value)
     , axisText(this, text_rc, is_multiline::no, is_closed_on_click_t::no, _(axisLabel))
     , infoText(this, infoText_rc, is_multiline::yes, is_closed_on_click_t::no, _(infoTextContent))
-    , closeText(this, closeText_rc, is_multiline::no, is_closed_on_click_t::no, _(closeTextContent))
+    , closeText(this, closeText_rc, is_multiline::yes, is_closed_on_click_t::no, _(closeTextContent))
 #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
     , rightText(this, rightText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
