@@ -12,6 +12,7 @@
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
 #include <filament_sensors_remap_data.hpp>
+#include "lwipopts.h"
 
 namespace config_store_ns {
 
@@ -77,6 +78,8 @@ namespace defaults {
     inline constexpr time_tools::TimeOffsetSummerTime timezone_summer { time_tools::TimeOffsetSummerTime::_wintertime };
     inline constexpr std::array<char, wifi_max_ssid_len + 1> wifi_ap_ssid { "" };
     inline constexpr std::array<char, wifi_max_passwd_len + 1> wifi_ap_password { "" };
+
+    inline constexpr std::array<char, DNS_MAX_NAME_LENGTH - 68 + 1> ntp_server { "pool.ntp.org" };
 
     inline constexpr eSOUND_MODE sound_mode { eSOUND_MODE::_undef };
     inline constexpr uint8_t sound_volume { 5 };

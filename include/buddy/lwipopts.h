@@ -9,26 +9,30 @@ extern "C" {
 
 #include <stdint.h>
 
-#define WITH_RTOS            1
-#define MEM_LIBC_MALLOC      0
-#define CHECKSUM_BY_HARDWARE 0
-#define LWIP_DHCP            1
-#define MEM_ALIGNMENT        4
-#define MEMP_NUM_SYS_TIMEOUT 8
-#define LWIP_ETHERNET        1
-#define LWIP_DNS_SECURE      7
-#define DNS_MAX_NAME_LENGTH  128
-
-#define TCP_MSS                1024
-#define TCP_WND                (8 * TCP_MSS)
-#define TCP_SND_BUF            (2 * TCP_MSS)
-#define LWIP_WND_SCALE         0
-#define TCP_RCV_SCALE          0
-#define PBUF_POOL_SIZE         10
-#define PBUF_POOL_SMALL_SIZE   12
-#define IP_REASS_MAX_PBUFS     15
-#define TCPIP_THREAD_STACKSIZE 1248
-#define TCPIP_MBOX_SIZE        PBUF_POOL_SIZE + PBUF_POOL_SMALL_SIZE
+#define WITH_RTOS                    1
+#define MEM_LIBC_MALLOC              0
+#define CHECKSUM_BY_HARDWARE         0
+#define LWIP_DHCP                    1
+#define MEM_ALIGNMENT                4
+#define MEMP_NUM_SYS_TIMEOUT         8
+#define LWIP_ETHERNET                1
+#define LWIP_DNS_SECURE              7
+#define DNS_MAX_NAME_LENGTH          128
+#define SNTP_SERVER_DNS              1
+#define SNTP_GET_SERVERS_FROM_DHCP   1
+#define SNTP_GET_SERVERS_FROM_DHCPV6 1
+#define LWIP_DHCP_GET_NTP_SRV        1
+#define SNTP_MAX_SERVERS             2
+#define TCP_MSS                      1024
+#define TCP_WND                      (8 * TCP_MSS)
+#define TCP_SND_BUF                  (2 * TCP_MSS)
+#define LWIP_WND_SCALE               0
+#define TCP_RCV_SCALE                0
+#define PBUF_POOL_SIZE               10
+#define PBUF_POOL_SMALL_SIZE         12
+#define IP_REASS_MAX_PBUFS           15
+#define TCPIP_THREAD_STACKSIZE       1248
+#define TCPIP_MBOX_SIZE              PBUF_POOL_SIZE + PBUF_POOL_SMALL_SIZE
 
 #define DEFAULT_UDP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
 #define DEFAULT_TCP_RECVMBOX_SIZE TCPIP_MBOX_SIZE

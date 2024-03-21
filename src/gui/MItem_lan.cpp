@@ -6,9 +6,12 @@
 
 #include "MItem_lan.hpp"
 #include "wui_api.h"
+#include "wui.h"
 #include "netdev.h"
 #include "ScreenHandler.hpp"
 #include "marlin_client.hpp"
+#include "sntp.h"
+#include "sntp_client.h"
 
 MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
@@ -82,4 +85,19 @@ MI_IP4_GWAY::MI_IP4_GWAY()
 
 MI_MAC_ADDR::MI_MAC_ADDR()
     : WiInfo<MAC_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+MI_NTP_ADDR::MI_NTP_ADDR()
+    : WiInfo<DNS_MAX_NAME_LENGTH - 68>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+/*****************************************************************************/
+// MI_NTP_VIA_DHCP
+MI_NTP_VIA_DHCP::MI_NTP_VIA_DHCP()
+    : WI_ICON_SWITCH_OFF_ON_t(bool(config_store().ntp_via_dhcp.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_NTP_VIA_DHCP::OnChange(size_t /*old_index*/) {
+    bool enabled = config_store().ntp_via_dhcp.get();
+    config_store().ntp_via_dhcp.set(!enabled);
+    notify_reconfigure();
 }
