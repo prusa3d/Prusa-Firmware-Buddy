@@ -32,6 +32,7 @@ target_sources(
           MItem_hardware.cpp
           MItem_lan.cpp
           MItem_menus.cpp
+          MItem_preheat.cpp
           MItem_print.cpp
           MItem_tools.cpp
           network_gui_tools.cpp
@@ -67,6 +68,7 @@ target_sources(
           screen_menu_move_utils.cpp
           screen_menu_network.cpp
           screen_menu_odometer.cpp
+          screen_menu_preheat.cpp
           screen_menu_sensor_info_${PRINTER}.cpp
           screen_menu_settings.cpp
           screen_menu_statistics.cpp

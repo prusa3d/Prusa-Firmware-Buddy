@@ -37,6 +37,18 @@ protected:
     }
 };
 
+template <filament::Type T>
+class MI_Preheat : public I_MI_Filament {
+public:
+    MI_Preheat()
+        : I_MI_Filament(_(filament::get_description(T).name), filament::get_description(T).nozzle_preheat, filament::get_description(T).heatbed) {}
+
+protected:
+    virtual void click(IWindowMenu & /*window_menu*/) override {
+        click_at(T);
+    }
+};
+
 class MI_RETURN : public WI_LABEL_t {
     static constexpr const char *const label = N_("Return");
 
@@ -80,9 +92,34 @@ protected:
                           MI_Filament<filament::Type::FLEX>
 #endif
 
+#if PRINTER_IS_PRUSA_iX
+    #define PREHEAT_ALL_FILAMENTS MI_Preheat<filament::Type::PLA>,     \
+                                  MI_Preheat<filament::Type::PETG>,    \
+                                  MI_Preheat<filament::Type::PETG_NH>, \
+                                  MI_Preheat<filament::Type::ASA>,     \
+                                  MI_Preheat<filament::Type::PC>,      \
+                                  MI_Preheat<filament::Type::PVB>,     \
+                                  MI_Preheat<filament::Type::ABS>,     \
+                                  MI_Preheat<filament::Type::HIPS>,    \
+                                  MI_Preheat<filament::Type::PP>,      \
+                                  MI_Preheat<filament::Type::PA>,      \
+                                  MI_Preheat<filament::Type::FLEX>
+#else
+    #define PREHEAT_ALL_FILAMENTS MI_Preheat<filament::Type::PLA>,  \
+                                  MI_Preheat<filament::Type::PETG>, \
+                                  MI_Preheat<filament::Type::ASA>,  \
+                                  MI_Preheat<filament::Type::PC>,   \
+                                  MI_Preheat<filament::Type::PVB>,  \
+                                  MI_Preheat<filament::Type::ABS>,  \
+                                  MI_Preheat<filament::Type::HIPS>, \
+                                  MI_Preheat<filament::Type::PP>,   \
+                                  MI_Preheat<filament::Type::PA>,   \
+                                  MI_Preheat<filament::Type::FLEX>
+#endif
+
 // TODO try to use HIDDEN on return and filament_t::NONE
 // has both return and cooldown
-using MenuContainerHasRetCool = WinMenuContainer<MI_RETURN, ALL_FILAMENTS, MI_COOLDOWN>;
+using MenuContainerHasRetCool = WinMenuContainer<MI_RETURN, PREHEAT_ALL_FILAMENTS, MI_COOLDOWN>;
 
 // has return
 using MenuContainerHasRet = WinMenuContainer<MI_RETURN, ALL_FILAMENTS>;
