@@ -173,7 +173,11 @@ void ScreenPrintPreview::show_tools_mapping() {
     tools_mapping->Invalidate();
 
     #if BOARD_IS_XBUDDY or BOARD_IS_XLBUDDY
+        #if not HAS_MMU2()
     header.SetText(_("TOOLS MAPPING"));
+        #else
+    header.SetText(_("FILAMENT MAPPING"));
+        #endif
     #endif
 
     header.show_bed_info();
