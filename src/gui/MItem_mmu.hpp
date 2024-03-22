@@ -120,7 +120,7 @@ class MI_MMU_PRELOAD_SLOT_I : public MI_MMU_ISSUE_GCODE_SLOT {
 
 public:
     MI_MMU_PRELOAD_SLOT_I()
-        : MI_MMU_ISSUE_GCODE_SLOT(slot_i, "Preload Slot", "M704 P%i") {}
+        : MI_MMU_ISSUE_GCODE_SLOT(slot_i, "Preload Filament", "M704 P%i") {}
 };
 
 template <uint8_t slot_i>
