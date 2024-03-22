@@ -49,7 +49,7 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
     }
 
     SelftestFansResult result(static_hotend_results);
-    FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(IPartHandler::GetFsmPhase(), result);
+    marlin_server::fsm_change_extended(IPartHandler::GetFsmPhase(), result);
     if (any_in_progress) {
         return true;
     }

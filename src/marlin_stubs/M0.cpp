@@ -28,7 +28,7 @@ void PrusaGcodeSuite::M0() {
     }
     memcpy(&data[0], &msg_ptr, sizeof(uint32_t));
 
-    FSM_HOLDER_WITH_DATA__LOGGING(QuickPause, PhasesQuickPause::QuickPaused, data);
+    marlin_server::FSM_Holder holder { PhasesQuickPause::QuickPaused, data };
     planner.synchronize();
 
     while (marlin_server::get_response_from_phase(PhasesQuickPause::QuickPaused) == Response::_none) {

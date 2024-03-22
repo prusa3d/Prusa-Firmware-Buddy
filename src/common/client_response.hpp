@@ -413,6 +413,16 @@ enum class PhasesPhaseStepping : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhasesPhaseStepping) { return ClientFSM::PhaseStepping; }
 #endif
 
+enum class PhasesPrinting : PhaseUnderlyingType {
+    active,
+};
+constexpr inline ClientFSM client_fsm_from_phase(PhasesPrinting) { return ClientFSM::Printing; }
+
+enum class PhasesSerialPrinting : PhaseUnderlyingType {
+    active,
+};
+constexpr inline ClientFSM client_fsm_from_phase(PhasesSerialPrinting) { return ClientFSM::Serial_printing; }
+
 // static class for work with fsm responses (like button click)
 // encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {

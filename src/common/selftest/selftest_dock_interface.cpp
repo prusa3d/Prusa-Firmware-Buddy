@@ -88,7 +88,7 @@ TestReturn phaseDocks(const ToolMask tool_mask, std::array<IPartHandler *, HOTEN
         }
     }
     SelftestDocks_t result_docks(current_dock, staticResultDocks);
-    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), result_docks.Serialize());
+    marlin_server::fsm_change(IPartHandler::GetFsmPhase(), result_docks.Serialize());
     if (current_dock != std::numeric_limits<uint8_t>::max()) {
         return true;
     }

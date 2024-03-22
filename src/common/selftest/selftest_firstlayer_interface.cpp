@@ -37,7 +37,7 @@ bool phaseFirstLayer(IPartHandler *&pFirstLayer, const uint8_t previous_sheet) {
     }
 
     bool in_progress = pFirstLayer->Loop();
-    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), staticResult.Serialize());
+    marlin_server::fsm_change(IPartHandler::GetFsmPhase(), staticResult.Serialize());
 
     if (in_progress) {
         return true;

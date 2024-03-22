@@ -48,7 +48,7 @@ static SelftestSubtestState_t axis_length_ok_fsm(AxisEnum axis, float length) {
 void PrusaGcodeSuite::G163() {
 #if ENABLED(AXIS_MEASURE)
     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-    FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::check_X, cr_fsm.Serialize());
+    marlin_server::fsm_change(PhasesCrashRecovery::check_X, cr_fsm.Serialize());
     bool do_x = parser.seen('X');
     bool do_y = parser.seen('Y');
     if (!do_x && !do_y) {
@@ -74,7 +74,7 @@ void PrusaGcodeSuite::G163() {
             ma.loop();
         }
         cr_fsm.set(axis_length_ok_fsm(X_AXIS, ma.length().x), SelftestSubtestState_t::running);
-        FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
+        marlin_server::fsm_change(PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
     }
 
     while (ma.state() != Measure_axis::FINISH) {
@@ -91,7 +91,7 @@ void PrusaGcodeSuite::G163() {
 
     marlin_server::set_axes_length(ma.length());
     cr_fsm.set(axis_length_ok_fsm(X_AXIS, ma.length().x), axis_length_ok_fsm(Y_AXIS, ma.length().y));
-    FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
+    marlin_server::fsm_change(PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
 #endif
 }
 

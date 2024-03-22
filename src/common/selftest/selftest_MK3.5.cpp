@@ -229,7 +229,7 @@ void CSelftest::Loop() {
         phaseStart();
         break;
     case stsPrologueAskRun:
-        FSM_CHANGE__LOGGING(GuiDefaults::ShowDevelopmentTools ? PhasesSelftest::WizardPrologue_ask_run_dev : PhasesSelftest::WizardPrologue_ask_run);
+        marlin_server::fsm_change(GuiDefaults::ShowDevelopmentTools ? PhasesSelftest::WizardPrologue_ask_run_dev : PhasesSelftest::WizardPrologue_ask_run);
         break;
     case stsPrologueAskRun_wait_user:
         if (phaseWaitUser(GuiDefaults::ShowDevelopmentTools ? PhasesSelftest::WizardPrologue_ask_run_dev : PhasesSelftest::WizardPrologue_ask_run)) {
@@ -240,7 +240,7 @@ void CSelftest::Loop() {
         phaseSelftestStart();
         break;
     case stsPrologueInfo:
-        FSM_CHANGE__LOGGING(PhasesSelftest::WizardPrologue_info);
+        marlin_server::fsm_change(PhasesSelftest::WizardPrologue_info);
         break;
     case stsPrologueInfo_wait_user:
         if (phaseWaitUser(PhasesSelftest::WizardPrologue_info)) {
@@ -248,7 +248,7 @@ void CSelftest::Loop() {
         }
         break;
     case stsPrologueInfoDetailed:
-        FSM_CHANGE__LOGGING(PhasesSelftest::WizardPrologue_info_detailed);
+        marlin_server::fsm_change(PhasesSelftest::WizardPrologue_info_detailed);
         break;
     case stsPrologueInfoDetailed_wait_user:
         if (phaseWaitUser(PhasesSelftest::WizardPrologue_info_detailed)) {
@@ -345,7 +345,7 @@ void CSelftest::Loop() {
         break;
     case stsEpilogue_nok:
         if (SelftestResult_Failed(m_result)) {
-            FSM_CHANGE__LOGGING(PhasesSelftest::WizardEpilogue_nok);
+            marlin_server::fsm_change(PhasesSelftest::WizardEpilogue_nok);
         }
         break;
     case stsEpilogue_nok_wait_user:
@@ -370,7 +370,7 @@ void CSelftest::Loop() {
         break;
     case stsEpilogue_ok:
         if (SelftestResult_Passed_All(m_result)) {
-            FSM_CHANGE__LOGGING(PhasesSelftest::WizardEpilogue_ok);
+            marlin_server::fsm_change(PhasesSelftest::WizardEpilogue_ok);
         }
         break;
     case stsEpilogue_ok_wait_user:
@@ -392,7 +392,7 @@ void CSelftest::Loop() {
 
 void CSelftest::phaseShowResult() {
     m_result = config_store().selftest_result.get();
-    FSM_CHANGE_WITH_DATA__LOGGING(PhasesSelftest::Result, FsmSelftestResult().Serialize());
+    marlin_server::fsm_change(PhasesSelftest::Result, FsmSelftestResult().Serialize());
 }
 
 void CSelftest::phaseDidSelftestPass() {

@@ -54,7 +54,7 @@ TestReturn phaseLoadcell(const ToolMask tool_mask, std::array<IPartHandler *, HO
     }
 
     bool in_progress = current_tool != std::numeric_limits<uint8_t>::max();
-    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), staticLoadCellResult[current_tool].Serialize());
+    marlin_server::fsm_change(IPartHandler::GetFsmPhase(), staticLoadCellResult[current_tool].Serialize());
 
     if (in_progress) {
         return true;

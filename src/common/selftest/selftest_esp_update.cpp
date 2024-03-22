@@ -283,9 +283,8 @@ void ESPUpdate::Loop() {
     }
 }
 
-EspCredentials::EspCredentials(marlin_server::FSM_Holder &fsm, type_t type)
-    : rfsm(fsm)
-    , type(type)
+EspCredentials::EspCredentials(type_t type)
+    : type(type)
     , initial_netdev_id(netdev_get_active_id())
     , progress_state(esp_credential_action::ShowInstructions) {
     switch (type) {
@@ -404,7 +403,7 @@ void EspCredentials::Loop() {
 
         // update
         if (phase) {
-            FSM_HOLDER_CHANGE_METHOD__LOGGING(rfsm, *phase, fsm::PhaseData()); // we dont need data, only phase
+            marlin_server::fsm_change(*phase);
         }
 
         // call idle loop to prevent watchdog
@@ -638,7 +637,7 @@ void update_esp() {
     }
 
     task_state = ESPUpdate::state::did_not_finished;
-    FSM_HOLDER__LOGGING(ESP);
+    marlin_server::FSM_Holder holder { PhasesESP::_none };
     ESPUpdate::status_t status;
     status.Empty();
 
@@ -649,7 +648,7 @@ void update_esp() {
         if (current != status) {
             status = current;
             SelftestESP_t data(status.progress, status.current_file, status.count_of_files);
-            FSM_HOLDER_CHANGE_METHOD__LOGGING(ESP_from_macro, status.phase, data.Serialize());
+            marlin_server::fsm_change(status.phase, data.Serialize());
         }
 
         // call idle loop to prevent watchdog
@@ -663,12 +662,12 @@ void update_esp() {
 
     // need scope to not have 2 instances of credentials at time
     if (!credentials_on_usb) {
-        EspCredentials credentials(ESP_from_macro, EspCredentials::type_t::ini_creation);
+        EspCredentials credentials(EspCredentials::type_t::ini_creation);
         credentials.Loop();
     }
     // credentials will run even when ini file was skipped
     {
-        EspCredentials credentials(ESP_from_macro, credentials_on_usb ? EspCredentials::type_t::credentials_user : EspCredentials::type_t::credentials_sequence);
+        EspCredentials credentials(credentials_on_usb ? EspCredentials::type_t::credentials_user : EspCredentials::type_t::credentials_sequence);
         credentials.Loop();
     }
 }
@@ -682,13 +681,13 @@ void update_esp_credentials() {
         credentials_on_usb = fl.get() != nullptr;
     }
 
-    FSM_HOLDER__LOGGING(ESP);
-    EspCredentials credentials(ESP_from_macro, credentials_on_usb ? EspCredentials::type_t::credentials_user : EspCredentials::type_t::credentials_standalone);
+    marlin_server::FSM_Holder holder { PhasesESP::_none };
+    EspCredentials credentials(credentials_on_usb ? EspCredentials::type_t::credentials_user : EspCredentials::type_t::credentials_standalone);
     credentials.Loop();
 }
 
 void credentials_generate_ini() {
-    FSM_HOLDER__LOGGING(ESP);
-    EspCredentials credentials(ESP_from_macro, EspCredentials::type_t::ini_creation);
+    marlin_server::FSM_Holder holder { PhasesESP::_none };
+    EspCredentials credentials(EspCredentials::type_t::ini_creation);
     credentials.Loop();
 }

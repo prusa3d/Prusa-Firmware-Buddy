@@ -130,7 +130,7 @@ namespace {
             data.percent = static_cast<uint8_t>(
                 100.0f * HOTEND_COLD_TEMP / Temperature::degHotend(active_extruder));
             data.time_sec = time_left / 1000;
-            FSM_CHANGE_WITH_DATA__LOGGING(PhasesColdPull::cool_down, data.fsm_data);
+            marlin_server::fsm_change(PhasesColdPull::cool_down, data.fsm_data);
         };
 
         const auto fan_speed_stored = Temperature::fan_speed[active_extruder];
@@ -160,7 +160,7 @@ namespace {
             cold_pull::TemperatureProgressData data { { 0 } };
             data.percent = static_cast<uint8_t>(
                 100.0f * Temperature::degHotend(active_extruder) / Temperature::degTargetHotend(active_extruder));
-            FSM_CHANGE_WITH_DATA__LOGGING(PhasesColdPull::heat_up, data.fsm_data);
+            marlin_server::fsm_change(PhasesColdPull::heat_up, data.fsm_data);
         };
 
         switch (wait_while_with_progress(PhasesColdPull::heat_up, TIMEOUT_DISABLED, too_cold, progress)) {
@@ -247,10 +247,10 @@ void M1702() {
     FS_AutoloadAutolock lock;
 
     PhasesColdPull phase = PhasesColdPull::introduction;
-    FSM_HOLDER_WITH_DATA__LOGGING(ColdPull, PhasesColdPull::introduction, {});
+    marlin_server::FSM_Holder holder { PhasesColdPull::introduction };
     do {
         phase = get_next_phase(phase);
-        FSM_CHANGE_WITH_DATA__LOGGING(phase, {});
+        marlin_server::fsm_change(phase, {});
     } while (phase != PhasesColdPull::finish);
 
     // Clean up

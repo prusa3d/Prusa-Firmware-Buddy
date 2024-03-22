@@ -31,7 +31,7 @@ LOG_COMPONENT_REF(Marlin);
  * Send data from server:
  *     DataType_t data
  *     data.value = 123;
- *     FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(phase, data);
+ *     marlin_server::fsm_change_extended(phase, data);
  *
  *  Receive data in client:
  *      DataType_t dt;
@@ -43,7 +43,7 @@ LOG_COMPONENT_REF(Marlin);
  */
 class FSMExtendedDataManager {
 public:
-    /// @brief Store extended data from server, use via FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING
+    /// @brief Store extended data from server, use via marlin_server::fsm_change_extended
     /// @tparam T type with data
     /// @param data
     /// @return id

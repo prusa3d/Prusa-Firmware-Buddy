@@ -174,7 +174,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
     const bool just_finished_bed = pBed && *pBed && !(*pBed)->Loop();
 
     // change dialog state
-    FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(IPartHandler::GetFsmPhase(), resultHeaters);
+    marlin_server::fsm_change_extended(IPartHandler::GetFsmPhase(), resultHeaters);
 
     // Continue below only if some of the tests just finished, if not, just run this again until some finishes
     if (!just_finished_bed && !std::ranges::any_of(just_finished_noz, [](bool val) { return val; })) {
@@ -243,7 +243,7 @@ bool phase_hotend_specify(IPartHandler *&machine, const HotendSpecifyConfig &con
             &CSelftestPart_HotendSpecify::stateAskRetry);
     }
     bool in_progress = machine->Loop();
-    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), hotend_result.Serialize());
+    marlin_server::fsm_change(IPartHandler::GetFsmPhase(), hotend_result.Serialize());
 
     if (in_progress) {
         return true;

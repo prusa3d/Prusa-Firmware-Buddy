@@ -272,102 +272,44 @@ public:
     virtual fsm::PhaseData serialize(uint8_t progress) = 0;
 };
 
-// macros to call automatically fsm_create/change/destroy the way it logs __PRETTY_FUNCTION__, __FILE__, __LINE__
-#define FSM_CREATE_WITH_DATA__LOGGING(fsm_type, phase, data) marlin_server::fsm_create(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CREATE__LOGGING(fsm_type)                        marlin_server::_fsm_create(ClientFSM::fsm_type, fsm::BaseData(), __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_DESTROY_AND_CREATE__LOGGING(fsm_old, fsm_new)    marlin_server::_fsm_destroy_and_create(ClientFSM::fsm_old, ClientFSM::fsm_new, fsm::BaseData(), __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_DESTROY__LOGGING(fsm_type)                       marlin_server::fsm_destroy(ClientFSM::fsm_type, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CHANGE_WITH_DATA__LOGGING(phase, data)           marlin_server::fsm_change(phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(phase, data)  marlin_server::fsm_change_extended(phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CHANGE__LOGGING(phase)                           marlin_server::fsm_change(phase, fsm::PhaseData({ 0, 0, 0, 0 }), __PRETTY_FUNCTION__, __FILE__, __LINE__)
-// notify all clients to create finite statemachine
-void _fsm_create(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line);
-// notify all clients to destroy finite statemachine, must match fsm_destroy_t signature
-void fsm_destroy(ClientFSM type, const char *fnc, const char *file, int line);
-// notify all clients to change state of finite statemachine, must match fsm_change_t signature
-// can be called inside while, notification is send only when is different from previous one
-void _fsm_change(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line);
-// notify all clients to atomically destroy and create finite statemachine
-void _fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::BaseData data, const char *fnc, const char *file, int line);
-
 template <class T>
-void fsm_create(ClientFSM type, T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) {
-    _fsm_create(type, fsm::BaseData(GetPhaseIndex(phase), data), fnc, file, line);
+void fsm_create(T phase, fsm::PhaseData data = {}) {
+    void fsm_create_internal(ClientFSM, fsm::BaseData);
+    fsm_create_internal(client_fsm_from_phase(phase), fsm::BaseData(GetPhaseIndex(phase), data));
 }
 
 template <class T>
-void fsm_change(T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) {
-    _fsm_change(client_fsm_from_phase(phase), fsm::BaseData(GetPhaseIndex(phase), data), fnc, file, line);
+void fsm_change(T phase, fsm::PhaseData data = {}) {
+    void fsm_change_internal(ClientFSM, fsm::BaseData);
+    fsm_change_internal(client_fsm_from_phase(phase), fsm::BaseData(GetPhaseIndex(phase), data));
 }
+
+void fsm_destroy(ClientFSM type);
 
 template <class T, FSMExtendedDataSubclass DATA_TYPE>
-void fsm_change_extended(T phase, DATA_TYPE data, const char *fnc, const char *file, int line) {
+void fsm_change_extended(T phase, DATA_TYPE data) {
     FSMExtendedDataManager::store(data);
+    // TODO Investigate if this hack is still needed since we have fsm::States::generation
     //  We use this ugly hack that we increment fsm_change_data[0] every time data changed, to force redraw of GUI
     static std::array<uint8_t, 4> fsm_change_data = { 0 };
     fsm_change_data[0]++;
-    _fsm_change(client_fsm_from_phase(phase), fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
+    fsm_change(phase, fsm_change_data);
 }
 
-template <class T>
-void fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) {
-    _fsm_destroy_and_create(old_type, new_type, fsm::BaseData(GetPhaseIndex(phase), data), fnc, file, line);
-}
-
-/**
- * @brief create finite state machine and automatically destroy it at the end of scope
- * do not create it directly, use FSM_HOLDER__LOGGING / FSM_HOLDER_WITH_DATA__LOGGING instead
- */
 class FSM_Holder {
-    ClientFSM dialog;
-    const char *fnc;
-    const char *file;
-    int line;
+    ClientFSM type;
 
 public:
-    FSM_Holder(ClientFSM type, const char *fnc, const char *file, int line)
-        : dialog(type)
-        , fnc(fnc)
-        , file(file)
-        , line(line) {
-        _fsm_create(type, fsm::BaseData(), fnc, file, line);
-    }
-
     template <class T>
-    FSM_Holder(fsm::PhaseData data, T phase, ClientFSM type, const char *fnc, const char *file, int line) // had to put data first, so Template parameter does not collide with other ctor
-        : dialog(type)
-        , fnc(fnc)
-        , file(file)
-        , line(line) {
-        fsm_create(type, phase, data, fnc, file, line);
-    }
-
-    template <class T>
-    void Change(T phase) const {
-        fsm_change(phase);
-    }
-
-    template <class T>
-    void Change(T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) const {
-        fsm_change(phase, data, fnc, file, line);
-    }
-
-    template <class T, class U>
-    void Change(T phase, const U &serializer, const char *fnc, const char *file, int line) const {
-        fsm_change(phase, serializer.Serialize(), fnc, file, line);
+    FSM_Holder(T phase, fsm::PhaseData data = fsm::PhaseData())
+        : type { client_fsm_from_phase(phase) } {
+        fsm_create(phase, data);
     }
 
     ~FSM_Holder() {
-        fsm_destroy(dialog, fnc, file, line);
+        fsm_destroy(type);
     }
 };
-// macro to create automatically FSM_Holder instance the way it logs __PRETTY_FUNCTION__, __FILE__, __LINE__
-// instance name is fsm_type##_from_macro - for example Selftest_from_macro in case of ClientFSM::Selftest
-#define FSM_HOLDER__LOGGING(fsm_type)                        marlin_server::FSM_Holder fsm_type##_from_macro(ClientFSM::fsm_type, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_HOLDER_WITH_DATA__LOGGING(fsm_type, phase, data) marlin_server::FSM_Holder fsm_type##_from_macro(data, phase, ClientFSM::fsm_type, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-// macro to call change over FSM_Holder instance the way it logs __PRETTY_FUNCTION__, __FILE__, __LINE__
-// first parameter is instance name
-#define FSM_HOLDER_CHANGE_METHOD__LOGGING(fsm, phase, data) fsm.Change(phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
 
 uint8_t get_var_sd_percent_done();
 void set_var_sd_percent_done(uint8_t value);

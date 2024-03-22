@@ -72,7 +72,7 @@ TestReturn phaseFSensor(const ToolMask tool_mask, std::array<IPartHandler *, HOT
             continue; // Test successful for this tool continue to next tool
         }
     }
-    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), staticResult.Serialize());
+    marlin_server::fsm_change(IPartHandler::GetFsmPhase(), staticResult.Serialize());
 
     if (in_progress) {
         return true;

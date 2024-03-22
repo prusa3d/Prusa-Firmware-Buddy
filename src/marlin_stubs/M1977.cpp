@@ -90,7 +90,7 @@ public:
     void on_enter_calibration_phase(int calibration_phase) override {
         data[0] = calibration_phase;
         data[2] = 0;
-        FSM_CHANGE_WITH_DATA__LOGGING(phase, data);
+        marlin_server::fsm_change(phase, data);
         current_calibration_phase = calibration_phase;
     }
 
@@ -99,7 +99,7 @@ public:
 
     void on_calibration_phase_progress(int progress) override {
         data[2] = progress;
-        FSM_CHANGE_WITH_DATA__LOGGING(phase, data);
+        marlin_server::fsm_change(phase, data);
     }
 
     void on_calibration_phase_result(float forward_score, float backward_score) override {
@@ -162,7 +162,7 @@ namespace state {
     }
 
     PhasesPhaseStepping pick_tool() {
-        FSM_CHANGE__LOGGING(PhasesPhaseStepping::pick_tool);
+        marlin_server::fsm_change(PhasesPhaseStepping::pick_tool);
         GcodeSuite::G28_no_parser( // home
             true, // always_home_all
             true, // home only if needed,
@@ -210,7 +210,7 @@ namespace state {
     }
 
     PhasesPhaseStepping calib_ok(Context &context) {
-        FSM_CHANGE_WITH_DATA__LOGGING(PhasesPhaseStepping::calib_ok, serialize_ok(context.scores_x, context.scores_y));
+        marlin_server::fsm_change(PhasesPhaseStepping::calib_ok, serialize_ok(context.scores_x, context.scores_y));
         Planner::synchronize();
         phase_stepping::enable(X_AXIS, true);
         config_store().set_phase_stepping_enabled(X_AXIS, true);
@@ -226,17 +226,17 @@ namespace state {
     }
 
     PhasesPhaseStepping calib_x_nok(Context &context) {
-        FSM_CHANGE_WITH_DATA__LOGGING(PhasesPhaseStepping::calib_x_nok, serialize_axis_nok(context.scores_x));
+        marlin_server::fsm_change(PhasesPhaseStepping::calib_x_nok, serialize_axis_nok(context.scores_x));
         return fail_helper(PhasesPhaseStepping::calib_x_nok);
     }
 
     PhasesPhaseStepping calib_y_nok(Context &context) {
-        FSM_CHANGE_WITH_DATA__LOGGING(PhasesPhaseStepping::calib_y_nok, serialize_axis_nok(context.scores_y));
+        marlin_server::fsm_change(PhasesPhaseStepping::calib_y_nok, serialize_axis_nok(context.scores_y));
         return fail_helper(PhasesPhaseStepping::calib_y_nok);
     }
 
     PhasesPhaseStepping calib_error() {
-        FSM_CHANGE__LOGGING(PhasesPhaseStepping::calib_error);
+        marlin_server::fsm_change(PhasesPhaseStepping::calib_error);
         return fail_helper(PhasesPhaseStepping::calib_error);
     }
 
@@ -273,7 +273,7 @@ namespace PrusaGcodeSuite {
 void M1977() {
     PhasesPhaseStepping phase = PhasesPhaseStepping::intro;
     Context context;
-    FSM_HOLDER_WITH_DATA__LOGGING(PhaseStepping, phase, {});
+    marlin_server::FSM_Holder holder { phase };
     do {
         phase = get_next_phase(context, phase);
     } while (phase != PhasesPhaseStepping::finish);

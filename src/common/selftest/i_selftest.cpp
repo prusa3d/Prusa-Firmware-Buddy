@@ -22,11 +22,11 @@ void ISelftest::phaseStart() {
 #if ENABLED(CRASH_RECOVERY)
     crash_s.set_state(Crash_s::SELFTEST);
 #endif
-    FSM_CREATE__LOGGING(Selftest); // TODO data 0/1 selftest/wizard
+    marlin_server::fsm_create(PhasesSelftest::_none);
 }
 
 void ISelftest::phaseFinish() {
-    FSM_DESTROY__LOGGING(Selftest);
+    marlin_server::fsm_destroy(ClientFSM::Selftest);
     marlin_server::set_exclusive_mode(0);
 #if ENABLED(CRASH_RECOVERY)
     crash_s.set_state(Crash_s::IDLE);

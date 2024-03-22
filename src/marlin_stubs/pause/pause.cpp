@@ -172,7 +172,7 @@ void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress) {
     phase = ph;
     if (load_unload_mode) {
         ProgressSerializerLoadUnload serializer(*load_unload_mode, progress);
-        FSM_CHANGE_WITH_DATA__LOGGING(phase, serializer.Serialize());
+        marlin_server::fsm_change(phase, serializer.Serialize());
     }
 }
 
@@ -711,7 +711,7 @@ bool Pause::ToolChange([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]
         settings.park_pos.y = std::numeric_limits<float>::quiet_NaN();
 
         // Park Z and show toolchange screen
-        FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, mode);
+        FSM_HolderLoadUnload holder(*this, mode);
         setPhase(PhasesLoadUnload::ChangingTool);
 
         // Change tool, don't lift or return Z as it was done by parking
@@ -723,44 +723,44 @@ bool Pause::ToolChange([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]
 }
 
 bool Pause::UnloadFromGear() {
-    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Unload);
+    FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Unload);
     return filamentUnload(&Pause::loop_unloadFromGear);
 }
 
 bool Pause::FilamentUnload(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Unload);
+    FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Unload);
     return filamentUnload(FSensors_instance().HasMMU() ? &Pause::loop_unload_mmu : &Pause::loop_unload);
 }
 
 bool Pause::FilamentUnload_AskUnloaded(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Unload);
+    FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Unload);
     return filamentUnload(&Pause::loop_unload_AskUnloaded);
     // TODO specify behavior for FSensors_instance().HasMMU()
 }
 
 bool Pause::FilamentLoad(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, settings.fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge);
+    FSM_HolderLoadUnload holder(*this, settings.fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge);
     return filamentLoad(FSensors_instance().HasMMU() ? &Pause::loop_load_mmu : (settings.fast_load_length ? &Pause::loop_load : &Pause::loop_load_purge));
 }
 
 bool Pause::FilamentLoadNotBlocking(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Load);
+    FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Load);
     return filamentLoad(&Pause::loop_load_not_blocking);
 }
 
 bool Pause::FilamentAutoload(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Load);
+    FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Load);
     return filamentLoad(&Pause::loop_autoload);
 }
 
 bool Pause::LoadToGear(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Load);
+    FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Load);
     return filamentLoad(&Pause::loop_loadToGear);
 }
 
@@ -1296,7 +1296,7 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
 
     switch (settings.called_from) {
     case pause::Settings::CalledFrom::Pause: {
-        FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Change);
+        FSM_HolderLoadUnload holder(*this, LoadUnloadMode::Change);
 
         if (settings.unload_length) { // Unload the filament
             filamentUnload(FSensors_instance().HasMMU() ? &Pause::loop_unload_mmu_change : &Pause::loop_unload_change);
@@ -1317,7 +1317,7 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
         }
     } break;
     case pause::Settings::CalledFrom::FilamentStuck: {
-        FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::FilamentStuck); //@@TODO how to start in a different state? We need FilamentStuck...
+        FSM_HolderLoadUnload holder(*this, LoadUnloadMode::FilamentStuck); //@@TODO how to start in a different state? We need FilamentStuck...
         // @@TODO how to disable heating after the timer runs out?
         filamentUnload(&Pause::loop_unload_filament_stuck);
         if (filamentLoad(&Pause::loop_load_filament_stuck)) { // @@TODO force load filament ... what happens if the user decides to stop it? We cannot continue without the filament
@@ -1471,8 +1471,8 @@ void Pause::FSM_HolderLoadUnload::unbindFromSafetyTimer() {
     SafetyTimer::Instance().UnbindPause(pause);
 }
 
-Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode, const char *fnc, const char *file, int line)
-    : FSM_Holder(ClientFSM::Load_unload, fnc, file, line)
+Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode)
+    : FSM_Holder(PhasesLoadUnload::initial)
     , pause(p) {
     pause.set_mode(mode);
     pause.clrRestoreTemp();

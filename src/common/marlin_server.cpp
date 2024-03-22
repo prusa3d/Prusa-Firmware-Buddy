@@ -358,7 +358,7 @@ namespace {
     void clear_warnings() {
 
         if (fsm_states.is_active(ClientFSM::Warning)) {
-            FSM_DESTROY__LOGGING(Warning);
+            fsm_destroy(ClientFSM::Warning);
         }
     }
     void handle_warnings() {
@@ -366,21 +366,21 @@ namespace {
         // (like SelftestInstance().IsInProgress()) and do it based on that??
         if (fsm_states.is_active(ClientFSM::Warning)) {
             if (get_response_from_phase(PhasesWarning::Warning) != Response::_none) {
-                FSM_DESTROY__LOGGING(Warning);
+                fsm_destroy(ClientFSM::Warning);
             } else if (auto response = get_response_from_phase(PhasesWarning::EnclosureFilterExpiration); response != Response::_none) {
-                FSM_DESTROY__LOGGING(Warning);
+                fsm_destroy(ClientFSM::Warning);
 #if XL_ENCLOSURE_SUPPORT()
                 xl_enclosure.setUpReminder(response);
 #endif
             } else if (auto resp = get_response_from_phase(PhasesWarning::ProbingFailed); resp != Response::_none) {
-                FSM_DESTROY__LOGGING(Warning);
+                fsm_destroy(ClientFSM::Warning);
                 if (resp == Response::Yes) {
                     print_resume();
                 } else {
                     print_abort();
                 }
             } else if (auto resp = get_response_from_phase(PhasesWarning::NozzleCleaningFailed); resp != Response::_none) {
-                FSM_DESTROY__LOGGING(Warning);
+                fsm_destroy(ClientFSM::Warning);
                 if (resp == Response::Retry) {
                     print_resume();
                 } else {
@@ -390,6 +390,32 @@ namespace {
         }
     }
 } // end anonymous namespace
+
+static void commit_fsm_states() {
+    ++fsm_states.generation;
+    marlin_vars()->set_fsm_states(fsm_states);
+}
+
+void fsm_create_internal(ClientFSM type, fsm::BaseData data) {
+    fsm_states[type] = data;
+    commit_fsm_states();
+}
+
+void fsm_destroy(ClientFSM type) {
+    fsm_states[type] = std::nullopt;
+    commit_fsm_states();
+}
+
+void fsm_change_internal(ClientFSM type, fsm::BaseData data) {
+    fsm_states[type] = data;
+    commit_fsm_states();
+}
+
+static void fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::BaseData data) {
+    fsm_states[old_type] = std::nullopt;
+    fsm_states[new_type] = data;
+    commit_fsm_states();
+}
 
 //-----------------------------------------------------------------------------
 // variables
@@ -903,7 +929,7 @@ void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_pre
         finalize_print();
         if (fsm_states.is_active(ClientFSM::Printing)) {
             // exit from print screen, if opened
-            FSM_DESTROY__LOGGING(Printing);
+            fsm_destroy(ClientFSM::Printing);
         }
     }
 
@@ -1090,12 +1116,12 @@ static void prepare_tool_pickup() {
 
 /**
  * @brief Part of crash recovery begin when reason of crash is the toolchanger.
- * @note This has to call FSM_CREATE_WITH_DATA__LOGGING exactly once.
+ * @note This has to call fsm_create() exactly once.
  * @return true on toolcrash when there is no parking and replay and when should break current switch case
  */
 static bool crash_recovery_begin_toolchange() {
     Crash_recovery_tool_fsm cr_fsm(prusa_toolchanger.get_enabled_mask(), 0);
-    FSM_CREATE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize()); // Ask user to park all dwarves
+    fsm_create(PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize()); // Ask user to park all dwarves
 
     if (crash_s.get_state() == Crash_s::REPEAT_WAIT) {
         prepare_tool_pickup(); // If crash happens during toolchange, skip crash recovery and go directly to tool pickup
@@ -1107,12 +1133,12 @@ static bool crash_recovery_begin_toolchange() {
 
 /**
  * @brief Part of crash recovery begin when reason of crash is failed homing.
- * @note This has to call FSM_CREATE_WITH_DATA__LOGGING exactly once.
+ * @note This has to call fsm_create() exactly once.
  * @note Should break current switch case after this.
  */
 static void crash_recovery_begin_home() {
     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-    FSM_CREATE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
+    fsm_create(PhasesCrashRecovery::home, cr_fsm.Serialize());
 
     measure_axes_and_home(); // If crash happens during homing, skip crash recovery and go directly to measuring axes / homing
 }
@@ -1120,23 +1146,23 @@ static void crash_recovery_begin_home() {
     #if ENABLED(AXIS_MEASURE)
 /**
  * @brief Part of crash recovery begin when it is a regular crash, axis measure is enabled and this is a repeated crash.
- * @note This has to call FSM_CREATE_WITH_DATA__LOGGING exactly once.
+ * @note This has to call fsm_create() exactly once.
  * @note Do not break current switch case after this, will park and replay.
  */
 static void crash_recovery_begin_axis_measure() {
     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-    FSM_CREATE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::check_X, cr_fsm.Serialize()); // check axes first
+    fsm_create(PhasesCrashRecovery::check_X, cr_fsm.Serialize()); // check axes first
 }
     #endif /*ENABLED(AXIS_MEASURE)*/
 
 /**
  * @brief Part of crash recovery begin when it is a regular crash.
- * @note This has to call FSM_CREATE_WITH_DATA__LOGGING exactly once.
+ * @note This has to call fsm_create() exactly once.
  * @note Do not break current switch case after this, will park and replay.
  */
 static void crash_recovery_begin_crash() {
     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-    FSM_CREATE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
+    fsm_create(PhasesCrashRecovery::home, cr_fsm.Serialize());
 }
 #endif /*ENABLED(CRASH_RECOVERY)*/
 
@@ -1186,7 +1212,7 @@ void powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_
     media_print_quick_stop(pos);
 
     // open printing screen
-    FSM_CREATE__LOGGING(Printing);
+    fsm_create(PhasesPrinting::active);
 
     // Warn user of possible print fail caused by cold heatbed during PP
     if (!auto_recover) {
@@ -1437,7 +1463,7 @@ static void _server_print_loop(void) {
 
         case PrintPreview::Result::Abort:
             new_state = did_not_start_print ? State::Idle : State::Finishing_WaitIdle;
-            FSM_DESTROY__LOGGING(PrintPreview);
+            fsm_destroy(ClientFSM::PrintPreview);
             break;
 
 #if HAS_TOOLCHANGER() || HAS_MMU2()
@@ -1522,13 +1548,13 @@ static void _server_print_loop(void) {
         marlin_vars()->print_start_time = time(nullptr);
         server.print_state = State::Printing;
         if (fsm_states.is_active(ClientFSM::PrintPreview)) {
-            FSM_DESTROY_AND_CREATE__LOGGING(PrintPreview, Printing);
+            fsm_destroy_and_create(ClientFSM::PrintPreview, ClientFSM::Printing, fsm::BaseData());
         }
         if (!fsm_states.is_active(ClientFSM::Printing)) {
             // FIXME make this atomic change. It would require improvements in PrintScreen so that it can re-initialize upon phase change.
             // FYI the DESTROY invoke is in print_start()
             // NOTE this works surely thanks to State::WaitGui being in between the DESTROY and CREATE
-            FSM_CREATE__LOGGING(Printing);
+            fsm_create(PhasesPrinting::active);
         }
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
         server.mbl_failed = false;
@@ -1552,7 +1578,7 @@ static void _server_print_loop(void) {
 #endif
         print_job_timer.start();
         marlin_vars()->print_start_time = time(nullptr);
-        FSM_CREATE__LOGGING(Serial_printing);
+        fsm_create(PhasesSerialPrinting::active);
         server.print_state = State::Printing;
         break;
 
@@ -1607,7 +1633,7 @@ static void _server_print_loop(void) {
     #if ENABLED(AXIS_MEASURE)
         if (crash_s.is_repeated_crash() && xy_axes_length_ok() != Axis_length_t::ok) {
             /// resuming after a crash but axes are not ok => check again
-            FSM_CREATE__LOGGING(CrashRecovery);
+            fsm_create(PhasesCrashRecovery::check_X);
             measure_axes_and_home();
             break;
         }
@@ -1776,7 +1802,7 @@ static void _server_print_loop(void) {
             disable_e_steppers();
             server.print_state = State::Aborted;
             if (server.print_is_serial) {
-                FSM_DESTROY__LOGGING(Serial_printing);
+                fsm_destroy(ClientFSM::Serial_printing);
             }
             finalize_print();
         }
@@ -1796,7 +1822,7 @@ static void _server_print_loop(void) {
         // Can go directly to Idle because we didn't really start printing.
         server.print_state = State::Idle;
         PrintPreview::Instance().ChangeState(IPrintPreview::State::inactive);
-        FSM_DESTROY__LOGGING(PrintPreview);
+        fsm_destroy(ClientFSM::PrintPreview);
         break;
 
     case State::Finishing_WaitIdle:
@@ -1834,7 +1860,7 @@ static void _server_print_loop(void) {
         if (!queue.has_commands_queued() && !planner.processing()) {
             server.print_state = State::Finished;
             if (server.print_is_serial) {
-                FSM_DESTROY__LOGGING(Serial_printing);
+                fsm_destroy(ClientFSM::Serial_printing);
             }
             finalize_print();
         }
@@ -1843,7 +1869,7 @@ static void _server_print_loop(void) {
         // make the State::Exit state more resilient to repeated calls (e.g. USB drive pulled out prematurely at the end-of-print screen)
         if (fsm_states.is_active(ClientFSM::Printing)) {
             finalize_print();
-            FSM_DESTROY__LOGGING(Printing);
+            fsm_destroy(ClientFSM::Printing);
         }
         if (fsm_states.is_active(ClientFSM::Serial_printing)) {
             finalize_print();
@@ -1882,7 +1908,7 @@ static void _server_print_loop(void) {
          * if {home} -> else {crash}
          *
          * Allways exactly one crash_recovery_begin_~~~() is called.
-         * Each of them calls FSM_CREATE_WITH_DATA__LOGGING exactly once.
+         * Each of them calls fsm_create() exactly once.
          */
         if (0) {
         } // dummy if to start with else
@@ -1980,7 +2006,7 @@ static void _server_print_loop(void) {
 
             // Show homing screen, TODO: perhaps a new screen would be better
             Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-            FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::home, cr_fsm.Serialize());
+            fsm_change(PhasesCrashRecovery::home, cr_fsm.Serialize());
 
             // Pickup lost tool
             tool_return_t return_type = tool_return_t::no_return; // If it continues with replay, no need to return
@@ -2003,7 +2029,7 @@ static void _server_print_loop(void) {
                 // Toolchange failed again, ask user again to park all dwarves
                 crash_s.count_crash(); // Count as another crash
                 Crash_recovery_tool_fsm cr_fsm(prusa_toolchanger.get_enabled_mask(), 0);
-                FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize());
+                fsm_change(PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize());
 
                 prepare_tool_pickup();
                 break;
@@ -2012,7 +2038,7 @@ static void _server_print_loop(void) {
             server.print_state = State::CrashRecovery_XY_HOME; // Reheat and resume, unpark is skipped in later stages
         } else {
             Crash_recovery_tool_fsm cr_fsm(prusa_toolchanger.get_enabled_mask(), prusa_toolchanger.get_parked_mask());
-            FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize());
+            fsm_change(PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize());
             gcode.reset_stepper_timeout(); // Prevent disable axis
         }
         break;
@@ -2035,7 +2061,7 @@ static void _server_print_loop(void) {
                 if (crash_s.is_repeated_crash()) { // Cannot home repeatedly
                     disable_XY(); // Let user move the carriage
                     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
-                    FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::home_fail, cr_fsm.Serialize()); // Retry screen
+                    fsm_change(PhasesCrashRecovery::home_fail, cr_fsm.Serialize()); // Retry screen
                     server.print_state = State::CrashRecovery_HOMEFAIL; // Ask to retry
                 }
                 break;
@@ -2044,7 +2070,7 @@ static void _server_print_loop(void) {
 
         if (!crash_s.is_repeated_crash()) {
             server.print_state = State::Resuming_Begin;
-            FSM_DESTROY__LOGGING(CrashRecovery);
+            fsm_destroy(ClientFSM::CrashRecovery);
             break;
         }
         server.paused_ticks = ticks_ms(); // time when printing paused
@@ -2054,12 +2080,12 @@ static void _server_print_loop(void) {
             server.print_state = State::CrashRecovery_Axis_NOK;
             Crash_recovery_fsm cr_fsm(axis_length_check(X_AXIS), axis_length_check(Y_AXIS));
             PhasesCrashRecovery pcr = (alok == Axis_length_t::shorter) ? PhasesCrashRecovery::axis_short : PhasesCrashRecovery::axis_long;
-            FSM_CHANGE_WITH_DATA__LOGGING(pcr, cr_fsm.Serialize());
+            fsm_change(pcr, cr_fsm.Serialize());
             break;
         }
     #endif
         Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
-        FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::repeated_crash, cr_fsm.Serialize());
+        fsm_change(PhasesCrashRecovery::repeated_crash, cr_fsm.Serialize());
         server.print_state = State::CrashRecovery_Repeated_Crash;
         break;
     }
@@ -2068,7 +2094,7 @@ static void _server_print_loop(void) {
         switch (marlin_server::get_response_from_phase(PhasesCrashRecovery::home_fail)) {
         case Response::Retry: {
             Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-            FSM_CHANGE_WITH_DATA__LOGGING(PhasesCrashRecovery::home, cr_fsm.Serialize()); // Homing screen
+            fsm_change(PhasesCrashRecovery::home, cr_fsm.Serialize()); // Homing screen
             measure_axes_and_home();
             break;
         }
@@ -2086,7 +2112,7 @@ static void _server_print_loop(void) {
             break;
         case Response::Resume: /// ignore wrong length of axes
             server.print_state = State::Resuming_Begin;
-            FSM_DESTROY__LOGGING(CrashRecovery);
+            fsm_destroy(ClientFSM::CrashRecovery);
     #if ENABLED(AXIS_MEASURE)
             axes_length_set_ok(); /// ignore re-test of lengths
     #endif
@@ -2095,7 +2121,7 @@ static void _server_print_loop(void) {
             break;
         default:
             server.print_state = State::Paused;
-            FSM_DESTROY__LOGGING(CrashRecovery);
+            fsm_destroy(ClientFSM::CrashRecovery);
         }
         gcode.reset_stepper_timeout(); // prevent disable axis
         break;
@@ -2105,13 +2131,13 @@ static void _server_print_loop(void) {
         switch (marlin_server::get_response_from_phase(PhasesCrashRecovery::repeated_crash)) {
         case Response::Resume:
             server.print_state = State::Resuming_Begin;
-            FSM_DESTROY__LOGGING(CrashRecovery);
+            fsm_destroy(ClientFSM::CrashRecovery);
             break;
         case Response::_none:
             break;
         default:
             server.print_state = State::Paused;
-            FSM_DESTROY__LOGGING(CrashRecovery);
+            fsm_destroy(ClientFSM::CrashRecovery);
         }
         gcode.reset_stepper_timeout(); // prevent disable axis
         break;
@@ -2840,32 +2866,6 @@ static void _server_set_var(const Request &request) {
     bsod("unimplemented _server_set_var for var_id %i", (int)variable_identifier);
 }
 
-static void commit_fsm_states() {
-    ++fsm_states.generation;
-    marlin_vars()->set_fsm_states(fsm_states);
-}
-
-void _fsm_create(ClientFSM type, fsm::BaseData data, const char *, const char *, int) {
-    fsm_states[type] = data;
-    commit_fsm_states();
-}
-
-void fsm_destroy(ClientFSM type, const char *, const char *, int) {
-    fsm_states[type] = std::nullopt;
-    commit_fsm_states();
-}
-
-void _fsm_change(ClientFSM type, fsm::BaseData data, const char *, const char *, int) {
-    fsm_states[type] = data;
-    commit_fsm_states();
-}
-
-void _fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::BaseData data, const char *, const char *, int) {
-    fsm_states[old_type] = std::nullopt;
-    fsm_states[new_type] = data;
-    commit_fsm_states();
-}
-
 void set_warning(WarningType type, PhasesWarning phase) {
     _log_event(LOG_SEVERITY_WARNING, &LOG_COMPONENT(MarlinServer), "Warning type %d set", (int)type);
     log_info(MarlinServer, "WARNING: %" PRIu32, ftrstd::to_underlying(type));
@@ -2875,7 +2875,7 @@ void set_warning(WarningType type, PhasesWarning phase) {
     memcpy(data.data(), &type, sizeof(data));
     // We don't want to overlay two warnings and the new one is likely more important.
     clear_warnings();
-    FSM_CREATE_WITH_DATA__LOGGING(Warning, phase, data);
+    fsm_create(phase, data);
 }
 
 /*****************************************************************************/
@@ -2928,7 +2928,7 @@ void FSM_notifier::SendNotification() {
     // no value: comparison returns true
     if (progress > s_data.last_progress_sent) {
         s_data.last_progress_sent = progress;
-        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, activeInstance->serialize(progress)), __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        fsm_change_internal(s_data.type, fsm::BaseData(s_data.phase, activeInstance->serialize(progress)));
     }
 }
 
