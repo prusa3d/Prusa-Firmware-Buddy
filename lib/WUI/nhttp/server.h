@@ -9,6 +9,7 @@
 #include <automata/core.h>
 
 #include <lwip/altcp.h>
+#include <lwip/tcpip.h>
 
 #include <array>
 #include <variant>
@@ -110,7 +111,9 @@ private:
              * * It is assumed to be able to fail due to eg. inability to send a
              *   FIN packet. This is not the case for a listening socket.
              */
+            LOCK_TCPIP_CORE();
             altcp_close(conn);
+            UNLOCK_TCPIP_CORE();
         }
     };
 
