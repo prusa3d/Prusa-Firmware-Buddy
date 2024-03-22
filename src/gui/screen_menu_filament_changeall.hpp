@@ -4,6 +4,7 @@
 #include "MItem_menus.hpp"
 #include "i18n.h"
 #include <WindowItemFormatableSpin.hpp>
+#include <option/has_mmu2.h>
 
 /**
  * @brief Selector of filament types for one tool.
@@ -97,7 +98,11 @@ class ScreenChangeAllFilaments : public detail::ScreenChangeAllFilaments {
 
 public:
     static constexpr size_t tool_count = 5; ///< Number of tools shown in this menu
+#if not HAS_MMU2()
     static constexpr const char *label = N_("MULTITOOL FILAMENT CHANGE");
+#else
+    static constexpr const char *label = N_("FILAMENT CHANGE");
+#endif
     ScreenChangeAllFilaments();
 };
 
