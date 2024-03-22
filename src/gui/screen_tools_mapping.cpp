@@ -335,7 +335,13 @@ ToolsMappingBody::ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info)
     : AddSuperWindow<window_t>(parent, GuiDefaults::RectScreenNoHeader)
     , drawing_nozzles(!all_nozzles_same(gcode_info))
     , left_header(parent, left_header_rect, is_multiline::no, is_closed_on_click_t::no, _("G-Code filaments"))
-    , right_header(parent, right_header_rect, is_multiline::no, is_closed_on_click_t::no, _("Printer tools"))
+    , right_header(parent, right_header_rect, is_multiline::no, is_closed_on_click_t::no,
+#if not HAS_MMU2()
+          _("Printer tools")
+#else
+          _("MMU filament")
+#endif
+              )
     , left_line(parent, left_line_rect, COLOR_ORANGE, COLOR_GRAY)
     , right_line(parent, right_line_rect, COLOR_ORANGE, COLOR_GRAY)
     , middle_connector(parent, middle_connectors_rect)
