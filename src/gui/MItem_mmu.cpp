@@ -105,10 +105,13 @@ MI_MMU_ISSUE_GCODE_SLOT::MI_MMU_ISSUE_GCODE_SLOT(uint8_t slot_i, const char *lab
     , gcode_fmt_(gcode_fmt)
     , slot_i_(slot_i) {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     std::array<char, 32> translated_prefix;
     _(label_prefix).copyToRAM(translated_prefix.data(), translated_prefix.size());
     snprintf(label_.data(), label_.size(), "%s %i", translated_prefix.data(), slot_i + 1);
     SetLabel(string_view_utf8::MakeRAM(label_.data()));
+#pragma GCC diagnostic pop
 }
 
 void MI_MMU_ISSUE_GCODE_SLOT::click(IWindowMenu &) {
