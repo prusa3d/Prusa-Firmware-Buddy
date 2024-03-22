@@ -12,14 +12,16 @@ script_dir = Path(os.path.dirname(__file__))
 project_root_dir = script_dir / ".."
 project_root_dir = project_root_dir.resolve()
 
+crash_debug_version = "ab03f8b6fb6e3445c62fe3fa5f3263d2945d74ff"
+
 if platform.system() == "Windows":
-    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-ae191d/bins/win32/CrashDebug'
+    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-{crash_debug_version}/bins/win32/CrashDebug'
 elif platform.system() == "Linux":
-    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-ae191d/bins/lin64/CrashDebug'
+    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-{crash_debug_version}/bins/lin64/CrashDebug'
     os.chmod(crash_debug_path,
              os.stat(crash_debug_path).st_mode | stat.S_IEXEC)
 elif platform.system() == "Darwin":
-    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-ae191d/bins/osx64/CrashDebug'
+    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-{crash_debug_version}/bins/osx64/CrashDebug'
     os.chmod(crash_debug_path,
              os.stat(crash_debug_path).st_mode | stat.S_IEXEC)
 
