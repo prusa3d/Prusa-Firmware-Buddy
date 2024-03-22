@@ -48,6 +48,7 @@ public:
 
 private:
     static_assert(N >= 0 && N <= max_I_MI_FilamentSelect_idx, "bad input");
+#if not HAS_MMU2()
     static consteval const char *get_name() {
         switch (N) {
         case 0:
@@ -64,7 +65,24 @@ private:
         consteval_assert_false();
         return "";
     }
-
+#else
+    static consteval const char *get_name() {
+        switch (N) {
+        case 0:
+            return N_("Filament 1");
+        case 1:
+            return N_("Filament 2");
+        case 2:
+            return N_("Filament 3");
+        case 3:
+            return N_("Filament 4");
+        case 4:
+            return N_("Filament 5");
+        }
+        consteval_assert_false();
+        return "";
+    }
+#endif
     static constexpr const char *label = get_name();
 };
 
