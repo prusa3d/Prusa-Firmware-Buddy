@@ -55,8 +55,8 @@ void SimulateCommStart(MMU2::MMU2 &mmu) {
     static_assert(MMU2::mmuVersionMinor == 0);
     mmu2SerialSim.txbuffQ.clear();
     mmu.mmu_loop();
-    mmu2SerialSim.SetRxBuffCRC("S2 A2");
-    static_assert(MMU2::mmuVersionPatch == 2);
+    mmu2SerialSim.SetRxBuffCRC("S2 A3");
+    static_assert(MMU2::mmuVersionPatch == 3);
     mmu2SerialSim.txbuffQ.clear();
     mmu.mmu_loop();
     mmu2SerialSim.SetRxBuffCRC("S3 A345");

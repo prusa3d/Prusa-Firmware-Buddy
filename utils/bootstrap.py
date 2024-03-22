@@ -89,9 +89,11 @@ dependencies = {
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.3.4-6474070A-0C8B-4436-BFD2-A5C0F1864CC7.zip',
     },
     'firmware-mmu': {
-        'version': '3.0.2',
+        'version': '3.0.3',
         'files': [
-            'https://github.com/prusa3d/Prusa-Firmware-MMU/releases/download/v3.0.2/MMU2S_MMU3_FW3.0.2+878.hex',
+            # 'https://github.com/prusa3d/Prusa-Firmware-MMU/releases/download/v3.0.2/MMU2S_MMU3_FW3.0.2+878.hex',
+            # 3.0.3 published *privately* because it's just a very minor change
+            'https://download.danol.cz/MMU2S_MMU3_FW3.0.3+895.hex'
         ],
     },
     'mini404': {
