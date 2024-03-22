@@ -195,7 +195,10 @@ bool PlainGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint16_t 
     // search for begining of thumbnail in file
     static const size_t MAX_SEARCH_LINES = 2048;
     // We want to do simple scan through beginning of file, so we use gcode stream for that, it doesn't skip towards end of file like metadata stream
-    stream_gcode_start();
+    if (!stream_gcode_start()) {
+        return false;
+    }
+
     GcodeBuffer buffer;
     unsigned int lines_searched = 0;
     while (stream_get_line(buffer) == Result_t::RESULT_OK && (lines_searched++) <= MAX_SEARCH_LINES) {
@@ -955,10 +958,13 @@ bool PrusaPackGcodeReader::init_decompression() {
         set_ptr_stream_getc_decompressed(&PrusaPackGcodeReader::stream_getc_file);
     }
 
-    if (static_cast<EGCodeEncodingType>(stream.encoding) == EGCodeEncodingType::MeatPack || static_cast<EGCodeEncodingType>(stream.encoding) == EGCodeEncodingType::MeatPackComments) {
+    const auto encoding = static_cast<EGCodeEncodingType>(stream.encoding);
+    if (encoding == EGCodeEncodingType::MeatPack || encoding == EGCodeEncodingType::MeatPackComments) {
         set_ptr_stream_getc(&PrusaPackGcodeReader::stream_getc_decode_meatpacked);
-    } else if (static_cast<EGCodeEncodingType>(stream.encoding) == bgcode::core::EGCodeEncodingType::None) {
+
+    } else if (encoding == bgcode::core::EGCodeEncodingType::None) {
         set_ptr_stream_getc(&PrusaPackGcodeReader::stream_getc_decode_none);
+
     } else {
         return false;
     }
