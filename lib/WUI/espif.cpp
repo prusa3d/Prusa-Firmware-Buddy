@@ -86,6 +86,7 @@ enum ESPIFOperatingMode {
     ESPIF_UNINITIALIZED_MODE,
     ESPIF_WAIT_INIT,
     ESPIF_NEED_AP,
+    ESPIF_CONNECTING_AP,
     ESPIF_RUNNING_MODE,
     ESPIF_FLASHING_MODE,
     ESPIF_WRONG_FW,
@@ -181,6 +182,7 @@ static bool is_running(ESPIFOperatingMode mode) {
     case ESPIF_WAIT_INIT:
     case ESPIF_NEED_AP:
     case ESPIF_RUNNING_MODE:
+    case ESPIF_CONNECTING_AP:
         return true;
     }
 
@@ -407,6 +409,7 @@ bool espif_link() {
 static void process_link_change(bool link_up, struct netif *netif) {
     assert(netif != nullptr);
     if (link_up) {
+        esp_operating_mode = ESPIF_RUNNING_MODE;
         if (!associated.exchange(true)) {
             netifapi_netif_set_link_up(netif);
         }
@@ -717,7 +720,7 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
     err_t err = espif_tx_msg_clientconfig_v2(ssid, pass);
 
     if (err == ERR_OK) {
-        esp_operating_mode = ESPIF_RUNNING_MODE;
+        esp_operating_mode = ESPIF_CONNECTING_AP;
     }
 
     return err;
@@ -793,6 +796,7 @@ EspFwState esp_fw_state() {
             return EspFwState::NoEsp;
         }
     case ESPIF_NEED_AP:
+    case ESPIF_CONNECTING_AP:
     case ESPIF_RUNNING_MODE:
         return EspFwState::Ok;
     case ESPIF_FLASHING_MODE:
@@ -813,6 +817,7 @@ EspLinkState esp_link_state() {
     case ESPIF_UNINITIALIZED_MODE:
         return EspLinkState::Init;
     case ESPIF_NEED_AP:
+    case ESPIF_CONNECTING_AP:
         return EspLinkState::NoAp;
     case ESPIF_RUNNING_MODE: {
         if (espif_link()) {
