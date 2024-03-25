@@ -4,6 +4,7 @@
  * @date 2021-10-31
  */
 
+#include <guiconfig/guiconfig.h>
 #include "MItem_lan.hpp"
 #include "wui_api.h"
 #include "netdev.h"
@@ -53,7 +54,13 @@ void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
 }
 
 MI_HOSTNAME::MI_HOSTNAME()
-    : WiInfo<config_store_ns::lan_hostname_max_len + 1>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : WiInfo<config_store_ns::lan_hostname_max_len + 1>(_(label), nullptr, is_enabled_t::yes,
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+        is_hidden_t::dev
+#elif defined(USE_ILI9488)
+        is_hidden_t::no
+#endif
+    ) {
 }
 
 MI_NET_IP_t::MI_NET_IP_t()
