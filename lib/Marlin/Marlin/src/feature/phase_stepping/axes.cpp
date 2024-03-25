@@ -52,7 +52,7 @@ int32_t phase_stepping::pos_to_steps(AxisEnum axis, float position) {
     return position * axis_motor_params[static_cast<int>(axis)].pos_to_steps;
 }
 
-int32_t pos_to_msteps(AxisEnum axis, float position) {
+int32_t phase_stepping::pos_to_msteps(AxisEnum axis, float position) {
     return position * axis_motor_params[static_cast<int>(axis)].pos_to_msteps;
 }
 
