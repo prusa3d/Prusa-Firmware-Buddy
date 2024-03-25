@@ -267,6 +267,7 @@ static void espif_tx_update_metrics(uint32_t len) {
     metric_record_custom(&metric_esp_out, " sent=%" PRIu32 "i", bytes_sent);
 }
 
+// FIXME: This casually uses HAL_StatusTypeDef as a err_t, which works for the OK case (both 0), but it is kinda sketchy.
 [[nodiscard]] static err_t espif_tx_raw(uint8_t message_type, uint8_t message_byte, pbuf *p) {
     std::lock_guard lock { uart_write_mutex };
 
@@ -408,11 +409,9 @@ static void process_link_change(bool link_up, struct netif *netif) {
     if (link_up) {
         if (!associated.exchange(true)) {
             netifapi_netif_set_link_up(netif);
-            log_info(ESPIF, "Link went up");
         }
     } else {
         if (associated.exchange(false)) {
-            log_info(ESPIF, "Link went down");
             netifapi_netif_set_link_down(netif);
         }
     }
@@ -714,9 +713,14 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
         return ERR_IF;
     }
     log_info(ESPIF, "Joining AP %s:*(%d)", ssid, strlen(pass));
-    esp_operating_mode = ESPIF_RUNNING_MODE;
 
-    return espif_tx_msg_clientconfig_v2(ssid, pass);
+    err_t err = espif_tx_msg_clientconfig_v2(ssid, pass);
+
+    if (err == ERR_OK) {
+        esp_operating_mode = ESPIF_RUNNING_MODE;
+    }
+
+    return err;
 }
 
 bool espif_tick() {

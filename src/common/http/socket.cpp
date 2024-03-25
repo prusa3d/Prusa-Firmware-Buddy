@@ -96,6 +96,7 @@ std::optional<Error> socket_con::connection(const char *host, uint16_t port) {
     snprintf(port_as_str, str_len, "%hu", port);
 
     if (lwip_getaddrinfo(host, port_as_str, &hints, &cur) != 0) {
+        log_info(socket, "DNS resolution failed on host: %s", host);
         return Error::Dns;
     }
 
@@ -128,6 +129,7 @@ std::variant<size_t, Error> socket_con::tx(const uint8_t *send_buffer, size_t da
     int status = lwip_send(fd, (const unsigned char *)send_buffer, data_len, 0);
 
     if (status < 0) {
+        log_info(socket, "lwip send failed with: %d", status);
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
             return Error::Timeout;
         } else {

@@ -184,11 +184,20 @@ private:
         status_callback(iface);
         unique_lock lock(mutex);
         uint32_t action = 0;
-        // TODO: What if it went _down_, not _up_?
         if (&iface == &ifaces[NETDEV_ETH_ID].dev) {
-            action = EthInitDone;
+            if (netif_is_link_up(&iface)) {
+                log_info(Network, "Eth link went up");
+                action = EthInitDone;
+            } else {
+                log_info(Network, "Eth link went down");
+            }
         } else if (&iface == &ifaces[NETDEV_ESP_ID].dev) {
-            action = EspInitDone;
+            if (netif_is_link_up(&iface)) {
+                log_info(Network, "ESP link went up");
+                action = EspInitDone;
+            } else {
+                log_info(Network, "ESP link went down");
+            }
         } else {
             assert(0);
         }
@@ -256,15 +265,21 @@ private:
     static void tcpip_init_done_raw(void *me) {
         static_cast<NetworkState *>(me)->tcpip_init_done();
     }
-    void post_init(Iface &iface) {
+    void post_init(uint32_t face_index) {
         // Already locked by the caller.
+
+        Iface &iface = ifaces[face_index];
 
         // FIXME: Error handling
         switch (iface_mode(iface)) {
         case Mode::DHCP:
-            netifapi_dhcp_start(&iface.dev);
+            log_info(Network, "Starting DHCP on iface: %" PRIu32, face_index);
+            if (err_t err = netifapi_dhcp_start(&iface.dev); err != ERR_OK) {
+                log_warning(Network, "dhcp_start failed on iface: %" PRIu32 " with: %d", face_index, err);
+            }
             break;
         case Mode::Static: {
+            log_info(Network, "Setting static IP on iface: %" PRIu32, face_index);
             ETH_config_t cfg;
             { // Scope for the lock
                 unique_lock lock(mutex);
@@ -438,11 +453,11 @@ private:
             }
 
             if (events & EthInitDone) {
-                post_init(ifaces[NETDEV_ETH_ID]);
+                post_init(NETDEV_ETH_ID);
             }
 
             if (events & EspInitDone) {
-                post_init(ifaces[NETDEV_ESP_ID]);
+                post_init(NETDEV_ESP_ID);
             }
 
             if (events & EthData) {

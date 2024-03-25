@@ -4,10 +4,14 @@
 #include <stdbool.h>
 #include <memory>
 
+#include <log.h>
+
 #include <lwip/mem.h>
 
 using http::Error;
 using std::unique_ptr;
+
+LOG_COMPONENT_REF(connect);
 
 namespace {
 
@@ -134,11 +138,13 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
     snprintf(port_as_str, str_len, "%hu", port);
 
     if ((status = mbedtls_net_connect(&net_context, host, port_as_str, MBEDTLS_NET_PROTO_TCP)) != 0) {
+        log_info(connect, "ssl handshake failed with: %d", status);
         return Error::Connect;
     }
 
     while ((status = mbedtls_ssl_handshake(&ssl_context)) != 0) {
         if (status != MBEDTLS_ERR_SSL_WANT_READ && status != MBEDTLS_ERR_SSL_WANT_WRITE) {
+            log_info(connect, "ssl handshake failed with: %d", status);
             return Error::Tls;
         }
 
@@ -166,6 +172,7 @@ std::variant<size_t, Error> tls::tx(const uint8_t *send_buffer, size_t data_len)
     int status = mbedtls_ssl_write(&ssl_context, (const unsigned char *)send_buffer, data_len);
 
     if (status <= 0) {
+        log_info(connect, "ssl write failed with: %d", status);
         if (net_context.timeout_happened) {
             return Error::Timeout;
         } else {

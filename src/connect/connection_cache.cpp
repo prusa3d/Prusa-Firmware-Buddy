@@ -58,7 +58,7 @@ void CachedFactory::refresh(const Printer::Config &config) {
             connection = &get<socket_con>(cache);
         }
         if (const optional<Error> result = connection->connection(config.host, config.port); result.has_value()) {
-            log_info(connect, "Creating of connection failed");
+            log_info(connect, "Creating of connection failed: %s", http::to_str(result.value()));
             cache = *result;
         }
     } else {
