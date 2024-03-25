@@ -2856,8 +2856,10 @@ void fsm_destroy(ClientFSM type, const char *, const char *, int) {
 }
 
 void _fsm_change(ClientFSM type, fsm::BaseData data, const char *, const char *, int) {
-    fsm_states[type] = data;
-    commit_fsm_states();
+    if (fsm_states[type] != data) {
+        fsm_states[type] = data;
+        commit_fsm_states();
+    }
 }
 
 void _fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::BaseData data, const char *, const char *, int) {

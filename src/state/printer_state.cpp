@@ -332,7 +332,7 @@ StateWithDialog get_state_with_dialog(bool ready) {
     case ClientFSM::Load_unload:
         if (const fsm::States::State &fsm_state = fsm_states[ClientFSM::Printing]) {
             if (auto attention_code = load_unload_attention_while_printing(*fsm_state); attention_code.has_value()) {
-                const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesLoadUnload>(fsm_state->GetPhase())).data();
+                const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesLoadUnload>(data.GetPhase())).data();
                 return { state, attention_code, fsm_gen, responses };
             }
         } // TODO: handle normal load unload
