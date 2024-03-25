@@ -37,7 +37,6 @@ using namespace filament_gcodes;
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-    BlockEStallDetection block_e_stall_detection;
     auto filament_to_be_loaded = filament::Type::NONE;
     const char *text_begin = 0;
     if (parser.seen('S')) {
@@ -103,7 +102,6 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-    BlockEStallDetection block_e_stall_detection;
     const std::optional<float> unload_len = parser.seen('U') ? std::optional<float>(parser.value_axis_units(E_AXIS)) : std::nullopt;
     const float min_Z_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
     const uint8_t preheat = parser.byteval('W', 255);

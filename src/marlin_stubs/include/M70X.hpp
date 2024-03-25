@@ -8,6 +8,8 @@
 
 #pragma once
 #include "config_features.h"
+#include <fs_event_autolock.hpp>
+#include <feature/prusa/e-stall_detector.h>
 #include "fsm_preheat_type.hpp"
 #include "preheat_multithread_status.hpp"
 #include <optional>
@@ -36,6 +38,10 @@ public:
     InProgress() { ++lock; }
     ~InProgress() { --lock; }
     static bool Active() { return lock > 0; }
+
+private:
+    FS_EventAutolock fs_lock;
+    BlockEStallDetection estall_lock;
 };
 
 bool load_unload(LoadUnloadMode type, filament_gcodes::Func f_load_unload, pause::Settings &rSettings);
