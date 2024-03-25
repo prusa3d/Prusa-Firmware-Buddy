@@ -324,20 +324,6 @@ private:
     bool is_up_to_date(const char *new_version);
 
     /**
-     * @brief Test printer model with a list of compatible models.
-     * @tparam SIZE size of the compatibility_list
-     * @param printer printer model to test
-     * @param compatibility_list list of compatible models
-     * @return true if printer is compatible with any of the models in compatibility_list
-     */
-    template <std::size_t SIZE>
-    bool is_printer_compatible(const GcodeBuffer::String &printer, const std::array<const char *, SIZE> &compatibility_list) {
-        return std::any_of(begin(compatibility_list),
-            end(compatibility_list),
-            [&](const auto &v) { return printer == v; });
-    }
-
-    /**
      * Reset loaded gcode info to empty value
      */
     void reset_info();

@@ -380,14 +380,15 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 p_diameter = cmd.get_float(); // Only store value in case Tx comes later
                 break;
             case '3': {
+                auto printer = cmd.get_string();
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
-                if (strncmp(cmd.get_string().c_str(), "MK3", 3) == 0 && strncmp(cmd.get_string().c_str(), "MK3.", 4) != 0) { // second condition due to MK3.5 & MK3.9
+                if (strncmp(printer.c_str(), "MK3", 3) == 0 && strncmp(printer.c_str(), "MK3.", 4) != 0) { // second condition due to MK3.5 & MK3.9
                     valid_printer_settings.mk3_compatibility_mode.fail();
                 }
 #endif
 
                 // Check basic printer model as MK4 or XL
-                if (!is_printer_compatible(cmd.get_string(), printer_compatibility_list)) {
+                if (!std::any_of(begin(printer_compatibility_list), end(printer_compatibility_list), [&](const auto &v) { return printer == v; })) {
                     valid_printer_settings.wrong_printer_model.fail();
                 }
                 break;
