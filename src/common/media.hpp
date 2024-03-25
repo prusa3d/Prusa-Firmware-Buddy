@@ -34,11 +34,6 @@ typedef enum {
 
 extern media_state_t media_get_state(void);
 
-/**
- * @brief Init mutexes and such of media_prefetch.
- */
-extern void media_prefetch_init();
-
 extern osThreadId prefetch_thread_id;
 void media_prefetch(const void *);
 
