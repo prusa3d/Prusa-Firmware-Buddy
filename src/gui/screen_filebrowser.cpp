@@ -57,29 +57,25 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, [[ma
 
 void screen_filebrowser_data_t::checkMissingMedia(MediaState_t media_state) {
     if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
-        clearFirstVisibleSFN();
+        browser().clear_first_visible_sfn();
         Screens::Access()->Get()->Validate(); // Do not redraw this
         Screens::Access()->Close();
     }
 }
 
-void screen_filebrowser_data_t::clearFirstVisibleSFN() {
-    FileBrowser::CopyRootTo(gui_media_SFN_path);
-}
-
 void screen_filebrowser_data_t::printTheFile() {
     int written;
     //@@TODO:check for "/" on last place of path and if yes do not add "/"
-    written = file_browser.WriteNameToPrint(gui_media_SFN_path, FILE_PATH_BUFFER_LEN);
+    written = browser().WriteNameToPrint(gui_media_SFN_path, FILE_PATH_BUFFER_LEN);
     if (written < 0 || written >= (int)FILE_PATH_BUFFER_LEN) {
         log_error(GUI, "Failed to prepare file path for print");
         return;
     }
 
     // displayed text - can be a 8.3 DOS name or a LFN
-    strlcpy(gui_media_LFN, file_browser.CurrentLFN(), FILE_NAME_BUFFER_LEN);
+    strlcpy(gui_media_LFN, browser().CurrentLFN(), FILE_NAME_BUFFER_LEN);
     // save the top browser item
-    file_browser.SaveTopSFN();
+    browser().SaveTopSFN();
 
     print_begin(gui_media_SFN_path);
 
@@ -87,6 +83,6 @@ void screen_filebrowser_data_t::printTheFile() {
 }
 
 void screen_filebrowser_data_t::goHome() {
-    clearFirstVisibleSFN();
+    browser().clear_first_visible_sfn();
     Screens::Access()->Close();
 }

@@ -9,7 +9,10 @@ class screen_filebrowser_data_t : public AddSuperWindow<screen_t> {
     window_header_t header;
     FileBrowser file_browser;
 
-    static void clearFirstVisibleSFN(); // this method writes into pointer received from marlin_vars, it is super ugly
+    inline WindowFileBrowser &browser() {
+        return file_browser.browser();
+    }
+
     void printTheFile();
     void goHome();
 

@@ -3,14 +3,16 @@
 #include "gcode_info.hpp"
 
 class WindowFileBrowser : public AddSuperWindow<window_file_list_t> {
-    static char root[FILE_PATH_BUFFER_LEN]; // we currently do not support multiple file browsers
+    static char root_[FILE_PATH_BUFFER_LEN]; // we currently do not support multiple file browsers
 
 public:
     WindowFileBrowser(window_t *parent, Rect16 rect, const char *media_SFN_path);
 
     static void SetRoot(const char *path);
-    static void CopyRootTo(char *path);
+    const char *root();
+
     void SaveTopSFN();
+    void clear_first_visible_sfn();
 
     int WriteNameToPrint(char *buff, size_t sz);
 
