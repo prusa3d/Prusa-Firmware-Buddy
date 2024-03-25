@@ -649,7 +649,7 @@ PlainGcodeReader::Result_t PrusaPackGcodeReader::switch_to_next_block() {
     stream.block_remaining_bytes_compressed = ((bgcode::core::ECompressionType)stream.current_block_header.compression == bgcode::core::ECompressionType::None) ? stream.current_block_header.uncompressed_size : stream.current_block_header.compressed_size;
     stream.meatpack.reset_state();
     if (stream.hs_decoder) {
-        heatshrink_decoder_reset(stream.hs_decoder);
+        heatshrink_decoder_reset(stream.hs_decoder.get());
     }
     store_restore_block();
     return Result_t::RESULT_OK;
@@ -720,7 +720,7 @@ IGcodeReader::Result_t PrusaPackGcodeReader::heatshrink_sink_data() {
 IGcodeReader::Result_t PrusaPackGcodeReader::stream_getc_decompressed_heatshrink(char &out) {
     while (true) {
         size_t poll_size;
-        auto poll_res = heatshrink_decoder_poll(stream.hs_decoder, reinterpret_cast<uint8_t *>(&out), sizeof(out), &poll_size);
+        auto poll_res = heatshrink_decoder_poll(stream.hs_decoder.get(), reinterpret_cast<uint8_t *>(&out), sizeof(out), &poll_size);
         if (poll_res == HSDR_POLL_ERROR_NULL || poll_res == HSDR_POLL_ERROR_UNKNOWN) {
             return IGcodeReader::Result_t::RESULT_ERROR;
         }
@@ -734,7 +734,7 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_getc_decompressed_heatshrink
             // switch to next block, if needed first
             if (stream.block_remaining_bytes_compressed == 0) {
                 // all data should be polled by now, if there are some data left in decompressor, something is wrong
-                if (heatshrink_decoder_finish(stream.hs_decoder) != HSD_finish_res::HSDR_FINISH_DONE) {
+                if (heatshrink_decoder_finish(stream.hs_decoder.get()) != HSD_finish_res::HSDR_FINISH_DONE) {
                     return IGcodeReader::Result_t::RESULT_ERROR;
                 }
                 if (stream.multiblock) {
@@ -949,8 +949,8 @@ bool PrusaPackGcodeReader::init_decompression() {
     if (hs_window_sz) {
         // compression enabled, setup heatshrink
         static constexpr size_t INPUT_BUFFER_SIZE = 64;
-        stream.hs_decoder = heatshrink_decoder_alloc(INPUT_BUFFER_SIZE, hs_window_sz, hs_lookahead_sz);
-        if (stream.hs_decoder == nullptr) {
+        stream.hs_decoder.reset(heatshrink_decoder_alloc(INPUT_BUFFER_SIZE, hs_window_sz, hs_lookahead_sz));
+        if (!stream.hs_decoder) {
             return false;
         }
 
@@ -995,6 +995,7 @@ AnyGcodeFormatReader::AnyGcodeFormatReader(AnyGcodeFormatReader &&other) {
 
 AnyGcodeFormatReader &AnyGcodeFormatReader::operator=(AnyGcodeFormatReader &&other) {
     storage = std::move(other.storage);
+
     if (std::holds_alternative<PrusaPackGcodeReader>(storage)) {
         ptr = &std::get<PrusaPackGcodeReader>(storage);
     } else if (std::holds_alternative<PlainGcodeReader>(storage)) {
@@ -1003,7 +1004,7 @@ AnyGcodeFormatReader &AnyGcodeFormatReader::operator=(AnyGcodeFormatReader &&oth
         assert(false);
     }
 
-    other.ptr = nullptr;
+    other.close();
     return *this;
 }
 
@@ -1064,16 +1065,6 @@ void PrusaPackGcodeReader::stream_t::reset() {
     encoding = (uint16_t)bgcode::core::EGCodeEncodingType::None;
     block_remaining_bytes_compressed = 0; //< remaining bytes in current block
     uncompressed_offset = 0; //< offset of next char that will be outputted
-    if (hs_decoder) {
-        heatshrink_decoder_free(hs_decoder);
-        hs_decoder = nullptr;
-    }
+    hs_decoder.reset();
     meatpack.reset_state();
-}
-
-PrusaPackGcodeReader::stream_t::~stream_t() {
-    if (hs_decoder) {
-        heatshrink_decoder_free(hs_decoder);
-    }
-    hs_decoder = nullptr;
 }
