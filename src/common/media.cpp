@@ -36,8 +36,8 @@ volatile media_state_t media_state = media_state_REMOVED;
 volatile media_error_t media_error = media_error_OK;
 
 std::atomic<media_print_state_t> media_print_state = media_print_state_NONE;
-AnyGcodeFormatReader *media_print_file; ///< File used to print
-AnyGcodeFormatReader *gcode_info_file; ///< File used to scan GcodeInfo
+AnyGcodeFormatReader media_print_file; ///< File used to print
+AnyGcodeFormatReader gcode_info_file; ///< File used to scan GcodeInfo
 uint32_t media_print_size_estimate = 0; ///< Estimated uncompressed G-code size in bytes
 uint32_t media_current_position = 0; // Current position in the file
 uint32_t media_gcode_position = 0; // Beginning of the current G-Code
@@ -77,17 +77,16 @@ METRIC_DEF(metric_prefetched_bytes, "media_prefetched", METRIC_VALUE_INTEGER, 10
  * @param event nullptr if not waiting for file to be downloaded
  */
 void media_gcode_info_scan(osEvent *event = nullptr) {
-    assert(gcode_info_file);
     auto &gcode_info = GCodeInfo::getInstance();
 
-    if (!gcode_info.start_load(*gcode_info_file)) {
+    if (!gcode_info.start_load(gcode_info_file)) {
         log_error(MarlinServer, "Media prefetch GCodeInfo: fail to open");
         return;
     }
 
     const bool should_load_gcode = [&] {
         // Wait for gcode to be valid
-        while (!gcode_info.check_valid_for_print(*gcode_info_file)) {
+        while (!gcode_info.check_valid_for_print(gcode_info_file)) {
             if (gcode_info.has_error()) {
                 log_error(MarlinServer, "Media prefetch GCodeInfo: not valid: %s", gcode_info.error_str());
                 return false;
@@ -108,7 +107,7 @@ void media_gcode_info_scan(osEvent *event = nullptr) {
         }
 
         // Verify the file CRC
-        if (!gcode_info.verify_file(*gcode_info_file)) {
+        if (!gcode_info.verify_file(gcode_info_file)) {
             log_error(MarlinServer, "Media prefetch GCodeInfo: fail to verify: %s", gcode_info.error_str());
             return false;
         }
@@ -118,10 +117,10 @@ void media_gcode_info_scan(osEvent *event = nullptr) {
 
     if (should_load_gcode) {
         log_info(MarlinServer, "Media prefetch GCodeInfo: loading");
-        gcode_info.load(*gcode_info_file);
+        gcode_info.load(gcode_info_file);
     }
 
-    gcode_info.end_load(*gcode_info_file);
+    gcode_info.end_load(gcode_info_file);
 }
 } // namespace
 
@@ -135,12 +134,6 @@ void media_prefetch(const void *) {
 
     prefetch_mutex_file_reader = xSemaphoreCreateMutex();
     assert(prefetch_mutex_file_reader);
-
-    media_print_file = new AnyGcodeFormatReader();
-    assert(media_print_file);
-
-    gcode_info_file = new AnyGcodeFormatReader();
-    assert(gcode_info_file);
 
     TaskDeps::provide(TaskDeps::Dependency::media_prefetch_ready);
     for (;;) {
@@ -175,9 +168,9 @@ void media_prefetch(const void *) {
         do {
             log_info(MarlinServer, "Media prefetch: Prefetching first %zu bytes at offset %" PRIu32, FILE_BUFF_SIZE, media_current_position);
             xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-            if (media_print_file->is_open()) {
+            if (media_print_file.is_open()) {
                 back_buff_level = FILE_BUFF_SIZE;
-                first_read_res = media_print_file->get()->stream_get_block(back_buff, back_buff_level);
+                first_read_res = media_print_file.get()->stream_get_block(back_buff, back_buff_level);
             } else {
                 first_read_res = IGcodeReader::Result_t::RESULT_ERROR;
             }
@@ -229,8 +222,8 @@ void media_prefetch(const void *) {
                 auto second_read_res = IGcodeReader::Result_t::RESULT_ERROR;
 
                 xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-                if (media_print_file->is_open()) {
-                    second_read_res = media_print_file->get()->stream_get_block(back_buff, back_buff_level);
+                if (media_print_file.is_open()) {
+                    second_read_res = media_print_file.get()->stream_get_block(back_buff, back_buff_level);
                 } else {
                     second_read_res = IGcodeReader::Result_t::RESULT_ERROR;
                 }
@@ -245,9 +238,9 @@ void media_prefetch(const void *) {
                         path = transfers::Transfer::Path(value);
                     });
 
-                    media_print_file->get()->update_validity(path);
+                    media_print_file.get()->update_validity(path);
                     back_buff_level = FILE_BUFF_SIZE;
-                    second_read_res = media_print_file->get()->stream_get_block(back_buff, back_buff_level);
+                    second_read_res = media_print_file.get()->stream_get_block(back_buff, back_buff_level);
                 }
                 xSemaphoreGive(prefetch_mutex_file_reader);
                 log_info(USBHost, "Media prefetch read done");
@@ -298,18 +291,18 @@ void media_print_start__prepare(const char *sfnFilePath) {
 }
 
 void media_print_start() {
-    assert(prefetch_mutex_file_reader && media_print_file);
+    assert(prefetch_mutex_file_reader);
 
     if (media_print_state != media_print_state_NONE) {
         return;
     }
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    media_print_file->open(marlin_vars()->media_SFN_path.get_ptr());
-    if (media_print_file->is_open() && media_print_file->get()->stream_gcode_start()) {
+    media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
+    if (media_print_file.is_open() && media_print_file.get()->stream_gcode_start()) {
         media_gcode_position = media_current_position = 0;
         media_print_state = media_print_state_PRINTING;
-        media_print_size_estimate = media_print_file->get()->get_gcode_stream_size_estimate();
+        media_print_size_estimate = media_print_file.get()->get_gcode_stream_size_estimate();
 
         // Do not remove, needed for 3rd party tools such as octoprint to get status about the gcode file being opened
         SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars()->media_SFN_path.get_ptr(), " Size:", media_print_size_estimate);
@@ -323,11 +316,11 @@ void media_print_start() {
 }
 
 inline void close_file() {
-    assert(prefetch_mutex_file_reader && media_print_file);
+    assert(prefetch_mutex_file_reader);
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
     osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_STOP);
-    media_print_file->close();
+    media_print_file.close();
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
@@ -344,7 +337,7 @@ void media_print_stop(void) {
 }
 
 void media_print_quick_stop(uint32_t pos) {
-    assert(prefetch_mutex_file_reader && media_print_file);
+    assert(prefetch_mutex_file_reader);
 
     skip_gcode = false;
     media_print_state = media_print_state_PAUSED;
@@ -352,22 +345,20 @@ void media_print_quick_stop(uint32_t pos) {
     queue.clear();
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    if (auto pack = media_print_file->get_prusa_pack()) {
+    if (auto pack = media_print_file.get_prusa_pack()) {
         media_stream_restore_info = pack->get_restore_info();
     }
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
 void media_print_quick_stop_powerpanic() {
-    assert(media_print_file);
-
     skip_gcode = false;
     media_print_state = media_print_state_PAUSED;
     media_reset_position = GCodeQueue::SDPOS_INVALID;
     queue.clear();
 
     // These two need to happen at once, from high priority ISR
-    if (auto pack = media_print_file->get_prusa_pack()) {
+    if (auto pack = media_print_file.get_prusa_pack()) {
         media_stream_restore_info = pack->get_restore_info();
     }
 }
@@ -385,30 +376,30 @@ void media_print_pause(bool repeat_last = false) {
 }
 
 static bool media_print_file_reset_position() {
-    media_print_size_estimate = media_print_file->get()->get_gcode_stream_size_estimate();
+    media_print_size_estimate = media_print_file.get()->get_gcode_stream_size_estimate();
     if (media_reset_position != GCodeQueue::SDPOS_INVALID) {
         media_print_set_position(media_reset_position);
         media_reset_position = GCodeQueue::SDPOS_INVALID;
     }
-    if (auto pack = media_print_file->get_prusa_pack()) {
+    if (auto pack = media_print_file.get_prusa_pack()) {
         pack->set_restore_info(media_get_restore_info());
     }
-    return media_print_file->get()->stream_gcode_start(media_current_position);
+    return media_print_file.get()->stream_gcode_start(media_current_position);
 }
 
 void media_print_resume(void) {
-    assert(prefetch_mutex_file_reader && media_print_file);
+    assert(prefetch_mutex_file_reader);
 
     if ((media_print_state != media_print_state_PAUSED)) {
         return;
     }
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    if (!media_print_file->is_open()) {
+    if (!media_print_file.is_open()) {
         // file was closed by media_print_pause, reopen
-        media_print_file->open(marlin_vars()->media_SFN_path.get_ptr());
+        media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
     }
-    if (media_print_file->is_open()) {
+    if (media_print_file.is_open()) {
         // file was left open between pause/resume or re-opened successfully
         if (media_print_file_reset_position()) {
             gcode_filter.reset();
@@ -426,11 +417,11 @@ void media_print_resume(void) {
 
 void media_print_reopen() {
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    if (media_print_file->is_open()) {
-        media_print_file->close();
+    if (media_print_file.is_open()) {
+        media_print_file.close();
         skip_gcode = true;
-        media_print_file->open(marlin_vars()->media_SFN_path.get_ptr());
-        if (!media_print_file->is_open() || !media_print_file_reset_position()) {
+        media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
+        if (!media_print_file.is_open() || !media_print_file_reset_position()) {
             usbh_power_cycle::trigger_usb_failed_dialog = true;
         }
     }
@@ -497,10 +488,8 @@ static size_t media_get_bytes_prefetched() {
 }
 
 void media_loop(void) {
-    assert(media_print_file);
-
     if (media_print_state != media_print_state_PRINTING) {
-        if (media_print_file->get() != nullptr) { // Read pointer without mutex lock, should be safe
+        if (media_print_file.get() != nullptr) { // Read pointer without mutex lock, should be safe
             // complete closing the file in the main loop (for media_print_quick_stop)
             close_file();
         }
