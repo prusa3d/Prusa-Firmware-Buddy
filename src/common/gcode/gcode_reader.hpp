@@ -313,16 +313,25 @@ private:
     bgcode::core::FileHeader file_header; // cached header
 
     struct stream_t {
+        stream_t() = default;
+        stream_t(stream_t &&) = default;
+        stream_t &operator=(stream_t &&) = default;
+
         bool multiblock = false;
         bgcode::core::BlockHeader current_block_header;
         uint16_t encoding = (uint16_t)bgcode::core::EGCodeEncodingType::None;
         uint32_t block_remaining_bytes_compressed = 0; //< remaining bytes in current block
         uint32_t uncompressed_offset = 0; //< offset of next char that will be outputted
         MeatPack meatpack;
-        heatshrink_decoder *hs_decoder = nullptr;
+
+        struct HSDecoderDeleter {
+            void operator()(heatshrink_decoder *ptr) {
+                heatshrink_decoder_free(ptr);
+            }
+        };
+        std::unique_ptr<heatshrink_decoder, HSDecoderDeleter> hs_decoder;
 
         void reset();
-        ~stream_t();
     } stream;
 
     stream_restore_info_t stream_restore_info; //< Restore info for last two blocks
