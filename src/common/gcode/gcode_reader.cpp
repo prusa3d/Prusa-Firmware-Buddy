@@ -13,22 +13,6 @@ using bgcode::core::EBlockType;
 using bgcode::core::ECompressionType;
 using bgcode::core::EGCodeEncodingType;
 
-IGcodeReader::~IGcodeReader() {
-    if (file) {
-        fclose(file);
-    }
-}
-
-IGcodeReader &IGcodeReader::operator=(IGcodeReader &&other) {
-    if (file) {
-        fclose(file);
-    }
-    file = other.file;
-    other.file = nullptr;
-    validity = other.validity;
-    return *this;
-}
-
 IGcodeReader::Result_t IGcodeReader::stream_get_line(GcodeBuffer &b) {
     b.line.begin = begin(b.buffer);
     b.line.end = begin(b.buffer);
@@ -171,6 +155,8 @@ void IGcodeReader::update_validity(transfers::Transfer::Path &filename) {
 }
 
 bool IGcodeReader::check_file_starts_with_BGCODE_magic() const {
+    auto file = this->file.get();
+
     // Todo respect file availability?
     rewind(file);
 
@@ -193,14 +179,14 @@ PlainGcodeReader::PlainGcodeReader(FILE &f, const struct stat &stat_info)
 }
 
 bool PlainGcodeReader::stream_metadata_start() {
-    bool success = fseek(file, 0, SEEK_SET) == 0;
+    bool success = fseek(file.get(), 0, SEEK_SET) == 0;
     output_type = output_type_t::metadata;
     gcodes_in_metadata = 0;
     set_ptr_stream_getc(&PlainGcodeReader::stream_getc_impl);
     return success;
 }
 bool PlainGcodeReader::stream_gcode_start(uint32_t offset) {
-    bool success = fseek(file, offset, SEEK_SET) == 0;
+    bool success = fseek(file.get(), offset, SEEK_SET) == 0;
     output_type = output_type_t::gcode;
     set_ptr_stream_getc(&PlainGcodeReader::stream_getc_impl);
     return success;
@@ -226,7 +212,7 @@ bool PlainGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint16_t 
 }
 
 PlainGcodeReader::Result_t PlainGcodeReader::stream_getc_impl(char &out) {
-    int iout = fgetc(file);
+    int iout = fgetc(file.get());
     if (iout == EOF) {
         return Result_t::RESULT_EOF;
     }
@@ -234,7 +220,7 @@ PlainGcodeReader::Result_t PlainGcodeReader::stream_getc_impl(char &out) {
     return Result_t::RESULT_OK;
 }
 IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
-    auto pos = ftell(file);
+    auto pos = ftell(file.get());
     if (!range_valid(pos, pos + 80)) {
         return Result_t::RESULT_OUT_OF_RANGE;
     }
@@ -273,7 +259,7 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
             // if we are reading metadata, read first x gcodes, that signals that metadata ends, and after that is done, seek to the end of file and continue streaming there
             // because that is where next interesting metadata is
             if (gcodes_in_metadata == stop_metadata_after_gcodes_num) {
-                fseek(file, -search_last_x_bytes, SEEK_END);
+                fseek(file.get(), -search_last_x_bytes, SEEK_END);
                 ++gcodes_in_metadata; // to not seek again next time
             }
             output = is_metadata;
@@ -292,6 +278,7 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
 }
 
 IGcodeReader::Result_t PlainGcodeReader::stream_getc_thumbnail_impl(char &out) {
+    auto file = this->file.get();
     long pos = ftell(file);
     while (true) {
         if (thumbnail_size == 0) {
@@ -333,6 +320,7 @@ PlainGcodeReader::Result_t PlainGcodeReader::stream_get_block(char *out_data, si
         return Result_t::RESULT_ERROR;
     }
 
+    auto file = this->file.get();
     long pos = ftell(file);
     if (!range_valid(pos, pos + size)) {
         size = 0;
@@ -435,7 +423,7 @@ bool PrusaPackGcodeReader::read_and_check_header() {
         return false;
     }
 
-    rewind(file);
+    rewind(file.get());
 
     if (bgcode::core::read_header(*file, file_header, nullptr) != bgcode::core::EResult::Success) {
         set_error(N_("Invalid BGCODE file header"));
@@ -446,6 +434,7 @@ bool PrusaPackGcodeReader::read_and_check_header() {
 }
 
 IGcodeReader::Result_t PrusaPackGcodeReader::read_block_header(BlockHeader &block_header) {
+    auto file = this->file.get();
     auto block_start = ftell(file);
 
     // first need to check if block header is in valid range
@@ -522,7 +511,7 @@ bool PrusaPackGcodeReader::stream_metadata_start() {
     stream.current_block_header = res.value();
 
     uint16_t encoding;
-    if (fread(&encoding, 1, sizeof(encoding), file) != sizeof(encoding)) {
+    if (fread(&encoding, 1, sizeof(encoding), file.get()) != sizeof(encoding)) {
         return false;
     }
 
@@ -553,6 +542,8 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
     BlockHeader start_block;
     uint32_t block_decompressed_offset; //< what is offset of first byte inside block that we start streaming from
     uint32_t block_throwaway_bytes; //< How many bytes to throw away from current block (after decompression)
+
+    auto file = this->file.get();
 
     if (offset == 0) {
         // get first gcode block
@@ -623,6 +614,8 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
 }
 
 PlainGcodeReader::Result_t PrusaPackGcodeReader::switch_to_next_block() {
+    auto file = this->file.get();
+
     // go to next block
     if (bgcode::core::skip_block(*file, file_header, stream.current_block_header) != bgcode::core::EResult::Success) {
         return Result_t::RESULT_ERROR;
@@ -675,7 +668,7 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_getc_file(char &out) {
         }
     }
     stream.block_remaining_bytes_compressed--; // assume 1 byte was read, it might return EOF/ERROR, but at this point it doesn't matter as stream is done anyway
-    int iout = fgetc(file);
+    int iout = fgetc(file.get());
     if (iout == EOF) {
         // if fgetc returned EOF, there is something wrong, because that means EOF was found in the middle of block
         return Result_t::RESULT_ERROR;
@@ -685,7 +678,7 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_getc_file(char &out) {
 }
 
 IGcodeReader::Result_t PrusaPackGcodeReader::stream_current_block_read(char *buffer, size_t size) {
-    auto read_res = fread(buffer, 1, size, file);
+    auto read_res = fread(buffer, 1, size, file.get());
     stream.block_remaining_bytes_compressed -= size;
     if (read_res != size) {
         return IGcodeReader::Result_t::RESULT_ERROR;
@@ -853,6 +846,7 @@ PrusaPackGcodeReader::Result_t PrusaPackGcodeReader::stream_get_block(char *out_
 }
 
 uint32_t PrusaPackGcodeReader::get_gcode_stream_size_estimate() {
+    auto file = this->file.get();
     long pos = ftell(file); // store file position, so we don't break any running streams
     uint32_t blocks_read = 0;
     uint32_t gcode_stream_size_compressed = 0;
@@ -890,6 +884,7 @@ uint32_t PrusaPackGcodeReader::get_gcode_stream_size_estimate() {
 }
 
 uint32_t PrusaPackGcodeReader::get_gcode_stream_size() {
+    auto file = this->file.get();
     long pos = ftell(file); // store file position, so we don't break any running streams
     uint32_t gcode_stream_size_uncompressed = 0;
 
@@ -920,7 +915,7 @@ IGcodeReader::FileVerificationResult PrusaPackGcodeReader::verify_file(FileVerif
     // Check CRC
     {
         // todo: this doesn't respect file validity
-        rewind(file);
+        rewind(file.get());
         if (bgcode::core::is_valid_binary_gcode(*file, true, crc_calc_buffer.data(), crc_calc_buffer.size()) != bgcode::core::EResult::Success) {
             return { .error_str = N_("The file is not a valid bgcode file.") };
         }
