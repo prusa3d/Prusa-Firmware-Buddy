@@ -694,7 +694,7 @@ MI_DONE_EXTRUDER_MAINTENANCE::MI_DONE_EXTRUDER_MAINTENANCE()
 }
 
 void MI_DONE_EXTRUDER_MAINTENANCE::click(IWindowMenu &) {
-    if (MsgBoxQuestion(_("Reset the extruder maintenance reminder?"), Responses_YesNo) == Response::Yes) {
+    if (MsgBoxQuestion(_("Do you want to reset the Nextruder main-plate maintenance reminder?"), Responses_YesNo) == Response::Yes) {
         config_store().mmu_last_maintenance.set(config_store().mmu_changes.get());
         config_store().mmu_fail_bucket.set(0);
     }

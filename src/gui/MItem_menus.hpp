@@ -548,7 +548,7 @@ protected:
 #endif
 
 class MI_DONE_EXTRUDER_MAINTENANCE : public IWindowMenuItem {
-    constexpr static const char *const label = N_("Extruder Maintenance");
+    constexpr static const char *const label = N_("Nextruder Maintenance");
 
 public:
     MI_DONE_EXTRUDER_MAINTENANCE();
