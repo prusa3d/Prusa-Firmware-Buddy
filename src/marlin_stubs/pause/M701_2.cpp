@@ -24,7 +24,6 @@
 #include "config_store/store_c_api.h"
 #include "RAII.hpp"
 #include "M70X.hpp"
-#include "fs_event_autolock.hpp"
 #include <config_store/store_instance.hpp>
 #include <option/has_bowden.h>
 #include <option/has_human_interactions.h>
@@ -272,7 +271,6 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
 }
 
 void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament, std::optional<filament::Colour> color_to_be_loaded) {
-    FS_EventAutolock autoload_lock;
     InProgress progress;
 
     filament::Type filament = config_store().get_filament_type(target_extruder);
