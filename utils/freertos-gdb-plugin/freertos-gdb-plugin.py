@@ -124,10 +124,6 @@ def switch_to_task(task):
 
     # r13 (sp) will be restored by MCU performing mode switch
 
-    # Get rid of sp-msp warning
-    # I have no idea what I am doing here.
-    set_reg('sp', '$msp')
-
     # r14 (lr) is restored by PendSV_Handler from the stack
     r14 = stack.pop()
     set_reg('r14', r14)
