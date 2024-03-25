@@ -53,7 +53,7 @@ void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
 }
 
 MI_HOSTNAME::MI_HOSTNAME()
-    : WiInfo<config_store_ns::lan_hostname_max_len + 1>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WiInfo<config_store_ns::lan_hostname_max_len + 1>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 MI_NET_IP_t::MI_NET_IP_t()
