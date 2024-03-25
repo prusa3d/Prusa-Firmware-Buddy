@@ -48,7 +48,7 @@ void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/,
         clicked_return();
         break;
     case ClickCommand::Reset_Z:
-        Item<MI_Z_AXIS_LEN>().SetVal(default_Z_max_pos);
+        Item<MI_Z_AXIS_LEN>().SetVal(DEFAULT_Z_MAX_POS);
         Invalidate();
         break;
     case ClickCommand::Reset_steps:

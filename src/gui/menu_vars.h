@@ -1,5 +1,6 @@
 // menu_vars.h - shared arrays to be used in menus
 #pragma once
+#include "SteelSheets.hpp"
 #include "i18n.h"
 #include "file_list_defs.h"
 
@@ -9,32 +10,15 @@
 #define STR(x)      QUOTE_ME(x)
 
 // axis length [mm]
-extern const int x_axis_len;
-extern const int y_axis_len;
-extern const int z_axis_len;
+static constexpr int axis_steps_per_unit[] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
-// tolerance (common for all axes)
-extern const int len_tol_abs; // length absolute tolerance (+-5mm)
-extern const int len_tol_rev; // length tolerance in reversed direction (3mm)
+static constexpr float nozzle_to_probe[3] = NOZZLE_TO_PROBE_OFFSET;
 
-extern const int axis_steps_per_unit[];
-
-extern const float nozzle_to_probe[3];
-
-extern const float z_offset_step;
-extern const float z_offset_min;
-extern const float z_offset_max;
-
-extern const int _noz_park[3];
-extern const char *const gcode_nozzle_park;
+static constexpr float z_offset_step = 1.0F / float(axis_steps_per_unit[2]);
+static constexpr float z_offset_min = Z_OFFSET_MIN;
+static constexpr float z_offset_max = Z_OFFSET_MAX;
 
 #define z_offset_def nozzle_to_probe[2]
-
-extern const int default_Z_max_pos;
-
-// Z is loaded from eeprom, cannot be used
-extern const char X_home_gcode[];
-extern const char Y_home_gcode[];
 
 // shared buffer where gui stores name of currently selected or printed file
 extern char gui_media_LFN[FILE_NAME_BUFFER_LEN];
