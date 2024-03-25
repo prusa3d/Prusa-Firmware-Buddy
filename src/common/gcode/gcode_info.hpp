@@ -119,16 +119,6 @@ public:
         char unsupported_features_text[37] { "" };
         void add_unsupported_feature(const char *feature, size_t length);
 
-        /**
-         * @brief Firmware version read from G-code M115 Ux.yy.z.
-         */
-        struct GcodeFwVersion {
-            unsigned major = 0;
-            unsigned minor = 0;
-            unsigned patch = 0;
-            unsigned build_number = 0;
-        };
-
         char latest_fw_version[sizeof("99.99.99-alpha99+999999")];
 
         /**

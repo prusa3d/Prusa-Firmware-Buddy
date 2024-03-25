@@ -273,7 +273,13 @@ bool GCodeInfo::is_up_to_date(const char *new_version_string) {
     // Parse version from G-code
     // supported formats: MAJOR.MINOR.PATCH, MAJOR.MINOR.PATCH+BUILD_NUMBER, MAJOR.MINOR.PATCH-PRERELEASE+BUILD_NUMBER
     // only MAJOR, MINOR, PATH, BUILD_NUMBER are used for version comparison,
-    ValidPrinterSettings::GcodeFwVersion parsed;
+    struct {
+        unsigned major = 0;
+        unsigned minor = 0;
+        unsigned patch = 0;
+        unsigned build_number = 0;
+    } parsed;
+
     if (sscanf(new_version_string, "%u.%u.%u", &parsed.major, &parsed.minor, &parsed.patch) != 3) {
         return true;
     }
