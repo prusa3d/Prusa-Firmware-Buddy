@@ -328,10 +328,10 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
             string_view_utf8 txt;
             switch (*reason) {
             case MMU2::MaintenanceReason::Failures:
-                txt = _("High failure rate of MMU changes, maintenance suggested. Visit prusa.io/mmu-care for more information.");
+                txt = _("Printer has detected multiple consecutive filament loading errors. We recommend checking Nextruder main-plate. Visit prusa.io/mmu-care");
                 break;
             case MMU2::MaintenanceReason::Changes:
-                txt = _("Performed many MMU changes, maintenance suggested. Visit prusa.io/mmu-care for more information.");
+                txt = _("Maintenance Reminder. Filament changes have reached main-plate lifespan. Inspect the part and ensure you have a spare plate available. Visit prusa.io/mmu-care");
                 break;
             }
 

@@ -684,7 +684,7 @@ MI_ODOMETER_MMU_CHANGES::MI_ODOMETER_MMU_CHANGES()
     : WI_FORMATABLE_LABEL_t<uint32_t>(
         _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {},
         [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%lu %s", value, times_label);
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%lu", value);
         }) {
 }
 

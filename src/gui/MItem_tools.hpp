@@ -601,8 +601,7 @@ public:
 };
 
 class MI_ODOMETER_MMU_CHANGES : public WI_FORMATABLE_LABEL_t<uint32_t> {
-    constexpr static const char *const label = N_("MMU Changed");
-    constexpr static const char *const times_label = N_("times"); // MMU Changed      123 times
+    constexpr static const char *const label = N_("MMU filament loads");
 
 public:
     MI_ODOMETER_MMU_CHANGES();
