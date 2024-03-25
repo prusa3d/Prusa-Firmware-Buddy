@@ -25,7 +25,6 @@ protected:
     IGcodeReader()
         : file(nullptr) {}
 
-public:
     IGcodeReader(FILE &f)
         : file(&f) {}
 
@@ -36,6 +35,7 @@ public:
 
     IGcodeReader &operator=(IGcodeReader &&);
 
+public:
     virtual ~IGcodeReader();
 
     enum class Continuations {
