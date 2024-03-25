@@ -20,24 +20,21 @@ extern "C" {
  *        User of this class can stream data from different formats without having to deal with what format they are using
  */
 class IGcodeReader {
+
 protected:
-    // For testing purposes only.
-    IGcodeReader()
-        : file(nullptr) {}
+    // For unittest purposes only.
+    IGcodeReader() {}
 
     IGcodeReader(FILE &f)
         : file(&f) {}
 
-    IGcodeReader(IGcodeReader &&other)
-        : file(nullptr) {
-        *this = std::move(other);
-    }
+    IGcodeReader(IGcodeReader &&other) = default;
 
-    IGcodeReader &operator=(IGcodeReader &&);
+    ~IGcodeReader() = default;
+
+    IGcodeReader &operator=(IGcodeReader &&) = default;
 
 public:
-    virtual ~IGcodeReader();
-
     enum class Continuations {
         /// Anything over the limit is discarded.
         ///
@@ -185,7 +182,12 @@ protected:
     bool check_file_starts_with_BGCODE_magic() const;
 
 protected:
-    FILE *file;
+    struct FileDeleter {
+        void operator()(FILE *f) {
+            fclose(f);
+        }
+    };
+    std::unique_ptr<FILE, FileDeleter> file;
 
     /// nullopt -> everything available; empty state -> error
     std::optional<transfers::PartialFile::State> validity = std::nullopt;
@@ -216,7 +218,7 @@ private:
 /**
  * @brief Implementation of IGcodeReader for plaintext gcodes
  */
-class PlainGcodeReader : public IGcodeReader {
+class PlainGcodeReader final : public IGcodeReader {
 public:
     PlainGcodeReader(FILE &f, const struct stat &stat_info);
     PlainGcodeReader(PlainGcodeReader &&other) = default;
@@ -282,7 +284,7 @@ private:
 /**
  * @brief Implementation of IGcodeReader for PrusaPack files
  */
-class PrusaPackGcodeReader : public IGcodeReader {
+class PrusaPackGcodeReader final : public IGcodeReader {
 public:
     PrusaPackGcodeReader(FILE &f, const struct stat &stat_info);
     PrusaPackGcodeReader(PrusaPackGcodeReader &&other) = default;
