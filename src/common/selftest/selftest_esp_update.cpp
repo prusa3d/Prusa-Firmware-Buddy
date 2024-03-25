@@ -325,7 +325,7 @@ bool EspCredentials::delete_file() {
 }
 
 bool EspCredentials::file_exists() {
-    std::unique_ptr<FILE, FileDeleter> fl;
+    unique_file_ptr fl;
 
     // no other thread should modify files in file system during upload
     // or this might fail
@@ -606,7 +606,7 @@ static void EspTask(void *pvParameters) {
 void update_esp() {
     bool credentials_on_usb = false;
     {
-        std::unique_ptr<FILE, FileDeleter> fl;
+        unique_file_ptr fl;
         // if other thread modifies files during this action, detection might fail
         fl.reset(fopen(settings_ini::file_name, "r"));
         credentials_on_usb = fl.get() != nullptr;
@@ -675,7 +675,7 @@ void update_esp() {
 void update_esp_credentials() {
     bool credentials_on_usb = false;
     {
-        std::unique_ptr<FILE, FileDeleter> fl;
+        unique_file_ptr fl;
         // if other thread modifies files during this action, detection might fail
         fl.reset(fopen(settings_ini::file_name, "r"));
         credentials_on_usb = fl.get() != nullptr;

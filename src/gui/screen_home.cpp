@@ -399,7 +399,7 @@ void screen_home_data_t::handle_wifi_credentials() {
     // first we find if there is an WIFI config
     bool has_wifi_credentials = false;
     {
-        std::unique_ptr<FILE, FileDeleter> fl;
+        unique_file_ptr fl;
         // if other thread modifies files during this action, detection might fail
         fl.reset(fopen(settings_ini::file_name, "r"));
         has_wifi_credentials = fl.get() != nullptr;

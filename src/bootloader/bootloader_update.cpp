@@ -10,8 +10,10 @@
 #include <string.h>
 #include "sys.h"
 #include <span>
-
 #include <random.h>
+
+#include <unique_file_ptr.hpp>
+
 #include "data_exchange.hpp"
 #include "resources/bootstrap.hpp"
 #include "resources/revision_bootloader.hpp"
@@ -40,13 +42,6 @@ constexpr uintptr_t bootloader_sector_get_address(int sector) {
     }
     return base_address;
 }
-
-class FileDeleter {
-public:
-    void operator()(FILE *file) {
-        fclose(file);
-    }
-};
 
 static bool calculate_file_crc(FILE *fp, uint32_t length, uint32_t &crc) {
     uint8_t buffer[64];
@@ -276,7 +271,7 @@ void buddy::bootloader::update(ProgressHook progress) {
         });
     }
 
-    std::unique_ptr<FILE, FileDeleter> bootloader_bin(fopen("/internal/res/bootloader.bin", "rb"));
+    unique_file_ptr bootloader_bin(fopen("/internal/res/bootloader.bin", "rb"));
     if (bootloader_bin.get() == nullptr) {
         log_critical(Bootloader, "bootloader.bin failed to fopen() after its bootstrap");
         fatal_error("bootloader.bin failed to open");

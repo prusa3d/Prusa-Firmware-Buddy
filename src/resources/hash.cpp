@@ -1,6 +1,7 @@
 #include "resources/hash.hpp"
 #include "fileutils.hpp"
 #include "sha256.h"
+#include <unique_file_ptr.hpp>
 #include <memory>
 #include <optional>
 
@@ -52,7 +53,7 @@ static bool update_hash_with_file(const char *root, Path &path, HashContext &has
     hash_ctx.append_mark();
 
     // filedata
-    std::unique_ptr<FILE, FILEDeleter> source(fopen(path.get(), "rb"));
+    unique_file_ptr source(fopen(path.get(), "rb"));
     if (source.get() == nullptr) {
         log_error(Resources, "Failed to open file %s", path.get());
         return false;

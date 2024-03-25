@@ -182,12 +182,7 @@ protected:
     bool check_file_starts_with_BGCODE_magic() const;
 
 protected:
-    struct FileDeleter {
-        void operator()(FILE *f) {
-            fclose(f);
-        }
-    };
-    std::unique_ptr<FILE, FileDeleter> file;
+    unique_file_ptr file;
 
     /// nullopt -> everything available; empty state -> error
     std::optional<transfers::PartialFile::State> validity = std::nullopt;
