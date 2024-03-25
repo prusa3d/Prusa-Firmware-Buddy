@@ -359,7 +359,7 @@ void media_print_quick_stop(uint32_t pos) {
     queue.clear();
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    if (auto pack = media_print_file->get_prusa_pack(); pack != nullptr) {
+    if (auto pack = media_print_file->get_prusa_pack()) {
         media_stream_restore_info = pack->get_restore_info();
     }
     xSemaphoreGive(prefetch_mutex_file_reader);
@@ -374,7 +374,7 @@ void media_print_quick_stop_powerpanic() {
     queue.clear();
 
     // These two need to happen at once, from high priority ISR
-    if (auto pack = media_print_file->get_prusa_pack(); pack != nullptr) {
+    if (auto pack = media_print_file->get_prusa_pack()) {
         media_stream_restore_info = pack->get_restore_info();
     }
 }
@@ -397,8 +397,8 @@ static bool media_print_file_reset_position() {
         media_print_set_position(media_reset_position);
         media_reset_position = GCodeQueue::SDPOS_INVALID;
     }
-    if (media_print_file->get_prusa_pack()) {
-        media_print_file->get_prusa_pack()->set_restore_info(media_get_restore_info());
+    if (auto pack = media_print_file->get_prusa_pack()) {
+        pack->set_restore_info(media_get_restore_info());
     }
     return media_print_file->get()->stream_gcode_start(media_current_position);
 }
