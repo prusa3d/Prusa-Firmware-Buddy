@@ -129,10 +129,7 @@ media_state_t media_get_state(void) {
     return media_state;
 }
 
-void media_prefetch_init() {
-    // Allocate these and never free
-    // This is done after bootstrap when a lot of heap is freed
-
+void media_prefetch(const void *) {
     prefetch_mutex_data_out = xSemaphoreCreateMutex();
     assert(prefetch_mutex_data_out);
 
@@ -144,10 +141,6 @@ void media_prefetch_init() {
 
     gcode_info_file = new AnyGcodeFormatReader();
     assert(gcode_info_file);
-}
-
-void media_prefetch(const void *) {
-    assert(prefetch_mutex_data_out && prefetch_mutex_file_reader && media_print_file && gcode_info_file);
 
     TaskDeps::provide(TaskDeps::Dependency::media_prefetch_ready);
     for (;;) {
