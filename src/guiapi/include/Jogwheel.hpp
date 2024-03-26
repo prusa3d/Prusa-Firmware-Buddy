@@ -10,12 +10,12 @@
 
 #include <inttypes.h>
 #include "window_types.hpp" // BtnState_t
+#include "queue.h"
 
 // old encoder (with new encoder 2 steps per 1 count) - Type2
 // new encoder (1 steps per 1 count) - Type1
 
 class Jogwheel {
-    using QueueHandle_t = void *; // do not want to include rtos files in this header
 public:
     /**
      * Constructor
