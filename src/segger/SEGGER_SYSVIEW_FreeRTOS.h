@@ -60,16 +60,6 @@ Notes:
 
     #include "SEGGER_SYSVIEW.h"
 
-    /*********************************************************************
-     *
-     *       Defines, configurable
-     *
-     **********************************************************************
-     */
-    #ifndef portSTACK_GROWTH
-        #define portSTACK_GROWTH (-1)
-    #endif
-
     #define SYSVIEW_FREERTOS_MAX_NOF_TASKS 13
 
     /*********************************************************************
