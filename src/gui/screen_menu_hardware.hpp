@@ -23,6 +23,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor.h>
 #include <option/has_modularbed.h>
+#include <option/has_loadcell.h>
 #if HAS_MODULARBED()
     #include "screen_menu_modularbed.hpp"
 #endif
@@ -113,8 +114,11 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #endif
 #if HAS_MMU2()
     ,
-    MI_MMU_NEXTRUDER_REWORK,
+    MI_MMU_NEXTRUDER_REWORK
+    #if HAS_LOADCELL()
+    ,
     MI_DONE_EXTRUDER_MAINTENANCE
+    #endif // HAS_LOADCELL()
 #endif
     >;
 
