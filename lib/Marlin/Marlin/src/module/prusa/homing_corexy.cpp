@@ -267,28 +267,6 @@ static measure_phase_cycles_ret measure_phase_cycles(int32_t &c_dist_a, int32_t 
     return { true, true }; // Success
 }
 
-static bool wait_for_standstill(uint8_t axis_mask, millis_t max_delay = 150) {
-    millis_t timeout = millis() + max_delay;
-    for (;;) {
-        bool stst = true;
-        LOOP_L_N(i, XYZE_N) {
-            if (TEST(axis_mask, i)) {
-                if (!static_cast<TMC2130Stepper &>(stepper_axis((AxisEnum)i)).stst()) {
-                    stst = false;
-                    break;
-                }
-            }
-        }
-        if (stst) {
-            return true;
-        }
-        if (millis() > timeout || planner.draining()) {
-            return false;
-        }
-        safe_delay(10);
-    }
-}
-
 /**
  * @brief Precise homing on core-XY.
  * @return true on success
@@ -313,7 +291,7 @@ bool refine_corexy_origin() {
     planner.synchronize();
 
     // align both motors to a full phase
-    wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
+    stepper_wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
     xy_long_t origin_steps = {
         stepper.position(A_AXIS) + phase_backoff_steps(A_AXIS),
         stepper.position(B_AXIS) + phase_backoff_steps(B_AXIS)
@@ -336,7 +314,7 @@ bool refine_corexy_origin() {
         bsod("raw move didn't reach requested position");
     }
 
-    wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
+    stepper_wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
     if (!phase_aligned(A_AXIS) || !phase_aligned(B_AXIS)) {
         if (planner.draining()) {
             return true;
