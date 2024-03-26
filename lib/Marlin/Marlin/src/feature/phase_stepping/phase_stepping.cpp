@@ -354,7 +354,6 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
 
 #if HAS_BURST_STEPPING()
     axis_state.driver_phase = current_phase;
-    axis_state.phase_correction = 0;
 #else
     // In order to start phase stepping, we have to set phase currents that are
     // in sync with current position, and then switch the driver to current
@@ -590,8 +589,8 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
     assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
 #if HAS_BURST_STEPPING()
-    axis_state.phase_correction = current_lut.get_phase_shift(new_phase);
-    int shifted_phase = normalize_motor_phase(new_phase + axis_state.phase_correction);
+    int phase_correction = current_lut.get_phase_shift(new_phase);
+    int shifted_phase = normalize_motor_phase(new_phase + phase_correction);
     int steps_diff = phase_difference(shifted_phase, axis_state.driver_phase);
     burst_stepping::set_phase_diff(axis_enum, steps_diff);
     axis_state.driver_phase = shifted_phase;
@@ -673,7 +672,6 @@ bool phase_stepping::any_axis_active() {
     });
 }
 
-#if HAS_BURST_STEPPING()
 int phase_stepping::logical_ustep(AxisEnum axis) {
     int mscnt = stepper_axis(axis).MSCNT();
     if (axis >= opts::SUPPORTED_AXIS_COUNT) {
@@ -687,10 +685,12 @@ int phase_stepping::logical_ustep(AxisEnum axis) {
     // ensure we're not being called while still moving
     assert(!axis_state.target.has_value());
     assert(!burst_stepping::busy());
-
-    return normalize_motor_phase(mscnt - axis_state.phase_correction);
-}
+#if HAS_BURST_STEPPING()
+    assert(mscnt == axis_state.driver_phase);
 #endif
+
+    return axis_state.last_phase;
+}
 
 FORCE_OFAST std::tuple<float, float> phase_stepping::axis_position(const AxisState &axis_state, uint32_t move_epoch) {
     float epoch = move_epoch / 1000000.f;
