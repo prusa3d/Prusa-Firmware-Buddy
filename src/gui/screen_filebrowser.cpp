@@ -22,7 +22,7 @@ LOG_COMPONENT_REF(GUI);
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : AddSuperWindow<screen_t>()
     , header(this)
-    , file_browser(this, GuiDefaults::RectScreenNoHeader, gui_media_SFN_path) {
+    , file_browser(this, GuiDefaults::RectScreenNoHeader, GCodeInfo::getInstance().GetGcodeFilepath()) {
     header.SetIcon(&img::folder_full_16x16);
     static const char sf[] = N_("PROJECTS");
     header.SetText(_(sf));
@@ -64,22 +64,16 @@ void screen_filebrowser_data_t::checkMissingMedia(MediaState_t media_state) {
 }
 
 void screen_filebrowser_data_t::printTheFile() {
-    int written;
-    //@@TODO:check for "/" on last place of path and if yes do not add "/"
-    written = browser().WriteNameToPrint(gui_media_SFN_path, FILE_PATH_BUFFER_LEN);
-    if (written < 0 || written >= (int)FILE_PATH_BUFFER_LEN) {
-        log_error(GUI, "Failed to prepare file path for print");
-        return;
-    }
-
-    // displayed text - can be a 8.3 DOS name or a LFN
-    strlcpy(gui_media_LFN, browser().CurrentLFN(), FILE_NAME_BUFFER_LEN);
     // save the top browser item
     browser().SaveTopSFN();
 
-    print_begin(gui_media_SFN_path);
-
-    return;
+    std::array<char, FILE_PATH_BUFFER_LEN> path;
+    const auto written = browser().WriteNameToPrint(path.data(), path.size());
+    if (written < 0 || static_cast<size_t>(written) >= path.size()) {
+        log_error(GUI, "Failed to prepare file path for print");
+        return;
+    }
+    print_begin(path.data());
 }
 
 void screen_filebrowser_data_t::goHome() {

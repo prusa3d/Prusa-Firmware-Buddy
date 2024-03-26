@@ -215,16 +215,10 @@ screen_printing_data_t::screen_printing_data_t()
     w_progress_txt.set_font(EndResultBody::progress_font);
 #endif // USE_<display>
 
+    strlcpy(text_filename.data(), GCodeInfo::getInstance().GetGcodeFilename(), text_filename.size());
     w_filename.set_font(Font::big);
     w_filename.SetPadding({ 0, 0, 0, 0 });
-    // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
-    {
-        // Update printed filename from marlin_server, sample LFN+SFN atomically
-        auto lock = MarlinVarsLockGuard();
-        marlin_vars()->media_LFN.copy_to(gui_media_LFN, sizeof(gui_media_LFN), lock);
-        marlin_vars()->media_SFN_path.copy_to(gui_media_SFN_path, sizeof(gui_media_SFN_path), lock);
-    }
-    w_filename.SetText(string_view_utf8::MakeRAM((const uint8_t *)gui_media_LFN));
+    w_filename.SetText(string_view_utf8::MakeRAM(text_filename.data()));
 
     w_etime_label.set_font(Font::small);
 
@@ -547,7 +541,7 @@ void screen_printing_data_t::updateTimes() {
 }
 
 void screen_printing_data_t::screen_printing_reprint() {
-    print_begin(gui_media_SFN_path, marlin_server::PreviewSkipIfAble::preview);
+    print_begin(GCodeInfo::getInstance().GetGcodeFilepath(), marlin_server::PreviewSkipIfAble::preview);
     screen_printing_data_t::updateTimes(); // reinit, but should be already set correctly
     SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Stop, LabelRes::Stop);
     header.SetText(_(caption));

@@ -88,6 +88,8 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     void hide_time_information();
 
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
+    std::array<char, FILE_NAME_BUFFER_LEN> text_filename;
+
     uint32_t message_timer;
     bool stop_pressed;
     bool waiting_for_abort; /// flag specific for stop pressed when MBL is performed

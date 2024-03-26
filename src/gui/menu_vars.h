@@ -20,10 +20,6 @@ static constexpr float z_offset_max = Z_OFFSET_MAX;
 
 #define z_offset_def nozzle_to_probe[2]
 
-// shared buffer where gui stores name of currently selected or printed file
-extern char gui_media_LFN[FILE_NAME_BUFFER_LEN];
-extern char gui_media_SFN_path[FILE_PATH_BUFFER_LEN];
-
 #include <array>
 #include <cstdint>
 using std::size_t;

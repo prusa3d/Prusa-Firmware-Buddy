@@ -280,13 +280,31 @@ void media_prefetch(const void *) {
 }
 
 void media_print_start__prepare(const char *sfnFilePath) {
-    if (sfnFilePath) {
-        auto lock = MarlinVarsLockGuard();
+    if (!sfnFilePath) {
+        return;
+    }
+
+    // We need a copy of the sfn as well because get_LFN needs the address mutable :/
+    std::array<char, FILE_PATH_BUFFER_LEN> filepath_sfn;
+    strlcpy(filepath_sfn.data(), sfnFilePath, filepath_sfn.size());
+
+    std::array<char, FILE_NAME_BUFFER_LEN> filename_lfn;
+    get_LFN(filename_lfn.data(), filename_lfn.size(), filepath_sfn.data());
+
+    // Update marlin vars
+    {
+        MarlinVarsLockGuard lock;
+
         // update media_SFN_path
-        strlcpy(marlin_vars()->media_SFN_path.get_modifiable_ptr(lock), sfnFilePath, marlin_vars()->media_SFN_path.max_length());
+        strlcpy(marlin_vars()->media_SFN_path.get_modifiable_ptr(lock), filepath_sfn.data(), marlin_vars()->media_SFN_path.max_length());
 
         // set media_LFN
-        get_LFN(marlin_vars()->media_LFN.get_modifiable_ptr(lock), marlin_vars()->media_LFN.max_length(), marlin_vars()->media_SFN_path.get_modifiable_ptr(lock));
+        strlcpy(marlin_vars()->media_LFN.get_modifiable_ptr(lock), filename_lfn.data(), marlin_vars()->media_LFN.max_length());
+    }
+
+    // Update GCodeInfo
+    {
+        GCodeInfo::getInstance().set_gcode_file(filepath_sfn.data(), filename_lfn.data());
     }
 }
 

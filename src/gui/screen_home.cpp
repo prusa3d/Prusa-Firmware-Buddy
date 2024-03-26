@@ -10,6 +10,7 @@
 #include "print_utils.hpp"
 #include "filename_type.hpp"
 #include "settings_ini.hpp"
+#include <str_utils.hpp>
 #include <wui_api.h>
 #include <espif.h>
 
@@ -141,6 +142,8 @@ const char *labels[] = {
 
 bool screen_home_data_t::usbWasAlreadyInserted = false;
 bool screen_home_data_t::need_check_wifi_credentials = true;
+
+static bool find_latest_gcode(char *fpath, int fpath_len);
 
 static void FilamentBtn_cb() {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilament>);
@@ -495,12 +498,10 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                     GuiMediaEventsHandler::ConsumeOneClickPrinting() && !usbh_power_cycle::block_one_click_print()) {
                     // TODO this should be done in main thread before Event::MediaInserted is generated
                     // if it is not the latest gcode might not be selected
-                    if (find_latest_gcode(
-                            gui_media_SFN_path,
-                            FILE_PATH_BUFFER_LEN,
-                            gui_media_LFN,
-                            FILE_NAME_BUFFER_LEN)) {
-                        print_begin(gui_media_SFN_path);
+
+                    std::array<char, FILE_PATH_BUFFER_LEN> filepath;
+                    if (find_latest_gcode(filepath.data(), filepath.size())) {
+                        print_begin(filepath.data());
                     }
                 }
             }
@@ -518,8 +519,9 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     SuperWindowEvent(sender, event, param);
 }
 
-bool screen_home_data_t::find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {
-    strlcpy(fpath, "/usb", fpath_len);
+static bool find_latest_gcode(char *fpath, int fpath_len) {
+    auto sb = StringBuilder::from_ptr(fpath, fpath_len);
+    sb.append_string("/usb/");
 
     F_DIR_RAII_Iterator dir(fpath);
     if (dir.result == ResType::NOK) {
@@ -547,10 +549,8 @@ bool screen_home_data_t::find_latest_gcode(char *fpath, int fpath_len, char *fna
         return false;
     }
 
-    fpath[4] = '/';
-    strlcpy(fpath + 5, entry.sfn, fpath_len - 5);
-    strlcpy(fname, entry.lfn, fname_len);
-    return true;
+    sb.append_string(entry.sfn);
+    return sb.is_ok();
 }
 
 void screen_home_data_t::printBtnEna() {

@@ -30,17 +30,17 @@ GCodeInfo &GCodeInfo::getInstance() {
     return instance;
 }
 
-void GCodeInfo::Init(const char *fname, const char *fpath) {
-    gcode_file_name = fname;
-    gcode_file_path = fpath;
-}
-
 const char *GCodeInfo::GetGcodeFilename() {
-    return gcode_file_name;
+    return gcode_file_name.data();
 }
 
 const char *GCodeInfo::GetGcodeFilepath() {
-    return gcode_file_path;
+    return gcode_file_path.data();
+}
+
+void GCodeInfo::set_gcode_file(const char *filepath_sfn, const char *filename_lfn) {
+    strlcpy(gcode_file_path.data(), filepath_sfn, gcode_file_path.size());
+    strlcpy(gcode_file_name.data(), filename_lfn, gcode_file_name.size());
 }
 
 #if HAS_GUI()
@@ -93,15 +93,14 @@ GCodeInfo::GCodeInfo()
     , has_preview_thumbnail_(false)
     , has_progress_thumbnail_(false)
     , filament_described(false)
-    , per_extruder_info()
-    , gcode_file_path(nullptr)
-    , gcode_file_name(nullptr) {
+    , per_extruder_info() //
+{
 }
 
 bool GCodeInfo::start_load(AnyGcodeFormatReader &file_reader) {
     reset_info();
 
-    file_reader.open(gcode_file_path);
+    file_reader.open(gcode_file_path.data());
     if (file_reader.is_open()) {
         start_load_result_ = StartLoadResult::Started;
         check_valid_for_print(file_reader); // This only updates is_valid, will change over the prefetch change

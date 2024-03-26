@@ -213,21 +213,15 @@ public:
      */
     int GivenExtrudersCount() const;
 
-    /** Set variables for gcode filename and filepath
-     *  @param[in] fname - aquired filename
-     *  @param[in] fpath - aquired filepath
-     */
-    void Init(const char *fname, const char *fpath);
-
-    /** Get static variable gcode filename
-     *  @param[in] fname - aquired filename
-     */
+    /// Returns LFN of the file (without path) - display purposes
     const char *GetGcodeFilename();
 
-    /** Get static variable gcode filepath
-     *  @param[in] fpath - aquired filename
-     */
+    /// Returns SFN filepath - referencing purposes, do not display
     const char *GetGcodeFilepath();
+
+    /// Set the filename (LFN) and filepath (SFN) of the gcode we're going to store the info for in GCodeInfo
+    /// The strings get copied into member variables, so no lifetime requirements.
+    void set_gcode_file(const char *filepath_sfn, const char *filename_lfn);
 
     /**
      * @brief Start loading of gcode (open file).
@@ -303,8 +297,13 @@ private:
     /** Iterate over items separated by some delimeter character */
     std::optional<std::span<char>> iterate_items(std::span<char> &buffer, char separator);
 
-    const char *gcode_file_path; /**< stores current gcode file path */
-    const char *gcode_file_name; /**< stores current gcode file name */
+    /// stores current gcode file path
+    /// SFN filepath (used for referencing the file)
+    std::array<char, FILE_PATH_BUFFER_LEN> gcode_file_path = { '\0' };
+
+    /// stores current gcode file name
+    /// LFN filename (used for display)
+    std::array<char, FILE_NAME_BUFFER_LEN> gcode_file_name = { '\0' };
 
 #if HAS_GUI()
     /** Set static variable for gcode filename

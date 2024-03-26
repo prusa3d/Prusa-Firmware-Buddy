@@ -83,9 +83,6 @@ extern void blockISR(); // do not want to include marlin temperature
 
 marlin_vars_t *gui_marlin_vars = 0;
 
-char gui_media_LFN[FILE_NAME_BUFFER_LEN];
-char gui_media_SFN_path[FILE_PATH_BUFFER_LEN]; //@@TODO DR - tohle pouzit na ulozeni posledni cesty
-
 Jogwheel jogwheel;
 
 inline constexpr size_t MSG_MAX_LENGTH = 63; // status message max length
@@ -130,13 +127,6 @@ void make_gui_ready_to_print() {
     bool filebrowser_preview = Screens::Access()->Count() == 2 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>() && Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
 
     if (can_print_on_current_screen || one_click_preview || filebrowser_preview) {
-        {
-            // Update printed filename from marlin_server, sample LFN+SFN atomically
-            auto lock = MarlinVarsLockGuard();
-            marlin_vars()->media_LFN.copy_to(gui_media_LFN, sizeof(gui_media_LFN), lock);
-            marlin_vars()->media_SFN_path.copy_to(gui_media_SFN_path, sizeof(gui_media_SFN_path), lock);
-        }
-
         // Handle different states of GUI before print begins
         if (can_print_on_current_screen) {
             bool have_file_browser = Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
@@ -301,7 +291,6 @@ void gui_run(void) {
     gui_bootstrap_screen_run();
 
     marlin_client::init();
-    GCodeInfo::getInstance().Init(gui_media_LFN, gui_media_SFN_path);
 
     DialogHandler::Access(); // to create class NOW, not at first call of one of callback
     marlin_client::set_message_cb(MsgCircleBuffer_cb);
