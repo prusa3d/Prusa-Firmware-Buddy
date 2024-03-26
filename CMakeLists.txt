@@ -337,7 +337,7 @@ if(CMAKE_CROSSCOMPILING)
   add_link_options(${MCU_FLAGS})
 
   # better FreeRTOS support
-  add_link_options(-Wl,--undefined=uxTopUsedPriority,--undefined=init_task)
+  add_link_options(-Wl,--undefined=init_task)
 
   # split and gc sections
   add_compile_options(-ffunction-sections -fdata-sections)

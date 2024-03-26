@@ -24,12 +24,12 @@
 #include <cpu_utils.hpp>
 
 extern "C" {
-void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName);
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName);
 void fatal_error(const char *error, const char *module);
 void __libc_init_array(void);
 }
 
-void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, [[maybe_unused]] signed char *pcTaskName) {
+void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, [[maybe_unused]] char *pcTaskName) {
     bsod("vApplicationStackOverflowHook");
 }
 

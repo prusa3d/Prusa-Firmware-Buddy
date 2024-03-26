@@ -46,7 +46,7 @@ void system_core_error_handler() {
     bsod("system_core_error_handler");
 }
 
-extern "C" void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, [[maybe_unused]] signed char *pcTaskName) {
+extern "C" void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, [[maybe_unused]] char *pcTaskName) {
     bsod("vApplicationStackOverflowHook");
 }
 

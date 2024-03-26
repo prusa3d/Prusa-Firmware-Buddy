@@ -111,7 +111,7 @@ below to enable the use of older kernel aware debuggers. */
 typedef tskTCB TCB_t;
 
 // current thread from FreeRTOS
-extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
+extern PRIVILEGED_DATA TCB_t *volatile pxCurrentTCB;
 
 void raise_redscreen(ErrCode error_code, const char *error, const char *module) {
     crash_dump::save_message(crash_dump::MsgType::RSOD, ftrstd::to_underlying(error_code), error, module);
@@ -291,7 +291,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
 #ifdef configCHECK_FOR_STACK_OVERFLOW
 
-extern "C" void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, signed char *pcTaskName) {
+extern "C" void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, char *pcTaskName) {
     // Save task name as title
     crash_dump::save_message(crash_dump::MsgType::STACK_OVF, 0, "", reinterpret_cast<char *>(pcTaskName));
 
