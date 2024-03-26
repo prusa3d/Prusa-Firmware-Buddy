@@ -22,7 +22,7 @@ enum class Result {
 };
 
 class ChannelMutex {
-    void *mutex_handle; // osMutexId is void*, dont use osMutexId in header - lower dependency
+    osMutexId mutex_handle;
 
     static osMutexId get_handle(I2C_HandleTypeDef &hi2c);
     static void init_mutexes();

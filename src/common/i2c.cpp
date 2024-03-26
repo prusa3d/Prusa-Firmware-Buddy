@@ -115,8 +115,6 @@ static int get_i2c_no(I2C_HandleTypeDef &hi2c) {
     return (current / offset) + 1; // +1 .. i2c numbered from 1 not from 0
 }
 
-static_assert(std::is_same_v<void *, osMutexId>, "rewrite lock declaration");
-
 osMutexId ChannelMutex::get_handle(I2C_HandleTypeDef &hi2c) {
     switch (get_i2c_no(hi2c)) {
     case 1:
