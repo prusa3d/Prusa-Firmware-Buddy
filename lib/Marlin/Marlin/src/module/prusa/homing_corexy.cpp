@@ -82,7 +82,7 @@ static int16_t phase_cycle_steps(const AxisEnum axis) {
 }
 
 static int16_t axis_mscnt(const AxisEnum axis) {
-#if HAS_BURST_STEPPING()
+#if HAS_PHASE_STEPPING()
     return phase_stepping::logical_ustep(axis);
 #else
     return stepper_axis(axis).MSCNT();
