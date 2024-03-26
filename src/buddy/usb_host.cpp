@@ -34,13 +34,13 @@ void restart_timer_callback(TimerHandle_t);
 
 uint32_t block_one_click_print_until_ms = 0;
 
-enum class Phase : uint_fast8_t {
+enum class RecoveryPhase : uint_fast8_t {
     idle,
     power_off,
     power_on
 };
 
-std::atomic<Phase> phase = Phase::idle;
+std::atomic<RecoveryPhase> recovery_phase = RecoveryPhase::idle;
 std::atomic<bool> printing_paused = false;
 std::atomic<bool> trigger_usb_failed_dialog = true;
 
@@ -52,7 +52,7 @@ void init() {
 
 // callback from USBH_MSC_Worker when an io error occurs => start the restart procedure
 void io_error() {
-    if (phase == Phase::idle) {
+    if (recovery_phase == RecoveryPhase::idle) {
         trigger_usb_failed_dialog = false;
         xTimerChangePeriod(restart_timer, 10, portMAX_DELAY);
     }
@@ -60,18 +60,22 @@ void io_error() {
 
 // callback from isr => start the restart procedure
 void port_disabled() {
-    if (phase == Phase::idle) {
+    if (recovery_phase == RecoveryPhase::idle) {
         trigger_usb_failed_dialog = false;
         xTimerChangePeriodFromISR(restart_timer, 10, nullptr);
     }
 }
 
-// called from USBH_Thread
+/// This function is called then MSC (mass storage class) is activated
+/// - that means after a USB flash drive is inserted (or re-initialized)
+/// called from USBH_Thread
 void msc_active() {
-    if (phase == Phase::power_on) {
+    // If cycle_phase is PowerCyclePhase::power_on,
+    // this means that the flash was initialized within the power cycle recovery.
+    // So the flash was connected the whole time, we just had a hiccup or something.
+    if (recovery_phase == RecoveryPhase::power_on) {
         xTimerStop(restart_timer, portMAX_DELAY);
-        phase = Phase::idle;
-        block_one_click_print_until_ms = ticks_ms() + 1000;
+        recovery_phase = RecoveryPhase::idle;
 
         // lazy initialization of marlin_client
         static bool marlin_client_initializated = false;
@@ -80,11 +84,14 @@ void msc_active() {
             marlin_client::init();
         }
         switch (media_print_get_state()) {
+
         case media_print_state_NONE:
             break;
+
         case media_print_state_PAUSED:
             marlin_client::print_resume();
             break;
+
         case media_print_state_PRINTING:
             marlin_client::media_print_reopen();
             trigger_usb_failed_dialog = true;
@@ -95,26 +102,50 @@ void msc_active() {
 
 // called from SVC task
 void restart_timer_callback(TimerHandle_t) {
-    switch (phase) {
-    case Phase::idle:
-        phase = Phase::power_off;
-        xTimerChangePeriod(restart_timer, 150, portMAX_DELAY);
+    switch (recovery_phase) {
+
+    case RecoveryPhase::idle:
+        // If the phase is idle and the timer was called -> problem occured, start recovery process
+        // This can either mean that the USB was disconnected,
+        // or the communication had a problem (but the flash is still inserted and we need to recover)
+
+        // Turn the USB off
+        recovery_phase = RecoveryPhase::power_off;
         USBH_Stop(&hUsbHostHS);
-        block_one_click_print_until_ms = ticks_ms() + 5000;
+
+        // Call this timer again in 150 ms for the next phase
+        xTimerChangePeriod(restart_timer, 150, portMAX_DELAY);
         break;
-    case Phase::power_off:
-        phase = Phase::power_on;
-        xTimerChangePeriod(restart_timer, 5000, portMAX_DELAY);
+
+    case RecoveryPhase::power_off:
+        // Prevent one click print from popping up when the drive initializes.
+        // Most USBs should initialize (and call msc_active) within a few hundreds of ms.
+        // Some drives take ~3 s to reinitialize, but we don't want to block the OCP for that long.
+        // If user disconnects and reconnects the drive, he can do it faster than that and we want the OCP to trigger.
+        block_one_click_print_until_ms = ticks_ms() + 800;
+
+        // Turn the USB on
+        recovery_phase = RecoveryPhase::power_on;
         USBH_Start(&hUsbHostHS);
+
+        // Give some time for the USB device to respond.
+        // If the USB device initializes within this time frame,
+        // msc_active function gets triggered and the timer is stopped, so the power_on phase is not called.
+        xTimerChangePeriod(restart_timer, 5000, portMAX_DELAY);
         break;
-    case Phase::power_on:
-        phase = Phase::idle;
+
+    case RecoveryPhase::power_on:
+        // The power cycle finished, but the drive was not loaded within a given period
+        // -> report an error
+        recovery_phase = RecoveryPhase::idle;
         trigger_usb_failed_dialog = true;
 
         switch (media_print_get_state()) {
+
         case media_print_state_NONE:
         case media_print_state_PRINTING:
             break;
+
         case media_print_state_PAUSED:
             static bool marlin_client_initializated = false;
             // lazy initialization of marlin_client
