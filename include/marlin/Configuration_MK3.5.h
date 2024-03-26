@@ -753,9 +753,9 @@
 
 /// HW limits of feed rate
 #define HWLIMIT_NORMAL_MAX_FEEDRATE \
-    { 400, 400, 40, 100 }
+    { 300, 300, 12, 120 }
 #define HWLIMIT_STEALTH_MAX_FEEDRATE \
-    { 140, 140, 12, 100 }
+    { 160, 160, 40, 100 }
 
 /**
  * Default Max Acceleration (change/s) change = mm/s
@@ -768,7 +768,7 @@
 
 /// HW limits of max acceleration
 #define HWLIMIT_NORMAL_MAX_ACCELERATION \
-    { 7000, 7000, 200, 2500 }
+    { 4000, 4000, 200, 2500 }
 #define HWLIMIT_STEALTH_MAX_ACCELERATION \
     { 2500, 2500, 200, 2500 }
 
@@ -785,11 +785,11 @@
 #define DEFAULT_TRAVEL_ACCELERATION 1250 // X, Y, Z acceleration for travel (non printing) moves
 
 /// HW limits of Acceleration
-#define HWLIMIT_NORMAL_ACCELERATION 7000
+#define HWLIMIT_NORMAL_ACCELERATION 4000
 #define HWLIMIT_STEALTH_ACCELERATION 2500
-#define HWLIMIT_NORMAL_RETRACT_ACCELERATION 1200
+#define HWLIMIT_NORMAL_RETRACT_ACCELERATION 1250
 #define HWLIMIT_STEALTH_RETRACT_ACCELERATION 1200
-#define HWLIMIT_NORMAL_TRAVEL_ACCELERATION 7000
+#define HWLIMIT_NORMAL_TRAVEL_ACCELERATION 4000
 #define HWLIMIT_STEALTH_TRAVEL_ACCELERATION 2500
 
 //
@@ -817,8 +817,8 @@
 #define DEFAULT_EJERK 5 // May be used by Linear Advance
 
 /// HW limits of Jerk
-#define HWLIMIT_NORMAL_JERK { 8, 8, 2, 10 }
-#define HWLIMIT_STEALTH_JERK {8, 8, 2, 10 }
+#define HWLIMIT_NORMAL_JERK { 8, 8, 2, 5 }
+#define HWLIMIT_STEALTH_JERK { 8, 8, 2, 5 }
 
 /**
  * S-Curve Acceleration
