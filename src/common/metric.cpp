@@ -35,7 +35,7 @@ static constexpr const size_t metric_system_queue_size = 50; ///< Not enough RAM
 static constexpr const size_t metric_system_queue_size = 100; ///< Size of metrics buffer
 #endif /* PRINTER_IS_PRUSA_MINI */
 osMailQDef(metric_system_queue, metric_system_queue_size, metric_point_t);
-static osMessageQId metric_system_queue;
+static osMailQId metric_system_queue;
 
 // internal variables
 static metric_handler_t **metric_system_handlers;
@@ -74,7 +74,7 @@ metric_t *metric_get_iterator_end() {
 
 static void metric_system_task_run(const void *) {
     for (;;) {
-        osEvent event = osMailGet(static_cast<osMailQId>(metric_system_queue), osWaitForever);
+        osEvent event = osMailGet(metric_system_queue, osWaitForever);
         assert(event.status == osEventMail);
         metric_point_t *point = (metric_point_t *)event.value.p;
 
@@ -86,7 +86,7 @@ static void metric_system_task_run(const void *) {
             }
         }
 
-        osMailFree(static_cast<osMailQId>(metric_system_queue), point);
+        osMailFree(metric_system_queue, point);
         metric_record_integer(&metric_dropped_points, dropped_points_count);
     }
 }
@@ -122,7 +122,7 @@ static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timest
         return NULL; // don't try to enqueue if nobody is listening
     }
 
-    metric_point_t *point = (metric_point_t *)osMailAlloc(static_cast<osMailQId>(metric_system_queue), 0);
+    metric_point_t *point = (metric_point_t *)osMailAlloc(metric_system_queue, 0);
     if (!point) {
         dropped_points_count += 1;
         return NULL;
@@ -136,10 +136,10 @@ static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timest
 
 static void point_enqueue(metric_point_t *recording) {
     metric_t *metric = recording->metric;
-    if (osMailPut(static_cast<osMailQId>(metric_system_queue), (void *)recording) == osOK) {
+    if (osMailPut(metric_system_queue, (void *)recording) == osOK) {
         update_min_interval(metric);
     } else {
-        osMailFree(static_cast<osMailQId>(metric_system_queue), recording);
+        osMailFree(metric_system_queue, recording);
         dropped_points_count += 1;
     }
 }
