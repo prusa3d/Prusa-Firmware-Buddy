@@ -190,6 +190,10 @@ static void usb_device_task_run(const void *) {
 #ifdef FUSB302B_INTERPOSER
     usb_vbus_state.store(buddy::hw::FUSB302B::ReadVBUSState());
     usb_device_seen_v.store(usb_vbus_state.load());
+    if (!usb_vbus_state.load()) {
+        // tusb_init() automatically connects the usb, so disconnect it if vbus is not present
+        tud_disconnect();
+    }
 #else
     // If bus RESET was seen without FUSB302B the link just came up on it's own
     usb_device_seen_v.store(tud_speed_get() != TUSB_SPEED_INVALID);
