@@ -63,11 +63,18 @@ sed -i "s/FIRST AUTHOR <EMAIL@ADDRESS>, YEAR./Prusa Research <info@prusa3d.com>,
 PO files are usually received from content with bad naming. Rename them to comply with format "Prusa-Firmware-Buddy_XX.po", where XX is the location code e.g. `Prusa-Firmware-Buddy_en.po` or `Prusa-Firmware-Buddy_cs.po` and then place them in their designated directiories in `src/lang/po`.
 
 ## Delete unused strings
-Run this for every language code
+Run this for every language code from within its folder (src/lang/po/XX)
 ```bash
 msgattrib --set-obsolete --ignore-file=../Prusa-Firmware-Buddy.pot -o Prusa-Firmware-Buddy_XX.po Prusa-Firmware-Buddy_XX.po # replace XX with language code
 msgattrib --no-obsolete -o Prusa-Firmware-Buddy_XX.po Prusa-Firmware-Buddy_XX.po # replace XX with language code
 ```
+
+## Replacing unsupported characters
+Sometimes, translators are using unsupported characters in their translations (.po). We have to replace them with supported characters. The script will go through every .po file and replace them unsupported characters that we know of.
+```bash
+python3 utils/translations_and_fonts/replace_unsupported_chars.py src/lang/po/
+```
+[script](replace_unsupported_chars.py)
 
 ## Regenerating fonts
 To safe space, our fonts have only set of characters, that are used in the translations. Fonts have to be regenerated because new translations could contain an unknown character.
