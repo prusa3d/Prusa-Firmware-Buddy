@@ -81,10 +81,8 @@ struct AxisState {
     uint32_t missed_tx_cnt = 0;
     uint32_t last_timer_tick = 0;
 
-    #if HAS_BURST_STEPPING()
     int original_microsteps = 0;
     bool had_interpolation = false;
-    #endif
 };
 
 /**

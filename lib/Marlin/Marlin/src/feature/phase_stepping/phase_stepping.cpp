@@ -338,19 +338,23 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     axis_state.last_position = 0;
     axis_state.direction = true; // TODO: should use last_direction_bits
 
+    // switch off interpolation first to ensure position is settled
+    axis_state.had_interpolation = stepper.intpol();
+    stepper.intpol(false);
+
+    // switch microsteps and fetch MSCNT at full resolution
+    axis_state.original_microsteps = stepper.microsteps();
+    stepper.microsteps(256);
+    int current_phase = stepper.MSCNT();
+
     // We initialize the zero rotor phase to current phase. The real initialization is done by
     // set_phase_origin() when the local coordinate system is effectively initialized.
-    int current_phase = stepper.MSCNT();
     axis_state.zero_rotor_phase = current_phase;
     axis_state.last_phase = current_phase;
 
 #if HAS_BURST_STEPPING()
-    axis_state.original_microsteps = stepper.microsteps();
     axis_state.driver_phase = current_phase;
     axis_state.phase_correction = 0;
-    axis_state.had_interpolation = stepper.intpol();
-    stepper.intpol(false);
-    stepper.microsteps(256);
 #else
     // In order to start phase stepping, we have to set phase currents that are
     // in sync with current position, and then switch the driver to current
@@ -366,6 +370,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     stepper.coil_B(axis_state.last_currents.a);
     stepper.direct_mode(true);
 #endif
+
     // Read axis configuration and cache it so we can access it fast
     if (axis_num == AxisEnum::X_AXIS) {
         axis_state.inverted = INVERT_X_DIR;
@@ -401,14 +406,9 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
     auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
     PreciseStepping::physical_axis_step_generator_types &= ~enable_mask;
 
-#if HAS_BURST_STEPPING()
-    stepper.microsteps(axis_state.original_microsteps);
-    stepper.intpol(axis_state.had_interpolation);
-#else
+#if !HAS_BURST_STEPPING()
     // In order to avoid glitch in motor motion, we have to first, make steps to
     // get MSCNT into sync and then we disable XDirect mode
-    int original_microsteps = stepper.microsteps();
-    stepper.microsteps(256);
     int current_phase = normalize_motor_phase(axis_state.last_phase);
     while (current_phase != stepper.MSCNT()) {
         switch (axis_num) {
@@ -427,10 +427,11 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
         delay_us_precise(20);
     }
     stepper.direct_mode(false);
-    stepper.microsteps(original_microsteps);
 #endif
 
-    // Reset IHOLD to the original state
+    // Reset driver params to original state
+    stepper.microsteps(axis_state.original_microsteps);
+    stepper.intpol(axis_state.had_interpolation);
     stepper.rms_current(stepper.rms_current(), axis_state.initial_hold_multiplier);
 
     if (!any_axis_active()) {
