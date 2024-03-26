@@ -272,6 +272,7 @@ bool MMU2::ReadRegister(uint8_t address) {
 enum MK4Register : uint8_t {
     TryLoadVsEStall = 0x80, // 0 tryload, 1 estall
     NominalEPosFSOff = 0x81, // 14mm
+    FailNextLoadToExtr = 0x82, // write "1" to fail the next load to extr operation
 };
 
 bool __attribute__((noinline)) MMU2::WriteRegister(uint8_t address, uint16_t data) {
@@ -294,6 +295,9 @@ bool __attribute__((noinline)) MMU2::WriteRegister(uint8_t address, uint16_t dat
     case MK4Register::NominalEPosFSOff:
         nominalEMotorFSOffReg = data; // raw millimeters
         return true; // not an MMU register
+    case MK4Register::FailNextLoadToExtr:
+        failNextLoadToExtr = data;
+        break;
     default:
         break; // do not intercept any other register writes
     }
@@ -389,6 +393,14 @@ bool MMU2::RetryIfPossible(ErrorCode ec) {
     return false;
 }
 
+bool MMU2::CheckFailLoadToExtr(bool b) {
+    if (failNextLoadToExtr > 0) {
+        --failNextLoadToExtr;
+        return false;
+    }
+    return b;
+}
+
 #ifdef USE_TRY_LOAD
 bool MMU2::TryLoad() {
     // MMU has finished its load, push the filament further by some defined constant length
@@ -434,7 +446,7 @@ bool MMU2::TryLoad() {
         }
     }
     tlur.DumpToSerial();
-    return filament_inserted;
+    return CheckFailLoadToExtr(filament_inserted);
 }
 #else // not USE_TRY_LOAD
 bool MMU2::MeasureEStallAtDifferentSpeeds() {
@@ -508,7 +520,7 @@ bool MMU2::FeedWithEStallDetection() {
             return false; // power panic or a similar issue happened, bail out fast
         }
     }
-    return true;
+    return CheckFailLoadToExtr(true);
 }
 #endif // USE_TRY_LOAD
 

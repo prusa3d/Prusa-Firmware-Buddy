@@ -411,6 +411,12 @@ private:
     float nominalEMotorFSOffReg = nominalEMotorFSOff;
     /// A record of the last E-motor position when fsensor turned off while unloading
     float unloadEPosOnFSOff = nominalEMotorFSOff;
+    /// register - fail the next n loads to extr intentionally
+    /// write a nonzero value into this register, it will screw up the load returned value (even if it went perfectly smooth on the machine)
+    /// the register is decremented after each load to extr. automatically
+    uint8_t failNextLoadToExtr = 0;
+
+    bool CheckFailLoadToExtr(bool b);
 };
 
 /// following Marlin's way of doing stuff - one and only instance of MMU implementation in the code base
