@@ -5,8 +5,8 @@
 
 namespace {
 
-// We remove one failure every 50 successful loads.
-constexpr uint32_t leak_every = 50;
+// We remove one failure every 1000 successful loads.
+constexpr uint32_t leak_every = 1000;
 // If we accumulate 50 failures (either because they happen all at once or
 // because they slowly accumulate over time), the bucket overflows.
 constexpr uint16_t overflow_limit = 50;

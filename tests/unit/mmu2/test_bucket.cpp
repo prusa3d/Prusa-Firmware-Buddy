@@ -34,7 +34,9 @@ TEST_CASE("MMU Fail leaky bucket") {
 
             bucket.add_failure();
 
-            bucket.success(++total_s);
+            for (size_t j = 0; j < 19; j++) {
+                bucket.success(++total_s);
+            }
         }
 
         // Not yet, the successes slow the filling up a bit.
@@ -57,7 +59,7 @@ TEST_CASE("MMU Fail leaky bucket") {
         uint32_t total_s = 0;
         for (uint32_t i = 0; i < 1000000; i++) {
             bucket.add_failure();
-            for (uint32_t j = 0; j < 60; j++) {
+            for (uint32_t j = 0; j < 1001; j++) {
                 bucket.success(++total_s);
                 REQUIRE_FALSE(bucket.reached_limit());
             }

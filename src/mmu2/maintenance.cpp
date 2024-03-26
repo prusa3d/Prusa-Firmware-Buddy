@@ -7,7 +7,7 @@ namespace MMU2 {
 
 namespace {
 
-    constexpr uint32_t maintenance_every = 10000;
+    constexpr uint32_t maintenance_every = 30000;
 
 }
 
