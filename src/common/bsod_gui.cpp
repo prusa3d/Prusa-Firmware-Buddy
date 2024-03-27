@@ -28,6 +28,8 @@
 #include "power_panic.hpp"
 #include "crash_dump/dump_parse.hpp"
 
+#include "str_utils.hpp"
+
 // this is private struct definition from FreeRTOS
 /*
  * Task control block.  A task control block (TCB) is allocated for each task,
@@ -120,12 +122,12 @@ void raise_redscreen(ErrCode error_code, const char *error, const char *module) 
 
 [[noreturn]] void fatal_error(const ErrCode error_code, ...) {
     const ErrDesc &corresponding_error = find_error(error_code);
-    char err_msg[140];
+    ArrayStringBuilder<140> str_builder;
     va_list args;
     va_start(args, error_code);
-    snprintf(err_msg, sizeof(err_msg), corresponding_error.err_text, args);
+    str_builder.append_vprintf(corresponding_error.err_text, args);
     va_end(args);
-    raise_redscreen(error_code, err_msg, corresponding_error.err_title);
+    raise_redscreen(error_code, str_builder.str(), corresponding_error.err_title);
 }
 
 //! Fatal error that causes Redscreen
