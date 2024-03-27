@@ -26,6 +26,8 @@ void G163(); ///< measure length of axis
 
 void M0();
 
+void M104_1(); ///< Set hotend temperature with preheat & stealth mode support
+
 void M123(); ///< Fan speed reporting
 
 void M150();

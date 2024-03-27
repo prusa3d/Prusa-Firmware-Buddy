@@ -41,9 +41,24 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 0:
             PrusaGcodeSuite::M0();
             break;
+
+        case 104:
+            switch (parser.subcode) {
+
+            case 1:
+                PrusaGcodeSuite::M104_1();
+                break;
+
+            default:
+                processed = false;
+                break;
+            }
+            break;
+
         case 123:
             PrusaGcodeSuite::M123();
             break;
+
 #if HAS_LEDS()
         case 150:
             PrusaGcodeSuite::M150();

@@ -406,6 +406,8 @@ public:
   // while allowing background processing. It does not synchronize.
   static void dwell(millis_t time, bool no_stepper_sleep=false);
 
+  static void M104();
+
   /**
    * @brief Home.
    * @param * see GcodeSuite::G28() for details
@@ -631,7 +633,6 @@ private:
   #endif
 
   #if EXTRUDERS
-    static void M104();
     static void M109();
   #endif
 
