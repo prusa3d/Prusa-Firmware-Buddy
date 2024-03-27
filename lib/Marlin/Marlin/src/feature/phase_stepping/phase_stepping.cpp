@@ -336,7 +336,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     assert(!axis_state.active && !axis_state.target.has_value() && axis_state.pending_targets.isEmpty());
 
     axis_state.last_position = 0;
-    axis_state.direction = true; // TODO: should use last_direction_bits
+    axis_state.direction = Stepper::last_axis_direction(axis_num);
 
     // switch off interpolation first to ensure position is settled
     axis_state.had_interpolation = stepper.intpol();
