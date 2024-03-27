@@ -60,7 +60,7 @@ struct AxisState {
     CoilCurrents last_currents; // Currently applied coil currents
     #endif
     float last_position = 0.f; // Last known logical position
-    bool direction = true; // Last non-zero movement direction
+    bool direction = true; // Last non-zero physical movement direction
 
     CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
 

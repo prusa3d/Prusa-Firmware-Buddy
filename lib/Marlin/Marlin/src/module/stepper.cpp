@@ -462,6 +462,15 @@ float Stepper::segment_progress() {
   return done / planned;
 }
 
+bool Stepper::is_axis_inverted(AxisEnum axis) {
+  switch (axis) {
+    case X_AXIS: return INVERT_X_DIR;
+    case Y_AXIS: return INVERT_Y_DIR;
+    case Z_AXIS: return INVERT_Z_DIR;
+    default: return false; // other axes cannot be inverted
+  }
+}
+
 #if 0
 
 #if ENABLED(S_CURVE_ACCELERATION)
