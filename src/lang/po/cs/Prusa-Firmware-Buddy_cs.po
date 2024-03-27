@@ -1163,7 +1163,7 @@ msgstr ""
 
 #: src/gui/MItem_menus.cpp:672
 msgid "Do you want to reset the Nextruder maintenance reminder?"
-msgstr "Chcete resetovat upozornění na termín údržby v Nextruderu?"
+msgstr "Chcete resetovat upozornění na termín údržby Nextruderu?"
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:17
 #, c-format
