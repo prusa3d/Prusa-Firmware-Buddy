@@ -1162,8 +1162,8 @@ msgstr ""
 "a podložkou?"
 
 #: src/gui/MItem_menus.cpp:672
-msgid "Do you want to reset the Nextruder main-plate maintenance reminder?"
-msgstr "Chcete resetovat upozornění na termín údržby main-plate v Nextruderu?"
+msgid "Do you want to reset the Nextruder maintenance reminder?"
+msgstr "Chcete resetovat upozornění na termín údržby v Nextruderu?"
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:17
 #, c-format
@@ -3621,13 +3621,11 @@ msgstr "MAC adresa"
 
 #: src/gui/screen_printing.cpp:334
 msgid ""
-"Maintenance Reminder. Filament changes have reached main-plate lifespan. "
-"Inspect the part and ensure you have a spare plate available. Visit prusa.io/"
+"Maintenance Reminder. "
+"Please inspect the Nextruder. Visit prusa.io/"
 "mmu-care"
 msgstr ""
-"Připomenutí údržby. Počet výměn filamentů se blíží expiraci životnosti "
-"součástky main-plate. Zkontrolujte díl a ujistěte se, že máte main-plate na "
-"výměnu. Více na prusa.io/mmu-care."
+"Připomenutí údržby. Prosím zkontrolujte Nextruder. Více na prusa.io/mmu-care."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:60
 msgid "Make sure the filament is inserted through the sensor."
@@ -4908,10 +4906,9 @@ msgstr "tiskárna nemá dostatek nástrojů"
 #: src/gui/screen_printing.cpp:331
 msgid ""
 "Printer has detected multiple consecutive filament loading errors. We "
-"recommend checking Nextruder main-plate. Visit prusa.io/mmu-care"
+"recommend checking the Nextruder. Visit prusa.io/mmu-care"
 msgstr ""
-"Detekováno větší množství neúspěšných zavedení filamentu, doporučujeme "
-"kontrolu součástky main-plate v Nextruderu. Více na prusa.io/mmu-care"
+"Detekováno větší množství neúspěšných zavedení filamentu, doporučujeme kontrolu Nextruderu. Více na prusa.io/mmu-care"
 
 #: src/gui/MItem_tools.cpp:56
 msgid "Printer is busy. Please try repeating the action later."
