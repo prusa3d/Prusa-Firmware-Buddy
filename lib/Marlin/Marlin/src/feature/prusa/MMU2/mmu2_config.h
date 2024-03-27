@@ -62,7 +62,7 @@ static constexpr float MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE = 50.F;
     #define MMU2_LOAD_TO_NOZZLE_SEQUENCE                                       \
         {                                                                      \
             { MMU2_EXTRUDER_HEATBREAK_LENGTH, MMU2_LOAD_TO_NOZZLE_FEED_RATE }, \
-            { MMU2_EXTRUDER_NOZZLE_LENGTH, 5.F }                               \
+            { MMU2_EXTRUDER_NOZZLE_LENGTH + 40, 5.F }                          \
         }
 #else
 static constexpr float MMU2_EXTRUDER_HEATBREAK_LENGTH = 67.F;
