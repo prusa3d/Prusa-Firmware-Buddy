@@ -316,6 +316,8 @@ void phase_stepping::set_phase_origin(AxisEnum axis, float pos) {
     assert_initialized();
 
     auto &axis_state = *axis_states[axis];
+    assert(axis_state.pending_targets.isEmpty() && !axis_state.target.has_value());
+
     bool was_active = axis_state.active;
     axis_state.active = false;
 
