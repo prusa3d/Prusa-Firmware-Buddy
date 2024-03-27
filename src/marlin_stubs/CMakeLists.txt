@@ -3,6 +3,7 @@ target_sources(
   PRIVATE G26.cpp
           G64.cpp
           gcode.cpp
+          M104_1.cpp
           M123.cpp
           M1702.cpp
           M300.cpp
