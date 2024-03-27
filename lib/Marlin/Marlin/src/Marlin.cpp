@@ -1028,9 +1028,6 @@ void setup() {
 #if HAS_PHASE_STEPPING()
   phase_stepping::init();
 #endif
-#if HAS_BURST_STEPPING()
-  burst_stepping::init();
-#endif
   PreciseStepping::init();
 #ifdef ADVANCED_STEP_GENERATORS
   input_shaper::init();

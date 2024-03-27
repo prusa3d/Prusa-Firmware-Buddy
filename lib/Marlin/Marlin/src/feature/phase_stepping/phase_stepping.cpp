@@ -354,6 +354,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
 
 #if HAS_BURST_STEPPING()
     axis_state.driver_phase = current_phase;
+    burst_stepping::init();
 #else
     // In order to start phase stepping, we have to set phase currents that are
     // in sync with current position, and then switch the driver to current
