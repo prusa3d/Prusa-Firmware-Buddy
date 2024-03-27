@@ -118,6 +118,10 @@ FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
         bsod("Unsupported axis");
     }
 
+    if (diff == 0) {
+        return;
+    }
+
     if (diff < 0) {
         diff = -diff;
         axis_direction[axis] = false;
@@ -127,10 +131,6 @@ FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
 
     if (diff > GPIO_BUFFER_SIZE) {
         bsod("Axis speed over limit");
-    }
-
-    if (diff == 0) {
-        return;
     }
 
     // We use fixed 16.16 number to find the transition points
