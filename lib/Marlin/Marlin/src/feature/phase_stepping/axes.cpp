@@ -1,7 +1,7 @@
 #include "axes.hpp"
 #include <array>
 #include <module/planner.h>
-#include <module/configuration_store.h>
+#include <config_store/store_instance.hpp>
 
 struct AxisMotorParams {
     int steps_per_rev = 0;
