@@ -1198,9 +1198,9 @@ msgstr ""
 "und Heizbett, neu einstellen?"
 
 #: src/gui/MItem_menus.cpp:672
-msgid "Do you want to reset the Nextruder main-plate maintenance reminder?"
+msgid "Do you want to reset the Nextruder maintenance reminder?"
 msgstr ""
-"Möchten Sie die Wartungserinnerung für die Nextruder-Main-Plate zurücksetzen?"
+"Möchten Sie die Nextruder-Wartungserinnerung zurücksetzen?"
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:17
 #, c-format
@@ -3708,13 +3708,11 @@ msgstr "MAC Adresse"
 
 #: src/gui/screen_printing.cpp:334
 msgid ""
-"Maintenance Reminder. Filament changes have reached main-plate lifespan. "
-"Inspect the part and ensure you have a spare plate available. Visit prusa.io/"
+"Maintenance Reminder. "
+"Please inspect the Nextruder. Visit prusa.io/"
 "mmu-care"
 msgstr ""
-"Wartungserinnerung. Die Filamentwechsel haben die Lebensdauer der Main-Plate "
-"erreicht. Überprüfen Sie das Teil und stellen Sie sicher, dass Sie eine "
-"Ersatzplatte zur Verfügung haben. Besuchen Sie prusa.io/mmu-care"
+"Wartungserinnerung. Bitte überprüfen Sie den Nextruder. Besuchen Sie prusa.io/mmu-care"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:60
 msgid "Make sure the filament is inserted through the sensor."
@@ -5025,11 +5023,9 @@ msgstr "Drucker hat nicht genügend Werkzeuge"
 #: src/gui/screen_printing.cpp:331
 msgid ""
 "Printer has detected multiple consecutive filament loading errors. We "
-"recommend checking Nextruder main-plate. Visit prusa.io/mmu-care"
+"recommend checking the Nextruder. Visit prusa.io/mmu-care"
 msgstr ""
-"Der Drucker hat mehrere aufeinanderfolgende Fehler beim Laden des Filaments "
-"festgestellt. Wir empfehlen, die Nextruder-Main-Plate zu überprüfen. "
-"Besuchen Sie prusa.io/mmu-care"
+"Der Drucker hat mehrere aufeinanderfolgende Fehler beim Laden des Filaments festgestellt. Wir empfehlen, den Nextruder zu überprüfen. Besuchen Sie prusa.io/mmu-care"
 
 #: src/gui/MItem_tools.cpp:56
 msgid "Printer is busy. Please try repeating the action later."
