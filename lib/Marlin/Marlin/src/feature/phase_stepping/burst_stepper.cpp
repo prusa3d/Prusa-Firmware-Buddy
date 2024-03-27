@@ -68,6 +68,7 @@ using PerAxisArray = std::array<T, SUPPORTED_AXIS_COUNT>;
 
 // Buddy pin abstraction for dir signals
 static constexpr PerAxisArray<OutputPin> dir_signals = { { xDir, yDir } };
+static PerAxisArray<const OutputPin *> step_signals = { nullptr, nullptr };
 
 // Bitmasks for step pins on the port
 static GPIO_TypeDef *step_gpio_port = nullptr;
@@ -104,6 +105,14 @@ void burst_stepping::init() {
         setup_pinout_2();
     } else {
         setup_pinout_1();
+    }
+
+    // initial step state
+    step_signals[X_AXIS] = buddy::hw::XStep;
+    step_signals[Y_AXIS] = buddy::hw::YStep;
+    for (int axis = 0; axis != SUPPORTED_AXIS_COUNT; ++axis) {
+        axis_step_state[axis] = (step_signals[axis]->read() == Pin::State::high);
+        axis_direction[axis] = (dir_signals[axis].read() == Pin::State::high);
     }
 
     HAL_TIM_Base_Start(&TIM_HANDLE_FOR(burst_stepping));
