@@ -261,9 +261,17 @@ BaseType_t xPortStartScheduler( void )
 
 void vPortEndScheduler( void )
 {
-    /* Not implemented in ports where there is nothing to return to.
-     * Artificially force an assert. */
-    configASSERT( uxCriticalNesting == 1000UL );
+/*
+    Fix failing spi DMA transfers in dump_to_xflash().
+
+    EndScheduler onPrinterKilled.
+    taskENTER_CRITICAL() don't allow scheduler to run but
+    DMA transfer relies on scheduler to resume the task
+    once DMA transfer is finished.
+
+    By ending scheduler explicitly we force w25x driver
+    to not use DMA transfer at all.
+*/
 }
 /*-----------------------------------------------------------*/
 
