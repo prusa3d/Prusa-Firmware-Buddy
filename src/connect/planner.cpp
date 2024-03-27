@@ -1,4 +1,5 @@
 #include "planner.hpp"
+#include "netdev.h"
 #include "printer.hpp"
 
 #include <filename_type.hpp>
@@ -6,6 +7,9 @@
 #include <transfers/transfer.hpp>
 #include <option/websocket.h>
 #include <common/general_response.hpp>
+#include <wui.h>
+#include <netif_settings.h>
+#include <config_store/store_instance.hpp>
 
 #include <alloca.h>
 #include <algorithm>
@@ -214,6 +218,20 @@ namespace {
 
     bool command_is_error_whitelisted(const Command &command) {
         return holds_alternative<SendInfo>(command.command_data) || holds_alternative<SetToken>(command.command_data) || holds_alternative<ResetPrinter>(command.command_data) || holds_alternative<SendStateInfo>(command.command_data);
+    }
+
+    const char *set_hostname(const char *new_hostname) {
+        if (strlen(new_hostname) > HOSTNAME_LEN) {
+            return "Hostname too long";
+        }
+
+        if (strcmp(config_store().wifi_hostname.get_c_str(), new_hostname) != 0 || strcmp(config_store().lan_hostname.get_c_str(), new_hostname) != 0) {
+            log_info(connect, "Changing hostname to: %s", new_hostname);
+            config_store().wifi_hostname.set(new_hostname);
+            config_store().lan_hostname.set(new_hostname);
+            notify_reconfigure();
+        }
+        return nullptr;
     }
 } // namespace
 
@@ -809,6 +827,22 @@ void Planner::command(const Command &command, const SendStateInfo &) {
 void Planner::command(const Command &command, const DialogAction &params) {
     if (const char *error = printer.dialog_action(params.dialog_id, params.response); error != nullptr) {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, error };
+    } else {
+        planned_event = { EventType::Finished, command.id };
+    }
+}
+
+void Planner::command(const Command &command, const SetValue &params) {
+    const char *err = nullptr;
+    // There will be more eventually
+    switch (params.name) {
+    case connect_client::PropertyName::HostName:
+        err = set_hostname(reinterpret_cast<const char *>(params.value->data()));
+        break;
+    }
+
+    if (err != nullptr) {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, err };
     } else {
         planned_event = { EventType::Finished, command.id };
     }

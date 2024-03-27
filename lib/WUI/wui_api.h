@@ -63,7 +63,7 @@ typedef char ini_file_str_t[MAX_INI_SIZE];
  * \param [in] ap_config storage for AP parameters. May be NULL. Non-null is valid only with NETDEV_ESP_ID.
  * \param [in] netdev_id which slots to use in the eeprom. Either NETDEV_ETH_ID or NETDEV_ESP_ID.
  ***************************************************************************************************/
-void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
+void save_net_params(netif_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
 
 /*!**********************************************************************************************
  * \brief loads the network parameters from non-volatile memory
@@ -72,7 +72,7 @@ void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t ne
  * \param [out] ap_config storage for parameters about connecting to a WIFI AP. May be NULL. Non-null is valid only with NETDEV_ESP_ID.
  * \param [in] netdev_id which slots in the eeprom to use. Either NETDEV_ETH_ID or NETDEV_ESP_ID.
  ************************************************************************************************/
-void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
+void load_net_params(netif_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
 
 /*!****************************************************************************
  * \brief load from ini file Ethernet specific parameters
@@ -83,7 +83,7 @@ void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t ne
  *
  * \retval   1 if successful
  *****************************************************************************/
-uint32_t load_ini_file_eth(ETH_config_t *config);
+uint32_t load_ini_file_eth(netif_config_t *config);
 
 /*!****************************************************************************
  * \brief load from ini file Wifi specific parameters
@@ -95,7 +95,7 @@ uint32_t load_ini_file_eth(ETH_config_t *config);
  *
  * \retval   1 if successful
  *****************************************************************************/
-uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
+uint32_t load_ini_file_wifi(netif_config_t *config, ap_entry_t *ap);
 
 /*!****************************************************************************
  * \brief Retrieves the MAC address of the requested device.

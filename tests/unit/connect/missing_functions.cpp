@@ -16,3 +16,9 @@ bool random32bit(uint32_t *output) {
     *output = random();
     return true;
 }
+
+extern "C" {
+void notify_reconfigure() {}
+
+void netdev_get_hostname(uint32_t netdev_id, char *buffer, size_t buffer_len) {}
+}

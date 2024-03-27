@@ -142,7 +142,7 @@ private:
 
     struct Iface {
         netif dev = {};
-        ETH_config_t desired_config = {};
+        netif_config_t desired_config = {};
 #if MDNS()
         bool mdns_initialized = false;
 #endif
@@ -280,7 +280,7 @@ private:
             break;
         case Mode::Static: {
             log_info(Network, "Setting static IP on iface: %" PRIu32, face_index);
-            ETH_config_t cfg;
+            netif_config_t cfg;
             { // Scope for the lock
                 unique_lock lock(mutex);
                 // Yes, make a copy (for thread safety)

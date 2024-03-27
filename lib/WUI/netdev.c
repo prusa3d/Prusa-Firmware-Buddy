@@ -29,7 +29,7 @@
 #include "espif.h"
 
 bool netdev_load_ini_to_eeprom() {
-    ETH_config_t config[NETDEV_COUNT] = {};
+    netif_config_t config[NETDEV_COUNT] = {};
     ap_entry_t ap = {};
     /*
      * Load current values, so the things that are not present in the ini are
@@ -48,8 +48,8 @@ bool netdev_load_ini_to_eeprom() {
 }
 
 bool netdev_load_esp_credentials_eeprom() {
-    ETH_config_t cnf = {}; // to store current config, to be able to set it back
-    ETH_config_t cnf_dummy = {}; // just to read config from ini to something and discard it
+    netif_config_t cnf = {}; // to store current config, to be able to set it back
+    netif_config_t cnf_dummy = {}; // just to read config from ini to something and discard it
     ap_entry_t ap = {};
     /*
      * Load current values, so the things that are not present in the ini are
@@ -70,7 +70,7 @@ bool netdev_load_esp_credentials_eeprom() {
 }
 
 ap_entry_t netdev_read_esp_credentials_eeprom() {
-    ETH_config_t cnf = {};
+    netif_config_t cnf = {};
     ap_entry_t ap = {};
 
     load_net_params(&cnf, &ap, NETDEV_ESP_ID);

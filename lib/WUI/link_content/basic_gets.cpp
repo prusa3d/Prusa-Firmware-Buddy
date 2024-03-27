@@ -189,7 +189,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
 }
 
 JsonResult get_version(size_t resume_point, JsonOutput &output) {
-    char hostname[ETH_HOSTNAME_LEN + 1];
+    char hostname[HOSTNAME_LEN + 1];
     netdev_get_hostname(netdev_get_active_id(), hostname, sizeof hostname);
     float nozzle_diameter = config_store().get_nozzle_diameter(0);
 
@@ -214,7 +214,7 @@ JsonResult get_version(size_t resume_point, JsonOutput &output) {
 }
 
 JsonResult get_info(size_t resume_point, JsonOutput &output) {
-    char hostname[ETH_HOSTNAME_LEN + 1];
+    char hostname[HOSTNAME_LEN + 1];
     netdev_get_hostname(netdev_get_active_id(), hostname, sizeof hostname);
     float nozzle_diameter = config_store().get_nozzle_diameter(0);
     auto mmu2_enabled =

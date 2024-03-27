@@ -44,7 +44,7 @@ struct ini_load_def {
     // eth::ipv4 or wifi::ipv4
     const char *ip_section;
     // The config to store to (must not be NULL).
-    ETH_config_t *config;
+    netif_config_t *config;
     // The wifi AP definition. May be NULL (in which case it isn't loaded).
     ap_entry_t *ap;
 };
@@ -56,7 +56,7 @@ static bool ini_string_match(const char *section, const char *section_var, const
 static int ini_handler_func(void *user, const char *section, const char *name, const char *value) {
     ini_load_def *def = (ini_load_def *)user;
 
-    ETH_config_t *tmp_config = def->config;
+    netif_config_t *tmp_config = def->config;
 
     if (ini_string_match(section, def->ip_section, name, "type")) {
         if (strncasecmp(value, "DHCP", 4) == 0) {
@@ -67,7 +67,7 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
             tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_LAN_FLAGS);
         }
     } else if (ini_string_match(section, "network", name, "hostname")) {
-        strlcpy(tmp_config->hostname, value, ETH_HOSTNAME_LEN + 1);
+        strlcpy(tmp_config->hostname, value, HOSTNAME_LEN + 1);
         tmp_config->var_mask |= ETHVAR_MSK(ETHVAR_HOSTNAME);
     } else if (ini_string_match(section, def->ip_section, name, "addr")) {
         if (ip4addr_aton(value, &tmp_config->lan.addr_ip4)) {
@@ -125,14 +125,14 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
     return 1;
 }
 
-uint32_t load_ini_file_eth(ETH_config_t *config) {
+uint32_t load_ini_file_eth(netif_config_t *config) {
     ini_load_def def = {};
     def.config = config;
     def.ip_section = "eth::ipv4";
     return ini_load_file(ini_handler_func, &def);
 }
 
-uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap) {
+uint32_t load_ini_file_wifi(netif_config_t *config, ap_entry_t *ap) {
     ini_load_def def = {};
     def.config = config;
     def.ip_section = "wifi::ipv4";
@@ -140,7 +140,7 @@ uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap) {
     return ini_load_file(ini_handler_func, &def);
 }
 
-void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
+void save_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
     assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
     if (ethconfig->var_mask & (ETHVAR_MSK(ETHVAR_LAN_FLAGS))) {
         uint8_t flags = ethconfig->lan.flag;
@@ -185,7 +185,7 @@ void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
     }
 }
 
-void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
+void load_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
     assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
     // Just the flags, without (possibly) the wifi security
     if (netdev_id == NETDEV_ETH_ID) {
@@ -195,7 +195,7 @@ void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
         ethconfig->dns2_ip4.addr = config_store().lan_ip4_dns2.get();
         ethconfig->lan.msk_ip4.addr = config_store().lan_ip4_mask.get();
         ethconfig->lan.gw_ip4.addr = config_store().lan_ip4_gateway.get();
-        strlcpy(ethconfig->hostname, config_store().lan_hostname.get_c_str(), ETH_HOSTNAME_LEN + 1);
+        strlcpy(ethconfig->hostname, config_store().lan_hostname.get_c_str(), HOSTNAME_LEN + 1);
     } else {
         ethconfig->lan.flag = config_store().wifi_flag.get() & ~RESERVED_MASK;
         ethconfig->lan.addr_ip4.addr = config_store().wifi_ip4_addr.get();
@@ -203,7 +203,7 @@ void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
         ethconfig->dns2_ip4.addr = config_store().wifi_ip4_dns2.get();
         ethconfig->lan.msk_ip4.addr = config_store().wifi_ip4_mask.get();
         ethconfig->lan.gw_ip4.addr = config_store().wifi_ip4_gateway.get();
-        strlcpy(ethconfig->hostname, config_store().wifi_hostname.get_c_str(), ETH_HOSTNAME_LEN + 1);
+        strlcpy(ethconfig->hostname, config_store().wifi_hostname.get_c_str(), HOSTNAME_LEN + 1);
     }
 
     if (ap != NULL) {
