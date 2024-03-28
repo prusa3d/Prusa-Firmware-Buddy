@@ -580,6 +580,8 @@ namespace {
         { "support_material", MetaFilter::Int },
         { "max_layer_z", MetaFilter::Float },
         { "objects_info", MetaFilter::String },
+        { "estimated_print_time", MetaFilter::Int },
+        { "estimated_printing_time_normal_mode", MetaFilter::String },
     };
 
     MetaFilter meta_filter(const char *name) {
