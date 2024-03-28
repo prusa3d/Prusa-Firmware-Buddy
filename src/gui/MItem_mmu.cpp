@@ -287,3 +287,29 @@ MI_INFO_FINDA::MI_INFO_FINDA()
                 _(value ? inserted : notInserted).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
             } // else: when MMU is not active, the MI_INFO_FINDA item is hidden anyway, so no update is really needed
         }) {}
+
+/*****************************************************************************/
+// MI_INFO_FINDA
+
+static void MI_MMU_BOOTLOADER_RESULT_label(char *buffer) {
+    string_view_utf8 result = [&] {
+        if (!MMU2::mmu2.Enabled()) {
+            return _("MMU off");
+        }
+
+        static constexpr EnumArray<MMU2BootloaderResult, const char *, 5> mmu2_bootloader_result_texts {
+            { MMU2BootloaderResult::not_detected, N_("Not detected") },
+            { MMU2BootloaderResult::fw_up_to_date, N_("FW ok") },
+            { MMU2BootloaderResult::fw_updated, N_("FW updated") },
+            { MMU2BootloaderResult::flashing_error, N_("Flashing err") },
+            { MMU2BootloaderResult::comm_error, N_("Comm err") },
+        };
+        return _(mmu2_bootloader_result_texts[MMU2::mmu2.bootloader_result()]);
+    }();
+
+    result.copyToRAM(buffer, GuiDefaults::infoDefaultLen);
+}
+
+MI_MMU_BOOTLOADER_RESULT::MI_MMU_BOOTLOADER_RESULT()
+    : WI_FORMATABLE_LABEL_t<bool>(
+        _(label), nullptr, is_enabled_t::yes, config_store().mmu2_enabled.get() ? is_hidden_t::dev : is_hidden_t::yes, false, &MI_MMU_BOOTLOADER_RESULT_label) {}

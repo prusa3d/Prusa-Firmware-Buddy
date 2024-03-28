@@ -286,3 +286,10 @@ class MI_INFO_FINDA : public WI_FORMATABLE_LABEL_t<bool> {
 public:
     MI_INFO_FINDA();
 };
+
+class MI_MMU_BOOTLOADER_RESULT : public WI_FORMATABLE_LABEL_t<bool> {
+    static constexpr const char *label = N_("MMU BL Status");
+
+public:
+    MI_MMU_BOOTLOADER_RESULT();
+};

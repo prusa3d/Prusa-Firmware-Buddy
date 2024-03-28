@@ -41,6 +41,7 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #endif
 #if HAS_MMU2()
     MI_MMU_ENABLE,
+    MI_MMU_BOOTLOADER_RESULT,
     MI_MMU_CUTTER,
 #endif
     MI_STEALTH_MODE,
