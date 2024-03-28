@@ -265,8 +265,16 @@ void DialogHandler::Loop() {
                 change(new_top->fsm_type, new_top->data);
             }
         } else {
-            close(old_top->fsm_type);
-            Screens::Access()->Loop();
+            if (new_top->fsm_type == ClientFSM::Load_unload && old_top->fsm_type == ClientFSM::PrintPreview) {
+                // TODO Remove this shitcode/prasohack as soon as possible.
+                //      As a special exception we do not close PrintPreview screen when the LoadUnload dialog
+                //      is requested. It would destroy the ToolsMappingBody while one of its methods is still
+                //      executing, leading to calling refresh_physical_tool_filament_labels() which in turn
+                //      jumped to undefined memory.
+            } else {
+                close(old_top->fsm_type);
+                Screens::Access()->Loop();
+            }
             open(new_top->fsm_type, new_top->data);
             Screens::Access()->Loop();
             change(new_top->fsm_type, new_top->data);
