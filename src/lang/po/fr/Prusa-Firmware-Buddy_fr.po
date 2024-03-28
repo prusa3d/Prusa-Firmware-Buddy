@@ -6454,7 +6454,7 @@ msgstr "ATTENTION TMC TROP CHAUD"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:51
 msgid "Was filament unload successful?"
-msgstr "Le filament a-t-il été bien chargé ?"
+msgstr "Le filament a-t-il été bien déchargé ?"
 
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:49
