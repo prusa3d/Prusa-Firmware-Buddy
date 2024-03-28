@@ -112,4 +112,7 @@ void MMU2Serial::close() {
     mmu2SerialSim.txbuffQ.clear();
 }
 
+void MMU2Serial::check_recovery() {
+}
+
 } // namespace MMU2

@@ -323,6 +323,8 @@ void MMU2::mmu_loop() {
 }
 
 void __attribute__((noinline)) MMU2::mmu_loop_inner(bool reportErrors) {
+    mmu2Serial.check_recovery();
+
     #if MMU_USE_BOOTLOADER()
     if (state == xState::Bootloader) {
         bootloader->loop();
