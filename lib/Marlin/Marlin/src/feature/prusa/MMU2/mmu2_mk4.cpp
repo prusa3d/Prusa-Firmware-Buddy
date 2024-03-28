@@ -330,6 +330,7 @@ void __attribute__((noinline)) MMU2::mmu_loop_inner(bool reportErrors) {
         bootloader->loop();
 
         if (!bootloader->is_active()) {
+            bootloader_result_ = bootloader->result();
             bootloader.reset();
             state = xState::Connecting;
             logic.Start();

@@ -80,7 +80,7 @@ void MMU2BootloaderManager::loop() {
 }
 
 MMU2BootloaderManager::Task<void> MMU2BootloaderManager::main_coroutine() {
-    is_bootloader_detected_ = false;
+    result_ = MMU2BootloaderResult::not_detected;
 
     // Initial suspend - we've created the coroutine in activate(), wait for the loop() to proceed
     if (!co_await next_loop()) {
@@ -107,6 +107,9 @@ MMU2BootloaderManager::Task<void> MMU2BootloaderManager::main_coroutine() {
                 goto exit;
             }
         }
+
+        // If we've got after this point and return early, it's a comm error.
+        result_ = MMU2BootloaderResult::comm_error;
 
         // Append \0 after the identifier so that we can work with as string
         rtx_buffer[7] = '\0';
@@ -158,10 +161,9 @@ MMU2BootloaderManager::Task<void> MMU2BootloaderManager::main_coroutine() {
         const FWVersionData *mmu_version = reinterpret_cast<const FWVersionData *>(rtx_buffer.data());
         log_info(MMU2, "FW version: %i.%i.%i", mmu_version->project_major, mmu_version->project_minor, mmu_version->project_revision);
 
-        is_bootloader_detected_ = true;
-
         if (!force_fw_update_ && mmu_version->project_major == mmuVersionMajor && mmu_version->project_minor == mmuVersionMinor && mmu_version->project_revision == mmuVersionPatch) {
             log_info(MMU2, "Firmware is up-to-date.");
+            result_ = MMU2BootloaderResult::fw_up_to_date;
             goto exit;
         }
     }
@@ -169,6 +171,9 @@ MMU2BootloaderManager::Task<void> MMU2BootloaderManager::main_coroutine() {
     // Execute the FW update
     {
         log_info(MMU2, "Starting firmware update...");
+
+        // If we get after this point and return early, it's a firmware update error
+        result_ = MMU2BootloaderResult::flashing_error;
 
         auto file = fopen("/internal/res/mmu/fw.bin", "rb");
         if (!file) {
@@ -229,7 +234,7 @@ MMU2BootloaderManager::Task<void> MMU2BootloaderManager::main_coroutine() {
         }
 
         log_info(MMU2, "Firmware update finished (%u B)", total_bytes_written);
-
+        result_ = MMU2BootloaderResult::fw_updated;
         force_fw_update_ = false;
     }
 

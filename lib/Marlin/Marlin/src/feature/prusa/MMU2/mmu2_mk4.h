@@ -5,6 +5,7 @@
 #include "mmu2_marlin.h"
 #include "mmu2_reporting.h"
 #include "mmu2_command_guard.h"
+#include "mmu2_bootloader_result.h"
 
 #ifdef __AVR__
     #include "mmu2_protocol_logic.h"
@@ -84,6 +85,11 @@ public:
 
     /// Power on the MMU
     void PowerOn();
+
+    /// Returns result of the last MMU bootloader run
+    inline MMU2BootloaderResult bootloader_result() const {
+        return bootloader_result_;
+    }
 
     /// Read from a MMU register (See gcode M707)
     /// @param address Address of register in hexidecimal
@@ -376,6 +382,7 @@ private:
 #if MMU_USE_BOOTLOADER()
     std::unique_ptr<MMU2BootloaderManager> bootloader; ///< Bootloader manager, handles firmware updates and such
 #endif
+    std::atomic<MMU2BootloaderResult> bootloader_result_ = MMU2BootloaderResult::not_detected;
 
     uint8_t extruder; ///< currently active slot in the MMU ... somewhat... not sure where to get it from yet
     uint8_t tool_change_extruder; ///< only used for UI purposes
