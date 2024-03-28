@@ -4,6 +4,7 @@
 #include <initializer_list>
 
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_serial.h"
+#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_bootloader_result.h"
 #include "mmu2_bootloader_coroutine.hpp"
 #include "mmu2_bootloader_memory_resource.hpp"
 
@@ -41,9 +42,9 @@ public:
         force_fw_update_ = true;
     }
 
-    /// Returns whether the bootloader was detected and OK in the last boot.
-    inline bool is_bootloader_detected() const {
-        return is_bootloader_detected_;
+    /// Returns result of the bootloader run
+    inline MMU2BootloaderResult result() const {
+        return result_;
     }
 
     /// Function to be executed periodically, advances main_coroutine
@@ -89,8 +90,9 @@ private:
 
 private:
     bool force_fw_update_ : 1 = false;
-    bool is_bootloader_detected_ : 1 = false;
     bool is_stopping_ : 1 = false;
+
+    MMU2BootloaderResult result_ = MMU2BootloaderResult::not_detected;
 };
 
 } // namespace MMU2
