@@ -109,7 +109,8 @@ static int16_t phase_backoff_steps(const AxisEnum axis) {
     if (phaseDelta < 0) {
         phaseDelta += 1024;
     }
-    return int16_t(phaseDelta / phase_per_ustep(axis)) * effectorBackoutDir;
+    int16_t phasePerStep = phase_per_ustep(axis);
+    return int16_t((phaseDelta + phasePerStep / 2) / phasePerStep) * effectorBackoutDir;
 }
 
 static bool phase_aligned(AxisEnum axis) {
