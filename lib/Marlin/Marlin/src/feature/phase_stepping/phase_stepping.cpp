@@ -374,13 +374,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
 #endif
 
     // Read axis configuration and cache it so we can access it fast
-    if (axis_num == AxisEnum::X_AXIS) {
-        axis_state.inverted = INVERT_X_DIR;
-    } else if (axis_num == AxisEnum::Y_AXIS) {
-        axis_state.inverted = INVERT_Y_DIR;
-    } else if (axis_num == AxisEnum::Z_AXIS) {
-        axis_state.inverted = INVERT_Z_DIR;
-    }
+    axis_state.inverted = Stepper::is_axis_inverted(axis_num);
 
     // Sync the counters just before enabling the axis
     int32_t initial_steps_made = pos_to_steps(axis_num, axis_state.last_position);
