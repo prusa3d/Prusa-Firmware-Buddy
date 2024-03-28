@@ -34,8 +34,21 @@ inline static void deactivate_reset() {
 }
 
 void power_on() {
-    activate_reset(); // Hold MMU procesor in reset state. Save power consume.
-    if (!Configuration::Instance().can_power_up_mmu_without_pulses()) {
+    const auto &config = Configuration::Instance();
+
+    // Newer BOMs need push-pull for the reset pin, older open drain.
+    // Setting it like this is a bit hacky, because the MMUReset defined in hwio_pindef is constexpr,
+    // so it's not possible to change it right at the source.
+    if (config.needs_push_pull_mmu_reset_pin()) {
+        OutputPin pin = MMUReset;
+        pin.m_mode = OMode::pushPull;
+        pin.configure();
+    }
+
+    // Power on the MMU with sreset activated
+    activate_reset();
+
+    if (!config.can_power_up_mmu_without_pulses()) {
         CriticalSection critical_section;
 
         for (uint32_t i = 0; i < us_total; i += (us_high + us_low)) {
@@ -50,6 +63,10 @@ void power_on() {
     }
 
     MMUEnable.write(Pin::State::high);
+
+    // Give some time for the MMU to catch up with the reset signal - it takes some time for the voltage to actually start
+    delay(200);
+
     deactivate_reset();
 }
 
