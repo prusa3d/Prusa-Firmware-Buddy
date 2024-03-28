@@ -108,7 +108,7 @@ MMU2BootloaderManager::Task<void> MMU2BootloaderManager::main_coroutine() {
             }
         }
 
-        // Append \0 after the identifier so that we can work with as stringF
+        // Append \0 after the identifier so that we can work with as string
         rtx_buffer[7] = '\0';
 
         log_info(MMU2, "Software identifier: %s", rtx_buffer.data());
