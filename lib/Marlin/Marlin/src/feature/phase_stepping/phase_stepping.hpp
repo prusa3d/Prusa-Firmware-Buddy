@@ -28,8 +28,8 @@ namespace phase_stepping {
 struct MoveTarget {
     MoveTarget() = default;
     MoveTarget(float position);
-    MoveTarget(const move_t &move, int axis, uint64_t move_duration_ticks);
-    MoveTarget(const input_shaper_state_t &is_state, uint64_t move_duration_ticks);
+    MoveTarget(float position, const move_t &move, int axis, uint64_t move_duration_ticks);
+    MoveTarget(float position, const input_shaper_state_t &is_state, uint64_t move_duration_ticks);
 
     float initial_pos = 0;
     float half_accel = 0;
@@ -69,6 +69,7 @@ struct AxisState {
 
     uint32_t initial_time = 0; // Initial timestamp when the movement start
     std::optional<MoveTarget> target; // Current target to move
+    MoveTarget target_buffer; // Next planned target to move
 
     std::atomic<bool> is_moving = false;
     std::atomic<bool> is_cruising = false;
