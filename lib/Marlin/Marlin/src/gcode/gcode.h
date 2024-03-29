@@ -323,7 +323,15 @@ public:
     return TEST(axis_relative, a);
   }
   static inline void set_relative_mode(const bool rel) {
-    axis_relative = rel ? _BV(REL_X) | _BV(REL_Y) | _BV(REL_Z) | _BV(REL_E) : 0;
+    #if ENABLED(GCODE_COMPATIBILITY_MK3)
+        if (compatibility_mode == CompatibilityMode::MK3) {
+            axis_relative = rel ? _BV(REL_X) | _BV(REL_Y) | _BV(REL_Z) : 0;
+        } else {
+            axis_relative = rel ? _BV(REL_X) | _BV(REL_Y) | _BV(REL_Z) | _BV(REL_E) : 0;
+        }
+    #else
+        axis_relative = rel ? _BV(REL_X) | _BV(REL_Y) | _BV(REL_Z) | _BV(REL_E) : 0;
+    #endif
   }
   static inline void set_e_relative() {
     CBI(axis_relative, E_MODE_ABS);
