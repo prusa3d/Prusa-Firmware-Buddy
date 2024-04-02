@@ -185,6 +185,10 @@ namespace {
     #endif
             plan_move_by(50, 0, 0, 0, -EXTRUDE_MAXLENGTH);
             planner.synchronize();
+
+            // mark filament unloaded
+            config_store().set_filament_type(active_extruder, filament::Type::NONE);
+            filament_gcodes::M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, active_extruder);
         }
         return PhasesColdPull::manual_pull;
     }
