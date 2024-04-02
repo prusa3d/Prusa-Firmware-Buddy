@@ -172,11 +172,11 @@ static std::atomic<bool> connected_at_startup { false };
 void MX_USB_HOST_Init(void) {
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET);
-    HAL_Delay(200);
+    osDelay(200);
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET);
 #else
     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
-    HAL_Delay(200);
+    osDelay(200);
     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);
 #endif
     // A delay of 3000ms for detecting USB device (flash drive) was present at start

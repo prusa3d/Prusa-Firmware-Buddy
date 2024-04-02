@@ -378,7 +378,8 @@ USBH_StatusTypeDef USBH_LL_DriverVBUS(USBH_HandleTypeDef *phost, uint8_t state) 
 #endif
         }
     }
-    HAL_Delay(200);
+
+    osDelay(200);
     return USBH_OK;
 }
 
@@ -427,7 +428,7 @@ uint8_t USBH_LL_GetToggle(USBH_HandleTypeDef *phost, uint8_t pipe) {
  * @retval None
  */
 void USBH_Delay(uint32_t Delay) {
-    HAL_Delay(Delay);
+    osDelay(Delay);
 }
 
 /**
