@@ -689,8 +689,8 @@ int phase_stepping::logical_ustep(AxisEnum axis) {
 
     // ensure we're not being called while still moving
     assert(!axis_state.target.has_value());
-    assert(!burst_stepping::busy());
 #if HAS_BURST_STEPPING()
+    assert(!burst_stepping::busy());
     assert(mscnt == axis_state.driver_phase);
 #endif
 
