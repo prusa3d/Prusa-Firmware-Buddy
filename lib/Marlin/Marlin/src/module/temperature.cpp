@@ -3174,13 +3174,6 @@ void Temperature::readings_ready() {
 
 }
 
-
-bool isr_blocked = false;
-
-void blockISR() {
-  isr_blocked = true;
-}
-
 /**
  * Timer 0 is shared with millies so don't change the prescaler.
  *
@@ -3199,15 +3192,10 @@ void blockISR() {
 HAL_TEMP_TIMER_ISR() {
   HAL_timer_isr_prologue(TEMP_TIMER_NUM);
 
-  if (!isr_blocked) {
 #if (BOARD_IS_XBUDDY)
     AdcGet::sampleNozzle();
 #endif
     Temperature::isr();
-  } else {
-      hwio_safe_state();
-      watchdog_refresh();
-  }
 
   HAL_timer_isr_epilogue(TEMP_TIMER_NUM);
 }

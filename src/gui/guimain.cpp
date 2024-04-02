@@ -79,7 +79,6 @@ LOG_COMPONENT_REF(GUI);
 LOG_COMPONENT_REF(Buddy);
 LOG_COMPONENT_DEF(XLCD, LOG_SEVERITY_INFO);
 LOG_COMPONENT_DEF(LoveBoard, LOG_SEVERITY_INFO);
-extern void blockISR(); // do not want to include marlin temperature
 
 marlin_vars_t *gui_marlin_vars = 0;
 
