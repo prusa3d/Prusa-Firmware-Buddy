@@ -2577,7 +2577,13 @@ static void _server_update_vars() {
 #endif
     marlin_vars()->print_speed = static_cast<uint16_t>(feedrate_percentage);
 
-    const auto &progress_data = oProgressData.mode_specific(marlin_vars()->stealth_mode);
+    auto progress_data = oProgressData.mode_specific(marlin_vars()->stealth_mode);
+
+    // If the mode-specific progress data is all empty (never set by the M73 command),
+    // fall back to standard mode progress data to show at least something
+    if (!progress_data.percent_done.mIsUsed() && !progress_data.time_to_end.mIsUsed() && !progress_data.time_to_pause.mIsUsed()) {
+        progress_data = oProgressData.standard_mode;
+    }
 
     if (!FirstLayer::isPrinting()) { /// push notifications used for first layer calibration
         uint8_t progress = 0;
