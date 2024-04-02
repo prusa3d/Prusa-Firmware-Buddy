@@ -19,7 +19,7 @@ using namespace common::puppies::fifo;
 
 namespace buddy::puppies {
 
-class Dwarf : public ModbusDevice {
+class Dwarf final : public ModbusDevice, public Decoder::Callbacks {
 public:
     using SystemDiscreteInput = dwarf_shared::registers::SystemDiscreteInput;
     using SystemCoil = dwarf_shared::registers::SystemCoil;
@@ -408,13 +408,11 @@ private:
         uint32_t last_processed_timestamp; ///< Timestamp of last update of sampling rate
     } loadcell_samplerate;
 
-    const Decoder::Callbacks_t callbacks;
     CommunicationStatus write_general();
     CommunicationStatus write_tmc_enable();
     CommunicationStatus pull_log_fifo();
     CommunicationStatus pull_loadcell_fifo();
     bool dispatch_log_event();
-    void handle_log_fragment(LogData data);
     CommunicationStatus run_time_sync();
     constexpr log_component_t &get_log_component(uint8_t dwarf_nr);
     CommunicationStatus read_discrete_general_status();
@@ -428,6 +426,12 @@ private:
     uint32_t last_update_ms = 0; ///< Last time we updated registers
     uint32_t refresh_nr = 0; ///< Switch of different refresh cases
     uint32_t last_pull_ms = 0; ///< Last time we pulled data from fifo
+
+protected:
+    void decode_log(const LogData &data) final;
+    void decode_loadcell(const LoadcellRecord &data) final;
+    void decode_accelerometer_fast(const AccelerometerFastData &data) final;
+    void decode_accelerometer_freq(const AccelerometerSamplingRate &data) final;
 };
 
 extern std::array<Dwarf, DWARF_MAX_COUNT> dwarfs;

@@ -19,16 +19,21 @@ LOG_COMPONENT_REF(ModbusFIFODecoder);
  * decode method is used to decode messages and call callbacks defined as fuctions stored in a dedicated structure.
  */
 class Decoder {
+
 public:
-    typedef struct {
-        std::function<void(LogData)> log_handler;
-        std::function<void(LoadcellRecord)> loadcell_handler;
-        std::function<void(AccelerometerFastData)> accelerometer_fast_handler;
-        std::function<void(AccelerometerSamplingRate)> accelerometer_freq_handler;
-    } Callbacks_t;
+    class Callbacks {
+    public:
+        virtual void decode_log(const LogData &) {}
+        virtual void decode_loadcell(const LoadcellRecord &) {}
+        virtual void decode_accelerometer_fast(const AccelerometerFastData &) {}
+        virtual void decode_accelerometer_freq(const AccelerometerSamplingRate &) {}
+
+    protected:
+        ~Callbacks() = default;
+    };
 
     Decoder(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo, size_t len);
-    void decode(const Callbacks_t callbacks);
+    void decode(Callbacks &callbacks);
 
     /**
      * @brief Guess if there is more data in FIFO.
@@ -56,14 +61,12 @@ private:
     }
 
     template <typename R, typename PAYLOAD_T>
-    void make_call(std::function<R(PAYLOAD_T)> const &function) {
+    void make_call(Callbacks &callbacks, R (Callbacks::*function)(const PAYLOAD_T &)) {
         if (can_get<PAYLOAD_T>()) {
             // Extract payload even when no callback function is defined to
             // advance the data pointer to the next header.
             PAYLOAD_T payload = get<PAYLOAD_T>();
-            if (function) {
-                function(payload);
-            }
+            (callbacks.*function)(payload);
         }
     }
 

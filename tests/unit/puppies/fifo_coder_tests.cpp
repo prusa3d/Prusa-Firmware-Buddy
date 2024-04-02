@@ -186,13 +186,19 @@ TEST_CASE("Encode - null decode") {
     encoder.padd();
 
     Decoder decoder(fifo, encoder.position());
-    decoder.decode({});
+
+    class Callbacks final : public Decoder::Callbacks {};
+    Callbacks c;
+    decoder.decode(c);
 }
 
 TEST_CASE("Empty decode") {
     std::array<uint16_t, MODBUS_FIFO_LEN> fifo = { 0 };
     Decoder decoder(fifo, fifo.size());
-    decoder.decode({});
+
+    class Callbacks final : public Decoder::Callbacks {};
+    Callbacks c;
+    decoder.decode(c);
 }
 
 TEST_CASE("Encode - decode") {
@@ -205,32 +211,35 @@ TEST_CASE("Encode - decode") {
     REQUIRE(encoder.encode(accelerometer_fast_fragment));
     encoder.padd();
 
-    Decoder decoder(fifo, encoder.position());
+    class Callbacks final : public Decoder::Callbacks {
+    public:
+        int num_log = 0;
+        int num_loadcell = 0;
+        int num_accelerometer_fast = 0;
 
-    int num_log = 0;
-    int num_loadcell = 0;
-    int num_accelerometer_fast = 0;
-
-    decoder.decode({
-        [&num_log](LogData data) {
+        void decode_log(const LogData &data) final {
             REQUIRE(data == log_fragment);
             num_log++;
-        },
-        [&num_loadcell](LoadcellRecord data) {
+        }
+        void decode_loadcell(const LoadcellRecord &data) final {
             REQUIRE(data.timestamp == loadcell_fragment.timestamp);
             REQUIRE(data.loadcell_raw_value == loadcell_fragment.loadcell_raw_value);
             num_loadcell++;
-        },
-        [&num_accelerometer_fast](AccelerometerFastData data) {
+        }
+        void decode_accelerometer_fast(const AccelerometerFastData &data) final {
             REQUIRE(data[0] == accelerometer_fast_fragment[0]);
             REQUIRE(data[1] == accelerometer_fast_fragment[1]);
             num_accelerometer_fast++;
-        },
-    });
+        }
+    };
 
-    CHECK(num_log == 1);
-    CHECK(num_loadcell == 1);
-    CHECK(num_accelerometer_fast == 1);
+    Callbacks c;
+    Decoder decoder(fifo, encoder.position());
+    decoder.decode(c);
+
+    CHECK(c.num_log == 1);
+    CHECK(c.num_loadcell == 1);
+    CHECK(c.num_accelerometer_fast == 1);
 }
 
 TEST_CASE("Encode - partial decode") {
@@ -242,19 +251,19 @@ TEST_CASE("Encode - partial decode") {
     REQUIRE(encoder.encode(loadcell_fragment));
     encoder.padd();
 
-    Decoder decoder(fifo, encoder.position());
+    class Callbacks final : public Decoder::Callbacks {
+    public:
+        int num_log = 0;
 
-    int num_log = 0;
-
-    decoder.decode({
-        [&num_log](LogData data) {
+        void decode_log(const LogData &data) final {
             REQUIRE(data == log_fragment);
             num_log++;
-        },
-        NULL,
-        NULL,
-        NULL,
-    });
+        }
+    };
 
-    CHECK(num_log == 1);
+    Callbacks c;
+    Decoder decoder(fifo, encoder.position());
+    decoder.decode(c);
+
+    CHECK(c.num_log == 1);
 }

@@ -50,34 +50,7 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
     , log_component(get_log_component(dwarf_nr))
     , selected(false)
     , time_sync(this->dwarf_nr)
-    , loadcell_samplerate {}
-    , callbacks(Decoder::Callbacks_t {
-          .log_handler = std::bind(&Dwarf::handle_log_fragment, this, std::placeholders::_1),
-          .loadcell_handler = [this](LoadcellRecord data) {
-              // throw away samples if time is not synced
-              if (!this->time_sync.is_time_sync_valid() || !this->selected) {
-                  return;
-              }
-
-              // Store sample timestamp and count sample
-              loadcell_samplerate.last_timestamp = this->time_sync.buddy_time_us(data.timestamp);
-              loadcell_samplerate.count++;
-
-              // Process sample
-              loadcell.ProcessSample(data.loadcell_raw_value, loadcell_samplerate.last_timestamp); },
-          .accelerometer_fast_handler = [this](AccelerometerFastData data) {
-              // throw away samples if not selected
-              if (!this->is_selected()) {
-                  return;
-              }
-              for (AccelerometerXyzSample sample : data) {
-                  PrusaAccelerometer::put_sample(sample);
-              } },
-          .accelerometer_freq_handler = [this](AccelerometerSamplingRate data) {
-              if (!this->is_selected()) {
-                    return;
-              }
-              PrusaAccelerometer::set_rate(data.frequency); } }) {
+    , loadcell_samplerate {} {
 
     RegisterGeneralStatus.value.FaultStatus = dwarf_shared::errors::FaultStatusMask::NO_FAULT;
     RegisterGeneralStatus.value.HotendMeasuredTemperature = HEATER_0_MINTEMP + 1; // Init to temperature that won't immediately trigger mintemp
@@ -258,8 +231,7 @@ CommunicationStatus Dwarf::pull_fifo(bool &more) {
     }
 
     Decoder decoder(fifo, read);
-
-    decoder.decode(callbacks);
+    decoder.decode(*this);
 
     // Update sampling rate of the loadcell.ProcessSample()
     if (loadcell_samplerate.count > 30) {
@@ -274,25 +246,6 @@ CommunicationStatus Dwarf::pull_fifo(bool &more) {
 
     more = decoder.more();
     return status;
-}
-
-void Dwarf::handle_log_fragment(LogData data) {
-    // If buffer cannot handle next read, clean it
-    if (log_line_pos + data.size() > log_line_buffer.size()) {
-        DWARF_LOG(LOG_SEVERITY_WARNING, "Out of log buffer, logging incomplete data");
-        DWARF_LOG(LOG_SEVERITY_INFO, "%.*s", log_line_pos, log_line_buffer.data());
-        log_line_pos = 0;
-    }
-
-    // Copy data skipping 0 padding
-    for (char &c : data) {
-        if (c == 0) {
-            break;
-        }
-        log_line_buffer[log_line_pos++] = c;
-    }
-    while (dispatch_log_event())
-        ;
 }
 
 CommunicationStatus Dwarf::write_general() {
@@ -607,6 +560,56 @@ uint16_t Dwarf::get_heatbreak_fan_pwr() {
     return RegisterGeneralStatus.value.fan[1].pwm;
 }
 
+void Dwarf::decode_log(const LogData &data) {
+    // If buffer cannot handle next read, clean it
+    if (log_line_pos + data.size() > log_line_buffer.size()) {
+        DWARF_LOG(LOG_SEVERITY_WARNING, "Out of log buffer, logging incomplete data");
+        DWARF_LOG(LOG_SEVERITY_INFO, "%.*s", log_line_pos, log_line_buffer.data());
+        log_line_pos = 0;
+    }
+
+    // Copy data skipping 0 padding
+    for (const char c : data) {
+        if (c == 0) {
+            break;
+        }
+        log_line_buffer[log_line_pos++] = c;
+    }
+    while (dispatch_log_event())
+        ;
+}
+
+void Dwarf::decode_loadcell(const LoadcellRecord &data) {
+    // throw away samples if time is not synced
+    if (!this->time_sync.is_time_sync_valid() || !this->selected) {
+        return;
+    }
+
+    // Store sample timestamp and count sample
+    loadcell_samplerate.last_timestamp = this->time_sync.buddy_time_us(data.timestamp);
+    loadcell_samplerate.count++;
+
+    // Process sample
+    loadcell.ProcessSample(data.loadcell_raw_value, loadcell_samplerate.last_timestamp);
+}
+
+void Dwarf::decode_accelerometer_fast(const AccelerometerFastData &data) {
+    // throw away samples if not selected
+    if (!this->is_selected()) {
+        return;
+    }
+    for (AccelerometerXyzSample sample : data) {
+        PrusaAccelerometer::put_sample(sample);
+    }
+}
+
+void Dwarf::decode_accelerometer_freq(const AccelerometerSamplingRate &data) {
+    if (!this->is_selected()) {
+        return;
+    }
+    PrusaAccelerometer::set_rate(data.frequency);
+}
+
 std::array<Dwarf, DWARF_MAX_COUNT> dwarfs { {
     { puppyModbus, 1, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_1) },
     { puppyModbus, 2, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_2) },
@@ -615,4 +618,5 @@ std::array<Dwarf, DWARF_MAX_COUNT> dwarfs { {
     { puppyModbus, 5, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_5) },
     { puppyModbus, 6, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_6) },
 } };
+
 } // namespace buddy::puppies

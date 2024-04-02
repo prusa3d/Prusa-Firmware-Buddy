@@ -13,7 +13,7 @@ Decoder::Decoder(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo, size_t len)
     assert(len <= fifo.size() * sizeof(uint16_t));
 }
 
-void Decoder::decode(const Callbacks_t callbacks) {
+void Decoder::decode(Callbacks &callbacks) {
     // As FIFO data come in 2 byte "register" chunks the last byte may be padding.
     // To avoid interpreting padding and random subsequent bytes as messages this
     // skips decoding when there is not enough data to read header.
@@ -23,16 +23,16 @@ void Decoder::decode(const Callbacks_t callbacks) {
         case MessageType::no_data:
             break;
         case MessageType::log:
-            make_call(callbacks.log_handler);
+            make_call(callbacks, &Callbacks::decode_log);
             break;
         case MessageType::loadcell:
-            make_call(callbacks.loadcell_handler);
+            make_call(callbacks, &Callbacks::decode_loadcell);
             break;
         case MessageType::accelerometer_fast:
-            make_call(callbacks.accelerometer_fast_handler);
+            make_call(callbacks, &Callbacks::decode_accelerometer_fast);
             break;
         case MessageType::accelerometer_sampling_rate:
-            make_call(callbacks.accelerometer_freq_handler);
+            make_call(callbacks, &Callbacks::decode_accelerometer_freq);
             break;
         default:
             assert(false);
