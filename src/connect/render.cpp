@@ -265,8 +265,9 @@ namespace {
                             JSON_FIELD_STR("wifi_ssid", creds.ssid) JSON_COMMA;
                         }
                         JSON_MAC("wifi_mac", state.wifi->mac) JSON_COMMA;
-                        JSON_IP("wifi_ipv4", state.wifi->ip);
+                        JSON_IP("wifi_ipv4", state.wifi->ip) JSON_COMMA;
                     }
+                    JSON_FIELD_STR("hostname", params.hostname);
                     JSON_OBJ_END JSON_COMMA;
 #if HAS_MMU2()
                     JSON_FIELD_OBJ("mmu");

@@ -600,6 +600,7 @@ public:
     }
 
     static void get_hostname(uint32_t netdev_id, char *buffer, size_t buffer_len) {
+        memset(buffer, 0, buffer_len);
         with_iface(netdev_id, [&](netif &iface, NetworkState &) {
             strlcpy(buffer, iface.hostname, buffer_len);
         });

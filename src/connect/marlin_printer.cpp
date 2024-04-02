@@ -8,6 +8,7 @@
 #include <netdev.h>
 #include <print_utils.hpp>
 #include <wui_api.h>
+#include <wui.h>
 #include <filament.hpp>
 #include <filament_sensors_handler.hpp>
 #include <filament_sensor_states.hpp>
@@ -192,6 +193,7 @@ Printer::Params MarlinPrinter::params() const {
     params.filament_used = Odometer_s::instance().get_extruded_all();
     params.nozzle_diameter = config_store().get_nozzle_diameter(0);
     params.has_usb = marlin_vars()->media_inserted;
+    netdev_get_hostname(netdev_get_active_id(), params.hostname, sizeof(params.hostname));
 
     struct statvfs fsbuf = {};
     if (params.has_usb && statvfs("/usb/", &fsbuf) == 0) {

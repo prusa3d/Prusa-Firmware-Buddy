@@ -9,6 +9,7 @@
 #include <tuple>
 #include <optional>
 
+#include <netif_settings.h>
 #include "printer_type.hpp"
 #include <state/printer_state.hpp>
 
@@ -103,6 +104,7 @@ public:
         uint64_t usb_space_free = 0;
         PrinterVersion version = { 0, 0, 0 };
         printer_state::StateWithDialog state = printer_state::DeviceState::Unknown;
+        char hostname[HOSTNAME_LEN + 1];
 #if ENABLED(CANCEL_OBJECTS)
         size_t cancel_object_count = 0;
         uint64_t cancel_object_mask = 0;

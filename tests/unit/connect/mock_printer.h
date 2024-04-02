@@ -8,6 +8,8 @@
 #include <vector>
 #include <string>
 
+extern "C" size_t strlcpy(char *, const char *, size_t);
+
 namespace connect_client {
 
 inline Printer::Params params_idle() {
@@ -18,6 +20,7 @@ inline Printer::Params params_idle() {
     params.nozzle_diameter = 0.4;
     params.version = { 2, 3, 0 };
     params.number_of_slots = 1;
+    strlcpy(params.hostname, "some_hostname", sizeof(params.hostname));
 
     return params;
 }
