@@ -2,6 +2,7 @@
 
 #include "step.h"
 #include <gcode/gcode_thumb_decoder.h>
+#include <gcode/gcode_reader_any.hpp>
 #include <unique_file_ptr.hpp>
 
 #include <http/types.h>
@@ -9,7 +10,6 @@
 #include <cstdio>
 #include <string_view>
 #include <memory>
-#include "gcode_reader.hpp"
 
 namespace nhttp::printer {
 

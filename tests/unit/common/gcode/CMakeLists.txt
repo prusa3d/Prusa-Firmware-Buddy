@@ -2,7 +2,10 @@ add_executable(
   gcode_reader_test
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_buffer.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_any.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_binary.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_interface.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_plaintext.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/meatpack.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/lib/heatshrink/heatshrink_decoder.c

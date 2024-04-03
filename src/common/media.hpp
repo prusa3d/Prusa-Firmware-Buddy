@@ -2,7 +2,7 @@
 #pragma once
 
 #include <inttypes.h>
-#include <gcode/gcode_reader.hpp> // for PrusaPackGcodeReader::stream_restore_info_t
+#include <gcode/gcode_reader_binary.hpp> // for PrusaPackGcodeReader::stream_restore_info_t
 
 #define PREFETCH_SIGNAL_START           1
 #define PREFETCH_SIGNAL_STOP            2

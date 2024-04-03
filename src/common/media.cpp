@@ -17,7 +17,6 @@
 #include "metric.h"
 #include "tasks.hpp"
 #include <errno.h>
-#include "gcode_reader.hpp"
 #include "gcode_info.hpp"
 #include <ccm_thread.hpp>
 #include <transfers/transfer.hpp>

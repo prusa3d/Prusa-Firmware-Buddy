@@ -15,7 +15,7 @@
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
 #include "gcode_buffer.hpp"
-#include "gcode_reader.hpp"
+#include "gcode_reader_any.hpp"
 #include <array>
 #include <feature/print_area.h>
 
