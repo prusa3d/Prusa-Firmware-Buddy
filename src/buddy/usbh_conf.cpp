@@ -378,8 +378,6 @@ USBH_StatusTypeDef USBH_LL_DriverVBUS(USBH_HandleTypeDef *phost, uint8_t state) 
 #endif
         }
     }
-
-    osDelay(200);
     return USBH_OK;
 }
 
