@@ -71,7 +71,6 @@
     #include "puppies/puppy_task.hpp"
 #endif
 #include "safe_state.h"
-#include "gcode_reader.hpp"
 #include "wdt.hpp"
 
 // External thread handles required for suspension
