@@ -10,7 +10,7 @@ struct ScreenMenuMMUPreloadToMMU_;
 
 template <size_t... i>
 struct ScreenMenuMMUPreloadToMMU_<std::index_sequence<i...>> {
-    using T = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_MMU_PRELOAD_SLOT_I<i>...>;
+    using T = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_MMU_PRELOAD_ALL, MI_MMU_PRELOAD_SLOT_I<i>...>;
 };
 
 class ScreenMenuMMUPreloadToMMU : public ScreenMenuMMUPreloadToMMU_<std::make_index_sequence<EXTRUDERS>>::T {
