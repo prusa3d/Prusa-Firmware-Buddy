@@ -1469,8 +1469,20 @@ static void _server_print_loop(void) {
                 enqueue_gcode_printf("M109 S%i", preheat_temp); // speculatively, use PLA temp for MMU prints, anything else is highly unprobable at this stage
                 enqueue_gcode("T0"); // tool change T0 (can be remapped to anything)
                 enqueue_gcode("G92 E0"); // reset extruder position to 0
+
+                bool is_relative = gcode.axis_is_relative(AxisEnum::E_AXIS);
+
+                enqueue_gcode("M82"); // set E to absolute positions
+    #if HAS_LOADCELL()
                 enqueue_gcode("G1 E25 F1860"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
                 enqueue_gcode("G1 E35 F300"); // slowly push another 10mm (absolute E)
+    #else
+                enqueue_gcode("G1 E50 F1860"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
+                enqueue_gcode("G1 E62 F300"); // slowly push another 12mm (absolute E)
+    #endif
+                if (is_relative) {
+                    enqueue_gcode("M83"); // set E back to relative positions
+                }
 
                 // In case of need, we can perform a custom purge line from the other end of the heatbed
                 // It would require homing the axes first, moving to [maxx-10, -4] and slowly purging while moving towards the origin
