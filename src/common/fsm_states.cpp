@@ -11,10 +11,11 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
     switch (fsm_type) {
     case ClientFSM::Serial_printing:
     case ClientFSM::Printing:
+    case ClientFSM::Selftest:
         return 0;
+
     case ClientFSM::Load_unload:
     case ClientFSM::Preheat:
-    case ClientFSM::Selftest:
     case ClientFSM::ESP:
     case ClientFSM::CrashRecovery:
     case ClientFSM::QuickPause:
@@ -24,8 +25,10 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
     case ClientFSM::PhaseStepping:
 #endif
         return 1;
+
     case ClientFSM::Warning:
         return 2;
+
     case ClientFSM::_none:
         break;
     }
