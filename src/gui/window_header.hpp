@@ -19,6 +19,7 @@ struct window_header_t : public AddSuperWindow<window_frame_t> {
     window_icon_t icon_network;
     window_text_t transfer_val;
     window_icon_t icon_transfer;
+    window_icon_t icon_stealth;
     window_text_t bed_text;
     window_icon_t bed_icon;
     uint32_t active_netdev_id;
