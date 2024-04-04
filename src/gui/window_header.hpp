@@ -57,8 +57,7 @@ public:
     void SetIcon(const img::Resource *res);
     void SetText(string_view_utf8 txt);
 
-    void show_bed_info();
-    void hide_bed_info();
+    void set_show_bed_info(bool set);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
