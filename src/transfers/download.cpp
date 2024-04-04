@@ -2,6 +2,8 @@
 #include "files.hpp"
 
 #include <common/http/resp_parser.h>
+#include <common/tcpip_callback_nofail.hpp>
+#include <common/pbuf_deleter.hpp>
 #ifndef UNITTESTS
     // Avoid deep transitive dependency hell in unit tests...
     #include <nhttp/server.h>
@@ -50,21 +52,6 @@ size_t strlcat(char *, const char *, size_t);
 namespace {
 
 constexpr size_t MAX_REQ_SIZE = 512;
-
-// Even though we are using the „blocking“ variant (eg. not _try), it
-// is, at least by reading the code, possible this would consume the
-// internal buffers for messages because it allocates that message
-// semi-dynamically from a mem pool :-(.
-//
-// We can't afford to ever lose the callback, but we are allowed to
-// block here and the occurence is probably only theoretical, so wait a
-// bit if it happens (so the tcpip thread chews through few of the
-// messages there and frees something) and retry.
-void tcpip_callback_nofail(tcpip_callback_fn function, void *ctx) {
-    while (tcpip_callback(function, ctx) != ERR_OK) {
-        osDelay(10);
-    }
-}
 
 } // namespace
 
@@ -275,13 +262,6 @@ public:
             done(DownloadStep::FailedNetwork);
             return ERR_ABRT;
         }
-        // TODO: Unify with the one in server.h
-        class PbufDeleter {
-        public:
-            void operator()(pbuf *buff) {
-                pbuf_free(buff);
-            }
-        };
         unique_ptr<pbuf, PbufDeleter> data(data_raw);
         if (phase != Phase::Headers) {
             done(DownloadStep::Aborted);

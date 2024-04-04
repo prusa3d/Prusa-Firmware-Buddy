@@ -45,6 +45,7 @@ if(BOARD MATCHES ".*BUDDY")
             path_utils.cpp
             PersistentStorage.cpp
             Pin.cpp
+            ping_manager.cpp
             print_utils.cpp
             probe_analysis.cpp
             random_hw.cpp

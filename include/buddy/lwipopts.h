@@ -18,6 +18,7 @@ extern "C" {
 #define LWIP_ETHERNET        1
 #define LWIP_DNS_SECURE      7
 #define DNS_MAX_NAME_LENGTH  128
+#define LWIP_RAW             1
 
 #if MDNS()
     #define MDNS_MAX_STORED_PKTS 1
@@ -38,7 +39,7 @@ extern "C" {
     // No extra timeouts if no MDNS
     #define MDNS_EXTRA_TIMEOUTS 0
 #endif
-#define MEMP_NUM_SYS_TIMEOUT 8 + MDNS_EXTRA_TIMEOUTS
+#define MEMP_NUM_SYS_TIMEOUT 9 + MDNS_EXTRA_TIMEOUTS
 
 #define TCP_MSS                1024
 #define TCP_WND                (8 * TCP_MSS)
