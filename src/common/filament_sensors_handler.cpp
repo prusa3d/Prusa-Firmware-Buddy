@@ -12,7 +12,6 @@
 #include <log.h>
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
-#include <option/has_human_interactions.h>
 #include <option/has_toolchanger.h>
 
 #if HAS_SELFTEST_SNAKE()
@@ -203,11 +202,7 @@ void FilamentSensors::process_events() {
 
         m600_sent = true;
 
-        if constexpr (option::has_human_interactions) {
-            marlin_client::gcode_push_front("M600 A"); // change filament
-        } else {
-            marlin_client::gcode_push_front("M25 U"); // pause and unload filament
-        }
+        marlin_client::gcode_push_front("M600 A"); // change filament
 
         log_info(FSensor, "Injected runout");
         return true;
