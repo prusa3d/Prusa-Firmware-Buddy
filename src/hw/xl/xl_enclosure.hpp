@@ -32,6 +32,16 @@
 class Enclosure {
 public:
     static constexpr const int INVALID_TEMPERATURE = std::numeric_limits<int>::min();
+    static constexpr int64_t expiration_deadline_sec = 600 * 3600;
+    static constexpr int64_t expiration_warning_sec = 500 * 3600;
+    static constexpr filament::Type filtration_filament_set[] = {
+        filament::Type::ABS,
+        filament::Type::ASA,
+        filament::Type::PC,
+        filament::Type::FLEX,
+        filament::Type::HIPS,
+        filament::Type::PP
+    };
 
     Enclosure();
     int getEnclosureTemperature();

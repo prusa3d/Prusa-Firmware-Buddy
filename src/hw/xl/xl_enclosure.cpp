@@ -11,13 +11,6 @@
 #include <ctime>
 #include "option/development_items.h"
 
-#if DEVELOPMENT_ITEMS()
-static constexpr int64_t expiration_deadline_sec = 2 * 3600; // TEST values
-static constexpr int64_t expiration_warning_sec = 1 * 3600; // TEST values
-#else
-static constexpr int64_t expiration_deadline_sec = 600 * 3600;
-static constexpr int64_t expiration_warning_sec = 500 * 3600;
-#endif
 static constexpr uint32_t footer_temp_delay_sec = 5 * 60;
 static constexpr uint32_t post_print_filtration_period_sec = 10 * 60;
 static constexpr int64_t expiration_5day_reminder_period_sec = 5 * 24 * 3600;
@@ -31,15 +24,6 @@ static constexpr int32_t fan_stop_temp_treshold = 75; // °C
 static constexpr int32_t dwarf_board_temp_model_difference = -15; // °C
 
 static constexpr const int pwm_on_50_percent = (FANCTLENCLOSURE_PWM_MAX * 50) / 100;
-
-static constexpr filament::Type filtration_filament_set[] = {
-    filament::Type::ABS,
-    filament::Type::ASA,
-    filament::Type::PC,
-    filament::Type::FLEX,
-    filament::Type::HIPS,
-    filament::Type::PP
-};
 
 static bool is_same(const char *curr_filament, const GCodeInfo::filament_buff &filament_type) {
     return strncmp(curr_filament, filament_type.begin(), filament_type.size()) == 0;

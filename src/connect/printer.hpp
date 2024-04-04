@@ -46,6 +46,21 @@ public:
         uint16_t heatbreak_fan_rpm = 0;
     };
 
+#if XL_ENCLOSURE_SUPPORT()
+    struct EnclosureInfo {
+        // in INFO
+        bool present = false;
+        bool enabled = false;
+        bool always_on = false;
+        bool post_print = false;
+
+        // in TELEMETRY
+        int temp {};
+        uint16_t fan_rpm {};
+        int64_t time_in_use {};
+    };
+#endif
+
     static constexpr size_t X_AXIS_POS = 0;
     static constexpr size_t Y_AXIS_POS = 1;
     static constexpr size_t Z_AXIS_POS = 2;
@@ -69,6 +84,9 @@ public:
     public:
         Params(const std::optional<BorrowPaths> &paths);
         std::array<SlotInfo, NUMBER_OF_SLOTS> slots;
+#if XL_ENCLOSURE_SUPPORT()
+        EnclosureInfo enclosure_info;
+#endif
 #if HAS_MMU2()
         MMU2::Version mmu_version = { 0, 0, 0 };
 #endif

@@ -10,6 +10,10 @@
 #include <timing.h>
 #include <state/printer_state.hpp>
 #include <transfers/transfer.hpp>
+#include <filament.hpp>
+#if XL_ENCLOSURE_SUPPORT()
+    #include <xl_enclosure.hpp>
+#endif
 
 #include <cassert>
 #include <cstring>
@@ -110,6 +114,15 @@ namespace {
                 if (params.slots[0].material != nullptr) {
                     JSON_FIELD_STR("material", params.slots[0].material) JSON_COMMA;
                 }
+#if XL_ENCLOSURE_SUPPORT()
+                if (params.enclosure_info.present) {
+                    JSON_FIELD_OBJ("enclosure");
+                        JSON_FIELD_INT("temp", params.enclosure_info.temp) JSON_COMMA;
+                        JSON_FIELD_INT("fan_rpm", params.enclosure_info.fan_rpm) JSON_COMMA;
+                        JSON_FIELD_INT("time_in_use", params.enclosure_info.time_in_use);
+                    JSON_OBJ_END JSON_COMMA;
+                }
+#endif
                 if (!params.has_job) {
                     // To avoid spamming the DB, connect doesn't want positions during printing
                     JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
@@ -265,6 +278,27 @@ namespace {
                     }
                     JSON_FIELD_STR("hostname", params.hostname);
                     JSON_OBJ_END JSON_COMMA;
+
+#if XL_ENCLOSURE_SUPPORT()
+                    if (params.enclosure_info.present) {
+                        JSON_FIELD_OBJ("enclosure");
+                            JSON_FIELD_BOOL("enabled", params.enclosure_info.enabled) JSON_COMMA;
+                            JSON_FIELD_BOOL("always_on", params.enclosure_info.always_on) JSON_COMMA;
+                            JSON_FIELD_BOOL("post_print", params.enclosure_info.post_print) JSON_COMMA;
+                            JSON_FIELD_INT("filter_lifetime", Enclosure::expiration_deadline_sec / 3600) JSON_COMMA;
+                            JSON_FIELD_ARR("filtration_filaments");
+                            state.iter = 0;
+                            while (state.iter <  std::size(Enclosure::filtration_filament_set)) {
+                                if (state.iter > 0) {
+                                    JSON_COMMA;
+                                }
+                                JSON_CUSTOM("\"%s\"", filament::get_name(Enclosure::filtration_filament_set[state.iter]));
+                                state.iter ++;
+                            }
+                            JSON_ARR_END;
+                        JSON_OBJ_END JSON_COMMA;
+                    }
+#endif
 #if HAS_MMU2()
                     JSON_FIELD_OBJ("mmu");
                         JSON_FIELD_BOOL("enabled", params.mmu_enabled) JSON_COMMA;
