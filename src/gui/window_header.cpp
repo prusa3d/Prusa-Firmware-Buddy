@@ -16,19 +16,15 @@ namespace {
 constexpr uint16_t inter_item_padding { 4 };
 // icon widths
 constexpr Rect16::Width_t base_w { 16 };
-constexpr Rect16::Width_t usb_w { 32 };
-constexpr Rect16::Width_t lan_w { 16 };
 
 static_assert(height(GuiDefaults::HeaderTextFont) <= GuiDefaults::HeaderItemHeight, "Text wouldn't fit into header");
 static_assert(GuiDefaults::HeaderTextExtraPaddingTop <= GuiDefaults::HeaderPadding.bottom, "Text wouldn't fit into header");
 
 constexpr Rect16::Width_t transfer_val_w { width(GuiDefaults::HeaderTextFont) * 4 };
-constexpr Rect16::Width_t transfer_w { 16 };
 constexpr Rect16::Width_t time_24h_w { width(GuiDefaults::HeaderTextFont) * 5 };
 constexpr Rect16::Width_t time_12h_w { width(GuiDefaults::HeaderTextFont) * 8 };
 
 constexpr Rect16::Width_t bed_text_width { width(GuiDefaults::HeaderTextFont) * 5 };
-constexpr Rect16::Width_t bed_icon_width { 16 };
 
 // how long the icon remains after the transfer is finished [us]
 constexpr uint32_t transfer_hide_timeout { 1'000'000u };
@@ -180,14 +176,14 @@ void window_header_t::updateAllRects() {
 #if !defined(USE_ST7789) // Time is not shown on ST7789
     maybe_update(time_val, time_tools::get_time_format() == time_tools::TimeFormat::_24h ? time_24h_w : time_12h_w);
 #endif /* !defined(USE_ST7789) */
-    maybe_update(icon_usb, usb_w);
-    maybe_update(icon_network, lan_w);
+    maybe_update(icon_usb, icon_usb.resource()->w);
+    maybe_update(icon_network, icon_network.resource()->w);
     if (transfer_val_on) {
         maybe_update(transfer_val, transfer_val_w);
     }
-    maybe_update(icon_transfer, transfer_w);
+    maybe_update(icon_transfer, icon_transfer.resource()->w);
     maybe_update(bed_text, bed_text_width);
-    maybe_update(bed_icon, bed_icon_width);
+    maybe_update(bed_icon, bed_icon.resource()->w);
 
     auto label_width = current_offset - GuiDefaults::HeaderPadding.left;
 

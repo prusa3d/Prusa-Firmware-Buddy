@@ -24,6 +24,9 @@ public:
             Invalidate();
         }
     }
+    inline const img::Resource *resource() const {
+        return pRes;
+    }
 
     bool IsIconValid() { return pRes ? true : false; }
 
