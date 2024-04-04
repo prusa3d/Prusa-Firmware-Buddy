@@ -195,14 +195,7 @@ screen_home_data_t::screen_home_data_t()
     header.SetText(_("HOME"));
 
 #else
-    // show the appropriate build header
-    #if DEVELOPER_MODE() && defined(_DEBUG)
-    static const uint8_t msgHome[] = "HOME - DEV - DEBUG";
-    #elif DEVELOPER_MODE() && !defined(_DEBUG)
-    static const uint8_t msgHome[] = "HOME - DEV";
-    #else
-    static const uint8_t msgHome[] = "HOME - DEBUG - what a beautiful rolling text!!!!!";
-    #endif
+    static const uint8_t msgHome[] = "HOME" TERN(DEVELOPER_MODE(), " - DEV", "") TERN(defined(_DEBUG), " - DEBUG", "");
     header.SetText(string_view_utf8::MakeCPUFLASH(msgHome)); // intentionally not translated
 #endif
 
