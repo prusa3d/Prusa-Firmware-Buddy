@@ -27,15 +27,15 @@ namespace phase_stepping {
 
 struct MoveTarget {
     MoveTarget() = default;
-    MoveTarget(float position);
-    MoveTarget(float position, const move_t &move, int axis, uint64_t move_duration_ticks);
-    MoveTarget(float position, const input_shaper_state_t &is_state, uint64_t move_duration_ticks);
+    MoveTarget(float initial_pos);
+    MoveTarget(float initial_pos, const move_t &move, int axis, uint64_t move_duration_ticks);
+    MoveTarget(float initial_pos, const input_shaper_state_t &is_state, uint64_t move_duration_ticks);
 
     float initial_pos = 0;
     float half_accel = 0;
     float start_v = 0;
     uint32_t duration = 0; // Movement duration in us
-    float target;
+    float target_pos = 0;
 
 private:
     float target_position() const;
@@ -63,13 +63,16 @@ struct AxisState {
     const move_t *last_processed_move = nullptr; // Move reference when using classic stepping
     bool direction = true; // Last non-zero physical movement direction
 
-    CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
-
     uint64_t current_print_time_ticks = 0;
-
     uint32_t initial_time = 0; // Initial timestamp when the movement start
-    std::optional<MoveTarget> target; // Current target to move
-    MoveTarget target_buffer; // Next planned target to move
+
+    // As move_t is being processed by the step generator its data is buffered into next_target.
+    // Once complete it is pushed to pending_targets. When current_target is empty, the refresh loop
+    // will dequeue items from pending_targets and set it as the current_target. When the position
+    // is reached the cycle repeats, until no more targets are present and current_target is reset.
+    std::optional<MoveTarget> current_target; // Current target to move
+    CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
+    MoveTarget next_target; // Next planned target to move
 
     std::atomic<bool> is_moving = false;
     std::atomic<bool> is_cruising = false;
