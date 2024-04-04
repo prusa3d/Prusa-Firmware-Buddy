@@ -266,18 +266,6 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     Disable();
 }
 
-void window_header_t::USB_Off() {
-    icon_usb.Hide();
-}
-void window_header_t::USB_On() {
-    icon_usb.Show();
-    icon_usb.Shadow();
-}
-void window_header_t::USB_Activate() {
-    icon_usb.Show();
-    icon_usb.Unshadow();
-}
-
 void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 
     switch (event) {
@@ -326,18 +314,8 @@ void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *send
 }
 
 void window_header_t::updateMedia(MediaState_t state) {
-    switch (state) {
-    case MediaState_t::inserted:
-        USB_Activate();
-        break;
-    case MediaState_t::removed:
-        USB_Off();
-        break;
-    case MediaState_t::error:
-    default:
-        USB_On();
-        break;
-    }
+    icon_usb.set_visible(state != MediaState_t::removed);
+    icon_usb.set_shadow(state != MediaState_t::inserted);
 };
 
 const img::Resource *window_header_t::networkIcon(uint32_t netdev_id) {
