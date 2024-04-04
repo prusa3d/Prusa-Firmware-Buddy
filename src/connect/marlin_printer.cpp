@@ -13,6 +13,11 @@
 #include <filament_sensor_states.hpp>
 #include <state/printer_state.hpp>
 
+#if XL_ENCLOSURE_SUPPORT()
+    #include <xl_enclosure.hpp>
+    #include <fanctl.hpp>
+#endif
+
 #include <client_response.hpp>
 
 #include <cassert>
@@ -184,7 +189,18 @@ Printer::Params MarlinPrinter::params() const {
     params.cancel_object_count = marlin_vars()->cancel_object_count;
     params.cancel_object_mask = marlin_vars()->get_cancel_object_mask();
 #endif
-
+#if XL_ENCLOSURE_SUPPORT()
+    int64_t xl_enclosure_filter_timer = config_store().xl_enclosure_filter_timer.get();
+    params.enclosure_info = {
+        .present = xl_enclosure.isActive(),
+        .enabled = xl_enclosure.isEnabled(),
+        .always_on = xl_enclosure.isAlwaysOnEnabled(),
+        .post_print = xl_enclosure.isPostPrintEnabled(),
+        .temp = xl_enclosure.isTemperatureValid() ? xl_enclosure.getEnclosureTemperature() : 0,
+        .fan_rpm = Fans::enclosure().getActualRPM(),
+        .time_in_use = std::min(config_store().xl_enclosure_filter_timer.get(), Enclosure::expiration_deadline_sec)
+    };
+#endif
     params.print_duration = marlin_vars()->print_duration;
     params.time_to_end = marlin_vars()->time_to_end;
     params.time_to_pause = marlin_vars()->time_to_pause;

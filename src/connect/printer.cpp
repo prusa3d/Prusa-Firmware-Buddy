@@ -70,6 +70,10 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         .add(int(filament_used / 10))
         .add(int(target_nozzle))
         .add(int(temp_bed))
+#if XL_ENCLOSURE_SUPPORT()
+        .add(int(enclosure_info.temp))
+        .add(enclosure_info.fan_rpm / 500)
+#endif
         .done();
 }
 
@@ -120,6 +124,12 @@ uint32_t Printer::info_fingerprint() const {
         .add(parameters.version.type)
         .add(parameters.version.version)
         .add(parameters.version.subversion)
+#if XL_ENCLOSURE_SUPPORT()
+        .add(parameters.enclosure_info.present)
+        .add(parameters.enclosure_info.enabled)
+        .add(parameters.enclosure_info.always_on)
+        .add(parameters.enclosure_info.post_print)
+#endif
         .done();
 }
 
