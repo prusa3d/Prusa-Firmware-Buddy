@@ -254,11 +254,7 @@ namespace {
                     JSON_FIELD_OBJ("network_info");
                     if (state.lan.has_value()) {
                         JSON_MAC("lan_mac", state.lan->mac) JSON_COMMA;
-                        JSON_IP("lan_ipv4", state.lan->ip);
-                    }
-                    if (state.lan.has_value() && state.wifi.has_value()) {
-                        // Why oh why can't json accept a trailing comma :-(
-                        JSON_COMMA;
+                        JSON_IP("lan_ipv4", state.lan->ip) JSON_COMMA;
                     }
                     if (state.wifi.has_value()) {
                         if (strlen(creds.ssid) > 0) {
