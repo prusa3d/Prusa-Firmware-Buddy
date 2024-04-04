@@ -76,7 +76,6 @@ public:
     bool HasValidBackground() const;
     bool IsFocused() const;
     bool IsCaptured() const;
-    bool IsShadowed() const;
     bool IsCapturable() const;
     bool HasEnforcedCapture() const;
     bool HasTimer() const;
@@ -107,8 +106,13 @@ public:
         set_visible(false);
     }
 
-    void Shadow();
-    void Unshadow();
+    inline bool IsShadowed() const {
+        return flags.shadow;
+    }
+    void set_shadow(bool set);
+    inline void Shadow() { set_shadow(true); } /// Removeme ugly legacy function
+    inline void Unshadow() { set_shadow(false); } /// Removeme ugly legacy function
+
     void HideBehindDialog();
     virtual void ShowAfterDialog();
     void SetBackColor(color_t clr);
