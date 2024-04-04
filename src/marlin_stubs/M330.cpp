@@ -113,7 +113,9 @@ void PrusaGcodeSuite::M333() {
     for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         bool is_enabled = metric->enabled_handlers & (1 << selected_handler->identifier);
         SERIAL_ECHO_START();
-        SERIAL_ECHOLNPAIR_F(metric->name, is_enabled ? '1' : '0');
+        SERIAL_ECHOPGM(metric->name);
+        SERIAL_ECHOPGM(is_enabled ? " 1" : " 0");
+        SERIAL_EOL();
     }
 }
 
