@@ -156,7 +156,6 @@ LoopResult CSelftestPart_FSensor::state_filament_unload_enqueue_gcode() {
 }
 
 LoopResult CSelftestPart_FSensor::state_filament_unload_confirm_preinit() {
-    // TODO set FSM for load dialog - to eliminate flickering
     IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_unload_confirm);
     return LoopResult::RunNext;
 }
