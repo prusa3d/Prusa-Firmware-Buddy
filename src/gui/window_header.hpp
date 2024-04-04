@@ -45,10 +45,6 @@ struct window_header_t : public AddSuperWindow<window_frame_t> {
     void updateTime();
     void update_bed_info();
 
-    void USB_Off();
-    void USB_On();
-    void USB_Activate();
-
     static const img::Resource *networkIcon(uint32_t netdev_id);
 
 public:
