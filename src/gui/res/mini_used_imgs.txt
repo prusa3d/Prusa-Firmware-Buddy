@@ -106,7 +106,7 @@ switch_on_36x18.png
 temperature_16x16.png
 transfer_icon_16x16.png
 turn_knob_81x55.png
-usb_32x16.png
+usb_16x16.png
 usb_error_48x48.png
 warning_48x48.png
 wifi_64x64.png

@@ -227,7 +227,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
 #if !defined(USE_ST7789) // Time is not shown on ST7789
     , time_val(this, first_rect_doesnt_matter, is_multiline::no)
 #endif /* !defined(USE_ST7789) */
-    , icon_usb(this, first_rect_doesnt_matter, &img::usb_32x16)
+    , icon_usb(this, first_rect_doesnt_matter, &img::usb_16x16)
     , icon_network(this, first_rect_doesnt_matter, window_header_t::networkIcon(netdev_get_active_id()))
     , transfer_val(this, first_rect_doesnt_matter, is_multiline::no)
     , icon_transfer(this, first_rect_doesnt_matter, &img::transfer_icon_16x16)
