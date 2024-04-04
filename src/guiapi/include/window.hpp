@@ -24,7 +24,7 @@ private:
     // if enabled and set != nullptr
     //   window automatically draws differently when selected or shadowed
     union {
-        color_t color_back;
+        color_t color_back = GuiDefaults::ColorBack;
         const color_scheme *pBackColorScheme;
     };
 
@@ -127,6 +127,7 @@ public:
     void SetBlackLayout();
     void SetBlueLayout();
 
+    window_t() = default;
     window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
 
@@ -201,8 +202,13 @@ protected:
 /*****************************************************************************/
 // window_aligned_t
 // uses window_t flags to store alignment (saves RAM)
-struct window_aligned_t : public AddSuperWindow<window_t> {
+class window_aligned_t : public AddSuperWindow<window_t> {
+
+public:
+    window_aligned_t() = default;
     window_aligned_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
+
+public:
     /// alignment constants are in guitypes.hpp
     Align_t GetAlignment() const;
     void SetAlignment(Align_t alignment);

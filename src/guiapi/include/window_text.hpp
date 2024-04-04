@@ -13,16 +13,21 @@ public:
     string_view_utf8 GetText() const { return text; }
     virtual void SetText(string_view_utf8 txt);
 
+    window_text_t() = default;
     window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR());
 
 protected:
     virtual void unconditionalDraw() override;
 };
 
-struct window_text_button_t : public AddSuperWindow<window_text_t> {
-    ButtonCallback callback;
+class window_text_button_t : public AddSuperWindow<window_text_t> {
 
+public:
+    window_text_button_t() = default;
     window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR()); // default action is close screen
+
+public:
+    ButtonCallback callback;
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

@@ -30,5 +30,6 @@ public:
     Font get_font() const;
     void SetPadding(padding_ui8_t padd);
 
+    IWindowText() = default;
     IWindowText(window_t *parent, Rect16 rect, is_closed_on_click_t close = is_closed_on_click_t::no);
 };

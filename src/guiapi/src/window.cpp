@@ -220,13 +220,10 @@ void window_t::SetBackColor(const color_scheme &clr) {
 
 window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
     : rect(rect)
-    , parent(parent)
-    , flags(0)
-    , color_back(GuiDefaults::ColorBack) {
-    flags.type = uint8_t(type);
+    , parent(parent) {
+    flags.type = type;
     flags.close_on_click = close;
-    close == is_closed_on_click_t::yes ? Enable() : Disable();
-    flags.visible = true; // do not call show, it needs parent to be registered
+    flags.enabled = (close == is_closed_on_click_t::yes);
     Invalidate();
     if (parent) {
         parent->RegisterSubWin(*this);
