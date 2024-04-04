@@ -186,21 +186,13 @@ void window_t::HideBehindDialog() {
     }
 }
 
-bool window_t::IsShadowed() const {
-    return flags.shadow == true;
-}
+void window_t::set_shadow(bool set) {
+    if (flags.shadow == set) {
+        return;
+    }
 
-void window_t::Shadow() {
-    if (!flags.shadow) {
-        flags.shadow = true;
-        Invalidate();
-    }
-}
-void window_t::Unshadow() {
-    if (flags.shadow) {
-        flags.shadow = false;
-        Invalidate();
-    }
+    flags.shadow = set;
+    Invalidate();
 }
 
 color_t window_t::GetBackColor() const {
