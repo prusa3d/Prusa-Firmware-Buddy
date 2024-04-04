@@ -352,8 +352,8 @@ void IRadioButton::invalidateWhatIsNeeded() {
 
 void IRadioButton::SetBtnIndex(uint8_t index) {
     uint8_t idx = (index < GetBtnCount()) ? index : 0;
-    if (idx != flags.button_index) {
-        flags.button_index = idx;
+    if (idx != flags.class_specific.button_index) {
+        flags.class_specific.button_index = idx;
         invalidateWhatIsNeeded();
     }
 }

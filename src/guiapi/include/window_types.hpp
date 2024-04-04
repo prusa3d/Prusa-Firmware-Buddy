@@ -74,7 +74,7 @@ union WindowFlags {
                 uint8_t button_count : 4; // used in RadioButton
                 uint8_t button_index : 4; // used in RadioButton
             };
-        };
+        } class_specific = { .align_data = 0 };
     };
 };
 

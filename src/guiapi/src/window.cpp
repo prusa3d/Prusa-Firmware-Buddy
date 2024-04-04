@@ -499,10 +499,10 @@ window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, win_type_t typ
 }
 
 Align_t window_aligned_t::GetAlignment() const {
-    return (Align_t &)(flags.align_data); // retype to Align_t reference, to avoid using private ctor
+    return (Align_t &)(flags.class_specific.align_data); // retype to Align_t reference, to avoid using private ctor
 }
 
 void window_aligned_t::SetAlignment(Align_t alignment) {
-    flags.align_data = (uint8_t &)(alignment);
+    flags.class_specific.align_data = (uint8_t &)(alignment);
     Invalidate();
 }
