@@ -113,7 +113,6 @@ FORCE_INLINE CorrectedCurrentLut &resolve_current_lut(AxisState &axis_state) {
 }
 
 static void init_step_generator_internal(
-    const move_t &move,
     move_segment_step_generator_t &step_generator,
     step_generator_state_t & /*step_generator_state*/) {
     auto &axis_state = *step_generator.phase_step_state;
@@ -124,7 +123,6 @@ static void init_step_generator_internal(
     axis_state.initial_time = ticks_us();
 
     axis_state.last_position = axis_state.target_buffer.initial_pos;
-    axis_state.last_processed_move = &move;
     axis_state.target = MoveTarget(axis_state.last_position);
 
     int32_t initial_steps_made = pos_to_steps(AxisEnum(axis), axis_state.target_buffer.initial_pos);
@@ -158,8 +156,9 @@ void phase_stepping::init_step_generator_classic(
     // We are keeping a reference to a move segment in last_processed_move.
     // Otherwise, a move segment can be discarded while we are using it.
     move.reference_cnt += 1;
+    axis_state.last_processed_move = &move;
 
-    init_step_generator_internal(move, step_generator, step_generator_state);
+    init_step_generator_internal(step_generator, step_generator_state);
 }
 
 void phase_stepping::init_step_generator_input_shaping(
@@ -186,7 +185,10 @@ void phase_stepping::init_step_generator_input_shaping(
     step_generator_state.step_generator[axis] = &step_generator;
     step_generator_state.next_step_func[axis] = (generator_next_step_f)next_step_event_input_shaping;
 
-    init_step_generator_internal(move, step_generator, step_generator_state);
+    // we don't keep a reference to the last move with IS, reset it
+    axis_state.last_processed_move = nullptr;
+
+    init_step_generator_internal(step_generator, step_generator_state);
 }
 
 step_event_info_t phase_stepping::next_step_event_classic(

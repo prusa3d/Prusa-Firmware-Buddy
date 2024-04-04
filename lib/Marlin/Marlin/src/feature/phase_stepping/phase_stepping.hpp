@@ -60,11 +60,11 @@ struct AxisState {
     CoilCurrents last_currents; // Currently applied coil currents
     #endif
     float last_position = 0.f; // Last known logical position
+    const move_t *last_processed_move = nullptr; // Move reference when using classic stepping
     bool direction = true; // Last non-zero physical movement direction
 
     CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
 
-    const move_t *last_processed_move = nullptr;
     uint64_t current_print_time_ticks = 0;
 
     uint32_t initial_time = 0; // Initial timestamp when the movement start
