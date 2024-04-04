@@ -12,7 +12,6 @@
 bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }
 bool window_t::HasVisibleFlag() const { return flags.visible; };
 bool window_t::IsHiddenBehindDialog() const { return flags.hidden_behind_dialog; }
-bool window_t::IsEnabled() const { return flags.enabled; }
 bool window_t::IsInvalid() const { return flags.invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::HasTimer() const { return flags.timer; }
@@ -117,8 +116,8 @@ window_t *window_t::GetCapturedWindow() {
 
 void window_t::SetHasTimer() { flags.timer = true; }
 void window_t::ClrHasTimer() { flags.timer = false; }
-void window_t::Enable() { flags.enabled = true; }
-void window_t::Disable() { flags.enabled = false; }
+
+void window_t::set_enabled(bool set) { flags.enabled = set; }
 void window_t::SetEnforceCapture() { flags.enforce_capture_when_not_visible = true; }
 void window_t::ClrEnforceCapture() { flags.enforce_capture_when_not_visible = false; }
 void window_t::DisableLongHoldScreenAction() { flags.has_long_hold_screen_action = false; };

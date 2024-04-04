@@ -71,7 +71,7 @@ public:
     bool IsVisible() const; // visible and not hidden by dialog
     bool HasVisibleFlag() const; // visible, but still can be hidden behind dialog
     bool IsHiddenBehindDialog() const;
-    bool IsEnabled() const;
+
     bool IsInvalid() const;
     bool HasValidBackground() const;
     bool IsFocused() const;
@@ -95,8 +95,17 @@ public:
     void SetHasTimer();
     void ClrHasTimer();
     void SetFocus();
-    void Enable();
-    void Disable();
+
+    inline bool IsEnabled() const {
+        return flags.enabled;
+    }
+    void set_enabled(bool set);
+    inline void Enable() {
+        set_enabled(true);
+    }
+    inline void Disable() {
+        set_enabled(false);
+    }
 
     void set_visible(bool set);
     inline void Show() {
