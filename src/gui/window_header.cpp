@@ -119,16 +119,9 @@ void window_header_t::SetText(string_view_utf8 txt) {
     Invalidate();
 }
 
-void window_header_t::show_bed_info() {
-    bed_icon.Show();
-    bed_text.Show();
-    updateIcons(); // required because this will affect rects of items
-    Invalidate();
-}
-
-void window_header_t::hide_bed_info() {
-    bed_icon.Hide();
-    bed_text.Hide();
+void window_header_t::set_show_bed_info(bool set) {
+    bed_icon.set_visible(set);
+    bed_text.set_visible(set);
     updateIcons(); // required because this will affect rects of items
     Invalidate();
 }
@@ -266,7 +259,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     time_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time()));
 #endif /* !defined(USE_ST7789) */
 
-    hide_bed_info();
+    set_show_bed_info(false);
     updateMedia(GuiMediaEventsHandler::Get());
     updateIcons();
 
