@@ -34,7 +34,7 @@ bool PlainGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint16_t 
 
     GcodeBuffer buffer;
     unsigned int lines_searched = 0;
-    while (stream_get_line(buffer) == Result_t::RESULT_OK && (lines_searched++) <= MAX_SEARCH_LINES) {
+    while (stream_get_line(buffer, Continuations::Discard) == Result_t::RESULT_OK && (lines_searched++) <= MAX_SEARCH_LINES) {
         long unsigned int num_bytes = 0;
         if (IsBeginThumbnail(buffer, expected_width, expected_height, expected_type, allow_larger, num_bytes)) {
             output_type = output_type_t::thumbnail;
@@ -55,7 +55,7 @@ PlainGcodeReader::Result_t PlainGcodeReader::stream_getc_impl(char &out) {
     out = iout;
     return Result_t::RESULT_OK;
 }
-IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
+IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer, Continuations line_continations) {
     auto pos = ftell(file.get());
     if (!range_valid(pos, pos + 80)) {
         return Result_t::RESULT_OUT_OF_RANGE;
@@ -67,7 +67,7 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
 
     while (true) {
         // get raw line, then decide if to output it or not
-        auto res = IGcodeReader::stream_get_line(buffer);
+        auto res = IGcodeReader::stream_get_line(buffer, line_continations);
         if (res != Result_t::RESULT_OK) {
             return res;
         }

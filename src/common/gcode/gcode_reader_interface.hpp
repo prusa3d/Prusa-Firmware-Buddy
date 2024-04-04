@@ -37,8 +37,6 @@ public:
         Split,
     };
 
-    Continuations line_continuations = Continuations::Discard;
-
     /// Result type
     enum class Result_t {
         RESULT_OK,
@@ -93,7 +91,7 @@ public:
     /**
      * @brief Get line from stream specified before by start_xx function
      */
-    virtual Result_t stream_get_line(GcodeBuffer &buffer);
+    virtual Result_t stream_get_line(GcodeBuffer &buffer, Continuations);
 
     /**
      * @brief Get block of data with specified size.

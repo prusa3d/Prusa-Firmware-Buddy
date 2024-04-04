@@ -604,7 +604,7 @@ void GCodeInfo::PreviewInit(IGcodeReader &reader) {
     // parse metadata
     if (reader.stream_metadata_start()) {
         while (true) {
-            auto res = reader.stream_get_line(buffer);
+            auto res = reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard);
 
             // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
             assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
@@ -624,7 +624,7 @@ void GCodeInfo::PreviewInit(IGcodeReader &reader) {
         uint32_t gcode_counter = 0;
         while (true) {
             // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
-            auto res = reader.stream_get_line(buffer);
+            auto res = reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard);
             assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
             if (res != IGcodeReader::Result_t::RESULT_OK || gcode_counter >= search_first_x_gcodes) {
                 break;

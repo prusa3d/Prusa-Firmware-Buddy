@@ -7,7 +7,7 @@
 #include "transfers/transfer.hpp"
 #include "lang/i18n.h"
 
-IGcodeReader::Result_t IGcodeReader::stream_get_line(GcodeBuffer &b) {
+IGcodeReader::Result_t IGcodeReader::stream_get_line(GcodeBuffer &b, Continuations line_continuations) {
     b.line.begin = begin(b.buffer);
     b.line.end = begin(b.buffer);
 

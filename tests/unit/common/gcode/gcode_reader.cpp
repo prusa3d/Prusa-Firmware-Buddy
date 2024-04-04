@@ -91,7 +91,7 @@ TEST_CASE("Extract data", "[GcodeReader]") {
             REQUIRE(r->stream_metadata_start());
             std::ofstream fs(base_name + "-metadata.txt", std::ofstream::out);
             IGcodeReader::Result_t result;
-            while ((result = r->stream_get_line(buffer)) == IGcodeReader::Result_t::RESULT_OK) {
+            while ((result = r->stream_get_line(buffer, IGcodeReader::Continuations::Discard)) == IGcodeReader::Result_t::RESULT_OK) {
                 fs << buffer.line.begin << std::endl;
             }
             REQUIRE(result == IGcodeReader::Result_t::RESULT_EOF); // file was read fully without error
@@ -101,7 +101,7 @@ TEST_CASE("Extract data", "[GcodeReader]") {
             REQUIRE(r->stream_gcode_start());
             std::ofstream fs(base_name + "-gcode.gcode", std::ofstream::out);
             IGcodeReader::Result_t result;
-            while ((result = r->stream_get_line(buffer)) == IGcodeReader::Result_t::RESULT_OK) {
+            while ((result = r->stream_get_line(buffer, IGcodeReader::Continuations::Discard)) == IGcodeReader::Result_t::RESULT_OK) {
                 fs << buffer.line.begin << std::endl;
             }
             REQUIRE(result == IGcodeReader::Result_t::RESULT_EOF); // file was read fully without error
@@ -199,20 +199,20 @@ TEST_CASE("copy & move operators", "[GcodeReader]") {
     REQUIRE(reader.is_open());
     REQUIRE(reader.get() != nullptr);
     REQUIRE(reader.get()->stream_gcode_start());
-    REQUIRE(reader.get()->stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.get()->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
 
     // copy it elsewhere, and check that it can read file
     auto reader2 = std::move(reader); // move operator
     REQUIRE(reader2.is_open());
     REQUIRE(reader2.get() != nullptr);
     REQUIRE(reader2.get()->stream_gcode_start());
-    REQUIRE(reader2.get()->stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader2.get()->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
 
     auto reader3(std::move(reader2)); // move constructor
     REQUIRE(reader3.is_open());
     REQUIRE(reader3.get() != nullptr);
     REQUIRE(reader3.get()->stream_gcode_start());
-    REQUIRE(reader3.get()->stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader3.get()->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
 
     // but its not possible to read from original place
     REQUIRE(!reader.is_open());
@@ -233,11 +233,11 @@ TEST_CASE("validity-plain", "[GcodeReader]") {
 
     GcodeBuffer buffer;
     // Not available yet
-    REQUIRE(r->stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
+    REQUIRE(r->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
     r->set_validity(State { ValidPart(0, 0), nullopt, size });
-    REQUIRE(r->stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
+    REQUIRE(r->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
     r->set_validity(State { ValidPart(0, 1024), nullopt, size });
-    REQUIRE(r->stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(r->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
 
     size_t len = buffer.line.end - buffer.line.begin;
     auto f = unique_file_ptr(fopen(PLAIN_TEST_FILE, "r"));
@@ -270,13 +270,13 @@ TEST_CASE("validity-bgcode", "[GcodeReader]") {
     // just printer metadata is valid
     r->set_validity(State { ValidPart(0, 613), nullopt, size });
     REQUIRE(r->stream_metadata_start());
-    REQUIRE(r->stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(r->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(r->stream_gcode_start() == false);
 
     // all metadata & first gcode block is valid
     r->set_validity(State { ValidPart(0, 119731), nullopt, size });
     REQUIRE(r->stream_metadata_start());
-    REQUIRE(r->stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(r->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(r->stream_gcode_start());
 
     // read entire first block,, that should go fine, then it shoudl return OUT_OF_RANGE on first character on next block
@@ -300,7 +300,7 @@ TEST_CASE("gcode-reader-empty-validity", "[GcodeReader]") {
 
     r->set_validity(State {});
     GcodeBuffer buffer;
-    REQUIRE(r->stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
+    REQUIRE(r->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
 }
 
 TEST_CASE("File size estimate", "[GcodeReader]") {
@@ -319,16 +319,15 @@ TEST_CASE("File size estimate", "[GcodeReader]") {
 TEST_CASE("Reader: Long comment, split") {
     DummyReader reader(DUMMY_DATA_LONG, IGcodeReader::Result_t::RESULT_EOF);
     GcodeBuffer buffer;
-    reader.line_continuations = IGcodeReader::Continuations::Split;
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == "; Short line");
     // Checking both, because len bases it on end-begin, strlen on \0 position
     REQUIRE(buffer.line.len() == 12);
     REQUIRE(strlen(buffer.line.c_str()) == 12);
     REQUIRE(buffer.line_complete);
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";Long line01234567890123456789012345678901234567890123456789012345678901234567890");
     // Note: In the split mode, it is _not_ \0 terminated here.
     // Therefore, no strlen and using all 81 characters.
@@ -336,33 +335,33 @@ TEST_CASE("Reader: Long comment, split") {
     REQUIRE_FALSE(buffer.line_complete);
 
     // The continuation
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == "1234567890123456789012345678901234567890123456789");
     REQUIRE(buffer.line.len() == 49);
     REQUIRE(strlen(buffer.line.c_str()) == 49);
     REQUIRE(buffer.line_complete);
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";Another short line");
     REQUIRE(buffer.line.len() == 19);
     REQUIRE(strlen(buffer.line.c_str()) == 19);
     REQUIRE(buffer.line_complete);
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_EOF);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_EOF);
 }
 
 TEST_CASE("Reader: Long comment, discard") {
     DummyReader reader(DUMMY_DATA_LONG, IGcodeReader::Result_t::RESULT_EOF);
     GcodeBuffer buffer;
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == "; Short line");
     // Checking both, because len bases it on end-begin, strlen on \0 position
     REQUIRE(buffer.line.len() == 12);
     REQUIRE(strlen(buffer.line.c_str()) == 12);
     REQUIRE(buffer.line_complete);
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";Long line0123456789012345678901234567890123456789012345678901234567890123456789");
     REQUIRE(buffer.line.len() == 80);
     REQUIRE(strlen(buffer.line.c_str()) == 80);
@@ -370,37 +369,36 @@ TEST_CASE("Reader: Long comment, discard") {
 
     // The continuation is not present
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";Another short line");
     REQUIRE(buffer.line.len() == 19);
     REQUIRE(strlen(buffer.line.c_str()) == 19);
     REQUIRE(buffer.line_complete);
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_EOF);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_EOF);
 }
 
 TEST_CASE("Reader: Exact long, split") {
     DummyReader reader(DUMMY_DATA_EXACT, IGcodeReader::Result_t::RESULT_EOF);
     GcodeBuffer buffer;
-    reader.line_continuations = IGcodeReader::Continuations::Split;
 
     // The first line fits exactly. But the reader doesn't know it ended.
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";01234567890123456789012345678901234567890123456789012345678901234567890123456789");
     REQUIRE(buffer.line.len() == 81);
     REQUIRE_FALSE(buffer.line_complete);
 
     // There's an empty continuation to mark it is complete
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line.is_empty());
     REQUIRE(buffer.line_complete);
 
     // Then the rest can be read
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";Another line");
     REQUIRE(buffer.line_complete);
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_EOF);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_EOF);
 }
 
 TEST_CASE("Reader: Exact long, discard") {
@@ -408,35 +406,34 @@ TEST_CASE("Reader: Exact long, discard") {
     GcodeBuffer buffer;
 
     // The first line fits exactly. But the reader doesn't know it ended.
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";0123456789012345678901234567890123456789012345678901234567890123456789012345678");
     REQUIRE(buffer.line.len() == 80);
     REQUIRE_FALSE(buffer.line_complete);
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";Another line");
     REQUIRE(buffer.line_complete);
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_EOF);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_EOF);
 }
 
 TEST_CASE("Reader: Exact at EOF, split") {
     DummyReader reader(DUMMY_DATA_EXACT_EOF, IGcodeReader::Result_t::RESULT_EOF);
     GcodeBuffer buffer;
-    reader.line_continuations = IGcodeReader::Continuations::Split;
 
     // The first line fits exactly. But the reader doesn't know it ended.
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";01234567890123456789012345678901234567890123456789012345678901234567890123456789");
     REQUIRE(buffer.line.len() == 81);
     REQUIRE_FALSE(buffer.line_complete);
 
     // There's an empty continuation to mark it is complete
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line.is_empty());
     REQUIRE(buffer.line_complete);
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_EOF);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_EOF);
 }
 
 TEST_CASE("Reader: Exact at EOF, discard") {
@@ -444,27 +441,26 @@ TEST_CASE("Reader: Exact at EOF, discard") {
     GcodeBuffer buffer;
 
     // The first line fits exactly. But the reader doesn't know it ended.
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";0123456789012345678901234567890123456789012345678901234567890123456789012345678");
     REQUIRE(buffer.line.len() == 80);
     REQUIRE_FALSE(buffer.line_complete);
 
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_EOF);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_EOF);
 }
 
 TEST_CASE("Reader: Error in long, split") {
     DummyReader reader(DUMMY_DATA_ERR, IGcodeReader::Result_t::RESULT_ERROR);
     GcodeBuffer buffer;
-    reader.line_continuations = IGcodeReader::Continuations::Split;
 
     // The first line fits exactly. But the reader doesn't know it ended.
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Split) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";01234567890123456789012345678901234567890123456789012345678901234567890123456789");
     REQUIRE(buffer.line.len() == 81);
     REQUIRE_FALSE(buffer.line_complete);
 
     // Error reading the continuation.
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_ERROR);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_ERROR);
 }
 
 TEST_CASE("Reader: Error in long, discard") {
@@ -472,12 +468,12 @@ TEST_CASE("Reader: Error in long, discard") {
     GcodeBuffer buffer;
 
     // The first line fits exactly. But the reader doesn't know it ended.
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_OK);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(buffer.line == ";0123456789012345678901234567890123456789012345678901234567890123456789012345678");
     REQUIRE(buffer.line.len() == 80);
     REQUIRE_FALSE(buffer.line_complete);
 
     // Interestingly, this is not when reading the end of the line, but reading
     // the next line.. but it still results in ERROR.
-    REQUIRE(reader.stream_get_line(buffer) == IGcodeReader::Result_t::RESULT_ERROR);
+    REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_ERROR);
 }
