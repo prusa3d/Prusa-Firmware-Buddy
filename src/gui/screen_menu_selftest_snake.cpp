@@ -331,7 +331,7 @@ ScreenMenuSTSCalibrations::ScreenMenuSTSCalibrations()
 }
 
 void ScreenMenuSTSCalibrations::draw() {
-    if (SelftestSnake::is_menu_draw_enabled()) {
+    if (SelftestSnake::is_menu_draw_enabled() || GetFirstDialog()) {
         window_frame_t::draw();
     }
 }
