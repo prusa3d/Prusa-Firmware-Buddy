@@ -178,6 +178,7 @@ void window_header_t::updateAllRects() {
 #endif /* !defined(USE_ST7789) */
     maybe_update(icon_usb, icon_usb.resource()->w);
     maybe_update(icon_network, icon_network.resource()->w);
+    maybe_update(icon_stealth, icon_stealth.resource()->w);
     if (transfer_val_on) {
         maybe_update(transfer_val, transfer_val_w);
     }
@@ -206,6 +207,8 @@ void window_header_t::updateIcons() {
     updateTime();
     update_bed_info();
 
+    icon_stealth.set_visible(marlin_vars()->stealth_mode.get());
+
     updateAllRects();
 }
 
@@ -220,6 +223,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , icon_network(this, first_rect_doesnt_matter, window_header_t::networkIcon(netdev_get_active_id()))
     , transfer_val(this, first_rect_doesnt_matter, is_multiline::no)
     , icon_transfer(this, first_rect_doesnt_matter, &img::transfer_icon_16x16)
+    , icon_stealth(this, first_rect_doesnt_matter, &img::stealth_16x16)
     , bed_text(this, first_rect_doesnt_matter, is_multiline::no)
     , bed_icon(this, first_rect_doesnt_matter, &img::heatbed_16x16)
     , active_netdev_id(netdev_get_active_id())
