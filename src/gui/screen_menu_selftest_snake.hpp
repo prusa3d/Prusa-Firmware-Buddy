@@ -52,8 +52,8 @@ protected:
     }
 };
 
-bool is_menu_draw_enabled();
-void do_menu_event(window_t *sender, GUI_event_t event, void *param, Action action, bool is_submenu);
+bool is_menu_draw_enabled(window_t *window);
+void do_menu_event(window_t *receiver, window_t *sender, GUI_event_t event, void *param, Action action, bool is_submenu);
 
 namespace detail {
     // Enum to discern whether 'building' a Calibrations or Wizard menu
