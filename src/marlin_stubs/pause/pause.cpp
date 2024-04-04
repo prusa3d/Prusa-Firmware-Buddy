@@ -40,6 +40,7 @@
 #include "mapi/motion.hpp"
 #include <cmath>
 #include <config_store/store_instance.hpp>
+#include <option/has_human_interactions.h>
 #include <option/has_mmu2.h>
 #include <scope_guard.hpp>
 
@@ -518,6 +519,15 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         break;
 
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
+        if constexpr (!option::has_human_interactions) {
+            setPhase(PhasesLoadUnload::Inserting_unstoppable);
+            if (FSensors_instance().has_filament(true)) {
+                set(LoadPhases_t::load_in_gear);
+            }
+
+            break;
+        }
+
         if (FSensors_instance().has_filament(false)) {
             setPhase(is_unstoppable ? PhasesLoadUnload::MakeSureInserted_unstoppable : PhasesLoadUnload::MakeSureInserted_stoppable);
 
@@ -579,6 +589,12 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
         // Extrude filament to get into hotend
         setPhase(is_unstoppable ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable, 70);
         do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
+
+        if constexpr (!option::has_human_interactions) {
+            set(LoadPhases_t::_finish);
+            break;
+        }
+
         setPhase(PhasesLoadUnload::IsColor, 99);
         set(LoadPhases_t::ask_is_color_correct);
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
@@ -926,8 +942,15 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
         case CommonUnloadType::ask_unloaded:
         case CommonUnloadType::filament_change:
         case CommonUnloadType::filament_stuck:
+#if !HAS_HUMAN_INTERACTIONS()
+            runout_timer_ms = ticks_ms();
+            set(UnloadPhases_t::filament_not_in_fs);
+            break;
+#endif
+
             setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
             set(UnloadPhases_t::unloaded__ask);
+
             break;
         }
         break;
@@ -947,7 +970,20 @@ void Pause::loop_unload_common(Response response, CommonUnloadType unload_type) 
     case UnloadPhases_t::filament_not_in_fs:
         setPhase(PhasesLoadUnload::FilamentNotInFS);
         if (!FSensors_instance().has_filament(true)) { // Either no filament in FS or unknown (FS off)
+#if !HAS_HUMAN_INTERACTIONS()
+            // In case of no human interactions, require no filament being
+            // detected for at least 1s to avoid FS flicking off and on due
+            // to filament movement and reloading the just-unloaded
+            // filament remnant back in.
+            if (ticks_diff(ticks_ms(), runout_timer_ms) < 1000) {
+                break;
+            }
+#endif
             set(UnloadPhases_t::_finish);
+        } else {
+#if !HAS_HUMAN_INTERACTIONS()
+            runout_timer_ms = ticks_ms();
+#endif
         }
         break;
 

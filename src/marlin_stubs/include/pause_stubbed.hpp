@@ -15,6 +15,8 @@
 #include "marlin_server.hpp"
 #include "IPause.hpp"
 #include <array>
+#include <option/has_human_interactions.h>
+#include "Marlin/src/libs/stopwatch.h"
 
 // @brief With Z unhomed, ensure that it is at least amount_mm above bed.
 void unhomed_z_lift(float amount_mm);
@@ -123,6 +125,10 @@ class RammingSequence;
 class Pause : public PausePrivatePhase {
     pause::Settings settings;
     bool user_stop_pending = false;
+
+#if !HAS_HUMAN_INTERACTIONS()
+    uint32_t runout_timer_ms { 0 };
+#endif
 
     // singleton
     Pause() = default;
