@@ -5,6 +5,10 @@
 
 #include <module/temperature.h>
 
+#if HAS_TOOLCHANGER()
+    #include <window_tool_action_box.hpp>
+#endif
+
 #include <common/cold_pull.hpp>
 #include <common/client_fsm_types.h>
 #include <common/client_response.hpp>
@@ -26,6 +30,10 @@ namespace {
     constexpr const millis_t TIMEOUT_DISABLED { 0 };
     constexpr const millis_t COOLING_TIMEOUT_MILLIS { 1000 * 60 * 15 };
     constexpr const millis_t PROGRESS_MILLIS { 500 }; // in ms
+
+    #if HAS_TOOLCHANGER()
+    uint8_t selected_tool { 0 };
+    #endif
 
     Response wait_for_response(const PhasesColdPull phase) {
         for (;;) {
@@ -69,11 +77,47 @@ namespace {
         case Response::Stop:
             return PhasesColdPull::finish;
         case Response::Continue:
+    #if HAS_TOOLCHANGER()
+            return PhasesColdPull::select_tool;
+    #else
             return PhasesColdPull::prepare_filament;
+    #endif
         default:
             bsod("Invalid phase encountered.");
         }
     }
+
+    #if HAS_TOOLCHANGER()
+    PhasesColdPull select_tool() {
+        selected_tool = PrusaToolChanger::MARLIN_NO_TOOL_PICKED;
+        const auto r { wait_for_response(PhasesColdPull::select_tool) };
+        switch (r) {
+        case Response::Tool1:
+        case Response::Tool2:
+        case Response::Tool3:
+        case Response::Tool4:
+        case Response::Tool5:
+            selected_tool = ftrstd::to_underlying(r) - ftrstd::to_underlying(Response::Tool1);
+            return PhasesColdPull::pick_tool;
+        case Response::Continue:
+            selected_tool = active_extruder;
+            return PhasesColdPull::pick_tool;
+        default:
+            bsod("Invalid phase encountered.");
+        }
+    }
+
+    PhasesColdPull pick_tool() {
+        if (selected_tool == PrusaToolChanger::MARLIN_NO_TOOL_PICKED && active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+            return PhasesColdPull::introduction;
+        }
+        tool_change(selected_tool, tool_return_t::no_return, tool_change_lift_t::full_lift, 1);
+        if (active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+            return PhasesColdPull::introduction;
+        }
+        return PhasesColdPull::prepare_filament;
+    }
+    #endif
 
     PhasesColdPull prepare_filament() {
         switch (wait_for_response(PhasesColdPull::prepare_filament)) {
@@ -222,6 +266,12 @@ namespace {
         switch (phase) {
         case PhasesColdPull::introduction:
             return info();
+    #if HAS_TOOLCHANGER()
+        case PhasesColdPull::select_tool:
+            return select_tool();
+        case PhasesColdPull::pick_tool:
+            return pick_tool();
+    #endif
         case PhasesColdPull::prepare_filament:
             return prepare_filament();
         case PhasesColdPull::blank_unload:

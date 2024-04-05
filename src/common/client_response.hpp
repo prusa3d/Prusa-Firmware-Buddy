@@ -384,6 +384,10 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesWarning) { return ClientF
 
 enum class PhasesColdPull : PhaseUnderlyingType {
     introduction,
+#if HAS_TOOLCHANGER()
+    select_tool,
+    pick_tool,
+#endif
     prepare_filament,
     blank_load,
     blank_unload,
@@ -749,6 +753,10 @@ class ClientResponses {
 
     static constexpr PhaseResponses ColdPullResponses[] = {
         { Response::Continue, Response::Stop }, // introduction,
+#if HAS_TOOLCHANGER()
+        { Response::Continue, Response::Tool1, Response::Tool2, Response::Tool3, Response::Tool4, Response::Tool5 }, // select_tool
+        {}, // pick_tool
+#endif
         { Response::Unload, Response::Load, Response::Continue, Response::Abort }, // prepare_filament,
         {}, // blank_load
         {}, // blank_unload

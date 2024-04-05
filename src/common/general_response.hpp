@@ -73,6 +73,11 @@ enum class Response : uint8_t {
     PA,
     Postpone5Days,
     PRINT,
+    Tool1,
+    Tool2,
+    Tool3,
+    Tool4,
+    Tool5,
     _count,
     _last = _count - 1,
 };

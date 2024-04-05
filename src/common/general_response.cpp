@@ -67,6 +67,11 @@ constexpr std::pair<Response, const char *> response_str[] = {
     R(PA),
     R(Postpone5Days),
     R(PRINT),
+    R(Tool1),
+    R(Tool2),
+    R(Tool3),
+    R(Tool4),
+    R(Tool5),
 };
 // NOTE: -1 is to exclude the _count itself
 static_assert(static_cast<uint32_t>(Response::_count) - 1 == std::size(response_str), "Handle all responses!");

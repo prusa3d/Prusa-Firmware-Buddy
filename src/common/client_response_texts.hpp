@@ -136,6 +136,16 @@ inline constexpr const char *get_response_text(Response response) {
         return "POSTPONE";
     case Response::PRINT:
         return "PRINT";
+    case Response::Tool1:
+        return "Tool1";
+    case Response::Tool2:
+        return "Tool2";
+    case Response::Tool3:
+        return "Tool3";
+    case Response::Tool4:
+        return "Tool4";
+    case Response::Tool5:
+        return "Tool5";
     case Response::_count:
         break;
     }

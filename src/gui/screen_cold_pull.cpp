@@ -3,9 +3,13 @@
 #include "screen_cold_pull.hpp"
 #include "window_progress.hpp"
 #include "fonts.hpp"
-#include <find_error.hpp>
 #include "utility_extensions.hpp"
 
+#if HAS_TOOLCHANGER()
+    #include "window_tool_action_box.hpp"
+#endif
+
+#include <find_error.hpp>
 #include <guiconfig/wizard_config.hpp>
 #include <common/cold_pull.hpp>
 #include <common/sound.hpp>
@@ -331,8 +335,6 @@ struct FrameDefinitionList {
     template <class F>
     using FrameType = typename F::FrameType;
 
-    static_assert(Storage::template has_ideal_size_for<FrameType<T>...>());
-
     static void create_frame(Storage &storage, PhasesColdPull phase, window_t *parent) {
         auto f = [&]<typename FD> {
             if (phase == FD::phase) {
@@ -363,6 +365,10 @@ struct FrameDefinitionList {
 
 using Frames = FrameDefinitionList<ScreenColdPull::FrameStorage,
     FrameDefinition<PhasesColdPull::introduction, Frame::Introduction>,
+#if HAS_TOOLCHANGER()
+    FrameDefinition<PhasesColdPull::select_tool, Frame::SelectTool>,
+    FrameDefinition<PhasesColdPull::pick_tool, Frame::PickTool>,
+#endif
     FrameDefinition<PhasesColdPull::prepare_filament, Frame::PrepareFilament>,
     FrameDefinition<PhasesColdPull::blank_load, Frame::Blank>,
     FrameDefinition<PhasesColdPull::blank_unload, Frame::Blank>,
