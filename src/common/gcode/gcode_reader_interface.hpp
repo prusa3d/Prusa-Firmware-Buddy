@@ -145,6 +145,7 @@ public:
      * @return Result_t status of reading
      */
     inline Result_t stream_getc(char &out) {
+        assert(ptr_stream_getc);
         return (this->*ptr_stream_getc)(out);
     }
 
