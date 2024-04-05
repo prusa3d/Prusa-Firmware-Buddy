@@ -76,10 +76,11 @@ private:
     std::optional<bgcode::core::BlockHeader> iterate_blocks(std::function<IterateResult_t(bgcode::core::BlockHeader &)> function);
 
     /// Pointer to function, that will get decompressed character from file, or data directly form file if not compressed
-    Result_t (IGcodeReader::*ptr_stream_getc_decompressed)(char &out);
+    stream_getc_type ptr_stream_getc_decompressed = nullptr;
 
     /// get raw character from file, possibly compressed and encoded
     Result_t stream_getc_file(char &out);
+
     /// get raw characters from current block of file, possibly compressed and encoded
     Result_t stream_current_block_read(char *out, size_t size);
 

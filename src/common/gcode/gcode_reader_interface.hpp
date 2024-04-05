@@ -189,7 +189,8 @@ protected:
     /// nullopt -> everything available; empty state -> error
     std::optional<transfers::PartialFile::State> validity = std::nullopt;
 
-    typedef IGcodeReader::Result_t (IGcodeReader::*stream_getc_type)(char &out);
+    using stream_getc_type = IGcodeReader::Result_t (IGcodeReader::*)(char &out);
+
     // implementation of stream_getc, that will be used for current stream
     stream_getc_type ptr_stream_getc = nullptr;
 
