@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <optional>
 #include <variant>
+#include <device/board.h>
 
 namespace http {
 class Connection;
@@ -160,6 +161,9 @@ private:
     void command(const Command &, const ResetPrinter &);
     void command(const Command &, const SendStateInfo &);
     void command(const Command &, const DialogAction &);
+#if XL_ENCLOSURE_SUPPORT()
+    void command(const Command &, const SetValue &);
+#endif
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;

@@ -6,6 +6,9 @@
 #include <transfers/transfer.hpp>
 #include <option/websocket.h>
 #include <common/general_response.hpp>
+#if XL_ENCLOSURE_SUPPORT()
+    #include <xl_enclosure.hpp>
+#endif
 
 #include <alloca.h>
 #include <algorithm>
@@ -813,6 +816,29 @@ void Planner::command(const Command &command, const DialogAction &params) {
         planned_event = { EventType::Finished, command.id };
     }
 }
+
+#if XL_ENCLOSURE_SUPPORT()
+void Planner::command(const Command &command, const SetValue &params) {
+    const char *err = nullptr;
+    switch (params.name) {
+    case connect_client::PropertyName::EnclosureEnabled:
+        xl_enclosure.setEnabled(params.bool_value);
+        break;
+    case connect_client::PropertyName::EnclosureAlwaysOn:
+        xl_enclosure.setAlwaysOn(params.bool_value);
+        break;
+    case connect_client::PropertyName::EnclosurePostPrint:
+        xl_enclosure.setPostPrint(params.bool_value);
+        break;
+    }
+
+    if (err != nullptr) {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, err };
+    } else {
+        planned_event = { EventType::Finished, command.id };
+    }
+}
+#endif
 
 // FIXME: Handle the case when we are resent a command we are already
 // processing for a while. In that case, we want to re-Accept it. Nevertheless,
