@@ -38,6 +38,7 @@ is_hidden_t get_hidden_state(Tool tool, Action action, bool hidden_if_inactive) 
     case Action::CalibrateDock:
         return prusa_toolchanger.is_tool_enabled(idx) ? is_hidden_t::no : is_hidden_t::yes;
     case Action::PickInactive:
+    case Action::Select:
         if (!prusa_toolchanger.is_tool_enabled(idx)) {
             return is_hidden_t::yes;
         }
@@ -89,6 +90,7 @@ void ToolBox::I_MI_TOOL::do_click(IWindowMenu &window_menu, Tool tool, Action ac
         break;
     case Action::PickCurrent: // do nothing (Pick what is already picked)
     case Action::Return: // do nothing (Just close)
+    case Action::Select: // do nothing (Just report the selected tool via event)
         break;
     }
 

@@ -158,6 +158,54 @@ namespace Frame {
         static constexpr const char *text_link = "prusa.io/%05u";
     };
 
+#if HAS_TOOLCHANGER()
+    class SelectTool final : public ToolBox::DialogToolActionBox<ToolBox::MenuSelect> {
+    public:
+        SelectTool(window_t *) {
+            Screens::Access()->gui_loop_until_dialog_closed();
+            Response r;
+            switch (get_result()) {
+            case ToolBox::DialogResult::Tool1:
+                r = Response::Tool1;
+                break;
+            case ToolBox::DialogResult::Tool2:
+                r = Response::Tool2;
+                break;
+            case ToolBox::DialogResult::Tool3:
+                r = Response::Tool3;
+                break;
+            case ToolBox::DialogResult::Tool4:
+                r = Response::Tool4;
+                break;
+            case ToolBox::DialogResult::Tool5:
+                r = Response::Tool5;
+                break;
+            case ToolBox::DialogResult::Unknown:
+            case ToolBox::DialogResult::Park:
+            case ToolBox::DialogResult::Return:
+                [[fallthrough]];
+            default:
+                r = Response::Continue;
+                break;
+            }
+            marlin_client::FSM_response(PhasesColdPull::select_tool, r);
+        }
+
+        void update(fsm::PhaseData) {}
+    };
+
+    class PickTool final : public TextFrame {
+    public:
+        PickTool(window_t *parent)
+            : TextFrame(parent, _(text_title)) {
+        }
+
+        void update(fsm::PhaseData) {}
+
+        static constexpr const char *text_title = N_("Please wait");
+    };
+#endif
+
     class PrepareFilament final : public TextFrame {
     public:
         explicit PrepareFilament(window_t *parent)

@@ -10,7 +10,11 @@
 
 class ScreenColdPull final : public AddSuperWindow<screen_t> {
 public:
+#if HAS_TOOLCHANGER()
+    using FrameStorage = StaticStorage<1060>;
+#else
     using FrameStorage = StaticStorage<436>;
+#endif
 
 private:
     FrameStorage frame_storage;
