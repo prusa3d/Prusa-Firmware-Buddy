@@ -186,6 +186,21 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         }                                                                    \
     }
 
+#if XL_ENCLOSURE_SUPPORT()
+        auto set_value_bool_arg = [&](PropertyName name) {
+            if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {
+                seen_args |= ArgSetValue;
+                cmd->name = name;
+                if (event.value->compare("true") == 0) {
+                    cmd->bool_value = true;
+                } else if (event.value->compare("false") == 0) {
+                    cmd->bool_value = false;
+                } else {
+                    data = BrokenCommand { "Invalid bool value" };
+                }
+            }
+        };
+#endif
         if (event.depth == 1 && event.type == Type::Object && event.key == "kwargs") {
             in_kwargs = true;
         } else if (event.depth == 1 && event.type == Type::Pop) {
@@ -233,6 +248,14 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                     data = BrokenCommand { "Hostname too long." };
                 }
             }
+#if XL_ENCLOSURE_SUPPORT()
+        } else if (is_arg("enclosure_enabled", Type::Primitive)) {
+            set_value_bool_arg(PropertyName::EnclosureEnabled);
+        } else if (is_arg("enclosure_always_on", Type::Primitive)) {
+            set_value_bool_arg(PropertyName::EnclosureAlwaysOn);
+        } else if (is_arg("enclosure_postprint", Type::Primitive)) {
+            set_value_bool_arg(PropertyName::EnclosurePostPrint);
+#endif
         } else if (is_arg("port", Type::Primitive)) {
             INT_ARG(StartEncryptedDownload, uint16_t, port, 0)
         } else if (is_arg("orig_size", Type::Primitive)) {
@@ -259,6 +282,6 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         id,
         data,
     };
-}
+} // namespace connect_client
 
 } // namespace connect_client

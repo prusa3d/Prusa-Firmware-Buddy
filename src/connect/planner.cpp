@@ -10,6 +10,9 @@
 #include <wui.h>
 #include <netif_settings.h>
 #include <config_store/store_instance.hpp>
+#if XL_ENCLOSURE_SUPPORT()
+    #include <xl_enclosure.hpp>
+#endif
 
 #include <alloca.h>
 #include <algorithm>
@@ -834,11 +837,21 @@ void Planner::command(const Command &command, const DialogAction &params) {
 
 void Planner::command(const Command &command, const SetValue &params) {
     const char *err = nullptr;
-    // There will be more eventually
     switch (params.name) {
     case connect_client::PropertyName::HostName:
         err = set_hostname(reinterpret_cast<const char *>(params.str_value->data()));
         break;
+#if XL_ENCLOSURE_SUPPORT()
+    case connect_client::PropertyName::EnclosureEnabled:
+        xl_enclosure.setEnabled(params.bool_value);
+        break;
+    case connect_client::PropertyName::EnclosureAlwaysOn:
+        xl_enclosure.setAlwaysOn(params.bool_value);
+        break;
+    case connect_client::PropertyName::EnclosurePostPrint:
+        xl_enclosure.setPostPrint(params.bool_value);
+        break;
+#endif
     }
 
     if (err != nullptr) {

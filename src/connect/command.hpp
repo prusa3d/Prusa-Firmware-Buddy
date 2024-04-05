@@ -76,12 +76,17 @@ struct DialogAction {
     Response response;
 };
 
-// There will be more eventually
 enum class PropertyName {
     HostName,
+#if XL_ENCLOSURE_SUPPORT()
+    EnclosureEnabled,
+    EnclosureAlwaysOn,
+    EnclosurePostPrint,
+#endif
 };
 struct SetValue {
     PropertyName name;
+    bool bool_value;
     SharedBorrow str_value;
 };
 

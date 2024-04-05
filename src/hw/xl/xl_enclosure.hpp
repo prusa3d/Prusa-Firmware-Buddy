@@ -34,6 +34,7 @@ public:
     static constexpr const int INVALID_TEMPERATURE = std::numeric_limits<int>::min();
     static constexpr int64_t expiration_deadline_sec = 600 * 3600;
     static constexpr int64_t expiration_warning_sec = 500 * 3600;
+    static constexpr const int MIN_FAN_PWM = 40;
     static constexpr filament::Type filtration_filament_set[] = {
         filament::Type::ABS,
         filament::Type::ASA,

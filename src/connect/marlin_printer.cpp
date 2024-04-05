@@ -191,7 +191,6 @@ Printer::Params MarlinPrinter::params() const {
     params.cancel_object_mask = marlin_vars()->get_cancel_object_mask();
 #endif
 #if XL_ENCLOSURE_SUPPORT()
-    int64_t xl_enclosure_filter_timer = config_store().xl_enclosure_filter_timer.get();
     params.enclosure_info = {
         .present = xl_enclosure.isActive(),
         .enabled = xl_enclosure.isEnabled(),

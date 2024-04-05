@@ -12,6 +12,7 @@
 #include <netif_settings.h>
 #include "printer_type.hpp"
 #include <state/printer_state.hpp>
+#include <device/board.h>
 
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
