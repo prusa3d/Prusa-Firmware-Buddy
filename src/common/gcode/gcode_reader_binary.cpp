@@ -97,6 +97,9 @@ std::optional<BlockHeader> PrusaPackGcodeReader::iterate_blocks(std::function<It
 }
 
 bool PrusaPackGcodeReader::stream_metadata_start() {
+    // Will be set accordingly at the end on success
+    stream_mode_ = StreamMode::none;
+
     auto res = iterate_blocks([](BlockHeader &block_header) {
         if (bgcode::core::EBlockType(block_header.type) == bgcode::core::EBlockType::PrinterMetadata) {
             return IterateResult_t::Return;
@@ -127,6 +130,7 @@ bool PrusaPackGcodeReader::stream_metadata_start() {
     // return characters directly from file
     ptr_stream_getc = static_cast<stream_getc_type>(&PrusaPackGcodeReader::stream_getc_file);
     stream.block_remaining_bytes_compressed = ((bgcode::core::ECompressionType)stream.current_block_header.compression == bgcode::core::ECompressionType::None) ? res->uncompressed_size : res->compressed_size;
+    stream_mode_ = StreamMode::metadata;
     return true;
 }
 
@@ -144,6 +148,9 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
     BlockHeader start_block;
     uint32_t block_decompressed_offset; //< what is offset of first byte inside block that we start streaming from
     uint32_t block_throwaway_bytes; //< How many bytes to throw away from current block (after decompression)
+
+    // Will be set accordingly at the end on success
+    stream_mode_ = StreamMode::none;
 
     auto file = this->file.get();
 
@@ -212,6 +219,7 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
         }
     }
 
+    stream_mode_ = StreamMode::gcode;
     return true;
 }
 
@@ -424,14 +432,17 @@ bool PrusaPackGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint1
         }
     });
 
-    if (res.has_value()) {
-        set_ptr_stream_getc(&PrusaPackGcodeReader::stream_getc_file);
-        stream.reset();
-        stream.current_block_header = res.value();
-        stream.block_remaining_bytes_compressed = res->uncompressed_size; // thumbnail is read as-is, no decompression, so use uncompressed size
-        return true;
+    if (!res.has_value()) {
+        stream_mode_ = StreamMode::none;
+        return false;
     }
-    return false;
+
+    set_ptr_stream_getc(&PrusaPackGcodeReader::stream_getc_file);
+    stream.reset();
+    stream.current_block_header = res.value();
+    stream.block_remaining_bytes_compressed = res->uncompressed_size; // thumbnail is read as-is, no decompression, so use uncompressed size
+    stream_mode_ = StreamMode::thumbnail;
+    return true;
 }
 
 PrusaPackGcodeReader::Result_t PrusaPackGcodeReader::stream_get_block(char *out_data, size_t &size) {
