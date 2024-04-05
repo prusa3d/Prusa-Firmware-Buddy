@@ -13,14 +13,14 @@ PlainGcodeReader::PlainGcodeReader(FILE &f, const struct stat &stat_info)
 
 bool PlainGcodeReader::stream_metadata_start() {
     bool success = fseek(file.get(), 0, SEEK_SET) == 0;
-    output_type = output_type_t::metadata;
+    stream_mode_ = success ? StreamMode::metadata : StreamMode::none;
     gcodes_in_metadata = 0;
     set_ptr_stream_getc(&PlainGcodeReader::stream_getc_impl);
     return success;
 }
 bool PlainGcodeReader::stream_gcode_start(uint32_t offset) {
     bool success = fseek(file.get(), offset, SEEK_SET) == 0;
-    output_type = output_type_t::gcode;
+    stream_mode_ = success ? StreamMode::gcode : StreamMode::none;
     set_ptr_stream_getc(&PlainGcodeReader::stream_getc_impl);
     return success;
 }
@@ -37,13 +37,15 @@ bool PlainGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint16_t 
     while (stream_get_line(buffer) == Result_t::RESULT_OK && (lines_searched++) <= MAX_SEARCH_LINES) {
         long unsigned int num_bytes = 0;
         if (IsBeginThumbnail(buffer, expected_width, expected_height, expected_type, allow_larger, num_bytes)) {
-            output_type = output_type_t::thumbnail;
+            stream_mode_ = StreamMode::thumbnail;
             thumbnail_size = num_bytes;
             base64_decoder.Reset();
             ptr_stream_getc = static_cast<stream_getc_type>(&PlainGcodeReader::stream_getc_thumbnail_impl);
             return true;
         }
     }
+
+    stream_mode_ = StreamMode::none;
     return false;
 }
 
@@ -87,7 +89,7 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
         const bool is_gcode = !is_metadata;
 
         bool output = true;
-        if (output_type == output_type_t::metadata) {
+        if (stream_mode_ == StreamMode::metadata) {
             if (is_gcode) {
                 ++gcodes_in_metadata;
             }
@@ -100,7 +102,7 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer) {
             }
             output = is_metadata;
 
-        } else if (output_type == output_type_t::gcode) {
+        } else if (stream_mode_ == StreamMode::gcode) {
             // if reading gcodes, return everything including metadata, that makes it possible for resume at specified position
             output = true;
         } else {
@@ -151,7 +153,7 @@ IGcodeReader::Result_t PlainGcodeReader::stream_getc_thumbnail_impl(char &out) {
 }
 
 PlainGcodeReader::Result_t PlainGcodeReader::stream_get_block(char *out_data, size_t &size) {
-    if (output_type != output_type_t::gcode) {
+    if (stream_mode_ != StreamMode::gcode) {
         size = 0;
         return Result_t::RESULT_ERROR;
     }

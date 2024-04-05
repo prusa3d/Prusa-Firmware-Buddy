@@ -78,6 +78,19 @@ public:
 
     using StreamRestoreInfo = GCodeReaderStreamRestoreInfo;
 
+    /// What is currently being streamed (determined by the last stream_XX_start and its success)
+    enum class StreamMode {
+        none,
+        metadata,
+        gcode,
+        thumbnail,
+    };
+
+public:
+    inline StreamMode stream_mode() const {
+        return stream_mode_;
+    }
+
     /**
      * @brief Start streaming metadata from gcode
      */
@@ -193,6 +206,8 @@ protected:
 
     // implementation of stream_getc, that will be used for current stream
     stream_getc_type ptr_stream_getc = nullptr;
+
+    StreamMode stream_mode_ = StreamMode::none;
 
     IGcodeReader &operator=(const IGcodeReader &) = delete;
     IGcodeReader(const IGcodeReader &) = delete;

@@ -23,12 +23,6 @@ public:
     virtual bool valid_for_print() override;
 
 private:
-    enum class output_type_t {
-        metadata,
-        gcode,
-        thumbnail,
-    };
-
     // Size of header that have to be valid before we start printing
     // One big file was observed to have header with size of 428 kB, so this adds some headroom
     static constexpr const size_t header_metadata_size = 512 * 1024;
@@ -40,7 +34,6 @@ private:
     // With increasing size of the comment section, this will have to be increased as well
     static constexpr const size_t search_last_x_bytes = 50000;
 
-    output_type_t output_type = output_type_t::gcode;
     uint32_t gcodes_in_metadata = 0;
     uint32_t thumbnail_size = 0;
     Base64StreamDecoder base64_decoder;
