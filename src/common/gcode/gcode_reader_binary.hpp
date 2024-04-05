@@ -107,7 +107,7 @@ private:
     Result_t heatshrink_sink_data();
 
     // find restore info for given offset
-    stream_restore_info_rec_t *get_restore_block_for_offset(uint32_t offset);
+    const stream_restore_info_rec_t *get_restore_block_for_offset(uint32_t offset);
 
     void set_ptr_stream_getc(IGcodeReader::Result_t (PrusaPackGcodeReader::*ptr_stream_getc)(char &out)) {
         // this converts PrusaPackGcodeReader::some_getc_function to IGcodeReader::some_function,

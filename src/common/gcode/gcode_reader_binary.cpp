@@ -129,13 +129,13 @@ bool PrusaPackGcodeReader::stream_metadata_start() {
     return true;
 }
 
-PrusaPackGcodeReader::stream_restore_info_rec_t *PrusaPackGcodeReader::get_restore_block_for_offset(uint32_t offset) {
-    static_assert((sizeof(stream_restore_info) / sizeof(stream_restore_info[0])) == 2); // this is written for two blocks
-    if (stream_restore_info[1].block_file_pos != 0 && stream_restore_info[1].block_start_offset <= offset) {
-        return &stream_restore_info[1];
-    } else if (stream_restore_info[0].block_file_pos != 0 && stream_restore_info[0].block_start_offset <= offset) {
-        return &stream_restore_info[0];
+const PrusaPackGcodeReader::stream_restore_info_rec_t *PrusaPackGcodeReader::get_restore_block_for_offset(uint32_t offset) {
+    for (const auto &block : std::ranges::reverse_view(stream_restore_info)) {
+        if (block.block_file_pos != 0 && block.block_start_offset <= offset) {
+            return &block;
+        }
     }
+
     return nullptr;
 }
 
@@ -171,7 +171,7 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
         }
 
         // pick nearest restore block from restore info
-        stream_restore_info_rec_t *restore_block = get_restore_block_for_offset(offset);
+        const stream_restore_info_rec_t *restore_block = get_restore_block_for_offset(offset);
         if (restore_block == nullptr) {
             return false;
         }
