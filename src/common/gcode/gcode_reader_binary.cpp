@@ -446,6 +446,11 @@ bool PrusaPackGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint1
 }
 
 PrusaPackGcodeReader::Result_t PrusaPackGcodeReader::stream_get_block(char *out_data, size_t &size) {
+    if (stream_mode_ == StreamMode::none) {
+        size = 0;
+        return Result_t::RESULT_ERROR;
+    }
+
     auto orig_size = size;
     size = 0;
     while (size != orig_size) {
