@@ -784,7 +784,7 @@ Errors:
     approved: true
 
   - code: "XX702"
-    printers: [MK4]
+    printers: [MK4, XL]
     title: "Cold Pull"
     text: "Welcome to the Cold Pull wizard. Prepare a 30cm piece of PLA filament and follow the instructions. For more details, visit:"
     id: "COLD_PULL_INTRO"
