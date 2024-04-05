@@ -315,12 +315,16 @@ void media_print_start() {
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
+inline void close_file_no_lock() {
+    osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_STOP);
+    media_print_file.close();
+}
+
 inline void close_file() {
     assert(prefetch_mutex_file_reader);
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_STOP);
-    media_print_file.close();
+    close_file_no_lock();
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
@@ -407,7 +411,7 @@ void media_print_resume(void) {
             osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
         } else {
             marlin_server::set_warning(WarningType::USBFlashDiskError);
-            close_file();
+            close_file_no_lock();
         }
     } else {
         marlin_server::set_warning(WarningType::USBFlashDiskError);
