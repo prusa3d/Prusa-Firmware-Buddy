@@ -599,7 +599,7 @@ PrintPreview::Result PrintPreview::Loop() {
         case Response::Yes:
 
             ChangeState(State::mmu_filament_inserted_unload);
-            marlin_server::enqueue_gcode("M702 W0"); // load, no return or cooldown
+            marlin_server::enqueue_gcode("M702 W0"); // unload, no return or cooldown
             break;
 
         default:

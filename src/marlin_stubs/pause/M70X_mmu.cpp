@@ -51,6 +51,11 @@ void filament_gcodes::mmu_reset(uint8_t level) {
 void filament_gcodes::mmu_on() {
     config_store().mmu2_enabled.set(true);
     MMU2::mmu2.Start();
+
+    // To ensure SideFS (MMU's FS) is properly set up in FS handler
+    // logical_sensor_states_ has to update with logical filament sensors already reconfigured and enabled
+    // false - Do not check FS, FS is checked before enabling MMU
+    FSensors_instance().request_enable_state_update(false);
 }
 
 /**
@@ -69,4 +74,8 @@ void filament_gcodes::mmu_off() {
     }
 
     MMU2::mmu2.Stop();
+
+    // Update logical FS states
+    // but do not check FS enabled here, avoiding recursive behaviour (calling M709 S0 again)
+    FSensors_instance().request_enable_state_update(false);
 }
