@@ -14,7 +14,7 @@ enum class LogicalFilamentSensor : uint8_t {
     /// XL: side sensor | MK4+MMU: MMU sensor | OTHER: extruder sensor
     primary_runout,
 
-    /// Runout sensor that triggers the latest during runout - the onle closest to the extruder
+    /// Runout sensor that triggers the latest during runout - the one closest to the extruder
     /// XL,MK4+MMU: extruder sensor | OTHER: none
     secondary_runout,
 

@@ -44,10 +44,10 @@ void FilamentSensors::set_enabled_global(bool set) {
     request_enable_state_update();
 }
 
-void FilamentSensors::request_enable_state_update() {
+void FilamentSensors::request_enable_state_update([[maybe_unused]] bool check_fs) {
 #if HAS_MMU2()
     // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
-    if (has_mmu && !config_store().fsensor_enabled.get()) {
+    if (check_fs && config_store().mmu2_enabled.get() && !config_store().fsensor_enabled.get()) {
         marlin_client::gcode("M709 S0");
     }
 #endif
@@ -128,6 +128,10 @@ void FilamentSensors::task_cycle() {
 
     old_state = new_state;
 
+    // Reconfigure logical sensors
+    reconfigure_sensors_if_needed(false);
+
+    // Update states of filament sensors
     if (enable_state_update_pending) {
         process_enable_state_update();
     }
@@ -142,13 +146,10 @@ void FilamentSensors::task_cycle() {
         s.check_for_events();
     });
 
-    {
-        reconfigure_sensors_if_needed(false);
-
-        for (uint8_t i = 0; i < logical_filament_sensor_count; i++) {
-            IFSensor *fs = logical_sensors_.array[i];
-            logical_sensor_states_.array[i] = fs ? fs->get_state() : FilamentSensorState::Disabled;
-        }
+    // Update logical sensors states
+    for (uint8_t i = 0; i < logical_filament_sensor_count; i++) {
+        IFSensor *fs = logical_sensors_.array[i];
+        logical_sensor_states_.array[i] = fs ? fs->get_state() : FilamentSensorState::Disabled;
     }
 
     process_events();

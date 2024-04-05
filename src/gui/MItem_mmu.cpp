@@ -209,6 +209,11 @@ void MI_MMU_ENABLE::OnChange(size_t old_index) {
         // if we are enabling MMU and the MMU Rework option is not enabled, enable it
         flip_mmu_rework(true);
 
+#if PRINTER_IS_PRUSA_MK3_5
+        // On other printers flip_mmu_rework executes FS Calibration, which then enables MMU
+        // There is no FS Calibration on MK3.5, so we turn on MMU here instead
+        marlin_client::gcode("M709 S1");
+#endif
     } else {
         // logical_sensors.current_extruder is not synchronized, but in this case it it OK
         if (!is_fsensor_working_state(FSensors_instance().sensor_state(LogicalFilamentSensor::current_extruder))) {

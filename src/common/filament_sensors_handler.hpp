@@ -28,7 +28,8 @@ public:
 
     /// Sends a request to the fsensor task
     /// to update the sensors enable/disable state based on EEPROM settings
-    void request_enable_state_update();
+    /// \param check_fs [in] check if FS is enabled and turn off MMU if it is not
+    void request_enable_state_update(bool check_fs = true);
 
     /// Returns whether fsensors enable state update was requested and is not yet fully processed
     inline bool is_enable_state_update_processing() const {
