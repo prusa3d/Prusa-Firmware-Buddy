@@ -19,7 +19,6 @@ import tarfile
 import venv
 import zipfile
 import stat
-import platform
 from argparse import ArgumentParser
 from pathlib import Path
 from urllib.request import urlretrieve
@@ -40,6 +39,7 @@ dependencies = {
         'version': '1.10.2',
         'url': {
             'Linux': 'https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-linux.zip',
+            'Linux-aarch64': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/ninja-v1.10.2-linux-aarch64.zip',
             'Windows': 'https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-win.zip',
             'Darwin': 'https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-mac.zip',
         },
@@ -48,6 +48,7 @@ dependencies = {
         'version': '3.28.3',
         'url': {
             'Linux': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.tar.gz',
+            'Linux-aarch64': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/cmake-3.28.3-Linux-aarch64.tar.gz',
             'Windows': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-windows-x86_64.zip',
             'Darwin': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-macos-universal.tar.gz',
         },
@@ -56,6 +57,7 @@ dependencies = {
         'version': '13.2.1',
         'url': {
             'Linux': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz',
+            'Linux-aarch64': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-aarch64-arm-none-eabi.tar.xz',
             'Windows': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-mingw-w64-i686-arm-none-eabi.zip',
             'Darwin': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-darwin-x86_64-arm-none-eabi.tar.xzg',
         }
@@ -192,7 +194,11 @@ def install_dependency(dependency):
     files = specs.get('files', None)
     if url is not None:
         if isinstance(url, dict):
-            url = url[platform.system()]
+            full_description = f'{platform.system()}-{platform.machine()}'
+            if full_description not in url:
+                url = url[platform.system()]
+            else:
+                url = url[full_description]
         download_and_unzip(url=url, directory=installation_directory)
     elif files is not None:
         os.mkdir(installation_directory)
