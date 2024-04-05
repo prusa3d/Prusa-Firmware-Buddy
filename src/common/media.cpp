@@ -400,12 +400,19 @@ static bool media_print_file_reset_position() {
     media_print_size_estimate = media_print_file.get()->get_gcode_stream_size_estimate();
     if (media_reset_position != GCodeQueue::SDPOS_INVALID) {
         media_print_set_position(media_reset_position);
-        media_reset_position = GCodeQueue::SDPOS_INVALID;
     }
     if (auto pack = media_print_file.get_prusa_pack()) {
         pack->set_restore_info(media_get_restore_info());
     }
-    return media_print_file.get()->stream_gcode_start(media_current_position);
+
+    const bool result = media_print_file.get()->stream_gcode_start(media_current_position);
+
+    // Only reset reset position on success - otherwise we get stuck on repeated USB error
+    if (result) {
+        media_reset_position = GCodeQueue::SDPOS_INVALID;
+    }
+
+    return result;
 }
 
 void media_print_resume(void) {
