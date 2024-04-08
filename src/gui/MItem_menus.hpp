@@ -535,15 +535,6 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 
-class MI_DONE_EXTRUDER_MAINTENANCE : public IWindowMenuItem {
-    constexpr static const char *const label = N_("Nextruder Maintenance");
-
-public:
-    MI_DONE_EXTRUDER_MAINTENANCE();
-
-    virtual void click(IWindowMenu &) override;
-};
-
 #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
 class MI_BED_LEVEL_CORRECTION : public IWindowMenuItem {
     static constexpr const char *const label = N_("Bed Level Correction");
