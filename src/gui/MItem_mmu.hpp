@@ -293,3 +293,12 @@ class MI_MMU_BOOTLOADER_RESULT : public WI_FORMATABLE_LABEL_t<bool> {
 public:
     MI_MMU_BOOTLOADER_RESULT();
 };
+
+class MI_DONE_EXTRUDER_MAINTENANCE : public IWindowMenuItem {
+    constexpr static const char *const label = N_("Nextruder Maintenance");
+
+public:
+    MI_DONE_EXTRUDER_MAINTENANCE();
+
+    virtual void click(IWindowMenu &) override;
+};
