@@ -140,14 +140,15 @@ TEST_CASE("stream restore at offset", "[GcodeReader]") {
         REQUIRE(reader1.stream_gcode_start(0));
         size_t ctr = 0;
 
-        PrusaPackGcodeReader::stream_restore_info_t restore_info;
+        GCodeReaderStreamRestoreInfo restore_info;
+        bool has_restore_info = false;
         while (true) {
             auto size = sizes[ctr++ % std::size(sizes)]; // pick next size to read
 
             auto reader2_anyformat = AnyGcodeFormatReader(filename);
             auto reader2 = reader2_anyformat.get();
             auto reader2_pp = dynamic_cast<PrusaPackGcodeReader *>(reader2);
-            if (reader2_pp) {
+            if (reader2_pp && has_restore_info) {
                 reader2_pp->set_restore_info(restore_info);
             }
             REQUIRE(reader2->stream_gcode_start(offset));
@@ -178,6 +179,7 @@ TEST_CASE("stream restore at offset", "[GcodeReader]") {
 
             if (reader2_pp) {
                 restore_info = reader2_pp->get_restore_info();
+                has_restore_info = true;
             }
         }
     };

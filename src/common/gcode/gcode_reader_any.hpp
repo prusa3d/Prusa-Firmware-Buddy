@@ -33,16 +33,13 @@ public:
      *
      * @return IGcodeReader*
      */
-    IGcodeReader *get() const {
+    inline IGcodeReader *get() {
+        assert(ptr);
         return ptr;
     }
-
-    /**
-     * @brief Special getter, that returns pointer to PrusaPackGcodeReader, or null if current file is not prusaPack format
-     *
-     */
-    PrusaPackGcodeReader *get_prusa_pack() {
-        return std::get_if<PrusaPackGcodeReader>(&storage);
+    inline IGcodeReader *operator->() {
+        assert(ptr);
+        return ptr;
     }
 
     /**

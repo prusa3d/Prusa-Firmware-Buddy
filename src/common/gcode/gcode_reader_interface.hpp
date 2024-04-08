@@ -1,11 +1,14 @@
 #pragma once
 
-#include "gcode_buffer.hpp"
 #include <algorithm>
 #include <optional>
-#include <transfers/partial_file.hpp>
-#include "transfers/transfer.hpp"
 #include <span>
+
+#include <gcode_buffer.hpp>
+#include <transfers/partial_file.hpp>
+#include <transfers/transfer.hpp>
+
+#include "gcode_reader_restore_info.hpp"
 
 /**
  * @brief This is base class for reading gcode files. This defines interface that alows reading of different gcode formats.
@@ -71,6 +74,8 @@ public:
         }
     };
 
+    using StreamRestoreInfo = GCodeReaderStreamRestoreInfo;
+
     /**
      * @brief Start streaming metadata from gcode
      */
@@ -111,6 +116,10 @@ public:
      * @brief Get total size of gcode stream
      */
     virtual uint32_t get_gcode_stream_size() = 0;
+
+    virtual StreamRestoreInfo get_restore_info() { return {}; }
+
+    virtual void set_restore_info(const StreamRestoreInfo &) {}
 
     /**
      * @brief Verify file contents validity (CRC and such). Not available for all formats.

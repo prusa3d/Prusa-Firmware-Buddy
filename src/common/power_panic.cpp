@@ -73,6 +73,8 @@
 #include "safe_state.h"
 #include "wdt.hpp"
 
+#include <usb_host/usbh_async_diskio.hpp>
+
 // External thread handles required for suspension
 extern osThreadId defaultTaskHandle;
 extern osThreadId displayTaskHandle;
@@ -227,7 +229,7 @@ struct flash_data {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         SpoolJoin::serialized_state_t spool_join;
 #endif
-        PrusaPackGcodeReader::stream_restore_info_t gcode_stream_restore_info;
+        GCodeReaderStreamRestoreInfo gcode_stream_restore_info;
         uint8_t invalid; // set to zero before writing, cleared on erase
 
         static void load();
@@ -277,7 +279,7 @@ static struct {
 #if ENABLED(PRUSA_SPOOL_JOIN)
     SpoolJoin::serialized_state_t spool_join;
 #endif
-    PrusaPackGcodeReader::stream_restore_info_t gcode_stream_restore_info;
+    GCodeReaderStreamRestoreInfo gcode_stream_restore_info;
 } state_buf;
 
 // Helper functions to read/write to the flash area with type checking

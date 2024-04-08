@@ -29,14 +29,12 @@ public:
 
     virtual FileVerificationResult verify_file(FileVerificationLevel level, std::span<uint8_t> crc_calc_buffer) const override;
 
-    struct stream_restore_info_rec_t {
-        uint32_t block_file_pos = 0; //< Of block header in file
-        uint32_t block_start_offset = 0; //< Offset of decompressed data on start of the block
-    };
-    typedef std::array<stream_restore_info_rec_t, 2> stream_restore_info_t;
-
-    auto get_restore_info() { return stream_restore_info; }
-    void set_restore_info(const stream_restore_info_t &restore_info) { stream_restore_info = restore_info; }
+    StreamRestoreInfo get_restore_info() override {
+        return { .data = stream_restore_info };
+    }
+    void set_restore_info(const StreamRestoreInfo &restore_info) override {
+        stream_restore_info = std::get<StreamRestoreInfo::PrusaPack>(restore_info.data);
+    }
 
     virtual bool valid_for_print() override;
 
@@ -66,7 +64,7 @@ private:
         void reset();
     } stream;
 
-    stream_restore_info_t stream_restore_info; //< Restore info for last two blocks
+    StreamRestoreInfo::PrusaPack stream_restore_info; //< Restore info for last two blocks
 
     /// helper enum for iterate_blocks function
     enum class IterateResult_t {
@@ -107,7 +105,7 @@ private:
     Result_t heatshrink_sink_data();
 
     // find restore info for given offset
-    const stream_restore_info_rec_t *get_restore_block_for_offset(uint32_t offset);
+    const StreamRestoreInfo::PrusaPackRec *get_restore_block_for_offset(uint32_t offset);
 
     void set_ptr_stream_getc(IGcodeReader::Result_t (PrusaPackGcodeReader::*ptr_stream_getc)(char &out)) {
         // this converts PrusaPackGcodeReader::some_getc_function to IGcodeReader::some_function,

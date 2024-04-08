@@ -41,7 +41,7 @@ uint32_t media_print_size_estimate = 0; ///< Estimated uncompressed G-code size 
 uint32_t media_current_position = 0; // Current position in the file
 uint32_t media_gcode_position = 0; // Beginning of the current G-Code
 /// Cache of PrusaPackGcodeReader that allows to resume print quickly without long searches for correct block
-PrusaPackGcodeReader::stream_restore_info_t media_stream_restore_info;
+GCodeReaderStreamRestoreInfo media_stream_restore_info;
 
 // Position where to start after pause / quick stop
 uint32_t media_reset_position = GCodeQueue::SDPOS_INVALID;
@@ -366,9 +366,7 @@ void media_print_quick_stop(uint32_t pos) {
     queue.clear();
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    if (auto pack = media_print_file.get_prusa_pack()) {
-        media_stream_restore_info = pack->get_restore_info();
-    }
+    media_stream_restore_info = media_print_file->get_restore_info();
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
@@ -379,9 +377,7 @@ void media_print_quick_stop_powerpanic() {
     queue.clear();
 
     // These two need to happen at once, from high priority ISR
-    if (auto pack = media_print_file.get_prusa_pack()) {
-        media_stream_restore_info = pack->get_restore_info();
-    }
+    media_stream_restore_info = media_print_file->get_restore_info();
 }
 
 void media_print_pause(bool repeat_last = false) {
@@ -397,13 +393,11 @@ void media_print_pause(bool repeat_last = false) {
 }
 
 static bool media_print_file_reset_position() {
-    media_print_size_estimate = media_print_file.get()->get_gcode_stream_size_estimate();
+    media_print_size_estimate = media_print_file->get_gcode_stream_size_estimate();
     if (media_reset_position != GCodeQueue::SDPOS_INVALID) {
         media_print_set_position(media_reset_position);
     }
-    if (auto pack = media_print_file.get_prusa_pack()) {
-        pack->set_restore_info(media_get_restore_info());
-    }
+    media_print_file->set_restore_info(media_get_restore_info());
 
     const bool result = media_print_file.get()->stream_gcode_start(media_current_position);
 
@@ -446,9 +440,7 @@ void media_print_resume(void) {
 void media_print_reopen() {
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
     if (media_print_file.is_open()) {
-        if (auto pack = media_print_file.get_prusa_pack()) {
-            media_stream_restore_info = pack->get_restore_info();
-        }
+        media_stream_restore_info = media_print_file->get_restore_info();
         media_print_file.close();
         skip_gcode = true;
         media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
@@ -520,7 +512,7 @@ static size_t media_get_bytes_prefetched() {
 
 void media_loop(void) {
     if (media_print_state != media_print_state_PRINTING) {
-        if (media_print_file.get() != nullptr) { // Read pointer without mutex lock, should be safe
+        if (media_print_file.is_open()) { // Read pointer without mutex lock, should be safe
             // complete closing the file in the main loop (for media_print_quick_stop)
             close_file();
         }
@@ -614,10 +606,10 @@ void media_reset_usbh_error() {
     usbh_error_count = 0;
 }
 
-void media_set_restore_info(PrusaPackGcodeReader::stream_restore_info_t &info) {
+void media_set_restore_info(const GCodeReaderStreamRestoreInfo &info) {
     media_stream_restore_info = info;
 }
 
-PrusaPackGcodeReader::stream_restore_info_t media_get_restore_info() {
+GCodeReaderStreamRestoreInfo media_get_restore_info() {
     return media_stream_restore_info;
 }

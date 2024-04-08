@@ -2,7 +2,7 @@
 #pragma once
 
 #include <inttypes.h>
-#include <gcode/gcode_reader_binary.hpp> // for PrusaPackGcodeReader::stream_restore_info_t
+#include <gcode/gcode_reader_restore_info.hpp>
 
 #define PREFETCH_SIGNAL_START           1
 #define PREFETCH_SIGNAL_STOP            2
@@ -82,5 +82,5 @@ extern void media_set_error(media_error_t error);
 
 extern void media_reset_usbh_error();
 
-extern void media_set_restore_info(PrusaPackGcodeReader::stream_restore_info_t &info);
-extern PrusaPackGcodeReader::stream_restore_info_t media_get_restore_info();
+extern void media_set_restore_info(const GCodeReaderStreamRestoreInfo &info);
+extern GCodeReaderStreamRestoreInfo media_get_restore_info();
