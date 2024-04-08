@@ -1,8 +1,4 @@
-/**
- * @file screen_menu_lan_settings.cpp
- */
-
-#include "screen_menu_lan_settings.hpp"
+#include "screen_menu_network_settings.hpp"
 #include "wui_api.h"
 #include "RAII.hpp"
 #include "ScreenHandler.hpp"
@@ -46,7 +42,7 @@ void update_screen(T &menu) {
         menu.template Item<MI_IP4_GWAY>().ChangeInformation(UNKNOWN_ADDR);
 
         if constexpr (dev_id == NETDEV_ESP_ID) {
-            const char *state_str = [&] -> const char * {
+            const char *state_str = [&]() -> const char * {
                 switch (esp_link_state()) {
 
                 case EspLinkState::Init:

@@ -1,11 +1,5 @@
-/**
- * @file MItem_lan.cpp
- * @author Radek Vana
- * @date 2021-10-31
- */
-
 #include <guiconfig/guiconfig.h>
-#include "MItem_lan.hpp"
+#include "MItem_network.hpp"
 #include "wui_api.h"
 #include "netdev.h"
 #include "ScreenHandler.hpp"

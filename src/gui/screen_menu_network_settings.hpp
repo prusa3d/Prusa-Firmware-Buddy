@@ -1,7 +1,3 @@
-/**
- * @file screen_menu_lan_settings.hpp
- */
-
 #pragma once
 
 #include <netdev.h>
@@ -9,7 +5,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
-#include "MItem_lan.hpp"
+#include "MItem_network.hpp"
 
 // ------------------- ETHERNET -----------------------
 using ScreenMenuEthernetSettings_ = ScreenMenu<EFooter::Off, MI_RETURN, MI_NET_IP_VER_t, WMI_NET<MI_NET_IP, NETDEV_ETH_ID>, MI_IP4_ADDR, MI_IP4_NMSK, MI_IP4_GWAY, MI_HOSTNAME, MI_MAC_ADDR>;

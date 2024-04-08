@@ -32,8 +32,8 @@ target_sources(
           MItem_filament.cpp
           MItem_hardware.cpp
           MItem_input_shaper.cpp
-          MItem_lan.cpp
           MItem_menus.cpp
+          MItem_network.cpp
           MItem_print.cpp
           MItem_tools.cpp
           network_gui_tools.cpp
@@ -64,12 +64,12 @@ target_sources(
           screen_menu_hw_setup.cpp
           screen_menu_info.cpp
           screen_menu_input_shaper.cpp
-          screen_menu_lan_settings.cpp
           screen_menu_lang_and_time.cpp
           screen_menu_metrics.cpp
           screen_menu_move.cpp
           screen_menu_move_utils.cpp
           screen_menu_network.cpp
+          screen_menu_network_settings.cpp
           screen_menu_odometer.cpp
           screen_menu_sensor_info_${PRINTER}.cpp
           screen_menu_settings.cpp

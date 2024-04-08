@@ -1,10 +1,3 @@
-/**
- * @file MItem_lan.hpp
- * @author Radek Vana
- * @brief lan menu items
- * @date 2021-10-03
- */
-
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"

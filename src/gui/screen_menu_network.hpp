@@ -8,7 +8,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
-#include "MItem_lan.hpp"
+#include "MItem_network.hpp"
 #include <option/buddy_enable_connect.h>
 
 using ScreenMenuNetwork__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_PRUSALINK,
