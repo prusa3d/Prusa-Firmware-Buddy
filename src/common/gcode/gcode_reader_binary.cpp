@@ -6,6 +6,7 @@
 #include <errno.h> // for EAGAIN
 #include <filename_type.hpp>
 #include <sys/stat.h>
+#include <ranges>
 #include <type_traits>
 
 using bgcode::core::BlockHeader;
@@ -129,7 +130,7 @@ bool PrusaPackGcodeReader::stream_metadata_start() {
     return true;
 }
 
-const PrusaPackGcodeReader::stream_restore_info_rec_t *PrusaPackGcodeReader::get_restore_block_for_offset(uint32_t offset) {
+const PrusaPackGcodeReader::StreamRestoreInfo::PrusaPackRec *PrusaPackGcodeReader::get_restore_block_for_offset(uint32_t offset) {
     for (const auto &block : std::ranges::reverse_view(stream_restore_info)) {
         if (block.block_file_pos != 0 && block.block_start_offset <= offset) {
             return &block;
@@ -171,7 +172,7 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
         }
 
         // pick nearest restore block from restore info
-        const stream_restore_info_rec_t *restore_block = get_restore_block_for_offset(offset);
+        const auto *restore_block = get_restore_block_for_offset(offset);
         if (restore_block == nullptr) {
             return false;
         }
@@ -201,7 +202,7 @@ bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
         return false;
     }
 
-    stream_restore_info.fill(stream_restore_info_rec_t());
+    stream_restore_info.fill({});
     store_restore_block();
 
     while (block_throwaway_bytes--) {
