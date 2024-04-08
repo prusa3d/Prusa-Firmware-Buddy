@@ -123,3 +123,15 @@ TEST_CASE("Set token ‒ missing params") {
 TEST_CASE("Set token ‒ Too long") {
     command_test<BrokenCommand>("{\"command\":\"SET_TOKEN\",\"kwargs\": {\"token\":\"123456789012345678901234567890\"}}");
 }
+
+TEST_CASE("Set value - hostname") {
+    command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\": {\"hostname\":\"Nice_hostname\"}}");
+}
+
+TEST_CASE("Set value - hostname too long") {
+    command_test<BrokenCommand>("{\"command\":\"SET_VALUE\",\"kwargs\": {\"hostname\":\"Nice_hostname_but_far_too_long_for_us_to_process\"}}");
+}
+
+TEST_CASE("Set value - missing params") {
+    command_test<BrokenCommand>("{\"command\":\"SET_VALUE\",\"kwargs\": {}}");
+}

@@ -82,7 +82,7 @@ enum class PropertyName {
 };
 struct SetValue {
     PropertyName name;
-    SharedBorrow value;
+    SharedBorrow str_value;
 };
 
 using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartEncryptedDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer, SetToken, ResetPrinter, SendStateInfo, DialogAction, SetValue>;

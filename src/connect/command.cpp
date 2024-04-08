@@ -60,14 +60,6 @@ namespace {
         return true;
     }
 
-    std::optional<PropertyName> name_from_str(std::string_view str) {
-        if (str.compare("hostname") == 0) {
-            return PropertyName::HostName;
-        }
-
-        return nullopt;
-    }
-
     enum HasArg : uint32_t {
         ArgJobId = 1 << 0,
         ArgPath = 1 << 1,
@@ -77,15 +69,13 @@ namespace {
         ArgOrigSize = 1 << 5,
         ArgDialogId = 1 << 6,
         ArgResponse = 1 << 7,
-        ArgName = 1 << 8,
-        ArgValue = 1 << 9,
+        ArgSetValue = 1 << 8,
     };
 
     constexpr uint32_t NO_ARGS = 0;
     // Encrypted download can also process a port, but that one is optional, so not listed here.
     constexpr uint32_t ARGS_ENC_DOWN = ArgPath | ArgKey | ArgIv | ArgOrigSize;
     constexpr uint32_t ARGS_DIALOG_ACTION = ArgDialogId | ArgResponse;
-    constexpr uint32_t ARGS_SET_VALUE = ArgName | ArgValue;
 } // namespace
 
 Command Command::gcode_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
@@ -163,7 +153,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("RESET", ResetPrinter, NO_ARGS)
             T("SEND_STATE_INFO", SendStateInfo, NO_ARGS)
             T("DIALOG_ACTION", DialogAction, ARGS_DIALOG_ACTION)
-            T("SET_VALUE", SetValue, ARGS_SET_VALUE)
+            T("SET_VALUE", SetValue, ArgSetValue)
             T("START_ENCRYPTED_DOWNLOAD", StartEncryptedDownload, ARGS_ENC_DOWN) { // else is part of the previous T
                 return;
             }
@@ -230,23 +220,18 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                 }
             }
 
-        } else if (is_arg("name", Type::String)) {
-            if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {
-                seen_args |= ArgName;
-                auto name = name_from_str(event.value.value());
-                if (name.has_value()) {
-                    cmd->name = name.value();
-                } else {
-                    data = BrokenCommand { "Invalid name." };
-                }
-            }
-        } else if (is_arg("value", Type::String)) {
+        } else if (is_arg("hostname", Type::String)) {
             if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr && buffer_available) {
                 const size_t len = min(event.value->size() + 1, buff.size());
-                seen_args |= ArgValue;
-                strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
-                cmd->value = std::make_shared<SharedBuffer::Borrow>(move(buff));
-                buffer_available = false;
+                if (len - 1 <= HOSTNAME_LEN) {
+                    seen_args |= ArgSetValue;
+                    cmd->name = PropertyName::HostName;
+                    strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
+                    cmd->str_value = std::make_shared<SharedBuffer::Borrow>(move(buff));
+                    buffer_available = false;
+                } else {
+                    data = BrokenCommand { "Hostname too long." };
+                }
             }
         } else if (is_arg("port", Type::Primitive)) {
             INT_ARG(StartEncryptedDownload, uint16_t, port, 0)

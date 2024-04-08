@@ -837,7 +837,7 @@ void Planner::command(const Command &command, const SetValue &params) {
     // There will be more eventually
     switch (params.name) {
     case connect_client::PropertyName::HostName:
-        err = set_hostname(reinterpret_cast<const char *>(params.value->data()));
+        err = set_hostname(reinterpret_cast<const char *>(params.str_value->data()));
         break;
     }
 
