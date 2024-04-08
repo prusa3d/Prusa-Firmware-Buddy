@@ -18,6 +18,9 @@
 
 namespace {
 
+template <typename T>
+concept is_update_callable = std::is_invocable_v<decltype(&T::update), T &, fsm::PhaseData>;
+
 // Show message when this time is left to wait for
 constexpr const unsigned TAKING_TOO_LONG_TIMEOUT_SEC { 5 * 60 };
 
@@ -105,8 +108,6 @@ namespace Frame {
 
         TextFrame(window_t *parent, const string_view_utf8 &txt_title)
             : TextFrame(parent, txt_title, {}) {}
-
-        virtual ~TextFrame() = default;
     };
 
     /** common base class for two text frame with progress bar */
@@ -125,10 +126,6 @@ namespace Frame {
 
         virtual ~ProgressFrame() = default;
     };
-
-    // For future use with XL/MMU; now here just for translations
-    [[maybe_unused]] static constexpr const char *TODOtext3 = N_("Before you continue, unload the filament. Then press down the blue part on the fitting and pull the PTFE tube from the tool head.");
-    [[maybe_unused]] static constexpr const char *TODOtext4 = N_("Before you continue, make sure PLA filament is loaded directly into the extruder.");
 
     /** individual frames */
     class Introduction final {
@@ -156,8 +153,6 @@ namespace Frame {
             snprintf(error_code_str, sizeof(error_code_str), text_link, err_code_num);
             link.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_code_str));
         }
-
-        void update(fsm::PhaseData) {}
 
         static constexpr const char *text_link = "prusa.io/%05u";
     };
@@ -194,8 +189,6 @@ namespace Frame {
             }
             marlin_client::FSM_response(PhasesColdPull::select_tool, r);
         }
-
-        void update(fsm::PhaseData) {}
     };
 
     class PickTool final : public TextFrame {
@@ -204,18 +197,33 @@ namespace Frame {
             : TextFrame(parent, _(text_title)) {
         }
 
-        void update(fsm::PhaseData) {}
-
         static constexpr const char *text_title = N_("Please wait");
     };
+
+    class UnloadFilamentPtfe final : public TextFrame {
+    public:
+        explicit UnloadFilamentPtfe(window_t *parent)
+            : TextFrame(parent, _(text_title), _(text_info)) {}
+
+        static constexpr const char *text_title = N_("Unload filament");
+        static constexpr const char *text_info = N_("Before you continue, unload the filament. Then press down the blue part on the fitting and pull the PTFE tube from the tool head.");
+    };
+
+    class LoadFilamentPtfe final : public TextFrame {
+    public:
+        explicit LoadFilamentPtfe(window_t *parent)
+            : TextFrame(parent, _(text_title), _(text_info)) {}
+
+        static constexpr const char *text_title = N_("Load filament");
+        static constexpr const char *text_info = N_("Before you continue, make sure PLA filament is loaded directly into the extruder.");
+    };
+
 #endif
 
     class PrepareFilament final : public TextFrame {
     public:
         explicit PrepareFilament(window_t *parent)
             : TextFrame(parent, _(text_title), _(text_info)) {}
-
-        void update(fsm::PhaseData) {}
 
         static constexpr const char *text_title = N_("Filament check");
         static constexpr const char *text_info = N_("Before you continue,\nmake sure that PLA filament is loaded.");
@@ -228,8 +236,6 @@ namespace Frame {
     class Blank final {
     public:
         explicit Blank([[maybe_unused]] window_t *parent) {}
-
-        void update(fsm::PhaseData) {}
     };
 
     class CoolDown final : public ProgressFrame {
@@ -260,6 +266,7 @@ namespace Frame {
         static constexpr const char *text2 = N_("Don't touch the extruder.");
         static constexpr const char *text3 = N_("Takes too long, will skip soon.");
     };
+    static_assert(is_update_callable<CoolDown>);
 
     class HeatUp final : public ProgressFrame {
     public:
@@ -278,6 +285,7 @@ namespace Frame {
         static constexpr const char *text1 = N_("Heating up the nozzle");
         static constexpr const char *text2 = N_("The filament will be unloaded automatically.");
     };
+    static_assert(is_update_callable<HeatUp>);
 
     class AutomaticPull final : public TextFrame {
     public:
@@ -285,8 +293,6 @@ namespace Frame {
             : TextFrame(parent, _(text1)) {
             Sound_Play(eSOUND_TYPE::SingleBeep);
         }
-
-        void update(fsm::PhaseData) {}
 
         static constexpr const char *text1 = N_("Unloading");
     };
@@ -297,8 +303,6 @@ namespace Frame {
             : TextFrame(parent, _(text1), _(text2)) {
         }
 
-        void update(fsm::PhaseData) {}
-
         static constexpr const char *text1 = N_("Remove the filament manually");
         static constexpr const char *text2 = N_("There might be a slight resistance.\nIf the filament is stuck, open the idler lever.");
     };
@@ -308,8 +312,6 @@ namespace Frame {
         explicit PullDone(window_t *parent)
             : TextFrame(parent, _(text1), _(text2)) {
         }
-
-        void update(fsm::PhaseData) {}
 
         static constexpr const char *text1 = N_("Cold Pull successfully completed");
         static constexpr const char *text2 = N_("You can continue printing. If the issue persists,\nrepeat this procedure again.");
@@ -355,8 +357,10 @@ struct FrameDefinitionList {
 
     static void update_frame(Storage &storage, PhasesColdPull phase, fsm::PhaseData data) {
         auto f = [&]<typename FD> {
-            if (phase == FD::phase) {
-                storage.template as<typename FD::FrameType>()->update(data);
+            if constexpr (is_update_callable<typename FD::FrameType>) {
+                if (phase == FD::phase) {
+                    storage.template as<typename FD::FrameType>()->update(data);
+                }
             }
         };
         (f.template operator()<T>(), ...);
@@ -368,6 +372,8 @@ using Frames = FrameDefinitionList<ScreenColdPull::FrameStorage,
 #if HAS_TOOLCHANGER()
     FrameDefinition<PhasesColdPull::select_tool, Frame::SelectTool>,
     FrameDefinition<PhasesColdPull::pick_tool, Frame::PickTool>,
+    FrameDefinition<PhasesColdPull::unload_ptfe, Frame::UnloadFilamentPtfe>,
+    FrameDefinition<PhasesColdPull::load_ptfe, Frame::LoadFilamentPtfe>,
 #endif
     FrameDefinition<PhasesColdPull::prepare_filament, Frame::PrepareFilament>,
     FrameDefinition<PhasesColdPull::blank_load, Frame::Blank>,

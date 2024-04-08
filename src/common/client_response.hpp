@@ -387,6 +387,8 @@ enum class PhasesColdPull : PhaseUnderlyingType {
 #if HAS_TOOLCHANGER()
     select_tool,
     pick_tool,
+    unload_ptfe,
+    load_ptfe,
 #endif
     prepare_filament,
     blank_load,
@@ -756,6 +758,8 @@ class ClientResponses {
 #if HAS_TOOLCHANGER()
         { Response::Continue, Response::Tool1, Response::Tool2, Response::Tool3, Response::Tool4, Response::Tool5 }, // select_tool
         {}, // pick_tool
+        { Response::Unload, Response::Continue, Response::Abort }, // unload_ptfe,
+        { Response::Load, Response::Continue, Response::Abort }, // load_ptfe,
 #endif
         { Response::Unload, Response::Load, Response::Continue, Response::Abort }, // prepare_filament,
         {}, // blank_load

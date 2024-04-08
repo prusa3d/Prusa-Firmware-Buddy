@@ -78,7 +78,11 @@ namespace {
             return PhasesColdPull::finish;
         case Response::Continue:
     #if HAS_TOOLCHANGER()
-            return PhasesColdPull::select_tool;
+            if (prusa_toolchanger.is_toolchanger_enabled()) {
+                return PhasesColdPull::select_tool;
+            } else {
+                return PhasesColdPull::unload_ptfe;
+            }
     #else
             return PhasesColdPull::prepare_filament;
     #endif
@@ -115,7 +119,33 @@ namespace {
         if (active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
             return PhasesColdPull::introduction;
         }
-        return PhasesColdPull::prepare_filament;
+        return PhasesColdPull::unload_ptfe;
+    }
+
+    PhasesColdPull unload_ptfe() {
+        switch (wait_for_response(PhasesColdPull::unload_ptfe)) {
+        case Response::Unload:
+            return PhasesColdPull::blank_unload;
+        case Response::Continue:
+            return PhasesColdPull::load_ptfe;
+        case Response::Abort:
+            return PhasesColdPull::finish;
+        default:
+            bsod("Invalid phase encountered.");
+        }
+    }
+
+    PhasesColdPull load_ptfe() {
+        switch (wait_for_response(PhasesColdPull::load_ptfe)) {
+        case Response::Load:
+            return PhasesColdPull::blank_load;
+        case Response::Continue:
+            return PhasesColdPull::cool_down;
+        case Response::Abort:
+            return PhasesColdPull::finish;
+        default:
+            bsod("Invalid phase encountered.");
+        }
     }
     #endif
 
@@ -138,7 +168,11 @@ namespace {
         filament_gcodes::M702_no_parser(
             std::nullopt, Z_AXIS_UNLOAD_POS, RetAndCool_t::Return, active_extruder, true);
         planner.resume_queuing(); // HACK for planner.quick_stop(); in Pause::check_user_stop()
+    #if HAS_TOOLCHANGER()
+        return PhasesColdPull::load_ptfe;
+    #else
         return PhasesColdPull::prepare_filament;
+    #endif
     }
 
     PhasesColdPull blank_load() {
@@ -157,7 +191,11 @@ namespace {
         case PreheatStatus::Result::DoneHasFilament:
             return PhasesColdPull::cool_down;
         default:
+    #if HAS_TOOLCHANGER()
+            return PhasesColdPull::load_ptfe;
+    #else
             return PhasesColdPull::prepare_filament;
+    #endif
         }
     }
 
@@ -227,7 +265,7 @@ namespace {
     #if ENABLED(PREVENT_COLD_EXTRUSION)
             AutoRestore cold_extrude_restore(thermalManager.allow_cold_extrude, true);
     #endif
-            plan_move_by(50, 0, 0, 0, -EXTRUDE_MAXLENGTH);
+            plan_move_by(50, 0, 0, 0, -std::min(300, EXTRUDE_MAXLENGTH));
             planner.synchronize();
 
             // mark filament unloaded
@@ -271,6 +309,10 @@ namespace {
             return select_tool();
         case PhasesColdPull::pick_tool:
             return pick_tool();
+        case PhasesColdPull::unload_ptfe:
+            return unload_ptfe();
+        case PhasesColdPull::load_ptfe:
+            return load_ptfe();
     #endif
         case PhasesColdPull::prepare_filament:
             return prepare_filament();

@@ -1,10 +1,9 @@
 #pragma once
 
-#include "status_footer.hpp"
-
 #include <common/static_storage.hpp>
 #include <common/fsm_base_types.hpp>
 #include <dialogs/radio_button_fsm.hpp>
+#include <footer_line.hpp>
 #include <screen.hpp>
 #include <window_header.hpp>
 
