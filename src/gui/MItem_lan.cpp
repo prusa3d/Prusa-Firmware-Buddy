@@ -62,15 +62,17 @@ MI_HOSTNAME::MI_HOSTNAME()
     ) {
 }
 
-MI_NET_IP_t::MI_NET_IP_t()
-    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_DHCP), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_static)) {
-    this->index = netdev_get_ip_obtained_type(netdev_get_active_id()) == NETDEV_DHCP
-        ? 0
-        : 1;
+MI_NET_IP::MI_NET_IP(uint32_t device_id)
+    : WI_SWITCH_t(netdev_get_ip_obtained_type(device_id), string_view_utf8::MakeCPUFLASH(label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_DHCP), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_static))
+    , device_id(device_id) {
 }
 
-void MI_NET_IP_t::OnChange([[maybe_unused]] size_t old_index) {
-    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)(EventMask::value | this->index));
+void MI_NET_IP::OnChange([[maybe_unused]] size_t old_index) {
+    if (index == NETDEV_STATIC) {
+        netdev_set_static(device_id);
+    } else {
+        netdev_set_dhcp(device_id);
+    }
 }
 
 MI_NET_IP_VER_t::MI_NET_IP_VER_t()

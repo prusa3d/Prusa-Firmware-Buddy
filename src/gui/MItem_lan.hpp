@@ -64,18 +64,26 @@ class MI_HOSTNAME : public WiInfo<config_store_ns::lan_hostname_max_len + 1> {
 public:
     MI_HOSTNAME();
 };
-class MI_NET_IP_t : public WI_SWITCH_t<2> {
+
+class MI_NET_IP : public WI_SWITCH_t<2> {
     constexpr static const char *const label = "LAN"; // do not translate
 
     constexpr static const char *str_static = "static"; // do not translate
     constexpr static const char *str_DHCP = "DHCP"; // do not translate
 
 public:
-    enum EventMask { value = 1 << 17 };
-
-public:
-    MI_NET_IP_t();
+    MI_NET_IP(uint32_t device_id);
     virtual void OnChange(size_t old_index) override;
+
+    const uint32_t device_id;
+};
+
+/// Wrapper for MI_NET menu items that accept device_id in their constructors
+template <typename Parent, uint32_t device_id>
+class WMI_NET : public Parent {
+public:
+    WMI_NET()
+        : Parent(device_id) {}
 };
 
 class MI_NET_IP_VER_t : public WI_SWITCH_t<2> {
