@@ -14,6 +14,16 @@ protected:
     virtual void force_set_enabled(bool set) override;
     virtual void cycle() override;
 
+    // just for sensor info visualization of the raw value
+    virtual int32_t GetFilteredValue() const override {
+        if constexpr (BOARD_IS_XBUDDY) {
+            // Beware - inverted pin logic on XBUDDY
+            return state != FilamentSensorState::HasFilament;
+        } else {
+            return state == FilamentSensorState::HasFilament;
+        }
+    };
+
 private:
     void set_state(FilamentSensorState set);
 
