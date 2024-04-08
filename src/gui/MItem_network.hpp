@@ -78,7 +78,7 @@ protected:
 };
 
 class MI_NET_INTERFACE_t : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = N_("Default");
+    constexpr static const char *const label = N_("Active Interface");
 
     constexpr static const char *str_eth = "Eth"; // do not translate
     constexpr static const char *str_wifi = "Wi-Fi"; // do not translate
