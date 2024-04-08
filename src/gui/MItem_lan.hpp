@@ -53,9 +53,6 @@ class MI_NET_INTERFACE_t : public WI_SWITCH_t<2> {
     constexpr static const char *str_wifi = "Wi-Fi"; // do not translate
 
 public:
-    enum EventMask { value = 1 << 16 };
-
-public:
     MI_NET_INTERFACE_t();
     virtual void OnChange(size_t old_index) override;
 };

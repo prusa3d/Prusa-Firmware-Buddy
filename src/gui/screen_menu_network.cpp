@@ -34,18 +34,9 @@ void ScreenMenuNetwork::refresh_address() {
 }
 
 void ScreenMenuNetwork::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::CHILD_CLICK) {
-        uint32_t action = ((uint32_t)param) & 0xFFFF;
-        uint32_t type = ((uint32_t)param) & 0xFFFF0000;
-        switch (type) {
-        case MI_NET_INTERFACE_t::EventMask::value:
-            netdev_set_active_id(action);
-            // TODO: By now, the network is not yet fully reconfigured. Do
-            // it periodically (below)? Have some notification?
-            refresh_address();
-            break;
-        }
-    } else if (event == GUI_event_t::LOOP) {
+    if (event == GUI_event_t::LOOP) {
         refresh_address();
     }
+
+    SuperWindowEvent(sender, event, param);
 }

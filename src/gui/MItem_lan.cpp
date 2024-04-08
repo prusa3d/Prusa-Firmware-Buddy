@@ -49,8 +49,7 @@ MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
 }
 
 void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
-    uint32_t param = EventMask::value + this->index;
-    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)param);
+    netdev_set_active_id(this->index);
 }
 
 MI_HOSTNAME::MI_HOSTNAME()
