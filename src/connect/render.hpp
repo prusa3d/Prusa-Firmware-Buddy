@@ -17,18 +17,18 @@ namespace connect_client {
 
 class PreviewRenderer final : public json::ChunkRenderer {
 private:
-    AnyGcodeFormatReader *gcode;
+    IGcodeReader *gcode;
     bool started = false;
 
 public:
-    PreviewRenderer(AnyGcodeFormatReader *gcode)
+    PreviewRenderer(IGcodeReader *gcode)
         : gcode(gcode) {}
     virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override;
 };
 
 class GcodeMetaRenderer final : public json::ChunkRenderer {
 private:
-    AnyGcodeFormatReader *gcode;
+    IGcodeReader *gcode;
     GcodeBuffer gcode_line_buffer;
     bool first_run = true;
     bool str_continuation = false;
@@ -41,7 +41,7 @@ private:
     json::JsonResult out_str_chunk(json::JsonOutput &output, const GcodeBuffer::String &str);
 
 public:
-    GcodeMetaRenderer(AnyGcodeFormatReader *gcode)
+    GcodeMetaRenderer(IGcodeReader *gcode)
         : gcode(gcode) {}
 
     virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override;

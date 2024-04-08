@@ -44,7 +44,6 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
     }
     ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close;
 
-    assert(gcode.is_open());
     size_t written = 0;
     if (!headers_sent) {
         /*
@@ -53,7 +52,7 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
          * gcode reader say there is one, we send it.
          */
 
-        bool has_thumbnail = gcode.get()->stream_thumbnail_start(width, height, IGcodeReader::ImgType::PNG, allow_larger);
+        bool has_thumbnail = gcode->stream_thumbnail_start(width, height, IGcodeReader::ImgType::PNG, allow_larger);
         if (!has_thumbnail) {
             /*
              * Something is wrong. We don't care about exactly what, we simply
@@ -73,7 +72,7 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
         written += http::render_chunk(handling, buffer, buffer_size, [&](uint8_t *buffer_, size_t buffer_size_) {
             int got = 0;
             for (size_t i = 0; i < buffer_size_; i++) {
-                if (gcode.get()->stream_getc(*reinterpret_cast<char *>(&buffer_[i])) != IGcodeReader::Result_t::RESULT_OK) {
+                if (gcode->stream_getc(*reinterpret_cast<char *>(&buffer_[i])) != IGcodeReader::Result_t::RESULT_OK) {
                     break;
                 }
                 ++got;
@@ -83,7 +82,7 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
             } else {
                 // The decoder doesn't distinguish between error or end, so we handle both as end.
                 instruction = Terminating::for_handling(handling);
-                gcode.close();
+                gcode = AnyGcodeFormatReader {};
                 return 0;
             }
         });

@@ -169,7 +169,7 @@ void media_prefetch(const void *) {
             xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
             if (media_print_file.is_open()) {
                 back_buff_level = FILE_BUFF_SIZE;
-                first_read_res = media_print_file.get()->stream_get_block(back_buff, back_buff_level);
+                first_read_res = media_print_file->stream_get_block(back_buff, back_buff_level);
             } else {
                 first_read_res = IGcodeReader::Result_t::RESULT_ERROR;
             }
@@ -222,7 +222,7 @@ void media_prefetch(const void *) {
 
                 xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
                 if (media_print_file.is_open()) {
-                    second_read_res = media_print_file.get()->stream_get_block(back_buff, back_buff_level);
+                    second_read_res = media_print_file->stream_get_block(back_buff, back_buff_level);
                 } else {
                     second_read_res = IGcodeReader::Result_t::RESULT_ERROR;
                 }
@@ -237,9 +237,9 @@ void media_prefetch(const void *) {
                         path = transfers::Transfer::Path(value);
                     });
 
-                    media_print_file.get()->update_validity(path);
+                    media_print_file->update_validity(path);
                     back_buff_level = FILE_BUFF_SIZE;
-                    second_read_res = media_print_file.get()->stream_get_block(back_buff, back_buff_level);
+                    second_read_res = media_print_file->stream_get_block(back_buff, back_buff_level);
                 }
                 xSemaphoreGive(prefetch_mutex_file_reader);
                 log_info(USBHost, "Media prefetch read done");
@@ -315,11 +315,11 @@ void media_print_start() {
     }
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
-    if (media_print_file.is_open() && media_print_file.get()->stream_gcode_start()) {
+    media_print_file = AnyGcodeFormatReader { marlin_vars()->media_SFN_path.get_ptr() };
+    if (media_print_file.is_open() && media_print_file->stream_gcode_start()) {
         media_gcode_position = media_current_position = 0;
         media_print_state = media_print_state_PRINTING;
-        media_print_size_estimate = media_print_file.get()->get_gcode_stream_size_estimate();
+        media_print_size_estimate = media_print_file->get_gcode_stream_size_estimate();
 
         // Do not remove, needed for 3rd party tools such as octoprint to get status about the gcode file being opened
         SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars()->media_SFN_path.get_ptr(), " Size:", media_print_size_estimate);
@@ -334,7 +334,7 @@ void media_print_start() {
 
 inline void close_file_no_lock() {
     osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_STOP);
-    media_print_file.close();
+    media_print_file = AnyGcodeFormatReader {};
 }
 
 inline void close_file() {
@@ -403,7 +403,7 @@ static bool media_print_file_reset_position() {
     }
     media_print_file->set_restore_info(media_get_restore_info());
 
-    const bool result = media_print_file.get()->stream_gcode_start(media_current_position);
+    const bool result = media_print_file->stream_gcode_start(media_current_position);
 
     // Only reset reset position on success - otherwise we get stuck on repeated USB error
     if (result) {
@@ -423,7 +423,7 @@ void media_print_resume(void) {
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
     if (!media_print_file.is_open()) {
         // file was closed by media_print_pause, reopen
-        media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
+        media_print_file = AnyGcodeFormatReader { marlin_vars()->media_SFN_path.get_ptr() };
     }
     if (media_print_file.is_open()) {
         // file was left open between pause/resume or re-opened successfully
@@ -445,9 +445,9 @@ void media_print_reopen() {
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
     if (media_print_file.is_open()) {
         media_stream_restore_info = media_print_file->get_restore_info();
-        media_print_file.close();
+        media_print_file = AnyGcodeFormatReader {};
         skip_gcode = true;
-        media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
+        media_print_file = AnyGcodeFormatReader { marlin_vars()->media_SFN_path.get_ptr() };
         if (!media_print_file.is_open() || !media_print_file_reset_position()) {
             usbh_power_cycle::trigger_usb_failed_dialog = true;
         }

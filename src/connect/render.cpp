@@ -649,7 +649,7 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
 
     if (!started) {
         // get any thumbnail bigger than 17x17
-        if (!gcode->get()->stream_thumbnail_start(17, 17, IGcodeReader::ImgType::PNG, true)) {
+        if (!gcode->stream_thumbnail_start(17, 17, IGcodeReader::ImgType::PNG, true)) {
             // no thumbnail found in gcode, just dont send anything
             return make_tuple(JsonResult::Complete, 0);
         }
@@ -666,7 +666,7 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
         uint8_t dec_chunk[decoded_chunk_size] = { 0 };
         size_t decoded_len = 0;
         while (decoded_len < decoded_chunk_size) {
-            if (gcode->get()->stream_getc(reinterpret_cast<char &>(dec_chunk[decoded_len])) != IGcodeReader::Result_t::RESULT_OK) {
+            if (gcode->stream_getc(reinterpret_cast<char &>(dec_chunk[decoded_len])) != IGcodeReader::Result_t::RESULT_OK) {
                 // probably end of data, or error. Either way stop reading and send whatever was read till now.
                 // if error happens while sending thumbnail, there is not much that can be done to signal that anyway.
                 write_end = true;
@@ -717,10 +717,9 @@ JsonResult GcodeMetaRenderer::out_str_chunk(JsonOutput &output, const GcodeBuffe
 }
 
 tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buffer_size) {
-    assert(gcode->is_open());
     if (first_run) {
         reset_buffer();
-        if (!gcode->get()->stream_metadata_start()) {
+        if (!gcode->stream_metadata_start()) {
             return make_tuple(JsonResult::Complete, 0);
         }
         first_run = false;
@@ -742,7 +741,7 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
     while (true) {
         if (gcode_line_buffer.line.is_empty()) {
             // line is empty, that indicates that last line was already processed and we need to fetch another one
-            if (gcode->get()->stream_get_line(gcode_line_buffer, IGcodeReader::Continuations::Split) != IGcodeReader::Result_t::RESULT_OK) {
+            if (gcode->stream_get_line(gcode_line_buffer, IGcodeReader::Continuations::Split) != IGcodeReader::Result_t::RESULT_OK) {
                 break;
             }
         }
@@ -776,7 +775,7 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
                 // Eat the rest of the header.
                 bool error = false;
                 while (!gcode_line_buffer.line_complete) {
-                    if (gcode->get()->stream_get_line(gcode_line_buffer, IGcodeReader::Continuations::Split) != IGcodeReader::Result_t::RESULT_OK) {
+                    if (gcode->stream_get_line(gcode_line_buffer, IGcodeReader::Continuations::Split) != IGcodeReader::Result_t::RESULT_OK) {
                         error = true;
                         break;
                     }
@@ -929,7 +928,7 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
 
 FileExtra::FileExtra(std::unique_ptr<AnyGcodeFormatReader> gcode_reader_)
     : gcode_reader(std::move(gcode_reader_))
-    , renderer(std::move(GcodeExtra(PreviewRenderer(gcode_reader.get()), GcodeMetaRenderer(gcode_reader.get())))) {}
+    , renderer(std::move(GcodeExtra(PreviewRenderer(gcode_reader->get()), GcodeMetaRenderer(gcode_reader->get())))) {}
 
 FileExtra::FileExtra(const char *base_path, unique_dir_ptr dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}

@@ -18,20 +18,19 @@ WindowPreviewThumbnail::WindowPreviewThumbnail(window_t *parent, Rect16 rect)
 }
 
 void WindowPreviewThumbnail::unconditionalDraw() {
-    gcode_reader.open(GCodeInfo::getInstance().GetGcodeFilepath());
+    gcode_reader = AnyGcodeFormatReader { GCodeInfo::getInstance().GetGcodeFilepath() };
     if (!gcode_reader.is_open()) {
         return;
     }
-    IGcodeReader *const reader = gcode_reader.get();
 
     FILE f {};
     img::Resource res(&f);
 
-    if (!reader->stream_thumbnail_start(Width(), Height(), IGcodeReader::ImgType::QOI)) {
+    if (!gcode_reader->stream_thumbnail_start(Width(), Height(), IGcodeReader::ImgType::QOI)) {
         return;
     }
 
-    if (f_gcode_thumb_open(*reader, &f) != 0) {
+    if (f_gcode_thumb_open(*gcode_reader, &f) != 0) {
         return;
     }
 
@@ -45,7 +44,7 @@ WindowProgressThumbnail::WindowProgressThumbnail(window_t *parent, Rect16 rect, 
     : AddSuperWindow<WindowThumbnail>(parent, rect)
     , redraw_whole(true)
     , old_allowed_width(allowed_old_thumbnail_width) {
-    gcode_reader.open(GCodeInfo::getInstance().GetGcodeFilepath());
+    gcode_reader = AnyGcodeFormatReader { GCodeInfo::getInstance().GetGcodeFilepath() };
 }
 
 Rect16::Left_t WindowProgressThumbnail::get_old_left() {
@@ -65,22 +64,20 @@ void WindowProgressThumbnail::unconditionalDraw() {
         return;
     }
 
-    IGcodeReader *const reader = gcode_reader.get();
-
     FILE f {};
     img::Resource res(&f);
 
     bool have_old_alternative { false };
 
-    if (!reader->stream_thumbnail_start(Width(), Height(), IGcodeReader::ImgType::QOI)) {
-        if (old_allowed_width < Width() && !reader->stream_thumbnail_start(old_allowed_width, Height(), IGcodeReader::ImgType::QOI)) {
+    if (!gcode_reader->stream_thumbnail_start(Width(), Height(), IGcodeReader::ImgType::QOI)) {
+        if (old_allowed_width < Width() && !gcode_reader->stream_thumbnail_start(old_allowed_width, Height(), IGcodeReader::ImgType::QOI)) {
             return;
         } else {
             have_old_alternative = true;
         }
     }
 
-    if (f_gcode_thumb_open(*reader, &f) != 0) {
+    if (f_gcode_thumb_open(*gcode_reader, &f) != 0) {
         return;
     }
 
@@ -92,11 +89,11 @@ void WindowProgressThumbnail::unconditionalDraw() {
 }
 
 void WindowProgressThumbnail::pauseDeinit() {
-    gcode_reader.close();
+    gcode_reader = AnyGcodeFormatReader {};
 }
 
 void WindowProgressThumbnail::pauseReinit() {
-    gcode_reader.open(GCodeInfo::getInstance().GetGcodeFilepath());
+    gcode_reader = AnyGcodeFormatReader { GCodeInfo::getInstance().GetGcodeFilepath() };
 }
 
 void WindowProgressThumbnail::redrawWhole() {
