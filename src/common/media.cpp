@@ -446,6 +446,9 @@ void media_print_resume(void) {
 void media_print_reopen() {
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
     if (media_print_file.is_open()) {
+        if (auto pack = media_print_file.get_prusa_pack()) {
+            media_stream_restore_info = pack->get_restore_info();
+        }
         media_print_file.close();
         skip_gcode = true;
         media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
