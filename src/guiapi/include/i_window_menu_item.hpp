@@ -271,3 +271,10 @@ public:
     friend class IWinMenuContainer;
     friend class window_file_list_t;
 };
+
+template <typename T>
+concept UpdatableMenuItem = requires(T a) {
+    requires std::is_base_of_v<IWindowMenuItem, T>;
+
+    { a.update() };
+};

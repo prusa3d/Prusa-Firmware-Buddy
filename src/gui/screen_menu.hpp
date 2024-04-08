@@ -75,5 +75,17 @@ public:
     bool SwapVisibility() {
         return menu.SwapVisibility(Item<ITEM1>(), Item<ITEM2>());
     }
+
+    /// Calls update() on all items that have this function
+    template <typename = void>
+    void update_all_updatable_items() {
+        constexpr auto f = []<typename I>(I &i) {
+            if constexpr (UpdatableMenuItem<I>) {
+                i.update();
+            }
+        };
+
+        (f(Item<T>()), ...);
+    }
     // ShowDevOnly intentionally not supported, can be set only in ctor
 };
