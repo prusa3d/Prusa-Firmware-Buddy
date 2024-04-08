@@ -294,7 +294,7 @@ void I_MI_STS_SUBMENU::do_click([[maybe_unused]] IWindowMenu &window_menu, Tool 
 
 namespace SelftestSnake {
 void do_menu_event(window_t *receiver, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param, Action action, bool is_submenu) {
-    if (receiver->GetFirstDialog(), event != GUI_event_t::LOOP || !snake_config.in_progress || SelftestInstance().IsInProgress()) {
+    if (receiver->GetFirstDialog() || event != GUI_event_t::LOOP || !snake_config.in_progress || SelftestInstance().IsInProgress()) {
         return;
     }
 
