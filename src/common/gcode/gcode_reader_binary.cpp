@@ -15,7 +15,7 @@ using bgcode::core::ECompressionType;
 using bgcode::core::EGCodeEncodingType;
 
 PrusaPackGcodeReader::PrusaPackGcodeReader(FILE &f, const struct stat &stat_info)
-    : IGcodeReader(f) {
+    : GcodeReaderCommon(f) {
     file_size = stat_info.st_size;
 }
 
@@ -384,6 +384,10 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_getc_decode_none(char &out) 
     }
 
     return res;
+}
+
+IGcodeReader::Result_t PrusaPackGcodeReader::stream_get_line(GcodeBuffer &buffer, Continuations line_continations) {
+    return stream_get_line_common(buffer, line_continations);
 }
 
 constexpr PrusaPackGcodeReader::ImgType thumbnail_format_to_type(bgcode::core::EThumbnailFormat type) {

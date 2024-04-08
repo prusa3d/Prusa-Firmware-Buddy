@@ -7,7 +7,7 @@
 #include <type_traits>
 
 PlainGcodeReader::PlainGcodeReader(FILE &f, const struct stat &stat_info)
-    : IGcodeReader(f) {
+    : GcodeReaderCommon(f) {
     file_size = stat_info.st_size;
 }
 
@@ -69,7 +69,7 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer, Co
 
     while (true) {
         // get raw line, then decide if to output it or not
-        auto res = IGcodeReader::stream_get_line(buffer, line_continations);
+        auto res = stream_get_line_common(buffer, line_continations);
         if (res != Result_t::RESULT_OK) {
             return res;
         }

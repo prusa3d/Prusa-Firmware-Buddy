@@ -6,7 +6,7 @@
 /**
  * @brief Implementation of IGcodeReader for plaintext gcodes
  */
-class PlainGcodeReader final : public IGcodeReader {
+class PlainGcodeReader final : public GcodeReaderCommon {
 public:
     PlainGcodeReader(FILE &f, const struct stat &stat_info);
     PlainGcodeReader(PlainGcodeReader &&other) = default;
@@ -21,6 +21,8 @@ public:
     virtual uint32_t get_gcode_stream_size() override;
     virtual FileVerificationResult verify_file(FileVerificationLevel level, std::span<uint8_t> crc_calc_buffer) const override;
     virtual bool valid_for_print() override;
+    virtual StreamRestoreInfo get_restore_info() override { return {}; }
+    virtual void set_restore_info(const StreamRestoreInfo &) override {}
 
 private:
     // Size of header that have to be valid before we start printing

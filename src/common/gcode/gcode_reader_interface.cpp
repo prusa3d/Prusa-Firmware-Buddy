@@ -7,7 +7,7 @@
 #include "transfers/transfer.hpp"
 #include "lang/i18n.h"
 
-IGcodeReader::Result_t IGcodeReader::stream_get_line(GcodeBuffer &b, Continuations line_continuations) {
+IGcodeReader::Result_t GcodeReaderCommon::stream_get_line_common(GcodeBuffer &b, Continuations line_continuations) {
     b.line.begin = begin(b.buffer);
     b.line.end = begin(b.buffer);
 
@@ -92,7 +92,7 @@ IGcodeReader::Result_t IGcodeReader::stream_get_line(GcodeBuffer &b, Continuatio
     return Result_t::RESULT_ERROR;
 }
 
-bool IGcodeReader::range_valid(size_t start, size_t end) const {
+bool GcodeReaderCommon::range_valid(size_t start, size_t end) const {
     assert(start <= end);
     if (start == end) {
         // 0-sized range.
@@ -119,7 +119,7 @@ bool IGcodeReader::range_valid(size_t start, size_t end) const {
     return inside(validity->valid_head) || inside(validity->valid_tail);
 }
 
-void IGcodeReader::update_validity(transfers::Transfer::Path &filename) {
+void GcodeReaderCommon::update_validity(transfers::Transfer::Path &filename) {
 #if !defined(UNITTESTS) // validity update is disabled for unit tests, because it drags in lots of dependencies
     using transfers::PartialFile;
     using transfers::Transfer;
@@ -148,7 +148,7 @@ void IGcodeReader::update_validity(transfers::Transfer::Path &filename) {
 #endif
 }
 
-bool IGcodeReader::check_file_starts_with_BGCODE_magic() const {
+bool GcodeReaderCommon::check_file_starts_with_BGCODE_magic() const {
     auto file = this->file.get();
 
     // Todo respect file availability?

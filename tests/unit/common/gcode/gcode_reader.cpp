@@ -28,7 +28,7 @@ using ValidPart = transfers::PartialFile::ValidPart;
 using std::nullopt;
 using std::string_view;
 
-struct DummyReader : public IGcodeReader {
+struct DummyReader : public GcodeReaderCommon {
     std::deque<char> data;
     Result_t final_result;
 
@@ -67,6 +67,10 @@ struct DummyReader : public IGcodeReader {
         return true;
     }
 
+    virtual Result_t stream_get_line(GcodeBuffer &buffer, Continuations continuations) {
+        return stream_get_line_common(buffer, continuations);
+    }
+
     virtual Result_t stream_get_block(char *, size_t &) override {
         return Result_t::RESULT_ERROR;
     }
@@ -80,6 +84,10 @@ struct DummyReader : public IGcodeReader {
             return Result_t::RESULT_OK;
         }
     }
+
+    virtual StreamRestoreInfo get_restore_info() override { return {}; }
+
+    virtual void set_restore_info(const StreamRestoreInfo &) override {}
 };
 
 } // namespace
@@ -220,8 +228,8 @@ TEST_CASE("copy & move operators", "[GcodeReader]") {
 
 TEST_CASE("validity-plain", "[GcodeReader]") {
     auto reader = AnyGcodeFormatReader(PLAIN_TEST_FILE);
-    REQUIRE(reader.get() != nullptr);
-    auto r = reader.get();
+    auto r = dynamic_cast<PlainGcodeReader *>(reader.get());
+    REQUIRE(r != nullptr);
 
     struct stat st = {};
     REQUIRE(stat(PLAIN_TEST_FILE, &st) == 0);
@@ -250,8 +258,8 @@ TEST_CASE("validity-plain", "[GcodeReader]") {
 
 TEST_CASE("validity-bgcode", "[GcodeReader]") {
     auto reader = AnyGcodeFormatReader(BINARY_HEATSHRINK_MEATPACK_FILE);
-    REQUIRE(reader.get() != nullptr);
-    auto r = reader.get();
+    auto r = dynamic_cast<PrusaPackGcodeReader *>(reader.get());
+    REQUIRE(r != nullptr);
 
     struct stat st = {};
     REQUIRE(stat(BINARY_HEATSHRINK_MEATPACK_FILE, &st) == 0);
@@ -294,8 +302,8 @@ TEST_CASE("gcode-reader-empty-validity", "[GcodeReader]") {
     // implementation nuances don't change and the default State prevents
     // reading from the file no matter what.
     auto reader = AnyGcodeFormatReader(PLAIN_TEST_FILE);
-    REQUIRE(reader.get() != nullptr);
-    auto r = reader.get();
+    auto r = dynamic_cast<PlainGcodeReader *>(reader.get());
+    REQUIRE(r != nullptr);
 
     r->set_validity(State {});
     GcodeBuffer buffer;
