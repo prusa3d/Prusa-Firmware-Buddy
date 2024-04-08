@@ -19,7 +19,7 @@ public:
     static constexpr auto PARKING_FINAL_MAX_SPEED = 300.f; ///< Maximum speed (mm/s) for parking
     static constexpr auto SLOW_ACCELERATION_MM_S2 = 400; ///< Acceleration for parking and picking
     static constexpr auto FORCE_MOVE_MM_S = 30; ///< Not used here, feedrate for locking and unlocking the toolchange clamps
-    static constexpr auto SLOW_MOVE_MM_S = 60; ///< Feedrate for tool picking and parking
+    static constexpr auto SLOW_MOVE_MM_S = 50; ///< Feedrate for tool picking and parking
     static constexpr auto Z_HOP_FEEDRATE_MM_S = 10.0f; ///< Feedrate for z hop
     static constexpr auto TRAVEL_MOVE_MM_S = 400.f; ///< Feedrate for moves around dock
     static constexpr uint32_t WAIT_TIME_TOOL_SELECT = 3000; ///< Max wait for puppytask tool switch [ms], needs a lot of time if there is a hiccup in puppy communication
