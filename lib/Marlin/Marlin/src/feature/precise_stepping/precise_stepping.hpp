@@ -311,7 +311,7 @@ public:
     static bool has_blocks_queued() { return has_move_segments_queued() || has_step_events_queued(); }
 
     // Return if some processing is still pending before all queues are flushed
-    static bool processing() { return has_blocks_queued() || stop_pending; }
+    static bool processing() { return busy || stop_pending; }
 
     static volatile uint8_t step_dl_miss; // stepper deadline misses
     static volatile uint8_t step_ev_miss; // stepper event misses
@@ -322,6 +322,7 @@ private:
 
     static void step_generator_state_init(const move_t &move);
 
+    static std::atomic<bool> busy;
     static std::atomic<bool> stop_pending;
     static void reset_queues();
     static bool is_waiting_before_delivering();
