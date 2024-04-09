@@ -2,6 +2,7 @@
 #include <network_gui_tools.hpp>
 
 #include "MItem_network.hpp"
+#include <espif.h>
 #include "wui_api.h"
 #include "netdev.h"
 #include "ScreenHandler.hpp"
@@ -23,6 +24,51 @@ bool NetDeviceID::is_connected() const {
 
 MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    update();
+}
+
+void MI_WIFI_STATUS_t::update() {
+    const netdev_status_t status = netdev_get_status(NETDEV_ESP_ID);
+    if (is_device_connected(status)) {
+        ChangeInformation(status == NETDEV_NETIF_UP ? _("Connected") : _("Link down"));
+        return;
+    }
+
+    const char *state_str = []() -> const char * {
+        switch (esp_link_state()) {
+
+        case EspLinkState::Init:
+            switch (esp_fw_state()) {
+
+            case EspFwState::Flashing:
+            case EspFwState::NoFirmware:
+            case EspFwState::WrongVersion:
+                return N_("Flash ESP");
+
+            case EspFwState::NoEsp:
+                return N_("Gone");
+
+            case EspFwState::Ok:
+                return N_("Link down");
+
+            case EspFwState::Unknown:
+                return N_("???");
+            }
+            return nullptr;
+
+        case EspLinkState::NoAp:
+            return N_("No AP");
+
+        case EspLinkState::Up:
+            return N_("Connected");
+
+        case EspLinkState::Silent:
+            return N_("ESP error");
+        }
+
+        return nullptr;
+    }();
+    ChangeInformation(_(state_str));
 }
 
 MI_WIFI_INIT_t::MI_WIFI_INIT_t()

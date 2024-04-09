@@ -42,7 +42,10 @@ class MI_WIFI_STATUS_t : public WI_INFO_t {
 
 public:
     MI_WIFI_STATUS_t();
+
+    void update();
 };
+static_assert(UpdatableMenuItem<MI_WIFI_STATUS_t>);
 
 class MI_WIFI_INIT_t : public IWindowMenuItem {
     constexpr static const char *const label = N_("Setup Wi-Fi Module");
