@@ -24,10 +24,6 @@ class WinMenuContainer : public IWinMenuContainer {
 public:
     mutable std::tuple<T...> menu_items; // mutable to be able to make const methods for getting index etc
 
-    void Init(const char *label, T... args) {
-        menu_items = std::tuple<T...>(args...);
-    }
-
     // compiletime access by index
     template <std::size_t I>
     decltype(auto) Item() {
