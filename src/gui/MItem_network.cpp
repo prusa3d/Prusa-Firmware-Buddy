@@ -72,7 +72,7 @@ void MI_WIFI_STATUS_t::update() {
 }
 
 MI_WIFI_INIT_t::MI_WIFI_INIT_t()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t(!marlin_client::is_printing()), is_hidden_t::no) {
 }
 
 void MI_WIFI_INIT_t::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -80,7 +80,7 @@ void MI_WIFI_INIT_t::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_WIFI_CREDENTIALS_t::MI_WIFI_CREDENTIALS_t()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t(!marlin_client::is_printing()), is_hidden_t::no) {
 }
 
 void MI_WIFI_CREDENTIALS_t::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -88,7 +88,7 @@ void MI_WIFI_CREDENTIALS_t::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_WIFI_CREDENTIALS_INI_FILE_t::MI_WIFI_CREDENTIALS_INI_FILE_t()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t(!marlin_client::is_printing()), is_hidden_t::no) {
 }
 
 void MI_WIFI_CREDENTIALS_INI_FILE_t::click([[maybe_unused]] IWindowMenu &window_menu) {

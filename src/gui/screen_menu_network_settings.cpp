@@ -25,12 +25,6 @@ void ScreenMenuEthernetSettings::windowEvent(EventLock /*has private ctor*/, win
 // ------------------------ WIFI -----------------------------------
 ScreenMenuWifiSettings::ScreenMenuWifiSettings()
     : ScreenMenuWifiSettings_(_(label)) {
-
-    if (marlin_client::is_printing()) {
-        DisableItem<MI_WIFI_INIT_t>();
-        DisableItem<MI_WIFI_CREDENTIALS_INI_FILE_t>();
-        DisableItem<MI_WIFI_CREDENTIALS_t>();
-    }
 }
 
 void ScreenMenuWifiSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
