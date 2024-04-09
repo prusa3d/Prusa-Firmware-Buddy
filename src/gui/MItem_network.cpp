@@ -1,9 +1,25 @@
 #include <guiconfig/guiconfig.h>
+#include <network_gui_tools.hpp>
+
 #include "MItem_network.hpp"
 #include "wui_api.h"
 #include "netdev.h"
 #include "ScreenHandler.hpp"
 #include "marlin_client.hpp"
+
+namespace {
+bool is_device_connected(netdev_status_t status) {
+    return status == NETDEV_NETIF_UP || status == NETDEV_NETIF_NOADDR;
+}
+} // namespace
+
+inline uint32_t NetDeviceID::get() const {
+    return value_ == active_id ? netdev_get_active_id() : value_;
+}
+
+bool NetDeviceID::is_connected() const {
+    return is_device_connected(netdev_get_status(get()));
+}
 
 MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
@@ -56,21 +72,24 @@ MI_HOSTNAME::MI_HOSTNAME()
     ) {
 }
 
-MI_NET_IP::MI_NET_IP(uint32_t device_id)
-    : WI_SWITCH_t(netdev_get_ip_obtained_type(device_id), string_view_utf8::MakeCPUFLASH(label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_DHCP), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_static))
-    , device_id(device_id) {
+MI_NET_IP::MI_NET_IP(NetDeviceID device_id)
+    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH(label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH(str_DHCP), string_view_utf8::MakeCPUFLASH(str_static))
+    , device_id(device_id) //
+{
+    index = netdev_get_ip_obtained_type(this->device_id());
 }
 
 void MI_NET_IP::OnChange([[maybe_unused]] size_t old_index) {
+    const auto dev_id = device_id();
     if (index == NETDEV_STATIC) {
-        netdev_set_static(device_id);
+        netdev_set_static(dev_id);
     } else {
-        netdev_set_dhcp(device_id);
+        netdev_set_dhcp(dev_id);
     }
 }
 
 MI_NET_IP_VER_t::MI_NET_IP_VER_t()
-    : WI_SWITCH_t(0, _(label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v4), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v6)) {
+    : WI_SWITCH_t(0, _(label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeCPUFLASH(str_v4), string_view_utf8::MakeCPUFLASH(str_v6)) {
     this->index = 0;
 }
 

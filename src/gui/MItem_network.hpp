@@ -2,6 +2,41 @@
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 
+#include <wui_api.h>
+
+struct NetDeviceID {
+
+public:
+    /// Special value to always represent the currently active interface.
+    static constexpr uint32_t active_id = uint32_t(-1);
+
+public:
+    inline NetDeviceID(uint32_t val = active_id)
+        : value_(val) {}
+
+    inline NetDeviceID(const NetDeviceID &) = default;
+
+    uint32_t get() const;
+
+    /// \returns whether the net device with this id is connected
+    bool is_connected() const;
+
+    inline uint32_t operator()() const {
+        return get();
+    }
+
+private:
+    uint32_t value_ = active_id;
+};
+
+/// Wrapper for MI_NET menu items that accept device_id in their constructors
+template <typename Parent, uint32_t device_id>
+class WMI_NET final : public Parent {
+public:
+    WMI_NET()
+        : Parent(device_id) {}
+};
+
 class MI_WIFI_STATUS_t : public WI_INFO_t {
     constexpr static const char *const label = N_("Status");
 
@@ -58,6 +93,7 @@ public:
     MI_HOSTNAME();
 };
 
+/// Use WMI_NET as a wrapper to provide the device_id
 class MI_NET_IP : public WI_SWITCH_t<2> {
     constexpr static const char *const label = "LAN"; // do not translate
 
@@ -65,18 +101,11 @@ class MI_NET_IP : public WI_SWITCH_t<2> {
     constexpr static const char *str_DHCP = "DHCP"; // do not translate
 
 public:
-    MI_NET_IP(uint32_t device_id);
+    MI_NET_IP(NetDeviceID device_id);
     virtual void OnChange(size_t old_index) override;
 
-    const uint32_t device_id;
-};
-
-/// Wrapper for MI_NET menu items that accept device_id in their constructors
-template <typename Parent, uint32_t device_id>
-class WMI_NET : public Parent {
 public:
-    WMI_NET()
-        : Parent(device_id) {}
+    const NetDeviceID device_id;
 };
 
 class MI_NET_IP_VER_t : public WI_SWITCH_t<2> {
