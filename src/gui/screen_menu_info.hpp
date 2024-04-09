@@ -11,6 +11,7 @@ using ScreenMenuInfo__ = ScreenMenu<EFooter::On, MI_RETURN,
 #ifdef _DEBUG
     MI_SYS_INFO,
 #endif //_DEBUG
+    MI_NETWORK_STATUS,
     MI_SENSOR_INFO, MI_VERSION_INFO, MI_PRINT_STATISTICS, MI_EEPROM_DIAGNOSTICS>;
 
 class ScreenMenuInfo : public ScreenMenuInfo__ {

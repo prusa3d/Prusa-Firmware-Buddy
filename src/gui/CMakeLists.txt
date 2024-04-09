@@ -69,6 +69,7 @@ target_sources(
           screen_menu_move_utils.cpp
           screen_menu_network.cpp
           screen_menu_network_settings.cpp
+          screen_menu_network_status.cpp
           screen_menu_odometer.cpp
           screen_menu_sensor_info_${PRINTER}.cpp
           screen_menu_settings.cpp

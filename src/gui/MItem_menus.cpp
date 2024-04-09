@@ -37,6 +37,7 @@
 #include "screen_menu_version_info.hpp"
 #include "screen_menu_metrics.hpp"
 #include "screen_menu_fw_update.hpp"
+#include "screen_menu_network_status.hpp"
 #include "screen_menu_network_settings.hpp"
 #include "screen_menu_hw_setup.hpp"
 #include "screen_menu_eeprom.hpp"
@@ -420,6 +421,17 @@ MI_NETWORK::MI_NETWORK()
 
 void MI_NETWORK::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuNetwork>);
+}
+
+/**********************************************************************************************/
+// MI_NETWORK_STATUS
+
+MI_NETWORK_STATUS::MI_NETWORK_STATUS()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_NETWORK_STATUS::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuNetworkStatus>);
 }
 
 /**********************************************************************************************/
