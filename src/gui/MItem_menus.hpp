@@ -81,16 +81,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SUPPORT_disabled : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Support");
-
-public:
-    MI_SUPPORT_disabled();
-
-protected:
-    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
-};
-
 class MI_TEMPERATURE : public IWindowMenuItem {
     static constexpr const char *const label = N_("Temperature");
 
@@ -333,6 +323,16 @@ class MI_NETWORK : public IWindowMenuItem {
 
 public:
     MI_NETWORK();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_NETWORK_STATUS : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Network Status");
+
+public:
+    MI_NETWORK_STATUS();
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;

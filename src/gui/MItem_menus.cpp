@@ -147,12 +147,6 @@ void MI_FAIL_STAT::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-// MI_SUPPORT_disabled
-MI_SUPPORT_disabled::MI_SUPPORT_disabled()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-}
-
-/*****************************************************************************/
 // MI_TEMPERATURE
 MI_TEMPERATURE::MI_TEMPERATURE()
     : IWindowMenuItem(_(label), &img::temperature_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
