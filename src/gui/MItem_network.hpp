@@ -38,7 +38,7 @@ public:
 };
 
 class MI_WIFI_STATUS_t : public WI_INFO_t {
-    constexpr static const char *const label = N_("Status");
+    constexpr static const char *const label = N_("Wi-Fi Status");
 
 public:
     MI_WIFI_STATUS_t();
