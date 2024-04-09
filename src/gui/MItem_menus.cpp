@@ -131,11 +131,6 @@ void MI_SYS_INFO::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<screen_sysinfo_data_t>);
 }
 
-// MI_STATISTIC_disabled
-MI_STATISTIC_disabled::MI_STATISTIC_disabled()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-}
-
 /*****************************************************************************/
 // MI_FAIL_STAT
 MI_FAIL_STAT::MI_FAIL_STAT()

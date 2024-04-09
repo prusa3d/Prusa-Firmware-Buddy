@@ -61,16 +61,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_STATISTIC_disabled : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Statistic");
-
-public:
-    MI_STATISTIC_disabled();
-
-protected:
-    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
-};
-
 class MI_FAIL_STAT : public IWindowMenuItem {
     static constexpr const char *const label = N_("Fail Stats");
 
