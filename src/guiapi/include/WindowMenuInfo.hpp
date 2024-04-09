@@ -48,7 +48,7 @@ template <size_t INFO_LEN>
 class WiInfo : public IWiInfo {
 
 public:
-    WiInfo(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no)
+    WiInfo(string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no)
         : IWiInfo(value_array_, label, id_icon, enabled, hidden, extension_like_label) {}
 
     WiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const img::Resource *id_icon = nullptr)
