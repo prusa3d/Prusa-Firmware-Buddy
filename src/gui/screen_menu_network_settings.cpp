@@ -68,8 +68,6 @@ void update_screen(T &menu) {
 // ------------------- ETHERNET -----------------------
 ScreenMenuEthernetSettings::ScreenMenuEthernetSettings()
     : ScreenMenuEthernetSettings_(_(label)) {
-    // MI for WIFI only have to be defined in the base class' container, but won't be used in ETH screen
-    Item<MI_HOSTNAME>().ChangeInformation(config_store().lan_hostname.get_c_str());
 }
 
 void ScreenMenuEthernetSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -89,7 +87,6 @@ ScreenMenuWifiSettings::ScreenMenuWifiSettings()
         DisableItem<MI_WIFI_CREDENTIALS_INI_FILE_t>();
         DisableItem<MI_WIFI_CREDENTIALS_t>();
     }
-    Item<MI_HOSTNAME>().ChangeInformation(config_store().wifi_hostname.get_c_str());
 }
 
 void ScreenMenuWifiSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

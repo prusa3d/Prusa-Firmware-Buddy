@@ -90,8 +90,14 @@ class MI_HOSTNAME : public WiInfo<config_store_ns::lan_hostname_max_len + 1> {
     constexpr static const char *const label { N_("Hostname") };
 
 public:
-    MI_HOSTNAME();
+    MI_HOSTNAME(NetDeviceID device_id = {});
+
+    void update();
+
+public:
+    const NetDeviceID device_id;
 };
+static_assert(UpdatableMenuItem<MI_HOSTNAME>);
 
 /// Use WMI_NET as a wrapper to provide the device_id
 class MI_NET_IP : public WI_SWITCH_t<2> {

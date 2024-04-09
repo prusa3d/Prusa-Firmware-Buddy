@@ -62,14 +62,25 @@ void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
     netdev_set_active_id(this->index);
 }
 
-MI_HOSTNAME::MI_HOSTNAME()
+MI_HOSTNAME::MI_HOSTNAME(NetDeviceID device_id)
     : WiInfo<config_store_ns::lan_hostname_max_len + 1>(_(label), nullptr, is_enabled_t::yes,
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
         is_hidden_t::dev
 #elif defined(USE_ILI9488)
         is_hidden_t::no
 #endif
-    ) {
+        )
+    , device_id(device_id) //
+{
+    update();
+}
+
+void MI_HOSTNAME::update() {
+    if (device_id() == NETDEV_ESP_ID) {
+        ChangeInformation(config_store().wifi_hostname.get_c_str());
+    } else {
+        ChangeInformation(config_store().lan_hostname.get_c_str());
+    }
 }
 
 MI_NET_IP::MI_NET_IP(NetDeviceID device_id)

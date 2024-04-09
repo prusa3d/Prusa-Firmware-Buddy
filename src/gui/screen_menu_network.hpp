@@ -23,7 +23,5 @@ public:
 
     ScreenMenuNetwork();
 
-    void refresh_address();
-
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
