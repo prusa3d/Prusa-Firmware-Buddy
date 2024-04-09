@@ -114,13 +114,13 @@ FORCE_INLINE CorrectedCurrentLut &resolve_current_lut(AxisState &axis_state) {
 
 static void init_step_generator_internal(
     move_segment_step_generator_t &step_generator,
-    step_generator_state_t & /*step_generator_state*/) {
+    step_generator_state_t &step_generator_state) {
     auto &axis_state = *step_generator.phase_step_state;
     const uint8_t axis = step_generator.axis;
 
     assert(axis_state.pending_targets.isEmpty());
 
-    axis_state.initial_time = ticks_us();
+    axis_state.initial_time = step_generator_state.initial_time;
 
     axis_state.last_position = axis_state.next_target.initial_pos;
     axis_state.current_target = MoveTarget(axis_state.last_position);
