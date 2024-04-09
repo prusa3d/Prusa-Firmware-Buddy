@@ -33,6 +33,7 @@
 #include "filesystem.h"
 #include "adc.hpp"
 #include "logging.h"
+#include <i2c.hpp>
 #include <option/buddy_enable_connect.h>
 #include <option/has_puppies.h>
 #include <option/has_puppies_bootloader.h>
@@ -777,6 +778,8 @@ namespace {
 extern "C" void startup_task(void const *) {
     // init crc32 module. We need crc in eeprom_init
     crc32_init();
+
+    i2c::ChannelMutex::static_init();
 
     // init communication with eeprom
     eeprom_init_i2c();
