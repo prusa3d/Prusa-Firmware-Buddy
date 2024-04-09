@@ -91,6 +91,7 @@ uint32_t PreciseStepping::waiting_before_delivering_start_time = 0;
 uint32_t PreciseStepping::last_step_isr_delay = 0;
 
 std::atomic<bool> PreciseStepping::stop_pending = false;
+std::atomic<bool> PreciseStepping::busy = false;
 volatile uint8_t PreciseStepping::step_dl_miss = 0;
 volatile uint8_t PreciseStepping::step_ev_miss = 0;
 
@@ -966,7 +967,10 @@ void PreciseStepping::process_queue_of_blocks() {
         if (PreciseStepping::total_print_time && PreciseStepping::get_nearest_step_event_status() == STEP_EVENT_INFO_STATUS_GENERATED_INVALID) {
             // motion was already started and the move queue is about to (or ran) dry: enqueue an end block
             append_ending_empty_move();
-            return;
+        } else if (PreciseStepping::total_print_time == 0. && busy) {
+            // motion reset has completed and there is no pending block to process, we're now free
+            assert(!has_blocks_queued() && !phase_stepping::processing());
+            busy = false;
         }
         return;
     }
@@ -976,6 +980,7 @@ void PreciseStepping::process_queue_of_blocks() {
         if (!append_beginning_empty_move()) {
             return;
         }
+        busy = true;
     }
 
     if (append_move_segments_to_queue(*current_block)) {
@@ -1401,6 +1406,7 @@ void PreciseStepping::reset_queues() {
     left_ticks_to_next_step_event = 0;
     Stepper::axis_did_move = 0;
     stop_pending = false;
+    busy = false;
 
     ENABLE_MOVE_INTERRUPT();
     if (was_enabled) {
