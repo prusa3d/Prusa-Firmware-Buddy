@@ -11,7 +11,7 @@
 
 template <typename T, uint32_t dev_id>
 void update_screen(T &menu) {
-    char str[ADDR_LEN];
+    menu.update_all_updatable_items();
 
     if (menu.template Item<MI_MAC_ADDR>().value()[0] == '\0') {
         mac_address_t mac;
@@ -21,26 +21,10 @@ void update_screen(T &menu) {
 
     netdev_status_t n_status = netdev_get_status(dev_id);
     if (n_status == NETDEV_NETIF_UP || n_status == NETDEV_NETIF_NOADDR) {
-        lan_t ethconfig = {};
-        netdev_get_ipv4_addresses(dev_id, &ethconfig);
-
-        stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4));
-        menu.template Item<MI_IP4_ADDR>().ChangeInformation(str);
-
-        stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_MSK_IP4));
-        menu.template Item<MI_IP4_NMSK>().ChangeInformation(str);
-
-        stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(ETHVAR_LAN_GW_IP4));
-        menu.template Item<MI_IP4_GWAY>().ChangeInformation(str);
-
         if constexpr (dev_id == NETDEV_ESP_ID) {
             menu.template Item<MI_WIFI_STATUS_t>().ChangeInformation(n_status == NETDEV_NETIF_UP ? _("Connected") : _("Link down"));
         }
     } else {
-        menu.template Item<MI_IP4_ADDR>().ChangeInformation(UNKNOWN_ADDR);
-        menu.template Item<MI_IP4_NMSK>().ChangeInformation(UNKNOWN_ADDR);
-        menu.template Item<MI_IP4_GWAY>().ChangeInformation(UNKNOWN_ADDR);
-
         if constexpr (dev_id == NETDEV_ESP_ID) {
             const char *state_str = [&]() -> const char * {
                 switch (esp_link_state()) {

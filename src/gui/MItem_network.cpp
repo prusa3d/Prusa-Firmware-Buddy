@@ -93,16 +93,25 @@ MI_NET_IP_VER_t::MI_NET_IP_VER_t()
     this->index = 0;
 }
 
-MI_IP4_ADDR::MI_IP4_ADDR()
-    : WiInfo<ADDR_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+IMI_IP4_ADDR::IMI_IP4_ADDR(const char *label, NetDeviceID device_id, ETHVAR_t var)
+    : WiInfo<ADDR_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
+    , var(var)
+    , device_id(device_id) //
+{
+    update();
 }
 
-MI_IP4_NMSK::MI_IP4_NMSK()
-    : WiInfo<ADDR_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+void IMI_IP4_ADDR::update() {
+    if (!device_id.is_connected()) {
+        ChangeInformation(UNKNOWN_ADDR);
+        return;
+    }
 
-MI_IP4_GWAY::MI_IP4_GWAY()
-    : WiInfo<ADDR_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    char str[ADDR_LEN];
+    lan_t ethconfig = {};
+    netdev_get_ipv4_addresses(device_id(), &ethconfig);
+    stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(var));
+    ChangeInformation(str);
 }
 
 MI_MAC_ADDR::MI_MAC_ADDR()

@@ -124,25 +124,48 @@ public:
 #define UNKNOWN_MAC  "N/A"
 #define MAC_LEN      sizeof("ff.ff.ff.ff.ff.ff")
 
-class MI_IP4_ADDR : public WiInfo<ADDR_LEN> {
+class IMI_IP4_ADDR : public WiInfo<ADDR_LEN> {
+
+public:
+    IMI_IP4_ADDR(const char *label, NetDeviceID device_id, ETHVAR_t var);
+
+    void update();
+
+public:
+    const ETHVAR_t var;
+    const NetDeviceID device_id;
+
+protected:
+    // Make destructor protected to indicate that we don't need to emit a vtable for this class
+    ~IMI_IP4_ADDR() = default;
+};
+static_assert(UpdatableMenuItem<IMI_IP4_ADDR>);
+
+/// Use WMI_NET as a wrapper to provide the device_id
+class MI_IP4_ADDR : public IMI_IP4_ADDR {
     static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Address") : N_("IP");
 
 public:
-    MI_IP4_ADDR();
+    inline MI_IP4_ADDR(NetDeviceID device_id = {})
+        : IMI_IP4_ADDR(label, device_id, ETHVAR_LAN_ADDR_IP4) {}
 };
 
-class MI_IP4_NMSK : public WiInfo<ADDR_LEN> {
+/// Use WMI_NET as a wrapper to provide the device_id
+class MI_IP4_NMSK : public IMI_IP4_ADDR {
     static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Netmask") : N_("Mask");
 
 public:
-    MI_IP4_NMSK();
+    inline MI_IP4_NMSK(NetDeviceID device_id = {})
+        : IMI_IP4_ADDR(label, device_id, ETHVAR_LAN_MSK_IP4) {}
 };
 
-class MI_IP4_GWAY : public WiInfo<ADDR_LEN> {
+/// Use WMI_NET as a wrapper to provide the device_id
+class MI_IP4_GWAY : public IMI_IP4_ADDR {
     static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Gateway") : N_("GW");
 
 public:
-    MI_IP4_GWAY();
+    inline MI_IP4_GWAY(NetDeviceID device_id = {})
+        : IMI_IP4_ADDR(label, device_id, ETHVAR_LAN_GW_IP4) {}
 };
 
 class MI_MAC_ADDR : public WiInfo<MAC_LEN> {
