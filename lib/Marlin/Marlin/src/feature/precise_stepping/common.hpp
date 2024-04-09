@@ -245,6 +245,7 @@ struct step_generator_state_t {
     double previous_step_time;
     uint64_t previous_step_time_ticks;
 
+    uint64_t initial_time; // initialization timestamp (us)
     StepEventFlag_t flags; // current axis/direction flags
     step_event_i32_t buffered_step; // accumulator for multi-axis step fusion
 
