@@ -348,7 +348,9 @@ void media_print_quick_stop(uint32_t pos) {
     queue.clear();
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    media_stream_restore_info = media_print_file->get_restore_info();
+    if (media_print_file.is_open()) {
+        media_stream_restore_info = media_print_file->get_restore_info();
+    }
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
@@ -359,7 +361,9 @@ void media_print_quick_stop_powerpanic() {
     queue.clear();
 
     // These two need to happen at once, from high priority ISR
-    media_stream_restore_info = media_print_file->get_restore_info();
+    if (media_print_file.is_open()) {
+        media_stream_restore_info = media_print_file->get_restore_info();
+    }
 }
 
 void media_print_pause(bool repeat_last = false) {
