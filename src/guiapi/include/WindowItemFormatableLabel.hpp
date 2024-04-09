@@ -26,7 +26,6 @@ protected:
         render_text_align(extension_rect, stringView, InfoFont, color_back,
             (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter(), false);
     }
-    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
 
 public:
     WI_LAMBDA_LABEL_t(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, std::function<void(char *)> printAs)

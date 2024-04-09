@@ -41,9 +41,6 @@ class FL_LABEL : public IWindowMenuItem {
 public:
     FL_LABEL(string_view_utf8 label, const img::Resource *icon)
         : IWindowMenuItem(label, icon, is_enabled_t::yes, is_hidden_t::no) {}
-
-protected:
-    virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
 };
 
 class window_file_list_t : public AddSuperWindow<IWindowMenu> {

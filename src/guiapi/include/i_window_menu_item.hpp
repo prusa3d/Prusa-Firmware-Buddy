@@ -146,7 +146,7 @@ protected:
 
     virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const; // must be virtual, because pictures of flags are drawn differently
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; // things behind rect
-    virtual void click(IWindowMenu &window_menu) = 0;
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) {};
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point);
     virtual invalidate_t change(int /*dif*/) { return invalidate_t::no; }
 

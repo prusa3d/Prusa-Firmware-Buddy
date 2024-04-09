@@ -30,7 +30,6 @@ public:
         return value_bufer_;
     }
 
-    void click([[maybe_unused]] IWindowMenu &window_menu) override {}
     void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
 
     void ChangeInformation(const char *str);
