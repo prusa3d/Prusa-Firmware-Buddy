@@ -11,10 +11,6 @@
 
 ScreenMenuNetwork::ScreenMenuNetwork()
     : ScreenMenuNetwork__(_(label)) {
-    const uint32_t active_netdev = netdev_get_active_id();
-    mac_address_t mac;
-    get_MAC_address(&mac, active_netdev);
-    Item<MI_MAC_ADDR>().ChangeInformation(mac);
 }
 
 void ScreenMenuNetwork::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {

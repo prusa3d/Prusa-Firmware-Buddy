@@ -178,5 +178,11 @@ class MI_MAC_ADDR : public WiInfo<MAC_LEN> {
     static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("MAC Address") : N_("MAC");
 
 public:
-    MI_MAC_ADDR();
+    MI_MAC_ADDR(NetDeviceID device_id = {});
+
+    void update();
+
+public:
+    const NetDeviceID device_id;
 };
+static_assert(UpdatableMenuItem<MI_MAC_ADDR>);

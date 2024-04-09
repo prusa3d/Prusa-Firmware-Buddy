@@ -13,12 +13,6 @@ template <typename T, uint32_t dev_id>
 void update_screen(T &menu) {
     menu.update_all_updatable_items();
 
-    if (menu.template Item<MI_MAC_ADDR>().value()[0] == '\0') {
-        mac_address_t mac;
-        get_MAC_address(&mac, dev_id);
-        menu.template Item<MI_MAC_ADDR>().ChangeInformation(mac[0] ? mac : UNKNOWN_MAC);
-    }
-
     netdev_status_t n_status = netdev_get_status(dev_id);
     if (n_status == NETDEV_NETIF_UP || n_status == NETDEV_NETIF_NOADDR) {
         if constexpr (dev_id == NETDEV_ESP_ID) {

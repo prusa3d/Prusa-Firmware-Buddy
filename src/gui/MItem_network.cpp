@@ -125,6 +125,14 @@ void IMI_IP4_ADDR::update() {
     ChangeInformation(str);
 }
 
-MI_MAC_ADDR::MI_MAC_ADDR()
-    : WiInfo<MAC_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+MI_MAC_ADDR::MI_MAC_ADDR(NetDeviceID device_id)
+    : WiInfo<MAC_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
+    , device_id(device_id) {
+    update();
+}
+
+void MI_MAC_ADDR::update() {
+    mac_address_t mac;
+    get_MAC_address(&mac, device_id());
+    ChangeInformation(mac);
 }
