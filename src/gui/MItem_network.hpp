@@ -1,7 +1,7 @@
 #pragma once
-#include "WindowMenuItems.hpp"
-#include "i18n.h"
 
+#include <WindowMenuItems.hpp>
+#include <i18n.h>
 #include <wui_api.h>
 
 struct NetDeviceID {
@@ -136,13 +136,16 @@ public:
 class IMI_IP4_ADDR : public WiInfo<ADDR_LEN> {
 
 public:
-    IMI_IP4_ADDR(const char *label, NetDeviceID device_id, ETHVAR_t var);
+    using AddrType = ip_addr_t(lan_t::*);
+
+public:
+    IMI_IP4_ADDR(const char *label, NetDeviceID device_id, AddrType addr);
 
     void update();
 
 public:
-    const ETHVAR_t var;
     const NetDeviceID device_id;
+    const AddrType addr;
 
 protected:
     // Make destructor protected to indicate that we don't need to emit a vtable for this class
@@ -156,7 +159,7 @@ class MI_IP4_ADDR : public IMI_IP4_ADDR {
 
 public:
     inline MI_IP4_ADDR(NetDeviceID device_id = {})
-        : IMI_IP4_ADDR(label, device_id, ETHVAR_LAN_ADDR_IP4) {}
+        : IMI_IP4_ADDR(label, device_id, &lan_t::addr_ip4) {}
 };
 
 /// Use WMI_NET as a wrapper to provide the device_id
@@ -165,7 +168,7 @@ class MI_IP4_NMSK : public IMI_IP4_ADDR {
 
 public:
     inline MI_IP4_NMSK(NetDeviceID device_id = {})
-        : IMI_IP4_ADDR(label, device_id, ETHVAR_LAN_MSK_IP4) {}
+        : IMI_IP4_ADDR(label, device_id, &lan_t::msk_ip4) {}
 };
 
 /// Use WMI_NET as a wrapper to provide the device_id
@@ -174,7 +177,7 @@ class MI_IP4_GWAY : public IMI_IP4_ADDR {
 
 public:
     inline MI_IP4_GWAY(NetDeviceID device_id = {})
-        : IMI_IP4_ADDR(label, device_id, ETHVAR_LAN_GW_IP4) {}
+        : IMI_IP4_ADDR(label, device_id, &lan_t::gw_ip4) {}
 };
 
 class MI_MAC_ADDR : public WiInfo<MAC_LEN> {

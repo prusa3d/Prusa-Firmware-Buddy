@@ -1,8 +1,8 @@
 #include <guiconfig/guiconfig.h>
-#include <network_gui_tools.hpp>
 
 #include "MItem_network.hpp"
 #include <espif.h>
+#include <dns.h>
 #include "wui_api.h"
 #include "netdev.h"
 #include "ScreenHandler.hpp"
@@ -11,6 +11,15 @@
 namespace {
 bool is_device_connected(netdev_status_t status) {
     return status == NETDEV_NETIF_UP || status == NETDEV_NETIF_NOADDR;
+}
+
+void ip2str(const ip4_addr_t &addr, char *buf, size_t len) {
+    if (!addr.addr) {
+        strlcpy(buf, "-", len);
+        return;
+    }
+
+    ip4addr_ntoa_r(&addr, buf, len);
 }
 } // namespace
 
@@ -150,11 +159,10 @@ MI_NET_IP_VER_t::MI_NET_IP_VER_t()
     this->index = 0;
 }
 
-IMI_IP4_ADDR::IMI_IP4_ADDR(const char *label, NetDeviceID device_id, ETHVAR_t var)
-    : WiInfo<ADDR_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
-    , var(var)
-    , device_id(device_id) //
-{
+IMI_IP4_ADDR::IMI_IP4_ADDR(const char *label, NetDeviceID device_id, AddrType addr)
+    : WiInfo(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
+    , device_id(device_id)
+    , addr(addr) {
     update();
 }
 
@@ -164,11 +172,12 @@ void IMI_IP4_ADDR::update() {
         return;
     }
 
-    char str[ADDR_LEN];
-    lan_t ethconfig = {};
-    netdev_get_ipv4_addresses(device_id(), &ethconfig);
-    stringify_address_for_screen(str, sizeof(str), ethconfig, ETHVAR_MSK(var));
-    ChangeInformation(str);
+    lan_t config = {};
+    netdev_get_ipv4_addresses(device_id(), &config);
+
+    std::array<char, ADDR_LEN> str;
+    ip2str(config.*addr, str.data(), str.size());
+    ChangeInformation(str.data());
 }
 
 MI_MAC_ADDR::MI_MAC_ADDR(NetDeviceID device_id)
