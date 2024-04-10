@@ -73,8 +73,14 @@ void PingManager::get_stats(Stat *stats) {
 
 void PingManager::set_ip(size_t slot, ip4_addr_t ip) {
     assert(slot < nslots);
-    stats[slot] = Stat();
-    stats[slot].ip = ip;
+
+    auto &stat = stats[slot];
+    if (stat.ip.addr == ip.addr) {
+        return;
+    }
+
+    stat = Stat();
+    stat.ip = ip;
 }
 
 void PingManager::dns_found(const ip_addr_t *ip, Stat *st) {
