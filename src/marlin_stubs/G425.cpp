@@ -757,6 +757,8 @@ void GcodeSuite::G425() {
     TEMPORARY_SOFT_ENDSTOP_STATE(false);
     TEMPORARY_BED_LEVELING_STATE(false);
 
+    phase_stepping::EnsureDisabled ps_disabler {};
+
     if (axis_unhomed_error()) {
         return;
     }
