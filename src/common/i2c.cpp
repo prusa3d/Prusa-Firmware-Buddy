@@ -130,7 +130,7 @@ void ChannelMutex::static_init() {
 
 osMutexId ChannelMutex::get_handle(I2C_HandleTypeDef &hi2c) {
     const auto i = get_i2c_no(hi2c) - 1;
-    assert(i > 0);
+    assert(i >= 0);
     return reinterpret_cast<osMutexId>(&i2c_mutexes[i]);
 }
 
