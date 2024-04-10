@@ -3,6 +3,7 @@
  */
 
 #include "screen_menu_connect.hpp"
+#include <connect/hostname.hpp>
 #include "dialogs/DialogConnectReg.hpp"
 #include "printers.h"
 #include <window_msgbox.hpp>
@@ -76,6 +77,18 @@ void MI_CONNECT_ERROR::update() {
     };
 
     ChangeInformation(_(strings.get_fallback(std::get<1>(connect_client::last_status()), S::Confused)));
+}
+
+MI_CONNECT_HOST::MI_CONNECT_HOST()
+    : WiInfo(_(label)) {
+    update();
+}
+
+void MI_CONNECT_HOST::update() {
+    std::array<char, GetInfoLen()> hostname;
+    strlcpy(hostname.data(), config_store().connect_host.get_c_str(), hostname.size());
+    connect_client::decompress_host(hostname.data(), hostname.size());
+    ChangeInformation(hostname.data());
 }
 
 MI_CONNECT_LOAD_SETTINGS::MI_CONNECT_LOAD_SETTINGS()

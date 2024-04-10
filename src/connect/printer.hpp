@@ -13,6 +13,7 @@
 #include "printer_type.hpp"
 #include <state/printer_state.hpp>
 #include <device/board.h>
+#include <connect/hostname.hpp>
 
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
@@ -132,7 +133,7 @@ public:
     };
 
     struct Config {
-        static constexpr size_t CONNECT_URL_LEN = 35;
+        static constexpr size_t CONNECT_URL_LEN = max_host_len;
         static constexpr size_t CONNECT_URL_BUF_LEN = (CONNECT_URL_LEN + 1);
         static constexpr size_t CONNECT_TOKEN_LEN = 20;
         static constexpr size_t CONNECT_TOKEN_BUF_LEN = (CONNECT_TOKEN_LEN + 1);

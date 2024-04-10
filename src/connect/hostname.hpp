@@ -12,6 +12,11 @@
 
 namespace connect_client {
 
+/// Maximum length of the hostname (EXCLUDING the trailing '\0')
+static constexpr int max_host_len = 35;
+
+static constexpr int max_host_buf_len = max_host_len + 1;
+
 // Copies the host into the provided buffer, applying compression if possible.
 //
 // Returns false if it doesn't fit into the buffer (after any applicable

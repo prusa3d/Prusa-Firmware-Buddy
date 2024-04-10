@@ -41,6 +41,16 @@ public:
 };
 static_assert(UpdatableMenuItem<MI_CONNECT_ERROR>);
 
+class MI_CONNECT_HOST : public WiInfo<32> {
+    static constexpr const char *label = N_("Hostname");
+
+public:
+    MI_CONNECT_HOST();
+
+    void update();
+};
+static_assert(UpdatableMenuItem<MI_CONNECT_HOST>);
+
 class MI_CONNECT_LOAD_SETTINGS : public IWindowMenuItem {
     static constexpr const char *const label = N_("Load Settings");
 
