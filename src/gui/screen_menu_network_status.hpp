@@ -1,11 +1,59 @@
 #pragma once
 
+#include <ping_manager.hpp>
 #include <gui/screen_menu.hpp>
 #include <gui/MItem_network.hpp>
+#include <gui/screen_menu_connect.hpp>
 
-using ScreenMenuNetworkStatus_ = ScreenMenu<EFooter::Off, MI_RETURN, MI_WIFI_STATUS_t, MI_IP4_ADDR, MI_IP4_GWAY, MI_MAC_ADDR, MI_HOSTNAME>;
+namespace menu_network_status {
 
-class ScreenMenuNetworkStatus final : public ScreenMenuNetworkStatus_ {
+class MI_STATS_GROUP : public IWindowMenuItem {
+    static constexpr const char *label = N_("Ping | Success Rate");
+
+public:
+    MI_STATS_GROUP();
+};
+
+static constexpr size_t stats_text_size = 16;
+
+class MI_STATS_GATEWAY : public WiInfo<stats_text_size> {
+    static constexpr const char *label = N_("- Gateway");
+
+public:
+    MI_STATS_GATEWAY();
+};
+
+class MI_STATS_CONNECT : public WiInfo<stats_text_size> {
+    static constexpr const char *label = N_("- Connect");
+
+public:
+    MI_STATS_CONNECT();
+};
+
+class MI_STATS_DNS_SERVER : public WiInfo<stats_text_size> {
+    static constexpr const char *label = N_("- DNS Server");
+
+public:
+    MI_STATS_DNS_SERVER();
+};
+
+class MI_CONNECT_IP : public WiInfo<ADDR_LEN> {
+    static constexpr const char *label = N_("Connect IP");
+
+public:
+    MI_CONNECT_IP();
+};
+
+using MenuBase = ScreenMenu<EFooter::Off,
+    MI_RETURN,
+    MI_WIFI_STATUS_t,
+    MI_IP4_ADDR, MI_IP4_GWAY, MI_MAC_ADDR, MI_HOSTNAME, MI_IP4_DNS1, MI_CONNECT_HOST, MI_CONNECT_IP,
+    MI_STATS_GROUP, MI_STATS_CONNECT, MI_STATS_GATEWAY, MI_STATS_DNS_SERVER //
+    >;
+
+} // namespace menu_network_status
+
+class ScreenMenuNetworkStatus final : public menu_network_status::MenuBase {
     static constexpr const char *label = N_("NETWORK STATUS");
 
 public:
@@ -13,4 +61,19 @@ public:
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
+private:
+    enum class StatSlot {
+        gateway,
+        dns,
+        connect,
+        _cnt
+    };
+
+private:
+    void update();
+
+private:
+    PingManager ping_manager_;
+    bool connect_host_set_ = false;
 };
