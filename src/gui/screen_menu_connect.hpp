@@ -71,7 +71,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-using ScreenMenuConnect__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS, MI_CONNECT_ERROR, MI_CONNECT_REGISTER, MI_CONNECT_LOAD_SETTINGS>;
+using ScreenMenuConnect__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS, MI_CONNECT_ERROR, MI_CONNECT_HOST, MI_CONNECT_REGISTER, MI_CONNECT_LOAD_SETTINGS>;
 
 class ScreenMenuConnect : public ScreenMenuConnect__ {
 
