@@ -3,7 +3,6 @@
 #include "RAII.hpp"
 #include "ScreenHandler.hpp"
 #include "netdev.h"
-#include "network_gui_tools.hpp"
 #include <http_lifetime.h>
 #include <espif.h>
 #include "marlin_client.hpp"

@@ -36,7 +36,6 @@ target_sources(
           MItem_network.cpp
           MItem_print.cpp
           MItem_tools.cpp
-          network_gui_tools.cpp
           print_time_module.cpp
           qoi_decoder.cpp
           screen_blue_error.cpp

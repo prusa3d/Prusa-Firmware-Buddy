@@ -6,7 +6,6 @@
 #include "DialogMoveZ.hpp"
 #include "wui_api.h"
 #include "netdev.h"
-#include "network_gui_tools.hpp"
 #include <http_lifetime.h>
 
 ScreenMenuNetwork::ScreenMenuNetwork()
