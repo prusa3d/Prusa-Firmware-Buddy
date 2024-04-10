@@ -116,8 +116,8 @@ void set_idle(window_text_t &item, window_colored_rect *color) {
 }
 
 void set_selected(window_text_t &item, window_colored_rect *color) {
-    item.SetTextColor(COLOR_ORANGE);
-    item.SetBackColor(COLOR_BLACK);
+    item.SetTextColor(COLOR_WHITE);
+    item.SetBackColor(COLOR_ORANGE);
     if (color) {
         color->set_parent_color(COLOR_BLACK);
     }
