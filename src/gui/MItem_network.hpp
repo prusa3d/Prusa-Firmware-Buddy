@@ -180,6 +180,17 @@ public:
         : IMI_IP4_ADDR(label, device_id, &lan_t::gw_ip4) {}
 };
 
+/// Use WMI_NET as a wrapper to provide the device_id
+class MI_IP4_DNS1 : public WiInfo<ADDR_LEN> {
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("DNS Server") : N_("DNS");
+
+public:
+    MI_IP4_DNS1();
+
+    void update();
+};
+static_assert(UpdatableMenuItem<MI_IP4_DNS1>);
+
 class MI_MAC_ADDR : public WiInfo<MAC_LEN> {
     static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("MAC Address") : N_("MAC");
 

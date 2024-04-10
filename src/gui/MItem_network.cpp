@@ -180,6 +180,17 @@ void IMI_IP4_ADDR::update() {
     ChangeInformation(str.data());
 }
 
+MI_IP4_DNS1::MI_IP4_DNS1()
+    : WiInfo(_(label)) {
+    update();
+}
+
+void MI_IP4_DNS1::update() {
+    std::array<char, ADDR_LEN> str;
+    ip2str(*dns_getserver(0), str.data(), str.size());
+    ChangeInformation(str.data());
+}
+
 MI_MAC_ADDR::MI_MAC_ADDR(NetDeviceID device_id)
     : WiInfo<MAC_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , device_id(device_id) {
