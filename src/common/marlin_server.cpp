@@ -1197,7 +1197,6 @@ bool print_reheat_ready() {
 
 #if ENABLED(POWER_PANIC)
 void powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_recover) {
-    // Open the file
     print_start(media_SFN_path, marlin_server::PreviewSkipIfAble::all);
 
     crash_s.set_state(Crash_s::PRINTING);

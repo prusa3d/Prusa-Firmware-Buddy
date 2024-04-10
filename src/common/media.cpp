@@ -378,7 +378,6 @@ void media_print_quick_stop_powerpanic() {
     media_reset_position = GCodeQueue::SDPOS_INVALID;
     queue.clear();
 
-    // These two need to happen at once, from high priority ISR
     if (media_print_file.is_open()) {
         media_stream_restore_info = media_print_file->get_restore_info();
     }
