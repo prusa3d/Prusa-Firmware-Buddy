@@ -21,12 +21,61 @@ void MI_CONNECT_ENABLED::OnChange([[maybe_unused]] size_t old_index) {
     // Connect will catch up with new config in its next iteration
 }
 
+void MI_CONNECT_ENABLED::update() {
+    // Make sure that if the connect is enabled as part of the wizard, this
+    // gets reflected on the toggle.
+    //
+    // It's kind of stupid to do this repeatedly even though this changes only
+    // as a result of the MI_CONNECT_REGISTER::click. But that one doesn't have
+    // access to our items (AFAIK).
+    //
+    // It should be cheap anyway - both the eeprom access is cached in RAM and
+    // the SetIndex checks it is different before doing anything.
+    SetIndex(config_store().connect_enabled.get());
+}
+
 MI_CONNECT_STATUS::MI_CONNECT_STATUS()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    update();
+}
+
+void MI_CONNECT_STATUS::update() {
+    using S = connect_client::ConnectionStatus;
+    static constexpr EnumArray<S, const char *, connect_client::connection_status_cnt> strings {
+        { S::Unknown, N_("Unknown") },
+        { S::Off, N_("Off") },
+        { S::NoConfig, N_("No Config") },
+        { S::Ok, N_("Online") },
+        { S::Connecting, N_("Connecting") },
+        { S::Error, N_("Error") },
+        { S::RegistrationRequesting, N_("Registering") },
+        { S::RegistrationCode, N_("Reg. code") },
+        { S::RegistrationDone, N_("Reg. done") },
+        { S::RegistrationError, N_("Reg. error") },
+    };
+
+    ChangeInformation(_(strings.get_fallback(std::get<0>(connect_client::last_status()), S::Unknown)));
 }
 
 MI_CONNECT_ERROR::MI_CONNECT_ERROR()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_CONNECT_ERROR::update() {
+    using S = connect_client::OnlineError;
+    static constexpr EnumArray<S, const char *, connect_client::online_error_cnt> strings {
+        { S::NoError, N_("---") },
+        { S::Dns, N_("DNS error") },
+        { S::Connection, N_("Refused") },
+        { S::Tls, N_("TLS error") },
+        { S::Auth, N_("Unauthorized") },
+        { S::Server, N_("Srv error") },
+        { S::Internal, N_("Bug") },
+        { S::Network, N_("Net fail") },
+        { S::Confused, N_("Protocol err") },
+    };
+
+    ChangeInformation(_(strings.get_fallback(std::get<1>(connect_client::last_status()), S::Confused)));
 }
 
 MI_CONNECT_LOAD_SETTINGS::MI_CONNECT_LOAD_SETTINGS()
@@ -52,69 +101,14 @@ void MI_CONNECT_REGISTER::click([[maybe_unused]] IWindowMenu &window_menu) {
     DialogConnectRegister::Show();
 }
 
-#define S(STATUS, TEXT)                                    \
-    case ConnectionStatus::STATUS:                         \
-        Item<MI_CONNECT_STATUS>().ChangeInformation(TEXT); \
-        break;
-
-#define E(ERR, TEXT)                                      \
-    case OnlineError::ERR:                                \
-        Item<MI_CONNECT_ERROR>().ChangeInformation(TEXT); \
-        break;
-
-void ScreenMenuConnect::updateStatus() {
-    const auto status = connect_client::last_status();
-    switch (get<0>(status)) {
-        S(Off, _("Off"));
-        S(NoConfig, _("No Config"));
-        S(Error, _("Error"));
-        S(Ok, _("Online"));
-        S(Connecting, _("Connecting"));
-        // These are unlikely to be shown, we have another screen when
-        // registering. But we shall cover the complete set anyway.
-        S(RegistrationRequesting, _("Registering"));
-        S(RegistrationCode, _("Reg. code"));
-        S(RegistrationDone, _("Reg. done"));
-        S(RegistrationError, _("Reg. error"));
-    default:
-        S(Unknown, _("Unknown"));
-    }
-    switch (get<1>(status)) {
-        E(NoError, _("---"));
-        E(Dns, _("DNS error"));
-        E(Connection, _("Refused"));
-        E(Tls, _("TLS error"));
-        E(Auth, _("Unauthorized"));
-        E(Server, _("Srv error"));
-        E(Internal, _("Bug"));
-        E(Network, _("Net fail"));
-        E(Confused, _("Protocol err"));
-    }
-    // Make sure that if the connect is enabled as part of the wizard, this
-    // gets reflected on the toggle.
-    //
-    // It's kind of stupid to do this repeatedly even though this changes only
-    // as a result of the MI_CONNECT_REGISTER::click. But that one doesn't have
-    // access to our items (AFAIK).
-    //
-    // It should be cheap anyway - both the eeprom access is cached in RAM and
-    // the SetIndex checks it is different before doing anything.
-    Item<MI_CONNECT_ENABLED>().SetIndex(config_store().connect_enabled.get());
-}
-
-#undef S
-#undef E
-
 ScreenMenuConnect::ScreenMenuConnect()
     : ScreenMenuConnect__(_(label)) {
-    // Make the status info available right from the start, do not wait for the first loop
-    updateStatus();
 }
 
 void ScreenMenuConnect::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK || event == GUI_event_t::LOOP) {
-        updateStatus();
-    } else {
-        SuperWindowEvent(sender, event, param);
+        update_all_updatable_items();
     }
+
+    SuperWindowEvent(sender, event, param);
 }

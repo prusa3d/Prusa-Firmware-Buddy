@@ -20,6 +20,7 @@ enum class OnlineError {
     Network,
     Confused,
 };
+static constexpr size_t online_error_cnt = 9;
 
 enum class ConnectionStatus {
     Unknown,
@@ -33,6 +34,7 @@ enum class ConnectionStatus {
     RegistrationDone,
     RegistrationError,
 };
+static constexpr size_t connection_status_cnt = 10;
 
 struct ErrWithRetry {
     OnlineError err;
