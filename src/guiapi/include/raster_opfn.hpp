@@ -34,15 +34,10 @@ enum class is_desaturated : bool {
 };
 
 struct ropfn {
-    is_inverted invert : 1;
-    has_swapped_bw swap_bw : 1;
-    is_shadowed shadow : 1;
-    is_desaturated desatur : 1;
-    constexpr ropfn(is_inverted invert = is_inverted::no, has_swapped_bw swap_bw = has_swapped_bw::no, is_shadowed shadow = is_shadowed::no, is_desaturated desatur = is_desaturated::no)
-        : invert(invert)
-        , swap_bw(swap_bw)
-        , shadow(shadow)
-        , desatur(desatur) {}
+    is_inverted invert : 1 = is_inverted::no;
+    has_swapped_bw swap_bw : 1 = has_swapped_bw::no;
+    is_shadowed shadow : 1 = is_shadowed::no;
+    is_desaturated desatur : 1 = is_desaturated::no;
 
     constexpr uint8_t ConvertToC() const {
         uint8_t ret = 0;

@@ -10,6 +10,17 @@
 static IWindowMenuItem *focused_menu_item = nullptr;
 static bool focused_menu_item_edited = false;
 
+constexpr IWindowMenuItem::ColorScheme IWindowMenuItem::color_scheme_title = {
+    .text = {
+        .focused = COLOR_WHITE,
+        .unfocused = COLOR_WHITE,
+    },
+    .back = {
+        .focused = 0x00AAAAAA,
+        .unfocused = 0x00333333,
+    },
+};
+
 IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands)
     : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden) {
 }

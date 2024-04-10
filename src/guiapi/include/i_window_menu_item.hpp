@@ -42,14 +42,16 @@ public:
         };
 
         struct ROpPair {
-            ropfn focused;
-            ropfn unfocused;
+            ropfn focused = {};
+            ropfn unfocused = {};
         };
 
         ColorPair text;
         ColorPair back;
-        ROpPair rop;
+        ROpPair rop = {};
     };
+
+    static const ColorScheme color_scheme_title;
 
     enum class IconPosition : uint8_t {
         left,

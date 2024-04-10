@@ -3,7 +3,7 @@
 #include <bsod_gui.hpp>
 #include <bsod.h>
 
-static const IWindowMenuItem::ColorScheme blue_scheme = {
+static constexpr IWindowMenuItem::ColorScheme blue_scheme = {
     .text = {
         .focused = COLOR_BLACK,
         .unfocused = COLOR_AZURE,
@@ -12,13 +12,9 @@ static const IWindowMenuItem::ColorScheme blue_scheme = {
         .focused = COLOR_AZURE,
         .unfocused = COLOR_BLACK,
     },
-    .rop = {
-        .focused = ropfn(),
-        .unfocused = ropfn(),
-    }
 };
 
-static const IWindowMenuItem::ColorScheme red_scheme = {
+static constexpr IWindowMenuItem::ColorScheme red_scheme = {
     .text = {
         .focused = COLOR_BLACK,
         .unfocused = COLOR_RED_ALERT,
@@ -27,10 +23,6 @@ static const IWindowMenuItem::ColorScheme red_scheme = {
         .focused = COLOR_RED_ALERT,
         .unfocused = COLOR_BLACK,
     },
-    .rop = {
-        .focused = ropfn(),
-        .unfocused = ropfn(),
-    }
 };
 
 MI_TRIGGER_BSOD::MI_TRIGGER_BSOD()
