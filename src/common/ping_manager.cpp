@@ -215,12 +215,14 @@ uint8_t PingManager::recv(struct pbuf *p, const ip_addr_t *addr) {
     // the last round. Find the right slot for it.
 
     lock_guard lock(mutex);
+    auto &stat = stats[slot];
 
-    if (ip_2_ip4(addr)->addr == stats[slot].ip.addr && stats[slot].awaiting) {
+    if (ip_2_ip4(addr)->addr == stat.ip.addr && stat.awaiting) {
         uint32_t duration = ticks_ms() - last_round;
-        stats[slot].ms_total += duration;
-        stats[slot].success++;
-        stats[slot].awaiting = false;
+        stat.ms_total += duration;
+        stat.success++;
+        stat.awaiting = false;
+        stat.maybe_aggregate();
         pbuf_free(p);
         return 1;
     }
@@ -268,6 +270,7 @@ void PingManager::round() {
         unique_ptr<pbuf, PbufDeleter> pkt(pbuf_alloc(PBUF_IP, sizeof echo, PBUF_RAM));
         if (!pkt) {
             stat.send_err++;
+            stat.maybe_aggregate();
             continue;
         }
         echo.id = id + i;
@@ -297,4 +300,15 @@ void PingManager::finish() {
     sys_untimeout(PingManager::round_wrap, this);
 
     xSemaphoreGive(delete_sem);
+}
+
+void PingManager::Stat::maybe_aggregate() {
+    if (cnt < 16) {
+        return;
+    }
+
+    cnt /= 2;
+    success /= 2;
+    ms_total /= 2;
+    send_err /= 2;
 }

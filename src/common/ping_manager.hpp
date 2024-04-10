@@ -48,6 +48,10 @@ public:
         /// Average latency for a success
         unsigned latency() const;
 
+        /// We want to keep the stats somewhat actual, not averaged total.
+        /// So we do raking after a certain amount of stats
+        void maybe_aggregate();
+
     private:
         friend class PingManager;
         // Used during asynchronous DNS resolution.
