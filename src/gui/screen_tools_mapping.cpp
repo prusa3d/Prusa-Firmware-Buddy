@@ -1287,13 +1287,8 @@ void ToolsMappingBody::windowEvent(EventLock /*has private ctor*/, [[maybe_unuse
             // Otherwise, select the appropriate item and emulate click
             const auto previous_idx = current_idx;
             current_idx = left_gcode_pos_to_real[it - begin];
-
-            // The tool mapping buttons are small, so we require double touch - first one selects the item, second one confirms it
-            if (current_idx == previous_idx) {
-                WindowEvent(sender, GUI_event_t::CLICK, nullptr);
-            } else {
-                update_shown_state_after_scroll(previous_idx);
-            }
+            update_shown_state_after_scroll(previous_idx);
+            WindowEvent(sender, GUI_event_t::CLICK, nullptr);
 
             return;
         }
@@ -1310,13 +1305,8 @@ void ToolsMappingBody::windowEvent(EventLock /*has private ctor*/, [[maybe_unuse
                 // Select the appropriate item and emulate click
                 const auto previous_idx = current_idx;
                 current_idx = right_phys_pos_to_real[it - begin];
-
-                // The tool mapping buttons are small, so we require double touch - first one selects the item, second one confirms it
-                if (current_idx == previous_idx) {
-                    WindowEvent(sender, GUI_event_t::CLICK, nullptr);
-                } else {
-                    update_shown_state_after_scroll(previous_idx);
-                }
+                update_shown_state_after_scroll(previous_idx);
+                WindowEvent(sender, GUI_event_t::CLICK, nullptr);
 
                 return;
             }
