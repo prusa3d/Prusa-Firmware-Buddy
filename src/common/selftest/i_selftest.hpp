@@ -26,8 +26,8 @@ public:
     uint32_t GetTime() { return m_Time; } // to synchronize time in selftest by loop ticks
 
 protected:
-    virtual void phaseStart();
-    virtual void phaseFinish();
+    void phaseStart();
+    void phaseFinish();
     bool phaseWait();
 
     virtual void next() = 0;
