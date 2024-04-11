@@ -38,7 +38,7 @@ std::optional<uint16_t> Backend::map_over_transaction(Backend::Address address, 
 
 void Backend::read_all_current_bank_items(const CallbackFunction &callback) {
     // precondition: current_address is set and current bank has valid data
-    Address start_address = get_current_bank_start_address() + BANK_HEADER_SIZE + CRC_SIZE;
+    Address start_address = get_current_bank_start_address() + BANK_HEADER_SIZE_WITH_CRC;
     read_all_items(start_address, current_address - start_address, callback);
 }
 
@@ -46,14 +46,14 @@ void Backend::read_items_for_migrations(const CallbackFunction &callback) {
     // precondition: current_next_address is set and next bank has valid data (nothing or migrated intermediary transactions)
     read_all_current_bank_items(callback);
 
-    Address start_address = get_next_bank_start_address() + BANK_HEADER_SIZE + CRC_SIZE;
+    Address start_address = get_next_bank_start_address() + BANK_HEADER_SIZE_WITH_CRC;
     read_all_items(start_address, current_next_address - start_address, callback);
 }
 
 void Backend::read_all_items(Address address, Offset len_of_transactions, const CallbackFunction &fnc) {
     bool last_item = false;
 
-    len_of_transactions = std::min(len_of_transactions, static_cast<Offset>(bank_size - BANK_HEADER_SIZE - CRC_SIZE));
+    len_of_transactions = std::min(len_of_transactions, static_cast<Offset>(bank_size - BANK_HEADER_SIZE_WITH_CRC));
 
     auto last_item_clb_wrapper = [&last_item, &fnc](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
         if (header.id == journal::Backend::LAST_ITEM_STOP.id) {
@@ -191,12 +191,12 @@ bool Backend::generate_migration_intermediaries(std::span<const MigrationFunctio
 void Backend::load_migrated_data(const UpdateFunction &update_function) {
     // precondition: next bank contains 'migrated' intermediary data
 
-    auto [state, num_of_transactions, end_of_last_transaction] = validate_transactions(get_next_bank_start_address() + BANK_HEADER_SIZE + CRC_SIZE);
+    auto [state, num_of_transactions, end_of_last_transaction] = validate_transactions(get_next_bank_start_address() + BANK_HEADER_SIZE_WITH_CRC);
     if (state == BankState::Corrupted) {
         bsod("Next bank data is corrupted"); // should never happen, but it's possible migration functions did something 'bad'
     }
 
-    uint16_t next_bank_transactions_start_address = get_next_bank_start_address() + BANK_HEADER_SIZE + CRC_SIZE;
+    uint16_t next_bank_transactions_start_address = get_next_bank_start_address() + BANK_HEADER_SIZE_WITH_CRC;
     uint16_t len_of_transactions = current_next_address - next_bank_transactions_start_address;
 
     load_items(next_bank_transactions_start_address, len_of_transactions, update_function);
@@ -232,7 +232,7 @@ void Backend::load_all(const UpdateFunction &update_function, std::span<const Mi
         // currently exists only one version of bank, will maybe be used in future
     }
 
-    auto [state, num_of_transactions, end_of_last_transaction] = validate_transactions(current_bank_address + BANK_HEADER_SIZE + CRC_SIZE);
+    auto [state, num_of_transactions, end_of_last_transaction] = validate_transactions(current_bank_address + BANK_HEADER_SIZE_WITH_CRC);
     current_address = end_of_last_transaction;
 
     if (state == BankState::Corrupted) {
@@ -247,7 +247,7 @@ void Backend::load_all(const UpdateFunction &update_function, std::span<const Mi
             journal_state = JournalState::CorruptedBank;
             return;
         }
-        auto tmp = validate_transactions(current_bank_address + BANK_HEADER_SIZE + CRC_SIZE); // cannot do structured binding of a non-tuple to an existing variables
+        auto tmp = validate_transactions(current_bank_address + BANK_HEADER_SIZE_WITH_CRC); // cannot do structured binding of a non-tuple to an existing variables
 
         current_address = tmp.end_of_last_transaction;
 
@@ -269,7 +269,7 @@ void Backend::load_all(const UpdateFunction &update_function, std::span<const Mi
         journal_state = JournalState::ValidStart;
     }
 
-    uint16_t current_bank_transactions_start_address = get_current_bank_start_address() + BANK_HEADER_SIZE + CRC_SIZE;
+    uint16_t current_bank_transactions_start_address = get_current_bank_start_address() + BANK_HEADER_SIZE_WITH_CRC;
     uint16_t len_of_transactions = current_address - current_bank_transactions_start_address;
 
     // migrate from potentially older version and create migration transactions into the next bank
@@ -286,7 +286,7 @@ void Backend::load_all(const UpdateFunction &update_function, std::span<const Mi
     }
 }
 std::optional<Backend::BanksState> Backend::choose_bank() const {
-    std::array<uint8_t, BANK_HEADER_SIZE + CRC_SIZE> bank_header_buffer {};
+    std::array<uint8_t, BANK_HEADER_SIZE_WITH_CRC> bank_header_buffer {};
 
     storage.read_bytes(start_address, bank_header_buffer);
     auto bank1_header = validate_bank_header(bank_header_buffer);
@@ -352,7 +352,7 @@ Backend::MultipleTransactionValidationResult Backend::validate_transactions(cons
         if (item_header.id == LAST_ITEM_STOP.id) {
             // if we have only one transaction and that transaction contains only the end item then this bank is valid
             // we want to overwrite the ending item
-            return MultipleTransactionValidationResult { .state = BankState::Valid, .num_of_transactions = static_cast<uint16_t>(num_of_transactions - 1), .end_of_last_transaction = static_cast<uint16_t>(pos - item_data.size() - ITEM_HEADER_SIZE - CRC_SIZE) };
+            return MultipleTransactionValidationResult { .state = BankState::Valid, .num_of_transactions = static_cast<uint16_t>(num_of_transactions - 1), .end_of_last_transaction = static_cast<uint16_t>(pos - item_data.size() - END_ITEM_SIZE_WITH_CRC) };
         } else {
             return MultipleTransactionValidationResult { .state = BankState::MissingEndItem, .num_of_transactions = num_of_transactions, .end_of_last_transaction = pos };
         }
@@ -383,12 +383,12 @@ void Backend::init_bank(const Backend::BankSelector selector, Backend::BankSeque
     CRCType crc = crc32_calc(reinterpret_cast<const uint8_t *>(&header), BANK_HEADER_SIZE);
     storage.write_bytes(address + BANK_HEADER_SIZE, { reinterpret_cast<uint8_t *>(&crc), CRC_SIZE });
     storage.write_bytes(address, { reinterpret_cast<uint8_t *>(&header), BANK_HEADER_SIZE });
-    write_end_item(address + BANK_HEADER_SIZE + CRC_SIZE);
+    write_end_item(address + BANK_HEADER_SIZE_WITH_CRC);
 
     if (is_next_bank) {
-        current_next_address = address + BANK_HEADER_SIZE + CRC_SIZE;
+        current_next_address = address + BANK_HEADER_SIZE_WITH_CRC;
     } else {
-        current_address = address + BANK_HEADER_SIZE + CRC_SIZE;
+        current_address = address + BANK_HEADER_SIZE_WITH_CRC;
         current_bank_id = header.sequence_id;
     }
 }
@@ -419,7 +419,7 @@ void Backend::load_items(uint16_t address, uint16_t len_of_transactions, const U
     });
 }
 uint16_t Backend::write_end_item(uint16_t address) {
-    if (!fits_in_current_bank(ITEM_HEADER_SIZE + CRC_SIZE)) {
+    if (!fits_in_current_bank(END_ITEM_SIZE_WITH_CRC)) {
         migrate_bank();
     }
 
@@ -427,7 +427,7 @@ uint16_t Backend::write_end_item(uint16_t address) {
     return write_item(address, LAST_ITEM_STOP, {}, crc);
 }
 void Backend::store_single_item(uint16_t id, const std::span<const uint8_t> &data) {
-    if (!fits_in_current_bank(ITEM_HEADER_SIZE + data.size() + CRC_SIZE + ITEM_HEADER_SIZE + CRC_SIZE)) {
+    if (!fits_in_current_bank(ITEM_HEADER_SIZE + data.size() + CRC_SIZE + END_ITEM_SIZE_WITH_CRC)) {
         migrate_bank();
         return;
     }
@@ -540,7 +540,7 @@ Backend::Backend(uint16_t offset, uint16_t size, configuration_store::Storage &s
     : start_address(offset)
     , bank_size(size / 2)
     , storage(storage) {
-    assert(bank_size > BANK_HEADER_SIZE + CRC_SIZE + ITEM_HEADER_SIZE + CRC_SIZE);
+    assert(bank_size > BANK_HEADER_SIZE_WITH_CRC + END_ITEM_SIZE_WITH_CRC);
 }
 Backend::BankSelector Backend::get_next_bank() {
     if (current_address > start_address && current_address < start_address + bank_size) {
@@ -575,7 +575,7 @@ Backend::Transaction::Transaction(Transaction::Type type, Backend &backend)
 }
 
 Backend::Transaction::~Transaction() {
-    if (type == Type::transaction && !backend.fits_in_current_bank(CRC_SIZE + ITEM_HEADER_SIZE + CRC_SIZE)) {
+    if (type == Type::transaction && !backend.fits_in_current_bank(CRC_SIZE + END_ITEM_SIZE_WITH_CRC)) {
         backend.migrate_bank();
         return;
     }
