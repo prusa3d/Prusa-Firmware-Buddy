@@ -34,6 +34,9 @@ protected:
     bool abort_part(selftest::IPartHandler **ppart);
 
     uint32_t m_Time;
+#if HAS_PHASE_STEPPING()
+    std::optional<phase_stepping::EnsureDisabled> ph_disabler { std::nullopt };
+#endif
 };
 
 // defined in child source file
