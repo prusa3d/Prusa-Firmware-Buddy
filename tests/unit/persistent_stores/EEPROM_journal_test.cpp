@@ -285,12 +285,12 @@ TEST_CASE("Test transaction creation") {
     std::array<uint8_t, 10> data { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
     journal.init_bank(Backend::BankSelector::First, 1);
-    journal.current_address = Backend::BANK_HEADER_SIZE + Backend::CRC_SIZE;
+    journal.current_address = Backend::BANK_HEADER_SIZE_WITH_CRC;
 
     SECTION("Single item transaction") {
         journal.store_single_item(1, data);
 
-        auto const [state, num_of_transactions, end_of_last_transaction] = journal.validate_transactions(Backend::BANK_HEADER_SIZE + Backend::CRC_SIZE);
+        auto const [state, num_of_transactions, end_of_last_transaction] = journal.validate_transactions(Backend::BANK_HEADER_SIZE_WITH_CRC);
         REQUIRE(state == Backend::BankState::Valid);
         REQUIRE(num_of_transactions == 1);
     }
@@ -323,7 +323,7 @@ TEST_CASE("Test transaction creation") {
         journal.transaction_end();
         REQUIRE_FALSE(journal.transaction.has_value());
 
-        auto const [state, num_of_transactions, end_of_last_transaction] = journal.validate_transactions(Backend::BANK_HEADER_SIZE + Backend::CRC_SIZE);
+        auto const [state, num_of_transactions, end_of_last_transaction] = journal.validate_transactions(Backend::BANK_HEADER_SIZE_WITH_CRC);
         REQUIRE(state == Backend::BankState::Valid);
         REQUIRE(num_of_transactions == 1);
     }

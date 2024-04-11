@@ -119,11 +119,14 @@ public:
         std::optional<uint16_t> secondary_bank_address;
     };
 
+    using CRCType = uint32_t;
+
     static constexpr ItemHeader LAST_ITEM_STOP = { .last_item = true, .id = LAST_ITEM_ID, .len = 0 };
     static constexpr size_t ITEM_HEADER_SIZE = sizeof(ItemHeader);
     static constexpr size_t BANK_HEADER_SIZE = sizeof(BankHeader);
-    using CRCType = uint32_t;
     static constexpr size_t CRC_SIZE = sizeof(CRCType);
+    static constexpr size_t END_ITEM_SIZE_WITH_CRC = ITEM_HEADER_SIZE + CRC_SIZE;
+    static constexpr size_t BANK_HEADER_SIZE_WITH_CRC = BANK_HEADER_SIZE + CRC_SIZE;
 
     using CallbackFunction = std::function<void(ItemHeader, std::array<uint8_t, MAX_ITEM_SIZE> &)>;
 
