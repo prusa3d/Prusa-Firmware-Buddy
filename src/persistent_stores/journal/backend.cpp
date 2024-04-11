@@ -315,20 +315,16 @@ std::optional<Backend::BanksState> Backend::choose_bank() const {
 
 Backend::MultipleTransactionValidationResult Backend::validate_transactions(const Address address) {
     uint16_t num_of_transactions = 0;
-    TransactionValidationResult prev_result = { 0, 0, 0 };
+    TransactionValidationResult last_transaction = { 0, 0, 0 };
 
     uint16_t free_space = bank_size - BANK_HEADER_SIZE;
     uint16_t pos = address;
 
-    auto val_res = get_next_transaction(pos, free_space);
-    while (val_res.has_value()) {
+    while (auto val_res = get_next_transaction(pos, free_space)) {
+        last_transaction = val_res.value();
         num_of_transactions++;
-        prev_result = val_res.value();
-
         pos += val_res->transaction_len;
         free_space -= val_res->transaction_len;
-
-        val_res = get_next_transaction(pos, free_space);
     }
 
     if (num_of_transactions == 0) {
@@ -336,11 +332,11 @@ Backend::MultipleTransactionValidationResult Backend::validate_transactions(cons
         return MultipleTransactionValidationResult { .state = BankState::Corrupted, .num_of_transactions = num_of_transactions, .end_of_last_transaction = pos };
     }
 
-    if (prev_result.num_of_items == 1) {
+    if (last_transaction.num_of_items == 1) {
         std::array<uint8_t, MAX_ITEM_SIZE> buffer {};
 
         // check that transaction has end item
-        auto item = load_item(prev_result.address, prev_result.transaction_len, buffer);
+        auto item = load_item(last_transaction.address, last_transaction.transaction_len, buffer);
         if (!item.has_value()) {
             // should not happen, we have already validated the transaction
             bsod("This should not happen");
