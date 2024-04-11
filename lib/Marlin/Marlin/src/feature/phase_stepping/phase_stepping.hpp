@@ -301,9 +301,21 @@ public:
     }
 
     EnsureState(const EnsureState &) = delete;
-    EnsureState(const EnsureState &&) = delete;
+    EnsureState(EnsureState &&other) {
+        *this = std::move(other);
+    };
     EnsureState &operator=(const EnsureState &) = delete;
-    EnsureState &operator=(const EnsureState &&) = delete;
+    EnsureState &operator=(EnsureState &&other) {
+        released = other.released;
+        any_axis_change = other.any_axis_change;
+        _prev_active = other._prev_active;
+
+        // Invalidate the previous object so it doesn't reset the settings
+        other.released = true;
+        other.any_axis_change = false;
+
+        return *this;
+    };
 
     ~EnsureState() {
         release();
