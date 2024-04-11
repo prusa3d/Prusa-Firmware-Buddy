@@ -22,12 +22,18 @@ void ISelftest::phaseStart() {
 #if ENABLED(CRASH_RECOVERY)
     crash_s.set_state(Crash_s::SELFTEST);
 #endif
+#if HAS_PHASE_STEPPING()
+    ph_disabler = std::optional { phase_stepping::EnsureDisabled {} };
+#endif
     FSM_CREATE__LOGGING(Selftest); // TODO data 0/1 selftest/wizard
 }
 
 void ISelftest::phaseFinish() {
     FSM_DESTROY__LOGGING(Selftest);
     marlin_server::set_exclusive_mode(0);
+#if HAS_PHASE_STEPPING()
+    ph_disabler.reset();
+#endif
 #if ENABLED(CRASH_RECOVERY)
     crash_s.set_state(Crash_s::IDLE);
 #endif
