@@ -230,7 +230,7 @@ struct flash_data {
         SpoolJoin::serialized_state_t spool_join;
 #endif
         GCodeReaderStreamRestoreInfo gcode_stream_restore_info;
-        uint8_t invalid; // set to zero before writing, cleared on erase
+        uint8_t invalid = true; // set to zero before writing, cleared on erase
 
         static void load();
         static void save();
@@ -256,30 +256,12 @@ std::atomic_bool ac_fault_triggered = false;
 static PPState power_panic_state = PPState::Inactive;
 
 // Temporary buffer for state filled at the time of the acFault trigger
-static struct {
+static struct : public flash_data::state_t {
     bool nested_fault;
     PPState orig_state;
     char media_SFN_path[FILE_PATH_MAX_LEN]; // temporary buffer
     uint8_t orig_axis_known_position;
     uint32_t fault_stamp; // time since acFault trigger
-
-    // Temporary copy to handle nested fault handling
-    flash_crash_t crash;
-    flash_planner_t planner;
-    flash_progress_t progress;
-    flash_print_t print;
-    flash_toolchanger_t toolchanger;
-
-#if ENABLED(CANCEL_OBJECTS)
-    uint32_t canceled_objects;
-#endif
-#if ENABLED(PRUSA_TOOL_MAPPING)
-    ToolMapper::serialized_state_t tool_mapping;
-#endif
-#if ENABLED(PRUSA_SPOOL_JOIN)
-    SpoolJoin::serialized_state_t spool_join;
-#endif
-    GCodeReaderStreamRestoreInfo gcode_stream_restore_info;
 } state_buf;
 
 // Helper functions to read/write to the flash area with type checking
@@ -341,44 +323,15 @@ void flash_data::fixed_t::load() {
 }
 
 void flash_data::state_t::save() {
-    FLASH_SAVE(state.crash, state_buf.crash);
-    FLASH_SAVE(state.planner, state_buf.planner);
-    FLASH_SAVE(state.progress, state_buf.progress);
-    FLASH_SAVE(state.print, state_buf.print);
-    FLASH_SAVE(state.toolchanger, state_buf.toolchanger);
-#if ENABLED(CANCEL_OBJECTS)
-    FLASH_SAVE(state.canceled_objects, state_buf.canceled_objects);
-#endif
-#if ENABLED(PRUSA_TOOL_MAPPING)
-    FLASH_SAVE(state.tool_mapping, state_buf.tool_mapping);
-#endif
-#if ENABLED(PRUSA_SPOOL_JOIN)
-    FLASH_SAVE(state.spool_join, state_buf.spool_join);
-#endif
-    FLASH_SAVE(state.gcode_stream_restore_info, state_buf.gcode_stream_restore_info);
-
-    FLASH_SAVE_EXPR(state.invalid, false);
+    state_buf.invalid = false;
+    w25x_program(FLASH_DATA_OFF(state), reinterpret_cast<const uint8_t *>(&state_buf), sizeof(flash_data::state_t));
     if (w25x_fetch_error()) {
         log_error(PowerPanic, "Failed to save live data.");
     }
 }
 
 void flash_data::state_t::load() {
-    FLASH_LOAD(state.crash, state_buf.crash);
-    FLASH_LOAD(state.planner, state_buf.planner);
-    FLASH_LOAD(state.progress, state_buf.progress);
-    FLASH_LOAD(state.print, state_buf.print);
-    FLASH_LOAD(state.toolchanger, state_buf.toolchanger);
-#if ENABLED(CANCEL_OBJECTS)
-    FLASH_LOAD(state.canceled_objects, state_buf.canceled_objects);
-#endif
-#if ENABLED(PRUSA_TOOL_MAPPING)
-    FLASH_LOAD(state.tool_mapping, state_buf.tool_mapping);
-#endif
-#if ENABLED(PRUSA_SPOOL_JOIN)
-    FLASH_LOAD(state.spool_join, state_buf.spool_join);
-#endif
-    FLASH_LOAD(state.gcode_stream_restore_info, state_buf.gcode_stream_restore_info);
+    w25x_rd_data(FLASH_DATA_OFF(state), reinterpret_cast<uint8_t *>(&state_buf), sizeof(flash_data::state_t));
     state_buf.nested_fault = true;
 }
 
