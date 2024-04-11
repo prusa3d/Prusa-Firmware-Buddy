@@ -321,7 +321,7 @@ public:
     [[nodiscard]] Address get_next_bank_start_address() const;
     BankSelector get_next_bank();
 
-    uint16_t write_item(const Address address, const Backend::ItemHeader &, const std::span<const uint8_t> &data, std::optional<CRCType> crc);
+    uint16_t write_item(Address address, Backend::ItemHeader, const std::span<const uint8_t> &data, std::optional<CRCType> crc);
     uint16_t write_end_item(Address address);
     void store_single_item(Id id, const std::span<const uint8_t> &data);
 

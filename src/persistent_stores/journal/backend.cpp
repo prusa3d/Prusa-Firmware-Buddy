@@ -502,7 +502,7 @@ uint16_t Backend::get_bank_start_address(Address address_in_bank) const {
     return start_address + (address_in_bank < start_address + bank_size ? 0 : bank_size);
 }
 
-uint16_t Backend::write_item(const uint16_t address, const Backend::ItemHeader &header, const std::span<const uint8_t> &data, std::optional<CRCType> crc) {
+uint16_t Backend::write_item(Address address, Backend::ItemHeader header, const std::span<const uint8_t> &data, std::optional<CRCType> crc) {
     const uint16_t data_address = address + ITEM_HEADER_SIZE;
     uint16_t written = 0;
 
