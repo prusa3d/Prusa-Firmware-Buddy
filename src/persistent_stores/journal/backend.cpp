@@ -240,8 +240,7 @@ void Backend::load_all(const UpdateFunction &update_function, std::span<const Mi
         if (secondary_header.has_value()) {
             // attempt to read from the older bank
             current_bank_id = secondary_header->sequence_id;
-            current_bank_id = secondary_header->version;
-
+            current_bank_version = secondary_header->version;
             current_bank_address = secondary_address.value();
         } else {
             journal_state = JournalState::CorruptedBank;
