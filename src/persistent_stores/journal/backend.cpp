@@ -148,7 +148,7 @@ std::optional<Backend::CRCType> Backend::get_crc(const std::span<const uint8_t> 
     memcpy(&crc, data.data(), CRC_SIZE);
     return crc;
 }
-size_t Backend::find_oldest_migration_index(std::span<const MigrationFunction> migration_functions) {
+size_t Backend::find_oldest_version_migration_index(std::span<const MigrationFunction> migration_functions) {
     size_t oldest_migration = migration_functions.size();
 
     auto callback = [&migration_functions, &oldest_migration](ItemHeader header, [[maybe_unused]] std::array<uint8_t, MAX_ITEM_SIZE> &buffer) -> void {
@@ -167,19 +167,19 @@ size_t Backend::find_oldest_migration_index(std::span<const MigrationFunction> m
     return oldest_migration;
 }
 
-bool Backend::generate_migration_intermediaries(std::span<const MigrationFunction> migration_functions) {
+bool Backend::generate_version_migration_intermediaries(std::span<const MigrationFunction> migration_functions) {
     if (migration_functions.size() < 1) {
         return false;
     }
 
-    size_t oldest_migration = find_oldest_migration_index(migration_functions);
+    size_t oldest_migration = find_oldest_version_migration_index(migration_functions);
 
     if (oldest_migration < migration_functions.size()) { // we found a migration
         // Need to erase the next bank because the space is needed for storing intermediary transactions
         init_bank(get_next_bank(), current_bank_id - 1, true); // prepare the next bank for intermediaries (mark as older and reset current_next_addr)
 
         for (size_t i = oldest_migration; i < migration_functions.size(); ++i) {
-            auto guard = migrating_transaction_guard(); // always start a migrating transaction, so that data goes into next bank. We can do this since if the function doesn't want to save anything, the transaction destructor does nothing
+            auto guard = version_migration_guard(); // always start a migrating transaction, so that data goes into next bank. We can do this since if the function doesn't want to save anything, the transaction destructor does nothing
             migration_functions[i].migration_fn(*this);
         }
     }
@@ -188,7 +188,7 @@ bool Backend::generate_migration_intermediaries(std::span<const MigrationFunctio
 }
 
 // Load data, just like normal, except from the next bank
-void Backend::load_migrated_data(const UpdateFunction &update_function) {
+void Backend::load_version_migrated_data(const UpdateFunction &update_function) {
     // precondition: next bank contains 'migrated' intermediary data
 
     auto [state, num_of_transactions, end_of_last_transaction] = validate_transactions(get_next_bank_start_address() + BANK_HEADER_SIZE_WITH_CRC);
@@ -272,11 +272,11 @@ void Backend::load_all(const UpdateFunction &update_function, std::span<const Mi
     uint16_t len_of_transactions = current_address - current_bank_transactions_start_address;
 
     // migrate from potentially older version and create migration transactions into the next bank
-    bool migrated = generate_migration_intermediaries(migration_functions);
+    bool migrated = generate_version_migration_intermediaries(migration_functions);
     load_items(current_bank_transactions_start_address, len_of_transactions, update_function);
 
     if (migrated) {
-        load_migrated_data(update_function);
+        load_version_migrated_data(update_function);
     }
     // load extra transactions that were a result of migration functions from the next bank
 
@@ -446,7 +446,7 @@ void Backend::migrate_bank() {
     init_bank(get_next_bank(), current_bank_id);
 
     {
-        auto guard = migration_guard();
+        auto guard = bank_migration_guard();
         dump_callback();
     }
 }
@@ -468,19 +468,19 @@ auto Backend::transaction_guard() -> TransactionGuard {
     return TransactionGuard(*this);
 }
 
-void Backend::migrating_transaction_start() {
+void Backend::version_migration_start() {
     if (transaction.has_value()) {
         bsod("Starting transaction while transaction is running");
     }
-    transaction.emplace(Transaction::Type::migrating_transaction, *this);
+    transaction.emplace(Transaction::Type::version_migration, *this);
 }
 
-void Backend::migrating_transaction_end() {
+void Backend::version_migration_end() {
     transaction_end();
 }
 
-auto Backend::migrating_transaction_guard() -> MigratingTransactionGuard {
-    return MigratingTransactionGuard(*this);
+auto Backend::version_migration_guard() -> VersionMigratingTransactionGuard {
+    return VersionMigratingTransactionGuard(*this);
 }
 
 void Backend::erase_storage_area() {
@@ -519,8 +519,8 @@ Backend::CRCType Backend::calculate_crc(const Backend::ItemHeader &header, const
     return crc;
 }
 void Backend::save(uint16_t id, std::span<const uint8_t> data) {
-    if (migration.has_value()) {
-        migration->store_item(id, data);
+    if (bank_migration.has_value()) {
+        bank_migration->store_item(id, data);
     } else if (transaction.has_value()) {
         transaction->store_item(id, data);
     } else {
@@ -543,21 +543,21 @@ Backend::BankSelector Backend::get_next_bank() {
 Backend::Address Backend::get_bank_start_address(const Backend::BankSelector selector) {
     return selector == BankSelector::First ? start_address : start_address + bank_size;
 }
-void Backend::migration_start() {
-    migration.emplace(Transaction::Type::migration, *this);
+void Backend::bank_migration_start() {
+    bank_migration.emplace(Transaction::Type::bank_migration, *this);
 }
-void Backend::migration_end() {
-    if (!migration.has_value()) {
+void Backend::bank_migration_end() {
+    if (!bank_migration.has_value()) {
         bsod("Migration is not started");
     }
     if (transaction.has_value()) {
         transaction->cancel();
     }
-    migration.reset();
+    bank_migration.reset();
 }
 
-auto Backend::migration_guard() -> MigrationGuard {
-    return MigrationGuard(*this);
+auto Backend::bank_migration_guard() -> BankMigrationGuard {
+    return BankMigrationGuard(*this);
 }
 
 Backend::Transaction::Transaction(Transaction::Type type, Backend &backend)
@@ -575,7 +575,7 @@ Backend::Transaction::~Transaction() {
         return;
     }
 
-    auto &current_address = type == Type::migrating_transaction ? backend.current_next_address : backend.current_address;
+    auto &current_address = type == Type::version_migration ? backend.current_next_address : backend.current_address;
 
     backend.storage.write_bytes(current_address, { reinterpret_cast<uint8_t *>(&last_item_crc), CRC_SIZE });
     last_item_header.last_item = true;
@@ -602,7 +602,7 @@ void Backend::Transaction::store_item(Backend::Id id, const std::span<const uint
     calculate_crc(id, data);
     item_count++;
 
-    auto &current_address = type == Type::migrating_transaction ? backend.current_next_address : backend.current_address;
+    auto &current_address = type == Type::version_migration ? backend.current_next_address : backend.current_address;
 
     ItemHeader header { .last_item = false, .id = id, .len = static_cast<uint16_t>(data.size()) };
     last_item_header = header;

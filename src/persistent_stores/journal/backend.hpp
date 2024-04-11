@@ -132,15 +132,15 @@ public:
 
     struct Transaction {
         enum class Type {
-            migration, // bank flipping
+            bank_migration, // bank flipping
             transaction, // writing to normal bank
-            migrating_transaction, // writing to the next bank (needed during migrations from older version)
+            version_migration, // writing to the next bank (needed during migrations from older version)
         };
 
         Backend &backend;
 
         Type type = Type::transaction;
-        Address last_item_address = type == Type::migrating_transaction ? backend.current_next_address : backend.current_address;
+        Address last_item_address = type == Type::version_migration ? backend.current_next_address : backend.current_address;
         CRCType crc = 0;
         CRCType last_item_crc = 0;
         ItemHeader last_item_header = { true, 0, 0 };
@@ -208,7 +208,7 @@ public:
     template <typename T>
     void save_migration_item(Id hashed_id, const T &item_to_be_saved) {
         static_assert(sizeof(T) <= MAX_ITEM_SIZE, "Trying to save an item too big");
-        assert(transaction.has_value() && transaction->type == Transaction::Type::migrating_transaction); // migrating transaction must be in progress
+        assert(transaction.has_value() && transaction->type == Transaction::Type::version_migration); // migrating transaction must be in progress
 
         std::array<uint8_t, sizeof(T)> buffer;
         memcpy(buffer.data(), &item_to_be_saved, sizeof(T)); // Load the buffer with data
@@ -224,18 +224,18 @@ public:
     void transaction_end();
     using TransactionGuard = TransactionRAII<&Backend::transaction_start, &Backend::transaction_end>;
 
-    void migration_start();
-    void migration_end();
-    using MigrationGuard = TransactionRAII<&Backend::migration_start, &Backend::migration_end>;
-    MigrationGuard migration_guard();
+    void bank_migration_start();
+    void bank_migration_end();
+    using BankMigrationGuard = TransactionRAII<&Backend::bank_migration_start, &Backend::bank_migration_end>;
+    BankMigrationGuard bank_migration_guard();
 
-    void migrating_transaction_start();
-    void migrating_transaction_end();
-    using MigratingTransactionGuard = TransactionRAII<&Backend::migrating_transaction_start, &Backend::migrating_transaction_end>;
-    MigratingTransactionGuard migrating_transaction_guard();
+    void version_migration_start();
+    void version_migration_end();
+    using VersionMigratingTransactionGuard = TransactionRAII<&Backend::version_migration_start, &Backend::version_migration_end>;
+    VersionMigratingTransactionGuard version_migration_guard();
 
     std::optional<Transaction> transaction = std::nullopt;
-    std::optional<Transaction> migration = std::nullopt;
+    std::optional<Transaction> bank_migration = std::nullopt;
     Address start_address;
     Offset bank_size;
 
@@ -250,7 +250,7 @@ public:
      * @return true if found a deprecated item
      */
 
-    bool generate_migration_intermediaries(std::span<const MigrationFunction> migration_functions);
+    bool generate_version_migration_intermediaries(std::span<const MigrationFunction> migration_functions);
 
     /**
      * @brief Finds the oldest index of migration version in the migration_functions span.
@@ -258,14 +258,14 @@ public:
      * @param migration_functions migration versions
      * @return returns min index into migration_functions that has at least one of deprecated_ids found in current bank
      */
-    size_t find_oldest_migration_index(std::span<const MigrationFunction> migration_functions);
+    size_t find_oldest_version_migration_index(std::span<const MigrationFunction> migration_functions);
 
     /**
      * @brief Loads migrated intermediary data from the next bank into RAM mirror
      *
      * @param update_function
      */
-    void load_migrated_data(const UpdateFunction &update_function);
+    void load_version_migrated_data(const UpdateFunction &update_function);
 
     JournalState journal_state = JournalState::ValidStart;
 
