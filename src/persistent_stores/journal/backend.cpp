@@ -418,8 +418,8 @@ void Backend::load_items(uint16_t address, uint16_t len_of_transactions, const U
     });
 }
 uint16_t Backend::write_end_item(uint16_t address) {
-    if (!fits_in_current_bank(END_ITEM_SIZE_WITH_CRC)) {
-        migrate_bank();
+    if (get_free_space_in_bank(address) < END_ITEM_SIZE_WITH_CRC) {
+        return 0;
     }
 
     CRCType crc = crc32_calc_ex(0, reinterpret_cast<const uint8_t *>(&Backend::LAST_ITEM_STOP), sizeof(Backend::LAST_ITEM_STOP));
@@ -494,16 +494,12 @@ void Backend::erase_storage_area() {
 bool Backend::fits_in_current_bank(uint16_t size) const {
     return get_free_space_in_current_bank() >= size;
 }
-uint16_t Backend::get_free_space_in_current_bank() const {
-    uint16_t used_space = current_address - get_current_bank_start_address();
+uint16_t Backend::get_free_space_in_bank(Address address_in_bank) const {
+    uint16_t used_space = current_address - get_bank_start_address(address_in_bank);
     return bank_size - used_space - 1; // 1 to prevent current_address going into next bank when you fit the item size just right
 }
-uint16_t Backend::get_current_bank_start_address() const {
-    if (current_address > start_address && current_address < start_address + bank_size) {
-        return start_address;
-    } else {
-        return start_address + bank_size;
-    }
+uint16_t Backend::get_bank_start_address(Address address_in_bank) const {
+    return start_address + (address_in_bank < start_address + bank_size ? 0 : bank_size);
 }
 
 uint16_t Backend::write_item(const uint16_t address, const Backend::ItemHeader &header, const std::span<const uint8_t> &data, std::optional<CRCType> crc) {

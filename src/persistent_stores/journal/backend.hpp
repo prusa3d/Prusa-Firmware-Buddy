@@ -304,12 +304,22 @@ public:
     void init_bank(const BankSelector bank, uint32_t id, bool is_next_bank = false);
     std::optional<Backend::BanksState> choose_bank() const;
     void migrate_bank();
+
     bool fits_in_current_bank(uint16_t size) const;
-    uint16_t get_free_space_in_current_bank() const;
-    Address get_current_bank_start_address() const;
+
+    uint16_t get_free_space_in_bank(Address address_in_bank) const;
+    uint16_t get_free_space_in_current_bank() const {
+        return get_free_space_in_bank(current_address);
+    }
+
+    Address get_bank_start_address(const BankSelector selector);
+    Address get_bank_start_address(Address address_in_bank) const;
+    inline Address get_current_bank_start_address() const {
+        return get_bank_start_address(current_address);
+    }
+
     [[nodiscard]] Address get_next_bank_start_address() const;
     BankSelector get_next_bank();
-    Address get_bank_start_address(const BankSelector selector);
 
     uint16_t write_item(const Address address, const Backend::ItemHeader &, const std::span<const uint8_t> &data, std::optional<CRCType> crc);
     uint16_t write_end_item(Address address);
