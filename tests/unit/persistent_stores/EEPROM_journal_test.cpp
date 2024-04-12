@@ -55,7 +55,7 @@ size_t create_last_item(std::span<uint8_t> data) {
     return sizeof(Backend::LAST_ITEM_STOP) + sizeof(crc);
 }
 
-TEST_CASE("Test transaction validation") {
+TEST_CASE("journal::EEPROM::Test transaction validation") {
     DummyEepromChip storage;
     size_t pos = create_transaction(3, storage.get(0, 1024));
     Backend journal(0, 1024, storage);
@@ -85,7 +85,7 @@ TEST_CASE("Test transaction validation") {
     }
 }
 
-TEST_CASE("Test multiple transactions validation") {
+TEST_CASE("journal::EEPROM::Test multiple transactions validation") {
     DummyEepromChip storage;
     size_t pos = 0;
     Backend journal(0, 1024, storage);
@@ -153,7 +153,7 @@ TEST_CASE("Test multiple transactions validation") {
     }
 }
 
-TEST_CASE("Test item loading") {
+TEST_CASE("journal::EEPROM::Test item loading") {
     DummyEepromChip storage;
     size_t pos = 0;
     Backend journal(0, 1024, storage);
@@ -179,7 +179,7 @@ TEST_CASE("Test item loading") {
     }
 }
 
-TEST_CASE("Test Bank choosing") {
+TEST_CASE("journal::EEPROM::Test Bank choosing") {
     eeprom_chip.clear();
     Backend config_store(0, 8096, EEPROMInstance());
 
@@ -278,7 +278,7 @@ uint32_t calculate_crc(uint32_t crc, uint16_t id, bool last_item, std::span<uint
     return Backend::calculate_crc(header, data, crc);
 }
 
-TEST_CASE("Test transaction creation") {
+TEST_CASE("journal::EEPROM::Test transaction creation") {
     DummyEepromChip storage;
     static constexpr uint16_t bank_size = 8096 / 2;
     Backend journal(0, bank_size, storage);
@@ -345,7 +345,7 @@ static_assert(journal::has_unique_items<TestEEPROMJournalConfigV0>(), "Just adde
 inline constexpr std::array<journal::Backend::MigrationFunction, 0> test_migration_functions_v0 {};
 inline constexpr std::span<const journal::Backend::MigrationFunction> test_migration_functions_span_v0 { test_migration_functions_v0 };
 
-TEST_CASE("Config Store") {
+TEST_CASE("journal::EEPROM::Config Store") {
     eeprom_chip.clear();
     reinit_journal();
     auto local_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
@@ -423,7 +423,7 @@ TEST_CASE("Config Store") {
         REQUIRE(local_store->nested_struct_item.get() == nested_struct);
     }
 }
-TEST_CASE("Config store - cold start") {
+TEST_CASE("journal::EEPROM::Config store - cold start") {
     eeprom_chip.clear();
     reinit_journal();
 
@@ -443,7 +443,7 @@ TEST_CASE("Config store - cold start") {
     REQUIRE(local_store->int_item.get() == 43);
 }
 
-TEST_CASE("Config store - error states") {
+TEST_CASE("journal::EEPROM::Config store - error states") {
     eeprom_chip.clear();
     reinit_journal();
     auto local_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
@@ -562,7 +562,7 @@ struct TestEEPROMJournalConfigBigItem : public CurrentStoreConfig<Backend, Small
     StoreItem<std::array<int32_t, 64>, default_array, 1> random_data;
 };
 
-TEST_CASE("Bank migration during transaction") {
+TEST_CASE("journal::EEPROM::Bank migration during transaction") {
     eeprom_chip.clear();
     new (&Small_Test_EEPROM_journal()) Backend(100, 768, EEPROMInstance());
 
@@ -737,7 +737,7 @@ std::string print_chip() {
     return str;
 }
 
-TEST_CASE("Item migration") {
+TEST_CASE("journal::EEPROM::Item migration") {
     eeprom_chip.clear();
     reinit_journal();
     auto old_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
