@@ -798,3 +798,74 @@ TEST_CASE("Item migration") {
         }
     }
 }
+
+TEST_CASE("journal::EEPROM::Regression BFW-3553") {
+    eeprom_chip.clear();
+    reinit_journal();
+    auto &backend = Test_EEPROM_journal();
+
+    struct StoreConfig : public CurrentStoreConfig<Backend, Test_EEPROM_journal> {
+        StoreItem<int32_t, default_int32_t, 0> int_item;
+    };
+    auto store = std::make_unique<Store<StoreConfig, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
+    store->init();
+    store->load_all();
+
+    // At start, we should be at bank 1
+    const auto start_bank = backend.get_next_bank();
+    REQUIRE(start_bank == Backend::BankSelector::Second);
+
+    // Write items into the store until the bank is almost full
+    int i = 0;
+    {
+        // Make it a single transaction, to prevent bank migration on next reinit
+        auto transaction = backend.transaction_guard();
+
+        constexpr auto single_write_size = Backend::ITEM_HEADER_SIZE + sizeof(int32_t);
+        while (backend.fits_in_current_bank(single_write_size + Backend::CRC_SIZE + Backend::END_ITEM_SIZE_WITH_CRC)) {
+            const auto start_free_space = backend.get_free_space_in_current_bank();
+            REQUIRE(start_free_space > single_write_size);
+
+            store->int_item.set(++i);
+
+            // Check for unexpected bank migration
+            REQUIRE(backend.get_next_bank() == start_bank);
+
+            // Check that we've journalled exactly the amount of bytes we expected
+            REQUIRE(backend.get_free_space_in_current_bank() == start_free_space - single_write_size);
+        }
+    }
+
+    // Check for unexpected bank migration
+    REQUIRE(backend.get_next_bank() == start_bank);
+
+    const auto reinit_store = [&] {
+        store.reset();
+        reinit_journal();
+        store = std::make_unique<Store<StoreConfig, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
+        store->init();
+        store->load_all();
+    };
+
+    reinit_store();
+
+    // Check that no migration and such happened
+    REQUIRE(backend.get_next_bank() == start_bank);
+    REQUIRE(store->int_item.get() == i);
+
+    // Write an item that just fits the rest of the bank - without the end item
+    // This is however artificially constructed and in practice probably never happens in the real code
+    {
+        std::vector<unsigned char> data(backend.get_free_space_in_current_bank() - Backend::ITEM_HEADER_SIZE - Backend::CRC_SIZE);
+        Backend::ItemHeader header { .last_item = true, .id = 8631, .len = static_cast<uint16_t>(data.size()) };
+        const auto crc = backend.calculate_crc(header, data);
+        backend.current_address += backend.write_item(backend.current_address, header, data, crc);
+        REQUIRE(backend.get_free_space_in_current_bank() == 0);
+    }
+
+    reinit_store();
+
+    // Check that we still have data
+    REQUIRE(store->int_item.get() == i);
+    REQUIRE(backend.journal_state == Backend::JournalState::MissingEndItem);
+}
