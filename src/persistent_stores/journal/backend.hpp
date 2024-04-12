@@ -79,9 +79,7 @@ public:
         uint32_t sequence_id;
         uint16_t version;
 
-        bool operator==(const BankHeader &other) const {
-            return sequence_id == other.sequence_id && version == other.version;
-        }
+        bool operator==(const BankHeader &) const = default;
     };
     static_assert(sizeof(BankHeader) == 6);
 
@@ -240,7 +238,7 @@ public:
 
     std::optional<Transaction> transaction = std::nullopt;
     std::optional<Transaction> bank_migration = std::nullopt;
-    Address start_address;
+    const Address start_address;
     Offset bank_size;
 
     Address current_address = 0; // current position of the main bank 'end' (where next item will be stored ie without end item transaction)

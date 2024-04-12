@@ -429,7 +429,7 @@ void Backend::store_single_item(uint16_t id, const std::span<const uint8_t> &dat
 
     ItemHeader header { .last_item = true, .id = id, .len = static_cast<uint16_t>(data.size()) };
 
-    CRCType crc = calculate_crc(header, data);
+    const CRCType crc = calculate_crc(header, data);
 
     current_address += write_item(current_address, header, data, crc);
     write_end_item(current_address);
@@ -578,7 +578,10 @@ Backend::Transaction::~Transaction() {
 
     auto &current_address = type == Type::version_migration ? backend.current_next_address : backend.current_address;
 
+    // Append CRC
     backend.storage.write_bytes(current_address, { reinterpret_cast<uint8_t *>(&last_item_crc), CRC_SIZE });
+
+    // Overwrite last item header to mark it ast last item
     last_item_header.last_item = true;
     backend.storage.write_bytes(last_item_address, { reinterpret_cast<uint8_t *>(&last_item_header), ITEM_HEADER_SIZE });
     current_address += CRC_SIZE;
@@ -587,11 +590,14 @@ Backend::Transaction::~Transaction() {
 }
 
 void Backend::Transaction::calculate_crc(Backend::Id id, const std::span<const uint8_t> &data) {
-    ItemHeader header { .last_item = false, .id = id, .len = static_cast<uint16_t>(data.size()) };
-    ItemHeader last_header { .last_item = true, .id = id, .len = static_cast<uint16_t>(data.size()) };
+    const auto prev_crc = crc;
 
-    last_item_crc = Backend::calculate_crc(last_header, data, crc);
-    crc = Backend::calculate_crc(header, data, crc);
+    ItemHeader header { .last_item = false, .id = id, .len = static_cast<uint16_t>(data.size()) };
+    crc = Backend::calculate_crc(header, data, prev_crc);
+
+    // If this item ends up being the last item, we need to calculate a different CRC for that
+    header.last_item = true;
+    last_item_crc = Backend::calculate_crc(header, data, prev_crc);
 }
 
 void Backend::Transaction::store_item(Backend::Id id, const std::span<const uint8_t> &data) {
