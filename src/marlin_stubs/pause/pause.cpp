@@ -538,14 +538,16 @@ void Pause::loop_load_common(Response response, CommonLoadType load_type) {
                 mapi::extruder_schedule_turning(3);
             }
 
-        } else if (response == Response::Continue || settings.extruder_mmu_rework) {
-            set(LoadPhases_t::load_in_gear);
-
-        } else if (response == Response::Stop) {
-            settings.do_stop = true;
-
         } else {
             setPhase(is_unstoppable ? PhasesLoadUnload::UserPush_unstoppable : PhasesLoadUnload::UserPush_stoppable);
+
+            if (response == Response::Continue || settings.extruder_mmu_rework) {
+                set(LoadPhases_t::load_in_gear);
+            }
+        }
+
+        if (response == Response::Stop) {
+            settings.do_stop = true;
         }
         break;
 
