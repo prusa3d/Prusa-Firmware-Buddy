@@ -120,7 +120,7 @@ static constexpr uint32_t FLASH_SIZE = w25x_pp_size;
 
 // planner state (TODO: a _lot_ of essential state is missing here and Crash_s also due to
 // the partial Motion_Parameters implementation)
-struct flash_planner_t {
+struct __attribute__((packed)) flash_planner_t {
     user_planner_settings_t settings;
 
     float z_position;
@@ -154,12 +154,12 @@ struct flash_planner_t {
 };
 
 // fully independent state that persist across panics until the end of the print
-struct flash_print_t {
+struct __attribute__((packed)) flash_print_t {
     float odometer_e_start; /// E odometer value at the start of the print
 };
 
 // crash recovery data
-struct flash_crash_t {
+struct __attribute__((packed)) flash_crash_t {
     uint32_t sdpos; /// sdpos of the gcode instruction being aborted
     xyze_pos_t start_current_position; /// absolute logical starting XYZE position of the gcode instruction
     xyze_pos_t crash_current_position; /// absolute logical XYZE position of the crash location
@@ -175,8 +175,8 @@ struct flash_crash_t {
 };
 
 // print progress data
-struct flash_progress_t {
-    struct ModeSpecificData {
+struct __attribute__((packed)) flash_progress_t {
+    struct __attribute__((packed)) ModeSpecificData {
         uint32_t percent_done;
         uint32_t time_to_end;
         uint32_t time_to_pause;
@@ -188,7 +188,7 @@ struct flash_progress_t {
 
 // toolchanger recovery info
 //   can't use PrusaToolChanger::PrecrashData as it doesn't have to be packed
-struct flash_toolchanger_t {
+struct __attribute__((packed)) flash_toolchanger_t {
 #if HAS_TOOLCHANGER()
     xyz_pos_t return_pos; ///< Position wanted after toolchange
     uint8_t precrash_tool; ///< Tool wanted to be picked before panic
@@ -200,9 +200,9 @@ struct flash_toolchanger_t {
 #pragma GCC diagnostic pop
 
 // Data storage layout
-struct flash_data {
+struct __attribute__((packed)) flash_data {
     // non-changing print parameters
-    struct fixed_t {
+    struct __attribute__((packed)) fixed_t {
         xy_pos_t bounding_rect_a;
         xy_pos_t bounding_rect_b;
         bed_mesh_t z_values;
@@ -213,7 +213,7 @@ struct flash_data {
     } fixed;
 
     // varying parameters
-    struct state_t {
+    struct __attribute__((packed)) state_t {
         flash_crash_t crash;
         flash_planner_t planner;
         flash_progress_t progress;
@@ -229,7 +229,7 @@ struct flash_data {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         SpoolJoin::serialized_state_t spool_join;
 #endif
-        GCodeReaderStreamRestoreInfo gcode_stream_restore_info;
+        GCodeReaderStreamRestoreInfoSerialized gcode_stream_restore_info;
         uint8_t invalid = true; // set to zero before writing, cleared on erase
 
         static void load();
@@ -566,7 +566,7 @@ void resume_loop() {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         spool_join.deserialize(state_buf.spool_join);
 #endif
-        media_set_restore_info(state_buf.gcode_stream_restore_info);
+        media_set_restore_info(state_buf.gcode_stream_restore_info.deserialize());
 
 #if HAS_TOOLCHANGER()
         if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Was in toolchange area
@@ -1071,8 +1071,9 @@ void ac_fault_isr() {
 #if HAS_TOOLCHANGER()
         if (crash_s.is_toolchange_event()) {
             // Panic during toolchange, use the intended destination for replay
-            state_buf.crash.start_current_position = prusa_toolchanger.get_precrash().return_pos;
-            toNative(state_buf.crash.start_current_position); // return_pos is in logical coordinates, needs to be modified in place
+            auto pos = prusa_toolchanger.get_precrash().return_pos;
+            toNative(pos); // return_pos is in logical coordinates, needs to be modified in place
+            state_buf.crash.start_current_position = pos;
         } else
 #endif /*HAS_TOOLCHANGER()*/
         {
