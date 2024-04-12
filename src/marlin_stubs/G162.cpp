@@ -146,6 +146,9 @@ void selftest::calib_Z(bool move_down_after) {
 
 void PrusaGcodeSuite::G162() {
     if (parser.seen('Z')) {
+#if HAS_PHASE_STEPPING()
+        phase_stepping::EnsureDisabled ps_disabler;
+#endif
         marlin_server::FSM_Holder holder { PhasesSelftest::CalibZ };
         selftest::calib_Z(true);
     }
