@@ -150,7 +150,11 @@ public:
         ~Transaction();
         void calculate_crc(Id id, const std::span<const uint8_t> &data);
         void store_item(Id id, const std::span<const uint8_t> &data);
-        void cancel();
+
+        /// Called if bank migration happens during a transaction – that renders the transaction invalid.
+        /// Throws away the previous transaction data and reinitializes the transaction context, so that the transaction can continue.
+        /// In this case, we lose the atomicity of the transaction.
+        void reinitialize();
     };
 
     /**

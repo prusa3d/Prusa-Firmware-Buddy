@@ -551,7 +551,7 @@ void Backend::bank_migration_end() {
         bsod("Migration is not started");
     }
     if (transaction.has_value()) {
-        transaction->cancel();
+        transaction->reinitialize();
     }
     bank_migration.reset();
 }
@@ -567,6 +567,7 @@ Backend::Transaction::Transaction(Transaction::Type type, Backend &backend)
 
 Backend::Transaction::~Transaction() {
     if (type == Type::transaction && !backend.fits_in_current_bank(CRC_SIZE + END_ITEM_SIZE_WITH_CRC)) {
+        // After bank migration, all items will be stored with new values, we don't have to do anything
         backend.migrate_bank();
         return;
     }
@@ -611,7 +612,7 @@ void Backend::Transaction::store_item(Backend::Id id, const std::span<const uint
     current_address += backend.write_item(current_address, header, data, std::nullopt);
 }
 
-void Backend::Transaction::cancel() {
+void Backend::Transaction::reinitialize() {
     Backend &_backend = backend;
     Type _type = type;
     // using placement new, because we want to get default values without calling destructor
