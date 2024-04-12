@@ -199,10 +199,14 @@ void CSelftestPart_Axis::motor_switch(Motor steps) {
     // TODO change FSM .. make user know
     PersistentStorage::erase();
 
-    config_store().homing_sens_x.set(config_store().homing_sens_x.default_val);
-    config_store().homing_sens_y.set(config_store().homing_sens_y.default_val);
-    config_store().homing_bump_divisor_x.set(config_store().homing_bump_divisor_x.default_val);
-    config_store().homing_bump_divisor_y.set(config_store().homing_bump_divisor_y.default_val);
+    {
+        auto &store = config_store();
+        auto transaction = store.get_backend().transaction_guard();
+        store.homing_sens_x.set(store.homing_sens_x.default_val);
+        store.homing_sens_y.set(store.homing_sens_y.default_val);
+        store.homing_bump_divisor_x.set(store.homing_bump_divisor_x.default_val);
+        store.homing_bump_divisor_y.set(store.homing_bump_divisor_y.default_val);
+    }
 
     queue.enqueue_one_now("M914 X Y"); // Reset XY homing sensitivity
 

@@ -142,33 +142,37 @@ uint32_t load_ini_file_wifi(netif_config_t *config, ap_entry_t *ap) {
 
 void save_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
     assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
+
+    auto &store = config_store();
+    auto transaction = store.get_backend().transaction_guard();
+
     if (ethconfig->var_mask & (ETHVAR_MSK(ETHVAR_LAN_FLAGS))) {
         uint8_t flags = ethconfig->lan.flag;
-        netdev_id == NETDEV_ETH_ID ? config_store().lan_flag.set(flags) : config_store().wifi_flag.set(flags);
+        netdev_id == NETDEV_ETH_ID ? store.lan_flag.set(flags) : store.wifi_flag.set(flags);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
-        netdev_id == NETDEV_ETH_ID ? config_store().lan_ip4_addr.set(ethconfig->lan.addr_ip4.addr)
-                                   : config_store().wifi_ip4_addr.set(ethconfig->lan.addr_ip4.addr);
+        netdev_id == NETDEV_ETH_ID ? store.lan_ip4_addr.set(ethconfig->lan.addr_ip4.addr)
+                                   : store.wifi_ip4_addr.set(ethconfig->lan.addr_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS1_IP4)) {
-        netdev_id == NETDEV_ETH_ID ? config_store().lan_ip4_dns1.set(ethconfig->dns1_ip4.addr)
-                                   : config_store().wifi_ip4_dns1.set(ethconfig->dns1_ip4.addr);
+        netdev_id == NETDEV_ETH_ID ? store.lan_ip4_dns1.set(ethconfig->dns1_ip4.addr)
+                                   : store.wifi_ip4_dns1.set(ethconfig->dns1_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_DNS2_IP4)) {
-        netdev_id == NETDEV_ETH_ID ? config_store().lan_ip4_dns2.set(ethconfig->dns2_ip4.addr)
-                                   : config_store().wifi_ip4_dns2.set(ethconfig->dns2_ip4.addr);
+        netdev_id == NETDEV_ETH_ID ? store.lan_ip4_dns2.set(ethconfig->dns2_ip4.addr)
+                                   : store.wifi_ip4_dns2.set(ethconfig->dns2_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_MSK_IP4)) {
-        netdev_id == NETDEV_ETH_ID ? config_store().lan_ip4_mask.set(ethconfig->lan.msk_ip4.addr)
-                                   : config_store().wifi_ip4_mask.set(ethconfig->lan.msk_ip4.addr);
+        netdev_id == NETDEV_ETH_ID ? store.lan_ip4_mask.set(ethconfig->lan.msk_ip4.addr)
+                                   : store.wifi_ip4_mask.set(ethconfig->lan.msk_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_GW_IP4)) {
-        netdev_id == NETDEV_ETH_ID ? config_store().lan_ip4_gateway.set(ethconfig->lan.gw_ip4.addr)
-                                   : config_store().wifi_ip4_gateway.set(ethconfig->lan.gw_ip4.addr);
+        netdev_id == NETDEV_ETH_ID ? store.lan_ip4_gateway.set(ethconfig->lan.gw_ip4.addr)
+                                   : store.wifi_ip4_gateway.set(ethconfig->lan.gw_ip4.addr);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_HOSTNAME)) {
-        netdev_id == NETDEV_ETH_ID ? config_store().lan_hostname.set(ethconfig->hostname)
-                                   : config_store().wifi_hostname.set(ethconfig->hostname);
+        netdev_id == NETDEV_ETH_ID ? store.lan_hostname.set(ethconfig->hostname)
+                                   : store.wifi_hostname.set(ethconfig->hostname);
     }
 
     if (ap != NULL) {
@@ -177,40 +181,43 @@ void save_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_
         static_assert(WIFI_PSK_MAX == config_store_ns::wifi_max_passwd_len);
 
         if (ethconfig->var_mask & ETHVAR_MSK(APVAR_SSID)) {
-            config_store().wifi_ap_ssid.set(ap->ssid);
+            store.wifi_ap_ssid.set(ap->ssid);
         }
         if (ethconfig->var_mask & ETHVAR_MSK(APVAR_PASS)) {
-            config_store().wifi_ap_password.set(ap->pass);
+            store.wifi_ap_password.set(ap->pass);
         }
     }
 }
 
 void load_net_params(netif_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
     assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
+
+    auto &store = config_store();
+
     // Just the flags, without (possibly) the wifi security
     if (netdev_id == NETDEV_ETH_ID) {
-        ethconfig->lan.flag = config_store().lan_flag.get() & ~RESERVED_MASK;
-        ethconfig->lan.addr_ip4.addr = config_store().lan_ip4_addr.get();
-        ethconfig->dns1_ip4.addr = config_store().lan_ip4_dns1.get();
-        ethconfig->dns2_ip4.addr = config_store().lan_ip4_dns2.get();
-        ethconfig->lan.msk_ip4.addr = config_store().lan_ip4_mask.get();
-        ethconfig->lan.gw_ip4.addr = config_store().lan_ip4_gateway.get();
-        strlcpy(ethconfig->hostname, config_store().lan_hostname.get_c_str(), HOSTNAME_LEN + 1);
+        ethconfig->lan.flag = store.lan_flag.get() & ~RESERVED_MASK;
+        ethconfig->lan.addr_ip4.addr = store.lan_ip4_addr.get();
+        ethconfig->dns1_ip4.addr = store.lan_ip4_dns1.get();
+        ethconfig->dns2_ip4.addr = store.lan_ip4_dns2.get();
+        ethconfig->lan.msk_ip4.addr = store.lan_ip4_mask.get();
+        ethconfig->lan.gw_ip4.addr = store.lan_ip4_gateway.get();
+        strlcpy(ethconfig->hostname, store.lan_hostname.get_c_str(), HOSTNAME_LEN + 1);
     } else {
-        ethconfig->lan.flag = config_store().wifi_flag.get() & ~RESERVED_MASK;
-        ethconfig->lan.addr_ip4.addr = config_store().wifi_ip4_addr.get();
-        ethconfig->dns1_ip4.addr = config_store().wifi_ip4_dns1.get();
-        ethconfig->dns2_ip4.addr = config_store().wifi_ip4_dns2.get();
-        ethconfig->lan.msk_ip4.addr = config_store().wifi_ip4_mask.get();
-        ethconfig->lan.gw_ip4.addr = config_store().wifi_ip4_gateway.get();
-        strlcpy(ethconfig->hostname, config_store().wifi_hostname.get_c_str(), HOSTNAME_LEN + 1);
+        ethconfig->lan.flag = store.wifi_flag.get() & ~RESERVED_MASK;
+        ethconfig->lan.addr_ip4.addr = store.wifi_ip4_addr.get();
+        ethconfig->dns1_ip4.addr = store.wifi_ip4_dns1.get();
+        ethconfig->dns2_ip4.addr = store.wifi_ip4_dns2.get();
+        ethconfig->lan.msk_ip4.addr = store.wifi_ip4_mask.get();
+        ethconfig->lan.gw_ip4.addr = store.wifi_ip4_gateway.get();
+        strlcpy(ethconfig->hostname, store.wifi_hostname.get_c_str(), HOSTNAME_LEN + 1);
     }
 
     if (ap != NULL) {
         assert(netdev_id == NETDEV_ESP_ID);
 
-        strlcpy(ap->ssid, config_store().wifi_ap_ssid.get_c_str(), SSID_MAX_LEN + 1);
-        strlcpy(ap->pass, config_store().wifi_ap_password.get_c_str(), WIFI_PSK_MAX + 1);
+        strlcpy(ap->ssid, store.wifi_ap_ssid.get_c_str(), SSID_MAX_LEN + 1);
+        strlcpy(ap->pass, store.wifi_ap_password.get_c_str(), WIFI_PSK_MAX + 1);
     }
 }
 

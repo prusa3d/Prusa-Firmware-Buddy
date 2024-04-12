@@ -144,6 +144,7 @@ void MI_IS_RESTORE_DEFAULTS::click([[maybe_unused]] IWindowMenu &window_menu) {
     // Restore defaults in the config store
     {
         auto &store = config_store();
+        auto transaction = store.get_backend().transaction_guard();
         store.input_shaper_axis_x_config.set_to_default();
         store.input_shaper_axis_y_config.set_to_default();
         store.input_shaper_weight_adjust_y_config.set_to_default();

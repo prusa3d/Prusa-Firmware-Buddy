@@ -319,8 +319,13 @@ void Crash_s::enable(bool state) {
 void Crash_s::set_sensitivity(xy_long_t sens) {
     if (sensitivity != sens) {
         sensitivity = sens;
-        config_store().crash_sens_x.set(sensitivity.x);
-        config_store().crash_sens_y.set(sensitivity.y);
+
+        {
+            auto &store = config_store();
+            auto transaction = store.get_backend().transaction_guard();
+            store.crash_sens_x.set(sensitivity.x);
+            store.crash_sens_y.set(sensitivity.y);
+        }
         update_machine();
     }
 }
@@ -347,8 +352,13 @@ void Crash_s::send_reports() {
 void Crash_s::set_max_period(xy_long_t mp) {
     if (max_period != mp) {
         max_period = mp;
-        config_store().crash_max_period_x.set(max_period.x);
-        config_store().crash_max_period_y.set(max_period.y);
+
+        {
+            auto &store = config_store();
+            auto transaction = store.get_backend().transaction_guard();
+            store.crash_max_period_x.set(max_period.x);
+            store.crash_max_period_y.set(max_period.y);
+        }
         update_machine();
     }
 }

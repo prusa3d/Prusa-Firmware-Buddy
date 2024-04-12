@@ -168,69 +168,77 @@ void ScreenMenuMetricsSettings::windowEvent(EventLock /*has private ctor*/, [[ma
             refresh_current();
         }
     } else if (event == GUI_event_t::CHILD_CLICK) {
+        auto &store = config_store();
+
         // Menu item was clicked, offer clear or store
         if (param == reinterpret_cast<void *>(&Item<MI_METRICS_CONF_LABEL>())) {
             // Clear all
             if (MsgBoxQuestion(_(txt_clear_all_ask), Responses_YesNo) == Response::Yes) {
-                config_store().metrics_host.set("");
-                config_store().metrics_port.set(uint16_t(0));
-                config_store().syslog_port.set(uint16_t(0));
-                Item<MI_METRICS_CONF_HOST>().ChangeHost(config_store().metrics_host.get_c_str());
-                Item<MI_METRICS_CONF_PORT>().ChangePort(config_store().metrics_port.get());
-                Item<MI_METRICS_CONF_LOG_PORT>().ChangePort(config_store().syslog_port.get());
+                {
+                    auto transaction = store.get_backend().transaction_guard();
+                    store.metrics_host.set("");
+                    store.metrics_port.set(uint16_t(0));
+                    store.syslog_port.set(uint16_t(0));
+                }
+                Item<MI_METRICS_CONF_HOST>().ChangeHost(store.metrics_host.get_c_str());
+                Item<MI_METRICS_CONF_PORT>().ChangePort(store.metrics_port.get());
+                Item<MI_METRICS_CONF_LOG_PORT>().ChangePort(store.syslog_port.get());
             }
         } else if (param == reinterpret_cast<void *>(&Item<MI_METRICS_CONF_HOST>())) {
             // Clear host
             if (MsgBoxQuestion(_(txt_clear_ask), Responses_YesNo) == Response::Yes) {
-                config_store().metrics_host.set("");
-                Item<MI_METRICS_CONF_HOST>().ChangeHost(config_store().metrics_host.get_c_str());
+                store.metrics_host.set("");
+                Item<MI_METRICS_CONF_HOST>().ChangeHost(store.metrics_host.get_c_str());
             }
         } else if (param == reinterpret_cast<void *>(&Item<MI_METRICS_CONF_PORT>())) {
             // Clear metrics port
             if (MsgBoxQuestion(_(txt_clear_ask), Responses_YesNo) == Response::Yes) {
-                config_store().metrics_port.set(uint16_t(0));
-                Item<MI_METRICS_CONF_PORT>().ChangePort(config_store().metrics_port.get());
+                store.metrics_port.set(uint16_t(0));
+                Item<MI_METRICS_CONF_PORT>().ChangePort(store.metrics_port.get());
             }
         } else if (param == reinterpret_cast<void *>(&Item<MI_METRICS_CONF_LOG_PORT>())) {
             // Clear log port
             if (MsgBoxQuestion(_(txt_clear_ask), Responses_YesNo) == Response::Yes) {
-                config_store().syslog_port.set(uint16_t(0));
-                Item<MI_METRICS_CONF_LOG_PORT>().ChangePort(config_store().syslog_port.get());
+                store.syslog_port.set(uint16_t(0));
+                Item<MI_METRICS_CONF_LOG_PORT>().ChangePort(store.syslog_port.get());
             }
         } else if (param == reinterpret_cast<void *>(&Item<MI_METRICS_CURRENT_LABEL>())) {
             // Store all
             if (MsgBoxQuestion(_(txt_all_ask), Responses_YesNo) == Response::Yes) {
-                config_store().metrics_host.set(metric_handler_syslog_get_host());
-                config_store().metrics_port.set(metric_handler_syslog_get_port());
-                config_store().syslog_port.set(syslog_get_port());
-                Item<MI_METRICS_CONF_HOST>().ChangeHost(config_store().metrics_host.get_c_str());
-                Item<MI_METRICS_CONF_PORT>().ChangePort(config_store().metrics_port.get());
-                Item<MI_METRICS_CONF_LOG_PORT>().ChangePort(config_store().syslog_port.get());
+                {
+                    auto transaction = store.get_backend().transaction_guard();
+                    store.metrics_host.set(metric_handler_syslog_get_host());
+                    store.metrics_port.set(metric_handler_syslog_get_port());
+                    store.syslog_port.set(syslog_get_port());
+                }
+                Item<MI_METRICS_CONF_HOST>().ChangeHost(store.metrics_host.get_c_str());
+                Item<MI_METRICS_CONF_PORT>().ChangePort(store.metrics_port.get());
+                Item<MI_METRICS_CONF_LOG_PORT>().ChangePort(store.syslog_port.get());
             }
         } else if (param == reinterpret_cast<void *>(&Item<MI_METRICS_CURRENT_M_HOST>())) {
             // Store metrics host
             if (MsgBoxQuestion(_(txt_host_ask), Responses_YesNo) == Response::Yes) {
-                config_store().metrics_host.set(metric_handler_syslog_get_host());
-                Item<MI_METRICS_CONF_HOST>().ChangeHost(config_store().metrics_host.get_c_str());
+                store.metrics_host.set(metric_handler_syslog_get_host());
+                Item<MI_METRICS_CONF_HOST>().ChangeHost(store.metrics_host.get_c_str());
             }
         } else if (param == reinterpret_cast<void *>(&Item<MI_METRICS_CURRENT_M_PORT>())) {
             // Store metrics port
             if (MsgBoxQuestion(_(txt_m_port_ask), Responses_YesNo) == Response::Yes) {
-                config_store().metrics_port.set(metric_handler_syslog_get_port());
-                Item<MI_METRICS_CONF_PORT>().ChangePort(config_store().metrics_port.get());
+                store.metrics_port.set(metric_handler_syslog_get_port());
+                Item<MI_METRICS_CONF_PORT>().ChangePort(store.metrics_port.get());
             }
         } else if (param == reinterpret_cast<void *>(&Item<MI_METRICS_CURRENT_L_HOST>())) {
             // Store log host
             if (MsgBoxQuestion(_(txt_host_ask), Responses_YesNo) == Response::Yes) {
                 // Use log host to store as metrics host (we remember only one host)
-                config_store().metrics_host.set(syslog_get_host());
-                Item<MI_METRICS_CONF_HOST>().ChangeHost(config_store().metrics_host.get_c_str());
+                store.metrics_host.set(syslog_get_host());
+                Item<MI_METRICS_CONF_HOST>().ChangeHost(store.metrics_host.get_c_str());
             }
         } else if (param == reinterpret_cast<void *>(&Item<MI_METRICS_CURRENT_L_PORT>())) {
             // Store log port
             if (MsgBoxQuestion(_(txt_l_port_ask), Responses_YesNo) == Response::Yes) {
-                config_store().syslog_port.set(syslog_get_port());
-                Item<MI_METRICS_CONF_LOG_PORT>().ChangePort(config_store().syslog_port.get());
+                store.syslog_port.set(syslog_get_port());
+                Item<MI_METRICS_CONF_LOG_PORT>().ChangePort(store.syslog_port.get());
             }
         }
         check_disable(); // Check if allowed config changed and needs to be disabled

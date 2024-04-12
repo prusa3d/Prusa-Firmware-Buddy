@@ -41,25 +41,28 @@ void Odometer_s::force_to_eeprom() {
         return;
     }
 
+    auto &store = config_store();
+    auto transaction = store.get_backend().transaction_guard();
+
     for (size_t i = 0; i < axis_count; ++i) {
-        config_store().set_odometer_axis(i, get_axis(axis_t(i)));
+        store.set_odometer_axis(i, get_axis(axis_t(i)));
         trip_xyz[i] = 0;
     }
 
     for (size_t i = 0; i < HOTENDS; ++i) {
-        config_store().set_odometer_extruded_length(i, get_extruded(i));
+        store.set_odometer_extruded_length(i, get_extruded(i));
         extruded[i] = 0;
     }
 
     for (size_t i = 0; i < HOTENDS; ++i) {
-        config_store().set_odometer_toolpicks(i, get_toolpick(i));
+        store.set_odometer_toolpicks(i, get_toolpick(i));
         toolpick[i] = 0;
     }
 
-    config_store().odometer_time.set(get_time());
+    store.odometer_time.set(get_time());
     duration_time = 0;
 
-    config_store().mmu_changes.set(get_mmu_changes());
+    store.mmu_changes.set(get_mmu_changes());
     mmu_changes = 0;
 }
 

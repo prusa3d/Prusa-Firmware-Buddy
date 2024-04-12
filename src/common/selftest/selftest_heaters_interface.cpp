@@ -251,8 +251,12 @@ bool phase_hotend_specify(IPartHandler *&machine, const HotendSpecifyConfig &con
 
     retry_heater = machine->GetResult() != TestResult_Skipped;
 
-    config_store().hotend_type.set(hotend_result.hotend_type);
-    config_store().nozzle_type.set(hotend_result.nozzle_type);
+    {
+        auto &store = config_store();
+        auto transaction = store.get_backend().transaction_guard();
+        store.hotend_type.set(hotend_result.hotend_type);
+        store.nozzle_type.set(hotend_result.nozzle_type);
+    }
 
     delete machine;
     machine = nullptr;

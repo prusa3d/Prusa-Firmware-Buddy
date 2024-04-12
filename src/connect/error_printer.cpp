@@ -101,8 +101,10 @@ bool ErrorPrinter::is_idle() const {
 
 void ErrorPrinter::init_connect(const char *token) {
     // Used from the SET_TOKEN command, so we make it work even in error state.
-    config_store().connect_token.set(token);
-    config_store().connect_enabled.set(true);
+    auto &store = config_store();
+    auto transaction = store.get_backend().transaction_guard();
+    store.connect_token.set(token);
+    store.connect_enabled.set(true);
 }
 
 uint32_t ErrorPrinter::cancelable_fingerprint() const {

@@ -257,8 +257,10 @@ const char *MarlinPrinter::get_cancel_object_name(char *buffer, size_t size, siz
 #endif
 
 void MarlinPrinter::init_connect(const char *token) {
-    config_store().connect_token.set(token);
-    config_store().connect_enabled.set(true);
+    auto &store = config_store();
+    auto transaction = store.get_backend().transaction_guard();
+    store.connect_token.set(token);
+    store.connect_enabled.set(true);
 }
 
 bool MarlinPrinter::load_cfg_from_ini() {
@@ -270,10 +272,12 @@ bool MarlinPrinter::load_cfg_from_ini() {
             config.port = config.tls ? 443 : 80;
         }
 
-        config_store().connect_host.set(config.host);
-        config_store().connect_token.set(config.token);
-        config_store().connect_port.set(config.port);
-        config_store().connect_tls.set(config.tls);
+        auto &store = config_store();
+        auto transaction = store.get_backend().transaction_guard();
+        store.connect_host.set(config.host);
+        store.connect_token.set(config.token);
+        store.connect_port.set(config.port);
+        store.connect_tls.set(config.tls);
         // Note: enabled is controlled in the GUI
     }
     return ok;

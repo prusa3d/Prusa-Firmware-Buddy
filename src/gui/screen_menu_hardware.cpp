@@ -43,13 +43,16 @@ bool MI_MK4_MK39::is_mk4() {
  */
 void MI_MK4_MK39::OnChange([[maybe_unused]] size_t old_index) {
     if (MsgBoxWarning(_("Manual change of the printer type is recommended only for advanced users. To automatically select the printer type, run the Self-test."), { Response::Continue, Response::Abort, Response::_none, Response::_none }) == Response::Continue) {
-        config_store().xy_motors_400_step.set(!config_store().xy_motors_400_step.get());
+        auto &store = config_store();
+        auto transaction = store.get_backend().transaction_guard();
+
+        store.xy_motors_400_step.set(!store.xy_motors_400_step.get());
         PersistentStorage::erase();
 
-        config_store().homing_sens_x.set(config_store().homing_sens_x.default_val);
-        config_store().homing_sens_y.set(config_store().homing_sens_y.default_val);
-        config_store().homing_bump_divisor_x.set(config_store().homing_bump_divisor_x.default_val);
-        config_store().homing_bump_divisor_y.set(config_store().homing_bump_divisor_y.default_val);
+        store.homing_sens_x.set(store.homing_sens_x.default_val);
+        store.homing_sens_y.set(store.homing_sens_y.default_val);
+        store.homing_bump_divisor_x.set(store.homing_bump_divisor_x.default_val);
+        store.homing_bump_divisor_y.set(store.homing_bump_divisor_y.default_val);
 
         marlin_client::gcode("M914 X Y"); // Reset XY homing sensitivity
         marlin_client::gcode_printf("M906 X%u Y%u", get_rms_current_ma_x(), get_rms_current_ma_y()); // XY motor currents

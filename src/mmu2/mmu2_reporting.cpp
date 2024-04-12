@@ -150,13 +150,19 @@ void ScreenClear() {
 }
 
 void IncrementLoadFails() {
-    config_store().mmu2_load_fails.set(config_store().mmu2_load_fails.get() + 1);
-    config_store().mmu2_total_load_fails.set(config_store().mmu2_total_load_fails.get() + 1);
+    auto &store = config_store();
+    auto transaction = store.get_backend().transaction_guard();
+    store.mmu2_load_fails.set(store.mmu2_load_fails.get() + 1);
+    store.mmu2_total_load_fails.set(store.mmu2_total_load_fails.get() + 1);
 }
 
 void IncrementMMUFails() {
-    config_store().mmu2_fails.set(config_store().mmu2_fails.get() + 1);
-    config_store().mmu2_total_fails.set(config_store().mmu2_total_fails.get() + 1);
+    {
+        auto &store = config_store();
+        auto transaction = store.get_backend().transaction_guard();
+        store.mmu2_fails.set(store.mmu2_fails.get() + 1);
+        store.mmu2_total_fails.set(store.mmu2_total_fails.get() + 1);
+    }
     FailLeakyBucket::instance.add_failure();
 }
 

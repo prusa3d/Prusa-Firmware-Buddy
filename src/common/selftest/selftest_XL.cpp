@@ -437,9 +437,11 @@ void CSelftest::phaseDidSelftestPass() {
 
     // dont run wizard again
     if (SelftestResult_Passed_All(m_result)) {
-        config_store().run_selftest.set(false); // clear selftest flag
-        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
-        config_store().run_first_layer.set(false); // clear first layer flag
+        auto &store = config_store();
+        auto transaction = store.get_backend().transaction_guard();
+        store.run_selftest.set(false); // clear selftest flag
+        store.run_xyz_calib.set(false); // clear XYZ calib flag
+        store.run_first_layer.set(false); // clear first layer flag
     }
 }
 
