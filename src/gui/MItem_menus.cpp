@@ -657,7 +657,7 @@ void MI_OPEN_FACTORY_RESET::click(IWindowMenu & /*window_menu*/) {
 }
 
 MI_INPUT_SHAPER::MI_INPUT_SHAPER()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::no, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_INPUT_SHAPER::click(IWindowMenu & /*window_menu*/) {
