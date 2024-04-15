@@ -3,6 +3,7 @@
  */
 
 #include "marlin_print_preview.hpp"
+#include <M73_PE.h>
 #include "media.hpp"
 #include "client_fsm_types.h"
 #include "client_response.hpp"
@@ -411,7 +412,7 @@ PrintPreview::Result PrintPreview::Loop() {
         osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_INIT);
 
         // Reset print progress to 0. Need to be at this point because Connect is already starting to snitch the info.
-        marlin_server::enqueue_gcode_printf("M73 P0 R%" PRIu32 " Q0 S%" PRIu32, marlin_server::TIME_TO_END_INVALID, marlin_server::TIME_TO_END_INVALID);
+        oProgressData.mInit();
 
         ChangeState(State::loading);
         if (skip_if_able > marlin_server::PreviewSkipIfAble::no) {
