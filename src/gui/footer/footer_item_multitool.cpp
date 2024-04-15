@@ -25,9 +25,9 @@ string_view_utf8 FooterItemFinda::static_makeView(int value) {
     //@@TODO there is a strange comment in FooterItemFSensor::static_makeView about the last character not being rendered
     // Not sure why but using the same workaround.
     // Another funny thing is that the LED in FINDA shows the exact opposite - this needs to be discussed with Content ;)
-    static const char on[] = "ON "; // filament present
-    static const char off[] = "OFF "; // filament NOT present
-    return string_view_utf8::MakeCPUFLASH((const uint8_t *)(value ? on : off));
+    static const char on[] = N_("ON "); // filament present
+    static const char off[] = N_("OFF "); // filament NOT present
+    return _(value ? on : off);
 }
 
 FooterItemCurrentTool::FooterItemCurrentTool(window_t *parent)
