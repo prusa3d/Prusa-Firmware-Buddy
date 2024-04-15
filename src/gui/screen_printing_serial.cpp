@@ -77,6 +77,11 @@ void screen_printing_serial_data_t::pauseAction() {
 }
 
 void screen_printing_serial_data_t::stopAction() {
+    if (MsgBoxWarning(_("Are you sure to stop this printing?"), Responses_YesNo, 1)
+        != Response::Yes) {
+        return;
+    }
+
     // abort print, disable button and wait for screen to close from marlin server
     marlin_client::print_abort();
     DisableButton(BtnSocket::Right);
