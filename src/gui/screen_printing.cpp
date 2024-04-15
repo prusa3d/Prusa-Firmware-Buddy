@@ -480,44 +480,37 @@ void screen_printing_data_t::updateTimes() {
         last_update_time_s = now;
     }
 
+    bool value_available = true;
     auto time_to_end = marlin_vars()->time_to_end.get();
     auto time_to_change = marlin_vars()->time_to_pause.get();
+
     if ((currently_showing == CurrentlyShowing::end_time
             || currently_showing == CurrentlyShowing::remaining_time)
         && (time_to_end == marlin_server::TIME_TO_END_INVALID || time_to_end > 60 * 60 * 24 * 365)) {
-        // invalidate for states that show time_to_end in some form if the time is invalid
-        w_etime_value.SetText(_(txt_na));
-        w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
-        return;
+        value_available = false;
     }
 
     switch (currently_showing) {
+
     case CurrentlyShowing::end_time:
         w_etime_label.SetText(_(PrintTime::EN_STR_TIMESTAMP));
-
-        if (!PrintTime::print_end_time(time_to_end, w_etime_value_buffer)) {
-            w_etime_value.SetText(_(txt_na));
-            w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
-            return;
-        }
+        value_available &= PrintTime::print_end_time(time_to_end, w_etime_value_buffer);
         break;
+
     case CurrentlyShowing::remaining_time:
         w_etime_label.SetText(_(PrintTime::EN_STR_COUNTDOWN));
-
         PrintTime::print_formatted_duration(time_to_end, w_etime_value_buffer);
         break;
+
     case CurrentlyShowing::time_since_start:
         w_etime_label.SetText(_(EndResultBody::txt_printing_time));
-
         PrintTime::print_formatted_duration(marlin_vars()->print_duration.get(), w_etime_value_buffer, true);
         break;
+
     case CurrentlyShowing::time_to_change:
         w_etime_label.SetText(_("Next change in"));
-
         if (time_to_change == marlin_server::TIME_TO_END_INVALID) {
-            w_etime_value.SetText(_(txt_na));
-            w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
-            return;
+            value_available = false;
         } else {
             PrintTime::print_formatted_duration(time_to_change, w_etime_value_buffer);
         }
@@ -533,8 +526,13 @@ void screen_printing_data_t::updateTimes() {
         strlcat(w_etime_value_buffer.data(), "?", w_etime_value_buffer.size());
     }
 
-    w_etime_value.SetText(_(w_etime_value_buffer.data()));
-    w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
+    if (value_available) {
+        w_etime_value.SetText(_(w_etime_value_buffer.data()));
+        w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
+    } else {
+        w_etime_value.SetText(_(txt_na));
+        w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
+    }
     w_etime_value.Invalidate(); // just to make sure
 
 #endif // USE_ST7789
