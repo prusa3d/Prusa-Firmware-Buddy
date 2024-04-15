@@ -1326,7 +1326,8 @@ void nozzle_timeout_loop() {
     }
 }
 
-bool heatbreak_fan_check() {
+// Checking valid behaviour of Heatbreak fan & Print fan of currently active extruder/tool
+bool fan_checks() {
     if (marlin_vars()->fan_check_enabled
 #if HAS_TOOLCHANGER()
         && prusa_toolchanger.is_any_tool_active() // Nothing to check
@@ -1334,13 +1335,22 @@ bool heatbreak_fan_check() {
     ) {
         // Allow fan check only if fan had time to build up RPM (after CFanClt::rpm_stabilization)
         // CFanClt error states are checked in the end of each _server_print_loop()
-        auto hb_state = Fans::heat_break(active_extruder).getState();
-        if ((hb_state == CFanCtlCommon::FanState::running || hb_state == CFanCtlCommon::FanState::error_running || hb_state == CFanCtlCommon::FanState::error_starting) && !Fans::heat_break(active_extruder).getRPMIsOk()) {
-            log_error(MarlinServer, "HeatBreak FAN RPM is not OK - Actual: %d rpm, PWM: %d",
-                (int)Fans::heat_break(active_extruder).getActualRPM(),
-                Fans::heat_break(active_extruder).getPWM());
-            return true;
-        }
+        auto check_fan = [](CFanCtlCommon &fan, const char *fan_name) {
+            const auto fan_state = fan.getState();
+            if ((fan_state == CFanCtlCommon::FanState::running || fan_state == CFanCtlCommon::FanState::error_running || fan_state == CFanCtlCommon::FanState::error_starting) && !fan.getRPMIsOk()) {
+                log_error(MarlinServer, "%s FAN RPM is not OK - Actual: %d rpm, PWM: %d",
+                    fan_name,
+                    (int)fan.getActualRPM(),
+                    fan.getPWM());
+                return true;
+            }
+            return false;
+        };
+
+        bool fan_failed = false;
+        fan_failed |= check_fan(Fans::heat_break(active_extruder), "Heatbreak");
+        fan_failed |= check_fan(Fans::print(active_extruder), "Print");
+        return fan_failed;
     }
     return false;
 }
@@ -1355,7 +1365,7 @@ static void resuming_reheating() {
         server.print_state = State::Paused;
     }
 
-    if (heatbreak_fan_check()) {
+    if (fan_checks()) {
         server.print_state = State::Paused;
         return;
     }
@@ -1652,7 +1662,7 @@ static void _server_print_loop(void) {
         resuming_reheating();
         break;
     case State::Resuming_UnparkHead_XY:
-        if (heatbreak_fan_check()) {
+        if (fan_checks()) {
             abort_resuming = true;
         }
         if (planner.processing()) {
@@ -1662,7 +1672,7 @@ static void _server_print_loop(void) {
         server.print_state = State::Resuming_UnparkHead_ZE;
         break;
     case State::Resuming_UnparkHead_ZE:
-        if (heatbreak_fan_check()) {
+        if (fan_checks()) {
             abort_resuming = true;
         }
 
