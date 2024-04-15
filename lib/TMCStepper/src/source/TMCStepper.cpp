@@ -34,6 +34,10 @@ void TMCStepper::rms_current(uint16_t mA) {
   } else { // If CS >= 16, turn off high_sense_r
     vsense(false);
   }
+  
+  if (CS > 31)
+    CS = 31;
+
   irun(CS);
   ihold(CS*holdMultiplier);
   //val_mA = mA;
