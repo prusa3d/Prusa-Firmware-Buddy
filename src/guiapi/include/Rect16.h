@@ -186,6 +186,14 @@ public:
     /// @param[in] Height_t Height of new rectangle
     Rect16(Rect16 const &, Height_t);
 
+    static constexpr Rect16 fromLTWH(int16_t left, int16_t top, uint16_t width, uint16_t height) {
+        return Rect16(left, top, width, height);
+    }
+
+    static constexpr Rect16 fromLTRB(int16_t left, int16_t top, uint16_t right, uint16_t bottom) {
+        return Rect16(left, top, right - left, bottom - top);
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Calculate offset to be able to create same rectangle in given direction
     ///
