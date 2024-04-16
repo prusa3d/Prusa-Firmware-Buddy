@@ -1,8 +1,10 @@
 #pragma once
 
 #include "inc/MarlinConfig.h"
+#include <common/freertos_mutex.hpp>
 #include <array>
 #include <optional>
+#include <mutex>
 
 #if ENABLED(PRUSA_SPOOL_JOIN)
 
@@ -26,6 +28,8 @@ public:
 
     SpoolJoin() { reset(); }
 
+    SpoolJoin &operator=(const SpoolJoin &other);
+
     /// Reset spool join (remove all joins)
     void reset();
 
@@ -46,10 +50,16 @@ public:
     std::optional<uint8_t> get_spool_2(uint8_t spool_1) const;
 
     // return number of configured joins
-    inline uint8_t get_num_joins() const { return num_joins; }
+    inline uint8_t get_num_joins() const {
+        std::unique_lock lock(mutex);
+        return num_joins;
+    }
 
     /// Get join configuration with number
-    inline join_config_t get_join_nr(uint8_t join_nr) const { return joins[join_nr]; }
+    inline join_config_t get_join_nr(uint8_t join_nr) const {
+        std::unique_lock lock(mutex);
+        return joins[join_nr];
+    }
 
     /// Execute join
     bool do_join(uint8_t current_tool);
@@ -63,9 +73,13 @@ public:
     void deserialize(serialized_state_t &from);
 
 private:
+    bool remove_join_chain_containing_unlocked(uint8_t spool);
+    uint8_t get_first_spool_1_from_chain_unlocked(uint8_t spool_2) const;
+    std::optional<uint8_t> get_spool_2_unlocked(uint8_t spool_1) const;
     /// Removes join at idx from joins array and moves the last element into the idx position, so that new element can be inserted at the end again
     void remove_join_at(size_t idx);
 
+    mutable freertos::Mutex mutex;
     uint8_t num_joins; ///< Total number of joins
     std::array<join_config_t, EXTRUDERS - 1> joins; /// Configured joins, guaranteed that 0 ... num_joins - 1 are valid joins (but not any type of sort)
 };
