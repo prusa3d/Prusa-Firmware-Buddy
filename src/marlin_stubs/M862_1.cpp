@@ -8,6 +8,11 @@
 #include <config_store/store_instance.hpp>
 
 #ifdef PRINT_CHECKING_Q_CMDS
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M862.1: Check nozzle diameter
  *
@@ -38,4 +43,7 @@ void PrusaGcodeSuite::M862_1() {
         SERIAL_EOL();
     }
 }
+
+/** @}*/
+
 #endif

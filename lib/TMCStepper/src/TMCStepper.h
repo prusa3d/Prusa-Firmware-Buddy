@@ -65,7 +65,7 @@ class TMCStepper {
 		void rms_current(uint16_t mA);
 		void rms_current(uint16_t mA, float mult);
 		uint16_t rms_current();
-		void hold_multiplier(float val) { holdMultiplier = val; }
+		void hold_multiplier(float val) { rms_current(rms_current(), val); }
 		float hold_multiplier() { return holdMultiplier; }
 		uint8_t test_connection();
 
@@ -115,14 +115,19 @@ class TMCStepper {
 		int16_t cur_a();
 		int16_t cur_b();
 
-		struct CommunicationLockGuard {
-			CommunicationLockGuard() {
-				if (!tmc_serial_lock_acquire())
+		class CommunicationLockGuard {
+			bool lock;
+
+		public:
+			CommunicationLockGuard(bool lock=true)
+			: lock(lock) {
+				if (lock && !tmc_serial_lock_acquire())
 					abort();
 			}
 
 			~CommunicationLockGuard() {
-				tmc_serial_lock_release();
+				if (lock)
+					tmc_serial_lock_release();
 			}
 		};
 
@@ -233,7 +238,7 @@ class TMC2130Stepper : public TMCStepper {
 		uint32_t THIGH();
 		void THIGH(								uint32_t input);
 
-		// RW: XDRIRECT
+		// RW: XDIRECT
 		uint32_t XDIRECT();
 		void XDIRECT(							uint32_t input);
 		void coil_A(							int16_t 	B);

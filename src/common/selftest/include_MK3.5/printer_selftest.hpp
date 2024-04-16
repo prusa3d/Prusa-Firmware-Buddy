@@ -7,7 +7,6 @@
 #pragma once
 
 #include "i_selftest.hpp"
-#include "super.hpp"
 #include "selftest_part.hpp"
 #include "selftest_result_type.hpp"
 #include "config_features.h"
@@ -34,6 +33,7 @@ typedef enum {
     stsHeaters_bed_ena,
     stsHeaters,
     stsWait_heaters,
+    stsHotendSpecify,
     stsNet_status,
     stsSelftestStop,
     stsDidSelftestPass,
@@ -49,11 +49,11 @@ typedef enum {
     stsAborted,
 } SelftestState_t;
 
-consteval uint64_t to_one_hot(SelftestState_t state) {
-    return static_cast<uint64_t>(1) << state;
+consteval uint32_t to_one_hot(SelftestState_t state) {
+    return static_cast<uint32_t>(1) << state;
 }
 
-enum SelftestMask_t : uint64_t {
+enum SelftestMask_t : uint32_t {
     stmNone = 0,
     stmFans = to_one_hot(stsFans),
     stmWait_fans = to_one_hot(stsWait_fans),
@@ -65,7 +65,7 @@ enum SelftestMask_t : uint64_t {
     stmXYAxis = stmXAxis | stmYAxis,
     stmXYZAxis = stmXAxis | stmYAxis | stmZAxis,
     stmWait_axes = to_one_hot(stsWait_axes),
-    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena),
+    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena) | to_one_hot(stsHotendSpecify),
     stmHeaters_bed = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_bed_ena),
     stmHeaters = stmHeaters_bed | stmHeaters_noz,
     stmWait_heaters = to_one_hot(stsWait_heaters),
@@ -81,14 +81,14 @@ enum SelftestMask_t : uint64_t {
 };
 
 // class representing whole self-test
-class CSelftest : public AddSuper<ISelftest> {
+class CSelftest : public ISelftest {
 public:
     CSelftest();
 
 public:
     virtual bool IsInProgress() const override;
     virtual bool IsAborted() const override;
-    virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) override; // parent has no clue about SelftestMask_t
+    virtual bool Start(const uint64_t test_mask, const selftest::TestData test_data) override; // parent has no clue about SelftestMask_t
     virtual void Loop() override;
     virtual bool Abort() override;
 
@@ -101,6 +101,7 @@ protected:
     void phaseDidSelftestPass();
 
 protected:
+    uint8_t previous_sheet_index {};
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
     std::array<selftest::IPartHandler *, HOTENDS> pFans;
@@ -109,6 +110,7 @@ protected:
     selftest::IPartHandler *pZAxis;
     std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
     selftest::IPartHandler *pBed;
+    selftest::IPartHandler *pHotendSpecify;
     selftest::IPartHandler *pFirstLayer;
 
     SelftestResult m_result;

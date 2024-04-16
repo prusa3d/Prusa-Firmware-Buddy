@@ -10,6 +10,7 @@ add_executable(
 target_include_directories(
   language_eeprom_tests
   PUBLIC .
+         ${CMAKE_SOURCE_DIR}/src
          ${CMAKE_SOURCE_DIR}/src/lang
          ${CMAKE_SOURCE_DIR}/src/common
          ${CMAKE_SOURCE_DIR}/src/common/utils

@@ -3,11 +3,9 @@ target_include_directories(firmware PRIVATE .)
 target_sources(
   firmware
   PRIVATE DialogConnectReg.cpp
-          DialogFactory.cpp
           DialogHandler.cpp
           DialogLoadUnload.cpp
           DialogMoveZ.cpp
-          DialogStateful.cpp
           DialogTimed.cpp
           i_radio_button.cpp
           IDialog.cpp
@@ -18,8 +16,8 @@ target_sources(
           window_dlg_popup.cpp
           window_dlg_preheat.cpp
           window_dlg_quickpause.cpp
-          window_dlg_strong_warning.cpp
           window_dlg_wait.cpp
+          window_dlg_warning.cpp
   )
 
 if(BOARD STREQUAL "BUDDY")

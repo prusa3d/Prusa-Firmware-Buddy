@@ -7,8 +7,17 @@
 #include <version.h>
 
 #ifdef PRINT_CHECKING_Q_CMDS
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M862.4: Check firmware version
+ *
+ * ## Parameters
+ *
+ * - `Q` - Print out current firmware version
  */
 void PrusaGcodeSuite::M862_4() {
     // Handle only Q
@@ -23,4 +32,7 @@ void PrusaGcodeSuite::M862_4() {
         SERIAL_EOL();
     }
 }
+
+/** @}*/
+
 #endif

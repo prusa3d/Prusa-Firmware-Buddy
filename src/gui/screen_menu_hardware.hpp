@@ -23,10 +23,15 @@
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor.h>
 #include <option/has_modularbed.h>
+#include <option/has_loadcell.h>
 #if HAS_MODULARBED()
     #include "screen_menu_modularbed.hpp"
 #endif
+#if HAS_MMU2()
+    #include "MItem_mmu.hpp"
+#endif
 #include <screen_menu_hw_setup.hpp>
+#include <option/has_phase_stepping.h>
 
 class MI_MK4_MK39 : public WI_SWITCH_t<2> {
     static constexpr const char *const label = "Current Printer Type";
@@ -46,9 +51,12 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_RETURN,
     MI_NOZZLE_DIAMETER,
     MI_HARDWARE_G_CODE_CHECKS
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX
     ,
-    MI_NOZZLE_SOCK,
+    MI_HOTEND_SOCK_OR_TYPE
+#endif
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
+    ,
     MI_NOZZLE_TYPE
 #endif
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
@@ -71,6 +79,10 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_CRASH_FILTERING
     #endif
 #endif // ENABLED(CRASH_RECOVERY)
+#if HAS_PHASE_STEPPING()
+    ,
+    MI_PHASE_STEPPING
+#endif
     ,
     MI_FS_AUTOLOAD, MI_EXPERIMENTAL_SETTINGS, MI_XFLASH_RESET, MI_EEPROM
 #if HAS_LOADCELL()
@@ -99,6 +111,14 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #if PRINTER_IS_PRUSA_MK4
     ,
     MI_MK4_MK39
+#endif
+#if HAS_MMU2()
+    ,
+    MI_MMU_NEXTRUDER_REWORK
+    #if HAS_LOADCELL()
+    ,
+    MI_DONE_EXTRUDER_MAINTENANCE
+    #endif // HAS_LOADCELL()
 #endif
     >;
 

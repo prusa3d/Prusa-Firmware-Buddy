@@ -28,8 +28,8 @@ static Response preheatTempKnown(uint8_t target_extruder) {
 static Response preheatTempUnKnown(PreheatData preheat_data, bool break_on_autoload = false) {
     Response ret;
     FSM_HOLDER_WITH_DATA__LOGGING(Preheat, PhasesPreheat::UserTempSelection, preheat_data.serialize());
-    while ((ret = marlin_server::ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
-        if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().GetAutoload() == fsensor_t::NoFilament) {
+    while ((ret = marlin_server::get_response_from_phase(PhasesPreheat::UserTempSelection)) == Response::_none) {
+        if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().sensor_state(LogicalFilamentSensor::autoload) == FilamentSensorState::NoFilament) {
             return Response::Abort;
         }
         if (break_on_autoload && FSensors_instance().IsAutoloadInProgress()) {

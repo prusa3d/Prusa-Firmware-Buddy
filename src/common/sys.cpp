@@ -8,7 +8,6 @@
 #include "log.h"
 #include "disable_interrupts.h"
 #include "utility_extensions.hpp"
-#include <option/has_gui.h>
 #include <string.h>
 
 LOG_COMPONENT_REF(Buddy);
@@ -240,12 +239,6 @@ void sys_sscg_set_config(int freq, int depth) {
 
 int sys_sscg_get_config([[maybe_unused]] float *pfreq, [[maybe_unused]] float *pdepth) {
     return 0;
-}
-
-void sys_spi_set_prescaler(int prescaler_num) {
-#if (HAS_GUI())
-    spi_set_prescaler(&SPI_HANDLE_FOR(lcd), prescaler_num);
-#endif
 }
 
 int sys_fw_update_is_enabled(void) {

@@ -5,6 +5,6 @@ namespace MMU2 {
 
 static constexpr uint8_t mmuVersionMajor = 3;
 static constexpr uint8_t mmuVersionMinor = 0;
-static constexpr uint8_t mmuVersionPatch = 1;
+static constexpr uint8_t mmuVersionPatch = 3;
 
 } // namespace MMU2

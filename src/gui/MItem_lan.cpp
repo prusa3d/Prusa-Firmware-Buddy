@@ -4,6 +4,7 @@
  * @date 2021-10-31
  */
 
+#include <guiconfig/guiconfig.h>
 #include "MItem_lan.hpp"
 #include "wui_api.h"
 #include "netdev.h"
@@ -11,11 +12,11 @@
 #include "marlin_client.hpp"
 
 MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
-    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 MI_WIFI_INIT_t::MI_WIFI_INIT_t()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIFI_INIT_t::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -23,7 +24,7 @@ void MI_WIFI_INIT_t::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_WIFI_CREDENTIALS_t::MI_WIFI_CREDENTIALS_t()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIFI_CREDENTIALS_t::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -31,7 +32,7 @@ void MI_WIFI_CREDENTIALS_t::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_WIFI_CREDENTIALS_INI_FILE_t::MI_WIFI_CREDENTIALS_INI_FILE_t()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIFI_CREDENTIALS_INI_FILE_t::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -50,6 +51,16 @@ MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
 void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
     uint32_t param = EventMask::value + this->index;
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)param);
+}
+
+MI_HOSTNAME::MI_HOSTNAME()
+    : WiInfo<config_store_ns::lan_hostname_max_len + 1>(_(label), nullptr, is_enabled_t::yes,
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+        is_hidden_t::dev
+#elif defined(USE_ILI9488)
+        is_hidden_t::no
+#endif
+    ) {
 }
 
 MI_NET_IP_t::MI_NET_IP_t()

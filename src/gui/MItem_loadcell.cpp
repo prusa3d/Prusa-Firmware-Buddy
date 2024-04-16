@@ -13,7 +13,7 @@
 /*****************************************************************************/
 // MI_TEST_LOADCELL
 MI_TEST_LOADCELL::MI_TEST_LOADCELL()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_TEST_LOADCELL::click(IWindowMenu & /*window_menu*/) {

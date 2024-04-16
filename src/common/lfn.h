@@ -32,6 +32,17 @@ void get_LFN(char *lfn, size_t lfn_size, char *path);
  */
 void get_SFN_path(char *path);
 
+/**
+ * \brief Get SFN path copied to provided buffer.
+ *
+ * Same as get_SFN_path above, only difference is it is not in place, but rather
+ * copied to a new buffer.
+ *
+ * In case of failure (eg. file not found) we try to copy as much of the LFN as
+ * fits into the SFN, if it does not fit, it will be truncated, but still a valid string.
+ */
+void get_SFN_path_copy(const char *lfn, char *sfn_out, size_t size);
+
 #ifdef __cplusplus
 }
 #endif

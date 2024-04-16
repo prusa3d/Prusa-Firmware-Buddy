@@ -11,6 +11,18 @@
 
 #define NOTRAN(x) string_view_utf8::MakeCPUFLASH((const uint8_t *)x)
 
+#if PRINTER_IS_PRUSA_MK3_5
+/*****************************************************************************/
+// MI_ALT_FAN_CORRECTION
+bool MI_ALT_FAN::init_index() {
+    return config_store().has_alt_fans.get();
+}
+
+void MI_ALT_FAN::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().has_alt_fans.set(!config_store().has_alt_fans.get());
+}
+#endif
+
 /*****************************************************************************/
 // MI_Z_AXIS_LEN
 MI_Z_AXIS_LEN::MI_Z_AXIS_LEN()
@@ -23,7 +35,7 @@ void MI_Z_AXIS_LEN::Store() {
 /*****************************************************************************/
 // MI_RESET_Z_AXIS_LEN
 MI_RESET_Z_AXIS_LEN::MI_RESET_Z_AXIS_LEN()
-    : WI_LABEL_t(NOTRAN(label)) {}
+    : IWindowMenuItem(NOTRAN(label)) {}
 
 void MI_RESET_Z_AXIS_LEN::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_Z);
@@ -68,7 +80,7 @@ void MI_STEPS_PER_UNIT_E::Store() {
 /*****************************************************************************/
 // MI_RESET_STEPS_PER_UNIT
 MI_RESET_STEPS_PER_UNIT::MI_RESET_STEPS_PER_UNIT()
-    : WI_LABEL_t(NOTRAN(label)) {}
+    : IWindowMenuItem(NOTRAN(label)) {}
 
 void MI_RESET_STEPS_PER_UNIT::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_steps);
@@ -120,7 +132,7 @@ void MI_DIRECTION_E::Store() {
 /*****************************************************************************/
 // MI_RESET_DIRECTION
 MI_RESET_DIRECTION::MI_RESET_DIRECTION()
-    : WI_LABEL_t(NOTRAN(label)) {}
+    : IWindowMenuItem(NOTRAN(label)) {}
 
 void MI_RESET_DIRECTION::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_directions);
@@ -165,7 +177,7 @@ void MI_MICROSTEPS_E::Store() {
 /*****************************************************************************/
 // MI_RESET_MICROSTEPS
 MI_RESET_MICROSTEPS::MI_RESET_MICROSTEPS()
-    : WI_LABEL_t(NOTRAN(label)) {}
+    : IWindowMenuItem(NOTRAN(label)) {}
 
 void MI_RESET_MICROSTEPS::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_microsteps);
@@ -210,7 +222,7 @@ void MI_CURRENT_E::Store() {
 /*****************************************************************************/
 // MI_RESET_CURRENTS
 MI_RESET_CURRENTS::MI_RESET_CURRENTS()
-    : WI_LABEL_t(NOTRAN(label)) {}
+    : IWindowMenuItem(NOTRAN(label)) {}
 
 void MI_RESET_CURRENTS::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_currents);
@@ -219,7 +231,9 @@ void MI_RESET_CURRENTS::click([[maybe_unused]] IWindowMenu &window_menu) {
 /*****************************************************************************/
 // MI_SAVE_AND_RETURN
 MI_SAVE_AND_RETURN::MI_SAVE_AND_RETURN()
-    : WI_LABEL_t(NOTRAN(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(NOTRAN(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    has_return_behavior_ = true;
+}
 
 void MI_SAVE_AND_RETURN::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Return);

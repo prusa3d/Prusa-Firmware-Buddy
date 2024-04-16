@@ -2,59 +2,63 @@
 #include <transfers/transfer_file_check.hpp>
 
 void FileSort::Entry::Clear() {
-    isFile = false;
+    type = EntryType::INVALID;
     lfn[0] = 0;
     sfn[0] = 0;
     time = 0;
 }
 
-void FileSort::Entry::CopyFrom(const DirentWPath &dwp) {
-    strlcpy(sfn, dwp.d.d_name, sizeof(sfn));
-    strlcpy(lfn, dwp.d.lfn, sizeof(lfn));
+void FileSort::Entry::CopyFrom(const EntryRef &er) {
+    if (er.sfn) {
+        strlcpy(sfn, er.sfn, sizeof(sfn));
+    }
 
-    isFile = (dwp.d.d_type & DT_REG) != 0
+    if (er.lfn.s) {
+        strlcpy(lfn, er.lfn.s, sizeof(lfn));
+    }
 
-        || transfers::is_valid_transfer(dwp.full_path);
-    time = dwp.d.time;
+    type = er.type;
+    time = er.time;
 }
 
 void FileSort::Entry::SetDirUp() {
     lfn[0] = lfn[1] = sfn[0] = sfn[1] = '.';
     lfn[2] = sfn[2] = 0;
-    isFile = false;
+    type = EntryType::DIR;
     time = UINT_LEAST64_MAX;
 }
 
-FileSort::TimeComparator::TimeComparator(const Entry &e)
-    : is_dir(!e.isFile)
-    , time(e.time)
-    , lfn_name(e.lfn) {}
-FileSort::TimeComparator::TimeComparator(const DirentWPath &dwp)
-    : is_dir((dwp.d.d_type & DT_DIR) != 0 && !transfers::is_valid_transfer(dwp.full_path))
-    , time(dwp.d.time)
-    , lfn_name(dwp.d.lfn) {}
-
-FileSort::NameComparator::NameComparator(const Entry &e)
-    : is_file(e.isFile)
-    , lfn_name(e.lfn) {}
-FileSort::NameComparator::NameComparator(const DirentWPath &dwp)
-    : is_file((dwp.d.d_type & DT_REG) != 0 || transfers::is_valid_transfer(dwp.full_path))
-    , lfn_name(dwp.d.lfn) {}
-
-auto FileSort::MakeLastEntryByFName() -> Entry {
-    Entry e = { true, "", "", 0xffff };
-    std::fill(e.lfn, e.lfn + sizeof(e.lfn) - 1, 0xff);
-    e.lfn[sizeof(e.lfn) - 1] = 0;
-    return e;
+FileSort::EntryRef::EntryRef(const Entry &e)
+    : time(e.time)
+    , lfn(e.lfn)
+    , sfn(e.sfn)
+    , type(e.type) {
 }
+FileSort::EntryRef::EntryRef(const dirent &de, const char *sfnPath)
+    : time(de.time)
+    , lfn(de.lfn)
+    , sfn(de.d_name) {
 
-auto FileSort::MakeFirstEntryByTime() -> Entry {
-    Entry e = { false, "", "", UINT_LEAST64_MAX };
-    std::fill(e.lfn, e.lfn + sizeof(e.lfn) - 1, 0xff);
-    e.lfn[sizeof(e.lfn) - 1] = 0;
-    // since the sfn is not used for comparison anywhere in LazyDirView,
-    // its initialization may be skipped here to save some code
-    //        std::fill(e.sfn, e.sfn + sizeof(e.sfn) - 1, 0xff);
-    //        e.sfn[sizeof(e.sfn) - 1] = 0;
-    return e;
+    // Directory might be an actual directory or a running file transfer. we gotta check
+    if (de.d_type & DT_DIR) {
+        MutablePath path(sfnPath);
+        path.push(de.d_name);
+        const auto r = transfers::transfer_check(path);
+
+        if (r.is_valid()) {
+            type = EntryType::FILE;
+        } else if (r.is_transfer()) {
+            type = EntryType::INVALID;
+        } else {
+            type = EntryType::DIR;
+        }
+    }
+
+    else if (de.d_type & DT_REG) {
+        type = EntryType::FILE;
+    }
+
+    else {
+        type = EntryType::INVALID;
+    }
 }

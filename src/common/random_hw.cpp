@@ -3,10 +3,11 @@
 #include "random.h"
 
 #include <device/hal.h>
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 #include <option/developer_mode.h>
+#include <device/peripherals.h>
 
-static FreeRTOS_Mutex rand_strong_mutex;
+static freertos::Mutex rand_strong_mutex;
 
 RAND_DECL uint32_t rand_u() {
     // RNG could theoretically fail, check for it

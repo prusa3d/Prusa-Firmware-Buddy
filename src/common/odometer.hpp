@@ -27,6 +27,7 @@ private:
     std::atomic<float> extruded[HOTENDS] = {};
     std::atomic<uint32_t> toolpick[HOTENDS] = {};
     std::atomic<uint32_t> duration_time = 0;
+    std::atomic<uint32_t> mmu_changes = 0;
 
     Odometer_s() = default;
 
@@ -92,6 +93,16 @@ public:
      * @return sum of toolpicks of all tools [1]
      */
     uint32_t get_toolpick_all();
+
+    /**
+     * @brief Add one MMU filament change.
+     */
+    void add_mmu_change();
+
+    /**
+     * @brief Get count of MMU filament changes.
+     */
+    uint32_t get_mmu_changes();
 
     /**
      * @brief Save new print duration.

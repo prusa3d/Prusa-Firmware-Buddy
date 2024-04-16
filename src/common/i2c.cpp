@@ -3,9 +3,10 @@
 #include "bsod.h"
 #include "log.h"
 #include "cmsis_os.h"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include <type_traits>
-#include <Marlin/src/HAL/HAL_STM32_F4_F7/timers.h>
+#include <array>
+#include "HAL/HAL.h"
 
 #define MAX_RETRIES 20
 
@@ -103,61 +104,38 @@ namespace statistics {
     }
 } // namespace statistics
 
-// mutex handles
-static osMutexId i2c_mutex_1 = nullptr;
-static osMutexId i2c_mutex_2 = nullptr;
-static osMutexId i2c_mutex_3 = nullptr;
+namespace {
+    std::array<osStaticMutexDef_t, 3> i2c_mutexes;
+} // namespace
 
 static int get_i2c_no(I2C_HandleTypeDef &hi2c) {
-    uintptr_t offset = I2C2_BASE - I2C1_BASE;
-    uintptr_t current = reinterpret_cast<uintptr_t>(hi2c.Instance);
-    current -= I2C1_BASE;
-    return (current / offset) + 1; // +1 .. i2c numbered from 1 not from 0
+    if (&hi2c == &hi2c1) {
+        return 1;
+    } else if (&hi2c == &hi2c2) {
+        return 2;
+    } else if (&hi2c == &hi2c3) {
+        return 3;
+    } else {
+        return -1;
+    }
 }
 
-static_assert(std::is_same_v<void *, osMutexId>, "rewrite lock declaration");
+void ChannelMutex::static_init() {
+    for (auto &m : i2c_mutexes) {
+        if (!xSemaphoreCreateMutexStatic(&m)) {
+            fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_UNDEFINED); // TODO change to ERR_I2C_MUTEX_CREATE_FAILED
+        }
+    }
+}
 
 osMutexId ChannelMutex::get_handle(I2C_HandleTypeDef &hi2c) {
-    switch (get_i2c_no(hi2c)) {
-    case 1:
-        return i2c_mutex_1;
-    case 2:
-        return i2c_mutex_2;
-    case 3:
-        return i2c_mutex_3;
-    }
-    return nullptr;
-}
-
-void ChannelMutex::init_mutexes() {
-    if (i2c_mutex_1 == nullptr) {
-        osMutexDef(i2c_mutex_1);
-        i2c_mutex_1 = osMutexCreate(osMutex(i2c_mutex_1));
-        if (i2c_mutex_1 == nullptr) {
-            fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_UNDEFINED); // TODO change to ERR_I2C_MUTEX_CREATE_FAILED
-        }
-    }
-    if (i2c_mutex_2 == nullptr) {
-        osMutexDef(i2c_mutex_2);
-        i2c_mutex_2 = osMutexCreate(osMutex(i2c_mutex_2));
-        if (i2c_mutex_2 == nullptr) {
-            fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_UNDEFINED); // TODO change to ERR_I2C_MUTEX_CREATE_FAILED
-        }
-    }
-    if (i2c_mutex_3 == nullptr) {
-        osMutexDef(i2c_mutex_3);
-        i2c_mutex_3 = osMutexCreate(osMutex(i2c_mutex_3));
-        if (i2c_mutex_3 == nullptr) {
-            fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_UNDEFINED); // TODO change to ERR_I2C_MUTEX_CREATE_FAILED
-        }
-    }
+    const auto i = get_i2c_no(hi2c) - 1;
+    assert(i >= 0);
+    return reinterpret_cast<osMutexId>(&i2c_mutexes[i]);
 }
 
 ChannelMutex::ChannelMutex(I2C_HandleTypeDef &hi2c)
     : mutex_handle(get_handle(hi2c)) {
-
-    init_mutexes(); // this will be done only once
-
     // lock
     if (mutex_handle) {
         osMutexWait(mutex_handle, osWaitForever);

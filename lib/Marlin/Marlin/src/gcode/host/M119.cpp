@@ -23,6 +23,10 @@
 #include "../gcode.h"
 #include "../../module/endstops.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M119: Output endstop states to serial output
  */
@@ -31,3 +35,5 @@ void GcodeSuite::M119() {
   endstops.M119();
 
 }
+
+/** @}*/

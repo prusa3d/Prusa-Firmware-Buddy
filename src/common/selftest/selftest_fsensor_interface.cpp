@@ -17,7 +17,7 @@
 namespace selftest {
 static SelftestFSensor_t staticResult; // automatically initialized by PartHandler
 
-TestReturn phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pFSensor, const std::array<const FSensorConfig_t, HOTENDS> &configs) {
+TestReturn phaseFSensor(const ToolMask tool_mask, std::array<IPartHandler *, HOTENDS> &m_pFSensor, const std::array<const FSensorConfig_t, HOTENDS> &configs) {
     for (uint i = 0; i < HOTENDS; ++i) {
         if (!is_tool_selftest_enabled(i, tool_mask)) {
             continue;
@@ -33,9 +33,9 @@ TestReturn phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTE
                 &CSelftestPart_FSensor::stateCycleMark0,
                 &CSelftestPart_FSensor::state_ask_unload_init,
                 &CSelftestPart_FSensor::state_ask_unload_wait,
-                &CSelftestPart_FSensor::state_filament_unload_confirm_preinit,
                 &CSelftestPart_FSensor::state_filament_unload_enqueue_gcode,
                 &CSelftestPart_FSensor::state_filament_unload_wait_finished,
+                &CSelftestPart_FSensor::state_filament_unload_confirm_preinit,
                 &CSelftestPart_FSensor::state_ask_unload_confirm_wait,
                 &CSelftestPart_FSensor::state_calibrate_init,
                 &CSelftestPart_FSensor::state_calibrate,
@@ -72,7 +72,7 @@ TestReturn phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTE
             continue; // Test successful for this tool continue to next tool
         }
     }
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), staticResult.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), staticResult.Serialize());
 
     if (in_progress) {
         return true;

@@ -1,4 +1,5 @@
 #include "marlin_vars.hpp"
+#include <common/random.h>
 
 #include <cassert>
 

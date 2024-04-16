@@ -5,11 +5,13 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
+#include <option/has_config_store_wo_backend.h>
 
 namespace config_store_ns {
-
-static_assert(sizeof(CurrentStore) < (BANK_SIZE / 100) * 75, "EEPROM bank is almost full");
+#if not HAS_CONFIG_STORE_WO_BACKEND()
+static_assert((sizeof(CurrentStore) + (aggregate_arity<CurrentStore>::size() - 1) * sizeof(journal::Backend::ItemHeader)) < (BANK_SIZE / 100) * 75, "EEPROM bank is almost full");
 static_assert(journal::has_unique_items<config_store_ns::CurrentStore>(), "Just added items are causing collisions with reserved backend IDs");
+#endif
 
 footer::Item CurrentStore::get_footer_setting([[maybe_unused]] uint8_t index) {
     switch (index) {
@@ -725,7 +727,7 @@ void CurrentStore::set_odometer_toolpicks([[maybe_unused]] uint8_t index, uint32
     }
 #endif
 }
-
+#if HAS_SELFTEST()
 SelftestTool CurrentStore::get_selftest_result_tool(uint8_t index) {
     assert(index < config_store_ns::max_tool_count);
     return selftest_result.get().tools[index];
@@ -737,6 +739,7 @@ void CurrentStore::set_selftest_result_tool(uint8_t index, SelftestTool value) {
     tmp.tools[index] = value;
     selftest_result.set(tmp);
 }
+#endif
 
 Sheet CurrentStore::get_sheet(uint8_t index) {
     assert(index < config_store_ns::sheets_num);
@@ -837,4 +840,33 @@ void CurrentStore::set_input_shaper_config(const input_shaper::Config &config) {
     }
 }
 
+#if HAS_PHASE_STEPPING()
+bool CurrentStore::get_phase_stepping_enabled(AxisEnum axis) {
+    switch (axis) {
+    case AxisEnum::X_AXIS:
+        return phase_stepping_enabled_x.get();
+        break;
+    case AxisEnum::Y_AXIS:
+        return phase_stepping_enabled_y.get();
+        break;
+    default:
+        assert(false && "invalid index");
+        return {};
+    }
+}
+
+void CurrentStore::set_phase_stepping_enabled(AxisEnum axis, bool new_state) {
+    switch (axis) {
+    case AxisEnum::X_AXIS:
+        phase_stepping_enabled_x.set(new_state);
+        break;
+    case AxisEnum::Y_AXIS:
+        phase_stepping_enabled_y.set(new_state);
+        break;
+    default:
+        assert(false && "invalid index");
+        return;
+    }
+}
+#endif
 } // namespace config_store_ns

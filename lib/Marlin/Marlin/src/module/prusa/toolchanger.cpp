@@ -587,6 +587,12 @@ void PrusaToolChanger::move(const float x, const float y, const feedRate_t feedr
     line_to_current_position(feedrate);
 }
 
+const xy_float_t PrusaToolChanger::get_tool_dock_position(uint8_t tool_nr) {
+    const auto &dwarf = dwarfs[tool_nr];
+    const auto info = PrusaToolChangerUtils::get_tool_info(dwarf, true);
+    return xy_float_t { info.dock_x, SAFE_Y_WITH_TOOL };
+}
+
 bool PrusaToolChanger::park(Dwarf &dwarf) {
     auto dwarf_parked = [&dwarf]() {
         if (!dwarf.refresh_park_pick_status()) {
@@ -645,7 +651,11 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
     stepperY.stall_sensitivity(PARKING_STALL_SENSITIVITY);
 
     move(info.dock_x + PARK_X_OFFSET_2, info.dock_y, SLOW_MOVE_MM_S);
-    planner.settings.travel_acceleration = SLOW_ACCELERATION_MM_S2; // low acceleration
+    {
+        auto s = planner.user_settings;
+        s.travel_acceleration = SLOW_ACCELERATION_MM_S2;
+        planner.apply_settings(s);
+    }
     move(info.dock_x + PARK_X_OFFSET_3, info.dock_y, SLOW_MOVE_MM_S);
     planner.synchronize();
     conf_restorer.restore_acceleration(); // back to high acceleration
@@ -674,7 +684,7 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
         }
     }
 
-    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // extract tool
+    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // release tool
 
     // Wait until dwarf is registering as not picked
     if (!wait(dwarf_not_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
@@ -760,7 +770,13 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
 
     move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // go in front of the tool
     move(info.dock_x, info.dock_y + PICK_Y_OFFSET, feedrate_mm_s); // pre-insert fast the tool
-    planner.settings.travel_acceleration = SLOW_ACCELERATION_MM_S2; // low acceleration
+
+    {
+        auto s = planner.user_settings;
+        s.travel_acceleration = SLOW_ACCELERATION_MM_S2;
+        planner.apply_settings(s);
+    }
+
     move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // insert slowly the last mm to allow part fitting + soft touch between TCM and tool thanks to the gentle deceleration
     planner.synchronize();
 

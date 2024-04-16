@@ -5,6 +5,7 @@
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include "menu_vars.h"
+#include "sound.hpp"
 
 bool DialogMoveZ::DialogShown = false;
 
@@ -14,7 +15,7 @@ DialogMoveZ::DialogMoveZ()
     , lastQueuedPos(value)
     , axisText(this, text_rc, is_multiline::no, is_closed_on_click_t::no, _(axisLabel))
     , infoText(this, infoText_rc, is_multiline::yes, is_closed_on_click_t::no, _(infoTextContent))
-    , closeText(this, closeText_rc, is_multiline::no, is_closed_on_click_t::no, _(closeTextContent))
+    , closeText(this, closeText_rc, is_multiline::yes, is_closed_on_click_t::no, _(closeTextContent))
 #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
     , rightText(this, rightText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
@@ -23,7 +24,7 @@ DialogMoveZ::DialogMoveZ()
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
 #endif /*PRINTER_TYPE*/
     , arrows(this, text_rc.TopRight(), { 0, 6, 0, 6 })
-    , numb(this, numb_rc, value, "%d mm", GuiDefaults::FontBig)
+    , numb(this, numb_rc, value, "%d mm", font)
     , header(this, _(headerLabel))
     , icon(this, icon_rc, &img::turn_knob_81x55) {
     DialogShown = true;
@@ -68,6 +69,7 @@ DialogMoveZ::DialogMoveZ()
 
 void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
+
     case GUI_event_t::CLICK: {
         /// has set is_closed_on_click_t
         /// todo
@@ -79,6 +81,7 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
         }
         return;
     }
+
     case GUI_event_t::ENC_DN: {
         const int enc_change = int(param);
         change(-enc_change);
@@ -90,6 +93,7 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
 #endif /*PRINTER_TYPE*/
         return;
     }
+
     case GUI_event_t::ENC_UP: {
         const int enc_change = int(param);
         change(enc_change);
@@ -101,10 +105,18 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
 #endif /*PRINTER_TYPE*/
         return;
     }
+
     case GUI_event_t::LOOP: {
         jog_axis(lastQueuedPos, value, Z_AXIS);
         return;
     }
+
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        Screens::Access()->Close();
+        return;
+
     default:
         return;
     }
@@ -118,15 +130,13 @@ void DialogMoveZ::change(int diff) {
 
 DialogMoveZ::~DialogMoveZ() {
     DialogShown = false;
-    char msg[20];
-    snprintf(msg, sizeof(msg), "M204 T%f", (double)prev_accel);
-    marlin_client::gcode(msg);
+    marlin_client::gcode_printf("M204 T%f", (double)prev_accel);
 }
 void DialogMoveZ::Show() {
     // checking nesting to not open over some other blocking dialog
     // when blocking dialog is open, the nesting is larger than one
     if (!DialogShown && gui_get_nesting() <= 1) {
         DialogMoveZ moveZ;
-        moveZ.MakeBlocking();
+        Screens::Access()->gui_loop_until_dialog_closed();
     }
 }

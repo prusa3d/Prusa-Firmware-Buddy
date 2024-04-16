@@ -29,6 +29,7 @@ namespace internal {
 #endif
 
         ,
+        MI_INFO_MCU_TEMP,
         MI_INFO_BED_TEMP,
         MI_INFO_NOZZLE_N_TEMP<0>,
         MI_INFO_NOZZLE_N_TEMP<1>,
@@ -36,6 +37,8 @@ namespace internal {
         MI_INFO_NOZZLE_N_TEMP<3>,
         MI_INFO_NOZZLE_N_TEMP<4>,
         MI_INFO_DWARF_BOARD_TEMPERATURE,
+        MI_INFO_DWARF_MCU_TEMPERATURE,
+        MI_INFO_MODULAR_BED_MCU_TEMPERATURE,
         MI_INFO_LOADCELL,
         MI_INFO_PRINTER_FILL_SENSOR,
         MI_FS_REF<0, false>,

@@ -3,12 +3,14 @@
  * @brief state machine for print preview
  */
 #pragma once
-#include "gcode_info.hpp"
 #include "client_response.hpp"
 #include <module/prusa/tool_mapper.hpp>
 #include <module/prusa/spool_join.hpp>
 #include <marlin_events.h>
 #include <bitset>
+#include "gcode_info.hpp"
+#include <option/has_mmu2.h>
+#include <option/has_toolchanger.h>
 
 /**
  * @brief Parent class handling changes of state
@@ -34,10 +36,14 @@ public:
         filament_not_inserted_wait_user,
         filament_not_inserted_load,
 
+#if HAS_MMU2()
         mmu_filament_inserted_wait_user,
         mmu_filament_inserted_unload,
+#endif
 
+#if HAS_MMU2() || HAS_TOOLCHANGER()
         tools_mapping_wait_user,
+#endif
 
         wrong_filament_wait_user,
         wrong_filament_change,
@@ -76,7 +82,9 @@ public:
         Image,
         // Asking the user something (wrong printer, etc).
         Questions,
+#if HAS_TOOLCHANGER() || HAS_MMU2()
         ToolsMapping,
+#endif
         MarkStarted,
         Abort,
         Print,

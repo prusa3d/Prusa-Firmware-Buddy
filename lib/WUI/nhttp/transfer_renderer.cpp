@@ -55,7 +55,7 @@ JsonResult TransferRenderer::renderStateV1(size_t resume_point, json::JsonOutput
         JSON_OBJ_START
             JSON_FIELD_STR_FORMAT_G(transfer_status.has_value(), "type", "%s", to_str(transfer_status->type)) JSON_COMMA;
             JSON_FIELD_STR_FORMAT_G(transfer_status.has_value(), "display_name", "%s", lfn) JSON_COMMA;
-            JSON_FIELD_STR_437_G(transfer_status.has_value(), "path", filepath) JSON_COMMA;
+            JSON_FIELD_STR_G(transfer_status.has_value(), "path", filepath) JSON_COMMA;
             JSON_FIELD_STR_FORMAT_G(transfer_status.has_value(), "size", "%d", transfer_status->expected) JSON_COMMA;
             JSON_FIELD_FFIXED_G(transfer_status.has_value(), "progress", transfer_status->progress_estimate(), 2) JSON_COMMA;
             JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->download_progress.get_valid_size()) JSON_COMMA;

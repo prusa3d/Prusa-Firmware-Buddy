@@ -15,64 +15,53 @@
 // Max Tau ~= 20*10^-12 * 50*10^3 = 1*10^-6 s ... about 1us
 
 #include "filament_sensor_photoelectric.hpp"
-#include "fsensor_pins.hpp"
 #include "rtos_api.hpp"
 
-void FSensorPhotoElectric::cycle0() {
-    if (FSensorPins::Get()) {
-        FSensorPins::pullDown();
-        measure_cycle = Cycle::no1; // next cycle shall be 1
-    } else {
-        set_state(fsensor_t::NoFilament); // it is filtered, 2 requests are needed to change state
-        measure_cycle = Cycle::no0; // remain in cycle 0
-    }
-}
-
-void FSensorPhotoElectric::cycle1() {
-    // pulldown was set in cycle 0
-    set_state(FSensorPins::Get() ? fsensor_t::HasFilament : fsensor_t::NotConnected);
-    FSensorPins::pullUp();
-    measure_cycle = Cycle::no0; // next cycle shall be 0
-}
+#include <device/board.h>
 
 void FSensorPhotoElectric::cycle() {
-    switch (measure_cycle) {
-    case Cycle::no0:
-        cycle0();
-        return;
-    case Cycle::no1:
-        cycle1();
-        return;
+    // There are two printers that are using the FINDA - MK3.5 & MINI
+    // MK3.5's sensor apparently has the logic inverted compared to MINI
+    const bool pin_readout = buddy::hw::fSensor.read() == (BOARD_IS_XBUDDY ? buddy::hw::Pin::State::low : buddy::hw::Pin::State::high);
+
+    switch (measure_phase) {
+
+        // Phase 0 - with pullUp
+    case MeasurePhase::p0:
+        if (pin_readout) {
+            buddy::hw::fSensor.pullDown();
+            measure_phase = MeasurePhase::p1;
+        } else {
+            set_state(FilamentSensorState::NoFilament); // it is filtered, 2 requests are needed to change state
+            // remain in phase 0
+        }
+        break;
+
+        // Phase 1 - with pullDown
+    case MeasurePhase::p1:
+        set_state(pin_readout ? FilamentSensorState::HasFilament : FilamentSensorState::NotConnected);
+        buddy::hw::fSensor.pullUp();
+        measure_phase = MeasurePhase::p0;
+        break;
     }
 }
 
-void FSensorPhotoElectric::enable() {
-    FSensorPins::pullUp();
-    state = fsensor_t::NotInitialized;
-    last_state = fsensor_t::NotInitialized;
-    measure_cycle = Cycle::no0;
+void FSensorPhotoElectric::force_set_enabled(bool set) {
+    IFSensor::force_set_enabled(set);
+
+    if (set) {
+        buddy::hw::fSensor.pullUp();
+    }
+
+    last_set_state_target = state;
+    measure_phase = MeasurePhase::p0;
 }
 
-void FSensorPhotoElectric::disable() {
-    state = fsensor_t::Disabled;
-    last_state = fsensor_t::Disabled;
-    measure_cycle = Cycle::no0;
-}
-
-// not recorded
-void FSensorPhotoElectric::record_state() {
-}
-
-// simple filter
+// simple filter - the same value needs to be written twice to take effect
 // without filter fs_meas_cycle1 could set FS_NO_SENSOR (in case filament just runout)
-void FSensorPhotoElectric::set_state(fsensor_t st) {
-    CriticalSection C;
-    if (last_state == st) {
-        state = st;
+void FSensorPhotoElectric::set_state(FilamentSensorState set) {
+    if (last_set_state_target == set) {
+        state = set;
     }
-    last_state = st;
-}
-
-FSensorPhotoElectric::FSensorPhotoElectric() {
-    init();
+    last_set_state_target = set;
 }

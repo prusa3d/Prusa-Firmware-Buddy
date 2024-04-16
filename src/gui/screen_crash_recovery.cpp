@@ -9,7 +9,9 @@
 
 #include "config_features.h"
 #include "img_resources.hpp"
+#include <guiconfig/guiconfig.h>
 #include <option/has_side_leds.h>
+#include <find_error.hpp>
 #if HAS_SIDE_LEDS()
     #include <leds/side_strip_control.hpp>
 #endif
@@ -18,7 +20,7 @@
 
     #include "screen_crash_recovery.hpp"
     #include "i18n.h"
-    #include "wizard_config.hpp"
+    #include <guiconfig/wizard_config.hpp>
     #include "crash_recovery_type.hpp"
     #include "marlin_client.hpp" // marlin_client::FSM_response
     #include "sound.hpp"
@@ -91,7 +93,7 @@ static constexpr const char *en_text_home_axes = N_("Homing");
 static constexpr const char *en_text_X_axis = N_("X-axis");
 static constexpr const char *en_text_Y_axis = N_("Y-axis");
 
-static constexpr const char *en_text_long_short = N_("Length of an axis is too short.\nThere's an obstacle or bearing issue.\nRetry check, pause or resume the print?");
+static constexpr const char *en_text_long_short = find_error(ErrCode::CONNECT_CRASH_RECOVERY_AXIS_SHORT).err_text;
 /**
  * There is no known way how this might happen on MINI printer to ordinary user.
  * If the motor is electrically disconnected, axis is too short.
@@ -99,12 +101,14 @@ static constexpr const char *en_text_long_short = N_("Length of an axis is too s
  * as there is homing attempt before showing the screen which fails after 45 tries,
  * printer resets with homing failed red screen.
  */
-static constexpr const char *en_text_long_long = N_("Length of an axis is too long.\nMotor current is too low, probably.\nRetry check, pause or resume the print?");
-static constexpr const char *en_text_long_repeat = N_("Repeated collision has been detected.\nDo you want to resume or pause the print?");
+static constexpr const char *en_text_long_long = find_error(ErrCode::CONNECT_CRASH_RECOVERY_AXIS_LONG).err_text;
+static constexpr const char *en_text_long_repeat = find_error(ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH).err_text;
 static constexpr const char *en_text_repeat_info = N_("Try checking belt tension or decreasing\nsensitivity in the tune menu.");
+    #if HAS_TOOLCHANGER()
 static constexpr const char *en_text_repeat_info_tool = N_("Try checking belt tension, decreasing sensitivity\nin the tune menu or recalibrating dock position.");
-static constexpr const char *en_text_long_tool = N_("Toolchanger problem has been detected.\nPark all tools to docks\nand leave the carriage free.");
-static constexpr const char *en_text_long_homefail = N_("Unable to home the printer.\nDo you want to try again?");
+static constexpr const char *en_text_long_tool = find_error(ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP).err_text;
+    #endif
+static constexpr const char *en_text_long_homefail = find_error(ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL).err_text;
 static constexpr const char *en_text_homefail_info = N_("Try checking belt tension\nor debris on the axes.");
 static constexpr const char *en_text_tool_careful = N_("!! Careful, tools are hot !!");
 
@@ -113,12 +117,13 @@ WinsCheckAxis::WinsCheckAxis(ScreenCrashRecovery &screen)
     , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &img::nozzle_crash_101x64)
     , icon_nozzle(&screen, icon_nozzle_rc, &img::nozzle_shape_48x48)
     , text_checking_axis(&screen, text_checking_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_axis_test))
-    , line(&screen, line_rc, line_h, COLOR_ORANGE, COLOR_ORANGE)
+    , line(&screen, line_rc)
     , text_x_axis(&screen, text_x_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_X_axis))
     , icon_x_axis(&screen, { col_2, row_4 })
     , text_y_axis(&screen, text_y_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_Y_axis))
     , icon_y_axis(&screen, { col_2, row_5 }) {
 
+    line.SetBackColor(COLOR_ORANGE);
     text_long.SetAlignment(Align_t::Center());
     icon_x_axis.SetState(SelftestSubtestState_t::running);
     Sound_Play(eSOUND_TYPE::SingleBeep);
@@ -131,10 +136,11 @@ WinsHome::WinsHome(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_check))
     , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &img::nozzle_crash_101x64)
     , icon_nozzle(&screen, icon_nozzle_rc, &img::nozzle_shape_48x48)
-    , line(&screen, line_rc, line_h, COLOR_ORANGE, COLOR_ORANGE)
+    , line(&screen, line_rc)
     , text_home_axes(&screen, text_x_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_home_axes))
     , icon_home_axes(&screen, { col_2, row_4 }) {
 
+    line.SetBackColor(COLOR_ORANGE);
     text_long.SetAlignment(Align_t::Center());
     icon_home_axes.SetState(SelftestSubtestState_t::running);
     Sound_Play(eSOUND_TYPE::SingleBeep);
@@ -145,13 +151,14 @@ WinsHome::WinsHome(ScreenCrashRecovery &screen)
 
 WinsAxisNok::WinsAxisNok(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_nok_rc, is_multiline::yes, is_closed_on_click_t::no, string_view_utf8::MakeNULLSTR())
-    , line(&screen, line_nok_rc, line_h, COLOR_ORANGE, COLOR_ORANGE)
+    , line(&screen, line_nok_rc)
     , text_x_axis(&screen, text_x_axis_nok_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_X_axis))
     , icon_x_axis(&screen, { col_2, row_4 + row_nok_shift })
     , text_y_axis(&screen, text_y_axis_nok_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_Y_axis))
     , icon_y_axis(&screen, { col_2, row_5 + row_nok_shift })
     , radio(&screen, GuiDefaults::GetButtonRect_AvoidFooter(screen.GetRect()), ClientResponses::GetResponses(PhasesCrashRecovery::axis_NOK), &texts) {
 
+    line.SetBackColor(COLOR_ORANGE);
     text_long.SetAlignment(Align_t::Center());
     Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
@@ -174,7 +181,7 @@ WinsRepeatedCrash::WinsRepeatedCrash(ScreenCrashRecovery &screen)
 
     text_long.SetAlignment(Align_t::Center());
     text_info.SetAlignment(Align_t::Center());
-    text_info.set_font(resource_font(IDR_FNT_SMALL));
+    text_info.set_font(Font::small);
     Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
@@ -190,7 +197,7 @@ WinsHomeFail::WinsHomeFail(ScreenCrashRecovery &screen)
 
     text_long.SetAlignment(Align_t::Center());
     text_info.SetAlignment(Align_t::Center());
-    text_info.set_font(resource_font(IDR_FNT_SMALL));
+    text_info.set_font(Font::small);
     Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
@@ -241,7 +248,7 @@ WinsToolRecovery::WinsToolRecovery(ScreenCrashRecovery &screen)
 
 WinUnion::WinUnion(ScreenCrashRecovery &screen)
     : parent_screen(screen) {
-    New(PhasesCrashRecovery::_first);
+    New(PhasesCrashRecovery::check_X);
 }
 
 WinUnion::screen_type WinUnion::ScreenType(PhasesCrashRecovery ph) {
@@ -259,8 +266,8 @@ WinUnion::screen_type WinUnion::ScreenType(PhasesCrashRecovery ph) {
     case PhasesCrashRecovery::check_X:
     case PhasesCrashRecovery::check_Y:
         return WinUnion::CheckAxis;
-    case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()
+    case PhasesCrashRecovery::tool_recovery:
         return WinUnion::ToolRecovery;
     #else /*HAS_TOOLCHANGER()*/
         bsod("Tool recovery window without toolchanger");
@@ -303,8 +310,8 @@ void WinUnion::Destroy() {
     case PhasesCrashRecovery::home_fail:
         homeFail->~WinsHomeFail();
         return;
-    case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()
+    case PhasesCrashRecovery::tool_recovery:
         toolRecovery->~WinsToolRecovery();
     #else /*HAS_TOOLCHANGER()*/
         bsod("Tool recovery window without toolchanger");
@@ -339,8 +346,8 @@ void WinUnion::New(PhasesCrashRecovery ph) {
     case PhasesCrashRecovery::home_fail:
         homeFail = new (&mem_space) WinsHomeFail(parent_screen);
         return;
-    case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()
+    case PhasesCrashRecovery::tool_recovery:
         toolRecovery = new (&mem_space) WinsToolRecovery(parent_screen);
     #else /*HAS_TOOLCHANGER()*/
         bsod("Tool recovery window without toolchanger");
@@ -394,8 +401,8 @@ bool ScreenCrashRecovery::Change(fsm::BaseData data) {
         break;
     case PhasesCrashRecovery::home_fail:
         break;
-    case PhasesCrashRecovery::tool_recovery: {
     #if HAS_TOOLCHANGER()
+    case PhasesCrashRecovery::tool_recovery: {
         Crash_recovery_tool_fsm state(data.GetData());
         for (int i = 0; i < buddy::puppies::DWARF_MAX_COUNT; i++) {
             if (state.enabled & (0x01 << i)) { // This tool exists
@@ -414,11 +421,9 @@ bool ScreenCrashRecovery::Change(fsm::BaseData data) {
         } else {
             win_union.toolRecovery->radio.Hide(); // Disable button until all are parked
         }
-    #else /*HAS_TOOLCHANGER()*/
-        bsod("Tool recovery window without toolchanger");
-    #endif /*HAS_TOOLCHANGER()*/
         break;
     }
+    #endif /*HAS_TOOLCHANGER()*/
     }
 
     return true;
@@ -451,8 +456,8 @@ void WinUnion::ButtonEvent(GUI_event_t event) {
     case PhasesCrashRecovery::home_fail:
         radio = &homeFail->radio;
         break;
-    case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()
+    case PhasesCrashRecovery::tool_recovery:
         radio = &toolRecovery->radio;
     #else /*HAS_TOOLCHANGER()*/
         bsod("Tool recovery window without toolchanger");

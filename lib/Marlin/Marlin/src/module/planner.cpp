@@ -127,7 +127,62 @@ bool Planner::draining_buffer;
 // A flag to indicate that that buffer is being emptied intentionally
 bool Planner::emptying_buffer;
 
-planner_settings_t Planner::settings;           // Initialized by settings.load()
+planner_settings_t Planner::working_settings_;
+user_planner_settings_t Planner::user_settings_;
+
+const planner_settings_t &Planner::settings = working_settings_;
+const user_planner_settings_t &Planner::user_settings = user_settings_;
+
+bool Planner::stealth_mode_ = false;
+
+void Planner::apply_settings(const user_planner_settings_t &settings) {
+  static constexpr planner_settings_t standard_limits = {
+    .max_acceleration_mm_per_s2 = HWLIMIT_NORMAL_MAX_ACCELERATION,
+    .max_feedrate_mm_s = HWLIMIT_NORMAL_MAX_FEEDRATE,
+    .acceleration = HWLIMIT_NORMAL_ACCELERATION,
+    .retract_acceleration = HWLIMIT_NORMAL_RETRACT_ACCELERATION,
+    .travel_acceleration = HWLIMIT_NORMAL_TRAVEL_ACCELERATION,
+  };
+  static constexpr planner_settings_t stealth_limits = {
+    .max_acceleration_mm_per_s2 = HWLIMIT_STEALTH_MAX_ACCELERATION,
+    .max_feedrate_mm_s = HWLIMIT_STEALTH_MAX_FEEDRATE,
+    .acceleration = HWLIMIT_STEALTH_ACCELERATION,
+    .retract_acceleration = HWLIMIT_STEALTH_RETRACT_ACCELERATION,
+    .travel_acceleration = HWLIMIT_STEALTH_TRAVEL_ACCELERATION,
+  };
+  const auto &limits = stealth_mode_ ? stealth_limits : standard_limits;
+
+  user_settings_ = settings;
+  working_settings_ = settings;
+
+  const auto apply_limit = [&]<typename T>(T planner_settings_t::*member) {
+    auto &value = working_settings_.*member;
+    const auto &limit = limits.*member;
+
+    if constexpr(std::is_array_v<T>) {
+      for(size_t i = 0; i <std::size(value); i++) {
+        value[i] = std::min(value[i], limit[i]);
+      }
+    } else {
+      value = std::min(value, limit);
+    }
+  };
+
+  apply_limit(&planner_settings_t::max_feedrate_mm_s);
+  apply_limit(&planner_settings_t::max_acceleration_mm_per_s2);
+  apply_limit(&planner_settings_t::acceleration);
+  apply_limit(&planner_settings_t::retract_acceleration);
+  apply_limit(&planner_settings_t::travel_acceleration);
+
+  refresh_acceleration_rates();
+}
+
+void Planner::set_stealth_mode(bool set) {
+  if(stealth_mode_ != set) {
+    stealth_mode_ = set;
+    apply_settings(user_settings);
+  }
+}
 
 uint32_t Planner::max_acceleration_msteps_per_s2[XYZE_N]; // (mini-steps/s^2) Derived from mm_per_s2
 
@@ -137,13 +192,6 @@ float Planner::mm_per_mstep[XYZE_N];          // (mm) Millimeters per mini-step
 
 #if DISABLED(CLASSIC_JERK)
   float Planner::junction_deviation_mm;       // (mm) M205 J
-#endif
-#if HAS_CLASSIC_JERK
-  #if HAS_LINEAR_E_JERK
-    xyz_pos_t Planner::max_jerk;              // (mm/s^2) M205 XYZ - The largest speed change requiring no acceleration.
-  #else
-    xyze_pos_t Planner::max_jerk;             // (mm/s^2) M205 XYZE - The largest speed change requiring no acceleration.
-  #endif
 #endif
 
 #if ENABLED(DISTINCT_E_FACTORS)
@@ -982,6 +1030,15 @@ void Planner::quick_stop() {
   delay_before_delivering = BLOCK_DELAY_FOR_1ST_MOVE;
 }
 
+void Planner::resume_queuing() {
+  if (PreciseStepping::stopping()) {
+    // If stop_pending hasn't been processed yet, do so now before new moves are processed
+    PreciseStepping::loop();
+    assert(!PreciseStepping::stopping());
+  }
+  draining_buffer = false;
+}
+
 // Called from ISR
 void Planner::endstop_triggered(const AxisEnum axis) {
   #if ENABLED(CRASH_RECOVERY)
@@ -1136,13 +1193,6 @@ void Planner::synchronize() {
   bool emptying_buffer_orig = emptying();
   emptying_buffer = true;
   while (busy()) idle(true);
-
-  // Perform at least one call of PreciseStepping::loop() to ensure that all queues will
-  // be reset when stop_pending is set. Because otherwise, it could happen that due to
-  // wrong timing, another G-code could be processed before all queues are reset.
-  if (PreciseStepping::stopping())
-    PreciseStepping::loop();
-
   emptying_buffer = emptying_buffer_orig;
 }
 
@@ -1850,7 +1900,7 @@ bool Planner::_populate_block(block_t * const block,
     #endif
     {
       const float jerk = ABS(current_speed[i]),   // cs : Starting from zero, change in speed for this axis
-                  maxj = max_jerk[i];             // mj : The max jerk setting for this axis
+                  maxj = settings.max_jerk[i];             // mj : The max jerk setting for this axis
       if (jerk > maxj) {                          // cs > mj : New current speed too fast?
         if (limited) {                            // limited already?
           const float mjerk = block->nominal_speed * maxj; // ns*mj
@@ -1900,8 +1950,8 @@ bool Planner::_populate_block(block_t * const block,
             : // v_exit <= v_entry                coasting             axis reversal
               ( (v_entry < 0 || v_exit > 0) ? (v_entry - v_exit) : _MAX(-v_exit, v_entry) );
 
-        if (jerk > max_jerk[axis]) {
-          v_factor *= max_jerk[axis] / jerk;
+        if (jerk > settings.max_jerk[axis]) {
+          v_factor *= settings.max_jerk[axis] / jerk;
           ++limited;
         }
       }
@@ -1992,7 +2042,8 @@ void Planner::buffer_sync_block() {
   block->reset();
   block->flag.apply(BLOCK_BIT_SYNC_POSITION);
 
-  block->position = position / PLANNER_STEPS_MULTIPLIER;
+  // Convert current mini-steps to absolute step count
+  block->sync_step_position = position / PLANNER_STEPS_MULTIPLIER;
 
   // If this is the first added movement, reload the delay, otherwise, cancel it.
   if (block_buffer_head == block_buffer_tail) {
@@ -2298,10 +2349,10 @@ void Planner::set_max_acceleration(const uint8_t axis, float targetValue) {
     #endif
     limit_and_warn(targetValue, axis, PSTR("Acceleration"), max_acc_edit_scaled);
   #endif
-  settings.max_acceleration_mm_per_s2[axis] = targetValue;
 
-  // Update mini-steps per s2 to agree with the units per s2 (since they are used in the planner)
-  refresh_acceleration_rates();
+  auto new_settings = user_settings;
+  new_settings.max_acceleration_mm_per_s2[axis] = targetValue;
+  apply_settings(new_settings);
 }
 
 void Planner::set_max_feedrate(const uint8_t axis, float targetValue) {
@@ -2315,7 +2366,10 @@ void Planner::set_max_feedrate(const uint8_t axis, float targetValue) {
     #endif
     limit_and_warn(targetValue, axis, PSTR("Feedrate"), max_fr_edit_scaled);
   #endif
-  settings.max_feedrate_mm_s[axis] = targetValue;
+
+  auto new_settings = user_settings;
+  new_settings.max_feedrate_mm_s[axis] = targetValue;
+  apply_settings(new_settings);
 }
 
 void Planner::set_max_jerk(const AxisEnum axis, float targetValue) {
@@ -2331,7 +2385,9 @@ void Planner::set_max_jerk(const AxisEnum axis, float targetValue) {
       ;
       limit_and_warn(targetValue, axis, PSTR("Jerk"), max_jerk_edit);
     #endif
-    max_jerk[axis] = targetValue;
+    auto s = user_settings;
+    s.max_jerk[axis] = targetValue;
+    apply_settings(s);
   #else
     UNUSED(axis); UNUSED(targetValue);
   #endif
@@ -2369,31 +2425,33 @@ void Motion_Parameters::save() {
     mp.junction_deviation_mm = planner.junction_deviation_mm;
   #endif
   #if HAS_CLASSIC_JERK
-    mp.max_jerk = planner.max_jerk;
+    mp.max_jerk = planner.settings.max_jerk;
   #endif
 }
 
 void Motion_Parameters::load() const {
+  auto s = planner.user_settings;
+
   for (int i = 0; i < XYZE_N; ++i) {
-    planner.settings.max_acceleration_mm_per_s2[i] = mp.max_acceleration_mm_per_s2[i];
-    planner.settings.max_feedrate_mm_s[i] = mp.max_feedrate_mm_s[i];
+    s.max_acceleration_mm_per_s2[i] = mp.max_acceleration_mm_per_s2[i];
+    s.max_feedrate_mm_s[i] = mp.max_feedrate_mm_s[i];
   }
 
-  planner.settings.min_segment_time_us = mp.min_segment_time_us;
-  planner.settings.acceleration = mp.acceleration;
-  planner.settings.retract_acceleration = mp.retract_acceleration;
-  planner.settings.travel_acceleration = mp.travel_acceleration;
-  planner.settings.min_feedrate_mm_s = mp.min_feedrate_mm_s;
-  planner.settings.min_travel_feedrate_mm_s = mp.min_travel_feedrate_mm_s;
+  s.min_segment_time_us = mp.min_segment_time_us;
+  s.acceleration = mp.acceleration;
+  s.retract_acceleration = mp.retract_acceleration;
+  s.travel_acceleration = mp.travel_acceleration;
+  s.min_feedrate_mm_s = mp.min_feedrate_mm_s;
+  s.min_travel_feedrate_mm_s = mp.min_travel_feedrate_mm_s;
 
   #if DISABLED(CLASSIC_JERK)
     planner.junction_deviation_mm = mp.junction_deviation_mm;
   #endif
   #if HAS_CLASSIC_JERK
-    planner.max_jerk = mp.max_jerk;
+    s.max_jerk = mp.max_jerk;
   #endif
 
-  planner.refresh_acceleration_rates();
+  planner.apply_settings(s);
 }
 
 void Motion_Parameters::reset() {

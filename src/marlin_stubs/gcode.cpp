@@ -6,16 +6,23 @@
 #include "M330.h"
 #include "M340.h"
 #include "M919-M920.h"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
 #include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "metric.h"
 #include <option/has_loadcell.h>
 #include <option/has_toolchanger.h>
 #include <option/has_side_leds.h>
 #include <option/has_leds.h>
+#include <option/has_phase_stepping.h>
 
 #if HAS_LOADCELL()
     #include "loadcell.hpp"
+#endif
+
+#if HAS_PHASE_STEPPING()
+    #include "M1977.hpp"
 #endif
 
 #include "log.h"
@@ -34,12 +41,24 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 0:
             PrusaGcodeSuite::M0();
             break;
-        case 50:
-            PrusaGcodeSuite::M50(); // selftest
+
+        case 104:
+            switch (parser.subcode) {
+
+            case 1:
+                PrusaGcodeSuite::M104_1();
+                break;
+
+            default:
+                processed = false;
+                break;
+            }
             break;
+
         case 123:
             PrusaGcodeSuite::M123();
             break;
+
 #if HAS_LEDS()
         case 150:
             PrusaGcodeSuite::M150();
@@ -141,15 +160,6 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 920:
             PrusaGcodeSuite::M920();
             break;
-        case 930:
-            PrusaGcodeSuite::M930();
-            break;
-        case 931:
-            PrusaGcodeSuite::M931();
-            break;
-        case 932:
-            PrusaGcodeSuite::M932();
-            break;
         case 997:
             PrusaGcodeSuite::M997();
             break;
@@ -170,12 +180,34 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 1601:
             PrusaGcodeSuite::M1601();
             break;
+
         case 1700:
             PrusaGcodeSuite::M1700();
             break;
         case 1701:
             PrusaGcodeSuite::M1701();
             break;
+        case 1702:
+            PrusaGcodeSuite::M1702();
+            break;
+
+#if HAS_PHASE_STEPPING()
+        case 1977:
+            PrusaGcodeSuite::M1977();
+            break;
+#endif
+
+        case 9140:
+            PrusaGcodeSuite::M9140();
+            break;
+        case 9150:
+            PrusaGcodeSuite::M9150();
+            break;
+
+        case 9200:
+            PrusaGcodeSuite::M9200();
+            break;
+
         default:
             processed = false;
             break;
@@ -224,42 +256,15 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
     return processed;
 }
 
-// weak g-codes to prevent ugly preprocessor
-void __attribute__((weak)) PrusaGcodeSuite::M0() { log_error(PRUSA_GCODE, "M0 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M50() { log_error(PRUSA_GCODE, "M50 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M704() { log_error(PRUSA_GCODE, "M704 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1704() { log_error(PRUSA_GCODE, "M1704 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M705() { log_error(PRUSA_GCODE, "M705 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M706() { log_error(PRUSA_GCODE, "M706 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M707() { log_error(PRUSA_GCODE, "M707 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M708() { log_error(PRUSA_GCODE, "M708 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M709() { log_error(PRUSA_GCODE, "M709 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M930() { log_error(PRUSA_GCODE, "M930 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M931() { log_error(PRUSA_GCODE, "M931 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M932() { log_error(PRUSA_GCODE, "M932 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M999() { log_error(PRUSA_GCODE, "M999 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1587() { log_error(PRUSA_GCODE, "M1587 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1600() { log_error(PRUSA_GCODE, "M1600 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1601() { log_error(PRUSA_GCODE, "M1601 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1700() { log_error(PRUSA_GCODE, "M1700 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1701() { log_error(PRUSA_GCODE, "M1701 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::G64() { log_error(PRUSA_GCODE, "G64 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::G162() { log_error(PRUSA_GCODE, "G162 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::G163() { log_error(PRUSA_GCODE, "G163 unsupported"); }
-
 static void record_pre_gcode_metrics() {
-    static metric_t gcode = METRIC("gcode", METRIC_VALUE_STRING, 0, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(gcode, "gcode", METRIC_VALUE_STRING, 0, METRIC_HANDLER_DISABLE_ALL);
     metric_record_string(&gcode, "%s", parser.command_ptr);
 
 #if HAS_LOADCELL()
-    static metric_t loadcell_scale_m = METRIC("loadcell_scale", METRIC_VALUE_FLOAT, 5000, METRIC_HANDLER_ENABLE_ALL);
-    static metric_t loadcell_threshold_static_m = METRIC("loadcell_threshold", METRIC_VALUE_FLOAT, 5005, METRIC_HANDLER_ENABLE_ALL);
-    static metric_t loadcell_threshold_continuous_m = METRIC("loadcell_threshold_cont", METRIC_VALUE_FLOAT, 5010, METRIC_HANDLER_ENABLE_ALL);
-    static metric_t loadcell_hysteresis_m = METRIC("loadcell_hysteresis", METRIC_VALUE_FLOAT, 5015, METRIC_HANDLER_ENABLE_ALL);
-    metric_register(&loadcell_scale_m);
-    metric_register(&loadcell_threshold_static_m);
-    metric_register(&loadcell_threshold_continuous_m);
-    metric_register(&loadcell_hysteresis_m);
+    METRIC_DEF(loadcell_scale_m, "loadcell_scale", METRIC_VALUE_FLOAT, 5000, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(loadcell_threshold_static_m, "loadcell_threshold", METRIC_VALUE_FLOAT, 5005, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(loadcell_threshold_continuous_m, "loadcell_threshold_cont", METRIC_VALUE_FLOAT, 5010, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(loadcell_hysteresis_m, "loadcell_hysteresis", METRIC_VALUE_FLOAT, 5015, METRIC_HANDLER_ENABLE_ALL);
 
     metric_record_float(&loadcell_scale_m, loadcell.GetScale());
     metric_record_float(&loadcell_threshold_static_m, loadcell.GetThreshold(Loadcell::TareMode::Static));

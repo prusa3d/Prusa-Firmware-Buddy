@@ -29,5 +29,5 @@ window_dlg_wait_t::window_dlg_wait_t(Rect16 rect, string_view_utf8 second_text_s
 
 void gui_dlg_wait(std::function<void()> closing_callback, string_view_utf8 second_string) {
     window_dlg_wait_t dlg(GuiDefaults::DialogFrameRect, second_string);
-    dlg.MakeBlocking(closing_callback);
+    Screens::Access()->gui_loop_until_dialog_closed(closing_callback);
 }

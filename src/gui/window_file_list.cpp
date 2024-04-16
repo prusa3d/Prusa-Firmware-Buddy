@@ -110,36 +110,52 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
     ldv.ChangeDirectory(
         sfn_path,
         (sort == WF_SORT_BY_NAME) ? LDV::SortPolicy::BY_NAME : LDV::SortPolicy::BY_CRMOD_DATETIME,
-        topSFN);
+        topSFN ?: sfnAtCursor);
 
     item_count_ = ldv.TotalFilesCount();
 
-    // Hard set scroll index
-    // +1 because ldv counts ".." as index -1 :/
-    IWindowMenu::set_scroll_offset(ldv.window_offset() + 1);
-
-    // Determine focused item
+    // Now, ldv has adjusted its window offset and we need to synchronize scroll_offset with it properly.
     {
-        std::optional<int> new_focused_index;
+        // +1 because ldv counts ".." as index -1 :/
+        int target_scroll_offset = std::min(ldv.window_offset() + 1, max_scroll_offset());
 
-        if (should_focus_item_on_init()) {
-            // Try avoid highlighting ".." if there's any file in the dir
-            new_focused_index = (item_count() > 1) ? 1 : 0;
+        // If !topSFN -> we're trying to just focus sfnAtCursor.
+        // In this case, it doesn't necessarily have to be on the top and we can be a bit smarter.
+        // If the item is within the first visible window, we won't scroll on it, keep the scroll offset on 0
+        if (!topSFN && target_scroll_offset < max_items_on_screen_count()) {
+            target_scroll_offset = 0;
         }
 
-        // If the filename at cursor is not empty, try finding it in the visible slots and focusing it
+        // We might have changed the target_scroll_offset, so update ldv to match it
+        ldv.set_window_offset(target_scroll_offset - 1);
+
+        // And hard set the scroll offset for the menu itself
+        IWindowMenu::set_scroll_offset(target_scroll_offset);
+    }
+
+    // Focus item if appropriate
+    {
+        std::optional<int> target_focused_index;
+
+        // If we've been given sfnAtCursor, try looking it up in the ldv window
         if (sfnAtCursor && sfnAtCursor[0]) {
-            for (int i = 0; i < ldv.VisibleFilesCount(); ++i) {
-                if (!strcmp(sfnAtCursor, ldv.ShortFileNameAt(i).first)) {
-                    new_focused_index = i + scroll_offset();
+            for (const auto &rec : ldv.data()) {
+                if (!strcmp(sfnAtCursor, rec.sfn)) {
+                    target_focused_index = scroll_offset() + (&rec - ldv.data().data());
                     break;
                 }
             }
         }
 
+        if (!target_focused_index && should_focus_item_on_init()) {
+            // Try avoid highlighting ".." if there's any file in the dir
+            target_focused_index = (item_count() > 1) ? 1 : 0;
+        }
+
         // Force focused index update
         focused_index_ = std::nullopt;
-        move_focus_to_index(new_focused_index);
+
+        move_focus_to_index(target_focused_index);
     }
 
     Invalidate();
@@ -180,7 +196,6 @@ const char *window_file_list_t::TopItemSFN() {
 
 window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
     : AddSuperWindow(parent, rc)
-    , font(GuiDefaults::Font)
     , focused_item_delegate(string_view_utf8(), nullptr) {
 
     assert(max_items_on_screen_count() <= max_max_items_on_screen);

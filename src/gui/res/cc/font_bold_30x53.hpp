@@ -1,4 +1,4 @@
-const uint8_t font_bold_30x53_data[] = {
+constexpr uint8_t font_bold_30x53_data[] = {
     0x00,
     0x00,
     0x00,
@@ -139920,4 +139920,4 @@ const uint8_t font_bold_30x53_data[] = {
     0x00,
     0x00,
 };
-const font_t font_bold_30x53 = { 30, 53, 15, 0, (uint16_t *)font_bold_30x53_data, 32, 255 };
+constexpr font_t font_bold_30x53 = { 30, 53, 15, font_bold_30x53_data, 32, 255 };

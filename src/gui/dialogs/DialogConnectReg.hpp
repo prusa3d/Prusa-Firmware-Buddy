@@ -4,7 +4,7 @@
 #include <window_header.hpp>
 #include <window_qr.hpp>
 #include "radio_button.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 
 #include <connect/status.hpp>
 

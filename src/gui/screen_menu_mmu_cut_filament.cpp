@@ -6,6 +6,6 @@
 #include "img_resources.hpp"
 
 ScreenMenuMMUCutFilament::ScreenMenuMMUCutFilament()
-    : ScreenMenuMMUCutFilament__(_(label)) {
+    : ScreenMenu(_(label)) {
     header.SetIcon(&img::info_16x16);
 }

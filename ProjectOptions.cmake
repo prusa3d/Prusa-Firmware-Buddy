@@ -6,8 +6,16 @@
 # cmake .. <other options> -DPRINTER=MINI
 # ~~~
 
-set(PRINTER_VALID_OPTS "MINI" "MK4" "MK3.5" "XL" "iX")
-set(BOARD_VALID_OPTS "<default>" "BUDDY" "XBUDDY" "XLBUDDY" "DWARF" "MODULARBED")
+set(PRINTER_VALID_OPTS "MINI" "MK4" "MK3.5" "XL" "iX" "XL_DEV_KIT")
+set(BOARD_VALID_OPTS
+    "<default>"
+    "BUDDY"
+    "XBUDDY"
+    "XLBUDDY"
+    "DWARF"
+    "MODULARBED"
+    "XL_DEV_KIT_XLB"
+    )
 set(MCU_VALID_OPTS "<default>" "STM32F407VG" "STM32F429VI" "STM32F427ZI" "STM32G070RBT6")
 set(BOOTLOADER_VALID_OPTS "NO" "EMPTY" "YES")
 set(TRANSLATIONS_ENABLED_VALID_OPTS "<default>" "NO" "YES")
@@ -75,10 +83,18 @@ set(PRESET_COMPILE_OPTIONS
     ""
     CACHE STRING "Allows adding custom C/C++ flags. To be used from preset files."
     )
-set(WUI
-    "YES"
-    CACHE BOOL "Enable Web User Interface"
-    )
+
+if(${BOARD} STREQUAL "XL_DEV_KIT_XLB")
+  set(WUI
+      "NO"
+      CACHE BOOL "Enable Web User Interface"
+      )
+else()
+  set(WUI
+      "YES"
+      CACHE BOOL "Enable Web User Interface"
+      )
+endif()
 define_boolean_option("BUDDY_ENABLE_WUI" ${WUI})
 set(RESOURCES
     "<auto>"
@@ -110,6 +126,11 @@ set(IS_KNOBLET
     CACHE BOOL "Knoblet version of FW"
     )
 define_boolean_option(IS_KNOBLET ${IS_KNOBLET})
+
+set(ENABLE_BURST
+    "NO"
+    CACHE BOOL "Enable BURST stepping on supported printers."
+    )
 
 # Validate options
 foreach(OPTION "PRINTER" "BOARD" "MCU" "BOOTLOADER" "TRANSLATIONS_ENABLED" "TOUCH_ENABLED")
@@ -170,9 +191,21 @@ if(${BOARD_VERSION} STREQUAL "<default>")
         "0.7.0"
         CACHE STRING "ModularBed board version" FORCE
         )
+  elseif(${BOARD} STREQUAL "XL_DEV_KIT_XLB")
+    set(BOARD_VERSION
+        "0.1.0"
+        CACHE STRING "XL_DEV_KIT_XLB board version" FORCE
+        )
   else()
     message(FATAL_ERROR "No default board version set for board ${BOARD}")
   endif()
+endif()
+
+# Set BOARD_IS_MASTER_BOARD - means main board of entire printer, non-main board are puppies
+if(BOARD MATCHES ".*BUDDY" OR BOARD MATCHES "XL_DEV_KIT_XLB")
+  set(BOARD_IS_MASTER_BOARD true)
+else()
+  set(BOARD_IS_MASTER_BOARD false)
 endif()
 
 # set MCU to its default if not specified
@@ -187,6 +220,8 @@ if(${MCU} STREQUAL "<default>")
     set(MCU "STM32F427ZI")
   elseif(${BOARD} STREQUAL "XLBUDDY")
     set(MCU "STM32F427ZI")
+  elseif(${BOARD} STREQUAL "XL_DEV_KIT_XLB")
+    set(MCU "STM32F427ZI") # todo
   elseif(${BOARD} STREQUAL "DWARF")
     set(MCU "STM32G070RBT6")
   elseif(${BOARD} STREQUAL "MODULARBED")
@@ -200,7 +235,10 @@ list(REMOVE_ITEM MCU_VALID_OPTS "<default>")
 define_enum_option(NAME MCU VALUE ${MCU} ALL_VALUES ${MCU_VALID_OPTS})
 
 # Set connect status/availability
-if(${BOARD} STREQUAL "DWARF" OR ${BOARD} STREQUAL "MODULARBED")
+if(${BOARD} STREQUAL "DWARF"
+   OR ${BOARD} STREQUAL "MODULARBED"
+   OR ${BOARD} STREQUAL "XL_DEV_KIT_XLB"
+   )
   set(CONNECT
       "NO"
       CACHE BOOL "Enable Connect client"
@@ -244,34 +282,37 @@ message(STATUS "Resources: ${RESOURCES}")
 
 # Set printer features
 set(PRINTERS_WITH_FILAMENT_SENSOR_BINARY "MINI" "MK3.5")
-set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "MK4" "XL" "iX")
+set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "MK4" "XL" "iX" "XL_DEV_KIT")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY "MINI" "MK4" "MK3.5" "XL" "iX")
-set(PRINTERS_WITH_ADVANCED_PAUSE "MINI" "MK4" "MK3.5" "iX" "XL")
+set(PRINTERS_WITH_ADVANCED_PAUSE "MINI" "MK4" "MK3.5" "iX" "XL" "XL_DEV_KIT")
 set(PRINTERS_WITH_CRASH_DETECTION "MINI" "MK4" "MK3.5" "XL") # this does require selftest to work
 set(PRINTERS_WITH_POWER_PANIC "MK4" "MK3.5" "XL") # this does require selftest and crash detection
                                                   # to work
-set(PRINTERS_WITH_PRECISE_HOMING "MK4")
-set(PRINTERS_WITH_PRECISE_HOMING_COREXY "XL")
+set(PRINTERS_WITH_PRECISE_HOMING "MK4" "MK3.5")
+set(PRINTERS_WITH_PRECISE_HOMING_COREXY "XL" "XL_DEV_KIT")
+set(PRINTERS_WITH_PHASE_STEPPING "XL")
+set(PRINTERS_WITH_BURST_STEPPING "XL")
 # private MINI would not fit to 1MB so it has disabled selftest set(PRINTERS_WITH_SELFTEST "MINI"
 # "MK4")
 set(PRINTERS_WITH_SELFTEST "MK4" "MK3.5" "XL" "iX" "MINI")
-set(PRINTERS_WITH_SELFTEST_SNAKE "XL" "MK4")
+set(PRINTERS_WITH_SELFTEST_SNAKE "XL" "MK4" "MINI" "MK3.5")
 set(PRINTERS_WITH_HUMAN_INTERACTIONS "MINI" "MK4" "MK3.5" "XL")
-set(PRINTERS_WITH_LOADCELL "MK4" "iX" "XL")
-set(PRINTERS_WITH_HEATBREAK_TEMP "MK4" "iX" "XL")
+set(PRINTERS_WITH_LOADCELL "MK4" "iX" "XL" "XL_DEV_KIT")
+set(PRINTERS_WITH_HEATBREAK_TEMP "MK4" "iX" "XL" "XL_DEV_KIT")
 set(PRINTERS_WITH_RESOURCES "MINI" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_BOWDEN_EXTRUDER "MINI")
-set(PRINTERS_WITH_PUPPIES_BOOTLOADER "XL" "iX")
-set(PRINTERS_WITH_DWARF "XL")
-set(PRINTERS_WITH_MODULARBED "iX" "XL")
-set(PRINTERS_WITH_TOOLCHANGER "XL")
-set(PRINTERS_WITH_SIDE_FSENSOR "XL")
+set(PRINTERS_WITH_PUPPIES_BOOTLOADER "XL" "iX" "XL_DEV_KIT")
+set(PRINTERS_WITH_DWARF "XL" "XL_DEV_KIT")
+set(PRINTERS_WITH_MODULARBED "iX" "XL" "XL_DEV_KIT")
+set(PRINTERS_WITH_TOOLCHANGER "XL" "XL_DEV_KIT")
+set(PRINTERS_WITH_SIDE_FSENSOR "iX" "XL")
 set(PRINTERS_WITH_EMBEDDED_ESP32 "XL")
 set(PRINTERS_WITH_SIDE_LEDS "XL" "iX")
 set(PRINTERS_WITH_TRANSLATIONS "MK4" "MK3.5" "XL" "MINI")
 set(PRINTERS_WITH_EXTFLASH_TRANSLATIONS "MINI")
 set(PRINTERS_WITH_LOVE_BOARD "MK4" "iX")
 set(PRINTERS_WITH_MMU2 "MK4" "MK3.5")
+set(PRINTERS_WITH_CONFIG_STORE_WITHOUT_BACKEND "XL_DEV_KIT")
 
 # Set GUI settings
 set(PRINTERS_WITH_GUI "MINI" "MK4" "MK3.5" "XL" "iX")
@@ -281,6 +322,14 @@ set(PRINTERS_WITH_LEDS "MK4" "MK3.5" "XL" "iX")
 # disable serial printing for MINI to save flash
 set(PRINTERS_WITH_SERIAL_PRINTING "MK4" "MK3.5" "XL" "iX" "MINI")
 
+set(PRINTERS_WITH_LOCAL_ACCELEROMETER "MK3.5" "MK4" "iX")
+set(PRINTERS_WITH_REMOTE_ACCELEROMETER "XL" "XL_DEV_KIT")
+
+set(PRINTERS_WITH_COLDPULL "MK4")
+
+set(PRINTERS_WITH_BED_LEVEL_CORRECTION "MK3.5" "MINI")
+
+set(PRINTERS_WITH_SHEET_SUPPORT "MINI" "MK3.5")
 # Set printer board
 set(BOARDS_WITH_ADVANCED_POWER "XBUDDY" "XLBUDDY" "DWARF")
 set(BOARDS_WITH_ILI9488 "XBUDDY" "XLBUDDY")
@@ -343,9 +392,9 @@ if(${TOUCH_ENABLED} STREQUAL "<default>")
 endif()
 define_boolean_option(HAS_TOUCH ${TOUCH_ENABLED})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_BINARY AND BOARD MATCHES ".*BUDDY")
+if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_BINARY AND BOARD_IS_MASTER_BOARD)
   set(FILAMENT_SENSOR BINARY)
-elseif(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_ADC AND BOARD MATCHES ".*BUDDY")
+elseif(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_ADC AND BOARD_IS_MASTER_BOARD)
   set(FILAMENT_SENSOR ADC)
 else()
   set(FILAMENT_SENSOR NO)
@@ -353,7 +402,7 @@ endif()
 define_enum_option(NAME FILAMENT_SENSOR VALUE "${FILAMENT_SENSOR}" ALL_VALUES "BINARY;ADC;NO")
 
 if(${RESOURCES} STREQUAL "<auto>")
-  if(${PRINTER} IN_LIST PRINTERS_WITH_RESOURCES AND BOARD MATCHES ".*BUDDY")
+  if(${PRINTER} IN_LIST PRINTERS_WITH_RESOURCES AND BOARD_IS_MASTER_BOARD)
     set(RESOURCES "YES")
   else()
     set(RESOURCES "NO")
@@ -368,11 +417,11 @@ if(GENERATE_DFU
    )
 
   set(GENERATE_BBF "YES")
-elseif(NOT BOARD MATCHES ".*BUDDY")
+elseif(NOT BOARD_IS_MASTER_BOARD)
   set(GENERATE_BBF "NO")
 endif()
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_GUI AND BOARD MATCHES ".*BUDDY")
+if(${PRINTER} IN_LIST PRINTERS_WITH_GUI AND BOARD_IS_MASTER_BOARD)
   set(GUI YES)
 
   if(${PRINTER} IN_LIST PRINTERS_WITH_GUI_W480H320 AND ${PRINTER} IN_LIST
@@ -409,20 +458,44 @@ else()
 endif()
 define_boolean_option(HAS_SELFTEST ${HAS_SELFTEST})
 
+if(${PRINTER} IN_LIST PRINTERS_WITH_CONFIG_STORE_WITHOUT_BACKEND)
+  set(HAS_CONFIG_STORE_WO_BACKEND YES)
+else()
+  set(HAS_CONFIG_STORE_WO_BACKEND NO)
+endif()
+define_boolean_option(HAS_CONFIG_STORE_WO_BACKEND ${HAS_CONFIG_STORE_WO_BACKEND})
+
 if(${PRINTER} IN_LIST PRINTERS_WITH_HUMAN_INTERACTIONS)
   define_boolean_option(HAS_HUMAN_INTERACTIONS YES)
 else()
   define_boolean_option(HAS_HUMAN_INTERACTIONS NO)
 endif()
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_LOADCELL AND BOARD MATCHES ".*BUDDY")
+if(${PRINTER} IN_LIST PRINTERS_WITH_PHASE_STEPPING AND BOARD_IS_MASTER_BOARD)
+  set(HAS_PHASE_STEPPING YES)
+else()
+  set(HAS_PHASE_STEPPING NO)
+endif()
+define_boolean_option(HAS_PHASE_STEPPING ${HAS_PHASE_STEPPING})
+
+if(ENABLE_BURST
+   AND ${PRINTER} IN_LIST PRINTERS_WITH_BURST_STEPPING
+   AND BOARD_IS_MASTER_BOARD
+   )
+  set(HAS_BURST_STEPPING YES)
+else()
+  set(HAS_BURST_STEPPING NO)
+endif()
+define_boolean_option(HAS_BURST_STEPPING ${HAS_BURST_STEPPING})
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_LOADCELL AND BOARD_IS_MASTER_BOARD)
   set(HAS_LOADCELL YES)
 else()
   set(HAS_LOADCELL NO)
 endif()
 define_boolean_option(HAS_LOADCELL ${HAS_LOADCELL})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_HEATBREAK_TEMP AND BOARD MATCHES ".*BUDDY")
+if(${PRINTER} IN_LIST PRINTERS_WITH_HEATBREAK_TEMP AND BOARD_IS_MASTER_BOARD)
   set(HAS_HEATBREAK_TEMP YES)
 else()
   set(HAS_HEATBREAK_TEMP NO)
@@ -488,7 +561,7 @@ define_boolean_option(HAS_SERIAL_PRINT ${HAS_SERIAL_PRINT})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_DWARF
    OR ${PRINTER} IN_LIST PRINTERS_WITH_MODULARBED
-   AND BOARD MATCHES ".*BUDDY"
+   AND BOARD_IS_MASTER_BOARD
    )
   set(HAS_PUPPIES YES)
 else()
@@ -496,14 +569,14 @@ else()
 endif()
 define_boolean_option(HAS_PUPPIES ${HAS_PUPPIES})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_DWARF AND BOARD MATCHES ".*BUDDY")
+if(${PRINTER} IN_LIST PRINTERS_WITH_DWARF AND BOARD_IS_MASTER_BOARD)
   set(HAS_DWARF YES)
 else()
   set(HAS_DWARF NO)
 endif()
 define_boolean_option(HAS_DWARF ${HAS_DWARF})
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_MODULARBED AND BOARD MATCHES ".*BUDDY")
+if(${PRINTER} IN_LIST PRINTERS_WITH_MODULARBED AND BOARD_IS_MASTER_BOARD)
   set(HAS_MODULARBED YES)
 else()
   set(HAS_MODULARBED NO)
@@ -564,9 +637,21 @@ if(ENABLE_PUPPY_BOOTLOAD)
   set(GENERATE_BBF "YES")
 endif()
 
+if(BOARD MATCHES "XL_DEV_KIT_XLB")
+  set(PUPPY_SKIP_FLASH_FW
+      "ON"
+      CACHE BOOL "Disable flashing puppies to debug puppy with bootloader."
+      )
+else()
+  set(PUPPY_SKIP_FLASH_FW
+      "OFF"
+      CACHE BOOL "Disable flashing puppies to debug puppy with bootloader."
+      )
+endif()
+
 if(${PRINTER} IN_LIST PRINTERS_WITH_PUPPIES_BOOTLOADER
-   AND BOARD MATCHES ".*BUDDY"
-   AND RESOURCES
+   AND BOARD_IS_MASTER_BOARD
+   AND (RESOURCES OR PUPPY_SKIP_FLASH_FW)
    AND ENABLE_PUPPY_BOOTLOAD
    )
   set(HAS_PUPPIES_BOOTLOADER YES)
@@ -575,10 +660,6 @@ else()
 endif()
 define_boolean_option(HAS_PUPPIES_BOOTLOADER ${HAS_PUPPIES_BOOTLOADER})
 
-set(PUPPY_SKIP_FLASH_FW
-    "OFF"
-    CACHE BOOL "Disable flashing puppies to debug puppy with bootloader."
-    )
 if(${HAS_PUPPIES_BOOTLOADER} AND NOT ${PUPPY_SKIP_FLASH_FW})
   set(PUPPY_FLASH_FW YES)
 else()
@@ -601,10 +682,11 @@ endif()
 define_boolean_option(HAS_SELFTEST_SNAKE ${HAS_SELFTEST_SNAKE})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_SIDE_FSENSOR)
-  define_boolean_option(HAS_SIDE_FSENSOR YES)
+  set(HAS_SIDE_FSENSOR YES)
 else()
-  define_boolean_option(HAS_SIDE_FSENSOR NO)
+  set(HAS_SIDE_FSENSOR NO)
 endif()
+define_boolean_option(HAS_SIDE_FSENSOR ${HAS_SIDE_FSENSOR})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_EMBEDDED_ESP32)
   define_boolean_option(HAS_EMBEDDED_ESP32 YES)
@@ -616,6 +698,37 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_SIDE_LEDS AND NOT IS_KNOBLET)
   define_boolean_option(HAS_SIDE_LEDS YES)
 else()
   define_boolean_option(HAS_SIDE_LEDS NO)
+endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_LOCAL_ACCELEROMETER)
+  define_boolean_option(HAS_LOCAL_ACCELEROMETER YES)
+else()
+  define_boolean_option(HAS_LOCAL_ACCELEROMETER NO)
+endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_REMOTE_ACCELEROMETER)
+  define_boolean_option(HAS_REMOTE_ACCELEROMETER YES)
+else()
+  define_boolean_option(HAS_REMOTE_ACCELEROMETER NO)
+endif()
+
+if(HAS_TOOLCHANGER)
+  set(HAS_FILAMENT_SENSORS_MENU YES)
+else()
+  set(HAS_FILAMENT_SENSORS_MENU NO)
+endif()
+define_boolean_option(HAS_FILAMENT_SENSORS_MENU ${HAS_FILAMENT_SENSORS_MENU})
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_COLDPULL)
+  define_boolean_option(HAS_COLDPULL YES)
+else()
+  define_boolean_option(HAS_COLDPULL NO)
+endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_SHEET_SUPPORT)
+  define_boolean_option(HAS_SHEET_SUPPORT YES)
+else()
+  define_boolean_option(HAS_SHEET_SUPPORT NO)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -652,3 +765,22 @@ set(DEBUG_WITH_BEEPS
     CACHE BOOL "Colleague annoyance: achievement unlocked"
     )
 define_boolean_option(DEBUG_WITH_BEEPS ${DEBUG_WITH_BEEPS})
+
+# Use websocket to talk to Connect instead of many http requests.
+#
+# The server part is not ready and the protocol is in a flux too. For that reason, this is not
+# enabled in "real builds", but we need to be able to have the code around and be able to turn it on
+# for custom build - to allow debugging the server too.
+#
+# Eventually, this'll become the only used and supported way to talk to Connect. At that point, both
+# this option and the "old" code will be removed.
+set(WEBSOCKET
+    "OFF"
+    CACHE BOOL "Use websocket to talk to connect. In development"
+    )
+define_boolean_option(WEBSOCKET ${WEBSOCKET})
+set(MDNS
+    "ON"
+    CACHE BOOL "Enable MDNS responder"
+    )
+define_boolean_option(MDNS ${MDNS})

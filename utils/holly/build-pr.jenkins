@@ -1,3 +1,41 @@
+
+def get_version_info() {
+    // prepare version suffix
+    def commit_nr = sh(script: 'git rev-list HEAD --count', returnStdout: true).trim()
+    def short_suffix
+    def full_suffix
+    if (env.CHANGE_ID) {
+        // This is a PR build
+        short_suffix = "-BETA+${commit_nr}"
+        full_suffix = "${short_suffix}.PR${env.CHANGE_ID}.B${env.BUILD_NUMBER}"
+    } else if (env.BRANCH_NAME.startsWith("RELEASE-")) {
+        // This is an RC build
+        short_suffix = "-RC+${commit_nr}"
+        full_suffix = "${short_suffix}.B${env.BUILD_NUMBER}"
+    } else {
+        // This is build of an ordinary branch (not a release branch)
+        short_suffix = "-BETA+${commit_nr}"
+        def branch_spec = env.BRANCH_NAME.replaceAll("_", "-")
+        full_suffix = "${short_suffix}.BRANCH-${branch_spec}.B${env.BUILD_NUMBER}"
+    }
+
+    if (params.VERSION_SUFFIX != '<default>') {
+        full_suffix = params.VERSION_SUFFIX
+    }
+    if (params.VERSION_SUFFIX_SHORT != '<default>') {
+        short_suffix = params.VERSION_SUFFIX_SHORT
+    }
+
+    version_base = readFile(file: 'version.txt').trim()
+
+    return [
+        full: "${version_base}${full_suffix}",
+        short: "${version_base}${short_suffix}",
+        suffix_full: full_suffix,
+        suffix_short: short_suffix,
+    ]
+}
+
 pipeline {
     agent none
 
@@ -11,6 +49,35 @@ pipeline {
     }
 
     stages {
+        stage('Create Git Tag') {
+            agent any
+            steps {
+                script {
+                    version = get_version_info()
+                    tag_name = "build/${version.full}"
+                    base_url = "https://holly.prusa3d.com/job/Prusa-Firmware-Buddy-Private/job/Multibranch/job"
+                    if (env.CHANGE_ID) {
+                        url = "${base_url}/PR-${env.CHANGE_ID}/${env.BUILD_NUMBER}/"
+                    } else {
+                        url = "${base_url}/${env.BRANCH_NAME}/${env.BUILD_NUMBER}/"
+                    }
+                    message = "${tag_name}\n\nBuilt by Holly at ${url}"
+                    sshagent(credentials: ['prusa_holly']) {
+                        sh """
+                            export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+                            git tag -af "${tag_name}" -m "${message}"
+                            git push origin "${tag_name}"
+                        """
+                    }
+                }
+            }
+            post {
+                cleanup {
+                    deleteDir()
+                }
+            }
+        }
+
         stage('Check Formatting') {
             agent {
                 dockerfile {
@@ -69,10 +136,10 @@ pipeline {
                             'mini-en-pl,release,yesboot',
                             'mk3.5,release,yesboot',
                             'mk4,release,yesboot',
-                            'mk4,release,noboot',
+                            'mk4,release,noboot', // Needed for integration tests, please don't delete
                             'xl,release,yesboot',
-                            'xl-xbuddy04,release,emptyboot',
-                            'ix-xBuddy027c-200step,release,yesboot'
+                            'xl-burst,release,yesboot',
+                            'ix,release,yesboot'
                     }
                 }
                 stages {
@@ -84,45 +151,17 @@ pipeline {
                                     preset: config_components[0],
                                     build_type: config_components[1],
                                     bootloader: config_components[2]]
+                                def version = get_version_info()
 
                                 echo "Building ${config.preset} ${config.build_type} ${config.bootloader}"
 
-                                // prepare version suffix
-                                def commit_nr = sh(script: 'git rev-list HEAD --count', returnStdout: true).trim()
-                                def short_suffix
-                                def full_suffix
                                 def dev_items
-                                if (env.CHANGE_ID) {
-                                    // This is a PR build
-                                    short_suffix = "-BETA+${commit_nr}"
-                                    full_suffix = "${short_suffix}.PR${env.CHANGE_ID}.B${env.BUILD_NUMBER}"
-                                    dev_items = "yes"
-                                } else if (env.BRANCH_NAME.startsWith("RELEASE-")) {
+                                if (env.BRANCH_NAME.startsWith("RELEASE-") || env.BRANCH_NAME == "xl" || env.BRANCH_NAME == "mk4-release") {
                                     // This is an RC build
-                                    short_suffix = "-RC3+${commit_nr}"
-                                    full_suffix = "${short_suffix}.B${env.BUILD_NUMBER}"
                                     dev_items = "no"
                                 } else {
                                     // This is build of an ordinary branch (not a release branch)
-                                    short_suffix = "-BETA+${commit_nr}"
-                                    def branch_spec = env.BRANCH_NAME.replaceAll("_", "-")
-                                    full_suffix = "${short_suffix}.BRANCH-${branch_spec}.B${env.BUILD_NUMBER}"
                                     dev_items = "yes"
-                                }
-
-                                if (env.BRANCH_NAME == "xl") {
-                                    dev_items = "no"
-                                }
-
-                                if (env.BRANCH_NAME == "mk4-release") {
-                                    dev_items = "no"
-                                }
-
-                                if (params.VERSION_SUFFIX != '<default>') {
-                                    full_suffix = params.VERSION_SUFFIX
-                                }
-                                if (params.VERSION_SUFFIX_SHORT != '<default>') {
-                                    short_suffix = params.VERSION_SUFFIX_SHORT
                                 }
 
                                 // remove the "boot" suffix from the config.bootloader
@@ -145,8 +184,8 @@ pipeline {
                                                 --generate-bbf \
                                                 --generate-dfu \
                                                 --no-store-output \
-                                                --version-suffix=${full_suffix} \
-                                                --version-suffix-short=${short_suffix} \
+                                                --version-suffix=${version.suffix_full} \
+                                                --version-suffix-short=${version.suffix_short} \
                                                 -DCUSTOM_COMPILE_OPTIONS:STRING="-Werror" \
                                             -DDEVELOPMENT_ITEMS_ENABLED:BOOL=${dev_items}
                                         """
@@ -182,12 +221,12 @@ pipeline {
                     }
                     steps {
                         sh """
-                        export PATH=/work/.dependencies/cmake-3.22.5/bin:/work/.dependencies/ninja-1.10.2:\$PATH
+                        export PATH=/work/.dependencies/cmake-3.28.3/bin:/work/.dependencies/ninja-1.10.2:\$PATH
                         ln -fs /work/.dependencies
                         ln -fs /work/.venv
                         . .venv/bin/activate
                         mkdir -p build-test
-                        LD_LIBRARY_PATH=/usr/local/lib32 /work/.dependencies/cmake-3.22.5/bin/ctest --build-and-test . build-test \
+                        LD_LIBRARY_PATH=/usr/local/lib32 /work/.dependencies/cmake-3.28.3/bin/ctest --build-and-test . build-test \
                             -DCMAKE_MAKE_PROGRAM=/work/.dependencies/ninja-1.10.2/ninja \
                             --build-generator Ninja \
                             --build-target tests \

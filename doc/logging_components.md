@@ -1,7 +1,6 @@
 # Logging - Defined Components
 This file is generated automatically so don't edit it directly
 
-- Accel: LOG_SEVERITY_INFO, src/puppy/dwarf/accelerometer.cpp
 - Bootloader: LOG_SEVERITY_INFO, src/bootloader/bootloader.cpp
 - Buddy: LOG_SEVERITY_DEBUG, src/common/appmain.cpp
 - BufferedSerial: LOG_SEVERITY_DEBUG, src/hw/buffered_serial.cpp
@@ -18,7 +17,6 @@ This file is generated automatically so don't edit it directly
 - EEPROM: LOG_SEVERITY_INFO, src/persistent_stores/store_instances/config_store/store_c_api.cpp
 - ESPIF: LOG_SEVERITY_INFO, lib/WUI/espif.cpp
 - EspFlash: LOG_SEVERITY_DEBUG, lib/WUI/esp_flash.cpp
-- FSM: LOG_SEVERITY_INFO, src/common/fsm_types.cpp
 - FSensor: LOG_SEVERITY_INFO, src/common/filament_sensors_handler.cpp
 - FileSystem: LOG_SEVERITY_INFO, src/buddy/filesystem.cpp
 - GUI: LOG_SEVERITY_DEBUG, src/gui/logger.cpp
@@ -38,13 +36,14 @@ This file is generated automatically so don't edit it directly
 - ModularBed: LOG_SEVERITY_INFO, src/puppies/modular_bed.cpp
 - Network: LOG_SEVERITY_INFO, lib/WUI/wui.cpp
 - PRUSA_GCODE: LOG_SEVERITY_INFO, src/marlin_stubs/gcode.cpp
+- PhaseStepping: LOG_SEVERITY_DEBUG, lib/Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp
 - PowerPanic: LOG_SEVERITY_INFO, src/common/power_panic.cpp
+- PreciseStepping: LOG_SEVERITY_DEBUG, lib/Marlin/Marlin/src/feature/precise_stepping/precise_stepping.cpp
 - PrusaToolChanger: LOG_SEVERITY_DEBUG, lib/Marlin/Marlin/src/module/prusa/toolchanger_utils.cpp
 - Puppies: LOG_SEVERITY_DEBUG, src/puppies/puppy_task.cpp
 - Resources: LOG_SEVERITY_DEBUG, src/resources/bootstrap.cpp
 - Selftest: LOG_SEVERITY_DEBUG, src/common/selftest/i_selftest.cpp
-- Syslog: LOG_SEVERITY_INFO, src/syslog/syslog.cpp
-- Touch: LOG_SEVERITY_INFO, src/hw/GT911.cpp
+- Touch: LOG_SEVERITY_INFO, src/hw/touchscreen/touchscreen_common.cpp
 - USBDevice: LOG_SEVERITY_INFO, src/buddy/usb_device.cpp
 - USBHost: LOG_SEVERITY_INFO, src/buddy/usbh_conf.cpp
 - USBMSC: LOG_SEVERITY_DEBUG, src/buddy/usb_device_msc.cpp

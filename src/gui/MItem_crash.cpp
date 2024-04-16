@@ -6,21 +6,38 @@
     #include "menu_spin_config.hpp"
     #include "../lib/Marlin/Marlin/src/module/stepper/trinamic.h"
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
+    #include "../Marlin/src/feature/phase_stepping/phase_stepping.hpp"
     #include <config_store/store_instance.hpp>
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
-    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes,
+    : WI_ICON_SWITCH_OFF_ON_t(crash_s.is_enabled(), _(label), nullptr, is_enabled_t::yes,
     #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5)
         is_hidden_t::dev
     #else
         is_hidden_t::no
     #endif // (( PRINTER_IS_PRUSA_MK4) || ( PRINTER_IS_PRUSA_MK3_5))
     ) {
-    index = crash_s.is_enabled();
 }
 
-void MI_CRASH_DETECTION::OnChange([[maybe_unused]] size_t old_index) {
-    crash_s.enable(index);
+void MI_CRASH_DETECTION::Loop() {
+    #if HAS_PHASE_STEPPING() && !HAS_BURST_STEPPING()
+    // Enable or disable according to the current phase stepping state. We can't really use
+    // invalidation to reduce calls to config_store, as Print() happens and resets the state before
+    // we can trap it here. At the same time, Print is not virtual.
+    bool phstep_enabled = (config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get());
+    if (phstep_enabled) {
+        set_value(false, false);
+        Disable();
+    } else {
+        set_value(crash_s.is_enabled(), false);
+        Enable();
+    }
+    #endif
+    return WI_ICON_SWITCH_OFF_ON_t::Loop();
+}
+
+void MI_CRASH_DETECTION::OnChange(size_t /*old_index*/) {
+    crash_s.enable(value());
 }
 
 MI_CRASH_SENSITIVITY_X::MI_CRASH_SENSITIVITY_X()
@@ -119,7 +136,7 @@ MI_POWER_PANICS::MI_POWER_PANICS()
     : WI_INFO_t(config_store().power_panics_count.get(), _(label)) {}
 
 MI_CRASHES_X_LAST::MI_CRASHES_X_LAST()
-    : WI_INFO_t(crash_s.counter_crash.x, _(label),
+    : WI_INFO_t(crash_s.counters.get(Crash_s::Counter::axis_crash_x), _(label),
     #if PRINTER_IS_PRUSA_XL
         is_hidden_t::no
     #else
@@ -129,7 +146,7 @@ MI_CRASHES_X_LAST::MI_CRASHES_X_LAST()
 }
 
 MI_CRASHES_Y_LAST::MI_CRASHES_Y_LAST()
-    : WI_INFO_t(crash_s.counter_crash.y, _(label),
+    : WI_INFO_t(crash_s.counters.get(Crash_s::Counter::axis_crash_y), _(label),
     #if PRINTER_IS_PRUSA_XL
         is_hidden_t::no
     #else
@@ -160,12 +177,11 @@ MI_CRASHES_Y::MI_CRASHES_Y()
 
     #if HAS_DRIVER(TMC2130)
 MI_CRASH_FILTERING::MI_CRASH_FILTERING()
-    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-    index = crash_s.get_filter();
+    : WI_ICON_SWITCH_OFF_ON_t(crash_s.get_filter(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_CRASH_FILTERING::OnChange([[maybe_unused]] size_t old_index) {
-    crash_s.set_filter(index);
+    crash_s.set_filter(value());
 }
     #endif
 #endif // ANY(CRASH_RECOVERY, POWER_PANIC)

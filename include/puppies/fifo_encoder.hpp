@@ -38,8 +38,8 @@ public:
     bool encode(const T data) {
         log_debug(
             ModbusFIFOEncoder,
-            "Encoding message type: %d, size: %d+%d at byte offset: %d",
-            message_type<T>(),
+            "Encoding message type: %u, size: %zu+%zu at byte offset: %u",
+            static_cast<unsigned>(message_type<T>()),
             sizeof(Header),
             sizeof(T),
             fifo_bytes_pos);

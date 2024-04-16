@@ -28,7 +28,10 @@ namespace {
         const size_t end_pos = newline != nullptr ? newline - start : tail_size;
 
         // We'll replace the \n with \0
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
         char gcode_buf[end_pos + 1];
+#pragma GCC diagnostic pop
         memcpy(gcode_buf, start, end_pos);
         gcode_buf[end_pos] = '\0';
 
@@ -46,9 +49,17 @@ namespace {
         }
 
         // Skip over empty ones to not hog the queue
-        if (strlen(g_start) > 0) {
-            // FIXME: This can block if the queue is full.
-            printer.submit_gcode(g_start);
+        if (strlen(g_start)) {
+            switch (printer.submit_gcode(g_start)) {
+            case Printer::GcodeResult::Submitted:
+                break;
+            case Printer::GcodeResult::Later:
+                // In case this gcode doesn't fit, retry again without moving
+                // the position - we'll reparse it next time.
+                return BackgroundResult::More;
+            case Printer::GcodeResult::Failed:
+                return BackgroundResult::Failure;
+            }
         }
 
         gcode.position += end_pos + 1;
@@ -58,7 +69,7 @@ namespace {
 
 } // namespace
 
-BackgroundResult step(BackgroundCmd &cmd, Printer &printer) {
+BackgroundResult background_cmd_step(BackgroundCmd &cmd, Printer &printer) {
     return visit([&](auto &cmd) { return step(cmd, printer); }, cmd);
 }
 

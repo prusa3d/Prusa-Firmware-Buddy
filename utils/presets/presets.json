@@ -113,8 +113,8 @@
             }
         },
         {
-            "name": "iX-xBuddy027c-200step",
-            "description": "Original Prusa iX with xBuddy 0.2.7c and 200-step motors",
+            "name": "ix",
+            "description": "Original Prusa iX with xBuddy 0.2.7c or newer, with 200-step motors",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "iX",
@@ -143,6 +143,27 @@
                     "value": "build-vscode-modularbed"
                 },
                 "PRESET_COMPILE_OPTIONS": "",
+                "IS_KNOBLET":"FALSE"
+            }
+        },
+        {
+            "name": "xl-burst",
+            "description": "Original Prusa XL with Burst Stepping",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.9.0",
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": "",
+                "ENABLE_BURST":true,
                 "IS_KNOBLET":"FALSE"
             }
         },
@@ -184,6 +205,17 @@
                 },
                 "PRESET_COMPILE_OPTIONS": "",
                 "IS_KNOBLET":"FALSE"
+            }
+        },
+        {
+            "name": "xl_dev_kit",
+            "description": "Original Prusa xl_dev_kit",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL_DEV_KIT",
+                "BOARD": "XL_DEV_KIT_XLB",
+                "PRESET_COMPILE_OPTIONS": "",
+                "DEVELOPMENT_ITEMS_ENABLED": true
             }
         },
         {

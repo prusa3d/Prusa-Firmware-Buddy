@@ -9,6 +9,10 @@ enum class HeaderName {
     CommandId,
     Code,
     Token,
+    WebSocketAccept,
+    WebSocketUpgrade,
+    ConnectionUpgrade,
+    WebSocketPrusaConnect,
 };
 
 class ExtraHeader {

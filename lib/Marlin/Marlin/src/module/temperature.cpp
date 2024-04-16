@@ -38,7 +38,10 @@
 #include "bsod.h"
 #include "metric.h"
 #include "../../../../src/common/hwio.h"
-#include "../../../../src/common/config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "../../../../src/common/adc.hpp"
 
 #define MAX6675_SEPARATE_SPI (EITHER(HEATER_0_USES_MAX6675, HEATER_1_USES_MAX6675) && PINS_EXIST(MAX6675_SCK, MAX6675_DO))
@@ -395,7 +398,17 @@ volatile bool Temperature::temp_meas_ready = false;
     #if HAS_PID_FOR_BOTH
       #define GHV(B,H) (isbed ? (B) : (H))
       #if ENABLED(HW_PWM_HEATERS)
-        #define SHV(B,H) do{ if (isbed) analogWrite(HEATER_BED_PIN, B); else analogWrite(HEATER_0_PIN, H); }while(0)
+        // Need to write soft_pwm_amount even when using hardware pwm heater to prevent
+        // power manager from shutting us down, leading to temperature check failure.
+        #define SHV(B,H) do {                         \
+          if (isbed) {                                \
+            analogWrite(HEATER_BED_PIN, B);           \
+            temp_bed.soft_pwm_amount = B;             \
+          } else {                                    \
+            analogWrite(HEATER_0_PIN, H);             \
+            temp_hotend[heater].soft_pwm_amount = H;  \
+          }                                           \
+        } while (0)
       #else
         #define SHV(B,H) do{ if (isbed) temp_bed.soft_pwm_amount = B; else temp_hotend[heater].soft_pwm_amount = H; }while(0)
       #endif
@@ -450,6 +463,7 @@ volatile bool Temperature::temp_meas_ready = false;
     SERIAL_ECHOLNPGM(MSG_PID_AUTOTUNE_START);
 
     disable_all_heaters();
+    TERN_(AUTO_POWER_CONTROL, powerManager.power_on());
 
     SHV(bias = d = (MAX_BED_POWER) >> soft_pwm_bit_shift, bias = d = (PID_MAX) >> soft_pwm_bit_shift);
 
@@ -2690,7 +2704,7 @@ void Temperature::init() {
     static millis_t timer[HOTENDS] = {};
     // Expected interval is 1000 ms. min_interval_ms set to 100 ms, so it will be visible in samples collected if
     // expected interval doesn't hold.
-    static metric_t heating_model_discrepancy = METRIC("heating_model_discrepancy", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(heating_model_discrepancy, "heating_model_discrepancy", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
 
     // Start the timer if already not started. In case millis() == 0 it will not start the timer.
     // But it will do no harm, as it will be started in the next call to this function.

@@ -4,16 +4,19 @@
 #include "ccm_thread.hpp"
 #include "usb_host.h"
 
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
+#include <common/freertos_shared_mutex.hpp>
 #include <mutex>
+#include <shared_mutex>
+#include <utility_extensions.hpp>
+#include <bit>
 
 LOG_COMPONENT_REF(USBHost);
-using Mutex = FreeRTOS_Mutex;
+using Mutex = freertos::Mutex;
 using Lock = std::unique_lock<Mutex>;
 
 static const uint16_t USB_DEFAULT_BLOCK_SIZE = FF_MIN_SS;
 static DWORD scratch[FF_MAX_SS / 4];
-static Mutex diskio_mutex;
 
 extern USBH_HandleTypeDef hUsbHostHS;
 
@@ -129,36 +132,25 @@ static void USBH_MSC_WorkerTask(void const *) {
 #endif
         if (queue_status == pdPASS && request->operation != UsbhMscRequest::UsbhMscRequestOperation::Noop) {
             {
-                auto retry = 1;
-                do {
-                    Lock lock(diskio_mutex);
-                    switch (request->operation) {
-                    case UsbhMscRequest::UsbhMscRequestOperation::Read:
-                        request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
-                        break;
-                    case UsbhMscRequest::UsbhMscRequestOperation::Write:
-                        request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
-                        break;
-                    default:
-                        abort();
-                    }
-
-                    if (request->result != USBH_OK) {
-                        osThreadSetPriority(osThreadGetId(), TASK_PRIORITY_USB_MSC_WORKER_LOW);
-
-                        log_error(USBHost, "USB MSC operation %d (%d, %d, %d) failed",
-                            (unsigned)ftrstd::to_underlying(request->operation),
-                            request->lun, request->sector_nbr, request->count);
-
-                        USBH_MSC_StealthReset(&hUsbHostHS, request->lun);
-                        osThreadSetPriority(osThreadGetId(), TASK_PRIORITY_USB_MSC_WORKER_HIGH);
-                        if (!USBH_MSC_UnitIsReady(&hUsbHostHS, request->lun)) {
-                            break;
-                        }
-                    }
-                } while (request->result != USBH_OK && retry--);
+                switch (request->operation) {
+                case UsbhMscRequest::UsbhMscRequestOperation::Read: {
+                    freertos::SharedMutexProxy mutex { &hUsbHostHS.class_mutex };
+                    std::shared_lock lock { mutex };
+                    request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                } break;
+                case UsbhMscRequest::UsbhMscRequestOperation::Write: {
+                    freertos::SharedMutexProxy mutex { &hUsbHostHS.class_mutex };
+                    std::shared_lock lock { mutex };
+                    request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                } break;
+                default:
+                    abort();
+                }
             }
 
+            if (request->result != USBH_OK) {
+                usbh_power_cycle::io_error();
+            }
             if (request->callback) {
                 request->callback(request->result, request->callback_param1, request->callback_param2);
             }
@@ -176,7 +168,6 @@ static void USBH_StartMSCWorkerTask() {
 }
 
 DSTATUS USBH_initialize([[maybe_unused]] BYTE lun) {
-    Lock lock(diskio_mutex);
     USBH_StartMSCWorkerTask();
     /* CAUTION : USB Host library has to be initialized in the application */
     return RES_OK;
@@ -188,9 +179,9 @@ DSTATUS USBH_initialize([[maybe_unused]] BYTE lun) {
  * @retval DSTATUS: Operation status
  */
 DSTATUS USBH_status(BYTE lun) {
-    Lock lock(diskio_mutex);
     DRESULT res = RES_ERROR;
-
+    freertos::SharedMutexProxy mutex { &hUsbHostHS.class_mutex };
+    std::shared_lock lock { mutex };
     if (USBH_MSC_UnitIsReady(&hUsbHostHS, lun)) {
         res = RES_OK;
     } else {
@@ -198,6 +189,15 @@ DSTATUS USBH_status(BYTE lun) {
     }
 
     return res;
+}
+
+static USBH_StatusTypeDef USBH_MSC_GetLUNInfo_synchronized(
+    USBH_HandleTypeDef *phost,
+    uint8_t lun,
+    MSC_LUNTypeDef *info) {
+    freertos::SharedMutexProxy mutex { &phost->class_mutex };
+    std::shared_lock lock { mutex };
+    return USBH_MSC_GetLUNInfo(phost, lun, info);
 }
 
 /**
@@ -229,9 +229,7 @@ DRESULT USBH_read_ii(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
     if (status == USBH_OK) {
         res = RES_OK;
     } else {
-        Lock lock(diskio_mutex);
-        USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
-
+        USBH_MSC_GetLUNInfo_synchronized(&hUsbHostHS, lun, &info);
         switch (info.sense.asc) {
         case SCSI_ASC_LOGICAL_UNIT_NOT_READY:
         case SCSI_ASC_MEDIUM_NOT_PRESENT:
@@ -315,9 +313,7 @@ DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
     if (status == USBH_OK) {
         res = RES_OK;
     } else {
-        Lock lock(diskio_mutex);
-        USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
-
+        USBH_MSC_GetLUNInfo_synchronized(&hUsbHostHS, lun, &info);
         switch (info.sense.asc) {
         case SCSI_ASC_WRITE_PROTECTED:
             USBH_ErrLog("USB Disk is Write protected!"); // not localized, only writes to debug log
@@ -350,7 +346,7 @@ DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
  */
 #if FF_FS_READONLY == 0
 DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
-    Lock lock(diskio_mutex);
+    USBH_StatusTypeDef lun_info_res = USBH_FAIL;
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
 
@@ -362,7 +358,8 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
 
     /* Get number of sectors on the disk (DWORD) */
     case GET_SECTOR_COUNT:
-        if (USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info) == USBH_OK) {
+        lun_info_res = USBH_MSC_GetLUNInfo_synchronized(&hUsbHostHS, lun, &info);
+        if (lun_info_res == USBH_OK) {
             *(DWORD *)buff = info.capacity.block_nbr;
             res = RES_OK;
         } else {
@@ -372,7 +369,8 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
 
     /* Get R/W sector size (WORD) */
     case GET_SECTOR_SIZE:
-        if (USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info) == USBH_OK) {
+        lun_info_res = USBH_MSC_GetLUNInfo_synchronized(&hUsbHostHS, lun, &info);
+        if (lun_info_res == USBH_OK) {
             *(DWORD *)buff = info.capacity.block_size;
             res = RES_OK;
         } else {
@@ -382,8 +380,8 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
 
         /* Get erase block size in unit of sector (DWORD) */
     case GET_BLOCK_SIZE:
-
-        if (USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info) == USBH_OK) {
+        lun_info_res = USBH_MSC_GetLUNInfo_synchronized(&hUsbHostHS, lun, &info);
+        if (lun_info_res == USBH_OK) {
             *(DWORD *)buff = info.capacity.block_size / USB_DEFAULT_BLOCK_SIZE;
             res = RES_OK;
         } else {
@@ -559,7 +557,7 @@ void UsbhMscReadahead::send_stats() {
     #ifdef USBH_MSC_READAHEAD_STATISTICS
     auto now = osKernelSysTick();
     if (now - sent_statistics_timestamp > 5000) {
-        log_info(USBHost, "MSC readahead stat speculative reads=%d, hit=%d, missed=%d, blocking=%d",
+        log_info(USBHost, "MSC readahead stat speculative reads=%" PRIu32 ", hit=%" PRIu32 ", missed=%" PRIu32 ", blocking=%" PRIu32,
             stats_speculative_read_count.load(), stats_hit.load(), stats_missed.load(), stats_block_another_io.load());
         sent_statistics_timestamp = now;
     }

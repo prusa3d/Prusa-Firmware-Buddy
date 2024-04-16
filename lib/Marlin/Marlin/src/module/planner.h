@@ -35,6 +35,7 @@
 #include "motion.h"
 #include "../gcode/queue.h"
 #include "../feature/precise_stepping/precise_stepping.hpp"
+#include "../feature/phase_stepping/phase_stepping.hpp"
 
 // Value by which steps are multiplied to increase the precision of the Planner.
 constexpr const int PLANNER_STEPS_MULTIPLIER = 4;
@@ -137,7 +138,7 @@ typedef struct PlannerBlock {
 
   union {
     abce_ulong_t msteps;                    // Mini-step count along each axis
-    abce_long_t position;                   // New position in mini-steps to force when this sync block is executed
+    abce_long_t sync_step_position;         // Absolute step counts to set when this sync block is executed
   };
   uint32_t mstep_event_count;               // The number of mini-step events required to complete this block
 
@@ -174,7 +175,18 @@ typedef struct {
             travel_acceleration;                // (mm/s^2) M204 T - Travel acceleration. DEFAULT ACCELERATION for all NON printing moves.
  feedRate_t min_feedrate_mm_s,                  // (mm/s) M205 S - Minimum linear feedrate
             min_travel_feedrate_mm_s;           // (mm/s) M205 T - Minimum travel feedrate
+
+  #if HAS_CLASSIC_JERK
+    #if HAS_LINEAR_E_JERK
+      xyz_pos_t max_jerk;              // (mm/s^2) M205 XYZ - The largest speed change requiring no acceleration.
+    #else
+      xyze_pos_t max_jerk;             // (mm/s^2) M205 XYZE - The largest speed change requiring no acceleration.
+    #endif
+  #endif
 } planner_settings_t;
+
+/// Subclass to enforce that people are using user settings when applying settings
+struct user_planner_settings_t : public planner_settings_t {};
 
 // Structure for saving/loading movement parameters
 typedef struct {
@@ -282,7 +294,18 @@ class Planner {
                                                       // May be auto-adjusted by a filament width sensor
     #endif
 
-    static planner_settings_t settings;
+    /// Reference to working_settings - settings with applied limits
+    static const planner_settings_t &settings;
+
+    /// Reference to user_settings - settings before limits are applied
+    static const user_planner_settings_t &user_settings;
+
+    /// Sets new settings for the planner.
+    /// Writes the settings raw to user_settings, and with limits applied to settings/working_settings
+    /// !!! Always base your settings on user_settings, not on settings
+    static void apply_settings(const user_planner_settings_t &settings);
+    
+    static void set_stealth_mode(bool set);
 
     static uint32_t max_acceleration_msteps_per_s2[XYZE_N]; // (mini-steps/s^2) Derived from mm_per_s2
     static float mm_per_step[XYZE_N];                       // Millimeters per step
@@ -291,14 +314,6 @@ class Planner {
 
     #if DISABLED(CLASSIC_JERK)
       static float junction_deviation_mm;       // (mm) M205 J
-    #endif
-
-    #if HAS_CLASSIC_JERK
-      #if HAS_LINEAR_E_JERK
-        static xyz_pos_t max_jerk;              // (mm/s^2) M205 XYZ - The largest speed change requiring no acceleration.
-      #else
-        static xyze_pos_t max_jerk;             // (mm/s^2) M205 XYZE - The largest speed change requiring no acceleration.
-      #endif
     #endif
 
     #if HAS_LEVELING
@@ -593,6 +608,9 @@ class Planner {
     // Check if movement queue is full
     FORCE_INLINE static bool is_full() { return block_buffer_tail == next_block_index(block_buffer_head); }
 
+    // Set emptying buffer
+    FORCE_INLINE static void set_emptying_buffer(bool b) { emptying_buffer = b; }
+
     // Get count of movement slots free
     FORCE_INLINE static uint8_t moves_free() { return BLOCK_BUFFER_SIZE - 1 - movesplanned(); }
 
@@ -767,7 +785,7 @@ class Planner {
     static bool draining() { return draining_buffer; }
 
     // Resume queuing after being held by drain()
-    static void resume_queuing() { draining_buffer = false; }
+    static void resume_queuing();
 
     // Called when an endstop is triggered. Causes the machine to stop immediately
     static void endstop_triggered(const AxisEnum axis);
@@ -856,7 +874,7 @@ class Planner {
     /**
      * Return if some processing is still pending before all queues are flushed
      */
-    FORCE_INLINE static bool processing() { return has_blocks_queued() || PreciseStepping::processing(); }
+    FORCE_INLINE static bool processing() { return has_blocks_queued() || PreciseStepping::processing() || phase_stepping::processing(); }
 
     /**
      * Returns the current block that PreciseStepping already processed and that is waiting for discarding,
@@ -948,7 +966,15 @@ class Planner {
     #endif
 
   private:
+    /// Target planner settings, withOUT limits applied.
+    static user_planner_settings_t user_settings_;
 
+    /// Actual settings the planner is using, with limits applied
+    static planner_settings_t working_settings_;
+
+    static bool stealth_mode_;
+
+  private:
     /**
      * Get the index of the next / previous block in the ring buffer
      */

@@ -5,20 +5,23 @@ import argparse
 from pathlib import Path
 import os, stat
 import platform
+from shutil import which
 
 # init directories
 script_dir = Path(os.path.dirname(__file__))
 project_root_dir = script_dir / ".."
 project_root_dir = project_root_dir.resolve()
 
+crash_debug_version = "ab03f8b6fb6e3445c62fe3fa5f3263d2945d74ff"
+
 if platform.system() == "Windows":
-    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-ae191d/bins/win32/CrashDebug'
+    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-{crash_debug_version}/bins/win32/CrashDebug'
 elif platform.system() == "Linux":
-    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-ae191d/bins/lin64/CrashDebug'
+    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-{crash_debug_version}/bins/lin64/CrashDebug'
     os.chmod(crash_debug_path,
              os.stat(crash_debug_path).st_mode | stat.S_IEXEC)
 elif platform.system() == "Darwin":
-    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-ae191d/bins/osx64/CrashDebug'
+    crash_debug_path = f'{project_root_dir}/.dependencies/CrashDebug-{crash_debug_version}/bins/osx64/CrashDebug'
     os.chmod(crash_debug_path,
              os.stat(crash_debug_path).st_mode | stat.S_IEXEC)
 
@@ -37,23 +40,24 @@ if (args.elf == None):
     args.elf = project_root_dir / Path('build-vscode-buddy/firmware')
     print(f"ELF file not provided, using default: {args.elf}")
 if (args.gdb == None):
-    args.gdb = f'{project_root_dir}/.dependencies/gcc-arm-none-eabi-10.3.1/bin/arm-none-eabi-gdb'
+    args.gdb = f'{project_root_dir}/.dependencies/gcc-arm-none-eabi-13.2.1/bin/arm-none-eabi-gdb'
     print(f"GDB executable not provided, using default: {args.gdb}")
 
 if not os.path.isfile(args.elf):
-    print(f"ELF file not fount at: {args.elf}")
+    print(f"ELF file not found at: {args.elf}")
     exit(1)
 
 if not os.path.isfile(args.dump):
-    print(f"Crash dump file not fount at: {args.dump}")
+    print(f"Crash dump file not found at: {args.dump}")
     exit(1)
 
-if not os.path.isfile(args.gdb):
-    print(f"GDB executable not fount at: {args.gdb}")
+if not os.path.isfile(args.gdb) and which(args.gdb) is None:
+    print(f"GDB executable not found at: {args.gdb}")
     exit(1)
 
 # setup command and launch debugger
 cmd = f'{args.gdb} {args.elf} -ex "set target-charset ASCII" -ex "target remote | {crash_debug_path} --elf {args.elf} --dump {args.dump}"'
+cmd += f' -ex "source {project_root_dir}/utils/freertos-gdb-plugin/freertos-gdb-plugin.py"'
 print("Launching GDB with arguments:")
 print(cmd)
 os.system(cmd)

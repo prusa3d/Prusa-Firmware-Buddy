@@ -47,6 +47,12 @@ extern void tmc_disable_wavetable(bool X, bool Y, bool Z);
  * \return true if all coils are ok, false otherwise
  */
 extern bool tmc_check_coils(uint8_t axis);
+extern bool tmc_serial_lock_acquire(void);
+extern void tmc_serial_lock_release(void);
+extern bool tmc_serial_lock_acquire_isr(void);
+extern void tmc_serial_lock_release_isr(void);
+extern bool tmc_serial_lock_held_by_isr(void);
+extern bool tmc_serial_lock_requested_by_task(void);
 #ifdef __cplusplus
 }
 

@@ -14,7 +14,6 @@ enum class Event : uint8_t {
     MediaInserted, // onMediaInserted();
     MediaError, // onMediaError();
     MediaRemoved, // onMediaRemoved();
-    FSM, // create/destroy finite state machine or change phase/state/progress in client
     PlayTone, // onPlayTone(const uint16_t frequency, const uint16_t duration)
     PrintTimerStarted, // onPrintTimerStarted()
     PrintTimerPaused, // onPrintTimerPaused()
@@ -29,13 +28,9 @@ enum class Event : uint8_t {
     // Marlin events - other
     StartProcessing, // sent from marlin_server_start_processing
     StopProcessing, // sent from marlin_server_stop_processing
-    Error, // sent onStatusChanged etc.
     CommandBegin, //
     CommandEnd, //
-    SafetyTimerExpired, // host action from marlin, hotends and bed turned off
     Message, //
-    Warning, // important messages like fan error or heater timeout
-    Reheat, //
     Acknowledge, // onAcknowledge - lowest priority
     NotAcknowledge, // onNotAcknowledge - lowest priority
 
@@ -54,7 +49,6 @@ constexpr EventMask make_mask(Event id) {
 
 inline constexpr EventMask EVENT_MSK_ALL = std::numeric_limits<EventMask>::max();
 inline constexpr EventMask EVENT_MSK_DEF = EVENT_MSK_ALL & ~make_mask(Event::PrinterKilled);
-inline constexpr EventMask EVENT_MSK_FSM = make_mask(Event::FSM);
 
 // commands
 enum class Cmd : uint32_t {
@@ -71,8 +65,6 @@ enum class Cmd : uint32_t {
     M702 = M + 702,
     M876 = M + 876,
 };
-
-const char *marlin_events_get_name(Event evt_id);
 
 /**
  * @brief Parameter to start printing.

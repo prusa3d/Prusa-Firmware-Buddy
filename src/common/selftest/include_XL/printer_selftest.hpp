@@ -2,7 +2,7 @@
 #pragma once
 
 #include "i_selftest.hpp"
-#include "super.hpp"
+#include "i_selftest_part.hpp"
 #include "selftest_part.hpp"
 #include "selftest_result_type.hpp"
 #include <selftest_types.hpp>
@@ -18,8 +18,10 @@ typedef enum {
     stsYAxis,
     stsZcalib,
     stsDocks,
+    stsPhaseStepping,
     stsLoadcell,
     stsWait_loadcell,
+    stsNozzleDiameter,
     stsToolOffsets,
     stsZAxis, // could not be first, printer can't home at front edges without steelsheet on
     stsWait_axes,
@@ -34,16 +36,17 @@ typedef enum {
     stsAborted,
 } SelftestState_t;
 
-consteval uint64_t to_one_hot(SelftestState_t state) {
-    return static_cast<uint64_t>(1) << state;
+consteval uint32_t to_one_hot(SelftestState_t state) {
+    return static_cast<uint32_t>(1) << state;
 }
 
-enum SelftestMask_t : uint64_t {
+enum SelftestMask_t : uint32_t {
     stmNone = 0,
     stmFans = to_one_hot(stsFans),
     stmWait_fans = to_one_hot(stsWait_fans),
     stmLoadcell = to_one_hot(stsLoadcell),
     stmWait_loadcell = to_one_hot(stsWait_loadcell),
+    stmNozzleDiameter = to_one_hot(stsNozzleDiameter),
     stmZcalib = to_one_hot(stsZcalib),
     stmEnsureZAway = to_one_hot(stsEnsureZAway),
     stmXAxis = to_one_hot(stsXAxis),
@@ -59,17 +62,18 @@ enum SelftestMask_t : uint64_t {
     stmSelftestStop = to_one_hot(stsSelftestStop),
     stmDocks = to_one_hot(stsDocks),
     stmToolOffsets = to_one_hot(stsToolOffsets),
+    stmPhaseStepping = to_one_hot(stsPhaseStepping),
 };
 
 // class representing whole self-test
-class CSelftest : public AddSuper<ISelftest> {
+class CSelftest : public ISelftest {
 public:
     CSelftest();
 
 public:
     virtual bool IsInProgress() const override;
     virtual bool IsAborted() const override;
-    virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) override; // parent has no clue about SelftestMask_t
+    virtual bool Start(const uint64_t test_mask, const selftest::TestData test_data) override; // parent has no clue about SelftestMask_t
     virtual void Loop() override;
     virtual bool Abort() override;
 
@@ -94,6 +98,8 @@ protected:
     std::array<selftest::IPartHandler *, HOTENDS> pDocks;
     selftest::IPartHandler *pToolOffsets;
     std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
+    selftest::IPartHandler *pNozzleDiameter;
+    selftest::IPartHandler *pPhaseStepping;
 
     SelftestResult m_result;
 };

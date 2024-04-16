@@ -24,6 +24,9 @@ using ScreenMenuOdometer__ = ScreenMenu<EFooter::On, MI_RETURN, MI_ODOMETER_DIST
     MI_ODOMETER_TOOL_N<3>,
     MI_ODOMETER_TOOL_N<4>,
 #endif /*HAS_TOOLCHANGER()*/
+#if HAS_MMU2()
+    MI_ODOMETER_MMU_CHANGES,
+#endif
     MI_ODOMETER_TIME>;
 
 class ScreenMenuOdometer : public ScreenMenuOdometer__ {

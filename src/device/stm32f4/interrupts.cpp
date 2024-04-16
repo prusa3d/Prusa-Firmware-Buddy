@@ -11,11 +11,19 @@
 #include "log.h"
 #include "tusb.h"
 #include <device/peripherals.h>
-#include "wdt.h"
+#include <wdt.hpp>
 #include "safe_state.h"
+#include "data_exchange.hpp"
 #include <option/buddy_enable_wui.h>
+#include <option/has_phase_stepping.h>
+#include <option/has_burst_stepping.h>
 
-#ifdef BUDDY_ENABLE_WUI
+#if HAS_PHASE_STEPPING()
+    #include <feature/phase_stepping/phase_stepping.hpp>
+    #include <feature/phase_stepping/quick_tmc_spi.hpp>
+#endif
+
+#if BUDDY_ENABLE_WUI()
     #include "espif.h"
 #endif
 
@@ -79,7 +87,10 @@ void USART6_IRQHandler(void) {
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart6);
 #if BUDDY_ENABLE_WUI() && uart_esp == 6
-        espif_receive_data(&huart6);
+        // block esp in tester mode
+        if (get_auto_update_flag() != FwAutoUpdate::tester_mode) {
+            espif_receive_data(&huart6);
+        }
 #elif BOARD_IS_XBUDDY
     #if !HAS_PUPPIES()
         uart6_idle_cb();
@@ -93,10 +104,13 @@ void USART6_IRQHandler(void) {
  * @brief This function handles UART8 global interrupt.
  */
 void UART8_IRQHandler(void) {
-#if defined(BUDDY_ENABLE_WUI) && uart_esp == 8
-    if (__HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE)) {
-        __HAL_UART_CLEAR_IDLEFLAG(&huart8);
-        espif_receive_data(&huart8);
+#if BUDDY_ENABLE_WUI() && uart_esp == 8
+    // In tester mode ESP UART is being used to talk to the testing station, thus it must not be used for the ESP.
+    if (!running_in_tester_mode()) {
+        if (__HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE)) {
+            __HAL_UART_CLEAR_IDLEFLAG(&huart8);
+            espif_receive_data(&huart8);
+        }
     }
 #endif
 
@@ -219,6 +233,16 @@ void DMA1_Stream3_IRQHandler(void) {
 #endif
 
 /**
+ * @brief This function handles TIM8 trigger and commutation interrupts and TIM13 global interrupt.
+ */
+
+// This function is implemented in
+// lib/Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp to allow for
+// inlining without enable LTO.
+//
+// void TIM8_UP_TIM13_IRQHandler(void)
+
+/**
  * @brief This function handles TIM8 trigger and commutation interrupts and TIM14 global interrupt.
  */
 void TIM8_TRG_COM_TIM14_IRQHandler(void) {
@@ -315,9 +339,11 @@ void DMA1_Stream6_IRQHandler(void) {
  * @brief This function handles Ethernet global interrupt.
  */
 void ETH_IRQHandler(void) {
+#if !BOARD_IS_XL_DEV_KIT_XLB
     traceISR_ENTER();
     HAL_ETH_IRQHandler(&heth);
     traceISR_EXIT();
+#endif
 }
 
 /**
@@ -333,8 +359,30 @@ void OTG_FS_IRQHandler(void) {
  * @brief This function handles USB On The Go HS global interrupt.
  */
 void OTG_HS_IRQHandler(void) {
+#if !BOARD_IS_XL_DEV_KIT_XLB
     traceISR_ENTER();
     HAL_HCD_IRQHandler(&hhcd_USB_OTG_HS);
     traceISR_EXIT();
+#endif
 }
+
+/**
+ * @brief This function handles SPI3 global interrupt.
+ */
+void SPI3_IRQHandler(void) {
+    traceISR_ENTER();
+    HAL_SPI_IRQHandler(&hspi3);
+    traceISR_EXIT();
+}
+
+#if HAS_BURST_STEPPING()
+/**
+ * @brief This function handles SPI4 global interrupt.
+ */
+void SPI4_IRQHandler(void) {
+    traceISR_ENTER();
+    HAL_SPI_IRQHandler(&hspi4);
+    traceISR_EXIT();
+}
+#endif
 }

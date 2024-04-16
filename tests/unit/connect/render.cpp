@@ -34,9 +34,10 @@ Printer::Params params_printing() {
     Printer::Params params(paths);
 
     params.job_id = 42;
+    params.has_job = true;
     params.progress_percent = 12;
     params.temp_bed = 65;
-    params.temp_nozzle = 200;
+    params.slots[0].temp_nozzle = 200;
     params.target_bed = 70;
     params.target_nozzle = 195;
     params.state = printer_state::DeviceState::Printing;
@@ -53,20 +54,30 @@ TEST_CASE("Render") {
     optional<Monitor::Slot> transfer_slot = nullopt;
     optional<CommandId> background_command_id = nullopt;
 
-    SECTION("Telemetry - empty") {
+    SECTION("Telemetry - reduced") {
         params.emplace(params_printing());
-        action = SendTelemetry { true };
-        expected = "{}";
-    }
-
-    SECTION("Telemetry - printing") {
-        params.emplace(params_printing());
-        action = SendTelemetry { false };
+        action = SendTelemetry { SendTelemetry::Mode::Reduced };
         // clang-format off
         expected = "{"
             "\"job_id\":42,"
             "\"time_printing\":0,"
             "\"time_remaining\":0,"
+            "\"filament_change_in\":0,"
+            "\"progress\":12,"
+            "\"state\":\"PRINTING\""
+        "}";
+        // clang-format on
+    }
+
+    SECTION("Telemetry - printing") {
+        params.emplace(params_printing());
+        action = SendTelemetry { SendTelemetry::Mode::Full };
+        // clang-format off
+        expected = "{"
+            "\"job_id\":42,"
+            "\"time_printing\":0,"
+            "\"time_remaining\":0,"
+            "\"filament_change_in\":0,"
             "\"progress\":12,"
             "\"temp_nozzle\":200.0,"
             "\"temp_bed\":65.0,"
@@ -85,7 +96,7 @@ TEST_CASE("Render") {
 
     SECTION("Telemetry - idle") {
         params.emplace(params_idle());
-        action = SendTelemetry { false };
+        action = SendTelemetry { SendTelemetry::Mode::Full };
         // clang-format off
         expected = "{"
             "\"temp_nozzle\":0.0,"
@@ -104,7 +115,7 @@ TEST_CASE("Render") {
 
     SECTION("Telemetry - transferring") {
         params.emplace(params_idle());
-        action = SendTelemetry { false };
+        action = SendTelemetry { SendTelemetry::Mode::Full };
         transfer_slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/whatever.gcode", 1024);
         REQUIRE(transfer_slot.has_value());
         auto id = Monitor::instance.id();
@@ -133,7 +144,7 @@ TEST_CASE("Render") {
 
     SECTION("Telemetry with background command") {
         params.emplace(params_idle());
-        action = SendTelemetry { false };
+        action = SendTelemetry { SendTelemetry::Mode::Full };
         background_command_id = 13;
         // clang-format off
         expected = "{"
@@ -216,7 +227,8 @@ TEST_CASE("Render") {
                 "\"fingerprint\":\"DEADBEEF\","
                 "\"nozzle_diameter\":0.40,"
                 "\"storages\":[],"
-                "\"network_info\":{}"
+                "\"network_info\":{},"
+                "\"slots\":1"
             "},"
             "\"state\":\"IDLE\","
             "\"command_id\":11,"
@@ -326,9 +338,28 @@ TEST_CASE("Render") {
         expected = e.str();
     }
 
+    SECTION("Event - state changed with dialog") {
+        action = Event {
+            EventType::StateChanged,
+            11
+        };
+        params.emplace(params_dialog());
+        // clang-format off
+        expected = "{"
+            "\"data\":{"
+                "\"code\":\"00000\","
+                "\"buttons\":[\"Yes\",\"No\"]"
+            "},"
+            "\"dialog_id\":42,"
+            "\"state\":\"ATTENTION\","
+            "\"command_id\":11,"
+            "\"event\":\"STATE_CHANGED\""
+        "}";
+        // clang-format on
+    }
+
     MockPrinter printer(params.value());
-    Tracked telemetry_changes;
-    RenderState state(printer, action, telemetry_changes, background_command_id);
+    RenderState state(printer, action, background_command_id);
     Renderer renderer(std::move(state));
     uint8_t buffer[1024];
     const auto [result, amount] = renderer.render(buffer, sizeof buffer);

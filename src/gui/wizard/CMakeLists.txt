@@ -7,7 +7,7 @@ target_sources(
           selftest_frame_fans.cpp
           selftest_frame_firstlayer.cpp
           selftest_frame_firstlayer_questions.cpp
-          selftest_frame_hot_end_sock.cpp
+          selftest_frame_hotend_specify.cpp
           selftest_frame_result.cpp
           selftest_frame_temp.cpp
           selftest_frame_wizard_epilogue.cpp
@@ -37,5 +37,8 @@ if(PRINTER STREQUAL "MK4")
 endif()
 
 if(${PRINTER} STREQUAL "XL")
-  target_sources(firmware PRIVATE selftest_frame_dock.cpp selftest_frame_tool_offsets.cpp)
+  target_sources(
+    firmware PRIVATE selftest_frame_dock.cpp selftest_frame_nozzle_diameter.cpp
+                     selftest_frame_tool_offsets.cpp
+    )
 endif()

@@ -50,6 +50,10 @@
     #error "MONITOR_DRIVER_STATUS requires at least one TMC2130, 2160, 2208, 2209, 2660, 5130, or 5160."
   #endif
 
+  /** \addtogroup G-Codes
+   * @{
+   */
+
   /**
    * M911: Report TMC stepper driver overtemperature pre-warn flag
    *       This flag is held by the library, persisting until cleared by M912
@@ -435,5 +439,7 @@
     }
   }
 #endif // USE_SENSORLESS
+
+/** @}*/
 
 #endif // HAS_TRINAMIC

@@ -21,6 +21,7 @@
  */
 
 #include "../../../inc/MarlinConfig.h"
+#include "config_store/store_instance.hpp"
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
 
@@ -290,28 +291,39 @@
    *
    *   W    What?       Display valuable UBL data.
    *
-   *
-   *   Release Notes:
-   *   You MUST do M502, M500 to initialize the storage. Failure to do this will cause all
-   *   kinds of problems. Enabling EEPROM Storage is required.
-   *
-   *   When you do a G28 and G29 P1 to automatically build your first mesh, you are going to notice that
-   *   UBL probes points increasingly further from the starting location. (The starting location defaults
-   *   to the center of the bed.) In contrast, ABL and MBL follow a zigzag pattern. The spiral pattern is
-   *   especially better for Delta printers, since it populates the center of the mesh first, allowing for
-   *   a quicker test print to verify settings. You don't need to populate the entire mesh to use it.
-   *   After all, you don't want to spend a lot of time generating a mesh only to realize the resolution
-   *   or probe offsets are incorrect. Mesh-generation gathers points starting closest to the nozzle unless
-   *   an (X,Y) coordinate pair is given.
-   *
-   *   Unified Bed Leveling uses a lot of EEPROM storage to hold its data, and it takes some effort to get
-   *   the mesh just right. To prevent this valuable data from being destroyed as the EEPROM structure
-   *   evolves, UBL stores all mesh data at the end of EEPROM.
-   *
    *   UBL is founded on Edward Patel's Mesh Bed Leveling code. A big 'Thanks!' to him and the creators of
    *   3-Point and Grid Based leveling. Combining their contributions we now have the functionality and
    *   features of all three systems combined.
    */
+
+  #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+
+  // Apply weighted correction on each point based on it's location.
+  // The whole correction is then conversed from µm to mm. 
+
+  float x_axis_correction(int x, int y) {
+    int32_t left_correction_um{config_store().left_bed_correction.get()};
+    int32_t right_correction_um{config_store().right_bed_correction.get()};
+
+    int32_t x_len{GRID_MAX_POINTS_X-1};
+    
+    return ( (left_correction_um*(x_len-x)) + (right_correction_um*(x)) ) / static_cast<float>(x_len);
+  }
+
+  float y_axis_correction(int x, int y) {
+    int32_t front_correction_um{config_store().front_bed_correction.get()};
+    int32_t rear_correction_um{config_store().rear_bed_correction.get()};
+
+    int32_t y_len{GRID_MAX_POINTS_Y-1};
+
+    return ( (front_correction_um*(y_len-y)) + (rear_correction_um*(y)) ) / static_cast<float>(y_len);
+  }
+
+  void apply_bed_level_correction(int x, int y) {
+    ubl.z_values[x][y] += 0.001f*(x_axis_correction(x, y) + y_axis_correction(x,y));
+  }
+
+  #endif
 
   void unified_bed_leveling::G29() {
 
@@ -824,8 +836,12 @@
       #endif
 
       #if UBL_TRAVEL_ACCELERATION
-        auto saved_acceleration = planner.settings.travel_acceleration;
-        planner.settings.travel_acceleration = UBL_TRAVEL_ACCELERATION;
+        auto saved_acceleration = planner.user_settings.travel_acceleration;
+        {
+          auto s = planner.user_settings;
+          s.travel_acceleration = UBL_TRAVEL_ACCELERATION;
+          planner.apply_settings(s);
+        }
       #endif
 
       uint16_t count = GRID_MAX_POINTS;
@@ -875,7 +891,11 @@
       #endif
 
       #if UBL_TRAVEL_ACCELERATION
-        planner.settings.travel_acceleration = saved_acceleration;
+        {
+          auto s = planner.user_settings;
+          s.travel_acceleration = saved_acceleration;
+          planner.apply_settings(s);
+        }
       #endif
 
       restore_ubl_active_state_and_leave();
@@ -896,7 +916,11 @@
 
       #if UBL_TRAVEL_ACCELERATION
         auto saved_acceleration = planner.settings.travel_acceleration;
-        planner.settings.travel_acceleration = UBL_TRAVEL_ACCELERATION;
+        {
+          auto s = planner.user_settings;
+          s.travel_acceleration = UBL_TRAVEL_ACCELERATION;
+          planner.apply_settings(s);
+        }
       #endif
 
       PrintArea::rect_t probe_area(area_a, area_b);
@@ -965,6 +989,12 @@
             return;
           }
           z_values[x][y] = measured_z;
+          
+          #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+            //apply bed level correction on each probed point
+            apply_bed_level_correction(x,y);
+          #endif 
+
           #if ENABLED(EXTENSIBLE_UI)
             ExtUI::onMeshUpdate(x, y, measured_z);
           #endif
@@ -982,7 +1012,11 @@
       #endif
 
       #if UBL_TRAVEL_ACCELERATION
-        planner.settings.travel_acceleration = saved_acceleration;
+        {
+          auto s = planner.user_settings;
+          s.travel_acceleration = saved_acceleration;
+          planner.apply_settings(s);
+        }
       #endif
 
       restore_ubl_active_state_and_leave();

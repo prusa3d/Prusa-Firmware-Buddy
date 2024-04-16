@@ -66,6 +66,9 @@ GcodeSuite gcode;
   #include "module/prusa/tool_mapper.hpp"
 #endif
 
+#include <option/has_local_accelerometer.h>
+#include <option/has_remote_accelerometer.h>
+
 millis_t GcodeSuite::previous_move_ms;
 
 // Relative motion mode for each logical axis
@@ -203,9 +206,9 @@ void GcodeSuite::get_destination_from_command() {
 /**
  * Dwell waits immediately. It does not synchronize. Use M400 instead of G4
  */
-void GcodeSuite::dwell(millis_t time) {
+void GcodeSuite::dwell(millis_t time, bool no_stepper_delay) {
   time += millis();
-  while (!planner.draining() && PENDING(millis(), time)) idle(true);
+  while (!planner.draining() && PENDING(millis(), time)) idle(true, no_stepper_delay);
 }
 
 /**
@@ -899,10 +902,20 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 951: M951(); break;                                  // M951: Set Magnetic Parking Extruder parameters
       #endif
 
-      case 958: M958(); break;
-
-      #if ENABLED(ACCELEROMETER)
+      #if HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER()
+        case 958: M958(); break;
         case 959: M959(); break;
+      #endif
+
+      #if HAS_PHASE_STEPPING()
+        case 970: M970(); break;
+        case 971: M971(); break;
+        case 972: M972(); break;
+        case 973: M973(); break;
+        case 974: M974(); break;
+        case 975: M975(); break;
+        case 976: M976(); break;
+        case 977: M977(); break;
       #endif
 
       #if ENABLED(Z_STEPPER_AUTO_ALIGN)

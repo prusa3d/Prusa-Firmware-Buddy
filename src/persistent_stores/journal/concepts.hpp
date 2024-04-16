@@ -1,6 +1,6 @@
 #pragma once
 #include <functional>
-#include "freertos_mutex.hpp"
+#include <common/freertos_mutex.hpp>
 #include <span>
 
 namespace journal {
@@ -12,7 +12,7 @@ concept BackendC = requires(T &t, uint16_t id, std::span<uint8_t> data, const Up
     { t.save(id, data) }
         -> std::same_as<void>;
     { t.lock() }
-        -> std::same_as<std::unique_lock<FreeRTOS_Mutex>>;
+        -> std::same_as<std::unique_lock<freertos::Mutex>>;
     { t.load_all(update_function, migration_functions) };
     { T::MAX_ITEM_SIZE };
 };

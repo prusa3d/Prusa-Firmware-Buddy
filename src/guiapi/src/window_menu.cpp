@@ -38,6 +38,32 @@ std::optional<int> WindowMenu::focused_item_index() const {
     return pContainer ? pContainer->GetFocusedIndex() : std::nullopt;
 }
 
+std::optional<int> WindowMenu::item_index_to_persistent_index(std::optional<int> item_index) const {
+    if (!item_index.has_value()) {
+        return {};
+    }
+
+    IWindowMenuItem *item = pContainer->GetItemByVisibleIndex(*item_index);
+    if (!item) {
+        return {};
+    }
+
+    return pContainer->GetRawIndex(*item);
+}
+
+std::optional<int> WindowMenu::persistent_index_to_item_index(std::optional<int> persistent_index) const {
+    if (!persistent_index.has_value()) {
+        return {};
+    }
+
+    IWindowMenuItem *item = pContainer->GetItemByRawIndex(*persistent_index);
+    if (!item) {
+        return {};
+    }
+
+    return pContainer->GetVisibleIndex(*item);
+}
+
 int WindowMenu::item_count() const {
     return pContainer ? pContainer->GetVisibleCount() : 0;
 }
@@ -85,9 +111,8 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
     case GUI_event_t::CLICK:
         if (focused_item) {
             focused_item->Click(*this);
-            return;
         }
-        break;
+        return; // Must not propagate event to parent in order to prevent infinite loop
 
     case GUI_event_t::CAPT_1:
         // TODO: change flag to checked
@@ -99,7 +124,7 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
         }
         break;
 
-    case GUI_event_t::TOUCH:
+    case GUI_event_t::TOUCH_CLICK:
         if (auto focused_index = move_focus_touch_click(param); focused_index && pContainer) {
             const event_conversion_union event_data {
                 .pvoid = param
@@ -107,6 +132,26 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
             pContainer->GetItemByVisibleIndex(*focused_index)->Touch(*this, event_data.point);
         }
         return;
+
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
+        for (auto it = pContainer->FindFirstVisible(); it.HasValue(); it = pContainer->FindNextVisible(it)) {
+            if (it.item->has_return_behavior() && it.item->IsEnabled()) {
+                Sound_Play(eSOUND_TYPE::ButtonEcho);
+
+                // Move focus, because some returns items are handled based on focus by a parent class
+                // cough cough screen_menu_filament_changeall::DMI_RETURN
+                it.item->move_focus();
+
+                // We don't need to repaint the item, really. Hopefully.
+                // If we don't validate, we'll see a short flash of the item, no need
+                it.item->Validate();
+
+                it.item->Click(*this);
+                return;
+            }
+        }
+        break;
 
     case GUI_event_t::LOOP:
         for (Node i = findFirst(); i.HasValue(); i = findNext(i)) {
@@ -245,8 +290,9 @@ WindowMenu::Node WindowMenu::findNext(WindowMenu::Node prev) {
  * @param var variant containing initialization data
  */
 void WindowMenu::InitState(screen_init_variant::menu_t var) {
-    move_focus_to_index(var.focused_index);
-    set_scroll_offset(var.scroll_offset);
+    move_focus_to_index(persistent_index_to_item_index(var.persistent_focused_index));
+    set_scroll_offset(persistent_index_to_item_index(var.persistent_scroll_offset).value_or(0));
+    ensure_item_on_screen(focused_item_index());
 }
 
 void WindowMenu::BindContainer(IWinMenuContainer &cont) {
@@ -333,7 +379,7 @@ bool WindowMenu::SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1) 
 
 screen_init_variant::menu_t WindowMenu::GetCurrentState() const {
     return {
-        .focused_index = static_cast<uint8_t>(focused_item_index().value_or(-1)),
-        .scroll_offset = static_cast<uint8_t>(scroll_offset()),
+        .persistent_focused_index = static_cast<uint8_t>(item_index_to_persistent_index(focused_item_index()).value_or(-1)),
+        .persistent_scroll_offset = static_cast<uint8_t>(item_index_to_persistent_index(scroll_offset()).value_or(0)),
     };
 }

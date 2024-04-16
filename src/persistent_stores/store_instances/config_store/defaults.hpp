@@ -1,5 +1,5 @@
 #pragma once
-#include "constants.hpp"
+
 #include <module/temperature.h>
 #include <config.h>
 #include <sound_enum.h>
@@ -12,6 +12,14 @@
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
 #include <filament_sensors_remap_data.hpp>
+#include <printers.h>
+
+#include "constants.hpp"
+#include <common/nozzle_type.hpp>
+#include <common/hotend_type.hpp>
+
+#include <option/has_sheet_support.h>
+#include <option/has_loadcell.h>
 
 namespace config_store_ns {
 
@@ -25,6 +33,9 @@ namespace defaults {
     inline constexpr uint8_t uint8_t_zero { 0 };
     inline constexpr uint16_t uint16_t_zero { 0 };
     inline constexpr uint32_t uint32_t_zero { 0 };
+    inline constexpr int8_t int8_t_zero { 0 };
+
+    inline constexpr uint8_t uint8_t_ff { 0xff };
 
     // default values for variables that have distinct requirements
     inline constexpr float pid_nozzle_p {
@@ -71,10 +82,12 @@ namespace defaults {
 #endif
     };
 
+    inline constexpr TestResult test_result_unknown { TestResult_Unknown };
+
     inline constexpr std::array<char, lan_hostname_max_len + 1> net_hostname { LAN_HOSTNAME_DEF };
     inline constexpr int8_t lan_timezone { 1 };
-    inline constexpr time_tools::TimeOffsetMinutes timezone_minutes { time_tools::TimeOffsetMinutes::_0min };
-    inline constexpr time_tools::TimeOffsetSummerTime timezone_summer { time_tools::TimeOffsetSummerTime::_wintertime };
+    inline constexpr time_tools::TimezoneOffsetMinutes timezone_minutes { time_tools::TimezoneOffsetMinutes::no_offset };
+    inline constexpr time_tools::TimezoneOffsetSummerTime timezone_summer { time_tools::TimezoneOffsetSummerTime::no_summertime };
     inline constexpr std::array<char, wifi_max_ssid_len + 1> wifi_ap_ssid { "" };
     inline constexpr std::array<char, wifi_max_passwd_len + 1> wifi_ap_password { "" };
 
@@ -125,6 +138,7 @@ namespace defaults {
     inline constexpr std::array<char, connect_token_size + 1> connect_token { "" };
     inline constexpr uint16_t connect_port { 443 };
 
+    // Production build need user to intentionally allow them
     inline constexpr MetricsAllow metrics_allow { MetricsAllow::None };
     inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "" };
     inline constexpr bool metrics_init { false };
@@ -201,8 +215,8 @@ namespace defaults {
     inline constexpr uint32_t side_fs_value_span { 310 };
 
     inline constexpr bool fsensor_enabled {
-#if PRINTER_IS_PRUSA_MINI
-        true // MINI does not require any calibration
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
+        true // MINI and 3.5 do not require any calibration
 #else
         false
 #endif
@@ -229,7 +243,13 @@ namespace defaults {
     inline constexpr SelftestResult_pre_gears selftest_result_pre_gears {};
     inline constexpr SelftestResult_pre_23 selftest_result_pre_23 {};
 
+#if (HAS_SHEET_SUPPORT())
+    static_assert(!HAS_LOADCELL(), "This caused major issues on XL.");
+    // Sheet[0] is used both as default sheet and as storage for z offset set by LiveAdjust Z. XL have had and issue that caused the tool offset calibration to fail due to aforementioned z offset. Uncalibrated value being float:max caused z offset to be set to 2 mm which lead to printer missing the calibration pin by almost 2 whole mm. This happens to all XLs that do not have a LiveAdjust Z value set and therefore use the default value.
+    inline constexpr Sheet sheet_0 { "Smooth1", z_offset_uncalibrated };
+#else
     inline constexpr Sheet sheet_0 { "Smooth1", 0.0f };
+#endif
     inline constexpr Sheet sheet_1 { "Smooth2", z_offset_uncalibrated };
     inline constexpr Sheet sheet_2 { "Textur1", z_offset_uncalibrated };
     inline constexpr Sheet sheet_3 { "Textur2", z_offset_uncalibrated };
@@ -265,6 +285,18 @@ namespace defaults {
         false
 #endif
     };
+    inline constexpr HotendType hotend_type {
+#if PRINTER_IS_PRUSA_iX
+        HotendType::stock_with_sock
+#else
+        HotendType::stock
+#endif
+    };
+    inline constexpr NozzleType nozzle_type {
+        NozzleType::Normal
+    };
+    inline constexpr uint8_t uint8_percentage_80 { 80 };
+    inline constexpr int64_t int64_zero { 0 };
 } // namespace defaults
 
 } // namespace config_store_ns

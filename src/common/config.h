@@ -2,7 +2,9 @@
 #pragma once
 
 #include "printers.h"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "MarlinPin.h"
 
 //--------------------------------------
 // BUDDY_ENABLE_ETHERNET configuration
@@ -13,10 +15,8 @@
 
 // marlin api config
 enum {
-    MARLIN_MAX_CLIENTS = 5, // maximum number of clients registered in same time
-    MARLIN_MAX_REQUEST = 180, // maximum request length in chars
-    MARLIN_SERVER_QUEUE = 128, // size of marlin server input character queue (number of characters)
-    MARLIN_CLIENT_QUEUE = 16, // size of marlin client input message queue (number of messages)
+    MARLIN_MAX_CLIENTS = 6, // maximum number of clients registered in same time
+    MARLIN_MAX_REQUEST = 110, // maximum request length in chars
 };
 
 // default string used as LAN hostname
@@ -44,9 +44,3 @@ enum {
 // CRC32 config - use hardware CRC32 with RTOS
 #define CRC32_USE_HW
 #define CRC32_USE_RTOS
-
-// guiconfig.h included with config
-#include <option/has_gui.h>
-#if HAS_GUI()
-    #include "../guiconfig/guiconfig.h"
-#endif

@@ -6,7 +6,7 @@
 #include <variant>
 #include "led_types.h"
 #include <mutex>
-#include "freertos_mutex.hpp"
+#include <common/freertos_mutex.hpp>
 #include <gui/led_animations/animation_model.hpp>
 
 namespace leds {
@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    FreeRTOS_Mutex mutex;
+    freertos::Mutex mutex;
     PrinterState oldState = PrinterState::Printing;
     AnimatorLCD::AnimationGuard active_animation;
     std::optional<PrinterState> change_animation_on;

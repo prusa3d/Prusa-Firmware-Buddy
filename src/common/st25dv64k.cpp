@@ -7,7 +7,7 @@
 #include "main.h"
 #include "metric.h"
 #include "SEGGER_SYSVIEW.h"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "utility_extensions.hpp"
 #include <limits>
 #include <algorithm>
@@ -169,7 +169,7 @@ static void try_fix_if_needed(Result result) {
         return user_write_address_without_lock(cmd, address);
     }
 
-    static metric_t metric_eeprom_write = METRIC("eeprom_write", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(metric_eeprom_write, "eeprom_write", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
     metric_record_event(&metric_eeprom_write);
 
     uint8_t const *p = (uint8_t const *)pdata;

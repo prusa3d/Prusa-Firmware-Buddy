@@ -8,10 +8,15 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_mmu.hpp"
 
-using ScreenMenuMMULoadToNozzle__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-    MI_MMU_LOAD_TO_NOZZLE_1, MI_MMU_LOAD_TO_NOZZLE_2, MI_MMU_LOAD_TO_NOZZLE_3, MI_MMU_LOAD_TO_NOZZLE_4, MI_MMU_LOAD_TO_NOZZLE_5>;
+template <typename>
+struct ScreenMenuMMULoadToNozzle_;
 
-class ScreenMenuMMULoadToNozzle : public ScreenMenuMMULoadToNozzle__ {
+template <size_t... i>
+struct ScreenMenuMMULoadToNozzle_<std::index_sequence<i...>> {
+    using T = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_MMU_LOAD_TO_NOZZLE_I<i>...>;
+};
+
+class ScreenMenuMMULoadToNozzle : public ScreenMenuMMULoadToNozzle_<std::make_index_sequence<EXTRUDERS>>::T {
 public:
     constexpr static const char *label = N_("Load to Nozzle");
     ScreenMenuMMULoadToNozzle();

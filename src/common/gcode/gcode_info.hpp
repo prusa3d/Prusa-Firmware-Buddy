@@ -6,13 +6,16 @@
  */
 #pragma once
 
-#include "guitypes.hpp"
+#include "option/has_gui.h"
+#if HAS_GUI()
+    #include "guitypes.hpp"
+#endif
 #include "i18n.h"
 #include "marlin_stubs/PrusaGcodeSuite.hpp"
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
 #include "gcode_buffer.hpp"
-#include "gcode_reader.hpp"
+#include "gcode_reader_any.hpp"
 #include <array>
 #include <feature/print_area.h>
 
@@ -52,28 +55,15 @@ public:
     static constexpr uint32_t gcode_level = GCODE_LEVEL;
 
 #if PRINTER_IS_PRUSA_MK4
-    static constexpr std::array<const char *, 3> printer_compatibility_list = { PRINTER_MODEL, "MK3.9", "MK3.9MMU3" }; ///< Basic compatibility for M862.3 G-code
+    static constexpr std::array<const char *, 3> printer_compatibility_list = { PRINTER_MODEL, "MK3.9" }; ///< Basic compatibility for M862.3 G-code
 #else
     static constexpr std::array<const char *, 1> printer_compatibility_list = { PRINTER_MODEL }; ///< Basic compatibility for M862.3 G-code
 #endif
 
+    static constexpr std::array<const char *, 1> supported_features = { "Input shaper" };
+
     // search this many g-code at the beginning of the file for the various g-codes (M862.x nozzle size, bed heating, nozzle heating)
     static constexpr size_t search_first_x_gcodes = 200;
-
-    /// Extended compatibility list for "; printer_model = ???" G-code comment
-#if PRINTER_IS_PRUSA_XL
-    // XL is compatible with multitool models XL2 .. XL5
-    static constexpr std::array<const char *, 10> printer_extended_compatibility_list = {
-        PRINTER_MODEL, PRINTER_MODEL "2", PRINTER_MODEL "3", PRINTER_MODEL "4", PRINTER_MODEL "5",
-        PRINTER_MODEL "IS", PRINTER_MODEL "2IS", PRINTER_MODEL "3IS", PRINTER_MODEL "4IS", PRINTER_MODEL "5IS"
-    };
-#elif PRINTER_IS_PRUSA_MK4
-    static constexpr std::array<const char *, 6> printer_extended_compatibility_list = {
-        PRINTER_MODEL, "MK3.9", "MK3.9MMU3", PRINTER_MODEL "IS", "MK3.9IS", "MK3.9MMU3IS"
-    };
-#else
-    static constexpr std::array<const char *, 2> printer_extended_compatibility_list = { PRINTER_MODEL, PRINTER_MODEL "IS" };
-#endif /*PRINTER_IS*/
 
     using time_buff = std::array<char, 16>;
     using filament_buff = std::array<char, 8>;
@@ -326,12 +316,14 @@ private:
     const char *gcode_file_path; /**< stores current gcode file path */
     const char *gcode_file_name; /**< stores current gcode file name */
 
+#if HAS_GUI()
     /** Set static variable for gcode filename
      *  @param[in] file - gcode file reference
      *  @param[in] size - thumbnail wanted size
      *  @return True - if has thumbnail with those size parameters
      */
     bool hasThumbnail(IGcodeReader &reader, size_ui16_t size);
+#endif
     GCodeInfo();
     GCodeInfo(const GCodeInfo &) = delete;
 

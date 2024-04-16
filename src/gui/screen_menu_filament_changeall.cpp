@@ -23,14 +23,14 @@ I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
                 strncpy(buffer, label_unload, GuiDefaults::infoDefaultLen);
             } else {
                 // Print "Change to"/"Load" and filament name to buffer
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%s %s", loaded ? label_change_fil : label_load_fil, filament::get_description(filament::Type(index)).name);
+                snprintf(buffer, GuiDefaults::infoDefaultLen, "%s %s", loaded ? label_change_fil : label_load_fil, filament::get_name(filament::Type(index)));
             }
         })
     , loaded(config_store().get_filament_type(tool_n) != filament::Type::NONE) {
 }
 
 MI_FilamentApplyChanges::MI_FilamentApplyChanges()
-    : WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_FilamentApplyChanges::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);
@@ -106,16 +106,16 @@ void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_c
             marlin_client::gcode_printf("M702 T%d W2", tool); // Unload
         } else if (old_filament[tool] == filament::Type::NONE) { // Load
             if (colors[tool].has_value()) {
-                marlin_client::gcode_printf("M701 S\"%s\" T%d W2 O%d", filament::get_description(new_filament[tool]).name, tool,
+                marlin_client::gcode_printf("M701 S\"%s\" T%d W2 O%d", filament::get_name(new_filament[tool]), tool,
                     colors[tool].value().to_int());
             } else {
-                marlin_client::gcode_printf("M701 S\"%s\" T%d W2", filament::get_description(new_filament[tool]).name, tool);
+                marlin_client::gcode_printf("M701 S\"%s\" T%d W2", filament::get_name(new_filament[tool]), tool);
             }
         } else { // Change, don't ask for unload
             if (colors[tool].has_value()) {
-                marlin_client::gcode_printf("M1600 S\"%s\" T%d R O%d", filament::get_description(new_filament[tool]).name, tool, colors[tool].value().to_int());
+                marlin_client::gcode_printf("M1600 S\"%s\" T%d R O%d", filament::get_name(new_filament[tool]), tool, colors[tool].value().to_int());
             } else {
-                marlin_client::gcode_printf("M1600 S\"%s\" T%d R", filament::get_description(new_filament[tool]).name, tool);
+                marlin_client::gcode_printf("M1600 S\"%s\" T%d R", filament::get_name(new_filament[tool]), tool);
             }
         }
 
@@ -207,7 +207,8 @@ void detail::DialogEnabledMI::set_parent(IDialog *new_parent) {
 
 DMI_RETURN::DMI_RETURN()
     : detail::DialogEnabledMI()
-    , WI_LABEL_t(_(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    , IWindowMenuItem(_(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    has_return_behavior_ = true;
 }
 
 void DMI_RETURN::click(IWindowMenu &) {
@@ -218,7 +219,7 @@ void DMI_RETURN::click(IWindowMenu &) {
 
 DMI_FilamentApplyChanges::DMI_FilamentApplyChanges()
     : detail::DialogEnabledMI()
-    , WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
+    , IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void DMI_FilamentApplyChanges::click(IWindowMenu & /*window_menu*/) {
     if (parent) {
@@ -226,7 +227,7 @@ void DMI_FilamentApplyChanges::click(IWindowMenu & /*window_menu*/) {
     }
 }
 
-DialogChangeAllFilaments::DialogChangeAllFilaments(std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> default_selections, bool exit_on_media_, std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> colors_)
+DialogChangeAllFilaments::DialogChangeAllFilaments(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media_, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors_)
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenNoHeader)
     , exit_on_media(exit_on_media_)
     , colors(colors_)
@@ -288,9 +289,8 @@ void DialogChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
 }
 } // namespace dialog_change_all_filaments
 
-bool ChangeAllFilamentsBox(std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> default_selections, bool exit_on_media, std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> colors) {
+bool ChangeAllFilamentsBox(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors) {
     dialog_change_all_filaments::DialogChangeAllFilaments d { default_selections, exit_on_media, colors };
-    d.MakeBlocking();
-
+    Screens::Access()->gui_loop_until_dialog_closed();
     return d.was_exited_by_media();
 }

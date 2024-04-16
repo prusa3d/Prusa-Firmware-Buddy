@@ -6,18 +6,22 @@
  */
 
 #include "filament_sensors_handler.hpp"
-#include "print_processor.hpp"
 #include "rtos_api.hpp"
-#include "freertos_mutex.hpp"
 #include "bsod.h"
-#include <mutex>
+#include "window_msgbox.hpp"
 #include <log.h>
-#include "fsensor_eeprom.hpp"
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
+#include <option/has_human_interactions.h>
+#include <option/has_toolchanger.h>
+
 #if HAS_SELFTEST_SNAKE()
     #include <ScreenHandler.hpp>
     #include "screen_menu_selftest_snake.hpp"
+#endif
+
+#if HAS_MMU2()
+    #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
 LOG_COMPONENT_DEF(FSensor, LOG_SEVERITY_INFO);
@@ -25,417 +29,295 @@ LOG_COMPONENT_DEF(FSensor, LOG_SEVERITY_INFO);
 using namespace MMU2;
 
 FilamentSensors::FilamentSensors() {
+    reconfigure_sensors_if_needed(true);
 
-    SetToolIndex(); // other config depends on it, do it first
+    // Request that the fsensors get properly configured on startup
+    enable_state_update_pending = true;
+}
 
-    if (has_mmu2_enabled()) {
-        request_side = filament_sensor::cmd_t::on;
+void FilamentSensors::set_enabled_global(bool set) {
+    if (config_store().fsensor_enabled.get() == set) {
+        return;
     }
 
-    // Set logical sensors
-    // MK4 can be reconfigured (connecting MMU)
-    // MINI can not
-    // XL reconfigures on tool change
-    configure_sensors();
+    config_store().fsensor_enabled.set(set);
+    request_enable_state_update();
 }
 
-FreeRTOS_Mutex &FilamentSensors::GetSideMutex() {
-    static FreeRTOS_Mutex ret;
-    return ret;
-}
-FreeRTOS_Mutex &FilamentSensors::GetExtruderMutex() {
-    static FreeRTOS_Mutex ret;
-    return ret;
+void FilamentSensors::request_enable_state_update([[maybe_unused]] bool check_fs) {
+#if HAS_MMU2()
+    // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
+    if (check_fs && config_store().mmu2_enabled.get() && !config_store().fsensor_enabled.get()) {
+        marlin_client::gcode("M709 S0");
+    }
+#endif
+
+    enable_state_update_pending = true;
 }
 
-// there is only one init_status
-// active extruder is stored in FilamentSensors
-// changing it must change init_status too
-filament_sensor::init_status_t FilamentSensors::get_active_init_status() const {
-    return init_status;
-}
+bool FilamentSensors::gui_wait_for_init_with_msg() {
+    enum : uint8_t {
+        f_extruder = 1,
+        f_side = 2,
+    };
 
-// Store request_printer off
-void FilamentSensors::Disable() {
-    DisableSideSensor(); // MMU requires enabled filament sensor to work, it makes sense for XL to behave the same
-    const std::lock_guard lock(GetExtruderMutex());
-    request_printer = filament_sensor::cmd_t::off;
-}
+    const auto any_fsensor_in_state
+        = [&](FilamentSensorState state) {
+              uint8_t result = 0;
+              for_all_sensors([&](IFSensor &s, [[maybe_unused]] uint8_t index, bool is_side) {
+                  if (s.get_state() == state) {
+                      result |= is_side ? f_side : f_extruder;
+                  }
+              });
+              return result;
+          };
 
-// Store request_printer on
-void FilamentSensors::Enable() {
-    const std::lock_guard lock(GetExtruderMutex());
-    request_printer = filament_sensor::cmd_t::on;
-}
-
-bool FilamentSensors::is_enabled() const {
-    return FSensorEEPROM::Get();
-}
-
-auto FilamentSensors::get_enable_result() -> EnableResult {
-    filament_sensor::cmd_t request = request_printer.load();
-    if (request == filament_sensor::cmd_t::on || request == filament_sensor::cmd_t::processing) {
-        return EnableResult::in_progress;
+    // wait until it is initialized
+    // no guiloop here !!! - it could cause show of unwanted error message
+    while (is_enable_state_update_processing() || any_fsensor_in_state(FilamentSensorState::NotInitialized)) {
+        osDelay(0);
     }
 
-    // Check state of all sensors
+    if ([[maybe_unused]] auto ncf = any_fsensor_in_state(FilamentSensorState::NotConnected)) {
+        if (ncf & f_extruder) {
+            MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
+            return false;
+
+        } else {
+            // Only side sensors are not connected, not that tragic, show message but keep on going
+            MsgBoxWarning(_("Side filament sensor not connected, check wiring."), Responses_Ok);
+        }
+    }
+
+    if (any_fsensor_in_state(FilamentSensorState::NotCalibrated)) {
+        MsgBoxWarning(_("Filament sensor not ready: perform calibration first."), Responses_Ok);
+        return false;
+    }
+
+    return true;
+}
+
+void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &sensor, uint8_t index, bool is_side)> &f) {
     HOTEND_LOOP() {
-        if (IFSensor *s = GetExtruderFSensor(e); s) {
-            fsensor_t state = s->Get();
-            switch (state) {
-            case fsensor_t::NotInitialized:
-                return EnableResult::in_progress;
-            case fsensor_t::NotConnected:
-                return EnableResult::not_connected;
-            case fsensor_t::NotCalibrated:
-                return EnableResult::not_calibrated;
-            default:
-                break;
-            }
+        if (IFSensor *s = GetExtruderFSensor(e)) {
+            f(*s, e, false);
         }
-        if (IFSensor *s = GetSideFSensor(e); s) {
-            fsensor_t state = s->Get();
-            switch (state) {
-            case fsensor_t::NotInitialized:
-                return EnableResult::in_progress;
-            case fsensor_t::NotConnected:
-                return EnableResult::not_connected;
-            case fsensor_t::NotCalibrated:
-                return EnableResult::not_calibrated;
-            default:
-                break;
-            }
+        if (IFSensor *s = GetSideFSensor(e)) {
+            f(*s, e, true);
         }
-    }
-
-    return EnableResult::ok;
-}
-
-// process printer request stored by Enable/Disable
-void FilamentSensors::process_printer_request() {
-    switch (request_printer) {
-    case filament_sensor::cmd_t::on:
-
-        HOTEND_LOOP() {
-            if (IFSensor *s = GetExtruderFSensor(e); s) {
-                s->Enable();
-            }
-            if (IFSensor *s = GetSideFSensor(e); s) {
-                s->Enable();
-            }
-        }
-        request_printer = filament_sensor::cmd_t::processing;
-        break;
-    case filament_sensor::cmd_t::off:
-        HOTEND_LOOP() {
-            if (IFSensor *s = GetExtruderFSensor(e); s) {
-                s->Disable();
-            }
-            if (IFSensor *s = GetSideFSensor(e); s) {
-                s->Disable();
-            }
-        }
-
-        request_printer = filament_sensor::cmd_t::processing;
-        break;
-    case filament_sensor::cmd_t::processing:
-    case filament_sensor::cmd_t::null:
-        break;
     }
 }
 
-void FilamentSensors::all_sensors_initialized() {
-    // Need lock to avoid loss of command if it is set just after evaluation but before assignment
-    const std::lock_guard lock(GetExtruderMutex());
-    if (request_printer == filament_sensor::cmd_t::processing) {
-        request_printer = filament_sensor::cmd_t::null; // cycle ended clear command, it is atomic so it will not be reordered
-    }
-}
-bool FilamentSensors::run_sensors_cycle() {
-    bool any_not_intitialized = false;
-    HOTEND_LOOP() {
-        if (IFSensor *s = GetExtruderFSensor(e); s != nullptr) {
-            s->Cycle();
-            if (s->Get() == fsensor_t::NotInitialized) {
-                any_not_intitialized = true;
-            }
-        }
-        if (IFSensor *s = GetSideFSensor(e); s != nullptr) {
-            s->Cycle();
-            if (s->Get() == fsensor_t::NotInitialized) {
-                any_not_intitialized = true;
-            }
-        }
-    }
-    return any_not_intitialized;
+void FilamentSensors::task_init() {
+    marlin_client::init();
+    marlin_client::wait_for_start_processing();
 }
 
-filament_sensor::Events FilamentSensors::evaluate_logical_sensors_events() {
-    auto arr_logical = logical_sensors.get_array();
+void FilamentSensors::task_cycle() {
+    marlin_client::loop();
 
-    // Get events for each logical sensor.
-    filament_sensor::Events ret;
-    for (size_t logi = 0; logi < arr_logical.size(); ++logi) {
-        if (arr_logical[logi]) { // check if current sensor is linked
-            ret.get(logi) = arr_logical[logi]->GenerateEvent();
+    static bool old_state = false;
+    const bool new_state = marlin_vars_t().get_fsm_states().is_active(ClientFSM::Load_unload);
 
-            // Since sensor can repeat inside arr_logical, update every consecutive logical sensor and set it to null so GenerateEvent is not called twice
-            for (size_t next_logi = logi + 1; next_logi < arr_logical.size(); ++next_logi) {
-                if (arr_logical[logi] == arr_logical[next_logi]) {
-                    ret.get(next_logi) = ret.get(logi);
-                    arr_logical[next_logi] = nullptr;
-                }
-            }
-        }
+    if (old_state && !new_state) {
+        FSensors_instance().DecEvLock(); // ClientFSM::Load_unload destroy
+    }
+    if (!old_state && new_state) {
+        FSensors_instance().IncEvLock(); // ClientFSM::Load_unload create
     }
 
-    return ret;
+    old_state = new_state;
+
+    // Reconfigure logical sensors
+    reconfigure_sensors_if_needed(false);
+
+    // Update states of filament sensors
+    if (enable_state_update_pending) {
+        process_enable_state_update();
+    }
+
+    // Run cycle to evaluate state of all sensors (even those not active)
+    for_all_sensors([](IFSensor &s, uint8_t, bool) {
+        if (s.is_enabled()) {
+            s.cycle();
+        }
+
+        s.record_state();
+        s.check_for_events();
+    });
+
+    // Update logical sensors states
+    for (uint8_t i = 0; i < logical_filament_sensor_count; i++) {
+        IFSensor *fs = logical_sensors_.array[i];
+        logical_sensor_states_.array[i] = fs ? fs->get_state() : FilamentSensorState::Disabled;
+    }
+
+    process_events();
 }
 
-void FilamentSensors::Cycle() {
-    process_side_request();
-    process_printer_request();
+void FilamentSensors::reconfigure_sensors_if_needed(bool force) {
+    const uint8_t new_tool_index =
+#if HAS_TOOLCHANGER()
+        prusa_toolchanger.get_active_tool_nr();
+#else
+        0;
+#endif
 
-    // run cycle to evaluate state of all sensors (even those not active)
-    bool any_not_intitialized = run_sensors_cycle();
+    const bool new_has_mmu =
+#if HAS_MMU2()
+        mmu2.State() != xState::Stopped;
+#else
+        false;
+#endif
 
-    if (!any_not_intitialized) {
-        all_sensors_initialized();
+    if (!force && new_tool_index == tool_index && new_has_mmu == has_mmu) {
+        return;
     }
 
-    // Evaluate currently used sensors of all sensors
-    filament_sensor::Events events = FilamentSensors::evaluate_logical_sensors_events();
+    tool_index = new_tool_index;
+    has_mmu = new_has_mmu;
 
-    set_corresponding_variables();
+    using LFS = LogicalFilamentSensor;
+    auto &ls = logical_sensors_;
 
-    bool opt_event_m600 { false };
-    bool opt_event_autoload { false };
+    const auto extruder_fs = GetExtruderFSensor(tool_index);
+    const auto side_fs = GetSideFSensor(tool_index);
 
-    if (PrintProcessor::IsPrinting()) {
-        if (events.primary_runout) {
-            opt_event_m600 = evaluateM600(*events.primary_runout);
-        }
+    ls[LFS::current_extruder] = extruder_fs;
+    ls[LFS::current_side] = side_fs;
+    ls[LFS::primary_runout] = side_fs ?: extruder_fs;
+    ls[LFS::secondary_runout] = side_fs ? extruder_fs : nullptr;
+    ls[LFS::autoload] = has_mmu ? nullptr : extruder_fs;
+}
 
-        // With an MMU, don't check for runout on the secondary sensor
-        if (!has_mmu && !opt_event_m600 && events.secondary_runout) {
-            opt_event_m600 = evaluateM600(*events.secondary_runout);
-        }
-    } else {
-        if (events.autoload) {
-            opt_event_autoload = evaluateAutoload(*events.autoload);
-        }
-    }
-
+void FilamentSensors::process_events() {
     if (isEvLocked()) {
         return;
     }
 
-    // gcode is injected outside critical section, so critical section is as short as possible
-    // also injection of GCode inside critical section might not work
-    // TODO M600_sent and Autoload_sent should be mutually exclusive
-    // for now M600 just has higher prior thanks to "else if"
-    if (opt_event_m600) {
+    const auto check_runout = [&](LogicalFilamentSensor s) {
+        const auto event = sensor(s)->last_event();
+        if (m600_sent || event != IFSensor::Event::filament_removed) {
+            return false;
+        }
+
         m600_sent = true;
-        PrintProcessor::InjectGcode("M600 A"); // change filament
+
+        if constexpr (option::has_human_interactions) {
+            marlin_client::gcode_push_front("M600 A"); // change filament
+        } else {
+            marlin_client::gcode_push_front("M25 U"); // pause and unload filament
+        }
+
         log_info(FSensor, "Injected runout");
-    } else if (opt_event_autoload && !has_mmu && !isAutoloadLocked()
+        return true;
+    };
+
+    const auto check_autoload = [&]() {
+        const auto event = sensor(LogicalFilamentSensor::autoload)->last_event();
+
+        if (
+            event != IFSensor::Event::filament_inserted
+            || has_mmu
+            || autoload_sent
+            || isAutoloadLocked()
+            || !marlin_vars()->fs_autoload_enabled //
 #if HAS_SELFTEST_SNAKE()
-        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
-        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
+            // We're accessing screens from the filamentsensors thread here. This looks quite unsafe.
+            || Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
+            || Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
 #endif /*PRINTER_IS_PRUSA_XL*/
-    ) {
+        ) {
+            return false;
+        }
+
         autoload_sent = true;
-        PrintProcessor::InjectGcode("M1701 Z40"); // autoload with return option and minimal Z value of 40mm
+        marlin_client::gcode_push_front("M1701 Z40"); // autoload with return option and minimal Z value of 40mm
         log_info(FSensor, "Injected autoload");
-    }
-}
 
-/**
- * @brief method to store corresponding values inside critical section
- */
-void FilamentSensors::set_corresponding_variables() {
-    // need locks, to ensure all variables have corresponding values
-    // don't actually take the locks yet
-    std::unique_lock lock_mmu(GetSideMutex(), std::defer_lock);
-    std::unique_lock lock_printer(GetExtruderMutex(), std::defer_lock);
+        return true;
+    };
 
-    // lock both unique_locks without deadlock
-    buddy::lock(lock_mmu, lock_printer);
+    if (marlin_client::is_printing()) {
+        if (check_runout(LogicalFilamentSensor::primary_runout)) {
+            return;
+        }
 
-    reconfigure_sensors_if_needed();
+        // With an MMU, don't check for runout on the secondary sensor
+        if (!has_mmu && check_runout(LogicalFilamentSensor::secondary_runout)) {
+            return;
+        }
 
-    // copy states of sensors while we are in critical section
-    state_of_primary_runout_sensor = logical_sensors.primary_runout ? logical_sensors.primary_runout->Get() : fsensor_t::Disabled;
-    state_of_secondary_runout_sensor = logical_sensors.secondary_runout ? logical_sensors.secondary_runout->Get() : fsensor_t::Disabled;
-    state_of_autoload_sensor = logical_sensors.autoload ? logical_sensors.autoload->Get() : fsensor_t::Disabled;
-
-    state_of_current_extruder = logical_sensors.current_extruder ? logical_sensors.current_extruder->Get() : fsensor_t::Disabled;
-    state_of_current_side = logical_sensors.current_side ? logical_sensors.current_side->Get() : fsensor_t::Disabled;
-
-    if ((request_printer != filament_sensor::cmd_t::null) || (request_side != filament_sensor::cmd_t::null)) {
-        init_status = filament_sensor::init_status_t::NotReady;
-    } else {
-        // if we don't have sensor it is automatically ok, "having sensor" is set by (re)configure_sensors
-        const bool side_sensor_ok =
-#if HAS_MMU2()
-            !has_mmu || // this might be unnecessary TODO try MK4 with MMU without it
+#if PRINTER_IS_PRUSA_iX
+        // On filament runout on iX, the filament gets unloaded and the printer paused.
+        // So when the user inserts a filament during a pause, we want the autoload to trigger,
+        // because it's part of the filament change sequence.
+        // BFW-5106
+        if (marlin_vars()->print_state.get() == marlin_server::State::Paused && check_autoload()) {
+            return;
+        }
 #endif
-            !logical_sensors.current_side || FilamentSensors::IsWorking(logical_sensors.current_side->Get());
-        const bool extruder_sensor_ok = !logical_sensors.current_extruder || FilamentSensors::IsWorking(logical_sensors.current_extruder->Get()) || logical_sensors.current_extruder->Get() == fsensor_t::Disabled;
-        const bool side_not_calibrated = (!side_sensor_ok) && logical_sensors.current_side && (logical_sensors.current_side->Get() == fsensor_t::NotCalibrated);
-        const bool extruder_not_calibrated = (!extruder_sensor_ok) && logical_sensors.current_extruder && (logical_sensors.current_extruder->Get() == fsensor_t::NotCalibrated);
 
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 2^4 = 16 combinations
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 1, 1, X, X .. 4 combinations
-        if (side_not_calibrated && extruder_not_calibrated) {
-            init_status = filament_sensor::init_status_t::BothNotCalibrated;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 1, 0, X, X .. 4 combinations
-        if (side_not_calibrated && !extruder_not_calibrated) {
-            init_status = filament_sensor::init_status_t::SideNotCalibrated;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 0, 1, X, X .. 4 combinations
-        if (!side_not_calibrated && extruder_not_calibrated) {
-            init_status = filament_sensor::init_status_t::ExtruderNotCalibrated;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 0, 0, 0, 0 .. 1 combination
-        if (!side_not_calibrated && !extruder_not_calibrated && !side_sensor_ok && !extruder_sensor_ok) {
-            init_status = filament_sensor::init_status_t::BothNotInitialized;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 0, 0, 0, 1 .. 1 combination
-        if (!side_not_calibrated && !extruder_not_calibrated && !side_sensor_ok && extruder_sensor_ok) {
-            init_status = filament_sensor::init_status_t::SideNotInitialized;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 0, 0, 1, 0 .. 1 combination
-        if (!side_not_calibrated && !extruder_not_calibrated && side_sensor_ok && !extruder_sensor_ok) {
-            init_status = filament_sensor::init_status_t::ExtruderNotInitialized;
-        }
-
-        // side_not_calibrated, extruder_not_calibrated, side_sensor_ok, extruder_sensor_ok
-        // 0, 0, 1, 1 .. 1 combination
-        if (!side_not_calibrated && !extruder_not_calibrated && side_sensor_ok && extruder_sensor_ok) {
-            init_status = filament_sensor::init_status_t::Ok;
-        }
-    }
-}
-
-FilamentSensors::BothSensors FilamentSensors::GetBothSensors() {
-    // need locks, to ensure all variables have corresponding values
-    // don't actually take the locks yet
-    std::unique_lock lock_mmu(GetSideMutex(), std::defer_lock);
-    std::unique_lock lock_printer(GetExtruderMutex(), std::defer_lock);
-
-    // lock both unique_locks without deadlock
-    buddy::lock(lock_mmu, lock_printer);
-
-    BothSensors ret = { state_of_current_extruder, state_of_current_side };
-
-    return ret;
-}
-
-// this method is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter
-// trying to trigger runout at exact moment when print ended could break something
-// also if another M600 happens during clear of M600_sent flag, it could be discarded, this is not a problem, because it could happen only due a bug
-// if it happens move it inside FilamentSensors::Cycle critical section
-bool FilamentSensors::evaluateM600(FSensor::event ev) const {
-    if ((ev == FSensor::event::EdgeFilamentRemoved)
-        && !m600_sent) {
-        return true;
-    }
-    return false;
-}
-
-// this method is currently called outside FilamentSensors::Cycle critical section, so the critical section is shorter
-// trying to trigger autoload at exact moment when print starts could break something
-// also if another autoload happens during clear of Autoload_sent flag, it could be discarded, this is not a problem, because it could happen only due a bug
-// if it happens move it inside FilamentSensors::Cycle critical section
-bool FilamentSensors::evaluateAutoload(FSensor::event ev) const {
-    if ((ev == FSensor::event::EdgeFilamentInserted)
-        && !autoload_sent
-        && PrintProcessor::IsAutoloadEnabled()) {
-        return true;
-    }
-    return false;
-}
-
-uint32_t FilamentSensors::DecEvLock() {
-    CriticalSection C; // TODO use counting semaphore to avoid critical section
-    if (event_lock > 0) {
-        --event_lock;
     } else {
-        bsod("Filament sensor event lock out of range");
+        if (check_autoload()) {
+            return;
+        }
     }
-    return event_lock;
 }
 
-uint32_t FilamentSensors::DecAutoloadLock() {
-    CriticalSection C; // TODO use counting semaphore to avoid critical section
-    if (autoload_lock > 0) {
-        --autoload_lock;
-    } else {
-        bsod("Autoload event lock out of range");
+void FilamentSensors::process_enable_state_update() {
+    enable_state_update_processing = true;
+    enable_state_update_pending = false;
+
+    const bool global_enable = config_store().fsensor_enabled.get();
+    const uint8_t extruder_enable_bits = config_store().fsensor_extruder_enabled_bits.get();
+    const uint8_t side_enable_bits = config_store().fsensor_side_enabled_bits.get();
+
+    HOTEND_LOOP() {
+        if (IFSensor *s = GetExtruderFSensor(e)) {
+            s->set_enabled(global_enable && (extruder_enable_bits & (1 << e)));
+        }
+        if (IFSensor *s = GetSideFSensor(e)) {
+            s->set_enabled(global_enable && (side_enable_bits & (1 << e)));
+        }
     }
-    return autoload_lock;
+
+    enable_state_update_processing = false;
 }
 
-uint32_t FilamentSensors::IncAutoloadLock() {
-    return ++autoload_lock;
+void FilamentSensors::DecEvLock() {
+    if ((event_lock--) == 0) {
+        bsod("Filament sensor event underflow");
+    }
 }
-uint32_t FilamentSensors::IncEvLock() {
-    return ++event_lock;
+void FilamentSensors::IncEvLock() {
+    if ((event_lock++) == std::numeric_limits<decltype(autoload_lock)::value_type>::max()) {
+        bsod("Filament sensor event lock overflow");
+    }
+}
+
+void FilamentSensors::DecAutoloadLock() {
+    if ((autoload_lock--) == 0) {
+        bsod("Autoload event lock underflow");
+    }
+}
+void FilamentSensors::IncAutoloadLock() {
+    if ((autoload_lock++) == std::numeric_limits<decltype(autoload_lock)::value_type>::max()) {
+        bsod("Autoload sensor event lock overflow");
+    }
 }
 
 bool FilamentSensors::MMUReadyToPrint() {
-    // don't actually take the locks yet
-    std::unique_lock lock_mmu(GetSideMutex(), std::defer_lock);
-    std::unique_lock lock_printer(GetExtruderMutex(), std::defer_lock);
-
-    // lock both unique_locks without deadlock
-    buddy::lock(lock_mmu, lock_printer);
-
     // filament has to be unloaded from primary tool for MMU print
-    return state_of_primary_runout_sensor == fsensor_t::NoFilament;
+    return logical_sensor_states_[LogicalFilamentSensor::primary_runout] == FilamentSensorState::NoFilament;
 }
 
 bool FilamentSensors::ToolHasFilament(uint8_t tool_nr) {
-    // don't actually take the locks yet
-    std::unique_lock lock_side(GetSideMutex(), std::defer_lock);
-    std::unique_lock lock_printer(GetExtruderMutex(), std::defer_lock);
+    FilamentSensorState extruder_state = GetExtruderFSensor(tool_nr) ? GetExtruderFSensor(tool_nr)->get_state() : FilamentSensorState::Disabled;
+    FilamentSensorState side_state = GetSideFSensor(tool_nr) ? GetSideFSensor(tool_nr)->get_state() : FilamentSensorState::Disabled;
 
-    // lock both unique_locks without deadlock
-    buddy::lock(lock_side, lock_printer);
-
-    fsensor_t extruder_state = GetExtruderFSensor(tool_nr) ? GetExtruderFSensor(tool_nr)->Get() : fsensor_t::Disabled;
-    fsensor_t side_state = GetSideFSensor(tool_nr) ? GetSideFSensor(tool_nr)->Get() : fsensor_t::Disabled;
-
-    return (extruder_state == fsensor_t::HasFilament || extruder_state == fsensor_t::Disabled) && (side_state == fsensor_t::HasFilament || side_state == fsensor_t::Disabled);
+    return (extruder_state == FilamentSensorState::HasFilament || extruder_state == FilamentSensorState::Disabled) && (side_state == FilamentSensorState::HasFilament || side_state == FilamentSensorState::Disabled);
 }
-
-IFSensor *get_active_printer_sensor() {
-    return GetExtruderFSensor(FSensors_instance().tool_index);
-}
-
-IFSensor *get_active_side_sensor() {
-    return GetSideFSensor(FSensors_instance().tool_index);
-}
-
-/*****************************************************************************/
-// section with locks
-// Do not nest calls of methods with same mutex !!!
-// Do not call from filament sensor thread
 
 /**
  * @brief encode printer sensor state to MMU enum
@@ -444,31 +326,18 @@ IFSensor *get_active_side_sensor() {
  * @return MMU2::FilamentState
  */
 FilamentState FilamentSensors::WhereIsFilament() {
-    const std::lock_guard lock(GetExtruderMutex());
-    switch (state_of_secondary_runout_sensor) {
-    case fsensor_t::HasFilament:
+    switch (logical_sensor_states_[LogicalFilamentSensor::secondary_runout]) {
+
+    case FilamentSensorState::HasFilament:
         return FilamentState::AT_FSENSOR;
-    case fsensor_t::NoFilament:
+
+    case FilamentSensorState::NoFilament:
         return FilamentState::NOT_PRESENT;
-    case fsensor_t::NotInitialized:
-    case fsensor_t::NotCalibrated:
-    case fsensor_t::NotConnected:
-    case fsensor_t::Disabled:
-        break;
+
+    default:
+        return FilamentState::UNAVAILABLE;
     }
-    return FilamentState::UNAVAILABLE;
 }
-
-// this method should not be accessed if we don't have MMU
-// if it is it will do unnecessary lock and return false
-// I prefer to have single method for both variants
-bool FilamentSensors::HasMMU() {
-    const std::lock_guard lock(GetSideMutex());
-    return has_mmu;
-}
-
-// end of section with locks
-/*****************************************************************************/
 
 // Meyer's singleton
 FilamentSensors &FSensors_instance() {

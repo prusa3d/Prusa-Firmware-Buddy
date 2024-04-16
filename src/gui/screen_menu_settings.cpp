@@ -16,7 +16,7 @@
 /*****************************************************************************/
 // MI_HELP_FW_UPDATE
 MI_HELP_FW_UPDATE::MI_HELP_FW_UPDATE()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_HELP_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
@@ -41,4 +41,18 @@ ScreenMenuSettings::ScreenMenuSettings()
 
 ScreenMenuSettings::~ScreenMenuSettings() {
     gui::knob::RegisterLongPressScreenAction(old_action); // restore hold action
+}
+
+void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CHILD_CLICK) {
+#if HAS_MMU2()
+        // If filament sensor gets disabled, set the MMU enable to false as well
+        if (!Item<MI_FILAMENT_SENSOR>().GetIndex()) {
+            Item<MI_MMU_ENABLE>().SetIndex(0);
+        }
+#endif
+
+    } else {
+        SuperWindowEvent(sender, event, param);
+    }
 }

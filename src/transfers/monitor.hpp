@@ -1,6 +1,6 @@
 #pragma once
 
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 // Why is the FILE_PATH_BUFFER_LEN in gui?
 #include <gui/file_list_defs.h>
 
@@ -76,7 +76,7 @@ using Timestamp = uint32_t;
 ///   never deadlock.
 class Monitor {
 private:
-    using Mutex = FreeRTOS_Mutex;
+    using Mutex = freertos::Mutex;
     using Lock = std::unique_lock<Mutex>;
 
 public:
@@ -244,7 +244,7 @@ private:
     bool download_has_issue;
     bool print_after_upload { false };
 
-    char destination_path[FILE_PATH_BUFFER_LEN];
+    char destination_path[FILE_PATH_BUFFER_LEN + FILE_NAME_MAX_LEN];
 
     // History related
     static constexpr size_t HISTORY_MAX_LEN = 2;

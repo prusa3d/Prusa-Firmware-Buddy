@@ -8,7 +8,10 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_any.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_binary.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_interface.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_plaintext.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_buffer.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/meatpack.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
@@ -16,9 +19,9 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/general_response.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/render.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
@@ -52,7 +55,6 @@ add_executable(
   # LwIP parts
   # See reason why we do it this way in
   # tests/unit/lib/WUI/nhttp/CMakeLists.txt
-  ${CMAKE_SOURCE_DIR}/src/buddy/lwip.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/lib/WUI/nhttp/missing_functions.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp_tcp.c
@@ -98,7 +100,6 @@ target_include_directories(
           ${CMAKE_BINARY_DIR}/lib/libbgcode/src/
   )
 target_link_libraries(connect_tests mbedTLS bgcode_core)
-add_definitions(-DPRINTER_VERSION=3 -DPRINTER_SUBVERSION=0)
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 
@@ -130,9 +131,9 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/general_response.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
@@ -162,7 +163,6 @@ add_executable(
   # LwIP parts
   # See reason why we do it this way in
   # tests/unit/lib/WUI/nhttp/CMakeLists.txt
-  ${CMAKE_SOURCE_DIR}/src/buddy/lwip.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/lib/WUI/nhttp/missing_functions.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp_tcp.c
@@ -189,8 +189,10 @@ target_include_directories(
   PRIVATE .
           ${CMAKE_CURRENT_BINARY_DIR}
           ${CMAKE_BINARY_DIR}/include
+          ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/src/connect
           ${CMAKE_SOURCE_DIR}/src/common
+          ${CMAKE_SOURCE_DIR}/src/common/http
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/lib/jsmn
@@ -220,7 +222,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
@@ -246,7 +247,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   missing_functions.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/lib/WUI/nhttp/missing_functions.c
-  ${CMAKE_SOURCE_DIR}/src/buddy/lwip.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp_tcp.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/def.c
@@ -276,8 +276,10 @@ target_include_directories(
   PRIVATE .
           ${CMAKE_CURRENT_BINARY_DIR}
           ${CMAKE_BINARY_DIR}/include
+          ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/src/common
+          ${CMAKE_SOURCE_DIR}/src/common/http
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/tests/stubs

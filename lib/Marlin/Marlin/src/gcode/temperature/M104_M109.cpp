@@ -39,18 +39,27 @@
   #include "../../module/tool_change.h"
 #endif
 
-#if ENABLED(PRUSA_MARLIN_API)
-  #include "marlin_server.hpp"
-#endif
+#include "marlin_server.hpp"
+
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * M104: Set hot end temperature
+ *
+ * ## Parameters
+ *
+ * - `S` - [degree Celsius] Temperature to be set
+ * - `D` - [degree Celsius] Temperature to be displayed (otherwise actual temp will be displayed)
  */
 void GcodeSuite::M104() {
 
   if (DEBUGGING(DRYRUN)) return;
 
-  #if ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+  #if ENABLED(PRUSA_MMU2) // MMU2 doesn't handle different temps per slot, sayonara! (TODO?)
+	  constexpr int8_t target_extruder = 0;
+  #elif ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     constexpr int8_t target_extruder = 0;
   #else
     const int8_t target_extruder = get_target_extruder_from_command();
@@ -78,15 +87,13 @@ void GcodeSuite::M104() {
        * the running print timer.
        */
       if (temp <= (EXTRUDE_MINTEMP) / 2) {
-        print_job_timer.stop();
+        print_job_timer.pause();
         ui.reset_status();
       }
     #endif
   }
 
-  #if ENABLED(PRUSA_MARLIN_API)
-    marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
-  #endif
+  marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
 
   #if ENABLED(AUTOTEMP)
     planner.autotemp_M104_M109();
@@ -101,7 +108,9 @@ void GcodeSuite::M109() {
 
   if (DEBUGGING(DRYRUN)) return;
 
-  #if ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+  #if ENABLED(PRUSA_MMU2) // MMU2 doesn't handle different temps per slot, sayonara! (TODO?)
+	  constexpr int8_t target_extruder = 0;
+  #elif ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     constexpr int8_t target_extruder = 0;
   #else
     const int8_t target_extruder = get_target_extruder_from_command();
@@ -130,8 +139,8 @@ void GcodeSuite::M109() {
        * standby mode, (e.g., in a dual extruder setup) without affecting
        * the running print timer.
        */
-      if (parser.value_celsius() <= (EXTRUDE_MINTEMP) / 2) {
-        print_job_timer.stop();
+      if (temp <= (EXTRUDE_MINTEMP) / 2) {
+        print_job_timer.pause();
         ui.reset_status();
       }
       else
@@ -149,11 +158,11 @@ void GcodeSuite::M109() {
   #endif
 
   if (set_temp) {
-    #if ENABLED(PRUSA_MARLIN_API)
-      marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
-    #endif
+    marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
     (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling, parser.seen('F'));
   }
 }
+
+/** @}*/
 
 #endif // EXTRUDERS

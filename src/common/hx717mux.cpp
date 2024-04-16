@@ -52,7 +52,14 @@ void HX717Mux::handler() {
         // we already account for delayed reads above: we should never get an undefined value unless
         // the read itself took too long, meaning the interrupt took longer than ~1ms. If this
         // happens, the issue is *not* here but in higher-priority ISRs blocking too long!
-        assert(!(was_initialized && raw_value == HX717::undefined_value));
+        if (!DBGMCU->CR || (TERN0(DEBUG_LEVELING_FEATURE, DEBUGGING(LEVELING)) || DEBUGGING(ERRORS))) {
+            // to simplify debugging, as hx717 doesn't stop triggerring [lost] interrupts, this is
+            // only verified when:
+            // - no debugger attached in debug builds
+            // - debugger attached, DEBUGGING(LEVELING) when DEBUG_LEVELING_FEATURE is enabled (M111 S32)
+            // - debugger attached, DEBUGGING(ERRORS) set (M111 S4)
+            assert(!(was_initialized && raw_value == HX717::undefined_value));
+        }
     }
 
     // always provide an increasing timestamp for all (potentially invalid) reads

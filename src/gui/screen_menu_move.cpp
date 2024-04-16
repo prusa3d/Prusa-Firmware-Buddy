@@ -14,30 +14,39 @@
 static constexpr const char *const heating_str = N_("Heating");
 static constexpr const char *const low_temp_str = N_("Low temp");
 
+xyz_float_t I_MI_AXIS::last_queued_pos {};
+xyz_float_t I_MI_AXIS::target_position {};
+bool I_MI_AXIS::did_final_move {};
+
 I_MI_AXIS::I_MI_AXIS(size_t index)
     : WiSpinInt(round(marlin_vars()->logical_curr_pos[index]),
         SpinCnf::axis_ranges[index], _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
-    , axis_index(index)
-    , last_queued_pos(GetVal()) {}
+    , axis_index(index) {
+    xyz_float_t init_pos {
+        marlin_vars()->logical_curr_pos[X_AXIS],
+        marlin_vars()->logical_curr_pos[Y_AXIS],
+        marlin_vars()->logical_curr_pos[Z_AXIS],
+    };
+    did_final_move = false;
+    last_queued_pos = target_position = init_pos;
+}
 
 I_MI_AXIS::~I_MI_AXIS() {
     finish_move();
 }
 
 void I_MI_AXIS::Loop() {
-    jog_axis(last_queued_pos, static_cast<float>(GetVal()), static_cast<AxisEnum>(axis_index));
-}
-
-bool I_MI_AXIS::is_move_finished() const {
-    return last_queued_pos == GetVal();
+    target_position[axis_index] = GetVal();
+    jog_multiple_axis(last_queued_pos, target_position);
 }
 
 void I_MI_AXIS::finish_move() {
-    if (last_queued_pos == GetVal()) {
+    if (did_final_move || last_queued_pos == target_position) {
         return;
     }
 
-    marlin_client::move_axis(GetVal(), MenuVars::GetManualFeedrate()[axis_index], axis_index);
+    finish_movement(last_queued_pos, target_position);
+    did_final_move = true;
 }
 
 void MI_AXIS_E::OnClick() {
@@ -45,11 +54,15 @@ void MI_AXIS_E::OnClick() {
     marlin_client::gcode("M82"); // Set extruder to absolute mode
     marlin_client::gcode("G92 E0"); // Reset position before change
     SetVal(0); // Reset spin before change
-    last_queued_pos = 0; // zero it out so we wont go back when we exit the spinner
+    last_queued_position = 0; // zero it out so we wont go back when we exit the spinner
+}
+
+void MI_AXIS_E::Loop() {
+    jog_axis(last_queued_position, static_cast<float>(GetVal()), AxisEnum::E_AXIS);
 }
 
 void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode_printf("M1700 S E W2 B0"); // set filament, preheat to target, do not heat bed, return option
+    marlin_client::gcode("M1700 S E W2 B0"); // set filament, preheat to target, do not heat bed, return option
 }
 
 /**
@@ -173,9 +186,7 @@ ScreenMenuMove::ScreenMenuMove()
 }
 
 ScreenMenuMove::~ScreenMenuMove() {
-    char msg[20];
-    snprintf(msg, sizeof(msg), "M204 T%f", (double)prev_accel);
-    marlin_client::gcode(msg);
+    marlin_client::gcode_printf("M204 T%f", (double)prev_accel);
 }
 
 void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

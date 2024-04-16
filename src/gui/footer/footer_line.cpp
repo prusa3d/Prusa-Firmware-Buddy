@@ -39,6 +39,10 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
     if (index >= max_items) {
         return false;
     }
+
+    if (item_id >= footer::Item::_count) {
+        item_id = footer::Item::none;
+    }
     if (item_ids[index] == item_id) {
         return false;
     }
@@ -121,6 +125,17 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
     case footer::Item::f_sensor_side:
 #if HAS_SIDE_FSENSOR()
         new (&items[index]) FooterItemFSensorSide(this);
+#endif
+        break;
+    case footer::Item::nozzle_diameter:
+        new (&items[index]) FooterItemNozzleDiameter(this);
+        break;
+    case footer::Item::nozzle_pwm:
+        new (&items[index]) FooterItemNozzlePWM(this);
+        break;
+    case footer::Item::enclosure_temp:
+#if XL_ENCLOSURE_SUPPORT()
+        new (&items[index]) FooterItemEnclosure(this);
 #endif
         break;
     case footer::Item::none:

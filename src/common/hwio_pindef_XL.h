@@ -3,8 +3,10 @@
 #pragma once
 
 #include "PCA9557.hpp"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
 #include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "buddy/priorities_config.h"
 
 #define MARLIN_PORT_X_DIR    MARLIN_PORT_D
@@ -112,49 +114,52 @@ inline Pin::State zMinReadFn();
 inline Pin::State xyProbeReadFn();
 } // namespace buddy::hw
 
-#define PIN_TABLE(MACRO_FUNCTION)                                                                                                                                                                           \
-    MACRO_FUNCTION(buddy::hw::OutputPin, displayCs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p11, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                      \
-    MACRO_FUNCTION(buddy::hw::OutputPin, displayRs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p15, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                      \
-    MACRO_FUNCTION(buddy::hw::OutputPin, displayRst, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p4, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                      \
-    MACRO_FUNCTION(buddy::hw::InputPin, jogWheelEN1, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p13, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                   \
-    MACRO_FUNCTION(buddy::hw::InputPin, jogWheelEN2, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p12, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                   \
-    MACRO_FUNCTION(buddy::hw::InputPin, jogWheelENC, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p3, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                    \
-    MACRO_FUNCTION(buddy::hw::OutputPin, xCs, BUDDY_PIN(CS_X), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                                             \
-    MACRO_FUNCTION(buddy::hw::OutputPin, yCs, BUDDY_PIN(CS_Y), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                                             \
-    MACRO_FUNCTION(buddy::hw::OutputPin, zCs, BUDDY_PIN(CS_Z), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                                             \
-    MACRO_FUNCTION(buddy::hw::OutputPin, RS485FlowControlPuppies, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p1, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler)    \
-    MACRO_FUNCTION(buddy::hw::OutputPin, RS485FlowControlReserved, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p2, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)         \
-    MACRO_FUNCTION(buddy::hw::OutputPin, hsUSBEnable, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p13, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                     \
-    MACRO_FUNCTION(buddy::hw::OutputPin, fsUSBPwrEnable, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                   \
-    MACRO_FUNCTION(buddy::hw::InputPin, hsUSBOvercurrent, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p8, IMode::input COMMA Pull::none, buddy::hw::noHandler)                                             \
-    MACRO_FUNCTION(buddy::hw::InputPin, fsUSBOvercurrent, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p14, IMode::input COMMA Pull::none, buddy::hw::noHandler)                                            \
-    MACRO_FUNCTION(buddy::hw::InputPin, fsUSBCInt, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p3, IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                    \
+// clang-format off
+#define PIN_TABLE(MACRO_FUNCTION) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, displayCs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p11, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, displayRs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p15, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, displayRst, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p4, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, jogWheelEN1, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p13, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, jogWheelEN2, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p12, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, jogWheelENC, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p3, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, xCs, BUDDY_PIN(CS_X), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, yCs, BUDDY_PIN(CS_Y), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, zCs, BUDDY_PIN(CS_Z), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, RS485FlowControlPuppies, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p1, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, RS485FlowControlReserved, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p2, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, hsUSBEnable, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p13, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, fsUSBPwrEnable, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, hsUSBOvercurrent, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p8, IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, fsUSBOvercurrent, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p14, IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, fsUSBCInt, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p3, IMode::input COMMA Pull::none, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::InterruptPin, acFault, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p0, IMode::IT_falling COMMA Pull::none COMMA ISR_PRIORITY_POWER_PANIC COMMA 0, power_panic::ac_fault_isr) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, extFlashCs, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p2, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                      \
-    MACRO_FUNCTION(buddy::hw::OutputPin, AD1setA, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p15, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                         \
-    MACRO_FUNCTION(buddy::hw::OutputPin, AD1setB, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p11, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                         \
-    MACRO_FUNCTION(buddy::hw::InterruptPin, xDiag, BUDDY_PIN(X_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA ISR_PRIORITY_ENDSTOP COMMA 0, endstop_ISR)                                            \
-    MACRO_FUNCTION(buddy::hw::InterruptPin, yDiag, BUDDY_PIN(Y_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA ISR_PRIORITY_ENDSTOP COMMA 0, endstop_ISR)                                            \
-    MACRO_FUNCTION(buddy::hw::InterruptPin, zDiag, BUDDY_PIN(Z_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA ISR_PRIORITY_ENDSTOP COMMA 0, endstop_ISR)                                            \
-    MACRO_FUNCTION(buddy::hw::OutputPin, xyEnable, BUDDY_PIN(X_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                        \
-    MACRO_FUNCTION(buddy::hw::OutputPin, zEnable, BUDDY_PIN(Z_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                         \
-    MACRO_FUNCTION(buddy::hw::OutputPin, zStep, BUDDY_PIN(Z_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                           \
-    MACRO_FUNCTION(buddy::hw::OutputPin, e0Step, BUDDY_PIN(E0_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                         \
-    MACRO_FUNCTION(buddy::hw::OutputPin, xDir, BUDDY_PIN(X_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                             \
-    MACRO_FUNCTION(buddy::hw::OutputPin, yDir, BUDDY_PIN(Y_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                             \
-    MACRO_FUNCTION(buddy::hw::OutputPin, zDir, BUDDY_PIN(Z_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                             \
-    MACRO_FUNCTION(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                           \
-    MACRO_FUNCTION(buddy::hw::InputOutputPin, touch_sig, buddy::hw::IoPort::C COMMA buddy::hw::IoPin::p8, IMode::input COMMA Pull::none, buddy::hw::noHandler)                                              \
-    MACRO_FUNCTION(buddy::hw::OutputPin, splitter5vEnable, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p14, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                \
-    MACRO_FUNCTION(buddy::hw::OutputPin, AD2setA, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p12, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                         \
-    MACRO_FUNCTION(buddy::hw::OutputPin, AD2setB, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p6, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                          \
-    MACRO_FUNCTION(buddy::hw::OutputPin, espPower, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p4, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                          \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_a0, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p0, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                            \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_d7, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p7, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                            \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_e9, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p9, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                            \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_d5, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p5, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                            \
-    MACRO_FUNCTION(buddy::hw::OutputPin, pin_a3, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p3, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                            \
-    MACRO_FUNCTION(buddy::hw::OutputPin, GPIOReset, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::openDrain COMMA OSpeed::low, buddy::hw::noHandler)
+    MACRO_FUNCTION(buddy::hw::OutputPin, extFlashCs, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p2, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, AD1setA, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p15, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, AD1setB, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p11, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InterruptPin, xDiag, BUDDY_PIN(X_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA ISR_PRIORITY_ENDSTOP COMMA 0, endstop_ISR) \
+    MACRO_FUNCTION(buddy::hw::InterruptPin, yDiag, BUDDY_PIN(Y_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA ISR_PRIORITY_ENDSTOP COMMA 0, endstop_ISR) \
+    MACRO_FUNCTION(buddy::hw::InterruptPin, zDiag, BUDDY_PIN(Z_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA ISR_PRIORITY_ENDSTOP COMMA 0, endstop_ISR) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, xyEnable, BUDDY_PIN(X_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, zEnable, BUDDY_PIN(Z_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, zStep, BUDDY_PIN(Z_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, e0Step, BUDDY_PIN(E0_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, xDir, BUDDY_PIN(X_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, yDir, BUDDY_PIN(Y_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, zDir, BUDDY_PIN(Z_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputOutputPin, touch_sig, buddy::hw::IoPort::C COMMA buddy::hw::IoPin::p8, IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, splitter5vEnable, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p14, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, AD2setA, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p12, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, AD2setB, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p6, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, espPower, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p4, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, pin_a0, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p0, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, pin_d7, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p7, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, pin_e9, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p9, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, pin_d5, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p5, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, pin_a3, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p3, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, GPIOReset, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::openDrain COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, fan1_tach0, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p5, IMode::input COMMA Pull::none, buddy::hw::noHandler)
+// clang-format on
 
 namespace buddy::hw {
 
@@ -168,19 +173,21 @@ extern const OutputPin *YStep;
 
 } // namespace buddy::hw
 
-#define EXTENDER_PIN_TABLE(MACRO_FUNCTION)                                                                                                      \
-    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf6Reset, buddy::hw::IoPin::p0, Pin::State::low COMMA io_expander1, buddy::hw::noHandler)    \
-    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf1Reset, buddy::hw::IoPin::p1, Pin::State::low COMMA io_expander1, buddy::hw::noHandler)    \
-    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf2Reset, buddy::hw::IoPin::p2, Pin::State::low COMMA io_expander1, buddy::hw::noHandler)    \
-    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf3Reset, buddy::hw::IoPin::p3, Pin::State::low COMMA io_expander1, buddy::hw::noHandler)    \
-    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf4Reset, buddy::hw::IoPin::p4, Pin::State::low COMMA io_expander1, buddy::hw::noHandler)    \
-    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf5Reset, buddy::hw::IoPin::p5, Pin::State::low COMMA io_expander1, buddy::hw::noHandler)    \
+// clang-format off
+#define EXTENDER_PIN_TABLE(MACRO_FUNCTION) \
+    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf6Reset, buddy::hw::IoPin::p0, Pin::State::low COMMA io_expander1, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf1Reset, buddy::hw::IoPin::p1, Pin::State::low COMMA io_expander1, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf2Reset, buddy::hw::IoPin::p2, Pin::State::low COMMA io_expander1, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf3Reset, buddy::hw::IoPin::p3, Pin::State::low COMMA io_expander1, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf4Reset, buddy::hw::IoPin::p4, Pin::State::low COMMA io_expander1, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, dwarf5Reset, buddy::hw::IoPin::p5, Pin::State::low COMMA io_expander1, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, fanPowerSwitch, buddy::hw::IoPin::p6, Pin::State::low COMMA io_expander1, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::PCA9557OutputPin, modularBedReset, buddy::hw::IoPin::p7, Pin::State::low COMMA io_expander1, buddy::hw::noHandler)
 
-#define VIRTUAL_PIN_TABLE(MACRO_FUNCTION)                                                                                                \
+#define VIRTUAL_PIN_TABLE(MACRO_FUNCTION) \
     MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::zMinReadFn, endstop_ISR, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling) \
     MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::xyProbeReadFn, endstop_ISR, xyProbe, BUDDY_PIN(XY_PROBE), IMode::IT_rising_falling)
+// clang-format on
 
 #define HAS_ZMIN_READ_FN    1
 #define HAS_XYPROBE_READ_FN 1

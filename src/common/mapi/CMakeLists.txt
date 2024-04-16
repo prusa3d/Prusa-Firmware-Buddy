@@ -1,3 +1,3 @@
-if(BOARD MATCHES ".*BUDDY")
+if(BOARD_IS_MASTER_BOARD)
   target_sources(firmware PRIVATE motion.cpp)
 endif()

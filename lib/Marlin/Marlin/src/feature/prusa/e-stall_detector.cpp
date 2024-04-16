@@ -1,6 +1,14 @@
 #include "e-stall_detector.h"
 #include <option/has_loadcell.h>
 
+#ifdef UNITTEST
+extern unsigned estall_suppressed_trigger_count;
+#else
+    #include "log.h"
+
+LOG_COMPONENT_REF(MarlinServer);
+#endif
+
 bool MotorStallFilter::ProcessSample(int32_t value) {
     //    constexpr std::array<float, 5> gaussianFilter = { 0.0065929F, 0.1939811F, 0.5988519F, 0.1939811F, 0.0065929F };
     //    constexpr std::array<float, 3> edgeFilter = { -1.F, 0.F, 1.F };
@@ -48,6 +56,18 @@ bool MotorStallFilter::ProcessSample(int32_t value) {
     return filteredValue > detectionThreshold;
 }
 
+void EMotorStallDetector::SetEnabled(bool set) {
+    if (enabled == set) {
+        return;
+    }
+
+    enabled = set;
+
+    if (set) {
+        ClearDetected();
+    }
+}
+
 #if HAS_LOADCELL()
 void EMotorStallDetector::ProcessSample(int32_t value) {
     detected |= emf.ProcessSample(value);
@@ -56,16 +76,32 @@ void EMotorStallDetector::ProcessSample(int32_t value) {
 bool EMotorStallDetector::Evaluate(bool movingE, bool directionE) {
     // only check the E-motor stall when it has to be doing something and it is PUSHING the filament
     // i.e. - prevent triggers on crashes during travel moves and retractions
-    if (movingE && directionE) {
-        if (Detected() && (!Blocked())) {
-            Block(); // block further detection reports
-            return true;
-        }
-    } else {
-        // clear the "detected" flag when the E-motor is standing still
+    if (!movingE || !directionE) {
+        // Clear detection flags if the motor is standing still or retracting
         ClearDetected();
+        return false;
     }
-    return false;
+
+    if (!detected) {
+        return false;
+    }
+
+    if (blocked > 0 || reported) {
+        return false;
+    }
+
+    // Block further reporting until the estall is handled
+    reported = true;
+
+    if (!enabled) {
+    #ifdef UNITTEST
+        estall_suppressed_trigger_count++;
+    #else
+        log_info(MarlinServer, "E-stall detected but suppressed");
+    #endif
+    }
+
+    return enabled;
 }
 #else
 // Empty implementation when there is no LoadCell available

@@ -45,19 +45,19 @@ dependencies = {
         },
     },
     'cmake': {
-        'version': '3.22.5',
+        'version': '3.28.3',
         'url': {
-            'Linux': 'https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-linux-x86_64.tar.gz',
-            'Windows': 'https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-windows-x86_64.zip',
-            'Darwin': 'https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-macos-universal.tar.gz',
+            'Linux': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-x86_64.tar.gz',
+            'Windows': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-windows-x86_64.zip',
+            'Darwin': 'https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-macos-universal.tar.gz',
         },
     },
     'gcc-arm-none-eabi': {
-        'version': '10.3.1',
+        'version': '13.2.1',
         'url': {
-            'Linux': 'https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2',
-            'Windows': 'https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-win32.zip',
-            'Darwin': 'https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-mac.tar.bz2',
+            'Linux': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz',
+            'Windows': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-mingw-w64-i686-arm-none-eabi.zip',
+            'Darwin': 'https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-darwin-x86_64-arm-none-eabi.tar.xzg',
         }
     },
     'clang-format': {
@@ -69,24 +69,32 @@ dependencies = {
         }
     },
     'bootloader-mini': {
-        'version': '2.3.0',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.3.0-B6680FEB-C7C1-438B-B297-77FA012CB9FE.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.3.4-7B64E593-7827-405D-B11A-0FEAED674B15.zip',
     },
     'bootloader-mk4': {
-        'version': '2.3.0',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.0-A98CD828-A5FA-48C6-BE76-3BA986BC2F0C.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.4-4D895B74-E8D2-434A-8CCA-ACF549079EC5.zip',
     },
     'bootloader-mk3.5': {
-        'version': '2.3.0',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.0-A98CD828-A5FA-48C6-BE76-3BA986BC2F0C.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.3.4-4D895B74-E8D2-434A-8CCA-ACF549079EC5.zip',
     },
     'bootloader-xl': {
-        'version': '2.3.0',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.3.0-40D68D78-E58B-434E-9237-CC58CB2E7F1C.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.3.4-B3918045-C68D-4978-BD7D-CD91F7927B2D.zip',
     },
     'bootloader-ix': {
-        'version': '2.3.0',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.3.0-0BBB99FE-6992-4A56-8A7C-3729EEDB5A8F.zip',
+        'version': '2.3.4',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.3.4-6474070A-0C8B-4436-BFD2-A5C0F1864CC7.zip',
+    },
+    'firmware-mmu': {
+        'version': '3.0.3',
+        'files': [
+            # 'https://github.com/prusa3d/Prusa-Firmware-MMU/releases/download/v3.0.2/MMU2S_MMU3_FW3.0.2+878.hex',
+            # 3.0.3 published *privately* because it's just a very minor change
+            'https://download.danol.cz/MMU2S_MMU3_FW3.0.3+895.hex'
+        ],
     },
     'mini404': {
         'version': '0.9.10',
@@ -98,11 +106,14 @@ dependencies = {
     },
     'cmsis-svd': {
         'version': '0.4.9999',
-        'url': 'https://github.com/posborne/cmsis-svd/archive/45a1e90afe488f01df94b3e0eb89a67c1a900a9a.zip',
+        'files': [
+            'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd/45a1e90afe488f01df94b3e0eb89a67c1a900a9a/data/STMicro/STM32F427.svd',
+            'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd/45a1e90afe488f01df94b3e0eb89a67c1a900a9a/data/STMicro/STM32G07x.svd',
+        ],
     },
     'CrashDebug': {
-        'version': 'ae191d',
-        'url': 'https://github.com/adamgreen/CrashDebug/archive/ae191d7ad96258570d5e6685619cab31c0d3859c.zip',
+        'version': 'ab03f8b6fb6e3445c62fe3fa5f3263d2945d74ff',
+        'url': 'https://github.com/prusa3d/CrashDebug/archive/ab03f8b6fb6e3445c62fe3fa5f3263d2945d74ff.zip',
     },
 }
 # yapf: enable
@@ -177,10 +188,20 @@ def install_dependency(dependency):
     specs = dependencies[dependency]
     installation_directory = directory_for_dependency(dependency,
                                                       specs['version'])
-    url = specs['url']
-    if isinstance(url, dict):
-        url = url[platform.system()]
-    download_and_unzip(url=url, directory=installation_directory)
+    url = specs.get('url', None)
+    files = specs.get('files', None)
+    if url is not None:
+        if isinstance(url, dict):
+            url = url[platform.system()]
+        download_and_unzip(url=url, directory=installation_directory)
+    elif files is not None:
+        os.mkdir(installation_directory)
+        for file in files:
+            basename = file.split('/')[-1]
+            urlretrieve(file, installation_directory / basename)
+    else:
+        raise ('dependency is missing payload')
+
     fix_executable_permissions(dependency, installation_directory)
 
 

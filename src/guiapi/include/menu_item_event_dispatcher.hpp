@@ -4,14 +4,14 @@
  */
 
 #pragma once
-#include "WindowMenuLabel.hpp"
+#include "i_window_menu_item.hpp"
 
-class MI_event_dispatcher : public WI_LABEL_t {
+class MI_event_dispatcher : public IWindowMenuItem {
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override;
 
 public:
     explicit MI_event_dispatcher(string_view_utf8 label)
-        : WI_LABEL_t(label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+        : IWindowMenuItem(label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void Do() = 0;
 };

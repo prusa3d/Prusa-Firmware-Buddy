@@ -6,6 +6,7 @@
 
 #pragma once
 #include "eeprom_v10.hpp"
+#include <utility_extensions.hpp>
 
 namespace config_store_ns::old_eeprom::v11 {
 

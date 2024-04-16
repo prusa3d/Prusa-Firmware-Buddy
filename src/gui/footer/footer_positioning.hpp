@@ -1,10 +1,11 @@
+#pragma once
 /**
  * @file footer_positioning.hpp
  * @author Radek Vana
  * @brief calculations of footer rectangles
  * @date 2021-04-14
  */
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 
 namespace footer {
 // line number from 0

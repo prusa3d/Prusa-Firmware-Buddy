@@ -2,6 +2,7 @@
 #include <selftest_result_type.hpp>
 #include "printers.h"
 #include <config_store/store_instance.hpp>
+#include <common/SteelSheets.hpp>
 
 #if PRINTER_IS_PRUSA_XL
     #include <module/prusa/toolchanger.h>
@@ -17,7 +18,7 @@ bool selftest_warning_selftest_finished() {
         return ((results == TestResult_Passed) && ...); // all passed
     };
 #if (PRINTER_IS_PRUSA_XL)
-    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
+    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed, config_store().selftest_result_nozzle_diameter.get(), config_store().selftest_result_phase_stepping.get())) {
         return false;
     }
     for (int8_t e = 0; e < HOTENDS; e++) {
@@ -48,6 +49,27 @@ bool selftest_warning_selftest_finished() {
 
     HOTEND_LOOP()
     if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].fansSwitched)) {
+        return false;
+    }
+
+    return true;
+
+#elif PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+    if (!all_passed(sr.xaxis, sr.yaxis, sr.zaxis, sr.bed)) {
+        return false;
+    }
+
+    if (!SteelSheets::IsSheetCalibrated(config_store().active_sheet.get())) {
+        return false;
+    }
+
+    HOTEND_LOOP()
+    if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle
+    #if not PRINTER_IS_PRUSA_MINI
+            ,
+            sr.tools[e].fansSwitched
+    #endif
+            )) {
         return false;
     }
 

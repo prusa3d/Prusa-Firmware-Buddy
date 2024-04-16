@@ -57,6 +57,18 @@ ExecutionControl ResponseParser::event(Event event) {
     case Names::Token:
         extra(event.payload, HeaderName::Token);
         return ExecutionControl::Continue;
+    case Names::WebSocketAccept:
+        extra(event.payload, HeaderName::WebSocketAccept);
+        return ExecutionControl::Continue;
+    case Names::WsPrusaConnect:
+        extra(event.payload, HeaderName::WebSocketPrusaConnect);
+        return ExecutionControl::Continue;
+    case Names::UpgradeWebsocket:
+        extra(event.payload, HeaderName::WebSocketUpgrade);
+        return ExecutionControl::Continue;
+    case Names::ConnectionUpgrade:
+        extra(event.payload, HeaderName::ConnectionUpgrade);
+        return ExecutionControl::Continue;
     case Names::ConnectionHeader:
         // This comes when we see a connection header. If we understand it and it's keep-alive one, we amend it.
         keep_alive = false;

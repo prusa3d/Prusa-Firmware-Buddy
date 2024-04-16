@@ -7,12 +7,16 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
-#include "MItem_touch.hpp"
 #include "MItem_menus.hpp"
 #include "printers.h"
 #include <option/has_side_leds.h>
 #include <option/has_toolchanger.h>
 #include <option/has_leds.h>
+#include <option/has_touch.h>
+
+#if HAS_TOUCH()
+    #include "MItem_touch.hpp"
+#endif
 
 using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_FOOTER_SETTINGS, MI_SORT_FILES,
@@ -30,15 +34,16 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
 #endif
 #if HAS_SIDE_LEDS()
     ,
-    MI_SIDE_LEDS_ENABLE
+    MI_SIDE_LEDS_ENABLE,
+    MI_SIDE_LEDS_DIMMING
 #endif
 #if HAS_TOOLCHANGER()
     ,
     MI_TOOL_LEDS_ENABLE
 #endif /*HAS_TOOLCHANGER()*/
-#if PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+#if HAS_TOUCH()
     ,
-    MI_ENABLE_TOUCH, MI_TOUCH_ERR_COUNT, MI_I2C_WORKAROUND, MI_I2C_FORCE_RESET, MI_I2C_RELEASE_FORCE_RESET, MI_DISPI2C_RST
+    MI_ENABLE_TOUCH, TOUCH_SIG_WORKAROUND, MI_TOUCH_PLAYGROUND
 #endif
     >;
 

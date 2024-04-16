@@ -36,6 +36,7 @@ void WindowPreviewThumbnail::unconditionalDraw() {
     }
 
     display::DrawImg(point_ui16(Left(), Top()), res);
+    f_gcode_thumb_close(&f);
 }
 
 //------------------------- Progress Thumbnail -----------------------------------

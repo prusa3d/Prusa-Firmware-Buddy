@@ -4,10 +4,9 @@
 #include "display_ex.hpp"
 #include <functional>
 #include <cmath>
-#include "guiconfig.h" //USE_ST7789 USE_ILI9488
+#include <guiconfig/guiconfig.h>
 #include <img_resources.hpp>
 #include "display_math_helper.h"
-#include "font_flags.hpp"
 #include <bsod.h>
 
 #ifdef USE_ST7789
@@ -145,6 +144,7 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 #ifdef USE_MOCK_DISPLAY
     #include "mock_display.hpp"
 /*****************************************************************************/
+
 // mock_display specific variables objects and function aliases
 static Rect16 DisplayClip() { return Rect16(0, 0, MockDisplay::Cols(), MockDisplay::Rows()); }
 
@@ -292,10 +292,7 @@ void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, 
 
     uint8_t *pch; // character data pointer
     uint8_t crd = 0; // current row byte data
-    uint8_t rb; // row byte
     uint8_t *pc; // character data row pointer
-
-    const font_flags flags(pf->flg);
 
     DispBuffer buff(pms, clr_bg, clr_fg);
 
@@ -311,20 +308,10 @@ void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, 
         buffer_offset = j * char_cnt * char_w * pixel_size + curr_char_idx * char_w * pixel_size;
         for (uint16_t i = 0; i < char_w; i++) {
             if ((i % ppb) == 0) {
-                if (flags.swap == is_swap::yes) {
-                    rb = (i / ppb) ^ 1;
-                    crd = pch[rb + j * bpr];
-                } else {
-                    crd = *(pc++);
-                }
+                crd = *(pc++);
             }
-            if (flags.lsb == fnt_lsb::yes) {
-                buff.OffsetInsert(crd & pms, buffer_offset + i * pixel_size);
-                crd >>= bpp;
-            } else {
-                buff.OffsetInsert(crd >> (8 - bpp), buffer_offset + i * pixel_size);
-                crd <<= bpp;
-            }
+            buff.OffsetInsert(crd >> (8 - bpp), buffer_offset + i * pixel_size);
+            crd <<= bpp;
         }
     }
 }
@@ -578,7 +565,16 @@ void display_ex_draw_qoi(point_ui16_t pt, const img::Resource &qoi, color_t back
     }
 
     if (!file) {
-        bsod("Could not get image resource file");
+        return;
+        /** we can actually get here if we draw img before bootstrap
+         * so we must not call bsod. 3 reproducers:
+         *
+         * 1) flash new mk4 FW to mk3.5 or vice versa - without bootloader
+         *
+         * 2) use bootloader to upload new fw, turn printer off and rebuild mk4 HW to mk3.5 or vice versa
+         *
+         * 3) reset fw in the moment you would get redscreen and upgrade fw
+         */
     }
 
     // Seek to the beginning of the image and draw

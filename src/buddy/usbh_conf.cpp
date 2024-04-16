@@ -4,6 +4,7 @@
 #include "log.h"
 #include "device/board.h"
 #include "usbh_async_diskio.hpp"
+#include "usb_host.h"
 
 LOG_COMPONENT_DEF(USBHost, LOG_SEVERITY_INFO);
 
@@ -107,6 +108,7 @@ void HAL_HCD_PortEnabled_Callback(HCD_HandleTypeDef *hhcd) {
 
 void HAL_HCD_PortDisabled_Callback(HCD_HandleTypeDef *hhcd) {
     USBH_LL_PortDisabled(static_cast<USBH_HandleTypeDef *>(hhcd->pData));
+    usbh_power_cycle::port_disabled();
 }
 
 /*******************************************************************************
@@ -376,7 +378,6 @@ USBH_StatusTypeDef USBH_LL_DriverVBUS(USBH_HandleTypeDef *phost, uint8_t state) 
 #endif
         }
     }
-    HAL_Delay(200);
     return USBH_OK;
 }
 
@@ -425,7 +426,7 @@ uint8_t USBH_LL_GetToggle(USBH_HandleTypeDef *phost, uint8_t pipe) {
  * @retval None
  */
 void USBH_Delay(uint32_t Delay) {
-    HAL_Delay(Delay);
+    osDelay(Delay);
 }
 
 /**

@@ -1,6 +1,7 @@
 // status_footer.hpp
 #pragma once
 #include "gui.hpp"
+#include <guiconfig/guiconfig.h>
 
 #ifdef USE_ST7789
     #include "footer_doubleline.hpp"

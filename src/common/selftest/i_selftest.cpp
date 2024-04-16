@@ -2,13 +2,9 @@
 
 #include "i_selftest.hpp"
 #include "feature/prusa/crash_recovery.hpp"
-#include "stdarg.h"
 #include "log.h"
-#include "app.h"
-#include "otp.hpp"
-#include "hwio.h"
 #include "marlin_server.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "filament_sensors_handler.hpp"
 
 LOG_COMPONENT_DEF(Selftest, LOG_SEVERITY_DEBUG);
@@ -23,12 +19,18 @@ void ISelftest::phaseStart() {
 #if ENABLED(CRASH_RECOVERY)
     crash_s.set_state(Crash_s::SELFTEST);
 #endif
+#if HAS_PHASE_STEPPING()
+    ph_disabler = std::optional { phase_stepping::EnsureDisabled {} };
+#endif
     FSM_CREATE__LOGGING(Selftest); // TODO data 0/1 selftest/wizard
 }
 
 void ISelftest::phaseFinish() {
     FSM_DESTROY__LOGGING(Selftest);
     marlin_server::set_exclusive_mode(0);
+#if HAS_PHASE_STEPPING()
+    ph_disabler.reset();
+#endif
 #if ENABLED(CRASH_RECOVERY)
     crash_s.set_state(Crash_s::IDLE);
 #endif

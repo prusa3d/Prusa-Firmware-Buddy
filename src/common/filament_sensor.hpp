@@ -14,26 +14,27 @@
 #include "hx717.hpp"
 
 class IFSensor {
+    friend class FilamentSensors;
+
 public:
     typedef int32_t value_type;
     static constexpr int32_t undefined_value = HX717::undefined_value;
 
-    enum class event {
-        NoFilament,
-        HasFilament,
-        EdgeFilamentInserted,
-        EdgeFilamentRemoved
+    enum class Event {
+        no_event,
+        filament_inserted,
+        filament_removed
     };
+
     virtual ~IFSensor() = default;
 
-    // Evaluates filament sensor state.
-    void Cycle();
+    inline FilamentSensorState get_state() const { return state; }
 
-    // Evaluates if some event happened, will return each event only once, so its meant to be called only internally.
-    event GenerateEvent();
-
-    // thread safe functions
-    fsensor_t Get() { return state; }
+    /// Returns whether the filament sensor is enabled.
+    /// Does not look in the EEPROM/config_store, only respects the sensor current state.
+    inline bool is_enabled() const {
+        return state != FilamentSensorState::Disabled;
+    }
 
     /**
      * @brief Get filtered sensor-specific value.
@@ -41,10 +42,6 @@ public:
      * @return dimensionless value specific to the inherited class
      */
     virtual int32_t GetFilteredValue() const { return 0; };
-
-    // thread safe functions, but cannot be called from interrupt
-    void Enable();
-    void Disable();
 
     // interface methods for sensors with calibration
     // meant to use just flags to be thread safe
@@ -55,30 +52,42 @@ public:
     };
     virtual void SetCalibrateRequest(CalibrateRequest) {}
     virtual bool IsCalibrationFinished() const { return true; }
-    virtual void SetLoadSettingsFlag() {}
     virtual void SetInvalidateCalibrationFlag() {}
 
     virtual void MetricsSetEnabled(bool) {} // Enable/disable metrics for this filament sensor
 
 protected:
-    fsensor_t last_evaluated_state = fsensor_t::NotInitialized;
-    std::atomic<fsensor_t> state = fsensor_t::NotInitialized;
+    // Protected functions are only to be called from FilamentSensors to prevent race conditions
 
-    virtual void record_state() = 0; // record metrics
-    virtual void cycle() = 0; // sensor type specific evaluation cycle
-    virtual void enable() = 0; // enables sensor called from Enable(), does not have locks
-    virtual void disable() = 0; // disables sensor called from Disable(), does not have locks
-};
+    std::atomic<FilamentSensorState> state = FilamentSensorState::Disabled;
 
-// basic filament sensor api
-class FSensor : public IFSensor {
-protected:
-    std::atomic<fsensor_t> last_state = fsensor_t::NotInitialized;
+    /// Records metrics specific for the sensor
+    virtual void record_state() {};
 
-    void init();
-    virtual void set_state(fsensor_t st) = 0;
+    /// sensor type specific evaluation cycle
+    virtual void cycle() = 0;
 
-public:
-    // thread safe function, but cannot be called from interrupt
-    fsensor_t WaitInitialized();
+    /// Compares states between this function calls and sets last_event() accordingly.
+    void check_for_events();
+
+    /// Returns potential event raised by the last check_for_events() call
+    inline Event last_event() const {
+        return last_event_;
+    }
+
+    /// Resets the sensor state (sets to disabled if set=false, starts initializing the sensor if true).
+    /// Resets the state even if you call set_enabled(true) while the sensor is enabled (that is okay).
+    /// Does not change the EEPROM.
+    /// This function is not thread-safe.
+    virtual void force_set_enabled(bool set);
+
+    inline void set_enabled(bool set) {
+        if (is_enabled() != set) {
+            force_set_enabled(set);
+        }
+    }
+
+private:
+    FilamentSensorState last_check_event_state_ = FilamentSensorState::Disabled;
+    Event last_event_ = Event::no_event;
 };

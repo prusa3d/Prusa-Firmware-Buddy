@@ -2,9 +2,9 @@
  * @file screen_touch_error.cpp
  */
 #include "screen_touch_error.hpp"
-#include "ScreenHandler.hpp"
 
-#include "touch_get.hpp"
+#include "ScreenHandler.hpp"
+#include <hw/touchscreen/touchscreen.hpp>
 
 ScreenTouchError::ScreenTouchError()
     : AddSuperWindow<screen_t>()
@@ -17,7 +17,7 @@ void ScreenTouchError::windowEvent(EventLock /*has private ctor*/, [[maybe_unuse
 
     event_in_progress = true;
 
-    touch::disable();
+    touchscreen.set_enabled(false);
     MsgBoxWarning(_("Touch driver failed to initialize, touch functionality disabled"), Responses_Ok);
     Screens::Access()->Close();
 }

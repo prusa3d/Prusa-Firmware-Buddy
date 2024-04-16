@@ -2,7 +2,7 @@
 #pragma once
 
 #include "window_types.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "Rect16.h"
 #include "window_event.hpp"
 #include "align.hpp"
@@ -31,6 +31,7 @@ private:
 public:
     Rect16 GetRect() const;
     Rect16 GetRectWithoutTransformation() const;
+
     void SetRect(Rect16 rc); // does not transform
     void SetRectWithoutTransformation(Rect16 rc);
     Rect16 TransformRect(Rect16 rc) const; // just transforms given rect, calls parrents transform if this window is relative
@@ -54,6 +55,10 @@ public:
         SetRect(GetRect() -= val);
     }
 
+    /// Returns rect for checking against touch events.
+    /// Usually, this is same as the window native rectangle, but can be larger for example for radio buttons so that they're easier to click on
+    virtual Rect16 get_rect_for_touch() const;
+
     void SetNext(window_t *nxt);
     void SetParent(window_t *par);
     window_t *GetNext() const;
@@ -71,7 +76,6 @@ public:
     bool HasValidBackground() const;
     bool IsFocused() const;
     bool IsCaptured() const;
-    bool IsShadowed() const;
     bool IsCapturable() const;
     bool HasEnforcedCapture() const;
     bool HasTimer() const;
@@ -102,8 +106,13 @@ public:
         set_visible(false);
     }
 
-    void Shadow();
-    void Unshadow();
+    inline bool IsShadowed() const {
+        return flags.shadow;
+    }
+    void set_shadow(bool set);
+    inline void Shadow() { set_shadow(true); } /// Removeme ugly legacy function
+    inline void Unshadow() { set_shadow(false); } /// Removeme ugly legacy function
+
     void HideBehindDialog();
     virtual void ShowAfterDialog();
     void SetBackColor(color_t clr);
@@ -113,9 +122,11 @@ public:
     void SetRoundCorners() { flags.has_round_corners = true; }
     void SetHasIcon();
     void ClrHasIcon();
+
     void SetRedLayout();
     void SetBlackLayout();
     void SetBlueLayout();
+
     window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
 
@@ -126,14 +137,22 @@ public:
     virtual void Shift(ShiftDir_t direction, uint16_t distance);
     virtual void ChildVisibilityChanged(window_t &child);
 
-    virtual window_t *GetFirstDialog() const { return nullptr; }
-    virtual window_t *GetLastDialog() const { return nullptr; }
+    enum class ChildDialogParam : uint8_t {
+        first_dialog,
+        last_dialog,
+        first_popup,
+        last_popup,
+    };
 
-    virtual window_t *GetFirstStrongDialog() const { return nullptr; }
-    virtual window_t *GetLastStrongDialog() const { return nullptr; }
+    virtual window_t *get_child_dialog([[maybe_unused]] ChildDialogParam param) const {
+        return nullptr;
+    }
 
-    virtual window_t *GetFirstPopUp() const { return nullptr; }
-    virtual window_t *GetLastPopUp() const { return nullptr; }
+    inline window_t *GetFirstDialog() const { return get_child_dialog(ChildDialogParam::first_dialog); }
+    inline window_t *GetLastDialog() const { return get_child_dialog(ChildDialogParam::last_dialog); }
+
+    inline window_t *GetFirstPopUp() const { return get_child_dialog(ChildDialogParam::first_popup); }
+    inline window_t *GetLastPopUp() const { return get_child_dialog(ChildDialogParam::last_popup); }
 
 protected:
     virtual void unconditionalDraw();
@@ -145,9 +164,13 @@ protected:
     virtual void unregisterSubWin(window_t &win);
     virtual void addInvalidationRect(Rect16 rc);
     void notifyVisibilityChange();
-    virtual void setRedLayout();
-    virtual void setBlackLayout();
-    virtual void setBlueLayout();
+
+    enum class ColorLayout : uint8_t {
+        red,
+        black,
+        blue,
+    };
+    virtual void set_layout(ColorLayout set);
 
 protected:
     virtual void invalidate(Rect16 validation_rect);

@@ -18,8 +18,14 @@ const char *to_str(Error error) {
         return "Connection";
     case Error::Network:
         return "Network";
+    case Error::Memory:
+        return "Memory";
     case Error::Tls:
         return "TLS";
+    case Error::UnexpectedEOF:
+        return "EOF";
+    case Error::WebSocket:
+        return "Websocket";
     case Error::InternalError:
         return "Internal error";
     }

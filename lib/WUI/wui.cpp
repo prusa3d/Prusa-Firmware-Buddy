@@ -5,6 +5,11 @@
 #include "wui_api.h"
 #include "ethernetif.h"
 #include "espif.h"
+#include <option/mdns.h>
+#if MDNS()
+    #include "mdns/mdns.h"
+#endif
+
 #include <otp.hpp>
 #include <mbedtls/sha256.h>
 #include <tasks.hpp>
@@ -23,7 +28,7 @@
 #include <lwip/netifapi.h>
 #include <lwip/netif.h>
 #include <lwip/tcpip.h>
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 #include <mutex>
 #include "http_lifetime.h"
 #include "main.h"
@@ -34,13 +39,11 @@
 
 #include "otp.hpp"
 #include <config_store/store_instance.hpp>
+#include <nhttp/server.h>
 #include <random.h>
 
 LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
-
-// FIXME: " " vs <>
-#include "variant8.h"
 
 using std::unique_lock;
 
@@ -120,10 +123,17 @@ public:
         EspData = 1 << 5,
         TriggerNtp = 1 << 6,
         HealthCheck = 1 << 7,
+#if MDNS()
+        MdnsInitCheck = 1 << 8,
+#endif
     };
 
 private:
-    FreeRTOS_Mutex mutex;
+    // Allow running link, marlin client, etc?
+    //
+    // Set only before starting, then read only.
+    static bool allow_full;
+    freertos::Mutex mutex;
     enum class Mode {
         Off,
         Static,
@@ -133,6 +143,9 @@ private:
     struct Iface {
         netif dev = {};
         ETH_config_t desired_config = {};
+#if MDNS()
+        bool mdns_initialized = false;
+#endif
     };
 
     // If ESP is not working for a minute, try to reset it if it reconnects.
@@ -199,7 +212,26 @@ private:
         static_cast<NetworkState *>(iface->state)->status_callback(*iface);
     }
 
+#if MDNS()
+    static void mdns_netif_init(netif *iface) {
+        iface->flags |= NETIF_FLAG_IGMP;
+        igmp_start(iface);
+        //  TODO: Any way to handle errors? Can they even happen?
+        mdns_resp_add_netif(iface);
+        if (config_store().prusalink_enabled.get() == 1) {
+            mdns_resp_add_service_prusalink(iface);
+        }
+    }
+#endif
+
     void tcpip_init_done() {
+#if MDNS()
+        if (allow_full) {
+            igmp_init();
+            mdns_resp_init();
+        }
+#endif
+
         // We assume this callback is run from within the tcpip thread, not our
         // own!
         if (netif_add_noaddr(&ifaces[NETDEV_ETH_ID].dev, this, ethernetif_init, tcpip_input)) {
@@ -214,7 +246,9 @@ private:
         } else {
             // FIXME: ???
         }
-        wui_marlin_client_init();
+        if (allow_full) {
+            wui_marlin_client_init();
+        }
 
         // Won't fail with eSetBits
         xTaskNotify(network_task, CoreInitDone, eSetBits);
@@ -255,6 +289,9 @@ private:
     }
 
     void set_down(netif &iface) {
+#if MDNS()
+        netifapi_netif_common(&iface, nullptr, mdns_resp_remove_netif);
+#endif
         // Already locked by the caller.
         netifapi_dhcp_stop(&iface);
         netifapi_netif_set_link_down(&iface);
@@ -293,6 +330,9 @@ private:
             lock.unlock();
             set_down(iface.dev);
             lock.lock();
+#if MDNS()
+            iface.mdns_initialized = false;
+#endif
 
             // FIXME: Track down where exactly the hostname is stored, when it
             // can change, how it is synchronized with threads (or isn't!).
@@ -319,10 +359,10 @@ private:
 
         lock.unlock();
 
-        if (config_store().prusalink_enabled.get() == 1) {
-            httpd_start();
+        if (allow_full && config_store().prusalink_enabled.get() == 1) {
+            httpd_instance()->start();
         } else {
-            httpd_close();
+            httpd_instance()->stop();
         }
     }
 
@@ -331,9 +371,9 @@ private:
         // thread starts.
         tcpip_init(tcpip_init_done_raw, this);
 
-        prusalink_password_init();
-
-        httpd_init();
+        if (allow_full) {
+            prusalink_password_init();
+        }
 
         // During init, we store the events for later. Therefore, we accumulate
         // them until consumed.
@@ -353,6 +393,11 @@ private:
             if (now - last_poll >= LOOP_EVT_TIMEOUT) {
                 last_poll = now;
                 events |= EspData | HealthCheck | EthData | TriggerNtp;
+#if MDNS()
+                if (allow_full) {
+                    events |= MdnsInitCheck;
+                }
+#endif
             }
 
             if (events & CoreInitDone) {
@@ -430,6 +475,37 @@ private:
                 }
             }
 
+#if MDNS()
+            if (events & MdnsInitCheck) {
+                // We can afford to have only one interface active for the responder.
+                //
+                // Doing a check through all the interfaces out of
+                // overabundance of caution - making sure we don't start the
+                // second MDNS instance in case the active netdev changes and
+                // we didn't _yet_ have time to call reconfigure and similar
+                // situations (that would introduce a risk of exhausting some
+                // resource - like the number of timeouts, where the code is
+                // not prepared for the callback not being run eventually,
+                // leading to some inconsistent internal state).
+                bool any_active = false;
+                for (const auto &iface : ifaces) {
+                    if (iface.mdns_initialized) {
+                        any_active = true;
+                        break;
+                    }
+                }
+
+                if (!any_active) {
+                    const uint32_t active = config_store().active_netdev.get();
+                    if (active < ifaces.size() && netif_ip4_addr(&ifaces[active].dev)->addr != 0) {
+                        // Wait with initialization until we get an IP address.
+                        ifaces[active].mdns_initialized = true;
+                        netifapi_netif_common(&ifaces[active].dev, mdns_netif_init, nullptr);
+                    }
+                }
+            }
+#endif
+
             events = 0;
         }
     }
@@ -465,7 +541,8 @@ public:
         instance = this;
         last_esp_ok = sys_now();
     }
-    static void run_task() {
+    static void run_task(bool allow_full) {
+        NetworkState::allow_full = allow_full;
         osThreadCCMDef(network, task_main, TASK_PRIORITY_WUI, 0, 1024);
         osThreadCreate(osThread(network), nullptr);
     }
@@ -539,11 +616,12 @@ public:
 };
 
 std::atomic<NetworkState *> NetworkState::instance = nullptr;
+bool NetworkState::allow_full = false;
 
 } // namespace
 
-void start_network_task() {
-    NetworkState::run_task();
+void start_network_task(bool allow_full) {
+    NetworkState::run_task(allow_full);
 }
 
 const char *wui_get_password() {

@@ -1,10 +1,16 @@
 target_sources(
   firmware
-  PRIVATE mmu2_error_converter.cpp
+  PRIVATE fail_bucket.cpp
+          maintenance.cpp
+          mmu2_bootloader.cpp
+          mmu2_bootloader_coroutine.cpp
+          mmu2_bootloader_memory_resource.cpp
+          mmu2_error_converter.cpp
           mmu2_fsensor.cpp
           mmu2_fsm.cpp
           mmu2_log.cpp
           mmu2_power.cpp
+          mmu2_progress.cpp
           mmu2_progress_converter.cpp
           mmu2_reporter.cpp
           mmu2_reporting.cpp

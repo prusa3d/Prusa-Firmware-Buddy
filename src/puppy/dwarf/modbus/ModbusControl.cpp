@@ -139,7 +139,7 @@ void OnTmcReadRequest(uint16_t value) {
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::tmc_read_response_1, (uint16_t)res);
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::tmc_read_response_2, (uint16_t)(res >> 16));
 
-    log_info(ModbusControl, "Read TMC reg=%i, val=%i", value, res);
+    log_info(ModbusControl, "Read TMC reg=%i, val=%" PRIu32, value, res);
 }
 
 void OnTmcWriteRequest() {
@@ -150,7 +150,7 @@ void OnTmcWriteRequest() {
 
     stepperE0.write(address, value);
 
-    log_info(ModbusControl, "Write TMC reg=%i, val=%i", address, value);
+    log_info(ModbusControl, "Write TMC reg=%i, val=%" PRIu32, address, value);
 }
 
 void ProcessModbusMessages() {
@@ -164,7 +164,7 @@ void ProcessModbusMessages() {
 
         switch (msg->m_Address) {
         case ftrstd::to_underlying(ModbusRegisters::SystemCoil::tmc_enable): {
-            log_info(ModbusControl, "E stepper enable: %d", msg->m_Value);
+            log_info(ModbusControl, "E stepper enable: %" PRIu32, msg->m_Value);
             if (msg->m_Value) {
                 enable_e_steppers();
             } else {
@@ -181,25 +181,25 @@ void ProcessModbusMessages() {
             break;
         }
         case ((uint16_t)ModbusRegisters::SystemCoil::accelerometer_enable): {
-            dwarf::accelerometer::set_enable(msg->m_Value);
-            break;
-        }
-        case ((uint16_t)ModbusRegisters::SystemCoil::accelerometer_high): {
-            dwarf::accelerometer::set_high_sample_rate(msg->m_Value);
+            if (msg->m_Value) {
+                dwarf::accelerometer::enable();
+            } else {
+                dwarf::accelerometer::disable();
+            }
             break;
         }
         case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::nozzle_target_temperature): {
-            log_info(ModbusControl, "Set hotend temperature: %i", msg->m_Value);
+            log_info(ModbusControl, "Set hotend temperature: %" PRIu32, msg->m_Value);
             thermalManager.setTargetHotend(msg->m_Value, 0);
             break;
         }
         case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::heatbreak_requested_temperature): {
-            log_info(ModbusControl, "Set Heatbreak requested temperature: %i", msg->m_Value);
+            log_info(ModbusControl, "Set Heatbreak requested temperature: %" PRIu32, msg->m_Value);
             thermalManager.setTargetHeatbreak(msg->m_Value, 0);
             break;
         }
         case ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::fan0_pwm): {
-            log_info(ModbusControl, "Set print fan PWM:: %i", msg->m_Value);
+            log_info(ModbusControl, "Set print fan PWM:: %" PRIu32, msg->m_Value);
             thermalManager.set_fan_speed(0, msg->m_Value);
             break;
         }
@@ -208,17 +208,17 @@ void ProcessModbusMessages() {
                 // switch back to auto control
                 if (Fans::heat_break(0).isSelftest()) {
                     log_info(ModbusControl, "Heatbreak fan: AUTO");
-                    Fans::heat_break(0).ExitSelftestMode();
+                    Fans::heat_break(0).exitSelftestMode();
                 }
             } else {
                 // direct PWM control mode (for selftest)
                 if (!Fans::heat_break(0).isSelftest()) {
                     log_info(ModbusControl, "Heatbreak fan: SELFTEST");
-                    Fans::heat_break(0).EnterSelftestMode();
+                    Fans::heat_break(0).enterSelftestMode();
                 }
 
-                log_info(ModbusControl, "Set heatbreak fan PWM:: %i", msg->m_Value);
-                Fans::heat_break(0).SelftestSetPWM(msg->m_Value);
+                log_info(ModbusControl, "Set heatbreak fan PWM:: %" PRIu32, msg->m_Value);
+                Fans::heat_break(0).selftestSetPWM(msg->m_Value);
             }
 
             break;
@@ -257,19 +257,19 @@ void ProcessModbusMessages() {
                     ftrstd::to_underlying(ModbusRegisters::SystemHoldingRegister::pid_start) + i));
             };
 
-            union {
-                uint32_t i;
-                float f;
-            } temp_data; ///< Use to convert two registers into one float
+            uint32_t temp_data; ///< Use to convert two registers into one float
 
-            temp_data.i = get_reg(0) | (get_reg(1) << 16); // Stored LSB first in buddy
-            Temperature::temp_hotend[0].pid.Kp = temp_data.f;
+            temp_data = get_reg(0) | (get_reg(1) << 16); // Stored LSB first in buddy
+            memcpy(&Temperature::temp_hotend[0].pid.Kp, &temp_data, sizeof(temp_data));
+            static_assert(sizeof(Temperature::temp_hotend[0].pid.Kp) == sizeof(temp_data));
 
-            temp_data.i = get_reg(2) | (get_reg(3) << 16);
-            Temperature::temp_hotend[0].pid.Ki = temp_data.f;
+            temp_data = get_reg(2) | (get_reg(3) << 16);
+            memcpy(&Temperature::temp_hotend[0].pid.Ki, &temp_data, sizeof(temp_data));
+            static_assert(sizeof(Temperature::temp_hotend[0].pid.Ki) == sizeof(temp_data));
 
-            temp_data.i = get_reg(4) | (get_reg(5) << 16);
-            Temperature::temp_hotend[0].pid.Kd = temp_data.f;
+            temp_data = get_reg(4) | (get_reg(5) << 16);
+            memcpy(&Temperature::temp_hotend[0].pid.Kd, &temp_data, sizeof(temp_data));
+            static_assert(sizeof(Temperature::temp_hotend[0].pid.Kd) == sizeof(temp_data));
 
             break;
         }

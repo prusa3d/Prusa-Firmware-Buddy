@@ -4,6 +4,7 @@
  * @date 2021-09-24
  */
 #include "i_selftest_part.hpp"
+#include "selftest_loop_result.hpp"
 #include "selftest_part.hpp"
 #include "i_selftest.hpp"
 #include "selftest_log.hpp"
@@ -45,6 +46,10 @@ bool IPartHandler::Loop() {
     }
 
     LoopResult current_loop_result = invokeCurrentState();
+    if (defer_fail && !is_now_failing_result(current_loop_result)) {
+        current_loop_result = LoopResult::Fail;
+        defer_fail = false;
+    }
     switch (current_loop_result) {
     case LoopResult::Abort:
         Abort();
@@ -57,6 +62,13 @@ bool IPartHandler::Loop() {
         return true;
     case LoopResult::RunNext:
         next(); // it will call Pass(), when switched to finished
+        return true;
+    case LoopResult::RunNextAndFailAfter:
+        if (current_state + 1 == IndexFinished()) {
+            bsod("No next state to fail after");
+        }
+        defer_fail = true;
+        next();
         return true;
     default: {
         auto loop_mark = ftrstd::to_underlying(current_loop_result);

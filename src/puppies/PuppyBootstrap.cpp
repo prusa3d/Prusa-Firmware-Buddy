@@ -21,7 +21,7 @@
 #include <puppies/puppy_crash_dump.hpp>
 #include <cstring>
 #include <random.h>
-#include "bsod_gui.hpp"
+#include "bsod.h"
 
 LOG_COMPONENT_REF(Puppies);
 
@@ -247,7 +247,8 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run_address_assignment() {
         progressHook({ (int)dock, FlashingStage::START, puppy_type });
 
         progressHook({ 0, FlashingStage::DISCOVERY, puppy_type });
-        log_info(Puppies, "Discovering whats in dock %s %i", puppy_info[puppy_type].name, dock);
+        log_info(Puppies, "Discovering whats in dock %s %d",
+            puppy_info[puppy_type].name, static_cast<int>(dock));
 
         // Wait for puppy to boot up
         osDelay(5);
@@ -264,10 +265,11 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run_address_assignment() {
 
         bool status = discover(puppy_type, address);
         if (status) {
-            log_info(Puppies, "Dock %i: discovered puppy %s, assigned address: %d", dock, puppy_info[puppy_type].name, address);
+            log_info(Puppies, "Dock %d: discovered puppy %s, assigned address: %d",
+                static_cast<int>(dock), puppy_info[puppy_type].name, address);
             result.set_dock_occupied(dock);
         } else {
-            log_info(Puppies, "Dock %i: no puppy discovered", dock);
+            log_info(Puppies, "Dock %d: no puppy discovered", static_cast<int>(dock));
         }
     }
 
@@ -377,7 +379,7 @@ bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address addres
         fatal_error(ErrCode::ERR_SYSTEM_PUPPY_UNKNOWN_TYPE);
     }
     if (hwinfo.bl_version < MINIMAL_BOOTLOADER_VERSION) {
-        log_error(Puppies, "Puppy's bootloader is too old %04x, buddy wants %04x", hwinfo.bl_version, MINIMAL_BOOTLOADER_VERSION);
+        log_error(Puppies, "Puppy's bootloader is too old %04" PRIx32 " buddy wants %04" PRIx32, hwinfo.bl_version, MINIMAL_BOOTLOADER_VERSION);
         fatal_error(ErrCode::ERR_SYSTEM_PUPPY_INCOMPATIBLE_BOOTLODER, hwinfo.bl_version, MINIMAL_BOOTLOADER_VERSION);
     }
 
@@ -435,7 +437,7 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
         BootloaderProtocol::status_t result = flasher.write_flash(fw_size, [fw_size, &fw_file, puppy_type, this, percent_offset, percent_span](uint32_t offset, size_t size, uint8_t *out_data) -> bool {
             // update GUI progress bar
             this->progressHook({ static_cast<int>(percent_offset + offset * percent_span / fw_size), FlashingStage::FLASHING, puppy_type });
-            log_info(Puppies, "Flashing puppy %s offset %d/%d", puppy_info[puppy_type].name, offset, fw_size);
+            log_info(Puppies, "Flashing puppy %s offset %ld/%ld", puppy_info[puppy_type].name, offset, fw_size);
 
             // get data
             assert(offset + size <= static_cast<size_t>(fw_size));

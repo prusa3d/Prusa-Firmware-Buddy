@@ -1,14 +1,14 @@
 /**
  * @file fsm_loadunload_type.hpp
  * @brief progress data to be passed between threads
- * meant to be used with DialogStateful and its children (on GUI side)
+ * meant to be used with DialogLoadUnload (on GUI side)
  * usually using FSM_notifier on server side, but can be used directly too
  */
 
 #pragma once
 
 #include "client_fsm_types.h"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include <utils/utility_extensions.hpp>
 
 struct ProgressSerializerLoadUnload {

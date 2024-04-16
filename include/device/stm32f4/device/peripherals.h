@@ -74,6 +74,9 @@ extern DMA_HandleTypeDef hdma_adc3;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim8;
+extern DMA_HandleTypeDef hdma_tim8;
+extern TIM_HandleTypeDef htim13;
 extern TIM_HandleTypeDef htim14;
 
 //
@@ -157,9 +160,13 @@ extern TIM_HandleTypeDef htim14;
 #define BED_VOLTAGE_Pin       GPIO_PIN_5
 #define BED_VOLTAGE_GPIO_Port GPIOA
 
-#define USB_OVERC_Pin               GPIO_PIN_4
-#define USB_OVERC_GPIO_Port         GPIOE
-#define ESP_GPIO0_Pin               GPIO_PIN_6
+#define USB_OVERC_Pin       GPIO_PIN_4
+#define USB_OVERC_GPIO_Port GPIOE
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    #define ESP_GPIO0_Pin GPIO_PIN_15
+#else
+    #define ESP_GPIO0_Pin GPIO_PIN_6
+#endif
 #define ESP_GPIO0_GPIO_Port         GPIOE
 #define ESP_RST_Pin                 GPIO_PIN_13
 #define ESP_RST_GPIO_Port           GPIOC
@@ -186,12 +193,15 @@ extern TIM_HandleTypeDef htim14;
     #define i2c2_SDA_PIN       GPIO_PIN_0
     #define i2c2_SCL_PIN       GPIO_PIN_1
 
-    #define i2c3_SDA_PORT_BASE GPIOC_BASE
-    #define i2c3_SCL_PORT_BASE GPIOA_BASE
-    #define i2c3_SDA_PORT      ((GPIO_TypeDef *)i2c3_SDA_PORT_BASE)
-    #define i2c3_SCL_PORT      ((GPIO_TypeDef *)i2c3_SCL_PORT_BASE)
-    #define i2c3_SDA_PIN       GPIO_PIN_9
-    #define i2c3_SCL_PIN       GPIO_PIN_8
+    // iX uses the I2C3 pins for back door filament sensor - BFW-4746
+    #if !PRINTER_IS_PRUSA_iX
+        #define i2c3_SDA_PORT_BASE GPIOC_BASE
+        #define i2c3_SCL_PORT_BASE GPIOA_BASE
+        #define i2c3_SDA_PORT      ((GPIO_TypeDef *)i2c3_SDA_PORT_BASE)
+        #define i2c3_SCL_PORT      ((GPIO_TypeDef *)i2c3_SCL_PORT_BASE)
+        #define i2c3_SDA_PIN       GPIO_PIN_9
+        #define i2c3_SCL_PIN       GPIO_PIN_8
+    #endif
 #endif
 
 #if (BOARD_IS_XLBUDDY)
@@ -237,7 +247,6 @@ extern TIM_HandleTypeDef htim14;
 #elif BOARD_IS_XBUDDY
     #define i2c_eeprom        2
     #define i2c_usbc          2
-    #define i2c_touch         3
     #define i2c_io_extender   -1
     #define spi_flash         5
     #define spi_lcd           6
@@ -247,23 +256,28 @@ extern TIM_HandleTypeDef htim14;
     #define spi_extconn       4
     #if PRINTER_IS_PRUSA_iX
         #define uart_puppies 6
+        /// iX uses the I2C3 pins for back door filament sensor - BFW-4746
+        #define i2c_touch    -1
     #else
-        #define uart_mmu 6
+        #define uart_mmu  6
+        #define i2c_touch 3
     #endif
 #elif BOARD_IS_XLBUDDY
-    #define i2c_eeprom        2
-    #define i2c_usbc          1
-    #define i2c_touch         3
-    #define i2c_io_extender   2
-    #define spi_flash         5
-    #define spi_lcd           6
-    #define spi_tmc           3
-    #define uart_esp          8
-    #define spi_accelerometer 2
+    #define i2c_eeprom         2
+    #define i2c_usbc           1
+    #define i2c_touch          3
+    #define i2c_io_extender    2
+    #define spi_flash          5
+    #define spi_lcd            6
+    #define spi_tmc            3
+    #define uart_esp           8
+    #define spi_accelerometer  2
     // Side LEDs use either SPI4 or share SPI with LCD, depending on HW revision
     // #define spi_led           4 or spi_lcd
-    #define uart_puppies      3
-    #define uart_reserved     6
+    #define uart_puppies       3
+    #define uart_reserved      6
+    #define tim_burst_stepping 8
+    #define tim_phase_stepping 13
 #else
     #error Unknown board
 #endif
@@ -328,6 +342,8 @@ void hw_spi6_init();
 void hw_tim1_init();
 void hw_tim2_init();
 void hw_tim3_init();
+void hw_tim8_init();
+void hw_tim13_init();
 void hw_tim14_init();
 
 //
@@ -342,6 +358,9 @@ void hw_tim14_init();
 
 /// Get handle for given peripheral: SPI_HANDLE_FOR(lcd) -> hspi3
 #define SPI_HANDLE_FOR(peripheral) _JOIN(hspi, spi_##peripheral, )
+
+/// Get handle for given peripheral: TIM_HANDLE_FOR(phase_stepping) -> htim12
+#define TIM_HANDLE_FOR(peripheral) _JOIN(htim, tim_##peripheral, )
 
 /// Get handle for given peripheral: UART_HANDLE_FOR(esp) -> huart3
 #define UART_HANDLE_FOR(peripheral) _JOIN(huart, uart_##peripheral, )

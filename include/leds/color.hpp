@@ -24,6 +24,7 @@ struct Color {
         uint32_t data;
         struct {
             // DO NOT CHANGE ORDER !!!
+            // BFW-4994 this should probably be done better
             uint8_t b;
             uint8_t r;
             uint8_t g;

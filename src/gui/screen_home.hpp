@@ -6,7 +6,12 @@
 #include "screen.hpp"
 #include "gcode_info.hpp"
 #include "window_dlg_wait.hpp"
-#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_state.h"
+#include <guiconfig/guiconfig.h>
+#include <option/has_mmu2.h>
+
+#if HAS_MMU2()
+    #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_state.h"
+#endif
 
 class screen_home_data_t : public AddSuperWindow<screen_t> {
 public:
@@ -19,11 +24,14 @@ private:
     static bool touch_broken_during_run;
 
     bool usbInserted;
-    MMU2::xState mmu_state { MMU2::xState::Stopped };
     bool event_in_progress { false };
     bool first_event { true };
     static bool need_check_wifi_credentials;
     MediaState_t media_event { MediaState_t::unknown };
+
+#if HAS_MMU2()
+    MMU2::xState mmu_state { MMU2::xState::Stopped };
+#endif
 
     window_header_t header;
     StatusFooter footer;
@@ -49,7 +57,7 @@ protected:
 private:
     void printBtnEna();
     void printBtnDis();
-    void filamentBtnSetState(MMU2::xState mmu);
+    void filamentBtnSetState();
 
     static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 

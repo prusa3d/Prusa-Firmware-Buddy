@@ -2,9 +2,11 @@
 #include "gui.hpp"
 #include "gcode_info.hpp"
 #include "img_resources.hpp"
+#include <guiconfig/guiconfig.h>
+#include <find_error.hpp>
 
 class MsgBoxInvalidPrinter : public MsgBoxTitled {
-    static constexpr const char *txt_wrong_printer_title = N_("The G-code isn't fully compatible");
+    static constexpr const char *txt_wrong_printer_title = find_error(ErrCode::CONNECT_PRINT_PREVIEW_WRONG_PRINTER).err_text;
 
     static constexpr const char *txt_wrong_tools = N_("printer doesn't have enough tools");
     static constexpr const char *txt_wrong_nozzle_diameter = N_("nozzle diameter doesn't match");

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "i_window_text.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 
 enum class printType {
     asInt32,
@@ -23,7 +23,7 @@ public:
     void SetValue(float val);
     float GetValue() const { return value; }
     void SetColor(color_t clr);
-    window_numb_t(window_t *parent, Rect16 rect, float value = 0, const char *frmt = nullptr, font_t *font = GuiDefaults::Font);
+    window_numb_t(window_t *parent, Rect16 rect, float value = 0, const char *frmt = nullptr, Font font = GuiDefaults::DefaultFont);
     void PrintTime(char *buffer);
 
     void PrintAsFloat();

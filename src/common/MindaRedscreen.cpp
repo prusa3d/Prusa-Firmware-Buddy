@@ -13,7 +13,7 @@
 #include "gpio.h"
 #include "sys.h"
 #include "hwio.h" //hwio_beeper_set_pwm
-#include "wdt.h"
+#include "wdt.hpp"
 #include "i18n.h"
 
 static const constexpr uint8_t PADDING = 10;
@@ -98,7 +98,7 @@ void mbl_error(uint16_t moves, uint16_t points) {
 
     static const char mblerr[] = "MBL ERROR";
     display::DrawText(Rect16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)mblerr),
-        GuiDefaults::Font, COLOR_RED_ALERT, COLOR_WHITE);
+        resource_font(GuiDefaults::DefaultFont), COLOR_RED_ALERT, COLOR_WHITE);
     display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
 
     // bed
@@ -171,7 +171,7 @@ void mbl_error(uint16_t moves, uint16_t points) {
         display::DrawRect(rct, COLOR_BLACK);
     }
 
-    render_text_align(Rect16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), GuiDefaults::Font,
+    render_text_align(Rect16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), GuiDefaults::DefaultFont,
         COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, Align_t::Center());
 
     // cannot use jogwheel_signals  (disabled interrupt)

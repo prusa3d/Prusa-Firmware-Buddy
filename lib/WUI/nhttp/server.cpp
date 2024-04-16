@@ -685,15 +685,18 @@ bool Server::start() {
         return true;
     }
 
+    LOCK_TCPIP_CORE();
     listener.reset(defs.listener_alloc());
 
     if (!listener) {
+        UNLOCK_TCPIP_CORE();
         return false;
     }
 
     altcp_arg(listener.get(), this);
     altcp_accept(listener.get(), Server::accept_wrap);
 
+    UNLOCK_TCPIP_CORE();
     return true;
 }
 

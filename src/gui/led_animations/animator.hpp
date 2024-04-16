@@ -1,6 +1,6 @@
 #pragma once
 #include "animation.hpp"
-#include "freertos_mutex.hpp"
+#include <common/freertos_mutex.hpp>
 
 #include <cstdint>
 #include <utility>
@@ -8,7 +8,7 @@
 #include <functional>
 #include "bsod.h"
 #include <mutex>
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "config.h"
 
 // allocates and deallocates memory space (one size) on statically allocated memory
@@ -84,7 +84,7 @@ protected:
 
     std::pair<uint16_t, uint16_t> leds;
     bool run;
-    FreeRTOS_Mutex mutex;
+    freertos::Mutex mutex;
     Animation *curr_animation = nullptr;
     Animation *next_animation = nullptr;
 };

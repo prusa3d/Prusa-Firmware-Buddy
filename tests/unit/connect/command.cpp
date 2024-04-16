@@ -97,7 +97,7 @@ TEST_CASE("Send transfer info") {
 }
 
 TEST_CASE("Start connect download - encrypted") {
-    auto cmd = command_test<StartEncryptedDownload>("{\"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"key\": \"000102030405060708090a0B0c0D0e0F\", \"iv\": \"101112131415161718191a1B1c1D1e1F\", \"orig_size\": 42}, \"command\": \"START_ENCRYPTED_DOWNLOAD\"}");
+    auto cmd = command_test<StartEncryptedDownload>("{\"command\":\"START_ENCRYPTED_DOWNLOAD\",\"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"key\": \"000102030405060708090a0B0c0D0e0F\", \"iv\": \"101112131415161718191a1B1c1D1e1F\", \"orig_size\": 42}}");
     REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
     REQUIRE(cmd.orig_size == 42);
     array<uint8_t, 16> expected;
@@ -109,4 +109,17 @@ TEST_CASE("Start connect download - encrypted") {
         expected[i] = 16 + i;
     }
     REQUIRE(cmd.iv == expected);
+}
+
+TEST_CASE("Set token") {
+    auto cmd = command_test<SetToken>("{\"command\": \"SET_TOKEN\",\"kwargs\": {\"token\":\"toktoktok\"}}");
+    REQUIRE(strcmp(reinterpret_cast<const char *>(cmd.token->data()), "toktoktok") == 0);
+}
+
+TEST_CASE("Set token ‒ missing params") {
+    command_test<BrokenCommand>("{\"command\":\"SET_TOKEN\",\"kwargs\": {}}");
+}
+
+TEST_CASE("Set token ‒ Too long") {
+    command_test<BrokenCommand>("{\"command\":\"SET_TOKEN\",\"kwargs\": {\"token\":\"123456789012345678901234567890\"}}");
 }

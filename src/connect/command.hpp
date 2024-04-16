@@ -1,5 +1,7 @@
 #pragma once
 
+#include "printer.hpp"
+
 #include <common/shared_buffer.hpp>
 
 #include <cstdint>
@@ -64,8 +66,17 @@ struct CreateFolder {
     SharedPath path;
 };
 struct StopTransfer {};
+struct SetToken {
+    SharedBorrow token;
+};
+struct ResetPrinter {};
+struct SendStateInfo {};
+struct DialogAction {
+    uint32_t dialog_id;
+    Response response;
+};
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartEncryptedDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartEncryptedDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer, SetToken, ResetPrinter, SendStateInfo, DialogAction>;
 
 struct Command {
     CommandId id;

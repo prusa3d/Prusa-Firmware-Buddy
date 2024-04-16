@@ -15065,7 +15065,8 @@ static const WCHAR uc775[] = {	/*  CP775(Baltic) to Unicode conversion table */
 	0x00AD, 0x00B1, 0x201C, 0x00BE, 0x00B6, 0x00A7, 0x00F7, 0x201E, 0x00B0, 0x2219, 0x00B7, 0x00B9, 0x00B3, 0x00B2, 0x25A0, 0x00A0
 };
 #endif
-#if FF_CODE_PAGE == 850 || FF_CODE_PAGE == 0
+// PRUSA: Don't use codepages at all, consider SFN filenames as raw bytes
+#if 0 // FF_CODE_PAGE == 850 || FF_CODE_PAGE == 0
 static const WCHAR uc850[] = {	/*  CP850(Latin 1) to Unicode conversion table */
 	0x00C7, 0x00FC, 0x00E9, 0x00E2, 0x00E4, 0x00E0, 0x00E5, 0x00E7, 0x00EA, 0x00EB, 0x00E8, 0x00EF, 0x00EE, 0x00EC, 0x00C4, 0x00C5,
 	0x00C9, 0x00E6, 0x00C6, 0x00F4, 0x00F6, 0x00F2, 0x00FB, 0x00F9, 0x00FF, 0x00D6, 0x00DC, 0x00F8, 0x00A3, 0x00D8, 0x00D7, 0x0192,
@@ -15224,22 +15225,16 @@ WCHAR ff_uni2oem (	/* Returns OEM code character, zero on error */
 	WORD	cp		/* Code page for the conversion */
 )
 {
-	WCHAR c = 0;
-//	const WCHAR *p = CVTBL(uc, FF_CODE_PAGE);
+	// PRUSA: Don't use codepages at all, consider SFN filenames as raw bytes
+	// If the symbol wouldn't fit into one byte,
+	// distribute uniformly into printable characters to reduce SFN name collisions.
+	// This can be non-reveretable - it's basically just for generating SFNs from LFNs.
+	// !!! Do not use '?', because that's not a valid filename character, so it would not work down the line.
+	if(uni >= 0x100) {
+		return 'A' + (uni % ('Z' - 'A' + 1));
+	}
 
-
-	if (uni < 0x80) {	/* ASCII? */
-		c = (WCHAR)uni;
-
-	} else {			/* Non-ASCII */
-//		if (uni < 0x10000 && cp == FF_CODE_PAGE) {	/* Is it in BMP and valid code page? */
-//			for (c = 0; c < 0x80 && uni != p[c]; c++) ;
-//			c = (c + 0x80) & 0xFF;
-//		}
-        c = '?';
-    }
-
-	return c;
+	return uni;
 }
 
 WCHAR ff_oem2uni (	/* Returns Unicode character in UTF-16, zero on error */
@@ -15247,20 +15242,8 @@ WCHAR ff_oem2uni (	/* Returns Unicode character in UTF-16, zero on error */
 	WORD	cp		/* Code page for the conversion */
 )
 {
-	WCHAR c = 0;
-	const WCHAR *p = CVTBL(uc, FF_CODE_PAGE);
-
-
-	if (oem < 0x80) {	/* ASCII? */
-		c = oem;
-
-	} else {			/* Extended char */
-		if (cp == FF_CODE_PAGE) {	/* Is it a valid code page? */
-			if (oem < 0x100) c = p[oem - 0x80];
-		}
-	}
-
-	return c;
+	// PRUSA: Don't use codepages at all, consider SFN filenames as raw bytes
+	return oem;
 }
 
 #endif

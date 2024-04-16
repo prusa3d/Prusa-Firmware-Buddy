@@ -22,14 +22,18 @@ enum class Result {
 };
 
 class ChannelMutex {
-    void *mutex_handle; // osMutexId is void*, dont use osMutexId in header - lower dependency
-
-    static osMutexId get_handle(I2C_HandleTypeDef &hi2c);
-    static void init_mutexes();
-
 public:
+    /// Initializes the mutexes. Need to be called
+    static void static_init();
+
     [[nodiscard]] ChannelMutex(I2C_HandleTypeDef &hi2c);
     ~ChannelMutex();
+
+    static osMutexId get_handle(I2C_HandleTypeDef &hi2c);
+
+private:
+    // osMutexId is void*, dont use osMutexId in header - lower dependency
+    osMutexId mutex_handle;
 };
 
 [[nodiscard]] Result Transmit(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);

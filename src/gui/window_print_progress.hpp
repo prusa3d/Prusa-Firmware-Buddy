@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "window_numb.hpp"
 #include "window_progress.hpp"
 
 // to be used in ctor

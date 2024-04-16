@@ -5,107 +5,41 @@ LOG_COMPONENT_REF(MMU2);
 
 namespace MMU2 {
 
-Reporter::Reporter(CommandInProgress cip, ErrorCode ec, MMU2::ErrorSource es)
-    : report(cip, { ec, es }) {}
-
-Reporter::Reporter(CommandInProgress cip, ProgressCode pc)
-    : report(cip, { pc }) {}
-
-bool Reporter::Report::operator==(const Report &other) const {
-    if (commandInProgress != other.commandInProgress) {
-        return false;
+RawCommandInProgress Reporter::GetCommandInProgress() const {
+    const auto r = PeekReport();
+    if (!r) {
+        return ftrstd::to_underlying(CommandInProgress::NoCommand);
     }
 
-    // no command is being processed, other variables are irrelevant
-    // but error from MMU can have CommandInProgress::NoCommand and still be valid !!!
-    if (commandInProgress == CommandInProgress::NoCommand && error.errorSource == other.error.errorSource) {
-        return true;
+    return std::visit([](auto &&r) -> RawCommandInProgress {
+        return r.rawCommandInProgress;
+    },
+        *r);
+}
+RawProgressCode Reporter::GetProgressCode() const {
+    const auto r = PeekReport();
+    if (!r || !std::holds_alternative<ProgressData>(*r)) {
+        return ftrstd::to_underlying(ProgressCode::OK);
     }
 
-    if (type != other.type) {
-        return false;
-    }
-
-    // handle progress
-    if (type == Type::progress) {
-        return progress.progressCode == other.progress.progressCode;
-    }
-
-    // now we know type is error
-    if (error.errorCode != other.error.errorCode) {
-        return false;
-    }
-
-    // no active error, other variables are irrelevant
-    if (error.errorCode == ErrorCode::OK || error.errorCode == ErrorCode::RUNNING) {
-        return true;
-    }
-
-    // we have an error and error codes match, sources must match too
-    return error.errorSource == other.error.errorSource;
+    return std::get<ProgressData>(*r).rawProgressCode;
 }
 
-CommandInProgress Reporter::GetCommand() const {
-    return report.commandInProgress;
-}
-
-MMU2::ErrorSource Reporter::GetErrorSource() const {
-    return report.type == Type::error ? report.error.errorSource : MMU2::ErrorSource::ErrorSourceNone;
-}
-
-ErrorCode Reporter::GetErrorCode() const {
-    return report.type == Type::error ? report.error.errorCode : ErrorCode::RUNNING;
-}
-
-ProgressCode Reporter::GetProgressCode() const {
-    return report.type == Type::progress ? report.progress.progressCode : ProgressCode::Empty;
-}
-
-/**
- * @brief change state
- *
- * @param cip
- * @param ec
- * @return true  changed
- * @return false not changed
- */
-bool Reporter::Change(CommandInProgress cip, ErrorCode ec, MMU2::ErrorSource es) {
-    const Reporter cs(cip, ec, es);
-    if (*this == cs) {
-        return false;
-    }
-    *this = cs;
-    reported = false;
-    log_error(MMU2, "MMU error set: cip: %d ec: %d es: %d", cip, ec, es);
-    return true;
-}
-
-/**
- * @brief change state
- *
- * @param cip
- * @param pc
- * @return true  changed
- * @return false not changed
- */
-bool Reporter::Change(CommandInProgress cip, ProgressCode pc) {
-    const Reporter cs(cip, pc);
-    if (*this == cs) {
-        return false;
-    }
-    *this = cs;
-    reported = false;
-    log_info(MMU2, "MMU progress set: cip: %d pc: %d", cip, pc);
-    return true;
-}
-
-std::optional<Reporter::Report> Reporter::ConsumeReport() {
-    if (reported) {
-        return std::nullopt;
+void Reporter::SetReport(ProgressData d) {
+    if (report == Report(d)) {
+        return;
     }
 
-    reported = true;
-    return report;
+    report = d;
+    log_debug(MMU2, "MMU progress set: cip: %d pc: %u", d.rawCommandInProgress, d.rawProgressCode);
+}
+void Reporter::SetReport(ErrorData d) {
+    if (report == Report(d)) {
+        return;
+    }
+
+    report = d;
+    log_debug(MMU2, "MMU error set: cip: %d ec: %u es: %d", d.rawCommandInProgress, static_cast<unsigned>(d.errorCode), static_cast<unsigned>(d.errorSource));
 }
 
 } // namespace MMU2

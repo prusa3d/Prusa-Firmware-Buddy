@@ -158,6 +158,10 @@ static void say_stealth_status() {
   #endif
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M569: Enable stealthChop on an axis
  *
@@ -173,5 +177,7 @@ void GcodeSuite::M569() {
   } else
     say_stealth_status();
 }
+
+/** @}*/
 
 #endif // HAS_STEALTHCHOP

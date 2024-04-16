@@ -2223,19 +2223,21 @@ void MarlinSettings::postprocess() {
  * Resets motion parameters only (speed, accel., etc.)
  */
 void MarlinSettings::reset_motion() {
+  auto s = planner.user_settings;
+
   LOOP_XYZE_N(i) {
-    planner.settings.max_acceleration_mm_per_s2[i] = pgm_read_dword(&_DMA[ALIM(i, _DMA)]);
-    planner.settings.axis_steps_per_mm[i]          = get_steps_per_unit(i);
-    planner.settings.axis_msteps_per_mm[i]         = get_steps_per_unit(i) * PLANNER_STEPS_MULTIPLIER;
-    planner.settings.max_feedrate_mm_s[i]          = pgm_read_float(&_DMF[ALIM(i, _DMF)]);
+    s.max_acceleration_mm_per_s2[i] = pgm_read_dword(&_DMA[ALIM(i, _DMA)]);
+    s.axis_steps_per_mm[i]          = get_steps_per_unit(i);
+    s.axis_msteps_per_mm[i]         = get_steps_per_unit(i) * PLANNER_STEPS_MULTIPLIER;
+    s.max_feedrate_mm_s[i]          = pgm_read_float(&_DMF[ALIM(i, _DMF)]);
   }
 
-  planner.settings.min_segment_time_us = DEFAULT_MINSEGMENTTIME;
-  planner.settings.acceleration = DEFAULT_ACCELERATION;
-  planner.settings.retract_acceleration = DEFAULT_RETRACT_ACCELERATION;
-  planner.settings.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
-  planner.settings.min_feedrate_mm_s = feedRate_t(DEFAULT_MINIMUMFEEDRATE);
-  planner.settings.min_travel_feedrate_mm_s = feedRate_t(DEFAULT_MINTRAVELFEEDRATE);
+  s.min_segment_time_us = DEFAULT_MINSEGMENTTIME;
+  s.acceleration = DEFAULT_ACCELERATION;
+  s.retract_acceleration = DEFAULT_RETRACT_ACCELERATION;
+  s.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
+  s.min_feedrate_mm_s = feedRate_t(DEFAULT_MINIMUMFEEDRATE);
+  s.min_travel_feedrate_mm_s = feedRate_t(DEFAULT_MINTRAVELFEEDRATE);
 
   #if HAS_CLASSIC_JERK
     #ifndef DEFAULT_XJERK
@@ -2247,15 +2249,17 @@ void MarlinSettings::reset_motion() {
     #ifndef DEFAULT_ZJERK
       #define DEFAULT_ZJERK 0
     #endif
-    planner.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
+    s.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
     #if HAS_CLASSIC_E_JERK
-      planner.max_jerk.e = DEFAULT_EJERK;
+      s.max_jerk.e = DEFAULT_EJERK;
     #endif
   #endif
 
   #if DISABLED(CLASSIC_JERK)
     planner.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
   #endif
+
+  planner.apply_settings(s);
 }
 
 /**
@@ -2793,11 +2797,11 @@ void MarlinSettings::reset() {
         , " J", LINEAR_UNIT(planner.junction_deviation_mm)
       #endif
       #if HAS_CLASSIC_JERK
-        , " X", LINEAR_UNIT(planner.max_jerk.x)
-        , " Y", LINEAR_UNIT(planner.max_jerk.y)
-        , " Z", LINEAR_UNIT(planner.max_jerk.z)
+        , " X", LINEAR_UNIT(planner.settings.max_jerk.x)
+        , " Y", LINEAR_UNIT(planner.settings.max_jerk.y)
+        , " Z", LINEAR_UNIT(planner.settings.max_jerk.z)
         #if HAS_CLASSIC_E_JERK
-          , " E", LINEAR_UNIT(planner.max_jerk.e)
+          , " E", LINEAR_UNIT(planner.settings.max_jerk.e)
         #endif
       #endif
     );

@@ -7,7 +7,6 @@
 #include "filament_sensors_handler.hpp"
 #include <stdarg.h>
 #include "sound.hpp"
-#include "DialogHandler.hpp"
 #include "ScreenHandler.hpp"
 #include "screen_printing.hpp"
 #include "print_utils.hpp"
@@ -30,7 +29,6 @@ ScreenPrintPreview::ScreenPrintPreview()
 
     super::ClrMenuTimeoutClose();
 
-    // title_text.set_font(GuiDefaults::FontBig); //TODO big font somehow does not work
     //  this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
     title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()));
 
@@ -64,7 +62,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
 #if HAS_TOOLCHANGER() || HAS_MMU2()
     if (phase != PhasesPrintPreview::tools_mapping) {
         spool_join.reset();
-        header.hide_bed_info();
+        header.set_show_bed_info(false);
     }
 #endif
 
@@ -92,7 +90,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         break;
 
     case PhasesPrintPreview::unfinished_selftest:
-        pMsgbox = makeMsgBox(_(labelWarning), _(txt_unfinished_selftest));
+        pMsgbox = makeMsgBox(_(label_unfinished_selftest), _(txt_unfinished_selftest));
         break;
 
     case PhasesPrintPreview::new_firmware_available: {
@@ -103,28 +101,31 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
 
     case PhasesPrintPreview::wrong_printer:
     case PhasesPrintPreview::wrong_printer_abort:
-        pMsgbox = make_static_unique_ptr<MsgBoxInvalidPrinter>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, _(labelWarning), &img::warning_16x16);
+        pMsgbox = make_static_unique_ptr<MsgBoxInvalidPrinter>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, _(label_wrong_printer), &img::warning_16x16);
         break;
 
     case PhasesPrintPreview::filament_not_inserted:
-        pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_not_detected));
+        pMsgbox = makeMsgBox(_(label_fil_not_detected), _(txt_fil_not_detected));
         break;
 
+#if HAS_MMU2()
     case PhasesPrintPreview::mmu_filament_inserted:
-        pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_detected_mmu));
+        pMsgbox = makeMsgBox(_(label_fil_detected_mmu), _(txt_fil_detected_mmu));
         break;
-
+#endif
     case PhasesPrintPreview::wrong_filament:
-        pMsgbox = makeMsgBox(_(labelWarning), _(txt_wrong_fil_type));
+        pMsgbox = makeMsgBox(_(label_wrong_filament), _(txt_wrong_fil_type));
         break;
 
     case PhasesPrintPreview::file_error:
-        pMsgbox = makeMsgBox(_("File error"), _(gcode.error_str()), img::error_16x16);
+        pMsgbox = makeMsgBox(_(label_file_error), _(gcode.error_str()), img::error_16x16);
         break;
 
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case PhasesPrintPreview::tools_mapping:
         show_tools_mapping();
         break;
+#endif
     }
 
     if (pMsgbox) {
@@ -172,19 +173,39 @@ void ScreenPrintPreview::show_tools_mapping() {
     tools_mapping->Invalidate();
 
     #if BOARD_IS_XBUDDY or BOARD_IS_XLBUDDY
+        #if not HAS_MMU2()
     header.SetText(_("TOOLS MAPPING"));
+        #else
+    header.SetText(_("FILAMENT MAPPING"));
+        #endif
     #endif
 
-    header.show_bed_info();
+    header.set_show_bed_info(true);
 #endif
 }
 
 void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
-    // Catch event when USB is removed
-    if (event == GUI_event_t::MEDIA) {
+    switch (event) {
+
+        // Catch event when USB is removed
+    case GUI_event_t::MEDIA: {
         const MediaState_t media_state = MediaState_t(reinterpret_cast<int>(param));
         if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
             marlin_client::print_abort(); // Abort print from marlin_server and close printing screens
         }
+        break;
+    }
+
+        // Swipe left/right during preview phase -> go back
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT: {
+        if (phase == PhasesPrintPreview::main_dialog) {
+            Sound_Play(eSOUND_TYPE::ButtonEcho);
+            marlin_client::FSM_response(phase, Response::Back);
+        }
+    }
+
+    default:
+        break;
     }
 }

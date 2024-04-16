@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "ScreenHandler.hpp"
 #include "client_response_texts.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "img_resources.hpp"
 
 /*****************************************************************************/
@@ -13,16 +13,8 @@
 void AdjustLayout(window_text_t &text, window_icon_t &icon) {
     icon.SetAlignment(Align_t::LeftTop());
     Rect16 new_rect = text.GetRect();
-
-    /// @todo Cannot calculate number of lines of text in advance as it gets wrapped by words.
-    ///       Centering unknown text vertically is not possible now.
-    if (true /*text.text.computeNumLinesAndRewind() > 3*/) { // If there are more than 3 rows, icon will align to the top
-        new_rect -= Rect16::Top_t(text.padding.top); // Add Text's padding
-        text.SetAlignment(Align_t::LeftTop());
-    } else {
-        new_rect = Rect16::Height_t(text.get_font()->h * 3); // Set height to 3 rows
-        text.SetAlignment(Align_t::LeftCenter());
-    }
+    new_rect -= Rect16::Top_t(text.padding.top);
+    text.SetAlignment(Align_t::LeftTop());
     text.SetRect(new_rect);
 }
 
@@ -47,31 +39,40 @@ Rect16 MsgBoxBase::getTextRect() {
     }
 }
 
+void MsgBoxBase::generate_response(Response r) {
+    result = r;
+
+    if (flags.close_on_click == is_closed_on_click_t::yes) {
+        Screens::Access()->Close();
+    } else if (GetParent()) {
+        GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, event_conversion_union { .response = r }.pvoid);
+    }
+}
+
 void MsgBoxBase::set_text_alignment(Align_t alignment) {
     text.SetAlignment(alignment);
 }
 
-void MsgBoxBase::set_text_font(font_t *font) {
+void MsgBoxBase::set_text_font(Font font) {
     text.set_font(font);
 }
 
 void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    event_conversion_union un;
-    un.pvoid = param;
-
     switch (event) {
-    case GUI_event_t::CHILD_CLICK:
-        result = un.response;
-        if (flags.close_on_click == is_closed_on_click_t::yes) {
-            Screens::Access()->Close();
-        } else if (GetParent()) {
-            GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
-        }
-        break;
-    default:
-        SuperWindowEvent(sender, event, param);
+
+    case GUI_event_t::CHILD_CLICK: {
+        generate_response(event_conversion_union { .pvoid = param }.response);
+        return;
     }
+
+    default:
+        break;
+    }
+
+    SuperWindowEvent(sender, event, param);
 }
+
+static constexpr Font TitleFont = GuiDefaults::FontBig;
 
 /*****************************************************************************/
 // MsgBoxTitled
@@ -79,7 +80,7 @@ MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_b
     string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon, is_closed_on_click_t close, dense_t dense)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
     , title(this, GetRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
-    title.set_font(getTitleFont());
+    title.set_font(TitleFont);
     title.SetRect(getTitleRect());
     icon.SetRect(getIconRect());
     text.SetRect(getTextRect());
@@ -94,7 +95,7 @@ void MsgBoxTitled::set_title_alignment(Align_t alignment) {
 
 Rect16 MsgBoxTitled::getTitleRect() {
     const auto shared_top = GetRect().Top() + 1; /* Visual delimeter */
-    const auto shared_height = Rect16::Height_t(getTitleFont()->h);
+    const auto shared_height = Rect16::Height_t(height(TitleFont));
     if (icon.IsIconValid()) {
         return Rect16(Rect16::Left_t(MsgBoxTitled::TextPadding.left + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter),
             shared_top,
@@ -130,10 +131,6 @@ Rect16 MsgBoxTitled::getTextRect() {
 
 Rect16 MsgBoxTitled::getIconRect() {
     return Rect16(GetRect().Left() + MsgBoxTitled::TextPadding.left, GetRect().Top() + 3 /* Visual delimeter */, GuiDefaults::FooterIconSize.w, GuiDefaults::FooterIconSize.h);
-}
-
-font_t *MsgBoxTitled::getTitleFont() {
-    return GuiDefaults::FontBig;
 }
 
 /*****************************************************************************/
@@ -365,10 +362,10 @@ Response MsgBoxBuilder::exec() const {
     const string_view_utf8 used_title = title.isNULLSTR() ? _(implicit_config.title) : title;
 
     const PhaseTexts labels = {
-        BtnResponse::GetText(responses[0]),
-        BtnResponse::GetText(responses[1]),
-        BtnResponse::GetText(responses[2]),
-        BtnResponse::GetText(responses[3]),
+        get_response_text(responses[0]),
+        get_response_text(responses[1]),
+        get_response_text(responses[2]),
+        get_response_text(responses[3]),
     };
 
     const auto box_f = [&]<typename T, MsgBoxDialogClass CS = MsgBoxDialogClass::_count, typename... Args>(Args... args) {
@@ -379,7 +376,7 @@ Response MsgBoxBuilder::exec() const {
             msgbox.set_title_alignment(Align_t::Center());
         }
 
-        msgbox.MakeBlocking(loop_callback);
+        Screens::Access()->gui_loop_until_dialog_closed(loop_callback);
         return msgbox.GetResult();
     };
 

@@ -13,8 +13,6 @@ public:
 
     void wait_for_preheat();
 
-    bool can_skip();
-
     bool is_waiting();
 
     void skip_preheat();

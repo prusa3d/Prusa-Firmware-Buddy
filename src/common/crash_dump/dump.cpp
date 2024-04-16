@@ -10,7 +10,8 @@
 #include "task.h"
 #include <error_codes.hpp>
 #include "safe_state.h"
-#include "wdt.h"
+#include <wdt.hpp>
+#include <algorithm>
 extern "C" {
 #include "CrashCatcher.h"
 }
@@ -205,6 +206,19 @@ void save_message(MsgType type, uint16_t error_code, const char *error, const ch
     if (!w25x_init()) {
         return;
     }
+
+    force_save_message_without_dump(type, error_code, error, title);
+}
+
+void force_save_message_without_dump(MsgType type, uint16_t error_code, const char *error, const char *title) {
+    static_assert(ftrstd::to_underlying(ErrCode::ERR_UNDEF) == 0, "This uses 0 as undefined error");
+
+    assert(error != nullptr);
+
+    if (title == nullptr) {
+        title = "";
+    }
+
     w25x_sector_erase(w25x_error_start_adress);
 
     const size_t title_len = strnlen(title, std::size(dumpmessage_flash->title));
@@ -317,6 +331,17 @@ void before_dump() {
         }
 #endif
     }
+
+    // this function is called before WDR or when preparing to dump on flash. Flash erase takes
+    // 300ms typically. But according to dataheet, it can take multiple seconds, and we might need
+    // to initialize it first. Refresh the watchdog once to give us an additioanl 4s to dump it.
+    if (!crash_dump::wdg_reset_safeguard) {
+        wdt_iwdg_refresh();
+
+        // disable the callback itself to avoid WDR recursion and get the last full effective timeout
+        wdt_iwdg_warning_cb = nullptr;
+        crash_dump::wdg_reset_safeguard = true;
+    }
 }
 
 void trigger_crash_dump() {
@@ -351,13 +376,6 @@ void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
         crash_dump::dump_failed();
     }
 
-    // Erase takes 300ms typically. But according to dataheet, it can take multiple seconds.
-    // If we are dumping watchdog reset, we don't have much time. So we'll refresh the watchdog once
-    // to give us aditionall 4s to dump it. Safeguard is here to prevent infinite watchdog reset in case something goes horribly wrong.
-    if (!crash_dump::wdg_reset_safeguard) {
-        wdt_iwdg_refresh();
-        crash_dump::wdg_reset_safeguard = true;
-    }
     crash_dump::dump_reset();
 
     crash_dump::dump_size = 0;

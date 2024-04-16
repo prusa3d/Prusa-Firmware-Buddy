@@ -27,10 +27,10 @@
 ENTRY(Reset_Handler)
 
 /* Highest address of the user mode stack */
-_estack = ORIGIN(RAM) + LENGTH(RAM);	/* end of "RAM" Ram type memory */
+_estack = ORIGIN(RAM) + LENGTH(RAM);  /* end of "RAM" Ram type memory */
 
-_Min_Heap_Size = 0x200;	/* required amount of heap  */
-_Min_Stack_Size = 0x400;	/* required amount of stack */
+_Min_Heap_Size = 0x200;  /* required amount of heap  */
+_Min_Stack_Size = 0x400;  /* required amount of stack */
 
 TOTAL_FLASH_SIZE = 128K;
 FLASH_ONE_PAGE = 2K;
@@ -167,6 +167,10 @@ SECTIONS
     KEEP(*(.data.log_components))
     PROVIDE_HIDDEN (__end_log_components = .);
 
+    PROVIDE_HIDDEN (__start_metric_definitions = .);
+    KEEP(*(.data.metric_definitions))
+    PROVIDE_HIDDEN (__end_metric_definitions = .);
+
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
 
@@ -214,9 +218,9 @@ SECTIONS
   /* Remove information from the compiler libraries */
   /DISCARD/ :
   {
-    libc.a ( * )
-    libm.a ( * )
-    libgcc.a ( * )
+    libc.a:* ( * )
+    libm.a:* ( * )
+    libgcc.a:* ( * )
   }
 
   .fw_descriptor : {

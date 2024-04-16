@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file power_check_both.hpp
  * @author Radek Vana
@@ -23,7 +24,7 @@ class PowerCheckBoth {
     PowerCheckBoth(const PowerCheckBoth &) = delete;
 
 public:
-    void Callback(CSelftestPart_Heater &part);
+    void Callback([[maybe_unused]] CSelftestPart_Heater &part);
 
     constexpr void BindNozzle(CSelftestPart_Heater *part) {
         nozzle = part;

@@ -20,7 +20,7 @@ std::array<uint8_t, PuppyModbus::MODBUS_RECEIVE_BUFFER_SIZE> &PuppyModbus::share
     return modbus_buffer;
 }
 
-static metric_t modbus_reqfail = METRIC("modbus_reqfail", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(modbus_reqfail, "modbus_reqfail", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
 
 LIGHTMODBUS_WARN_UNUSED ModbusError modbusStaticAllocator([[maybe_unused]] ModbusBuffer *buffer, uint16_t size, [[maybe_unused]] void *context) {
     if (size > modbus_buffer.size()) {
@@ -214,7 +214,7 @@ CommunicationStatus PuppyModbus::read_input(uint8_t unit, bool *data, uint16_t c
         return CommunicationStatus::SKIPPED; // Allow failure instead of bsod for toolchange and powerpanic cooperation
     }
 
-    log_debug(Modbus, "Communicate discrete input register unit: %d, data: %x, count: %d, address: %x", unit, data, count, address);
+    log_debug(Modbus, "Communicate discrete input register unit: %d, data: %p, count: %d, address: %x", unit, data, count, address);
 
     [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest02RTU(&master, unit, address, count);
     assert(modbusIsOk(err));
@@ -237,7 +237,7 @@ CommunicationStatus PuppyModbus::read_input(uint8_t unit, uint16_t *data, uint16
 
     auto lock = PuppyBus::LockGuard();
 
-    log_debug(Modbus, "Communicate input register unit: %d, data: %x, count: %d, address: %x", unit, data, count, address);
+    log_debug(Modbus, "Communicate input register unit: %d, data: %p, count: %d, address: %x", unit, data, count, address);
 
     [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest04RTU(&master, unit, address, count);
     assert(modbusIsOk(err));
@@ -262,7 +262,7 @@ CommunicationStatus PuppyModbus::read_holding(uint8_t unit, uint16_t *data, uint
 
     auto lock = PuppyBus::LockGuard();
 
-    log_debug(Modbus, "Read holding register unit: %d, data: %x, count: %d, address: %x", unit, data, count, address);
+    log_debug(Modbus, "Read holding register unit: %d, data: %p, count: %d, address: %x", unit, data, count, address);
 
     [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest03RTU(&master, unit, address, count);
     assert(modbusIsOk(err));
@@ -285,7 +285,7 @@ CommunicationStatus PuppyModbus::write_holding(uint8_t unit, const uint16_t *dat
         return CommunicationStatus::SKIPPED;
     }
 
-    log_debug(Modbus, "Write holding register unit: %d, data: %x, count: %d, address: %x", unit, data, count, address);
+    log_debug(Modbus, "Write holding register unit: %d, data: %p, count: %d, address: %x", unit, data, count, address);
 
     auto lock = PuppyBus::LockGuard();
 

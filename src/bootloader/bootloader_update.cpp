@@ -10,8 +10,10 @@
 #include <string.h>
 #include "sys.h"
 #include <span>
-
 #include <random.h>
+
+#include <unique_file_ptr.hpp>
+
 #include "data_exchange.hpp"
 #include "resources/bootstrap.hpp"
 #include "resources/revision_bootloader.hpp"
@@ -40,13 +42,6 @@ constexpr uintptr_t bootloader_sector_get_address(int sector) {
     }
     return base_address;
 }
-
-class FileDeleter {
-public:
-    void operator()(FILE *file) {
-        fclose(file);
-    }
-};
 
 static bool calculate_file_crc(FILE *fp, uint32_t length, uint32_t &crc) {
     uint8_t buffer[64];
@@ -133,12 +128,12 @@ static bool flash_program_sector(int sector, FILE *fp, std::span<uint8_t> buffer
             return false;
         }
 
-        log_debug(Bootloader, "Programming 0x%08X (size %zu)", address, read);
+        log_debug(Bootloader, "Programming %p (size %zu)", address, read);
         if (!flash_program(address, buffer.data(), read)) {
-            log_error(Bootloader, "Writing the bootloader to FLASH failed", errno);
+            log_error(Bootloader, "Writing the bootloader to FLASH failed (errno %i)", errno);
             return false;
         }
-        log_debug(Bootloader, "Programming 0x%08X (size %zu) finished", address, read);
+        log_debug(Bootloader, "Programming %p (size %zu) finished", address, read);
 
         address += read;
         copied_bytes += read;
@@ -177,6 +172,10 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 
         // do not reflash preboot if not necessary
         if (sector == 0) {
+            if (!buddy::bootloader::preboot_needs_update()) {
+                log_info(Bootloader, "No need to update preboot (bootloader 2.x). Skipping sector 0.");
+                continue;
+            }
             uint32_t expected_preboot_crc = 0;
             if (!calculate_file_crc(bootloader_bin, bootloader_sector_get_size(0), expected_preboot_crc)) {
                 fatal_error("expected preboot crc calculation failed");
@@ -184,7 +183,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 
             uint32_t current_preboot_crc = crc32_calc(reinterpret_cast<const uint8_t *>(bootloader_sector_get_address(0)), bootloader_sector_get_size(0));
             if (current_preboot_crc == expected_preboot_crc) {
-                log_info(Bootloader, "No need to update preboot. Skipping sector 0.");
+                log_info(Bootloader, "No need to update preboot (CRC matches). Skipping sector 0.");
                 continue;
             } else {
                 log_info(Bootloader, "Going to update preboot now.");
@@ -232,16 +231,23 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
     }
 }
 
-bool buddy::bootloader::needs_update() {
+bool buddy::bootloader::needs_update(buddy::bootloader::Version required) {
     if (data_exchange::is_bootloader_valid() == false) {
         return true;
     }
 
     auto current = get_version();
-    auto required = buddy::bootloader::required_version;
 
     return std::tie(current.major, current.minor, current.patch)
         < std::tie(required.major, required.minor, required.patch);
+}
+
+bool buddy::bootloader::needs_update() {
+    return needs_update(buddy::bootloader::required_version);
+}
+
+bool buddy::bootloader::preboot_needs_update() {
+    return needs_update({ 2, 0, 1 });
 }
 
 void buddy::bootloader::update(ProgressHook progress) {
@@ -265,7 +271,7 @@ void buddy::bootloader::update(ProgressHook progress) {
         });
     }
 
-    std::unique_ptr<FILE, FileDeleter> bootloader_bin(fopen("/internal/res/bootloader.bin", "rb"));
+    unique_file_ptr bootloader_bin(fopen("/internal/res/bootloader.bin", "rb"));
     if (bootloader_bin.get() == nullptr) {
         log_critical(Bootloader, "bootloader.bin failed to fopen() after its bootstrap");
         fatal_error("bootloader.bin failed to open");

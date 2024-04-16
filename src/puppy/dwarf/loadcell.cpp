@@ -2,7 +2,7 @@
 #include "hx717.hpp"
 #include "timing.h" // for ticks_ms
 #include "log.h"
-#include "circle_buffer.hpp"
+#include <common/circular_buffer.hpp>
 #include "loadcell.hpp"
 #include "bsod.h"
 
@@ -11,7 +11,7 @@ LOG_COMPONENT_REF(Dwarf);
 namespace dwarf::loadcell {
 
 // number of records in loadcell buffer
-static constexpr size_t LOADCELL_BUFFER_RECORDS_NUM = 14;
+static constexpr size_t LOADCELL_BUFFER_RECORDS_NUM = 16;
 
 // number of running average steps to filter the data
 static constexpr size_t RUNNING_AVERAGE_STEPS { 10 };
@@ -19,7 +19,7 @@ static constexpr LoadcellSample_t MAX_DIFFERENCE { 50000 };
 static constexpr size_t MAX_SKIPPED { 3 };
 
 // circular buffer that stores loadcell samples
-CircleBuffer<LoadcellRecord, LOADCELL_BUFFER_RECORDS_NUM> sample_buffer;
+CircularBuffer<LoadcellRecord, LOADCELL_BUFFER_RECORDS_NUM> sample_buffer;
 
 // indicator that sample_buffer was full
 uint32_t buffer_overflown = 0;
@@ -39,7 +39,7 @@ void loadcell_init() {
 void loadcell_loop() {
     static uint32_t buffer_over_reported_time = 0;
     if (buffer_overflown && (buffer_over_reported_time + 5000U) < ticks_ms()) {
-        log_critical(Dwarf, "loadcell overflowed, %d samples didn't fit ", buffer_overflown);
+        log_critical(Dwarf, "loadcell overflowed, %" PRIu32 " samples didn't fit ", buffer_overflown);
         buffer_over_reported_time = ticks_ms();
         buffer_overflown = 0;
     }
@@ -68,7 +68,8 @@ void loadcell_irq() {
     LoadcellRecord record;
     record.timestamp = sample_timestamp;
     record.loadcell_raw_value = raw_value;
-    bool write_buffer_success = sample_buffer.push_back_DontRewrite(record);
+    // No need for locking, we are the only interrupt touching the sample buffer
+    const bool write_buffer_success = sample_buffer.try_put(record);
     if (!write_buffer_success) {
         buffer_overflown++;
     }
@@ -82,7 +83,13 @@ bool filter(const LoadcellRecord &sample) {
 
 bool get_loadcell_sample(LoadcellRecord &sample) {
     // Consume samples until a good one is found
-    while (sample_buffer.ConsumeFirst(sample)) {
+    for (;;) {
+        taskENTER_CRITICAL();
+        const bool got_sample = sample_buffer.try_get(sample);
+        taskEXIT_CRITICAL();
+        if (!got_sample) {
+            return false;
+        }
         if (filter(sample)) {
             // Sample looks good
             skipped_samples = 0;
@@ -94,8 +101,6 @@ bool get_loadcell_sample(LoadcellRecord &sample) {
         }
         skipped_samples++;
     }
-
-    return false;
 }
 
 void loadcell_set_enable(bool enable) {

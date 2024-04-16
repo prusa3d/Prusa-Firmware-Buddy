@@ -19,7 +19,7 @@ namespace selftest {
 
 static std::array<SelftestLoadcell_t, HOTENDS> staticLoadCellResult;
 
-TestReturn phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pLoadcell, const std::span<const LoadcellConfig_t> config) {
+TestReturn phaseLoadcell(const ToolMask tool_mask, std::array<IPartHandler *, HOTENDS> &m_pLoadcell, const std::span<const LoadcellConfig_t> config) {
 
     for (uint i = 0; i < config.size(); ++i) {
         if (!is_tool_selftest_enabled(i, tool_mask)) {
@@ -54,7 +54,7 @@ TestReturn phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOT
     }
 
     bool in_progress = current_tool != std::numeric_limits<uint8_t>::max();
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), staticLoadCellResult[current_tool].Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), staticLoadCellResult[current_tool].Serialize());
 
     if (in_progress) {
         return true;

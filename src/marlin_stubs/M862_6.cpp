@@ -7,19 +7,24 @@
 #include "gcode_info.hpp"
 
 #ifdef PRINT_CHECKING_Q_CMDS
-namespace PrusaGcodeSuite {
-M862_6SupportedFeatures m862_6SupportedFeatures = { "Input shaper" };
-}
+
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
- * M862.6: Check gcode level
+ * M862.6: Check supported features
+ *
+ * ## Parameters
+ *
+ * - `Q` - Print out current supported features
  */
 void PrusaGcodeSuite::M862_6() {
     // Handle only Q
     // P is ignored when printing (it is handled before printing by GCodeInfo.*)
     if (parser.boolval('Q')) {
         char temp_buf[sizeof("  M862.6 P\"01234567890123456789\"")];
-        for (auto &feature : m862_6SupportedFeatures) {
+        for (auto &feature : GCodeInfo::supported_features) {
             SERIAL_ECHO_START();
             snprintf(temp_buf, sizeof(temp_buf), PSTR("  M862.6 P\"%s\""), feature);
             SERIAL_ECHO(temp_buf);
@@ -27,4 +32,7 @@ void PrusaGcodeSuite::M862_6() {
         }
     }
 }
+
+/** @}*/
+
 #endif

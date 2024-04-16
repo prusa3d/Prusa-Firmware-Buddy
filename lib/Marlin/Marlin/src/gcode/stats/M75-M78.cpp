@@ -24,6 +24,10 @@
 #include "../../module/printcounter.h"
 #include "../../lcd/ultralcd.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M75: Start print timer
  */
@@ -44,6 +48,8 @@ void GcodeSuite::M76() {
 void GcodeSuite::M77() {
  print_job_timer.stop();
 }
+
+/** @}*/
 
 #if ENABLED(PRINTCOUNTER)
 

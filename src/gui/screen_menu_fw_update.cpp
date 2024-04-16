@@ -6,6 +6,7 @@
 #include "sys.h"
 #include "ScreenHandler.hpp"
 #include "data_exchange.hpp"
+#include <guiconfig/guiconfig.h>
 
 constexpr static const char *const label = N_("FW UPDATE");
 
@@ -38,7 +39,7 @@ static constexpr const char *en_txt_helper = N_("Select when you want to automat
 static const constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string
 
 MI_UPDATE_LABEL::MI_UPDATE_LABEL()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 size_t MI_UPDATE::init_index() const {
     return size_t(data_exchange::is_fw_update_on_restart()
@@ -72,13 +73,13 @@ ScreenMenuFwUpdate::ScreenMenuFwUpdate()
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectFooter.Top()) - get_help_h() - blank_space_h, GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
     , footer(this) {
     header.SetText(_(label));
-    help.set_font(resource_font(helper_font));
+    help.set_font(helper_font);
     help.SetText(_(en_txt_helper));
     CaptureNormalWindow(menu); // set capture to list
 }
 
 uint16_t ScreenMenuFwUpdate::get_help_h() {
-    return helper_lines * (resource_font(helper_font)->h + 1); // +1 for line paddings
+    return helper_lines * (height(helper_font) + 1); // +1 for line paddings
 }
 
 #endif // USE_ILI9488

@@ -2,8 +2,11 @@
 #include "marlin_client.hpp"
 #include <optional>
 
-#include "gui_config_printer.hpp"
 #include "common/sheet.hpp"
+
+// #define Z_OFFSET_STEP     0.0025F//calculated
+#define Z_OFFSET_MIN -2.0F
+#define Z_OFFSET_MAX 2.0F
 
 class SteelSheets {
 public:
@@ -49,6 +52,7 @@ public:
     static uint32_t NumOfCalibrated();
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Determine the name of the current active print sheet profile.
+    /// !!! DOES NOT APPEND TRAILING '\0'
     ///
     /// @param[out] buffer Buffer to store the print sheet profile
     /// @param[in] length Size of the given buffer.
@@ -57,6 +61,7 @@ public:
     static uint32_t ActiveSheetName(char *buffer, uint32_t length);
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Determine the name of the given print sheet profile.
+    /// !!! DOES NOT APPEND TRAILING '\0'
     ///
     /// @param[in] index Index of the sheet profile
     /// @param[out] buffer Buffer to store the print sheet profile
@@ -92,6 +97,33 @@ public:
     /// @return Z offset of the sheet
     static float GetSheetOffset(uint32_t index);
 
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Gets the unclamped offset of currently selected sheet.
+    ///
+    /// @return Z offset of the sheet
+    static float GetUnclampedZOffet();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Get the unclamped Z offset of sheet with given index
+    ///
+    /// @param[in] index Index of the sheet profile
+    /// @return Z offset of the sheet
+    static float GetUnclampedSheetZOffet(uint32_t index);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Checks if current sheet is configured, if not tries to switch to configured one
+    ///
+    /// Mostly needed during printers startup to check if the printer wasn't reset
+    /// when configuring a new plate. That can cause that we endup with preselected
+    /// non-configured sheet and we need to fix that.
+    static void CheckIfCurrentValid();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Determine the index of active sheet
+    ///
+    /// @return active sheet index
+    static uint32_t GetActiveSheetIndex();
+
 private:
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Sets Z offset for sheet
@@ -100,12 +132,6 @@ private:
     /// @param[in] index Index of the sheet profile
     /// @param[in]  offset of the sheet
     static void setSheetOffset(uint32_t index, float offset);
-
-    ///////////////////////////////////////////////////////////////////////////////
-    /// @brief Determine the index of active sheet
-    ///
-    /// @return active sheet index
-    static uint32_t activeSheetIndex();
 
     static Sheet getSheet(uint32_t index);
     static void setSheet(uint32_t index, Sheet sheet);

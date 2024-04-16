@@ -4,11 +4,10 @@
  */
 #pragma once
 
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include <algorithm>
 #include <array>
 #include "display_helper.h"
-#include "super.hpp"
 #include "i18n.h"
 #include "i_window_menu.hpp" //needed invalidate for click
 #include "text_roll.hpp"
@@ -114,18 +113,12 @@ public:
     static IWindowMenuItem *focused_item();
 
 protected:
-    /// In some situations, one might want to prevent the element from being unselected.
-    /// Returning false from this function does that.
-    /// This function is not called during the object destruction.
-    virtual bool try_exit_edit_mode() { return true; }
-
-protected:
     // could me moved to gui defaults
     static constexpr Rect16::Width_t expand_icon_width = 16;
     static constexpr Rect16::Width_t icon_width = 16;
 
 private:
-    font_t *label_font = GuiDefaults::FontMenuItems;
+    Font label_font = GuiDefaults::FontMenuItems;
     string_view_utf8 label;
     txtroll_t roll;
 
@@ -136,6 +129,9 @@ private:
 protected:
     ExtensionLikeLabel has_extension_like_label : 1 = ExtensionLikeLabel::no; // currently has meaning only for menu item info, but might have meaning for other types as well
     uint16_t extension_width : 10;
+    /// Marks this menu item as returning.
+    /// TOUCH_SWIPE_LEFT gesture tries to find an item with this flag in the menu and execute it.
+    bool has_return_behavior_ : 1 = false;
     bool invalid_icon : 1 = true;
     bool invalid_label : 1 = true;
     bool invalid_extension : 1 = true;
@@ -154,8 +150,8 @@ protected:
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point);
     virtual invalidate_t change(int /*dif*/) { return invalidate_t::no; }
 
-    void setLabelFont(font_t *src);
-    font_t *getLabelFont() const;
+    void setLabelFont(Font);
+    Font getLabelFont() const;
 
     void reInitRoll(Rect16 rect);
     void deInitRoll();
@@ -174,46 +170,53 @@ public:
     IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
     virtual ~IWindowMenuItem();
 
-    void Enable() {
-        if (enabled != is_enabled_t::yes) {
-            enabled = is_enabled_t::yes;
+    bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
+    void set_is_enabled(bool set = true);
+
+    /// Deprecated. Use set_enabled
+    inline void Enable() {
+        set_is_enabled(true);
+    }
+
+    /// Deprecated. Use set_enabled
+    inline void Disable() {
+        set_is_enabled(false);
+    }
+
+    bool DoesShowDisabledExtension() const { return show_disabled_extension == show_disabled_extension_t::yes; }
+
+    /// Sets whether the item should show the extension (value) when disabled
+    void set_show_disabled_extension(bool set);
+
+    /// Deprecated. Use set_show_disabled_extension
+    inline void ShowDisabledExtension() {
+        set_show_disabled_extension(true);
+    }
+
+    /// Deprecated. Use set_show_disabled_extension
+    inline void DontShowDisabledExtension() {
+        set_show_disabled_extension(false);
+    }
+
+    inline void set_is_hidden(is_hidden_t set) {
+        const bool wasHidden = IsHidden();
+        hidden = static_cast<uint8_t>(set);
+
+        if (!IsHidden() && wasHidden) {
             Invalidate();
         }
     }
-    void Disable() {
-        // cannot disable focused item
-        if (!is_focused() && enabled != is_enabled_t::no) {
-            enabled = is_enabled_t::no;
-            Invalidate();
-        }
+    inline void set_is_hidden(bool set = true) {
+        set_is_hidden(set ? is_hidden_t::yes : is_hidden_t::no);
     }
 
     void hide() {
-        hidden = (uint8_t)is_hidden_t::yes;
+        set_is_hidden(true);
     }
 
     void show() {
-        if (hidden != (uint8_t)is_hidden_t::no) {
-            hidden = (uint8_t)is_hidden_t::no;
-            Invalidate();
-        }
+        set_is_hidden(false);
     }
-
-    void ShowDisabledExtension() {
-        if (show_disabled_extension != show_disabled_extension_t::yes) {
-            show_disabled_extension = show_disabled_extension_t::yes;
-            Invalidate();
-        }
-    }
-    void DontShowDisabledExtension() {
-        if (show_disabled_extension != show_disabled_extension_t::no) {
-            show_disabled_extension = show_disabled_extension_t::no;
-            Invalidate();
-        }
-    }
-
-    bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
-    bool DoesShowDisabledExtension() const { return show_disabled_extension == show_disabled_extension_t::yes; }
 
     bool IsHidden() const;
     bool IsDevOnly() const;
@@ -222,7 +225,6 @@ public:
         id_icon = id;
         InValidateIcon();
     }
-    const img::Resource *GetIconId() const { return id_icon; }
     void SetLabel(string_view_utf8 text);
     /// @returns the label translated via gettext
     /// Use this function when you want to get the actual translated text
@@ -251,6 +253,10 @@ public:
     void InValidateIcon();
     void InValidateLabel();
     void InValidateExtension();
+
+    inline bool has_return_behavior() const {
+        return has_return_behavior_;
+    }
 
     void set_color_scheme(const ColorScheme *scheme);
     void reset_color_scheme();

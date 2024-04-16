@@ -58,7 +58,7 @@ public:
 /**
  * @brief Button to cancel current object.
  */
-class MI_CO_CANCEL_CURRENT : public WI_LABEL_t {
+class MI_CO_CANCEL_CURRENT : public IWindowMenuItem {
     static constexpr const char *label = N_("Cancel Current");
 
 public:

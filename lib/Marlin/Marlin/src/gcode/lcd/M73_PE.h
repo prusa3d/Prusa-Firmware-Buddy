@@ -21,11 +21,11 @@ protected:
 
 public:
     void mSetValue(uint32_t nN, uint32_t nNow);
-    uint32_t mGetValue(void);
+    uint32_t mGetValue(void) const;
     void mInit(void);
-    bool mIsActual(uint32_t nNow);
-    bool mIsActual(uint32_t nNow, uint16_t nPeriod);
-    bool mIsUsed(void);
+    bool mIsActual(uint32_t nNow) const;
+    bool mIsActual(uint32_t nNow, uint16_t nPeriod) const;
+    bool mIsUsed(void) const;
     // void mFormatSeconds(char *sStr,uint16_t nFeedrate);
 };
 
@@ -36,16 +36,39 @@ public:
 
 class ClProgressData {
 public:
-    ClValidityValue oPercentDirectControl;
-    ClValidityValue oPercentDone;
-    ClValidityValueSec oTime2End;
-    ClValidityValueSec oTime2Pause;
+    struct ModeSpecificData {
+        ClValidityValue percent_done;
+        ClValidityValueSec time_to_end;
+        ClValidityValueSec time_to_pause;
+    };
 
-public:
+    ModeSpecificData standard_mode;
+    ModeSpecificData stealth_mode;
+
     void mInit(void);
+
+    ModeSpecificData &mode_specific(bool stealth) {
+        return stealth ? stealth_mode : standard_mode;
+    }
 };
 
 extern ClProgressData oProgressData;
-void M73_PE_no_parser(std::optional<uint8_t> P = std::nullopt, std::optional<uint32_t> R = std::nullopt, std::optional<uint32_t> T = std::nullopt);
+
+struct M73_Params {
+    struct ModeSpecificParams {
+        std::optional<uint8_t> percentage;
+        std::optional<uint32_t> time_to_end;
+        std::optional<uint32_t> time_to_pause;
+
+        bool operator==(const ModeSpecificParams &) const = default;
+    };
+
+    ModeSpecificParams standard_mode;
+    ModeSpecificParams stealth_mode;
+
+    bool operator==(const M73_Params &) const = default;
+};
+
+void M73_PE_no_parser(const M73_Params &params);
 
 #endif /* SRC_GCODE_LCD_M73_PE_H_ */

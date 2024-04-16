@@ -9,6 +9,7 @@
 #include "window_header.hpp"
 #include "status_footer.hpp"
 #include "radio_button.hpp"
+#include <guiconfig/guiconfig.h>
 
 class ScreenHelpFWUpdate : public AddSuperWindow<screen_t> {
     window_header_t header;

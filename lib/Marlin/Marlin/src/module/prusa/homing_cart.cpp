@@ -15,23 +15,6 @@ inline constexpr float homing_bump_divisor_max[] = HOMING_BUMP_DIVISOR_MAX;
 inline constexpr float homing_bump_divisor_min[] = HOMING_BUMP_DIVISOR_MIN;
 
 /**
- * Turns automatic reports off until destructor is called.
- * Then it sets reports to previous value.
- */
-class Temporary_Report_Off {
-    bool suspend_reports = false;
-
-public:
-    Temporary_Report_Off() {
-        suspend_reports = suspend_auto_report;
-        suspend_auto_report = true;
-    }
-    ~Temporary_Report_Off() {
-        suspend_auto_report = suspend_reports;
-    }
-};
-
-/**
  *  Move back and forth to endstop
  * \returns MSCNT position after endstop has been hit
  */
@@ -164,7 +147,7 @@ static void save_divisor_to_eeprom(int try_nr, AxisEnum axis) {
     }
 }
 
-#if PRINTER_IS_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
 inline constexpr uint8_t HOMING_SENSITIVITY_CALIBRATION_TRIES = 4;
 
 static void store_homing_sensitivity(AxisEnum axis, int16_t value) {

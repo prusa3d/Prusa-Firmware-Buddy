@@ -189,8 +189,8 @@ uint32_t tud_cdc_n_write_flush (uint8_t itf)
 {
   cdcd_interface_t* p_cdc = &_cdcd_itf[itf];
 
-  // Skip if usb is not ready yet
-  TU_VERIFY( tud_ready(), 0 );
+  // Skip if cdc is not ready yet
+  TU_VERIFY( tud_ready() && !tu_fifo_is_overwritable(&p_cdc->tx_ff), 0 );
 
   // No data to send
   if ( !tu_fifo_count(&p_cdc->tx_ff) ) return 0;
@@ -270,6 +270,17 @@ void cdcd_reset(uint8_t rhport)
     tu_fifo_clear(&p_cdc->rx_ff);
     tu_fifo_clear(&p_cdc->tx_ff);
     tu_fifo_set_overwritable(&p_cdc->tx_ff, true);
+  }
+}
+
+void cdcd_set_tx_ovr(uint8_t rhport, bool ovr)
+{
+  (void)rhport;
+
+  for(uint8_t i=0; i<CFG_TUD_CDC; i++)
+  {
+    cdcd_interface_t* p_cdc = &_cdcd_itf[i];
+    tu_fifo_set_overwritable(&p_cdc->tx_ff, ovr);
   }
 }
 
@@ -392,10 +403,8 @@ bool cdcd_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t 
         bool const dtr = tu_bit_test(request->wValue, 0);
         bool const rts = tu_bit_test(request->wValue, 1);
 
+        tu_fifo_set_overwritable(&p_cdc->tx_ff, false);
         p_cdc->line_state = (uint8_t) request->wValue;
-
-        // Disable fifo overwriting if DTR bit is set
-        tu_fifo_set_overwritable(&p_cdc->tx_ff, !dtr);
 
         TU_LOG_DRV("  Set Control Line State: DTR = %d, RTS = %d\r\n", dtr, rts);
 
@@ -435,6 +444,9 @@ bool cdcd_xfer_cb(uint8_t rhport, uint8_t ep_addr, xfer_result_t result, uint32_
     if ( ( ep_addr == p_cdc->ep_out ) || ( ep_addr == p_cdc->ep_in ) ) break;
   }
   TU_ASSERT(itf < CFG_TUD_CDC);
+
+  // Reset TX non-blocking state on any endpoint XFER activity (meaning host is active)
+  tu_fifo_set_overwritable(&p_cdc->tx_ff, false);
 
   // Received new data
   if ( ep_addr == p_cdc->ep_out )

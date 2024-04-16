@@ -30,6 +30,7 @@ public:
 
     buddy::ProbeAnalysis<300> analysis;
     std::atomic<bool> xy_endstop_enabled { false };
+    static_assert(std::atomic<decltype(xy_endstop_enabled)::value_type>::is_always_lock_free, "Lock free type must be used from ISR.");
 
     /**
      * @brief Wait until a loadcell sample with the specified time is received
@@ -275,10 +276,12 @@ private:
 
     bool endstop;
     std::atomic<bool> xy_endstop;
+    static_assert(std::atomic<decltype(xy_endstop)::value_type>::is_always_lock_free, "Lock free type must be used from ISR.");
     bool highPrecision;
 
     // When tare is requested, this will store number of samples and countdown to zero
     std::atomic<uint32_t> tareCount;
+    static_assert(std::atomic<decltype(tareCount)::value_type>::is_always_lock_free, "Lock free type must be used from ISR.");
     // This will contain summed samples from tare
     int32_t tareSum;
 
@@ -294,6 +297,7 @@ private:
     /// Time when last valid sample arrived
     // atomic because its set in interrupt/puppytask, read in default task
     std::atomic<uint32_t> last_sample_time_us;
+    static_assert(std::atomic<decltype(last_sample_time_us)::value_type>::is_always_lock_free, "Lock free type must be used from ISR.");
 };
 
 extern Loadcell loadcell;

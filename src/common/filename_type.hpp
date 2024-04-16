@@ -10,8 +10,6 @@ const char *file_type_by_ext(const char *fname);
 
 const char *file_type(const dirent *ent);
 
-bool filename_has_ext(const char *fname, const char *ext);
-
 /**
  * \brief Does the filename look like printable file (bgcode or plain gcode)
  *
@@ -28,3 +26,6 @@ bool filename_is_plain_gcode(const char *fname);
  * @brief Filename is binary gcode
  */
 bool filename_is_bgcode(const char *fname);
+
+/// Returns whether the filename is supported by connect transfers
+bool filename_is_transferrable(const char *filename);

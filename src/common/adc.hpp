@@ -4,9 +4,12 @@
 #include <device/hal.h>
 #include <device/board.h>
 #include <device/peripherals.h>
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "sum_ring_buffer.hpp"
 #include <device/hal.h>
+#include <limits>
 
 /*
 ADC channels, ranks, ...
@@ -362,7 +365,7 @@ public:
     }
 
     void read_all_channels() {
-        for (uint i = 0; i < NUM_CHANNELS / 2; ++i) {
+        for (size_t i = 0; i < NUM_CHANNELS / 2; ++i) {
             // Switch channel and wait for it to be updated
             switch_channel();
             osDelay(1);

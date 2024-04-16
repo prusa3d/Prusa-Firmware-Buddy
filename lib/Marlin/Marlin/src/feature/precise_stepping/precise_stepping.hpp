@@ -38,6 +38,12 @@ enum PreciseSteppingFlag : PreciseSteppingFlag_t {
     PRECISE_STEPPING_FLAG_RESET_POSITION_Y = _BV(1),
     PRECISE_STEPPING_FLAG_RESET_POSITION_Z = _BV(2),
     PRECISE_STEPPING_FLAG_RESET_POSITION_E = _BV(3),
+
+    // Indicating logical axis usage until reset
+    PRECISE_STEPPING_FLAG_X_USED = _BV(8),
+    PRECISE_STEPPING_FLAG_Y_USED = _BV(9),
+    PRECISE_STEPPING_FLAG_Z_USED = _BV(10),
+    PRECISE_STEPPING_FLAG_E_USED = _BV(11),
 };
 
 // Ensure XYZE bits are always adjacent and ordered.
@@ -50,6 +56,11 @@ static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_X == (PreciseSteppingFlag::PREC
 static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_Y == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_Y << MOVE_FLAG_RESET_POSITION_SHIFT));
 static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_Z == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_Z << MOVE_FLAG_RESET_POSITION_SHIFT));
 static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_E == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_E << MOVE_FLAG_RESET_POSITION_SHIFT));
+
+static_assert(MoveFlag::MOVE_FLAG_X_ACTIVE == (MoveFlag)PreciseSteppingFlag::PRECISE_STEPPING_FLAG_X_USED);
+static_assert(MoveFlag::MOVE_FLAG_Y_ACTIVE == (MoveFlag)PreciseSteppingFlag::PRECISE_STEPPING_FLAG_Y_USED);
+static_assert(MoveFlag::MOVE_FLAG_Z_ACTIVE == (MoveFlag)PreciseSteppingFlag::PRECISE_STEPPING_FLAG_Z_USED);
+static_assert(MoveFlag::MOVE_FLAG_E_ACTIVE == (MoveFlag)PreciseSteppingFlag::PRECISE_STEPPING_FLAG_E_USED);
 
 class PreciseStepping {
 
@@ -82,9 +93,10 @@ public:
     // ordering of step events.
     static double max_lookback_time;
 
-    static double total_print_time;
-    static xyze_double_t total_start_pos;
-    static xyze_long_t total_start_pos_msteps;
+    static xyze_double_t initial_start_pos; // Initial absolute position (mm, cartesian)
+    static double total_print_time; // Cumulative time since beginning of motion (s)
+    static xyze_double_t total_start_pos; // Current absolute position (mm, cartesian)
+    static xyze_long_t total_start_pos_msteps; // Current absolute position in mini-steps (msteps, cartesian)
 
     // Flags that affect the whole precise stepping. Those flags are reset when all queues are empty.
     // For now, used only for resetting the positions of axes.
@@ -295,6 +307,7 @@ public:
 
 private:
     static uint32_t waiting_before_delivering_start_time;
+    static uint32_t last_step_isr_delay;
 
     static void step_generator_state_init(const move_t &move);
 
@@ -306,3 +319,8 @@ private:
 void classic_step_generator_init(const move_t &move, classic_step_generator_t &step_generator, step_generator_state_t &step_generator_state);
 
 FORCE_INLINE void classic_step_generator_update(classic_step_generator_t &step_generator);
+
+// Common functions:
+float get_move_axis_r(const move_t &move, const int axis);
+void mark_ownership(move_t &move);
+void discard_ownership(move_t &move);

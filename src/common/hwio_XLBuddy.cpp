@@ -17,7 +17,10 @@
 #include "hwio_pindef.h"
 #include "bsod.h"
 #include "main.h"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "fanctl.hpp"
 #include "appmain.hpp"
 #include "Marlin.h"
@@ -27,7 +30,6 @@
 #include <option/has_gui.h>
 #include <option/debug_with_beeps.h>
 #include <option/is_knoblet.h>
-#include "device/board.h"
 #include "Marlin/src/module/motion.h" // for active_extruder
 #include "puppies/modular_bed.hpp"
 #include "otp.hpp"
@@ -65,20 +67,6 @@ enum {
     HWIO_ERR_UNDEF_ANA_WR, //!< undefined pin analog write
 };
 
-enum {
-    _FAN_ID_MIN = HWIO_PWM_FAN,
-    _FAN_ID_MAX = HWIO_PWM_FAN,
-};
-
-// buddy pwm output pins
-const uint32_t _pwm_pin32[] = {
-    MARLIN_PIN(FAN)
-};
-
-enum {
-    _PWM_CNT = (sizeof(_pwm_pin32) / sizeof(uint32_t))
-};
-
 } // end anonymous namespace
 
 namespace buddy::hw {
@@ -88,291 +76,12 @@ const OutputPin *XStep = nullptr;
 const OutputPin *YStep = nullptr;
 } // namespace buddy::hw
 
-/**
- * @brief analog output pins
- */
-static const uint32_t _dac_pin32[] = {};
-// buddy analog output maximum values
-static const int _dac_max[] = { 0 };
-static const size_t _DAC_CNT = sizeof(_dac_pin32) / sizeof(uint32_t);
-
-static const int _FAN_CNT = _FAN_ID_MAX - _FAN_ID_MIN + 1;
-
-// this value is compared to new value (to avoid rounding errors)
-static int _tim1_period_us = GEN_PERIOD_US(TIM1_default_Prescaler, TIM1_default_Period);
-
-static const uint32_t _pwm_chan[] = {
-    TIM_CHANNEL_2, //_PWM_FAN
-};
-
-static TIM_HandleTypeDef *_pwm_p_htim[] = {
-    &htim1, //_PWM_FAN
-};
-
-static int *const _pwm_period_us[] = {
-    &_tim1_period_us, //_PWM_FAN
-};
-
 // stores board bom ID from OTP for faster access
 uint8_t board_bom_id;
-
-// buddy pwm output maximum values
-static constexpr int _pwm_max[] = { TIM1_default_Period };
-
-static const TIM_OC_InitTypeDef sConfigOC_default = {
-    TIM_OCMODE_PWM1, // OCMode
-    0, // Pulse
-    TIM_OCPOLARITY_HIGH, // OCPolarity
-    TIM_OCNPOLARITY_HIGH, // OCNPolarity
-    TIM_OCFAST_DISABLE, // OCFastMode
-    TIM_OCIDLESTATE_RESET, // OCIdleState
-    TIM_OCNIDLESTATE_RESET // OCNIdleState
-};
-
-// buddy pwm output maximum values  as arduino analogWrite
-static constexpr int _pwm_analogWrite_max = 255;
-// buddy fan output values  as arduino analogWrite
-static int _pwm_analogWrite_val[_PWM_CNT] = { 0 };
-
-static int hwio_jogwheel_enabled = 0;
 
 static float hwio_beeper_vol = 1.0F;
 static std::atomic<uint32_t> hwio_beeper_pulses = 0;
 static uint32_t hwio_beeper_period = 0;
-
-/*****************************************************************************
- * private function declarations
- * */
-static void __pwm_set_val(TIM_HandleTypeDef *htim, uint32_t chan, int val);
-static void _hwio_pwm_analogWrite_set_val(int i_pwm, int val);
-static void _hwio_pwm_set_val(int i_pwm, int val);
-static uint32_t _pwm_get_chan(int i_pwm);
-static TIM_HandleTypeDef *_pwm_get_htim(int i_pwm);
-static constexpr int is_pwm_id_valid(int i_pwm);
-
-//--------------------------------------
-// analog output functions
-
-int hwio_dac_get_cnt(void) // number of analog outputs
-{ return _DAC_CNT; }
-
-int hwio_dac_get_max(int i_dac) // analog output maximum value
-{ return _dac_max[i_dac]; }
-
-void hwio_dac_set_val([[maybe_unused]] int i_dac, [[maybe_unused]] int val) // write analog output
-{
-}
-
-//--------------------------------------
-// pwm output functions
-
-static constexpr int is_pwm_id_valid(int i_pwm) {
-    return ((i_pwm >= 0) && (i_pwm < static_cast<int>(_PWM_CNT)));
-}
-
-int hwio_pwm_get_cnt(void) // number of pwm outputs
-{ return _PWM_CNT; }
-
-static constexpr int hwio_pwm_get_max(int i_pwm) // pwm output maximum value
-{
-    if (!is_pwm_id_valid(i_pwm)) {
-        return -1;
-    }
-    return _pwm_max[i_pwm];
-}
-
-// affects only prescaler
-// affects multiple channels
-void hwio_pwm_set_period_us(int i_pwm, int T_us) // set pwm resolution
-{
-    if (!is_pwm_id_valid(i_pwm)) {
-        return;
-    }
-    int *ptr_period_us = _pwm_period_us[i_pwm];
-
-    if (T_us == *ptr_period_us) {
-        return;
-    }
-
-    int prescaler = T_us * (int32_t)TIM_BASE_CLK_MHZ / (_pwm_max[i_pwm] + 1) - 1;
-    hwio_pwm_set_prescaler(i_pwm, prescaler);
-    // update seconds
-    *ptr_period_us = T_us;
-}
-
-int hwio_pwm_get_period_us(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm)) {
-        return -1;
-    }
-    return *_pwm_period_us[i_pwm];
-}
-
-void hwio_pwm_set_prescaler(int i_pwm, int prescaler) {
-    if (hwio_pwm_get_prescaler(i_pwm) == prescaler) {
-        return;
-    }
-
-    TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
-
-    // uint32_t           chan = _pwm_get_chan(i_pwm);
-    // uint32_t           cmp  = __HAL_TIM_GET_COMPARE(htim,chan);
-
-    htim->Init.Prescaler = prescaler;
-    //__pwm_set_val(htim, chan, cmp);
-
-    __HAL_TIM_SET_PRESCALER(htim, prescaler);
-
-    // calculate micro seconds
-    int T_us = GEN_PERIOD_US(prescaler, htim->Init.Period);
-    // update micro
-    int *ptr_period_us = _pwm_period_us[i_pwm];
-    *ptr_period_us = T_us;
-}
-
-int hwio_pwm_get_prescaler(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm)) {
-        return -1;
-    }
-    TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
-    return htim->Init.Prescaler;
-}
-
-// values should be:
-// 0000 0000 0000 0000 -exp = 0
-// 0000 0000 0000 0001 -exp = 1
-// 0000 0000 0000 0011 -exp = 2
-// 0000 0000 0000 0111 -exp = 3
-//..
-// 0111 1111 1111 1111 -exp = 15
-// 1111 1111 1111 1111 -exp = 16
-
-void hwio_pwm_set_prescaler_exp2(int i_pwm, int exp) {
-    uint32_t prescaler = (1 << (exp)) - 1;
-    hwio_pwm_set_prescaler(i_pwm, prescaler);
-}
-
-// reading value set by hwio_pwm_set_prescaler_exp2
-int hwio_pwm_get_prescaler_log2(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm)) {
-        return -1;
-    }
-    uint32_t prescaler = hwio_pwm_get_prescaler(i_pwm) + 1;
-    int index = 0;
-
-    while (prescaler != 0) {
-        ++index;
-        prescaler = prescaler >> 1;
-    }
-
-    return index - 1;
-}
-
-uint32_t _pwm_get_chan(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm)) {
-        return -1;
-    }
-    return _pwm_chan[i_pwm];
-}
-
-TIM_HandleTypeDef *_pwm_get_htim(int i_pwm) {
-    if (!is_pwm_id_valid(i_pwm)) {
-        i_pwm = 0;
-    }
-
-    return _pwm_p_htim[i_pwm];
-}
-
-void hwio_pwm_set_val(int i_pwm, uint32_t val) // write pwm output and update _pwm_analogWrite_val
-{
-    if (!is_pwm_id_valid(i_pwm)) {
-        return;
-    }
-
-    uint32_t chan = _pwm_get_chan(i_pwm);
-    TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
-    uint32_t cmp = __HAL_TIM_GET_COMPARE(htim, chan);
-
-    if ((_pwm_analogWrite_val[i_pwm] ^ val) || (cmp != val)) {
-        _hwio_pwm_set_val(i_pwm, val);
-
-        // update _pwm_analogWrite_val
-        int pwm_max = hwio_pwm_get_max(i_pwm);
-
-        uint32_t pulse = (val * _pwm_analogWrite_max) / pwm_max;
-        _pwm_analogWrite_val[i_pwm] = pulse; // arduino compatible
-    }
-}
-
-void _hwio_pwm_set_val(int i_pwm, int val) // write pwm output
-{
-    uint32_t chan = _pwm_get_chan(i_pwm);
-    TIM_HandleTypeDef *htim = _pwm_get_htim(i_pwm);
-    if ((chan == static_cast<uint32_t>(-1)) || htim->Instance == 0) {
-        return;
-    }
-
-    __pwm_set_val(htim, chan, val);
-}
-
-void __pwm_set_val(TIM_HandleTypeDef *htim, uint32_t pchan, int val) // write pwm output
-{
-    if (htim->Init.Period) {
-        TIM_OC_InitTypeDef sConfigOC = sConfigOC_default;
-        if (val) {
-            sConfigOC.Pulse = val;
-        } else {
-            sConfigOC.Pulse = htim->Init.Period;
-            if (sConfigOC.OCPolarity == TIM_OCPOLARITY_HIGH) {
-                sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
-            } else {
-                sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-            }
-        }
-        if (HAL_TIM_PWM_ConfigChannel(htim, &sConfigOC, pchan) != HAL_OK) {
-            Error_Handler();
-        }
-        HAL_TIM_PWM_Start(htim, pchan);
-    } else {
-        HAL_TIM_PWM_Stop(htim, pchan);
-    }
-}
-
-void _hwio_pwm_analogWrite_set_val(int i_pwm, int val) {
-    if (!is_pwm_id_valid(i_pwm)) {
-        return;
-    }
-
-    if (_pwm_analogWrite_val[i_pwm] != val) {
-        const int32_t pwm_max = hwio_pwm_get_max(i_pwm);
-        const uint32_t pulse = (val * pwm_max) / _pwm_analogWrite_max;
-        hwio_pwm_set_val(i_pwm, pulse);
-        _pwm_analogWrite_val[i_pwm] = val;
-    }
-}
-
-//--------------------------------------
-// fan control functions
-
-int hwio_fan_get_cnt(void) // number of fans
-{ return _FAN_CNT; }
-
-void hwio_fan_set_pwm(int i_fan, int val) {
-    i_fan += _FAN_ID_MIN;
-    if ((i_fan >= _FAN_ID_MIN) && (i_fan <= _FAN_ID_MAX)) {
-        _hwio_pwm_analogWrite_set_val(i_fan, val);
-    }
-}
-
-//--------------------------------------
-// Jogwheel
-
-void hwio_jogwheel_enable(void) {
-    hwio_jogwheel_enabled = 1;
-}
-
-void hwio_jogwheel_disable(void) {
-    hwio_jogwheel_enabled = 0;
-}
 
 //--------------------------------------
 // Beeper

@@ -17,7 +17,7 @@ bool window_t::IsInvalid() const { return flags.invalid; }
 bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
 bool window_t::HasTimer() const { return flags.timer; }
 win_type_t window_t::GetType() const { return win_type_t(flags.type); }
-bool window_t::IsDialog() const { return GetType() == win_type_t::dialog || GetType() == win_type_t::strong_dialog; }
+bool window_t::IsDialog() const { return GetType() == win_type_t::dialog; }
 bool window_t::ClosedOnTimeout() const { return flags.timeout_close == is_closed_on_timeout_t::yes; }
 bool window_t::ClosedOnPrint() const { return flags.print_close == is_closed_on_printing_t::yes; }
 bool window_t::HasEnforcedCapture() const { return flags.enforce_capture_when_not_visible; }
@@ -40,23 +40,30 @@ void window_t::ClrHasIcon() {
 }
 
 void window_t::SetRedLayout() {
-    setRedLayout();
+    set_layout(ColorLayout::red);
 }
 void window_t::SetBlackLayout() {
-    setBlackLayout();
+    set_layout(ColorLayout::black);
 }
 void window_t::SetBlueLayout() {
-    setBlueLayout();
+    set_layout(ColorLayout::blue);
 }
 
-void window_t::setRedLayout() {
-    SetBackColor(COLOR_RED_ALERT);
-}
-void window_t::setBlackLayout() {
-    SetBackColor(COLOR_BLACK);
-}
-void window_t::setBlueLayout() {
-    SetBackColor(COLOR_NAVY);
+void window_t::set_layout(ColorLayout set) {
+    switch (set) {
+
+    case ColorLayout::red:
+        SetBackColor(COLOR_RED_ALERT);
+        break;
+
+    case ColorLayout::black:
+        SetBackColor(COLOR_BLACK);
+        break;
+
+    case ColorLayout::blue:
+        SetBackColor(COLOR_NAVY);
+        break;
+    }
 }
 
 void window_t::Validate(Rect16 validation_rect) {
@@ -179,21 +186,13 @@ void window_t::HideBehindDialog() {
     }
 }
 
-bool window_t::IsShadowed() const {
-    return flags.shadow == true;
-}
+void window_t::set_shadow(bool set) {
+    if (flags.shadow == set) {
+        return;
+    }
 
-void window_t::Shadow() {
-    if (!flags.shadow) {
-        flags.shadow = true;
-        Invalidate();
-    }
-}
-void window_t::Unshadow() {
-    if (flags.shadow) {
-        flags.shadow = false;
-        Invalidate();
-    }
+    flags.shadow = set;
+    Invalidate();
 }
 
 color_t window_t::GetBackColor() const {
@@ -301,6 +300,11 @@ void window_t::Resize(Rect16::Height_t height) {
 
 void window_t::Resize(Rect16::Width_t width) {
     SetRectWithoutTransformation(GetRectWithoutTransformation() = width);
+}
+
+Rect16 window_t::get_rect_for_touch() const {
+    // Default implementation - same as rect
+    return GetRect();
 }
 
 void window_t::SetNext(window_t *nxt) {
@@ -422,11 +426,19 @@ void window_t::unconditionalDraw() {
 }
 
 void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *const param) {
+    if (GUI_event_is_input_event(event)) {
+        last_gui_input_event = event;
+    }
+
     static constexpr const char txt[] = "WindowEvent via public";
     windowEvent(EventLock(txt, sender, event), sender, event, param);
 }
 
 void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *const param) {
+    if (GUI_event_is_input_event(event)) {
+        last_gui_input_event = event;
+    }
+
     static constexpr const char txt[] = "ScreenEvent via public";
     if (event == GUI_event_t::HELD_RELEASED && flags.has_long_hold_screen_action) {
         gui::knob::LongPressScreenAction();

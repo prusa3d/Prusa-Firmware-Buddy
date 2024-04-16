@@ -16,6 +16,7 @@
 #include "file_raii.hpp"
 #include "../../src/gui/file_list_defs.h"
 #include "mutable_path.hpp"
+#include "common/utils/utility_extensions.hpp"
 
 #ifdef LAZYFILELIST_UNITTEST
 extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
@@ -26,89 +27,82 @@ class FileSort {
 public:
     /// Types of directory entries
     enum class EntryType : uint8_t {
+        DIR,
         FILE,
-        DIR
+        INVALID, /// Has to be last so that valid items are always less (and inserted)
     };
 
     /// Entries sort policies
     enum class SortPolicy : uint8_t {
         BY_NAME,
-        BY_CRMOD_DATETIME ///< Sort by combined Creation and Modification time stamp.
+        BY_CRMOD_DATETIME, ///< Sort by combined Creation and Modification time stamp.
+        _COUNT
     };
 
-    struct DirentWPath {
-        DirentWPath(const dirent &d, const MutablePath &full_path)
-            : d(d)
-            , full_path(full_path) {}
-        const dirent &d;
-        const MutablePath &full_path;
-    };
-
-    static constexpr size_t MAX_SFN = 13;
-    struct Entry {
-        bool isFile;
-        char lfn[FF_MAX_LFN];
-        char sfn[FileSort::MAX_SFN]; // cache the short filenames too, since they will be used in communication with Marlin
-        uint64_t time;
-        void Clear();
-        void CopyFrom(const DirentWPath &dwp);
-        void SetDirUp();
-    };
-
-    struct string_view_light {
-        const char *s;
-        inline string_view_light(const char *s)
+    struct StringViewLight {
+        const char *s = nullptr;
+        inline StringViewLight() = default;
+        inline StringViewLight(const char *s)
             : s(s) {}
-        inline bool operator<(const string_view_light &s2) const {
+        inline bool operator<(const StringViewLight &s2) const {
             return strcasecmp(s, s2.s) < 0;
         }
     };
 
-    struct TimeComparator {
-        TimeComparator(const Entry &e);
-        TimeComparator(const DirentWPath &dwp);
+    // This has to be larger than standard SFN's 11, because SFN in this form gets pseudo-encoded into UTF-8, so the size can bloat.
+    // As a result, filenames with diacritics wouldn't fit
+    static constexpr size_t MAX_SFN = 24;
+    struct EntryRef;
+    struct Entry {
 
-        bool is_dir;
-        uint64_t time;
-        string_view_light lfn_name;
-
-        // Using std::tie to avoid errors in comparison of a heterogenous sequence of components
-        inline bool operator<(const TimeComparator &other) const {
-            return std::tie(is_dir, time, lfn_name) < std::tie(other.is_dir, other.time, other.lfn_name);
+    public:
+        inline bool is_valid() const {
+            return type != EntryType::INVALID;
         }
+
+    public:
+        void Clear();
+        void CopyFrom(const EntryRef &ref);
+        void SetDirUp();
+
+    public:
+        uint64_t time = 0;
+        EntryType type = EntryType::INVALID;
+        char lfn[FF_MAX_LFN] = { 0 };
+        char sfn[FileSort::MAX_SFN] = { 0 }; // cache the short filenames too, since they will be used in communication with Marlin
     };
 
-    struct NameComparator {
-        NameComparator(const Entry &e);
-        NameComparator(const DirentWPath &dwp);
+    struct EntryRef {
 
-        bool is_file;
-        string_view_light lfn_name;
+    public:
+        EntryRef() = default;
+        EntryRef(const Entry &e);
+        EntryRef(const dirent &de, const char *sfnPath);
 
-        // Using std::tie to avoid errors in comparison of a heterogenous sequence of components
-        inline bool operator<(const NameComparator &other) const {
-            return std::tie(is_file, lfn_name) < std::tie(other.is_file, other.lfn_name);
+    public:
+        inline bool is_valid() const {
+            return type != EntryType::INVALID;
         }
+
+    public:
+        uint64_t time = 0;
+        StringViewLight lfn = nullptr;
+        const char *sfn = nullptr;
+        EntryType type = EntryType::INVALID;
     };
 
+public:
     // function pointer aliases
-    using LessEF_t = bool (*)(const Entry &, const DirentWPath &);
-    using LessFE_t = bool (*)(const DirentWPath &, const Entry &);
-    using MakeEntry_t = Entry (*)();
+    using LessFunc = bool (*)(const EntryRef &, const EntryRef &);
 
     // These function must not be named the same, otherwise one would have to explicitely
     // specify the correct one in the upper_bound algoritm which looks horrible :)
-    inline static bool LessByFNameEF(const Entry &e, const DirentWPath &dwp) {
-        return NameComparator { e } < NameComparator { dwp };
-    }
-    inline static bool LessByFNameFE(const DirentWPath &dwp, const Entry &e) {
-        return NameComparator { dwp } < NameComparator { e };
-    }
+    inline static bool less_by_name(const EntryRef &a, const EntryRef &b) {
+        assert(a.is_valid() && b.is_valid());
 
-    inline static Entry MakeFirstEntryByFName() {
-        return Entry { false, "", "", 0U };
+        // Using std::tie to avoid errors in comparison of a heterogenous sequence of components
+        return std::tie(a.type, a.lfn) < std::tie(b.type, b.lfn);
     }
-    static Entry MakeLastEntryByFName();
 
     // This may look confusing - from the sorting perspective, the higher time stamp (the more recent one)
     // is less than an older time stamp - we want the newer files up higher in the list.
@@ -116,16 +110,15 @@ public:
     // -> directories first and then the most recent files
     // beware - multiple files may have identical time stamps!
     // In such case, the file name is the only unique identifier and thus must be included in the comparison
-    inline static bool LessByTimeEF(const Entry &e, const DirentWPath &dwp) {
-        return TimeComparator { dwp } < TimeComparator { e };
-    }
-    inline static bool LessByTimeFE(const DirentWPath &dwp, const Entry &e) {
-        return TimeComparator { e } < TimeComparator { dwp };
+    inline static bool less_by_time(const EntryRef &a, const EntryRef &b) {
+        assert(a.is_valid() && b.is_valid());
+
+        // Using std::tie to avoid errors in comparison of a heterogenous sequence of components
+        return std::tie(a.type, b.time, b.lfn) < std::tie(b.type, a.time, a.lfn);
     }
 
-    static Entry MakeFirstEntryByTime();
-
-    inline static Entry MakeLastEntryByTime() {
-        return Entry { true, "", "", 0U };
-    }
+    static inline constexpr LessFunc sort_policy_less[ftrstd::to_underlying(SortPolicy::_COUNT)] = {
+        &less_by_name,
+        &less_by_time,
+    };
 };

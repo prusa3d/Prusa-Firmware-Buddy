@@ -142,6 +142,10 @@ static void M593_internal(const M593Params &params) {
 
 } // namespace input_shaper
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief Set parameters for input shapers.
  *
@@ -219,3 +223,5 @@ void GcodeSuite::M593() {
 
     input_shaper::M593_internal(params);
 }
+
+/** @}*/

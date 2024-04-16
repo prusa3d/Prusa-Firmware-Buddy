@@ -392,6 +392,7 @@ bool tud_init (uint8_t rhport)
   TU_LOG_INT(CFG_TUD_LOG_LEVEL, sizeof(tu_edpt_stream_t));
 
   tu_varclr(&_usbd_dev);
+  _usbd_dev.speed = TUSB_SPEED_INVALID;
 
 #if OSAL_MUTEX_REQUIRED
   // Init device mutex
@@ -436,7 +437,12 @@ static void configuration_reset(uint8_t rhport)
     driver->reset(rhport);
   }
 
+  // close all non-control endpoints, cancel all pending transfers if any
+  dcd_edpt_close_all(rhport);
+
   tu_varclr(&_usbd_dev);
+  _usbd_dev.speed = TUSB_SPEED_INVALID;
+
   memset(_usbd_dev.itf2drv, DRVID_INVALID, sizeof(_usbd_dev.itf2drv)); // invalid mapping
   memset(_usbd_dev.ep2drv , DRVID_INVALID, sizeof(_usbd_dev.ep2drv )); // invalid mapping
 }
@@ -692,9 +698,6 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
             {
               // already configured: need to clear all endpoints and driver first
               TU_LOG_USBD("  Clear current Configuration (%u) before switching\r\n", _usbd_dev.cfg_num);
-
-              // close all non-control endpoints, cancel all pending transfers if any
-              dcd_edpt_close_all(rhport);
 
               // close all drivers and current configured state except bus speed
               uint8_t const speed = _usbd_dev.speed;

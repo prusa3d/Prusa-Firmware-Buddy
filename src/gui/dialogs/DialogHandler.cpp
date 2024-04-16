@@ -1,15 +1,20 @@
-// DialogHandler.cpp
 #include "DialogHandler.hpp"
+
 #include "DialogLoadUnload.hpp"
-#include "DialogFactory.hpp"
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
 #include "ScreenESP.hpp"
 #include "screen_printing.hpp"
 #include "config_features.h"
 #include "screen_print_preview.hpp"
-#include "log.h"
-LOG_COMPONENT_REF(GUI);
+#include "window_dlg_preheat.hpp"
+#include "window_dlg_quickpause.hpp"
+#include "window_dlg_warning.hpp"
+#include <option/has_phase_stepping.h>
+
+#if HAS_COLDPULL()
+    #include "screen_cold_pull.hpp"
+#endif
 
 #if HAS_SELFTEST()
     #include "ScreenSelftest.hpp"
@@ -32,6 +37,29 @@ using SerialPrint = screen_printing_serial_data_t;
 using SerialPrint = ScreenDialogDoesNotExist;
 #endif
 
+#if HAS_PHASE_STEPPING()
+    #include "screen_phase_stepping.hpp"
+#endif
+
+using mem_space = std::aligned_union_t<0, DialogQuickPause, DialogLoadUnload, DialogMenuPreheat, DialogWarning
+#if HAS_COLDPULL()
+    ,
+    ScreenColdPull
+#endif
+#if HAS_PHASE_STEPPING()
+    ,
+    ScreenPhaseStepping
+#endif
+    >;
+static mem_space all_dialogs;
+
+// safer than make_static_unique_ptr, checks storage size
+template <class T, class... Args>
+static static_unique_ptr<IDialogMarlin> make_dialog_ptr(Args &&...args) {
+    static_assert(sizeof(T) <= sizeof(all_dialogs), "Error dialog does not fit");
+    return make_static_unique_ptr<T>(&all_dialogs, std::forward<Args>(args)...);
+}
+
 static void OpenPrintScreen(ClientFSM dialog) {
     switch (dialog) {
     case ClientFSM::Serial_printing:
@@ -51,14 +79,16 @@ static void OpenPrintScreen(ClientFSM dialog) {
 // method definitions
 void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
     if (ptr) {
-        return; // the dialog is already opened, not an error (TODO really?)
+        if (dialog_cache.has_value()) {
+            // TODO: Make all dialogs screens and use Screens state stack
+            bsod("Can't open more then 2 dialogs at a time.");
+        }
+
+        dialog_cache = last_fsm_change;
+        ptr = nullptr;
     }
 
-    {
-        auto screen = Screens::Access()->Get();
-        assert(screen);
-        underlying_screen_state_ = screen->GetCurrentState();
-    }
+    last_fsm_change = std::make_pair(fsm_type, data);
 
     // todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     //  only ptr = dialog_creators[dialog](data); should remain
@@ -96,8 +126,34 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
             Screens::Access()->Open(ScreenFactory::Screen<ScreenESP>);
         }
         break;
-    default:
-        ptr = dialog_ctors[size_t(fsm_type)](data);
+    case ClientFSM::ColdPull:
+#if HAS_COLDPULL()
+        if (!ScreenColdPull::GetInstance()) {
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenColdPull>);
+        }
+#endif
+        break;
+#if HAS_PHASE_STEPPING()
+    case ClientFSM::PhaseStepping:
+        if (!ScreenPhaseStepping::GetInstance()) {
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenPhaseStepping>);
+        }
+        break;
+#endif
+    case ClientFSM::QuickPause:
+        ptr = make_dialog_ptr<DialogQuickPause>(data);
+        break;
+    case ClientFSM::Warning:
+        ptr = make_dialog_ptr<DialogWarning>(data);
+        break;
+    case ClientFSM::Load_unload:
+        ptr = make_dialog_ptr<DialogLoadUnload>(data);
+        break;
+    case ClientFSM::Preheat:
+        ptr = make_dialog_ptr<DialogMenuPreheat>(data);
+        break;
+    case ClientFSM::_none:
+        break;
     }
 }
 
@@ -112,6 +168,10 @@ void DialogHandler::close(ClientFSM fsm_type) {
     case ClientFSM::CrashRecovery:
     case ClientFSM::Selftest:
     case ClientFSM::ESP:
+    case ClientFSM::ColdPull:
+#if HAS_PHASE_STEPPING()
+    case ClientFSM::PhaseStepping:
+#endif
         Screens::Access()->Close();
         break;
     default:
@@ -119,16 +179,20 @@ void DialogHandler::close(ClientFSM fsm_type) {
     }
 
     // Attempt to restore underlying screen state
-    if (ptr) {
-        auto screen = Screens::Access()->Get();
-        assert(screen);
-        screen->InitState(underlying_screen_state_);
+    if (ptr != nullptr) {
+        if (dialog_cache.has_value()) {
+            ptr = nullptr;
+            const auto cache = *dialog_cache;
+            dialog_cache = std::nullopt;
+            open(cache.first, cache.second);
+        } else {
+            ptr = nullptr; // destroy current dialog
+        }
     }
-
-    ptr = nullptr; // destroy current dialog
 }
 
 void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
+    last_fsm_change = std::make_pair(fsm_type, data);
 
     switch (fsm_type) {
     case ClientFSM::PrintPreview:
@@ -153,6 +217,20 @@ void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
             ScreenESP::GetInstance()->Change(data);
         }
         break;
+    case ClientFSM::ColdPull:
+#if HAS_COLDPULL()
+        if (ScreenColdPull::GetInstance()) {
+            ScreenColdPull::GetInstance()->Change(data);
+        }
+#endif
+        break;
+#if HAS_PHASE_STEPPING()
+    case ClientFSM::PhaseStepping:
+        if (ScreenPhaseStepping::GetInstance()) {
+            ScreenPhaseStepping::GetInstance()->Change(data);
+        }
+        break;
+#endif
     default:
         if (ptr) {
             ptr->Change(data);
@@ -164,81 +242,61 @@ bool DialogHandler::IsOpen() const {
     return ptr != nullptr;
 }
 
-//*****************************************************************************
-// Meyers singleton
 DialogHandler &DialogHandler::Access() {
-    static DialogHandler ret(DialogFactory::GetAll());
-    return ret;
-}
-
-void DialogHandler::Command(std::pair<uint32_t, uint16_t> serialized) {
-
-    fsm::Change change(serialized);
-    Access().command_queue.force_push(change);
-}
-
-/**
- * @brief determine correct operation with data
- * 3 possibilities: create(open), change(modify), destroy(destroy)
- * can contain close screen + open dialog
- *
- * @param change data containing description of a change, can be even open + close
- */
-void DialogHandler::command(fsm::DequeStates changes) {
-    log_debug(GUI, "fsm changes from %d, to %d", static_cast<int>(changes.last_sent.get_fsm_type()), static_cast<int>(changes.current.get_fsm_type()));
-
-    // destroy
-    // new fsm is ClientFSM::_none, old fsm being ClientFSM::_none should not happen
-    if (changes.current.get_fsm_type() == ClientFSM::_none) {
-        close(changes.last_sent.get_fsm_type());
-        return;
-    }
-
-    // create
-    // last command was no fsm, new command has fsm
-    // or last command was different fsm
-    if (changes.current.get_fsm_type() != changes.last_sent.get_fsm_type()) {
-        if (changes.last_sent.get_fsm_type() == ClientFSM::_none) {
-            // regular open
-            open(changes.current.get_fsm_type(), changes.current.get_data());
-            Screens::Access()->Loop(); // ensure screen is opened before call of Draw
-            // now continue to change
-            // open currently does not support change directly
-            // TODO make it so .. than Screens::Access()->Loop(); could be removed
-        } else {
-            // close + open
-            close(changes.last_sent.get_fsm_type());
-            Screens::Access()->Loop(); // currently it is the simplest way to ensure screen is closed in case close called it
-            open(changes.current.get_fsm_type(), changes.current.get_data());
-            Screens::Access()->Loop(); // ensure screen is opened before call of Draw
-            return;
-        }
-    }
-
-    // change
-    // last and new command fsms are the same
-    // no need to check if data changed, queue handles it
-    change(changes.current.get_fsm_type(), changes.current.get_data());
-    return;
+    static DialogHandler instance;
+    return instance;
 }
 
 void DialogHandler::Loop() {
-    std::optional<fsm::DequeStates> change = command_queue.dequeue();
-    if (!change) {
+    const auto &new_fsm_states = marlin_vars()->get_fsm_states();
+    const auto &old_fsm_states = fsm_states;
+    if (old_fsm_states == new_fsm_states) {
         return;
     }
 
-    command(*change);
+    const auto &new_top = new_fsm_states.get_top();
+    const auto &old_top = old_fsm_states.get_top();
+
+    // TODO Investigate whether Screens::Access()->Loop() is really needed.
+    // TODO Update open() so that we won't need to call change() afterwards.
+    if (new_top && old_top) {
+        if (new_top->fsm_type == old_top->fsm_type) {
+            if (new_top->data != old_top->data) {
+                change(new_top->fsm_type, new_top->data);
+            }
+        } else {
+            if (new_top->fsm_type == ClientFSM::Load_unload && old_top->fsm_type == ClientFSM::PrintPreview) {
+                // TODO Remove this shitcode/prasohack as soon as possible.
+                //      As a special exception we do not close PrintPreview screen when the LoadUnload dialog
+                //      is requested. It would destroy the ToolsMappingBody while one of its methods is still
+                //      executing, leading to calling refresh_physical_tool_filament_labels() which in turn
+                //      jumped to undefined memory.
+            } else {
+                close(old_top->fsm_type);
+                Screens::Access()->Loop();
+            }
+            open(new_top->fsm_type, new_top->data);
+            Screens::Access()->Loop();
+            change(new_top->fsm_type, new_top->data);
+        }
+    } else if (new_top && !old_top) {
+        open(new_top->fsm_type, new_top->data);
+        Screens::Access()->Loop();
+        change(new_top->fsm_type, new_top->data);
+    } else if (!new_top && old_top) {
+        close(old_top->fsm_type);
+        Screens::Access()->Loop();
+    } else {
+        abort();
+    }
+
+    fsm_states = new_fsm_states;
 }
 
 bool DialogHandler::IsOpen(ClientFSM fsm) const {
-    const ClientFSM q0 = command_queue.GetOpenFsmQ0();
-    const ClientFSM q1 = command_queue.GetOpenFsmQ1();
-
-    return fsm == q0 || fsm == q1;
+    return fsm_states.is_active(fsm);
 }
 
 bool DialogHandler::IsAnyOpen() const {
-    const ClientFSM q0 = command_queue.GetOpenFsmQ0();
-    return q0 != ClientFSM::_none; // cannot have q1 without q0
+    return fsm_states.get_top().has_value();
 }

@@ -7,6 +7,7 @@
 #include <metric_handlers.h>
 #include <config_store/store_instance.hpp>
 #include <log_dest_syslog.h>
+#include <guiconfig/guiconfig.h>
 
 LOG_COMPONENT_REF(GUI);
 
@@ -69,14 +70,14 @@ void MI_METRICS_PORT::ChangePort(uint16_t port) {
 
 // Info message
 MI_METRICS_INFO_LABEL::MI_METRICS_INFO_LABEL()
-    : WI_LABEL_t(_(label), &img::question_16x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(_(label), &img::question_16x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 Response MetricsInfoMsgbox(string_view_utf8 txt) {
     static constexpr Response rsp { Response::Ok };
-    const PhaseTexts labels = { BtnResponse::GetText(rsp) };
+    const PhaseTexts labels = { get_response_text(rsp) };
     MsgBoxBase msgbox(GuiDefaults::RectScreen, { rsp }, 0, &labels, txt);
     msgbox.set_text_font(GuiDefaults::FontMenuSpecial);
-    msgbox.MakeBlocking();
+    Screens::Access()->gui_loop_until_dialog_closed();
     return msgbox.GetResult();
 }
 
@@ -123,7 +124,7 @@ void MI_METRICS_INIT::OnChange([[maybe_unused]] size_t old_index) {
 
 // Stored configuration splitter
 MI_METRICS_CONF_LABEL::MI_METRICS_CONF_LABEL()
-    : WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_METRICS_CONF_LABEL::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);
@@ -131,7 +132,7 @@ void MI_METRICS_CONF_LABEL::click(IWindowMenu & /*window_menu*/) {
 
 // Current configuration splitter
 MI_METRICS_CURRENT_LABEL::MI_METRICS_CURRENT_LABEL()
-    : WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_METRICS_CURRENT_LABEL::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);

@@ -26,14 +26,20 @@ FwAutoUpdate get_auto_update_flag(void) {
     uint8_t RAM_flag = (FwAutoUpdate::on == ram_data_exchange.fw_update_flag) ? 1 : 0;
 
     if (ram_data_exchange.fw_update_flag == FwAutoUpdate::specified) {
-        return FwAutoUpdate::specified;
+        return FwAutoUpdate::specified; // highest priority
     } else if (RAM_flag) {
-        return FwAutoUpdate::on;
-    } else if (ram_data_exchange.fw_update_flag == FwAutoUpdate::older) {
-        return FwAutoUpdate::older;
+        return FwAutoUpdate::on; // not from RAM but from eeprom, second highest priority
     } else {
-        return FwAutoUpdate::off;
+        switch (ram_data_exchange.fw_update_flag) {
+        case FwAutoUpdate::on:
+        case FwAutoUpdate::off:
+        case FwAutoUpdate::older:
+        case FwAutoUpdate::specified:
+        case FwAutoUpdate::tester_mode:
+            return ram_data_exchange.fw_update_flag;
+        }
     }
+    return FwAutoUpdate::off; // somehow corrupted data in shared RAM, no update
 }
 
 void get_specified_SFN(char *out_buff) {
@@ -127,3 +133,7 @@ bool has_apendix() {
     return ram_data_exchange.appendix_status & APPENDIX_FLAG_MASK;
 }
 } // namespace data_exchange
+
+bool running_in_tester_mode() {
+    return get_auto_update_flag() == FwAutoUpdate::tester_mode;
+}

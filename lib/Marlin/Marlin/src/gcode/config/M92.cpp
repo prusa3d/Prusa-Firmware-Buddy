@@ -45,6 +45,10 @@ void report_M92(const bool echo=true, const int8_t e=-1) {
   UNUSED_E(e);
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M92: Set axis steps-per-unit for one or more axes, X, Y, Z, and E.
  *      (Follows the same syntax as G92)
@@ -70,26 +74,32 @@ void GcodeSuite::M92() {
     #endif
   )) return report_M92(true, target_extruder);
 
-  LOOP_XYZE(i) {
-    if (parser.seenval(axis_codes[i])) {
-      if (i == E_AXIS) {
-        const float value = parser.value_per_axis_units((AxisEnum)(E_AXIS_N(target_extruder)));
-        if (value < 20) {
-          float factor = planner.settings.axis_steps_per_mm[E_AXIS_N(target_extruder)] / value; // increase e constants if M92 E14 is given for netfab.
-          #if HAS_CLASSIC_E_JERK
-            planner.max_jerk.e *= factor;
-          #endif
-          planner.settings.max_feedrate_mm_s[E_AXIS_N(target_extruder)] *= factor;
-          planner.max_acceleration_msteps_per_s2[E_AXIS_N(target_extruder)] *= factor;
+  {
+    auto s = planner.user_settings;
+
+    LOOP_XYZE(i) {
+      if (parser.seenval(axis_codes[i])) {
+        if (i == E_AXIS) {
+          const float value = parser.value_per_axis_units((AxisEnum)(E_AXIS_N(target_extruder)));
+          if (value < 20) {
+            float factor = planner.settings.axis_steps_per_mm[E_AXIS_N(target_extruder)] / value; // increase e constants if M92 E14 is given for netfab.
+            #if HAS_CLASSIC_E_JERK
+              s.max_jerk.e *= factor;
+            #endif
+            s.max_feedrate_mm_s[E_AXIS_N(target_extruder)] *= factor;
+            planner.max_acceleration_msteps_per_s2[E_AXIS_N(target_extruder)] *= factor;
+          }
+          s.axis_steps_per_mm[E_AXIS_N(target_extruder)] = value;
+          s.axis_msteps_per_mm[E_AXIS_N(target_extruder)] = value * PLANNER_STEPS_MULTIPLIER;
         }
-        planner.settings.axis_steps_per_mm[E_AXIS_N(target_extruder)] = value;
-        planner.settings.axis_msteps_per_mm[E_AXIS_N(target_extruder)] = value * PLANNER_STEPS_MULTIPLIER;
-      }
-      else {
-        planner.settings.axis_steps_per_mm[i] = parser.value_per_axis_units((AxisEnum)i);
-        planner.settings.axis_msteps_per_mm[i] = parser.value_per_axis_units((AxisEnum)i) * PLANNER_STEPS_MULTIPLIER;
+        else {
+          s.axis_steps_per_mm[i] = parser.value_per_axis_units((AxisEnum)i);
+          s.axis_msteps_per_mm[i] = parser.value_per_axis_units((AxisEnum)i) * PLANNER_STEPS_MULTIPLIER;
+        }
       }
     }
+
+    planner.apply_settings(s);
   }
   planner.refresh_positioning();
 
@@ -114,3 +124,5 @@ void GcodeSuite::M92() {
     }
   #endif
 }
+
+/** @}*/

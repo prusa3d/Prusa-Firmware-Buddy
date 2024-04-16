@@ -6,13 +6,13 @@
 
 #include <inttypes.h>
 #include <algorithm>
-#include "guiconfig.h"
 #include "guitypes.hpp"
 #include "printers.h"
 #include "display_helper.h"
 #include "Rect16.h"
 #include "display_ex.hpp"
 #include "fonts.hpp"
+#include <guiconfig/guiconfig.h>
 
 typedef uint16_t(display_size_t)(void);
 typedef void(display_init_t)(void);
@@ -37,7 +37,7 @@ typedef void(display_store_char_in_buffer_t)(uint16_t char_cnt, uint16_t curr_ch
 typedef void(display_draw_from_buffer_t)(point_ui16_t pt, uint16_t w, uint16_t h);
 typedef void(display_draw_qoi_t)(point_ui16_t pt, const img::Resource &qoi, color_t back_color, ropfn rop, Rect16 subrect);
 typedef void(display_backlight_t)(uint8_t bck);
-typedef void(display_read_madctl_t)(uint8_t *pdata);
+typedef bool(display_is_reset_required_t)();
 typedef void(display_complete_lcd_reinit_t)();
 
 template <
@@ -53,7 +53,7 @@ template <
     display_borrow_buffer_t *BORROW_BUFFER, display_return_buffer_t *RETURN_BUFFER, display_buffer_pixel_size_t *BUFFER_PIXEL_SIZE,
     display_store_char_in_buffer_t *STORE_CHAR_IN_BUFFER, display_draw_from_buffer_t *DRAW_FROM_BUFFER,
     display_draw_qoi_t *DRAW_QOI, display_backlight_t *BACKLIGHT,
-    display_read_madctl_t *READ_MADCLT, display_complete_lcd_reinit_t *COMPLETE_LCD_REINIT>
+    display_is_reset_required_t *IS_RESET_REQUIRED, display_complete_lcd_reinit_t *COMPLETE_LCD_REINIT>
 
 class Display {
     // sorted raw array of known utf8 character indices
@@ -128,7 +128,7 @@ public:
     }
 
     constexpr static void SetBacklight(uint8_t bck) { BACKLIGHT(bck); }
-    constexpr static void ReadMADCTL(uint8_t *pdata) { READ_MADCLT(pdata); }
+    constexpr static bool IsResetRequired() { return IS_RESET_REQUIRED(); }
     constexpr static void CompleteReinitLCD() { COMPLETE_LCD_REINIT(); }
 };
 
@@ -153,7 +153,7 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     display_ex_draw_from_buffer,
     display_ex_draw_qoi,
     st7789v_set_backlight,
-    st7789v_cmd_madctlrd,
+    st7789v_is_reset_required,
     st7789v_reset>;
 #endif
 
@@ -178,7 +178,7 @@ using display = Display<ILI9488_COLS, ILI9488_ROWS,
     display_ex_draw_from_buffer,
     display_ex_draw_qoi,
     ili9488_brightness_set,
-    ili9488_cmd_madctlrd,
+    ili9488_is_reset_required,
     ili9488_set_complete_lcd_reinit>;
 #endif
 
@@ -203,6 +203,6 @@ using display = Display<MockDisplay::Cols, MockDisplay::Rows,
     display_ex_draw_from_buffer,
     display_ex_draw_qoi,
     MockDisplay::set_backlight,
-    MockDisplay::ReadMadctl,
+    MockDisplay::is_reset_required,
     MockDisplay::Reset>;
 #endif

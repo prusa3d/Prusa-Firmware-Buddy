@@ -7,12 +7,9 @@
 #include <cstddef>
 #include <algorithm>
 #include <array>
+#include <string_view>
 
-/**
- * @brief list of all button types
- * there is an array of texts in "client_response_texts.cpp", order and count must match!
- * !!! MAINTAIN ALPHABETICAL ORDER !!!
- */
+/** list of all button types */
 enum class Response : uint8_t {
     _none = 0, // none must be zero because of empty initialization of array
     Abort, // when used in selftest, handled automatically in PartHandler
@@ -27,12 +24,14 @@ enum class Response : uint8_t {
     Continue,
     Cooldown,
     Disable,
+    Done,
     Filament,
     Filament_removed,
     Finish,
     FLEX,
     FS_disable,
-    HighFlow,
+    NozzleType_Normal,
+    NozzleType_HighFlow,
     HIPS,
     Ignore,
     Left,
@@ -42,15 +41,18 @@ enum class Response : uint8_t {
     Next,
     No,
     NotNow,
+    NozzleDiameter_04,
+    NozzleDiameter_06,
     Ok,
     Pause,
     PC,
     PETG,
-    PETG_NH, // PETG without heating bed
     PLA,
     PP,
     Print,
-    PrusaStock,
+    HotendType_Stock,
+    HotendType_StockWithSock,
+    HotendType_E3DRevo,
     Purge_more,
     PVB,
     Quit,
@@ -69,6 +71,7 @@ enum class Response : uint8_t {
     Yes,
     Heatup,
     PA,
+    Postpone5Days,
     PRINT,
     _count,
     _last = _count - 1,
@@ -85,3 +88,6 @@ template <size_t N>
 constexpr size_t get_response_idx(const std::array<Response, N> &resps, Response resp) {
     return std::distance(resps.begin(), std::find(resps.begin(), resps.end(), resp));
 }
+
+Response from_str(std::string_view str);
+const char *to_str(const Response response);

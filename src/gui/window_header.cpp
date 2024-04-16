@@ -8,6 +8,7 @@
 #include "netdev.h"
 #include "transfers/monitor.hpp"
 #include <config_store/store_instance.hpp>
+#include <guiconfig/guiconfig.h>
 #include <marlin_vars.hpp>
 #include "timing.h"
 
@@ -15,19 +16,15 @@ namespace {
 constexpr uint16_t inter_item_padding { 4 };
 // icon widths
 constexpr Rect16::Width_t base_w { 16 };
-constexpr Rect16::Width_t usb_w { 32 };
-constexpr Rect16::Width_t lan_w { 16 };
 
-static_assert(resource_font_size(GuiDefaults::HeaderTextFont).h <= GuiDefaults::HeaderItemHeight, "Text wouldn't fit into header");
+static_assert(height(GuiDefaults::HeaderTextFont) <= GuiDefaults::HeaderItemHeight, "Text wouldn't fit into header");
 static_assert(GuiDefaults::HeaderTextExtraPaddingTop <= GuiDefaults::HeaderPadding.bottom, "Text wouldn't fit into header");
 
-constexpr Rect16::Width_t transfer_val_w { resource_font_size(GuiDefaults::HeaderTextFont).w * 4 };
-constexpr Rect16::Width_t transfer_w { 16 };
-constexpr Rect16::Width_t time_24h_w { resource_font_size(GuiDefaults::HeaderTextFont).w * 5 };
-constexpr Rect16::Width_t time_12h_w { resource_font_size(GuiDefaults::HeaderTextFont).w * 8 };
+constexpr Rect16::Width_t transfer_val_w { width(GuiDefaults::HeaderTextFont) * 4 };
+constexpr Rect16::Width_t time_24h_w { width(GuiDefaults::HeaderTextFont) * 5 };
+constexpr Rect16::Width_t time_12h_w { width(GuiDefaults::HeaderTextFont) * 8 };
 
-constexpr Rect16::Width_t bed_text_width { resource_font_size(GuiDefaults::HeaderTextFont).w * 5 };
-constexpr Rect16::Width_t bed_icon_width { 16 };
+constexpr Rect16::Width_t bed_text_width { width(GuiDefaults::HeaderTextFont) * 5 };
 
 // how long the icon remains after the transfer is finished [us]
 constexpr uint32_t transfer_hide_timeout { 1'000'000u };
@@ -118,16 +115,9 @@ void window_header_t::SetText(string_view_utf8 txt) {
     Invalidate();
 }
 
-void window_header_t::show_bed_info() {
-    bed_icon.Show();
-    bed_text.Show();
-    updateIcons(); // required because this will affect rects of items
-    Invalidate();
-}
-
-void window_header_t::hide_bed_info() {
-    bed_icon.Hide();
-    bed_text.Hide();
+void window_header_t::set_show_bed_info(bool set) {
+    bed_icon.set_visible(set);
+    bed_text.set_visible(set);
     updateIcons(); // required because this will affect rects of items
     Invalidate();
 }
@@ -186,14 +176,15 @@ void window_header_t::updateAllRects() {
 #if !defined(USE_ST7789) // Time is not shown on ST7789
     maybe_update(time_val, time_tools::get_time_format() == time_tools::TimeFormat::_24h ? time_24h_w : time_12h_w);
 #endif /* !defined(USE_ST7789) */
-    maybe_update(icon_usb, usb_w);
-    maybe_update(icon_network, lan_w);
+    maybe_update(icon_usb, icon_usb.resource()->w);
+    maybe_update(icon_network, icon_network.resource()->w);
+    maybe_update(icon_stealth, icon_stealth.resource()->w);
     if (transfer_val_on) {
         maybe_update(transfer_val, transfer_val_w);
     }
-    maybe_update(icon_transfer, transfer_w);
+    maybe_update(icon_transfer, icon_transfer.resource()->w);
     maybe_update(bed_text, bed_text_width);
-    maybe_update(bed_icon, bed_icon_width);
+    maybe_update(bed_icon, bed_icon.resource()->w);
 
     auto label_width = current_offset - GuiDefaults::HeaderPadding.left;
 
@@ -216,6 +207,8 @@ void window_header_t::updateIcons() {
     updateTime();
     update_bed_info();
 
+    icon_stealth.set_visible(marlin_vars()->stealth_mode.get());
+
     updateAllRects();
 }
 
@@ -226,10 +219,11 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
 #if !defined(USE_ST7789) // Time is not shown on ST7789
     , time_val(this, first_rect_doesnt_matter, is_multiline::no)
 #endif /* !defined(USE_ST7789) */
-    , icon_usb(this, first_rect_doesnt_matter, &img::usb_32x16)
+    , icon_usb(this, first_rect_doesnt_matter, &img::usb_20x16)
     , icon_network(this, first_rect_doesnt_matter, window_header_t::networkIcon(netdev_get_active_id()))
     , transfer_val(this, first_rect_doesnt_matter, is_multiline::no)
     , icon_transfer(this, first_rect_doesnt_matter, &img::transfer_icon_16x16)
+    , icon_stealth(this, first_rect_doesnt_matter, &img::stealth_20x16)
     , bed_text(this, first_rect_doesnt_matter, is_multiline::no)
     , bed_icon(this, first_rect_doesnt_matter, &img::heatbed_16x16)
     , active_netdev_id(netdev_get_active_id())
@@ -242,16 +236,16 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
 #endif
 
 {
-    label.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    label.set_font(GuiDefaults::HeaderTextFont);
     label.SetAlignment(Align_t::LeftCenter());
     transfer_val.SetAlignment(Align_t::LeftCenter());
-    transfer_val.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    transfer_val.set_font(GuiDefaults::HeaderTextFont);
     icon_base.SetAlignment(Align_t::LeftCenter());
     icon_usb.SetAlignment(Align_t::LeftCenter());
     icon_network.SetAlignment(Align_t::LeftCenter());
     icon_transfer.SetAlignment(Align_t::LeftCenter());
 
-    bed_text.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    bed_text.set_font(GuiDefaults::HeaderTextFont);
     bed_icon.SetAlignment(Align_t::LeftCenter());
 
     icon_network.Hide();
@@ -259,29 +253,17 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     icon_transfer.Hide();
 
 #if !defined(USE_ST7789) // Time is not shown on ST7789
-    time_val.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    time_val.set_font(GuiDefaults::HeaderTextFont);
     time_val.SetAlignment(Align_t::RightCenter());
     time_tools::update_time();
     time_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time()));
 #endif /* !defined(USE_ST7789) */
 
-    hide_bed_info();
+    set_show_bed_info(false);
     updateMedia(GuiMediaEventsHandler::Get());
     updateIcons();
 
     Disable();
-}
-
-void window_header_t::USB_Off() {
-    icon_usb.Hide();
-}
-void window_header_t::USB_On() {
-    icon_usb.Show();
-    icon_usb.Shadow();
-}
-void window_header_t::USB_Activate() {
-    icon_usb.Show();
-    icon_usb.Unshadow();
 }
 
 void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -332,18 +314,8 @@ void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *send
 }
 
 void window_header_t::updateMedia(MediaState_t state) {
-    switch (state) {
-    case MediaState_t::inserted:
-        USB_Activate();
-        break;
-    case MediaState_t::removed:
-        USB_Off();
-        break;
-    case MediaState_t::error:
-    default:
-        USB_On();
-        break;
-    }
+    icon_usb.set_visible(state != MediaState_t::removed);
+    icon_usb.set_shadow(state != MediaState_t::inserted);
 };
 
 const img::Resource *window_header_t::networkIcon(uint32_t netdev_id) {

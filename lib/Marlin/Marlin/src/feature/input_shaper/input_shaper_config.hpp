@@ -38,7 +38,7 @@ struct __attribute__((packed)) AxisConfig {
     // DO NOT CHANGE LAYOUT OF THIS CLASS WITHOUT CHANGING EEPROM CODE!
 
     Type type;
-    char _padding[3];
+    char _padding[3] {};
     float frequency; // Hz
     float damping_ratio;
     float vibration_reduction;

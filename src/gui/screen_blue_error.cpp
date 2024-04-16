@@ -10,8 +10,12 @@
 
 using namespace crash_dump;
 
+static const constexpr Rect16 fw_version_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, ScreenBlueError::fw_line_top, display::GetW() - 30, 20) : Rect16(6, 295, display::GetW() - 6, 13);
+static const constexpr Rect16 header_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(14, 10, 240, GuiDefaults::HeaderHeight - 10) : GuiDefaults::RectHeader;
+static const constexpr Rect16 title_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 44, display::GetW() - 60, 20) : Rect16(13, 12, display::GetW() - 26, 20);
+
 ScreenBlueError::ScreenBlueError()
-    : AddSuperWindow<ScreenResetError>()
+    : AddSuperWindow<ScreenResetError>(fw_version_rect)
     ///@note No translations on blue screens.
     , header(this, header_rect, is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>("UNKNOWN ERROR")))
     , title(this, title_rect, is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>("Unable to show details")))
@@ -25,10 +29,10 @@ ScreenBlueError::ScreenBlueError()
     // Simple text instead of header
     header.SetAlignment(Align_t::LeftTop());
     if constexpr (GuiDefaults::EnableDialogBigLayout) {
-        header.set_font(resource_font(IDR_FNT_SPECIAL));
+        header.set_font(Font::special);
     } else {
-        header.set_font(resource_font(IDR_FNT_SMALL));
+        header.set_font(Font::small);
     }
 
-    description.set_font(resource_font(description_font));
+    description.set_font(description_font);
 }

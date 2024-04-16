@@ -5,7 +5,6 @@
 #include "screen_test_msgbox.hpp"
 #include "i18n.h"
 #include "window_msgbox.hpp"
-#include "window_dlg_strong_warning.hpp"
 #include "client_response.hpp"
 
 static const char *test_text = "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?";
@@ -28,12 +27,7 @@ ScreenTestMSGBox::ScreenTestMSGBox()
     , tst_ico_question(this, Rect16(10, 142, 220, 22), []() { MsgBoxQuestion(test_text_view, Responses_YesNoCancel); })
     , tst_ico_warning(this, Rect16(10, 164, 220, 22), []() { MsgBoxWarning(test_text_view, Responses_YesNo); })
     , tst_ico_info(this, Rect16(10, 186, 220, 22), []() { MsgBoxInfo(test_text_view, Responses_RetryCancel); })
-    , tst_icon(this, Rect16(10, 208, 220, 22), []() { MsgBoxPepa(test_fin_view, Responses_Ok); })
-    , tst_strong_hotend_fan(this, Rect16(10, 230, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HotendFan); })
-    , tst_strong_print_fan(this, Rect16(10, 252, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::PrintFan); })
-    , tst_strong_heater(this, Rect16(10, 274, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HeatersTimeout); })
-    , tst_strong_usb_error(this, Rect16(10, 296, 220, 22), []() { window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::USBFlashDisk); }) {
-
+    , tst_icon(this, Rect16(10, 208, 220, 22), []() { MsgBoxPepa(test_fin_view, Responses_Ok); }) {
     static const char bck[] = "back";
     back.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)bck));
 
@@ -54,16 +48,4 @@ ScreenTestMSGBox::ScreenTestMSGBox()
 
     static const char ic[] = "ICON";
     tst_icon.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ic));
-
-    static const char shf[] = "Strong: Hotend Fan";
-    tst_strong_hotend_fan.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)shf));
-
-    static const char spf[] = "Strong: Print Fan";
-    tst_strong_print_fan.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)spf));
-
-    static const char sht[] = "Strong: Heater Timeout";
-    tst_strong_heater.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sht));
-
-    static const char sue[] = "Strong: USB Error";
-    tst_strong_usb_error.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sue));
 }

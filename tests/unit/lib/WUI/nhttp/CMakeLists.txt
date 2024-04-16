@@ -42,10 +42,12 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_any.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_binary.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_interface.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader_plaintext.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_buffer.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/meatpack.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
@@ -85,7 +87,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/memp.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/netif.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/netif/ethernet.c
-  ${CMAKE_SOURCE_DIR}/src/buddy/lwip.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c

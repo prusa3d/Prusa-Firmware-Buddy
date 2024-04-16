@@ -21,7 +21,7 @@ void WI_LAMBDA_SPIN::UpdateText() {
 
     // Calculate extension width
     const size_t len = stringView.computeNumUtf8CharsAndRewind();
-    extension_width = GuiDefaults::FontMenuItems->w * len + Padding.left + Padding.right + (GuiDefaults::MenuSwitchHasBrackets ? (BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right) * 2 : 0);
+    extension_width = width(GuiDefaults::FontMenuItems) * len + Padding.left + Padding.right + (GuiDefaults::MenuSwitchHasBrackets ? (width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right) * 2 : 0);
 }
 
 /**
@@ -34,8 +34,8 @@ Rect16 WI_LAMBDA_SPIN::getSwitchRect(Rect16 extension_rect) const {
         return extension_rect;
     }
 
-    extension_rect += Rect16::Left_t(BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
-    extension_rect -= Rect16::Width_t(BracketFont->w * 2 + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
+    extension_rect += Rect16::Left_t(width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
+    extension_rect -= Rect16::Width_t(width(BracketFont) * 2 + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
     return extension_rect;
 }
 
@@ -45,7 +45,7 @@ Rect16 WI_LAMBDA_SPIN::getSwitchRect(Rect16 extension_rect) const {
  * @return space for the [
  */
 Rect16 WI_LAMBDA_SPIN::getLeftBracketRect(Rect16 extension_rect) const {
-    extension_rect = Rect16::Width_t(BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
+    extension_rect = Rect16::Width_t(width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
     return extension_rect;
 }
 
@@ -55,8 +55,8 @@ Rect16 WI_LAMBDA_SPIN::getLeftBracketRect(Rect16 extension_rect) const {
  * @return space for the ]
  */
 Rect16 WI_LAMBDA_SPIN::getRightBracketRect(Rect16 extension_rect) const {
-    extension_rect += Rect16::Left_t(extension_rect.Width() - (BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right));
-    extension_rect = Rect16::Width_t(BracketFont->w + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
+    extension_rect += Rect16::Left_t(extension_rect.Width() - (width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right));
+    extension_rect = Rect16::Width_t(width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right);
     return extension_rect;
 }
 
@@ -101,9 +101,9 @@ void WI_LAMBDA_SPIN::click([[maybe_unused]] IWindowMenu &window_menu) {
  * @param relative_touch_point where this item is touched
  */
 void WI_LAMBDA_SPIN::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
-    Rect16::Width_t width = window_menu.GetRect().Width();
-    if (width >= relative_touch_point.x && (width - extension_width) <= relative_touch_point.x) {
-        click(window_menu);
+    if (is_touch_in_extension_rect(window_menu, relative_touch_point)) {
+        set_is_edited(true);
+        SetIndex((index + 1) % index_n);
     }
 }
 

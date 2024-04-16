@@ -1,6 +1,6 @@
 #pragma once
 
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 #include <atomic>
 
 #ifndef UNITTESTS
@@ -78,7 +78,7 @@ private:
         std::atomic<UsbhMscRequest::SectorNbr> sector_nbr;
         bool preloaded;
         uint32_t timestamp;
-        FreeRTOS_Mutex mutex;
+        freertos::Mutex mutex;
         uint8_t data[UsbhMscRequest::SECTOR_SIZE];
 
         void reset() {
@@ -90,7 +90,7 @@ private:
         bool operator<(const Entry &e) { return timestamp < e.timestamp; }
     };
 
-    FreeRTOS_Mutex mutex;
+    freertos::Mutex mutex;
     std::array<Entry, size> cache;
 
     // Statictics

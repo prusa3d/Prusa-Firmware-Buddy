@@ -1,4 +1,4 @@
-const uint8_t font_regular_7x13_data[] = {
+constexpr uint8_t font_regular_7x13_data[] = {
     0x00,
     0x00,
     0x00,
@@ -9152,4 +9152,4 @@ const uint8_t font_regular_7x13_data[] = {
     0x00,
     0x00,
 };
-const font_t font_regular_7x13 = { 7, 13, 4, 0, (uint16_t *)font_regular_7x13_data, 32, 255 };
+constexpr font_t font_regular_7x13 = { 7, 13, 4, font_regular_7x13_data, 32, 255 };

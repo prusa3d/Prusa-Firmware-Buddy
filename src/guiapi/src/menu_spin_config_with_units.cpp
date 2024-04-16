@@ -17,6 +17,7 @@ static constexpr const char *mm = "mm";
 static constexpr const char *mA = "mA";
 static constexpr const char *rpm = "rpm"; // todo should I translate it?
 static constexpr const char *Second = "s";
+static constexpr const char *um = "um"; //"µm";
 
 // SpinConfig_t == SpinConfigWithUnit
 const SpinConfigInt SpinCnf::nozzle = SpinConfigInt(MenuVars::GetNozzleRange(), Celsius, spin_off_opt_t::yes);
@@ -24,8 +25,7 @@ const SpinConfigInt SpinCnf::bed = SpinConfigInt(MenuVars::GetBedRange(), Celsiu
 const SpinConfigInt SpinCnf::printfan = SpinConfigInt(MenuVars::percent_range, Percent, spin_off_opt_t::yes);
 const SpinConfigInt SpinCnf::feedrate = SpinConfigInt(MenuVars::feedrate_range, Percent);
 const SpinConfigInt SpinCnf::flowfact = SpinConfigInt(MenuVars::flowfact_range, Percent);
-const SpinConfigInt SpinCnf::timezone_range = { { -12, 14, 1 }, Hour };
-
+const SpinConfigInt SpinCnf::timezone = SpinConfigInt { { -12, 14, 1 }, Hour };
 #if BOARD_IS_BUDDY
 const SpinConfigInt SpinCnf::volume_range = { { 0, 11, 1 }, None, spin_off_opt_t::yes }; // crank it up to 11
 #else
@@ -59,4 +59,11 @@ const SpinConfigInt SpinCnf::loadcell_range = { { 5, 30, 1 }, None };
 const SpinConfigInt SpinCnf::print_progress = SpinConfigInt({ 29, 200, 1 }, Second, spin_off_opt_t::yes); // lowest value is off
 const SpinConfigInt SpinCnf::int_num = SpinConfigInt({ 0, std::numeric_limits<int32_t>::max(), 1 }, None, spin_off_opt_t::no);
 
+#if PRINTER_IS_PRUSA_MK3_5
+const SpinConfigInt SpinCnf::correction_range = SpinConfigInt({ -100, 100, 1 }, um, spin_off_opt_t::no);
+#endif
+
 const SpinConfigFlt SpinCnf::nozzle_diameter = SpinConfigFlt({ 0.25, 1.00, 0.05 }, mm, spin_off_opt_t::no, format_point2);
+#if XL_ENCLOSURE_SUPPORT()
+const SpinConfigInt SpinCnf::enclosure_fan = SpinConfigInt(MenuVars::enclosure_fan_percent_range, Percent);
+#endif

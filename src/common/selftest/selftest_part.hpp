@@ -9,7 +9,7 @@
 #include <array>
 #include <functional>
 #include "i_selftest_part.hpp"
-#include "marlin_server.hpp" // ClientResponseHandler
+#include "marlin_server.hpp"
 
 namespace selftest {
 
@@ -51,7 +51,7 @@ private:
     }
     virtual Response processButton() override {
         const auto phase_enum = GetFsmPhase();
-        const Response response = marlin_server::ClientResponseHandler::GetResponseFromPhase(phase_enum);
+        const Response response = marlin_server::get_response_from_phase(phase_enum);
         return response;
     }
     virtual void pass() override { refResult.Pass(); }

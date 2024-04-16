@@ -28,8 +28,18 @@
 
 #include "../../../module/modular_heatbed.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M557: Set modular bed parameters
+ *
+ * ## Parameters
+ *
+ * - `C` - [float] Set gradient cutoff
+ * - `E` - [float] Set gradient exponent
+ * - `S` - [bool] Expand to sides
  */
 void GcodeSuite::M557() {
 
@@ -54,5 +64,7 @@ void GcodeSuite::M557() {
     // recalculate gradients
     advanced_modular_bed->update_bedlet_temps(Temperature::getEnabledBedletMask(), thermalManager.degTargetBed());
 }
+
+/** @}*/
 
 #endif

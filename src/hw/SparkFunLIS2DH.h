@@ -53,33 +53,16 @@ typedef enum {
  * this class.
  */
 class LIS2DHCore {
-public:
-    enum class CommInterface : uint8_t {
-        I2C_mode,
-        SPI_mode,
-    };
-    LIS2DHCore(uint8_t inputArg);
-    ~LIS2DHCore() = default;
+private:
+    const buddy::hw::OutputPin &chip_select_pin;
 
-    void spiReceiveCompleteCallback() {
-        buddy::hw::acellCs.write(buddy::hw::Pin::State::high);
-        m_ongoing_DMA_rx = 0;
-    };
+public:
+    explicit LIS2DHCore(const buddy::hw::OutputPin &chip_select_pin);
+    ~LIS2DHCore() = default;
 
 protected:
     status_t beginCore(void);
     status_t readRegisterRegion(uint8_t *outputPointer, uint8_t offset, uint8_t length);
-    status_t readRegisterRegionDMA(uint8_t *outputPointer, uint8_t offset, uint8_t length);
-
-    /**
-     * @brief Has DMA read finished?
-     *
-     * @retval true DMA read finished
-     * @retval false DMA read is ongoing
-     */
-    bool readDMACompleted() {
-        return !m_ongoing_DMA_rx;
-    };
 
     // readRegister reads one 8-bit register
     status_t readRegister(uint8_t *, uint8_t);
@@ -89,16 +72,10 @@ protected:
     status_t readRegisterInt16(int16_t *, uint8_t offset);
 
     // Writes an 8-bit byte;
-    status_t writeRegister(uint8_t, uint8_t);
+    void writeRegister(uint8_t, uint8_t);
 
 private:
     // Communication stuff
-    static constexpr CommInterface m_commInterface = CommInterface::SPI_mode;
-    volatile int m_ongoing_DMA_rx;
-    union {
-        uint8_t m_I2CAddress;
-        uint8_t m_chipSelectPin;
-    };
     friend class Fifo;
 };
 
@@ -141,7 +118,7 @@ public:
 
     // Constructor generates default SensorSettings.
     //(over-ride after construction if desired)
-    LIS2DH(uint8_t inputArg = 0x19);
+    explicit LIS2DH(const buddy::hw::OutputPin &chip_select_pin);
     //~LIS3DH() = default;
 
     // Call to apply SensorSettings
@@ -163,8 +140,6 @@ public:
     void fifoBegin(void);
     void fifoClear(void);
     uint8_t fifoGetStatus(void);
-    void fifoStartRec();
-    void fifoEnd(void);
 
     float calcAccel(int16_t);
 

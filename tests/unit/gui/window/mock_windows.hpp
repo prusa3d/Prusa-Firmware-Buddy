@@ -13,22 +13,6 @@
 #include "DialogTimed.hpp"
 #include "guitypes.hpp"
 
-class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
-protected: // inherited by unit tests, must be protected
-    window_dlg_strong_warning_t();
-    window_dlg_strong_warning_t(const window_dlg_strong_warning_t &) = delete;
-
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-    void show(string_view_utf8 txt); // could use const char *, but with stringview I can pass both translated and not translated texts
-    void setIcon(const img::Resource *res);
-
-public:
-    static void ShowHotendFan();
-    static void ShowPrintFan();
-    static void ShowHeaterTimeout();
-    static void ShowUSBFlashDisk();
-};
-
 struct MockFrame_VisibilityNotifycations : public AddSuperWindow<window_frame_t> {
     window_t win;
     uint32_t ChangedCounter;
@@ -49,35 +33,6 @@ struct MockMsgBox : public AddSuperWindow<IDialog> {
         : AddSuperWindow<IDialog>(rc) {}
 };
 
-class MockStrongDialog : public AddSuperWindow<window_dlg_strong_warning_t> {
-public:
-    void Show(string_view_utf8 txt) { show(txt); }
-
-    static MockStrongDialog &ShowHotendFan() {
-        static MockStrongDialog dlg;
-        dlg.Show(string_view_utf8::MakeNULLSTR());
-        return dlg;
-    }
-
-    static MockStrongDialog &ShowPrintFan() {
-        static MockStrongDialog dlg;
-        dlg.Show(string_view_utf8::MakeNULLSTR());
-        return dlg;
-    }
-
-    static MockStrongDialog &ShowHeatersTimeout() {
-        static MockStrongDialog dlg;
-        dlg.Show(string_view_utf8::MakeNULLSTR());
-        return dlg;
-    }
-
-    static MockStrongDialog &ShowUSBFlashDisk() {
-        static MockStrongDialog dlg;
-        dlg.Show(string_view_utf8::MakeNULLSTR());
-        return dlg;
-    }
-};
-
 struct MockScreen : public AddSuperWindow<screen_t> {
     window_t w_first; // just so w0 is not first
     window_t w0;
@@ -95,8 +50,8 @@ struct MockScreen : public AddSuperWindow<screen_t> {
         , w_last(this, GuiDefaults::RectHeader) {} // header is not hidden behind dialog
 
     void ParrentCheck() const;
-    void LinkedListCheck(size_t popup_cnt = 0, size_t dialog_cnt = 0, size_t strong_dialog_cnt = 0) const;
-    void BasicCheck(size_t popup_cnt = 0, size_t dialog_cnt = 0, size_t strong_dialog_cnt = 0) const;
+    void LinkedListCheck(size_t popup_cnt = 0, size_t dialog_cnt = 0) const;
+    void BasicCheck(size_t popup_cnt = 0, size_t dialog_cnt = 0) const;
 
     template <class... E>
     void CheckOrderAndVisibility(E *...e);
@@ -132,15 +87,11 @@ void MockScreen::CheckOrderAndVisibility(E *...e) {
 
     size_t popup_cnt = 0;
     size_t dialog_cnt = 0;
-    size_t strong_dialog_cnt = 0;
 
     for (size_t i = 0; i < sz; ++i) {
         switch (extra_windows[i]->GetType()) {
         case win_type_t::dialog:
             ++dialog_cnt;
-            break;
-        case win_type_t::strong_dialog:
-            ++strong_dialog_cnt;
             break;
         case win_type_t::popup:
             ++popup_cnt;
@@ -154,7 +105,7 @@ void MockScreen::CheckOrderAndVisibility(E *...e) {
     ParrentCheck();
 
     // check linked list
-    LinkedListCheck(popup_cnt, dialog_cnt, strong_dialog_cnt);
+    LinkedListCheck(popup_cnt, dialog_cnt);
 
     // hidden check of normal windows
     REQUIRE_FALSE(getFirstNormal() == nullptr);

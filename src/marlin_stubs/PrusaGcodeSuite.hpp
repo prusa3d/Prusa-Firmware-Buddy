@@ -14,8 +14,10 @@
  * @brief Prusa specific gcode suite
  */
 namespace PrusaGcodeSuite {
-using M862_6SupportedFeatures = std::array<const char *, 1>;
-extern M862_6SupportedFeatures m862_6SupportedFeatures;
+
+/** \defgroup G-Codes G-Code Commands
+ * @{
+ */
 
 void G26(); ///< first layer calibration
 void G64(); ///< Measure Z_AXIS height
@@ -23,7 +25,8 @@ void G162(); ///< calibrate Z
 void G163(); ///< measure length of axis
 
 void M0();
-void M50(); ///< selftest
+
+void M104_1(); ///< Set hotend temperature with preheat & stealth mode support
 
 void M123(); ///< Fan speed reporting
 
@@ -77,9 +80,6 @@ void M864(); ///< spool join control
 
 void M591(); ///< configure Filament stuck monitoring
 
-void M930();
-void M931();
-void M932();
 void M997(); ///< Update firmware. Prusa STM32 platform specific
 void M999();
 
@@ -88,8 +88,17 @@ void M1600(); ///< Menu change filament. Prusa STM32 platform specific
 void M1601(); ///< Filament stuck detected, Prusa STM32 platform specific
 void M1700(); ///< Preheat. Prusa STM32 platform specific
 void M1701(); ///< Autoload. Prusa STM32 platform specific
+void M1702(); ///< Coldpull. Prusa platform specific
+
+void M9140(); ///< Set normal (non-stealth) mode
+void M9150(); ///< Set stealth mode
+
+void M9200(); ///< Re-load IS settings from config store
 
 #if HAS_TOOLCHANGER()
 void P0(); ///< Tool park
 #endif
+
+/** @}*/
+
 } // namespace PrusaGcodeSuite

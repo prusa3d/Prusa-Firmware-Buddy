@@ -8,12 +8,13 @@
 #pragma once
 #include "printers.h"
 #include <cstddef> //size_t
-#include "guiconfig.h"
+#include <guiconfig/guiconfig.h>
 #include <array>
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include "i18n.h"
 #include <bsod.h>
+#include <device/board.h>
 
 // sadly this must be macros, it is used in preprocessor
 #if (defined(PRINTER_TYPE) && PRINTER_IS_PRUSA_MINI) || defined(USE_MOCK_DISPLAY)
@@ -68,7 +69,9 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     current_tool = 19,
     all_nozzles = 20,
     f_sensor_side = 21,
-
+    nozzle_diameter = 22,
+    nozzle_pwm = 23,
+    enclosure_temp = 24,
     _count,
 };
 
@@ -86,7 +89,7 @@ inline constexpr auto disabled_items { std::to_array<Item>({
 #if not HAS_MMU2()
         Item::finda,
 #endif
-#if PRINTER_IS_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
         Item::heatbreak_temp,
 #endif
 #if not defined(FOOTER_HAS_TOOL_NR)
@@ -100,6 +103,9 @@ inline constexpr auto disabled_items { std::to_array<Item>({
 #endif
 #if not HAS_SIDE_FSENSOR()
         Item::f_sensor_side,
+#endif
+#if not XL_ENCLOSURE_SUPPORT()
+        Item::enclosure_temp,
 #endif
 }) };
 
@@ -120,6 +126,10 @@ constexpr const char *to_string(Item item) {
     switch (item) {
     case Item::nozzle:
         return N_("Nozzle");
+    case Item::nozzle_diameter:
+        return N_("Nozzle diameter");
+    case Item::nozzle_pwm:
+        return N_("Nozzle PWM");
     case Item::bed:
         return N_("Bed");
     case Item::filament:
@@ -141,10 +151,10 @@ constexpr const char *to_string(Item item) {
     case Item::print_fan:
         return N_("Print fan");
     case Item::heatbreak_fan:
-#ifdef USE_ST7789
-        return N_("Hbrk fan");
+#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+        return N_("Hotend Fan");
 #else
-        return N_("Heatbreak fan");
+        return N_("Heatbreak Fan");
 #endif
     case Item::input_shaper_x:
         return N_("Input Shaper X");
@@ -188,6 +198,12 @@ constexpr const char *to_string(Item item) {
 #else
         break;
 #endif /*HAS_SIDE_FSENSOR()*/
+    case Item::enclosure_temp:
+#if XL_ENCLOSURE_SUPPORT()
+        return N_("Enclosure temperature");
+#else
+        break;
+#endif
     case Item::none:
         return N_("None");
     case Item::_count:

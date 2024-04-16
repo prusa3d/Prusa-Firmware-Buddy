@@ -3,6 +3,7 @@ include(ExternalProject)
 include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
 include(cmake/ProjectVersion.cmake)
+include(cmake/CheckRemotes.cmake)
 include(cmake/Littlefs.cmake)
 include(cmake/Options.cmake)
 
@@ -11,6 +12,9 @@ project(
   LANGUAGES C CXX ASM
   VERSION ${PROJECT_VERSION}
   )
+
+# Sets Python3_FIND_STRATEGY to "LOCATION"
+cmake_policy(SET CMP0094 NEW)
 
 # Enable initialization of subprojects without their submodules
 cmake_policy(SET CMP0097 NEW)
@@ -112,7 +116,7 @@ elseif(MCU MATCHES "STM32F4")
   target_link_libraries(BuddyHeaders INTERFACE STM32F4::HAL)
 endif()
 
-if(BOARD MATCHES "BUDDY")
+if(BOARD_IS_MASTER_BOARD)
   target_include_directories(BuddyHeaders INTERFACE include/buddy)
 elseif(BOARD MATCHES "DWARF")
   target_include_directories(BuddyHeaders INTERFACE include/dwarf)
@@ -139,7 +143,7 @@ elseif(PRINTER STREQUAL "MK3.5")
   set(PRINTER_TYPE "1")
   set(PRINTER_VERSION "3")
   set(PRINTER_SUBVERSION "5")
-  set(PRINTER_CODE "20")
+  set(PRINTER_CODE "23")
 elseif(PRINTER STREQUAL "MINI")
   set(PRINTER_TYPE "2")
   set(PRINTER_CODE "12")
@@ -149,6 +153,9 @@ elseif(PRINTER STREQUAL "XL")
 elseif(PRINTER STREQUAL "iX")
   set(PRINTER_TYPE "4")
   set(PRINTER_CODE "16")
+elseif(PRINTER STREQUAL "XL_DEV_KIT")
+  set(PRINTER_TYPE "5")
+  set(PRINTER_CODE "18")
 else()
   message(FATAL_ERROR "Unknown printer \"${PRINTER}\".")
 endif()
@@ -161,7 +168,7 @@ endif()
 
 if(BOARD STREQUAL "BUDDY" OR BOARD STREQUAL "XBUDDY")
   set(MARLIN_BOARD_NUM 1823)
-elseif(BOARD STREQUAL "XLBUDDY")
+elseif(BOARD STREQUAL "XLBUDDY" OR BOARD STREQUAL "XL_DEV_KIT_XLB")
   set(MARLIN_BOARD_NUM 1824)
 elseif(BOARD MATCHES "DWARF")
   set(MARLIN_BOARD_NUM 1825)
@@ -296,9 +303,6 @@ target_link_libraries(tinyusb_dependencies INTERFACE FreeRTOS::FreeRTOS)
 # Global Compiler & Linker Configuration
 #
 
-# Thread safe newlib
-add_compile_options(-DconfigUSE_NEWLIB_REENTRANT=1)
-
 # include symbols
 add_compile_options(-g)
 
@@ -353,6 +357,9 @@ if(CMAKE_CROSSCOMPILING)
 
   # wrap _dtoa to ensure formatting of floats isn't being called from ISR
   add_link_options(-Wl,--wrap=_dtoa_r)
+
+  # disable warnings about RWX sections due to CrashCatcher's "safe" page
+  add_link_options(-Wl,--no-warn-rwx-segments)
 endif()
 
 # support _DEBUG macro (some code uses to recognize debug builds)
@@ -480,11 +487,13 @@ target_compile_options(
   firmware
   PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
           $<$<COMPILE_LANGUAGE:CXX>:-Wno-expansion-to-defined>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wno-format-zero-length>
           $<$<COMPILE_LANGUAGE:CXX>:-Wnon-virtual-dtor>
           $<$<COMPILE_LANGUAGE:CXX>:-Wduplicated-cond>
           $<$<COMPILE_LANGUAGE:CXX>:-Wlogical-op>
           $<$<COMPILE_LANGUAGE:CXX>:-Wnull-dereference>
           $<$<COMPILE_LANGUAGE:CXX>:-Wshadow=compatible-local>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wvla>
           -Wdouble-promotion
   )
 
@@ -521,11 +530,9 @@ objcopy(firmware "binary" ".bin")
 target_link_options(firmware PUBLIC -Wl,-Map=firmware.map,--print-memory-usage)
 
 # link time optimizations
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  if(MCU MATCHES "STM32F40")
-    set_target_properties(firmware PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
-  endif()
-endif() # "Release"
+if(NOT DEVELOPER_MODE)
+  set_target_properties(firmware PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
+endif()
 
 # inform about the firmware's size in terminal
 report_size(firmware)
@@ -651,7 +658,6 @@ if(BOARD MATCHES "BUDDY")
             Marlin
             Arduino::Core
             Arduino::TMCStepper
-            Arduino::LiquidCrystal
             LwIP
             FatFs
             flasher
@@ -677,9 +683,32 @@ if(BOARD MATCHES "BUDDY")
             heatshrink_decoder
     )
 elseif(BOARD STREQUAL "DWARF")
-  target_link_libraries(firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper)
+  target_link_libraries(
+    firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper error_codes
+    )
 elseif(BOARD STREQUAL "MODULARBED")
-  target_link_libraries(firmware PRIVATE BuddyHeaders)
+  target_link_libraries(firmware PRIVATE BuddyHeaders error_codes)
+elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
+  target_link_libraries(
+    firmware
+    PRIVATE BuddyHeaders
+            Marlin
+            Arduino::Core
+            Arduino::TMCStepper
+            inih::inih
+            CppStdExtensions
+            printf::printf
+            sysbase
+            Segger
+            $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
+            mbedTLS
+            $<$<BOOL:${HAS_PUPPIES}>:lightmodbus>
+            error_codes
+            error_codes_mmu # TODO once MMU is not necessary for the build, replace with:
+                            # $<$<BOOL:${HAS_MMU2}>:error_codes_mmu>
+            bgcode_core # todo: remove
+            heatshrink_decoder # todo: remove
+    )
 endif()
 
 set_property(

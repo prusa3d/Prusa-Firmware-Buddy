@@ -1,10 +1,17 @@
 #pragma once
 #include <Marlin/src/inc/MarlinConfigPre.h>
 
+#include <common/nozzle_type.hpp>
+#include <common/hotend_type.hpp>
 #include "constants.hpp"
 #include "defaults.hpp"
-#include "backend_instance.hpp"
-#include <journal/store.hpp>
+#include <option/has_config_store_wo_backend.h>
+#if HAS_CONFIG_STORE_WO_BACKEND()
+    #include <no_backend/store.hpp>
+#else
+    #include <journal/store.hpp>
+    #include "backend_instance.hpp"
+#endif
 #include <Marlin/src/feature/input_shaper/input_shaper_config.hpp>
 #include <module/temperature.h>
 #include <config.h>
@@ -22,6 +29,8 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
+#include <option/has_selftest.h>
+#include <option/has_phase_stepping.h>
 
 namespace config_store_ns {
 /**
@@ -32,13 +41,27 @@ namespace config_store_ns {
  * !! NEVER JUST DELETE AN ITEM FROM THIS STRUCT; if an item is no longer wanted, deprecate it. See DeprecatedStore (below).
  * !! Changing DEFAULT VALUE is ALSO a deprecation !!
  */
-struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backend> {
+
+struct CurrentStore
+#if HAS_CONFIG_STORE_WO_BACKEND()
+    : public no_backend::NBJournalCurrentStoreConfig
+#else
+    : public journal::CurrentStoreConfig<journal::Backend, backend>
+#endif
+{
     // wizard flags
     StoreItem<bool, defaults::bool_true, journal::hash("Run Selftest")> run_selftest;
     StoreItem<bool, defaults::bool_true, journal::hash("Run XYZ Calibration")> run_xyz_calib;
     StoreItem<bool, defaults::bool_true, journal::hash("Run First Layer")> run_first_layer;
 
+    /// Global filament sensor enable
     StoreItem<bool, defaults::fsensor_enabled, journal::hash("FSensor Enabled V2")> fsensor_enabled;
+
+    /// Bitfield of enabled side filament sensors
+    StoreItem<uint8_t, defaults::uint8_t_ff, journal::hash("Extruder FSensors enabled")> fsensor_side_enabled_bits;
+
+    /// Bitfield of enabled toolhead filament sensors
+    StoreItem<uint8_t, defaults::uint8_t_ff, journal::hash("Side FSensors enabled")> fsensor_extruder_enabled_bits;
 
     // nozzle PID variables
     StoreItem<float, defaults::pid_nozzle_p, journal::hash("PID Nozzle P")> pid_nozzle_p;
@@ -61,8 +84,8 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("LAN Hostname")> lan_hostname;
 
     StoreItem<int8_t, defaults::lan_timezone, journal::hash("LAN Timezone")> timezone; // hour difference from UTC
-    StoreItem<time_tools::TimeOffsetMinutes, defaults::timezone_minutes, journal::hash("Timezone Minutes")> timezone_minutes; // minutes offset for hour difference from UTC
-    StoreItem<time_tools::TimeOffsetSummerTime, defaults::timezone_summer, journal::hash("Timezone Summertime")> timezone_summer; // Summertime hour offset
+    StoreItem<time_tools::TimezoneOffsetMinutes, defaults::timezone_minutes, journal::hash("Timezone Minutes")> timezone_minutes; // minutes offset for hour difference from UTC
+    StoreItem<time_tools::TimezoneOffsetSummerTime, defaults::timezone_summer, journal::hash("Timezone Summertime")> timezone_summer; // Summertime hour offset
 
     // WIFI settings
     // wifi_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1, wifi_flag & 0b1100 -> reserved, previously ap_sec_t security
@@ -83,18 +106,18 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_true, journal::hash("Menu Timeout")> menu_timeout; // on / off menu timeout flag
     StoreItem<bool, defaults::bool_true, journal::hash("Devhash in QR")> devhash_in_qr; // on / off sending UID in QR
 
-    StoreItem<footer::Item, defaults::footer_setting_0, journal::hash("Footer Setting 0")> footer_setting_0;
+    StoreItem<footer::Item, defaults::footer_setting_0, journal::hash("Footer Setting 0 v3")> footer_setting_0;
 #if FOOTER_ITEMS_PER_LINE__ > 1
-    StoreItem<footer::Item, defaults::footer_setting_1, journal::hash("Footer Setting 1")> footer_setting_1;
+    StoreItem<footer::Item, defaults::footer_setting_1, journal::hash("Footer Setting 1 v3")> footer_setting_1;
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 2
-    StoreItem<footer::Item, defaults::footer_setting_2, journal::hash("Footer Setting 2")> footer_setting_2;
+    StoreItem<footer::Item, defaults::footer_setting_2, journal::hash("Footer Setting 2 v3")> footer_setting_2;
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 3
-    StoreItem<footer::Item, defaults::footer_setting_3, journal::hash("Footer Setting 3")> footer_setting_3;
+    StoreItem<footer::Item, defaults::footer_setting_3, journal::hash("Footer Setting 3 v3")> footer_setting_3;
 #endif
 #if FOOTER_ITEMS_PER_LINE__ > 4
-    StoreItem<footer::Item, defaults::footer_setting_4, journal::hash("Footer Setting 4")> footer_setting_4;
+    StoreItem<footer::Item, defaults::footer_setting_4, journal::hash("Footer Setting 4 v3")> footer_setting_4;
 #endif
 
     footer::Item get_footer_setting(uint8_t index);
@@ -193,6 +216,10 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 5")> side_fs_value_span_5;
 #endif
 
+#if HAS_MMU2()
+    StoreItem<bool, defaults::bool_false, journal::hash("Is MMU Rework")> is_mmu_rework; // Indicates printer has been reworked for MMU (has a different FS behavior)
+#endif
+
     StoreItem<side_fsensor_remap::Mapping, defaults::side_fs_remap, journal::hash("Side FS Remap")> side_fs_remap; ///< Side filament sensor remapping
 
     //// Helper array-like access functions for filament sensors
@@ -229,6 +256,7 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_true, journal::hash("Run LEDs")> run_leds;
     StoreItem<bool, defaults::bool_false, journal::hash("Heat Entire Bed")> heat_entire_bed;
     StoreItem<bool, defaults::bool_false, journal::hash("Touch Enabled")> touch_enabled;
+    StoreItem<bool, defaults::bool_false, journal::hash("Touch Sig Workaround")> touch_sig_workaround;
 
 #if HAS_TOOLCHANGER() // for now not ifdefing per-extruder as well for simplicity
     StoreItem<DockPosition, defaults::dock_position, journal::hash("Dock Position 0")> dock_position_0;
@@ -282,6 +310,10 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<float, defaults::float_zero, journal::hash("Homing Bump Divisor Y")> homing_bump_divisor_y;
 
     StoreItem<bool, defaults::bool_true, journal::hash("Enable Side LEDs")> side_leds_enabled;
+
+    /// Whether the side leds should dim down a bit when user is not interacting with the printer or stay on full power the whole time
+    StoreItem<bool, defaults::bool_true, journal::hash("Enable Side LEDs dimming")> side_leds_dimming_enabled;
+
     StoreItem<bool, defaults::bool_true, journal::hash("Enable Tool LEDs")> tool_leds_enabled;
 
     StoreItem<float, defaults::float_zero, journal::hash("Odometer X")> odometer_x;
@@ -315,13 +347,28 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     uint32_t get_odometer_toolpicks(uint8_t index);
     void set_odometer_toolpicks(uint8_t index, uint32_t value);
 
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("MMU toolchanges")> mmu_changes;
+    // Last time (in the mmu_changes) the user did maintenance
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Last MMU maintenance")> mmu_last_maintenance;
+    // A "leaky bucket" for MMU failures.
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU fail bucket")> mmu_fail_bucket;
+
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Nozzle")> hw_check_nozzle;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Model")> hw_check_model;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Firmware")> hw_check_firmware;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check G-code")> hw_check_gcode;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, journal::hash("HW Check Compatibility")> hw_check_compatibility;
-
+#if HAS_SELFTEST()
     StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result Gears")> selftest_result;
+#endif
+
+#if PRINTER_IS_PRUSA_XL
+    StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Selftest Result - Nozzle Diameter")> selftest_result_nozzle_diameter;
+#endif
+
+#if PRINTER_IS_PRUSA_XL
+    StoreItem<TestResult, defaults::test_result_unknown, journal::hash("Test Result Phase Stepping")> selftest_result_phase_stepping;
+#endif
 
     SelftestTool get_selftest_result_tool(uint8_t index);
     void set_selftest_result_tool(uint8_t index, SelftestTool value);
@@ -355,8 +402,9 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<uint16_t, defaults::axis_rms_current_ma_E0_, journal::hash("Axis RMS Current MA E0")> axis_rms_current_ma_E0_;
     StoreItem<float, defaults::axis_z_max_pos_mm, journal::hash("Axis Z Max Pos MM")> axis_z_max_pos_mm;
 
-    StoreItem<bool, defaults::bool_false, journal::hash("Nozzle Sock")> nozzle_sock;
-    StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("Nozzle Type")> nozzle_type;
+    // Nozzle Sock has is here for backwards compatibility (should be binary compatible)
+    StoreItem<HotendType, defaults::hotend_type, journal::hash("Nozzle Sock")> hotend_type;
+    StoreItem<NozzleType, defaults::nozzle_type, journal::hash("Nozzle Type")> nozzle_type;
 
     StoreItem<restore_z::Position, restore_z::default_position, journal::hash("Restore Z Coordinate After Boot")> restore_z_after_boot;
 
@@ -367,6 +415,8 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 
     StoreItem<bool, defaults::bool_false, journal::hash("Stuck filament detection")> stuck_filament_detection;
 
+    StoreItem<bool, defaults::bool_false, journal::hash("Stealth mode")> stealth_mode;
+
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis X Enabled")> input_shaper_axis_x_enabled;
     StoreItem<input_shaper::AxisConfig, input_shaper::axis_x_default, journal::hash("Input Shaper Axis X Config")> input_shaper_axis_x_config;
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis Y Enabled")> input_shaper_axis_y_enabled;
@@ -376,6 +426,31 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 
     input_shaper::Config get_input_shaper_config();
     void set_input_shaper_config(const input_shaper::Config &);
+
+#if PRINTER_IS_PRUSA_MK3_5
+    StoreItem<bool, defaults::bool_false, journal::hash("Has Alt Fans")> has_alt_fans;
+#endif
+
+#if HAS_PHASE_STEPPING()
+    StoreItem<bool, defaults::bool_false, journal::hash("Phase Stepping Enabled X")> phase_stepping_enabled_x;
+    StoreItem<bool, defaults::bool_false, journal::hash("Phase Stepping Enabled Y")> phase_stepping_enabled_y;
+
+    bool get_phase_stepping_enabled(AxisEnum axis);
+    void set_phase_stepping_enabled(AxisEnum axis, bool new_state);
+#endif
+
+#if PRINTER_IS_PRUSA_XL
+    StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("XL Enclosure Flags")> xl_enclosure_flags;
+    StoreItem<int64_t, defaults::int64_zero, journal::hash("XL Enclosure Filter Timer")> xl_enclosure_filter_timer;
+    StoreItem<uint8_t, defaults::uint8_percentage_80, journal::hash("XL Enclosure Fan Manual Setting")> xl_enclosure_fan_manual;
+#endif
+
+#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Left Bed Correction")> left_bed_correction;
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Right Bed Correction")> right_bed_correction;
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Front Bed Correction")> front_bed_correction;
+    StoreItem<int8_t, defaults::int8_t_zero, journal::hash("Rear Bed Correction")> rear_bed_correction;
+#endif
 };
 
 /**
@@ -387,7 +462,13 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
  *
  * !!! MAKE SURE to move StoreItems from CurrentStore to here KEEP their HASHED ID !!! (to make sure backend works correctly when scanning through entries)
  */
-struct DeprecatedStore : public journal::DeprecatedStoreConfig<journal::Backend> {
+struct DeprecatedStore
+#if HAS_CONFIG_STORE_WO_BACKEND()
+    : public no_backend::NBJournalDeprecatedStoreConfig
+#else
+    : public journal::DeprecatedStoreConfig<journal::Backend>
+#endif
+{
     // There was a ConfigStore version already before last eeprom version of SelftestResult was made, so it doesn't have old eeprom predecessor
     StoreItem<SelftestResult_pre_23, defaults::selftest_result_pre_23, journal::hash("Selftest Result")> selftest_result_pre_23;
     // Selftest Result version before adding Gears Calibration result to EEPROM
@@ -398,6 +479,20 @@ struct DeprecatedStore : public journal::DeprecatedStoreConfig<journal::Backend>
 
     // An item was added to the middle of the footer enum and it caused eeprom corruption. This store footer item  was deleted and a new one is created without migration so as to force default footer value onto everyone, which is better than 'random values' (especially on mini where it could cause duplicated items shown). Default value was removed since we no longer need to keep it
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Footer Setting")> footer_setting_v1;
+
+    StoreItem<footer::Item, defaults::footer_setting_0, journal::hash("Footer Setting 0")> footer_setting_0_v2;
+#if FOOTER_ITEMS_PER_LINE__ > 1
+    StoreItem<footer::Item, defaults::footer_setting_1, journal::hash("Footer Setting 1")> footer_setting_1_v2;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 2
+    StoreItem<footer::Item, defaults::footer_setting_2, journal::hash("Footer Setting 2")> footer_setting_2_v2;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 3
+    StoreItem<footer::Item, defaults::footer_setting_3, journal::hash("Footer Setting 3")> footer_setting_3_v2;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 4
+    StoreItem<footer::Item, defaults::footer_setting_4, journal::hash("Footer Setting 4")> footer_setting_4_v2;
+#endif
 
     // There was wrong default value for XL, so V2 version was introduced to reset it to proper default value
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Weight Adjust Y Enabled")> input_shaper_weight_adjust_y_enabled;

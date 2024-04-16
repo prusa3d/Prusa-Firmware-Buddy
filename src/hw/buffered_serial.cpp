@@ -48,7 +48,7 @@ BufferedSerial::BufferedSerial(
     , pendingWrite(false)
     , rxBufPool(rxBufPool)
     , rxBufPoolSize(rxBufPoolSize) {
-    eventGroup = xEventGroupCreate();
+    eventGroup = xEventGroupCreate(); // Event group for writing (Event group for reading is in rxBuff)
 }
 
 BufferedSerial::~BufferedSerial() {
@@ -57,6 +57,7 @@ BufferedSerial::~BufferedSerial() {
 
 void BufferedSerial::Open() {
     if (isOpen) {
+        uartrxbuff_reset(&rxBuf);
         return;
     }
 
@@ -134,7 +135,7 @@ size_t BufferedSerial::Write(const char *buf, size_t len) {
 
     HAL_StatusTypeDef transmissionReturnStatus = HAL_ERROR;
     if (txMode == CommunicationMode::DMA) {
-        assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(buf)));
+        assert(can_be_used_by_dma(buf));
         transmissionReturnStatus = HAL_UART_Transmit_DMA(uart, (uint8_t *)buf, len);
     } else {
         transmissionReturnStatus = HAL_UART_Transmit_IT(uart, (uint8_t *)buf, len);
@@ -217,7 +218,7 @@ void BufferedSerial::ErrorRecovery() {
 
 void BufferedSerial::StartReceiving() {
     // Start receiving data
-    assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(rxBuf.buffer)));
+    assert(can_be_used_by_dma(rxBuf.buffer));
     HAL_UART_Receive_DMA(uart, rxBuf.buffer, rxBuf.buffer_size);
     if (halfDuplexSwitchCallback) {
         halfDuplexSwitchCallback(false);

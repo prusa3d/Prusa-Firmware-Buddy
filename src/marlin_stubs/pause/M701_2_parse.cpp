@@ -7,8 +7,13 @@
 #include "../../../lib/Marlin/Marlin/src/feature/prusa/e-stall_detector.h"
 #include "pause_stubbed.hpp"
 #include "pause_settings.hpp"
+#include <option/has_human_interactions.h>
 
 using namespace filament_gcodes;
+
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * M701: Load filament
@@ -27,11 +32,11 @@ using namespace filament_gcodes;
  *              - W2  - preheat with return option
  *              - W3  - preheat with cool down and return options
  *  O<value>    - Color number corresponding to filament::Colour, RGB order
+ *  R           - resume print if paused
  *
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-    BlockEStallDetection block_e_stall_detection;
     auto filament_to_be_loaded = filament::Type::NONE;
     const char *text_begin = 0;
     if (parser.seen('S')) {
@@ -69,8 +74,13 @@ void GcodeSuite::M701() {
     if (preheat <= uint8_t(RetAndCool_t::last_)) {
         op_preheat = RetAndCool_t(preheat);
     }
+    const ResumePrint_t resume_print = static_cast<ResumePrint_t>(parser.seen('R'));
 
-    M701_no_parser(filament_to_be_loaded, fast_load_length, min_Z_pos, op_preheat, target_extruder, mmu_slot, color_to_be_loaded);
+    M701_no_parser(filament_to_be_loaded, fast_load_length, min_Z_pos, op_preheat, target_extruder, mmu_slot, color_to_be_loaded, resume_print);
+
+#if !HAS_HUMAN_INTERACTIONS()
+    FSensors_instance().ClrM600Sent(); // reset filament sensor M600 sent flag
+#endif
 }
 
 /**
@@ -92,7 +102,6 @@ void GcodeSuite::M701() {
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M702() {
-    BlockEStallDetection block_e_stall_detection;
     const std::optional<float> unload_len = parser.seen('U') ? std::optional<float>(parser.value_axis_units(E_AXIS)) : std::nullopt;
     const float min_Z_pos = parser.linearval('Z', Z_AXIS_LOAD_POS);
     const uint8_t preheat = parser.byteval('W', 255);
@@ -110,3 +119,4 @@ void GcodeSuite::M702() {
 
     M702_no_parser(unload_len, min_Z_pos, op_preheat, target_extruder, ask_unloaded);
 }
+/** @}*/

@@ -8,7 +8,6 @@
 
 #include "img_resources.hpp"
 
-#include "DialogHandler.hpp"
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <window_tool_action_box.hpp>

@@ -14,13 +14,23 @@
 #include <optional>
 #include <variant>
 
+namespace http {
+class Connection;
+}
+
 namespace connect_client {
 
 class Printer;
 
 struct SendTelemetry {
-    bool empty;
+    enum class Mode {
+        Reduced,
+        Full,
+    };
+    Mode mode;
 };
+
+struct ReadCommand {};
 
 enum class EventType {
     Info,
@@ -35,6 +45,8 @@ enum class EventType {
     TransferStopped,
     TransferAborted,
     TransferFinished,
+    CancelableChanged,
+    StateChanged,
 };
 
 const char *to_str(EventType event);
@@ -58,7 +70,8 @@ struct Event {
 using Action = std::variant<
     SendTelemetry,
     Event,
-    Sleep>;
+    Sleep,
+    ReadCommand>;
 
 enum class ActionResult {
     Ok,
@@ -93,6 +106,10 @@ private:
     std::optional<Event> planned_event;
     /// Last time we've successfully sent a telemetry to the server.
     std::optional<Timestamp> last_telemetry;
+    /// When was the last time the telemetry was full?
+    /// (0 can cause false negative at startup, but we also mark the telemetry tracker as dirty at startup).
+    Timestamp last_full_telemetry = 0;
+    SendTelemetry::Mode last_telemetry_mode = SendTelemetry::Mode::Reduced;
     /// Last time we've successfully talked to the server.
     std::optional<Timestamp> last_success;
     /// When doing comm retries, this is the cooldown time between them.
@@ -139,9 +156,18 @@ private:
     void command(const Command &, const DeleteFolder &);
     void command(const Command &, const CreateFolder &);
     void command(const Command &, const StopTransfer &);
+    void command(const Command &, const SetToken &);
+    void command(const Command &, const ResetPrinter &);
+    void command(const Command &, const SendStateInfo &);
+    void command(const Command &, const DialogAction &);
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;
+    // Tracking how much we want to send.
+    Tracked telemetry_changes;
+
+    Tracked cancellable_objects;
+    Tracked state_info;
     // Tracking of ongoing transfers.
     std::optional<transfers::TransferId> observed_transfer;
 
@@ -155,6 +181,13 @@ private:
     // Used to prevent cleaning up all the time.
     bool need_transfer_cleanup = true;
 
+    /// Is there a command (possibly) waiting in the connection?
+    ///
+    /// (May contain true even if we lost the connection, or something like
+    /// that. It also can be true for spurious wakeups that are at least
+    /// theoretically possible in the API).
+    bool command_waiting = false;
+
     // A transfer running in background.
     //
     // As we may have a background _task_ and a transfer at the same time, we
@@ -165,13 +198,10 @@ private:
     std::optional<CommandId> print_start_cmd = std::nullopt;
 
     /// Constructs corresponding Sleep action.
-    Sleep sleep(Duration duration, bool cooldown);
+    Sleep sleep(Duration duration, http::Connection *wake_on_readable, bool cooldown);
 
 public:
-    Planner(Printer &printer)
-        : printer(printer) {
-        reset();
-    }
+    Planner(Printer &printer);
     /// Reset the state.
     ///
     /// This is for the "severe" cases, for example when connect is disabled
@@ -190,7 +220,7 @@ public:
     /// arrives, it might interact sooner).
     ///
     /// All actions except sleeps expect a follow-up call to action_done.
-    Action next_action(SharedBuffer &buffer);
+    Action next_action(SharedBuffer &buffer, http::Connection *wake_on_readable);
     /// Will we need the paths extracted from the current job?
     bool wants_job_paths() const;
     // Note: *Not* for Sleep. Only for stuff that sends.
@@ -208,6 +238,16 @@ public:
 
     // ID of a command being executed in the background, if any.
     std::optional<CommandId> background_command_id() const;
+
+    /// Can we receive a new command right now?
+    ///
+    /// We _can't_ receive commands if we have an event scheduled to go out.
+    bool can_receive_command() const;
+
+    /// Inform the planner that there is (or may be) a command waiting.
+    void notify_command_waiting() {
+        command_waiting = true;
+    }
 };
 
 } // namespace connect_client

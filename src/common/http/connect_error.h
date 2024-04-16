@@ -11,6 +11,11 @@ enum class Error {
     Connect,
     Network,
     Tls,
+    Memory,
+    // Framing errors (in case of websocket)
+    WebSocket,
+    // Unexpected EOF,
+    UnexpectedEOF,
     // „Unreacheable“ handling. Should not happen (and may be covered by some
     // assert(0) somewhere and this being only a production filler).
     InternalError,

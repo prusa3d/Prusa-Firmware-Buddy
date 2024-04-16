@@ -64,7 +64,7 @@ const img::Resource *get_icon(Action action) {
 } // unnamed namespace
 
 ToolBox::I_MI_TOOL::I_MI_TOOL(const char *label, Tool tool, Action action, bool hidden_if_inactive)
-    : WI_LABEL_t(_(label), get_icon(action), is_enabled_t::yes, get_hidden_state(tool, action, hidden_if_inactive)) {}
+    : IWindowMenuItem(_(label), get_icon(action), is_enabled_t::yes, get_hidden_state(tool, action, hidden_if_inactive)) {}
 
 void ToolBox::I_MI_TOOL::set_parent(IDialog *parent_) {
     parent = parent_;
@@ -84,7 +84,7 @@ void ToolBox::I_MI_TOOL::do_click(IWindowMenu &window_menu, Tool tool, Action ac
         break;
     case Action::CalibrateDock:
 #if HAS_SELFTEST()
-        marlin_client::test_start_for_tools(stmDocks, 1 << ftrstd::to_underlying(tool));
+        marlin_client::test_start_with_data(stmDocks, static_cast<ToolMask>(1 << ftrstd::to_underlying(tool)));
 #endif
         break;
     case Action::PickCurrent: // do nothing (Pick what is already picked)

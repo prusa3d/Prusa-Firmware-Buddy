@@ -28,6 +28,10 @@
   #include "../../module/temperature.h"
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M42: Change pin status via GCode
  *
@@ -67,3 +71,5 @@ void GcodeSuite::M42() {
     }
   #endif
 }
+
+/** @}*/

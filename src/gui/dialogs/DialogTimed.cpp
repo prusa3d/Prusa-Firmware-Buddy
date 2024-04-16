@@ -89,13 +89,5 @@ bool DialogTimed::isShowBlocked() const {
         }
     }
 
-    if (GetParent()->GetFirstStrongDialog() && GetParent()->GetLastStrongDialog()) {
-        begin = GetParent()->GetFirstStrongDialog();
-        end = GetParent()->GetLastStrongDialog()->GetNext();
-        if (findFirst(begin, end, filter) != end) {
-            return true;
-        }
-    }
-
     return false;
 }

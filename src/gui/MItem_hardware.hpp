@@ -91,7 +91,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_HARDWARE_G_CODE_CHECKS : public WI_LABEL_t {
+class MI_HARDWARE_G_CODE_CHECKS : public IWindowMenuItem {
     static constexpr const char *const label = N_("G-Code Checks");
 
 public:
@@ -141,21 +141,42 @@ public:
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };
 
-class MI_NOZZLE_TYPE : public WI_SWITCH_t<2> {
+class MI_NOZZLE_TYPE final : public IWiSwitch {
     static constexpr const char *const label = N_("Nozzle Type");
-
-    constexpr static const char *str_normal = N_("Normal");
-    constexpr static const char *str_high_flow = N_("High Flow");
 
 public:
     MI_NOZZLE_TYPE();
 
 protected:
     virtual void OnChange(size_t old_index) override;
+
+    inline size_t item_count() const final {
+        return nozzle_type_names.size();
+    }
+    inline string_view_utf8 current_item_text() const final {
+        return _(nozzle_type_names[index]);
+    }
+};
+
+class MI_HOTEND_TYPE : public IWiSwitch {
+    static constexpr const char *const label = N_("Hotend Type");
+
+public:
+    MI_HOTEND_TYPE();
+
+    size_t item_count() const final {
+        return supported_hotend_types.size();
+    }
+    string_view_utf8 current_item_text() const final {
+        return _(hotend_type_names[supported_hotend_types[index]]);
+    }
+
+protected:
+    virtual void OnChange(size_t old_index) override;
 };
 
 class MI_NOZZLE_SOCK : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Nextruder silicone sock");
+    static constexpr const char *const label = N_("Nextruder Silicone Sock");
 
 public:
     MI_NOZZLE_SOCK();
@@ -163,6 +184,8 @@ public:
 protected:
     virtual void OnChange(size_t old_index) override;
 };
+
+using MI_HOTEND_SOCK_OR_TYPE = std::conditional_t<hotend_type_only_sock, MI_NOZZLE_SOCK, MI_HOTEND_TYPE>;
 
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
 class MI_SIDE_FSENSOR_REMAP : public WI_ICON_SWITCH_OFF_ON_t {

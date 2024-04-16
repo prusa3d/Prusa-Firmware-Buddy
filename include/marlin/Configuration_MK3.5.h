@@ -461,9 +461,9 @@
     #define PID_FUNCTIONAL_RANGE 500
 
     // RING
-    #define DEFAULT_Kp 14.00
+    #define DEFAULT_Kp 15.00
     #define DEFAULT_Ki 1.00
-    #define DEFAULT_Kd 100.00
+    #define DEFAULT_Kd 56.00
 
     //#define STEADY_STATE_HOTEND // Enable support for STEADY_STATE_HOTEND (feed-forward thermal management)
     #define STEADY_STATE_HOTEND_LINEAR_COOLING_TERM 0.322
@@ -751,6 +751,12 @@
 #define DEFAULT_MAX_FEEDRATE \
     { 200, 200, 40, 45 }
 
+/// HW limits of feed rate
+#define HWLIMIT_NORMAL_MAX_FEEDRATE \
+    { 300, 300, 12, 120 }
+#define HWLIMIT_STEALTH_MAX_FEEDRATE \
+    { 160, 160, 40, 100 }
+
 /**
  * Default Max Acceleration (change/s) change = mm/s
  * (Maximum start speed for accelerated moves)
@@ -759,6 +765,12 @@
  */
 #define DEFAULT_MAX_ACCELERATION \
     { 1250, 1250, 400, 4000 }
+
+/// HW limits of max acceleration
+#define HWLIMIT_NORMAL_MAX_ACCELERATION \
+    { 4000, 4000, 200, 2500 }
+#define HWLIMIT_STEALTH_MAX_ACCELERATION \
+    { 2500, 2500, 200, 2500 }
 
 /**
  * Default Acceleration (change/s) change = mm/s
@@ -771,6 +783,14 @@
 #define DEFAULT_ACCELERATION 1250 // X, Y, Z and E acceleration for printing moves
 #define DEFAULT_RETRACT_ACCELERATION 1250 // E acceleration for retracts
 #define DEFAULT_TRAVEL_ACCELERATION 1250 // X, Y, Z acceleration for travel (non printing) moves
+
+/// HW limits of Acceleration
+#define HWLIMIT_NORMAL_ACCELERATION 4000
+#define HWLIMIT_STEALTH_ACCELERATION 2500
+#define HWLIMIT_NORMAL_RETRACT_ACCELERATION 1250
+#define HWLIMIT_STEALTH_RETRACT_ACCELERATION 1200
+#define HWLIMIT_NORMAL_TRAVEL_ACCELERATION 4000
+#define HWLIMIT_STEALTH_TRAVEL_ACCELERATION 2500
 
 //
 // Use Junction Deviation instead of traditional Jerk Limiting
@@ -795,6 +815,10 @@
 #endif
 
 #define DEFAULT_EJERK 5 // May be used by Linear Advance
+
+/// HW limits of Jerk
+#define HWLIMIT_NORMAL_JERK { 8, 8, 2, 5 }
+#define HWLIMIT_STEALTH_JERK { 8, 8, 2, 5 }
 
 /**
  * S-Curve Acceleration
@@ -923,7 +947,7 @@
  *    (0,0)
  */
 #define NOZZLE_TO_PROBE_OFFSET \
-    { 23, 5, -0.4 }
+    { 23, 5, 0 }
 
 // Certain types of probes need to stay away from edges
 #define MIN_PROBE_EDGE 0
@@ -1109,12 +1133,11 @@
 #define Y_END_GAP 5
 #define Z_END_GAP 10
 
-// MK3.9 (200 step motors) does not support precise homing
 /**
  * Calibrates X, Y homing positions and uses
  * the reference to provide repeatable homing position.
  */
-// #define PRECISE_HOMING
+#define PRECISE_HOMING
 
 /**
  * Number of precise homing tries
@@ -1122,7 +1145,7 @@
  * Three times more tries are used when recovering from crash
  * or power panic.
  */
-// #define PRECISE_HOMING_TRIES 15
+#define PRECISE_HOMING_TRIES 12
 
 /**
  * Software Endstops

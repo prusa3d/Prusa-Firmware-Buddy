@@ -1,15 +1,22 @@
 #pragma once
 
-#include "DialogStateful.hpp"
+#include "client_response.hpp"
 #include "error_codes_mmu.hpp"
-#include "window_icon.hpp"
-#include "window_qr.hpp"
+#include "i18n.h"
+#include "IDialogMarlin.hpp"
+#include "radio_button_fsm.hpp"
 #include "status_footer.hpp"
 #include "window_colored_rect.hpp"
+#include "window_icon.hpp"
+#include "window_numb.hpp"
+#include "window_progress.hpp"
+#include "window_qr.hpp"
+#include "window_text.hpp"
+#include <optional>
 
 /**
  * @brief radio button for red screens
- * workaround - DialogStateful already has an automatic radio button
+ * workaround - DialogLoadUnload already has an automatic radio button
  * but MMU red screens are many states masked as single state
  * automatic radio button cannot handle that
  */
@@ -35,12 +42,24 @@ protected:
  * with MMU support
  * MMU error are handled extra and are red
  */
-class DialogLoadUnload : public AddSuperWindow<DialogStateful<PhasesLoadUnload>> {
+class DialogLoadUnload final : public AddSuperWindow<IDialogMarlin> {
+private:
+    window_frame_t progress_frame;
+    window_text_t title;
+    window_numberless_progress_t progress_bar;
+    window_numb_t progress_number;
+    window_text_t label;
+    std::optional<PhasesLoadUnload> current_phase = std::nullopt;
+    RadioButtonFsm<PhasesLoadUnload> radio;
+
+    void set_progress_percent(uint8_t val);
+    void phaseExit();
 
 public:
+    bool Change(fsm::BaseData data) override final;
+
     static constexpr uint8_t MaxErrorCodeDigits = 10;
 
-public:
     DialogLoadUnload(fsm::BaseData data);
     virtual ~DialogLoadUnload() override;
 
@@ -60,10 +79,9 @@ public:
 #endif
 
 protected:
-    virtual bool change(PhasesLoadUnload phase, fsm::PhaseData data) override;
-    void notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, MMU2::ErrType type);
-    virtual float deserialize_progress(fsm::PhaseData data) const override;
-    void phaseEnter() override;
+    void notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, ErrType type);
+    float deserialize_progress(fsm::PhaseData data) const;
+    void phaseEnter();
 
 private:
     StatusFooter footer;

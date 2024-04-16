@@ -3,7 +3,7 @@
 #include "liveadjust_z.hpp"
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "marlin_client.hpp"
 #include "display_helper.h"
 #include "SteelSheets.hpp"
@@ -11,6 +11,7 @@
 
 #include "config_features.h"
 #include "gui_config_printer.hpp"
+#include <guiconfig/guiconfig.h>
 
 /*****************************************************************************/
 // WindowScale
@@ -105,18 +106,22 @@ void WindowLiveAdjustZ::Change(int dif) {
 
 void WindowLiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
+
     case GUI_event_t::ENC_UP:
         Change(1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         arrows.SetState(WindowArrows::State_t::up);
         break;
+
     case GUI_event_t::ENC_DN:
         Change(-1);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         arrows.SetState(WindowArrows::State_t::down);
         break;
+
     default:
         SuperWindowEvent(sender, event, param);
+        break;
     }
 }
 
@@ -145,12 +150,14 @@ bool WindowLiveAdjustZ_withText::IsActive() {
 
 void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
+
     case GUI_event_t::ENC_UP:
     case GUI_event_t::ENC_DN:
         if (IsActive()) {
             return; // discard event
         }
         break;
+
     default:
         break;
     }
@@ -206,12 +213,14 @@ void LiveAdjustZ::moveNozzle() {
 
 void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
+
     case GUI_event_t::ENC_UP:
     case GUI_event_t::ENC_DN:
         adjuster.WindowEvent(sender, event, param);
         Sound_Play(eSOUND_TYPE::EncoderMove);
         moveNozzle();
         break;
+
     case GUI_event_t::CLICK:
         /// has set is_closed_on_click_t
         /// destructor of WindowLiveAdjustZ stores new z offset value into a marlin_vars & EEPROM
@@ -223,6 +232,14 @@ void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
             Screens::Access()->Close();
         }
         break;
+
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT: {
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        Screens::Access()->Close();
+        return;
+    }
+
     default:
         SuperWindowEvent(sender, event, param);
     }
@@ -231,5 +248,5 @@ void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
 /// static
 void LiveAdjustZ::Show() {
     LiveAdjustZ liveadjust;
-    liveadjust.MakeBlocking();
+    Screens::Access()->gui_loop_until_dialog_closed();
 }

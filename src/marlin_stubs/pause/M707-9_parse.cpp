@@ -3,6 +3,10 @@
 #include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #include "M70X.hpp"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * Read variable from MMU and print on the serial line.
  *
@@ -80,6 +84,8 @@ void PrusaGcodeSuite::M709() {
         return;
     }
 }
+
+/** @}*/
 
 __attribute__((weak)) void filament_gcodes::mmu_reset(uint8_t) {}
 __attribute__((weak)) void filament_gcodes::mmu_on() {}

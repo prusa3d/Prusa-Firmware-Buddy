@@ -30,9 +30,9 @@ using namespace std;
 
 template <typename LDV>
 bool CheckFilesSeq(const LDV &ldv, std::vector<std::string> expectedSeq) {
-    return std::mismatch(ldv.files.begin(), ldv.files.end(), expectedSeq.begin(),
+    return std::mismatch(ldv.data().begin(), ldv.data().end(), expectedSeq.begin(),
                [](const typename LDV::Entry &e, const std::string &s) { return s == e.lfn; })
-        == std::make_pair(ldv.files.end(), expectedSeq.end());
+        == std::make_pair(ldv.data().end(), expectedSeq.end());
 }
 
 static char txt_old[] = "old"; // cannot be const char
@@ -40,17 +40,16 @@ static char txt_old[] = "old"; // cannot be const char
 TEST_CASE("LazyDirView::Entries test", "[LazyDirView]") {
     using LDV = LazyDirView<9>;
     {
-        LDV::Entry e = { false, "\xff\xff\xff\xff\xff", "", LONG_MAX };
-        LDV::Entry e1 = { false, "nold", "", 1 };
+        LDV::Entry e = { .time = LONG_MAX, .type = FileSort::EntryType::DIR, .lfn = "\xff\xff\xff\xff\xff", .sfn = "" };
+        LDV::Entry e1 = { .time = 1, .type = FileSort::EntryType::DIR, .lfn = "nold", .sfn = "" };
         dirent f = { DT_DIR, "old", txt_old, 1 };
-        MutablePath p { "we/dont/care/about/transfer/here" };
-        FileSort::DirentWPath dwp { f, p };
+        LDV::EntryRef dwp(f, "we/dont/care/about/transfer/here");
 
-        CHECK(LDV::LessByTimeEF(e, dwp));
-        CHECK(LDV::LessByTimeFE(dwp, e1));
+        CHECK(LDV::less_by_time(e, dwp));
+        CHECK(LDV::less_by_time(dwp, e1));
 
-        CHECK(!LDV::LessByFNameEF(e, dwp));
-        CHECK(!LDV::LessByFNameFE(dwp, e1));
+        CHECK(!LDV::less_by_name(e, dwp));
+        CHECK(!LDV::less_by_name(dwp, e1));
     }
 }
 
@@ -117,6 +116,18 @@ TEST_CASE("LazyDirView::SortByName test", "[LazyDirView]") {
         CHECK(ldv.MoveUp());
         CHECK(CheckFilesSeq(ldv, { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" }));
         CHECK(ldv.MoveUp() == false); // no more files
+        CHECK(CheckFilesSeq(ldv, { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" }));
+
+        CHECK(ldv.MoveDown(3));
+        CHECK(CheckFilesSeq(ldv, { "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g" }));
+
+        CHECK(ldv.MoveUp(3));
+        CHECK(CheckFilesSeq(ldv, { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" }));
+
+        CHECK(ldv.MoveDown(7));
+        CHECK(CheckFilesSeq(ldv, { "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g", "12.g" }));
+
+        CHECK(ldv.MoveUp(7));
         CHECK(CheckFilesSeq(ldv, { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" }));
     }
 }
@@ -348,4 +359,74 @@ TEST_CASE("LazyDirView::ExtremelyLongFileName test", "[LazyDirView][!shouldfail]
     // the file list may survive this unharmed, but I must also make sure the surrounding code survives as well
     // -> the truncated filename does not exist at all or may even be identical to some other (deliberately chosen) filename
     // and we must make sure the user prints the right one (the chosen one)
+}
+
+TEST_CASE("LazyDirView::HoppingAround", "[LazyDirView]") {
+    using LDV = LazyDirView<9>;
+
+    testFiles0 = {
+        { "V_22.bgcode", 1695309736, false },
+        { "W_23.bgcode", 1695309738, false },
+        { "X_24.bgcode", 1695309740, false },
+        { "Y_25.bgcode", 1695309742, false },
+        { "Z_26.bgcode", 1695309744, false },
+        { "1_27.bgcode", 1695309746, false },
+        { "2_28.bgcode", 1695309748, false },
+        { "3_29.bgcode", 1695309780, false },
+        { "4_30.bgcode", 1695309782, false },
+        { "5_31.bgcode", 1695309784, false },
+        { "6_32.bgcode", 1695309786, false },
+        { "7_33.bgcode", 1695309788, false },
+        { "8_34.bgcode", 1695309790, false },
+        { "9_35.bgcode", 1695309792, false },
+        { "0_36.bgcode", 1695309794, false },
+        { "Á_37.bgcode", 1695309796, false },
+        { "Č_38.bgcode", 1695309798, false },
+        { "Ď_39.bgcode", 1695309800, false },
+        { "É_40.bgcode", 1695309802, false },
+        { "Ě_41.bgcode", 1695309804, false },
+        { "Í_42.bgcode", 1695309806, false },
+        { "Ň_43.bgcode", 1695309808, false },
+        { "Ó_44.bgcode", 1695309840, false },
+        { "Ř_45.bgcode", 1695309842, false },
+        { "Š_46.bgcode", 1695309844, false },
+        { "Ť_47.bgcode", 1695309846, false },
+        { "Ú_48.bgcode", 1695309848, false },
+        { "Ů_49.bgcode", 1695309850, false },
+        { "Ý_50.bgcode", 1695309852, false },
+        { "Ž_51.bgcode", 1695309854, false },
+        { "A_1.bgcode", 1695309663, false },
+        { "B_2.bgcode", 1695309665, false },
+        { "C_3.bgcode", 1695309667, false },
+        { "D_4.bgcode", 1695309669, false },
+        { "E_5.bgcode", 1695309671, false },
+        { "složka", 1695309672, true },
+        { "slozka", 1695309673, true },
+        { "F_6.bgcode", 1695309673, false },
+        { "G_7.bgcode", 1695309675, false },
+        { "H_8.bgcode", 1695309677, false },
+        { "I_9.bgcode", 1695309679, false },
+        { "J_10.bgcode", 1695309681, false },
+        { "K_11.bgcode", 1695309683, false },
+        { "L_12.bgcode", 1695309685, false },
+        { "M_13.bgcode", 1695309687, false },
+        { "N_14.bgcode", 1695309689, false },
+        { "O_15.bgcode", 1695309721, false },
+        { "P_16.bgcode", 1695309723, false },
+        { "Q_17.bgcode", 1695309725, false },
+        { "R_18.bgcode", 1695309727, false },
+        { "S_19.bgcode", 1695309729, false },
+        { "T_20.bgcode", 1695309732, false },
+        { "U_21.bgcode", 1695309734, false },
+    };
+
+    LDV ldv;
+    ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, nullptr);
+    CHECK(CheckFilesSeq(ldv, { "..", "slozka", "složka", "Ž_51.bgcode", "Ý_50.bgcode", "Ů_49.bgcode", "Ú_48.bgcode", "Ť_47.bgcode", "Š_46.bgcode" }));
+
+    ldv.set_window_offset(44);
+    CHECK(CheckFilesSeq(ldv, { "I_9.bgcode", "H_8.bgcode", "G_7.bgcode", "F_6.bgcode", "E_5.bgcode", "D_4.bgcode", "C_3.bgcode", "B_2.bgcode", "A_1.bgcode" }));
+
+    ldv.move_window_by(-8);
+    CHECK(CheckFilesSeq(ldv, { "Q_17.bgcode", "P_16.bgcode", "O_15.bgcode", "N_14.bgcode", "M_13.bgcode", "L_12.bgcode", "K_11.bgcode", "J_10.bgcode", "I_9.bgcode" }));
 }

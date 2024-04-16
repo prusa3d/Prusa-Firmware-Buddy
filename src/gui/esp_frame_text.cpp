@@ -2,7 +2,7 @@
 
 #include "selftest_esp_type.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "marlin_client.hpp"
 #include <cstring>
 
@@ -48,8 +48,11 @@ void ESPFrameText::change() {
     case PhasesESP::ESP_uploading_config:
         txt = N_("Uploading config to the printer.\n\nPlease wait.");
         break;
+    case PhasesESP::ESP_asking_credentials_delete:
+        txt = N_("Credentials loaded.\n\nDelete credentials file? (Recommended)");
+        break;
     case PhasesESP::ESP_enabling_WIFI:
-        txt = N_("Credentials loaded, attempting to connect.\n\nYou may continue using printer. The Wi-Fi icon will appear in the status bar once connected.\n\nIf nothing happens after a few minutes, check & reload the credentials.\n\nDelete credentials file? (Recommended)");
+        txt = N_("Attempting to connect.\n\nYou may continue using printer. The Wi-Fi icon will appear in the status bar once connected.\n\nIf nothing happens after a few minutes, check & reload the credentials.");
         break;
     default:
         break;

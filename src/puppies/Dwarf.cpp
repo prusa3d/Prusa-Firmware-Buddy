@@ -4,7 +4,7 @@
 #include "puppies/Dwarf.hpp"
 #include "puppies/fifo_decoder.hpp"
 
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "log.h"
 #include "loadcell.hpp"
 #include "timing.h"
@@ -36,12 +36,13 @@ LOG_COMPONENT_DEF(Dwarf_6, LOG_SEVERITY_INFO);
 /// NOTE: has to ba called inside member funciton of Dwarf class
 #define DWARF_LOG(severity, fmt, ...) _log_event(severity, &this->log_component, fmt, ##__VA_ARGS__);
 
-static metric_t metric_fast_refresh_delay = METRIC("dwarf_fast_refresh_delay", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_fast_refresh_delay, "dwarf_fast_refresh_delay", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
 
-static metric_t metric_dwarf_picked_raw = METRIC("dwarf_picked_raw", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_dwarf_parked_raw = METRIC("dwarf_parked_raw", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_dwarf_picked_raw, "dwarf_picked_raw", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_dwarf_parked_raw, "dwarf_parked_raw", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
 
-static metric_t metric_dwarf_heater_current = METRIC("dwarf_heat_curr", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_dwarf_heater_current, "dwarf_heat_curr", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_dwarf_heater_pwm, "dwarf_heat_pwm", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_DISABLE_ALL);
 
 Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
     : ModbusDevice(bus, modbus_address)
@@ -54,9 +55,9 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
           .log_handler = std::bind(&Dwarf::handle_log_fragment, this, std::placeholders::_1),
           .loadcell_handler = [this](LoadcellRecord data) {
               // throw away samples if time is not synced
-              if (!this->time_sync.is_time_sync_valid() || !this->selected){
+              if (!this->time_sync.is_time_sync_valid() || !this->selected) {
                   return;
-}
+              }
 
               // Store sample timestamp and count sample
               loadcell_samplerate.last_timestamp = this->time_sync.buddy_time_us(data.timestamp);
@@ -64,22 +65,19 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
 
               // Process sample
               loadcell.ProcessSample(data.loadcell_raw_value, loadcell_samplerate.last_timestamp); },
-          .accelerometer_handler = [this](AccelerometerData data) {
-              // throw away samples if time is not synced
-              if (!this->time_sync.is_time_sync_valid() || !this->selected){
-                  return;
-}
-              PrusaAccelerometer::put_sample(data.sample);
-              report_accelerometer(1); },
           .accelerometer_fast_handler = [this](AccelerometerFastData data) {
               // throw away samples if not selected
-              if (!this->is_selected()){
+              if (!this->is_selected()) {
                   return;
-}
+              }
               for (AccelerometerXyzSample sample : data) {
                   PrusaAccelerometer::put_sample(sample);
+              } },
+          .accelerometer_freq_handler = [this](AccelerometerSamplingRate data) {
+              if (!this->is_selected()) {
+                    return;
               }
-              report_accelerometer(data.size()); } }) {
+              PrusaAccelerometer::set_rate(data.frequency); } }) {
 
     RegisterGeneralStatus.value.FaultStatus = dwarf_shared::errors::FaultStatusMask::NO_FAULT;
     RegisterGeneralStatus.value.HotendMeasuredTemperature = HEATER_0_MINTEMP + 1; // Init to temperature that won't immediately trigger mintemp
@@ -133,6 +131,7 @@ CommunicationStatus Dwarf::read_general_status() {
         metric_record_custom(&metric_dwarf_parked_raw, ",n=%u v=%ii", dwarf_nr, RegisterGeneralStatus.value.IsParkedRaw);
         metric_record_custom(&metric_dwarf_picked_raw, ",n=%u v=%ii", dwarf_nr, RegisterGeneralStatus.value.IsPickedRaw);
         metric_record_custom(&metric_dwarf_heater_current, ",n=%u v=%d", dwarf_nr, RegisterGeneralStatus.value.heater_current_mA);
+        metric_record_custom(&metric_dwarf_heater_pwm, ",n=%u v=%d", dwarf_nr, RegisterGeneralStatus.value.HotendPWMState);
     }
     return status;
 }
@@ -152,7 +151,7 @@ CommunicationStatus Dwarf::initial_scan() {
     }
 
     DWARF_LOG(LOG_SEVERITY_INFO, "HwBomId: %d", GeneralStatic.value.HwBomId);
-    DWARF_LOG(LOG_SEVERITY_INFO, "HwOtpTimestsamp: %d", GeneralStatic.value.HwOtpTimestsamp);
+    DWARF_LOG(LOG_SEVERITY_INFO, "HwOtpTimestsamp: %" PRIu32, GeneralStatic.value.HwOtpTimestsamp);
 
     serial_nr_t sn = {}; // Last byte has to be '\0'
     static constexpr uint16_t raw_datamatrix_regsize = ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_last)
@@ -174,7 +173,6 @@ CommunicationStatus Dwarf::initial_scan() {
     IsSelectedCoil.dirty = true;
     LoadcellEnableCoil.dirty = true;
     AccelerometerEnableCoil.dirty = true;
-    AccelerometerHighCoil.dirty = true;
     selected = false;
 
     // Write coil values that are not written automatically
@@ -182,9 +180,6 @@ CommunicationStatus Dwarf::initial_scan() {
         return CommunicationStatus::ERROR;
     }
     if (bus.write(unit, AccelerometerEnableCoil) == CommunicationStatus::ERROR) {
-        return CommunicationStatus::ERROR;
-    }
-    if (bus.write(unit, AccelerometerHighCoil) == CommunicationStatus::ERROR) {
         return CommunicationStatus::ERROR;
     }
 
@@ -326,7 +321,8 @@ uint32_t Dwarf::tmc_read(uint8_t addressByte) {
     TmcReadRequest.dirty = true;
     if (bus.write(unit, TmcReadRequest) != CommunicationStatus::ERROR) {
         if (bus.read(unit, TmcReadResponse) != CommunicationStatus::ERROR) {
-            DWARF_LOG(LOG_SEVERITY_DEBUG, "TMC on dwarf read (%i:%i)", addressByte, TmcReadResponse.value.value);
+            DWARF_LOG(LOG_SEVERITY_DEBUG, "TMC on dwarf read (%d:%" PRIu32 ")",
+                addressByte, TmcReadResponse.value.value);
             return TmcReadResponse.value.value;
         } else {
             DWARF_LOG(LOG_SEVERITY_ERROR, "TMC read response FAIL");
@@ -344,7 +340,8 @@ void Dwarf::tmc_write(uint8_t addressByte, uint32_t config) {
     TmcWriteRequest.dirty = true;
 
     if (bus.write(unit, TmcWriteRequest) != CommunicationStatus::ERROR) {
-        DWARF_LOG(LOG_SEVERITY_DEBUG, "Write to TMC dwarf success (%i:%i)", addressByte, config);
+        DWARF_LOG(LOG_SEVERITY_DEBUG, "Write to TMC dwarf success (%d:%" PRIu32 ")",
+            addressByte, config);
     } else {
         DWARF_LOG(LOG_SEVERITY_ERROR, "Write to TMC dwarf FAIL");
     }
@@ -432,7 +429,7 @@ CommunicationStatus Dwarf::set_selected(bool selected) {
     if (selected) {
         // Enable loadcell for dwarf being selected in case the accelerometer is not already enabled
         // This condition prevents replacing accelerometer with loadcell when recovering from puppy failure
-        if (!AccelerometerHighCoil.value) {
+        if (!AccelerometerEnableCoil.value) {
             if (!set_loadcell(true)) {
                 return CommunicationStatus::ERROR;
             }
@@ -478,9 +475,7 @@ bool Dwarf::raw_set_loadcell(bool enable) {
 bool Dwarf::raw_set_accelerometer(bool enable) {
     AccelerometerEnableCoil.dirty = true;
     AccelerometerEnableCoil.value = enable;
-    AccelerometerHighCoil.dirty = true;
-    AccelerometerHighCoil.value = enable;
-    return bus.write(unit, AccelerometerEnableCoil) == CommunicationStatus::OK && bus.write(unit, AccelerometerHighCoil) == CommunicationStatus::OK;
+    return bus.write(unit, AccelerometerEnableCoil) == CommunicationStatus::OK;
 }
 
 constexpr log_component_t &Dwarf::get_log_component(uint8_t dwarf_nr) {
@@ -502,14 +497,14 @@ constexpr log_component_t &Dwarf::get_log_component(uint8_t dwarf_nr) {
     }
 }
 
-FSensor::value_type Dwarf::get_tool_filament_sensor() {
+IFSensor::value_type Dwarf::get_tool_filament_sensor() {
     // ensure AdcGet::undefined_value is representable within FSensor::value_type
-    static_assert(static_cast<FSensor::value_type>(AdcGet::undefined_value) == AdcGet::undefined_value);
+    static_assert(static_cast<IFSensor::value_type>(AdcGet::undefined_value) == AdcGet::undefined_value);
 
     // widen the type to match the HX717 data type and translate the undefined value for consistency
-    FSensor::value_type value = RegisterGeneralStatus.value.ToolFilamentSensor;
+    IFSensor::value_type value = RegisterGeneralStatus.value.ToolFilamentSensor;
     if (value == AdcGet::undefined_value) {
-        value = FSensor::undefined_value;
+        value = IFSensor::undefined_value;
     }
     return value;
 }
@@ -589,7 +584,7 @@ void Dwarf::handle_dwarf_fault() {
         // make sure strings are zero-terminated
         title_span.back() = 0;
         message_span.back() = 0;
-        DWARF_LOG(LOG_SEVERITY_ERROR, "Dwarf %d fault %s: %s", dwarf_nr, title_span, message_span);
+        DWARF_LOG(LOG_SEVERITY_ERROR, "Dwarf %d fault %s: %s", dwarf_nr, title_span.data(), message_span.data());
 
         // Prepare module string (insert dwarf number)
         char module[31] = { 0 };
@@ -610,17 +605,6 @@ float Dwarf::get_heatbreak_temp() {
 
 uint16_t Dwarf::get_heatbreak_fan_pwr() {
     return RegisterGeneralStatus.value.fan[1].pwm;
-}
-
-void Dwarf::report_accelerometer(int samples_received) {
-    static uint32_t last_report = 0;
-    static uint32_t sample_count = 0;
-    sample_count += samples_received;
-    if (ticks_ms() - last_report > 1000) {
-        DWARF_LOG(LOG_SEVERITY_INFO, "acc sample rate: %u", sample_count);
-        sample_count = 0;
-        last_report = ticks_ms();
-    }
 }
 
 std::array<Dwarf, DWARF_MAX_COUNT> dwarfs { {

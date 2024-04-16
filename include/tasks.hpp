@@ -20,15 +20,17 @@ namespace TaskDeps {
 using dependency_t = EventBits_t;
 
 /// Definition of different dependencies
-enum class Dependency {
+enum class Dependency : size_t {
     puppies_ready,
     resources_ready,
+    usb_device_ready,
     default_task_ready,
     esp_flashed,
     networking_ready,
     media_prefetch_ready,
     usb_and_temp_ready, ///< Check autoprint and powerpanic state
     gui_screen_ready,
+    gui_task_ready,
     _count
 };
 
@@ -48,6 +50,8 @@ constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
 
 /// Definitions of dependencies for different tasks/components
 namespace Tasks {
+    inline constexpr dependency_t usb_device_start = make(Dependency::usb_device_ready);
+
     inline constexpr dependency_t default_start = make(
         Dependency::media_prefetch_ready
 #if HAS_PUPPIES()
@@ -56,6 +60,16 @@ namespace Tasks {
 #endif
     );
     inline constexpr dependency_t marlin_client = make(Dependency::default_task_ready);
+
+    inline constexpr dependency_t marlin_server = make(
+#if HAS_GUI()
+        // Make sure gui task has marlin_client setup before we start running the Marlin
+        // This is to prevent creating FSMs before GUI can register them and open dialogs
+        // BFW-5057
+        Dependency::gui_task_ready
+#endif
+    );
+
     inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
     inline constexpr dependency_t espif = make(Dependency::esp_flashed);
     inline constexpr dependency_t bootstrap_done = make(
@@ -72,6 +86,7 @@ namespace Tasks {
 #endif
     );
     inline constexpr dependency_t connect = make(Dependency::networking_ready);
+    inline constexpr dependency_t syslog = make(Dependency::networking_ready);
 
     inline constexpr dependency_t network = make(
 #if NETWORK_DEPENDS_ON_ESP_FLASHED

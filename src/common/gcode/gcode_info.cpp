@@ -1,5 +1,8 @@
 #include "gcode_info.hpp"
-#include "GuiDefaults.hpp"
+#include "option/has_gui.h"
+#if HAS_GUI()
+    #include <guiconfig/GuiDefaults.hpp>
+#endif
 #include "gcode_thumb_decoder.h"
 #include <cstring>
 #include <option/developer_mode.h>
@@ -40,9 +43,11 @@ const char *GCodeInfo::GetGcodeFilepath() {
     return gcode_file_path;
 }
 
+#if HAS_GUI()
 bool GCodeInfo::hasThumbnail(IGcodeReader &reader, size_ui16_t size) {
     return reader.stream_thumbnail_start(size.w, size.h, IGcodeReader::ImgType::QOI);
 }
+#endif
 
 uint32_t printer_model2code(const char *model) {
     struct {
@@ -157,13 +162,13 @@ bool GCodeInfo::verify_file(AnyGcodeFormatReader &file_reader) {
 
 void GCodeInfo::load(AnyGcodeFormatReader &file_reader) {
     assert(file_reader.is_open()); // assert file is open
-
+#if HAS_GUI()
     has_preview_thumbnail_ = hasThumbnail(*file_reader.get(), GuiDefaults::PreviewThumbnailRect.Size());
     has_progress_thumbnail_ = hasThumbnail(*file_reader.get(), GuiDefaults::ProgressThumbnailRect.Size());
     if (!has_progress_thumbnail_) {
         has_progress_thumbnail_ = hasThumbnail(*file_reader.get(), { GuiDefaults::OldSlicerProgressImgWidth, GuiDefaults::ProgressThumbnailRect.Height() });
     }
-
+#endif
     // scan info G-codes and comments
     PreviewInit(*file_reader.get());
     is_loaded_ = true;
@@ -259,7 +264,7 @@ bool GCodeInfo::ValidPrinterSettings::is_valid(bool is_tools_mapping_possible) c
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_fatal(bool is_tools_mapping_possible) const {
-    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal() || mk3_compatibility_mode.is_fatal() || unsupported_features
+    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal() || mk3_compatibility_mode.is_fatal()
         || (!is_tools_mapping_possible // if is_possible -> always false -> handled by tools_mapping screen
             && (wrong_tools.is_fatal() || wrong_nozzle_diameter.is_fatal()));
 }
@@ -357,7 +362,7 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
     cmd.skip_ws();
 
     // Parse parameters
-    uint8_t tool = 0; // Default is first tool
+    [[maybe_unused]] uint8_t tool = 0; // Default is first tool
     float p_diameter = NAN;
     while (!cmd.is_empty()) {
         char letter = cmd.pop_front();
@@ -389,13 +394,10 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 break;
             case '2':
 #if PRINTER_IS_PRUSA_MK4
-                if (!config_store().xy_motors_400_step.get()) {
-                    printer_model_code = printer_model2code(MMU2::mmu2.Enabled() ? "MK3.9MMU3" : "MK3.9");
-                } else {
-                    printer_model_code = printer_model2code(PRINTER_MODEL);
-                }
-#endif
+                if (cmd.get_uint() != printer_model_code && cmd.get_uint() != printer_model2code("MK3.9")) {
+#else
                 if (cmd.get_uint() != printer_model_code) {
+#endif
                     valid_printer_settings.wrong_printer_model.fail();
                 }
                 break;
@@ -417,7 +419,7 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                     return *b == '\0';
                 };
                 auto find = [&](GcodeBuffer::String feature) {
-                    for (auto &f : PrusaGcodeSuite::m862_6SupportedFeatures) {
+                    for (auto &f : supported_features) {
                         if (compare(feature, f)) {
                             return true;
                         }
@@ -426,6 +428,13 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                 };
                 auto feature = cmd.get_string();
                 feature.trim();
+
+#if ENABLED(PRUSA_MMU2)
+                if (MMU2::mmu2.Enabled() && compare(feature, "MMU3")) {
+                    break;
+                }
+#endif
+
                 if (!find(feature)) {
                     valid_printer_settings.add_unsupported_feature(feature.begin, feature.end - feature.begin);
                 }
@@ -436,10 +445,22 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
         cmd.skip_ws();
     }
 
-    // store nozzle diameter
+#if ENABLED(PRUSA_MMU2)
+    // Store nozzle diameter - MMU-equipped printers have only one nozzle diameter for all tools/slots
+    // Makes the pre-print screen hide the nozzle sizes, which is both good and bad at the same time
+    // -> "?.??" is gone, but no actual diameter is shown anymore - that can be tweaked further on the visualization side.
+    // Here, we must set the correct nozzle diameter for all tools if specified.
+    if (!isnan(p_diameter)) {
+        EXTRUDER_LOOP() {
+            per_extruder_info[e].nozzle_diameter = p_diameter;
+        }
+    }
+#else
+    // store nozzle diameter per tool
     if (!isnan(p_diameter) && tool < EXTRUDERS) {
         per_extruder_info[tool].nozzle_diameter = p_diameter;
     }
+#endif
 }
 
 void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
@@ -552,11 +573,6 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
                     }
                 }
                 extruder++;
-            }
-        } else if (name == gcode_info::printer) {
-            // Check model with possible extensions as MK4, MK4IS, XL or XL5
-            if (!is_printer_compatible(val, printer_extended_compatibility_list)) {
-                valid_printer_settings.wrong_printer_model.fail();
             }
         }
 #if EXTRUDERS > 1

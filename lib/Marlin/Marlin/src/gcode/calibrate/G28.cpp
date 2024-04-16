@@ -35,7 +35,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 
 #include "../gcode.h"
 
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "homing_reporter.hpp"
 
 #include "../../module/endstops.h"
@@ -98,6 +98,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 #include "../../core/debug_out.h"
 
 #include "../../../../../../src/common/trinamic.h" // for disabling Wave Table during homing
+#include <feature/phase_stepping/phase_stepping.hpp> // for disabling phase stepping during homing
 
 #if ENABLED(QUICK_HOME)
 
@@ -282,14 +283,15 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
     Motion_Parameters motion_parameters;
     motion_parameters.save();
 
-    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
-    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
-    planner.settings.travel_acceleration = XY_HOMING_ACCELERATION;
+    auto s = planner.user_settings;
+    s.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
+    s.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
+    s.travel_acceleration = XY_HOMING_ACCELERATION;
     #if HAS_CLASSIC_JERK
-      planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
+      s.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
     #endif
-
-    planner.refresh_acceleration_rates();
+    planner.apply_settings(s);
+    
     return motion_parameters;
   }
 
@@ -303,6 +305,10 @@ static void reenable_wavetable(AxisEnum axis)
 {
     tmc_enable_wavetable(axis == X_AXIS, axis == Y_AXIS, false);
 }
+
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * G28: Home all axes according to settings
@@ -359,6 +365,8 @@ void GcodeSuite::G28(const bool always_home_all) {
 
   G28_no_parser(always_home_all, O, R, S, X, Y, Z, no_change OPTARG(PRECISE_HOMING_COREXY, precise) OPTARG(DETECT_PRINT_SHEET, check_sheet));
 }
+
+/** @}*/
 
 bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y, bool Z
   , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise) OPTARG(DETECT_PRINT_SHEET, bool check_sheet)) {
@@ -574,6 +582,9 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
   TERN_(HAS_DUPLICATION_MODE, set_duplication_enabled(false));
 
+  // Disable phase stepping just before homing XY. This will synchronize only if needed
+  phase_stepping::EnsureSuitableForHoming phstep_disabler;
+
   // Homing feedrate
   float fr_mm_s = no_change ? feedrate_mm_s : 0.0f;
   remember_feedrate_scaling_off();
@@ -763,15 +774,44 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
           #if ENABLED(Z_SAFE_HOMING)
             if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) {
               failed = !home_z_safely();
+
               #if ENABLED(DETECT_PRINT_SHEET)
               if (!failed && check_sheet) {
-                failed = !detect_print_sheet(z_homing_height);
-                if (failed) {
-                  do_blocking_move_to_z(DETECT_PRINT_SHEET_Z_AFTER_FAILURE, homing_feedrate(Z_AXIS));
-                  kill(GET_TEXT(MSG_LCD_MISSING_SHEET));
-                }
+                failed = [&] {
+                  // Do multiple attempts of detect print sheet
+                  // The point is that we want to prevent false failures caused by a dirty nozzle (cold filament left hanging out)
+                  // BFW-5028
+                  for(uint8_t attempt = 0;; attempt++) {
+                    // If detect_print_sheet, return success (failed -> false)
+                    if(detect_print_sheet(z_homing_height)) {
+                      return false;
+                    }
+
+                    // Ran out of attempts -> fail
+                    if(attempt == 2) {
+                      // Move the bed to the bottom to give space for the user to insert the sheet
+                      do_blocking_move_to_z(DETECT_PRINT_SHEET_Z_AFTER_FAILURE, homing_feedrate(Z_AXIS));
+
+                      // Fall into red screen
+                      kill(GET_TEXT(MSG_LCD_MISSING_SHEET));
+
+                      // Return failure
+                      return true;
+                    }
+
+                    // Raise the Z again to prevent crashing into the sheet
+                    do_z_clearance(z_homing_height);
+                    
+                    // Return to the XY homing position over the printbed and try rehoming z
+                    if(!home_z_safely()) {
+                      // Fail straight away if z homing fails, only repeat if detect_print_sheet fails
+                      return true;
+                    }
+                  }
+                }();
               }
               #endif
+
             } else {
               failed = !homeaxis(Z_AXIS);
             }
@@ -799,6 +839,8 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
     sync_plan_position();
 
+    // clear any step fraction: we're at home
+    PreciseStepping::reset_from_halt(false);
   #endif
 
   /**
@@ -840,6 +882,9 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   #endif // DUAL_X_CARRIAGE
 
   endstops.not_homing();
+
+  // Restore previous phase stepping state before we move again
+  phstep_disabler.release();
 
   if (!failed) {
     // Clear endstop state for polled stallGuard endstops

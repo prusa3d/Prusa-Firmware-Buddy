@@ -4,7 +4,6 @@
 
 #include "footer_item_filament.hpp"
 #include "marlin_client.hpp"
-#include "display_helper.h" // font_meas_text
 #include "img_resources.hpp"
 #include "filament.hpp"
 #include <config_store/store_instance.hpp>
@@ -36,5 +35,5 @@ string_view_utf8 FooterItemFilament::static_makeView(int value) {
     }
 
     auto filament = static_cast<filament::Type>(value);
-    return string_view_utf8::MakeCPUFLASH((const uint8_t *)filament::get_description(filament).name);
+    return string_view_utf8::MakeCPUFLASH((const uint8_t *)filament::get_name(filament));
 }

@@ -6,6 +6,7 @@
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include <guiconfig/guiconfig.h>
 
 #ifdef USE_ILI9488
 class MI_ALWAYS : public WI_ICON_SWITCH_OFF_ON_t {
@@ -33,7 +34,7 @@ public:
 
 #else
 
-class MI_UPDATE_LABEL : public WI_LABEL_t {
+class MI_UPDATE_LABEL : public IWindowMenuItem {
     static constexpr const char *const label = N_("FW Update");
 
 public:
@@ -62,7 +63,7 @@ using MenuFwUpdateContainer = WinMenuContainer<MI_RETURN, MI_UPDATE_LABEL, MI_UP
 class ScreenMenuFwUpdate : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("FW UPDATE");
     static constexpr size_t helper_lines = 4;
-    static constexpr ResourceId helper_font = IDR_FNT_SPECIAL;
+    static constexpr Font helper_font = Font::special;
 
     MenuFwUpdateContainer container;
     window_menu_t menu;

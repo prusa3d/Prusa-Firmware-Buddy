@@ -1,3 +1,4 @@
+#include "selftest_dock_interface.hpp"
 #include "selftest_part.hpp"
 #include "selftest_dock.h"
 #include "selftest_dock_type.hpp"
@@ -9,7 +10,7 @@ namespace selftest {
 
 std::array<SelftestDock_t, HOTENDS> staticResultDocks;
 
-TestReturn phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &pDocks, const std::array<const DockConfig_t, HOTENDS> &configs) {
+TestReturn phaseDocks(const ToolMask tool_mask, std::array<IPartHandler *, HOTENDS> &pDocks, const std::array<const DockConfig_t, HOTENDS> &configs) {
     for (uint i = 0; i < pDocks.size(); ++i) {
         if (!is_tool_selftest_enabled(i, tool_mask)) {
             continue;
@@ -87,7 +88,7 @@ TestReturn phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTEND
         }
     }
     SelftestDocks_t result_docks(current_dock, staticResultDocks);
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result_docks.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), result_docks.Serialize());
     if (current_dock != std::numeric_limits<uint8_t>::max()) {
         return true;
     }

@@ -22,20 +22,20 @@ void ClValidityValue::mSetValue(uint32_t nN, uint32_t nNow) {
     bIsUsed = true;
 }
 
-uint32_t ClValidityValue::mGetValue(void) {
+uint32_t ClValidityValue::mGetValue(void) const {
     return (nValue);
 }
 
-bool ClValidityValue::mIsActual(uint32_t nNow) {
+bool ClValidityValue::mIsActual(uint32_t nNow) const {
     return (mIsActual(nNow, PROGRESS_DATA_VALIDITY_PERIOD));
 }
 
-bool ClValidityValue::mIsActual(uint32_t nNow, uint16_t nPeriod) {
+bool ClValidityValue::mIsActual(uint32_t nNow, uint16_t nPeriod) const {
     // return((nTime+nPeriod)>=nNow);
     return (mIsUsed() && ((nTime + nPeriod) >= nNow));
 }
 
-bool ClValidityValue::mIsUsed(void) {
+bool ClValidityValue::mIsUsed(void) const {
     // return(nTime>0);
     return (bIsUsed);
 }
@@ -60,52 +60,93 @@ void ClValidityValueSec::mFormatSeconds(char *sStr, uint16_t nFeedrate) {
 }
 
 void ClProgressData::mInit(void) {
-    oPercentDirectControl.mInit();
-    oPercentDone.mInit();
-    oTime2End.mInit();
-    oTime2Pause.mInit();
+    const auto mode_specific = [](ModeSpecificData &d) {
+        d.percent_done.mInit();
+        d.time_to_end.mInit();
+        d.time_to_pause.mInit();
+    };
+    mode_specific(standard_mode);
+    mode_specific(stealth_mode);
 }
 
 #if ENABLED(M73_PRUSA)
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ * M73: Tell the firmware the current build progress (percentage/time to end/time to pause). The machine is expected to display this on its display.
+ *
+ * ## Parameters
+ *
+ * - `P` - [percentage] Set percentage value
+ * - `Q` - [percentage] Set percentage value in stealth mode
+ * - `R` - [minutes] Set time to end / percentage done
+ * - `S` - [minutes] Set time to end / percentage done in stealth mode
+ * - `C` - [minutes] Set time to pause
+ *   (historically also `T`, which is not documented anywhere and we couldn't
+ *   track anyone producing it, but the code accepted it previously - probably
+ *   a typo, but keeping it for backwards compatibility anyway).
+ * - `D` - [minutes] Set time to pause in stealth mode
+ */
+
 void GcodeSuite::M73_PE() {
-    std::optional<uint8_t> P = std::nullopt;
-    std::optional<uint32_t> R = std::nullopt;
-    std::optional<uint32_t> T = std::nullopt;
+    M73_Params p;
     if (parser.seen('P')) {
-        P = parser.value_byte();
+        p.standard_mode.percentage = parser.value_byte();
     }
     if (parser.seen('R')) {
-        R = parser.value_ulong() * 60;
+        p.standard_mode.time_to_end = parser.value_ulong() * 60;
+    }
+    if (parser.seen('C')) {
+        p.standard_mode.time_to_pause = parser.value_ulong() * 60;
     }
     if (parser.seen('T')) {
-        T = parser.value_ulong() * 60;
+        p.standard_mode.time_to_pause = parser.value_ulong() * 60;
     }
 
-    M73_PE_no_parser(P, R, T);
+    if (parser.seen('Q')) {
+        p.stealth_mode.percentage = parser.value_byte();
+    }
+    if (parser.seen('S')) {
+        p.stealth_mode.time_to_end = parser.value_ulong() * 60;
+    }
+    if (parser.seen('D')) {
+        p.stealth_mode.time_to_pause = parser.value_ulong() * 60;
+    }
+
+    M73_PE_no_parser(p);
 }
 
-void M73_PE_no_parser(std::optional<uint8_t> P, std::optional<uint32_t> R, std::optional<uint32_t> T) {
-    uint32_t nTimeNow;
-    uint8_t nValue;
+/** @}*/
 
-    // ui.set_progress_time(...);
-    nTimeNow = print_job_timer.duration(); // !!! [s]
-    if (P) {
-        nValue = *P;
-        if (R) {
-            oProgressData.oPercentDone.mSetValue((uint32_t)nValue, nTimeNow);
-            oProgressData.oTime2End.mSetValue(*R, nTimeNow); // [min] -> [s]
-        } else {
-            oProgressData.oPercentDirectControl.mSetValue((uint32_t)nValue, nTimeNow);
+void M73_PE_no_parser(const M73_Params &params) {
+    /// [s]
+    const uint32_t nTimeNow = print_job_timer.duration();
+
+    const auto mode_specific_update = [&](const M73_Params::ModeSpecificParams &mparams, ClProgressData::ModeSpecificData &mdata) {
+        if (auto v = mparams.percentage) {
+            mdata.percent_done.mSetValue((uint32_t)*v, nTimeNow);
         }
-    }
+        if (auto v = mparams.time_to_end) {
+            mdata.time_to_end.mSetValue(*v, nTimeNow); // [min] -> [s]
+        }
+        if (auto v = mparams.time_to_pause) {
+            if (*v == 0) {
+                // Pause happening now, reset the countdown (there doesn't have to be another until the end).
+                mdata.time_to_pause.mInit();
+            } else {
+                mdata.time_to_pause.mSetValue(*v, nTimeNow); // [min] -> [s]
+            }
+        }
+    };
 
-    if (T) {
-        oProgressData.oTime2Pause.mSetValue(*T, nTimeNow); // [min] -> [s]
-    }
+    mode_specific_update(params.standard_mode, oProgressData.standard_mode);
+    mode_specific_update(params.stealth_mode, oProgressData.stealth_mode);
 
     // Print progress report. Do not remove as third party tools might depend on this
-    if (!P && !R && !T) {
+    if (params == M73_Params {}) {
         SERIAL_ECHO_START();
         SERIAL_ECHOLNPAIR(" M73 Progress: ", marlin_vars()->sd_percent_done, "%;");
         const uint32_t time_to_end = marlin_vars_t().time_to_end;
@@ -113,7 +154,8 @@ void M73_PE_no_parser(std::optional<uint8_t> P, std::optional<uint32_t> R, std::
             SERIAL_ECHOPAIR(" Time left: ", time_to_end / 60, "m;");
             SERIAL_EOL();
         }
-        const uint32_t time_to_pause = oProgressData.oTime2Pause.mGetValue();
+
+        const uint32_t time_to_pause = oProgressData.mode_specific(marlin_vars()->stealth_mode).time_to_pause.mGetValue();
         if (time_to_pause != marlin_server::TIME_TO_END_INVALID) {
             const int print_speed = marlin_vars()->print_speed;
             SERIAL_ECHOPAIR(" Change: ", print_speed > 0 ? ((time_to_pause * 100) / print_speed) / 60 : 0, "m;");

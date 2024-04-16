@@ -4,6 +4,7 @@
 #include "MItem_menus.hpp"
 #include "i18n.h"
 #include <WindowItemFormatableSpin.hpp>
+#include <option/has_mmu2.h>
 
 /**
  * @brief Selector of filament types for one tool.
@@ -47,6 +48,7 @@ public:
 
 private:
     static_assert(N >= 0 && N <= max_I_MI_FilamentSelect_idx, "bad input");
+#if not HAS_MMU2()
     static consteval const char *get_name() {
         switch (N) {
         case 0:
@@ -63,14 +65,31 @@ private:
         consteval_assert_false();
         return "";
     }
-
+#else
+    static consteval const char *get_name() {
+        switch (N) {
+        case 0:
+            return N_("Filament 1");
+        case 1:
+            return N_("Filament 2");
+        case 2:
+            return N_("Filament 3");
+        case 3:
+            return N_("Filament 4");
+        case 4:
+            return N_("Filament 5");
+        }
+        consteval_assert_false();
+        return "";
+    }
+#endif
     static constexpr const char *label = get_name();
 };
 
 /**
  * @brief Do the changes.
  */
-class MI_FilamentApplyChanges : public WI_LABEL_t {
+class MI_FilamentApplyChanges : public IWindowMenuItem {
 public:
     static constexpr const char *label = N_("Carry Out the Changes");
     MI_FilamentApplyChanges();
@@ -97,7 +116,11 @@ class ScreenChangeAllFilaments : public detail::ScreenChangeAllFilaments {
 
 public:
     static constexpr size_t tool_count = 5; ///< Number of tools shown in this menu
+#if not HAS_MMU2()
     static constexpr const char *label = N_("MULTITOOL FILAMENT CHANGE");
+#else
+    static constexpr const char *label = N_("FILAMENT CHANGE");
+#endif
     ScreenChangeAllFilaments();
 };
 
@@ -118,7 +141,7 @@ namespace detail {
  * @brief Dialog enabled MI_RETURN
  *
  */
-class DMI_RETURN : public detail::DialogEnabledMI, public WI_LABEL_t {
+class DMI_RETURN : public detail::DialogEnabledMI, public IWindowMenuItem {
 public:
     static constexpr const char *label = MI_RETURN::label;
     DMI_RETURN();
@@ -127,7 +150,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class DMI_FilamentApplyChanges : public detail::DialogEnabledMI, public WI_LABEL_t {
+class DMI_FilamentApplyChanges : public detail::DialogEnabledMI, public IWindowMenuItem {
 public:
     static constexpr const char *label = MI_FilamentApplyChanges::label;
     DMI_FilamentApplyChanges();
@@ -155,7 +178,7 @@ public:
      * @param default_selections default selections for each tool
      * @param exit_on_media_ if true, exit on media removed or error
      */
-    DialogChangeAllFilaments(std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> default_selections, bool exit_on_media_, std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> colors_);
+    DialogChangeAllFilaments(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media_, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors_);
 
     static constexpr size_t tool_count = ScreenChangeAllFilaments::tool_count; ///< Number of tools shown in this menu
 
@@ -184,4 +207,4 @@ private:
  * @param exit_on_media if true, exit on media removed or error
  * @return true if exited by USB removal or error
  */
-bool ChangeAllFilamentsBox(std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> default_selections = {}, bool exit_on_media = false, std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> colors = {});
+bool ChangeAllFilamentsBox(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections = {}, bool exit_on_media = false, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors = {});

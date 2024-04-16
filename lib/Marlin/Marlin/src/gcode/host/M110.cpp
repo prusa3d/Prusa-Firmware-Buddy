@@ -23,9 +23,19 @@
 #include "../gcode.h"
 #include "../queue.h" // for last_N
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M110: Set Current Line Number
+ *
+ * ## Parameters
+ *
+ * - `N` - Set queue's last line number
  */
 void GcodeSuite::M110() {
   if (parser.seenval('N')) queue.last_N = parser.value_long();
 }
+
+/** @}*/

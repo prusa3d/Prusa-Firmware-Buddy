@@ -3,8 +3,7 @@
 #include <array>
 #include <algorithm>
 #include <string.h>
-#include "FreeRTOS.h"
-#include <semphr.h>
+#include <common/freertos_mutex.hpp>
 #include "cmath_ext.h"
 #include "ConstexprQuickSort.hpp"
 #include <device/board.h>
@@ -191,7 +190,7 @@ private:
     /// disables all metrics from sensors array
     void disableMetrics();
 
-    SemaphoreHandle_t mutex;
+    freertos::Mutex mutex;
     bool allMetricsEnabled = false;
 
     // array of metrics we want to show in sensor screen

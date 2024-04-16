@@ -6,11 +6,13 @@
 #include "bsod.h"
 #include <atomic>
 #include "file_list_defs.h"
-#include "fsm_types.hpp"
+#include "fsm_states.hpp"
+
 #include <cstring>
 #include <charconv>
 #include "inc/MarlinConfig.h"
 #include <assert.h>
+#include <tuple>
 
 #if BOARD_IS_DWARF
     #error "You're trying to add marlin_vars to Dwarf. Don't!"
@@ -57,24 +59,6 @@ public:
      */
     T get() const {
         return value.load();
-    }
-
-    /**
-     * @brief Load this variable from string (for compatibility with marlin_server)
-     */
-    void from_string(const char *str_begin, const char *str_end) {
-        if constexpr (std::is_floating_point<T>::value) {
-            // our GCC doesn't support std::from_chars with floating point arguments :(
-            value = strtof(str_begin, nullptr);
-        } else {
-            T new_value;
-            auto [ptr, ec] = std::from_chars(str_begin, str_end, new_value);
-
-            if (ec != std::errc {}) {
-                bsod("marlin var: from string fail");
-            }
-            value = new_value;
-        }
     }
 
     /**
@@ -330,6 +314,7 @@ public:
     MarlinVariable<float> travel_acceleration; // travel acceleration from planner
     MarlinVariable<uint32_t> print_duration; // print_job_timer.duration() [ms]
     MarlinVariable<uint32_t> time_to_end; // remaining print time (dumbly) calculated with speed [s]
+    MarlinVariable<uint32_t> time_to_pause; // Similar as time_to_end, but with time to pause (M600 / M601) [s]
     MarlinVariableLocked<time_t> print_start_time { marlin_server::TIMESTAMP_INVALID }; // Print start timestamp [s] since epoch
     MarlinVariableLocked<time_t> print_end_time { marlin_server::TIMESTAMP_INVALID }; // Estimated print end timestamp [s] since epoch
 
@@ -338,7 +323,17 @@ public:
     MarlinVariable<marlin_server::State> print_state; // marlin_server.print_state
 
 #if ENABLED(CANCEL_OBJECTS)
-    MarlinVariable<uint32_t> cancel_object_mask; ///< Copy of mask of canceled objects
+    void set_cancel_object_mask(uint64_t mask) {
+        if (osThreadGetId() != marlin_server::server_task) {
+            bsod("set_cancel_object_mask");
+        }
+        auto guard = MarlinVarsLockGuard();
+        cancel_object_mask = mask;
+    }
+    uint64_t get_cancel_object_mask() {
+        auto guard = MarlinVarsLockGuard();
+        return cancel_object_mask;
+    }; ///< Copy of mask of canceled objects
     MarlinVariable<int8_t> cancel_object_count; ///< Number of objects that can be canceled
 
     static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32; ///< Maximal length of cancel_object_names strings
@@ -359,12 +354,14 @@ public:
     MarlinVariable<uint8_t> media_inserted; // media_is_inserted()
     MarlinVariable<uint8_t> fan_check_enabled; // fan_check [on/off]
     MarlinVariable<uint8_t> fs_autoload_enabled; // fs_autoload [on/off]
-    MarlinVariable<uint8_t> mmu2_state; // 1 if MMU2 is on and works, 2 connecting, 0 otherwise - clients may use this variable to change behavior - with/without the MMU
+    MarlinVariable<uint8_t> mmu2_state; // Corresponds to MMU2::xState
     MarlinVariable<uint8_t> mmu2_finda; // FINDA pressed = 1, FINDA not pressed = 0 - shall be used as the main fsensor in case of mmu2State
     MarlinVariable<uint8_t> active_extruder; // See marlin's active_extruder. It will contain currently selected extruder (tool in case of XL, loaded filament nr in case of MMU2)
 
     // TODO: prints fans should be in extruder struct, but we are not able to control multiple print fans yet
     MarlinVariable<uint8_t> print_fan_speed; // print fan speed [0..255]
+
+    MarlinVariable<uint8_t> stealth_mode; // stealth = 1, normal = 0
 
     // PER-Hotend variables (access via hotend(num) or active_hotend())
     struct Hotend {
@@ -372,6 +369,7 @@ public:
         MarlinVariable<float> temp_nozzle; // nozzle temperature [C]
         MarlinVariable<float> target_nozzle; // nozzle target temperature [C]
         MarlinVariable<float> display_nozzle; // nozzle temperature to display [C]
+        MarlinVariable<uint8_t> pwm_nozzle; ///< Hotend PWM (0-255 or 0-127, depending on the type of the printer, dunno how to determine nicely, sigh)
 
         // heatbreak
         MarlinVariable<float> temp_heatbreak; // heatbreak temperature [C]
@@ -416,14 +414,6 @@ public:
         }
     }
 
-    struct FSMChange {
-        fsm::Change q0_change;
-        fsm::Change q1_change;
-
-        FSMChange()
-            : q0_change(fsm::QueueIndex::q0)
-            , q1_change(fsm::QueueIndex::q1) {}
-    };
     /**
      * @brief Get the last fsm state
      *
@@ -431,11 +421,11 @@ public:
      * marlin_client::loop periodically. Also for this to be stored in an atomic, we would need to make
      * atomic<uint64_t> work, which I was not able to do, if anyone knows how to, let me know.
      *
-     * @return last change for both FSM queues
+     * @return last change for both FSM queues and the generation (which changes every time a value here changes).
      */
-    FSMChange get_last_fsm_change() {
+    fsm::States get_fsm_states() {
         auto guard = MarlinVarsLockGuard();
-        return last_fsm_state;
+        return fsm_states; // copy is intended
     }
 
     /**
@@ -443,16 +433,12 @@ public:
      *
      * Can be called only from main task
      */
-    void set_last_fsm_state(const fsm::Change &change) {
+    void set_fsm_states(const fsm::States &states) {
         if (osThreadGetId() != marlin_server::server_task) {
-            bsod("set_last_fsm_state");
+            bsod("set_fsm_states");
         }
         auto guard = MarlinVarsLockGuard();
-        if (change.get_queue_index() == fsm::QueueIndex::q0) {
-            last_fsm_state.q0_change = change;
-        } else { /*(change.get_queue_index() == fsm::QueueIndex::q1)*/
-            last_fsm_state.q1_change = change;
-        }
+        fsm_states = states;
     }
 
     void lock();
@@ -463,8 +449,10 @@ private:
     osMutexId mutex_id; // Mutex ID
     std::atomic<osThreadId> current_mutex_owner; // current mutex owner -> to check for recursive locking
     std::array<Hotend, HOTENDS> hotends; // array of hotends (use hotend()/active_hotend() getter)
-    FSMChange last_fsm_state; // last fsm state, used in connect and link
-
+    fsm::States fsm_states;
+#if ENABLED(CANCEL_OBJECTS)
+    uint64_t cancel_object_mask;
+#endif
     // disable copy constructor
     marlin_vars_t(const marlin_vars_t &) = delete;
     marlin_vars_t &operator=(marlin_vars_t const &) = delete;

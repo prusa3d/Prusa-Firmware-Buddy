@@ -4,14 +4,18 @@
 
 #include "selftest_frame_firstlayer_questions.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_firstlayer_type.hpp"
 #include "marlin_client.hpp"
 
-static constexpr size_t col_0 = WizardDefaults::MarginLeft;
-static constexpr size_t top_of_changeable_area = WizardDefaults::row_1;
-static constexpr size_t height_of_changeable_area = WizardDefaults::RectRadioButton(2).Top() - top_of_changeable_area;
-static constexpr Rect16 ChangeableRect = { col_0, top_of_changeable_area, WizardDefaults::X_space, height_of_changeable_area };
+namespace {
+constexpr size_t col_0 = WizardDefaults::MarginLeft;
+constexpr size_t top_of_changeable_area = WizardDefaults::row_1;
+constexpr size_t height_of_changeable_area = WizardDefaults::RectRadioButton(2).Top() - top_of_changeable_area;
+constexpr Rect16 ChangeableRect = { col_0, top_of_changeable_area, WizardDefaults::X_space, height_of_changeable_area };
+
+constexpr const char *text_question_use_val = N_("Do you want to use the current value?\nCurrent: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)");
+} // namespace
 
 SelftestFrameFirstLayerQuestions::SelftestFrameFirstLayerQuestions(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data, 2)
@@ -49,12 +53,15 @@ void SelftestFrameFirstLayerQuestions::change() {
     case PhasesSelftest::FirstLayer_calib:
         txt = N_("Now, let's calibrate the distance between the tip of the nozzle and the print sheet.");
         break;
-    case PhasesSelftest::FirstLayer_use_val:
+    case PhasesSelftest::FirstLayer_use_val: {
+        std::array<char, 256> buffer;
+        [[maybe_unused]] const auto copied = _(text_question_use_val).copyToRAM(buffer.data(), buffer.size());
         snprintf(txt_buff.begin(), txt_buff.size(),
-            N_("Do you want to use the current value?\nCurrent: %0.3f.\nDefault: %0.3f.\nClick NO to use the default value (recommended)"),
+            buffer.data(),
             (double)dt.current_offset, (double)z_offset_def);
         txt = txt_buff.begin();
         break;
+    }
     case PhasesSelftest::FirstLayer_start_print:
         txt = N_("In the next step, use the knob to adjust the nozzle height. Check the pictures in the handbook for reference.");
         break;

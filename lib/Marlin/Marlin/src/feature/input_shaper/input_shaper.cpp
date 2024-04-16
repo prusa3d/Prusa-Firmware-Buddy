@@ -274,7 +274,19 @@ void input_shaper_state_init(input_shaper_state_t &is_state, const move_t &move,
 
     is_state.half_accel = get_move_half_accel(move, axis);
     is_state.start_v = get_move_start_v(move, axis);
+
+#ifdef COREXY
+    if (axis == A_AXIS) {
+        is_state.start_pos = move.start_pos.x + move.start_pos.y;
+    } else if (axis == B_AXIS) {
+        is_state.start_pos = move.start_pos.x - move.start_pos.y;
+    } else {
+        fatal_error("Invalid axis", "input_shaper_state_init");
+    }
+#else
     is_state.start_pos = get_move_start_pos(move, axis);
+#endif
+
     is_state.step_dir = get_move_step_dir(move, axis);
 
     is_state.is_crossing_zero_velocity = false;
@@ -315,27 +327,27 @@ bool logical_axis_input_shaper_t::update(const input_shaper_state_t &axis_is) {
     }
 
     const move_t *curr_move = m_move[curr_idx];
-    m_next_change[curr_idx] = curr_move->print_time + curr_move->move_t - m_pulses->pulses[curr_idx].t;
+    m_next_change[curr_idx] = curr_move->print_time + curr_move->move_time - m_pulses->pulses[curr_idx].t;
 
     const double move_elapsed_time = (nearest_next_change - m_print_time);
     if (const move_t *first_move = m_move[0], *last_move = m_move[m_pulses->num_pulses - 1]; first_move == last_move) {
         // When all pointers point on the same move segment (iff the first and the last pointers point on the same move segment),
         // then we can compute start_v, start_pos, and half_accel without accumulation, so we can suppress accumulated errors.
-        const double move_t = (nearest_next_change - first_move->print_time); // Mapped nearest_next_change into current move segment.
+        const double move_time = (nearest_next_change - first_move->print_time); // Mapped nearest_next_change into current move segment.
         const double start_v = get_move_start_v(*first_move, m_axis);
         const double half_accel = get_move_half_accel(*first_move, m_axis);
-        assert(move_t >= 0. && move_t < first_move->move_t);
+        assert(move_time >= 0. && move_time < first_move->move_time);
 
         // After applying the input shape filter, the velocity during the acceleration or deceleration phase doesn't equal the velocity of the input move segment at the same time.
         // Because of that also, the position will not equal, so during the acceleration or deceleration phase, we cannot compute start_pos just from the input move segment.
         // We can compute start_pos from the input move segment (without accumulated error) just for the cruise phase where velocity is constant.
         if (std::abs(half_accel) <= EPSILON) {
-            m_start_pos = get_move_start_pos(*first_move, m_axis) + start_v * move_t;
+            m_start_pos = get_move_start_pos(*first_move, m_axis) + start_v * move_time;
         } else {
             m_start_pos += (m_start_v + m_half_accel * move_elapsed_time) * move_elapsed_time;
         }
 
-        m_start_v = start_v + 2. * half_accel * move_t;
+        m_start_v = start_v + 2. * half_accel * move_time;
         m_half_accel = half_accel;
     } else {
         const double half_velocity_diff = m_half_accel * move_elapsed_time; // (1/2) * a * t
@@ -365,7 +377,7 @@ bool logical_axis_input_shaper_t::update(const input_shaper_state_t &axis_is) {
 // that processing multiple time events at once could cause that very close time event could be skipped. That
 // could lead to incorrect step timing.
 // Returns true if input_shaper_state was updated and false otherwise.
-static bool input_shaper_state_update(input_shaper_state_t &is_state, const int axis) {
+bool input_shaper_state_update(input_shaper_state_t &is_state, const int axis) {
 #ifdef COREXY
     bool x_updated = false;
     bool y_updated = false;
@@ -401,16 +413,16 @@ static bool input_shaper_state_update(input_shaper_state_t &is_state, const int 
     double x_start_pos = is_state.m_axis_shaper[0].m_start_pos;
     double y_start_pos = is_state.m_axis_shaper[1].m_start_pos;
 
-    const double x_move_t = is_state.nearest_next_change - is_state.m_axis_shaper[0].m_print_time;
-    const double y_move_t = is_state.nearest_next_change - is_state.m_axis_shaper[1].m_print_time;
+    const double x_move_time = is_state.nearest_next_change - is_state.m_axis_shaper[0].m_print_time;
+    const double y_move_time = is_state.nearest_next_change - is_state.m_axis_shaper[1].m_print_time;
 
     // If just one logical axis input shaper was updated, then we need to calculate new start_pos and start_v for the other logical axis input shaper.
     if (x_updated && !y_updated) {
-        y_start_pos = y_start_pos + (y_start_v + is_state.m_axis_shaper[1].m_half_accel * y_move_t) * y_move_t;
-        y_start_v = y_start_v + 2. * is_state.m_axis_shaper[1].m_half_accel * y_move_t;
+        y_start_pos = y_start_pos + (y_start_v + is_state.m_axis_shaper[1].m_half_accel * y_move_time) * y_move_time;
+        y_start_v = y_start_v + 2. * is_state.m_axis_shaper[1].m_half_accel * y_move_time;
     } else if (y_updated && !x_updated) {
-        x_start_pos = x_start_pos + (x_start_v + is_state.m_axis_shaper[0].m_half_accel * x_move_t) * x_move_t;
-        x_start_v = x_start_v + 2. * is_state.m_axis_shaper[0].m_half_accel * x_move_t;
+        x_start_pos = x_start_pos + (x_start_v + is_state.m_axis_shaper[0].m_half_accel * x_move_time) * x_move_time;
+        x_start_v = x_start_v + 2. * is_state.m_axis_shaper[0].m_half_accel * x_move_time;
     }
 
     if (axis == A_AXIS) {
@@ -452,8 +464,8 @@ static bool input_shaper_state_update(input_shaper_state_t &is_state, const int 
     if (std::signbit(is_state.start_v) != std::signbit(is_state.half_accel) && is_state.start_v != 0.) {
         // Micro move segment is crossing zero velocity only when start_v and end_v are different.
         // Division in doubles is quite an expensive operation, so it is much cheaper to make these pre-checks instead of checks based on the computed time of crossing the zero velocity.
-        const double move_t = is_state.nearest_next_change - is_state.print_time;
-        const double end_v = is_state.start_v + 2. * is_state.half_accel * move_t;
+        const double move_time = is_state.nearest_next_change - is_state.print_time;
+        const double end_v = is_state.start_v + 2. * is_state.half_accel * move_time;
         if (std::signbit(is_state.start_v) != std::signbit(end_v)) {
             const double zero_velocity_crossing_time_absolute = is_state.start_v / (-2. * is_state.half_accel) + is_state.print_time;
 
@@ -485,43 +497,48 @@ FORCE_INLINE void input_shaper_step_generator_update(input_shaper_step_generator
 step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_generator_t &step_generator, step_generator_state_t &step_generator_state) {
     assert(step_generator.is_state != nullptr);
     step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
-    bool is_updated = false;
-    do {
-        const bool step_dir = step_generator.is_state->step_dir;
-        const float half_step_dist = Planner::mm_per_half_step[step_generator.axis];
-        const float next_target = float(step_generator_state.current_distance[step_generator.axis] + (step_generator.step_dir ? 0 : -1)) * Planner::mm_per_step[step_generator.axis] + half_step_dist;
-        const float next_distance = next_target - step_generator.start_pos;
-        const float step_time = calc_time_for_distance(step_generator, next_distance);
 
-        // When step_time is infinity, it means that next_distance will never be reached.
-        // This happens when next_target exceeds end_position, and deceleration decelerates velocity to zero or negative value.
-        // Also, we need to stop when step_time exceeds local_end.
-        if (const double elapsed_time = double(step_time) + step_generator.is_state->print_time; elapsed_time > (step_generator.is_state->nearest_next_change + EPSILON)) {
-            next_step_event.time = step_generator.is_state->nearest_next_change;
+    const bool step_dir = step_generator.is_state->step_dir;
+    const float half_step_dist = Planner::mm_per_half_step[step_generator.axis];
+    const float next_target = float(step_generator_state.current_distance[step_generator.axis] + (step_generator.step_dir ? 0 : -1)) * Planner::mm_per_step[step_generator.axis] + half_step_dist;
+    const float next_distance = next_target - step_generator.start_pos;
+    const float step_time = calc_time_for_distance(step_generator, next_distance);
 
-            is_updated = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
+    // When step_time is infinity, it means that next_distance will never be reached.
+    // This happens when next_target exceeds end_position, and deceleration decelerates velocity to zero or negative value.
+    // Also, we need to stop when step_time exceeds local_end.
+    if (const double elapsed_time = double(step_time) + step_generator.is_state->print_time; elapsed_time > (step_generator.is_state->nearest_next_change + EPSILON)) {
+        next_step_event.time = step_generator.is_state->nearest_next_change;
 
-            // Update step direction flag, which is cached until this move segment is processed.
-            const uint16_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
-            step_generator_state.flags &= ~current_axis_dir_flag;
-            step_generator_state.flags |= (!step_generator.is_state->step_dir) * current_axis_dir_flag;
-
-            // Update active axis flag, which is cached until this move segment is processed.
-            const uint16_t current_axis_active_flag = (STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis);
-            step_generator_state.flags &= ~current_axis_active_flag;
-            step_generator_state.flags |= (step_generator.is_state->start_v != 0. || step_generator.is_state->half_accel != 0.) * current_axis_active_flag;
-
-            input_shaper_step_generator_update(step_generator);
-            PreciseStepping::move_segment_processed_handler();
+        if (input_shaper_state_update(*step_generator.is_state, step_generator.axis) && step_generator.is_state->nearest_next_change < MAX_PRINT_TIME) {
+            next_step_event.flags |= STEP_EVENT_FLAG_KEEP_ALIVE;
+            next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE;
         } else {
-            next_step_event.time = elapsed_time;
-            next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
-            next_step_event.flags |= step_generator_state.flags;
-            next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
-            step_generator_state.current_distance[step_generator.axis] += (step_dir ? 1 : -1);
-            break;
+            // We reached the ending move segment, so we will never produce any valid step event from this micro move segment.
+            // When we return GENERATED_INVALID, we always have to return the value of nearest_next_change for this new micro
+            // move segment and not for the previous one.
+            next_step_event.time = step_generator.is_state->nearest_next_change;
         }
-    } while (is_updated);
+
+        // Update step direction flag, which is cached until this move segment is processed.
+        const uint16_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
+        step_generator_state.flags &= ~current_axis_dir_flag;
+        step_generator_state.flags |= (!step_generator.is_state->step_dir) * current_axis_dir_flag;
+
+        // Update active axis flag, which is cached until this move segment is processed.
+        const uint16_t current_axis_active_flag = (STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis);
+        step_generator_state.flags &= ~current_axis_active_flag;
+        step_generator_state.flags |= (step_generator.is_state->start_v != 0. || step_generator.is_state->half_accel != 0.) * current_axis_active_flag;
+
+        input_shaper_step_generator_update(step_generator);
+        PreciseStepping::move_segment_processed_handler();
+    } else {
+        next_step_event.time = elapsed_time;
+        next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
+        next_step_event.flags |= step_generator_state.flags;
+        next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
+        step_generator_state.current_distance[step_generator.axis] += (step_dir ? 1 : -1);
+    }
 
     return next_step_event;
 }
@@ -531,7 +548,7 @@ void logical_axis_input_shaper_t::init(const move_t &move, uint8_t axis) {
 
     for (uint8_t pulse_idx = 0; pulse_idx < m_pulses->num_pulses; ++pulse_idx) {
         m_move[pulse_idx] = &move;
-        m_next_change[pulse_idx] = move.print_time + move.move_t - m_pulses->pulses[pulse_idx].t;
+        m_next_change[pulse_idx] = move.print_time + move.move_time - m_pulses->pulses[pulse_idx].t;
     }
 
     m_half_accel = get_move_half_accel(move, axis);

@@ -1,5 +1,6 @@
 #include "catch2/catch.hpp"
 
+#include "mmu2_supported_version.h"
 #include "protocol_logic.h"
 #include "stubs/stub_interfaces.h"
 
@@ -9,8 +10,12 @@
 
 #define supportedMmuFWVersionMajor    3
 #define supportedMmuFWVersionMinor    0
-#define supportedMmuFWVersionRevision 1
-#define supportedMmuFWVersionBuild    814
+#define supportedMmuFWVersionRevision 3
+#define supportedMmuFWVersionBuild    895
+
+static_assert(MMU2::mmuVersionMajor == 3);
+static_assert(MMU2::mmuVersionMinor == 0);
+static_assert(MMU2::mmuVersionPatch == 3);
 
 #define xstr(s) Str(s)
 #define Str(s)  #s
@@ -842,7 +847,11 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic AsyncCommandRqCommandReset", "[Marlin][MM
     REQUIRE(StepAndCheckState(pl, "X0 E8087", PST::Running, PSC::Idle, CommandError, RegisterReq8(pl, 0)));
     // we should be getting an auto-retry button
     pl.Button(1);
-    QueryRegisters(pl, PSC::Idle, PSC::Idle, Finished, "B1");
+
+    // Finish running the Query (Q0)
+    // The firmware will then activate the planned button request (B1)
+    // StepStatus must remain in 'Processing' at this point since we are expecting a response later (B1 A)
+    QueryRegisters(pl, PSC::Idle, PSC::Idle, Processing, "B1");
     IncMillis();
 
     // Here was the error - upon reception of B1 A we sent P0 but transferred into Finished.

@@ -7,8 +7,8 @@
 
 #include "screen_menu.hpp"
 #include "MItem_tools.hpp"
-#include "MItem_MINI_MK3.5.hpp"
+#include "MItem_MINI.hpp"
 
 namespace detail {
-using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_FILAMENT_SENSOR_STATE, MI_MINDA>;
+using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_FILAMENT_SENSOR_STATE, MI_MINDA, MI_INFO_MCU_TEMP>;
 } // namespace detail

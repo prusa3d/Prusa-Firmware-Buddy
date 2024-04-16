@@ -4,6 +4,7 @@
 
 #include <common/shared_buffer.hpp>
 #include <marlin_client.hpp>
+#include <marlin_vars.hpp>
 
 namespace connect_client {
 
@@ -18,6 +19,14 @@ private:
     // * Ready is a concept only Connect uses, nobody else, so managing it kind
     //   of belongs to Connect.
     static std::atomic<bool> ready;
+
+#if ENABLED(CANCEL_OBJECTS)
+    // We don't want to include marlin_vars into the printer or render.cpp directly
+    //, because we want to shield unit tests from marlin stuff, but we want to be
+    // sure everything fits.
+    static_assert(marlin_vars_t::CANCEL_OBJECT_NAME_LEN == Printer::CANCEL_OBJECT_NAME_LEN);
+    static_assert(marlin_vars_t::CANCEL_OBJECTS_NAME_COUNT == Printer::CANCEL_OBJECT_NAME_COUNT);
+#endif
 
 protected:
     virtual Config load_config() override;
@@ -40,11 +49,18 @@ public:
     // trying to delete the file, that just got printed,
     // this first exits the print and then deletes the file.
     virtual const char *delete_file(const char *path) override;
-    virtual void submit_gcode(const char *code) override;
+    virtual GcodeResult submit_gcode(const char *code) override;
     virtual bool set_ready(bool ready) override;
     virtual bool is_printing() const override;
+    virtual bool is_in_error() const override;
     virtual bool is_idle() const override;
-    virtual void init_connect(char *token) override;
+    virtual void init_connect(const char *token) override;
+    virtual uint32_t cancelable_fingerprint() const override;
+#if ENABLED(CANCEL_OBJECTS)
+    virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const override;
+#endif
+    virtual void reset_printer() override;
+    virtual const char *dialog_action(uint32_t dialog_id, Response response) override;
 
     static bool load_cfg_from_ini();
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MItem_tools.hpp"
-#include "DialogStateful.hpp"
+#include "IDialogMarlin.hpp"
 #include "screen_menu.hpp"
 #include <utility_extensions.hpp>
 #include "ScreenHandler.hpp"
@@ -105,7 +105,7 @@ consteval auto get_label(Tool tool, Action action) -> const char * {
     }
 }
 
-class I_MI_TOOL : public WI_LABEL_t {
+class I_MI_TOOL : public IWindowMenuItem {
 public:
     I_MI_TOOL(const char *label, Tool tool, Action action, bool hidden_if_inactive);
 
@@ -127,7 +127,9 @@ class MI_TOOL : public I_MI_TOOL {
 public:
     static constexpr ToolBox::Tool TOOL = tool;
     MI_TOOL()
-        : I_MI_TOOL(get_label(tool, action), tool, action, hidden_if_inactive == is_hidden_if_inactive_t::yes) {}
+        : I_MI_TOOL(get_label(tool, action), tool, action, hidden_if_inactive == is_hidden_if_inactive_t::yes) {
+        has_return_behavior_ = (action == Action::Return);
+    }
 
 protected:
     void click(IWindowMenu &window_menu) override {
@@ -284,6 +286,6 @@ public:
 template <ToolBox::ActionMenuC ToolMenuT>
 ToolBox::DialogResult ToolActionBox() {
     ToolBox::DialogToolActionBox<ToolMenuT> d;
-    d.MakeBlocking();
+    Screens::Access()->gui_loop_until_dialog_closed();
     return d.get_result();
 }

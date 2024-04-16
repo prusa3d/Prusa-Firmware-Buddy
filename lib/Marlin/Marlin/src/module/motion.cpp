@@ -25,7 +25,7 @@
  */
 
 #include "motion.h"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "endstops.h"
 #include "stepper.h"
 #include "planner.h"
@@ -559,10 +559,8 @@ void remember_feedrate_scaling_off() {
   feedrate_percentage = 100;
 }
 void restore_feedrate_and_scaling() {
-  if (feedrate_percentage == 100) {
-    feedrate_mm_s = saved_feedrate_mm_s;
-    feedrate_percentage = saved_feedrate_percentage;
-  }
+  feedrate_mm_s = saved_feedrate_mm_s;
+  feedrate_percentage = saved_feedrate_percentage;
 }
 
 #if HAS_SOFTWARE_ENDSTOPS
@@ -1734,7 +1732,7 @@ void set_axis_is_not_at_home(const AxisEnum axis) {
 
 // those metrics are intentionally not static, as it is expected that they might be referenced
 // from outside this file for early registration
-metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_home_diff, "home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
 
 /**
  * @brief Call this when homing fails, it will try to recover.

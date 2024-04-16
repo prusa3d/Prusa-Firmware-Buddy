@@ -40,7 +40,7 @@ ScreenPrintingModel::ScreenPrintingModel(string_view_utf8 caption)
         { this, GetButtonLabelRect(2), is_multiline::no, is_closed_on_click_t::no, _(label_resources[ftrstd::to_underlying(LabelRes::Stop)]) },
     } {
     for (uint8_t i = 0; i < socket_count; i++) {
-        labels[i].set_font(resource_font(IDR_FNT_SMALL));
+        labels[i].set_font(Font::small);
         labels[i].SetPadding({ 0, 0, 0, 0 });
         labels[i].SetAlignment(Align_t::Center());
     }

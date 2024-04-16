@@ -1,23 +1,25 @@
 // wdt.cpp - watchdog timers (IWDG, WWDG)
 
-#include <device/hal.h>
-#include "wdt.h"
+#include "wdt.hpp"
 #include "config.h"
 #include "priorities_config.h"
 
-static const constexpr uint16_t WDT_IWDG_WARNING_DELAY = 3000; // 3s warning delay (1s for some actions)
+#ifndef _DEBUG
+    #define WDT_IWDG_ENABLED
+// #define WDT_WWDG_ENABLED
+#endif //_DEBUG
+
 static const constexpr uint16_t WDT_IWDG_RELOAD = 4095; // 4s max period
+static const constexpr uint16_t WDT_IWDG_WARNING_DELAY = (WDT_IWDG_RELOAD - 127); // ~100ms margin
 
 static const constexpr uint8_t WDT_WWDG_REFRESH_DELAY = 32; // refresh every 32ms
 static const constexpr uint8_t WDT_WWDG_WINDOW = 100; // ~22ms min period
 static const constexpr uint8_t WDT_WWDG_RELOAD = 127; // ~48ms max period
 
-extern "C" {
-
 IWDG_HandleTypeDef hiwdg {}; // set Instance member to null
 WWDG_HandleTypeDef hwwdg {}; // ..
 
-extern void Error_Handler(void);
+extern "C" void Error_Handler(void);
 
 volatile unsigned int wdt_iwdg_counter = 0;
 volatile unsigned char wdt_wwdg_counter = 0;
@@ -90,8 +92,6 @@ void HAL_WWDG_MspInit(WWDG_HandleTypeDef *hwwdg) {
         HAL_NVIC_EnableIRQ(WWDG_IRQn);
     }
 }
-
-} // extern "C"
 
 void watchdog_init() {
     wdt_iwdg_init();

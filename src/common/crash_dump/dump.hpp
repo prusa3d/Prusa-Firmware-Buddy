@@ -3,6 +3,7 @@
 extern "C" {
 #include "CrashCatcher.h"
 }
+#include <utility_extensions.hpp>
 
 namespace crash_dump {
 
@@ -19,6 +20,7 @@ enum class MsgType : uint8_t {
     IWDGW = 2, // IWDG warning
     BSOD = 3, // BSOD dump
     STACK_OVF = 4, // stack overflow dump
+    FATAL_WARNING = 5, // it is unsafe to let printer boot up, but it is not an error (mk3.5 upgrade kit is shipped with mk4 fw)
 
     EMPTY = 0xff, ///< Nothing dumped
 };
@@ -102,6 +104,8 @@ bool dump_read_data(size_t offset, size_t size, uint8_t *ptr);
  * @param title shorter error title, or file and line for BSOD
  */
 void save_message(MsgType invalid, uint16_t error_code, const char *error, const char *title);
+
+void force_save_message_without_dump(MsgType invalid, uint16_t error_code, const char *error, const char *title);
 
 /**
  * @brief Copy error message from XFLASH.

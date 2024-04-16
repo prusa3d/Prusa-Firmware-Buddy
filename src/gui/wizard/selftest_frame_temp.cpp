@@ -1,6 +1,6 @@
 #include "selftest_frame_temp.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_heaters_type.hpp"
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()

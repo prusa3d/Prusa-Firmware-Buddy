@@ -12,8 +12,6 @@ extern uint32_t micros(void);
 
 extern void delay(uint32_t dwMs);
 
-extern void delayMicroseconds(uint32_t usec);
-
 #ifdef __cplusplus
 }
 #endif

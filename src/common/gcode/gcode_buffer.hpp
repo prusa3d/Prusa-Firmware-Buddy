@@ -13,10 +13,14 @@
  */
 class GcodeBuffer {
 public:
-    // first 80 characters of line is sufficient for all GcodeLine reading purposes rest is discarded
+    // first 80 characters of line is sufficient for most GcodeLine reading purposes rest is discarded
+    //
+    // Can be reconfigured with the continuations field.
     using Container = std::array<char, 81>;
 
     Container buffer;
+    bool line_complete = true;
+
     class String {
     public:
         Container::iterator begin;
@@ -43,15 +47,15 @@ public:
             }
         }
 
-        char front() { return *begin; }
+        char front() const { return *begin; }
         char pop_front() { return begin == end ? '\0' : *begin++; }
 
-        bool is_empty() { return begin == end; }
+        bool is_empty() const { return begin == end; }
         uint32_t get_uint() { return atol(&*begin); }
         float get_float() { return atof(&*begin); };
         String get_string();
 
-        bool operator==(const char *str) const { return std::equal(begin, end, str); }
+        bool operator==(const char *str) const { return std::equal(begin, end, str) && str[end - begin] == '\0' /* safe, after the equal passed */; }
 
         /// Returns true if the gcode command starts with $str (and is followed by whitespace or string end) and skips the gcode code (plus whitespace).
         /// Returns false and does nothing otherwise.
@@ -63,15 +67,18 @@ public:
         bool skip_to_param(char param);
 
         char *c_str() { return &*begin; }
-        size_t len() { return end - begin; }
+        size_t len() const { return end - begin; }
 
         typedef std::pair<String, String> parsed_metadata_t;
         /**
          * @brief Parses metadata line of gcode, split name=value to two strings, that are returned in pair
          *
+         * @param terminate_value If setting the char after value to \0
+         *   (usually, there's at least one char after that in the buffer, but in
+         *   the Split continuation mode, that doesn't hold).
          * @return parsed_metadata_t {name, value}, when metadata is not valid, name.begin is nullptr
          */
-        parsed_metadata_t parse_metadata();
+        parsed_metadata_t parse_metadata(bool terminate_value = true);
     };
 
     GcodeBuffer();

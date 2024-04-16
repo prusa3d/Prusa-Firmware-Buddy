@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
 #include "log.h"
 #include "marlin_vars.hpp"
 #include <common/no_rtti_type_id.hpp>
@@ -15,7 +15,7 @@ public:
 template <class T>
 concept FSMExtendedDataSubclass = std::is_base_of<FSMExtendedData, T>::value;
 
-LOG_COMPONENT_REF(FSM);
+LOG_COMPONENT_REF(Marlin);
 
 /**
  * @brief Class used to send extended (bigger then 31bits) data between marlin server and marlin client
@@ -31,7 +31,7 @@ LOG_COMPONENT_REF(FSM);
  * Send data from server:
  *     DataType_t data
  *     data.value = 123;
- *     FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(Selftest, phase, data);
+ *     FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(phase, data);
  *
  *  Receive data in client:
  *      DataType_t dt;
@@ -86,7 +86,7 @@ public:
             result = *reinterpret_cast<T *>(&extended_data_buffer);
             return true;
         } else {
-            log_info(FSM, "FSM extended data get fail");
+            log_info(Marlin, "FSM extended data get fail");
             return false;
         }
     }

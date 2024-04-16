@@ -2,6 +2,7 @@
 
 #include <mmu2_mk4.h>
 #include <inttypes.h>
+#include "mmu2_supported_version.h"
 #include "stubs/stub_interfaces.h"
 
 // @@TODO bugs:
@@ -47,12 +48,15 @@ void SimulateCommStart(MMU2::MMU2 &mmu) {
 
     // mmu response on the mmu-serial
     mmu2SerialSim.SetRxBuffCRC("S0 A3");
+    static_assert(MMU2::mmuVersionMajor == 3);
     mmu2SerialSim.txbuffQ.clear();
     mmu.mmu_loop();
     mmu2SerialSim.SetRxBuffCRC("S1 A0");
+    static_assert(MMU2::mmuVersionMinor == 0);
     mmu2SerialSim.txbuffQ.clear();
     mmu.mmu_loop();
-    mmu2SerialSim.SetRxBuffCRC("S2 A1");
+    mmu2SerialSim.SetRxBuffCRC("S2 A3");
+    static_assert(MMU2::mmuVersionPatch == 3);
     mmu2SerialSim.txbuffQ.clear();
     mmu.mmu_loop();
     mmu2SerialSim.SetRxBuffCRC("S3 A345");
@@ -108,6 +112,14 @@ constexpr_workaround IOSimRec MakeQueryResponseProgress(const char *command, Pro
     return MakeQueryResponseProgressM(command, pc, { FormatReportProgressHook(command[0], pc) }, w);
 }
 
+constexpr_workaround IOSimRec MakeLogEntry(const char *logEntry) {
+    return { .mock = { logEntry } };
+}
+
+constexpr_workaround IOSimRec MakeCommandWithoutBeginReport(const char *command, IOSimRec::WorkFunc w = nullptr) {
+    return { command, {}, { "" }, std::string(command) + " A1", MMU2::heartBeatPeriod + 1, w };
+}
+
 constexpr_workaround IOSimRec MakeQueryResponseError(const char *command, ErrorCode pc, IOSimRec::WorkFunc w = nullptr) {
     return { "Q0", { "IncrementMMUFails", "ButtonAvailable", FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " E" + ToHex((uint16_t)pc), 1, w };
 }
@@ -129,7 +141,7 @@ constexpr_workaround IOSimRec MakeQueryResponseFinished(const char *command, IOS
 }
 
 constexpr_workaround IOSimRec MakeQueryResponseToolChangeFinished(const char *command, IOSimRec::WorkFunc w = nullptr) {
-    return { "Q0", { "TryLoadUnloadReporter::TryLoadUnloadReporter", "planner_any_moves", "TryLoadUnloadReporter::DumpToSerial", FormatEndReport(command[0]) }, {}, std::string(command) + " F0", 1, w };
+    return { "Q0", { "TryLoadUnloadReporter::TryLoadUnloadReporter", "planner_any_moves", "TryLoadUnloadReporter::DumpToSerial", "IncrementMMUChanges", FormatEndReport(command[0]) }, {}, std::string(command) + " F0", 1, w };
 }
 
 constexpr_workaround IOSimRec MakeFSensorAccepted(uint8_t state, IOSimRec::WorkFunc w = nullptr) {
@@ -259,7 +271,9 @@ TEST_CASE("Marlin::MMU2::MMU2 unload", "[Marlin][MMU2]") {
     IOSimStart({
         MakeInitialQuery(1),
 
-        MakeCommandAccepted(cmd, "MakeSound"),
+        MakeCommandAccepted(cmd),
+        MakeLogEntry("MakeSound"),
+
         MakeQueryResponseProgress(cmd, ProgressCode::EngagingIdler),
         MakeRegistersCommand(1, 1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
         MakeQueryResponseProgress(cmd, ProgressCode::UnloadingToFinda),
@@ -288,7 +302,9 @@ TEST_CASE("Marlin::MMU2::MMU2 unload failed", "[Marlin][MMU2]") {
     IOSimStart({
         MakeInitialQuery(1),
 
-        MakeCommandAccepted(cmd, "MakeSound"),
+        MakeCommandAccepted(cmd),
+        MakeLogEntry("MakeSound"),
+
         MakeQueryResponseProgress(cmd, ProgressCode::EngagingIdler),
         MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
         MakeQueryResponseProgress(cmd, ProgressCode::UnloadingToFinda, []() { MMU2::fs = MMU2::FilamentState::NOT_PRESENT; }),
@@ -446,19 +462,29 @@ TEST_CASE("Marlin::MMU2::MMU2 unload with preheat", "[Marlin][MMU2]") {
     IOSimStart({
         MakeInitialQuery(MMU2::heartBeatPeriod + 1),
 
+        MakeLogEntry("BeginReport(U, 1)"),
+
         // heat up POC
+        MakeLogEntry("ReportProgressHook(U, 37)"),
         MakeQueryResponseProgressM("X0", ProgressCode::OK, { "SetHotendCurrentTemp(50)" }, []() { SetHotendCurrentTemp(50); }),
         MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeLogEntry("ReportProgressHook(U, 37)"),
         MakeQueryResponseProgressM("X0", ProgressCode::OK, { "SetHotendCurrentTemp(100)" }, []() { SetHotendCurrentTemp(100); }),
         MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeLogEntry("ReportProgressHook(U, 37)"),
         MakeQueryResponseProgressM("X0", ProgressCode::OK, { "SetHotendCurrentTemp(150)" }, []() { SetHotendCurrentTemp(150); }),
         MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeLogEntry("ReportProgressHook(U, 37)"),
         MakeQueryResponseProgressM("X0", ProgressCode::OK, { "SetHotendCurrentTemp(200)" }, []() { SetHotendCurrentTemp(200); }),
         MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeLogEntry("ReportProgressHook(U, 37)"),
         MakeQueryResponseProgressM("X0", ProgressCode::OK, { "SetHotendCurrentTemp(215)" }, []() { SetHotendCurrentTemp(215); }),
         MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeLogEntry("ReportProgressHook(U, 37)"),
 
-        MakeCommandAccepted(cmd, "MakeSound"),
+        MakeCommandWithoutBeginReport(cmd),
+        MakeLogEntry("MakeSound"),
+
         //        MakeRegistersCommand(1, 1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
         MakeQueryResponseProgress(cmd, ProgressCode::EngagingIdler),
         MakeRegistersCommand(1, 1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
@@ -478,7 +504,4 @@ TEST_CASE("Marlin::MMU2::MMU2 unload with preheat", "[Marlin][MMU2]") {
     mockLog.DeduplicateExpected();
     mockLog.DeduplicateLog();
     CHECK(mockLog.MatchesExpected());
-
-    // Bugs:
-    // [ ] why aren't we reporting progress waiting for temperature?
 }

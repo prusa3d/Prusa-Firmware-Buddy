@@ -9,13 +9,13 @@ namespace MMU2 {
 #define mockLog_RecordFnCipEc(cip, ec) mockLog.Record(std::string { mockLog.MethodName(__PRETTY_FUNCTION__) } + "(" + (char)(cip ? cip : 'x') + ", " + std::to_string((uint16_t)ec) + ")")
 
 /// Called at the begin of every MMU operation
-void BeginReport(CommandInProgress cip, ProgressCode ec) {
-    mockLog_RecordFnCipEc(cip, ec);
+void BeginReport(ProgressData d) {
+    mockLog_RecordFnCipEc(d.rawCommandInProgress, d.rawProgressCode);
 }
 
 /// Called at the end of every MMU operation
-void EndReport(CommandInProgress cip, ProgressCode ec) {
-    mockLog_RecordFnCipEc(cip, ec);
+void EndReport(ProgressData d) {
+    mockLog_RecordFnCipEc(d.rawCommandInProgress, d.rawProgressCode);
 }
 
 void CheckErrorScreenUserInput() {
@@ -27,13 +27,13 @@ void CheckErrorScreenUserInput() {
 /// and allow the MMU and printer to communicate with each other.
 /// @param[in] ec error code
 /// @param[in] es error source
-void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es) {
-    mockLog_RecordFnCipEc(cip, ec);
+void ReportErrorHook(ErrorData d) {
+    mockLog_RecordFnCipEc(d.rawCommandInProgress, d.errorCode);
 }
 
 /// Called when the MMU sends operation progress update
-void ReportProgressHook(CommandInProgress cip, ProgressCode ec) {
-    mockLog_RecordFnCipEc(cip, ec);
+void ReportProgressHook(ProgressData d) {
+    mockLog_RecordFnCipEc(d.rawCommandInProgress, d.rawProgressCode);
 }
 
 TryLoadUnloadReporter::TryLoadUnloadReporter(float delta_mm) {
@@ -82,6 +82,10 @@ void IncrementLoadFails() {
 
 /// Increments EEPROM cell - number of MMU errors
 void IncrementMMUFails() {
+    mockLog_RecordFn();
+}
+
+void IncrementMMUChanges() {
     mockLog_RecordFn();
 }
 

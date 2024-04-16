@@ -23,6 +23,10 @@
 #include "../gcode.h"
 #include "../../module/planner.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M400: Finish all moves
  */
@@ -31,3 +35,5 @@ void GcodeSuite::M400() {
   planner.synchronize();
 
 }
+
+/** @}*/

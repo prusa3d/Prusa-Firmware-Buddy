@@ -3,6 +3,18 @@
 #include "netdev.h"
 #include "netif_settings.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ * M46: Reports the assigned IP address to serial port
+ *
+ * ## Parameters
+ *
+ * - `M` - Also print out MAC address to serial port
+ */
+
 void GcodeSuite::M46() {
     lan_t ethconfig = {};
     netdev_get_ipv4_addresses(netdev_get_active_id(), &ethconfig);
@@ -18,3 +30,5 @@ void GcodeSuite::M46() {
         serialprintPGM(mac_buffer);
     }
 }
+
+/** @}*/

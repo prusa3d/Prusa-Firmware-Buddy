@@ -16,7 +16,7 @@
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate
 MI_PL_REGENERATE_PASSWORD::MI_PL_REGENERATE_PASSWORD()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_PL_REGENERATE_PASSWORD::click(IWindowMenu &) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)EventMask::value);
@@ -32,7 +32,7 @@ void MI_PL_ENABLED::OnChange([[maybe_unused]] size_t old_index) {
 }
 
 MI_PL_PASSWORD_LABEL::MI_PL_PASSWORD_LABEL()
-    : WI_LABEL_t(_(label), 0) {}
+    : IWindowMenuItem(_(label), 0) {}
 
 void MI_PL_PASSWORD_VALUE::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
     render_text_align(extension_rect, string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(passwd_buffer)), GuiDefaults::FontMenuSpecial, color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
@@ -44,14 +44,14 @@ void MI_PL_PASSWORD_VALUE::print_password(const char *passwd) {
 }
 
 MI_PL_PASSWORD_VALUE::MI_PL_PASSWORD_VALUE()
-    : WI_LABEL_t(_(label), PASSWD_STR_LENGTH * GuiDefaults::FontMenuSpecial->w) {}
+    : IWindowMenuItem(_(label), PASSWD_STR_LENGTH * width(GuiDefaults::FontMenuSpecial)) {}
 
 void MI_PL_USER::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
     render_text_align(extension_rect, string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(PRUSA_LINK_USERNAME)), GuiDefaults::FontMenuSpecial, color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
 }
 
 MI_PL_USER::MI_PL_USER()
-    : WI_LABEL_t(_(label), (sizeof(PRUSA_LINK_USERNAME) + 1) * GuiDefaults::FontMenuSpecial->w) {}
+    : IWindowMenuItem(_(label), (sizeof(PRUSA_LINK_USERNAME) + 1) * width(GuiDefaults::FontMenuSpecial)) {}
 
 ScreenMenuPrusaLink::ScreenMenuPrusaLink()
     : AddSuperWindow<screen_t>(nullptr, win_type_t::normal, is_closed_on_timeout_t::no)

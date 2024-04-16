@@ -159,7 +159,7 @@ static time_t get_posix_time(DWORD fdate, DWORD ftime) {
     return mktime(&tm);
 }
 
-#if _USE_CHMOD && !_FS_READONLY
+#if FF_USE_CHMOD && !FF_FS_READONLY
 static FILINFO get_fatfs_time(
     const struct timeval last_access,
     const struct timeval modification) {
@@ -515,7 +515,7 @@ static int rename_r(struct _reent *r, const char *oldName, const char *newName) 
 }
 
 static int chmod_r(struct _reent *r, __attribute__((unused)) const char *path, __attribute__((unused)) mode_t mode) {
-#if !_USE_CHMOD || _FS_READONLY
+#if !FF_USE_CHMOD || FF_FS_READONLY
     r->_errno = ENOTSUP;
     return -1;
 #else
@@ -747,7 +747,7 @@ static int lstat_r(struct _reent *r, const char *file, struct stat *st) {
 }
 
 static int utimes_r(struct _reent *r, __attribute__((unused)) const char *filename, __attribute__((unused)) const struct timeval times[2]) {
-#if !_USE_CHMOD || _FS_READONLY
+#if !FF_USE_CHMOD || FF_FS_READONLY
     r->_errno = EPERM;
     return -1;
 #else

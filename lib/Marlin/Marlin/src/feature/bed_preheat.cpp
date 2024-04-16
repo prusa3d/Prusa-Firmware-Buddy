@@ -39,21 +39,20 @@ void BedPreheat::update() {
 uint32_t BedPreheat::required_preheat_time() {
     if (thermalManager.degTargetBed() < minimal_preheat_temp) {
         return 0;
-    } else {
-        int32_t time = (180 + (thermalManager.degTargetBed() - 60) * (12 * 60 / 50)) * 1000;
-        return time > 0 ? time : 0;
     }
+
+    return std::max((180 + (thermalManager.degTargetBed() - 60) * (12 * 60 / 50)) * 1000, 0);
 }
 
 uint32_t BedPreheat::remaining_preheat_time() {
-    int32_t required = required_preheat_time();
-    if (required != 0 && heating_start_time.has_value()) {
-        int32_t elapsed = millis() - heating_start_time.value();
-        int32_t remaining = required - elapsed;
-        return remaining < 0 ? 0 : remaining;
-    } else {
+    if (preheated) {
         return 0;
     }
+
+    const auto now = millis();
+    const int32_t required = required_preheat_time();
+    const int32_t elapsed = now - heating_start_time.value_or(now);
+    return std::max(required - elapsed, int32_t(0));
 }
 
 void BedPreheat::wait_for_preheat() {
@@ -79,10 +78,6 @@ void BedPreheat::wait_for_preheat() {
 
     MarlinUI::reset_status();
     waiting = false;
-}
-
-bool BedPreheat::can_skip() {
-    return can_preheat && !preheated;
 }
 
 bool BedPreheat::is_waiting() {

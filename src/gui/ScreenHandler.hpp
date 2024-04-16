@@ -6,7 +6,7 @@
 #include <array>
 
 // stack with screen creator methods
-inline constexpr size_t MAX_SCREENS = 32;
+inline constexpr size_t MAX_SCREENS = 16;
 struct screen_node {
     ScreenFactory::Creator creator;
     screen_init_variant init_data;
@@ -58,8 +58,6 @@ public:
     void CloseAll();
 
     void ClosePrinting();
-
-    bool ConsumeClose(); // dialog can erase close signal and close itself
 
     size_t Count() { return stack_iterator - stack.begin(); } // count of closed screens under current one
 
@@ -128,6 +126,11 @@ public:
     bool IsScreenOnStack() {
         return IsScreenOpened<T>() || IsScreenClosed<T>();
     }
+
+    // This function is used to keep gui responsive when showing some dialog.
+    // TODO: Perhaps it would be better to create the required dialog
+    //       on the actual stack of screens.
+    void gui_loop_until_dialog_closed(std::function<void()> callback = {});
 
 private:
     void InnerLoop(); // call inside Loop of this class

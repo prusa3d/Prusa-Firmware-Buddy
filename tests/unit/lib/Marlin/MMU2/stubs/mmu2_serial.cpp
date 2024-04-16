@@ -57,7 +57,9 @@ void IOSimCheck() {
     }
 
     // sumbit new "received data" from the MMU
-    mmu2SerialSim.rxbuff = AppendCRC(r.rx);
+    if (!r.rx.empty()) {
+        mmu2SerialSim.rxbuff = AppendCRC(r.rx);
+    }
     SetTimeoutCountdown(r.incMs);
 
     // advance to next record
@@ -108,6 +110,9 @@ void MMU2Serial::flush() {
 void MMU2Serial::close() {
     mockLog_RecordFn();
     mmu2SerialSim.txbuffQ.clear();
+}
+
+void MMU2Serial::check_recovery() {
 }
 
 } // namespace MMU2

@@ -5,7 +5,7 @@
  */
 
 #include "screen_dialog_does_not_exist.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 
 ScreenDoesNotExist::ScreenDoesNotExist()
     : txt(window_text_t(this, GetRect(), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)"Screen does not exist"))) {

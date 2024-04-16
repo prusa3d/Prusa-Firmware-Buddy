@@ -1,7 +1,6 @@
 #include "footer_item_fsvalue.hpp"
 
 #include "filament_sensors_handler.hpp"
-#include "display_helper.h" // font_meas_text
 #include "img_resources.hpp"
 
 FooterItemFSValue::FooterItemFSValue(window_t *parent)
@@ -9,7 +8,7 @@ FooterItemFSValue::FooterItemFSValue(window_t *parent)
 }
 
 int FooterItemFSValue::static_readValue() {
-    if (IFSensor *sensor = get_active_printer_sensor(); sensor) {
+    if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::current_extruder)) {
         return sensor->GetFilteredValue();
     }
     return no_tool_value;

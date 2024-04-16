@@ -24,9 +24,9 @@
 #include "config_store/store_c_api.h"
 #include "RAII.hpp"
 #include "M70X.hpp"
-#include "fs_event_autolock.hpp"
 #include <config_store/store_instance.hpp>
 #include <option/has_bowden.h>
+#include <option/has_human_interactions.h>
 
 uint filament_gcodes::InProgress::lock = 0;
 
@@ -59,8 +59,13 @@ bool filament_gcodes::load_unload([[maybe_unused]] LoadUnloadMode type, filament
     return res;
 }
 
-void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<filament::Colour> color_to_be_loaded) {
+void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<filament::Colour> color_to_be_loaded, ResumePrint_t resume_print_request) {
     InProgress progress;
+
+    marlin_server::DisableNozzleTimeout disableNozzleTimeout;
+    if (marlin_server::printer_paused()) {
+        marlin_server::unpause_nozzle(target_extruder);
+    }
 
     if (op_preheat) {
         if (filament_to_be_loaded == filament::Type::NONE) {
@@ -99,16 +104,29 @@ void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const
     settings.SetResumePoint(current_position_tmp);
 #endif
 
+    const bool do_resume_print = static_cast<bool>(resume_print_request) && marlin_server::printer_paused();
     // Load
-    if (load_unload(LoadUnloadMode::Load, PRINTER_IS_PRUSA_iX ? &Pause::FilamentLoadNotBlocking : &Pause::FilamentLoad, settings)) {
-        M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
+    if (load_unload(LoadUnloadMode::Load, option::has_human_interactions ? &Pause::FilamentLoad : &Pause::FilamentLoadNotBlocking, settings)) {
+        if (!do_resume_print) {
+            M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
+        }
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
+    }
+    planner.set_e_position_mm((destination.e = current_position.e = current_position_tmp.e));
+
+    if (do_resume_print) {
+        marlin_server::print_resume();
     }
 }
 
 void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded) {
     InProgress progress;
+
+    marlin_server::DisableNozzleTimeout disableNozzleTimeout;
+    if (marlin_server::printer_paused()) {
+        marlin_server::unpause_nozzle(target_extruder);
+    }
 
     if (op_preheat) {
         PreheatData data(PreheatMode::Unload, *op_preheat); // TODO do I need PreheatMode::Unload_askUnloaded
@@ -144,6 +162,7 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
     }
+    planner.set_e_position_mm((destination.e = current_position.e = current_position_tmp.e));
 }
 
 namespace PreheatStatus {
@@ -199,16 +218,17 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
     InProgress progress;
     if constexpr (option::has_bowden) {
         config_store().set_filament_type(target_extruder, filament::Type::NONE);
-        M701_no_parser(filament::Type::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0, std::nullopt);
+        M701_no_parser(filament::Type::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0, std::nullopt, ResumePrint_t::No);
     } else {
 
         pause::Settings settings;
         settings.SetExtruder(target_extruder);
         settings.SetFastLoadLength(fast_load_length);
         settings.SetRetractLength(0.f);
+        float e_pos_to_restore = current_position.e;
 
         // catch filament in gear and then ask for temp
-        if (!Pause::Instance().LoadToGear(settings) || FSensors_instance().GetCurrentExtruder() == fsensor_t::NoFilament) {
+        if (!Pause::Instance().LoadToGear(settings) || FSensors_instance().has_filament(false)) {
             // do not ask for filament type after stop was pressed or filament was removed from FS
             Pause::Instance().UnloadFromGear();
             M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, target_extruder);
@@ -216,39 +236,41 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
             return;
         }
 
-        PreheatData data(PreheatMode::Autoload, RetAndCool_t::Return);
-        auto preheat_ret = preheat_for_change_load(data, target_extruder);
+        if constexpr (option::has_human_interactions) {
+            PreheatData data(PreheatMode::Autoload, RetAndCool_t::Return);
+            auto preheat_ret = preheat_for_change_load(data, target_extruder);
 
-        if (preheat_ret.first) {
-            // canceled
-            Pause::Instance().UnloadFromGear();
-            M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, target_extruder);
-            FSensors_instance().ClrAutoloadSent();
-            return;
+            if (preheat_ret.first) {
+                // canceled
+                Pause::Instance().UnloadFromGear();
+                M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, target_extruder);
+                FSensors_instance().ClrAutoloadSent();
+                return;
+            }
+
+            filament::Type filament = preheat_ret.second;
+            filament::set_type_to_load(filament);
+            filament::set_color_to_load(std::nullopt);
+
+            if (z_min_pos > 0 && z_min_pos > current_position.z + 0.1F) {
+                xyz_pos_t park_position = { NAN, NAN, z_min_pos };
+                // Returning to previous position is unwanted outside of printing (M1701 should be used only outside of printing)
+                settings.SetParkPoint(park_position);
+            }
+
+            if (load_unload(LoadUnloadMode::Load, &Pause::FilamentAutoload, settings)) {
+                M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
+            } else {
+                M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
+            }
         }
-
-        filament::Type filament = preheat_ret.second;
-        filament::set_type_to_load(filament);
-        filament::set_color_to_load(std::nullopt);
-
-        if (z_min_pos > 0 && z_min_pos > current_position.z + 0.1F) {
-            xyz_pos_t park_position = { NAN, NAN, z_min_pos };
-            // Returning to previous position is unwanted outside of printing (M1701 should be used only outside of printing)
-            settings.SetParkPoint(park_position);
-        }
-
-        if (load_unload(LoadUnloadMode::Load, &Pause::FilamentAutoload, settings)) {
-            M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
-        } else {
-            M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
-        }
+        planner.set_e_position_mm((destination.e = current_position.e = e_pos_to_restore));
     }
 
     FSensors_instance().ClrAutoloadSent();
 }
 
 void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament, std::optional<filament::Colour> color_to_be_loaded) {
-    FS_EventAutolock autoload_lock;
     InProgress progress;
 
     filament::Type filament = config_store().get_filament_type(target_extruder);

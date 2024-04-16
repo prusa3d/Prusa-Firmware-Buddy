@@ -5,7 +5,6 @@
 #include "ModbusRegisters.hpp"
 
 #include "timing.h"
-#include "loadcell.hpp"
 #include "PuppyConfig.hpp"
 #include "otp.hpp"
 #include "utility_extensions.hpp"

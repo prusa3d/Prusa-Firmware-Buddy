@@ -6,8 +6,6 @@ extern "C" {
 #endif //__cplusplus
 
 /// Initialize the Syslog handler
-///
-/// Has to be called from a running thread
 void syslog_initialize();
 
 /// Format an event according to RFC5424

@@ -14,6 +14,8 @@
 #include "cmsis_os.h"
 #include "stm32f4xx.h"
 
+#include <unique_file_ptr.hpp>
+
 #include "semihosting/semihosting.hpp"
 #include "resources/bootstrap.hpp"
 #include "resources/hash.hpp"
@@ -192,15 +194,15 @@ static bool is_relevant_bbf_for_bootstrap(FILE *bbf, const char *path, const bud
 }
 
 static bool copy_file(const Path &source_path, const Path &target_path, BootstrapProgressReporter &reporter) {
-    std::unique_ptr<FILE, FILEDeleter> source(fopen(source_path.get(), "rb"));
+    unique_file_ptr source(fopen(source_path.get(), "rb"));
     if (source.get() == nullptr) {
-        log_error(Resources, "Failed to open file %s", source.get());
+        log_error(Resources, "Failed to open file %s", source_path.get());
         return false;
     }
 
-    std::unique_ptr<FILE, FILEDeleter> target(fopen(target_path.get(), "wb"));
+    unique_file_ptr target(fopen(target_path.get(), "wb"));
     if (target.get() == nullptr) {
-        log_error(Resources, "Failed to open file for writing %s", target.get());
+        log_error(Resources, "Failed to open file for writing %s", target_path.get());
         return false;
     }
 
@@ -451,7 +453,7 @@ static bool find_suitable_bbf_file(const buddy::resources::Revision &revision, P
         bbf.set("/usb");
         bbf.push(entry->d_name);
         // open the bbf
-        std::unique_ptr<FILE, FILEDeleter> bbf_file(fopen(bbf.get(), "rb"));
+        unique_file_ptr bbf_file(fopen(bbf.get(), "rb"));
         if (bbf.get() == nullptr) {
             log_error(Resources, "Failed to open %s", bbf.get());
             continue;
@@ -485,7 +487,7 @@ static bool find_suitable_bbf_file(const buddy::resources::Revision &revision, P
 static bool do_bootstrap(const buddy::resources::Revision &revision, buddy::resources::ProgressHook progress_hook) {
     BootstrapProgressReporter reporter(progress_hook, BootstrapStage::LookingForBbf);
     Path source_path("/");
-    std::unique_ptr<FILE, FILEDeleter> bbf;
+    unique_file_ptr bbf;
     buddy::bbf::TLVType bbf_entry = buddy::bbf::TLVType::RESOURCES_IMAGE;
 
     reporter.report(); // initial report

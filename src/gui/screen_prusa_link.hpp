@@ -7,10 +7,11 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include <config_store/constants.hpp>
+#include <guiconfig/guiconfig.h>
 
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate
-class MI_PL_REGENERATE_PASSWORD : public WI_LABEL_t {
+class MI_PL_REGENERATE_PASSWORD : public IWindowMenuItem {
     constexpr static const char *const label = N_("Generate Password");
 
 public:
@@ -38,7 +39,7 @@ protected:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_PL_PASSWORD_LABEL : public WI_LABEL_t {
+class MI_PL_PASSWORD_LABEL : public IWindowMenuItem {
     constexpr static const char *const label = N_("Password");
 
 public:
@@ -48,7 +49,7 @@ protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
 };
 
-class MI_PL_PASSWORD_VALUE : public WI_LABEL_t {
+class MI_PL_PASSWORD_VALUE : public IWindowMenuItem {
     static constexpr size_t PASSWD_STR_LENGTH = config_store_ns::pl_password_size + 1; // don't need space for '%s' and '\0' since pl_password_size contains '\0' too
 
 #ifdef USE_ST7789
@@ -68,7 +69,7 @@ public:
     MI_PL_PASSWORD_VALUE();
 };
 
-class MI_PL_USER : public WI_LABEL_t {
+class MI_PL_USER : public IWindowMenuItem {
     constexpr static const char *const label = N_("User");
 
 protected:
@@ -87,7 +88,7 @@ using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENER
     MI_PL_PASSWORD_VALUE>;
 
 class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
-    static constexpr ResourceId canvas_font = IDR_FNT_SPECIAL;
+    static constexpr Font canvas_font = Font::special;
 
     PLMenuContainer container;
     window_menu_t menu;
@@ -101,7 +102,7 @@ public:
     ScreenMenuPrusaLink();
 
     static inline uint16_t canvas_font_height() {
-        return resource_font(canvas_font)->h;
+        return height(canvas_font);
     }
 
 protected:

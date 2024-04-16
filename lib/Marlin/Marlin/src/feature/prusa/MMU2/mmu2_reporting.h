@@ -12,7 +12,10 @@
 
 namespace MMU2 {
 
-enum CommandInProgress : uint8_t {
+/// Base type for CommandInProgress and its extensions
+using RawCommandInProgress = uint8_t;
+
+enum CommandInProgress : RawCommandInProgress {
     NoCommand = 0,
     CutFilament = 'K',
     EjectFilament = 'E',
@@ -21,14 +24,107 @@ enum CommandInProgress : uint8_t {
     Reset = 'X',
     ToolChange = 'T',
     UnloadFilament = 'U',
-    TestLoad = 't'
+    TestLoad = 't',
+    _cnt
+};
+
+/// Source of operation error
+enum ErrorSource : uint8_t {
+    ErrorSourcePrinter = 0,
+    ErrorSourceMMU = 1,
+    ErrorSourceNone = 0xFF,
+};
+
+/// Extra CIP values added over what the MMU has internally introduced by the printer logic
+enum class ExtendedCommandInProgress : RawCommandInProgress {
+    _first = CommandInProgress::_cnt,
+    LoadToNozzle = _first,
+    _cnt
+};
+
+/// Extra EPC values added over what the MMU has internally introduced by the printer logic
+enum class ExtendedProgressCode : RawProgressCode {
+    _first = static_cast<RawProgressCode>(ProgressCode::_cnt),
+    WaitingForTemperature = _first,
+    Ramming,
+    UnloadingFromExtruder,
+    LoadingToNozzle,
+    _cnt
+};
+
+struct ProgressData {
+
+public:
+    /// The top-level operation being done by the MMU
+    union {
+        CommandInProgress commandInProgress = CommandInProgress::NoCommand;
+        RawCommandInProgress rawCommandInProgress; //< Can be extended by some internal stuff in the printer
+    };
+
+    /// Current step within the operation
+    union {
+        ProgressCode progressCode = ProgressCode::OK;
+        RawProgressCode rawProgressCode; //< Can be extended by some internal stuff in the printer
+    };
+
+    /// Progress within the current step (0-100)
+    uint8_t stepProgressPercent = 0;
+
+public:
+    constexpr ProgressData() = default;
+
+    constexpr ProgressData(CommandInProgress cip, ProgressCode pc = ProgressCode::OK, uint8_t stepProgressPercent = 0)
+        : commandInProgress(cip)
+        , progressCode(pc)
+        , stepProgressPercent(stepProgressPercent) {}
+
+    constexpr ProgressData(RawCommandInProgress cip, RawProgressCode pc, uint8_t stepProgressPercent = 0)
+        : rawCommandInProgress(cip)
+        , rawProgressCode(pc)
+        , stepProgressPercent(stepProgressPercent) {}
+
+    constexpr ProgressData(RawCommandInProgress cip, ExtendedProgressCode pc, uint8_t stepProgressPercent = 0)
+        : rawCommandInProgress(cip)
+        , rawProgressCode(static_cast<RawProgressCode>(pc))
+        , stepProgressPercent(stepProgressPercent) {}
+
+    constexpr bool operator==(const ProgressData &o) const {
+        return rawCommandInProgress == o.rawCommandInProgress && rawProgressCode == o.rawProgressCode && stepProgressPercent == o.stepProgressPercent;
+    }
+};
+
+struct ErrorData {
+
+public:
+    /// The top-level operation being done by the MMU
+    union {
+        CommandInProgress commandInProgress;
+        RawCommandInProgress rawCommandInProgress; //< Can be extended by some internal stuff in the printer
+    };
+
+    ErrorSource errorSource = ErrorSource::ErrorSourceNone;
+
+    // Takes 2 bytes, so put back for align
+    ErrorCode errorCode = ErrorCode::OK;
+
+public:
+    constexpr ErrorData() = default;
+
+    constexpr ErrorData(CommandInProgress cp, ErrorCode ec, ErrorSource es)
+        : commandInProgress(cp)
+        , errorSource(es)
+        , errorCode(ec) {}
+
+    constexpr bool operator==(const ErrorData &o) const {
+        return rawCommandInProgress == o.rawCommandInProgress && errorCode == o.errorCode && errorSource == o.errorSource;
+    }
 };
 
 /// Called at the begin of every MMU operation
-void BeginReport(CommandInProgress cip, ProgressCode ec);
+void BeginReport(ProgressData d);
 
 /// Called at the end of every MMU operation
-void EndReport(CommandInProgress cip, ProgressCode ec);
+void EndReport(ProgressData d);
 
 /// Checks for error screen user input, if the error screen is open
 void CheckErrorScreenUserInput();
@@ -43,10 +139,10 @@ bool TuneMenuEntered();
 /// and allow the MMU and printer to communicate with each other.
 /// @param[in] ec error code
 /// @param[in] es error source
-void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es);
+void ReportErrorHook(ErrorData d);
 
 /// Called when the MMU sends operation progress update
-void ReportProgressHook(CommandInProgress cip, ProgressCode ec);
+void ReportProgressHook(ProgressData d);
 
 struct TryLoadUnloadReporter {
     TryLoadUnloadReporter(float delta_mm);
@@ -101,6 +197,9 @@ void IncrementLoadFails();
 
 /// Increments EEPROM cell - number of MMU errors
 void IncrementMMUFails();
+
+/// Increments EEPROM cell - number of filament changes
+void IncrementMMUChanges();
 
 /// @returns true when Cutter is enabled in the menus
 bool cutter_enabled();

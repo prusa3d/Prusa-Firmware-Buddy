@@ -5,6 +5,10 @@
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "M70X.hpp"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief Load filament to MMU
  *
@@ -57,6 +61,8 @@ void PrusaGcodeSuite::M706() {
     const uint8_t val = parser.byteval('P', 0);
     filament_gcodes::mmu_cut(val);
 }
+
+/** @}*/
 
 __attribute__((weak)) void filament_gcodes::mmu_load([[maybe_unused]] uint8_t data) {}
 __attribute__((weak)) void filament_gcodes::mmu_eject([[maybe_unused]] uint8_t data) {}

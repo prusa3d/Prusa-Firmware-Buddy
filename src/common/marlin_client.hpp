@@ -1,18 +1,15 @@
 #pragma once
 
 #include "marlin_events.h"
-#include "marlin_errors.h"
 #include "client_fsm_types.h"
+#include "encoded_fsm_response.hpp"
 #include "marlin_vars.hpp"
 #include "client_response.hpp"
 #include <option/has_selftest.h>
+#include "Marlin/src/core/types.h"
+#include "common/selftest/selftest_data.hpp"
 
 namespace marlin_client {
-
-// client flags
-inline constexpr uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
-inline constexpr uint16_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main thread is enabled
-inline constexpr uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of client message
 
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
@@ -29,31 +26,34 @@ int get_id();
 // infinite loop while server not ready
 void wait_for_start_processing();
 
-// sets dialog callback, returns true on success
-bool set_fsm_cb(fsm_cb_t cb);
 // sets dialog message, returns true on success
 bool set_message_cb(message_cb_t cb);
 
-// sets dialog message, returns true on success
-bool set_warning_cb(warning_cb_t cb);
-// sets startup callback, returns true on success
-bool set_startup_cb(startup_cb_t cb);
-// returns enabled status of loop processing
-bool is_processing();
-
 // sets event notification mask
-void set_event_notify(uint64_t notify_events, void (*cb)());
+void set_event_notify(uint64_t notify_events);
 
 // returns currently running command or marlin_server::Cmd::NONE
 marlin_server::Cmd get_command();
 
-// enqueue gcode - thread-safe version  (request '!g xxx')
+// enqueue gcode - thread-safe version
 void gcode(const char *gcode);
 
-// enqueue gcode - printf-like, returns number of chars printed
-int gcode_printf(const char *format, ...);
+enum class GcodeTryResult {
+    Submitted,
+    QueueFull,
+    GcodeTooLong,
+};
 
-// inject gcode - thread-safe version  (request '!ig xxx')
+// Like above, but may fail.
+//
+// May fail if the queue is currently full; doesn't go to redscreen or block indefinitely.
+GcodeTryResult gcode_try(const char *gcode);
+
+// enqueue gcode - printf-like
+void __attribute__((format(__printf__, 1, 2)))
+gcode_printf(const char *format, ...);
+
+// inject gcode - thread-safe version
 void gcode_push_front(const char *gcode);
 
 // returns current event status for evt_id
@@ -64,18 +64,6 @@ int event_clr(marlin_server::Event evt_id);
 
 // returns current event status for all events as 64bit mask
 uint64_t events();
-
-// returns current error status for err_id
-int error(uint8_t err_id);
-
-// returns current error status for err_id and set error
-int error_set(uint8_t err_id);
-
-// returns current error status for err_id and clear error
-int error_clr(uint8_t err_id);
-
-// returns current error status for all errors as 64bit mask
-uint64_t errors();
 
 // returns number of commands in gcode queue
 uint8_t get_gqueue();
@@ -128,14 +116,15 @@ void cancel_current_object();
  */
 void move_axis(float logical_pos, float feedrate, uint8_t axis);
 
-void settings_save();
-
-void settings_load();
-
-void settings_reset();
+/**
+ * @brief Move XYZ axes to a logical position.
+ * @param position requested target position in mm
+ * @param feedrate requested feedrate in mm/min
+ */
+void move_xyz_axes_to(const xyz_float_t &position, float feedrate);
 
 #if HAS_SELFTEST()
-void test_start_for_tools(const uint64_t test_mask, const uint8_t tool_mask);
+void test_start_with_data(const uint64_t test_mask, const selftest::TestData test_data);
 void test_start(const uint64_t test_mask);
 void test_abort();
 #endif
@@ -161,22 +150,25 @@ void print_pause();
 
 void print_resume();
 
+void media_print_reopen();
+
 void park_head();
 
 void notify_server_about_encoder_move();
 
 void notify_server_about_knob_click();
 
+void set_warning(WarningType type);
+
 // returns true if printer is printing, else false;
 bool is_printing();
 
+bool is_paused();
+
 bool is_idle();
 
-// returns true if reheating is in progress, otherwise 0
-bool is_reheating();
-
-// radio button click
-void encoded_response(uint32_t enc_phase_and_response);
+// internal function, use FSM_response()
+void FSM_response_internal(EncodedFSMResponse);
 
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
@@ -184,14 +176,12 @@ void encoded_response(uint32_t enc_phase_and_response);
 // returns if response send succeeded
 // called in client finite state machine
 template <class T>
-bool FSM_response(T phase, Response response) {
-    uint32_t encoded = ClientResponses::Encode(phase, response);
-    if (encoded == uint32_t(-1)) {
-        return false;
-    }
-
-    encoded_response(encoded);
-    return true;
+void FSM_response(T phase, Response response) {
+    FSM_response_internal({
+        .encoded_phase = ftrstd::to_underlying(phase),
+        .encoded_fsm = ftrstd::to_underlying(client_fsm_from_phase(phase)),
+        .encoded_response = ftrstd::to_underlying(response),
+    });
 }
 
 } // namespace marlin_client

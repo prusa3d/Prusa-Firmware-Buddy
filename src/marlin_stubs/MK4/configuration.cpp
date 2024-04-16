@@ -1,6 +1,7 @@
 #include "configuration.hpp"
 
 #include "feature/tmc_util.h"
+#include <config_store/store_instance.hpp>
 
 float axis_home_min_diff(uint8_t axis_num) {
     switch (axis_num) {

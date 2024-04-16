@@ -230,7 +230,7 @@ void GCodeParser::parse(char *p) {
     #if ENABLED(EXPECTED_PRINTER_CHECK)
       case 16:
     #endif
-    case 23: case 28: case 30: case 117: case 118: case 928: string_arg = p; return;
+    case 23: case 28: case 30: case 117: case 118: case 973: case 928: string_arg = p; return;
     default: break;
   }
   #if ENABLED(REDIRECT_GCODE_SUPPORT)

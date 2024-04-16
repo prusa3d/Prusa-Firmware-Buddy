@@ -6,11 +6,9 @@
 #include "marlin_vars.hpp"
 
 #include "client_response.hpp"
-#include "fsm_types.hpp"
 
 #include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "marlin_events.h"
-#include "marlin_errors.h"
 #include "client_fsm_types.h"
 #include "marlin_server_extended_fsm_data.hpp"
 
@@ -29,19 +27,12 @@ namespace marlin_server {
 constexpr uint16_t MARLIN_SFLG_STARTED = 0x0001; // server started (set in marlin_server::init)
 constexpr uint16_t MARLIN_SFLG_PROCESS = 0x0002; // loop processing in main thread is enabled
 constexpr uint16_t MARLIN_SFLG_BUSY = 0x0004; // loop is busy
-constexpr uint16_t MARLIN_SFLG_PENDREQ = 0x0008; // pending request
 constexpr uint16_t MARLIN_SFLG_EXCMODE = 0x0010; // exclusive mode enabled (currently used for selftest/wizard)
 constexpr uint16_t MARLIN_SFLG_STOPPED = 0x0020; // moves stopped until command drain
 
 // server variable update interval [ms]
 constexpr uint8_t MARLIN_UPDATE_PERIOD = 100;
 
-typedef void(idle_t)();
-
-// callback for idle operation inside marlin (called from ExtUI handler onIdle)
-extern idle_t *idle_cb;
-
-extern osMessageQId server_queue; // input queue (uint8_t)
 extern osSemaphoreId server_semaphore; // semaphore handle
 
 //-----------------------------------------------------------------------------
@@ -51,7 +42,12 @@ extern osSemaphoreId server_semaphore; // semaphore handle
 void init();
 
 // server loop - must be called periodically in server thread
-int loop();
+void loop();
+
+/// A very minimal loop that only processes messages and sends back to clients
+/// This is used during the marlin client initialization phase,
+/// where we want to process messages from client, but nothing else
+void barebones_loop();
 
 // returns enabled status of loop processing
 bool processing();
@@ -75,7 +71,8 @@ bool enqueue_gcode(const char *gcode);
 // direct call of 'enqueue_and_echo_command' with formatting
 // @retval true command enqueued
 // @retval false otherwise
-bool enqueue_gcode_printf(const char *gcode, ...);
+bool __attribute__((format(__printf__, 1, 2)))
+enqueue_gcode_printf(const char *gcode, ...);
 
 // direct call of 'inject_P'
 // @retval true command enqueued
@@ -152,6 +149,7 @@ typedef struct
 
 //
 void print_pause();
+void print_pause_unload();
 
 void unpause_nozzle(const uint8_t extruder);
 
@@ -212,38 +210,31 @@ uint32_t get_user_move_count();
 void nozzle_timeout_on();
 void nozzle_timeout_off();
 
+class DisableNozzleTimeout {
+public:
+    DisableNozzleTimeout() {
+        nozzle_timeout_off();
+    }
+    ~DisableNozzleTimeout() {
+        nozzle_timeout_on();
+    }
+};
+
 // user can stop waiting for heating/cooling by pressing a button
 bool can_stop_wait_for_heatup();
 void can_stop_wait_for_heatup(bool val);
 
-// inherited class for server side to be able to work with server_side_encoded_response
-class ClientResponseHandler : public ClientResponses {
-    ClientResponseHandler() = delete;
-    ClientResponseHandler(ClientResponseHandler &) = delete;
-    static std::atomic<uint32_t> server_side_encoded_response;
+// internal function, do not use directly
+Response get_response_from_phase_internal(uint8_t, uint8_t);
 
-public:
-    // call inside marlin server on received response from client
-    static void SetResponse(uint32_t encoded_bt) {
-        server_side_encoded_response = encoded_bt;
-    }
-    /// @returns currently recorded response and erases it
-    /// @returns UINT32_MAX if phase does not match
-    /// Can be used from a sub thread, as long as only one thread at the time reads it.
-    /// Beware: calling this function erases the previous response (if any). That means calling this function from multiple
-    /// dialogs/threads/places just for checking if there has been some input renders the whole printer unresponsive in all of the dialogs.
-    template <class T>
-    static Response GetResponseFromPhase(T phase) {
-        const uint32_t value = server_side_encoded_response.exchange(UINT32_MAX); // read and erase response
-
-        uint32_t _phase = value >> RESPONSE_BITS;
-        if ((static_cast<uint32_t>(phase)) != _phase) {
-            return Response::_none;
-        }
-        uint32_t index = value & uint32_t(MAX_RESPONSES - 1); // get response index
-        return GetResponse(phase, index);
-    }
-};
+/// If the phase matches currently recorded response, return it and consume it.
+/// Otherwise, return Response::_none and do not consume it.
+template <class T>
+Response get_response_from_phase(T phase) {
+    return get_response_from_phase_internal(
+        ftrstd::to_underlying(client_fsm_from_phase(phase)),
+        ftrstd::to_underlying(phase));
+}
 
 // FSM_notifier
 class FSM_notifier {
@@ -282,13 +273,13 @@ public:
 };
 
 // macros to call automatically fsm_create/change/destroy the way it logs __PRETTY_FUNCTION__, __FILE__, __LINE__
-#define FSM_CREATE_WITH_DATA__LOGGING(fsm_type, phase, data)          marlin_server::fsm_create(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CREATE__LOGGING(fsm_type)                                 marlin_server::_fsm_create(ClientFSM::fsm_type, fsm::BaseData(), __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_DESTROY_AND_CREATE__LOGGING(fsm_old, fsm_new)             marlin_server::_fsm_destroy_and_create(ClientFSM::fsm_old, ClientFSM::fsm_new, fsm::BaseData(), __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_DESTROY__LOGGING(fsm_type)                                marlin_server::fsm_destroy(ClientFSM::fsm_type, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CHANGE_WITH_DATA__LOGGING(fsm_type, phase, data)          marlin_server::fsm_change(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(fsm_type, phase, data) marlin_server::fsm_change_extended(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define FSM_CHANGE__LOGGING(fsm_type, phase)                          marlin_server::fsm_change(ClientFSM::fsm_type, phase, fsm::PhaseData({ 0, 0, 0, 0 }), __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CREATE_WITH_DATA__LOGGING(fsm_type, phase, data) marlin_server::fsm_create(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CREATE__LOGGING(fsm_type)                        marlin_server::_fsm_create(ClientFSM::fsm_type, fsm::BaseData(), __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_DESTROY_AND_CREATE__LOGGING(fsm_old, fsm_new)    marlin_server::_fsm_destroy_and_create(ClientFSM::fsm_old, ClientFSM::fsm_new, fsm::BaseData(), __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_DESTROY__LOGGING(fsm_type)                       marlin_server::fsm_destroy(ClientFSM::fsm_type, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CHANGE_WITH_DATA__LOGGING(phase, data)           marlin_server::fsm_change(phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(phase, data)  marlin_server::fsm_change_extended(phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CHANGE__LOGGING(phase)                           marlin_server::fsm_change(phase, fsm::PhaseData({ 0, 0, 0, 0 }), __PRETTY_FUNCTION__, __FILE__, __LINE__)
 // notify all clients to create finite statemachine
 void _fsm_create(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line);
 // notify all clients to destroy finite statemachine, must match fsm_destroy_t signature
@@ -305,17 +296,17 @@ void fsm_create(ClientFSM type, T phase, fsm::PhaseData data, const char *fnc, c
 }
 
 template <class T>
-void fsm_change(ClientFSM type, T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) {
-    _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), data), fnc, file, line);
+void fsm_change(T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) {
+    _fsm_change(client_fsm_from_phase(phase), fsm::BaseData(GetPhaseIndex(phase), data), fnc, file, line);
 }
 
 template <class T, FSMExtendedDataSubclass DATA_TYPE>
-void fsm_change_extended(ClientFSM type, T phase, DATA_TYPE data, const char *fnc, const char *file, int line) {
+void fsm_change_extended(T phase, DATA_TYPE data, const char *fnc, const char *file, int line) {
     FSMExtendedDataManager::store(data);
     //  We use this ugly hack that we increment fsm_change_data[0] every time data changed, to force redraw of GUI
     static std::array<uint8_t, 4> fsm_change_data = { 0 };
     fsm_change_data[0]++;
-    _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
+    _fsm_change(client_fsm_from_phase(phase), fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
 }
 
 template <class T>
@@ -353,17 +344,17 @@ public:
 
     template <class T>
     void Change(T phase) const {
-        fsm_change(dialog, phase);
+        fsm_change(phase);
     }
 
     template <class T>
     void Change(T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) const {
-        fsm_change(dialog, phase, data, fnc, file, line);
+        fsm_change(phase, data, fnc, file, line);
     }
 
     template <class T, class U>
     void Change(T phase, const U &serializer, const char *fnc, const char *file, int line) const {
-        fsm_change(dialog, phase, serializer.Serialize(), fnc, file, line);
+        fsm_change(phase, serializer.Serialize(), fnc, file, line);
     }
 
     ~FSM_Holder() {
@@ -380,7 +371,7 @@ public:
 
 uint8_t get_var_sd_percent_done();
 void set_var_sd_percent_done(uint8_t value);
-void set_warning(WarningType type);
+void set_warning(WarningType type, PhasesWarning phase = PhasesWarning::Warning);
 
 #if ENABLED(AXIS_MEASURE)
 // Sets length of X and Y axes for crash recovery

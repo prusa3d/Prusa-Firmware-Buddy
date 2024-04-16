@@ -6,9 +6,11 @@
 #include "gcode_description.hpp"
 #include "fs_event_autolock.hpp"
 #include "static_alocation_ptr.hpp"
-#include "fsm_base_types.hpp"
+#include <common/fsm_base_types.hpp>
+#include <guiconfig/guiconfig.h>
 #include <option/has_toolchanger.h>
 #include <option/has_mmu2.h>
+#include <find_error.hpp>
 #if HAS_TOOLCHANGER() || HAS_MMU2()
     #include "screen_tools_mapping.hpp"
 #endif
@@ -16,17 +18,24 @@
 // inherited from ScreenPrintPreviewBase just to handel different display sizes
 // do not use AddSuperWindow<ScreenPrintPreviewBase>
 class ScreenPrintPreview : public ScreenPrintPreviewBase {
-    constexpr static const char *labelWarning = N_("Warning");
-
-    static constexpr const char *txt_unfinished_selftest = N_("Please complete Calibrations & Tests before using the printer.");
-    static constexpr const char *txt_fil_not_detected = N_("Filament not detected. Load filament now?\nSelect NO to cancel the print.\nSelect DISABLE FS to disable the filament sensor and continue print.");
-    static constexpr const char *txt_fil_detected_mmu = N_("Filament detected. Unload filament now? Select NO to cancel.");
-
-#if defined(USE_ST7789)
-    static constexpr const char *txt_new_fw_available = N_("New FW available");
-#else
-    static constexpr const char *txt_new_fw_available = N_("New firmware available");
+    // Apart from FIle error they all have the same warning
+    constexpr static const char *label_unfinished_selftest = find_error(ErrCode::CONNECT_PRINT_PREVIEW_UNFINISHED_SELFTEST).err_title;
+    constexpr static const char *label_fil_not_detected = find_error(ErrCode::CONNECT_PRINT_PREVIEW_NO_FILAMENT).err_title;
+#if HAS_MMU2()
+    constexpr static const char *label_fil_detected_mmu = find_error(ErrCode::CONNECT_PRINT_PREVIEW_MMU_FILAMENT_INSERTED).err_title;
 #endif
+    constexpr static const char *label_file_error = find_error(ErrCode::CONNECT_PRINT_PREVIEW_FILE_ERROR).err_title;
+    constexpr static const char *label_wrong_printer = find_error(ErrCode::CONNECT_PRINT_PREVIEW_WRONG_PRINTER).err_title;
+    constexpr static const char *label_wrong_filament = find_error(ErrCode::CONNECT_PRINT_PREVIEW_WRONG_FILAMENT).err_title;
+
+    static constexpr const char *txt_unfinished_selftest = find_error(ErrCode::CONNECT_PRINT_PREVIEW_UNFINISHED_SELFTEST).err_text;
+    static constexpr const char *txt_fil_not_detected = find_error(ErrCode::CONNECT_PRINT_PREVIEW_NO_FILAMENT).err_text;
+#if HAS_MMU2()
+    static constexpr const char *txt_fil_detected_mmu = find_error(ErrCode::CONNECT_PRINT_PREVIEW_MMU_FILAMENT_INSERTED).err_text;
+#endif
+
+    static constexpr const char *txt_new_fw_available = N_(find_error(ErrCode::CONNECT_PRINT_PREVIEW_NEW_FW).err_text);
+    static constexpr const char *txt_wrong_fil_type = find_error(ErrCode::CONNECT_PRINT_PREVIEW_WRONG_FILAMENT).err_text;
 
     static ScreenPrintPreview *ths; // to be accessible in dialog handler
 

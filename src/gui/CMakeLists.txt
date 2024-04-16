@@ -14,15 +14,16 @@ target_sources(
   PRIVATE box_unfinished_selftest.cpp
           file_sort.cpp
           fonts.cpp
+          frame_qr_layout.cpp
           gcode_description.cpp
           gui_bootstrap_screen.cpp
-          gui_fsensor_api.cpp
           gui_media_events.cpp
           gui_time.cpp
           guimain.cpp
           img_resources.cpp
           img_resources.cpp
           IScreenPrinting.cpp
+          lazyfilelist.cpp
           logger.cpp
           menu_vars.cpp
           MItem_crash.cpp
@@ -30,6 +31,7 @@ target_sources(
           MItem_experimental_tools.cpp
           MItem_filament.cpp
           MItem_hardware.cpp
+          MItem_input_shaper.cpp
           MItem_lan.cpp
           MItem_menus.cpp
           MItem_print.cpp
@@ -39,6 +41,7 @@ target_sources(
           qoi_decoder.cpp
           screen_blue_error.cpp
           screen_bsod.cpp
+          screen_change_filter.cpp
           screen_dialog_does_not_exist.cpp
           screen_filebrowser.cpp
           screen_hardfault.cpp
@@ -49,6 +52,7 @@ target_sources(
           screen_menu_control.cpp
           screen_menu_eeprom.cpp
           screen_menu_eeprom_diagnostics.cpp
+          screen_menu_enclosure.cpp
           screen_menu_error_test.cpp
           screen_menu_factory_reset.cpp
           screen_menu_fail_stat.cpp
@@ -77,6 +81,7 @@ target_sources(
           screen_messages.cpp
           screen_print_preview.cpp
           screen_printing.cpp
+          screen_printing_end_result.cpp
           screen_prusa_link.cpp
           screen_qr_error.cpp
           screen_reset_error.cpp
@@ -88,7 +93,6 @@ target_sources(
           ScreenFactory.cpp
           ScreenHandler.cpp
           ScreenPrintingModel.cpp
-          test_display.cpp
           time_tools.cpp
           window_file_list.cpp
           window_filebrowser.cpp
@@ -112,9 +116,9 @@ else()
 endif()
 
 if(HAS_XLCD_TOUCH_DRIVER)
-  target_sources(firmware PRIVATE MItem_touch.cpp screen_touch_error.cpp)
-else()
-  target_sources(firmware PRIVATE no_touch.cpp)
+  target_sources(
+    firmware PRIVATE MItem_touch.cpp screen_touch_error.cpp screen_touch_playground.cpp
+    )
 endif()
 
 if(HAS_TOOLCHANGER)
@@ -180,16 +184,24 @@ if(HAS_MMU2)
     )
 endif()
 
-if(PRINTER STREQUAL "MINI" OR PRINTER STREQUAL "MK3.5")
-  target_sources(firmware PRIVATE MItem_MINI_MK3.5.cpp screen_menu_steel_sheets.cpp)
-endif()
-
 if(PRINTER STREQUAL "MK4"
    OR PRINTER STREQUAL "MK3.5"
    OR PRINTER STREQUAL "XL"
    OR PRINTER STREQUAL "MINI"
    )
   target_sources(firmware PRIVATE screen_help_fw_update.cpp)
+endif()
+
+if(PRINTER STREQUAL "MK4" OR PRINTER STREQUAL "MK3.5")
+  target_sources(firmware PRIVATE screen_fatal_warning.cpp)
+endif()
+
+if(PRINTER STREQUAL "MINI")
+  target_sources(firmware PRIVATE MItem_MINI.cpp)
+endif()
+
+if(PRINTER STREQUAL "MK3.5")
+  target_sources(firmware PRIVATE MItem_MK3.5.cpp)
 endif()
 
 if(BOARD IN_LIST BOARDS_WITH_ST7789V)
@@ -202,12 +214,36 @@ if(BOARD STREQUAL "XBUDDY" OR BOARD STREQUAL "XLBUDDY")
   target_sources(firmware PRIVATE menu_item_xlcd.cpp)
 endif()
 
+if(BOARD STREQUAL "XLBUDDY")
+  target_sources(firmware PRIVATE MItem_enclosure.cpp)
+endif()
+
 if(PRINTER IN_LIST PRINTERS_WITH_LOVE_BOARD)
   target_sources(firmware PRIVATE MItem_love_board.cpp)
+endif()
+
+if(NOT PRINTER IN_LIST PRINTERS_WITH_LOADCELL)
+  target_sources(firmware PRIVATE screen_menu_steel_sheets.cpp)
+endif()
+
+if(HAS_FILAMENT_SENSORS_MENU)
+  target_sources(firmware PRIVATE screen_menu_filament_sensors.cpp)
+endif()
+
+if(HAS_COLDPULL)
+  target_sources(firmware PRIVATE screen_cold_pull.cpp)
+endif()
+
+if(HAS_PHASE_STEPPING)
+  target_sources(firmware PRIVATE screen_phase_stepping.cpp)
 endif()
 
 add_subdirectory(dialogs)
 add_subdirectory(footer)
 if(HAS_LEDS)
   add_subdirectory(led_animations)
+endif()
+
+if(PRINTER IN_LIST PRINTERS_WITH_BED_LEVEL_CORRECTION)
+  target_sources(firmware PRIVATE screen_menu_bed_level_correction.cpp)
 endif()

@@ -35,7 +35,12 @@
 #include "screen_touch_error.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_menu_input_shaper.hpp"
+#include "screen_menu_enclosure.hpp"
 #include "screen_printing.hpp"
+
+#if HAS_COLDPULL()
+    #include "screen_cold_pull.hpp"
+#endif
 
 #include "gui/test/screen_menu_test.hpp"
 
@@ -97,12 +102,18 @@ class ScreenFactory {
         ScreenPrintPreview,
         ScreenMenuPrusaLink,
         ScreenMenuInputShaper,
+        ScreenMenuEnclosure,
+        ScreenMenuFiltration,
+        ScreenMenuManualSetting,
 #if HAS_MMU2()
         ScreenMenuFilamentMMU,
         ScreenMenuMMUCutFilament,
         ScreenMenuMMUEjectFilament,
         ScreenMenuMMUPreloadToMMU,
         ScreenMenuMMULoadToNozzle,
+#endif
+#if HAS_COLDPULL()
+        ScreenColdPull,
 #endif
         screen_home_data_t, screen_splash_data_t, screen_printing_data_t>::type;
 

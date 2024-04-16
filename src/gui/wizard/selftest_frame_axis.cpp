@@ -6,9 +6,10 @@
 
 #include "selftest_frame_axis.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_axis_type.hpp"
 #include "img_resources.hpp"
+#include <guiconfig/guiconfig.h>
 
 static constexpr size_t X_AXIS_PERCENT = 33;
 static constexpr size_t Y_AXIS_PERCENT = 33;

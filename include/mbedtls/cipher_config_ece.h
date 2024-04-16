@@ -22,10 +22,14 @@
 #define MBEDTLS_ENTROPY_C
 #define MBEDTLS_ENTROPY_HARDWARE_ALT
 #define MBEDTLS_NO_PLATFORM_ENTROPY
+// We don't need full 20 sources pre-configured and we want the structure to
+// fit into 512B.
+#define MBEDTLS_ENTROPY_MAX_SOURCES 19
 #define MBEDTLS_MD_C
 #define MBEDTLS_OID_C
 #define MBEDTLS_PK_C
 #define MBEDTLS_PK_PARSE_C
+#define MBEDTLS_SHA1_C
 #define MBEDTLS_SHA256_C
 #define MBEDTLS_MD5_C
 #define MBEDTLS_SSL_CLI_C

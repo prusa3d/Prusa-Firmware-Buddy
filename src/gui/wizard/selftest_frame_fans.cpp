@@ -6,9 +6,10 @@
 
 #include "selftest_frame_fans.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_fans_type.hpp"
 #include "img_resources.hpp"
+#include <guiconfig/guiconfig.h>
 #if HAS_TOOLCHANGER()
     #include "module/prusa/toolchanger.h"
 #endif
@@ -32,6 +33,11 @@ static constexpr const char *en_text_hotend_fan = N_("Hotend fan RPM test");
 static constexpr const char *en_text_print_fan = N_("Print fan RPM test");
 static constexpr const char *en_text_fans_switched = N_("Checking for switched fans");
 #endif
+
+#if PRINTER_IS_PRUSA_MK3_5
+static constexpr const char *en_text_manual_check_hotend = N_("Is Hotend fan (left) spinning?");
+#endif
+
 static constexpr const char *en_text_info = N_("Fan test in progress, please wait.");
 static constexpr const char *en_text_info_rpm_failed = N_("The RPM test has failed, check both fans are free to spin and connected correctly.");
 static constexpr const char *en_text_info_switched = N_("Based on the test it looks like the fans connectors are switched. Double check your wiring and repeat the test.");
@@ -79,7 +85,7 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
 
 #endif
     , progress(this, WizardDefaults::row_1)
-    , text_info(this, Rect16(col_texts, row_5, WizardDefaults::X_space, GetRect().Height() - GetRect().Top() - row_5 - 20), is_multiline::yes, is_closed_on_click_t::no, _(en_text_info))
+    , text_info(this, Rect16(col_texts, row_5, col_texts_w, GetRect().Height() - GetRect().Top() - row_5 - 20), is_multiline::yes, is_closed_on_click_t::no, _(en_text_info))
     , icon_hotend_fan(this, &img::fan_16x16, point_i16_t({ WizardDefaults::col_0, row_2 }))
     , text_hotend_fan(this, Rect16(col_texts, row_2, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_hotend_fan))
     , icon_print_fan(this, &img::turbine_16x16, point_i16_t({ WizardDefaults::col_0, row_3 }))
@@ -87,7 +93,14 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
 #if not PRINTER_IS_PRUSA_MINI
     , text_fans_switched(this, Rect16(col_texts, row_4, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_fans_switched))
 #endif
+#if PRINTER_IS_PRUSA_MK3_5
+    // The question should cover whole text_info - so we should take the values from it
+    , text_question(this, text_info.GetRect(), is_multiline::yes, is_closed_on_click_t::no, _(en_text_manual_check_hotend))
+#endif
     , fan_states(make_fan_row_array(std::make_index_sequence<HOTENDS>())) {
+#if PRINTER_IS_PRUSA_MK3_5
+    text_question.Hide();
+#endif
 #if HAS_TOOLCHANGER()
     // when toolchanger enabled, hide results of tools that are not connected
     for (size_t i = 0; i < HOTENDS; i++) {
@@ -109,6 +122,21 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
 
 void SelftestFrameFans::change() {
     SelftestFansResult result;
+
+#if PRINTER_IS_PRUSA_MK3_5
+    switch (phase_current) {
+    case PhasesSelftest::Fans_manual:
+        text_question.Show();
+        break;
+    case PhasesSelftest::Fans:
+    case PhasesSelftest::Fans_second:
+        text_question.Hide();
+        break;
+    default:
+        break;
+    }
+#endif
+
     if (FSMExtendedDataManager::get(result)) {
         bool fan_switch_detected_on_at_least_one_hotend { false };
         bool rpm_failed_on_at_least_one_hotend { false };

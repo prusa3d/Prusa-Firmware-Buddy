@@ -78,7 +78,7 @@ struct datamatrix_t {
 
 typedef uint16_t board_revision_t;
 
-struct OtpStatus {
+struct __attribute__((packed)) OtpStatus {
     uint16_t single_read_error_counter = 0;
     uint16_t repeated_read_error_counter = 0;
     uint16_t cyclic_read_error_counter = 0;

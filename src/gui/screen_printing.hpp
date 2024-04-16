@@ -9,10 +9,12 @@
 #include "ScreenPrintingModel.hpp"
 #include "print_progress.hpp"
 #include "print_time_module.hpp"
+#include <guiconfig/guiconfig.h>
 #include <option/development_items.h>
 #include <option/developer_mode.h>
 #include <array>
 #include <window_progress.hpp>
+#include "screen_printing_end_result.hpp"
 
 enum class printing_state_t : uint8_t {
     INITIAL,
@@ -57,29 +59,9 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
 
     bool showing_end_result { false }; // whether currently showing end result 'state'
     bool shown_end_result { false }; // whether end result has ever been shown
-
-    window_text_t printing_time_label;
-    window_text_t printing_time_value;
-    std::array<char, sizeof("100d 20h 30m") + 4> printing_time_value_buffer;
-
-    window_text_t print_started_label;
-    window_text_t print_started_value;
-    using DateBufferT = std::array<char, sizeof("17/10/2023 18:00 AM") + 4>;
-    DateBufferT print_started_value_buffer;
-
-    window_text_t print_ended_label;
-    window_text_t print_ended_value;
-    DateBufferT print_ended_value_buffer;
-
-    window_text_t consumed_material_label;
-    std::array<window_text_t, EXTRUDERS> consumed_material_values;
-    std::array<std::array<char, sizeof("T1 HIFIPETG 10.000g") + 4>, EXTRUDERS> consumed_material_values_buffers;
-
-    window_text_t consumed_wipe_tower_value;
-    std::array<char, sizeof("Wipe Tower 10.000g") + 4> consumed_wipe_tower_value_buffer;
+    bool mmu_maintenance_checked { false }; // Did we check for MMU maintenance
 
     window_icon_t arrow_left;
-    window_icon_t arrow_right;
 
     WindowProgressCircles rotating_circles;
 #endif
@@ -118,12 +100,13 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     PrintTime print_time;
     PT_t time_end_format;
 #else
-    DateBufferT w_etime_value_buffer;
+    EndResultBody::DateBufferT w_etime_value_buffer;
+    EndResultBody end_result_body;
 
     enum class CurrentlyShowing {
         remaining_time, // time until end of print
         end_time, // 'date' of end of print
-        // time_to_change, // m600 // currently disabled
+        time_to_change, // m600 / m601
         time_since_start, // real printing time since start
         _count,
     };

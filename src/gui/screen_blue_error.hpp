@@ -21,15 +21,13 @@ class ScreenBlueError : public AddSuperWindow<ScreenResetError> {
 public:
     ScreenBlueError();
 
-    static const constexpr ResourceId header_font = IDR_FNT_SMALL;
-    static const constexpr Rect16 header_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(14, 10, 240, GuiDefaults::HeaderHeight - 10) : GuiDefaults::RectHeader;
-    static const constexpr Rect16 title_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 44, display::GetW() - 60, 20) : Rect16(13, 12, display::GetW() - 26, 20);
-    static const constexpr Rect16 description_rect = Rect16(13, title_rect.Bottom() + 5, display::GetW() - 26, fw_version_rect.Top() - title_rect.Bottom() - 10);
+    static const constexpr uint16_t fw_line_top = 265;
+    static const constexpr Rect16 description_rect = Rect16(13, title_rect.Bottom() + 5, display::GetW() - 26, fw_line_top - title_rect.Bottom() - 10);
 
     // Expected size of the description text
-    static const constexpr ResourceId description_font = IDR_FNT_SMALL;
-    static const constexpr size_t description_char_width = description_rect.Width() / resource_font_size(description_font).w;
-    static const constexpr size_t description_char_height = description_rect.Height() / resource_font_size(description_font).h;
+    static const constexpr Font description_font = Font::small;
+    static const constexpr size_t description_char_width = description_rect.Width() / width(description_font);
+    static const constexpr size_t description_char_height = description_rect.Height() / height(description_font);
     static const constexpr size_t description_expected_chars = description_char_width * description_char_height;
 
 protected:

@@ -33,7 +33,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     // outdated values, but they are still there.
     marlin_vars_t *vars = marlin_vars();
     auto filament = config_store().get_filament_type(vars->active_extruder);
-    const char *filament_material = filament::get_description(filament).name;
+    const char *filament_material = filament::get_name(filament);
 
     bool operational = true;
     bool paused = false;
@@ -51,7 +51,9 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case State::CrashRecovery_ToolchangePowerPanic:
     case State::CrashRecovery_Retracting:
     case State::CrashRecovery_XY_Measure:
+#if HAS_TOOLCHANGER()
     case State::CrashRecovery_Tool_Pickup:
+#endif
     case State::CrashRecovery_XY_HOME:
     case State::CrashRecovery_HOMEFAIL:
     case State::CrashRecovery_Axis_NOK:
@@ -61,7 +63,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case State::SerialPrintInit:
         link_state_str = "BUSY";
         busy = true;
-        // Fall through
+        [[fallthrough]];
     case State::Printing:
         printing = true;
         ready = operational = false;
@@ -92,6 +94,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
         break;
     case State::Aborting_Begin:
     case State::Aborting_WaitIdle:
+    case State::Aborting_UnloadFilament:
     case State::Aborting_ParkHead:
     case State::Aborting_Preview:
         cancelling = busy = true;
@@ -99,6 +102,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
         link_state_str = "BUSY";
         break;
     case State::Finishing_WaitIdle:
+    case State::Finishing_UnloadFilament:
     case State::Finishing_ParkHead:
         busy = true;
         ready = operational = false;
@@ -111,7 +115,9 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case State::WaitGui:
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::PrintPreviewToolsMapping:
+#endif
     case State::PrintInit:
         break;
     case State::PrintPreviewQuestions:
@@ -139,7 +145,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
             JSON_FIELD_FFIXED("temp-nozzle", vars->active_hotend().temp_nozzle, 1) JSON_COMMA;
             JSON_FIELD_INT("print-speed", vars->print_speed) JSON_COMMA;
             // XYZE, mm
-            JSON_FIELD_FFIXED("z-height", vars->logical_curr_pos[2], 1) JSON_COMMA;
+            JSON_FIELD_FFIXED("z-height", vars->logical_pos[2], 1) JSON_COMMA;
             JSON_FIELD_STR("material", filament_material);
         JSON_OBJ_END JSON_COMMA;
 
@@ -246,6 +252,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
 
     switch (vars->print_state) {
     case State::Finishing_WaitIdle:
+    case State::Finishing_UnloadFilament:
     case State::Finishing_ParkHead:
     case State::Printing:
     case State::PrintPreviewConfirmed:
@@ -259,7 +266,9 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     case State::CrashRecovery_ToolchangePowerPanic:
     case State::CrashRecovery_Retracting:
     case State::CrashRecovery_XY_Measure:
+#if HAS_TOOLCHANGER()
     case State::CrashRecovery_Tool_Pickup:
+#endif
     case State::CrashRecovery_XY_HOME:
     case State::CrashRecovery_HOMEFAIL:
     case State::CrashRecovery_Axis_NOK:
@@ -289,6 +298,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
         break;
     case State::Aborting_Begin:
     case State::Aborting_WaitIdle:
+    case State::Aborting_UnloadFilament:
     case State::Aborting_ParkHead:
     case State::Aborting_Preview:
         has_job = true;
@@ -301,7 +311,9 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     case State::WaitGui:
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::PrintPreviewToolsMapping:
+#endif
     case State::PrintInit:
         state = "Operational";
         break;

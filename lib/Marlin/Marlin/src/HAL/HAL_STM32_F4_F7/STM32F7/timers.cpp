@@ -46,6 +46,9 @@ tTimerConfig timerConfig[NUM_HARDWARE_TIMERS];
 bool timers_initialized[NUM_HARDWARE_TIMERS] = { false };
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
+  if(timer_num >= NUM_HARDWARE_TIMERS) {
+    abort();
+  }
 
   if (!timers_initialized[timer_num]) {
     switch (timer_num) {

@@ -3,7 +3,7 @@
 #include "FreeRTOS.h"
 
 // This is stub for tests
-typedef int StaticSemaphore_t;
+typedef std::mutex StaticSemaphore_t;
 
 inline SemaphoreHandle_t xSemaphoreCreateBinary() { return NULL; }
 inline SemaphoreHandle_t xSemaphoreCreateMutexStatic(StaticSemaphore_t *semaphoreBuffer) { return NULL; }

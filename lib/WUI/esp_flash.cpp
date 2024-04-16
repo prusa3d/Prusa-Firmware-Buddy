@@ -1,7 +1,7 @@
 #include <sys/stat.h>
 #include "error_codes.hpp"
 #include "mbedtls/md5.h"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 
 #include <esp_flash.hpp>
 #include <esp_loader.h>
@@ -137,7 +137,7 @@ ESPFlash::State ESPFlash::flash_part(esp_fw_entry &fwpart) {
     while (!feof(file.get())) {
         const size_t read_bytes = fread(buffer, 1, sizeof(buffer), file.get());
         total_read += read_bytes;
-        log_debug(EspFlash, "ESP read data %ld", read_bytes);
+        log_debug(EspFlash, "ESP read data %zu", read_bytes);
         update_progress();
 
         if (ferror(file.get())) {

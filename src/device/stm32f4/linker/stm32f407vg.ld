@@ -114,7 +114,7 @@ SECTIONS
  /* this section is filled with zeros on each application start */
   .boot_fw_data_exchange 0x20000000 :
   {
-  	_sboot_fw_data_exchange = .;  /* global symbol at start */
+    _sboot_fw_data_exchange = .;  /* global symbol at start */
     KEEP (*(.boot_fw_data_exchange))
     . = ALIGN(4); /* allignment is important as 4 bytes are written to zero at once in startup code*/
     _eboot_fw_data_exchange = .;  /* global symbol at the end */
@@ -132,6 +132,10 @@ SECTIONS
     PROVIDE_HIDDEN (__start_log_components = .);
     KEEP(*(.data.log_components))
     PROVIDE_HIDDEN (__end_log_components = .);
+
+    PROVIDE_HIDDEN (__start_metric_definitions = .);
+    KEEP(*(.data.metric_definitions))
+    PROVIDE_HIDDEN (__end_metric_definitions = .);
 
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
@@ -202,9 +206,9 @@ SECTIONS
   /* Remove information from the standard libraries */
   /DISCARD/ :
   {
-    libc.a ( * )
-    libm.a ( * )
-    libgcc.a ( * )
+    libc.a:* ( * )
+    libm.a:* ( * )
+    libgcc.a:* ( * )
     *(.ARM.exidx*)
     *(.ARM.extab* .gnu.linkonce.armextab.*)
   }

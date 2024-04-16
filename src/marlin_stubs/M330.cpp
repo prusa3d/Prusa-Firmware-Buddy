@@ -6,7 +6,19 @@
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
 
-static metric_handler_t *selected_handler = NULL;
+static metric_handler_t *selected_handler = &metric_handler_syslog;
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ * M330: Select metrics handler
+ *
+ * ## Parameters
+ *
+ * - <handler> - Select `handler` for configuration (`SYSLOG` is selected by default)
+ */
 
 void PrusaGcodeSuite::M330() {
     bool handler_found = false;
@@ -25,14 +37,21 @@ void PrusaGcodeSuite::M330() {
     }
 }
 
+/**
+ * M331: Enable metric
+ *
+ * ## Parameters
+ *
+ * - <metric> - Enable `metric` for the currently selected `handler`
+ */
+
 void PrusaGcodeSuite::M331() {
     if (selected_handler == NULL) {
         SERIAL_ECHO_MSG("handler not set");
         return;
     }
 
-    metric_t *metric = metric_get_linked_list();
-    while (metric) {
+    for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         if (strcmp(metric->name, parser.string_arg) == 0) {
             // Syslog handler has to be allowed in settings
             if (selected_handler->identifier == METRIC_HANDLER_SYSLOG_ID) {
@@ -48,12 +67,19 @@ void PrusaGcodeSuite::M331() {
             SERIAL_ECHOLNPAIR_F("Metric enabled: ", parser.string_arg);
             return;
         }
-        metric = metric->next;
     }
 
     SERIAL_ERROR_START();
     SERIAL_ECHOLNPAIR("Metric not found: ", parser.string_arg);
 }
+
+/**
+ * M332: Disable metric
+ *
+ * ## Parameters
+ *
+ * - <metric> - Disable `metric` for the currently selected `handler`
+ */
 
 void PrusaGcodeSuite::M332() {
     if (selected_handler == NULL) {
@@ -61,20 +87,22 @@ void PrusaGcodeSuite::M332() {
         return;
     }
 
-    metric_t *metric = metric_get_linked_list();
-    while (metric) {
+    for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         if (strcmp(metric->name, parser.string_arg) == 0) {
             metric_disable_for_handler(metric, selected_handler);
             SERIAL_ECHO_START();
             SERIAL_ECHOLNPAIR_F("Metric disabled: ", parser.string_arg);
             return;
         }
-        metric = metric->next;
     }
 
     SERIAL_ERROR_START();
     SERIAL_ECHOLNPAIR("Metric not found: ", parser.string_arg);
 }
+
+/**
+ * M333: List all metrics and whether they are enabled for the currently selected `handler`.
+ */
 
 void PrusaGcodeSuite::M333() {
     if (selected_handler == NULL) {
@@ -82,14 +110,16 @@ void PrusaGcodeSuite::M333() {
         return;
     }
 
-    metric_t *metric = metric_get_linked_list();
-    while (metric) {
+    for (auto metric = metric_get_iterator_begin(), e = metric_get_iterator_end(); metric != e; metric++) {
         bool is_enabled = metric->enabled_handlers & (1 << selected_handler->identifier);
         SERIAL_ECHO_START();
         SERIAL_ECHOLNPAIR_F(metric->name, is_enabled ? '1' : '0');
-        metric = metric->next;
     }
 }
+
+/**
+ * M334: Handler-specific configuration
+ */
 
 void PrusaGcodeSuite::M334() {
     if (selected_handler == NULL) {
@@ -131,3 +161,5 @@ void PrusaGcodeSuite::M334() {
         SERIAL_ERROR_MSG("Selected handler does not support configuration");
     }
 }
+
+/** @}*/

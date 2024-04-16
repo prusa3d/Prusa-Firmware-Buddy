@@ -223,6 +223,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
     }
 
     switch (event) {
+
     case GUI_event_t::CLICK:
         if (pWin) {
             pWin->WindowEvent(this, GUI_event_t::CLICK, nullptr);
@@ -232,13 +233,14 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
         }
 
         break;
-    case GUI_event_t::TOUCH:
+
+    case GUI_event_t::TOUCH_CLICK:
         if (pWin) { // check if a window has focus, to not give it if it does not
             pWin = GetFirstEnabledSubWin();
             event_conversion_union un;
             un.pvoid = param;
             while (pWin) {
-                Rect16 rc = pWin->GetRect();
+                Rect16 rc = pWin->get_rect_for_touch();
                 if (rc.Contain(un.point)) {
                     break; // found it
                 }
@@ -255,6 +257,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
             }
         }
         break;
+
     case GUI_event_t::ENC_DN:
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
@@ -270,6 +273,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
             pWin->SetFocus();
         }
         break;
+
     case GUI_event_t::ENC_UP:
         while (pWin && dif--) {
             window_t *const pNext = GetNextEnabledSubWin(pWin);
@@ -286,8 +290,10 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
             pWin->SetFocus();
         }
         break;
+
     case GUI_event_t::CAPT_0:
         break;
+
     case GUI_event_t::CAPT_1:
         if (pWin && pWin->GetParent() != this) {
             pWin = first_normal;
@@ -299,6 +305,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
             }
         }
         break;
+
     default:
         break;
     }
@@ -551,15 +558,20 @@ void window_frame_t::RecursiveCall(mem_fnc fnc) {
     }
 }
 
-void window_frame_t::setRedLayout() {
-    super::setRedLayout();
-    RecursiveCall(&window_t::SetRedLayout); // SetRedLayout is non virtual one
-}
-void window_frame_t::setBlackLayout() {
-    super::setBlackLayout();
-    RecursiveCall(&window_t::SetBlackLayout); // SetBlackLayout is non virtual one
-}
-void window_frame_t::setBlueLayout() {
-    super::setBlueLayout();
-    RecursiveCall(&window_t::SetBlueLayout); // SetBlueLayout is non virtual one
+void window_frame_t::set_layout(ColorLayout lt) {
+    super::set_layout(lt);
+    switch (lt) {
+
+    case ColorLayout::red:
+        RecursiveCall(&window_t::SetRedLayout);
+        break;
+
+    case ColorLayout::black:
+        RecursiveCall(&window_t::SetBlackLayout);
+        break;
+
+    case ColorLayout::blue:
+        RecursiveCall(&window_t::SetBlueLayout);
+        break;
+    }
 }

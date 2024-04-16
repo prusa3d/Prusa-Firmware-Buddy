@@ -8,9 +8,11 @@
 #include "mmu2_error_converter.h"
 #include "mmu2_fsm.hpp"
 #include "mmu2_reporter.hpp"
+#include "fail_bucket.hpp"
 #include "pause_stubbed.hpp"
 #include "log.h"
 #include <config_store/store_instance.hpp>
+#include <odometer.hpp>
 #include "gui/dialogs/DialogLoadUnload.hpp"
 
 LOG_COMPONENT_REF(MMU2);
@@ -36,8 +38,8 @@ void CheckErrorScreenUserInput() {
     }
 }
 
-void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es) {
-    if (ec == ErrorCode::OK || ec == ErrorCode::RUNNING) {
+void ReportErrorHook(ErrorData d) {
+    if (d.errorCode == ErrorCode::OK || d.errorCode == ErrorCode::RUNNING) {
         return;
     }
 
@@ -45,28 +47,28 @@ void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es) {
     // Its content is given by the error code translated into Prusa-Error-Codes MMU
     // That needs to be coded into the context data passed to the screen
     // - in this case the raw pointer to error description
-    if (ec != ErrorCode::MMU_NOT_RESPONDING) {
-        log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=% " PRIu16 " es=% " PRIu8, cip, ec, es);
-        Fsm::Instance().reporter.Change(cip, ec, MMU2::ErrorSource(es));
+    if (d.errorCode != ErrorCode::MMU_NOT_RESPONDING) {
+        log_debug(MMU2, "Error report: CIP=%" PRIu8 " ec=%u es=%u", d.rawCommandInProgress, static_cast<unsigned>(d.errorCode), static_cast<unsigned>(d.errorSource));
+        Fsm::Instance().reporter.SetReport(d);
     } else {
-        log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=% " PRIu16 " es=% " PRIu16 " - cannot be done, fsm closed", cip, ec, es);
+        log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=%u es=%u - cannot be done, fsm closed", static_cast<unsigned>(d.rawCommandInProgress), static_cast<unsigned>(d.errorCode), static_cast<unsigned>(d.errorSource));
     }
 }
 
-void ReportProgressHook(CommandInProgress cip, ProgressCode ec) {
+void ReportProgressHook(ProgressData d) {
     if (Fsm::Instance().IsActive()) { // prevent accidental FSM change reports if there is no MMU progress/error dialog shown
-        log_info(MMU2, "Report: CIP=%" PRIu8 " ec=% " PRIu16, cip, ec);
-        Fsm::Instance().reporter.Change(cip, ProgressCode(ec));
+        log_debug(MMU2, "Report: CIP=%" PRIu8 " pc=%" PRIu8, d.rawCommandInProgress, d.rawProgressCode);
+        Fsm::Instance().reporter.SetReport(d);
     } else {
-        log_warning(MMU2, "Report: CIP=%" PRIu8 " ec=% " PRIu16 " - cannot be done, fsm closed", cip, ec);
+        log_warning(MMU2, "Report: CIP=%" PRIu8 " pc=%" PRIu8 " - cannot be done, fsm closed", d.rawCommandInProgress, d.rawProgressCode);
     }
 }
 
-void BeginReport([[maybe_unused]] CommandInProgress cip, [[maybe_unused]] ProgressCode ec) {
+void BeginReport([[maybe_unused]] ProgressData d) {
     Fsm::Instance().Activate();
 }
 
-void EndReport([[maybe_unused]] CommandInProgress cip, [[maybe_unused]] ProgressCode ec) {
+void EndReport([[maybe_unused]] ProgressData d) {
     Fsm::Instance().Deactivate();
 }
 
@@ -155,6 +157,13 @@ void IncrementLoadFails() {
 void IncrementMMUFails() {
     config_store().mmu2_fails.set(config_store().mmu2_fails.get() + 1);
     config_store().mmu2_total_fails.set(config_store().mmu2_total_fails.get() + 1);
+    FailLeakyBucket::instance.add_failure();
+}
+
+void IncrementMMUChanges() {
+    Odometer_s::instance().add_mmu_change();
+    const auto total_successes = Odometer_s::instance().get_mmu_changes();
+    FailLeakyBucket::instance.success(total_successes);
 }
 
 bool cutter_enabled() {

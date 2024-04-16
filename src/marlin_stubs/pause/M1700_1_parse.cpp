@@ -8,6 +8,10 @@
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "M70X.hpp"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * Preheat
  *
@@ -119,3 +123,5 @@ void PrusaGcodeSuite::M1600() {
 
     filament_gcodes::M1600_no_parser(filament_to_be_loaded, target_extruder, hasReturn ? RetAndCool_t::Return : RetAndCool_t::Neither, ask_unload, color_to_be_loaded);
 }
+
+/** @}*/

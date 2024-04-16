@@ -22,8 +22,16 @@
 
 #include "../gcode.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M111: Set the debug level
+ *
+ * ## Parameters
+ *
+ * - `S` - Debug feature flag
  */
 void GcodeSuite::M111() {
   if (parser.seen('S')) marlin_debug_flags = parser.byteval('S');
@@ -78,3 +86,5 @@ void GcodeSuite::M111() {
   }
   SERIAL_EOL();
 }
+
+/** @}*/

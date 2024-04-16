@@ -9,8 +9,9 @@
 
 #pragma once
 #include "eeprom_v9.hpp"
-#include <Configuration.h>
-#include <Configuration_adv.h>
+#include <Marlin/src/inc/MarlinConfigPre.h>
+#include <footer_def.hpp>
+#include <utility_extensions.hpp>
 
 namespace config_store_ns::old_eeprom::v10 {
 

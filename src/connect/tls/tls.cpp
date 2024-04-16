@@ -2,18 +2,40 @@
 #include "certificate.h"
 #include <string.h>
 #include <stdbool.h>
+#include <memory>
+
+#include <lwip/mem.h>
 
 using http::Error;
+using std::unique_ptr;
 
 namespace {
 
+class EntropyDeleter {
+public:
+    void operator()(mbedtls_entropy_context *ctx) {
+        if (ctx != nullptr) {
+            mbedtls_entropy_free(ctx);
+            // Unlike stdlib's free, mem_free seems to get annoyed in logs about NULL pointers.
+            mem_free(ctx);
+        }
+    }
+};
+
 struct InitContexts {
     mbedtls_x509_crt x509_certificate;
-    mbedtls_entropy_context entropy_context;
+    unique_ptr<mbedtls_entropy_context, EntropyDeleter> entropy_context;
     mbedtls_ctr_drbg_context drbg_context;
     InitContexts() {
         mbedtls_x509_crt_init(&x509_certificate);
-        mbedtls_entropy_init(&entropy_context);
+        constexpr size_t entropy_size = sizeof(mbedtls_entropy_context);
+        // We want to "hit" the 512B pool, as that one is also used by DHCP and DHCP is "rare", it's likely going to be free.
+        static_assert(entropy_size <= 512);
+        static_assert(entropy_size >= 128);
+        entropy_context.reset(reinterpret_cast<mbedtls_entropy_context *>(mem_malloc(entropy_size)));
+        if (entropy_context) {
+            mbedtls_entropy_init(entropy_context.get());
+        }
         mbedtls_ctr_drbg_init(&drbg_context);
     }
     InitContexts(const InitContexts &others) = delete;
@@ -22,8 +44,12 @@ struct InitContexts {
     InitContexts &operator=(InitContexts &&others) = delete;
     ~InitContexts() {
         mbedtls_ctr_drbg_free(&drbg_context);
-        mbedtls_entropy_free(&entropy_context);
+        // entropy done by unique_ptr
         mbedtls_x509_crt_free(&x509_certificate);
+    }
+
+    bool is_valid() const {
+        return !!entropy_context;
     }
 };
 
@@ -61,7 +87,11 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
     int status;
     InitContexts ctxs;
 
-    if ((status = mbedtls_ctr_drbg_seed(&ctxs.drbg_context, mbedtls_entropy_func, &ctxs.entropy_context, NULL, 0)) != 0) {
+    if (!ctxs.is_valid()) {
+        return Error::Memory;
+    }
+
+    if ((status = mbedtls_ctr_drbg_seed(&ctxs.drbg_context, mbedtls_entropy_func, ctxs.entropy_context.get(), NULL, 0)) != 0) {
         return Error::InternalError;
     }
 
@@ -168,10 +198,8 @@ std::variant<size_t, Error> tls::rx(uint8_t *read_buffer, size_t buffer_len, [[m
     return bytes_received;
 }
 
-bool tls::poll_readable(uint32_t) {
-    // Not supported on tls connections (because not needed right now).
-    assert(false);
-    return true;
+bool tls::poll_readable(uint32_t timeout) {
+    return mbedtls_ssl_check_pending(&ssl_context) || net_context.plain_conn.poll_readable(timeout);
 }
 
 } // namespace connect_client

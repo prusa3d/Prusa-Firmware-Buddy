@@ -29,7 +29,10 @@ Distributed as-is; no warranty is given.
 // #define VERBOSE_SERIAL
 
 // See header file for additional topology notes.
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include <device/board.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "SparkFunLIS2DH.h"
 
 #include "Wire.h"
@@ -39,7 +42,6 @@ Distributed as-is; no warranty is given.
 #include <device/peripherals.h>
 #include <bit>
 #include "Marlin/src/core/serial.h"
-#include "printers.h"
 
 using namespace buddy::hw;
 
@@ -90,42 +92,13 @@ using namespace buddy::hw;
 //
 //  LIS3DHCore functions.
 //
-//  Construction arguments:
-//  ( uint8_t busType, uint8_t inputArg ),
-//
-//    where inputArg is address for I2C_MODE and chip select pin
-//    number for SPI_MODE
-//
-//  For SPI, construct LIS3DHCore myIMU(SPI_MODE, 10);
-//  For I2C, construct LIS3DHCore myIMU(I2C_MODE, 0x6B);
-//
-//  Default construction is I2C mode, address 0x6B.
-//
 //****************************************************************************//
-LIS2DHCore::LIS2DHCore(uint8_t inputArg)
-    : m_ongoing_DMA_rx(0) {
-    if (m_commInterface == CommInterface::I2C_mode) {
-        m_I2CAddress = inputArg;
-    }
-    if (m_commInterface == CommInterface::SPI_mode) {
-        m_chipSelectPin = inputArg;
-    }
+LIS2DHCore::LIS2DHCore(const buddy::hw::OutputPin &chip_select_pin)
+    : chip_select_pin { chip_select_pin } {
 }
 
 status_t LIS2DHCore::beginCore(void) {
     status_t returnError = IMU_SUCCESS;
-
-    switch (m_commInterface) {
-
-    case CommInterface::I2C_mode:
-        Wire.begin();
-        break;
-
-    case CommInterface::SPI_mode:
-        break;
-    default:
-        break;
-    }
 
     // Soft-reset device to ensure fresh state
     writeRegister(LIS2DH_CTRL_REG5, 0b10000000);
@@ -165,142 +138,35 @@ status_t LIS2DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
     uint8_t c = 0;
     uint8_t tempFFCounter = 0;
 
-    switch (m_commInterface) {
-
-    case CommInterface::I2C_mode:
-        Wire.beginTransmission(m_I2CAddress);
-        offset |= 0x80; // turn auto-increment bit on, bit 7 for I2C
-        Wire.write(offset);
-        if (Wire.endTransmission() != 0) {
-            returnError = IMU_HW_ERROR;
-        } else // OK, all worked, keep going
-        {
-            // request 6 bytes from slave device
-            Wire.requestFrom(m_I2CAddress, length);
-            while ((Wire.available()) && (i < length)) // slave may send less than requested
-            {
-                c = Wire.read(); // receive a byte as character
-                *outputPointer = c;
-                outputPointer++;
-                i++;
-            }
+    // Ensure minimum deselect time from previous transfer.
+    // The chip might be deselected in ISR so the minimum delay is not
+    // in ISR but here.
+    delay_ns_precise<50>();
+    // take the chip select low to select the device:
+    chip_select_pin.write(Pin::State::low);
+    delay_ns_precise<5>();
+    // send the device the register you want to read:
+    offset = offset | 0x80 | 0x40; // Ored with "read request" bit and "auto increment" bit
+    HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
+    while (i < length) // slave may send less than requested
+    {
+        HAL_SPI_Receive(&SPI_HANDLE_FOR(accelerometer), &c, 1, HAL_MAX_DELAY);
+        if (c == 0xFF) {
+            // May have problem
+            tempFFCounter++;
         }
-        break;
-
-    case CommInterface::SPI_mode:
-        // Ensure minimum deselect time from previous transfer.
-        // The chip might be deselected in ISR so the minimum delay is not
-        // in ISR but here.
-        delay_ns_precise<50>();
-        // take the chip select low to select the device:
-        acellCs.write(Pin::State::low);
-        delay_ns_precise<5>();
-        // send the device the register you want to read:
-        offset = offset | 0x80 | 0x40; // Ored with "read request" bit and "auto increment" bit
-        HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
-        while (i < length) // slave may send less than requested
-        {
-            HAL_SPI_Receive(&SPI_HANDLE_FOR(accelerometer), &c, 1, HAL_MAX_DELAY);
-            if (c == 0xFF) {
-                // May have problem
-                tempFFCounter++;
-            }
-            *outputPointer = c;
-            outputPointer++;
-            i++;
-        }
-        if (tempFFCounter == i) {
-            // Ok, we've recieved all ones, report
-            returnError = IMU_ALL_ONES_WARNING;
-        }
-        // take the chip select high to de-select:
-        delay_ns_precise<20>();
-        acellCs.write(Pin::State::high);
-        break;
-
-    default:
-        break;
+        *outputPointer = c;
+        outputPointer++;
+        i++;
     }
-
-    return returnError;
-}
-
-/**
- * @brief  Start read using DMA transfer
- *
- * Check readDMACompleted() to see if the transfer has already completed.
- * Thanks to auto increment address bit set you can read multiple registers.
- * There is special treatment of auto increment on register LIS2DH_OUT_Z_H (0x2D).
- * The address to be read is automatically updated by the device and it rolls back to 0x28
- * when register 0x2D is reached.
- *
- * @param outputPointer Pass &variable (base address of) to save read data to
- * @param offset start register to read
- * @param length number of bytes to read
- *
- * @retval IMU_SUCCESS
- * @retval IMU_NOT_SUPPORTED
- * @retval IMU_HW_ERROR
- * @retval IMU_HW_BUSY
- * @retval IMU_TIMEOUT
- * @retval IMU_GENERIC_ERROR
- */
-status_t LIS2DHCore::readRegisterRegionDMA(uint8_t *outputPointer, uint8_t offset, uint8_t length) {
-    status_t returnError = IMU_SUCCESS;
-    switch (m_commInterface) {
-    case CommInterface::I2C_mode:
-        returnError = IMU_NOT_SUPPORTED;
-        break;
-    case CommInterface::SPI_mode: {
-        // Ensure minimum deselect time from previous transfer.
-        // The chip is deselected in ISR so the minimum delay is not
-        // in ISR but here.
-        delay_ns_precise<50>();
-        // take the chip select low to select the device:
-        acellCs.write(Pin::State::low);
-        delay_ns_precise<5>();
-        // send the device the register you want to read:
-        offset = offset | 0x80 | 0x40; // Ored with "read request" bit and "auto increment" bit
-        HAL_StatusTypeDef hal_status = HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
-        if (HAL_OK != hal_status) {
-            switch (hal_status) {
-            case HAL_ERROR:
-                returnError = IMU_HW_ERROR;
-                break;
-            case HAL_BUSY:
-                returnError = IMU_HW_BUSY;
-                break;
-            case HAL_TIMEOUT:
-                returnError = IMU_TIMEOUT;
-                break;
-            default:
-                returnError = IMU_GENERIC_ERROR;
-                break;
-            }
-            acellCs.write(Pin::State::high);
-            break;
-        }
-        m_ongoing_DMA_rx = 1;
-        hal_status = HAL_SPI_Receive_DMA(&SPI_HANDLE_FOR(accelerometer), outputPointer, length);
-        if (HAL_OK != hal_status) {
-            switch (hal_status) {
-            case HAL_ERROR:
-                returnError = IMU_HW_ERROR;
-                break;
-            case HAL_BUSY:
-                returnError = IMU_HW_BUSY;
-                break;
-            default:
-                returnError = IMU_GENERIC_ERROR;
-                break;
-            }
-            acellCs.write(Pin::State::high);
-            m_ongoing_DMA_rx = 0;
-            break;
-        }
-        break;
+    if (tempFFCounter == i) {
+        // Ok, we've recieved all ones, report
+        returnError = IMU_ALL_ONES_WARNING;
     }
-    }
+    // take the chip select high to de-select:
+    delay_ns_precise<20>();
+    chip_select_pin.write(Pin::State::high);
+
     return returnError;
 }
 
@@ -316,48 +182,26 @@ status_t LIS2DHCore::readRegisterRegionDMA(uint8_t *outputPointer, uint8_t offse
 status_t LIS2DHCore::readRegister(uint8_t *outputPointer, uint8_t offset) {
     // Return value
     uint8_t result;
-    uint8_t numBytes = 1;
     status_t returnError = IMU_SUCCESS;
 
-    switch (m_commInterface) {
+    // Ensure minimum deselect time from previous transfer.
+    // The chip might be deselected in ISR so the minimum delay is not
+    // in ISR but here.
+    delay_ns_precise<50>();
+    // take the chip select low to select the device:
+    chip_select_pin.write(Pin::State::low);
+    delay_ns_precise<5>();
+    // send the device the register you want to read:
+    offset = offset | 0x80; // Ored with "read request" bit
+    HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
+    HAL_SPI_Receive(&SPI_HANDLE_FOR(accelerometer), &result, 1, HAL_MAX_DELAY);
+    // take the chip select high to de-select:
+    delay_ns_precise<20>();
+    chip_select_pin.write(Pin::State::high);
 
-    case CommInterface::I2C_mode:
-        Wire.beginTransmission(m_I2CAddress);
-        Wire.write(offset);
-        if (Wire.endTransmission() != 0) {
-            returnError = IMU_HW_ERROR;
-        }
-        Wire.requestFrom(m_I2CAddress, numBytes);
-        while (Wire.available()) // slave may send less than requested
-        {
-            result = Wire.read(); // receive a byte as a proper uint8_t
-        }
-        break;
-
-    case CommInterface::SPI_mode:
-        // Ensure minimum deselect time from previous transfer.
-        // The chip might be deselected in ISR so the minimum delay is not
-        // in ISR but here.
-        delay_ns_precise<50>();
-        // take the chip select low to select the device:
-        acellCs.write(Pin::State::low);
-        delay_ns_precise<5>();
-        // send the device the register you want to read:
-        offset = offset | 0x80; // Ored with "read request" bit
-        HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
-        HAL_SPI_Receive(&SPI_HANDLE_FOR(accelerometer), &result, 1, HAL_MAX_DELAY);
-        // take the chip select high to de-select:
-        delay_ns_precise<20>();
-        acellCs.write(Pin::State::high);
-
-        if (result == 0xFF) {
-            // we've recieved all ones, report
-            returnError = IMU_ALL_ONES_WARNING;
-        }
-        break;
-
-    default:
-        break;
+    if (result == 0xFF) {
+        // we've recieved all ones, report
+        returnError = IMU_ALL_ONES_WARNING;
     }
 
     *outputPointer = result;
@@ -392,56 +236,29 @@ status_t LIS2DHCore::readRegisterInt16(int16_t *outputPointer, uint8_t offset) {
 //    dataToWrite -- 8 bit data to write to register
 //
 //****************************************************************************//
-status_t LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
-    if (m_ongoing_DMA_rx) {
-        return IMU_HW_BUSY;
-    }
-    status_t returnError = IMU_SUCCESS;
-    switch (m_commInterface) {
-    case CommInterface::I2C_mode:
-        // Write the byte
-        Wire.beginTransmission(m_I2CAddress);
-        Wire.write(offset);
-        Wire.write(dataToWrite);
-        if (Wire.endTransmission() != 0) {
-            returnError = IMU_HW_ERROR;
-        }
-        break;
-
-    case CommInterface::SPI_mode:
-        // Ensure minimum deselect time from previous transfer.
-        // The chip might be deselected in ISR so the minimum delay is not
-        // in ISR but here.
-        delay_ns_precise<50>();
-        // take the chip select low to select the device:
-        acellCs.write(Pin::State::low);
-        delay_ns_precise<5>();
-        // send the device the register you want to read:
-        HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
-        HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &dataToWrite, 1, HAL_MAX_DELAY);
-        // take the chip select high to de-select:
-        delay_ns_precise<20>();
-        acellCs.write(Pin::State::high);
-        break;
-
-        // No way to check error on this write (Except to read back but that's not reliable)
-
-    default:
-        break;
-    }
-
-    return returnError;
+void LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
+    // Ensure minimum deselect time from previous transfer.
+    // The chip might be deselected in ISR so the minimum delay is not
+    // in ISR but here.
+    delay_ns_precise<50>();
+    // take the chip select low to select the device:
+    chip_select_pin.write(Pin::State::low);
+    delay_ns_precise<5>();
+    // send the device the register you want to read:
+    HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &offset, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&SPI_HANDLE_FOR(accelerometer), &dataToWrite, 1, HAL_MAX_DELAY);
+    // take the chip select high to de-select:
+    delay_ns_precise<20>();
+    chip_select_pin.write(Pin::State::high);
 }
 
 //****************************************************************************//
 //
 //  Main user class -- wrapper for the core class + maths
 //
-//  Construct with same rules as the core ( uint8_t busType, uint8_t inputArg )
-//
 //****************************************************************************//
-LIS2DH::LIS2DH(uint8_t inputArg)
-    : LIS2DHCore(inputArg) {
+LIS2DH::LIS2DH(const buddy::hw::OutputPin &chip_select_pin)
+    : LIS2DHCore { chip_select_pin } {
     // Construct with these default settings
     // ADC stuff
     m_settings.adcEnabled = 0;
@@ -723,29 +540,6 @@ void LIS2DH::fifoClear(void) {
     }
 }
 
-void LIS2DH::fifoStartRec(void) {
-    uint8_t dataToWrite = 0; // Temporary variable
-
-    // Turn off...
-    readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
-    dataToWrite &= 0x3F; // clear mode
-#ifdef VERBOSE_SERIAL
-    Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
-    Serial.println(dataToWrite, HEX);
-#endif
-    writeRegister(LIS2DH_FIFO_CTRL_REG, dataToWrite);
-    //  ... then back on again
-    readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
-    dataToWrite &= 0x3F; // clear mode
-    dataToWrite |= (m_settings.fifoMode & 0x03) << 6; // apply mode
-                                                      // Now, write the patched together data
-#ifdef VERBOSE_SERIAL
-    Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
-    Serial.println(dataToWrite, HEX);
-#endif
-    writeRegister(LIS2DH_FIFO_CTRL_REG, dataToWrite);
-}
-
 uint8_t LIS2DH::fifoGetStatus(void) {
     // Return some data on the state of the fifo
     uint8_t tempReadByte = 0;
@@ -755,19 +549,6 @@ uint8_t LIS2DH::fifoGetStatus(void) {
     Serial.println(tempReadByte, HEX);
 #endif
     return tempReadByte;
-}
-
-void LIS2DH::fifoEnd(void) {
-    uint8_t dataToWrite = 0; // Temporary variable
-
-    // Turn off...
-    readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
-    dataToWrite &= 0x3F; // clear mode
-#ifdef VERBOSE_SERIAL
-    Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
-    Serial.println(dataToWrite, HEX);
-#endif
-    writeRegister(LIS2DH_FIFO_CTRL_REG, dataToWrite);
 }
 
 bool LIS2DH::isSetupDone() {
@@ -790,9 +571,6 @@ int Fifo::get(Acceleration &acceleration) {
     int local_num_samples = 0;
     switch (m_state) {
     case State::request_sent:
-        if (!m_accelerometer.readDMACompleted()) {
-            break;
-        }
         m_state = State::draining;
         // fall through
     case State::draining:

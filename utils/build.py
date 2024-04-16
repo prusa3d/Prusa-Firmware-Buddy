@@ -744,9 +744,6 @@ def main():
         args.host_tools = True
         args.no_build = True
 
-    # check all dependencis are installed
-    bootstrap.bootstrap()
-
     # parse what presets are selected by the user
     selected_preset_names = [
         preset_name.lower() for preset_name in args.preset
@@ -791,6 +788,9 @@ def main():
     if args.generate_cmake_presets:
         CMakePresetsGenerator.generate(configurations)
         sys.exit(0)
+
+    # check all dependencis are installed
+    bootstrap.bootstrap()
 
     # build everything
     results: Dict[BuildConfiguration, BuildResult] = dict()

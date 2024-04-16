@@ -6,8 +6,12 @@
  * in used data structures, and some computations.
  */
 #pragma once
+#include "fwdecl.hpp"
+
 #include "../../inc/MarlinConfig.h"
 #include "../../core/types.h"
+
+#include <option/has_phase_stepping.h>
 
 #define MOVE_SEGMENT_QUEUE_MOD(n) ((n) & (MOVE_SEGMENT_QUEUE_SIZE - 1))
 #define STEP_EVENT_QUEUE_MOD(n)   ((n) & (STEP_EVENT_QUEUE_SIZE - 1))
@@ -20,9 +24,9 @@ constexpr const uint32_t MOVE_FLAG_DIR_SHIFT = 4;
 constexpr const uint32_t MOVE_FLAG_AXIS_ACTIVE_SHIFT = 8;
 constexpr const uint32_t MOVE_FLAG_RESET_POSITION_SHIFT = 16;
 
-struct pressure_advance_state_t;
-struct input_shaper_state_t;
-struct input_shaper_pulses_t;
+namespace phase_stepping {
+struct AxisState;
+}
 
 typedef uint32_t MoveFlag_t;
 enum MoveFlag : MoveFlag_t {
@@ -66,7 +70,7 @@ static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_X == (1ul << MOVE_FLAG_RESET_PO
 typedef struct move_t {
     double start_v;
     double half_accel;
-    double move_t;
+    double move_time;
     double print_time;
 
     xyze_double_t axes_r;
@@ -105,7 +109,9 @@ enum StepEventFlag : StepEventFlag_t {
     STEP_EVENT_FLAG_E_ACTIVE = _BV(11),
 
     STEP_EVENT_FLAG_BEGINNING_OF_MOVE_SEGMENT = _BV(12), // Indicate that this step event is the first step event from a move segment.
-    STEP_EVENT_END_OF_MOTION = _BV(13), // Last event before coming to a halt
+    STEP_EVENT_FLAG_END_OF_MOTION = _BV(13), // Last event before coming to a halt
+    STEP_EVENT_FLAG_KEEP_ALIVE = _BV(14), // Step event just for ensuring that the step event queue never dries.
+    STEP_EVENT_FLAG_FIRST_STEP_EVENT = _BV(15) // First produced step event.
 };
 
 // Ensure XYZE bits are always adjacent and ordered as required in most loops
@@ -169,13 +175,31 @@ enum StepGeneratorType : uint8_t {
     INPUT_SHAPER_STEP_GENERATOR_Y = _BV(1),
     INPUT_SHAPER_STEP_GENERATOR_Z = _BV(2),
 
-    PRESSURE_ADVANCE_STEP_GENERATOR_E = _BV(3)
+    PRESSURE_ADVANCE_STEP_GENERATOR_E = _BV(3),
+
+    PHASE_STEPPING_GENERATOR_X = _BV(4),
+    PHASE_STEPPING_GENERATOR_Y = _BV(5),
+    PHASE_STEPPING_GENERATOR_Z = _BV(6)
 };
 
 enum StepEventInfoStatus : uint8_t {
-    STEP_EVENT_INFO_STATUS_NOT_GENERATED = 0, // Step event isn't produced by any step event generator. Such a step event cannot be inserted into the step event queue.
-    STEP_EVENT_INFO_STATUS_GENERATED_INVALID = 1, // Step event is produced by a step event generator but cannot be inserted into the step event queue.
-    STEP_EVENT_INFO_STATUS_GENERATED_VALID = 2, // Step event is produced by a step event generator and can be inserted into the step event queue.
+    // Step event isn't produced by any step event generator. Such a step event cannot be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_NOT_GENERATED = 0,
+
+    // Step event is produced by a step event generator but cannot be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_GENERATED_INVALID = 1,
+
+    // Step event is produced by a step event generator and can be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_GENERATED_VALID = 2,
+
+    // Step event is produced to ensure that the step event queue never dries when an actual step
+    // event isn't produced. This step event can be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE = 3,
+
+    // Step event is produced to signal that a step event generator wasn't able to produce a new
+    // step event for reasons different than the end of the move segment queue was reached. This
+    // step event cannot be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_GENERATED_PENDING = 4,
 };
 
 typedef struct step_event_info_t {
@@ -200,6 +224,12 @@ typedef struct move_segment_step_generator_t : basic_step_generator_t {
     float accel = 0.f;
     float start_pos = 0.f;
     bool step_dir = false;
+
+    // We don't use inheritance on purpose – phase stepping is to some degree
+    // orthogonal to classical and advanced step generators
+#if HAS_PHASE_STEPPING()
+    phase_stepping::AxisState *phase_step_state = nullptr;
+#endif
 } move_segment_step_generator_t;
 
 struct step_generator_state_t;
@@ -213,11 +243,12 @@ struct step_generator_state_t {
     step_event_info_t step_events[4];
     std::array<step_index_t, 4> step_event_index;
     double previous_step_time;
+    uint64_t previous_step_time_ticks;
 
     StepEventFlag_t flags; // current axis/direction flags
     step_event_i32_t buffered_step; // accumulator for multi-axis step fusion
 
-    xyze_long_t current_distance;
+    xyze_long_t current_distance; // current axis position (steps, physical)
 
     // Number of markers indicating the start of move segments that need to be inserted into step events.
     // Be aware that very short move segments could produce just one single step event or none step event

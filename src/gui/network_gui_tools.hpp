@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file network_gui_tools.hpp
  * @author Michal Rudolf

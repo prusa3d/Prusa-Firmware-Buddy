@@ -34,7 +34,7 @@ static const IWindowMenuItem::ColorScheme red_scheme = {
 };
 
 MI_TRIGGER_BSOD::MI_TRIGGER_BSOD()
-    : WI_LABEL_t(_("Test bsod() Function"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+    : IWindowMenuItem(_("Test bsod() Function"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
     set_color_scheme(&blue_scheme);
 }
 
@@ -54,7 +54,7 @@ static void recursive(uint64_t i) {
 }
 
 MI_STACK_OVERFLOW::MI_STACK_OVERFLOW()
-    : WI_LABEL_t(_("Stack Overflow"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+    : IWindowMenuItem(_("Stack Overflow"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
     set_color_scheme(&blue_scheme);
 }
 
@@ -63,7 +63,7 @@ void MI_STACK_OVERFLOW::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_DIV0::MI_DIV0()
-    : WI_LABEL_t(_("Divide by Zero"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+    : IWindowMenuItem(_("Divide by Zero"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
     set_color_scheme(&blue_scheme);
 }
 
@@ -76,7 +76,7 @@ void MI_DIV0::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_WATCHDOG::MI_WATCHDOG()
-    : WI_LABEL_t(_("Emulate Watchdog"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+    : IWindowMenuItem(_("Emulate Watchdog"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
     set_color_scheme(&blue_scheme);
 }
 
@@ -89,7 +89,7 @@ void MI_WATCHDOG::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_PREHEAT_ERROR::MI_PREHEAT_ERROR()
-    : WI_LABEL_t(_("Preheat Error"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+    : IWindowMenuItem(_("Preheat Error"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
     set_color_scheme(&red_scheme);
 }
 
@@ -98,7 +98,7 @@ void MI_PREHEAT_ERROR::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_TRIGGER_REDSCREEN::MI_TRIGGER_REDSCREEN()
-    : WI_LABEL_t(_("Trigger Redscreen"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+    : IWindowMenuItem(_("Trigger Redscreen"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
     set_color_scheme(&red_scheme);
 }
 

@@ -8,6 +8,7 @@
 #include "window_icon.hpp"
 #include "client_response.hpp"
 #include "window_qr.hpp"
+#include <guiconfig/guiconfig.h>
 
 /*****************************************************************************/
 // clang-format off
@@ -42,6 +43,7 @@ protected:
     RadioMemSpace radio_mem_space;
     IRadioButton *pButtons = nullptr;
     Response result; // return value
+
 public:
     MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline = is_multiline::yes, is_closed_on_click_t close = is_closed_on_click_t::yes);
@@ -73,11 +75,15 @@ public:
         CaptureNormalWindow(*pButtons);
     }
 
+    /// Sets response and generates appropriate events as if a button was pressed
+    void generate_response(Response r);
+
     void set_text_alignment(Align_t alignment);
-    void set_text_font(font_t *font);
+    void set_text_font(Font font);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
     Rect16 getTextRect();
 };
 
@@ -116,7 +122,6 @@ protected:
     Rect16 getLineRect();
     Rect16 getIconRect();
     Rect16 getTitleRect(); // icon must be initialized
-    font_t *getTitleFont();
     padding_ui8_t getTitlePadding();
     static constexpr uint8_t IconTitleDelimeter = 5;
     static constexpr padding_ui8_t TextPadding =

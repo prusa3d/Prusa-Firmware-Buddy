@@ -17,15 +17,6 @@ enum class profile_action : uint32_t {
     Rename = 4
 };
 
-using sheet_index_0 = std::integral_constant<uint32_t, 0>;
-using sheet_index_1 = std::integral_constant<uint32_t, 1>;
-using sheet_index_2 = std::integral_constant<uint32_t, 2>;
-using sheet_index_3 = std::integral_constant<uint32_t, 3>;
-using sheet_index_4 = std::integral_constant<uint32_t, 4>;
-using sheet_index_5 = std::integral_constant<uint32_t, 5>;
-using sheet_index_6 = std::integral_constant<uint32_t, 6>;
-using sheet_index_7 = std::integral_constant<uint32_t, 7>;
-
 class MI_SHEET_OFFSET : public WI_LAMBDA_LABEL_t {
     static constexpr const char *const label = N_("Offset");
     float offset = 0;
@@ -40,7 +31,7 @@ public:
     void Reset();
 };
 
-class MI_SHEET_SELECT : public WI_LABEL_t {
+class MI_SHEET_SELECT : public IWindowMenuItem {
     static constexpr const char *const label = N_("Select");
 
 public:
@@ -50,7 +41,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SHEET_CALIBRATE : public WI_LABEL_t {
+class MI_SHEET_CALIBRATE : public IWindowMenuItem {
     static constexpr const char *const label = N_("First Layer Calibration");
 
 public:
@@ -60,7 +51,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SHEET_RENAME : public WI_LABEL_t {
+class MI_SHEET_RENAME : public IWindowMenuItem {
     static constexpr const char *const label = N_("Rename");
 
 public:
@@ -70,7 +61,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SHEET_RESET : public WI_LABEL_t {
+class MI_SHEET_RESET : public IWindowMenuItem {
     static constexpr const char *const label = N_("Reset");
 
 public:
@@ -98,40 +89,35 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t ev, void *param) override;
 };
 
-template <typename Index>
+template <uint8_t sheet_index>
 class SheetProfileMenuScreenT : public ISheetProfileMenuScreen {
 public:
-    using index_type = Index;
     SheetProfileMenuScreenT()
-        : ISheetProfileMenuScreen(Index::value) {
+        : ISheetProfileMenuScreen(sheet_index) {
     }
 };
 
-struct IProfileRecord : public WI_LABEL_t {
-    void name_sheet(uint32_t value, char *buff);
-    void click_index(uint32_t index);
-    IProfileRecord();
-};
-
-template <typename Index>
-struct ProfileRecord : public IProfileRecord {
-    char name[MAX_SHEET_NAME_LENGTH + 1];
-    ProfileRecord() {
-        memset(name, 0, MAX_SHEET_NAME_LENGTH + 1);
-        name_sheet(Index::value, name);
-
-        // string_view_utf8::MakeRAM is safe. "name" is member var, exists until ProfileRecord is destroyed
-        SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
-    };
-
+class I_MI_SHEET_PROFILE : public IWindowMenuItem {
 protected:
-    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {
-        click_index(Index::value);
-    }
+    I_MI_SHEET_PROFILE(int sheet_index);
+
+    void click(IWindowMenu &window_menu) override;
+
+private:
+    std::array<char, MAX_SHEET_NAME_LENGTH + 1> label_str;
+
+    uint8_t sheet_index;
+};
+
+template <uint8_t sheet_index_>
+class MI_SHEET_PROFILE : public I_MI_SHEET_PROFILE {
+public:
+    MI_SHEET_PROFILE()
+        : I_MI_SHEET_PROFILE(sheet_index_) {}
 };
 
 using ScreenMenuSteelSheets__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-    ProfileRecord<sheet_index_0>, ProfileRecord<sheet_index_1>, ProfileRecord<sheet_index_2>, ProfileRecord<sheet_index_3>, ProfileRecord<sheet_index_4>, ProfileRecord<sheet_index_5>, ProfileRecord<sheet_index_6>, ProfileRecord<sheet_index_7>>;
+    MI_SHEET_PROFILE<0>, MI_SHEET_PROFILE<1>, MI_SHEET_PROFILE<2>, MI_SHEET_PROFILE<3>, MI_SHEET_PROFILE<4>, MI_SHEET_PROFILE<5>, MI_SHEET_PROFILE<6>, MI_SHEET_PROFILE<7>>;
 
 class ScreenMenuSteelSheets : public ScreenMenuSteelSheets__ {
 public:

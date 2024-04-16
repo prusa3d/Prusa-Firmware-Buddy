@@ -8,7 +8,6 @@
 #include "marlin_client.hpp"
 #include "screen_filebrowser.hpp"
 #include "print_utils.hpp"
-#include "gui_fsensor_api.hpp"
 #include "filename_type.hpp"
 #include "settings_ini.hpp"
 #include <wui_api.h>
@@ -41,6 +40,7 @@
 #include <option/development_items.h>
 #include <device/peripherals.h>
 #include <option/has_mmu2.h>
+#include <option/has_human_interactions.h>
 
 #include "screen_menu_settings.hpp"
 #include "screen_menu_filament.hpp"
@@ -53,6 +53,9 @@
 #include <crash_dump/crash_dump_handlers.hpp>
 #include "box_unfinished_selftest.hpp"
 #include <transfers/transfer_file_check.hpp>
+#include <guiconfig/guiconfig.h>
+
+#include "usb_host.h"
 
 // TODO remove netdev_is_enabled after it is defined
 bool __attribute__((weak)) netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) { return true; }
@@ -143,13 +146,11 @@ static void FilamentBtn_cb() {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilament>);
 }
 
-static void FilamentBtnMMU_cb() {
 #if HAS_MMU2()
+static void FilamentBtnMMU_cb() {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilamentMMU>);
-#else
-    FilamentBtn_cb();
-#endif
 }
+#endif
 
 // clang-format off
 screen_home_data_t::screen_home_data_t()
@@ -191,14 +192,7 @@ screen_home_data_t::screen_home_data_t()
     header.SetText(_("HOME"));
 
 #else
-    // show the appropriate build header
-    #if DEVELOPER_MODE() && defined(_DEBUG)
-    static const uint8_t msgHome[] = "HOME - DEV - DEBUG";
-    #elif DEVELOPER_MODE() && !defined(_DEBUG)
-    static const uint8_t msgHome[] = "HOME - DEV";
-    #else
-    static const uint8_t msgHome[] = "HOME - DEBUG - what a beautiful rolling text!!!!!";
-    #endif
+    static const uint8_t msgHome[] = "HOME" TERN(DEVELOPER_MODE(), " - DEV", "") TERN(defined(_DEBUG), " - DEBUG", "");
     header.SetText(string_view_utf8::MakeCPUFLASH(msgHome)); // intentionally not translated
 #endif
 
@@ -208,14 +202,14 @@ screen_home_data_t::screen_home_data_t()
             w_buttons[i].SetRect(buttonRect(col, row));
             w_buttons[i].SetRes(&icons[i]);
             w_labels[i].SetRect(buttonTextRect(col, row));
-            w_labels[i].set_font(resource_font(IDR_FNT_SMALL));
+            w_labels[i].set_font(Font::small);
             w_labels[i].SetAlignment(Align_t::Center());
             w_labels[i].SetPadding({ 0, 0, 0, 0 });
             w_labels[i].SetText(_(labels[i]));
         }
     }
 
-    filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
+    filamentBtnSetState();
 
     if (!usbInserted) {
         printBtnDis();
@@ -229,9 +223,11 @@ screen_home_data_t::~screen_home_data_t() {
     GuiMediaEventsHandler::ConsumeOneClickPrinting();
 }
 
-void screen_home_data_t::filamentBtnSetState(MMU2::xState mmu) {
-    if (mmu != mmu_state) {
-        mmu_state = mmu;
+void screen_home_data_t::filamentBtnSetState() {
+#if HAS_MMU2()
+    const MMU2::xState new_state = MMU2::xState(marlin_vars()->mmu2_state.get());
+    if (new_state != mmu_state) {
+        mmu_state = new_state;
 
         // did not want to include MMU
         // it might be good idea to move mmu enum to extra header
@@ -244,6 +240,7 @@ void screen_home_data_t::filamentBtnSetState(MMU2::xState mmu) {
             w_buttons[buttonFilamentIndex].Enable();
             break;
         case MMU2::xState::Connecting:
+        case MMU2::xState::Bootloader:
             w_buttons[buttonFilamentIndex].SetRes(&icons[iconMMUId]);
             if (w_buttons[buttonFilamentIndex].IsFocused()) {
                 w_buttons[buttonFilamentIndex - 1].SetFocus();
@@ -259,6 +256,7 @@ void screen_home_data_t::filamentBtnSetState(MMU2::xState mmu) {
             break;
         }
     }
+#endif
 }
 
 void screen_home_data_t::handle_crash_dump() {
@@ -267,7 +265,11 @@ void screen_home_data_t::handle_crash_dump() {
     if (present_dumps.size() == 0) {
         return;
     }
-    if (MsgBoxWarning(_("Crash detected. Save it to USB?"), Responses_YesNo)
+    if (MsgBoxWarning(_("Crash detected. Save it to USB?"
+                        "\n\nDo not share the file publicly,"
+                        " the crash dump may include unencrypted sensitive information."
+                        " Send it to: reports@prusa3d.com"),
+            Responses_YesNo)
         == Response::Yes) {
         auto do_stage = [&](string_view_utf8 msg, std::invocable<const ::crash_dump::DumpHandler *> auto fp) {
             MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, &img::info_58x58);
@@ -294,7 +296,7 @@ void screen_home_data_t::on_enter() {
     first_event = false;
 
 #if !DEVELOPER_MODE()
-    #if PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4
+    #if HAS_SELFTEST_SNAKE()
     static bool first_time_check_st { true };
     if (first_time_check_st) {
         first_time_check_st = false;
@@ -390,12 +392,12 @@ void screen_home_data_t::handle_wifi_credentials() {
     // first we find if there is an WIFI config
     bool has_wifi_credentials = false;
     {
-        std::unique_ptr<FILE, FileDeleter> fl;
+        unique_file_ptr fl;
         // if other thread modifies files during this action, detection might fail
         fl.reset(fopen(settings_ini::file_name, "r"));
         has_wifi_credentials = fl.get() != nullptr;
     }
-    if (has_wifi_credentials && (name_and_psk_status() == Config::Status::not_equal)) {
+    if (has_wifi_credentials && (name_and_psk_status() == Config::Status::not_equal) && !option::developer_mode) {
         if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo, 1)
             == Response::Yes) {
             const auto fw_state = esp_fw_state();
@@ -452,7 +454,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     }
 
     if (event == GUI_event_t::LOOP) {
-        filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
+        filamentBtnSetState();
 
 #if ENABLED(POWER_PANIC)
         if (TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming())
@@ -469,21 +471,21 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         }
 
 #if HAS_SELFTEST()
-        if (!DialogHandler::Access().IsOpen() && !GuiFSensor::is_calib_dialog_open()) {
+        if (!DialogHandler::Access().IsOpen()) {
             // esp update has bigger priority tha one click print
             const auto fw_state = esp_fw_state();
             const bool esp_need_flash = fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware;
-            if (try_esp_flash && esp_need_flash && netdev_is_enabled(NETDEV_ESP_ID)) {
+            if (try_esp_flash && esp_need_flash && netdev_is_enabled(NETDEV_ESP_ID) && !option::developer_mode) {
                 try_esp_flash = false; // do esp flash only once (user can press abort)
                 marlin_client::gcode("M997 S1 O");
                 return;
             } else {
                 // on esp update, can use one click print
-                if (
+                if (HAS_HUMAN_INTERACTIONS() &&
     #if ENABLED(POWER_PANIC)
                     TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming() &&
     #endif // ENABLED(POWER_PANIC)
-                    GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
+                    GuiMediaEventsHandler::ConsumeOneClickPrinting() && !usbh_power_cycle::block_one_click_print()) {
                     // TODO this should be done in main thread before Event::MediaInserted is generated
                     // if it is not the latest gcode might not be selected
                     if (find_latest_gcode(
@@ -510,40 +512,38 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
 }
 
 bool screen_home_data_t::find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {
-    FileSort::LessFE_t LessFE = &FileSort::LessByTimeFE;
-    FileSort::MakeEntry_t MakeLastEntry = &FileSort::MakeLastEntryByTime;
-
-    fname[0] = 0;
     strlcpy(fpath, "/usb", fpath_len);
-    F_DIR_RAII_Iterator dir(fpath);
-    MutablePath dir_path { fpath };
-    fpath[4] = '/';
 
+    F_DIR_RAII_Iterator dir(fpath);
     if (dir.result == ResType::NOK) {
         return false;
     }
 
     // prepare the item at the zeroth position according to sort policy
-    FileSort::Entry entry = MakeLastEntry(); // last entry is greater than any file
+    FileSort::Entry entry;
 
     while (dir.FindNext()) {
-        // skip folders
-        MutablePath dpath { dir_path }; // copy to avoid having to pop d_name every time
-        dpath.push(dir.fno->d_name);
+        const FileSort::EntryRef curr(*dir.fno, fpath);
 
-        if ((dir.fno->d_type & DT_DIR) != 0 && !transfers::is_valid_transfer(dpath)) {
+        if (curr.type != FileSort::EntryType::FILE) {
             continue;
         }
 
-        if (LessFE({ *dir.fno, dpath }, entry)) {
-            entry.CopyFrom({ *dir.fno, dpath });
-
-            strlcpy(fpath + 5, dir.fno->d_name, fpath_len - 5);
-            strlcpy(fname, entry.lfn, fname_len);
+        if (entry.is_valid() && !FileSort::less_by_time(curr, entry)) {
+            continue;
         }
+
+        entry.CopyFrom(curr);
     }
 
-    return fname[0] != 0;
+    if (!entry.is_valid()) {
+        return false;
+    }
+
+    fpath[4] = '/';
+    strlcpy(fpath + 5, entry.sfn, fpath_len - 5);
+    strlcpy(fname, entry.lfn, fname_len);
+    return true;
 }
 
 void screen_home_data_t::printBtnEna() {

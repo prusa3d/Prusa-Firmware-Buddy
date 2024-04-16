@@ -255,19 +255,12 @@ void Transfer::update_backup(bool force) {
 }
 
 std::optional<struct stat> Transfer::get_transfer_partial_file_stat(MutablePath &destination_path) {
-    if (!is_valid_transfer(destination_path)) {
+    const auto r = transfer_check(destination_path, TransferCheckValidOnly::yes);
+    if (!r.is_valid()) {
         return std::nullopt;
     }
 
-    destination_path.push(partial_filename);
-    struct stat st = {};
-    int result = stat_retry(destination_path.get(), &st);
-    destination_path.pop();
-    if (result == 0) {
-        return st;
-    } else {
-        return std::nullopt;
-    }
+    return r.partial_file_stat;
 }
 
 Transfer::RecoverResult Transfer::recover(const char *destination_path) {
@@ -415,7 +408,9 @@ void Transfer::notify_created() {
     if (HAS_HUMAN_INTERACTIONS() && filename_is_printable(slot.destination()) && printer_state::remote_print_ready(/*preview_only=*/true)) {
         // While it looks a counter-intuitive, this print_begin only shows the
         // print preview / one click print, doesn't really start the print.
-        print_begin(slot.destination());
+        char sfn_path[FILE_PATH_BUFFER_LEN];
+        get_SFN_path_copy(slot.destination(), sfn_path, sizeof(sfn_path));
+        print_begin(sfn_path);
     }
 
     already_notified = true;
@@ -440,24 +435,15 @@ bool Transfer::cleanup_transfers() {
     for (;;) {
         switch (next_in_index(index, transfer_path)) {
         case IndexIter::Ok: {
-            struct stat st;
-            // check the existence of the download file
-            bool backup_file_found = stat_retry(transfer_path.as_backup(), &st) == 0 && S_ISREG(st.st_mode);
-            bool backup_is_empty = backup_file_found && st.st_size == 0;
-            bool partial_file_found = stat_retry(transfer_path.as_partial(), &st) == 0 && S_ISREG(st.st_mode);
+            MutablePath mp(transfer_path.as_destination());
+            const auto r = transfers::transfer_check(mp);
 
-            if (partial_file_found && !backup_file_found) {
-                if (!cleanup_finalize(transfer_path)) {
-                    all_ok = false;
-                }
-            } else if (partial_file_found && backup_is_empty) {
-                if (!cleanup_remove(transfer_path)) {
-                    all_ok = false;
-                }
-            } else if (partial_file_found && backup_file_found) { // && is not empty...
-                // This one is still "in progress"
+            if (r.is_running()) {
                 can_cleanup = false;
+            } else if (r.partial_file_found && !cleanup_finalize(transfer_path)) {
+                all_ok = false;
             }
+
             break;
         }
         case IndexIter::Skip:

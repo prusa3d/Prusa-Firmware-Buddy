@@ -19,7 +19,6 @@ struct FSensorConfig_t {
     static constexpr SelftestParts part_type = SelftestParts::FSensor;
     const char *partname { "" };
     uint8_t extruder_id = 0;
-    bool mmu_mode = false;
 };
 
 }; // namespace selftest

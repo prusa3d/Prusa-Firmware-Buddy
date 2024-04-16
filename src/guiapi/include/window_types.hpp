@@ -24,8 +24,6 @@ enum class is_closed_on_timeout_t : bool { no,
     yes };
 enum class is_closed_on_printing_t : bool { no,
     yes };
-enum class has_footer : bool { no,
-    yes };
 enum class positioning : bool { absolute,
     relative };
 enum class dense_t : bool { no,
@@ -41,9 +39,6 @@ enum class win_type_t : uint8_t {
     popup, // can't have capture, similar to dialog, but does not claim capture, cannot overlap or be overlapped
            //   by dialog (not registered / auto destroyed).
            // destroyed when any window tries to overlap it
-    strong_dialog // can have capture, stays on absolute top (normal dialog can open under it, but
-                  //   will not get capture), only user can close it
-                  // last open strong dialog is on top
 };
 
 // todo add can capture flag (needed in frame event and SetCapture)

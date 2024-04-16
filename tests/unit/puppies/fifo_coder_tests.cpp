@@ -8,7 +8,6 @@ using namespace common::puppies::fifo;
 
 static constexpr LogData log_fragment = { 'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o' };
 static constexpr LoadcellRecord loadcell_fragment = { 0, 0x12345678 };
-static constexpr AccelerometerData accelerometer_fragment = { 1, 0x12345678 };
 static constexpr AccelerometerFastData accelerometer_fast_fragment = { 0x87654321, 0x12354678 };
 
 TEST_CASE("Encoder allignment") {
@@ -203,7 +202,6 @@ TEST_CASE("Encode - decode") {
 
     REQUIRE(encoder.encode(log_fragment));
     REQUIRE(encoder.encode(loadcell_fragment));
-    REQUIRE(encoder.encode(accelerometer_fragment));
     REQUIRE(encoder.encode(accelerometer_fast_fragment));
     encoder.padd();
 
@@ -211,7 +209,6 @@ TEST_CASE("Encode - decode") {
 
     int num_log = 0;
     int num_loadcell = 0;
-    int num_accelerometer = 0;
     int num_accelerometer_fast = 0;
 
     decoder.decode({
@@ -224,11 +221,6 @@ TEST_CASE("Encode - decode") {
             REQUIRE(data.loadcell_raw_value == loadcell_fragment.loadcell_raw_value);
             num_loadcell++;
         },
-        [&num_accelerometer](AccelerometerData data) {
-            REQUIRE(data.timestamp_us == accelerometer_fragment.timestamp_us);
-            REQUIRE(data.sample == accelerometer_fragment.sample);
-            num_accelerometer++;
-        },
         [&num_accelerometer_fast](AccelerometerFastData data) {
             REQUIRE(data[0] == accelerometer_fast_fragment[0]);
             REQUIRE(data[1] == accelerometer_fast_fragment[1]);
@@ -238,7 +230,6 @@ TEST_CASE("Encode - decode") {
 
     CHECK(num_log == 1);
     CHECK(num_loadcell == 1);
-    CHECK(num_accelerometer == 1);
     CHECK(num_accelerometer_fast == 1);
 }
 

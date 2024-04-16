@@ -13,17 +13,18 @@
 #include "cmath_ext.h"
 #include <config_store/store_instance.hpp>
 
-static const constexpr float filamentD = 1.75f;
-static const constexpr float layerHeight = 0.2f;
-static const constexpr float threadWidth = 0.5f;
+namespace {
+constexpr float filamentD = 1.75f;
+constexpr float layerHeight = 0.2f;
+constexpr float threadWidth = 0.5f;
 
-static const constexpr float pi = 3.1415926535897932384626433832795f;
+constexpr float pi = 3.1415926535897932384626433832795f;
 
 /// Path of Manhattan snake
 /// Alternate X and Y coordinates.
 /// It cannot print diagonals etc.
 /// First X and Y are a starting point.
-static const constexpr float snake1[] = {
+constexpr float snake1[] = {
     /// use 0.5 extrusion width
     10, /// start X
     150, /// start Y
@@ -100,86 +101,102 @@ static const constexpr float snake1[] = {
     10,
 };
 
+#if PRINTER_IS_PRUSA_MINI
+constexpr float y_step = 20;
+#else
+constexpr float y_step = 30;
+#endif
+constexpr float x_min = 10;
+constexpr float x_max = X_BED_SIZE - 10;
+constexpr float y_min = 30;
+constexpr float y1 = y_min + y_step;
+constexpr float y2 = y1 + y_step;
+constexpr float y3 = y2 + y_step;
+constexpr float y4 = y3 + y_step;
+constexpr float y5 = y4 + y_step;
+static_assert(Y_BED_SIZE > y5, "snake pattern out of bed");
+
 /// Path of Manhattan snake
 /// Alternate X and Y coordinates.
 /// It cannot print diagonals etc.
 /// First X and Y are a starting point.
-static const constexpr float snake2[] = {
+constexpr float snake2[] = {
     /// use 0.5 extrusion width
-    10, /// start X
-    180 - 150, /// start Y
-    170, /// X
-    180 - 130, /// Y
-    10, /// X
-    180 - 110, /// ...
-    170,
-    180 - 90,
-    10,
-    180 - 70,
-    170,
-    180 - 50,
+    x_min, /// start X
+    y_min, /// start Y
+    x_max, /// X
+    y1, /// Y
+    x_min, /// X
+    y2, /// ...
+    x_max,
+    y3,
+    x_min,
+    y4,
+    x_max,
+    y5,
     ///
     /// frame around
     9.5,
-    180 - 17,
+    Y_BED_SIZE - 17,
     30.5,
-    180 - 30.5,
-    10,
-    180 - 30,
+    Y_BED_SIZE - 30.5,
+    x_min,
+    Y_BED_SIZE - 30,
     ///
     /// infill
     30,
-    180 - 29.5,
-    10,
-    180 - 29,
+    Y_BED_SIZE - 29.5,
+    x_min,
+    Y_BED_SIZE - 29,
     30,
-    180 - 28.5,
-    10,
-    180 - 28,
+    Y_BED_SIZE - 28.5,
+    x_min,
+    Y_BED_SIZE - 28,
     30,
-    180 - 27.5,
-    10,
-    180 - 27,
+    Y_BED_SIZE - 27.5,
+    x_min,
+    Y_BED_SIZE - 27,
     30,
-    180 - 26.5,
-    10,
-    180 - 26,
+    Y_BED_SIZE - 26.5,
+    x_min,
+    Y_BED_SIZE - 26,
     30,
-    180 - 25.5,
-    10,
-    180 - 25,
+    Y_BED_SIZE - 25.5,
+    x_min,
+    Y_BED_SIZE - 25,
     30,
-    180 - 24.5,
-    10,
-    180 - 24,
+    Y_BED_SIZE - 24.5,
+    x_min,
+    Y_BED_SIZE - 24,
     30,
-    180 - 23.5,
-    10,
-    180 - 23,
+    Y_BED_SIZE - 23.5,
+    x_min,
+    Y_BED_SIZE - 23,
     30,
-    180 - 22.5,
-    10,
-    180 - 22,
+    Y_BED_SIZE - 22.5,
+    x_min,
+    Y_BED_SIZE - 22,
     30,
-    180 - 21.5,
-    10,
-    180 - 21,
+    Y_BED_SIZE - 21.5,
+    x_min,
+    Y_BED_SIZE - 21,
     30,
-    180 - 20.5,
-    10,
-    180 - 20,
+    Y_BED_SIZE - 20.5,
+    x_min,
+    Y_BED_SIZE - 20,
     30,
-    180 - 19.5,
-    10,
-    180 - 19,
+    Y_BED_SIZE - 19.5,
+    x_min,
+    Y_BED_SIZE - 19,
     30,
-    180 - 18.5,
-    10,
-    180 - 18,
+    Y_BED_SIZE - 18.5,
+    x_min,
+    Y_BED_SIZE - 18,
     30,
-    180 - 17.5,
-    10,
+    Y_BED_SIZE - 17.5,
+    x_min,
 };
+} // anonymous namespace
 
 // static variables
 uint32_t FirstLayerProgressLock::isPrinting_ = 0;
@@ -230,9 +247,6 @@ void FirstLayer::inc_progress() {
         last_progress = progress;
         marlin_server::set_var_sd_percent_done(progress);
     }
-
-    // const variant8_t var = variant8_i8(100 * current_line / (float)total_lines);
-    // marlin_set_var(MARLIN_VAR_SD_PDONE, var);
 }
 
 void FirstLayer::go_to_destination(const float x, const float y, const float z, const float e, const float f) {
@@ -343,6 +357,10 @@ void FirstLayer::print_shape_2() {
     finish_printing();
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief gcode to draw a first layer on bed
  *
@@ -374,3 +392,5 @@ void PrusaGcodeSuite::G26() {
 
     thermalManager.setTargetBed(0);
 }
+
+/** @}*/

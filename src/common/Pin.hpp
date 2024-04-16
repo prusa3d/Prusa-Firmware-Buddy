@@ -289,11 +289,18 @@ enum class OSpeed : uint8_t {
 
 class OutputPin : protected Pin {
 public:
+    constexpr OutputPin(Pin pin, State initState, OMode oMode, OSpeed oSpeed)
+        : Pin(pin)
+        , m_initState(initState)
+        , m_mode(oMode)
+        , m_speed(oSpeed) {}
+
     constexpr OutputPin(IoPort ioPort, IoPin ioPin, State initState, OMode oMode, OSpeed oSpeed)
         : Pin(ioPort, ioPin)
         , m_initState(initState)
         , m_mode(oMode)
         , m_speed(oSpeed) {}
+
     /**
      * @brief  Read output pin.
      *
@@ -475,7 +482,10 @@ private:
 class OutputEnabler {
 public:
     OutputEnabler(const InputOutputPin &innputOutputPin, Pin::State pinState, OMode mode, OSpeed speed)
-        : m_innputOutputPin(innputOutputPin) {
+        : m_innputOutputPin(innputOutputPin)
+        , m_pinState { pinState }
+        , m_mode { mode }
+        , m_speed { speed } {
         innputOutputPin.enableOutput(pinState, mode, speed);
     }
     ~OutputEnabler() {
@@ -485,8 +495,15 @@ public:
         m_innputOutputPin.write(pinState);
     }
 
+    OutputPin pin() {
+        return { m_innputOutputPin, m_pinState, m_mode, m_speed };
+    }
+
 private:
     const InputOutputPin &m_innputOutputPin;
+    Pin::State m_pinState;
+    OMode m_mode;
+    OSpeed m_speed;
 };
 
 } // namespace buddy::hw

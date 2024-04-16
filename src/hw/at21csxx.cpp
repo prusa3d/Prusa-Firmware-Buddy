@@ -11,7 +11,7 @@
 #include <string.h>
 #include "FreeRTOS.h"
 #include "task.h"
-#include "wdt.h"
+#include <wdt.hpp>
 #include "rtos_api.hpp"
 #include "timing_precise.hpp"
 

@@ -83,7 +83,7 @@ endif()
 # /web directory
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.2812ca58adec020e163e.js" "/web/main.2812ca58adec020e163e.js")
+add_gzip_resource("web/main.3fd7d8a85463914cd803.js" "/web/main.3fd7d8a85463914cd803.js")
 add_gzip_resource("web/main.71c989a4a290e5c10892.css" "/web/main.71c989a4a290e5c10892.css")
 
 # add languages
@@ -160,4 +160,52 @@ if(BOOTLOADER_UPDATE)
     required_bootloader_version.hpp.in "${resources_include_dir}/bootloader/required_version.hpp"
     )
 
+endif()
+
+# MMU Firmware resource
+if(HAS_MMU2)
+  # Returns directory with a single MMU hex FW - version set in bootstrap.py
+  get_dependency_directory("firmware-mmu" mmu_fw_dir)
+  get_dependency_version("firmware-mmu" mmu_fw_version)
+
+  file(GLOB mmu_fw_hex_file "${mmu_fw_dir}/*.hex")
+  if(NOT EXISTS "${mmu_fw_hex_file}")
+    message(
+      FATAL_ERROR
+        "Failed to locate MMU FW in .dependencies. You probably need to rerun bootstrap.py"
+      )
+  endif()
+
+  set(mmu_fw_file_base "${CMAKE_CURRENT_BINARY_DIR}/mmu_fw_${mmu_fw_version}")
+  set(mmu_fw_adj_hex_file "${mmu_fw_file_base}.hex")
+  set(mmu_fw_bin_file "${mmu_fw_file_base}.bin")
+
+  # We need to adjust the hex file and strip the comments and empty lines, otherwise the objcopy
+  # will not get it
+  add_custom_command(
+    OUTPUT "${mmu_fw_adj_hex_file}"
+    COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/mmu_ihex_cleanup.py"
+            "${mmu_fw_hex_file}" "${mmu_fw_adj_hex_file}"
+    VERBATIM
+    )
+
+  add_custom_command(
+    OUTPUT "${mmu_fw_bin_file}"
+    COMMAND "${RECOMMENDED_TOOLCHAIN_BINUTILS}/arm-none-eabi-objcopy" -I ihex -O binary
+            "${mmu_fw_adj_hex_file}" "${mmu_fw_bin_file}"
+    DEPENDS "${mmu_fw_adj_hex_file}"
+    )
+
+  # Parse the FW version - used in the configure_file call
+  string(REGEX MATCH "([0-9]+)\.([0-9]+)\.([0-9]+)" result "${mmu_fw_version}")
+  if(NOT result)
+    message(FATAL_ERROR "Failed to parse MMU FW version ${mmu_fw_version}")
+  endif()
+
+  # generate header file with MMU FW version
+  configure_file(
+    mmu_fw_attached_version.hpp.in "${resources_include_dir}/mmu2/mmu_fw_attached_version.hpp"
+    )
+
+  add_resource("${mmu_fw_bin_file}" "/mmu/fw.bin")
 endif()

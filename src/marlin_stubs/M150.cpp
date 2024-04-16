@@ -28,6 +28,10 @@ std::optional<leds::Color> parse_color() {
 }
 
 /**
+ * \addtogroup G-Codes
+ */
+
+/**
  * @brief Set display led animations
  *
  * Color input supports RGB and HSV format
@@ -100,4 +104,7 @@ void PrusaGcodeSuite::M151() {
         leds::side_strip_control.PresentColor(color_val, duration, transition);
     }
 }
+
+/** @}*/
+
 #endif

@@ -8,11 +8,10 @@
 #include "selftest_heater.h"
 #include "selftest_loadcell.h"
 #include "stdarg.h"
-#include "app.h"
 #include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/temperature.h"
 #include "selftest_fans_type.hpp"
@@ -35,6 +34,8 @@
 #include "timing.h"
 #include "selftest_result_type.hpp"
 #include "selftest_types.hpp"
+
+#include <filament_sensors_handler.hpp>
 #include <config_store/store_instance.hpp>
 
 using namespace selftest;
@@ -144,8 +145,16 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .heater_full_load_max_W = 50,
         .pwm_100percent_equivalent_value = 127,
         .min_pwm_to_measure = 26,
-        .nozzle_sock_temp_offset = -20,
-        .high_flow_nozzle_temp_offset = -5,
+        .hotend_type_temp_offsets = EnumArray<HotendType, int8_t, HotendType::_cnt> {
+            { HotendType::stock, 0 },
+            { HotendType::stock_with_sock, -20 },
+            { HotendType::e3d_revo, -127 }, // Not supported on this printer
+        },
+#if NOZZLE_TYPE_SUPPORT()
+        .nozzle_type_temp_offsets = EnumArray<NozzleType, int8_t, NozzleType::_cnt> {
+            { NozzleType::Normal, 0 },
+        },
+#endif
     }
 };
 
@@ -196,12 +205,12 @@ static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensor = { {
 } };
 
 static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensorMMU = { {
-    { .extruder_id = 0, .mmu_mode = true },
+    { .extruder_id = 0 },
 } };
 
 static constexpr SelftestGearsConfig gears_config = { .feedrate = 8 };
 
-static constexpr HotEndSockConfig sock_config = { .partname = "Sock" };
+static constexpr HotendSpecifyConfig hotend_config = { .partname = "Hotend" };
 
 CSelftest::CSelftest()
     : m_State(stsIdle)
@@ -210,7 +219,7 @@ CSelftest::CSelftest()
     , pYAxis(nullptr)
     , pZAxis(nullptr)
     , pBed(nullptr)
-    , pSock(nullptr) {
+    , pHotendSpecify(nullptr) {
 }
 
 bool CSelftest::IsInProgress() const {
@@ -221,7 +230,7 @@ bool CSelftest::IsAborted() const {
     return (m_State == stsAborted);
 }
 
-bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t tool_mask) {
+bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const TestData test_data) {
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));
@@ -247,8 +256,8 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     }
 
     // cannot have both stsXAxisWithMotorDetection and stsXAxis
-    if (m_Mask & stsXAxisWithMotorDetection) {
-        m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsXAxis)));
+    if (m_Mask & to_one_hot(stsXAxisWithMotorDetection)) {
+        m_Mask = (SelftestMask_t)(m_Mask & ~to_one_hot(stsXAxis));
     }
 
     m_State = stsStart;
@@ -354,9 +363,9 @@ void CSelftest::Loop() {
             return;
         }
         break;
-    case stsHotEndSock:
+    case stsHotendSpecify:
         if (m_result.tools[0].nozzle == TestResult_Failed) {
-            if (phase_hot_end_sock(pSock, sock_config)) {
+            if (phase_hotend_specify(pHotendSpecify, hotend_config)) {
                 return;
             }
             if (get_retry_heater()) {
@@ -366,14 +375,21 @@ void CSelftest::Loop() {
         }
         break;
     case stsFSensor_calibration:
-        if (selftest::phaseFSensor(1, pFSensor, Config_FSensor)) {
+        if (selftest::phaseFSensor(ToolMask::AllTools, pFSensor, Config_FSensor)) {
             return;
         }
         break;
-    case stsFSensorMMU_calibration:
-        if (selftest::phaseFSensor(1, pFSensor, Config_FSensorMMU)) {
-            return;
-        }
+    case stsFSensor_flip_mmu_at_the_end:
+#if HAS_MMU2()
+        // enable/disable the MMU according to the MMU Rework toggle. Used from
+        // the menus when we need to calibrate the FS before enabling/disabling
+        // the rework or the MMU itself.
+
+        // We don't check the result here. If FS is calibrated and enabled
+        // at the end of the selftest, MMU will be enabled, otherwise not.
+        marlin_server::enqueue_gcode(config_store().is_mmu_rework.get() ? "M709 S1" : "M709 S0");
+#endif
+
         break;
     case stsGears:
         if (selftest::phase_gears(pGearsCalib, gears_config)) {
@@ -401,7 +417,7 @@ void CSelftest::Loop() {
 
 void CSelftest::phaseShowResult() {
     m_result = config_store().selftest_result.get();
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, PhasesSelftest::Result, FsmSelftestResult().Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(PhasesSelftest::Result, FsmSelftestResult().Serialize());
 }
 
 void CSelftest::phaseDidSelftestPass() {
@@ -430,7 +446,7 @@ bool CSelftest::Abort() {
         abort_part(&pNozzle);
     }
     abort_part(&pBed);
-    abort_part(&pSock);
+    abort_part(&pHotendSpecify);
     for (auto &loadcell : m_pLoadcell) {
         abort_part(&loadcell);
     }
@@ -486,8 +502,8 @@ void CSelftest::restoreAfterSelftest() {
     marlin_server::set_temp_to_display(0, 0);
 
     // restore fan behavior
-    Fans::print(0).ExitSelftestMode();
-    Fans::heat_break(0).ExitSelftestMode();
+    Fans::print(0).exitSelftestMode();
+    Fans::heat_break(0).exitSelftestMode();
 
     thermalManager.disable_all_heaters();
     disable_all_steppers();

@@ -41,6 +41,10 @@ static void cap_line(PGM_P const name, bool ena = false) {
 
 #include "version.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M115: Capabilities string
  */
@@ -216,3 +220,5 @@ void GcodeSuite::M115() {
 
 #endif // EXTENDED_CAPABILITIES_REPORT
 }
+
+/** @}*/

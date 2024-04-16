@@ -1,3 +1,4 @@
+#pragma once
 #include "i18n.h"
 #include <utility_extensions.hpp>
 #include <printer_selftest.hpp>
@@ -85,7 +86,7 @@ inline constexpr MenuItemText blank_item_texts[] {
 };
 
 TestResult get_test_result(Action action, Tool tool);
-uint8_t get_tool_mask(Tool tool);
+ToolMask get_tool_mask(Tool tool);
 uint64_t get_test_mask(Action action);
 inline void ask_config([[maybe_unused]] Action action) {}
 inline Tool get_last_enabled_tool() { return Tool::Tool1; }

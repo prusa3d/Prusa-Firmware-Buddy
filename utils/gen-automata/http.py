@@ -259,7 +259,28 @@ def connection_header():
         {
             'close': 'ConnectionClose',
             'keep-alive': 'ConnectionKeepAlive',
+            'upgrade': 'ConnectionUpgrade',
         }, 'ConnectionHeader')
+
+
+def upgrade_header():
+    """
+    Parse an upgrade header.
+
+    We are looking for websocket only.
+    """
+    return keyworded_header({
+        'websocket': 'UpgradeWebsocket',
+    }, 'UpgradeHeader')
+
+
+def ws_protocol_header():
+    """
+    The Sec-WebSocket-Protocol, looking for our prusa-connect protocol.
+    """
+    return keyworded_header({
+        'prusa-connect': 'WsPrusaConnect',
+    }, 'WsProtocol')
 
 
 def accept_header():

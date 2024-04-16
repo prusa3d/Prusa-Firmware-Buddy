@@ -61,7 +61,7 @@ void RadioButtonPreview::unconditionalDraw() {
             }
         }
 
-        label.set_font(resource_font(IDR_FNT_SMALL));
+        label.set_font(Font::small);
         label.SetAlignment(Align_t::Center());
 
         icon.Draw();
@@ -71,6 +71,7 @@ void RadioButtonPreview::unconditionalDraw() {
 
 void RadioButtonPreview::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
+
     case GUI_event_t::CLICK: {
         Response response = Click();
         event_conversion_union un;
@@ -80,7 +81,8 @@ void RadioButtonPreview::windowEvent(EventLock /*has private ctor*/, window_t *s
             GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
         }
     } break;
-    case GUI_event_t::TOUCH: {
+
+    case GUI_event_t::TOUCH_CLICK: {
         event_conversion_union un;
         un.pvoid = param;
         std::optional<size_t> new_index = std::nullopt;
@@ -98,6 +100,7 @@ void RadioButtonPreview::windowEvent(EventLock /*has private ctor*/, window_t *s
             WindowEvent(this, GUI_event_t::CLICK, param);
         }
     } break;
+
     default:
         SuperWindowEvent(sender, event, param);
     }

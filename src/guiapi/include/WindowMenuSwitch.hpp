@@ -9,71 +9,38 @@
 
 #pragma once
 
-#include "WindowMenuLabel.hpp"
+#include "i_window_menu_item.hpp"
 #include "window_icon.hpp" //CalculateMinimalSize
 #include <type_traits> //aligned_storage
 
 /*****************************************************************************/
 // IWiSwitch
-class IWiSwitch : public AddSuper<WI_LABEL_t> {
+class IWiSwitch : public IWindowMenuItem {
 public:
-    static constexpr font_t *&BracketFont = GuiDefaults::FontMenuSpecial;
+    static constexpr Font BracketFont = GuiDefaults::FontMenuSpecial;
     static constexpr bool has_brackets = GuiDefaults::MenuSwitchHasBrackets;
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSwitchHasBrackets ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
 
-    struct Items_t {
-        enum class type_t : uint8_t {
-            text,
-            icon
-        };
-        union {
-            string_view_utf8 *texts;
-            const img::Resource **icon_resources;
-        };
-        uint16_t size;
-        type_t type;
-
-        // text ctor
-        Items_t(string_view_utf8 array[], size_t SZ)
-            : texts(array)
-            , size(SZ)
-            , type(type_t::text) {}
-
-        // icon ctor
-        Items_t(const img::Resource *array[], size_t SZ)
-            : icon_resources(array)
-            , size(SZ)
-            , type(type_t::icon) {}
-    };
-
 protected:
-    using TextMemSpace_t = std::aligned_storage<sizeof(string_view_utf8), alignof(string_view_utf8)>;
-    using IconMemSpace_t = std::aligned_storage<sizeof(const img::Resource *), alignof(const img::Resource *)>;
-
-    template <class T, class... E>
-    Items_t FillArray(void *ArrayMem, E &&...e) {
-        const size_t SZ = sizeof...(E);
-        T *pArr = new (ArrayMem) T[SZ] { std::forward<E>(e)... };
-        Items_t ret = Items_t(pArr, SZ);
-        return ret;
-    }
-
-protected:
-    size_t index;
-    const Items_t items;
+    size_t index = 0;
 
 public:
-    IWiSwitch(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_);
+    // !!! Call changeExtentionWidth() after the items are initialized in the child
+    IWiSwitch(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
 
     void SetIndex(size_t idx);
-    size_t GetIndex() const;
+
+    inline size_t GetIndex() const {
+        return index;
+    }
+
+    virtual size_t item_count() const = 0;
+    virtual string_view_utf8 current_item_text() const = 0;
 
 protected:
-    static Rect16::Width_t calculateExtensionWidth(Items_t items, int32_t index);
-    static Rect16::Width_t calculateExtensionWidth_text(Items_t items, int32_t index);
-    static Rect16::Width_t calculateExtensionWidth_icon(Items_t items);
-
+    Rect16::Width_t calculateExtensionWidth() const;
     void changeExtentionWidth();
+
     Rect16 getSwitchRect(Rect16 extension_rect) const;
     Rect16 getLeftBracketRect(Rect16 extension_rect) const;
     Rect16 getRightBracketRect(Rect16 extension_rect) const;
@@ -83,31 +50,31 @@ protected:
     virtual void click(IWindowMenu &window_menu) final;
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
-    void printExtension_text(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const;
-    void printExtension_icon(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const;
 };
 
-// I could use single template with type parameter and make aliases for WI_SWITCH_t and WI_ICON_SWITCH_t
-// but I would have to rewrite all base ctor calls from ": WI_SWITCH_t(...)" to ": WI_SWITCH_t<N>(...)"
-// I think it is caused by two phase lookup
+/// IWiSwitch implementation with fixed number of fixed items, stored in a buffer
 template <size_t SZ>
 class WI_SWITCH_t : public IWiSwitch {
-    // properly aligned uninitialized storage for N T's
-    typename TextMemSpace_t::type ArrayMemSpace[SZ];
 
 public:
     template <class... E>
-    WI_SWITCH_t(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
-        : IWiSwitch(index, label, id_icon, enabled, hidden, FillArray<string_view_utf8>(&ArrayMemSpace, std::forward<E>(e)...)) {}
-};
+    WI_SWITCH_t(size_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
+        : IWiSwitch(label, id_icon, enabled, hidden)
+        , items_ { std::forward<E>(e)... } //
+    {
+        SetIndex(index);
 
-template <size_t SZ>
-class WI_ICON_SWITCH_t : public IWiSwitch {
-    // properly aligned uninitialized storage for N T's
-    typename IconMemSpace_t::type ArrayMemSpace[SZ];
+        // Items are initialized now, update extension width
+        changeExtentionWidth();
+    }
 
-public:
-    template <class... E>
-    WI_ICON_SWITCH_t(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
-        : IWiSwitch(index, label, id_icon, enabled, hidden, FillArray<const img::Resource *>(&ArrayMemSpace, std::forward<E>(e)...)) {}
+    inline size_t item_count() const final {
+        return SZ;
+    }
+    inline string_view_utf8 current_item_text() const final {
+        return items_[index];
+    }
+
+private:
+    std::array<string_view_utf8, SZ> items_;
 };

@@ -4,6 +4,7 @@
 
 namespace config_store_ns {
 namespace migrations {
+#if HAS_SELFTEST()
     void selftest_result_pre_23(journal::Backend &backend) {
         // Migrating functions are fired if one of the corresponding deprecated_ids (in this case deprecated_ids::selftest_result_pre_23) is found OR if one of the earlier migration functions had its deprecated ids found.
 
@@ -30,8 +31,9 @@ namespace migrations {
 
         backend.save_migration_item(journal::hash("Selftest Result V23"), new_selftest_result); // Save the new data into the backend
     }
+#endif
 
-#if PRINTER_IS_PRUSA_XL // MINI goes directly from old eeprom to multiple footer items, MK4 gets its footer reset
+#if PRINTER_IS_PRUSA_XL and HAS_GUI() // MINI goes directly from old eeprom to multiple footer items, MK4 gets its footer reset
     void footer_setting_v1(journal::Backend &backend) {
         // See selftest_result_pre_23 (above) for in-depth commentary
         using FooterSettingsV1 = decltype(DeprecatedStore::footer_setting_v1);
@@ -61,6 +63,61 @@ namespace migrations {
     }
 #endif
 
+    void footer_setting_v2(journal::Backend &backend) {
+        struct MigrationItem {
+            int index;
+            uint16_t oldID;
+            uint16_t newID;
+        };
+
+        std::array migration_mapping = {
+            MigrationItem { 0, decltype(DeprecatedStore::footer_setting_0_v2)::hashed_id, journal::hash("Footer Setting 0 v3") },
+#if FOOTER_ITEMS_PER_LINE__ > 1
+            MigrationItem { 1, decltype(DeprecatedStore::footer_setting_1_v2)::hashed_id, journal::hash("Footer Setting 1 v3") },
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 2
+            MigrationItem { 2, decltype(DeprecatedStore::footer_setting_2_v2)::hashed_id, journal::hash("Footer Setting 2 v3") },
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 3
+            MigrationItem { 3, decltype(DeprecatedStore::footer_setting_3_v2)::hashed_id, journal::hash("Footer Setting 3 v3") },
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 4
+            MigrationItem { 4, decltype(DeprecatedStore::footer_setting_4_v2)::hashed_id, journal::hash("Footer Setting 4 v3") },
+#endif
+        };
+
+        using Value = decltype(DeprecatedStore::footer_setting_0_v2)::value_type;
+        Value values[FOOTER_ITEMS_PER_LINE__] = {
+            decltype(DeprecatedStore::footer_setting_0_v2)::default_val,
+#if FOOTER_ITEMS_PER_LINE__ > 1
+            decltype(DeprecatedStore::footer_setting_1_v2)::default_val,
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 2
+            decltype(DeprecatedStore::footer_setting_2_v2)::default_val,
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 3
+            decltype(DeprecatedStore::footer_setting_3_v2)::default_val,
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 4
+            decltype(DeprecatedStore::footer_setting_4_v2)::default_val,
+#endif
+        };
+
+        backend.read_items_for_migrations([&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            for (const auto &migration_rec : migration_mapping) {
+                if (header.id == migration_rec.oldID) {
+                    memcpy(&values[migration_rec.index], buffer.data(), sizeof(Value));
+                    break;
+                }
+            }
+        });
+
+        for (const auto &migration_rec : migration_mapping) {
+            backend.save_migration_item(migration_rec.newID, values[migration_rec.index]);
+        }
+    }
+
+#if HAS_SELFTEST()
     void selftest_result_pre_gears(journal::Backend &backend) {
         // See selftest_result_pre_23 (above) for in-depth commentary
         using SelftestResultPreGearsT = decltype(DeprecatedStore::selftest_result_pre_gears);
@@ -74,6 +131,7 @@ namespace migrations {
         SelftestResult new_selftest_result { sr_pre_gears };
         backend.save_migration_item(journal::hash("Selftest Result Gears"), new_selftest_result);
     }
+#endif
 
     void fsensor_enabled_v1(journal::Backend &backend) {
         // See selftest_result_pre_23 (above) for in-depth commentary

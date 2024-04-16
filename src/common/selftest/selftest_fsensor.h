@@ -12,7 +12,7 @@
 #include "algorithm_range.hpp"
 #include "selftest_fsensor_config.hpp"
 #include "selftest_fsensor_type.hpp"
-#include "filament_sensors_handler.hpp" // fsensor_t
+#include "filament_sensors_handler.hpp" // FilamentSensorState
 #include "selftest_log.hpp"
 
 namespace selftest {
@@ -25,9 +25,10 @@ class CSelftestPart_FSensor {
     LogTimer log;
     LogTimer log_fast;
     IFSensor *const extruder;
-    IFSensor *const side;
+    IFSensor *const side { nullptr };
     bool need_unload = false;
     float extruder_moved_amount = 0;
+    bool mmu_mode = false;
 
     bool AbortAndInvalidateIfAbortPressed();
 

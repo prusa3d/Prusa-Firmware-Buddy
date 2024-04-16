@@ -64,6 +64,9 @@ public:
 
     bool move_focus_to_index(std::optional<int> index) final;
 
+    std::optional<int> item_index_to_persistent_index(std::optional<int> item_index) const override;
+    std::optional<int> persistent_index_to_item_index(std::optional<int> persistent_index) const override;
+
     /// \returns visible index of item
     std::optional<int> GetIndex(IWindowMenuItem &item) const;
 

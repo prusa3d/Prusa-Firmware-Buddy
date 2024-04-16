@@ -53,23 +53,19 @@ screen_mesh_bed_lv_data_t::screen_mesh_bed_lv_data_t()
     , textExit(this, Rect16(2, 245, 60, 22), []() {if (mesh_state != mesh_state_t::idle){ return;
 } Screens::Access()->Close(); }) {
 
-    textMenuName.set_font(resource_font(IDR_FNT_BIG));
+    textMenuName.set_font(Font::big);
     textMenuName.SetText(_("MESH BED LEVELING"));
 
     btMesh.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)btnMeshStrings[0]));
 
     // exit and footer
-    textExit.set_font(resource_font(IDR_FNT_BIG));
+    textExit.set_font(Font::big);
     textExit.SetText(_("EXIT"));
 }
 
 void screen_mesh_bed_lv_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
-        if (marlin_client::error(MARLIN_ERR_ProbingFailed)) {
-            text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[1]));
-        } else {
-            text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[0]));
-        }
+        text_mesh_state.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)meshStrings[0]));
         switch (mesh_state) {
         case mesh_state_t::idle:
             // do nothing
@@ -79,7 +75,6 @@ void screen_mesh_bed_lv_data_t::windowEvent(EventLock /*has private ctor*/, wind
             mesh_state = mesh_state_t::home;
             break;
         case mesh_state_t::home:
-            marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
             marlin_client::event_clr(marlin_server::Event::CommandBegin);
             marlin_client::event_clr(marlin_server::Event::CommandEnd);
             marlin_client::gcode_printf("G28");

@@ -10,7 +10,7 @@
 namespace SelftestSnake {
 static_assert(Action::_first != Action::_last, "Edge case not handled");
 
-class I_MI_STS : public WI_LABEL_t {
+class I_MI_STS : public IWindowMenuItem {
 public:
     static constexpr size_t max_label_len { 44 }; ///< Buffer for label, needs to fit all languages
     I_MI_STS(Action action);
@@ -33,7 +33,7 @@ protected:
     }
 };
 
-class I_MI_STS_SUBMENU : public WI_LABEL_t {
+class I_MI_STS_SUBMENU : public IWindowMenuItem {
 public:
     I_MI_STS_SUBMENU(const char *label, Action action, Tool tool);
     void do_click(IWindowMenu &window_menu, Tool tool, Action action);
@@ -52,8 +52,8 @@ protected:
     }
 };
 
-bool is_menu_draw_enabled();
-void do_menu_event(window_t *sender, GUI_event_t event, void *param, Action action, bool is_submenu);
+bool is_menu_draw_enabled(window_t *window);
+void do_menu_event(window_t *receiver, window_t *sender, GUI_event_t event, void *param, Action action, bool is_submenu);
 
 namespace detail {
     // Enum to discern whether 'building' a Calibrations or Wizard menu

@@ -79,9 +79,7 @@ void ESPUpdate::Loop() {
         bool continue_pressed = false;
         bool wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
 
-        // we use only 2 responses here
-        // it is safe to use it from different thread as long as no other thread reads it
-        switch (marlin_server::ClientResponseHandler::GetResponseFromPhase(phase)) {
+        switch (marlin_server::get_response_from_phase(phase)) {
         case Response::Continue:
             continue_pressed = true;
             netdev_set_enabled(NETDEV_ESP_ID, true);
@@ -171,7 +169,7 @@ void ESPUpdate::Loop() {
                     current_file->size,
                     buffer_length)
                 != ESP_LOADER_SUCCESS) {
-                log_error(Network, "ESP flash: Unable to start flash on address %0xld", current_file->address);
+                log_error(Network, "ESP flash: Unable to start flash on address %" PRIx32, current_file->address);
                 progress_state = esp_upload_action::ESP_error;
                 file.reset(nullptr);
                 break;
@@ -228,9 +226,16 @@ void ESPUpdate::Loop() {
             readCount = 0;
             break;
         case esp_upload_action::WaitWIFI_enabled:
+            // Wi-fi connected -> we can finish automatically
             if (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
                 progress_state = esp_upload_action::Finish;
             }
+
+            // User pressed continue -> continue connecting on the background
+            else if (continue_pressed) {
+                progress_state = esp_upload_action::Finish;
+            }
+
             break;
         case esp_upload_action::Finish:
             phase = PhasesESP::ESP_progress_passed;
@@ -321,7 +326,7 @@ bool EspCredentials::delete_file() {
 }
 
 bool EspCredentials::file_exists() {
-    std::unique_ptr<FILE, FileDeleter> fl;
+    unique_file_ptr fl;
 
     // no other thread should modify files in file system during upload
     // or this might fail
@@ -352,10 +357,8 @@ void EspCredentials::Loop() {
         continue_yes_retry_pressed = false;
         no_pressed = false;
 
-        // we use only 3 responses here
-        // it is safe to use it from different thread as long as no other thread reads it
         if (phase) {
-            switch (marlin_server::ClientResponseHandler::GetResponseFromPhase(*phase)) {
+            switch (marlin_server::get_response_from_phase(*phase)) {
             case Response::Continue:
             case Response::Retry:
             case Response::Yes:
@@ -521,7 +524,7 @@ void EspCredentials::loop() {
         if (wait_in_progress(2048)) {
             break;
         }
-        progress_state = upload_config() ? esp_credential_action::ShowEnableWIFI : esp_credential_action::ConfigNOk;
+        progress_state = upload_config() ? esp_credential_action::AskCredentialsDelete : esp_credential_action::ConfigNOk;
         break;
     case esp_credential_action::ConfigNOk:
         // at this point cpu load is to high to draw screen nicely
@@ -537,12 +540,23 @@ void EspCredentials::loop() {
             progress_state = esp_credential_action::VerifyConfig_init;
         }
         break;
-    case esp_credential_action::ShowEnableWIFI:
+    case esp_credential_action::AskCredentialsDelete:
         // at this point cpu load is to high to draw screen nicely
         // so we wait a bit
-        if (wait_in_progress(2048)) {
+        if (wait_in_progress(1024)) {
             break;
         }
+
+        // Start enabling wi-fi on the background
+        phase = PhasesESP::ESP_asking_credentials_delete;
+        if (continue_yes_retry_pressed) {
+            delete_file();
+            progress_state = esp_credential_action::ShowEnableWIFI;
+        } else if (no_pressed) {
+            progress_state = esp_credential_action::ShowEnableWIFI;
+        }
+        break;
+    case esp_credential_action::ShowEnableWIFI:
         progress_state = esp_credential_action::EnableWIFI;
         phase = PhasesESP::ESP_enabling_WIFI;
         break;
@@ -555,12 +569,13 @@ void EspCredentials::loop() {
         progress_state = esp_credential_action::WaitWIFI_enabled;
         break;
     case esp_credential_action::WaitWIFI_enabled:
-        if (continue_yes_retry_pressed) {
-            delete_file();
+        // Wi-fi connected -> we can finish automatically
+        if (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
             progress_state = esp_credential_action::Done;
-            break;
         }
-        if (no_pressed) {
+
+        // User pressed continue -> continue connecting on the background
+        else if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::Done;
         }
         break;
@@ -592,7 +607,7 @@ static void EspTask(void *pvParameters) {
 void update_esp() {
     bool credentials_on_usb = false;
     {
-        std::unique_ptr<FILE, FileDeleter> fl;
+        unique_file_ptr fl;
         // if other thread modifies files during this action, detection might fail
         fl.reset(fopen(settings_ini::file_name, "r"));
         credentials_on_usb = fl.get() != nullptr;
@@ -624,12 +639,12 @@ void update_esp() {
 
     task_state = ESPUpdate::state::did_not_finished;
     FSM_HOLDER__LOGGING(ESP);
-    status_t status;
+    ESPUpdate::status_t status;
     status.Empty();
 
     // wait until task kills itself
     while (task_state == ESPUpdate::state::did_not_finished) {
-        status_t current = ESPUpdate::GetStatus();
+        ESPUpdate::status_t current = ESPUpdate::GetStatus();
 
         if (current != status) {
             status = current;
@@ -661,7 +676,7 @@ void update_esp() {
 void update_esp_credentials() {
     bool credentials_on_usb = false;
     {
-        std::unique_ptr<FILE, FileDeleter> fl;
+        unique_file_ptr fl;
         // if other thread modifies files during this action, detection might fail
         fl.reset(fopen(settings_ini::file_name, "r"));
         credentials_on_usb = fl.get() != nullptr;

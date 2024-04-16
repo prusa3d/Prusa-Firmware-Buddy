@@ -1,32 +1,53 @@
-// ili9488.cpp
 #include "ili9488.hpp"
-#include <guiconfig.h>
+
+#include <device/board.h>
+#include <device/hal.h>
 #include <span>
 #include <string.h>
 #include <stdlib.h>
 #include "qoi_decoder.hpp"
-#include "stm32f4xx_hal.h"
-#include "gpio.h"
-#include "bsod.h"
 #include <ccm_thread.hpp>
 #include "cmath_ext.h"
-#include "config_buddy_2209_02.h"
-
-#include "touch_dependency.hpp"
-
+#include <stdint.h>
+#include "printers.h"
+#include <common/spi_baud_rate_prescaler_guard.hpp>
 #include "raster_opfn_c.h"
 #include "hwio_pindef.h"
-#include <device/board.h>
-#ifdef ILI9488_USE_RTOS
-    #include "cmsis_os.h"
-#endif // ILI9488_USE_RTOS
-#include "main.h"
+#include "cmsis_os.h"
+#include "display_math_helper.h"
 
 #include "hw_configuration.hpp"
 
 #include <option/bootloader.h>
+#include <option/has_touch.h>
+
+#if HAS_TOUCH()
+    #include <hw/touchscreen/touchscreen.hpp>
+#endif
 
 LOG_COMPONENT_REF(GUI);
+
+#define ILI9488_FLG_DMA  0x08 // DMA enabled
+#define ILI9488_FLG_SAFE 0x20 // SAFE mode (no DMA and safe delay)
+
+struct ili9488_config_t {
+    uint8_t flg; // flags (DMA, MISO)
+    uint8_t gamma;
+    uint8_t brightness;
+    uint8_t is_inverted;
+    uint8_t control;
+};
+
+constexpr static uint8_t DEFAULT_MADCTL = 0xE0; // memory data access control (mirror XY)
+constexpr static uint8_t DEFAULT_COLMOD = 0x66; // interface pixel format (6-6-6, hi-color)
+
+static ili9488_config_t ili9488_config = {
+    .flg = ILI9488_FLG_DMA, // flags (DMA, MISO)
+    .gamma = 0, // gamma curve
+    .brightness = 0, // brightness
+    .is_inverted = 0, // inverted
+    .control = 0, // default control reg value
+};
 
 // ili9488 commands
 #define CMD_SLPIN     0x10
@@ -70,22 +91,23 @@ constexpr static uint8_t CMD_NOP = 0x00;
 
 uint8_t ili9488_flg = 0; // flags
 
+static constexpr uint8_t ILI9488_MAX_COMMAND_READ_LENGHT = 4;
+
 namespace {
 bool do_complete_lcd_reinit = false;
 }
 
-#ifdef ILI9488_USE_RTOS
 osThreadId ili9488_task_handle = 0;
-#endif // ILI9488_USE_RTOS
+
+#define ILI9488_SIG_SPI_TX 0x0008
+#define ILI9488_SIG_SPI_RX 0x0008
 
 uint8_t ili9488_buff[ILI9488_COLS * 3 * ILI9488_BUFF_ROWS]; // 3 bytes for pixel color
 bool ili9488_buff_borrowed = false; ///< True if buffer is borrowed by someone else
 
 uint8_t *ili9488_borrow_buffer() {
     assert(!ili9488_buff_borrowed && "Already lent");
-#ifdef ILI9488_USE_RTOS
     assert(ili9488_task_handle == osThreadGetId() && "Must be called only from one task");
-#endif /*ILI9488_USE_RTOS*/
     ili9488_buff_borrowed = true;
     return ili9488_buff;
 }
@@ -162,63 +184,31 @@ void ili9488_delay_ms(uint32_t ms) {
             } while ((temp & 0x01) && !(temp & (1 << 16)));
         }
     } else {
-#ifdef ILI9488_USE_RTOS
         osDelay(ms);
-#else
-        HAL_Delay(ms);
-#endif
     }
 }
 
 void ili9488_spi_wr_byte(uint8_t b) {
-    HAL_SPI_Transmit(ili9488_config.phspi, &b, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&SPI_HANDLE_FOR(lcd), &b, 1, HAL_MAX_DELAY);
 }
 
 void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size) {
     if ((ili9488_flg & ILI9488_FLG_DMA) && !(ili9488_flg & ILI9488_FLG_SAFE) && (size > 4)) {
-#ifdef ILI9488_USE_RTOS
         osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_TX);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
-#endif // ILI9488_USE_RTOS
-        assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(pb)));
-        HAL_SPI_Transmit_DMA(ili9488_config.phspi, const_cast<uint8_t *>(pb), size);
-#ifdef ILI9488_USE_RTOS
+        assert(can_be_used_by_dma(pb));
+        HAL_SPI_Transmit_DMA(&SPI_HANDLE_FOR(lcd), const_cast<uint8_t *>(pb), size);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
-#else // ILI9488_USE_RTOS
-// TODO:
-#endif // ILI9488_USE_RTOS
     } else {
-        HAL_SPI_Transmit(ili9488_config.phspi, const_cast<uint8_t *>(pb), size, HAL_MAX_DELAY);
+        HAL_SPI_Transmit(&SPI_HANDLE_FOR(lcd), const_cast<uint8_t *>(pb), size, HAL_MAX_DELAY);
     }
 }
 
-uint32_t saved_prescaler;
-
 void ili9488_spi_rd_bytes(uint8_t *pb, uint16_t size) {
-    saved_prescaler = ili9488_config.phspi->Init.BaudRatePrescaler;
-    if (HAL_SPI_DeInit(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
+    // reading is more reliable at 20MHz
+    SPIBaudRatePrescalerGuard guard { &SPI_HANDLE_FOR(lcd), SPI_BAUDRATEPRESCALER_4 };
 
-    ili9488_config.phspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
-
-    if (HAL_SPI_Init(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
-
-    HAL_StatusTypeDef ret;
-    ret = HAL_SPI_Receive(ili9488_config.phspi, pb, size, HAL_MAX_DELAY);
-
-    if (HAL_SPI_DeInit(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
-
-    ili9488_config.phspi->Init.BaudRatePrescaler = saved_prescaler;
-    if (HAL_SPI_Init(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
-
-    ret = ret; // prevent warning
+    HAL_SPI_Receive(&SPI_HANDLE_FOR(lcd), pb, size, HAL_MAX_DELAY);
 }
 
 void ili9488_cmd(uint8_t cmd, const uint8_t *pdata, uint16_t size) {
@@ -246,32 +236,16 @@ void ili9488_cmd_1_data(uint8_t cmd, uint8_t data) {
 }
 
 void ili9488_cmd_rd(uint8_t cmd, uint8_t *pdata) {
-    saved_prescaler = ili9488_config.phspi->Init.BaudRatePrescaler;
-    if (HAL_SPI_DeInit(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
-
-    ili9488_config.phspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
-
-    if (HAL_SPI_Init(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
+    // reading is even more reliable at 10MHz
+    SPIBaudRatePrescalerGuard guard { &SPI_HANDLE_FOR(lcd), SPI_BAUDRATEPRESCALER_8 };
 
     ili9488_clr_cs(); // CS = L
     ili9488_clr_rs(); // RS = L
     uint8_t data_to_write[ILI9488_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     data_to_write[0] = cmd;
     data_to_write[1] = 0x00;
-    HAL_SPI_TransmitReceive(ili9488_config.phspi, data_to_write, pdata, ILI9488_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
+    HAL_SPI_TransmitReceive(&SPI_HANDLE_FOR(lcd), data_to_write, pdata, ILI9488_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
     ili9488_set_cs();
-    if (HAL_SPI_DeInit(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
-
-    ili9488_config.phspi->Init.BaudRatePrescaler = saved_prescaler;
-    if (HAL_SPI_Init(ili9488_config.phspi) != HAL_OK) {
-        Error_Handler();
-    }
 }
 
 void ili9488_wr(uint8_t *pdata, uint16_t size) {
@@ -345,8 +319,13 @@ void ili9488_cmd_ramrd(uint8_t *pdata, uint16_t size) {
     ili9488_rd(pdata, size);
 }
 
-void ili9488_cmd_madctlrd(uint8_t *pdata) {
+bool ili9488_is_reset_required() {
+    uint8_t pdata[ILI9488_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     ili9488_cmd_rd(CMD_MADCTLRD, pdata);
+    if ((pdata[1] != 0xE0 && pdata[1] != 0xF0 && pdata[1] != 0xF8)) {
+        return true;
+    }
+    return false;
 }
 
 /*void ili9488_test_miso(void)
@@ -376,23 +355,17 @@ void ili9488_reset(void) {
 
     ili9488_clr_rst();
     ili9488_delay_ms(15);
-    touch::reset_chip(ili9488_set_rst); // touch will restore reset
+
+#if HAS_TOUCH()
+    touchscreen.reset_chip(ili9488_set_rst); // touch will restore reset
+#else
+    ili9488_set_rst();
+#endif
 }
 
 void ili9488_power_down() {
     // activate reset pin of display, keep it enabled
     ili9488_clr_rst();
-}
-
-// weak functions to be used without touch driver
-void __attribute__((weak)) touch::reset_chip(touch::reset_clr_fnc_t reset_clr_fnc) {
-    log_info(GUI, "%s not bound to touch", __PRETTY_FUNCTION__);
-    reset_clr_fnc();
-}
-
-bool __attribute__((weak)) touch::set_registers() {
-    log_info(GUI, "%s not bound to touch", __PRETTY_FUNCTION__);
-    return false;
 }
 
 void ili9488_set_complete_lcd_reinit() {
@@ -402,8 +375,8 @@ void ili9488_set_complete_lcd_reinit() {
 static void startup_old_manufacturer() {
     ili9488_cmd_slpout(); // wakeup
     ili9488_delay_ms(120); // 120ms wait
-    ili9488_cmd_madctl(ili9488_config.madctl); // interface pixel format
-    ili9488_cmd_colmod(ili9488_config.colmod); // memory data access control
+    ili9488_cmd_madctl(DEFAULT_MADCTL); // interface pixel format
+    ili9488_cmd_colmod(DEFAULT_COLMOD); // memory data access control
     ili9488_cmd_dispon(); // display on
     ili9488_delay_ms(10); // 10ms wait
     ili9488_clear(COLOR_BLACK); // black screen after power on
@@ -419,9 +392,9 @@ static void startup_new_manufacturer() {
     // Memory Access Control
     // defines read/write scanning direction of the frame memory
     // ili9488_cmd_1_data(CMD_MADCTL, 0x48); - original recommended value, does not work, we use 0xe0
-    ili9488_cmd_madctl(ili9488_config.madctl);
+    ili9488_cmd_madctl(DEFAULT_MADCTL);
 
-    ili9488_cmd_colmod(ili9488_config.colmod); // Interface Pixel Format 0x66:RGB666
+    ili9488_cmd_colmod(DEFAULT_COLMOD); // Interface Pixel Format 0x66:RGB666
 
     // Frame Rate Control (In Normal Mode/Full Colors) (this seems to be default)
     ili9488_cmd_array(0xB1, std::to_array<uint8_t>({
@@ -474,9 +447,7 @@ static void startup_new_manufacturer() {
 
 void ili9488_init(void) {
     displayCs.write(Pin::State::low);
-#ifdef ILI9488_USE_RTOS
     ili9488_task_handle = osThreadGetId();
-#endif // ILI9488_USE_RTOS
     if (ili9488_flg & ILI9488_FLG_SAFE) {
         ili9488_flg &= ~ILI9488_FLG_DMA;
     } else {
@@ -492,20 +463,23 @@ void ili9488_init(void) {
             startup_old_manufacturer();
         }
     } else {
-        ili9488_cmd_madctl(ili9488_config.madctl); // interface pixel format
-        ili9488_cmd_colmod(ili9488_config.colmod); // memory data access control
+        ili9488_cmd_madctl(DEFAULT_MADCTL); // interface pixel format
+        ili9488_cmd_colmod(DEFAULT_COLMOD); // memory data access control
         ili9488_inversion_on();
     }
 
-    if (touch::is_enabled()) {
-        touch::set_registers(); // do not disable it, it is handled in GUI
+#if HAS_TOUCH()
+    if (touchscreen.is_enabled()) {
+        touchscreen.upload_touchscreen_config();
     }
+#endif
 
     if (Configuration::Instance().has_display_backlight_control()) {
         ili9488_brightness_enable();
 
         // inverted brightness
-        ili9488_cmd(CMD_CABCCTRL2, &ili9488_config.pwm_inverted, sizeof(ili9488_config.pwm_inverted));
+        uint8_t pwm_inverted = 0b10110001;
+        ili9488_cmd(CMD_CABCCTRL2, &pwm_inverted, sizeof(pwm_inverted));
     }
 
     ili9488_brightness_set(0xFF); // set backlight to maximum
@@ -812,33 +786,17 @@ void ili9488_ctrl_set(uint8_t ctrl) {
     ili9488_cmd(CMD_WRCTRLD, &ili9488_config.control, sizeof(ili9488_config.control));
 }
 
-ili9488_config_t ili9488_config = {
-    0, // spi handle pointer
-    0, // flags (DMA, MISO)
-    0, // interface pixel format (5-6-5, hi-color)
-    0, // memory data access control (no mirror XY)
-    GAMMA_CURVE0, // gamma curve
-    0, // brightness
-    0, // inverted
-    0, // default control reg value
-    0b10110001 // inverted pwm
-};
-
 //! @brief enable safe mode (direct acces + safe delay)
 void ili9488_enable_safe_mode(void) {
     ili9488_flg |= ILI9488_FLG_SAFE;
 }
 
 void ili9488_spi_tx_complete(void) {
-#ifdef ILI9488_USE_RTOS
     osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_TX);
-#endif // ILI9488_USE_RTOS
 }
 
 void ili9488_spi_rx_complete(void) {
-#ifdef ILI9488_USE_RTOS
     osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_RX);
-#endif // ILI9488_USE_RTOS
 }
 
 void ili9488_cmd_nop() {

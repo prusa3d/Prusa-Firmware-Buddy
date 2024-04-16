@@ -1,22 +1,23 @@
-// appmain.cpp - arduino-like app start
-
 #include "appmain.hpp"
-#include "app.h"
+
 #include "app_metrics.h"
 #include "log.h"
 #include "cmsis_os.h"
 #include "config.h"
 #include "adc.hpp"
-#include "Jogwheel.hpp"
+#include <option/has_gui.h>
+#if HAS_GUI()
+    #include "Jogwheel.hpp"
+#endif
 #include "hwio.h"
 #include "sys.h"
 #include "gpio.h"
 #include "metric.h"
 #include "cpu_utils.hpp"
-#include "print_utils.hpp"
 #include "sound.hpp"
 #include "language_eeprom.hpp"
 #include <device/board.h>
+#include <usb_device.hpp>
 
 #include <option/has_advanced_power.h>
 #if HAS_ADVANCED_POWER()
@@ -33,12 +34,16 @@
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
 #include "main.h"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include "fanctl.hpp"
+#include "printers.h"
+#include "MarlinPin.h"
 #include "timing.h"
 #include "tasks.hpp"
 #include "Marlin/src/module/planner.h"
 #include <option/filament_sensor.h>
-#include <option/has_gui.h>
+
+#include <tusb.h>
 
 #if BOARD_IS_XLBUDDY
     #include <puppies/Dwarf.hpp>
@@ -58,12 +63,13 @@
     #include "hx717mux.hpp"
 #endif
 
+#include <option/has_touch.h>
+#if HAS_TOUCH()
+    #include <hw/touchscreen/touchscreen.hpp>
+#endif
+
 LOG_COMPONENT_REF(MMU2);
 LOG_COMPONENT_REF(Marlin);
-
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-    #include "FUSB302B.hpp"
-#endif
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -77,10 +83,9 @@ LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
 LOG_COMPONENT_DEF(MMU2, LOG_SEVERITY_INFO);
 
-extern "C" {
-metric_t metric_app_start = METRIC("app_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
-metric_t metric_maintask_event = METRIC("maintask_loop", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_DISABLE_ALL);
-metric_t metric_cpu_usage = METRIC("cpu_usage", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_app_start, "app_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_maintask_event, "maintask_loop", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_cpu_usage, "cpu_usage", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
 #ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
@@ -119,18 +124,43 @@ void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     }
 }
 
-void app_setup_marlin_logging() {
+static void app_setup_marlin_logging() {
     SerialUSB.lineBufferHook = app_marlin_serial_output_write_hook;
 }
 
-void app_startup() {
+static void wait_for_serial() {
+    // wait for usb thread to be ready, then continue waiting only if something was seen
+    TaskDeps::wait(TaskDeps::Tasks::usb_device_start);
+    if (!usb_device_seen()) {
+        return;
+    }
+
+    // If a device was seen, keep trying to connect irregardless of the current connection state, as
+    // a re-negotiation could temporarily break out of this loop a cause messages to be lost
+    log_info(Buddy, "device seen: waiting for serial");
+    uint32_t start_ts = ticks_ms();
+    while (ticks_diff(ticks_ms(), start_ts) < 3000) {
+        if (tud_cdc_n_connected(0)) {
+            log_info(Buddy, "serial successfully attached");
+            break;
+        }
+        osDelay(10);
+    }
+}
+
+static void app_startup() {
+    // Attempt to wait for CDC to initialize to get the full Marlin startup output
+    wait_for_serial();
+
+    // Finally link SerialUSB/marlin
     app_setup_marlin_logging();
+
     log_info(Buddy, "marlin task waiting for dependencies");
     TaskDeps::wait(TaskDeps::Tasks::default_start);
     log_info(Buddy, "marlin task is starting");
 }
 
-void app_setup(void) {
+static void app_setup(void) {
     metric_record_event(&metric_app_start);
 
     if constexpr (!INIT_TRINAMIC_FROM_MARLIN_ONLY()) {
@@ -147,7 +177,7 @@ void app_setup(void) {
     loadcell.SetHysteresis(config_store().loadcell_hysteresis.get());
 
     if (config_store().stuck_filament_detection.get()) {
-        EMotorStallDetector::Instance().Enable();
+        EMotorStallDetector::Instance().SetEnabled();
     } // else keep it disabled (which is the default)
 
     #if HAS_LOADCELL_HX717()
@@ -158,27 +188,16 @@ void app_setup(void) {
     setup();
 
     marlin_server::settings_load(); // load marlin variables from eeprom
-
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-    buddy::hw::FUSB302B::InitChip();
-#endif
-}
-
-void app_idle(void) {
-    buddy::metrics::RecordMarlinVariables();
-    buddy::metrics::RecordRuntimeStats();
-    buddy::metrics::RecordPrintFilename();
-#if (BOARD_IS_XLBUDDY)
-    buddy::metrics::record_dwarf_internal_temperatures();
-#endif
-    print_utils_loop();
 }
 
 void app_run(void) {
+    app_startup();
+
+#if HAS_GUI()
     LangEEPROM::getInstance();
+#endif
 
     marlin_server::init();
-    marlin_server::idle_cb = app_idle;
 
     log_info(Marlin, "Starting setup");
 
@@ -201,6 +220,15 @@ void app_run(void) {
 
     TaskDeps::provide(TaskDeps::Dependency::default_task_ready);
 
+    // Wait for the other tasks to init marlin clients
+    // Marlin might create some FSMs right at the start and if the gui task doesn't process the message, it might not show the dialogs.
+    // We gotta loop the marlin server though, because the clients configure event masks through request messages
+    // BFW-5057
+    while (!TaskDeps::check(TaskDeps::Tasks::marlin_server)) {
+        marlin_server::barebones_loop();
+        osDelay(1);
+    }
+
     while (1) {
         metric_record_event(&metric_maintask_event);
         metric_record_integer(&metric_cpu_usage, osGetCPUUsage());
@@ -213,10 +241,6 @@ void app_run(void) {
 
 void app_error(void) {
     bsod("app_error");
-}
-
-void app_assert([[maybe_unused]] uint8_t *file, [[maybe_unused]] uint32_t line) {
-    bsod("app_assert");
 }
 
 #if HAS_ADVANCED_POWER()
@@ -273,12 +297,12 @@ static void filament_sensor_irq() {
             };
 
             // ensure AdcGet::undefined_value is representable within FSensor::value_type
-            static_assert(static_cast<FSensor::value_type>(AdcGet::undefined_value) == AdcGet::undefined_value);
+            static_assert(static_cast<IFSensor::value_type>(AdcGet::undefined_value) == AdcGet::undefined_value);
 
             // widen the type to match the main sensor data type and translate the undefined value
-            FSensor::value_type fs_raw_value = AdcGet::side_filament_sensor(adc_channel_mapping[remapped]);
+            IFSensor::value_type fs_raw_value = AdcGet::side_filament_sensor(adc_channel_mapping[remapped]);
             if (fs_raw_value == AdcGet::undefined_value) {
-                fs_raw_value = FSensor::undefined_value;
+                fs_raw_value = IFSensor::undefined_value;
             }
             side_fs_process_sample(fs_raw_value, dwarf.get_dwarf_nr() - 1);
         }
@@ -302,20 +326,26 @@ void adc_tick_1ms(void) {
 }
 
 void app_tim14_tick(void) {
+    // run sound first, so it is more synchronized
+    Sound_Update1ms();
+
     Fans::tick();
 
 #if HAS_GUI()
     jogwheel.Update1msFromISR();
 #endif
-    Sound_Update1ms();
-    // hwio_update_1ms();
+
+#if HAS_TOUCH()
+    if (touchscreen.is_enabled()) {
+        touchscreen.update();
+    }
+#endif
+
     adc_tick_1ms();
 
 #if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
     filament_sensor_irq();
 #endif
 }
-
-} // extern "C"
 
 // cpp code

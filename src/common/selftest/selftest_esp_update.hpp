@@ -44,39 +44,34 @@ struct esp_entry {
     uint32_t size;
 };
 
-struct status_t {
-    PhasesESP phase;
-    uint8_t progress;
-    uint8_t current_file : 4;
-    uint8_t count_of_files : 4;
-
-    void Empty() {
-        phase = PhasesESP::_none;
-        progress = 0;
-    }
-
-    constexpr bool operator==(const status_t &other) const {
-        return ((progress == other.progress) && (phase == other.phase) && (current_file == other.current_file) && (count_of_files == other.count_of_files));
-    }
-
-    constexpr bool operator!=(const status_t &other) const {
-        return !((*this) == other);
-    }
-};
-
-static_assert(sizeof(uint32_t) >= sizeof(status_t), "error esp status is too big");
-
-union status_encoder_union {
-    uint32_t u32;
-    status_t status;
-};
-
 class ESPUpdate {
     static constexpr size_t buffer_length = 512;
     static constexpr size_t files_to_upload = 3;
 
 public:
     using firmware_set_t = std::array<esp_entry, files_to_upload>;
+
+    struct status_t {
+        PhasesESP phase;
+        uint8_t progress;
+        uint8_t current_file : 4;
+        uint8_t count_of_files : 4;
+
+        void Empty() {
+            phase = PhasesESP::_none;
+            progress = 0;
+        }
+
+        constexpr bool operator==(const status_t &other) const = default;
+        constexpr bool operator!=(const status_t &other) const = default;
+    };
+
+    static_assert(sizeof(uint32_t) >= sizeof(status_t), "error esp status is too big");
+
+    union status_encoder_union {
+        uint32_t u32;
+        status_t status;
+    };
 
 protected:
     unique_file_ptr file;
@@ -144,6 +139,7 @@ enum class esp_credential_action {
     ConfigNOk_wait_user,
     ShowEnableWIFI,
     EnableWIFI,
+    AskCredentialsDelete,
     WaitWIFI_enabled, // pressing abort will just restore connection interface (Eth / WiFi / none)
     Aborted, // currently abort does not wait for user
     // Aborted_wait_user,

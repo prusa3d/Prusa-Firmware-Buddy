@@ -7,14 +7,14 @@
 
 #pragma once
 
-#include "WindowMenuLabel.hpp"
+#include "i_window_menu_item.hpp"
 #include "menu_spin_config_type.hpp" //SpinConfig_t
 
 #include "feature/tmc_util.h"
 
 /*****************************************************************************/
 // IWiSpin
-class IWiSpin : public AddSuper<WI_LABEL_t> {
+class IWiSpin : public IWindowMenuItem {
     SpinType value;
 
 protected:
@@ -38,7 +38,6 @@ protected:
         value = val;
     }
 
-    static constexpr font_t *&Font = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::FontMenuSpecial : GuiDefaults::FontMenuItems;
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
     static constexpr size_t unit__half_space_padding = 6;
     static constexpr bool has_unit = GuiDefaults::MenuSpinHasUnits;
@@ -69,7 +68,7 @@ public:
 /*****************************************************************************/
 // WI_SPIN_t
 template <class T>
-class WI_SPIN_t : public AddSuper<IWiSpin> {
+class WI_SPIN_t : public IWiSpin {
 
 public: // todo private
     using Config = SpinConfig_t<T>;
@@ -101,7 +100,7 @@ public:
 // WI_SPIN_t
 template <class T>
 WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : AddSuper<IWiSpin>(std::clamp(T(val), cnf.Min(), cnf.Max()), label, id_icon, enabled, hidden,
+    : IWiSpin(std::clamp(T(val), cnf.Min(), cnf.Max()), label, id_icon, enabled, hidden,
         cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), 0)
     , config(cnf) {
     printSpinToBuffer();
@@ -161,7 +160,7 @@ using WiSpinFlt = WI_SPIN_t<float>;
 #include "../../../lib/Marlin/Marlin/src/feature/prusa/crash_recovery.hpp"
 #if ENABLED(CRASH_RECOVERY)
 
-class WI_SPIN_CRASH_PERIOD_t : public AddSuper<IWiSpin> {
+class WI_SPIN_CRASH_PERIOD_t : public IWiSpin {
 
 public: // todo private
     using Config = SpinConfig_t<int>;

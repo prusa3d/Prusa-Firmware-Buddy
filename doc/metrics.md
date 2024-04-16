@@ -10,12 +10,13 @@ in real-time while your algorithm runs on a real printer.
 1. Define a metric
 
     ```C
-    static metric_t metric_cpu_usage = METRIC("cpu_usage", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
+    METRIC_DEF(cpu_usage, "cpu_usage", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
     ```
 
-    - The first parameter - `cpu_usage` - is the metric's name. Keep it short!
-    - The second parameter defines the type of data points (values) for this metric.
-    - The third parameter - `100` - defines the minimal interval between consecutive recorded points in ms.
+    - The first parameter - `cpu_usage` - is the variable name
+    - The second parameter - `cpu_usage` - is the metric's name. Keep it short!
+    - The third parameter defines the type of data points (values) for this metric.
+    - The fourth parameter - `100` - defines the minimal interval between consecutive recorded points in ms.
         - E.g., the value 100 ms makes the `cpu_usage` metric being transmitted at a maximum frequency of 10 Hz.
         - If you want to disable throttling and send the values as fast as possible, set it to 0.
     - The last parameter is a bitmap specifying which handlers should have this metric enabled after startup.
@@ -31,7 +32,6 @@ in real-time while your algorithm runs on a real printer.
 3. Enable sending the recorded metrics
 
     ```gcode
-    M330 SYSLOG               ; We are using the SYSLOG handler (ethernet, UDP)
     M334 <ip address> <port>  ; Where to send the metrics
     M331 cpu_usage            ; Enable the metric we just created
     ```
@@ -42,7 +42,7 @@ in real-time while your algorithm runs on a real printer.
 
 Let you configure your metrics at runtime.
 
-- **M330**` <handler>` -- Select `handler` for configuration
+- **M330**` <handler>` -- Select `handler` for configuration (`SYSLOG` is selected by default)
     - Example: `M330 SYSLOG`
 - **M331**` <metric>` -- Enable `metric` for the currently selected `handler`.
     - Example: `M331 pos_z`
@@ -68,7 +68,7 @@ This works great in most cases. However, sometimes it comes in handy to send mul
 
 ```C
 void record_heap_usage() {
-    static metric_t heap = METRIC("heap", METRIC_VALUE_INTEGER, ...);
+    METRIC_DEF(heap, "heap", METRIC_VALUE_INTEGER, ...);
     metric_record_integer(&heap, GetFreeHeapSize());
 }
 ```
@@ -77,8 +77,8 @@ This will work. But what if you want to add a second piece of information - the 
 
 ```C
 void record_heap_usage() {
-    static metric_t heap_free = METRIC("heap_free", METRIC_VALUE_INTEGER, ...);
-    static metric_t heap_total = METRIC("heap_total", METRIC_VALUE_INTEGER, ...);
+    METRIC_DEF(heap_free, "heap_free", METRIC_VALUE_INTEGER, ...);
+    METRIC_DEF(heap_total, "heap_total", METRIC_VALUE_INTEGER, ...);
     metric_record_integer(&heap_free, GetFreeHeapSize());
     metric_record_integer(&heap_total, GetTotalHeapSize());
 }
@@ -89,7 +89,7 @@ Can we do better? Sure we can!
 
 ```C
 void record_heap_usage() {
-    static metric_t heap = METRIC("heap", METRIC_VALUE_CUSTOM, ...);
+    METRIC_DEF(heap, "heap", METRIC_VALUE_CUSTOM, ...);
     metric_record_custom(&heap, " free=%ii,total=%ii", GetFreeHeapSize(), GetTotalHeapSize());
 }
 ```
@@ -155,7 +155,6 @@ What are metrics good for, if you have no way to store, view, and process them? 
     - By default, the metrics are stored within a database named `buddy` (no authorization required)
 1. A metric-handler service, listening on port 8500 for incoming metrics and storing them to the InfluxDB database.
     - You can setup your printer to send metrics to this handler using the gcodes below
-        - `M330 SYSLOG`
         - `M334 <ip address of your computer> 8500`
 1. A Grafana instance for viewing the metrics.
     - Accessible on port 3000 (http://localhost:3000)

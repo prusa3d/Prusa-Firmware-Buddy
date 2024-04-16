@@ -1,3 +1,4 @@
+#pragma once
 #include <cinttypes>
 #include <cstdlib>
 #include <concepts>

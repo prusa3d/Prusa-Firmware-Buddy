@@ -40,6 +40,13 @@ namespace transfers {
 class PartialFile {
 public:
     static const size_t SECTOR_SIZE = 512;
+#if PRINTER_IS_PRUSA_MINI
+    static const size_t SECTORS_PER_WRITE = 1; // Low on RAM on mini
+#else
+    static const size_t SECTORS_PER_WRITE = 8;
+#endif
+    // The size of one buffer (possibly multiple sectors)
+    static const size_t BUFFER_SIZE = SECTOR_SIZE * SECTORS_PER_WRITE;
 
     struct ValidPart {
         size_t start;
@@ -123,7 +130,7 @@ private:
         uint32_t get_available_slot() const;
 
         // Protects the slots acquisition / mask
-        FreeRTOS_Mutex mutex;
+        freertos::Mutex mutex;
         // Represents the number of free slots (update of mask must be protected by this)
         SemaphoreHandle_t semaphore;
 
@@ -158,7 +165,7 @@ private:
     /// Valid parts of the file
     State state;
 
-    mutable FreeRTOS_Mutex state_mutex;
+    mutable freertos::Mutex state_mutex;
 
     /// Last reported progress over logs
     int last_progress_percent;
@@ -190,6 +197,17 @@ private:
     typedef void WrittenCallback(void *);
     WrittenCallback *written_callback = nullptr;
     void *written_callback_arg;
+
+    /// How large (in bytes) write are we going to do now?
+    ///
+    /// Depends on if the current sector is "aligned" to the write size or not.
+    ///
+    /// Current buffer must be allocated at this point.
+    size_t allowed_write_size() const;
+
+    /// How many sectors can we write (either aligned completely or to round up
+    /// to alignment for next write).
+    size_t allowed_sectors() const;
 
 public:
     PartialFile(UsbhMscRequest::LunNbr drive, UsbhMscRequest::SectorNbr first_sector, State state, int file_lock);
@@ -225,8 +243,20 @@ public:
     struct WriteError {};
     struct OutOfRange {};
 
-    using BufferAndOffset = std::tuple<uint8_t *, size_t>;
-    using BufferPeek = std::variant<BufferAndOffset, WouldBlock, WriteError, OutOfRange>;
+    struct BufferAndSizes {
+        uint8_t *buffer;
+        // Already written into the buffer this far
+        size_t offset;
+        // Usable size of the buffer.
+        //
+        // Note: may be different each time (sometimes we allow "big" writes,
+        // sometimes small ones).
+        //
+        // This does not account for "end of file", that's still up to the
+        // caller.
+        size_t size;
+    };
+    using BufferPeek = std::variant<BufferAndSizes, WouldBlock, WriteError, OutOfRange>;
 
     /// Provides a data pointer and offset (to the place where already written) to the current write buffer.
     ///

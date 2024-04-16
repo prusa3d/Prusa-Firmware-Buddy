@@ -1,7 +1,7 @@
 #include "radio_button.hpp"
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
-#include "fonts.hpp" //IDR_FNT_BIG
+#include "fonts.hpp"
 #include "gui.hpp"
 
 #include <algorithm> //find
@@ -38,8 +38,7 @@ size_t IRadioButton::cnt_buttons(const PhaseTexts *labels, Responses_t resp) {
 // nonstatic variables and methods
 
 IRadioButton::IRadioButton(window_t *parent, Rect16 rect, size_t count)
-    : AddSuperWindow<window_t>(parent, rect)
-    , pfont(resource_font(IDR_FNT_BIG)) {
+    : AddSuperWindow<window_t>(parent, rect) {
     SetBackColor(COLOR_ORANGE);
     SetBtnCount(count);
     SetBtnIndex(0);
@@ -76,6 +75,7 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
     }
 
     switch (event) {
+
     case GUI_event_t::CLICK: {
         // send response to parent via GUI_event_t::CHILD_CLICK
         Response response = Click();
@@ -85,13 +85,16 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
             GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
         }
     } break;
+
     case GUI_event_t::ENC_UP:
         ++(*this);
         return;
+
     case GUI_event_t::ENC_DN:
         --(*this);
         return;
-    case GUI_event_t::TOUCH: {
+
+    case GUI_event_t::TOUCH_CLICK: {
         event_conversion_union un;
         un.pvoid = param;
         std::optional<size_t> new_index = std::nullopt;
@@ -106,7 +109,9 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
         default: {
             Layout layout = getNormalBtnRects(btn_count);
             for (uint8_t i = 0; i < btn_count; ++i) {
-                if (layout.splits[i].Contain(un.point)) {
+                // Intentionally do not check for Y coords - should be covered by the overal radio rect
+                // Also some radio button override get_rect_for_touch, which should give more vertical tolerance
+                if (un.point.x >= layout.splits[i].Left() && un.point.x < layout.splits[i].Right()) {
                     new_index = i;
                     break;
                 }
@@ -123,13 +128,57 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
 
             // generate click and send it to itself
             // child class might handle it, if not GUI_event_t::CLICK from this switch will be called
-            WindowEvent(this, GUI_event_t::CLICK, param);
+            WindowEvent(this, GUI_event_t::CLICK, 0);
         }
     }
         return;
     default:
         SuperWindowEvent(sender, event, param);
     }
+}
+
+void IRadioButton::screenEvent(window_t *sender, GUI_event_t event, void *const param) {
+    switch (event) {
+
+        // Touch swipe left/right = selecting the "back" response
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT: {
+        static constexpr std::array candidate_responses = {
+            Response::Back,
+            Response::Abort,
+            Response::Stop,
+        };
+
+        Response selected_response = Response::_none;
+        int selected_response_index = 0;
+        for (Response r : candidate_responses) {
+            const auto ix = IndexFromResponse(r);
+            if (!ix) {
+                continue;
+            } else if (selected_response != Response::_none) {
+                // Mark that there are multiple candidate responses
+                selected_response = Response::_count;
+            } else {
+                selected_response_index = *ix;
+                selected_response = r;
+            }
+        }
+
+        // There must be exactly one candidate response in the dialog
+        if (selected_response == Response::_none || selected_response == Response::_count) {
+            break;
+        }
+
+        SetBtnIndex(selected_response_index);
+        WindowEvent(this, GUI_event_t::CLICK, 0);
+        return;
+    }
+
+    default:
+        break;
+    }
+
+    window_t::screenEvent(sender, event, param);
 }
 
 void IRadioButton::unconditionalDraw() {
@@ -157,10 +206,14 @@ void IRadioButton::draw_0_btn() {
     }
 }
 
+static constexpr auto ButtonFont = Font::big;
+
+static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, bool is_selected);
+
 // called internally, responses must exist
 void IRadioButton::draw_1_btn() {
-    const char *txt_to_print = getAlternativeTexts() ? (*getAlternativeTexts())[0] : BtnResponse::GetText(responseFromIndex(0));
-    button_draw(GetRect(), GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), _(txt_to_print), pfont,
+    const char *txt_to_print = getAlternativeTexts() ? (*getAlternativeTexts())[0] : get_response_text(responseFromIndex(0));
+    button_draw(GetRect(), GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), _(txt_to_print),
         IsEnabled(0) && !disabled_drawing_selected);
 }
 
@@ -173,14 +226,14 @@ void IRadioButton::draw_n_btns(size_t btn_count) {
         string_view_utf8 drawn = _(layout.txts_to_print[i]);
         char buffer[MAX_TEXT_BUFFER] = { 0 };
         if (layout.text_widths[i] > layout.splits[i].Width()) {
-            uint32_t max_btn_label_text = layout.splits[i].Width() / pfont->w;
+            uint32_t max_btn_label_text = layout.splits[i].Width() / width(ButtonFont);
             size_t length = std::min(max_btn_label_text, MAX_TEXT_BUFFER - 1);
             length = drawn.copyToRAM(buffer, length);
             buffer[length] = 0;
             drawn = string_view_utf8::MakeRAM((const uint8_t *)buffer);
         }
         if (responseFromIndex(i) != Response::_none) {
-            button_draw(layout.splits[i], GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), drawn, pfont,
+            button_draw(layout.splits[i], GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), drawn,
                 GetBtnIndex() == i && IsEnabled(i) && !disabled_drawing_selected);
         }
     }
@@ -196,7 +249,7 @@ IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
         ret.txts_to_print = *getAlternativeTexts();
     } else {
         for (size_t i = 0; i < max_buttons; ++i) {
-            ret.txts_to_print[i] = BtnResponse::GetText(responseFromIndex(i));
+            ret.txts_to_print[i] = get_response_text(responseFromIndex(i));
         }
     }
 
@@ -204,7 +257,7 @@ IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
 
     for (size_t index = 0; index < btn_count; index++) {
         string_view_utf8 txt = _(ret.txts_to_print[index]);
-        ret.text_widths[index] = pfont->w * static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
+        ret.text_widths[index] = width(ButtonFont) * static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
     }
     GetRect().HorizontalSplit(
         ret.splits,
@@ -217,6 +270,13 @@ IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
     return ret;
 }
 
+Rect16 IRadioButton::get_rect_for_touch() const {
+    static constexpr int extra = 64;
+
+    Rect16 rect = GetRect();
+    return Rect16(rect.Left(), rect.Top() - extra, rect.Width(), rect.Height() + extra);
+}
+
 void IRadioButton::DisableDrawingSelected() {
     disabled_drawing_selected = true;
 }
@@ -224,7 +284,7 @@ void IRadioButton::EnableDrawingSelected() {
     disabled_drawing_selected = false;
 }
 
-void IRadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, const font_t *pf, bool is_selected) {
+static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, bool is_selected) {
     color_t button_cl = is_selected ? back_color : COLOR_GRAY;
     color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
     if (GuiDefaults::RadioButtonCornerRadius) {
@@ -232,7 +292,7 @@ void IRadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent
         rc_btn += Rect16::Left_t(GuiDefaults::RadioButtonCornerRadius);
         rc_btn -= Rect16::Width_t(2 * GuiDefaults::RadioButtonCornerRadius);
     }
-    render_text_align(rc_btn, text, pf, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
+    render_text_align(rc_btn, text, ButtonFont, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
 }
 
 bool IRadioButton::IsEnabled(size_t index) const {

@@ -5,7 +5,8 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <unistd.h>
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
+#include <guiconfig/guiconfig.h>
 
 #ifdef USE_ST7789
 static const uint8_t bytes_per_pixel = 3;

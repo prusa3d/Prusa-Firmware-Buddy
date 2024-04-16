@@ -1,5 +1,6 @@
 #include "dump_parse.hpp"
 #include "dump.hpp"
+#include <cstring>
 
 namespace crash_dump {
 CrashCatcherDumpParser::CrashCatcherDumpParser() {

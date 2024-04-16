@@ -2,6 +2,7 @@
 
 #include <otp.hpp>
 #include <common/shared_buffer.hpp>
+#include <Marlin/src/inc/MarlinConfigPre.h>
 
 #include <cstdint>
 #include <cstddef>
@@ -10,6 +11,14 @@
 
 #include "printer_type.hpp"
 #include <state/printer_state.hpp>
+
+#include <option/has_mmu2.h>
+#include <option/has_toolchanger.h>
+#if HAS_MMU2()
+    #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
+#endif
+
+#include "../../lib/Marlin/Marlin/src/core/macros.h"
 
 namespace connect_client {
 
@@ -29,9 +38,27 @@ public:
         char fingerprint[FINGERPRINT_BUFF_LEN];
     };
 
+    struct SlotInfo {
+        const char *material = nullptr;
+        float temp_nozzle = 0;
+        uint16_t print_fan_rpm = 0;
+        uint16_t heatbreak_fan_rpm = 0;
+    };
+
     static constexpr size_t X_AXIS_POS = 0;
     static constexpr size_t Y_AXIS_POS = 1;
     static constexpr size_t Z_AXIS_POS = 2;
+
+#if HAS_MMU2() || HAS_TOOLCHANGER()
+    static constexpr size_t NUMBER_OF_SLOTS = 5;
+#else
+    static constexpr size_t NUMBER_OF_SLOTS = 1;
+#endif
+
+#if ENABLED(CANCEL_OBJECTS)
+    static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32;
+    static constexpr size_t CANCEL_OBJECT_NAME_COUNT = 16;
+#endif
 
     class Params {
     private:
@@ -40,11 +67,21 @@ public:
 
     public:
         Params(const std::optional<BorrowPaths> &paths);
-        float temp_nozzle = 0;
+        std::array<SlotInfo, NUMBER_OF_SLOTS> slots;
+#if HAS_MMU2()
+        MMU2::Version mmu_version = { 0, 0, 0 };
+#endif
+        uint32_t progress_code = 0;
+        char command_code = 0;
+        size_t number_of_slots = 0;
+        // Note: the 1 is used as default Slot
+        // in case neither MMU nor toolchanger is present
+        uint8_t active_slot = 1;
+        bool mmu_enabled = false;
         float temp_bed = 0;
         float target_nozzle = 0;
         float target_bed = 0;
-        float pos[4] = {};
+        float pos[4] = { 0, 0, 0, 0 };
         float filament_used = 0;
         // FIXME: We should handle XL with up to 5 nozzles, but the network protocol
         // does not support it as of now, so for the time being we just send the first one.
@@ -54,22 +91,25 @@ public:
         // * They get invalidated by calling drop_paths or new renew() on the printer.
         const char *job_path() const;
         const char *job_lfn() const;
-        // Type of filament loaded. Constant (in-code) strings.
-        const char *material = nullptr;
         uint16_t flow_factor = 0;
         uint16_t job_id = 0;
-        uint16_t print_fan_rpm = 0;
-        uint16_t heatbreak_fan_rpm = 0;
         uint16_t print_speed = 0;
         uint32_t print_duration = 0;
         uint32_t time_to_end = 0;
+        uint32_t time_to_pause = 0;
         uint8_t progress_percent = 0;
         bool has_usb = false;
+        bool has_job = false;
         uint64_t usb_space_free = 0;
-        PrinterVersion version;
-        printer_state::DeviceState state = printer_state::DeviceState::Unknown;
+        PrinterVersion version = { 0, 0, 0 };
+        printer_state::StateWithDialog state = printer_state::DeviceState::Unknown;
+#if ENABLED(CANCEL_OBJECTS)
+        size_t cancel_object_count = 0;
+        uint64_t cancel_object_mask = 0;
+#endif
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;
+        uint32_t state_fingerprint() const;
     };
 
     struct Config {
@@ -138,13 +178,25 @@ public:
     virtual const char *delete_file(const char *path) = 0;
     // Enqueues a gcode command (single one).
     //
-    // FIXME: For now, this is a "black hole". It'll just submit it without any
-    // kind of feedback. It'll either block if the queue is full, or just throw
-    // it in. But that doesn't meen it has been executed.
-    virtual void submit_gcode(const char *gcode) = 0;
+    // FIXME: This takes care only of submitting the gcode. If it returns Submitted,
+    // it sits in the queue, but it doesn't mean it has been executed.
+    enum class GcodeResult {
+        Submitted,
+        Later,
+        Failed,
+    };
+    virtual GcodeResult submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
     virtual bool is_printing() const = 0;
+    // Is the printer in (hard) error?
+    //
+    // If so, most commands, actions, etc, are blocked.
+    virtual bool is_in_error() const = 0;
     virtual bool is_idle() const = 0;
+    virtual uint32_t cancelable_fingerprint() const = 0;
+#if ENABLED(CANCEL_OBJECTS)
+    virtual const char *get_cancel_object_name(char *buffer, size_t size, size_t index) const = 0;
+#endif
     // Turn connect on and set the token.
     //
     // Part of registration.
@@ -152,7 +204,12 @@ public:
     // (The other config ‒ hostname, port, … ‒ are left unchanged).
     //
     // (Not const char * for technical reasons).
-    virtual void init_connect(char *token) = 0;
+    virtual void init_connect(const char *token) = 0;
+
+    // Does not return if successful
+    virtual void reset_printer() = 0;
+
+    virtual const char *dialog_action(uint32_t dialog_id, Response response) = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load
     // (unless the reset_fingerprint is set to false, in which case the flag is

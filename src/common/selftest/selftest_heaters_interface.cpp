@@ -5,11 +5,12 @@
  */
 #include "selftest_heaters_interface.hpp"
 #include "selftest_heater.h"
-#include "selftest_hot_end_sock.hpp"
+#include "selftest_hotend_specify.hpp"
 #include "../../Marlin/src/module/temperature.h"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
 #include "selftest_log.hpp"
+#include "power_check_both.hpp"
 #include <config_store/store_instance.hpp>
 #include <printers.h>
 
@@ -53,27 +54,6 @@ static void HeatbreakCorrelation(CSelftestPart_Heater &h) {
 #else
 static void HeatbreakCorrelation([[maybe_unused]] CSelftestPart_Heater &h) {}
 #endif // HAS_TEMP_HEATBREAK_CONTROL
-
-#if !HAS_ADVANCED_POWER()
-// Dummy class in case there is no advanced power
-class PowerCheckBoth {
-    constexpr PowerCheckBoth() = default;
-    PowerCheckBoth(const PowerCheckBoth &) = delete;
-
-public:
-    void Callback([[maybe_unused]] CSelftestPart_Heater &part) {}
-
-    constexpr void BindNozzle([[maybe_unused]] CSelftestPart_Heater *) {}
-    constexpr void BindBed([[maybe_unused]] CSelftestPart_Heater *) {}
-    constexpr void UnBindNozzle() {}
-    constexpr void UnBindBed() {}
-
-    static PowerCheckBoth &Instance() {
-        static PowerCheckBoth ret;
-        return ret;
-    }
-};
-#endif
 
 // Shared check callback
 // Splits implementation for printers with independent bed, nozzle measurement and others
@@ -194,7 +174,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
     const bool just_finished_bed = pBed && *pBed && !(*pBed)->Loop();
 
     // change dialog state
-    FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), resultHeaters);
+    FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(IPartHandler::GetFsmPhase(), resultHeaters);
 
     // Continue below only if some of the tests just finished, if not, just run this again until some finishes
     if (!just_finished_bed && !std::ranges::any_of(just_finished_noz, [](bool val) { return val; })) {
@@ -234,7 +214,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
     }
 
     // if any is still in progress, return true to run this again, otherwise end test
-    if (std::ranges::any_of(pNozzles, [](IPartHandler *val) { return val != nullptr; }) || *pBed != nullptr) {
+    if (std::ranges::any_of(pNozzles, [](IPartHandler *val) { return val != nullptr; }) || (pBed && *pBed != nullptr)) {
         return true;
     }
 
@@ -242,26 +222,28 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
     return false; // finished
 }
 
-SelftestHotEndSockType sock_result;
+SelftestHotendSpecifyType hotend_result;
 bool retry_heater = false;
 bool get_retry_heater() { return retry_heater; }
 
-bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) {
+bool phase_hotend_specify(IPartHandler *&machine, const HotendSpecifyConfig &config) {
     if (!machine) {
-        machine = Factory::CreateDynamical<selftest::CSelftestPart_HotEndSock>(
+        machine = Factory::CreateDynamical<selftest::CSelftestPart_HotendSpecify>(
             config,
-            sock_result,
-            &CSelftestPart_HotEndSock::stateStart,
-            &CSelftestPart_HotEndSock::stateAskAdjust,
-            &CSelftestPart_HotEndSock::stateAskSockInit,
-            &CSelftestPart_HotEndSock::stateAskSock,
-            // Disable asking questions about nozzle
-            // &CSelftestPart_HotEndSock::stateAskNozzleInit, &CSelftestPart_HotEndSock::stateAskNozzle,
-            &CSelftestPart_HotEndSock::stateAskRetryInit,
-            &CSelftestPart_HotEndSock::stateAskRetry);
+            hotend_result,
+            &CSelftestPart_HotendSpecify::stateStart,
+            &CSelftestPart_HotendSpecify::stateAskAdjust,
+            &CSelftestPart_HotendSpecify::stateAskHotendInit,
+            &CSelftestPart_HotendSpecify::stateAskHotend,
+#if NOZZLE_TYPE_SUPPORT()
+            &CSelftestPart_HotendSpecify::stateAskNozzleInit,
+            &CSelftestPart_HotendSpecifyx::stateAskNozzle,
+#endif
+            &CSelftestPart_HotendSpecify::stateAskRetryInit,
+            &CSelftestPart_HotendSpecify::stateAskRetry);
     }
     bool in_progress = machine->Loop();
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), sock_result.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(IPartHandler::GetFsmPhase(), hotend_result.Serialize());
 
     if (in_progress) {
         return true;
@@ -269,8 +251,8 @@ bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) 
 
     retry_heater = machine->GetResult() != TestResult_Skipped;
 
-    config_store().nozzle_sock.set(sock_result.has_sock);
-    config_store().nozzle_type.set(sock_result.prusa_stock_nozzle ? 0 : 1);
+    config_store().hotend_type.set(hotend_result.hotend_type);
+    config_store().nozzle_type.set(hotend_result.nozzle_type);
 
     delete machine;
     machine = nullptr;

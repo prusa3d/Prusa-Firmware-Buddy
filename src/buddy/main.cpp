@@ -1,40 +1,40 @@
 #include "main.h"
-#include "main.hpp"
 #include "platform.h"
 #include <device/board.h>
+#include <device/peripherals.h>
+#include <guiconfig/guiconfig.h>
 #include "config_features.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
 #include "usb_device.hpp"
 #include "usb_host.h"
 #include "buffered_serial.hpp"
-#include "bsod.h"
-#include "media.h"
+#include "bsod_gui.hpp"
+#include "media.hpp"
 #include <config_store/store_instance.hpp>
-#include <option/buddy_enable_connect.h>
-#if BUDDY_ENABLE_CONNECT()
-    #include "connect/run.hpp"
-#endif
-
 #include "sys.h"
-#include "app.h"
-#include "wdt.h"
+#include <wdt.hpp>
 #include <crash_dump/dump.hpp>
+#include "error_codes.hpp"
+#include <find_error.hpp>
 #include "timer_defaults.h"
 #include "tick_timer_api.h"
 #include "thread_measurement.h"
+#include "log_dest_syslog.h"
 #include "metric_handlers.h"
 #include "hwio_pindef.h"
 #include "gui.hpp"
-#include "config_buddy_2209_02.h"
+#include <stdint.h>
+#include "printers.h"
+#include "MarlinPin.h"
 #include "crc32.h"
 #include "w25x.h"
 #include "timing.h"
 #include "filesystem.h"
 #include "adc.hpp"
 #include "logging.h"
-#include "common/disable_interrupts.h"
-#include <option/has_accelerometer.h>
+#include <i2c.hpp>
+#include <option/buddy_enable_connect.h>
 #include <option/has_puppies.h>
 #include <option/has_puppies_bootloader.h>
 #include <option/filament_sensor.h>
@@ -42,19 +42,28 @@
 #include <option/has_mmu2.h>
 #include <option/resources.h>
 #include <option/bootloader_update.h>
+#include <option/has_side_leds.h>
+#include <option/has_phase_stepping.h>
+#include <option/has_burst_stepping.h>
+#include <option/buddy_enable_wui.h>
+#include <option/has_touch.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
 #include <espif.h>
 #include "sound.hpp"
 #include <ccm_thread.hpp>
-#include <printers.h>
 #include "version.h"
 #include "str_utils.hpp"
+#include "data_exchange.hpp"
 #include "bootloader/bootloader.hpp"
 #include "gui_bootstrap_screen.hpp"
 #include "resources/revision.hpp"
+#include "filesystem_semihosting.h"
 
+#if BUDDY_ENABLE_CONNECT()
+    #include "connect/run.hpp"
+#endif
 #if HAS_PUPPIES()
     #include "puppies/PuppyBus.hpp"
     #include "puppies/puppy_task.hpp"
@@ -68,13 +77,20 @@
     #include "power_panic.hpp"
 #endif
 
-#include <option/buddy_enable_wui.h>
 #if BUDDY_ENABLE_WUI()
     #include "wui.h"
 #endif
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     #include "hw_configuration.hpp"
+#endif
+
+#if HAS_MMU2()
+    #include "feature/prusa/MMU2/mmu2_mk4.h"
+#endif
+
+#if HAS_PHASE_STEPPING()
+    #include <feature/phase_stepping/phase_stepping.hpp>
 #endif
 
 using namespace crash_dump;
@@ -86,10 +102,6 @@ osThreadId displayTaskHandle;
 osThreadId connectTaskHandle;
 osThreadId prefetch_thread_id;
 
-#if HAS_ACCELEROMETER()
-LIS2DH accelerometer(10);
-#endif
-
 unsigned HAL_RCC_CSR = 0;
 int HAL_GPIO_Initialized = 0;
 int HAL_ADC_Initialized = 0;
@@ -100,6 +112,7 @@ void SystemClock_Config(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
 void StartConnectTask(void const *argument);
+void StartConnectTaskError(void const *argument); // Version for redscreen
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
@@ -107,8 +120,6 @@ void iwdg_warning_cb(void);
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[32];
 #endif
-
-extern "C" void app_setup_marlin_logging();
 
 /**
  * @brief Bootstrap finished
@@ -137,6 +148,20 @@ static void manufacture_report() {
     SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
     SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
     SerialUSB.write('\n');
+}
+
+static void manufacture_report_endless_loop() {
+    // ESP reset (needed for XL, since it has embedded ESP)
+    HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
+
+    constexpr const uint8_t endl = '\n';
+    constexpr const char *str_fw = "FW:";
+    while (true) {
+        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), reinterpret_cast<const uint8_t *>(str_fw), strlen_constexpr(str_fw), 1000);
+        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full), 1000);
+        HAL_UART_Transmit(&UART_HANDLE_FOR(esp), &endl, sizeof(endl), 1000);
+        osDelay(500); // tester needs 500ms, do not change this value!
+    }
 }
 
 #if ENABLED(RESOURCES()) && ENABLED(BOOTLOADER_UPDATE())
@@ -224,6 +249,15 @@ extern "C" void main_cpp(void) {
 #if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
     hw_tim1_init();
 #endif
+
+#if HAS_PHASE_STEPPING()
+    hw_tim13_init();
+#endif
+
+#if HAS_BURST_STEPPING()
+    hw_tim8_init();
+#endif
+
     hw_tim14_init();
 
     SPI_INIT(flash);
@@ -233,13 +267,64 @@ extern "C" void main_cpp(void) {
         bsod("failed to initialize ext flash");
     }
 
+    const bool want_error_screen = (dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed());
+
+#if BUDDY_ENABLE_CONNECT()
+    // On a place shared for both code branches, so we have just one connectTask buffer.
+    osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
+#endif
+
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+    /*
+     * MK3.5 HW detected on MK4 firmware or vice versa
+       Ignore the check in production (tester_mode), the xBuddy's connected peripherals are safe in this mode.
+     */
+    if (buddy::hw::Configuration::Instance().is_fw_incompatible_with_hw() && !running_in_tester_mode()) {
+        const auto &error = find_error(ErrCode::WARNING_DIFFERENT_FW_REQUIRED);
+        crash_dump::force_save_message_without_dump(crash_dump::MsgType::FATAL_WARNING, static_cast<uint16_t>(error.err_code), error.err_text, error.err_title);
+        hwio_safe_state();
+        init_error_screen();
+        return;
+    }
+#endif
+
     /*
      * If we have BSOD or red screen we want to have as small boot process as we can.
      * We want to init just xflash, display and start gui task to display the bsod or redscreen
      */
-    if ((dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed())) {
+    if (want_error_screen) {
         hwio_safe_state();
         init_error_screen();
+
+#if BUDDY_ENABLE_WUI() && BUDDY_ENABLE_CONNECT()
+        // We want to send the redscreen/bluescreen/error to Connect to show there.
+        //
+        // For that we need networking (and some other peripherals). We do not
+        // init the rest - including the USB stack.
+        //
+        // We do not start link and we run Connect in special mode that allows
+        // mostly nothing.
+        //
+        // block esp in tester mode (redscreen probably shouldn't happen on tester, but better safe than sorry)
+        if (get_auto_update_flag() != FwAutoUpdate::tester_mode && config_store().connect_enabled.get()) {
+            TaskDeps::components_init();
+            UART_INIT(esp);
+            // Needed for certificate verification
+            hw_rtc_init();
+            // Needed for SSL random data
+            hw_rng_init();
+
+            espif_init_hw();
+
+            espif_task_create();
+
+            TaskDeps::wait(TaskDeps::Tasks::network);
+            start_network_task(/*allow_full=*/false);
+            // definition and creation of connectTask
+            TaskDeps::wait(TaskDeps::Tasks::connect);
+            connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
+        }
+#endif
         return;
     }
     bsod_mark_shown(); // BSOD would be shown, allow new BSOD dump
@@ -263,7 +348,7 @@ extern "C" void main_cpp(void) {
     I2C_INIT(usbc);
 #endif
 
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+#if HAS_TOUCH()
     I2C_INIT(touch);
 #endif
 
@@ -289,10 +374,10 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if HAS_GUI() && !(BOARD_IS_XLBUDDY)
-    hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
+    hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
 #endif
 
-#if BOARD_IS_XLBUDDY
+#if HAS_SIDE_LEDS()
     hw_init_spi_side_leds();
 #endif
 
@@ -347,6 +432,7 @@ extern "C" void main_cpp(void) {
 #if ENABLED(RESOURCES())
     resources_update();
 #endif
+    filesystem_semihosting_deinit();
 
     static metric_handler_t *handlers[] = {
         &metric_handler_syslog,
@@ -354,8 +440,11 @@ extern "C" void main_cpp(void) {
         NULL
     };
     metric_system_init(handlers);
-
-    manufacture_report();
+    if (running_in_tester_mode()) {
+        manufacture_report_endless_loop();
+    } else {
+        manufacture_report(); // TODO erase this after all printers use manufacture_report_endless_loop (== ESP UART)
+    }
 
 #if (BOARD_IS_BUDDY)
     buddy::hw::BufferedSerial::uart2.Open();
@@ -363,7 +452,7 @@ extern "C" void main_cpp(void) {
 
 #if (BOARD_IS_BUDDY)
     uartrxbuff_init(&uart1rxbuff, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
-    assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(uart1rxbuff.buffer)));
+    assert(can_be_used_by_dma(uart1rxbuff.buffer));
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
     uartrxbuff_reset(&uart1rxbuff);
 #endif
@@ -375,14 +464,24 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    espif_init_hw();
+    // In tester mode ESP UART is being used to talk to the testing station, thus it must not be used for the ESP.
+    if (!running_in_tester_mode()) {
+        espif_init_hw();
+    }
 #endif
 
-    media_prefetch_init();
+#if HAS_MMU2()
+    // mmu2 is normally serviced from the marlin thread
+    // so execute it before the defaultTask is created to prevent race conditions
+    if (config_store().mmu2_enabled.get()) {
+        MMU2::mmu2.Start();
+    }
+#endif
+
     osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 1024);
     prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
 
-    osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1024);
+    osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1152);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
 #if ENABLED(POWER_PANIC)
@@ -397,10 +496,14 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    espif_task_create();
+    // In tester mode ESP UART is being used to talk to the testing station,
+    // thus it must not be used for the ESP -> no networking tasks shall be started.
+    if (!running_in_tester_mode()) {
+        espif_task_create();
 
-    TaskDeps::wait(TaskDeps::Tasks::network);
-    start_network_task();
+        TaskDeps::wait(TaskDeps::Tasks::network);
+        start_network_task(/*allow_full=*/true);
+    }
 #endif
 
 #if BUDDY_ENABLE_CONNECT()
@@ -408,15 +511,23 @@ extern "C" void main_cpp(void) {
         // FIXME: We should be able to split networking to the lower-level network part and the Link part. Currently, both are done through WUI.
         #error "Can't have connect without WUI"
     #endif
-    /* definition and creation of connectTask */
-    TaskDeps::wait(TaskDeps::Tasks::connect);
-    osThreadCCMDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
-    connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
+    // In tester mode ESP UART is being used to talk to the testing station,
+    // thus it must not be used for the ESP -> no networking tasks shall be started.
+    if (!running_in_tester_mode()) {
+        // definition and creation of connectTask
+        TaskDeps::wait(TaskDeps::Tasks::connect);
+        connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
+    }
 #endif
+
+    // There is no point in initializing syslog before networking is up
+    TaskDeps::wait(TaskDeps::Tasks::syslog);
+    syslog_initialize();
+    metric_handlers_init();
 
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
-        osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 512);
+        osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 550);
         osThreadCreate(osThread(measurementTask), NULL);
     }
 }
@@ -428,13 +539,13 @@ extern void st7789v_spi_tx_complete(void);
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
 #if HAS_GUI() && defined(USE_ST7789)
-    if (hspi == st7789v_config.phspi) {
+    if (hspi == &SPI_HANDLE_FOR(lcd)) {
         st7789v_spi_tx_complete();
     }
 #endif
 
 #if HAS_GUI() && defined(USE_ILI9488)
-    if (hspi == ili9488_config.phspi) {
+    if (hspi == &SPI_HANDLE_FOR(lcd)) {
         ili9488_spi_tx_complete();
     }
 #endif
@@ -447,7 +558,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 
 #if HAS_GUI() && defined(USE_ILI9488)
-    if (hspi == ili9488_config.phspi) {
+    if (hspi == &SPI_HANDLE_FOR(lcd)) {
         ili9488_spi_rx_complete();
     }
 #endif
@@ -455,12 +566,6 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
     if (hspi == &SPI_HANDLE_FOR(flash)) {
         w25x_spi_receive_complete_callback();
     }
-
-#if HAS_ACCELEROMETER()
-    if (hspi == &SPI_HANDLE_FOR(accelerometer)) {
-        accelerometer.spiReceiveCompleteCallback();
-    }
-#endif
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
@@ -540,8 +645,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void StartDefaultTask([[maybe_unused]] void const *argument) {
-    app_startup();
-
     app_run();
     for (;;) {
         osDelay(1);
@@ -565,6 +668,10 @@ void StartErrorDisplayTask([[maybe_unused]] void const *argument) {
 #if BUDDY_ENABLE_CONNECT()
 void StartConnectTask([[maybe_unused]] void const *argument) {
     connect_client::run();
+}
+
+void StartConnectTaskError([[maybe_unused]] void const *argument) {
+    connect_client::run_error();
 }
 #endif
 
@@ -602,41 +709,19 @@ void iwdg_warning_cb(void) {
     trigger_crash_dump();
 }
 
-static uint32_t _spi_prescaler(int prescaler_num) {
-    switch (prescaler_num) {
-    case 0:
-        return SPI_BAUDRATEPRESCALER_2; // 0x00000000U
-    case 1:
-        return SPI_BAUDRATEPRESCALER_4; // 0x00000008U
-    case 2:
-        return SPI_BAUDRATEPRESCALER_8; // 0x00000010U
-    case 3:
-        return SPI_BAUDRATEPRESCALER_16; // 0x00000018U
-    case 4:
-        return SPI_BAUDRATEPRESCALER_32; // 0x00000020U
-    case 5:
-        return SPI_BAUDRATEPRESCALER_64; // 0x00000028U
-    case 6:
-        return SPI_BAUDRATEPRESCALER_128; // 0x00000030U
-    case 7:
-        return SPI_BAUDRATEPRESCALER_256; // 0x00000038U
-    }
-    return SPI_BAUDRATEPRESCALER_2;
-}
-
-void spi_set_prescaler(SPI_HandleTypeDef *hspi, int prescaler_num) {
-    buddy::DisableInterrupts disable_interrupts;
-    HAL_SPI_DeInit(hspi);
-    hspi->Init.BaudRatePrescaler = _spi_prescaler(prescaler_num);
-    HAL_SPI_Init(hspi);
-}
-
 void init_error_screen() {
+#if HAS_TOUCH
+    touchscreen.disable_till_reset();
+#endif
+
     if constexpr (option::has_gui) {
         // init lcd spi and timer for buzzer
         SPI_INIT(lcd);
-#if !(BOARD_IS_XLBUDDY && _DEBUG)
-        hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
+
+#if !(_DEBUG)
+    #if HAS_GUI() && !(BOARD_IS_XLBUDDY)
+        hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
+    #endif
 #endif
 
         init_only_littlefs();
@@ -680,6 +765,8 @@ static void eeprom_init_i2c() {
     I2C_INIT(eeprom);
 }
 
+extern "C" void __libc_init_array(void);
+
 namespace {
 /// The entrypoint of the startup task
 ///
@@ -691,6 +778,8 @@ namespace {
 extern "C" void startup_task(void const *) {
     // init crc32 module. We need crc in eeprom_init
     crc32_init();
+
+    i2c::ChannelMutex::static_init();
 
     // init communication with eeprom
     eeprom_init_i2c();
@@ -707,7 +796,6 @@ extern "C" void startup_task(void const *) {
 #endif
 
     // init global variables and call constructors
-    extern void __libc_init_array(void);
     __libc_init_array();
 
     // call the main main() function
@@ -750,18 +838,3 @@ int main() {
     // start the RTOS with the single startup task
     osKernelStart();
 }
-
-#ifdef USE_FULL_ASSERT
-/**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
-void assert_failed(uint8_t *file, uint32_t line) {
-    /* User can add his own implementation to report the file name and line number,
-     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-    app_assert(file, line);
-}
-#endif /* USE_FULL_ASSERT */

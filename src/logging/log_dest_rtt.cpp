@@ -1,8 +1,11 @@
 #include "log_dest_rtt.h"
-#include "cmsis_os.h"
+
+#include <common/freertos_mutex.hpp>
+#include <task.h>
 #include "SEGGER_RTT.h"
 
-static SemaphoreHandle_t rtt_lock;
+// Note: This is not required to be in CCMRAM and can be moved to regular RAM if needed.
+static __attribute__((section(".ccmram"))) freertos::Mutex rtt_mutex;
 
 static void rtt_put_char(char character, [[maybe_unused]] void *arg) {
     SEGGER_RTT_PutCharSkipNoLock(0, character);
@@ -16,39 +19,19 @@ static inline void initialize_rtt_subsystem() {
     }
 }
 
-static inline bool initialize_rtt_lock() {
-    if (rtt_lock) {
-        return true;
-    }
-
-    if (xPortIsInsideInterrupt() || xTaskGetSchedulerState() != taskSCHEDULER_RUNNING) {
-        return false;
-    }
-
-    rtt_lock = xSemaphoreCreateBinary();
-    xSemaphoreGive(rtt_lock);
-    return true;
+static void rtt_log_event_unlocked(log_destination_t *destination, log_event_t *event) {
+    destination->log_format_fn(event, rtt_put_char, NULL);
+    rtt_put_char('\r', NULL);
+    rtt_put_char('\n', NULL);
 }
 
 void rtt_log_event(log_destination_t *destination, log_event_t *event) {
     initialize_rtt_subsystem();
 
-    const bool lock_initialized = initialize_rtt_lock();
-    bool lock_acquired = false;
-
-    // acquire the lock
-    if (lock_initialized && xTaskGetSchedulerState() == taskSCHEDULER_RUNNING && !xPortIsInsideInterrupt()) {
-        xSemaphoreTake(rtt_lock, portMAX_DELAY);
-        lock_acquired = true;
-    }
-
-    // send the log message
-    destination->log_format_fn(event, rtt_put_char, NULL);
-    rtt_put_char('\r', NULL);
-    rtt_put_char('\n', NULL);
-
-    // release the lock
-    if (lock_acquired) {
-        xSemaphoreGive(rtt_lock);
+    if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING && !xPortIsInsideInterrupt()) {
+        std::unique_lock lock { rtt_mutex };
+        rtt_log_event_unlocked(destination, event);
+    } else {
+        rtt_log_event_unlocked(destination, event);
     }
 }

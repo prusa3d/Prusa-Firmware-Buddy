@@ -10,8 +10,6 @@
 static IWindowMenuItem *focused_menu_item = nullptr;
 static bool focused_menu_item_edited = false;
 
-static_assert(sizeof(IWindowMenuItem) <= sizeof(string_view_utf8) + sizeof(txtroll_t) + sizeof(font_t) + sizeof(int), "error inefficient size of IWindowMenuItem");
-
 IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands)
     : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden) {
 }
@@ -32,6 +30,31 @@ IWindowMenuItem::~IWindowMenuItem() {
     }
 }
 
+void IWindowMenuItem::set_is_enabled(bool set) {
+    if (IsEnabled() == set) {
+        return;
+    }
+
+    // Cannot disable focused element
+    if (!set && is_focused()) {
+        return;
+    }
+
+    enabled = is_enabled_t(set);
+    Invalidate();
+}
+
+void IWindowMenuItem::set_show_disabled_extension(bool set_) {
+    const auto set = show_disabled_extension_t(set_);
+
+    if (show_disabled_extension == set) {
+        return;
+    }
+
+    show_disabled_extension = set;
+    Invalidate();
+}
+
 bool IWindowMenuItem::is_edited() const {
     return is_focused() && focused_menu_item_edited;
 }
@@ -42,11 +65,6 @@ bool IWindowMenuItem::set_is_edited(bool set) {
     }
 
     if (set && !IsEnabled()) {
-        return false;
-    }
-
-    // If there is an other item currently being edited, we have to exit the edit mode
-    if (focused_menu_item_edited && !focused_menu_item->try_exit_edit_mode()) {
         return false;
     }
 
@@ -80,6 +98,11 @@ bool IWindowMenuItem::set_is_focused(bool set) {
 }
 
 bool IWindowMenuItem::move_focus(IWindowMenuItem *target) {
+    // Moving focus to the same item -> instant success
+    if (target == focused_menu_item) {
+        return true;
+    }
+
     // Changing focus - we have to cancel edit mode for previously edited item
     if (focused_menu_item_edited && !focused_menu_item->set_is_edited(false)) {
         return false;
@@ -109,11 +132,11 @@ IWindowMenuItem *IWindowMenuItem::focused_item() {
     return focused_menu_item;
 }
 
-void IWindowMenuItem::setLabelFont(font_t *src) {
+void IWindowMenuItem::setLabelFont(Font src) {
     label_font = src;
 }
 
-font_t *IWindowMenuItem::getLabelFont() const {
+Font IWindowMenuItem::getLabelFont() const {
     return label_font;
 }
 

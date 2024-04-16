@@ -1,6 +1,8 @@
 #include "selftest_snake_config.hpp"
 #include <selftest_types.hpp>
 #include <screen_menu_selftest_snake_result_parsing.hpp>
+#include <config_store/store_instance.hpp>
+#include <common/SteelSheets.hpp>
 
 namespace SelftestSnake {
 TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
@@ -20,13 +22,16 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
         return evaluate_results(sr.bed, merge_hotends_evaluations([&](int8_t e) {
             return evaluate_results(sr.tools[e].nozzle);
         }));
+    case Action::FirstLayer:
+        // instead of test result that isn't saved to eeprom, consider calibrated sheet as passed.
+        return SteelSheets::IsSheetCalibrated(config_store().active_sheet.get()) ? TestResult_Passed : TestResult_Unknown;
     case Action::_count:
         break;
     }
     return TestResult_Unknown;
 }
 
-uint8_t get_tool_mask([[maybe_unused]] Tool tool) {
+ToolMask get_tool_mask([[maybe_unused]] Tool tool) {
     return ToolMask::AllTools;
 }
 
@@ -40,6 +45,8 @@ uint64_t get_test_mask(Action action) {
         return stmZAxis;
     case Action::Heaters:
         return stmHeaters;
+    case Action::FirstLayer:
+        return stmFirstLayer;
     case Action::_count:
         break;
     }

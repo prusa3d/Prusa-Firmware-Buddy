@@ -26,58 +26,69 @@ static_assert(std::size(default_animations) == 9, "That's how many there were in
 
 PrinterState leds::mpsToAnimationState(marlin_server::State state) {
     switch (state) {
+
     case State::Idle:
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
     case State::PrintPreviewConfirmed:
     case State::PrintPreviewQuestions:
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::PrintPreviewToolsMapping:
+#endif
     case State::Exit:
         return PrinterState::Idle;
+
     case State::WaitGui:
     case State::Printing:
     case State::PrintInit:
     case State::SerialPrintInit:
         return PrinterState::Printing;
+
     case State::Pausing_Begin:
     case State::Pausing_Failed_Code:
     case State::Pausing_WaitIdle:
     case State::Pausing_ParkHead:
     case State::Paused:
         return PrinterState::Pausing;
+
     case State::Resuming_Begin:
     case State::Resuming_Reheating:
     case State::Resuming_UnparkHead_XY:
     case State::Resuming_UnparkHead_ZE:
         return PrinterState::Resuming;
+
     case State::Aborting_Begin:
     case State::Aborting_WaitIdle:
     case State::Aborting_ParkHead:
     case State::Aborting_Preview:
+    case State::Aborting_UnloadFilament:
     case State::Aborted:
         return PrinterState::Aborting;
+
     case State::Finishing_WaitIdle:
     case State::Finishing_ParkHead:
+    case State::Finishing_UnloadFilament:
     case State::Finished:
         return PrinterState::Finishing;
+
     case State::CrashRecovery_Begin:
     case State::CrashRecovery_Retracting:
     case State::CrashRecovery_Lifting:
     case State::CrashRecovery_ToolchangePowerPanic:
     case State::CrashRecovery_XY_Measure:
+#if HAS_TOOLCHANGER()
     case State::CrashRecovery_Tool_Pickup:
+#endif
     case State::CrashRecovery_XY_HOME:
     case State::CrashRecovery_HOMEFAIL:
     case State::CrashRecovery_Axis_NOK:
     case State::CrashRecovery_Repeated_Crash:
         return PrinterState::Warning;
+
     case State::PowerPanic_acFault:
     case State::PowerPanic_Resume:
     case State::PowerPanic_AwaitingResume:
         return PrinterState::PowerPanic;
-    default:
-        log_error(Led, "Invalid marlin print state");
-        return PrinterState::Idle;
     }
     return PrinterState::Idle;
 }

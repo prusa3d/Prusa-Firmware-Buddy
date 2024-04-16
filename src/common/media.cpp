@@ -2,13 +2,12 @@
 
 #include <algorithm>
 
-#include "media.h"
+#include "media.hpp"
 #include "log.h"
 #include "lfn.h"
 #include "ff.h"
 #include "usbh_core.h"
 #include "../Marlin/src/gcode/queue.h"
-#include <algorithm>
 #include <sys/iosupport.h>
 #include "marlin_server.hpp"
 #include "gcode_filter.hpp"
@@ -18,11 +17,10 @@
 #include "metric.h"
 #include "tasks.hpp"
 #include <errno.h>
-#include "gcode_reader.hpp"
 #include "gcode_info.hpp"
 #include <ccm_thread.hpp>
 #include <transfers/transfer.hpp>
-#include <algorithm>
+#include "usb_host.h"
 
 using transfers::Transfer;
 using State = transfers::PartialFile::State;
@@ -31,160 +29,110 @@ using std::is_same_v;
 LOG_COMPONENT_REF(USBHost);
 LOG_COMPONENT_REF(MarlinServer);
 
-#ifdef REENUMERATE_USB
-
-extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
-
-static const constexpr uint8_t USBHOST_REENUM_DELAY = 100; // pool delay [ms]
-static const constexpr uint16_t USBHOST_REENUM_TIMEOUT = 500; // state-hang timeout [ms]
-
-// Re-enumerate UsbHost in case that it hangs in enumeration state (HOST_ENUMERATION,ENUM_IDLE)
-// this is not solved in original UsbHost driver
-// this occurs e.g. when user connects and then quickly disconnects usb flash during connection process
-// state is checked every 100ms, timeout for re-enumeration is 500ms
-// TODO: maybe we will change condition for states, because it can hang also in different state
-static void _usbhost_reenum(void) {
-    static uint32_t timer = 0; // static timer variable
-    uint32_t tick = HAL_GetTick(); // read tick
-    if ((tick - timer) > USBHOST_REENUM_DELAY) { // every 100ms
-        // timer is valid, UsbHost is in enumeration state
-        if ((timer) && (hUsbHostHS.gState == HOST_ENUMERATION) && (hUsbHostHS.EnumState == ENUM_IDLE)) {
-            // longer than 500ms
-            if ((tick - timer) > USBHOST_REENUM_TIMEOUT) {
-                log_info(USBHost, "USB host reenumerating"); // trace
-                USBH_ReEnumerate(&hUsbHostHS); // re-enumerate UsbHost
-            }
-        } else { // otherwise update timer
-            timer = tick;
-        }
-    }
-}
-#else
-static void _usbhost_reenum(void) {};
-#endif
-
-extern "C" {
-
+char getByte(GCodeFilter::State *state);
 namespace {
-    volatile media_state_t media_state = media_state_REMOVED;
-    volatile media_error_t media_error = media_error_OK;
+volatile media_state_t media_state = media_state_REMOVED;
+volatile media_error_t media_error = media_error_OK;
 
-    media_print_state_t media_print_state = media_print_state_NONE;
-    AnyGcodeFormatReader *media_print_file; ///< File used to print
-    AnyGcodeFormatReader *gcode_info_file; ///< File used to scan GcodeInfo
-    uint32_t media_print_size_estimate = 0; ///< Estimated uncompressed G-code size in bytes
-    uint32_t media_current_position = 0; // Current position in the file
-    uint32_t media_gcode_position = 0; // Beginning of the current G-Code
-    /// Cache of PrusaPackGcodeReader that allows to resume print quickly without long searches for correct block
-    PrusaPackGcodeReader::stream_restore_info_t media_stream_restore_info;
+std::atomic<media_print_state_t> media_print_state = media_print_state_NONE;
+AnyGcodeFormatReader media_print_file; ///< File used to print
+AnyGcodeFormatReader gcode_info_file; ///< File used to scan GcodeInfo
+uint32_t media_print_size_estimate = 0; ///< Estimated uncompressed G-code size in bytes
+uint32_t media_current_position = 0; // Current position in the file
+uint32_t media_gcode_position = 0; // Beginning of the current G-Code
+/// Cache of PrusaPackGcodeReader that allows to resume print quickly without long searches for correct block
+GCodeReaderStreamRestoreInfo media_stream_restore_info;
 
-    // Position where to start after pause / quick stop
-    uint32_t media_reset_position = GCodeQueue::SDPOS_INVALID;
+// Position where to start after pause / quick stop
+uint32_t media_reset_position = GCodeQueue::SDPOS_INVALID;
 
-    char getByte(GCodeFilter::State *state);
-    char gcode_buffer[MAX_CMD_SIZE + 1]; // + 1 for NULL char
-    GCodeFilter gcode_filter(&getByte, gcode_buffer, sizeof(gcode_buffer));
-    bool skip_gcode = false;
+char gcode_buffer[MAX_CMD_SIZE + 1]; // + 1 for NULL char
+GCodeFilter gcode_filter(&getByte, gcode_buffer, sizeof(gcode_buffer));
+bool skip_gcode = false;
 
-    uint32_t usbh_error_count = 0;
-    uint32_t usb_host_reset_timestamp = 0; // USB Host timestamp in seconds
+uint32_t usbh_error_count = 0;
+// uint32_t usb_host_reset_timestamp = 0; // USB Host timestamp in seconds
 
-    metric_t usbh_error_cnt = METRIC("usbh_err_cnt", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(usbh_error_cnt, "usbh_err_cnt", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
-    // These buffers are HUGE. We need to rework the prefetcher logic
-    // to be more efficient and add compression.
-    constexpr size_t FILE_BUFF_SIZE = 5120;
-    char __attribute__((section(".ccmram"))) prefetch_buff[2][FILE_BUFF_SIZE];
-    char *file_buff;
-    uint32_t file_buff_level;
-    size_t back_buff_level = 0;
-    uint32_t file_buff_pos;
-    GCodeFilter::State prefetch_state;
+// These buffers are HUGE. We need to rework the prefetcher logic
+// to be more efficient and add compression.
+constexpr size_t FILE_BUFF_SIZE = 5120;
+char __attribute__((section(".ccmram"))) prefetch_buff[2][FILE_BUFF_SIZE];
+char *file_buff;
+uint32_t file_buff_level;
+size_t back_buff_level = 0;
+uint32_t file_buff_pos;
+GCodeFilter::State prefetch_state;
 
-    SemaphoreHandle_t prefetch_mutex_data_out = nullptr; ///< Mutex to switch buffers
-    SemaphoreHandle_t prefetch_mutex_file_reader = nullptr; ///< Mutex to not close while another thread is using it
+SemaphoreHandle_t prefetch_mutex_data_out = nullptr; ///< Mutex to switch buffers
+SemaphoreHandle_t prefetch_mutex_file_reader = nullptr; ///< Mutex to not close while another thread is using it
 
-    metric_t metric_prefetched_bytes = METRIC("media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_prefetched_bytes, "media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
-    /**
-     * @brief Initialize GCodeInfo.
-     * @param event signal that started this, will be updated while waiting for file to be downloaded
-     * @param event nullptr if not waiting for file to be downloaded
-     */
-    void media_gcode_info_scan(osEvent *event = nullptr) {
-        assert(gcode_info_file);
-        auto &gcode_info = GCodeInfo::getInstance();
+/**
+ * @brief Initialize GCodeInfo.
+ * @param event signal that started this, will be updated while waiting for file to be downloaded
+ * @param event nullptr if not waiting for file to be downloaded
+ */
+void media_gcode_info_scan(osEvent *event = nullptr) {
+    auto &gcode_info = GCodeInfo::getInstance();
 
-        if (!gcode_info.start_load(*gcode_info_file)) {
-            log_error(MarlinServer, "Media prefetch GCodeInfo: fail to open");
-            return;
-        }
+    if (!gcode_info.start_load(gcode_info_file)) {
+        log_error(MarlinServer, "Media prefetch GCodeInfo: fail to open");
+        return;
+    }
 
-        const bool should_load_gcode = [&] {
-            // Wait for gcode to be valid
-            while (!gcode_info.check_valid_for_print(*gcode_info_file)) {
-                if (gcode_info.has_error()) {
-                    log_error(MarlinServer, "Media prefetch GCodeInfo: not valid: %s", gcode_info.error_str());
-                    return false;
-                }
-
-                if (!event) {
-                    // Do not wait for file to download
-                    log_error(MarlinServer, "Media prefetch GCodeInfo: cannot wait");
-                    return false;
-                } else {
-                    // Check for signal to stop loading (for example Quit button during the Downloading screen)
-                    *event = osSignalWait(PREFETCH_SIGNAL_GCODE_INFO_STOP, 500);
-                    if (event->value.signals & PREFETCH_SIGNAL_GCODE_INFO_STOP) {
-                        log_info(MarlinServer, "Media prefetch GCodeInfo: stopped");
-                        return false;
-                    }
-                }
-            }
-
-            // Verify the file CRC
-            if (!gcode_info.verify_file(*gcode_info_file)) {
-                log_error(MarlinServer, "Media prefetch GCodeInfo: fail to verify: %s", gcode_info.error_str());
+    const bool should_load_gcode = [&] {
+        // Wait for gcode to be valid
+        while (!gcode_info.check_valid_for_print(gcode_info_file)) {
+            if (gcode_info.has_error()) {
+                log_error(MarlinServer, "Media prefetch GCodeInfo: not valid: %s", gcode_info.error_str());
                 return false;
             }
 
-            return true;
-        }();
-
-        if (should_load_gcode) {
-            log_info(MarlinServer, "Media prefetch GCodeInfo: loading");
-            gcode_info.load(*gcode_info_file);
+            if (!event) {
+                // Do not wait for file to download
+                log_error(MarlinServer, "Media prefetch GCodeInfo: cannot wait");
+                return false;
+            } else {
+                // Check for signal to stop loading (for example Quit button during the Downloading screen)
+                *event = osSignalWait(PREFETCH_SIGNAL_GCODE_INFO_STOP, 500);
+                if (event->value.signals & PREFETCH_SIGNAL_GCODE_INFO_STOP) {
+                    log_info(MarlinServer, "Media prefetch GCodeInfo: stopped");
+                    return false;
+                }
+            }
         }
 
-        gcode_info.end_load(*gcode_info_file);
+        // Verify the file CRC
+        if (!gcode_info.verify_file(gcode_info_file)) {
+            log_error(MarlinServer, "Media prefetch GCodeInfo: fail to verify: %s", gcode_info.error_str());
+            return false;
+        }
+
+        return true;
+    }();
+
+    if (should_load_gcode) {
+        log_info(MarlinServer, "Media prefetch GCodeInfo: loading");
+        gcode_info.load(gcode_info_file);
     }
+
+    gcode_info.end_load(gcode_info_file);
+}
 } // namespace
 
 media_state_t media_get_state(void) {
     return media_state;
 }
 
-void media_prefetch_init() {
-    // Allocate these and never free
-    // This is done after bootstrap when a lot of heap is freed
-
+void media_prefetch(const void *) {
     prefetch_mutex_data_out = xSemaphoreCreateMutex();
     assert(prefetch_mutex_data_out);
 
     prefetch_mutex_file_reader = xSemaphoreCreateMutex();
     assert(prefetch_mutex_file_reader);
-
-    media_print_file = new AnyGcodeFormatReader();
-    assert(media_print_file);
-
-    gcode_info_file = new AnyGcodeFormatReader();
-    assert(gcode_info_file);
-}
-
-void media_prefetch(const void *) {
-    assert(prefetch_mutex_data_out && prefetch_mutex_file_reader && media_print_file && gcode_info_file);
-
-    metric_register(&metric_prefetched_bytes);
 
     TaskDeps::provide(TaskDeps::Dependency::media_prefetch_ready);
     for (;;) {
@@ -217,11 +165,11 @@ void media_prefetch(const void *) {
 
         IGcodeReader::Result_t first_read_res;
         do {
-            log_info(MarlinServer, "Media prefetch: Prefetching first %u bytes at offset %u", FILE_BUFF_SIZE, media_current_position);
+            log_info(MarlinServer, "Media prefetch: Prefetching first %zu bytes at offset %" PRIu32, FILE_BUFF_SIZE, media_current_position);
             xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-            if (media_print_file->is_open()) {
+            if (media_print_file.is_open()) {
                 back_buff_level = FILE_BUFF_SIZE;
-                first_read_res = media_print_file->get()->stream_get_block(back_buff, back_buff_level);
+                first_read_res = media_print_file.get()->stream_get_block(back_buff, back_buff_level);
             } else {
                 first_read_res = IGcodeReader::Result_t::RESULT_ERROR;
             }
@@ -273,8 +221,8 @@ void media_prefetch(const void *) {
                 auto second_read_res = IGcodeReader::Result_t::RESULT_ERROR;
 
                 xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-                if (media_print_file->is_open()) {
-                    second_read_res = media_print_file->get()->stream_get_block(back_buff, back_buff_level);
+                if (media_print_file.is_open()) {
+                    second_read_res = media_print_file.get()->stream_get_block(back_buff, back_buff_level);
                 } else {
                     second_read_res = IGcodeReader::Result_t::RESULT_ERROR;
                 }
@@ -289,9 +237,9 @@ void media_prefetch(const void *) {
                         path = transfers::Transfer::Path(value);
                     });
 
-                    media_print_file->get()->update_validity(path);
+                    media_print_file.get()->update_validity(path);
                     back_buff_level = FILE_BUFF_SIZE;
-                    second_read_res = media_print_file->get()->stream_get_block(back_buff, back_buff_level);
+                    second_read_res = media_print_file.get()->stream_get_block(back_buff, back_buff_level);
                 }
                 xSemaphoreGive(prefetch_mutex_file_reader);
                 log_info(USBHost, "Media prefetch read done");
@@ -342,18 +290,18 @@ void media_print_start__prepare(const char *sfnFilePath) {
 }
 
 void media_print_start() {
-    assert(prefetch_mutex_file_reader && media_print_file);
+    assert(prefetch_mutex_file_reader);
 
     if (media_print_state != media_print_state_NONE) {
         return;
     }
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    media_print_file->open(marlin_vars()->media_SFN_path.get_ptr());
-    if (media_print_file->is_open() && media_print_file->get()->stream_gcode_start()) {
+    media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
+    if (media_print_file.is_open() && media_print_file.get()->stream_gcode_start()) {
         media_gcode_position = media_current_position = 0;
         media_print_state = media_print_state_PRINTING;
-        media_print_size_estimate = media_print_file->get()->get_gcode_stream_size_estimate();
+        media_print_size_estimate = media_print_file.get()->get_gcode_stream_size_estimate();
 
         // Do not remove, needed for 3rd party tools such as octoprint to get status about the gcode file being opened
         SERIAL_ECHOLNPAIR(MSG_SD_FILE_OPENED, marlin_vars()->media_SFN_path.get_ptr(), " Size:", media_print_size_estimate);
@@ -366,12 +314,16 @@ void media_print_start() {
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
+inline void close_file_no_lock() {
+    osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_STOP);
+    media_print_file.close();
+}
+
 inline void close_file() {
-    assert(prefetch_mutex_file_reader && media_print_file);
+    assert(prefetch_mutex_file_reader);
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_STOP);
-    media_print_file->close();
+    close_file_no_lock();
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
@@ -388,7 +340,7 @@ void media_print_stop(void) {
 }
 
 void media_print_quick_stop(uint32_t pos) {
-    assert(prefetch_mutex_file_reader && media_print_file);
+    assert(prefetch_mutex_file_reader);
 
     skip_gcode = false;
     media_print_state = media_print_state_PAUSED;
@@ -396,23 +348,21 @@ void media_print_quick_stop(uint32_t pos) {
     queue.clear();
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    if (auto pack = media_print_file->get_prusa_pack(); pack != nullptr) {
-        media_stream_restore_info = pack->get_restore_info();
+    if (media_print_file.is_open()) {
+        media_stream_restore_info = media_print_file->get_restore_info();
     }
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
 
 void media_print_quick_stop_powerpanic() {
-    assert(media_print_file);
-
     skip_gcode = false;
     media_print_state = media_print_state_PAUSED;
     media_reset_position = GCodeQueue::SDPOS_INVALID;
     queue.clear();
 
     // These two need to happen at once, from high priority ISR
-    if (auto pack = media_print_file->get_prusa_pack(); pack != nullptr) {
-        media_stream_restore_info = pack->get_restore_info();
+    if (media_print_file.is_open()) {
+        media_stream_restore_info = media_print_file->get_restore_info();
     }
 }
 
@@ -428,38 +378,61 @@ void media_print_pause(bool repeat_last = false) {
     skip_gcode = !repeat_last;
 }
 
+static bool media_print_file_reset_position() {
+    media_print_size_estimate = media_print_file->get_gcode_stream_size_estimate();
+    if (media_reset_position != GCodeQueue::SDPOS_INVALID) {
+        media_print_set_position(media_reset_position);
+    }
+    media_print_file->set_restore_info(media_get_restore_info());
+
+    const bool result = media_print_file.get()->stream_gcode_start(media_current_position);
+
+    // Only reset reset position on success - otherwise we get stuck on repeated USB error
+    if (result) {
+        media_reset_position = GCodeQueue::SDPOS_INVALID;
+    }
+
+    return result;
+}
+
 void media_print_resume(void) {
-    assert(prefetch_mutex_file_reader && media_print_file);
+    assert(prefetch_mutex_file_reader);
 
     if ((media_print_state != media_print_state_PAUSED)) {
         return;
     }
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
-    if (!media_print_file->is_open()) {
+    if (!media_print_file.is_open()) {
         // file was closed by media_print_pause, reopen
-        media_print_file->open(marlin_vars()->media_SFN_path.get_ptr());
+        media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
     }
-    if (media_print_file->is_open()) {
-        media_print_size_estimate = media_print_file->get()->get_gcode_stream_size_estimate();
-        if (media_reset_position != GCodeQueue::SDPOS_INVALID) {
-            media_print_set_position(media_reset_position);
-            media_reset_position = GCodeQueue::SDPOS_INVALID;
-        }
-        if (media_print_file->get_prusa_pack()) {
-            media_print_file->get_prusa_pack()->set_restore_info(media_get_restore_info());
-        }
+    if (media_print_file.is_open()) {
         // file was left open between pause/resume or re-opened successfully
-        if (media_print_file->get()->stream_gcode_start(media_current_position)) {
+        if (media_print_file_reset_position()) {
             gcode_filter.reset();
             media_print_state = media_print_state_PRINTING;
             osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
         } else {
             marlin_server::set_warning(WarningType::USBFlashDiskError);
-            close_file();
+            close_file_no_lock();
         }
     } else {
         marlin_server::set_warning(WarningType::USBFlashDiskError);
+    }
+    xSemaphoreGive(prefetch_mutex_file_reader);
+}
+
+void media_print_reopen() {
+    xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
+    if (media_print_file.is_open()) {
+        media_stream_restore_info = media_print_file->get_restore_info();
+        media_print_file.close();
+        skip_gcode = true;
+        media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
+        if (!media_print_file.is_open() || !media_print_file_reset_position()) {
+            usbh_power_cycle::trigger_usb_failed_dialog = true;
+        }
     }
     xSemaphoreGive(prefetch_mutex_file_reader);
 }
@@ -524,12 +497,8 @@ static size_t media_get_bytes_prefetched() {
 }
 
 void media_loop(void) {
-    assert(media_print_file);
-
-    _usbhost_reenum();
-
     if (media_print_state != media_print_state_PRINTING) {
-        if (media_print_file->get() != nullptr) { // Read pointer without mutex lock, should be safe
+        if (media_print_file.is_open()) { // Read pointer without mutex lock, should be safe
             // complete closing the file in the main loop (for media_print_quick_stop)
             close_file();
         }
@@ -537,7 +506,7 @@ void media_loop(void) {
         return;
     }
 
-    while (queue.length < (BUFSIZE - 1)) { // Keep one free slot for serial commands
+    while (queue.length < MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) { // Keep one free slot for serial commands
         GCodeFilter::State state;
         char *gcode = gcode_filter.nextGcode(&state);
 
@@ -555,8 +524,10 @@ void media_loop(void) {
             // Pause in case of some issue
             usbh_error_count++;
             metric_record_integer(&usbh_error_cnt, usbh_error_count);
-            marlin_server::set_warning(WarningType::USBFlashDiskError);
             media_print_pause();
+            if (usbh_power_cycle::trigger_usb_failed_dialog) {
+                marlin_server::set_warning(WarningType::USBFlashDiskError);
+            }
             return;
         case GCodeFilter::State::Eof:
             // Stop print on EOF
@@ -621,12 +592,10 @@ void media_reset_usbh_error() {
     usbh_error_count = 0;
 }
 
-void media_set_restore_info(PrusaPackGcodeReader::stream_restore_info_t &info) {
+void media_set_restore_info(const GCodeReaderStreamRestoreInfo &info) {
     media_stream_restore_info = info;
 }
 
-PrusaPackGcodeReader::stream_restore_info_t media_get_restore_info() {
+GCodeReaderStreamRestoreInfo media_get_restore_info() {
     return media_stream_restore_info;
 }
-
-} // extern "C"

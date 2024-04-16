@@ -34,7 +34,7 @@ struct Test {
     }
 
     void event_type(EventType event_type) {
-        const auto action = planner.next_action(buffer);
+        const auto action = planner.next_action(buffer, nullptr);
         const auto *event = get_if<Event>(&action);
         REQUIRE(event != nullptr);
         REQUIRE(event->type == event_type);
@@ -46,7 +46,7 @@ struct Test {
 
     Duration consume_sleep() {
         printer.config();
-        auto sleep = planner.next_action(buffer);
+        auto sleep = planner.next_action(buffer, nullptr);
         auto sleep_typed = get_if<Sleep>(&sleep);
         REQUIRE(sleep_typed != nullptr);
         Duration orig_sleep = sleep_typed->milliseconds;
@@ -59,7 +59,7 @@ struct Test {
     }
 
     void consume_telemetry() {
-        Action action = planner.next_action(buffer);
+        Action action = planner.next_action(buffer, nullptr);
         REQUIRE(holds_alternative<SendTelemetry>(action));
         planner.action_done(ActionResult::Ok);
     }
@@ -73,6 +73,9 @@ TEST_CASE("Success scenario") {
     test.consume_telemetry();
 
     test.consume_sleep();
+    // Planner produces sleeps in small chunk, so we would have to consume
+    // several of them. Simply just pretend it took longer.
+    advance_time_s(120);
 
     // But now, after we have slept, we shall send some more telemetries
     test.consume_telemetry();
@@ -106,7 +109,7 @@ TEST_CASE("Reinit after several failures") {
     // Eventually, it stops trying to send the telemetry and goes back to trying to send Info
     Action action;
     do {
-        action = test.planner.next_action(buffer);
+        action = test.planner.next_action(buffer, nullptr);
         test.planner.action_done(ActionResult::Failed);
         test.consume_sleep();
     } while (holds_alternative<SendTelemetry>(action));
@@ -257,7 +260,7 @@ TEST_CASE("Transport ended") {
     test.consume_telemetry();
 
     // As long as the transfer is running, nothing much happens
-    auto action1 = test.planner.next_action(buffer);
+    auto action1 = test.planner.next_action(buffer, nullptr);
     REQUIRE(holds_alternative<Sleep>(action1));
 
     // Finish the transfer
@@ -265,7 +268,7 @@ TEST_CASE("Transport ended") {
     slot.reset();
 
     // Now that the transfer is done, we get an event about it.
-    auto action2 = test.planner.next_action(buffer);
+    auto action2 = test.planner.next_action(buffer, nullptr);
     auto event = get_if<Event>(&action2);
     REQUIRE(event != nullptr);
     REQUIRE(event->type == EventType::TransferFinished);
@@ -283,7 +286,7 @@ TEST_CASE("Transport ended and started") {
     test.consume_telemetry();
 
     // As long as the transfer is running, nothing much happens
-    auto action1 = test.planner.next_action(buffer);
+    auto action1 = test.planner.next_action(buffer, nullptr);
     REQUIRE(holds_alternative<Sleep>(action1));
 
     // Finish the transfer
@@ -294,7 +297,7 @@ TEST_CASE("Transport ended and started") {
     slot = Monitor::instance.allocate(Monitor::Type::Link, "/usb/stuff.gcode", 1024);
 
     // The info/notification that the previous one ended is still available.
-    auto action2 = test.planner.next_action(buffer);
+    auto action2 = test.planner.next_action(buffer, nullptr);
     auto event = get_if<Event>(&action2);
     REQUIRE(event != nullptr);
     REQUIRE(event->type == EventType::TransferFinished);
@@ -311,7 +314,7 @@ TEST_CASE("Transport ended, lost in history") {
     test.consume_telemetry();
 
     // As long as the transfer is running, nothing much happens
-    auto action1 = test.planner.next_action(buffer);
+    auto action1 = test.planner.next_action(buffer, nullptr);
     REQUIRE(holds_alternative<Sleep>(action1));
 
     // Finish the transfer
@@ -325,7 +328,7 @@ TEST_CASE("Transport ended, lost in history") {
     }
 
     // The info/notification that the previous one ended is still available.
-    auto action2 = test.planner.next_action(buffer);
+    auto action2 = test.planner.next_action(buffer, nullptr);
     REQUIRE(holds_alternative<Sleep>(action2));
 }
 
@@ -335,7 +338,7 @@ TEST_CASE("FileInfo after created file") {
 
     ChangedPath::instance.changed_path("/usb/some/file.gcode", ChangedPath::Type::File, ChangedPath::Incident::Created);
 
-    auto action = test.planner.next_action(buffer);
+    auto action = test.planner.next_action(buffer, nullptr);
     auto event = get_if<Event>(&action);
     REQUIRE(event != nullptr);
     REQUIRE(event->type == EventType::FileInfo);
@@ -351,7 +354,7 @@ TEST_CASE("FileChanged after deleted file") {
 
     ChangedPath::instance.changed_path("/usb/some/file.gcode", ChangedPath::Type::File, ChangedPath::Incident::Deleted);
 
-    auto action = test.planner.next_action(buffer);
+    auto action = test.planner.next_action(buffer, nullptr);
     auto event = get_if<Event>(&action);
     REQUIRE(event != nullptr);
     REQUIRE(event->type == EventType::FileChanged);
@@ -367,7 +370,7 @@ TEST_CASE("FileChanged after created folder") {
 
     ChangedPath::instance.changed_path("/usb/some/folder/", ChangedPath::Type::Folder, ChangedPath::Incident::Created);
 
-    auto action = test.planner.next_action(buffer);
+    auto action = test.planner.next_action(buffer, nullptr);
     auto event = get_if<Event>(&action);
     REQUIRE(event != nullptr);
     REQUIRE(event->type == EventType::FileChanged);
@@ -383,7 +386,7 @@ TEST_CASE("FileChanged after deleted folder") {
 
     ChangedPath::instance.changed_path("/usb/some/folder/", ChangedPath::Type::Folder, ChangedPath::Incident::Deleted);
 
-    auto action = test.planner.next_action(buffer);
+    auto action = test.planner.next_action(buffer, nullptr);
     auto event = get_if<Event>(&action);
     REQUIRE(event != nullptr);
     REQUIRE(event->type == EventType::FileChanged);
@@ -403,7 +406,7 @@ TEST_CASE("FileChanged after multiple fs changes") {
     ChangedPath::instance.changed_path("/usb/some/yet_another_file.gcode", ChangedPath::Type::File, ChangedPath::Incident::Deleted);
     ChangedPath::instance.changed_path("/usb/some/other_folder/", ChangedPath::Type::Folder, ChangedPath::Incident::Created);
 
-    auto action = test.planner.next_action(buffer);
+    auto action = test.planner.next_action(buffer, nullptr);
     auto event = get_if<Event>(&action);
     REQUIRE(event != nullptr);
     REQUIRE(event->type == EventType::FileChanged);

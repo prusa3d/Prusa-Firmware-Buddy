@@ -66,6 +66,9 @@ public:
 
     bool has_inverted_mmu_reset() const { return get_board_bom_id() >= 37; }
 
+    // xBuddy scheme says: Revisions older than 34 must use open drain only.
+    bool needs_push_pull_mmu_reset_pin() const { return get_board_bom_id() >= 34; }
+
     bool can_power_up_mmu_without_pulses() const { return get_board_bom_id() >= 37; }
 
     bool has_trinamic_oscillators() const { return get_board_bom_id() >= 37; }
@@ -80,6 +83,8 @@ public:
      * @return float current [mA]
      */
     float curr_measurement_voltage_to_current(float voltage) const;
+
+    bool is_fw_incompatible_with_hw(); // not incompatible does not mean compatible!
 };
 
 } // namespace buddy::hw

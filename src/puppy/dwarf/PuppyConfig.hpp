@@ -10,7 +10,7 @@
 inline constexpr size_t RS485_BUFFER_SIZE = 256; // Modbus specification needs 256 Bytes
 
 inline constexpr uint32_t RS485_BAUDRATE = 230400;
-inline constexpr uint32_t RS485_STOP_BITS = UART_STOPBITS_2;
+inline constexpr uint32_t RS485_STOP_BITS = UART_STOPBITS_1;
 inline constexpr uint32_t RS485_PARITY = UART_PARITY_NONE;
 
 inline constexpr uint32_t RS485_ASSERTION_TIME = 16;

@@ -14,13 +14,6 @@ public:
     }
 };
 
-class FILEDeleter {
-public:
-    void operator()(FILE *file) {
-        fclose(file);
-    }
-};
-
 class ScopedFileSystemLittlefsBBF {
 private:
     int device;

@@ -110,7 +110,7 @@ StatusPage delete_file(const char *filename, const RequestParser &parser) {
 }
 
 StatusPage create_folder(const char *filename, const RequestParser &parser) {
-    if (mkdir(filename, 777) != 0) {
+    if (mkdir(filename, 0777) != 0) {
         if (errno == EEXIST) {
             return StatusPage(Status::Conflict, parser, "Already exists");
         } else {

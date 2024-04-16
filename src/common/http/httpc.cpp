@@ -97,6 +97,7 @@ namespace {
             // Not enough space in the current buffer. Try sending it out and using a full space.
             CHECKED(flush());
             assert(used == 0);
+            rest = sizeof(buffer);
 
             // Won't fit even into an empty one.
             if (attempted >= sizeof(buffer)) {
@@ -131,6 +132,10 @@ namespace {
 
 const HeaderOut *Request::extra_headers() const {
     return nullptr;
+}
+
+const char *Request::connection() const {
+    return "keep-alive";
 }
 
 variant<size_t, Error> Request::write_body_chunk(char *, size_t) {
@@ -207,7 +212,7 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
 
     CHECKED(buffer.write_fmt("%s %s HTTP/1.1\r\n", to_str(method), request.url()));
     CHECKED(buffer.header("Host", host, nullopt));
-    CHECKED(buffer.header("Connection", "keep-alive", nullopt));
+    CHECKED(buffer.header("Connection", request.connection(), nullopt));
     if (has_body(method)) {
         CHECKED(buffer.header("Transfer-Encoding", "chunked", nullopt));
         CHECKED(buffer.header("Content-Type", to_str(request.content_type()), nullopt));

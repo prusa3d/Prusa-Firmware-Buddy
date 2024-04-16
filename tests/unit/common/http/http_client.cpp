@@ -1,47 +1,19 @@
+#include "dummy_connection.hpp"
+
 #include <http/httpc.hpp>
 #include <http/resp_parser.h>
 
 #include <catch2/catch.hpp>
-#include <cstring>
 #include <algorithm>
-#include <string>
-#include <string_view>
 
 using std::get;
 using std::holds_alternative;
-using std::min;
-using std::nullopt;
-using std::optional;
 using std::string;
 using std::string_view;
 using std::variant;
 using namespace http;
 
 namespace {
-
-class DummyConnection final : public Connection {
-public:
-    DummyConnection()
-        : Connection(5) {}
-    string sent;
-    string received;
-    virtual optional<Error> connection(const char *, uint16_t) override {
-        return nullopt;
-    }
-    virtual variant<size_t, Error> rx(uint8_t *buffer, size_t len, bool /*nonblock: we never block here*/) override {
-        size_t amnt = min(len, received.size());
-        memcpy(buffer, received.data(), amnt);
-        received.erase(0, amnt);
-        return amnt;
-    }
-    virtual variant<size_t, Error> tx(const uint8_t *buffer, size_t len) override {
-        sent += string_view(reinterpret_cast<const char *>(buffer), len);
-        return len;
-    }
-    virtual bool poll_readable(uint32_t /*timeout: no more data will ever arrive*/) override {
-        return received.size() > 0;
-    }
-};
 
 class DummyRequest final : public Request {
 private:
@@ -89,6 +61,8 @@ public:
             break;
         case HeaderName::Token:
             token += c;
+            break;
+        default:
             break;
         }
     }
@@ -198,6 +172,7 @@ TEST_CASE("Request - no connection header") {
     auto r = test_resp_req(mock_resp_no_connection, Status::NoContent, ContentType::ApplicationOctetStream, "");
     REQUIRE(r.can_keep_alive); // Implicit by HTTP/1.1
 }
+
 TEST_CASE("Request - ancient") {
     // Note: content type is on its default octet-stream = "No idea, bunch of bytes I guess"
     auto r = test_resp_req(mock_resp_ancient, Status::NoContent, ContentType::ApplicationOctetStream, "", "", "Hello", "toktok");

@@ -33,6 +33,16 @@
 #include "feature/input_shaper/input_shaper_config.hpp"
 #include "feature/pressure_advance/pressure_advance_config.hpp"
 
+#include <option/has_phase_stepping.h>
+#if HAS_PHASE_STEPPING()
+  #include "feature/phase_stepping/phase_stepping.hpp"
+#endif
+
+#include <option/has_burst_stepping.h>
+#if HAS_BURST_STEPPING()
+  #include "feature/phase_stepping/burst_stepper.hpp"
+#endif
+
 #include "core/utility.h"
 #include "lcd/ultralcd.h"
 #include "module/motion.h"
@@ -428,13 +438,13 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
 
   if (stepper_inactive_time) {
     static bool already_shutdown_steppers; // = false
-    if (planner.busy())
+    if (planner.processing())
       gcode.reset_stepper_timeout();
     else if (MOVE_AWAY_TEST && !ignore_stepper_queue && ELAPSED(ms, gcode.previous_move_ms + stepper_inactive_time)) {
       if (!already_shutdown_steppers) {
         already_shutdown_steppers = true;  // L6470 SPI will consume 99% of free time without this
 
-        #if _DEBUG && PRINTER_IS_PRUSA_XL && !BOARD_IS_DWARF
+        #if _DEBUG && !BOARD_IS_DWARF
         // Report steppers being disabled to the user
         // Skip if position not trusted to avoid warnings when position is not important
         if(axis_known_position) {
@@ -745,7 +755,7 @@ void idle(
   PreciseStepping::loop();
 
   #if ENABLED(NOZZLE_LOAD_CELL)
-    if( EMotorStallDetector::Instance().Evaluate(stepper.axis_is_moving(E_AXIS), stepper.motor_direction(E_AXIS))){
+    if( EMotorStallDetector::Instance().Evaluate(stepper.axis_is_moving(E_AXIS), ! stepper.motor_direction(E_AXIS))){
         // E-motor stall has been detected, issue a modified M600
         SERIAL_ECHOLNPGM("E-motor stall detected");
         queue.inject_P(PSTR("M1601"));
@@ -1015,6 +1025,12 @@ void setup() {
   // NOTE: this enables (timer) interrupts!
   planner.init();
   stepper.init();
+#if HAS_PHASE_STEPPING()
+  phase_stepping::init();
+#endif
+#if HAS_BURST_STEPPING()
+  burst_stepping::init();
+#endif
   PreciseStepping::init();
 #ifdef ADVANCED_STEP_GENERATORS
   input_shaper::init();

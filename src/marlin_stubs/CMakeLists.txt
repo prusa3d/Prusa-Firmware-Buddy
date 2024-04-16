@@ -3,26 +3,30 @@ target_sources(
   PRIVATE G26.cpp
           G64.cpp
           gcode.cpp
+          M104_1.cpp
           M123.cpp
+          M1702.cpp
           M300.cpp
           M330.cpp
           M340.cpp
           M486.cpp
           M591.cpp
           M862_1.cpp
-          M862_2.cpp
           M862_3.cpp
           M862_4.cpp
-          M862_5.cpp
-          M862_6.cpp
           M863.cpp
           M864.cpp
           M876.cpp
+          M9140_M9150.cpp
           M919-M920.cpp
-          M93X.cpp
+          M9200.cpp
           M997.cpp
           M999.cpp
   )
+
+if(NOT BOARD MATCHES "XL_DEV_KIT_XLB")
+  target_sources(firmware PRIVATE G26.cpp M862_2.cpp M862_5.cpp M862_6.cpp)
+endif()
 
 add_subdirectory(pause)
 add_subdirectory(sdcard)
@@ -47,4 +51,8 @@ endif()
 
 if(HAS_GUI)
   target_sources(firmware PRIVATE M0.cpp)
+endif()
+
+if(HAS_PHASE_STEPPING)
+  target_sources(firmware PRIVATE M1977.cpp)
 endif()

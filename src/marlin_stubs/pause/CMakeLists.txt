@@ -17,4 +17,6 @@ endif()
 
 if(HAS_MMU2)
   target_sources(firmware PRIVATE M704-6_parse.cpp M707-9_parse.cpp M70X_mmu.cpp)
+else()
+  target_sources(firmware PRIVATE pause_mmu_unsupported.cpp)
 endif()

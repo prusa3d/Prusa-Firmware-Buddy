@@ -34,6 +34,8 @@ class Configuration : public ConfigurationCommon {
     Configuration();
     Configuration(const Configuration &) = delete;
 
+    bool error__loveboard_detected = true; // mk3.5 does not have loveboard, detecting it means wrong HW
+
 public:
     /**
      * @brief Meyers singleton
@@ -44,6 +46,7 @@ public:
     static constexpr bool has_inverted_fans() { return false; }
     static constexpr bool has_inverted_mmu_reset() { return true; }
     static constexpr bool can_power_up_mmu_without_pulses() { return true; }
+    static constexpr bool needs_push_pull_mmu_reset_pin() { return true; }
     static constexpr bool has_trinamic_oscillators() { return true; }
 
     /**
@@ -59,6 +62,8 @@ public:
         const float allegro_zero_curr_voltage = 3.35F / 2.F; // choose half of 3V3 range
         return (voltage - allegro_zero_curr_voltage) * allegro_curr_from_voltage;
     }
+
+    bool is_fw_incompatible_with_hw();
 };
 
 } // namespace buddy::hw

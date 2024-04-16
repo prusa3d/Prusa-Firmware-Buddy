@@ -32,7 +32,7 @@
 // ------------------------
 
 #define NUM_HARDWARE_TIMERS 3
-#define STEP_TIMER_IRQ_ID TIM8_CC_IRQn
+#define STEP_TIMER_IRQ_ID TIM8_BRK_TIM12_IRQn
 #define MOVE_TIMER_IRQ_ID TIM6_DAC_IRQn
 #define TEMP_TIMER_IRQ_ID TIM7_IRQn
 
@@ -49,6 +49,9 @@ stm32_timer_t TimerHandle[NUM_HARDWARE_TIMERS];
 bool timers_initialized[NUM_HARDWARE_TIMERS] = {false};
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
+  if(timer_num >= NUM_HARDWARE_TIMERS) {
+    abort();
+  }
 
   if (!timers_initialized[timer_num]) {
     constexpr uint32_t step_prescaler = STEPPER_TIMER_PRESCALE - 1,
@@ -56,8 +59,8 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
                        temp_prescaler = TEMP_TIMER_PRESCALE - 1;
     switch (timer_num) {
       case STEP_TIMER_NUM:
-        __HAL_RCC_TIM8_CLK_ENABLE();
-        TimerHandle[timer_num].handle.Instance               = TIM8;
+        __HAL_RCC_TIM12_CLK_ENABLE();
+        TimerHandle[timer_num].handle.Instance               = TIM12;
         TimerHandle[timer_num].handle.Init.Period            = 65535;
         TimerHandle[timer_num].handle.Init.Prescaler         = step_prescaler; // Frequency of timer ticks should be 1MHz, based on 168000000 / (167 + 1).
         TimerHandle[timer_num].handle.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
@@ -119,7 +122,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
   }
 }
 
-extern "C" void TIM8_CC_IRQHandler() {
+extern "C" void TIM8_BRK_TIM12_IRQHandler() {
   ((void(*)())TimerHandle[STEP_TIMER_NUM].callback)();
 }
 extern "C" void TIM7_IRQHandler() {

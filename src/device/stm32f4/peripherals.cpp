@@ -1,6 +1,7 @@
 #include <device/board.h>
 #include <device/peripherals.h>
 #include <device/mcu.h>
+#include <buddy/phase_stepping_opts.h>
 #include <atomic>
 #include "Pin.hpp"
 #include "hwio_pindef.h"
@@ -11,12 +12,18 @@
 #include "PCA9557.hpp"
 #include "log.h"
 #include "timing_precise.hpp"
+#include "data_exchange.hpp"
 #include <option/has_puppies.h>
+#include <option/has_burst_stepping.h>
 #include <printers.h>
 
 // breakpoint
 #include "FreeRTOS.h"
 #include "task.h"
+
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    #include "hw_configuration.hpp"
+#endif
 
 //
 // I2C
@@ -81,6 +88,9 @@ DMA_HandleTypeDef hdma_adc3;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim8;
+DMA_HandleTypeDef hdma_tim8;
+TIM_HandleTypeDef htim13;
 TIM_HandleTypeDef htim14;
 
 //
@@ -411,12 +421,18 @@ void hw_uart3_init() {
     }
 }
 
+static constexpr uint32_t tester_uart_speed = 115'200; // HW tester during manufacturing needs this speed
+static constexpr uint32_t uart6_default_speed = 115'200;
+static constexpr uint32_t uart8_default_speed = 4'600'000;
+
 void hw_uart6_init() {
     huart6.Instance = USART6;
 #if HAS_PUPPIES() && (uart_puppies == 6)
     huart6.Init.BaudRate = 230400;
+#elif uart_esp == 6
+    huart6.Init.BaudRate = get_auto_update_flag() == FwAutoUpdate::tester_mode ? tester_uart_speed : uart6_default_speed;
 #else
-    huart6.Init.BaudRate = 115200;
+    huart6.Init.BaudRate = uart6_default_speed;
 #endif
     huart6.Init.WordLength = UART_WORDLENGTH_8B;
     huart6.Init.StopBits = UART_STOPBITS_1;
@@ -432,7 +448,13 @@ void hw_uart6_init() {
 #if MCU_IS_STM32F42X()
 void hw_uart8_init() {
     huart8.Instance = UART8;
-    huart8.Init.BaudRate = 4600000;
+    #if uart_esp == 8
+    // In tester mode ESP UART is being used to talk to the testing station,
+    // thus it must not be used for the ESP, different UART setup is needed as well.
+    huart8.Init.BaudRate = running_in_tester_mode() ? tester_uart_speed : uart8_default_speed;
+    #else
+    huart8.Init.BaudRate = uart8_default_speed;
+    #endif
     huart8.Init.WordLength = UART_WORDLENGTH_8B;
     huart8.Init.StopBits = UART_STOPBITS_1;
     huart8.Init.Parity = UART_PARITY_NONE;
@@ -492,10 +514,8 @@ static constexpr uint32_t i2c_get_edge_us(uint32_t clk) {
 
 /**
  * @brief unblock i2c data pin
- * apply up to 9 clock pulses and check SDA logical level
+ * apply up to 32 clock pulses and check SDA logical level
  * make sure it is in '1', so master can manipulate with it
- * in case HW is OK it is ensured that 9 pulses is enough
- * because in the worse case scenario 9th pulse would be expected to be ACK from master
  *
  * @param clk   frequency [Hz]
  * @param sda   pin of data
@@ -503,7 +523,11 @@ static constexpr uint32_t i2c_get_edge_us(uint32_t clk) {
  */
 static void i2c_unblock_sda(uint32_t clk, hw_pin sda, hw_pin scl) {
     delay_us_precise(i2c_get_edge_us(clk)); // half period - ensure first edge is not too short
-    for (size_t i = 0; i < 9; ++i) { // 9 pulses, there is no point to try it more times - 9th bit is ACK (will be NACK)
+
+    // ORIGINAL COMMENT (i < 9): 9 pulses, there is no point to try it more times - 9th bit is ACK (will be NACK)
+    // Changed to an arbitrary higher value, because comm with the touchscreen controller is extra sketchy, clock gets lost sometimes and such
+    // Cannot be used on multi-master buses
+    for (size_t i = 0; i < 32; ++i) {
         HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET); // set clock to '1'
         delay_us_precise(i2c_get_edge_us(clk)); // wait half period
         if (HAL_GPIO_ReadPin(sda.port, sda.no) == GPIO_PIN_SET) { // check if slave does not pull SDA to '0' while SCL == 1
@@ -673,10 +697,6 @@ void hw_i2c3_pins_init() {
     HAL_GPIO_Init(i2c3_SDA_PORT, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = i2c3_SCL_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF4_I2C3;
     HAL_GPIO_Init(i2c3_SCL_PORT, &GPIO_InitStruct);
 
     // Peripheral clock enable
@@ -745,7 +765,7 @@ void hw_spi3_init() {
 #if (BOARD_IS_BUDDY)
     hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
 #else
-    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
 #endif
     hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
@@ -802,11 +822,7 @@ void hw_spi6_init() {
     hspi6.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi6.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi6.Init.NSS = SPI_NSS_SOFT;
-    #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5)
     hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-    #else
-    hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
-    #endif
     hspi6.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi6.Init.TIMode = SPI_TIMODE_DISABLE;
     hspi6.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -946,6 +962,45 @@ void hw_tim3_init() {
     }
 
     HAL_TIM_MspPostInit(&htim3);
+}
+
+void hw_tim8_init() {
+    TIM_ClockConfigTypeDef sClockSourceConfig {};
+    TIM_MasterConfigTypeDef sMasterConfig {};
+
+    htim8.Instance = TIM8;
+    htim8.Init.Prescaler = 0;
+    htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim8.Init.Period = 168'000'000 / (phase_stepping::opts::REFRESH_FREQ * phase_stepping::opts::GPIO_BUFFER_SIZE) - 1;
+    htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    if (HAL_TIM_Base_Init(&htim8) != HAL_OK) {
+        Error_Handler();
+    }
+
+    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    if (HAL_TIM_ConfigClockSource(&htim8, &sClockSourceConfig) != HAL_OK) {
+        Error_Handler();
+    }
+
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK) {
+        Error_Handler();
+    }
+
+    HAL_TIM_MspPostInit(&htim8);
+}
+
+void hw_tim13_init() {
+    htim13.Instance = TIM13;
+    htim13.Init.Prescaler = 0;
+    htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim13.Init.Period = 84'000'000 / phase_stepping::opts::REFRESH_FREQ - 1;
+    htim13.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    htim13.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+    if (HAL_TIM_Base_Init(&htim13) != HAL_OK) {
+        Error_Handler();
+    }
 }
 
 void hw_tim14_init() {

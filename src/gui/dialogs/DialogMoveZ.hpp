@@ -9,6 +9,7 @@
 #include "window_menu_adv.hpp"
 #include "WinMenuContainer.hpp"
 #include "window_arrows.hpp"
+#include <guiconfig/guiconfig.h>
 
 class DialogMoveZ : public AddSuperWindow<IDialog> {
 private:
@@ -39,11 +40,20 @@ private:
     window_header_t header;
     window_icon_t icon;
 
+    /*To avoid cropping text due to small rectangles it is necessary to size them accordingly. This count represents currently longest text applicable among all translations.
+
+    Additionally, because XL and iX have directions switched, it is also necessary to resize both sides to the longest. Alternatively it could be done via #ifdef clause, since it causes no issues this way, the code and the code is more readable it was resized on both sides without checking printer type.
+
+    Currently longest was Czech NAHORU (just like ARRIBA or RUNTER).*/
+    static constexpr uint8_t longest_text_char_count { 6 };
+    static constexpr Font font { GuiDefaults::FontBig };
+    static constexpr font_size_t font_size { resource_font_size(font) };
+
 #ifdef USE_ST7789
     static constexpr Rect16 infoText_rc { 0, 45, 240, 60 };
     static constexpr Rect16 closeText_rc { 0, 90, 240, 60 };
     static constexpr Rect16 icon_rc { 80, 154, 81, 55 };
-    static constexpr Rect16 rightText_rc { 120 + 47, 171, 56, 21 };
+    static constexpr Rect16 rightText_rc { 120 + 47, 171, 70, 21 };
     static constexpr Rect16 leftText_rc { 120 - 47 - 56, 171, 56, 21 };
     static constexpr Rect16 text_rc { 0, 223, 114, 21 };
     static constexpr Rect16 numb_rc { 126, 223, 114, 21 };
@@ -53,8 +63,8 @@ private:
     static constexpr Rect16 infoText_rc { 0, 45, 480, 60 };
     static constexpr Rect16 closeText_rc { 0, 90, 480, 60 };
     static constexpr Rect16 icon_rc { 200, 171, 81, 55 };
-    static constexpr Rect16 rightText_rc { 240 + 51, 187, 64, 22 };
-    static constexpr Rect16 leftText_rc { 240 - 51 - 64, 187, 64, 22 };
+    static constexpr Rect16 rightText_rc { 240 + 51, 187, font_size.w *longest_text_char_count, font_size.h };
+    static constexpr Rect16 leftText_rc { 240 - 51 - font_size.w * longest_text_char_count, 187, font_size.w *longest_text_char_count, font_size.h };
     static constexpr Rect16 text_rc { 0, 240, 237, 22 };
     static constexpr Rect16 numb_rc { 243, 240, 237, 22 };
     static constexpr Rect16 arrows_rc { 236, 240, 8, 22 };

@@ -7,7 +7,7 @@
 #include "st25dv64k.h"
 #include <algorithm>
 #include "bsod.h"
-#include "freertos_mutex.hpp"
+#include <common/freertos_mutex.hpp>
 #include <mutex>
 #include <variant>
 #include "store_item.hpp"
@@ -119,11 +119,14 @@ public:
         std::optional<uint16_t> secondary_bank_address;
     };
 
+    using CRCType = uint32_t;
+
     static constexpr ItemHeader LAST_ITEM_STOP = { .last_item = true, .id = LAST_ITEM_ID, .len = 0 };
     static constexpr size_t ITEM_HEADER_SIZE = sizeof(ItemHeader);
     static constexpr size_t BANK_HEADER_SIZE = sizeof(BankHeader);
-    using CRCType = uint32_t;
     static constexpr size_t CRC_SIZE = sizeof(CRCType);
+    static constexpr size_t END_ITEM_SIZE_WITH_CRC = ITEM_HEADER_SIZE + CRC_SIZE;
+    static constexpr size_t BANK_HEADER_SIZE_WITH_CRC = BANK_HEADER_SIZE + CRC_SIZE;
 
     using CallbackFunction = std::function<void(ItemHeader, std::array<uint8_t, MAX_ITEM_SIZE> &)>;
 
@@ -145,8 +148,8 @@ public:
 
         Transaction(Type type, Backend &backend);
         ~Transaction();
-        void calculate_crc(Id id, const std::span<uint8_t> &data);
-        void store_item(Id id, const std::span<uint8_t> &data);
+        void calculate_crc(Id id, const std::span<const uint8_t> &data);
+        void store_item(Id id, const std::span<const uint8_t> &data);
         void cancel();
     };
 
@@ -269,9 +272,9 @@ public:
     std::function<void(void)> dump_callback;
     configuration_store::Storage &storage;
 
-    FreeRTOS_Mutex mutex;
+    freertos::Mutex mutex;
 
-    static std::optional<BankHeader> validate_bank_header(const std::span<uint8_t> &data);
+    static std::optional<BankHeader> validate_bank_header(const std::span<const uint8_t> &data);
 
     std::optional<ItemLoadResult> load_item(Address address, Offset free_space, const std::span<uint8_t> &buffer);
     void load_items(Address address, Offset len_of_transactions, const UpdateFunction &update_function);
@@ -295,30 +298,40 @@ public:
     MultipleTransactionValidationResult validate_transactions(const Address address);
 
     std::optional<CRCType> get_crc(const Address address, const Offset free_space);
-    static std::optional<CRCType> get_crc(const std::span<uint8_t> data);
-    static CRCType calculate_crc(const Backend::ItemHeader &, const std::span<uint8_t> &data, CRCType crc = 0);
+    static std::optional<CRCType> get_crc(const std::span<const uint8_t> data);
+    static CRCType calculate_crc(const Backend::ItemHeader &, const std::span<const uint8_t> &data, CRCType crc = 0);
 
     void init_bank(const BankSelector bank, uint32_t id, bool is_next_bank = false);
     std::optional<Backend::BanksState> choose_bank() const;
     void migrate_bank();
+
     bool fits_in_current_bank(uint16_t size) const;
-    uint16_t get_free_space_in_current_bank() const;
-    Address get_current_bank_start_address() const;
+
+    uint16_t get_free_space_in_bank(Address address_in_bank) const;
+    uint16_t get_free_space_in_current_bank() const {
+        return get_free_space_in_bank(current_address);
+    }
+
+    Address get_bank_start_address(const BankSelector selector);
+    Address get_bank_start_address(Address address_in_bank) const;
+    inline Address get_current_bank_start_address() const {
+        return get_bank_start_address(current_address);
+    }
+
     [[nodiscard]] Address get_next_bank_start_address() const;
     BankSelector get_next_bank();
-    Address get_bank_start_address(const BankSelector selector);
 
-    uint16_t write_item(const Address address, const Backend::ItemHeader &, const std::span<uint8_t> &data, std::optional<CRCType> crc);
+    uint16_t write_item(const Address address, const Backend::ItemHeader &, const std::span<const uint8_t> &data, std::optional<CRCType> crc);
     uint16_t write_end_item(Address address);
-    void store_single_item(Id id, const std::span<uint8_t> &data);
+    void store_single_item(Id id, const std::span<const uint8_t> &data);
 
 public:
     void load_all(const UpdateFunction &update_function, std::span<const MigrationFunction> migration_functions);
 
     void init(const DumpCallback &callback);
 
-    void save(uint16_t id, std::span<uint8_t> data);
-    std::unique_lock<FreeRTOS_Mutex> lock();
+    void save(uint16_t id, std::span<const uint8_t> data);
+    std::unique_lock<freertos::Mutex> lock();
     JournalState get_journal_state() const;
 
     /**

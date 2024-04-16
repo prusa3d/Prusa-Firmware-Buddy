@@ -131,8 +131,11 @@ void set_axis_config(const AxisEnum axis, std::optional<AxisConfig> axis_config)
     // For now, we must ensure that all queues are empty before changing input shapers parameters.
     // But later, it could be possible to wait just for block and move quests.
     planner.synchronize();
-    set_logical_axis_config_internal(axis, axis_config);
-    current_config().axis[axis] = axis_config;
+    if (!planner.draining()) {
+        // Only set configuration when the current command isn't aborted
+        set_logical_axis_config_internal(axis, axis_config);
+        current_config().axis[axis] = axis_config;
+    }
 }
 
 void set_axis_y_weight_adjust(std::optional<WeightAdjustConfig> wa_config) {

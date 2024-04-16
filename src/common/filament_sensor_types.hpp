@@ -9,88 +9,49 @@
 #include <optional>
 #include <array>
 
-namespace filament_sensor {
+enum class LogicalFilamentSensor : uint8_t {
+    /// Sensor that triggers during runout as first - the one further from the extruder
+    /// XL: side sensor | MK4+MMU: MMU sensor | OTHER: extruder sensor
+    primary_runout,
 
-struct LogicalSensors {
-    IFSensor *primary_runout = nullptr; // XL side sensor; printer with MMU : MMU; printer without MMU extruder sensor
-    IFSensor *secondary_runout = nullptr; // XL, printer with MMU, extruder sensor; other don't have
-    IFSensor *autoload = nullptr; // printer with MMU dont have, XL side
-    IFSensor *current_extruder = nullptr; // sensor on extruder, on XL it is bound to current extruder
-    IFSensor *current_side = nullptr; // on MK4 this is MMU sensor, on XL it is currently selected side sensors, MINI does not have one
-    // combination XL + MMU currently unsupported
+    /// Runout sensor that triggers the latest during runout - the one closest to the extruder
+    /// XL,MK4+MMU: extruder sensor | OTHER: none
+    secondary_runout,
 
-    auto get_array() {
-        return std::to_array<IFSensor *>({ primary_runout, secondary_runout, autoload, current_extruder, current_side });
+    /// Filament sensor that is used to detect autoload
+    autoload,
+
+    /// Filament sensor on the current extruder
+    current_extruder,
+
+    /// Side sensor for the current extruder
+    /// MK4+MMU: MMU sensor | XL: current side sensor | OTHER: none
+    current_side,
+};
+
+static constexpr size_t logical_filament_sensor_count = 5;
+
+struct LogicalFilamentSensors {
+    std::array<std::atomic<IFSensor *>, logical_filament_sensor_count> array = { nullptr };
+
+    inline auto &operator[](LogicalFilamentSensor fs) {
+        return array.at(ftrstd::to_underlying(fs));
+    }
+    inline IFSensor *operator[](LogicalFilamentSensor fs) const {
+        return array.at(ftrstd::to_underlying(fs));
     }
 };
 
-struct Events {
-    std::optional<IFSensor::event> primary_runout = std::nullopt;
-    std::optional<IFSensor::event> secondary_runout = std::nullopt;
-    std::optional<IFSensor::event> autoload = std::nullopt;
-    std::optional<IFSensor::event> current_extruder = std::nullopt;
-    std::optional<IFSensor::event> current_side = std::nullopt;
+// We need those. States obtained from from sensors directly might not by synchronized
+struct LogicalFilamentSensorStates {
+    using State = std::atomic<FilamentSensorState>;
+    static constexpr const FilamentSensorState init_val = FilamentSensorState::NotInitialized;
+    std::array<State, logical_filament_sensor_count> array = { init_val };
 
-    std::optional<IFSensor::event> &get(size_t idx) {
-        switch (idx) {
-        case 0:
-            return primary_runout;
-        case 1:
-            return secondary_runout;
-        case 2:
-            return autoload;
-        case 3:
-            return current_extruder;
-        case 4:
-            return current_side;
-        default: {
-            static std::optional<IFSensor::event> empty = std::nullopt;
-            return empty;
-        }
-        }
+    inline auto &operator[](LogicalFilamentSensor fs) {
+        return array.at(ftrstd::to_underlying(fs));
+    }
+    inline const auto &operator[](LogicalFilamentSensor fs) const {
+        return array.at(ftrstd::to_underlying(fs));
     }
 };
-
-/**
- * @brief what mas happen to inject M600
- */
-enum class inject_t : int32_t {
-    on_edge = 0,
-    on_level = 1,
-    never = 2
-};
-
-/**
- * @brief command
- * you cannot change state of sensor directly
- * it would not be thread safe
- */
-enum class cmd_t : int32_t {
-    null, // no command
-    on, // request to turn on
-    off, // request to turn off
-    processing, // currently processing command
-};
-
-/**
- * @brief shared state of extruder + side sensor
- * so it can be atomically accessed
- * ordered by evaluation priority
- */
-enum class init_status_t : int32_t {
-    NotReady, // cannot evaluate right now, commands being processed
-    BothNotCalibrated,
-    SideNotCalibrated,
-    ExtruderNotCalibrated,
-    BothNotInitialized,
-    SideNotInitialized,
-    ExtruderNotInitialized,
-    Ok, // neither of other states :)
-};
-
-enum class mmu_enable_result_t : int32_t {
-    ok,
-    error_filament_sensor_disabled,
-    error_mmu_not_supported
-};
-} // namespace filament_sensor

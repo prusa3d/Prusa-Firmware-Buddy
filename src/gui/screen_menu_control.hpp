@@ -11,8 +11,14 @@
 #include <option/has_selftest.h>
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
+#include <option/has_coldpull.h>
 #include <printers.h>
 #include "MItem_basic_selftest.hpp"
+#include "MItem_mmu.hpp"
+#include <device/board.h>
+#if XL_ENCLOSURE_SUPPORT()
+    #include "MItem_enclosure.hpp"
+#endif
 
 using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
 #if HAS_TOOLCHANGER()
@@ -22,9 +28,30 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_TEMPERATURE,
     MI_AUTO_HOME,
     MI_SET_READY,
+#if !HAS_LOADCELL()
+    MI_CURRENT_SHEET_PROFILE,
+#endif
     MI_DISABLE_STEP,
     MI_LIVE_ADJUST_Z,
+
+#if XL_ENCLOSURE_SUPPORT()
+    MI_ENCLOSURE_ENABLE,
+    MI_ENCLOSURE,
+#endif
+
+#if HAS_COLDPULL()
+    MI_COLD_PULL,
+#endif
+
+#if HAS_MMU2()
+    MI_MMU_LOAD_TEST_FILAMENT,
+#endif
+
 #if HAS_SELFTEST_SNAKE()
+    #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+    MI_MESH_BED,
+    MI_BED_LEVEL_CORRECTION,
+    #endif
     MI_SELFTEST_SNAKE
 #else
     MI_CALIB_FIRST
@@ -39,10 +66,6 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
         #if FILAMENT_SENSOR_IS_ADC()
     ,
     MI_CALIB_FSENSOR
-            #if HAS_MMU2()
-    ,
-    MI_CALIB_FSENSOR_MMU
-            #endif // HAS_MMU2()
         #endif // FILAMENT_SENSOR_IS_ADC()
     ,
     MI_SELFTEST,

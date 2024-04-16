@@ -106,8 +106,6 @@ enum class EspLinkState {
     NoAp,
     /// Up and running.
     Up,
-    /// Connected to AP, but not brought up (missing IP?)
-    Down,
     /// No communication from ESP for a while.
     ///
     /// Broken UART? ESP crashed?

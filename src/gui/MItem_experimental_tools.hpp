@@ -17,6 +17,22 @@ enum class ClickCommand : intptr_t { Return,
     Reset_microsteps,
     Reset_currents };
 
+#if PRINTER_IS_PRUSA_MK3_5
+// Option to switch off PWM correction to make Alte fans quiet. As of now, only MK3.5 has to deal with this issue
+class MI_ALT_FAN : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Alt fan correction");
+
+    static bool init_index();
+
+public:
+    MI_ALT_FAN()
+        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+#endif
+
 class MI_Z_AXIS_LEN : public WiSpinInt {
     constexpr static const char *const label = "Z-axis length";
 
@@ -25,7 +41,7 @@ public:
     void Store();
 };
 
-class MI_RESET_Z_AXIS_LEN : public WI_LABEL_t {
+class MI_RESET_Z_AXIS_LEN : public IWindowMenuItem {
     static constexpr const char *const label = "Reset Z-length";
 
 public:
@@ -67,7 +83,7 @@ public:
     void Store();
 };
 
-class MI_RESET_STEPS_PER_UNIT : public WI_LABEL_t {
+class MI_RESET_STEPS_PER_UNIT : public IWindowMenuItem {
     static constexpr const char *const label = "Reset steps per unit";
 
 public:
@@ -117,7 +133,7 @@ public:
     void Store();
 };
 
-class MI_RESET_DIRECTION : public WI_LABEL_t {
+class MI_RESET_DIRECTION : public IWindowMenuItem {
     static constexpr const char *const label = "Reset directions";
 
 public:
@@ -159,7 +175,7 @@ public:
     void Store();
 };
 
-class MI_RESET_MICROSTEPS : public WI_LABEL_t {
+class MI_RESET_MICROSTEPS : public IWindowMenuItem {
     static constexpr const char *const label = "Reset microsteps";
 
 public:
@@ -201,7 +217,7 @@ public:
     void Store();
 };
 
-class MI_RESET_CURRENTS : public WI_LABEL_t {
+class MI_RESET_CURRENTS : public IWindowMenuItem {
     static constexpr const char *const label = "Reset currents";
 
 public:
@@ -211,7 +227,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_SAVE_AND_RETURN : public WI_LABEL_t {
+class MI_SAVE_AND_RETURN : public IWindowMenuItem {
     static constexpr const char *const label = "Save and return";
 
 public:

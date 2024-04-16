@@ -128,10 +128,13 @@ void jsonify_str_len(const char *input, size_t input_len, char *output);
  * printf("%s", whatever_escaped);
  * ```
  */
-#define JSONIFY_STR(NAME)                               \
-    const size_t NAME##_len = jsonify_str_buffer(NAME); \
-    char NAME##_buffer[NAME##_len];                     \
-    const char *NAME##_escaped = NAME##_len ? (jsonify_str(NAME, NAME##_buffer), NAME##_buffer) : NAME
+#define JSONIFY_STR(NAME)                                                                               \
+    _Pragma("GCC diagnostic push");                                                                     \
+    _Pragma("GCC diagnostic ignored \"-Wvla\"");                                                        \
+    const size_t NAME##_len = jsonify_str_buffer(NAME);                                                 \
+    char NAME##_buffer[NAME##_len];                                                                     \
+    const char *NAME##_escaped = NAME##_len ? (jsonify_str(NAME, NAME##_buffer), NAME##_buffer) : NAME; \
+    _Pragma("GCC diagnostic pop");
 
 #ifdef __cplusplus
 }

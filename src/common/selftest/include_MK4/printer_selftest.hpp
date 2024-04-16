@@ -7,7 +7,6 @@
 #pragma once
 
 #include "i_selftest.hpp"
-#include "super.hpp"
 #include "selftest_part.hpp"
 #include "selftest_result_type.hpp"
 #include "config_features.h"
@@ -31,10 +30,10 @@ typedef enum {
     stsHeaters_bed_ena,
     stsHeaters,
     stsWait_heaters,
-    stsHotEndSock,
+    stsHotendSpecify,
     stsGears,
     stsFSensor_calibration,
-    stsFSensorMMU_calibration,
+    stsFSensor_flip_mmu_at_the_end,
     stsNet_status,
     stsSelftestStop,
     stsDidSelftestPass,
@@ -43,11 +42,11 @@ typedef enum {
     stsAborted,
 } SelftestState_t;
 
-consteval uint64_t to_one_hot(SelftestState_t state) {
-    return static_cast<uint64_t>(1) << state;
+consteval uint32_t to_one_hot(SelftestState_t state) {
+    return static_cast<uint32_t>(1) << state;
 }
 
-enum SelftestMask_t : uint64_t {
+enum SelftestMask_t : uint32_t {
     stmNone = 0,
     stmFans = to_one_hot(stsFans),
     stmWait_fans = to_one_hot(stsWait_fans),
@@ -62,12 +61,12 @@ enum SelftestMask_t : uint64_t {
     stmXYAxisWithMotorDetection = to_one_hot(stsXAxisWithMotorDetection) | stmYAxis,
     stmXYZAxis = stmXAxis | stmYAxis | stmZAxis,
     stmWait_axes = to_one_hot(stsWait_axes),
-    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena) | to_one_hot(stsHotEndSock),
+    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena) | to_one_hot(stsHotendSpecify),
     stmHeaters_bed = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_bed_ena),
     stmHeaters = stmHeaters_bed | stmHeaters_noz,
     stmWait_heaters = to_one_hot(stsWait_heaters),
     stmFSensor = to_one_hot(stsFSensor_calibration),
-    stmFSensorMMU = to_one_hot(stsFSensorMMU_calibration),
+    stmFSensor_flip_mmu_at_the_end = to_one_hot(stsFSensor_calibration) | to_one_hot(stsFSensor_flip_mmu_at_the_end),
     stmGears = to_one_hot(stsGears),
     stmSelftestStart = to_one_hot(stsSelftestStart),
     stmSelftestStop = to_one_hot(stsSelftestStop),
@@ -75,14 +74,14 @@ enum SelftestMask_t : uint64_t {
 };
 
 // class representing whole self-test
-class CSelftest : public AddSuper<ISelftest> {
+class CSelftest : public ISelftest {
 public:
     CSelftest();
 
 public:
     virtual bool IsInProgress() const override;
     virtual bool IsAborted() const override;
-    virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) override; // parent has no clue about SelftestMask_t
+    virtual bool Start(const uint64_t test_mask, const selftest::TestData test_data) override; // parent has no clue about SelftestMask_t
     virtual void Loop() override;
     virtual bool Abort() override;
 
@@ -102,7 +101,7 @@ protected:
     selftest::IPartHandler *pZAxis;
     std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
     selftest::IPartHandler *pBed;
-    selftest::IPartHandler *pSock;
+    selftest::IPartHandler *pHotendSpecify;
     std::array<selftest::IPartHandler *, HOTENDS> m_pLoadcell;
     std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
     selftest::IPartHandler *pGearsCalib;

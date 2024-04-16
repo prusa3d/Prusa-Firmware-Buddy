@@ -4,7 +4,6 @@
 
 #include "MItem_filament.hpp"
 #include "sound.hpp"
-#include "DialogHandler.hpp"
 #include "marlin_client.hpp"
 #include "ScreenHandler.hpp"
 #include <option/has_toolchanger.h>
@@ -27,7 +26,7 @@
                 d.DisableNotAvailable(available_for_tool);
             }
             d.Preselect(prusa_toolchanger.get_active_tool_nr() + 1); // PickAndGo has return;
-            d.MakeBlocking();
+            Screens::Access()->gui_loop_until_dialog_closed();
             result = d.get_result();
         }
 
@@ -116,7 +115,7 @@ void MI_CHANGE::Do() {
 /*****************************************************************************/
 // MI_CHANGEALL
 MI_CHANGEALL::MI_CHANGEALL()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
 
 void MI_CHANGEALL::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenChangeAllFilaments>);
@@ -162,7 +161,7 @@ void MI_PURGE::UpdateEnableState() {
 /*****************************************************************************/
 // MI_COOLDOWN
 MI_COOLDOWN::MI_COOLDOWN()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_COOLDOWN::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);

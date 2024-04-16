@@ -1,7 +1,7 @@
 #include "selftest_frame_tool_offsets.hpp"
 #include "i18n.h"
 #include "img_resources.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_tool_offsets_type.hpp"
 #include "marlin_client.hpp"
 #include <array>

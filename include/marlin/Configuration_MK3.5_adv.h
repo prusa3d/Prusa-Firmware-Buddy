@@ -1087,10 +1087,26 @@
 
 #if EITHER(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
 // Override the mesh area if the automatic (max) area is too large
-#define MESH_MIN_X 0
-#define MESH_MIN_Y 0
-#define MESH_MAX_X X_BED_SIZE
-#define MESH_MAX_Y Y_BED_SIZE
+// The numbers are from the distance equation combined with relative position due to probe offset MESH_X_DIST define and function position_reachable_by_probe from motion.h respectively
+
+// 1|19 for corner probe positions
+// 20 for number of travels between probe points (21 set by Marlin)
+// offset is defined in printer config
+// bounds were found by trial and error using G0 and looking whether position is "nice"
+
+// min + 1 * (max - min) / 20 - offset = low_bound;
+// min + 19 * (max - min) / 20 - offset = high_bound;.
+// Highbounds:
+// Leftmost position for X is 225
+// Reartmost postition for Y is 204
+// Lowbounds:
+// Rightmost position for X is 0
+// Frontmost position for Y is -4 (defined elsewhere: Y_MIN_POS)
+
+#define MESH_MIN_X (10.5f)
+#define MESH_MIN_Y (-10.5f)
+#define MESH_MAX_X (X_BED_SIZE + MESH_MIN_X)
+#define MESH_MAX_Y (Y_BED_SIZE - MESH_MIN_Y)
 #endif
 
 /**
@@ -1792,9 +1808,20 @@
 //#define SENSORLESS_PROBING
 
     #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
-        #define X_STALL_SENSITIVITY 2
-        #define Y_STALL_SENSITIVITY 2
-        #define Z_STALL_SENSITIVITY 5
+        // The range of stallguard sensitivities to probe and calibrate
+        // (the required sensitivity varies by motor)
+        #define XY_STALL_SENSITIVITY_MIN -7
+        #define XY_STALL_SENSITIVITY_MAX -2
+
+        // Read from config. May be int16 max if uncalibrated, which is
+        // then handled in the Crash_s class.
+        #define X_STALL_SENSITIVITY config_store().homing_sens_x.get()
+
+        // Read from config. May be int16 max if uncalibrated, which is
+        // then handled in the Crash_s class.
+        #define Y_STALL_SENSITIVITY config_store().homing_sens_y.get()
+
+        #define Z_STALL_SENSITIVITY 3
 
         #define STALL_THRESHOLD_TMC2130 400
         #define STALL_THRESHOLD_TMC2209 400

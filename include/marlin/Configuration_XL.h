@@ -336,12 +336,6 @@
 //#define HOTEND_OFFSET_Y {0.0, 5.00}  // (mm) relative Y-offset for each nozzle
 //#define HOTEND_OFFSET_Z {0.0, 0.00}  // (mm) relative Z-offset for each nozzle
 
-#define ACCELEROMETER
-#if ENABLED(ACCELEROMETER)
-    //#define LOCAL_ACCELEROMETER
-    #define REMOTE_ACCELEROMETER
-#endif
-
 // @section temperature
 
 //===========================================================================
@@ -789,7 +783,13 @@
 #endif
 
 #define DEFAULT_MAX_FEEDRATE \
-    { 3000, 3000, 12, DEFAULT_MAX_MAX_E_FEEDRATE }
+    { 550, 550, 12, DEFAULT_MAX_MAX_E_FEEDRATE }
+
+/// HW limits of feed rate
+#define HWLIMIT_NORMAL_MAX_FEEDRATE \
+    { 400, 400, 40, 100 }
+#define HWLIMIT_STEALTH_MAX_FEEDRATE \
+    { 140, 140, 12, 100 }
 
 /**
  * Default feedrate after startup as used by G0/G1 etc
@@ -806,6 +806,12 @@
 #define DEFAULT_MAX_ACCELERATION \
     { 5000, 5000, 200, 1500 }
 
+/// HW limits of max acceleration
+#define HWLIMIT_NORMAL_MAX_ACCELERATION \
+    { 7000, 7000, 200, 2500 }
+#define HWLIMIT_STEALTH_MAX_ACCELERATION \
+    { 2500, 2500, 200, 2500 }
+
 /**
  * Default Acceleration (change/s) change = mm/s
  * Override with M204
@@ -817,6 +823,14 @@
 #define DEFAULT_ACCELERATION 1800 // X, Y, Z and E acceleration for printing moves
 #define DEFAULT_RETRACT_ACCELERATION 1200 // E acceleration for retracts
 #define DEFAULT_TRAVEL_ACCELERATION 5000 // X, Y, Z acceleration for travel (non printing) moves
+
+/// HW limits of Acceleration
+#define HWLIMIT_NORMAL_ACCELERATION 7000
+#define HWLIMIT_STEALTH_ACCELERATION 2500
+#define HWLIMIT_NORMAL_RETRACT_ACCELERATION 1200
+#define HWLIMIT_STEALTH_RETRACT_ACCELERATION 1200
+#define HWLIMIT_NORMAL_TRAVEL_ACCELERATION 7000
+#define HWLIMIT_STEALTH_TRAVEL_ACCELERATION 2500
 
 //
 // Use Junction Deviation instead of traditional Jerk Limiting
@@ -842,6 +856,10 @@
 #endif
 
 #define DEFAULT_EJERK 5 // May be used by Linear Advance
+
+/// HW limits of Jerk
+#define HWLIMIT_NORMAL_JERK { 8, 8, 2, 10 }
+#define HWLIMIT_STEALTH_JERK {8, 8, 2, 10 }
 
 /**
  * S-Curve Acceleration

@@ -6,6 +6,7 @@
 
 #include <segmented_json.h>
 #include <gcode_thumb_decoder.h>
+#include <gcode_reader_any.hpp>
 #include <unique_file_ptr.hpp>
 #include <unique_dir_ptr.hpp>
 #include <transfers/monitor.hpp>
@@ -30,6 +31,14 @@ private:
     AnyGcodeFormatReader *gcode;
     GcodeBuffer gcode_line_buffer;
     bool first_run = true;
+    bool str_continuation = false;
+    void reset_buffer();
+    // Will (try to) output part of string "body" (escaped per JSON as needed).
+    //
+    // Puts a terminating " on the last segment.
+    //
+    // Will adjust str_continuation based on the buffer's line_complete.
+    json::JsonResult out_str_chunk(json::JsonOutput &output, const GcodeBuffer::String &str);
 
 public:
     GcodeMetaRenderer(AnyGcodeFormatReader *gcode)
@@ -72,9 +81,13 @@ public:
 };
 
 struct RenderState {
+    // variable used to iterate through mmu/xl slots
+    size_t iter = 0;
+    // Because JSON can't have trailing commas :-(
+    bool need_comma = false;
+
     const Printer &printer;
     const Action &action;
-    Tracked &telemetry_changes;
     bool has_stat = false;
     bool read_only = false;
     struct stat st;
@@ -85,8 +98,10 @@ struct RenderState {
 
     std::optional<transfers::TransferId> transfer_id = std::nullopt;
     std::optional<CommandId> background_command_id = std::nullopt;
+    // Temporary store to keep iteration stable.
+    const Response *buttons = nullptr;
 
-    RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes, std::optional<CommandId> background_command_id);
+    RenderState(const Printer &printer, const Action &action, std::optional<CommandId> background_command_id);
 };
 
 class Renderer : public json::JsonRenderer<RenderState> {

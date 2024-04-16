@@ -96,19 +96,19 @@ void plan_arc(const xyze_pos_t &, const ab_float_t &, const bool, const uint8_t)
 namespace {
 
 // Absolute tool center - an input for offset computation [mm]
-static metric_t metric_center = METRIC("g425_cen", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_center, "g425_cen", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Tool offset relative to the first tool - result of the tool offset calibration [mm]
-static metric_t metric_offset = METRIC("g425_off", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_offset, "g425_off", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Raw XY probe [mm]
-static metric_t metric_xy_raw_hit = METRIC("g425_rxy", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_xy_raw_hit, "g425_rxy", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Verified XY probe - two raw probes agree on position [mm]
-static metric_t metric_xy_hit = METRIC("g425_xy", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_xy_hit, "g425_xy", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Raw Z probe [mm]
-static metric_t metric_z_raw_hit = METRIC("g425_rz", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_z_raw_hit, "g425_rz", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Averaged Z probe - N raw probes averaged [mm]
-static metric_t metric_z_hit = METRIC("g425_z", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_z_hit, "g425_z", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Max deviation
-static metric_t metric_xy_dev = METRIC("g425_xy_dev", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_xy_dev, "g425_xy_dev", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_ENABLE_ALL);
 
 constexpr xyz_float_t dimensions { { CALIBRATION_OBJECT_DIMENSIONS } };
 constexpr xy_float_t nod = { { { CALIBRATION_NOZZLE_OUTER_DIAMETER, CALIBRATION_NOZZLE_OUTER_DIAMETER } } };
@@ -463,7 +463,7 @@ float probe_z(const xyz_pos_t position, float uncertainty, const int num_measure
         &metric_z_hit,
         ",t=%u,p=%u,x=%.3f,y=%.3f z=%.3f",
         tool,
-        phase,
+        static_cast<unsigned>(phase),
         static_cast<double>(current_position.x),
         static_cast<double>(current_position.y),
         static_cast<double>(measurement_avg));
@@ -659,8 +659,10 @@ inline void calibrate_all_simple() {
     // Disable E steppers to reduce noise on loadcell
     disable_e_steppers();
 
+#if ENABLED(CRASH_RECOVERY)
     // Disable crash recovery. It would recover, but the measurement will be inaccurate anyway.
     Crash_Temporary_Deactivate ctd;
+#endif
 
     // Reset planner state
     planner.synchronize();
@@ -754,6 +756,8 @@ inline void calibrate_all_simple() {
 void GcodeSuite::G425() {
     TEMPORARY_SOFT_ENDSTOP_STATE(false);
     TEMPORARY_BED_LEVELING_STATE(false);
+
+    phase_stepping::EnsureDisabled ps_disabler {};
 
     if (axis_unhomed_error()) {
         return;

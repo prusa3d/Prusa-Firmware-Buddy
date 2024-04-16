@@ -39,8 +39,16 @@
 
 #include "../../Marlin.h" // for wait_for_heatup and idle()
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * Set heatbreak cooling temperature
+ *
+ * ## Parameters
+ *
+ * - `S` - [degree Celsius] Temperature to be set
  */
 void GcodeSuite::M142() {
   if (DEBUGGING(DRYRUN)) return;
@@ -50,5 +58,7 @@ void GcodeSuite::M142() {
 
   if (parser.seenval('S')) thermalManager.setTargetHeatbreak(parser.value_celsius(), target_extruder);
 }
+
+/** @}*/
 
 #endif // HAS_HEATED_BED

@@ -13,7 +13,7 @@
 #endif /*HAS_TOOLCHANGER()*/
 
 #include "marlin_server.hpp"
-#include "media.h"
+#include "media.hpp"
 
 #include "../lib/Marlin/Marlin/src/feature/prusa/crash_recovery.hpp"
 #include "../lib/Marlin/Marlin/src/module/endstops.h"
@@ -47,7 +47,6 @@
 #include "w25x.h"
 #include "sound.hpp"
 #include "bsod.h"
-#include "bsod_gui.hpp"
 #include "sys.h"
 #include "timing.h"
 #include "odometer.hpp"
@@ -72,8 +71,9 @@
     #include "puppies/puppy_task.hpp"
 #endif
 #include "safe_state.h"
-#include "gcode_reader.hpp"
-#include "wdt.h"
+#include "wdt.hpp"
+
+#include <usb_host/usbh_async_diskio.hpp>
 
 // External thread handles required for suspension
 extern osThreadId defaultTaskHandle;
@@ -121,8 +121,7 @@ static constexpr uint32_t FLASH_SIZE = w25x_pp_size;
 // planner state (TODO: a _lot_ of essential state is missing here and Crash_s also due to
 // the partial Motion_Parameters implementation)
 struct flash_planner_t {
-    planner_settings_t settings;
-    xyze_pos_t max_jerk;
+    user_planner_settings_t settings;
 
     float z_position;
 #if DISABLED(CLASSIC_JERK)
@@ -169,8 +168,7 @@ struct flash_crash_t {
     uint8_t axis_known_position; /// axis state before crashing
     uint8_t leveling_active; /// state of MBL before crashing
     feedRate_t fr_mm_s; /// current move feedrate
-    xy_uint_t counter_crash = { 0, 0 }; /// number of crashes per axis
-    uint16_t counter_power_panic = 0; /// number of power panics
+    Crash_s_Counters::Data counters;
     Crash_s::InhibitFlags inhibit_flags; /// inhibit instruction replay flags
 
     uint8_t _padding[1]; // silence warning
@@ -178,10 +176,14 @@ struct flash_crash_t {
 
 // print progress data
 struct flash_progress_t {
+    struct ModeSpecificData {
+        uint32_t percent_done;
+        uint32_t time_to_end;
+        uint32_t time_to_pause;
+    };
+
     millis_t print_duration;
-    uint32_t percent_done;
-    uint32_t time_to_end;
-    uint32_t time_to_pause;
+    ModeSpecificData standard_mode, stealth_mode;
 };
 
 // toolchanger recovery info
@@ -198,7 +200,7 @@ struct flash_toolchanger_t {
 #pragma GCC diagnostic pop
 
 // Data storage layout
-struct __attribute__((packed)) flash_data {
+struct flash_data {
     // non-changing print parameters
     struct fixed_t {
         xy_pos_t bounding_rect_a;
@@ -227,7 +229,7 @@ struct __attribute__((packed)) flash_data {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         SpoolJoin::serialized_state_t spool_join;
 #endif
-        PrusaPackGcodeReader::stream_restore_info_t gcode_stream_restore_info;
+        GCodeReaderStreamRestoreInfo gcode_stream_restore_info;
         uint8_t invalid; // set to zero before writing, cleared on erase
 
         static void load();
@@ -277,7 +279,7 @@ static struct {
 #if ENABLED(PRUSA_SPOOL_JOIN)
     SpoolJoin::serialized_state_t spool_join;
 #endif
-    PrusaPackGcodeReader::stream_restore_info_t gcode_stream_restore_info;
+    GCodeReaderStreamRestoreInfo gcode_stream_restore_info;
 } state_buf;
 
 // Helper functions to read/write to the flash area with type checking
@@ -434,9 +436,13 @@ bool setup_auto_recover_check() {
     print_job_timer.resume(state_buf.progress.print_duration);
     print_job_timer.pause();
 
-    oProgressData.oPercentDone.mSetValue(state_buf.progress.percent_done, state_buf.progress.print_duration);
-    oProgressData.oTime2End.mSetValue(state_buf.progress.time_to_end, state_buf.progress.print_duration);
-    oProgressData.oTime2Pause.mSetValue(state_buf.progress.time_to_pause, state_buf.progress.print_duration);
+    const auto mode_specific = [](const flash_progress_t::ModeSpecificData &mbuf, ClProgressData::ModeSpecificData &pdata) {
+        pdata.percent_done.mSetValue(mbuf.percent_done, state_buf.progress.print_duration);
+        pdata.percent_done.mSetValue(mbuf.time_to_end, state_buf.progress.print_duration);
+        pdata.percent_done.mSetValue(mbuf.time_to_pause, state_buf.progress.print_duration);
+    };
+    mode_specific(state_buf.progress.standard_mode, oProgressData.standard_mode);
+    mode_specific(state_buf.progress.stealth_mode, oProgressData.stealth_mode);
 
     // decide whether to auto-recover
     return auto_recover_check();
@@ -581,11 +587,9 @@ void resume_loop() {
         thermalManager.allow_cold_extrude = state_buf.planner.allow_cold_extrude;
 #endif
         // planner settings
-        planner.settings = state_buf.planner.settings;
+        planner.apply_settings(state_buf.planner.settings);
         planner.refresh_acceleration_rates();
-#if HAS_CLASSIC_JERK
-        planner.max_jerk = state_buf.planner.max_jerk;
-#else
+#if !HAS_CLASSIC_JERK
         planner.max_e_jerk = state_buf.planner.max_jerk.e;
         planner.junction_deviation_mm = state_buf.planner.junction_deviation_mm;
 #endif
@@ -730,15 +734,18 @@ void resume_loop() {
         pressure_advance::set_axis_e_config(state_buf.planner.axis_e_config);
 
         // restore crash state
-        crash_s.start_current_position = state_buf.crash.start_current_position;
-        crash_s.crash_current_position = state_buf.crash.crash_current_position;
-        crash_s.crash_position = state_buf.crash.crash_position;
-        crash_s.segments_finished = state_buf.crash.segments_finished;
-        crash_s.leveling_active = state_buf.crash.leveling_active;
-        crash_s.inhibit_flags = state_buf.crash.inhibit_flags;
-        crash_s.fr_mm_s = state_buf.crash.fr_mm_s;
-        crash_s.counter_crash = state_buf.crash.counter_crash;
-        crash_s.counter_power_panic = state_buf.crash.counter_power_panic;
+        {
+            const auto &d = state_buf.crash;
+
+            crash_s.start_current_position = d.start_current_position;
+            crash_s.crash_current_position = d.crash_current_position;
+            crash_s.crash_position = d.crash_position;
+            crash_s.segments_finished = d.segments_finished;
+            crash_s.leveling_active = d.leveling_active;
+            crash_s.inhibit_flags = d.inhibit_flags;
+            crash_s.fr_mm_s = d.fr_mm_s;
+            crash_s.counters.restore_data(d.counters);
+        }
 
         atomic_finish();
         log_info(PowerPanic, "resuming complete");
@@ -823,7 +830,8 @@ bool shutdown_loop_checked() {
     // move above is not sufficient)
     processing = planner.processing();
     if (!processing) {
-        log_warning(PowerPanic, "shutdown state %u/%u took too long", power_panic_state, shutdown_state - 1);
+        log_warning(PowerPanic, "shutdown state %u/%u took too long",
+            static_cast<unsigned>(power_panic_state), static_cast<unsigned>(shutdown_state - 1));
     }
 
     return processing;
@@ -902,7 +910,7 @@ void panic_loop() {
         power_panic_state = PPState::SaveState;
         break;
 
-    case PPState::SaveState:
+    case PPState::SaveState: {
         if (shutdown_loop_checked()) {
             break;
         }
@@ -914,9 +922,14 @@ void panic_loop() {
 
         // timer & progress state
         state_buf.progress.print_duration = print_job_timer.duration();
-        state_buf.progress.percent_done = oProgressData.oPercentDone.mGetValue();
-        state_buf.progress.time_to_end = oProgressData.oTime2End.mGetValue();
-        state_buf.progress.time_to_pause = oProgressData.oTime2Pause.mGetValue();
+
+        const auto mode_specific = [](flash_progress_t::ModeSpecificData &mbuf, const ClProgressData::ModeSpecificData &pdata) {
+            mbuf.percent_done = pdata.percent_done.mGetValue();
+            mbuf.time_to_end = pdata.time_to_end.mGetValue();
+            mbuf.time_to_pause = pdata.time_to_pause.mGetValue();
+        };
+        mode_specific(state_buf.progress.standard_mode, oProgressData.standard_mode);
+        mode_specific(state_buf.progress.stealth_mode, oProgressData.stealth_mode);
 
 #if ENABLED(CANCEL_OBJECTS)
         state_buf.canceled_objects = cancelable.canceled;
@@ -994,6 +1007,7 @@ void panic_loop() {
         Sound_Play(eSOUND_TYPE::CriticalAlert);
         power_panic_state = PPState::WaitingToDie;
         break;
+    }
 
     case PPState::WaitingToDie:
         // turn off any remaining peripherals
@@ -1117,8 +1131,9 @@ void ac_fault_isr() {
         state_buf.crash.leveling_active = crash_s.leveling_active;
         state_buf.crash.inhibit_flags = crash_s.inhibit_flags;
         state_buf.crash.fr_mm_s = crash_s.fr_mm_s;
-        state_buf.crash.counter_crash = crash_s.counter_crash;
-        state_buf.crash.counter_power_panic = crash_s.counter_power_panic + 1;
+
+        crash_s.counters.increment(Crash_s::Counter::power_panic);
+        state_buf.crash.counters = crash_s.counters.backup_data();
 
         // save print temperatures
         if (state_buf.planner.was_paused || resume.nozzle_temp_paused) { // Paused print or whenever nozzle is cooled down
@@ -1180,10 +1195,9 @@ void ac_fault_isr() {
         prusa_toolchanger.try_restore();
 #endif /*HAS_TOOLCHANGER()*/
 
-        state_buf.planner.settings = planner.settings;
-#if HAS_CLASSIC_JERK
-        state_buf.planner.max_jerk = planner.max_jerk;
-#else
+        state_buf.planner.settings = planner.user_settings;
+
+#if !HAS_CLASSIC_JERK
         state_buf.planner.max_jerk.e = planner.max_e_jerk;
         state_buf.planner.junction_deviation_mm = planner.junction_deviation_mm;
 #endif

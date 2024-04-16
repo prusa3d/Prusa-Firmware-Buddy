@@ -54,6 +54,10 @@
 
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M290: Babystepping
  *
@@ -136,5 +140,7 @@ void GcodeSuite::M290() {
   void GcodeSuite::M293() { babystep.z_up(); }
   void GcodeSuite::M294() { babystep.z_down(); }
 #endif
+
+/** @}*/
 
 #endif // BABYSTEPPING

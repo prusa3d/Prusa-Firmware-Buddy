@@ -11,11 +11,12 @@
 #include <mutex>
 
 #include <FreeRTOS.h>
-#include <freertos_mutex.hpp>
+#include <common/freertos_mutex.hpp>
 #include <task.h>
 #include <semphr.h>
 #include <ccm_thread.hpp>
 #include <bsod.h>
+#include <lwip/netifapi.h>
 
 #include "main.h"
 #include "../metric.h"
@@ -101,7 +102,7 @@ enum MessageType {
 static constexpr uint8_t SUPPORTED_FW_VERSION = 10;
 #else
 // ESP8266 FW version
-static constexpr uint8_t SUPPORTED_FW_VERSION = 10;
+static constexpr uint8_t SUPPORTED_FW_VERSION = 11;
 #endif
 
 // NIC state
@@ -123,7 +124,7 @@ static std::atomic<bool> esp_detected;
 static std::atomic<bool> esp_was_ok = false;
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
-static FreeRTOS_Mutex uart_write_mutex;
+static freertos::Mutex uart_write_mutex;
 static bool espif_initialized = false;
 static bool uart_has_recovered_from_error = false;
 // Note: We never transmit more than one message so we might as well allocate statically.
@@ -147,9 +148,9 @@ void espif_receive_data(UART_HandleTypeDef *huart) {
 }
 
 static void hard_reset_device() {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
     osDelay(100);
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_SET);
     esp_detected = false;
 }
 
@@ -160,7 +161,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
         if (HAL_UART_Init(huart) != HAL_OK) {
             Error_Handler();
         }
-        assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(dma_buffer_rx)));
+        assert(can_be_used_by_dma(dma_buffer_rx));
         if (HAL_UART_Receive_DMA(huart, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN) != HAL_OK) {
             Error_Handler();
         }
@@ -223,7 +224,7 @@ static void espif_task_step() {
 
             uint8_t *data = (uint8_t *)tx_pbuf->payload;
             size_t size = tx_pbuf->len;
-            assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(data)));
+            assert(can_be_used_by_dma(data));
             tx_pbuf = tx_pbuf->next;
             tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, data, size);
             if (tx_result != HAL_OK) {
@@ -260,7 +261,7 @@ void espif_task_create() {
 }
 
 static void espif_tx_update_metrics(uint32_t len) {
-    static metric_t metric_esp_out = METRIC("esp_out", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(metric_esp_out, "esp_out", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
     static uint32_t bytes_sent = 0;
     bytes_sent += len;
     metric_record_custom(&metric_esp_out, " sent=%" PRIu32 "i", bytes_sent);
@@ -279,7 +280,7 @@ static void espif_tx_update_metrics(uint32_t len) {
     taskENTER_CRITICAL();
     tx_waiting = true;
     tx_pbuf = p;
-    assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(&tx_message)));
+    assert(can_be_used_by_dma(&tx_message));
     HAL_StatusTypeDef tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, (uint8_t *)&tx_message, sizeof(tx_message));
     if (tx_result == HAL_OK) {
         taskEXIT_CRITICAL();
@@ -346,7 +347,7 @@ static err_t espif_reconfigure_uart(const uint32_t baudrate) {
         return ERR_IF;
     }
 
-    assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(dma_buffer_rx)));
+    assert(can_be_used_by_dma(dma_buffer_rx));
     int hal_dma_res = HAL_UART_Receive_DMA(&ESP_UART_HANDLE, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
     if (hal_dma_res != HAL_OK) {
         log_error(ESPIF, "HAL_UART_Receive_DMA() failed: %d", hal_dma_res);
@@ -388,7 +389,8 @@ static void process_mac(uint8_t *data, struct netif *netif) {
     if (esp_operating_mode.compare_exchange_strong(old, ESPIF_NEED_AP)) {
         const uint8_t version = fw_version.load();
         if (version != SUPPORTED_FW_VERSION) {
-            log_warning(ESPIF, "Firmware version mismatch: %d != %d", version, SUPPORTED_FW_VERSION);
+            log_warning(ESPIF, "Firmware version mismatch: %u != %u",
+                version, static_cast<unsigned>(SUPPORTED_FW_VERSION));
             esp_operating_mode = ESPIF_WRONG_FW;
             return;
         }
@@ -405,13 +407,13 @@ static void process_link_change(bool link_up, struct netif *netif) {
     assert(netif != nullptr);
     if (link_up) {
         if (!associated.exchange(true)) {
-            netif_set_link_up(netif);
+            netifapi_netif_set_link_up(netif);
             log_info(ESPIF, "Link went up");
         }
     } else {
         if (associated.exchange(false)) {
             log_info(ESPIF, "Link went down");
-            netif_set_link_down(netif);
+            netifapi_netif_set_link_down(netif);
         }
     }
 }
@@ -420,7 +422,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
     esp_detected = true;
 
     // record metrics
-    static metric_t metric_esp_in = METRIC("esp_in", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
+    METRIC_DEF(metric_esp_in, "esp_in", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
     static uint32_t bytes_received = 0;
     bytes_received += size;
     metric_record_custom(&metric_esp_in, " recv=%" PRIu32 "i", bytes_received);
@@ -679,14 +681,10 @@ void espif_flash_initialize(const bool take_down_interfaces) {
         espif_reconfigure_uart(FLASH_UART_BAUDRATE);
         loader_stm32_config_t loader_config = {
             .huart = &ESP_UART_HANDLE,
-            .port_io0 = GPIOE,
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-            .pin_num_io0 = GPIO_PIN_15,
-#else
-            .pin_num_io0 = GPIO_PIN_6,
-#endif
-            .port_rst = GPIOC,
-            .pin_num_rst = GPIO_PIN_13,
+            .port_io0 = ESP_GPIO0_GPIO_Port,
+            .pin_num_io0 = ESP_GPIO0_Pin,
+            .port_rst = ESP_RST_GPIO_Port,
+            .pin_num_rst = ESP_RST_Pin,
         };
         loader_port_stm32_init(&loader_config);
     }
@@ -812,7 +810,6 @@ EspLinkState esp_link_state() {
         return EspLinkState::Init;
     case ESPIF_NEED_AP:
         return EspLinkState::NoAp;
-        return EspLinkState::Down;
     case ESPIF_RUNNING_MODE: {
         if (espif_link()) {
             if (seen_intron) {
@@ -821,7 +818,7 @@ EspLinkState esp_link_state() {
                 return EspLinkState::Silent;
             }
         } else {
-            return EspLinkState::Down;
+            return EspLinkState::NoAp;
         }
     }
     }

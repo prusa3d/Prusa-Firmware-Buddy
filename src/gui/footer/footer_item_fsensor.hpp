@@ -22,7 +22,7 @@ class FooterItemFSensorSide : public AddSuperWindow<FooterIconText_IntVal> {
 
     /**
      * @brief Reuse makeView from tool filament sensor.
-     * @param value fsensor_t state converted to int
+     * @param value FilamentSensorState state converted to int
      */
     static inline string_view_utf8 static_makeView(int value) {
         return FooterItemFSensor::static_makeView(value);

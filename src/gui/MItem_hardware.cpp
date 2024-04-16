@@ -3,13 +3,11 @@
 #include "menu_spin_config.hpp"
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor.h>
-#include "DialogHandler.hpp"
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
     #if HAS_SIDE_FSENSOR()
         #include <filament_sensors_handler_XL_remap.hpp>
-        #include <gui_fsensor_api.hpp>
     #endif /*HAS_SIDE_FSENSOR()*/
 #endif /*HAS_TOOLCHANGER()*/
 
@@ -34,7 +32,7 @@ void MI_NOZZLE_DIAMETER::OnClick() {
 }
 
 MI_HARDWARE_G_CODE_CHECKS::MI_HARDWARE_G_CODE_CHECKS()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {
@@ -43,18 +41,41 @@ void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {
 
 // MI_NOZZLE_TYPE
 MI_NOZZLE_TYPE::MI_NOZZLE_TYPE()
-    : WI_SWITCH_t<2>(config_store().nozzle_type.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, _(str_normal), _(str_high_flow)) {};
+    : IWiSwitch(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+
+    SetIndex(ftrstd::to_underlying(config_store().nozzle_type.get()));
+
+    // Items are initialized now, update extension width
+    changeExtentionWidth();
+};
 
 void MI_NOZZLE_TYPE::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().nozzle_type.set(index);
+    config_store().nozzle_type.set(static_cast<NozzleType>(index));
+}
+
+// MI_HOTEND_TYPE
+MI_HOTEND_TYPE::MI_HOTEND_TYPE()
+    : IWiSwitch(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) //
+{
+    // Determine current index
+    if (auto he = std::find(supported_hotend_types.begin(), supported_hotend_types.end(), config_store().hotend_type.get()); he != supported_hotend_types.end()) {
+        SetIndex(he - supported_hotend_types.begin());
+    }
+
+    // Items are initialized now, update extension width
+    changeExtentionWidth();
+}
+
+void MI_HOTEND_TYPE::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().hotend_type.set(supported_hotend_types[index]);
 }
 
 // MI_NOZZLE_SOCK
 MI_NOZZLE_SOCK::MI_NOZZLE_SOCK()
-    : WI_ICON_SWITCH_OFF_ON_t(config_store().nozzle_sock.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().hotend_type.get() == HotendType::stock_with_sock, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 void MI_NOZZLE_SOCK::OnChange([[maybe_unused]] size_t old_index) {
-    config_store().nozzle_sock.set(!old_index);
+    config_store().hotend_type.set(index ? HotendType::stock_with_sock : HotendType::stock);
 }
 
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
@@ -65,11 +86,16 @@ MI_SIDE_FSENSOR_REMAP::MI_SIDE_FSENSOR_REMAP()
 void MI_SIDE_FSENSOR_REMAP::OnChange([[maybe_unused]] size_t old_index) {
     if (uint8_t mask = side_fsensor_remap::ask_to_remap(); mask != 0) { // Ask user to remap
         Screens::Access()->Get()->Validate(); // Do not redraw this menu yet
-        index = side_fsensor_remap::is_remapped(); // Change index by what user selected
+
+        // Change index by what user selected)
+        set_value(side_fsensor_remap::is_remapped(), false);
+
         Validate(); // Do not redraw this switch yet
-        marlin_client::test_start_for_tools(stmFSensor, mask); // Start filament sensor calibration for moved tools
+        marlin_client::test_start_with_data(stmFSensor, static_cast<ToolMask>(mask)); // Start filament sensor calibration for moved tools
+
     } else {
-        index = side_fsensor_remap::is_remapped(); // Change index by what user selected
+        // Change index by what user selected)
+        set_value(side_fsensor_remap::is_remapped(), false);
     }
 }
 #endif /*HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()*/

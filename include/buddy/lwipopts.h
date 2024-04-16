@@ -8,16 +8,37 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <option/mdns.h>
 
 #define WITH_RTOS            1
 #define MEM_LIBC_MALLOC      0
 #define CHECKSUM_BY_HARDWARE 0
 #define LWIP_DHCP            1
 #define MEM_ALIGNMENT        4
-#define MEMP_NUM_SYS_TIMEOUT 8
 #define LWIP_ETHERNET        1
 #define LWIP_DNS_SECURE      7
 #define DNS_MAX_NAME_LENGTH  128
+
+#if MDNS()
+    #define MDNS_MAX_STORED_PKTS 1
+    // Each interface takes up to 6 timeouts (in addition to the packets).
+    // One is the "main" one, the other 5 deal with some delayed answering (and
+    // probably can be lowered, a lot of these could come in sequence instead
+    // of starting them in parallel).
+    //
+    // We limit ourselves to only one active interface and don't do mdns on the
+    // other.
+    #define MDNS_EXTRA_TIMEOUTS 6 + MDNS_MAX_STORED_PKTS
+    #define LWIP_MDNS_RESPONDER 1
+    // For MDNS
+    #define LWIP_IGMP                      1
+    #define LWIP_NUM_NETIF_CLIENT_DATA     1
+    #define LWIP_NETIF_EXT_STATUS_CALLBACK 1
+#else
+    // No extra timeouts if no MDNS
+    #define MDNS_EXTRA_TIMEOUTS 0
+#endif
+#define MEMP_NUM_SYS_TIMEOUT 8 + MDNS_EXTRA_TIMEOUTS
 
 #define TCP_MSS                1024
 #define TCP_WND                (8 * TCP_MSS)
@@ -110,9 +131,15 @@ extern "C" {
 #define MEMP_NUM_TCP_PCB 12
 #define SO_REUSE         1 // Allow SOF_REUSEADDR to do something useful.
 
-#define MEMP_NUM_UDP_PCB 5
+#define MEMP_NUM_UDP_PCB 6
 
 #define MEMP_NUM_TCPIP_MSG_INPKT TCPIP_MBOX_SIZE
+
+#define LWIP_ASSERT_CORE_LOCKED()                  \
+    do {                                           \
+        extern void wui_lwip_assert_core_locked(); \
+        wui_lwip_assert_core_locked();             \
+    } while (0)
 
 #ifdef __cplusplus
 }

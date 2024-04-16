@@ -1,10 +1,9 @@
-/**
- * @file
- */
-
 #include "accelerometer_utils.h"
 
-#if ENABLED(REMOTE_ACCELEROMETER)
+#include <option/has_remote_accelerometer.h>
+
+static_assert(HAS_REMOTE_ACCELEROMETER());
+
 /**
  * Unpack 10bit samples into 16bit sample, scale to ms^-2 and swap X and Z axis to compensate for Dwarf orientation
  */
@@ -25,4 +24,3 @@ PrusaAccelerometer::Acceleration AccelerometerUtils::unpack_sample(common::puppi
     accelerometer_sample.sample_overrun = sample & sample_overrun_mask;
     return accelerometer_sample;
 }
-#endif

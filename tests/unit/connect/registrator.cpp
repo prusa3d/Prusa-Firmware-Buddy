@@ -63,7 +63,7 @@ public:
     string token;
     InitPrinter(const Params &params)
         : MockPrinter(params) {}
-    virtual void init_connect(char *token) override {
+    virtual void init_connect(const char *token) override {
         this->token = token;
     }
 };

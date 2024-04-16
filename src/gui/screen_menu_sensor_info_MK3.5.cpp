@@ -26,13 +26,17 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
         SensorData::Value res = buffer.GetValue(SensorData::Sensor::bedTemp);
         Item<MI_INFO_BED_TEMP>().UpdateValue(res);
 
+        Item<MI_INFO_MCU_TEMP>().UpdateValue(buffer.GetValue(SensorData::Sensor::MCUTemp));
+
         Item<MI_INFO_NOZZLE_TEMP>().UpdateValue(marlin_vars()->hotend(0).temp_nozzle.get());
 
         if (auto fsensor = GetExtruderFSensor(marlin_vars()->active_extruder.get()); fsensor) { // Try to get extruder filament sensor
-            Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->Get()), static_cast<int>(fsensor->GetFilteredValue())));
+            Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->get_state()), static_cast<int>(fsensor->GetFilteredValue())));
         } else {
             Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue({ {}, {} });
         }
+
+        Item<MI_INFO_FINDA>().UpdateValue(marlin_vars()->mmu2_finda);
 
         res = buffer.GetValue(SensorData::Sensor::printFan);
         SensorData::Value res1 = buffer.GetValue(SensorData::Sensor::printFanAct);
@@ -56,6 +60,8 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
 
         res = buffer.GetValue(SensorData::Sensor::mmuCurrent);
         Item<MI_INFO_MMU_CURRENT>().UpdateValue(res);
+
+        Item<MI_PINDA>().UpdateValue(buddy::hw::zMin.read() == buddy::hw::Pin::State::low);
     }
 
     if (event == GUI_event_t::HELD_RELEASED) {

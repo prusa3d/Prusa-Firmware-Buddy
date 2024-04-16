@@ -756,6 +756,10 @@ void dcd_edpt_close_all (uint8_t rhport)
     // disable IN endpoint
     dwc2->epin[n].diepctl = 0;
     xfer_status[n][TUSB_DIR_IN].max_size = 0;
+
+    // Flush the TX FIFO
+    dwc2->grstctl = ((n << GRSTCTL_TXFNUM_Pos) | GRSTCTL_TXFFLSH); // flush the TX fifo
+    while ( (dwc2->grstctl & GRSTCTL_TXFFLSH_Msk) != 0 ) {} // wait for confirmation
   }
 
   // reset allocated fifo IN

@@ -33,6 +33,9 @@
   uint8_t lin_adv_slot = 0;
 #endif
 
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * M900: Get or Set Linear Advance K-factor
@@ -126,7 +129,8 @@ void GcodeSuite::M900() {
       #endif
 
       if (WITHIN(newK, 0, 10)) {
-        M572_internal(newK, 0.04);
+        const pressure_advance::Config default_config = pressure_advance::Config();
+        M572_internal(newK, default_config.smooth_time);
       }
       else
         SERIAL_ECHOLNPGM("?K value out of range (0-10).");
@@ -147,5 +151,7 @@ void GcodeSuite::M900() {
 
   #endif
 }
+
+/** @}*/
 
 //#endif // LIN_ADVANCE

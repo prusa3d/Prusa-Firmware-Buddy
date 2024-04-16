@@ -15,7 +15,7 @@ struct SpinCnf {
     static const SpinConfigInt printfan;
     static const SpinConfigInt feedrate;
     static const SpinConfigInt flowfact;
-    static const SpinConfigInt timezone_range;
+    static const SpinConfigInt timezone;
     static const SpinConfigInt volume_range;
     static const SpinConfigInt sensor_range;
     static const SpinConfigInt footer_center_N_range;
@@ -35,5 +35,11 @@ struct SpinCnf {
     static const SpinConfigInt print_progress;
     static const SpinConfigInt int_num;
 
+#if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
+    static const SpinConfigInt correction_range;
+#endif
     static const SpinConfigFlt nozzle_diameter;
+#if XL_ENCLOSURE_SUPPORT()
+    static const SpinConfigInt enclosure_fan;
+#endif
 };

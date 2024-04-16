@@ -9,7 +9,7 @@
 /*****************************************************************************/
 // IWiInfo
 IWiInfo::IWiInfo(string_view_utf8 label, const img::Resource *id_icon, size_t info_len, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label)
-    : AddSuper<WI_LABEL_t>(label, id_icon ? icon_width : calculate_extension_width(extension_like_label, info_len), id_icon, enabled, hidden) {
+    : IWindowMenuItem(label, id_icon ? icon_width : calculate_extension_width(extension_like_label, info_len), id_icon, enabled, hidden) {
     has_extension_like_label = extension_like_label;
 }
 

@@ -8,11 +8,15 @@
 #include "M50.hpp"
 #include <stdint.h>
 #include "z_calibration_fsm.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 
 #include <option/has_gui.h>
 
 #if HAS_GUI()
+
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * @brief selftest
@@ -53,6 +57,8 @@ void PrusaGcodeSuite::M50() {
         do_blocking_move_to_z(target_Z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }*/
 }
+
+/** @}*/
 
 #else
 

@@ -1,6 +1,6 @@
 #include "selftest_frame_gears_calib.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_gears_result.hpp"
 #include "img_resources.hpp"
 

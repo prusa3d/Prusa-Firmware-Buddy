@@ -40,10 +40,32 @@ float move_raise_z(float delta) {
 void planner_synchronize() {
     //    mockLog_RecordFn();
 }
+
+float stepper_get_machine_position_E_mm() {
+    return 0;
+}
+
+UnloadDistanceDetector::UnloadDistanceDetector() {}
+void UnloadDistanceDetector::operator()() {}
+
+void planner_synchronize_hook([[maybe_unused]] UnloadDistanceDetector &udd) {
+}
+
 bool planner_any_moves() {
     mockLog_RecordFn();
     return false;
 }
+
+uint8_t planner_moves_planned_count() {
+    return 0;
+}
+
+bool planner_draining() {
+    return false;
+}
+
+void planner_abort_queued_moves() {}
+
 pos3d planner_current_position() { return { 0, 0, 0 }; }
 
 void motion_do_blocking_move_to_xy(float rx, float ry, float feedRate_mm_s) {
@@ -63,7 +85,7 @@ void marlin_manage_heater() {
 void marlin_manage_inactivity(bool /*ignore_stepper_queue*/) {
     mockLog_RecordFn();
 }
-void marlin_idle(bool /*waiting*/) {
+void marlin_idle(bool /*waiting*/, bool /*ignore_stepper_queue*/) {
     mmu2.mmu_loop();
 }
 

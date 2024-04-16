@@ -7,6 +7,11 @@
 #include "../../gcode/gcode.h"
 
 #ifdef PRINT_CHECKING_Q_CMDS
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M862.3: Check model name
  */
@@ -32,4 +37,7 @@ void PrusaGcodeSuite::M862_3() {
     }
     #endif
 }
+
+/** @}*/
+
 #endif

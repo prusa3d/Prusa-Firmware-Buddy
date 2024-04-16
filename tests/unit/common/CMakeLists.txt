@@ -5,22 +5,13 @@ add_subdirectory(gcode)
 add_subdirectory(http)
 add_subdirectory(utils)
 add_subdirectory(filament_sensor)
-add_subdirectory(codepage)
+add_subdirectory(freertos)
 
 add_executable(
   support_utils_tests ${CMAKE_CURRENT_SOURCE_DIR}/support_utils_lib_test.cpp
                       ${CMAKE_SOURCE_DIR}/src/common/support_utils_lib.cpp
   )
 target_include_directories(support_utils_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
-
-add_executable(
-  variant8_tests
-  ${CMAKE_SOURCE_DIR}/tests/unit/test_main.cpp ${CMAKE_SOURCE_DIR}/src/common/variant8.cpp
-  ${CMAKE_SOURCE_DIR}/tests/stubs/malloc_stub.cpp ${CMAKE_CURRENT_SOURCE_DIR}/variant8_tests.cpp
-  )
-target_include_directories(
-  variant8_tests PUBLIC ${CMAKE_SOURCE_DIR}/tests/stubs ${CMAKE_SOURCE_DIR}/src
-  )
 
 add_executable(
   str_utils_tests
@@ -30,33 +21,6 @@ add_executable(
 target_include_directories(
   str_utils_tests PUBLIC # ${CMAKE_SOURCE_DIR}/src/common
                          ${CMAKE_SOURCE_DIR}/src
-  )
-
-add_executable(
-  fsm_types_test
-  ${CMAKE_CURRENT_SOURCE_DIR}/fsm_types_test.cpp ${CMAKE_SOURCE_DIR}/src/common/fsm_types.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../mock/bsod.cpp
-  )
-target_include_directories(
-  fsm_types_test
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${OPTIONS_INCLUDE_DIR}
-  )
-
-add_executable(
-  fsm_serializers_test
-  ${CMAKE_CURRENT_SOURCE_DIR}/fsm_serializers_test.cpp ${CMAKE_SOURCE_DIR}/src/common/fsm_types.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../mock/bsod.cpp
-  )
-target_include_directories(
-  fsm_serializers_test
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-  PUBLIC ${CMAKE_SOURCE_DIR}/include
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/common
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/gui/wizard
-  PUBLIC ${CMAKE_SOURCE_DIR}/tests/stubs/
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/gui
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/common/utils ${OPTIONS_INCLUDE_DIR}
   )
 
 add_executable(
@@ -78,6 +42,9 @@ add_executable(circle_buffer_tests circle_buffer_test.cpp)
 target_include_directories(
   circle_buffer_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/include
   )
+
+add_executable(circular_buffer_tests circular_buffer_test.cpp)
+target_include_directories(circular_buffer_tests PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(
   weighted_modus_tests ${CMAKE_CURRENT_SOURCE_DIR}/weighted_modus_test.cpp
@@ -120,7 +87,6 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/search_json_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/json_encode_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/segmented_json_rendering.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   )
@@ -134,14 +100,23 @@ add_executable(
   )
 target_include_directories(path_utils_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
+add_executable(
+  selftest_test_data_serialization_tests
+  ${CMAKE_SOURCE_DIR}/src/common/selftest/selftest_data.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/selftest_data_serialization.cpp
+  )
+
+target_include_directories(
+  selftest_test_data_serialization_tests PUBLIC ${CMAKE_SOURCE_DIR}/src
+                                                ${CMAKE_SOURCE_DIR}/src/common/selftest/include_XL
+  )
+
 add_catch_test(support_utils_tests)
-add_catch_test(variant8_tests)
 add_catch_test(str_utils_tests)
-add_catch_test(fsm_types_test)
-add_catch_test(fsm_serializers_test)
 add_catch_test(gcode_filter_tests)
 add_catch_test(timing_tests)
 add_catch_test(circle_buffer_tests)
+add_catch_test(circular_buffer_tests)
 add_catch_test(weighted_modus_tests)
 add_catch_test(algorithm_range_tests)
 add_catch_test(algorithm_scale_tests)
@@ -150,3 +125,4 @@ add_catch_test(otp_tests)
 add_catch_test(url_decode_tests)
 add_catch_test(json_tests)
 add_catch_test(path_utils_tests)
+add_catch_test(selftest_test_data_serialization_tests)

@@ -22,6 +22,12 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "WizardPrologue_info_detailed";
     case PhasesSelftest::Fans:
         return "Fans";
+#if PRINTER_IS_PRUSA_MK3_5
+    case PhasesSelftest::Fans_manual:
+        return "Fans_manual";
+#endif
+    case PhasesSelftest::Fans_second:
+        return "Fans_second";
     case PhasesSelftest::Loadcell_prepare:
         return "Loadcell_prepare";
     case PhasesSelftest::Loadcell_move_away:
@@ -40,6 +46,12 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "Loadcell_user_tap_ok";
     case PhasesSelftest::Loadcell_fail:
         return "Loadcell_fail";
+    case PhasesSelftest::NozzleDiameter_prepare:
+        return "NozzleDiameter_prepare";
+    case PhasesSelftest::NozzleDiameter_ask_user_for_type:
+        return "NozzleDiameter_ask_user_for_type";
+    case PhasesSelftest::NozzleDiameter_save_selected_value:
+        return "NozzleDiameter_save_selected_value";
     case PhasesSelftest::FSensor_wait_tool_pick:
         return "FSensor_wait_tool_pick";
     case PhasesSelftest::FSensor_ask_unload:
@@ -82,14 +94,14 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "Heaters";
     case PhasesSelftest::HeatersDisabledDialog:
         return "HeatersDisabledDialog";
-    case PhasesSelftest::SpecifyHotEnd:
-        return "SpecifyHotEnd";
-    case PhasesSelftest::SpecifyHotEnd_sock:
-        return "SpecifyHotEnd_sock";
-    case PhasesSelftest::SpecifyHotEnd_nozzle_type:
-        return "SpecifyHotEnd_nozzle_type";
-    case PhasesSelftest::SpecifyHotEnd_retry:
-        return "SpecifyHotEnd_retry";
+    case PhasesSelftest::SpecifyHotend:
+        return "SpecifyHotend";
+    case PhasesSelftest::SpecifyHotend_type:
+        return "SpecifyHotend_type";
+    case PhasesSelftest::SpecifyHotend_nozzle_type:
+        return "SpecifyHotend_nozzle_type";
+    case PhasesSelftest::SpecifyHotend_retry:
+        return "SpecifyHotend_retry";
     case PhasesSelftest::FirstLayer_mbl:
         return "FirstLayer_mbl";
     case PhasesSelftest::FirstLayer_print:

@@ -168,7 +168,7 @@ bool GCodeQueue::enqueue_one(const char* cmd, bool echo/*=true*/) {
   //SERIAL_ECHO(cmd);
   //SERIAL_ECHOPGM("\") \n");
 
-  if (*cmd == 0 || *cmd == '\n' || *cmd == '\r') return true;
+  if (*cmd == 0 || *cmd == '\n' || *cmd == '\r' || *cmd == ';') return true;
 
   if (_enqueue(cmd)) {
     if (echo) {

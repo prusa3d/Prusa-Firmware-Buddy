@@ -24,10 +24,12 @@ public:
      * @param ref reference to variable to be restored
      * @param set_to change value after construction
      */
-    [[nodiscard]] AutoRestore(T &ref, T set_to)
+    [[nodiscard]] AutoRestore(T &ref, T set_to, bool do_set = true)
         : ref(ref)
         , val(ref) {
-        ref = set_to;
+        if (do_set) {
+            ref = set_to;
+        }
     }
     /**
      * @brief Construct a new Auto Restore object

@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @file configuration.hpp
  * @brief non constant definitions from Configuration_MK3.5(_adv).h

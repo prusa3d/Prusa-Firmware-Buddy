@@ -1,11 +1,13 @@
 #include "printers.h"
 #include <device/board.h>
 #include <option/has_mmu2.h>
+
 #if HAS_MMU2()
     #include "buffered_serial.hpp"
     #include "cmsis_os.h"
     #include "bsod.h"
     #include "../common/hwio_pindef.h"
+    #include <timing.h>
 
 using namespace buddy::hw;
 
@@ -20,7 +22,9 @@ namespace MMU2 {
 //    return BufferedSerial::uartNr.Available();
 //}
 
-void MMU2Serial::begin([[maybe_unused]] uint32_t baud) {
+void MMU2Serial::begin(uint32_t baud) {
+    baud_rate = baud;
+
     BufferedSerial::uartNr.Open();
     // zero the default read timeout to make BufferedSerial::Read() non-blocking
     BufferedSerial::uartNr.SetReadTimeoutMs(0);
@@ -52,6 +56,26 @@ size_t MMU2Serial::write(const uint8_t *buffer, size_t size) {
     // set to high in hwio_pindef.h
     // RS485FlowControl.write(Pin::State::high); // @@TODO for RS-232
     return BufferedSerial::uartNr.Write((const char *)buffer, size);
+}
+
+void MMU2Serial::check_recovery() {
+    // Some xBuddy BOMs have a pulldown on the USART RX.
+    // This is causing frame errors when the MMU is rebooting and such.
+    // On error, USART_CR3_DMAR gets disabled (DMA enable read) from UART_EndRxTransfer.
+    // Wait till the RX pin gets to high again and then reset the serial.
+    // BFW-5286
+    if (USART6->CR3 & USART_CR3_DMAR) {
+        return;
+    }
+
+    const auto now = ticks_ms();
+    if (!recovery_start_ms || HAL_GPIO_ReadPin(MMU_RX_GPIO_Port, MMU_RX_Pin) != GPIO_PIN_SET) {
+        recovery_start_ms = now;
+
+    } else if (ticks_diff(now, recovery_start_ms) > 50) {
+        close();
+        begin(baud_rate);
+    }
 }
 
 MMU2Serial mmu2Serial;

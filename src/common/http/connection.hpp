@@ -13,6 +13,10 @@ public:
     virtual std::optional<Error> connection(const char *host, uint16_t port) = 0;
     virtual std::variant<size_t, Error> rx(uint8_t *buffer, size_t len, bool nonblock) = 0;
     virtual std::variant<size_t, Error> tx(const uint8_t *buffer, size_t len) = 0;
+
+    std::optional<Error> tx_all(const uint8_t *buffer, size_t len);
+    std::optional<Error> rx_exact(uint8_t *buffer, size_t len);
+
     /// Wait for it to become readable, but for max timeout ms.
     ///
     /// Returns true if readable.

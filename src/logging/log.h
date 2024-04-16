@@ -78,7 +78,8 @@ typedef struct log_destination_s {
 /// Low-level function for recording events.
 ///
 /// Do not use directly if not really needed. Use log_info/log_error/etc defined below.
-void _log_event(log_severity_t severity, const log_component_t *component, const char *fmt, ...);
+void __attribute__((format(__printf__, 3, 4)))
+_log_event(log_severity_t severity, const log_component_t *component, const char *fmt, ...);
 
 /// Find log component for given name
 log_component_t *log_component_find(const char *name);

@@ -11,33 +11,55 @@
 #include <utility_extensions.hpp>
 #include <option/has_dwarf.h>
 #include <option/has_side_fsensor.h>
+#include <option/has_filament_sensors_menu.h>
+#include <option/has_coldpull.h>
 
+/// Checks if there is space in the gcode queue for inserting further commands.
+/// If there's not, \returns false and shows a message box
+bool gui_check_space_in_gcode_queue_with_msg();
+
+/// Attempts to execute the gcode.
+/// \returns false on failure (when the queue is full) and shows a message box saying the printer is busy
+bool gui_try_gcode_with_msg(const char *gcode);
+
+/// Global filamen sensing enable/disable
 class MI_FILAMENT_SENSOR : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Filament Sensor");
-
-    bool init_index() const;
+    // If the printer has filament sensors menu, this item is inside it and is supposed to be called differently (BFW-4973)
+    static constexpr const char *const label = HAS_FILAMENT_SENSORS_MENU() ? N_("Filament Sensing") : N_("Filament Sensor");
 
 public:
-    MI_FILAMENT_SENSOR()
-        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    MI_FILAMENT_SENSOR();
+
+    /// Set the index to the correct value based on config_store
+    void update();
 
 protected:
     virtual void OnChange(size_t old_index) override;
 };
 
 class MI_STUCK_FILAMENT_DETECTION : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Stuck filament detection");
+    constexpr static const char *const label = N_("Stuck Filament Detection");
     bool init_index() const;
 
 public:
     MI_STUCK_FILAMENT_DETECTION()
-        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+        : WI_ICON_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_LIVE_ADJUST_Z : public WI_LABEL_t {
+class MI_STEALTH_MODE : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Stealth Mode");
+
+public:
+    MI_STEALTH_MODE(); // @@TODO probably XL only
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_LIVE_ADJUST_Z : public IWindowMenuItem {
     static constexpr const char *const label = N_("Live Adjust Z");
 
 public:
@@ -47,7 +69,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_AUTO_HOME : public WI_LABEL_t {
+class MI_AUTO_HOME : public IWindowMenuItem {
     static constexpr const char *const label = N_("Auto Home");
 
 public:
@@ -57,7 +79,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MESH_BED : public WI_LABEL_t {
+class MI_MESH_BED : public IWindowMenuItem {
     static constexpr const char *const label = N_("Mesh Bed Leveling");
 
 public:
@@ -67,7 +89,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_CALIB_Z : public WI_LABEL_t {
+class MI_CALIB_Z : public IWindowMenuItem {
     static constexpr const char *const label = N_("Calibrate Z");
 
 public:
@@ -77,7 +99,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_DISABLE_STEP : public WI_LABEL_t {
+class MI_DISABLE_STEP : public IWindowMenuItem {
     static constexpr const char *const label = N_("Disable Motors");
 
 public:
@@ -87,7 +109,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_FACTORY_SOFT_RESET : public WI_LABEL_t {
+class MI_FACTORY_SOFT_RESET : public IWindowMenuItem {
     static constexpr const char *const label = N_("Reset Settings & Calibrations");
 
 public:
@@ -97,7 +119,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_FACTORY_HARD_RESET : public WI_LABEL_t {
+class MI_FACTORY_HARD_RESET : public IWindowMenuItem {
     static constexpr const char *const label = N_("Hard Reset (USB with FW needed)");
 
 public:
@@ -108,7 +130,7 @@ protected:
 };
 
 #ifdef BUDDY_ENABLE_DFU_ENTRY
-class MI_ENTER_DFU : public WI_LABEL_t {
+class MI_ENTER_DFU : public IWindowMenuItem {
     static constexpr const char *const label = "Enter DFU";
 
 public:
@@ -119,7 +141,7 @@ protected:
 };
 #endif
 
-class MI_SAVE_DUMP : public WI_LABEL_t {
+class MI_SAVE_DUMP : public IWindowMenuItem {
     static constexpr const char *const label = N_("Save Crash Dump");
 
 public:
@@ -129,7 +151,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_XFLASH_RESET : public WI_LABEL_t {
+class MI_XFLASH_RESET : public IWindowMenuItem {
     static constexpr const char *const label = "Delete Crash Dump"; // intentionally not translated, only for debugging
 
 public:
@@ -139,7 +161,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_EE_SAVEXML : public WI_LABEL_t {
+class MI_EE_SAVEXML : public IWindowMenuItem {
     static constexpr const char *const label = "TODO EE Save XML"; // intentionally not translated, only for debugging
 
 public:
@@ -149,7 +171,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_EE_CLEAR : public WI_LABEL_t {
+class MI_EE_CLEAR : public IWindowMenuItem {
     static constexpr const char *const label = "EE Clear"; // intentionally not translated, only for debugging
 
 public:
@@ -159,7 +181,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_M600 : public WI_LABEL_t {
+class MI_M600 : public IWindowMenuItem {
     static constexpr const char *const label = N_("Change Filament");
 
 public:
@@ -255,11 +277,8 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_TIMEZONE_SUMMER : public WI_SWITCH_t<2> {
+class MI_TIMEZONE_SUMMER : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Time Zone Summertime");
-
-    constexpr static const char *str_wintertime = N_("disabled");
-    constexpr static const char *str_summertime = N_("enabled");
 
 public:
     MI_TIMEZONE_SUMMER();
@@ -521,7 +540,11 @@ public:
 };
 
 class MI_INFO_HBR_FAN : public WI_FAN_LABEL_t {
+#if PRINTER_IS_PRUSA_MK3_5
+    static constexpr const char *const label = N_("Hotend Fan");
+#else
     static constexpr const char *const label = N_("Heatbreak Fan");
+#endif
 
 public:
     MI_INFO_HBR_FAN();
@@ -575,6 +598,13 @@ class MI_ODOMETER_TOOL : public WI_FORMATABLE_LABEL_t<uint32_t> {
 public:
     MI_ODOMETER_TOOL(const char *const label, int index);
     MI_ODOMETER_TOOL();
+};
+
+class MI_ODOMETER_MMU_CHANGES : public WI_FORMATABLE_LABEL_t<uint32_t> {
+    constexpr static const char *const label = N_("MMU filament loads");
+
+public:
+    MI_ODOMETER_MMU_CHANGES();
 };
 
 class MI_ODOMETER_TIME : public WI_FORMATABLE_LABEL_t<uint32_t> {
@@ -661,7 +691,7 @@ public:
     MI_INFO_MCU_TEMP();
 };
 
-class MI_FOOTER_RESET : public WI_LABEL_t {
+class MI_FOOTER_RESET : public IWindowMenuItem {
     static constexpr const char *const label = N_("Reset");
 
 public:
@@ -671,7 +701,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_CO_CANCEL_OBJECT : public WI_LABEL_t {
+class MI_CO_CANCEL_OBJECT : public IWindowMenuItem {
     static constexpr const char *const label = N_("Cancel Object");
 
 public:
@@ -682,7 +712,7 @@ protected:
 };
 
 class MI_HEATUP_BED : public WI_SWITCH_t<2> {
-    static constexpr const char *const label = N_("For filament change, preheat");
+    static constexpr const char *const label = N_("For Filament Change, Preheat");
     static constexpr const char *const nozzle = N_("Nozzle");
     static constexpr const char *const nozzle_bed = N_("Noz&Bed");
 
@@ -695,103 +725,7 @@ protected:
 
 /******************************************************************/
 
-enum class input_shaper_param {
-    set_values,
-    change_x,
-    change_y
-};
-
-class MI_IS_X_ONOFF : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("X-axis");
-    input_shaper_param param = input_shaper_param::change_x;
-
-public:
-    MI_IS_X_ONOFF();
-
-protected:
-    void OnChange(size_t old_index) override;
-};
-
-class MI_IS_Y_ONOFF : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Y-axis");
-    input_shaper_param param = input_shaper_param::change_y;
-
-public:
-    MI_IS_Y_ONOFF();
-
-protected:
-    void OnChange(size_t old_index) override;
-};
-
-class MI_IS_X_TYPE : public WI_SWITCH_t<6> {
-    static constexpr const char *const label = N_("X-axis filter");
-
-public:
-    MI_IS_X_TYPE();
-
-protected:
-    void OnChange(size_t old_index) override;
-};
-
-class MI_IS_Y_TYPE : public WI_SWITCH_t<6> {
-    static constexpr const char *const label = N_("Y-axis filter");
-
-public:
-    MI_IS_Y_TYPE();
-
-protected:
-    void OnChange(size_t old_index) override;
-};
-
-class MI_IS_X_FREQUENCY : public WiSpinInt {
-    static constexpr const char *const label = N_("X-axis freq.");
-
-public:
-    MI_IS_X_FREQUENCY();
-
-    virtual void OnClick() override;
-};
-
-class MI_IS_Y_FREQUENCY : public WiSpinInt {
-    static constexpr const char *const label = N_("Y-axis freq.");
-
-public:
-    MI_IS_Y_FREQUENCY();
-    virtual void OnClick() override;
-};
-
-class MI_IS_Y_COMPENSATION : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Y weight compensation");
-
-public:
-    MI_IS_Y_COMPENSATION();
-
-protected:
-    void OnChange(size_t old_index) override;
-};
-
-class MI_IS_SET : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Set up values");
-    input_shaper_param param = input_shaper_param::set_values;
-
-public:
-    MI_IS_SET();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_IS_CALIB : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Calibration");
-
-public:
-    MI_IS_CALIB();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_SET_READY : public WI_LABEL_t {
+class MI_SET_READY : public IWindowMenuItem {
     static constexpr const char *const label = N_("Set Ready");
 
 public:
@@ -800,3 +734,29 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_PHASE_STEPPING : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *label = "Phase Stepping";
+    bool event_in_progress { false };
+
+public:
+    MI_PHASE_STEPPING();
+
+protected:
+    void OnChange(size_t old_index) override;
+};
+
+/******************************************************************/
+#if HAS_COLDPULL()
+
+class MI_COLD_PULL : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Cold Pull");
+
+public:
+    MI_COLD_PULL();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+#endif

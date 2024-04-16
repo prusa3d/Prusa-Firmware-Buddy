@@ -19,39 +19,39 @@ ScreenMenuDockCalibration::ScreenMenuDockCalibration()
     : detail::ScreenMenuDockCalibration(_(label)) {}
 
 void ScreenMenuDockCalibration::draw() {
-    if (is_menu_draw_enabled()) {
+    if (is_menu_draw_enabled(this)) {
         window_frame_t::draw();
     }
 }
 
 void ScreenMenuDockCalibration::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    do_menu_event(sender, event, param, action, true);
+    do_menu_event(this, sender, event, param, action, true);
 }
 
 ScreenMenuLoadcellTest::ScreenMenuLoadcellTest()
     : detail::ScreenMenuLoadcellTest(_(label)) {}
 
 void ScreenMenuLoadcellTest::draw() {
-    if (is_menu_draw_enabled()) {
+    if (is_menu_draw_enabled(this)) {
         window_frame_t::draw();
     }
 }
 
 void ScreenMenuLoadcellTest::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    do_menu_event(sender, event, param, action, true);
+    do_menu_event(this, sender, event, param, action, true);
 }
 
 ScreenMenuFilamentSensorsCalibration::ScreenMenuFilamentSensorsCalibration()
     : detail::ScreenMenuFilamentSensorsCalibration(_(label)) {}
 
 void ScreenMenuFilamentSensorsCalibration::draw() {
-    if (is_menu_draw_enabled()) {
+    if (is_menu_draw_enabled(this)) {
         window_frame_t::draw();
     }
 }
 
 void ScreenMenuFilamentSensorsCalibration::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    do_menu_event(sender, event, param, action, true);
+    do_menu_event(this, sender, event, param, action, true);
 }
 
 } // namespace SelftestSnake

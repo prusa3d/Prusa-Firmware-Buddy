@@ -6,6 +6,10 @@
 #include "module/prusa/spool_join.hpp"
 
 #if ENABLED(PRUSA_TOOL_MAPPING)
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * Spool join settings gcode
  *
@@ -37,4 +41,7 @@ void PrusaGcodeSuite::M864() {
         }
     }
 }
+
+/** @}*/
+
 #endif

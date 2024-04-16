@@ -3,6 +3,8 @@
 #include "marlin_client.hpp"
 #include "marlin_server.hpp"
 #include "gui.hpp"
+#include "media.hpp"
+#include "time_helper.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_calib_z.hpp"
@@ -15,7 +17,6 @@
 #include "bsod.h"
 #include "filament_sensors_handler.hpp"
 #include "liveadjust_z.hpp"
-#include "DialogHandler.hpp"
 #include "filament_sensor.hpp"
 #include "main.h"
 #include "Pin.hpp"
@@ -28,80 +29,90 @@
 #include "../../common/PersistentStorage.h"
 #include "sys.h"
 #include "w25x.h"
-#include <option/filament_sensor.h>
-#include <crash_dump/dump.hpp>
-#include <time.h>
-#include "config_features.h"
-#include <option/has_side_fsensor.h>
-#include <config_store/store_instance.hpp>
-#include <option/bootloader.h>
 #include <bootloader/bootloader.hpp>
-#include <feature/prusa/e-stall_detector.h>
+#include "config_features.h"
+#include <config_store/store_instance.hpp>
 #include "connect/marlin_printer.hpp"
-#include <Marlin/src/feature/input_shaper/input_shaper_config.hpp>
-#include <Marlin/src/feature/input_shaper/input_shaper.hpp>
+#include <crash_dump/dump.hpp>
+#include <feature/prusa/e-stall_detector.h>
+#include <option/bootloader.h>
+#include <option/filament_sensor.h>
+#include <option/has_phase_stepping.h>
+#include <option/has_side_fsensor.h>
+#include <option/has_coldpull.h>
+#include <RAII.hpp>
+#include <st25dv64k.h>
+#include <time.h>
 
-static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
+namespace {
+void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     constexpr static const char *title = N_("Information");
     MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), &img::info_16x16);
     gui::TickLoop();
     gui_loop();
 }
 
-static constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier during homing.");
+constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier during homing.");
+constexpr const char *printer_busy_text = N_("Printer is busy. Please try repeating the action later.");
+
+} // namespace
+
+bool gui_check_space_in_gcode_queue_with_msg() {
+    if (marlin_vars()->gqueue <= MEDIA_FETCH_GCODE_QUEUE_FILL_TARGET) {
+        return true;
+    }
+
+    MsgBoxWarning(_(printer_busy_text), Responses_Ok);
+    return false;
+}
+
+bool gui_try_gcode_with_msg(const char *gcode) {
+    switch (marlin_client::gcode_try(gcode)) {
+
+    case marlin_client::GcodeTryResult::Submitted:
+        return true;
+
+    case marlin_client::GcodeTryResult::QueueFull:
+        MsgBoxWarning(_(printer_busy_text), Responses_Ok);
+        return false;
+
+    case marlin_client::GcodeTryResult::GcodeTooLong:
+        bsod("Gcode too long");
+    }
+
+    return false;
+}
 
 /**********************************************************************************************/
 // MI_FILAMENT_SENSOR
-bool MI_FILAMENT_SENSOR::init_index() const {
-    return FSensors_instance().is_enabled();
+MI_FILAMENT_SENSOR::MI_FILAMENT_SENSOR()
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    update();
+}
+
+void MI_FILAMENT_SENSOR::update() {
+    SetIndex(config_store().fsensor_enabled.get());
 }
 
 void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
-    if (old_index) {
-        FSensors_instance().Disable();
-    } else {
-        FSensors_instance().Enable();
-
-        // wait until it is initialized
-        // no guiloop here !!! - it could cause show of unwanted error message
-        FilamentSensors::EnableResult res;
-        while ((res = FSensors_instance().get_enable_result()) == FilamentSensors::EnableResult::in_progress) {
-            osDelay(0); // switch to other thread
-        }
-
-        // Check if sensor enabled successfully
-        if (res != FilamentSensors::EnableResult::ok) {
-            switch (res) {
-            case FilamentSensors::EnableResult::not_calibrated:
-                MsgBoxWarning(_("Filament sensor not ready: perform calibration first."), Responses_Ok);
-                break;
-
-            case FilamentSensors::EnableResult::not_connected:
-                MsgBoxError(_("Filament sensor not connected, check wiring."), Responses_Ok);
-                break;
-
-            // Should not happen if sensors are working properly
-            case FilamentSensors::EnableResult::disabled:
-                MsgBoxError(_("Sensor logic error, printer filament sensor disabled."), Responses_Ok);
-                break;
-
-            // These cannot happen
-            case FilamentSensors::EnableResult::ok:
-            case FilamentSensors::EnableResult::in_progress:
-                assert(false);
-                break;
-            }
-
-            // Disable sensors again
-            FSensors_instance().Disable();
-            index = old_index;
-            // wait until filament sensor command is processed
-            // no guiloop here !!! - it could cause show of unwanted error message
-            while (FSensors_instance().IsExtruderProcessingRequest()) {
-                osDelay(0); // switch to other thread
-            }
-        }
+    // Enabling/disabling FS can generate gcodes (I'm looking at you, MMU!).
+    // Fail the action if there's no space in the queue.
+    if (!gui_check_space_in_gcode_queue_with_msg()) {
+        // SetIndex doesn't call OnChange
+        SetIndex(old_index);
+        return;
     }
+
+    auto &fss = FSensors_instance();
+    fss.set_enabled_global(index);
+
+    if (index && !fss.gui_wait_for_init_with_msg()) {
+        FSensors_instance().set_enabled_global(false);
+        SetIndex(old_index);
+    }
+
+    // Signal to the parent to check for changed
+    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, nullptr);
 }
 
 /*****************************************************************************/
@@ -112,20 +123,28 @@ bool MI_STUCK_FILAMENT_DETECTION::init_index() const {
 }
 
 void MI_STUCK_FILAMENT_DETECTION::OnChange(size_t old_index) {
-    if (old_index) {
-        EMotorStallDetector::Instance().Disable();
-        config_store().stuck_filament_detection.set(false);
-    } else {
-        EMotorStallDetector::Instance().Enable();
-        config_store().stuck_filament_detection.set(true);
+    if (!gui_try_gcode_with_msg(value() ? "M591 S1 P" : "M591 S0 P")) {
+        set_value(old_index, false);
+    }
+}
+
+/*****************************************************************************/
+// MI_STEALTH_MODE
+/*****************************************************************************/
+MI_STEALTH_MODE::MI_STEALTH_MODE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().stealth_mode.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_STEALTH_MODE::OnChange(size_t old_index) {
+    if (!gui_try_gcode_with_msg(value() ? "M9150" : "M9140")) {
+        set_value(old_index, false);
     }
 }
 
 /*****************************************************************************/
 // MI_LIVE_ADJUST_Z
 MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes,
-#if PRINTER_IS_PRUSA_MINI
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes,
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
         is_hidden_t::no
 #else
         is_hidden_t::dev
@@ -140,7 +159,7 @@ void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_AUTO_HOME
 MI_AUTO_HOME::MI_AUTO_HOME()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
@@ -155,41 +174,31 @@ void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_MESH_BED
 MI_MESH_BED::MI_MESH_BED()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
-    Response response = Response::No;
-    do {
-        // home if we repeat MBL, nozzle may be in different position than expected
-        if (!marlin_server::all_axes_homed() || response == Response::Yes) {
-            marlin_client::event_clr(marlin_server::Event::CommandBegin);
-            marlin_client::gcode("G28");
-            while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
-                marlin_client::loop();
-            }
-            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
-        }
-        response = Response::No;
+    if (!marlin_server::all_axes_homed()) {
         marlin_client::event_clr(marlin_server::Event::CommandBegin);
-        marlin_client::gcode("G29");
+        marlin_client::gcode("G28");
         while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
             marlin_client::loop();
         }
-        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
-
-        if (marlin_client::error(MARLIN_ERR_ProbingFailed)) {
-            marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
-            response = MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo);
-        }
-    } while (response != Response::No);
+        gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
+    }
+    marlin_client::event_clr(marlin_server::Event::CommandBegin);
+    marlin_client::gcode("G29");
+    while (!marlin_client::event_clr(marlin_server::Event::CommandBegin)) {
+        marlin_client::loop();
+    }
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
 /*****************************************************************************/
 // MI_CALIB_Z
 
 MI_CALIB_Z::MI_CALIB_Z()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_CALIB_Z::click(IWindowMenu & /*window_menu*/) {
@@ -199,7 +208,7 @@ void MI_CALIB_Z::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_DISABLE_STEP
 MI_DISABLE_STEP::MI_DISABLE_STEP()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
@@ -236,7 +245,7 @@ void do_factory_reset(bool wipe_fw) {
 } // anonymous namespace
 
 MI_FACTORY_SOFT_RESET::MI_FACTORY_SOFT_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FACTORY_SOFT_RESET::click(IWindowMenu & /*window_menu*/) {
@@ -246,7 +255,7 @@ void MI_FACTORY_SOFT_RESET::click(IWindowMenu & /*window_menu*/) {
 }
 
 MI_FACTORY_HARD_RESET::MI_FACTORY_HARD_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
@@ -267,7 +276,7 @@ void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
 // MI_ENTER_DFU
 #ifdef BUDDY_ENABLE_DFU_ENTRY
 MI_ENTER_DFU::MI_ENTER_DFU()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_ENTER_DFU::click(IWindowMenu &) {
@@ -278,7 +287,7 @@ void MI_ENTER_DFU::click(IWindowMenu &) {
 /*****************************************************************************/
 // MI_SAVE_DUMP
 MI_SAVE_DUMP::MI_SAVE_DUMP()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
@@ -295,7 +304,7 @@ void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_XFLASH_RESET
 MI_XFLASH_RESET::MI_XFLASH_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
@@ -305,7 +314,7 @@ void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_EE_SAVEXML
 MI_EE_SAVEXML::MI_EE_SAVEXML()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
@@ -315,7 +324,7 @@ void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_EE_CLEAR
 MI_EE_CLEAR::MI_EE_CLEAR()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_EE_CLEAR::click(IWindowMenu & /*window_menu*/) {
@@ -328,7 +337,7 @@ void MI_EE_CLEAR::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_M600
 MI_M600::MI_M600()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_M600::click(IWindowMenu & /*window_menu*/) {
     marlin_client::gcode_push_front("M600");
@@ -409,7 +418,7 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
 /*****************************************************************************/
 // MI_TIMEZONE
 MI_TIMEZONE::MI_TIMEZONE()
-    : WiSpinInt(config_store().timezone.get(), SpinCnf::timezone_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(config_store().timezone.get(), SpinCnf::timezone, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
     config_store().timezone.set(timezone);
@@ -418,59 +427,28 @@ void MI_TIMEZONE::OnClick() {
 /*****************************************************************************/
 // MI_TIMEZONE_MIN
 MI_TIMEZONE_MIN::MI_TIMEZONE_MIN()
-    : WI_SWITCH_t<3>(static_cast<uint8_t>(time_tools::get_timezone_minutes_offset()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_0min), _(str_30min), _(str_45min)) {}
+    : WI_SWITCH_t<3>(static_cast<uint8_t>(config_store().timezone_minutes.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_0min), _(str_30min), _(str_45min)) {}
 
 void MI_TIMEZONE_MIN::OnChange([[maybe_unused]] size_t old_index) {
-    switch (index) {
-    case 0:
-        time_tools::set_timezone_minutes_offset(time_tools::TimeOffsetMinutes::_0min);
-        break;
-    case 1:
-        time_tools::set_timezone_minutes_offset(time_tools::TimeOffsetMinutes::_30min);
-        break;
-    case 2:
-        time_tools::set_timezone_minutes_offset(time_tools::TimeOffsetMinutes::_45min);
-        break;
-    default:
-        assert(0);
-    }
+    config_store().timezone_minutes.set(static_cast<time_tools::TimezoneOffsetMinutes>(index));
 }
 
 /*****************************************************************************/
 // MI_TIMEZONE_SUMMER
 MI_TIMEZONE_SUMMER::MI_TIMEZONE_SUMMER()
-    : WI_SWITCH_t<2>(static_cast<uint8_t>(time_tools::get_timezone_summertime_offset()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_wintertime), _(str_summertime)) {}
+    : WI_ICON_SWITCH_OFF_ON_t(static_cast<uint8_t>(config_store().timezone_summer.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_TIMEZONE_SUMMER::OnChange([[maybe_unused]] size_t old_index) {
-    switch (index) {
-    case 0:
-        time_tools::set_timezone_summertime_offset(time_tools::TimeOffsetSummerTime::_wintertime);
-        break;
-    case 1:
-        time_tools::set_timezone_summertime_offset(time_tools::TimeOffsetSummerTime::_summertime);
-        break;
-    default:
-        assert(0);
-    }
+    config_store().timezone_summer.set(static_cast<time_tools::TimezoneOffsetSummerTime>(index));
 }
 
 /*****************************************************************************/
 // MI_TIME_FORMAT
 MI_TIME_FORMAT::MI_TIME_FORMAT()
-    : WI_SWITCH_t<2>(static_cast<uint8_t>(time_tools::get_time_format()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
+    : WI_SWITCH_t<2>(static_cast<uint8_t>(config_store().time_format.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
 
 void MI_TIME_FORMAT::OnChange([[maybe_unused]] size_t old_index) {
-    switch (index) {
-    case 0:
-        time_tools::set_time_format(time_tools::TimeFormat::_12h);
-        break;
-    case 1:
-        time_tools::set_time_format(time_tools::TimeFormat::_24h);
-        break;
-    default:
-        assert(0);
-        break;
-    }
+    config_store().time_format.set(static_cast<time_tools::TimeFormat>(index));
 }
 
 /*****************************************************************************/
@@ -571,13 +549,25 @@ MI_INFO_SERIAL_NUM::MI_INFO_SERIAL_NUM()
 
 /*****************************************************************************/
 // MI_FS_AUTOLOAD
-is_hidden_t hide_autoload_item() {
-    // autoload settings doesn't make sense when filament sensors are disabled
-    return FSensors_instance().is_enabled() ? is_hidden_t::no : is_hidden_t::yes;
+static is_hidden_t get_autoload_hide_state() {
+    // Autoloading option doesn't make sense with filament sensors disabled
+    if (!config_store().fsensor_enabled.get()) {
+        return is_hidden_t::yes;
+    }
+
+#if HAS_MMU2()
+    // Do not show autoload option with MMU rework enabled - BFW-4290
+    if (config_store().is_mmu_rework.get()) {
+        return is_hidden_t::yes;
+    }
+#endif
+
+    return is_hidden_t::no;
 }
 
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
-    : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fs_autoload_enabled), _(label), nullptr, is_enabled_t::yes, hide_autoload_item()) {}
+    : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fs_autoload_enabled), _(label), nullptr, is_enabled_t::yes, get_autoload_hide_state()) {}
+
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
     marlin_client::set_fs_autoload(!old_index);
     config_store().fs_autoload_enabled.set(static_cast<bool>(marlin_vars()->fs_autoload_enabled));
@@ -613,24 +603,24 @@ MI_INFO_FILL_SENSOR::MI_INFO_FILL_SENSOR(string_view_utf8 label)
                 static constexpr char disabled[] = N_("disabled / %ld");
                 static constexpr char notInitialized[] = N_("uninitialized / %ld");
 
-                char fmt[GuiDefaults::infoDefaultLen]; // max len of extension
-                switch ((fsensor_t)value.first.get_int()) {
-                case fsensor_t::NotInitialized:
+                char fmt[GuiDefaults::infoDefaultLen] = { '\0' }; // max len of extension
+                switch ((FilamentSensorState)value.first.get_int()) {
+                case FilamentSensorState::NotInitialized:
                     _(notInitialized).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case fsensor_t::NotConnected:
+                case FilamentSensorState::NotConnected:
                     _(disconnected).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case fsensor_t::Disabled:
+                case FilamentSensorState::Disabled:
                     _(disabled).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case fsensor_t::NotCalibrated:
+                case FilamentSensorState::NotCalibrated:
                     _(notCalibrated).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case fsensor_t::HasFilament:
+                case FilamentSensorState::HasFilament:
                     _(inserted).copyToRAM(fmt, sizeof(fmt));
                     break;
-                case fsensor_t::NoFilament:
+                case FilamentSensorState::NoFilament:
                     _(notInserted).copyToRAM(fmt, sizeof(fmt));
                     break;
                 }
@@ -690,22 +680,17 @@ MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
     : MI_ODOMETER_DIST(_(generic_label), nullptr, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
 
+MI_ODOMETER_MMU_CHANGES::MI_ODOMETER_MMU_CHANGES()
+    : WI_FORMATABLE_LABEL_t<uint32_t>(
+        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {},
+        [&](char *buffer) {
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%lu", value);
+        }) {
+}
+
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
     : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
-        time_t time = (time_t)value;
-        constexpr static uint32_t secPerDay = 24 * 60 * 60;
-        const struct tm *timeinfo = localtime(&time);
-        if (timeinfo->tm_yday) {
-            // days are recalculated, because timeinfo shows number of days in year and we want more days than 365
-            uint16_t days = value / secPerDay;
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%ud %uh", days, timeinfo->tm_hour);
-        } else if (timeinfo->tm_hour) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
-        } else if (timeinfo->tm_min) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
-        } else {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%is", timeinfo->tm_sec);
-        }
+        format_duration(std::span { buffer, GuiDefaults::infoDefaultLen }, value);
     }) {}
 
 MI_INFO_HEATER_VOLTAGE::MI_INFO_HEATER_VOLTAGE()
@@ -798,7 +783,7 @@ MI_INFO_MCU_TEMP::MI_INFO_MCU_TEMP()
 }
 
 MI_FOOTER_RESET::MI_FOOTER_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -825,7 +810,7 @@ void MI_HEATUP_BED::OnChange(size_t old_index) {
 }
 
 MI_SET_READY::MI_SET_READY()
-    : WI_LABEL_t(_(label), &img::print_16x16, connect_client::MarlinPrinter::is_printer_ready() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), &img::print_16x16, connect_client::MarlinPrinter::is_printer_ready() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -834,177 +819,47 @@ void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
     }
 }
 
-/*****************************************************************************/
-// INPUT SHAPER
-
-static bool input_shaper_x_enabled() {
-    return input_shaper::current_config().axis[X_AXIS].has_value();
+#if HAS_PHASE_STEPPING()
+MI_PHASE_STEPPING::MI_PHASE_STEPPING()
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    bool phstep_enabled = config_store().phase_stepping_enabled_x.get() || config_store().phase_stepping_enabled_y.get();
+    set_value(phstep_enabled, false);
 }
 
-static bool input_shaper_y_enabled() {
-    return input_shaper::current_config().axis[Y_AXIS].has_value();
-}
+void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
+    if (event_in_progress) {
+        return;
+    }
 
-static int32_t input_shaper_x_type() {
-    const auto axis_x = input_shaper::current_config().axis[X_AXIS];
-    return static_cast<int32_t>(axis_x->type);
-}
+    if (index && (config_store().selftest_result_phase_stepping.get() != TestResult_Passed)) {
+        AutoRestore ar(event_in_progress, true);
+        MsgBoxWarning(_("Phase stepping not ready: perform calibration first."), Responses_Ok);
+        set_value(old_index, false);
+        return;
+    }
 
-static int32_t input_shaper_y_type() {
-    const auto axis_y = input_shaper::current_config().axis[Y_AXIS];
-    return static_cast<int32_t>(axis_y->type);
-}
-
-static uint32_t input_shaper_x_frequency() {
-    const auto axis_x = input_shaper::current_config().axis[X_AXIS];
-    return static_cast<int32_t>(axis_x->frequency);
-}
-
-static uint32_t input_shaper_y_frequency() {
-    const auto axis_y = input_shaper::current_config().axis[Y_AXIS];
-    return static_cast<int32_t>(axis_y->frequency);
-}
-
-static bool input_shaper_y_weight_compensation() {
-    return input_shaper::current_config().weight_adjust_y.has_value();
-}
-
-MI_IS_X_ONOFF::MI_IS_X_ONOFF()
-    : WI_ICON_SWITCH_OFF_ON_t(input_shaper_x_enabled(), _(label), nullptr, is_enabled_t::no, is_hidden_t::yes) {
-}
-
-void MI_IS_X_ONOFF::OnChange(size_t) {
-    config_store().input_shaper_axis_x_enabled.set(index);
     if (index) {
-        input_shaper::set_axis_config(X_AXIS, config_store().input_shaper_axis_x_config.get());
+        marlin_server::enqueue_gcode("M970 X Y"); // turn phase stepping on
     } else {
-        input_shaper::set_axis_config(X_AXIS, std::nullopt);
+        marlin_server::enqueue_gcode("M971 X Y"); // turn phase stepping off
     }
-    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)&param);
+
+    // we need to wait until the action actually takes place so that when returning
+    // to the menu (if any) the new state is already reflected
+    gui_dlg_wait([&]() {
+        if (index == config_store().phase_stepping_enabled_x.get()) {
+            Screens::Access()->Close();
+        }
+    });
+}
+#endif
+
+#if HAS_COLDPULL()
+MI_COLD_PULL::MI_COLD_PULL()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-MI_IS_Y_ONOFF::MI_IS_Y_ONOFF()
-    : WI_ICON_SWITCH_OFF_ON_t(input_shaper_y_enabled(), _(label), nullptr, is_enabled_t::no, is_hidden_t::yes) {
+void MI_COLD_PULL::click([[maybe_unused]] IWindowMenu &window_menu) {
+    marlin_client::gcode("M1702");
 }
-
-void MI_IS_Y_ONOFF::OnChange(size_t) {
-    config_store().input_shaper_axis_y_enabled.set(index);
-    if (index) {
-        input_shaper::set_axis_config(Y_AXIS, config_store().input_shaper_axis_y_config.get());
-    } else {
-        input_shaper::set_axis_config(Y_AXIS, std::nullopt);
-    }
-    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)&param);
-}
-
-MI_IS_X_TYPE::MI_IS_X_TYPE()
-    // clang-format off
-    : WI_SWITCH_t<6>(input_shaper_x_type(), _(label), nullptr, is_enabled_t::no, is_hidden_t::no
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::zv))
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::zvd))
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::mzv))
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei))
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei_2hump))
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei_3hump))
-    ) {
-    // clang-format on
-    if (!input_shaper_x_enabled()) {
-        DontShowDisabledExtension();
-    }
-}
-
-void MI_IS_X_TYPE::OnChange(size_t) {
-    auto axis_x = config_store().input_shaper_axis_x_config.get();
-    axis_x.type = static_cast<input_shaper::Type>(GetIndex());
-    config_store().input_shaper_axis_x_config.set(axis_x);
-    input_shaper::set_axis_config(X_AXIS, axis_x);
-}
-
-MI_IS_Y_TYPE::MI_IS_Y_TYPE()
-    // clang-format off
-    : WI_SWITCH_t<6>(input_shaper_y_type(), _(label), nullptr, is_enabled_t::no, is_hidden_t::no
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::zv))
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::zvd))
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::mzv))
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei))
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei_2hump))
-    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei_3hump))
-    ) {
-    // clang-format on
-    if (!input_shaper_y_enabled()) {
-        DontShowDisabledExtension();
-    }
-}
-
-void MI_IS_Y_TYPE::OnChange(size_t) {
-    auto axis_y = config_store().input_shaper_axis_y_config.get();
-    axis_y.type = static_cast<input_shaper::Type>(GetIndex());
-    config_store().input_shaper_axis_y_config.set(axis_y);
-    input_shaper::set_axis_config(Y_AXIS, axis_y);
-}
-
-static constexpr SpinConfigInt is_frequency_spin_config = makeSpinConfig<int>(
-    { static_cast<int>(input_shaper::frequency_safe_min), static_cast<int>(input_shaper::frequency_safe_max), 1 },
-    "Hz",
-    spin_off_opt_t::no);
-
-MI_IS_X_FREQUENCY::MI_IS_X_FREQUENCY()
-    : WiSpinInt(input_shaper_x_frequency(), is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-    if (!input_shaper_x_enabled()) {
-        DontShowDisabledExtension();
-    }
-}
-
-void MI_IS_X_FREQUENCY::OnClick() {
-    auto axis_x = config_store().input_shaper_axis_x_config.get();
-    axis_x.frequency = static_cast<float>(GetVal());
-    config_store().input_shaper_axis_x_config.set(axis_x);
-    input_shaper::set_axis_config(X_AXIS, axis_x);
-}
-
-MI_IS_Y_FREQUENCY::MI_IS_Y_FREQUENCY()
-    : WiSpinInt(input_shaper_y_frequency(), is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-    if (!input_shaper_y_enabled()) {
-        DontShowDisabledExtension();
-    }
-}
-
-void MI_IS_Y_FREQUENCY::OnClick() {
-    auto axis_y = config_store().input_shaper_axis_y_config.get();
-    axis_y.frequency = static_cast<float>(GetVal());
-    config_store().input_shaper_axis_y_config.set(axis_y);
-    input_shaper::set_axis_config(Y_AXIS, axis_y);
-}
-
-MI_IS_Y_COMPENSATION::MI_IS_Y_COMPENSATION()
-    : WI_ICON_SWITCH_OFF_ON_t(input_shaper_y_weight_compensation(), _(label), nullptr, is_enabled_t::no, is_hidden_t::dev) {
-    if (!input_shaper_y_enabled()) {
-        DontShowDisabledExtension();
-    }
-}
-
-void MI_IS_Y_COMPENSATION::OnChange(size_t) {
-    config_store().input_shaper_weight_adjust_y_enabled.set(index);
-    if (index) {
-        input_shaper::current_config().weight_adjust_y = config_store().input_shaper_weight_adjust_y_config.get();
-    } else {
-        input_shaper::current_config().weight_adjust_y = std::nullopt;
-    }
-}
-
-MI_IS_SET::MI_IS_SET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_IS_SET::click(IWindowMenu &) {
-    MsgBoxISWarning(_("ATTENTION: Changing any Input Shaper values will overwrite them permanently. To revert to a stock setup, visit prusa.io/input-shaper or run a factory reset."), Responses_Ok);
-    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)&param);
-}
-
-MI_IS_CALIB::MI_IS_CALIB()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-}
-
-void MI_IS_CALIB::click([[maybe_unused]] IWindowMenu &window_menu) {
-    // TODO(InputShaper)
-}
+#endif

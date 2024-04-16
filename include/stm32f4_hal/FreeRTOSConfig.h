@@ -128,6 +128,7 @@ extern uint32_t SystemCoreClock;
 #define configMINIMAL_STACK_SIZE         ((uint16_t)128)
 #define configTOTAL_HEAP_SIZE            ((size_t)40960)
 #define configUSE_MALLOC_FAILED_HOOK     1
+#define configUSE_NEWLIB_REENTRANT       1
 
 // Thread usage stats
 #define configGENERATE_RUN_TIME_STATS 1
@@ -145,11 +146,12 @@ extern uint32_t SystemCoreClock;
 #define THREAD_LOCAL_STORAGE_SYSLOG_IDX         1
 #define THREAD_LOCAL_STORAGE_USB_LOGGING_IDX    2
 
-#define configMAX_TASK_NAME_LEN     (16)
-#define configUSE_16_BIT_TICKS      0
-#define configUSE_MUTEXES           1
-#define configUSE_RECURSIVE_MUTEXES 1
-#define configQUEUE_REGISTRY_SIZE   8
+#define configMAX_TASK_NAME_LEN          (16)
+#define configUSE_16_BIT_TICKS           0
+#define configUSE_MUTEXES                1
+#define configUSE_RECURSIVE_MUTEXES      1
+#define INCLUDE_xSemaphoreGetMutexHolder 1
+#define configQUEUE_REGISTRY_SIZE        8
 #if MCU_IS_STM32F4()
     #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 #else

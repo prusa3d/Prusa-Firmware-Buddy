@@ -145,11 +145,6 @@ public:
         , s(0xff) {}
     ~string_view_utf8() = default;
 
-    /// @returns one uint8_t from the input data
-    uint8_t getbyte() {
-        return getbyte(attrs);
-    }
-
     /// @returns one UTF-8 character from the input data
     /// and advances internal pointers (in derived classes) to the next one
     unichar getUtf8Char() {
@@ -236,6 +231,10 @@ public:
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
         s.type = EType::RAM;
         return s;
+    }
+
+    static inline string_view_utf8 MakeRAM(const char *utf8raw) {
+        return MakeRAM(reinterpret_cast<const uint8_t *>(utf8raw));
     }
 
     /// Construct string_view_utf8 to provide data from FILE

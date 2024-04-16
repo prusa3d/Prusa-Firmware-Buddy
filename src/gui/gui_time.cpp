@@ -28,7 +28,7 @@ void gui::StartLoop() {
     loop_start_tick = current_tick;
 }
 
-static metric_t gui_loop_duration = METRIC("gui_loop_dur", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(gui_loop_duration, "gui_loop_dur", METRIC_VALUE_INTEGER, 100, METRIC_HANDLER_DISABLE_ALL);
 
 void gui::EndLoop() {
     worst_duration = std::max(worst_duration, ticks_ms() - loop_start_tick);

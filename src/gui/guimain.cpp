@@ -1,19 +1,12 @@
-#include <stdio.h>
-#include "client_fsm_types.h"
 #include "gui_time.hpp"
 #include "gui.hpp"
-#include "config.h"
+#include "img_resources.hpp"
 #include "marlin_client.hpp"
-#include "display.h"
 #include "display_hw_checks.hpp"
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
-#include "window_file_list.hpp"
-#include "window_header.hpp"
-#include "window_dlg_wait.hpp"
+#include "tasks.hpp"
 #include "window_dlg_popup.hpp"
-#include "window_dlg_strong_warning.hpp"
-#include "window_dlg_preheat.hpp"
 #include "screen_print_preview.hpp"
 #include "screen_hardfault.hpp"
 #include "screen_qr_error.hpp"
@@ -26,25 +19,18 @@
 #include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
-#include "str_utils.hpp"
 #include "knob_event.hpp"
 #include "DialogMoveZ.hpp"
 #include "ScreenShot.hpp"
-#include "i18n.h"
-#include "w25x.h"
-#include "../mmu2/mmu2_error_converter.h"
-#include "../../Marlin/src/feature/prusa/MMU2/mmu2_progress_converter.h"
 #include "screen_home.hpp"
-#include "gui_fsensor_api.hpp"
-#include "tasks.hpp"
-#include "timing.h"
 #include "gcode_info.hpp"
-#include "version.h"
-#include "touch_get.hpp"
-#include "touch_dependency.hpp"
 #include "language_eeprom.hpp"
 
 #include <option/has_side_leds.h>
+
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+    #include "screen_fatal_warning.hpp"
+#endif
 
 #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
     #include "hw_configuration.hpp"
@@ -58,20 +44,10 @@
     #include <leds/side_strip_control.hpp>
 #endif
 
-#include "gpio.h"
 #include "Jogwheel.hpp"
-#include "hwio.h"
-#include "sys.h"
-#include "wdt.h"
+#include <wdt.hpp>
 #include <crash_dump/dump.hpp>
-#include "gui_media_events.hpp"
-#include "metric.h"
-#include "neopixel.hpp"
-#include "led_lcd_cs_selector.hpp"
 #include "gui_leds.hpp"
-#include "hwio_pindef.h"
-#include "main.h"
-#include "bsod.h"
 #include <option/has_dwarf.h>
 #include <option/has_modularbed.h>
 #include <option/has_leds.h>
@@ -104,41 +80,12 @@ LOG_COMPONENT_DEF(XLCD, LOG_SEVERITY_INFO);
 LOG_COMPONENT_DEF(LoveBoard, LOG_SEVERITY_INFO);
 extern void blockISR(); // do not want to include marlin temperature
 
-#ifdef USE_ST7789
-const st7789v_config_t st7789v_cfg = {
-    .phspi = &hspi2, // spi handle pointer
-    .flg = ST7789V_FLG_DMA, // flags (DMA, MISO)
-    .colmod = ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
-    .madctl = ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
-    .gamma = 0,
-    .brightness = 0,
-    .is_inverted = 0,
-    .control = 0,
-};
-#endif // USE_ST7789
-
-#ifdef USE_ILI9488
-const ili9488_config_t ili9488_cfg = {
-    .phspi = &SPI_HANDLE_FOR(lcd), // spi handle pointer
-    .flg = ILI9488_FLG_DMA, // flags (DMA, MISO)
-    .colmod = ILI9488_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
-    .madctl = ILI9488_DEF_MADCTL, // memory data access control (no mirror XY)
-    .gamma = 0,
-    .brightness = 0,
-    .is_inverted = 0,
-    .control = 0,
-    .pwm_inverted = 0b10110001 // inverted
-};
-#endif // USE_ILI9488
-
 marlin_vars_t *gui_marlin_vars = 0;
 
 char gui_media_LFN[FILE_NAME_BUFFER_LEN];
 char gui_media_SFN_path[FILE_PATH_BUFFER_LEN]; //@@TODO DR - tohle pouzit na ulozeni posledni cesty
 
-#ifdef GUI_JOGWHEEL_SUPPORT
 Jogwheel jogwheel;
-#endif // GUI_JOGWHEEL_SUPPORT
 
 MsgBuff_t &MsgCircleBuffer() {
     static CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH> ret;
@@ -157,64 +104,6 @@ void MsgCircleBuffer_cb(const char *txt) {
     }
 }
 
-void Warning_cb(WarningType type) {
-    switch (type) {
-    case WarningType::HotendFanError:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HotendFan);
-        break;
-    case WarningType::PrintFanError:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::PrintFan);
-        break;
-    case WarningType::HotendTempDiscrepancy:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HotendTempDiscrepancy);
-        break;
-    case WarningType::HeatersTimeout:
-    case WarningType::NozzleTimeout:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HeatersTimeout);
-        break;
-#if _DEBUG
-    case WarningType::SteppersTimeout:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::SteppersTimeout);
-        break;
-#endif
-    case WarningType::USBFlashDiskError:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::USBFlashDisk);
-        break;
-    case WarningType::HeatBreakThermistorFail:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HBThermistorFail);
-        break;
-#if ENABLED(POWER_PANIC)
-    case WarningType::HeatbedColdAfterPP:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::HeatbedColdAfterPP);
-        break;
-#endif
-    case WarningType::NozzleDoesNotHaveRoundSection:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::NozzleDoesNotHaveRoundSection);
-        break;
-    case WarningType::NotDownloaded:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::NotDownloaded);
-        break;
-    case WarningType::BuddyMCUMaxTemp:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::BuddyMCUMaxTemp);
-        break;
-#if HAS_DWARF()
-    case WarningType::DwarfMCUMaxTemp:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::DwarfMCUMaxTemp);
-        break;
-#endif /* HAS_DWARF() */
-#if HAS_MODULARBED()
-    case WarningType::ModBedMCUMaxTemp:
-        window_dlg_strong_warning_t::ShowType(window_dlg_strong_warning_t::ModBedMCUMaxTemp);
-        break;
-#endif /* HAS_MODULARBED() */
-    default:
-        break;
-    }
-}
-
-static void Startup_cb(void) {
-}
-
 namespace {
 void led_animation_step() {
 #if HAS_LEDS()
@@ -222,21 +111,6 @@ void led_animation_step() {
     Animator_LCD_leds().Step();
     leds::TickLoop();
 #endif
-}
-
-void filament_sensor_validation() {
-    if (screen_home_data_t::EverBeenOpened()
-#if HAS_SELFTEST()
-    #if HAS_SELFTEST_SNAKE()
-        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
-        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
-    #else
-        && (ScreenSelftest::GetInstance() == nullptr)
-    #endif
-#endif
-    ) {
-        // GuiFSensor::validate_for_cyclical_calls(); // removed for now, unfinished calibration will be sufficient.
-    }
 }
 
 void make_gui_ready_to_print() {
@@ -338,6 +212,11 @@ static ScreenFactory::Creator get_error_screen() {
     if (crash_dump::message_get_type() == crash_dump::MsgType::RSOD && !crash_dump::message_is_displayed()) {
         return ScreenFactory::Screen<ScreenErrorQR>;
     }
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+    if (crash_dump::message_get_type() == crash_dump::MsgType::FATAL_WARNING && !crash_dump::message_is_displayed()) {
+        return ScreenFactory::Screen<ScreenFatalWarning>;
+    }
+#endif
 
     if (crash_dump::dump_is_valid() && !crash_dump::dump_is_displayed()) {
         if (crash_dump::message_is_displayed()) {
@@ -363,14 +242,11 @@ static ScreenFactory::Creator get_error_screen() {
 }
 
 void gui_error_run(void) {
-#ifdef USE_ST7789
-    st7789v_config = st7789v_cfg;
-#endif
-
-#ifdef USE_ILI9488
-    ili9488_config = ili9488_cfg;
-#endif
     gui_init();
+
+    // This is not safe, because resource file could be corrupted
+    // gui_error_run executes before bootstrap so resources may not be up to date resulting in artefects
+    img::enable_resource_file();
 
     screen_node screen_initializer { get_error_screen() };
     Screens::Init(screen_initializer);
@@ -401,14 +277,6 @@ void gui_error_run(void) {
 }
 
 void gui_run(void) {
-#ifdef USE_ST7789
-    st7789v_config = st7789v_cfg;
-#endif
-
-#ifdef USE_ILI9488
-    ili9488_config = ili9488_cfg;
-#endif
-
     gui_init();
 
     gui::knob::RegisterHeldLeftAction(TakeAScreenshot);
@@ -438,17 +306,16 @@ void gui_run(void) {
     GCodeInfo::getInstance().Init(gui_media_LFN, gui_media_SFN_path);
 
     DialogHandler::Access(); // to create class NOW, not at first call of one of callback
-    marlin_client::set_fsm_cb(DialogHandler::command_c_compatible);
     marlin_client::set_message_cb(MsgCircleBuffer_cb);
-    marlin_client::set_warning_cb(Warning_cb);
-    marlin_client::set_startup_cb(Startup_cb);
 
-    Sound_Play(eSOUND_TYPE::Start);
+    marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF);
 
-    marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF, nullptr);
+    TaskDeps::provide(TaskDeps::Dependency::gui_task_ready);
 
     // Close bootstrap screen, open home screen
     Screens::Access()->Close();
+
+    Sound_Play(eSOUND_TYPE::Start);
 
 #if HAS_LEDS() && !HAS_SIDE_LEDS()
     // we need to step the animator, to move the started animation to current to let it run for one cycle
@@ -468,8 +335,6 @@ void gui_run(void) {
         gui::StartLoop();
 
         led_animation_step();
-
-        filament_sensor_validation();
 
         lcd::communication_check();
 

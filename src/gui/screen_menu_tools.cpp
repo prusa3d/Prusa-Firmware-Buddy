@@ -82,7 +82,7 @@ void MI_OFFSET_Z::OnClick() {
 }
 
 MI_PICKUP_TOOL::MI_PICKUP_TOOL()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
 void MI_PICKUP_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -91,15 +91,15 @@ void MI_PICKUP_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 MI_DOCK_CALIBRATE::MI_DOCK_CALIBRATE()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_DOCK_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::test_start_for_tools(stmDocks, 1 << displayed_tool);
+    marlin_client::test_start_with_data(stmDocks, static_cast<ToolMask>(1 << displayed_tool));
 }
 
 MI_FSENSORS_CALIBRATE::MI_FSENSORS_CALIBRATE()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_FSENSORS_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -107,7 +107,7 @@ void MI_FSENSORS_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
         return;
     }
 
-    marlin_client::test_start_for_tools(stmFSensor, 1 << displayed_tool);
+    marlin_client::test_start_with_data(stmFSensor, static_cast<ToolMask>(1 << displayed_tool));
 }
 
 ScreenMenuToolSetup::ScreenMenuToolSetup()
@@ -115,7 +115,7 @@ ScreenMenuToolSetup::ScreenMenuToolSetup()
 }
 
 I_MI_TOOL::I_MI_TOOL(const char *const label, int index)
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.getTool(index).is_enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.getTool(index).is_enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes) {
 }
 
 void I_MI_TOOL::do_click(int index) {
@@ -124,7 +124,7 @@ void I_MI_TOOL::do_click(int index) {
 }
 
 MI_PARK_TOOL::MI_PARK_TOOL()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
 void MI_PARK_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {

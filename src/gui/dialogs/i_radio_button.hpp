@@ -10,6 +10,8 @@
 #include "window.hpp"
 #include "../../lang/string_view_utf8.hpp"
 
+using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
+
 class IRadioButton : public AddSuperWindow<window_t> {
 public:
     // if greater than 0, we're drawing a fixed amount of buttons
@@ -18,10 +20,7 @@ public:
     static constexpr size_t max_buttons = 4;
     using Responses_t = std::array<Response, max_buttons>; // maximum is 4 responses (4B), better to pass by value
 private:
-    font_t *pfont;
     bool disabled_drawing_selected { false }; ///< used for when radio button is not the only scrollable window on the screen to allow no button drawn
-
-    static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, const font_t *pf, bool is_selected);
 
     void draw_0_btn();
     void draw_1_btn();
@@ -71,8 +70,12 @@ public:
         fixed_width_buttons_count = count;
     }
 
+    Rect16 get_rect_for_touch() const override;
+
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void screenEvent(window_t *sender, GUI_event_t event, void *const param) override;
+
     virtual void unconditionalDraw() override;
     virtual Response responseFromIndex(size_t index) const = 0;
     virtual const PhaseTexts *getAlternativeTexts() const { return nullptr; }
@@ -90,7 +93,5 @@ protected:
 
     // radio buttons currently do not support layout change
     // it is done by having multiple radio buttons and show/hide them
-    virtual void setRedLayout() override {}
-    virtual void setBlackLayout() override {}
-    virtual void setBlueLayout() override {}
+    virtual void set_layout(ColorLayout) override {}
 };

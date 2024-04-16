@@ -48,9 +48,16 @@
     #include "../../feature/tmc_util.h"
   #endif
 
+  /** \addtogroup G-Codes
+   * @{
+   */
+
   /**
    * M80   : Turn on the Power Supply
-   * M80 S : Report the current state and exit
+   *
+   * ## Parameters
+   *
+   * - `S` - Report the current state and exit
    */
   void GcodeSuite::M80() {
 
@@ -81,7 +88,13 @@
     #endif
   }
 
+  /** @}*/
+
 #endif // HAS_POWER_SWITCH
+
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * M81: Turn off Power, including Power Supply, if there is one.
@@ -113,3 +126,5 @@ void GcodeSuite::M81() {
     LCD_MESSAGEPGM_P(PSTR(MACHINE_NAME " " MSG_OFF "."));
   #endif
 }
+
+/** @}*/

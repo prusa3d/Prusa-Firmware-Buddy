@@ -5,6 +5,10 @@
 #include "PrusaGcodeSuite.hpp"
 #include <feature/prusa/restore_z.h>
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief reset MCU.
  *
@@ -26,3 +30,5 @@ void PrusaGcodeSuite::M999() {
     osDelay(1000);
     NVIC_SystemReset();
 }
+
+/** @}*/

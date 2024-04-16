@@ -6,11 +6,16 @@
 
 #include "selftest_frame_fsensor.hpp"
 #include "i18n.h"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 #include "selftest_fsensor_type.hpp"
 #include "marlin_client.hpp"
 #include "img_resources.hpp"
 #include <option/has_side_fsensor.h>
+#include <option/has_mmu2.h>
+
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
+#endif
 
 // hourglass wuth text
 static constexpr size_t row_2 = 140;
@@ -28,15 +33,22 @@ static constexpr size_t top_of_changeable_area = WizardDefaults::row_1 + WizardD
 static constexpr size_t height_of_changeable_area = WizardDefaults::RectRadioButton(1).Top() - top_of_changeable_area;
 static constexpr Rect16 ChangeableRect = { col_0, top_of_changeable_area, WizardDefaults::X_space, height_of_changeable_area };
 
-#if HAS_SIDE_FSENSOR()
-static constexpr const char *en_text_test_name = N_("Filament sensors calibration");
-#else
-static constexpr const char *en_text_test_name = N_("Filament sensor calibration");
+static string_view_utf8 test_name() {
+#if HAS_MMU2()
+    if (config_store().is_mmu_rework.get()) {
+        return _("MMU filament sensor calibration");
+    }
 #endif
 
-static constexpr const char *en_text_have_filament = N_("Filament is required for the test, if you don't have it, press Abort. If filament is loaded in extruder press unload. If you have filament and filament is not loaded in extruder press next.");
+#if HAS_SIDE_FSENSOR()
+    return _("Filament sensors calibration");
+#else
+    return _("Filament sensor calibration");
+#endif
+}
+
 SelftestFrameFSensor::SelftestFrameFSensor(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_test_name), 1)
+    : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, ::test_name(), 1)
 
     , footer(this, 0,
 #if HAS_SIDE_FSENSOR()

@@ -5,6 +5,7 @@
 #include "i18n.h"
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
+#include <guiconfig/guiconfig.h>
 
 class MI_NOZZLE_ABSTRACT : public WiSpinInt {
     static constexpr const char *const generic_label =
@@ -74,8 +75,6 @@ class MI_PRINTFAN : public WiSpinInt {
 #else
         N_("Print Fan Speed");
 #endif
-
-    uint8_t val_mapping(const bool rounding_floor, const uint8_t val, const uint8_t max_val, const uint8_t new_max_val);
 
 public:
     MI_PRINTFAN();

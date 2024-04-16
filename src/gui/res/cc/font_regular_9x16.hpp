@@ -1,4 +1,4 @@
-const uint8_t font_regular_9x16_data[] = {
+constexpr uint8_t font_regular_9x16_data[] = {
     0x00,
     0x00,
     0x00,
@@ -14080,4 +14080,4 @@ const uint8_t font_regular_9x16_data[] = {
     0x00,
     0x00,
 };
-const font_t font_regular_9x16 = { 9, 16, 5, 0, (uint16_t *)font_regular_9x16_data, 32, 255 };
+constexpr font_t font_regular_9x16 = { 9, 16, 5, font_regular_9x16_data, 32, 255 };

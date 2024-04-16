@@ -66,6 +66,8 @@ struct AllSoundSettings {
             return single_beep;
         case eSOUND_TYPE::WaitingBeep:
             return waiting_beep;
+        case eSOUND_TYPE::SingleBeepAlwaysLoud:
+            return single_beep;
         default:
             bsod("sound pattern");
         }
@@ -231,7 +233,7 @@ void Sound::_playSound(eSOUND_TYPE type, eSOUND_MODE mode) {
 void Sound::play(eSOUND_TYPE eSoundType) {
     eSOUND_MODE mode = eSoundMode;
 
-    if (eSoundType == eSOUND_TYPE::CriticalAlert) {
+    if (eSoundType == eSOUND_TYPE::CriticalAlert || eSoundType == eSOUND_TYPE::SingleBeepAlwaysLoud) {
         mode = eSOUND_MODE::LOUD;
     }
 

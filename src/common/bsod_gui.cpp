@@ -1,12 +1,13 @@
 // bsod_gui.cpp - blue screen of death
 #include "bsod.h"
 #include "bsod_gui.hpp"
-#include "error_list.hpp"
-#include "wdt.h"
+#include <find_error.hpp>
+#include "wdt.hpp"
 #include <crash_dump/dump.hpp>
 #include "safe_state.h"
 
 #include <crash_dump/dump.hpp>
+#include <guiconfig/guiconfig.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -26,6 +27,8 @@
 #include "../../lib/Marlin/Marlin/src/core/language.h"
 #include "power_panic.hpp"
 #include "crash_dump/dump_parse.hpp"
+
+#include "str_utils.hpp"
 
 // this is private struct definition from FreeRTOS
 /*
@@ -112,19 +115,19 @@ typedef tskTCB TCB_t;
 // current thread from FreeRTOS
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
-const ErrDesc &find_error(const ErrCode error_code) {
-    // Iterating through error_list to find the error
-    const auto error = std::ranges::find_if(error_list, [error_code](const auto &elem) { return (elem.err_code) == error_code; });
-    if (error == std::end(error_list)) {
-        bsod("Unknown error");
-    }
-    return *error;
-}
-
 void raise_redscreen(ErrCode error_code, const char *error, const char *module) {
-
     crash_dump::save_message(crash_dump::MsgType::RSOD, ftrstd::to_underlying(error_code), error, module);
     sys_reset();
+}
+
+[[noreturn]] void fatal_error(const ErrCode error_code, ...) {
+    const ErrDesc &corresponding_error = find_error(error_code);
+    ArrayStringBuilder<140> str_builder;
+    va_list args;
+    va_start(args, error_code);
+    str_builder.append_vprintf(corresponding_error.err_text, args);
+    va_end(args);
+    raise_redscreen(error_code, str_builder.str(), corresponding_error.err_title);
 }
 
 //! Fatal error that causes Redscreen
@@ -156,10 +159,12 @@ void fatal_error(const char *error, const char *module) {
     } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_BED_MINTEMP_ERROR);
 #endif // !PRINTER_IS_PRUSA_XL
+#if !PRINTER_IS_PRUSA_MK3_5
     } else if (strcmp(MSG_ERR_MINTEMP_HEATBREAK, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MINTEMP_ERR);
     } else if (strcmp(MSG_ERR_MAXTEMP_HEATBREAK, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MAXTEMP_ERR);
+#endif
     }
 #if PRINTER_IS_PRUSA_XL
     else if (strcmp(MSG_ERR_NOZZLE_OVERCURRENT, error) == 0) {
@@ -247,7 +252,7 @@ static void fallback_bsod(const char *fmt, const char *file_name, int line_numbe
 
     // Draw buffer
     render_text_align(Rect16(8, 10, 230, 290),
-        string_view_utf8::MakeRAM((const uint8_t *)fallback_bsod_text), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE,
+        string_view_utf8::MakeRAM((const uint8_t *)fallback_bsod_text), Font::small, COLOR_NAVY, COLOR_WHITE,
         { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
 
     // Endless loop
@@ -350,8 +355,8 @@ const char *get_hardfault_reason() {
 
     crash_dump::CrashCatcherDumpParser parser;
     uint8_t scg_regs_data[sizeof(SCB_Type)];
-    SCB_Type *scg_regs = reinterpret_cast<SCB_Type *>(&scg_regs);
     parser.load_data(scg_regs_data, reinterpret_cast<uintptr_t>(SCB), sizeof(*SCB));
+    SCB_Type *scg_regs = reinterpret_cast<SCB_Type *>(&scg_regs_data);
     const uint32_t cfsr = scg_regs->CFSR;
 
     switch ((cfsr) & (IACCVIOL_Msk | DACCVIOL_Msk | MSTKERR_Msk | MUNSTKERR_Msk | MLSPERR_Msk | STKERR_Msk | UNSTKERR_Msk | IBUSERR_Msk | LSPERR_Msk | PRECISERR_Msk | IMPRECISERR_Msk | UNDEFINSTR_Msk | INVSTATE_Msk | INVPC_Msk | NOCPC_Msk | UNALIGNED_Msk | DIVBYZERO_Msk)) {
@@ -430,7 +435,7 @@ size_t get_regs(char *&buffer, size_t buffer_size) {
 
     uint8_t scg_regs_data[sizeof(SCB_Type)];
     parser.load_data(scg_regs_data, reinterpret_cast<uintptr_t>(SCB), sizeof(*SCB));
-    SCB_Type *scg_regs = reinterpret_cast<SCB_Type *>(&scg_regs);
+    SCB_Type *scg_regs = reinterpret_cast<SCB_Type *>(&scg_regs_data);
     const uint32_t cfsr = scg_regs->CFSR;
 
     auto add_reg = [&](const char *name, unsigned int value, bool even_if_zero = false) {

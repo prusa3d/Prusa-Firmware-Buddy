@@ -1,6 +1,16 @@
 #pragma once
 
+#include <option/has_dwarf.h>
+#include <option/has_modularbed.h>
+#include <option/has_toolchanger.h>
+#include <option/has_loadcell.h>
+#include <option/has_phase_stepping.h>
+
+#include <inc/MarlinConfig.h>
+#include <device/board.h>
+
 #include <stdint.h>
+#include <utils/utility_extensions.hpp>
 
 #ifdef __cplusplus
 // C++ checks enum classes
@@ -16,10 +26,18 @@ enum class ClientFSM : uint8_t {
     Printing, // not a dialog
     CrashRecovery,
     QuickPause,
+    Warning,
     PrintPreview,
+    ColdPull,
+    #if HAS_PHASE_STEPPING()
+    PhaseStepping,
+    #endif
     _none, // cannot be created, must have same index as _count
     _count = _none
 };
+
+// We have only 5 bits for it in the serialization of data sent between server and client
+static_assert(ftrstd::to_underlying(ClientFSM::_count) < 32);
 
 enum class ClientFSM_Command : uint8_t {
     none = 0x00,
@@ -35,7 +53,9 @@ enum class LoadUnloadMode : uint8_t {
     Unload,
     Purge,
     FilamentStuck,
-    Test
+    Test,
+    Cut, // MMU
+    Eject, // MMU
 };
 
 enum class PreheatMode : uint8_t {
@@ -68,27 +88,38 @@ enum class WarningType : uint32_t {
     SteppersTimeout,
     #endif
     USBFlashDiskError,
+    #if ENABLED(POWER_PANIC)
     HeatbedColdAfterPP,
+    #endif
     HeatBreakThermistorFail,
+    #if ENABLED(CALIBRATION_GCODE)
     NozzleDoesNotHaveRoundSection,
-    NotDownloaded,
+    #endif
     BuddyMCUMaxTemp,
+    #if HAS_DWARF()
     DwarfMCUMaxTemp,
+    #endif
+    #if HAS_MODULARBED()
     ModBedMCUMaxTemp,
-    _last = ModBedMCUMaxTemp
+    #endif
+    #if HAS_BED_PROBE
+    ProbingFailed,
+    #endif
+    #if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
+    NozzleCleaningFailed,
+    #endif
+    #if XL_ENCLOSURE_SUPPORT()
+    EnclosureFilterExpirWarning,
+    EnclosureFilterExpiration,
+    EnclosureFanError,
+    #endif
+    NotDownloaded,
+    _last = NotDownloaded
 };
 
-// Open dialog has a parameter because I need to set a caption of change filament dialog (load / unload / change).
-// Use extra state of statemachine to set the caption would be cleaner, but I can miss events.
-// Only the last sent event is guaranteed to pass its data.
-using fsm_cb_t = void (*)(uint32_t, uint16_t); // create/destroy/change finite state machine
 using message_cb_t = void (*)(const char *);
-using warning_cb_t = void (*)(WarningType);
-using startup_cb_t = void (*)(void);
 #else // !__cplusplus
 // C
-typedef void (*fsm_cb_t)(uint32_t, uint16_t); // create/destroy/change finite state machine
 typedef void (*message_cb_t)(const char *);
 typedef void (*warning_cb_t)(uint32_t);
-typedef void (*startup_cb_t)(void);
 #endif //__cplusplus

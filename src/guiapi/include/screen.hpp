@@ -17,9 +17,6 @@ class screen_t : public AddSuperWindow<window_frame_t> {
     CompactRAMPointer<window_t> first_dialog;
     CompactRAMPointer<window_t> last_dialog;
 
-    CompactRAMPointer<window_t> first_strong_dialog;
-    CompactRAMPointer<window_t> last_strong_dialog;
-
     CompactRAMPointer<window_t> first_popup;
     CompactRAMPointer<window_t> last_popup;
 
@@ -29,14 +26,7 @@ public:
     virtual window_t *GetCapturedWindow() override;
     virtual void ChildVisibilityChanged(window_t &child) override;
 
-    virtual window_t *GetFirstDialog() const override;
-    virtual window_t *GetLastDialog() const override;
-
-    virtual window_t *GetFirstStrongDialog() const override;
-    virtual window_t *GetLastStrongDialog() const override;
-
-    virtual window_t *GetFirstPopUp() const override;
-    virtual window_t *GetLastPopUp() const override;
+    window_t *get_child_dialog([[maybe_unused]] ChildDialogParam param) const override;
 
     /// Restores state from the provided variant
     virtual void InitState([[maybe_unused]] screen_init_variant var) {}
@@ -50,4 +40,7 @@ protected:
     bool canRegisterPopup(window_t &win);
     void hideSubwinsBehindDialogs();
     window_t *findCaptured_first_last(window_t *first, window_t *last) const; // does not use begin - end like normal find
+
+protected:
+    virtual void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

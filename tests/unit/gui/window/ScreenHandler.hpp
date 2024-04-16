@@ -15,10 +15,6 @@ public:
     }
     void Close() {}
 
-    bool ConsumeClose() {
-        return false;
-    }
-
     screen_t *Get() const {
         return frame;
     };

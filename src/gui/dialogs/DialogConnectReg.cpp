@@ -3,8 +3,9 @@
 #include "../img_resources.hpp"
 #include "../ScreenHandler.hpp"
 #include "../lang/i18n.h"
-#include "bsod_gui.hpp"
+#include <find_error.hpp>
 #include <connect/connect.hpp>
+#include <guiconfig/guiconfig.h>
 
 using connect_client::ConnectionStatus;
 using connect_client::OnlineStatus;
@@ -66,7 +67,7 @@ DialogConnectRegister::~DialogConnectRegister() {
 
 void DialogConnectRegister::Show() {
     DialogConnectRegister dialog;
-    dialog.MakeBlocking();
+    Screens::Access()->gui_loop_until_dialog_closed();
 }
 
 void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t event, void *param) {

@@ -33,7 +33,6 @@ public:
     static constexpr uint16_t IS_SELECTED { ftrstd::to_underlying(SystemCoil::is_selected) };
     static constexpr uint16_t LOADCELL_ENABLE { ftrstd::to_underlying(SystemCoil::loadcell_enable) };
     static constexpr uint16_t ACCELEROMETER_ENABLE { ftrstd::to_underlying(SystemCoil::accelerometer_enable) };
-    static constexpr uint16_t ACCELEROMETER_HIGH { ftrstd::to_underlying(SystemCoil::accelerometer_high) };
 
     static constexpr uint16_t HW_BOM_ID_ADDR { ftrstd::to_underlying(SystemInputRegister::hw_bom_id) };
     static constexpr uint16_t TMC_READ_RESPONSE_ADDRESS { ftrstd::to_underlying(SystemInputRegister::tmc_read_response_1) };
@@ -196,7 +195,7 @@ void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender,
      */
     inline bool refresh_buttons() { return refresh_discrete_general_status(); }
 
-    [[nodiscard]] FSensor::value_type get_tool_filament_sensor();
+    [[nodiscard]] IFSensor::value_type get_tool_filament_sensor();
 
     [[nodiscard]] int16_t get_mcu_temperature(); ///< Get MCU temperature [°C]
     [[nodiscard]] int16_t get_board_temperature(); ///< Get board temperature [°C]
@@ -376,7 +375,6 @@ void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender,
     ModbusCoil<IS_SELECTED> IsSelectedCoil {};
     ModbusCoil<LOADCELL_ENABLE> LoadcellEnableCoil {};
     ModbusCoil<ACCELEROMETER_ENABLE> AccelerometerEnableCoil {};
-    ModbusCoil<ACCELEROMETER_HIGH> AccelerometerHighCoil {};
 
     MODBUS_REGISTER MarlinErrorString_t {
         uint16_t title[10] {}; // 20 chars, title of error
@@ -422,7 +420,6 @@ private:
     CommunicationStatus read_discrete_general_status();
     CommunicationStatus read_general_status();
     void handle_dwarf_fault();
-    void report_accelerometer(int samples_received);
     bool raw_set_loadcell(bool active); // Low level loadcell enable/disable, no dependencies
     bool raw_set_accelerometer(bool active); // Low level accelerometer enable/disable, no dependencies
     CommunicationStatus read_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo, size_t &read); // Handle fifo read retries

@@ -26,6 +26,7 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
     }
 
     uint32_t time_to_end = marlin_vars()->time_to_end;
+    uint32_t time_to_pause = marlin_vars()->time_to_pause;
     auto link_state = printer_state::get_state(false);
 
     // Keep the indentation of the JSON in here!
@@ -38,6 +39,9 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
             JSON_FIELD_FFIXED("progress", ((float)marlin_vars()->sd_percent_done), 2) JSON_COMMA;
             if (time_to_end != TIME_TO_END_INVALID) {
                 JSON_FIELD_INT("time_remaining", time_to_end) JSON_COMMA;
+            }
+            if (time_to_pause != TIME_TO_END_INVALID) {
+                JSON_FIELD_INT("filament_change_in", time_to_pause) JSON_COMMA;
             }
             JSON_FIELD_INT("time_printing", marlin_vars()->print_duration);
         JSON_OBJ_END JSON_COMMA;

@@ -47,44 +47,40 @@ repos:
     - id: mixed-line-ending
 exclude: |
   (?x)(
-    ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$|
-    ^tests/unit/common/gcode/.*\.gcode$|
-    ^lib/printf|
-    ^lib/inih/|
+    ^lib/Catch2/|
+    ^lib/CrashCatcher/|
+    ^lib/Drivers/|
+    ^lib/ESP/prusa/src/serial-flasher/serial_comm.c|
+    ^lib/ESP/serial-flasher/|
     ^lib/Marlin/(?!
         Marlin/src(/gcode)?/feature/prusa/|
         Marlin/src(/gcode)?/feature/input_shaper/|
         Marlin/src(/gcode)?/feature/pressure_advance/|
         Marlin/src(/gcode)?/feature/precise_stepping/|
+        Marlin/src(/gcode)?/feature/phase_stepping/|
         Marlin/src/module/prusa/|
         Marlin/src/gcode/calibrate/M958.cpp
       )|
-    ^lib/Prusa-Error-Codes/|
-    ^lib/TMCStepper/|
+    ^lib/Middlewares/Third_Party/FatFs/|
+    ^lib/Middlewares/Third_Party/FreeRTOS/|
     ^lib/Middlewares/Third_Party/LwIP/|
-    ^lib/jsmn/|
-    ^lib/Drivers/|
-    ^lib/ESP/serial-flasher/|
-    ^lib/ESP/lwesp/|
-    ^lib/ESP/prusa/src/serial-flasher/serial_comm.c|
-    ^lib/ESP/prusa/include/sockets/lwesp_netbuf.h|
-    ^lib/ESP/prusa/include/sockets/lwesp_sockets.h|
-    ^lib/ESP/prusa/include/sockets/lwesp_sockets_priv.h|
-    ^lib/ESP/prusa/src/sockets/lwesp_netbuf.c|
-    ^lib/ESP/prusa/src/sockets/lwesp_sockets.c|
-    ^lib/Catch2/|
-    ^lib/libsysbase/|
-    ^lib/Segger|
-    ^lib/tinyusb|
     ^lib/Middlewares/Third_Party/littlefs/|
-    ^lib/Prusa-Firmware-MMU/|
-    ^lib/Middlewares/Third_Party/CycloneTCP/|
     ^lib/Middlewares/Third_Party/mbedtls/|
-    ^lib/liblightmodbus/|
+    ^lib/Prusa-Error-Codes/|
+    ^lib/Prusa-Firmware-MMU/|
     ^lib/QR/|
-    ^lib/LiquidCrystal_I2C/|
-    ^lib/CrashCatcher/|
-    ^lib/libbgcode/|
+    ^lib/Segger|
+    ^lib/TMCStepper/|
     ^lib/cpp-std-extensions/|
-    ^lib/heatshrink/
+    ^lib/heatshrink/|
+    ^lib/inih/|
+    ^lib/jsmn/|
+    ^lib/libbgcode/|
+    ^lib/liblightmodbus/|
+    ^lib/libsysbase/|
+    ^lib/printf|
+    ^lib/tinyusb/|
+    ^tests/stubs/FreeRTOS|
+    ^tests/unit/common/gcode/.*\.gcode$|
+    ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$
   )

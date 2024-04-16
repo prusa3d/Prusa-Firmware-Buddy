@@ -5,6 +5,7 @@
 #include "FreeRTOSConfig.h"
 #include <device/peripherals.h>
 #include "priorities_config.h"
+#include <option/has_burst_stepping.h>
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
@@ -237,7 +238,10 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c) {
 
         HAL_GPIO_DeInit(GPIOF, GPIO_PIN_1);
 
-    } else if (hi2c->Instance == I2C3) {
+    }
+
+    #if HAS_I2CN(3)
+    else if (hi2c->Instance == I2C3) {
         /* Peripheral clock disable */
         __HAL_RCC_I2C3_CLK_DISABLE();
 
@@ -250,6 +254,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *hi2c) {
 
         HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8);
     }
+    #endif
 #endif
 
 #if (BOARD_IS_BUDDY || BOARD_IS_XLBUDDY)
@@ -422,6 +427,9 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
         }
 
         __HAL_LINKDMA(hspi, hdmatx, hdma_spi3_tx);
+
+        HAL_NVIC_SetPriority(SPI3_IRQn, ISR_PRIORITY_DEFAULT, 0);
+        HAL_NVIC_EnableIRQ(SPI3_IRQn);
     } else if (hspi->Instance == SPI4) {
         /* Peripheral clock enable */
         __HAL_RCC_SPI4_CLK_ENABLE();
@@ -440,7 +448,10 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
         GPIO_InitStruct.Alternate = GPIO_AF5_SPI4;
         HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-        /* SPI4 DMA Init */
+    #if HAS_BURST_STEPPING()
+        HAL_NVIC_SetPriority(SPI4_IRQn, ISR_PRIORITY_DEFAULT, 0);
+        HAL_NVIC_EnableIRQ(SPI4_IRQn);
+    #else
         /* SPI4_TX Init */
         hdma_spi4_tx.Instance = DMA2_Stream1;
         hdma_spi4_tx.Init.Channel = DMA_CHANNEL_4;
@@ -457,6 +468,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
         }
 
         __HAL_LINKDMA(hspi, hdmatx, hdma_spi4_tx);
+    #endif // HAS_PHASE_STEPPING()
     } else if (hspi->Instance == SPI5) {
         /* Peripheral clock enable */
         __HAL_RCC_SPI5_CLK_ENABLE();
@@ -705,6 +717,8 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi) {
         /* SPI3 DMA DeInit */
         HAL_DMA_DeInit(hspi->hdmarx);
         HAL_DMA_DeInit(hspi->hdmatx);
+
+        HAL_NVIC_DisableIRQ(SPI3_IRQn);
     } else if (hspi->Instance == SPI4) {
         /* Peripheral clock disable */
         __HAL_RCC_SPI4_CLK_DISABLE();
@@ -795,6 +809,15 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base) {
     } else if (htim_base->Instance == TIM3) {
         /* Peripheral clock enable */
         __HAL_RCC_TIM3_CLK_ENABLE();
+    } else if (htim_base->Instance == TIM8) {
+        /* Peripheral clock enable */
+        __HAL_RCC_TIM8_CLK_ENABLE();
+    } else if (htim_base->Instance == TIM13) {
+        /* Peripheral clock enable */
+        __HAL_RCC_TIM13_CLK_ENABLE();
+
+        HAL_NVIC_SetPriority(TIM8_UP_TIM13_IRQn, ISR_PRIORITY_PHASE_TIMER, 1);
+        HAL_NVIC_EnableIRQ(TIM8_UP_TIM13_IRQn);
     } else if (htim_base->Instance == TIM14) {
         /* Peripheral clock enable */
         __HAL_RCC_TIM14_CLK_ENABLE();
@@ -834,6 +857,23 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim) {
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    } else if (htim->Instance == TIM8) {
+        /* TIM8 DMA Init */
+        hdma_tim8.Instance = DMA2_Stream1;
+        hdma_tim8.Init.Channel = DMA_CHANNEL_7;
+        hdma_tim8.Init.Direction = DMA_MEMORY_TO_PERIPH;
+        hdma_tim8.Init.PeriphInc = DMA_PINC_DISABLE;
+        hdma_tim8.Init.MemInc = DMA_MINC_ENABLE;
+        hdma_tim8.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+        hdma_tim8.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+        hdma_tim8.Init.Mode = DMA_NORMAL;
+        hdma_tim8.Init.Priority = DMA_PRIORITY_HIGH;
+        hdma_tim8.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+        if (HAL_DMA_Init(&hdma_tim8) != HAL_OK) {
+            Error_Handler();
+        }
+
+        __HAL_LINKDMA(htim, hdma[TIM_DMA_ID_UPDATE], hdma_tim8);
     }
 }
 
@@ -853,6 +893,9 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim_base) {
     } else if (htim_base->Instance == TIM3) {
         /* Peripheral clock disable */
         __HAL_RCC_TIM3_CLK_DISABLE();
+    } else if (htim_base->Instance == TIM13) {
+        __HAL_RCC_TIM13_CLK_DISABLE();
+        HAL_NVIC_DisableIRQ(TIM8_UP_TIM13_IRQn);
     } else if (htim_base->Instance == TIM14) {
         /* Peripheral clock disable */
         __HAL_RCC_TIM14_CLK_DISABLE();

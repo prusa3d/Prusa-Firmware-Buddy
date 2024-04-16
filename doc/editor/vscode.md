@@ -74,7 +74,7 @@ on a newer incarnation of Linux/Ubuntu, it means your libraries (libncurses and 
 The output from `ldd` shows, that the arm-gdb didn't get all its libraries:
 
 ```bash
-$ ldd PrusaFirmwareBuddy/.dependencies/gcc-arm-none-eabi-10.3.1/bin/arm-none-eabi-gdb
+$ ldd PrusaFirmwareBuddy/.dependencies/gcc-arm-none-eabi-13.2.1/bin/arm-none-eabi-gdb
         linux-vdso.so.1 (0x00007fff072a8000)
         libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f900b711000)
         libncurses.so.5 => not found

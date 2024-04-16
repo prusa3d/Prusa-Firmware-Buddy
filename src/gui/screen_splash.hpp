@@ -1,6 +1,7 @@
 #pragma once
 #include "gui.hpp"
 #include "screen.hpp"
+#include <guiconfig/guiconfig.h>
 
 class screen_splash_data_t : public AddSuperWindow<screen_t> {
 #if defined(USE_ST7789)

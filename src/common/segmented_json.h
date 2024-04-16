@@ -46,6 +46,8 @@ private:
     size_t &buffer_size;
     size_t &resume_point;
 
+    JsonResult suspend(size_t resume_point);
+
 public:
     JsonOutput(uint8_t *buffer, size_t &buffer_size, size_t &resume_point)
         : buffer(buffer)
@@ -53,10 +55,15 @@ public:
         , resume_point(resume_point) {}
 
     JsonResult output(size_t resume_point, const char *format, ...);
+    // Render a bit of string, without any surrounding stuff (eg. no " " around it, no field name, etc).
+    // Size-delimited (unlike tho field_str variants).
+    //
+    // The idea is to support long strings, renderred in multiple chunks.
+    JsonResult output_str_chunk(size_t resume_point, const char *value, size_t size);
     // TODO: Add others as needed.
     JsonResult output_field_bool(size_t resume_point, const char *name, bool value);
     JsonResult output_field_str(size_t resume_point, const char *name, const char *value);
-    JsonResult output_field_str_437(size_t resume_point, const char *name, const char *value);
+    JsonResult output_field_str_esc(size_t resume_point, const char *name, const char *value);
     JsonResult output_field_int(size_t resume_point, const char *name, int64_t value);
     // Fixed precision
     JsonResult output_field_float_fixed(size_t resume_point, const char *name, double value, int precision);
@@ -256,5 +263,4 @@ public:
     JsonRenderer(State state)
         : state(std::move(state)) {}
 };
-
 } // namespace json

@@ -9,24 +9,29 @@
 
 #include "filament_sensor.hpp"
 
-class FSensorPhotoElectric : public FSensor {
+class FSensorPhotoElectric : public IFSensor {
 protected:
-    enum class Cycle { no0,
-        no1 };
-    Cycle measure_cycle = Cycle::no0;
-
-    virtual void set_state(fsensor_t st) override;
-
-    virtual void enable() override;
-    virtual void disable() override;
+    virtual void force_set_enabled(bool set) override;
     virtual void cycle() override;
-    void cycle0();
-    void cycle1();
 
-    virtual void record_state() override; // record metrics
+    // just for sensor info visualization of the raw value
+    virtual int32_t GetFilteredValue() const override {
+        if constexpr (BOARD_IS_XBUDDY) {
+            // Beware - inverted pin logic on XBUDDY
+            return state != FilamentSensorState::HasFilament;
+        } else {
+            return state == FilamentSensorState::HasFilament;
+        }
+    };
 
-public:
-    fsensor_t WaitInitialized();
+private:
+    void set_state(FilamentSensorState set);
 
-    FSensorPhotoElectric();
+    FilamentSensorState last_set_state_target = FilamentSensorState::NotInitialized;
+
+    enum class MeasurePhase {
+        p0,
+        p1,
+    };
+    MeasurePhase measure_phase = MeasurePhase::p0;
 };

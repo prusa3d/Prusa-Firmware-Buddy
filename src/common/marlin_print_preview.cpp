@@ -3,7 +3,8 @@
  */
 
 #include "marlin_print_preview.hpp"
-#include "media.h"
+#include <M73_PE.h>
+#include "media.hpp"
 #include "client_fsm_types.h"
 #include "client_response.hpp"
 #include "general_response.hpp"
@@ -15,8 +16,12 @@
 #include <option/developer_mode.h>
 #include "printers.h"
 #include <Marlin/src/module/motion.h>
-#include "screen_menu_filament_changeall.hpp"
-#include "box_unfinished_selftest.hpp"
+#include <option/has_gui.h>
+#if HAS_GUI()
+    #include "screen_menu_filament_changeall.hpp"
+    #include "box_unfinished_selftest.hpp"
+#endif
+#include <option/has_selftest_snake.h>
 
 #include <option/has_toolchanger.h>
 #if ENABLED(PRUSA_TOOLCHANGER)
@@ -54,8 +59,10 @@ std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPre
     case State::new_firmware_available_wait_user:
         return PhasesPrintPreview::new_firmware_available;
 
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     case State::tools_mapping_wait_user:
         return PhasesPrintPreview::tools_mapping;
+#endif
 
     case State::wrong_printer_wait_user:
         return PhasesPrintPreview::wrong_printer;
@@ -67,10 +74,11 @@ std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPre
     case State::filament_not_inserted_load:
         return PhasesPrintPreview::filament_not_inserted;
 
+#if HAS_MMU2()
     case State::mmu_filament_inserted_wait_user:
     case State::mmu_filament_inserted_unload:
         return PhasesPrintPreview::mmu_filament_inserted;
-
+#endif
     case State::wrong_filament_wait_user:
     case State::wrong_filament_change:
         return PhasesPrintPreview::wrong_filament;
@@ -100,7 +108,7 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
         break;
 
     case FSM_action::create:
-        if (wantedPhase && *wantedPhase != PhasesPrintPreview::_first) {
+        if (wantedPhase && *wantedPhase != PhasesPrintPreview::loading) {
             FSM_CREATE_WITH_DATA__LOGGING(PrintPreview, *wantedPhase, fsm::PhaseData({ 0, 0, 0, 0 }));
         } else {
             FSM_CREATE__LOGGING(PrintPreview);
@@ -113,14 +121,14 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
         break;
 
     case FSM_action::change:
-        FSM_CHANGE__LOGGING(PrintPreview, *wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
+        FSM_CHANGE__LOGGING(*wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
         break;
     }
     phase = wantedPhase;
 }
 
 Response IPrintPreview::GetResponse() {
-    return phase ? marlin_server::ClientResponseHandler::GetResponseFromPhase(*phase) : Response::_none;
+    return phase ? marlin_server::get_response_from_phase(*phase) : Response::_none;
 }
 
 static bool is_same(const char *curr_filament, const GCodeInfo::filament_buff &filament_type) {
@@ -249,9 +257,9 @@ bool PrintPreview::check_correct_filament_type(uint8_t physical_extruder, uint8_
     }
 
     const auto loaded_filament_type = config_store().get_filament_type(physical_extruder);
-    const auto loaded_filament_desc = filament::get_description(loaded_filament_type);
+    const auto loaded_filament_name = filament::get_name(loaded_filament_type);
     // when loaded filament type not known, return that filament type is OK
-    return !filament_known(extruder_info.filament_name.value().data()) || is_same(loaded_filament_desc.name, extruder_info.filament_name.value());
+    return !filament_known(extruder_info.filament_name.value().data()) || is_same(loaded_filament_name, extruder_info.filament_name.value());
 }
 
 static bool check_correct_filament_type_tools_mapping(uint8_t physical_extruder) {
@@ -260,6 +268,7 @@ static bool check_correct_filament_type_tools_mapping(uint8_t physical_extruder)
 
 IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
 
+#if HAS_MMU2()
     if (FSensors_instance().HasMMU()) {
         if (!config_store().fsensor_enabled.get()) {
             return State::checks_done;
@@ -267,10 +276,14 @@ IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
         // with MMU, its only possible to check that filament is properly unloaded, no check of filaments presence in each "tool"
         if (FSensors_instance().MMUReadyToPrint()) {
             return State::checks_done;
+        } else if (GCodeInfo::getInstance().is_singletool_gcode() && FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR) {
+            return State::checks_done; // it makes sense to allow starting a single material print with filament loaded
         } else {
             return State::mmu_filament_inserted_wait_user;
         }
-    } else {
+    } else
+#endif
+    {
         if (!config_store().fsensor_enabled.get()) {
             return stateFromFilamentType();
         }
@@ -399,7 +412,7 @@ PrintPreview::Result PrintPreview::Loop() {
         osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_INIT);
 
         // Reset print progress to 0. Need to be at this point because Connect is already starting to snitch the info.
-        marlin_server::enqueue_gcode_printf("M73 P0 R%i Q0 S%i", marlin_server::TIME_TO_END_INVALID, marlin_server::TIME_TO_END_INVALID);
+        oProgressData.mInit();
 
         ChangeState(State::loading);
         if (skip_if_able > marlin_server::PreviewSkipIfAble::no) {
@@ -515,6 +528,7 @@ PrintPreview::Result PrintPreview::Loop() {
         }
         break;
 
+#if HAS_MMU2() || HAS_TOOLCHANGER()
     case State::tools_mapping_wait_user:
         switch (response) {
 
@@ -532,6 +546,7 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
         }
         break;
+#endif
 
     case State::wrong_printer_wait_user:
     case State::wrong_printer_wait_user_abort:
@@ -554,7 +569,7 @@ PrintPreview::Result PrintPreview::Loop() {
         switch (response) {
 
         case Response::FS_disable:
-            FSensors_instance().Disable();
+            FSensors_instance().set_enabled_global(false);
             ChangeState(State::checks_done);
             break;
 
@@ -578,6 +593,7 @@ PrintPreview::Result PrintPreview::Loop() {
         }
         break;
 
+#if HAS_MMU2()
     case State::mmu_filament_inserted_wait_user:
         switch (response) {
 
@@ -588,7 +604,7 @@ PrintPreview::Result PrintPreview::Loop() {
         case Response::Yes:
 
             ChangeState(State::mmu_filament_inserted_unload);
-            marlin_server::enqueue_gcode("M702 W0"); // load, no return or cooldown
+            marlin_server::enqueue_gcode("M702 W0"); // unload, no return or cooldown
             break;
 
         default:
@@ -601,6 +617,7 @@ PrintPreview::Result PrintPreview::Loop() {
             ChangeState(State::checks_done);
         }
         break;
+#endif
 
     case State::wrong_filament_wait_user: // change / ignore / abort
         switch (response) {
@@ -643,6 +660,15 @@ PrintPreview::Result PrintPreview::Loop() {
         break;
 
     case State::checks_done:
+#if PRINTER_IS_PRUSA_iX
+        // We've removed reset_bounding_rect at the end of the print for the iX (in marlin_server.cpp::finalize_print).
+        // So now, just to make sure, we reset the bounding rect at the start if we don't see it being set in the gcode.
+        // BFW-5085
+        if (!GCodeInfo::getInstance().get_bed_preheat_area().has_value()) {
+            PrintArea::reset_bounding_rect();
+        }
+#endif
+
         if (tools_mapping::is_tool_mapping_possible()) {
 #if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
             if ((skip_if_able >= marlin_server::PreviewSkipIfAble::tool_mapping) && PrintPreview::check_tools_mapping_validity(tool_mapper, spool_join, gcode_info).all_ok()) {
@@ -650,7 +676,6 @@ PrintPreview::Result PrintPreview::Loop() {
                 ChangeState(State::done);
                 break;
             }
-#endif
 
             ChangeState(State::tools_mapping_wait_user);
 
@@ -663,6 +688,7 @@ PrintPreview::Result PrintPreview::Loop() {
                 marlin_server::set_target_bed(GCodeInfo::getInstance().get_bed_preheat_temp().value());
             }
             break;
+#endif
         }
         // else go to print, checks are done
         ChangeState(State::done);
@@ -693,8 +719,10 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     case State::wrong_filament_wait_user:
     case State::filament_not_inserted_load:
     case State::filament_not_inserted_wait_user:
+#if HAS_MMU2()
     case State::mmu_filament_inserted_unload:
     case State::mmu_filament_inserted_wait_user:
+#endif
     case State::checks_done:
     case State::file_error_wait_user:
         return Result::Questions;
@@ -703,8 +731,10 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     case State::done:
         return Result::Inactive;
 
+#if HAS_MMU2() || HAS_TOOLCHANGER()
     case State::tools_mapping_wait_user:
         return Result::ToolsMapping;
+#endif
     }
     return Result::Inactive;
 }
@@ -714,7 +744,7 @@ void PrintPreview::Init() {
 }
 
 IPrintPreview::State PrintPreview::stateFromSelftestCheck() {
-#if (!DEVELOPER_MODE() && (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4))
+#if (!DEVELOPER_MODE() && HAS_SELFTEST_SNAKE())
     const bool show_warning = !selftest_warning_selftest_finished();
 #else
     const bool show_warning = false;

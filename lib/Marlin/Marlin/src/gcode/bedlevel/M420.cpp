@@ -39,6 +39,10 @@
 
 //#define M420_C_USE_MEAN
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M420: Enable/Disable Bed Leveling and/or set the Z fade height.
  *
@@ -254,5 +258,7 @@ void GcodeSuite::M420() {
   if (oldpos != current_position)
     report_current_position();
 }
+
+/** @}*/
 
 #endif // HAS_LEVELING

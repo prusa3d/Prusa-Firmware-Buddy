@@ -1,5 +1,5 @@
 #include "puppies/modular_bed.hpp"
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "log.h"
 #include "metric.h"
 #include "puppy/modularbed/PuppyConfig.hpp"
@@ -22,15 +22,15 @@ namespace buddy::puppies {
 
 LOG_COMPONENT_DEF(ModularBed, LOG_SEVERITY_INFO);
 
-static metric_t metric_state = METRIC("bed_state", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_currents = METRIC("bed_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-static metric_t metric_states = METRIC("bedlet_state", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_temps = METRIC("bedlet_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_targets = METRIC("bedlet_target", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_pwms = METRIC("bedlet_pwm", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_regulators = METRIC("bedlet_reg", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_bedlet_currents = METRIC("bedlet_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_mcu_temperature = METRIC("bed_mcu_temp", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_state, "bed_state", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_currents, "bed_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(metric_states, "bedlet_state", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_temps, "bedlet_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_targets, "bedlet_target", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_pwms, "bedlet_pwm", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_regulators, "bedlet_reg", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_bedlet_currents, "bedlet_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_mcu_temperature, "bed_mcu_temp", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
 
 ModularBed::ModularBed(PuppyModbus &bus, uint8_t modbus_address)
     : ModbusDevice(bus, modbus_address) {}
@@ -44,7 +44,7 @@ CommunicationStatus ModularBed::initial_scan() {
     CommunicationStatus status = bus.read(unit, general_static);
     if (status != CommunicationStatus::ERROR) {
         log_info(ModularBed, "HwBomId: %d", general_static.value.hw_bom_id);
-        log_info(ModularBed, "HwOtpTimestsamp: %d", general_static.value.hw_otp_timestamp);
+        log_info(ModularBed, "HwOtpTimestsamp: %" PRIu32, general_static.value.hw_otp_timestamp);
 
         serial_nr_t sn = {}; // Last byte has to be '\0'
         static constexpr uint16_t raw_datamatrix_regsize = ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_last)
@@ -170,9 +170,9 @@ CommunicationStatus ModularBed::read_bedlet_data() {
     for (uint16_t i = 0; i < BEDLET_COUNT; ++i) {
         metric_record_custom(
             &metric_states,
-            ",n=%d v=%d",
+            ",n=%d v=%u",
             i,
-            static_cast<double>(bedlet_data.value.fault_status[i]));
+            static_cast<unsigned>(bedlet_data.value.fault_status[i]));
         metric_record_custom(
             &metric_temps,
             ",n=%d v=%.2f",
@@ -234,7 +234,7 @@ CommunicationStatus ModularBed::read_general_fault() {
         return status;
     }
 
-    log_debug(ModularBed, "Fault status: %d", general_fault.value);
+    log_debug(ModularBed, "Fault status: %d", static_cast<int>(general_fault.value));
     metric_record_integer(&metric_state, static_cast<int>(general_fault.value));
 
     const auto fault_int { ftrstd::to_underlying(general_fault.value) };
@@ -325,21 +325,25 @@ float ModularBed::get_target(const uint8_t column, const uint8_t row) {
 }
 
 uint16_t ModularBed::idx(const uint8_t column, const uint8_t row) {
+    assert(column < BEDLET_MAX_X);
+    assert(row < BEDLET_MAX_Y);
+
+#if PRINTER_IS_PRUSA_XL
     static_assert(BEDLET_MAX_X == 4);
     static_assert(BEDLET_MAX_Y == 4);
-#if PRINTER_IS_PRUSA_XL
-    const static uint16_t map[4][4] = {
+    static constexpr uint8_t map[BEDLET_MAX_Y][BEDLET_MAX_X] = {
         { 7, 8, 9, 10 },
         { 6, 5, 12, 11 },
         { 3, 4, 13, 14 },
         { 2, 1, 16, 15 },
     };
 #elif PRINTER_IS_PRUSA_iX
-    const static uint16_t map[4][4] = {
-        { 5, 6, 11, 11 },
-        { 4, 13, 12, 12 },
-        { 3, 2, 14, 14 },
-        { 3, 2, 14, 14 },
+    static_assert(BEDLET_MAX_X == 3);
+    static_assert(BEDLET_MAX_Y == 3);
+    static constexpr uint8_t map[BEDLET_MAX_Y][BEDLET_MAX_X] = {
+        { 5, 6, 11 },
+        { 4, 13, 12 },
+        { 3, 2, 14 },
     };
 #else
     #error "Not defined for this printer."

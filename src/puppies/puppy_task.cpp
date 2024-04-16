@@ -12,12 +12,14 @@
 #include "timing.h"
 #include "Marlin/src/module/stepper.h"
 #include "Marlin/src/module/prusa/toolchanger.h"
-#include <esp_flash.hpp>
-#include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
+#if HAS_EMBEDDED_ESP32()
+    #include <esp_flash.hpp>
+#endif
+#include <tasks.hpp>
 #include <option/has_dwarf.h>
 #include <ccm_thread.hpp>
-#include "bsod_gui.hpp"
+#include "bsod.h"
 #include "gui_bootstrap_screen.hpp"
 
 LOG_COMPONENT_DEF(Puppies, LOG_SEVERITY_DEBUG);
@@ -197,7 +199,7 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
     ESPFlash esp_flash;
     auto esp_result = esp_flash.flash();
     if (esp_result != ESPFlash::State::Done) {
-        log_error(Puppies, "ESP flash failed with %d", esp_result);
+        log_error(Puppies, "ESP flash failed with %u", static_cast<unsigned>(esp_result));
         ESPFlash::fatal_err(esp_result);
     }
     TaskDeps::provide(TaskDeps::Dependency::esp_flashed);
@@ -265,7 +267,7 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
 
 void start_puppy_task() {
 
-    osThreadCCMDef(puppies, puppy_task_body, TASK_PRIORITY_PUPPY_TASK, 0, 512);
+    osThreadDef(puppies, puppy_task_body, TASK_PRIORITY_PUPPY_TASK, 0, 896);
     puppy_task_handle = osThreadCreate(osThread(puppies), NULL);
 }
 

@@ -7,6 +7,7 @@
 #include "accelerometer.h"
 #include "puppies/fifo_coder.hpp"
 #include <stdint.h>
+#include <option/has_remote_accelerometer.h>
 
 class AccelerometerUtils {
 private:
@@ -38,7 +39,7 @@ public:
             | (record.sample_overrun ? sample_overrun_mask : 0);
     }
 
-#if ENABLED(REMOTE_ACCELEROMETER)
+#if HAS_REMOTE_ACCELEROMETER()
     static PrusaAccelerometer::Acceleration unpack_sample(common::puppies::fifo::AccelerometerXyzSample sample);
 #endif
 };

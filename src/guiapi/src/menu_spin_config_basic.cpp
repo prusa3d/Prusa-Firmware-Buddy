@@ -14,7 +14,7 @@ const SpinConfigInt SpinCnf::bed = SpinConfigInt(MenuVars::GetBedRange());
 const SpinConfigInt SpinCnf::printfan = SpinConfigInt(MenuVars::percent_range, spin_off_opt_t::yes);
 const SpinConfigInt SpinCnf::feedrate = SpinConfigInt(MenuVars::feedrate_range);
 const SpinConfigInt SpinCnf::flowfact = SpinConfigInt(MenuVars::flowfact_range);
-const SpinConfigInt SpinCnf::timezone_range = { { -12, 14, 1 } };
+const SpinConfigInt SpinCnf::timezone = { { -12, 14, 1 } };
 const SpinConfigInt SpinCnf::volume_range = { { 0, 11, 1 } }; // crank it up to 11
 const SpinConfigInt SpinCnf::footer_center_N_range = { { 0, 3, 1 } };
 const SpinConfigInt SpinCnf::axis_z_max_range = SpinConfigInt(MenuVars::GetMaximumZRange());
@@ -39,5 +39,9 @@ const SpinConfigInt SpinCnf::fs_range = SpinConfigInt({ 50000, 2500000, 1000 });
 const SpinConfigInt SpinCnf::loadcell_range = SpinConfigInt({ 5, 30, 1 });
 const SpinConfigInt SpinCnf::print_progress = SpinConfigInt({ 30, 200, 1 });
 const SpinConfigInt SpinCnf::int_num = SpinConfigInt({ 0, std::numeric_limits<int32_t>::max(), 1 }, spin_off_opt_t::no);
+
+#if PRINTER_IS_PRUSA_MINI
+const SpinConfigInt SpinCnf::correction_range = SpinConfigInt({ -100, 100, 1 }, spin_off_opt_t::no);
+#endif
 
 const SpinConfigFlt SpinCnf::nozzle_diameter = SpinConfigFlt({ 0.25, 1.00, 0.05 }, spin_off_opt_t::no, format_point2);

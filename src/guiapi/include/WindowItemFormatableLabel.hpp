@@ -4,12 +4,12 @@
  */
 
 #pragma once
-#include "WindowMenuLabel.hpp"
+#include "i_window_menu_item.hpp"
 #include <functional>
 
-class WI_LAMBDA_LABEL_t : public AddSuper<WI_LABEL_t> {
+class WI_LAMBDA_LABEL_t : public IWindowMenuItem {
 protected:
-    static constexpr font_t *&InfoFont = GuiDefaults::FontMenuSpecial;
+    static constexpr Font InfoFont = GuiDefaults::FontMenuSpecial;
     static constexpr uint16_t icon_width = 16;
 
     const std::function<void(char *)> printAs;
@@ -30,7 +30,7 @@ protected:
 
 public:
     WI_LAMBDA_LABEL_t(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, std::function<void(char *)> printAs)
-        : AddSuper<WI_LABEL_t>(label, icon ? icon_width : GuiDefaults::infoDefaultLen * InfoFont->w, icon, enabled, hidden)
+        : IWindowMenuItem(label, icon ? icon_width : GuiDefaults::infoDefaultLen * width(InfoFont), icon, enabled, hidden)
         , printAs(printAs) {}
 };
 

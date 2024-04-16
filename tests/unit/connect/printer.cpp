@@ -11,7 +11,7 @@ TEST_CASE("Params CRC") {
     uint32_t empty_crc = params.telemetry_fingerprint(true);
 
     params.temp_bed = 50;
-    params.temp_nozzle = 150;
+    params.slots[0].temp_nozzle = 150;
 
     uint32_t warm_crc = params.telemetry_fingerprint(true);
 

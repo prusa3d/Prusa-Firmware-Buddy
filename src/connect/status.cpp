@@ -13,9 +13,11 @@ OnlineError err_to_status(Error error) {
     case Error::InternalError:
     case Error::ResponseTooLong:
     case Error::SetSockOpt:
+    case Error::Memory:
         return OnlineError::Internal;
     case Error::Network:
     case Error::Timeout:
+    case Error::UnexpectedEOF:
         return OnlineError::Network;
     case Error::Parse:
         return OnlineError::Confused;

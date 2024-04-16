@@ -16,10 +16,18 @@
 #include "../../feature/input_shaper/input_shaper.hpp"
 #include "metric.h"
 #include <cmath>
+#include <complex>
 #include <numbers>
 #include <limits>
 #include <bit>
+
+#include <config_store/store_instance.hpp>
+
+#include <option/has_local_accelerometer.h>
 #include <option/has_puppies.h>
+#include <option/has_remote_accelerometer.h>
+
+static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 
 // #define M958_OUTPUT_SAMPLES
 // #define M958_VERBOSE
@@ -27,11 +35,9 @@
     #include "../../../../../tinyusb/src/class/cdc/cdc_device.h"
 #endif
 
-static metric_t metric_excite_freq = METRIC("excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
-#if ENABLED(ACCELEROMETER)
-static metric_t metric_freq_gain = METRIC("freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
-static metric_t accel = METRIC("tk_accel", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-#endif
+METRIC_DEF(metric_excite_freq, "excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_DISABLE_ALL);
+METRIC_DEF(metric_freq_gain, "freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+METRIC_DEF(accel, "tk_accel", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
 
 namespace {
 class HarmonicGenerator {
@@ -107,23 +113,6 @@ private:
     float m_last_time;
     int m_last_step;
     bool m_dir_forward;
-};
-
-/**
- * Turns automatic reports off until destructor is called.
- * Then it sets reports to previous value.
- */
-class Temporary_Report_Off {
-    bool suspend_reports = false;
-
-public:
-    Temporary_Report_Off() {
-        suspend_reports = suspend_auto_report;
-        suspend_auto_report = true;
-    }
-    ~Temporary_Report_Off() {
-        suspend_auto_report = suspend_reports;
-    }
 };
 
 class StepDir {
@@ -271,10 +260,9 @@ static void enqueue_step(int step_us, bool dir, StepEventFlag_t axis_flags) {
 }
 
 struct Acumulator {
-    double val[3][2];
+    std::complex<double> val[3];
 };
 
-#if ENABLED(ACCELEROMETER)
 /**
  * @brief Get recommended damping ratio for zv input shaper
  *
@@ -311,7 +299,29 @@ static float get_zv_shaper_damping_ratio(float resonant_gain) {
     float shaper_gain = 1.f / resonant_gain;
     return 0.080145136132399f * sq(shaper_gain) + 0.616396503538947f * shaper_gain + 0.000807776046666f;
 }
-#endif
+
+static float get_accelerometer_sample_period(PrusaAccelerometer &accelerometer) {
+    for (int i = 0; i < 96; ++i) {
+        idle(true, true);
+        accelerometer.clear();
+    }
+    const uint32_t start_time = millis();
+    constexpr int request_samples_num = 20'000;
+
+    for (int i = 0; i < request_samples_num;) {
+        PrusaAccelerometer::Acceleration measured_acceleration;
+        const int samples = accelerometer.get_sample(measured_acceleration);
+        if (samples) {
+            ++i;
+        } else {
+            idle(true, true);
+        }
+    }
+
+    const uint32_t now = millis();
+    const uint32_t duration_ms = now - start_time;
+    return duration_ms / 1000.f / static_cast<float>(request_samples_num);
+}
 
 /**
  * @brief Excite harmonic vibration and measure amplitude if there is an accelerometer
@@ -328,18 +338,12 @@ static float get_zv_shaper_damping_ratio(float resonant_gain) {
  * @param calibrate_accelerometer
  * @return Frequency and gain measured on each axis if there is accelerometer
  */
-static
-#if ENABLED(ACCELEROMETER)
-    FrequencyGain3dError
-#else
-    void
-#endif
-    vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles, bool calibrate_accelerometer) {
+static FrequencyGain3dError
+vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles, bool calibrate_accelerometer) {
     HarmonicGenerator generator(frequency_requested, acceleration_requested, step_len);
     const float frequency = generator.getFrequency();
     StepDir stepDir(generator);
 
-#if ENABLED(ACCELEROMETER)
     const float acceleration = generator.getAcceleration(frequency);
     PrusaAccelerometer accelerometer;
     if (PrusaAccelerometer::Error error = accelerometer.get_error(); PrusaAccelerometer::Error::none != error) {
@@ -353,10 +357,10 @@ static
         case PrusaAccelerometer::Error::busy:
             SERIAL_ERROR_MSG("busy");
             break;
-    #if HAS_PUPPIES()
+#if HAS_PUPPIES()
         case PrusaAccelerometer::Error::corrupted_transmission_error:
         case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
-    #endif
+#endif
         case PrusaAccelerometer::Error::corrupted_sample_overrun:
         case PrusaAccelerometer::Error::corrupted_buddy_overflow:
             SERIAL_ERROR_MSG("corrupted");
@@ -377,26 +381,7 @@ static
     static float sample_period = 1.f / 1344.f;
 
     if (calibrate_accelerometer) {
-        for (int i = 0; i < 96; ++i) {
-            idle(true, true);
-            accelerometer.clear();
-        }
-        const uint32_t start_time = millis();
-        constexpr int request_samples_num = 20'000;
-
-        for (int i = 0; i < request_samples_num;) {
-            PrusaAccelerometer::Acceleration measured_acceleration;
-            const int samples = accelerometer.get_sample(measured_acceleration);
-            if (samples) {
-                ++i;
-            } else {
-                idle(true, true);
-            }
-        }
-
-        const uint32_t now = millis();
-        const uint32_t duration_ms = now - start_time;
-        sample_period = duration_ms / 1000.f / static_cast<float>(request_samples_num);
+        sample_period = get_accelerometer_sample_period(accelerometer);
         SERIAL_ECHOLNPAIR_F("Sample freq: ", 1.f / sample_period);
         if (klipper_mode) {
             SERIAL_ECHOLNPGM("freq,psd_x,psd_y,psd_z,psd_xyz,mzv");
@@ -408,18 +393,12 @@ static
     const uint32_t samples_to_collect = period * cycles / sample_period;
     bool enough_samples_collected = false;
     bool first_loop = true;
-#else
-    constexpr bool enough_samples_collected = true;
-#endif
-    Temporary_Report_Off stop_busy_messages;
+    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 #ifdef M958_OUTPUT_SAMPLES
     SERIAL_ECHOLN("Yraw  sinf cosf");
 #endif
 
-#if ENABLED(ACCELEROMETER)
     constexpr int num_axis = sizeof(PrusaAccelerometer::Acceleration::val) / sizeof(PrusaAccelerometer::Acceleration::val[0]);
-    constexpr int cplx_indexes = 2;
-#endif
 
     uint32_t step_nr = 0;
     GcodeSuite::reset_stepper_timeout();
@@ -429,7 +408,6 @@ static
         StepDir::RetVal step_dir = stepDir.get();
 
         while (is_full()) {
-#if ENABLED(ACCELEROMETER)
             if (first_loop) {
                 accelerometer.clear();
                 first_loop = false;
@@ -439,12 +417,8 @@ static
             if (samples && !enough_samples_collected && (step_nr > STEP_EVENT_QUEUE_SIZE)) {
                 metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)measured_acceleration.val[0], (double)measured_acceleration.val[1], (double)measured_acceleration.val[2]);
                 const float accelerometer_time_2pi_freq = freq_2pi * accelerometer_period_time;
-                const float amplitude[cplx_indexes] = { sinf(accelerometer_time_2pi_freq), cosf(accelerometer_time_2pi_freq) };
-
                 for (int axis = 0; axis < num_axis; ++axis) {
-                    for (int i = 0; i < cplx_indexes; ++i) {
-                        acumulator.val[axis][i] += amplitude[i] * measured_acceleration.val[axis];
-                    }
+                    acumulator.val[axis] += std::polar<double>(measured_acceleration.val[axis], accelerometer_time_2pi_freq);
                 }
 
                 ++sample_nr;
@@ -453,16 +427,13 @@ static
                 if (accelerometer_period_time > period) {
                     accelerometer_period_time -= period;
                 }
-    #ifdef M958_OUTPUT_SAMPLES
+#ifdef M958_OUTPUT_SAMPLES
                 char buff[40];
                 snprintf(buff, 40, "%f %f %f\n", static_cast<double>(measured_acceleration.val[1]), static_cast<double>(amplitude[0]), static_cast<double>(amplitude[1]));
                 tud_cdc_n_write_str(0, buff);
                 tud_cdc_write_flush();
-    #endif
-            }
-#else
-            constexpr bool samples = false;
 #endif
+            }
             metric_record_float(&metric_excite_freq, frequency);
 
             if (!samples) {
@@ -474,22 +445,19 @@ static
         ++step_nr;
     }
 
-#if ENABLED(ACCELEROMETER)
     for (int axis = 0; axis < num_axis; ++axis) {
-        for (int i = 0; i < cplx_indexes; ++i) {
-            acumulator.val[axis][i] *= 2.;
-            acumulator.val[axis][i] /= (sample_nr + 1);
-        }
+        acumulator.val[axis] *= 2.;
+        acumulator.val[axis] /= (sample_nr + 1);
     }
 
-    const float x_acceleration_amplitude = sqrt(sq(acumulator.val[0][0]) + sq(acumulator.val[0][1]));
-    const float y_acceleration_amplitude = sqrt(sq(acumulator.val[1][0]) + sq(acumulator.val[1][1]));
-    const float z_acceleration_amplitude = sqrt(sq(acumulator.val[2][0]) + sq(acumulator.val[2][1]));
+    const float x_acceleration_amplitude = std::abs(acumulator.val[0]);
+    const float y_acceleration_amplitude = std::abs(acumulator.val[1]);
+    const float z_acceleration_amplitude = std::abs(acumulator.val[2]);
     const float x_gain = x_acceleration_amplitude / acceleration;
     const float y_gain = y_acceleration_amplitude / acceleration;
     const float z_gain = z_acceleration_amplitude / acceleration;
 
-    #ifdef M958_VERBOSE
+#ifdef M958_VERBOSE
     SERIAL_ECHO_START();
     SERIAL_ECHOPAIR_F("frequency ", frequency);
     SERIAL_ECHOPAIR_F(" Msampl ", (sample_nr + 1));
@@ -502,7 +470,7 @@ static
     SERIAL_ECHOPAIR_F(" X ", x_acceleration_amplitude, 5);
     SERIAL_ECHOPAIR_F(" Y ", y_acceleration_amplitude, 5);
     SERIAL_ECHOLNPAIR_F(" Z ", z_acceleration_amplitude, 5);
-    #else
+#else
     SERIAL_ECHO(frequency);
     if (klipper_mode) {
         SERIAL_ECHOPAIR_F(",", sq(x_gain), 5);
@@ -518,12 +486,11 @@ static
         SERIAL_ECHOPAIR_F(" ", y_gain, 5);
         SERIAL_ECHOLNPAIR_F(" ", z_gain, 5);
     }
-    #endif
+#endif
     FrequencyGain3dError retval = { { frequency, x_gain, y_gain, z_gain }, false };
     metric_record_custom(&metric_freq_gain, " a=%d,f=%.1f,x=%.4f,y=%.4f,z=%.4f",
         axis_flag & (STEP_EVENT_FLAG_STEP_X | STEP_EVENT_FLAG_STEP_Y), frequency, x_gain, y_gain, z_gain);
     return retval;
-#endif
 }
 
 /**
@@ -672,6 +639,10 @@ AxisEnum get_logical_axis(const uint16_t axis_flag) {
     return NO_AXIS_ENUM;
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief Excite harmonic vibration
  *
@@ -720,7 +691,7 @@ void GcodeSuite::M958() {
     vibrate_measure(axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles, calibrate_accelerometer);
 }
 
-#if ENABLED(ACCELEROMETER)
+/** @}*/
 
 static constexpr float epsilon = 0.01f;
 
@@ -1042,7 +1013,7 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
         psd.put(psd_xyz);
     }
 
-    Temporary_Report_Off stop_busy_messages;
+    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 
     if (subtract_excitation) {
         SERIAL_ECHOLN("Excitation subtracted power spectrum density");
@@ -1062,6 +1033,10 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
     SERIAL_ECHOLNPAIR_F(" frequency: ", axis_config.frequency);
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * @brief Tune input shaper
  *
@@ -1076,6 +1051,7 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
  * - A<mm/s-2>   Acceleration
  * - N<cycles>   Number of excitation signal periods
  *               of active measurement.
+ *   W           Write the detected calibration to EEPROM
  */
 void GcodeSuite::M959() {
     MicrostepRestorer microstepRestorer;
@@ -1112,5 +1088,12 @@ void GcodeSuite::M959() {
     } else {
         naive_zv_tune(axis_flag, start_frequency, end_frequency, frequency_increment, acceleration_requested, step_len, cycles);
     }
+
+    if (parser.seen('W')) {
+        SERIAL_ECHO_START();
+        SERIAL_ECHOLN("Storing IS configuration to EEPROM");
+        config_store().set_input_shaper_config(input_shaper::current_config());
+    }
 }
-#endif
+
+/** @}*/

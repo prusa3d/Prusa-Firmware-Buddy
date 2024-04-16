@@ -17,8 +17,7 @@ LOG_COMPONENT_REF(GUI);
 /// To save first/top visible item in the file browser
 /// This is something else than the selected file for print
 /// This is used to restore the content of the browser into previous state including the layout
-constexpr unsigned int SFN_len = 13;
-static char firstVisibleSFN[SFN_len];
+static char firstVisibleSFN[FileSort::MAX_SFN];
 char WindowFileBrowser::root[FILE_PATH_BUFFER_LEN] = "/usb";
 
 static constexpr char dirUp[] = "..";
@@ -55,10 +54,16 @@ void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *se
         handle_click();
         return;
 
-    case GUI_event_t::TOUCH:
+    case GUI_event_t::TOUCH_CLICK:
         if (move_focus_touch_click(param)) {
             handle_click();
         }
+        return;
+
+    case GUI_event_t::TOUCH_SWIPE_LEFT:
+    case GUI_event_t::TOUCH_SWIPE_RIGHT:
+        Sound_Play(eSOUND_TYPE::ButtonEcho);
+        go_up();
         return;
 
     default:
@@ -77,7 +82,7 @@ void WindowFileBrowser::SetRoot(const char *path) {
 }
 
 void WindowFileBrowser::SaveTopSFN() {
-    strlcpy(firstVisibleSFN, TopItemSFN(), SFN_len);
+    strlcpy(firstVisibleSFN, TopItemSFN(), sizeof(firstVisibleSFN));
 }
 
 int WindowFileBrowser::WriteNameToPrint(char *buff, size_t sz) {
@@ -166,7 +171,7 @@ void WindowFileBrowser::go_up() {
         *last_slash_char = '\0';
     }
 
-    Load(GuiFileSort::Get(), previous_dir_sfn, previous_dir_sfn);
+    Load(GuiFileSort::Get(), previous_dir_sfn, nullptr);
 
     // @@TODO we want to print the LFN of the dir name, which is very hard to do right now
     // However, the text is not visible on the screen yet...

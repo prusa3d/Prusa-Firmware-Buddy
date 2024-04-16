@@ -140,24 +140,14 @@ public:
             Set(colors[led], led);
         }
     }
+
     void Set(const color_array &colors) {
         Set(colors.begin(), colors.size());
     }
+
     void ForceRefresh(size_t cnt) {
-        force_refresh = true;
         leds_to_rewrite = cnt;
     }
-
-    bool GetForceRefresh() {
-        return force_refresh;
-    }
-
-    bool ConsumeForceRefresh() {
-        bool to_return = force_refresh;
-        force_refresh = false;
-        return to_return;
-    }
-    size_t LedsToRewrite() { return leds_to_rewrite; }
 
 protected:
     color_array leds;
@@ -214,9 +204,15 @@ protected:
 
 template <size_t COUNT, size_t T1H, size_t T1L, size_t T0H, size_t T0L>
 size_t LedsSPI_base<COUNT, T1H, T1L, T0H, T0L>::setBitset() {
-    if (this->leds_to_rewrite == 0 && !this->force_refresh) {
+    if (this->leds_to_rewrite == 0) {
         return 0; // nothing to set
     }
+
+    // Optimization via leds_to_rewrite does not work correctly
+    // thanks to LedsSPI_MSB inverting the indexing and breaking the daisy-chaining.
+    // As a quick fix, we always update everything
+    // BFW-5067 - Someone please fix this :(
+    this->leds_to_rewrite = COUNT;
 
     led_bitset.reset(); // clear bit array
 
@@ -230,7 +226,6 @@ size_t LedsSPI_base<COUNT, T1H, T1L, T0H, T0L>::setBitset() {
     }
 
     this->leds_to_rewrite = 0;
-    this->force_refresh = false;
     return bitfield_position;
 }
 
@@ -244,6 +239,7 @@ size_t LedsSPI_base<COUNT, T1H, T1L, T0H, T0L>::setBitset() {
  * @tparam T0L   lenght of low  bus status of converted logical "0" bit value
  * @tparam RESET_PULSE number of pulses needed to be in low state to write signals on LEDs
  */
+// This class is not used at all and should probably be thrown out of the codee -> BFW-5067
 template <size_t COUNT, size_t T1H, size_t T1L, size_t T0H, size_t T0L, size_t RESET_PULSE>
 class LedsSPI_LSB : public LedsSPI_base<COUNT, T1H, T1L, T0H, T0L> {
 protected:
@@ -300,7 +296,10 @@ protected:
      * @return size_t number of bytes to be send
      */
     size_t bitfieldToSendBuff() {
-        size_t bit_count = this->setBitset();
+        const size_t bit_count = this->setBitset();
+        if (!bit_count) {
+            return 0;
+        }
 
         // write reset pulse (clear each byt it overlaps)
         for (size_t i = bit_count / 8; i < ((bit_count + RESET_PULSE + 7) / 8); ++i) {
@@ -309,6 +308,10 @@ protected:
 
         size_t bit_read_index = bit_count - 1;
         size_t bit_write_index = 0;
+
+        // This function reverses completely everything,
+        // which screws up neopixel driver indexing (doesn't correspond with the daisy-chain order)
+        // BFW-5067
 
         for (; bit_write_index < bit_count; ++bit_write_index, --bit_read_index) {
             uint8_t &r_target_byte = send_buff[bit_write_index / 8];
@@ -340,7 +343,11 @@ using draw_fn_t = void (*)(uint8_t *, uint16_t);
 template <size_t COUNT, draw_fn_t DRAW_FN, size_t T1H, size_t T1L, size_t T0H, size_t T0L, size_t RESET_PULSE>
 class LedsSPI : public LedsSPI_MSB<COUNT, T1H, T1L, T0H, T0L, RESET_PULSE> {
 public:
-    void Send() {
+    void Tick() {
+        if (!this->leds_to_rewrite) {
+            return;
+        }
+
         size_t bytes = this->bitfieldToSendBuff();
         DRAW_FN(this->send_buff, bytes);
     };

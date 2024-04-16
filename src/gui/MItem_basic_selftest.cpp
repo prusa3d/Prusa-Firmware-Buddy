@@ -2,7 +2,6 @@
 #include "marlin_client.hpp"
 #include "gui.hpp"
 #include "sys.h"
-#include "DialogHandler.hpp"
 #include "ScreenHandler.hpp"
 #include "printer_selftest.hpp"
 #include "main.h"
@@ -27,7 +26,7 @@
 /*****************************************************************************/
 // MI_WIZARD
 MI_WIZARD::MI_WIZARD()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
@@ -38,7 +37,7 @@ void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_SELFTEST
 MI_SELFTEST::MI_SELFTEST()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
@@ -49,7 +48,7 @@ void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_SELFTEST_RESULT
 MI_SELFTEST_RESULT::MI_SELFTEST_RESULT()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
@@ -61,7 +60,7 @@ void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_CALIB_FIRST
 MI_CALIB_FIRST::MI_CALIB_FIRST()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, (PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5) ? is_hidden_t::no : is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, (PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5) ? is_hidden_t::no : is_hidden_t::dev) {
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
@@ -74,7 +73,7 @@ void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_TEST_FANS
 MI_TEST_FANS::MI_TEST_FANS()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
@@ -87,7 +86,7 @@ void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_TEST_XYZ
 MI_TEST_XYZ::MI_TEST_XYZ()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
@@ -99,7 +98,7 @@ void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_TEST_X
 MI_TEST_X::MI_TEST_X()
-    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
@@ -110,7 +109,7 @@ void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_TEST_Y
 MI_TEST_Y::MI_TEST_Y()
-    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_TEST_Y::click(IWindowMenu & /*window_menu*/) {
@@ -122,7 +121,7 @@ void MI_TEST_Y::click(IWindowMenu & /*window_menu*/) {
 // MI_TEST_Z
 #if (!PRINTER_IS_PRUSA_iX)
 MI_TEST_Z::MI_TEST_Z()
-    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_TEST_Z::click(IWindowMenu & /*window_menu*/) {
@@ -134,7 +133,7 @@ void MI_TEST_Z::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_TEST_HEAT
 MI_TEST_HEAT::MI_TEST_HEAT()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
@@ -145,7 +144,7 @@ void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_TEST_HOTEND
 MI_TEST_HOTEND::MI_TEST_HOTEND()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_TEST_HOTEND::click(IWindowMenu & /*window_menu*/) {
@@ -157,7 +156,7 @@ void MI_TEST_HOTEND::click(IWindowMenu & /*window_menu*/) {
 #if (!PRINTER_IS_PRUSA_iX)
 // MI_TEST_BED
 MI_TEST_BED::MI_TEST_BED()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_TEST_BED::click(IWindowMenu & /*window_menu*/) {
@@ -169,32 +168,18 @@ void MI_TEST_BED::click(IWindowMenu & /*window_menu*/) {
 // MI_CALIB_FSENSOR
 #if FILAMENT_SENSOR_IS_ADC()
 MI_CALIB_FSENSOR::MI_CALIB_FSENSOR()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_CALIB_FSENSOR::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
     marlin_client::test_start(stmFSensor);
 }
-
-    #if HAS_MMU2()
-/*****************************************************************************/
-// MI_CALIB_FSENSOR_MMU
-MI_CALIB_FSENSOR_MMU::MI_CALIB_FSENSOR_MMU()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_CALIB_FSENSOR_MMU::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_client::test_start(stmFSensorMMU);
-}
-    #endif
-
 #endif
 
 #if PRINTER_IS_PRUSA_MK4
 MI_CALIB_GEARS::MI_CALIB_GEARS()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_CALIB_GEARS::click(IWindowMenu & /*window_menu*/) {
@@ -207,7 +192,7 @@ void MI_CALIB_GEARS::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_CALIBRATE_TOOL_OFFSETS
 MI_CALIBRATE_TOOL_OFFSETS::MI_CALIBRATE_TOOL_OFFSETS()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
 void MI_CALIBRATE_TOOL_OFFSETS::click(IWindowMenu & /*window_menu*/) {
@@ -219,7 +204,7 @@ void MI_CALIBRATE_TOOL_OFFSETS::click(IWindowMenu & /*window_menu*/) {
 // MI_RESTORE_CALIBRATION_FROM_USB
 
 MI_RESTORE_CALIBRATION_FROM_USB::MI_RESTORE_CALIBRATION_FROM_USB()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::dev : is_hidden_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::dev : is_hidden_t::yes) {
 }
 
 void MI_RESTORE_CALIBRATION_FROM_USB::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -310,7 +295,7 @@ bool MI_RESTORE_CALIBRATION_FROM_USB::restore_fs_calibration() {
 // MI_BACKUP_CALIBRATION_TO_USB
 
 MI_BACKUP_CALIBRATION_TO_USB::MI_BACKUP_CALIBRATION_TO_USB()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::dev : is_hidden_t::yes) {
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::dev : is_hidden_t::yes) {
 }
 
 void MI_BACKUP_CALIBRATION_TO_USB::click([[maybe_unused]] IWindowMenu &window_menu) {

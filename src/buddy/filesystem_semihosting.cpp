@@ -185,3 +185,7 @@ void filesystem_semihosting_deinit() {
         device = -1;
     }
 }
+
+bool filesystem_semihosting_active() {
+    return device != -1;
+}

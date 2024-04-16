@@ -25,6 +25,8 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
         Item<MI_INFO_BOARD_TEMP>().UpdateValue(boardRes);
 #endif
 
+        Item<MI_INFO_MCU_TEMP>().UpdateValue(buffer.GetValue(SensorData::Sensor::MCUTemp));
+
         Item<MI_INFO_HEATBREAK_N_TEMP<0>>().UpdateValue(marlin_vars()->hotend(0).temp_heatbreak.get());
         Item<MI_INFO_HEATBREAK_N_TEMP<1>>().UpdateValue(marlin_vars()->hotend(1).temp_heatbreak.get());
         Item<MI_INFO_HEATBREAK_N_TEMP<2>>().UpdateValue(marlin_vars()->hotend(2).temp_heatbreak.get());
@@ -42,16 +44,20 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
 
         Item<MI_INFO_DWARF_BOARD_TEMPERATURE>().UpdateValue(buffer.GetValue(SensorData::Sensor::dwarfBoardTemperature));
 
+        Item<MI_INFO_DWARF_MCU_TEMPERATURE>().UpdateValue(buffer.GetValue(SensorData::Sensor::dwarfMCUTemperature));
+
+        Item<MI_INFO_MODULAR_BED_MCU_TEMPERATURE>().UpdateValue(buffer.GetValue(SensorData::Sensor::mbedMCUTemperature));
+
         Item<MI_INFO_LOADCELL>().UpdateValue(buffer.GetValue(SensorData::Sensor::loadCell));
 
         if (auto fsensor = GetExtruderFSensor(marlin_vars()->active_extruder.get()); fsensor) { // Try to get extruder filament sensor
-            Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->Get()), static_cast<int>(fsensor->GetFilteredValue())));
+            Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->get_state()), static_cast<int>(fsensor->GetFilteredValue())));
         } else {
             Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue({ {}, {} });
         }
 
         if (auto fsensor = GetSideFSensor(marlin_vars()->active_extruder.get()); fsensor) { // Try to get side filament sensor
-            Item<MI_INFO_SIDE_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->Get()), static_cast<int>(fsensor->GetFilteredValue())));
+            Item<MI_INFO_SIDE_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->get_state()), static_cast<int>(fsensor->GetFilteredValue())));
         } else {
             Item<MI_INFO_SIDE_FILL_SENSOR>().UpdateValue({ {}, {} });
         }

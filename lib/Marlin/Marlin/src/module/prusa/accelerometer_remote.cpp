@@ -1,17 +1,18 @@
-/**
- * @file
- */
 #include "accelerometer.h"
-#if ENABLED(REMOTE_ACCELEROMETER)
-    #include "toolchanger.h"
-    #include "accelerometer_utils.h"
-    #include <puppies/Dwarf.hpp>
-    #include "bsod.h"
-    #include "../../core/serial.h"
-    #include <mutex>
 
-FreeRTOS_Mutex PrusaAccelerometer::s_buffer_mutex;
+#include "toolchanger.h"
+#include "accelerometer_utils.h"
+#include <puppies/Dwarf.hpp>
+#include "bsod.h"
+#include "../../core/serial.h"
+#include <mutex>
+#include <option/has_remote_accelerometer.h>
+
+static_assert(HAS_REMOTE_ACCELEROMETER());
+
+freertos::Mutex PrusaAccelerometer::s_buffer_mutex;
 PrusaAccelerometer::Sample_buffer *PrusaAccelerometer::s_sample_buffer = nullptr;
+float PrusaAccelerometer::m_sampling_rate = 0;
 
 /**
  * If this is the first instance of PrusaAccelerometer
@@ -89,10 +90,12 @@ void PrusaAccelerometer::clear() {
     Acceleration acceleration;
     while (get_sample(acceleration))
         ;
+    m_error = Error::none;
 }
 int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
+    std::lock_guard lock(s_buffer_mutex);
     common::puppies::fifo::AccelerometerXyzSample sample;
-    bool ret_val = m_sample_buffer.ConsumeFirst(sample);
+    const bool ret_val = m_sample_buffer.try_get(sample);
     if (ret_val) {
         acceleration = AccelerometerUtils::unpack_sample(sample);
         if (acceleration.buffer_overflow) {
@@ -107,7 +110,7 @@ int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
 void PrusaAccelerometer::put_sample(common::puppies::fifo::AccelerometerXyzSample sample) {
     std::lock_guard lock(s_buffer_mutex);
     if (s_sample_buffer) {
-        if (!s_sample_buffer->push_back_DontRewrite(sample)) {
+        if (!s_sample_buffer->try_put(sample)) {
             mark_corrupted(Error::corrupted_buddy_overflow);
         }
     }
@@ -119,5 +122,9 @@ void PrusaAccelerometer::mark_corrupted(const Error error) {
         || error == Error::corrupted_sample_overrun);
     m_error = error;
 }
+
+void PrusaAccelerometer::set_rate(float rate) {
+    m_sampling_rate = rate;
+}
+
 PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;
-#endif // ENABLED(REMOTE_ACCELEROMETER)

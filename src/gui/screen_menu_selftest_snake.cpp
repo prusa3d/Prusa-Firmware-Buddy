@@ -4,7 +4,6 @@
 #include <marlin_client.hpp>
 #include <ScreenHandler.hpp>
 #include <ScreenSelftest.hpp>
-#include <DialogHandler.hpp>
 #include <selftest_types.hpp>
 #include <RAII.hpp>
 #include <option/has_toolchanger.h>
@@ -15,6 +14,8 @@
 using namespace SelftestSnake;
 
 namespace {
+
+constexpr const char *text_put_sheet_on_bed = N_("Before you continue, make sure the print sheet is installed on the heatbed.");
 
 inline bool is_multitool() {
 #if HAS_TOOLCHANGER()
@@ -121,12 +122,9 @@ struct SnakeConfig {
 };
 
 SnakeConfig snake_config {};
-bool querying_user { false };
 
 void do_snake(Action action, Tool tool = Tool::_first) {
     if (!are_previous_completed(action) && !snake_config.in_progress) {
-        AutoRestore ar(querying_user, true);
-
         if (MsgBoxQuestion(_("Previous Calibrations & Tests are not all done. Continue anyway?"), Responses_YesNo, 1) == Response::No) {
             snake_config.reset();
             return;
@@ -135,12 +133,10 @@ void do_snake(Action action, Tool tool = Tool::_first) {
 
     if (has_submenu(action)) {
         if (snake_config.state == SnakeConfig::State::reset || tool == Tool::_first) { // Ask only for first tool or if it is selected in submenu
-            AutoRestore ar(querying_user, true);
             ask_config(action);
         }
-        marlin_client::test_start_for_tools(get_test_mask(action), get_tool_mask(tool));
+        marlin_client::test_start_with_data(get_test_mask(action), get_tool_mask(tool));
     } else {
-        AutoRestore ar(querying_user, true);
         ask_config(action);
         marlin_client::test_start(get_test_mask(action));
     }
@@ -170,7 +166,6 @@ void continue_snake() {
     if (snake_config.state == SnakeConfig::State::first // ran only one action so far
         && (snake_config.last_action != get_first_action() || get_test_result(get_next_action(get_first_action()), Tool::_all_tools) == TestResult_Passed)) {
 
-        AutoRestore ar(querying_user, true);
         Response resp = Response::Stop;
         if (is_multitool() && has_submenu(snake_config.last_action) && snake_config.last_tool != get_last_enabled_tool()) {
             resp = MsgBoxQuestion(_("FINISH remaining calibrations without proceeding to other tests, or perform ALL Calibrations and Tests?\n\nIf you QUIT, all data up to this point is saved."), { Response::Finish, Response::All, Response::Quit }, 2);
@@ -268,7 +263,7 @@ char *I_MI_STS::get_filled_menu_item_label(Action action) {
 }
 
 I_MI_STS::I_MI_STS(Action action)
-    : WI_LABEL_t(_(get_filled_menu_item_label(action)),
+    : IWindowMenuItem(_(get_filled_menu_item_label(action)),
         get_icon(action, Tool::_all_tools), is_enabled_t::yes, get_mainitem_hidden_state(action), get_expands(action)) {
     if (is_multitool()) {
         set_icon_position(IconPosition::right);
@@ -289,7 +284,7 @@ void I_MI_STS::do_click([[maybe_unused]] IWindowMenu &window_menu, Action action
 }
 
 I_MI_STS_SUBMENU::I_MI_STS_SUBMENU(const char *label, Action action, Tool tool)
-    : WI_LABEL_t(_(label), get_icon(action, tool), is_enabled_t::yes, get_subitem_hidden_state(tool)) {
+    : IWindowMenuItem(_(label), get_icon(action, tool), is_enabled_t::yes, get_subitem_hidden_state(tool)) {
     set_icon_position(IconPosition::right);
 }
 
@@ -298,8 +293,8 @@ void I_MI_STS_SUBMENU::do_click([[maybe_unused]] IWindowMenu &window_menu, Tool 
 }
 
 namespace SelftestSnake {
-void do_menu_event([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param, Action action, bool is_submenu) {
-    if (querying_user || event != GUI_event_t::LOOP || !snake_config.in_progress || SelftestInstance().IsInProgress()) {
+void do_menu_event(window_t *receiver, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param, Action action, bool is_submenu) {
+    if (receiver->GetFirstDialog() || event != GUI_event_t::LOOP || !snake_config.in_progress || SelftestInstance().IsInProgress()) {
         return;
     }
 
@@ -318,9 +313,9 @@ void do_menu_event([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe
     }
 }
 
-bool is_menu_draw_enabled() {
+bool is_menu_draw_enabled(window_t *window) {
     return !snake_config.in_progress // don't draw if snake is ongoing
-        || querying_user; // always draw if msgbox is being shown
+        || window->GetFirstDialog(); // always draw if msgbox is being shown
 }
 } // namespace SelftestSnake
 
@@ -330,13 +325,13 @@ ScreenMenuSTSCalibrations::ScreenMenuSTSCalibrations()
 }
 
 void ScreenMenuSTSCalibrations::draw() {
-    if (SelftestSnake::is_menu_draw_enabled()) {
+    if (SelftestSnake::is_menu_draw_enabled(this)) {
         window_frame_t::draw();
     }
 }
 
 void ScreenMenuSTSCalibrations::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    do_menu_event(sender, event, param, get_first_action(), false);
+    do_menu_event(this, sender, event, param, get_first_action(), false);
 }
 
 ScreenMenuSTSWizard::ScreenMenuSTSWizard()
@@ -347,13 +342,14 @@ ScreenMenuSTSWizard::ScreenMenuSTSWizard()
 
 void ScreenMenuSTSWizard::draw() {
     if ((draw_enabled && !snake_config.in_progress) // don't draw if starting/ending or snake in progress
-        || querying_user) { // but always draw if asking user
+        || GetFirstDialog() // Always draw when there is a dialog shown
+    ) {
         window_frame_t::draw();
     }
 }
 
 void ScreenMenuSTSWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (querying_user) {
+    if (GetFirstDialog()) {
         return;
     }
 
@@ -382,17 +378,22 @@ void ScreenMenuSTSWizard::windowEvent(EventLock /*has private ctor*/, window_t *
     if (!ever_shown_wizard_box) {
         ever_shown_wizard_box = true;
 
-        AutoRestore ar(querying_user, true);
         if (MsgBoxPepaCentered(_(msg), { Response::Continue, Response::Cancel })
             == Response::Cancel) {
             Screens::Access()->Close();
         } else {
+#if PRINTER_IS_PRUSA_MK3_5
+            if (MsgBoxInfo(_(text_put_sheet_on_bed), Responses_Ok) == Response::Ok) {
+                do_snake(get_first_action());
+            }
+#else
             do_snake(get_first_action());
+#endif
         }
         return;
     }
 
-    do_menu_event(sender, event, param, get_first_action(), false);
+    do_menu_event(this, sender, event, param, get_first_action(), false);
 
     if (snake_config.in_progress) {
         draw_enabled = false;
@@ -401,8 +402,6 @@ void ScreenMenuSTSWizard::windowEvent(EventLock /*has private ctor*/, window_t *
     }
 
     if (get_test_result(get_last_action(), Tool::_all_tools) == TestResult_Passed && are_previous_completed(get_last_action())) {
-        AutoRestore ar(querying_user, true);
-
         MsgBoxPepaCentered(_("Happy printing!"),
             { Response::Continue, Response::_none, Response::_none, Response::_none });
         Screens::Access()->Close();

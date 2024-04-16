@@ -5,12 +5,10 @@
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 #include "../lib/Marlin/Marlin/src/module/temperature.h"
 #include "marlin_client.hpp"
-#include "media.h"
+#include "media.hpp"
 #include "marlin_server.hpp"
 #include "unique_file_ptr.hpp"
 #include "timing.h"
-#include "config.h" // GUI_WINDOW_SUPPORT
-#include "guiconfig.h" // GUI_WINDOW_SUPPORT
 #include "unistd.h"
 #include "str_utils.hpp"
 #include "tasks.hpp"
@@ -19,6 +17,11 @@
 #include <feature/prusa/restore_z.h>
 
 #include <option/bootloader.h>
+#include <option/has_mmu2.h>
+
+#if HAS_MMU2()
+    #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
+#endif
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -29,13 +32,15 @@
 
 #if ENABLED(POWER_PANIC)
 static bool file_exists(const char *filename) {
-    auto open_file = unique_file_ptr(fopen(filename, "r"));
-    bool file_exists = open_file != nullptr;
-    if (!file_exists) {
-        MutablePath path(filename);
-        file_exists = transfers::is_valid_transfer(path);
+    if (unique_file_ptr(fopen(filename, "r"))) {
+        return true;
     }
-    return file_exists;
+
+    if (MutablePath path(filename); transfers::is_valid_transfer(path)) {
+        return true;
+    }
+
+    return false;
 }
 #endif
 
@@ -182,4 +187,14 @@ DeleteResult remove_file(const char *path) {
         }
     }
     return DeleteResult::Success;
+}
+
+uint8_t get_num_of_enabled_tools() {
+#if HAS_TOOLCHANGER()
+    return prusa_toolchanger.get_num_enabled_tools();
+#elif HAS_MMU2()
+    return MMU2::mmu2.Enabled() ? EXTRUDERS : 1; // MMU has all slots available
+#else
+    return EXTRUDERS;
+#endif
 }

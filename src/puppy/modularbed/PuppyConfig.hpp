@@ -19,7 +19,7 @@
 #define RS485_BUFFER_SIZE 256 // Modbus specification needs 256 Bytes
 
 #define RS485_BAUDRATE  230400
-#define RS485_STOP_BITS UART_STOPBITS_2
+#define RS485_STOP_BITS UART_STOPBITS_1
 #define RS485_PARITY    UART_PARITY_NONE
 
 #define RS485_ASSERTION_TIME   16
@@ -120,10 +120,12 @@ inline constexpr bool is_used_bedlet(uint32_t heatbedletIndex) {
         return true;
     }
 }
+inline constexpr std::array<float, Branch::count> PWM_MAX_CURRENT_AMPS { 4, 5 }; // {4x HeatBedLet on 24V_A, 5x HeatBedLet on 24V_B}
 #elif PRINTER_IS_PRUSA_XL
 inline constexpr bool is_used_bedlet(uint32_t) {
     return true;
 }
+inline constexpr std::array<float, Branch::count> PWM_MAX_CURRENT_AMPS { 10, 6 };
 #else
     #error "unknown printer"
 #endif
@@ -133,7 +135,6 @@ inline constexpr bool is_used_bedlet(uint32_t) {
 
 #define PWM_TIMER_FREQUENCY 10000 // average duration of single IRQ handler call is 1.62 microseconds
 #define PWM_PERIOD_LENGTH   256
-inline constexpr std::array<float, Branch::count> PWM_MAX_CURRENT_AMPS { 10, 6 };
 
 #define PWM_RAMPING_START         0.85f // defines starting point of current ramping; value means fraction of maximal PSU current
 #define PWM_RAMPING_END           0.95f // defines ending point of current ramping; should be < 1 to allow some margin under maximal current; value means fraction of maximal PSU current

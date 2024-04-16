@@ -1,6 +1,7 @@
 #pragma once
 
 #include <connect/printer.hpp>
+#include <common/general_response.hpp>
 
 #include <cstring>
 #include <optional>
@@ -16,6 +17,21 @@ inline Printer::Params params_idle() {
     params.state = printer_state::DeviceState::Idle;
     params.nozzle_diameter = 0.4;
     params.version = { 2, 3, 0 };
+    params.number_of_slots = 1;
+
+    return params;
+}
+
+constexpr Response yes_no[] = { Response::Yes, Response::No, Response::_none, Response::_none };
+
+inline Printer::Params params_dialog() {
+    Printer::Params params(std::nullopt);
+
+    params.job_id = 13;
+    params.state = printer_state::StateWithDialog(printer_state::DeviceState::Attention, ErrCode::ERR_UNDEF, 42, yes_no);
+    params.nozzle_diameter = 0.4;
+    params.version = { 2, 3, 0 };
+    params.number_of_slots = 1;
 
     return params;
 }
@@ -65,8 +81,9 @@ public:
         return nullptr;
     }
 
-    virtual void submit_gcode(const char *gcode) override {
+    virtual GcodeResult submit_gcode(const char *gcode) override {
         submitted_gcodes.push_back(gcode);
+        return GcodeResult::Submitted;
     }
 
     virtual bool set_ready(bool) override {
@@ -81,7 +98,23 @@ public:
         return false;
     }
 
-    virtual void init_connect(char *) override {}
+    virtual void init_connect(const char *) override {}
+
+    virtual uint32_t cancelable_fingerprint() const override {
+        return 0;
+    }
+
+    virtual bool is_in_error() const override {
+        return false;
+    }
+
+    void reset_printer() override {
+        abort();
+    }
+
+    virtual const char *dialog_action(uint32_t dialog_id, Response response) {
+        return nullptr;
+    }
 };
 
 } // namespace connect_client

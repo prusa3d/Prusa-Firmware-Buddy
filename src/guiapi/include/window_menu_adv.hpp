@@ -8,7 +8,6 @@
 #include "window_menu.hpp"
 #include "window_filebrowser.hpp"
 #include "window_menu_bar.hpp"
-#include "guiconfig.h"
 
 class WindowMenuAdv : public AddSuperWindow<window_frame_t> {
     WindowMenu menu;

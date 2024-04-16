@@ -4,11 +4,26 @@
 #include "../common/sys.h"
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
-#include "../common/variant8.h"
 #include <bsod_gui.hpp>
 #include <config_store/store_instance.hpp>
+#include <logging/log.h>
+
+LOG_COMPONENT_REF(PRUSA_GCODE);
 
 #ifdef Z_AXIS_CALIBRATION
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ * G64: Measure Z-Axis height
+ *
+ * ## Parameters
+ *
+ * - `D` - [float] additional offset
+ */
+
 void PrusaGcodeSuite::G64() {
 
     int additional_offset = 0;
@@ -38,6 +53,14 @@ void PrusaGcodeSuite::G64() {
         config_store().axis_z_max_pos_mm.set(z_size);
     }
     SERIAL_ECHOLNPAIR("Saved Z size ", config_store().axis_z_max_pos_mm.get());
+}
+
+/** @}*/
+
+#else
+
+void PrusaGcodeSuite::G64() {
+    log_error(PRUSA_GCODE, "G64 unsupported");
 }
 
 #endif // Z_AXIS_CALIBRATION

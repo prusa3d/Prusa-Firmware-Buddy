@@ -328,12 +328,6 @@
 //#define HOTEND_OFFSET_Y {0.0, 5.00}  // (mm) relative Y-offset for each nozzle
 //#define HOTEND_OFFSET_Z {0.0, 0.00}  // (mm) relative Z-offset for each nozzle
 
-#define ACCELEROMETER
-#if ENABLED(ACCELEROMETER)
-    #define LOCAL_ACCELEROMETER
-    //#define REMOTE_ACCELEROMETER
-#endif
-
 // @section temperature
 
 //===========================================================================
@@ -759,8 +753,14 @@
 
 // 200 step motors
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
-    { 100, 100, 800, 400 }
+    { 100, 100, 800, 380 }
 
+
+/// HW limits of feed rate
+#define HWLIMIT_NORMAL_MAX_FEEDRATE \
+    { 400, 400, 40, 100 }
+#define HWLIMIT_STEALTH_MAX_FEEDRATE \
+    { 140, 140, 12, 100 }
 
 /**
  * Default Max Feed Rate (mm/s)
@@ -770,6 +770,12 @@
 #define DEFAULT_MAX_FEEDRATE \
     { 200, 200, 12, 60 }
 
+/// HW limits of max acceleration
+#define HWLIMIT_NORMAL_MAX_ACCELERATION \
+    { 7000, 7000, 200, 2500 }
+#define HWLIMIT_STEALTH_MAX_ACCELERATION \
+    { 2500, 2500, 200, 2500 }
+
 /**
  * Default Max Acceleration (change/s) change = mm/s
  * (Maximum start speed for accelerated moves)
@@ -778,6 +784,14 @@
  */
 #define DEFAULT_MAX_ACCELERATION \
     { 1500, 1500, 1000, 5000 }
+
+/// HW limits of Acceleration
+#define HWLIMIT_NORMAL_ACCELERATION 7000
+#define HWLIMIT_STEALTH_ACCELERATION 2500
+#define HWLIMIT_NORMAL_RETRACT_ACCELERATION 1200
+#define HWLIMIT_STEALTH_RETRACT_ACCELERATION 1200
+#define HWLIMIT_NORMAL_TRAVEL_ACCELERATION 7000
+#define HWLIMIT_STEALTH_TRAVEL_ACCELERATION 2500
 
 /**
  * Default Acceleration (change/s) change = mm/s
@@ -814,6 +828,10 @@
 #endif
 
 #define DEFAULT_EJERK 5 // May be used by Linear Advance
+
+/// HW limits of Jerk
+#define HWLIMIT_NORMAL_JERK { 8, 8, 2, 10 }
+#define HWLIMIT_STEALTH_JERK {8, 8, 2, 10 }
 
 /**
  * S-Curve Acceleration
@@ -1109,11 +1127,11 @@
 #define Z_SIZE 195
 
 // Travel limits (mm) after homing, corresponding to endstop positions. defaul x -2.5 y -7.3
-#define X_MIN_POS -30
+#define X_MIN_POS -14
 #define Y_MIN_POS -11
 #define Z_MIN_POS 0
-#define X_MAX_POS X_MIN_POS + 283
-#define Y_MAX_POS Y_MIN_POS + 308
+#define X_MAX_POS (X_MIN_POS + 283)
+#define Y_MAX_POS (Y_MIN_POS + 308)
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     #define DEFAULT_Z_MAX_POS Z_SIZE
     #define Z_MIN_LEN_LIMIT 1
@@ -1564,15 +1582,15 @@
 #if ENABLED(NOZZLE_PARK_FEATURE)
     #define Z_AXIS_LOAD_POS  40
     #define Z_AXIS_UNLOAD_POS 20
-    #define Y_AXIS_LOAD_POS    (std::numeric_limits<float>::quiet_NaN())
-    #define Y_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
-    #define X_AXIS_LOAD_POS  (std::numeric_limits<float>::quiet_NaN())
-    #define X_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
+    #define Y_AXIS_LOAD_POS    (Y_MAX_POS - 10)
+    #define Y_AXIS_UNLOAD_POS  (Y_MAX_POS - 10)
+    #define X_AXIS_LOAD_POS  (X_MIN_POS + 10)
+    #define X_AXIS_UNLOAD_POS  (X_MIN_POS + 10)
     // Specify a park position as { X, Y, Z }
     #define NOZZLE_PARK_POINT \
         { (X_MIN_POS + 10), (Y_MAX_POS - 10), 20 }
     #define NOZZLE_PARK_POINT_M600 \
-        { (X_MAX_POS - 10), (Y_MIN_POS + 10), 20 }
+        { (X_MIN_POS + 10), (Y_MAX_POS - 10), 20 }
     #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
     #define NOZZLE_PARK_Z_FEEDRATE 5 // (mm/s) Z axis feedrate (not used for delta printers)
 

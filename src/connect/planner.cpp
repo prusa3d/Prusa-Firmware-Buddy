@@ -4,6 +4,8 @@
 #include <filename_type.hpp>
 #include <log.h>
 #include <transfers/transfer.hpp>
+#include <option/websocket.h>
+#include <common/general_response.hpp>
 
 #include <alloca.h>
 #include <algorithm>
@@ -61,10 +63,24 @@ namespace {
     const constexpr Duration COOLDOWN_BASE = 100;
     // Don't do retries less often than once a minute.
     const constexpr Duration COOLDOWN_MAX = 1000 * 60;
+    // Don't send telemetry more often than this even if things change.
+    const constexpr Duration TELEMETRY_INTERVAL_MIN = 750;
+#if WEBSOCKET()
+    // Max of 2 minutes of telemetry silence.
+    const constexpr Duration TELEMETRY_INTERVAL_LONG = 2 * 60 * 1000;
+#else
     // Telemetry every 4 seconds. We may want to have something more clever later on.
     const constexpr Duration TELEMETRY_INTERVAL_LONG = 1000 * 4;
+#endif
     // Except when we are printing or processing something, we want it more often.
     const constexpr Duration TELEMETRY_INTERVAL_SHORT = 1000;
+    // Make sure to send a full telemetry once in a while, even if there are no
+    // relevant changes. That's because the server might forget the telemetry sometimes.
+    const constexpr Duration TELEMETRY_INTERVAL_FULL = 1000 * 60 * 5;
+    // Wake the loop at least this often, to check for interesting events. This
+    // limits the max amoun of one sleep, but we'd produce several in a row if
+    // we need that.
+    const constexpr Duration LOOP_WAKEUP = 500;
     // If we don't manage to talk to the server for this long, re-init the
     // communication with a new init event.
     const constexpr Duration RECONNECT_AFTER = 1000 * 10;
@@ -128,7 +144,7 @@ namespace {
     }
 
     const char *make_dir(const char *path) {
-        if (mkdir(path, 777) != 0) {
+        if (mkdir(path, 0777) != 0) {
             if (errno == EEXIST) {
                 return "Directory already exists";
             } else {
@@ -178,7 +194,7 @@ namespace {
             return Storage { "Not allowed outside /usb" };
         }
 
-        if (!filename_is_firmware(dpath) && !filename_is_printable(dpath)) {
+        if (!filename_is_transferrable(dpath)) {
             return Storage { "Unsupported file type" };
         }
 
@@ -194,6 +210,10 @@ namespace {
         auto request = Download::Request(host, port, path, std::move(encryption));
 
         return Transfer::begin(dpath, request);
+    }
+
+    bool command_is_error_whitelisted(const Command &command) {
+        return holds_alternative<SendInfo>(command.command_data) || holds_alternative<SetToken>(command.command_data) || holds_alternative<ResetPrinter>(command.command_data) || holds_alternative<SendStateInfo>(command.command_data);
     }
 } // namespace
 
@@ -223,22 +243,49 @@ const char *to_str(EventType event) {
         return "TRANSFER_FINISHED";
     case EventType::FileChanged:
         return "FILE_CHANGED";
+    case EventType::CancelableChanged:
+        return "CANCELABLE_CHANGED";
+    case EventType::StateChanged:
+        return "STATE_CHANGED";
     default:
         assert(false);
         return "???";
     }
 }
 
+Planner::Planner(Printer &printer)
+    : printer(printer) {
+    reset();
+
+    // Prevent emiting a state changed to IDLE on boot.
+    Printer::Params dummy_params(nullopt);
+    dummy_params.state.device_state = printer_state::DeviceState::Idle;
+    state_info.set_hash(dummy_params.state_fingerprint());
+    state_info.mark_clean();
+    telemetry_changes.mark_dirty();
+}
+
 void Planner::reset() {
     // Will trigger an Info message on the next one.
     info_changes.mark_dirty();
+    cancellable_objects.mark_clean();
     last_telemetry = nullopt;
+    telemetry_changes.mark_dirty();
     cooldown = nullopt;
     perform_cooldown = false;
     failed_attempts = 0;
 }
 
-Sleep Planner::sleep(Duration amount, bool cooldown) {
+Sleep Planner::sleep(Duration amount, http::Connection *wake_on_readable, bool cooldown) {
+    if (!can_receive_command()) {
+        // We don't want to cut the sleep short in case there is a command waiting but we can't receive it.
+        wake_on_readable = nullptr;
+    }
+
+    // Don't do anything "extra" during bluescreen/redscreen.
+    if (printer.is_in_error()) {
+        return Sleep(amount, nullptr, nullptr, wake_on_readable, false, false);
+    }
     // Note for the case where planned_event.has_value():
     //
     // Processing of background command could generate another event that
@@ -259,16 +306,18 @@ Sleep Planner::sleep(Duration amount, bool cooldown) {
     //
     // We also don't want to allow it during downloading.
     bool allow_transfer_cleanup = !printer.is_printing() && need_transfer_cleanup && !Monitor::instance.id().has_value();
+
     return Sleep(
         amount,
         cmd,
         down,
+        wake_on_readable,
         /*run_transfer_cleanup=*/allow_transfer_cleanup,
         /* The cooldown thing: We don't want to recover transfer before we get properly connected, maybe we don't have the IP yet or something. */
         /*run_transfer_recovery=*/(transfer_recovery != TransferRecoveryState::Finished) && !cooldown);
 }
 
-Action Planner::next_action(SharedBuffer &buffer) {
+Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_readable) {
     if (!printer.is_printing()) {
         // The idea is, we set the ID when we start the print and remove it
         // once we see we are no longer printing. This is not completely
@@ -301,7 +350,7 @@ Action Planner::next_action(SharedBuffer &buffer) {
     if (perform_cooldown) {
         perform_cooldown = false;
         assert(cooldown.has_value());
-        return sleep(*cooldown, true);
+        return sleep(*cooldown, nullptr, true);
     }
 
     if (planned_event.has_value()) {
@@ -380,22 +429,58 @@ Action Planner::next_action(SharedBuffer &buffer) {
         }
     }
 
-    if (const auto since_telemetry = since(last_telemetry); since_telemetry.has_value()) {
-        const Duration telemetry_interval = printer.is_printing() || background_command.has_value() ? TELEMETRY_INTERVAL_SHORT : TELEMETRY_INTERVAL_LONG;
-        if (*since_telemetry >= telemetry_interval) {
-            return SendTelemetry { false };
-        } else {
-            Duration sleep_amount = telemetry_interval - *since_telemetry;
-            return sleep(sleep_amount, false);
-        }
+    const auto params = printer.params();
+
+    if (state_info.set_hash(params.state_fingerprint())) {
+        planned_event = Event {
+            EventType::StateChanged,
+        };
+        return *planned_event;
+    }
+
+    if (cancellable_objects.set_hash(printer.cancelable_fingerprint())) {
+        planned_event = Event {
+            EventType::CancelableChanged,
+        };
+        return *planned_event;
+    }
+
+    if (command_waiting && can_receive_command()) {
+        // It's OK to reset it here without any success notification from
+        // outside. That's because it'll get set again in the nearest sleep if
+        // we lose it.
+        command_waiting = false;
+        return ReadCommand {};
+    }
+
+    const bool printing = printer.is_printing();
+    const bool changes = telemetry_changes.set_hash(params.telemetry_fingerprint(!printing));
+    const bool want_short = printing || background_command.has_value() || observed_transfer.has_value();
+    const Duration telemetry_interval = want_short ? TELEMETRY_INTERVAL_SHORT : TELEMETRY_INTERVAL_LONG;
+    const Duration since_telemetry = since(last_telemetry).value_or(TELEMETRY_INTERVAL_FULL * 2 /* "Long enough" */);
+    const Duration since_full = since(last_full_telemetry).value_or(TELEMETRY_INTERVAL_FULL * 2);
+
+    const bool send_telemetry = since_telemetry >= TELEMETRY_INTERVAL_MIN && (changes || since_telemetry >= telemetry_interval);
+    const bool want_full = changes || since_full >= TELEMETRY_INTERVAL_FULL;
+
+    if (send_telemetry) {
+        last_telemetry_mode = want_full ? SendTelemetry::Mode::Full : SendTelemetry::Mode::Reduced;
+        return SendTelemetry { last_telemetry_mode };
     } else {
-        // TODO: Optimization: When can we send just empty telemetry instead of full one?
-        return SendTelemetry { false };
+        // Don't sleep longer than until the next telemetry.
+        // But also wake up often enough to check for interesting events.
+        assert(telemetry_interval >= since_telemetry);
+        Duration sleep_amount = std::min(telemetry_interval - since_telemetry, LOOP_WAKEUP);
+        return sleep(sleep_amount, wake_on_readable, false);
     }
 }
 
 bool Planner::wants_job_paths() const {
     return planned_event.has_value() && planned_event->type == EventType::JobInfo;
+}
+
+bool Planner::can_receive_command() const {
+    return !planned_event.has_value();
 }
 
 void Planner::action_done(ActionResult result) {
@@ -411,12 +496,23 @@ void Planner::action_done(ActionResult result) {
         if (planned_event.has_value()) {
             if (planned_event->type == EventType::Info) {
                 info_changes.mark_clean();
+            } else if (planned_event->type == EventType::CancelableChanged) {
+                cancellable_objects.mark_clean();
+            } else if (planned_event->type == EventType::StateChanged) {
+                state_info.mark_clean();
             }
             planned_event = nullopt;
+#if !WEBSOCKET()
             // Enforce telemetry now. We may get a new command with it.
+            // Websocket doesn't need this, commands can come independently from telemetry.
             last_telemetry = nullopt;
+#endif
         } else {
             last_telemetry = n;
+            if (last_telemetry_mode == SendTelemetry::Mode::Full) {
+                last_full_telemetry = n;
+                telemetry_changes.mark_clean();
+            }
         }
         break;
     }
@@ -694,6 +790,30 @@ void Planner::command(const Command &command, [[maybe_unused]] const StopTransfe
     }
 }
 
+void Planner::command(const Command &command, const SetToken &params) {
+    printer.init_connect(reinterpret_cast<const char *>(params.token->data()));
+    planned_event = { EventType::Finished, command.id };
+}
+
+void Planner::command(const Command &command, const ResetPrinter &) {
+    printer.reset_printer();
+
+    // We reach this place only if the reset_printer fails to execute (can it?)
+    planned_event = { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Failed to reset" };
+}
+
+void Planner::command(const Command &command, const SendStateInfo &) {
+    planned_event = { EventType::StateChanged, command.id };
+}
+
+void Planner::command(const Command &command, const DialogAction &params) {
+    if (const char *error = printer.dialog_action(params.dialog_id, params.response); error != nullptr) {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, error };
+    } else {
+        planned_event = { EventType::Finished, command.id };
+    }
+}
+
 // FIXME: Handle the case when we are resent a command we are already
 // processing for a while. In that case, we want to re-Accept it. Nevertheless,
 // we may not be able to parse it again because the background command might be
@@ -702,7 +822,16 @@ void Planner::command(Command command) {
     // We can get commands only as result of telemetry, not of other things.
     // TODO: We probably want to have some more graceful way to deal with the
     // server sending us the command as a result to something else anyway.
+
     assert(!planned_event.has_value());
+    if (printer.is_in_error() && !command_is_error_whitelisted(command)) {
+        planned_event = Event {
+            EventType::Rejected,
+            command.id,
+        };
+        planned_event->reason = "Won't accept commands in error state";
+        return;
+    }
 
     if (background_command.has_value()) {
         // We are already processing a command.

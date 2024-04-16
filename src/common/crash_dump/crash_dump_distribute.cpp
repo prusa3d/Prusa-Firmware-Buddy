@@ -61,7 +61,8 @@ bool upload_dump_to_server(http::Request &req) {
     http::HttpClient http(conn_factory);
 
     if (auto result = http.send(req); std::holds_alternative<http::Error>(result)) {
-        log_error(CrashDump, "Error sending dump to server %d", std::get<http::Error>(result));
+        log_error(CrashDump, "Error sending dump to server %u",
+            static_cast<unsigned>(std::get<http::Error>(result)));
         return false;
     }
 

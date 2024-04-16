@@ -5,9 +5,9 @@
  */
 
 #include "selftest_view_item_text.hpp"
-#include "display_helper.h" // font_meas_text
-#include "GuiDefaults.hpp"
-#include "wizard_config.hpp"
+#include "display_helper.h"
+#include <guiconfig/GuiDefaults.hpp>
+#include <guiconfig/wizard_config.hpp>
 #include "img_resources.hpp"
 
 /**
@@ -31,24 +31,24 @@ void SelfTestViewText::Draw(Rect16::Top_t top) const {
 }
 
 static constexpr size_t text_pos_after_icon = WizardDefaults::col_after_icon - WizardDefaults::col_0;
+static constexpr Font font = GuiDefaults::DefaultFont;
 
 Rect16::Height_t SelfTestViewText::CalculateHeight(string_view_utf8 &txt, is_multiline multiln, Rect16::Width_t width) {
-    if (!GuiDefaults::Font) {
-        return Rect16::Height_t(0);
-    }
-
     if (multiln == is_multiline::no) {
-        return GuiDefaults::Font->h;
+        return ::height(font);
     }
 
-    std::optional<size_ui16_t> ret = font_meas_text(*GuiDefaults::Font, txt, width);
-    return ret ? Rect16::Height_t(ret->h) : Rect16::Height_t(0);
+    std::optional<size_ui16_t> sz_in_chars = characters_meas_text(txt, width / ::width(font));
+    if (sz_in_chars) {
+        return ::height(font) * sz_in_chars->h;
+    }
+    return 0;
 }
 
 void SelfTestViewText::render(Rect16 rc) const {
     // TODO use some function not changing background, just draw text
     // background is guaranted to be clear
-    render_text_align(rc, text, GuiDefaults::Font, GuiDefaults::ColorBack, GuiDefaults::MenuColorText,
+    render_text_align(rc, text, font, GuiDefaults::ColorBack, GuiDefaults::MenuColorText,
         padding_ui8_t { 0, 0, 0, 0 }, { Align_t::LeftTop(), multiline });
 }
 

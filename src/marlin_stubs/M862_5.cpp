@@ -7,8 +7,17 @@
 #include "gcode_info.hpp"
 
 #ifdef PRINT_CHECKING_Q_CMDS
+
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M862.5: Check gcode level
+ *
+ * ## Parameters
+ *
+ * - `Q` - Print out current gcode level
  */
 void PrusaGcodeSuite::M862_5() {
     // Handle only Q
@@ -21,4 +30,7 @@ void PrusaGcodeSuite::M862_5() {
         SERIAL_EOL();
     }
 }
+
+/** @}*/
+
 #endif

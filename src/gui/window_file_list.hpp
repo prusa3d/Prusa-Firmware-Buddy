@@ -16,7 +16,7 @@
 #include "lazyfilelist.hpp"
 #include "text_roll.hpp"
 #include "WindowMenuItems.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include <array>
 
 // This enum value is stored to eeprom as file sort settings
@@ -37,10 +37,10 @@ public:
     static void Set(WF_Sort_t val);
 };
 
-class FL_LABEL : public WI_LABEL_t {
+class FL_LABEL : public IWindowMenuItem {
 public:
     FL_LABEL(string_view_utf8 label, const img::Resource *icon)
-        : WI_LABEL_t(label, icon, is_enabled_t::yes, is_hidden_t::no) {}
+        : IWindowMenuItem(label, icon, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
@@ -100,7 +100,6 @@ protected:
     static char *root; // this is a Short-File-Name path to the root of the dialog
 
     color_t color_text = GuiDefaults::ColorText;
-    font_t *font;
 
     int item_count_; ///< total number of files/entries in a dir
     std::optional<int> focused_index_; // selected index - cursor position within the visible items

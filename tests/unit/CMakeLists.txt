@@ -25,6 +25,19 @@ endfunction()
 add_executable(system_tests ${CMAKE_CURRENT_SOURCE_DIR}/system_test.cpp)
 add_catch_test(system_tests)
 
+# Define printer-type related defines (set up as MINI)
+add_compile_definitions(
+  PRINTER_VERSION=1
+  PRINTER_SUBVERSION=0
+  PRINTER_TYPE=2
+  PRINTER_CODE=12
+  PRINTER_MODEL="MINI"
+  BOARD=1
+  BOARD_VERSION_MAJOR=0
+  BOARD_VERSION_MINOR=0
+  BOARD_VERSION_PATCH=0
+  )
+
 # now, include all the unit tests; they should add themselves using the add_catch_test function
 add_subdirectory(gui)
 add_subdirectory(common)
@@ -32,6 +45,7 @@ add_subdirectory(lang)
 add_subdirectory(lib)
 add_subdirectory(logging)
 add_subdirectory(connect)
+add_subdirectory(mmu2)
 add_subdirectory(puppies)
 add_subdirectory(transfers)
 add_subdirectory(persistent_stores)

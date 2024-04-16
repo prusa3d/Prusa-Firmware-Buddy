@@ -6,6 +6,7 @@
 #include "media_state.hpp"
 
 #include <time.h>
+#include <guiconfig/guiconfig.h>
 
 struct window_header_t : public AddSuperWindow<window_frame_t> {
 
@@ -18,6 +19,7 @@ struct window_header_t : public AddSuperWindow<window_frame_t> {
     window_icon_t icon_network;
     window_text_t transfer_val;
     window_icon_t icon_transfer;
+    window_icon_t icon_stealth;
     window_text_t bed_text;
     window_icon_t bed_icon;
     uint32_t active_netdev_id;
@@ -44,10 +46,6 @@ struct window_header_t : public AddSuperWindow<window_frame_t> {
     void updateTime();
     void update_bed_info();
 
-    void USB_Off();
-    void USB_On();
-    void USB_Activate();
-
     static const img::Resource *networkIcon(uint32_t netdev_id);
 
 public:
@@ -56,8 +54,7 @@ public:
     void SetIcon(const img::Resource *res);
     void SetText(string_view_utf8 txt);
 
-    void show_bed_info();
-    void hide_bed_info();
+    void set_show_bed_info(bool set);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

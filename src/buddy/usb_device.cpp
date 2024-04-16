@@ -8,6 +8,9 @@
 #include "buddy/priorities_config.h"
 #include <ccm_thread.hpp>
 #include <config_store/store_instance.hpp>
+#include <tasks.hpp>
+#include <timing.h>
+#include <atomic>
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
@@ -19,8 +22,10 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 /// Product ID
 #if PRINTER_IS_PRUSA_MINI
     #define USBD_PID 0x000C
-#elif PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+#elif PRINTER_IS_PRUSA_MK4
     #define USBD_PID 0x000D
+#elif PRINTER_IS_PRUSA_MK3_5
+    #define USBD_PID 0x0017
 #elif PRINTER_IS_PRUSA_iX
     #define USBD_PID 0x0010
 #elif PRINTER_IS_PRUSA_XL
@@ -34,6 +39,7 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 #define USBD_PRODUCT_STRING_FS      ("Original Prusa " PRINTER_MODEL)
 #define USBD_SERIALNUMBER_STRING_FS "00000000001A"
 #define USBD_PRODUCT_STRING_MK39    "Original Prusa MK3.9"
+#define USBD_VBUS_CHECK_INTERVAL_MS 1000
 
 #define USB_SIZ_BOS_DESC 0x0C
 
@@ -44,6 +50,7 @@ static void usb_device_task_run(const void *);
 static serial_nr_t serial_nr;
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    #define FUSB302B_INTERPOSER
     #include "FUSB302B.hpp"
     #include "hwio_pindef.h"
 
@@ -52,11 +59,41 @@ static serial_nr_t serial_nr;
     #include <device/dcd.h>
     #pragma GCC diagnostic pop
 
+static std::atomic<bool> usb_vbus_state = false;
+#endif
+
+bool usb_device_attached() {
+#ifdef FUSB302B_INTERPOSER
+    return usb_vbus_state.load();
+#else
+    return tud_connected() && !tud_suspended();
+#endif
+}
+
+static std::atomic<bool> usb_device_seen_v = false;
+
+bool usb_device_seen() {
+#ifdef FUSB302B_INTERPOSER
+    // we can't query FUSB302B from random threads, rely on the USB thread for updates
+    return usb_device_seen_v.load();
+#else
+    // check and update with the current connection status
+    usb_device_seen_v.store(usb_device_seen_v.load() || usb_device_attached());
+    return usb_device_seen_v.load();
+#endif
+}
+
+void usb_device_clear() {
+    usb_device_seen_v.store(false);
+}
+
 static void check_usb_connection() {
+#ifdef FUSB302B_INTERPOSER
     if (buddy::hw::fsUSBCInt.read() == buddy::hw::Pin::State::low) {
         buddy::hw::FUSB302B::ClearVBUSIntFlag();
 
         bool vbus_status = buddy::hw::FUSB302B::ReadVBUSState();
+        usb_vbus_state.store(vbus_status);
         usb_device_log("FUSB302B VBUS state change: %d\n", (int)vbus_status);
 
         if (!vbus_status) {
@@ -65,14 +102,17 @@ static void check_usb_connection() {
                 tud_disconnect();
             }
         } else {
+            usb_device_seen_v.store(true);
             if (!dcd_connected(TUD_OPT_RHPORT)) {
                 // VBUS on: trigger connect
                 tud_connect();
             }
         }
     }
-}
+#else
+    usb_device_seen_v.store(usb_device_seen_v.load() || usb_device_attached());
 #endif
+}
 
 osThreadCCMDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
@@ -107,15 +147,11 @@ static tusb_desc_device_t desc_device = {
 };
 
 static void usb_device_task_run(const void *) {
+#ifdef FUSB302B_INTERPOSER
+    buddy::hw::FUSB302B::InitChip();
+#endif
+
     GPIO_InitTypeDef GPIO_InitStruct;
-
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-
-    // configure VBUS pin
-    GPIO_InitStruct.Pin = GPIO_PIN_9;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     // configure data pins
     GPIO_InitStruct.Pin = USB_FS_N_Pin | USB_FS_P_Pin;
@@ -142,20 +178,34 @@ static void usb_device_task_run(const void *) {
     // initialize tinyusb stack
     tusb_init();
 
-    while (true) {
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-        tud_task_ext(1000, false);
+    // wait for bus reset to complete if possible
+    for (uint32_t start_ts = ticks_ms(); ticks_diff(ticks_ms(), start_ts) < 250;) {
+        tud_task_ext(100, false);
+        if (tud_speed_get() != TUSB_SPEED_INVALID) {
+            break;
+        }
+    }
 
-        // periodically check for VBUS disconnection
-        check_usb_connection();
+    // initialize the connection state
+#ifdef FUSB302B_INTERPOSER
+    usb_vbus_state.store(buddy::hw::FUSB302B::ReadVBUSState());
+    usb_device_seen_v.store(usb_vbus_state.load());
 #else
-        tud_task();
+    // If bus RESET was seen without FUSB302B the link just came up on it's own
+    usb_device_seen_v.store(tud_speed_get() != TUSB_SPEED_INVALID);
 #endif
+    TaskDeps::provide(TaskDeps::Dependency::usb_device_ready);
+
+    // periodically check for disconnection
+    while (true) {
+        tud_task_ext(USBD_VBUS_CHECK_INTERVAL_MS, false);
+        check_usb_connection();
     }
 }
 
 // This function is referenced from tusb_config.h file; do not change its signature
-int usb_device_log(const char *fmt, ...) {
+int __attribute__((format(__printf__, 1, 2)))
+usb_device_log(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     static char buffer[128];
@@ -263,8 +313,6 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
 }
 
 void tud_suspend_cb(bool /*remote_wakeup_en*/) {
-    // Reset CDC device already on suspend (not just on disconnect) in order to set the internal
-    // non-blocking overwrite mode normally set via cdcd_init(). On resume a CDC setup event is
-    // received that will reconfigure the port to regular state.
-    cdcd_reset(0);
+    // Do not wait for timeout on SUSPEND, immediately switch TX to non-blocking mode
+    cdcd_set_tx_ovr(TUD_OPT_RHPORT, true);
 }

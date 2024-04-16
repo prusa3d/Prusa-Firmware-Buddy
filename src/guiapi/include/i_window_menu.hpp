@@ -12,7 +12,7 @@
 class IWindowMenu : public AddSuperWindow<window_t> {
 
 protected:
-    static constexpr uint8_t font_h_ = 19; // Fonts are not constexpr
+    static constexpr uint8_t font_h_ = height(Font::normal);
     static constexpr uint16_t item_height_ = font_h_ + GuiDefaults::MenuPaddingItems.top + GuiDefaults::MenuPaddingItems.bottom;
 
 public:
@@ -87,7 +87,7 @@ public: // Focus related stuff
     /// Tries to move focus as a result of the touch click event (param is to be passed here).
     ///
     /// !!! It is REQUIRED to use this function when children of i_window_menu are handling TOUCH_CLICK on their own,
-    /// !!! because the focus move can fail (IWindowMenuItem::try_exit_edit_mode)
+    /// !!! because the focus move can fail
     ///
     /// \returns focused index of the clicked item, if the focus move was successful
     std::optional<int> move_focus_touch_click(void *event_param);
@@ -107,6 +107,16 @@ public:
     /// Transforms index (index of the item across all the items) to slot (item index on the screen)
     /// \returns nullopt if the index is outside of valid range or not on the screen
     std::optional<int> index_to_slot(std::optional<int> index) const;
+
+    /// Maps item index to more "persistent" index that can handle item removal, additions etc (used when showing/hiding items in WindowMenu)
+    virtual std::optional<int> item_index_to_persistent_index(std::optional<int> item_index) const {
+        return item_index;
+    }
+
+    /// Opposite of \p item_index_to_persistent_index
+    virtual std::optional<int> persistent_index_to_item_index(std::optional<int> persistent_index) const {
+        return persistent_index;
+    }
 
 protected:
     IWindowMenu(window_t *parent, Rect16 rect);

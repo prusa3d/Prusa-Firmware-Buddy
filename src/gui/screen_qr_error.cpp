@@ -11,6 +11,7 @@
 #include <crash_dump/dump.hpp>
 #include <error_codes.hpp>
 #include <config_store/store_instance.hpp>
+#include <guiconfig/guiconfig.h>
 #include <option/has_leds.h>
 
 using namespace crash_dump;
@@ -22,13 +23,14 @@ static const constexpr Rect16 link_rect = GuiDefaults::EnableDialogBigLayout ? R
 static const constexpr Rect16 qr_code_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(180, 265, 100, 20) : Rect16(100, 295, 64, 13);
 static const constexpr Rect16 help_txt_rect = Rect16(30, 200, 215, 20);
 static const constexpr Rect16 title_line_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 70, 420, 1) : Rect16(10, 44, 219, 1);
+static const constexpr Rect16 fw_version_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 265, display::GetW() - 30, 20) : Rect16(6, 295, display::GetW() - 6, 13);
 
 static constexpr const char *const header_label = N_("ERROR");
 static constexpr const char *const help_text = N_("More detail at");
 static constexpr const char *const unknown_err_txt = N_("Unknown Error");
 
 ScreenErrorQR::ScreenErrorQR()
-    : AddSuperWindow<ScreenResetError>()
+    : AddSuperWindow<ScreenResetError>(fw_version_rect)
     , header(this)
     , err_title(this, title_rect, is_multiline::no)
     , err_description(this, descr_rect, is_multiline::yes)
@@ -45,12 +47,12 @@ ScreenErrorQR::ScreenErrorQR()
     img::enable_resource_file();
     SetRedLayout();
     title_line.SetBackColor(COLOR_WHITE);
-    help_link.set_font(resource_font(IDR_FNT_SMALL));
-    qr_code_txt.set_font(resource_font(IDR_FNT_SMALL));
+    help_link.set_font(Font::small);
+    qr_code_txt.set_font(Font::small);
 #if defined(USE_ST7789)
-    err_title.set_font(resource_font(IDR_FNT_SMALL));
+    err_title.set_font(Font::small);
     err_title.SetAlignment(Align_t::LeftBottom());
-    err_description.set_font(resource_font(IDR_FNT_SMALL));
+    err_description.set_font(Font::small);
 #elif defined(USE_ILI9488)
     err_title.SetAlignment(Align_t::LeftTop());
 #endif
@@ -100,12 +102,7 @@ ScreenErrorQR::ScreenErrorQR()
         err_description.SetText(_(err_message_buff));
 
         if (error_code != static_cast<std::underlying_type_t<ErrCode>>(ErrCode::ERR_UNDEF) && error_code / 1000 == ERR_PRINTER_CODE) {
-#if PRINTER_IS_PRUSA_MK4
-            if (!config_store().xy_motors_400_step.get()) {
-                static_assert(ERR_PRINTER_CODE == 13, "PRUSA MK4's PID is no longer 13, which means this hardcoded calculation is no longer correct.");
-                error_code += 8000; // If MK4 has 200 step motors, it means it is MK3.9, which has it's own product ID (21 instead of MK4's 13) - so 13XXX have to be change in runtime to 21XXX (+8000)
-            }
-#endif
+            update_error_code(error_code); // distinguish MK3.9 from MK4 and update error_code's printer prefix, does nothing on other printers
             show_qr();
         } else {
             hide_qr();

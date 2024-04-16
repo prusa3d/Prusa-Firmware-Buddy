@@ -37,6 +37,23 @@ tmc_reg_t *text_cmd_to_register(const char *cmd_in, bool write, bool read) {
     return nullptr;
 }
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
+/**
+ * M919: TMC Config Write. Writes a value to the TMC driver’s register.
+ *
+ * ## Parameters
+ *
+ * - `X` - Write a value to X axis TMC driver's register
+ * - `Y` - Write a value to Y axis TMC driver's register
+ * - `Z` - Write a value to Z axis TMC driver's register
+ * - `E` - Write a value to E axis TMC driver's register
+ * - <TMC reg> - Select specific TMC driver's register
+ * - <data> - Data to write in selected TMC driver's register
+ */
+
 void PrusaGcodeSuite::M919() {
     char cmd[16] = { 0 };
     int val = 0;
@@ -81,6 +98,17 @@ void PrusaGcodeSuite::M919() {
     queue.ok_to_send();
 }
 
+/**
+ * M919: TMC Config Read. Reads a value from the TMC driver’s register.
+ *
+ * ## Parameters
+ *
+ * - `X` - Read a value from X axis TMC driver's register
+ * - `Y` - Read a value from Y axis TMC driver's register
+ * - `Z` - Read a value from Z axis TMC driver's register
+ * - `E` - Read a value from E axis TMC driver's register
+ * - <TMC reg> - Select specific TMC driver's register
+ */
 void PrusaGcodeSuite::M920() {
     char cmd[16] = { 0 };
     tmc_reg_t *adress_reg;
@@ -121,3 +149,5 @@ void PrusaGcodeSuite::M920() {
     }
     queue.ok_to_send();
 }
+
+/** @}*/

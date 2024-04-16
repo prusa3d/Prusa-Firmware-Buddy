@@ -1,6 +1,7 @@
 #include "USBSerial.h"
 #include "tusb.h"
 #include <task.h>
+#include <timing.h>
 
 void USBSerial::enable() {
     enabled = true;
@@ -10,6 +11,11 @@ void USBSerial::disable() {
     enabled = false;
     tud_cdc_write_clear();
     lineBufferUsed = 0;
+}
+
+void USBSerial::write_timeout(int32_t us) {
+    usb_device_log("CDC write timeout, unlocking after %dms\n", us / 1000);
+    cdcd_set_tx_ovr(TUD_OPT_RHPORT, true);
 }
 
 void USBSerial::setIsWriteOnly(bool writeOnly) {
@@ -77,9 +83,17 @@ size_t USBSerial::write(uint8_t ch) {
     }
 
     if (enabled) {
+        uint32_t ts = ticks_us();
         while (tud_cdc_write_char(ch) != 1) {
             // TX is full, yield to lower-priority (which usb is part of) threads until ready
             vTaskDelay(1);
+
+            // Ensure we do not wait indefinitely
+            int32_t us_diff = ticks_diff(ticks_us(), ts);
+            if (us_diff > writeTimeoutUs) {
+                write_timeout(us_diff);
+                break;
+            }
         }
     }
 
@@ -91,8 +105,8 @@ size_t USBSerial::write(uint8_t ch) {
     return 1;
 }
 
-static void cdc_write_sync(const uint8_t *buffer, size_t size) {
-    for (;;) {
+void USBSerial::cdc_write_sync(const uint8_t *buffer, size_t size) {
+    for (uint32_t ts = ticks_us();;) {
         size_t done = tud_cdc_write(buffer, size);
         if (done == size) {
             break;
@@ -102,6 +116,13 @@ static void cdc_write_sync(const uint8_t *buffer, size_t size) {
         buffer += done;
         size -= done;
         vTaskDelay(1);
+
+        // Ensure the _entire write_ doesn't wait indefinitely
+        int32_t us_diff = ticks_diff(ticks_us(), ts);
+        if (us_diff > writeTimeoutUs) {
+            write_timeout(us_diff);
+            return;
+        }
     }
 }
 
@@ -119,14 +140,18 @@ size_t USBSerial::write(const uint8_t *buffer, size_t size) {
         LineBufferAppend(ch);
         if (ch == '\n') {
             // batch the last chunk up to the current \n
-            cdc_write_sync(buffer + beg, end - beg + 1);
+            if (enabled) {
+                cdc_write_sync(buffer + beg, end - beg + 1);
+            }
             beg = end + 1;
             flush();
         }
     }
 
     // complete the cdc write
-    cdc_write_sync(buffer + beg, end - beg);
+    if (enabled) {
+        cdc_write_sync(buffer + beg, end - beg);
+    }
     return size;
 }
 

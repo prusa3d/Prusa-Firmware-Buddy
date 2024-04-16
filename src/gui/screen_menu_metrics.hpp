@@ -2,6 +2,7 @@
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include <guiconfig/guiconfig.h>
 
 /**
  * @brief Parent to show ip or host and pass click to menu.
@@ -40,7 +41,7 @@ protected:
 /**
  * @brief Info.
  */
-class MI_METRICS_INFO_LABEL : public WI_LABEL_t {
+class MI_METRICS_INFO_LABEL : public IWindowMenuItem {
     static constexpr const char *const label = N_("What is this?");
     static constexpr const char *const txt_info = N_("This feature allows you to gather diagnostic data to show in Grafana. Be careful, it can send unencrypted data to the internet.\n\nAllow any host and use M33x G-codes to configure metrics and system log. After that, you can store host and port by clicking the current configuration.");
 
@@ -83,7 +84,7 @@ public:
 /**
  * @brief Splitter to show stored configuration.
  */
-class MI_METRICS_CONF_LABEL : public WI_LABEL_t {
+class MI_METRICS_CONF_LABEL : public IWindowMenuItem {
     static constexpr const char *const label = N_("Stored Configuration:");
 
 public:
@@ -135,7 +136,7 @@ public:
 /**
  * @brief Splitter to show current configuration.
  */
-class MI_METRICS_CURRENT_LABEL : public WI_LABEL_t {
+class MI_METRICS_CURRENT_LABEL : public IWindowMenuItem {
     static constexpr const char *const label = N_("Current Configuration:");
 
 public:

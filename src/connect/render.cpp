@@ -1,6 +1,8 @@
 #include "render.hpp"
 #include "printer_type.hpp"
+#include "str_utils.hpp"
 
+#include <client_response.hpp>
 #include <segmented_json_macros.h>
 #include <lfn.h>
 #include <filename_type.hpp>
@@ -11,9 +13,13 @@
 
 #include <cassert>
 #include <cstring>
+#include <cinttypes>
 
 #include <marlin_server_shared.h>
 #include <mbedtls/base64.h>
+
+#include <option/has_mmu2.h>
+#include <option/has_toolchanger.h>
 
 using json::JsonOutput;
 using json::JsonResult;
@@ -35,17 +41,6 @@ namespace connect_client {
 
 namespace {
 
-    bool is_printing(DeviceState state) {
-        switch (state) {
-        case DeviceState::Printing:
-        case DeviceState::Paused:
-        case DeviceState::Attention:
-            return true;
-        default:
-            return false;
-        }
-    }
-
     std::optional<transfers::Monitor::Status> get_transfer_status(size_t resume_point, const RenderState &state) {
         if (state.transfer_id.has_value()) {
             // If we've seen a transfer info previously, allow using a stale one to continue there.
@@ -60,92 +55,106 @@ namespace {
         }
     }
 
-    JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const SendTelemetry &telemetry) {
+    JsonResult render_msg(size_t resume_point, JsonOutput &output, RenderState &state, const SendTelemetry &telemetry) {
         const auto params = state.printer.params();
-        const bool printing = is_printing(params.state);
-
-        const uint32_t current_fingerprint = params.telemetry_fingerprint(!printing);
 
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
 
-        // Note:
-        // We don't adhere to the best practice of JSON renderers, that we
-        // prepare everything up-front, store it and then render it. That's
-        // because we don't want to store the copy of the structure while
-        // sending, to be able to reuse the stack space.
-        //
-        // This isn't a big issue because:
-        // * We don't call the printer.renew() / marlin_update_vars() in
-        //   between, so the values _should_ be the same.
-        // * The only way it can concievably change if it changes is to go from
-        //   not changed -> changed telemetry. If it happens before entering the
-        //   update_telemetry block, we just enter it. If it happens after, it
-        //   has no effect (it's been already skipped).
-        const bool update_telemetry = state.telemetry_changes.set_hash(current_fingerprint);
         // Keep the indentation of the JSON in here!
         // clang-format off
         JSON_START;
         JSON_OBJ_START;
-            if (!telemetry.empty) {
-                if (transfer_status.has_value()) {
-                    // We use the guard-versions here, because we re-acquire
-                    // the status on each resume of this "coroutine". In the
-                    // very rare case the transfer ends and a new one starts in
-                    // between, it might go away and we need to abort this
-                    // attempt (we'll retry later on).
-                    //
-                    // To minimize the risk, we place these first.
-                    //
-                    // And yes, we need the guard on each one, because we can
-                    // resume at each and every of these fields.
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_transferred", transfer_status->download_progress.get_valid_size()) JSON_COMMA;
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_time_remaining", transfer_status->time_remaining_estimate()) JSON_COMMA;
-                    JSON_FIELD_FFIXED_G(transfer_status.has_value(), "transfer_progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
-                }
-
-                // These are not included in the fingerprint as they are changing a lot.
-                if (printing) {
-                    JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
-                    JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
-                    if (params.time_to_end != marlin_server::TIME_TO_END_INVALID) {
-                        JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
-                    }
-                    JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
-                }
-
-                if (update_telemetry) {
-                    JSON_FIELD_FFIXED("temp_nozzle", params.temp_nozzle, 1) JSON_COMMA;
-                    JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
-                    JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
-                    JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
-                    JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
-                    JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
-                    if (params.material != nullptr) {
-                        JSON_FIELD_STR("material", params.material) JSON_COMMA;
-                    }
-                    if (!printing) {
-                        // To avoid spamming the DB, connect doesn't want positions during printing
-                        JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
-                        JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
-                    }
-                    JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
-                    if (printing) {
-                        JSON_FIELD_INT("fan_extruder", params.heatbreak_fan_rpm) JSON_COMMA;
-                        JSON_FIELD_INT("fan_print", params.print_fan_rpm) JSON_COMMA;
-                        JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
-                    }
-                }
-
-                if (state.background_command_id.has_value()) {
-                    JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
-                }
-
-                // State is sent always, first because it seems important, but
-                // also, we want something that doesn't have the final comma on
-                // it.
-                JSON_FIELD_STR("state", to_str(params.state));
+            if (transfer_status.has_value()) {
+                // We use the guard-versions here, because we re-acquire
+                // the status on each resume of this "coroutine". In the
+                // very rare case the transfer ends and a new one starts in
+                // between, it might go away and we need to abort this
+                // attempt (we'll retry later on).
+                //
+                // To minimize the risk, we place these first.
+                //
+                // And yes, we need the guard on each one, because we can
+                // resume at each and every of these fields.
+                JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
+                JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_transferred", transfer_status->download_progress.get_valid_size()) JSON_COMMA;
+                JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_time_remaining", transfer_status->time_remaining_estimate()) JSON_COMMA;
+                JSON_FIELD_FFIXED_G(transfer_status.has_value(), "transfer_progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
             }
+
+            // These are not included in the fingerprint as they are changing a lot.
+            if (params.has_job) {
+                JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
+                JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
+                if (params.time_to_end != marlin_server::TIME_TO_END_INVALID) {
+                    JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
+                }
+                if (params.time_to_pause != marlin_server::TIME_TO_END_INVALID) {
+                    // Connect calls it "filament change". Slicer "Time to
+                    // color change". But in reality it is both pause and
+                    // filament change (M600 / M601).
+                    JSON_FIELD_INT("filament_change_in", params.time_to_pause) JSON_COMMA;
+                }
+                JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
+            }
+
+            //Note: the zero slot always has the values for printers without
+            //MMU or toolchanger, maybe eventually we should send one slot
+            //in hte same structure even for those printers, but left here for now.
+            if (telemetry.mode == SendTelemetry::Mode::Full) {
+                JSON_FIELD_FFIXED("temp_nozzle", params.slots[0].temp_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
+                JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
+                JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
+                if (params.slots[0].material != nullptr) {
+                    JSON_FIELD_STR("material", params.slots[0].material) JSON_COMMA;
+                }
+                if (!params.has_job) {
+                    // To avoid spamming the DB, connect doesn't want positions during printing
+                    JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
+                    JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
+                }
+                JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
+                if (params.has_job) {
+                    JSON_FIELD_INT("fan_extruder", params.slots[0].heatbreak_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_INT("fan_print", params.slots[0].print_fan_rpm) JSON_COMMA;
+                    JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
+                }
+            }
+
+#if HAS_MMU2() || HAS_TOOLCHANGER()
+            if (params.mmu_enabled || option::has_toolchanger) {
+                JSON_FIELD_OBJ("slot");
+                    state.iter = 0;
+                    while (state.iter < params.number_of_slots) {
+                        JSON_CUSTOM("\"%zu\":{", state.iter + 1);
+                            JSON_FIELD_STR("material", params.slots[state.iter].material) JSON_COMMA;
+                            JSON_FIELD_FFIXED("temp", params.slots[state.iter].temp_nozzle, 1) JSON_COMMA;
+                            JSON_FIELD_FFIXED("fan_hotend", params.slots[state.iter].heatbreak_fan_rpm, 1) JSON_COMMA;
+                            JSON_FIELD_FFIXED("fan_print", params.slots[state.iter].print_fan_rpm, 1);
+                        JSON_OBJ_END JSON_COMMA;
+                        state.iter++;
+                    }
+                    if (params.mmu_enabled) {
+                        JSON_FIELD_INT("state", params.progress_code) JSON_COMMA;
+                        JSON_FIELD_STR_FORMAT("command", "%c", params.command_code) JSON_COMMA;
+                    }
+                    JSON_FIELD_INT("active", params.active_slot);
+                JSON_OBJ_END JSON_COMMA;
+            }
+#endif
+            if (state.background_command_id.has_value()) {
+                JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
+            }
+
+            if (params.state.dialog.has_value()) {
+                JSON_FIELD_INT_G(params.state.dialog.has_value(), "dialog_id", params.state.dialog->dialog_id) JSON_COMMA;
+            }
+            // State is sent always, first because it seems important, but
+            // also, we want something that doesn't have the final comma on
+            // it.
+            JSON_FIELD_STR("state", to_str(params.state.device_state));
         JSON_OBJ_END;
         JSON_END;
         // clang-format on
@@ -155,7 +164,9 @@ namespace {
         const auto params = state.printer.params();
         const auto &info = state.printer.printer_info();
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
-        const bool printing = is_printing(params.state);
+#if ENABLED(CANCEL_OBJECTS)
+        char cancel_object_name[Printer::CANCEL_OBJECT_NAME_LEN];
+#endif
 
         const char *reject_with = nullptr;
         Printer::NetCreds creds = {};
@@ -172,11 +183,11 @@ namespace {
             creds = state.printer.net_creds();
         }
 
-        if (event.type == EventType::JobInfo && (!printing || event.job_id.value_or(params.job_id) != params.job_id)) {
+        if (event.type == EventType::JobInfo && (!params.has_job || event.job_id.value_or(params.job_id) != params.job_id)) {
             // Can't send a job info when not printing, refuse instead.
             //
             // Can't provide historic/future jobs.
-            reject_with = printing ? "Job ID doesn't match" : "No job in progress";
+            reject_with = params.has_job ? "Job ID doesn't match" : "No job in progress";
         }
 
         if (event.type == EventType::FileInfo && !state.has_stat && !state.file_extra.renderer.holds_alternative<DirRenderer>()) {
@@ -200,7 +211,7 @@ namespace {
         // clang-format off
         JSON_START;
         JSON_OBJ_START;
-            if (has_extra && printing) {
+            if (has_extra && params.has_job) {
                 JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
             }
 
@@ -256,7 +267,14 @@ namespace {
                         JSON_MAC("wifi_mac", state.wifi->mac) JSON_COMMA;
                         JSON_IP("wifi_ipv4", state.wifi->ip);
                     }
-                    JSON_OBJ_END;
+                    JSON_OBJ_END JSON_COMMA;
+#if HAS_MMU2()
+                    JSON_FIELD_OBJ("mmu");
+                        JSON_FIELD_BOOL("enabled", params.mmu_enabled) JSON_COMMA;
+                        JSON_FIELD_STR_FORMAT("version", "%d.%d.%d", params.mmu_version.major, params.mmu_version.minor, params.mmu_version.build);
+                    JSON_OBJ_END JSON_COMMA;
+#endif
+                    JSON_FIELD_INT("slots", params.number_of_slots);
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::JobInfo) {
                 JSON_FIELD_OBJ("data");
@@ -269,13 +287,13 @@ namespace {
                     if (params.job_lfn() != nullptr) {
                         JSON_FIELD_STR("display_name", params.job_lfn());
                     } else {
-                        JSON_FIELD_STR_437("display_name", basename_b(params.job_path()));
+                        JSON_FIELD_STR("display_name", basename_b(params.job_path()));
                     }
                     JSON_COMMA;
                     if (event.start_cmd_id.has_value()) {
                         JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
                     }
-                    JSON_FIELD_STR_437("path", params.job_path());
+                    JSON_FIELD_STR("path", params.job_path());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
                 JSON_FIELD_OBJ("data");
@@ -304,7 +322,7 @@ namespace {
                     // XXX: Can the name be SFN?
                     JSON_FIELD_STR("display_name", event.path->name()) JSON_COMMA;
                     JSON_FIELD_STR("type", state.file_extra.renderer.holds_alternative<DirRenderer>() ? "FOLDER" : file_type_by_ext(event.path->path())) JSON_COMMA;
-                    JSON_FIELD_STR_437("path", event.path->path());
+                    JSON_FIELD_STR("path", event.path->path());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::TransferInfo) {
                 JSON_FIELD_OBJ("data");
@@ -358,11 +376,11 @@ namespace {
                         JSON_FIELD_INT("free_space", params.usb_space_free) JSON_COMMA;
                     }
                     if (event.incident == transfers::ChangedPath::Incident::Created || event.incident == transfers::ChangedPath::Incident::CreatedEarly) {
-                        JSON_FIELD_STR_437("new_path", event.path->path()) JSON_COMMA;
+                        JSON_FIELD_STR("new_path", event.path->path()) JSON_COMMA;
                     } else if (event.incident == transfers::ChangedPath::Incident::Deleted) {
-                        JSON_FIELD_STR_437("old_path", event.path->path()) JSON_COMMA;
+                        JSON_FIELD_STR("old_path", event.path->path()) JSON_COMMA;
                     } else /*Combined*/ {
-                        JSON_FIELD_STR_437("new_path", event.path->path()) JSON_COMMA;
+                        JSON_FIELD_STR("new_path", event.path->path()) JSON_COMMA;
                         JSON_FIELD_BOOL("rescan", true) JSON_COMMA;
                     }
                     JSON_FIELD_OBJ("file")
@@ -376,9 +394,114 @@ namespace {
                         JSON_FIELD_STR("name", event.path->name());
                     JSON_OBJ_END;
                 JSON_OBJ_END JSON_COMMA;
+            } else if (event.type == EventType::CancelableChanged) {
+#if ENABLED(CANCEL_OBJECTS)
+                JSON_FIELD_OBJ("data");
+                    JSON_FIELD_ARR("objects");
+                        state.iter = 0;
+                        while (state.iter <  params.cancel_object_count) {
+                            //Note: It can theoretically happen, that print finishes and new starts as we are sending this (tho really unlikely)
+                            //, but in that case we would just send some inconsistent names, probably empty srings and
+                            //right after we would generate next event with the correct ones, so it is OK.
+                            JSON_OBJ_START;
+                                //Note: The name has to be copied inside this call, so that it cannot be skipped, if this does not fit the first time.
+                                //
+                                // Also we store only CANCEL_OBJECT_NAME_COUNT names, but can cancel up to the number of bits in the cancel_object_mask
+                                // objects, for the rest we still want to say, if they are canceled or not.
+                                if (state.iter < Printer::CANCEL_OBJECT_NAME_COUNT) {
+
+                                    JSON_FIELD_STR("name", state.printer.get_cancel_object_name(cancel_object_name, sizeof(cancel_object_name), state.iter)) JSON_COMMA;
+                                }
+                                JSON_FIELD_BOOL("canceled", TEST64(params.cancel_object_mask, state.iter)) JSON_COMMA;
+                                JSON_FIELD_INT("id", state.iter);
+                            JSON_OBJ_END;
+                            if (state.iter != params.cancel_object_count - 1) {
+                                JSON_COMMA;
+                            }
+                            state.iter++;
+                        }
+                    JSON_ARR_END;
+                JSON_OBJ_END JSON_COMMA;
+#endif
+            } else if (event.type == EventType::StateChanged) {
+                JSON_FIELD_OBJ("data");
+                    // Unfortunately, we don't have any field that would be
+                    // guaranteed to be present, so we need to do this insanity
+                    // just to avoid a trailing comman, which is forbidden in
+                    // JSON :-(
+                    state.need_comma = false;
+
+                    if (params.state.has_code()) {
+                        state.need_comma = true;
+                        // The additional value() check is there for the event
+                        // where the below doesn't fit, we get resumed and
+                        // the code disappears in between - in that case we
+                        // kind of send a wrong value, but we will generate a
+                        // new one soon after.
+                        //
+                        // (We could use the _GUARD version, but that one seems
+                        // too drastic for this case).
+                        JSON_FIELD_STR_FORMAT("code", "%05" PRIu16, params.state.code_num());
+                    }
+
+                    if (params.state.title()) {
+                        if (state.need_comma) {
+                            JSON_COMMA;
+                        }
+
+                        state.need_comma = true;
+
+                        // Similar trick as above for the suspend/resume-race.
+                        JSON_FIELD_STR("title", params.state.title() ? : "");
+                    }
+
+                    if (params.state.text()) {
+                        if (state.need_comma) {
+                            JSON_COMMA;
+                        }
+
+                        state.need_comma = true;
+
+                        JSON_FIELD_STR("text", params.state.text() ? : "");
+                    }
+
+                    // We store the buttons here to preserve them across the
+                    // resume points. This is fine, as these are all static
+                    // global variables, nothing allocated dynamically.
+                    //
+                    // We do so to:
+                    // * Make the iteration code simpler (no need to worry about changes).
+                    // * Make sure the result is consistent set of buttons that
+                    //   make sense to at least some dialog.
+                    if ((state.buttons = params.state.buttons()) != nullptr) {
+                        if (state.need_comma) {
+                            JSON_COMMA;
+                        }
+
+                        state.need_comma = true;
+
+                        JSON_FIELD_ARR("buttons");
+                        state.iter = 0;
+                        while (state.iter < MAX_RESPONSES) {
+                            if (state.buttons[state.iter] == Response::_none) {
+                                // We've run out of buttons.
+                                break;
+                            }
+                            if (state.iter > 0) {
+                                JSON_COMMA;
+                            }
+                            JSON_CUSTOM("\"%s\"", to_str(state.buttons[state.iter]));
+                            state.iter ++;
+                        }
+                        JSON_ARR_END;
+                    }
+                JSON_OBJ_END JSON_COMMA;
             }
 
-            JSON_FIELD_STR("state", to_str(params.state)) JSON_COMMA;
+            if (params.state.dialog.has_value()) {
+                JSON_FIELD_INT_G(params.state.dialog.has_value(), "dialog_id", params.state.dialog->dialog_id) JSON_COMMA;
+            }
+            JSON_FIELD_STR("state", to_str(params.state.device_state)) JSON_COMMA;
             if (event.command_id.has_value()) {
                 JSON_FIELD_INT("command_id", *event.command_id) JSON_COMMA;
             }
@@ -397,18 +520,24 @@ namespace {
         return JsonResult::Abort;
     }
 
-    off_t child_size(const char *base_path, const char *child_name) {
+    JsonResult render_msg(size_t, JsonOutput &, const RenderState &, const ReadCommand &) {
+        // Not a message to send to server
+        assert(0);
+        return JsonResult::Abort;
+    }
+
+    std::optional<off_t> child_size(const char *base_path, const char *child_name) {
         char path_buf[FILE_PATH_BUFFER_LEN];
         int formatted = snprintf(path_buf, sizeof(path_buf), "%s/%s", base_path, child_name);
         // Name didn't fit. That, in theory, should not happen, but better safe than sorry...
         if (formatted >= FILE_NAME_BUFFER_LEN) {
-            return -1;
+            return {};
         }
         struct stat st = {};
         if (stat(path_buf, &st) == 0) {
             return st.st_size;
         } else {
-            return -1;
+            return {};
         }
     }
 
@@ -450,6 +579,7 @@ namespace {
         { "ironing", MetaFilter::Int },
         { "support_material", MetaFilter::Int },
         { "max_layer_z", MetaFilter::Float },
+        { "objects_info", MetaFilter::String },
     };
 
     MetaFilter meta_filter(const char *name) {
@@ -470,9 +600,9 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
 
     constexpr static const char *intro = "\"preview\":\"";
     constexpr static const char *outro = "\",";
-    constexpr static size_t intro_len = strlen(intro);
+    constexpr static size_t intro_len = strlen_constexpr(intro);
     // Ending quote and comma
-    constexpr static size_t outro_len = strlen(outro);
+    constexpr static size_t outro_len = strlen_constexpr(outro);
     // Don't bother with too small buffers to make the code easier. Extra char
     // for trying out there's some preview in there.
     constexpr static size_t min_len = intro_len + outro_len + encoded_chunk_size;
@@ -485,6 +615,7 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
     size_t written = 0;
 
     if (!started) {
+        gcode->get()->line_continuations = IGcodeReader::Continuations::Discard;
         // get any thumbnail bigger than 17x17
         if (!gcode->get()->stream_thumbnail_start(17, 17, IGcodeReader::ImgType::PNG, true)) {
             // no thumbnail found in gcode, just dont send anything
@@ -534,10 +665,30 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
     return make_tuple(JsonResult::Incomplete, written);
 }
 
+void GcodeMetaRenderer::reset_buffer() {
+    gcode_line_buffer.line = GcodeBuffer::String();
+}
+
+JsonResult GcodeMetaRenderer::out_str_chunk(JsonOutput &output, const GcodeBuffer::String &str) {
+    auto result = output.output_str_chunk(0, str.begin, str.len());
+
+    if (result == JsonResult::Complete && gcode_line_buffer.line_complete) {
+        result = output.output(0, "\"");
+    }
+
+    if (result == JsonResult::Complete) {
+        // Adjust this only if we were successful - if not, we'll retry with the same stuff.
+        str_continuation = !gcode_line_buffer.line_complete;
+    }
+
+    return result;
+}
+
 tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buffer_size) {
     assert(gcode->is_open());
     if (first_run) {
-        gcode_line_buffer = GcodeBuffer(); // reset buffer
+        reset_buffer();
+        gcode->get()->line_continuations = IGcodeReader::Continuations::Split;
         if (!gcode->get()->stream_metadata_start()) {
             return make_tuple(JsonResult::Complete, 0);
         }
@@ -565,60 +716,98 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
             }
         }
 
-        GcodeBuffer::String::parsed_metadata_t parsed = gcode_line_buffer.line.parse_metadata();
-        if (parsed.first.begin == nullptr || parsed.second.begin == nullptr) {
-            gcode_line_buffer = GcodeBuffer(); // reset buffer to fetch another line
-            continue;
-        }
-
         // Either result of putting something to the buffer, or nullopt if this line should be skipped.
         std::optional<JsonResult> result = nullopt;
 
-        const auto filter = meta_filter(parsed.first.c_str());
-        switch (filter) {
-        case MetaFilter::Ignore:
-            // do nothing, just go o next line
-            break;
-        case MetaFilter::String:
-            result = output.output_field_str(0, parsed.first.c_str(), parsed.second.c_str());
-            break;
-
-        case MetaFilter::Float: {
-            char *end = nullptr;
-            double v = strtod(parsed.second.c_str(), &end);
-            if (end != nullptr && *end != '\0') {
-                // unable to parse, skip this
-            } else {
-                result = output.output_field_float_fixed(0, parsed.first.c_str(), v, 2);
+        if (str_continuation) {
+            // Will adjust str_continuation as needed
+            result = out_str_chunk(output, gcode_line_buffer.line);
+        } else {
+            // Disallow terminating the value in case it's taking all the 81 chars
+            // ‒ that could touch the 82th char and we don't have that one.
+            // (possibility with Split continuation of reading).
+            //
+            // (It probably can happen only in case the line_complete == false, but
+            // that would look like a fragile assumption, so basing it off the real
+            // "problem").
+            const bool full_size = gcode_line_buffer.line.len() == gcode_line_buffer.buffer.size();
+            GcodeBuffer::String::parsed_metadata_t parsed = gcode_line_buffer.line.parse_metadata(!full_size);
+            if (parsed.first.begin == nullptr || parsed.second.begin == nullptr) {
+                reset_buffer(); // reset buffer to fetch another line
+                continue;
             }
-            break;
-        }
 
-        case MetaFilter::Int:
-        case MetaFilter::Bool: {
-            char *end = nullptr;
-            long v = strtol(parsed.second.c_str(), &end, 10);
-            if (end != nullptr && *end != '\0') {
-                // Not really an int there. Skip this line.
-            } else {
-                if (filter == MetaFilter::Int) {
-                    result = output.output_field_int(0, parsed.first.c_str(), v);
-                } else {
-                    // The gcode encodes bools as 0/1, JSON has True and False.
-                    result = output.output_field_bool(0, parsed.first.c_str(), v);
+            auto filter = meta_filter(parsed.first.c_str());
+
+            // Too large headers are only handled and allowed for strings, others
+            // aren't expected to exceed 80 chars.
+            if (filter != MetaFilter::String && (full_size || !gcode_line_buffer.line_complete)) {
+                // Eat the rest of the header.
+                bool error = false;
+                while (!gcode_line_buffer.line_complete) {
+                    if (gcode->get()->stream_get_line(gcode_line_buffer) != IGcodeReader::Result_t::RESULT_OK) {
+                        error = true;
+                        break;
+                    }
                 }
+
+                if (error) {
+                    break;
+                }
+
+                filter = MetaFilter::Ignore;
             }
-            break;
-        }
+
+            switch (filter) {
+            case MetaFilter::Ignore:
+                // do nothing, just go o next line
+                break;
+            case MetaFilter::String:
+                // Only the name of the field and starting "
+                result = output.output(0, "\"%s\":\"", parsed.first.c_str());
+                if (result == JsonResult::Complete) {
+                    // Will adjust the str_continuation as needed.
+                    result = out_str_chunk(output, parsed.second);
+                }
+                break;
+
+            case MetaFilter::Float: {
+                char *end = nullptr;
+                double v = strtod(parsed.second.c_str(), &end);
+                if (end != nullptr && *end != '\0') {
+                    // unable to parse, skip this
+                } else {
+                    result = output.output_field_float_fixed(0, parsed.first.c_str(), v, 2);
+                }
+                break;
+            }
+
+            case MetaFilter::Int:
+            case MetaFilter::Bool: {
+                char *end = nullptr;
+                long v = strtol(parsed.second.c_str(), &end, 10);
+                if (end != nullptr && *end != '\0') {
+                    // Not really an int there. Skip this line.
+                } else {
+                    if (filter == MetaFilter::Int) {
+                        result = output.output_field_int(0, parsed.first.c_str(), v);
+                    } else {
+                        // The gcode encodes bools as 0/1, JSON has True and False.
+                        result = output.output_field_bool(0, parsed.first.c_str(), v);
+                    }
+                }
+                break;
+            }
+            }
         }
 
         if (!result.has_value()) {
             // no result obtained from this line -> skip it
-            gcode_line_buffer = GcodeBuffer();
+            reset_buffer();
             continue;
         }
 
-        if (result.value() == JsonResult::Complete) {
+        if (result.value() == JsonResult::Complete && !str_continuation) {
             // Line successfully put to buffer - now put ending ","
             result = output.output(0, ",");
         }
@@ -627,7 +816,7 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
         case JsonResult::Complete:
             // Successfully put content into into the buffer. update pos, and reset buffer to go to next line
             pos = buffer_size - buffer_size_rest;
-            gcode_line_buffer = GcodeBuffer();
+            reset_buffer();
             break;
         case JsonResult::Abort:
             // We use only the primitive output functions and they are not
@@ -676,7 +865,9 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
             }
         } else {
             state.read_only = false;
+            state.childsize = child_size(state.base_path, state.ent->d_name);
         }
+
         state.child_cnt ++;
 
         if (!state.first) {
@@ -686,9 +877,9 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
         }
 
         JSON_OBJ_START;
-            JSON_FIELD_STR_437("name", state.ent->d_name) JSON_COMMA;
+            JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
             JSON_FIELD_STR("display_name", dirent_lfn(state.ent)) JSON_COMMA;
-            JSON_FIELD_INT("size", state.childsize.has_value() ? state.childsize.value() : child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
+            JSON_FIELD_INT("size", state.childsize.value_or(0)) JSON_COMMA;
 #ifdef UNITTESTS
             // While "our" dirent contains time, the "real" one doesn't, so disable for unit tests
             JSON_FIELD_INT("m_timestamp", 0) JSON_COMMA;
@@ -712,10 +903,9 @@ FileExtra::FileExtra(std::unique_ptr<AnyGcodeFormatReader> gcode_reader_)
 FileExtra::FileExtra(const char *base_path, unique_dir_ptr dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}
 
-RenderState::RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes, optional<CommandId> background_command_id)
+RenderState::RenderState(const Printer &printer, const Action &action, optional<CommandId> background_command_id)
     : printer(printer)
     , action(action)
-    , telemetry_changes(telemetry_changes)
     , lan(printer.net_info(Printer::Iface::Ethernet))
     , wifi(printer.net_info(Printer::Iface::Wifi))
     , transfer_id(Monitor::instance.id())
@@ -729,7 +919,7 @@ RenderState::RenderState(const Printer &printer, const Action &action, Tracked &
 
         switch (event->type) {
         case EventType::JobInfo:
-            if (is_printing(params.state)) {
+            if (params.has_job) {
                 path = params.job_path();
             }
             break;

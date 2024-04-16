@@ -14,6 +14,8 @@
 #endif
 #include "ili9488.hpp"
 #include "led_animations/animator.hpp"
+#include <device/peripherals.h>
+#include <config_store/store_instance.hpp>
 
 using namespace leds;
 
@@ -29,9 +31,10 @@ void leds::Init() {
     // TODO move SetBrightness to display
     leds::SetBrightness(100);
     leds::TickLoop();
+
 #if HAS_SIDE_LEDS()
-    bool ena = config_store().side_leds_enabled.get();
-    leds::side_strip_control.SetEnable(ena);
+    leds::side_strip_control.SetEnable(config_store().side_leds_enabled.get());
+    leds::side_strip_control.set_dimming_enabled(config_store().side_leds_dimming_enabled.get());
 #endif
 }
 void leds::ForceRefresh(size_t cnt) {
@@ -39,9 +42,8 @@ void leds::ForceRefresh(size_t cnt) {
 }
 
 void leds::TickLoop() {
-    if (getNeopixels().LedsToRewrite() > 0 || getNeopixels().GetForceRefresh()) {
-        getNeopixels().Send();
-    }
+    getNeopixels().Tick();
+
 #if HAS_SIDE_LEDS()
     leds::side_strip_control.Tick();
 #endif
@@ -95,7 +97,7 @@ void leds::enter_power_panic() {
     SPI_INIT(lcd);
     leds::SetNth(Color(0, 0, 0), leds::index::count_);
     leds::ForceRefresh(size_t(leds::index::count_));
-    getNeopixels().Send();
+    getNeopixels().Tick();
 
     // 5. reenable display task
     osThreadResume(displayTaskHandle);

@@ -26,6 +26,10 @@
 
 #if DISABLED(NO_VOLUMETRICS)
 
+  /** \addtogroup G-Codes
+   * @{
+   */
+
   /**
    * M200: Set filament diameter and set E axis units to cubic units
    *
@@ -47,7 +51,13 @@
     planner.calculate_volumetric_multipliers();
   }
 
+  /** @}*/
+
 #endif // !NO_VOLUMETRICS
+
+/** \addtogroup G-Codes
+ * @{
+ */
 
 /**
  * M201: Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
@@ -98,12 +108,15 @@ void GcodeSuite::M204() {
     SERIAL_ECHOLNPAIR(" T", planner.settings.travel_acceleration);
   }
   else {
+    auto s = planner.user_settings;
     //planner.synchronize();
     // 'S' for legacy compatibility. Should NOT BE USED for new development
-    if (parser.seenval('S')) planner.settings.travel_acceleration = planner.settings.acceleration = parser.value_linear_units();
-    if (parser.seenval('P')) planner.settings.acceleration = parser.value_linear_units();
-    if (parser.seenval('R')) planner.settings.retract_acceleration = parser.value_linear_units();
-    if (parser.seenval('T')) planner.settings.travel_acceleration = parser.value_linear_units();
+    if (parser.seenval('S')) s.travel_acceleration = s.acceleration = parser.value_linear_units();
+    if (parser.seenval('P')) s.acceleration = parser.value_linear_units();
+    if (parser.seenval('R')) s.retract_acceleration = parser.value_linear_units();
+    if (parser.seenval('T')) s.travel_acceleration = parser.value_linear_units();
+
+    planner.apply_settings(s);
   }
 }
 
@@ -133,9 +146,15 @@ void GcodeSuite::M205() {
   if (!parser.seen("BST" J_PARAM XYZE_PARAM)) return;
 
   //planner.synchronize();
-  if (parser.seen('B')) planner.settings.min_segment_time_us = parser.value_ulong();
-  if (parser.seen('S')) planner.settings.min_feedrate_mm_s = parser.value_linear_units();
-  if (parser.seen('T')) planner.settings.min_travel_feedrate_mm_s = parser.value_linear_units();
+  {
+    auto s = planner.user_settings;
+
+    if (parser.seen('B')) s.min_segment_time_us = parser.value_ulong();
+    if (parser.seen('S')) s.min_feedrate_mm_s = parser.value_linear_units();
+    if (parser.seen('T')) s.min_travel_feedrate_mm_s = parser.value_linear_units();
+    
+    planner.apply_settings(s);
+  }
   #if DISABLED(CLASSIC_JERK)
     if (parser.seen('J')) {
       const float junc_dev = parser.value_linear_units();
@@ -155,7 +174,7 @@ void GcodeSuite::M205() {
     if (parser.seen('Z')) {
       planner.set_max_jerk(Z_AXIS, parser.value_linear_units());
       #if HAS_MESH && DISABLED(LIMITED_JERK_EDITING)
-        if (planner.max_jerk.z <= 0.1f)
+        if (planner.settings.max_jerk.z <= 0.1f)
           SERIAL_ECHOLNPGM("WARNING! Low Z Jerk may lead to unwanted pauses.");
       #endif
     }
@@ -164,3 +183,5 @@ void GcodeSuite::M205() {
     #endif
   #endif
 }
+
+/** @}*/

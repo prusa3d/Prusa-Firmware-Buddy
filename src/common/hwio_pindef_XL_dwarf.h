@@ -1,3 +1,4 @@
+#pragma once
 // this is unused pin, we map everything that is uniused but referenced to avoid colisions
 #define MARLIN_PORT_DUMMY   MARLIN_PORT_B
 #define MARLIN_PIN_NR_DUMMY MARLIN_PIN_NR_5
@@ -117,32 +118,34 @@ inline Pin::State zMinReadFn() {
 }
 } // namespace buddy::hw
 
-#define PIN_TABLE(MACRO_FUNCTION)                                                                                                                                                                                     \
-    MACRO_FUNCTION(buddy::hw::OutputPin, dummy, BUDDY_PIN(DUMMY), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                     \
-    MACRO_FUNCTION(buddy::hw::OutputPin, e0Enable, BUDDY_PIN(E0_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                 \
-    MACRO_FUNCTION(buddy::hw::OutputPin, e0Step, BUDDY_PIN(E0_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                   \
-    MACRO_FUNCTION(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                     \
-    MACRO_FUNCTION(buddy::hw::OutputPin, heat0, BUDDY_PIN(HEAT0), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                      \
-    MACRO_FUNCTION(buddy::hw::OutputPin, fanPrintPwm, BUDDY_PIN(FAN), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                  \
-    MACRO_FUNCTION(buddy::hw::OutputPin, localRemote, BUDDY_PIN(LOCALREMOTE), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                          \
-    MACRO_FUNCTION(buddy::hw::OutputPin, neopixel, BUDDY_PIN(NEOPIXEL), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler)                                                          \
+// clang-format off
+#define PIN_TABLE(MACRO_FUNCTION) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, dummy, BUDDY_PIN(DUMMY), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, e0Enable, BUDDY_PIN(E0_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, e0Step, BUDDY_PIN(E0_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, e0Dir, BUDDY_PIN(E0_DIR), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, heat0, BUDDY_PIN(HEAT0), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, fanPrintPwm, BUDDY_PIN(FAN), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, localRemote, BUDDY_PIN(LOCALREMOTE), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, neopixel, BUDDY_PIN(NEOPIXEL), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::InterruptPin, hx717Dout, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p3, IMode::IT_falling COMMA Pull::up COMMA ISR_PRIORITY_HX717 COMMA 0 COMMA false, dwarf::loadcell::loadcell_irq) \
-    MACRO_FUNCTION(buddy::hw::OutputPin, hx717Sck, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p0, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler)                              \
-    MACRO_FUNCTION(buddy::hw::OutputPin, fanHeatBreakPwm, BUDDY_PIN(FAN1), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                             \
-    MACRO_FUNCTION(buddy::hw::InputPin, button1, BUDDY_PIN(BUTTON1), IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                                                               \
-    MACRO_FUNCTION(buddy::hw::InputPin, button2, BUDDY_PIN(BUTTON2), IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                                                               \
-    MACRO_FUNCTION(buddy::hw::InputPin, acFault, BUDDY_PIN(PANIC), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                                               \
-    MACRO_FUNCTION(buddy::hw::InputPin, hwid0, BUDDY_PIN(HWID0), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                                                 \
-    MACRO_FUNCTION(buddy::hw::InputPin, hwid1, BUDDY_PIN(HWID1), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                                                 \
-    MACRO_FUNCTION(buddy::hw::InputPin, hwid2, BUDDY_PIN(HWID2), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                                                 \
-    MACRO_FUNCTION(buddy::hw::InputPin, hwid3, BUDDY_PIN(HWID3), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                                                 \
-    MACRO_FUNCTION(buddy::hw::OutputPin, ledPWM, BUDDY_PIN(LED), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                       \
-    MACRO_FUNCTION(buddy::hw::InputPin, fanPrintTach, BUDDY_PIN(FAN_TACH0), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                                      \
-    MACRO_FUNCTION(buddy::hw::InputPin, fanHeatBreakTach, BUDDY_PIN(FAN1_TACH0), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                                 \
-    MACRO_FUNCTION(buddy::hw::OutputPin, acellCs, BUDDY_PIN(ACC_CS), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                                                 \
-    MACRO_FUNCTION(buddy::hw::InterruptPin, lis2dh12_data, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p1, IMode::IT_rising COMMA Pull::down COMMA ISR_PRIORITY_LIS2DH12 COMMA 0 COMMA false, dwarf::accelerometer::irq)
+    MACRO_FUNCTION(buddy::hw::OutputPin, hx717Sck, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p0, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, fanHeatBreakPwm, BUDDY_PIN(FAN1), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, button1, BUDDY_PIN(BUTTON1), IMode::input COMMA Pull::up, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, button2, BUDDY_PIN(BUTTON2), IMode::input COMMA Pull::up, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, acFault, BUDDY_PIN(PANIC), IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, hwid0, BUDDY_PIN(HWID0), IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, hwid1, BUDDY_PIN(HWID1), IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, hwid2, BUDDY_PIN(HWID2), IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, hwid3, BUDDY_PIN(HWID3), IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, ledPWM, BUDDY_PIN(LED), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, fanPrintTach, BUDDY_PIN(FAN_TACH0), IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, fanHeatBreakTach, BUDDY_PIN(FAN1_TACH0), IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, acellCs, BUDDY_PIN(ACC_CS), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InterruptPin, lis2dh12_data, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p1, IMode::IT_rising COMMA Pull::down COMMA ISR_PRIORITY_LIS2DH12 COMMA 0, dwarf::accelerometer::irq)
 
 #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION) \
     MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::zMinReadFn, endstop_ISR, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling)
+// clang-format on
 
 #define HAS_ZMIN_READ_FN 0

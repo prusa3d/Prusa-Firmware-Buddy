@@ -3,6 +3,7 @@
 #include <catch2/catch.hpp>
 #include <cstring>
 #include <string_view>
+#include <sstream>
 
 using std::string_view;
 

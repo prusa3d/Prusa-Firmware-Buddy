@@ -57,6 +57,8 @@ protected:
         purge,
         ask_is_color_correct,
         eject,
+        unloaded_ask,
+        manual_unload,
         ask_mmu_load_filament,
         mmu_load_filament,
         _last = mmu_load_filament,
@@ -127,21 +129,6 @@ class Pause : public PausePrivatePhase {
     Pause(const Pause &) = delete;
     Pause &operator=(const Pause &) = delete;
 
-    enum class unload_mode_t {
-        standalone,
-        standalone_mmu,
-        change_filament,
-        ask_unloaded,
-        autoload_abort // unload from gear - full long unload at high speed
-    };
-    enum class load_mode_t {
-        standalone,
-        standalone_mmu,
-        change_filament,
-        autoload,
-        load_in_gear
-    };
-
     static constexpr const float heating_phase_min_hotend_diff = 5.0F;
 
 public:
@@ -178,6 +165,14 @@ private:
     void loop_unloadFromGear(Response response); // autoload abort
     void loop_unload_change(Response response);
     void loop_unload_filament_stuck(Response response);
+
+    enum class CommonUnloadType : uint8_t {
+        standard,
+        ask_unloaded,
+        filament_change,
+        filament_stuck,
+    };
+    void loop_unload_common(Response response, CommonUnloadType unload_type);
     // TODO loop_unload_change_mmu
 
     void loop_load(Response response);
@@ -189,6 +184,16 @@ private:
     void loop_loadToGear(Response response);
     void loop_load_change(Response response);
     void loop_load_filament_stuck(Response response);
+
+    enum class CommonLoadType : uint8_t {
+        standard,
+        autoload,
+        filament_change,
+        filament_stuck,
+        mmu, ///< MMU load to nozzle
+        mmu_change, ///< MMU filament change (for example filament runout)
+    };
+    void loop_load_common(Response response, CommonLoadType load_type);
     // TODO loop_load_change_mmu
 
     // does not create FSM_HolderLoadUnload
@@ -204,14 +209,23 @@ private:
     void unpark_nozzle_and_notify();
     void park_nozzle_and_notify();
     bool is_target_temperature_safe();
+
+    /// Extrudes \p length .
     void plan_e_move(const float &length, const feedRate_t &fr_mm_s);
+
     bool ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t progress_max);
-    void plan_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+
+    /// Moves the extruder by \p length . Notifies the FSM about progress.
     void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+
+    /// Moves the extruder by \p length . Does not mind the hotend being cold. Notifies the FSM about progress.
     void do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+
+    /// Moves the extruder by \p length . Heats up for the move if necessary. Notifies the FSM about progress.
     void do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
+
     bool check_user_stop(); //< stops motion and fsm and returns true it user triggered stop
-    bool wait_or_stop(); //< waits until motion is finished; if stop is triggered then returns true
+    bool wait_for_motion_finish_or_user_stop(); //< waits until motion is finished; if stop is triggered then returns true
     bool process_stop();
     void handle_filament_removal(LoadPhases_t phase_to_set); //<checks if filament is present if not it sets different phase
 

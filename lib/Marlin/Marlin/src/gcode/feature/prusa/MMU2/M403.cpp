@@ -27,6 +27,10 @@
     #include "../../../gcode.h"
     #include "../../../../feature/prusa/MMU2/mmu2_mk4.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M403: Set filament type for MMU2
  *
@@ -46,5 +50,7 @@ void GcodeSuite::M403() {
         SERIAL_ECHO_MSG("M403 - bad arguments.");
     }
 }
+
+/** @}*/
 
 #endif // PRUSA_MMU2

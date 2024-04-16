@@ -10,12 +10,8 @@
  */
 #pragma once
 #include "pressure_advance_config.hpp"
+#include "../precise_stepping/fwdecl.hpp"
 #include "../../core/types.h"
-
-struct move_t;
-struct step_event_info_t;
-struct step_generator_state_t;
-struct pressure_advance_step_generator_t;
 
 // #define PRESSURE_ADVANCE_SIMPLE_WINDOW_FILTER // Use one value filter instead of the Bartlett window.
 

@@ -8,11 +8,16 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_mmu.hpp"
 
-using ScreenMenuMMUEjectFilament__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-    MI_MMU_EJECT_FILAMENT_1, MI_MMU_EJECT_FILAMENT_2, MI_MMU_EJECT_FILAMENT_3, MI_MMU_EJECT_FILAMENT_4, MI_MMU_EJECT_FILAMENT_5>;
+template <typename>
+struct ScreenMenuMMUEjectFilament_;
 
-class ScreenMenuMMUEjectFilament : public ScreenMenuMMUEjectFilament__ {
+template <size_t... i>
+struct ScreenMenuMMUEjectFilament_<std::index_sequence<i...>> {
+    using T = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_MMU_EJECT_FILAMENT_I<i>...>;
+};
+
+class ScreenMenuMMUEjectFilament : public ScreenMenuMMUEjectFilament_<std::make_index_sequence<EXTRUDERS>>::T {
 public:
-    constexpr static const char *label = N_("Eject Filament");
+    constexpr static const char *label = N_("EJECT FROM MMU");
     ScreenMenuMMUEjectFilament();
 };

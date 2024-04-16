@@ -59,15 +59,19 @@ invalidate_t txtroll_t::Tick() {
     return ret;
 }
 
-void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
+static uint8_t runtime_width(Font font) {
+    return resource_font(font)->w;
+}
+
+void txtroll_t::Init(Rect16 rc, string_view_utf8 text, Font font,
     padding_ui8_t padding, Align_t alignment) {
     rect = rect_meas(rc, text, font, padding, alignment);
     count_from_init = meas(rect, text, font);
-    font_w = font->w;
+    font_w = runtime_width(font);
     phase = phase_t::init_roll;
 }
 
-void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
+void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, Font font,
     color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect) const {
     switch (phase) {
     case phase_t::uninitialized:
@@ -82,7 +86,7 @@ void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
     }
 }
 
-void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
+void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, Font font,
     color_t clr_back, color_t clr_text, [[maybe_unused]] padding_ui8_t padding, [[maybe_unused]] Align_t alignment, bool fill_rect) const {
 
     if (text.isNULLSTR()) {
@@ -92,7 +96,7 @@ void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
         return;
     }
 
-    uint8_t unused_pxls = rect.Width() % font->w;
+    uint8_t unused_pxls = rect.Width() % runtime_width(font);
     if (unused_pxls) {
         Rect16 rc_unused_pxls = { int16_t(rect.Left() + rect.Width() - unused_pxls), rect.Top(), unused_pxls, rect.Height() };
         if (fill_rect) {
@@ -116,7 +120,7 @@ void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
     }
 
     if (!set_txt_rc.IsEmpty()) {
-        Rect16 text_drawn_at(set_txt_rc.TopLeft(), render_text_singleline(set_txt_rc, text, font, clr_back, clr_text));
+        Rect16 text_drawn_at(set_txt_rc.TopLeft(), render_text_singleline(set_txt_rc, text, resource_font(font), clr_back, clr_text));
         if (fill_rect) {
             fill_between_rectangles(&rc, &text_drawn_at, clr_back);
         }
@@ -127,7 +131,7 @@ void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
     }
 }
 
-Rect16 txtroll_t::rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font, padding_ui8_t padding, Align_t alignment) {
+Rect16 txtroll_t::rect_meas(Rect16 rc, string_view_utf8 text, Font font, padding_ui8_t padding, Align_t alignment) {
 
     Rect16 rc_pad = rc;
     rc_pad.CutPadding(padding);
@@ -142,11 +146,11 @@ Rect16 txtroll_t::rect_meas(Rect16 rc, string_view_utf8 text, const font_t *font
     return rc_txt;
 }
 
-uint16_t txtroll_t::meas(Rect16 rc, string_view_utf8 text, const font_t *pf) {
+uint16_t txtroll_t::meas(Rect16 rc, string_view_utf8 text, Font pf) {
 
     uint16_t meas_x = 0, len = text.computeNumUtf8CharsAndRewind();
-    if (len * pf->w > rc.Width()) {
-        meas_x = len - rc.Width() / pf->w;
+    if (len * runtime_width(pf) > rc.Width()) {
+        meas_x = len - rc.Width() / runtime_width(pf);
     }
     return meas_x;
 }

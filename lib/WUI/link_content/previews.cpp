@@ -1,6 +1,6 @@
 #include "previews.h"
 #include "../nhttp/gcode_preview.h"
-#include "../../../src/guiconfig/GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 
 #include <cstdio>
 

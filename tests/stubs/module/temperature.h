@@ -1,19 +1,6 @@
 #pragma once
 
 #define ENABLED(V...) false
-#ifndef BOARD
-    #define BOARD 1
-#endif
-
-#ifndef BOARD_VERSION_MAJOR
-    #define BOARD_VERSION_MAJOR 1
-#endif
-#ifndef BOARD_VERSION_MINOR
-    #define BOARD_VERSION_MINOR 1
-#endif
-#ifndef BOARD_VERSION_PATCH
-    #define BOARD_VERSION_PATCH 1
-#endif
 
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
     { 80, 80, 800, 380 }

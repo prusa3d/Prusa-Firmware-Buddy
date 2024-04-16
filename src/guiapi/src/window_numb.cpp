@@ -1,5 +1,6 @@
 // window_numb.cpp
 #include "window_numb.hpp"
+#include "time_helper.hpp"
 #include "gui.hpp"
 #include <ctime>
 
@@ -65,7 +66,7 @@ void window_numb_t::setValue(float val) {
     value = val;
 }
 
-window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const char *frmt, font_t *font)
+window_numb_t::window_numb_t(window_t *parent, Rect16 rect, float value, const char *frmt, Font font)
     : AddSuperWindow<IWindowText>(parent, rect)
     , value(value)
     , format(frmt == nullptr ? "%.0f" : frmt) {
@@ -90,16 +91,7 @@ bool window_numb_t::IsPrintingAsInt() const {
 void window_numb_t::PrintAsTime() {
     printAs = printType::asTime;
 }
+
 void window_numb_t::PrintTime(char *buffer) {
-    time_t time = (time_t)value;
-    const struct tm *timeinfo = localtime(&time);
-    if (timeinfo->tm_yday) {
-        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
-    } else if (timeinfo->tm_hour) {
-        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
-    } else if (timeinfo->tm_min) {
-        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
-    } else {
-        snprintf(buffer, WINDOW_NUMB_MAX_TEXT, "%is", timeinfo->tm_sec);
-    }
+    format_duration(std::span<char> { buffer, WINDOW_NUMB_MAX_TEXT }, value);
 }

@@ -1,6 +1,7 @@
 target_sources(
   firmware
   PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
+          buffered_conn.cpp
           connect_error.cpp
           connection.cpp
           httpc.cpp
@@ -10,6 +11,7 @@ target_sources(
           socket.cpp
           socket_connection_factory.cpp
           url_decode.cpp
+          websocket.cpp
   )
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_SOURCE_DIR}/utils/gen-automata/*.py)

@@ -18,18 +18,6 @@ bool screen_t::registerSubWin(window_t &win) {
         registerAnySubWin(win, first_dialog, last_dialog);
         if (&win == first_dialog && last_normal) { // connect to list
             last_normal->SetNext(&win);
-            win.SetNext(first_strong_dialog ? first_strong_dialog : first_popup);
-        }
-        break;
-    case win_type_t::strong_dialog:
-        registerAnySubWin(win, first_strong_dialog, last_strong_dialog);
-        // connect to list
-        if (&win == first_strong_dialog) {
-            if (last_dialog) {
-                last_dialog->SetNext(&win);
-            } else if (last_normal) {
-                last_normal->SetNext(&win);
-            }
             win.SetNext(first_popup);
         }
         break;
@@ -40,9 +28,7 @@ bool screen_t::registerSubWin(window_t &win) {
         registerAnySubWin(win, first_popup, last_popup);
         // connect to list
         if (&win == first_popup) {
-            if (last_strong_dialog) {
-                last_strong_dialog->SetNext(&win);
-            } else if (last_dialog) {
+            if (last_dialog) {
                 last_dialog->SetNext(&win);
             } else if (last_normal) {
                 last_normal->SetNext(&win);
@@ -89,9 +75,6 @@ void screen_t::hideSubwinsBehindDialogs() {
         return; // error, must have normal window
     }
     window_t *pBeginAbnormal = first_popup;
-    if (first_strong_dialog) {
-        pBeginAbnormal = first_strong_dialog;
-    }
     if (first_dialog) {
         pBeginAbnormal = first_dialog;
     }
@@ -126,46 +109,30 @@ void screen_t::unregisterSubWin(window_t &win) {
     case win_type_t::popup:
         unregisterAnySubWin(win, first_popup, last_popup);
         break;
-    case win_type_t::strong_dialog:
-        unregisterAnySubWin(win, first_strong_dialog, last_strong_dialog);
-        break;
     }
 
     clearAllHiddenBehindDialogFlags();
     hideSubwinsBehindDialogs();
 }
 
-window_t *screen_t::GetFirstDialog() const {
-    return first_dialog;
-}
+window_t *screen_t::get_child_dialog(ChildDialogParam param) const {
+    switch (param) {
+    case ChildDialogParam::first_dialog:
+        return first_dialog;
+    case ChildDialogParam::last_dialog:
+        return last_dialog;
 
-window_t *screen_t::GetLastDialog() const {
-    return last_dialog;
-}
+    case ChildDialogParam::first_popup:
+        return first_popup;
+    case ChildDialogParam::last_popup:
+        return last_popup;
+    }
 
-window_t *screen_t::GetFirstStrongDialog() const {
-    return first_strong_dialog;
-}
-
-window_t *screen_t::GetLastStrongDialog() const {
-    return last_strong_dialog;
-}
-
-window_t *screen_t::GetFirstPopUp() const {
-    return first_popup;
-}
-
-window_t *screen_t::GetLastPopUp() const {
-    return last_popup;
+    return nullptr;
 }
 
 window_t *screen_t::GetCapturedWindow() {
     window_t *ret;
-
-    ret = findCaptured_first_last(first_strong_dialog, last_strong_dialog);
-    if (ret) {
-        return ret;
-    }
 
     ret = findCaptured_first_last(first_dialog, last_dialog);
     if (ret) {
@@ -200,4 +167,34 @@ void screen_t::ChildVisibilityChanged(window_t &child) {
     super::ChildVisibilityChanged(child);
     clearAllHiddenBehindDialogFlags();
     hideSubwinsBehindDialogs();
+}
+
+void screen_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
+    // GUI touch events (SWIPE) are to be distributed only to the first active popup/dialog
+    if (GUI_event_is_touch_event(event)) {
+        const auto checkList = [&](window_t *start, window_t *end) {
+            for (auto w = start; w; w = w->GetNext()) {
+                if (w->IsVisible()) {
+                    w->ScreenEvent(sender, event, param);
+                    return true;
+                }
+
+                // Has to be checked at the end of the loop, cannot be in the for condition
+                if (w == end) {
+                    break;
+                }
+            }
+
+            return false;
+        };
+
+        if (checkList(GetFirstPopUp(), GetLastPopUp())) {
+            return;
+        }
+        if (checkList(GetFirstDialog(), GetLastDialog())) {
+            return;
+        }
+    }
+
+    super::screenEvent(sender, event, param);
 }

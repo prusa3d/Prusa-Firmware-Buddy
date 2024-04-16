@@ -1,9 +1,10 @@
 #include "gcode_description.hpp"
 #include <cstdarg>
+#include <guiconfig/guiconfig.h>
 #include <span>
 
 size_t description_line_t::title_width(string_view_utf8 *title_str) {
-    return title_str->computeNumUtf8CharsAndRewind() * resource_font(IDR_FNT_SMALL)->w;
+    return title_str->computeNumUtf8CharsAndRewind() * width(Font::small);
 }
 
 size_t description_line_t::value_width(string_view_utf8 *title_str) {
@@ -34,14 +35,14 @@ void description_line_t::update(bool has_preview_thumbnail, size_t row, string_v
     title.SetText(title_str);
     title.SetAlignment(Align_t::LeftBottom());
     title.SetPadding({ 0, 0, 0, 0 });
-    title.set_font(resource_font(IDR_FNT_SMALL));
+    title.set_font(Font::small);
     title.SetTextColor(COLOR_GRAY);
 
     make_value({ value_buffer, sizeof(value_buffer) });
     value.SetText(string_view_utf8::MakeRAM((uint8_t *)value_buffer));
     value.SetAlignment(Align_t::RightBottom());
     value.SetPadding({ 0, 0, 0, 0 });
-    value.set_font(resource_font(IDR_FNT_SMALL));
+    value.set_font(Font::small);
 }
 
 static std::span<char> delimited_items_per_extruder(std::span<char> buffer, char delimiter, std::function<int(int extruder, std::span<char> buffer)> echo_item) {

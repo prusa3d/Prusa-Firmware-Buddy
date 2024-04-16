@@ -7,7 +7,7 @@
 
 #pragma once
 #include "window_progress.hpp"
-#include "wizard_config.hpp"
+#include <guiconfig/wizard_config.hpp>
 
 class window_wizard_progress_t : public window_numberless_progress_t {
 public:

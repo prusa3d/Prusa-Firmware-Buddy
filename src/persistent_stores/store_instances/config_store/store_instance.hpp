@@ -1,8 +1,13 @@
 #pragma once
 
-#include <journal/store.hpp>
+#include <option/has_config_store_wo_backend.h>
+#if HAS_CONFIG_STORE_WO_BACKEND()
+    #include <no_backend/store.hpp>
+#else
+    #include <journal/store.hpp>
+    #include "migrations.hpp"
+#endif
 #include "store_definition.hpp"
-#include "migrations.hpp"
 
 namespace config_store_ns {
 
@@ -20,7 +25,11 @@ enum class InitResult {
  *
  */
 inline decltype(auto) config_store() {
+#if HAS_CONFIG_STORE_WO_BACKEND()
+    return no_backend::store<config_store_ns::CurrentStore, config_store_ns::DeprecatedStore>();
+#else
     return journal::store<config_store_ns::CurrentStore, config_store_ns::DeprecatedStore, config_store_ns::migration_functions_span>();
+#endif
 }
 
 // has to be done this way because it's used before global constructors are run

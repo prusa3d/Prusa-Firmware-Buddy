@@ -23,11 +23,21 @@
 #include "../gcode.h"
 #include "../../Marlin.h" // for max_inactive_time
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M85: Set inactivity shutdown timer with parameter S<seconds>. To disable set zero (default)
+ *
+ * ## Parameters
+ *
+ * - `S` - [seconds] Max inactive time
  */
 void GcodeSuite::M85() {
 
   if (parser.seen('S')) max_inactive_time = parser.value_millis_from_seconds();
 
 }
+
+/** @}*/

@@ -25,9 +25,16 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
                 &CSelftestPart_Fan::state_start,
                 &CSelftestPart_Fan::state_wait_rpm_100_percent,
                 &CSelftestPart_Fan::state_measure_rpm_100_percent,
+#if PRINTER_IS_PRUSA_MK3_5
+                // Adding only for MK3.5 because selftest is unable to skip states. This seems to me as a cleaner choice than checking in every state for basically the same thing.
+                &CSelftestPart_Fan::state_manual_check_init,
+                &CSelftestPart_Fan::state_manual_check_wait_fan,
+                &CSelftestPart_Fan::state_manual_check_ask,
+#endif
+                &CSelftestPart_Fan::state_rpm_0_init,
                 &CSelftestPart_Fan::state_wait_rpm_0_percent,
-                &CSelftestPart_Fan::state_wait_rpm_20_percent,
-                &CSelftestPart_Fan::state_measure_rpm_20_percent);
+                &CSelftestPart_Fan::state_wait_rpm_40_percent,
+                &CSelftestPart_Fan::state_measure_rpm_40_percent);
         }
     }
 
@@ -42,7 +49,7 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
     }
 
     SelftestFansResult result(static_hotend_results);
-    FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result);
+    FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(IPartHandler::GetFsmPhase(), result);
     if (any_in_progress) {
         return true;
     }

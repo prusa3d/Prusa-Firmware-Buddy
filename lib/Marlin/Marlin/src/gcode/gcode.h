@@ -275,6 +275,14 @@
  * M928 - Start SD logging: "M928 filename.gco". Stop with M29. (Requires SDSUPPORT)
  * M958 - Excite harmonic vibration and measure amplitude
  * M959 - Tune input shaper
+ * M970 - Enable phase stepping
+ * M971 - Disable phase stepping
+ * M972 - Read phase stepping lookup table
+ * M973 - Write phase stepping lookup table
+ * M974 - Measure print head resonances and return raw data
+ * M975 - Measure accelerometer sampling rate
+ * M976 - Measure print head resonances and return analyzed data
+ * M977 - Calibrate motor for phase stepping
  * M997 - Perform in-application firmware update
  * M999 - Restart after being stopped by error
  *
@@ -287,6 +295,10 @@
 
 #include "../inc/MarlinConfig.h"
 #include "parser.h"
+#include <option/has_local_accelerometer.h>
+#include <option/has_remote_accelerometer.h>
+
+#include <option/has_phase_stepping.h>
 
 #if ENABLED(I2C_POSITION_ENCODERS)
   #include "../feature/I2CPositionEncoder.h"
@@ -390,7 +402,11 @@ public:
     #define KEEPALIVE_STATE(N) NOOP
   #endif
 
-  static void dwell(millis_t time);
+  // Dwell waits immediately with low precision (+10ms depending on GUI/background activities)
+  // while allowing background processing. It does not synchronize.
+  static void dwell(millis_t time, bool no_stepper_sleep=false);
+
+  static void M104();
 
   /**
    * @brief Home.
@@ -617,7 +633,6 @@ private:
   #endif
 
   #if EXTRUDERS
-    static void M104();
     static void M109();
   #endif
 
@@ -993,9 +1008,20 @@ private:
     static void M951();
   #endif
 
+#if HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER()
   static void M958();
-#if ENABLED(ACCELEROMETER)
   static void M959();
+#endif
+
+#if HAS_PHASE_STEPPING()
+  static void M970();
+  static void M971();
+  static void M972();
+  static void M973();
+  static void M974();
+  static void M975();
+  static void M976();
+  static void M977();
 #endif
 
   #if ENABLED(PLATFORM_M997_SUPPORT)

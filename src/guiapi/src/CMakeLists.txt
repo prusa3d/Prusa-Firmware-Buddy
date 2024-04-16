@@ -19,6 +19,7 @@ target_sources(
           scroll_bar.cpp
           term.cpp
           text_roll.cpp
+          time_helper.cpp
           window.cpp
           window_arrows.cpp
           window_colored_rect.cpp

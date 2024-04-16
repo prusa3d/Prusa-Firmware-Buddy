@@ -11,7 +11,7 @@
 #endif
 #include "menu_item_xlcd.hpp"
 #include "MItem_tools.hpp"
-#include "GuiDefaults.hpp"
+#include <guiconfig/GuiDefaults.hpp>
 #include "printers.h"
 
 using ScreenMenuVersionInfo__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_INFO_FW, MI_INFO_BOOTLOADER, MI_INFO_MMU, MI_INFO_BOARD, MI_INFO_SERIAL_NUM,
