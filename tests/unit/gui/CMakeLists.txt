@@ -10,6 +10,11 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/gui_time_tests.c
   )
 
+add_executable(
+  gui_tests ${CMAKE_CURRENT_SOURCE_DIR}/gui_tests.cpp
+            ${CMAKE_SOURCE_DIR}/src/guiapi/src/numeric_input_config.cpp
+  )
+
 # define required search paths
 target_include_directories(
   rectangle_tests
@@ -22,9 +27,17 @@ target_include_directories(
   gui_time_tests PUBLIC ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/common
                         ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_CURRENT_SOURCE_DIR}
   )
+
+target_include_directories(
+  gui_tests
+  PUBLIC ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src/lang
+         ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+
 # tell build system about the test case
 add_catch_test(rectangle_tests)
 add_catch_test(gui_time_tests)
+add_catch_test(gui_tests)
 
 add_subdirectory(lazyfilelist)
 add_subdirectory(jogwheel)
