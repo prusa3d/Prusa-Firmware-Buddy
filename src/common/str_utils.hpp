@@ -1,5 +1,6 @@
 #pragma once
 
+#include <charconv>
 #include <string>
 #include <string.h>
 #include <array>
@@ -381,18 +382,32 @@ public:
     }
 
 public:
-    void append_char(char ch);
+    StringBuilder &append_char(char ch);
 
-    void append_string(const char *str);
+    StringBuilder &append_string(const char *str);
 
-    void append_string_view(string_view_utf8 str);
+    StringBuilder &append_string_view(string_view_utf8 str);
 
     /// Appends text to the builder, using vsnprintf under the hood.
-    void __attribute__((format(__printf__, 2, 3)))
+    StringBuilder &__attribute__((format(__printf__, 2, 3)))
     append_printf(const char *fmt, ...);
 
     /// Appends text to the builder, using vsnprintf under the hood.
-    void append_vprintf(const char *fmt, va_list args);
+    StringBuilder &append_vprintf(const char *fmt, va_list args);
+
+    struct AppendFloatConfig {
+        /// Maximum decimal places to print
+        uint8_t max_decimal_places = 3;
+
+        /// Always use all max_decimal_places
+        bool all_decimal_places : 1 = false;
+
+        /// 0.xxx -> .xxx
+        bool skip_zero_before_dot : 1 = false;
+    };
+
+    /// Appends a float value
+    StringBuilder &append_float(double val, const AppendFloatConfig &config);
 
 public:
     /// Allocates $cnt chars at the end of the string and returns the pointer to them.
