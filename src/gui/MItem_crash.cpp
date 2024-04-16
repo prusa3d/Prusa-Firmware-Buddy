@@ -42,40 +42,30 @@ void MI_CRASH_DETECTION::OnChange(size_t /*old_index*/) {
     crash_s.enable(value());
 }
 
-static const SpinConfig<int> crash_sensitivity_spin_config = { MenuVars::GetCrashSensitivity() };
-static constexpr SpinConfig<int> crash_max_period_spin_config = { { 0, 0xFFFFF, 1 } };
+static const NumericInputConfig crash_sensitivity_spin_config = {
+    .min_value = static_cast<float>(MenuVars::crash_sensitivity_range.first),
+    .max_value = static_cast<float>(MenuVars::crash_sensitivity_range.second),
+};
+static constexpr NumericInputConfig crash_max_period_spin_config = {
+    .max_value = 0xFFFFF,
+};
 
 MI_CRASH_SENSITIVITY_X::MI_CRASH_SENSITIVITY_X()
-    : WiSpinInt(crash_s.get_sensitivity().x, crash_sensitivity_spin_config,
-        _(label), nullptr, is_enabled_t::yes,
-    #if PRINTER_IS_PRUSA_XL
-        is_hidden_t::no
-    #else
-        is_hidden_t::dev
-    #endif
-    ) {
+    : WiSpin(crash_s.get_sensitivity().x, crash_sensitivity_spin_config, _(label), nullptr, is_enabled_t::yes, PRINTER_IS_PRUSA_XL ? is_hidden_t::no : is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_X::OnClick() {
 
     xy_long_t se = crash_s.get_sensitivity();
-    se.x = GetVal();
+    se.x = value();
     crash_s.set_sensitivity(se);
 }
 
 MI_CRASH_SENSITIVITY_Y::MI_CRASH_SENSITIVITY_Y()
-    : WiSpinInt(crash_s.get_sensitivity().y, crash_sensitivity_spin_config,
-        _(label), nullptr, is_enabled_t::yes,
-    #if PRINTER_IS_PRUSA_XL
-        is_hidden_t::no
-    #else
-        is_hidden_t::dev
-    #endif
-    ) {
+    : WiSpin(crash_s.get_sensitivity().y, crash_sensitivity_spin_config, _(label), nullptr, is_enabled_t::yes, PRINTER_IS_PRUSA_XL ? is_hidden_t::no : is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_Y::OnClick() {
-
     xy_long_t se = crash_s.get_sensitivity();
-    se.y = GetVal();
+    se.y = value();
     crash_s.set_sensitivity(se);
 }
 
@@ -102,34 +92,28 @@ void MI_CRASH_SENSITIVITY_XY::OnChange([[maybe_unused]] size_t old_index) {
 }
     #else
 MI_CRASH_SENSITIVITY_XY::MI_CRASH_SENSITIVITY_XY()
-    : WiSpinInt(crash_s.get_sensitivity().x, crash_sensitivity_spin_config,
-        _(label), nullptr, is_enabled_t::yes,
-        is_hidden_t::dev) {
+    : WiSpin(crash_s.get_sensitivity().x, crash_sensitivity_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_XY::OnClick() {
-
-    xy_long_t se = crash_s.get_sensitivity();
-    se.x = GetVal();
-    se.y = GetVal();
-    crash_s.set_sensitivity(se);
+    crash_s.set_sensitivity({ static_cast<long>(value()), static_cast<long>(value()) });
 }
     #endif
 
 MI_CRASH_MAX_PERIOD_X::MI_CRASH_MAX_PERIOD_X()
-    : WiSpinInt(crash_s.get_max_period().x, crash_max_period_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : WiSpin(crash_s.get_max_period().x, crash_max_period_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_MAX_PERIOD_X::OnClick() {
     xy_long_t mp = crash_s.get_max_period();
-    mp.x = GetVal();
+    mp.x = value();
     crash_s.set_max_period(mp);
 }
 
 MI_CRASH_MAX_PERIOD_Y::MI_CRASH_MAX_PERIOD_Y()
-    : WiSpinInt(crash_s.get_max_period().y, crash_max_period_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    : WiSpin(crash_s.get_max_period().y, crash_max_period_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_MAX_PERIOD_Y::OnClick() {
     xy_long_t mp = crash_s.get_max_period();
-    mp.y = GetVal();
+    mp.y = value();
     crash_s.set_max_period(mp);
 }
 

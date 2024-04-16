@@ -69,7 +69,7 @@ protected:
     }
 };
 
-class MI_NOZZLE_DIAMETER : public WiSpinFlt {
+class MI_NOZZLE_DIAMETER : public WiSpin {
     static constexpr const char *const label = N_("Nozzle Diameter");
 
     int tool_idx; ///< Configure this tool [indexed from 0]

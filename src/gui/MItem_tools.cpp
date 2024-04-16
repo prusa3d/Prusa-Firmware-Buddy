@@ -418,16 +418,16 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
     }
 }
 
-#if PRINTER_IS_PRUSA_MINI
-const SpinConfig<int> sound_volume_spin_config = { { 0, 11, 1 }, SpinUnit::none, spin_off_opt_t::yes };
-#else
-const SpinConfig<int> sound_volume_spin_config = { { 0, 3, 1 }, SpinUnit::none, spin_off_opt_t::yes };
-#endif
-
 /*****************************************************************************/
 // MI_SOUND_VOLUME
+static constexpr NumericInputConfig sound_volume_spin_config = {
+    .max_value = PRINTER_IS_PRUSA_MINI ? 11 : 3,
+    .special_value = 0,
+};
+
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
-    : WiSpinInt(static_cast<uint8_t>(Sound_GetVolume()), sound_volume_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpin(static_cast<uint8_t>(Sound_GetVolume()), sound_volume_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
 void MI_SOUND_VOLUME::OnClick() {
     Sound_SetVolume(GetVal());
 }
@@ -444,12 +444,16 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
     }
 }
 
-static constexpr SpinConfig<int> timezone_spin_config = { { -12, 14, 1 }, SpinUnit::hour };
-
 /*****************************************************************************/
 // MI_TIMEZONE
+static constexpr NumericInputConfig timezone_spin_config = {
+    .min_value = -12,
+    .max_value = 14,
+    .unit = Unit::hour,
+};
+
 MI_TIMEZONE::MI_TIMEZONE()
-    : WiSpinInt(config_store().timezone.get(), timezone_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpin(config_store().timezone.get(), timezone_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
     config_store().timezone.set(timezone);
@@ -488,18 +492,22 @@ MI_TIME_NOW::MI_TIME_NOW()
     : WI_SWITCH_t<1>(0, _(label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time())) {
 }
 
-static constexpr SpinConfig<int> fs_span_spin_config = {
+/*****************************************************************************/
+// IMI_FS_SPAN
+static constexpr NumericInputConfig fs_span_spin_config = {
 #if PRINTER_IS_PRUSA_XL
-    { 50, 1500, 10 },
+    .min_value = 50,
+    .max_value = 1500,
+    .step = 10,
 #else
-    { 50000, 2500000, 1000 },
+    .min_value = 50000,
+    .max_value = 2500000,
+    .step = 1000,
 #endif
 };
 
-/*****************************************************************************/
-// IMI_FS_SPAN
 IMI_FS_SPAN::IMI_FS_SPAN([[maybe_unused]] bool is_side_, size_t index_, const char *label)
-    : WiSpinInt(
+    : WiSpin(
 #if HAS_SIDE_FSENSOR()
         is_side_ ? config_store().get_side_fs_value_span(index_) :
 #endif
@@ -522,13 +530,15 @@ void IMI_FS_SPAN::OnClick() {
     }
 }
 
-static constexpr SpinConfig<int> fs_ref_spin_config = { { 0, std::numeric_limits<int32_t>::max(), 1 } };
-
 /*****************************************************************************/
 // IMI_FS_REF
-// in case we don't want to allow modification just change is_enabled_t to yes
+
+static constexpr NumericInputConfig fs_ref_spin_config = {
+    .max_value = 99999,
+};
+
 IMI_FS_REF::IMI_FS_REF([[maybe_unused]] bool is_side_, size_t index_, const char *label)
-    : WiSpinInt(
+    : WiSpin(
 #if HAS_SIDE_FSENSOR()
         is_side_ ? config_store().get_side_fs_ref_nins_value(index_) :
 #endif
@@ -617,8 +627,8 @@ void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
 /*****************************************************************************/
 // MI_PRINT_PROGRESS_TIME
 MI_PRINT_PROGRESS_TIME::MI_PRINT_PROGRESS_TIME()
-    : WiSpinInt(config_store().print_progress_time.get(),
-        print_progress_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WiSpin(config_store().print_progress_time.get(),
+        config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_PRINT_PROGRESS_TIME::OnClick() {
     config_store().print_progress_time.set(GetVal());

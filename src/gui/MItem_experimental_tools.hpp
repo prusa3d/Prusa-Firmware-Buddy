@@ -31,7 +31,7 @@ protected:
 };
 #endif
 
-class MI_Z_AXIS_LEN : public WiSpinInt {
+class MI_Z_AXIS_LEN : public WiSpin {
     constexpr static const char *const label = "Z-axis length";
 
 public:
@@ -49,7 +49,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_STEPS_PER_UNIT_X : public WiSpinInt {
+class MI_STEPS_PER_UNIT_X : public WiSpin {
     constexpr static const char *const label = "X-axis steps per unit";
 
 public:
@@ -57,7 +57,7 @@ public:
     void Store();
 };
 
-class MI_STEPS_PER_UNIT_Y : public WiSpinInt {
+class MI_STEPS_PER_UNIT_Y : public WiSpin {
     constexpr static const char *const label = "Y-axis steps per unit";
 
 public:
@@ -65,7 +65,7 @@ public:
     void Store();
 };
 
-class MI_STEPS_PER_UNIT_Z : public WiSpinInt {
+class MI_STEPS_PER_UNIT_Z : public WiSpin {
     constexpr static const char *const label = "Z-axis steps per unit";
 
 public:
@@ -73,7 +73,7 @@ public:
     void Store();
 };
 
-class MI_STEPS_PER_UNIT_E : public WiSpinInt {
+class MI_STEPS_PER_UNIT_E : public WiSpin {
     constexpr static const char *const label = "Extruder steps per unit";
 
 public:
@@ -141,7 +141,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_CURRENT_X : public WiSpinInt {
+class MI_CURRENT_X : public WiSpin {
     constexpr static const char *const label = "X current (0 default)";
 
 public:
@@ -149,7 +149,7 @@ public:
     void Store();
 };
 
-class MI_CURRENT_Y : public WiSpinInt {
+class MI_CURRENT_Y : public WiSpin {
     constexpr static const char *const label = "Y current (0 default)";
 
 public:
@@ -157,7 +157,7 @@ public:
     void Store();
 };
 
-class MI_CURRENT_Z : public WiSpinInt {
+class MI_CURRENT_Z : public WiSpin {
     constexpr static const char *const label = "Z current";
 
 public:
@@ -165,7 +165,7 @@ public:
     void Store();
 };
 
-class MI_CURRENT_E : public WiSpinInt {
+class MI_CURRENT_E : public WiSpin {
     constexpr static const char *const label = "Extruder current";
 
 public:

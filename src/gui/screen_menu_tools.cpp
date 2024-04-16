@@ -20,10 +20,15 @@ MI_TOOL_NOZZLE_DIAMETER::MI_TOOL_NOZZLE_DIAMETER()
     : MI_NOZZLE_DIAMETER(displayed_tool, is_hidden_t::no) {
 }
 
-static constexpr SpinConfig<float> POSITION_CONFIG({ 0, 500, 0.1 }, SpinUnit::millimeter);
+static constexpr NumericInputConfig POSITION_CONFIG {
+    .max_value = 500,
+    .step = 0.1,
+    .max_decimal_places = 2,
+    .unit = Unit::millimeter,
+};
 
 MI_POSITION::MI_POSITION(string_view_utf8 label, [[maybe_unused]] const img::Resource *id_icon, [[maybe_unused]] is_enabled_t enabled, [[maybe_unused]] is_hidden_t hidden, float initVal)
-    : WiSpinFlt(initVal, POSITION_CONFIG, label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpin(initVal, POSITION_CONFIG, label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_POSITION::OnClick() {
     set_pos(GetVal());
@@ -50,12 +55,30 @@ void MI_DOCK_POSITION_Y::set_pos(const float pos) {
     prusa_toolchanger.set_tool_info(dwarf, info);
 }
 
-static constexpr SpinConfig<float> OFFSET_CONFIG_X({ X_MIN_OFFSET, X_MAX_OFFSET, 0.01 }, SpinUnit::millimeter);
-static constexpr SpinConfig<float> OFFSET_CONFIG_Y({ Y_MIN_OFFSET, Y_MAX_OFFSET, 0.01 }, SpinUnit::millimeter);
-static constexpr SpinConfig<float> OFFSET_CONFIG_Z({ Z_MIN_OFFSET, Z_MAX_OFFSET, 0.01 }, SpinUnit::millimeter);
+static constexpr NumericInputConfig OFFSET_CONFIG_X {
+    .min_value = X_MIN_OFFSET,
+    .max_value = X_MAX_OFFSET,
+    .step = 0.01,
+    .max_decimal_places = 2,
+    .unit = Unit::millimeter,
+};
+static constexpr NumericInputConfig OFFSET_CONFIG_Y {
+    .min_value = Y_MIN_OFFSET,
+    .max_value = Y_MAX_OFFSET,
+    .step = 0.01,
+    .max_decimal_places = 2,
+    .unit = Unit::millimeter,
+};
+static constexpr NumericInputConfig OFFSET_CONFIG_Z {
+    .min_value = Z_MIN_OFFSET,
+    .max_value = Z_MAX_OFFSET,
+    .step = 0.01,
+    .max_decimal_places = 2,
+    .unit = Unit::millimeter,
+};
 
-MI_OFFSET::MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig<float> &config)
-    : WiSpinFlt(initVal, config, label, id_icon, enabled, hidden) {}
+MI_OFFSET::MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const NumericInputConfig &config)
+    : WiSpin(initVal, config, label, id_icon, enabled, hidden) {}
 
 MI_OFFSET_X::MI_OFFSET_X()
     : MI_OFFSET(_(label), nullptr, is_enabled_t::yes, displayed_tool ? is_hidden_t::no : is_hidden_t::yes, hotend_offset[displayed_tool].x, OFFSET_CONFIG_X) {}

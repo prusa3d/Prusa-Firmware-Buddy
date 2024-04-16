@@ -28,18 +28,11 @@ struct MenuVars {
     constexpr static const size_t RANGE_SZ = 3;
     constexpr static const char *const labels[] = { N_("Move X"), N_("Move Y"), N_("Move Z"), N_("Move E") };
     // TODO This is not a feedrate, it is a print speed. And it does not make any sense.
-#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX)
-    constexpr static std::array<int, RANGE_SZ> feedrate_range = { 50, 1000, 1 };
-#else
-    constexpr static std::array<int, RANGE_SZ> feedrate_range = { 10, 255, 1 };
-#endif
-    static const std::array<int, AXIS_CNT> GetManualFeedrate();
-    static const std::array<char, AXIS_CNT> GetAxisLetters();
-    static const std::array<int, RANGE_SZ> GetCrashSensitivity();
-    static const std::array<int, RANGE_SZ> GetNozzleRange();
-    static const std::array<int, RANGE_SZ> GetBedRange();
-    static const std::array<int, RANGE_SZ> GetMaximumZRange();
-    static const std::array<std::array<int, RANGE_SZ>, AXIS_CNT> GetAxisRanges();
+    static std::array<int, AXIS_CNT> GetManualFeedrate();
+
+    static const std::pair<int, int> crash_sensitivity_range;
+
+    static std::pair<int, int> axis_range(uint8_t axis);
 
 private:
     MenuVars() = delete;

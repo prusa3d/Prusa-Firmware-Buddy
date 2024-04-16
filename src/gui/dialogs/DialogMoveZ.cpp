@@ -124,8 +124,8 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
 
 void DialogMoveZ::change(int diff) {
     int32_t val = diff + value;
-    auto range = MenuVars::GetAxisRanges()[2];
-    value = std::clamp(val, (int32_t)range[0], (int32_t)range[1]);
+    auto range = MenuVars::axis_range(Z_AXIS);
+    value = std::clamp<int32_t>(val, range.first, range.second);
 }
 
 DialogMoveZ::~DialogMoveZ() {

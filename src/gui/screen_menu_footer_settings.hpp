@@ -97,7 +97,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_FOOTER_CENTER_N : public WiSpinInt {
+class MI_FOOTER_CENTER_N : public WiSpin {
     constexpr static const char *const label = N_("Center N and Fewer Items");
 
 public:

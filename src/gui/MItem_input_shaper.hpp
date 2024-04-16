@@ -49,7 +49,7 @@ protected:
     void OnChange(size_t old_index) override;
 };
 
-class MI_IS_X_FREQUENCY : public WiSpinInt {
+class MI_IS_X_FREQUENCY : public WiSpin {
     static constexpr const char *const label = N_("X-axis Freq.");
 
 public:
@@ -58,7 +58,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_IS_Y_FREQUENCY : public WiSpinInt {
+class MI_IS_Y_FREQUENCY : public WiSpin {
     static constexpr const char *const label = N_("Y-axis Freq.");
 
 public:

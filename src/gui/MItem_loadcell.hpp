@@ -18,7 +18,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_LOADCELL_SCALE : public WiSpinInt {
+class MI_LOADCELL_SCALE : public WiSpin {
     constexpr static const char *const label = "Loadcell Scale";
 
 public:

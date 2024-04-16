@@ -73,10 +73,14 @@ MI_ENCLOSURE_FILTER_COUNTER::MI_ENCLOSURE_FILTER_COUNTER()
     ChangeInformation(_(time_info));
 }
 
-static constexpr SpinConfig<int> enclosure_fan_spin_config { { xl_enclosure.MIN_FAN_PWM, 100, 1 }, SpinUnit::percent };
+static constexpr NumericInputConfig enclosure_fan_spin_config {
+    .min_value = xl_enclosure.MIN_FAN_PWM,
+    .max_value = 100,
+    .unit = Unit::percent,
+};
 
 MI_ENCLOSURE_FAN_SETTING::MI_ENCLOSURE_FAN_SETTING()
-    : WiSpinInt(config_store().xl_enclosure_fan_manual.get(), enclosure_fan_spin_config, _(label), &img::fan_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    : WiSpin(config_store().xl_enclosure_fan_manual.get(), enclosure_fan_spin_config, _(label), &img::fan_16x16, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_ENCLOSURE_FAN_SETTING::OnClick() {

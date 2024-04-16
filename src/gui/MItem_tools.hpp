@@ -259,7 +259,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_SOUND_VOLUME : public WiSpinInt {
+class MI_SOUND_VOLUME : public WiSpin {
     constexpr static const char *const label = N_("Sound Volume");
 
 public:
@@ -268,7 +268,7 @@ public:
     /* virtual void Change() override; */
 };
 
-class MI_TIMEZONE : public WiSpinInt {
+class MI_TIMEZONE : public WiSpin {
     constexpr static const char *const label = N_("Time Zone Hour Offset");
 
 public:
@@ -320,7 +320,7 @@ public:
 };
 
 // TODO move to different files (filament sensor adc related ones ...)
-class IMI_FS_SPAN : public WiSpinInt {
+class IMI_FS_SPAN : public WiSpin {
 #if HAS_SIDE_FSENSOR()
     bool is_side;
 #endif
@@ -389,7 +389,7 @@ public:
         : IMI_FS_SPAN(IsSide, Index, get_label()) {}
 };
 
-class IMI_FS_REF : public WiSpinInt {
+class IMI_FS_REF : public WiSpin {
 #if HAS_SIDE_FSENSOR()
     bool is_side;
 #endif
@@ -561,11 +561,22 @@ public:
     MI_INFO_HBR_FAN();
 };
 
-class MI_PRINT_PROGRESS_TIME : public WiSpinInt {
+class MI_PRINT_PROGRESS_TIME : public WiSpin {
+
+public:
     constexpr static const char *label = N_("Print Progress Screen");
+
+    static constexpr NumericInputConfig config {
+        .min_value = 30,
+        .max_value = 200,
+        .special_value = 29,
+        .unit = Unit::second,
+    };
 
 public:
     MI_PRINT_PROGRESS_TIME();
+
+protected:
     virtual void OnClick() override;
 };
 class MI_ODOMETER_DIST : public WI_FORMATABLE_LABEL_t<float> {

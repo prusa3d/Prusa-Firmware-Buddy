@@ -19,21 +19,31 @@ xyz_float_t I_MI_AXIS::last_queued_pos {};
 xyz_float_t I_MI_AXIS::target_position {};
 bool I_MI_AXIS::did_final_move {};
 
-static const std::array<SpinConfig<int>, MenuVars::AXIS_CNT> axis_ranges_spin_config {
-    SpinConfig<int>(MenuVars::GetAxisRanges()[0], SpinUnit::millimeter),
-    SpinConfig<int>(MenuVars::GetAxisRanges()[1], SpinUnit::millimeter),
-    SpinConfig<int>(MenuVars::GetAxisRanges()[2], SpinUnit::millimeter),
-    SpinConfig<int>(MenuVars::GetAxisRanges()[3], SpinUnit::millimeter),
-};
+static const NumericInputConfig &axis_ranges_spin_config(uint8_t axis) {
+    // The array has to be static so that we can have references
+    static std::array<NumericInputConfig, MenuVars::AXIS_CNT> data;
+
+    // Ranges can change based on config_store, so udpate it each time
+    const auto range = MenuVars::axis_range(axis);
+
+    auto &c = data[axis];
+    c = NumericInputConfig {
+        .min_value = static_cast<float>(range.first),
+        .max_value = static_cast<float>(range.second),
+        .unit = Unit::millimeter,
+    };
+
+    return c;
+}
 
 I_MI_AXIS::I_MI_AXIS(size_t index)
-    : WiSpinInt(round(marlin_vars()->logical_curr_pos[index]),
-        axis_ranges_spin_config[index], _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
+    : WiSpin(round(marlin_vars()->logical_curr_pos[index].get()),
+        axis_ranges_spin_config(index), _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , axis_index(index) {
     xyz_float_t init_pos {
-        marlin_vars()->logical_curr_pos[X_AXIS],
-        marlin_vars()->logical_curr_pos[Y_AXIS],
-        marlin_vars()->logical_curr_pos[Z_AXIS],
+        marlin_vars()->logical_curr_pos[X_AXIS].get(),
+        marlin_vars()->logical_curr_pos[Y_AXIS].get(),
+        marlin_vars()->logical_curr_pos[Z_AXIS].get(),
     };
     did_final_move = false;
     last_queued_pos = target_position = init_pos;

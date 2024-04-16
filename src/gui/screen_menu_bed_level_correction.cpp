@@ -2,10 +2,14 @@
 #include <WindowMenuSpin.hpp>
 #include <ScreenHandler.hpp>
 
-static constexpr SpinConfig<int> correction_range_spin_config { { -100, 100, 1 }, SpinUnit::micrometer };
+static constexpr NumericInputConfig correction_range_spin_config {
+    .min_value = -100,
+    .max_value = 100,
+    .unit = Unit::micrometer,
+};
 
 I_MI_CORRECT::I_MI_CORRECT(CorrectionIndex index)
-    : WiSpinInt(get_correction_value(index), correction_range_spin_config, _(correction_label(index)), nullptr, is_enabled_t::yes, is_hidden_t::no)
+    : WiSpin(get_correction_value(index), correction_range_spin_config, _(correction_label(index)), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , index(index) {
 }
 

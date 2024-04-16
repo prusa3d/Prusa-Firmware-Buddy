@@ -16,7 +16,7 @@ public:
     MI_TOOL_NOZZLE_DIAMETER();
 };
 
-class MI_POSITION : public WiSpinFlt {
+class MI_POSITION : public WiSpin {
 public:
     MI_POSITION(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
 
@@ -46,9 +46,9 @@ public:
     virtual void set_pos(const float pos) override;
 };
 
-class MI_OFFSET : public WiSpinFlt {
+class MI_OFFSET : public WiSpin {
 public:
-    MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig<float> &config);
+    MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const NumericInputConfig &config);
 };
 
 class MI_OFFSET_X : public MI_OFFSET {

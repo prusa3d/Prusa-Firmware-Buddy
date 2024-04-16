@@ -7,31 +7,38 @@
 #include "gui_config_printer.hpp"
 #include "SteelSheets.hpp"
 
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetMaximumZRange() { return { { Z_MIN_LEN_LIMIT, Z_MAX_LEN_LIMIT, 1 } }; };
-const std::array<std::array<int, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::GetAxisRanges() {
-    return { {
-#if PRINTER_IS_PRUSA_XL
-        // restrict movement of the tool for user to the bed area only to prevent crashes of the tool at toolchange area
-        { X_MIN_POS, X_MAX_POS, 1 },
-        { Y_MIN_POS, Y_MAX_PRINT_POS, 1 },
-#else
-        { X_MIN_POS, X_MAX_POS, 1 },
-        { Y_MIN_POS, Y_MAX_POS, 1 },
-#endif
-        { static_cast<int>(std::lround(Z_MIN_POS)), static_cast<int>(get_z_max_pos_mm_rounded()), 1 },
-        { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH, 1 } } };
-};
+std::array<int, MenuVars::AXIS_CNT> MenuVars::GetManualFeedrate() { return { MANUAL_FEEDRATE }; };
 
-const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetManualFeedrate() { return { MANUAL_FEEDRATE }; };
-const std::array<char, MenuVars::AXIS_CNT> MenuVars::GetAxisLetters() { return { 'X', 'Y', 'Z', 'E' }; };
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetCrashSensitivity() {
+const std::pair<int, int> MenuVars::crash_sensitivity_range = {
 #if AXIS_DRIVER_TYPE_X(TMC2209)
-    return { 0, 255, 1 };
+    0, 255
 #elif AXIS_DRIVER_TYPE_X(TMC2130)
-    return { -64, 63, 1 };
+    -64, 63
 #else
     #error "Unknown driver type."
 #endif
+};
+
+std::pair<int, int> MenuVars::axis_range(uint8_t axis) {
+    switch (axis) {
+    case X_AXIS:
+        return { X_MIN_POS, X_MAX_POS };
+
+    case Y_AXIS:
+#if PRINTER_IS_PRUSA_XL
+        // restrict movement of the tool for user to the bed area only to prevent crashes of the tool at toolchange area
+        return { Y_MIN_POS, Y_MAX_PRINT_POS };
+#else
+        return { Y_MIN_POS, Y_MAX_POS };
+#endif
+
+    case Z_AXIS:
+        return { static_cast<int>(std::lround(Z_MIN_POS)), static_cast<int>(get_z_max_pos_mm_rounded()) };
+
+    case E_AXIS:
+        return { -EXTRUDE_MAXLENGTH, EXTRUDE_MAXLENGTH };
+
+    default:
+        return { 0, 0 };
+    }
 }
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetNozzleRange() { return { 0, (HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN), 1 }; };
-const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetBedRange() { return { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 }; };

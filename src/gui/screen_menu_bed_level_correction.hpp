@@ -42,7 +42,7 @@ static constexpr void set_correction_value(CorrectionIndex index, int8_t new_val
     }
 }
 
-class I_MI_CORRECT : public WiSpinInt {
+class I_MI_CORRECT : public WiSpin {
     static constexpr const char *correction_label(CorrectionIndex index) {
 #if PRINTER_IS_PRUSA_MK3_5
         switch (index) {

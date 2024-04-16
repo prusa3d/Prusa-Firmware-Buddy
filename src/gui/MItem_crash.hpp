@@ -20,7 +20,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_CRASH_SENSITIVITY_X : public WiSpinInt {
+class MI_CRASH_SENSITIVITY_X : public WiSpin {
 private:
     constexpr static const char *const label = "Crash Sensitivity X";
 
@@ -29,7 +29,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_CRASH_SENSITIVITY_Y : public WiSpinInt {
+class MI_CRASH_SENSITIVITY_Y : public WiSpin {
 private:
     constexpr static const char *const label = "Crash Sensitivity Y";
 
@@ -62,7 +62,7 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 #else
-class MI_CRASH_SENSITIVITY_XY : public WiSpinInt {
+class MI_CRASH_SENSITIVITY_XY : public WiSpin {
 private:
     constexpr static const char *const label = N_("Crash Sensitivity XY");
 
@@ -74,7 +74,7 @@ public:
 
 #if ANY(CRASH_RECOVERY, POWER_PANIC)
 
-class MI_CRASH_MAX_PERIOD_X : public WiSpinInt {
+class MI_CRASH_MAX_PERIOD_X : public WiSpin {
 private:
     constexpr static const char *const label = "Crash Max. Period X";
 
@@ -83,7 +83,7 @@ public:
     virtual void OnClick() override;
 };
 
-class MI_CRASH_MAX_PERIOD_Y : public WiSpinInt {
+class MI_CRASH_MAX_PERIOD_Y : public WiSpin {
 private:
     constexpr static const char *const label = "Crash Max. Period Y";
 

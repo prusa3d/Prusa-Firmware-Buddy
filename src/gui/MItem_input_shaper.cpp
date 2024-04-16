@@ -74,13 +74,14 @@ void MI_IS_Y_TYPE::OnChange(size_t) {
     gui_try_gcode_with_msg("M9200");
 }
 
-static constexpr SpinConfig<int> is_frequency_spin_config {
-    { static_cast<int>(input_shaper::frequency_safe_min), static_cast<int>(input_shaper::frequency_safe_max), 1 },
-    SpinUnit::hertz
+static constexpr NumericInputConfig is_frequency_spin_config {
+    .min_value = input_shaper::frequency_safe_min,
+    .max_value = input_shaper::frequency_safe_max,
+    .unit = Unit::hertz,
 };
 
 MI_IS_X_FREQUENCY::MI_IS_X_FREQUENCY()
-    : WiSpinInt(0 /* set in ScreenMenuInputShaper::update_gui*/, is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+    : WiSpin(0 /* set in ScreenMenuInputShaper::update_gui*/, is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
 }
 
 void MI_IS_X_FREQUENCY::OnClick() {
@@ -93,7 +94,7 @@ void MI_IS_X_FREQUENCY::OnClick() {
 }
 
 MI_IS_Y_FREQUENCY::MI_IS_Y_FREQUENCY()
-    : WiSpinInt(0 /* set in ScreenMenuInputShaper::update_gui*/, is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+    : WiSpin(0 /* set in ScreenMenuInputShaper::update_gui*/, is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
 }
 
 void MI_IS_Y_FREQUENCY::OnClick() {

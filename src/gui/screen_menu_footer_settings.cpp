@@ -92,17 +92,16 @@ void MI_SHOW_ZERO_TEMP_TARGET::OnChange(size_t old_index) {
     old_index == 0 ? FooterItemHeater::EnableDrawZeroTarget() : FooterItemHeater::DisableDrawZeroTarget();
 }
 
-#if PRINTER_IS_PRUSA_MINI
-static const SpinConfig<int> footer_center_N_spin_config = { { 0, 3, 1 } };
-#else
-static const SpinConfig<int> footer_center_N_spin_config = { { 0, 5, 1 }, SpinUnit::none, spin_off_opt_t::yes };
-#endif
+static constexpr NumericInputConfig footer_center_N_spin_config = {
+    .max_value = PRINTER_IS_PRUSA_MINI ? 3 : 5,
+    .special_value = 0,
+};
 
 MI_FOOTER_CENTER_N::MI_FOOTER_CENTER_N()
-    : WiSpinInt(uint8_t(FooterLine::GetCenterN()),
-        footer_center_N_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpin(uint8_t(FooterLine::GetCenterN()), footer_center_N_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
 void MI_FOOTER_CENTER_N::OnClick() {
-    FooterLine::SetCenterN(GetVal());
+    FooterLine::SetCenterN(value());
 }
 
 void ScreenMenuFooterSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

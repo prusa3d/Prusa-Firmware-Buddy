@@ -7,7 +7,7 @@
 #include "WindowItemFormatableLabel.hpp"
 #include "MItem_filament.hpp"
 
-class I_MI_AXIS : public WiSpinInt {
+class I_MI_AXIS : public WiSpin {
 
 public:
     I_MI_AXIS(size_t index);

@@ -57,7 +57,7 @@ public:
     MI_ENCLOSURE_FILTER_COUNTER();
 };
 
-class MI_ENCLOSURE_FAN_SETTING : public WiSpinInt {
+class MI_ENCLOSURE_FAN_SETTING : public WiSpin {
     static constexpr const char *const label = N_("Fan Rotation");
 
 public:

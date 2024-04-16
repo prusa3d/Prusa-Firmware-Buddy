@@ -21,14 +21,19 @@ void MI_TEST_LOADCELL::click(IWindowMenu & /*window_menu*/) {
     marlin_client::test_start(stmLoadcell);
 }
 
-static constexpr SpinConfig<int> loadcell_scale_spin_config = { { 5, 30, 1 } };
-
 /*****************************************************************************/
 // MI_LOADCELL_SCALE
+
+static constexpr NumericInputConfig loadcell_scale_spin_config = {
+    .min_value = 5,
+    .max_value = 30,
+};
+
 MI_LOADCELL_SCALE::MI_LOADCELL_SCALE()
-    : WiSpinInt((int)(config_store().loadcell_scale.get() * 1000), loadcell_scale_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+    : WiSpin((int)(config_store().loadcell_scale.get() * 1000), loadcell_scale_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+
 void MI_LOADCELL_SCALE::OnClick() {
-    float scale = (float)GetVal() / 1000;
+    float scale = value() / 1000;
     loadcell.SetScale(scale);
     config_store().loadcell_scale.set(scale);
 }
