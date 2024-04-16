@@ -1,7 +1,9 @@
 #pragma once
 
+#include <common/freertos_mutex.hpp>
 #include "inc/MarlinConfig.h"
 #include <limits>
+#include <mutex>
 
 #if ENABLED(PRUSA_TOOL_MAPPING)
 
@@ -16,6 +18,8 @@ class ToolMapper {
 public:
     ToolMapper();
 
+    ToolMapper &operator=(const ToolMapper &other);
+
     /// Create new mapping of tool
     bool set_mapping(uint8_t gcode, uint8_t physical);
 
@@ -23,7 +27,10 @@ public:
     void set_enable(bool enable);
 
     /// true when mapping is enabled
-    inline bool is_enabled() { return enabled; }
+    inline bool is_enabled() {
+        std::unique_lock lock(mutex);
+        return enabled;
+    }
 
     /// Convert gcode tool to physical
     /// note: might return NO_TOOL_MAPPED, so check for this value
@@ -54,6 +61,9 @@ public:
     void deserialize(serialized_state_t &from);
 
 private:
+    [[nodiscard]] uint8_t to_gcode_unlocked(uint8_t physical) const;
+
+    mutable freertos::Mutex mutex;
     bool enabled;
     uint8_t gcode_to_physical[EXTRUDERS];
 };
