@@ -15,29 +15,31 @@ inline color_t to_color_t(uint32_t red, uint32_t green, uint32_t blue) {
 }
 
 // color constants
-static const color_t COLOR_BLACK = 0x00000000L;
-static const color_t COLOR_WHITE = 0x00ffffffL;
-static const color_t COLOR_RED = 0x000000ffL;
-static const color_t COLOR_RED_ALERT = 0x002646e7L;
-static const color_t COLOR_LIME = 0x0000ff00L;
-static const color_t COLOR_BLUE = 0x00ff0000L;
-static const color_t COLOR_AZURE = 0x00ff9d12L;
-static const color_t COLOR_YELLOW = 0x0000ffffL;
-static const color_t COLOR_CYAN = 0x00ffff00L;
-static const color_t COLOR_MAGENTA = 0x00ff00ffL;
-static const color_t COLOR_SILVER = 0x00c0c0c0L;
-static const color_t COLOR_GRAY = 0x00808080L;
-static const color_t COLOR_DARK_GRAY = 0x005B5B5BL;
-static const color_t COLOR_MAROON = 0x00000080L;
-static const color_t COLOR_OLIVE = 0x00008080L;
-static const color_t COLOR_GREEN = 0x00008000L;
-static const color_t COLOR_DARK_GREEN = 0x00006000L;
-static const color_t COLOR_LIGHT_GREEN = 0x0040b040L;
-static const color_t COLOR_PURPLE = 0x00800080L;
-static const color_t COLOR_TEAL = 0x00808000L;
-static const color_t COLOR_NAVY = 0x00800000L;
-static const color_t COLOR_ORANGE = 0x001B65F8L;
-static const color_t COLOR_DARK_KHAKI = 0x006BD7DBL;
+static constexpr color_t COLOR_BLACK = 0x00000000L;
+static constexpr color_t COLOR_WHITE = 0x00ffffffL;
+static constexpr color_t COLOR_RED = 0x000000ffL;
+static constexpr color_t COLOR_RED_ALERT = 0x002646e7L;
+static constexpr color_t COLOR_LIME = 0x0000ff00L;
+static constexpr color_t COLOR_BLUE = 0x00ff0000L;
+static constexpr color_t COLOR_AZURE = 0x00ff9d12L;
+static constexpr color_t COLOR_YELLOW = 0x0000ffffL;
+static constexpr color_t COLOR_CYAN = 0x00ffff00L;
+static constexpr color_t COLOR_MAGENTA = 0x00ff00ffL;
+static constexpr color_t COLOR_SILVER = 0x00c0c0c0L;
+static constexpr color_t COLOR_LIGHT_GRAY = 0x00AAAAAA;
+static constexpr color_t COLOR_GRAY = 0x00808080L;
+static constexpr color_t COLOR_DARK_GRAY = 0x005B5B5BL;
+static constexpr color_t COLOR_VERY_DARK_GRAY = 0x00222222;
+static constexpr color_t COLOR_MAROON = 0x00000080L;
+static constexpr color_t COLOR_OLIVE = 0x00008080L;
+static constexpr color_t COLOR_GREEN = 0x00008000L;
+static constexpr color_t COLOR_DARK_GREEN = 0x00006000L;
+static constexpr color_t COLOR_LIGHT_GREEN = 0x0040b040L;
+static constexpr color_t COLOR_PURPLE = 0x00800080L;
+static constexpr color_t COLOR_TEAL = 0x00808000L;
+static constexpr color_t COLOR_NAVY = 0x00800000L;
+static constexpr color_t COLOR_ORANGE = 0x001B65F8L;
+static constexpr color_t COLOR_DARK_KHAKI = 0x006BD7DBL;
 
 // Menu item corners - background rounded corners
 enum {
