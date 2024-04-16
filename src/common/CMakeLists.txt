@@ -8,7 +8,6 @@ if(BOARD MATCHES ".*BUDDY")
             appmain.cpp
             base64_stream_decoder.cpp
             bbf.cpp
-            client_response_texts.cpp
             crc32.cpp
             crc32_zlib.cpp
             data_exchange.cpp
@@ -216,6 +215,8 @@ endif()
 add_subdirectory(filters)
 add_subdirectory(fanctl)
 add_subdirectory(mapi)
+add_subdirectory(marlin_server_types)
+target_link_libraries(firmware PUBLIC marlin_server_types)
 
 if(BOARD MATCHES "BUDDY")
   add_subdirectory(crash_dump)

@@ -10,8 +10,8 @@
 #endif
 
 #include <common/cold_pull.hpp>
-#include <common/client_fsm_types.h>
-#include <common/client_response.hpp>
+#include <fsm_ifc/client_fsm_types.h>
+#include <fsm_ifc/client_response.hpp>
 #include <common/marlin_server.hpp>
 #include <common/RAII.hpp>
 

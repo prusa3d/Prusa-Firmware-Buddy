@@ -6,7 +6,7 @@
 #include <option/has_loadcell.h>
 #include <option/has_phase_stepping.h>
 
-#include <inc/MarlinConfig.h>
+#include "inc/MarlinConfigPre.h"
 #include <device/board.h>
 
 #include <stdint.h>
@@ -38,14 +38,6 @@ enum class ClientFSM : uint8_t {
 
 // We have only 5 bits for it in the serialization of data sent between server and client
 static_assert(ftrstd::to_underlying(ClientFSM::_count) < 32);
-
-enum class ClientFSM_Command : uint8_t {
-    none = 0x00,
-    create = 0x80,
-    destroy = 0x40,
-    change = create | destroy,
-    _mask = change
-};
 
 enum class LoadUnloadMode : uint8_t {
     Change,
