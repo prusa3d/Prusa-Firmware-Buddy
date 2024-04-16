@@ -649,7 +649,9 @@ target_include_directories(
           include/mbedtls
   )
 
-target_link_libraries(firmware PRIVATE BuddyHeaders Segger printf::printf CrashCatcher)
+target_link_libraries(
+  firmware PRIVATE BuddyHeaders Segger printf::printf CrashCatcher marlin_server_types
+  )
 
 if(BOARD MATCHES "BUDDY")
   target_link_libraries(

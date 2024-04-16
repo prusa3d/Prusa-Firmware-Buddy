@@ -6,7 +6,7 @@
 #include <option/has_loadcell.h>
 #include <option/has_phase_stepping.h>
 
-#include "inc/MarlinConfigPre.h"
+#include <inc/MarlinConfigPre.h>
 #include <device/board.h>
 
 #include <stdint.h>
@@ -16,7 +16,7 @@
 // C++ checks enum classes
 
 // Client finite state machines
-// bound to src/common/client_response.hpp
+// bound to src/client_response.hpp
 enum class ClientFSM : uint8_t {
     Serial_printing,
     Load_unload,

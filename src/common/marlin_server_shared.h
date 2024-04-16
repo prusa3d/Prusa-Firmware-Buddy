@@ -4,6 +4,7 @@
 #include <limits>
 #include <time.h>
 #include "marlin_server_state.h"
+#include "utility_extensions.hpp"
 
 namespace marlin_server {
 

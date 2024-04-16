@@ -1,7 +1,7 @@
 // guitypes.hpp
 #pragma once
 
-#include "general_response.hpp"
+#include "marlin_server_types/general_response.hpp"
 
 #include <cstdint>
 #include <cstdio>

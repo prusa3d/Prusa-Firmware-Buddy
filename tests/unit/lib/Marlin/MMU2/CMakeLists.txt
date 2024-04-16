@@ -29,6 +29,7 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/mmu2
          ${CMAKE_SOURCE_DIR}/src/common
          ${CMAKE_SOURCE_DIR}/src/common/utils
+         ${CMAKE_SOURCE_DIR}/src/common/marlin_server_types
          ${CMAKE_SOURCE_DIR}/tests/stubs/
          ${CMAKE_BINARY_DIR}/include
   )

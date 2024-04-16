@@ -1,0 +1,35 @@
+[build-system]
+requires = ["scikit-build-core >=0.4.3", "nanobind >=1.9"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "marlin_server_types"
+version = "0.0.1"
+description = "Exposes marlin server and FSM types to python as a importable module"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Lukáš Lendvorský", email = "lukas.lendvorsky@prusa3d.com" },
+]
+classifiers = [
+    "License :: GNUv3",
+]
+
+[project.urls]
+Homepage = "https://github.com/prusa3d/Prusa-Firmware-Buddy"
+
+
+[tool.scikit-build]
+cmake.version = ">=3.27"
+# Compile output for xl_release_boot, but, but override compiler settings.
+# Normally printer would be compiled with ARM compiler, but we need native system compiler for python libraries
+cmake.args = ["--preset=xl_release_boot", "-DCMAKE_TOOLCHAIN_FILE="]
+
+# Compile cmake in root of this repository, as we would normally compile printer firmware, just select target that compiles python library
+cmake.source-dir = "../../../../"
+
+# Just build the python module, not entire firmware
+cmake.targets = ["marlin_server_types_python_module_impl"]
+
+# include __init__.py script from this folder, to load this module in more efficient manner
+wheel.packages = ["marlin_server_types"]

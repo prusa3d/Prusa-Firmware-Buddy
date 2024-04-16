@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include "error_codes_mmu.hpp"
 #include "../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
-#include "../src/common/general_response.hpp"
+#include "../src/common/marlin_server_types/general_response.hpp"
 
 namespace MMU2 {
 

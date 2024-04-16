@@ -265,5 +265,7 @@ target_include_directories(
   Marlin PUBLIC Marlin/Marlin/src Marlin/Marlin/src/gcode/lcd Marlin/Marlin Marlin
   )
 
-target_link_libraries(Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes)
+target_link_libraries(
+  Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes marlin_server_types
+  )
 target_link_libraries(Marlin PRIVATE CppStdExtensions)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <exception> // for std::terminate
 
 /// A wrapper over a std::array with some small extra features to work better for enum indexing:
 /// - Initializer takes std::pair<Enum, Value> and checks that the Enum matches the array index (at compile time)

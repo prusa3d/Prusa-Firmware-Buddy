@@ -6,7 +6,7 @@
 #include <log.h>
 #include <transfers/transfer.hpp>
 #include <option/websocket.h>
-#include <common/general_response.hpp>
+#include <general_response.hpp>
 #include <wui.h>
 #include <netif_settings.h>
 #include <config_store/store_instance.hpp>

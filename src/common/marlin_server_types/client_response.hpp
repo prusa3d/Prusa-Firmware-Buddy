@@ -19,7 +19,6 @@
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
 #include <option/has_phase_stepping.h>
-#include <option/has_selftest.h>
 #include <common/hotend_type.hpp>
 
 enum { RESPONSE_BITS = 4, // number of bits used to encode response
@@ -555,8 +554,6 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
-#if HAS_SELFTEST()
-
     static constexpr PhaseResponses SpecifyHotend_type_responses = [] {
         // Only HotendType::stock && HotendType::stock_and_sock available ->
         // "Do you have sock installed" question is shown
@@ -591,19 +588,19 @@ class ClientResponses {
 
         { Response::Continue, Response::Cancel }, // WizardPrologue_ask_run
         { Response::Continue, Response::Cancel
-    #if not PRINTER_IS_PRUSA_MINI
+#if not PRINTER_IS_PRUSA_MINI
             ,
             Response::Ignore
-    #endif
+#endif
         }, // WizardPrologue_ask_run_dev
         { Response::Continue, Response::Cancel }, // WizardPrologue_info
         { Response::Continue, Response::Cancel }, // WizardPrologue_info_detailed
 
         {}, // Fans
 
-    #if PRINTER_IS_PRUSA_MK3_5
+#if PRINTER_IS_PRUSA_MK3_5
         { Response::Yes, Response::No }, // Fans_manual
-    #endif
+#endif
 
         {}, // Fans_second
 
@@ -698,8 +695,6 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::SelftestResponses) == CountPhases<PhasesSelftest>());
 
-#endif // HAS_SELFTEST()
-
     static constexpr PhaseResponses ESPResponses[] = {
         {}, // _none
 
@@ -781,7 +776,7 @@ class ClientResponses {
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase)]; }
-
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesESP phase) { return ESPResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesQuickPause phase) { return QuickPauseResponses[static_cast<size_t>(phase)]; }

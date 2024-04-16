@@ -1,7 +1,7 @@
 #pragma once
 
 #include "marlin_events.h"
-#include "client_fsm_types.h"
+#include "marlin_server_types/client_fsm_types.h"
 #include "encoded_fsm_response.hpp"
 #include "marlin_vars.hpp"
 #include "client_response.hpp"

@@ -2,7 +2,7 @@
 
 #include <otp.hpp>
 #include <common/shared_buffer.hpp>
-#include <Marlin/src/inc/MarlinConfigPre.h>
+#include <inc/MarlinConfigPre.h>
 
 #include <cstdint>
 #include <cstddef>
@@ -19,8 +19,6 @@
 #if HAS_MMU2()
     #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
 #endif
-
-#include "../../lib/Marlin/Marlin/src/core/macros.h"
 
 namespace connect_client {
 

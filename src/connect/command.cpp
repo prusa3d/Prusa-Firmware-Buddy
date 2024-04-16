@@ -3,7 +3,7 @@
 #include <search_json.h>
 #include <json_encode.h>
 
-#include <common/general_response.hpp>
+#include <general_response.hpp>
 #include <netif_settings.h>
 
 #include <cstdlib>

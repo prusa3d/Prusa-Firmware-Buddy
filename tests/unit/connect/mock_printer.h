@@ -1,7 +1,7 @@
 #pragma once
 
 #include <connect/printer.hpp>
-#include <common/general_response.hpp>
+#include <general_response.hpp>
 
 #include <cstring>
 #include <optional>

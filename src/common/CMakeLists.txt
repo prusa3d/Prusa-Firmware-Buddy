@@ -216,7 +216,6 @@ add_subdirectory(filters)
 add_subdirectory(fanctl)
 add_subdirectory(mapi)
 add_subdirectory(marlin_server_types)
-target_link_libraries(firmware PUBLIC marlin_server_types)
 
 if(BOARD MATCHES "BUDDY")
   add_subdirectory(crash_dump)

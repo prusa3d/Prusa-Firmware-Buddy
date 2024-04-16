@@ -14,6 +14,7 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/lang
          ${CMAKE_SOURCE_DIR}/src/common
          ${CMAKE_SOURCE_DIR}/src/common/utils
+         ${CMAKE_SOURCE_DIR}/src/common/marlin_server_types
          ${CMAKE_SOURCE_DIR}/src/gui
          ${CMAKE_SOURCE_DIR}/src/guiconfig
          ${CMAKE_BINARY_DIR}/tests/unit

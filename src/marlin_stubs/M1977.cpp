@@ -1,6 +1,6 @@
 #include <marlin_stubs/M1977.hpp>
 
-#include <common/client_response.hpp>
+#include <client_response.hpp>
 #include <common/fsm_base_types.hpp>
 #include <common/marlin_server.hpp>
 #include <Marlin/src/feature/phase_stepping/calibration.hpp>
