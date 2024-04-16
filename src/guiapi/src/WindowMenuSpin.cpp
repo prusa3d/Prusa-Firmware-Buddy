@@ -8,6 +8,10 @@
 
 #include <str_utils.hpp>
 
+#if HAS_TOUCH()
+    #include <dialog_numeric_input.hpp>
+#endif
+
 WiSpin::WiSpin(float value, const NumericInputConfig &config, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : IWindowMenuItem(label, calculateExtensionWidth(config), id_icon, enabled, hidden)
     , config_(config)
@@ -23,15 +27,20 @@ void WiSpin::click(IWindowMenu & /*window_menu*/) {
     toggle_edit_mode();
 }
 
+#if HAS_TOUCH()
 /**
  * @brief handle touch
  * it behaves the same as click, but only when extension was clicked
  */
 void WiSpin::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
     if (is_touch_in_extension_rect(window_menu, relative_touch_point)) {
-        set_is_edited(true);
+        const auto r = DialogNumericInput::exec(GetLabel(), value(), config_);
+        if (r.has_value()) {
+            set_value(*r);
+        }
     }
 }
+#endif
 
 Rect16 WiSpin::getSpinRect(Rect16 extension_rect) const {
     extension_rect -= getUnitRect(extension_rect).Width();
