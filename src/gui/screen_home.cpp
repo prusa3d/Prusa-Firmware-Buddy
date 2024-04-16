@@ -145,12 +145,12 @@ bool screen_home_data_t::need_check_wifi_credentials = true;
 
 static bool find_latest_gcode(char *fpath, int fpath_len);
 
-static void FilamentBtn_cb() {
+static void FilamentBtn_cb(window_t &) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilament>);
 }
 
 #if HAS_MMU2()
-static void FilamentBtnMMU_cb() {
+static void FilamentBtnMMU_cb(window_t &) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilamentMMU>);
 }
 #endif
@@ -165,12 +165,12 @@ screen_home_data_t::screen_home_data_t()
     , logo(this, logoRect, &img::printer_logo)
 #endif // USE_ST7789
     , w_buttons {
-        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), nullptr, []() { marlin_client::gcode_printf("M1700 T-1"); } },
+        { this, Rect16(), nullptr, [](window_t&) { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
+        { this, Rect16(), nullptr, [](window_t&) { marlin_client::gcode_printf("M1700 T-1"); } },
         { this, Rect16(), nullptr, FilamentBtn_cb },
-        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
-        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSettings>); } },
-        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInfo>); }}
+        { this, Rect16(), nullptr, [](window_t&) { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
+        { this, Rect16(), nullptr, [](window_t&) { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSettings>); } },
+        { this, Rect16(), nullptr, [](window_t&) { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInfo>); }}
     },
     w_labels {
         { this, Rect16(), is_multiline::no },

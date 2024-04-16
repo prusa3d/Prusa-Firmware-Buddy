@@ -62,10 +62,16 @@ window_text_button_t::window_text_button_t(window_t *parent, Rect16 rect, Button
 }
 
 void window_text_button_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::CLICK) {
-        callback();
-    } else {
+    switch (event) {
+
+    case GUI_event_t::CLICK:
+    case GUI_event_t::TOUCH_CLICK:
+        callback(*this);
+        break;
+
+    default:
         SuperWindowEvent(sender, event, param);
+        break;
     }
 }
 

@@ -30,9 +30,9 @@ constexpr const char *label_resources[] = {
 ScreenPrintingModel::ScreenPrintingModel(string_view_utf8 caption)
     : AddSuperWindow<IScreenPrinting>(caption)
     , buttons {
-        { this, GetButtonRect(0), &icon_resources[ftrstd::to_underlying(BtnRes::Settings)], TuneAction },
-        { this, GetButtonRect(1), &icon_resources[ftrstd::to_underlying(BtnRes::Pause)], PauseAction },
-        { this, GetButtonRect(2), &icon_resources[ftrstd::to_underlying(BtnRes::Stop)], StopAction },
+        { this, GetButtonRect(0), &icon_resources[ftrstd::to_underlying(BtnRes::Settings)], [this](window_t &) { TuneAction(); } },
+        { this, GetButtonRect(1), &icon_resources[ftrstd::to_underlying(BtnRes::Pause)], [this](window_t &) { PauseAction(); } },
+        { this, GetButtonRect(2), &icon_resources[ftrstd::to_underlying(BtnRes::Stop)], [this](window_t &) { StopAction(); } },
     }
     , labels {
         { this, GetButtonLabelRect(0), is_multiline::no, is_closed_on_click_t::no, _(label_resources[ftrstd::to_underlying(LabelRes::Settings)]) },

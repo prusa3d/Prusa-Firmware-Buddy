@@ -6,8 +6,8 @@
 
 LOG_COMPONENT_REF(GUI);
 
-static void onclick_ok();
-static void onclick_cancel();
+static void onclick_ok(window_t &);
+static void onclick_cancel(window_t &);
 
 uint32_t screen_sheet_rename_t::index_ = 0;
 void screen_sheet_rename_t::index(uint32_t index) {
@@ -29,7 +29,7 @@ screen_sheet_rename_t::screen_sheet_rename_t()
     log_info(GUI, "Rename : %s\n", name);
 }
 
-void onclick_ok() {
+void onclick_ok(window_t &) {
     /// TODO: store count changed characters
     /// uint32_t cnt = sheet_rename(
     unsigned sheet = SteelSheets::RenameSheet(screen_sheet_rename_t::index_, "anything", MAX_SHEET_NAME_LENGTH);
@@ -37,6 +37,6 @@ void onclick_ok() {
     Screens::Access()->Close();
 }
 
-void onclick_cancel() {
+void onclick_cancel(window_t &) {
     Screens::Access()->Close();
 }

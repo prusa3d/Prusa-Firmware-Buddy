@@ -4,7 +4,9 @@
 #include <inttypes.h>
 #include <functional>
 
-using ButtonCallback = std::function<void()>;
+class window_t;
+
+using ButtonCallback = std::function<void(window_t &button)>;
 
 struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
