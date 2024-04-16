@@ -97,6 +97,9 @@ void Touchscreen_Base::recognize_gesture() {
     const point_i16_t touch_pos_diff = point_i16_t::from_point(last_touch_pos) - point_i16_t::from_point(gesture_start_pos_);
     const point_i16_t touch_pos_diff_abs(abs(touch_pos_diff.x), abs(touch_pos_diff.y));
 
+    /// Distance from the gesture_start_pos that is still considered a click
+    static constexpr int16_t click_min_diff = 3;
+
     /// Distance from the gesture_start_pos that starts being considered a swipe gesture
     static constexpr int16_t gesture_min_diff = 10;
 
@@ -110,7 +113,7 @@ void Touchscreen_Base::recognize_gesture() {
 
     log_info(Touch, "abs diff %i %i", touch_pos_diff_abs.x, touch_pos_diff_abs.y);
 
-    if (touch_pos_diff_abs == point_i16_t { 0, 0 }) {
+    if (touch_pos_diff_abs.x <= click_min_diff && touch_pos_diff.y <= click_min_diff) {
         event.type = GUI_event_t::TOUCH_CLICK;
 
     } else if (touch_pos_diff_abs.y >= gesture_min_diff && static_cast<float>(touch_pos_diff_abs.x) / static_cast<float>(touch_pos_diff_abs.y) <= swipe_max_angle_tan) {
