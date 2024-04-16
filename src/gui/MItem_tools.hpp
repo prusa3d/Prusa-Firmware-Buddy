@@ -183,9 +183,10 @@ protected:
 
 class MI_M600 : public IWindowMenuItem {
     static constexpr const char *const label = N_("Change Filament");
-
+    bool enqueued = false; // Used to avoid multiple M600 enqueue
 public:
     MI_M600();
+    void resetEnqueued() { enqueued = false; }
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;

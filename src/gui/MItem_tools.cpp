@@ -340,7 +340,10 @@ MI_M600::MI_M600()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_M600::click(IWindowMenu & /*window_menu*/) {
-    marlin_client::gcode_push_front("M600");
+    if (!enqueued) {
+        marlin_client::gcode_push_front("M600");
+        enqueued = true;
+    }
 }
 
 /*****************************************************************************/

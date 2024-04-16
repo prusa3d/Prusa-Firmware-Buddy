@@ -36,6 +36,12 @@ void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sende
             && (current_command != marlin_server::Cmd::M190) //
         );
 
+        if (current_command == marlin_server::Cmd::M600) {
+            // Once M600 is enqueued, it is no longer possible to enqueue another M600 from Tune menu
+            // This resets the behaviour once M600 is executed
+            Item<MI_M600>().resetEnqueued();
+        }
+
 #if XL_ENCLOSURE_SUPPORT()
         /* Once is Enclosure enabled in menu with ON/OFF switch (MI_ENCLOSURE_ENABLED), it tests the fan and if it passes, Enclosure is declared Active */
         /* If the test passes, MI_ENCLOSURE_ENABLE is swapped with MI_ENCLOSURE and enclosure settings can be accessed */
