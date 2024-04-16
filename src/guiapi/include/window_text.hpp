@@ -13,6 +13,10 @@ public:
     string_view_utf8 GetText() const { return text; }
     virtual void SetText(string_view_utf8 txt);
 
+    void set_is_multiline(bool set) {
+        flags.multiline = set;
+    }
+
     window_text_t() = default;
     window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR());
 
