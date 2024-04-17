@@ -48,7 +48,8 @@ MoveTarget::MoveTarget(float initial_pos)
     , half_accel(0)
     , start_v(0)
     , duration(0)
-    , target_pos(initial_pos) {}
+    , target_pos(initial_pos)
+    , end_time(0) {}
 
 MoveTarget::MoveTarget(float initial_pos, const move_t &move, int axis, const uint64_t move_duration_ticks)
     : initial_pos(initial_pos)
@@ -58,6 +59,7 @@ MoveTarget::MoveTarget(float initial_pos, const move_t &move, int axis, const ui
     half_accel = r * float(move.half_accel);
     start_v = r * float(move.start_v);
     target_pos = target_position();
+    end_time = move_end_time(move.print_time + move.move_time);
 }
 
 MoveTarget::MoveTarget(float initial_pos, const input_shaper_state_t &is_state, const uint64_t move_duration_ticks)
@@ -65,8 +67,21 @@ MoveTarget::MoveTarget(float initial_pos, const input_shaper_state_t &is_state, 
     , half_accel(is_state.half_accel)
     , start_v(is_state.start_v)
     , duration(uint32_t(move_duration_ticks)) {
-    target_pos = target_position();
     assert(move_duration_ticks <= std::numeric_limits<uint32_t>::max());
+    target_pos = target_position();
+    end_time = move_end_time(is_state.nearest_next_change);
+}
+
+float MoveTarget::move_end_time(double end_time) const {
+    // To ensure the lock-free behavior of current_target_end_time (and conserve space) we reduce
+    // the precision of end_time to float. Since end_time is only used for flushing, the precision
+    // is not crucial (no steps are produced) as long as we *guarantee* proper ordering.
+    // The value needs to be strictly <= when compared and we do so here.
+    float f_end_time = end_time;
+    if (f_end_time > end_time) {
+        f_end_time = std::nextafterf(f_end_time, 0.f);
+    }
+    return f_end_time;
 }
 
 float MoveTarget::target_position() const {
@@ -124,6 +139,7 @@ static void init_step_generator_internal(
 
     axis_state.last_position = axis_state.next_target.initial_pos;
     axis_state.current_target = MoveTarget(axis_state.last_position);
+    axis_state.current_target_end_time = MAX_PRINT_TIME;
 
     int32_t initial_steps_made = pos_to_steps(AxisEnum(axis), axis_state.next_target.initial_pos);
     axis_state.initial_count_position = Stepper::get_axis_steps(AxisEnum(axis)) - initial_steps_made;
@@ -201,7 +217,7 @@ step_event_info_t phase_stepping::next_step_event_classic(
 
     step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
     if (axis_state.pending_targets.isFull()) {
-        next_step_event.time = axis_state.last_processed_move->print_time + axis_state.last_processed_move->move_time;
+        next_step_event.time = axis_state.current_target_end_time;
         next_step_event.status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
     } else if (const move_t *next_move = PreciseStepping::move_segment_queue_next_move(*axis_state.last_processed_move); next_move != nullptr) {
         next_step_event.time = next_move->print_time;
@@ -252,7 +268,7 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
 
     step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
     if (axis_state.pending_targets.isFull()) {
-        next_step_event.time = step_generator.is_state->nearest_next_change;
+        next_step_event.time = axis_state.current_target_end_time;
         next_step_event.status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
     } else {
         next_step_event.time = step_generator.is_state->nearest_next_change;
@@ -562,14 +578,17 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
 
         if (!axis_state.pending_targets.isEmpty()) {
             // Pull new movement
-            axis_state.current_target = axis_state.pending_targets.dequeue();
+            const auto current_target = axis_state.pending_targets.dequeue();
+            axis_state.current_target = current_target;
 
-            axis_state.is_cruising = axis_state.current_target->half_accel == 0 && axis_state.current_target->duration > 10'000;
+            axis_state.current_target_end_time = current_target.end_time;
+
+            axis_state.is_cruising = (current_target.half_accel == 0) && (current_target.duration > 10'000);
             axis_state.is_moving = true;
 
             // Time overshoots accounts for the lost time in the previous state
             axis_state.initial_time = now - time_overshoot;
-            move_position = axis_state.current_target->initial_pos;
+            move_position = current_target.initial_pos;
             move_epoch = time_overshoot;
         } else {
             // No new movement

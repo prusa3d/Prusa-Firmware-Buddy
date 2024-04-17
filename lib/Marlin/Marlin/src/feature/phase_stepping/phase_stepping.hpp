@@ -36,9 +36,11 @@ struct MoveTarget {
     float start_v = 0;
     uint32_t duration = 0; // Movement duration in us
     float target_pos = 0;
+    float end_time = 0; // Absolute movement end (s)
 
 private:
     float target_position() const;
+    float move_end_time(double end_time) const;
 };
 
 struct AxisState {
@@ -73,6 +75,11 @@ struct AxisState {
     std::optional<MoveTarget> current_target; // Current target to move
     CircularQueue<MoveTarget, 16> pending_targets; // 16 element queue of pre-processed elements
     MoveTarget next_target; // Next planned target to move
+
+    // current_target_end_time is used to ensure pending_targets is replenished from the move ISR
+    // whenever the current_target completes, and we want to ensure the type is lock free
+    std::atomic<float> current_target_end_time; // Absolute end time (s) for the current target
+    static_assert(decltype(current_target_end_time)::is_always_lock_free);
 
     std::atomic<bool> is_moving = false;
     std::atomic<bool> is_cruising = false;
