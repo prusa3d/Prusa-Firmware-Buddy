@@ -1,0 +1,47 @@
+name: windows
+
+on: [push, pull_request]
+
+permissions: read-all
+
+jobs:
+  build:
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - { os: windows-2019, vs: "Visual Studio 2019" } # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md#visual-studio-enterprise-2019
+        - { os: windows-2022, vs: "Visual Studio 2022" } # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2022-Readme.md#visual-studio-enterprise-2022
+
+    name: "${{ matrix.config.vs }}"
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build Win32
+      shell: bash
+      run: |
+        rm -rf build
+        mkdir build
+        cd build
+        cmake .. -A Win32
+        cmake --build . -j 4 --config Release
+        ctest --output-on-failure -C Release
+        cmake --build . -j 4 --config Debug
+        ctest --output-on-failure -C Debug
+
+    - name: Build x64
+      shell: bash
+      run: |
+        rm -rf build
+        mkdir build
+        cd build
+        cmake .. -A x64
+        cmake --build . -j 4 --config Release
+        ctest --output-on-failure -C Release
+        cmake --build . -j 4 --config Debug
+        ctest --output-on-failure -C Debug
+
+    - name: Bazel Test
+      working-directory: test
+      run: bazelisk test //... --config=ci

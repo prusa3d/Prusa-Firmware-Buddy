@@ -1,0 +1,9 @@
+common --enable_bzlmod
+build --enable_platform_specific_config
+build --enable_runfiles
+build --incompatible_strict_action_env
+
+common:ci --announce_rc
+test:ci --test_output=errors
+build:ci --curses=no
+

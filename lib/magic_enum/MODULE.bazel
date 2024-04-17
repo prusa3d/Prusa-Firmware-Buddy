@@ -1,0 +1,5 @@
+module(
+    name = "magic_enum",
+    version = "0.9.5",
+    compatibility_level = 0,
+)
