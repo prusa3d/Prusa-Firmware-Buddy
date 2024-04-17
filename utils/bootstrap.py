@@ -87,8 +87,8 @@ dependencies = {
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.3.4-B3918045-C68D-4978-BD7D-CD91F7927B2D.zip',
     },
     'bootloader-ix': {
-        'version': '2.3.4',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.3.4-6474070A-0C8B-4436-BFD2-A5C0F1864CC7.zip',
+        'version': '2.3.5',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.3.5-3EF50AB4-ECC7-472E-B10B-777E07955517.zip',
     },
     'firmware-mmu': {
         'version': '3.0.3',
