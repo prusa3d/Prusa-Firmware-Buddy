@@ -79,6 +79,7 @@ exclude: |
     ^lib/libsysbase/|
     ^lib/printf|
     ^lib/tinyusb/|
+    ^lib/magic_enum/|
     ^tests/stubs/FreeRTOS|
     ^tests/unit/common/gcode/.*\.gcode$|
     ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$
