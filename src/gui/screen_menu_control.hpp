@@ -7,6 +7,7 @@
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
 #include <option/filament_sensor.h>
+#include <option/buddy_enable_connect.h>
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
 #include <option/has_selftest_snake.h>
@@ -27,7 +28,11 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_MOVE_AXIS,
     MI_TEMPERATURE,
     MI_AUTO_HOME,
+
+#if BUDDY_ENABLE_CONNECT()
     MI_SET_READY,
+#endif
+
 #if !HAS_LOADCELL()
     MI_CURRENT_SHEET_PROFILE,
 #endif
