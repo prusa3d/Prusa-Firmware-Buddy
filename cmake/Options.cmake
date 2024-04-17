@@ -23,7 +23,7 @@ endfunction()
 function(to_pascal_case out_var str)
   execute_process(
     COMMAND
-      "${_Python3_EXECUTABLE}" "-c"
+      "${Python3_EXECUTABLE}" "-c"
       "import string, sys; print(string.capwords(sys.argv[1].replace('_', ' ')).replace(' ', ''))"
       "${str}"
     OUTPUT_VARIABLE result
