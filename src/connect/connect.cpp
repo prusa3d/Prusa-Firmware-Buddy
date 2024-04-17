@@ -45,6 +45,9 @@ namespace connect_client {
 
 namespace {
 
+    // Send a ping if there's no activity from us during this time (15_000 ms = 15s)
+    constexpr uint32_t ping_inactivity = 15000;
+
     // These two should actually be a atomic<tuple<.., ..>>. This won't compile on our platform.
     // But, considering the error is informative only and we set these only in
     // this thread, any temporary inconsistency in them is of no concern
@@ -253,6 +256,19 @@ Connect::ServerResp Connect::handle_server_resp(http::Response resp, CommandId c
 }
 
 #if WEBSOCKET()
+CommResult Connect::send_ping(CachedFactory &conn_factory) {
+    log_debug(connect, "Sending ping");
+    uint8_t buffer[0] = {};
+    if (auto error = websocket->send(WebSocket::Ping, /*last=*/true, buffer, 0); error.has_value()) {
+        conn_factory.invalidate();
+        return err_to_status(*error);
+    }
+
+    last_send = now();
+
+    return ConnectionStatus::Ok;
+}
+
 CommResult Connect::receive_command(CachedFactory &conn_factory) {
     log_debug(connect, "Trying to receive a commandfrom server");
     bool first = true;
@@ -300,11 +316,19 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                 return err_to_status(*error);
             }
 
+            last_send = now();
+
             // This one is handled, next one please.
             continue;
         }
         case WebSocket::Opcode::Pong:
-            // We didn't send a ping, so not expecting pong... ignore pongs
+            // We send pings, but don't really care about the pongs. We assume
+            // that the connection would break in some way (timeout / getting
+            // full) if the connection doesn't work. This doesn't protect us
+            // against the situation where the server would be consuming the
+            // data on low level (eg. sending ACKs), but otherwise would be
+            // dead on application level - but we don't care about that, as
+            // it's certainly less common than just broken Internet.
             fragment.ignore();
             continue;
         case WebSocket::Opcode::Close:
@@ -493,6 +517,8 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
             } while (received > 0);
 
             websocket = WebSocket::from_response(resp);
+            // Initiating the connection is a "send" in some sense.
+            last_send = now();
             break;
         }
         default: {
@@ -543,6 +569,8 @@ CommResult Connect::send_command(CachedFactory &conn_factory, const Printer::Con
             planner().action_done(ActionResult::Failed);
             return err_to_status(*error);
         }
+
+        last_send = now();
 
         first = false;
     }
@@ -699,6 +727,10 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     // planner checks if it _can_ receive the command at that point).
     if (conn_factory.is_valid() && websocket.has_value()) {
         wake_on_readable = websocket->inner_connection();
+
+        if (now() - last_send > ping_inactivity) {
+            return send_ping(conn_factory);
+        }
     }
 #endif
     auto action = planner().next_action(buffer, wake_on_readable);
