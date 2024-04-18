@@ -244,6 +244,28 @@ pipeline {
                     }
                 }
 
+                stage('Marlin_server_types python module') {
+                    agent {
+                        dockerfile {
+                            label 'docker-v2'
+                            filename 'utils/holly/Dockerfile'
+                            additionalBuildArgs '-t prusa-firmware-buddy'
+                        }
+                    }
+                    steps {
+                        sh """
+                        ln -fs /work/.dependencies
+                        ln -fs /work/.venv
+                        . .venv/bin/activate
+                        export MST_INSTALL_PATH=\$PWD/build_mst/
+                        rm \$MST_INSTALL_PATH -rf
+                        pip install \$PWD/src/common/marlin_server_types/python_binding/ --target=\$MST_INSTALL_PATH
+                        export PYTHONPATH="\$PYTHONPATH:\$MST_INSTALL_PATH"
+                        pytest \$PWD/src/common/marlin_server_types/python_binding/tests/
+                        """
+                    }
+                }
+
                 stage('Integration Tests') {
                     agent {
                         dockerfile {
