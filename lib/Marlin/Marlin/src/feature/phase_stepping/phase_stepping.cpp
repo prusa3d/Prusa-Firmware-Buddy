@@ -85,7 +85,7 @@ float MoveTarget::move_end_time(double end_time) const {
 }
 
 float MoveTarget::target_position() const {
-    float epoch = duration / 1000000.f;
+    float epoch = duration / static_cast<float>(TICK_FREQ);
     return initial_pos + start_v * epoch + half_accel * epoch * epoch;
 }
 
@@ -101,7 +101,7 @@ void phase_stepping::load() {
 }
 
 FORCE_INLINE uint64_t convert_absolute_time_to_ticks(const double time) {
-    return uint64_t(time * 1'000'000.);
+    return uint64_t(time * TICK_FREQ);
 }
 
 FORCE_INLINE uint64_t calc_move_segment_end_time_in_ticks(const move_t &move) {
@@ -534,8 +534,6 @@ static bool is_refresh_period_sane(uint32_t now, uint32_t last_timer_tick) {
     // the case when there was too long delay between refreshes as it marks that
     // the interrupt was delayed and the next update might be sooner than we
     // anticipate.
-
-    static constexpr uint REFRESH_PERIOD_US = 1'000'000 / REFRESH_FREQ;
     static constexpr uint UPDATE_DURATION_US = 20; // Rather pesimistic update
 
     uint32_t refresh_period = ticks_diff(now, last_timer_tick);
@@ -662,8 +660,6 @@ FORCE_OFAST void phase_stepping::handle_periodic_refresh() {
     // - post to phase: 1.3 µs
     // - current lookup: 800 ns
     // - Quick transmission: 900ns (time from call to first bit) + 1µs transaction termination
-
-    static constexpr uint REFRESH_PERIOD_US = 1'000'000 / REFRESH_FREQ;
     uint32_t now = ticks_us() + REFRESH_PERIOD_US;
 
     // always refresh the last_timer_tick
@@ -716,7 +712,7 @@ int phase_stepping::logical_ustep(AxisEnum axis) {
 }
 
 FORCE_OFAST std::tuple<float, float> phase_stepping::axis_position(const AxisState &axis_state, uint32_t move_epoch) {
-    float epoch = move_epoch / 1000000.f;
+    float epoch = move_epoch / static_cast<float>(TICK_FREQ);
     const MoveTarget &trg = *axis_state.current_target;
     return {
         trg.start_v + 2.f * trg.half_accel * epoch,
