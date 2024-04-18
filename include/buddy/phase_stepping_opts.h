@@ -14,6 +14,8 @@ static constexpr int ALLOWED_MISSED_TX = 5000;
 static constexpr int REFRESH_FREQ = option::has_burst_stepping
     ? 10000
     : 40000;
+static constexpr int TICK_FREQ = 1'000'000;
+static constexpr int REFRESH_PERIOD_US = TICK_FREQ / REFRESH_FREQ;
 static constexpr int GPIO_BUFFER_SIZE = 200;
 
 } // namespace phase_stepping::opts
