@@ -84,16 +84,40 @@ public:
     using ExtraHeaders = std::function<size_t(size_t headers_size, http::HeaderOut *headers)>;
 
     struct Request {
-        const char *host;
-        uint16_t port;
-        const char *url_path;
-        std::shared_ptr<EncryptionInfo> encryption;
+        struct Encrypted {
+            const char *host;
+            uint16_t port;
+            const char *url_path;
+            std::shared_ptr<EncryptionInfo> encryption;
+        };
+
+        struct Inline {
+            uint32_t file_id;
+            uint32_t orig_size;
+        };
+
+        std::variant<Encrypted, Inline> data;
 
         Request(const char *host, uint16_t port, const char *url_path, std::unique_ptr<EncryptionInfo> &&encryption)
-            : host(host)
-            , port(port)
-            , url_path(url_path)
-            , encryption(std::move(encryption)) {}
+            : data(Encrypted {
+                host,
+                port,
+                url_path,
+                std::move(encryption) }) {}
+
+        Request(uint32_t file_id, uint32_t orig_size)
+            : data(Inline {
+                file_id,
+                orig_size,
+            }) {}
+
+        uint32_t orig_size() const {
+            if (const auto *encrypted = get_if<Encrypted>(&data); encrypted != nullptr) {
+                return encrypted->encryption->orig_size;
+            } else {
+                return get<Inline>(data).orig_size;
+            }
+        }
     };
 
 private:
@@ -102,8 +126,18 @@ private:
     public:
         void operator()(Async *);
     };
+    struct Inline {
+        uint32_t file_id;
+        uint32_t start;
+        // One past end
+        uint32_t end;
+        PartialFile::Ptr destination;
+        DownloadStep status = DownloadStep::Continue;
+        bool started = false;
+    };
     using AsyncPtr = std::unique_ptr<Async, AsyncDeleter>;
-    AsyncPtr async;
+    using Engine = std::variant<AsyncPtr, Inline>;
+    Engine engine;
 
 public:
     /// Makes an HTTP request.
@@ -126,6 +160,24 @@ public:
 
     /// Returns the partial file object where the downloaded data is being stored.
     PartialFile::Ptr get_partial_file() const;
+
+    struct InlineRequest {
+        uint32_t file_id;
+        uint32_t start;
+        uint32_t end;
+    };
+
+    struct InlineChunk {
+        uint32_t file_id;
+        uint32_t size;
+        const uint8_t *data;
+    };
+
+    // Get the request in case we are in inline mode and mark as started.
+    std::optional<InlineRequest> inline_request();
+    bool inline_chunk(const InlineChunk &chunk);
+    // Network failed during the inline transfer - reset it in case it was already started.
+    void network_failed();
 };
 
 } // namespace transfers

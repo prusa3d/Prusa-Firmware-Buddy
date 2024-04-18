@@ -8,6 +8,7 @@
 #include <type_traits>
 
 using namespace transfers;
+using std::get_if;
 
 TEST_CASE("Serialization and Deserialization of a Transfer", "[transfers]") {
     Monitor monitor;
@@ -43,9 +44,13 @@ TEST_CASE("Serialization and Deserialization of a Transfer", "[transfers]") {
 
             auto restored_request = restored->get_download_request();
             REQUIRE(restored_request.has_value());
-            REQUIRE(strcmp(restored_request->host, request.host) == 0);
-            REQUIRE(strcmp(restored_request->url_path, request.url_path) == 0);
-            REQUIRE(restored_request->port == request.port);
+            auto encrypted = get_if<Download::Request::Encrypted>(&request.data);
+            REQUIRE(encrypted != nullptr);
+            auto restored_encrypted = get_if<Download::Request::Encrypted>(&restored_request->data);
+            REQUIRE(restored_encrypted != nullptr);
+            REQUIRE(strcmp(restored_encrypted->host, encrypted->host) == 0);
+            REQUIRE(strcmp(restored_encrypted->url_path, encrypted->url_path) == 0);
+            REQUIRE(restored_encrypted->port == encrypted->port);
         }
 
         SECTION("Update of download progress and deserialization still has the right data") {

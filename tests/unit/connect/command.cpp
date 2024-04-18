@@ -111,6 +111,13 @@ TEST_CASE("Start connect download - encrypted") {
     REQUIRE(cmd.iv == expected);
 }
 
+TEST_CASE("Start inline download") {
+    auto cmd = command_test<StartInlineDownload>("{\"command\":\"START_INLINE_DOWNLOAD\",\"kwargs\":{\"path\":\"/usb/whatever.bgcode\",\"file_id\":42,\"orig_size\":1024}}");
+    REQUIRE(cmd.file_id == 42);
+    REQUIRE(cmd.orig_size == 1024);
+    REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.bgcode") == 0);
+}
+
 TEST_CASE("Set token") {
     auto cmd = command_test<SetToken>("{\"command\": \"SET_TOKEN\",\"kwargs\": {\"token\":\"toktoktok\"}}");
     REQUIRE(strcmp(reinterpret_cast<const char *>(cmd.token->data()), "toktoktok") == 0);

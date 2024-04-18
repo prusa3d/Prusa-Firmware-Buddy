@@ -437,19 +437,43 @@ void Download::AsyncDeleter::operator()(Async *a) {
 }
 
 Download::Download(const Request &request, PartialFile::Ptr destination, uint32_t start_range, optional<uint32_t> end_range) {
-    // Plain downloads are no longer supported, need encryption info
-    assert(request.encryption);
-    size_t file_size = request.encryption->orig_size;
-    auto decryptor = make_unique<Decryptor>(request.encryption->key, request.encryption->nonce, start_range, file_size - start_range);
-    assert(destination);
+    if (const auto *encrypted = get_if<Request::Encrypted>(&request.data); encrypted) {
+        assert(encrypted->encryption);
+        size_t file_size = encrypted->encryption->orig_size;
+        auto decryptor = make_unique<Decryptor>(encrypted->encryption->key, encrypted->encryption->nonce, start_range, file_size - start_range);
+        assert(destination);
 
-    destination->seek(start_range);
-    async.reset(new Async(request.host, request.port, request.url_path, move(destination), move(decryptor), start_range, end_range));
-    tcpip_callback_nofail(Async::start_wrapped, async.get());
+        destination->seek(start_range);
+        AsyncPtr async(new Async(encrypted->host, encrypted->port, encrypted->url_path, move(destination), move(decryptor), start_range, end_range));
+        Async *async_raw = async.get();
+        engine = std::move(async);
+        tcpip_callback_nofail(Async::start_wrapped, async_raw);
+    } else {
+        const auto &in = get<Request::Inline>(request.data);
+        destination->seek(start_range);
+        engine = Inline {
+            in.file_id,
+            start_range,
+            end_range.value_or(in.orig_size - 1 /* End is inclusive */),
+            destination,
+        };
+        // We do _nothing_ in here, in this case, the Download is kind of "passive"
+    }
 }
 
 DownloadStep Download::step() {
-    return async->status();
+    if (auto *async = get_if<AsyncPtr>(&engine); async != nullptr) {
+        return (*async)->status();
+    } else {
+        const auto &in = get<Inline>(engine);
+        if (in.status != DownloadStep::Continue) {
+            return in.status;
+        } else if (in.start > in.end /* End is inclusive */) {
+            return DownloadStep::Finished;
+        } else {
+            return DownloadStep::Continue;
+        }
+    }
 }
 
 uint32_t Download::file_size() const {
@@ -457,7 +481,53 @@ uint32_t Download::file_size() const {
 }
 
 PartialFile::Ptr Download::get_partial_file() const {
-    return async->destination;
+    if (auto *async = get_if<AsyncPtr>(&engine); async != nullptr) {
+        return (*async)->destination;
+    } else {
+        return get<Inline>(engine).destination;
+    }
+}
+
+optional<Download::InlineRequest> Download::inline_request() {
+    if (auto *in = get_if<Inline>(&engine); in != nullptr && in->status == DownloadStep::Continue && !in->started) {
+        in->started = true;
+        return InlineRequest {
+            in->file_id,
+            in->start,
+            in->end,
+        };
+    } else {
+        return nullopt;
+    }
+}
+
+bool Download::inline_chunk(const InlineChunk &chunk) {
+    if (auto *in = get_if<Inline>(&engine); in != nullptr) {
+        if (in->status != DownloadStep::Continue
+            || in->file_id != chunk.file_id /* Different transfer */
+            || chunk.size == 0 /* Error indicated by server */
+            || in->start + chunk.size > in->end + 1 /* end is inclusive */) {
+            in->status = DownloadStep::FailedOther;
+            return false;
+        }
+        if (!in->destination->write(chunk.data, chunk.size)) {
+            in->status = DownloadStep::FailedOther;
+            return false;
+        }
+        in->start += chunk.size;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void Download::network_failed() {
+    if (auto *in = get_if<Inline>(&engine); in != nullptr) {
+        // Only relevant for the inline mode...
+        if (in->started) {
+            in->status = DownloadStep::FailedNetwork;
+        }
+    }
 }
 
 } // namespace transfers

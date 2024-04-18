@@ -71,7 +71,8 @@ using Action = std::variant<
     SendTelemetry,
     Event,
     Sleep,
-    ReadCommand>;
+    ReadCommand,
+    transfers::Download::InlineRequest>;
 
 enum class ActionResult {
     Ok,
@@ -152,6 +153,7 @@ private:
     void command(const Command &, const CancelPrinterReady &);
     void command(const Command &, const SetPrinterReady &);
     void command(const Command &, const StartEncryptedDownload &);
+    void command(const Command &, const StartInlineDownload &);
     void command(const Command &, const DeleteFile &);
     void command(const Command &, const DeleteFolder &);
     void command(const Command &, const CreateFolder &);
@@ -161,6 +163,8 @@ private:
     void command(const Command &, const SendStateInfo &);
     void command(const Command &, const DialogAction &);
     void command(const Command &, const SetValue &);
+
+    void handle_transfer_result(const Command &command, transfers::Transfer::BeginResult result);
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;
@@ -236,6 +240,9 @@ public:
     void transfer_recovery_finished(std::optional<const char *> transfer_destination_path);
 
     void transfer_cleanup_finished(bool success);
+
+    bool transfer_chunk(const transfers::Download::InlineChunk &chunk);
+    void transfer_reset();
 
     // ID of a command being executed in the background, if any.
     std::optional<CommandId> background_command_id() const;

@@ -56,6 +56,11 @@ struct StartEncryptedDownload {
     // Fatfs can't do bigger than 4GB files anyway, right?
     uint32_t orig_size;
 };
+struct StartInlineDownload {
+    SharedPath path;
+    uint32_t file_id;
+    uint32_t orig_size;
+};
 struct DeleteFile {
     SharedPath path;
 };
@@ -90,7 +95,7 @@ struct SetValue {
     SharedBorrow str_value;
 };
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartEncryptedDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer, SetToken, ResetPrinter, SendStateInfo, DialogAction, SetValue>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartEncryptedDownload, StartInlineDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer, SetToken, ResetPrinter, SendStateInfo, DialogAction, SetValue>;
 
 struct Command {
     CommandId id;

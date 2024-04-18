@@ -223,9 +223,11 @@ private:
     /// Slot of the transfer
     Monitor::Slot slot;
 
+public:
     /// Active download (if any)
     std::optional<Download> download;
 
+private:
     /// Path helper to be able to retrieve paths to different files of the transfer.
     Path path;
 

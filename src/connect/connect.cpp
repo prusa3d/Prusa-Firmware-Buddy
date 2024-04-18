@@ -111,6 +111,11 @@ namespace {
             assert(0);
             return "";
         }
+        static const char *url(const transfers::Download::InlineRequest &) {
+            // Not used in non-websocket mode and websocket doesn't call url.
+            assert(0);
+            return "";
+        }
         static const char *url(const SendTelemetry &) {
             return "/p/telemetry";
         }
@@ -403,6 +408,21 @@ CommResult Connect::receive_command(CachedFactory &conn_factory) {
                 // we don't care about the oversized).
                 log_debug(connect, "Msg from server: %.*s", static_cast<int>(read - HDR_LEN), reinterpret_cast<const char *>(buffer + HDR_LEN));
                 return ConnectionStatus::Ok;
+            case 'T': {
+                // File transfer
+                const bool ok = planner().transfer_chunk(transfers::Download::InlineChunk {
+                    // This is not a command ID in the case of transfer, but the file ID.
+                    command_id,
+                    read - HDR_LEN,
+                    buffer + HDR_LEN,
+                });
+                if (ok) {
+                    return ConnectionStatus::Ok;
+                } else {
+                    conn_factory.invalidate();
+                    return OnlineError::Internal;
+                }
+            }
             default:
                 planner().command(Command {
                     command_id,
@@ -477,6 +497,9 @@ CommResult Connect::prepare_connection(CachedFactory &conn_factory, const Printe
         // Could have been using the old connection and contain a dangling pointer. Get rid of it.
         // (We currently don't do a proper shutdown
         websocket.reset();
+        // Similarly, any download that has been running might have missing /
+        // confused chunks, we need a new one.
+        planner().transfer_reset();
         last_known_status = ConnectionStatus::Connecting;
     }
     // Let it reconnect if it needs it.

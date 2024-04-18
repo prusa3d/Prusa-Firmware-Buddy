@@ -137,7 +137,7 @@ Transfer::BeginResult Transfer::begin(const char *destination_path, const Downlo
     if (backup.get() == nullptr) {
         return Storage { "Failed to create backup file" };
     }
-    size_t file_size = request.encryption->orig_size;
+    size_t file_size = request.orig_size();
     preallocated = move(PartialFile::create(path.as_partial(), file_size));
     if (const char **err = get_if<const char *>(&preallocated); err != nullptr) {
         const char *e = *err; // Backup, cleanup resets preallocated state

@@ -70,12 +70,14 @@ namespace {
         ArgDialogId = 1 << 6,
         ArgResponse = 1 << 7,
         ArgSetValue = 1 << 8,
+        ArgFileId = 1 << 9,
     };
 
     constexpr uint32_t NO_ARGS = 0;
     // Encrypted download can also process a port, but that one is optional, so not listed here.
     constexpr uint32_t ARGS_ENC_DOWN = ArgPath | ArgKey | ArgIv | ArgOrigSize;
     constexpr uint32_t ARGS_DIALOG_ACTION = ArgDialogId | ArgResponse;
+    constexpr uint32_t ARGS_INLINE_DOWN = ArgPath | ArgOrigSize | ArgFileId;
 } // namespace
 
 Command Command::gcode_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
@@ -154,6 +156,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("SEND_STATE_INFO", SendStateInfo, NO_ARGS)
             T("DIALOG_ACTION", DialogAction, ARGS_DIALOG_ACTION)
             T("SET_VALUE", SetValue, ArgSetValue)
+            T("START_INLINE_DOWNLOAD", StartInlineDownload, ARGS_INLINE_DOWN)
             T("START_ENCRYPTED_DOWNLOAD", StartEncryptedDownload, ARGS_ENC_DOWN) { // else is part of the previous T
                 return;
             }
@@ -214,6 +217,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             PATH_ARG(DeleteFolder)
             PATH_ARG(CreateFolder)
             PATH_ARG(StartEncryptedDownload)
+            PATH_ARG(StartInlineDownload)
         } else if (is_arg("token", Type::String)) {
             if (auto *cmd = get_if<SetToken>(&data); cmd != nullptr && buffer_available) {
                 const size_t len = min(event.value->size() + 1, buff.size());
@@ -259,7 +263,10 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         } else if (is_arg("port", Type::Primitive)) {
             INT_ARG(StartEncryptedDownload, uint16_t, port, 0)
         } else if (is_arg("orig_size", Type::Primitive)) {
-            INT_ARG(StartEncryptedDownload, uint64_t, orig_size, ArgOrigSize)
+            INT_ARG(StartEncryptedDownload, uint32_t, orig_size, ArgOrigSize)
+            INT_ARG(StartInlineDownload, uint32_t, orig_size, ArgOrigSize)
+        } else if (is_arg("file_id", Type::Primitive)) {
+            INT_ARG(StartInlineDownload, uint32_t, file_id, ArgFileId)
         } else if (is_arg("key", Type::String)) {
             HEX_ARG(key, ArgKey)
         } else if (is_arg("iv", Type::String)) {

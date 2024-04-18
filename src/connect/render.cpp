@@ -59,6 +59,22 @@ namespace {
         }
     }
 
+    JsonResult render_msg(size_t resume_point, JsonOutput &output, RenderState &, const transfers::Download::InlineRequest &request) {
+        // Keep the indentation of the JSON in here!
+        // clang-format off
+        JSON_START;
+        JSON_OBJ_START;
+            JSON_FIELD_STR("transfer", "inline") JSON_COMMA;
+            // Relates both to size of the FS block and to the MAX_RESP_SIZE in connect.cpp
+            JSON_FIELD_INT("chunk", 512) JSON_COMMA;
+            JSON_FIELD_INT("file_id", request.file_id) JSON_COMMA;
+            JSON_FIELD_INT("start", request.start) JSON_COMMA;
+            JSON_FIELD_INT("end", request.end);
+        JSON_OBJ_END;
+        JSON_END;
+        // clang-format on
+    }
+
     JsonResult render_msg(size_t resume_point, JsonOutput &output, RenderState &state, const SendTelemetry &telemetry) {
         const auto params = state.printer.params();
 

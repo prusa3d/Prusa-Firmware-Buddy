@@ -195,7 +195,22 @@ namespace {
         strcat(buffer, enc_suffix);
     }
 
-    Transfer::BeginResult init_transfer(Printer &, const Printer::Config &config, const StartEncryptedDownload &download) {
+    Transfer::BeginResult init_transfer(const StartInlineDownload &download) {
+        const char *dpath = download.path.path();
+        if (!path_allowed(dpath)) {
+            return Storage { "Not allowed outside /usb" };
+        }
+
+        if (!filename_is_transferrable(dpath)) {
+            return Storage { "Unsupported file type" };
+        }
+
+        auto request = Download::Request(download.file_id, download.orig_size);
+
+        return Transfer::begin(dpath, request);
+    }
+
+    Transfer::BeginResult init_transfer(const Printer::Config &config, const StartEncryptedDownload &download) {
         const char *dpath = download.path.path();
         if (!path_allowed(dpath)) {
             return Storage { "Not allowed outside /usb" };
@@ -474,6 +489,15 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
         return ReadCommand {};
     }
 
+    if (transfer.has_value() && transfer->download.has_value()) {
+        // This call "consumes" the request, so we won't use it next time.
+        // Nevertheless, if the connection fails (we are unable to deliver it),
+        // the old download is discarded anyway and a new one is born.
+        if (auto request = transfer->download->inline_request(); request.has_value()) {
+            return *request;
+        }
+    }
+
     const bool printing = printer.is_printing();
     const bool changes = telemetry_changes.set_hash(params.telemetry_fingerprint(!printing));
     const bool want_short = printing || background_command.has_value() || observed_transfer.has_value();
@@ -693,25 +717,7 @@ void Planner::command(const Command &, const ProcessingThisCommand &) {
     assert(0);
 }
 
-void Planner::command(const Command &command, const StartEncryptedDownload &download) {
-    // Get the config (we need it for the connection); don't reset the "changed" flag.
-    auto [config, config_changed] = printer.config(false);
-    if (config_changed) {
-        // If the config changed, there's a chance the old server send us a
-        // command to download stuff and we would download it from the new one,
-        // which a) wouldn't have it, b) we could leak some info to the new
-        // server we are not supposed to. Better safe than sorry.
-        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Switching config" };
-        return;
-    }
-
-    if (transfer_recovery == TransferRecoveryState::WaitingForUSB) {
-        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Not ready" };
-        return;
-    }
-
-    auto down_result = init_transfer(printer, config, download);
-
+void Planner::handle_transfer_result(const Command &command, Transfer::BeginResult result) {
     visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (is_same_v<T, transfers::Transfer>) {
@@ -735,7 +741,40 @@ void Planner::command(const Command &command, const StartEncryptedDownload &down
             static_assert(always_false_v<T>, "non-exhaustive visitor!");
         }
     },
-        down_result);
+        result);
+}
+
+void Planner::command(const Command &command, const StartInlineDownload &download) {
+    if (transfer_recovery == TransferRecoveryState::WaitingForUSB) {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Not ready" };
+        return;
+    }
+
+    auto down_result = init_transfer(download);
+
+    handle_transfer_result(command, std::move(down_result));
+}
+
+void Planner::command(const Command &command, const StartEncryptedDownload &download) {
+    // Get the config (we need it for the connection); don't reset the "changed" flag.
+    auto [config, config_changed] = printer.config(false);
+    if (config_changed) {
+        // If the config changed, there's a chance the old server send us a
+        // command to download stuff and we would download it from the new one,
+        // which a) wouldn't have it, b) we could leak some info to the new
+        // server we are not supposed to. Better safe than sorry.
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Switching config" };
+        return;
+    }
+
+    if (transfer_recovery == TransferRecoveryState::WaitingForUSB) {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Not ready" };
+        return;
+    }
+
+    auto down_result = init_transfer(config, download);
+
+    handle_transfer_result(command, std::move(down_result));
 }
 
 void Planner::command(const Command &command, const DeleteFile &params) {
@@ -965,6 +1004,20 @@ void Planner::download_done(Transfer::State result) {
 void Planner::transfer_cleanup_finished(bool success) {
     // Retry in case of failure.
     need_transfer_cleanup = !success;
+}
+
+bool Planner::transfer_chunk(const Download::InlineChunk &chunk) {
+    if (transfer.has_value() && transfer->download.has_value()) {
+        return transfer->download->inline_chunk(chunk);
+    } else {
+        return false;
+    }
+}
+
+void Planner::transfer_reset() {
+    if (transfer.has_value() && transfer->download.has_value()) {
+        transfer->download->network_failed();
+    }
 }
 
 } // namespace connect_client
