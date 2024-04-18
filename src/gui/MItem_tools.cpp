@@ -347,6 +347,26 @@ void MI_M600::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+// MI_DRYRUN
+MI_DRYRUN::MI_DRYRUN()
+    : WI_ICON_SWITCH_OFF_ON_t((marlin_debug_flags & MARLIN_DEBUG_DRYRUN) ? 1 : 0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+}
+
+void MI_DRYRUN::OnChange(size_t) {
+    // marlin_debug_flags should be accessed only from the marlin thread.
+    // Ideally the M111 should be expanded for setting/resetting individual bits, but:
+    // * this menu item is dev-only
+    // * there's not much this can screw up
+    // * this is actually safer, because the read and write is close together (when issuing M111 with all flags override, there's more change of a race condition)
+
+    if (value()) {
+        marlin_debug_flags |= MARLIN_DEBUG_DRYRUN;
+    } else {
+        marlin_debug_flags &= ~MARLIN_DEBUG_DRYRUN;
+    }
+}
+
+/*****************************************************************************/
 // MI_TIMEOUT
 MI_TIMEOUT::MI_TIMEOUT()
     : WI_ICON_SWITCH_OFF_ON_t(Screens::Access()->GetMenuTimeout() ? 1 : 0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}

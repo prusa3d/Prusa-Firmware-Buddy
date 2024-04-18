@@ -192,6 +192,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_DRYRUN : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Dry run (no extrusion)");
+
+public:
+    MI_DRYRUN();
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+
 class MI_TIMEOUT : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Menu Timeout");
 
