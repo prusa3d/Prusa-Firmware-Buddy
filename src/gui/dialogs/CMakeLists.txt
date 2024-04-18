@@ -2,7 +2,8 @@ target_include_directories(firmware PRIVATE .)
 
 target_sources(
   firmware
-  PRIVATE DialogHandler.cpp
+  PRIVATE dialog_text_input.cpp
+          DialogHandler.cpp
           DialogLoadUnload.cpp
           DialogMoveZ.cpp
           DialogTimed.cpp
