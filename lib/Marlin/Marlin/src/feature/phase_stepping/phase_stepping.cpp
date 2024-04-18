@@ -569,9 +569,8 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
     float move_position = axis_state.last_position;
 
     while (!axis_state.current_target.has_value() || move_epoch > axis_state.current_target->duration) {
-        uint32_t time_overshoot = 0;
         if (axis_state.current_target.has_value()) {
-            time_overshoot = ticks_diff(move_epoch, axis_state.current_target->duration);
+            axis_state.initial_time += axis_state.current_target->duration;
             move_position = axis_state.current_target->target_pos;
             axis_state.current_target.reset();
         }
@@ -586,10 +585,8 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
             axis_state.is_cruising = (current_target.half_accel == 0) && (current_target.duration > 10'000);
             axis_state.is_moving = true;
 
-            // Time overshoots accounts for the lost time in the previous state
-            axis_state.initial_time = now - time_overshoot;
             move_position = current_target.initial_pos;
-            move_epoch = time_overshoot;
+            move_epoch = ticks_diff(now, axis_state.initial_time);
         } else {
             // No new movement
             axis_state.is_cruising = false;
