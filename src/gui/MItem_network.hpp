@@ -57,6 +57,30 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_WIFI_SSID final : public WiInfo<16> {
+    constexpr static const char *const label = N_("SSID");
+
+public:
+    MI_WIFI_SSID();
+
+    void update_noauto();
+
+protected:
+    void click(IWindowMenu &window_menu) override;
+};
+
+class MI_WIFI_PASSWORD final : public WiInfoString {
+    constexpr static const char *const label = N_("Password");
+
+public:
+    MI_WIFI_PASSWORD();
+
+    void update_noauto();
+
+protected:
+    void click(IWindowMenu &window_menu) override;
+};
+
 class MI_WIFI_CREDENTIALS_t : public IWindowMenuItem {
     constexpr static const char *const label = N_("Load Credentials");
 

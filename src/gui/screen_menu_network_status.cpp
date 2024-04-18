@@ -84,7 +84,7 @@ void ScreenMenuNetworkStatus::update() {
 
     // Update stat data
     {
-        const auto update_f = [&](IWiInfo &item, StatSlot slot) {
+        const auto update_f = [&](WiInfoArray &item, StatSlot slot) {
             if (item.IsHidden()) {
                 return;
             }

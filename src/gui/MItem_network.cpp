@@ -7,6 +7,8 @@
 #include "netdev.h"
 #include "ScreenHandler.hpp"
 #include "marlin_client.hpp"
+#include <dialog_text_input.hpp>
+#include <wui.h>
 
 namespace {
 bool is_device_connected(netdev_status_t status) {
@@ -80,6 +82,9 @@ void MI_WIFI_STATUS_t::update() {
     ChangeInformation(_(state_str));
 }
 
+// ===================================================
+// MI_WIFI_INIT
+// ===================================================
 MI_WIFI_INIT_t::MI_WIFI_INIT_t()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t(!marlin_client::is_printing()), is_hidden_t::no) {
 }
@@ -88,6 +93,59 @@ void MI_WIFI_INIT_t::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_client::gcode("M997 S1 O");
 }
 
+// ===================================================
+// MI_WIFI_SSID
+// ===================================================
+MI_WIFI_SSID::MI_WIFI_SSID()
+    : WiInfo(_(label)) {
+    update_noauto();
+}
+
+void MI_WIFI_SSID::update_noauto() {
+    ChangeInformation(config_store().wifi_ap_ssid.get_c_str());
+}
+
+void MI_WIFI_SSID::click(IWindowMenu &) {
+    auto ssid = config_store().wifi_ap_ssid.get();
+    if (!DialogTextInput::exec(GetLabel(), ssid)) {
+        return;
+    }
+
+    config_store().wifi_ap_ssid.set(ssid);
+    update_noauto();
+
+    // Notify the network machinery about configuration change
+    notify_reconfigure();
+}
+
+// ===================================================
+// MI_WIFI_PASSWORD
+// ===================================================
+MI_WIFI_PASSWORD::MI_WIFI_PASSWORD()
+    : WiInfoString({}, 5, _(label)) {
+    update_noauto();
+}
+
+void MI_WIFI_PASSWORD::update_noauto() {
+    set_value(string_view_utf8::MakeCPUFLASH(strlen(config_store().wifi_ap_password.get().data()) > 0 ? "*****" : "-"));
+}
+
+void MI_WIFI_PASSWORD::click(IWindowMenu &) {
+    std::array<char, config_store_ns::wifi_max_passwd_len + 1> pwd = { '\0' };
+    if (!DialogTextInput::exec(GetLabel(), pwd)) {
+        return;
+    }
+
+    config_store().wifi_ap_password.set(pwd);
+    update_noauto();
+
+    // Notify the network machinery about configuration change
+    notify_reconfigure();
+}
+
+// ===================================================
+// MI_WIFI_CREDENTIALS_t
+// ===================================================
 MI_WIFI_CREDENTIALS_t::MI_WIFI_CREDENTIALS_t()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t(!marlin_client::is_printing()), is_hidden_t::no) {
 }
