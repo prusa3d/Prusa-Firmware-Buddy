@@ -50,7 +50,6 @@ exclude: |
     ^lib/Catch2/|
     ^lib/CrashCatcher/|
     ^lib/Drivers/|
-    ^lib/ESP/prusa/src/serial-flasher/serial_comm.c|
     ^lib/ESP/serial-flasher/|
     ^lib/Marlin/(?!
         Marlin/src(/gcode)?/feature/prusa/|

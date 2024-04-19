@@ -7,6 +7,9 @@ add_subdirectory(logging)
 add_subdirectory(common)
 
 if(BOARD MATCHES "BUDDY")
+  add_subdirectory(buddy-esp-serial-flasher)
+  target_link_libraries(firmware PRIVATE buddy-esp-serial-flasher)
+
   add_subdirectory(persistent_stores)
 
   if(CONNECT OR WUI)

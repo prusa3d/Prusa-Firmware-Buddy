@@ -11,10 +11,6 @@
 #include "marlin_server.hpp"
 #include "unique_file_ptr.hpp"
 
-extern "C" {
-#include <stm32_port.h>
-}
-
 enum class esp_upload_action {
     Initial,
     Initial_wait_user,

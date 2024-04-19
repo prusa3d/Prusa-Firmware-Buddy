@@ -18,6 +18,7 @@
 #include <bsod.h>
 #include <lwip/netifapi.h>
 
+#include <buddy/esp_uart_dma_buffer_rx.hpp>
 #include "main.h"
 #include "../metric.h"
 #include "pbuf_rx.h"
@@ -26,9 +27,7 @@
 #include <option/has_embedded_esp32.h>
 #include <random.h>
 
-extern "C" {
-#include "stm32_port.h"
-}
+#include "buddy_port.hpp"
 
 #include "ff.h"
 #include "wui_api.h"
@@ -681,14 +680,7 @@ void espif_flash_initialize(const bool take_down_interfaces) {
         std::lock_guard lock { uart_write_mutex };
         esp_operating_mode = ESPIF_FLASHING_MODE;
         espif_reconfigure_uart(FLASH_UART_BAUDRATE);
-        loader_stm32_config_t loader_config = {
-            .huart = &ESP_UART_HANDLE,
-            .port_io0 = ESP_GPIO0_GPIO_Port,
-            .pin_num_io0 = ESP_GPIO0_Pin,
-            .port_rst = ESP_RST_GPIO_Port,
-            .pin_num_rst = ESP_RST_Pin,
-        };
-        loader_port_stm32_init(&loader_config);
+        loader_port_buddy_init();
     }
     if (take_down_interfaces) {
         force_down();

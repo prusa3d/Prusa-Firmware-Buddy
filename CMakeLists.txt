@@ -660,7 +660,6 @@ if(BOARD MATCHES "BUDDY")
             Arduino::TMCStepper
             LwIP
             FatFs
-            flasher
             littlefs
             STM32::USBHost
             inih::inih
