@@ -874,7 +874,6 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                = ./lib/Catch2 \
-                         ./lib/ESP \
                          ./build \
                          ./build-vscode-buddy \
 
