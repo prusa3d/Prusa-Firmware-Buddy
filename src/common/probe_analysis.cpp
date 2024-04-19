@@ -32,7 +32,7 @@ ProbeAnalysisBase::Result ProbeAnalysisBase::Analyse() {
 
 #ifdef PROBE_ANALYSIS_WITH_METRICS
     auto relative_position = [&window = this->window](Sample sample) {
-        return static_cast<float>(sample - window.begin()) / static_cast<float>(window.size());
+        return static_cast<double>(sample - window.begin()) / static_cast<double>(window.size());
     };
     METRIC_DEF(probe_window_metric, "probe_window", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
     metric_record_custom(&probe_window_metric, " as=%0.3f,fe=%0.3f,rs=%0.3f,ae=%0.3f",
@@ -263,7 +263,7 @@ bool ProbeAnalysisBase::CheckLineSanity(Features &features) {
 
 void ProbeAnalysisBase::CalculateLoadMeans(Features &features) {
     auto calcLoadMean = [](SamplesRange samples) {
-        return std::accumulate(samples.begin(), samples.end(), 0.0, [](float acc, Record const &record) {
+        return std::accumulate(samples.begin(), samples.end(), 0.0f, [](float acc, Record const &record) {
             return acc + record.load;
         }) / static_cast<float>(samples.Size());
     };
@@ -298,7 +298,7 @@ ProbeAnalysisBase::SegmentedR2s ProbeAnalysisBase::CalculateSegmentedR2s(Feature
     size_t segmentSamples = static_cast<size_t>(segment / samplingInterval);
 
     auto calcR2AroundTime = [&](SamplesRange leftSamples, Line leftLine,
-                                Time middleTime,
+                                [[maybe_unused]] Time middleTime,
                                 SamplesRange rightSamples, Line rightLine) {
         std::array<VarianceInfo, 2> variance;
         variance[0] = CalculateVariance(leftSamples.ending(segmentSamples), leftLine);
