@@ -72,6 +72,7 @@ exclude: |
     ^lib/Segger|
     ^lib/TMCStepper/|
     ^lib/cpp-std-extensions/|
+    ^lib/esp-serial-flasher/|
     ^lib/heatshrink/|
     ^lib/inih/|
     ^lib/jsmn/|
