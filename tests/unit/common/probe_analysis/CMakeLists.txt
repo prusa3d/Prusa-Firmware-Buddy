@@ -1,5 +1,5 @@
 # define the test executable
-add_executable(probe_analysis_tests tests.cpp)
+add_executable(probe_analysis_tests ${CMAKE_SOURCE_DIR}/src/common/probe_analysis.cpp tests.cpp)
 
 # define required search paths
 target_include_directories(probe_analysis_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/common)
