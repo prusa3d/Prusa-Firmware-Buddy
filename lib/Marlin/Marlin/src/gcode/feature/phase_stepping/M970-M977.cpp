@@ -6,12 +6,9 @@
 #include <feature/phase_stepping/phase_stepping.hpp>
 #include <feature/phase_stepping/calibration.hpp>
 
-#include <log.h>
 #include <vector>
 #include <string_view>
 #include <config_store/store_instance.hpp>
-
-LOG_COMPONENT_REF(PhaseStepping);
 
 using namespace std::literals;
 using phase_stepping::opts::SERIAL_DECIMALS;
