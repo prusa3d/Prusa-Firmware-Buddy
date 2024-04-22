@@ -63,7 +63,7 @@ const SpinConfigInt SpinCnf::int_num = SpinConfigInt({ 0, std::numeric_limits<in
 const SpinConfigInt SpinCnf::correction_range = SpinConfigInt({ -100, 100, 1 }, um, spin_off_opt_t::no);
 #endif
 
-const SpinConfigFlt SpinCnf::nozzle_diameter = SpinConfigFlt({ 0.25, 1.00, 0.05 }, mm, spin_off_opt_t::no, format_point2);
+const SpinConfigFlt SpinCnf::nozzle_diameter = SpinConfigFlt({ 0.20, 1.20, 0.05 }, mm, spin_off_opt_t::no, format_point2);
 #if XL_ENCLOSURE_SUPPORT()
 const SpinConfigInt SpinCnf::enclosure_fan = SpinConfigInt(MenuVars::enclosure_fan_percent_range, Percent);
 #endif
