@@ -331,12 +331,6 @@ public:
      */
     bool HasOutOfRangeFeature(Features &features, const char **feature, float *value) const;
 
-    template <class ReverseIterator>
-    static typename ReverseIterator::iterator_type make_forward(ReverseIterator rit) {
-        auto base = rit.base();
-        return --base;
-    }
-
 protected:
     ProbeAnalysisBase(CircleBufferBaseT<Record> &window, float loadDelay, int skipBorderSamples)
         : loadDelay(loadDelay)

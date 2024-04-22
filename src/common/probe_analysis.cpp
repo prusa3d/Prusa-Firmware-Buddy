@@ -187,13 +187,17 @@ void ProbeAnalysisBase::CalculateHaltSpan(Features &features) {
     Sample riseStart = fallEnd;
     bool extendingHalt = true;
 
+    const auto to_forward_iterator = [](auto rit) {
+        return rit.base() - 1;
+    };
+
     // iterate backwards and find range of the first global minimum
     for (auto it = window.rbegin(); it < window.rbegin() + window.Count(); ++it) {
         if (it->z < fallEnd->z) {
-            fallEnd = riseStart = make_forward(it);
+            fallEnd = riseStart = to_forward_iterator(it);
             extendingHalt = true;
         } else if (extendingHalt && it->z == fallEnd->z) {
-            fallEnd = make_forward(it);
+            fallEnd = to_forward_iterator(it);
         } else {
             extendingHalt = false;
         }
