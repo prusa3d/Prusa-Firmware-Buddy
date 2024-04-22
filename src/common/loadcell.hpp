@@ -28,7 +28,7 @@ public:
     static constexpr float XY_PROBE_THRESHOLD { 40 };
     static constexpr float XY_PROBE_HYSTERESIS { 20 };
 
-    buddy::ProbeAnalysis<300> analysis;
+    buddy::ProbeAnalysis<320> analysis;
     std::atomic<bool> xy_endstop_enabled { false };
     static_assert(std::atomic<decltype(xy_endstop_enabled)::value_type>::is_always_lock_free, "Lock free type must be used from ISR.");
 
