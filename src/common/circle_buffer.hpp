@@ -25,12 +25,6 @@ public:
         }
         return add;
     }
-    void incrementIndex(size_t &index) const {
-        index = normalizedAddition(index, 1);
-    }
-    void decrementIndex(size_t &index) const {
-        index = normalizedAddition(index, -1);
-    }
 
 public:
     size_t Count() const {
@@ -92,9 +86,7 @@ public:
 
         /// Addition
         template_iterator operator+(difference_type add) const {
-            template_iterator tmp = *this;
-            tmp.current_pos = buffer->normalizedAddition(tmp.current_pos, add);
-            return tmp;
+            return template_iterator(buffer, buffer->normalizedAddition(current_pos, add));
         }
 
         friend template_iterator operator+(difference_type add, const template_iterator &other) { return other.operator+(add); }
@@ -139,20 +131,16 @@ public:
 
         /// Difference
         friend difference_type operator-(const template_iterator &a, const template_iterator &b) {
-            return a.buffer->normalizedAddition(a.current_pos,
-                       -1 * static_cast<int>(a.buffer->begin_pos))
-                - a.buffer->normalizedAddition(b.current_pos,
-                    -1 * static_cast<int>(b.buffer->begin_pos));
+            return a.buffer->normalizedAddition(a.current_pos, -static_cast<int>(a.buffer->begin_pos))
+                - a.buffer->normalizedAddition(b.current_pos, -static_cast<int>(b.buffer->begin_pos));
         };
 
         /// Comparison
         friend std::strong_ordering operator<=>(const template_iterator &a, const template_iterator &b) {
-            return a.buffer->normalizedAddition(a.current_pos,
-                       -1 * static_cast<int>(a.buffer->begin_pos))
-                <=> a.buffer->normalizedAddition(b.current_pos,
-                    -1 * static_cast<int>(b.buffer->begin_pos));
+            return a.buffer->normalizedAddition(a.current_pos, -static_cast<int>(a.buffer->begin_pos))
+                <=> a.buffer->normalizedAddition(b.current_pos, -static_cast<int>(b.buffer->begin_pos));
         };
-        friend bool operator==(const template_iterator &a, const template_iterator &b) { return a.current_pos == b.current_pos; };
+        friend bool operator==(const template_iterator &, const template_iterator &) = default;
 
         /// Conversion to const_iterator
         operator template_iterator<true>() const { return template_iterator<true>(buffer, current_pos); };
@@ -190,21 +178,11 @@ public:
 
     void push_back(T elem) {
         data[end_pos] = elem;
-        incrementIndex(end_pos);
-        if (begin_pos == end_pos) { // begin just was erased, set new begin
-            incrementIndex(begin_pos);
-        }
-    }
+        end_pos = normalizedAddition(end_pos, 1);
 
-    bool push_back_DontRewrite(T elem) {
-        size_t index = end_pos;
-        incrementIndex(index);
-        if (begin_pos == index) { // full
-            return false;
-        } else {
-            data[index] = elem;
-            end_pos = index;
-            return true;
+        // Buffer is now full, ditch the last element
+        if (begin_pos == end_pos) {
+            begin_pos = normalizedAddition(begin_pos, 1);
         }
     }
 
@@ -214,7 +192,7 @@ public:
             return false;
         }
         elem = GetFirstIfAble();
-        incrementIndex(begin_pos);
+        begin_pos = normalizedAddition(begin_pos, 1);
         return true;
     }
 
@@ -224,7 +202,7 @@ public:
             return false;
         }
         elem = GetLastIfAble();
-        decrementIndex(end_pos);
+        end_pos = normalizedAddition(end_pos, -1);
         return true;
     }
 
@@ -235,9 +213,7 @@ public:
 
     // data must be processed before next push_back, must not be empty
     const T &GetLastIfAble() const {
-        size_t index = end_pos;
-        decrementIndex(index);
-        return data[index];
+        return data[normalizedAddition(end_pos, -1)];
     }
 
 protected:
