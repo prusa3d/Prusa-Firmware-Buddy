@@ -252,17 +252,17 @@ bool ProbeAnalysisBase::CalculateZLineApproximationFeatures(Features &features) 
 }
 
 bool ProbeAnalysisBase::CheckLineSanity(Features &features) {
+    const auto analysis_start_time = TimeOfSample(features.analysisStart);
+    const auto analysis_end_time = TimeOfSample(features.analysisEnd);
+
     // times are in expected order
     bool timesInOrder = true;
-    timesInOrder &= TimeOfSample(features.analysisStart) < features.compressionStartTime;
+    timesInOrder &= analysis_start_time < features.compressionStartTime;
     timesInOrder &= features.compressionStartTime < features.compressionEndTime;
     timesInOrder &= features.compressionEndTime < features.decompressionStartTime;
     timesInOrder &= features.decompressionStartTime < features.decompressionEndTime;
-    timesInOrder &= features.decompressionEndTime < TimeOfSample(features.analysisEnd);
-    if (!timesInOrder) {
-        return false;
-    }
-    return true;
+    timesInOrder &= features.decompressionEndTime < analysis_end_time;
+    return timesInOrder;
 }
 
 void ProbeAnalysisBase::CalculateLoadMeans(Features &features) {
@@ -310,8 +310,7 @@ ProbeAnalysisBase::SegmentedR2s ProbeAnalysisBase::CalculateSegmentedR2s(Feature
         return CalculateR2FromSegmentedVariance(variance.begin(), variance.end());
     };
 
-    Sample compressionStart
-        = ClosestSample(features.compressionStartTime, SearchDirection::Backward);
+    Sample compressionStart = ClosestSample(features.compressionStartTime, SearchDirection::Backward);
     Sample compressionEnd = ClosestSample(features.compressionEndTime, SearchDirection::Backward);
     Sample decompressionStart = ClosestSample(features.decompressionStartTime, SearchDirection::Backward);
     Sample decompressionEnd = ClosestSample(features.decompressionEndTime, SearchDirection::Backward);

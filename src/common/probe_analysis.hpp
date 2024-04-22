@@ -103,10 +103,10 @@ public:
     };
 
     struct SegmentedR2s {
-        float compressionStart;
-        float compressionEnd;
-        float decompressionStart;
-        float decompressionEnd;
+        float compressionStart = std::numeric_limits<Time>::quiet_NaN();
+        float compressionEnd = std::numeric_limits<Time>::quiet_NaN();
+        float decompressionStart = std::numeric_limits<Time>::quiet_NaN();
+        float decompressionEnd = std::numeric_limits<Time>::quiet_NaN();
     };
 
     struct Features {
@@ -119,22 +119,22 @@ public:
         Sample analysisEnd;
 
         Line beforeCompressionLine;
-        Time compressionStartTime;
+        Time compressionStartTime = std::numeric_limits<Time>::quiet_NaN();
         Line compressionLine;
-        Time compressionEndTime;
+        Time compressionEndTime = std::numeric_limits<Time>::quiet_NaN();
         Line compressedLine;
-        Time decompressionStartTime;
+        Time decompressionStartTime = std::numeric_limits<Time>::quiet_NaN();
         Line decompressionLine;
-        Time decompressionEndTime;
+        Time decompressionEndTime = std::numeric_limits<Time>::quiet_NaN();
         Line afterDecompressionLine;
 
-        float loadMeanBeforeCompression;
-        float loadMeanAfterDecompression;
+        float loadMeanBeforeCompression = std::numeric_limits<Time>::quiet_NaN();
+        float loadMeanAfterDecompression = std::numeric_limits<Time>::quiet_NaN();
 
-        float loadAngleCompressionStart;
-        float loadAngleCompressionEnd;
-        float loadAngleDecompressionStart;
-        float loadAngleDecompressionEnd;
+        float loadAngleCompressionStart = std::numeric_limits<Time>::quiet_NaN();
+        float loadAngleCompressionEnd = std::numeric_limits<Time>::quiet_NaN();
+        float loadAngleDecompressionStart = std::numeric_limits<Time>::quiet_NaN();
+        float loadAngleDecompressionEnd = std::numeric_limits<Time>::quiet_NaN();
 
         SegmentedR2s r2_20ms;
         SegmentedR2s r2_30ms;
