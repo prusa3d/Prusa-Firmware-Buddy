@@ -93,6 +93,10 @@ public:
         template_iterator operator+(const template_iterator &other) const { return operator+(other.current_pos); }
         reference operator[](difference_type add) const { return *operator+(add); }
 
+        size_t position() const {
+            return buffer->normalizedAddition(current_pos, -static_cast<int>(buffer->begin_pos));
+        }
+
         /// Addition assignment
         template_iterator &operator+=(difference_type add) {
             current_pos = buffer->normalizedAddition(current_pos, add);
@@ -131,15 +135,14 @@ public:
 
         /// Difference
         friend difference_type operator-(const template_iterator &a, const template_iterator &b) {
-            return a.buffer->normalizedAddition(a.current_pos, -static_cast<int>(a.buffer->begin_pos))
-                - a.buffer->normalizedAddition(b.current_pos, -static_cast<int>(b.buffer->begin_pos));
+            return a.position() - b.position();
         };
 
         /// Comparison
         friend std::strong_ordering operator<=>(const template_iterator &a, const template_iterator &b) {
-            return a.buffer->normalizedAddition(a.current_pos, -static_cast<int>(a.buffer->begin_pos))
-                <=> a.buffer->normalizedAddition(b.current_pos, -static_cast<int>(b.buffer->begin_pos));
+            return a.position() <=> b.position();
         };
+
         friend bool operator==(const template_iterator &, const template_iterator &) = default;
 
         /// Conversion to const_iterator
