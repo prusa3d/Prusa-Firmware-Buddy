@@ -211,18 +211,15 @@ bool ProbeAnalysisBase::CalculateAnalysisRange(Features &features) {
     int lookbackSamples = analysisLookback / samplingInterval;
     int lookaheadSamples = analysisLookahead / samplingInterval;
 
-    Sample analysisStart = features.fallEnd - lookbackSamples;
-    Sample analysisEnd = features.riseStart + lookaheadSamples;
-
-    if (analysisStart < window.begin() || analysisStart >= window.end()) {
+    if (features.fallEnd - window.begin() < lookbackSamples) {
         return false;
     }
-    if (analysisEnd < window.begin() || analysisEnd >= window.end()) {
+    if (window.end() - features.riseStart < lookaheadSamples) {
         return false;
     }
 
-    features.analysisStart = analysisStart;
-    features.analysisEnd = analysisEnd;
+    features.analysisStart = features.fallEnd - lookbackSamples;
+    features.analysisEnd = features.riseStart + lookaheadSamples;
     return true;
 }
 
