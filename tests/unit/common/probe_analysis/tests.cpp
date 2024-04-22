@@ -81,7 +81,7 @@ SCENARIO("Analysis properly handles its sample window", "[probe_analysis]") {
             analysis.StoreSample(0, 0);
 
             THEN("the internal counter increases") {
-                REQUIRE(analysis.window.Count() == 2);
+                REQUIRE(analysis.window.size() == 2);
             }
 
             THEN("it is still not ready") {
@@ -180,7 +180,7 @@ SCENARIO("Analysis properly handles its sample window", "[probe_analysis]") {
             }
 
             THEN("the instance has an empty window") {
-                REQUIRE(analysis.window.Count() == 0);
+                REQUIRE(analysis.window.size() == 0);
             }
         }
     }

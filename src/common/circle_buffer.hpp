@@ -9,7 +9,7 @@ class CircleBufferBase {
 
 public:
     /**
-     * @brief Add and normalize index to be in range [0, SIZE).
+     * @brief Add and normalize index to be in range [0, capacity).
      * Efficient for small deviations from the range.
      * @param index index
      * @param add addition to index
@@ -17,25 +17,27 @@ public:
      */
     size_t normalizedAddition(size_t index, int add) const {
         add += static_cast<int>(index);
-        while (add >= static_cast<int>(size_)) {
-            add -= size_;
+        while (add >= static_cast<int>(capacity_)) {
+            add -= capacity_;
         }
         while (add < 0) {
-            add += size_;
+            add += capacity_;
         }
         return add;
     }
 
 public:
-    size_t Count() const {
-        return (end_pos + size_ - begin_pos) % size_;
+    /// Returns number of elements in the circle buffer
+    size_t size() const {
+        return (end_pos + capacity_ - begin_pos) % capacity_;
     }
+
     bool IsEmpty() const {
         return begin_pos == end_pos;
     }
 
-    size_t size() const {
-        return size_ - 1;
+    size_t capacity() const {
+        return capacity_ - 1;
     }
 
     void clear() {
@@ -43,12 +45,12 @@ public:
     }
 
 protected:
-    CircleBufferBase(size_t size)
-        : size_(size) {
+    CircleBufferBase(size_t capacity)
+        : capacity_(capacity) {
     }
 
 protected:
-    const size_t size_;
+    const size_t capacity_;
     size_t begin_pos = 0; // position of first element
     size_t end_pos = 0; // position behind last element == write position
 };
@@ -220,8 +222,8 @@ public:
     }
 
 protected:
-    CircleBufferBaseT(Elem *data, size_t size)
-        : CircleBufferBase(size)
+    CircleBufferBaseT(Elem *data, size_t capacity)
+        : CircleBufferBase(capacity)
         , data(data) {
     }
 
@@ -234,15 +236,15 @@ protected:
 // you can never use entire size
 // because write position (end) cannot be equal to begin
 // because begin == end == empty
-template <class T, size_t SIZE>
+template <class T, size_t capacity>
 class CircleBuffer : public CircleBufferBaseT<T> {
 
 public:
     CircleBuffer()
-        : CircleBufferBaseT<T>(data_buffer.data(), SIZE) {
+        : CircleBufferBaseT<T>(data_buffer.data(), capacity) {
         this->clear();
     }
 
 protected:
-    std::array<T, SIZE> data_buffer;
+    std::array<T, capacity> data_buffer;
 };

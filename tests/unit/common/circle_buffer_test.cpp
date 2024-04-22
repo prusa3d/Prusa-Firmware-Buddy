@@ -12,25 +12,25 @@ TEST_CASE("CircleBuffer Operations", "[circle_buffer]") {
     T elem;
 
     // Fill
-    CHECK(cb.Count() == 0);
+    CHECK(cb.size() == 0);
     cb.push_back({ 1, 2 });
-    CHECK(cb.Count() == 1);
+    CHECK(cb.size() == 1);
     cb.push_back({ 2, 3 });
-    CHECK(cb.Count() == 2);
+    CHECK(cb.size() == 2);
     cb.push_back({ 3, 4 });
-    CHECK(cb.Count() == 3);
+    CHECK(cb.size() == 3);
     cb.push_back({ 4, 5 });
-    CHECK(cb.Count() == 4);
+    CHECK(cb.size() == 4);
 
     SECTION("adding past size") {
         // Can fit only 4 elements
         cb.push_back({ 5, 6 });
-        CHECK(cb.Count() == 4);
+        CHECK(cb.size() == 4);
 
         // Still only 4 elements
         cb.push_back({ 6, 7 });
         cb.push_back({ 7, 8 });
-        CHECK(cb.Count() == 4);
+        CHECK(cb.size() == 4);
 
         // Last 4 should remain
         for (int i = 0; i < 4; i++) {
@@ -42,7 +42,7 @@ TEST_CASE("CircleBuffer Operations", "[circle_buffer]") {
     SECTION("clear") {
         // Clear all
         cb.clear();
-        CHECK(cb.Count() == 0);
+        CHECK(cb.size() == 0);
         CHECK(cb.ConsumeFirst(elem) == false);
         CHECK(cb.ConsumeLast(elem) == false);
     }
@@ -54,7 +54,7 @@ TEST_CASE("CircleBuffer Operations", "[circle_buffer]") {
         CHECK(elem.b == 2);
 
         // 3 should remain
-        CHECK(cb.Count() == 3);
+        CHECK(cb.size() == 3);
         for (int i = 0; i < 3; i++) {
             CHECK(cb[i].a == i + 2);
             CHECK(cb[i].b == i + 3);
@@ -66,7 +66,7 @@ TEST_CASE("CircleBuffer Operations", "[circle_buffer]") {
         CHECK(elem.b == 5);
 
         // 2 should remain
-        CHECK(cb.Count() == 2);
+        CHECK(cb.size() == 2);
         for (int i = 0; i < 2; i++) {
             CHECK(cb[i].a == i + 2);
             CHECK(cb[i].b == i + 3);

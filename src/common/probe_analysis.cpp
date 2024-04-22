@@ -32,7 +32,7 @@ ProbeAnalysisBase::Result ProbeAnalysisBase::Analyse() {
 
 #ifdef PROBE_ANALYSIS_WITH_METRICS
     auto relative_position = [&window = this->window](Sample sample) {
-        return static_cast<double>(sample - window.begin()) / static_cast<double>(window.size());
+        return static_cast<double>(sample - window.begin()) / static_cast<double>(window.capacity());
     };
     METRIC_DEF(probe_window_metric, "probe_window", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
     metric_record_custom(&probe_window_metric, " as=%0.3f,fe=%0.3f,rs=%0.3f,ae=%0.3f",
@@ -170,7 +170,7 @@ std::tuple<ProbeAnalysisBase::Sample, ProbeAnalysisBase::Line, ProbeAnalysisBase
 void ProbeAnalysisBase::CompensateForSystemDelay() {
     // Shift Z samples right (to the future)
     int samplesToShift = loadDelay / samplingInterval;
-    assert(std::size(window) - static_cast<size_t>(samplesToShift) > 2);
+    assert(window.size() - static_cast<size_t>(samplesToShift) > 2);
     auto it = window.rbegin();
     for (; it < window.rend() - samplesToShift; ++it) {
         it->z = (it + samplesToShift)->z;
@@ -192,7 +192,7 @@ void ProbeAnalysisBase::CalculateHaltSpan(Features &features) {
     };
 
     // iterate backwards and find range of the first global minimum
-    for (auto it = window.rbegin(); it < window.rbegin() + window.Count(); ++it) {
+    for (auto it = window.rbegin(), e = window.rend(); it != e; ++it) {
         if (it->z < fallEnd->z) {
             fallEnd = riseStart = to_forward_iterator(it);
             extendingHalt = true;
