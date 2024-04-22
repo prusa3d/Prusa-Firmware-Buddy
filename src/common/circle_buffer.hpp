@@ -55,8 +55,8 @@ protected:
 
 protected:
     const size_t size_;
-    size_t begin_pos; // position of first element
-    size_t end_pos; // position behind last element == write position
+    size_t begin_pos = 0; // position of first element
+    size_t end_pos = 0; // position behind last element == write position
 };
 
 template <class T>
