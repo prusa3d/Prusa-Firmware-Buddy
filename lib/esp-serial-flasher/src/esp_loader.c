@@ -462,6 +462,12 @@ esp_loader_error_t esp_loader_flash_verify(void)
     return ESP_LOADER_SUCCESS;
 }
 
+esp_loader_error_t esp_loader_md5_region(const uintptr_t address, const uint32_t size, uint8_t checksum_string[32]) {
+    loader_port_start_timer(timeout_per_mb(size, MD5_TIMEOUT_PER_MB));
+    RETURN_ON_ERROR(loader_md5_cmd(address, size, (uint8_t*)checksum_string));
+    return ESP_LOADER_SUCCESS;
+}
+
 #endif
 
 void esp_loader_reset_target(void)
