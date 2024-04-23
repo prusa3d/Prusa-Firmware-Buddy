@@ -125,7 +125,7 @@ void ScreenMenuMove::checkNozzleTemp() {
     // MI_COOLDOWN is always visible on multitool
 #endif /*HAS_TOOLCHANGER()*/
     {
-        DUMMY_AXIS_E::IsTargetTempOk() ? EnableItem<MI_COOLDOWN>() : DisableItem<MI_COOLDOWN>();
+        Item<MI_COOLDOWN>().set_is_enabled(DUMMY_AXIS_E::IsTargetTempOk());
     }
 
     if (IsTempOk() == Item<MI_AXIS_E>().IsHidden()) {

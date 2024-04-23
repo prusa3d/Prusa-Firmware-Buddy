@@ -47,19 +47,6 @@ public:
         return std::get<TYPE>(container.menu_items);
     }
 
-    template <class ITEM>
-    void DisableItem() {
-        if (Item<ITEM>().IsEnabled()) {
-            Item<ITEM>().Disable(); // This method can fail (you can't disable focused item)
-        }
-    }
-    template <class ITEM>
-    void EnableItem() {
-        if (!Item<ITEM>().IsEnabled()) {
-            Item<ITEM>().Enable();
-        }
-    }
-
     // cannot hide focused item
     template <class ITEM>
     bool Hide() {
