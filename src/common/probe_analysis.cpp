@@ -188,7 +188,8 @@ void ProbeAnalysisBase::CalculateHaltSpan(Features &features) {
     bool extendingHalt = true;
 
     const auto to_forward_iterator = [](auto rit) {
-        return rit.base() - 1;
+        auto r = rit.base();
+        return --r;
     };
 
     // iterate backwards and find range of the first global minimum
