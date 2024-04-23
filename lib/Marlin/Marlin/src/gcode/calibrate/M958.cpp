@@ -417,8 +417,10 @@ vibrate_measure(StepEventFlag_t axis_flag, bool klipper_mode, float frequency_re
             if (samples && !enough_samples_collected && (step_nr > STEP_EVENT_QUEUE_SIZE)) {
                 metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)measured_acceleration.val[0], (double)measured_acceleration.val[1], (double)measured_acceleration.val[2]);
                 const float accelerometer_time_2pi_freq = freq_2pi * accelerometer_period_time;
+                const std::complex<float> amplitude = { sinf(accelerometer_time_2pi_freq), cosf(accelerometer_time_2pi_freq) };
+
                 for (int axis = 0; axis < num_axis; ++axis) {
-                    acumulator.val[axis] += std::polar<double>(measured_acceleration.val[axis], accelerometer_time_2pi_freq);
+                    acumulator.val[axis] += amplitude * measured_acceleration.val[axis];
                 }
 
                 ++sample_nr;
