@@ -20,20 +20,6 @@ WindowMenu::WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContai
     }
 }
 
-bool WindowMenu::move_focus_to_index(std::optional<int> index) {
-    if (!index) {
-        IWindowMenuItem::move_focus(nullptr);
-        return true;
-    }
-
-    if (pContainer && pContainer->SetIndex(*index)) {
-        ensure_item_on_screen(index);
-        return true;
-    }
-
-    return false;
-}
-
 std::optional<int> WindowMenu::focused_item_index() const {
     return pContainer ? pContainer->GetFocusedIndex() : std::nullopt;
 }

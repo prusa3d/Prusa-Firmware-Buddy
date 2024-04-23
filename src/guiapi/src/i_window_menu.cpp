@@ -65,6 +65,22 @@ bool IWindowMenu::scroll_page(PageScrollDirection direction) {
     return true;
 }
 
+bool IWindowMenu::move_focus_to_index(std::optional<int> index) {
+    if (!index) {
+        IWindowMenuItem::move_focus(nullptr);
+        return true;
+    }
+
+    ensure_item_on_screen(index);
+
+    if (auto item = item_at(*index)) {
+        item->move_focus();
+        return true;
+    }
+
+    return false;
+}
+
 bool IWindowMenu::move_focus_by(int amount, YNPlaySound play_sound) {
     int new_index;
 
