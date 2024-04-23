@@ -6,6 +6,8 @@
 # cmake .. <other options> -DPRINTER=MINI
 # ~~~
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(PRINTER_VALID_OPTS "MINI" "MK4" "MK3.5" "XL" "iX" "XL_DEV_KIT")
 set(BOARD_VALID_OPTS
     "<default>"

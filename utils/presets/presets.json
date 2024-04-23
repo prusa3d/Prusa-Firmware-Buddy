@@ -5,7 +5,6 @@
             "name": "mini",
             "description": "Original Prusa MINI",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
@@ -17,7 +16,6 @@
             "name": "mini-en-cs",
             "description": "Original Prusa MINI (EN & CS translation)",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
@@ -30,7 +28,6 @@
             "name": "mini-en-de",
             "description": "Original Prusa MINI (EN & DE translation)",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
@@ -43,7 +40,6 @@
             "name": "mini-en-es",
             "description": "Original Prusa MINI (EN & ES translation)",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
@@ -56,7 +52,6 @@
             "name": "mini-en-fr",
             "description": "Original Prusa MINI (EN & FR translation)",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
@@ -69,7 +64,6 @@
             "name": "mini-en-it",
             "description": "Original Prusa MINI (EN & IT translation)",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
@@ -82,7 +76,6 @@
             "name": "mini-en-pl",
             "description": "Original Prusa MINI (EN & PL translation)",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MINI",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
@@ -95,7 +88,6 @@
             "name": "mk4",
             "description": "Original Prusa MK4 with xBuddy 0.2.7c or newer fw compatible, 400-step motors and planetary gearbox",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MK4",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.2.7",
@@ -106,7 +98,6 @@
             "name": "mk3.5",
             "description": "Original Prusa MK3.5 with xBuddy 0.3.7c or newer fw compatible, 200-step motors and MK3 extruder",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MK3.5",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.2.7"
@@ -116,7 +107,6 @@
             "name": "ix",
             "description": "Original Prusa iX with xBuddy 0.2.7c or newer, with 200-step motors",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "iX",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.2.7",
@@ -130,7 +120,6 @@
             "name": "xl",
             "description": "Original Prusa XL",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "XL",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.9.0",
@@ -150,7 +139,6 @@
             "name": "xl-burst",
             "description": "Original Prusa XL with Burst Stepping",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "XL",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.9.0",
@@ -171,7 +159,6 @@
             "name": "xl-knoblet",
             "description": "Knoblet of Original Prusa XL",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "XL",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.5.0",
@@ -191,7 +178,6 @@
             "name": "xl_dev_kit",
             "description": "Original Prusa xl_dev_kit",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "XL_DEV_KIT",
                 "BOARD": "XL_DEV_KIT_XLB",
                 "PRESET_COMPILE_OPTIONS": "",
@@ -202,7 +188,6 @@
             "name": "xl-dwarf",
             "description": "Original Prusa XL's Dwarf (the extruder puppy)",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "XL",
                 "BOARD": "DWARF",
                 "BOARD_VERSION": "0.6.0",
@@ -213,7 +198,6 @@
             "name": "xl-modularbed",
             "description": "Original Prusa XL's Modular Bed",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "XL",
                 "BOARD": "MODULARBED",
                 "BOARD_VERSION": "0.7.0",
@@ -224,7 +208,6 @@
             "name": "ix-modularbed",
             "description": "Original Prusa iX's Modular Bed",
             "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "iX",
                 "BOARD": "MODULARBED",
                 "BOARD_VERSION": "0.7.0",
