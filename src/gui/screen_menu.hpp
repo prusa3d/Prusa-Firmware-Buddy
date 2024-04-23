@@ -47,17 +47,6 @@ public:
         return std::get<TYPE>(container.menu_items);
     }
 
-    // cannot hide focused item
-    template <class ITEM>
-    bool Hide() {
-        return menu.Hide(Item<ITEM>());
-    }
-
-    template <class ITEM>
-    void Show() {
-        menu.Show(Item<ITEM>());
-    }
-
     template <class ITEM1, class ITEM2>
     bool SwapVisibility() {
         return menu.SwapVisibility(Item<ITEM1>(), Item<ITEM2>());

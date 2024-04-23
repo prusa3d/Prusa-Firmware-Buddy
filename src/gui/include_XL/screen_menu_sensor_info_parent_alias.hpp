@@ -67,8 +67,8 @@ public:
     template <int N>
     void hide_fs_ref(uint8_t tool_nr) {
         if (tool_nr != N) {
-            Hide<MI_FS_REF<N, false>>();
-            Hide<MI_FS_REF<N, true>>();
+            Item<MI_FS_REF<N, false>>().set_is_hidden(true);
+            Item<MI_FS_REF<N, true>>().set_is_hidden(true);
         }
         if constexpr (N > 0) {
             hide_fs_ref<N - 1>(tool_nr);

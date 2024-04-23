@@ -77,7 +77,7 @@ ISheetProfileMenuScreen::ISheetProfileMenuScreen(uint32_t value)
         Item<MI_SHEET_SELECT>().Enable();
         Item<MI_SHEET_RESET>().Enable();
         Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
-        Show<MI_SHEET_OFFSET>();
+        Item<MI_SHEET_OFFSET>().set_is_hidden(false);
     }
     if (value == 0) {
         Item<MI_SHEET_RESET>().Disable();

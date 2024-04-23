@@ -198,7 +198,7 @@ ScreenMenuMove::ScreenMenuMove()
 #endif
     prev_accel = marlin_vars()->travel_acceleration;
     marlin_client::gcode("M204 T200");
-    Hide<MI_AXIS_E>(); // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work
+    Item<MI_AXIS_E>().set_is_hidden(true); // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work
     checkNozzleTemp();
     ClrMenuTimeoutClose(); // No timeout for move screen
 }
