@@ -16,21 +16,6 @@ void espif_tx_callback();
 void espif_task_create();
 
 ////////////////////////////////////////////////////////////////////////////
-/// @brief Initialize ESP for flash write
-/// @param [in] take_down_interfaces Deinitialize network interfaces,
-///             set to false when run before networking is started.
-void espif_flash_initialize(const bool take_down_interfaces);
-
-////////////////////////////////////////////////////////////////////////////
-/// @brief Return to normal omode
-void espif_flash_deinitialize();
-
-////////////////////////////////////////////////////////////////////////////
-/// @brief Initialize hw access
-/// , shared mutex, uart config and state used by normal and flash mode.
-void espif_init_hw();
-
-////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize ESPIF (part of LwIP netif setup)
 /// Can be used only for one interface
 /// @param[in] netif Network interface to initialize
@@ -80,6 +65,14 @@ bool espif_need_ap();
 /// Perform a reset of the ESP and bring it up again.
 void espif_reset();
 
+enum FlashResult {
+    success = 0,
+    not_connected = 1,
+    failure = 2,
+};
+
+void espif_notify_flash_result(enum FlashResult result);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
@@ -99,8 +92,6 @@ enum class EspFwState {
     /// No communication from ESP detected. Either no ESP is present or it is
     /// completely silent (can it happen?)
     NoEsp,
-    /// The ESP is being flashed right now.
-    Flashing,
     /// The ESP is scanning for available APs
     Scanning,
     /// The state is not currently (yet) known.

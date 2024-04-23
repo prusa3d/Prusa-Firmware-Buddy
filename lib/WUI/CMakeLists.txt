@@ -45,10 +45,6 @@ if(MDNS)
   target_sources(WUI INTERFACE mdns/mdns.c mdns/mdns_domain.c mdns/mdns_out.c)
 endif()
 
-if(HAS_EMBEDDED_ESP32)
-  target_sources(WUI INTERFACE esp_flash.cpp)
-endif()
-
 if(NETWORKING_BENCHMARK_ENABLED)
   target_sources(
     WUI INTERFACE nhttp/networking_benchmark.cpp nhttp/networking_benchmark_selector.cpp

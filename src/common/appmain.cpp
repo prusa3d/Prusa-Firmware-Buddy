@@ -227,6 +227,7 @@ void app_run(void) {
     while (!TaskDeps::check(TaskDeps::Tasks::marlin_server)) {
         marlin_server::barebones_loop();
         osDelay(1);
+        watchdog_refresh();
     }
 
     while (1) {

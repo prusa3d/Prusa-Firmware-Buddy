@@ -305,7 +305,7 @@ esp_loader_error_t esp_loader_flash_start(uint32_t offset, uint32_t image_size, 
 }
 
 
-esp_loader_error_t esp_loader_flash_write(void *payload, uint32_t size)
+esp_loader_error_t esp_loader_flash_write(const void *payload, uint32_t size)
 {
     uint32_t padding_bytes = s_flash_write_size - size;
     uint8_t *data = (uint8_t *)payload;
@@ -401,10 +401,6 @@ esp_loader_error_t esp_loader_write_register(uint32_t address, uint32_t reg_valu
 
 esp_loader_error_t esp_loader_change_transmission_rate(uint32_t transmission_rate)
 {
-    if (s_target == ESP8266_CHIP) {
-        return ESP_LOADER_ERROR_UNSUPPORTED_FUNC;
-    }
-
     loader_port_start_timer(DEFAULT_TIMEOUT);
 
     return loader_change_baudrate_cmd(transmission_rate);

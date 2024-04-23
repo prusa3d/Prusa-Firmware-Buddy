@@ -27,7 +27,7 @@ else()
     )
 endif()
 
-if(HAS_EMBEDDED_ESP32)
+if(HAS_ESP_FLASH_TASK)
   target_sources(firmware PRIVATE esp_flash_task.cpp)
 else()
   target_sources(firmware PRIVATE esp_flash_task_trivial.cpp)

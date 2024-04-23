@@ -28,9 +28,6 @@
 #include <option/has_embedded_esp32.h>
 #include <random.h>
 
-#include "buddy_port.hpp"
-
-#include "ff.h"
 #include "wui_api.h"
 
 #include <lwip/def.h>
@@ -39,7 +36,6 @@
 #include <lwip/sys.h>
 
 #include "log.h"
-#include <Marlin/src/inc/MarlinConfigPre.h>
 
 LOG_COMPONENT_DEF(ESPIF, LOG_SEVERITY_INFO);
 
@@ -88,7 +84,6 @@ enum ESPIFOperatingMode {
     ESPIF_NEED_AP,
     ESPIF_CONNECTING_AP,
     ESPIF_RUNNING_MODE,
-    ESPIF_FLASHING_MODE,
     ESPIF_SCANNING_MODE,
     ESPIF_WRONG_FW,
 };
@@ -122,8 +117,6 @@ static std::atomic<bool> seen_intron = false;
 static std::atomic<bool> seen_rx_packet = false;
 
 // UART
-static const uint32_t NIC_UART_BAUDRATE = 4600000;
-static const uint32_t FLASH_UART_BAUDRATE = 115200;
 static std::atomic<bool> esp_detected;
 // Have we seen the ESP alive at least once?
 // (so we never ever report it as not there or no firmware or whatever).
@@ -131,7 +124,6 @@ static std::atomic<bool> esp_was_ok = false;
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
 static freertos::Mutex uart_write_mutex;
-static bool espif_initialized = false;
 static bool uart_has_recovered_from_error = false;
 // Note: We never transmit more than one message so we might as well allocate statically.
 static struct __attribute__((packed)) {
@@ -158,7 +150,7 @@ struct ScanData {
     static freertos::Mutex get_ap_info_mutex;
 };
 
-freertos::Mutex ScanData::get_ap_info_mutex{};
+freertos::Mutex ScanData::get_ap_info_mutex {};
 
 static ScanData scan;
 
@@ -176,8 +168,18 @@ static void hard_reset_device() {
     esp_detected = false;
 }
 
+static bool can_recieve_data(ESPIFOperatingMode mode);
+
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
-    if (huart->Instance == UART_INSTANCE_FOR(esp) && (huart->ErrorCode & HAL_UART_ERROR_NE || huart->ErrorCode & HAL_UART_ERROR_FE)) {
+    if (huart->Instance != UART_INSTANCE_FOR(esp)) {
+        return;
+    }
+
+    if (!can_recieve_data(esp_operating_mode)) {
+        return;
+    }
+
+    if ((huart->ErrorCode & HAL_UART_ERROR_NE || huart->ErrorCode & HAL_UART_ERROR_FE)) {
         __HAL_UART_DISABLE_IT(huart, UART_IT_IDLE);
         HAL_UART_DeInit(huart);
         if (HAL_UART_Init(huart) != HAL_OK) {
@@ -196,7 +198,6 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 
 static bool is_running(ESPIFOperatingMode mode) {
     switch (mode) {
-    case ESPIF_FLASHING_MODE:
     case ESPIF_UNINITIALIZED_MODE:
     case ESPIF_WRONG_FW:
     case ESPIF_SCANNING_MODE:
@@ -214,7 +215,6 @@ static bool is_running(ESPIFOperatingMode mode) {
 
 static bool can_recieve_data(ESPIFOperatingMode mode) {
     switch (mode) {
-    case ESPIF_FLASHING_MODE:
     case ESPIF_UNINITIALIZED_MODE:
     case ESPIF_WRONG_FW:
         return false;
@@ -393,32 +393,14 @@ static void espif_tx_update_metrics(uint32_t len) {
     return espif_tx_raw(MSG_PACKET_V2, up, p);
 }
 
-static err_t espif_reconfigure_uart(const uint32_t baudrate) {
-    ESP_UART_HANDLE.Init.BaudRate = baudrate;
-    int hal_uart_res = HAL_UART_Init(&ESP_UART_HANDLE);
-    if (hal_uart_res != HAL_OK) {
-        log_error(ESPIF, "HAL_UART_Init() failed: %d", hal_uart_res);
-        return ERR_IF;
-    }
-
-    assert(can_be_used_by_dma(dma_buffer_rx));
-    int hal_dma_res = HAL_UART_Receive_DMA(&ESP_UART_HANDLE, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
-    if (hal_dma_res != HAL_OK) {
-        log_error(ESPIF, "HAL_UART_Receive_DMA() failed: %d", hal_dma_res);
-        return ERR_IF;
-    }
-
-    return ERR_OK;
-}
-
 void espif_input_once(struct netif *netif) {
-    /* Read data */
-    size_t pos = 0;
+    if (!can_recieve_data(esp_operating_mode)) {
+        return;
+    }
 
-    /* Read data */
     uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(ESP_UART_HANDLE.hdmarx); // no. of bytes left for buffer full
-    pos = sizeof(dma_buffer_rx) - dma_bytes_left;
-    if (pos != old_dma_pos && can_recieve_data(esp_operating_mode)) {
+    const size_t pos = sizeof(dma_buffer_rx) - dma_bytes_left;
+    if (pos != old_dma_pos) {
         if (pos > old_dma_pos) {
             uart_input(&dma_buffer_rx[old_dma_pos], pos - old_dma_pos, netif);
         } else {
@@ -783,16 +765,6 @@ static void reset_intron() {
     }
 }
 
-void espif_init_hw() {
-    if (espif_initialized) {
-        bsod("espif_init_hw() called twice");
-    }
-
-    espif_reconfigure_uart(NIC_UART_BAUDRATE);
-    esp_operating_mode = ESPIF_WAIT_INIT;
-    espif_initialized = true;
-};
-
 /**
  * @brief Initalize ESPIF network interface
  *
@@ -802,8 +774,6 @@ void espif_init_hw() {
  * @return err_t Possible error encountered during initialization
  */
 err_t espif_init(struct netif *netif) {
-    TaskDeps::wait(TaskDeps::Tasks::espif);
-
     struct netif *previous = active_esp_netif.exchange(netif);
     assert(previous == nullptr);
     (void)previous; // Avoid warnings in release
@@ -824,34 +794,7 @@ err_t espif_init(struct netif *netif) {
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
 
     reset_intron();
-    esp_operating_mode = ESPIF_WAIT_INIT;
     return ERR_OK;
-}
-
-void espif_flash_initialize(const bool take_down_interfaces) {
-    // NOTE: There is no extra synchronization with reader thread. This assumes
-    // it is not a problem if reader thread reads some garbage until it notices
-    // operating mode change.
-    // NOTE: This holds the writer mutex only during this call. Holding this one
-    // all the time the ESP is being flashed might block LwIP thread and prevent
-    // ethernet from being serviced. Still, all the writers must have finished -
-    // this holds the lock and new writers will fail as mode is set to flashing.
-    {
-        std::lock_guard lock { uart_write_mutex };
-        esp_operating_mode = ESPIF_FLASHING_MODE;
-        espif_reconfigure_uart(FLASH_UART_BAUDRATE);
-        loader_port_buddy_init();
-    }
-    if (take_down_interfaces) {
-        force_down();
-    }
-}
-
-void espif_flash_deinitialize() {
-    espif_reconfigure_uart(NIC_UART_BAUDRATE);
-    reset_intron();
-    hard_reset_device(); // Reset device to receive MAC address
-    esp_operating_mode = ESPIF_WAIT_INIT;
 }
 
 /**
@@ -910,13 +853,29 @@ bool espif_need_ap() {
 }
 
 void espif_reset() {
+    if (!can_recieve_data(esp_operating_mode)) {
+        return;
+    }
     // Don't touch it in case we are flashing right now. If so, it'll get reset
     // when done.
-    if (esp_operating_mode != ESPIF_FLASHING_MODE && esp_operating_mode != ESPIF_SCANNING_MODE && !scan.is_running) {
+    if (esp_operating_mode != ESPIF_SCANNING_MODE && !scan.is_running) {
         reset_intron();
         force_down();
         hard_reset_device(); // Reset device to receive MAC address
         esp_operating_mode = ESPIF_WAIT_INIT;
+    }
+}
+
+void espif_notify_flash_result(FlashResult result) {
+    switch (result) {
+    case FlashResult::success:
+        esp_operating_mode = ESPIF_WAIT_INIT;
+        espif_reset();
+        break;
+    case FlashResult::not_connected:
+    case FlashResult::failure:
+        esp_operating_mode = ESPIF_WRONG_FW;
+        break;
     }
 }
 
@@ -951,8 +910,6 @@ EspFwState esp_fw_state() {
     case ESPIF_CONNECTING_AP:
     case ESPIF_RUNNING_MODE:
         return EspFwState::Ok;
-    case ESPIF_FLASHING_MODE:
-        return EspFwState::Flashing;
     case ESPIF_WRONG_FW:
         return EspFwState::WrongVersion;
     case ESPIF_SCANNING_MODE:
@@ -967,7 +924,6 @@ EspLinkState esp_link_state() {
     switch (mode) {
     case ESPIF_WAIT_INIT:
     case ESPIF_WRONG_FW:
-    case ESPIF_FLASHING_MODE:
     case ESPIF_UNINITIALIZED_MODE:
     case ESPIF_SCANNING_MODE:
         return EspLinkState::Init;

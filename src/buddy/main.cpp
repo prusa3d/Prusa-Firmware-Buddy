@@ -321,8 +321,6 @@ extern "C" void main_cpp(void) {
             // Needed for SSL random data
             hw_rng_init();
 
-            espif_init_hw();
-
             espif_task_create();
 
             TaskDeps::wait(TaskDeps::Tasks::network);
@@ -395,6 +393,16 @@ extern "C" void main_cpp(void) {
 
     hw_rtc_init();
     hw_rng_init();
+
+    // ESP flashing can start fairly early in the boot process.
+    // On printers without embedded ESP32 we need to upload stub to enable verification.
+    // This would take some seconds, which we can hide here.
+    // Only after we find out that we actually need to flash the firmware we wait
+    // for the bootstrap resources and take over the progress bar.
+    // And as always, we need to prevent interactions with the UART in tester mode.
+    if (!running_in_tester_mode()) {
+        start_flash_esp_task();
+    }
 
     MX_USB_HOST_Init();
 
@@ -494,8 +502,6 @@ extern "C" void main_cpp(void) {
     // In tester mode ESP UART is being used to talk to the testing station,
     // thus it must not be used for the ESP -> no networking tasks shall be started.
     if (!running_in_tester_mode()) {
-        espif_init_hw();
-        start_flash_esp_task();
         espif_task_create();
 
         TaskDeps::wait(TaskDeps::Tasks::network);

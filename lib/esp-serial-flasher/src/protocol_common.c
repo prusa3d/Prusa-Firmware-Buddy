@@ -251,7 +251,7 @@ esp_loader_error_t loader_change_baudrate_cmd(uint32_t baudrate)
             .checksum = 0
         },
         .new_baudrate = baudrate,
-        .old_baudrate = 0 // ESP32 ROM only
+        .old_baudrate = 115200,
     };
 
     return send_cmd(&baudrate_cmd, sizeof(baudrate_cmd), NULL);

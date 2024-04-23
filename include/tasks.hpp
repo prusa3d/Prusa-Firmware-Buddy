@@ -68,7 +68,6 @@ namespace Tasks {
     );
 
     inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
-    inline constexpr dependency_t espif = make(Dependency::esp_flashed);
     inline constexpr dependency_t bootstrap_done = make(
         Dependency::resources_ready,
         Dependency::esp_flashed

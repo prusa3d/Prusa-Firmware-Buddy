@@ -51,7 +51,6 @@ void MI_WIFI_STATUS_t::update() {
         case EspLinkState::Init:
             switch (esp_fw_state()) {
 
-            case EspFwState::Flashing:
             case EspFwState::NoFirmware:
             case EspFwState::WrongVersion:
                 return N_("Flash ESP");

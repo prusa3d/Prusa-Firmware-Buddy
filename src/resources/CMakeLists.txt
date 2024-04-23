@@ -62,15 +62,38 @@ else()
   add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 512)
 endif()
 
-# /esp directory
-if(PRINTER STREQUAL "XL")
-  add_resource("esp32/uart_wifi.bin" "/esp32/uart_wifi.bin")
-  add_resource("esp32/bootloader.bin" "/esp32/bootloader.bin")
-  add_resource("esp32/partition-table.bin" "/esp32/partition-table.bin")
-else()
-  add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
-  add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
-  add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
+if(${PRINTER} IN_LIST PRINTERS_WITH_ESP_FLASH_TASK)
+  set(ESP_PARTS ${CMAKE_CURRENT_BINARY_DIR}/include/esp_parts.gen)
+  add_custom_target(esp-parts DEPENDS ${ESP_PARTS})
+  if(${PRINTER} IN_LIST PRINTERS_WITH_EMBEDDED_ESP32)
+    add_resource("esp32/uart_wifi.bin" "/esp/uart_wifi.bin")
+    add_resource("esp32/bootloader.bin" "/esp/bootloader.bin")
+    add_resource("esp32/partition-table.bin" "/esp/partition-table.bin")
+    add_custom_command(
+      OUTPUT ${ESP_PARTS}
+      COMMAND
+        ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py ARGS --output ${ESP_PARTS} --basedir
+        ${CMAKE_CURRENT_SOURCE_DIR}/esp32/ --flash partition-table.bin:0x08000 --flash
+        bootloader.bin:0x01000 --flash uart_wifi.bin:0x10000
+      DEPENDS esp32/uart_wifi.bin esp32/bootloader.bin esp32/partition-table.bin
+      )
+  else()
+    add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
+    add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
+    add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
+    add_resource("esp/stub_text.bin" "/esp/stub_text.bin")
+    add_resource("esp/stub_data.bin" "/esp/stub_data.bin")
+    add_custom_command(
+      OUTPUT ${ESP_PARTS}
+      COMMAND
+        ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py ARGS --output ${ESP_PARTS} --basedir
+        ${CMAKE_CURRENT_SOURCE_DIR}/esp/ --flash partition-table.bin:0x08000 --flash
+        bootloader.bin:0x00000 --flash uart_wifi.bin:0x10000 --memory stub_text.bin:0x4010d000
+        --memory stub_data.bin:0x3fff01b8
+      DEPENDS esp/uart_wifi.bin esp/bootloader.bin esp/partition-table.bin esp/stub_text.bin
+              esp/stub_data.bin
+      )
+  endif()
 endif()
 
 if(PUPPY_FLASH_FW)

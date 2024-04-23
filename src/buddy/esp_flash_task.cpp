@@ -1,60 +1,41 @@
 #include "esp_flash_task.hpp"
 
+#include <espif.h>
 #include <esp_flash.hpp>
 #include <gui/gui_bootstrap_screen.hpp>
 #include <tasks.hpp>
+#include <option/has_esp_flash_task.h>
+#include <option/has_embedded_esp32.h>
+
+static_assert(HAS_ESP_FLASH_TASK());
 
 LOG_COMPONENT_REF(Buddy);
 
-static ErrCode convert(const ESPFlash::State state) {
-    switch (state) {
-    case ESPFlash::State::ReadError:
-        return ErrCode::ERR_SYSTEM_ESP_FW_READ;
-    case ESPFlash::State::NotConnected:
-        return ErrCode::ERR_SYSTEM_ESP_NOT_CONNECTED;
-    case ESPFlash::State::WriteError:
-    case ESPFlash::State::FlashError:
-        return ErrCode::ERR_SYSTEM_ESP_COMMAND_ERR;
-    default:
-        return ErrCode::ERR_SYSTEM_ESP_UNKNOWN_ERR;
-    }
-}
-
-class ProgressHook final : public ESPFlash::ProgressHook {
-public:
-    void update_progress(ESPFlash::State state, size_t current, size_t total) final {
-        uint8_t percent = total ? 100 * current / total : 0;
-        const char *stage_description;
-        switch (state) {
-        case ESPFlash::State::Init:
-            stage_description = "Connecting ESP";
-            break;
-        case ESPFlash::State::WriteData:
-            stage_description = "Flashing ESP";
-            break;
-        case ESPFlash::State::Checking:
-            stage_description = "Checking ESP";
-            break;
-        default:
-            stage_description = "Unknown ESP state";
-        }
-
-        gui_bootstrap_screen_set_state(percent, stage_description);
-    }
-};
+using namespace buddy_esp_serial_flasher;
 
 static void flash_esp() {
-    ESPFlash esp_flash;
-    ProgressHook progress_hook;
-    auto esp_result = esp_flash.flash(progress_hook);
-    if (esp_result != ESPFlash::State::Done) {
-        log_error(Buddy, "ESP flash failed with %u", static_cast<unsigned>(esp_result));
-        fatal_error(convert(esp_result));
+    const Result result = flash();
+    log_info(Buddy, "esp flash result %u", static_cast<unsigned>(result));
+    switch (result) {
+    case Result::success:
+        return espif_notify_flash_result(FlashResult::success);
+    case Result::not_connected:
+#if HAS_EMBEDDED_ESP32()
+        fatal_error(ErrCode::ERR_SYSTEM_ESP_NOT_CONNECTED);
+#endif
+        return espif_notify_flash_result(FlashResult::not_connected);
+    case Result::protocol_error:
+    case Result::filesystem_error:
+    case Result::checksum_mismatch:
+    case Result::hal_error:
+        return espif_notify_flash_result(FlashResult::failure);
     }
 }
 
 static void flash_esp_task_body(void *) {
+#if HAS_EMBEDDED_ESP32()
     buddy::hw::espPower.write(buddy::hw::Pin::State::high);
+#endif
     flash_esp();
     TaskDeps::provide(TaskDeps::Dependency::esp_flashed);
     vTaskDelete(nullptr);
