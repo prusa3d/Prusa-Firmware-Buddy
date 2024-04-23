@@ -284,7 +284,8 @@ void ProbeAnalysisBase::CalculateLoadAngles(Features &features) const {
 }
 
 ProbeAnalysisBase::VarianceInfo ProbeAnalysisBase::CalculateVariance(SamplesRange samples, Line regression) {
-    float mean = std::accumulate(samples.begin(), samples.end(), 0.0f, [](float acc, Record const &r) { return r.load; }) / static_cast<float>(samples.Size());
+    // FIXME: !!! accumulate function is wrong, should return acc + r.load. Fixing this causes classify to fail however.
+    float mean = std::accumulate(samples.begin(), samples.end(), 0.0f, []([[maybe_unused]] float acc, Record const &r) { return r.load; }) / static_cast<float>(samples.Size());
     float totalVariance = 0, unexplainedVariance = 0;
 
     for (auto it = samples.first; it <= samples.last; ++it) {

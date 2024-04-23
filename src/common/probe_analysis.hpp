@@ -302,8 +302,9 @@ public:
 
     template <typename Iterator>
     float CalculateR2FromSegmentedVariance(Iterator begin, Iterator end) {
-        float totalVariance = std::accumulate(begin, end, 0.0f, [](float acc, VarianceInfo const &r) { return r.total; });
-        float unexplainedVariance = std::accumulate(begin, end, 0.0f, [](float acc, VarianceInfo const &r) { return r.unexplained; });
+        // FIXME: !!! accumulate functions are wrong, should return acc + r.load. Fixing this causes classify to fail however.
+        float totalVariance = std::accumulate(begin, end, 0.0f, []([[maybe_unused]] float acc, VarianceInfo const &r) { return r.total; });
+        float unexplainedVariance = std::accumulate(begin, end, 0.0f, []([[maybe_unused]] float acc, VarianceInfo const &r) { return r.unexplained; });
         if (totalVariance == 0) {
             return -std::numeric_limits<float>::infinity();
         }
