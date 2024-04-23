@@ -88,7 +88,7 @@
         },
         {
             "name": "mk3.5",
-            "description": "Original Prusa MK3.5 with xBuddy 0.3.7c or newer fw compatible, 200-step motors and MK3 extruder",
+            "description": "Original Prusa MK3.5 with xBuddy 0.2.7c or newer fw compatible, 200-step motors and MK3 extruder",
             "cacheVariables": {
                 "PRINTER": "MK3.5",
                 "BOARD": "XBUDDY",
