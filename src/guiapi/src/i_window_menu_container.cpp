@@ -3,15 +3,19 @@
 IWinMenuContainer::Node IWinMenuContainer::FindFirstVisible() const {
     for (int i = 0; i < GetRawCount(); ++i) {
         IWindowMenuItem *item = GetItemByRawIndex(i);
-        if (!item) {
-            return Node::Empty();
-        }
+        assert(item);
+
         if (item->IsHidden()) {
             continue;
         }
-        Node ret = { item, i, 0 };
-        return ret;
+
+        return Node {
+            .item = item,
+            .raw_index = i,
+            .visible_index = 0,
+        };
     }
+
     return Node::Empty();
 }
 
@@ -22,22 +26,26 @@ IWinMenuContainer::Node IWinMenuContainer::FindNextVisible(Node prev) const {
 
     for (int i = prev.raw_index + 1; i < GetRawCount(); ++i) {
         IWindowMenuItem *item = GetItemByRawIndex(i);
-        if (!item) {
-            return Node::Empty();
-        }
+        assert(item);
+
         if (item->IsHidden()) {
             continue;
         }
-        Node ret = { item, i, prev.visible_index + 1 };
-        return ret;
+
+        return Node {
+            .item = item,
+            .raw_index = i,
+            .visible_index = prev.visible_index + 1,
+        };
     }
+
     return Node::Empty();
 }
 
 IWindowMenuItem *IWinMenuContainer::GetItemByVisibleIndex(int pos) const {
     for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
         if (i.visible_index == pos) {
-            return i.item; // found it
+            return i.item;
         }
     }
     return nullptr;
@@ -46,7 +54,7 @@ IWindowMenuItem *IWinMenuContainer::GetItemByVisibleIndex(int pos) const {
 std::optional<int> IWinMenuContainer::GetVisibleIndex(IWindowMenuItem &item) const {
     for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
         if (i.item == &item) {
-            return i.visible_index; // found it
+            return i.visible_index;
         }
     }
     return std::nullopt;
@@ -83,7 +91,7 @@ bool IWinMenuContainer::Show(IWindowMenuItem &item) {
         return false; // not a member of container
     }
 
-    if (GetVisibleIndex(item)) {
+    if (!item.IsHidden()) {
         return true; // already shown
     }
 
@@ -98,7 +106,7 @@ bool IWinMenuContainer::Hide(IWindowMenuItem &item) {
         return false; // not a member of container
     }
 
-    if (!GetVisibleIndex(item)) {
+    if (item.IsHidden()) {
         return true; // already hidden
     }
 
