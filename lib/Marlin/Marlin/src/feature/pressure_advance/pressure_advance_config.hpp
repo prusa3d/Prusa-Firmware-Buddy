@@ -8,9 +8,7 @@ struct Config {
     float pressure_advance = 0.f;
     float smooth_time = 0.04f;
 
-    bool operator==(const Config &rhs) const {
-        return pressure_advance == rhs.pressure_advance && smooth_time == rhs.smooth_time;
-    }
+    bool operator==(const Config &rhs) const = default;
 };
 
 // pressure advance initialization
