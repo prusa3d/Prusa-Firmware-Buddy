@@ -275,7 +275,7 @@ public:
     std::tuple<Sample, Line, Line> FindBestTwoLinesApproximation(SamplesRange samples);
 
     /// Compensate for the fact that loadcell data are delayed in respect to Z axis coordinates.
-    void CompensateForSystemDelay();
+    bool CompensateForSystemDelay();
 
     /// Calculate fallEnd and riseStart features
     void CalculateHaltSpan(Features &features);

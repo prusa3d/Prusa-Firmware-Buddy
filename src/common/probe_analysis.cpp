@@ -21,7 +21,9 @@ ProbeAnalysisBase::Result ProbeAnalysisBase::Analyse() {
     };
 
     // First of all, shift Z coordinates in order to compansate for the system's delay.
-    CompensateForSystemDelay();
+    if (!CompensateForSystemDelay()) {
+        return Result::Bad("not-ready");
+    }
 
     // Next, calculate all the features
     Features features;
@@ -167,10 +169,14 @@ std::tuple<ProbeAnalysisBase::Sample, ProbeAnalysisBase::Line, ProbeAnalysisBase
     return std::make_tuple(bestSplit, leftLine, rightLine);
 }
 
-void ProbeAnalysisBase::CompensateForSystemDelay() {
+bool ProbeAnalysisBase::CompensateForSystemDelay() {
     // Shift Z samples right (to the future)
     int samplesToShift = loadDelay / samplingInterval;
-    assert(window.size() - static_cast<size_t>(samplesToShift) > 2);
+
+    if (window.size() <= static_cast<size_t>(samplesToShift) + 2) {
+        return false;
+    }
+
     auto it = window.rbegin();
     for (; it < window.rend() - samplesToShift; ++it) {
         it->z = (it + samplesToShift)->z;
@@ -180,6 +186,8 @@ void ProbeAnalysisBase::CompensateForSystemDelay() {
     for (; it < window.rend(); ++it) {
         it->z = (it - 1)->z + diff;
     }
+
+    return true;
 }
 
 void ProbeAnalysisBase::CalculateHaltSpan(Features &features) {
