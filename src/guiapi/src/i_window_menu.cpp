@@ -1,7 +1,8 @@
 #include "i_window_menu.hpp"
 
 #include "marlin_client.hpp"
-#include "sound.hpp"
+#include <sound.hpp>
+#include <i_window_menu_item.hpp>
 
 #include <option/has_touch.h>
 #if HAS_TOUCH()
@@ -161,20 +162,49 @@ std::optional<int> IWindowMenu::index_to_slot(std::optional<int> index) const {
 void IWindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     const int encoder_value = int(param);
 
+    IWindowMenuItem *focused_item = focused_item_index() ? IWindowMenuItem::focused_item() : nullptr;
+
     // Non-item-specific events
     switch (event) {
 
+    case GUI_event_t::CLICK:
+        if (focused_item) {
+            focused_item->Click(*this);
+        }
+        break;
+
     case GUI_event_t::ENC_DN:
+        if (focused_item && focused_item->is_edited()) {
+            Sound_Play(focused_item->Decrement(std::bit_cast<int>(param)) ? eSOUND_TYPE::EncoderMove : eSOUND_TYPE::BlindAlert);
+            break;
+        }
+
         move_focus_by(-encoder_value, YNPlaySound::yes);
         break;
 
     case GUI_event_t::ENC_UP:
+        if (focused_item && focused_item->is_edited()) {
+            Sound_Play(focused_item->Increment(std::bit_cast<int>(param)) ? eSOUND_TYPE::EncoderMove : eSOUND_TYPE::BlindAlert);
+            break;
+        }
+
         move_focus_by(encoder_value, YNPlaySound::yes);
         break;
 
-    case GUI_event_t::TOUCH_CLICK:
-        move_focus_touch_click(param);
+    case GUI_event_t::TOUCH_CLICK: {
+        const auto focused_index = move_focus_touch_click(param);
+        if (!focused_index) {
+            break;
+        }
+
+        auto *item = item_at(*focused_index);
+        if (!item) {
+            break;
+        }
+
+        item->Touch(*this, event_conversion_union { param }.point);
         break;
+    }
 
     case GUI_event_t::TOUCH_SWIPE_DOWN:
         scroll_page(PageScrollDirection::up);
@@ -182,6 +212,12 @@ void IWindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
 
     case GUI_event_t::TOUCH_SWIPE_UP:
         scroll_page(PageScrollDirection::down);
+        break;
+
+    case GUI_event_t::TEXT_ROLL:
+        if (focused_item) {
+            focused_item->Roll();
+        }
         break;
 
     default:

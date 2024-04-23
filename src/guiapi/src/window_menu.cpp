@@ -72,66 +72,9 @@ IWindowMenuItem *WindowMenu::item_at(int index) {
     return pContainer ? pContainer->GetItemByVisibleIndex(index) : nullptr;
 }
 
-bool WindowMenu::playEncoderSound(bool changed) {
-    if (changed) {
-        Sound_Play(eSOUND_TYPE::EncoderMove); /// cursor moved normally
-        return true;
-    }
-    Sound_Play(eSOUND_TYPE::BlindAlert); /// start or end of menu was hit by the cursor
-    return false;
-}
-
 void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
-    const int value = int(param);
-
-    IWindowMenuItem *focused_item = IWindowMenuItem::focused_item();
-
-    // Check if the focused menu item is part of this menu
-    if (focused_item && !GetIndex(*focused_item)) {
-        focused_item = nullptr;
-    }
-
     // Non-item-specific events
     switch (event) {
-
-    case GUI_event_t::ENC_DN:
-        if (focused_item && focused_item->is_edited()) {
-            playEncoderSound(focused_item->Decrement(value));
-            return;
-        }
-        break;
-
-    case GUI_event_t::ENC_UP:
-        if (focused_item && focused_item->is_edited()) {
-            playEncoderSound(focused_item->Increment(value));
-            return;
-        }
-        break;
-
-    case GUI_event_t::CLICK:
-        if (focused_item) {
-            focused_item->Click(*this);
-        }
-        return; // Must not propagate event to parent in order to prevent infinite loop
-
-    case GUI_event_t::CAPT_1:
-        // TODO: change flag to checked
-        break;
-
-    case GUI_event_t::TEXT_ROLL:
-        if (focused_item) {
-            focused_item->Roll();
-        }
-        break;
-
-    case GUI_event_t::TOUCH_CLICK:
-        if (auto focused_index = move_focus_touch_click(param); focused_index && pContainer) {
-            const event_conversion_union event_data {
-                .pvoid = param
-            };
-            pContainer->GetItemByVisibleIndex(*focused_index)->Touch(*this, event_data.point);
-        }
-        return;
 
     case GUI_event_t::TOUCH_SWIPE_LEFT:
     case GUI_event_t::TOUCH_SWIPE_RIGHT:

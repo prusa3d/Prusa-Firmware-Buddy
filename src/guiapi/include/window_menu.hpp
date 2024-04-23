@@ -26,10 +26,6 @@ private:
     /// Prints single item in the menu
     void printItem(IWindowMenuItem &item, Rect16 rc);
 
-    /// Plays proper sound according to item/value changed
-    /// \returns input
-    bool playEncoderSound(bool changed);
-
     void set_scroll_offset(int set) final;
 
     IWindowMenuItem *itemFromSlot(int slot);
