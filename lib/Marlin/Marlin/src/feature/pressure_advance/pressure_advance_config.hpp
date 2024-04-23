@@ -4,11 +4,13 @@
 
 namespace pressure_advance {
 
-struct __attribute__((packed)) Config {
+struct Config {
     float pressure_advance = 0.f;
     float smooth_time = 0.04f;
 
-    bool operator==(const Config &) const = default;
+    bool operator==(const Config &rhs) const {
+        return pressure_advance == rhs.pressure_advance && smooth_time == rhs.smooth_time;
+    }
 };
 
 // pressure advance initialization

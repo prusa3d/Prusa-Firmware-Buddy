@@ -164,7 +164,7 @@ typedef struct PlannerBlock {
 
 #define BLOCK_MOD(n) ((n)&(BLOCK_BUFFER_SIZE-1))
 
-typedef struct __attribute__((packed)) {
+typedef struct {
    uint32_t max_acceleration_mm_per_s2[XYZE_N], // (mm/s^2) M201 XYZE
             min_segment_time_us;                // (µs) M205 B
       float axis_steps_per_mm[XYZE_N];          // (steps) M92 XYZE - Steps per millimeter
@@ -186,7 +186,7 @@ typedef struct __attribute__((packed)) {
 } planner_settings_t;
 
 /// Subclass to enforce that people are using user settings when applying settings
-struct __attribute__((packed)) user_planner_settings_t : public planner_settings_t {};
+struct user_planner_settings_t : public planner_settings_t {};
 
 // Structure for saving/loading movement parameters
 typedef struct {
