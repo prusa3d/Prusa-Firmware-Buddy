@@ -9,15 +9,7 @@
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(PRINTER_VALID_OPTS "MINI" "MK4" "MK3.5" "XL" "iX" "XL_DEV_KIT")
-set(BOARD_VALID_OPTS
-    "<default>"
-    "BUDDY"
-    "XBUDDY"
-    "XLBUDDY"
-    "DWARF"
-    "MODULARBED"
-    "XL_DEV_KIT_XLB"
-    )
+set(BOARD_VALID_OPTS "BUDDY" "XBUDDY" "XLBUDDY" "DWARF" "MODULARBED" "XL_DEV_KIT_XLB")
 set(MCU_VALID_OPTS "<default>" "STM32F407VG" "STM32F429VI" "STM32F427ZI" "STM32G070RBT6")
 set(BOOTLOADER_VALID_OPTS "NO" "EMPTY" "YES")
 set(TRANSLATIONS_ENABLED_VALID_OPTS "<default>" "NO" "YES")
@@ -34,13 +26,13 @@ set(BOOTLOADER
     CACHE STRING "Selects the bootloader mode (valid values are ${BOOTLOADER_VALID_OPTS})."
     )
 set(BOARD
-    "<default>"
+    "<invalid>"
     CACHE
       STRING
       "Select the board for which you want to compile the project (valid values are ${BOARD_VALID_OPTS})."
     )
 set(BOARD_VERSION
-    "<default>"
+    "<invalid>"
     CACHE STRING "Specify the version of the board to comiple the project for (e.g. 1.2.3)"
     )
 set(MCU
@@ -139,65 +131,6 @@ endforeach()
 
 # define simple options
 define_boolean_option(BOOTLOADER ${BOOTLOADER})
-
-# set board to its default if not specified
-if(${BOARD} STREQUAL "<default>")
-  if(${PRINTER} MATCHES "^(MINI)$")
-    set(BOARD
-        "BUDDY"
-        CACHE STRING "System board" FORCE
-        )
-  elseif(${PRINTER} MATCHES "^(iX|MK4|MK3.5)$")
-    set(BOARD
-        "XBUDDY"
-        CACHE STRING "System board" FORCE
-        )
-  elseif(${PRINTER} STREQUAL "XL")
-    set(BOARD
-        "XLBUDDY"
-        CACHE STRING "System board" FORCE
-        )
-  else()
-    message(FATAL_ERROR "No default board set for printer ${PRINTER}")
-  endif()
-endif()
-
-# set board version to its default if not specified
-if(${BOARD_VERSION} STREQUAL "<default>")
-  if(${BOARD} STREQUAL "BUDDY")
-    set(BOARD_VERSION
-        "1.0.0"
-        CACHE STRING "Buddy board version" FORCE
-        )
-  elseif(${BOARD} STREQUAL "XBUDDY")
-    set(BOARD_VERSION
-        "0.2.1"
-        CACHE STRING "XBuddy board version" FORCE
-        )
-  elseif(${BOARD} STREQUAL "XLBUDDY")
-    set(BOARD_VERSION
-        "0.5.0"
-        CACHE STRING "XLBuddy board version" FORCE
-        )
-  elseif(${BOARD} STREQUAL "DWARF")
-    set(BOARD_VERSION
-        "0.6.0"
-        CACHE STRING "Dwarf board version" FORCE
-        )
-  elseif(${BOARD} STREQUAL "MODULARBED")
-    set(BOARD_VERSION
-        "0.7.0"
-        CACHE STRING "ModularBed board version" FORCE
-        )
-  elseif(${BOARD} STREQUAL "XL_DEV_KIT_XLB")
-    set(BOARD_VERSION
-        "0.1.0"
-        CACHE STRING "XL_DEV_KIT_XLB board version" FORCE
-        )
-  else()
-    message(FATAL_ERROR "No default board version set for board ${BOARD}")
-  endif()
-endif()
 
 # Set BOARD_IS_MASTER_BOARD - means main board of entire printer, non-main board are puppies
 if(BOARD MATCHES ".*BUDDY" OR BOARD MATCHES "XL_DEV_KIT_XLB")

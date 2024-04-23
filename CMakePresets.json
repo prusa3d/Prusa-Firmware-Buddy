@@ -21,11 +21,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -80,11 +80,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -139,11 +139,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -198,11 +198,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -257,11 +257,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -320,11 +320,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -383,11 +383,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -446,11 +446,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -509,11 +509,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -572,11 +572,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -635,11 +635,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -698,11 +698,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -761,11 +761,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -824,11 +824,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -887,11 +887,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -950,11 +950,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1013,11 +1013,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1076,11 +1076,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1139,11 +1139,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1202,11 +1202,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1265,11 +1265,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1328,11 +1328,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1391,11 +1391,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1454,11 +1454,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1517,11 +1517,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1580,11 +1580,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1643,11 +1643,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1706,11 +1706,11 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "BUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "1.0.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1769,7 +1769,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -1824,7 +1824,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -1879,7 +1879,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -1934,7 +1934,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -1989,7 +1989,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2044,7 +2044,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2099,7 +2099,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2154,7 +2154,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2209,7 +2209,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2268,7 +2268,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2327,7 +2327,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2386,7 +2386,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2445,7 +2445,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2512,7 +2512,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2579,7 +2579,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2646,7 +2646,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2713,7 +2713,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2784,7 +2784,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2855,7 +2855,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2926,7 +2926,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -2997,7 +2997,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -3064,7 +3064,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -3131,7 +3131,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -3198,7 +3198,7 @@
                 },
                 "BOARD": {
                     "type": "STRING",
-                    "value": "<default>"
+                    "value": "XLBUDDY"
                 },
                 "BOARD_VERSION": {
                     "type": "STRING",
@@ -3267,6 +3267,10 @@
                     "type": "STRING",
                     "value": "XL_DEV_KIT_XLB"
                 },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.1.0"
+                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -3321,6 +3325,10 @@
                 "BOARD": {
                     "type": "STRING",
                     "value": "XL_DEV_KIT_XLB"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.1.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -3377,6 +3385,10 @@
                     "type": "STRING",
                     "value": "XL_DEV_KIT_XLB"
                 },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.1.0"
+                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -3431,6 +3443,10 @@
                 "BOARD": {
                     "type": "STRING",
                     "value": "XL_DEV_KIT_XLB"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.1.0"
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",

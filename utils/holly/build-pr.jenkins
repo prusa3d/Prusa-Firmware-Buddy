@@ -236,6 +236,7 @@ pipeline {
                             -DCMAKE_MAKE_PROGRAM=/work/.dependencies/ninja-1.10.2/ninja \
                             --build-generator Ninja \
                             --build-target tests \
+                            --build-options -DBOARD=BUDDY \
                             --test-command ctest
                         """
                     }

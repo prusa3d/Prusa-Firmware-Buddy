@@ -6,8 +6,8 @@
             "description": "Original Prusa MINI",
             "cacheVariables": {
                 "PRINTER": "MINI",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "<default>",
+                "BOARD": "BUDDY",
+                "BOARD_VERSION": "1.0.0",
                 "DEVELOPMENT_ITEMS_ENABLED": true
             }
         },
@@ -16,8 +16,8 @@
             "description": "Original Prusa MINI (EN & CS translation)",
             "cacheVariables": {
                 "PRINTER": "MINI",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "<default>",
+                "BOARD": "BUDDY",
+                "BOARD_VERSION": "1.0.0",
                 "DEVELOPMENT_ITEMS_ENABLED": true,
                 "TRANSLATIONS_LIST": "cs"
             }
@@ -27,8 +27,8 @@
             "description": "Original Prusa MINI (EN & DE translation)",
             "cacheVariables": {
                 "PRINTER": "MINI",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "<default>",
+                "BOARD": "BUDDY",
+                "BOARD_VERSION": "1.0.0",
                 "DEVELOPMENT_ITEMS_ENABLED": true,
                 "TRANSLATIONS_LIST": "de"
             }
@@ -38,8 +38,8 @@
             "description": "Original Prusa MINI (EN & ES translation)",
             "cacheVariables": {
                 "PRINTER": "MINI",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "<default>",
+                "BOARD": "BUDDY",
+                "BOARD_VERSION": "1.0.0",
                 "DEVELOPMENT_ITEMS_ENABLED": true,
                 "TRANSLATIONS_LIST": "es"
             }
@@ -49,8 +49,8 @@
             "description": "Original Prusa MINI (EN & FR translation)",
             "cacheVariables": {
                 "PRINTER": "MINI",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "<default>",
+                "BOARD": "BUDDY",
+                "BOARD_VERSION": "1.0.0",
                 "DEVELOPMENT_ITEMS_ENABLED": true,
                 "TRANSLATIONS_LIST": "fr"
             }
@@ -60,8 +60,8 @@
             "description": "Original Prusa MINI (EN & IT translation)",
             "cacheVariables": {
                 "PRINTER": "MINI",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "<default>",
+                "BOARD": "BUDDY",
+                "BOARD_VERSION": "1.0.0",
                 "DEVELOPMENT_ITEMS_ENABLED": true,
                 "TRANSLATIONS_LIST": "it"
             }
@@ -71,8 +71,8 @@
             "description": "Original Prusa MINI (EN & PL translation)",
             "cacheVariables": {
                 "PRINTER": "MINI",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "<default>",
+                "BOARD": "BUDDY",
+                "BOARD_VERSION": "1.0.0",
                 "DEVELOPMENT_ITEMS_ENABLED": true,
                 "TRANSLATIONS_LIST": "pl"
             }
@@ -82,7 +82,7 @@
             "description": "Original Prusa MK4 with xBuddy 0.2.7c or newer fw compatible, 400-step motors and planetary gearbox",
             "cacheVariables": {
                 "PRINTER": "MK4",
-                "BOARD": "<default>",
+                "BOARD": "XBUDDY",
                 "BOARD_VERSION": "0.2.7"
             }
         },
@@ -91,7 +91,7 @@
             "description": "Original Prusa MK3.5 with xBuddy 0.3.7c or newer fw compatible, 200-step motors and MK3 extruder",
             "cacheVariables": {
                 "PRINTER": "MK3.5",
-                "BOARD": "<default>",
+                "BOARD": "XBUDDY",
                 "BOARD_VERSION": "0.2.7"
             }
         },
@@ -100,7 +100,7 @@
             "description": "Original Prusa iX with xBuddy 0.2.7c or newer, with 200-step motors",
             "cacheVariables": {
                 "PRINTER": "iX",
-                "BOARD": "<default>",
+                "BOARD": "XBUDDY",
                 "BOARD_VERSION": "0.2.7",
                 "MODULARBED_BINARY_DIR": {
                     "type": "FILEPATH",
@@ -113,7 +113,7 @@
             "description": "Original Prusa XL",
             "cacheVariables": {
                 "PRINTER": "XL",
-                "BOARD": "<default>",
+                "BOARD": "XLBUDDY",
                 "BOARD_VERSION": "0.9.0",
                 "DWARF_BINARY_DIR": {
                     "type": "FILEPATH",
@@ -131,7 +131,7 @@
             "description": "Original Prusa XL with Burst Stepping",
             "cacheVariables": {
                 "PRINTER": "XL",
-                "BOARD": "<default>",
+                "BOARD": "XLBUDDY",
                 "BOARD_VERSION": "0.9.0",
                 "DWARF_BINARY_DIR": {
                     "type": "FILEPATH",
@@ -150,7 +150,7 @@
             "description": "Knoblet of Original Prusa XL",
             "cacheVariables": {
                 "PRINTER": "XL",
-                "BOARD": "<default>",
+                "BOARD": "XLBUDDY",
                 "BOARD_VERSION": "0.5.0",
                 "DWARF_BINARY_DIR": {
                     "type": "FILEPATH",
@@ -169,6 +169,7 @@
             "cacheVariables": {
                 "PRINTER": "XL_DEV_KIT",
                 "BOARD": "XL_DEV_KIT_XLB",
+                "BOARD_VERSION": "0.1.0",
                 "DEVELOPMENT_ITEMS_ENABLED": true
             }
         },
