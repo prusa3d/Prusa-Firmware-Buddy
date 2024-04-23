@@ -50,6 +50,11 @@ pipeline {
 
     stages {
         stage('Create Git Tag') {
+            when {
+                expression {
+                    return env.GIT_URL == 'git@github.com:prusa3d/Prusa-Firmware-Buddy-Private.git';
+                }
+            }
             agent any
             steps {
                 script {
@@ -245,6 +250,11 @@ pipeline {
                 }
 
                 stage('Integration Tests') {
+                    when {
+                        expression {
+                            return env.GIT_URL == 'git@github.com:prusa3d/Prusa-Firmware-Buddy-Private.git';
+                        }
+                    }
                     agent {
                         dockerfile {
                             label 'integrationtests'
