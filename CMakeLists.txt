@@ -407,11 +407,6 @@ if(BOARD MATCHES ".*BUDDY" AND HAS_PUPPIES_BOOTLOADER)
   string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower)
   string(TOLOWER "${PRINTER}" PRINTER_lower)
 
-  if(PRINTER STREQUAL "XL" AND BOARD_VERSION VERSION_EQUAL "0.4.0")
-    set(dwarf_version_suffix "-04")
-    set(modular_bed_version_suffix "-06")
-  endif()
-
   if(NOT DWARF_BINARY_PATH AND HAS_DWARF)
     get_filename_component(
       DWARF_BINARY_DIR "${DWARF_BINARY_DIR}" REALPATH BASE_DIR "${CMAKE_SOURCE_DIR}"
@@ -421,8 +416,7 @@ if(BOARD MATCHES ".*BUDDY" AND HAS_PUPPIES_BOOTLOADER)
       dwarf
       SOURCE_DIR "${DWARF_SOURCE_DIR}"
       BINARY_DIR "${DWARF_BINARY_DIR}"
-      CMAKE_ARGS --preset xl-dwarf${dwarf_version_suffix}_${CMAKE_BUILD_TYPE_lower}_boot -B
-                 "${DWARF_BINARY_DIR}"
+      CMAKE_ARGS --preset xl-dwarf_${CMAKE_BUILD_TYPE_lower}_boot -B "${DWARF_BINARY_DIR}"
       INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skipping install step"
       BUILD_BYPRODUCTS "${DWARF_BINARY_PATH}" "${DWARF_BINARY_DIR}/firmware"
       STEP_TARGETS build
@@ -443,10 +437,8 @@ if(BOARD MATCHES ".*BUDDY" AND HAS_PUPPIES_BOOTLOADER)
       modularbed
       SOURCE_DIR "${MODULARBED_SOURCE_DIR}"
       BINARY_DIR "${MODULARBED_BINARY_DIR}"
-      CMAKE_ARGS
-        --preset
-        ${PRINTER_lower}-modularbed${modular_bed_version_suffix}_${CMAKE_BUILD_TYPE_lower}_boot -B
-        "${MODULARBED_BINARY_DIR}"
+      CMAKE_ARGS --preset ${PRINTER_lower}-modularbed_${CMAKE_BUILD_TYPE_lower}_boot -B
+                 "${MODULARBED_BINARY_DIR}"
       INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skipping install step"
       BUILD_BYPRODUCTS "${MODULARBED_BINARY_PATH}" "${MODULARBED_BINARY_DIR}/firmware"
       STEP_TARGETS build
