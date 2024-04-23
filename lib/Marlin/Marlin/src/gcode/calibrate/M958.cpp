@@ -662,6 +662,7 @@ AxisEnum get_logical_axis(const uint16_t axis_flag) {
  */
 void GcodeSuite::M958() {
     MicrostepRestorer microstepRestorer;
+    phase_stepping::EnsureDisabled phaseSteppingDisabler;
     const StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
     const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
     if (isnan(step_len)) {
@@ -1055,6 +1056,7 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
  */
 void GcodeSuite::M959() {
     MicrostepRestorer microstepRestorer;
+    phase_stepping::EnsureDisabled phaseSteppingDisabler;
     StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
     const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
     if (isnan(step_len)) {
