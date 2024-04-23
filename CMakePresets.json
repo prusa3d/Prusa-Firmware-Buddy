@@ -27,10 +27,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -89,10 +85,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -153,10 +145,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -216,10 +204,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -278,10 +262,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -346,10 +326,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -412,10 +388,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -480,10 +452,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -546,10 +514,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -614,10 +578,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -680,10 +640,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -748,10 +704,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -814,10 +766,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -882,10 +830,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -948,10 +892,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1016,10 +956,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -1082,10 +1018,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1150,10 +1082,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -1216,10 +1144,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1284,10 +1208,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -1350,10 +1270,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1418,10 +1334,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -1484,10 +1396,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1552,10 +1460,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -1618,10 +1522,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1686,10 +1586,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -1752,10 +1648,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "<default>"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -1820,10 +1712,6 @@
                     "type": "STRING",
                     "value": "<default>"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -1887,10 +1775,6 @@
                     "type": "STRING",
                     "value": "0.2.7"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -1945,10 +1829,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "0.2.7"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -2005,10 +1885,6 @@
                     "type": "STRING",
                     "value": "0.2.7"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -2063,10 +1939,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "0.2.7"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -2587,10 +2459,6 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "IS_KNOBLET": {
                     "type": "STRING",
                     "value": "FALSE"
@@ -2657,10 +2525,6 @@
                 "MODULARBED_BINARY_DIR": {
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "IS_KNOBLET": {
                     "type": "STRING",
@@ -2729,10 +2593,6 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "IS_KNOBLET": {
                     "type": "STRING",
                     "value": "FALSE"
@@ -2800,10 +2660,6 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "IS_KNOBLET": {
                     "type": "STRING",
                     "value": "FALSE"
@@ -2870,10 +2726,6 @@
                 "MODULARBED_BINARY_DIR": {
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "ENABLE_BURST": {
                     "type": "BOOL",
@@ -2946,10 +2798,6 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "ENABLE_BURST": {
                     "type": "BOOL",
                     "value": "YES"
@@ -3020,10 +2868,6 @@
                 "MODULARBED_BINARY_DIR": {
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "ENABLE_BURST": {
                     "type": "BOOL",
@@ -3096,10 +2940,6 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "ENABLE_BURST": {
                     "type": "BOOL",
                     "value": "YES"
@@ -3171,10 +3011,6 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "IS_KNOBLET": {
                     "type": "STRING",
                     "value": "TRUE"
@@ -3241,10 +3077,6 @@
                 "MODULARBED_BINARY_DIR": {
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "IS_KNOBLET": {
                     "type": "STRING",
@@ -3313,10 +3145,6 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "IS_KNOBLET": {
                     "type": "STRING",
                     "value": "TRUE"
@@ -3384,10 +3212,6 @@
                     "type": "FILEPATH",
                     "value": "${sourceDir}/build-vscode-modularbed"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "IS_KNOBLET": {
                     "type": "STRING",
                     "value": "TRUE"
@@ -3442,10 +3266,6 @@
                 "BOARD": {
                     "type": "STRING",
                     "value": "XL_DEV_KIT_XLB"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -3502,10 +3322,6 @@
                     "type": "STRING",
                     "value": "XL_DEV_KIT_XLB"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -3561,10 +3377,6 @@
                     "type": "STRING",
                     "value": "XL_DEV_KIT_XLB"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
@@ -3619,10 +3431,6 @@
                 "BOARD": {
                     "type": "STRING",
                     "value": "XL_DEV_KIT_XLB"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
@@ -3683,10 +3491,6 @@
                     "type": "STRING",
                     "value": "0.6.0"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -3741,10 +3545,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "0.6.0"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -3801,10 +3601,6 @@
                     "type": "STRING",
                     "value": "0.6.0"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -3859,10 +3655,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "0.6.0"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -3919,10 +3711,6 @@
                     "type": "STRING",
                     "value": "0.7.0"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -3977,10 +3765,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "0.7.0"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -4037,10 +3821,6 @@
                     "type": "STRING",
                     "value": "0.7.0"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -4095,10 +3875,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "0.7.0"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -4155,10 +3931,6 @@
                     "type": "STRING",
                     "value": "0.7.0"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -4213,10 +3985,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "0.7.0"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -4273,10 +4041,6 @@
                     "type": "STRING",
                     "value": "0.7.0"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
-                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -4331,10 +4095,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "0.7.0"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": ""
                 },
                 "BOOTLOADER": {
                     "type": "STRING",

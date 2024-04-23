@@ -64,10 +64,6 @@ if(CUSTOM_COMPILE_OPTIONS)
   string(REPLACE " " ";" CUSTOM_COMPILE_OPTIONS "${CUSTOM_COMPILE_OPTIONS}")
   add_compile_options(${CUSTOM_COMPILE_OPTIONS})
 endif()
-if(PRESET_COMPILE_OPTIONS)
-  string(REPLACE " " ";" PRESET_COMPILE_OPTIONS "${PRESET_COMPILE_OPTIONS}")
-  add_compile_options(${PRESET_COMPILE_OPTIONS})
-endif()
 
 # find bootloader.bin location
 if(BOOTLOADER STREQUAL "YES")

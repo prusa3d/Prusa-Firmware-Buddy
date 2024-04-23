@@ -81,10 +81,6 @@ set(CUSTOM_COMPILE_OPTIONS
     ""
     CACHE STRING "Allows adding custom C/C++ flags"
     )
-set(PRESET_COMPILE_OPTIONS
-    ""
-    CACHE STRING "Allows adding custom C/C++ flags. To be used from preset files."
-    )
 
 if(${BOARD} STREQUAL "XL_DEV_KIT_XLB")
   set(WUI
@@ -277,7 +273,6 @@ message(
   )
 message(STATUS "MCU: ${MCU}")
 message(STATUS "Custom Compile Options (C/C++ flags): ${CUSTOM_COMPILE_OPTIONS}")
-message(STATUS "Preset Compile Options (C/C++ flags): ${PRESET_COMPILE_OPTIONS}")
 message(STATUS "Web User Interface: ${WUI}")
 message(STATUS "Connect client: ${CONNECT}")
 message(STATUS "Resources: ${RESOURCES}")
