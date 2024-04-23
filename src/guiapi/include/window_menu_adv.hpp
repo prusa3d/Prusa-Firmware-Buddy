@@ -24,12 +24,8 @@ public:
     screen_init_variant::menu_t GetCurrentState() const { return menu.GetCurrentState(); }
 
     bool SetIndex(uint8_t index) { return menu.move_focus_to_index(index); }
-    void Increment(int dif) { menu.Increment(dif); }
-    void Decrement(int dif) { menu.Decrement(dif); }
     std::optional<size_t> GetIndex() const { return menu.focused_item_index(); }
 
-    void Show(IWindowMenuItem &item) { menu.Show(item); }
-    bool Hide(IWindowMenuItem &item) { return menu.Hide(item); }
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1) { return menu.SwapVisibility(item0, item1); }
 
     IWindowMenuItem *GetItem(uint8_t index) const { return menu.GetItem(index); }

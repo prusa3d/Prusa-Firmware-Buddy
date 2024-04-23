@@ -50,16 +50,6 @@ public:
     WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer);
     void BindContainer(IWinMenuContainer &cont);
 
-    /// Ugly legacy function REMOVEME
-    inline void Increment(int amount) {
-        move_focus_by(amount, YNPlaySound::yes);
-    }
-
-    /// Ugly legacy function REMOVEME
-    inline void Decrement(int amount) {
-        move_focus_by(-amount, YNPlaySound::yes);
-    }
-
     std::optional<int> focused_item_index() const final;
 
     bool move_focus_to_index(std::optional<int> index) final;

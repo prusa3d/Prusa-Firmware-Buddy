@@ -60,18 +60,6 @@ int IWinMenuContainer::GetVisibleCount() const {
     return ret;
 }
 
-IWindowMenuItem *IWinMenuContainer::GetVisibleItemWithOffset(IWindowMenuItem &item, int offset) const {
-    std::optional<int> index = GetVisibleIndex(item);
-    if (!index) {
-        return nullptr;
-    }
-    int new_index = int(*index) + offset;
-    if (new_index < 0) {
-        return nullptr;
-    }
-    return GetItemByVisibleIndex(new_index);
-}
-
 bool IWinMenuContainer::SetIndex(int visible_index) {
     if (IWindowMenuItem *item = GetItemByVisibleIndex(visible_index)) {
         return item->move_focus();

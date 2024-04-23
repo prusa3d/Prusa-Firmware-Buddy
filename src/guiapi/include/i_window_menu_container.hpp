@@ -36,19 +36,10 @@ public:
     IWindowMenuItem *GetItemByVisibleIndex(int pos) const;
     std::optional<int> GetVisibleIndex(IWindowMenuItem &item) const;
     int GetVisibleCount() const;
-    IWindowMenuItem *GetVisibleItemWithOffset(IWindowMenuItem &item, int offset) const;
-
-    IWindowMenuItem *GetPreviousVisibleItem(IWindowMenuItem &item) const {
-        return GetVisibleItemWithOffset(item, -1);
-    }
-
-    IWindowMenuItem *GetNextVisibleItem(IWindowMenuItem &item) const {
-        return GetVisibleItemWithOffset(item, 1);
-    }
 
     bool SetIndex(int visible_index);
     std::optional<int> GetFocusedIndex() const;
-    bool Show(IWindowMenuItem &item);
     bool Hide(IWindowMenuItem &item);
+    bool Show(IWindowMenuItem &item);
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1);
 };
