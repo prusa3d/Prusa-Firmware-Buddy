@@ -68,7 +68,7 @@ int WindowMenu::item_count() const {
     return pContainer ? pContainer->GetVisibleCount() : 0;
 }
 
-IWindowMenuItem *WindowMenu::GetItem(int index) const {
+IWindowMenuItem *WindowMenu::item_at(int index) {
     return pContainer ? pContainer->GetItemByVisibleIndex(index) : nullptr;
 }
 
@@ -263,7 +263,7 @@ IWindowMenuItem *WindowMenu::itemFromSlot(int slot) {
 }
 
 WindowMenu::Node WindowMenu::findFirst() {
-    IWindowMenuItem *item = GetItem(scroll_offset());
+    IWindowMenuItem *item = item_at(scroll_offset());
     if (!item) {
         return Node::Empty();
     }
@@ -276,7 +276,7 @@ WindowMenu::Node WindowMenu::findNext(WindowMenu::Node prev) {
         return Node::Empty();
     }
 
-    IWindowMenuItem *item = GetItem(prev.index + 1);
+    IWindowMenuItem *item = item_at(prev.index + 1);
     if (!item) {
         return Node::Empty();
     }

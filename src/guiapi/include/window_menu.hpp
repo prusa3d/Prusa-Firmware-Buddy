@@ -62,7 +62,7 @@ public:
 
     int item_count() const final;
 
-    IWindowMenuItem *GetItem(int index) const; // nth visible item in container
+    IWindowMenuItem *item_at(int index) final;
 
     bool SetActiveItem(IWindowMenuItem &item) {
         const auto index = GetIndex(item);

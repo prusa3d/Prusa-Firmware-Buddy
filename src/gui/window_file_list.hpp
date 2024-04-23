@@ -54,6 +54,12 @@ public:
         return item_count_;
     }
 
+    IWindowMenuItem *item_at([[maybe_unused]] int index) final {
+        // This is very ugly, but it will do for now.
+        // We will rework this class to use WindowMenuVirtual eventually
+        bsod("Not implemented");
+    }
+
 public: // Scroll stuff
     void set_scroll_offset(int set) final;
 

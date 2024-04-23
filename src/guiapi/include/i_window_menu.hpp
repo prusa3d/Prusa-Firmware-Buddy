@@ -9,6 +9,8 @@
 
 #include "window.hpp"
 
+class IWindowMenuItem;
+
 class IWindowMenu : public AddSuperWindow<window_t> {
 
 protected:
@@ -29,6 +31,10 @@ public:
 public:
     /// Total item count in the menu
     virtual int item_count() const = 0;
+
+    /// \returns menu item at \p index .
+    /// Can potentially return \p nullptr if the item is outside of the visible area.
+    virtual IWindowMenuItem *item_at(int index) = 0;
 
     /// \returns how many items fit on the screen
     inline int max_items_on_screen_count() const {
