@@ -46,8 +46,6 @@ public:
     WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer);
     void BindContainer(IWinMenuContainer &cont);
 
-    std::optional<int> focused_item_index() const final;
-
     std::optional<int> item_index_to_persistent_index(std::optional<int> item_index) const override;
     std::optional<int> persistent_index_to_item_index(std::optional<int> persistent_index) const override;
 
@@ -57,6 +55,8 @@ public:
     int item_count() const final;
 
     IWindowMenuItem *item_at(int index) final;
+
+    std::optional<int> item_index(const IWindowMenuItem *item) const final;
 
     bool SetActiveItem(IWindowMenuItem &item) {
         const auto index = GetIndex(item);

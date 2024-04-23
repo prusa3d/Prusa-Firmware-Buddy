@@ -65,6 +65,10 @@ bool IWindowMenu::scroll_page(PageScrollDirection direction) {
     return true;
 }
 
+std::optional<int> IWindowMenu::focused_item_index() const {
+    return item_index(IWindowMenuItem::focused_item());
+}
+
 bool IWindowMenu::move_focus_to_index(std::optional<int> index) {
     if (!index) {
         IWindowMenuItem::move_focus(nullptr);

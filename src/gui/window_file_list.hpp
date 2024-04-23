@@ -60,12 +60,12 @@ public:
         bsod("Not implemented");
     }
 
+    std::optional<int> item_index(const IWindowMenuItem *item) const final;
+
 public: // Scroll stuff
     void set_scroll_offset(int set) final;
 
 public: // Focus stuff
-    std::optional<int> focused_item_index() const final;
-
     bool move_focus_to_index(std::optional<int> index) final;
 
     [[nodiscard]] bool is_return_slot(const int slot) const;

@@ -20,10 +20,6 @@ WindowMenu::WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContai
     }
 }
 
-std::optional<int> WindowMenu::focused_item_index() const {
-    return pContainer ? pContainer->GetFocusedIndex() : std::nullopt;
-}
-
 std::optional<int> WindowMenu::item_index_to_persistent_index(std::optional<int> item_index) const {
     if (!item_index.has_value()) {
         return {};
@@ -56,6 +52,10 @@ int WindowMenu::item_count() const {
 
 IWindowMenuItem *WindowMenu::item_at(int index) {
     return pContainer ? pContainer->GetItemByVisibleIndex(index) : nullptr;
+}
+
+std::optional<int> WindowMenu::item_index(const IWindowMenuItem *item) const {
+    return item && pContainer ? pContainer->GetVisibleIndex(*item) : std::nullopt;
 }
 
 void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {

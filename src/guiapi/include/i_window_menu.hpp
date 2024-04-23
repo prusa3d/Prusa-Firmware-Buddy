@@ -36,6 +36,8 @@ public:
     /// Can potentially return \p nullptr if the item is outside of the visible area.
     virtual IWindowMenuItem *item_at(int index) = 0;
 
+    virtual std::optional<int> item_index(const IWindowMenuItem *item) const = 0;
+
     /// \returns how many items fit on the screen
     inline int max_items_on_screen_count() const {
         return max_items_on_screen_count_;
@@ -75,7 +77,7 @@ public: // Scroll related stuff
 
 public: // Focus related stuff
     /// Returns index of the focused item (if there is an focused item)
-    virtual std::optional<int> focused_item_index() const = 0;
+    std::optional<int> focused_item_index() const;
 
     inline std::optional<int> focused_slot() const {
         return index_to_slot(focused_item_index());

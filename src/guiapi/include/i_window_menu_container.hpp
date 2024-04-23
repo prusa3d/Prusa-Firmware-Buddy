@@ -34,7 +34,7 @@ public:
     Node FindFirstVisible() const;
     Node FindNextVisible(Node prev) const;
     IWindowMenuItem *GetItemByVisibleIndex(int pos) const;
-    std::optional<int> GetVisibleIndex(IWindowMenuItem &item) const;
+    std::optional<int> GetVisibleIndex(const IWindowMenuItem &item) const;
     int GetVisibleCount() const;
 
     bool SetIndex(int visible_index);

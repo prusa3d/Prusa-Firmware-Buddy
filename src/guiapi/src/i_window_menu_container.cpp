@@ -51,7 +51,7 @@ IWindowMenuItem *IWinMenuContainer::GetItemByVisibleIndex(int pos) const {
     return nullptr;
 }
 
-std::optional<int> IWinMenuContainer::GetVisibleIndex(IWindowMenuItem &item) const {
+std::optional<int> IWinMenuContainer::GetVisibleIndex(const IWindowMenuItem &item) const {
     for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
         if (i.item == &item) {
             return i.visible_index;

@@ -45,6 +45,20 @@ void GuiFileSort::Set(WF_Sort_t val) {
 // static definitions
 char *window_file_list_t::root = nullptr;
 
+std::optional<int> window_file_list_t::item_index(const IWindowMenuItem *item) const {
+    // This is very ugly, but it will do for now.
+    // We will rework this class to use WindowMenuVirtual eventually
+
+    if (item == &focused_item_delegate) {
+        return focused_index_;
+
+    } else if (item == &return_item_delegate) {
+        return 0;
+    }
+
+    return std::nullopt;
+}
+
 void window_file_list_t::set_scroll_offset(int set) {
     if (scroll_offset() == set) {
         return;
@@ -57,10 +71,6 @@ void window_file_list_t::set_scroll_offset(int set) {
     assert(new_window_offset == set - 1);
 
     invalidate_all_slots();
-}
-
-std::optional<int> window_file_list_t::focused_item_index() const {
-    return focused_index_;
 }
 
 bool window_file_list_t::move_focus_to_index(std::optional<int> target_index) {
@@ -83,9 +93,9 @@ bool window_file_list_t::move_focus_to_index(std::optional<int> target_index) {
     ensure_item_on_screen(target_index);
 
     // The focus we're setting must be in the visible range, otherwise we wouldn't be able to access its properties (itemText, ...)
-    assert(this->focused_slot());
+    assert(index_to_slot(target_index));
 
-    const auto focused_slot = *this->focused_slot();
+    const auto focused_slot = *index_to_slot(target_index);
     invalidate_slot(focused_slot);
 
     if (is_return_slot(focused_slot)) {
@@ -94,6 +104,7 @@ bool window_file_list_t::move_focus_to_index(std::optional<int> target_index) {
 
     else {
         focused_item_delegate.move_focus();
+        focused_item_delegate.Invalidate();
         focused_item_delegate.SetLabel(itemText(focused_slot));
         focused_item_delegate.SetIconId(itemIcon(focused_slot));
         focused_item_delegate.InitRollIfNeeded(slot_rect(focused_slot));
@@ -232,13 +243,11 @@ void window_file_list_t::unconditionalDraw() {
         // Return item; return_item_delegate handles both focused and unfocused return item
         if (is_return_slot(i)) {
             return_item_delegate.Print(item_rect);
-            continue;
         }
 
         // Focused item, scrolling text
         else if (IsFocused() && focused_slot == i) {
             focused_item_delegate.Print(item_rect);
-            continue;
         }
 
         // General list item
