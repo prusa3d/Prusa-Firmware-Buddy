@@ -745,11 +745,7 @@
  * Override with M92
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
-#ifdef HAS_PLANETARY_GEARBOX
-    #define DEFAULT_AXIS_STEPS_PER_UNIT_E0 380
-#else
-    #define DEFAULT_AXIS_STEPS_PER_UNIT_E0 784
-#endif
+#define DEFAULT_AXIS_STEPS_PER_UNIT_E0 380
 
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
     { 100, 100, 400, DEFAULT_AXIS_STEPS_PER_UNIT_E0 } //E0 280 295 420
@@ -1080,12 +1076,7 @@
 #define DEFAULT_INVERT_X_DIR false
 #define DEFAULT_INVERT_Y_DIR true
 #define DEFAULT_INVERT_Z_DIR false
-
-#if (!defined(HAS_PLANETARY_GEARBOX))
-    #define DEFAULT_INVERT_E0_DIR true
-#else
-    #define DEFAULT_INVERT_E0_DIR false
-#endif
+#define DEFAULT_INVERT_E0_DIR false
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     //this part if header is accesible only from C++ because of bool

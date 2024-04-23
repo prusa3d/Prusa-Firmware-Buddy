@@ -91,7 +91,7 @@
                 "PRINTER": "MK4",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.2.7",
-                "PRESET_COMPILE_OPTIONS": "-DHAS_PLANETARY_GEARBOX"
+                "PRESET_COMPILE_OPTIONS": ""
             }
         },
         {
