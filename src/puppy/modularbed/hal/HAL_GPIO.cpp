@@ -40,16 +40,10 @@ bool ReadFAULTSignal() {
 }
 
 void ResetOverCurrentFault() {
-// ACS711 datasheet requires that Vcc shall be < 200mV for at least 100 microseconds
-#if (BOARD_VER_EQUAL_TO(0, 6, 0))
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
-    hal::System::WaitMicroseconds(500);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
-#else
+    // ACS711 datasheet requires that Vcc shall be < 200mV for at least 100 microseconds
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
     hal::System::WaitMicroseconds(500);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
-#endif
 }
 
 } // namespace hal::GPIODriver

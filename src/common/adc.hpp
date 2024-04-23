@@ -508,19 +508,11 @@ inline uint16_t mcuTemperature() { return adcDma1.get_channel(AdcChannel::mcu_te
 
 #if BOARD_IS_DWARF
 inline uint16_t inputf24V() { return adcDma1.get_and_shift_channel(AdcChannel::dwarf_24V); }
-    #if (BOARD_VER_EQUAL_TO(0, 4, 0))
-inline uint16_t nozzle() { return adcDma1.get_and_shift_channel(AdcChannel::ntc2); }
-    #else
 inline uint16_t nozzle() { return adcDma1.get_and_shift_channel(AdcChannel::ntc); }
-    #endif
 inline uint16_t heaterCurrent() { return adcDma1.get_and_shift_channel(AdcChannel::heater_current); }
 inline uint16_t picked0() { return adcDma1.get_channel(AdcChannel::picked0); }
 inline uint16_t picked1() { return adcDma1.get_channel(AdcChannel::picked1); }
-    #if (BOARD_VER_EQUAL_TO(0, 4, 0))
-inline uint16_t heatbreakTemp() { return adcDma1.get_and_shift_channel(AdcChannel::ntc); }
-    #else
 inline uint16_t heatbreakTemp() { return adcDma1.get_and_shift_channel(AdcChannel::ntc2); }
-    #endif
 inline uint16_t boardTemp() { return adcDma1.get_and_shift_channel(AdcChannel::ntc_internal); }
 inline uint16_t toolFimalentSensor() { return adcDma1.get_channel(AdcChannel::TFS); }
 inline uint16_t mcuTemperature() { return adcDma1.get_channel(AdcChannel::mcu_temperature); } ///< Raw sensor, use getMCUTemp() instead

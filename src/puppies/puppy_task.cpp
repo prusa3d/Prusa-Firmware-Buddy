@@ -187,11 +187,7 @@ static bool puppy_initial_scan() {
 
 static void puppy_task_body([[maybe_unused]] void const *argument) {
 
-#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
-    // This is temporary, remove once everyone has compatible hardware.
-    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
-
-    #if HAS_EMBEDDED_ESP32()
+#if HAS_EMBEDDED_ESP32()
     // Power on the ESP
     hw::espPower.write(hw::Pin::State::high);
 
@@ -203,7 +199,6 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
         ESPFlash::fatal_err(esp_result);
     }
     TaskDeps::provide(TaskDeps::Dependency::esp_flashed);
-    #endif
 #endif
 
     bool first_run = true;

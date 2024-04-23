@@ -64,13 +64,7 @@
 
 #define PIN_HB_0 GPIO_PIN_4
 #define PIN_HB_1 GPIO_PIN_5
-
-#if (BOARD_VER_EQUAL_TO(0, 6, 0))
-    #define PIN_HB_2 GPIO_PIN_10
-#else
-    #define PIN_HB_2 GPIO_PIN_8
-#endif
-
+#define PIN_HB_2 GPIO_PIN_8
 #define PIN_HB_3 GPIO_PIN_9
 #define PIN_HB_4 GPIO_PIN_1
 #define PIN_HB_5 GPIO_PIN_2

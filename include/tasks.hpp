@@ -37,12 +37,10 @@ enum class Dependency : size_t {
 // Check dependency mask fits into the dependency_t integer
 static_assert(ftrstd::to_underlying(Dependency::_count) <= sizeof(dependency_t) * 8);
 
-#define NETWORK_DEPENDS_ON_ESP_FLASHED (HAS_EMBEDDED_ESP32() && BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0))
-
 // Create dependency mask from the dependencies enum
 constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
     // Feel free to lift the assert in case some build configuration results in empty list
-#if (NETWORK_DEPENDS_ON_ESP_FLASHED) && HAS_PUPPIES()
+#if HAS_EMBEDDED_ESP32() && HAS_PUPPIES()
     static_assert(sizeof...(dependencies) > 0, "No dependencies, is this intended?");
 #endif
     return ((1 << ftrstd::to_underlying(dependencies)) | ... | 0);
@@ -74,10 +72,8 @@ namespace Tasks {
     inline constexpr dependency_t espif = make(Dependency::esp_flashed);
     inline constexpr dependency_t bootstrap_done = make(
         Dependency::resources_ready
-#if NETWORK_DEPENDS_ON_ESP_FLASHED
+#if HAS_EMBEDDED_ESP32()
         ,
-        // This is temporary, remove once everyone has compatible hardware.
-        // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
         Dependency::esp_flashed
 #endif
 #if HAS_PUPPIES()
@@ -89,9 +85,7 @@ namespace Tasks {
     inline constexpr dependency_t syslog = make(Dependency::networking_ready);
 
     inline constexpr dependency_t network = make(
-#if NETWORK_DEPENDS_ON_ESP_FLASHED
-        // This is temporary, remove once everyone has compatible hardware.
-        // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+#if HAS_EMBEDDED_ESP32()
         Dependency::esp_flashed
 #endif
     );

@@ -775,12 +775,7 @@
  * Override with M203
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
-
-#if (BOARD_VER_EQUAL_TO(0, 4, 0))
-    #define DEFAULT_MAX_MAX_E_FEEDRATE 25 // E speed is limited by slow E step convertor
-#else
-    #define DEFAULT_MAX_MAX_E_FEEDRATE 45
-#endif
+#define DEFAULT_MAX_MAX_E_FEEDRATE 45
 
 #define DEFAULT_MAX_FEEDRATE \
     { 3000, 3000, 12, DEFAULT_MAX_MAX_E_FEEDRATE }

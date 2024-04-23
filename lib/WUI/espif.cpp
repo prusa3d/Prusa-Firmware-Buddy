@@ -635,13 +635,8 @@ void espif_init_hw() {
  * @return err_t Possible error encountered during initialization
  */
 err_t espif_init(struct netif *netif) {
-#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
-    // This is temporary, remove once everyone has compatible hardware.
-    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
-
-    #if HAS_EMBEDDED_ESP32()
+#if HAS_EMBEDDED_ESP32()
     TaskDeps::wait(TaskDeps::Tasks::espif);
-    #endif
 #endif
 
     struct netif *previous = active_esp_netif.exchange(netif);

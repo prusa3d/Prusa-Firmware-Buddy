@@ -1205,10 +1205,7 @@
  *
  * Override the default value based on the driver type set in Configuration.h.
  */
-
-#if (BOARD_VER_EQUAL_TO(0, 4, 0))
-#define MINIMUM_STEPPER_PULSE 6
-#endif
+//#define MINIMUM_STEPPER_PULSE 6
 
 /**
  * Maximum stepping rate (in Hz) the stepper driver allows
@@ -1796,11 +1793,7 @@
         #define Y_STALL_SENSITIVITY 1
         #define Z_STALL_SENSITIVITY 4
 
-        #if (BOARD_VER_EQUAL_TO(0, 4, 0))
-            #define STALL_THRESHOLD_TMC2130 247 // (steps per tick) - reciprocal value of minimal speed
-        #else
-            #define STALL_THRESHOLD_TMC2130 300 // (steps per tick) - reciprocal value of minimal speed
-        #endif
+        #define STALL_THRESHOLD_TMC2130 300 // (steps per tick) - reciprocal value of minimal speed
     #endif
 
     #ifdef IMPROVE_HOMING_RELIABILITY
