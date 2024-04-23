@@ -188,26 +188,6 @@
             }
         },
         {
-            "name": "xl-xbuddy04",
-            "description": "Original Prusa XL with XLBuddy 04",
-            "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "PRINTER": "XL",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "0.4.0",
-                "DWARF_BINARY_DIR": {
-                    "type": "FILEPATH",
-                    "value": "build-vscode-dwarf"
-                },
-                "MODULARBED_BINARY_DIR": {
-                    "type": "FILEPATH",
-                    "value": "build-vscode-modularbed"
-                },
-                "PRESET_COMPILE_OPTIONS": "",
-                "IS_KNOBLET":"FALSE"
-            }
-        },
-        {
             "name": "xl_dev_kit",
             "description": "Original Prusa xl_dev_kit",
             "cacheVariables": {
@@ -230,17 +210,6 @@
             }
         },
         {
-            "name": "xl-dwarf-04",
-            "description": "Original Prusa XL's Dwarf v04(the extruder puppy)",
-            "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "PRINTER": "XL",
-                "BOARD": "DWARF",
-                "BOARD_VERSION": "0.4.0",
-                "PRESET_COMPILE_OPTIONS": ""
-            }
-        },
-        {
             "name": "xl-modularbed",
             "description": "Original Prusa XL's Modular Bed",
             "cacheVariables": {
@@ -259,17 +228,6 @@
                 "PRINTER": "iX",
                 "BOARD": "MODULARBED",
                 "BOARD_VERSION": "0.7.0",
-                "PRESET_COMPILE_OPTIONS": ""
-            }
-        },
-        {
-            "name": "xl-modularbed-06",
-            "description": "Original Prusa XL's Modular Bed v06",
-            "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "PRINTER": "XL",
-                "BOARD": "MODULARBED",
-                "BOARD_VERSION": "0.6.0",
                 "PRESET_COMPILE_OPTIONS": ""
             }
         }
