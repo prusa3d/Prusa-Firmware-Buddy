@@ -3,7 +3,7 @@
 ```bash
 # create a build folder and run cmake within it
 cd ../.. && mkdir build_tests && cd build_tests
-cmake .. -G Ninja
+cmake .. -G Ninja -DBOARD=BUDDY
 
 # build all the unit tests
 ninja tests
