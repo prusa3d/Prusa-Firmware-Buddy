@@ -179,6 +179,79 @@ std::optional<int> IWindowMenu::index_to_slot(std::optional<int> index) const {
 
     return slot;
 }
+
+/**
+ * @brief menu behaves similar to frame
+ * but redraw of background will not redraw area under items to avoid flickering
+ *
+ * flags.invalid            - all items are invalid
+ * flags.invalid_background - background is invalid (lines between items too)
+ *
+ * does not use unconditionalDraw
+ * unconditionalDraw would draw just black rectangle
+ * which is same behavior as window_frame has
+ */
+void IWindowMenu::draw() {
+    if (!IsVisible()) {
+        return;
+    }
+
+    const bool redraw_all_items = IsInvalid();
+    const int scroll_offset = this->scroll_offset();
+    const int visible_slot_count = current_items_on_screen_count();
+
+    for (int slot = 0; slot < visible_slot_count; slot++) {
+        IWindowMenuItem *item = item_at(scroll_offset + slot);
+        if (!item) {
+            continue;
+        }
+
+        if (redraw_all_items) {
+            item->Invalidate();
+        }
+
+        if (!item->IsInvalid()) {
+            continue;
+        }
+
+        const auto rect = slot_rect(slot);
+        if (rect.IsEmpty()) {
+            continue;
+        }
+
+        item->InitRollIfNeeded(rect);
+        item->Print(rect);
+
+        if constexpr (GuiDefaults::MenuLinesBetweenItems) {
+            if (flags.invalid_background && slot < visible_slot_count - 1) {
+                display::DrawLine(point_ui16(Left() + GuiDefaults::MenuItemDelimiterPadding.left, rect.Top() + rect.Height()),
+                    point_ui16(Left() + Width() - GuiDefaults::MenuItemDelimiterPadding.right, rect.Top() + rect.Height()), COLOR_DARK_GRAY);
+            }
+        }
+    }
+
+    // background is invalid or we used to have more items on screen
+    // just redraw the rest of the window
+    if (flags.invalid_background || last_visible_slot_count_ > visible_slot_count) {
+        if (visible_slot_count) {
+            /// fill the rest of the window by background
+            const int menu_h = visible_slot_count * (item_height() + GuiDefaults::MenuItemDelimeterHeight);
+            Rect16 rc_win = GetRect();
+            rc_win -= Rect16::Height_t(menu_h);
+            if (rc_win.Height() <= 0) {
+                return;
+            }
+            rc_win += Rect16::Top_t(menu_h);
+            display::FillRect(rc_win, GetBackColor());
+        } else {
+            // we dont have any items, just fill rectangle with back color
+            unconditionalDraw();
+        }
+    }
+
+    last_visible_slot_count_ = visible_slot_count;
+}
+
 void IWindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     const int encoder_value = int(param);
 

@@ -94,6 +94,11 @@ protected:
 
     virtual void validate(Rect16 validation_rect) override;
 
+    void draw() override {
+        // Do not use the IWindowMenu implementation
+        window_t::draw();
+    }
+
     virtual void unconditionalDraw() override;
     string_view_utf8 itemText(int slot) const;
     const img::Resource *itemIcon(int slot) const;

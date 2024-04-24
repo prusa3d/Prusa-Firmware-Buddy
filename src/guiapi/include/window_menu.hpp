@@ -20,11 +20,7 @@
 class WindowMenu : public AddSuperWindow<IWindowMenu> {
 
 private:
-    uint8_t visible_count_at_last_draw; // to redraw last item, if it was hidden, has no effect in case entire window is invalid
     IWinMenuContainer *pContainer;
-
-    /// Prints single item in the menu
-    void printItem(IWindowMenuItem &item, Rect16 rc);
 
     void set_scroll_offset(int set) final;
 
@@ -75,7 +71,6 @@ public:
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1);
 
 protected:
-    virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
     // TODO

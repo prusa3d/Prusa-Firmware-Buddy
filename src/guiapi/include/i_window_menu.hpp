@@ -130,6 +130,7 @@ protected:
     IWindowMenu(window_t *parent, Rect16 rect);
 
 protected:
+    virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 private:
@@ -138,4 +139,7 @@ private:
     /// How many items we've scrolled down by
     /// Formwrly known as index_of_first
     int scroll_offset_ = 0;
+
+    /// To redraw last item, if it was hidden, has no effect in case entire window is invalid
+    uint8_t last_visible_slot_count_ = 0;
 };

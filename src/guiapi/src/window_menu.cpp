@@ -12,8 +12,7 @@
 #include "marlin_client.hpp"
 
 WindowMenu::WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer)
-    : AddSuperWindow<IWindowMenu>(parent, rect)
-    , visible_count_at_last_draw(0) {
+    : AddSuperWindow<IWindowMenu>(parent, rect) {
 
     if (pContainer) {
         BindContainer(*pContainer);
@@ -107,79 +106,6 @@ void WindowMenu::set_scroll_offset(int set) {
     bool back = flags.invalid_background;
     Invalidate();
     flags.invalid_background = back;
-}
-
-void WindowMenu::printItem(IWindowMenuItem &item, Rect16 rc) {
-    // only place I know rectangle to be able to reinit roll, ugly to do it in print
-    // TODO make some kind of roll event for menu items
-    item.InitRollIfNeeded(rc);
-
-    item.Print(rc);
-}
-
-/**
- * @brief menu behaves similar to frame
- * but redraw of background will not redraw area under items to avoid flickering
- *
- * flags.invalid            - all items are invalid
- * flags.invalid_background - background is invalid (lines between items too)
- *
- * does not use unconditionalDraw
- * unconditionalDraw would draw just black rectangle
- * which is same behavior as window_frame has
- */
-void WindowMenu::draw() {
-    if (!IsVisible()) {
-        return;
-    }
-
-    bool setChildrenInvalid = IsInvalid(); // if background is invalid all items must be redrawn
-
-    size_t drawn_cnt = 0;
-
-    Node last_valid_node = Node::Empty();
-    for (Node node = findFirst(); node.HasValue(); node = findNext(node)) {
-        last_valid_node = node;
-        if (setChildrenInvalid) {
-            node.item->Invalidate();
-        }
-        // this can draw just a part or entire item
-        if (node.item->IsInvalid()) {
-            if (auto rect = slot_rect(node.current_slot); !rect.IsEmpty()) {
-                printItem(*(node.item), rect);
-
-                if constexpr (GuiDefaults::MenuLinesBetweenItems) {
-                    if (flags.invalid_background && node.current_slot < current_items_on_screen_count() - 1) {
-                        display::DrawLine(point_ui16(Left() + GuiDefaults::MenuItemDelimiterPadding.left, rect.Top() + rect.Height()),
-                            point_ui16(Left() + Width() - GuiDefaults::MenuItemDelimiterPadding.right, rect.Top() + rect.Height()), COLOR_DARK_GRAY);
-                    }
-                }
-
-                ++drawn_cnt;
-            }
-        }
-    }
-
-    // background is invalid or we used to have more items on screen
-    // just redraw the rest of the window
-    if (flags.invalid_background || visible_count_at_last_draw > drawn_cnt) {
-        if (last_valid_node.HasValue()) {
-            /// fill the rest of the window by background
-            const int menu_h = (last_valid_node.current_slot + 1) * (item_height() + GuiDefaults::MenuItemDelimeterHeight);
-            Rect16 rc_win = GetRect();
-            rc_win -= Rect16::Height_t(menu_h);
-            if (rc_win.Height() <= 0) {
-                return;
-            }
-            rc_win += Rect16::Top_t(menu_h);
-            display::FillRect(rc_win, GetBackColor());
-        } else {
-            // we dont have any items, just fill rectangle with back color
-            unconditionalDraw();
-        }
-    }
-
-    visible_count_at_last_draw = drawn_cnt;
 }
 
 IWindowMenuItem *WindowMenu::itemFromSlot(int slot) {

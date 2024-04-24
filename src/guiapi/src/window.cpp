@@ -366,10 +366,8 @@ void window_t::Draw() {
 }
 
 void window_t::draw() {
-    if (IsInvalid() && rect.Width() && rect.Height()) {
-        if (IsVisible()) {
-            unconditionalDraw();
-        }
+    if (IsInvalid() && IsVisible() && !rect.IsEmpty()) {
+        unconditionalDraw();
     }
 }
 
