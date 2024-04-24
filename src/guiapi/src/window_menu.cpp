@@ -94,15 +94,6 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
     SuperWindowEvent(sender, event, param);
 }
 
-IWindowMenuItem *WindowMenu::itemFromSlot(int slot) {
-    for (Node i = findFirst(); i.HasValue(); i = findNext(i)) {
-        if (i.current_slot == slot) {
-            return i.item; // found it
-        }
-    }
-    return nullptr;
-}
-
 WindowMenu::Node WindowMenu::findFirst() {
     IWindowMenuItem *item = item_at(scroll_offset());
     if (!item) {

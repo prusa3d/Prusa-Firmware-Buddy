@@ -22,8 +22,6 @@ class WindowMenu : public AddSuperWindow<IWindowMenu> {
 private:
     IWinMenuContainer *pContainer;
 
-    IWindowMenuItem *itemFromSlot(int slot);
-
     struct Node {
         IWindowMenuItem *item;
         int current_slot;
