@@ -28,11 +28,16 @@ extern "C" __attribute__((weak)) int strcasecmp(const char *a, const char *b) {
 
 using namespace std;
 
+using StringList = std::vector<std::string>;
+
 template <typename LDV>
-bool CheckFilesSeq(const LDV &ldv, std::vector<std::string> expectedSeq) {
-    return std::mismatch(ldv.data().begin(), ldv.data().end(), expectedSeq.begin(),
-               [](const typename LDV::Entry &e, const std::string &s) { return s == e.lfn; })
-        == std::make_pair(ldv.data().end(), expectedSeq.end());
+StringList ldv_files(const LDV &ldv) {
+    StringList r;
+    r.reserve(ldv.VisibleFilesCount());
+    for (int i = 0, e = ldv.VisibleFilesCount(); i < e; i++) {
+        r.push_back(ldv.LongFileNameAt(i).first);
+    }
+    return r;
 }
 
 static char txt_old[] = "old"; // cannot be const char
@@ -83,52 +88,52 @@ TEST_CASE("LazyDirView::SortByName test", "[LazyDirView]") {
         ldv.ChangeDirectory("path",
             LDV::SortPolicy::BY_NAME,
             nullptr);
-        CHECK(CheckFilesSeq(ldv, { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g" }));
+        CHECK(ldv_files(ldv) == StringList { "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g" }));
+        CHECK(ldv_files(ldv) == StringList { "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g" }));
+        CHECK(ldv_files(ldv) == StringList { "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g" }));
+        CHECK(ldv_files(ldv) == StringList { "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g" }));
+        CHECK(ldv_files(ldv) == StringList { "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g", "12.g" }));
+        CHECK(ldv_files(ldv) == StringList { "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g", "12.g" });
         CHECK(ldv.MoveDown() == false); // no more files
-        CHECK(CheckFilesSeq(ldv, { "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g", "12.g" }));
+        CHECK(ldv_files(ldv) == StringList { "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g", "12.g" });
 
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g" }));
+        CHECK(ldv_files(ldv) == StringList { "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g" }));
+        CHECK(ldv_files(ldv) == StringList { "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g" }));
+        CHECK(ldv_files(ldv) == StringList { "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g", "09.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g" }));
+        CHECK(ldv_files(ldv) == StringList { "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g" }));
+        CHECK(ldv_files(ldv) == StringList { "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" });
         CHECK(ldv.MoveUp() == false); // no more files
-        CHECK(CheckFilesSeq(ldv, { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" });
 
         CHECK(ldv.MoveDown(3));
-        CHECK(CheckFilesSeq(ldv, { "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g" }));
+        CHECK(ldv_files(ldv) == StringList { "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g", "06.g", "07.g", "08.g" });
 
         CHECK(ldv.MoveUp(3));
-        CHECK(CheckFilesSeq(ldv, { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" });
 
         CHECK(ldv.MoveDown(7));
-        CHECK(CheckFilesSeq(ldv, { "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g", "12.g" }));
+        CHECK(ldv_files(ldv) == StringList { "04.g", "05.g", "06.g", "07.g", "08.g", "09.g", "10.g", "11.g", "12.g" });
 
         CHECK(ldv.MoveUp(7));
-        CHECK(CheckFilesSeq(ldv, { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "fw", "old", "png-decode", "01.g", "02.g", "03.g", "04.g", "05.g" });
     }
 }
 TEST_CASE("LazyDirView::SortByCrModDateTime test", "[LazyDirView]") {
@@ -161,44 +166,44 @@ TEST_CASE("LazyDirView::SortByCrModDateTime test", "[LazyDirView]") {
             LDV::SortPolicy::BY_CRMOD_DATETIME,
             nullptr);
         CHECK(ldv.MoveUp() == false); // no more files
-        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g" }));
+        CHECK(ldv_files(ldv) == StringList { "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g" });
         CHECK(ldv.MoveDown());
         // mno, tady je otazka, proc tu neni na konci 01.g - jestli by nahodou fajly nemely bejt razeny podle nazvu vzestupne
-        CHECK(CheckFilesSeq(ldv, { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" }));
+        CHECK(ldv_files(ldv) == StringList { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g" }));
+        CHECK(ldv_files(ldv) == StringList { "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g" }));
+        CHECK(ldv_files(ldv) == StringList { "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g" }));
+        CHECK(ldv_files(ldv) == StringList { "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g" }));
+        CHECK(ldv_files(ldv) == StringList { "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" }));
+        CHECK(ldv_files(ldv) == StringList { "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" });
 
         CHECK(ldv.MoveDown() == false); // no more files
-        CHECK(CheckFilesSeq(ldv, { "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" }));
+        CHECK(ldv_files(ldv) == StringList { "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" });
 
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g" }));
+        CHECK(ldv_files(ldv) == StringList { "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g" }));
+        CHECK(ldv_files(ldv) == StringList { "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g" }));
+        CHECK(ldv_files(ldv) == StringList { "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g" }));
+        CHECK(ldv_files(ldv) == StringList { "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" }));
+        CHECK(ldv_files(ldv) == StringList { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g" }));
+        CHECK(ldv_files(ldv) == StringList { "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" });
         CHECK(ldv.MoveUp() == false); // no more files
-        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" });
         CHECK(ldv.MoveUp() == false); // no more files
-        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" });
     }
 }
 
@@ -229,38 +234,38 @@ TEST_CASE("LazyDirView::StartWithDir test", "[LazyDirView]") {
         std::shuffle(testFiles0.begin(), testFiles0.end(), g);
         LDV ldv;
         ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, "fw");
-        CHECK(CheckFilesSeq(ldv, { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" }));
+        CHECK(ldv_files(ldv) == StringList { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g" }));
+        CHECK(ldv_files(ldv) == StringList { "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g" }));
+        CHECK(ldv_files(ldv) == StringList { "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g" }));
+        CHECK(ldv_files(ldv) == StringList { "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g" }));
+        CHECK(ldv_files(ldv) == StringList { "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g" });
         CHECK(ldv.MoveDown());
-        CHECK(CheckFilesSeq(ldv, { "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" }));
+        CHECK(ldv_files(ldv) == StringList { "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" });
         CHECK(ldv.MoveDown() == false); // no more files
-        CHECK(CheckFilesSeq(ldv, { "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" }));
+        CHECK(ldv_files(ldv) == StringList { "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" });
 
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g" }));
+        CHECK(ldv_files(ldv) == StringList { "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g" }));
+        CHECK(ldv_files(ldv) == StringList { "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g" }));
+        CHECK(ldv_files(ldv) == StringList { "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g" }));
+        CHECK(ldv_files(ldv) == StringList { "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" }));
+        CHECK(ldv_files(ldv) == StringList { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g" }));
+        CHECK(ldv_files(ldv) == StringList { "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" });
         CHECK(ldv.MoveUp() == false); // no more files
-        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" });
         CHECK(ldv.MoveUp() == false); // no more files
-        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" });
     }
 }
 
@@ -292,28 +297,28 @@ TEST_CASE("LazyDirView::StartWithFile test", "[LazyDirView]") {
         LDV ldv;
         ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, "07.g");
         // and this is gonna be interesting
-        CHECK(CheckFilesSeq(ldv, { "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g", "" }));
+        CHECK(ldv_files(ldv) == StringList { "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" });
         CHECK(ldv.MoveDown() == false);
-        CHECK(CheckFilesSeq(ldv, { "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g", "" }));
+        CHECK(ldv_files(ldv) == StringList { "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" });
 
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" }));
+        CHECK(ldv_files(ldv) == StringList { "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g", "01.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g" }));
+        CHECK(ldv_files(ldv) == StringList { "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g", "02.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g" }));
+        CHECK(ldv_files(ldv) == StringList { "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g", "03.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g" }));
+        CHECK(ldv_files(ldv) == StringList { "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g", "04.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g" }));
+        CHECK(ldv_files(ldv) == StringList { "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g", "05.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" }));
+        CHECK(ldv_files(ldv) == StringList { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g" }));
+        CHECK(ldv_files(ldv) == StringList { "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g" });
         CHECK(ldv.MoveUp());
-        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" });
         CHECK(ldv.MoveUp() == false); // no more files
-        CHECK(CheckFilesSeq(ldv, { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" }));
+        CHECK(ldv_files(ldv) == StringList { "..", "png-decode", "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g" });
     }
 }
 
@@ -328,16 +333,16 @@ TEST_CASE("LazyDirView::StartWithFile2 test", "[LazyDirView]") {
     LDV ldv;
     ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, "tr.g");
     // and this is gonna be interesting
-    CHECK(CheckFilesSeq(ldv, { "tr.g", "", "", "", "", "", "", "", "" }));
+    CHECK(ldv_files(ldv) == StringList { "tr.g" });
     CHECK(ldv.MoveDown() == false);
-    CHECK(CheckFilesSeq(ldv, { "tr.g", "", "", "", "", "", "", "", "" }));
+    CHECK(ldv_files(ldv) == StringList { "tr.g" });
 
     CHECK(ldv.MoveUp());
-    CHECK(CheckFilesSeq(ldv, { "3", "tr.g", "", "", "", "", "", "", "" }));
+    CHECK(ldv_files(ldv) == StringList { "3", "tr.g" });
     CHECK(ldv.MoveUp());
-    CHECK(CheckFilesSeq(ldv, { "..", "3", "tr.g", "", "", "", "", "", "" }));
+    CHECK(ldv_files(ldv) == StringList { "..", "3", "tr.g" });
     CHECK(ldv.MoveUp() == false);
-    CHECK(CheckFilesSeq(ldv, { "..", "3", "tr.g", "", "", "", "", "", "" }));
+    CHECK(ldv_files(ldv) == StringList { "..", "3", "tr.g" });
 }
 
 TEST_CASE("LazyDirView::ExtremelyLongFileName test", "[LazyDirView][!shouldfail]") {
@@ -355,7 +360,7 @@ TEST_CASE("LazyDirView::ExtremelyLongFileName test", "[LazyDirView][!shouldfail]
     ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, nullptr);
     // And here I don't expect the correct path to be in the file list - it is just too long for that
     // For now this test is expected to fail, to be solved in BFW-1041
-    CHECK(CheckFilesSeq(ldv, { "3", truncatedLFN, "", "", "", "", "", "", "" }));
+    CHECK(ldv_files(ldv) == StringList { "3", truncatedLFN });
     // the file list may survive this unharmed, but I must also make sure the surrounding code survives as well
     // -> the truncated filename does not exist at all or may even be identical to some other (deliberately chosen) filename
     // and we must make sure the user prints the right one (the chosen one)
@@ -422,11 +427,11 @@ TEST_CASE("LazyDirView::HoppingAround", "[LazyDirView]") {
 
     LDV ldv;
     ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, nullptr);
-    CHECK(CheckFilesSeq(ldv, { "..", "slozka", "složka", "Ž_51.bgcode", "Ý_50.bgcode", "Ů_49.bgcode", "Ú_48.bgcode", "Ť_47.bgcode", "Š_46.bgcode" }));
+    CHECK(ldv_files(ldv) == StringList { "..", "slozka", "složka", "Ž_51.bgcode", "Ý_50.bgcode", "Ů_49.bgcode", "Ú_48.bgcode", "Ť_47.bgcode", "Š_46.bgcode" });
 
     ldv.set_window_offset(44);
-    CHECK(CheckFilesSeq(ldv, { "I_9.bgcode", "H_8.bgcode", "G_7.bgcode", "F_6.bgcode", "E_5.bgcode", "D_4.bgcode", "C_3.bgcode", "B_2.bgcode", "A_1.bgcode" }));
+    CHECK(ldv_files(ldv) == StringList { "I_9.bgcode", "H_8.bgcode", "G_7.bgcode", "F_6.bgcode", "E_5.bgcode", "D_4.bgcode", "C_3.bgcode", "B_2.bgcode", "A_1.bgcode" });
 
     ldv.move_window_by(-8);
-    CHECK(CheckFilesSeq(ldv, { "Q_17.bgcode", "P_16.bgcode", "O_15.bgcode", "N_14.bgcode", "M_13.bgcode", "L_12.bgcode", "K_11.bgcode", "J_10.bgcode", "I_9.bgcode" }));
+    CHECK(ldv_files(ldv) == StringList { "Q_17.bgcode", "P_16.bgcode", "O_15.bgcode", "N_14.bgcode", "M_13.bgcode", "L_12.bgcode", "K_11.bgcode", "J_10.bgcode", "I_9.bgcode" });
 }
