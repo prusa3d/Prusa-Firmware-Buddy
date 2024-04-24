@@ -314,7 +314,7 @@ pipeline {
                                         export EASYOCR_MODULE_PATH=./easyocr
                                         . .venv/bin/activate
                                         python3 utils/bootstrap.py
-                                        python3 -m pytest tests/integration --firmware build/mk4_release_noboot/firmware.bin --log-cli-level info --log-cli-format="%(asctime)s [%(levelname)8s] (%(filename)s:%(lineno)s) %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S" | grep -v "Bus unhandled low duration"
+                                        python3 -m pytest tests/integration --firmware build/mk4_release_noboot/firmware.bin --log-cli-level info --log-cli-format="%(asctime)s [%(levelname)8s] (%(filename)s:%(lineno)s) %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S"
                                         """
                                     } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
                                         error "Caught ${e.toString()}"

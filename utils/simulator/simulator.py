@@ -8,7 +8,6 @@ from contextlib import asynccontextmanager, AsyncExitStack, closing
 
 from PIL import Image
 from bootstrap import get_dependency_directory, switch_to_venv_if_nedded
-from .pubsub import Publisher
 from .printer import Thermistor, MachineType, NetworkInterface
 
 logger = logging.getLogger('simulator')
@@ -19,14 +18,13 @@ switch_to_venv_if_nedded()
 class Simulator:
 
     def __init__(self, *, process: asyncio.subprocess.Process,
-                 machine: MachineType, tmpdir: Path, logs: Publisher,
+                 machine: MachineType, tmpdir: Path,
                  scriptio_reader: Optional[asyncio.StreamReader],
                  scriptio_writer: Optional[asyncio.StreamWriter],
                  http_proxy_port: Optional[int]):
         self.machine = machine
         self.process = process
         self.tmpdir = tmpdir
-        self.logs = logs
         self.scriptio_reader = scriptio_reader
         self.scriptio_writer = scriptio_writer
         self.http_proxy_port = http_proxy_port
@@ -133,23 +131,12 @@ class Simulator:
             else:
                 scriptio_reader, scriptio_writer = None, None
 
-            # start parsing stdout/logs
-            logs = Publisher()
-
-            async def parse_simulator_stdout():
-                while process.stdout and not process.stdout.at_eof():
-                    line = (await
-                            process.stdout.readline()).decode('utf-8').strip()
-                    logger.info('%s', line)
-                    await logs.publish(line)
-
             async def parse_simulator_stderr():
                 while process.stderr and not process.stderr.at_eof():
                     line = (await
                             process.stderr.readline()).decode('utf-8').strip()
                     logger.error('%s', line)
 
-            logs_task = asyncio.ensure_future(parse_simulator_stdout())
             stderr_task = asyncio.ensure_future(parse_simulator_stderr())
 
             # yield the simulator to the callee
@@ -157,14 +144,12 @@ class Simulator:
                 yield Simulator(process=process,
                                 machine=machine,
                                 tmpdir=tmpdir,
-                                logs=logs,
                                 scriptio_reader=scriptio_reader,
                                 scriptio_writer=scriptio_writer,
                                 http_proxy_port=http_proxy_port)
             finally:
                 if process.returncode is None:
                     process.terminate()
-                logs_task.cancel()
                 stderr_task.cancel()
                 if process.returncode is None:
                     await process.communicate()
@@ -200,6 +185,15 @@ class Simulator:
             return False
         return True
 
+    async def parse_simulator_stdout(self):
+        stdout = self.process.stdout
+        while stdout and not stdout.at_eof():
+            line = (await stdout.readline()).decode('utf-8').strip()
+            if 'Bus unhandled low duration' in line:
+                continue
+            logger.info('%s', line)
+            yield line
+
     async def command(self, command: str, readline=False, timeout=3.0):
         assert self.simulator_is_running(), 'simulator is not running'
         assert self.scriptio_reader is not None and self.scriptio_writer is not None
@@ -209,7 +203,7 @@ class Simulator:
             self.scriptio_writer.write(command.encode('utf-8') + b'\n')
 
         async def wait_for_script_finished_line():
-            async for line in self.logs:
+            async for line in self.parse_simulator_stdout():
                 if line.strip() == 'ScriptHost: Script FINISHED':
                     break
 

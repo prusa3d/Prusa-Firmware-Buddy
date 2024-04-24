@@ -12556,7 +12556,6 @@ M73 P100 R0
 ; filament_soluble = 0
 ; filament_spool_weight = 230
 ; filament_toolchange_delay = 0
-; filament_type = PLA
 ; filament_unload_time = 12
 ; filament_unloading_speed = 20
 ; filament_unloading_speed_start = 100

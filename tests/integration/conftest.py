@@ -27,6 +27,7 @@ DEFAULT_EEPROM_CONTENT = {
     'Run XYZ Calibration': struct.pack('<B', False),
     'Run First Layer': struct.pack('<B', False),
     'FSensor Enabled': struct.pack('<B', False),
+    'Selftest Result Gears': 21 * b'\xaa',
 }
 
 
@@ -153,6 +154,7 @@ async def prepare_xflash_content(firmware_path, basic_printer_arguments,
                           for fragment in {'input', 'shaper'}):
             await asyncio.sleep(1)
             text = await screen.read(printer)
+            logging.info(f'On screen there is text "{text}"')
 
     async with Simulator.run(**basic_printer_arguments,
                              mount_dir_as_flash=flash_dir,

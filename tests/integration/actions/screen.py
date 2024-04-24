@@ -7,7 +7,6 @@ from easyocr import Reader
 from PIL import Image
 
 from simulator import Printer, MachineType
-from ..extra.timeout import timeoutable
 
 logger = logging.getLogger(__name__)
 ocr_reader = Reader(['en'], verbose=False)
@@ -34,7 +33,6 @@ async def read(printer: Printer):
     return text
 
 
-@timeoutable
 async def wait_for_text(printer: Printer, text: str):
     """ Wait for the text to appear on screen.
     Text is compared lower case because the OCR won't know c/C apart."""
