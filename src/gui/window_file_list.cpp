@@ -45,72 +45,17 @@ void GuiFileSort::Set(WF_Sort_t val) {
 // static definitions
 char *window_file_list_t::root = nullptr;
 
-std::optional<int> window_file_list_t::item_index(const IWindowMenuItem *item) const {
-    // This is very ugly, but it will do for now.
-    // We will rework this class to use WindowMenuVirtual eventually
-
-    if (item == &focused_item_delegate) {
-        return focused_index_;
-
-    } else if (item == &return_item_delegate) {
-        return 0;
-    }
-
-    return std::nullopt;
-}
-
 void window_file_list_t::set_scroll_offset(int set) {
     if (scroll_offset() == set) {
         return;
     }
 
-    IWindowMenu::set_scroll_offset(set);
-
     // -1 because ldv counts ".." as index -1 :/
     [[maybe_unused]] const auto new_window_offset = ldv.set_window_offset(set - 1);
     assert(new_window_offset == set - 1);
 
-    invalidate_all_slots();
-}
-
-bool window_file_list_t::move_focus_to_index(std::optional<int> target_index) {
-    if (focused_index_ == target_index) {
-        return true;
-    }
-
-    auto focused_slot_opt = this->focused_slot();
-    if (focused_slot_opt) {
-        invalidate_slot(focused_slot_opt);
-        focused_item_delegate.roll.Deinit();
-    }
-
-    focused_index_ = target_index;
-    if (!target_index) {
-        IWindowMenuItem::move_focus(nullptr);
-        return true;
-    }
-
-    ensure_item_on_screen(target_index);
-
-    // The focus we're setting must be in the visible range, otherwise we wouldn't be able to access its properties (itemText, ...)
-    assert(index_to_slot(target_index));
-
-    const auto focused_slot = *index_to_slot(target_index);
-    invalidate_slot(focused_slot);
-
-    if (is_return_slot(focused_slot)) {
-        return_item_delegate.move_focus();
-    }
-
-    else {
-        focused_item_delegate.move_focus();
-        focused_item_delegate.Invalidate();
-        focused_item_delegate.SetLabel(itemText(focused_slot));
-        focused_item_delegate.SetIconId(itemIcon(focused_slot));
-        focused_item_delegate.InitRollIfNeeded(slot_rect(focused_slot));
-    }
-
-    return true;
+    // This must be called AFTER ldv.set_window_offset, as it updates the texts based on the newly shifted window
+    WindowMenuVirtualBase::set_scroll_offset(set);
 }
 
 bool window_file_list_t::IsPathRoot(const char *path) {
@@ -122,8 +67,6 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
         sfn_path,
         (sort == WF_SORT_BY_NAME) ? LDV::SortPolicy::BY_NAME : LDV::SortPolicy::BY_CRMOD_DATETIME,
         topSFN ?: sfnAtCursor);
-
-    item_count_ = ldv.TotalFilesCount();
 
     // Now, ldv has adjusted its window offset and we need to synchronize scroll_offset with it properly.
     {
@@ -144,6 +87,8 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
         IWindowMenu::set_scroll_offset(target_scroll_offset);
     }
 
+    WindowMenuVirtual::recreate_items();
+
     // Focus item if appropriate
     {
         std::optional<int> target_focused_index;
@@ -163,13 +108,8 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
             target_focused_index = (item_count() > 1) ? 1 : 0;
         }
 
-        // Force focused index update
-        focused_index_ = std::nullopt;
-
         move_focus_to_index(target_focused_index);
     }
-
-    Invalidate();
 }
 
 const char *window_file_list_t::CurrentLFN(bool *isFile) const {
@@ -206,8 +146,7 @@ const char *window_file_list_t::TopItemSFN() {
 }
 
 window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
-    : AddSuperWindow(parent, rc)
-    , focused_item_delegate(string_view_utf8(), nullptr) {
+    : WindowMenuVirtual(parent, rc) {
 
     assert(max_items_on_screen_count() <= max_max_items_on_screen);
 
@@ -216,125 +155,22 @@ window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
     strlcpy(sfn_path, "/usb", FILE_PATH_BUFFER_LEN);
 }
 
-void window_file_list_t::unconditionalDraw() {
-    // Only paint background (in uncoditionalDraw) if it is really needed, filling the rect takes time...
-    if (should_paint_background) {
-        super::unconditionalDraw();
-    }
-
-    const auto focused_slot = this->focused_slot();
-
-    for (int i = 0, end = current_items_on_screen_count(); i < end; i++) {
-        if (valid_slots[i]) {
-            continue;
-        }
-
-        valid_slots.set(i);
-
-        const auto item_rect = slot_rect(i);
-
-        if constexpr (GuiDefaults::MenuLinesBetweenItems) {
-            if (flags.invalid_background && i < end - 1) {
-                display::DrawLine(point_ui16(Left() + GuiDefaults::MenuItemDelimiterPadding.left, item_rect.Top() + item_rect.Height()),
-                    point_ui16(Left() + Width() - GuiDefaults::MenuItemDelimiterPadding.right, item_rect.Top() + item_rect.Height()), COLOR_DARK_GRAY);
-            }
-        }
-
-        // Return item; return_item_delegate handles both focused and unfocused return item
-        if (is_return_slot(i)) {
-            return_item_delegate.Print(item_rect);
-        }
-
-        // Focused item, scrolling text
-        else if (IsFocused() && focused_slot == i) {
-            focused_item_delegate.Print(item_rect);
-        }
-
-        // General list item
-        else {
-            FL_LABEL label(itemText(i), itemIcon(i));
-            label.Print(item_rect);
-        }
-    }
-
-    // no need fill the rest of the window with background, since there is no rest of the window
-}
-
-void window_file_list_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
-    switch (event) {
-
-    case GUI_event_t::TEXT_ROLL:
-        if (IsFocused() && focused_item_delegate.is_focused()) {
-            focused_item_delegate.Roll();
-            if (focused_item_delegate.IsInvalid()) {
-                invalidate_slot(focused_slot());
-            }
-        }
-        break;
-
-    default:
-        break;
-    }
-
-    SuperWindowEvent(sender, event, param);
-}
-
 void window_file_list_t::SetRoot(char *rootPath) {
     root = rootPath;
 }
 
-void window_file_list_t::invalidate(Rect16 validation_rect) {
-    valid_slots.reset();
-    return_item_delegate.Invalidate(); // Definitely needs to be redrawn (actually necessary)
-    focused_item_delegate.Invalidate();
-    should_paint_background = true;
-    super::invalidate(validation_rect);
-}
+void window_file_list_t::setup_item(ItemVariant &variant, int index) {
+    assert(index_to_slot(index));
 
-void window_file_list_t::invalidate_slot(std::optional<int> slot) {
-    if (!slot) {
-        return;
+    const auto &entry = ldv.LongFileNameAt(*index_to_slot(index));
+
+    if (index == 0 && IsPathRoot(sfn_path) && strcmp(entry.first, "..") == 0) {
+        variant.emplace<MI_RETURN>();
+
+    } else {
+        // This is ok - file list keeps the address of the item same & valid while the item is in the window
+        const auto label = string_view_utf8::MakeRAM(entry.first);
+        const auto icon = (entry.second == LDV::EntryType::DIR) ? &img::folder_full_16x16 : nullptr;
+        variant.emplace<IWindowMenuItem>(label, icon);
     }
-
-    valid_slots.reset(*slot);
-    super::invalidate(slot_rect(*slot));
-    gui_invalidate();
-}
-
-void window_file_list_t::invalidate_all_slots() {
-    valid_slots.reset();
-    return_item_delegate.Invalidate(); // Definitely needs to be redrawn (actually necessary)
-    focused_item_delegate.Invalidate();
-    super::invalidate(GetRect());
-    gui_invalidate();
-}
-
-void window_file_list_t::validate(Rect16 validation_rect) {
-    super::validate(validation_rect);
-    should_paint_background = false;
-}
-
-const img::Resource *window_file_list_t::itemIcon(int slot) const {
-    auto item = ldv.LongFileNameAt(slot);
-    const bool isFile = item.second == LDV::EntryType::FILE;
-    if (!item.first) {
-        // this should normally not happen, visible_count shall limit indices to valid items only
-        return nullptr; // ... but getting ready for the unexpected
-    }
-    return isFile ? nullptr : &img::folder_full_16x16;
-}
-
-// special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
-// and will get a nice house-like icon
-string_view_utf8 window_file_list_t::itemText(int slot) const {
-    string_view_utf8 itemText;
-    auto item = ldv.LongFileNameAt(slot);
-
-    // this MakeRAM is safe - render_text (below) finishes its work and the local string item.first is then no longer needed
-    return string_view_utf8::MakeRAM((const uint8_t *)item.first);
-}
-
-bool window_file_list_t::is_return_slot(const int slot) const {
-    const auto item = ldv.LongFileNameAt(slot);
-    return slot == 0 && IsPathRoot(sfn_path) && strcmp(item.first, "..") == 0;
 }

@@ -86,7 +86,7 @@ public: // Focus related stuff
     /// Sets $index to be focused.
     /// The implementaiton should also ensure that the focused index is on the screen afterwards
     /// \returns if successful
-    virtual bool move_focus_to_index(std::optional<int> index);
+    bool move_focus_to_index(std::optional<int> index);
 
     /// Moves the focus by $amount items. Sets the focus if there is no focus.
     /// \returns if the focus was changed

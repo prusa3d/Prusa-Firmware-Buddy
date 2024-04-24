@@ -101,15 +101,6 @@ void WindowFileBrowser::handle_click() {
         return;
     }
 
-    const auto focused_slot = *focused_slot_opt;
-
-    // Return button -> signal to parent
-    if (is_return_slot(focused_slot)) {
-        log_debug(GUI, "Clicked on return slot");
-        go_up();
-        return;
-    }
-
     bool is_item_file;
     const char *currentSFN = CurrentSFN(&is_item_file);
     log_debug(GUI, "Clicked on item: %s", currentSFN);
