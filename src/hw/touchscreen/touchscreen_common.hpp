@@ -39,6 +39,8 @@ class Touchscreen_Base {
 public:
     /// Guard that allows passing less precise taps as clicks (disabled by default to prevent accidental clickings)
     class LenientClickGuard {
+
+    public:
         LenientClickGuard();
         ~LenientClickGuard();
     };

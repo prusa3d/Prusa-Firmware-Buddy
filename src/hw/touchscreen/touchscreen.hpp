@@ -2,4 +2,5 @@
 
 #include "touchscreen_gt911.hpp"
 
-extern Touchscreen_GT911 touchscreen;
+using Touchscreen = Touchscreen_GT911;
+extern Touchscreen touchscreen;
