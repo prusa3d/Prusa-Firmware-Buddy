@@ -72,9 +72,6 @@ step_event_queue_t PreciseStepping::step_event_queue;
 
 uint16_t PreciseStepping::left_ticks_to_next_step_event = 0;
 
-uint16_t PreciseStepping::stepper_isr_period_in_ticks;
-double PreciseStepping::ticks_per_sec;
-
 step_generator_state_t PreciseStepping::step_generator_state;
 step_generators_pool_t PreciseStepping::step_generators_pool;
 
@@ -458,7 +455,7 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
     auto step_status = step_state.step_events[old_nearest_step_event_idx].status;
     if (step_status == STEP_EVENT_INFO_STATUS_GENERATED_VALID || step_status == STEP_EVENT_INFO_STATUS_GENERATED_KEEP_ALIVE) {
         const double step_time_absolute = step_state.step_events[old_nearest_step_event_idx].time;
-        const uint64_t step_time_absolute_ticks = uint64_t(step_time_absolute * PreciseStepping::ticks_per_sec);
+        const uint64_t step_time_absolute_ticks = uint64_t(step_time_absolute * STEPPER_TICKS_PER_SEC);
         const uint64_t step_time_relative_ticks = step_time_absolute_ticks - step_state.previous_step_time_ticks;
         assert(step_time_relative_ticks < std::numeric_limits<uint32_t>::max());
 
@@ -520,10 +517,6 @@ HAL_STEP_TIMER_ISR() {
 }
 
 void PreciseStepping::init() {
-    // If no queued step event, just wait 1ms for the next move
-    stepper_isr_period_in_ticks = (STEPPER_TIMER_RATE / 1000);
-    ticks_per_sec = double(STEPPER_TIMER_RATE);
-
     PreciseStepping::inverted_dirs = (!INVERT_X_DIR ? STEP_EVENT_FLAG_X_DIR : 0)
         | (!INVERT_Y_DIR ? STEP_EVENT_FLAG_Y_DIR : 0)
         | (!INVERT_Z_DIR ? STEP_EVENT_FLAG_Z_DIR : 0)
@@ -625,7 +618,7 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
 
 uint16_t PreciseStepping::process_one_step_event_from_queue() {
     // If no queued step event, just wait some time for the next move.
-    uint16_t ticks_to_next_isr = stepper_isr_period_in_ticks;
+    uint16_t ticks_to_next_isr = STEPPER_ISR_PERIOD_IN_TICKS;
 
     if (const step_event_u16_t *step_event = get_current_step_event(); step_event != nullptr) {
         const StepEventFlag_t step_flags = step_event->flags;
@@ -752,7 +745,7 @@ void PreciseStepping::step_isr() {
     do {
         if (stop_pending)
             [[unlikely]] {
-            next = compare + stepper_isr_period_in_ticks;
+            next = compare + STEPPER_ISR_PERIOD_IN_TICKS;
             Stepper::axis_did_move = 0;
             break;
         }
@@ -1152,19 +1145,19 @@ static void check_step_time(const step_event_i32_t &step_event, const step_gener
     if (is_ending_empty_move(*last_move)) {
         // When calculating the absolute move end time restrict the limit on ending empty moves to
         // ensure that any scheduled keep-alive event is never split past the end of motion.
-        last_move_time = (STEP_TIMER_MAX_TICKS_LIMIT / PreciseStepping::ticks_per_sec);
+        last_move_time = (STEP_TIMER_MAX_TICKS_LIMIT / STEPPER_TICKS_PER_SEC);
     } else {
         last_move_time = last_move->move_time;
         if (last_move == prev_move) {
             // We have no look-ahead, but we must still account for the possibility of the last step
             // being just past the end of the current move
-            last_move_time += (STEP_TIMER_MAX_TICKS_LIMIT / PreciseStepping::ticks_per_sec);
+            last_move_time += (STEP_TIMER_MAX_TICKS_LIMIT / STEPPER_TICKS_PER_SEC);
         }
     }
     const double last_move_time_end = last_move->print_time + last_move_time;
     assert(last_move_time_end >= prev_move_time);
 
-    const int32_t max_move_ticks = (last_move_time_end - prev_move_time) * PreciseStepping::ticks_per_sec;
+    const int32_t max_move_ticks = (last_move_time_end - prev_move_time) * STEPPER_TICKS_PER_SEC;
     assert(step_event.time_ticks <= max_move_ticks);
 }
 

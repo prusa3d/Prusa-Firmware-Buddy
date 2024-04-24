@@ -28,6 +28,12 @@ constexpr const double EPSILON_DISTANCE = 0.000001;
 // Currently, it is equal to 65.536ms.
 constexpr const int32_t STEP_TIMER_MAX_TICKS_LIMIT = int32_t(std::numeric_limits<decltype(step_event_u16_t::time_ticks)>::max());
 
+// Precomputed period of calling PreciseStepping::isr() when there is no queued step event (1ms).
+constexpr const uint16_t STEPPER_ISR_PERIOD_IN_TICKS = (STEPPER_TIMER_RATE / 1000);
+
+// Precomputed conversion rate from seconds to timer ticks.
+constexpr const double STEPPER_TICKS_PER_SEC = double(STEPPER_TIMER_RATE);
+
 struct move_t;
 struct step_generator_state_t;
 
@@ -77,11 +83,6 @@ public:
     // Total number of ticks until the next step event will be processed.
     // Or number of ticks to next call of stepper ISR when step event queue is empty.
     static uint16_t left_ticks_to_next_step_event;
-
-    // Precomputed period of calling PreciseStepping::isr() when there is no queued step event.
-    static uint16_t stepper_isr_period_in_ticks;
-    // Precomputed conversion rate from seconds to timer ticks.
-    static double ticks_per_sec;
 
     // Indicate which direction bits are inverted.
     static uint16_t inverted_dirs;
