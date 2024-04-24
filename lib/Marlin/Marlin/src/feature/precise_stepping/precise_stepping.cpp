@@ -1122,6 +1122,7 @@ FORCE_INLINE void append_split_step_event(const split_step_event_t &split_step_e
 #pragma GCC diagnostic pop
 }
 
+#ifndef NDEBUG
 /// @brief Ensure a new step event never exceeds the time of the last move in the queue
 static void check_step_time(const step_event_i32_t &step_event) {
     // Due to the buffered step, the maximum time delta of a new step might refer to a move which
@@ -1160,6 +1161,7 @@ static void check_step_time(const step_event_i32_t &step_event) {
     const int32_t max_move_ticks = float(last_move_time_end - prev_move_time) * float(STEPPER_TICKS_PER_SEC);
     assert(step_event.time_ticks <= max_move_ticks);
 }
+#endif
 
 StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
     uint16_t produced_step_events_cnt = 0;
@@ -1192,7 +1194,9 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
             // accumulate into or flush the buffered step
             if (new_step_event.flags) {
                 // a new step event was produced
+#ifndef NDEBUG
                 check_step_time(new_step_event);
+#endif
 
                 if (!step_generator_state.buffered_step.flags) {
                     // no previous buffer: replace
