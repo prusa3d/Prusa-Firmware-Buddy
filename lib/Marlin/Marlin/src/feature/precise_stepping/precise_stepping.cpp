@@ -1129,17 +1129,8 @@ FORCE_INLINE void append_split_step_event(const split_step_event_t &split_step_e
 #pragma GCC diagnostic pop
 }
 
-static void check_step_time_(const split_step_event_t &split_step_event, const int32_t max_move_ticks) {
-    assert(split_step_event.last_step_event_time_ticks <= min(STEP_TIMER_MAX_TICKS_LIMIT, max_move_ticks));
-}
-
-static void check_step_time_(const step_event_i32_t &new_step_event, const int32_t max_move_ticks) {
-    assert(new_step_event.time_ticks <= max_move_ticks);
-}
-
 /// @brief Ensure a new step event never exceeds the time of the last move in the queue
-template <typename T>
-static void check_step_time(const T &step_event, const step_generator_state_t &step_generator_state) {
+static void check_step_time(const step_event_i32_t &step_event, const step_generator_state_t &step_generator_state) {
     // Due to the buffered step, the maximum time delta of a new step might refer to a move which
     // has just been processed
     move_t *prev_move = PreciseStepping::get_last_processed_move_segment();
@@ -1174,7 +1165,7 @@ static void check_step_time(const T &step_event, const step_generator_state_t &s
     assert(last_move_time_end >= prev_move_time);
 
     const int32_t max_move_ticks = (last_move_time_end - prev_move_time) * PreciseStepping::ticks_per_sec;
-    check_step_time_(step_event, max_move_ticks);
+    assert(step_event.time_ticks <= max_move_ticks);
 }
 
 StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
@@ -1261,7 +1252,7 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
                     return STEP_GENERATOR_STATUS_FULL_STEP_EVENT_QUEUE;
                 }
 
-                check_step_time(split_step_event, step_generator_state);
+                assert(split_step_event.last_step_event_time_ticks <= STEP_TIMER_MAX_TICKS_LIMIT);
                 append_split_step_event(split_step_event, next_step_event, next_step_event_queue_head);
                 step_generator_state.buffered_step.flags = 0;
             }
