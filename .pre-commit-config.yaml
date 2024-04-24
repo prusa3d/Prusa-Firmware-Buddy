@@ -38,6 +38,12 @@ repos:
       entry: python utils/logging/generate_overview.py
       language: python
       language_version: python3
+    - id: python3-requirements
+      name: python3-requirements
+      description: Check if requirements.txt matches the buildsystem.
+      entry: 'utils/check-requirements.py'
+      language: script
+      files: requirements\.txt$
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: 'v2.4.0'
   hooks:
