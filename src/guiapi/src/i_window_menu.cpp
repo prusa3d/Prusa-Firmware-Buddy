@@ -20,6 +20,12 @@ IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
 void IWindowMenu::set_scroll_offset(int set) {
     assert(set >= 0 && set <= max_scroll_offset());
     scroll_offset_ = set;
+
+    // invalidate, but let invalid_background flag as it was
+    // it will cause redraw of only invalid items
+    bool back = flags.invalid_background;
+    Invalidate();
+    flags.invalid_background = back;
 }
 
 bool IWindowMenu::ensure_item_on_screen(std::optional<int> opt_index) {

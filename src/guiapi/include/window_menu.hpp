@@ -22,8 +22,6 @@ class WindowMenu : public AddSuperWindow<IWindowMenu> {
 private:
     IWinMenuContainer *pContainer;
 
-    void set_scroll_offset(int set) final;
-
     IWindowMenuItem *itemFromSlot(int slot);
 
     struct Node {

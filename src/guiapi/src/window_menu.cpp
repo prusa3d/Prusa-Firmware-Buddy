@@ -94,20 +94,6 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
     SuperWindowEvent(sender, event, param);
 }
 
-void WindowMenu::set_scroll_offset(int set) {
-    if (scroll_offset() == set) {
-        return;
-    }
-
-    IWindowMenu::set_scroll_offset(set);
-
-    // invalidate, but let invalid_background flag as it was
-    // it will cause redraw of only invalid items
-    bool back = flags.invalid_background;
-    Invalidate();
-    flags.invalid_background = back;
-}
-
 IWindowMenuItem *WindowMenu::itemFromSlot(int slot) {
     for (Node i = findFirst(); i.HasValue(); i = findNext(i)) {
         if (i.current_slot == slot) {
