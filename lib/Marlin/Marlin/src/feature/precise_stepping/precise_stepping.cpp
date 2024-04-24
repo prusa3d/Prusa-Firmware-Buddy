@@ -1157,7 +1157,7 @@ static void check_step_time(const step_event_i32_t &step_event, const step_gener
     const double last_move_time_end = last_move->print_time + last_move_time;
     assert(last_move_time_end >= prev_move_time);
 
-    const int32_t max_move_ticks = (last_move_time_end - prev_move_time) * STEPPER_TICKS_PER_SEC;
+    const int32_t max_move_ticks = float(last_move_time_end - prev_move_time) * float(STEPPER_TICKS_PER_SEC);
     assert(step_event.time_ticks <= max_move_ticks);
 }
 
