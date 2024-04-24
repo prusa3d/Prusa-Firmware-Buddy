@@ -1123,7 +1123,7 @@ FORCE_INLINE void append_split_step_event(const split_step_event_t &split_step_e
 }
 
 /// @brief Ensure a new step event never exceeds the time of the last move in the queue
-static void check_step_time(const step_event_i32_t &step_event, const step_generator_state_t &step_generator_state) {
+static void check_step_time(const step_event_i32_t &step_event) {
     // Due to the buffered step, the maximum time delta of a new step might refer to a move which
     // has just been processed
     move_t *prev_move = PreciseStepping::get_last_processed_move_segment();
@@ -1192,7 +1192,7 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
             // accumulate into or flush the buffered step
             if (new_step_event.flags) {
                 // a new step event was produced
-                check_step_time(new_step_event, step_generator_state);
+                check_step_time(new_step_event);
 
                 if (!step_generator_state.buffered_step.flags) {
                     // no previous buffer: replace
