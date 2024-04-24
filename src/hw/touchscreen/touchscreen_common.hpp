@@ -37,6 +37,13 @@ static_assert(sizeof(TouchscreenEvent) <= 4);
 class Touchscreen_Base {
 
 public:
+    /// Guard that allows passing less precise taps as clicks (disabled by default to prevent accidental clickings)
+    class LenientClickGuard {
+        LenientClickGuard();
+        ~LenientClickGuard();
+    };
+
+public:
     virtual ~Touchscreen_Base() = default;
 
 public:
@@ -97,6 +104,7 @@ private:
     TouchState last_touch_state_;
     std::atomic<TouchscreenEvent> last_event_;
     std::atomic<bool> is_last_event_consumed_ = true;
+    std::atomic<uint8_t> lenient_click_allowed_ = 0;
 
 private:
     enum class GestureRecognitionState {

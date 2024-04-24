@@ -1,5 +1,5 @@
 #include "touchscreen_common.hpp"
-
+#include "touchscreen.hpp"
 #include <option/has_side_leds.h>
 
 #if HAS_SIDE_LEDS()
@@ -13,6 +13,13 @@ METRIC_DEF(metric_touch_pos, "touch_pos", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER
 
 metric_t *metric_touch_event() {
     return &metric_touch_event_;
+}
+
+Touchscreen_Base::LenientClickGuard::LenientClickGuard() {
+    touchscreen.lenient_click_allowed_++;
+}
+Touchscreen_Base::LenientClickGuard::~LenientClickGuard() {
+    touchscreen.lenient_click_allowed_--;
 }
 
 bool Touchscreen_Base::is_enabled() const {
@@ -98,7 +105,7 @@ void Touchscreen_Base::recognize_gesture() {
     const point_i16_t touch_pos_diff_abs(abs(touch_pos_diff.x), abs(touch_pos_diff.y));
 
     /// Distance from the gesture_start_pos that is still considered a click
-    static constexpr int16_t click_min_diff = 3;
+    const int16_t click_max_diff = lenient_click_allowed_ ? 3 : 0;
 
     /// Distance from the gesture_start_pos that starts being considered a swipe gesture
     static constexpr int16_t gesture_min_diff = 10;
@@ -113,7 +120,7 @@ void Touchscreen_Base::recognize_gesture() {
 
     log_info(Touch, "abs diff %i %i", touch_pos_diff_abs.x, touch_pos_diff_abs.y);
 
-    if (touch_pos_diff_abs.x <= click_min_diff && touch_pos_diff.y <= click_min_diff) {
+    if (touch_pos_diff_abs.x <= click_max_diff && touch_pos_diff.y <= click_max_diff) {
         event.type = GUI_event_t::TOUCH_CLICK;
 
     } else if (touch_pos_diff_abs.y >= gesture_min_diff && static_cast<float>(touch_pos_diff_abs.x) / static_cast<float>(touch_pos_diff_abs.y) <= swipe_max_angle_tan) {
