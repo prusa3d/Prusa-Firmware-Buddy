@@ -5,19 +5,22 @@
 class LazyDirViewBase : public FileSort {
 
 public:
+    using Index = uint8_t;
+
+public:
     void Clear();
 
     /// @param windowIndex index within the window (i.e. [0 - WINDOW_SIZE-1])
     /// @return pointer to a filename (or nullptr, if there is nothing at that index) and the type of the entry (FILE / DIR)
     std::pair<const char *, EntryType> LongFileNameAt(size_t windowIndex) const {
-        auto &rec = files_data[windowIndex];
+        const auto &rec = files_data[indices_data[windowIndex]];
         return std::make_pair(rec.lfn, rec.type);
     }
 
     /// @param windowIndex index within the window (i.e. [0 - WINDOW_SIZE-1])
     /// @return pointer to a filename (or nullptr, if there is nothing at that index) and the type of the entry (FILE / DIR)
     std::pair<const char *, EntryType> ShortFileNameAt(size_t windowIndex) const {
-        auto &rec = files_data[windowIndex];
+        const auto &rec = files_data[indices_data[windowIndex]];
         return std::make_pair(rec.sfn, rec.type);
     }
 
@@ -71,6 +74,9 @@ protected:
     /// roughly WINDOW_SIZE * 100B, can be placed in CCMRAM if needed. For MINI it is only 9 entries -> only 900B
     Entry *files_data;
 
+    /// files_data are not accessed directly, but through indices
+    Index *indices_data;
+
     int totalFiles = 0; ///< total number of entries in the directory
     int windowStartingFrom = 0; ///< from which entry index the window starts (e.g. from the 3rd file in dir).
                                 ///< intentionally int, because -1 means ".."
@@ -91,15 +97,12 @@ class LazyDirView : public LazyDirViewBase {
 public:
     LazyDirView() {
         files_data = files_array.data();
+        indices_data = indices_array.data();
         window_size = WINDOW_SIZE;
         Clear();
     }
 
-public:
-    inline const auto &data() const {
-        return files_array;
-    }
-
 protected:
     std::array<Entry, WINDOW_SIZE> files_array;
+    std::array<Index, WINDOW_SIZE> indices_array;
 };

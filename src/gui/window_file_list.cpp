@@ -139,9 +139,9 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
 
         // If we've been given sfnAtCursor, try looking it up in the ldv window
         if (sfnAtCursor && sfnAtCursor[0]) {
-            for (const auto &rec : ldv.data()) {
-                if (!strcmp(sfnAtCursor, rec.sfn)) {
-                    target_focused_index = scroll_offset() + (&rec - ldv.data().data());
+            for (int i = 0, e = ldv.WindowSize(); i < e; i++) {
+                if (!strcmp(sfnAtCursor, ldv.ShortFileNameAt(i).first)) {
+                    target_focused_index = scroll_offset() + i;
                     break;
                 }
             }

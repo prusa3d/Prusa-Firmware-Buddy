@@ -4,28 +4,22 @@ namespace {
 
 using Entry = LazyDirViewBase::Entry;
 using EntryRef = LazyDirViewBase::EntryRef;
+using Index = LazyDirViewBase::Index;
 
-// Stub implementation because std::shift_x uses exceptions in its functions which doesn't compile for us.... >:(
-auto shift_left(auto begin, auto end, int amount) {
-    end -= amount;
-    while (begin < end) {
-        *begin = std::move(*(begin + amount));
-        begin++;
-    }
+void rotate_left(Index *begin, Index *end, int amount) {
+    std::rotate(begin, begin + amount, end);
 }
 
-auto shift_right(auto begin, auto end, int amount) {
-    for (auto it = end - amount - 1; it >= begin; it--) {
-        *(it + amount) = std::move(*it);
-    }
+void rotate_right(Index *begin, Index *end, int amount) {
+    std::rotate(std::reverse_iterator(end), std::reverse_iterator(end) + amount, std::reverse_iterator(begin));
 }
 
 /// Inserts the $item into the range [$insert_range_begin, $insert_range_end) so that it is kept sorted by $less.
 /// The range is expanded ($insert_range_end is increased) when inserting the items until $insert_range_end == $full_insert_range_end.
 /// After fully expanded, the function basically upkeeps top $n (full_insert_range_end - insert_range_begin) of the sorted range
-void insert_item(Entry *insert_range_begin, Entry *&insert_range_end, Entry *full_insert_range_end, const EntryRef &item, const FileSort::LessFunc &less) {
+void insert_item(Index *insert_range_begin, Index *&insert_range_end, Index *full_insert_range_end, Entry *items, const EntryRef &item, FileSort::LessFunc less) {
     // Determine by binary search where we should insert the item
-    Entry *it = std::lower_bound(insert_range_begin, insert_range_end, item, less);
+    uint8_t *it = std::lower_bound(insert_range_begin, insert_range_end, item, [&](Index a, const EntryRef &entry) { return less(items[a], entry); });
 
     // Outside of the full insert range (the final is correct) -> throw away
     if (it == full_insert_range_end) {
@@ -38,9 +32,9 @@ void insert_item(Entry *insert_range_begin, Entry *&insert_range_end, Entry *ful
     }
 
     // Make space for the inserted item
-    shift_right(it, insert_range_end, 1);
+    rotate_right(it, insert_range_end, 1);
 
-    it->CopyFrom(item);
+    items[*it].CopyFrom(item);
 }
 
 } // namespace
@@ -51,6 +45,7 @@ void LazyDirViewBase::Clear() {
 
     for (auto i = 0; i < window_size; i++) {
         files_data[i].Clear();
+        indices_data[i] = i;
     }
 }
 
@@ -98,10 +93,10 @@ void LazyDirViewBase::ChangeDirectory(const char *p, SortPolicy sp, const char *
 
     const auto less = sort_policy_less[ftrstd::to_underlying(sortPolicy)];
 
-    const auto files_begin = files_data;
-    const auto files_end = files_data + window_size;
+    const auto indices_begin = indices_data;
+    const auto indices_end = indices_data + window_size;
 
-    auto filled_region_end = files_begin + 1;
+    auto filled_region_end = indices_begin + 1;
 
     F_DIR_RAII_Iterator dir(sfnPath);
     while (dir.FindNext()) {
@@ -116,13 +111,13 @@ void LazyDirViewBase::ChangeDirectory(const char *p, SortPolicy sp, const char *
 
         // Check if we're <= first entry, in that case we don't add to the list, but instead increase windowStartingFrom
         // The <= is important and correct, because windowStartingFrom is initialized to -1
-        if (has_first_dir_entry && !less(files_data[0], curr)) {
+        if (has_first_dir_entry && !less(files_data[indices_data[0]], curr)) {
             windowStartingFrom++;
             continue;
         }
 
         // We use files_begin + 1 because the 0th item has already been filed before the loop
-        insert_item(files_begin + 1, filled_region_end, files_end, curr, less);
+        insert_item(indices_begin + 1, filled_region_end, indices_end, files_data, curr, less);
     }
 }
 
@@ -172,17 +167,17 @@ bool LazyDirViewBase::MoveUp(int amount) {
 
     const auto less = sort_policy_less[ftrstd::to_underlying(sortPolicy)];
 
-    const auto files_end = files_data + window_size;
-    const auto full_insert_range_end = files_data + amount;
-    auto insert_range_begin = files_data;
+    const auto indices_end = indices_data + window_size;
+    const auto full_insert_range_end = indices_data + amount;
+    auto insert_range_begin = indices_data;
     auto insert_range_end = insert_range_begin;
 
     // Shift the existing items
-    shift_right(files_data, files_end, amount);
+    rotate_right(indices_data, indices_end, amount);
 
     // special case - add a ".."
     if (windowStartingFrom == -1) {
-        files_data[0].SetDirUp();
+        files_data[indices_data[0]].SetDirUp();
 
         // If we added just the "..", we don't have to iterate the directory at all
         if (amount == 1) {
@@ -196,7 +191,7 @@ bool LazyDirViewBase::MoveUp(int amount) {
 
     // Iterate the directory and sort in missing items
     {
-        const EntryRef anchor_item = *full_insert_range_end;
+        const EntryRef anchor_item = files_data[*full_insert_range_end];
 
         F_DIR_RAII_Iterator dir(sfnPath);
         while (dir.FindNext()) {
@@ -214,11 +209,11 @@ bool LazyDirViewBase::MoveUp(int amount) {
 
             // Cannot use insert_item because we're actually building a tail of the list, which needs different behavior
             // Determine by binary search where we should insert the item
-            Entry *it = std::lower_bound(insert_range_begin, insert_range_end, curr, less);
+            Index *it = std::lower_bound(insert_range_begin, insert_range_end, curr, [&](Index a, const EntryRef &entry) { return less(files_data[a], entry); });
 
             // If we're trying to insert behind the full end of the sorted range, move everything to the left to make space
             if (it == full_insert_range_end) {
-                shift_left(insert_range_begin, insert_range_end, 1);
+                rotate_left(insert_range_begin, insert_range_end, 1);
                 it--;
             }
 
@@ -229,23 +224,23 @@ bool LazyDirViewBase::MoveUp(int amount) {
 
             // If the buffer is full, start shifting to the left
             else if (insert_range_end == full_insert_range_end) {
-                shift_left(insert_range_begin, it, 1);
+                rotate_left(insert_range_begin, it, 1);
                 it--;
             }
 
             // Otherwise expand the range and move items to the right to make space
             else {
                 insert_range_end++;
-                shift_right(it, insert_range_end, 1);
+                rotate_right(it, insert_range_end, 1);
             }
 
-            it->CopyFrom(curr);
+            files_data[*it].CopyFrom(curr);
         }
     }
 
     // Fill in voids, in case files were removed somewhen during the file list existence
     while (insert_range_end != full_insert_range_end) {
-        insert_range_end->Clear();
+        files_data[*insert_range_end].Clear();
         insert_range_end++;
     }
 
@@ -269,17 +264,17 @@ bool LazyDirViewBase::MoveDown(int amount) {
 
     const auto less = sort_policy_less[ftrstd::to_underlying(sortPolicy)];
 
-    const auto files_end = files_data + window_size;
-    const auto full_insert_range_end = files_end;
-    const auto insert_range_begin = files_end - amount;
+    const auto indices_end = indices_data + window_size;
+    const auto full_insert_range_end = indices_end;
+    const auto insert_range_begin = indices_end - amount;
     auto insert_range_end = insert_range_begin;
 
     // Shift the existing items
-    shift_left(files_data, files_end, amount);
+    rotate_left(indices_data, indices_end, amount);
 
     // Iterate the directory and sort in missing items
     {
-        const EntryRef anchor_item = *(insert_range_begin - 1);
+        const EntryRef anchor_item = files_data[*(insert_range_begin - 1)];
 
         F_DIR_RAII_Iterator dir(sfnPath);
         while (dir.FindNext()) {
@@ -295,13 +290,13 @@ bool LazyDirViewBase::MoveDown(int amount) {
                 continue;
             }
 
-            insert_item(insert_range_begin, insert_range_end, full_insert_range_end, curr, less);
+            insert_item(insert_range_begin, insert_range_end, full_insert_range_end, files_data, curr, less);
         }
     }
 
     // Fill in voids, in case files were removed somewhen during the file list existence
     while (insert_range_end != full_insert_range_end) {
-        insert_range_end->Clear();
+        files_data[*insert_range_end].Clear();
         insert_range_end++;
     }
 
