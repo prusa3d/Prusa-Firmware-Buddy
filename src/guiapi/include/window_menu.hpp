@@ -50,15 +50,6 @@ public:
 
     std::optional<int> item_index(const IWindowMenuItem *item) const final;
 
-    bool SetActiveItem(IWindowMenuItem &item) {
-        const auto index = GetIndex(item);
-        if (!index) {
-            return false;
-        }
-
-        return move_focus_to_index(*index);
-    }
-
     void InitState(screen_init_variant::menu_t var);
     screen_init_variant::menu_t GetCurrentState() const;
 

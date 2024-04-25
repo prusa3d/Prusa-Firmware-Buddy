@@ -143,7 +143,7 @@ void ScreenMenuMove::checkNozzleTemp() {
         case 0: // select axis e
             Hide<MI_AXIS_E>();
             Hide<MI_COOLDOWN>();
-            menu.SetActiveItem(Item<DUMMY_AXIS_E>());
+            Item<DUMMY_AXIS_E>().move_focus();
             break;
         case 1: // emulate click on e - show cooldown
             Show<MI_COOLDOWN>();
@@ -153,7 +153,7 @@ void ScreenMenuMove::checkNozzleTemp() {
             break;
         case 3: // temp reached, enable working e, hide dummy part 1
             if (menu.GetActiveItem() == &Item<DUMMY_AXIS_E>()) {
-                menu.SetActiveItem(Item<MI_AXIS_E>());
+                Item<MI_AXIS_E>().move_focus();
             }
             break;
         case 4: // temp reached, enable working e, hide dummy part 2
@@ -162,7 +162,7 @@ void ScreenMenuMove::checkNozzleTemp() {
         case 5: // cooldown click part 0
             Show<DUMMY_AXIS_E>();
             if (menu.GetActiveItem() == &Item<MI_AXIS_E>()) {
-                menu.SetActiveItem(Item<DUMMY_AXIS_E>());
+                Item<DUMMY_AXIS_E>().move_focus();
             }
              break;
         case 6: // cooldown click part 1

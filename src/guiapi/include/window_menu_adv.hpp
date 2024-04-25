@@ -29,7 +29,6 @@ public:
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1) { return menu.SwapVisibility(item0, item1); }
 
     IWindowMenuItem *GetItem(uint8_t index) { return menu.item_at(index); }
-    bool SetActiveItem(IWindowMenuItem &item) { return menu.SetActiveItem(item); }
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
