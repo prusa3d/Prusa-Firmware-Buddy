@@ -31,7 +31,7 @@ public:
     int WindowSize() const { return window_size; }
 
     /// @return number of currently visible files in the window
-    int VisibleFilesCount() const { return totalFiles - windowStartingFrom; }
+    int VisibleFilesCount() const { return std::min(totalFiles - windowStartingFrom - 1, window_size); }
 
     /// Returns current window offset
     int window_offset() const { return windowStartingFrom; }
