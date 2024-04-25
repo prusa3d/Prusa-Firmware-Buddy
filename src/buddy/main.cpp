@@ -786,6 +786,8 @@ extern "C" void startup_task(void const *) {
 
     // init eeprom module itself
     taskENTER_CRITICAL();
+    st25dv64k_init(); // init NFC+eeprom chip
+
     init_config_store();
     taskEXIT_CRITICAL();
 

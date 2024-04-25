@@ -9,8 +9,6 @@ void init_config_store() {
     config_store(); // called to ensure object creation
     config_store_init_result() = config_store_ns::InitResult::normal;
 #else
-    st25dv64k_init();
-
     old_eeprom::eeprom_data eeprom_ram_mirror;
     /* Try to read inital data from eeprom multiple times.
      * This is blind fix for random eeprom resets. We know incorrect data can
