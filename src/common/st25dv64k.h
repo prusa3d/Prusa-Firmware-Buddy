@@ -1,31 +1,27 @@
-// st25dv64k.h
-
 #pragma once
 
 #include <inttypes.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void st25dv64k_init();
 
-extern void st25dv64k_init(void);
+uint8_t st25dv64k_user_read(uint16_t address);
 
-extern uint8_t st25dv64k_user_read(uint16_t address);
+void st25dv64k_user_write(uint16_t address, uint8_t data);
 
-extern void st25dv64k_user_write(uint16_t address, uint8_t data);
+void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint16_t size);
 
-extern void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint16_t size);
+void st25dv64k_user_write_bytes(uint16_t address, void const *pdata, uint16_t size);
 
-extern void st25dv64k_user_write_bytes(uint16_t address, void const *pdata, uint16_t size);
+void st25dv64k_user_unverified_write_bytes(uint16_t address, void const *pdata, uint16_t size);
 
-extern void st25dv64k_user_unverified_write_bytes(uint16_t address, void const *pdata, uint16_t size);
+uint8_t st25dv64k_rd_cfg(uint16_t address);
 
-extern uint8_t st25dv64k_rd_cfg(uint16_t address);
+void st25dv64k_wr_cfg(uint16_t address, uint8_t data);
 
-extern void st25dv64k_wr_cfg(uint16_t address, uint8_t data);
+void st25dv64k_present_pwd(uint8_t *pwd);
 
-extern void st25dv64k_present_pwd(uint8_t *pwd);
+uint8_t st25dv64k_rd_cfg(uint16_t address);
 
-#ifdef __cplusplus
-}
-#endif
+void st25dv64k_wr_cfg(uint16_t address, uint8_t data);
+
+void st25dv64k_present_pwd(uint8_t *pwd);
