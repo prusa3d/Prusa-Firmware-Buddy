@@ -194,8 +194,8 @@ class [[nodiscard]] MoveIsrDisabler {
     bool old_move_isr_state;
 
 public:
-    MoveIsrDisabler() {
-        old_move_isr_state = MOVE_ISR_ENABLED();
+    MoveIsrDisabler()
+        : old_move_isr_state { MOVE_ISR_ENABLED() } {
         if (old_move_isr_state) {
             DISABLE_MOVE_INTERRUPT();
         }
@@ -206,6 +206,9 @@ public:
             ENABLE_MOVE_INTERRUPT();
         }
     }
+
+    MoveIsrDisabler(const MoveIsrDisabler &) = delete;
+    MoveIsrDisabler &operator=(const MoveIsrDisabler &) = delete;
 };
 
 Result Transmit(I2C_HandleTypeDef &hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
