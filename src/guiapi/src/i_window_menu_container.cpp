@@ -86,40 +86,6 @@ std::optional<int> IWinMenuContainer::GetFocusedIndex() const {
     return GetVisibleIndex(*currently_focused);
 }
 
-bool IWinMenuContainer::Show(IWindowMenuItem &item) {
-    if (GetRawIndex(item) == GetRawCount()) {
-        return false; // not a member of container
-    }
-
-    if (!item.IsHidden()) {
-        return true; // already shown
-    }
-
-    item.show();
-
-    // no need to modify currently_focused, since it is not index but pointer
-    return true;
-}
-
-bool IWinMenuContainer::Hide(IWindowMenuItem &item) {
-    if (GetRawIndex(item) == GetRawCount()) {
-        return false; // not a member of container
-    }
-
-    if (item.IsHidden()) {
-        return true; // already hidden
-    }
-
-    if (item.is_focused()) {
-        return false; // cannot hide focused item
-    }
-
-    item.hide();
-
-    // no need to modify currently_focused, since it is not index but pointer
-    return true;
-}
-
 bool IWinMenuContainer::SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1) {
     int32_t raw0 = GetRawIndex(item0);
     int32_t raw1 = GetRawIndex(item1);

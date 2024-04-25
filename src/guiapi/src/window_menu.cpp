@@ -144,66 +144,6 @@ std::optional<int> WindowMenu::GetIndex(IWindowMenuItem &item) const {
     return pContainer->GetVisibleIndex(item);
 }
 
-void WindowMenu::Show(IWindowMenuItem &item) {
-    // Nothing to do
-    if (!item.IsHidden()) {
-        return;
-    }
-
-    if (!pContainer) {
-        return;
-    }
-
-    pContainer->Show(item);
-
-    if (!ensure_item_on_screen(focused_item_index())) {
-        // screen did not roll, but some items still need invalidation
-        std::optional<size_t> shown_index = GetIndex(item);
-        if (!shown_index) {
-            return; // this should never happen
-        }
-
-        // screen did not roll, but still must invalidate remaining items
-        for (Node node = findFirst(); node.HasValue(); node = findNext(node)) {
-            if (node.index > shown_index) {
-                node.item->Invalidate();
-            }
-        }
-    }
-}
-
-bool WindowMenu::Hide(IWindowMenuItem &item) {
-    // Nothing to do
-    if (item.IsHidden()) {
-        return true;
-    }
-
-    const auto index_to_hide = GetIndex(item);
-
-    // item is not member of container
-    // normally could be hidden, but it is filtered by item.IsHidden() check
-    if (!index_to_hide) {
-        return false;
-    }
-
-    if (!pContainer->Hide(item)) {
-        return false;
-    }
-
-    // screen might need to roll
-    if (!ensure_item_on_screen(focused_item_index())) {
-        // roll is not needed, but still must invalidate remaining items
-        // hidden_index now points to first item after hidden one, so we need to invalidate it too
-        for (Node node = findFirst(); node.HasValue(); node = findNext(node)) {
-            if (node.index >= *index_to_hide) {
-                node.item->Invalidate();
-            }
-        }
-    }
-
-    return true;
-}
-
 // unlike show / hide does not need any other action, number of items and positions remains the same
 bool WindowMenu::SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1) {
     return pContainer && pContainer->SwapVisibility(item0, item1);

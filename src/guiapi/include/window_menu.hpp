@@ -62,8 +62,6 @@ public:
     void InitState(screen_init_variant::menu_t var);
     screen_init_variant::menu_t GetCurrentState() const;
 
-    void Show(IWindowMenuItem &item);
-    bool Hide(IWindowMenuItem &item);
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1);
 
 protected:

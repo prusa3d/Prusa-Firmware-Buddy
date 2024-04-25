@@ -39,7 +39,5 @@ public:
 
     bool SetIndex(int visible_index);
     std::optional<int> GetFocusedIndex() const;
-    bool Hide(IWindowMenuItem &item);
-    bool Show(IWindowMenuItem &item);
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1);
 };
