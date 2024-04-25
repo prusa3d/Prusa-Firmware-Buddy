@@ -96,9 +96,10 @@ std::optional<Error> tls::connection(const char *host, uint16_t port) {
     }
 
     mbedtls_ssl_conf_rng(&ssl_config, mbedtls_ctr_drbg_random, &ctxs.drbg_context);
-    if ((status = mbedtls_x509_crt_parse_der_nocopy(&ctxs.x509_certificate, (const unsigned char *)ca_cert_der, ca_cert_der_len))
-        != 0) {
-        return Error::InternalError;
+    for (const auto &cert : certificates) {
+        if ((status = mbedtls_x509_crt_parse_der_nocopy(&ctxs.x509_certificate, cert.data(), cert.size())) != 0) {
+            return Error::InternalError;
+        }
     }
 
     mbedtls_ssl_conf_ca_chain(&ssl_config, &ctxs.x509_certificate, NULL);
