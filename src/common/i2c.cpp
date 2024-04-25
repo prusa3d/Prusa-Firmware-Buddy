@@ -1,7 +1,6 @@
 #include "i2c.hpp"
 #include "stm32f4xx_hal.h"
 #include "bsod.h"
-#include "log.h"
 #include "cmsis_os.h"
 #include "bsod.h"
 #include <type_traits>
@@ -9,8 +8,6 @@
 #include "HAL/HAL.h"
 
 #define MAX_RETRIES 20
-
-LOG_COMPONENT_REF(EEPROM);
 
 namespace i2c {
 
@@ -153,22 +150,17 @@ static Result process_result_n(HAL_StatusTypeDef result, statistics::Results &re
     switch (result) {
     case HAL_OK:
         ++result_counters.HAL_OK;
-        log_debug(EEPROM, "%s: OK", __FUNCTION__);
         return Result::ok;
     case HAL_ERROR:
         ++result_counters.HAL_ERROR;
-        log_error(EEPROM, "%s: ERROR", __FUNCTION__);
         return Result::error;
     case HAL_BUSY:
         ++result_counters.HAL_BUSY;
-        log_error(EEPROM, "%s: BUSY", __FUNCTION__);
         return Result::busy_after_retries;
     case HAL_TIMEOUT:
         ++result_counters.HAL_TIMEOUT;
-        log_error(EEPROM, "%s: TIMEOUT", __FUNCTION__);
         return Result::timeout;
     default:
-        log_critical(EEPROM, "%s: UNDEFINED", __FUNCTION__);
         fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_UNDEFINED); // TODO change to ERR_ELECTRO_I2C_UNDEFINED
         break;
     }
