@@ -1,43 +1,29 @@
 #pragma once
 
-#include <common/static_storage.hpp>
-#include <common/fsm_base_types.hpp>
-#include <dialogs/radio_button_fsm.hpp>
+#include "screen_fsm.hpp"
 #include <footer_line.hpp>
-#include <screen.hpp>
-#include <window_header.hpp>
+#include "radio_button_fsm.hpp"
 
-class ScreenColdPull final : public AddSuperWindow<screen_t> {
-public:
-#if HAS_TOOLCHANGER()
-    using FrameStorage = StaticStorage<1060>;
-#else
-    using FrameStorage = StaticStorage<436>;
-#endif
-
+class ScreenColdPull final : public ScreenFSM {
 private:
-    FrameStorage frame_storage;
-
-    window_header_t header;
-    FooterLine footer;
     RadioButtonFsm<PhasesColdPull> radio;
-
-    window_frame_t inner_frame;
-
-    fsm::BaseData fsm_base_data;
-
-    void create_frame();
-    void destroy_frame();
-    void update_frame();
-    void do_change(fsm::BaseData);
+    FooterLine footer;
 
 public:
     ScreenColdPull();
-    virtual ~ScreenColdPull();
-
+    ~ScreenColdPull();
     static ScreenColdPull *GetInstance();
-    void Change(fsm::BaseData);
 
-    void InitState(screen_init_variant) final;
-    screen_init_variant GetCurrentState() const final;
+    static constexpr Rect16 get_inner_frame_rect() {
+        return GuiDefaults::RectScreenBody - GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody).Height() - static_cast<Rect16::Height_t>(GuiDefaults::FramePadding);
+    }
+
+protected:
+    PhasesColdPull get_phase() const {
+        return GetEnumFromPhaseIndex<PhasesColdPull>(fsm_base_data.GetPhase());
+    }
+
+    virtual void create_frame() override;
+    virtual void destroy_frame() override;
+    virtual void update_frame() override;
 };

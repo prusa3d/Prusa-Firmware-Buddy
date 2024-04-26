@@ -3,7 +3,6 @@
 #include "frame_qr_layout.hpp"
 #include "i18n.h"
 #include "img_resources.hpp"
-#include "str_utils.hpp"
 #include <array>
 #include <guiconfig/wizard_config.hpp>
 #include <window_icon.hpp>
@@ -27,9 +26,6 @@ constexpr const char *txt_calibrating_y { N_("Calibrating Y motor") };
 constexpr const char *txt_calibration_nok { N_("Calibration of motor %c failed.\nParameter 1: forward %3d%%, backward %3d%%\nParameter 2: forward %3d%%, backward %3d%%") };
 constexpr const char *txt_calibration_error { N_("Calibration failed with error.") };
 
-constexpr Rect16 radio_rect = GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody);
-constexpr Rect16 inner_frame_rect = GuiDefaults::RectScreenBody - radio_rect.Height();
-
 namespace frame {
 
     class CenteredText {
@@ -38,7 +34,7 @@ namespace frame {
 
     public:
         CenteredText(window_t *parent, string_view_utf8 txt)
-            : text(parent, inner_frame_rect, is_multiline::yes, is_closed_on_click_t::no, txt) {
+            : text(parent, ScreenPhaseStepping::get_inner_frame_rect(), is_multiline::yes, is_closed_on_click_t::no, txt) {
             text.SetAlignment(Align_t::Center());
         }
     };
@@ -79,9 +75,9 @@ namespace frame {
         static constexpr uint16_t padding = 20;
 
         static constexpr Rect16 text_rect {
-            inner_frame_rect.Left() + padding,
-            inner_frame_rect.Top() + padding,
-            inner_frame_rect.Width() - 2 * padding,
+            ScreenPhaseStepping::get_inner_frame_rect().Left() + padding,
+            ScreenPhaseStepping::get_inner_frame_rect().Top() + padding,
+            ScreenPhaseStepping::get_inner_frame_rect().Width() - 2 * padding,
             2 * height(GuiDefaults::DefaultFont),
         };
 
@@ -96,9 +92,9 @@ namespace frame {
         static constexpr uint16_t progress_bar_height = 4;
         static constexpr uint16_t progress_bar_vertical_margin = 50;
         static constexpr Rect16 progress_bar_rect {
-            inner_frame_rect.Left() + progress_bar_vertical_margin,
+            ScreenPhaseStepping::get_inner_frame_rect().Left() + progress_bar_vertical_margin,
             title_rect.Bottom() + padding,
-            inner_frame_rect.Width() - 2 * progress_bar_vertical_margin,
+            ScreenPhaseStepping::get_inner_frame_rect().Width() - 2 * progress_bar_vertical_margin,
             progress_bar_height,
         };
 
@@ -179,9 +175,9 @@ namespace frame {
         static constexpr uint16_t padding = 20;
 
         static constexpr Rect16 title_rect {
-            inner_frame_rect.Left() + padding,
-            inner_frame_rect.Top() + padding,
-            inner_frame_rect.Width() - 2 * padding,
+            ScreenPhaseStepping::get_inner_frame_rect().Left() + padding,
+            ScreenPhaseStepping::get_inner_frame_rect().Top() + padding,
+            ScreenPhaseStepping::get_inner_frame_rect().Width() - 2 * padding,
             height(GuiDefaults::DefaultFont),
         };
 
@@ -248,51 +244,6 @@ namespace frame {
 
 ScreenPhaseStepping *instance = nullptr;
 
-PhasesPhaseStepping get_phase(const fsm::BaseData &fsm_base_data) {
-    return GetEnumFromPhaseIndex<PhasesPhaseStepping>(fsm_base_data.GetPhase());
-}
-
-template <PhasesPhaseStepping Phase, class Frame>
-struct FrameDefinition {
-    using FrameType = Frame;
-    static constexpr PhasesPhaseStepping phase = Phase;
-};
-
-template <class Storage, class... T>
-struct FrameDefinitionList {
-    template <class F>
-    using FrameType = typename F::FrameType;
-
-    static_assert(Storage::template has_ideal_size_for<FrameType<T>...>());
-
-    static void create_frame(Storage &storage, PhasesPhaseStepping phase, window_t *parent) {
-        auto f = [&]<typename FD> {
-            if (phase == FD::phase) {
-                storage.template create<typename FD::FrameType>(parent);
-            }
-        };
-        (f.template operator()<T>(), ...);
-    }
-
-    static void destroy_frame(Storage &storage, PhasesPhaseStepping phase) {
-        auto f = [&]<typename FD> {
-            if (phase == FD::phase) {
-                storage.template destroy<typename FD::FrameType>();
-            }
-        };
-        (f.template operator()<T>(), ...);
-    }
-
-    static void update_frame(Storage &storage, PhasesPhaseStepping phase, const fsm::PhaseData &data) {
-        auto f = [&]<typename FD> {
-            if (phase == FD::phase) {
-                storage.template as<typename FD::FrameType>()->update(data);
-            }
-        };
-        (f.template operator()<T>(), ...);
-    }
-};
-
 using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
     FrameDefinition<PhasesPhaseStepping::intro, frame::Introduction>,
     FrameDefinition<PhasesPhaseStepping::pick_tool, frame::PickingTool>,
@@ -305,62 +256,31 @@ using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
 
 } // namespace
 
+ScreenPhaseStepping *ScreenPhaseStepping::GetInstance() { return instance; }
+
 ScreenPhaseStepping::ScreenPhaseStepping()
-    : AddSuperWindow<screen_t> {}
-    , header { this, _(txt_header) }
-    , inner_frame { this, inner_frame_rect }
-    , radio(this, radio_rect, PhasesPhaseStepping::intro) {
-    ClrMenuTimeoutClose();
+    : ScreenFSM(txt_header, ScreenPhaseStepping::get_inner_frame_rect())
+    , radio { this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), PhasesPhaseStepping::intro } {
     CaptureNormalWindow(radio);
-    create_frame();
     instance = this;
+    create_frame();
 }
 
 ScreenPhaseStepping::~ScreenPhaseStepping() {
-    instance = nullptr;
     ReleaseCaptureOfNormalWindow();
-}
-
-ScreenPhaseStepping *ScreenPhaseStepping::GetInstance() {
-    return instance;
-}
-
-void ScreenPhaseStepping::Change(fsm::BaseData data) {
-    return do_change(data);
-}
-
-void ScreenPhaseStepping::InitState(screen_init_variant var) {
-    if (auto fsm_base_data = var.GetFsmBaseData()) {
-        do_change(*fsm_base_data);
-    }
-}
-
-screen_init_variant ScreenPhaseStepping::GetCurrentState() const {
-    screen_init_variant var;
-    var.SetFsmBaseData(fsm_base_data);
-    return var;
-}
-
-void ScreenPhaseStepping::do_change(fsm::BaseData new_fsm_base_data) {
-    if (new_fsm_base_data.GetPhase() != fsm_base_data.GetPhase()) {
-        destroy_frame();
-        fsm_base_data = new_fsm_base_data;
-        create_frame();
-        radio.Change(get_phase(fsm_base_data));
-    } else {
-        fsm_base_data = new_fsm_base_data;
-    }
-    update_frame();
+    instance = nullptr;
+    destroy_frame();
 }
 
 void ScreenPhaseStepping::create_frame() {
-    Frames::create_frame(frame_storage, get_phase(fsm_base_data), &inner_frame);
+    Frames::create_frame(frame_storage, get_phase(), &inner_frame);
+    radio.Change(get_phase());
 }
 
 void ScreenPhaseStepping::destroy_frame() {
-    Frames::destroy_frame(frame_storage, get_phase(fsm_base_data));
+    Frames::destroy_frame(frame_storage, get_phase());
 }
 
 void ScreenPhaseStepping::update_frame() {
-    Frames::update_frame(frame_storage, get_phase(fsm_base_data), fsm_base_data.GetData());
+    Frames::update_frame(frame_storage, get_phase(), fsm_base_data.GetData());
 }

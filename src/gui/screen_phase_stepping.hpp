@@ -1,34 +1,27 @@
 #pragma once
 
-#include <common/static_storage.hpp>
-#include <radio_button_fsm.hpp>
-#include <screen.hpp>
-#include <window_frame.hpp>
-#include <window_header.hpp>
+#include "screen_fsm.hpp"
+#include "radio_button_fsm.hpp"
 
-class ScreenPhaseStepping : public AddSuperWindow<screen_t> {
-public:
-    using FrameStorage = StaticStorage<420>;
-
+class ScreenPhaseStepping : public ScreenFSM {
 private:
-    FrameStorage frame_storage;
-    window_header_t header;
-    window_frame_t inner_frame;
     RadioButtonFsm<PhasesPhaseStepping> radio;
-    fsm::BaseData fsm_base_data;
-
-    void create_frame();
-    void destroy_frame();
-    void update_frame();
-    void do_change(fsm::BaseData);
 
 public:
     ScreenPhaseStepping();
     virtual ~ScreenPhaseStepping();
-
     static ScreenPhaseStepping *GetInstance();
-    void Change(fsm::BaseData);
 
-    void InitState(screen_init_variant) final;
-    screen_init_variant GetCurrentState() const final;
+    static constexpr Rect16 get_inner_frame_rect() {
+        return GuiDefaults::RectScreenBody - GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody).Height();
+    }
+
+protected:
+    virtual void create_frame() override;
+    virtual void destroy_frame() override;
+    virtual void update_frame() override;
+
+    PhasesPhaseStepping get_phase() const {
+        return GetEnumFromPhaseIndex<PhasesPhaseStepping>(fsm_base_data.GetPhase());
+    }
 };

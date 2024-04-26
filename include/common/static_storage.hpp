@@ -52,4 +52,12 @@ public:
     static constexpr bool has_ideal_size_for() {
         return std::max({ sizeof(T)... }) == Size;
     }
+
+    /**
+     * Return true if the storage has just enough space to accomodate largest of given types.
+     */
+    template <class... T>
+    static constexpr bool has_enough_space_for() {
+        return std::max({ sizeof(T)... }) <= Size;
+    }
 };
