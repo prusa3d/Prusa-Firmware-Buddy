@@ -421,27 +421,6 @@ void MarlinPrinter::reset_printer() {
     NVIC_SystemReset();
 }
 
-namespace {
-    bool validate_response(const PhaseResponses &responses, Response to_check) {
-        for (auto resp : responses) {
-            if (to_check == resp) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-    template <class Phase>
-    const char *send_click(uint8_t phase, Response response) {
-        auto phase_enum = GetEnumFromPhaseIndex<Phase>(phase);
-        if (!validate_response(ClientResponses::GetResponses(phase_enum), response)) {
-            return "Invalid button for dialog";
-        }
-        marlin_client::FSM_response(phase_enum, response);
-        return nullptr;
-    }
-} // namespace
-
 const char *MarlinPrinter::dialog_action(uint32_t dialog_id, Response response) {
     const fsm::States fsm_states = marlin_vars()->get_fsm_states();
     const std::optional<fsm::States::Top> top = fsm_states.get_top();
@@ -457,36 +436,16 @@ const char *MarlinPrinter::dialog_action(uint32_t dialog_id, Response response) 
         return "Invalid dialog id";
     }
 
-    const uint8_t phase = top->data.GetPhase();
-    switch (top->fsm_type) {
-    case ClientFSM::Load_unload:
-        return send_click<PhasesLoadUnload>(phase, response);
-    case ClientFSM::Preheat:
-        return send_click<PhasesPreheat>(phase, response);
-    case ClientFSM::Selftest:
-        return send_click<PhasesSelftest>(phase, response);
-    case ClientFSM::ESP:
-        return send_click<PhasesESP>(phase, response);
-    case ClientFSM::CrashRecovery:
-        return send_click<PhasesCrashRecovery>(phase, response);
-    case ClientFSM::QuickPause:
-        return send_click<PhasesQuickPause>(phase, response);
-    case ClientFSM::Warning:
-        return send_click<PhasesWarning>(phase, response);
-    case ClientFSM::ColdPull:
-        return send_click<PhasesColdPull>(phase, response);
-    case ClientFSM::PrintPreview:
-        return send_click<PhasesPrintPreview>(phase, response);
-        // NOTE: These have no Phases and no buttons
-#if HAS_PHASE_STEPPING()
-    case ClientFSM::PhaseStepping:
-        return send_click<PhasesPhaseStepping>(phase, response);
-#endif
-    case ClientFSM::Printing:
-    case ClientFSM::Serial_printing:
-    case ClientFSM::_none:
-        return "No buttons";
+    const PhaseResponses &valid_responses = ClientResponses::get_fsm_responses(top->fsm_type, top->data.GetPhase());
+    if (std::find(valid_responses.begin(), valid_responses.end(), response) == valid_responses.end()) {
+        return "Invalid button for dialog";
     }
+
+    marlin_client::FSM_encoded_response(EncodedFSMResponse {
+        .encoded_phase = top->data.GetPhase(),
+        .encoded_fsm = ftrstd::to_underlying(top->fsm_type),
+        .encoded_response = ftrstd::to_underlying(response),
+    });
     return nullptr;
 }
 

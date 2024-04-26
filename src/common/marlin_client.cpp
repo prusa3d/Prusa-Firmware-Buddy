@@ -452,7 +452,7 @@ void set_warning(WarningType type) {
 
 //-----------------------------------------------------------------------------
 // responses from client finite state machine (like button click)
-void FSM_response_internal(EncodedFSMResponse encoded_fsm_response) {
+void FSM_encoded_response(EncodedFSMResponse encoded_fsm_response) {
     Request request;
     request.type = Request::Type::FSM;
     request.encoded_fsm_response = encoded_fsm_response;

@@ -167,17 +167,14 @@ bool is_paused();
 
 bool is_idle();
 
-// internal function, use FSM_response()
-void FSM_response_internal(EncodedFSMResponse);
-
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
 
-// returns if response send succeeded
-// called in client finite state machine
+void FSM_encoded_response(EncodedFSMResponse);
+
 template <class T>
 void FSM_response(T phase, Response response) {
-    FSM_response_internal({
+    FSM_encoded_response({
         .encoded_phase = ftrstd::to_underlying(phase),
         .encoded_fsm = ftrstd::to_underlying(client_fsm_from_phase(phase)),
         .encoded_response = ftrstd::to_underlying(response),
