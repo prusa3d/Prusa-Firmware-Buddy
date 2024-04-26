@@ -33,7 +33,5 @@ private:
 
 public:
     ScreenESP();
-    ~ScreenESP();
-    static ScreenESP *GetInstance();
     void Change(fsm::BaseData data);
 };

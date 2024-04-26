@@ -365,12 +365,10 @@ ScreenCrashRecovery::ScreenCrashRecovery()
     ScreenCrashRecovery::ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetText(_("CRASH DETECTED"));
     header.SetIcon(&img::nozzle_16x16);
-    ths = this;
 }
 
 ScreenCrashRecovery::~ScreenCrashRecovery() {
     Sound_Stop();
-    ths = nullptr;
 }
 
 bool ScreenCrashRecovery::Change(fsm::BaseData data) {
@@ -432,11 +430,6 @@ bool ScreenCrashRecovery::Change(fsm::BaseData data) {
 void ScreenCrashRecovery::windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, [[maybe_unused]] void *param) {
     win_union.ButtonEvent(event);
 }
-
-// static variables and member functions
-ScreenCrashRecovery *ScreenCrashRecovery::ths = nullptr;
-
-ScreenCrashRecovery *ScreenCrashRecovery::GetInstance() { return ths; }
 
 void WinUnion::ButtonEvent(GUI_event_t event) {
     RadioButton *radio = nullptr;

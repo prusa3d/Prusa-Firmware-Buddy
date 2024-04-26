@@ -242,8 +242,6 @@ namespace frame {
 
 } // namespace frame
 
-ScreenPhaseStepping *instance = nullptr;
-
 using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
     FrameDefinition<PhasesPhaseStepping::intro, frame::Introduction>,
     FrameDefinition<PhasesPhaseStepping::pick_tool, frame::PickingTool>,
@@ -256,19 +254,14 @@ using Frames = FrameDefinitionList<ScreenPhaseStepping::FrameStorage,
 
 } // namespace
 
-ScreenPhaseStepping *ScreenPhaseStepping::GetInstance() { return instance; }
-
 ScreenPhaseStepping::ScreenPhaseStepping()
     : ScreenFSM(txt_header, ScreenPhaseStepping::get_inner_frame_rect())
     , radio { this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), PhasesPhaseStepping::intro } {
     CaptureNormalWindow(radio);
-    instance = this;
     create_frame();
 }
 
 ScreenPhaseStepping::~ScreenPhaseStepping() {
-    ReleaseCaptureOfNormalWindow();
-    instance = nullptr;
     destroy_frame();
 }
 

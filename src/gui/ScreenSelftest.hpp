@@ -91,8 +91,6 @@ private:
 
 public:
     ScreenSelftest();
-    ~ScreenSelftest();
-    static ScreenSelftest *GetInstance();
     void Change(fsm::BaseData data);
 
     virtual void InitState(screen_init_variant var) override; // opens selftest, needed for synchronization

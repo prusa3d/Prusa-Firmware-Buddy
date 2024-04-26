@@ -19,11 +19,8 @@ public:
 };
 
 class ScreenDialogDoesNotExist : public AddSuperWindow<ScreenDoesNotExist> {
-    static ScreenDialogDoesNotExist *ths; // to be accessible in dialog handler
 
 public:
     ScreenDialogDoesNotExist();
-    virtual ~ScreenDialogDoesNotExist() override;
-    static ScreenDialogDoesNotExist *GetInstance();
     constexpr bool Change([[maybe_unused]] fsm::BaseData data) { return false; }
 };

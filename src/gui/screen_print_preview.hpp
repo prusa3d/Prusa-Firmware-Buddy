@@ -61,8 +61,6 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
 
 public:
     ScreenPrintPreview();
-    virtual ~ScreenPrintPreview() override;
-    static ScreenPrintPreview *GetInstance();
     void Change(fsm::BaseData data);
 
 protected:

@@ -151,20 +151,10 @@ ScreenSelftest::ScreenSelftest()
     , part_previous(SelftestParts::_none) {
     ScreenSelftest::ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetIcon(&img::selftest_16x16);
-    ths = this;
-}
-
-ScreenSelftest::~ScreenSelftest() {
-    ths = nullptr;
 }
 
 /******************************************************************************/
 // static methods and member variables
-ScreenSelftest *ScreenSelftest::ths = nullptr;
-
-ScreenSelftest *ScreenSelftest::GetInstance() {
-    return ScreenSelftest::ths;
-}
 
 void ScreenSelftest::Change(fsm::BaseData data) {
     const uint8_t phase_id = data.GetPhase();

@@ -129,6 +129,5 @@ protected:
 public:
     ScreenCrashRecovery();
     virtual ~ScreenCrashRecovery() override;
-    static ScreenCrashRecovery *GetInstance();
     bool Change(fsm::BaseData data);
 };

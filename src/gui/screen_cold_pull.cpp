@@ -21,8 +21,6 @@ namespace {
 // Show message when this time is left to wait for
 constexpr const unsigned TAKING_TOO_LONG_TIMEOUT_SEC { 5 * 60 };
 
-ScreenColdPull *instance = nullptr;
-
 const char *text_header = N_("COLD PULL");
 
 constexpr const unsigned TITLE_TOP { 70 };
@@ -330,17 +328,12 @@ ScreenColdPull::ScreenColdPull()
     , radio { this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), PhasesColdPull::introduction }
     , footer { this, 0, footer::Item::nozzle, footer::Item::bed, footer::Item::heatbreak_temp } {
     CaptureNormalWindow(radio);
-    instance = this;
     create_frame();
 }
 
 ScreenColdPull::~ScreenColdPull() {
-    ReleaseCaptureOfNormalWindow();
-    instance = nullptr;
     destroy_frame();
 }
-
-ScreenColdPull *ScreenColdPull::GetInstance() { return instance; }
 
 void ScreenColdPull::create_frame() {
     Frames::create_frame(frame_storage, get_phase(), &inner_frame);

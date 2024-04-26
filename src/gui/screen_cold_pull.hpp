@@ -12,7 +12,6 @@ private:
 public:
     ScreenColdPull();
     ~ScreenColdPull();
-    static ScreenColdPull *GetInstance();
 
     static constexpr Rect16 get_inner_frame_rect() {
         return GuiDefaults::RectScreenBody - GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody).Height() - static_cast<Rect16::Height_t>(GuiDefaults::FramePadding);

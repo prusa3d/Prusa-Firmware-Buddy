@@ -33,17 +33,7 @@ ScreenPrintPreview::ScreenPrintPreview()
     title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()));
 
     CaptureNormalWindow(radio);
-    ths = this;
 }
-
-ScreenPrintPreview::~ScreenPrintPreview() {
-    ths = nullptr;
-}
-
-// static variables and member functions
-ScreenPrintPreview *ScreenPrintPreview::ths = nullptr;
-
-ScreenPrintPreview *ScreenPrintPreview::GetInstance() { return ths; }
 
 void ScreenPrintPreview::Change(fsm::BaseData data) {
     auto old_phase = phase;

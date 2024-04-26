@@ -18,14 +18,4 @@ ScreenDoesNotExist::ScreenDoesNotExist()
 
 ScreenDialogDoesNotExist::ScreenDialogDoesNotExist() {
     txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)"Dialog does not exist"));
-    ths = this;
 }
-
-ScreenDialogDoesNotExist::~ScreenDialogDoesNotExist() {
-    ths = nullptr;
-}
-
-// static variables and member functions
-ScreenDialogDoesNotExist *ScreenDialogDoesNotExist::ths = nullptr;
-
-ScreenDialogDoesNotExist *ScreenDialogDoesNotExist::GetInstance() { return ths; }

@@ -10,17 +10,6 @@ ScreenESP::ScreenESP()
     , part_previous(ESPParts::_none) {
     ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetIcon(&img::wifi_16x16);
-    ths = this;
-}
-
-ScreenESP::~ScreenESP() {
-    ths = nullptr;
-}
-
-ScreenESP *ScreenESP::ths = nullptr;
-
-ScreenESP *ScreenESP::GetInstance() {
-    return ScreenESP::ths;
 }
 
 void ScreenESP::Change(fsm::BaseData data) {
