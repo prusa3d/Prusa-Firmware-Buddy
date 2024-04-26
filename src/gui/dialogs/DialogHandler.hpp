@@ -6,6 +6,9 @@
 #include "static_alocation_ptr.hpp"
 
 class DialogHandler {
+    template <ClientFSM fsm_, typename Dialog>
+    friend struct FSMDialogDef;
+
     static_unique_ptr<IDialogMarlin> ptr;
     fsm::States fsm_states;
     std::pair<ClientFSM, fsm::BaseData> last_fsm_change;

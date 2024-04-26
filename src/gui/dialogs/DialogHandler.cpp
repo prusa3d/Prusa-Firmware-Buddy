@@ -65,20 +65,133 @@ static static_unique_ptr<IDialogMarlin> make_dialog_ptr(Args &&...args) {
     return make_static_unique_ptr<T>(&all_dialogs, std::forward<Args>(args)...);
 }
 
-static void OpenPrintScreen(ClientFSM dialog) {
-    switch (dialog) {
-    case ClientFSM::Serial_printing:
-        Screens::Access()->ClosePrinting();
-        Screens::Access()->Open(ScreenFactory::Screen<SerialPrint>);
-        return;
-    case ClientFSM::Printing:
-        Screens::Access()->CloseAll();
-        Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
-        return;
-    default:
-        return;
+static void open_screen_if_not_opened(ScreenFactory::Creator c) {
+    auto scrns = Screens::Access();
+    if (!scrns->IsScreenOpened(c)) {
+        scrns->Open(c);
     }
 }
+
+template <ClientFSM fsm_, typename Screen>
+struct FSMScreenDef {
+    static constexpr ClientFSM fsm = fsm_;
+
+    static void open([[maybe_unused]] fsm::BaseData data) {
+        open_screen_if_not_opened(ScreenFactory::Screen<Screen>);
+    }
+
+    static void close() {
+        assert(Screens::Access()->get<Screen>());
+        Screens::Access()->Close();
+    }
+
+    static void change(fsm::BaseData data) {
+        if (auto s = Screens::Access()->get<Screen>()) {
+            s->Change(data);
+        }
+    }
+};
+
+template <ClientFSM fsm_, typename Dialog>
+struct FSMDialogDef {
+    static constexpr ClientFSM fsm = fsm_;
+
+    static void open(fsm::BaseData data) {
+        DialogHandler::Access().ptr = make_dialog_ptr<Dialog>(data);
+    }
+
+    static void close() {
+        // Do nothing, is handled elsewhere
+    }
+
+    static void change(fsm::BaseData data) {
+        if (auto &ptr = DialogHandler::Access().ptr) {
+            ptr->Change(data);
+        }
+    }
+};
+
+template <ClientFSM fsm_>
+struct FSMPrintDef {
+    static constexpr ClientFSM fsm = fsm_;
+
+    static void open([[maybe_unused]] fsm::BaseData data) {
+        if (IScreenPrinting::GetInstance()) {
+            IScreenPrinting::NotifyMarlinStart();
+            return;
+        }
+
+        if constexpr (fsm == ClientFSM::Serial_printing) {
+            Screens::Access()->ClosePrinting();
+            Screens::Access()->Open(ScreenFactory::Screen<SerialPrint>);
+
+        } else if constexpr (fsm == ClientFSM::Printing) {
+            Screens::Access()->CloseAll();
+            Screens::Access()->Open(ScreenFactory::Screen<screen_printing_data_t>);
+
+        } else {
+            static_assert(0);
+        }
+    }
+
+    static void close() {
+        Screens::Access()->CloseAll();
+    }
+
+    static void change([[maybe_unused]] fsm::BaseData data) {
+        // Do nothing
+    }
+};
+
+// Just so that we have something at the end of the list and don't have to care about commas
+struct FSMEndDef {
+    static constexpr ClientFSM fsm = ClientFSM::_count;
+
+    static void open(fsm::BaseData) {}
+    static void close() {}
+    static void change(fsm::BaseData) {}
+};
+
+template <class... T>
+struct FSMDisplayConfigDef {
+};
+
+using FSMDisplayConfig = FSMDisplayConfigDef<
+    FSMPrintDef<ClientFSM::Serial_printing>,
+    FSMDialogDef<ClientFSM::Load_unload, DialogLoadUnload>,
+    FSMDialogDef<ClientFSM::Preheat, DialogMenuPreheat>,
+#if HAS_SELFTEST()
+    FSMScreenDef<ClientFSM::Selftest, ScreenSelftest>,
+#endif
+    FSMScreenDef<ClientFSM::ESP, ScreenESP>,
+    FSMPrintDef<ClientFSM::Printing>,
+#if ENABLED(CRASH_RECOVERY)
+    FSMScreenDef<ClientFSM::CrashRecovery, ScreenCrashRecovery>,
+#endif
+    FSMDialogDef<ClientFSM::QuickPause, DialogQuickPause>,
+    FSMDialogDef<ClientFSM::Warning, DialogWarning>,
+    FSMScreenDef<ClientFSM::PrintPreview, ScreenPrintPreview>,
+#if HAS_COLDPULL()
+    FSMScreenDef<ClientFSM::ColdPull, ScreenColdPull>,
+#endif
+#if HAS_PHASE_STEPPING()
+    FSMScreenDef<ClientFSM::PhaseStepping, ScreenPhaseStepping>,
+#endif
+#if HAS_INPUT_SHAPER_CALIBRATION()
+    FSMScreenDef<ClientFSM::InputShaperCalibration, ScreenInputShaperCalibration>,
+#endif
+
+    // This is here so that we can worry-free write commas at the end of each argument
+    FSMEndDef>;
+
+void visit_display_config(ClientFSM fsm, auto f) {
+    [&]<class... T>(FSMDisplayConfigDef<T...>) {
+        ((fsm == T::fsm ? f(T()) : void()), ...);
+    }(FSMDisplayConfig());
+};
+
+static constexpr size_t fsm_display_config_size = []<class... T>(FSMDisplayConfigDef<T...>) { return sizeof...(T); }(FSMDisplayConfig());
+static_assert(fsm_display_config_size == ftrstd::to_underlying(ClientFSM::_count) + 1);
 
 //*****************************************************************************
 // method definitions
@@ -95,103 +208,15 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
 
     last_fsm_change = std::make_pair(fsm_type, data);
 
-    // todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
-    //  only ptr = dialog_creators[dialog](data); should remain
-    switch (fsm_type) {
-    case ClientFSM::Serial_printing:
-    case ClientFSM::Printing:
-        if (IScreenPrinting::GetInstance() == nullptr) {
-            OpenPrintScreen(fsm_type);
-        } else {
-            // opened, notify it
-            IScreenPrinting::NotifyMarlinStart();
-        }
-        break;
-    case ClientFSM::PrintPreview:
-        if (!ScreenPrintPreview::GetInstance()) {
-            Screens::Access()->Open(ScreenFactory::Screen<ScreenPrintPreview>);
-        }
-        break;
-    case ClientFSM::CrashRecovery:
-        if (!CrashRecovery::GetInstance()) {
-            Screens::Access()->Open(ScreenFactory::Screen<CrashRecovery>);
-        }
-        break;
-    case ClientFSM::Selftest:
-#if HAS_SELFTEST()
-        if (!ScreenSelftest::GetInstance()) {
-            // data contain screen caption type
-            // ScreenSelftest::SetHeaderMode(...);
-            Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-        }
-#endif // HAS_SELFTEST
-        break;
-    case ClientFSM::ESP:
-        if (!ScreenESP::GetInstance()) {
-            Screens::Access()->Open(ScreenFactory::Screen<ScreenESP>);
-        }
-        break;
-    case ClientFSM::ColdPull:
-#if HAS_COLDPULL()
-        if (!ScreenColdPull::GetInstance()) {
-            Screens::Access()->Open(ScreenFactory::Screen<ScreenColdPull>);
-        }
-#endif
-        break;
-#if HAS_PHASE_STEPPING()
-    case ClientFSM::PhaseStepping:
-        if (!ScreenPhaseStepping::GetInstance()) {
-            Screens::Access()->Open(ScreenFactory::Screen<ScreenPhaseStepping>);
-        }
-        break;
-#endif
-#if HAS_INPUT_SHAPER_CALIBRATION()
-    case ClientFSM::InputShaperCalibration:
-        if (!ScreenInputShaperCalibration::GetInstance()) {
-            Screens::Access()->Open(ScreenFactory::Screen<ScreenInputShaperCalibration>);
-        }
-        break;
-#endif
-    case ClientFSM::QuickPause:
-        ptr = make_dialog_ptr<DialogQuickPause>(data);
-        break;
-    case ClientFSM::Warning:
-        ptr = make_dialog_ptr<DialogWarning>(data);
-        break;
-    case ClientFSM::Load_unload:
-        ptr = make_dialog_ptr<DialogLoadUnload>(data);
-        break;
-    case ClientFSM::Preheat:
-        ptr = make_dialog_ptr<DialogMenuPreheat>(data);
-        break;
-    case ClientFSM::_none:
-        break;
-    }
+    visit_display_config(fsm_type, [&]<typename Config>(Config) {
+        Config::open(data);
+    });
 }
 
 void DialogHandler::close(ClientFSM fsm_type) {
-    // following are screens (not dialogs)
-    switch (fsm_type) {
-    case ClientFSM::Serial_printing:
-    case ClientFSM::Printing:
-        Screens::Access()->CloseAll();
-        break;
-    case ClientFSM::PrintPreview:
-    case ClientFSM::CrashRecovery:
-    case ClientFSM::Selftest:
-    case ClientFSM::ESP:
-    case ClientFSM::ColdPull:
-#if HAS_PHASE_STEPPING()
-    case ClientFSM::PhaseStepping:
-#endif
-#if HAS_INPUT_SHAPER_CALIBRATION()
-    case ClientFSM::InputShaperCalibration:
-#endif
-        Screens::Access()->Close();
-        break;
-    default:
-        break;
-    }
+    visit_display_config(fsm_type, []<typename Config>(Config) {
+        Config::close();
+    });
 
     // Attempt to restore underlying screen state
     if (ptr != nullptr) {
@@ -209,55 +234,9 @@ void DialogHandler::close(ClientFSM fsm_type) {
 void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
     last_fsm_change = std::make_pair(fsm_type, data);
 
-    switch (fsm_type) {
-    case ClientFSM::PrintPreview:
-        if (ScreenPrintPreview::GetInstance()) {
-            ScreenPrintPreview::GetInstance()->Change(data);
-        }
-        break;
-    case ClientFSM::CrashRecovery:
-        if (CrashRecovery::GetInstance()) {
-            CrashRecovery::GetInstance()->Change(data);
-        }
-        break;
-    case ClientFSM::Selftest:
-#if HAS_SELFTEST()
-        if (ScreenSelftest::GetInstance()) {
-            ScreenSelftest::GetInstance()->Change(data);
-        }
-#endif // HAS_SELFTEST
-        break;
-    case ClientFSM::ESP:
-        if (ScreenESP::GetInstance()) {
-            ScreenESP::GetInstance()->Change(data);
-        }
-        break;
-    case ClientFSM::ColdPull:
-#if HAS_COLDPULL()
-        if (ScreenColdPull::GetInstance()) {
-            ScreenColdPull::GetInstance()->Change(data);
-        }
-#endif
-        break;
-#if HAS_PHASE_STEPPING()
-    case ClientFSM::PhaseStepping:
-        if (ScreenPhaseStepping::GetInstance()) {
-            ScreenPhaseStepping::GetInstance()->Change(data);
-        }
-        break;
-#endif
-#if HAS_INPUT_SHAPER_CALIBRATION()
-    case ClientFSM::InputShaperCalibration:
-        if (ScreenInputShaperCalibration::GetInstance()) {
-            ScreenInputShaperCalibration::GetInstance()->Change(data);
-        }
-        break;
-#endif
-    default:
-        if (ptr) {
-            ptr->Change(data);
-        }
-    }
+    visit_display_config(fsm_type, [&]<typename Config>(Config) {
+        Config::change(data);
+    });
 }
 
 bool DialogHandler::IsOpen() const {
