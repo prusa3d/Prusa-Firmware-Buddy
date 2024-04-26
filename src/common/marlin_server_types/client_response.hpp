@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
+#include <span>
 #include "printers.h"
 #include "option/has_loadcell.h"
 #include "option/filament_sensor.h"
@@ -25,6 +26,7 @@ enum { RESPONSE_BITS = 4, // number of bits used to encode response
     MAX_RESPONSES = (1 << RESPONSE_BITS) }; // maximum number of responses in one phase
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
+static constexpr PhaseResponses empty_phase_responses = {};
 
 // count enum class members (if "_last" is defined)
 template <class T>
@@ -772,17 +774,6 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::ColdPullResponses) == CountPhases<PhasesColdPull>());
 
-    // methods to "bind" button array with enum type
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesESP phase) { return ESPResponses[static_cast<size_t>(phase)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesQuickPause phase) { return QuickPauseResponses[static_cast<size_t>(phase)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesWarning phase) { return WarningResponses[static_cast<size_t>(phase)]; }
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesColdPull phase) { return ColdPullResponses[static_cast<size_t>(phase)]; }
-
 #if HAS_PHASE_STEPPING()
     static constexpr PhaseResponses PhaseSteppingResponses[] = {
         { Response::Continue, Response::Abort }, // PhasesPhaseStepping::intro
@@ -796,16 +787,55 @@ class ClientResponses {
         {}, // PhasesPhaseStepping::finish
     };
     static_assert(std::size(ClientResponses::PhaseSteppingResponses) == CountPhases<PhasesPhaseStepping>());
-
-    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPhaseStepping phase) { return PhaseSteppingResponses[static_cast<size_t>(phase)]; }
 #endif
 
+    static constexpr EnumArray<ClientFSM, std::span<const PhaseResponses>, ClientFSM::_count> fsm_phase_responses {
+        { ClientFSM::Serial_printing, {} },
+            { ClientFSM::Load_unload, LoadUnloadResponses },
+            { ClientFSM::Preheat, PreheatResponses },
+            { ClientFSM::Selftest, SelftestResponses },
+            { ClientFSM::ESP, ESPResponses },
+            { ClientFSM::Printing, {} },
+            { ClientFSM::CrashRecovery, CrashRecoveryResponses },
+            { ClientFSM::QuickPause, QuickPauseResponses },
+            { ClientFSM::Warning, WarningResponses },
+            { ClientFSM::PrintPreview, {} },
+            { ClientFSM::ColdPull, ColdPullResponses },
+#if HAS_PHASE_STEPPING()
+            { ClientFSM::PhaseStepping, PhaseSteppingResponses },
+#endif
+    };
+
 public:
+    static constexpr const PhaseResponses &get_fsm_responses(ClientFSM fsm_type, PhaseUnderlyingType phase) {
+        if (ftrstd::to_underlying(fsm_type) >= fsm_phase_responses.size()) {
+            return empty_phase_responses;
+        }
+
+        const auto &responses = fsm_phase_responses[fsm_type];
+        if (phase >= responses.size()) {
+            return empty_phase_responses;
+        }
+
+        return responses[phase];
+    }
+
+    // get all responses accepted in phase
+    template <class T>
+    static constexpr const PhaseResponses &GetResponses(const T phase) {
+        return get_fsm_responses(client_fsm_from_phase(phase), ftrstd::to_underlying(phase));
+    }
+
     // get index of single response in PhaseResponses
     // return -1 (maxval) if does not exist
     template <class T>
     static uint8_t GetIndex(T phase, Response response) {
-        const PhaseResponses &cmds = getResponsesInPhase(phase);
+        const auto responses = fsm_phase_responses[client_fsm_from_phase(phase)];
+        if (ftrstd::to_underlying(phase) >= responses.size()) {
+            return -1;
+        }
+
+        const PhaseResponses &cmds = responses[ftrstd::to_underlying(phase)];
         for (size_t i = 0; i < MAX_RESPONSES; ++i) {
             if (cmds[i] == response) {
                 return i;
@@ -820,15 +850,9 @@ public:
         if (index >= MAX_RESPONSES) {
             return ResponseNone;
         }
-        const PhaseResponses &cmds = getResponsesInPhase(phase);
-        return cmds[index];
+        return GetResponses(phase)[index];
     }
 
-    // get all responses accepted in phase
-    template <class T>
-    static constexpr const PhaseResponses &GetResponses(const T phase) {
-        return getResponsesInPhase(phase);
-    }
     template <class T>
     static bool HasButton(const T phase) {
         return GetResponse(phase, 0) != Response::_none; // this phase has no responses
