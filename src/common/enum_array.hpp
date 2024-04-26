@@ -41,10 +41,10 @@ struct EnumArray final : public std::array<Value, static_cast<size_t>(cnt)> {
         return get_fallback(static_cast<size_t>(v), static_cast<size_t>(fallback_value));
     }
 
-    inline constexpr Value operator[](size_t i) const {
+    inline constexpr const Value &operator[](size_t i) const {
         return Array::operator[](i);
     }
-    inline constexpr Value operator[](Enum v) const {
+    inline constexpr const Value &operator[](Enum v) const {
         return Array::operator[](static_cast<size_t>(v));
     }
 
