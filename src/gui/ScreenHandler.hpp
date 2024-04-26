@@ -69,6 +69,15 @@ public:
 
     screen_t *Get() const;
 
+    template <typename T>
+    T *get() const {
+        if (current && ScreenFactory::DoesCreatorHoldType<T>(stack_iterator->creator)) {
+            return static_cast<T *>(current.get());
+        } else {
+            return nullptr;
+        }
+    }
+
     void EnableMenuTimeout();
     void DisableMenuTimeout();
     bool GetMenuTimeout();
