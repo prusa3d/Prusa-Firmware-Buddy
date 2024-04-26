@@ -1,16 +1,16 @@
 #pragma once
 #include "gui.hpp"
-#include "window_menu_adv.hpp"
+#include <window_filebrowser.hpp>
 #include "window_header.hpp"
 #include "screen.hpp"
 #include "window_dlg_wait.hpp"
 
 class screen_filebrowser_data_t : public AddSuperWindow<screen_t> {
     window_header_t header;
-    FileBrowser file_browser;
+    WindowExtendedMenu<WindowFileBrowser> file_browser;
 
     inline WindowFileBrowser &browser() {
-        return file_browser.browser();
+        return file_browser.menu;
     }
 
     void printTheFile();

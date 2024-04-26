@@ -265,8 +265,9 @@ void DialogChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
         break;
     }
     case GUI_event_t::CHILD_CLICK: {
-        int result = menu.GetIndex() ? *menu.GetIndex() : -1;
-        assert(result >= 0); // should never happen
+        const auto result = menu.menu.focused_item_index();
+        assert(result.has_value()); // should never happen
+
         // expecting return to be 0 and do changes at 6, but for simplicity anything >0 means execute the all change.
         if (result > 0) {
             const std::array<size_t, tool_count> selection { {
@@ -280,6 +281,7 @@ void DialogChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
             handle_change_all(selection, colors);
             exit_on_media_blocked = false;
         }
+
         Screens::Access()->Close();
         break;
     }

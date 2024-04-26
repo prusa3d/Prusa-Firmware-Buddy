@@ -129,7 +129,7 @@ void ScreenMenuMove::checkNozzleTemp() {
     }
 
     if (IsTempOk() == Item<MI_AXIS_E>().IsHidden()) {
-        menu.SwapVisibility(Item<DUMMY_AXIS_E>(), Item<MI_AXIS_E>());
+        menu.menu.SwapVisibility(Item<DUMMY_AXIS_E>(), Item<MI_AXIS_E>());
     }
 }
 

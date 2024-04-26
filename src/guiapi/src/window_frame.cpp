@@ -224,6 +224,12 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
 
     switch (event) {
 
+    case GUI_event_t::CHILD_CLICK:
+        if (auto p = GetParent()) {
+            p->WindowEvent(sender, event, param);
+        }
+        break;
+
     case GUI_event_t::CLICK:
         if (pWin) {
             pWin->WindowEvent(this, GUI_event_t::CLICK, nullptr);

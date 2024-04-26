@@ -3,9 +3,9 @@
 #include "gui.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "window_menu_adv.hpp"
 #include "WinMenuContainer.hpp"
 #include "WindowMenuItems.hpp"
+#include <window_menu.hpp>
 #include <stdint.h>
 #include "screen.hpp"
 #include <new>
@@ -33,7 +33,7 @@ protected:
 public:
     ScreenMenu(string_view_utf8 label, window_t *parent = nullptr)
         : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
-        menu.BindContainer(container);
+        menu.menu.BindContainer(container);
     }
 
     // compile time access by index
@@ -49,7 +49,7 @@ public:
 
     template <class ITEM1, class ITEM2>
     bool SwapVisibility() {
-        return menu.SwapVisibility(Item<ITEM1>(), Item<ITEM2>());
+        return menu.menu.SwapVisibility(Item<ITEM1>(), Item<ITEM2>());
     }
 
     /// Calls update() on all items that have this function

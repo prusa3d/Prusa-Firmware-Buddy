@@ -273,7 +273,7 @@ public:
 
     void Preselect(size_t index) {
         // This index works only on enabled menu items, so index actually corresponds to tool number
-        menu.SetIndex(index);
+        menu.menu.move_focus_to_index(index);
     }
 
     void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {

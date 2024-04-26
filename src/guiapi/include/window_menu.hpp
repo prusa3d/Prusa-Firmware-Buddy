@@ -10,6 +10,7 @@
 #include "screen_init_variant.hpp"
 #include "window_icon.hpp"
 #include "window_frame.hpp"
+#include <window_menu_adv.hpp>
 
 #include <cstdint>
 #include <optional>
@@ -62,3 +63,5 @@ protected:
     // virtual void invalidate(Rect16 validation_rect);
     // virtual void validate(Rect16 validation_rect);
 };
+
+using window_menu_t = WindowExtendedMenu<WindowMenu>;
