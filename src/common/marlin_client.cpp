@@ -301,27 +301,20 @@ void move_xyz_axes_to(const xyz_float_t &position, float feedrate) {
     _send_request_to_server_and_wait(request);
 }
 
-#if HAS_PHASE_STEPPING()
-static bool try_start_test_via_gcode(const uint64_t test_mask, const uint64_t wizard_mask, const char *wizard_gcode) {
-    if (test_mask & wizard_mask) {
-        if (test_mask == wizard_mask) {
-            gcode(wizard_gcode);
-            return true;
-        } else {
-            bsod("unable to mix selftest and gcode");
-        }
-    }
-    return false;
-}
-#endif
-
 #if HAS_SELFTEST()
 void test_start_with_data(const uint64_t test_mask, const ::selftest::TestData test_data) {
+
+    // Handle gcode tests
+    switch (test_mask) {
     #if HAS_PHASE_STEPPING()
-    if (try_start_test_via_gcode(test_mask, stmPhaseStepping, "M1977")) {
+    case stmPhaseStepping:
+        gcode("M1977");
         return;
-    }
     #endif
+    default:
+        break;
+    }
+
     Request request;
     request.type = Request::Type::TestStart;
     request.test_start.test_mask = test_mask;
