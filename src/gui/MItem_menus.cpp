@@ -197,7 +197,6 @@ void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
 // MI_METRICS_SETTINGS
 MI_METRICS_SETTINGS::MI_METRICS_SETTINGS()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-    SetIconId(&img::speed_16x16);
 }
 
 void MI_METRICS_SETTINGS::click(IWindowMenu & /*window_menu*/) {
