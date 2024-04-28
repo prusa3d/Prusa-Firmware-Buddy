@@ -99,10 +99,9 @@ pipeline {
                     sh """
                     ln -fs /work/.dependencies
                     ln -fs /work/.venv
+                    . .venv/bin/activate
 
                     export XDG_CACHE_HOME=\$PWD/.precommit
-                    . .venv/bin/activate
-                    python3 utils/bootstrap.py
                     git config --unset-all core.hooksPath
                     pre-commit install
                     pre-commit run \
@@ -181,6 +180,7 @@ pipeline {
                                             export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
                                             ln -fs /work/.dependencies
                                             ln -fs /work/.venv
+                                            . .venv/bin/activate
                                             rm -rf build
                                             python3 utils/build.py \
                                                 --preset ${config.preset} \
@@ -189,6 +189,7 @@ pipeline {
                                                 --generate-bbf \
                                                 --generate-dfu \
                                                 --no-store-output \
+                                                --skip-bootstrap \
                                                 --version-suffix=${version.suffix_full} \
                                                 --version-suffix-short=${version.suffix_short} \
                                                 -DCUSTOM_COMPILE_OPTIONS:STRING="-Werror" \
