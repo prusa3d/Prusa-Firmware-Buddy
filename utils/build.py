@@ -710,6 +710,11 @@ def main():
         help='Do not build, configure the build only.'
     )
     parser.add_argument(
+        '--skip-bootstrap',
+        action='store_true',
+        help='Skip bootstrap, useful if dependencies are already installed.'
+    )
+    parser.add_argument(
         '--no-store-output',
         dest='store_output',
         action='store_const',
@@ -789,8 +794,9 @@ def main():
         CMakePresetsGenerator.generate(configurations)
         sys.exit(0)
 
-    # check all dependencis are installed
-    bootstrap.bootstrap()
+    if not args.skip_bootstrap:
+        # check all dependencis are installed
+        bootstrap.bootstrap()
 
     # build everything
     results: Dict[BuildConfiguration, BuildResult] = dict()
