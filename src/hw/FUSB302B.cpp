@@ -73,7 +73,7 @@ void FUSB302B::DetectAddress() {
     for (auto tryAddress : address_options) {
         // reset chip, if chip has this address, it will confirm the transaction
         uint8_t _sw_reset[2] = { 0x0C, 0x03 };
-        auto res = i2c::Transmit(I2C_HANDLE_FOR(usbc), tryAddress | WRITE_FLAG, _sw_reset, 2, 100);
+        auto res = i2c::Transmit(I2C_HANDLE_FOR(usbc), tryAddress | WRITE_FLAG, _sw_reset, 2, 150);
         if (res == i2c::Result::ok) {
             FUSB302B::address = tryAddress;
             return;
