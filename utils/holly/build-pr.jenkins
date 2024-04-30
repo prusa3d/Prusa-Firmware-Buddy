@@ -36,6 +36,20 @@ def get_version_info() {
     ]
 }
 
+def should_run_integration_tests() {
+    // Prevent running integration tests outside of our private fork.
+    if (env.GIT_URL != 'git@github.com:prusa3d/Prusa-Firmware-Buddy-Private.git') {
+        return false;
+    }
+
+    // Prevent running integration tests for pull requests.
+    if (env.CHANGE_ID) {
+        return false;
+    }
+
+    return true;
+}
+
 pipeline {
     agent none
 
@@ -276,7 +290,7 @@ pipeline {
                 stage('Integration Tests') {
                     when {
                         expression {
-                            return env.GIT_URL == 'git@github.com:prusa3d/Prusa-Firmware-Buddy-Private.git';
+                            return should_run_integration_tests();
                         }
                     }
                     agent {
