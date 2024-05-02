@@ -3,7 +3,11 @@
 #include <ping_manager.hpp>
 #include <gui/screen_menu.hpp>
 #include <gui/MItem_network.hpp>
-#include <gui/screen_menu_connect.hpp>
+
+#include <option/buddy_enable_connect.h>
+#if BUDDY_ENABLE_CONNECT()
+    #include <gui/screen_menu_connect.hpp>
+#endif
 
 namespace menu_network_status {
 
@@ -23,18 +27,19 @@ public:
     MI_STATS_GATEWAY();
 };
 
-class MI_STATS_CONNECT : public WiInfo<stats_text_size> {
-    static constexpr const char *label = N_("- Connect");
-
-public:
-    MI_STATS_CONNECT();
-};
-
 class MI_STATS_DNS_SERVER : public WiInfo<stats_text_size> {
     static constexpr const char *label = N_("- DNS Server");
 
 public:
     MI_STATS_DNS_SERVER();
+};
+
+#if BUDDY_ENABLE_CONNECT()
+class MI_STATS_CONNECT : public WiInfo<stats_text_size> {
+    static constexpr const char *label = N_("- Connect");
+
+public:
+    MI_STATS_CONNECT();
 };
 
 class MI_CONNECT_IP : public WiInfo<ADDR_LEN> {
@@ -43,12 +48,20 @@ class MI_CONNECT_IP : public WiInfo<ADDR_LEN> {
 public:
     MI_CONNECT_IP();
 };
+#endif
 
 using MenuBase = ScreenMenu<EFooter::Off,
     MI_RETURN,
     MI_WIFI_STATUS_t,
-    MI_IP4_ADDR, MI_IP4_GWAY, MI_MAC_ADDR, MI_HOSTNAME, MI_IP4_DNS1, MI_CONNECT_HOST, MI_CONNECT_IP,
-    MI_STATS_GROUP, MI_STATS_CONNECT, MI_STATS_GATEWAY, MI_STATS_DNS_SERVER //
+    MI_IP4_ADDR, MI_IP4_GWAY, MI_MAC_ADDR, MI_HOSTNAME, MI_IP4_DNS1,
+#if BUDDY_ENABLE_CONNECT()
+    MI_CONNECT_HOST, MI_CONNECT_IP,
+#endif
+    MI_STATS_GROUP,
+#if BUDDY_ENABLE_CONNECT()
+    MI_STATS_CONNECT,
+#endif
+    MI_STATS_GATEWAY, MI_STATS_DNS_SERVER //
     >;
 
 } // namespace menu_network_status

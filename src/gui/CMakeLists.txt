@@ -47,7 +47,6 @@ target_sources(
           screen_home.cpp
           screen_menu.cpp
           screen_menu_cancel_object.cpp
-          screen_menu_connect.cpp
           screen_menu_control.cpp
           screen_menu_eeprom.cpp
           screen_menu_eeprom_diagnostics.cpp
@@ -235,6 +234,10 @@ endif()
 
 if(HAS_PHASE_STEPPING)
   target_sources(firmware PRIVATE screen_phase_stepping.cpp)
+endif()
+
+if(CONNECT)
+  target_sources(firmware PRIVATE screen_menu_connect.cpp)
 endif()
 
 add_subdirectory(dialogs)

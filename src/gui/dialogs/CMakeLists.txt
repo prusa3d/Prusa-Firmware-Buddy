@@ -2,8 +2,7 @@ target_include_directories(firmware PRIVATE .)
 
 target_sources(
   firmware
-  PRIVATE DialogConnectReg.cpp
-          DialogHandler.cpp
+  PRIVATE DialogHandler.cpp
           DialogLoadUnload.cpp
           DialogMoveZ.cpp
           DialogTimed.cpp
@@ -19,6 +18,10 @@ target_sources(
           window_dlg_wait.cpp
           window_dlg_warning.cpp
   )
+
+if(CONNECT)
+  target_sources(firmware PRIVATE DialogConnectReg.cpp)
+endif()
 
 if(BOARD STREQUAL "BUDDY")
   add_subdirectory(resolution_240x320)
