@@ -49,6 +49,9 @@ public:
     window_t *GetPrevEnabledSubWin(window_t *win, Rect16 intersection_rect) const;
     window_t *GetFirstEnabledSubWin(Rect16 intersection_rect) const;
 
+    /// \returns a child window whose touch rect contains the point (or nullptr)
+    window_t *get_child_by_touch_point(point_ui16_t point);
+
     bool IsChildFocused();
 
     void SetMenuTimeoutClose();

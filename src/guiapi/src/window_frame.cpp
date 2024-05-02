@@ -242,16 +242,7 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]
 
     case GUI_event_t::TOUCH_CLICK:
         if (pWin) { // check if a window has focus, to not give it if it does not
-            pWin = GetFirstEnabledSubWin();
-            event_conversion_union un;
-            un.pvoid = param;
-            while (pWin) {
-                Rect16 rc = pWin->get_rect_for_touch();
-                if (rc.Contain(un.point)) {
-                    break; // found it
-                }
-                pWin = GetNextEnabledSubWin(pWin);
-            }
+            pWin = get_child_by_touch_point(event_conversion_union { .pvoid = param }.point);
         }
         if (pWin) {
             pWin->SetFocus();
@@ -472,6 +463,15 @@ window_t *window_frame_t::GetFirstEnabledSubWin(Rect16 intersection_rect) const 
         return first_normal;
     }
     return GetNextEnabledSubWin(first_normal, intersection_rect);
+}
+
+window_t *window_frame_t::get_child_by_touch_point(point_ui16_t point) {
+    for (window_t *r = GetFirstEnabledSubWin(); r; r = GetNextEnabledSubWin(r)) {
+        if (r->get_rect_for_touch().Contain(point)) {
+            return r;
+        }
+    }
+    return nullptr;
 }
 
 Rect16 window_frame_t::GenerateRect(ShiftDir_t direction, size_ui16_t sz, uint16_t distance) {
