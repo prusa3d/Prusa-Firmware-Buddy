@@ -16,18 +16,14 @@ float NumericInputConfig::clamp(float value) const {
     }
 }
 
-uint8_t NumericInputConfig::max_value_strlen() const {
-    static constexpr auto num_digits = [](float v) {
-        return std::max<float>(floor(log10(abs(v))), 0) + 1;
-    };
-
-    uint8_t r = std::max(
-        num_digits(max_value), //
-        num_digits(min_value) + (min_value < 0 ? 1 : 0) // Extra digit for minus
+uint8_t NumericInputConfig::max_value_strlen(MaxValueStrlenArgs args) const {
+    uint8_t r = std::max<uint8_t>(
+        num_digits(abs(max_value)), //
+        num_digits(abs(min_value)) + ((args.count_minus_sign && (min_value < 0)) ? 1 : 0) // Extra digit for minus
     );
 
     // Decimal point plus decimal places
-    if (max_decimal_places > 0) {
+    if (args.count_decimal_point && max_decimal_places > 0) {
         r += max_decimal_places + 1;
     }
 

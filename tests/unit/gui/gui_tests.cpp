@@ -3,6 +3,18 @@
 
 TEST_CASE("gui::numeric_input_config") {
     SECTION("max_value_strlen") {
+        CHECK(NumericInputConfig::num_digits(0) == 1);
+        CHECK(NumericInputConfig::num_digits(1) == 1);
+        CHECK(NumericInputConfig::num_digits(9) == 1);
+        CHECK(NumericInputConfig::num_digits(10) == 2);
+        CHECK(NumericInputConfig::num_digits(99) == 2);
+        CHECK(NumericInputConfig::num_digits(100) == 3);
+        CHECK(NumericInputConfig::num_digits(999) == 3);
+        CHECK(NumericInputConfig::num_digits(1000) == 4);
+        CHECK(NumericInputConfig::num_digits(9999) == 4);
+        CHECK(NumericInputConfig::num_digits(10000) == 5);
+        CHECK(NumericInputConfig::num_digits(99999) == 5);
+
         CHECK(NumericInputConfig { .min_value = 0, .max_value = 0 }.max_value_strlen() == 1);
         CHECK(NumericInputConfig { .min_value = 0, .max_value = 9 }.max_value_strlen() == 1);
         CHECK(NumericInputConfig { .min_value = -1, .max_value = 9 }.max_value_strlen() == 2); // - sign takes one space
