@@ -303,18 +303,6 @@ void move_xyz_axes_to(const xyz_float_t &position, float feedrate) {
 
 #if HAS_SELFTEST()
 void test_start_with_data(const uint64_t test_mask, const ::selftest::TestData test_data) {
-
-    // Handle gcode tests
-    switch (test_mask) {
-    #if HAS_PHASE_STEPPING()
-    case stmPhaseStepping:
-        gcode("M1977");
-        return;
-    #endif
-    default:
-        break;
-    }
-
     Request request;
     request.type = Request::Type::TestStart;
     request.test_start.test_mask = test_mask;

@@ -123,12 +123,31 @@ struct SnakeConfig {
 
 SnakeConfig snake_config {};
 
+const char *snake_gcode(Action action) {
+    switch (action) {
+#if HAS_PHASE_STEPPING()
+    case Action::PhaseSteppingCalibration:
+        return "M1977";
+#endif
+    default:
+        return nullptr;
+    }
+}
+
 void do_snake(Action action, Tool tool = Tool::_first) {
     if (!are_previous_completed(action) && !snake_config.in_progress) {
         if (MsgBoxQuestion(_("Previous Calibrations & Tests are not all done. Continue anyway?"), Responses_YesNo, 1) == Response::No) {
             snake_config.reset();
             return;
         }
+    }
+
+    // Note: "gcode" tests are handled separately, partly because
+    //       there are not enough bits in the selftest mask.
+    if (const char *gcode = snake_gcode(action)) {
+        marlin_client::gcode(gcode);
+        snake_config.next(action, tool);
+        return;
     }
 
     if (has_submenu(action)) {

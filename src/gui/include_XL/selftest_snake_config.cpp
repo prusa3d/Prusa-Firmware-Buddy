@@ -133,7 +133,8 @@ uint64_t get_test_mask(Action action) {
     case Action::NozzleDiameter:
         return stmNozzleDiameter;
     case Action::PhaseSteppingCalibration:
-        return stmPhaseStepping;
+        bsod("get_test_mask");
+        break;
     case Action::_count:
         break;
     }

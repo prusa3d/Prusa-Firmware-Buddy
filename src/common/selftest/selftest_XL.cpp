@@ -322,9 +322,6 @@ void CSelftest::Loop() {
             return;
         }
         break;
-    case stsPhaseStepping:
-        bsod("this should be gcode not selftest");
-        break;
     case stsFans:
         if (selftest::phaseFans(pFans, fans_configs)) {
             return;
