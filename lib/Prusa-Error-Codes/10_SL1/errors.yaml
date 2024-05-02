@@ -362,12 +362,14 @@ Errors:
   id: "DOWNLOAD_FAILED"
   approved: true
 
+# Deprecated from 1.8.0, use INVALID_PASSWORD
 - code: "10405"
   title: "INVALID API KEY"
   text: "Please turn on the HTTP digest (which is the recommended security option) or update the API key. You can find it in Settings > Network > Login credentials."
   id: "INVALID_API_KEY"
   approved: true
 
+# Deprecated from 1.8.0, use INVALID_PASSWORD
 - code: "10406"
   title: "UNAUTHORIZED"
   text: "The printer uses HTTP digest security. Please enable it also in your slicer (recommended), or turn off this security option in the printer. You can find it in Settings > Network > Login credentials."
@@ -379,6 +381,20 @@ Errors:
   text: "This request is not compatible with the Prusa remote API. See our documentation for more details."
   id: "REMOTE_API_ERROR"
   approved: true
+
+- code: "10408"
+  title: "INVALID PASSWORD"
+  text: "The password is incorrect. Please check or update it in:
+
+
+  Settings > Network > PrusaLink.
+
+  Prusa Slicer must use HTTP digest authorization type.
+
+
+  The password must be at least 8 characters long. Supported characters are letters, numbers, and dash."
+  id: "INVALID_PASSWORD"
+  approved: false
 
 # SYSTEM         105xx   # System - BSOD, ...
 - code: "10500"
@@ -807,3 +823,10 @@ Errors:
   text: "Incorrect RPM reading of the %(failed_fans_text)s fan. The print may continue, however, there's a risk of overheating."
   id: "EXPECT_OVERHEATING"
   approved: true
+
+- code: "10715"
+  title: "FILL THE RESIN"
+  text: "Pour enough resin for the selected file into the tank and close the lid. The minimal amount of the resin is displayed on the touchscreen."
+  id: "FILL_THE_RESIN"
+  action: ['Resin filled']
+  approved: false

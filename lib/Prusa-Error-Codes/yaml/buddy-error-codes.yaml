@@ -464,6 +464,12 @@ Errors:
     id: "CONNECT_REGISTRATION_FAILED"
     approved: true
 
+  - code: "XX402"
+    title: "NEW WIFI CREDENTIALS"
+    text: "Detected new Wi-Fi credentials. Do you accept them?"
+    id: "NEW_WIFI_CREDENTIALS"
+    approved: false
+
   - code: "XX501"
     printers: [iX, XL]
     title: "MODULAR BED ERROR"
