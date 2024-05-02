@@ -28,6 +28,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window_frame.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/i_window_text.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window_text.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/window_icon_stub.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/screen.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/Rect16.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/display_ex.cpp

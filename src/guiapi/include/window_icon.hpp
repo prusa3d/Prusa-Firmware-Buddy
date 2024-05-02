@@ -48,6 +48,10 @@ public:
      */
     window_icon_t(window_t *parent, const img::Resource *res, point_i16_t pt, Center center, size_t center_size, is_closed_on_click_t close = is_closed_on_click_t::no);
 
+public:
+    /// Expose of icon rendering procedure for other windows that might wanna do this
+    static void unconditional_draw(window_aligned_t *window, const img::Resource *image);
+
 protected:
     virtual void unconditionalDraw() override;
     virtual void set_layout(ColorLayout lt) override;

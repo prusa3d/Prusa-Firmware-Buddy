@@ -36,32 +36,52 @@ void do_draw(Rect16 rect, string_view_utf8 text, Font font, color_t parent_backg
 } // namespace
 
 void window_text_t::unconditionalDraw() {
-    if (flags.color_scheme_background || flags.color_scheme_foreground) {
-        do_draw(GetRect(), text, get_font(),
-            GetParent() ? GetParent()->GetBackColor() : GetBackColor(),
-            GetBackColor(),
-            GetTextColor(),
-            padding, { GetAlignment(), is_multiline(flags.multiline) },
-            GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS, flags.has_round_corners);
-    } else {
-        do_draw(GetRect(), text, get_font(),
-            GetParent() ? GetParent()->GetBackColor() : GetBackColor(),
-            IsFocused() ? GetTextColor() : GetBackColor(),
-            IsFocused() ? GetBackColor() : GetTextColor(),
-            padding, { GetAlignment(), is_multiline(flags.multiline) },
-            GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS, flags.has_round_corners);
-    }
+    const bool invert_text_back_colors = IsFocused() && !flags.color_scheme_background && !flags.color_scheme_foreground;
+
+    do_draw(GetRect(), text, get_font(),
+        GetParent() ? GetParent()->GetBackColor() : GetBackColor(),
+        invert_text_back_colors ? GetTextColor() : GetBackColor(),
+        invert_text_back_colors ? GetBackColor() : GetTextColor(),
+        padding, { GetAlignment(), is_multiline(flags.multiline) },
+        GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS, flags.has_round_corners);
 }
 
 /*****************************************************************************/
 // window_text_button_t
-window_text_button_t::window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, const string_view_utf8 &txt)
-    : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
+WindowButton::WindowButton(window_t *parent, Rect16 rect, ButtonCallback cb, const string_view_utf8 &txt)
+    : window_text_t(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
     , callback(cb) {
     Enable();
 }
 
-void window_text_button_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void WindowButton::set_icon(const img::Resource *set) {
+    if (icon_ == set) {
+        return;
+    }
+
+    icon_ = set;
+    if (set) {
+        text = {};
+    }
+    Invalidate();
+}
+
+void WindowButton::SetText(string_view_utf8 txt) {
+    set_icon(nullptr);
+    window_text_t::SetText(txt);
+}
+
+void WindowButton::unconditionalDraw() {
+    if (icon_) {
+        window_aligned_t::unconditionalDraw(); // background
+        window_icon_t::unconditional_draw(this, icon_);
+
+    } else {
+        window_text_t::unconditionalDraw();
+    }
+}
+
+void WindowButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::CLICK:

@@ -7,11 +7,8 @@
 #include "gui.hpp"
 #include "ScreenHandler.hpp"
 #include "img_resources.hpp"
-#include "gcode_thumb_decoder.h"
 #include "gui_invalidate.hpp"
 #include "timing.h"
-
-LOG_COMPONENT_REF(GUI);
 
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, const img::Resource *res, is_closed_on_click_t close)
     : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
@@ -62,26 +59,28 @@ window_icon_t::window_icon_t(window_t *parent, const img::Resource *res, point_i
         res, close) {
 }
 
+void window_icon_t::unconditional_draw(window_aligned_t *window, const img::Resource *image) {
+    ropfn raster_op;
+    raster_op.shadow = window->IsShadowed() ? is_shadowed::yes : is_shadowed::no;
+    raster_op.swap_bw = window->IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
+
+    Rect16 rc_ico = Rect16(0, 0, image->w, image->h);
+    rc_ico.Align(window->GetRect(), window->GetAlignment());
+    rc_ico = rc_ico.Intersection(window->GetRect());
+    display::DrawImg(point_ui16(rc_ico.Left(), rc_ico.Top()), *image, window->GetBackColor(), raster_op);
+}
+
 void window_icon_t::unconditionalDraw() {
     // no image assigned
     if (!pRes) {
         return;
     }
 
-    ropfn raster_op;
-    raster_op.shadow = IsShadowed() ? is_shadowed::yes : is_shadowed::no;
-    raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
-
-    point_ui16_t wh_ico = { pRes->w, pRes->h };
-
-    if (wh_ico.x < Width() || wh_ico.y < Height()) {
+    if (pRes->w < Width() || pRes->h < Height()) {
         super::unconditionalDraw(); // draw background
     }
 
-    Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
-    rc_ico.Align(GetRect(), GetAlignment());
-    rc_ico = rc_ico.Intersection(GetRect());
-    display::DrawImg(point_ui16(rc_ico.Left(), rc_ico.Top()), *pRes, GetBackColor(), raster_op);
+    unconditional_draw(this, pRes);
 }
 
 void window_icon_t::set_layout(ColorLayout lt) {

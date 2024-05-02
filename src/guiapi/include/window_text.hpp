@@ -7,9 +7,12 @@
 #include "../../lang/string_view_utf8.hpp"
 
 class window_text_t : public AddSuperWindow<IWindowText> {
-public:
-    string_view_utf8 text;
 
+public:
+    window_text_t() = default;
+    window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR());
+
+public:
     string_view_utf8 GetText() const { return text; }
     virtual void SetText(string_view_utf8 txt);
 
@@ -17,25 +20,41 @@ public:
         flags.multiline = set;
     }
 
-    window_text_t() = default;
-    window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR());
-
 protected:
     virtual void unconditionalDraw() override;
+
+protected:
+    string_view_utf8 text;
 };
 
-class window_text_button_t : public AddSuperWindow<window_text_t> {
+class WindowButton : public window_text_t {
 
 public:
-    window_text_button_t() = default;
-    window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR()); // default action is close screen
+    WindowButton() = default;
+    WindowButton(window_t *parent, Rect16 rect, ButtonCallback cb, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR()); // default action is close screen
 
 public:
     ButtonCallback callback;
 
+public:
+    const img::Resource *icon() const {
+        return icon_;
+    }
+    void set_icon(const img::Resource *set);
+
+    virtual void SetText(string_view_utf8 txt) override;
+
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
+    void unconditionalDraw() override;
+
+protected:
+    /// If set, icon is rendered instead of text
+    const img::Resource *icon_ = nullptr;
 };
+
+using window_text_button_t = WindowButton;
 
 class WindowBlinkingText : public AddSuperWindow<window_text_t> {
     color_t color_blink;
