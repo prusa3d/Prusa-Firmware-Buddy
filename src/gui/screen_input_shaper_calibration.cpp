@@ -84,14 +84,22 @@ public:
         : text(parent, FrameQRLayout::text_rect(), is_multiline::yes, is_closed_on_click_t::no, _(text_info))
         , link(parent, FrameQRLayout::link_rect(), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH(text_link))
         , icon_phone(parent, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
-        , qr(parent, FrameQRLayout::qrcode_rect(), N_(text_link)) {
+        , qr(parent, FrameQRLayout::qrcode_rect(), text_qr) {
         text.SetAlignment(Align_t::LeftCenter());
     }
 
     void update(fsm::PhaseData) {}
 
     static constexpr const char *text_info = N_("To learn more about the input shaper calibration process, visit our website:");
-    static constexpr const char *text_link = "prusa.io/iscal";
+#if PRINTER_IS_PRUSA_MK4
+    static constexpr const char *text_link = "prusa.io/mk4-iscal";
+    static constexpr const char *text_qr = "prusa.io/qr-mk4-iscal";
+#elif PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_XL_DEV_KIT
+    static constexpr const char *text_link = "prusa.io/xl-iscal";
+    static constexpr const char *text_qr = "prusa.io/qr-xl-iscal";
+#else
+    #error "No wizard url for this printer"
+#endif
 };
 
 class FrameParking final {
