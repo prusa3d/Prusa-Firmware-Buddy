@@ -11,104 +11,6 @@
 #include "marlin_server.hpp"
 #include "unique_file_ptr.hpp"
 
-enum class esp_upload_action {
-    Initial,
-    Initial_wait_user,
-    Info,
-    Info_wait_user,
-    DisableWIFI_if_needed,
-    WaitWIFI_disabled,
-    Connect_show,
-    Connect,
-    Start_flash,
-    Write_data,
-    ESP_error,
-    USB_error,
-    Error_wait_user,
-    EnableWIFI,
-    WaitWIFI_enabled, // pressing abort will just restore connection interface (Eth / WiFi / none)
-    Finish,
-    Finish_wait_user,
-    Aborted, // currently abort does not wait for user
-    // Aborted_wait_user,
-    Done
-};
-
-struct esp_entry {
-    uint32_t address;
-    const char *filename;
-    uint32_t size;
-};
-
-class ESPUpdate {
-    static constexpr size_t buffer_length = 512;
-    static constexpr size_t files_to_upload = 3;
-
-public:
-    using firmware_set_t = std::array<esp_entry, files_to_upload>;
-
-    struct status_t {
-        PhasesESP phase;
-        uint8_t progress;
-        uint8_t current_file : 4;
-        uint8_t count_of_files : 4;
-
-        void Empty() {
-            phase = PhasesESP::_none;
-            progress = 0;
-        }
-
-        constexpr bool operator==(const status_t &other) const = default;
-        constexpr bool operator!=(const status_t &other) const = default;
-    };
-
-    static_assert(sizeof(uint32_t) >= sizeof(status_t), "error esp status is too big");
-
-    union status_encoder_union {
-        uint32_t u32;
-        status_t status;
-    };
-
-protected:
-    unique_file_ptr file;
-
-    firmware_set_t firmware_set;
-    esp_upload_action progress_state;
-    esp_entry *current_file;
-    uint32_t readCount;
-    PhasesESP phase;
-    const bool credentials_already_set;
-    const bool credentials_on_usb;
-    uint8_t progress;
-    uint8_t current_file_no;
-    const uint8_t initial_netdev_id; // it is not enum because of stupid C api
-    bool aborted;
-
-    void updateProgress();
-    static std::atomic<uint32_t> status;
-
-public:
-    enum init_mask : uintptr_t {
-        msk_credentials_already_set = 0b01,
-        msk_credentials_on_usb = msk_credentials_already_set << 1
-    };
-    enum class state {
-        did_not_finished,
-        finished,
-        aborted
-    };
-
-    ESPUpdate(uintptr_t mask);
-
-    void Loop();
-    bool Aborted() const { return aborted; }
-    static status_t GetStatus() {
-        status_encoder_union u;
-        u.u32 = status;
-        return u.status;
-    }
-};
-
 enum class esp_credential_action {
     // ini creation
     CheckUSB_inserted,
@@ -146,7 +48,6 @@ class EspCredentials {
 public:
     enum class type_t {
         credentials_standalone,
-        credentials_sequence,
         ini_creation,
         credentials_user // file generated from slicer
     };
