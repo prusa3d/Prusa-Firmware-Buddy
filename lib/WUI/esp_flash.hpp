@@ -19,12 +19,6 @@ public:
         DataWritten,
     };
 
-    struct Progress {
-        State state;
-        size_t bytes_total;
-        size_t bytes_flashed;
-    };
-
     static constexpr size_t files_to_upload = 3;
     static constexpr size_t buffer_length = 512;
     static constexpr auto retries = 3;
@@ -51,14 +45,11 @@ public:
 
     // Flash/sync ESP FW
     State flash();
-    // Get flash progress
-    static Progress get_progress();
 
 private:
     State flash_part(esp_fw_entry &fwpart);
     void update_progress();
 
-    static Progress progress;
     firmware_set_t firmware_set;
     State state;
     size_t total_size;
