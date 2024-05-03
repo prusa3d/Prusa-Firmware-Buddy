@@ -3,6 +3,9 @@
 #include <module/temperature.h>
 #include "old_eeprom/constants.hpp"
 
+#include <limits>
+#include <cstdint>
+
 // TODO: Find a better home for this
 inline bool operator==(PID_t lhs, PID_t rhs) {
     return lhs.Kd == rhs.Kd && lhs.Ki == rhs.Ki && lhs.Kp == rhs.Kp;
