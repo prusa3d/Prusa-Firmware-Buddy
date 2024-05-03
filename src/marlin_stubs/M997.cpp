@@ -1,11 +1,7 @@
 #include "gcode/gcode.h"
 #include "gcode/queue.h"
 #include "PrusaGcodeSuite.hpp"
-#include <option/has_selftest.h>
 #include <string.h>
-#if HAS_SELFTEST()
-    #include "selftest_esp.hpp"
-#endif // HAS_SELFTEST
 #include "sys.h"
 #include "data_exchange.hpp"
 
@@ -30,11 +26,6 @@ static void M997_no_parser(uint module_number, [[maybe_unused]] uint address, bo
     case 0:
         update_main_board(force_update_older, sfn);
         break;
-#if HAS_SELFTEST()
-    case 1:
-        update_esp();
-        break;
-#endif // HAS_SELFTEST
     default:
         break;
     }
@@ -52,8 +43,7 @@ static void M997_no_parser(uint module_number, [[maybe_unused]] uint address, bo
  * - `O` - Update older or same firmware on restart == force reflash == from menu
  * - `S` - Firmware module number(s), default 0
  *       - 0 - main firmware.
- *       - 1 - WiFi module firmware
- *       - 2 - 4 - Reserved, check reprap wiki
+ *       - 1 - 4 - Reserved, check reprap wiki
  * - `B` - Expansion board address, default 0
  *       - Currently unused, defined just to be reprap compatible
  *
