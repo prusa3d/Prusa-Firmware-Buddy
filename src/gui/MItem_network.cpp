@@ -88,17 +88,6 @@ void MI_WIFI_STATUS_t::update() {
 }
 
 // ===================================================
-// MI_WIFI_INIT
-// ===================================================
-MI_WIFI_INIT_t::MI_WIFI_INIT_t()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t(!marlin_client::is_printing()), is_hidden_t::no) {
-}
-
-void MI_WIFI_INIT_t::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode("M997 S1 O");
-}
-
-// ===================================================
 // MI_WIFI_SSID
 // ===================================================
 MI_WIFI_SSID::MI_WIFI_SSID()

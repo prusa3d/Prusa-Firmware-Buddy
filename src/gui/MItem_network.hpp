@@ -47,16 +47,6 @@ public:
 };
 static_assert(UpdatableMenuItem<MI_WIFI_STATUS_t>);
 
-class MI_WIFI_INIT_t : public IWindowMenuItem {
-    constexpr static const char *const label = N_("Setup Wi-Fi Module");
-
-public:
-    MI_WIFI_INIT_t();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_WIFI_SSID final : public WiInfoString {
     constexpr static const char *const label = N_("SSID");
 
