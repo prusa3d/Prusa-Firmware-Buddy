@@ -2,8 +2,7 @@ target_include_directories(firmware PRIVATE .)
 
 target_sources(
   firmware
-  PRIVATE dialog_text_input.cpp
-          DialogHandler.cpp
+  PRIVATE DialogHandler.cpp
           DialogLoadUnload.cpp
           DialogMoveZ.cpp
           DialogTimed.cpp
@@ -26,9 +25,10 @@ endif()
 
 if(BOARD STREQUAL "BUDDY")
   add_subdirectory(resolution_240x320)
+  target_sources(firmware PRIVATE dialog_text_input_stub.cpp)
 endif()
 
 if(BOARD STREQUAL "XBUDDY" OR BOARD STREQUAL "XLBUDDY")
   add_subdirectory(resolution_480x320)
-  target_sources(firmware PRIVATE dialog_numeric_input.cpp)
+  target_sources(firmware PRIVATE dialog_numeric_input.cpp dialog_text_input.cpp)
 endif()
