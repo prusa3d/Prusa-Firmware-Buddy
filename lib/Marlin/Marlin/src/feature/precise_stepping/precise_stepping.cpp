@@ -1376,15 +1376,20 @@ void PreciseStepping::move_segment_processed_handler() {
 }
 
 void PreciseStepping::reset_queues() {
+#if HAS_PHASE_STEPPING()
+    phase_stepping::clear_targets();
+    if (phase_stepping::processing()) {
+        // wait until the last spi/burst transaction is complete before allowing reset to continue
+        return;
+    }
+#endif
+
     const bool was_enabled = stepper.suspend();
     DISABLE_MOVE_INTERRUPT();
 
     // reset internal state and queues
     step_event_queue_clear();
     move_segment_queue_clear();
-#if HAS_PHASE_STEPPING()
-    phase_stepping::stop_immediately();
-#endif
     reset_from_halt();
 
     // at this point the planner might still have queued extra moves, flush them
