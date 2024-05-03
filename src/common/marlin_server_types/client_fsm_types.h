@@ -4,7 +4,9 @@
 #include <option/has_modularbed.h>
 #include <option/has_toolchanger.h>
 #include <option/has_loadcell.h>
+#include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_coldpull.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_nfc.h>
 
@@ -23,14 +25,20 @@ enum class ClientFSM : uint8_t {
     Serial_printing,
     Load_unload,
     Preheat,
+    #if HAS_SELFTEST()
     Selftest,
+    #endif
     ESP,
     Printing, // not a dialog
+    #if ENABLED(CRASH_RECOVERY)
     CrashRecovery,
+    #endif
     QuickPause,
     Warning,
     PrintPreview,
+    #if HAS_COLDPULL()
     ColdPull,
+    #endif
     #if HAS_PHASE_STEPPING()
     PhaseStepping,
     #endif

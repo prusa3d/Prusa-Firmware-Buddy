@@ -98,6 +98,7 @@ namespace {
         return DeviceState::Unknown;
     }
 
+#if ENABLED(CRASH_RECOVERY)
     // FIXME: these are also caught by the switch statement above, is there any
     // harm in having it in both places? Maybe couple more bytes of flash will
     // be used, so should we just remove it and let the get_print_state handle
@@ -112,14 +113,15 @@ namespace {
             return ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH;
         case PhasesCrashRecovery::home_fail:
             return ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL;
-#if HAS_TOOLCHANGER()
+    #if HAS_TOOLCHANGER()
         case PhasesCrashRecovery::tool_recovery:
             return ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP;
-#endif
+    #endif
         default:
             return nullopt;
         }
     }
+#endif
 
     optional<ErrCode> attention_while_printpreview(const PhasesPrintPreview preview_phases) {
         switch (preview_phases) {
@@ -290,16 +292,20 @@ DeviceState get_state(bool ready) {
         } else {
             return DeviceState::Busy;
         }
+#if ENABLED(CRASH_RECOVERY)
     case ClientFSM::CrashRecovery:
         if (crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase()))) {
             return DeviceState::Attention;
         }
         break;
+#endif
     case ClientFSM::QuickPause:
         return DeviceState::Paused;
     case ClientFSM::Selftest:
     case ClientFSM::ESP:
+#if HAS_COLDPULL()
     case ClientFSM::ColdPull:
+#endif
 #if HAS_PHASE_STEPPING()
     case ClientFSM::PhaseStepping:
 #endif
@@ -351,12 +357,14 @@ StateWithDialog get_state_with_dialog(bool ready) {
         return { state, ErrCode::CONNECT_QUICK_PAUSE, fsm_gen, responses };
         break;
     }
+#if ENABLED(CRASH_RECOVERY)
     case ClientFSM::CrashRecovery:
         if (auto attention_code = crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase())); attention_code.has_value()) {
             const Response *responses = ClientResponses::GetResponses(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase())).data();
             return { state, attention_code, fsm_gen, responses };
         }
         break;
+#endif
     case ClientFSM::Warning: {
         auto [code, response] = warning_dialog(data);
         return { state, code, fsm_gen, response };
@@ -377,7 +385,9 @@ StateWithDialog get_state_with_dialog(bool ready) {
 
     case ClientFSM::Selftest:
     case ClientFSM::ESP:
+#if HAS_COLDPULL()
     case ClientFSM::ColdPull:
+#endif
 #if HAS_PHASE_STEPPING()
     case ClientFSM::PhaseStepping:
 #endif

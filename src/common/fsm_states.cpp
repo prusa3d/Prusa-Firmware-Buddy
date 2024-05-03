@@ -18,10 +18,14 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
     case ClientFSM::Load_unload:
     case ClientFSM::Preheat:
     case ClientFSM::ESP:
+#if ENABLED(CRASH_RECOVERY)
     case ClientFSM::CrashRecovery:
+#endif
     case ClientFSM::QuickPause:
     case ClientFSM::PrintPreview:
+#if HAS_COLDPULL()
     case ClientFSM::ColdPull:
+#endif
 #if HAS_PHASE_STEPPING()
     case ClientFSM::PhaseStepping:
 #endif

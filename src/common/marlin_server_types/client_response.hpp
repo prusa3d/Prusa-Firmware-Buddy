@@ -19,7 +19,9 @@
 #include "option/filament_sensor.h"
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
+#include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_coldpull.h>
 #include <option/has_input_shaper_calibration.h>
 #include <common/hotend_type.hpp>
 
@@ -173,6 +175,7 @@ enum class PhasesPrintPreview : PhaseUnderlyingType {
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesPrintPreview) { return ClientFSM::PrintPreview; }
 
+#if HAS_SELFTEST()
 // GUI phases of selftest/wizard
 enum class PhasesSelftest : PhaseUnderlyingType {
     _none,
@@ -186,9 +189,9 @@ enum class PhasesSelftest : PhaseUnderlyingType {
 
     _first_Fans,
     Fans = _first_Fans,
-#if PRINTER_IS_PRUSA_MK3_5
+    #if PRINTER_IS_PRUSA_MK3_5
     Fans_manual,
-#endif
+    #endif
     Fans_second,
     _last_Fans = Fans_second,
 
@@ -315,6 +318,7 @@ enum class PhasesSelftest : PhaseUnderlyingType {
     _last = _last_WizardEpilogue_nok
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesSelftest) { return ClientFSM::Selftest; }
+#endif
 
 enum class PhasesESP : PhaseUnderlyingType {
     _none,
@@ -349,6 +353,7 @@ enum class PhasesESP : PhaseUnderlyingType {
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesESP) { return ClientFSM::ESP; }
 
+#if ENABLED(CRASH_RECOVERY)
 enum class PhasesCrashRecovery : PhaseUnderlyingType {
     check_X,
     check_Y,
@@ -358,14 +363,15 @@ enum class PhasesCrashRecovery : PhaseUnderlyingType {
     axis_long,
     repeated_crash,
     home_fail, //< Homing failed, ask to retry
-#if HAS_TOOLCHANGER()
+    #if HAS_TOOLCHANGER()
     tool_recovery, //< Toolchanger recovery, tool fell off
     _last = tool_recovery
-#else
+    #else
     _last = home_fail
-#endif
+    #endif
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesCrashRecovery) { return ClientFSM::CrashRecovery; }
+#endif
 
 enum class PhasesQuickPause : PhaseUnderlyingType {
     QuickPaused,
@@ -387,14 +393,15 @@ enum class PhasesWarning : PhaseUnderlyingType {
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesWarning) { return ClientFSM::Warning; }
 
+#if HAS_COLDPULL()
 enum class PhasesColdPull : PhaseUnderlyingType {
     introduction,
-#if HAS_TOOLCHANGER()
+    #if HAS_TOOLCHANGER()
     select_tool,
     pick_tool,
     unload_ptfe,
     load_ptfe,
-#endif
+    #endif
     prepare_filament,
     blank_load,
     blank_unload,
@@ -407,6 +414,7 @@ enum class PhasesColdPull : PhaseUnderlyingType {
     _last = finish,
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesColdPull) { return ClientFSM::ColdPull; }
+#endif
 
 #if HAS_PHASE_STEPPING()
 enum class PhasesPhaseStepping : PhaseUnderlyingType {
@@ -749,6 +757,7 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::ESPResponses) == CountPhases<PhasesESP>());
 
+#if ENABLED(CRASH_RECOVERY)
     static constexpr PhaseResponses CrashRecoveryResponses[] = {
         {}, // check X
         {}, // check Y
@@ -758,11 +767,12 @@ class ClientResponses {
         {}, // axis long
         { Response::Resume, Response::Pause }, // repeated crash
         { Response::Retry }, // home_fail
-#if HAS_TOOLCHANGER()
+    #if HAS_TOOLCHANGER()
         { Response::Continue }, // toolchanger recovery
-#endif
+    #endif
     };
     static_assert(std::size(ClientResponses::CrashRecoveryResponses) == CountPhases<PhasesCrashRecovery>());
+#endif
 
     static constexpr PhaseResponses QuickPauseResponses[] = {
         { Response::Resume }, // QuickPaused
@@ -780,14 +790,15 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::WarningResponses) == CountPhases<PhasesWarning>());
 
+#if HAS_COLDPULL()
     static constexpr PhaseResponses ColdPullResponses[] = {
         { Response::Continue, Response::Stop }, // introduction,
-#if HAS_TOOLCHANGER()
+    #if HAS_TOOLCHANGER()
         { Response::Continue, Response::Tool1, Response::Tool2, Response::Tool3, Response::Tool4, Response::Tool5 }, // select_tool
         {}, // pick_tool
         { Response::Unload, Response::Continue, Response::Abort }, // unload_ptfe,
         { Response::Load, Response::Continue, Response::Abort }, // load_ptfe,
-#endif
+    #endif
         { Response::Unload, Response::Load, Response::Continue, Response::Abort }, // prepare_filament,
         {}, // blank_load
         {}, // blank_unload
@@ -799,6 +810,7 @@ class ClientResponses {
         {}, // finish,
     };
     static_assert(std::size(ClientResponses::ColdPullResponses) == CountPhases<PhasesColdPull>());
+#endif
 
 #if HAS_PHASE_STEPPING()
     static constexpr PhaseResponses PhaseSteppingResponses[] = {
@@ -837,14 +849,20 @@ class ClientResponses {
         { ClientFSM::Serial_printing, {} },
             { ClientFSM::Load_unload, LoadUnloadResponses },
             { ClientFSM::Preheat, PreheatResponses },
+#if HAS_SELFTEST()
             { ClientFSM::Selftest, SelftestResponses },
+#endif
             { ClientFSM::ESP, ESPResponses },
             { ClientFSM::Printing, {} },
+#if ENABLED(CRASH_RECOVERY)
             { ClientFSM::CrashRecovery, CrashRecoveryResponses },
+#endif
             { ClientFSM::QuickPause, QuickPauseResponses },
             { ClientFSM::Warning, WarningResponses },
             { ClientFSM::PrintPreview, PrintPreviewResponses },
+#if HAS_COLDPULL()
             { ClientFSM::ColdPull, ColdPullResponses },
+#endif
 #if HAS_PHASE_STEPPING()
             { ClientFSM::PhaseStepping, PhaseSteppingResponses },
 #endif
