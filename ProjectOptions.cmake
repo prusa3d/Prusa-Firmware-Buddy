@@ -265,6 +265,9 @@ set(PRINTERS_WITH_COLDPULL "MK4" "XL")
 set(PRINTERS_WITH_BED_LEVEL_CORRECTION "MK3.5" "MINI")
 
 set(PRINTERS_WITH_SHEET_SUPPORT "MINI" "MK3.5")
+
+set(PRINTERS_WITH_NFC "MK4")
+
 # Set printer board
 set(BOARDS_WITH_ADVANCED_POWER "XBUDDY" "XLBUDDY" "DWARF")
 set(BOARDS_WITH_ILI9488 "XBUDDY" "XLBUDDY")
@@ -693,6 +696,12 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
   set(DEBUG NO)
   define_boolean_option(NETWORKING_BENCHMARK_ENABLED NO)
+endif()
+
+if(${PRINTER} IN_LIST PRINTERS_WITH_NFC)
+  define_boolean_option(HAS_NFC YES)
+else()
+  define_boolean_option(HAS_NFC NO)
 endif()
 
 # define enabled features
