@@ -1,7 +1,5 @@
 #include <sys/stat.h>
-#include "error_codes.hpp"
 #include "mbedtls/md5.h"
-#include "bsod.h"
 
 #include <esp_flash.hpp>
 #include <esp_loader.h>
@@ -9,7 +7,6 @@
 #include <unique_file_ptr.hpp>
 #include <log.h>
 #include <cstring>
-#include <bsod.h>
 #include "gui_bootstrap_screen.hpp"
 
 LOG_COMPONENT_DEF(EspFlash, LOG_SEVERITY_DEBUG);
@@ -174,21 +171,4 @@ void ESPFlash::update_progress() {
     }
 
     gui_bootstrap_screen_set_state(percent, stage_description);
-}
-
-void ESPFlash::fatal_err(const State state) {
-    switch (state) {
-    case State::ReadError:
-        fatal_error(ErrCode::ERR_SYSTEM_ESP_FW_READ);
-        break;
-    case State::NotConnected:
-        fatal_error(ErrCode::ERR_SYSTEM_ESP_NOT_CONNECTED);
-        break;
-    case State::WriteError:
-    case State::FlashError:
-        fatal_error(ErrCode::ERR_SYSTEM_ESP_COMMAND_ERR);
-        break;
-    default:
-        fatal_error(ErrCode::ERR_SYSTEM_ESP_UNKNOWN_ERR);
-    }
 }

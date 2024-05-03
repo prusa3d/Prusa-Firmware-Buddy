@@ -185,6 +185,24 @@ static bool puppy_initial_scan() {
     return true;
 }
 
+#if HAS_EMBEDDED_ESP32()
+
+static ErrCode convert(const ESPFlash::State state) {
+    switch (state) {
+    case ESPFlash::State::ReadError:
+        return ErrCode::ERR_SYSTEM_ESP_FW_READ;
+    case ESPFlash::State::NotConnected:
+        return ErrCode::ERR_SYSTEM_ESP_NOT_CONNECTED;
+    case ESPFlash::State::WriteError:
+    case ESPFlash::State::FlashError:
+        return ErrCode::ERR_SYSTEM_ESP_COMMAND_ERR;
+    default:
+        return ErrCode::ERR_SYSTEM_ESP_UNKNOWN_ERR;
+    }
+}
+
+#endif
+
 static void puppy_task_body([[maybe_unused]] void const *argument) {
 
 #if HAS_EMBEDDED_ESP32()
@@ -196,7 +214,7 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
     auto esp_result = esp_flash.flash();
     if (esp_result != ESPFlash::State::Done) {
         log_error(Puppies, "ESP flash failed with %u", static_cast<unsigned>(esp_result));
-        ESPFlash::fatal_err(esp_result);
+        fatal_error(convert(esp_result));
     }
     TaskDeps::provide(TaskDeps::Dependency::esp_flashed);
 #endif

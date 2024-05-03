@@ -53,8 +53,6 @@ public:
     State flash();
     // Get flash progress
     static Progress get_progress();
-    // Raise error according to flash state
-    static void fatal_err(const State state);
 
 private:
     State flash_part(esp_fw_entry &fwpart);
