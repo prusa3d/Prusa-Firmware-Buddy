@@ -478,7 +478,7 @@ void phase_stepping::enable(AxisEnum axis_num, bool enable) {
     }
 }
 
-void phase_stepping::stop_immediately() {
+void phase_stepping::clear_targets() {
     for (auto &axis_state : axis_states) {
         bool was_active = axis_state->active;
         axis_state->active = false;
@@ -669,19 +669,23 @@ FORCE_OFAST void phase_stepping::handle_periodic_refresh() {
 #if HAS_BURST_STEPPING()
     // Fire the previously setup steps...
     if (burst_stepping::fire()) {
-        // ...and refresh all axes
-        for (std::size_t i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
-            refresh_axis(*axis_states[i], now, old_tick);
+        if (!PreciseStepping::stopping()) {
+            // ...and refresh all axes
+            for (std::size_t i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
+                refresh_axis(*axis_states[i], now, old_tick);
+            }
         }
     }
 #else
     phase_stepping::spi::finish_transmission();
 
-    ++axis_num_to_refresh;
-    if (axis_num_to_refresh == axis_states.size()) {
-        axis_num_to_refresh = 0;
+    if (!PreciseStepping::stopping()) {
+        ++axis_num_to_refresh;
+        if (axis_num_to_refresh == axis_states.size()) {
+            axis_num_to_refresh = 0;
+        }
+        refresh_axis(*axis_states[axis_num_to_refresh], now, old_tick);
     }
-    refresh_axis(*axis_states[axis_num_to_refresh], now, old_tick);
 #endif
 }
 

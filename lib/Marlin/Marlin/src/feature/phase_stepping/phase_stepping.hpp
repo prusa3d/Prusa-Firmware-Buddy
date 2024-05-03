@@ -133,10 +133,10 @@ void enable_phase_stepping(AxisEnum axis_num);
 void disable_phase_stepping(AxisEnum axis_num);
 
 /**
- * Kill immediately all motion on phase-stepped axes. Doesn't perform any
- * ramp-down.
+ * Clear any current and all pending targets, stopping all motion on
+ * phase-stepped axes. Doesn't perform any ramp-down.
  **/
-void stop_immediately();
+void clear_targets();
 
 /**
  * Public interface for PreciseStepping - given a move and other states, setup
