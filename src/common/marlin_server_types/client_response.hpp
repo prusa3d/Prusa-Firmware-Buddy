@@ -837,7 +837,7 @@ class ClientResponses {
             { ClientFSM::CrashRecovery, CrashRecoveryResponses },
             { ClientFSM::QuickPause, QuickPauseResponses },
             { ClientFSM::Warning, WarningResponses },
-            { ClientFSM::PrintPreview, {} },
+            { ClientFSM::PrintPreview, PrintPreviewResponses },
             { ClientFSM::ColdPull, ColdPullResponses },
 #if HAS_PHASE_STEPPING()
             { ClientFSM::PhaseStepping, PhaseSteppingResponses },
