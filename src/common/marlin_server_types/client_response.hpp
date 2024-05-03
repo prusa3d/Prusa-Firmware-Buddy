@@ -338,13 +338,6 @@ enum class PhasesESP : PhaseUnderlyingType {
     ESP_enabling_WIFI,
     _last_ESP = ESP_enabling_WIFI,
 
-    _first_ESP_progress,
-    ESP_progress_info = _first_ESP_progress,
-    ESP_progress_upload,
-    ESP_progress_passed,
-    ESP_progress_failed,
-    _last_ESP_progress = ESP_progress_failed,
-
     _first_ESP_qr,
     ESP_qr_instructions_flash = _first_ESP_qr,
     ESP_qr_instructions,
@@ -774,10 +767,6 @@ class ClientResponses {
         { Response::Yes, Response::No }, // ESP_asking_credentials_delete
         { Response::Continue }, // ESP_enabling_WIFI
 
-        { Response::Continue, Response::Abort }, // ESP_progress_info
-        { Response::Abort }, // ESP_progress_upload
-        { Response::Continue }, // ESP_progress_passed
-        { Response::Continue }, // ESP_progress_failed
         { Response::Continue, Response::NotNow
 #if not PRINTER_IS_PRUSA_MINI
             ,
@@ -1009,7 +998,6 @@ enum class SelftestParts {
 
 enum class ESPParts {
     ESP,
-    ESP_progress,
     ESP_qr,
     _none, // cannot be created, must have same index as _count
     _count = _none
@@ -1071,8 +1059,6 @@ static constexpr PhasesESP ESPGetFirstPhaseFromPart(ESPParts part) {
     switch (part) {
     case ESPParts::ESP:
         return PhasesESP::_first_ESP;
-    case ESPParts::ESP_progress:
-        return PhasesESP::_first_ESP_progress;
     case ESPParts::ESP_qr:
         return PhasesESP::_first_ESP_qr;
     case ESPParts::_none:
@@ -1137,8 +1123,6 @@ static constexpr PhasesESP ESPGetLastPhaseFromPart(ESPParts part) {
     switch (part) {
     case ESPParts::ESP:
         return PhasesESP::_last_ESP;
-    case ESPParts::ESP_progress:
-        return PhasesESP::_last_ESP_progress;
     case ESPParts::ESP_qr:
         return PhasesESP::_last_ESP_qr;
     case ESPParts::_none:

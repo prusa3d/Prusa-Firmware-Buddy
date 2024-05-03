@@ -145,7 +145,6 @@ if(HAS_SELFTEST)
   target_sources(
     firmware
     PRIVATE esp_frame.cpp
-            esp_frame_progress.cpp
             esp_frame_qr.cpp
             # steel sheets requiere first layer calibration, which require wizard, which require
             # selftest TODO add HAS_STEEL_SHEETS property

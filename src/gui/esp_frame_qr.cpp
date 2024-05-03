@@ -1,7 +1,6 @@
 #include "esp_frame_qr.hpp"
 
 #include <gui/frame_qr_layout.hpp>
-#include "selftest_esp_type.hpp"
 #include "i18n.h"
 #include <guiconfig/wizard_config.hpp>
 #include "marlin_client.hpp"

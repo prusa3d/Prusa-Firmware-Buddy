@@ -5,12 +5,11 @@
 #include "window_header.hpp"
 #include <common/fsm_base_types.hpp>
 #include "esp_frame_text.hpp"
-#include "esp_frame_progress.hpp"
 #include "esp_frame_qr.hpp"
 #include "static_alocation_ptr.hpp"
 
 class ScreenESP : public screen_t {
-    using mem_space = std::aligned_union<0, ESPFrameText, ESPFrameProgress, ESPFrameQR>::type;
+    using mem_space = std::aligned_union<0, ESPFrameText, ESPFrameQR>::type;
     mem_space all_tests;
 
     // safer than make_static_unique_ptr, checks storage size

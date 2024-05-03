@@ -26,9 +26,6 @@ void ScreenESP::Change(fsm::BaseData data) {
         case ESPParts::ESP:
             ptr = makePtr<ESPFrameText>(this, phase, data.GetData());
             break;
-        case ESPParts::ESP_progress:
-            ptr = makePtr<ESPFrameProgress>(this, phase, data.GetData());
-            break;
         case ESPParts::ESP_qr:
             ptr = makePtr<ESPFrameQR>(this, phase, data.GetData());
             break;

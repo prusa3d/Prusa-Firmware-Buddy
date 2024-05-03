@@ -1,6 +1,5 @@
 #include "esp_frame_text.hpp"
 
-#include "selftest_esp_type.hpp"
 #include "i18n.h"
 #include <guiconfig/wizard_config.hpp>
 #include "marlin_client.hpp"
