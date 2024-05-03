@@ -24,12 +24,18 @@ public:
 
     ESPFlash();
 
+    class ProgressHook {
+    public:
+        virtual ~ProgressHook() = default;
+
+        virtual void update_progress(ESPFlash::State, size_t current, size_t total) = 0;
+    };
+
     // Flash/sync ESP FW
-    State flash();
+    State flash(ProgressHook &);
 
 private:
-    State flash_part(esp_fw_entry &fwpart);
-    void update_progress();
+    State flash_part(ProgressHook &, esp_fw_entry &fwpart);
 
     State state;
     size_t total_size;

@@ -9,7 +9,6 @@
 #include <unique_file_ptr.hpp>
 #include <log.h>
 #include <cstring>
-#include "gui_bootstrap_screen.hpp"
 
 LOG_COMPONENT_DEF(EspFlash, LOG_SEVERITY_DEBUG);
 
@@ -25,7 +24,7 @@ ESPFlash::ESPFlash()
     , total_read(0) {
 }
 
-ESPFlash::State ESPFlash::flash() {
+ESPFlash::State ESPFlash::flash(ProgressHook &progress_hook) {
 #if PRINTER_IS_PRUSA_XL
     firmware_set_t firmware_set { { { .address = 0x08000ul, .filename = "/internal/res/esp32/partition-table.bin", .size = 0 },
         { .address = 0x01000ul, .filename = "/internal/res/esp32/bootloader.bin", .size = 0 },
@@ -44,7 +43,7 @@ ESPFlash::State ESPFlash::flash() {
             total_size += fwpart.size;
         }
     }
-    update_progress();
+    progress_hook.update_progress(state, total_read, total_size);
 
     // Connect ESP
     for (int tries = retries;; tries--) {
@@ -67,7 +66,7 @@ ESPFlash::State ESPFlash::flash() {
 
     // Flash all files
     for (esp_fw_entry &fwpart : firmware_set) {
-        state = flash_part(fwpart);
+        state = flash_part(progress_hook, fwpart);
         if (state != State::DataWritten) {
             goto end;
         }
@@ -80,11 +79,11 @@ ESPFlash::State ESPFlash::flash() {
 end:
     esp_loader_flash_finish(true);
     espif_flash_deinitialize();
-    update_progress();
+    progress_hook.update_progress(state, total_read, total_size);
     return state;
 }
 
-ESPFlash::State ESPFlash::flash_part(esp_fw_entry &fwpart) {
+ESPFlash::State ESPFlash::flash_part(ProgressHook &progress_hook, esp_fw_entry &fwpart) {
     // Generic data buffer used for flashing and checksum verification
     uint8_t buffer[buffer_length];
 
@@ -152,7 +151,7 @@ ESPFlash::State ESPFlash::flash_part(esp_fw_entry &fwpart) {
         const size_t read_bytes = fread(buffer, 1, sizeof(buffer), file.get());
         total_read += read_bytes;
         log_debug(EspFlash, "ESP read data %zu", read_bytes);
-        update_progress();
+        progress_hook.update_progress(state, total_read, total_size);
 
         if (ferror(file.get())) {
             log_error(EspFlash, "ESP flash: Unable to read file %s", fwpart.filename);
@@ -168,24 +167,4 @@ ESPFlash::State ESPFlash::flash_part(esp_fw_entry &fwpart) {
     state = State::DataWritten;
 
     return state;
-}
-
-void ESPFlash::update_progress() {
-    uint8_t percent = total_size ? 100 * total_read / total_size : 0;
-    const char *stage_description;
-    switch (state) {
-    case ESPFlash::State::Init:
-        stage_description = "Connecting ESP";
-        break;
-    case ESPFlash::State::WriteData:
-        stage_description = "Flashing ESP";
-        break;
-    case ESPFlash::State::Checking:
-        stage_description = "Checking ESP";
-        break;
-    default:
-        stage_description = "Unknown ESP state";
-    }
-
-    gui_bootstrap_screen_set_state(percent, stage_description);
 }

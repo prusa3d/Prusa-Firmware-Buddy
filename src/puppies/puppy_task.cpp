@@ -201,6 +201,29 @@ static ErrCode convert(const ESPFlash::State state) {
     }
 }
 
+class ProgressHook final : public ESPFlash::ProgressHook {
+public:
+    void update_progress(ESPFlash::State state, size_t current, size_t total) final {
+        uint8_t percent = total ? 100 * current / total : 0;
+        const char *stage_description;
+        switch (state) {
+        case ESPFlash::State::Init:
+            stage_description = "Connecting ESP";
+            break;
+        case ESPFlash::State::WriteData:
+            stage_description = "Flashing ESP";
+            break;
+        case ESPFlash::State::Checking:
+            stage_description = "Checking ESP";
+            break;
+        default:
+            stage_description = "Unknown ESP state";
+        }
+
+        gui_bootstrap_screen_set_state(percent, stage_description);
+    }
+};
+
 #endif
 
 static void puppy_task_body([[maybe_unused]] void const *argument) {
@@ -211,7 +234,8 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
 
     // Flash ESP
     ESPFlash esp_flash;
-    auto esp_result = esp_flash.flash();
+    ProgressHook progress_hook;
+    auto esp_result = esp_flash.flash(progress_hook);
     if (esp_result != ESPFlash::State::Done) {
         log_error(Puppies, "ESP flash failed with %u", static_cast<unsigned>(esp_result));
         fatal_error(convert(esp_result));
