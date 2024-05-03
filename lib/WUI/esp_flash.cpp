@@ -1,7 +1,9 @@
+#include <esp_flash.hpp>
+
+#include <array>
+#include <printers.h>
 #include <sys/stat.h>
 #include "mbedtls/md5.h"
-
-#include <esp_flash.hpp>
 #include <esp_loader.h>
 #include <espif.h>
 #include <unique_file_ptr.hpp>
@@ -11,14 +13,29 @@
 
 LOG_COMPONENT_DEF(EspFlash, LOG_SEVERITY_DEBUG);
 
+static constexpr size_t files_to_upload = 3;
+static constexpr size_t buffer_length = 512;
+static constexpr auto retries = 3;
+
+using firmware_set_t = std::array<ESPFlash::esp_fw_entry, files_to_upload>;
+
 ESPFlash::ESPFlash()
-    : firmware_set(FIRMWARE_SET)
-    , state(State::Init)
+    : state(State::Init)
     , total_size(0)
     , total_read(0) {
 }
 
 ESPFlash::State ESPFlash::flash() {
+#if PRINTER_IS_PRUSA_XL
+    firmware_set_t firmware_set { { { .address = 0x08000ul, .filename = "/internal/res/esp32/partition-table.bin", .size = 0 },
+        { .address = 0x01000ul, .filename = "/internal/res/esp32/bootloader.bin", .size = 0 },
+        { .address = 0x10000ul, .filename = "/internal/res/esp32/uart_wifi.bin", .size = 0 } } };
+#else
+    firmware_set_t firmware_set { { { .address = 0x08000ul, .filename = "/internal/res/esp/partition-table.bin", .size = 0 },
+        { .address = 0x00000ul, .filename = "/internal/res/esp/bootloader.bin", .size = 0 },
+        { .address = 0x10000ul, .filename = "/internal/res/esp/uart_wifi.bin", .size = 0 } } };
+#endif
+
     // Get file sizes
     for (esp_fw_entry &fwpart : firmware_set) {
         struct stat fs;

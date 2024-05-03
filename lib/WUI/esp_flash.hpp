@@ -1,7 +1,4 @@
-#include <array>
 #include <cstdint>
-
-#include <printers.h>
 
 class ESPFlash {
 public:
@@ -19,27 +16,11 @@ public:
         DataWritten,
     };
 
-    static constexpr size_t files_to_upload = 3;
-    static constexpr size_t buffer_length = 512;
-    static constexpr auto retries = 3;
-
     struct esp_fw_entry {
         uintptr_t address;
         const char *filename;
         size_t size;
     };
-
-    using firmware_set_t = std::array<esp_fw_entry, files_to_upload>;
-
-#if PRINTER_IS_PRUSA_XL
-    static constexpr firmware_set_t FIRMWARE_SET { { { .address = 0x08000, .filename = "/internal/res/esp32/partition-table.bin", .size = 0 },
-        { .address = 0x01000ul, .filename = "/internal/res/esp32/bootloader.bin", .size = 0 },
-        { .address = 0x10000ul, .filename = "/internal/res/esp32/uart_wifi.bin", .size = 0 } } };
-#else
-    static constexpr firmware_set_t FIRMWARE_SET { { { .address = 0x08000ul, .filename = "/internal/res/esp/partition-table.bin", .size = 0 },
-        { .address = 0x00000ul, .filename = "/internal/res/esp/bootloader.bin", .size = 0 },
-        { .address = 0x10000ul, .filename = "/internal/res/esp/uart_wifi.bin", .size = 0 } } };
-#endif
 
     ESPFlash();
 
@@ -50,7 +31,6 @@ private:
     State flash_part(esp_fw_entry &fwpart);
     void update_progress();
 
-    firmware_set_t firmware_set;
     State state;
     size_t total_size;
     size_t total_read;
