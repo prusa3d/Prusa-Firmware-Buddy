@@ -10,6 +10,7 @@
 #include "window_dlg_preheat.hpp"
 #include "window_dlg_quickpause.hpp"
 #include "window_dlg_warning.hpp"
+#include <screen_network_setup.hpp>
 #include <option/has_phase_stepping.h>
 #include <option/has_input_shaper_calibration.h>
 
@@ -164,6 +165,7 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
     FSMScreenDef<ClientFSM::Selftest, ScreenSelftest>,
 #endif
     FSMScreenDef<ClientFSM::ESP, ScreenESP>,
+    FSMScreenDef<ClientFSM::NetworkSetup, ScreenNetworkSetup>,
     FSMPrintDef<ClientFSM::Printing>,
 #if ENABLED(CRASH_RECOVERY)
     FSMScreenDef<ClientFSM::CrashRecovery, ScreenCrashRecovery>,
