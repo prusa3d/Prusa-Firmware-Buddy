@@ -74,26 +74,6 @@ protected:
     void click(IWindowMenu &window_menu) override;
 };
 
-class MI_WIFI_CREDENTIALS_t : public IWindowMenuItem {
-    constexpr static const char *const label = N_("Load Credentials");
-
-public:
-    MI_WIFI_CREDENTIALS_t();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_WIFI_CREDENTIALS_INI_FILE_t : public IWindowMenuItem {
-    constexpr static const char *const label = N_("Create Credentials");
-
-public:
-    MI_WIFI_CREDENTIALS_INI_FILE_t();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_NET_INTERFACE_t : public WI_SWITCH_t<2> {
     constexpr static const char *const label = N_("Active Interface");
 
