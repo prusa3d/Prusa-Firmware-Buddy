@@ -391,17 +391,6 @@ namespace {
                 } else {
                     print_abort();
                 }
-#if HAS_NFC()
-            } else if (auto resp = get_response_from_phase(PhasesWarning::NfcWifiCredentials); resp != Response::_none) {
-                fsm_destroy(ClientFSM::Warning);
-                if (resp == Response::Yes) {
-                    // Accept
-                    config_store().wifi_ap_ssid.set(server.wifi_creds.ssid);
-                    config_store().wifi_ap_password.set(server.wifi_creds.password);
-                    log_info(MarlinServer, "Accepted new WiFi credentials for SSID %s", server.wifi_creds.ssid.data());
-                    notify_reconfigure();
-                }
-#endif
             }
         }
     }
@@ -523,7 +512,7 @@ void handle_nfc() {
         const std::optional<WifiCredentials> wifi { nfc::try_detect_wifi_credentials() };
         if (wifi) {
             log_info(MarlinServer, "New WiFi credentials detected");
-            set_warning(WarningType::NfcWifiCredentials, PhasesWarning::NfcWifiCredentials);
+            // TODO set_warning(WarningType::NfcWifiCredentials, PhasesWarning::NfcWifiCredentials);
         }
     }
 }

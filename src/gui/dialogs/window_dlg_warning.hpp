@@ -53,9 +53,6 @@ class DialogWarning : public IDialogMarlin {
         EnclosureFilterExpiration,
         EnclosureFanError,
 #endif /* XLBUDDY BOARD */
-#if HAS_NFC()
-        NfcWifiCredentials,
-#endif
         count_
     };
 
@@ -104,9 +101,6 @@ class DialogWarning : public IDialogMarlin {
         { &img::warning_48x48, ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION },
         { &img::warning_48x48, ErrCode::CONNECT_ENCLOSURE_FAN_ERROR },
 #endif /* XLBUDDY BOARD */
-#if HAS_NFC()
-        { &img::warning_48x48, ErrCode::ERR_CONNECT_NEW_WIFI_CREDENTIALS },
-#endif
     };
     static_assert(std::size(icon_code) == types::count_);
 

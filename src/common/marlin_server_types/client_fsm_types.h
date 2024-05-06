@@ -8,7 +8,6 @@
 #include <option/has_phase_stepping.h>
 #include <option/has_coldpull.h>
 #include <option/has_input_shaper_calibration.h>
-#include <option/has_nfc.h>
 
 #include <inc/MarlinConfigPre.h>
 #include <device/board.h>
@@ -117,9 +116,6 @@ enum class WarningType : uint32_t {
     EnclosureFilterExpirWarning,
     EnclosureFilterExpiration,
     EnclosureFanError,
-    #endif
-    #if HAS_NFC()
-    NfcWifiCredentials,
     #endif
     NotDownloaded,
     _last = NotDownloaded
