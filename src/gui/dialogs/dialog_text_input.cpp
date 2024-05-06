@@ -191,6 +191,7 @@ void dialog_text_input::DialogTextInput::button_callback(window_t &button) {
     switch (rec.to_special_button()) {
 
     case SpecialButton::ok:
+        flush_edit_char();
         cancelled_ = false;
         Screens::Access()->Close();
         return;
