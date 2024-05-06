@@ -322,6 +322,9 @@ public:
     MarlinVariableString<FILE_NAME_BUFFER_LEN> media_LFN;
     MarlinVariable<marlin_server::State> print_state; // marlin_server.print_state
 
+    /// Marlin variable for passing string data from the running gcode/FSM to the UI thread/whatever
+    MarlinVariableString<64> generic_param_string;
+
 #if ENABLED(CANCEL_OBJECTS)
     void set_cancel_object_mask(uint64_t mask) {
         if (osThreadGetId() != marlin_server::server_task) {
