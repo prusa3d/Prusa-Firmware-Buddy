@@ -22,6 +22,7 @@
 #include "cmsis_os.h"
 #include "log.h"
 #include <bsod_gui.hpp>
+#include <st25dv64k.h>
 
 #include "../Marlin/src/lcd/extensible_ui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
@@ -123,6 +124,8 @@
     #include "xl_enclosure.hpp"
 #endif
 
+#include <wui.h>
+
 using namespace ExtUI;
 
 using ClientQueue = marlin_client::ClientQueue;
@@ -179,6 +182,9 @@ namespace {
         bool mbl_failed;
 #endif
         bool was_print_time_saved = false;
+#if HAS_NFC()
+        nfc::WifiCredentials wifi_creds;
+#endif
     };
 
     server_t server; // server structure - initialize task to zero
@@ -495,6 +501,25 @@ void print_fan_spd() {
     }
 }
 
+#if HAS_NFC()
+
+void handle_nfc() {
+    static uint32_t last_check = 0;
+    const uint32_t current_time = ticks_ms();
+    if (last_check > current_time || (current_time - last_check) >= 200 /* FIXME */) {
+        last_check = current_time;
+
+        const std::optional<nfc::WifiCredentials> wifi { nfc::try_detect_wifi_credentials() };
+        if (wifi) {
+            server.wifi_creds = *wifi;
+            log_info(MarlinServer, "New WiFi credentials detected");
+            // TODO set_warning(WarningType::NfcWifiCredentials, PhasesWarning::NfcWifiCredentials);
+        }
+    }
+}
+
+#endif
+
 #if ENABLED(PRUSA_MMU2)
 /// Helper function that enqueues gcodes to safely unload filament from nozzle back to mmu
 ///
@@ -613,6 +638,13 @@ static void cycle() {
     if ((server.flags & MARLIN_SFLG_PROCESS) == 0) {
         wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
     }
+
+#if HAS_NFC()
+    if (server.flags == (MARLIN_SFLG_STARTED | MARLIN_SFLG_PROCESS)) {
+        handle_nfc();
+    }
+#endif
+
     processing = 0;
 }
 
