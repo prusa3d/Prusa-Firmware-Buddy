@@ -1,11 +1,13 @@
 // Simplified and customized version based on a code from article below.
 // http://www.nadler.com/embedded/newlibAndFreeRTOS.html
+#include <atomic>
 #include <stdlib.h>
 #include <sys/reent.h>
 #include <stdbool.h>
 #include <malloc.h>
 #include <errno.h>
 #include <stddef.h>
+#include <string.h>
 #include "newlib.h"
 #include "bsod.h"
 #include "heap.h"
@@ -16,6 +18,8 @@
     #warning "#define configUSE_NEWLIB_REENTRANT 1"
 #endif
 #define ISR_STACK_LENGTH_BYTES 512 // #define bytes to reserve for ISR (MSP) stack
+
+using std::atomic;
 
 uint32_t heap_total_size;
 uint32_t heap_bytes_remaining;
@@ -49,6 +53,11 @@ void vPortInitialiseBlocks(void) PRIVILEGED_FUNCTION {};
 #define EXIT_CRITICAL_SECTION(_usis) \
     { taskEXIT_CRITICAL_FROM_ISR(_usis); } // Re-enables interrupts (unless already disabled prior taskENTER_CRITICAL)
 
+// We want to have a malloc_fallible (or calloc_fallible) on-demand. This is to
+// "smuggle" the request into the _sbrk_r through several stack frames, denotes
+// the task that requested it.
+static atomic<TaskHandle_t> fallible_request_for = nullptr;
+
 //
 // _sbrk implementation
 //
@@ -70,7 +79,9 @@ void *_sbrk_r([[maybe_unused]] struct _reent *pReent, int incr) {
     char *previous_heap_end = current_heap_end;
     if (current_heap_end + incr > limit) {
         EXIT_CRITICAL_SECTION(usis);
-        vApplicationMallocFailedHook();
+        if (fallible_request_for.load() != xTaskGetCurrentTaskHandle()) {
+            vApplicationMallocFailedHook();
+        }
         return (char *)-1; // the malloc-family routine that called sbrk will return 0
     }
     // 'incr' of memory is available: update accounting and return it.
@@ -83,6 +94,47 @@ void *_sbrk_r([[maybe_unused]] struct _reent *pReent, int incr) {
 void *sbrk(int incr) { return _sbrk_r(_impure_ptr, incr); }
 
 void *_sbrk(int incr) { return sbrk(incr); };
+
+extern "C" void *malloc_fallible(size_t size) {
+    TaskHandle_t me = xTaskGetCurrentTaskHandle();
+    TaskHandle_t competitor = nullptr;
+
+    while (!fallible_request_for.compare_exchange_strong(competitor, me, std::memory_order_acq_rel)) {
+        // We have some other thread running a malloc_fallible request at this
+        // very moment. Wait for it to finish.
+        //
+        // Such thing is very unlikely to happen in practice, since:
+        // * Allocations are rare, fallible ones even more so.
+        // * Currently, the only part that uses fallible allocations is mbedTLS
+        // and it's used only from one thread.
+        //
+        // But we still need to have some way to deal with such situation ‒
+        // busy-waiting is likely good enough.
+        //
+        // Some kind of "yield" to other threads would be great. But we would
+        // need to deal with priorities, make sure the competitor is at least
+        // as high prio as us and clean it up afterwards, which would be complex.
+        osDelay(1);
+
+        competitor = nullptr;
+    }
+
+    void *result = malloc(size);
+
+    // Give up the slot.
+    fallible_request_for.store(nullptr);
+
+    return result;
+}
+
+extern "C" void *calloc_fallible(size_t nmemb, size_t size) {
+    size_t total_size = nmemb * size;
+    void *result = malloc_fallible(total_size);
+    if (result != nullptr) {
+        memset(result, 0, total_size);
+    }
+    return result;
+}
 
 //
 // malloc_[un]lock implementation
