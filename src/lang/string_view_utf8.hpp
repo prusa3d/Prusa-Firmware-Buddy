@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "assert.h"
 #include <cstdlib>
+#include <span>
 
 #define UTF8_IS_NONASCII(ch) ((ch)&0x80)
 #define UTF8_IS_CONT(ch)     (((ch)&0xC0) == 0x80)
@@ -229,6 +230,10 @@ public:
         }
         *dst = 0; // safety termination in case of reaching the end of the buffer
         return bytesCopied;
+    }
+
+    size_t copyToRAM(std::span<char> target) {
+        return copyToRAM(target.data(), target.size());
     }
 
     /// Construct string_view_utf8 to provide data from CPU FLASH
