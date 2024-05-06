@@ -26,6 +26,7 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
 #if HAS_COLDPULL()
     case ClientFSM::ColdPull:
 #endif
+    case ClientFSM::NetworkSetup:
 #if HAS_PHASE_STEPPING()
     case ClientFSM::PhaseStepping:
 #endif

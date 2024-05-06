@@ -23,6 +23,7 @@
 #include <option/has_phase_stepping.h>
 #include <option/has_coldpull.h>
 #include <option/has_input_shaper_calibration.h>
+#include <option/has_nfc.h>
 #include <common/hotend_type.hpp>
 
 enum { RESPONSE_BITS = 4, // number of bits used to encode response
@@ -353,6 +354,26 @@ enum class PhasesESP : PhaseUnderlyingType {
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesESP) { return ClientFSM::ESP; }
 
+enum class PhaseNetworkSetup : PhaseUnderlyingType {
+    init,
+    ask_switch_to_wifi, ///< User is already connected through an ethernet cable, ask him if he wants to switch to wi-fi
+    action_select, ///< Letting the user to choose how the wi-fi should be set up
+    wifi_scan, ///< Scanning available wi-fi networks (the scanning is fully handled on the GUI thread)
+    wait_for_ini_file, ///< Prompting user to insert a flash drive with creds
+#if HAS_NFC()
+    wait_for_nfc, ///< Prompting user to provide the credentials through NFW
+    nfc_confirm, ///< Loaded credentials via NFC, asking for confirmation
+#endif
+    connecting,
+    connected,
+    esp_error,
+    connection_error,
+    finish,
+    _last = finish,
+    _cnt,
+};
+constexpr inline ClientFSM client_fsm_from_phase(PhaseNetworkSetup) { return ClientFSM::NetworkSetup; }
+
 #if ENABLED(CRASH_RECOVERY)
 enum class PhasesCrashRecovery : PhaseUnderlyingType {
     check_X,
@@ -457,6 +478,19 @@ enum class PhasesSerialPrinting : PhaseUnderlyingType {
     active,
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhasesSerialPrinting) { return ClientFSM::Serial_printing; }
+
+namespace NetworkSetupResponse {
+constexpr Response scan_wifi = Response::Custom1;
+
+#if HAS_NFC()
+constexpr Response scan_nfc = Response::Custom2;
+#endif
+
+static constexpr Response load_from_ini = Response::Custom3;
+
+/// Client stored credentials into the config_store - use them and try to connect
+static constexpr Response connect = Response::Custom4;
+} // namespace NetworkSetupResponse
 
 // static class for work with fsm responses (like button click)
 // encode responses - get them from marlin client, to marlin server and decode them again
@@ -754,6 +788,28 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::ESPResponses) == CountPhases<PhasesESP>());
 
+    static constexpr EnumArray<PhaseNetworkSetup, PhaseResponses, PhaseNetworkSetup::_cnt> network_setup_responses {
+        { PhaseNetworkSetup::init, {} },
+            { PhaseNetworkSetup::ask_switch_to_wifi, { Response::Yes, Response::No } },
+            {
+                PhaseNetworkSetup::action_select,
+                {
+#if HAS_NFC()
+                    NetworkSetupResponse::scan_nfc,
+#endif
+                    Response::Back, NetworkSetupResponse::scan_wifi, NetworkSetupResponse::load_from_ini, NetworkSetupResponse::connect },
+            },
+            { PhaseNetworkSetup::wifi_scan, { NetworkSetupResponse::connect, Response::Back } }, { PhaseNetworkSetup::wait_for_ini_file, { Response::Cancel } },
+#if HAS_NFC()
+            { PhaseNetworkSetup::wait_for_nfc, { Response::Cancel } }, { PhaseNetworkSetup::nfc_confirm, { Response::Ok, Response::Cancel } },
+#endif
+            { PhaseNetworkSetup::connecting, { Response::Skip, Response::Cancel } },
+            { PhaseNetworkSetup::connected, { Response::Ok } },
+            { PhaseNetworkSetup::esp_error, { Response::Retry, Response::Ok } },
+            { PhaseNetworkSetup::connection_error, { Response::Back, Response::Abort } },
+            { PhaseNetworkSetup::finish, {} },
+    };
+
 #if ENABLED(CRASH_RECOVERY)
     static constexpr PhaseResponses CrashRecoveryResponses[] = {
         {}, // check X
@@ -847,6 +903,7 @@ class ClientResponses {
             { ClientFSM::Selftest, SelftestResponses },
 #endif
             { ClientFSM::ESP, ESPResponses },
+            { ClientFSM::NetworkSetup, network_setup_responses },
             { ClientFSM::Printing, {} },
 #if ENABLED(CRASH_RECOVERY)
             { ClientFSM::CrashRecovery, CrashRecoveryResponses },
