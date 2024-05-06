@@ -1,9 +1,8 @@
 #pragma once
 
 #include <option/has_nfc.h>
-#include <config_store/constants.hpp>
+#include <wifi_credentials.hpp>
 
-#include <array>
 #include <inttypes.h>
 #include <optional>
 
@@ -28,11 +27,6 @@ void st25dv64k_present_pwd(uint8_t *pwd);
 #if HAS_NFC()
 
 namespace nfc {
-
-struct WifiCredentials {
-    std::array<char, config_store_ns::wifi_max_ssid_len + 1> ssid;
-    std::array<char, config_store_ns::wifi_max_passwd_len + 1> password;
-};
 
 std::optional<WifiCredentials> try_detect_wifi_credentials();
 

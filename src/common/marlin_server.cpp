@@ -183,7 +183,7 @@ namespace {
 #endif
         bool was_print_time_saved = false;
 #if HAS_NFC()
-        nfc::WifiCredentials wifi_creds;
+        WifiCredentials wifi_creds;
 #endif
     };
 
@@ -520,9 +520,8 @@ void handle_nfc() {
     if (last_check > current_time || (current_time - last_check) >= 200 /* FIXME */) {
         last_check = current_time;
 
-        const std::optional<nfc::WifiCredentials> wifi { nfc::try_detect_wifi_credentials() };
+        const std::optional<WifiCredentials> wifi { nfc::try_detect_wifi_credentials() };
         if (wifi) {
-            server.wifi_creds = *wifi;
             log_info(MarlinServer, "New WiFi credentials detected");
             set_warning(WarningType::NfcWifiCredentials, PhasesWarning::NfcWifiCredentials);
         }
