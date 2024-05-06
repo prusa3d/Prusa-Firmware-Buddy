@@ -101,50 +101,18 @@ void MI_WIFI_INIT_t::click([[maybe_unused]] IWindowMenu &window_menu) {
 // MI_WIFI_SSID
 // ===================================================
 MI_WIFI_SSID::MI_WIFI_SSID()
-    : WiInfo(_(label)) {
-    update_noauto();
-}
-
-void MI_WIFI_SSID::update_noauto() {
-    ChangeInformation(config_store().wifi_ap_ssid.get_c_str());
-}
-
-void MI_WIFI_SSID::click(IWindowMenu &) {
-    auto ssid = config_store().wifi_ap_ssid.get();
-    if (!DialogTextInput::exec(GetLabel(), ssid)) {
-        return;
-    }
-
-    config_store().wifi_ap_ssid.set(ssid);
-    update_noauto();
-
-    // Notify the network machinery about configuration change
-    notify_reconfigure();
+    : WiInfoString(string_view_utf8::MakeRAM(config_store().wifi_ap_ssid.get_c_str()), 24, _(label)) {
 }
 
 // ===================================================
-// MI_WIFI_PASSWORD
+// MI_WIFI_SETUP
 // ===================================================
-MI_WIFI_PASSWORD::MI_WIFI_PASSWORD()
-    : WiInfoString({}, 5, _(label)) {
-    update_noauto();
+MI_WIFI_SETUP::MI_WIFI_SETUP()
+    : IWindowMenuItem(_(label)) {
 }
 
-void MI_WIFI_PASSWORD::update_noauto() {
-    set_value(string_view_utf8::MakeCPUFLASH(strlen(config_store().wifi_ap_password.get().data()) > 0 ? "*****" : "-"));
-}
-
-void MI_WIFI_PASSWORD::click(IWindowMenu &) {
-    std::array<char, config_store_ns::wifi_max_passwd_len + 1> pwd = { '\0' };
-    if (!DialogTextInput::exec(GetLabel(), pwd)) {
-        return;
-    }
-
-    config_store().wifi_ap_password.set(pwd);
-    update_noauto();
-
-    // Notify the network machinery about configuration change
-    notify_reconfigure();
+void MI_WIFI_SETUP::click(IWindowMenu &) {
+    marlin_client::gcode("M1703");
 }
 
 // ===================================================

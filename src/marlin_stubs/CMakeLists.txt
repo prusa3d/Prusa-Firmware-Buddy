@@ -6,6 +6,7 @@ target_sources(
           M104_1.cpp
           M123.cpp
           M1702.cpp
+          M1703.cpp
           M300.cpp
           M330.cpp
           M340.cpp

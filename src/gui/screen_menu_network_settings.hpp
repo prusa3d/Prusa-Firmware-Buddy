@@ -30,7 +30,7 @@ protected:
 
 // ------------------------ WIFI -----------------------------------
 using ScreenMenuWifiSettings_ = ScreenMenu<EFooter::Off, MI_RETURN, //
-    MI_WIFI_STATUS_t, MI_WIFI_SSID, MI_WIFI_PASSWORD, MI_WIFI_INIT_t, MI_WIFI_CREDENTIALS_INI_FILE_t, MI_WIFI_CREDENTIALS_t,
+    MI_WIFI_STATUS_t, MI_WIFI_SSID, MI_WIFI_SETUP, MI_WIFI_INIT_t,
     MI_NET_IP_VER_t,
     WMI_NET<MI_NET_IP, NETDEV_ESP_ID>,
     WMI_NET<MI_IP4_ADDR, NETDEV_ESP_ID>,

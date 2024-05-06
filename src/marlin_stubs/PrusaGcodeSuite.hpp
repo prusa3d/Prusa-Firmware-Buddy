@@ -89,6 +89,7 @@ void M1601(); ///< Filament stuck detected, Prusa STM32 platform specific
 void M1700(); ///< Preheat. Prusa STM32 platform specific
 void M1701(); ///< Autoload. Prusa STM32 platform specific
 void M1702(); ///< Coldpull. Prusa platform specific
+void M1703(); ///< Wi-fi setup. Prusa platform specific
 
 void M9140(); ///< Set normal (non-stealth) mode
 void M9150(); ///< Set stealth mode
