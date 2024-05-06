@@ -168,7 +168,8 @@ void do_snake(Action action, Tool tool = Tool::_first) {
 };
 
 void continue_snake() {
-    if (get_test_result(snake_config.last_action, snake_config.last_tool) != TestResult_Passed
+    const TestResult last_test_result = get_test_result(snake_config.last_action, snake_config.last_tool);
+    if ((last_test_result != TestResult_Passed && last_test_result != TestResult_Skipped)
         || SelftestInstance().IsAborted()) { // last selftest didn't pass
         snake_config.reset();
         return;
