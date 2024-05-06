@@ -72,4 +72,15 @@
 
 #define MBEDTLS_BASE64_C
 
+/*
+ * Our "primary" calloc BSODs on out of memory. We want to provide an
+ * alternative one which returns nullptr instead.
+ */
+#include <stdlib.h> // For size_t
+void *calloc_fallible(size_t nmeb, size_t size); // Defined in heap.cpp
+#define MBEDTLS_PLATFORM_C
+#define MBEDTLS_PLATFORM_MEMORY
+#define MBEDTLS_PLATFORM_CALLOC_MACRO calloc_fallible /**< Default allocator macro to use, can be undefined */
+#define MBEDTLS_PLATFORM_FREE_MACRO   free /**< Default free macro to use, can be undefined */
+
 #include "mbedtls/check_config.h"
