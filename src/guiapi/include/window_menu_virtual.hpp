@@ -23,9 +23,12 @@ public:
     void set_scroll_offset(int set) override;
 
 protected:
-    /// Creates & sets up the items
-    /// Call this function in the constructor of the most derived class
-    void recreate_items();
+    /// Calls setup_item for the individual slots.
+    /// Call this:
+    /// * If the item count changed
+    /// * If any item type changed
+    /// * In the constructor of the most derived class
+    void setup_items();
 
 protected:
     virtual IWindowMenuItem *item_at_buffer_slot(int buffer_slot) = 0;

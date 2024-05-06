@@ -87,7 +87,7 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
         IWindowMenu::set_scroll_offset(target_scroll_offset);
     }
 
-    WindowMenuVirtual::recreate_items();
+    WindowMenuVirtual::setup_items();
 
     // Focus item if appropriate
     {

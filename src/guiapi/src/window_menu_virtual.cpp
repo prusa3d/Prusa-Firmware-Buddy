@@ -1,6 +1,6 @@
 #include "window_menu_virtual.hpp"
 
-void WindowMenuVirtualBase::recreate_items() {
+void WindowMenuVirtualBase::setup_items() {
     const auto scroll_offset = this->scroll_offset();
     const auto item_count = this->item_count();
 
