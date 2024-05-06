@@ -174,11 +174,7 @@ void FSM_encoded_response(EncodedFSMResponse);
 
 template <class T>
 void FSM_response(T phase, Response response) {
-    FSM_encoded_response({
-        .encoded_phase = ftrstd::to_underlying(phase),
-        .encoded_fsm = ftrstd::to_underlying(client_fsm_from_phase(phase)),
-        .encoded_response = ftrstd::to_underlying(response),
-    });
+    FSM_encoded_response(EncodedFSMResponse::encode(phase, response));
 }
 
 } // namespace marlin_client
