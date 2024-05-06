@@ -236,6 +236,9 @@ static PhasesInputShaperCalibration calibrating_accelerometer(Context &context) 
     context.ensure_accelerometer_ok();
     AccelerometerProgressHookFsm progress_hook;
     context.accelerometer_sample_period = get_accelerometer_sample_period(progress_hook, *context.accelerometer);
+    if (isnan(context.accelerometer_sample_period)) {
+        bsod("Accelerometer calibration failed.");
+    }
     return progress_hook.aborted() ? PhasesInputShaperCalibration::finish : PhasesInputShaperCalibration::measuring_x_axis;
 }
 

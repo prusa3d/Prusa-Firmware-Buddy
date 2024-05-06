@@ -191,6 +191,8 @@ private:
 
 } // anonymous namespace
 
+static bool is_ok(PrusaAccelerometer::Error error);
+
 static bool is_full() {
     CRITICAL_SECTION_START;
     bool retval = PreciseStepping::is_step_event_queue_full();
@@ -254,14 +256,23 @@ static float get_zv_shaper_damping_ratio(float resonant_gain) {
     return 0.080145136132399f * sq(shaper_gain) + 0.616396503538947f * shaper_gain + 0.000807776046666f;
 }
 
+static constexpr float expected_accelerometer_sample_period = 1.f / 1344.f;
+
+/**
+ * @param accelerometer
+ * @return accelerometer sample period in seconds
+ * @retval NAN error
+ */
 float get_accelerometer_sample_period(AccelerometerProgressHook &progress_hook, PrusaAccelerometer &accelerometer) {
     for (int i = 0; i < 96; ++i) {
         // Note: this is fast enough, it does not need to call progress_hook
         idle(true, true);
         accelerometer.clear();
     }
-    const uint32_t start_time = millis();
     constexpr int request_samples_num = 20'000;
+    constexpr uint32_t max_duration_ms = 2.f * 1000.f * expected_accelerometer_sample_period * request_samples_num;
+    const uint32_t start_time = millis();
+    uint32_t duration_ms = 0;
 
     for (int i = 0; i < request_samples_num;) {
         PrusaAccelerometer::Acceleration measured_acceleration;
@@ -274,10 +285,21 @@ float get_accelerometer_sample_period(AccelerometerProgressHook &progress_hook, 
                 return 0;
             }
         }
+
+        const uint32_t now = millis();
+        duration_ms = now - start_time;
+
+        if (duration_ms > max_duration_ms) {
+            SERIAL_ERROR_MSG("timed out");
+            (void)is_ok(accelerometer.get_error());
+            return NAN;
+        }
     }
 
-    const uint32_t now = millis();
-    const uint32_t duration_ms = now - start_time;
+    if (!is_ok(accelerometer.get_error())) {
+        return NAN;
+    }
+
     return duration_ms / 1000.f / static_cast<float>(request_samples_num);
 }
 
@@ -296,8 +318,8 @@ static float get_accelerometer_sample_period(PrusaAccelerometer &accelerometer) 
 static float maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer) {
     // TODO: Perhaps we should always calibrate accelerometer and not use this global variable...
     //       Then again, maybe we should not have M958 in the first place...
-    static float sample_period = 1.f / 1344.f;
-    if (calibrate_accelerometer) {
+    static float sample_period = expected_accelerometer_sample_period;
+    if (calibrate_accelerometer || isnan(sample_period)) {
         sample_period = get_accelerometer_sample_period(accelerometer);
         SERIAL_ECHOLNPAIR_F("Sample freq: ", 1.f / sample_period);
     }
@@ -662,11 +684,15 @@ void GcodeSuite::M958() {
 
     bool calibrate_accelerometer = parser.seen('C');
     PrusaAccelerometer accelerometer;
-    if (is_ok(accelerometer.get_error())) {
-        const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, calibrate_accelerometer);
-        serial_echo_header(klipper_mode);
-        vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+    if (!is_ok(accelerometer.get_error())) {
+        return;
     }
+    const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, calibrate_accelerometer);
+    if(isnan(accelerometer_sample_period)) {
+        return;
+    }
+    serial_echo_header(klipper_mode);
+    vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
 }
 
 /** @}*/
@@ -690,32 +716,36 @@ static void naive_zv_tune(StepEventFlag_t axis_flag, float start_frequency, floa
     }
 
     PrusaAccelerometer accelerometer;
-    if (is_ok(accelerometer.get_error())) {
-        const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
-        const bool klipper_mode = false;
-        serial_echo_header(klipper_mode);
-        for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
-            FrequencyGain3D frequencyGain3D = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
-            FrequencyGain frequencyGain = { frequencyGain3D.frequency, frequencyGain3D.gain[logicalAxis] };
-            if (frequencyGain.gain > maxFrequencyGain.gain) {
-                maxFrequencyGain = frequencyGain;
-            }
-        }
-        SERIAL_ECHOPAIR_F("Maximum resonant gain: ", maxFrequencyGain.gain);
-        SERIAL_ECHOLNPAIR_F(" at frequency: ", maxFrequencyGain.frequency);
-
-        const float damping_ratio = get_zv_shaper_damping_ratio(maxFrequencyGain.gain);
-        SERIAL_ECHOLN("ZV shaper selected");
-        SERIAL_ECHOPAIR_F("Frequency: ", maxFrequencyGain.frequency);
-        SERIAL_ECHOLNPAIR_F(" damping ratio: ", damping_ratio, 5);
-        input_shaper::AxisConfig axis_config {
-            .type = input_shaper::Type::zv,
-            .frequency = maxFrequencyGain.frequency,
-            .damping_ratio = damping_ratio,
-            .vibration_reduction = 0.f,
-        };
-        input_shaper::set_axis_config(logicalAxis, axis_config);
+    if (!is_ok(accelerometer.get_error())) {
+        return;
     }
+    const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
+    if(isnan(accelerometer_sample_period)) {
+        return;
+    }
+    const bool klipper_mode = false;
+    serial_echo_header(klipper_mode);
+    for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
+        FrequencyGain3D frequencyGain3D = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+        FrequencyGain frequencyGain = { frequencyGain3D.frequency, frequencyGain3D.gain[logicalAxis] };
+        if (frequencyGain.gain > maxFrequencyGain.gain) {
+            maxFrequencyGain = frequencyGain;
+        }
+    }
+    SERIAL_ECHOPAIR_F("Maximum resonant gain: ", maxFrequencyGain.gain);
+    SERIAL_ECHOLNPAIR_F(" at frequency: ", maxFrequencyGain.frequency);
+
+    const float damping_ratio = get_zv_shaper_damping_ratio(maxFrequencyGain.gain);
+    SERIAL_ECHOLN("ZV shaper selected");
+    SERIAL_ECHOPAIR_F("Frequency: ", maxFrequencyGain.frequency);
+    SERIAL_ECHOLNPAIR_F(" damping ratio: ", damping_ratio, 5);
+    input_shaper::AxisConfig axis_config {
+        .type = input_shaper::Type::zv,
+        .frequency = maxFrequencyGain.frequency,
+        .damping_ratio = damping_ratio,
+        .vibration_reduction = 0.f,
+    };
+    input_shaper::set_axis_config(logicalAxis, axis_config);
 }
 
 static float limit_end_frequency(const float start_frequency, float end_frequency, const float frequency_increment, const size_t max_samples) {
@@ -995,38 +1025,42 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
     }
 
     PrusaAccelerometer accelerometer;
-    if (is_ok(accelerometer.get_error())) {
-        const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
-        const bool klipper_mode = true;
-        serial_echo_header(klipper_mode);
-        for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
-            FrequencyGain3D frequencyGain3D = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
-            if (subtract_excitation) {
-                frequencyGain3D.gain[logicalAxis] = max(frequencyGain3D.gain[logicalAxis] - 1.f, 0.f);
-            }
-            const float psd_xyz = sq(frequencyGain3D.gain[0]) + sq(frequencyGain3D.gain[1]) + sq(frequencyGain3D.gain[2]);
-            psd.put(psd_xyz);
-        }
-
-        TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
-
-        if (subtract_excitation) {
-            SERIAL_ECHOLN("Excitation subtracted power spectrum density");
-            SERIAL_ECHOLN("freq,psd_xyz");
-            for (size_t i = 0; i < psd.size(); ++i) {
-                FrequencyGain fg = psd.get(i);
-                SERIAL_ECHO(fg.frequency);
-                SERIAL_ECHOLNPAIR_F(",", fg.gain, 5);
-            }
-        }
-
-        const Action final_action = subtract_excitation ? Action::find_best_result : Action::last;
-        input_shaper::AxisConfig axis_config = find_best_shaper(psd, final_action, input_shaper::axis_defaults[logicalAxis]);
-        input_shaper::set_axis_config(logicalAxis, axis_config);
-        SERIAL_ECHO_START();
-        SERIAL_ECHOPAIR("Activated ", axis_codes[logicalAxis], " axis default damping and vibr. reduction shaper type: ", to_string(axis_config.type), "(", static_cast<int>(axis_config.type), ")");
-        SERIAL_ECHOLNPAIR_F(" frequency: ", axis_config.frequency);
+    if (!is_ok(accelerometer.get_error())) {
+        return;
     }
+    const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
+    if(isnan(accelerometer_sample_period)){
+        return;
+    }
+    const bool klipper_mode = true;
+    serial_echo_header(klipper_mode);
+    for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
+        FrequencyGain3D frequencyGain3D = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+        if (subtract_excitation) {
+            frequencyGain3D.gain[logicalAxis] = max(frequencyGain3D.gain[logicalAxis] - 1.f, 0.f);
+        }
+        const float psd_xyz = sq(frequencyGain3D.gain[0]) + sq(frequencyGain3D.gain[1]) + sq(frequencyGain3D.gain[2]);
+        psd.put(psd_xyz);
+    }
+
+    TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
+
+    if (subtract_excitation) {
+        SERIAL_ECHOLN("Excitation subtracted power spectrum density");
+        SERIAL_ECHOLN("freq,psd_xyz");
+        for (size_t i = 0; i < psd.size(); ++i) {
+            FrequencyGain fg = psd.get(i);
+            SERIAL_ECHO(fg.frequency);
+            SERIAL_ECHOLNPAIR_F(",", fg.gain, 5);
+        }
+    }
+
+    const Action final_action = subtract_excitation ? Action::find_best_result : Action::last;
+    input_shaper::AxisConfig axis_config = find_best_shaper(psd, final_action, input_shaper::axis_defaults[logicalAxis]);
+    input_shaper::set_axis_config(logicalAxis, axis_config);
+    SERIAL_ECHO_START();
+    SERIAL_ECHOPAIR("Activated ", axis_codes[logicalAxis], " axis default damping and vibr. reduction shaper type: ", to_string(axis_config.type), "(", static_cast<int>(axis_config.type), ")");
+    SERIAL_ECHOLNPAIR_F(" frequency: ", axis_config.frequency);
 }
 
 /** \addtogroup G-Codes
