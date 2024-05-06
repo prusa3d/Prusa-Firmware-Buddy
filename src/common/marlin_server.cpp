@@ -81,6 +81,7 @@
 #include <option/has_dwarf.h>
 #include <option/has_modularbed.h>
 #include <option/has_loadcell.h>
+#include <option/has_nfc.h>
 
 #if HAS_DWARF()
     #include <puppies/Dwarf.hpp>
@@ -122,6 +123,10 @@
 
 #if XL_ENCLOSURE_SUPPORT()
     #include "xl_enclosure.hpp"
+#endif
+
+#if HAS_NFC()
+    #include <fsm_network_setup.hpp>
 #endif
 
 #include <wui.h>
@@ -182,9 +187,6 @@ namespace {
         bool mbl_failed;
 #endif
         bool was_print_time_saved = false;
-#if HAS_NFC()
-        WifiCredentials wifi_creds;
-#endif
     };
 
     server_t server; // server structure - initialize task to zero
@@ -509,10 +511,8 @@ void handle_nfc() {
     if (last_check > current_time || (current_time - last_check) >= 200 /* FIXME */) {
         last_check = current_time;
 
-        const std::optional<WifiCredentials> wifi { nfc::try_detect_wifi_credentials() };
-        if (wifi) {
-            log_info(MarlinServer, "New WiFi credentials detected");
-            // TODO set_warning(WarningType::NfcWifiCredentials, PhasesWarning::NfcWifiCredentials);
+        if (const std::optional<WifiCredentials> wifi_credentials = nfc::try_detect_wifi_credentials()) {
+            network_wizard::network_nfc_wizard(*wifi_credentials);
         }
     }
 }
@@ -638,12 +638,6 @@ static void cycle() {
         wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
     }
 
-#if HAS_NFC()
-    if (server.flags == (MARLIN_SFLG_STARTED | MARLIN_SFLG_PROCESS)) {
-        handle_nfc();
-    }
-#endif
-
     processing = 0;
 }
 
@@ -738,6 +732,12 @@ void loop() {
     server.idle_cnt = 0;
     media_loop();
     cycle();
+
+#if HAS_NFC()
+    if (server.flags == (MARLIN_SFLG_STARTED | MARLIN_SFLG_PROCESS)) {
+        handle_nfc();
+    }
+#endif
 }
 
 void barebones_loop() {
