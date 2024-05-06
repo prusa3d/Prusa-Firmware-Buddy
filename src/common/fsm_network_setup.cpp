@@ -393,4 +393,8 @@ void network_nfc_wizard(const WifiCredentials &creds) {
 }
 #endif
 
+TestResult network_selftest_result() {
+    return (netdev_get_status(netdev_get_active_id()) == NETDEV_NETIF_UP) ? TestResult::TestResult_Passed : TestResult::TestResult_Skipped;
+}
+
 } // namespace network_wizard

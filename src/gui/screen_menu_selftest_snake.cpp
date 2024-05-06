@@ -133,6 +133,8 @@ const char *snake_gcode(Action action) {
     case Action::InputShaperCalibration:
         return "M1959";
 #endif
+    case Action::Network:
+        return "M1703 A";
     default:
         return nullptr;
     }
