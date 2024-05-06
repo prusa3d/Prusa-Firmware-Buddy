@@ -328,7 +328,7 @@ static void serial_echo_header(bool klipper_mode) {
  * @return Frequency and gain measured on each axis if there is accelerometer
  */
 FrequencyGain3D
-vibrate_measure(PrusaAccelerometer &accelerometer, float accelerator_sample_period, StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles) {
+vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_period, StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles) {
     HarmonicGenerator generator(frequency_requested, acceleration_requested, step_len);
     const float frequency = generator.getFrequency();
     StepDir stepDir(generator);
@@ -341,7 +341,7 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerator_sample_peri
     float accelerometer_period_time = 0.f;
 
     uint32_t sample_nr = 0;
-    const uint32_t samples_to_collect = period * cycles / accelerator_sample_period;
+    const uint32_t samples_to_collect = period * cycles / accelerometer_sample_period;
     bool enough_samples_collected = false;
     TEMPORARY_AUTO_REPORT_OFF(suspend_auto_report);
 #ifdef M958_OUTPUT_SAMPLES
@@ -372,7 +372,7 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerator_sample_peri
 
                 ++sample_nr;
                 enough_samples_collected = sample_nr >= samples_to_collect;
-                accelerometer_period_time += accelerator_sample_period;
+                accelerometer_period_time += accelerometer_sample_period;
                 if (accelerometer_period_time > period) {
                     accelerometer_period_time -= period;
                 }
@@ -663,9 +663,9 @@ void GcodeSuite::M958() {
     bool calibrate_accelerometer = parser.seen('C');
     PrusaAccelerometer accelerometer;
     if (is_ok(accelerometer.get_error())) {
-        const float accelerator_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, calibrate_accelerometer);
+        const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, calibrate_accelerometer);
         serial_echo_header(klipper_mode);
-        vibrate_measure(accelerometer, accelerator_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+        vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
     }
 }
 
@@ -691,11 +691,11 @@ static void naive_zv_tune(StepEventFlag_t axis_flag, float start_frequency, floa
 
     PrusaAccelerometer accelerometer;
     if (is_ok(accelerometer.get_error())) {
-        const float accelerator_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
+        const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
         const bool klipper_mode = false;
         serial_echo_header(klipper_mode);
         for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
-            FrequencyGain3D frequencyGain3D = vibrate_measure(accelerometer, accelerator_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+            FrequencyGain3D frequencyGain3D = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
             FrequencyGain frequencyGain = { frequencyGain3D.frequency, frequencyGain3D.gain[logicalAxis] };
             if (frequencyGain.gain > maxFrequencyGain.gain) {
                 maxFrequencyGain = frequencyGain;
@@ -996,11 +996,11 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
 
     PrusaAccelerometer accelerometer;
     if (is_ok(accelerometer.get_error())) {
-        const float accelerator_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
+        const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, true);
         const bool klipper_mode = true;
         serial_echo_header(klipper_mode);
         for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
-            FrequencyGain3D frequencyGain3D = vibrate_measure(accelerometer, accelerator_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+            FrequencyGain3D frequencyGain3D = vibrate_measure(accelerometer, accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
             if (subtract_excitation) {
                 frequencyGain3D.gain[logicalAxis] = max(frequencyGain3D.gain[logicalAxis] - 1.f, 0.f);
             }

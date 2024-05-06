@@ -109,7 +109,7 @@ public:
 struct Context {
     // Note: ptr is needed because accelerometer does init and doesn't have reinit
     std::unique_ptr<PrusaAccelerometer> accelerometer;
-    float accelerator_sample_period;
+    float accelerometer_sample_period;
     FrequencyRangeSpectrum spectrum_x;
     FrequencyRangeSpectrum spectrum_y;
     input_shaper::AxisConfig axis_config_x;
@@ -235,7 +235,7 @@ public:
 static PhasesInputShaperCalibration calibrating_accelerometer(Context &context) {
     context.ensure_accelerometer_ok();
     AccelerometerProgressHookFsm progress_hook;
-    context.accelerator_sample_period = get_accelerometer_sample_period(progress_hook, *context.accelerometer);
+    context.accelerometer_sample_period = get_accelerometer_sample_period(progress_hook, *context.accelerometer);
     return progress_hook.aborted() ? PhasesInputShaperCalibration::finish : PhasesInputShaperCalibration::measuring_x_axis;
 }
 
@@ -273,7 +273,7 @@ static bool measuring_axis(
         data[2] = static_cast<uint8_t>(frequency_requested);
         marlin_server::fsm_change(phase, data);
 
-        FrequencyGain3D frequencyGain3D = vibrate_measure(*context.accelerometer, context.accelerator_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
+        FrequencyGain3D frequencyGain3D = vibrate_measure(*context.accelerometer, context.accelerometer_sample_period, axis_flag, klipper_mode, frequency_requested, acceleration_requested, step_len, cycles);
         frequencyGain3D.gain[logicalAxis] = max(frequencyGain3D.gain[logicalAxis] - 1.f, 0.f);
         spectrum.samples[i] = frequencyGain3D.get_square();
         frequency_requested += frequency_range.increment;

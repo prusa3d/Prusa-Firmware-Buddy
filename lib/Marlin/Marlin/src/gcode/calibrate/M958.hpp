@@ -92,7 +92,7 @@ public:
 float get_accelerometer_sample_period(AccelerometerProgressHook&, PrusaAccelerometer &accelerometer);
 
 float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]);
-FrequencyGain3D vibrate_measure(PrusaAccelerometer &accelerometer, float accelerator_sample_period, StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles);
+FrequencyGain3D vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_period, StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles);
 
 // Interface for hooking into find_best_shaper()
 class FindBestShaperProgressHook {
