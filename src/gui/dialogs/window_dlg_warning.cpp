@@ -88,6 +88,10 @@ DialogWarning::types DialogWarning::get_type(fsm::BaseData data) {
     case WarningType::ProbingFailed:
         return ProbingFailed;
 #endif
+#if HAS_NFC()
+    case WarningType::NfcWifiCredentials:
+        return NfcWifiCredentials;
+#endif
 #if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
     case WarningType::NozzleCleaningFailed:
         return NozzleCleaningFailed;

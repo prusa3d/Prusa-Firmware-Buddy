@@ -8,6 +8,7 @@
 #include <option/has_input_shaper_calibration.h>
 #include <config_store/store_instance.hpp>
 #include <device/board.h>
+#include <option/has_nfc.h>
 
 using namespace marlin_server;
 using std::make_tuple;
@@ -206,6 +207,10 @@ namespace {
         case WarningType::EnclosureFilterExpiration:
             return ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION;
 #endif // XL_ENCLOSURE_SUPPORT
+#if HAS_NFC()
+        case WarningType::NfcWifiCredentials:
+            return ErrCode::ERR_CONNECT_NEW_WIFI_CREDENTIALS;
+#endif
         }
 
         assert(false);

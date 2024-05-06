@@ -379,6 +379,9 @@ enum class PhasesWarning : PhaseUnderlyingType {
     // These have some actual buttons that need to be handled.
     EnclosureFilterExpiration,
     ProbingFailed,
+#if HAS_NFC()
+    NfcWifiCredentials,
+#endif
     NozzleCleaningFailed,
     _last = NozzleCleaningFailed,
 };
@@ -770,6 +773,9 @@ class ClientResponses {
         { Response::Continue }, // Warning
         { Response::Ignore, Response::Postpone5Days, Response::Done }, // Enclosure filter expiration
         { Response::Yes, Response::No }, // ProbingFailed
+#if HAS_NFC()
+        { Response::Yes, Response::No }, // NfcWifiCredentials
+#endif
         { Response::Retry, Response::Abort }, // NozzleCleaningFailed
     };
     static_assert(std::size(ClientResponses::WarningResponses) == CountPhases<PhasesWarning>());
