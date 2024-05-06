@@ -23,6 +23,9 @@
 
 namespace connect_client {
 
+// NOTE: if you are changing this, change also the one in command.hpp,
+//  it is at both places, otherwise it would create circular dependencies
+using ToolMapping = std::array<std::array<uint8_t, EXTRUDERS>, EXTRUDERS>;
 class Printer {
 public:
     struct PrinterInfo {
@@ -191,7 +194,7 @@ public:
     virtual std::optional<NetInfo> net_info(Iface iface) const = 0;
     virtual NetCreds net_creds() const = 0;
     virtual bool job_control(JobControl) = 0;
-    virtual bool start_print(const char *path) = 0;
+    virtual const char *start_print(const char *path, const std::optional<ToolMapping> &tools_mapping) = 0;
     // Deletes a file.
     //
     // returns nullptr on success, message with reason of failure otherwise

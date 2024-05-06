@@ -6,7 +6,7 @@
 #define Z_DRIVER_TYPE
 
 #define HOTENDS         1
-#define EXTRUDERS       1
+#define EXTRUDERS       5
 #define SWITCH_ENABLED_ 1
 #define SINGLENOZZLE
 

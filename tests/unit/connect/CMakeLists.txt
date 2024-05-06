@@ -1,3 +1,4 @@
+add_definitions(-DPRUSA_TOOL_MAPPING)
 add_executable(
   connect_tests
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp

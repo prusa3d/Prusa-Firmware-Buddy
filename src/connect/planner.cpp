@@ -642,8 +642,8 @@ void Planner::command(const Command &command, const StartPrint &params) {
         reason = "Forbidden path";
     } else if (!file_exists(path)) {
         reason = "File not found";
-    } else if (!printer.start_print(path)) {
-        reason = "Can't print now";
+    } else if (const char *error = printer.start_print(path, params.tool_mapping); error != nullptr) {
+        reason = error;
     }
 
     if (reason == nullptr) {

@@ -4,10 +4,12 @@
 #include <json_encode.h>
 
 #include <general_response.hpp>
+#include <module/prusa/tool_mapper.hpp>
 #include <netif_settings.h>
 
 #include <cstdlib>
 #include <charconv>
+#include <limits>
 
 using json::Event;
 using json::Type;
@@ -38,8 +40,8 @@ namespace {
     const constexpr size_t MAX_TOKENS = 60;
 
     template <class R>
-    optional<R> convert_int(const Event &event) {
-        if (R result; from_chars(event.value->begin(), event.value->end(), result).ec == errc {}) {
+    optional<R> convert_int(std::string_view str) {
+        if (R result; from_chars(str.begin(), str.end(), result).ec == errc {}) {
             return result;
         } else {
             return nullopt;
@@ -117,11 +119,25 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
     uint32_t expected_args = 0;
     uint32_t seen_args = 0;
 
+#if ENABLED(PRUSA_TOOL_MAPPING)
+    bool in_tool_mapping = false;
+    uint32_t tool_mapping_index_outer = 0;
+    uint32_t tool_mapping_index_inner = 0;
+#endif
+
     // Error from jsmn_parse will lead to -1 -> converted to 0, refused by json::search as Broken.
     const bool success = json::search(body, tokens, std::max(parse_result, 0), [&](const Event &event) {
         auto is_arg = [&](const string_view name, Type type) -> bool {
             return event.depth == 2 && in_kwargs && event.type == type && event.key == name;
         };
+#if ENABLED(PRUSA_TOOL_MAPPING)
+        auto is_tool_mapping_index = [&]() -> std::optional<uint32_t> {
+            if (in_tool_mapping && event.type == Type::Array && event.depth == 3) {
+                return convert_int<uint32_t>(event.key.value());
+            }
+            return std::nullopt;
+        };
+#endif
         if (event.depth == 1 && event.type == Type::String && event.key == "command") {
             // Will fill in all the insides later on, if needed
 #define T(NAME, TYPE, EXP)     \
@@ -167,12 +183,12 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         // pointer-to-member parameters ‒ but that would be hard to figure out
         // and arcane („If it was hard to write, it should be hard to read too“
         // kind).
-#define INT_ARG(TYPE, FIELD_TYPE, FIELD, MARK)                                \
-    if (auto *cmd = get_if<TYPE>(&data); cmd != nullptr) {                    \
-        if (auto value = convert_int<FIELD_TYPE>(event); value.has_value()) { \
-            cmd->FIELD = *value;                                              \
-            seen_args |= MARK;                                                \
-        }                                                                     \
+#define INT_ARG(TYPE, FIELD_TYPE, FIELD, MARK)                                              \
+    if (auto *cmd = get_if<TYPE>(&data); cmd != nullptr) {                                  \
+        if (auto value = convert_int<FIELD_TYPE>(event.value.value()); value.has_value()) { \
+            cmd->FIELD = *value;                                                            \
+            seen_args |= MARK;                                                              \
+        }                                                                                   \
     }
 #define PATH_ARG(TYPE)                                                            \
     if (auto *cmd = get_if<TYPE>(&data); cmd != nullptr && buffer_available) {    \
@@ -218,6 +234,38 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             PATH_ARG(CreateFolder)
             PATH_ARG(StartEncryptedDownload)
             PATH_ARG(StartInlineDownload)
+#if ENABLED(PRUSA_TOOL_MAPPING)
+        } else if (is_arg("tool_mapping", Type::Object)) {
+            in_tool_mapping = true;
+            if (auto *cmd = get_if<StartPrint>(&data); cmd != nullptr) {
+                cmd->tool_mapping.emplace();
+                for (auto &ext : cmd->tool_mapping.value()) {
+                    for (auto &join : ext) {
+                        join = ToolMapper::NO_TOOL_MAPPED;
+                    }
+                }
+            }
+        } else if (in_tool_mapping && event.key->compare("tool_mapping") == 0 && event.type == Type::Pop && event.depth == 2) {
+            in_tool_mapping = false;
+        } else if (auto index = is_tool_mapping_index(); index.has_value()) {
+            tool_mapping_index_inner = 0;
+            // NOTE: Internally tools are numbered from 0, externally from 1.
+            tool_mapping_index_outer = index.value() - 1;
+        } else if (in_tool_mapping && event.type == Type::Primitive && event.depth == 4) {
+            if (auto *cmd = get_if<StartPrint>(&data); cmd != nullptr) {
+                if (tool_mapping_index_outer < cmd->tool_mapping.value().size()
+                    && tool_mapping_index_inner < cmd->tool_mapping.value()[tool_mapping_index_outer].size()) {
+                    auto tool = convert_int<uint32_t>(event.value.value());
+                    if (tool.has_value()) {
+                        cmd->tool_mapping.value()[tool_mapping_index_outer][tool_mapping_index_inner++] = tool.value() - 1;
+                    } else {
+                        data = BrokenCommand { "Invalid tool index" };
+                    }
+                } else {
+                    data = BrokenCommand { "Tool index out of range" };
+                }
+            }
+#endif
         } else if (is_arg("token", Type::String)) {
             if (auto *cmd = get_if<SetToken>(&data); cmd != nullptr && buffer_available) {
                 const size_t len = min(event.value->size() + 1, buff.size());

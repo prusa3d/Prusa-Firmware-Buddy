@@ -76,8 +76,8 @@ public:
         return false;
     }
 
-    virtual bool start_print(const char *) override {
-        return false;
+    virtual const char *start_print(const char *, const std::optional<ToolMapping> &) override {
+        return "No";
     }
 
     virtual const char *delete_file(const char *) override {

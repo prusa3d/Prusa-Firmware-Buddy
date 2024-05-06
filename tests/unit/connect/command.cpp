@@ -1,5 +1,6 @@
 #include <command.hpp>
 
+#include <module/prusa/tool_mapper.hpp>
 #include <cstring>
 #include <catch2/catch.hpp>
 
@@ -78,6 +79,30 @@ TEST_CASE("Stop print") {
 
 TEST_CASE("Start print") {
     REQUIRE(strcmp(command_test<StartPrint>("{\"command\": \"START_PRINT\", \"args\": [\"/usb/x.gcode\"], \"kwargs\": {\"path\": \"/usb/x.gcode\"}}").path.path(), "/usb/x.gcode") == 0);
+}
+
+TEST_CASE("Start print - tool mapping") {
+    auto cmd = command_test<StartPrint>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"1\": [2, 3], \"3\": [4, 5, 1]}}}");
+    ToolMapping expected;
+    for (auto &tool : expected) {
+        for (auto &num : tool) {
+            num = ToolMapper::NO_TOOL_MAPPED;
+        }
+    }
+    // NOTE: the index here shopuld always -1 from the original (0 based vs 1 based)
+    expected[0] = { 1, 2, 255, 255, 255 };
+    expected[2] = { 3, 4, 0, 255, 255 };
+    REQUIRE(cmd.tool_mapping.has_value());
+    auto tm = cmd.tool_mapping.value();
+    REQUIRE(tm == expected);
+}
+
+TEST_CASE("Start print - tool mapping too many tools") {
+    auto cmd = command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"1\": [2, 3, 4, 5, 1, 3]}}}");
+}
+
+TEST_CASE("Start print - tool mapping 6th tool") {
+    auto cmd = command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"6\": [2, 3, 4, 5]}}}");
 }
 
 TEST_CASE("Start print - SFN") {

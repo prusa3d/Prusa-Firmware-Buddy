@@ -1,4 +1,6 @@
 #include "marlin_printer.hpp"
+#include <module/prusa/tool_mapper.hpp>
+#include <module/prusa/spool_join.hpp>
 #include "printer_common.hpp"
 #include "hostname.hpp"
 
@@ -348,13 +350,65 @@ bool MarlinPrinter::job_control(JobControl control) {
     return false;
 }
 
-bool MarlinPrinter::start_print(const char *path) {
+#if ENABLED(PRUSA_TOOL_MAPPING)
+namespace {
+    const char *handle_tool_mapping(const ToolMapping &tool_mapping) {
+    #if HAS_MMU2()
+        if (!config_store().mmu2_enabled.get()) {
+            return "MMU not enabled, can't use tools mapping";
+        }
+    #endif
+
+        auto cleanup = []() {
+            tool_mapper.reset();
+            spool_join.reset();
+            tool_mapper.set_enable(false);
+        };
+        tool_mapper.reset();
+        tool_mapper.set_enable(true);
+        for (size_t i = 0; i < tool_mapping.size(); i++) {
+            auto &curr_tool = tool_mapping[i][0];
+            if (curr_tool == ToolMapper::NO_TOOL_MAPPED) {
+                continue;
+            }
+
+            if (!tool_mapper.set_mapping(i, curr_tool)) {
+                cleanup();
+                return "Invalid tools mapping";
+            }
+            for (size_t j = 1; j < tool_mapping[i].size(); j++) {
+                if (tool_mapping[i][j] == ToolMapper::NO_TOOL_MAPPED) {
+                    break;
+                }
+
+                if (!spool_join.add_join(curr_tool, tool_mapping[i][j])) {
+                    cleanup();
+                    return "Invalid spool join setting";
+                }
+            }
+        }
+        return nullptr;
+    }
+} // namespace
+#endif
+
+const char *MarlinPrinter::start_print(const char *path, [[maybe_unused]] const std::optional<ToolMapping> &tools_mapping) {
     if (!printer_state::remote_print_ready(false)) {
-        return false;
+        return "Can't print now";
+    }
+
+    if (tools_mapping.has_value()) {
+#if ENABLED(PRUSA_TOOL_MAPPING)
+        if (const char *error = handle_tool_mapping(tools_mapping.value()); error != nullptr) {
+            return error;
+        }
+#else
+        return "Tools mapping not enabled";
+#endif
     }
 
     print_begin(path, marlin_server::PreviewSkipIfAble::all);
-    return marlin_client::is_print_started();
+    return marlin_client::is_print_started() ? nullptr : "Can't print now";
 }
 
 const char *MarlinPrinter::delete_file(const char *path) {

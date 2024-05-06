@@ -35,8 +35,12 @@ struct SendTransferInfo {};
 struct PausePrint {};
 struct ResumePrint {};
 struct StopPrint {};
+// NOTE: if you are changing this, change also the one in printer.hpp,
+//  it is at both places, otherwise it would create circular dependencies
+using ToolMapping = std::array<std::array<uint8_t, EXTRUDERS>, EXTRUDERS>;
 struct StartPrint {
     SharedPath path;
+    std::optional<ToolMapping> tool_mapping;
 };
 struct SetPrinterReady {};
 struct CancelPrinterReady {};

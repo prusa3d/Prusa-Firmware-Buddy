@@ -71,8 +71,8 @@ bool ErrorPrinter::job_control(JobControl) {
     return false;
 }
 
-bool ErrorPrinter::start_print(const char *) {
-    return false;
+const char *ErrorPrinter::start_print(const char *, const std::optional<ToolMapping> &) {
+    return "Can't print in error";
 }
 
 const char *ErrorPrinter::delete_file(const char *) {
