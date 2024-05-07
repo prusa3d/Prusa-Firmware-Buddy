@@ -35,7 +35,7 @@ add_dependencies(translations translations-genfiles translations-nonascii-chars)
 #
 add_library(
   lang OBJECT translator.cpp translation_provider_FILE.cpp translation_provider_CPUFLASH.cpp
-              gettext_string_hash.cpp format_print_will_end.cpp
+              gettext_string_hash.cpp format_print_will_end.cpp string_view_utf8.cpp
   )
 
 target_link_libraries(lang translations sysbase::sysbase)

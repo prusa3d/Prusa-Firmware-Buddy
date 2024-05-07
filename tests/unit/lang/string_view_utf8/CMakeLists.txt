@@ -1,5 +1,5 @@
 # define the test executable
-add_executable(string_view_utf8_tests tests.cpp)
+add_executable(string_view_utf8_tests ${CMAKE_SOURCE_DIR}/src/lang/string_view_utf8.cpp tests.cpp)
 
 # define required search paths
 target_include_directories(string_view_utf8_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/lang)

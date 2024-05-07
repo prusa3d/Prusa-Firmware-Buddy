@@ -16,7 +16,7 @@ target_include_directories(support_utils_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/co
 add_executable(
   str_utils_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/str_utils_test.cpp ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/str_utils.hpp
+  ${CMAKE_SOURCE_DIR}/src/common/str_utils.hpp ${CMAKE_SOURCE_DIR}/src/lang/string_view_utf8.cpp
   )
 target_include_directories(
   str_utils_tests PUBLIC # ${CMAKE_SOURCE_DIR}/src/common

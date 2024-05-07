@@ -1,7 +1,8 @@
 # define the test executable
 add_executable(
-  format_print_will_end_tests ../../../../src/lang/format_print_will_end.cpp
-                              ../../../../src/lang/translator.cpp tests.cpp
+  format_print_will_end_tests
+  ${CMAKE_SOURCE_DIR}/src/lang/string_view_utf8.cpp ../../../../src/lang/format_print_will_end.cpp
+  ../../../../src/lang/translator.cpp tests.cpp
   )
 
 # define required search paths

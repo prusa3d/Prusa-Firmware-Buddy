@@ -325,8 +325,9 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
         // Čeština, Español, Français
         static const uint8_t na[] = "Čšñç";
         string_view_utf8 nas = string_view_utf8::MakeRAM(na);
+        StringReaderUtf8 reader(nas);
         unichar c;
-        while ((c = nas.getUtf8Char()) != 0) {
+        while ((c = reader.getUtf8Char()) != 0) {
             nonASCIICharacters.insert(c);
         }
     }

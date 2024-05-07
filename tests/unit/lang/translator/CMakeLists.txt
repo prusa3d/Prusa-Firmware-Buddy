@@ -13,6 +13,7 @@ add_custom_target(translations_pofiles_dump DEPENDS "${CMAKE_CURRENT_BINARY_DIR}
 # define the test executable
 add_executable(
   translator_tests
+  ${CMAKE_SOURCE_DIR}/src/lang/string_view_utf8.cpp
   ${CMAKE_SOURCE_DIR}/src/lang/translator.cpp
   ${CMAKE_SOURCE_DIR}/src/lang/translation_provider_CPUFLASH.cpp
   ${CMAKE_SOURCE_DIR}/src/lang/translation_provider_FILE.cpp

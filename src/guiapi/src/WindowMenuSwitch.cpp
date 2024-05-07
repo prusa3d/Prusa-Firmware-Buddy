@@ -87,7 +87,7 @@ void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_
 }
 
 Rect16::Width_t IWiSwitch::calculateExtensionWidth() const {
-    const size_t len = current_item_text().computeNumUtf8CharsAndRewind();
+    const size_t len = current_item_text().computeNumUtf8Chars();
     const size_t ret = width(GuiDefaults::FontMenuItems) * len + Padding.left + Padding.right + (GuiDefaults::MenuSwitchHasBrackets ? (width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right) * 2 : 0);
     return ret;
 }

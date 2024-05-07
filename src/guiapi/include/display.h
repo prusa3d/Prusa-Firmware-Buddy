@@ -29,7 +29,7 @@ typedef void(display_fill_rect_t)(Rect16 rc, color_t clr);
 /// @param charX x-coordinate of character (glyph) in font bitmap (remember, fonts are bitmaps 16 chars wide and arbitrary lines of chars tall)
 /// @param charY y-coordinate of character (glyph) in font bitmap
 typedef bool(display_draw_char_t)(point_ui16_t pt, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
-typedef size_ui16_t(display_draw_text_t)(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
+typedef size_ui16_t(display_draw_text_t)(Rect16 rc, const string_view_utf8 &str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef uint8_t *(display_borrow_buffer_t)();
 typedef void(display_return_buffer_t)();
 typedef uint32_t(display_buffer_pixel_size_t)();

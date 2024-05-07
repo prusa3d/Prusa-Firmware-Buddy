@@ -4,7 +4,7 @@
 #include <span>
 
 size_t description_line_t::title_width(string_view_utf8 *title_str) {
-    return title_str->computeNumUtf8CharsAndRewind() * width(Font::small);
+    return title_str->computeNumUtf8Chars() * width(Font::small);
 }
 
 size_t description_line_t::value_width(string_view_utf8 *title_str) {

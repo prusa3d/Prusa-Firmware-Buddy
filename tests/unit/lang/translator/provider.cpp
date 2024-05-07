@@ -10,7 +10,9 @@
 bool CompareStringViews(string_view_utf8 s, string_view_utf8 s2, set<unichar> &nonAsciiChars, const char *langCode) {
     unichar c;
     size_t i = 0;
-    while ((c = s.getUtf8Char()) != 0) {
+    StringReaderUtf8 r(s);
+    StringReaderUtf8 r2(s2);
+    while ((c = r.getUtf8Char()) != 0) {
         i++;
         if (c > 128) {
             nonAsciiChars.insert(c); // just stats how many non-ASCII UTF-8 characters do we have for now
@@ -20,13 +22,13 @@ bool CompareStringViews(string_view_utf8 s, string_view_utf8 s2, set<unichar> &n
                 // Or kick the translator person to stop copying BS formatting characters from MS Word into Phraseapp
                 // Typical situation: U+202A -> e2 80 aa -> LEFT-TO-RIGHT EMBEDDING
                 char tmp[1024];
-                s2.rewind();
                 s2.copyToRAM(tmp, 1024);
                 INFO("Language=" << langCode << " : string='" << tmp << "': needs an unknown non-ASCII character ord=0x" << std::hex << c);
                 return false;
             }
         }
-        unichar x = s2.getUtf8Char();
+
+        unichar x = r2.getUtf8Char();
         if (c != x) {
             UNSCOPED_INFO("failed at: " << c);
             UNSCOPED_INFO("failed at: " << x);
@@ -60,13 +62,16 @@ bool CheckAllTheStrings(const deque<string> &rawStringKeys, const deque<string> 
     // I really WANT C++14 in this case!
     for_each(stringControlMap.cbegin(), stringControlMap.cend(), [&](const auto &v) {
         const char *key = v.first.c_str();
-        string_view_utf8 s = provider.GetText(key);
+        const string_view_utf8 s = provider.GetText(key);
         string outString;
-        size_t numOfChars = s.computeNumUtf8CharsAndRewind();
-        for (size_t i = 0; i < numOfChars; ++i) {
-            outString.append(1, s.getUtf8Char());
+        size_t numOfChars = s.computeNumUtf8Chars();
+
+        {
+            StringReaderUtf8 s2(s);
+            for (size_t i = 0; i < numOfChars; ++i) {
+                outString.append(1, s2.getUtf8Char());
+            }
         }
-        s.rewind();
 
         // make the same interface over the translated string
         const char *value = v.second.c_str();

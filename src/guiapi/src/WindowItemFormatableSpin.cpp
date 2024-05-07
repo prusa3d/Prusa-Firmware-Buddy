@@ -20,7 +20,7 @@ void WI_LAMBDA_SPIN::UpdateText() {
     string_view_utf8 stringView = string_view_utf8::MakeRAM((uint8_t *)text);
 
     // Calculate extension width
-    const size_t len = stringView.computeNumUtf8CharsAndRewind();
+    const size_t len = stringView.computeNumUtf8Chars();
     extension_width = width(GuiDefaults::FontMenuItems) * len + Padding.left + Padding.right + (GuiDefaults::MenuSwitchHasBrackets ? (width(BracketFont) + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right) * 2 : 0);
 }
 

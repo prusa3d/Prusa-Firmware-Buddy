@@ -627,13 +627,15 @@ TEST_CASE("multi-line UTF-8", "[str2multiline][text_wrap]") {
 
         const std::uint8_t utf8str[] = "příliš žluťoučký kůň úpěl ďábelské ódy : PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY";
         string_view_utf8 sf = string_view_utf8::MakeCPUFLASH(utf8str);
+        StringReaderUtf8 reader(sf);
+
         monospace font;
         text_wrapper<test_buffer, const monospace *> w(240, &font);
         unichar c;
         std::vector<unichar> str(n255), expected(n255);
         size_t index = 0;
         to_unichar("příliš žluťoučký kůň\núpěl ďábelské ódy :\nPŘÍLIŠ ŽLUŤOUČKÝ KŮŇ\nÚPĚL ĎÁBELSKÉ ÓDY", &expected);
-        while ((c = w.character(sf)) != '\0') {
+        while ((c = w.character(reader)) != '\0') {
             str[index++] = c;
         }
         str[index] = '\0';

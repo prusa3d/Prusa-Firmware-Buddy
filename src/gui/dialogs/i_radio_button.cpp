@@ -233,7 +233,7 @@ IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
 
     for (size_t index = 0; index < btn_count; index++) {
         string_view_utf8 txt = _(ret.txts_to_print[index]);
-        ret.text_widths[index] = width(ButtonFont) * static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
+        ret.text_widths[index] = width(ButtonFont) * static_cast<uint8_t>(txt.computeNumUtf8Chars());
     }
     GetRect().HorizontalSplit(
         ret.splits,

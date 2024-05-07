@@ -265,12 +265,14 @@ StringBuilder &StringBuilder::append_string(const char *str) {
 }
 
 StringBuilder &StringBuilder::append_string_view(string_view_utf8 str) {
+    StringReaderUtf8 reader(str);
+
     while (true) {
         if (is_problem()) {
             return *this;
         }
 
-        char b = str.getbyte();
+        char b = reader.getbyte();
         if (b == '\0') {
             return *this;
         }

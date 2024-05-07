@@ -703,7 +703,7 @@ void ToolsMappingBody::update_bottom_guide() {
     auto print_alert_part_of_guide = [&](const char *state_text, const img::Resource *img) {
         strview = _(state_text);
         bottom_icon.SetRes(img);
-        size_t cur_strlen = strview.computeNumUtf8CharsAndRewind();
+        size_t cur_strlen = strview.computeNumUtf8Chars();
         int16_t left_pos = (GuiDefaults::ScreenWidth - (width(Font::normal) + 1) * (cur_strlen + 1) - alert_icon_size) / 2; // make the pos to be on the left of the text (+ one added space to the left of the text)
         Rect16 new_icon_rect = bottom_icon_rect + Rect16::X_t { static_cast<int16_t>(left_pos) };
         bottom_icon.SetRect(static_cast<Rect16>(new_icon_rect));
