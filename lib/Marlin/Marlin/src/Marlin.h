@@ -315,10 +315,6 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
 
 #endif // !MIXING_EXTRUDER
 
-#if ENABLED(EXPERIMENTAL_I2CBUS)
-  #include "feature/twibus.h"
-#endif
-
 #if ENABLED(G38_PROBE_TARGET)
   extern uint8_t G38_move;          // Flag to tell the ISR that G38 is in progress, and the type
   extern bool G38_did_trigger;      // Flag from the ISR to indicate the endstop changed
