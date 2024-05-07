@@ -51,7 +51,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
     }
 #if HAS_TOOLCHANGER() || HAS_MMU2()
     if (phase != PhasesPrintPreview::tools_mapping) {
-        spool_join.reset();
+        tools_mapping.reset();
         header.set_show_bed_info(false);
     }
 #endif
