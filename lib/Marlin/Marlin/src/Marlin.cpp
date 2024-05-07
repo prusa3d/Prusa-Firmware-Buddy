@@ -253,18 +253,6 @@ void setup_powerhold() {
   void enableStepperDrivers()  { SET_INPUT(STEPPER_RESET_PIN); }      // Set to input, allowing pullups to pull the pin high
 #endif
 
-#if ENABLED(EXPERIMENTAL_I2CBUS) && I2C_SLAVE_ADDRESS > 0
-
-  void i2c_on_receive(int bytes) { // just echo all bytes received to serial
-    i2c.receive(bytes);
-  }
-
-  void i2c_on_request() {          // just send dummy data for now
-    i2c.reply("Hello World!\n");
-  }
-
-#endif
-
 /**
  * Sensitive pin test for M42, M226
  */
