@@ -71,7 +71,7 @@ public:
 
     template <typename T>
     T *get() const {
-        if (current && ScreenFactory::DoesCreatorHoldType<T>(stack_iterator->creator)) {
+        if (IsScreenOpened<T>()) {
             return static_cast<T *>(current.get());
         } else {
             return nullptr;
@@ -101,8 +101,12 @@ public:
      * @return false screen is not opened
      */
     template <class T>
-    bool IsScreenOpened() {
-        return stack_iterator && ScreenFactory::DoesCreatorHoldType<T>(stack_iterator->creator);
+    bool IsScreenOpened() const {
+        return ScreenFactory::DoesCreatorHoldType<T>(stack_iterator->creator);
+    }
+
+    bool IsScreenOpened(ScreenFactory::Creator creator) const {
+        return stack_iterator->creator == creator;
     }
 
     /**
@@ -114,9 +118,9 @@ public:
      * @return false screen is not closed
      */
     template <class T>
-    bool IsScreenClosed() {
+    bool IsScreenClosed() const {
         for (auto it = stack.begin(); it != stack_iterator; ++it) {
-            if (it && ScreenFactory::DoesCreatorHoldType<T>(it->creator)) {
+            if (ScreenFactory::DoesCreatorHoldType<T>(it->creator)) {
                 return true;
             }
         }
@@ -132,7 +136,7 @@ public:
      * @return false screen is not on stack
      */
     template <class T>
-    bool IsScreenOnStack() {
+    bool IsScreenOnStack() const {
         return IsScreenOpened<T>() || IsScreenClosed<T>();
     }
 
