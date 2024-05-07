@@ -7,8 +7,15 @@
 #include "gui_invalidate.hpp"
 #include "img_resources.hpp"
 
-static IWindowMenuItem *focused_menu_item = nullptr;
-static bool focused_menu_item_edited = false;
+namespace window_menu_item_private {
+
+IWindowMenuItem *focused_menu_item = nullptr;
+bool focused_menu_item_edited = false;
+txtroll_t focused_menu_item_roll;
+
+} // namespace window_menu_item_private
+
+using namespace window_menu_item_private;
 
 constexpr IWindowMenuItem::ColorScheme IWindowMenuItem::color_scheme_title = {
     .text = {
@@ -121,10 +128,10 @@ bool IWindowMenuItem::move_focus(IWindowMenuItem *target) {
 
     // Redraw previously focused menu item
     if (auto *i = focused_menu_item) {
-        i->roll.Stop();
         i->Invalidate();
     }
 
+    focused_menu_item_roll.Deinit();
     focused_menu_item = target;
 
     if (auto *i = focused_menu_item) {
@@ -133,7 +140,6 @@ bool IWindowMenuItem::move_focus(IWindowMenuItem *target) {
         }
 
         i->Invalidate();
-        i->roll.Deinit();
     }
 
     return true;
@@ -220,8 +226,21 @@ void IWindowMenuItem::Print(Rect16 rect) {
         printIcon(getIconRect(rect), raster_op, mi_color_back);
     }
 
+    const auto label_rect = getLabelRect(rect);
+
+    if (is_focused() && focused_menu_item_roll.NeedInit()) {
+        focused_menu_item_roll.Init(label_rect, label, label_font, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment());
+    }
+
     if (IsLabelInvalid()) {
-        roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment());
+        if (is_focused()) {
+            // Is focused -> use shared roll instance
+            focused_menu_item_roll.RenderTextAlign(label_rect, label, label_font, mi_color_back, mi_color_text, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment());
+
+        } else {
+            // Not focused -> render without roll
+            render_text_align(label_rect, label, label_font, mi_color_back, mi_color_text, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment(), true);
+        }
     }
 
     if (IsExtensionInvalid() && extension_width && icon_position != IconPosition::replaces_extends && (IsEnabled() || DoesShowDisabledExtension())) {
@@ -288,7 +307,7 @@ void IWindowMenuItem::printExtension(Rect16 extension_rect, [[maybe_unused]] col
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {
     if (IsEnabled()) {
-        roll.Deinit();
+        focused_menu_item_roll.Deinit();
         InValidateExtension();
         click(window_menu);
     }
@@ -296,7 +315,7 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
 
 void IWindowMenuItem::Touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
     if (IsEnabled()) {
-        roll.Deinit();
+        focused_menu_item_roll.Deinit();
         InValidateExtension();
         touch(window_menu, relative_touch_point);
     }
@@ -304,17 +323,6 @@ void IWindowMenuItem::Touch(IWindowMenu &window_menu, point_ui16_t relative_touc
 
 void IWindowMenuItem::touch(IWindowMenu &window_menu, [[maybe_unused]] point_ui16_t relative_touch_point) {
     click(window_menu);
-}
-
-// Reinits text rolling in case of focus/defocus/click
-void IWindowMenuItem::reInitRoll(Rect16 rect) {
-    if (roll.NeedInit()) {
-        roll.Init(rect, GetLabel(), label_font, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment());
-    }
-}
-
-void IWindowMenuItem::deInitRoll() {
-    roll.Deinit();
 }
 
 bool IWindowMenuItem::IsHidden() const {
@@ -394,9 +402,9 @@ auto IWindowMenuItem::get_icon_position() const -> IconPosition {
     return icon_position;
 }
 
-void IWindowMenuItem::Roll() {
-    if (roll.Tick() == invalidate_t::yes) {
-        InValidateLabel();
+void IWindowMenuItem::handle_roll() {
+    if (focused_menu_item && focused_menu_item_roll.Tick() == invalidate_t::yes) {
+        focused_menu_item->InValidateLabel();
     }
 }
 

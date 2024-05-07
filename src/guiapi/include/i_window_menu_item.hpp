@@ -122,7 +122,6 @@ protected:
 private:
     Font label_font = GuiDefaults::FontMenuItems;
     string_view_utf8 label;
-    txtroll_t roll;
 
     uint8_t hidden : 2;
     is_enabled_t enabled : 1;
@@ -155,8 +154,6 @@ protected:
     void setLabelFont(Font);
     Font getLabelFont() const;
 
-    void reInitRoll(Rect16 rect);
-    void deInitRoll();
     color_t GetTextColor() const;
     color_t GetBackColor() const;
 
@@ -244,9 +241,9 @@ public:
     bool Change(int dif); // returns if changed
     void Click(IWindowMenu &window_menu);
     void Touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point);
-    inline void InitRollIfNeeded(Rect16 rect) { reInitRoll(getLabelRect(rect)); }
 
-    void Roll();
+    /// Handles text roll on the focused item
+    static void handle_roll();
 
     bool IsInvalid() const;
     bool IsIconInvalid() const;

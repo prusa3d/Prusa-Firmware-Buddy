@@ -225,7 +225,6 @@ void IWindowMenu::draw() {
             continue;
         }
 
-        item->InitRollIfNeeded(rect);
         item->Print(rect);
 
         if constexpr (GuiDefaults::MenuLinesBetweenItems) {
@@ -314,9 +313,7 @@ void IWindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         break;
 
     case GUI_event_t::TEXT_ROLL:
-        if (focused_item) {
-            focused_item->Roll();
-        }
+        IWindowMenuItem::handle_roll();
         break;
 
     default:
