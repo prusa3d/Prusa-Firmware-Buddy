@@ -122,7 +122,7 @@ def newline():
     return auto, final
 
 
-def constant(s, nocase=False):
+def constant(s):
     """
     Automaton accepting/consuming a string constant.
     """
@@ -134,12 +134,8 @@ def constant(s, nocase=False):
     # others.
     mid = auto.add_state()
     final = auto.add_state()
-    if nocase:
-        s = s.lower()
-    mid.set_path(s[1:], nocase)
-    if nocase:
-        lt = LabelType.CharNoCase
-    else:
-        lt = LabelType.Char
+    s = s.lower()
+    mid.set_path(s[1:])
+    lt = LabelType.CharNoCase
     start.add_transition(s[0], lt, mid)
     return auto, final

@@ -145,6 +145,7 @@ struct ActiveState {
  *
  * An edge in the graph terminology.
  */
+#pragma pack(push, 1)
 struct Transition {
     /// Index of the destination state if the transition matches.
     StateIdx target_state : 12;
@@ -204,9 +205,12 @@ struct State {
      */
     PathIdx path : 7;
     bool has_path : 1;
-    // Match the path case insensitively (must be already lower-case).
-    bool path_nocase : 1;
 };
+#pragma pack(pop)
+
+// Just making sure these don't accidentally grow, the tables are rather big and every byte of the Flash counts.
+static_assert(sizeof(State) == 3);
+static_assert(sizeof(Transition) == 3);
 
 /// Details of an event emitted.
 struct Event {

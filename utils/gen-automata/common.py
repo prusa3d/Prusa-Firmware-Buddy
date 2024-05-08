@@ -75,13 +75,13 @@ class Compiled:
             """
             #include <automata/core.h>
             namespace {
-            struct automata::StrPath paths_array[] = {
+            constexpr const struct automata::StrPath paths_array[] = {
             """
         ]
         output.extend(["{ \"%s\" }," % p for p in self.__paths])
         output.append("""
             };
-            const struct automata::Transition transitions_array[] = {
+            constexpr const struct automata::Transition transitions_array[] = {
             """)
         for (target, ltype, label, fallthrough) in self.__transitions:
             if ltype == LabelType.Char:
@@ -101,14 +101,14 @@ class Compiled:
                  str(fallthrough).lower()))  # TODO: C-style escaping!
         output.append("""
             };
-            const struct automata::State states_array[] = {
+            constexpr const struct automata::State states_array[] = {
             """)
-        for (first_transition, emit_enter, emit_leave, path, has_path,
-             path_nocase) in self.__states:
-            output.append("{ %d, %s, %s, %d, %s, %s }," %
-                          (first_transition, str(emit_enter).lower(),
-                           str(emit_leave).lower(), path,
-                           str(has_path).lower(), str(path_nocase).lower()))
+        for (first_transition, emit_enter, emit_leave, path,
+             has_path) in self.__states:
+            output.append(
+                "{ %d, %s, %s, %d, %s }," %
+                (first_transition, str(emit_enter).lower(),
+                 str(emit_leave).lower(), path, str(has_path).lower()))
         output.append(f"""
             }};
             }}
@@ -194,7 +194,7 @@ class Automaton:
             (emit_enter, emit_leave) = state.emit_marks()
             path_idx = 0
             has_path = False
-            (path, path_nocase) = state.path()
+            path = state.path()
             if path:
                 try:
                     path_idx = paths.index(path)
@@ -211,9 +211,11 @@ class Automaton:
             if name:
                 assert name not in names
                 names[name] = state.id()
-            states.append((first_transition, emit_enter, emit_leave, path_idx,
-                           has_path, path_nocase))
-        states.append((len(transitions), False, False, 0, False, False))
+            states.append(
+                (first_transition, emit_enter, emit_leave, path_idx, has_path))
+        # Sentinel state (not reachable, but the last one needs it to know how
+        # many transitions it has.
+        states.append((len(transitions), False, False, 0, False))
 
         return Compiled(namespace, names, paths, transitions, states)
 
@@ -232,7 +234,6 @@ class State:
         self.__emit_leave = False
         self.__emit_enter = False
         self.__path = None
-        self.__path_nocase = False
 
     def add_transition(self, label, label_type, target, fallthrough=False):
         transition = Transition(label, label_type, target, fallthrough)
@@ -261,7 +262,7 @@ class State:
         self.__emit_leave = True
 
     def path(self):
-        return (self.__path, self.__path_nocase)
+        return self.__path
 
     def name(self):
         return self.__name
@@ -269,9 +270,8 @@ class State:
     def set_name(self, name):
         self.__name = name
 
-    def set_path(self, path, nocase):
+    def set_path(self, path):
         self.__path = path
-        self.__path_nocase = nocase
 
     def find_next_state(self, label):
         """
@@ -296,7 +296,6 @@ class State:
     def join(self, another):
         if not self.__path and another.__path:
             self.__path = another.__path
-            self.__path_nocase = another.__path_nocase
         self.__emit_enter |= another.__emit_enter
         self.__emit_leave |= another.__emit_leave
         self.__name = self.__name or another.__name
