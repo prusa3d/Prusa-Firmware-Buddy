@@ -1,7 +1,5 @@
 add_executable(
   nhttp_tests
-  # Test files
-  ${CMAKE_CURRENT_SOURCE_DIR}/multipart_upload.cpp
   # Not really tests, just stuffings to satisfy the linker.
   ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.c
   ${CMAKE_CURRENT_SOURCE_DIR}/random_mock.cpp
@@ -17,11 +15,9 @@ add_executable(
   # ${CMAKE_CURRENT_SOURCE_DIR}/segmented_json_rendering.cpp
   # Tested files
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/common_selectors.cpp
-  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/multipart_parser.c
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/file_info.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/file_command.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/gcode_upload.cpp
-  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/upload_state.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/gcode_preview.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/server.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/job_command.cpp

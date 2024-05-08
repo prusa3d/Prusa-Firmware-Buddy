@@ -1,6 +1,4 @@
 #include "gcode_upload.h"
-#include "upload_state.h"
-#include "file_info.h"
 #include "handler.h"
 #include "splice.h"
 #include "../../src/common/filename_type.hpp"
@@ -14,13 +12,11 @@
 #include <cassert>
 #include <cstring>
 #include <unistd.h>
-#include <errno.h>
 
 extern "C" {
 
 // Inject for tests, which are compiled on systems without it in the header.
 size_t strlcpy(char *, const char *, size_t);
-size_t strlcat(char *, const char *, size_t);
 }
 
 namespace nhttp::printer {
@@ -32,16 +28,12 @@ using handler::Step;
 using http::Status;
 using splice::Result;
 using std::array;
-using std::get;
-using std::get_if;
-using std::holds_alternative;
 using std::make_tuple;
 using std::move;
 using std::nullopt;
 using std::optional;
 using std::string_view;
 using std::tuple;
-using std::variant;
 using transfers::ChangedPath;
 using transfers::CHECK_FILENAME;
 using transfers::Monitor;
@@ -54,7 +46,7 @@ using transfers::USB_MOUNT_POINT_LENGTH;
 using Type = ChangedPath::Type;
 using Incident = ChangedPath::Incident;
 
-GcodeUpload::GcodeUpload(UploadParams &&uploader, Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, PartialFile::Ptr &&file, UploadedNotify *uploaded)
+GcodeUpload::GcodeUpload(PutParams &&uploader, Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, PartialFile::Ptr &&file, UploadedNotify *uploaded)
     : upload(move(uploader))
     , monitor_slot(move(slot))
     , uploaded_notify(uploaded)
@@ -120,7 +112,7 @@ GcodeUpload::~GcodeUpload() {
     }
 }
 
-GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors, UploadParams &&uploadParams) {
+GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, UploadedNotify *uploaded, bool json_errors, PutParams &&uploadParams) {
     // Note: authentication already checked by the caller.
     // Note: We return errors with connection-close because we don't know if the client sent part of the data.
 
@@ -138,7 +130,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
         return StatusPage(Status::NotImplemented, parser, "0-sized files aren't implemented");
     }
 
-    const char *path = holds_alternative<PutParams>(uploadParams) ? get<PutParams>(uploadParams).filepath.data() : nullptr;
+    const char *path = uploadParams.filepath.data();
     auto slot = Monitor::instance.allocate(Monitor::Type::Link, path, *parser.content_length, parser.print_after_upload);
     if (!slot.has_value()) {
         // FIXME: Is this the right status to return? Change would need to be
@@ -157,50 +149,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     }
 }
 
-Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
-    if (terminated_by_client && size_rest > 0) {
-        return { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated body") };
-    }
-
-    const size_t read = std::min(input.size(), size_rest);
-    if (monitor_slot.is_stopped()) {
-        monitor_slot.done(Monitor::Outcome::Stopped);
-        return { 0, 0, StatusPage(Status::ServiceTemporarilyUnavailable, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Upload stopped from connect") };
-    }
-    return std::visit([input, read, this](auto &uploadParams) -> Step { return step(input, read, uploadParams); }, upload);
-}
-
-Step GcodeUpload::step(string_view input, const size_t read, UploadState &uploader) {
-    monitor_slot.progress(read);
-
-    uploader.setup(this);
-
-    uploader.feed(input.substr(0, read));
-    size_rest -= read;
-
-    if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
-        return { read, 0, StatusPage(get<0>(err), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, get<1>(err)) };
-    }
-
-    if (size_rest == 0) {
-        // Note: We do connection-close here. We are lazy to pass the
-        // can-keep-alive flag around and it's unlikely one would want to reuse
-        // the upload connection anyway.
-        if (uploader.done()) {
-            char filename[FILE_NAME_BUFFER_LEN + 5];
-            strcpy(filename, USB_MOUNT_POINT);
-            const char *orig_filename = uploader.get_filename();
-            strlcpy(filename + USB_MOUNT_POINT_LENGTH, orig_filename, sizeof(filename) - USB_MOUNT_POINT_LENGTH);
-            return { read, 0, FileInfo(filename, false, json_errors, true, FileInfo::ReqMethod::Get, FileInfo::APIVersion::Octoprint, std::nullopt) };
-        } else {
-            return { read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Missing file") };
-        }
-    } else {
-        return { read, 0, Continue() };
-    }
-}
-
-UploadHooks::Result GcodeUpload::data(std::string_view data) {
+UploadHooks::Result GcodeUpload::data(string_view data) {
     assert(tmp_upload_file);
     if (tmp_upload_file->write(reinterpret_cast<const uint8_t *>(data.begin()), data.size())) {
         return make_tuple(Status::Ok, nullptr);
@@ -347,12 +296,12 @@ namespace {
             return f.get();
         }
         // TODO: alias for the type, probably unify with the UploadHooks::Result
-        virtual std::optional<std::tuple<http::Status, const char *>> done() override {
+        virtual optional<tuple<http::Status, const char *>> done() override {
             assert(f != nullptr);
             assert(monitor_slot.has_value());
             bool cleanup_temp_file = true;
             const auto fname = transfer_name(file_idx);
-            std::tuple<http::Status, const char *> error { Status::InternalServerError, "Unknown error" };
+            tuple<http::Status, const char *> error { Status::InternalServerError, "Unknown error" };
             switch (result) {
             case Result::Ok: {
                 // Remove the "/usb/" prefix
@@ -442,9 +391,7 @@ UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
         return get<UploadHooks::Result>(result);
     }
 
-    auto putParams = std::get_if<PutParams>(&upload);
-    bool overwrite = putParams != nullptr && putParams->overwrite;
-    if (overwrite) {
+    if (upload.overwrite) {
         char filepath[FILE_NAME_BUFFER_LEN];
         auto error = prepend_usb_path(filename, filepath, sizeof(filepath));
         if (std::get<0>(error) != Status::Ok) {
@@ -491,9 +438,7 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     if (truncate(fname.begin(), written) != 0) {
         return std::make_tuple(Status::InsufficientStorage, "Couldn't set length of file");
     }
-    auto putParams = std::get_if<PutParams>(&upload);
-    bool overwrite = putParams != nullptr && putParams->overwrite;
-    return try_rename(fname.begin(), final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
+    return try_rename(fname.begin(), final_filename, upload.overwrite, [&](char *filename) -> UploadHooks::Result {
         monitor_slot.done(Monitor::Outcome::Finished);
         ChangedPath::instance.changed_path(filename, Type::File, Incident::Created);
         if (uploaded_notify != nullptr) {
@@ -508,9 +453,19 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     });
 }
 
-Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParams) {
+Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
+    if (terminated_by_client && size_rest > 0) {
+        return { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated body") };
+    }
+
+    const size_t read = std::min(input.size(), size_rest);
+    if (monitor_slot.is_stopped()) {
+        monitor_slot.done(Monitor::Outcome::Stopped);
+        return { 0, 0, StatusPage(Status::ServiceTemporarilyUnavailable, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Upload stopped from connect") };
+    }
+
     // remove the "/usb/" prefix
-    const char *filename = putParams.filepath.data() + USB_MOUNT_POINT_LENGTH;
+    const char *filename = upload.filepath.data() + USB_MOUNT_POINT_LENGTH;
 
     static_cast<void>(input);
     auto filename_error = check_filename(filename);
@@ -523,9 +478,9 @@ Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParam
     tmp_upload_file.reset(); // Does move really set it to nullptr, or is it just a copy?
     put_transfer.set_monitor_slot(move(monitor_slot));
     put_transfer.uploaded_notify = uploaded_notify;
-    put_transfer.filepath = putParams.filepath;
-    put_transfer.print_after_upload = putParams.print_after_upload;
-    put_transfer.overwrite = putParams.overwrite;
+    put_transfer.filepath = upload.filepath;
+    put_transfer.print_after_upload = upload.print_after_upload;
+    put_transfer.overwrite = upload.overwrite;
     put_transfer.file_idx = file_idx;
     cleanup_temp_file = false;
     return { 0, 0, make_tuple(&put_transfer, size_rest) };

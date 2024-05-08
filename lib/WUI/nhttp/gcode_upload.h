@@ -27,10 +27,7 @@ namespace splice {
 namespace printer {
 
     /**
-     * \brief A handler to accept incoming gcodes.
-     *
-     * This will take a POST or PUT request with valid form containing gcode and store it
-     * onto the USB drive.
+     * \brief A handler to accept incoming gcode files.
      */
     class GcodeUpload final : private UploadHooks {
     public:
@@ -41,10 +38,9 @@ namespace printer {
             bool print_after_upload;
             bool overwrite;
         };
-        using UploadParams = std::variant<PutParams, UploadState>;
 
     private:
-        UploadParams upload;
+        PutParams upload;
         transfers::Monitor::Slot monitor_slot;
 
         UploadedNotify *uploaded_notify;
@@ -63,17 +59,14 @@ namespace printer {
         virtual Result finish(const char *final_filename, bool start_print) override;
         virtual Result check_filename(const char *filename) const override;
 
-        handler::Step step(std::string_view input, const size_t read, PutParams &putParams);
-        handler::Step step(std::string_view input, const size_t read, UploadState &uploader);
-
-        GcodeUpload(UploadParams &&uploader, transfers::Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, transfers::PartialFile::Ptr &&file, UploadedNotify *uploaded);
+        GcodeUpload(PutParams &&uploader, transfers::Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, transfers::PartialFile::Ptr &&file, UploadedNotify *uploaded);
 
     public:
         bool want_read() const { return size_rest > 0; }
         bool want_write() const { return false; }
         handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
         using UploadResult = std::variant<handler::StatusPage, GcodeUpload>;
-        static UploadResult start(const handler::RequestParser &parser, UploadedNotify *uploaded, bool json_errors, UploadParams &&uploadParams);
+        static UploadResult start(const handler::RequestParser &parser, UploadedNotify *uploaded, bool json_errors, PutParams &&uploadParams);
         GcodeUpload(const GcodeUpload &other) = delete;
         GcodeUpload(GcodeUpload &&other);
         GcodeUpload &operator=(const GcodeUpload &other) = delete;

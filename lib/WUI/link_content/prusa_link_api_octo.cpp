@@ -56,26 +56,7 @@ optional<ConnectionState> PrusaLinkApiOcto::accept(const RequestParser &parser) 
         // scenarios and will simply produce slightly weird error messages in
         // case it isn't.
         if (parser.method == Method::Post && !parser.boundary().empty()) {
-            const auto boundary = parser.boundary();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wvla" // TODO: person who knows a reasonable buffer size should refactor this code to not use variable length array
-            char boundary_cstr[boundary.size() + 1];
-#pragma GCC diagnostic pop
-            memcpy(boundary_cstr, boundary.begin(), boundary.size());
-            boundary_cstr[boundary.size()] = '\0';
-            printer::UploadState uploadState(boundary_cstr);
-            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(uploadState));
-            /*
-             * So, we have a "smaller" variant (eg. variant<A, B, C>) and
-             * want a "bigger" variant<A, B, C, D, E>. C++ templates can't
-             * do the "upgrade" automatically. But it can upgrade A into
-             * the bigger one, it can upgrade B into the bigger one and can
-             * upgrade C...
-             *
-             * Therefore we use the visit to take the first one apart and
-             * then convert each type separately into the bigger one.
-             */
-            return std::visit([](auto upload) -> ConnectionState { return upload; }, std::move(upload));
+            return StatusPage(Status::Gone, parser);
         } else {
             static const auto prefix = "/api/files";
             static const size_t prefix_len = strlen(prefix);

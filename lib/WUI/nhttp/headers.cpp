@@ -32,6 +32,7 @@ namespace {
         { Status::MethodNotAllowed, "Method Not Allowed" },
         { Status::RequestTimeout, "Request Timeout" },
         { Status::Conflict, "Conflict" },
+        { Status::Gone, "Gone" },
         { Status::LengthRequired, "Length Required" },
         { Status::UnsupportedMediaType, "Unsupported Media Type" },
         { Status::IMATeaPot, "I'm a Teapot Printer" },

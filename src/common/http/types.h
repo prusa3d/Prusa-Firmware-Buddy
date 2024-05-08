@@ -120,6 +120,7 @@ enum Status {
     MethodNotAllowed = 405,
     RequestTimeout = 408,
     Conflict = 409,
+    Gone = 410,
     LengthRequired = 411,
     PayloadTooLarge = 413,
     UriTooLong = 414,
