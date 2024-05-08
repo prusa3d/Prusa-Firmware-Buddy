@@ -26,7 +26,7 @@ def http_version():
     """
     The HTTP/?.? version.
     """
-    http, slash = constant("HTTP/", nocase=True)
+    http, slash = constant("HTTP/")
     version = http.add_state("Version")
     version.mark_enter()
     slash.add_transition("Digit", LabelType.Special, version)
@@ -176,7 +176,7 @@ def read_boundary():
                                read_until_colon,
                                fallthrough=True)
     in_boundary.loop_fallback()
-    waiting_word.set_path("boundary=", True)
+    waiting_word.set_path("boundary=")
     waiting_word.loop("HorizWhitespace", LabelType.Special)
     waiting_line, waiting_end = newline()
     auto.join(waiting_word, waiting_line)
@@ -221,8 +221,7 @@ def keyworded_header(keywords, entry_name=None):
         kw_start.mark_enter()
         start.add_transition(kw[0], LabelType.CharNoCase, kw_start)
         if len(kw) > 1:
-            kw_start.set_path(kw[1:],
-                              nocase=True)  # Will lead to the next state
+            kw_start.set_path(kw[1:])
             end = auto.add_state(keywords[kw])
             end.mark_enter()
             terminals.append(kw_start)

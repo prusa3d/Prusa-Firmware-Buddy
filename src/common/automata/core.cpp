@@ -73,7 +73,8 @@ std::optional<Event> Automaton::gen_event(StateIdx old_state, StateIdx new_state
 std::optional<TransitionResult> Automaton::transition(ActiveState old, uint8_t byte) const {
     const State &state = states[old.state];
     if (state.has_path) {
-        const uint8_t converted = state.path_nocase ? tolower(byte) : byte;
+        // All paths are case-insensitive. Originaly, we did have an option to have case-sensitive paths, but they were not used, so saving one bit of the State made sense.
+        const uint8_t converted = tolower(byte);
         const char *path = paths[state.path].value;
         if (path[old.path] == converted) {
             if (path[old.path + 1] == '\0') {

@@ -26,37 +26,37 @@ namespace {
  */
 
 const StrPath paths[] = {
-    { "Hello" },
+    { "hello" },
 };
 
 const Transition transitions[] = {
     /* Target state, type, label */
     // From 0
-    { 2, LabelType::CharNoCase, 'x' },
-    { 2, LabelType::Char, 'Z' },
-    { 3, LabelType::Char, ':' },
-    { 4, LabelType::Special, SpecialLabel::All },
+    { 2, LabelType::CharNoCase, 'x', false },
+    { 2, LabelType::Char, 'Z', false },
+    { 3, LabelType::Char, ':', false },
+    { 4, LabelType::Special, SpecialLabel::All, false },
     // From 1
     // (nothing, terminal)
     // From 2
-    { 2, LabelType::CharNoCase, 'x' },
-    { 2, LabelType::Char, 'Z' },
-    { 1, LabelType::Char, 'Y' },
+    { 2, LabelType::CharNoCase, 'x', false },
+    { 2, LabelType::Char, 'Z', false },
+    { 1, LabelType::Char, 'Y', false },
     // From 3
     // (nothing, terminal)
     // From 4
-    { 3, LabelType::Char, ':' },
-    { 4, LabelType::Special, SpecialLabel::All },
+    { 3, LabelType::Char, ':', false },
+    { 4, LabelType::Special, SpecialLabel::All, false },
 };
 
 const State states[] = {
     /* trans IDX, enter, leave, path IDX, has path, path nocase */
-    /* 0 */ { 0, false, false, 0, true, false }, // Start
-    /* 1 */ { 4, true, false, 0, false, false }, // After Hello (implicit + 1 for path); terminal (also for others
-    /* 2 */ { 4, false, false, 0, false, false }, // After some X|x|Z
-    /* 3 */ { 7, true, false, 0, false, false }, // The accepting ':', terminal
-    /* 4 */ { 7, false, false, 0, false, false }, // The .*
-    /* -- */ { 9, false, false, 0, false, false }, // Sentinel state to terminate previous transitions
+    /* 0 */ { 0, false, false, 0, true }, // Start
+    /* 1 */ { 4, true, false, 0, false }, // After Hello (implicit + 1 for path); terminal (also for others
+    /* 2 */ { 4, false, false, 0, false }, // After some X|x|Z
+    /* 3 */ { 7, true, false, 0, false }, // The accepting ':', terminal
+    /* 4 */ { 7, false, false, 0, false }, // The .*
+    /* -- */ { 9, false, false, 0, false }, // Sentinel state to terminate previous transitions
 };
 
 enum NamedStates {
