@@ -44,6 +44,8 @@ private:
     /// Finishes edit char and appends it to the buffer
     void flush_edit_char();
 
+    void update_result();
+
 private:
     const string_view_utf8 prompt_;
     std::span<char> buffer_;

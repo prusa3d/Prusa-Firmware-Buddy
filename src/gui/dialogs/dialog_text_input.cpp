@@ -61,6 +61,7 @@ DialogTextInput::DialogTextInput(string_view_utf8 prompt, std::span<char> buffer
     : prompt_(prompt)
     , buffer_(buffer) {
     setup_ui();
+    update_result();
     set_keyboard_layout(layout_text_lowercase);
 
     CaptureNormalWindow(*this);
@@ -132,7 +133,6 @@ void DialogTextInput::setup_ui() {
             auto &wnd = ui.txt_result;
             wnd.SetRect(Rect16::fromLTRB(buttons_rect.Left() + button_padding, y, r, b));
             wnd.set_font(Font::big);
-            wnd.SetText(string_view_utf8::MakeRAM(buffer_.data()));
             wnd.SetTextColor(COLOR_ORANGE);
             wnd.SetAlignment(Align_t::RightCenter());
             wnd.set_enabled(false);
@@ -224,7 +224,7 @@ void dialog_text_input::DialogTextInput::button_callback(window_t &button) {
     case SpecialButton::clear:
         flush_edit_char();
         buffer_[0] = '\0';
-        ui.txt_result.Invalidate();
+        update_result();
         break;
 
     case SpecialButton::backspace:
@@ -235,9 +235,9 @@ void dialog_text_input::DialogTextInput::button_callback(window_t &button) {
         }
 
         // Otherwise remove one character from the text buffer
-        else if (const auto len = strlen(buffer_.data())) {
+        else if (const auto len = strlen(buffer_.data()); len > 0) {
             buffer_[len - 1] = '\0';
-            ui.txt_result.Invalidate();
+            update_result();
         }
         break;
 
@@ -306,14 +306,22 @@ void dialog_text_input::DialogTextInput::flush_edit_char() {
     edit_char_buffer_[0] = '\0';
     ui.txt_edit_char.Invalidate();
 
-    const size_t pos = strlen(buffer_.data());
+    const size_t text_len = strlen(buffer_.data());
 
-    if (ch == '\0' || pos >= buffer_.size() - 1) {
+    if (ch == '\0' || text_len >= buffer_.size() - 1) {
         return;
     }
 
-    buffer_[pos] = ch;
-    buffer_[pos + 1] = '\0';
+    buffer_[text_len] = ch;
+    buffer_[text_len + 1] = '\0';
+    update_result();
+}
 
+void dialog_text_input::DialogTextInput::update_result() {
+    // Only show the amount of characters that fit on the screen, otherwise we end up seeing the left part and not the right one
+    const auto max_visible_characters = ui.txt_result.Width() / resource_font(ui.txt_result.get_font())->w;
+
+    const size_t text_len = strlen(buffer_.data());
+    ui.txt_result.SetText(string_view_utf8::MakeRAM(buffer_.data() + text_len - std::min<size_t>(text_len, max_visible_characters)));
     ui.txt_result.Invalidate();
 }
