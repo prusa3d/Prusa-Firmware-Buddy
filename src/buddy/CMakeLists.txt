@@ -27,6 +27,12 @@ else()
     )
 endif()
 
+if(HAS_EMBEDDED_ESP32)
+  target_sources(firmware PRIVATE esp_flash_task.cpp)
+else()
+  target_sources(firmware PRIVATE esp_flash_task_trivial.cpp)
+endif()
+
 set_property(
   SOURCE src/main.cpp
   APPEND

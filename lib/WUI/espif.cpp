@@ -635,9 +635,7 @@ void espif_init_hw() {
  * @return err_t Possible error encountered during initialization
  */
 err_t espif_init(struct netif *netif) {
-#if HAS_EMBEDDED_ESP32()
     TaskDeps::wait(TaskDeps::Tasks::espif);
-#endif
 
     struct netif *previous = active_esp_netif.exchange(netif);
     assert(previous == nullptr);

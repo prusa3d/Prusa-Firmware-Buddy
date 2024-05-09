@@ -1,4 +1,5 @@
 #include "main.h"
+#include "buddy/esp_flash_task.hpp"
 #include "platform.h"
 #include <device/board.h>
 #include <device/peripherals.h>
@@ -463,13 +464,6 @@ extern "C" void main_cpp(void) {
     #endif
 #endif
 
-#if BUDDY_ENABLE_WUI()
-    // In tester mode ESP UART is being used to talk to the testing station, thus it must not be used for the ESP.
-    if (!running_in_tester_mode()) {
-        espif_init_hw();
-    }
-#endif
-
 #if HAS_MMU2()
     // mmu2 is normally serviced from the marlin thread
     // so execute it before the defaultTask is created to prevent race conditions
@@ -499,6 +493,8 @@ extern "C" void main_cpp(void) {
     // In tester mode ESP UART is being used to talk to the testing station,
     // thus it must not be used for the ESP -> no networking tasks shall be started.
     if (!running_in_tester_mode()) {
+        espif_init_hw();
+        start_flash_esp_task();
         espif_task_create();
 
         TaskDeps::wait(TaskDeps::Tasks::network);

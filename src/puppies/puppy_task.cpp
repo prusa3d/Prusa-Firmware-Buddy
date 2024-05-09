@@ -12,10 +12,6 @@
 #include "timing.h"
 #include "Marlin/src/module/stepper.h"
 #include "Marlin/src/module/prusa/toolchanger.h"
-#include <option/has_embedded_esp32.h>
-#if HAS_EMBEDDED_ESP32()
-    #include <esp_flash.hpp>
-#endif
 #include <tasks.hpp>
 #include <option/has_dwarf.h>
 #include <ccm_thread.hpp>
@@ -185,63 +181,8 @@ static bool puppy_initial_scan() {
     return true;
 }
 
-#if HAS_EMBEDDED_ESP32()
-
-static ErrCode convert(const ESPFlash::State state) {
-    switch (state) {
-    case ESPFlash::State::ReadError:
-        return ErrCode::ERR_SYSTEM_ESP_FW_READ;
-    case ESPFlash::State::NotConnected:
-        return ErrCode::ERR_SYSTEM_ESP_NOT_CONNECTED;
-    case ESPFlash::State::WriteError:
-    case ESPFlash::State::FlashError:
-        return ErrCode::ERR_SYSTEM_ESP_COMMAND_ERR;
-    default:
-        return ErrCode::ERR_SYSTEM_ESP_UNKNOWN_ERR;
-    }
-}
-
-class ProgressHook final : public ESPFlash::ProgressHook {
-public:
-    void update_progress(ESPFlash::State state, size_t current, size_t total) final {
-        uint8_t percent = total ? 100 * current / total : 0;
-        const char *stage_description;
-        switch (state) {
-        case ESPFlash::State::Init:
-            stage_description = "Connecting ESP";
-            break;
-        case ESPFlash::State::WriteData:
-            stage_description = "Flashing ESP";
-            break;
-        case ESPFlash::State::Checking:
-            stage_description = "Checking ESP";
-            break;
-        default:
-            stage_description = "Unknown ESP state";
-        }
-
-        gui_bootstrap_screen_set_state(percent, stage_description);
-    }
-};
-
-#endif
-
 static void puppy_task_body([[maybe_unused]] void const *argument) {
-
-#if HAS_EMBEDDED_ESP32()
-    // Power on the ESP
-    hw::espPower.write(hw::Pin::State::high);
-
-    // Flash ESP
-    ESPFlash esp_flash;
-    ProgressHook progress_hook;
-    auto esp_result = esp_flash.flash(progress_hook);
-    if (esp_result != ESPFlash::State::Done) {
-        log_error(Puppies, "ESP flash failed with %u", static_cast<unsigned>(esp_result));
-        fatal_error(convert(esp_result));
-    }
-    TaskDeps::provide(TaskDeps::Dependency::esp_flashed);
-#endif
+    TaskDeps::wait(TaskDeps::Tasks::puppy_task_start);
 
     bool first_run = true;
 

@@ -6,7 +6,6 @@
 #include <event_groups.h>
 #include <stdint.h>
 #include <option/has_puppies.h>
-#include <option/has_embedded_esp32.h>
 #include "utility_extensions.hpp"
 
 namespace TaskDeps {
@@ -40,7 +39,7 @@ static_assert(ftrstd::to_underlying(Dependency::_count) <= sizeof(dependency_t) 
 // Create dependency mask from the dependencies enum
 constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
     // Feel free to lift the assert in case some build configuration results in empty list
-#if HAS_EMBEDDED_ESP32() && HAS_PUPPIES()
+#if HAS_PUPPIES()
     static_assert(sizeof...(dependencies) > 0, "No dependencies, is this intended?");
 #endif
     return ((1 << ftrstd::to_underlying(dependencies)) | ... | 0);
@@ -71,11 +70,8 @@ namespace Tasks {
     inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
     inline constexpr dependency_t espif = make(Dependency::esp_flashed);
     inline constexpr dependency_t bootstrap_done = make(
-        Dependency::resources_ready
-#if HAS_EMBEDDED_ESP32()
-        ,
+        Dependency::resources_ready,
         Dependency::esp_flashed
-#endif
 #if HAS_PUPPIES()
         ,
         Dependency::puppies_ready
@@ -83,13 +79,9 @@ namespace Tasks {
     );
     inline constexpr dependency_t connect = make(Dependency::networking_ready);
     inline constexpr dependency_t syslog = make(Dependency::networking_ready);
-
-    inline constexpr dependency_t network = make(
-#if HAS_EMBEDDED_ESP32()
-        Dependency::esp_flashed
-#endif
-    );
+    inline constexpr dependency_t network = make(Dependency::esp_flashed);
     inline constexpr dependency_t bootstrap_start = make(Dependency::gui_screen_ready);
+    inline constexpr dependency_t puppy_task_start = make(Dependency::esp_flashed);
 
 } // namespace Tasks
 
