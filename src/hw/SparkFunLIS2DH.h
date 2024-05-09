@@ -57,8 +57,7 @@ private:
     const buddy::hw::OutputPin &chip_select_pin;
 
 public:
-    explicit LIS2DHCore(const buddy::hw::OutputPin &chip_select_pin);
-    ~LIS2DHCore() = default;
+    explicit LIS2DHCore(const buddy::hw::OutputPin &chip_sel_pin);
 
 protected:
     status_t beginCore(void);
@@ -118,7 +117,7 @@ public:
 
     // Constructor generates default SensorSettings.
     //(over-ride after construction if desired)
-    explicit LIS2DH(const buddy::hw::OutputPin &chip_select_pin);
+    explicit LIS2DH(const buddy::hw::OutputPin &chip_sel_pin);
     //~LIS3DH() = default;
 
     // Call to apply SensorSettings

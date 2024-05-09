@@ -93,8 +93,8 @@ using namespace buddy::hw;
 //  LIS3DHCore functions.
 //
 //****************************************************************************//
-LIS2DHCore::LIS2DHCore(const buddy::hw::OutputPin &chip_select_pin)
-    : chip_select_pin { chip_select_pin } {
+LIS2DHCore::LIS2DHCore(const buddy::hw::OutputPin &chip_sel_pin)
+    : chip_select_pin { chip_sel_pin } {
 }
 
 status_t LIS2DHCore::beginCore(void) {
@@ -257,8 +257,8 @@ void LIS2DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
 //  Main user class -- wrapper for the core class + maths
 //
 //****************************************************************************//
-LIS2DH::LIS2DH(const buddy::hw::OutputPin &chip_select_pin)
-    : LIS2DHCore { chip_select_pin } {
+LIS2DH::LIS2DH(const buddy::hw::OutputPin &chip_sel_pin)
+    : LIS2DHCore { chip_sel_pin } {
     // Construct with these default settings
     // ADC stuff
     m_settings.adcEnabled = 0;
