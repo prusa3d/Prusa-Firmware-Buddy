@@ -98,23 +98,40 @@ LIS2DHCore::LIS2DHCore(const buddy::hw::OutputPin &chip_sel_pin)
 }
 
 status_t LIS2DHCore::beginCore(void) {
-    status_t returnError = IMU_SUCCESS;
-
-    // Soft-reset device to ensure fresh state
-    writeRegister(LIS2DH_CTRL_REG5, 0b10000000);
-    osDelay(5);
-
-    // Check the ID register to determine if the operation was a success.
+    // Check the ID register to determine if we have an accelerometer
     uint8_t readCheck;
     readRegister(&readCheck, LIS2DH_WHO_AM_I);
     if (readCheck != 0x33) {
-        returnError = IMU_HW_ERROR;
+        return IMU_HW_ERROR;
     }
+
+    // Power down mode
+    writeRegister(LIS2DH_CTRL_REG1, 0);
 
     // Reset FIFO mode to bypass in order to reset FIFO
     writeRegister(LIS2DH_FIFO_CTRL_REG, 0);
 
-    return returnError;
+    // Soft-reset device to ensure fresh state. Reboot memory content.
+    writeRegister(LIS2DH_CTRL_REG5, 0b10000000);
+
+    /*
+     * After connecting the accelerometer, the first memory reboot doesn't
+     * clear the boot bit in the CTRL_REG5 and the accelerometer stays in a
+     * state where it returns only zeros for all measurements.
+     *
+     * The only working solution, for now, is to give the accelerometer a bit
+     * of time to complete the memory reboot and then reset the boot bit in
+     * CTRL_REG5 back to zero manually.
+     *
+     * Unsuccesful attempts:
+     * - just wait longer
+     * - reset again after a short wait
+     * - read/write stuff from/to CTRL registers
+     */
+    osDelay(25);
+    writeRegister(LIS2DH_CTRL_REG5, 0);
+
+    return IMU_SUCCESS;
 }
 
 /**
@@ -509,8 +526,9 @@ void LIS2DH::fifoBegin(void) {
 
     // Build LIS3DH_FIFO_CTRL_REG
     readRegister(&dataToWrite, LIS2DH_FIFO_CTRL_REG); // Start with existing data
+
     dataToWrite &= 0x20; // clear all but bit 5
-    dataToWrite |= (m_settings.fifoMode & 0x03) << 6; // apply mode
+    dataToWrite |= (m_settings.fifoMode & 0x03) << 6; // apply mode Stream-to-FIFO
     dataToWrite |= (m_settings.fifoThreshold & 0x1F); // apply threshold
                                                       // Now, write the patched together data
 #ifdef VERBOSE_SERIAL
