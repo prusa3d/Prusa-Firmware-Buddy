@@ -47,6 +47,7 @@ int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 
 #define FW_VERSION 11
+#define SSID_LEN 32
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
@@ -133,11 +134,29 @@ static uint32_t IRAM_ATTR now_seconds() {
 
 static atomic_uint_least32_t last_inbound_seen = 0;
 static atomic_bool associated = false;
+static atomic_bool wifi_running = false;
 
 static bool beacon_quirk;
 static uint8_t probe_max_reties = 3;
 static atomic_bool probe_in_progress = false;
 static uint8_t probe_retry_count;
+
+typedef enum {
+    SCAN_TYPE_UNKNOWN,
+    SCAN_TYPE_PROBE,
+} ScanType;
+
+typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
+
+static struct {
+    ScanType scan_type;
+    wifi_scan_callback callback;
+    atomic_bool in_progress;
+} scan = {
+    .scan_type = SCAN_TYPE_UNKNOWN,
+    .callback = NULL,
+    .in_progress = false,
+};
 
 static void IRAM_ATTR send_link_status(uint8_t up) {
     struct uart0_tx_queue_item queue_item;
@@ -151,24 +170,99 @@ static void IRAM_ATTR send_link_status(uint8_t up) {
     }
 }
 
-static void IRAM_ATTR probe_task(void* arg) {
-    wifi_scan_config_t config;
+static void IRAM_ATTR do_wifi_scan(void * arg) {
+    wifi_scan_config_t config = {0};
 
-    // We need to do full scan, because the ssid/bssid filters don't work
-    config.ssid = NULL;
-    config.bssid = NULL;
-    config.channel = 0;
-    config.show_hidden = true;
     config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
-    config.scan_time.active.min = 120;
-    config.scan_time.active.max = 300;
+    switch (scan.scan_type) {
+        case SCAN_TYPE_PROBE:
+            config.show_hidden = true;
+            config.scan_time.active.min = 120;
+            config.scan_time.active.max = 300;
+            break;
+        case SCAN_TYPE_UNKNOWN:
+        default:
+            break;
+    }
+
     ESP_ERROR_CHECK(esp_wifi_scan_start(&config, false));
 
     vTaskDelete(NULL);
 }
 
+static esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType scan_type) {
+    if (scan_type == SCAN_TYPE_UNKNOWN) {
+        return ESP_FAIL;
+    }
+
+    if (scan.in_progress) {
+        return ESP_FAIL;
+    }
+
+    scan.callback = callback;
+    scan.scan_type = scan_type;
+
+    if (!wifi_running) {
+        esp_err_t err = esp_wifi_start();
+        if (err == ESP_OK) {
+            wifi_running = true;
+        } else {
+            ESP_LOGE(TAG, "Unable start the wifi for scan");
+            return err;
+        }
+    }
+
+    scan.in_progress = true;
+
+    xTaskCreate(&do_wifi_scan, "wifi_scan", 2048, NULL, tskIDLE_PRIORITY + 1, NULL);
+    return ESP_OK;
+}
+
+static void IRAM_ATTR probe_run();
+
+static void IRAM_ATTR probe_handler(wifi_ap_record_t* aps, int ap_count) {
+    bool found = false;
+
+    wifi_ap_record_t ap_info;
+    ESP_ERROR_CHECK(esp_wifi_sta_get_ap_info(&ap_info));
+
+    // Try to match BSSID first and if that fails go on and try SSID match . The BSSD check
+    // should be sufficient, but there are APs that advertise mismatching BSSID in their
+    // beacons and/or probe rensonse. That's the real culprit of the beacon timeout
+    // disconnects and the primary motivation of this whole excercise.
+    for (int i = 0; i < ap_count; ++i) {
+        if (0 == memcmp(ap_info.bssid, aps[i].bssid, 6)) {
+            found = true;
+            beacon_quirk = false;
+            break;
+        }
+    }
+    if (beacon_quirk && !found) {
+        for (int i = 0; i < ap_count; ++i) {
+            if (ap_info.ssid[0] && aps[i].ssid[0]) {
+                if (0 == strncmp((char *)(ap_info.ssid), (char *)(aps[i].ssid), SSID_LEN)) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (!found) {
+        if (probe_retry_count++ < probe_max_reties) {
+            probe_run();
+        } else {
+            send_link_status(0);
+            probe_in_progress = false;
+        }
+    } else {
+        probe_in_progress = false;
+        last_inbound_seen = now_seconds();
+    }
+}
+
 static void IRAM_ATTR probe_run() {
-    xTaskCreate(&probe_task, "probe", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
+    start_wifi_scan(&probe_handler, SCAN_TYPE_PROBE);
 }
 
 static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
@@ -198,51 +292,22 @@ static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int3
         s_retry_num = 0;
         ESP_ERROR_CHECK(esp_wifi_set_inactive_time(ESP_IF_WIFI_STA, INACTIVE_BEACON_SECONDS));
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_SCAN_DONE) {
-        wifi_ap_record_t ap_info;
-        ESP_ERROR_CHECK(esp_wifi_sta_get_ap_info(&ap_info));
-
+        scan.in_progress = false;
         const wifi_event_sta_scan_done_t *scan_data = (const wifi_event_sta_scan_done_t *)event_data;
         uint16_t ap_count = scan_data->number;
 
-        bool found = false;
         if (!scan_data->status && ap_count) {
             wifi_ap_record_t *aps = (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * ap_count);
             ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_count, aps));
-            // Try to match BSSID first and if that fails go on and try SSID match . The BSSD check
-            // should be sufficient, but there are APs that advertise mismatching BSSID in their
-            // beacons and/or probe rensonse. That's the real culprit of the beacon timeout
-            // disconnects and the primary motivation of this whole excercise.
-            for (int i = 0; i < ap_count; ++i) {
-                if (0 == memcmp(ap_info.bssid, aps[i].bssid, 6)) {
-                    found = true;
-                    beacon_quirk = false;
-                    break;
-                }
-            }
-            if (beacon_quirk && !found) {
-                for (int i = 0; i < ap_count; ++i) {
-                    if (ap_info.ssid && ap_info.ssid[0] && aps[i].ssid && aps[i].ssid[0]) {
-                        if (0 == strncmp((char *)(ap_info.ssid), (char *)(aps[i].ssid), 32)) {
-                            found = true;
-                            break;
-                        }
-                    }
-                }
+            if (scan.callback != NULL) {
+                scan.callback(aps, ap_count);
             }
             free(aps);
+        } else if (scan.callback != NULL) {
+            // if the scan failed, still call callback with no data to allow logic to redo the scan
+            scan.callback(NULL, 0);
         }
-        if (!found){
-            if (probe_retry_count++ < probe_max_reties) {
-                probe_run();
-            } else {
-                send_link_status(0);
-                probe_in_progress = false;
-            }
-        } else {
-            probe_in_progress = false;
-            last_inbound_seen = now_seconds();
-        }
-   }
+    }
 }
 
 static int get_link_status();
@@ -372,9 +437,11 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, struct header
     }
     wifi_config.sta.pmf_cfg.capable = 1;
 
+    wifi_running = false;
     esp_wifi_stop();
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start());
+    wifi_running = true;
     send_device_info();
 }
 
