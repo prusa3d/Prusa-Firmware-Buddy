@@ -111,6 +111,7 @@ public:
     explicit FrameParking(window_t *parent)
         : text(parent, rect_frame_top, is_multiline::yes, is_closed_on_click_t::no, _(text_parking))
         , spinner(parent, center_frame_bottom) {
+        spinner.SetRect(spinner.GetRect() - Rect16::Left_t(spinner.GetRect().Width() / 2));
         text.SetAlignment(Align_t::Center());
     }
 
