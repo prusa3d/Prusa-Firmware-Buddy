@@ -551,9 +551,6 @@ uint8_t LIS2DH::fifoGetStatus(void) {
     return tempReadByte;
 }
 
-bool LIS2DH::isSetupDone() {
-    return m_isInicialized;
-}
 /**
  * @brief Get acceleration in all axis
  *

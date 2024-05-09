@@ -142,7 +142,9 @@ public:
 
     float calcAccel(int16_t);
 
-    bool isSetupDone();
+    bool isSetupDone() const {
+        return m_isInicialized;
+    }
 
 private:
     static constexpr bool m_high_resolution = false;
