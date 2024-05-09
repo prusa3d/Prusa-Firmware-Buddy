@@ -1,9 +1,5 @@
 
 #include <option/resources.h>
-#include <option/has_puppies.h>
-#include <option/has_puppies_bootloader.h>
-#include <option/has_embedded_esp32.h>
-#include <option/bootloader_update.h>
 #include <option/bootloader.h>
 #include "tasks.hpp"
 #include "screen_splash.hpp"
