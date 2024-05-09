@@ -1,7 +1,7 @@
 #include "window_line_connector.hpp"
 
 window_line_connector::window_line_connector(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_aligned_t>(parent, rect) {
+    : window_aligned_t(parent, rect) {
     points.fill(unassigned_value);
     parents.fill(unassigned_value);
 }

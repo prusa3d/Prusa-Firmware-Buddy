@@ -7,7 +7,7 @@
 #include "selftest_frame.hpp"
 #include "window_text.hpp"
 
-class ScreenSelftestInvalidState : public AddSuperWindow<SelftestFrame> {
+class ScreenSelftestInvalidState : public SelftestFrame {
     window_text_t text;
 
 public:

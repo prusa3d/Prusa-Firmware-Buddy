@@ -7,7 +7,7 @@
 #include <hw/touchscreen/touchscreen.hpp>
 
 ScreenTouchError::ScreenTouchError()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
     , header(this, _("TOUCHSCREEN ERROR")) {}
 
 void ScreenTouchError::windowEvent([[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {

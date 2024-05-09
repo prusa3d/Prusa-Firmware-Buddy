@@ -11,7 +11,7 @@
 #include "window_print_progress.hpp"
 #include "liveadjust_z.hpp"
 
-class SelftestFrameFirstLayer : public AddSuperWindow<SelftestFrame> {
+class SelftestFrameFirstLayer : public SelftestFrame {
     static constexpr const char *text_str = N_(
         "Once the printer starts extruding plastic, adjust the nozzle height by turning the knob until the filament sticks to the print sheet.");
     StatusFooter footer;

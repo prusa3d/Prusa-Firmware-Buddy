@@ -8,13 +8,13 @@
 //-------------------------- Thumbnail --------------------------------------
 
 WindowThumbnail::WindowThumbnail(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_icon_t>(parent, rect, nullptr) {
+    : window_icon_t(parent, rect, nullptr) {
 }
 
 //------------------------- Preview Thumbnail ------------------------------------
 
 WindowPreviewThumbnail::WindowPreviewThumbnail(window_t *parent, Rect16 rect)
-    : AddSuperWindow<WindowThumbnail>(parent, rect) {
+    : WindowThumbnail(parent, rect) {
 }
 
 void WindowPreviewThumbnail::unconditionalDraw() {
@@ -41,7 +41,7 @@ void WindowPreviewThumbnail::unconditionalDraw() {
 //------------------------- Progress Thumbnail -----------------------------------
 
 WindowProgressThumbnail::WindowProgressThumbnail(window_t *parent, Rect16 rect, size_t allowed_old_thumbnail_width)
-    : AddSuperWindow<WindowThumbnail>(parent, rect)
+    : WindowThumbnail(parent, rect)
     , redraw_whole(true)
     , old_allowed_width(allowed_old_thumbnail_width) {
     gcode_reader = AnyGcodeFormatReader { GCodeInfo::getInstance().GetGcodeFilepath() };

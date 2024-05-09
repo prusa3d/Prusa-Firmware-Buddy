@@ -20,7 +20,7 @@
 #include "window_text.hpp"
 #include "device/board.h"
 
-class SelftestFrameResult : public AddSuperWindow<SelftestFrame> {
+class SelftestFrameResult : public SelftestFrame {
     window_text_t msg;
     SelfTestView view;
     ScrollBar bar; // TODO it does not show, partially unimplemented???

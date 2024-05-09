@@ -47,5 +47,5 @@ void ScreenTouchPlayground::windowEvent(window_t *sender, GUI_event_t event, voi
         return;
     }
 
-    SuperWindowEvent(sender, event, param);
+    screen_t::windowEvent(sender, event, param);
 }

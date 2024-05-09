@@ -49,7 +49,7 @@ static constexpr Rect16 get_text_nozzle_value_rect() {
 }
 
 SelftestFrameHotendSpecify::SelftestFrameHotendSpecify(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
+    : SelftestFrameWithRadio(parent, ph, data)
     , text(this, get_text_rect(), is_multiline::yes)
     , text_nozzle(this, get_text_nozzle_rect(), is_multiline::no, is_closed_on_click_t::no, _("Nozzle type"))
     , text_nozzle_value(this, get_text_nozzle_value_rect(), is_multiline::no)

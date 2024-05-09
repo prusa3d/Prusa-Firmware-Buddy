@@ -2,7 +2,7 @@
 #include "ifooter_item.hpp"
 #include "i18n.h"
 
-class FooterItemFSValue : public AddSuperWindow<FooterIconText_IntVal> {
+class FooterItemFSValue : public FooterIconText_IntVal {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 

@@ -14,7 +14,7 @@
 #endif /*HAS_TOOLCHANGER()*/
 
 FooterItemFilament::FooterItemFilament(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::spool_16x16, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::spool_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemFilament::static_readValue() {

@@ -32,7 +32,7 @@ static constexpr const char *en_text_Z_axis = N_("axis");
 static constexpr const char *en_text_info = N_("During the test, the heatbed, and extruder will move in full range.\n\nPrinter may vibrate and be noisier during homing.");
 
 SelftestFrametAxis::SelftestFrametAxis(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameNamed>(parent, ph, data, _(en_text_axis_test))
+    : SelftestFrameNamed(parent, ph, data, _(en_text_axis_test))
     , footer(this, 0, footer::Item::axis_x, footer::Item::axis_y, footer::Item::axis_z)
     , progress(this, WizardDefaults::row_1)
     , icon_x_axis(this, &img::x_axis_16x16, point_i16_t({ WizardDefaults::col_0, row_2 }))

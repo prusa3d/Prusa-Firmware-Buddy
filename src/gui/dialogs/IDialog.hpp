@@ -8,7 +8,7 @@
 #include <guiconfig/GuiDefaults.hpp>
 
 // interface for dialog
-class IDialog : public AddSuperWindow<window_frame_t> {
+class IDialog : public window_frame_t {
     screen_init_variant underlying_screen_state;
 
 public:

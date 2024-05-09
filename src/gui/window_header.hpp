@@ -8,7 +8,7 @@
 #include <time.h>
 #include <guiconfig/guiconfig.h>
 
-struct window_header_t : public AddSuperWindow<window_frame_t> {
+struct window_header_t : public window_frame_t {
 
     window_icon_t icon_base;
     window_roll_text_t label;

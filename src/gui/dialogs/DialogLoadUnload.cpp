@@ -15,7 +15,7 @@
 #include <find_error.hpp>
 
 RadioButtonNotice::RadioButtonNotice(window_t *parent, Rect16 rect)
-    : AddSuperWindow<RadioButton>(parent, rect) {}
+    : RadioButton(parent, rect) {}
 
 void RadioButtonNotice::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
@@ -25,7 +25,7 @@ void RadioButtonNotice::windowEvent(window_t *sender, GUI_event_t event, void *p
         break;
     }
     default:
-        SuperWindowEvent(sender, event, param);
+        RadioButton::windowEvent(sender, event, param);
     }
 }
 
@@ -292,7 +292,7 @@ void DialogLoadUnload::set_progress_percent(uint8_t val) {
 }
 
 DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
-    : AddSuperWindow<IDialogMarlin>(GuiDefaults::RectScreenNoHeader)
+    : IDialogMarlin(GuiDefaults::RectScreenNoHeader)
     , progress_frame(this, get_frame_rect(GetRect()))
     , title(&progress_frame, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, get_name(ProgressSerializerLoadUnload(data.GetData()).mode))
     , progress_bar(&progress_frame, get_progress_bar_rect(GetRect()), COLOR_ORANGE, GuiDefaults::EnableDialogBigLayout ? COLOR_DARK_GRAY : COLOR_GRAY, PROGRESS_BAR_CORNER_RADIUS)

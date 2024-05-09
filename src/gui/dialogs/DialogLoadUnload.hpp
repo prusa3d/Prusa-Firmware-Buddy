@@ -20,7 +20,7 @@
  * but MMU red screens are many states masked as single state
  * automatic radio button cannot handle that
  */
-class RadioButtonNotice : public AddSuperWindow<RadioButton> {
+class RadioButtonNotice : public RadioButton {
     PhasesLoadUnload current_phase;
 
 public:
@@ -42,7 +42,7 @@ protected:
  * with MMU support
  * MMU error are handled extra and are red
  */
-class DialogLoadUnload final : public AddSuperWindow<IDialogMarlin> {
+class DialogLoadUnload final : public IDialogMarlin {
 private:
     window_frame_t progress_frame;
     window_text_t title;

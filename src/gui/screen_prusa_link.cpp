@@ -54,7 +54,7 @@ MI_PL_USER::MI_PL_USER()
     : IWindowMenuItem(_(label), (sizeof(PRUSA_LINK_USERNAME) + 1) * width(GuiDefaults::FontMenuSpecial)) {}
 
 ScreenMenuPrusaLink::ScreenMenuPrusaLink()
-    : AddSuperWindow<screen_t>(nullptr, win_type_t::normal, is_closed_on_timeout_t::no)
+    : screen_t(nullptr, win_type_t::normal, is_closed_on_timeout_t::no)
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(canvas_font_height()), &container)
     , header(this) {
     header.SetText(_("PRUSALINK"));
@@ -86,7 +86,7 @@ void ScreenMenuPrusaLink::windowEvent(window_t *sender, GUI_event_t event, void 
         }
     } break;
     default:
-        SuperWindowEvent(sender, event, param);
+        screen_t::windowEvent(sender, event, param);
         break;
     }
 }

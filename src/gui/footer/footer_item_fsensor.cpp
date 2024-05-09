@@ -10,11 +10,11 @@
 #include <cmath>
 
 FooterItemFSensor::FooterItemFSensor(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::filament_sensor_17x16, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::filament_sensor_17x16, static_makeView, static_readValue) {
 }
 
 FooterItemFSensorSide::FooterItemFSensorSide(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::side_filament_sensor_17x16, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::side_filament_sensor_17x16, static_makeView, static_readValue) {
 }
 
 int FooterItemFSensor::static_readValue() {

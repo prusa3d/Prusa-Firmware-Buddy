@@ -12,7 +12,7 @@ static constexpr size_t txt_h = WizardDefaults::txt_h;
 static constexpr size_t row_2 = WizardDefaults::row_1 + WizardDefaults::progress_row_h;
 
 SelftestFrameToolOffsets::SelftestFrameToolOffsets(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _("Tool Offsets Calibration"), 1)
+    : SelftestFrameNamedWithRadio(parent, ph, data, _("Tool Offsets Calibration"), 1)
     , footer(this, 0, footer::Item::all_nozzles, footer::Item::bed)
     , progress(this, WizardDefaults::row_1)
     , text_phase(this, Rect16(col_texts, row_2, WizardDefaults::X_space, txt_h * 5), is_multiline::yes)

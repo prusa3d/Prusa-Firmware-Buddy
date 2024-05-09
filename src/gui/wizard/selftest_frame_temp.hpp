@@ -6,7 +6,7 @@
 #include "status_footer.hpp"
 #include <option/has_heatbreak_temp.h>
 
-class ScreenSelftestTemp : public AddSuperWindow<SelftestFrameWithRadio> {
+class ScreenSelftestTemp : public SelftestFrameWithRadio {
     FooterLine footer;
 
     window_frame_t test_frame;

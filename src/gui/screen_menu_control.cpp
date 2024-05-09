@@ -27,7 +27,7 @@ void ScreenMenuControl::windowEvent(window_t *sender, GUI_event_t event, void *p
     }
 #endif
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }
 
 ScreenFactory::UniquePtr GetScreenMenuControl() {

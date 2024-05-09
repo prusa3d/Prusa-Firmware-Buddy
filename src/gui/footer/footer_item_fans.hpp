@@ -8,7 +8,7 @@
 /**
  * @brief parent for fan footer items
  */
-class IFooterItemFan : public AddSuperWindow<FooterIconText_IntVal> {
+class IFooterItemFan : public FooterIconText_IntVal {
 protected:
     static constexpr int max_rpm = 99999;
     using buffer_t = std::array<char, sizeof("99999rpm")>;
@@ -21,7 +21,7 @@ public:
 /**
  * @brief print fan rpm footer item
  */
-class FooterItemPrintFan : public AddSuperWindow<IFooterItemFan> {
+class FooterItemPrintFan : public IFooterItemFan {
     static int static_readValue();
     static buffer_t buffer;
     static string_view_utf8 static_makeView(int value) {
@@ -35,7 +35,7 @@ public:
 /**
  * @brief heatbreak fan rpm footer item
  */
-class FooterItemHeatBreakFan : public AddSuperWindow<IFooterItemFan> {
+class FooterItemHeatBreakFan : public IFooterItemFan {
     static int static_readValue();
     static buffer_t buffer;
     static string_view_utf8 static_makeView(int value) {

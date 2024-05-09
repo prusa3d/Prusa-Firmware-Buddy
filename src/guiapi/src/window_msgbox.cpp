@@ -22,7 +22,7 @@ void AdjustLayout(window_text_t &text, window_icon_t &icon) {
 // MsgBoxBase
 MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt,
     is_multiline multiline, is_closed_on_click_t close)
-    : AddSuperWindow<IDialog>(rect)
+    : IDialog(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
     , pButtons(new(&radio_mem_space) RadioButton(this, GuiDefaults::GetButtonRect(rect), resp, labels))
     , result(Response::_none) {
@@ -69,7 +69,7 @@ void MsgBoxBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
         break;
     }
 
-    SuperWindowEvent(sender, event, param);
+    IDialog::windowEvent(sender, event, param);
 }
 
 static constexpr Font TitleFont = GuiDefaults::FontBig;
@@ -78,7 +78,7 @@ static constexpr Font TitleFont = GuiDefaults::FontBig;
 // MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon, is_closed_on_click_t close, dense_t dense)
-    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
+    : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
     , title(this, GetRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     title.set_font(TitleFont);
     title.SetRect(getTitleRect());
@@ -137,7 +137,7 @@ Rect16 MsgBoxTitled::getIconRect() {
 // MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res, is_closed_on_click_t close)
-    : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline, close)
+    : MsgBoxBase(rect, resp, def_btn, labels, txt, multiline, close)
     , icon(this, icon_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
     if (GuiDefaults::EnableDialogBigLayout) {
@@ -173,7 +173,7 @@ Rect16 MsgBoxIconned::getTextRect() {
 // MsgBoxIconPepa
 MsgBoxIconPepa::MsgBoxIconPepa(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, const img::Resource *ic)
-    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, ic) {
+    : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, ic) {
     icon.SetRect(getIconRect());
     icon.SetAlignment(Align_t::CenterTop());
 
@@ -193,7 +193,7 @@ Rect16 MsgBoxIconPepa::getIconRect() {
 // MsgBoxIconPepaCentered
 MsgBoxIconPepaCentered::MsgBoxIconPepaCentered(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, const img::Resource *ic)
-    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, ic) {
+    : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, ic) {
     icon.SetRect(getIconRect());
     icon.SetAlignment(Align_t::CenterTop());
 
@@ -212,7 +212,7 @@ Rect16 MsgBoxIconPepaCentered::getIconRect() {
 /*****************************************************************************/
 // MsgBoxIconnedError
 MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res)
-    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, icon_res) {
+    : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, icon_res) {
     SetRoundCorners();
     text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
     text.SetAlignment(Align_t::LeftCenter());
@@ -234,7 +234,7 @@ MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, 
 // MsgBoxIconnedWait
 MsgBoxIconnedWait::MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline)
-    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, &img::hourglass_26x39) {
+    : MsgBoxIconned(rect, resp, def_btn, labels, txt, multiline, &img::hourglass_26x39) {
     icon.SetRect(Rect16(0, GuiDefaults::HeaderHeight, display::GetW(), 140));
     icon.SetAlignment(Align_t::Center());
 
@@ -246,7 +246,7 @@ MsgBoxIconnedWait::MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, si
 // MsgBoxIS
 MsgBoxIS::MsgBoxIS(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res, is_closed_on_click_t close)
-    : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline, close)
+    : MsgBoxBase(rect, resp, def_btn, labels, txt, multiline, close)
     , icon(this, icon_res, {}, GuiDefaults::Padding)
     , qr(this, {}, QR_ADDR) {
     if (GuiDefaults::EnableDialogBigLayout) {

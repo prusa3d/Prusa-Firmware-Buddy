@@ -53,7 +53,7 @@ ScreenMenuExperimentalSettings::ScreenMenuExperimentalSettings()
 
 void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t ev, void *param) {
     if (ev != GUI_event_t::CHILD_CLICK) {
-        SuperWindowEvent(sender, ev, param);
+        ScreenMenu::windowEvent(sender, ev, param);
         return;
     }
 

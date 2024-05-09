@@ -13,7 +13,7 @@
 #include "status_footer.hpp"
 #include "printers.h"
 
-class SelftestFrameFans : public AddSuperWindow<SelftestFrameNamedWithRadio> {
+class SelftestFrameFans : public SelftestFrameNamedWithRadio {
     FooterLine footer;
     window_wizard_progress_t progress;
     window_text_t text_info;

@@ -10,7 +10,7 @@
 #include "footer_line.hpp"
 #include "footer_item_union.hpp"
 
-class IFooter : public AddSuperWindow<window_frame_t> {
+class IFooter : public window_frame_t {
 public:
     IFooter(window_t *parent);
 

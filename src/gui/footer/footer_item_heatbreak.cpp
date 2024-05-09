@@ -14,7 +14,7 @@
 #endif /*HAS_TOOLCHANGER()*/
 
 FooterItemHeatBreak::FooterItemHeatBreak(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::heatbreak_dark_16x16, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::heatbreak_dark_16x16, static_makeView, static_readValue) {
 }
 
 /**

@@ -22,19 +22,19 @@
 #endif /*HAS_TOOLCHANGER()*/
 
 FooterItemNozzle::FooterItemNozzle(window_t *parent)
-    : AddSuperWindow<FooterItemHeater>(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
+    : FooterItemHeater(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
 }
 
 FooterItemNozzleDiameter::FooterItemNozzleDiameter(window_t *parent)
-    : AddSuperWindow<FooterIconText_FloatVal>(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
+    : FooterIconText_FloatVal(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
 }
 
 FooterItemNozzlePWM::FooterItemNozzlePWM(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
 }
 
 FooterItemBed::FooterItemBed(window_t *parent)
-    : AddSuperWindow<FooterItemHeater>(parent, &img::heatbed_16x16, static_makeView, static_readValue) {
+    : FooterItemHeater(parent, &img::heatbed_16x16, static_makeView, static_readValue) {
 #if ENABLED(MODULAR_HEATBED)
     icon.Hide();
 #endif
@@ -42,7 +42,7 @@ FooterItemBed::FooterItemBed(window_t *parent)
 }
 
 FooterItemAllNozzles::FooterItemAllNozzles(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
 #if HAS_TOOLCHANGER()
     icon.Hide();
 #endif /*HAS_TOOLCHANGER()*/
@@ -55,7 +55,7 @@ footer::ItemDrawType FooterItemAllNozzles::GetDrawType() {
 }
 
 void FooterItemBed::unconditionalDraw() {
-    super::unconditionalDraw();
+    FooterItemHeater::unconditionalDraw();
 
 #if ENABLED(MODULAR_HEATBED)
     for (int x = 0; x < X_HBL_COUNT; x++) {
@@ -88,7 +88,7 @@ void FooterItemBed::unconditionalDraw() {
 }
 
 changed_t FooterItemBed::updateValue() {
-    changed_t ret = super::updateValue();
+    changed_t ret = FooterItemHeater::updateValue();
 #if ENABLED(MODULAR_HEATBED)
     bool is_heating = marlin_vars()->target_bed > 0;
 
@@ -123,7 +123,7 @@ changed_t FooterItemBed::updateValue() {
 }
 
 void FooterItemAllNozzles::unconditionalDraw() {
-    super::unconditionalDraw();
+    FooterIconText_IntVal::unconditionalDraw();
 
 #if HAS_TOOLCHANGER()
     const uint16_t column_size = icon.Width() / NOZZLES_COUNT; // 3 px per nozzle, 2 px column + 1 px space
@@ -160,7 +160,7 @@ void FooterItemAllNozzles::unconditionalDraw() {
 }
 
 changed_t FooterItemAllNozzles::updateValue() {
-    changed_t ret = super::updateValue();
+    changed_t ret = FooterIconText_IntVal::updateValue();
 
     // It would seem that returning changed_t::yes is the proper way to
     // trigger an update. However, that doesn't work. Something to investigate.

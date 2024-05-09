@@ -4,7 +4,7 @@
 #include "img_resources.hpp"
 
 FooterItemFSValue::FooterItemFSValue(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::spool_16x16, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::spool_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemFSValue::static_readValue() {

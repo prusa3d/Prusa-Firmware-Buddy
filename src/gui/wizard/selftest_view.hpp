@@ -11,7 +11,7 @@
 #include "selftest_group.hpp"
 #include "window.hpp"
 
-class SelfTestView : public AddSuperWindow<window_t> {
+class SelfTestView : public window_t {
     SelfTestGroup *first_failed;
     SelfTestGroup *first_passed;
     size_t count;

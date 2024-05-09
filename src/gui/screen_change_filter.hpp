@@ -9,7 +9,7 @@
 #include "status_footer.hpp"
 #include "radio_button.hpp"
 
-class ScreenChangeFilter : public AddSuperWindow<screen_t> {
+class ScreenChangeFilter : public screen_t {
     window_header_t header;
     window_text_t description;
     window_text_t help;

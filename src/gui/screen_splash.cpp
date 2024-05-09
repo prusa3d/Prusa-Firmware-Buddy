@@ -59,7 +59,7 @@
 #endif
 
 screen_splash_data_t::screen_splash_data_t()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
 #if defined(USE_ST7789)
     , img_printer("/internal/res/printer_logo.qoi") // dimensions are printer dependent
     , img_marlin("/internal/res/marlin_logo_79x61.qoi")
@@ -69,7 +69,7 @@ screen_splash_data_t::screen_splash_data_t()
     , text_progress(this, Rect16(0, SPLASHSCREEN_VERSION_Y, GuiDefaults::ScreenWidth, 18), is_multiline::no)
     , progress(this, Rect16(SPLASHSCREEN_PROGRESSBAR_X, SPLASHSCREEN_PROGRESSBAR_Y, SPLASHSCREEN_PROGRESSBAR_W, SPLASHSCREEN_PROGRESSBAR_H), COLOR_ORANGE, COLOR_GRAY, 6)
     , version_displayed(false) {
-    super::ClrMenuTimeoutClose();
+    ClrMenuTimeoutClose();
 
     text_progress.set_font(Font::small);
     text_progress.SetAlignment(Align_t::Center());
@@ -177,7 +177,7 @@ void screen_splash_data_t::draw() {
     Validate();
     progress.Invalidate();
     text_progress.Invalidate();
-    super::draw(); // We want to draw over bootloader's screen without flickering/redrawing
+    screen_t::draw(); // We want to draw over bootloader's screen without flickering/redrawing
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
     #if defined(USE_ST7789)

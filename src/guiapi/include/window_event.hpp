@@ -160,8 +160,3 @@ static constexpr const char *GUI_event_prt_data[GUI_event_t_count + 1] = {
 constexpr const char *GUI_event_prt(GUI_event_t event) {
     return GUI_event_prt_data[static_cast<int>(event)];
 }
-
-// forward declarations
-class window_t;
-template <class Base>
-struct AddSuperWindow;

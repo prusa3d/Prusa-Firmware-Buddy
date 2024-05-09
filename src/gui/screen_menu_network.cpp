@@ -17,5 +17,5 @@ void ScreenMenuNetwork::windowEvent([[maybe_unused]] window_t *sender, GUI_event
         update_all_updatable_items();
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }

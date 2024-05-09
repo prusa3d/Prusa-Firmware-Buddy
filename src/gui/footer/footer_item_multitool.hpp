@@ -6,7 +6,7 @@
 #pragma once
 #include "ifooter_item.hpp"
 
-class FooterItemFinda : public AddSuperWindow<FooterIconText_IntVal> {
+class FooterItemFinda : public FooterIconText_IntVal {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 
@@ -14,7 +14,7 @@ public:
     FooterItemFinda(window_t *parent);
 };
 
-class FooterItemCurrentTool : public AddSuperWindow<FooterIconText_IntVal> {
+class FooterItemCurrentTool : public FooterIconText_IntVal {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 

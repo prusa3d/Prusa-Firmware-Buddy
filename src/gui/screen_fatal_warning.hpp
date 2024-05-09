@@ -8,7 +8,7 @@
 #include "status_footer.hpp"
 #include "led_animations/animator.hpp"
 
-class ScreenFatalWarning : public AddSuperWindow<ScreenResetError> {
+class ScreenFatalWarning : public ScreenResetError {
 
     window_header_t header;
     window_text_t err_title;

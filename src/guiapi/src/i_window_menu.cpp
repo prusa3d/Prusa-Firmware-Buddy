@@ -10,7 +10,7 @@
 #endif
 
 IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_t>(parent, rect) {
+    : window_t(parent, rect) {
     Enable();
 
     assert(height(GuiDefaults::FontMenuItems) == font_h_);
@@ -317,7 +317,7 @@ void IWindowMenu::windowEvent(window_t *sender, GUI_event_t event, void *param) 
         break;
 
     default:
-        SuperWindowEvent(sender, event, param);
+        window_t::windowEvent(sender, event, param);
         break;
     }
 }

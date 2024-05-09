@@ -8,7 +8,7 @@
 #include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
 #include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper.hpp"
 
-class FooterItemInputShaperX : public AddSuperWindow<FooterIconText_IntVal> {
+class FooterItemInputShaperX : public FooterIconText_IntVal {
     using buffer_t = std::array<char, 11>;
     static buffer_t buff;
     static int static_readValue();
@@ -18,7 +18,7 @@ public:
     FooterItemInputShaperX(window_t *parent);
 };
 
-class FooterItemInputShaperY : public AddSuperWindow<FooterIconText_IntVal> {
+class FooterItemInputShaperY : public FooterIconText_IntVal {
     using buffer_t = std::array<char, 11>;
     static buffer_t buff;
     static int static_readValue();

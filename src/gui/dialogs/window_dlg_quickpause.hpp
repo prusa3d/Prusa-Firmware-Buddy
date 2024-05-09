@@ -7,7 +7,7 @@
 #include "client_fsm_types.h"
 #include "radio_button_fsm.hpp"
 
-class DialogQuickPause : public AddSuperWindow<IDialogMarlin> {
+class DialogQuickPause : public IDialogMarlin {
     window_icon_t icon;
     window_text_t text;
     window_roll_text_t gcode_name;

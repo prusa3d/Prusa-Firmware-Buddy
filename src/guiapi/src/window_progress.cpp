@@ -6,7 +6,7 @@
 /*****************************************************************************/
 // window_numberless_progress_t
 window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress, color_t cl_back, int corner_radius)
-    : AddSuperWindow<window_t>(parent, rect)
+    : window_t(parent, rect)
     , color_progress(cl_progress)
     , corner_radius(corner_radius) {
     SetProgressInPixels(0);
@@ -72,7 +72,7 @@ void window_numberless_progress_t::unconditionalDraw() {
 /*******************************************************************************/
 // window_vertical_progress_t
 window_vertical_progress_t::window_vertical_progress_t(window_t *parent, Rect16 rect, color_t cl_progress, color_t cl_back)
-    : AddSuperWindow<window_t>(parent, rect)
+    : window_t(parent, rect)
     , color_progress(cl_progress) {
     SetBackColor(cl_back);
 }
@@ -125,7 +125,7 @@ void window_vertical_progress_t::unconditionalDraw() {
 }
 
 WindowProgressCircles::WindowProgressCircles(window_t *parent, Rect16 rect, uint8_t max_circles_)
-    : AddSuperWindow<window_t>(parent, rect)
+    : window_t(parent, rect)
     , max_circles(max_circles_) {
     assert(max_circles > 0);
     assert(rect.Width() >= (rect.Height() - 1) * max_circles);

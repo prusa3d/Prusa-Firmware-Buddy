@@ -7,7 +7,7 @@
 #include "selftest_firstlayer_type.hpp"
 
 SelftestFrameFirstLayer::SelftestFrameFirstLayer(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrame>(parent, ph, data)
+    : SelftestFrame(parent, ph, data)
     , footer(this
 #if FOOTER_LINES__ == 1
           ,

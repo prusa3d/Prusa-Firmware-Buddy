@@ -16,7 +16,7 @@
 #endif
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
-    : AddSuperWindow<ScreenPrintingModel>(_(caption))
+    : ScreenPrintingModel(_(caption))
     , octo_icon(this, Rect16((display::GetW() - img::serial_printing_172x138.w) / 2, GuiDefaults::RectScreenBody.Top(), img::serial_printing_172x138.w, img::serial_printing_172x138.h), &img::serial_printing_172x138)
     , last_tick(0)
     , connection(connection_state_t::connected)
@@ -54,7 +54,7 @@ void screen_printing_serial_data_t::windowEvent(window_t *sender, GUI_event_t ev
         last_state = state;
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenPrintingModel::windowEvent(sender, event, param);
 }
 
 void screen_printing_serial_data_t::tuneAction() {

@@ -10,7 +10,7 @@
 #include <cmath>
 
 FooterItemLiveZ::FooterItemLiveZ(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::z_axis_16x16, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::z_axis_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemLiveZ::static_readValue() {

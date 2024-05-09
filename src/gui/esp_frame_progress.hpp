@@ -7,7 +7,7 @@
 
 #define ESP_FilesString "[0 / 0]"
 
-class ESPFrameProgress : public AddSuperWindow<ESPFrame> {
+class ESPFrameProgress : public ESPFrame {
     char progr_text[sizeof(ESP_FilesString)] = ESP_FilesString;
     window_text_t text_top;
     window_wizard_progress_t progress;

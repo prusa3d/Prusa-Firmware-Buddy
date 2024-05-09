@@ -12,7 +12,7 @@
     #include "led_animations/animator.hpp"
 #endif
 
-struct ScreenErrorQR : public AddSuperWindow<ScreenResetError> {
+struct ScreenErrorQR : public ScreenResetError {
 
     window_header_t header;
     window_text_t err_title;

@@ -13,7 +13,7 @@
     #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_state.h"
 #endif
 
-class screen_home_data_t : public AddSuperWindow<screen_t> {
+class screen_home_data_t : public screen_t {
 public:
     static constexpr size_t button_count = 6;
 

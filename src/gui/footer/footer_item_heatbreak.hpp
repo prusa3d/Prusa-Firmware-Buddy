@@ -7,7 +7,7 @@
 #include "ifooter_item.hpp"
 #include "filament.hpp"
 
-class FooterItemHeatBreak : public AddSuperWindow<FooterIconText_IntVal> {
+class FooterItemHeatBreak : public FooterIconText_IntVal {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 

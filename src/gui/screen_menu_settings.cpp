@@ -53,6 +53,6 @@ void ScreenMenuSettings::windowEvent(window_t *sender, GUI_event_t event, void *
 #endif
 
     } else {
-        SuperWindowEvent(sender, event, param);
+        ScreenMenu::windowEvent(sender, event, param);
     }
 }

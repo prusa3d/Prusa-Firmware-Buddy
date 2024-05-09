@@ -20,7 +20,7 @@
 LOG_COMPONENT_REF(GUI);
 
 screen_filebrowser_data_t::screen_filebrowser_data_t()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
     , header(this)
     , file_browser(this, GuiDefaults::RectScreenNoHeader, GCodeInfo::getInstance().GetGcodeFilepath()) {
     header.SetIcon(&img::folder_full_16x16);

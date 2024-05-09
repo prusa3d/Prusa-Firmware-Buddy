@@ -7,7 +7,7 @@
 
 #include "printers.h"
 
-class ESPFrameQR : public AddSuperWindow<ESPFrame> {
+class ESPFrameQR : public ESPFrame {
 private:
     window_text_t text;
     window_text_t link;

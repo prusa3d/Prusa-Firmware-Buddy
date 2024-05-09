@@ -69,5 +69,5 @@ void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void
         return;
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }

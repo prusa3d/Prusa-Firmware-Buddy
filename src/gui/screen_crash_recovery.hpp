@@ -115,7 +115,7 @@ private:
 
 } // namespace crash_recovery
 
-class ScreenCrashRecovery : public AddSuperWindow<screen_t> {
+class ScreenCrashRecovery : public screen_t {
 protected:
     window_header_t header;
     StatusFooter footer;

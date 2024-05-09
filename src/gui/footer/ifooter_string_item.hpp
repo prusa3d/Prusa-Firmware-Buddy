@@ -8,5 +8,5 @@
 #pragma once
 #include "ifooter_item.hpp"
 
-class IFooterStringItem : public AddSuperWindow<IFooterIconText> {
+class IFooterStringItem : public IFooterIconText {
 };

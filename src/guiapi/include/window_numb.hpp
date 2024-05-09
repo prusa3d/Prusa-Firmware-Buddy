@@ -12,7 +12,7 @@ enum class printType {
     asTime
 };
 
-class window_numb_t : public AddSuperWindow<IWindowText> {
+class window_numb_t : public IWindowText {
 public:
     float value; // TODO private
     const char *format; // TODO private

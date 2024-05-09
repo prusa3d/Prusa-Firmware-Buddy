@@ -12,7 +12,7 @@
 #include <option/has_modularbed.h>
 
 static_assert(sizeof(fsm::PhaseData) == sizeof(WarningType), "If this does not hold, we need to revise how we send the type through teh fsm machinery.");
-class DialogWarning : public AddSuperWindow<IDialogMarlin> {
+class DialogWarning : public IDialogMarlin {
     window_icon_t icon;
     window_text_t text;
     RadioButtonFsm<PhasesWarning> button;

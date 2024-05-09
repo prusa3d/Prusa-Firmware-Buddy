@@ -18,7 +18,7 @@ static constexpr size_t row_8 = row_7 + txt_h;
 static constexpr size_t row_9 = row_8 + txt_h;
 
 SelftestFrameDock::SelftestFrameDock(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _("Dock Calibration"), 1)
+    : SelftestFrameNamedWithRadio(parent, ph, data, _("Dock Calibration"), 1)
     , footer(this, 0, footer::Item::nozzle, footer::Item::bed, footer::Item::axis_z) // ItemAxisZ to show Z coord while moving up
     , progress(this, WizardDefaults::row_1)
     , text_info(this, get_info_text_rect(), is_multiline::yes)

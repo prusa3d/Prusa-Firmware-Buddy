@@ -16,7 +16,7 @@
 #endif
 
 // inherited from ScreenPrintPreviewBase just to handel different display sizes
-// do not use AddSuperWindow<ScreenPrintPreviewBase>
+// do not use ScreenPrintPreviewBase
 class ScreenPrintPreview : public ScreenPrintPreviewBase {
     // Apart from FIle error they all have the same warning
     constexpr static const char *label_unfinished_selftest = find_error(ErrCode::CONNECT_PRINT_PREVIEW_UNFINISHED_SELFTEST).err_title;
@@ -46,7 +46,7 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
     // Set to invalid value by default so that the Change() always triggers on the first call.
     PhasesPrintPreview phase = static_cast<PhasesPrintPreview>(-1);
 
-    using UniquePtrBox = static_unique_ptr<AddSuperWindow<MsgBoxIconned>>;
+    using UniquePtrBox = static_unique_ptr<MsgBoxIconned>;
     UniquePtrBox pMsgbox;
 
 #if HAS_TOOLCHANGER() || HAS_MMU2()

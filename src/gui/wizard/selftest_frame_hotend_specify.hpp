@@ -8,7 +8,7 @@
 #include "window_icon.hpp"
 #include "window_text.hpp"
 
-class SelftestFrameHotendSpecify : public AddSuperWindow<SelftestFrameWithRadio> {
+class SelftestFrameHotendSpecify : public SelftestFrameWithRadio {
     window_text_t text;
     window_text_t text_nozzle;
     window_text_t text_nozzle_value;

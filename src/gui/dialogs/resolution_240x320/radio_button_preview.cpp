@@ -6,5 +6,5 @@
 #include "i18n.h"
 
 RadioButtonPreview::RadioButtonPreview(window_t *parent, Rect16 rect)
-    : AddSuperWindow<RadioButtonFsm<PhasesPrintPreview>>(parent, rect, PhasesPrintPreview::main_dialog) {
+    : RadioButtonFsm<PhasesPrintPreview>(parent, rect, PhasesPrintPreview::main_dialog) {
 }

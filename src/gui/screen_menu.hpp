@@ -11,7 +11,7 @@
 #include <new>
 
 // parent to not repeat code in templates
-class IScreenMenu : public AddSuperWindow<screen_t> {
+class IScreenMenu : public screen_t {
 protected:
     window_header_t header;
     window_menu_t menu;
@@ -25,14 +25,14 @@ public:
 };
 
 template <EFooter FOOTER, class... T>
-class ScreenMenu : public AddSuperWindow<IScreenMenu> {
+class ScreenMenu : public IScreenMenu {
 protected:
     // std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
     WinMenuContainer<T...> container;
 
 public:
     ScreenMenu(string_view_utf8 label, window_t *parent = nullptr)
-        : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
+        : IScreenMenu(parent, label, FOOTER) {
         menu.menu.BindContainer(container);
     }
 

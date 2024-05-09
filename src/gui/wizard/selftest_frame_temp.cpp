@@ -101,7 +101,7 @@ static bool is_tested(SelftestHeaters_t &dt, SelftestHeaters_t::TestedParts part
 }
 
 ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data, 1)
+    : SelftestFrameWithRadio(parent, ph, data, 1)
 #if HAS_TOOLCHANGER()
     , footer(this, 0, prusa_toolchanger.is_toolchanger_enabled() ? footer::Item::all_nozzles : footer::Item::nozzle, footer::Item::bed)
 #else

@@ -87,7 +87,7 @@ using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENER
 #endif
     MI_PL_PASSWORD_VALUE>;
 
-class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
+class ScreenMenuPrusaLink : public screen_t {
     static constexpr Font canvas_font = Font::special;
 
     PLMenuContainer container;

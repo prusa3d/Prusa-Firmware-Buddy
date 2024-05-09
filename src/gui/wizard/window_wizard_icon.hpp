@@ -7,7 +7,7 @@
 #include "window_icon.hpp"
 #include "selftest_sub_state.hpp"
 
-class WindowIcon_OkNg : public AddSuperWindow<window_aligned_t> {
+class WindowIcon_OkNg : public window_aligned_t {
     enum { ANIMATION_STEP_MS = 128 };
 
 public:

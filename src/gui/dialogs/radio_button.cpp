@@ -47,7 +47,7 @@ RadioButton::RadioButton(window_t *parent, Rect16 rect, const PhaseResponses &re
 }
 
 RadioButton::RadioButton(window_t *parent, Rect16 rect, Responses_t resp, const PhaseTexts *labels)
-    : AddSuperWindow<IRadioButton>(parent, rect, cnt_buttons(labels, resp))
+    : IRadioButton(parent, rect, cnt_buttons(labels, resp))
     , responses(resp)
     , texts(labels) {
 }

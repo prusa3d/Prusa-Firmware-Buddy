@@ -6,7 +6,7 @@
 #include "window.hpp"
 #include "window_filter.hpp"
 
-class window_frame_t : public AddSuperWindow<window_t> {
+class window_frame_t : public window_t {
     // stored rect to print in draw method (exept when enetire screen is invalid)
     // hiding, or unregistration of window sets it
     Rect16 invalid_area;

@@ -9,7 +9,7 @@
 #include "screen.hpp"
 #include "window_header.hpp"
 
-class ScreenTouchError : public AddSuperWindow<screen_t> {
+class ScreenTouchError : public screen_t {
     window_header_t header; // Header must remain here, screen without a window does not support dialogs
                             // and I use internally message box
                             // it is known bug, but i am not about to fix it

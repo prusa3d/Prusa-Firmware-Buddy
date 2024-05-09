@@ -12,7 +12,7 @@
 #include "window_wizard_progress.hpp"
 #include "status_footer.hpp"
 
-class SelftestFrameCalibZ : public AddSuperWindow<SelftestFrameNamed> {
+class SelftestFrameCalibZ : public SelftestFrameNamed {
     window_wizard_progress_t progress; // used just to draw line
 
     window_icon_hourglass_t animation;

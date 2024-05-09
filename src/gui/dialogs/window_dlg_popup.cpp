@@ -9,7 +9,7 @@
 #include "ScreenHandler.hpp"
 
 window_dlg_popup_t::window_dlg_popup_t(Rect16 rect, string_view_utf8 txt)
-    : AddSuperWindow<window_frame_t>(Screens::Access()->Get(), rect, win_type_t::popup)
+    : window_frame_t(Screens::Access()->Get(), rect, win_type_t::popup)
     , text(this, rect, is_multiline::yes, is_closed_on_click_t::no, txt)
     , open_time(0)
     , ttl(0) {
@@ -49,6 +49,6 @@ void window_dlg_popup_t::windowEvent(window_t *sender, GUI_event_t event, void *
             // frame will set parrent to null
         }
     } else {
-        SuperWindowEvent(sender, event, param);
+        window_frame_t::windowEvent(sender, event, param);
     }
 }

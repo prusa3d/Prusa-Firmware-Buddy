@@ -13,7 +13,7 @@
  * this behavior allows to handle click automatically
  */
 template <class FSM_PHASE>
-class RadioButtonFsm : public AddSuperWindow<IRadioButton> {
+class RadioButtonFsm : public IRadioButton {
 
     size_t cnt_buttons(FSM_PHASE phase) const {
         const PhaseResponses &resp = ClientResponses::GetResponses(phase); // ClientResponses::GetResponses returns array of 16 responses
@@ -30,7 +30,7 @@ public:
      * @param labels array of button labels, if is set to nullptr, strings are assigned as default ones from given responses
      */
     RadioButtonFsm(window_t *parent, Rect16 rect, FSM_PHASE phase)
-        : AddSuperWindow<IRadioButton>(parent, rect, cnt_buttons(phase))
+        : IRadioButton(parent, rect, cnt_buttons(phase))
         , current_phase(phase) {}
 
     void Change(FSM_PHASE phase) {
@@ -74,7 +74,7 @@ protected:
             break;
         }
         default:
-            SuperWindowEvent(sender, event, param);
+            IRadioButton::windowEvent(sender, event, param);
         }
     }
 };

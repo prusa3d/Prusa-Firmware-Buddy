@@ -9,7 +9,7 @@
 #include <guiconfig/GuiDefaults.hpp>
 
 FooterText::FooterText(window_t *parent, Rect16::Left_t left, string_view_utf8 txt)
-    : AddSuperWindow<WindowBlinkingText>(
+    : WindowBlinkingText(
         parent,
         [parent, left] {
             if (!parent) {

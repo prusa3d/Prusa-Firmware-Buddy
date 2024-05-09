@@ -7,7 +7,7 @@
 #include "selftest_dock_type.hpp"
 #include "status_footer.hpp"
 
-class SelftestFrameDock : public AddSuperWindow<SelftestFrameNamedWithRadio> {
+class SelftestFrameDock : public SelftestFrameNamedWithRadio {
     FooterLine footer;
     window_wizard_progress_t progress;
     window_text_t text_info;

@@ -22,7 +22,7 @@ const constexpr size_t max_url_len = 128;
 } // namespace
 
 DialogConnectRegister::DialogConnectRegister()
-    : AddSuperWindow<IDialog>(WizardDefaults::RectSelftestFrame)
+    : IDialog(WizardDefaults::RectSelftestFrame)
     , header(this, _(headerLabel))
     , icon_phone(this, Positioner::phoneIconRect(), &img::hand_qr_59x72)
     , qr(this, Positioner::qrcodeRect(), "")
@@ -213,7 +213,7 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
         break;
     }
     default:
-        SuperWindowEvent(sender, event, param);
+        IDialog::windowEvent(sender, event, param);
         break;
     }
 }

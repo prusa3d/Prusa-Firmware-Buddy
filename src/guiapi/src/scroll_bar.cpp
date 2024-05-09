@@ -7,7 +7,7 @@
 #include "scroll_bar.hpp"
 
 ScrollBar::ScrollBar(window_t *parrent, Rect16::Width_t w)
-    : AddSuperWindow<window_t>(parrent, calculateRect(parrent->GetRect(), w)) {
+    : window_t(parrent, calculateRect(parrent->GetRect(), w)) {
 }
 
 Rect16 ScrollBar::calculateRect(Rect16 parrent_rect, Rect16::Width_t w) {
@@ -32,7 +32,7 @@ void ScrollBar::SetScrollOffset(Rect16::Height_t offset_) {
 }
 
 void ScrollBar::unconditionalDraw() {
-    super::unconditionalDraw(); // draw background
+    window_t::unconditionalDraw(); // draw background
     Rect16 rc = GetRect();
     Rect16::Height_t h = rc.Height();
     if (h >= scroll_height) {

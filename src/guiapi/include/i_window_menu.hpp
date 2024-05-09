@@ -11,7 +11,7 @@
 
 class IWindowMenuItem;
 
-class IWindowMenu : public AddSuperWindow<window_t> {
+class IWindowMenu : public window_t {
 
 protected:
     static constexpr uint8_t font_h_ = height(Font::normal);

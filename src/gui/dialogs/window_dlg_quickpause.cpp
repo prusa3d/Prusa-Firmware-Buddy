@@ -13,7 +13,7 @@
 constexpr static const char *quick_pause_txt = find_error(ErrCode::CONNECT_QUICK_PAUSE).err_text;
 
 DialogQuickPause::DialogQuickPause(fsm::BaseData data)
-    : AddSuperWindow<IDialogMarlin>(GuiDefaults::RectScreenBody)
+    : IDialogMarlin(GuiDefaults::RectScreenBody)
     , icon(this, GuiDefaults::MessageIconRect, &img::warning_48x48)
     , text(this, GuiDefaults::MessageTextRect, is_multiline::yes, is_closed_on_click_t::yes, _(quick_pause_txt))
     , gcode_name(this, Rect16(GuiDefaults::MsgBoxLayoutRect.Left(), 45, GuiDefaults::MsgBoxLayoutRect.Width(), 21))

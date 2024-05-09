@@ -7,7 +7,7 @@
 #include "screen.hpp"
 
 screen_t::screen_t(window_t *parent, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_printing_t close_on_print)
-    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreen, type, timeout, close_on_print) {}
+    : window_frame_t(parent, GuiDefaults::RectScreen, type, timeout, close_on_print) {}
 
 bool screen_t::registerSubWin(window_t &win) {
     switch (win.GetType()) {
@@ -140,7 +140,7 @@ window_t *screen_t::GetCapturedWindow() {
     }
 
     // default frame behavior
-    return super::GetCapturedWindow();
+    return window_frame_t::GetCapturedWindow();
 }
 
 window_t *screen_t::findCaptured_first_last(window_t *first, window_t *last) const {
@@ -164,7 +164,7 @@ window_t *screen_t::findCaptured_first_last(window_t *first, window_t *last) con
 }
 
 void screen_t::ChildVisibilityChanged(window_t &child) {
-    super::ChildVisibilityChanged(child);
+    window_frame_t::ChildVisibilityChanged(child);
     clearAllHiddenBehindDialogFlags();
     hideSubwinsBehindDialogs();
 }
@@ -196,5 +196,5 @@ void screen_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
         }
     }
 
-    super::screenEvent(sender, event, param);
+    window_frame_t::screenEvent(sender, event, param);
 }

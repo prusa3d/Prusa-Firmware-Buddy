@@ -8,7 +8,7 @@
  * @brief Generic screen shown after reset caused by error.
  * Reads error details from dump.
  */
-class ScreenResetError : public AddSuperWindow<screen_t> {
+class ScreenResetError : public screen_t {
     window_text_t fw_version_txt;
     bool sound_started;
 

@@ -10,7 +10,7 @@
 #include "img_resources.hpp"
 
 TestResultScreen::TestResultScreen()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
     , header(this, string_view_utf8::MakeCPUFLASH((uint8_t *)"RESULT TEST"))
     , result(this, PhasesSelftest::Result, somethingToShow()) {
     ClrMenuTimeoutClose(); // don't close on menu timeout

@@ -221,5 +221,5 @@ void ScreenMenuMove::windowEvent(window_t *sender, GUI_event_t event, void *para
         Item<DUMMY_AXIS_E>().Update();
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }

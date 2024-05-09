@@ -4,7 +4,7 @@
 #include "gcode_info.hpp"
 #include <window_menu_adv.hpp>
 
-class WindowFileBrowser : public AddSuperWindow<window_file_list_t> {
+class WindowFileBrowser : public window_file_list_t {
     static char root_[FILE_PATH_BUFFER_LEN]; // we currently do not support multiple file browsers
 
 public:

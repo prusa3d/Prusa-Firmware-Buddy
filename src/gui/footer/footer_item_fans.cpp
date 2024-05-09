@@ -30,11 +30,11 @@ string_view_utf8 IFooterItemFan::static_makeViewIntoBuff(int value, buffer_t &bu
 }
 
 IFooterItemFan::IFooterItemFan(window_t *parent, const img::Resource *icon, view_maker_cb view_maker, reader_cb value_reader)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, icon, view_maker, value_reader) {
+    : FooterIconText_IntVal(parent, icon, view_maker, value_reader) {
 }
 
 FooterItemPrintFan::FooterItemPrintFan(window_t *parent)
-    : AddSuperWindow<IFooterItemFan>(parent, &img::turbine_16x16, static_makeView, static_readValue) {
+    : IFooterItemFan(parent, &img::turbine_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemPrintFan::static_readValue() {
@@ -48,7 +48,7 @@ int FooterItemPrintFan::static_readValue() {
 }
 
 FooterItemHeatBreakFan::FooterItemHeatBreakFan(window_t *parent)
-    : AddSuperWindow<IFooterItemFan>(parent, &img::fan_16x16, static_makeView, static_readValue) {
+    : IFooterItemFan(parent, &img::fan_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemHeatBreakFan::static_readValue() {

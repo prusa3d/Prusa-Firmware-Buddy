@@ -11,7 +11,7 @@
 #include "window_arrows.hpp"
 #include <guiconfig/guiconfig.h>
 
-class DialogMoveZ : public AddSuperWindow<IDialog> {
+class DialogMoveZ : public IDialog {
 private:
     static bool DialogShown;
     constexpr static const char *const headerLabel = N_("Z AXIS MOVE");

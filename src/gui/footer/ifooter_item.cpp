@@ -9,7 +9,7 @@
 #include "display_helper.h"
 
 IFooterItem::IFooterItem(window_t *parent, Rect16::W_t width)
-    : AddSuperWindow<window_frame_t>(parent, Rect16(0, 0 /* item_top*/, width, item_h))
+    : window_frame_t(parent, Rect16(0, 0 /* item_top*/, width, item_h))
     , update_period(500)
     , last_updated(gui::GetTick()) {
 }
@@ -54,7 +54,7 @@ void IFooterItem::windowEvent(window_t *sender, GUI_event_t event, void *param) 
         break;
     }
 
-    SuperWindowEvent(sender, event, param);
+    window_frame_t::windowEvent(sender, event, param);
 }
 
 Rect16::Width_t IFooterItem::TextWidth(string_view_utf8 text) {
@@ -64,7 +64,7 @@ Rect16::Width_t IFooterItem::TextWidth(string_view_utf8 text) {
 }
 
 IFooterIconText::IFooterIconText(window_t *parent, const img::Resource *icon, Rect16::W_t width)
-    : AddSuperWindow<IFooterItem>(parent, width)
+    : IFooterItem(parent, width)
     , icon(this, icon)
     , text(this, Rect16::Left_t(icon ? icon->w + GuiDefaults::FooterIconTextSpace : 0)) {
 }
@@ -77,7 +77,7 @@ Rect16::Width_t IFooterIconText::MeasureTextWidth(string_view_utf8 text) {
 
 FooterIconText_IntVal::FooterIconText_IntVal(window_t *parent, const img::Resource *icon,
     view_maker_cb view_maker, reader_cb value_reader)
-    : AddSuperWindow<IFooterIconText>(parent, icon, GetTotalWidth(icon ? icon->w : 0, view_maker(value_reader())))
+    : IFooterIconText(parent, icon, GetTotalWidth(icon ? icon->w : 0, view_maker(value_reader())))
     , makeView(view_maker)
     , readCurrentValue(value_reader)
     , value(value_reader()) {
@@ -114,7 +114,7 @@ resized_t FooterIconText_IntVal::updateState() {
 }
 FooterIconText_FloatVal::FooterIconText_FloatVal(window_t *parent, const img::Resource *icon,
     view_maker_cb view_maker, reader_cb value_reader)
-    : AddSuperWindow<IFooterIconText>(parent, icon, GetTotalWidth(icon ? icon->w : 0, view_maker(value_reader())))
+    : IFooterIconText(parent, icon, GetTotalWidth(icon ? icon->w : 0, view_maker(value_reader())))
     , makeView(view_maker)
     , readCurrentValue(value_reader)
     , value(value_reader()) {

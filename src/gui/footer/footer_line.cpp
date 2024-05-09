@@ -12,7 +12,7 @@
 #include <option/has_mmu2.h>
 
 FooterLine::FooterLine(window_t *parent, size_t line_no)
-    : AddSuperWindow<window_frame_t>(parent, footer::line_rect(line_no), positioning::relative) {
+    : window_frame_t(parent, footer::line_rect(line_no), positioning::relative) {
     item_ids.fill(footer::Item::none);
 }
 
@@ -31,7 +31,7 @@ void FooterLine::windowEvent(window_t *sender, GUI_event_t event, void *param) {
         break;
     }
 
-    SuperWindowEvent(sender, event, param);
+    window_frame_t::windowEvent(sender, event, param);
 }
 
 // does not call destructor, just rewrites

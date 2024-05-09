@@ -35,7 +35,7 @@ void ScreenMenuNetworkStatus::windowEvent(window_t *sender, GUI_event_t event, v
         update();
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }
 
 void ScreenMenuNetworkStatus::update() {

@@ -213,7 +213,7 @@ void window_header_t::updateIcons() {
 }
 
 window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
-    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectHeader)
+    : window_frame_t(parent, GuiDefaults::RectHeader)
     , icon_base(this, Rect16(GuiDefaults::HeaderPadding.left, GuiDefaults::HeaderPadding.top, base_w, GuiDefaults::HeaderItemHeight), nullptr)
     , label(this, first_rect_doesnt_matter, txt)
 #if !defined(USE_ST7789) // Time is not shown on ST7789
@@ -310,7 +310,7 @@ void window_header_t::windowEvent(window_t *sender, GUI_event_t event, void *par
     }
 
     updateIcons();
-    SuperWindowEvent(sender, event, param);
+    window_frame_t::windowEvent(sender, event, param);
 }
 
 void window_header_t::updateMedia(MediaState_t state) {

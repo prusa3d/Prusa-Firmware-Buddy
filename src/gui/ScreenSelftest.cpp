@@ -145,7 +145,7 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
 }
 
 ScreenSelftest::ScreenSelftest()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
     , header(this, _(en_selftest))
     , part_current(SelftestParts::_none)
     , part_previous(SelftestParts::_none) {

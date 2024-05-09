@@ -4,7 +4,7 @@
 #include <guiconfig/wizard_config.hpp>
 
 ESPFrame::ESPFrame(window_t *parent, PhasesESP ph, fsm::PhaseData data)
-    : AddSuperWindow<window_frame_t>(parent, WizardDefaults::RectSelftestFrame)
+    : window_frame_t(parent, WizardDefaults::RectSelftestFrame)
     , phase_current(PhasesESP::_none)
     , phase_previous(PhasesESP::_none)
     , radio(this, WizardDefaults::RectRadioButton(0), ph) {

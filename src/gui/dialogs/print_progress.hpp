@@ -15,7 +15,7 @@
 #include "gcode_info.hpp"
 #include "print_time_module.hpp"
 
-class PrintProgress : public AddSuperWindow<DialogTimed> {
+class PrintProgress : public DialogTimed {
     enum class ProgressMode_t {
         PRINTING_INIT,
         PRINTING,

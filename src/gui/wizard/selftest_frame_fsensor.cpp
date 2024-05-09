@@ -48,7 +48,7 @@ static string_view_utf8 test_name() {
 }
 
 SelftestFrameFSensor::SelftestFrameFSensor(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, ::test_name(), 1)
+    : SelftestFrameNamedWithRadio(parent, ph, data, ::test_name(), 1)
 
     , footer(this, 0,
 #if HAS_SIDE_FSENSOR()

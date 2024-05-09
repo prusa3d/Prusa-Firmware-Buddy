@@ -82,7 +82,7 @@ static constexpr const char *get_txt_help() {
 static constexpr const char *txt_header = N_("How to update firmware?");
 
 ScreenHelpFWUpdate::ScreenHelpFWUpdate()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
     , header(this)
     , description(this, descr_rect, is_multiline::yes)
 #if defined(USE_ST7789)

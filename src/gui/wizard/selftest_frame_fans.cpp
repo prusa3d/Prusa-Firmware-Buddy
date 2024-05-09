@@ -76,7 +76,7 @@ std::array<SelftestFrameFans::fan_state_t, sizeof...(Is)> SelftestFrameFans::mak
 }
 
 SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_fan_test), 1)
+    : SelftestFrameNamedWithRadio(parent, ph, data, _(en_text_fan_test), 1)
 #if HAS_TOOLCHANGER()
     // when toolchanger is enabled, do not show footer with fan RPM, because its likely that no tool will be picked and it would just show zero RPM
     , footer(this, 0)

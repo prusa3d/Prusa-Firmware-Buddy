@@ -7,7 +7,7 @@
 
 #include "i_window_menu.hpp"
 
-class MenuScrollbar : public AddSuperWindow<window_t> {
+class MenuScrollbar : public window_t {
 
 public:
     MenuScrollbar(window_t *parent, Rect16 rect, IWindowMenu &menu);

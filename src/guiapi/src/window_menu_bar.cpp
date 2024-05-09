@@ -5,7 +5,7 @@
 #include "window_menu_bar.hpp"
 
 MenuScrollbar::MenuScrollbar(window_t *parent, Rect16 rect, IWindowMenu &menu)
-    : AddSuperWindow<window_t>(parent, rect)
+    : window_t(parent, rect)
     , menu(menu) {}
 
 void MenuScrollbar::unconditionalDraw() {

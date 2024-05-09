@@ -67,7 +67,7 @@ void MI_UPDATE::OnChange(size_t /*old_index*/) {
 }
 
 ScreenMenuFwUpdate::ScreenMenuFwUpdate()
-    : AddSuperWindow<screen_t>(nullptr)
+    : screen_t(nullptr)
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
     , header(this)
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectFooter.Top()) - get_help_h() - blank_space_h, GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)

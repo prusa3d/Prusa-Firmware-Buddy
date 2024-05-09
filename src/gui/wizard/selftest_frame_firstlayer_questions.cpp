@@ -18,7 +18,7 @@ constexpr const char *text_question_use_val = N_("Do you want to use the current
 } // namespace
 
 SelftestFrameFirstLayerQuestions::SelftestFrameFirstLayerQuestions(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data, 2)
+    : SelftestFrameWithRadio(parent, ph, data, 2)
     , footer(this
 #if defined(FOOTER_HAS_LIVE_Z)
           ,

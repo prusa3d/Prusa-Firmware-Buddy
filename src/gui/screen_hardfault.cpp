@@ -8,7 +8,7 @@
 using namespace bsod_details;
 
 ScreenHardfault::ScreenHardfault()
-    : AddSuperWindow<ScreenBlueError>() {
+    : ScreenBlueError() {
     ///@note No translations on blue screens.
 
     static const char txt_header[] = "HARDFAULT";

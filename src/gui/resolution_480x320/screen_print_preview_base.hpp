@@ -7,7 +7,7 @@
 #include "radio_button_preview.hpp"
 #include "window_roll_text.hpp"
 
-class ScreenPrintPreviewBase : public AddSuperWindow<screen_t> {
+class ScreenPrintPreviewBase : public screen_t {
 protected:
     window_header_t header;
     window_roll_text_t title_text;

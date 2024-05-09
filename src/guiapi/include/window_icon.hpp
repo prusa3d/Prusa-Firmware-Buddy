@@ -11,7 +11,7 @@
  *  that is redrawn by the GUI loop as needed
  *
  */
-class window_icon_t : public AddSuperWindow<window_aligned_t> {
+class window_icon_t : public window_aligned_t {
     const img::Resource *pRes = nullptr;
 
 public:
@@ -57,7 +57,7 @@ protected:
     virtual void set_layout(ColorLayout lt) override;
 };
 
-class window_icon_button_t : public AddSuperWindow<window_icon_t> {
+class window_icon_button_t : public window_icon_t {
     ButtonCallback callback;
 
 public:
@@ -75,7 +75,7 @@ protected:
  * Special version requiring 3 pngs with matching size (normal, focused, disabled)
  * does not support padding
  */
-class WindowMultiIconButton : public AddSuperWindow<window_t> {
+class WindowMultiIconButton : public window_t {
 public:
     struct Pngs {
         const img::Resource &normal;
@@ -104,7 +104,7 @@ protected:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
-class window_icon_hourglass_t : public AddSuperWindow<window_icon_t> {
+class window_icon_hourglass_t : public window_icon_t {
     enum { ANIMATION_STEPS = 5,
         ANIMATION_STEP_MS = 500 };
     uint32_t start_time; // todo use window timer

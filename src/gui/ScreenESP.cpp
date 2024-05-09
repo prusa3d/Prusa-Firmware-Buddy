@@ -4,7 +4,7 @@
 #include "img_resources.hpp"
 
 ScreenESP::ScreenESP()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
     , header(this, _(en_esp))
     , part_current(ESPParts::_none)
     , part_previous(ESPParts::_none) {

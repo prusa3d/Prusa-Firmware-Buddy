@@ -357,7 +357,7 @@ void WinUnion::New(PhasesCrashRecovery ph) {
 }
 
 ScreenCrashRecovery::ScreenCrashRecovery()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
     , header(this)
     , footer(this)
     , win_union(*this) {

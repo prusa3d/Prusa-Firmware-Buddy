@@ -11,7 +11,7 @@
 #include "radio_button.hpp"
 #include <guiconfig/guiconfig.h>
 
-class ScreenHelpFWUpdate : public AddSuperWindow<screen_t> {
+class ScreenHelpFWUpdate : public screen_t {
     window_header_t header;
     window_text_t description;
 #if defined(USE_ST7789)

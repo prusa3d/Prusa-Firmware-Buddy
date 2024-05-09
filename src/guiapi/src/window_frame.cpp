@@ -6,7 +6,7 @@
 #include "marlin_client.hpp"
 
 window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_printing_t close_on_print)
-    : AddSuperWindow<window_t>(parent, rect, type)
+    : window_t(parent, rect, type)
     , captured_normal_window(nullptr)
     , first_normal(nullptr)
     , last_normal(nullptr) {
@@ -502,7 +502,7 @@ void window_frame_t::Shift(ShiftDir_t direction, uint16_t distance) {
         pWin = GetNextSubWin(pWin);
     }
 
-    super::Shift(direction, distance);
+    window_t::Shift(direction, distance);
 }
 
 void window_frame_t::ChildVisibilityChanged(window_t &child) {
@@ -565,7 +565,7 @@ void window_frame_t::RecursiveCall(mem_fnc fnc) {
 }
 
 void window_frame_t::set_layout(ColorLayout lt) {
-    super::set_layout(lt);
+    window_t::set_layout(lt);
     switch (lt) {
 
     case ColorLayout::red:

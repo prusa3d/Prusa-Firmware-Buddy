@@ -13,7 +13,7 @@
 void window_roll_text_t::unconditionalDraw() {
     if (flags.color_scheme_background || flags.color_scheme_foreground) {
         // TODO keep only following 3 lines in function body, remove rest
-        super::unconditionalDraw();
+        window_text_t::unconditionalDraw();
         roll.RenderTextAlign(GetRect(), text, get_font(),
             GetBackColor(), GetTextColor(), padding, GetAlignment());
     } else {
@@ -30,18 +30,18 @@ void window_roll_text_t::windowEvent(window_t *sender, GUI_event_t event, void *
             Invalidate();
         }
     } else {
-        SuperWindowEvent(sender, event, param);
+        window_text_t::windowEvent(sender, event, param);
     }
 }
 
 window_roll_text_t::window_roll_text_t(window_t *parent, Rect16 rect, string_view_utf8 txt, Align_t align)
-    : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt) {
+    : window_text_t(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt) {
     this->SetAlignment(align);
     rollInit();
 }
 
 void window_roll_text_t::SetText(string_view_utf8 txt) {
-    super::SetText(txt);
+    window_text_t::SetText(txt);
     rollInit();
 }
 
@@ -50,7 +50,7 @@ bool window_roll_text_t::SetRect(Rect16 rect) {
         return false; // to avoid pointless assignment/reinit
     }
 
-    super::SetRect(rect);
+    window_text_t::SetRect(rect);
     rollInit();
     return true;
 }

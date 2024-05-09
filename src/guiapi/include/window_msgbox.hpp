@@ -31,7 +31,7 @@ void AdjustLayout(window_text_t &text, window_icon_t &icon);
 
 /*****************************************************************************/
 // MsgBoxBase
-class MsgBoxBase : public AddSuperWindow<IDialog> {
+class MsgBoxBase : public IDialog {
 protected:
     window_text_t text;
 
@@ -89,7 +89,7 @@ protected:
 
 /*****************************************************************************/
 // MsgBoxIconned
-class MsgBoxIconned : public AddSuperWindow<MsgBoxBase> {
+class MsgBoxIconned : public MsgBoxBase {
 
 public:
     MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
@@ -106,7 +106,7 @@ protected:
 
 /*****************************************************************************/
 // MsgBoxTitled
-class MsgBoxTitled : public AddSuperWindow<MsgBoxIconned> {
+class MsgBoxTitled : public MsgBoxIconned {
 public:
     MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon_res,
@@ -134,7 +134,7 @@ protected:
 
 /*****************************************************************************/
 // MsgBoxPepa
-class MsgBoxIconPepa : public AddSuperWindow<MsgBoxIconned> {
+class MsgBoxIconPepa : public MsgBoxIconned {
 public:
     MsgBoxIconPepa(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline, const img::Resource *icon);
@@ -146,7 +146,7 @@ protected:
 
 /*****************************************************************************/
 // MsgBoxPepaCentered
-class MsgBoxIconPepaCentered : public AddSuperWindow<MsgBoxIconned> {
+class MsgBoxIconPepaCentered : public MsgBoxIconned {
 public:
     MsgBoxIconPepaCentered(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline, const img::Resource *icon);
@@ -158,14 +158,14 @@ protected:
 
 /*****************************************************************************/
 // MsgBoxError
-class MsgBoxIconnedError : public AddSuperWindow<MsgBoxIconned> {
+class MsgBoxIconnedError : public MsgBoxIconned {
 public:
     MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline, const img::Resource *icon);
 };
 
 // MsgBoxWait
-class MsgBoxIconnedWait : public AddSuperWindow<MsgBoxIconned> {
+class MsgBoxIconnedWait : public MsgBoxIconned {
 public:
     MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline);
@@ -173,7 +173,7 @@ public:
 
 /*****************************************************************************/
 // MsgBoxIS
-class MsgBoxIS : public AddSuperWindow<MsgBoxBase> {
+class MsgBoxIS : public MsgBoxBase {
 
 public:
     MsgBoxIS(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,

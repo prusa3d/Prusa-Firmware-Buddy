@@ -9,7 +9,7 @@
 #include <cstring>
 
 ESPFrameQR::ESPFrameQR(window_t *parent, PhasesESP ph, fsm::PhaseData data)
-    : AddSuperWindow<ESPFrame>(parent, ph, data)
+    : ESPFrame(parent, ph, data)
     , text(this, FrameQRLayout::text_rect(), is_multiline::yes)
     , link(this, FrameQRLayout::link_rect(), is_multiline::no)
     , icon_phone(this, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)

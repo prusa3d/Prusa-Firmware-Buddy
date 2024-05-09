@@ -17,7 +17,7 @@
 // WindowScale
 
 WindowScale::WindowScale(window_t *parent, point_i16_t pt)
-    : AddSuperWindow<window_frame_t>(parent, Rect16(pt, 10, 100))
+    : window_frame_t(parent, Rect16(pt, 10, 100))
     , scaleNum0(parent, getNumRect(pt), z_offset_max, "% f")
     , scaleNum1(parent, getNumRect(pt), (z_offset_max + z_offset_min) / 2, "% f")
     , scaleNum2(parent, getNumRect(pt), z_offset_min, "% f") {
@@ -71,7 +71,7 @@ void WindowScale::unconditionalDraw() {
 // WindowLiveAdjustZ
 
 WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
-    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectScreenBody)
+    : window_frame_t(parent, GuiDefaults::RectScreenBody)
     , number(this, getNumberRect(pt), marlin_vars()->z_offset)
     , arrows(this, getIconPoint(pt)) {
 
@@ -120,7 +120,7 @@ void WindowLiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *p
         break;
 
     default:
-        SuperWindowEvent(sender, event, param);
+        window_frame_t::windowEvent(sender, event, param);
         break;
     }
 }
@@ -129,7 +129,7 @@ void WindowLiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *p
 // WindowLiveAdjustZ_withText
 
 WindowLiveAdjustZ_withText::WindowLiveAdjustZ_withText(window_t *parent, point_i16_t pt, size_t width)
-    : AddSuperWindow<WindowLiveAdjustZ>(parent, pt)
+    : WindowLiveAdjustZ(parent, pt)
     , text(parent, Rect16(), is_multiline::no, is_closed_on_click_t::no, _(text_str)) {
     Shift(ShiftDir_t::Right, width - Width());
     text.SetRect(Rect16(pt, width - Width(), Height()));
@@ -161,7 +161,7 @@ void WindowLiveAdjustZ_withText::windowEvent(window_t *sender, GUI_event_t event
     default:
         break;
     }
-    SuperWindowEvent(sender, event, param);
+    WindowLiveAdjustZ::windowEvent(sender, event, param);
 }
 
 /*****************************************************************************/
@@ -179,7 +179,7 @@ static constexpr const point_i16_t scale_pt = point_i16_t(180, 125);
 #endif
 
 LiveAdjustZ::LiveAdjustZ()
-    : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
+    : IDialog(GuiDefaults::RectScreenBody)
     , text(this, textRect, is_multiline::yes, is_closed_on_click_t::no)
     , nozzle_icon(this, nozzleRect, &img::nozzle_shape_48x48)
     , adjuster(this, adjuster_pt)
@@ -241,7 +241,7 @@ void LiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) 
     }
 
     default:
-        SuperWindowEvent(sender, event, param);
+        IDialog::windowEvent(sender, event, param);
     }
 }
 

@@ -18,7 +18,7 @@ static Rect16::Height_t msg_height() { return (GuiDefaults::ScreenWidth > 240 ? 
 static Rect16::Height_t view_height() { return WizardDefaults::Y_space - msg_height() - view_msg_gap - msg_bottom_gap; }
 
 SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrame>(parent, ph, data)
+    : SelftestFrame(parent, ph, data)
     , msg(this, { WizardDefaults::col_0, WizardDefaults::row_0, WizardDefaults::X_space, msg_height() }, is_multiline::yes)
     , view(this, this->GenerateRect(view_height(), view_msg_gap))
     , bar(this)
@@ -116,6 +116,6 @@ void SelftestFrameResult::windowEvent(window_t *sender, GUI_event_t event, void 
         bar.SetScrollOffset(height_draw_offset);
         break;
     default:
-        SuperWindowEvent(sender, event, param);
+        SelftestFrame::windowEvent(sender, event, param);
     }
 }

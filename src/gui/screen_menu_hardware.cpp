@@ -19,7 +19,7 @@ void ScreenMenuHardware::windowEvent(window_t *sender, GUI_event_t event, void *
         return;
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }
 
 #define NOTRAN(x) string_view_utf8::MakeCPUFLASH((const uint8_t *)x)

@@ -4,7 +4,7 @@
 
 #include "window.hpp"
 
-class window_qr_t : public AddSuperWindow<window_t> {
+class window_qr_t : public window_t {
 public:
     window_qr_t(window_t *parent, Rect16 rect, uint16_t error_num, Align_t align = Align_t::Center());
     window_qr_t(window_t *parent, Rect16 rect, const char *txt);

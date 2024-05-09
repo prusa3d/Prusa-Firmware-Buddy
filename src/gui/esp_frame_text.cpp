@@ -9,7 +9,7 @@
 static constexpr size_t col_0 = WizardDefaults::MarginLeft;
 
 ESPFrameText::ESPFrameText(window_t *parent, PhasesESP ph, fsm::PhaseData data)
-    : AddSuperWindow<ESPFrame>(parent, ph, data)
+    : ESPFrame(parent, ph, data)
     , text(this, Rect16(col_0, WizardDefaults::row_0, WizardDefaults::X_space, WizardDefaults::txt_h * 10), is_multiline::yes) {
     text.SetAlignment(Align_t::LeftTop());
     change();

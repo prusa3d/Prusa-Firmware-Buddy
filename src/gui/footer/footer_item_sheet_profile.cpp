@@ -9,7 +9,7 @@
 #include <config_store/store_instance.hpp>
 
 FooterItemSheets::FooterItemSheets(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::sheets_profile_16x14, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::sheets_profile_16x14, static_makeView, static_readValue) {
 }
 
 int FooterItemSheets::static_readValue() {

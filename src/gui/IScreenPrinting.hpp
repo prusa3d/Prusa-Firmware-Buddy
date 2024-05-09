@@ -5,7 +5,7 @@
 #include "window_header.hpp"
 #include "status_footer.hpp"
 
-class IScreenPrinting : public AddSuperWindow<screen_t> {
+class IScreenPrinting : public screen_t {
 protected:
     window_header_t header;
     StatusFooter footer;

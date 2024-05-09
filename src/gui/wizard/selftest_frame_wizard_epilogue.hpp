@@ -9,7 +9,7 @@
 #include "window_icon.hpp"
 #include "window_text.hpp"
 
-class SelftestFrameWizardEpilogue : public AddSuperWindow<SelftestFrameWithRadio> {
+class SelftestFrameWizardEpilogue : public SelftestFrameWithRadio {
     window_icon_t icon;
     window_text_t text_icon;
 

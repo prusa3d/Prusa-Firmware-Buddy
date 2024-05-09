@@ -15,7 +15,7 @@ static const constexpr Rect16 header_rect = GuiDefaults::EnableDialogBigLayout ?
 static const constexpr Rect16 title_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 44, display::GetW() - 60, 20) : Rect16(13, 12, display::GetW() - 26, 20);
 
 ScreenBlueError::ScreenBlueError()
-    : AddSuperWindow<ScreenResetError>(fw_version_rect)
+    : ScreenResetError(fw_version_rect)
     ///@note No translations on blue screens.
     , header(this, header_rect, is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>("UNKNOWN ERROR")))
     , title(this, title_rect, is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>("Unable to show details")))

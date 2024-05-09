@@ -42,6 +42,6 @@ void ScreenMenuBedLevelCorrection::windowEvent(window_t *sender, GUI_event_t eve
         Item<MI_CORRECT<FRONT>>().Reset();
         Item<MI_CORRECT<REAR>>().Reset();
     } else {
-        SuperWindowEvent(sender, event, param);
+        ScreenMenu::windowEvent(sender, event, param);
     }
 }

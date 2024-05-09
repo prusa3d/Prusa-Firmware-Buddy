@@ -13,7 +13,7 @@ static constexpr size_t row_3 = row_2 + icon_sz;
 static constexpr size_t col_0 = WizardDefaults::MarginLeft;
 
 ESPFrameProgress::ESPFrameProgress(window_t *parent, PhasesESP ph, fsm::PhaseData data)
-    : AddSuperWindow<ESPFrame>(parent, ph, data)
+    : ESPFrame(parent, ph, data)
     , text_top(this, Rect16(col_0, WizardDefaults::row_0, WizardDefaults::X_space, WizardDefaults::txt_h * 2), is_multiline::yes)
     , progress(this, row_2)
     , text_progress(this, Rect16(col_0, row_2b, WizardDefaults::X_space, WizardDefaults::txt_h), is_multiline::no)

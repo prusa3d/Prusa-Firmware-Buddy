@@ -99,5 +99,5 @@ void ScreenMenuLanguagesNoRet::windowEvent(window_t *sender, GUI_event_t event, 
         return;
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }

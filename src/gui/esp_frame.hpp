@@ -8,7 +8,7 @@
 #include "window_text.hpp"
 #include "window_wizard_icon.hpp"
 
-class ESPFrame : public AddSuperWindow<window_frame_t> {
+class ESPFrame : public window_frame_t {
 protected:
     PhasesESP phase_current;
     PhasesESP phase_previous;

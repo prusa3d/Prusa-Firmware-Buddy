@@ -17,5 +17,5 @@ void ScreenMenuDiagnostics::ScreenMenuDiagnostics::windowEvent(window_t *sender,
         return;
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }

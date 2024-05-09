@@ -5,7 +5,7 @@
 #include "window_wizard_progress.hpp"
 #include "status_footer.hpp"
 
-class SelftestFrameNozzleDiameter : public AddSuperWindow<SelftestFrameNamedWithRadio> {
+class SelftestFrameNozzleDiameter : public SelftestFrameNamedWithRadio {
     FooterLine footer;
 
     window_text_t text_header;

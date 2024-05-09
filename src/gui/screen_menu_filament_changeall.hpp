@@ -169,7 +169,7 @@ namespace detail {
         DMI_FilamentApplyChanges>;
 } // namespace detail
 
-class DialogChangeAllFilaments final : public AddSuperWindow<IDialog> {
+class DialogChangeAllFilaments final : public IDialog {
 public:
     static constexpr const char *label = ScreenChangeAllFilaments::label;
 

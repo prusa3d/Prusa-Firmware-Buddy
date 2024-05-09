@@ -57,7 +57,7 @@ void NsPreheat::MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {
 /*****************************************************************************/
 // DialogMenuPreheat
 DialogMenuPreheat::DialogMenuPreheat(fsm::BaseData data)
-    : AddSuperWindow<IDialogMarlin>(get_title(data).isNULLSTR() ? GuiDefaults::RectScreenNoHeader : GuiDefaults::RectScreen)
+    : IDialogMarlin(get_title(data).isNULLSTR() ? GuiDefaults::RectScreenNoHeader : GuiDefaults::RectScreen)
     , menu(this, GuiDefaults::RectScreenNoHeader, &menu_container)
     , header(this) { // header registration should fail in case name.isNULLSTR(), it is OK
     string_view_utf8 title = get_title(data);

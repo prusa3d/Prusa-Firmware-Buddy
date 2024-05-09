@@ -7,7 +7,7 @@
 #include "window_roll_text.hpp"
 #include <bsod_gui.hpp>
 
-class ScreenPrintPreviewBase : public AddSuperWindow<screen_t> {
+class ScreenPrintPreviewBase : public screen_t {
 protected:
     window_roll_text_t title_text;
     RadioButtonPreview radio; // shows 2 mutually exclusive buttons Print and Back

@@ -11,7 +11,7 @@
 #include "window_wizard_progress.hpp"
 #include "status_footer.hpp"
 
-class SelftestFrametAxis : public AddSuperWindow<SelftestFrameNamed> {
+class SelftestFrametAxis : public SelftestFrameNamed {
     FooterLine footer;
     window_wizard_progress_t progress;
 

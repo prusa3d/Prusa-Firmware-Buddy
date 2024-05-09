@@ -9,7 +9,7 @@
 #include "footer_eeprom.hpp"
 
 FooterSingleline::FooterSingleline(window_t *parent)
-    : AddSuperWindow<IFooter>(parent)
+    : IFooter(parent)
     , line_0(this, 0) {
     line_0.Create(footer::eeprom::stored_settings_as_record());
 }
@@ -25,5 +25,5 @@ void FooterSingleline::windowEvent(window_t *sender, GUI_event_t event, void *pa
         line_0.Create(footer::eeprom::stored_settings_as_record()); // create will not do anything if wanted item type already exist in given slot
     }
 
-    SuperWindowEvent(sender, event, param);
+    IFooter::windowEvent(sender, event, param);
 }

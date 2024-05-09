@@ -9,7 +9,7 @@
 
 #include "window.hpp"
 
-class IWindowText : public AddSuperWindow<window_aligned_t> {
+class IWindowText : public window_aligned_t {
     // depends on color_scheme_foreground flag
     // if enabled and set != nullptr
     //   window automatically draws differently when selected or shadowed

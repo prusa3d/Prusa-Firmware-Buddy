@@ -7,7 +7,7 @@ static constexpr Font font = GuiDefaults::DefaultFont;
 static void render_term(term_t *pterm, size_t x, size_t y, color_t color_back, color_t color_text);
 
 window_term_t::window_term_t(window_t *parent, point_i16_t pt, uint8_t *buff, size_t cols, size_t rows)
-    : AddSuperWindow<window_t>(parent, Rect16(pt, width(font) * cols, height(font) * rows))
+    : window_t(parent, Rect16(pt, width(font) * cols, height(font) * rows))
     , color_text(GuiDefaults::ColorText) {
     term_init(&term, cols, rows, buff);
 }
@@ -16,7 +16,7 @@ void window_term_t::unconditionalDraw() {
     if (term.flg & TERM_FLG_CHANGED) {
         render_term(&term, Left(), Top(), GetBackColor(), color_text);
     } else {
-        super::unconditionalDraw();
+        window_t::unconditionalDraw();
     }
 }
 

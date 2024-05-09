@@ -13,7 +13,7 @@
 #pragma once
 #include "i_radio_button.hpp"
 
-class RadioButton : public AddSuperWindow<IRadioButton> {
+class RadioButton : public IRadioButton {
     Responses_t responses;
     const PhaseTexts *texts; // nullptr == autoset texts with default strings
 

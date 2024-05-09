@@ -13,7 +13,7 @@
 #include "selftest_result_type.hpp"
 #include <option/filament_sensor.h>
 
-class TestResultScreen : public AddSuperWindow<screen_t> {
+class TestResultScreen : public screen_t {
 private:
     window_header_t header;
     SelftestFrameResult result;

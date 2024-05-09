@@ -24,7 +24,7 @@ static constexpr char dirUp[] = "..";
 static constexpr char slash = '/';
 
 WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *media_SFN_path)
-    : AddSuperWindow<window_file_list_t>(parent, rect) {
+    : window_file_list_t(parent, rect) {
 
     // set root of the file list
     window_file_list_t::SetRoot(root_);
@@ -70,7 +70,7 @@ void WindowFileBrowser::windowEvent(window_t *sender, GUI_event_t event, void *p
         break;
     }
 
-    SuperWindowEvent(sender, event, param);
+    window_file_list_t::windowEvent(sender, event, param);
 }
 
 const char *WindowFileBrowser::root() {

@@ -34,7 +34,7 @@ public:
     }
 };
 
-struct screen_messages_data_t : public AddSuperWindow<screen_t> {
+struct screen_messages_data_t : public screen_t {
     window_header_t header;
     StatusFooter footer;
     window_term_t term;

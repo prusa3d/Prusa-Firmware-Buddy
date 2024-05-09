@@ -13,7 +13,7 @@
 
 // DO NOT SET has_relative_subwins flag !!!
 // screen must have rect == GuiDefaults::RectScreen
-class screen_t : public AddSuperWindow<window_frame_t> {
+class screen_t : public window_frame_t {
     CompactRAMPointer<window_t> first_dialog;
     CompactRAMPointer<window_t> last_dialog;
 

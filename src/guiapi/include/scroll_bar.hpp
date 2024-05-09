@@ -10,7 +10,7 @@
 #include "window.hpp"
 #include <guiconfig/GuiDefaults.hpp>
 
-class ScrollBar : public AddSuperWindow<window_t> {
+class ScrollBar : public window_t {
     Rect16::Height_t offset;
     Rect16::Height_t scroll_height;
     static Rect16 calculateRect(Rect16 parrent_rect, Rect16::Width_t w);

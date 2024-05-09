@@ -16,7 +16,7 @@
 MessageBuffer screen_messages_data_t::message_buffer;
 
 screen_messages_data_t::screen_messages_data_t()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
     , header(this)
     , footer(this)
     , term(this, GuiDefaults::RectScreenBody.TopLeft(), &term_buff) { // Rect16(10, 28, 11 * 20, 18 * 16))
@@ -35,7 +35,7 @@ void screen_messages_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
         return;
 
     default:
-        SuperWindowEvent(sender, event, param);
+        screen_t::windowEvent(sender, event, param);
         break;
     }
 

@@ -488,7 +488,7 @@ bool window_t::IsCaptured() const { return Screens::Access()->Get()->GetCaptured
 // window_aligned_t
 
 window_aligned_t::window_aligned_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
-    : AddSuperWindow<window_t>(parent, rect, type, close) {
+    : window_t(parent, rect, type, close) {
     SetAlignment(GuiDefaults::Align());
 }
 

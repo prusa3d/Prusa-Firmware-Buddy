@@ -12,7 +12,7 @@
 
 using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
 
-class IRadioButton : public AddSuperWindow<window_t> {
+class IRadioButton : public window_t {
 public:
     // if greater than 0, we're drawing a fixed amount of buttons
     // used for MMU where we want to draw 3 buttons corresponding to the physical MMU buttons

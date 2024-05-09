@@ -9,7 +9,7 @@
 #include "esp_frame_qr.hpp"
 #include "static_alocation_ptr.hpp"
 
-class ScreenESP : public AddSuperWindow<screen_t> {
+class ScreenESP : public screen_t {
     using mem_space = std::aligned_union<0, ESPFrameText, ESPFrameProgress, ESPFrameQR>::type;
     mem_space all_tests;
 

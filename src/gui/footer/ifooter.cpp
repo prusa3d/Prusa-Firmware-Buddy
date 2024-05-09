@@ -10,7 +10,7 @@
 #include <config_store/store_instance.hpp>
 
 IFooter::IFooter(window_t *parent)
-    : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectFooter, positioning::absolute) {
+    : window_frame_t(parent, GuiDefaults::RectFooter, positioning::absolute) {
     Disable();
 }
 

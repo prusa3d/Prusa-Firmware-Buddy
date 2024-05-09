@@ -68,5 +68,5 @@ void ScreenMenuTune::windowEvent(window_t *sender, GUI_event_t event, void *para
     default:
         break;
     }
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }

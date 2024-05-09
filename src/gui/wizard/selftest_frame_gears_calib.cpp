@@ -13,7 +13,7 @@ static constexpr size_t text_left_width = WizardDefaults::X_space - right_icon.w
 static constexpr const char *en_text_test_name = N_("Gearbox alignment");
 
 SelftestFrameGearsCalib::SelftestFrameGearsCalib(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_test_name), 1)
+    : SelftestFrameNamedWithRadio(parent, ph, data, _(en_text_test_name), 1)
 
     , footer(this, 0, footer::Item::nozzle, footer::Item::bed, footer::Item::f_sensor)
     , progress(this, WizardDefaults::row_1)

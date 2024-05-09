@@ -11,7 +11,7 @@
 #include "timing.h"
 
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, const img::Resource *res, is_closed_on_click_t close)
-    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
+    : window_aligned_t(parent, rect, win_type_t::normal, close)
     , pRes(res) {
     SetAlignment(Align_t::Center());
 }
@@ -77,14 +77,14 @@ void window_icon_t::unconditionalDraw() {
     }
 
     if (pRes->w < Width() || pRes->h < Height()) {
-        super::unconditionalDraw(); // draw background
+        window_aligned_t::unconditionalDraw(); // draw background
     }
 
     unconditional_draw(this, pRes);
 }
 
 void window_icon_t::set_layout(ColorLayout lt) {
-    super::set_layout(lt);
+    window_aligned_t::set_layout(lt);
     if (lt == ColorLayout::black) {
         ClrHasIcon(); // normal icon
     } else {
@@ -95,7 +95,7 @@ void window_icon_t::set_layout(ColorLayout lt) {
 /*****************************************************************************/
 // window_icon_button_t
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, const img::Resource *res, ButtonCallback cb)
-    : AddSuperWindow<window_icon_t>(parent, rect, res)
+    : window_icon_t(parent, rect, res)
     , callback(cb) {
     SetRoundCorners();
     SetBackColor(GuiDefaults::ClickableIconColorScheme);
@@ -111,7 +111,7 @@ void window_icon_button_t::windowEvent(window_t *sender, GUI_event_t event, void
         break;
 
     default:
-        SuperWindowEvent(sender, event, param);
+        window_icon_t::windowEvent(sender, event, param);
         break;
     }
 }
@@ -132,7 +132,7 @@ WindowMultiIconButton::WindowMultiIconButton(window_t *parent, point_i16_t pt, c
 }
 
 WindowMultiIconButton::WindowMultiIconButton(window_t *parent, Rect16 rc, const Pngs *res, ButtonCallback cb)
-    : AddSuperWindow<window_t>(parent, rc)
+    : window_t(parent, rc)
     , pRes(res)
     , callback(cb) {
     Enable();
@@ -163,7 +163,7 @@ void WindowMultiIconButton::windowEvent(window_t *sender, GUI_event_t event, voi
         break;
 
     default:
-        SuperWindowEvent(sender, event, param);
+        window_t::windowEvent(sender, event, param);
         break;
     }
 }
@@ -171,7 +171,7 @@ void WindowMultiIconButton::windowEvent(window_t *sender, GUI_event_t event, voi
 /*****************************************************************************/
 // window_icon_hourglass_t
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
-    : AddSuperWindow<window_icon_t>(parent, &img::hourglass_26x39, pt, padding, close)
+    : window_icon_t(parent, &img::hourglass_26x39, pt, padding, close)
     , start_time(gui::GetTick())
     , animation_color(COLOR_ORANGE)
     , phase(0) {
@@ -268,5 +268,5 @@ void window_icon_hourglass_t::windowEvent([[maybe_unused]] window_t *sender, [[m
 
 void window_icon_hourglass_t::invalidate(Rect16 validation_rect) {
     phase = 0;
-    super::invalidate(validation_rect);
+    window_icon_t::invalidate(validation_rect);
 }

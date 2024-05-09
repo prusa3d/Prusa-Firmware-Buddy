@@ -16,7 +16,7 @@ window_qr_t::window_qr_t(window_t *parent, Rect16 rect, uint16_t err_num, Align_
 }
 
 window_qr_t::window_qr_t(window_t *parent, Rect16 rect, Align_t align)
-    : AddSuperWindow<window_t>(parent, rect)
+    : window_t(parent, rect)
     , error_num(0)
     , border(2)
     , px_per_module(2)

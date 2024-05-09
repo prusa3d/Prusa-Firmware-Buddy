@@ -8,7 +8,7 @@
 
 #include "IDialog.hpp"
 
-class DialogTimed : public AddSuperWindow<IDialog> {
+class DialogTimed : public IDialog {
     const uint32_t open_period;
     uint32_t time_of_last_action;
 

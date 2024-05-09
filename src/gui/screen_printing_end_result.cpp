@@ -75,7 +75,7 @@ void handle_timestamp_text_item(MarlinVariableLocked<time_t> &time_holder, EndRe
 } // namespace
 
 EndResultBody::EndResultBody(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_frame_t>(parent, rect)
+    : window_frame_t(parent, rect)
     , printing_time_label(this, get_printing_time_label_rect(get_row_0()), is_multiline::no, is_closed_on_click_t::no, _(txt_printing_time))
     , printing_time_value(this, get_printing_time_value_rect(get_row_0()), is_multiline::no)
 

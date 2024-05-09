@@ -4,7 +4,7 @@
 #include "screen.hpp"
 #include "window_colored_rect.hpp"
 
-class ScreenTouchPlayground : public AddSuperWindow<screen_t> {
+class ScreenTouchPlayground : public screen_t {
 
 public:
     ScreenTouchPlayground();

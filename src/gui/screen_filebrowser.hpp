@@ -5,7 +5,7 @@
 #include "screen.hpp"
 #include "window_dlg_wait.hpp"
 
-class screen_filebrowser_data_t : public AddSuperWindow<screen_t> {
+class screen_filebrowser_data_t : public screen_t {
     window_header_t header;
     WindowExtendedMenu<WindowFileBrowser> file_browser;
 

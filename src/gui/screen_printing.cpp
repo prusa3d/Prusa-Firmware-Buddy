@@ -145,7 +145,7 @@ constexpr Rect16 end_result_body_rect { 0, row_0 - EndResultBody::extra_top_spac
 } // namespace
 
 screen_printing_data_t::screen_printing_data_t()
-    : AddSuperWindow<ScreenPrintingModel>(_(caption))
+    : ScreenPrintingModel(_(caption))
 #if (defined(USE_ILI9488))
     , print_progress(this)
     , arrow_left(this, arrow_left_rect, arrow_left_res)
@@ -368,10 +368,10 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
     }
 
     if (!showing_end_result) {
-        SuperWindowEvent(sender, event, param);
+        ScreenPrintingModel::windowEvent(sender, event, param);
     }
 #else
-    SuperWindowEvent(sender, event, param);
+    ScreenPrintingModel::windowEvent(sender, event, param);
 #endif
 }
 

@@ -7,7 +7,7 @@
 #include "ifooter_item.hpp"
 #include "filament.hpp"
 
-class FooterItemLiveZ : public AddSuperWindow<FooterIconText_IntVal> {
+class FooterItemLiveZ : public FooterIconText_IntVal {
     static string_view_utf8 static_makeView(int value);
     static int static_readValue();
 

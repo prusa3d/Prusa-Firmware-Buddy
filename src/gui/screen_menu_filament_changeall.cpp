@@ -193,7 +193,7 @@ void ScreenChangeAllFilaments::windowEvent(window_t *sender, GUI_event_t event, 
         return;
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }
 
 namespace dialog_change_all_filaments {
@@ -228,7 +228,7 @@ void DMI_FilamentApplyChanges::click(IWindowMenu & /*window_menu*/) {
 }
 
 DialogChangeAllFilaments::DialogChangeAllFilaments(const std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> &default_selections, bool exit_on_media_, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors_)
-    : AddSuperWindow<IDialog>(GuiDefaults::RectScreenNoHeader)
+    : IDialog(GuiDefaults::RectScreenNoHeader)
     , exit_on_media(exit_on_media_)
     , colors(colors_)
     , menu(this, GuiDefaults::RectScreenNoHeader, &container)
@@ -286,7 +286,7 @@ void DialogChangeAllFilaments::windowEvent(window_t *sender, GUI_event_t event, 
         break;
     }
     default:
-        SuperWindowEvent(sender, event, param);
+        IDialog::windowEvent(sender, event, param);
     }
 }
 } // namespace dialog_change_all_filaments

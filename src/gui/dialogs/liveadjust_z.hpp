@@ -7,7 +7,7 @@
 #include "window_icon.hpp"
 #include "window_arrows.hpp"
 
-class WindowScale : public AddSuperWindow<window_frame_t> {
+class WindowScale : public window_frame_t {
     window_numb_t scaleNum0;
     window_numb_t scaleNum1;
     window_numb_t scaleNum2;
@@ -37,7 +37,7 @@ private:
 };
 
 // regular window bound to Z calib
-class WindowLiveAdjustZ : public AddSuperWindow<window_frame_t> {
+class WindowLiveAdjustZ : public window_frame_t {
 protected:
     window_numb_t number;
     WindowArrows arrows;
@@ -62,7 +62,7 @@ protected:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
-class WindowLiveAdjustZ_withText : public AddSuperWindow<WindowLiveAdjustZ> {
+class WindowLiveAdjustZ_withText : public WindowLiveAdjustZ {
     window_text_t text;
 
 public:
@@ -76,7 +76,7 @@ protected:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
-class LiveAdjustZ : public AddSuperWindow<IDialog> {
+class LiveAdjustZ : public IDialog {
     window_text_t text;
     window_icon_t nozzle_icon;
     WindowLiveAdjustZ adjuster;

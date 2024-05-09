@@ -36,6 +36,6 @@ void ScreenMenuTemperature::windowEvent(window_t *sender, GUI_event_t event, voi
         Item<MI_HEATBED>().SetVal(0);
         Item<MI_PRINTFAN>().SetVal(0);
     } else {
-        SuperWindowEvent(sender, event, param);
+        ScreenMenu::windowEvent(sender, event, param);
     }
 }

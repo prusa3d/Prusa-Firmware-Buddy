@@ -14,7 +14,7 @@ constexpr const std::array<const img::Resource *, 4> id_res_ip = { { &img::spinn
 
 // Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
-    : AddSuperWindow<window_aligned_t>(
+    : window_aligned_t(
         parent,
         [pt, padding] {
             return Rect16(pt,

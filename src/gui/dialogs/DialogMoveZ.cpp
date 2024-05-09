@@ -10,7 +10,7 @@
 bool DialogMoveZ::DialogShown = false;
 
 DialogMoveZ::DialogMoveZ()
-    : AddSuperWindow<IDialog>(GuiDefaults::EnableDialogBigLayout ? GuiDefaults::RectScreen : GuiDefaults::RectScreenNoFoot)
+    : IDialog(GuiDefaults::EnableDialogBigLayout ? GuiDefaults::RectScreen : GuiDefaults::RectScreenNoFoot)
     , value(round(marlin_vars()->logical_pos[2]))
     , lastQueuedPos(value)
     , axisText(this, text_rc, is_multiline::no, is_closed_on_click_t::no, _(axisLabel))

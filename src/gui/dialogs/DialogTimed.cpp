@@ -7,7 +7,7 @@
 #include "DialogTimed.hpp"
 
 DialogTimed::DialogTimed(window_t *parent, Rect16 rect, uint32_t open_period)
-    : AddSuperWindow<IDialog>(parent, rect)
+    : IDialog(parent, rect)
     , open_period(open_period)
     , time_of_last_action(gui::GetTick())
     , state(DialogState::running) {

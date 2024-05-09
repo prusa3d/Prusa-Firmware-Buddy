@@ -6,7 +6,7 @@
 #include "radio_button.hpp"
 #include "status_footer.hpp"
 
-class SelftestFrameToolOffsets : public AddSuperWindow<SelftestFrameNamedWithRadio> {
+class SelftestFrameToolOffsets : public SelftestFrameNamedWithRadio {
     FooterLine footer;
     window_wizard_progress_t progress;
     window_text_t text_phase;

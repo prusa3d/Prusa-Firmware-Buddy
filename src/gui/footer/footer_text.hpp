@@ -9,7 +9,7 @@
 
 #include "window_text.hpp"
 
-class FooterText : public AddSuperWindow<WindowBlinkingText> {
+class FooterText : public WindowBlinkingText {
 public:
     FooterText(window_t *parent, Rect16::Left_t left, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
 };

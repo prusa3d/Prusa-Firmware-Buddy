@@ -17,7 +17,7 @@
  *
  * @note No windowEvent() here, user must press reset to get rid of bluescreen.
  */
-class ScreenBlueError : public AddSuperWindow<ScreenResetError> {
+class ScreenBlueError : public ScreenResetError {
 public:
     ScreenBlueError();
 

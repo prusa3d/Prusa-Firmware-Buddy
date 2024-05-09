@@ -8,7 +8,7 @@
 
 #include <connect/status.hpp>
 
-class DialogConnectRegister : public AddSuperWindow<IDialog> {
+class DialogConnectRegister : public IDialog {
 private:
     char attempt_buffer[30];
     char detail_buffer[70];

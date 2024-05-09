@@ -9,7 +9,7 @@
 #include <algorithm>
 
 FooterItemSpeed::FooterItemSpeed(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::speed_16x16, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::speed_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemSpeed::static_readValue() {

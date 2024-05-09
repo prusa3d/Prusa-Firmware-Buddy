@@ -8,14 +8,14 @@
 #pragma once
 #include "ifooter.hpp"
 
-class FooterSingleline : public AddSuperWindow<IFooter> {
+class FooterSingleline : public IFooter {
     FooterLine line_0;
 
 public:
     FooterSingleline(window_t *parent);
     template <class... T>
     FooterSingleline(window_t *parent, T... args)
-        : AddSuperWindow<IFooter>(parent)
+        : IFooter(parent)
         , line_0(this, 0) {
         line_0.Create({ { args... } }, sizeof...(T)); // footer line takes array of footer::items
     }

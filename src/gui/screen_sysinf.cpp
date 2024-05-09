@@ -35,7 +35,7 @@ enum { row_h = 20 };
 #define RECT_MACRO(col) Rect16(col_##col, row2draw, col_##col##_w, row_h)
 
 screen_sysinfo_data_t::screen_sysinfo_data_t()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
     , textMenuName(this, Rect16(0, 0, display::GetW(), 22), is_multiline::no)
     , textCPU_load(this, Rect16(col_0, 25, col_0_w, row_h), is_multiline::no)
     , textCPU_load_val(this, Rect16(col_1, 25, col_1_w, row_h))
@@ -116,5 +116,5 @@ void screen_sysinfo_data_t::windowEvent(window_t *sender, GUI_event_t event, voi
         break;
     }
 
-    SuperWindowEvent(sender, event, param);
+    screen_t::windowEvent(sender, event, param);
 }

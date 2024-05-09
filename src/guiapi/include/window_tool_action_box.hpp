@@ -215,7 +215,7 @@ consteval Rect16 get_rect_screen_body() {
 }
 
 template <ActionMenuC ToolMenuT>
-class DialogToolActionBox : public AddSuperWindow<IDialog> {
+class DialogToolActionBox : public IDialog {
     ToolMenuT tool_menu;
 
     window_menu_t menu;
@@ -227,7 +227,7 @@ class DialogToolActionBox : public AddSuperWindow<IDialog> {
 
 public:
     DialogToolActionBox()
-        : AddSuperWindow<IDialog>(get_rect_screen_body<ToolMenuT>())
+        : IDialog(get_rect_screen_body<ToolMenuT>())
         , menu(this, get_rect_screen_body<ToolMenuT>(), &tool_menu)
         , header(this) {
 
@@ -289,7 +289,7 @@ public:
             break;
         }
         default:
-            SuperWindowEvent(sender, event, param);
+            IDialog::windowEvent(sender, event, param);
         }
     }
 

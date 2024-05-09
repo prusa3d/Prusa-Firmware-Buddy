@@ -13,7 +13,7 @@
  * @brief Just the body, not the actual screen. However, this is the file where the screen should eventually be.
  *
  */
-class EndResultBody : public AddSuperWindow<window_frame_t> {
+class EndResultBody : public window_frame_t {
 public:
     static constexpr size_t extra_buffer_size { 4 }; // to give some leeway for error
 

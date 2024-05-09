@@ -10,7 +10,7 @@
 
 using MenuInfoContainer = WinMenuContainer<MI_RETURN>;
 
-class ScreenMenuVersionInfo : public AddSuperWindow<screen_t> {
+class ScreenMenuVersionInfo : public screen_t {
     static constexpr uint8_t VERSION_INFO_STR_MAXLEN = 150;
     static constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string
     std::array<char, VERSION_INFO_STR_MAXLEN> version_info_str;

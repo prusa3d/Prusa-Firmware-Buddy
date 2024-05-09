@@ -193,24 +193,10 @@ public:
     static void ResetFocusedWindow();
 };
 
-// all children of window_t and their children must use AddSuperWindow<parent_window> for inheritance
-template <class Base>
-struct AddSuperWindow : public Base {
-    template <class... Args>
-    AddSuperWindow(Args &&...args)
-        : Base(std::forward<Args>(args)...) {}
-
-protected:
-    typedef Base super;
-    void SuperWindowEvent(window_t *sender, GUI_event_t event, void *const param) {
-        super::windowEvent(sender, event, param);
-    }
-};
-
 /*****************************************************************************/
 // window_aligned_t
 // uses window_t flags to store alignment (saves RAM)
-class window_aligned_t : public AddSuperWindow<window_t> {
+class window_aligned_t : public window_t {
 
 public:
     window_aligned_t() = default;

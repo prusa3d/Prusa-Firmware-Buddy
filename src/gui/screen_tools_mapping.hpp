@@ -19,7 +19,7 @@
 #endif
 #include <screen_menu_filament_changeall.hpp>
 
-class ToolsMappingBody : public AddSuperWindow<window_t> {
+class ToolsMappingBody : public window_t {
 public:
     ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info);
 

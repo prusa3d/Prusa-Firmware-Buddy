@@ -28,7 +28,7 @@ constexpr const char *label_resources[] = {
 } // namespace
 
 ScreenPrintingModel::ScreenPrintingModel(string_view_utf8 caption)
-    : AddSuperWindow<IScreenPrinting>(caption)
+    : IScreenPrinting(caption)
     , buttons {
         { this, GetButtonRect(0), &icon_resources[ftrstd::to_underlying(BtnRes::Settings)], [this](window_t &) { TuneAction(); } },
         { this, GetButtonRect(1), &icon_resources[ftrstd::to_underlying(BtnRes::Pause)], [this](window_t &) { PauseAction(); } },

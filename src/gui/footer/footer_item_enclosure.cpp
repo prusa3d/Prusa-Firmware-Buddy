@@ -7,7 +7,7 @@
 #include "xl_enclosure.hpp"
 
 FooterItemEnclosure::FooterItemEnclosure(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::enclosure_16x16, static_makeView, static_readValue) {
+    : FooterIconText_IntVal(parent, &img::enclosure_16x16, static_makeView, static_readValue) {
 }
 
 /**

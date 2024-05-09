@@ -18,7 +18,7 @@ static constexpr Rect16 iconRect = Rect16(side_padding, top_padding, iconSize, i
 #endif
 
 DialogWarning::DialogWarning(fsm::BaseData data)
-    : AddSuperWindow<IDialogMarlin>(GuiDefaults::RectScreenBody)
+    : IDialogMarlin(GuiDefaults::RectScreenBody)
     , icon(this, iconRect, &img::warning_48x48)
     , text(this, textRect, is_multiline::yes, is_closed_on_click_t::yes, _(find_error(icon_code[get_type(data)].code).err_text))
     , button(this, GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody), GetEnumFromPhaseIndex<PhasesWarning>(data.GetPhase())) {

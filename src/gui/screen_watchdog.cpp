@@ -9,7 +9,7 @@
 using namespace bsod_details;
 
 ScreenWatchdog::ScreenWatchdog()
-    : AddSuperWindow<ScreenBlueError>() {
+    : ScreenBlueError() {
     ///@note No translations on blue screens.
 
     static const char txt_header[] = "WATCHDOG RESET";

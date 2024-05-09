@@ -4,7 +4,7 @@
 
 #include "window_frame.hpp"
 
-class window_numberless_progress_t : public AddSuperWindow<window_t> {
+class window_numberless_progress_t : public window_t {
     color_t color_progress;
     int corner_radius; //< radius of rounded corner
 
@@ -22,7 +22,7 @@ public:
     void SetColor(color_t clr);
 };
 
-class window_vertical_progress_t : public AddSuperWindow<window_t> {
+class window_vertical_progress_t : public window_t {
     color_t color_progress;
     uint16_t progress_in_pixels;
 
@@ -43,7 +43,7 @@ public:
  * @brief Draws number of circles with one current_index. All circles <= current index (or only current index if specified) have their color as "ON" ('progressed'), whilst all circles > current_index have the 'off' color (not yet done).
  * Circles always have diameter of given Rect16.Height(), so make sure the Rect is wide enough to hold all circles (there is an assert).
  */
-class WindowProgressCircles : public AddSuperWindow<window_t> {
+class WindowProgressCircles : public window_t {
 public:
     WindowProgressCircles(window_t *parent, Rect16 rect, uint8_t max_circles);
     [[nodiscard]] uint8_t get_current_index() const {

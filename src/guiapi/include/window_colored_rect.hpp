@@ -6,7 +6,7 @@
  * @brief Used for drawing a coloured rectangle at a given place. This rectangle is encircled by a border of black/white to make the rect stand out better (this can be disabled by setting border_thickness 0).
  *
  */
-class window_colored_rect : public AddSuperWindow<window_t> {
+class window_colored_rect : public window_t {
 public:
     window_colored_rect(window_t *parent, Rect16 rect);
 

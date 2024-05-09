@@ -12,7 +12,7 @@
 #include "changed.hpp"
 #include "resized.hpp"
 
-class IFooterItem : public AddSuperWindow<window_frame_t> {
+class IFooterItem : public window_frame_t {
     // uint16_t limits period to 65.5s but save 4B RAM
     uint16_t update_period;
     uint16_t last_updated;
@@ -46,7 +46,7 @@ protected:
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
-class IFooterIconText : public AddSuperWindow<IFooterItem> {
+class IFooterIconText : public IFooterItem {
 public:
     static constexpr size_t item_h = GuiDefaults::FooterItemHeight;
 
@@ -62,7 +62,7 @@ public:
 // this class must be able to create stringview
 // so it can measure text and correctly create sub windows
 // so it contains 2 function pointers
-class FooterIconText_IntVal : public AddSuperWindow<IFooterIconText> {
+class FooterIconText_IntVal : public IFooterIconText {
 public:
     using view_maker_cb = string_view_utf8 (*)(int val);
     using reader_cb = int (*)();
@@ -84,7 +84,7 @@ protected:
 public:
     FooterIconText_IntVal(window_t *parent, const img::Resource *icon, view_maker_cb view_maker, reader_cb value_reader);
 };
-class FooterIconText_FloatVal : public AddSuperWindow<IFooterIconText> {
+class FooterIconText_FloatVal : public IFooterIconText {
 public:
     using view_maker_cb = string_view_utf8 (*)(float val);
     using reader_cb = float (*)();

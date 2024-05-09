@@ -8,7 +8,7 @@
 #include "selftest_frame.hpp"
 #include "status_footer.hpp"
 
-class SelftestFrameFirstLayerQuestions : public AddSuperWindow<SelftestFrameWithRadio> {
+class SelftestFrameFirstLayerQuestions : public SelftestFrameWithRadio {
     StatusFooter footer;
 
     window_text_t text; // in middle of screen

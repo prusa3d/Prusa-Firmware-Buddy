@@ -157,7 +157,7 @@ static void FilamentBtnMMU_cb(window_t &) {
 
 // clang-format off
 screen_home_data_t::screen_home_data_t()
-    : AddSuperWindow<screen_t>()
+    : screen_t()
     , usbInserted(marlin_vars()->media_inserted)
     , header(this)
     , footer(this)
@@ -509,7 +509,7 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
     }
 #endif
 
-    SuperWindowEvent(sender, event, param);
+    screen_t::windowEvent(sender, event, param);
 }
 
 static bool find_latest_gcode(char *fpath, int fpath_len) {

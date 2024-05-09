@@ -13,11 +13,11 @@
 #include "DialogTimed.hpp"
 #include "guitypes.hpp"
 
-struct MockFrame_VisibilityNotifycations : public AddSuperWindow<window_frame_t> {
+struct MockFrame_VisibilityNotifycations : public window_frame_t {
     window_t win;
     uint32_t ChangedCounter;
     virtual void ChildVisibilityChanged(window_t &child) override {
-        super::ChildVisibilityChanged(child);
+        window_frame_t::ChildVisibilityChanged(child);
         ++ChangedCounter;
     }
 
@@ -28,12 +28,12 @@ struct MockFrame_VisibilityNotifycations : public AddSuperWindow<window_frame_t>
     Rect16 GetInvRect() const { return getInvalidationRect(); }
 };
 
-struct MockMsgBox : public AddSuperWindow<IDialog> {
+struct MockMsgBox : public IDialog {
     MockMsgBox(Rect16 rc)
-        : AddSuperWindow<IDialog>(rc) {}
+        : IDialog(rc) {}
 };
 
-struct MockScreen : public AddSuperWindow<screen_t> {
+struct MockScreen : public screen_t {
     window_t w_first; // just so w0 is not first
     window_t w0;
     window_t w1;
@@ -140,11 +140,11 @@ void MockScreen::CheckOrderAndVisibility(E *...e) {
     REQUIRE(pWin->GetNext() == nullptr); // verify if all windows were checked
 }
 
-class MockDialogTimed : public AddSuperWindow<DialogTimed> {
+class MockDialogTimed : public DialogTimed {
 
 public:
     MockDialogTimed(window_t *parent, Rect16 rc, uint32_t time = 500)
-        : AddSuperWindow<DialogTimed>(parent, rc, time) {
+        : DialogTimed(parent, rc, time) {
     }
 
 protected:

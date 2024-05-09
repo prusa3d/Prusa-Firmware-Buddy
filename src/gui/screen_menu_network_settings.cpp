@@ -17,7 +17,7 @@ void ScreenMenuEthernetSettings::windowEvent(window_t *sender, GUI_event_t event
         update_all_updatable_items();
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }
 
 // ------------------------ WIFI -----------------------------------
@@ -30,5 +30,5 @@ void ScreenMenuWifiSettings::windowEvent(window_t *sender, GUI_event_t event, vo
         update_all_updatable_items();
     }
 
-    SuperWindowEvent(sender, event, param);
+    ScreenMenu::windowEvent(sender, event, param);
 }

@@ -10,7 +10,7 @@
 #include <array>
 #include "footer_def.hpp"
 
-class FooterItemHeater : public AddSuperWindow<FooterIconText_IntVal> {
+class FooterItemHeater : public FooterIconText_IntVal {
     static void setDrawMode(footer::ItemDrawCnf cnf);
 
 public:

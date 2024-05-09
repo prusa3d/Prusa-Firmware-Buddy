@@ -5,7 +5,7 @@
 #include "window_wizard_progress.hpp"
 #include "status_footer.hpp"
 
-class SelftestFrameGearsCalib : public AddSuperWindow<SelftestFrameNamedWithRadio> {
+class SelftestFrameGearsCalib : public SelftestFrameNamedWithRadio {
     FooterLine footer;
     window_wizard_progress_t progress;
 

@@ -30,7 +30,7 @@ static constexpr const char *const help_text = N_("More detail at");
 static constexpr const char *const unknown_err_txt = N_("Unknown Error");
 
 ScreenErrorQR::ScreenErrorQR()
-    : AddSuperWindow<ScreenResetError>(fw_version_rect)
+    : ScreenResetError(fw_version_rect)
     , header(this)
     , err_title(this, title_rect, is_multiline::no)
     , err_description(this, descr_rect, is_multiline::yes)
@@ -120,5 +120,5 @@ void ScreenErrorQR::windowEvent(window_t *sender, GUI_event_t event, void *param
         sys_reset();
         return;
     }
-    SuperWindowEvent(sender, event, param);
+    ScreenResetError::windowEvent(sender, event, param);
 }

@@ -8,7 +8,7 @@
 #include "window_icon.hpp"
 #include "gcode_info.hpp"
 
-class WindowThumbnail : public AddSuperWindow<window_icon_t> {
+class WindowThumbnail : public window_icon_t {
 public:
     WindowThumbnail(window_t *parent, Rect16 rect);
 
@@ -17,7 +17,7 @@ protected:
     AnyGcodeFormatReader gcode_reader;
 };
 
-class WindowProgressThumbnail : public AddSuperWindow<WindowThumbnail> {
+class WindowProgressThumbnail : public WindowThumbnail {
     bool redraw_whole; /**< stores information if thumbnail have to be restored whole or not*/
 
     const size_t old_allowed_width; // Holds the width of an alternative 'old' thumbnail that is less wide than the previous one
@@ -46,7 +46,7 @@ protected:
     void unconditionalDraw() override;
 };
 
-class WindowPreviewThumbnail : public AddSuperWindow<WindowThumbnail> {
+class WindowPreviewThumbnail : public WindowThumbnail {
 public:
     WindowPreviewThumbnail(window_t *parent, Rect16 rect);
 

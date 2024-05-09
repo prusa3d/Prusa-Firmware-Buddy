@@ -10,7 +10,7 @@
 
 #include "window_icon.hpp"
 
-class FooterIcon : public AddSuperWindow<window_icon_t> {
+class FooterIcon : public window_icon_t {
 public:
     FooterIcon(window_t *parent, const img::Resource *icon);
 };

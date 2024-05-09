@@ -30,7 +30,7 @@
 #include "static_alocation_ptr.hpp"
 #include "printer_selftest.hpp" // SelftestMask_t
 
-class ScreenSelftest : public AddSuperWindow<screen_t> {
+class ScreenSelftest : public screen_t {
     using mem_space = std::aligned_union<0, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, SelftestFrameFSensor, SelftestFrameGearsCalib, SelftestFrameLoadcell, ScreenSelftestTemp, SelftestFrameCalibZ, SelftestFrameFirstLayerQuestions, SelftestFrameResult, SelftestFrameNozzleDiameter
 #if BOARD_IS_BUDDY
         ,

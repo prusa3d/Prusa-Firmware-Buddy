@@ -87,7 +87,7 @@ ISheetProfileMenuScreen::ISheetProfileMenuScreen(uint32_t value)
 void ISheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void *param) {
     log_debug(GUI, "SheetProfile::event");
     if (ev != GUI_event_t::CHILD_CLICK) {
-        SuperWindowEvent(sender, ev, param);
+        ScreenMenu::windowEvent(sender, ev, param);
         return;
     }
     profile_action action = static_cast<profile_action>((uint32_t)param);

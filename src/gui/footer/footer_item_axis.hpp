@@ -11,7 +11,7 @@
 
 // XYZE position
 template <size_t AXIS>
-class FooterItemAxisPos : public AddSuperWindow<FooterIconText_FloatVal> {
+class FooterItemAxisPos : public FooterIconText_FloatVal {
     using buffer_t = std::array<char, 7>;
     static float static_readValue();
     static buffer_t buff;
@@ -19,7 +19,7 @@ class FooterItemAxisPos : public AddSuperWindow<FooterIconText_FloatVal> {
 
 public:
     FooterItemAxisPos(window_t *parent, const img::Resource *icon)
-        : AddSuperWindow<FooterIconText_FloatVal>(parent, icon, static_makeViewIntoBuff, static_readValue) {}
+        : FooterIconText_FloatVal(parent, icon, static_makeViewIntoBuff, static_readValue) {}
 };
 
 template <size_t AXIS>
@@ -48,7 +48,7 @@ float FooterItemAxisPos<AXIS>::static_readValue() {
 
 // Position according to gcode
 template <size_t AXIS>
-class FooterItemAxisCurrPos : public AddSuperWindow<FooterIconText_FloatVal> {
+class FooterItemAxisCurrPos : public FooterIconText_FloatVal {
     using buffer_t = std::array<char, 7>;
     static float static_readValue();
     static buffer_t buff;
@@ -56,7 +56,7 @@ class FooterItemAxisCurrPos : public AddSuperWindow<FooterIconText_FloatVal> {
 
 public:
     FooterItemAxisCurrPos(window_t *parent, const img::Resource *icon)
-        : AddSuperWindow<FooterIconText_FloatVal>(parent, icon, static_makeViewIntoBuff, static_readValue) {}
+        : FooterIconText_FloatVal(parent, icon, static_makeViewIntoBuff, static_readValue) {}
 };
 
 template <size_t AXIS>

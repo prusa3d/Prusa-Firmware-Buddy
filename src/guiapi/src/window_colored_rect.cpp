@@ -2,7 +2,7 @@
 #include <color_grayscale.hpp>
 
 window_colored_rect::window_colored_rect(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_t>(parent, rect) {
+    : window_t(parent, rect) {
 }
 
 void window_colored_rect::set_border_thickness(uint8_t new_thickness) {

@@ -7,7 +7,7 @@
 #include "selftest_view.hpp"
 
 SelfTestView::SelfTestView(window_t *parrent, Rect16 rc)
-    : AddSuperWindow<window_t>(parrent, rc)
+    : window_t(parrent, rc)
     , first_failed(nullptr)
     , first_passed(nullptr)
     , count(0)

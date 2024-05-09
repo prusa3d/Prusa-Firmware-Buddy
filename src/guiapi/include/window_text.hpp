@@ -6,7 +6,7 @@
 #include "font_flags.hpp" // is_multiline
 #include "../../lang/string_view_utf8.hpp"
 
-class window_text_t : public AddSuperWindow<IWindowText> {
+class window_text_t : public IWindowText {
 
 public:
     window_text_t() = default;
@@ -56,7 +56,7 @@ protected:
 
 using window_text_button_t = WindowButton;
 
-class WindowBlinkingText : public AddSuperWindow<window_text_t> {
+class WindowBlinkingText : public window_text_t {
     color_t color_blink;
     uint16_t blink_step;
     bool blink_enable;

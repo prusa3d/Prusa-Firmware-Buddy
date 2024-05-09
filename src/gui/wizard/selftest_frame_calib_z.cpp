@@ -17,7 +17,7 @@ static constexpr const char *en_text_test_name = N_("Z-axis calibration");
 static constexpr const char *en_text_info = N_("please wait");
 
 SelftestFrameCalibZ::SelftestFrameCalibZ(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameNamed>(parent, ph, data, _(en_text_test_name))
+    : SelftestFrameNamed(parent, ph, data, _(en_text_test_name))
     , progress(this, WizardDefaults::row_1)
     , animation(this, { int16_t(GuiDefaults::ScreenWidth / 2), int16_t(row_2) })
     , text_info(this, Rect16(WizardDefaults::col_0, row_3, WizardDefaults::X_space, WizardDefaults::row_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_info)) {

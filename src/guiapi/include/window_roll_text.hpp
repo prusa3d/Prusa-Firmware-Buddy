@@ -11,7 +11,7 @@
 #include "display_helper.h" //txtroll_t
 #include "text_roll.hpp"
 
-class window_roll_text_t : public AddSuperWindow<window_text_t> {
+class window_roll_text_t : public window_text_t {
     txtroll_t roll;
 
     void rollInit() { roll.Init(GetRect(), text, get_font(), padding, GetAlignment()); }

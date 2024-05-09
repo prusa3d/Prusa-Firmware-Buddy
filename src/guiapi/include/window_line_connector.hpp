@@ -22,7 +22,7 @@
 
  * It is left to the user to make sure the resulting 'diagram' looks nice, ie adding 3 -> E would make the example very ugly. Parent side can have 1 - N connections to the child side, whilst child side can have only 0 - 1 connections with the parent side
  */
-class window_line_connector : public AddSuperWindow<window_aligned_t> {
+class window_line_connector : public window_aligned_t {
 public:
     enum class ParentSide : uint8_t {
         top,

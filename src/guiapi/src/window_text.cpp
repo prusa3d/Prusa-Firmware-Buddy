@@ -13,7 +13,7 @@ void window_text_t::SetText(string_view_utf8 txt) {
 }
 
 window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close, const string_view_utf8 &txt)
-    : AddSuperWindow<IWindowText>(parent, rect, close)
+    : IWindowText(parent, rect, close)
     , text(txt) {
     flags.multiline = bool(multiline);
 }
@@ -90,13 +90,13 @@ void WindowButton::windowEvent(window_t *sender, GUI_event_t event, void *param)
         break;
 
     default:
-        SuperWindowEvent(sender, event, param);
+        window_text_t::windowEvent(sender, event, param);
         break;
     }
 }
 
 WindowBlinkingText::WindowBlinkingText(window_t *parent, Rect16 rect, const string_view_utf8 &txt, uint16_t blink_step)
-    : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
+    : window_text_t(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
     , blink_step(blink_step)
     , blink_enable(false) {
     SetPadding({ 0, 0, 0, 0 });
@@ -109,7 +109,7 @@ void WindowBlinkingText::unconditionalDraw() {
         SetTextColor(color_blink);
     }
 
-    super::unconditionalDraw();
+    window_text_t::unconditionalDraw();
 
     if (flags.blink0) {
         SetTextColor(backup_clr);
@@ -130,5 +130,5 @@ void WindowBlinkingText::windowEvent(window_t *sender, GUI_event_t event, void *
         }
     }
 
-    SuperWindowEvent(sender, event, param);
+    window_text_t::windowEvent(sender, event, param);
 }

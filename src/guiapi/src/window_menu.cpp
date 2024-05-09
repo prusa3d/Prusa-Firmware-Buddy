@@ -12,7 +12,7 @@
 #include "marlin_client.hpp"
 
 WindowMenu::WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer)
-    : AddSuperWindow<IWindowMenu>(parent, rect) {
+    : IWindowMenu(parent, rect) {
 
     if (pContainer) {
         BindContainer(*pContainer);
@@ -91,7 +91,7 @@ void WindowMenu::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t even
         break;
     }
 
-    SuperWindowEvent(sender, event, param);
+    IWindowMenu::windowEvent(sender, event, param);
 }
 
 WindowMenu::Node WindowMenu::findFirst() {

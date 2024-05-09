@@ -10,7 +10,7 @@
 #include <common/fsm_base_types.hpp>
 #include "window_text.hpp"
 
-class ScreenDoesNotExist : public AddSuperWindow<screen_t> {
+class ScreenDoesNotExist : public screen_t {
 protected:
     window_text_t txt;
 
@@ -18,7 +18,7 @@ public:
     ScreenDoesNotExist();
 };
 
-class ScreenDialogDoesNotExist : public AddSuperWindow<ScreenDoesNotExist> {
+class ScreenDialogDoesNotExist : public ScreenDoesNotExist {
 
 public:
     ScreenDialogDoesNotExist();

@@ -34,7 +34,7 @@ enum class printing_state_t : uint8_t {
 
 inline constexpr size_t POPUP_MSG_DUR_MS = 5000;
 
-class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
+class screen_printing_data_t : public ScreenPrintingModel {
     static constexpr const char *caption = N_("PRINTING ...");
 
 #if defined(USE_ILI9488)

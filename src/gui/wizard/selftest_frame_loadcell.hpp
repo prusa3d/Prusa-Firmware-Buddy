@@ -19,7 +19,7 @@
  * but it is just simpler to make many texts witch cost rectangles
  * but it will consume lot of RAM
  */
-class SelftestFrameLoadcell : public AddSuperWindow<SelftestFrameNamedWithRadio> {
+class SelftestFrameLoadcell : public SelftestFrameNamedWithRadio {
     FooterLine footer;
     window_wizard_progress_t progress;
 

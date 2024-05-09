@@ -7,7 +7,7 @@
 
 // to be used in ctor
 
-class WindowPrintProgress : public AddSuperWindow<window_numberless_progress_t> {
+class WindowPrintProgress : public window_numberless_progress_t {
     int8_t last_sd_percent_done;
 
 public:
@@ -17,7 +17,7 @@ protected:
     void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
-class WindowNumbPrintProgress : public AddSuperWindow<window_numb_t> {
+class WindowNumbPrintProgress : public window_numb_t {
     int8_t last_sd_percent_done;
     bool percent_changed;
 
@@ -29,7 +29,7 @@ protected:
     void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
-class WindowPrintVerticalProgress : public AddSuperWindow<window_vertical_progress_t> {
+class WindowPrintVerticalProgress : public window_vertical_progress_t {
     int8_t last_sd_percent_done;
 
 public:

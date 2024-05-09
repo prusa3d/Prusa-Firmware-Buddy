@@ -71,7 +71,7 @@ using WinMenuContainer = WinMenuContainer<
 
 }; // namespace NsPreheat
 
-class DialogMenuPreheat : public AddSuperWindow<IDialogMarlin> {
+class DialogMenuPreheat : public IDialogMarlin {
     NsPreheat::WinMenuContainer menu_container;
     window_menu_t menu;
     window_header_t header;

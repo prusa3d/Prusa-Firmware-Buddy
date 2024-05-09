@@ -38,7 +38,7 @@ size_t IRadioButton::cnt_buttons(const PhaseTexts *labels, Responses_t resp) {
 // nonstatic variables and methods
 
 IRadioButton::IRadioButton(window_t *parent, Rect16 rect, size_t count)
-    : AddSuperWindow<window_t>(parent, rect) {
+    : window_t(parent, rect) {
     SetBackColor(COLOR_ORANGE);
     SetBtnCount(count);
     SetBtnIndex(0);
@@ -133,7 +133,7 @@ void IRadioButton::windowEvent(window_t *sender, GUI_event_t event, void *param)
     }
         return;
     default:
-        SuperWindowEvent(sender, event, param);
+        window_t::windowEvent(sender, event, param);
     }
 }
 

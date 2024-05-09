@@ -12,7 +12,7 @@
 #include "window_wizard_progress.hpp"
 #include "status_footer.hpp"
 
-class SelftestFrameFSensor : public AddSuperWindow<SelftestFrameNamedWithRadio> {
+class SelftestFrameFSensor : public SelftestFrameNamedWithRadio {
     FooterLine footer;
     window_wizard_progress_t progress;
 

@@ -7,7 +7,7 @@
 #include "window_text.hpp"
 #include <array>
 
-class screen_printing_serial_data_t : public AddSuperWindow<ScreenPrintingModel> {
+class screen_printing_serial_data_t : public ScreenPrintingModel {
     static constexpr const char *caption = N_("SERIAL PRINTING");
 
     window_icon_t octo_icon;

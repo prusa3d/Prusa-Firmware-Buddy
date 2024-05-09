@@ -7,7 +7,7 @@
 // WindowPrintProgress
 #include "marlin_client.hpp"
 WindowPrintProgress::WindowPrintProgress(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_numberless_progress_t>(parent, rect)
+    : window_numberless_progress_t(parent, rect)
     , last_sd_percent_done(-1) {
     SetColor(COLOR_ORANGE);
 }
@@ -19,11 +19,11 @@ void WindowPrintProgress::windowEvent(window_t *sender, GUI_event_t event, void 
             last_sd_percent_done = marlin_vars()->sd_percent_done;
         }
     }
-    SuperWindowEvent(sender, event, param);
+    window_numberless_progress_t::windowEvent(sender, event, param);
 }
 
 WindowNumbPrintProgress::WindowNumbPrintProgress(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_numb_t>(parent, rect)
+    : window_numb_t(parent, rect)
     , last_sd_percent_done(-1) {
     set_font(Font::big);
     SetAlignment(Align_t::Center());
@@ -39,7 +39,7 @@ void WindowNumbPrintProgress::windowEvent(window_t *sender, GUI_event_t event, v
             percent_changed = true;
         }
     }
-    SuperWindowEvent(sender, event, param);
+    window_numb_t::windowEvent(sender, event, param);
 }
 
 int8_t WindowNumbPrintProgress::getPercentage() {
@@ -47,7 +47,7 @@ int8_t WindowNumbPrintProgress::getPercentage() {
 }
 
 WindowPrintVerticalProgress::WindowPrintVerticalProgress(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_vertical_progress_t>(parent, rect)
+    : window_vertical_progress_t(parent, rect)
     , last_sd_percent_done(-1) {}
 
 void WindowPrintVerticalProgress::windowEvent(window_t *sender, GUI_event_t event, void *param) {
@@ -57,5 +57,5 @@ void WindowPrintVerticalProgress::windowEvent(window_t *sender, GUI_event_t even
             SetProgressPercent(marlin_vars()->sd_percent_done);
         }
     }
-    SuperWindowEvent(sender, event, param);
+    window_vertical_progress_t::windowEvent(sender, event, param);
 }

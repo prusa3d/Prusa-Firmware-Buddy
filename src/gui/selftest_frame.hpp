@@ -17,7 +17,7 @@
  * @brief parents of all tests
  * even supports "wizard questions"
  */
-class SelftestFrame : public AddSuperWindow<window_frame_t> {
+class SelftestFrame : public window_frame_t {
 protected:
     PhasesSelftest phase_current;
     PhasesSelftest phase_previous;
@@ -35,7 +35,7 @@ public:
 /**
  * @brief parent of non-tests frame with buttons
  */
-class SelftestFrameWithRadio : public AddSuperWindow<SelftestFrame> {
+class SelftestFrameWithRadio : public SelftestFrame {
 protected:
     RadioButtonFsm<PhasesSelftest> radio;
     virtual void pre_change() override; // update radio button
@@ -46,7 +46,7 @@ public:
 /**
  * @brief parent of normal tests without buttons
  */
-class SelftestFrameNamed : public AddSuperWindow<SelftestFrame> {
+class SelftestFrameNamed : public SelftestFrame {
     window_text_t test_name;
 
 public:
@@ -57,7 +57,7 @@ public:
 /**
  * @brief parent of tests with buttons
  */
-class SelftestFrameNamedWithRadio : public AddSuperWindow<SelftestFrameNamed> {
+class SelftestFrameNamedWithRadio : public SelftestFrameNamed {
 protected:
     RadioButtonFsm<PhasesSelftest> radio;
     virtual void pre_change() override; // update radio button
