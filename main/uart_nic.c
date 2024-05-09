@@ -93,9 +93,9 @@ static QueueHandle_t uart0_tx_queue = NULL;
 //       whenever they are received via UART0 by ESP from the printer. The queue
 //       is drained by lower priority task `main_task`.
 struct uart0_rx_queue_item {
-    void (*callback)(uint8_t*, size_t);
+    void (*callback)(uint8_t*, struct header);
     uint8_t *data;
-    size_t size;
+    struct header header;
 };
 static QueueHandle_t uart0_rx_queue = 0;
 
@@ -326,16 +326,16 @@ static int IRAM_ATTR get_link_status() {
     return online;
 }
 
-static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t* data, size_t size) {
-    if (size == 0) {
+static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t* data, struct header header) {
+    if (header.size == 0) {
         send_link_status(get_link_status());
     } else {
-        esp_wifi_internal_tx(ESP_IF_WIFI_STA, data, size);
+        esp_wifi_internal_tx(ESP_IF_WIFI_STA, data, header.size);
         free(data);
     }
 }
 
-static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, size_t size) {
+static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, struct header header) {
     wifi_config_t wifi_config;
     memset(&wifi_config, 0, sizeof(wifi_config_t));
 
@@ -378,8 +378,10 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t* data, size_t size) 
     send_device_info();
 }
 
-static void IRAM_ATTR handle_rx_msg_unknown(uint8_t* data, size_t size) {
-    free(data);
+static void IRAM_ATTR handle_rx_msg_unknown(uint8_t* data, struct header header) {
+    if (data) {
+        free(data);
+    }
 }
 
 static void IRAM_ATTR check_online_status() {
@@ -405,11 +407,10 @@ static void IRAM_ATTR check_online_status() {
 
 static void IRAM_ATTR read_message() {
     wait_for_intron();
-    struct header header;
-    uart0_rx_bytes((uint8_t*)&header, sizeof(header));
+    struct uart0_rx_queue_item queue_item = {0};
+    uart0_rx_bytes((uint8_t*)&queue_item.header, sizeof(queue_item.header));
 
-    struct uart0_rx_queue_item queue_item;
-    switch (header.type) {
+    switch (queue_item.header.type) {
     case MSG_PACKET_V2:
         queue_item.callback = handle_rx_msg_packet_v2;
         break;
@@ -417,23 +418,25 @@ static void IRAM_ATTR read_message() {
         queue_item.callback = handle_rx_msg_clientconfig_v2;
         break;
     case MSG_DEVINFO_V2:
-        // this should never happen, this message type is only transmitted, never received
+        ESP_LOGE(TAG, "MSG_DEVINFIO_V2 is only transmitted, never recieved");
+        queue_item.callback = handle_rx_msg_unknown;
+        break;
     default:
         queue_item.callback = handle_rx_msg_unknown;
         break;
     }
 
-    queue_item.size = ntohs(header.size);
-    if (queue_item.size != 0 && queue_item.size <= 2000) {
-        queue_item.data = malloc(queue_item.size);
+    queue_item.header.size = ntohs(queue_item.header.size);
+    if (queue_item.header.size != 0 && queue_item.header.size <= 2000) {
+        queue_item.data = malloc(queue_item.header.size);
         if (queue_item.data) {
-            uart0_rx_bytes(queue_item.data, queue_item.size);
+            uart0_rx_bytes(queue_item.data, queue_item.header.size);
         } else {
-            uart0_rx_skip_bytes(queue_item.size);
+            uart0_rx_skip_bytes(queue_item.header.size);
         }
     } else {
         queue_item.data = NULL;
-        uart0_rx_skip_bytes(queue_item.size);
+        uart0_rx_skip_bytes(queue_item.header.size);
     }
 
     if (xQueueSendToBack(uart0_rx_queue, &queue_item, 0) != pdTRUE) {
@@ -463,7 +466,7 @@ static void IRAM_ATTR main_task(void* arg) {
     for (;;) {
         struct uart0_rx_queue_item queue_item;
         if (xQueueReceive(uart0_rx_queue, &queue_item, portMAX_DELAY) == pdTRUE) {
-            (*queue_item.callback)(queue_item.data, queue_item.size);
+            (*queue_item.callback)(queue_item.data, queue_item.header);
             check_online_status();
         }
     }
