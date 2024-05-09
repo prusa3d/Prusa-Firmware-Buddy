@@ -45,6 +45,8 @@ bool Transition::matches(uint8_t byte) const {
         return tolower(byte) == label;
     case LabelType::Special:
         return specials[label](byte);
+    case LabelType::Path:
+        // Paths are handled by the caller, because they need another index.
     default:
         assert(0);
         return false;
@@ -72,27 +74,26 @@ std::optional<Event> Automaton::gen_event(StateIdx old_state, StateIdx new_state
 
 std::optional<TransitionResult> Automaton::transition(ActiveState old, uint8_t byte) const {
     const State &state = states[old.state];
-    if (state.has_path) {
-        // All paths are case-insensitive. Originaly, we did have an option to have case-sensitive paths, but they were not used, so saving one bit of the State made sense.
-        const uint8_t converted = tolower(byte);
-        const char *path = paths[state.path].value;
-        if (path[old.path] == converted) {
-            if (path[old.path + 1] == '\0') {
-                ActiveState new_state(old.state + 1);
-                return TransitionResult {
-                    new_state,
-                    gen_event(old.state, new_state.state, byte),
-                    false,
-                };
-            } else {
-                return TransitionResult { old.path_step(), nullopt, false };
-            }
-        }
-    }
-
     const State &sentinel = states[old.state + 1];
     for (TransIdx i = state.first_transition; i < sentinel.first_transition; i++) {
-        if (transitions[i].matches(byte)) {
+        if (transitions[i].label_type == LabelType::Path) {
+            // All paths are case-insensitive. Originaly, we did have an option
+            // to have case-sensitive paths, but they were not used.
+            const uint8_t converted = tolower(byte);
+            const char *path = paths[transitions[i].label].value;
+            if (path[old.path] == converted) {
+                if (path[old.path + 1] == '\0') {
+                    ActiveState new_state(old.state + 1);
+                    return TransitionResult {
+                        new_state,
+                        gen_event(old.state, new_state.state, byte),
+                        false,
+                    };
+                } else {
+                    return TransitionResult { old.path_step(), nullopt, false };
+                }
+            }
+        } else if (transitions[i].matches(byte)) {
             const auto new_state = transitions[i].target_state;
             return TransitionResult { new_state, gen_event(old.state, new_state, byte), transitions[i].fallthrough };
         }
