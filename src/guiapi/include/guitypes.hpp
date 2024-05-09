@@ -27,6 +27,7 @@ static constexpr color_t COLOR_CYAN = 0x00ffff00L;
 static constexpr color_t COLOR_MAGENTA = 0x00ff00ffL;
 static constexpr color_t COLOR_SILVER = 0x00c0c0c0L;
 static constexpr color_t COLOR_LIGHT_GRAY = 0x00AAAAAA;
+static constexpr color_t COLOR_VERY_LIGHT_GRAY = 0x00CCCCCC;
 static constexpr color_t COLOR_GRAY = 0x00808080L;
 static constexpr color_t COLOR_DARK_GRAY = 0x005B5B5BL;
 static constexpr color_t COLOR_VERY_DARK_GRAY = 0x00222222;

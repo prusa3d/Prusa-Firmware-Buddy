@@ -24,7 +24,7 @@ constexpr color_scheme button_background_color_scheme = {
 
 constexpr color_scheme special_button_background_color_scheme = {
     .normal = COLOR_DARK_GRAY,
-    .focused = COLOR_LIGHT_GRAY,
+    .focused = COLOR_VERY_LIGHT_GRAY,
     .shadowed = COLOR_BLACK,
     .focused_and_shadowed = COLOR_DARK_GRAY,
 };
