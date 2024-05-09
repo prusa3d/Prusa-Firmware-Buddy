@@ -6,7 +6,6 @@
 #include <http_lifetime.h>
 #include <espif.h>
 #include "marlin_client.hpp"
-#include <option/has_embedded_esp32.h>
 
 // ------------------- ETHERNET -----------------------
 ScreenMenuEthernetSettings::ScreenMenuEthernetSettings()
