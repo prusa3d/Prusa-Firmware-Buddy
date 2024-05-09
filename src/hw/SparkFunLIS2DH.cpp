@@ -575,12 +575,11 @@ int Fifo::get(Acceleration &acceleration) {
         // fall through
     case State::draining:
         local_num_samples = m_num_records - m_record_index_to_get;
-        static uint32_t succeded_samples = 0;
         if (local_num_samples > 0) {
             acceleration = to_acceleration(m_records[m_record_index_to_get++]);
         }
         if (local_num_samples <= 1) {
-            uint8_t fifo_status;
+            uint8_t fifo_status { 0b0100'0000 };
             {
                 const status_t read_status = m_accelerometer.readRegister(&fifo_status, LIS2DH_FIFO_SRC_REG);
                 if (!((read_status == IMU_SUCCESS) || (read_status == IMU_ALL_ONES_WARNING))) {
@@ -591,17 +590,19 @@ int Fifo::get(Acceleration &acceleration) {
             if (overrun) {
                 SERIAL_ERROR_MSG("Overrun.");
                 SERIAL_ECHO_START();
-                SERIAL_ECHOLNPAIR_F("After successfully received samples:", succeded_samples);
-                succeded_samples = 0;
+                SERIAL_ECHOLNPAIR_F("After successfully received samples:", m_succeded_samples);
+                m_succeded_samples = 0;
             }
             const int remote_num_samples = (fifo_status & 0b0001'1111) + overrun;
             static_assert(std::endian::native == std::endian::little, "Byte swapping for 16-bit record.raw value not implemented.");
             const status_t returnError = m_accelerometer.readRegisterRegion(reinterpret_cast<uint8_t *>(m_records), LIS2DH_OUT_X_L, remote_num_samples * sizeof(Record));
+
             if (returnError != IMU_SUCCESS) {
                 break;
             }
+            assert(remote_num_samples >= 0);
             m_num_records = remote_num_samples;
-            succeded_samples += remote_num_samples;
+            m_succeded_samples += remote_num_samples;
             m_record_index_to_get = 0;
         }
         break;

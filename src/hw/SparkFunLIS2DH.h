@@ -159,7 +159,8 @@ public:
         : m_accelerometer(accelerometer)
         , m_num_records(0)
         , m_record_index_to_get(0)
-        , m_state(State::draining) {}
+        , m_state(State::draining)
+        , m_succeded_samples { 0 } {}
     int get(Acceleration &acceleration);
 
 private:
@@ -179,4 +180,5 @@ private:
     int8_t m_num_records;
     int8_t m_record_index_to_get;
     State m_state;
+    uint32_t m_succeded_samples;
 };
