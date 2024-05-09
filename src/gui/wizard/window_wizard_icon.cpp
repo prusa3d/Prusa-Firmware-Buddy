@@ -10,7 +10,6 @@
 constexpr const img::Resource &id_res_na = img::dash_18x18;
 constexpr const img::Resource &id_res_ok = img::ok_color_18x18;
 constexpr const img::Resource &id_res_ng = img::nok_color_18x18;
-constexpr const std::array<const img::Resource *, 4> id_res_ip = { { &img::spinner0_16x16, &img::spinner1_16x16, &img::spinner2_16x16, &img::spinner3_16x16 } };
 
 // Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
@@ -50,7 +49,7 @@ void WindowIcon_OkNg::unconditionalDraw() {
         break;
     case SelftestSubtestState_t::running: {
         const size_t blink_state = (flags.blink1 << 1) | flags.blink0; // sets 2 lowest bits guaranted to be 0 .. 3
-        id_res = id_res_ip[blink_state]; // no need to check index out of array range
+        id_res = img::spinner_16x16_stages[blink_state]; // no need to check index out of array range
     } break;
     }
 
