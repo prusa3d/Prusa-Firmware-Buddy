@@ -176,7 +176,7 @@ def read_boundary():
                                read_until_colon,
                                fallthrough=True)
     in_boundary.loop_fallback()
-    waiting_word.set_path("boundary=")
+    waiting_word.add_transition("boundary=", LabelType.Path, equals)
     waiting_word.loop("HorizWhitespace", LabelType.Special)
     waiting_line, waiting_end = newline()
     auto.join(waiting_word, waiting_line)
@@ -221,9 +221,9 @@ def keyworded_header(keywords, entry_name=None):
         kw_start.mark_enter()
         start.add_transition(kw[0], LabelType.CharNoCase, kw_start)
         if len(kw) > 1:
-            kw_start.set_path(kw[1:])
             end = auto.add_state(keywords[kw])
             end.mark_enter()
+            kw_start.add_transition(kw[1:], LabelType.Path, end)
             terminals.append(kw_start)
             terminals.append(end)
         else:

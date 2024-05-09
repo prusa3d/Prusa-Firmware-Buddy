@@ -116,11 +116,12 @@ enum LabelType {
     CharNoCase,
     /// Special function to check.
     Special,
+    /// Path indexed by the label.
+    Path,
 };
 
 using StateIdx = uint16_t;
 using TransIdx = uint16_t;
-using PathIdx = uint8_t;
 using PathPos = uint8_t;
 using OnPath = std::tuple<TransIdx, uint8_t>;
 
@@ -190,26 +191,11 @@ struct State {
     bool emit_enter : 1;
     // Emit an event when leaving.
     bool emit_leave : 1;
-    /*
-     * FIXME: Paths probably belong to transitions instead.
-     *
-     * They may more sense there. And adding transition offset (u8) to the
-     * state won't make it bigger and we can afford to add few bits into
-     * transition. But it'll make it a bit more complicated to match.
-     */
-    /**
-     * \brief Description of a path.
-     *
-     * If has_path is true, this is an index into a third array of strings,
-     * each one being a path.
-     */
-    PathIdx path : 7;
-    bool has_path : 1;
 };
 #pragma pack(pop)
 
 // Just making sure these don't accidentally grow, the tables are rather big and every byte of the Flash counts.
-static_assert(sizeof(State) == 3);
+static_assert(sizeof(State) == 2);
 static_assert(sizeof(Transition) == 3);
 
 /// Details of an event emitted.

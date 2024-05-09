@@ -135,7 +135,7 @@ def constant(s):
     mid = auto.add_state()
     final = auto.add_state()
     s = s.lower()
-    mid.set_path(s[1:])
+    mid.add_transition(s[1:], LabelType.Path, final)
     lt = LabelType.CharNoCase
     start.add_transition(s[0], lt, mid)
     return auto, final
