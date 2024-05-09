@@ -304,11 +304,11 @@ namespace {
                             JSON_FIELD_INT("filter_lifetime", Enclosure::expiration_deadline_sec / 3600) JSON_COMMA;
                             JSON_FIELD_ARR("filtration_filaments");
                             state.iter = 0;
-                            while (state.iter <  std::size(Enclosure::filtration_filament_set)) {
+                            while (state.iter <  std::size(Enclosure::filaments_requiring_filtration)) {
                                 if (state.iter > 0) {
                                     JSON_COMMA;
                                 }
-                                JSON_CUSTOM("\"%s\"", filament::get_name(Enclosure::filtration_filament_set[state.iter]));
+                                JSON_CUSTOM("\"%s\"", filament::get_name(Enclosure::filaments_requiring_filtration[state.iter]));
                                 state.iter ++;
                             }
                             JSON_ARR_END;

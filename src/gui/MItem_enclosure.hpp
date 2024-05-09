@@ -31,7 +31,7 @@ public:
 };
 
 class MI_ENCLOSURE_ALWAYS_ON : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Fan Always On");
+    static constexpr const char *const label = N_("Print Filtration");
 
 public:
     MI_ENCLOSURE_ALWAYS_ON();
@@ -67,21 +67,21 @@ protected:
     virtual void OnClick() override;
 };
 
+class MI_ENCLOSURE_POST_PRINT_DURATION : public WiSpin {
+    static constexpr const char *const label = N_("Post Print Duration");
+
+public:
+    MI_ENCLOSURE_POST_PRINT_DURATION();
+
+protected:
+    virtual void OnClick() override;
+};
+
 class MI_ENCLOSURE_MANUAL_SETTINGS : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Manual Configuration");
+    static constexpr const char *const label = N_("Manual Settings");
 
 public:
     MI_ENCLOSURE_MANUAL_SETTINGS();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_ENCLOSURE_FILTRATION : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Filtration");
-
-public:
-    MI_ENCLOSURE_FILTRATION();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;

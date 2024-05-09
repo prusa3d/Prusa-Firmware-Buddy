@@ -12,6 +12,7 @@ enum class Unit : uint8_t {
     millimeter,
     micrometer,
     milliamper,
+    minute,
     _cnt,
 };
 
@@ -25,4 +26,5 @@ static constexpr EnumArray<Unit, const char *, Unit::_cnt> units_str {
     { Unit::millimeter, "mm" },
     { Unit::micrometer, "um" },
     { Unit::milliamper, "mA" },
+    { Unit::minute, "min" },
 };

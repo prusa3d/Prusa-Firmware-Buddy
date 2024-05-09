@@ -76,6 +76,7 @@ MI_ENCLOSURE_FILTER_COUNTER::MI_ENCLOSURE_FILTER_COUNTER()
 static constexpr NumericInputConfig enclosure_fan_spin_config {
     .min_value = xl_enclosure.MIN_FAN_PWM,
     .max_value = 100,
+    .step = 10.0F,
     .unit = Unit::percent,
 };
 
@@ -87,20 +88,26 @@ void MI_ENCLOSURE_FAN_SETTING::OnClick() {
     xl_enclosure.setUserFanRPM(GetVal());
 }
 
+static constexpr NumericInputConfig enclosure_post_print_spin_config {
+    .min_value = 1,
+    .max_value = 10,
+    .unit = Unit::minute,
+};
+
+MI_ENCLOSURE_POST_PRINT_DURATION::MI_ENCLOSURE_POST_PRINT_DURATION()
+    : WiSpin(config_store().xl_enclosure_post_print_duration.get(), enclosure_post_print_spin_config, _(label), &img::fan_16x16, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_ENCLOSURE_POST_PRINT_DURATION::OnClick() {
+    xl_enclosure.setPostPrintDuration(GetVal());
+}
+
 MI_ENCLOSURE_MANUAL_SETTINGS::MI_ENCLOSURE_MANUAL_SETTINGS()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_ENCLOSURE_MANUAL_SETTINGS::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuManualSetting>);
-}
-
-MI_ENCLOSURE_FILTRATION::MI_ENCLOSURE_FILTRATION()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-
-void MI_ENCLOSURE_FILTRATION::click([[maybe_unused]] IWindowMenu &window_menu) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFiltration>);
 }
 
 MI_ENCLOSURE_FILTER_CHANGE::MI_ENCLOSURE_FILTER_CHANGE()

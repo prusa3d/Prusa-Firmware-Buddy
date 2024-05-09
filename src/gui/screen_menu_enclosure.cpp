@@ -31,10 +31,6 @@ void ScreenMenuEnclosure::windowEvent(window_t *sender, GUI_event_t event, void 
     ScreenMenu::windowEvent(sender, event, param);
 }
 
-ScreenMenuFiltration::ScreenMenuFiltration()
-    : detail::ScreenMenuFiltration(_(label)) {
-}
-
 ScreenMenuManualSetting::ScreenMenuManualSetting()
     : detail::ScreenMenuManualSetting(_(label)) {
 }

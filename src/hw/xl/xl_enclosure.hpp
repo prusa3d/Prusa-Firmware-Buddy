@@ -8,6 +8,7 @@
 #include "marlin_server_shared.h"
 #include "client_fsm_types.h"
 #include <optional>
+#include <array>
 
 /*
  *  Timers    - description                                - measuring time during
@@ -34,8 +35,8 @@ public:
     static constexpr const int INVALID_TEMPERATURE = std::numeric_limits<int>::min();
     static constexpr int64_t expiration_deadline_sec = 600 * 3600;
     static constexpr int64_t expiration_warning_sec = 500 * 3600;
-    static constexpr const int MIN_FAN_PWM = 40;
-    static constexpr filament::Type filtration_filament_set[] = {
+    static constexpr const int MIN_FAN_PWM = 50;
+    static constexpr std::array<filament::Type, 6> filaments_requiring_filtration = {
         filament::Type::ABS,
         filament::Type::ASA,
         filament::Type::PC,
@@ -52,11 +53,19 @@ public:
     void setPostPrint(bool enable); /** Base on the used materials - fan will filter out the enclosure after the print */
 
     /**
-     *  Set RPM percentage defined by user in Manual Configuration. This value applies on AlwaysOn & PostPrint modes
+     *  Set RPM percentage defined by user in Manual Settings. This value applies on AlwaysOn & PostPrint modes
      */
     void setUserFanRPM(uint8_t value) {
         user_rpm = value;
         config_store().xl_enclosure_fan_manual.set(value);
+    }
+
+    /**
+     *  Set post print filtration duration in Manual Settings.
+     */
+    void setPostPrintDuration(uint8_t value) {
+        post_print_duration_sec = value * 60 /* stored in minutes */;
+        config_store().xl_enclosure_post_print_duration.set(value);
     }
 
     /** Enclosure loop function embedded in marlin_server
@@ -163,9 +172,9 @@ private:
 
     /**
      *  Looks which filament are required for this print and set up post-print filtration period for the smelly ones
-     *  @return Post print filtration period in seconds
+     *  @return True if there is at least one filament used, which is aligable for post print filtration
      */
-    uint32_t setUpPostPrintFiltrationPeriod();
+    bool isPostPrintFiltrationNeeded();
 
     /**
      *  Update and check filter expiration timer. On 500. & 600. hour of printing notification to GUI is sent
@@ -192,9 +201,9 @@ private:
     std::atomic<uint8_t> persistent_flags;
     std::atomic<uint8_t> runtime_flags;
     std::atomic<uint8_t> user_rpm;
+    std::atomic<uint32_t> post_print_duration_sec;
 
     EnclosureMode active_mode;
-    uint32_t post_print_timer_sec; ///< Holds seconds of post print filtration period (based on filaments used)
     uint32_t last_sec;
     uint32_t last_timer_update_sec;
     uint32_t print_start_sec;
