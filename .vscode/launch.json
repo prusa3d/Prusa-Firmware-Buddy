@@ -21,7 +21,7 @@
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32F427ZI",
             // swd file is disabled, it is known to cause issues in some cases. Enable it if you need to see register view.
-            //"svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32F427.svd",
+            //"svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4/STM32F427.svd",
             "rtos": "FreeRTOS",
             "breakAfterReset": false,
             "preLaunchTask": "Backup current ELF",
@@ -65,7 +65,7 @@
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32F427ZI",
             // swd file is disabled, it is known to cause issues in some cases. Enable it if you need to see register view.
-            //"svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32F427.svd",
+            //"svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4/STM32F427.svd",
             "rtos": "FreeRTOS",
             "liveWatch": {
                 "enabled": true,
@@ -106,7 +106,7 @@
             ],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32G07",
-            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
+            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4/STM32G07x.svd",
             "rtos": "FreeRTOS",
             "presentation": {
                 "group": "XL Puppies",
@@ -148,7 +148,7 @@
             ],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32G07",
-            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
+            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4/STM32G07x.svd",
             "rtos": "FreeRTOS",
             "rttConfig": {
                 "enabled": true,
@@ -186,7 +186,7 @@
             ],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32G07",
-            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
+            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4/STM32G07x.svd",
             "rtos": "FreeRTOS",
             "presentation": {
                 "group": "XL Puppies",
@@ -212,7 +212,7 @@
             ],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32G07",
-            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-0.4.9999/STM32G07x.svd",
+            "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4/STM32G07x.svd",
             "rtos": "FreeRTOS",
         },
         {

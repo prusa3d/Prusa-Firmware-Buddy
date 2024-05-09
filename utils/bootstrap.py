@@ -107,10 +107,10 @@ dependencies = {
         }
     },
     'cmsis-svd': {
-        'version': '0.4.9999',
+        'version': '40327a4d2dff0992682be2872aaa6e096f35d2f4',
         'files': [
-            'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd/45a1e90afe488f01df94b3e0eb89a67c1a900a9a/data/STMicro/STM32F427.svd',
-            'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd/45a1e90afe488f01df94b3e0eb89a67c1a900a9a/data/STMicro/STM32G07x.svd',
+            'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd-data/40327a4d2dff0992682be2872aaa6e096f35d2f4/data/STMicro/STM32F427.svd',
+            'https://raw.githubusercontent.com/cmsis-svd/cmsis-svd-data/40327a4d2dff0992682be2872aaa6e096f35d2f4/data/STMicro/STM32G07x.svd',
         ],
     },
     'CrashDebug': {
