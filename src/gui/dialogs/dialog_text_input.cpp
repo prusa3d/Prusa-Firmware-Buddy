@@ -306,14 +306,15 @@ void dialog_text_input::DialogTextInput::flush_edit_char() {
     edit_char_buffer_[0] = '\0';
     ui.txt_edit_char.Invalidate();
 
-    const size_t text_len = strlen(buffer_.data());
-
-    if (ch == '\0' || text_len >= buffer_.size() - 1) {
+    if (ch == '\0') {
         return;
     }
 
-    buffer_[text_len] = ch;
-    buffer_[text_len + 1] = '\0';
+    // If we've reached the maximum length, keep overwriting the last character
+    const size_t pos = std::min(strlen(buffer_.data()), buffer_.size() - 2);
+    buffer_[pos] = ch;
+    buffer_[pos + 1] = '\0';
+
     update_result();
 }
 
