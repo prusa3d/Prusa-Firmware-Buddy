@@ -20,6 +20,7 @@
 #include <lwip/netifapi.h>
 
 #include <buddy/esp_uart_dma_buffer_rx.hpp>
+#include "data_exchange.hpp"
 #include "main.h"
 #include "../metric.h"
 #include "pbuf_rx.h"
@@ -158,9 +159,12 @@ static ScanData scan;
 
 static void uart_input(uint8_t *data, size_t size, struct netif *netif);
 
-void espif_receive_data(UART_HandleTypeDef *huart) {
-    LWIP_UNUSED_ARG(huart);
-    notify_esp_data();
+void espif_receive_data() {
+    if (running_in_tester_mode()) {
+        // block esp in tester mode
+    } else {
+        notify_esp_data();
+    }
 }
 
 static void hard_reset_device() {

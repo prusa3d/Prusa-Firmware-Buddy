@@ -9,8 +9,7 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Called from interrupt that data are ready in the DMA buffer
 ///        Setting the event
-/// @param[in] device UART device
-void espif_receive_data(UART_HandleTypeDef *);
+void espif_receive_data();
 
 void espif_tx_callback();
 void espif_task_create();

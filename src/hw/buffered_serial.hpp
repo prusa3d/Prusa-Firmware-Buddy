@@ -1,12 +1,11 @@
 #pragma once
+
 #include "stm32f4xx_hal.h"
 #include "FreeRTOS.h"
-#include <option/has_puppies.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <device/hal.h>
 #include "cmsis_os.h"
-#include "FreeRTOS.h"
 
 #ifdef __cplusplus
 
@@ -55,19 +54,6 @@ namespace hw {
         /// Set timeout for write operations
         void SetWriteTimeoutMs(uint32_t timeout) { writeTimeoutMs = timeout; }
 
-        /// TODO: Get me out of here!
-    #if BOARD_IS_BUDDY
-        static BufferedSerial uart2;
-    #endif
-    #if BOARD_IS_XBUDDY
-        #if !HAS_PUPPIES()
-        static BufferedSerial uart6;
-        #endif
-    #endif
-
-    #if BOARD_IS_XLBUDDY
-        static BufferedSerial uart3;
-    #endif
         /// Should be called from the Transmission Complete ISR of its related USART
         void WriteFinishedISR();
 
@@ -129,19 +115,3 @@ namespace hw {
 } // namespace buddy
 
 #endif
-
-//
-// FIXME: remove uart2 definition from this file
-//
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
-void uart2_idle_cb();
-#if !HAS_PUPPIES()
-void uart6_idle_cb();
-#endif
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus

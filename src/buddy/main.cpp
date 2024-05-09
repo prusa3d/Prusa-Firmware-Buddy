@@ -123,6 +123,9 @@ extern const metric_handler_t *const metric_system_handlers[] = {
     nullptr
 };
 
+extern buddy::hw::BufferedSerial uart2;
+extern buddy::hw::BufferedSerial uart6;
+
 /**
  * @brief Bootstrap finished
  *
@@ -308,7 +311,7 @@ extern "C" void main_cpp(void) {
         // mostly nothing.
         //
         // block esp in tester mode (redscreen probably shouldn't happen on tester, but better safe than sorry)
-        if (get_auto_update_flag() != FwAutoUpdate::tester_mode && config_store().connect_enabled.get()) {
+        if (!running_in_tester_mode() && config_store().connect_enabled.get()) {
             TaskDeps::components_init();
             UART_INIT(esp);
             // Needed for certificate verification
@@ -452,12 +455,12 @@ extern "C" void main_cpp(void) {
     }
 
 #if (BOARD_IS_BUDDY)
-    buddy::hw::BufferedSerial::uart2.Open();
+    uart2.Open();
 #endif
 
 #if (BOARD_IS_XBUDDY)
     #if !HAS_PUPPIES()
-    buddy::hw::BufferedSerial::uart6.Open();
+    uart6.Open();
     #endif
 #endif
 
@@ -562,7 +565,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #if (BOARD_IS_BUDDY)
     if (huart == &huart2) {
-        buddy::hw::BufferedSerial::uart2.WriteFinishedISR();
+        uart2.WriteFinishedISR();
     }
 #endif
 
@@ -576,7 +579,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     #if !HAS_PUPPIES()
     if (huart == &huart6) {
         //        log_debug(Buddy, "HAL_UART6_TxCpltCallback");
-        buddy::hw::BufferedSerial::uart6.WriteFinishedISR();
+        uart6.WriteFinishedISR();
         #if HAS_MMU2()
                 // instruct the RS485 converter, that we have finished sending data and from now on we are expecting a response from the MMU
                 // set to high in hwio_pindef.h
@@ -594,7 +597,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 
 #if (BOARD_IS_BUDDY)
     if (huart == &huart2) {
-        buddy::hw::BufferedSerial::uart2.FirstHalfReachedISR();
+        uart2.FirstHalfReachedISR();
     }
 #endif
 
@@ -607,7 +610,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 #if (BOARD_IS_XBUDDY)
     #if !HAS_PUPPIES()
     if (huart == &huart6) {
-        buddy::hw::BufferedSerial::uart6.FirstHalfReachedISR();
+        uart6.FirstHalfReachedISR();
     }
     #endif
 #endif
@@ -616,7 +619,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 #if (BOARD_IS_BUDDY)
     if (huart == &huart2) {
-        buddy::hw::BufferedSerial::uart2.SecondHalfReachedISR();
+        uart2.SecondHalfReachedISR();
     }
 #endif
 
@@ -629,7 +632,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 #if (BOARD_IS_XBUDDY)
     #if !HAS_PUPPIES()
     if (huart == &huart6) {
-        buddy::hw::BufferedSerial::uart6.SecondHalfReachedISR();
+        uart6.SecondHalfReachedISR();
     }
     #endif
 #endif

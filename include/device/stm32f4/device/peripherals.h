@@ -242,8 +242,6 @@ extern TIM_HandleTypeDef htim14;
     #define spi_lcd         2
     #define uart_tmc        2
     #define uart_esp        6
-    #define uart_extconn    1
-    #define spi_extconn     1
 #elif BOARD_IS_XBUDDY
     #define i2c_eeprom        2
     #define i2c_usbc          2
@@ -275,7 +273,6 @@ extern TIM_HandleTypeDef htim14;
     // Side LEDs use either SPI4 or share SPI with LCD, depending on HW revision
     // #define spi_led           4 or spi_lcd
     #define uart_puppies       3
-    #define uart_reserved      6
     #define tim_burst_stepping 8
     #define tim_phase_stepping 13
 #else

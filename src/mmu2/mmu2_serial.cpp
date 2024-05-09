@@ -13,9 +13,10 @@ using namespace buddy::hw;
 
     #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_serial.h"
 
-namespace MMU2 {
+extern buddy::hw::BufferedSerial uart6;
+    #define MMU2_UART uart6
 
-    #define uartNr uart6
+namespace MMU2 {
 
 // @@TODO not available in BufferedSerial
 // bool MMU2Serial::available()const {
@@ -25,23 +26,23 @@ namespace MMU2 {
 void MMU2Serial::begin(uint32_t baud) {
     baud_rate = baud;
 
-    BufferedSerial::uartNr.Open();
+    MMU2_UART.Open();
     // zero the default read timeout to make BufferedSerial::Read() non-blocking
-    BufferedSerial::uartNr.SetReadTimeoutMs(0);
+    MMU2_UART.SetReadTimeoutMs(0);
 }
 
 void MMU2Serial::close() {
-    BufferedSerial::uartNr.Close();
+    MMU2_UART.Close();
 }
 
 int MMU2Serial::read() {
     char ch;
-    int read = BufferedSerial::uartNr.Read(&ch, 1);
+    int read = MMU2_UART.Read(&ch, 1);
     return read ? ch : -1;
 }
 
 void MMU2Serial::flush() {
-    BufferedSerial::uartNr.Flush();
+    MMU2_UART.Flush();
 }
 
 /// Generally, the xBuddy uses a full-duplex UART6 connected to an RS-485 converter.
@@ -55,7 +56,7 @@ size_t MMU2Serial::write(const uint8_t *buffer, size_t size) {
     //    RS485FlowControl.write(Pin::State::low); // beware of setting this to high when using normal RS-232! It will stop working arbitrarily
     // set to high in hwio_pindef.h
     // RS485FlowControl.write(Pin::State::high); // @@TODO for RS-232
-    return BufferedSerial::uartNr.Write((const char *)buffer, size);
+    return MMU2_UART.Write((const char *)buffer, size);
 }
 
 void MMU2Serial::check_recovery() {

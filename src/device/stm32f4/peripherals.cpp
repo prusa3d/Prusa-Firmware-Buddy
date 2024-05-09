@@ -430,7 +430,7 @@ void hw_uart6_init() {
 #if HAS_PUPPIES() && (uart_puppies == 6)
     huart6.Init.BaudRate = 230400;
 #elif uart_esp == 6
-    huart6.Init.BaudRate = get_auto_update_flag() == FwAutoUpdate::tester_mode ? tester_uart_speed : uart6_default_speed;
+    huart6.Init.BaudRate = running_in_tester_mode() ? tester_uart_speed : uart6_default_speed;
 #else
     huart6.Init.BaudRate = uart6_default_speed;
 #endif
