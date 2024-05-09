@@ -9,7 +9,7 @@ ScreenMenuLangAndTime::ScreenMenuLangAndTime()
     EnableLongHoldScreenAction();
 }
 
-void ScreenMenuLangAndTime::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
+void ScreenMenuLangAndTime::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
     if (event == GUI_event_t::LOOP) {
 #if PRINTER_IS_PRUSA_MINI
         // Label MI_TIME_NOW doesn't have its own windowEvent, so update the time here.

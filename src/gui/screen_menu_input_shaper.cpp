@@ -56,7 +56,7 @@ void ScreenMenuInputShaper::update_gui() {
     }
 }
 
-void ScreenMenuInputShaper::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuInputShaper::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
         switch (ftrstd::bit_cast<InputShaperMenuItemChildClickParam>(param)) {
 

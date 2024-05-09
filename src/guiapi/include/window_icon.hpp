@@ -67,7 +67,7 @@ public:
     void SetAction(ButtonCallback cb) { callback = cb; }
 
 protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 /**
@@ -101,7 +101,7 @@ public:
 
 protected:
     virtual void unconditionalDraw() override;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class window_icon_hourglass_t : public AddSuperWindow<window_icon_t> {
@@ -117,5 +117,5 @@ public:
 protected:
     virtual void invalidate(Rect16 validation_rect) override;
     virtual void unconditionalDraw() override;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

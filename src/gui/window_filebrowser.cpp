@@ -46,7 +46,7 @@ WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *
     // scroll offset/current item is automatically set by IWindowMenu
 }
 
-void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void WindowFileBrowser::windowEvent(window_t *sender, GUI_event_t event, void *param) {
 
     switch (event) {
 

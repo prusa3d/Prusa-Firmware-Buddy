@@ -98,7 +98,7 @@ public:
     ScreenMenuSTSCalibrations();
 
     virtual void draw() override;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class ScreenMenuSTSWizard : public SelftestSnake::detail::ScreenMenuSTSWizard {
@@ -107,7 +107,7 @@ public:
     ScreenMenuSTSWizard();
 
     virtual void draw() override;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 private:
     bool draw_enabled { false };

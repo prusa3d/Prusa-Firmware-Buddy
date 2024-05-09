@@ -32,7 +32,7 @@ using ScreenMenuOdometer__ = ScreenMenu<EFooter::On, MI_RETURN, MI_ODOMETER_DIST
 class ScreenMenuOdometer : public ScreenMenuOdometer__ {
     static constexpr const char *label = N_("ODOMETER");
 
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 public:
     ScreenMenuOdometer();

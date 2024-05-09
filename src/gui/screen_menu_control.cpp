@@ -12,7 +12,7 @@ ScreenMenuControl::ScreenMenuControl()
     header.SetIcon(&img::calibrate_white_16x16);
 }
 
-void ScreenMenuControl::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuControl::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::HELD_RELEASED) {
         DialogMoveZ::Show();
         return;

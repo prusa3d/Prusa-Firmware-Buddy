@@ -57,7 +57,7 @@ void MsgBoxBase::set_text_font(Font font) {
     text.set_font(font);
 }
 
-void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void MsgBoxBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::CHILD_CLICK: {

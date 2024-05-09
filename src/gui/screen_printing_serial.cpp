@@ -30,7 +30,7 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     SetButtonIconAndLabel(BtnSocket::Right, BtnRes::Disconnect, LabelRes::Stop);
 }
 
-void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void screen_printing_serial_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     marlin_server::State state = marlin_vars()->print_state;
 
     if (state != last_state) {

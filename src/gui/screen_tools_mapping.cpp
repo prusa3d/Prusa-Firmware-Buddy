@@ -1150,7 +1150,7 @@ void ToolsMappingBody::handle_item_click() {
     }
 }
 
-void ToolsMappingBody::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
+void ToolsMappingBody::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
     if (querying_user) {
         return;
     }

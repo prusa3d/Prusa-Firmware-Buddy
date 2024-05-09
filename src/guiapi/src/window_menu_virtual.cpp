@@ -70,7 +70,7 @@ std::optional<int> WindowMenuVirtualBase::buffer_slot_index(int buffer_slot, int
     return result;
 }
 
-void WindowMenuVirtualBase::windowEvent(EventLock event_lock, window_t *sender, GUI_event_t event, void *param) {
+void WindowMenuVirtualBase::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::LOOP:
@@ -85,5 +85,5 @@ void WindowMenuVirtualBase::windowEvent(EventLock event_lock, window_t *sender, 
         break;
     }
 
-    IWindowMenu::windowEvent(event_lock, sender, event, param);
+    IWindowMenu::windowEvent(sender, event, param);
 }

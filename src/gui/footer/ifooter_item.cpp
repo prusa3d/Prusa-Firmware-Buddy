@@ -26,7 +26,7 @@ IFooterItem::TickResult IFooterItem::tick() {
     return resized == resized_t::no ? TickResult::changed : TickResult::changed_and_resized;
 }
 
-void IFooterItem::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void IFooterItem::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::LOOP: {
         uint16_t now = gui::GetTick(); // must be uint16_t - to match other time variables

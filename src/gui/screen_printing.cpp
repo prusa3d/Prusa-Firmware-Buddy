@@ -242,7 +242,7 @@ screen_printing_data_t::screen_printing_data_t()
 #endif
 }
 
-void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     /// check stop clicked when MBL is running
     printing_state_t p_state = GetState();
     if (

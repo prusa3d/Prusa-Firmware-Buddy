@@ -424,8 +424,7 @@ void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *const para
         last_gui_input_event = event;
     }
 
-    static constexpr const char txt[] = "WindowEvent via public";
-    windowEvent(EventLock(txt, sender, event), sender, event, param);
+    windowEvent(sender, event, param);
 }
 
 void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *const param) {
@@ -433,11 +432,9 @@ void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *const para
         last_gui_input_event = event;
     }
 
-    static constexpr const char txt[] = "ScreenEvent via public";
     if (event == GUI_event_t::HELD_RELEASED && flags.has_long_hold_screen_action) {
         gui::knob::LongPressScreenAction();
     } else {
-        EventLock(txt, sender, event); // just print debug msg
         screenEvent(sender, event, param);
     }
 }
@@ -451,7 +448,7 @@ void window_t::screenEvent(window_t *sender, GUI_event_t event, void *const para
 
 // MUST BE PRIVATE
 // call nonvirtual WindowEvent instead (contains debug output)
-void window_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *const param) {
+void window_t::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *const param) {
     if (event == GUI_event_t::CLICK && parent) {
         if (flags.close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();

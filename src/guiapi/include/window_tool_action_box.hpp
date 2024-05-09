@@ -276,7 +276,7 @@ public:
         menu.menu.move_focus_to_index(index);
     }
 
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
+    void windowEvent(window_t *sender, GUI_event_t event, void *param) override {
         switch (event) {
         case GUI_event_t::CHILD_CLICK: {
             event_conversion_union un { .pvoid = param };

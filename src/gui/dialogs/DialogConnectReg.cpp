@@ -70,7 +70,7 @@ void DialogConnectRegister::Show() {
     Screens::Access()->gui_loop_until_dialog_closed();
 }
 
-void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t event, void *param) {
+void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event_in_progress) {
         return;
     }

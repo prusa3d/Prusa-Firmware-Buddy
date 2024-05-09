@@ -17,7 +17,7 @@
 #include <filament_sensor.hpp>
 #include <filament_sensors_handler.hpp>
 
-void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
 
 #if HAS_TEMP_BOARD

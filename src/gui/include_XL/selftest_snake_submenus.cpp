@@ -24,7 +24,7 @@ void ScreenMenuDockCalibration::draw() {
     }
 }
 
-void ScreenMenuDockCalibration::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuDockCalibration::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     do_menu_event(this, sender, event, param, action, true);
 }
 
@@ -37,7 +37,7 @@ void ScreenMenuLoadcellTest::draw() {
     }
 }
 
-void ScreenMenuLoadcellTest::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuLoadcellTest::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     do_menu_event(this, sender, event, param, action, true);
 }
 
@@ -50,7 +50,7 @@ void ScreenMenuFilamentSensorsCalibration::draw() {
     }
 }
 
-void ScreenMenuFilamentSensorsCalibration::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuFilamentSensorsCalibration::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     do_menu_event(this, sender, event, param, action, true);
 }
 

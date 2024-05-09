@@ -18,7 +18,7 @@ bool FooterSingleline::SetSlot(size_t slot_id, footer::Item item) {
     return IFooter::SetSlot(line_0, slot_id, item);
 }
 
-void FooterSingleline::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void FooterSingleline::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::REINIT_FOOTER) {
         //!!!cannot use linked lists inside footer lines!!!, because they would change when Create method is called
         // if needed "footer::DecodeItemFromEvent" is meant do be used in combination with "FooterLine::SlotUsedBy" and "FooterLine::SlotAccess" instead

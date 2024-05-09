@@ -14,7 +14,7 @@ DialogTimed::DialogTimed(window_t *parent, Rect16 rect, uint32_t open_period)
     Hide(); // default behavior of this dialog is hidden
 }
 
-void DialogTimed::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void DialogTimed::windowEvent(window_t *sender, GUI_event_t event, void *param) {
 
     // must have parrent, could crash without it
     if (!GetParent()) {

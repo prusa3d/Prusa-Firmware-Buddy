@@ -158,7 +158,7 @@ void ScreenMenuMetricsSettings::refresh_current() {
     Item<MI_METRICS_CURRENT_L_PORT>().ChangePort(syslog_get_port());
 }
 
-void ScreenMenuMetricsSettings::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuMetricsSettings::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
         // Periodically refresh current hosts and ports
         static int refresh = 0;

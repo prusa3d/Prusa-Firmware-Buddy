@@ -31,7 +31,7 @@ void MI_RESET::click(IWindowMenu & /*window_menu*/) {
 ScreenMenuBedLevelCorrection::ScreenMenuBedLevelCorrection()
     : ScreenMenu(_(label)) {}
 
-void ScreenMenuBedLevelCorrection::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuBedLevelCorrection::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
         set_correction_value(LEFT, 0);
         set_correction_value(RIGHT, 0);

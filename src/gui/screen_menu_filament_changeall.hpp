@@ -112,7 +112,7 @@ using ScreenChangeAllFilaments = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
  * @brief Change filament in all tools.
  */
 class ScreenChangeAllFilaments : public detail::ScreenChangeAllFilaments {
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 public:
     static constexpr size_t tool_count = 5; ///< Number of tools shown in this menu
@@ -197,7 +197,7 @@ private:
     window_menu_t menu;
     window_header_t header;
 
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 } // namespace dialog_change_all_filaments
 

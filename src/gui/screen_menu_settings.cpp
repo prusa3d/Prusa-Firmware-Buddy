@@ -43,7 +43,7 @@ ScreenMenuSettings::~ScreenMenuSettings() {
     gui::knob::RegisterLongPressScreenAction(old_action); // restore hold action
 }
 
-void ScreenMenuSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuSettings::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
 #if HAS_MMU2()
         // If filament sensor gets disabled, set the MMU enable to false as well

@@ -427,7 +427,7 @@ bool ScreenCrashRecovery::Change(fsm::BaseData data) {
     return true;
 }
 
-void ScreenCrashRecovery::windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, [[maybe_unused]] void *param) {
+void ScreenCrashRecovery::windowEvent(window_t * /*sender*/, GUI_event_t event, [[maybe_unused]] void *param) {
     win_union.ButtonEvent(event);
 }
 

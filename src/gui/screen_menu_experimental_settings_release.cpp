@@ -37,7 +37,7 @@ ScreenMenuExperimentalSettings::ScreenMenuExperimentalSettings()
     : ScreenMenuExperimentalSettings__(_(label))
     , initial(*this) {}
 
-void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t ev, void *param) {
+void ScreenMenuExperimentalSettings::windowEvent(window_t *sender, GUI_event_t ev, void *param) {
     if (ev != GUI_event_t::CHILD_CLICK) {
         SuperWindowEvent(sender, ev, param);
         return;

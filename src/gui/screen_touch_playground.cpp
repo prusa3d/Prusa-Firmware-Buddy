@@ -12,7 +12,7 @@ ScreenTouchPlayground::ScreenTouchPlayground()
     text.SetText(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(text_content.data())));
 }
 
-void ScreenTouchPlayground::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenTouchPlayground::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
         auto last_event = touchscreen.get_last_event();
 

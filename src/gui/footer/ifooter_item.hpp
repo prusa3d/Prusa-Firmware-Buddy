@@ -43,7 +43,7 @@ protected:
     virtual resized_t updateState() = 0;
     virtual changed_t updateValue() = 0;
 
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class IFooterIconText : public AddSuperWindow<IFooterItem> {

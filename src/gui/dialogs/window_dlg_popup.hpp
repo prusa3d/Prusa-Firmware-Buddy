@@ -20,7 +20,7 @@ class window_dlg_popup_t : public AddSuperWindow<window_frame_t> {
     window_dlg_popup_t(const window_dlg_popup_t &) = delete;
 
 protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 public:
     // register dialog to actual screen

@@ -50,7 +50,7 @@ public:
     static constexpr size_t max_item_rows { 5 };
     static constexpr size_t max_item_text_width { 15 }; // #. FILAM 1.23 // = max 13 chars
 
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 private:
     /// Used for when srolling up or down, expecting values +- 1 (+1 means go down/right, -1 means go up/left)

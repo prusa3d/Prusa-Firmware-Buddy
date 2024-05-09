@@ -30,7 +30,7 @@ public:
     ScreenMenuDockCalibration();
 
     virtual void draw() override;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class ScreenMenuLoadcellTest : public detail::ScreenMenuLoadcellTest {
@@ -40,7 +40,7 @@ public:
     ScreenMenuLoadcellTest();
 
     virtual void draw() override;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class ScreenMenuFilamentSensorsCalibration : public detail::ScreenMenuFilamentSensorsCalibration {
@@ -50,7 +50,7 @@ public:
     ScreenMenuFilamentSensorsCalibration();
 
     virtual void draw() override;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 void open_submenu(Action action);

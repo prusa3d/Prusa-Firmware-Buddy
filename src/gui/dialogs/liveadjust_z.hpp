@@ -59,7 +59,7 @@ protected:
         return { ret.x, int16_t(ret.y + 0) };
     }
 
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class WindowLiveAdjustZ_withText : public AddSuperWindow<WindowLiveAdjustZ> {
@@ -73,7 +73,7 @@ public:
     bool IsActive();
 
 protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class LiveAdjustZ : public AddSuperWindow<IDialog> {
@@ -90,5 +90,5 @@ public:
 protected:
     void moveNozzle();
 
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

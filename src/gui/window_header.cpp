@@ -266,7 +266,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     Disable();
 }
 
-void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void window_header_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
 
     switch (event) {
     case GUI_event_t::MEDIA:

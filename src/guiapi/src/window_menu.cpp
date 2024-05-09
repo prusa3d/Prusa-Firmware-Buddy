@@ -57,7 +57,7 @@ std::optional<int> WindowMenu::item_index(const IWindowMenuItem *item) const {
     return item && pContainer ? pContainer->GetVisibleIndex(*item) : std::nullopt;
 }
 
-void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
+void WindowMenu::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     // Non-item-specific events
     switch (event) {
 

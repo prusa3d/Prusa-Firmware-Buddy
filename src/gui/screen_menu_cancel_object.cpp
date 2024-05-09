@@ -95,7 +95,7 @@ void MI_CO_CANCEL_CURRENT::click(IWindowMenu & /*window_menu*/) {
     marlin_client::cancel_current_object();
 }
 
-void ScreenMenuCancelObject::windowEvent(EventLock /*has private ctor*/, window_t *, GUI_event_t event, void *) {
+void ScreenMenuCancelObject::windowEvent(window_t *, GUI_event_t event, void *) {
     if (event == GUI_event_t::LOOP) {
         if (loop_index++ > 20) { // Approx once a second
             loop_index = 0;

@@ -104,7 +104,7 @@ void WindowLiveAdjustZ::Change(int dif) {
     }
 }
 
-void WindowLiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void WindowLiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::ENC_UP:
@@ -148,7 +148,7 @@ bool WindowLiveAdjustZ_withText::IsActive() {
     return number.IsShadowed();
 }
 
-void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void WindowLiveAdjustZ_withText::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::ENC_UP:
@@ -211,7 +211,7 @@ void LiveAdjustZ::moveNozzle() {
     }
 }
 
-void LiveAdjustZ::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void LiveAdjustZ::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::ENC_UP:

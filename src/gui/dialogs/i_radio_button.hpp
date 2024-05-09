@@ -73,7 +73,7 @@ public:
     Rect16 get_rect_for_touch() const override;
 
 protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
     virtual void screenEvent(window_t *sender, GUI_event_t event, void *const param) override;
 
     virtual void unconditionalDraw() override;

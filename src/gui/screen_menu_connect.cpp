@@ -118,7 +118,7 @@ ScreenMenuConnect::ScreenMenuConnect()
     : ScreenMenuConnect__(_(label)) {
 }
 
-void ScreenMenuConnect::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuConnect::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK || event == GUI_event_t::LOOP) {
         update_all_updatable_items();
     }

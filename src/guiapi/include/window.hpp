@@ -167,7 +167,7 @@ public:
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *const param);
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *const param);
     virtual void screenEvent(window_t *sender, GUI_event_t event, void *const param);
 
     virtual bool registerSubWin(window_t &win);
@@ -203,8 +203,7 @@ struct AddSuperWindow : public Base {
 protected:
     typedef Base super;
     void SuperWindowEvent(window_t *sender, GUI_event_t event, void *const param) {
-        static const char txt[] = "WindowEvent via super";
-        super::windowEvent(EventLock(txt, sender, event), sender, event, param);
+        super::windowEvent(sender, event, param);
     }
 };
 

@@ -48,7 +48,7 @@ void ScreenResetError::start_sound() {
     }
 }
 
-void ScreenResetError::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
+void ScreenResetError::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
     switch (event) {
     case GUI_event_t::ENC_UP:
     case GUI_event_t::ENC_DN:

@@ -16,7 +16,7 @@ FooterLine::FooterLine(window_t *parent, size_t line_no)
     item_ids.fill(footer::Item::none);
 }
 
-void FooterLine::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void FooterLine::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CHILD_CHANGED: // event from child
         positionWindows();

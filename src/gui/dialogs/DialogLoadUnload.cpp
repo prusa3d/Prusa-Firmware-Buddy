@@ -17,7 +17,7 @@
 RadioButtonNotice::RadioButtonNotice(window_t *parent, Rect16 rect)
     : AddSuperWindow<RadioButton>(parent, rect) {}
 
-void RadioButtonNotice::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void RadioButtonNotice::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK: {
         Response response = Click();

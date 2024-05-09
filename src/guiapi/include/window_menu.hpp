@@ -57,7 +57,7 @@ public:
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1);
 
 protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
     // TODO
     // virtual void invalidate(Rect16 validation_rect);

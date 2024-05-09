@@ -19,7 +19,7 @@ using ScreenMenuLangAndTime__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, M
     MI_LANGUAGUE_USB, MI_LOAD_LANG, MI_LANGUAGUE_XFLASH>;
 
 class ScreenMenuLangAndTime : public ScreenMenuLangAndTime__ {
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 public:
     constexpr static const char *label = N_("LANGUAGE & TIME");

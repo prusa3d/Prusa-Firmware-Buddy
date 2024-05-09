@@ -174,7 +174,7 @@ void ScreenPrintPreview::show_tools_mapping() {
 #endif
 }
 
-void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
+void ScreenPrintPreview::windowEvent([[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
     switch (event) {
 
         // Catch event when USB is removed

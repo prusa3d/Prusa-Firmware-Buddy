@@ -69,7 +69,7 @@ void RadioButtonPreview::unconditionalDraw() {
     }
 }
 
-void RadioButtonPreview::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void RadioButtonPreview::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::CLICK: {

@@ -69,7 +69,7 @@ IRadioButton &IRadioButton::operator--() {
     return *this;
 }
 
-void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void IRadioButton::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (!GetParent()) {
         return;
     }

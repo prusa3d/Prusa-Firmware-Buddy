@@ -131,7 +131,7 @@ protected:
 
 protected:
     virtual void draw() override;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 private:
     int max_items_on_screen_count_;

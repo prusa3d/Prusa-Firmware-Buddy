@@ -33,7 +33,7 @@ void MenuScrollbar::unconditionalDraw() {
     }
 }
 
-void MenuScrollbar::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
+void MenuScrollbar::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
     switch (event) {
 
     case GUI_event_t::LOOP: {

@@ -67,7 +67,7 @@ DialogMoveZ::DialogMoveZ()
     arrows.SetState(WindowArrows::State_t::undef);
 };
 
-void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
+void DialogMoveZ::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::CLICK: {

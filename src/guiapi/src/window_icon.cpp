@@ -102,7 +102,7 @@ window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, const 
     Enable();
 }
 
-void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void window_icon_button_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::CLICK:
@@ -154,7 +154,7 @@ void WindowMultiIconButton::unconditionalDraw() {
     display::DrawImg(point_ui16(Left(), Top()), *pImg, GetBackColor());
 }
 
-void WindowMultiIconButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void WindowMultiIconButton::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::CLICK:
@@ -255,7 +255,7 @@ void window_icon_hourglass_t::unconditionalDraw() {
     }
 }
 
-void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
+void window_icon_hourglass_t::windowEvent([[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
     uint8_t phs = ((gui::GetTick() - start_time) / ANIMATION_STEP_MS);
     phs %= ANIMATION_STEPS;
     if (phase != phs) {

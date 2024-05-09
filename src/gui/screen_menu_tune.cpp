@@ -23,7 +23,7 @@ ScreenMenuTune::ScreenMenuTune()
 #endif
 }
 
-void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuTune::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::LOOP: {
         const auto current_command = marlin_client::get_command();

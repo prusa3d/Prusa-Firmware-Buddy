@@ -52,7 +52,7 @@ private:
     uint32_t last_ticks_s;
 
 protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class ScreenMenuFiltration : public detail::ScreenMenuFiltration {

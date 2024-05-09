@@ -25,7 +25,7 @@ screen_messages_data_t::screen_messages_data_t()
     ClrOnSerialClose();
 }
 
-void screen_messages_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void screen_messages_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::CLICK:

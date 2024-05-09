@@ -11,7 +11,7 @@ class ScreenMenuSensorInfo : public detail::ScreenMenuSensorInfo {
     FS_AutoloadAutolock lock;
 
 protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 public:
     constexpr static const char *label = N_("SENSOR INFO");

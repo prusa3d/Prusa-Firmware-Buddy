@@ -52,7 +52,7 @@ ScreenChangeFilter::ScreenChangeFilter()
     help.SetText(_(txt_help));
 }
 
-void ScreenChangeFilter::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, void *param) {
+void ScreenChangeFilter::windowEvent([[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CHILD_CLICK:
         switch (event_conversion_union { .pvoid = param }.response) {

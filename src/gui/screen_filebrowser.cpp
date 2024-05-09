@@ -30,7 +30,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     CaptureNormalWindow(file_browser);
 }
 
-void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
+void screen_filebrowser_data_t::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::MEDIA:
         checkMissingMedia(MediaState_t(reinterpret_cast<int>(param)));

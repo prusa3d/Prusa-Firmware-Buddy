@@ -68,7 +68,7 @@ public:
 
 protected:
     virtual void draw() override;
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
     virtual void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
     virtual void invalidate(Rect16 validation_rect = Rect16()) override;
     virtual void validate(Rect16 validation_rect = Rect16()) override;

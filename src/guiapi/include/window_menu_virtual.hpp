@@ -35,7 +35,7 @@ protected:
     virtual void setup_buffer_slot(int buffer_slot, std::optional<int> index) = 0;
 
 protected:
-    virtual void windowEvent(EventLock, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 private:
     std::optional<int> buffer_slot_index(int buffer_slot, int scroll_offset) const;

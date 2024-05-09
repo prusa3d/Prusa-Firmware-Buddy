@@ -415,7 +415,7 @@ void screen_home_data_t::handle_wifi_credentials() {
     }
 }
 
-void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     // TODO: This easily freezes home screen when flash action fails to start.
     // There are several places in the code where executing a flash gcode can
     // result in no-op and home screen stays active with events disabled.

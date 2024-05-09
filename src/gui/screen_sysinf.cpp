@@ -91,7 +91,7 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textExit.SetText(_(ex));
 }
 
-void screen_sysinfo_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void screen_sysinfo_data_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::TOUCH_SWIPE_LEFT:
     case GUI_event_t::TOUCH_SWIPE_RIGHT: {

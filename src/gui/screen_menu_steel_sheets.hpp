@@ -86,7 +86,7 @@ public:
     ISheetProfileMenuScreen(uint32_t value);
 
 protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t ev, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t ev, void *param) override;
 };
 
 template <uint8_t sheet_index>

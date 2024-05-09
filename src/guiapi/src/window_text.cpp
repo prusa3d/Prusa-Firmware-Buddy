@@ -81,7 +81,7 @@ void WindowButton::unconditionalDraw() {
     }
 }
 
-void WindowButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void WindowButton::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::CLICK:
@@ -116,7 +116,7 @@ void WindowBlinkingText::unconditionalDraw() {
     }
 }
 
-void WindowBlinkingText::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void WindowBlinkingText::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (blink_enable && blink_step) {
         bool b = (gui::GetTick() / uint32_t(blink_step)) & 0x01;
         if (flags.blink0 != b) {

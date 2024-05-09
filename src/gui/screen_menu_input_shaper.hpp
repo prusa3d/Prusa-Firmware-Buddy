@@ -41,7 +41,7 @@ public:
     bool is_editing_enabled = false; // Is set to true in the constructor if MI_IS_ENABLE_EDITING is hidden
 
 protected:
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param);
+    void windowEvent(window_t *sender, GUI_event_t event, void *param);
 
 private:
     bool is_updating_gui = false;

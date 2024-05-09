@@ -15,7 +15,7 @@ ScreenMenuFilamentMMU::ScreenMenuFilamentMMU()
     header.SetIcon(&img::spool_white_16x16);
 }
 
-void ScreenMenuFilamentMMU::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuFilamentMMU::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {

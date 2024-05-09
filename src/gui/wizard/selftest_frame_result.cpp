@@ -100,7 +100,7 @@ SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fs
     bar.SetScrollOffset(height_draw_offset);
 }
 
-void SelftestFrameResult::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void SelftestFrameResult::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK:
         marlin_client::FSM_response(phase_current, ClientResponses::GetResponses(phase_current)[0]);

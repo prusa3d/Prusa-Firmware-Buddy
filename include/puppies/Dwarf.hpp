@@ -166,7 +166,7 @@ public:
      * For example in GUI_event_t::LOOP at ~50 ms.
      * The states are processed first and then marked to be refreshed which happens until next loop call.
      * @code
-void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
+void ToolsMappingBody::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
     if (event == GUI_event_t::LOOP) {
         // Process dwarf buttons
         static bool was_up = false, was_down = false;

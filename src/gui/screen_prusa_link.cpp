@@ -64,7 +64,7 @@ ScreenMenuPrusaLink::ScreenMenuPrusaLink()
     ClrMenuTimeoutClose();
 }
 
-void ScreenMenuPrusaLink::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuPrusaLink::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CHILD_CLICK: {
         uint32_t action = ((uint32_t)param) & 0xFFFF;

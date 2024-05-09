@@ -45,5 +45,5 @@ class SelftestFrameResult : public AddSuperWindow<SelftestFrame> {
 
 public:
     SelftestFrameResult(window_t *parent, PhasesSelftest ph, fsm::PhaseData data);
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

@@ -86,5 +86,5 @@ public:
     ScreenMenuFilamentSensors();
 
 protected:
-    void windowEvent(EventLock, window_t *sender, GUI_event_t event, void *param) override;
+    void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

@@ -57,7 +57,7 @@ void WindowIcon_OkNg::unconditionalDraw() {
     render_icon_align(GetRect(), id_res, GetBackColor(), GetAlignment());
 }
 
-void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
+void WindowIcon_OkNg::windowEvent([[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
     if (GetState() == SelftestSubtestState_t::running) {
         bool b0 = (gui::GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0b01;
         bool b1 = (gui::GetTick() / uint32_t(ANIMATION_STEP_MS)) & 0b10;

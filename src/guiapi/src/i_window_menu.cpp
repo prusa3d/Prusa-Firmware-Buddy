@@ -257,7 +257,7 @@ void IWindowMenu::draw() {
     last_visible_slot_count_ = visible_slot_count;
 }
 
-void IWindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void IWindowMenu::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     const int encoder_value = int(param);
 
     IWindowMenuItem *focused_item = focused_item_index() ? IWindowMenuItem::focused_item() : nullptr;

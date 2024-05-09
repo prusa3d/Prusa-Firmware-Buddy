@@ -14,7 +14,7 @@ public:
     WindowPrintProgress(window_t *parent, Rect16 rect);
 
 protected:
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class WindowNumbPrintProgress : public AddSuperWindow<window_numb_t> {
@@ -26,7 +26,7 @@ public:
     int8_t getPercentage();
 
 protected:
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };
 
 class WindowPrintVerticalProgress : public AddSuperWindow<window_vertical_progress_t> {
@@ -36,5 +36,5 @@ public:
     WindowPrintVerticalProgress(window_t *parent, Rect16 rect);
 
 protected:
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

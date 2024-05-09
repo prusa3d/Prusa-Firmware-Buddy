@@ -18,7 +18,7 @@ ScreenMenuTemperature::ScreenMenuTemperature()
 #endif // PRINTER_IS_PRUSA_MINI
 }
 
-void ScreenMenuTemperature::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuTemperature::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
         HOTEND_LOOP() {
             marlin_client::set_target_nozzle(0, e);

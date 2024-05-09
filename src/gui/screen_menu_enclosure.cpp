@@ -16,7 +16,7 @@ ScreenMenuEnclosure::ScreenMenuEnclosure()
 #endif
 }
 
-void ScreenMenuEnclosure::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuEnclosure::windowEvent(window_t *sender, GUI_event_t event, void *param) {
 #if XL_ENCLOSURE_SUPPORT()
     if (event == GUI_event_t::LOOP) {
         if (ticks_s() - last_ticks_s >= loop_delay_s) {

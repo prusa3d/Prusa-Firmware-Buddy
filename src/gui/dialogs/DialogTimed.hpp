@@ -35,7 +35,7 @@ protected:
     enum class visibility_changed_t : bool { no,
         yes };
 
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param);
+    void windowEvent(window_t *sender, GUI_event_t event, void *param);
     virtual void updateLoop(visibility_changed_t visibility_changed) = 0;
     bool isShowBlocked() const;
 };

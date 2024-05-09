@@ -52,7 +52,7 @@ public:
     virtual screen_init_variant GetCurrentState() const override;
 
 protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 private:
     void printBtnEna();

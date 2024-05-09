@@ -66,7 +66,7 @@ protected:
         return ClientResponses::GetResponse(current_phase, index);
     }
 
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
+    void windowEvent(window_t *sender, GUI_event_t event, void *param) override {
         switch (event) {
         case GUI_event_t::CLICK: {
             Response response = Click();

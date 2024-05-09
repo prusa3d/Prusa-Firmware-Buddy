@@ -354,7 +354,7 @@ void ScreenMenuSTSCalibrations::draw() {
     }
 }
 
-void ScreenMenuSTSCalibrations::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuSTSCalibrations::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     do_menu_event(this, sender, event, param, get_first_action(), false);
 }
 
@@ -372,7 +372,7 @@ void ScreenMenuSTSWizard::draw() {
     }
 }
 
-void ScreenMenuSTSWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuSTSWizard::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (GetFirstDialog()) {
         return;
     }

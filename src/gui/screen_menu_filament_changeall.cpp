@@ -176,7 +176,7 @@ void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_c
 }
 } // namespace
 
-void ScreenChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenChangeAllFilaments::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
         // Get all selected filaments
         const std::array<size_t, tool_count> selection { {
@@ -251,7 +251,7 @@ DialogChangeAllFilaments::DialogChangeAllFilaments(const std::array<size_t, I_MI
         container.menu_items);
 }
 
-void DialogChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void DialogChangeAllFilaments::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::MEDIA: {
         const MediaState_t media_state = MediaState_t(reinterpret_cast<int>(param));

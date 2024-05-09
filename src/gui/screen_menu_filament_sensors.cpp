@@ -98,7 +98,7 @@ ScreenMenuFilamentSensors::ScreenMenuFilamentSensors()
     : MenuBase(_(label)) {
 }
 
-void ScreenMenuFilamentSensors::windowEvent(EventLock el, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuFilamentSensors::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
     case GUI_event_t::CHILD_CLICK:
@@ -110,7 +110,7 @@ void ScreenMenuFilamentSensors::windowEvent(EventLock el, window_t *sender, GUI_
         break;
 
     default:
-        NScreenMenuFilamentSensors::MenuBase::windowEvent(el, sender, event, param);
+        NScreenMenuFilamentSensors::MenuBase::windowEvent(sender, event, param);
         break;
     }
 }

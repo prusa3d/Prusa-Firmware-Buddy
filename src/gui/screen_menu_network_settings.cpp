@@ -12,7 +12,7 @@ ScreenMenuEthernetSettings::ScreenMenuEthernetSettings()
     : ScreenMenuEthernetSettings_(_(label)) {
 }
 
-void ScreenMenuEthernetSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuEthernetSettings::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
         update_all_updatable_items();
     }
@@ -25,7 +25,7 @@ ScreenMenuWifiSettings::ScreenMenuWifiSettings()
     : ScreenMenuWifiSettings_(_(label)) {
 }
 
-void ScreenMenuWifiSettings::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuWifiSettings::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::LOOP) {
         update_all_updatable_items();
     }

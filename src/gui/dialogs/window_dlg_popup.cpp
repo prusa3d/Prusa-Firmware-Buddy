@@ -41,7 +41,7 @@ void window_dlg_popup_t::Show(Rect16 rect, string_view_utf8 txt, uint32_t time) 
     }
 }
 
-void window_dlg_popup_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void window_dlg_popup_t::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     const uint32_t opened = gui::GetTick() - open_time;
     if (event == GUI_event_t::LOOP && opened > ttl) { // todo use timer
         if (GetParent()) {

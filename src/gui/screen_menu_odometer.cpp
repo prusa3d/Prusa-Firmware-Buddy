@@ -10,7 +10,7 @@
 #include <option/has_toolchanger.h>
 #include <option/has_mmu2.h>
 
-void ScreenMenuOdometer::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuOdometer::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::HELD_RELEASED) {
         DialogMoveZ::Show();
         return;
