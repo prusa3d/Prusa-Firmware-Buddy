@@ -3,6 +3,7 @@
 
 #include <ScreenHandler.hpp>
 #include <sound.hpp>
+#include <img_resources.hpp>
 
 using namespace dialog_text_input;
 
@@ -28,12 +29,31 @@ constexpr color_scheme special_button_background_color_scheme = {
     .focused_and_shadowed = COLOR_DARK_GRAY,
 };
 
-constexpr int16_t buttons_rect_margin = 8;
 constexpr Rect16 buttons_rect = Rect16::fromLTRB(buttons_rect_margin, GuiDefaults::HeaderHeight + 72, GuiDefaults::ScreenWidth - buttons_rect_margin, GuiDefaults::ScreenHeight - buttons_rect_margin);
-constexpr int16_t button_padding = 4;
 
 constexpr size_ui16_t button_grid_item_size = { buttons_rect.Width() / button_cols, buttons_rect.Height() / button_rows };
 constexpr size_ui16_t button_size = { button_grid_item_size.w - button_padding * 2, button_grid_item_size.h - button_padding * 2 };
+
+constexpr EnumArray<SpecialButton, std::variant<const char *, const img::Resource *>, SpecialButton::_cnt> special_button_labels {
+#if defined(USE_ILI9488)
+    { SpecialButton::ok, &img::ok_60x60 },
+        { SpecialButton::cancel, &img::cancel_60x60 },
+        { SpecialButton::clear, &img::clear_60x60 },
+        { SpecialButton::backspace, &img::backspace_60x60 },
+        { SpecialButton::space, &img::space_60x60 },
+#else
+    { SpecialButton::ok, &img::ok_44x33 },
+        { SpecialButton::cancel, &img::cancel_44x33 },
+        { SpecialButton::clear, &img::clear_44x33 },
+        { SpecialButton::backspace, &img::backspace_44x33 },
+        { SpecialButton::space, &img::space_44x33 },
+#endif
+
+        { SpecialButton::uppercase, "ABC" },
+        { SpecialButton::lowercase, "abc" },
+        { SpecialButton::symbols, "!&$" },
+        { SpecialButton::numbers, "123" },
+};
 
 } // namespace
 
@@ -240,7 +260,9 @@ void dialog_text_input::DialogTextInput::button_callback(window_t &button) {
         break;
 
     case SpecialButton::numbers:
+#if HAS_NUMBERS_LAYOUT()
         set_keyboard_layout(layout_numbers);
+#endif
         break;
 
     // Not a special button - appending procedure

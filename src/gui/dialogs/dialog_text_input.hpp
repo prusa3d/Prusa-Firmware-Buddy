@@ -10,11 +10,9 @@
     #include <touchscreen/touchscreen.hpp>
 #endif
 
-namespace dialog_text_input {
+#include "dialog_text_input_layout.hpp"
 
-static constexpr int button_cols = 6;
-static constexpr int button_rows = 3;
-static constexpr int button_count = button_cols * button_rows;
+namespace dialog_text_input {
 
 struct ButtonsLayout;
 

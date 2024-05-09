@@ -39,6 +39,26 @@ add_catch_test(rectangle_tests)
 add_catch_test(gui_time_tests)
 add_catch_test(gui_tests)
 
+# std_text_input_layout_tests
+add_executable(std_text_input_layout_tests ${CMAKE_CURRENT_SOURCE_DIR}/text_input_layout_tests.cpp)
+target_include_directories(
+  std_text_input_layout_tests
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src/gui
+         ${CMAKE_SOURCE_DIR}/src/gui/dialogs ${CMAKE_SOURCE_DIR}/include
+  )
+target_compile_definitions(std_text_input_layout_tests PUBLIC BOARD=2)
+add_catch_test(std_text_input_layout_tests)
+
+# mini_text_input_layout_tests
+add_executable(mini_text_input_layout_tests ${CMAKE_CURRENT_SOURCE_DIR}/text_input_layout_tests.cpp)
+target_include_directories(
+  mini_text_input_layout_tests
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src/gui
+         ${CMAKE_SOURCE_DIR}/src/gui/dialogs ${CMAKE_SOURCE_DIR}/include
+  )
+target_compile_definitions(mini_text_input_layout_tests PUBLIC BOARD=1)
+add_catch_test(mini_text_input_layout_tests)
+
 add_subdirectory(lazyfilelist)
 add_subdirectory(jogwheel)
 add_subdirectory(window)

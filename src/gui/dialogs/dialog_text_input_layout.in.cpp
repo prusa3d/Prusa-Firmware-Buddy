@@ -1,10 +1,12 @@
 #pragma once
 
-#include "dialog_text_input.hpp"
-
 #include <array>
 #include <variant>
-#include <img_resources.hpp>
+#include <cstdint>
+#include <cstddef>
+#include <exception>
+
+#include "dialog_text_input_layout.hpp"
 
 namespace dialog_text_input {
 
@@ -61,51 +63,8 @@ constexpr ButtonRec operator""_b(const char *str, size_t) {
     return r;
 }
 
-constexpr EnumArray<SpecialButton, std::variant<const char *, const img::Resource *>, SpecialButton::_cnt> special_button_labels {
-    { SpecialButton::ok, &img::ok_60x60 },
-    { SpecialButton::cancel, &img::cancel_60x60 },
-    { SpecialButton::clear, &img::clear_60x60 },
-    { SpecialButton::backspace, &img::backspace_60x60 },
-    { SpecialButton::space, &img::space_60x60 },
-
-    { SpecialButton::uppercase, "ABC" },
-    { SpecialButton::lowercase, "abc" },
-    { SpecialButton::symbols, "!.$" },
-    { SpecialButton::numbers, "123" },
-};
-
-constexpr ButtonRec quick_symbols_button = ".-@_"_b;
-
-constexpr ButtonsLayout layout_text_lowercase = {
-    ButtonsRow {
-        SpecialButton::numbers,
-        ".,?!"_b,
-        "abc"_b,
-        "def"_b,
-        "-_@"_b,
-        SpecialButton::backspace,
-    },
-    ButtonsRow {
-        SpecialButton::uppercase,
-        "ghi"_b,
-        "jkl"_b,
-        "mno"_b,
-        "()[]"_b,
-        SpecialButton::clear,
-    },
-    ButtonsRow {
-        SpecialButton::cancel,
-        "pqrs"_b,
-        "tuv"_b,
-        "wxyz"_b,
-        SpecialButton::space,
-        SpecialButton::ok,
-    },
-};
-
-constexpr ButtonsLayout layout_text_uppercase = [] {
-    ButtonsLayout r = layout_text_lowercase;
-    for (auto &row : r) {
+constexpr ButtonsLayout to_uppercase_layout(ButtonsLayout layout) {
+    for (auto &row : layout) {
         for (auto &rec : row) {
             if (rec == ButtonRec(SpecialButton::uppercase)) {
                 rec = SpecialButton::lowercase;
@@ -121,61 +80,13 @@ constexpr ButtonsLayout layout_text_uppercase = [] {
         }
     }
 
-    return r;
-}();
-
-constexpr ButtonsLayout layout_symbols = {
-    ButtonsRow {
-        SpecialButton::numbers,
-        ".,?!"_b,
-        ":;"_b,
-        "-_"_b,
-        "+*"_b,
-        SpecialButton::backspace,
-    },
-    ButtonsRow {
-        SpecialButton::lowercase,
-        "/|"_b,
-        "%&#"_b,
-        "\'\""_b,
-        "=~"_b,
-        SpecialButton::clear,
-    },
-    ButtonsRow {
-        SpecialButton::cancel,
-        "()"_b,
-        "[]"_b,
-        "{}"_b,
-        "<>"_b,
-        SpecialButton::ok,
-    },
-};
-
-constexpr ButtonsLayout layout_numbers = {
-    ButtonsRow {
-        SpecialButton::symbols,
-        "7"_b,
-        "8"_b,
-        "9"_b,
-        "-+%"_b,
-        SpecialButton::backspace,
-    },
-    ButtonsRow {
-        SpecialButton::lowercase,
-        "4"_b,
-        "5"_b,
-        "6"_b,
-        ".,"_b,
-        SpecialButton::clear,
-    },
-    ButtonsRow {
-        SpecialButton::cancel,
-        "1"_b,
-        "2"_b,
-        "3"_b,
-        "0"_b,
-        SpecialButton::ok,
-    },
-};
+    return layout;
+}
 
 } // namespace dialog_text_input
+
+#if defined(USE_ILI9488)
+    #include "dialog_text_input_layout_xlcd.in.cpp"
+#else
+    #include "dialog_text_input_layout_mini.in.cpp"
+#endif
