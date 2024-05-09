@@ -12,7 +12,6 @@
 #include "option/development_items.h"
 
 static constexpr uint32_t footer_temp_delay_sec = 5 * 60;
-static constexpr uint32_t post_print_filtration_period_sec = 10 * 60;
 static constexpr int64_t expiration_5day_reminder_period_sec = 5 * 24 * 3600;
 
 static constexpr uint32_t tick_delay_sec = 1;
@@ -35,8 +34,8 @@ Enclosure::Enclosure()
     : persistent_flags(config_store().xl_enclosure_flags.get())
     , runtime_flags(0)
     , user_rpm(config_store().xl_enclosure_fan_manual.get())
+    , post_print_duration_sec(config_store().xl_enclosure_post_print_duration.get() * 60 /* stored in minutes */)
     , active_mode(EnclosureMode::Idle)
-    , post_print_timer_sec(0)
     , print_start_sec(0)
     , print_end_sec(0)
     , filter_postpone_sec(0)
@@ -141,10 +140,9 @@ void Enclosure::updateTempValidationTimer(uint32_t curr_sec) {
 }
 
 bool Enclosure::updatePostPrintFiltrationTimer(uint32_t curr_sec) {
-    bool times_up = curr_sec - print_end_sec >= post_print_timer_sec;
+    bool times_up = curr_sec - print_end_sec >= post_print_duration_sec;
     if (times_up) {
         print_end_sec = 0;
-        post_print_timer_sec = 0;
     }
     return times_up;
 }
@@ -177,10 +175,9 @@ std::optional<WarningType> Enclosure::updateFilterExpirationTimer(uint32_t delta
     return ret;
 }
 
-uint32_t Enclosure::setUpPostPrintFiltrationPeriod() {
-    uint32_t t = 0;
+bool Enclosure::isPostPrintFiltrationNeeded() {
     if (GCodeInfo::getInstance().UsedExtrudersCount() <= 0) {
-        return t;
+        return false;
     }
 
     EXTRUDER_LOOP() { // e == physical_extruder
@@ -189,14 +186,14 @@ uint32_t Enclosure::setUpPostPrintFiltrationPeriod() {
             continue;
         }
 
-        // If any of the filaments in filtration_filament_set is used in the print -> set up post print filtration timer for 10 minutes (in seconds)
-        for (uint32_t fil = 0; fil < sizeof(filtration_filament_set) / sizeof(filament::Type); fil++) {
-            if (is_same(filament::get_name(filtration_filament_set[fil]), extruder_info.filament_name.value())) {
-                return post_print_filtration_period_sec;
+        // If any of the filaments in filaments_requiring_filtration is used in the print -> activate post print filtration
+        for (const filament::Type type : filaments_requiring_filtration) {
+            if (is_same(filament::get_name(type), extruder_info.filament_name.value())) {
+                return true;
             }
         }
     }
-    return t;
+    return false;
 }
 
 std::optional<WarningType> Enclosure::checkPrintState(marlin_server::State print_state, uint32_t curr_sec) {
@@ -206,10 +203,12 @@ std::optional<WarningType> Enclosure::checkPrintState(marlin_server::State print
         if (!isPrinting()) {
             // PRINT STARTED - can be Start / Resume / Recovery
             setRuntimeFlg(RUNTIME::PRINTING);
-            clrRuntimeFlg(RUNTIME::TEMP_VALID);
+            // Do not invalidate on Resume
+            if (previous_print_state < marlin_server::State::Resuming_Begin || previous_print_state > marlin_server::State::Resuming_UnparkHead_ZE) {
+                clrRuntimeFlg(RUNTIME::TEMP_VALID);
+            }
             print_start_sec = curr_sec;
             print_end_sec = 0;
-            post_print_timer_sec = setUpPostPrintFiltrationPeriod();
 
             // Pop up expiration dialog
             if (isExpirationShown() && !isReminderSet() && (previous_print_state == marlin_server::State::PrintInit || previous_print_state == marlin_server::State::SerialPrintInit)) {
@@ -220,12 +219,18 @@ std::optional<WarningType> Enclosure::checkPrintState(marlin_server::State print
     } else {
         if (isPrinting()) {
             // PRINT ENDED - can be Pause / Abort / Crash / Power Panic
-            clrRuntimeFlg(RUNTIME::PRINTING | RUNTIME::TEMP_VALID);
-            if (isPostPrintEnabled()) {
+            // Do not invalidate temperature on Pause
+            if (print_state < marlin_server::State::Pausing_Begin || print_state > marlin_server::State::Paused) {
+                clrRuntimeFlg(RUNTIME::TEMP_VALID);
+            }
+            clrRuntimeFlg(RUNTIME::PRINTING);
+            if (isPostPrintEnabled() && isPostPrintFiltrationNeeded()) {
                 setRuntimeFlg(RUNTIME::ACTIVE_POST_PRINT);
                 print_end_sec = curr_sec;
             }
             print_start_sec = 0;
+        } else if (print_state == marlin_server::State::Aborted && isTemperatureValid()) {
+            clrRuntimeFlg(RUNTIME::TEMP_VALID);
         }
     }
     return ret;

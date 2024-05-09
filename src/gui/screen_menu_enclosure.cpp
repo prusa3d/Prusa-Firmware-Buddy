@@ -31,10 +31,6 @@ void ScreenMenuEnclosure::windowEvent(EventLock /*has private ctor*/, window_t *
     SuperWindowEvent(sender, event, param);
 }
 
-ScreenMenuFiltration::ScreenMenuFiltration()
-    : detail::ScreenMenuFiltration(_(label)) {
-}
-
 ScreenMenuManualSetting::ScreenMenuManualSetting()
     : detail::ScreenMenuManualSetting(_(label)) {
 }

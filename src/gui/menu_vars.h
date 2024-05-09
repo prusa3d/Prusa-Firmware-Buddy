@@ -62,7 +62,8 @@ struct MenuVars {
     constexpr static std::array<int, MenuVars::RANGE_SZ> axis_rms_currents_range = { 0, 800, 1 };
     constexpr static std::array<int, MenuVars::RANGE_SZ> steps_per_unit_range = { 1, 1000, 1 }; // small range, experimental feature
 #if XL_ENCLOSURE_SUPPORT()
-    constexpr static std::array<int, RANGE_SZ> enclosure_fan_percent_range = { 40, 100, 1 };
+    constexpr static std::array<int, RANGE_SZ> enclosure_fan_percent_range = { 50, 100, 10 };
+    constexpr static std::array<int, RANGE_SZ> enclosure_post_print_minute_range = { 1, 10, 1 };
 #endif
 
     static const std::array<int, AXIS_CNT> GetManualFeedrate();

@@ -41,5 +41,6 @@ struct SpinCnf {
     static const SpinConfigFlt nozzle_diameter;
 #if XL_ENCLOSURE_SUPPORT()
     static const SpinConfigInt enclosure_fan;
+    static const SpinConfigInt enclosure_post_print;
 #endif
 };

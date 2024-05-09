@@ -81,20 +81,20 @@ void MI_ENCLOSURE_FAN_SETTING::OnClick() {
     xl_enclosure.setUserFanRPM(GetVal());
 }
 
+MI_ENCLOSURE_POST_PRINT_DURATION::MI_ENCLOSURE_POST_PRINT_DURATION()
+    : WiSpinInt(config_store().xl_enclosure_post_print_duration.get(), SpinCnf::enclosure_post_print, _(label), &img::fan_16x16, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_ENCLOSURE_POST_PRINT_DURATION::OnClick() {
+    xl_enclosure.setPostPrintDuration(GetVal());
+}
+
 MI_ENCLOSURE_MANUAL_SETTINGS::MI_ENCLOSURE_MANUAL_SETTINGS()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_ENCLOSURE_MANUAL_SETTINGS::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuManualSetting>);
-}
-
-MI_ENCLOSURE_FILTRATION::MI_ENCLOSURE_FILTRATION()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-
-void MI_ENCLOSURE_FILTRATION::click([[maybe_unused]] IWindowMenu &window_menu) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFiltration>);
 }
 
 MI_ENCLOSURE_FILTER_CHANGE::MI_ENCLOSURE_FILTER_CHANGE()

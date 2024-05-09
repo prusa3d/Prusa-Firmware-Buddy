@@ -103,7 +103,6 @@ class ScreenFactory {
         ScreenMenuPrusaLink,
         ScreenMenuInputShaper,
         ScreenMenuEnclosure,
-        ScreenMenuFiltration,
         ScreenMenuManualSetting,
 #if HAS_MMU2()
         ScreenMenuFilamentMMU,

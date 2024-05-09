@@ -443,6 +443,7 @@ struct CurrentStore
     StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("XL Enclosure Flags")> xl_enclosure_flags;
     StoreItem<int64_t, defaults::int64_zero, journal::hash("XL Enclosure Filter Timer")> xl_enclosure_filter_timer;
     StoreItem<uint8_t, defaults::uint8_percentage_80, journal::hash("XL Enclosure Fan Manual Setting")> xl_enclosure_fan_manual;
+    StoreItem<uint8_t, defaults::uint8_t_10, journal::hash("XL Enclosure Post Print Duration")> xl_enclosure_post_print_duration;
 #endif
 
 #if PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_MINI
