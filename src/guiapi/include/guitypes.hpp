@@ -151,8 +151,9 @@ union event_conversion_union {
 static_assert(sizeof(event_conversion_union::point) <= sizeof(event_conversion_union::pvoid), "event_conversion_union is broken");
 
 struct size_ui16_t {
-    uint16_t w;
-    uint16_t h;
+    uint16_t w = 0;
+    uint16_t h = 0;
+
     constexpr bool operator==(const size_ui16_t &rhs) const {
         return (w == rhs.w) && (h == rhs.h);
     }
@@ -161,10 +162,10 @@ struct size_ui16_t {
 
 template <class T>
 struct padding_t {
-    T left;
-    T top;
-    T right;
-    T bottom;
+    T left = 0;
+    T top = 0;
+    T right = 0;
+    T bottom = 0;
 
     constexpr bool operator==(const padding_t &rhs) const {
         return (left == rhs.left) && (top == rhs.top) && (right == rhs.right) && (bottom == rhs.bottom);
