@@ -78,40 +78,11 @@ struct WinsToolRecovery {
     WinsToolRecovery(ScreenCrashRecovery &screen);
 };
 
-struct WinUnion {
-    union {
-        WinsCheckAxis *checkAxis;
-        WinsHome *home;
-        WinsAxisNok *axisNok;
-        WinsRepeatedCrash *repeatedCrash;
-        WinsHomeFail *homeFail;
-        WinsToolRecovery *toolRecovery;
-    };
-
-    enum screen_type {
-        CheckAxis,
-        Home,
-        AxisNok,
-        RepeatedCrash,
-        HomeFail,
-        ToolRecovery,
-    };
-
-    using MemSpace = std::aligned_union<0, WinsCheckAxis, WinsHome, WinsAxisNok, WinsRepeatedCrash, WinsHomeFail, WinsToolRecovery>::type;
-
-    PhasesCrashRecovery phase;
-
-    WinUnion(ScreenCrashRecovery &screen);
-    void ChangePhase(PhasesCrashRecovery ph);
-    void Destroy(); // just to call destructor - to unregister windows from screen
-    void New(PhasesCrashRecovery ph); // place new screen
-    void ButtonEvent(GUI_event_t event);
-
-private:
-    MemSpace mem_space;
-    ScreenCrashRecovery &parent_screen;
-    screen_type ScreenType(PhasesCrashRecovery ph);
-};
+using WinVariant = std::variant<
+#if HAS_TOOLCHANGER()
+    WinsToolRecovery,
+#endif
+    WinsCheckAxis, WinsHome, WinsAxisNok, WinsRepeatedCrash, WinsHomeFail>;
 
 } // namespace crash_recovery
 
@@ -119,8 +90,7 @@ class ScreenCrashRecovery : public screen_t {
 protected:
     window_header_t header;
     StatusFooter footer;
-
-    crash_recovery::WinUnion win_union;
+    crash_recovery::WinVariant window;
 
     static ScreenCrashRecovery *ths; // to be accessible in dialog handler
 
@@ -130,4 +100,10 @@ public:
     ScreenCrashRecovery();
     virtual ~ScreenCrashRecovery() override;
     bool Change(fsm::BaseData data);
+
+private:
+    void change_phase(PhasesCrashRecovery ph);
+
+private:
+    PhasesCrashRecovery current_phase = PhasesCrashRecovery::_last;
 };
