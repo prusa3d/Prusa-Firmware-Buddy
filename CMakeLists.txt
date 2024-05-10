@@ -475,7 +475,8 @@ target_compile_options(
   PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
           $<$<COMPILE_LANGUAGE:CXX>:-Wno-expansion-to-defined>
           $<$<COMPILE_LANGUAGE:CXX>:-Wno-format-zero-length>
-          $<$<COMPILE_LANGUAGE:CXX>:-Wnon-virtual-dtor>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wno-non-virtual-dtor>
+          $<$<COMPILE_LANGUAGE:CXX>:-Werror=delete-non-virtual-dtor>
           $<$<COMPILE_LANGUAGE:CXX>:-Wduplicated-cond>
           $<$<COMPILE_LANGUAGE:CXX>:-Wlogical-op>
           $<$<COMPILE_LANGUAGE:CXX>:-Wnull-dereference>
