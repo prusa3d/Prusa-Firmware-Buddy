@@ -82,21 +82,21 @@ float FooterItemAxisCurrPos<AXIS>::static_readValue() {
     return std::clamp((float)marlin_vars()->logical_curr_pos[AXIS], (float)range.first, (float)range.second);
 }
 
-class FooterItemAxisX : FooterItemAxisPos<0> {
+class FooterItemAxisX : public FooterItemAxisPos<0> {
 public:
     FooterItemAxisX(window_t *parent);
 };
-class FooterItemAxisY : FooterItemAxisPos<1> {
+class FooterItemAxisY : public FooterItemAxisPos<1> {
 public:
     FooterItemAxisY(window_t *parent);
 };
 
-class FooterItemAxisZ : FooterItemAxisPos<2> {
+class FooterItemAxisZ : public FooterItemAxisPos<2> {
 public:
     FooterItemAxisZ(window_t *parent);
 };
 
-class FooterItemZHeight : FooterItemAxisCurrPos<2> {
+class FooterItemZHeight : public FooterItemAxisCurrPos<2> {
 public:
     FooterItemZHeight(window_t *parent);
 };

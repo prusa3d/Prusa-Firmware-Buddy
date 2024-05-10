@@ -8,7 +8,7 @@
 #pragma once
 #include "window_frame.hpp"
 #include "footer_line.hpp"
-#include "footer_item_union.hpp"
+#include <footer_def.hpp>
 
 class IFooter : public window_frame_t {
 public:

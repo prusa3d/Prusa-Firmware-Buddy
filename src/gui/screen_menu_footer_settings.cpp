@@ -3,7 +3,7 @@
  */
 
 #include "screen_menu_footer_settings.hpp"
-#include "footer_item_union.hpp"
+#include "footer_item_types.hpp"
 #include "status_footer.hpp"
 #include "WindowMenuSpin.hpp"
 #include "footer_eeprom.hpp"

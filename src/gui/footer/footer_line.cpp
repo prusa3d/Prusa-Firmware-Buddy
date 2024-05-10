@@ -13,7 +13,6 @@
 
 FooterLine::FooterLine(window_t *parent, size_t line_no)
     : window_frame_t(parent, footer::line_rect(line_no), positioning::relative) {
-    item_ids.fill(footer::Item::none);
 }
 
 void FooterLine::windowEvent(window_t *sender, GUI_event_t event, void *param) {
@@ -43,109 +42,18 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
     if (item_id >= footer::Item::_count) {
         item_id = footer::Item::none;
     }
-    if (item_ids[index] == item_id) {
-        return false;
+
+    auto &item = items[index];
+
+    const bool result = [&]<typename... Rec>(TypeList<Rec...>) -> bool {
+        return (((item_id == Rec::item && !std::holds_alternative<typename Rec::T>(item)) ? item.emplace<typename Rec::T>(this), true : false) || ...);
+    }(footer::FooterItemMappings());
+
+    if (result) {
+        positionWindows();
     }
 
-    // erase old item
-    Erase(index);
-
-    // create new item
-    switch (item_id) {
-    case footer::Item::nozzle:
-        new (&items[index]) FooterItemNozzle(this);
-        break;
-    case footer::Item::bed:
-        new (&items[index]) FooterItemBed(this);
-        break;
-    case footer::Item::filament:
-        new (&items[index]) FooterItemFilament(this);
-        break;
-    case footer::Item::f_sensor:
-        new (&items[index]) FooterItemFSensor(this);
-        break;
-    case footer::Item::f_s_value:
-        new (&items[index]) FooterItemFSValue(this);
-        break;
-    case footer::Item::speed:
-        new (&items[index]) FooterItemSpeed(this);
-        break;
-    case footer::Item::axis_x:
-        new (&items[index]) FooterItemAxisX(this);
-        break;
-    case footer::Item::axis_y:
-        new (&items[index]) FooterItemAxisY(this);
-        break;
-    case footer::Item::axis_z:
-        new (&items[index]) FooterItemAxisZ(this);
-        break;
-    case footer::Item::z_height:
-        new (&items[index]) FooterItemZHeight(this);
-        break;
-    case footer::Item::print_fan:
-        new (&items[index]) FooterItemPrintFan(this);
-        break;
-    case footer::Item::heatbreak_fan:
-        new (&items[index]) FooterItemHeatBreakFan(this);
-        break;
-    case footer::Item::input_shaper_x:
-        new (&items[index]) FooterItemInputShaperX(this);
-        break;
-    case footer::Item::input_shaper_y:
-        new (&items[index]) FooterItemInputShaperY(this);
-        break;
-    case footer::Item::live_z:
-#if defined(FOOTER_HAS_LIVE_Z)
-        new (&items[index]) FooterItemLiveZ(this);
-#endif
-        break;
-    case footer::Item::sheets:
-#if defined(FOOTER_HAS_SHEETS)
-        new (&items[index]) FooterItemSheets(this);
-#endif
-        break;
-    case footer::Item::heatbreak_temp:
-        new (&items[index]) FooterItemHeatBreak(this);
-        break;
-    case footer::Item::finda:
-#if HAS_MMU2()
-        new (&items[index]) FooterItemFinda(this);
-#endif
-        break;
-    case footer::Item::current_tool:
-#if defined(FOOTER_HAS_TOOL_NR)
-        new (&items[index]) FooterItemCurrentTool(this);
-#endif
-        break;
-    case footer::Item::all_nozzles:
-#if defined(FOOTER_HAS_TOOL_NR)
-        new (&items[index]) FooterItemAllNozzles(this);
-#endif
-        break;
-    case footer::Item::f_sensor_side:
-#if HAS_SIDE_FSENSOR()
-        new (&items[index]) FooterItemFSensorSide(this);
-#endif
-        break;
-    case footer::Item::nozzle_diameter:
-        new (&items[index]) FooterItemNozzleDiameter(this);
-        break;
-    case footer::Item::nozzle_pwm:
-        new (&items[index]) FooterItemNozzlePWM(this);
-        break;
-    case footer::Item::enclosure_temp:
-#if XL_ENCLOSURE_SUPPORT()
-        new (&items[index]) FooterItemEnclosure(this);
-#endif
-        break;
-    case footer::Item::none:
-    case footer::Item::_count:
-        break;
-    }
-    item_ids[index] = item_id;
-
-    positionWindows();
-    return true;
+    return result;
 }
 
 void FooterLine::Create(const IdArray &ids, size_t count) {
@@ -245,7 +153,7 @@ size_t FooterLine::calculateItemRects(Rect16 *item_rects, Rect16::Width_t *width
     return ths_rc.HorizontalSplit(item_rects, widths, count);
 }
 
-size_t FooterLine::storeWidths(std::array<Rect16::Width_t, max_items> &widths) const {
+size_t FooterLine::storeWidths(std::array<Rect16::Width_t, max_items> &widths) {
     size_t count = 0;
     for (size_t index = 0; index < max_items; ++index) {
         window_t *pWin = SlotAccess(index);
@@ -266,29 +174,27 @@ std::array<Rect16::Width_t, FooterLine::array_sz> FooterLine::addBorderZeroWidth
 }
 
 bool FooterLine::slotUsed(size_t index) const {
-    return item_ids[index] != footer::Item::none;
+    return !std::holds_alternative<std::monostate>(items[index]);
 }
 
-window_t *FooterLine::SlotAccess(size_t index) const {
-    if (index >= item_ids.size()) {
+window_t *FooterLine::SlotAccess(size_t index) {
+    if (index >= items.size()) {
         return nullptr;
     }
-    if (!slotUsed(index)) {
-        return nullptr;
-    }
-    return (window_t *)(&(items[index]));
-}
 
-footer::Item FooterLine::SlotUsedBy(size_t index) {
-    return item_ids[index];
+    const auto visitor = [&]<typename T>(T &mem) -> window_t * {
+        if constexpr (std::is_same_v<T, std::monostate>) {
+            return nullptr;
+        } else {
+            return &mem;
+        }
+    };
+
+    return std::visit(visitor, items[index]);
 }
 
 void FooterLine::unregister(size_t index) {
-    window_t *pWin = SlotAccess(index);
-    if (pWin) {
-        unregisterAnySubWin(*pWin, first_normal, last_normal);
-        item_ids[index] = footer::Item::none;
-    }
+    items[index].emplace<std::monostate>();
 }
 
 void FooterLine::SetCenterN(size_t n_and_fewer) {
