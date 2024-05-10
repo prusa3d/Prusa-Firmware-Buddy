@@ -46,8 +46,11 @@
 int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 
-#define FW_VERSION 11
+#define FW_VERSION 12
+
+#define SCAN_MAX_STORED_SSIDS 64
 #define SSID_LEN 32
+
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
@@ -66,13 +69,19 @@ static const uint32_t INACTIVE_PACKET_SECONDS = 5;
 #define MSG_DEVINFO_V2 0
 #define MSG_CLIENTCONFIG_V2 6
 #define MSG_PACKET_V2 7
+#define MSG_SCAN_START 8
+#define MSG_SCAN_STOP 9
+#define MSG_SCAN_AP_CNT 10
+#define MSG_SCAN_AP_GET 11
 
 struct __attribute__((packed)) header {
     uint8_t type;
     union {
-        uint8_t version; // when type == MSG_DEVINFO_V2
-        uint8_t unused;  // when type == MSG_CLIENTCONFIG_V2
-        uint8_t up;      // when type == MSG_PACKET_V2
+        uint8_t version;  // when type == MSG_DEVINFO_V2
+        uint8_t unused;   // when type == MSG_CLIENTCONFIG_V2 || type == MSG_SCAN_START || type == MSG_SCAN_STOP
+        uint8_t up;       // when type == MSG_PACKET_V2
+        uint8_t ap_count; // when type == MSG_SCAN_AP_GET
+        uint8_t ap_index; // when type == MSG_SCAN_AP_GET
     };
     uint16_t size;
 };
@@ -144,17 +153,31 @@ static uint8_t probe_retry_count;
 typedef enum {
     SCAN_TYPE_UNKNOWN,
     SCAN_TYPE_PROBE,
+    SCAN_TYPE_LONG,
+    SCAN_TYPE_LOOPING_SHORT,
+    SCAN_TYPE_LOOPING_LONG,
 } ScanType;
+
+typedef struct __attribute__((packed)) {
+    uint8_t ssid[SSID_LEN];
+    bool needs_password;
+} ScanResult;
+
+const ScanResult EMPTY_RESULT = {};
 
 typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
 
 static struct {
     ScanType scan_type;
     wifi_scan_callback callback;
+    ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS];
+    uint8_t stored_ssids_count;
     atomic_bool in_progress;
 } scan = {
     .scan_type = SCAN_TYPE_UNKNOWN,
     .callback = NULL,
+    .stored_ssids = {},
+    .stored_ssids_count = 0,
     .in_progress = false,
 };
 
@@ -179,6 +202,13 @@ static void IRAM_ATTR do_wifi_scan(void * arg) {
             config.show_hidden = true;
             config.scan_time.active.min = 120;
             config.scan_time.active.max = 300;
+            break;
+        case SCAN_TYPE_LOOPING_SHORT:
+            config.scan_time.active.max = config.scan_time.active.min = 1000;
+            break;
+        case SCAN_TYPE_LONG:
+        case SCAN_TYPE_LOOPING_LONG:
+            config.scan_time.active.min = config.scan_time.active.max = 2000;
             break;
         case SCAN_TYPE_UNKNOWN:
         default:
@@ -306,6 +336,20 @@ static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int3
         } else if (scan.callback != NULL) {
             // if the scan failed, still call callback with no data to allow logic to redo the scan
             scan.callback(NULL, 0);
+        }
+
+        if (!scan.in_progress) {
+            // If callback didn't start a new scan check the scan type, change it and rerun scan if possible
+            switch(scan.scan_type) {
+                case SCAN_TYPE_LOOPING_SHORT:
+                case SCAN_TYPE_LOOPING_LONG: // Loop forever until the printer sends SCAN_STOP
+                    ESP_LOGI(TAG, "Starting LONG scan.");
+                    start_wifi_scan(scan.callback, SCAN_TYPE_LOOPING_LONG);
+                break;
+                default:
+                    scan.scan_type = SCAN_TYPE_UNKNOWN;
+                break;
+            }
         }
     }
 }
@@ -472,6 +516,75 @@ static void IRAM_ATTR check_online_status() {
     }
 }
 
+static void IRAM_ATTR clear_stored_ssids() {
+    scan.stored_ssids_count = 0;
+}
+
+static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
+    for (uint8_t i = 0; i < ap_count; ++i) {
+        bool found = false;
+        if (scan.stored_ssids_count == SCAN_MAX_STORED_SSIDS) {
+            ESP_LOGW(TAG, "Scan result storage is full");
+            break;
+        }
+        for (uint8_t j = 0; j < scan.stored_ssids_count; ++j) {
+            ESP_LOGI(TAG, "Comparing >%s< and %s", (char *)scan.stored_ssids[j].ssid, (char *)aps[i].ssid);
+            if (memcmp(scan.stored_ssids[j].ssid, aps[i].ssid, SSID_LEN) == 0) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            memcpy(scan.stored_ssids[scan.stored_ssids_count].ssid, aps[i].ssid, SSID_LEN);
+            scan.stored_ssids[scan.stored_ssids_count].needs_password = aps[i].authmode != WIFI_AUTH_OPEN;
+            scan.stored_ssids_count ++;
+            ESP_LOGI(TAG, "Found SSID: %s", aps[i].ssid);
+        }
+    }
+
+    struct uart0_tx_queue_item queue_item = {0};
+    queue_item.header.type = MSG_SCAN_AP_CNT;
+    queue_item.header.ap_count = scan.stored_ssids_count;
+    if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
+        ESP_LOGE(TAG, "xQueueSendToBack failed (uart0tx)");
+    }
+    ESP_LOGI(TAG, "Scan done. Found: %d", scan.stored_ssids_count);
+}
+
+static void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult* ap_info) {
+    struct uart0_tx_queue_item queue_item = {0};
+    queue_item.header.type = MSG_SCAN_AP_GET;
+    queue_item.header.ap_index = index;
+    queue_item.header.size = htons(sizeof(*ap_info));
+    queue_item.data = (uint8_t *)(&ap_info);
+
+    if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
+        ESP_LOGE(TAG, "xQueueSendToBack failed (uart0tx)");
+    }
+}
+
+static void IRAM_ATTR handle_rx_msg_scan_start(uint8_t* data, struct header header) {
+    clear_stored_ssids();
+    ESP_LOGI(TAG, "Starting scan...");
+
+    start_wifi_scan(&store_scanned_ssids, SCAN_TYPE_LOOPING_SHORT);
+}
+
+static void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t* data, struct header header) {
+    // Response is send automatically after scan is stopped
+    scan.in_progress = false;
+    scan.scan_type = SCAN_TYPE_UNKNOWN;
+    ESP_ERROR_CHECK(esp_wifi_scan_stop());
+}
+
+static void IRAM_ATTR handle_rx_msg_scan_get(uint8_t* data, struct header header) {
+    if (header.ap_index < scan.stored_ssids_count) {
+        send_scanned_ssid(header.ap_index, &scan.stored_ssids[header.ap_index]);
+    } else {
+        send_scanned_ssid(UINT8_MAX, &EMPTY_RESULT);
+    }
+}
+
 static void IRAM_ATTR read_message() {
     wait_for_intron();
     struct uart0_rx_queue_item queue_item = {0};
@@ -483,6 +596,19 @@ static void IRAM_ATTR read_message() {
         break;
     case MSG_CLIENTCONFIG_V2:
         queue_item.callback = handle_rx_msg_clientconfig_v2;
+        break;
+    case MSG_SCAN_START:
+        queue_item.callback = handle_rx_msg_scan_start;
+        break;
+    case MSG_SCAN_STOP:
+        queue_item.callback = handle_rx_msg_scan_stop;
+        break;
+    case MSG_SCAN_AP_CNT:
+        ESP_LOGE(TAG, "MSG_SCAN_AP_CNT is only transmitted, never recieved");
+        queue_item.callback = handle_rx_msg_unknown;
+        break;
+    case MSG_SCAN_AP_GET:
+        queue_item.callback = handle_rx_msg_scan_get;
         break;
     case MSG_DEVINFO_V2:
         ESP_LOGE(TAG, "MSG_DEVINFIO_V2 is only transmitted, never recieved");
@@ -571,6 +697,18 @@ static void IRAM_ATTR uart0_tx_task(void *arg) {
             case MSG_CLIENTCONFIG_V2:
                 ESP_LOGE(TAG, "MSG_CLIENTCONFIG_V2 is only received, never transmitted");
                 break;
+            case MSG_SCAN_START:
+                ESP_LOGE(TAG, "MSG_SCAN_START is only received, never transmitted");
+                break;
+            case MSG_SCAN_AP_CNT:
+                // no data to send
+                break;
+            case MSG_SCAN_STOP:
+                ESP_LOGE(TAG, "MSG_SCAN_STOP is only received, never transmitted");
+                break;
+            case MSG_SCAN_AP_GET:
+                uart0_tx_bytes(queue_item.data, ntohs(queue_item.header.size));
+                break;
             }
         }
     }
@@ -598,6 +736,11 @@ void IRAM_ATTR app_main() {
         ESP_LOGE(TAG, "xQueueCreate failed (uart0tx)");
         abort();
     }
+
+    // Initialize scan ap storage
+    scan.stored_ssids_count = SCAN_MAX_STORED_SSIDS;
+    clear_stored_ssids();
+
     TaskHandle_t uart0_rx_task_handle;
     TaskHandle_t uart0_tx_task_handle;
     if (xTaskCreate(uart0_rx_task, "uart0rx", 1024, NULL, 14, &uart0_rx_task_handle) != pdPASS) {

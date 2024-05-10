@@ -29,6 +29,10 @@ Generic message description:
                         0: MSG_DEVINFO_V2
                         6: MSG_CLIENTCONFIG_V2
                         7: MSG_PACKET_V2
+                        8: MSG_SCAN_START
+                        9: MSG_SCAN_STOP
+                        10: MSG_SCAN_AP_CNT
+                        11: MSG_SCAN_AP_GET
                     Values 1-5 are deprecated and must not be used.
 
     Byte:           Meaning of this field depends on the particular Type.
@@ -123,3 +127,92 @@ MSG_PACKET_V2
                     are used as a ping mechanism between printer and ESP.
                     It keeps the line busy, prevents printer from
                     reseting ESP and conveys Up field.
+
+MSG_SCAN_START
+    This message is only sent by the printer to the ESP.
+
+        0               1               2               3
+        0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     0 |                                                               |
+       +                            Intron                             +
+     8 |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    12 |       8       |       0       |               0               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+    Sends a signal to esp to start a wifi scan. The scan is iterative
+    and number of found ap is send to the printer periodicallu. The
+    first scan segment is shorter then the others to provide first
+    results quickly. The results are stored in the esp to save on
+    printer memory. Currently we are limited to 64 entries in total.
+    When a new scan is started old result are discarded.
+
+
+MSG_SCAN_STOP
+    This message is only sent by the printer to the ESP.
+
+        0               1               2               3
+        0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     0 |                                                               |
+       +                            Intron                             +
+     8 |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    12 |       9       |       0       |               0               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+    Sends a signal to esp to stop a wifi scan. The last scanning segment
+    is cancelled and the esp sends the last update of scan result.
+
+
+MSG_SCAN_AP_CNT
+    This message is only sent by the ESP.
+
+        0               1               2               3
+        0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     0 |                                                               |
+       +                            Intron                             +
+     8 |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    12 |       10      |     COUNT     |               0               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+    This message is send every time after the scan segment is
+    compeleted.
+
+    COUNT Number of stored scanned result. 
+
+
+MSG_SCAN_AP_GET
+    This message is sent by both printer and ESP.
+
+        0               1               2               3
+        0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     0 |                                                               |
+       +                            Intron                             +
+     8 |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    12 |       11      |    AP_INDEX   |           AP_INFO_LEN         |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    16 |                                                               |
+       ~                                                               ~
+       ~                           AP_INFO                             ~
+       ~                                                               ~
+       |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+    AP_INDEX    This values should be valid index into the internal ap
+                storage. It is send by both printer and esp and the
+                values should match.
+
+    AP_INFO_LEN Length of send ap info data in bytes. The value is fixed
+                in every version (but might change based on the
+                version). Always 0 when message send from the printer.
+
+    AP_INFO     Binary representation of the stored ap info in ESP.
+                For more info check the ScanResult structure in
+                uart_nic.c. Send only by esp. The printer shouldn't send
+                this part.
