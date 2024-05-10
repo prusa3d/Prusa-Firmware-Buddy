@@ -441,13 +441,6 @@ static void check_online_status() {
 static void IRAM_ATTR read_message() {
     wait_for_intron();
 
-    // Check that we are receiving some packets from the AP. We do so in the
-    // thread that receives messages from the main CPU because we know that one
-    // will generate a message from time to time (at least the get-link one).
-    // On the other hand, if we lose connectivity, we will receive no packets
-    // from the AP and we would block forever and never get to the check.
-    check_online_status();
-
     struct header header;
     size_t read = uart_read_bytes(UART_NUM_0, (uint8_t*)&header, sizeof(header), portMAX_DELAY);
     if (read != sizeof(header)) {
@@ -455,18 +448,36 @@ static void IRAM_ATTR read_message() {
         return;
     }
 
-    if (header.type == MSG_PACKET_V2) {
-        const uint16_t size = ntohs(header.size);
-        if (size) {
-            read_packet_message(size);
-        } else {
-            send_link_status(get_link_status());
+    header.size = ntohs(header.size);
+
+    switch (header.type) {
+        case MSG_PACKET_V2: {
+            if (header.size > 0) {
+                read_packet_message(header.size);
+            } else {
+                send_link_status(get_link_status());
+            }
         }
-    } else if (header.type == MSG_CLIENTCONFIG_V2) {
-        read_wifi_client_message();
-    } else {
-        ESP_LOGI(TAG, "Unknown message type: %d !!!", header.type);
+        break;
+        case MSG_CLIENTCONFIG_V2:
+            read_wifi_client_message();
+        break;
+        case MSG_DEVINFO_V2:
+            ESP_LOGE(TAG, "MSG_DEVINFO_V2 is only transmitted, never recieved");
+        break;
+        default:
+            ESP_LOGE(TAG, "Unknown message type: %d !!!", header.type);
+        break;
     }
+
+    // Check that we are receiving some packets from the AP. We do so in the
+    // thread that receives messages from the main CPU because we know that one
+    // will generate a message from time to time (at least the get-link one).
+    // On the other hand, if we lose connectivity, we will receive no packets
+    // from the AP and we would block forever and never get to the check.
+    check_online_status();
+
+
 }
 
 static void IRAM_ATTR wifi_egress_thread(void *arg) {
