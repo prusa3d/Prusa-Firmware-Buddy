@@ -9,6 +9,7 @@
 #include "client_response.hpp"
 #include "window_qr.hpp"
 #include <guiconfig/guiconfig.h>
+#include <static_alocation_ptr.hpp>
 
 /*****************************************************************************/
 // clang-format off
@@ -41,7 +42,7 @@ protected:
     // it is checked in BindToFSM method
     using RadioMemSpace = std::aligned_union<0, RadioButton, RadioButtonFsm<PhasesPrintPreview>>::type;
     RadioMemSpace radio_mem_space;
-    IRadioButton *pButtons = nullptr;
+    static_unique_ptr<IRadioButton> pButtons;
     Response result; // return value
 
 public:
@@ -66,9 +67,11 @@ public:
         color_t back = pButtons->GetBackColor();
 
         ReleaseCaptureOfNormalWindow();
-        pButtons->~IRadioButton();
 
-        pButtons = new (&radio_mem_space) RadioButtonFsm<FSM_PHASE>(this, rc, phase);
+        // First reset, then create new class; we cannot afford constructing and then destructing because it's the same memory
+        pButtons.reset();
+        pButtons = make_static_unique_ptr<RadioButtonFsm<FSM_PHASE>>(&radio_mem_space, this, rc, phase);
+
         has_icon ? pButtons->SetHasIcon() : pButtons->ClrHasIcon();
         pButtons->SetBackColor(back);
 
