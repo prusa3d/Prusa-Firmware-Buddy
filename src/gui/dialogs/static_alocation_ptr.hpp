@@ -3,21 +3,23 @@
 #include <type_traits> //aligned_union
 #include <memory>
 
-// custom deleter
 struct static_unique_ptr_deleter {
-    template <class T>
-    void operator()(T *ptr) const {
-        ptr->~T();
+    void (*f)(void *) = nullptr;
+
+    inline void operator()(void *ptr) {
+        f(ptr);
     }
 };
 
 // unique pointer no inline (template is inline by default)
 template <class T, class... Args>
-std::unique_ptr<T, static_unique_ptr_deleter>
-make_static_unique_ptr(void *place, Args &&...args) {
-    return std::unique_ptr<T, static_unique_ptr_deleter> {
-        ::new (place) T(std::forward<Args>(args)...) //::new - global new (no other new defined elsewhere)
-    };
+auto make_static_unique_ptr(void *place, Args &&...args) {
+    constexpr static_unique_ptr_deleter deleter(+[](void *ptr) {
+        reinterpret_cast<T *>(ptr)->~T();
+    });
+
+    ::new (place) T(std::forward<Args>(args)...);
+    return std::unique_ptr<T, static_unique_ptr_deleter>(reinterpret_cast<T *>(place), deleter);
 }
 
 template <class T>
