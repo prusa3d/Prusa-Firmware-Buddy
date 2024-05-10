@@ -72,7 +72,7 @@ public:
     bool is_valid() const {
         // Not sure about the physical interpretation of this heuristic but it seems to work...
         return std::all_of(samples.begin(), samples.end(), [](float sample) {
-            return sample > 0.01f;
+            return sample > 0.001f;
         });
     }
 
