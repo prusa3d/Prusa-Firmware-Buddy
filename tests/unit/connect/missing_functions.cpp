@@ -1,5 +1,5 @@
-#include "common/filepath_operation.h"
-#include "common/version.h"
+#include <common/filepath_operation.h>
+#include <common/version.h>
 #include <marlin_events.h>
 #include <cstdint>
 #include <cstdlib>
@@ -16,3 +16,15 @@ bool random32bit(uint32_t *output) {
     *output = random();
     return true;
 }
+
+extern "C" {
+void notify_reconfigure() {}
+
+void netdev_get_hostname(uint32_t netdev_id, char *buffer, size_t buffer_len) {}
+
+void *calloc_fallible(size_t nmemb, size_t size) {
+    return calloc(nmemb, size);
+}
+}
+
+const char project_firmware_name[] = "Buddy tests";
