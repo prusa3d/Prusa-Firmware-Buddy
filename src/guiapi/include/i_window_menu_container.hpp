@@ -29,8 +29,6 @@ public:
     virtual IWindowMenuItem *GetItemByRawIndex(int pos) const = 0;
     virtual int GetRawIndex(IWindowMenuItem &item) const = 0; // returns count if item is not member of container
 
-    virtual ~IWinMenuContainer() = default;
-
     Node FindFirstVisible() const;
     Node FindNextVisible(Node prev) const;
     IWindowMenuItem *GetItemByVisibleIndex(int pos) const;
