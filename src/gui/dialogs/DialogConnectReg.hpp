@@ -84,5 +84,5 @@ protected:
 
 public:
     static void Show();
-    virtual ~DialogConnectRegister();
+    ~DialogConnectRegister();
 };

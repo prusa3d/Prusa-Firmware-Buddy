@@ -61,7 +61,7 @@ public:
     static constexpr uint8_t MaxErrorCodeDigits = 10;
 
     DialogLoadUnload(fsm::BaseData data);
-    virtual ~DialogLoadUnload() override;
+    ~DialogLoadUnload();
 
     static void phaseAlertSound();
     static void phaseWaitSound();

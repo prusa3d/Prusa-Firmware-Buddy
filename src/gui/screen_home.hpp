@@ -53,7 +53,7 @@ private:
 public:
     static bool EverBeenOpened() { return ever_been_opened; }
     screen_home_data_t();
-    virtual ~screen_home_data_t() override;
+    ~screen_home_data_t();
 
     virtual void InitState(screen_init_variant var) override;
     virtual screen_init_variant GetCurrentState() const override;

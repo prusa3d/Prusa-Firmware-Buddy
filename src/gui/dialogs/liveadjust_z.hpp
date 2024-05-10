@@ -45,7 +45,10 @@ protected:
 public:
     WindowLiveAdjustZ(window_t *parent, point_i16_t pt);
     void Save();
-    virtual ~WindowLiveAdjustZ() override { Save(); }
+    ~WindowLiveAdjustZ() {
+        Save();
+    }
+
     float GetValue() const { return number.GetValue(); }
 
 protected:

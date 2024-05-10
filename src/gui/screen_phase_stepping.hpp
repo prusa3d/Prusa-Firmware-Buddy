@@ -9,7 +9,7 @@ private:
 
 public:
     ScreenPhaseStepping();
-    virtual ~ScreenPhaseStepping();
+    ~ScreenPhaseStepping();
 
     static constexpr Rect16 get_inner_frame_rect() {
         return GuiDefaults::RectScreenBody - GuiDefaults::GetButtonRect(GuiDefaults::RectScreenBody).Height();

@@ -20,7 +20,7 @@ class screen_splash_data_t : public screen_t {
 
 public:
     screen_splash_data_t();
-    virtual ~screen_splash_data_t();
+    ~screen_splash_data_t();
 
     static void bootstrap_cb(unsigned percent, std::optional<const char *> str);
 

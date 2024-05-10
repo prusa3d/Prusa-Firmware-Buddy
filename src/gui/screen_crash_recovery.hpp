@@ -98,7 +98,7 @@ protected:
 
 public:
     ScreenCrashRecovery();
-    virtual ~ScreenCrashRecovery() override;
+    ~ScreenCrashRecovery();
     bool Change(fsm::BaseData data);
 
 private:
