@@ -5,6 +5,7 @@
 #include "render.hpp"
 #include "json_out.hpp"
 #include "connection_cache.hpp"
+#include "user_agent.hpp"
 
 #include <http/httpc.hpp>
 #include <http/websocket.hpp>
@@ -98,7 +99,7 @@ namespace {
 
     class BasicRequest final : public JsonPostRequest {
     private:
-        HeaderOut hdrs[3];
+        HeaderOut hdrs[5];
         Renderer renderer_impl;
         const char *target_url;
         static const char *url(const Sleep &) {
@@ -135,6 +136,8 @@ namespace {
                 // pointer is guaranteed to stay stable.
                 { "Fingerprint", printer.printer_info().fingerprint, Printer::PrinterInfo::FINGERPRINT_HDR_SIZE },
                 { "Token", config.token, nullopt },
+                user_agent_printer,
+                user_agent_version,
                 { nullptr, nullptr, nullopt }
             }
             , renderer_impl(RenderState(printer, action, background_command_id))
@@ -150,10 +153,11 @@ namespace {
     class UpgradeRequest final : public http::Request {
     private:
         // 2 for auth
+        // 2 for user agent parts
         // 1 for upgrade
         // 3 for websocket negotiation
         // 1 for sentinel
-        HeaderOut hdrs[7];
+        HeaderOut hdrs[9];
 
     public:
         UpgradeRequest(Printer &printer, const Printer::Config &config, const WebSocketKey &key)
@@ -162,6 +166,8 @@ namespace {
                 // pointer is guaranteed to stay stable.
                 { "Fingerprint", printer.printer_info().fingerprint, Printer::PrinterInfo::FINGERPRINT_HDR_SIZE },
                 { "Token", config.token, nullopt },
+                user_agent_printer,
+                user_agent_version,
                 { "Upgrade", "websocket", nullopt },
                 { "Sec-WebSocket-Key", key.req(), nullopt },
                 { "Sec-WebSocket-Version", "13", nullopt },

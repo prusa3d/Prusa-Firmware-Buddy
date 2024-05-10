@@ -1,5 +1,5 @@
-#include "common/filepath_operation.h"
-#include "common/version.h"
+#include <common/filepath_operation.h>
+#include <common/version.h>
 #include <marlin_events.h>
 #include <cstdint>
 #include <cstdlib>
@@ -26,3 +26,5 @@ void *calloc_fallible(size_t nmemb, size_t size) {
     return calloc(nmemb, size);
 }
 }
+
+const char project_firmware_name[] = "Buddy tests";
