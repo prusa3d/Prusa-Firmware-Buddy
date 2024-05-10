@@ -19,7 +19,6 @@ struct HeaderOut {
 
 class Request {
 public:
-    virtual ~Request() = default;
     virtual const char *url() const = 0;
     virtual http::ContentType content_type() const = 0;
     virtual Method method() const = 0;
@@ -65,7 +64,6 @@ public:
     virtual std::variant<Connection *, Error> connection() = 0;
     virtual const char *host() = 0;
     virtual void invalidate() = 0;
-    virtual ~ConnectionFactory() = default;
 };
 
 class HttpClient {

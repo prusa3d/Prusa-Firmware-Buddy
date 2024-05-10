@@ -24,7 +24,6 @@ public:
     virtual void FillRectNativeColor(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr) = 0;
     virtual uint8_t *getBuff() = 0;
     virtual void drawFromBuff(point_ui16_t pt, uint16_t w, uint16_t h) = 0;
-    virtual ~IMockDisplay() = default;
 };
 
 // template for different display sizes

@@ -39,7 +39,6 @@ namespace {
 
     class Task {
     public:
-        virtual ~Task() = default;
         virtual TaskResult step() = 0;
     };
 

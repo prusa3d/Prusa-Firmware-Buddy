@@ -12,8 +12,6 @@
 
 class IGcodeReader {
 public:
-    virtual ~IGcodeReader() = default;
-
     enum class Continuations {
         /// Anything over the limit is discarded.
         ///

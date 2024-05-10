@@ -311,7 +311,7 @@ public:
         current_state = other.current_state;
         return *this;
     }
-    virtual ~Execution() = default;
+
     /**
      * \brief Feed a single byte.
      *

@@ -7,7 +7,6 @@
 /// Providers generally hide the internal implementation of getting a localized string for a given key
 class ITranslationProvider {
 public:
-    virtual ~ITranslationProvider() = default;
     /// This must be implemented by derived classes
     /// This is the actual search for localized texts
     virtual string_view_utf8 GetText(const char *) const = 0;

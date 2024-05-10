@@ -26,8 +26,6 @@ public:
         filament_removed
     };
 
-    virtual ~IFSensor() = default;
-
     inline FilamentSensorState get_state() const { return state; }
 
     /// Returns whether the filament sensor is enabled.

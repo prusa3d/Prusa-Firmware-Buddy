@@ -16,7 +16,6 @@ class ISelftest {
 
 public:
     ISelftest();
-    virtual ~ISelftest() = default;
 
     virtual bool IsInProgress() const = 0;
     virtual bool IsAborted() const = 0;

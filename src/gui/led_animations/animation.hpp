@@ -20,7 +20,6 @@ enum class AnimationStateInternal {
 class Animation {
 public:
     Animation() = default;
-    virtual ~Animation() = default;
     virtual void Step(const std::pair<uint16_t, uint16_t> &leds_to_run) = 0;
 
     virtual void EndAnimation();

@@ -13,7 +13,6 @@ public:
     virtual void write_bytes(uint16_t address, std::span<const uint8_t> data) = 0;
     virtual void erase_area(uint16_t start_address, uint16_t end_address) = 0;
     Storage() = default;
-    virtual ~Storage() = default;
     Storage(const Storage &other) = delete;
     Storage(Storage &&other) = delete;
     Storage &operator=(const Storage &other) = delete;

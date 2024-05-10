@@ -17,7 +17,6 @@ enum class HeaderName {
 
 class ExtraHeader {
 public:
-    virtual ~ExtraHeader() = default;
     virtual void character(char c, HeaderName name) = 0;
 };
 

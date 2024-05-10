@@ -8,7 +8,7 @@ namespace modbus {
 class ModbusBuffer {
 public:
     ModbusBuffer();
-    virtual ~ModbusBuffer();
+    ~ModbusBuffer();
 
     uint32_t GetActualSize() {
         return m_ActualByteCount;

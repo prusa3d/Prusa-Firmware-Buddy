@@ -22,7 +22,6 @@ public:
     /// Returns true if readable.
     /// (there's a strong suspicion there might be cases of false positive).
     virtual bool poll_readable(uint32_t timeout) = 0;
-    virtual ~Connection() = default;
 
     uint8_t get_timeout_s() const;
 

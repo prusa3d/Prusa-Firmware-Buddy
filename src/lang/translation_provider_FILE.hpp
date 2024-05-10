@@ -16,8 +16,6 @@ class FILETranslationProvider : public ITranslationProvider {
 public:
     FILETranslationProvider(const char *path);
 
-    ~FILETranslationProvider() override = default;
-
     /// translates key according to MO file
     /// \param key string to translate
     /// \return translated string in string view, If translation is not found returns string view with original string

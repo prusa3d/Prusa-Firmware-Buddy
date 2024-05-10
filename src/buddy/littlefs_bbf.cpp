@@ -53,7 +53,7 @@ struct LruCache {
         buffer = new uint8_t[CACHE_SIZE];
     }
 
-    virtual ~LruCache() {
+    ~LruCache() {
         delete[] buffer;
     }
 

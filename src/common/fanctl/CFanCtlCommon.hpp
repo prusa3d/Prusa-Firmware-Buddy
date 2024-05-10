@@ -10,7 +10,6 @@ public:
         : min_rpm(min_rpm)
         , max_rpm(max_rpm)
         , selftest_mode(false) {};
-    virtual ~CFanCtlCommon() {}
 
     enum FanState : int8_t {
         idle = 0, // idle - no rotation, PWM = 0%

@@ -40,7 +40,6 @@ struct hash_sdbm {
 /// will share the same sources (POT/PO files).
 class CPUFLASHTranslationProviderBase : public ITranslationProvider {
 public:
-    virtual ~CPUFLASHTranslationProviderBase() = default;
     /// @returns translated string
     virtual string_view_utf8 GetText(const char *key) const {
         uint16_t stringIndex = hash_table.find((const uint8_t *)key);

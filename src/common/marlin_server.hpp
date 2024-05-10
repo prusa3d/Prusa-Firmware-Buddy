@@ -243,7 +243,8 @@ protected:
 
 public:
     FSM_notifier(ClientFSM type, uint8_t phase, float min, float max, uint8_t progress_min, uint8_t progress_max, const MarlinVariable<float> &var_id);
-    virtual ~FSM_notifier();
+    ~FSM_notifier();
+
     static void SendNotification();
 
     virtual fsm::PhaseData serialize(uint8_t progress) = 0;

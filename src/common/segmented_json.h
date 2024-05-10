@@ -82,7 +82,6 @@ public:
 /// Can render something (not necessarily the whole JSON).
 class ChunkRenderer {
 public:
-    virtual ~ChunkRenderer() = default;
     /// When called, this would produce the next part of the resulting JSON into the provided buffer and signal:
     /// * If this is the whole thing or not.
     /// * How much of the buffer was written (even if the Incomplete is

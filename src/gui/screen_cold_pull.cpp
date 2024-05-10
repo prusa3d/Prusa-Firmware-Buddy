@@ -110,8 +110,6 @@ namespace frame {
             , progress_number(parent, get_progress_number_rect(parent->GetRect()), 0, "%.0f%%", Font::big) {
             progress_number.SetAlignment(Align_t::Center());
         }
-
-        virtual ~ProgressFrame() = default;
     };
 
     /** individual frames */

@@ -46,9 +46,6 @@ public:
     };
 
 public:
-    virtual ~Touchscreen_Base() = default;
-
-public:
     bool is_enabled() const;
 
     virtual void set_enabled(bool set);

@@ -15,7 +15,6 @@ protected:
     Rect16::Height_t height;
 
 public:
-    virtual ~SelfTestViewItem() = default;
     Rect16 Rect(Rect16::Top_t top) const;
 
     SelfTestViewItem(Rect16::Height_t h);
