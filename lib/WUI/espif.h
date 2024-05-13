@@ -43,6 +43,26 @@ err_t espif_init(struct netif *netif);
 err_t espif_join_ap(const char *ssid, const char *passwd);
 
 ////////////////////////////////////////////////////////////////////////////
+/// C wrapper for espif::scan::start
+err_t espif_scan_start();
+
+////////////////////////////////////////////////////////////////////////////
+/// C wrapper for espif::scan::is_running
+bool espif_scan_is_running();
+
+////////////////////////////////////////////////////////////////////////////
+/// C wrapper for espif::scan::stop
+err_t espif_scan_stop();
+
+////////////////////////////////////////////////////////////////////////////
+/// C wrapper for espif::scan::get_ap_count
+uint8_t espif_scan_get_ap_count();
+
+////////////////////////////////////////////////////////////////////////////
+/// C wrapper for espif::scan::get_ap_info
+err_t espif_scan_get_ap_ssid(uint8_t ap_index, uint8_t *ssid_buffer, uint8_t buffer_len, bool *needs_password);
+
+////////////////////////////////////////////////////////////////////////////
 /// @brief Retrieve link status
 /// This return true if associated to AP regardless of interface being up or down.
 bool espif_link();
@@ -65,6 +85,9 @@ void espif_reset();
 #endif /* __cplusplus */
 
 #ifdef __cplusplus
+
+    #include <span>
+
 enum class EspFwState {
     /// Detected an ESP firmware of the right version.
     Ok,
@@ -78,9 +101,28 @@ enum class EspFwState {
     NoEsp,
     /// The ESP is being flashed right now.
     Flashing,
+    /// The ESP is scanning for available APs
+    Scanning,
     /// The state is not currently (yet) known.
     Unknown,
 };
+
+namespace espif::scan {
+/// Starts a wifi scan on esp
+[[nodiscard]] err_t start();
+/// Stops currently running scan on esp
+[[nodiscard]] err_t stop();
+/// Checks if the scan is running.
+/// The check is done locally (on printer side, if the esp errors and resets,
+/// then we will not have any information about it).
+[[nodiscard]] bool is_running();
+/// Gets number of found aps.
+/// This number is updated periodically by the esp and should be checked if new results are available.
+[[nodiscard]] uint8_t get_ap_count();
+/// Retrieve ap info from esp.
+/// This method pauses current task until the data are received.
+[[nodiscard]] err_t get_ap_info(uint8_t ap_index, std::span<uint8_t> ssid_buffer, bool &needs_ap);
+} // namespace espif::scan
 
 /// Returns the current state of the ESP's firmware, as guessed by us.
 ///

@@ -56,6 +56,10 @@ void MI_WIFI_STATUS_t::update() {
             case EspFwState::WrongVersion:
                 return N_("Flash ESP");
 
+            case EspFwState::Scanning:
+                // Wifi module is scanning for Access points
+                return N_("Scanning");
+
             case EspFwState::NoEsp:
                 return N_("Gone");
 

@@ -1,6 +1,7 @@
 #include "espif.h"
 
 #include <algorithm>
+#include <array>
 #include <bit>
 #include <cstring>
 #include <cstdint>
@@ -88,6 +89,7 @@ enum ESPIFOperatingMode {
     ESPIF_CONNECTING_AP,
     ESPIF_RUNNING_MODE,
     ESPIF_FLASHING_MODE,
+    ESPIF_SCANNING_MODE,
     ESPIF_WRONG_FW,
 };
 
@@ -95,6 +97,10 @@ enum MessageType {
     MSG_DEVINFO_V2 = 0,
     MSG_CLIENTCONFIG_V2 = 6,
     MSG_PACKET_V2 = 7,
+    MSG_SCAN_START = 8,
+    MSG_SCAN_STOP = 9,
+    MSG_SCAN_AP_CNT = 10,
+    MSG_SCAN_AP_GET = 11,
 };
 
 #if PRINTER_IS_PRUSA_XL
@@ -102,7 +108,7 @@ enum MessageType {
 static constexpr uint8_t SUPPORTED_FW_VERSION = 10;
 #else
 // ESP8266 FW version
-static constexpr uint8_t SUPPORTED_FW_VERSION = 11;
+static constexpr uint8_t SUPPORTED_FW_VERSION = 12;
 #endif
 
 // NIC state
@@ -139,6 +145,22 @@ static struct __attribute__((packed)) {
     .byte = 0,
     .size = 0,
 };
+
+struct ScanData {
+    TaskHandle_t awaiter = nullptr;
+    std::atomic<bool> is_running;
+    std::span<uint8_t> ap_ssid_buffer;
+    bool ap_ssid_requires_password;
+    uint16_t ap_ssid_read = 0;
+    ESPIFOperatingMode prescan_op_mode = ESPIF_UNINITIALIZED_MODE;
+    std::atomic<uint8_t> ap_count = 0;
+    static constexpr auto SYNC_EVENT_TIMEOUT = 500 /*ms*/;
+    static freertos::Mutex get_ap_info_mutex;
+};
+
+freertos::Mutex ScanData::get_ap_info_mutex{};
+
+static ScanData scan;
 
 static void uart_input(uint8_t *data, size_t size, struct netif *netif);
 
@@ -177,6 +199,7 @@ static bool is_running(ESPIFOperatingMode mode) {
     case ESPIF_FLASHING_MODE:
     case ESPIF_UNINITIALIZED_MODE:
     case ESPIF_WRONG_FW:
+    case ESPIF_SCANNING_MODE:
         return false;
     case ESPIF_WAIT_INIT:
     case ESPIF_NEED_AP:
@@ -189,10 +212,29 @@ static bool is_running(ESPIFOperatingMode mode) {
     return false;
 }
 
+static bool can_recieve_data(ESPIFOperatingMode mode) {
+    switch (mode) {
+    case ESPIF_FLASHING_MODE:
+    case ESPIF_UNINITIALIZED_MODE:
+    case ESPIF_WRONG_FW:
+        return false;
+    case ESPIF_WAIT_INIT:
+    case ESPIF_NEED_AP:
+    case ESPIF_RUNNING_MODE:
+    case ESPIF_CONNECTING_AP:
+    case ESPIF_SCANNING_MODE:
+        return true;
+    }
+
+    assert(0);
+    return false;
+}
+
 static TaskHandle_t espif_task = nullptr;
 static SemaphoreHandle_t tx_semaphore = nullptr;
 static HAL_StatusTypeDef tx_result;
 static bool tx_waiting = false;
+
 static pbuf *tx_pbuf = nullptr; // only valid when tx_waiting == true
 
 void espif_tx_callback() {
@@ -302,6 +344,10 @@ static void espif_tx_update_metrics(uint32_t len) {
 }
 
 [[nodiscard]] static err_t espif_tx_msg_clientconfig_v2(const char *ssid, const char *pass) {
+    if (scan.is_running) {
+        return ERR_IF;
+    }
+
     // Generate new intron
     uint8_t new_intron[8];
     for (uint i = 0; i < 2; i++) {
@@ -366,7 +412,7 @@ void espif_input_once(struct netif *netif) {
     /* Read data */
     uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(ESP_UART_HANDLE.hdmarx); // no. of bytes left for buffer full
     pos = sizeof(dma_buffer_rx) - dma_bytes_left;
-    if (pos != old_dma_pos && is_running(esp_operating_mode)) {
+    if (pos != old_dma_pos && can_recieve_data(esp_operating_mode)) {
         if (pos > old_dma_pos) {
             uart_input(&dma_buffer_rx[old_dma_pos], pos - old_dma_pos, netif);
         } else {
@@ -407,7 +453,7 @@ bool espif_link() {
 
 static void process_link_change(bool link_up, struct netif *netif) {
     assert(netif != nullptr);
-    if (link_up) {
+    if (!scan.is_running && link_up) {
         esp_operating_mode = ESPIF_RUNNING_MODE;
         if (!associated.exchange(true)) {
             netifapi_netif_set_link_up(netif);
@@ -416,6 +462,89 @@ static void process_link_change(bool link_up, struct netif *netif) {
         if (associated.exchange(false)) {
             netifapi_netif_set_link_down(netif);
         }
+    }
+}
+
+[[nodiscard]] err_t espif_scan_start() {
+    return espif::scan::start();
+}
+
+[[nodiscard]] err_t espif::scan::start() {
+    // TODO: Validate that we can start a scan
+    ::scan.is_running.exchange(true);
+
+    const auto err = espif_tx_raw(MSG_SCAN_START, 0, nullptr);
+
+    if (err == ERR_OK) {
+        ::scan.prescan_op_mode = esp_operating_mode.exchange(ESPIF_SCANNING_MODE);
+        ::scan.ap_count = 0;
+    } else {
+        ::scan.is_running.exchange(false);
+    }
+    return err;
+}
+
+bool espif_scan_is_running() { return espif::scan::is_running(); }
+bool espif::scan::is_running() { return ::scan.is_running.load(std::memory_order_relaxed); }
+
+[[nodiscard]] err_t espif_scan_stop() {
+    return espif::scan::stop();
+}
+
+[[nodiscard]] err_t espif::scan::stop() {
+    if (!::scan.is_running.load(std::memory_order_relaxed)) {
+        log_error(ESPIF, "Unable to stop scan if none is running. Ivalid state: %d", esp_operating_mode.load());
+        return ERR_IF;
+    }
+
+    const auto err = espif_tx_raw(MSG_SCAN_STOP, 0, nullptr);
+    if (err == ERR_OK) {
+        ::scan.is_running.exchange(false);
+        esp_operating_mode.exchange(::scan.prescan_op_mode);
+    }
+    return err;
+}
+
+[[nodiscard]] uint8_t espif_scan_get_ap_count() {
+    return espif::scan::get_ap_count();
+}
+
+uint8_t espif::scan::get_ap_count() {
+    return ::scan.ap_count.load();
+}
+
+[[nodiscard]] err_t espif_scan_get_ap_ssid(uint8_t index, uint8_t *ssid_buffer, uint8_t ssid_len, bool *needs_password) {
+    return espif::scan::get_ap_info(index, std::span { ssid_buffer, ssid_len }, *needs_password);
+}
+
+[[nodiscard]] err_t espif::scan::get_ap_info(uint8_t index, std::span<uint8_t> buffer, bool &needs_password) {
+    assert(index < ::scan.ap_count);
+    assert(buffer.size() >= config_store_ns::wifi_max_ssid_len);
+    std::lock_guard lock(ScanData::get_ap_info_mutex);
+    ::scan.ap_ssid_buffer = buffer;
+
+    const auto err = espif_tx_raw(MSG_SCAN_AP_GET, index, nullptr);
+    if (err != ERR_OK) {
+        return err;
+    }
+
+    // TODO: find a nicer way to wait for the data (probably queues)
+    ::scan.awaiter = xTaskGetCurrentTaskHandle();
+    if (xTaskNotifyWait(0, 0, nullptr, pdMS_TO_TICKS(ScanData::SYNC_EVENT_TIMEOUT)) == pdFALSE) {
+        return ERR_IF;
+    }
+    needs_password = ::scan.ap_ssid_requires_password;
+    return ERR_OK;
+}
+
+static void process_scan_ap_count(uint8_t ap_count) {
+    scan.ap_count.exchange(ap_count);
+}
+
+static void process_scan_ssid() {
+    if (scan.awaiter != nullptr) {
+        xTaskNotify(scan.awaiter, 0, eNoAction);
+        scan.awaiter = nullptr;
     }
 }
 
@@ -437,6 +566,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
         PacketData,
         PacketDataThrowaway,
         MACData,
+        APData,
     } state
         = Intron;
 
@@ -475,6 +605,8 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             switch (message_type) {
             case MSG_DEVINFO_V2:
             case MSG_PACKET_V2:
+            case MSG_SCAN_AP_GET:
+            case MSG_SCAN_AP_CNT:
                 state = HeaderByte1;
                 break;
             default:
@@ -493,6 +625,15 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
                 } else {
                     state = HeaderByte2;
                 }
+                break;
+            case MSG_SCAN_AP_CNT:
+                process_scan_ap_count(*c++);
+                state = HeaderByte2;
+                break;
+            case MSG_SCAN_AP_GET:
+            case MSG_SCAN_STOP:
+                state = HeaderByte2;
+                c++;
                 break;
             case MSG_PACKET_V2:
                 process_link_change(*c++, netif);
@@ -515,6 +656,20 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             }
             break;
 
+        case APData:
+            assert(rx_len == 33);
+
+            while (c < end && scan.ap_ssid_read < config_store_ns::wifi_max_ssid_len) {
+                scan.ap_ssid_buffer[scan.ap_ssid_read++] = *c++;
+            }
+            if (scan.ap_ssid_read == config_store_ns::wifi_max_ssid_len && c != end) {
+                scan.ap_ssid_requires_password = static_cast<bool>(*c++);
+                process_scan_ssid();
+                scan.ap_ssid_read = 0;
+                state = Intron;
+            }
+            break;
+
         case HeaderByte2:
             rx_len = (*c++) << 8;
             state = HeaderByte3;
@@ -525,6 +680,12 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             switch (message_type) {
             case MSG_DEVINFO_V2:
                 state = MACData;
+                break;
+            case MSG_SCAN_AP_GET:
+                state = APData;
+                break;
+            case MSG_SCAN_AP_CNT:
+                state = Intron;
                 break;
             case MSG_PACKET_V2:
                 if (rx_len == 0) {
@@ -547,7 +708,6 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
                 state = Intron;
             }
             break;
-
         case PacketData: {
             // Copy input to current pbuf (until end of input or current pbuf)
             const uint32_t to_read = std::min(rx_buff_cur->len - rx_read, (uint32_t)(end - c));
@@ -580,6 +740,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             if (rx_read == rx_len) {
                 state = Intron;
             }
+            break;
         }
     }
 }
@@ -745,7 +906,7 @@ bool espif_need_ap() {
 void espif_reset() {
     // Don't touch it in case we are flashing right now. If so, it'll get reset
     // when done.
-    if (esp_operating_mode != ESPIF_FLASHING_MODE) {
+    if (esp_operating_mode != ESPIF_FLASHING_MODE && esp_operating_mode != ESPIF_SCANNING_MODE && !scan.is_running) {
         reset_intron();
         force_down();
         hard_reset_device(); // Reset device to receive MAC address
@@ -788,6 +949,8 @@ EspFwState esp_fw_state() {
         return EspFwState::Flashing;
     case ESPIF_WRONG_FW:
         return EspFwState::WrongVersion;
+    case ESPIF_SCANNING_MODE:
+        return EspFwState::Scanning;
     }
     assert(0);
     return EspFwState::NoEsp;
@@ -800,6 +963,7 @@ EspLinkState esp_link_state() {
     case ESPIF_WRONG_FW:
     case ESPIF_FLASHING_MODE:
     case ESPIF_UNINITIALIZED_MODE:
+    case ESPIF_SCANNING_MODE:
         return EspLinkState::Init;
     case ESPIF_NEED_AP:
     case ESPIF_CONNECTING_AP:
