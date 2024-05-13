@@ -333,16 +333,13 @@ namespace ndef {
     };
 
     enum Message_Record_Header_Bits {
-        type_name_format = 0b111,
+        type_field = 0b111,
+        media_type = 0x2,
         id_length_flag = 0x1 << 3,
         short_record = 0x1 << 4,
         chunk_flag = 0x1 << 5,
         message_end = 0x1 << 6,
         message_begin = 0x1 << 7,
-    };
-
-    enum Message_Type_Format {
-        media_type = 0x2,
     };
 
     struct WifiValueHeader {
@@ -490,31 +487,39 @@ std::optional<WifiCredentials> try_parse_wifi_message(uint16_t from, const uint8
 }
 
 std::optional<WifiCredentials> iterate_ndef(uint16_t from, uint16_t to) {
-    for (; from < to;) {
+    for (bool start = true; from < to; start = false) {
         ndef::MessageRecordID rec;
         auto result = user_read_bytes(EepromCommand::memory, from, &rec, sizeof(rec));
         if (result != i2c::Result::ok) {
             return {};
         }
 
-        if ((rec.header & (ndef::message_begin | ndef::message_end | ndef::chunk_flag | ndef::type_name_format)) != (ndef::message_begin | ndef::message_end | ndef::Message_Type_Format::media_type)) {
-            // can't parse those
+        if (start && (rec.header & ndef::message_begin) != ndef::message_begin) {
+            // the 1st message has to have begin bit set
             return {};
         }
 
         from += sizeof(ndef::MessageRecordID);
-        if ((rec.header & ndef::id_length_flag) == 0) {
+
+        if ((rec.header & ndef::id_length_flag) != ndef::id_length_flag) {
             // it was the short header
             --from; // there was no id_length actually
             rec.id_length = 0;
         }
 
-        if (auto wifi = try_parse_wifi_message(from, rec.type_length, rec.payload_length, rec.id_length)) {
-            // have credentials
-            return wifi;
+        if ((rec.header & (ndef::chunk_flag | ndef::type_field)) == ndef::media_type) {
+            // only non-chunked and media_type are supported
+            if (auto wifi = try_parse_wifi_message(from, rec.type_length, rec.payload_length, rec.id_length)) {
+                // have credentials
+                return wifi;
+            }
         }
 
-        from += 1 /* header */ + rec.type_length + rec.payload_length + rec.id_length;
+        from += rec.type_length + rec.payload_length + rec.id_length;
+
+        if ((rec.header & ndef::message_end) == ndef::message_end) {
+            break;
+        }
     }
 
     return {};
