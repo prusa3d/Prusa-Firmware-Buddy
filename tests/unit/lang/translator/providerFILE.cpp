@@ -16,6 +16,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     FILETranslationProvider providerFR("MO/fr.mo");
     FILETranslationProvider providerIT("MO/it.mo");
     FILETranslationProvider providerPL("MO/pl.mo");
+    // FILETranslationProvider providerPL("MO/jp.mo");
 
     // load transtaled strings
     deque<string> csStrings, deStrings, esStrings, frStrings, itStrings, plStrings;
@@ -25,6 +26,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     REQUIRE(LoadTranslatedStringsFile("MO/fr.txt", &frStrings));
     REQUIRE(LoadTranslatedStringsFile("MO/it.txt", &itStrings));
     REQUIRE(LoadTranslatedStringsFile("MO/pl.txt", &plStrings));
+    // REQUIRE(LoadTranslatedStringsFile("MO/jp.txt", &jpStrings));
 
     // need to have at least the same amount of translations like the keys (normally there will be an exact number of them)
     REQUIRE(stringKeys.size() <= csStrings.size());
@@ -33,11 +35,13 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     REQUIRE(stringKeys.size() <= frStrings.size());
     REQUIRE(stringKeys.size() <= itStrings.size());
     REQUIRE(stringKeys.size() <= plStrings.size());
+    // REQUIRE(stringKeys.size() <= jpStrings.size());
 
     set<unichar> nonASCIICharacters;
     {
         // explicitly add characters from language names
-        // Čeština, Español, Français
+        // Čeština, Español, Français, Japanese
+        // static const uint8_t na[] = "Čšñçニホンゴ";
         static const uint8_t na[] = "Čšñç";
         string_view_utf8 nas = string_view_utf8::MakeRAM(na);
         unichar c;
@@ -51,6 +55,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     REQUIRE(providerFR.EnsureFile());
     REQUIRE(providerIT.EnsureFile());
     REQUIRE(providerPL.EnsureFile());
+    // REQUIRE(providerJP.EnsureFile());
 
     REQUIRE(CheckAllTheStrings(stringKeys, csStrings, providerCS, nonASCIICharacters, "cs"));
     REQUIRE(CheckAllTheStrings(stringKeys, deStrings, providerDE, nonASCIICharacters, "de"));
@@ -58,6 +63,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     REQUIRE(CheckAllTheStrings(stringKeys, frStrings, providerFR, nonASCIICharacters, "fr"));
     REQUIRE(CheckAllTheStrings(stringKeys, itStrings, providerIT, nonASCIICharacters, "it"));
     REQUIRE(CheckAllTheStrings(stringKeys, plStrings, providerPL, nonASCIICharacters, "pl"));
+    // REQUIRE(CheckAllTheStrings(stringKeys, jpStrings, providerJP, nonASCIICharacters, "jp"));
 
     CAPTURE(stringKeys.size());
 }

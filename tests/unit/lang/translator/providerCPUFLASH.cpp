@@ -41,8 +41,8 @@ constexpr size_t maxUtf8Raw = 100000;
 struct StringTableCSTest {
     // this will get statically precomputed for each translation language separately
     static uint16_t stringCount, stringBytes;
-    static uint16_t stringBeginsSize, utf8RawSize;
-    static uint16_t stringBegins[maxStringBegins];
+    static uint16_t stringBeginsSize;
+    static uint32_t utf8RawSize, stringBegins[maxStringBegins];
     // a piece of memory where the null-terminated strings are situated
     static uint8_t utf8Raw[maxUtf8Raw];
 
@@ -54,18 +54,18 @@ struct StringTableCSTest {
     }
 };
 
-uint16_t StringTableCSTest::stringBegins[maxStringBegins];
+uint32_t StringTableCSTest::stringBegins[maxStringBegins], StringTableCSTest::utf8RawSize;
 uint8_t StringTableCSTest::utf8Raw[maxUtf8Raw];
 uint16_t StringTableCSTest::stringCount, StringTableCSTest::stringBytes;
-uint16_t StringTableCSTest::stringBeginsSize, StringTableCSTest::utf8RawSize;
+uint16_t StringTableCSTest::stringBeginsSize;
 
 using CPUFLASHTranslationProviderCSTest = CPUFLASHTranslationProvider<StringTableCSTest>;
 
 struct StringTableDETest {
     // this will get statically precomputed for each translation language separately
     static uint16_t stringCount, stringBytes;
-    static uint16_t stringBegins[maxStringBegins];
-    static uint16_t stringBeginsSize, utf8RawSize;
+    static uint32_t utf8RawSize, stringBegins[maxStringBegins];
+    static uint16_t stringBeginsSize;
     // a piece of memory where the null-terminated strings are situated
     static uint8_t utf8Raw[maxUtf8Raw];
 
@@ -77,18 +77,18 @@ struct StringTableDETest {
     }
 };
 
-uint16_t StringTableDETest::stringBegins[maxStringBegins];
+uint32_t StringTableDETest::stringBegins[maxStringBegins], StringTableDETest::utf8RawSize;
 uint8_t StringTableDETest::utf8Raw[maxUtf8Raw];
 uint16_t StringTableDETest::stringCount, StringTableDETest::stringBytes;
-uint16_t StringTableDETest::stringBeginsSize, StringTableDETest::utf8RawSize;
+uint16_t StringTableDETest::stringBeginsSize;
 
 using CPUFLASHTranslationProviderDETest = CPUFLASHTranslationProvider<StringTableDETest>;
 
 struct StringTableESTest {
     // this will get statically precomputed for each translation language separately
     static uint16_t stringCount, stringBytes;
-    static uint16_t stringBeginsSize, utf8RawSize;
-    static uint16_t stringBegins[maxStringBegins];
+    static uint16_t stringBeginsSize;
+    static uint32_t utf8RawSize, stringBegins[maxStringBegins];
     // a piece of memory where the null-terminated strings are situated
     static uint8_t utf8Raw[maxUtf8Raw];
 
@@ -100,18 +100,18 @@ struct StringTableESTest {
     }
 };
 
-uint16_t StringTableESTest::stringBegins[maxStringBegins];
+uint32_t StringTableESTest::stringBegins[maxStringBegins], StringTableESTest::utf8RawSize;
 uint8_t StringTableESTest::utf8Raw[maxUtf8Raw];
 uint16_t StringTableESTest::stringCount, StringTableESTest::stringBytes;
-uint16_t StringTableESTest::stringBeginsSize, StringTableESTest::utf8RawSize;
+uint16_t StringTableESTest::stringBeginsSize;
 
 using CPUFLASHTranslationProviderESTest = CPUFLASHTranslationProvider<StringTableESTest>;
 
 struct StringTableFRTest {
     // this will get statically precomputed for each translation language separately
     static uint16_t stringCount, stringBytes;
-    static uint16_t stringBeginsSize, utf8RawSize;
-    static uint16_t stringBegins[maxStringBegins];
+    static uint16_t stringBeginsSize;
+    static uint32_t utf8RawSize, stringBegins[maxStringBegins];
     // a piece of memory where the null-terminated strings are situated
     static uint8_t utf8Raw[maxUtf8Raw];
 
@@ -123,18 +123,18 @@ struct StringTableFRTest {
     }
 };
 
-uint16_t StringTableFRTest::stringBegins[maxStringBegins];
+uint32_t StringTableFRTest::stringBegins[maxStringBegins], StringTableFRTest::utf8RawSize;
 uint8_t StringTableFRTest::utf8Raw[maxUtf8Raw];
 uint16_t StringTableFRTest::stringCount, StringTableFRTest::stringBytes;
-uint16_t StringTableFRTest::stringBeginsSize, StringTableFRTest::utf8RawSize;
+uint16_t StringTableFRTest::stringBeginsSize;
 
 using CPUFLASHTranslationProviderFRTest = CPUFLASHTranslationProvider<StringTableFRTest>;
 
 struct StringTableITTest {
     // this will get statically precomputed for each translation language separately
     static uint16_t stringCount, stringBytes;
-    static uint16_t stringBeginsSize, utf8RawSize;
-    static uint16_t stringBegins[maxStringBegins];
+    static uint16_t stringBeginsSize;
+    static uint32_t utf8RawSize, stringBegins[maxStringBegins];
     // a piece of memory where the null-terminated strings are situated
     static uint8_t utf8Raw[maxUtf8Raw];
 
@@ -146,18 +146,18 @@ struct StringTableITTest {
     }
 };
 
-uint16_t StringTableITTest::stringBegins[maxStringBegins];
+uint32_t StringTableITTest::stringBegins[maxStringBegins], StringTableITTest::utf8RawSize;
 uint8_t StringTableITTest::utf8Raw[maxUtf8Raw];
 uint16_t StringTableITTest::stringCount, StringTableITTest::stringBytes;
-uint16_t StringTableITTest::stringBeginsSize, StringTableITTest::utf8RawSize;
+uint16_t StringTableITTest::stringBeginsSize;
 
 using CPUFLASHTranslationProviderITTest = CPUFLASHTranslationProvider<StringTableITTest>;
 
 struct StringTablePLTest {
     // this will get statically precomputed for each translation language separately
     static uint16_t stringCount, stringBytes;
-    static uint16_t stringBeginsSize, utf8RawSize;
-    static uint16_t stringBegins[maxStringBegins];
+    static uint16_t stringBeginsSize;
+    static uint32_t utf8RawSize, stringBegins[maxStringBegins];
     // a piece of memory where the null-terminated strings are situated
     static uint8_t utf8Raw[maxUtf8Raw];
 
@@ -169,12 +169,37 @@ struct StringTablePLTest {
     }
 };
 
-uint16_t StringTablePLTest::stringBegins[maxStringBegins];
+uint32_t StringTablePLTest::stringBegins[maxStringBegins], StringTablePLTest::utf8RawSize;
 uint8_t StringTablePLTest::utf8Raw[maxUtf8Raw];
 uint16_t StringTablePLTest::stringCount, StringTablePLTest::stringBytes;
-uint16_t StringTablePLTest::stringBeginsSize, StringTablePLTest::utf8RawSize;
+uint16_t StringTablePLTest::stringBeginsSize;
 
 using CPUFLASHTranslationProviderPLTest = CPUFLASHTranslationProvider<StringTablePLTest>;
+
+/*
+struct StringTableJPTest {
+    // this will get statically precomputed for each translation language separately
+    static uint16_t stringCount, stringBytes;
+    static uint16_t stringBeginsSize;
+    static uint32_t utf8RawSize, stringBegins[maxStringBegins];
+    // a piece of memory where the null-terminated strings are situated
+    static uint8_t utf8Raw[maxUtf8Raw];
+
+    static void Reset() {
+        stringBeginsSize = 0;
+        utf8RawSize = 0;
+        fill(stringBegins, stringBegins + maxStringBegins, 0);
+        fill(utf8Raw, utf8Raw + maxUtf8Raw, 0);
+    }
+};
+
+uint32_t StringTableJPTest::stringBegins[maxStringBegins], StringTableJPTest::utf8RawSize;
+uint8_t StringTableJPTest::utf8Raw[maxUtf8Raw];
+uint16_t StringTableJPTest::stringCount, StringTableJPTest::stringBytes;
+uint16_t StringTableJPTest::stringBeginsSize;
+
+using CPUFLASHTranslationProviderJPTest = CPUFLASHTranslationProvider<StringTableJPTest>;
+*/
 
 TEST_CASE("providerCPUFLASH::StringTableAt", "[translator]") {
     // simple test of several strings - setup first
@@ -206,9 +231,9 @@ TEST_CASE("providerCPUFLASH::StringTableAt", "[translator]") {
 }
 
 /// @returns number of bytes the strings require to store
-pair<uint16_t, uint16_t> FillStringTable(const deque<string> &translatedStrings, uint16_t *stringBegins, uint8_t *utf8Raw) {
+pair<uint16_t, uint32_t> FillStringTable(const deque<string> &translatedStrings, uint32_t *stringBegins, uint8_t *utf8Raw) {
     uint8_t *utf8RawOrigin = utf8Raw;
-    uint16_t *stringsBeginOrigin = stringBegins;
+    uint32_t *stringsBeginOrigin = stringBegins;
     for_each(translatedStrings.cbegin(), translatedStrings.cend(), [&](const string &s) {
         *stringBegins = utf8Raw - utf8RawOrigin;
         ++stringBegins;
@@ -234,10 +259,10 @@ void CompareProviders(const T *tstP, const char *langCode) {
     Translations::Instance().ChangeLanguage(Translations::MakeLangCode(langCode));
     const CPUFLASHTranslationProviderBase *compP = dynamic_cast<const CPUFLASHTranslationProviderBase *>(Translations::Instance().CurrentProvider());
     REQUIRE(compP);
-    const uint16_t *tstPSB = tstP->StringBegins();
+    const uint32_t *tstPSB = tstP->StringBegins();
     const uint8_t *tstPU8 = tstP->Utf8Raw();
 
-    const uint16_t *compPSB = compP->StringBegins();
+    const uint32_t *compPSB = compP->StringBegins();
     const uint8_t *compPU8 = compP->Utf8Raw();
 
     // Now the tricky part - we need size of the arrays.
@@ -270,6 +295,7 @@ TEST_CASE("providerCPUFLASH::Translations singleton", "[translator]") {
     REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("fr")));
     REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("it")));
     REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("pl")));
+    // REQUIRE(Translations::Instance().LangExists(Translations::MakeLangCode("jp")));
 }
 
 /// This is a complex test of the whole translation mechanism
@@ -290,6 +316,7 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     CPUFLASHTranslationProviderFRTest providerFR;
     CPUFLASHTranslationProviderITTest providerIT;
     CPUFLASHTranslationProviderPLTest providerPL;
+    // CPUFLASHTranslationProviderPLTest providerJP;
     deque<string> rawStringKeys;
     FillHashTableCPUFLASHProvider(CPUFLASHTranslationProviderBase::hash_table, "keys.txt", rawStringKeys);
 
@@ -301,6 +328,7 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     REQUIRE(LoadTranslatedStringsFile("fr.txt", &frStrings));
     REQUIRE(LoadTranslatedStringsFile("it.txt", &itStrings));
     REQUIRE(LoadTranslatedStringsFile("pl.txt", &plStrings));
+    // REQUIRE(LoadTranslatedStringsFile("jp.txt", &jpStrings));
 
     // need to have at least the same amount of translations like the keys (normally there will be an exact number of them)
     REQUIRE(rawStringKeys.size() <= csStrings.size());
@@ -309,6 +337,7 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     REQUIRE(rawStringKeys.size() <= frStrings.size());
     REQUIRE(rawStringKeys.size() <= itStrings.size());
     REQUIRE(rawStringKeys.size() <= plStrings.size());
+    // REQUIRE(rawStringKeys.size() <= jpStrings.size());
 
     // now make the string table from cs.txt
     FillStringTable<StringTableCSTest>(csStrings);
@@ -317,12 +346,14 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     FillStringTable<StringTableFRTest>(frStrings);
     FillStringTable<StringTableITTest>(itStrings);
     FillStringTable<StringTablePLTest>(plStrings);
+    // FillStringTable<StringTableJPTest>(jpStrings);
 
     // prepare a map for comparison
     set<unichar> nonASCIICharacters;
     {
         // explicitly add characters from language names
-        // Čeština, Español, Français
+        // Čeština, Español, Français, Japanese
+        // static const uint8_t na[] = "Čšñçニホンゴ";
         static const uint8_t na[] = "Čšñç";
         string_view_utf8 nas = string_view_utf8::MakeRAM(na);
         unichar c;
@@ -336,6 +367,7 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     REQUIRE(CheckAllTheStrings(rawStringKeys, frStrings, providerFR, nonASCIICharacters, "fr"));
     REQUIRE(CheckAllTheStrings(rawStringKeys, itStrings, providerIT, nonASCIICharacters, "it"));
     REQUIRE(CheckAllTheStrings(rawStringKeys, plStrings, providerPL, nonASCIICharacters, "pl"));
+    // REQUIRE(CheckAllTheStrings(rawStringKeys, jpStrings, providerJP, nonASCIICharacters, "jp"));
 
     CompareHashTables();
 
@@ -345,6 +377,7 @@ TEST_CASE("providerCPUFLASH::ComplexTest", "[translator]") {
     CompareProviders(&providerFR, "fr");
     CompareProviders(&providerIT, "it");
     CompareProviders(&providerPL, "pl");
+    // CompareProviders(&providerJP, "jp");
 
     // Check the content of generated non-ascii-chars - to see, if we have enough font bitmaps
 
