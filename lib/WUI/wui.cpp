@@ -679,9 +679,11 @@ void notify_reconfigure() {
 void netdev_set_active_id(uint32_t netdev_id) {
     assert(netdev_id <= NETDEV_COUNT);
 
-    config_store().active_netdev.set(static_cast<uint8_t>(netdev_id & 0xFF));
-
-    notify_reconfigure();
+    const auto target = static_cast<uint8_t>(netdev_id & 0xFF);
+    if (config_store().active_netdev.get() != target) {
+        config_store().active_netdev.set(target);
+        notify_reconfigure();
+    }
 }
 
 namespace {
