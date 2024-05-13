@@ -171,7 +171,7 @@ def dump_hash_table(langcode, entries, hash_table: HashTable,
     dump_hpp_array(output_dir / f'utf8Raw.{langcode}.hpp', decl,
                    ['0x%02x' % (byte, ) for byte in utf8_raw])
     # dump indicies of the values
-    decl = f'const uint16_t StringTable{langcode.upper()}::stringBegins[]'
+    decl = f'const uint32_t StringTable{langcode.upper()}::stringBegins[]'
     dump_hpp_array(output_dir / f'stringBegins.{langcode}.hpp', decl,
                    ['0x%x' % (index, ) for index in indicies])
     # dump hash table's buckets
@@ -227,27 +227,79 @@ def cmd_generate_hash_tables(args):
         dump_hash_table(langcode, entries, hash_table, args.output_dir)
 
 
-def cmd_generate_nonascii_chars(args):
-    """Entrypoint of the generate-nonascii-chars subcommand."""
+def cmd_generate_required_chars(args):
+    """Entrypoint of the generate-required-chars subcommand."""
     translations = load_translations(args.input_dir)
     if not translations:
         logger.error('no translations found')
         return 1
 
-    nonascii_chars = set(ch for translation in translations.values()
-                         for entry in translation for ch in entry.msgstr
-                         if ord(ch) > 127)
+    required_chars = set(
+        ch for translation in translations.values() for entry in translation
+        for ch in entry.msgstr
+        if ord(ch) > 127 and ord(ch) < 0x3000)  # without katakana
+
+    # All fonts have to have '?'
+    required_chars.add('?')
 
     # characters contained in language names; not contained in *.po files
-    nonascii_chars.add('Č')
-    nonascii_chars.add('š')
-    nonascii_chars.add('ñ')
-    nonascii_chars.add('ç')
-    nonascii_chars = sorted(nonascii_chars)
-    open(args.output_dir / 'non-ascii-chars.txt', 'w',
-         encoding='utf-8').write(' '.join(nonascii_chars))
-    open(args.output_dir / 'non-ascii-chars.raw',
-         'bw').write(''.join(nonascii_chars).encode('utf-32-le'))
+    required_chars.add('Č')
+    required_chars.add('š')
+    required_chars.add('ñ')
+    required_chars.add('ç')
+
+    # Add all standard ASCII characters (32 - 127)
+    # We need nearly all of them and it speeds up character draw process (no lower_bound to find the character index)
+    for ch in range(0x20, 0x7F):  # 0x7F is DEL (not used)
+        required_chars.add(chr(ch))
+
+    required_chars = sorted(required_chars)
+    open(args.output_dir / 'standard-chars.txt', 'w',
+         encoding='utf-8').write(' '.join(required_chars))
+
+    required_chars = set(required_chars)
+
+    # characters contained in language name are not contained in *.po files:
+    # "Japanese" == ニホンゴ <- these have to be added separately because language name is not translated
+    required_chars.add('ニ')
+    required_chars.add('ホ')
+    required_chars.add('ン')
+    required_chars.add('ゴ')
+
+    # Add all characters of katakana (testing)
+    for ch in range(0x30A1, 0x30FF + 1):  # Add katakana alphabet for japanese
+        required_chars.add(chr(ch))
+    required_chars.add('、')
+    required_chars.add('。')
+
+    required_chars = sorted(required_chars)
+    open(args.output_dir / 'full-chars.txt', 'w',
+         encoding='utf-8').write(' '.join(required_chars))
+    # open(args.output_dir / 'required-chars.raw',
+    #     'bw').write(''.join(required_chars).encode('utf-32-le'))
+
+    # Reduced character set for font LARGE
+    digits_chars = set([
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        ".",
+        "%",
+        "?",
+        " ",
+        "-",
+        ",",
+    ])
+    digits_chars = sorted(digits_chars)
+    open(args.output_dir / 'digits-chars.txt', 'w',
+         encoding='utf-8').write(' '.join(digits_chars))
 
 
 def cmd_dump_pofiles(args):
@@ -299,15 +351,15 @@ def main():
                                       type=Path)
     generate_hash_tables.set_defaults(func=cmd_generate_hash_tables)
 
-    # generate non-ascii-chars
-    generate_nonascii_chars = subparsers.add_parser('generate-nonascii-chars')
-    generate_nonascii_chars.add_argument('input_dir',
+    # generate required-chars
+    generate_required_chars = subparsers.add_parser('generate-required-chars')
+    generate_required_chars.add_argument('input_dir',
                                          metavar='input-dir',
                                          type=Path)
-    generate_nonascii_chars.add_argument('output_dir',
+    generate_required_chars.add_argument('output_dir',
                                          metavar='output-dir',
                                          type=Path)
-    generate_nonascii_chars.set_defaults(func=cmd_generate_nonascii_chars)
+    generate_required_chars.set_defaults(func=cmd_generate_required_chars)
 
     # parse and run a subcommand
     args = parser.parse_args(sys.argv[1:])

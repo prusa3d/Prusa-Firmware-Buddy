@@ -55,8 +55,8 @@ find build-vscode-buddy/lib/error_codes -regextype posix-extended -regex "^.*\.c
 3. Insert header data
 ```bash
 sed -i "s/SOME DESCRIPTIVE TITLE./Prusa-Firmware-Buddy/g" src/lang/po/Prusa-Firmware-Buddy.pot
-sed -i "s/YEAR THE PACKAGE'S COPYRIGHT HOLDER/2023 Prusa Research/g" src/lang/po/Prusa-Firmware-Buddy.pot # update year
-sed -i "s/FIRST AUTHOR <EMAIL@ADDRESS>, YEAR./Prusa Research <info@prusa3d.com>, 2023/g" src/lang/po/Prusa-Firmware-Buddy.pot # update year
+sed -i "s/YEAR THE PACKAGE'S COPYRIGHT HOLDER/2024 Prusa Research/g" src/lang/po/Prusa-Firmware-Buddy.pot # update year
+sed -i "s/FIRST AUTHOR <EMAIL@ADDRESS>, YEAR./Prusa Research <info@prusa3d.com>, 2024/g" src/lang/po/Prusa-Firmware-Buddy.pot # update year
 ```
 
 ## Receiving PO files from Content
