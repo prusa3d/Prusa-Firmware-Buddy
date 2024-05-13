@@ -58,8 +58,8 @@ constexpr EnumArray<SpecialButton, std::variant<const char *, const img::Resourc
 } // namespace
 
 DialogTextInput::DialogTextInput(string_view_utf8 prompt, std::span<char> buffer)
-    : prompt_(prompt)
-    , buffer_(buffer) {
+    : buffer_(buffer) {
+    ui.txt_prompt.SetText(prompt);
     setup_ui();
     update_result();
     set_keyboard_layout(layout_text_lowercase);
@@ -114,8 +114,8 @@ void DialogTextInput::setup_ui() {
 
         auto &wnd = ui.txt_prompt;
         wnd.SetRect(Rect16::fromLTRB(buttons_rect.Left() + button_padding, y, buttons_rect.Right() - button_padding, y + h));
-        wnd.SetText(prompt_);
         wnd.SetTextColor(COLOR_WHITE);
+        wnd.set_font(Font::small);
         wnd.SetAlignment(Align_t::Right());
         wnd.set_enabled(false);
 
@@ -174,6 +174,8 @@ void DialogTextInput::setup_ui() {
             RegisterSubWin(btn);
         }
     }
+
+    Invalidate();
 }
 
 void DialogTextInput::set_keyboard_layout(const ButtonsLayout &layout) {

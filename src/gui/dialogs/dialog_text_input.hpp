@@ -47,7 +47,6 @@ private:
     void update_result();
 
 private:
-    const string_view_utf8 prompt_;
     std::span<char> buffer_;
 
     // edited char + terminating \0
