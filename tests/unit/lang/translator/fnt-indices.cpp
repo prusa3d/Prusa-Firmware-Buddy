@@ -8,7 +8,7 @@ struct FCIndex {
 };
 // clang-format off
 static constexpr const FCIndex fontCharIndices[] =
-#include "../guiapi/include/fnt-indices.ipp"
+#include "../guiapi/include/fnt-full-indices.ipp"
     static constexpr const uint32_t fontCharIndicesNumItems = sizeof(fontCharIndices) / sizeof(FCIndex);
 // clang-format on
 

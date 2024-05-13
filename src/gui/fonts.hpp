@@ -5,6 +5,7 @@
 #pragma once
 #include <stdint.h>
 #include <guiconfig/guiconfig.h>
+#include "font_character_sets.hpp"
 
 enum class Font : uint8_t {
     small = 0,
@@ -22,7 +23,7 @@ struct font_t {
     uint8_t bpr; // bytes per row
     const void *pcs; // charset data pointer
     char asc_min; // min ascii code (first character)
-    char asc_max; // max ascii code (last character)
+    FontCharacterSet charset; // character set (see README_FONT)
 };
 
 font_t *resource_font(Font id);

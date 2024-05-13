@@ -15,6 +15,7 @@
 #include <option/enable_translation_fr.h>
 #include <option/enable_translation_it.h>
 #include <option/enable_translation_pl.h>
+#include <option/enable_translation_jp.h>
 
 class MI_LangBase : public IWindowMenuItem {
 public:
@@ -100,6 +101,16 @@ protected:
     virtual uint16_t LangCode() const override;
 };
 
+class MI_JAPANESE : public MI_LangBase {
+    static constexpr const char *const label = "ニホンゴ";
+
+public:
+    MI_JAPANESE();
+
+protected:
+    virtual uint16_t LangCode() const override;
+};
+
 class MI_TEST_LANG : public MI_LangBase {
     static constexpr const char *const label = "Test";
 
@@ -131,9 +142,10 @@ using ScreenMenuLanguages__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH,
 #if ENABLE_TRANSLATION_PL()
     MI_POLISH,
 #endif
-    MI_TEST_LANG
-
-    >;
+#if ENABLE_TRANSLATION_JP()
+    MI_JAPANESE,
+#endif
+    MI_TEST_LANG>;
 
 class ScreenMenuLanguages : public ScreenMenuLanguages__ {
 public:
@@ -161,6 +173,9 @@ using ScreenMenuLanguagesNoReturn__ = ScreenMenu<EFooter::Off, MI_ENGLISH,
 #endif
 #if ENABLE_TRANSLATION_PL()
     MI_POLISH,
+#endif
+#if ENABLE_TRANSLATION_JP()
+    MI_JAPANESE,
 #endif
     MI_TEST_LANG>;
 

@@ -292,7 +292,15 @@ endif()
 define_boolean_option(HAS_TRANSLATIONS ${TRANSLATIONS_ENABLED})
 
 # Set language options
-set(LANGUAGES_AVAILABLE CS DE ES FR IT PL)
+set(LANGUAGES_AVAILABLE
+    CS
+    DE
+    ES
+    FR
+    IT
+    JP
+    PL
+    )
 if("${TRANSLATIONS_LIST}" STREQUAL "<default>")
   if(PRINTER STREQUAL "MINI"
      OR (CMAKE_BUILD_TYPE STREQUAL "Debug" AND (NOT ${TRANSLATIONS_IN_EXTFLASH}))
@@ -308,6 +316,7 @@ if("${TRANSLATIONS_LIST}" STREQUAL "<default>")
   endif()
 else()
   set(TRANSLATIONS_LIST_FOREACH ${TRANSLATIONS_LIST})
+  message(STATUS "Translation list: ${TRANSLATIONS_LIST}")
   foreach(LANG ${TRANSLATIONS_LIST_FOREACH})
     string(TOUPPER ${LANG} LANG)
     define_boolean_option(ENABLE_TRANSLATION_${LANG} yes)

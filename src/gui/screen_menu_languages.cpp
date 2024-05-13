@@ -74,6 +74,13 @@ uint16_t MI_POLISH::LangCode() const {
     return Translations::MakeLangCode("pl");
 }
 
+MI_JAPANESE::MI_JAPANESE()
+    : MI_LangBase(label, &img::flag_jp_16x11, is_hidden_t::no) {}
+
+uint16_t MI_JAPANESE::LangCode() const {
+    return Translations::MakeLangCode("jp");
+}
+
 MI_TEST_LANG::MI_TEST_LANG()
     : MI_LangBase(label, &img::flag_cs_16x11, is_hidden_t::dev) {}
 
