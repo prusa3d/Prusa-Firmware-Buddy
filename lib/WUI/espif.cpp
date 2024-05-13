@@ -348,12 +348,13 @@ static void espif_tx_update_metrics(uint32_t len) {
         return ERR_IF;
     }
 
-    // Generate new intron
-    uint8_t new_intron[8];
+    std::array<uint8_t, sizeof(tx_message.intron)> new_intron {};
+
     for (uint i = 0; i < 2; i++) {
         new_intron[i] = tx_message.intron[i];
     }
-    for (uint i = 2; i < sizeof(tx_message.intron); i++) {
+
+    for (uint i = 2; i < new_intron.size(); i++) {
         new_intron[i] = rand_u();
     }
 
@@ -361,24 +362,29 @@ static void espif_tx_update_metrics(uint32_t len) {
     const uint8_t pass_len = strlen(pass);
     const uint16_t length = sizeof(new_intron) + sizeof(ssid_len) + ssid_len + sizeof(pass_len) + pass_len;
 
-    pbuf *p = pbuf_alloc(PBUF_RAW, length, PBUF_RAM);
-    if (!p) {
+    pbuf *pbuf = pbuf_alloc(PBUF_RAW, length, PBUF_RAM);
+    if (!pbuf) {
         return ERR_MEM;
     }
+
     {
-        assert(p->tot_len == length);
-        uint8_t *buffer = (uint8_t *)p->payload;
-        buffer = buffer_append_unsafe(buffer, new_intron, sizeof(new_intron));
+        assert(pbuf->tot_len == length);
+        uint8_t *buffer = (uint8_t *)pbuf->payload;
+        buffer = buffer_append_unsafe(buffer, new_intron.data(), sizeof(new_intron));
         buffer = buffer_append_unsafe(buffer, &ssid_len, sizeof(ssid_len));
         buffer = buffer_append_unsafe(buffer, (uint8_t *)ssid, ssid_len);
         buffer = buffer_append_unsafe(buffer, &pass_len, sizeof(pass_len));
         buffer = buffer_append_unsafe(buffer, (uint8_t *)pass, pass_len);
-        assert(buffer == (uint8_t *)p->payload + length);
+        assert(buffer == (uint8_t *)pbuf->payload + length);
     }
 
-    err_t err = espif_tx_raw(MSG_CLIENTCONFIG_V2, 0, p);
-    memcpy(tx_message.intron, new_intron, sizeof(tx_message.intron));
-    pbuf_free(p);
+    err_t err = espif_tx_raw(MSG_CLIENTCONFIG_V2, 0, pbuf);
+    if (err == ERR_OK) {
+        std::lock_guard lock { uart_write_mutex };
+        std::copy_n(new_intron.begin(), sizeof(tx_message.intron), tx_message.intron);
+    }
+    pbuf_free(pbuf);
+
     return err;
 }
 
