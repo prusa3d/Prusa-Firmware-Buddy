@@ -18,7 +18,7 @@ class IWindowText : public window_aligned_t {
         const color_scheme *pTextColorScheme;
     };
 
-    Font font;
+    Font font = Font::normal;
 
 public:
     padding_ui8_t padding; // TODO private
