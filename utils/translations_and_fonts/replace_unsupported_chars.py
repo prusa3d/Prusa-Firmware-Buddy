@@ -8,7 +8,28 @@ def replace_characters(file_path):
         '’': "'",  # RIGHT SINGLE QUOTATION MARK
         '…': '...',  # HORIZONTAL ELLIPSIS
         '\u00A0': ' ',  # NO BREAK SPACE
-        'µ': 'u'  # MICRO SIGN
+        'µ': 'u',  # MICRO SIGN
+        'μ': 'u',  # Another micro sign
+        '　': ' ',  # Japanese " "
+        '！': '!',  # Japanese !
+        '＆': '&',  # Japanese &
+        '（': '(',  # Japanese (
+        '）': ')',  # Japanese )
+        '１': '1',  # Japanese 1
+        '２': '2',  # Japanese 2
+        '３': '3',  # Japanese 3
+        '４': '4',  # Japanese 4
+        '５': '5',  # Japanese 5
+        '６': '6',  # Japanese 6
+        '７': '7',  # Japanese 7
+        '８': '8',  # Japanese 8
+        '９': '9',  # Japanese 9
+        '０': '0',  # Japanese 0
+        '：': ':',  # Japanese :
+        '？': '?',  # Japanese ?
+        '～': '~',  # Japanese ~
+        '℃':
+        '\u00B0C',  # Divide degree Celsius (unknown) to 2 known characters
     }
 
     # Read the contents of the file

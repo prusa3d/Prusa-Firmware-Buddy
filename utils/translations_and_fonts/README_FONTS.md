@@ -4,32 +4,60 @@
  * helping scripts and programs are run from the root directory of the project
  * Language names are not translated, so non-ascii characters contained in these names are not in *.po files. They are added in the lang.py script (line:242)
 
+# AUTOMATION
+This pipeline can be fully automated with a bash script for a single font case:
+The script expects:
+1. Preparation steps are all done
+2. Source pngs are named * / \{type}_\{w}x\{h}.png e.g. "15px-LiberationMono-regular_9x16.png"
+3. Script is run from root directory of project
 
-## Preparation
-1. It is necessary to aquire list of non-ascii symbols that are currently being used by the printer. Non-ascii symbols can be generated via utils/translations_and_fonts/lang.py script
+```bash
+w           - pixel width of given font
+h           - pixel height of given font
+type        - type of font used ("bold" / "regular")
+fnt_charset - set of characters ("full" / "digits" / "standard")
+
+./utils/translation_and_fonts/generate_single_fonts.sh
+```
+
+FOR GENERATION OF ALL FONTS AT ONCE USE:
+```bash
+./utils/translation_and_fonts/generate_all_fonts.sh
+```
+
+# Manual execution
+1. It is necessary to aquire list of all required symbols that are currently being used by the printer. Symbols can be generated via utils/translations_and_fonts/lang.py script
 ```bash
 mode           - Script is actually capable of doing multiple things -h will show you the
 input-dir      - Given argument should contain pre-generated files required; the directory needs to contain po files with translations
-output-dir  - Two files will be generated there,  non-ascii-chars.txt/.raw containing necessary characters
+output-dir     - Three files will be generated there,  full-chars.txt/standard-chars.txt/digits-chars.txt containing necessary characters
 ```
 
-2. New pngs with all ascii symbols and the non-ascii that were generated in the previous step are required.
+2. New pngs with all symbols are required.
  * !!! Symbols not found in the source pngs will be replaced with black squares at the end of the generated pngs in the following steps
  * !!! Source png needs to be of RGB type
 
  * Save source pngs to src/gui/res/fnt_src
 
-# Generating
+## Generating
+No we have to select, what character set option we want to generate. There are 3 possibilities:
+1. "full"       - contains full standard ASCII (32-127) + all needed non-ascii characters in latin + katakana
+2. "standard"   - contains full standard ASCII (32-127) + all needed non-ascii characters in latin
+3. "digits"     - contains only digits (0-9) + '%' + '?' + '.' + ' ' + '-'
 
-1. Run utils/translations_and_fonts/font.py. This script will generate png containing only symbols actually used in the translations:
+
+1. Run utils/translations_and_fonts/font.py. This script will generate png containing symbols of selected :
 ```bash
-non_ascii_chars  - path to non-ascii-chars file generated in previous steps, only the .txt variant works; "{path}non-ascii-chars.txt"
+charset_option      - character set option, "full" (standard ASCII + katakana) or "digits" (0-9 + '.' + '?' + '%' + '-')
+required_chars      - path to XXX-chars file generated in previous steps, only the .txt variant works; "{path}XXX-chars.txt" (XXX can be "full" / "standard" / "digits")
 src_png             - path to source pngs with all necessary symbols; if source png is not of RGB type, script will return ERROR; "src/gui/res/fnt_src/{name}"
+katakana_src_png    - path to katakana source pngs with all necessary japanese symbols; if source png is not of RGB type, script will return ERROR; "src/gui/res/fnt_src/{name}"
 char_width          - pixel width of given font
 char_height         - pixel height of given font
 dst_png             - destination path with name of the to be gnerated png;" src/gui/res/fnt_png/{name}"; convention is "font_{type}_{w}x{h}.png" e.g. "font_bold_9x16.png"
-ipp_path            - destionation path with name of the to be generated ipp file; ipp file contains indexes of non-ascii chars within generated png, therefore all generated ipps should be identical
-    One ipp file needs to be inlcuded within the "src/guiapi/include/fnt-indices.ipp", there is no problem with it being rewritten multiple times.
+ipp_path            - destination path with name of the to be generated ipp file; ipp file contains indexes of all chars required within generated png, therefore every character set option must have it's own ipp file.
+                      ipp file needs to be included within the "src/guiapi/include/", there is no problem with it being rewritten multiple times.
+                      It's either "src/guiapi/include/fnt-full-indices.ipp" or "src/guiapi/include/fnt-standard-indices.ipp" or "src/guiapi/include/fnt-digits-indices.ipp"
 ```
 
 2. Build tests; run this form project root directory
@@ -60,19 +88,8 @@ dst_filename - "src/gui/res/cc/{name}.hpp" destination of .hpp file to be includ
 type         - type of given font; e.g. "15px-LiberationMono-regular_9x16.png" -> type = regular
 width        - pixel width of given font
 height       - pixel height of given font
+charset      - charset number (full == 0 (standard + katakana), digits == 1 (digits + '.' + '?' + '%'))
 ```
 
 5. Redo steps 1-4 for all fonts that are to be changed
 6. At last chang includes in src/gui/fonts.cpp to the ones just added and cleanup unused ones
-
-# Alternatively included bash script can be used to do all above
-The script expects:
-1. Preparation steps are all done
-2. Source pngs are named * / \{type}_\{w}x\{h}.png e.g. "15px-LiberationMono-regular_9x16.png"
-3. Script is run from root directory of project
-
-```bash
-w           - pixel width of given font
-h           - pixel height of given font
-type        - type of font used
-```
