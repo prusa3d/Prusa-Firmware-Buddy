@@ -70,7 +70,7 @@ protected:
 
 #ifdef TRANSLATIONS_UNITTEST
     /// just accessors for raw data of derived classes for binary comparison inside unit tests
-    virtual const uint16_t *StringBegins() const = 0;
+    virtual const uint32_t *StringBegins() const = 0;
     virtual const uint8_t *Utf8Raw() const = 0;
 #endif
 };
@@ -97,7 +97,7 @@ public:
     }
 #ifdef TRANSLATIONS_UNITTEST
     /// just accessors for raw data of derived classes for binary comparison inside unit tests
-    virtual const uint16_t *StringBegins() const override { return rawData.stringBegins; }
+    virtual const uint32_t *StringBegins() const override { return rawData.stringBegins; }
     virtual const uint8_t *Utf8Raw() const override { return rawData.utf8Raw; }
 #endif
 };

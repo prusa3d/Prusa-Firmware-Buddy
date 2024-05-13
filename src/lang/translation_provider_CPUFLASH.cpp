@@ -9,6 +9,7 @@
 #include <option/enable_translation_es.h>
 #include <option/enable_translation_it.h>
 #include <option/enable_translation_pl.h>
+#include <option/enable_translation_jp.h>
 
 #if HAS_TRANSLATIONS()
     #include <option/translations_in_extflash.h>
@@ -34,7 +35,7 @@ const TPBSH::BucketRange TPBSH::hash_table[TPBSH::Buckets()] =
 
         #if ENABLE_TRANSLATION_CS()
         struct StringTableCS { // why the hell does clang-format indent this line so weird?
-    static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
+    static const uint32_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
@@ -54,7 +55,7 @@ ProviderRegistrator csReg("cs", &cs);
 
         #if ENABLE_TRANSLATION_DE()
 struct StringTableDE {
-    static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
+    static const uint32_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
@@ -74,7 +75,7 @@ ProviderRegistrator deReg("de", &de);
 
         #if ENABLE_TRANSLATION_ES()
 struct StringTableES {
-    static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
+    static const uint32_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
@@ -95,7 +96,7 @@ ProviderRegistrator esReg("es", &es);
         #include <option/enable_translation_fr.h>
         #if ENABLE_TRANSLATION_FR()
 struct StringTableFR {
-    static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
+    static const uint32_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
@@ -115,7 +116,7 @@ ProviderRegistrator frReg("fr", &fr);
 
         #if ENABLE_TRANSLATION_IT()
 struct StringTableIT {
-    static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
+    static const uint32_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
@@ -135,7 +136,7 @@ ProviderRegistrator itReg("it", &it);
 
         #if ENABLE_TRANSLATION_PL()
 struct StringTablePL {
-    static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
+    static const uint32_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
     static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
@@ -150,6 +151,27 @@ const CPUFLASHTranslationProviderPL::RawData CPUFLASHTranslationProviderPL::rawD
 namespace {
 static const CPUFLASHTranslationProviderPL pl;
 ProviderRegistrator plReg("pl", &pl);
+} // namespace
+        #endif
+
+        #if ENABLE_TRANSLATION_JP()
+struct StringTableJP {
+    static const uint32_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
+    static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
+};
+
+using CPUFLASHTranslationProviderJP = CPUFLASHTranslationProvider<StringTableJP>;
+
+            // precomputed indices and strings for the JP language
+            #include "stringBegins.jp.hpp"
+            #include "utf8Raw.jp.hpp"
+template <>
+const CPUFLASHTranslationProviderJP::RawData CPUFLASHTranslationProviderJP::rawData;
+
+namespace {
+static const CPUFLASHTranslationProviderJP jp;
+ProviderRegistrator jpReg("jp", &jp);
+
 } // namespace
         #endif
     #endif
