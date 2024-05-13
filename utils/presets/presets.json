@@ -78,6 +78,19 @@
             }
         },
         {
+            "name": "mini-en-jp",
+            "description": "Original Prusa MINI (EN & JP translation)",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "MINI",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "<default>",
+                "PRESET_COMPILE_OPTIONS": "",
+                "DEVELOPMENT_ITEMS_ENABLED": true,
+                "TRANSLATIONS_LIST": "jp"
+            }
+        },
+        {
             "name": "mk4",
             "description": "Original Prusa MK4 with xBuddy 0.2.7c or newer fw compatible, 400-step motors and planetary gearbox",
             "cacheVariables": {
