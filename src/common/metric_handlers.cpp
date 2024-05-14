@@ -83,36 +83,6 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
 }
 
 //
-// UART Handler
-//
-
-// TODO: encapsulate huart6 access in hwio.h (and get rid of externs!)
-// extern UART_HandleTypeDef huart6;
-
-static void uart_send_line([[maybe_unused]] const char *line) {
-    // TODO: Use DMA
-    // @@TODO solve usart clash with MMU
-    //    HAL_UART_Transmit(&huart6, (uint8_t *)line, strlen(line), HAL_MAX_DELAY);
-    //    HAL_UART_Transmit(&huart6, (uint8_t *)"\r\n", 2, HAL_MAX_DELAY);
-}
-
-static void uart_handler(metric_point_t *point) {
-    static int last_reported_timestamp = 0;
-    int timestamp_diff = point->timestamp - last_reported_timestamp;
-    last_reported_timestamp = point->timestamp;
-
-    char line[TEXTPROTOCOL_POINT_MAXLEN + 1];
-    textprotocol_append_point(line, sizeof(line), point, timestamp_diff);
-    uart_send_line(line);
-}
-
-metric_handler_t metric_handler_uart = {
-    .identifier = METRIC_HANDLER_UART_ID,
-    .name = "UART",
-    .handle_fn = uart_handler,
-};
-
-//
 // SysLog Handler
 //
 // Note: This is not required to be in CCMRAM and can be moved to regular RAM if needed.
