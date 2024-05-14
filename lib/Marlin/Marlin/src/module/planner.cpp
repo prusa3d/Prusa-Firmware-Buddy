@@ -2409,23 +2409,25 @@ void Motion_Parameters::save_reset() {
 }
 
 void Motion_Parameters::save() {
+  const auto &src = planner.user_settings;
+
   for (int i = 0; i < XYZE_N; ++i) {
-    mp.max_acceleration_mm_per_s2[i] = planner.settings.max_acceleration_mm_per_s2[i];
-    mp.max_feedrate_mm_s[i] = planner.settings.max_feedrate_mm_s[i];
+    mp.max_acceleration_mm_per_s2[i] = src.max_acceleration_mm_per_s2[i];
+    mp.max_feedrate_mm_s[i] = src.max_feedrate_mm_s[i];
   }
 
-  mp.min_segment_time_us = planner.settings.min_segment_time_us;
-  mp.acceleration = planner.settings.acceleration;
-  mp.retract_acceleration = planner.settings.retract_acceleration;
-  mp.travel_acceleration = planner.settings.travel_acceleration;
-  mp.min_feedrate_mm_s = planner.settings.min_feedrate_mm_s;
-  mp.min_travel_feedrate_mm_s = planner.settings.min_travel_feedrate_mm_s;
+  mp.min_segment_time_us = src.min_segment_time_us;
+  mp.acceleration = src.acceleration;
+  mp.retract_acceleration = src.retract_acceleration;
+  mp.travel_acceleration = src.travel_acceleration;
+  mp.min_feedrate_mm_s = src.min_feedrate_mm_s;
+  mp.min_travel_feedrate_mm_s = src.min_travel_feedrate_mm_s;
 
   #if DISABLED(CLASSIC_JERK)
     mp.junction_deviation_mm = planner.junction_deviation_mm;
   #endif
   #if HAS_CLASSIC_JERK
-    mp.max_jerk = planner.settings.max_jerk;
+    mp.max_jerk = src.max_jerk;
   #endif
 }
 
