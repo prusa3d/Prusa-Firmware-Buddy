@@ -324,7 +324,11 @@ public:
     }
 
     __attribute__((always_inline)) inline void toggle() const {
-        getHalPort()->ODR ^= m_halPin;
+        // WARNING: pass through BSRR to ensure the store operation remains atomic when DMA is involved
+        const auto port = getHalPort();
+        const uint32_t mask = static_cast<uint32_t>(m_halPin);
+        const uint32_t state = (port->ODR & mask);
+        port->BSRR = state ? mask << 16 : mask;
     }
 
     __attribute__((always_inline)) inline void set() const {
