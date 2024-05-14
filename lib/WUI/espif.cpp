@@ -236,7 +236,14 @@ static SemaphoreHandle_t tx_semaphore = nullptr;
 static HAL_StatusTypeDef tx_result;
 static bool tx_waiting = false;
 
-static pbuf *tx_pbuf = nullptr; // only valid when tx_waiting == true
+struct PBufDeleter {
+    inline void operator()(pbuf *data) {
+        pbuf_free(data);
+    }
+};
+using pbuf_smart = std::unique_ptr<pbuf, PBufDeleter>;
+using pbuf_variant = std::variant<pbuf *, pbuf_smart>;
+static pbuf_variant tx_pbuf = nullptr; // only valid when tx_waiting == true
 
 void espif_tx_callback() {
     // This is an interrupt handler for UART transmit completion. We want
@@ -258,7 +265,7 @@ static void espif_task_step() {
     // Note that we can't simply `assert(tx_waiting)` because transmit may
     // be initiated by code outside of the espif module.
     if (tx_waiting) {
-        if (tx_pbuf) {
+        if (std::visit([](const auto &buf) { return buf != nullptr; }, tx_pbuf)) {
             if constexpr (!option::has_embedded_esp32) {
                 // Predictive flow control - delay for ESP to load big enough buffer into UART driver
                 // This is hotfix for ESP8266 not supplying buffers fast enough
@@ -266,11 +273,18 @@ static void espif_task_step() {
                 osDelay(1);
             }
 
-            uint8_t *data = (uint8_t *)tx_pbuf->payload;
-            size_t size = tx_pbuf->len;
+            uint8_t *data = reinterpret_cast<uint8_t *>(std::visit([](const auto &buf) { return buf->payload; }, tx_pbuf));
+            size_t size = std::visit([](const auto &buf) { return buf->len; }, tx_pbuf);
+
             assert(can_be_used_by_dma(data));
-            tx_pbuf = tx_pbuf->next;
             tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, data, size);
+
+            if (std::holds_alternative<pbuf *>(tx_pbuf)) {
+                tx_pbuf = std::get<pbuf *>(tx_pbuf)->next;
+            } else {
+                tx_pbuf = nullptr;
+            }
+
             if (tx_result != HAL_OK) {
                 log_error(ESPIF, "HAL_UART_Transmit_DMA() failed: %d", tx_result);
                 tx_waiting = false;
@@ -312,10 +326,10 @@ static void espif_tx_update_metrics(uint32_t len) {
 }
 
 // FIXME: This casually uses HAL_StatusTypeDef as a err_t, which works for the OK case (both 0), but it is kinda sketchy.
-[[nodiscard]] static err_t espif_tx_raw(uint8_t message_type, uint8_t message_byte, pbuf *p) {
+[[nodiscard]] static err_t espif_tx_raw(uint8_t message_type, uint8_t message_byte, pbuf_variant p) {
     std::lock_guard lock { uart_write_mutex };
 
-    const uint16_t size = p ? p->tot_len : 0;
+    const uint16_t size = std::visit([](const auto &pbuf) { return pbuf != nullptr ? pbuf->tot_len : 0; }, p);
     espif_tx_update_metrics(sizeof(tx_message) + size);
     tx_message.type = message_type;
     tx_message.byte = message_byte;
@@ -324,7 +338,7 @@ static void espif_tx_update_metrics(uint32_t len) {
     assert(!tx_waiting);
     taskENTER_CRITICAL();
     tx_waiting = true;
-    tx_pbuf = p;
+    tx_pbuf = std::move(p);
     assert(can_be_used_by_dma(&tx_message));
     HAL_StatusTypeDef tx_result = HAL_UART_Transmit_DMA(&ESP_UART_HANDLE, (uint8_t *)&tx_message, sizeof(tx_message));
     if (tx_result == HAL_OK) {
@@ -363,7 +377,7 @@ static void espif_tx_update_metrics(uint32_t len) {
     const uint8_t pass_len = strlen(pass);
     const uint16_t length = sizeof(new_intron) + sizeof(ssid_len) + ssid_len + sizeof(pass_len) + pass_len;
 
-    pbuf *pbuf = pbuf_alloc(PBUF_RAW, length, PBUF_RAM);
+    auto pbuf = pbuf_smart { pbuf_alloc(PBUF_RAW, length, PBUF_RAM) };
     if (!pbuf) {
         return ERR_MEM;
     }
@@ -379,12 +393,11 @@ static void espif_tx_update_metrics(uint32_t len) {
         assert(buffer == (uint8_t *)pbuf->payload + length);
     }
 
-    err_t err = espif_tx_raw(MSG_CLIENTCONFIG_V2, 0, pbuf);
+    err_t err = espif_tx_raw(MSG_CLIENTCONFIG_V2, 0, pbuf_variant { std::move(pbuf) });
     if (err == ERR_OK) {
         std::lock_guard lock { uart_write_mutex };
         std::copy_n(new_intron.begin(), sizeof(tx_message.intron), tx_message.intron);
     }
-    pbuf_free(pbuf);
 
     return err;
 }
