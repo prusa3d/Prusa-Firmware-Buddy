@@ -146,6 +146,14 @@ inline constexpr const char *get_response_text(Response response) {
         return "Tool4";
     case Response::Tool5:
         return "Tool5";
+
+    case Response::Custom1:
+    case Response::Custom2:
+    case Response::Custom3:
+    case Response::Custom4:
+    case Response::Custom5:
+        return "#CUSTOM#";
+
     case Response::_count:
         break;
     }
