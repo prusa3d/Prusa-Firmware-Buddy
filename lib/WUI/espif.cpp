@@ -98,13 +98,7 @@ enum MessageType {
     MSG_SCAN_AP_GET = 11,
 };
 
-#if PRINTER_IS_PRUSA_XL
-// ESP32 FW version
-static constexpr uint8_t SUPPORTED_FW_VERSION = 10;
-#else
-// ESP8266 FW version
 static constexpr uint8_t SUPPORTED_FW_VERSION = 12;
-#endif
 
 // NIC state
 static std::atomic<uint8_t> fw_version;
