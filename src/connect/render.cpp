@@ -299,9 +299,10 @@ namespace {
                     if (params.enclosure_info.present) {
                         JSON_FIELD_OBJ("enclosure");
                             JSON_FIELD_BOOL("enabled", params.enclosure_info.enabled) JSON_COMMA;
-                            JSON_FIELD_BOOL("always_on", params.enclosure_info.always_on) JSON_COMMA;
+                            JSON_FIELD_BOOL("printing_filtration", params.enclosure_info.printing_filtration) JSON_COMMA;
                             JSON_FIELD_BOOL("post_print", params.enclosure_info.post_print) JSON_COMMA;
-                            JSON_FIELD_INT("filter_lifetime", Enclosure::expiration_deadline_sec / 3600) JSON_COMMA;
+                            JSON_FIELD_INT("post_print_filtration_time", params.enclosure_info.post_print_filtration_time) JSON_COMMA;
+                            JSON_FIELD_INT("filter_lifetime", Enclosure::expiration_deadline_sec) JSON_COMMA;
                             JSON_FIELD_ARR("filtration_filaments");
                             state.iter = 0;
                             while (state.iter <  std::size(Enclosure::filaments_requiring_filtration)) {

@@ -54,8 +54,9 @@ public:
         // in INFO
         bool present = false;
         bool enabled = false;
-        bool always_on = false;
+        bool printing_filtration = false;
         bool post_print = false;
+        uint16_t post_print_filtration_time = 0;
 
         // in TELEMETRY
         int temp {};
