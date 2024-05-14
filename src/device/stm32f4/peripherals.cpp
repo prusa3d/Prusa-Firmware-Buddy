@@ -10,6 +10,7 @@
 #include "adc.hpp"
 #include "timer_defaults.h"
 #include "PCA9557.hpp"
+#include "TCA6408A.hpp"
 #include "log.h"
 #include "timing_precise.hpp"
 #include "data_exchange.hpp"
@@ -102,9 +103,18 @@ RNG_HandleTypeDef hrng;
 
 #if BOARD_IS_XLBUDDY
 namespace buddy::hw {
-PCA9557 io_expander1(I2C_HANDLE_FOR(io_extender), 0x1);
+PCA9557 io_expander1(I2C_HANDLE_FOR(io_expander1), 0x1);
 }
 #endif
+
+#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+namespace buddy::hw {
+TCA6408A io_expander2(I2C_HANDLE_FOR(io_expander2));
+    #if BOARD_IS_XLBUDDY
+PCA9557 io_expander1(I2C_HANDLE_FOR(io_expander1), 0x1);
+    #endif // BOARD_IS_XLBUDDY
+} // namespace buddy::hw
+#endif // BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
 
 //
 // Initialization

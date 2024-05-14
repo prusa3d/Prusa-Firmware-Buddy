@@ -3,6 +3,7 @@
 #pragma once
 
 #include "PCA9557.hpp"
+#include "TCA6408A.hpp"
 #include <stdint.h>
 #include <device/board.h>
 #include "printers.h"
@@ -164,6 +165,7 @@ inline Pin::State xyProbeReadFn();
 namespace buddy::hw {
 
 extern PCA9557 io_expander1;
+extern TCA6408A io_expander2;
 
 // Following pins are connected differently depending on HW revision -> we'll determine where they are during runtime in hwio_configure_board_revision_changed_pins
 extern const OutputPin *Buzzer;

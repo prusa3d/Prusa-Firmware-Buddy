@@ -393,6 +393,13 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
     #else
         #error "Unknown board."
     #endif // #if (BOARD_TYPE == BUDDY_BOARD)
+
+    #if BOARD_IS_XBUDDY
+        #include "TCA6408A.hpp"
+        namespace buddy::hw {
+            extern TCA6408A io_expander2;
+        }
+    #endif // BOARD_IS_XBUDDY
 // clang-format on
 
 /**
