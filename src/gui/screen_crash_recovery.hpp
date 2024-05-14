@@ -104,6 +104,5 @@ public:
 private:
     void change_phase(PhasesCrashRecovery ph);
 
-private:
     PhasesCrashRecovery current_phase = PhasesCrashRecovery::_last;
 };
