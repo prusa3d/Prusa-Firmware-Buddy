@@ -147,7 +147,7 @@ class TWIBus {
     void addstring(char str[]);
 
     /**
-     * @brief Set the target slave address
+     * @brief Set the target slave address (if address is not restricted)
      * @details The target slave address for sending the full packet
      *
      * @param adr 7-bit integer address

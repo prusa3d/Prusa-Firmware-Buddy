@@ -25,6 +25,10 @@
 #if ENABLED(EXPERIMENTAL_I2CBUS)
 
 #include "twibus.h"
+#include "hwio_pindef.h"
+#include "i2c.hpp"
+
+static constexpr uint16_t i2c_timeout_ms = 100;
 
 FORCE_INLINE char hex_nybble(const uint8_t n) {
   return (n & 0xF) + ((n & 0xF) < 10 ? '0' : 'A' - 10);
@@ -115,10 +119,18 @@ void TWIBus::addstring(char str[]) {
 void TWIBus::send() {
   debug(F("send"), addr);
   
-  i2c::Result ret = i2c::Transmit(I2C_HANDLE_FOR(gcode), addr << 1, buffer, buffer_s, 100);
-  reset();
+  #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+  if (addr == buddy::hw::io_expander2.fixed_addr) [[unlikely]] {
+    // In io_expander2 we only support single byte write (bits correspond to pins)
+    buddy::hw::io_expander2.write(buffer[0]);
+  } else [[likely]] 
+  #endif
+  {
+    i2c::Result ret = i2c::Transmit(I2C_HANDLE_FOR(gcode), addr << 1, buffer, buffer_s, i2c_timeout_ms);
+    check_hal_response(ret);
+  }
 
-  check_hal_response(ret);
+  reset();
 }
 
 bool TWIBus::check_hal_response(i2c::Result response) {
@@ -126,8 +138,7 @@ bool TWIBus::check_hal_response(i2c::Result response) {
     return true;
   }
 
-  switch (response)
-  {
+  switch (response) {
   case i2c::Result::error:
     SERIAL_ERROR_MSG("TWIBus::send failed with: ERROR");
     break;
@@ -187,7 +198,12 @@ void TWIBus::echodata(uint8_t bytes, FSTR_P const pref, uint8_t adr, const uint8
 }
 
 bool TWIBus::request(const uint8_t bytes) {
-  if (!addr) return false;
+  // io_expander2's has a disabled read
+  if (!addr
+  #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+    || addr == buddy::hw::io_expander2.fixed_addr
+  #endif
+  ) return false;
 
   debug(F("request"), bytes);
 
@@ -199,7 +215,7 @@ bool TWIBus::request(const uint8_t bytes) {
 
   flush();
 
-  i2c::Result ret = i2c::Receive(I2C_HANDLE_FOR(gcode), addr << 1 | 0x1, read_buffer, bytes, 100);
+  i2c::Result ret = i2c::Receive(I2C_HANDLE_FOR(gcode), addr << 1 | 0x1, read_buffer, bytes, i2c_timeout_ms);
 
   if (!check_hal_response(ret)) {
     return false;

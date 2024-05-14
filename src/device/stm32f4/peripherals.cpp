@@ -101,12 +101,6 @@ TIM_HandleTypeDef htim14;
 RTC_HandleTypeDef hrtc;
 RNG_HandleTypeDef hrng;
 
-#if BOARD_IS_XLBUDDY
-namespace buddy::hw {
-PCA9557 io_expander1(I2C_HANDLE_FOR(io_expander1), 0x1);
-}
-#endif
-
 #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
 namespace buddy::hw {
 TCA6408A io_expander2(I2C_HANDLE_FOR(io_expander2));

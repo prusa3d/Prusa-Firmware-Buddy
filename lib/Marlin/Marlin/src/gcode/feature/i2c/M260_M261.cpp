@@ -28,6 +28,10 @@
 
 #include "../../../feature/twibus.h"
 
+/** \addtogroup G-Codes
+ * @{
+ */
+
 /**
  * M260: Send data to a I2C slave device
  *
@@ -50,7 +54,7 @@ void GcodeSuite::M260() {
       return;
     }
   }
-
+  
   // Add a new byte to the buffer
   if (parser.seenval('B')) twibus.addbyte(parser.value_byte());
 
@@ -67,7 +71,7 @@ void GcodeSuite::M260() {
  * Usage: M261 A<slave device address base 10> B<number of bytes> S<style>
  */
 void GcodeSuite::M261() {
-  if (parser.seenval('A')) {
+  if (parser.seenval('A')) { 
     if (!twibus.address(parser.value_byte())) {
       return;
     }
@@ -81,5 +85,7 @@ void GcodeSuite::M261() {
   else
     SERIAL_ERROR_MSG("Bad i2c request");
 }
+
+/** @}*/
 
 #endif
