@@ -193,8 +193,10 @@ Printer::Params MarlinPrinter::params() const {
     params.enclosure_info = {
         .present = xl_enclosure.isActive(),
         .enabled = xl_enclosure.isEnabled(),
-        .always_on = xl_enclosure.isAlwaysOnEnabled(),
+        .printing_filtration = xl_enclosure.isAlwaysOnEnabled(),
         .post_print = xl_enclosure.isPostPrintEnabled(),
+        // it is stored is minutes, but we want seconds, so that it is consistent with the rest
+        .post_print_filtration_time = static_cast<uint16_t>(config_store().xl_enclosure_post_print_duration.get() * 60),
         .temp = xl_enclosure.isTemperatureValid() ? xl_enclosure.getEnclosureTemperature() : 0,
         .fan_rpm = Fans::enclosure().getActualRPM(),
         .time_in_use = std::min(config_store().xl_enclosure_filter_timer.get(), Enclosure::expiration_deadline_sec)

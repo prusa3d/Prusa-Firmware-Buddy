@@ -127,8 +127,9 @@ uint32_t Printer::info_fingerprint() const {
 #if XL_ENCLOSURE_SUPPORT()
         .add(parameters.enclosure_info.present)
         .add(parameters.enclosure_info.enabled)
-        .add(parameters.enclosure_info.always_on)
+        .add(parameters.enclosure_info.printing_filtration)
         .add(parameters.enclosure_info.post_print)
+        .add(parameters.enclosure_info.post_print_filtration_time)
 #endif
         .done();
 }
