@@ -778,7 +778,7 @@
 
 /// HW limits of max acceleration
 #define HWLIMIT_NORMAL_MAX_ACCELERATION \
-    { 4000, 4000, 200, 2500 }
+    { 7000, 7000, 200, 2500 }
 #define HWLIMIT_STEALTH_MAX_ACCELERATION \
     { 2500, 2500, 200, 2500 }
 
@@ -828,7 +828,7 @@
 #define DEFAULT_EJERK 5 // May be used by Linear Advance
 
 /// HW limits of Jerk
-#define HWLIMIT_NORMAL_JERK { 8, 8, 2, 10 }
+#define HWLIMIT_NORMAL_JERK { 10, 10, 2, 10 }
 #define HWLIMIT_STEALTH_JERK { 8, 8, 2, 10 }
 
 /**
