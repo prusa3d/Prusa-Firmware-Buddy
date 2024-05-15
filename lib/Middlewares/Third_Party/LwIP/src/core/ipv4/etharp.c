@@ -637,7 +637,6 @@ etharp_get_entry(size_t i, ip4_addr_t **ipaddr, struct netif **netif, struct eth
  *
  * @see pbuf_free()
  */
-LOG_COMPONENT_DEF(ARP, LOG_SEVERITY_INFO);
 void
 etharp_input(struct pbuf *p, struct netif *netif)
 {
