@@ -511,7 +511,7 @@ void handle_nfc() {
     if (last_check > current_time || (current_time - last_check) >= 200 /* FIXME */) {
         last_check = current_time;
 
-        if (const std::optional<WifiCredentials> wifi_credentials = nfc::try_detect_wifi_credentials()) {
+        if (const std::optional<WifiCredentials> wifi_credentials = nfc::consume_nfc_data()) {
             network_wizard::network_nfc_wizard(*wifi_credentials);
         }
     }

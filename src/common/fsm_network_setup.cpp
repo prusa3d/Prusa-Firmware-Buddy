@@ -61,7 +61,7 @@ private:
         }
 
         last_nfc_check_ms_ = current_ms;
-        const auto credentials = nfc::try_detect_wifi_credentials();
+        const auto credentials = nfc::consume_nfc_data();
 
         if (!credentials) {
             return std::nullopt;

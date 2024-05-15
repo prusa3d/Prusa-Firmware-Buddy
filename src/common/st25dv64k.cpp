@@ -525,7 +525,7 @@ std::optional<WifiCredentials> iterate_ndef(uint16_t from, uint16_t to) {
     return {};
 }
 
-std::optional<WifiCredentials> try_detect_wifi_credentials() {
+std::optional<WifiCredentials> consume_nfc_data() {
     static uint8_t old_state { 0 };
     uint8_t state { 0 };
 
@@ -556,10 +556,8 @@ std::optional<WifiCredentials> try_detect_wifi_credentials() {
     }
     old_state = state;
 
-    if (credentials) {
-        // reset the data
-        nfc::init_printer_id();
-    }
+    // Always reset the eeprom data, even if we didn't understand them.
+    nfc::init_printer_id();
 
     return credentials;
 }
