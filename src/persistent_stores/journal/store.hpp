@@ -22,9 +22,9 @@ consteval uint16_t hash(std::string_view name) {
     return get_generated_hash(name);
 }
 
-template <BackendC BackendT, BackendT &(*backend)()>
+template <BackendC BackendT, auto backend>
 struct CurrentStoreConfig {
-    static BackendT &get_backend() { return backend(); };
+    static inline BackendT &get_backend() { return backend(); };
     using Backend = BackendT;
     template <StoreItemDataC DataT, const DataT &default_val, typename BackendT::Id id>
     using StoreItem = JournalItem<DataT, default_val, backend, id>;
