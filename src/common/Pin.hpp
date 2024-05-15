@@ -174,7 +174,7 @@ public:
         , m_mode(iMode)
         , m_pull(pull) {}
     State read() const {
-        if ((getHalPort()->IDR & m_halPin) != (uint32_t)GPIO_PIN_RESET) {
+        if ((getHalPort()->IDR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
             return State::high;
         } else {
             return State::low;
@@ -250,7 +250,7 @@ public:
         : InterruptPin(ioPort, ioPin, iMode, pull, preemptPriority, subPriority) {}
 
     State read() const {
-        if ((getHalPort()->IDR & m_halPin) != (uint32_t)GPIO_PIN_RESET) {
+        if ((getHalPort()->IDR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
             return State::low;
         } else {
             return State::high;
@@ -319,16 +319,16 @@ public:
         if (pinState != State::low) {
             getHalPort()->BSRR = m_halPin;
         } else {
-            getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+            getHalPort()->BSRR = m_halPin << 16U;
         }
     }
 
     __attribute__((always_inline)) inline void toggle() const {
         // WARNING: pass through BSRR to ensure the store operation remains atomic when DMA is involved
         const auto port = getHalPort();
-        const uint32_t mask = static_cast<uint32_t>(m_halPin);
+        const uint32_t mask = m_halPin;
         const uint32_t state = (port->ODR & mask);
-        port->BSRR = state ? mask << 16 : mask;
+        port->BSRR = state ? mask << 16U : mask;
     }
 
     __attribute__((always_inline)) inline void set() const {
@@ -336,7 +336,7 @@ public:
     }
 
     __attribute__((always_inline)) inline void reset() const {
-        getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+        getHalPort()->BSRR = m_halPin << 16U;
     }
 
     void configure() const;
@@ -370,14 +370,14 @@ public:
     }
     void write(State pinState) const {
         if (pinState != State::low) {
-            getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+            getHalPort()->BSRR = m_halPin << 16U;
         } else {
             getHalPort()->BSRR = m_halPin;
         }
     }
 
     __attribute__((always_inline)) inline void set() const {
-        getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+        getHalPort()->BSRR = m_halPin << 16U;
     }
 
     __attribute__((always_inline)) inline void reset() const {
@@ -404,7 +404,7 @@ public:
 
 private:
     State read() const {
-        if ((getHalPort()->IDR & m_halPin) != (uint32_t)GPIO_PIN_RESET) {
+        if ((getHalPort()->IDR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
             return State::high;
         } else {
             return State::low;
@@ -432,7 +432,7 @@ private:
         if (pinState != State::low) {
             getHalPort()->BSRR = m_halPin;
         } else {
-            getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+            getHalPort()->BSRR = m_halPin << 16U;
         }
     }
     void enableInput() const {
