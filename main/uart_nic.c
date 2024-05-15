@@ -556,7 +556,7 @@ static void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult* ap_info
     queue_item.header.type = MSG_SCAN_AP_GET;
     queue_item.header.ap_index = index;
     queue_item.header.size = htons(sizeof(*ap_info));
-    queue_item.data = (uint8_t *)(&ap_info);
+    queue_item.data = (uint8_t *)(ap_info);
 
     if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
         ESP_LOGE(TAG, "xQueueSendToBack failed (uart0tx)");
