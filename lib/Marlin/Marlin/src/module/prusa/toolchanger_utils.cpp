@@ -23,6 +23,18 @@ using namespace buddy::puppies;
 
 static_assert(EXTRUDERS == dwarfs.size());
 
+float PrusaToolChangerUtils::limit_stealth_feedrate(float feedrate) {
+    // If the HWLIMIT_STEALTH_MAX_FEEDRATE changes, this function needs to be revisited
+    static_assert(std::to_array(HWLIMIT_STEALTH_MAX_FEEDRATE) == std::to_array({ 140, 140, 12, 100 }));
+
+    // In stealth mode, various travel speeds get reduced to HWLIMIT_STEALTH_MAX_FEEDRATE, which is 140 mm/s.
+    // Unfortunately, the printer has some ugly resonancies when moving at this speed.
+    // Changing the stealth feedrate was not allowed.
+    // So instead, we're further lowering the travel feedrates in stealth mode.
+    // BFW-5496
+    return config_store().stealth_mode.get() ? std::min<float>(feedrate, 80) : feedrate;
+}
+
 PrusaToolChangerUtils::PrusaToolChangerUtils() {
     tool_info.fill({ 0, 0 });
 }

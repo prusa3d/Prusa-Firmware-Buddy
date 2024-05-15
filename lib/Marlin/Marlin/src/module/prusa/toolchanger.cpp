@@ -614,8 +614,8 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
     const xy_pos_t target_pos = { info.dock_x + PARK_X_OFFSET_1, SAFE_Y_WITH_TOOL };
 
     // reduce maximum parking speed to improve reliability during constant toolchanging
-    float target_fr = fminf(PARKING_FINAL_MAX_SPEED, feedrate_mm_s);
-    float tangent_fr = fminf(TRAVEL_MOVE_MM_S, feedrate_mm_s);
+    float target_fr = limit_stealth_feedrate(fminf(PARKING_FINAL_MAX_SPEED, feedrate_mm_s));
+    float tangent_fr = limit_stealth_feedrate(fminf(TRAVEL_MOVE_MM_S, feedrate_mm_s));
 
     // Arc will not be limited by jerk
     planner.set_max_jerk(AxisEnum::X_AXIS, arc_move::arc_tg_jerk);
@@ -719,6 +719,8 @@ bool PrusaToolChanger::align_locks() {
     Crash_Temporary_Deactivate ctd;
     #endif
 
+    const float travel_feedrate = limit_stealth_feedrate(fmaxf(feedrate_mm_s, TRAVEL_MOVE_MM_S));
+
     // Move to safe position before homing move
     if (can_move_safely()) {
         if (current_position.y > SAFE_Y_WITHOUT_TOOL) {
@@ -727,7 +729,7 @@ bool PrusaToolChanger::align_locks() {
         }
 
         // Go to the front right corner quickly, so homing is not too long
-        move(X_MAX_POS, 0, feedrate_mm_s > TRAVEL_MOVE_MM_S ? feedrate_mm_s : TRAVEL_MOVE_MM_S);
+        move(X_MAX_POS, 0, travel_feedrate);
     } else {
         // A bit back in case the carriage is near tool
         do_homing_move(Y_AXIS, SAFE_Y_WITHOUT_TOOL - DOCK_DEFAULT_Y_MM);
@@ -745,7 +747,7 @@ bool PrusaToolChanger::align_locks() {
     sync_plan_position();
 
     // Return to left edge before homing
-    move(0, current_position.y, feedrate_mm_s > TRAVEL_MOVE_MM_S ? feedrate_mm_s : TRAVEL_MOVE_MM_S);
+    move(0, current_position.y, travel_feedrate);
     planner.synchronize();
 
     return true;
@@ -768,8 +770,10 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
 
     const PrusaToolInfo &info = get_tool_info(dwarf, /*check_calibrated=*/true);
 
-    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // go in front of the tool
-    move(info.dock_x, info.dock_y + PICK_Y_OFFSET, feedrate_mm_s); // pre-insert fast the tool
+    const auto limited_feedrate = limit_stealth_feedrate(feedrate_mm_s);
+
+    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, limited_feedrate); // go in front of the tool
+    move(info.dock_x, info.dock_y + PICK_Y_OFFSET, limited_feedrate); // pre-insert fast the tool
 
     {
         auto s = planner.user_settings;
@@ -824,7 +828,7 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
         return false;
     }
 
-    move(info.dock_x + PICK_X_OFFSET_3, SAFE_Y_WITH_TOOL, feedrate_mm_s); // tool extracted
+    move(info.dock_x + PICK_X_OFFSET_3, SAFE_Y_WITH_TOOL, limited_feedrate); // tool extracted
 
     log_info(PrusaToolChanger, "Dwarf %u picked successfully", dwarf.get_dwarf_nr());
     Odometer_s::instance().add_toolpick(dwarf.get_dwarf_nr() - 1); // Count picks
@@ -833,7 +837,7 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
 
 void PrusaToolChanger::unpark_to(const xy_pos_t &destination) {
     // Limit feedrate during the arc
-    float arc_fr = fminf(TRAVEL_MOVE_MM_S, feedrate_mm_s);
+    float arc_fr = limit_stealth_feedrate(fminf(TRAVEL_MOVE_MM_S, feedrate_mm_s));
 
     // Arc will not be limited by jerk
     planner.set_max_jerk(AxisEnum::X_AXIS, arc_move::arc_tg_jerk);

@@ -201,7 +201,12 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 
       TERN_(SENSORLESS_HOMING, safe_delay(500)); // Short delay needed to settle
 
+#if ENABLED(PRUSA_TOOLCHANGER)
+      do_blocking_move_to_xy(destination, PrusaToolChanger::limit_stealth_feedrate(feedrate_mm_s));
+#else
       do_blocking_move_to_xy(destination);
+#endif
+
       if (!homeaxis(Z_AXIS)) {
         return false;
       }
