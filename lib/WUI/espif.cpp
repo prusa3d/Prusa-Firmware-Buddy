@@ -140,7 +140,7 @@ struct ScanData {
     uint16_t ap_ssid_read = 0;
     ESPIFOperatingMode prescan_op_mode = ESPIF_UNINITIALIZED_MODE;
     std::atomic<uint8_t> ap_count = 0;
-    static constexpr auto SYNC_EVENT_TIMEOUT = 500 /*ms*/;
+    static constexpr auto SYNC_EVENT_TIMEOUT = 10 /*ms*/;
     static freertos::Mutex get_ap_info_mutex;
 };
 
@@ -525,15 +525,32 @@ uint8_t espif::scan::get_ap_count() {
     std::lock_guard lock(ScanData::get_ap_info_mutex);
     ::scan.ap_ssid_buffer = buffer;
 
-    const auto err = espif_tx_raw(MSG_SCAN_AP_GET, index, nullptr);
-    if (err != ERR_OK) {
-        return err;
+    ::scan.awaiter = xTaskGetCurrentTaskHandle();
+    int tries = 10;
+
+    bool ok = false;
+    err_t last_error = ERR_OK;
+    while (tries >= 0) {
+        --tries;
+        const auto err = espif_tx_raw(MSG_SCAN_AP_GET, index, nullptr);
+
+        if (err != ERR_OK) {
+            last_error = err;
+            continue;
+        }
+
+        if (xTaskNotifyWait(0, 0, nullptr, pdMS_TO_TICKS(ScanData::SYNC_EVENT_TIMEOUT))) {
+            ok = true;
+            last_error = ERR_OK;
+            break;
+        } else {
+            last_error = ERR_IF;
+        }
     }
 
-    // TODO: find a nicer way to wait for the data (probably queues)
-    ::scan.awaiter = xTaskGetCurrentTaskHandle();
-    if (xTaskNotifyWait(0, 0, nullptr, pdMS_TO_TICKS(ScanData::SYNC_EVENT_TIMEOUT)) == pdFALSE) {
-        return ERR_IF;
+    if (!ok) {
+        ::scan.awaiter = nullptr;
+        return last_error;
     }
     needs_password = ::scan.ap_ssid_requires_password;
     return ERR_OK;
