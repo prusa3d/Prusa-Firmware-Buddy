@@ -40,6 +40,10 @@ public:
     static constexpr auto PICK_X_OFFSET_2 = -12.8f; ///< Offset from dock_x when tool is fully locked [mm]
     static constexpr auto PICK_X_OFFSET_3 = -9.9f; ///< Offset from dock_x when tool can be pulled from the dock area [mm]
 
+    /// Feedrate for moves around dock
+    static float limit_stealth_feedrate(float feedrate);
+
+public:
     PrusaToolChangerUtils();
 
     /**
