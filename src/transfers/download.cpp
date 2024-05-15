@@ -20,8 +20,6 @@
 #include <lwip/altcp_tcp.h>
 #include <lwip/dns.h>
 
-LOG_COMPONENT_REF(transfers);
-
 using automata::ExecutionControl;
 using http::ContentEncryptionMode;
 using http::Error;
@@ -52,6 +50,17 @@ size_t strlcat(char *, const char *, size_t);
 namespace {
 
 constexpr size_t MAX_REQ_SIZE = 512;
+// We split the request into segments, request each one separately. This
+// prevents the TCP buffers on sender side (or any proxy / middleware thing in
+// the way that is not possible to control directly) from „overfilling“. That
+// would queue up a lot of data and we couldn't process other commands fast
+// enough.
+//
+// By splitting this into smaller requests (256 kB currently), it should
+// "drain" each time and allow the commands to come. We should be able to
+// process this in order of seconds, but won't introduce too much overhead
+// (hopefully).
+constexpr uint32_t INLINE_SEGMENT_SIZE = 512 * 512;
 
 } // namespace
 
@@ -489,12 +498,19 @@ PartialFile::Ptr Download::get_partial_file() const {
 }
 
 optional<Download::InlineRequest> Download::inline_request() {
-    if (auto *in = get_if<Inline>(&engine); in != nullptr && in->status == DownloadStep::Continue && !in->started) {
+    // We are in the inline mode and we didn't started yet (didn't ask for our first segment)
+    //
+    // - OR -
+    //
+    // We completed the previous segment and there is no other segment.
+    if (auto *in = get_if<Inline>(&engine); in != nullptr && in->status == DownloadStep::Continue && ((in->start > in->segment_end && in->segment_end != in->end) || !in->started)) {
         in->started = true;
+        uint32_t end = std::min(in->start + INLINE_SEGMENT_SIZE - 1 /* end is inclusive */, in->end);
+        in->segment_end = end;
         return InlineRequest {
             in->file_id,
             in->start,
-            in->end,
+            end,
         };
     } else {
         return nullopt;

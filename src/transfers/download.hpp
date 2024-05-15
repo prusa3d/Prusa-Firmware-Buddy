@@ -134,6 +134,7 @@ private:
         PartialFile::Ptr destination;
         DownloadStep status = DownloadStep::Continue;
         bool started = false;
+        uint32_t segment_end = 0;
     };
     using AsyncPtr = std::unique_ptr<Async, AsyncDeleter>;
     using Engine = std::variant<AsyncPtr, Inline>;
