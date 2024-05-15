@@ -130,7 +130,7 @@ class MI_WIFI : public IWindowMenuItem {
 
 public:
     MI_WIFI(int wifi_index, const char *ssid, bool needs_password)
-        : IWindowMenuItem({}, needs_password ? &img::wifi_16x16 : &img::warning_16x16)
+        : IWindowMenuItem({}, needs_password ? &img::wifi_16x16 : &img::wifi_insecure_16x16)
         , wifi_index_(wifi_index)
         , needs_password_(needs_password) {
         strlcpy(ssid_.data(), ssid, ssid_.size());
