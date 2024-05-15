@@ -29,7 +29,7 @@ namespace {
 //  constexpr const uint16_t REG_GPO = 0x0000;
 //  constexpr const uint16_t REG_IT_TIME = 0x0001;
 //  constexpr const uint16_t REG_EH_MODE = 0x0002;
-//  constexpr const uint16_t REG_RF_MNGT = 0x0003;
+constexpr const uint16_t REG_RF_MNGT = 0x0003;
 constexpr const uint16_t REG_RFA1SS = 0x0004;
 constexpr const uint16_t REG_ENDA1 = 0x0005;
 constexpr const uint16_t REG_RFA2SS = 0x0006;
@@ -525,6 +525,14 @@ std::optional<WifiCredentials> iterate_ndef(uint16_t from, uint16_t to) {
     }
 
     return {};
+}
+
+void turn_on() {
+    st25dv64k_wr_cfg(REG_RF_MNGT, 0b11);
+}
+
+void turn_off() {
+    st25dv64k_wr_cfg(REG_RF_MNGT, 0);
 }
 
 bool has_activity() {

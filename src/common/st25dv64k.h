@@ -28,6 +28,9 @@ void st25dv64k_present_pwd(uint8_t *pwd);
 
 namespace nfc {
 
+void turn_on();
+void turn_off();
+
 bool has_activity();
 
 std::optional<WifiCredentials> consume_data();
