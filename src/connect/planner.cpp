@@ -489,15 +489,6 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
         return ReadCommand {};
     }
 
-    if (transfer.has_value() && transfer->download.has_value()) {
-        // This call "consumes" the request, so we won't use it next time.
-        // Nevertheless, if the connection fails (we are unable to deliver it),
-        // the old download is discarded anyway and a new one is born.
-        if (auto request = transfer->download->inline_request(); request.has_value()) {
-            return *request;
-        }
-    }
-
     const bool printing = printer.is_printing();
     const bool changes = telemetry_changes.set_hash(params.telemetry_fingerprint(!printing));
     const bool want_short = printing || background_command.has_value() || observed_transfer.has_value();
@@ -507,6 +498,15 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
 
     const bool send_telemetry = since_telemetry >= TELEMETRY_INTERVAL_MIN && (changes || since_telemetry >= telemetry_interval);
     const bool want_full = changes || since_full >= TELEMETRY_INTERVAL_FULL;
+
+    if (!send_telemetry && transfer.has_value() && transfer->download.has_value()) {
+        // This call "consumes" the request, so we won't use it next time.
+        // Nevertheless, if the connection fails (we are unable to deliver it),
+        // the old download is discarded anyway and a new one is born.
+        if (auto request = transfer->download->inline_request(); request.has_value()) {
+            return *request;
+        }
+    }
 
     if (send_telemetry) {
         last_telemetry_mode = want_full ? SendTelemetry::Mode::Full : SendTelemetry::Mode::Reduced;
