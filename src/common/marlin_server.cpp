@@ -741,7 +741,7 @@ void loop() {
     cycle();
 
 #if HAS_NFC()
-    if (server.flags == (MARLIN_SFLG_STARTED | MARLIN_SFLG_PROCESS)) {
+    if (printer_idle() && !fsm_states.get_top().has_value()) {
         handle_nfc();
     }
 #endif
