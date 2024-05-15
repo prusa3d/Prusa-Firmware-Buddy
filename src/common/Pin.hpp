@@ -113,8 +113,8 @@ public:
         high = GPIO_PinState::GPIO_PIN_SET,
     };
 
-    static constexpr uint16_t IoPinToHal(IoPin ioPin) {
-        return (0x1U << static_cast<uint16_t>(ioPin));
+    static constexpr uint32_t IoPinToHal(IoPin ioPin) {
+        return (0x1U << static_cast<uint32_t>(ioPin));
     }
 
 protected:
@@ -133,7 +133,7 @@ private:
     const uint32_t m_halPortBase;
 
 protected:
-    const uint16_t m_halPin;
+    const uint32_t m_halPin;
     friend class PinChecker;
 };
 
@@ -151,7 +151,7 @@ public:
     static_assert(Pin::IoPinToHal(IoPin::p1) == GPIO_PIN_1, "IoPinToHal broken");
     static_assert(Pin::IoPinToHal(IoPin::p15) == GPIO_PIN_15, "IoPinToHal broken");
     constexpr uint32_t getPort() const { return m_halPortBase; }
-    constexpr uint16_t getPin() const { return m_halPin; }
+    constexpr uint32_t getPin() const { return m_halPin; }
 };
 
 enum class IMode {
