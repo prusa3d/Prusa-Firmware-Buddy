@@ -5,16 +5,15 @@
  */
 
 #include <cstring>
-#include "common/to_tie.hpp"
 #include "common/extract_member_pointer.hpp"
 #include "store_item.hpp"
 #include <tuple>
 #include <algorithm>
 #include <ranges>
-#include "indices.hpp"
 #include "utils/utility_extensions.hpp"
 #include "backend.hpp"
 #include <persistent_stores/journal/gen_journal_hashes.hpp>
+#include <common/visit_all_struct_fields.hpp>
 
 namespace journal {
 
@@ -64,8 +63,8 @@ template <class Config, class DeprecatedItems, const std::span<const journal::Ba
 class Store : public Config {
 
     void dump_items() {
-        to_tie(*static_cast<Config *>(this)).apply([](auto &&...args) {
-            (args.ram_dump(), ...);
+        visit_all_struct_fields(static_cast<Config &>(*this), [](auto &item) {
+            item.ram_dump();
         });
     }
 
@@ -78,15 +77,17 @@ public:
      * @param data Holds data in binary form to be loaded into current item
      */
     void load_item(uint16_t id, std::span<uint8_t> data) {
-        using TupleT = typename std::invoke_result<decltype(to_tie<Config>), Config &>::type;
-        auto constexpr indices = get_current_indices<Config>();
-        auto res = std::lower_bound(indices.cbegin(), indices.cend(), detail::CurrentItemIndex<TupleT>(id, nullptr),
-            [](const auto &a, const auto &b) { return a.id < b.id; });
-        if (res != indices.cend() && res->id == id) { // we found it in current RAM mirror
-            // load data to the item itself
-            auto tuple = to_tie(*static_cast<Config *>(this));
-            res->fnc(data, tuple);
-        }
+        visit_all_struct_fields(static_cast<Config &>(*this), [&]<typename Item>(Item &item) {
+            if (Item::hashed_id != id) {
+                return;
+            }
+
+            if (data.size() != sizeof(Item)) {
+                bsod("unexpected size difference");
+            }
+
+            item.init(*reinterpret_cast<const Item::value_type *>(data.data()));
+        });
     }
 
     void save_all() {

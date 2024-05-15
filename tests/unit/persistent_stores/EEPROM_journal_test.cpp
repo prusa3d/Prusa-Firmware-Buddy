@@ -784,15 +784,16 @@ TEST_CASE("journal::EEPROM::Item migration") {
     }
 }
 
+struct StoreConfig_BFW3553 : public CurrentStoreConfig<Backend, Test_EEPROM_journal> {
+    StoreItem<int32_t, default_int32_t, 0> int_item;
+};
+
 TEST_CASE("journal::EEPROM::Regression BFW-3553") {
     eeprom_chip.clear();
     reinit_journal();
     auto &backend = Test_EEPROM_journal();
 
-    struct StoreConfig : public CurrentStoreConfig<Backend, Test_EEPROM_journal> {
-        StoreItem<int32_t, default_int32_t, 0> int_item;
-    };
-    auto store = std::make_unique<Store<StoreConfig, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
+    auto store = std::make_unique<Store<StoreConfig_BFW3553, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
     store->init();
     store->load_all();
 
@@ -827,7 +828,7 @@ TEST_CASE("journal::EEPROM::Regression BFW-3553") {
     const auto reinit_store = [&] {
         store.reset();
         reinit_journal();
-        store = std::make_unique<Store<StoreConfig, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
+        store = std::make_unique<Store<StoreConfig_BFW3553, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
         store->init();
         store->load_all();
     };
