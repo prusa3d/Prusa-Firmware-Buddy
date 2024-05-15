@@ -67,8 +67,9 @@ void MI_WIFI_STATUS_t::update() {
                 return N_("Link down");
 
             case EspFwState::Unknown:
-                return N_("???");
+                return N_("Unknown");
             }
+
             return nullptr;
 
         case EspLinkState::NoAp:
