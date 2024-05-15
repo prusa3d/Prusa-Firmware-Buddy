@@ -13,6 +13,8 @@
 
 #include <FreeRTOS.h>
 #include <common/freertos_mutex.hpp>
+#include <common/metric.h>
+#include <common/freertos_queue.hpp>
 #include <task.h>
 #include <semphr.h>
 #include <ccm_thread.hpp>
@@ -132,19 +134,25 @@ static struct __attribute__((packed)) {
     .size = 0,
 };
 
+struct APInfo {
+    std::span<uint8_t> ssid;
+    uint8_t ap_index;
+    bool requires_password;
+};
+
 struct ScanData {
-    TaskHandle_t awaiter = nullptr;
     std::atomic<bool> is_running;
-    std::span<uint8_t> ap_ssid_buffer;
-    bool ap_ssid_requires_password;
+    APInfo result;
     uint16_t ap_ssid_read = 0;
     ESPIFOperatingMode prescan_op_mode = ESPIF_UNINITIALIZED_MODE;
     std::atomic<uint8_t> ap_count = 0;
     static constexpr auto SYNC_EVENT_TIMEOUT = 10 /*ms*/;
     static freertos::Mutex get_ap_info_mutex;
+    static freertos::Queue<APInfo, 1> ap_info_queue;
 };
 
 freertos::Mutex ScanData::get_ap_info_mutex {};
+freertos::Queue<APInfo, 1> ScanData::ap_info_queue;
 
 static ScanData scan;
 
@@ -523,13 +531,12 @@ uint8_t espif::scan::get_ap_count() {
     assert(index < ::scan.ap_count);
     assert(buffer.size() >= config_store_ns::wifi_max_ssid_len);
     std::lock_guard lock(ScanData::get_ap_info_mutex);
-    ::scan.ap_ssid_buffer = buffer;
+    ::scan.result.ssid = buffer;
 
-    ::scan.awaiter = xTaskGetCurrentTaskHandle();
     int tries = 10;
 
-    bool ok = false;
     err_t last_error = ERR_OK;
+    APInfo info {};
     while (tries >= 0) {
         --tries;
         const auto err = espif_tx_raw(MSG_SCAN_AP_GET, index, nullptr);
@@ -539,8 +546,8 @@ uint8_t espif::scan::get_ap_count() {
             continue;
         }
 
-        if (xTaskNotifyWait(0, 0, nullptr, pdMS_TO_TICKS(ScanData::SYNC_EVENT_TIMEOUT))) {
-            ok = true;
+        // There can be some old data in the queue if we just didn't make the timeout
+        if (ScanData::ap_info_queue.receive(info, pdMS_TO_TICKS(ScanData::SYNC_EVENT_TIMEOUT)) && info.ap_index == index && info.ssid.data() == buffer.data()) {
             last_error = ERR_OK;
             break;
         } else {
@@ -548,11 +555,10 @@ uint8_t espif::scan::get_ap_count() {
         }
     }
 
-    if (!ok) {
-        ::scan.awaiter = nullptr;
+    if (last_error != ERR_OK) {
         return last_error;
     }
-    needs_password = ::scan.ap_ssid_requires_password;
+    needs_password = info.requires_password;
     return ERR_OK;
 }
 
@@ -561,10 +567,7 @@ static void process_scan_ap_count(uint8_t ap_count) {
 }
 
 static void process_scan_ssid() {
-    if (scan.awaiter != nullptr) {
-        xTaskNotify(scan.awaiter, 0, eNoAction);
-        scan.awaiter = nullptr;
-    }
+    ScanData::ap_info_queue.send(::scan.result);
 }
 
 static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
@@ -650,6 +653,9 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
                 state = HeaderByte2;
                 break;
             case MSG_SCAN_AP_GET:
+                state = HeaderByte2;
+                ::scan.result.ap_index = *c++;
+                break;
             case MSG_SCAN_STOP:
                 state = HeaderByte2;
                 c++;
@@ -679,10 +685,10 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             assert(rx_len == 33);
 
             while (c < end && scan.ap_ssid_read < config_store_ns::wifi_max_ssid_len) {
-                scan.ap_ssid_buffer[scan.ap_ssid_read++] = *c++;
+                scan.result.ssid[scan.ap_ssid_read++] = *c++;
             }
             if (scan.ap_ssid_read == config_store_ns::wifi_max_ssid_len && c != end) {
-                scan.ap_ssid_requires_password = static_cast<bool>(*c++);
+                scan.result.requires_password = static_cast<bool>(*c++);
                 process_scan_ssid();
                 scan.ap_ssid_read = 0;
                 state = Intron;
