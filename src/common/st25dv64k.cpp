@@ -357,6 +357,8 @@ namespace ndef {
 
 } // namespace ndef
 
+uint8_t old_state { 0 };
+
 void init_printer_id() {
     // TXT info "PRUSA3D/MK4S"
     // generated using: ndeftool txt -l en "PRUSA3D/MK4S" | xxd -i
@@ -525,36 +527,38 @@ std::optional<WifiCredentials> iterate_ndef(uint16_t from, uint16_t to) {
     return {};
 }
 
-std::optional<WifiCredentials> consume_nfc_data() {
-    static uint8_t old_state { 0 };
+bool has_activity() {
     uint8_t state { 0 };
 
-    auto result = user_read_bytes(EepromCommand::memory, MEM_IT_STS_Dyn, &state, sizeof(state));
+    const auto result = user_read_bytes(EepromCommand::memory, MEM_IT_STS_Dyn, &state, sizeof(state));
     if (result != i2c::Result::ok || state == old_state) {
+        return false;
+    }
+
+    old_state = state;
+
+    return (state & nfc::field_falling);
+}
+
+std::optional<WifiCredentials> consume_data() {
+    std::optional<WifiCredentials> credentials;
+
+    ndef::TLVHeaderLong tlv;
+
+    const auto result = user_read_bytes(EepromCommand::memory, sizeof(nfc::CapabilityContainer), &tlv, sizeof(tlv));
+
+    if (result != i2c::Result::ok) {
+        // not accepting new state to try again next time
         return {};
     }
 
-    std::optional<WifiCredentials> credentials;
-
-    if (state & nfc::field_falling) {
-        ndef::TLVHeaderLong tlv;
-
-        result = user_read_bytes(EepromCommand::memory, sizeof(nfc::CapabilityContainer), &tlv, sizeof(tlv));
-
-        if (result != i2c::Result::ok) {
-            // not accepting new state to try again next time
-            return {};
-        }
-
-        if (tlv.type == ndef::Type::tlv) { // NDEF Message TLV
-            const uint16_t from = sizeof(nfc::CapabilityContainer)
-                + ((tlv.length1 == ndef::tlv_long_header) ? sizeof(ndef::TLVHeaderLong) : sizeof(ndef::TLVHeaderShort));
-            const uint16_t to = from
-                + ((tlv.length1 == ndef::tlv_long_header) ? ntohs(tlv.length2) : tlv.length1);
-            credentials = iterate_ndef(from, to);
-        }
+    if (tlv.type == ndef::Type::tlv) { // NDEF Message TLV
+        const uint16_t from = sizeof(nfc::CapabilityContainer)
+            + ((tlv.length1 == ndef::tlv_long_header) ? sizeof(ndef::TLVHeaderLong) : sizeof(ndef::TLVHeaderShort));
+        const uint16_t to = from
+            + ((tlv.length1 == ndef::tlv_long_header) ? ntohs(tlv.length2) : tlv.length1);
+        credentials = iterate_ndef(from, to);
     }
-    old_state = state;
 
     // Always reset the eeprom data, even if we didn't understand them.
     nfc::init_printer_id();

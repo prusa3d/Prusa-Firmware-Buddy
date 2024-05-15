@@ -62,12 +62,16 @@ private:
     PhaseOpt check_nfc() {
 #if HAS_NFC()
         const auto current_ms = ticks_ms();
-        if (ticks_diff(current_ms, last_nfc_check_ms_) < 1000) {
+        if (ticks_diff(current_ms, last_nfc_check_ms_) < 200) {
+            return std::nullopt;
+        }
+        last_nfc_check_ms_ = current_ms;
+
+        if (!nfc::has_activity()) {
             return std::nullopt;
         }
 
-        last_nfc_check_ms_ = current_ms;
-        const auto credentials = nfc::consume_nfc_data();
+        const auto credentials = nfc::consume_data();
 
         if (!credentials) {
             return std::nullopt;
