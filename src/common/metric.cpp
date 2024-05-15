@@ -38,7 +38,7 @@ osMailQDef(metric_system_queue, metric_system_queue_size, metric_point_t);
 static osMailQId metric_system_queue;
 
 // internal variables
-static metric_handler_t **metric_system_handlers;
+extern const metric_handler_t *const metric_system_handlers[]; ///< Defined in main.cpp
 static bool metric_system_initialized = false;
 static uint16_t dropped_points_count = 0;
 
@@ -48,11 +48,10 @@ LOG_COMPONENT_DEF(Metrics, LOG_SEVERITY_INFO);
 // internal metrics
 METRIC_DEF(metric_dropped_points, "points_dropped", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
-void metric_system_init(metric_handler_t *handlers[]) {
+void metric_system_init() {
     if (metric_system_initialized) {
         return;
     }
-    metric_system_handlers = handlers;
 
     // first create mail queue, then thread, Note that we pass nullptr as thread_id to osMailCreate, but its unused so its fine.
     metric_system_queue = osMailCreate(osMailQ(metric_system_queue), nullptr);
@@ -60,7 +59,7 @@ void metric_system_init(metric_handler_t *handlers[]) {
     metric_system_initialized = true;
 }
 
-metric_handler_t **metric_get_handlers() {
+metric_handler_list_t metric_get_handlers() {
     return metric_system_handlers;
 }
 
@@ -78,8 +77,8 @@ static void metric_system_task_run(const void *) {
         assert(event.status == osEventMail);
         metric_point_t *point = (metric_point_t *)event.value.p;
 
-        for (metric_handler_t **handlers = metric_system_handlers; *handlers != NULL; handlers++) {
-            metric_handler_t *handler = *handlers;
+        for (auto handlers = metric_system_handlers; *handlers; handlers++) {
+            const metric_handler_t *handler = *handlers;
             bool handler_enabled = point->metric->enabled_handlers & (1 << handler->identifier);
             if (handler_enabled) {
                 handler->handle_fn(point);
@@ -213,11 +212,11 @@ void metric_record_error(metric_t *metric, const char *fmt, ...) {
     point_enqueue(recording);
 }
 
-void metric_enable_for_handler(metric_t *metric, metric_handler_t *handler) {
+void metric_enable_for_handler(metric_t *metric, const metric_handler_t *handler) {
     metric->enabled_handlers |= (1 << handler->identifier);
 }
 
-void metric_disable_for_handler(metric_t *metric, metric_handler_t *handler) {
+void metric_disable_for_handler(metric_t *metric, const metric_handler_t *handler) {
     metric->enabled_handlers &= ~(1 << handler->identifier);
 }
 

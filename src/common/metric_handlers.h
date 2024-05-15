@@ -10,8 +10,8 @@ enum {
     METRIC_HANDLER_INFO_SCREEN,
 };
 
-extern metric_handler_t metric_handler_syslog;
-extern metric_handler_t metric_handler_info_screen;
+extern const metric_handler_t metric_handler_syslog;
+extern const metric_handler_t metric_handler_info_screen;
 
 /**
  * @brief Initialize metric handlers.

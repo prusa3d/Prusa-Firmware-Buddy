@@ -148,10 +148,12 @@ typedef struct {
     void (*handle_fn)(metric_point_t *point);
 } metric_handler_t;
 
+typedef const metric_handler_t *const *metric_handler_list_t;
+
 /// Initialize metrics
 ///
 /// Starts a new lightweight task processing all the recorded metrics.
-void metric_system_init(metric_handler_t *handlers[]);
+void metric_system_init();
 
 /// Record a float (metric.type has to be METRIC_VALUE_FLOAT)
 #define metric_record_float(metric, value) metric_record_float_at_time(metric, ticks_us(), value)
@@ -206,7 +208,7 @@ void __attribute__((format(__printf__, 2, 3)))
 metric_record_error(metric_t *metric, const char *fmt, ...);
 
 /// Return null-terminated list of handlers
-metric_handler_t **metric_get_handlers();
+metric_handler_list_t metric_get_handlers();
 
 /// Returns pointer to the first metric defintion
 metric_t *metric_get_iterator_begin();
@@ -215,10 +217,10 @@ metric_t *metric_get_iterator_begin();
 metric_t *metric_get_iterator_end();
 
 /// Enable metric for given handler
-void metric_enable_for_handler(metric_t *metric, metric_handler_t *handler);
+void metric_enable_for_handler(metric_t *metric, const metric_handler_t *handler);
 
 /// Disable metric for given handler
-void metric_disable_for_handler(metric_t *metric, metric_handler_t *handler);
+void metric_disable_for_handler(metric_t *metric, const metric_handler_t *handler);
 
 /// returns true, when metric min_interval_ms already passed and new record can be created
 /// note: useful if obtaining record value takes significant time

@@ -117,6 +117,12 @@ void StartConnectTaskError(void const *argument); // Version for redscreen
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
+extern const metric_handler_t *const metric_system_handlers[] = {
+    &metric_handler_syslog,
+    &metric_handler_info_screen,
+    nullptr
+};
+
 #if (BOARD_IS_BUDDY)
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[32];
@@ -435,12 +441,7 @@ extern "C" void main_cpp(void) {
 #endif
     filesystem_semihosting_deinit();
 
-    static metric_handler_t *handlers[] = {
-        &metric_handler_syslog,
-        &metric_handler_info_screen,
-        NULL
-    };
-    metric_system_init(handlers);
+    metric_system_init();
     if (running_in_tester_mode()) {
         manufacture_report_endless_loop();
     } else {

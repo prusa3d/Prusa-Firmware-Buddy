@@ -19,10 +19,9 @@ SensorDataBuffer::~SensorDataBuffer() {
     disableMetrics();
 }
 
-metric_handler_t *SensorDataBuffer::getHandler() {
-
-    for (metric_handler_t **handlers = metric_get_handlers(); *handlers != nullptr; handlers++) {
-        metric_handler_t *handler = *handlers;
+const metric_handler_t *SensorDataBuffer::getHandler() {
+    for (auto handlers = metric_get_handlers(); *handlers; handlers++) {
+        auto handler = *handlers;
         if (strcmp(handler->name, "SENSOR_INFO_SCREEN") == 0) {
             return handler;
         }
@@ -43,7 +42,7 @@ bool SensorDataBuffer::enableMetrics() {
         return true;
     }
     size_t count = 0;
-    metric_handler_t *handler = getHandler();
+    const metric_handler_t *handler = getHandler();
     if (!handler) {
         return false;
     }
@@ -65,7 +64,7 @@ bool SensorDataBuffer::enableMetrics() {
 }
 
 void SensorDataBuffer::disableMetrics() {
-    metric_handler_t *handler = getHandler();
+    const metric_handler_t *handler = getHandler();
     if (!handler) {
         return;
     }

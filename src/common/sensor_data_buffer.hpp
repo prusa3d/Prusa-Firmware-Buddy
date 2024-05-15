@@ -182,7 +182,7 @@ struct SensorDataBuffer {
 private:
     /// gets pointer to the handler, which handles the data send to this structs
     /// \return pointer to the handler
-    metric_handler_t *getHandler();
+    const metric_handler_t *getHandler();
 
     /// enables all metrics from sensors array
     ///  \return true if all metrics are enabled, false otherwise

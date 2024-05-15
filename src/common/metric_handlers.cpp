@@ -173,13 +173,13 @@ uint16_t metric_handler_syslog_get_port() {
     return syslog_transport.get_remote_port();
 }
 
-metric_handler_t metric_handler_syslog = {
+const metric_handler_t metric_handler_syslog = {
     .identifier = METRIC_HANDLER_SYSLOG_ID,
     .name = "SYSLOG",
     .handle_fn = syslog_handler,
 };
 
-metric_handler_t metric_handler_info_screen = {
+const metric_handler_t metric_handler_info_screen = {
     .identifier = METRIC_HANDLER_INFO_SCREEN,
     .name = "SENSOR_INFO_SCREEN",
     .handle_fn = info_screen_handler,

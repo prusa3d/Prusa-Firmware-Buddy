@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
 
-static metric_handler_t *selected_handler = &metric_handler_syslog;
+static const metric_handler_t *selected_handler = &metric_handler_syslog;
 
 /** \addtogroup G-Codes
  * @{
@@ -22,8 +22,8 @@ static metric_handler_t *selected_handler = &metric_handler_syslog;
 
 void PrusaGcodeSuite::M330() {
     bool handler_found = false;
-    for (metric_handler_t **handlers = metric_get_handlers(); *handlers != NULL; handlers++) {
-        metric_handler_t *handler = *handlers;
+    for (auto handlers = metric_get_handlers(); *handlers; handlers++) {
+        const metric_handler_t *handler = *handlers;
         if (strcmp(handler->name, parser.string_arg) == 0) {
             selected_handler = handler;
             handler_found = true;
