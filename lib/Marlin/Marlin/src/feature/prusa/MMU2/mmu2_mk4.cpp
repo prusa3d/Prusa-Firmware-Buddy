@@ -26,7 +26,7 @@
 #endif
 #include "strlen_cx.h"
 
-#include "../../../../src/mmu2/mmu2_bootloader.hpp"
+#include "../../../../../../../src/mmu2/mmu2_bootloader.hpp"
 
 #ifdef __AVR__
 // As of FW 3.12 we only support building the FW with only one extruder, all the multi-extruder infrastructure will be removed.
