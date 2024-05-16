@@ -9,12 +9,9 @@
 #include "ScreenHandler.hpp"
 #include "SteelSheets.hpp"
 #include <marlin_client.hpp>
+#include <dialog_text_input.hpp>
 
 LOG_COMPONENT_REF(GUI);
-
-#if _DEBUG // todo remove #if _DEBUG after rename is finished
-    #include "screen_sheet_rename.hpp"
-#endif
 
 void MI_SHEET_OFFSET::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
     if (calib) {
@@ -113,13 +110,18 @@ void ISheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void
         marlin_client::test_start_with_data(stmFirstLayer, selftest::FirstLayerCalibrationData { .previous_sheet = original_sheet });
         Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
     } break;
-    case profile_action::Rename:
-        log_debug(GUI, "MI_SHEET_RENAME");
-#if _DEBUG // todo remove #if _DEBUG after rename is finished
-        screen_sheet_rename_t::index(value);
-        Screens::Access()->Open([]() { return ScreenFactory::Screen<screen_sheet_rename_t>(); });
-#endif // _DEBUG
+
+    case profile_action::Rename: {
+        std::array<char, MAX_SHEET_NAME_LENGTH + 1> new_sheet_name;
+        const auto len = SteelSheets::SheetName(value, new_sheet_name.data(), new_sheet_name.size());
+        new_sheet_name[len] = '\0';
+
+        if (DialogTextInput::exec(_("Sheet name"), new_sheet_name)) {
+            SteelSheets::RenameSheet(value, new_sheet_name.data(), new_sheet_name.size());
+        }
         break;
+    }
+
     default:
         log_debug(GUI, "Click: %lu\n", static_cast<uint32_t>(action));
         break;

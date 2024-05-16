@@ -72,9 +72,7 @@ protected:
 };
 
 using SheetProfileMenuScreen__ = ScreenMenu<EFooter::On, MI_RETURN, MI_SHEET_SELECT, MI_SHEET_CALIBRATE,
-#if _DEBUG // todo remove #if _DEBUG after rename is finished
     MI_SHEET_RENAME,
-#endif // _DEBUG
     MI_SHEET_RESET, MI_SHEET_OFFSET>;
 
 // TODO there is no way to tell which sheet I am currently calibrating
