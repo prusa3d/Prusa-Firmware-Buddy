@@ -11,8 +11,6 @@
 #include <marlin_client.hpp>
 #include <dialog_text_input.hpp>
 
-LOG_COMPONENT_REF(GUI);
-
 void MI_SHEET_OFFSET::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
     if (calib) {
         WI_LAMBDA_LABEL_t::printExtension(extension_rect, color_text, color_back, raster_op);
@@ -40,28 +38,28 @@ void MI_SHEET_OFFSET::Reset() {
 }
 
 MI_SHEET_SELECT::MI_SHEET_SELECT()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {};
+    : IWindowMenuItem(_(label)) {};
 
 void MI_SHEET_SELECT::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Select);
 }
 
 MI_SHEET_CALIBRATE::MI_SHEET_CALIBRATE()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+    : IWindowMenuItem(_(label)) {};
 
 void MI_SHEET_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Calibrate);
 }
 
 MI_SHEET_RENAME::MI_SHEET_RENAME()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+    : IWindowMenuItem(_(label)) {};
 
 void MI_SHEET_RENAME::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Rename);
 }
 
 MI_SHEET_RESET::MI_SHEET_RESET()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {};
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::no) {};
 
 void MI_SHEET_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Reset);
@@ -82,29 +80,26 @@ ISheetProfileMenuScreen::ISheetProfileMenuScreen(uint32_t value)
 }
 
 void ISheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void *param) {
-    log_debug(GUI, "SheetProfile::event");
     if (ev != GUI_event_t::CHILD_CLICK) {
         ScreenMenu::windowEvent(sender, ev, param);
         return;
     }
     profile_action action = static_cast<profile_action>((uint32_t)param);
     switch (action) {
+
     case profile_action::Reset:
         if (SteelSheets::ResetSheet(value)) {
             Item<MI_SHEET_RESET>().Disable();
             Item<MI_SHEET_SELECT>().Disable();
             Item<MI_SHEET_OFFSET>().Reset();
-            log_debug(GUI, "MI_SHEET_RESET OK");
-        } else {
-            log_error(GUI, "MI_SHEET_RESET FAIL!");
         }
         break;
+
     case profile_action::Select:
-        log_debug(GUI, "MI_SHEET_SELECT");
         SteelSheets::SelectSheet(value);
         break;
+
     case profile_action::Calibrate: {
-        log_debug(GUI, "MI_SHEET_CALIBRATE");
         const auto original_sheet = config_store().active_sheet.get();
         SteelSheets::SelectSheet(value);
         marlin_client::test_start_with_data(stmFirstLayer, selftest::FirstLayerCalibrationData { .previous_sheet = original_sheet });
@@ -123,7 +118,6 @@ void ISheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void
     }
 
     default:
-        log_debug(GUI, "Click: %lu\n", static_cast<uint32_t>(action));
         break;
     }
 }
