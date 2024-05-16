@@ -89,7 +89,7 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_ESP_FLASH_TASK)
         ${CMAKE_SOURCE_DIR}/utils/gen_esp_parts.py ARGS --output ${ESP_PARTS} --basedir
         ${CMAKE_CURRENT_SOURCE_DIR}/esp/ --flash partition-table.bin:0x08000 --flash
         bootloader.bin:0x00000 --flash uart_wifi.bin:0x10000 --memory stub_text.bin:0x4010d000
-        --memory stub_data.bin:0x3fff01b8
+        --memory stub_data.bin:0x3fff01b4
       DEPENDS esp/uart_wifi.bin esp/bootloader.bin esp/partition-table.bin esp/stub_text.bin
               esp/stub_data.bin
       )
