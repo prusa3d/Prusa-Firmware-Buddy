@@ -17,10 +17,10 @@ I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
             const size_t index = GetIndex();
             if (index == nochange_index) {
                 // Don't change
-                strncpy(buffer, label_nochange, GuiDefaults::infoDefaultLen);
+                strlcpy(buffer, label_nochange, GuiDefaults::infoDefaultLen);
             } else if (index == unload_index) {
                 // Unload
-                strncpy(buffer, label_unload, GuiDefaults::infoDefaultLen);
+                strlcpy(buffer, label_unload, GuiDefaults::infoDefaultLen);
             } else {
                 // Print "Change to"/"Load" and filament name to buffer
                 snprintf(buffer, GuiDefaults::infoDefaultLen, "%s %s", loaded ? label_change_fil : label_load_fil, filament::get_name(filament::Type(index)));

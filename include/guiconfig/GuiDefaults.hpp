@@ -88,7 +88,7 @@ struct GuiDefaults {
 #endif // USE_<display>
 
     // COMMON DEFAULTS
-    static constexpr size_t infoDefaultLen = ScreenWidth > 240 ? 22 : 10; // null included, mac address must fit - need to be at least 18
+    static constexpr size_t infoDefaultLen = ScreenWidth > 240 ? 22 : 11; // null included, mac address must fit - need to be at least 18
 
     // Color settings
     static constexpr color_t ColorBack = COLOR_BLACK;
