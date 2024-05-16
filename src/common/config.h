@@ -6,13 +6,6 @@
 #include <device/board.h>
 #include "MarlinPin.h"
 
-//--------------------------------------
-// BUDDY_ENABLE_ETHERNET configuration
-#include <option/buddy_enable_wui.h>
-#if BUDDY_ENABLE_WUI()
-    #define BUDDY_ENABLE_ETHERNET
-#endif // BUDDY_ENABLE_WUI()
-
 // marlin api config
 enum {
     MARLIN_MAX_CLIENTS = 6, // maximum number of clients registered in same time

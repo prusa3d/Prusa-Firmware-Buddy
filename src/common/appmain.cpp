@@ -87,10 +87,6 @@ METRIC_DEF(metric_app_start, "app_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_
 METRIC_DEF(metric_maintask_event, "maintask_loop", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_DISABLE_ALL);
 METRIC_DEF(metric_cpu_usage, "cpu_usage", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
-#ifdef BUDDY_ENABLE_ETHERNET
-extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
-#endif // BUDDY_ENABLE_ETHERNET
-
 void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r')) {
         size--;
