@@ -17,7 +17,7 @@ int FooterItemSheets::static_readValue() {
 }
 
 string_view_utf8 FooterItemSheets::static_makeView([[maybe_unused]] int value) {
-    static char buff[8];
-    SteelSheets::ActiveSheetName(buff, sizeof(buff));
-    return string_view_utf8::MakeRAM((const uint8_t *)buff);
+    static std::array<char, SHEET_NAME_BUFFER_SIZE> buff;
+    SteelSheets::ActiveSheetName(buff);
+    return string_view_utf8::MakeRAM(buff.data());
 }

@@ -85,7 +85,7 @@ SheetProfileMenuScreen::SheetProfileMenuScreen(uint32_t value)
 void SheetProfileMenuScreen::update_title() {
     StringBuilder sb(label_buffer);
     sb.append_string_view(_("Sheet: "));
-    SteelSheets::SheetName(value, sb.alloc_chars(MAX_SHEET_NAME_LENGTH), MAX_SHEET_NAME_LENGTH);
+    SteelSheets::SheetName(value, std::span<char, SHEET_NAME_BUFFER_SIZE>(sb.alloc_chars(MAX_SHEET_NAME_LENGTH), SHEET_NAME_BUFFER_SIZE));
 
     header.SetText(string_view_utf8::MakeRAM(label_buffer.data()));
 }
@@ -118,9 +118,8 @@ void SheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void 
     } break;
 
     case profile_action::Rename: {
-        std::array<char, MAX_SHEET_NAME_LENGTH + 1> new_sheet_name;
-        const auto len = SteelSheets::SheetName(value, new_sheet_name.data(), new_sheet_name.size());
-        new_sheet_name[len] = '\0';
+        std::array<char, SHEET_NAME_BUFFER_SIZE> new_sheet_name;
+        SteelSheets::SheetName(value, new_sheet_name);
 
         if (DialogTextInput::exec(_("Sheet name"), new_sheet_name)) {
             SteelSheets::RenameSheet(value, new_sheet_name.data(), new_sheet_name.size());
@@ -142,12 +141,9 @@ I_MI_SHEET_PROFILE::I_MI_SHEET_PROFILE(int sheet_index)
     : IWindowMenuItem({}, Rect16::W_t(16), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , sheet_index(sheet_index) {
 
-    // SheetName does not set the leading '\0'! We gotta set it ourselves.
-    const auto len = SteelSheets::SheetName(sheet_index, label_str.data(), label_str.size());
-    label_str[len] = '\0';
-
+    SteelSheets::SheetName(sheet_index, label_str);
     // string_view_utf8::MakeRAM is safe. "label_str" is a member var and exists until I_MI_SHEET_PROFILE is destroyed
-    SetLabel(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(label_str.data())));
+    SetLabel(string_view_utf8::MakeRAM(label_str.data()));
 }
 
 // ScreenFactory::Screen depends on ProfileRecord following code cannot stay in header (be template)

@@ -99,7 +99,7 @@ protected:
     void click(IWindowMenu &window_menu) override;
 
 private:
-    std::array<char, MAX_SHEET_NAME_LENGTH + 1> label_str;
+    std::array<char, SHEET_NAME_BUFFER_SIZE> label_str;
 
     uint8_t sheet_index;
 };

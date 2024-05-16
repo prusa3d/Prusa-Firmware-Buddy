@@ -1,6 +1,7 @@
 #pragma once
 #include "marlin_client.hpp"
 #include <optional>
+#include <span>
 
 #include "common/sheet.hpp"
 
@@ -58,17 +59,16 @@ public:
     /// @param[in] length Size of the given buffer.
     /// @return Number of characters written to the buffer. Number will be
     ///        always less than MAX_SHEET_NAME_LENGTH
-    static uint32_t ActiveSheetName(char *buffer, uint32_t length);
+    static uint32_t ActiveSheetName(std::span<char, SHEET_NAME_BUFFER_SIZE> target);
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Determine the name of the given print sheet profile.
     /// !!! DOES NOT APPEND TRAILING '\0'
     ///
     /// @param[in] index Index of the sheet profile
-    /// @param[out] buffer Buffer to store the print sheet profile
-    /// @param[in] length Size of the given buffer.
+    /// @param[out] target Buffer to store the print sheet profile. The data will always be stored with a terminating null.
     /// @return Number of characters written to the buffer. Number will be
     ///        always less than MAX_SHEET_NAME_LENGTH
-    static uint32_t SheetName(uint32_t index, char *buffer, uint32_t length);
+    static uint32_t SheetName(uint32_t index, std::span<char, SHEET_NAME_BUFFER_SIZE> target);
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Rename the given print sheet profile.
     ///

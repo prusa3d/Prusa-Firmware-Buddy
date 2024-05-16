@@ -253,10 +253,10 @@ MI_CURRENT_SHEET_PROFILE::MI_CURRENT_SHEET_PROFILE()
 }
 
 void MI_CURRENT_SHEET_PROFILE::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn) const {
-    std::array<char, MAX_SHEET_NAME_LENGTH + 3> nameBuf;
+    std::array<char, SHEET_NAME_BUFFER_SIZE + 2> nameBuf;
     char *name = nameBuf.data();
     *(name++) = '[';
-    name += SteelSheets::ActiveSheetName(name, nameBuf.size() - 3);
+    name += SteelSheets::ActiveSheetName(std::span(nameBuf).subspan<1, SHEET_NAME_BUFFER_SIZE>());
     *(name++) = ']';
     *(name++) = '\0';
 
