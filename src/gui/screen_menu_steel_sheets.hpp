@@ -76,11 +76,11 @@ using SheetProfileMenuScreen__ = ScreenMenu<EFooter::On, MI_RETURN, MI_SHEET_SEL
     MI_SHEET_RESET, MI_SHEET_OFFSET>;
 
 // TODO there is no way to tell which sheet I am currently calibrating
-class ISheetProfileMenuScreen : public SheetProfileMenuScreen__ {
+class SheetProfileMenuScreen : public SheetProfileMenuScreen__ {
     uint32_t value;
 
 public:
-    ISheetProfileMenuScreen(uint32_t value);
+    SheetProfileMenuScreen(uint32_t value);
 
 protected:
     void update_title();
@@ -90,14 +90,6 @@ protected:
 private:
     /// Holds string "Sheet: (NAME)"
     std::array<char, 32> label_buffer;
-};
-
-template <uint8_t sheet_index>
-class SheetProfileMenuScreenT : public ISheetProfileMenuScreen {
-public:
-    SheetProfileMenuScreenT()
-        : ISheetProfileMenuScreen(sheet_index) {
-    }
 };
 
 class I_MI_SHEET_PROFILE : public IWindowMenuItem {

@@ -66,7 +66,7 @@ void MI_SHEET_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)profile_action::Reset);
 }
 
-ISheetProfileMenuScreen::ISheetProfileMenuScreen(uint32_t value)
+SheetProfileMenuScreen::SheetProfileMenuScreen(uint32_t value)
     : SheetProfileMenuScreen__({})
     , value(value) {
     if (SteelSheets::IsSheetCalibrated(value)) {
@@ -82,7 +82,7 @@ ISheetProfileMenuScreen::ISheetProfileMenuScreen(uint32_t value)
     update_title();
 }
 
-void ISheetProfileMenuScreen::update_title() {
+void SheetProfileMenuScreen::update_title() {
     StringBuilder sb(label_buffer);
     sb.append_string_view(_("Sheet: "));
     SteelSheets::SheetName(value, sb.alloc_chars(MAX_SHEET_NAME_LENGTH), MAX_SHEET_NAME_LENGTH);
@@ -90,7 +90,7 @@ void ISheetProfileMenuScreen::update_title() {
     header.SetText(string_view_utf8::MakeRAM(label_buffer.data()));
 }
 
-void ISheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void *param) {
+void SheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void *param) {
     if (ev != GUI_event_t::CHILD_CLICK) {
         ScreenMenu::windowEvent(sender, ev, param);
         return;
@@ -154,7 +154,7 @@ I_MI_SHEET_PROFILE::I_MI_SHEET_PROFILE(int sheet_index)
 void I_MI_SHEET_PROFILE::click([[maybe_unused]] IWindowMenu &window_menu) {
     static constexpr const auto screen_open_f = ([]<size_t... ix>(const std::index_sequence<ix...>) {
         return std::array {
-            +[] { return Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreenT<ix>>); }...
+            +[] { return Screens::Access()->Open(ScreenFactory::Screen<SheetProfileMenuScreen, ix>); }...
         };
     })(std::make_index_sequence<config_store_ns::sheets_num>());
 

@@ -125,10 +125,10 @@ public:
     using UniquePtr = static_unique_ptr<screen_t>;
     using Creator = static_unique_ptr<screen_t> (*)(); // function pointer definition
 
-    template <class T>
+    template <class T, auto... args>
     static UniquePtr Screen() {
         static_assert(sizeof(T) <= sizeof(mem_space), "Screen memory space is too small");
-        return make_static_unique_ptr<T>(&all_screens);
+        return make_static_unique_ptr<T>(&all_screens, args...);
     }
 
     template <class T>
