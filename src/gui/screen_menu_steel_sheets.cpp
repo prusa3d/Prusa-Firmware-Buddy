@@ -10,6 +10,7 @@
 #include "SteelSheets.hpp"
 #include <marlin_client.hpp>
 #include <dialog_text_input.hpp>
+#include <str_utils.hpp>
 
 void MI_SHEET_OFFSET::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
     if (calib) {
@@ -66,7 +67,7 @@ void MI_SHEET_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 ISheetProfileMenuScreen::ISheetProfileMenuScreen(uint32_t value)
-    : SheetProfileMenuScreen__(_(label))
+    : SheetProfileMenuScreen__({})
     , value(value) {
     if (SteelSheets::IsSheetCalibrated(value)) {
         Item<MI_SHEET_SELECT>().Enable();
@@ -77,6 +78,16 @@ ISheetProfileMenuScreen::ISheetProfileMenuScreen(uint32_t value)
     if (value == 0) {
         Item<MI_SHEET_RESET>().Disable();
     }
+
+    update_title();
+}
+
+void ISheetProfileMenuScreen::update_title() {
+    StringBuilder sb(label_buffer);
+    sb.append_string_view(_("Sheet: "));
+    SteelSheets::SheetName(value, sb.alloc_chars(MAX_SHEET_NAME_LENGTH), MAX_SHEET_NAME_LENGTH);
+
+    header.SetText(string_view_utf8::MakeRAM(label_buffer.data()));
 }
 
 void ISheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void *param) {
@@ -113,6 +124,7 @@ void ISheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void
 
         if (DialogTextInput::exec(_("Sheet name"), new_sheet_name)) {
             SteelSheets::RenameSheet(value, new_sheet_name.data(), new_sheet_name.size());
+            update_title();
         }
         break;
     }

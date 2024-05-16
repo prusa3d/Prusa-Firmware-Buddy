@@ -80,11 +80,16 @@ class ISheetProfileMenuScreen : public SheetProfileMenuScreen__ {
     uint32_t value;
 
 public:
-    constexpr static const char *label = N_("Sheet Profile");
     ISheetProfileMenuScreen(uint32_t value);
 
 protected:
+    void update_title();
+
     virtual void windowEvent(window_t *sender, GUI_event_t ev, void *param) override;
+
+private:
+    /// Holds string "Sheet: (NAME)"
+    std::array<char, 32> label_buffer;
 };
 
 template <uint8_t sheet_index>
