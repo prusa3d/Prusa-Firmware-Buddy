@@ -78,15 +78,9 @@ public:
      */
     void load_item(uint16_t id, std::span<uint8_t> data) {
         visit_all_struct_fields(static_cast<Config &>(*this), [&]<typename Item>(Item &item) {
-            if (Item::hashed_id != id) {
-                return;
+            if (Item::hashed_id == id) {
+                item.init(data);
             }
-
-            if (data.size() != sizeof(Item)) {
-                bsod("unexpected size difference");
-            }
-
-            item.init(*reinterpret_cast<const Item::value_type *>(data.data()));
         });
     }
 

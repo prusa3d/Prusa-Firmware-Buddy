@@ -57,8 +57,12 @@ public:
         return data.data();
     }
 
-    void init(const DataT &in) {
-        data = in;
+    void init(const std::span<uint8_t> &raw_data) {
+        if (raw_data.size() != sizeof(value_type)) {
+            std::terminate();
+        }
+
+        memcpy(&data, raw_data.data(), sizeof(value_type));
     }
 
 protected:
