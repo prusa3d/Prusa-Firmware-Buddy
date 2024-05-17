@@ -36,6 +36,9 @@ static void flash_esp_task_body(void *) {
 #if HAS_EMBEDDED_ESP32()
     buddy::hw::espPower.write(buddy::hw::Pin::State::high);
 #endif
+#if PRINTER_IS_PRUSA_MINI
+    vTaskDelay(pdMS_TO_TICKS(1000));
+#endif
     flash_esp();
     TaskDeps::provide(TaskDeps::Dependency::esp_flashed);
     vTaskDelete(nullptr);
