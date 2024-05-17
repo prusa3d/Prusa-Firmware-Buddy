@@ -149,6 +149,9 @@ private:
             return Phase::wait_for_nfc;
 #endif
 
+        case Response::Help:
+            return Phase::help_qr;
+
         case NetworkSetupResponse::connect:
             // Continue -> user set up the new credentials into the config_store
             return Phase::connecting;
@@ -329,6 +332,9 @@ private:
         case Response::Retry:
             return Phase::init;
 
+        case Response::Help:
+            return Phase::help_qr;
+
         case Response::Ok:
         case Response::Back: // From touch swipe
             return Phase::finish;
@@ -349,8 +355,22 @@ private:
         case Response::Back:
             return cancel_target_phase_;
 
+        case Response::Help:
+            return Phase::help_qr;
+
         case Response::Abort:
             return Phase::finish;
+
+        default:
+            return std::nullopt;
+        }
+    }
+
+    PhaseOpt phase_help_qr(const Meta::LoopCallbackArgs &args) {
+        switch (args.response) {
+
+        case Response::Back:
+            return Phase::init;
 
         default:
             return std::nullopt;
@@ -374,6 +394,7 @@ private:
             { Phase::connected, { &C::phase_connected } },
             { Phase::esp_error, { &C::phase_esp_error } },
             { Phase::connection_error, { &C::phase_connecting_error } },
+            { Phase::help_qr, { &C::phase_help_qr } },
             { Phase::finish, {} },
     };
 

@@ -362,6 +362,7 @@ enum class PhaseNetworkSetup : PhaseUnderlyingType {
     connected,
     esp_error,
     connection_error,
+    help_qr, ///< Display as QR code to the help page
     finish,
     _last = finish,
     _cnt,
@@ -783,11 +784,12 @@ class ClientResponses {
             { PhaseNetworkSetup::ask_switch_to_wifi, { Response::Yes, Response::No } },
             {
                 PhaseNetworkSetup::action_select,
+                // Note: This list is probably not necessary. All should work if you leave it empty
                 {
 #if HAS_NFC()
                     NetworkSetupResponse::scan_nfc,
 #endif
-                    Response::Back, NetworkSetupResponse::scan_wifi, NetworkSetupResponse::load_from_ini, NetworkSetupResponse::connect },
+                    Response::Back, NetworkSetupResponse::scan_wifi, NetworkSetupResponse::load_from_ini, NetworkSetupResponse::connect, Response::Help },
             },
             { PhaseNetworkSetup::wifi_scan, { NetworkSetupResponse::connect, Response::Back } },
             { PhaseNetworkSetup::wait_for_ini_file, { Response::Cancel } },
@@ -797,8 +799,9 @@ class ClientResponses {
 #endif
             { PhaseNetworkSetup::connecting, { Response::Finish, Response::Cancel } },
             { PhaseNetworkSetup::connected, { Response::Ok } },
-            { PhaseNetworkSetup::esp_error, { Response::Ok, Response::Retry } },
-            { PhaseNetworkSetup::connection_error, { Response::Back, Response::Abort } },
+            { PhaseNetworkSetup::esp_error, { Response::Ok, Response::Help, Response::Retry } },
+            { PhaseNetworkSetup::connection_error, { Response::Back, Response::Help, Response::Abort } },
+            { PhaseNetworkSetup::help_qr, { Response::Back } },
             { PhaseNetworkSetup::finish, {} },
     };
 

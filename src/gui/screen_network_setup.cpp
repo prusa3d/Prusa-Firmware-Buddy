@@ -12,6 +12,7 @@
 #include <WinMenuContainer.hpp>
 #include <fsm_menu_item.hpp>
 #include <fsm_network_setup.hpp>
+#include <gui/frame_qr_layout.hpp>
 
 LOG_COMPONENT_REF(GUI);
 
@@ -34,6 +35,13 @@ class MI_ACTION_SKIP : public FSMMenuItem {
 public:
     MI_ACTION_SKIP()
         : FSMMenuItem(Phase::action_select, Response::Back, _("Do not connect to a Wi-Fi")) {}
+};
+
+class MI_ACTION_HELP : public FSMMenuItem {
+
+public:
+    MI_ACTION_HELP()
+        : FSMMenuItem(Phase::action_select, Response::Help, _("Help"), &img::question_16x16) {}
 };
 
 class MI_ACTION_LOAD_INI : public FSMMenuItem {
@@ -111,6 +119,7 @@ private:
         MI_ACTION_LOAD_NFC,
 #endif
         MI_ACTION_LOAD_INI,
+        MI_ACTION_HELP,
         MI_ACTION_SKIP //
         >
         container;
@@ -376,6 +385,51 @@ public:
     }
 };
 
+class FrameHelpQR {
+
+public:
+#if PRINTER_IS_PRUSA_MINI
+    static constexpr const char *qr_addr = "prusa.io/wifiminiqr";
+    static constexpr const char *text_addr = "prusa.io/wifimini";
+
+#elif PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX
+    static constexpr const char *qr_addr = "prusa.io/wifimk4qr";
+    static constexpr const char *text_addr = "prusa.io/wifimk4";
+
+#elif PRINTER_IS_PRUSA_XL
+    static constexpr const char *qr_addr = "prusa.io/wifixlqr";
+    static constexpr const char *text_addr = "prusa.io/wifixl";
+
+#else
+    #error "not supported"
+#endif
+
+public:
+    FrameHelpQR(window_t *parent)
+        : text(parent, FrameQRLayout::text_rect(), is_multiline::yes)
+        , link(parent, FrameQRLayout::link_rect(), is_multiline::no)
+        , icon_phone(parent, FrameQRLayout::phone_icon_rect(), &img::hand_qr_59x72)
+        , qr(parent, FrameQRLayout::qrcode_rect(), qr_addr)
+        , radio(parent, GuiDefaults::GetButtonRect(parent->GetRect()), Phase::help_qr) //
+    {
+        text.SetText(_("To setup or troubleshoot your Wi-Fi, please visit:"));
+        link.SetText(string_view_utf8::MakeCPUFLASH(text_addr));
+
+        static_cast<window_frame_t *>(parent)->CaptureNormalWindow(radio);
+    }
+
+    ~FrameHelpQR() {
+        static_cast<window_frame_t *>(radio.GetParent())->ReleaseCaptureOfNormalWindow();
+    }
+
+private:
+    window_text_t text;
+    window_text_t link;
+    window_icon_t icon_phone;
+    window_qr_t qr;
+    RadioButtonFsm<PhaseNetworkSetup> radio;
+};
+
 #if HAS_NFC()
 class FrameWaitForNFC : public FrameText {
 
@@ -419,6 +473,7 @@ using Frames = FrameDefinitionList<ScreenNetworkSetup::FrameStorage,
     FrameDefinition<Phase::connecting, FrameConnecting>,
     FrameDefinition<Phase::esp_error, FrameESPError>,
     FrameDefinition<Phase::connection_error, FrameError>,
+    FrameDefinition<Phase::help_qr, FrameHelpQR>,
     FrameDefinition<Phase::connected, FrameConnected> //
     >;
 
