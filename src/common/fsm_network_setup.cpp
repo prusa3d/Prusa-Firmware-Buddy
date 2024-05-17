@@ -33,6 +33,12 @@ public:
         mode_ = WizardMode::from_selftest;
     }
 
+    void setup_ini() {
+        mode_ = WizardMode::ini_load_only;
+        first_phase_ = Phase::wait_for_ini_file;
+        cancel_target_phase_ = Phase::finish;
+    }
+
 #if HAS_NFC()
     void setup_nfc_only(const WifiCredentials &credentials) {
         mode_ = WizardMode::nfc_only;
@@ -87,6 +93,7 @@ private:
             case WizardMode::nfc_only:
 #endif
             case WizardMode::from_network_menu:
+            case WizardMode::ini_load_only:
                 return Phase::ask_switch_to_wifi;
             }
         }
@@ -397,6 +404,12 @@ private:
 
 void network_setup_wizard() {
     FSMNetworkSetup fsm;
+    fsm.run();
+}
+
+void network_ini_wizard() {
+    FSMNetworkSetup fsm;
+    fsm.setup_ini();
     fsm.run();
 }
 

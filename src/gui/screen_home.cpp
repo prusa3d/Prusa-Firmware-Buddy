@@ -401,7 +401,7 @@ void screen_home_data_t::handle_wifi_credentials() {
     if (has_wifi_credentials && (name_and_psk_status() == Config::Status::not_equal) && !option::developer_mode) {
         if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo, 1)
             == Response::Yes) {
-            marlin_client::gcode("M1587");
+            marlin_client::gcode("M1703 I");
             return;
         }
     }

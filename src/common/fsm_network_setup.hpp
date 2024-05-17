@@ -12,6 +12,9 @@ enum class WizardMode {
     /// Full wizard, opened as part of selftest
     from_selftest,
 
+    /// Ini file autodetected, user asked to load it
+    ini_load_only,
+
 #if HAS_NFC()
     /// NFC-only subset; raised NFC autoscan
     nfc_only,
@@ -20,6 +23,9 @@ enum class WizardMode {
 
 /// To be called from the marlin thread, this is basically a gcode
 void network_setup_wizard();
+
+/// To be called from the marlin thread, this is basically a gcode
+void network_ini_wizard();
 
 /// To be called from the marlin thread, this is basically a gcode
 void network_selftest_wizard();
