@@ -586,7 +586,7 @@ void set_flow_factor(uint16_t val, uint8_t hotend) {
     return marlin_set_variable(marlin_vars()->hotend(hotend).flow_factor, val);
 }
 void set_z_offset(float val) {
-    return marlin_set_variable(marlin_vars()->z_offset, val);
+    return marlin_set_variable(marlin_vars()->z_offset, std::clamp(val, Z_OFFSET_MIN, Z_OFFSET_MAX));
 }
 void set_fan_check(bool val) {
     return marlin_set_variable(marlin_vars()->fan_check_enabled, static_cast<uint8_t>(val));

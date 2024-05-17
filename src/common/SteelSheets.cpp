@@ -37,7 +37,7 @@ bool SteelSheets::SelectSheet(uint32_t index) {
     // update marlin vars
     auto sheet = getSheet(index);
     // don't need to check validity of sheet, we have checked the sheet index
-    updateMarlin(sheet.z_offset);
+    marlin_client::set_z_offset(sheet.z_offset);
     return true;
 }
 
@@ -106,11 +106,6 @@ void SteelSheets::setSheet(uint32_t index, Sheet sheet) {
     return config_store().set_sheet(index, sheet);
 }
 
-void SteelSheets::updateMarlin(float offset) {
-    offset = std::clamp(offset, zOffsetMin, zOffsetMax);
-    marlin_client::set_z_offset(offset);
-}
-
 void SteelSheets::SetZOffset(float offset) {
     if (!std::isfinite(offset)) {
         offset = 0.F;
@@ -118,7 +113,7 @@ void SteelSheets::SetZOffset(float offset) {
     offset = std::clamp(offset, zOffsetMin, zOffsetMax);
 
     uint8_t index = GetActiveSheetIndex();
-    updateMarlin(offset);
+    marlin_client::set_z_offset(offset);
     setSheetOffset(index, offset);
 }
 

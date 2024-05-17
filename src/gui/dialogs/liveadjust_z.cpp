@@ -86,8 +86,12 @@ WindowLiveAdjustZ::WindowLiveAdjustZ(window_t *parent, point_i16_t pt)
 }
 
 void WindowLiveAdjustZ::Save() {
+#if HAS_SHEET_PROFILES()
     /// store new z offset value into a marlin_vars & EEPROM
     SteelSheets::SetZOffset(number.GetValue());
+#else
+    marlin_client::set_z_offset(number.GetValue());
+#endif
 }
 
 void WindowLiveAdjustZ::Change(int dif) {
