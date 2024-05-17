@@ -876,7 +876,6 @@ void espif_notify_flash_result(FlashResult result) {
     switch (result) {
     case FlashResult::success:
         esp_operating_mode = ESPIF_WAIT_INIT;
-        espif_reset();
         break;
     case FlashResult::not_connected:
         esp_operating_mode = ESPIF_FLASHING_ERROR_NOT_CONNECTED;
