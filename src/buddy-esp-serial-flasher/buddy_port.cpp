@@ -76,7 +76,7 @@ esp_loader_error_t loader_port_change_transmission_rate(uint32_t baudrate) {
 void loader_port_enter_bootloader(void) {
     HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(ESP_GPIO0_GPIO_Port, ESP_GPIO0_Pin, GPIO_PIN_RESET);
-    vTaskDelay(pdMS_TO_TICKS(1));
+    vTaskDelay(pdMS_TO_TICKS(100));
     HAL_GPIO_WritePin(ESP_RST_GPIO_Port, ESP_RST_Pin, GPIO_PIN_SET);
     vTaskDelay(pdMS_TO_TICKS(100));
     HAL_GPIO_WritePin(ESP_GPIO0_GPIO_Port, ESP_GPIO0_Pin, GPIO_PIN_SET);
