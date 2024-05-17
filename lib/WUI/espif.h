@@ -84,6 +84,10 @@ void espif_notify_flash_result(enum FlashResult result);
 enum class EspFwState {
     /// Detected an ESP firmware of the right version.
     Ok,
+    /// Flashing failed due to ESP not being connected.
+    FlashingErrorNotConnected,
+    /// Flashing failed due to some other reason.
+    FlashingErrorOther,
     /// Detected our ESP firmware, but of a wrong version.
     WrongVersion,
     /// The ESP doesn't speak our protocol ‒ it either isn't flashed or is

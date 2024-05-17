@@ -86,6 +86,8 @@ enum ESPIFOperatingMode {
     ESPIF_RUNNING_MODE,
     ESPIF_SCANNING_MODE,
     ESPIF_WRONG_FW,
+    ESPIF_FLASHING_ERROR_NOT_CONNECTED,
+    ESPIF_FLASHING_ERROR_OTHER,
 };
 
 enum MessageType {
@@ -199,6 +201,8 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 static bool is_running(ESPIFOperatingMode mode) {
     switch (mode) {
     case ESPIF_UNINITIALIZED_MODE:
+    case ESPIF_FLASHING_ERROR_NOT_CONNECTED:
+    case ESPIF_FLASHING_ERROR_OTHER:
     case ESPIF_WRONG_FW:
     case ESPIF_SCANNING_MODE:
         return false;
@@ -216,6 +220,8 @@ static bool is_running(ESPIFOperatingMode mode) {
 static bool can_recieve_data(ESPIFOperatingMode mode) {
     switch (mode) {
     case ESPIF_UNINITIALIZED_MODE:
+    case ESPIF_FLASHING_ERROR_NOT_CONNECTED:
+    case ESPIF_FLASHING_ERROR_OTHER:
     case ESPIF_WRONG_FW:
         return false;
     case ESPIF_WAIT_INIT:
@@ -873,8 +879,10 @@ void espif_notify_flash_result(FlashResult result) {
         espif_reset();
         break;
     case FlashResult::not_connected:
+        esp_operating_mode = ESPIF_FLASHING_ERROR_NOT_CONNECTED;
+        break;
     case FlashResult::failure:
-        esp_operating_mode = ESPIF_WRONG_FW;
+        esp_operating_mode = ESPIF_FLASHING_ERROR_OTHER;
         break;
     }
 }
@@ -893,6 +901,10 @@ EspFwState esp_fw_state() {
             return EspFwState::Ok;
         }
         return EspFwState::Unknown;
+    case ESPIF_FLASHING_ERROR_NOT_CONNECTED:
+        return EspFwState::FlashingErrorNotConnected;
+    case ESPIF_FLASHING_ERROR_OTHER:
+        return EspFwState::FlashingErrorOther;
     case ESPIF_WAIT_INIT:
         if (seen_ok) {
             return EspFwState::Ok;
@@ -925,6 +937,8 @@ EspLinkState esp_link_state() {
     case ESPIF_WAIT_INIT:
     case ESPIF_WRONG_FW:
     case ESPIF_UNINITIALIZED_MODE:
+    case ESPIF_FLASHING_ERROR_NOT_CONNECTED:
+    case ESPIF_FLASHING_ERROR_OTHER:
     case ESPIF_SCANNING_MODE:
         return EspLinkState::Init;
     case ESPIF_NEED_AP:

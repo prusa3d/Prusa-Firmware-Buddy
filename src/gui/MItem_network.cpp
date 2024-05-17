@@ -50,6 +50,13 @@ void MI_WIFI_STATUS_t::update() {
 
         case EspLinkState::Init:
             switch (esp_fw_state()) {
+            case EspFwState::FlashingErrorNotConnected:
+                // Need short string here
+                return N_("FlashConn");
+
+            case EspFwState::FlashingErrorOther:
+                // Need short string here
+                return N_("FlashErr");
 
             case EspFwState::NoFirmware:
             case EspFwState::WrongVersion:
