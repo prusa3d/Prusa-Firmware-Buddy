@@ -30,7 +30,6 @@
 #if HAS_MMU2()
     #include "MItem_mmu.hpp"
 #endif
-#include <screen_menu_hw_setup.hpp>
 #include <option/has_phase_stepping.h>
 
 class MI_MK4_MK39 : public WI_SWITCH_t<2> {

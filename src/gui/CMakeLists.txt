@@ -59,7 +59,6 @@ target_sources(
           screen_menu_fw_update.cpp
           screen_menu_hardware.cpp
           screen_menu_hardware_tune.cpp
-          screen_menu_hw_setup.cpp
           screen_menu_info.cpp
           screen_menu_input_shaper.cpp
           screen_menu_lang_and_time.cpp

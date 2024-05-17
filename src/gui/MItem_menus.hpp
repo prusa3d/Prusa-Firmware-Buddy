@@ -177,16 +177,6 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 
-class MI_HW_SETUP : public IWindowMenuItem {
-    static constexpr const char *const label = N_("HW Setup");
-
-public:
-    MI_HW_SETUP();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_CURRENT_SHEET_PROFILE : public IWindowMenuItem {
     static constexpr const char *const label = N_("Sheet Profile");
 
@@ -346,6 +336,16 @@ public:
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_STEEL_SHEETS : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Steel Sheets");
+
+public:
+    MI_STEEL_SHEETS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
 };
 
 class MI_SYSTEM : public IWindowMenuItem {

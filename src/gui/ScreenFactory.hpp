@@ -14,7 +14,6 @@
 #include "screen_menu_fw_update.hpp"
 #include "screen_menu_languages.hpp"
 #include "screen_menu_network_settings.hpp"
-#include "screen_menu_hw_setup.hpp"
 #include "screen_menu_steel_sheets.hpp"
 #include "screen_menu_eeprom.hpp"
 #include "screen_menu_footer_settings.hpp"
@@ -80,7 +79,6 @@ class ScreenFactory {
         ScreenMenuFwUpdate,
         ScreenMenuHardware,
         ScreenMenuHardwareChecks,
-        ScreenMenuHwSetup,
         ScreenMenuInfo,
         ScreenMenuLangAndTime,
         ScreenMenuLanguages,

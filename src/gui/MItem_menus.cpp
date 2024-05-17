@@ -39,7 +39,6 @@
 #include "screen_menu_fw_update.hpp"
 #include "screen_menu_network_status.hpp"
 #include "screen_menu_network_settings.hpp"
-#include "screen_menu_hw_setup.hpp"
 #include "screen_menu_eeprom.hpp"
 #include "screen_menu_footer_settings.hpp"
 #include "screen_prusa_link.hpp"
@@ -234,16 +233,6 @@ MI_MESSAGES::MI_MESSAGES()
 
 void MI_MESSAGES::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<screen_messages_data_t>);
-}
-
-/*****************************************************************************/
-// MI_HW_SETUP
-MI_HW_SETUP::MI_HW_SETUP()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::yes, expands_t::yes) {
-}
-
-void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuHwSetup>);
 }
 
 /*****************************************************************************/
@@ -454,6 +443,15 @@ MI_HARDWARE_TUNE::MI_HARDWARE_TUNE()
 
 void MI_HARDWARE_TUNE::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuHardwareTune>);
+}
+
+/*****************************************************************************/
+// MI_STEEL_SHEETS
+MI_STEEL_SHEETS::MI_STEEL_SHEETS()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {};
+
+void MI_STEEL_SHEETS::click(IWindowMenu &) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSteelSheets>);
 }
 
 /**********************************************************************************************/
