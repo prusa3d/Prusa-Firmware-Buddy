@@ -418,7 +418,7 @@ struct CurrentStore
 
     StoreItem<bool, defaults::xy_motors_400_step, journal::hash("400 step motors on X and Y axis")> xy_motors_400_step;
 
-    StoreItem<bool, defaults::bool_false, journal::hash("Stuck filament detection")> stuck_filament_detection;
+    StoreItem<bool, defaults::bool_true, journal::hash("Stuck filament detection V2")> stuck_filament_detection;
 
     StoreItem<bool, defaults::bool_false, journal::hash("Stealth mode")> stealth_mode;
 
@@ -502,6 +502,8 @@ struct DeprecatedStore
 
     // There was wrong default value for XL, so V2 version was introduced to reset it to proper default value
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Weight Adjust Y Enabled")> input_shaper_weight_adjust_y_enabled;
+
+    StoreItem<bool, defaults::bool_false, journal::hash("Stuck filament detection")> stuck_filament_detection;
 };
 
 } // namespace config_store_ns
