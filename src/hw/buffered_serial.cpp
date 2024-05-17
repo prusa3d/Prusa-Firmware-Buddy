@@ -1,16 +1,16 @@
-#include <device/board.h>
+#include <hw/buffered_serial.hpp>
 
-#include "buffered_serial.hpp"
-#include "stm32f4xx_hal.h"
-#include "config.h"
 #include <algorithm>
-#include "FreeRTOS.h"
-#include "bsod.h"
-#include "timing.h"
 #include <ccm_thread.hpp>
+#include <common/bsod.h>
+#include <common/timing.h>
+#include <device/board.h>
+#include <logging/log.h>
 #include <option/has_puppies.h>
+#include <string.h>
 
-#include "log.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 // FIXME: remove uart2 definition from this file
 extern "C" {
@@ -23,6 +23,111 @@ extern DMA_HandleTypeDef hdma_usart6_rx;
 }
 
 namespace buddy::hw {
+
+#define UARTRXBUFF_ERR_NO_DATA  -1
+#define UARTRXBUFF_ERR_OVERFLOW -2
+#define UARTRXBUFF_ERR_IDLE     -3
+
+enum {
+    UARTRXBUFF_EVT_FIRST_HALF_FULL = (1 << 0),
+    UARTRXBUFF_EVT_SECOND_HALF_FULL = (1 << 1),
+    UARTRXBUFF_EVT_OVERFLOW_DETECTED = (1 << 2),
+    UARTRXBUFF_EVT_IDLE = (1 << 3),
+
+    UARTRXBUFF_EVT_ALL = UARTRXBUFF_EVT_FIRST_HALF_FULL | UARTRXBUFF_EVT_SECOND_HALF_FULL | UARTRXBUFF_EVT_OVERFLOW_DETECTED | UARTRXBUFF_EVT_IDLE,
+};
+
+static void set_events_from_isr(EventGroupHandle_t event_group, EventBits_t events) {
+    BaseType_t higherPriorityTaskWoken = pdFALSE;
+    BaseType_t result = xEventGroupSetBitsFromISR(event_group, events, &higherPriorityTaskWoken);
+    if (result != pdFAIL) {
+        // Switch context after returning from ISR if we have just woken a higher-priority task
+        portYIELD_FROM_ISR(higherPriorityTaskWoken);
+    }
+}
+
+static void detect_overflow(EventGroupHandle_t event_group) {
+    EventBits_t events = xEventGroupGetBitsFromISR(event_group);
+    if (events & (UARTRXBUFF_EVT_FIRST_HALF_FULL | UARTRXBUFF_EVT_SECOND_HALF_FULL)) {
+        // Why? If both those flags are set, it means we haven't finished reading one half of the buffer,
+        //  while the DMA finished writing to the other side (and is going to write to the one we still
+        //  haven't finished reading). Therefore, an overflow can happen at any time without us
+        //  being aware (or it happened already).
+        set_events_from_isr(event_group, UARTRXBUFF_EVT_OVERFLOW_DETECTED);
+    }
+}
+
+void uartrxbuff_reset(BufferedSerial::uartrxbuff_t *prxbuff) {
+    // Clear all the event flags
+    xEventGroupClearBits(prxbuff->event_group,
+        UARTRXBUFF_EVT_ALL);
+    // Reset the current buffer position to the one reported by the DMA peripheral
+    prxbuff->buffer_pos
+        = prxbuff->buffer_size - prxbuff->phdma->Instance->NDTR;
+    prxbuff->idle_at_NDTR = UINT32_MAX;
+}
+
+// an alternative approach to solving the first_half_full issue
+// as suggested by Alan - do not read the last character from the lower
+// half of the buffer unless the first_half_full flag is set
+// - i.e. return NO_DATA in such a case and the caller is obliged to
+// make another call to uartrxbuff_getchar to read the character.
+int uartrxbuff_getchar(BufferedSerial::uartrxbuff_t *prxbuff) {
+    int retval;
+
+    uint32_t ndtr = prxbuff->phdma->Instance->NDTR;
+    uint8_t cnt = prxbuff->buffer_size - ndtr;
+
+    EventBits_t events = xEventGroupGetBits(prxbuff->event_group);
+    EventBits_t events_to_clear = UARTRXBUFF_EVT_IDLE;
+    bool first_half_full = events & UARTRXBUFF_EVT_FIRST_HALF_FULL;
+    bool second_half_full = events & UARTRXBUFF_EVT_SECOND_HALF_FULL;
+
+    if (events & UARTRXBUFF_EVT_OVERFLOW_DETECTED) {
+        retval = UARTRXBUFF_ERR_OVERFLOW;
+    } else if (prxbuff->idle_at_NDTR != UINT32_MAX && prxbuff->buffer_pos == (prxbuff->buffer_size - (int)prxbuff->idle_at_NDTR)) {
+        // idle occured at this position - return it
+        retval = UARTRXBUFF_ERR_IDLE;
+        prxbuff->idle_at_NDTR = UINT32_MAX;
+    } else if (prxbuff->buffer_pos < (prxbuff->buffer_size / 2)) {
+        // We are reading the first half of the buffer
+        if (first_half_full || (prxbuff->buffer_pos < cnt)) {
+            if ((!first_half_full) && (prxbuff->buffer_pos == (prxbuff->buffer_size / 2) - 1)) {
+                // special case - caught the bug - first_half_full is NOT set while we already have the
+                // lower part of the buffer full
+                retval = UARTRXBUFF_ERR_NO_DATA;
+            } else {
+                // normal operation
+                retval = prxbuff->buffer[prxbuff->buffer_pos++];
+                if (prxbuff->buffer_pos == (prxbuff->buffer_size / 2)) {
+                    // we just reached second half of the buffer, so let's mark the first half as "not pending"
+                    events_to_clear = UARTRXBUFF_EVT_FIRST_HALF_FULL;
+                }
+            }
+        } else {
+            retval = UARTRXBUFF_ERR_NO_DATA;
+        }
+    } else {
+        // We are reading the second half of the buffer
+        if (second_half_full || (prxbuff->buffer_pos < cnt)) {
+            retval = prxbuff->buffer[prxbuff->buffer_pos++];
+            if (prxbuff->buffer_pos >= prxbuff->buffer_size) {
+                // we reached the end of the buffer, go back to the beginning and clear the "second half is full" flag
+                prxbuff->buffer_pos = 0;
+                events_to_clear = UARTRXBUFF_EVT_SECOND_HALF_FULL;
+            }
+        } else {
+            retval = UARTRXBUFF_ERR_NO_DATA;
+        }
+    }
+
+    if (events_to_clear) {
+        xEventGroupClearBits(prxbuff->event_group, events_to_clear);
+    }
+
+    return retval;
+}
+
 LOG_COMPONENT_DEF(BufferedSerial, LOG_SEVERITY_DEBUG);
 #if BOARD_IS_BUDDY
 static uint8_t uart2rx_data[32];
@@ -61,7 +166,13 @@ void BufferedSerial::Open() {
         return;
     }
 
-    uartrxbuff_init(&rxBuf, rxDma, rxBufPoolSize, rxBufPool);
+    memset(&rxBuf, 0, sizeof(BufferedSerial::uartrxbuff_t));
+    assert(rxBufPoolSize <= 256); // uint8_t is used
+    rxBuf.phdma = rxDma;
+    rxBuf.buffer_size = rxBufPoolSize;
+    rxBuf.buffer = rxBufPool;
+    rxBuf.event_group = xEventGroupCreate();
+    uartrxbuff_reset(&rxBuf);
 
     StartReceiving();
 
@@ -82,7 +193,7 @@ void BufferedSerial::Close() {
     // Clear the buffer
     uartrxbuff_reset(&rxBuf);
 
-    uartrxbuff_deinit(&rxBuf);
+    vEventGroupDelete(rxBuf.event_group);
 
     isOpen = false;
 }
@@ -114,7 +225,14 @@ size_t BufferedSerial::Read(char *buf, size_t len, bool terminate_on_idle /* = f
                 break;
             }
 
-            uartrxbuff_wait_for_event(&rxBuf, std::min(budgetMs, 1));
+            uint32_t timeout = std::min(budgetMs, 1);
+            TickType_t ticks = timeout / portTICK_PERIOD_MS;
+            xEventGroupWaitBits(rxBuf.event_group,
+                UARTRXBUFF_EVT_FIRST_HALF_FULL | UARTRXBUFF_EVT_SECOND_HALF_FULL | UARTRXBUFF_EVT_OVERFLOW_DETECTED | UARTRXBUFF_EVT_IDLE,
+                /*xClearOnExit=*/pdFALSE,
+                /*xWaitForAllBits=*/pdFALSE,
+                /*xTicksToWait=*/ticks);
+            xEventGroupClearBits(rxBuf.event_group, UARTRXBUFF_EVT_IDLE);
         }
     }
 
@@ -194,15 +312,18 @@ void BufferedSerial::WriteFinishedISR() {
 }
 
 void BufferedSerial::IdleISR() {
-    uartrxbuff_idle_cb(&rxBuf);
+    rxBuf.idle_at_NDTR = rxBuf.phdma->Instance->NDTR;
+    set_events_from_isr(rxBuf.event_group, UARTRXBUFF_EVT_IDLE);
 }
 
 void BufferedSerial::FirstHalfReachedISR() {
-    uartrxbuff_rxhalf_cb(&rxBuf);
+    set_events_from_isr(rxBuf.event_group, UARTRXBUFF_EVT_FIRST_HALF_FULL);
+    detect_overflow(rxBuf.event_group);
 }
 
 void BufferedSerial::SecondHalfReachedISR() {
-    uartrxbuff_rxcplt_cb(&rxBuf);
+    set_events_from_isr(rxBuf.event_group, UARTRXBUFF_EVT_SECOND_HALF_FULL);
+    detect_overflow(rxBuf.event_group);
 }
 
 void BufferedSerial::Flush() {

@@ -2,7 +2,6 @@
 #include <device/cmsis.h>
 #include <device/peripherals.h>
 #include "printers.h"
-#include "../src/common/uartrxbuff.h"
 #include <stdint.h>
 #include <device/board.h>
 #include "MarlinPin.h"
