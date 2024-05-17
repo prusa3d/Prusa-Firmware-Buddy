@@ -797,7 +797,7 @@ class ClientResponses {
 #endif
             { PhaseNetworkSetup::connecting, { Response::Finish, Response::Cancel } },
             { PhaseNetworkSetup::connected, { Response::Ok } },
-            { PhaseNetworkSetup::esp_error, { Response::Retry, Response::Ok } },
+            { PhaseNetworkSetup::esp_error, { Response::Ok, Response::Retry } },
             { PhaseNetworkSetup::connection_error, { Response::Back, Response::Abort } },
             { PhaseNetworkSetup::finish, {} },
     };
