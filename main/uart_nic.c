@@ -173,12 +173,14 @@ static struct {
     ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS];
     uint8_t stored_ssids_count;
     atomic_bool in_progress;
+    atomic_bool should_reconnect;
 } scan = {
     .scan_type = SCAN_TYPE_UNKNOWN,
     .callback = NULL,
     .stored_ssids = {},
     .stored_ssids_count = 0,
     .in_progress = false,
+    .should_reconnect = false,
 };
 
 static void IRAM_ATTR send_link_status(uint8_t up) {
@@ -295,6 +297,18 @@ static void IRAM_ATTR probe_run() {
     start_wifi_scan(&probe_handler, SCAN_TYPE_PROBE);
 }
 
+static void IRAM_ATTR handle_disconnect_and_try_reconnect() {
+    associated = false;
+    send_link_status(0);
+    if (s_retry_num < CONFIG_ESP_MAXIMUM_RETRY) {
+        esp_wifi_connect();
+        s_retry_num++;
+        ESP_LOGI(TAG, "retry to connect to the AP");
+    }
+    ESP_LOGI(TAG,"connect to the AP fail, now lowering RF power to reduce interference");
+    esp_wifi_set_max_tx_power(48); // 12dB (down from 20dB) to reduce antenna reflections, needed for some modules (see ESP8266_RTOS_SDK#1200)
+}
+
 static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         uint8_t current_protocol;
@@ -305,15 +319,13 @@ static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int3
         }
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        associated = false;
-        send_link_status(0);
-        if (s_retry_num < CONFIG_ESP_MAXIMUM_RETRY) {
-            esp_wifi_connect();
-            s_retry_num++;
-            ESP_LOGI(TAG, "retry to connect to the AP");
+        if (scan.in_progress) {
+            // We were probably disconnected because the scan is blocking the wifi antenna.
+            // Lets handle the disconnection at the end of the scan.
+            scan.should_reconnect = true;
+        } else {
+            handle_disconnect_and_try_reconnect();
         }
-        ESP_LOGI(TAG,"connect to the AP fail, now lowering RF power to reduce interference");
-	esp_wifi_set_max_tx_power(48); // 12dB (down from 20dB) to reduce antenna reflections, needed for some modules (see ESP8266_RTOS_SDK#1200)
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
         last_inbound_seen = now_seconds();
         associated = true;
@@ -348,6 +360,10 @@ static void IRAM_ATTR event_handler(void* arg, esp_event_base_t event_base, int3
                 break;
                 default:
                     scan.scan_type = SCAN_TYPE_UNKNOWN;
+                    if (scan.should_reconnect) {
+                        scan.should_reconnect = false;
+                        handle_disconnect_and_try_reconnect();
+                    }
                 break;
             }
         }
