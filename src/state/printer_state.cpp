@@ -297,7 +297,6 @@ DeviceState get_state(bool ready) {
     case ClientFSM::QuickPause:
         return DeviceState::Paused;
     case ClientFSM::Selftest:
-    case ClientFSM::ESP:
     case ClientFSM::NetworkSetup:
 #if HAS_COLDPULL()
     case ClientFSM::ColdPull:
@@ -380,7 +379,6 @@ StateWithDialog get_state_with_dialog(bool ready) {
         break;
 
     case ClientFSM::Selftest:
-    case ClientFSM::ESP:
     case ClientFSM::NetworkSetup:
 #if HAS_COLDPULL()
     case ClientFSM::ColdPull:

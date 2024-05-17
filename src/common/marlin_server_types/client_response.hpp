@@ -321,32 +321,6 @@ enum class PhasesSelftest : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhasesSelftest) { return ClientFSM::Selftest; }
 #endif
 
-enum class PhasesESP : PhaseUnderlyingType {
-    _none,
-
-    _first_ESP,
-    ESP_instructions = _first_ESP,
-    ESP_USB_not_inserted, // must be before ask_gen/ask_gen_overwrite, because it depends on file existence
-    ESP_ask_gen,
-    ESP_ask_gen_overwrite,
-    ESP_makefile_failed,
-    ESP_eject_USB,
-    ESP_insert_USB,
-    ESP_invalid,
-    ESP_uploading_config,
-    ESP_asking_credentials_delete,
-    ESP_enabling_WIFI,
-    _last_ESP = ESP_enabling_WIFI,
-
-    _first_ESP_qr,
-    ESP_qr_instructions_flash = _first_ESP_qr,
-    ESP_qr_instructions,
-    _last_ESP_qr = ESP_qr_instructions,
-
-    _last = _last_ESP_qr,
-};
-constexpr inline ClientFSM client_fsm_from_phase(PhasesESP) { return ClientFSM::ESP; }
-
 enum class PhaseNetworkSetup : PhaseUnderlyingType {
     init,
     ask_switch_to_wifi, ///< User is already connected through an ethernet cable, ask him if he wants to switch to wi-fi
@@ -754,31 +728,6 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::SelftestResponses) == CountPhases<PhasesSelftest>());
 
-    static constexpr PhaseResponses ESPResponses[] = {
-        {}, // _none
-
-        { Response::Continue, Response::Abort }, // ESP_instructions
-        { Response::Yes, Response::Skip }, // ESP_USB_not_inserted
-        { Response::Yes, Response::Skip }, // ESP_ask_gen
-        { Response::Yes, Response::Skip }, // ESP_ask_gen_overwrite
-        { Response::Yes, Response::Skip }, // ESP_makefile_failed
-        { Response::Continue }, // ESP_eject_USB
-        { Response::Continue, Response::Abort }, // ESP_insert_USB
-        { Response::Retry, Response::Abort }, // ESP_invalid
-        { Response::Abort }, // ESP_uploading_config
-        { Response::Yes, Response::No }, // ESP_asking_credentials_delete
-        { Response::Continue }, // ESP_enabling_WIFI
-
-        { Response::Continue, Response::NotNow
-#if not PRINTER_IS_PRUSA_MINI
-            ,
-            Response::Never
-#endif
-        }, // ESP_qr_instructions_flash
-        { Response::Continue, Response::Abort }, // ESP_qr_instructions
-    };
-    static_assert(std::size(ClientResponses::ESPResponses) == CountPhases<PhasesESP>());
-
     static constexpr EnumArray<PhaseNetworkSetup, PhaseResponses, PhaseNetworkSetup::_cnt> network_setup_responses {
         { PhaseNetworkSetup::init, {} },
             { PhaseNetworkSetup::ask_switch_to_wifi, { Response::Yes, Response::No } },
@@ -897,7 +846,6 @@ class ClientResponses {
 #if HAS_SELFTEST()
             { ClientFSM::Selftest, SelftestResponses },
 #endif
-            { ClientFSM::ESP, ESPResponses },
             { ClientFSM::NetworkSetup, network_setup_responses },
             { ClientFSM::Printing, {} },
 #if ENABLED(CRASH_RECOVERY)
@@ -1002,13 +950,6 @@ enum class SelftestParts {
     _count = _none
 };
 
-enum class ESPParts {
-    ESP,
-    ESP_qr,
-    _none, // cannot be created, must have same index as _count
-    _count = _none
-};
-
 static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
@@ -1061,18 +1002,6 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     return PhasesSelftest::_none;
 }
 
-static constexpr PhasesESP ESPGetFirstPhaseFromPart(ESPParts part) {
-    switch (part) {
-    case ESPParts::ESP:
-        return PhasesESP::_first_ESP;
-    case ESPParts::ESP_qr:
-        return PhasesESP::_first_ESP_qr;
-    case ESPParts::_none:
-        break;
-    }
-    return PhasesESP::_none;
-}
-
 static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
@@ -1123,18 +1052,6 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         break;
     }
     return PhasesSelftest::_none;
-}
-
-static constexpr PhasesESP ESPGetLastPhaseFromPart(ESPParts part) {
-    switch (part) {
-    case ESPParts::ESP:
-        return PhasesESP::_last_ESP;
-    case ESPParts::ESP_qr:
-        return PhasesESP::_last_ESP_qr;
-    case ESPParts::_none:
-        break;
-    }
-    return PhasesESP::_none;
 }
 
 static constexpr bool SelftestPartContainsPhase(SelftestParts part, PhasesSelftest ph) {
@@ -1216,21 +1133,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 #endif
     return SelftestParts::_none;
 };
-
-static constexpr bool ESPPartContainsPhase(ESPParts part, PhasesESP ph) {
-    const PhaseUnderlyingType ph_u16 = PhaseUnderlyingType(ph);
-
-    return (ph_u16 >= PhaseUnderlyingType(ESPGetFirstPhaseFromPart(part))) && (ph_u16 <= PhaseUnderlyingType(ESPGetLastPhaseFromPart(part)));
-}
-
-static constexpr ESPParts ESPGetPartFromPhase(PhasesESP ph) {
-    for (size_t i = 0; i < size_t(ESPParts::_none); ++i) {
-        if (ESPPartContainsPhase(ESPParts(i), ph)) {
-            return ESPParts(i);
-        }
-    }
-    return ESPParts::_none;
-}
 
 enum class FSM_action {
     no_action,

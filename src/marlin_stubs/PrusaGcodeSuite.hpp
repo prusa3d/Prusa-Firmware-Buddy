@@ -83,7 +83,6 @@ void M591(); ///< configure Filament stuck monitoring
 void M997(); ///< Update firmware. Prusa STM32 platform specific
 void M999();
 
-void M1587(); ///< Wi-Fi credentials
 void M1600(); ///< Menu change filament. Prusa STM32 platform specific
 void M1601(); ///< Filament stuck detected, Prusa STM32 platform specific
 void M1700(); ///< Preheat. Prusa STM32 platform specific

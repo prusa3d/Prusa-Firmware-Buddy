@@ -142,17 +142,8 @@ endif()
 if(HAS_SELFTEST)
   add_subdirectory(wizard)
   target_sources(
-    firmware
-    PRIVATE esp_frame.cpp
-            esp_frame_qr.cpp
-            # steel sheets requiere first layer calibration, which require wizard, which require
-            # selftest TODO add HAS_STEEL_SHEETS property
-            esp_frame_text.cpp
-            MItem_basic_selftest.cpp
-            screen_menu_diagnostics.cpp
-            ScreenESP.cpp
-            ScreenSelftest.cpp
-            selftest_frame.cpp
+    firmware PRIVATE MItem_basic_selftest.cpp screen_menu_diagnostics.cpp ScreenSelftest.cpp
+                     selftest_frame.cpp
     )
 
   if(HAS_SELFTEST_SNAKE)

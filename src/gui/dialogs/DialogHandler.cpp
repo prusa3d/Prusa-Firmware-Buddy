@@ -3,7 +3,6 @@
 #include "DialogLoadUnload.hpp"
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
-#include "ScreenESP.hpp"
 #include "screen_printing.hpp"
 #include "config_features.h"
 #include "screen_print_preview.hpp"
@@ -164,7 +163,6 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
 #if HAS_SELFTEST()
     FSMScreenDef<ClientFSM::Selftest, ScreenSelftest>,
 #endif
-    FSMScreenDef<ClientFSM::ESP, ScreenESP>,
     FSMScreenDef<ClientFSM::NetworkSetup, ScreenNetworkSetup>,
     FSMPrintDef<ClientFSM::Printing>,
 #if ENABLED(CRASH_RECOVERY)

@@ -176,9 +176,6 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
                 processed = false;
                 break;
             }
-        case 1587:
-            PrusaGcodeSuite::M1587();
-            break;
         case 1600:
             PrusaGcodeSuite::M1600();
             break;

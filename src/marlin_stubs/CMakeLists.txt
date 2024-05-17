@@ -37,9 +37,6 @@ add_subdirectory(${PRINTER})
 
 if(HAS_SELFTEST)
   target_sources(firmware PRIVATE G162.cpp G163.cpp)
-  if(WUI)
-    target_sources(firmware PRIVATE M1587.cpp)
-  endif()
 endif()
 
 if(HAS_LEDS)

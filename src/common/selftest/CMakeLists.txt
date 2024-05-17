@@ -7,7 +7,6 @@ target_sources(
           selftest_axis.cpp
           selftest_axis_interface.cpp
           selftest_data.cpp
-          selftest_esp_update.cpp
           selftest_fan.cpp
           selftest_fans_interface.cpp
           selftest_firstlayer.cpp
