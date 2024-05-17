@@ -1,8 +1,10 @@
 // menu_vars.h - shared arrays to be used in menus
 #pragma once
-#include "SteelSheets.hpp"
+
 #include "i18n.h"
-#include "file_list_defs.h"
+
+// TODO: Move Z_OFFSET_MIN/MAX somewhere better
+#include <common/sheet.hpp>
 
 //-----------------------------------------------------------------------------
 // stringize macros

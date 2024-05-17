@@ -5,10 +5,6 @@
 
 #include "common/sheet.hpp"
 
-// #define Z_OFFSET_STEP     0.0025F//calculated
-#define Z_OFFSET_MIN -2.0F
-#define Z_OFFSET_MAX 2.0F
-
 class SteelSheets {
 public:
     static constexpr float zOffsetMin = Z_OFFSET_MIN;

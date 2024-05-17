@@ -5,7 +5,6 @@
 #include "../Marlin/src/module/temperature.h"
 
 #include "gui_config_printer.hpp"
-#include "SteelSheets.hpp"
 
 std::array<int, MenuVars::AXIS_CNT> MenuVars::GetManualFeedrate() { return { MANUAL_FEEDRATE }; };
 
