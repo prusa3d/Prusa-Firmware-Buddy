@@ -353,6 +353,7 @@ enum class PhaseNetworkSetup : PhaseUnderlyingType {
     action_select, ///< Letting the user to choose how the wi-fi should be set up
     wifi_scan, ///< Scanning available wi-fi networks (the scanning is fully handled on the GUI thread)
     wait_for_ini_file, ///< Prompting user to insert a flash drive with creds
+    ask_delete_ini_file, ///< Asking the user if he wants to delete the ini file
 #if HAS_NFC()
     wait_for_nfc, ///< Prompting user to provide the credentials through NFW
     nfc_confirm, ///< Loaded credentials via NFC, asking for confirmation
@@ -788,7 +789,9 @@ class ClientResponses {
 #endif
                     Response::Back, NetworkSetupResponse::scan_wifi, NetworkSetupResponse::load_from_ini, NetworkSetupResponse::connect },
             },
-            { PhaseNetworkSetup::wifi_scan, { NetworkSetupResponse::connect, Response::Back } }, { PhaseNetworkSetup::wait_for_ini_file, { Response::Cancel } },
+            { PhaseNetworkSetup::wifi_scan, { NetworkSetupResponse::connect, Response::Back } },
+            { PhaseNetworkSetup::wait_for_ini_file, { Response::Cancel } },
+            { PhaseNetworkSetup::ask_delete_ini_file, { Response::Yes, Response::No } },
 #if HAS_NFC()
             { PhaseNetworkSetup::wait_for_nfc, { Response::Cancel } }, { PhaseNetworkSetup::nfc_confirm, { Response::Ok, Response::Cancel } },
 #endif

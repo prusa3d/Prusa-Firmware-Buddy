@@ -197,7 +197,27 @@ private:
         // If we did this in the phase init, the screen would not be redrawn for some time.
         if (struct stat st; !phase_action_done_ && phase_time_ms > 500 && stat(settings_ini::file_name, &st) == 0 && S_ISREG(st.st_mode) && netdev_load_ini_to_eeprom()) {
             phase_action_done_ = true;
+            return Phase::ask_delete_ini_file;
+        }
+
+        return std::nullopt;
+    }
+
+    PhaseOpt phase_ask_delete_ini_file(const Meta::LoopCallbackArgs &args) {
+        switch (args.response) {
+
+        case Response::Back: // From touch swipe
+            return Phase::action_select;
+
+        case Response::Yes:
+            remove(settings_ini::file_name);
             return Phase::connecting;
+
+        case Response::No:
+            return Phase::connecting;
+
+        default:
+            break;
         }
 
         return std::nullopt;
@@ -338,6 +358,7 @@ private:
             { Phase::action_select, { .loop_callback = &C::phase_action_select, .init_callback = &C::phase_action_select_init } },
             { Phase::wifi_scan, { .loop_callback = &C::phase_wifi_scan } },
             { Phase::wait_for_ini_file, { .loop_callback = &C::phase_wait_for_ini_file, .init_callback = &C::phase_general_init } },
+            { Phase::ask_delete_ini_file, { .loop_callback = &C::phase_ask_delete_ini_file } },
 #if HAS_NFC()
             { Phase::wait_for_nfc, { &C::phase_wait_for_nfc } },
             { Phase::nfc_confirm, { .loop_callback = &C::phase_nfc_confirm, .init_callback = &C::phase_nfc_confirm_init } },

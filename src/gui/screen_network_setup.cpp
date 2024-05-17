@@ -368,6 +368,14 @@ public:
     }
 };
 
+class FrameAskDeleteINIFile : public FrameText {
+
+public:
+    FrameAskDeleteINIFile(window_t *parent)
+        : FrameText(parent, Phase::ask_delete_ini_file, _("Delete INI file"), _("Delete credentials INI file? (Recommended)")) {
+    }
+};
+
 #if HAS_NFC()
 class FrameWaitForNFC : public FrameText {
 
@@ -406,6 +414,7 @@ using Frames = FrameDefinitionList<ScreenNetworkSetup::FrameStorage,
     FrameDefinition<Phase::ask_switch_to_wifi, FrameAskSwitchToWifi>,
     FrameDefinition<Phase::action_select, FrameActionSelect>,
     FrameDefinition<Phase::wifi_scan, FrameWifiScan>,
+    FrameDefinition<Phase::ask_delete_ini_file, FrameAskDeleteINIFile>,
     FrameDefinition<Phase::wait_for_ini_file, FrameWaitForINI>,
     FrameDefinition<Phase::connecting, FrameConnecting>,
     FrameDefinition<Phase::esp_error, FrameESPError>,
