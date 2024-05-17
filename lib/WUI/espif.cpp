@@ -533,12 +533,13 @@ uint8_t espif::scan::get_ap_count() {
     std::lock_guard lock(ScanData::get_ap_info_mutex);
     ::scan.result.ssid = buffer;
 
-    int tries = 10;
+    int tries = 4;
 
     err_t last_error = ERR_OK;
     APInfo info {};
     while (tries >= 0) {
         --tries;
+        osDelay(1); // HACK: This delay fixes problems with reading the data from esp when sending request too quickly
         const auto err = espif_tx_raw(MSG_SCAN_AP_GET, index, nullptr);
 
         if (err != ERR_OK) {
