@@ -795,7 +795,7 @@ class ClientResponses {
 #if HAS_NFC()
             { PhaseNetworkSetup::wait_for_nfc, { Response::Cancel } }, { PhaseNetworkSetup::nfc_confirm, { Response::Ok, Response::Cancel } },
 #endif
-            { PhaseNetworkSetup::connecting, { Response::Skip, Response::Cancel } },
+            { PhaseNetworkSetup::connecting, { Response::Finish, Response::Cancel } },
             { PhaseNetworkSetup::connected, { Response::Ok } },
             { PhaseNetworkSetup::esp_error, { Response::Retry, Response::Ok } },
             { PhaseNetworkSetup::connection_error, { Response::Back, Response::Abort } },

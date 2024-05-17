@@ -316,7 +316,7 @@ class FrameConnecting : public FrameText {
 
 public:
     FrameConnecting(window_t *parent)
-        : FrameText(parent, Phase::connecting, _("Connecting to:"), _("You can press 'Skip' to continue connecting on the background."))
+        : FrameText(parent, Phase::connecting, _("Connecting to:"), _("You can press 'Finish' to continue connecting on the background."))
         , ssid_text(parent, info.GetRect(), is_multiline::no) {
 
         const Rect16 r = ssid_text.GetRect();

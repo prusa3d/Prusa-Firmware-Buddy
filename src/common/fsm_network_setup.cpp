@@ -295,7 +295,7 @@ private:
         case Response::Cancel:
             return cancel_target_phase_;
 
-        case Response::Skip:
+        case Response::Finish:
             return Phase::finish;
 
         default:
