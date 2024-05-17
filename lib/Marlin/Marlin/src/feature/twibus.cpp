@@ -115,7 +115,7 @@ void TWIBus::addstring(char str[]) {
 void TWIBus::send() {
   debug(F("send"), addr);
   
-  i2c::Result ret = i2c::Transmit(hi2c2, addr << 1, buffer, buffer_s, 100);
+  i2c::Result ret = i2c::Transmit(I2C_HANDLE_FOR(gcode), addr << 1, buffer, buffer_s, 100);
   reset();
 
   check_hal_response(ret);
@@ -199,7 +199,7 @@ bool TWIBus::request(const uint8_t bytes) {
 
   flush();
 
-  i2c::Result ret = i2c::Receive(hi2c2, addr << 1 | 0x1, read_buffer, bytes, 100);
+  i2c::Result ret = i2c::Receive(I2C_HANDLE_FOR(gcode), addr << 1 | 0x1, read_buffer, bytes, 100);
 
   if (!check_hal_response(ret)) {
     return false;

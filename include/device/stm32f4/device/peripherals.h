@@ -237,6 +237,7 @@ extern TIM_HandleTypeDef htim14;
     #define i2c_eeprom      1
     #define i2c_usbc        -1
     #define i2c_touch       -1
+    #define i2c_gcode        1
     #define i2c_io_extender -1
     #define spi_flash       3
     #define spi_lcd         2
@@ -245,6 +246,7 @@ extern TIM_HandleTypeDef htim14;
 #elif BOARD_IS_XBUDDY
     #define i2c_eeprom        2
     #define i2c_usbc          2
+    #define i2c_gcode         2
     #define i2c_io_extender   -1
     #define spi_flash         5
     #define spi_lcd           6
@@ -264,6 +266,7 @@ extern TIM_HandleTypeDef htim14;
     #define i2c_eeprom         2
     #define i2c_usbc           1
     #define i2c_touch          3
+    #define i2c_gcode          2
     #define i2c_io_extender    2
     #define spi_flash          5
     #define spi_lcd            6
@@ -283,7 +286,7 @@ extern TIM_HandleTypeDef htim14;
     #define spi_led spi_extconn
 #endif
 
-#define HAS_I2CN(n) ((n == i2c_eeprom) || (n == i2c_touch) || (n == i2c_usbc) || (n == i2c_io_extender))
+#define HAS_I2CN(n) ((n == i2c_eeprom) || (n == i2c_touch) || (n == i2c_usbc) || (n == i2c_gcode) || (n == i2c_io_extender))
 
 //
 // Other
