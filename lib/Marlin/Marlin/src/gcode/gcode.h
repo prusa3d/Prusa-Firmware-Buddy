@@ -290,7 +290,6 @@
  *
  * T0-T3 - Select an extruder (tool) by index: "T<n> F<units/min>"
  *
- * R1 - Redirect nested gcode to another machine using uart
  */
 
 #include "../inc/MarlinConfig.h"
@@ -1046,11 +1045,6 @@ private:
   #if ENABLED(MAX7219_GCODE)
     static void M7219();
   #endif
-
-  #if ENABLED(REDIRECT_GCODE_SUPPORT)
-    static void R(const uint8_t machine_index);
-  #endif
-
 };
 
 extern GcodeSuite gcode;

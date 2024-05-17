@@ -123,11 +123,6 @@ extern const metric_handler_t *const metric_system_handlers[] = {
     nullptr
 };
 
-#if (BOARD_IS_BUDDY)
-uartrxbuff_t uart1rxbuff;
-static uint8_t uart1rx_data[32];
-#endif
-
 /**
  * @brief Bootstrap finished
  *
@@ -458,13 +453,6 @@ extern "C" void main_cpp(void) {
 
 #if (BOARD_IS_BUDDY)
     buddy::hw::BufferedSerial::uart2.Open();
-#endif
-
-#if (BOARD_IS_BUDDY)
-    uartrxbuff_init(&uart1rxbuff, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
-    assert(can_be_used_by_dma(uart1rxbuff.buffer));
-    HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
-    uartrxbuff_reset(&uart1rxbuff);
 #endif
 
 #if (BOARD_IS_XBUDDY)
