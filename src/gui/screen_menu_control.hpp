@@ -13,12 +13,18 @@
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
 #include <option/has_coldpull.h>
+#include <option/has_sheet_profiles.h>
 #include <printers.h>
 #include "MItem_basic_selftest.hpp"
 #include "MItem_mmu.hpp"
 #include <device/board.h>
+
 #if XL_ENCLOSURE_SUPPORT()
     #include "MItem_enclosure.hpp"
+#endif
+
+#if HAS_SHEET_PROFILES()
+    #include <MItem_steel_sheets.hpp>
 #endif
 
 using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
@@ -33,7 +39,7 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_SET_READY,
 #endif
 
-#if !HAS_LOADCELL()
+#if HAS_SHEET_PROFILES()
     MI_CURRENT_SHEET_PROFILE,
 #endif
     MI_DISABLE_STEP,

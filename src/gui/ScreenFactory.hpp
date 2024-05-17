@@ -14,7 +14,6 @@
 #include "screen_menu_fw_update.hpp"
 #include "screen_menu_languages.hpp"
 #include "screen_menu_network_settings.hpp"
-#include "screen_menu_steel_sheets.hpp"
 #include "screen_menu_eeprom.hpp"
 #include "screen_menu_footer_settings.hpp"
 #include "screen_prusa_link.hpp"
@@ -53,6 +52,11 @@
     #include "screen_menu_filament_mmu.hpp"
 #endif
 
+#include <option/has_sheet_profiles.h>
+#if HAS_SHEET_PROFILES()
+    #include "screen_menu_steel_sheets.hpp"
+#endif
+
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "screen_menu_tools.hpp"
 #endif
@@ -89,7 +93,9 @@ class ScreenFactory {
         ScreenMenuSensorInfo,
         ScreenMenuSettings,
         ScreenMenuStatistics,
+#if HAS_SHEET_PROFILES()
         ScreenMenuSteelSheets,
+#endif
         ScreenMenuSystem,
         ScreenMenuTemperature,
         ScreenTouchError,

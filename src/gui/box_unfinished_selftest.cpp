@@ -1,11 +1,15 @@
 #include "box_unfinished_selftest.hpp"
 #include <selftest_result_type.hpp>
 #include "printers.h"
+#include <option/has_sheet_profiles.h>
 #include <config_store/store_instance.hpp>
-#include <common/SteelSheets.hpp>
 
 #if PRINTER_IS_PRUSA_XL
     #include <module/prusa/toolchanger.h>
+#endif
+
+#if HAS_SHEET_PROFILES()
+    #include <common/SteelSheets.hpp>
 #endif
 
 bool selftest_warning_selftest_finished() {

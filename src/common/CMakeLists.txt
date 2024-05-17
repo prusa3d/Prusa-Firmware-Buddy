@@ -60,7 +60,6 @@ if(BOARD MATCHES ".*BUDDY")
             st25dv64k.cpp
             stat_retry.cpp
             static_storage.cpp
-            SteelSheets.cpp
             str_utils.cpp
             stubs.cpp
             support_utils.cpp
@@ -81,6 +80,10 @@ if(BOARD MATCHES ".*BUDDY")
     target_sources(firmware PRIVATE hwio_XLBuddy.cpp)
   else()
     target_sources(firmware PRIVATE hwio_buddy_2209_02.cpp)
+  endif()
+
+  if(HAS_SHEET_PROFILES)
+    target_sources(firmware PRIVATE SteelSheets.cpp)
   endif()
 elseif(BOARD MATCHES "DWARF")
   target_sources(
@@ -130,7 +133,6 @@ elseif(BOARD MATCHES "XL_DEV_KIT_XLB")
             serial_printing.cpp
             sound.cpp
             st25dv64k.cpp # todo: remove
-            SteelSheets.cpp
             tasks.cpp
             tools_mapping.cpp
             trinamic.cpp

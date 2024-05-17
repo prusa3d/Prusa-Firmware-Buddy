@@ -12,25 +12,26 @@
 #include "MItem_hardware.hpp"
 #include "printers.h"
 #include <option/has_loadcell.h>
-#include "MItem_basic_selftest.hpp"
-#include "printers.h"
-#if HAS_LOADCELL()
-    #include "MItem_loadcell.hpp"
-#endif
-#if (HAS_TOOLCHANGER())
-    #include "screen_menu_tools.hpp"
-#endif
+#include <option/has_sheet_profiles.h>
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor.h>
 #include <option/has_modularbed.h>
-#include <option/has_loadcell.h>
+#include <option/has_phase_stepping.h>
+#include "MItem_basic_selftest.hpp"
+#include "printers.h"
+
+#if HAS_LOADCELL()
+    #include "MItem_loadcell.hpp"
+#endif
+#if HAS_TOOLCHANGER()
+    #include "screen_menu_tools.hpp"
+#endif
 #if HAS_MODULARBED()
     #include "screen_menu_modularbed.hpp"
 #endif
 #if HAS_MMU2()
     #include "MItem_mmu.hpp"
 #endif
-#include <option/has_phase_stepping.h>
 
 class MI_MK4_MK39 : public WI_SWITCH_t<2> {
     static constexpr const char *const label = "Current Printer Type";
@@ -87,7 +88,8 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #if HAS_LOADCELL()
     ,
     MI_LOADCELL_SCALE
-#else
+#endif
+#if HAS_SHEET_PROFILES()
     ,
     MI_STEEL_SHEETS
 #endif

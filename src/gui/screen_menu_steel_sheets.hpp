@@ -1,7 +1,3 @@
-/**
- * @file screen_menu_steel_sheets.hpp
- */
-
 #pragma once
 
 #include "screen_menu.hpp"

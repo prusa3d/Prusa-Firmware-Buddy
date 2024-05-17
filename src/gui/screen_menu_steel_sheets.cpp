@@ -1,7 +1,3 @@
-/**
- * @file screen_menu_steel_sheets.cpp
- */
-
 #include "screen_menu_steel_sheets.hpp"
 #include <type_traits>
 #include "log.h"

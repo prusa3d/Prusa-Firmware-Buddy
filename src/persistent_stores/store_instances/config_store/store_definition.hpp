@@ -20,17 +20,21 @@
 #include <time_tools.hpp>
 #include <filament.hpp>
 #include <selftest_result.hpp>
-#include <common/sheet.hpp>
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
 #include <filament_sensors_remap_data.hpp>
 #include <feature/prusa/restore_z_storage.h>
 #include <option/has_loadcell.h>
+#include <option/has_sheet_profiles.h>
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
+
+#if HAS_SHEET_PROFILES()
+    #include <common/sheet.hpp>
+#endif
 
 namespace config_store_ns {
 /**
@@ -373,7 +377,7 @@ struct CurrentStore
     SelftestTool get_selftest_result_tool(uint8_t index);
     void set_selftest_result_tool(uint8_t index, SelftestTool value);
 
-    // TODO: create option/has_sheets and ifdef this next part with it
+#if HAS_SHEET_PROFILES()
     StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("Active Sheet")> active_sheet;
     StoreItem<Sheet, defaults::sheet_0, journal::hash("Sheet 0")> sheet_0;
     StoreItem<Sheet, defaults::sheet_1, journal::hash("Sheet 1")> sheet_1;
@@ -386,6 +390,7 @@ struct CurrentStore
 
     Sheet get_sheet(uint8_t index);
     void set_sheet(uint8_t index, Sheet value);
+#endif
 
     // axis microsteps and rms current have a capital axis + '_' at the end in name because of trinamic.cpp. Can be removed once the macro there is removed
     StoreItem<float, defaults::axis_steps_per_unit_x, journal::hash("Axis Steps Per Unit X")> axis_steps_per_unit_x;

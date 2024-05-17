@@ -8,6 +8,7 @@
 #include <option/has_side_leds.h>
 #include <option/has_filament_sensors_menu.h>
 #include <option/has_leds.h>
+#include <option/has_sheet_profiles.h>
 #include <option/developer_mode.h>
 #include <common/sheet.hpp>
 
@@ -177,22 +178,6 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 
-class MI_CURRENT_SHEET_PROFILE : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Sheet Profile");
-
-    static constexpr Font font = GuiDefaults::FontMenuItems;
-    static constexpr auto extension_width = Rect16::W_t((MAX_SHEET_NAME_LENGTH + 2) * width(font) + GuiDefaults::MenuPaddingItems.left + GuiDefaults::MenuPaddingItems.right);
-
-    std::array<char, MAX_SHEET_NAME_LENGTH + 3> extension_str;
-
-public:
-    MI_CURRENT_SHEET_PROFILE();
-
-protected:
-    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
-    void click(IWindowMenu &) override;
-};
-
 class MI_EEPROM : public IWindowMenuItem {
     static constexpr const char *const label = "Eeprom";
 
@@ -338,6 +323,7 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 
+#if HAS_SHEET_PROFILES()
 class MI_STEEL_SHEETS : public IWindowMenuItem {
     static constexpr const char *const label = N_("Steel Sheets");
 
@@ -347,6 +333,7 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+#endif
 
 class MI_SYSTEM : public IWindowMenuItem {
     static constexpr const char *const label = N_("System");

@@ -148,12 +148,16 @@ if(HAS_SELFTEST)
   if(HAS_SELFTEST_SNAKE)
     target_sources(firmware PRIVATE screen_menu_selftest_snake.cpp)
   endif()
-
-  if(HAS_LOADCELL)
-    target_sources(firmware PRIVATE MItem_loadcell.cpp)
-  endif()
 else()
   target_sources(firmware PRIVATE MItem_basic_selftest_disabled.cpp)
+endif()
+
+if(HAS_LOADCELL)
+  target_sources(firmware PRIVATE MItem_loadcell.cpp)
+endif()
+
+if(HAS_SHEET_PROFILES)
+  target_sources(firmware PRIVATE MItem_steel_sheets.cpp screen_menu_steel_sheets.cpp)
 endif()
 
 if(HAS_MMU2)
@@ -207,10 +211,6 @@ endif()
 
 if(PRINTER IN_LIST PRINTERS_WITH_LOVE_BOARD)
   target_sources(firmware PRIVATE MItem_love_board.cpp)
-endif()
-
-if(NOT PRINTER IN_LIST PRINTERS_WITH_LOADCELL)
-  target_sources(firmware PRIVATE screen_menu_steel_sheets.cpp)
 endif()
 
 if(HAS_FILAMENT_SENSORS_MENU)

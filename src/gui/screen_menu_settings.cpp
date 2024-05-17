@@ -10,7 +10,6 @@
 #include "wui.h"
 
 #include "knob_event.hpp"
-#include "SteelSheets.hpp"
 #include "img_resources.hpp"
 
 /*****************************************************************************/

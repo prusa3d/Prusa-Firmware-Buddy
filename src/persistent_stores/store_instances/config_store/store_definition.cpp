@@ -741,6 +741,7 @@ void CurrentStore::set_selftest_result_tool(uint8_t index, SelftestTool value) {
 }
 #endif
 
+#if HAS_SHEET_PROFILES()
 Sheet CurrentStore::get_sheet(uint8_t index) {
     assert(index < config_store_ns::sheets_num);
     switch (index) {
@@ -798,6 +799,7 @@ void CurrentStore::set_sheet(uint8_t index, Sheet value) {
         return;
     }
 }
+#endif
 
 input_shaper::Config CurrentStore::get_input_shaper_config() {
     input_shaper::Config config;

@@ -82,6 +82,7 @@
 #include <option/has_modularbed.h>
 #include <option/has_loadcell.h>
 #include <option/has_nfc.h>
+#include <option/has_sheet_profiles.h>
 
 #if HAS_DWARF()
     #include <puppies/Dwarf.hpp>
@@ -95,7 +96,9 @@
     #include "printer_selftest.hpp"
 #endif
 
-#include "SteelSheets.hpp"
+#if HAS_SHEET_PROFILES()
+    #include "SteelSheets.hpp"
+#endif
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.hpp" //get_Z_probe_endstop_hits
@@ -491,7 +494,9 @@ void init(void) {
     fsm_states.generation = rand_u();
 
     marlin_vars()->init();
+#if HAS_SHEET_PROFILES()
     SteelSheets::CheckIfCurrentValid();
+#endif
 }
 
 void print_fan_spd() {
@@ -841,7 +846,7 @@ bool inject_gcode(const char *gcode) {
 
 void settings_load(void) {
     (void)settings.reset();
-#if HAS_BED_PROBE
+#if HAS_SHEET_PROFILES()
     probe_offset.z = SteelSheets::GetZOffset();
 #endif
 #if ENABLED(PIDTEMPBED)
@@ -1582,8 +1587,7 @@ static void _server_print_loop(void) {
 #if HAS_LOADCELL()
         // Reset Live-Adjust-Z value before every print
         probe_offset.z = 0;
-        SteelSheets::SetZOffset(probe_offset.z); // This updates marlin_vers()->z_offset
-
+        marlin_vars()->z_offset = 0;
 #endif // HAS_LOADCELL()
 
         media_print_start();
