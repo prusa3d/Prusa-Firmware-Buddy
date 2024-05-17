@@ -20,6 +20,7 @@ enum class Response : uint8_t {
     ASA,
     Back,
     Cancel,
+    Help,
     Change,
     Continue,
     Cooldown,

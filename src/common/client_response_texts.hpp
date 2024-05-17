@@ -26,6 +26,8 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("BACK");
     case Response::Cancel:
         return N_("CANCEL");
+    case Response::Help:
+        return N_("HELP");
     case Response::Change:
         return N_("CHANGE");
     case Response::Continue:

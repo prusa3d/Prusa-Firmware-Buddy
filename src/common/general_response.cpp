@@ -14,6 +14,7 @@ constexpr std::pair<Response, const char *> response_str[] = {
     R(ASA),
     R(Back),
     R(Cancel),
+    R(Help),
     R(Change),
     R(Continue),
     R(Cooldown),
