@@ -1,7 +1,3 @@
-/**
- * @file footer_item_sheet_profile.cpp
- */
-
 #include "footer_item_sheet_profile.hpp"
 #include "img_resources.hpp"
 #include "SteelSheets.hpp"

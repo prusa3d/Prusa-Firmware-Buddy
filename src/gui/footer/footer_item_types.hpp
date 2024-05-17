@@ -7,7 +7,6 @@
 #include "footer_item_fsensor.hpp"
 #include "footer_item_printspeed.hpp"
 #include "footer_item_live_z.hpp"
-#include "footer_item_sheet_profile.hpp"
 #include "footer_def.hpp"
 #include "footer_item_axis.hpp"
 #include "footer_item_fans.hpp"
@@ -16,7 +15,12 @@
 #include "footer_item_input_shaper.hpp"
 #include "footer_item_enclosure.hpp"
 #include <option/has_mmu2.h>
+#include <option/has_sheet_profiles.h>
 #include <meta_utils.hpp>
+
+#if HAS_SHEET_PROFILES()
+    #include "footer_item_sheet_profile.hpp"
+#endif
 
 namespace footer {
 
@@ -50,7 +54,7 @@ using FooterItemMappings = TypeList< //
 #if !(PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5)
     FooterItemMappingRec<FooterItemHeatBreak, Item::heatbreak_temp>,
 #endif
-#if defined(FOOTER_HAS_SHEETS)
+#if HAS_SHEET_PROFILES()
     FooterItemMappingRec<FooterItemSheets, Item::sheets>,
 #endif
 #if HAS_MMU2()

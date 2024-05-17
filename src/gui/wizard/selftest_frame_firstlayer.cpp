@@ -5,6 +5,7 @@
 #include "selftest_frame_firstlayer.hpp"
 #include "i18n.h"
 #include "selftest_firstlayer_type.hpp"
+#include <option/has_sheet_profiles.h>
 
 SelftestFrameFirstLayer::SelftestFrameFirstLayer(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : SelftestFrame(parent, ph, data)
@@ -17,7 +18,7 @@ SelftestFrameFirstLayer::SelftestFrameFirstLayer(window_t *parent, PhasesSelftes
           ,
           footer::Item::live_z
 #endif
-#if defined(FOOTER_HAS_SHEETS)
+#if HAS_SHEET_PROFILES()
           ,
           footer::Item::sheets
 #endif

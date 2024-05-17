@@ -1,9 +1,5 @@
-/**
- * @file footer_item_sheet_profile.hpp
- * @brief footer item displaying selected sheet profile
- */
-
 #pragma once
+
 #include "ifooter_item.hpp"
 
 class FooterItemSheets : public FooterIconText_IntVal {

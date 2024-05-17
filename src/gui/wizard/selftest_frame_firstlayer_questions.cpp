@@ -5,6 +5,7 @@
 #include "selftest_frame_firstlayer_questions.hpp"
 #include "i18n.h"
 #include <guiconfig/wizard_config.hpp>
+#include <option/has_sheet_profiles.h>
 #include "selftest_firstlayer_type.hpp"
 #include "marlin_client.hpp"
 
@@ -24,7 +25,7 @@ SelftestFrameFirstLayerQuestions::SelftestFrameFirstLayerQuestions(window_t *par
           ,
           footer::Item::live_z
 #endif
-#if defined(FOOTER_HAS_SHEETS)
+#if HAS_SHEET_PROFILES()
           ,
           footer::Item::sheets
 #endif

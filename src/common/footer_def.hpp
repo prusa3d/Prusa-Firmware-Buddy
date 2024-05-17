@@ -12,6 +12,7 @@
 #include <array>
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
+#include <option/has_sheet_profiles.h>
 #include "i18n.h"
 #include <bsod.h>
 #include <device/board.h>
@@ -19,7 +20,6 @@
 // sadly this must be macros, it is used in preprocessor
 #if (defined(PRINTER_TYPE) && PRINTER_IS_PRUSA_MINI) || defined(USE_MOCK_DISPLAY)
     #define FOOTER_HAS_LIVE_Z
-    #define FOOTER_HAS_SHEETS
     #define FOOTER_LINES__          2
     #define FOOTER_ITEMS_PER_LINE__ 3
 #else // if defined(USE_ILI9488)
@@ -83,7 +83,7 @@ inline constexpr std::array disabled_items {
 #if not defined(FOOTER_HAS_LIVE_Z)
     Item::live_z,
 #endif
-#if not defined(FOOTER_HAS_SHEETS)
+#if !HAS_SHEET_PROFILES()
         Item::sheets,
 #endif
 #if not HAS_MMU2()
@@ -169,7 +169,7 @@ constexpr const char *to_string(Item item) {
     case Item::heatbreak_temp:
         return N_("Heatbreak");
     case Item::sheets:
-#if defined(FOOTER_HAS_SHEETS)
+#if HAS_SHEET_PROFILES()
         return N_("Sheets");
 #else
         break;
