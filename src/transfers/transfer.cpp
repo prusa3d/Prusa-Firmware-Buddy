@@ -227,7 +227,7 @@ void Transfer::init_download_order_if_needed() {
     }
     bool is_plain_gcode = filename_is_plain_gcode(slot.destination());
     bool has_sufficient_size = partial_file->final_size() >= PlainGcodeDownloadOrder::MinimalFileSize;
-    if (is_plain_gcode && has_sufficient_size) {
+    if (is_plain_gcode && has_sufficient_size || filename_is_firmware) {
         order = DownloadOrder(PlainGcodeDownloadOrder(*partial_file));
     } else {
         order = DownloadOrder(GenericFileDownloadOrder());
