@@ -118,6 +118,7 @@ enum class WarningType : uint32_t {
     EnclosureFanError,
     #endif
     NotDownloaded,
+    GcodeCorruption,
     _last = NotDownloaded
 };
 

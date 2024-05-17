@@ -92,6 +92,8 @@ DialogWarning::types DialogWarning::get_type(fsm::BaseData data) {
     case WarningType::NozzleCleaningFailed:
         return NozzleCleaningFailed;
 #endif
+    case WarningType::GcodeCorruption:
+        return GcodeCorruption;
     }
     assert(false);
     return count_;

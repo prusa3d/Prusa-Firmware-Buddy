@@ -28,6 +28,7 @@ IGcodeReader::Result_t GcodeReaderCommon::stream_get_line_common(GcodeBuffer &b,
         case Result_t::RESULT_ERROR:
         case Result_t::RESULT_OUT_OF_RANGE:
         case Result_t::RESULT_TIMEOUT:
+        case Result_t::RESULT_CORRUPT:
             return result;
         case Result_t::RESULT_OK:
             break;
@@ -76,6 +77,10 @@ IGcodeReader::Result_t GcodeReaderCommon::stream_get_line_common(GcodeBuffer &b,
             case Result_t::RESULT_OUT_OF_RANGE:
             case Result_t::RESULT_TIMEOUT:
                 return Result_t::RESULT_OK;
+            case Result_t::RESULT_CORRUPT:
+                // But corruption is more "global" and can't be hidden by the
+                // one part of the line.
+                return Result_t::RESULT_CORRUPT;
             case Result_t::RESULT_OK:
                 if (c == '\r' || c == '\n') {
                     return Result_t::RESULT_OK;

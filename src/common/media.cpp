@@ -183,6 +183,11 @@ void media_prefetch(const void *) {
             log_warning(MarlinServer, "Media prefetch: data not yet downloaded");
             osSignalWait(PREFETCH_SIGNAL_STOP, osWaitForever);
             continue;
+        } else if (first_read_res == IGcodeReader::Result_t::RESULT_CORRUPT) {
+            bb_state = GCodeFilter::State::Corruption;
+            log_warning(MarlinServer, "Media prefetch: file corrupt");
+            osSignalWait(PREFETCH_SIGNAL_STOP, osWaitForever);
+            continue;
         } else {
             prefetch_state = GCodeFilter::State::Error;
             log_info(MarlinServer, "Media prefetch: stopped by error");
@@ -251,6 +256,9 @@ void media_prefetch(const void *) {
                 } else if (second_read_res == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE) {
                     bb_state = GCodeFilter::State::NotDownloaded;
                     log_warning(MarlinServer, "Media prefetch: data not yet downloaded");
+                } else if (second_read_res == IGcodeReader::Result_t::RESULT_CORRUPT) {
+                    bb_state = GCodeFilter::State::Corruption;
+                    log_warning(MarlinServer, "Media prefetch: corruption");
                 } else if (second_read_res == IGcodeReader::Result_t::RESULT_EOF) {
                     bb_state = GCodeFilter::State::Eof;
                     log_warning(MarlinServer, "Media prefetch: EOF");
@@ -532,6 +540,10 @@ void media_loop(void) {
             // TODO: We want a specialized pause screen with error message and help link.
             // TODO: We want to auto-unpause if more data arrive.
             marlin_server::set_warning(WarningType::NotDownloaded);
+            media_print_pause();
+            return;
+        case GCodeFilter::State::Corruption:
+            marlin_server::set_warning(WarningType::GcodeCorruption);
             media_print_pause();
             return;
         case GCodeFilter::State::Timeout:

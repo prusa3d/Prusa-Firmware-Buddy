@@ -31,6 +31,7 @@ public:
         RESULT_TIMEOUT, // low level USB function might return timeout in case they can't get mutex in time
         RESULT_ERROR,
         RESULT_OUT_OF_RANGE, // Outside of the validity range
+        RESULT_CORRUPT, // Corruption / CRC mismatch / ...
     };
 
     /// Expected image format

@@ -20,6 +20,9 @@ public:
         Error,
         Timeout,
         NotDownloaded,
+        // The gcode is here, but it is provably incorrect
+        // (and won't fix itself by reading it again, etc).
+        Corruption,
     };
 
     GCodeFilter(char (*getByte)(State *), char *buffer, size_t buffer_size)

@@ -53,6 +53,7 @@ class DialogWarning : public IDialogMarlin {
         EnclosureFilterExpiration,
         EnclosureFanError,
 #endif /* XLBUDDY BOARD */
+        GcodeCorruption,
         count_
     };
 
@@ -101,6 +102,7 @@ class DialogWarning : public IDialogMarlin {
         { &img::warning_48x48, ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION },
         { &img::warning_48x48, ErrCode::CONNECT_ENCLOSURE_FAN_ERROR },
 #endif /* XLBUDDY BOARD */
+        { &img::warning_48x48, ErrCode::ERR_SYSTEM_GCODE_CORRUPTION },
     };
     static_assert(std::size(icon_code) == types::count_);
 

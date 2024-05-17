@@ -211,6 +211,8 @@ namespace {
         case WarningType::EnclosureFilterExpiration:
             return ErrCode::CONNECT_ENCLOSURE_FILTER_EXPIRATION;
 #endif // XL_ENCLOSURE_SUPPORT
+        case WarningType::GcodeCorruption:
+            return ErrCode::ERR_SYSTEM_GCODE_CORRUPTION;
         }
 
         assert(false);

@@ -74,7 +74,7 @@ private:
         End, //< end search
     };
 
-    std::optional<bgcode::core::BlockHeader> iterate_blocks(std::function<IterateResult_t(bgcode::core::BlockHeader &)> function);
+    std::optional<bgcode::core::BlockHeader> iterate_blocks(bool check_crc, std::function<IterateResult_t(bgcode::core::BlockHeader &)> function);
 
     /// Pointer to function, that will get decompressed character from file, or data directly form file if not compressed
     stream_getc_type ptr_stream_getc_decompressed = nullptr;
@@ -125,7 +125,7 @@ private:
      * @brief Read block header at current position
      * @note Also checks for file validity and will return RESULT_OUT_OF_RANGE if any part of the block is not valid
      */
-    Result_t read_block_header(bgcode::core::BlockHeader &block_header);
+    Result_t read_block_header(bgcode::core::BlockHeader &block_header, bool check_crc = false);
 
     /**
      * @brief Reads file header and check its content (for magic, version etc)
