@@ -54,12 +54,13 @@ class WiInfoArray : public IWiInfo {
 
 public:
     WiInfoArray(std::span<char> value_span, string_view_utf8 label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no)
-        : IWiInfo(string_view_utf8::MakeRAM(value_span.data()), value_span.size(), label, id_icon, enabled, hidden, extension_like_label)
+        : IWiInfo(string_view_utf8::MakeRAM(value_span.data()), value_span.size() - 1 /* exclude terminating \0 */, label, id_icon, enabled, hidden, extension_like_label)
         , value_span_(value_span) {}
 
 public:
     void ChangeInformation(const char *str) {
-        if (strncmp(value_span_.data(), str, value_span_.size()) == 0) {
+        // -1 because value_span_ last char is always terminating \0 (would cause mismatch when cropped)
+        if (strncmp(value_span_.data(), str, value_span_.size() - 1) == 0) {
             return;
         }
 
