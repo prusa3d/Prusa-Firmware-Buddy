@@ -136,12 +136,14 @@ static struct {
     ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS];
     uint8_t stored_ssids_count;
     atomic_bool in_progress;
+    atomic_bool should_reconnect;
 } scan = {
     .scan_type = SCAN_TYPE_UNKNOWN,
     .callback = NULL,
     .stored_ssids = {},
     .stored_ssids_count = 0,
     .in_progress = false,
+    .should_reconnect = false,
 };
 
 typedef struct {
@@ -279,6 +281,17 @@ static void IRAM_ATTR probe_run() {
     start_wifi_scan(&probe_handler, SCAN_TYPE_PROBE);
 }
 
+static void IRAM_ATTR handle_disconnect_and_try_reconnect() {
+    associated = false;
+    send_link_status(0);
+    if (s_retry_num < CONFIG_ESP_MAXIMUM_RETRY) {
+        esp_wifi_connect();
+        s_retry_num++;
+        ESP_LOGI(TAG, "retry to connect to the AP");
+    }
+    ESP_LOGI(TAG,"connect to the AP fail");
+}
+
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         uint8_t current_protocol;
@@ -289,14 +302,14 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         }
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        associated = false;
-        send_link_status(0);
-        if (s_retry_num < CONFIG_ESP_MAXIMUM_RETRY) {
-            esp_wifi_connect();
-            s_retry_num++;
-            ESP_LOGI(TAG, "retry to connect to the AP");
+        if (scan.in_progress) {
+            // We were probably disconnected because the scan is blocking the wifi antenna.
+            // Lets handle the disconnection at the end of the scan.
+            scan.should_reconnect = true;
+        } else {
+            handle_disconnect_and_try_reconnect();
         }
-        ESP_LOGI(TAG,"connect to the AP fail");
+
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
         last_inbound_seen = now_seconds();
         associated = true;
@@ -331,7 +344,11 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
                 break;
                 default:
                     scan.scan_type = SCAN_TYPE_UNKNOWN;
-                break;
+                    if (scan.should_reconnect) {
+                        scan.should_reconnect = false;
+                        handle_disconnect_and_try_reconnect();
+                    }
+                 break;
             }
         }
     }
