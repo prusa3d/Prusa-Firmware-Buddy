@@ -487,6 +487,8 @@ static void _server_update_vars();
 static bool _process_server_request(const Request &);
 static void _server_set_var(const Request &);
 
+static void settings_load();
+
 //-----------------------------------------------------------------------------
 // server side functions
 
@@ -495,9 +497,9 @@ void init(void) {
     server = server_t();
     osSemaphoreDef(serverSema);
     server_semaphore = osSemaphoreCreate(osSemaphore(serverSema), 1);
-    server.flags = MARLIN_SFLG_STARTED;
+    server.flags = 0;
     for (i = 0; i < MARLIN_MAX_CLIENTS; i++) {
-        server.notify_events[i] = make_mask(Event::Acknowledge) | make_mask(Event::Startup) | make_mask(Event::StartProcessing); // by default only ack, startup and processing
+        server.notify_events[i] = make_mask(Event::Acknowledge); // by default only ack
         server.notify_changes[i] = 0; // by default nothing
         server.event_messages[i] = nullptr;
     }
@@ -514,6 +516,7 @@ void init(void) {
 #if HAS_SHEET_PROFILES()
     SteelSheets::CheckIfCurrentValid();
 #endif
+    settings_load();
 }
 
 void print_fan_spd() {
@@ -661,10 +664,6 @@ static void cycle() {
     send_notifications_to_clients();
     server_update_vars();
 
-    if ((server.flags & MARLIN_SFLG_PROCESS) == 0) {
-        wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
-    }
-
     processing = 0;
 }
 
@@ -767,14 +766,6 @@ void loop() {
 #endif
 }
 
-void barebones_loop() {
-    if (Request request; server_queue.receive(request, 0)) {
-        _process_server_request(request);
-    }
-
-    send_notifications_to_clients();
-}
-
 static void idle(void) {
     // TODO: avoid a re-entrant cycle caused by:
     // cycle -> loop -> idle -> MarlinUI::update() -> ExtUI::onIdle -> idle -> cycle
@@ -817,21 +808,6 @@ static void idle(void) {
     cycle();
 }
 
-bool processing(void) {
-    return server.flags & MARLIN_SFLG_PROCESS;
-}
-
-void start_processing(void) {
-    server.flags |= MARLIN_SFLG_PROCESS;
-    _send_notify_event(Event::StartProcessing, 0, 0);
-}
-
-void stop_processing(void) {
-    server.flags &= ~MARLIN_SFLG_PROCESS;
-    // TODO: disable heaters and safe state
-    _send_notify_event(Event::StopProcessing, 0, 0);
-}
-
 void do_babystep_Z(float offs) {
     babystep.add_steps(Z_AXIS, std::round(offs * planner.settings.axis_steps_per_mm[Z_AXIS]));
     babystep.task();
@@ -866,7 +842,7 @@ bool inject_gcode(const char *gcode) {
     return true;
 }
 
-void settings_load(void) {
+static void settings_load() {
     (void)settings.reset();
 #if HAS_SHEET_PROFILES()
     probe_offset.z = SteelSheets::GetZOffset();
@@ -2524,7 +2500,6 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
             switch (Event(evt_id)) {
                 // Events without arguments
                 // TODO: send all these in a single message as a bitfield
-            case Event::Startup:
             case Event::MediaInserted:
             case Event::MediaError:
             case Event::MediaRemoved:
@@ -2535,8 +2510,6 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
             case Event::FactoryReset:
             case Event::LoadSettings:
             case Event::StoreSettings:
-            case Event::StartProcessing:
-            case Event::StopProcessing:
             case Event::MeshUpdate:
             // StatusChanged event - one string argument
             case Event::StatusChanged:
@@ -3053,8 +3026,6 @@ namespace ExtUI {
 using namespace marlin_server;
 
 void onStartup() {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onStartup");
-    _send_notify_event(Event::Startup, 0, 0);
 }
 
 void onIdle() {

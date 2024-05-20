@@ -23,9 +23,6 @@ void loop();
 // returns client_id for calling thread (-1 for unattached thread)
 int get_id();
 
-// infinite loop while server not ready
-void wait_for_start_processing();
-
 // sets dialog message, returns true on success
 bool set_message_cb(message_cb_t cb);
 

@@ -29,7 +29,6 @@ enum class Dependency : size_t {
     media_prefetch_ready,
     usb_and_temp_ready, ///< Check autoprint and powerpanic state
     gui_screen_ready,
-    gui_task_ready,
     _count
 };
 
@@ -57,16 +56,6 @@ namespace Tasks {
 #endif
     );
     inline constexpr dependency_t marlin_client = make(Dependency::default_task_ready);
-
-    inline constexpr dependency_t marlin_server = make(
-#if HAS_GUI()
-        // Make sure gui task has marlin_client setup before we start running the Marlin
-        // This is to prevent creating FSMs before GUI can register them and open dialogs
-        // BFW-5057
-        Dependency::gui_task_ready
-#endif
-    );
-
     inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
     inline constexpr dependency_t bootstrap_done = make(
         Dependency::resources_ready,

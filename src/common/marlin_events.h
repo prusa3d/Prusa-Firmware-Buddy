@@ -9,7 +9,6 @@ namespace marlin_server {
 
 enum class Event : uint8_t {
     // Marlin events - UIAPI
-    Startup, // onStartup()
     PrinterKilled, // onPrinterKilled(PGM_P const msg)
     MediaInserted, // onMediaInserted();
     MediaError, // onMediaError();
@@ -26,8 +25,6 @@ enum class Event : uint8_t {
     StoreSettings, // onStoreSettings()
     MeshUpdate, // onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval)
     // Marlin events - other
-    StartProcessing, // sent from marlin_server_start_processing
-    StopProcessing, // sent from marlin_server_stop_processing
     CommandBegin, //
     CommandEnd, //
     Message, //

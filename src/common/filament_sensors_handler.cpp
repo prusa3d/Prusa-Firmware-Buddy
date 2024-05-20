@@ -8,6 +8,7 @@
 #include "filament_sensors_handler.hpp"
 #include "rtos_api.hpp"
 #include "bsod.h"
+#include <tasks.hpp>
 #include "window_msgbox.hpp"
 #include <log.h>
 #include <option/has_selftest_snake.h>
@@ -109,7 +110,6 @@ void FilamentSensors::for_all_sensors(const std::function<void(IFSensor &sensor,
 
 void FilamentSensors::task_init() {
     marlin_client::init();
-    marlin_client::wait_for_start_processing();
 }
 
 void FilamentSensors::task_cycle() {

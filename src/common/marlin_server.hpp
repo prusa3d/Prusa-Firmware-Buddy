@@ -24,8 +24,6 @@ namespace marlin_server {
 
 // server flags
 // FIXME define the same type for these and marlin_server.flags
-constexpr uint16_t MARLIN_SFLG_STARTED = 0x0001; // server started (set in marlin_server::init)
-constexpr uint16_t MARLIN_SFLG_PROCESS = 0x0002; // loop processing in main thread is enabled
 constexpr uint16_t MARLIN_SFLG_BUSY = 0x0004; // loop is busy
 constexpr uint16_t MARLIN_SFLG_EXCMODE = 0x0010; // exclusive mode enabled (currently used for selftest/wizard)
 constexpr uint16_t MARLIN_SFLG_STOPPED = 0x0020; // moves stopped until command drain
@@ -43,20 +41,6 @@ void init();
 
 // server loop - must be called periodically in server thread
 void loop();
-
-/// A very minimal loop that only processes messages and sends back to clients
-/// This is used during the marlin client initialization phase,
-/// where we want to process messages from client, but nothing else
-void barebones_loop();
-
-// returns enabled status of loop processing
-bool processing();
-
-// direct start loop processing
-void start_processing();
-
-// direct stop loop processing + disable heaters and safe state
-void stop_processing();
 
 // direct call of babystep.add_steps(Z_AXIS, ...)
 void do_babystep_Z(float offs);
@@ -81,9 +65,6 @@ bool inject_gcode(const char *gcode);
 
 // direct call of settings.save()
 void settings_save();
-
-// direct call of settings.load()
-void settings_load();
 
 // direct call of settings.reset()
 void settings_reset();

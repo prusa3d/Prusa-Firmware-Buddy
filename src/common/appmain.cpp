@@ -182,8 +182,6 @@ static void app_setup(void) {
 #endif
 
     setup();
-
-    marlin_server::settings_load(); // load marlin variables from eeprom
 }
 
 void app_run(void) {
@@ -193,21 +191,14 @@ void app_run(void) {
     LangEEPROM::getInstance();
 #endif
 
-    marlin_server::init();
-
-    log_info(Marlin, "Starting setup");
-
     app_setup();
-
-    marlin_server::start_processing();
+    marlin_server::init();
 
 #if HAS_ADVANCED_POWER()
     advancedpower.ResetOvercurrentFault();
 #endif
 
-    log_info(Marlin, "Setup complete");
-
-    if (config_store_init_result() == config_store_ns::InitResult::cold_start && marlin_server::processing()) {
+    if (config_store_init_result() == config_store_ns::InitResult::cold_start) {
         settings.reset();
 #if ENABLED(POWER_PANIC)
         power_panic::reset();
@@ -216,22 +207,10 @@ void app_run(void) {
 
     TaskDeps::provide(TaskDeps::Dependency::default_task_ready);
 
-    // Wait for the other tasks to init marlin clients
-    // Marlin might create some FSMs right at the start and if the gui task doesn't process the message, it might not show the dialogs.
-    // We gotta loop the marlin server though, because the clients configure event masks through request messages
-    // BFW-5057
-    while (!TaskDeps::check(TaskDeps::Tasks::marlin_server)) {
-        marlin_server::barebones_loop();
-        osDelay(1);
-        watchdog_refresh();
-    }
-
     while (1) {
         metric_record_event(&metric_maintask_event);
         metric_record_integer(&metric_cpu_usage, osGetCPUUsage());
-        if (marlin_server::processing()) {
-            loop();
-        }
+        loop();
         marlin_server::loop();
     }
 }

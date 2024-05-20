@@ -99,14 +99,6 @@ int get_id() {
     return 0;
 }
 
-void wait_for_start_processing() {
-    if (marlin_client_t *client = _client_ptr()) {
-        while (!event_clr(Event::StartProcessing)) {
-            receive_and_process_client_message(client, portMAX_DELAY);
-        }
-    }
-}
-
 // register callback to message
 // return success
 bool set_message_cb(message_cb_t cb) {
@@ -514,9 +506,6 @@ static bool receive_and_process_client_message(marlin_client_t *client, TickType
         // not handled events
         // do not use default, i want all events listed here, so new event will generate warning, when not added
     case Event::MeshUpdate:
-    case Event::Startup:
-    case Event::StartProcessing:
-    case Event::StopProcessing:
     case Event::PrinterKilled:
     case Event::MediaInserted:
     case Event::MediaError:
