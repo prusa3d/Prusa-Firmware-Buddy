@@ -102,20 +102,39 @@ enum class EspFwState {
 };
 
 namespace espif::scan {
-/// Starts a wifi scan on esp
+/// @brief Sends a request to the esp over UART to start a wifi scan
+///
+/// If the esp is connected to AP the esp will temporarily disconnect from AP and after the scan is finished it will
+/// auto reconnect.
+/// The scan is done incrementally.
+/// It starts with a short intervals to quickly find some APs.
+/// These interval are doubled every time until the scan reaches ~30s scan time.
+/// Found APs are stored in the esp memory until new scan is started.
+/// To access the found aps use espif::scan::get_ap_info.
+/// After every interval the esp sends the number of stored APs.
+/// To get the number of found APs use espif::scan::get_ap_count.
 [[nodiscard]] err_t start();
-/// Stops currently running scan on esp
+/// @brief Sends a stop request to esp over UART to stop the current wifi scan.
+///
+/// If the esp is scanning it will immediately stop the current scan segment and prevents from starting a new one.
+/// The stopped scan still sends the results about found APs and new APs can be processed.
 [[nodiscard]] err_t stop();
-/// Checks if the scan is running.
+/// @brief Checks if the scan is running.
+///
 /// The check is done locally (on printer side, if the esp errors and resets,
 /// then we will not have any information about it).
 [[nodiscard]] bool is_running();
-/// Gets number of found aps.
+/// @brief Gets number of found aps.
+///
 /// This number is updated periodically by the esp and should be checked if new results are available.
 [[nodiscard]] uint8_t get_ap_count();
-/// Retrieve ap info from esp.
-/// This method pauses current task until the data are received.
-[[nodiscard]] err_t get_ap_info(uint8_t ap_index, std::span<uint8_t> ssid_buffer, bool &needs_ap);
+/// @brief Retrieve ap info from esp.
+///
+/// Retrieves data from esp over UART.
+/// This function blocks until the data are received (athough the responses are relarivelly quick - 0.8ms).
+/// The parameter needs_password isn't 100% accurate since we know that the esp says that some APs doesn't need a
+/// password even though they actually need it.
+[[nodiscard]] err_t get_ap_info(uint8_t ap_index, std::span<uint8_t> ssid_buffer, bool &needs_password);
 } // namespace espif::scan
 
 /// Returns the current state of the ESP's firmware, as guessed by us.
