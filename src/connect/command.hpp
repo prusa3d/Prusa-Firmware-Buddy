@@ -89,13 +89,15 @@ enum class PropertyName {
     HostName,
 #if XL_ENCLOSURE_SUPPORT()
     EnclosureEnabled,
-    EnclosureAlwaysOn,
+    EnclosurePrintingFiltration,
     EnclosurePostPrint,
+    EnclosurePostPrintFiltrationTime,
 #endif
 };
 struct SetValue {
     PropertyName name;
     bool bool_value;
+    uint32_t int_value;
     SharedBorrow str_value;
 };
 
