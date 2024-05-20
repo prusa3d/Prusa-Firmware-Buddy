@@ -1,5 +1,6 @@
 #pragma once
 
+#include <option/has_nfc.h>
 #include <wifi_credentials.hpp>
 #include <selftest_result.hpp>
 

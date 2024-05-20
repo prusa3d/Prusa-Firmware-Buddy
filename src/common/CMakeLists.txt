@@ -213,6 +213,10 @@ if(HAS_ADVANCED_POWER)
   target_sources(firmware PRIVATE advanced_power.cpp)
 endif()
 
+if(HAS_NFC)
+  target_sources(firmware PRIVATE nfc.cpp)
+endif()
+
 add_subdirectory(filters)
 add_subdirectory(fanctl)
 add_subdirectory(mapi)

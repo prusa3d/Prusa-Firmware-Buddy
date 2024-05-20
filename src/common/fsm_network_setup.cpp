@@ -10,7 +10,7 @@
 #include <option/has_nfc.h>
 
 #if HAS_NFC()
-    #include <st25dv64k.h>
+    #include <nfc.hpp>
 #endif
 
 namespace network_wizard {

@@ -129,6 +129,7 @@
 #endif
 
 #if HAS_NFC()
+    #include <nfc.hpp>
     #include <fsm_network_setup.hpp>
 #endif
 
