@@ -102,9 +102,9 @@ void ScreenMenuNetworkStatus::update() {
                 const auto rate = stat.rate();
                 // rate == 0 -> no packets went through -> cannot show latency
                 if (rate > 0) {
-                    sb.append_printf("%i ms | ", stat.latency());
+                    sb.append_printf("%i ms ", stat.latency());
                 }
-                sb.append_printf("%3i %%", rate);
+                sb.append_printf("%2i %%", 100 - rate);
             }
             item.ChangeInformation(sb.str());
         };

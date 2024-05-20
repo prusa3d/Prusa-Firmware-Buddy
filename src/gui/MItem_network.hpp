@@ -38,7 +38,7 @@ public:
 };
 
 class MI_WIFI_STATUS_t : public WI_INFO_t {
-    constexpr static const char *const label = N_("Wi-Fi Status");
+    constexpr static const char *const label = HAS_MINI_DISPLAY() ? N_("Status") : N_("Wi-Fi Status");
 
 public:
     MI_WIFI_STATUS_t();
@@ -75,9 +75,9 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_HOSTNAME : public WiInfo<config_store_ns::lan_hostname_max_len + 1> {
+class MI_HOSTNAME : public WiInfo<HAS_MINI_DISPLAY() ? 16 : config_store_ns::lan_hostname_max_len + 1> {
     // Printer's name within network
-    constexpr static const char *const label { N_("Hostname") };
+    constexpr static const char *const label = N_("Hostname");
 
 public:
     MI_HOSTNAME(NetDeviceID device_id = {});
@@ -160,7 +160,7 @@ public:
 
 /// Use WMI_NET as a wrapper to provide the device_id
 class MI_IP4_GWAY : public IMI_IP4_ADDR {
-    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Gateway") : N_("GW");
+    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("IPv4 Gateway") : N_("Gateway");
 
 public:
     inline MI_IP4_GWAY(NetDeviceID device_id = {})
@@ -169,7 +169,7 @@ public:
 
 /// Use WMI_NET as a wrapper to provide the device_id
 class MI_IP4_DNS1 : public WiInfo<ADDR_LEN> {
-    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("DNS Server") : N_("DNS");
+    static constexpr const char *const label = HAS_MINI_DISPLAY() ? N_("DNS") : N_("DNS Server");
 
 public:
     MI_IP4_DNS1();
@@ -179,7 +179,7 @@ public:
 static_assert(UpdatableMenuItem<MI_IP4_DNS1>);
 
 class MI_MAC_ADDR : public WiInfo<MAC_LEN> {
-    static constexpr const char *const label = GuiDefaults::ScreenWidth > 240 ? N_("MAC Address") : N_("MAC");
+    static constexpr const char *const label = HAS_MINI_DISPLAY() ? N_("MAC") : N_("MAC Address");
 
 public:
     MI_MAC_ADDR(NetDeviceID device_id = {});

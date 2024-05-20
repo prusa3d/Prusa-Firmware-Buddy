@@ -12,23 +12,23 @@
 namespace menu_network_status {
 
 class MI_STATS_GROUP : public IWindowMenuItem {
-    static constexpr const char *label = N_("Ping | Success Rate");
+    static constexpr const char *label = N_("Ping | Loss");
 
 public:
     MI_STATS_GROUP();
 };
 
-static constexpr size_t stats_text_size = 16;
+static constexpr size_t stats_text_size = 13;
 
 class MI_STATS_GATEWAY : public WiInfo<stats_text_size> {
-    static constexpr const char *label = N_("- Gateway");
+    static constexpr const char *label = HAS_MINI_DISPLAY() ? N_("Gateway") : N_("- Gateway");
 
 public:
     MI_STATS_GATEWAY();
 };
 
 class MI_STATS_DNS_SERVER : public WiInfo<stats_text_size> {
-    static constexpr const char *label = N_("- DNS Server");
+    static constexpr const char *label = HAS_MINI_DISPLAY() ? N_("DNS") : N_("- DNS Server");
 
 public:
     MI_STATS_DNS_SERVER();
@@ -36,7 +36,7 @@ public:
 
 #if BUDDY_ENABLE_CONNECT()
 class MI_STATS_CONNECT : public WiInfo<stats_text_size> {
-    static constexpr const char *label = N_("- Connect");
+    static constexpr const char *label = HAS_MINI_DISPLAY() ? N_("Connect") : N_("- Connect");
 
 public:
     MI_STATS_CONNECT();

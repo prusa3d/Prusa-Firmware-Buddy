@@ -97,7 +97,7 @@ void MI_WIFI_STATUS_t::update() {
 // MI_WIFI_SSID
 // ===================================================
 MI_WIFI_SSID::MI_WIFI_SSID()
-    : WiInfoString(string_view_utf8::MakeRAM(config_store().wifi_ap_ssid.get_c_str()), 24, _(label)) {
+    : WiInfoString(string_view_utf8::MakeRAM(config_store().wifi_ap_ssid.get_c_str()), HAS_MINI_DISPLAY() ? 16 : 24, _(label)) {
 }
 
 // ===================================================
@@ -125,13 +125,7 @@ void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
 }
 
 MI_HOSTNAME::MI_HOSTNAME(NetDeviceID device_id)
-    : WiInfo<config_store_ns::lan_hostname_max_len + 1>(_(label), nullptr, is_enabled_t::yes,
-#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
-        is_hidden_t::dev
-#elif HAS_LARGE_DISPLAY()
-        is_hidden_t::no
-#endif
-        )
+    : WiInfo(_(label))
     , device_id(device_id) //
 {
     update();
