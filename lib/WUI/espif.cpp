@@ -22,14 +22,11 @@
 #include <buddy/esp_uart_dma_buffer_rx.hpp>
 #include "data_exchange.hpp"
 #include "main.h"
-#include "../metric.h"
 #include "pbuf_rx.h"
 #include "wui.h"
 #include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
 #include <random.h>
-
-#include "wui_api.h"
 
 #include <lwip/def.h>
 #include <lwip/ethip6.h>
