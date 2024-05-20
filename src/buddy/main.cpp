@@ -48,6 +48,7 @@
 #include <option/has_burst_stepping.h>
 #include <option/buddy_enable_wui.h>
 #include <option/has_touch.h>
+#include <option/has_nfc.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -92,6 +93,10 @@
 
 #if HAS_PHASE_STEPPING()
     #include <feature/phase_stepping/phase_stepping.hpp>
+#endif
+
+#if HAS_NFC()
+    #include <nfc.hpp>
 #endif
 
 using namespace crash_dump;
@@ -277,6 +282,10 @@ extern "C" void main_cpp(void) {
 #if BUDDY_ENABLE_CONNECT()
     // On a place shared for both code branches, so we have just one connectTask buffer.
     osThreadCCMDef(connectTask, want_error_screen ? StartConnectTaskError : StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2336);
+#endif
+
+#if HAS_NFC()
+    nfc::turn_off();
 #endif
 
 #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5

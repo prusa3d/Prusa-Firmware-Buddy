@@ -6,7 +6,7 @@
 //  constexpr const uint16_t REG_GPO = 0x0000;
 //  constexpr const uint16_t REG_IT_TIME = 0x0001;
 //  constexpr const uint16_t REG_EH_MODE = 0x0002;
-constexpr const uint16_t REG_RF_MNGT = 0x0003;
+// constexpr const uint16_t REG_RF_MNGT = 0x0003;
 constexpr const uint16_t REG_RFA1SS = 0x0004;
 constexpr const uint16_t REG_ENDA1 = 0x0005;
 constexpr const uint16_t REG_RFA2SS = 0x0006;
@@ -19,6 +19,7 @@ constexpr const uint16_t REG_LOCK_CCFILE = 0x000C;
 // constexpr const uint16_t REG_MB_MODE = 0x000D;
 // constexpr const uint16_t REG_MB_WDG = 0x000E;
 // constexpr const uint16_t REG_LOCK_CFG = 0x000F;
+constexpr const uint16_t MEM_RF_MNGT_Dyn = 0x2003;
 constexpr const uint16_t MEM_IT_STS_Dyn = 0x2005;
 
 // EEPROM I2C addresses

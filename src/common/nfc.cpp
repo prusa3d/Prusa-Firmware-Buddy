@@ -14,6 +14,7 @@
 
     #include <str_utils.hpp>
     #include <string.h>
+    #include <tuple>
 
 namespace nfc {
 
@@ -111,10 +112,10 @@ void init_printer_id() {
         .length = sizeof(data)
     };
 
-    [[maybe_unused]] auto result = user_write_bytes(EepromCommand::memory, dst_addr, &tlv, sizeof(tlv));
+    std::ignore = user_write_bytes(EepromCommand::memory, dst_addr, &tlv, sizeof(tlv));
     dst_addr += sizeof(tlv);
 
-    result = user_write_bytes(EepromCommand::memory, dst_addr, data, sizeof(data));
+    std::ignore = user_write_bytes(EepromCommand::memory, dst_addr, data, sizeof(data));
     dst_addr += sizeof(data);
 
     tlv = {
@@ -122,14 +123,14 @@ void init_printer_id() {
         .length = sizeof(data)
     };
 
-    result = user_write_bytes(EepromCommand::memory, dst_addr, &tlv, sizeof(tlv));
+    std::ignore = user_write_bytes(EepromCommand::memory, dst_addr, &tlv, sizeof(tlv));
     dst_addr += sizeof(tlv);
 
     // overwrite possible previous credentials,
     // the 128 is not a strict limit, there is 0x3ff bytes for NFC
     for (uint32_t zero { 0 }; dst_addr < 128; dst_addr += sizeof(zero)) {
         // intentionally writing small data; larger blocks could fail
-        result = user_write_bytes(EepromCommand::memory, dst_addr, &zero, sizeof(zero));
+        std::ignore = user_write_bytes(EepromCommand::memory, dst_addr, &zero, sizeof(zero));
     }
 }
 
@@ -281,11 +282,15 @@ void init() {
 }
 
 void turn_on() {
-    st25dv64k_wr_cfg(REG_RF_MNGT, 0b11);
+    st25dv64k_present_pwd(0);
+    uint8_t val { 0 };
+    std::ignore = user_write_bytes(EepromCommand::memory, MEM_RF_MNGT_Dyn, &val, sizeof(val));
 }
 
 void turn_off() {
-    st25dv64k_wr_cfg(REG_RF_MNGT, 0);
+    st25dv64k_present_pwd(0);
+    uint8_t val { 0b11 };
+    std::ignore = user_write_bytes(EepromCommand::memory, MEM_RF_MNGT_Dyn, &val, sizeof(val));
 }
 
 bool has_activity() {
