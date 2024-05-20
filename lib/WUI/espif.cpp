@@ -524,6 +524,9 @@ uint8_t espif::scan::get_ap_count() {
 }
 
 [[nodiscard]] err_t espif_scan_get_ap_ssid(uint8_t index, uint8_t *ssid_buffer, uint8_t ssid_len, bool *needs_password) {
+    if (ssid_buffer == nullptr || needs_password == nullptr) {
+        return ERR_IF;
+    }
     return espif::scan::get_ap_info(index, std::span { ssid_buffer, ssid_len }, *needs_password);
 }
 
