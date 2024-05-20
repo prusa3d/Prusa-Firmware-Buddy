@@ -896,12 +896,10 @@ void espif_reset() {
     }
     // Don't touch it in case we are flashing right now. If so, it'll get reset
     // when done.
-    if (esp_operating_mode != ESPIF_SCANNING_MODE && !scan.is_running) {
-        reset_intron();
-        force_down();
-        hard_reset_device(); // Reset device to receive MAC address
-        esp_operating_mode = ESPIF_WAIT_INIT;
-    }
+    reset_intron();
+    force_down();
+    hard_reset_device(); // Reset device to receive MAC address
+    esp_operating_mode = ESPIF_WAIT_INIT;
 }
 
 void espif_notify_flash_result(FlashResult result) {
