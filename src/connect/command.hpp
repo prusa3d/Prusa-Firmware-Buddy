@@ -79,13 +79,15 @@ struct DialogAction {
 #if XL_ENCLOSURE_SUPPORT()
 enum class PropertyName {
     EnclosureEnabled,
-    EnclosureAlwaysOn,
+    EnclosurePrintingFiltration,
     EnclosurePostPrint,
+    EnclosurePostPrintFiltrationTime,
 };
 
 struct SetValue {
     PropertyName name;
     bool bool_value;
+    uint32_t int_value;
     SharedBorrow str_value;
 };
 

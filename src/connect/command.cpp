@@ -236,10 +236,20 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
 #if XL_ENCLOSURE_SUPPORT()
         } else if (is_arg("enclosure_enabled", Type::Primitive)) {
             set_value_bool_arg(PropertyName::EnclosureEnabled);
-        } else if (is_arg("enclosure_always_on", Type::Primitive)) {
-            set_value_bool_arg(PropertyName::EnclosureAlwaysOn);
+        } else if (is_arg("enclosure_printing_filtration", Type::Primitive)) {
+            set_value_bool_arg(PropertyName::EnclosurePrintingFiltration);
         } else if (is_arg("enclosure_postprint", Type::Primitive)) {
             set_value_bool_arg(PropertyName::EnclosurePostPrint);
+        } else if (is_arg("enclosure_postprint_filtration_time", Type::Primitive)) {
+            if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {
+                seen_args |= ArgSetValue;
+                cmd->name = PropertyName::EnclosurePostPrintFiltrationTime;
+                if (uint32_t result; from_chars(event.value.value().begin(), event.value.value().end(), result).ec == errc {}) {
+                    cmd->int_value = result;
+                } else {
+                    data = BrokenCommand { "Invalid int value" };
+                }
+            }
 #endif
         } else if (is_arg("port", Type::Primitive)) {
             INT_ARG(StartEncryptedDownload, uint16_t, port, 0)
