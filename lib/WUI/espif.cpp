@@ -463,8 +463,11 @@ bool espif_link() {
 
 static void process_link_change(bool link_up, struct netif *netif) {
     assert(netif != nullptr);
-    if (!scan.is_running && link_up) {
-        esp_operating_mode = ESPIF_RUNNING_MODE;
+    if (link_up) {
+        if (!scan.is_running) {
+            // Don't change the esp mode if the scan is running
+            esp_operating_mode = ESPIF_RUNNING_MODE;
+        }
         if (!associated.exchange(true)) {
             netifapi_netif_set_link_up(netif);
         }
