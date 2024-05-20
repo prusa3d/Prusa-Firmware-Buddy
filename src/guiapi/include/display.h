@@ -41,11 +41,11 @@ typedef bool(display_is_reset_required_t)();
 typedef void(display_complete_lcd_reinit_t)();
 
 template <
-#ifndef USE_MOCK_DISPLAY // mock display has dynamical size
+#if !HAS_MOCK_DISPLAY() // mock display has dynamical size
     uint16_t W, uint16_t H
-#else // USE_MOCK_DISPLAY
+#else
     display_size_t *COLS, display_size_t *ROWS
-#endif // USE_MOCK_DISPLAY
+#endif
     ,
     display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK,
     display_draw_rounded_rect_t *DRAW_ROUNDED_RECT, // private only
@@ -59,13 +59,13 @@ class Display {
     // sorted raw array of known utf8 character indices
 public:
     /// Get width or height  of display
-#ifndef USE_MOCK_DISPLAY // mock display has dynamical size
+#if !HAS_MOCK_DISPLAY() // mock display has dynamical size
     constexpr static uint16_t GetW() { return W; }
     constexpr static uint16_t GetH() { return H; }
-#else // USE_MOCK_DISPLAY
+#else
     constexpr static uint16_t GetW() { return COLS(); }
     constexpr static uint16_t GetH() { return ROWS(); }
-#endif // USE_MOCK_DISPLAY
+#endif
 
     constexpr static void Init() { INIT(); }
     constexpr static void Done() { DONE(); }
@@ -132,7 +132,7 @@ public:
     constexpr static void CompleteReinitLCD() { COMPLETE_LCD_REINIT(); }
 };
 
-#ifdef USE_ST7789
+#if HAS_ST7789_DISPLAY()
     #include "st7789v.hpp"
 using display = Display<ST7789V_COLS, ST7789V_ROWS,
     st7789v_init,
@@ -157,7 +157,7 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     st7789v_reset>;
 #endif
 
-#ifdef USE_ILI9488
+#if HAS_ILI9488_DISPLAY()
     #include "ili9488.hpp"
 using display = Display<ILI9488_COLS, ILI9488_ROWS,
     ili9488_init,
@@ -182,7 +182,7 @@ using display = Display<ILI9488_COLS, ILI9488_ROWS,
     ili9488_set_complete_lcd_reinit>;
 #endif
 
-#ifdef USE_MOCK_DISPLAY
+#if HAS_MOCK_DISPLAY()
     #include "mock_display.hpp"
 using display = Display<MockDisplay::Cols, MockDisplay::Rows,
     MockDisplay::init,

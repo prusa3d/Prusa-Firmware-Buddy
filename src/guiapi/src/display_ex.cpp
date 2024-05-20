@@ -9,7 +9,7 @@
 #include "display_math_helper.h"
 #include <bsod.h>
 
-#ifdef USE_ST7789
+#if HAS_ST7789_DISPLAY()
     #include "st7789v.hpp"
 /*****************************************************************************/
 // st7789v specific variables objects and function aliases
@@ -73,9 +73,9 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 }
 // end st7789v specific variables objects and function aliases
 /*****************************************************************************/
-#endif // USE_ST7789
+#endif
 
-#ifdef USE_ILI9488
+#if HAS_ILI9488_DISPLAY()
     #include "ili9488.hpp"
 /*****************************************************************************/
 // ili9488 specific variables objects and function aliases
@@ -139,9 +139,9 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 
 // end ili9488 specific variables objects and function aliases
 /*****************************************************************************/
-#endif // USE_ILI9488
+#endif
 
-#ifdef USE_MOCK_DISPLAY
+#if HAS_MOCK_DISPLAY()
     #include "mock_display.hpp"
 /*****************************************************************************/
 
@@ -202,7 +202,7 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 
 // end mock_display specific variables objects and function aliases
 /*****************************************************************************/
-#endif // USE_MOCK_DISPLAY
+#endif
 
 static constexpr size_t BuffAlphaLen = (1 << FontMaxBitLen); // size of buffer for alpha channel 4bit font need 2^4 == 16 etc
 

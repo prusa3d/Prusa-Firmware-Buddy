@@ -95,7 +95,7 @@ private:
     inline static std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur; /**< Buffer for time duration (max 9 chars) */
 
     PT_t time_end_format = PT_t::init; /**< Currently used time end format */
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     uint32_t last_print_duration = marlin_server::TIME_TO_END_INVALID; /**< last recorded print_duration */
 #endif
     uint32_t last_time_to_end = marlin_server::TIME_TO_END_INVALID; /**< last end time used for GUI update */

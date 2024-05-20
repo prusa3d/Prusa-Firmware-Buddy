@@ -8,12 +8,12 @@ size_t description_line_t::title_width(string_view_utf8 *title_str) {
 }
 
 size_t description_line_t::value_width(string_view_utf8 *title_str) {
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     return SCREEN_WIDTH - PADDING * 2 - title_width(title_str) - 1;
-#endif // USE_ST7899
-#ifdef USE_ILI9488
+#endif
+#if HAS_LARGE_DISPLAY()
     return GuiDefaults::PreviewThumbnailRect.Width() - title_width(title_str);
-#endif // USE_ILI9488
+#endif
     assert(false);
     return 0;
 }
@@ -23,11 +23,11 @@ description_line_t::description_line_t(window_frame_t *frame)
 }
 
 void description_line_t::update(bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, std::function<void(std::span<char> buffer)> make_value) {
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     title.SetRect(Rect16(PADDING, calculate_y(has_preview_thumbnail, row), title_width(&title_str), LINE_HEIGHT));
     value.SetRect(Rect16(SCREEN_WIDTH - PADDING - value_width(&title_str), calculate_y(has_preview_thumbnail, row), value_width(&title_str), LINE_HEIGHT));
 #endif
-#ifdef USE_ILI9488
+#if HAS_LARGE_DISPLAY()
     title.SetRect(Rect16(PADDING.left, calculate_y(has_preview_thumbnail, row), title_width(&title_str), LINE_HEIGHT));
     value.SetRect(Rect16(PADDING.left + GuiDefaults::PreviewThumbnailRect.Width() - value_width(&title_str), calculate_y(has_preview_thumbnail, row), value_width(&title_str), LINE_HEIGHT));
 #endif

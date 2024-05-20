@@ -82,7 +82,7 @@ Response MetricsInfoMsgbox(string_view_utf8 txt) {
 }
 
 void MI_METRICS_INFO_LABEL::click(IWindowMenu & /*window_menu*/) {
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     MetricsInfoMsgbox(_(txt_info));
 #else
     MsgBox(_(txt_info));

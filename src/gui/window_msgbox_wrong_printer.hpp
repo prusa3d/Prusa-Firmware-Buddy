@@ -13,10 +13,10 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
     static constexpr const char *txt_wrong_printer_model = N_("printer model doesn't match");
     static constexpr const char *txt_compatibility_mode = N_("it will run in MK3-compatibility mode");
     static constexpr const char *txt_wrong_gcode_level = N_("G-code version doesn't match");
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     static constexpr const char txt_old_firmware[] = N_("newer firmware is required: %s");
     static constexpr const char *txt_unsupported_features = N_("following features are required:");
-#elif defined(USE_ST7789)
+#elif HAS_MINI_DISPLAY()
     static constexpr const char *txt_old_firmware = N_("Newer FW req.: %s");
     static constexpr const char *txt_unsupported_features = N_("Features required:");
 #endif

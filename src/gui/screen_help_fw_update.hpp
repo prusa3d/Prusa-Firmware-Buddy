@@ -14,7 +14,7 @@
 class ScreenHelpFWUpdate : public screen_t {
     window_header_t header;
     window_text_t description;
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     window_text_t description2;
 #endif
     window_text_t help;

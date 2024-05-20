@@ -35,7 +35,7 @@ constexpr size_ui16_t button_grid_item_size = { buttons_rect.Width() / button_co
 constexpr size_ui16_t button_size = { button_grid_item_size.w - button_padding * 2, button_grid_item_size.h - button_padding * 2 };
 
 constexpr EnumArray<SpecialButton, std::variant<const char *, const img::Resource *>, SpecialButton::_cnt> special_button_labels {
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     { SpecialButton::ok, &img::ok_60x60 },
         { SpecialButton::cancel, &img::cancel_60x60 },
         { SpecialButton::clear, &img::clear_60x60 },

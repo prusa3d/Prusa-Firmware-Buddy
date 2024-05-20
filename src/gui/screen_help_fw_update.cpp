@@ -13,7 +13,7 @@ inline constexpr PhaseResponses Responses_Back = { Response::Back, Response::_no
 
 constexpr size_t row_0 = 44;
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
 constexpr size_t descr_h = height(Font::normal) * 8;
 constexpr size_t row_1 = row_0 + descr_h + height(Font::normal) / 2;
 
@@ -28,7 +28,7 @@ static const constexpr Rect16 descr_rect = Rect16(col_0, row_0, col_0_w, descr_h
 static const constexpr Rect16 QR_rect = Rect16(col_1, row_0, GuiDefaults::QRSize, GuiDefaults::QRSize);
 static const constexpr Rect16 help_rect = Rect16(col_0, row_1, tot_w, height(Font::normal) * 3);
 static constexpr const char *txt_descr = N_("Download and copy the firmware (.bbf) file to the USB flash drive. Insert the drive into the printer and turn it on or restart it. Confirm the installation of the new firmware.");
-#elif defined(USE_ST7789)
+#elif HAS_MINI_DISPLAY()
 constexpr size_t col_0 = 10;
 constexpr size_t col_0_w = 120;
 constexpr size_t col_1 = 130;
@@ -85,7 +85,7 @@ ScreenHelpFWUpdate::ScreenHelpFWUpdate()
     : screen_t()
     , header(this)
     , description(this, descr_rect, is_multiline::yes)
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     , description2(this, descr_rect2, is_multiline::yes)
 #endif
     , help(this, help_rect, is_multiline::yes)
@@ -93,7 +93,7 @@ ScreenHelpFWUpdate::ScreenHelpFWUpdate()
     , radio(this, GuiDefaults::GetButtonRect(GetRect()), Responses_Back) {
     CaptureNormalWindow(radio);
 
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     description.set_font(Font::special);
     help.set_font(Font::special);
     description2.set_font(Font::special);

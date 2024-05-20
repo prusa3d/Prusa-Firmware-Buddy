@@ -126,9 +126,9 @@ void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
 
 MI_HOSTNAME::MI_HOSTNAME(NetDeviceID device_id)
     : WiInfo<config_store_ns::lan_hostname_max_len + 1>(_(label), nullptr, is_enabled_t::yes,
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
         is_hidden_t::dev
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
         is_hidden_t::no
 #endif
         )

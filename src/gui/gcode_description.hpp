@@ -5,7 +5,7 @@
 #include "gcode_info.hpp"
 #include <guiconfig/guiconfig.h>
 
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
 inline constexpr uint16_t SCREEN_WIDTH = display::GetW();
 inline constexpr uint16_t SCREEN_HEIGHT = display::GetH();
 inline constexpr uint16_t PADDING = 10;
@@ -13,12 +13,12 @@ inline constexpr uint16_t TITLE_HEIGHT = 24;
 inline constexpr uint16_t LINE_HEIGHT = 15;
 inline constexpr uint16_t LINE_SPACING = 5;
 inline constexpr uint16_t THUMBNAIL_HEIGHT = GuiDefaults::PreviewThumbnailRect.Height();
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
 inline constexpr padding_ui8_t PADDING = { 30, GuiDefaults::HeaderHeight + 6, 35, 13 };
 inline constexpr uint16_t TITLE_HEIGHT = 24;
 inline constexpr uint16_t LINE_HEIGHT = 17;
 inline constexpr uint16_t LINE_SPACING = 5;
-#endif // USE_<display>
+#endif
 
 struct description_line_t {
     window_text_t title;
@@ -32,18 +32,18 @@ struct description_line_t {
 private:
     static constexpr size_t calculate_y(bool has_preview_thumbnail, size_t row) {
         size_t y = 0;
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
         y = TITLE_HEIGHT + 2 * PADDING;
         if (has_preview_thumbnail) {
             y += THUMBNAIL_HEIGHT + PADDING;
         }
-#endif // USE_ST7789
-#ifdef USE_ILI9488
+#endif
+#if HAS_LARGE_DISPLAY()
         y = GuiDefaults::PreviewThumbnailRect.Top();
         if (has_preview_thumbnail) {
             y += GuiDefaults::PreviewThumbnailRect.Height() + 15;
         }
-#endif // USE_ILI9488
+#endif
         y += row * (LINE_HEIGHT + LINE_SPACING);
         return y;
     }

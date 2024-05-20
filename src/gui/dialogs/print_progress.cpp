@@ -39,13 +39,15 @@ constexpr size_t text_value_height { 22 };
 constexpr size_t text_value_y_offset { 4 }; // additional offset of value row from label
 
 constexpr size_t inter_col_offsets { 10 };
-#if defined(USE_ILI9488)
+
+#if HAS_LARGE_DISPLAY()
 constexpr size_t left_column_width { (GuiDefaults::ProgressThumbnailRect.Width() - text_left_side_offset - icon_right_side_offset - inter_col_offsets * 2) / 3 };
 constexpr size_t middle_column_start_x { text_left_side_offset + left_column_width + inter_col_offsets };
 constexpr size_t middle_column_width { left_column_width };
 
 constexpr size_t info_text_width { left_column_width * 2 + inter_col_offsets };
-#elif defined(USE_ST7789)
+
+#elif HAS_MINI_DISPLAY()
 constexpr size_t left_column_width { (GuiDefaults::ProgressThumbnailRect.Width() - text_left_side_offset - icon_right_side_offset - inter_col_offsets) / 2 };
 
 constexpr size_t info_text_width { left_column_width };
@@ -56,11 +58,12 @@ constexpr size_t progress_num_width { left_column_width - icon_size_x - progress
 constexpr size_t progress_num_x_offset { icon_x_offset + progress_num_width + progress_num_icon_offset };
 constexpr size_t progress_num_height { GuiDefaults::ProgressTextHeight - GuiDefaults::ProgressTextTopOffset };
 
-#ifdef USE_ILI9488
+#if HAS_LARGE_DISPLAY()
 constexpr auto progress_num_font { Font::large };
 constexpr int right_side_perc_magic_number { 4 }; // magic number to align text from left_value with percent-text from progress_num font
 constexpr int right_side_icon_magic_number { -right_side_perc_magic_number }; // align icon with percentile
-#elif defined(USE_ST7789)
+
+#elif HAS_MINI_DISPLAY()
 constexpr auto progress_num_font { Font::big };
 constexpr int right_side_perc_magic_number { 0 };
 constexpr int right_side_icon_magic_number { -5 };
@@ -81,7 +84,7 @@ PrintProgress::PrintProgress(window_t *parent)
     : DialogTimed(getTime() > MI_PRINT_PROGRESS_TIME::config.min_value ? parent : nullptr, GuiDefaults::RectScreen, 1000 * getTime())
     , estime_label(this, Rect16(text_left_side_offset, text_baseline_y, left_column_width, text_label_height), is_multiline::no)
     , estime_value(this, Rect16(text_left_side_offset, text_baseline_y + text_label_height + text_value_y_offset, left_column_width
-#ifdef USE_ILI9488 // adding middle_column_width because middle column is currently unused & the left estime_value doesn't have enough space to hold the current version of all the data
+#if HAS_LARGE_DISPLAY() // adding middle_column_width because middle column is currently unused & the left estime_value doesn't have enough space to hold the current version of all the data
                                  + middle_column_width
 #endif
                              ,

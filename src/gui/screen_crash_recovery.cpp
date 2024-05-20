@@ -34,7 +34,7 @@
 
 using namespace crash_recovery;
 
-    #ifdef USE_ST7789
+    #if HAS_MINI_DISPLAY()
 static constexpr size_t row_1 = 109; // icon
 static constexpr size_t row_3 = 205; // line
 static constexpr size_t col_0 = 10;
@@ -42,7 +42,7 @@ static constexpr Rect16 icon_nozzle_rc { 97, row_1 - 5, 48, 48 };
 static constexpr Rect16 icon_nozzle_crash_rc { 97 - 26, row_1, 48, 48 };
 static constexpr size_t row_nok_shift = -31;
     #endif
-    #ifdef USE_ILI9488
+    #if HAS_LARGE_DISPLAY()
 static constexpr size_t row_1 = 120; // icon
 static constexpr size_t row_3 = 226; // line
 static constexpr size_t col_0 = 130;

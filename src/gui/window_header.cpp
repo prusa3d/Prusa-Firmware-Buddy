@@ -31,12 +31,12 @@ constexpr uint32_t transfer_hide_timeout { 1'000'000u };
 
 constexpr Rect16 first_rect_doesnt_matter { 0, 0, 0, 0 }; // first rect will be replaced by first recalculation anyway
 
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
 constexpr Rect16::Width_t label_w { 90 };
-#endif // USE_ILI9488
-#if defined(USE_ILI9488)
+#endif
+#if HAS_LARGE_DISPLAY()
 constexpr Rect16::Width_t label_w { 240 };
-#endif // USE_ILI9488
+#endif
 } // namespace
 
 void window_header_t::updateNetwork(uint32_t netdev_id) {
@@ -123,11 +123,11 @@ void window_header_t::set_show_bed_info(bool set) {
 }
 
 void window_header_t::updateTime() {
-#if !defined(USE_ST7789) // Time is not shown on ST7789
+#if !HAS_MINI_DISPLAY() // Time is not shown on ST7789
     if (time_tools::update_time()) {
         Invalidate(); // Invalidate whole header to avoid icon leftovers in between icons
     }
-#endif /* !defined(USE_ST7789) */
+#endif /* !HAS_MINI_DISPLAY() */
 }
 
 void window_header_t::update_bed_info() {
@@ -173,9 +173,9 @@ void window_header_t::updateAllRects() {
     };
 
     // note: call order also means order from the right
-#if !defined(USE_ST7789) // Time is not shown on ST7789
+#if !HAS_MINI_DISPLAY() // Time is not shown on ST7789
     maybe_update(time_val, time_tools::get_time_format() == time_tools::TimeFormat::_24h ? time_24h_w : time_12h_w);
-#endif /* !defined(USE_ST7789) */
+#endif
     maybe_update(icon_usb, icon_usb.resource()->w);
     maybe_update(icon_network, icon_network.resource()->w);
     maybe_update(icon_stealth, icon_stealth.resource()->w);
@@ -216,9 +216,9 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     : window_frame_t(parent, GuiDefaults::RectHeader)
     , icon_base(this, Rect16(GuiDefaults::HeaderPadding.left, GuiDefaults::HeaderPadding.top, base_w, GuiDefaults::HeaderItemHeight), nullptr)
     , label(this, first_rect_doesnt_matter, txt)
-#if !defined(USE_ST7789) // Time is not shown on ST7789
+#if !HAS_MINI_DISPLAY() // Time is not shown on ST7789
     , time_val(this, first_rect_doesnt_matter, is_multiline::no)
-#endif /* !defined(USE_ST7789) */
+#endif /* !HAS_MINI_DISPLAY() */
     , icon_usb(this, first_rect_doesnt_matter, &img::usb_20x16)
     , icon_network(this, first_rect_doesnt_matter, window_header_t::networkIcon(netdev_get_active_id()))
     , transfer_val(this, first_rect_doesnt_matter, is_multiline::no)
@@ -229,7 +229,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , active_netdev_id(netdev_get_active_id())
     , active_netdev_status(netdev_get_status(active_netdev_id))
     , force_network(true)
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     , transfer_val_on(false)
 #else
     , transfer_val_on(true)
@@ -252,12 +252,12 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     transfer_val.Hide();
     icon_transfer.Hide();
 
-#if !defined(USE_ST7789) // Time is not shown on ST7789
+#if !HAS_MINI_DISPLAY() // Time is not shown on ST7789
     time_val.set_font(GuiDefaults::HeaderTextFont);
     time_val.SetAlignment(Align_t::RightCenter());
     time_tools::update_time();
     time_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)time_tools::get_time()));
-#endif /* !defined(USE_ST7789) */
+#endif /* !HAS_MINI_DISPLAY() */
 
     set_show_bed_info(false);
     updateMedia(GuiMediaEventsHandler::Get());

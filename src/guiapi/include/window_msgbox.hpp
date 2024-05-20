@@ -128,9 +128,9 @@ protected:
     padding_ui8_t getTitlePadding();
     static constexpr uint8_t IconTitleDelimeter = 5;
     static constexpr padding_ui8_t TextPadding =
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
         { 5, 0, 5, 0 };
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
         { 24, 24, 24, 24 };
 #endif
 };

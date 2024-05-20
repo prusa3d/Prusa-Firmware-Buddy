@@ -36,9 +36,9 @@ private:
     window_header_t header;
     StatusFooter footer;
 
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     window_icon_t logo;
-#endif // USE_ST7789
+#endif
     WindowMultiIconButton w_buttons[button_count];
     window_text_t w_labels[button_count];
 

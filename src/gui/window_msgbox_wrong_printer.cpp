@@ -32,16 +32,16 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, string_view_utf8 tit, co
 
     Rect16 icon_rect = { getTextRect().TopLeft(), img_w, img_h };
 
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     Rect16::Height_t item_h = (std::min(h, img_h) + line_spacing) * 2;
     Rect16 text_rect = getTextRect() = Rect16::Height_t(2 * item_h);
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     Rect16::Height_t item_h = std::min(h, img_h) + line_spacing;
     Rect16 text_rect = getTextRect() = Rect16::Height_t(h);
 #endif
     text.SetRect(text_rect);
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     // Make a separator empty line only if there is room for it
     auto lines = std::count_if(begin(messages), end(messages), [](auto &m) { return m.text.HasVisibleFlag(); }) + (unsupported_features.text.HasVisibleFlag() ? 2 : 0);
     if (lines <= 6) {

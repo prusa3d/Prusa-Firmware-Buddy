@@ -85,7 +85,7 @@ constexpr ButtonsLayout to_uppercase_layout(ButtonsLayout layout) {
 
 } // namespace dialog_text_input
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     #include "dialog_text_input_layout_xlcd.in.cpp"
 #else
     #include "dialog_text_input_layout_mini.in.cpp"

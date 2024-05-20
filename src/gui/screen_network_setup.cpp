@@ -198,7 +198,7 @@ public:
 
         // No networks shown -> we're showing one empty item indicating that we're scanning instead
         if (ap_count_ == 0) {
-            variant.emplace<IWindowMenuItem>(TERN(defined(USE_ILI9488), _("Scanning for networks..."), _("Scanning...")), nullptr, is_enabled_t::no);
+            variant.emplace<IWindowMenuItem>(TERN(HAS_LARGE_DISPLAY(), _("Scanning for networks..."), _("Scanning...")), nullptr, is_enabled_t::no);
             return;
         }
 
@@ -294,7 +294,7 @@ public:
 
         info.SetRect(Rect16::fromLTRB(32, text_top + 16, parent_rect.Right() - 32, radio_rect.Bottom()));
         info.SetAlignment(Align_t::CenterTop());
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
         info.set_font(Font::small);
 #endif
 

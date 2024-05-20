@@ -44,13 +44,14 @@
     #include <module/prusa/toolchanger.h>
 #endif
 
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     #define SPLASHSCREEN_PROGRESSBAR_X 16
     #define SPLASHSCREEN_PROGRESSBAR_Y 148
     #define SPLASHSCREEN_PROGRESSBAR_W 206
     #define SPLASHSCREEN_PROGRESSBAR_H 12
     #define SPLASHSCREEN_VERSION_Y     165
-#elif defined(USE_ILI9488)
+
+#elif HAS_LARGE_DISPLAY()
     #define SPLASHSCREEN_PROGRESSBAR_X 100
     #define SPLASHSCREEN_PROGRESSBAR_Y 165
     #define SPLASHSCREEN_PROGRESSBAR_W 280
@@ -60,12 +61,12 @@
 
 screen_splash_data_t::screen_splash_data_t()
     : screen_t()
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     , img_printer("/internal/res/printer_logo.qoi") // dimensions are printer dependent
     , img_marlin("/internal/res/marlin_logo_79x61.qoi")
     , icon_logo_printer(this, &img_printer, point_i16_t(0, 84), window_icon_t::Center::x, GuiDefaults::ScreenWidth)
     , icon_logo_marlin(this, &img_marlin, point_i16_t(80, 225))
-#endif // USE_ST7789
+#endif
     , text_progress(this, Rect16(0, SPLASHSCREEN_VERSION_Y, GuiDefaults::ScreenWidth, 18), is_multiline::no)
     , progress(this, Rect16(SPLASHSCREEN_PROGRESSBAR_X, SPLASHSCREEN_PROGRESSBAR_Y, SPLASHSCREEN_PROGRESSBAR_W, SPLASHSCREEN_PROGRESSBAR_H), COLOR_ORANGE, COLOR_GRAY, 6)
     , version_displayed(false) {
@@ -180,12 +181,12 @@ void screen_splash_data_t::draw() {
     screen_t::draw(); // We want to draw over bootloader's screen without flickering/redrawing
 #ifdef _DEBUG
     static const char dbg[] = "DEBUG";
-    #if defined(USE_ST7789)
+    #if HAS_MINI_DISPLAY()
     display::DrawText(Rect16(180, 91, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(Font::small), COLOR_BLACK, COLOR_RED);
-    #endif // USE_ST7789
-    #if defined(USE_ILI9488)
+    #endif
+    #if HAS_LARGE_DISPLAY()
     display::DrawText(Rect16(340, 130, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(Font::small), COLOR_BLACK, COLOR_RED);
-    #endif // USE_ILI9488
+    #endif
 #endif //_DEBUG
 }
 

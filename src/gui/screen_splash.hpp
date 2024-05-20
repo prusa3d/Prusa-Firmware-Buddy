@@ -4,7 +4,7 @@
 #include <guiconfig/guiconfig.h>
 
 class screen_splash_data_t : public screen_t {
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     img::ResourceSingleFile img_printer;
     img::ResourceSingleFile img_marlin;
 

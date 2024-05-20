@@ -4,7 +4,7 @@
 
 static constexpr int16_t iconSize = 48;
 
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
 static constexpr uint16_t side_padding = 16;
 static constexpr uint16_t top_padding = 40;
 static constexpr Rect16 textRect = { side_padding, top_padding + iconSize + 8, GuiDefaults::ScreenWidth - side_padding * 2, 170 - iconSize - 8 };
@@ -27,7 +27,7 @@ DialogWarning::DialogWarning(fsm::BaseData data)
     if (icon_code[get_type(data)].icon) {
         icon.SetRes(icon_code[get_type(data)].icon);
     }
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
     // Lack of space on ST7789 -> long text warnings does not have icon
     else {
         icon.Hide();

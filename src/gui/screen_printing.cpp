@@ -123,9 +123,9 @@ constexpr size_t get_row(size_t idx) {
     return row_0 + idx * row_height;
 }
 
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
 constexpr auto etime_val_font { Font::small };
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
 constexpr auto etime_val_font { Font::normal };
 
 constexpr auto arrow_left_res { &img::arrow_left_10x16 };
@@ -146,12 +146,12 @@ constexpr Rect16 end_result_body_rect { 0, row_0 - EndResultBody::extra_top_spac
 
 screen_printing_data_t::screen_printing_data_t()
     : ScreenPrintingModel(_(caption))
-#if (defined(USE_ILI9488))
+#if (HAS_LARGE_DISPLAY())
     , print_progress(this)
     , arrow_left(this, arrow_left_rect, arrow_left_res)
     , rotating_circles(this, rotating_circles_rect, ftrstd::to_underlying(CurrentlyShowing::_count))
 #endif
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     , w_filename(this, Rect16(10, 33, 220, 29))
     , w_progress(this, Rect16(10, 70, GuiDefaults::RectScreen.Width() - 2 * 10, 16))
     , w_progress_txt(this, Rect16(10, 86, GuiDefaults::RectScreen.Width() - 2 * 10, 30)) // font: Normal (11x18 px)
@@ -159,7 +159,7 @@ screen_printing_data_t::screen_printing_data_t()
     , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)
     , w_etime_label(this, Rect16(130, 128, 101, 20), is_multiline::no)
     , w_etime_value(this, Rect16(120, 148, 111, 37), is_multiline::yes)
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     , w_filename(this, Rect16(30, 38, 420, 24))
     , w_progress(this, Rect16(30, 65, GuiDefaults::RectScreen.Width() - 2 * 30, 16))
     , w_progress_txt(this, EndResultBody::get_progress_txt_rect(row_0)) // Left side option: 30, 115, 100, 54 | font: Large (53x30 px)
@@ -170,10 +170,10 @@ screen_printing_data_t::screen_printing_data_t()
     , stop_pressed(false)
     , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() })))
     , time_end_format(PT_t::init)
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     , popup_rect(Rect16(30, get_row(0), 250, 70)) // Rect for printing messages from marlin.
     , end_result_body(this, end_result_body_rect) // safe to pass even if order changes because EndScreen constructor doesn't use it (therefore guaranteed to be valid)
 #endif // USE_<display>
@@ -183,7 +183,7 @@ screen_printing_data_t::screen_printing_data_t()
 
     strlcpy(text_filament.data(), "999m", text_filament.size());
 
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     // ST7789 specific adjustments
     Align_t align = Align_t::RightBottom();
     w_filename.SetAlignment(Align_t::LeftBottom());
@@ -203,7 +203,7 @@ screen_printing_data_t::screen_printing_data_t()
     w_time_value.set_font(Font::small);
     w_time_value.SetAlignment(align);
     w_time_value.SetPadding({ 0, 2, 0, 2 });
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     // ILI_9488 specific adjustments
     w_filename.SetAlignment(Align_t::LeftTop());
     w_progress_txt.SetAlignment(EndResultBody::progress_alignment);
@@ -222,16 +222,16 @@ screen_printing_data_t::screen_printing_data_t()
 
     w_etime_label.set_font(Font::small);
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     print_progress.init_gcode_info();
-#endif /*USE_ILI9488*/
+#endif
 
     // Execute first print time update loop
     updateTimes();
 
     w_etime_value.set_font(etime_val_font);
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     print_progress.Pause();
     last_e_axis_position = marlin_vars()->logical_curr_pos[MARLIN_VAR_INDEX_E];
 
@@ -279,7 +279,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
         }
         return;
     }
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     if (event == GUI_event_t::LOOP && p_state == printing_state_t::PRINTING) {
         auto vars = marlin_vars();
         const bool midprint = vars->logical_curr_pos[MARLIN_VAR_INDEX_Z] >= 1.0f;
@@ -295,7 +295,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
 #endif
 
     if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
         if (p_state == printing_state_t::PRINTED) {
             print_progress.Pause();
         } else {
@@ -304,7 +304,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
 #endif
         hide_time_information();
     } else {
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
         print_progress.PrintingMode();
 #endif
         show_time_information();
@@ -334,7 +334,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
     }
 #endif
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     if (shown_end_result && event == GUI_event_t::ENC_DN
         && ((buttons[0].IsEnabled() && buttons[0].IsFocused()) || (!buttons[0].IsEnabled() && buttons[1].IsFocused()))) {
         start_showing_end_result();
@@ -375,7 +375,7 @@ void screen_printing_data_t::windowEvent(window_t *sender, GUI_event_t event, vo
 #endif
 }
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
 void screen_printing_data_t::start_showing_end_result() {
 
     // hide previous
@@ -430,7 +430,7 @@ void screen_printing_data_t::show_time_information() {
     w_etime_label.Show();
     w_etime_value.Show();
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     rotating_circles.Show();
 #endif
     updateTimes(); // make sure the data is valid
@@ -440,13 +440,13 @@ void screen_printing_data_t::hide_time_information() {
     w_etime_label.Hide();
     w_etime_value.Hide();
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     rotating_circles.Hide();
 #endif
 }
 
 void screen_printing_data_t::updateTimes() {
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     PT_t time_format = print_time.update_loop(time_end_format, &w_etime_value, &w_time_value);
 
     if (time_format != time_end_format) {
@@ -463,7 +463,7 @@ void screen_printing_data_t::updateTimes() {
 
         time_end_format = time_format;
     }
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
 
     if (!w_etime_value.HasVisibleFlag() || !w_etime_label.HasVisibleFlag()) {
         return;
@@ -535,7 +535,7 @@ void screen_printing_data_t::updateTimes() {
     }
     w_etime_value.Invalidate(); // just to make sure
 
-#endif // USE_ST7789
+#endif
 }
 
 void screen_printing_data_t::screen_printing_reprint() {
@@ -692,7 +692,7 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::PAUSING;
 // When print is paused, progress screen needs to reinit it's thumbnail file handler
 // because USB removal error crashes file handler access. Progress screen should not be enabled during pause -> reinit on EVERY pause
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
         print_progress.Pause();
 #endif
         break;
@@ -718,7 +718,7 @@ void screen_printing_data_t::change_print_state() {
     case State::PowerPanic_Resume:
         stop_pressed = false;
         st = printing_state_t::RESUMING;
-#ifdef USE_ILI9488
+#if HAS_LARGE_DISPLAY()
         print_progress.Resume();
 #endif
         break;

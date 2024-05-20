@@ -204,11 +204,11 @@ static const char *cut_path(const char *path_and_file) {
 static void stop_common(void) {
     hwio_safe_state();
 
-#ifdef USE_ST7789
+#if HAS_ST7789_DISPLAY()
     st7789v_enable_safe_mode();
 #endif
 
-#ifdef USE_ILI9488
+#if HAS_ILI9488_DISPLAY()
     ili9488_enable_safe_mode();
 #endif
 

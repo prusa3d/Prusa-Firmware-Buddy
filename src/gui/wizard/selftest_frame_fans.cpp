@@ -24,7 +24,7 @@ static constexpr size_t row_4 = row_3 + WizardDefaults::row_h;
 static constexpr size_t row_5 = row_4 + WizardDefaults::row_h + 20;
 
 static constexpr const char *en_text_fan_test = N_("Fan Test");
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
 static constexpr const char *en_text_hotend_fan = N_("Hotend fan");
 static constexpr const char *en_text_print_fan = N_("Print fan");
 static constexpr const char *en_text_fans_switched = N_("Switched fans");
@@ -113,7 +113,7 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
     }
 #endif
 
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     text_info.set_font(GuiDefaults::FontMenuSpecial);
 #endif
 

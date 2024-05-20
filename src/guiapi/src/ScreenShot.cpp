@@ -8,18 +8,18 @@
 #include <guiconfig/GuiDefaults.hpp>
 #include <guiconfig/guiconfig.h>
 
-#ifdef USE_ST7789
+#if HAS_ST7789_DISPLAY()
 static const uint8_t bytes_per_pixel = 3;
 static const uint8_t buffer_rows = 10;
 static const uint8_t read_start_offset = 2;
     #include "st7789v.hpp"
-#endif // USE_ST7789
-#ifdef USE_ILI9488
+#endif
+#if HAS_ILI9488_DISPLAY()
 static const uint8_t bytes_per_pixel = 3;
 static const uint8_t buffer_rows = ILI9488_BUFF_ROWS;
 static const uint8_t read_start_offset = 0;
     #include "ili9488.hpp"
-#endif // USE_ILI9488
+#endif
 
 enum {
     BMP_FILE_HEADER_SIZE = 14,
@@ -70,12 +70,12 @@ static void mirror_buffer(Pixel *buffer) {
         for (int col = 0; col < display::GetW(); col++) {
             const int i1 = row * display::GetW() + col;
             const int i2 = (buffer_rows - row - 1) * display::GetW() + col;
-#ifdef USE_ST7789
+#if HAS_ST7789_DISPLAY()
             // we need to swap the colors, because bmp is in BGR color format
             buffer[i1].SwapBlueAndRed();
             buffer[i2].SwapBlueAndRed();
             std::swap(buffer[i1], buffer[i2]);
-#elif defined USE_ILI9488
+#elif HAS_ILI9488_DISPLAY()
             Pixel swapper = buffer[i1];
             buffer[i1] = buffer[i2]; // move 6 bit input to 8 bit scale
             buffer[i2] = swapper;

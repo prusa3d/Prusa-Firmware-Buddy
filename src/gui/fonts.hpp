@@ -11,7 +11,7 @@ enum class Font : uint8_t {
     normal,
     big,
     special,
-#ifdef USE_ILI9488
+#if HAS_LARGE_DISPLAY()
     large,
 #endif
 };
@@ -46,7 +46,7 @@ struct font_size_t {
  */
 consteval font_size_t resource_font_size(Font id) {
     switch (id) {
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     case Font::small:
         return { 7, 13 };
     case Font::normal:
@@ -54,9 +54,9 @@ consteval font_size_t resource_font_size(Font id) {
         return { 11, 18 };
     case Font::special:
         return { 9, 16 };
-#endif /*USE_ST7789*/
+#endif
 
-#ifdef USE_ILI9488
+#if HAS_LARGE_DISPLAY()
     case Font::small:
         return { 9, 16 };
     case Font::normal:
@@ -67,7 +67,7 @@ consteval font_size_t resource_font_size(Font id) {
         return { 9, 16 };
     case Font::large:
         return { 30, 53 };
-#endif /*USE_ILI9488*/
+#endif
 
     default:
         return { 0, 0 };

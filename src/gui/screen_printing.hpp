@@ -37,7 +37,7 @@ inline constexpr size_t POPUP_MSG_DUR_MS = 5000;
 class screen_printing_data_t : public ScreenPrintingModel {
     static constexpr const char *caption = N_("PRINTING ...");
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     PrintProgress print_progress;
 
     /**
@@ -69,10 +69,10 @@ class screen_printing_data_t : public ScreenPrintingModel {
     window_roll_text_t w_filename;
     WindowPrintProgress w_progress;
     WindowNumbPrintProgress w_progress_txt;
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     window_text_t w_time_label;
     window_text_t w_time_value;
-#endif // USE_ST7789
+#endif
     window_text_t w_etime_label;
     window_text_t w_etime_value;
 
@@ -98,7 +98,7 @@ class screen_printing_data_t : public ScreenPrintingModel {
     float last_e_axis_position;
     const Rect16 popup_rect;
 
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     PrintTime print_time;
     PT_t time_end_format;
 #else
@@ -129,9 +129,9 @@ private:
     void invalidate_print_state();
     void updateTimes();
 
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     void update_print_duration(time_t rawtime);
-#endif // USE_ST7789
+#endif
     void screen_printing_reprint();
     void set_pause_icon_and_label();
     void set_tune_icon_and_label();

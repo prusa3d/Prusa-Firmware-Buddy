@@ -63,14 +63,14 @@ bool __attribute__((weak)) netdev_is_enabled([[maybe_unused]] const uint32_t net
 bool screen_home_data_t::ever_been_opened = false;
 bool screen_home_data_t::touch_broken_during_run = false;
 
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     #define GEN_ICON_NAMES(ICON) \
         { img::ICON##_64x64, img::ICON##_64x64_focused, img::ICON##_64x64_disabled }
-#endif // USE_ST7789
-#ifdef USE_ILI9488
+#endif
+#if HAS_LARGE_DISPLAY()
     #define GEN_ICON_NAMES(ICON) \
         { img::ICON##_80x80, img::ICON##_80x80_focused, img::ICON##_80x80_disabled }
-#endif // USE_ILI9488
+#endif
 
 static constexpr const WindowMultiIconButton::Pngs icons[] = {
     GEN_ICON_NAMES(print),
@@ -88,7 +88,7 @@ constexpr size_t iconNonMMUId = 2;
 constexpr size_t iconMMUId = 6;
 constexpr size_t buttonFilamentIndex = 2;
 
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
 constexpr size_t buttonsXSpacing = 15;
 constexpr size_t buttonTextWidth = 80;
 constexpr size_t buttonTextHeight = 13; // font_regular_7x13
@@ -97,16 +97,16 @@ constexpr size_t buttonTopOffset = 88;
 constexpr size_t buttonTextTopOffset = 155;
 
 constexpr Rect16 logoRect = Rect16(41, 31, 158, 40);
-#endif // USE_ST7789
+#endif
 
-#ifdef USE_ILI9488
+#if HAS_LARGE_DISPLAY()
 constexpr size_t buttonsXSpacing = 40;
 constexpr size_t buttonTextWidth = 94;
 constexpr size_t buttonTextHeight = 23;
 
 constexpr size_t buttonTopOffset = 53;
 constexpr size_t buttonTextTopOffset = buttonTopOffset + GuiDefaults::ButtonIconSize + 5;
-#endif // USE_ILI9488
+#endif
 
 constexpr size_t buttonTextSpacing = GuiDefaults::ButtonIconSize + buttonsXSpacing - buttonTextWidth;
 constexpr size_t buttonsLeftOffset = (GuiDefaults::ScreenWidth - 3 * GuiDefaults::ButtonIconSize - 2 * buttonsXSpacing) / 2;
@@ -159,9 +159,9 @@ screen_home_data_t::screen_home_data_t()
     , usbInserted(marlin_vars()->media_inserted)
     , header(this)
     , footer(this)
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     , logo(this, logoRect, &img::printer_logo)
-#endif // USE_ST7789
+#endif
     , w_buttons {
         { this, Rect16(), nullptr, [](window_t&) { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), nullptr, [](window_t&) { marlin_client::gcode_printf("M1700 T-1"); } },
@@ -185,7 +185,7 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     WindowFileBrowser::SetRoot("/usb");
 
-#ifndef USE_ST7789
+#if !HAS_MINI_DISPLAY()
     header.SetIcon(&img::home_shape_16x16);
 #endif
 #if !defined(_DEBUG) && !DEVELOPER_MODE()
@@ -320,7 +320,7 @@ void screen_home_data_t::on_enter() {
     if (!input_shaper_warning_shown) {
         input_shaper_warning_shown = true;
         MsgBoxISWarning(_(
-        #ifdef USE_ST7789
+        #if HAS_MINI_DISPLAY()
                             "This firmware is still\nin development.\n\n"
                             "Do not leave the printer unattended.\n\n"
         #else

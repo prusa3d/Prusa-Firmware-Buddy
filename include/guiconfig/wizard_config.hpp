@@ -6,7 +6,7 @@
 #include <guiconfig/guiconfig.h>
 
 namespace WizardDefaults {
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
 inline constexpr size_t row_0 = GuiDefaults::HeaderHeight;
 inline constexpr size_t txt_h = 18;
 inline constexpr size_t MarginLeft = 6;

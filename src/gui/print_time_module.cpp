@@ -14,7 +14,7 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
     // TODO: Non-context time <-> context time
     const uint32_t time_to_end = marlin_vars()->time_to_end;
 
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     if (out_print_dur) {
         const time_t rawtime = (time_t)marlin_vars()->print_duration; // print_duration holds SECONDS
         if (rawtime != last_print_duration) {
@@ -24,7 +24,7 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
         }
         last_print_duration = rawtime;
     }
-#endif // USE_ST7789
+#endif
 
     if (screen_format != PT_t::init && time_to_end != marlin_server::TIME_TO_END_INVALID && time_to_end == last_time_to_end) {
         return time_end_format;

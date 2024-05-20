@@ -23,7 +23,7 @@ struct GuiDefaults {
     static constexpr Font FooterFont = Font::special; // TODO font_9x16, IT MUST MATCH OR BE SMALLER THAN FooterItemHeight!!!
 
     // display specific defaults
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
     // TODO bind this values
     static constexpr size_t ScreenWidth = 240;
     static constexpr size_t ScreenHeight = 320;
@@ -55,7 +55,7 @@ struct GuiDefaults {
     static constexpr uint8_t ButtonSpacing = 6; // default button spacing
     static constexpr uint8_t ButtonIconSize = 64;
     static constexpr uint16_t ButtonIconVerticalSpacing = 24;
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     static constexpr size_t ScreenWidth = 480; // Some values are redundant on purpose - It's more convenient for future display's implementation
     static constexpr size_t ScreenHeight = 320;
     static constexpr size_t FooterHeight = 23;
@@ -108,7 +108,7 @@ struct GuiDefaults {
 
     // Text settings
     // TODO fix unit tests, so this is not needed
-#if defined(USE_MOCK_DISPLAY)
+#if HAS_MOCK_DISPLAY()
     static constexpr padding_ui8_t Padding = { 2, 2, 2, 2 };
 #else
     static constexpr padding_ui8_t Padding = { 0, 0, 0, 0 };
@@ -130,16 +130,16 @@ struct GuiDefaults {
         rc_frame.Top() + (rc_frame.Height() - ButtonHeight - FramePadding), rc_frame.Width() - 2 * ButtonSpacing, ButtonHeight); }
     static constexpr Rect16 GetButtonRect_AvoidFooter(Rect16 rc_frame) { return GetButtonRect(rc_frame - Rect16::Height_t(FooterHeight)); }
 
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
     static constexpr uint8_t FramePadding = 10; // default frame padding
     static constexpr Rect16::Width_t FrameWidth = ScreenWidth - 2 * FramePadding; // default frame padding
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     static constexpr uint8_t FramePadding = 6; // default frame padding
 #endif // USE_<display>
     static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4; // maximum number of radio buttons
 
     // Menu settings
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
     static constexpr EFooter MenuFooter = EFooter::On; // Menu has footer or not
 #else
     static constexpr EFooter MenuFooter = EFooter::Off; // Menu has footer or not
@@ -152,11 +152,11 @@ struct GuiDefaults {
     static constexpr Align_t MenuAlignment() { return Align_t::LeftTop(); }
 
     // Enable new menu features
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
     static constexpr bool MenuLinesBetweenItems = false;
     static constexpr bool MenuSwitchHasBrackets = false; // draw brackets around switch values in menus
     static constexpr bool MenuSpinHasUnits = false; // draw units behind spin
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     static constexpr bool MenuLinesBetweenItems = true;
     static constexpr bool MenuSwitchHasBrackets = true; // draw brackets around switch values in menus
     static constexpr bool MenuSpinHasUnits = true; // draw units behind spin
@@ -164,14 +164,14 @@ struct GuiDefaults {
     static constexpr bool ShowDevelopmentTools = static_cast<bool>(option::development_items); // Show menu items for development
 
     // New menu feature settings
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
     static constexpr size_t MenuUseFixedUnitWidth = 28; // 0 == calculate in runtime
     static constexpr Rect16::Width_t MenuScrollbarWidth = 0;
     static constexpr uint8_t MenuItemCornerRadius = 5;
     static constexpr padding_ui8_t MenuItemDelimiterPadding = padding_ui8_t({ 6, 0, 6, 0 });
     static constexpr padding_ui8_t MenuPaddingItems = padding_ui8_t({ 6, 6, 6, 6 });
     static constexpr padding_ui8_t MenuPaddingSpecial = padding_ui8_t({ 0, 6, 0, 0 });
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     static constexpr size_t MenuUseFixedUnitWidth = 0; // 0 == calculate in runtime
     static constexpr Rect16::Width_t MenuScrollbarWidth = 8;
     static constexpr uint8_t MenuItemCornerRadius = 5; //
@@ -183,16 +183,16 @@ struct GuiDefaults {
     static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 5, 0, 5, 0 });
     static constexpr size_t MenuItemDelimeterHeight = MenuLinesBetweenItems ? 1 : 0;
 
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
     static constexpr padding_ui8_t FileBrowserPadding = padding_ui8_t({ 0, 0, 0, 0 });
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     static constexpr padding_ui8_t FileBrowserPadding = padding_ui8_t({ 16, 5, 24, 0 });
 #endif
     static constexpr Rect16 FileBrowserRect = Rect16::CutPadding(RectScreenNoHeader, FileBrowserPadding);
 
     // New msgbox
     static constexpr uint8_t DefaultCornerRadius = 8;
-#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+#if HAS_MINI_DISPLAY() || HAS_MOCK_DISPLAY()
     static constexpr Rect16 MsgBoxLayoutRect = { 30, 90, 180, 120 }; // Msgbox rect for drawing icon + text
     static constexpr Rect16 MessageTextRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left() + 48 + 15, GuiDefaults::MsgBoxLayoutRect.Top(), 117, 120); // 48px icon + 10px icon-text delimeter
 
@@ -200,7 +200,7 @@ struct GuiDefaults {
     static constexpr uint16_t RadioButtonCornerRadius = 6;
     static constexpr bool EnableDialogBigLayout = false;
     static constexpr uint16_t QRSize = 100;
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     static constexpr Rect16 MsgBoxLayoutRect = { 70, 90, 363, ScreenHeight - 90 - ButtonHeight }; // Msgbox rect for drawing icon + text
     static constexpr Rect16 MessageTextRect = Rect16(MsgBoxLayoutRect.Left() + 48 + 15, MsgBoxLayoutRect.Top(), 300, MsgBoxLayoutRect.Height()); // 48px icon + 10px icon-text delimeter
 
@@ -208,7 +208,7 @@ struct GuiDefaults {
     static constexpr uint16_t RadioButtonCornerRadius = 8;
     static constexpr bool EnableDialogBigLayout = true;
     static constexpr uint16_t QRSize = 130;
-#endif // USE_<DISPLAY>
+#endif
     static constexpr Rect16 MessageIconRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left(), GuiDefaults::MsgBoxLayoutRect.Top(), 48, 48);
 
     static constexpr Rect16::Width_t InvalidPrinterIconMargin = 6;

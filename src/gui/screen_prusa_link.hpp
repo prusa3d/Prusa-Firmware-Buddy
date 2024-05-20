@@ -52,7 +52,7 @@ protected:
 class MI_PL_PASSWORD_VALUE : public IWindowMenuItem {
     static constexpr size_t PASSWD_STR_LENGTH = config_store_ns::pl_password_size + 1; // don't need space for '%s' and '\0' since pl_password_size contains '\0' too
 
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     constexpr static const char *const label = N_("");
 #else
     constexpr static const char *const label = N_("Password");
@@ -82,7 +82,7 @@ public:
 };
 
 using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENERATE_PASSWORD, MI_PL_USER,
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     MI_PL_PASSWORD_LABEL,
 #endif
     MI_PL_PASSWORD_VALUE>;

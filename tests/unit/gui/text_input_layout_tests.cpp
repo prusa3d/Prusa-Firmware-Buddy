@@ -3,7 +3,7 @@
 
 using namespace dialog_text_input;
 
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
     #define TESTNAME "gui::text_input_layout::big_display"
 #else
     #define TESTNAME "gui::text_input_layout::mini_display"

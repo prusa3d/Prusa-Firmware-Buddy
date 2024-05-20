@@ -49,7 +49,7 @@ private:
     static constexpr Font font { GuiDefaults::FontBig };
     static constexpr font_size_t font_size { resource_font_size(font) };
 
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     static constexpr Rect16 infoText_rc { 0, 45, 240, 60 };
     static constexpr Rect16 closeText_rc { 0, 90, 240, 60 };
     static constexpr Rect16 icon_rc { 80, 154, 81, 55 };
@@ -59,7 +59,7 @@ private:
     static constexpr Rect16 numb_rc { 126, 223, 114, 21 };
     static constexpr Rect16 arrows_rc { 113, 223, 14, 21 };
 #endif
-#ifdef USE_ILI9488
+#if HAS_LARGE_DISPLAY()
     static constexpr Rect16 infoText_rc { 0, 45, 480, 60 };
     static constexpr Rect16 closeText_rc { 0, 90, 480, 60 };
     static constexpr Rect16 icon_rc { 200, 171, 81, 55 };

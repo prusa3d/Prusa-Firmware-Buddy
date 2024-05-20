@@ -526,19 +526,19 @@ extern "C" void main_cpp(void) {
     }
 }
 
-#ifdef USE_ST7789
+#if HAS_ST7789_DISPLAY()
 extern void st7789v_spi_tx_complete(void);
 #endif
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
-#if HAS_GUI() && defined(USE_ST7789)
+#if HAS_GUI() && HAS_ST7789_DISPLAY()
     if (hspi == &SPI_HANDLE_FOR(lcd)) {
         st7789v_spi_tx_complete();
     }
 #endif
 
-#if HAS_GUI() && defined(USE_ILI9488)
+#if HAS_GUI() && HAS_ILI9488_DISPLAY()
     if (hspi == &SPI_HANDLE_FOR(lcd)) {
         ili9488_spi_tx_complete();
     }
@@ -551,7 +551,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 
-#if HAS_GUI() && defined(USE_ILI9488)
+#if HAS_GUI() && HAS_ILI9488_DISPLAY()
     if (hspi == &SPI_HANDLE_FOR(lcd)) {
         ili9488_spi_rx_complete();
     }

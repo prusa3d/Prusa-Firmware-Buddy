@@ -78,7 +78,7 @@ class DialogWarning : public IDialogMarlin {
 #if ENABLED(CALIBRATION_GCODE)
         { &img::nozzle_34x32, ErrCode::CONNECT_NOZZLE_DOES_NOT_HAVE_ROUND_SECTION },
 #endif
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
         { &img::no_stream_48x48, ErrCode::CONNECT_NOT_DOWNLOADED }, // NotDownloaded
 #else
         { nullptr, ErrCode::CONNECT_NOT_DOWNLOADED }, // NotDownloaded -- Text is too long - ST7789 has to have no icon

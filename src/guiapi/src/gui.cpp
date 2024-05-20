@@ -55,10 +55,10 @@ void gui_init(void) {
 // select jogwheel type by measured 'reset delay'
 // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
 // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
     // run-time jogwheel type detection decides which type of jogwheel device has (each type has different encoder behaviour)
     jogwheel.SetJogwheelType(st7789v_reset_delay);
-#else /* ! USE_ST7789 */
+#else
     jogwheel.SetJogwheelType(0);
 #endif
 }

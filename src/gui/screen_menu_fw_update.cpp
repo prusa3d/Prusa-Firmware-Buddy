@@ -10,7 +10,7 @@
 
 constexpr static const char *const label = N_("FW UPDATE");
 
-#ifdef USE_ILI9488
+#if HAS_LARGE_DISPLAY()
 /*****************************************************************************/
 // MI_ALWAYS
 MI_ALWAYS::MI_ALWAYS()
@@ -34,7 +34,7 @@ ScreenMenuFwUpdate::ScreenMenuFwUpdate()
     : ScreenMenuFwUpdate__(_(label)) {
 }
 
-#else // !USE_ILI9488
+#else
 static constexpr const char *en_txt_helper = N_("Select when you want to automatically flash updated firmware from USB flash disk.");
 static const constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string
 
@@ -82,4 +82,4 @@ uint16_t ScreenMenuFwUpdate::get_help_h() {
     return helper_lines * (height(helper_font) + 1); // +1 for line paddings
 }
 
-#endif // USE_ILI9488
+#endif

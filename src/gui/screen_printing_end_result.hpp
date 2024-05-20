@@ -30,9 +30,9 @@ public:
     static constexpr const char *txt_printing_time { N_("Printing time") };
 
     static constexpr auto progress_font {
-#if defined(USE_ILI9488)
+#if HAS_LARGE_DISPLAY()
         Font::large
-#elif defined(USE_ST7789)
+#elif HAS_MINI_DISPLAY()
         Font::normal
 #endif
     };

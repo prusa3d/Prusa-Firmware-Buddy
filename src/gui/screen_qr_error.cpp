@@ -49,11 +49,11 @@ ScreenErrorQR::ScreenErrorQR()
     title_line.SetBackColor(COLOR_WHITE);
     help_link.set_font(Font::small);
     qr_code_txt.set_font(Font::small);
-#if defined(USE_ST7789)
+#if HAS_MINI_DISPLAY()
     err_title.set_font(Font::small);
     err_title.SetAlignment(Align_t::LeftBottom());
     err_description.set_font(Font::small);
-#elif defined(USE_ILI9488)
+#elif HAS_LARGE_DISPLAY()
     err_title.SetAlignment(Align_t::LeftTop());
 #endif
 

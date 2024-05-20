@@ -124,11 +124,11 @@ void DialogConnectRegister::windowEvent(window_t *sender, GUI_event_t event, voi
                 // destructor.
                 text_detail.SetText(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(code)));
 
-#ifdef USE_ST7789
+#if HAS_MINI_DISPLAY()
                 text_state.SetText(_("Scan QR or visit prusa.io/add, log in and add printer code:"));
-#else /*USE_ST7789*/
+#else
                 text_state.SetText(_("1. Scan the QR code or visit prusa.io/add.\n2. Log in.\n3. Add printer with code:\n"));
-#endif /*USE_ST7789*/
+#endif
                 break;
             }
             case ConnectionStatus::RegistrationDone: {
@@ -242,29 +242,29 @@ void DialogConnectRegister::showQR() {
 }
 
 constexpr Rect16 DialogConnectRegister::Positioner::qrcodeRect() {
-#ifndef USE_ST7789
+#if !HAS_MINI_DISPLAY()
     return Rect16 {
         GuiDefaults::ScreenWidth - WizardDefaults::MarginRight - qrcodeWidth,
         WizardDefaults::row_1 + 5, // place qr under title and underlining
         qrcodeWidth,
         qrcodeHeight
     };
-#else /*USE_ST7789*/
+#else
     return Rect16 { 160 - qrcodeWidth / 2, 200 - qrcodeHeight / 2, qrcodeWidth, qrcodeHeight };
-#endif /*USE_ST7789*/
+#endif
 }
 
 constexpr Rect16 DialogConnectRegister::Positioner::phoneIconRect() {
-#ifndef USE_ST7789
+#if !HAS_MINI_DISPLAY()
     return Rect16 {
         qrcodeRect().Left() - phoneWidth,
         (qrcodeRect().Top() + qrcodeRect().Bottom()) / 2 - phoneHeight / 2,
         phoneWidth,
         phoneHeight
     };
-#else /*USE_ST7789*/
+#else
     return Rect16 { 20, 165, phoneWidth, phoneHeight };
-#endif /*USE_ST7789*/
+#endif
 }
 
 /** @param add_top places rect x pixels under @link{WizardDefaults::row_0}
@@ -279,69 +279,69 @@ constexpr Rect16 DialogConnectRegister::Positioner::textRect(int16_t add_top, ui
 
 /** @returns Rect16 for title (prusaConnect)*/
 constexpr Rect16 DialogConnectRegister::Positioner::textRectTitle() {
-#ifndef USE_ST7789
+#if !HAS_MINI_DISPLAY()
     return textRect();
-#else /*USE_ST7789*/
+#else
     return Rect16 {}; // Empty, this is not used
-#endif /*USE_ST7789*/
+#endif
 }
 
 /** @param final if wizard is done and qr code is to be shown
     @returns Rect16 for static state text (wait/done)*/
 constexpr Rect16 DialogConnectRegister::Positioner::textRectState([[maybe_unused]] bool final) {
-#ifndef USE_ST7789
+#if !HAS_MINI_DISPLAY()
     if (final) {
         return textRect(WizardDefaults::row_h * 2, WizardDefaults::txt_h * 4, phoneIconRect().Left() - WizardDefaults::col_0);
     } else {
         return textRect(WizardDefaults::row_h * 2, WizardDefaults::row_h * 2);
     }
-#else /*USE_ST7789*/
+#else
     return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0, textWidth, WizardDefaults::txt_h * 4 };
-#endif /*USE_ST7789*/
+#endif
 }
 
 /** @returns Rect16 for number of attempts*/
 constexpr Rect16 DialogConnectRegister::Positioner::textRectAttempt([[maybe_unused]] bool final) {
-#ifndef USE_ST7789
+#if !HAS_MINI_DISPLAY()
     if (final) {
         return textRect(textRectState(final).Bottom() - WizardDefaults::row_0, WizardDefaults::row_h, textRectState(final).Width());
     } else {
         return textRect(textRectState().Bottom());
     }
-#else /*USE_ST7789*/
+#else
     return Rect16 {};
-#endif /*USE_ST7789*/
+#endif
 }
 
 /** @param final if wizard is done and qr code is to be shown
     @returns Rect16 for error details or code/help link on final screen*/
 constexpr Rect16 DialogConnectRegister::Positioner::textRectDetail([[maybe_unused]] bool final) {
-#ifndef USE_ST7789
+#if !HAS_MINI_DISPLAY()
     if (final) {
         return textRect(WizardDefaults::RectRadioButton(0).Top() - WizardDefaults::row_0 - WizardDefaults::row_h * 2, WizardDefaults::row_h * 2);
     } else {
         return textRect(WizardDefaults::Y_space - textHeight - WizardDefaults::row_1);
     }
 
-#else /*USE_ST7789*/
+#else
     return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + WizardDefaults::txt_h * 4, textWidth, WizardDefaults::txt_h * 2 };
-#endif /*USE_ST7789*/
+#endif
 }
 
 /** @returns Rect16 for underlining title text */
 constexpr Rect16 DialogConnectRegister::Positioner::lineRect() {
-#ifndef USE_ST7789
+#if !HAS_MINI_DISPLAY()
     return Rect16 { WizardDefaults::col_0, WizardDefaults::row_1, textWidth, WizardDefaults::progress_h };
-#else /*USE_ST7789*/
+#else
     return Rect16 {};
-#endif /*USE_ST7789*/
+#endif
 }
 
 /** @returns Rect16 position and size of the link widget */
 constexpr Rect16 DialogConnectRegister::Positioner::codeRect() {
-#ifndef USE_ST7789
+#if !HAS_MINI_DISPLAY()
     return Rect16 { WizardDefaults::col_0, WizardDefaults::Y_space - textHeight, phoneIconRect().Left() - WizardDefaults::col_0, textHeight };
-#else /*USE_ST7789*/
+#else
     return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + textLines * WizardDefaults::row_h, textWidth, codeHeight };
-#endif /*USE_ST7789*/
+#endif
 }
