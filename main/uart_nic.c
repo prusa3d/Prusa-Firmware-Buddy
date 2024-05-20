@@ -116,9 +116,7 @@ static uint8_t probe_retry_count;
 typedef enum {
     SCAN_TYPE_UNKNOWN,
     SCAN_TYPE_PROBE,
-    SCAN_TYPE_LONG,
-    SCAN_TYPE_LOOPING_SHORT,
-    SCAN_TYPE_LOOPING_LONG,
+    SCAN_TYPE_INCREMENTAL,
 } ScanType;
 
 typedef struct __attribute__((packed)) {
@@ -133,6 +131,7 @@ typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
 static struct {
     ScanType scan_type;
     wifi_scan_callback callback;
+    uint32_t incremental_scan_time;
     ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS];
     uint8_t stored_ssids_count;
     atomic_bool in_progress;
@@ -140,6 +139,7 @@ static struct {
 } scan = {
     .scan_type = SCAN_TYPE_UNKNOWN,
     .callback = NULL,
+    .incremental_scan_time = 0,
     .stored_ssids = {},
     .stored_ssids_count = 0,
     .in_progress = false,
@@ -189,13 +189,21 @@ static void do_wifi_scan() {
             config.scan_time.active.min = 120;
             config.scan_time.active.max = 300;
             break;
-        case SCAN_TYPE_LOOPING_SHORT:
-            config.scan_time.active.max = config.scan_time.active.min = 1000;
+        case SCAN_TYPE_INCREMENTAL:
+            // The given timeouts are in ms, but per channel
+            // On 2.4GHz wifi it would be 12-14 channels
+            if (scan.incremental_scan_time == 0) {
+                scan.incremental_scan_time = 42; // 42*12 = 504ms of total scan time
+            } else {
+                scan.incremental_scan_time *= 2;
+                // Cap scan segment at ~30s (12*2500 = 30 000ms).
+                if (scan.incremental_scan_time > 2500) {
+                    scan.incremental_scan_time = 2500;
+                }
+            }
+            config.scan_time.active.max = config.scan_time.active.min = scan.incremental_scan_time;
             break;
-        case SCAN_TYPE_LONG:
-        case SCAN_TYPE_LOOPING_LONG:
-            config.scan_time.active.min = config.scan_time.active.max = 2000;
-            break;
+
         case SCAN_TYPE_UNKNOWN:
         default:
             break;
@@ -229,6 +237,14 @@ static esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType
     }
 
     scan.in_progress = true;
+
+    if (associated) {
+        // The wifi scan behaves differently when the esp is connected to the AP.
+        // Intentionally disconnect when starting a scan.
+        // The connection will be automatically reestablished after the scan.
+        esp_wifi_disconnect();
+        associated = false;
+    }
 
     xTaskCreate(&do_wifi_scan, "wifi_scan", 2048, NULL, tskIDLE_PRIORITY + 1, NULL);
     return ESP_OK;
@@ -303,7 +319,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
         if (scan.in_progress) {
-            // We were probably disconnected because the scan is blocking the wifi antenna.
+            // We have intentionally disconnected from the wifi to make sure that the scan is not interupted by anything.
             // Lets handle the disconnection at the end of the scan.
             scan.should_reconnect = true;
         } else {
@@ -337,10 +353,9 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         if (!scan.in_progress) {
             // If callback didn't start a new scan check the scan type, change it and rerun scan if possible
             switch(scan.scan_type) {
-                case SCAN_TYPE_LOOPING_SHORT:
-                case SCAN_TYPE_LOOPING_LONG: // Loop forever until the printer sends SCAN_STOP
-                    ESP_LOGI(TAG, "Starting LONG scan.");
-                    start_wifi_scan(scan.callback, SCAN_TYPE_LOOPING_LONG);
+                case SCAN_TYPE_INCREMENTAL:
+                    ESP_LOGI(TAG, "Restarting incremental scan");
+                    start_wifi_scan(scan.callback, SCAN_TYPE_INCREMENTAL);
                 break;
                 default:
                     scan.scan_type = SCAN_TYPE_UNKNOWN;
@@ -618,13 +633,14 @@ static void IRAM_ATTR handle_rx_msg_scan_start() {
     clear_stored_ssids();
     ESP_LOGI(TAG, "Starting scan...");
 
-    start_wifi_scan(&store_scanned_ssids, SCAN_TYPE_LOOPING_SHORT);
+    start_wifi_scan(&store_scanned_ssids, SCAN_TYPE_INCREMENTAL);
 }
 
 static void IRAM_ATTR handle_rx_msg_scan_stop() {
     // Response is send automatically after scan is stopped
     scan.in_progress = false;
     scan.scan_type = SCAN_TYPE_UNKNOWN;
+    scan.incremental_scan_time = 0;
     ESP_ERROR_CHECK(esp_wifi_scan_stop());
 }
 
