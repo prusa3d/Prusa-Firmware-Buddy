@@ -324,7 +324,8 @@ void media_print_start() {
 
     xSemaphoreTake(prefetch_mutex_file_reader, portMAX_DELAY);
     media_print_file = AnyGcodeFormatReader { marlin_vars()->media_SFN_path.get_ptr() };
-    if (media_print_file.is_open() && media_print_file->stream_gcode_start()) {
+    auto result = IGcodeReader::Result_t::RESULT_ERROR;
+    if (media_print_file.is_open() && (result = media_print_file->stream_gcode_start()) == IGcodeReader::Result_t::RESULT_OK) {
         media_gcode_position = media_current_position = 0;
         media_print_state = media_print_state_PRINTING;
         media_print_size_estimate = media_print_file->get_gcode_stream_size_estimate();
@@ -334,6 +335,8 @@ void media_print_start() {
 
         gcode_filter.reset();
         osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
+    } else if (result == IGcodeReader::Result_t::RESULT_CORRUPT) {
+        marlin_server::set_warning(WarningType::GcodeCorruption);
     } else {
         marlin_server::set_warning(WarningType::USBFlashDiskError);
     }
@@ -410,14 +413,15 @@ static bool media_print_file_reset_position() {
     }
     media_print_file->set_restore_info(media_get_restore_info());
 
-    const bool result = media_print_file->stream_gcode_start(media_current_position);
+    const auto result = media_print_file->stream_gcode_start(media_current_position);
 
     // Only reset reset position on success - otherwise we get stuck on repeated USB error
-    if (result) {
+    if (result == IGcodeReader::Result_t::RESULT_OK) {
         media_reset_position = GCodeQueue::SDPOS_INVALID;
+        return true;
+    } else {
+        return false;
     }
-
-    return result;
 }
 
 void media_print_resume(void) {

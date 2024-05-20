@@ -21,7 +21,7 @@ public:
     PrusaPackGcodeReader &operator=(PrusaPackGcodeReader &&other) = default;
 
     virtual bool stream_metadata_start() override;
-    virtual bool stream_gcode_start(uint32_t offset = 0) override;
+    virtual Result_t stream_gcode_start(uint32_t offset = 0) override;
     virtual bool stream_thumbnail_start(uint16_t expected_width, uint16_t expected_height, ImgType expected_type, bool allow_larger = false) override;
     virtual Result_t stream_get_line(GcodeBuffer &buffer, Continuations) override;
     virtual Result_t stream_get_block(char *out_data, size_t &size) override;
@@ -74,7 +74,11 @@ private:
         End, //< end search
     };
 
-    std::optional<bgcode::core::BlockHeader> iterate_blocks(bool check_crc, std::function<IterateResult_t(bgcode::core::BlockHeader &)> function);
+    // Returns:
+    // * monostate if the provided function returns End
+    // * The block header if the function returns Return
+    // * An error indication in case of error (including EOF)
+    std::variant<std::monostate, bgcode::core::BlockHeader, Result_t> iterate_blocks(bool check_crc, std::function<IterateResult_t(bgcode::core::BlockHeader &)> function);
 
     /// Pointer to function, that will get decompressed character from file, or data directly form file if not compressed
     stream_getc_type ptr_stream_getc_decompressed = nullptr;
@@ -129,7 +133,7 @@ private:
 
     /**
      * @brief Reads file header and check its content (for magic, version etc)
-     * @return false when header invalid - file shouldn't be used in that case.
+     * @return Status of the header.
      */
-    bool read_and_check_header();
+    Result_t read_and_check_header();
 };

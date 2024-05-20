@@ -18,17 +18,17 @@ bool PlainGcodeReader::stream_metadata_start() {
     set_ptr_stream_getc(&PlainGcodeReader::stream_getc_impl);
     return success;
 }
-bool PlainGcodeReader::stream_gcode_start(uint32_t offset) {
+IGcodeReader::Result_t PlainGcodeReader::stream_gcode_start(uint32_t offset) {
     bool success = fseek(file.get(), offset, SEEK_SET) == 0;
     stream_mode_ = success ? StreamMode::gcode : StreamMode::none;
     set_ptr_stream_getc(&PlainGcodeReader::stream_getc_impl);
-    return success;
+    return success ? Result_t::RESULT_OK : Result_t::RESULT_ERROR;
 }
 bool PlainGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint16_t expected_height, ImgType expected_type, bool allow_larger) {
     // search for begining of thumbnail in file
     static const size_t MAX_SEARCH_LINES = 2048;
     // We want to do simple scan through beginning of file, so we use gcode stream for that, it doesn't skip towards end of file like metadata stream
-    if (!stream_gcode_start()) {
+    if (stream_gcode_start() != IGcodeReader::Result_t::RESULT_OK) {
         return false;
     }
 

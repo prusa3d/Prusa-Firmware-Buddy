@@ -614,7 +614,7 @@ void GCodeInfo::PreviewInit(IGcodeReader &reader) {
     }
 
     // parse first few gcodes
-    if (reader.stream_gcode_start()) {
+    if (reader.stream_gcode_start() == IGcodeReader::Result_t::RESULT_OK) {
         uint32_t gcode_counter = 0;
         while (true) {
             // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.

@@ -76,11 +76,19 @@ public:
     virtual bool stream_metadata_start() = 0;
 
     /**
-     * @brief Start streaming gcodes from .gcode file
+     * @brief Start streaming gcodes from .gcode or .bgcode file
+     *
+     * Unlike the other stream_ functions, this checks CRCs on the file -
+     * including the metadata and thumbnails before the actual gcode block.
+     * The other functions are left without checking the CRC, because:
+     * - Performance (they are being called from many places at arbitrary
+     *   times, this one is called at the start of print).
+     * - The damage from a corrupt metadata or thumbnail is significantly
+     *   smaller than a corruption in print instructions.
      *
      * @param offset if non-zero will skip to specified offset (after powerpanic, pause etc)
      */
-    virtual bool stream_gcode_start(uint32_t offset = 0) = 0;
+    virtual Result_t stream_gcode_start(uint32_t offset = 0) = 0;
 
     /**
      * @brief Find thumbnail with specified parameters and strart streaming it.

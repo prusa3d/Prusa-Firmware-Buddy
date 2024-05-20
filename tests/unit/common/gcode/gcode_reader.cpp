@@ -43,8 +43,8 @@ struct DummyReader : public GcodeReaderCommon {
         return true;
     }
 
-    virtual bool stream_gcode_start(uint32_t) override {
-        return true;
+    virtual Result_t stream_gcode_start(uint32_t) override {
+        return Result_t::RESULT_OK;
     }
 
     virtual bool stream_thumbnail_start(uint16_t, uint16_t, ImgType, bool) override {
@@ -106,7 +106,7 @@ TEST_CASE("Extract data", "[GcodeReader]") {
         }
 
         {
-            REQUIRE(r->stream_gcode_start());
+            REQUIRE(r->stream_gcode_start() == IGcodeReader::Result_t::RESULT_OK);
             std::ofstream fs(base_name + "-gcode.gcode", std::ofstream::out);
             IGcodeReader::Result_t result;
             while ((result = r->stream_get_line(buffer, IGcodeReader::Continuations::Discard)) == IGcodeReader::Result_t::RESULT_OK) {
@@ -145,7 +145,7 @@ TEST_CASE("stream restore at offset", "[GcodeReader]") {
         std::unique_ptr<char[]> buffer1(new char[*std::max_element(sizes, sizes + std::size(sizes))]);
         std::unique_ptr<char[]> buffer2(new char[*std::max_element(sizes, sizes + std::size(sizes))]);
         long unsigned int offset = 0;
-        REQUIRE(reader1.stream_gcode_start(0));
+        REQUIRE(reader1.stream_gcode_start(0) == IGcodeReader::Result_t::RESULT_OK);
         size_t ctr = 0;
 
         GCodeReaderStreamRestoreInfo restore_info;
@@ -158,7 +158,7 @@ TEST_CASE("stream restore at offset", "[GcodeReader]") {
             if (has_restore_info) {
                 reader2->set_restore_info(restore_info);
             }
-            REQUIRE(reader2->stream_gcode_start(offset));
+            REQUIRE(reader2->stream_gcode_start(offset) == IGcodeReader::Result_t::RESULT_OK);
 
             auto size1 = size;
             auto res1 = reader1.stream_get_block(buffer1.get(), size1);
@@ -205,20 +205,20 @@ TEST_CASE("copy & move operators", "[GcodeReader]") {
     auto reader = AnyGcodeFormatReader(PLAIN_TEST_FILE);
     REQUIRE(reader.is_open());
     REQUIRE(reader.get() != nullptr);
-    REQUIRE(reader.get()->stream_gcode_start());
+    REQUIRE(reader.get()->stream_gcode_start() == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(reader.get()->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
 
     // copy it elsewhere, and check that it can read file
     auto reader2 = std::move(reader); // move operator
     REQUIRE(reader2.is_open());
     REQUIRE(reader2.get() != nullptr);
-    REQUIRE(reader2.get()->stream_gcode_start());
+    REQUIRE(reader2.get()->stream_gcode_start() == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(reader2.get()->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
 
     auto reader3(std::move(reader2)); // move constructor
     REQUIRE(reader3.is_open());
     REQUIRE(reader3.get() != nullptr);
-    REQUIRE(reader3.get()->stream_gcode_start());
+    REQUIRE(reader3.get()->stream_gcode_start() == IGcodeReader::Result_t::RESULT_OK);
     REQUIRE(reader3.get()->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
 
     // but its not possible to read from original place
@@ -236,7 +236,7 @@ TEST_CASE("validity-plain", "[GcodeReader]") {
     size_t size = st.st_size;
     r->set_validity(State { nullopt, nullopt, size });
 
-    REQUIRE(r->stream_gcode_start());
+    REQUIRE(r->stream_gcode_start() == IGcodeReader::Result_t::RESULT_OK);
 
     GcodeBuffer buffer;
     // Not available yet
@@ -269,22 +269,22 @@ TEST_CASE("validity-bgcode", "[GcodeReader]") {
     // Not available yet
     r->set_validity(State { nullopt, nullopt, size });
     REQUIRE(r->stream_metadata_start() == false);
-    REQUIRE(r->stream_gcode_start() == false);
+    REQUIRE(r->stream_gcode_start() == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
     r->set_validity(State { ValidPart(0, 0), nullopt, size });
     REQUIRE(r->stream_metadata_start() == false);
-    REQUIRE(r->stream_gcode_start() == false);
+    REQUIRE(r->stream_gcode_start() == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
 
     // just printer metadata is valid
     r->set_validity(State { ValidPart(0, 613), nullopt, size });
     REQUIRE(r->stream_metadata_start());
     REQUIRE(r->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
-    REQUIRE(r->stream_gcode_start() == false);
+    REQUIRE(r->stream_gcode_start() == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
 
     // all metadata & first gcode block is valid
     r->set_validity(State { ValidPart(0, 119731), nullopt, size });
     REQUIRE(r->stream_metadata_start());
     REQUIRE(r->stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_OK);
-    REQUIRE(r->stream_gcode_start());
+    REQUIRE(r->stream_gcode_start() == IGcodeReader::Result_t::RESULT_OK);
 
     // read entire first block,, that should go fine, then it shoudl return OUT_OF_RANGE on first character on next block
     size_t first_block_size = 59693;
