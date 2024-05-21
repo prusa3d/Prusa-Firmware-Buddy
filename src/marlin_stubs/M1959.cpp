@@ -172,7 +172,9 @@ static PhasesInputShaperCalibration parking(Context &context) {
 
 #if HAS_REMOTE_ACCELEROMETER()
     // Without tool being picked there is no accelerometer data
-    tool_change(/*tool_index=*/0, tool_return_t::no_return, tool_change_lift_t::no_lift, /*z_down=*/false);
+    if (prusa_toolchanger.has_tool() == false) {
+        tool_change(/*tool_index=*/0, tool_return_t::no_return, tool_change_lift_t::no_lift, /*z_down=*/false);
+    }
 #endif
 
     // Easier access to cables + more consistent measurement
