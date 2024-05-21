@@ -13,6 +13,16 @@ constexpr static const char *BINARY_NO_COMPRESSION_FILE = "test_binary_no_compre
 constexpr static const char *BINARY_MEATPACK_FILE = "test_binary_meatpack.bgcode";
 constexpr static const char *BINARY_HEATSHRINK_FILE = "test_binary_heatshrink.bgcode";
 constexpr static const char *BINARY_HEATSHRINK_MEATPACK_FILE = "test_binary_heatshrink_meatpack.bgcode";
+// These are made from the test_binary_no_compression.bgcode by mangling a specific CRC.
+// See the utils/crckill.
+
+// A thumbnail with bad CRC
+constexpr static const char *BINARY_BAD_CRC_INTRO = "test_bad_crc_intro.bgcode";
+// The CRC on the first gcode block
+constexpr static const char *BINARY_BAD_CRC_FIRST_GCODE = "test_bad_crc_first_gcode.bgcode";
+// Some later gcode block
+constexpr static const char *BINARY_BAD_CRC_OTHER_GCODE = "test_bad_crc_gcode.bgcode";
+
 constexpr static const std::string_view DUMMY_DATA_LONG = "; Short line\n"
                                                           ";Long line012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789\n"
                                                           ";Another short line";
@@ -483,4 +493,35 @@ TEST_CASE("Reader: Error in long, discard") {
     // Interestingly, this is not when reading the end of the line, but reading
     // the next line.. but it still results in ERROR.
     REQUIRE(reader.stream_get_line(buffer, IGcodeReader::Continuations::Discard) == IGcodeReader::Result_t::RESULT_ERROR);
+}
+
+TEST_CASE("Reader CRC: incorrect before gcode") {
+    AnyGcodeFormatReader reader("test_bad_crc_intro.bgcode");
+    REQUIRE(reader.is_open());
+    REQUIRE(reader.get()->stream_gcode_start() == IGcodeReader::Result_t::RESULT_CORRUPT);
+}
+
+TEST_CASE("Reader CRC: incorrect on first gcode") {
+    AnyGcodeFormatReader reader("test_bad_crc_first_gcode.bgcode");
+    REQUIRE(reader.is_open());
+    // The first gcode block is checked during the start
+    REQUIRE(reader.get()->stream_gcode_start() == IGcodeReader::Result_t::RESULT_CORRUPT);
+}
+
+TEST_CASE("Reader CRC: incorrect on another gcode") {
+    AnyGcodeFormatReader reader("test_bad_crc_gcode.bgcode");
+    REQUIRE(reader.is_open());
+    // This checks only the beginning, not the whole gcode and so far we didn't find the "broken" part yet.
+    REQUIRE(reader.get()->stream_gcode_start() == IGcodeReader::Result_t::RESULT_OK);
+
+    char buffer[128];
+    IGcodeReader::Result_t result = IGcodeReader::Result_t::RESULT_OK;
+
+    while (result == IGcodeReader::Result_t::RESULT_OK) {
+        size_t size = sizeof buffer;
+        result = reader.get()->stream_get_block(buffer, size);
+    }
+
+    // We finish by finding a corruption, not running until the very end.
+    REQUIRE(result == IGcodeReader::Result_t::RESULT_CORRUPT);
 }

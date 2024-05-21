@@ -35,6 +35,9 @@ file(
        ${CMAKE_CURRENT_SOURCE_DIR}/test_binary_meatpack.bgcode
        ${CMAKE_CURRENT_SOURCE_DIR}/test_binary_heatshrink.bgcode
        ${CMAKE_CURRENT_SOURCE_DIR}/test_binary_heatshrink_meatpack.bgcode
+       ${CMAKE_CURRENT_SOURCE_DIR}/test_bad_crc_first_gcode.bgcode
+       ${CMAKE_CURRENT_SOURCE_DIR}/test_bad_crc_intro.bgcode
+       ${CMAKE_CURRENT_SOURCE_DIR}/test_bad_crc_gcode.bgcode
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
   )
 
