@@ -28,6 +28,8 @@ static constexpr bool any_axis_active() {
     return false;
 }
 
+static constexpr void assert_disabled() {}
+
 inline void init_step_generator_classic(
     const move_t &,
     move_segment_step_generator_t &,

@@ -309,6 +309,11 @@ void phase_stepping::assert_initialized() {
     // This is explicitly kept non-inline to serve as a single trap point
     assert(initialized());
 }
+
+void phase_stepping::assert_disabled() {
+    // This is explicitly kept non-inline to serve as a single trap point
+    assert(!any_axis_active());
+}
 #endif
 
 void phase_stepping::synchronize() {

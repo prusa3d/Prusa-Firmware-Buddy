@@ -351,6 +351,9 @@ static void serial_echo_header(bool klipper_mode) {
  */
 FrequencyGain3D
 vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_period, StepEventFlag_t axis_flag, bool klipper_mode, float frequency_requested, float acceleration_requested, float step_len, uint32_t cycles) {
+    // As we push steps directly, phase stepping needs to be off
+    phase_stepping::assert_disabled();
+
     HarmonicGenerator generator(frequency_requested, acceleration_requested, step_len);
     const float frequency = generator.getFrequency();
     StepDir stepDir(generator);
@@ -469,6 +472,9 @@ vibrate_measure(PrusaAccelerometer &accelerometer, float accelerometer_sample_pe
  * @return step and direction flags - see StepEventFlag
  */
 static StepEventFlag_t setup_axis() {
+    // As we modify driver's microsteps directly, phase stepping needs to be off
+    phase_stepping::assert_disabled();
+
     // enable all axes to have the same state as printing
     enable_all_steppers();
 

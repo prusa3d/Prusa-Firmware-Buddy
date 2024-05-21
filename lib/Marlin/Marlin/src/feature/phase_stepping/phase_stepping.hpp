@@ -233,11 +233,37 @@ extern std::array<
     axis_states;
 
 /**
+ * Check wether init() has been called
+ */
+static inline bool initialized() {
+    return std::ranges::all_of(axis_states, [](const auto &state) { return state != nullptr; });
+}
+
+    /**
+     * Ensure init() has been called
+     */
+    #ifndef _DEBUG
+static constexpr void assert_initialized() {}
+    #else
+void assert_initialized();
+    #endif
+
+    /**
+     * Ensure phase stepping is fully disabled on all axes
+     */
+    #ifndef _DEBUG
+static constexpr void assert_disabled() {}
+    #else
+void assert_disabled();
+    #endif
+
+/**
  * Check if given axis is being used for phase stepping or not.
  *
  * Note: This is an in-line definition so this short function can be in-lined
  */
 inline bool is_enabled(AxisEnum axis_num) {
+    assert_initialized();
     if (axis_num < opts::SUPPORTED_AXIS_COUNT) {
         return axis_states[axis_num]->active;
     }
@@ -262,22 +288,6 @@ public:
     };
     void release() {};
 };
-
-/**
- * Check wether init() has been called
- */
-static inline bool initialized() {
-    return std::ranges::all_of(axis_states, [](const auto &state) { return state != nullptr; });
-}
-
-    /**
-     * Ensure init() has been called
-     */
-    #ifndef _DEBUG
-static constexpr void assert_initialized() {}
-    #else
-void assert_initialized();
-    #endif
 
 /**
  * RAII guard for temporary disabling/enabling phase stepping with planner synchronization.
