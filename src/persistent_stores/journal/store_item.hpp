@@ -102,7 +102,7 @@ protected:
     }
 };
 
-template <StoreItemDataC DataT, const DataT &DefaultVal, auto &(*backend)(), uint16_t HashedID>
+template <StoreItemDataC DataT, DataT DefaultVal, auto &(*backend)(), uint16_t HashedID>
 struct JournalItem : public JournalItemBase<DataT, backend> {
 
 public:
@@ -157,7 +157,7 @@ public:
     }
 };
 
-template <StoreItemDataC DataT, const DataT &DefaultVal, journal::BackendC BackendT, uint16_t HashedID>
+template <StoreItemDataC DataT, DataT DefaultVal, journal::BackendC BackendT, uint16_t HashedID>
 struct DeprecatedStoreItem {
     static constexpr uint16_t hashed_id { HashedID };
     static constexpr size_t data_size { sizeof(DataT) };

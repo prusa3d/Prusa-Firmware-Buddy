@@ -6,7 +6,7 @@
 
 namespace no_backend {
 
-template <typename DataT, const DataT &DefaultVal>
+template <typename DataT, DataT DefaultVal>
 class CurrentItem {
 public:
     static constexpr DataT default_val { DefaultVal };
@@ -50,7 +50,7 @@ private:
     DataT data { DefaultVal };
 };
 
-template <typename DataT, const DataT &DefaultVal>
+template <typename DataT, DataT DefaultVal>
 class DeprecatedItem {
 public:
     static constexpr DataT default_val { DefaultVal };

@@ -17,24 +17,24 @@ consteval uint16_t hash(const char *) {
 namespace no_backend {
 
 struct CurrentStoreConfig {
-    template <typename DataT, const DataT &default_val>
+    template <typename DataT, DataT default_val>
     using StoreItem = CurrentItem<DataT, default_val>;
 };
 
 struct DeprecatedStoreConfig {
-    template <typename DataT, const DataT &DefaultVal>
+    template <typename DataT, DataT DefaultVal>
     using StoreItem = DeprecatedItem<DataT, DefaultVal>;
 };
 
 // shorthand to allow easier change of journal-based store into no_backend-based store
 struct NBJournalCurrentStoreConfig {
-    template <typename DataT, const DataT &default_val, uint16_t hash>
+    template <typename DataT, DataT default_val, uint16_t hash>
     using StoreItem = CurrentItem<DataT, default_val>;
 };
 
 // shorthand to allow easier change of journal-based store into no_backend-based store
 struct NBJournalDeprecatedStoreConfig {
-    template <typename DataT, const DataT &DefaultVal, uint16_t hash>
+    template <typename DataT, DataT DefaultVal, uint16_t hash>
     using StoreItem = DeprecatedItem<DataT, DefaultVal>;
 };
 
