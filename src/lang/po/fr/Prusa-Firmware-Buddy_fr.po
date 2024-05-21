@@ -3543,12 +3543,12 @@ msgstr ""
 "d'imprimante, exécutez le Selftest."
 
 #: src/gui/MItem_enclosure.hpp:71
-msgid "Manual Configuration"
-msgstr "Configuration manuelle"
+msgid "Manual Settings"
+msgstr "Paramètres manuels"
 
 #: src/gui/screen_menu_enclosure.hpp:68
-msgid "MANUAL CONFIGURATION"
-msgstr "CONFIGURATION MANUELLE"
+msgid "MANUAL SETTINGS"
+msgstr "PARAMÈTRES MANUELS"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:324
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:261
@@ -4589,6 +4589,14 @@ msgstr "TAMPON PNG PLEIN"
 #: src/gui/MItem_enclosure.hpp:44
 msgid "Post Print Filtration"
 msgstr "Filtration après impression"
+
+#: src/gui/MItem_enclosure.hpp:
+msgid "Post Print Filtration Duration"
+msgstr "Durée de filtration après impression"
+
+#: src/gui/MItem_enclosure.hpp:
+msgid "Print Filtration"
+msgstr "Filtration d'impression"
 
 #: src/gui/MItem_mmu.hpp:186
 msgid "Power Cycle"

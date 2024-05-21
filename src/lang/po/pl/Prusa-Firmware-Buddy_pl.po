@@ -3564,12 +3564,12 @@ msgstr ""
 "użytkowników. Aby automatycznie wybrać typ drukarki, uruchom Selftest."
 
 #: src/gui/MItem_enclosure.hpp:71
-msgid "Manual Configuration"
-msgstr "Konfiguracja ręczna"
+msgid "Manual Settings"
+msgstr "Ustawienia ręczne"
 
 #: src/gui/screen_menu_enclosure.hpp:68
-msgid "MANUAL CONFIGURATION"
-msgstr "KONFIGURACJA RĘCZNA"
+msgid "MANUAL SETTINGS"
+msgstr "USTAWIENIA RĘCZNE"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:324
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:261
@@ -4598,6 +4598,14 @@ msgstr "BUFOR PNG PEŁNY"
 #: src/gui/MItem_enclosure.hpp:44
 msgid "Post Print Filtration"
 msgstr "Filtracja po wydruku"
+
+#: src/gui/MItem_enclosure.hpp:
+msgid "Post Print Filtration Duration"
+msgstr "Czas filtracji po druku"
+
+#: src/gui/MItem_enclosure.hpp:
+msgid "Print Filtration"
+msgstr "Filtracja druku"
 
 #: src/gui/MItem_mmu.hpp:186
 msgid "Power Cycle"

@@ -3589,12 +3589,12 @@ msgstr ""
 "l'Autotest."
 
 #: src/gui/MItem_enclosure.hpp:71
-msgid "Manual Configuration"
-msgstr "Configurazione Manuale"
+msgid "Manual Settings"
+msgstr "Impostazioni manuali"
 
 #: src/gui/screen_menu_enclosure.hpp:68
-msgid "MANUAL CONFIGURATION"
-msgstr "CONFIGURAZIONE MANUALE"
+msgid "MANUAL SETTINGS"
+msgstr "IMPOSTAZIONI MANUALI"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:324
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:261
@@ -4637,6 +4637,14 @@ msgstr "BUFFER PNG PIENO"
 #: src/gui/MItem_enclosure.hpp:44
 msgid "Post Print Filtration"
 msgstr "Filtraggio Post Stampa"
+
+#: src/gui/MItem_enclosure.hpp:
+msgid "Post Print Filtration Duration"
+msgstr "Durata della filtrazione post stampa"
+
+#: src/gui/MItem_enclosure.hpp:
+msgid "Print Filtration"
+msgstr "Filtrazione di stampa"
 
 #: src/gui/MItem_mmu.hpp:186
 msgid "Power Cycle"

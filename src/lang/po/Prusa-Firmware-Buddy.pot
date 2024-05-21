@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2024-05-06 13:39+0200\n"
+"POT-Creation-Date: 2024-05-21 10:20+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -356,8 +356,8 @@ msgstr ""
 msgid "All nozzles"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:261
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:247
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:261
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:254
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:359
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:387
@@ -452,24 +452,24 @@ msgstr ""
 msgid "BACK"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:330
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:267
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:330
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:288
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:512
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:540
 msgid "BBF ALLOCATION FAILED"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:337
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:274
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:337
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:295
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:519
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:547
 msgid "BBF INITIALIZATION FAILED"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:338
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:275
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:338
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:296
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:520
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:548
@@ -506,8 +506,8 @@ msgstr ""
 msgid "Bed Temperature"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:639
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:541
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:639
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:597
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:793
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:870
@@ -582,8 +582,8 @@ msgstr ""
 msgid "COMMUNICATION ERROR"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:225
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:211
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:225
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:218
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:316
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:330
@@ -765,24 +765,24 @@ msgstr ""
 msgid "Check all tools if they are properly parked or picked."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:16
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:9
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:16
 msgid "Check the heatbed heater & thermistor wiring for possible damage."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:30
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:44
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:58
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:23
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:37
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:51
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:30
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:44
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:58
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:72
 msgid "Check the heatbed thermistor wiring for possible damage."
 msgstr ""
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:79
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:86
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:93
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:79
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:114
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:121
 msgid "Check the heatbreak thermistor wiring for possible damage."
@@ -792,17 +792,17 @@ msgstr ""
 msgid "Check the heater and thermistor wiring for potential damage."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:23
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:16
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:23
 msgid "Check the print head heater & thermistor wiring for possible damage."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:37
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:51
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:65
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:30
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:44
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:58
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:37
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:51
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:65
 msgid "Check the print head thermistor wiring for possible damage."
 msgstr ""
 
@@ -1228,8 +1228,8 @@ msgid ""
 "%s"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:254
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:240
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:254
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:247
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:352
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:380
@@ -1240,15 +1240,15 @@ msgstr ""
 msgid "EJECT FROM MMU"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:267
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:253
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:267
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:260
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:365
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:393
 msgid "EMERGENCY STOP"
 msgstr ""
 
-#: src/gui/screen_menu_enclosure.hpp:47
+#: src/gui/screen_menu_enclosure.hpp:41
 msgid "ENCLOSURE SETTINGS"
 msgstr ""
 
@@ -1286,11 +1286,11 @@ msgstr ""
 msgid "ERROR"
 msgstr ""
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:218
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:225
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:232
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:239
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:246
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:218
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:225
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:330
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:337
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:344
@@ -1300,32 +1300,32 @@ msgstr ""
 msgid "ESP ERROR"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:344
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:281
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:344
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:302
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:526
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:554
 msgid "ESP NOT CONNECTED"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:240
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:226
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:240
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:233
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:338
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:366
 msgid "ESP detected command error."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:247
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:233
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:247
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:240
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:345
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:373
 msgid "ESP detected unknown error."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:345
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:282
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:345
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:303
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:527
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:555
@@ -1383,8 +1383,8 @@ msgstr ""
 msgid "Ejecting filament"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:268
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:254
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:268
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:261
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:366
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:394
@@ -1453,8 +1453,8 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:380
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:317
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:380
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:338
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:562
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:590
@@ -1540,10 +1540,6 @@ msgstr ""
 msgid "FILTER CHANGE"
 msgstr ""
 
-#: src/gui/screen_menu_enclosure.hpp:61
-msgid "FILTRATION"
-msgstr ""
-
 #: src/gui/MItem_mmu.hpp:284
 msgid "FINDA"
 msgstr ""
@@ -1584,8 +1580,8 @@ msgstr ""
 msgid "FINISHED"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:428
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:365
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:428
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:386
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:610
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:638
@@ -1596,8 +1592,8 @@ msgstr ""
 msgid "FIRST LAYER CALIBRATION"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:379
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:316
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:379
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:337
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:561
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:589
@@ -1684,8 +1680,8 @@ msgstr ""
 msgid "FSensor side"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:400
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:337
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:400
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:358
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:582
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:610
@@ -1736,8 +1732,8 @@ msgid ""
 "axis."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:121
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:114
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:121
 msgid "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
 msgstr ""
 
@@ -1745,8 +1741,8 @@ msgstr ""
 msgid "Failed to home the Z-axis, make sure the loadcell is working."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:114
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:107
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:114
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:191
 msgid ""
 "Failed to home the extruder in X-axis, make sure there is no obstacle on X-"
@@ -1785,10 +1781,6 @@ msgstr ""
 
 #: src/gui/MItem_basic_selftest.cpp:309
 msgid "Failed to save calibration data"
-msgstr ""
-
-#: src/gui/MItem_enclosure.hpp:34
-msgid "Fan Always On"
 msgstr ""
 
 #: src/gui/MItem_tools.hpp:451
@@ -1915,8 +1907,8 @@ msgstr ""
 msgid "Filament inserted, press continue."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:485
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:408
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:485
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:436
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:653
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:681
@@ -1926,16 +1918,16 @@ msgid ""
 "Select DISABLE FS to disable the filament sensor and continue print."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:631
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:533
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:631
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:589
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:785
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:841
 msgid "Filament runout"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:632
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:534
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:632
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:590
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:786
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:842
@@ -1996,10 +1988,10 @@ msgstr ""
 msgid "Filament sensors calibration"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:505
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:506
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:421
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:422
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:505
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:506
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:456
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:457
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:666
@@ -2017,8 +2009,8 @@ msgstr ""
 msgid "File removed or transfer aborted"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:436
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:373
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:436
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:394
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:618
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:646
@@ -2033,10 +2025,6 @@ msgstr ""
 
 #: src/transfers/transfer_recovery.cpp:233
 msgid "File transfer error"
-msgstr ""
-
-#: src/gui/MItem_enclosure.hpp:81
-msgid "Filtration"
 msgstr ""
 
 #: src/common/footer_def.hpp:179
@@ -2088,8 +2076,8 @@ msgid ""
 "your printer."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:373
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:310
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:373
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:331
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:555
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:583
@@ -2099,8 +2087,8 @@ msgid ""
 "flash!"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:366
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:303
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:366
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:324
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:548
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:576
@@ -2132,8 +2120,8 @@ msgstr ""
 msgid "Firmware flashing successful!"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:394
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:331
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:394
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:352
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:576
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:604
@@ -2147,8 +2135,8 @@ msgid ""
 "USB drive again."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:401
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:338
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:401
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:359
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:583
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:611
@@ -2160,8 +2148,8 @@ msgid ""
 "firmware."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:387
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:324
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:387
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:345
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:569
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:597
@@ -2173,8 +2161,8 @@ msgid ""
 "be flashed."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:415
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:352
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:415
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:373
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:597
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:625
@@ -2187,8 +2175,8 @@ msgid ""
 "printer model."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:422
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:359
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:422
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:380
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:604
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:632
@@ -2251,8 +2239,8 @@ msgstr ""
 msgid "G-Code filaments"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:611
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:513
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:611
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:569
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:758
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:807
@@ -2301,57 +2289,57 @@ msgstr ""
 msgid "H"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:198
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:191
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:198
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:275
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:282
 msgid "HAL detected an I2C busy state when receiving data via I2C."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:170
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:163
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:170
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:247
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:254
 msgid "HAL detected an I2C busy state when sending data via I2C."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:191
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:184
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:191
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:268
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:275
 msgid "HAL detected an I2C error when receiving data via I2C."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:163
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:156
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:163
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:240
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:247
 msgid "HAL detected an I2C error when sending data via I2C."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:205
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:198
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:205
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:282
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:289
 msgid "HAL detected an I2C timeout when receiving data via I2C."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:177
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:170
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:177
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:254
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:261
 msgid "HAL detected an I2C timeout when sending data via I2C."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:212
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:205
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:212
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:289
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:296
 msgid "HAL detected an I2C undefined error when receiving data via I2C."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:184
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:177
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:184
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:261
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:268
 msgid "HAL detected an I2C undefined error when sending data via I2C."
@@ -2362,8 +2350,8 @@ msgstr ""
 msgid "HARDWARE"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:393
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:330
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:393
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:351
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:575
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:603
@@ -2374,20 +2362,20 @@ msgstr ""
 msgid "HB Fan RPM"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:148
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:141
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:148
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:225
 msgid "HEATBED PORT OVERCURRENT"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:92
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:85
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:92
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:120
 msgid "HEATBREAK MAXTEMP ERROR"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:85
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:78
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:85
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:113
 msgid "HEATBREAK MINTEMP ERROR"
 msgstr ""
@@ -2405,22 +2393,22 @@ msgstr ""
 msgid "HOME"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:113
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:106
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:113
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:190
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:211
 msgid "HOMING ERROR X"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:120
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:113
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:120
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:197
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:218
 msgid "HOMING ERROR Y"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:106
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:99
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:106
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:169
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:190
 msgid "HOMING ERROR Z"
@@ -2599,8 +2587,8 @@ msgstr ""
 msgid "Heatbreak status"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:604
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:506
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:604
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:555
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:751
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:793
@@ -2627,10 +2615,10 @@ msgstr ""
 msgid "Heating"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:569
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:583
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:471
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:485
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:569
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:583
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:520
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:534
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:716
@@ -2728,8 +2716,8 @@ msgstr ""
 msgid "Hotend fan RPM test"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:625
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:527
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:625
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:583
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:779
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:835
@@ -2746,57 +2734,57 @@ msgstr ""
 msgid "How to update firmware?"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:197
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:190
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:197
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:274
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:281
 msgid "I2C RECEIVE BUSY"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:190
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:183
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:190
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:267
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:274
 msgid "I2C RECEIVE FAILED"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:204
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:197
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:204
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:281
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:288
 msgid "I2C RECEIVE TIMEOUT"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:211
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:204
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:211
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:288
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:295
 msgid "I2C RECEIVE UNDEFINED"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:169
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:162
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:169
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:246
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:253
 msgid "I2C SEND BUSY"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:162
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:155
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:162
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:239
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:246
 msgid "I2C SEND FAILED"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:176
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:169
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:176
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:253
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:260
 msgid "I2C SEND TIMEOUT"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:183
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:176
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:183
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:260
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:267
 msgid "I2C SEND UNDEFINED"
@@ -2814,8 +2802,8 @@ msgstr ""
 msgid "IGNORE"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:386
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:323
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:386
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:344
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:568
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:596
@@ -2835,8 +2823,8 @@ msgstr ""
 msgid "INSPECT FINDA"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:365
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:302
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:365
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:323
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:547
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:575
@@ -3011,7 +2999,7 @@ msgstr ""
 msgid "LANGUAGE & TIME"
 msgstr ""
 
-#: src/gui/screen_menu_languages.hpp:140
+#: src/gui/screen_menu_languages.hpp:152
 msgid "LANGUAGES"
 msgstr ""
 
@@ -3100,8 +3088,8 @@ msgstr ""
 msgid "Left Side [um]"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:520
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:436
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:520
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:471
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:681
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:709
@@ -3111,8 +3099,8 @@ msgid ""
 "Retry check, pause or resume the print?"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:527
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:443
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:527
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:478
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:688
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:716
@@ -3294,21 +3282,21 @@ msgstr ""
 msgid "MAC Address"
 msgstr ""
 
-#: src/gui/screen_menu_enclosure.hpp:68
-msgid "MANUAL CONFIGURATION"
+#: src/gui/screen_menu_enclosure.hpp:55
+msgid "MANUAL SETTINGS"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:323
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:260
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:323
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:281
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:505
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:533
 msgid "MARLIN REQUEST TIMEOUT"
 msgstr ""
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:36
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:43
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:50
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:36
 msgid "MAXTEMP ERROR"
 msgstr ""
 
@@ -3316,8 +3304,8 @@ msgstr ""
 msgid "MBed MCU Temp"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:99
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:92
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:99
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:127
 msgid "MCU MAXTEMP ERROR"
 msgstr ""
@@ -3326,15 +3314,15 @@ msgstr ""
 msgid "MCU Temperature"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:100
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:93
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:100
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:128
 #, c-format
 msgid "MCU in %s is overheated."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:618
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:520
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:618
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:576
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:765
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:814
@@ -3364,9 +3352,9 @@ msgstr ""
 msgid "METRICS & LOG"
 msgstr ""
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:50
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:57
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:64
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:50
 msgid "MINTEMP ERROR"
 msgstr ""
 
@@ -3412,8 +3400,8 @@ msgstr ""
 msgid "MMU NOT RESPONDING"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:155
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:148
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:155
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:232
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:239
 msgid "MMU OVERCURRENT"
@@ -3533,8 +3521,8 @@ msgstr ""
 msgid "Make sure the filament is inserted through the sensor."
 msgstr ""
 
-#: src/gui/MItem_enclosure.hpp:71
-msgid "Manual Configuration"
+#: src/gui/MItem_enclosure.hpp:81
+msgid "Manual Settings"
 msgstr ""
 
 #: src/gui/screen_menu_hardware.cpp:45
@@ -3543,8 +3531,8 @@ msgid ""
 "automatically select the printer type, run the Self-test."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:324
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:261
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:324
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:282
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:506
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:534
@@ -3568,18 +3556,18 @@ msgid ""
 "is in contact with the heaterblock. In case of damage, replace it."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:72
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:65
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:72
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:100
 msgid ""
 "Measured temperature is not matching expected value. Check the thermistor is "
 "in contact with heatbed. In case of damage, replace it."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:79
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:576
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:72
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:478
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:79
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:576
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:527
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:723
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:765
@@ -3733,8 +3721,8 @@ msgstr ""
 msgid "NO"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:372
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:309
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:372
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:330
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:554
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:582
@@ -3749,8 +3737,8 @@ msgstr ""
 msgid "NOW"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:141
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:134
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:141
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:218
 msgid "NOZZLE HEATER OVERCURRENT"
 msgstr ""
@@ -3815,8 +3803,8 @@ msgstr ""
 msgid "No crash dump to save."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:429
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:366
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:429
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:387
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:611
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:639
@@ -3983,8 +3971,8 @@ msgstr ""
 msgid "ON "
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:253
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:239
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:253
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:246
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:351
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:379
@@ -4042,8 +4030,8 @@ msgstr ""
 msgid "Only Stored"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:128
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:121
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:128
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:205
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:226
 msgid "Overcurrent detected on USB port."
@@ -4053,21 +4041,21 @@ msgstr ""
 msgid "Overcurrent detected on heatbed port, disconnect the device."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:142
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:135
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:142
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:219
 msgid "Overcurrent detected on nozzle heater."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:156
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:149
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:156
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:233
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:240
 msgid "Overcurrent detected on the MMU port, disconnect the device."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:135
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:128
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:135
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:212
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:233
 msgid "Overcurrent detected on the connected USB device, disconnect it."
@@ -4108,8 +4096,8 @@ msgstr ""
 msgid "PIN NOT REACHED"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:260
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:246
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:260
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:253
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:358
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:386
@@ -4127,9 +4115,9 @@ msgstr ""
 msgid "PRECISE REFINEMENT FAILED"
 msgstr ""
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:8
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:15
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:22
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:8
 msgid "PREHEAT ERROR"
 msgstr ""
 
@@ -4309,8 +4297,8 @@ msgid "Please assign a tool to the filament"
 msgstr ""
 
 #: src/gui/box_unfinished_selftest.cpp:86
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:464
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:387
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:464
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:415
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:632
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:660
@@ -4346,8 +4334,12 @@ msgstr ""
 msgid "Please wait until a tool is picked"
 msgstr ""
 
-#: src/gui/MItem_enclosure.hpp:44
-msgid "Post Print Filtration"
+#: src/gui/MItem_enclosure.hpp:
+msgid "Post Print Filtration Duration"
+msgstr ""
+
+#: src/gui/MItem_enclosure.hpp:
+msgid "Print Filtration"
 msgstr ""
 
 #: src/gui/MItem_mmu.hpp:186
@@ -4456,6 +4448,10 @@ msgstr ""
 msgid "Print Fan Speed"
 msgstr ""
 
+#: src/gui/MItem_enclosure.hpp:34
+msgid "Print Filtration"
+msgstr ""
+
 #: src/gui/MItem_tools.hpp:554
 msgid "Print Progress Screen"
 msgstr ""
@@ -4486,8 +4482,8 @@ msgstr ""
 msgid "Print fan RPM test"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:562
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:464
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:562
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:513
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:709
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:751
@@ -4699,8 +4695,8 @@ msgstr ""
 msgid "Ramming"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:233
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:219
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:233
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:226
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:331
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:359
@@ -4746,8 +4742,8 @@ msgstr ""
 msgid "Registration successful, continue at connect.prusa3d.com"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:226
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:212
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:226
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:219
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:317
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:331
@@ -4781,8 +4777,8 @@ msgstr ""
 msgid "Rename"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:534
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:450
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:534
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:485
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:695
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:723
@@ -4875,7 +4871,7 @@ msgid ""
 "Running the phase stepping calibration to reduce vibrations. Please wait..."
 msgstr ""
 
-#: src/gui/screen_menu_languages.hpp:172
+#: src/gui/screen_menu_languages.hpp:187
 msgid "SELECT LANGUAGE"
 msgstr ""
 
@@ -5185,8 +5181,8 @@ msgstr ""
 msgid "Sound Volume"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:331
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:268
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:331
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:289
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:513
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:541
@@ -5231,8 +5227,8 @@ msgstr ""
 msgid "Steel Sheets"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:590
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:492
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:590
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:541
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:737
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:779
@@ -5333,9 +5329,9 @@ msgstr ""
 msgid "T6"
 msgstr ""
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:64
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:71
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:78
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:64
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:99
 msgid "TEMP NOT MATCHING"
 msgstr ""
@@ -5352,9 +5348,9 @@ msgstr ""
 msgid "TEST ERROR"
 msgstr ""
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:22
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:29
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:36
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:22
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:71
 msgid "THERMAL RUNAWAY"
 msgstr ""
@@ -5585,8 +5581,8 @@ msgstr ""
 msgid "Testing filament"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:478
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:401
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:478
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:429
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:646
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:674
@@ -5692,8 +5688,8 @@ msgid ""
 "gearboxes. In all other cases, you can skip this step."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:513
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:429
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:513
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:464
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:674
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:702
@@ -5764,8 +5760,8 @@ msgstr ""
 msgid "This G-code was set up for another filament type."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:352
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:289
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:352
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:310
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:534
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:562
@@ -6198,24 +6194,24 @@ msgstr ""
 msgid "UNLOAD MANUALLY"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:421
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:358
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:421
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:379
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:603
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:631
 msgid "UNSUPPORTED BUDDY FW"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:442
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:379
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:442
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:400
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:624
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:652
 msgid "UNSUPPORTED FIRMWARE BBF FILE"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:414
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:351
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:414
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:372
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:596
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:624
@@ -6226,38 +6222,38 @@ msgstr ""
 msgid "UP"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:134
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:127
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:134
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:211
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:232
 msgid "USB DEVICE OVERCURRENT"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:358
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:295
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:358
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:316
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:540
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:568
 msgid "USB FLASH DRIVE NOT CONNECTED"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:435
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:372
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:435
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:393
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:617
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:645
 msgid "USB FLASH ERROR"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:127
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:120
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:127
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:204
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:225
 msgid "USB PORT OVERCURRENT"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:359
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:296
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:359
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:317
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:541
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:569
@@ -6273,16 +6269,16 @@ msgstr ""
 msgid "USB drive not detected! Insert USB drive first!"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:597
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:499
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:597
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:548
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:744
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:786
 msgid "USB drive or file error, the print is now paused. Reconnect the drive."
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:443
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:380
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:443
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:401
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:625
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:653
@@ -6295,8 +6291,8 @@ msgstr ""
 msgid "USER INTERFACE"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:541
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:457
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:541
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:492
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:702
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:730
@@ -6468,8 +6464,8 @@ msgstr ""
 msgid "Waiting for temperature"
 msgstr ""
 
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:653
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:548
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:653
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:611
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:807
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:884
@@ -6486,17 +6482,17 @@ msgid "Warn"
 msgstr ""
 
 #: src/guiapi/src/window_msgbox.cpp:332
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:386
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:393
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:400
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:407
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:414
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:463
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:470
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:477
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:484
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:491
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:498
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:386
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:393
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:400
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:407
-#: build-vscode-buddy/lib/error_codes/error_list.hpp:414
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:421
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:428
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:435

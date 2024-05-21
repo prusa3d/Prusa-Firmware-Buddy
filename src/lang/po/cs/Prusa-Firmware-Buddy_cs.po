@@ -3525,11 +3525,11 @@ msgstr ""
 "automatické rozpoznání typu tiskárny, spusťte Self-test."
 
 #: src/gui/MItem_enclosure.hpp:71
-msgid "Manual Configuration"
+msgid "Manual Settings"
 msgstr "Ruční nastavení"
 
 #: src/gui/screen_menu_enclosure.hpp:68
-msgid "MANUAL CONFIGURATION"
+msgid "MANUAL SETTINGS"
 msgstr "RUČNÍ NASTAVENÍ"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:324
@@ -4557,6 +4557,14 @@ msgstr "VYROVNÁVACÍ PAMĚŤ PNG PLNÁ"
 #: src/gui/MItem_enclosure.hpp:44
 msgid "Post Print Filtration"
 msgstr "Filtrace po tisku"
+
+#: src/gui/MItem_enclosure.hpp:
+msgid "Post Print Filtration Duration"
+msgstr "Doba filtrace po tisku"
+
+#: src/gui/MItem_enclosure.hpp:
+msgid "Print Filtration"
+msgstr "Filtrace tisku"
 
 #: src/gui/MItem_mmu.hpp:186
 msgid "Power Cycle"
