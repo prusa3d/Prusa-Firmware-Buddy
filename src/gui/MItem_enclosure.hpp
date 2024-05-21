@@ -68,7 +68,7 @@ protected:
 };
 
 class MI_ENCLOSURE_POST_PRINT_DURATION : public WiSpinInt {
-    static constexpr const char *const label = N_("Post Print Duration");
+    static constexpr const char *const label = N_("Post Print Filtration Duration");
 
 public:
     MI_ENCLOSURE_POST_PRINT_DURATION();
