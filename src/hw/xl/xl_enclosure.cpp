@@ -103,7 +103,7 @@ int Enclosure::getEnclosureTemperature() {
 }
 
 void Enclosure::resetFilterTimer() {
-    clrPersistentFlg(PERSISTENT::WARNING_SHOWN | PERSISTENT::EXPIRATION_SHOWN);
+    clrPersistentFlg(PERSISTENT::WARNING_SHOWN | PERSISTENT::EXPIRATION_SHOWN | PERSISTENT::REMINDER_5DAYS);
     config_store().xl_enclosure_filter_timer.set(0);
 }
 
@@ -196,6 +196,26 @@ bool Enclosure::isPostPrintFiltrationNeeded() {
     return false;
 }
 
+// The previous state is not more narrowly defined here, because enclosure loop is executed periodically with a delay
+// More state switches could take place between loop executions
+static bool isBasicStartPrint(marlin_server::State previous_state) {
+    switch (previous_state) {
+    case marlin_server::State::Idle:
+    case marlin_server::State::WaitGui:
+    case marlin_server::State::PrintPreviewInit:
+    case marlin_server::State::PrintPreviewImage:
+    case marlin_server::State::PrintPreviewConfirmed:
+    case marlin_server::State::PrintPreviewQuestions:
+    case marlin_server::State::PrintPreviewToolsMapping:
+    case marlin_server::State::PrintInit:
+    case marlin_server::State::SerialPrintInit:
+        return true;
+    default:
+        break;
+    }
+    return false;
+}
+
 std::optional<WarningType> Enclosure::checkPrintState(marlin_server::State print_state, uint32_t curr_sec) {
 
     std::optional<WarningType> ret = std::nullopt;
@@ -211,7 +231,7 @@ std::optional<WarningType> Enclosure::checkPrintState(marlin_server::State print
             print_end_sec = 0;
 
             // Pop up expiration dialog
-            if (isExpirationShown() && !isReminderSet() && (previous_print_state == marlin_server::State::PrintInit || previous_print_state == marlin_server::State::SerialPrintInit)) {
+            if (isExpirationShown() && !isReminderSet() && isBasicStartPrint(previous_print_state)) {
                 // Print start (except for resuming)
                 ret = { WarningType::EnclosureFilterExpiration };
             }
