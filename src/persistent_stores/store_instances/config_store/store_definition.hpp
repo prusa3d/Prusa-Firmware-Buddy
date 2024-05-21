@@ -445,7 +445,7 @@ struct CurrentStore
 #endif
 
 #if PRINTER_IS_PRUSA_XL
-    StoreItem<uint8_t, 0, journal::hash("XL Enclosure Flags")> xl_enclosure_flags;
+    StoreItem<uint8_t, 6, journal::hash("XL Enclosure Flags")> xl_enclosure_flags;
     StoreItem<int64_t, defaults::int64_zero, journal::hash("XL Enclosure Filter Timer")> xl_enclosure_filter_timer;
     StoreItem<uint8_t, defaults::uint8_percentage_80, journal::hash("XL Enclosure Fan Manual Setting")> xl_enclosure_fan_manual;
     StoreItem<uint8_t, 10, journal::hash("XL Enclosure Post Print Duration")> xl_enclosure_post_print_duration;
