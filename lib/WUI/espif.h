@@ -108,7 +108,7 @@ namespace espif::scan {
 /// auto reconnect.
 /// The scan is done incrementally.
 /// It starts with a short intervals to quickly find some APs.
-/// These interval are doubled every time until the scan reaches ~30s scan time.
+/// The interval is doubled every time until the scan reaches ~30s scan time.
 /// Found APs are stored in the esp memory until new scan is started.
 /// To access the found aps use espif::scan::get_ap_info.
 /// After every interval the esp sends the number of stored APs.
@@ -131,7 +131,7 @@ namespace espif::scan {
 /// @brief Retrieve ap info from esp.
 ///
 /// Retrieves data from esp over UART.
-/// This function blocks until the data are received (athough the responses are relarivelly quick - 0.8ms).
+/// This function blocks until the data are received (the responses are relarivelly quick - 0.8ms).
 /// The parameter needs_password isn't 100% accurate since we know that the esp says that some APs doesn't need a
 /// password even though they actually need it.
 [[nodiscard]] err_t get_ap_info(uint8_t ap_index, std::span<uint8_t> ssid_buffer, bool &needs_password);
