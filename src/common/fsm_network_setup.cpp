@@ -62,7 +62,7 @@ private:
     PhaseOpt check_nfc() {
 #if HAS_NFC()
         const auto current_ms = ticks_ms();
-        if (ticks_diff(current_ms, last_nfc_check_ms_) < 200) {
+        if (ticks_diff(current_ms, last_nfc_check_ms_) < nfc::OPTIMAL_CHECK_DIFF_MS) {
             return std::nullopt;
         }
         last_nfc_check_ms_ = current_ms;

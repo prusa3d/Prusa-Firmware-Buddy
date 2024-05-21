@@ -9,6 +9,8 @@
 
 namespace nfc {
 
+static constexpr int32_t OPTIMAL_CHECK_DIFF_MS { 200 };
+
 void init();
 
 void turn_on();

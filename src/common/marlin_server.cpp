@@ -514,7 +514,7 @@ void print_fan_spd() {
 void handle_nfc() {
     static uint32_t last_check = 0;
     const uint32_t current_time = ticks_ms();
-    if (last_check > current_time || (current_time - last_check) >= 200 /* FIXME */) {
+    if (last_check > current_time || (current_time - last_check) >= nfc::OPTIMAL_CHECK_DIFF_MS) {
         last_check = current_time;
 
         if (nfc::has_activity()) {
