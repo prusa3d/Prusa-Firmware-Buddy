@@ -170,8 +170,10 @@ static PhasesInputShaperCalibration parking(Context &context) {
         GcodeSuite::G28_no_parser(false, true, 0, false, true, true, true);
     }
 
+#if HAS_REMOTE_ACCELEROMETER()
     // Without tool being picked there is no accelerometer data
     tool_change(/*tool_index=*/0, tool_return_t::no_return, tool_change_lift_t::no_lift, /*z_down=*/false);
+#endif
 
     // Easier access to cables + more consistent measurement
     const xyz_pos_t pos = { X_BED_SIZE / 2, Y_BED_SIZE / 2, Z_SIZE / 2 };
