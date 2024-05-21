@@ -25,19 +25,6 @@ namespace config_store_ns {
 
 // Holds default constants so they can be referenced by store item. Placing these constants in another header where it's more meaningful is welcome. These defaults could be passed directly as template parameter to store items from gcc 11 onwards (and store items would accept them as value instead of as a const ref).
 namespace defaults {
-    // Variables without a distinct default values can use these shared ones
-    inline constexpr bool bool_true { true };
-    inline constexpr bool bool_false { false };
-
-    inline constexpr float float_zero { 0.0f };
-    inline constexpr uint8_t uint8_t_zero { 0 };
-    inline constexpr uint16_t uint16_t_zero { 0 };
-    inline constexpr uint32_t uint32_t_zero { 0 };
-    inline constexpr int8_t int8_t_zero { 0 };
-    inline constexpr uint8_t uint8_t_10 { 10 };
-
-    inline constexpr uint8_t uint8_t_ff { 0xff };
-
     // default values for variables that have distinct requirements
     inline constexpr float pid_nozzle_p {
 #ifdef DEFAULT_Kp
