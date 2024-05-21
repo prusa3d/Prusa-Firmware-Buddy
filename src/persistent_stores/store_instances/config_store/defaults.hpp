@@ -35,7 +35,7 @@ namespace defaults {
     inline constexpr uint32_t uint32_t_zero { 0 };
     inline constexpr int8_t int8_t_zero { 0 };
     inline constexpr uint8_t uint8_t_10 { 10 };
-
+    inline constexpr uint8_t uint8_t_6 { 6 };
     inline constexpr uint8_t uint8_t_ff { 0xff };
 
     // default values for variables that have distinct requirements
