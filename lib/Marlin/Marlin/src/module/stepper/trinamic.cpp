@@ -856,6 +856,7 @@ TMCStepper &stepper_axis(const AxisEnum axis)
 
 uint16_t stepper_microsteps(const AxisEnum axis, uint16_t new_microsteps)
 {
+    assert(!phase_stepping::is_enabled(axis));
     uint16_t cur_microsteps = stepper_axis(axis).microsteps();
     if (new_microsteps) {
         stepper_axis(axis).microsteps(new_microsteps);

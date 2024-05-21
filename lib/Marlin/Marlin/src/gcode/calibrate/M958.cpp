@@ -656,8 +656,9 @@ static bool is_ok(PrusaAccelerometer::Error error) {
  * - K         Klipper compatible report
  */
 void GcodeSuite::M958() {
-    MicrostepRestorer microstepRestorer;
+    // phstep needs to be off _before_ getting the current ustep resolution
     phase_stepping::EnsureDisabled phaseSteppingDisabler;
+    MicrostepRestorer microstepRestorer;
     const StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
     const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
     if (isnan(step_len)) {
@@ -1087,8 +1088,9 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
  *   W           Write the detected calibration to EEPROM
  */
 void GcodeSuite::M959() {
-    MicrostepRestorer microstepRestorer;
+    // phstep needs to be off _before_ getting the current ustep resolution
     phase_stepping::EnsureDisabled phaseSteppingDisabler;
+    MicrostepRestorer microstepRestorer;
     const StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
     const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
     if (isnan(step_len)) {

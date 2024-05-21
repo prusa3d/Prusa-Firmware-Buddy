@@ -263,7 +263,9 @@ static bool measuring_axis(
     };
     marlin_server::fsm_change(phase, data);
 
-    MicrostepRestorer microstepRestorer; // modifies mres as a side-effect
+    // phstep needs to be off _before_ getting the current ustep resolution
+    phase_stepping::EnsureDisabled phaseSteppingDisabler;
+    MicrostepRestorer microstepRestorer;
     enable_all_steppers(); // enable all axes to have the same state as printing
 
     stepper_microsteps(logicalAxis, 128);
