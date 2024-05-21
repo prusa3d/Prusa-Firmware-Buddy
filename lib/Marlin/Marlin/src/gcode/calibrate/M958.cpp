@@ -913,6 +913,9 @@ static Shaper_result fit_shaper(FindBestShaperProgressHook &progress_hook, input
                 if (vibrations > shaper_vibrations) {
                     shaper_vibrations = vibrations;
                 }
+                if (progress_hook(type, progress_ratio) == ProgressResult::abort) {
+                    return {};
+                }
             }
             /// todo max_accel = self.find_shaper_max_accel(shaper) (not needed to fit filter)
 
