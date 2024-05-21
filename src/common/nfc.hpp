@@ -1,11 +1,8 @@
 #pragma once
 
-#include <option/has_nfc.h>
-#if HAS_NFC()
+#include <wifi_credentials.hpp>
 
-    #include <wifi_credentials.hpp>
-
-    #include <optional>
+#include <atomic>
 
 namespace nfc {
 
@@ -20,6 +17,15 @@ bool has_activity();
 
 std::optional<WifiCredentials> consume_data();
 
-}; // namespace nfc
+struct SharedEnabler {
+    SharedEnabler();
+    ~SharedEnabler();
 
-#endif
+    SharedEnabler(const SharedEnabler &) = delete;
+    SharedEnabler &operator=(const SharedEnabler &) = delete;
+
+protected:
+    static std::atomic<uint8_t> level;
+};
+
+}; // namespace nfc

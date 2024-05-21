@@ -8,9 +8,14 @@
 #include "window_dlg_wait.hpp"
 #include <guiconfig/guiconfig.h>
 #include <option/has_mmu2.h>
+#include <option/has_nfc.h>
 
 #if HAS_MMU2()
     #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_state.h"
+#endif
+
+#if HAS_NFC()
+    #include <nfc.hpp>
 #endif
 
 class screen_home_data_t : public screen_t {
@@ -41,6 +46,10 @@ private:
 #endif
     WindowMultiIconButton w_buttons[button_count];
     window_text_t w_labels[button_count];
+
+#if HAS_NFC()
+    nfc::SharedEnabler nfc_enable;
+#endif
 
 public:
     static void SetTouchBrokenDuringRun() { touch_broken_during_run = true; }

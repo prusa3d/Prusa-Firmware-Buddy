@@ -436,15 +436,11 @@ private:
 
 #if HAS_NFC()
 class FrameWaitForNFC : public FrameText {
+    nfc::SharedEnabler nfc_enable;
 
 public:
     FrameWaitForNFC(window_t *parent)
         : FrameText(parent, Phase::wait_for_nfc, _("Credentials via NFC"), _("[TODO] Open app in the phone, follow instructions, let the printer NFC scan the phone.")) {
-        nfc::turn_on();
-    }
-
-    ~FrameWaitForNFC() {
-        nfc::turn_off();
     }
 };
 

@@ -1,20 +1,18 @@
 #include "nfc.hpp"
 
-#if HAS_NFC()
+#include "st25dv64k.h"
+#include "st25dv64k_internal.h"
 
-    #include "st25dv64k.h"
-    #include "st25dv64k_internal.h"
+// ntohs
+#ifdef UNITTESTS
+    #include <arpa/inet.h>
+#else
+    #include <lwip/def.h>
+#endif
 
-    // ntohs
-    #ifdef UNITTESTS
-        #include <arpa/inet.h>
-    #else
-        #include <lwip/def.h>
-    #endif
-
-    #include <str_utils.hpp>
-    #include <string.h>
-    #include <tuple>
+#include <str_utils.hpp>
+#include <string.h>
+#include <tuple>
 
 namespace nfc {
 
@@ -332,6 +330,18 @@ std::optional<WifiCredentials> consume_data() {
     return credentials;
 }
 
-} // namespace nfc
+std::atomic<uint8_t> SharedEnabler::level { 0 };
 
-#endif
+SharedEnabler::SharedEnabler() {
+    if (++level == 1) {
+        turn_on();
+    }
+}
+
+SharedEnabler::~SharedEnabler() {
+    if (--level == 0) {
+        turn_off();
+    }
+}
+
+} // namespace nfc
