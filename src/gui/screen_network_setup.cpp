@@ -14,6 +14,10 @@
 #include <fsm_network_setup.hpp>
 #include <gui/frame_qr_layout.hpp>
 
+#if HAS_NFC()
+    #include <nfc.hpp>
+#endif
+
 LOG_COMPONENT_REF(GUI);
 
 namespace network_wizard {
@@ -436,6 +440,11 @@ class FrameWaitForNFC : public FrameText {
 public:
     FrameWaitForNFC(window_t *parent)
         : FrameText(parent, Phase::wait_for_nfc, _("Credentials via NFC"), _("[TODO] Open app in the phone, follow instructions, let the printer NFC scan the phone.")) {
+        nfc::turn_on();
+    }
+
+    ~FrameWaitForNFC() {
+        nfc::turn_off();
     }
 };
 
