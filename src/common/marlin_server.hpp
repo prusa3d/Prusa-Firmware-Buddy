@@ -109,9 +109,6 @@ uint32_t get_command();
 void set_command(uint32_t command);
 
 //
-void test_start(const uint64_t test_mask, const uint8_t tool_mask);
-
-//
 void test_abort();
 
 //
