@@ -41,6 +41,7 @@
 #include <device/peripherals.h>
 #include <option/has_mmu2.h>
 #include <option/has_human_interactions.h>
+#include <option/has_nfc.h>
 
 #include "screen_menu_settings.hpp"
 #include "screen_menu_filament.hpp"
@@ -56,6 +57,10 @@
 #include <guiconfig/guiconfig.h>
 
 #include "usb_host.h"
+
+#if HAS_NFC()
+    #include <nfc.hpp>
+#endif
 
 // TODO remove netdev_is_enabled after it is defined
 bool __attribute__((weak)) netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) { return true; }
@@ -218,10 +223,18 @@ screen_home_data_t::screen_home_data_t()
         usbWasAlreadyInserted = true;
     }
     ever_been_opened = true;
+
+#if HAS_NFC()
+    nfc::turn_on();
+#endif
 }
 
 screen_home_data_t::~screen_home_data_t() {
     GuiMediaEventsHandler::ConsumeOneClickPrinting();
+
+#if HAS_NFC()
+    nfc::turn_off();
+#endif
 }
 
 void screen_home_data_t::filamentBtnSetState() {
