@@ -16,6 +16,11 @@
 #include <config_store/store_instance.hpp>
 #include <feature/prusa/MMU2/mmu2_mk4.h>
 
+#include <option/has_printer_setup_screen.h>
+#if HAS_PRINTER_SETUP_SCREEN()
+    #include <gui/screen_printer_setup.hpp>
+#endif
+
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT
 MI_MMU_PRELOAD_ADVANCED::MI_MMU_PRELOAD_ADVANCED()
@@ -181,15 +186,22 @@ static bool flip_mmu_rework([[maybe_unused]] bool flip_mmu_at_the_end) {
 
 // The FS is not calibrated on MK3.5
 #if !PRINTER_IS_PRUSA_MK3_5
+    const auto fsstate = GetExtruderFSensor(0)->get_state();
     GetExtruderFSensor(0)->SetInvalidateCalibrationFlag();
-    // opens the screen in advance before the screen will be opened by the selftest
-    // this prevents the user to click something before the selftest screen would open
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
 
-    if (flip_mmu_at_the_end) {
-        marlin_client::test_start(stmFSensor_flip_mmu_at_the_end);
-    } else {
-        marlin_client::test_start(stmFSensor);
+    if (fsstate != FilamentSensorState::NotCalibrated && fsstate != FilamentSensorState::Disabled
+        // Do not open selftest during ScreenPrinterSetup, it would screw things up (and the screen can be opened during the selftest)
+        && Screens::Access()->IsScreenOpened<ScreenPrinterSetup>() //
+    ) {
+        // opens the screen in advance before the screen will be opened by the selftest
+        // this prevents the user to click something before the selftest screen would open
+        Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
+
+        if (flip_mmu_at_the_end) {
+            marlin_client::test_start(stmFSensor_flip_mmu_at_the_end);
+        } else {
+            marlin_client::test_start(stmFSensor);
+        }
     }
 #endif
 
