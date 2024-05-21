@@ -21,7 +21,7 @@
 class WindowMenu : public IWindowMenu {
 
 private:
-    IWinMenuContainer *pContainer;
+    IWinMenuContainer *pContainer = nullptr;
 
     struct Node {
         IWindowMenuItem *item;
@@ -36,7 +36,7 @@ private:
     Node findNext(Node prev);
 
 public:
-    WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer);
+    WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer = nullptr);
     void BindContainer(IWinMenuContainer &cont);
 
     std::optional<int> item_index_to_persistent_index(std::optional<int> item_index) const override;

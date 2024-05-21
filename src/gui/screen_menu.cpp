@@ -5,7 +5,7 @@
 IScreenMenu::IScreenMenu(window_t *parent, string_view_utf8 label, EFooter FOOTER)
     : screen_t(parent, parent != nullptr ? win_type_t::dialog : win_type_t::normal)
     , header(this)
-    , menu(this, FOOTER == EFooter::On ? GuiDefaults::RectScreenBody : GuiDefaults::RectScreenNoHeader, nullptr)
+    , menu(this, FOOTER == EFooter::On ? GuiDefaults::RectScreenBody : GuiDefaults::RectScreenNoHeader)
     , footer(this) {
 
     header.SetText(label);
