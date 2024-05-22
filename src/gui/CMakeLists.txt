@@ -160,6 +160,10 @@ if(HAS_SHEET_PROFILES)
   target_sources(firmware PRIVATE MItem_steel_sheets.cpp screen_menu_steel_sheets.cpp)
 endif()
 
+if(HAS_PRINTER_SETUP_SCREEN)
+  target_sources(firmware PRIVATE screen_printer_setup.cpp)
+endif()
+
 if(HAS_MMU2)
   target_sources(
     firmware
