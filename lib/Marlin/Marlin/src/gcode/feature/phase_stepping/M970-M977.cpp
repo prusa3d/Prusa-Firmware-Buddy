@@ -77,23 +77,6 @@ void GcodeSuite::M970() {
 }
 
 /**
- * @brief Disable phase stepping for axis
- *
- * - valid axes X, Y
- */
-void GcodeSuite::M971() {
-    planner.synchronize();
-    for (auto [axis, letter] : SUPPORTED_AXES) {
-        if (!parser.seen(letter)) {
-            continue;
-        }
-        phase_stepping::enable(axis, false);
-        config_store().set_phase_stepping_enabled(axis, false);
-    }
-    report_state();
-}
-
-/**
  * @brief Retrieve current correction
  *
  * Outputs the current correction table in format: `<axis>, <direction>,

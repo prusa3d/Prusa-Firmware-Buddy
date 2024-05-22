@@ -890,9 +890,9 @@ void MI_PHASE_STEPPING::OnChange([[maybe_unused]] size_t old_index) {
     }
 
     if (index) {
-        marlin_server::enqueue_gcode("M970 X Y"); // turn phase stepping on
+        marlin_client::gcode("M970 X1 Y1"); // turn phase stepping on
     } else {
-        marlin_server::enqueue_gcode("M971 X Y"); // turn phase stepping off
+        marlin_client::gcode("M970 X0 Y0"); // turn phase stepping off
     }
 
     // we need to wait until the action actually takes place so that when returning
