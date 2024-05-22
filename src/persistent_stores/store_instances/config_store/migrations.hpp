@@ -34,6 +34,11 @@ namespace deprecated_ids {
     inline constexpr uint16_t fsensor_enabled_v1[] {
         journal::hash("FSensor Enabled"),
     };
+#if PRINTER_IS_PRUSA_MK4
+    inline constexpr uint16_t extended_printer_type[] {
+        journal::hash("400 step motors on X and Y axis"),
+    };
+#endif
 } // namespace deprecated_ids
 
 namespace migrations {
@@ -47,6 +52,10 @@ namespace migrations {
 
     void selftest_result_pre_gears(journal::Backend &backend);
     void fsensor_enabled_v1(journal::Backend &backend);
+
+#if PRINTER_IS_PRUSA_MK4
+    void extended_printer_type(journal::Backend &backend);
+#endif
 } // namespace migrations
 
 /**
@@ -65,6 +74,10 @@ inline constexpr journal::Backend::MigrationFunction migration_functions[] {
 #endif
         { migrations::fsensor_enabled_v1, deprecated_ids::fsensor_enabled_v1 },
         { migrations::footer_setting_v2, deprecated_ids::footer_setting_v2 },
+
+#if PRINTER_IS_PRUSA_MK4
+        { migrations::extended_printer_type, { deprecated_ids::extended_printer_type } },
+#endif
 };
 
 // Span of migration versions to simplify passing it around

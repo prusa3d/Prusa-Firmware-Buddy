@@ -274,13 +274,6 @@ namespace defaults {
     inline constexpr int16_t homing_sens_x { stallguard_sensitivity_unset };
     inline constexpr int16_t homing_sens_y { stallguard_sensitivity_unset };
 
-    inline constexpr bool xy_motors_400_step {
-#if PRINTER_IS_PRUSA_MK4
-        true
-#else
-        false
-#endif
-    };
     inline constexpr HotendType hotend_type {
 #if PRINTER_IS_PRUSA_iX
         HotendType::stock_with_sock

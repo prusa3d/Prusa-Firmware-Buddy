@@ -421,8 +421,6 @@ struct CurrentStore
     StoreItem<int16_t, defaults::homing_sens_x, journal::hash("Homing Sens X")> homing_sens_x; // X axis homing sensitivity
     StoreItem<int16_t, defaults::homing_sens_y, journal::hash("Homing Sens Y")> homing_sens_y; // Y axis homing sensitivity
 
-    StoreItem<bool, defaults::xy_motors_400_step, journal::hash("400 step motors on X and Y axis")> xy_motors_400_step;
-
     StoreItem<bool, true, journal::hash("Stuck filament detection V2")> stuck_filament_detection;
 
     StoreItem<bool, false, journal::hash("Stealth mode")> stealth_mode;
@@ -513,6 +511,11 @@ struct DeprecatedStore
     StoreItem<bool, true, journal::hash("Input Shaper Weight Adjust Y Enabled")> input_shaper_weight_adjust_y_enabled;
 
     StoreItem<bool, false, journal::hash("Stuck filament detection")> stuck_filament_detection;
+
+    /// Changed into ExtendedPrinterType
+    /// This was used everywhere as determining if the printer is MK3.9 (== false) :/
+    // All other printers seem to have it true
+    StoreItem<bool, true, journal::hash("400 step motors on X and Y axis")> xy_motors_400_step;
 };
 
 } // namespace config_store_ns

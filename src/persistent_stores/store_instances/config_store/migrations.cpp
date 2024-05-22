@@ -146,5 +146,22 @@ namespace migrations {
         bool new_fs_enabled { fs_enabled_v1 };
         backend.save_migration_item(journal::hash("FSensor Enabled V2"), new_fs_enabled);
     }
+
+#if PRINTER_IS_PRUSA_MK4
+    void extended_printer_type(journal::Backend &backend) {
+        // See selftest_result_pre_23 (above) for in-depth commentary
+        using OldItem = decltype(DeprecatedStore::xy_motors_400_step);
+        bool has_400_motors = true;
+
+        auto callback = [&](journal::Backend::ItemHeader header, std::array<uint8_t, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            if (header.id == OldItem::hashed_id) {
+                memcpy(&has_400_motors, buffer.data(), header.len);
+            }
+        };
+        backend.read_items_for_migrations(callback);
+
+        backend.save_migration_item(journal::hash("Extended Printer Type"), has_400_motors ? ExtendedPrinterType::mk4 : ExtendedPrinterType::mk3_9);
+    }
+#endif
 } // namespace migrations
 } // namespace config_store_ns
